@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { buildItemModel, buildSparkles, fluidMaterials, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
+import { buildItemModel, buildSparkles, buildMotes, fluidMaterials, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
 import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 
-// Opening a box. The makers' boxes are big, and they have no lid: they wake,
-// float up off the ground, wobble a few times like a caught thing deciding, and
-// come apart into light, leaving what they kept hovering where they stood.
+// Opening a box. The makers' chests are big: they wake, float up off the ground,
+// wobble a few times like a caught thing deciding, part like petals with jade light
+// rising out of them, and come apart into light, leaving what they kept hovering
+// where they stood.
 //
 //   approach  the camera cuts to a low three-quarter shot over the traveller's right
 //             shoulder; the traveller is set square in front of the box, facing it
@@ -12,8 +13,10 @@ import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 //   rise      it floats up off the ground, turning slowly, and hangs there
 //   wobble    it rocks, rests, rocks again (WOBBLES: two or three, each a ray of light across
 //             it and a knock), then a last still moment
-//   dissolve  it comes apart from the top down (the materials' DISSOLVE block: noise,
-//             a burning edge); the item grows out of the light at its centre
+//   dissolve  it opens (OPENING): the halves over its band part on their hinges like petals (the temple's
+//             bud falls open like a flower, its jade heart rising), motes of jade light rise out of it and
+//             the item grows out of the light at its centre; then it comes apart from the top down (the
+//             materials' DISSOLVE block: noise, a burning edge)
 //   reveal    the box is gone; the item hovers, turning, with a little sparkle; fanfare
 //   card      what it is, what it does: E, click or tap to go on
 //   beat      the item is granted, and a short closing beat that depends on what it is (beats.js:
@@ -28,7 +31,10 @@ import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 // cam: { shot({ pos, look, fov }), release(blend), hud(show), bars(on) } (main.js
 // routes it to the ship's cinematic camera; tests pass nothing).
 
-export const TIMES = { approach: 0.5, wake: 0.7, rise: 1.0, wobble: 2.7, dissolve: 1.5, reveal: 0.9 };
+export const TIMES = { approach: 0.5, wake: 0.7, rise: 1.0, wobble: 2.7, dissolve: 1.8, reveal: 0.9 };
+/** The dissolve phase in stages (shares of it): the petals part over the first `open`, the item grows from `grow` for
+ *  `growFor`, the shell comes apart from `apart` to the end. */
+export const OPENING = { open: 0.5, grow: 0.3, growFor: 0.55, apart: 0.55 };
 const ORDER = ['approach', 'wake', 'rise', 'wobble', 'dissolve', 'reveal', 'card', 'beat', 'out'];
 /**
  * The wobbles, in the wobble phase (s): when each starts, how long it rocks, how far (rad), and
@@ -110,14 +116,16 @@ export class BoxScene {
       }
     }
     this.ground = stand.y;
-    this.H = BOX.h + BOX.lid;   // the box's height (unscaled)
+    this.H = b.parts?.size?.h ?? BOX.h + BOX.lid;   // the chest's height (unscaled: its kind's)
     // the item, at the box's heart for now
     this.model = buildItemModel(this.item);
     this.model.visible = false;
     this.fluid = fluidMaterials(this.model);
     this.sparkles = buildSparkles();
     this.sparkles.visible = false;
-    b.scene?.add(this.model, this.sparkles);
+    this.motes = buildMotes();
+    this.motes.visible = false;
+    b.scene?.add(this.model, this.sparkles, this.motes);
     this.cam?.hud?.(false);
     this.cam?.bars?.(true);
     this.card?.scene(true);
@@ -176,7 +184,7 @@ export class BoxScene {
       const A = this.box.parts?.mats?.body?.uniforms?.uBoxA?.value;
       this.rayBase = A ? Math.ceil(A.w) + 1 : 0;
     }
-    if (phase === 'dissolve') { s?.boxBurst?.(); this.model.visible = true; this.sparkles.visible = true; }
+    if (phase === 'dissolve') { s?.boxBurst?.(); this.model.visible = true; this.sparkles.visible = true; this.motes.visible = true; }
     if (phase === 'reveal') { this.setDissolve(1); s?.fanfare?.(); this.fanfared = true; }
     if (phase === 'card') { this.card?.show(this.def, { found: this.box?.place?.found ?? null }); this.cardT = 0; }
     if (phase === 'beat') {
@@ -213,6 +221,7 @@ export class BoxScene {
     this.fanfared = true;
     this.model.visible = true; this.sparkles.visible = true;
     this.lift = 1;
+    this.box.parts?.setOpen?.(1);
     this.setDissolve(1);
     this.enter('card');
     this.cardT = CARD_MIN;   // (a skip already pressed: the next press dismisses)
@@ -296,7 +305,13 @@ export class BoxScene {
       const knock = wob >= 0 ? Math.max(0, 1 - (t - WS[wob].at) / 0.12) : 0;
       root.scale.set(BOX_SCALE * (1 + 0.04 * knock), BOX_SCALE * (1 - 0.05 * knock), BOX_SCALE * (1 + 0.04 * knock));
     }
-    if (this.phase === 'dissolve') this.setDissolve(smooth(t / T.dissolve));
+    if (this.phase === 'dissolve') {
+      // it parts like petals, then comes apart into light
+      const u = t / T.dissolve;
+      parts.setOpen?.(Math.min(1, u / OPENING.open));
+      this.setDissolve(smooth((u - OPENING.apart) / (1 - OPENING.apart)));
+    }
+    this.moteFrame(time, T);
     // ---- light: the marks brighten, then it pours out as it comes apart
     const pour = this.phase === 'wake' ? 0.3 * smooth(t / T.wake) : this.phase === 'rise' ? 0.3 + 0.2 * smooth(t / T.rise)
       : this.phase === 'wobble' ? 0.5 + 0.25 * Math.abs(lean) / 0.29 : this.phase === 'dissolve' ? 0.5 + 0.5 * easeOut(t / 0.6)
@@ -318,7 +333,7 @@ export class BoxScene {
     if (this.model.visible) {
       if (this.phase === 'dissolve') {
         this.model.position.copy(this.heart(lift));
-        this.model.scale.setScalar(ITEM_SCALE * Math.max(1e-3, smooth((t / T.dissolve - 0.15) / 0.7)));
+        this.model.scale.setScalar(ITEM_SCALE * Math.max(1e-3, smooth((t / T.dissolve - OPENING.grow) / OPENING.growFor)));
       } else if (this.phase === 'reveal' || this.phase === 'card') {
         this.model.position.copy(hover);
         this.model.scale.setScalar(ITEM_SCALE);
@@ -415,6 +430,28 @@ export class BoxScene {
     pos.x += Math.sin(time * 0.7) * 0.012; pos.y += Math.sin(time * 0.9) * 0.01;
     this.camPos.copy(pos); this.camFov = fov;
     cam.shot({ pos, look, fov });
+  }
+
+  /**
+   * The jade motes rising out of the chest as it opens (the sheets' column of light): from inside it, up past the
+   * item, streaming while it parts and comes apart, thinning through the reveal and gone by the card's end.
+   */
+  moteFrame(time, T) {
+    const mo = this.motes;
+    if (!mo?.visible) return;
+    const ph = this.phase, t = this.t;
+    const k = ph === 'dissolve' ? smooth(t / (T.dissolve * OPENING.open * 0.8)) : ph === 'reveal' ? 1 - 0.5 * smooth(t / T.reveal) : ph === 'card' ? 0.5 * (1 - smooth(t / 1.2)) : 0;
+    if (k <= 0) { if (ph !== 'dissolve') mo.visible = false; return; }
+    // (from where its halves part: the band's height on the makers' chest, the foot's top on the temple's)
+    const rise = this.box.parts?.kind === 'temple' ? 0.12 : 0.46;
+    mo.position.copy(this.P(0, (this.lift ?? 1) * LIFT + this.H * BOX_SCALE * rise, 0));
+    for (const c of mo.children) {
+      const u = c.userData, life = (time * u.sp * 0.42 + u.ph) % 1;
+      const r = u.r * (1 + 0.6 * life);
+      c.position.set(Math.cos(u.a + life * 1.4) * r, life * 1.9, Math.sin(u.a + life * 1.4) * r);
+      const s = Math.max(1e-3, Math.sin(Math.PI * life) * k);
+      c.scale.set(s, s * 3.2, s);
+    }
   }
 
   /** Seconds since a phase began (counting the phases after it), for the camera pushes. */
@@ -530,7 +567,7 @@ export class BoxScene {
   end() {
     if (this.done) return;
     this.done = true;
-    this.model?.removeFromParent(); this.sparkles?.removeFromParent();
+    this.model?.removeFromParent(); this.sparkles?.removeFromParent(); this.motes?.removeFromParent();
     const parts = this.box?.parts;
     if (this.box) this.box.sceneLight = 0;
     if (parts?.root) this.setDissolve(1);   // it is gone for good (index.js hides the spent box)

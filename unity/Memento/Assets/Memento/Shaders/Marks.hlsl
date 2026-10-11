@@ -437,20 +437,12 @@ float2 formHatch(float4 f, float3 fdx, float3 fdy, float hsp, float dark, float 
 // ---------------------------------------------------------------- a makers' box (materials.js MAKERS_BOX)
 float boxAA(float v, float fw) { return 1.0 - smoothstep(-fw, fw, v); }
 float boxStar(float2 q) { return pow(abs(q.x) + 1e-4, 0.6667) + pow(abs(q.y) + 1e-4, 0.6667) - 1.0; }
-float2 boxMarks(float3 p, float3 on, float4 B)
+float boxMarks(float3 p, float3 on, float4 A)
 {
-  float3 a = abs(on);
+  if (A.z <= 0.0) return 0.0;
   float l = max(length(on), 1e-4);
-  float2 sq = p.xz / (min(B.x, B.z) * 0.8);
-  float st = boxStar(sq);
-  float star = boxAA(st, fwidth(st)) * smoothstep(0.55, 0.8, on.y / l);
-  float2 uv = (a.z > a.x ? float2(p.x, p.y - B.w) : float2(p.z, p.y - B.w)) / (B.y * 0.5);
-  float side = smoothstep(0.62, 0.85, max(a.x, a.z) / l);
-  float fw = max(fwidth(uv.x), fwidth(uv.y)) * 1.2;
-  float ring = abs(length(uv) - 1.0) - 0.035;
-  float small = boxStar(uv / 0.78);
-  float comp = max(boxAA(ring, fw), boxAA(small, fwidth(small)));
-  return float2(star, comp * side);
+  float st = boxStar(p.xz / (A.z * float2(1.0, 0.62)));
+  return boxAA(st, fwidth(st)) * smoothstep(0.55, 0.8, on.y / l);
 }
 float3 boxRay(float3 p, float4 A, float4 B)
 {

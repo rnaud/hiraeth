@@ -17,6 +17,9 @@ export const CHANGELOG = [
     { text: 'The fight on the way can be skipped from its first card, and after two lost runs Skip the fight comes first. The settings have a switch for it, Pirates on the first flight to a new world; with Enemies off there are no pirates either.',
       see: 'On the pirates’ card press B / ○ (Esc) or choose Skip the fight: the ship lands at the world. In the settings, under Game, untick Pirates on the first flight to a new world.' },
     'Chime pirates is in the Debug menu’s Games and on a sign in the Arcade, to play whenever you like.',
+    // the makers' chests, after the author's picks (references/Core Objects/Chests/; docs/systems/boxes.md)
+    'The makers’ chests have a new look, the same in every world: a rounded cream shell like a river stone, the makers’ star on its top, a thin brass band round it and a glowing jade lens in its front, the same jade as your backpack. When you open one, its top parts in two like petals and jade light rises out of it.',
+    'At the heart of each temple the chest is a rarer one: a bud of white stone and gold, jade glowing in its seams, that opens like a flower.',
   ] },
   { v: '1.42', date: '2026-10-10', items: [
     { text: 'The Notes box grows as you write. Sending clears it immediately for your next thought, while pending or failed notes stay in the list.', see: 'Write several lines in Notes, then Add (or Ctrl/⌘ + Enter). Start the next note immediately; a failed send stays available to retry.' },

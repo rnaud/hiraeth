@@ -2490,3 +2490,12 @@ Landed today (see the changelog, v1.38–v1.42): the three new route worlds (v1.
   with silent fences. On the Deck, look for the "gpu pacer" warning to confirm the cause.
   (2026-10-10, confirmed on the Deck: every world loads, 13–32 s, each with that warning, 751–1544 ms waited;
   the give-up is remembered per GPU now. Done: move to DONE.md.)
+
+## Look
+
+- [x] [#22](https://github.com/rnaud/hiraeth/issues/22) **Redesign the chests** from new references: they are boring.
+  (2026-10-10, v1.42: after the author's picks in `references/Core Objects/Chests/`, the same in every world. The
+  makers' chest: a rounded cream ceramic shell, the star on top, a brass band, a jade lens in front, opening in two
+  halves like petals with jade motes rising; the temples' chest: a bud of white stone and gold, jade in its seams,
+  opening like a flower, its heart rising. One vertex-coloured mesh a chest closed, the old box's shader program, the
+  same draws: docs/systems/boxes.md.)

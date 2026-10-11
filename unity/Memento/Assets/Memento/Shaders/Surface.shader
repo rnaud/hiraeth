@@ -49,7 +49,7 @@ Shader "Memento/Surface"
     _Lining ("Back faces' colour (rgb, a 1: on)", Vector) = (0, 0, 0, 0)
     _BoxOn ("A makers' box", Float) = 0
     _TripoFace ("The coral-shirt traveller's drawn face", Float) = 0
-    _BoxA ("Box: ray, glow, -, clock", Vector) = (0.6, 0.35, 0, 0)
+    _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
     _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
     _BoxLight ("Box: the ray", Vector) = (1, 0.98, 0.92, 1)
@@ -815,17 +815,18 @@ Shader "Memento/Surface"
           float vein = veinLines(atan2(i.form.y, i.form.x) * K, fwT, _HatchSpacing * 2.2, 1.5, float2(sqrt(r2) * 0.5, 9.0), i.viewDepth);
           albedo += min(albedo * 1.2, 0.15) * vein * _Veins;
         }
-        // a makers' box: the star and the compasses painted on, a ray of light travelling across it (materials.js MAKERS_BOX)
+        // a makers' chest: the star painted on, a ray of light travelling across it, a vertex colour over 1 a light (materials.js MAKERS_BOX)
         UNITY_BRANCH if (_BoxOn > 0.5)
         {
           float3 bp = i.objPos - float3(0.0, _BoxB.w, 0.0);
-          float2 mark = boxMarks(i.objPos, i.objNormal, _BoxB);
+          float mark = boxMarks(i.objPos, i.objNormal, _BoxA);
           float3 ray = boxRay(bp, _BoxA, _BoxB);
           albedo *= lerp(0.72, 1.1, smoothstep(-0.7, 0.85, i.objNormal.y / max(length(i.objNormal), 1e-4)));
-          albedo = lerp(albedo, _BoxMark.rgb, mark.x);
-          albedo = lerp(albedo, lerp(albedo, _BoxMark.rgb, 0.45 + 0.4 * _BoxA.y), mark.y);
+          float over = max(max(i.instColor.r, i.instColor.g), i.instColor.b) - 1.0;
+          if (over > 0.0) { albedo /= 1.0 + over; emit = max(emit, min(over, 1.0) * (0.4 + 0.6 * _BoxA.y)); }
+          albedo = lerp(albedo, _BoxMark.rgb, mark);
           albedo = lerp(albedo, _BoxLight.rgb, saturate(ray.x + 0.45 * ray.y + 0.25 * ray.z));
-          emit = max(emit, max(mark.x * _BoxA.y, mark.y * _BoxA.y * 0.6));
+          emit = max(emit, mark * _BoxA.y);
           emit = max(emit, max(ray.x * 0.97, max(ray.y * 0.75, ray.z * 0.4)));
         }
         float plateInk = 0.0;

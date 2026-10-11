@@ -1753,34 +1753,24 @@ const fragmentShader = /* glsl */ `
   #endif
 
   #ifdef MAKERS_BOX
-  // A makers' box (src/boxes/model.js; makeMaterial({ makersBox })): one smooth shell with no
-  // edges, the pale four-point star painted on its top and a compass (a ring round a small star)
-  // on each side, and a thin ray of light that travels across it, pass after pass, a short trail behind.
+  // A makers' chest (src/boxes/model.js; makeMaterial({ makersBox })): one smooth shell with no edges, the pale
+  // four-point star painted on its top, and a thin ray of light that travels across it, pass after pass, a short
+  // trail behind. Its other parts (the brass band, the jade lens, the temple bud's inlay) are its vertex colours;
+  // a colour brighter than white is a light (the lens's jade, the bud's seams): see below.
   // Inked by its outline only (the soft-ink flag, post.js): no lines inside it, no hatching.
-  uniform vec4 uBoxA;    // x the ray's strength 0..1 · y the marks' glow 0..1 · z (unused) · w the ray's clock (in passes)
+  uniform vec4 uBoxA;    // x the ray's strength 0..1 · y the marks' glow 0..1 · z the star's reach (m; 0: none) · w the ray's clock (in passes)
   uniform vec4 uBoxB;    // the shell's half size (m, as drawn) xyz · w the height of its centre over its foot (m)
-  uniform vec3 uBoxMark; // the star and the compasses
+  uniform vec3 uBoxMark; // the star
   uniform vec3 uBoxLight;// the ray
   float boxAA(float v, float fw) { return 1.0 - smoothstep(-fw, fw, v); }
   /** A four-point star with concave sides (an astroid), its points along the axes: < 0 inside. */
   float boxStar(vec2 q) { return pow(abs(q.x) + 1e-4, 0.6667) + pow(abs(q.y) + 1e-4, 0.6667) - 1.0; }
-  /**
-   * The makers' marks: x the pale star on the top, y a compass on each side (a thin ring round a
-   * small star, the reference drawing's medallion), painted on in a paler blue.
-   */
-  vec2 boxMarks(vec3 p, vec3 on) {
-    vec3 a = abs(on);
+  /** The makers' star on the top (the design sheet's: its points across longer than front to back), 0..1. */
+  float boxMarks(vec3 p, vec3 on) {
+    if (uBoxA.z <= 0.0) return 0.0;
     float l = max(length(on), 1e-4);
-    vec2 sq = p.xz / (min(uBoxB.x, uBoxB.z) * 0.8);
-    float st = boxStar(sq);
-    float star = boxAA(st, fwidth(st)) * smoothstep(0.55, 0.8, on.y / l);
-    vec2 uv = (a.z > a.x ? vec2(p.x, p.y - uBoxB.w) : vec2(p.z, p.y - uBoxB.w)) / (uBoxB.y * 0.5);
-    float side = smoothstep(0.62, 0.85, max(a.x, a.z) / l);
-    float fw = max(fwidth(uv.x), fwidth(uv.y)) * 1.2;
-    float ring = abs(length(uv) - 1.0) - 0.035;
-    float small = boxStar(uv / 0.78);
-    float comp = max(boxAA(ring, fw), boxAA(small, fwidth(small)));
-    return vec2(star, comp * side);
+    float st = boxStar(p.xz / (uBoxA.z * vec2(1.0, 0.62)));
+    return boxAA(st, fwidth(st)) * smoothstep(0.55, 0.8, on.y / l);
   }
   /** The ray: a thin bright line crossing the shell, a short trail fading behind it. x the line, y its glow, z the trail. */
   vec3 boxRay(vec3 p) {
@@ -2322,15 +2312,18 @@ const fragmentShader = /* glsl */ `
     #ifdef MAKERS_BOX
     {
       vec3 bp = vObjPos - vec3(0.0, uBoxB.w, 0.0);
-      vec2 mark = boxMarks(vObjPos, vObjNormal);
+      float mark = boxMarks(vObjPos, vObjNormal);
       vec3 ray = boxRay(bp);
       // a tone of its own over the form (no hatching on it): paler where it turns up, deeper underneath
       albedo *= mix(0.72, 1.1, smoothstep(-0.7, 0.85, vObjNormal.y / max(length(vObjNormal), 1e-4)));
-      albedo = mix(albedo, uBoxMark, mark.x);
-      albedo = mix(albedo, mix(albedo, uBoxMark, 0.45 + 0.4 * uBoxA.y), mark.y);   // (the compasses paler than the star)
+      // a vertex colour brighter than white is a light (the jade lens, the bud's seams and heart, the lining): what is
+      // over 1 its glow, woken with the star
+      float over = max(max(vInstColor.r, vInstColor.g), vInstColor.b) - 1.0;
+      if (over > 0.0) { albedo /= 1.0 + over; emit = max(emit, min(over, 1.0) * (0.4 + 0.6 * uBoxA.y)); }
+      albedo = mix(albedo, uBoxMark, mark);
       albedo = mix(albedo, uBoxLight, clamp(ray.x + 0.45 * ray.y + 0.25 * ray.z, 0.0, 1.0));
       // (the star and the ray are lights: they keep their colour in shade, and bloom)
-      emit = max(emit, max(mark.x * uBoxA.y, mark.y * uBoxA.y * 0.6));
+      emit = max(emit, mark * uBoxA.y);
       emit = max(emit, max(ray.x * 0.97, max(ray.y * 0.75, ray.z * 0.4)));
     }
     #endif
@@ -2807,9 +2800,10 @@ const cache = new Map();
  * @param {number[]} [o.fluidBox] [glass bottom y, top y, radius, highlight angle] in object space
  * @param {string[]} [o.fluidTones] the six tones (uFluidTones; the tool rewrites them as colours are added)
  * @param {string}  [o.fluidBase] the flask's own fluid colour (uFluidBase: green; the tool sets a gun mode's tone)
- * @param {object}  [o.makersBox] a makers' box's shell (src/boxes/model.js; compiles the MAKERS_BOX block): { half: [x, y, z]
- *                              (m, as drawn), center (m over its foot), mark, light (colours), ray, glow (0..1) }. The star and
- *                              the compasses painted on, a ray of light travelling across it (uBoxA.w its clock), outline-only ink
+ * @param {object}  [o.makersBox] a makers' chest (src/boxes/model.js; compiles the MAKERS_BOX block): { half: [x, y, z]
+ *                              (m, as drawn), center (m over its foot), mark, light (colours), ray, glow (0..1), star (its reach,
+ *                              m; 0: none) }. The star painted on its top, a ray of light travelling across it (uBoxA.w its clock),
+ *                              a vertex colour over 1 a light (its glow what is over), outline-only ink
  * @param {boolean|object} [o.crystal] the chimes' faceted crystal (crystal-shader.js; compiles the CHIME_CRYSTAL block, reads
  *                              the geometry's aCrystal): flat facets by the sun, bright edges, a pulsing inner glow,
  *                              refracted inner lines, a rainbow fringe, a rim and a sparkle; outline-only soft ink
@@ -2950,8 +2944,9 @@ export function makeMaterial(o) {
   if (o.makersBox) {
     const B = o.makersBox;
     mat.defines = { ...mat.defines, MAKERS_BOX: 1 };
-    mat.uniforms.uBoxA = { value: new THREE.Vector4(B.ray ?? 0.6, B.glow ?? 0.35, 0, 0) };
-    mat.uniforms.uBoxB = { value: new THREE.Vector4(...(B.half ?? [0.5, 0.5, 0.5]), B.center ?? 0.5) };
+    const half = B.half ?? [0.5, 0.5, 0.5];
+    mat.uniforms.uBoxA = { value: new THREE.Vector4(B.ray ?? 0.6, B.glow ?? 0.35, B.star ?? Math.min(half[0], half[2]) * 0.8, 0) };
+    mat.uniforms.uBoxB = { value: new THREE.Vector4(...half, B.center ?? 0.5) };
     mat.uniforms.uBoxMark = { value: new THREE.Color(B.mark ?? '#dcecf2') };
     mat.uniforms.uBoxLight = { value: new THREE.Color(B.light ?? '#fffbea') };
   }

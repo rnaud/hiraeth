@@ -1,59 +1,51 @@
 import * as THREE from 'three';
-import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { TANK, FLUID_TONES, buildFlask } from '../fluid-tool.js';
 import { ITEMS } from '../items.js';
+import { chestGeometry, openEase, starShape, MAKERS_CHEST, CHEST_COLORS } from './chest.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+
+export { starShape, chestKind } from './chest.js';
 
 // What an item box looks like, and what comes out of it. All of it is inked
 // geometry through makeMaterial (the post pass draws the lines).
 //
-// The boxes are the makers' (docs/story-bible.md, "The boxes"): very old,
-// handled by many, never broken. One smooth dark blue shell with no edges
-// (a rounded box: no corner, no seam, no lid), the pale four-point star of the
-// reference drawing painted on its top and a compass (a ring round a small star) on each side,
-// and a thin ray of light forever travelling across its surface (materials.js
-// MAKERS_BOX). The post pass draws its outline only: nothing inside it.
+// The boxes are the makers' chests (docs/story-bible.md, "The boxes"; references/Core Objects/Chests/): very old,
+// handled by many, never broken, and the same in every world. Two kinds (src/boxes/chest.js builds them): the
+// makers' chest, a hip-high rounded shell of pale cream ceramic like a river stone, the makers' four-point star on
+// its top, a thin brass band round it and a round lens of glowing jade fluid in its front; and, at the heart of each
+// temple, the temple chest, a bud of white stone and gold with jade glass in its seams. A thin ray of light travels
+// across either (materials.js MAKERS_BOX). The post pass draws their outline only: nothing inside it.
 //
-//   buildBox(key)    → { root, shell, mats: { body }, size }
-//                      a box about knee high at BOX's size; index.js sets it down
-//                      BOX_SCALE larger (about hip high). Local frame: +z is the front
-//                      (where the traveller stands), y = 0 on the ground.
-//                      mats.body.uniforms.uBoxA: x the ray's strength, y the marks' glow, w the ray's clock
-//                      (one pass per unit: index.js and scene.js wind it)
-//   roundedBox(hx, hy, hz, r, n) → the shell's geometry (smooth normals all round), centred
+//   buildBox(key, { kind }) → { root, body, shell, opened, petals, core, mats: { body }, size, kind, setOpen(k) }
+//                      a chest at its unscaled size (chest.js); index.js sets it down BOX_SCALE larger (about hip
+//                      high). Local frame: +z is the front (where the traveller stands), y = 0 on the ground.
+//                      kind: 'makers' (default) or 'temple' (chest.js chestKind: by the placement, never the world).
+//                      Closed it is one mesh (shell); setOpen(k) (0..1) swaps in its opening parts (opened: the part
+//                      that stays put, the petals that part, the temple's rising heart), all in the same material.
+//                      mats.body.uniforms.uBoxA: x the ray's strength, y the marks' glow, z the star's reach, w the
+//                      ray's clock (one pass per unit: index.js and scene.js wind it)
 //   buildItemModel(id) → a small Group (≈ 0.3 m) for the hovering display
-//   buildSparkles()  → twinkling specks round the hovering item
+//   buildSparkles()  → twinkling specks round the hovering item; buildMotes() → jade motes rising out of an opening chest
 //   buildBeacon(key) → a thin pale column of light over an unopened box (seen from afar)
 
-/** The box's size (unscaled, m): w across, h tall (lid: none, kept for the scene's arithmetic), d deep, r its corners' roundness. */
-export const BOX = { w: 0.66, h: 0.54, d: 0.58, lid: 0, r: 0.15 };
+/** The makers' chest's size (unscaled, m): w across, h tall (lid: none, kept for the scene's arithmetic), d deep. */
+export const BOX = { w: MAKERS_CHEST.w, h: MAKERS_CHEST.h, d: MAKERS_CHEST.d, lid: 0 };
 /** The boxes are built at BOX's size and set down this much larger: big enough to notice from afar. */
 export const BOX_SCALE = 1.9;
 /** The item hovering where its box was. */
 export const ITEM_SCALE = 1.8;
-export const BOX_COLORS = { body: '#25386c', star: '#dcecf2', carve: '#9fbfdc', seam: '#fff4d6', light: '#fffbea' };
+export const BOX_COLORS = { body: CHEST_COLORS.cream, star: '#dcecf2', mark: CHEST_COLORS.star, seam: '#e8fff2', light: CHEST_COLORS.light, jade: CHEST_COLORS.jade };
 /** The ray's rhythm: seconds a pass takes far off, and close up (it quickens as you come near). */
 export const RAY_PASS = { far: 4.2, near: 2.6 };
 
 const one = (list) => mergeGeometries(list.map((g) => (g.index ? g.toNonIndexed() : g)));
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; }); return o; };
 
-/** The pale star: four long points with concave sides (as on the reference lid). */
-export function starShape(R = 1, r = 0.3, points = 4) {
-  const s = new THREE.Shape();
-  for (let i = 0; i <= points * 2; i++) {
-    const a = (i / (points * 2)) * Math.PI * 2 + Math.PI / 2;
-    const rad = i % 2 === 0 ? R : r;
-    const x = Math.cos(a) * rad, y = Math.sin(a) * rad;
-    if (i === 0) s.moveTo(x, y); else s.lineTo(x, y);
-  }
-  return s;
-}
-
 /**
- * A box with no edges: a cube's subdivided faces pushed out onto a rounded box
- * (flat in the middle of each face, each corner and edge a quarter round of
- * radius r), its normals exact, so nothing on it reads as a crease. Centred on the origin.
+ * A rounded box (the small items' slabs and cards): a cube's subdivided faces pushed out onto a box with every edge and
+ * corner a quarter round of radius r, its normals exact. Centred on the origin.
  */
 export function roundedBox(hx, hy, hz, r, n = 10) {
   r = Math.min(r, hx, hy, hz);
@@ -72,26 +64,52 @@ export function roundedBox(hx, hy, hz, r, n = 10) {
     p.setXYZ(i, c.x + d.x * r, c.y + d.y * r, c.z + d.z * r);
     nr.setXYZ(i, d.x, d.y, d.z);
   }
-  // (the six faces share their border vertices' positions and normals: one closed, smooth shell)
   g.deleteAttribute('uv');
   return mergeVertices(g);
 }
 
-export function buildBox(key = 'box') {
-  const { w, h, d, r } = BOX, C = BOX_COLORS, S = BOX_SCALE;
-  // its own material (the key makes it unique, so each box glows and sweeps on its own); it
-  // dissolves when it opens (src/boxes/scene.js sets uDissolve)
+export function buildBox(key = 'box', { kind = 'makers' } = {}) {
+  const G = chestGeometry(kind), C = BOX_COLORS, S = BOX_SCALE;
+  // its own material (the key makes it unique, so each chest glows and sweeps on its own); one program for every
+  // chest of either kind (the same options but the key and the sizes); it dissolves when it opens (scene.js sets uDissolve)
   const body = makeMaterial({
-    color: C.body, key: `box.body.${key}`, dissolve: C.seam,
-    makersBox: { half: [(w / 2) * S, (h / 2) * S, (d / 2) * S], center: (h / 2) * S, mark: C.star, light: C.light, ray: 0.6, glow: 0.35 },
+    color: '#ffffff', vertexColors: true, key: `box.body.${key}`, dissolve: C.seam,
+    makersBox: { half: G.half.map((v) => v * S), center: G.center * S, mark: C.mark, light: C.light, ray: 0.6, glow: 0.35, star: G.star * S },
   });
   const root = new THREE.Group();
   root.name = `Item box ${key}`;
-  const shell = new THREE.Mesh(roundedBox(w / 2, h / 2, d / 2, r).translate(0, h / 2, 0), body);
-  shell.name = 'Makers’ box';
-  root.add(shell);
+  const inner = new THREE.Group();   // (what the dissolve shows and hides: the closed shell, or the opening parts)
+  root.add(inner);
+  const shell = new THREE.Mesh(G.closed, body);
+  shell.name = kind === 'temple' ? 'Temple chest' : 'Makers’ chest';
+  inner.add(shell);
+  const opened = new THREE.Group();
+  opened.name = 'Chest opening';
+  opened.visible = false;
+  opened.add(new THREE.Mesh(G.base, body));
+  const petals = G.petals.map((pt) => {
+    const pivot = new THREE.Group(), m = new THREE.Mesh(pt.geo, body);
+    pivot.position.copy(pt.hinge); m.position.copy(pt.hinge).negate();
+    pivot.add(m); opened.add(pivot);
+    return { pivot, axis: pt.axis, angle: pt.angle };
+  });
+  let core = null;
+  if (G.core) { core = new THREE.Mesh(G.core.geo, body); core.position.copy(G.core.at); opened.add(core); }
+  inner.add(opened);
   noCollide(root);
-  return { root, shell, mats: { body }, size: { w, h, d } };
+  const q = new THREE.Quaternion();
+  /** How far it has opened (0 closed: the one shell; 1 its petals all the way out, the temple's heart risen and gone). */
+  const setOpen = (k) => {
+    const on = k > 0;
+    shell.visible = !on; opened.visible = on;
+    const e = openEase(Math.min(1, k));
+    for (const p of petals) p.pivot.quaternion.copy(q.setFromAxisAngle(p.axis, p.angle * e));
+    if (core) {
+      core.position.set(G.core.at.x, G.core.at.y + G.core.rise * e, G.core.at.z);
+      core.scale.setScalar(Math.max(1e-3, 1 - openEase((k - 0.45) / 0.55)));   // (it gives itself to what comes out)
+    }
+  };
+  return { root, body: inner, shell, opened, petals, core, mats: { body }, size: { ...G.size }, kind: kind === 'temple' ? 'temple' : 'makers', setOpen };
 }
 
 export function buildSparkles(n = 14) {
@@ -101,6 +119,20 @@ export function buildSparkles(n = 14) {
   for (let i = 0; i < n; i++) {
     const m = new THREE.Mesh(geo, mat);
     m.userData = { a: (i / n) * Math.PI * 2, r: 0.2 + (i % 3) * 0.06, y: ((i * 37) % 11) / 11 - 0.5, sp: 0.6 + (i % 4) * 0.25, ph: i * 1.7 };
+    g.add(m);
+  }
+  noCollide(g);
+  return g;
+}
+
+/** Motes of jade light rising out of an opening chest (the sheets' column of light): long specks, scene.js lifts them. */
+export function buildMotes(n = 18) {
+  const g = new THREE.Group();
+  const mat = makeMaterial({ color: CHEST_COLORS.jadePale, flat: true, glow: 1 });
+  const geo = new THREE.OctahedronGeometry(0.02, 0);
+  for (let i = 0; i < n; i++) {
+    const m = new THREE.Mesh(geo, mat);
+    m.userData = { a: i * 2.39996, r: 0.04 + ((i * 7) % 5) * 0.045, ph: ((i * 37) % 17) / 17, sp: 0.7 + (i % 4) * 0.18 };
     g.add(m);
   }
   noCollide(g);

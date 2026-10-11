@@ -583,8 +583,8 @@ the module's own path. At the camps (load ~35) the script's update went from 13.
 **The rest of the gaps, closed** (2026-10-07). Hatching that follows the form: the part's axis per vertex
 (src/form.js `aFormC`, `aFormA`) rides the geometry (flag 64, TEXCOORD5 and 6) where a material says `S_FORM`,
 and Surface.shader builds materials.js's `vForm` from it: caps' strokes radiate, cylinders' wrap, a dark cap's
-veins are drawn lighter as branches, a denser hatch (HATCH_DENSE) is closer and heavier. The makers' boxes draw
-their star, compasses and travelling ray (`boxMarks`, `boxRay`), inked by their outline only; the ray's clock
+veins are drawn lighter as branches, a denser hatch (HATCH_DENSE) is closer and heavier. The makers' chests draw
+their star and travelling ray (a vertex colour over 1 a light) (`boxMarks`, `boxRay`), inked by their outline only; the ray's clock
 goes live (`materialVec`, op 18). A MakeHuman face's shape keys (body.js `keyTexture`) become the mesh's blend
 shapes, scaled by its head (`faceKeyDeltas`, `BridgeHost.FaceKeys`: only the vertices a key moves), and each
 face's weights go a frame they move (`keyWeights`, op 19). The overshirt's lining colours its back faces

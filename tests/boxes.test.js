@@ -15,7 +15,9 @@ import { PLACEMENTS } from '../src/boxes/placements.js';
 import { createBoxes, migrateSave, resolvePlacement, placementsFor, boxesFound, BOX_QUEST_DELAY, shiftPlacement } from '../src/boxes/index.js';
 import { Quests } from '../src/story/quests.js';
 import { BoxScene, STAND_AT, LIFT, TIMES, WOBBLES, wobbleAngle } from '../src/boxes/scene.js';
-import { BOX, BOX_SCALE, buildBox, roundedBox } from '../src/boxes/model.js';
+import { BOX, BOX_SCALE, buildBox, roundedBox, chestKind } from '../src/boxes/model.js';
+import { chestGeometry, TEMPLE_CHEST } from '../src/boxes/chest.js';
+import { makeMaterial } from '../src/materials.js';
 import { gearHtml } from '../src/items.js';
 import { DevMenu } from '../src/dev-menu.js';
 import { bestInteractable, clearInteractables } from '../src/interact.js';
@@ -236,7 +238,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.ok(Math.abs(pl.pos.distanceTo(box.pos) - STAND_AT) < 0.3, 'the traveller is set before the box');
   for (let i = 0; i < 30 * 2.2; i++) boxes.update(1 / 30, 2 + i / 30);
   assert.ok(box.parts.root.position.y > box.pos.y + LIFT * 0.6, 'it lifts off the ground');
-  for (let i = 0; i < 30 * 6; i++) boxes.update(1 / 30, 4.2 + i / 30);
+  for (let i = 0; i < 30 * 6.8; i++) boxes.update(1 / 30, 4.2 + i / 30);
   assert.equal(boxes.scene.phase, 'card', 'the card waits');
   assert.equal(box.parts.mats.body.uniforms.uDissolve.value.x, 1, 'the box has come apart');
   assert.ok(boxes.scene.model.visible && boxes.scene.model.position.distanceTo(box.pos) > LIFT, 'the item hangs where it was');
@@ -365,13 +367,11 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('pouch');
 });
 
-test('a makers’ box has no edges: one closed smooth shell, its outline the only ink', () => {
+test('a rounded box (the small items’ slabs) has no edges: one closed smooth shell', () => {
   const g = roundedBox(0.33, 0.27, 0.29, 0.15);
   const p = g.attributes.position, n = g.attributes.normal;
-  // every vertex's normal points the way the surface does there: no creases anywhere (the post pass inks creases)
   g.computeBoundingBox();
   assert.ok(Math.abs(g.boundingBox.max.x - 0.33) < 1e-3 && Math.abs(g.boundingBox.max.y - 0.27) < 1e-3, 'its size');
-  // closed and smooth: each edge's two faces bend by only a little (no hard edge between any two triangles)
   const idx = g.index.array, faceN = [], edges = new Map();
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
   for (let i = 0; i < idx.length; i += 3) {
@@ -386,14 +386,79 @@ test('a makers’ box has no edges: one closed smooth shell, its outline the onl
   for (const f of edges.values()) { assert.equal(f.length, 2, 'closed: every edge between two faces'); worst = Math.min(worst, faceN[f[0]].dot(faceN[f[1]])); }
   assert.ok(worst > 0.9, `no hard edge (the sharpest bend between faces: ${(Math.acos(worst) * 180 / Math.PI).toFixed(1)}°)`);
   for (let i = 0; i < n.count; i++) assert.ok(Math.abs(new THREE.Vector3().fromBufferAttribute(n, i).length() - 1) < 1e-3);
-  // the box: a single mesh with the makers' shader (the star, the glyph, the ray), dissolving when it opens
-  const box = buildBox('t');
-  const meshes = []; box.root.traverse((o) => { if (o.isMesh) meshes.push(o); });
-  assert.equal(meshes.length, 1, 'one shell: no lid, no seam, no plinth');
-  const m = meshes[0].material;
-  assert.ok(m.defines.MAKERS_BOX && m.defines.DISSOLVE, 'its own shader: the marks and the travelling ray; it can dissolve');
-  assert.ok(m.uniforms.uBoxA && m.uniforms.uBoxB && m.uniforms.uDissolve);
-  assert.notEqual(buildBox('u').mats.body, m, 'each box its own material (each sweeps and glows on its own)');
+});
+
+test('one chest for every world: the makers’ everywhere, the temple chest in the temples, nothing by the world', () => {
+  const seen = { makers: 0, temple: 0 };
+  for (const [world, list] of Object.entries(PLACEMENTS)) {
+    for (const p of list) {
+      const kind = chestKind(p);
+      assert.equal(kind, p.temple ? 'temple' : 'makers', `${world} ${p.id}: its kind by what it is, not where`);
+      const box = buildBox(p.id, { kind });
+      assert.equal(box.kind, kind);
+      assert.equal(box.shell.geometry, chestGeometry(kind).closed, `${p.id}: the one shared model of its kind`);
+      seen[kind]++;
+    }
+  }
+  assert.ok(seen.makers > 20 && seen.temple >= 8, `both kinds placed (${seen.makers} makers’, ${seen.temple} temple chests)`);
+  // the two models: the makers’ hip high and wider than tall, the temple’s bud taller than wide
+  const M = chestGeometry('makers'), T = chestGeometry('temple');
+  M.closed.computeBoundingBox(); T.closed.computeBoundingBox();
+  const mb = M.closed.boundingBox, tb = T.closed.boundingBox;
+  assert.ok(mb.max.x - mb.min.x > mb.max.y - mb.min.y, 'the makers’ chest is wider than tall');
+  assert.ok(Math.abs(mb.max.y - BOX.h) < 0.01 && Math.abs(mb.min.y) < 0.01, 'standing on the ground, BOX tall');
+  assert.ok(mb.max.z > BOX.d / 2 + 0.02, 'its lens stands out of its front');
+  assert.ok(Math.abs(tb.max.y - TEMPLE_CHEST.h) < 0.01 && tb.max.y - tb.min.y > tb.max.x - tb.min.x, 'the temple’s bud taller than wide');
+  // every vertex coloured, normals unit; the jade a light (a colour over 1), the shell not
+  for (const g of [M.closed, T.closed]) {
+    const n = g.attributes.normal, c = g.attributes.color;
+    assert.ok(c && c.count === g.attributes.position.count && !g.attributes.uv, 'vertex colours, no uv');
+    let lights = 0;
+    for (let i = 0; i < n.count; i++) {
+      assert.ok(Math.abs(new THREE.Vector3().fromBufferAttribute(n, i).length() - 1) < 1e-3, 'unit normals');
+      if (Math.max(c.getX(i), c.getY(i), c.getZ(i)) > 1) lights++;
+    }
+    assert.ok(lights > 50 && lights < n.count / 2, `some of it a light (${lights} of ${n.count})`);
+  }
+});
+
+test('the chests add no shader program: one mesh closed, one material, the old box’s program', () => {
+  // the program the old blue box compiled (MAKERS_BOX and DISSOLVE): the chests' material keys the same one
+  const old = makeMaterial({ color: '#25386c', key: 'test.old-box', dissolve: '#fff4d6', makersBox: { half: [0.6, 0.5, 0.55], center: 0.5 } });
+  for (const kind of ['makers', 'temple']) {
+    const box = buildBox(`t.${kind}`, { kind });
+    const m = box.mats.body;
+    assert.deepEqual(Object.keys(m.defines).sort(), Object.keys(old.defines).sort(), `${kind}: the same defines as the old box`);
+    assert.equal(m.side, old.side);
+    assert.equal(m.userData.sharesProgram, true, 'its vertex colours don’t split the program (scripts/three-program-keys.mjs)');
+    assert.equal(m.vertexShader, old.vertexShader); assert.equal(m.fragmentShader, old.fragmentShader);
+    const meshes = []; box.root.traverse((o) => { if (o.isMesh) meshes.push(o); });
+    assert.ok(meshes.every((o) => o.material === m), 'all its parts in its one material');
+    const visible = meshes.filter((o) => { let v = true; o.traverseAncestors((a) => { v &&= a.visible; }); return v && o.visible; });
+    assert.deepEqual(visible, [box.shell], 'closed: one mesh, one draw');
+    assert.notEqual(buildBox(`u.${kind}`, { kind }).mats.body, m, 'each chest its own material (each sweeps and glows on its own)');
+  }
+});
+
+test('a chest opens in stages: its halves part like petals, the temple’s bud like a flower, its heart rising', () => {
+  for (const [kind, n] of [['makers', 2], ['temple', TEMPLE_CHEST.petals]]) {
+    const box = buildBox(`o.${kind}`, { kind });
+    assert.equal(box.petals.length, n, `${kind}: ${n} petals`);
+    box.setOpen(0.5);
+    assert.ok(!box.shell.visible && box.opened.visible, 'opening: the parts in place of the shell');
+    const half = box.petals.map((p) => 2 * Math.acos(Math.min(1, Math.abs(p.pivot.quaternion.w))));
+    box.setOpen(1);
+    const full = box.petals.map((p) => 2 * Math.acos(Math.min(1, Math.abs(p.pivot.quaternion.w))));
+    for (let i = 0; i < n; i++) assert.ok(half[i] > 0.2 && full[i] > half[i] && full[i] > 1.4, `petal ${i} swings out (${full[i].toFixed(2)} rad)`);
+    // each petal's top goes outward and down, away from the middle
+    for (const p of box.petals) {
+      const tip = new THREE.Vector3(0, box.size.h, 0).sub(p.pivot.position).applyQuaternion(p.pivot.quaternion).add(p.pivot.position);
+      assert.ok(Math.hypot(tip.x, tip.z) > Math.hypot(p.pivot.position.x, p.pivot.position.z) - 1e-6, 'outward');
+    }
+    if (kind === 'temple') assert.ok(box.core.scale.x < 0.01 && box.core.position.y > TEMPLE_CHEST.h * 0.42, 'its heart has risen and given itself to the item');
+    box.setOpen(0);
+    assert.ok(box.shell.visible && !box.opened.visible, 'shut again: the one shell');
+  }
 });
 
 test('opening: it floats up, wobbles two or three times with rests between, then comes apart', () => {

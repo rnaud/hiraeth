@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.43 — 2026-10-10
 
+- At the heart of each temple the chest is a rarer one: a bud of white stone and gold, jade glowing in its seams, that opens like a flower.
+- The makers’ chests have a new look, the same in every world: a rounded cream shell like a river stone, the makers’ star on its top, a thin brass band round it and a glowing jade lens in its front, the same jade as your backpack. When you open one, its top parts in two like petals and jade light rises out of it.
 - Chime pirates is in the Debug menu’s Games and on a sign in the Arcade, to play whenever you like.
 - The fight on the way can be skipped from its first card, and after two lost runs Skip the fight comes first. The settings have a switch for it, Pirates on the first flight to a new world; with Enemies off there are no pirates either.
 - Against the pirates, hold the fire button to charge a shot: it locks onto the pirate in your sights, homes in and bursts among them. Teal rings on the way patch the ship’s hull.

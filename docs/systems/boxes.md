@@ -1,27 +1,48 @@
-# The makers' boxes (v0.63 redesign)
+# The makers' chests (v1.42 redesign; the boxes of v0.63 before them)
 
-Code: `src/boxes/` (model, scene, index, placements), the shader block `MAKERS_BOX` in
+Code: `src/boxes/` (chest (the models), model, scene, index, placements), the shader block `MAKERS_BOX` in
 `src/materials.js`, the desert's pedestal in `src/desert-city.js`. Tests: `tests/boxes.test.js`.
 
-## The look
+## The look: one chest in every world
 
-- **One shell, no edges.** `roundedBox(hx, hy, hz, r)` (model.js) pushes a subdivided cube out
-  onto a rounded box: flat in the middle of each face, every edge and corner a quarter round,
-  normals exact and shared, so nothing on it reads as a crease. No lid, no seam, no plinth.
-  `BOX` is its unscaled size; `BOX_SCALE` (1.9) sets it down hip high.
-- **Outline only.** The material sets the soft-ink flag (+8 in `gHatch.a`, with a full pen
-  line in `r`), so `post.js` draws its silhouette and nothing inside it: no crease, colour or
-  shadow-boundary lines, and no hatching. A tone of its own over the form (paler where it turns
-  up) keeps it round.
-- **The marks** are painted in the shader: the pale four-point star (an astroid) on the top,
-  a compass (a thin ring round a small star) on each side. `uBoxA.y` is their glow.
-- **The ray.** A thin line of light crosses the shell pass after pass, a short trail behind it.
+The author's picks (`references/Core Objects/Chests/`, prompts in `docs/design/chest-prompts.md`): "the chest should be
+the exact same in all worlds". There are two kinds and the placement says which (`chestKind`: a placement with
+`temple` gets the temple chest, every other the makers'); nothing about a chest depends on its world.
+
+- **The makers' chest** (`sheet/sheet-1.jpg`; `chest.js` `MAKERS_CHEST`): hip high and wider than tall, a rounded shell
+  of pale cream ceramic like a river stone (a superellipsoid, rounder on top, flatter underneath); the makers' pale
+  gold four-point star on its top (painted by the shader, its points across longer than front to back); a thin brass
+  band round it a little under the middle, standing proud of the shell, with a brass hinge on either side; on the band
+  at the front a round glass lens of jade fluid in a brass ring, a two-armed swirl with a bright heart and a highlight
+  (the glass backpack's jade). It opens in two: the shell over the band parts on the side hinges like petals, lined
+  inside in pale jade.
+- **The temple chest** (`temple/sheet-*.jpg`; `TEMPLE_CHEST`), the chest at the heart of each temple: a bud of white
+  stone on a low round foot ringed in gold, six petals edged in gold, a gold four-point star with a jade heart on each,
+  the jade glass of its heart (a swirling sphere) glowing in the seams between them. It opens like a flower: the
+  petals fall outward from the foot and the heart rises and gives itself to the item; a jade disc glows in the foot.
+- **Cheap for the Xbox.** Each kind is one vertex-coloured geometry (position, normal, colour; no uv), built once and
+  shared by every chest of that kind (`chestGeometry`). A closed chest is **one mesh**; the opening parts (the bowl and
+  two halves, or the foot, six petals and the heart) are swapped in only while it opens (`setOpen`). All of it is in
+  the chest's one material: the same options as the old blue box but `vertexColors`, which doesn't split the program
+  (`userData.sharesProgram`, `scripts/three-program-keys.mjs`), so **no new shader program** (the test checks the
+  defines and the shader against the old box's). Measured in the desert (High, 1280 × 720): a chest costs the same 3
+  draws as the old box, and the programs linked are unchanged (71–72 with the views shown).
+- **A colour over 1 is a light.** In the `MAKERS_BOX` block, what a vertex colour has over 1 is its glow (emissive,
+  woken with the star as you come near: `uBoxA.y`), its albedo brought back under 1: the lens, the bud's seams and
+  heart, the stars' jade hearts, the linings. Nothing else in the game draws with this material.
+- **Outline only.** The material sets the soft-ink flag (+8 in `gHatch.a`, with a full pen line in `r`), so `post.js`
+  draws its silhouette and nothing inside it: no crease, colour or shadow-boundary lines (the band, the lens and the
+  gold are colour, not ink), and no hatching. A tone of its own over the form (paler where it turns up) keeps it round.
+- **The star** is painted in the shader on the makers' chest's top: `uBoxA.z` is its reach in metres (0: none, the
+  temple chest, whose stars are its inlay). `uBoxA.y` is the marks' and the lights' glow. (The compasses on the old
+  box's sides are gone.)
+- **The ray.** A thin line of pale jade light crosses the shell pass after pass, a short trail behind it.
   Each pass is a plane sweeping along another direction (golden-angle turns), so the line wraps
   round the whole shell. `uBoxA.w` is its clock in passes (the line crosses in the first 80% of
   a pass, then rests); `uBoxA.x` its strength. Its core and the star are emissive, so they
   keep their colour in shade and feed the bloom.
 - index.js winds the clock: one pass every `RAY_PASS.far` s, quickening to `RAY_PASS.near`
-  close up, where the ray and the marks brighten and the box hums and shudders.
+  close up, where the ray, the star and the lens brighten and the chest hums and shudders.
 
 ## The opening (scene.js)
 
@@ -29,8 +50,11 @@ Code: `src/boxes/` (model, scene, index, placements), the shader block `MAKERS_B
 `LIFT` m, turning a corner toward the camera, and hangs there breathing; then the **wobbles**
 (`WOBBLES`, like a caught pokéball deciding): three quick rocks about its heart, each with a
 small squash, a knock (`sound.boxWobble(i)`) and one pass of the ray across it, with still
-rests between them and a last still moment before it comes apart with the dissolve. The item
-grows out of the light at its centre as before.
+rests between them and a last still moment before it opens. The **opening** is the dissolve phase in stages
+(`OPENING`, shares of it): over its first half the chest parts (`setOpen`: the makers' halves swing out on their
+hinges, the temple's petals fall open and its heart rises), motes of jade light stream up out of it (`buildMotes`,
+the sheets' column of light) and the item grows out of the light at its centre; from 55 % it comes apart from the top
+down in the dissolve, the motes thinning through the reveal and gone during the card.
 
 The camera takes one of four plans per box (`BOX_PLANS`, `boxPlan(id)`: a stable hash of the box's id;
 the desert's first box always the first): **shoulder**, low over his right shoulder, then beside him;

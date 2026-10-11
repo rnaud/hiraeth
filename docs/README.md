@@ -65,7 +65,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes; hearts, the magic bar and potions (src/resources.js); chimes; the shops, their wares and prices |
 | [interiors.md](systems/interiors.md) | buildings you walk into: the interior kit (a shopfront, its room far overhead, the doors both ways, saving inside), a shop's room |
 | [gadgets.md](systems/gadgets.md) | the gadgets (v0.90): the framework (one file a gadget), the buttons, the grappling hook, ink bombs, the Gadget Yard; how to add one |
-| [boxes.md](systems/boxes.md) | the makers' boxes (the v0.63 redesign): the model, the scene, the placements |
+| [boxes.md](systems/boxes.md) | the makers' chests (the v1.42 redesign, the same in every world; the temples' bud): the models, the opening scene, the placements |
 | [changelog.md](systems/changelog.md) | the interactive changelog: before / after pictures, numbers and how to see each change; the capture tool; why its pictures stay off the devices |
 | [localisation.md](systems/localisation.md) | the game's words in the player's language (`t()`, English as the source, French): what is covered, adding a language, how to bring the dialogue in |
 | [ui.md](systems/ui.md) | playing and settings (and accessibility: text size, speech background, reduced motion, hold or toggle, not by colour alone), the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds, people), the audits page |

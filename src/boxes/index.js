@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items, ITEMS } from '../items.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
-import { buildBox, buildBeacon, BOX, BOX_SCALE, RAY_PASS } from './model.js';
+import { buildBox, buildBeacon, chestKind, BOX, BOX_SCALE, RAY_PASS } from './model.js';
 import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
@@ -11,14 +11,13 @@ import { migrateTemples } from '../temples/migrate.js';
 import { HUM } from '../story/hum.js';
 import { hintsFor } from '../hint-level.js';
 
-// Item boxes: the makers' boxes (docs/story-bible.md, "The boxes"). One smooth
-// dark blue shell with no edges, a pale star painted on its top and a compass
-// on each side, a ray of light forever travelling across it; each holds one
-// item (src/items.js), left long ago for a traveller who comes a long way.
-// They notice you: the star and the compasses brighten, the ray quickens, the box
-// hums and, close up, shudders. E opens one: the opening scene (scene.js: it
-// floats up, wobbles two or three times like a caught thing deciding, and
-// comes apart into light), then the item is yours. An opened box is gone for good.
+// Item boxes: the makers' chests (docs/story-bible.md, "The boxes"), the same in every world (model.js, chest.js):
+// a rounded cream shell with the makers' star on its top, a brass band and a jade lens in its front; in the temples,
+// a bud of white stone and gold. A ray of light forever travels across each; each holds one item (src/items.js),
+// left long ago for a traveller who comes a long way. They notice you: the star and the lens brighten, the ray
+// quickens, the chest hums and, close up, shudders. E opens one: the opening scene (scene.js: it floats up, wobbles
+// two or three times like a caught thing deciding, parts like petals with jade light rising, and comes apart into
+// light), then the item is yours. An opened chest is gone for good.
 //
 // Nothing speaks of the boxes before you find your first one yourself
 // (boxesFound): no box quests, no toast, no "Item boxes" page in the sketchbook.
@@ -188,7 +187,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       if (!ITEMS[p.item]) continue;
       const at = resolvePlacement(p, { physics, level, anchor: anc });
       if (!at) { console.warn(`box ${p.id}: no ground at its placement`); continue; }
-      const parts = buildBox(p.id);
+      const parts = buildBox(p.id, { kind: chestKind(p) });   // (the same chest in every world: the temples' own kind, the makers' everywhere else)
       parts.root.position.copy(at.pos);
       parts.root.rotation.y = at.yaw;
       parts.root.scale.setScalar(BOX_SCALE);
@@ -200,7 +199,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       };
       lights.push(b.light);
       // solid: an invisible block the size of the body (you can stand on it)
-      const S = BOX_SCALE, block = new THREE.Mesh(new THREE.BoxGeometry((BOX.w + 0.04) * S, (BOX.h + BOX.lid) * S, (BOX.d + 0.04) * S).translate(0, ((BOX.h + BOX.lid) * S) / 2, 0));
+      const S = BOX_SCALE, Z = parts.size, block = new THREE.Mesh(new THREE.BoxGeometry((Z.w + 0.04) * S, Z.h * S, (Z.d + 0.04) * S).translate(0, (Z.h * S) / 2, 0));
       block.position.copy(at.pos); block.rotation.y = at.yaw;
       b.collider = physics.addCollider?.(block) ?? null;
       // a pale column over it, seen from afar: always for the boxes you must find, for the rest with the glyph lens
@@ -213,7 +212,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       b.off = registerInteractable({
         id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 3.2,
         prompt: 'open',
-        at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + 0.6 * BOX_SCALE + 0.5, b.pos.z),
+        at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + (parts.size.h + 0.1) * BOX_SCALE + 0.5, b.pos.z),
         enabled: () => !spent(b) && !current && !player?.riding,
         distance: (pl) => (Math.abs(pl.pos.y - b.pos.y) < 2 ? flat(pl.pos, b.pos) : Infinity),
         use: () => api.open(b.id),
@@ -226,7 +225,9 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
 
   function setSpentLook(b, isSpent) {
     const P = b.parts;
-    P.mats.body.uniforms.uBoxA.value.set(isSpent ? 0 : 0.6, isSpent ? 0.12 : 0.35, 0, b.phase);
+    const A = P.mats.body.uniforms.uBoxA.value;   // (z, the star's reach, is the chest's own)
+    A.x = isSpent ? 0 : 0.6; A.y = isSpent ? 0.12 : 0.35; A.w = b.phase;
+    P.setOpen?.(0);
     b.light.set(0, -1e5, 0, 0);
     if (b.beacon) b.beacon.visible = false;
     b.isSpent = isSpent;

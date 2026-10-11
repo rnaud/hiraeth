@@ -103,10 +103,6 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
   (the strong lodestone, the fourth pouch, the racer's ribbon) can't be won in play. Give each another mode. (The
   Hangar's Pillar slalom is out of play with the Hangar, dismissed in v1.39; its lodestone went to the Glass slalom.)
 
-## Look
-
-- [ ] [#22](https://github.com/rnaud/hiraeth/issues/22) **Redesign the chests** from new references: they are boring.
-
 ## Combat, more like Breath of the Wild
 
 

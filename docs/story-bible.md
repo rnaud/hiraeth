@@ -57,12 +57,16 @@ across the worlds, and lay down where they could go no further), they marked
 everything they made with the glyph, and they left gifts behind them for
 travellers who would come a long way after them: the backpack, its jets and
 wings, its lenses and rings, little charms. Each gift waits in a chest:
-- **The look.** Hip-high, one smooth dark blue shell with no edges, no lid
-  and no seam, the **pale four-point star** on its top and a compass (a ring
-  round a small star) on each side; a thin ray of light forever travels across
-  its surface. They are very old and have never been broken; up close they
-  hum, the star brightens and the ray crosses more often. Opened, a box floats
-  up, wobbles two or three times as if deciding, and comes apart into light.
+- **The look.** The same in every world: a hip-high rounded shell of pale
+  cream ceramic like a river stone, the **pale four-point star** on its top, a
+  thin brass band round it and, in its front, a round glass lens of glowing jade
+  fluid, the same living jade as the traveller's backpack (made by the same
+  hands). At the heart of each temple waits a rarer one, a bud of white stone and
+  gold with jade glass in its seams. A thin ray of light forever travels across
+  them. They are very old and have never been broken; up close they hum, the star
+  and the lens brighten and the ray crosses more often. Opened, a chest floats
+  up, wobbles two or three times as if deciding, parts like petals with jade light
+  rising out of it (the temple's bud opens like a flower), and comes apart into light.
 - **The star** is the makers' sign for a traveller: what a traveller looks
   like from far off, "a small light, a long way from home" (Nour). The pale
   star item is a copy of it, worn on the hood.

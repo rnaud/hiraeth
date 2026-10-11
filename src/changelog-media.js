@@ -539,6 +539,10 @@ const FACING = (id, d = 12, lift = 3.2, side = 0) => PIN(`npcs.find((q) => q.def
 const PROCESSION_VIEW = PIN(`crowd.people.filter((p) => p.role === 'banner')[3]`, 14, 3.6, 'Math.PI / 2 + 0.5', 55);
 const C42_PEOPLE = '95e2a3fb';
 const FROM_PIRATES = 'headless Chrome against this branch’s own dev server, High, 1280 × 720, ?game=pirates&to=edena (Edena’s planet ahead), the run flown ahead by the game’s pilot (10 October)';
+// (v1.42's chests: made by hand, a scratch shooter against this branch's own Vite and its parent's tree, the camera
+// pinned in the chest's own frame, the traveller placed by it; the opening held at the same share of the opening)
+const FROM_CHESTS42 = 'headless Chrome (High, 1280 × 720, hour 10, clear, muted) against this branch’s own Vite and its parent commit’s tree, the camera pinned in the chest’s own frame and the traveller placed beside it, the opening held at the same moment: the same views for both';
+const COST42 = { device: 'the Mac (M4 Pro), headless Chrome, 1280 × 720, hour 10', source: 'renderer.info over renderFrame() with the desert’s chests shown and hidden (the least of 5), the programs linked once the view is up; the same views as the pictures' };
 export const CHANGELOG_MEDIA = {
   '1.43': [
     // (a new game: pictures with no before; the run flown ahead by its pilot, minigame.session.forward)
@@ -549,6 +553,24 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The fight on the way can be skipped', shots: [
       { name: 'pirates-card', only: 'after', caption: 'The card on the way to a new world: the ship’s warning, Start and Skip the fight', from: FROM_PIRATES },
+    ] },
+    { match: 'The makers’ chests have a new look', shots: [
+      { name: 'chest-makers', caption: 'The makers’ chest on a roof inside Qanat’s gate: before, the dark blue shell with a compass on each side; after, the cream shell with the star on its top, the brass band and the jade lens', from: FROM_CHESTS42,
+        reference: { sheet: 'references/Core Objects/Chests/sheet/sheet-1.jpg', caption: 'The picked design sheet: the makers’ chest from the front, the side and three-quarter, and its opening in stages' } },
+      { name: 'chest-opening', caption: 'Opening it, the same moment: before, the shell coming apart from the top down; after, its two halves swung out on their hinges like petals, lined in pale jade, motes of jade light rising', from: FROM_CHESTS42 },
+      { name: 'chest-handheld', title: 'Handheld', caption: 'At play distance on the Handheld preset (960 × 540): the cream chest, its band and its lens still read', from: FROM_CHESTS42 },
+    ], numbers: [
+      { title: 'What a chest costs to draw', unit: '', better: 'lower', ...COST42, rows: [
+        { where: 'draws for the chests in view, close up (High)', before: 3, after: 3 },
+        { where: 'draws for the chests in view at play distance (Handheld)', before: 2, after: 2 },
+        { where: 'the temple chest close up (High)', before: 3, after: 3 },
+        { where: 'shader programs linked, the desert with a chest close up', before: 72, after: 72 },
+      ], note: 'One vertex-coloured mesh a chest, in the old box’s own shader program: nothing new to compile on the Xbox. The opening’s parts are drawn only while it opens.' },
+    ] },
+    { match: 'At the heart of each temple the chest is a rarer one', shots: [
+      { name: 'chest-temple', title: 'The Givers’ House', caption: 'The chest on the dais of the desert temple’s round chamber: before, the same blue box as everywhere; after, the bud of white stone and gold, jade in its seams, a star on each petal', from: FROM_CHESTS42,
+        reference: { sheet: 'references/Core Objects/Chests/temple/sheet-1.jpg', caption: 'The picked temple chest: closed, waking, opening like a flower, its jade heart risen' } },
+      { name: 'chest-temple-open', caption: 'Opening it, the same moment: before, the blue box coming apart; after, the petals fallen open round the foot’s jade disc, its heart rising, jade motes going up', from: FROM_CHESTS42 },
     ] },
   ],
   '1.42': [
