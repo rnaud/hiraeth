@@ -254,7 +254,7 @@ namespace Memento.Bridge
             if (BridgeArgs.Flag("-warm"))
             {
                 var tw = System.Diagnostics.Stopwatch.StartNew();
-                foreach (var n in new[] { "Memento/Surface", "Memento/Mote", "Memento/Wisp", "Memento/Print", "Memento/Flame" }) Shader.Find(n);
+                foreach (var sn in new[] { "Memento/Surface", "Memento/Mote", "Memento/Wisp", "Memento/Print", "Memento/Flame" }) Shader.Find(sn);
                 Debug.Log($"Memento bridge: the bridge's shaders found in {tw.ElapsedMilliseconds} ms");
                 tw.Restart();
                 Shader.WarmupAllShaders();
