@@ -1,0 +1,36 @@
+src/glass-dunes-ways.js
+  s_9ca76055a220ed::t_8cc3d1540ff912 3-4,83-193
+src/story/spheres.js
+  s_9ca76055a220ed::t_794e572e9d18f6 29,99-110,119-123
+src/levels/spheres.js
+  s_9ca76055a220ed::t_71e1dc69fd2515 1006-1039,1074-1075
+  s_9ca76055a220ed::t_9eae29abad6ff2 1076,1079-1081,1088-1089,1118
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_00083105fa12d4 14,196-198,243-245,249,258-259,261-262
+changelog.md
+  s_9ca76055a220ed::t_48e714d6816903 7-8
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_b635afcf6c2048 1836-1847
+src/changelog-media.js
+  s_9ca76055a220ed::t_0f84c46e47a7f9 719-739
+src/changelog.js
+  s_9ca76055a220ed::t_a3292517c23308 35-36
+tests/level-design-landmarks.test.js
+  s_9ca76055a220ed::t_2ff364d39c15cf 91-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1efbcc0d65a9605d7078d3b00cf485331d53f6e8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
