@@ -1,0 +1,23 @@
+docs/README.md
+  s_9ca76055a220ed::t_44364f79dd2661 26
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_f19d6ac4db9228 27,48,69-70
+docs/audits/game-v1.49.md
+  s_9ca76055a220ed::t_6821ebd6a21d6d 1-349
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6cd7ecb8c19cf21d903f878c7660f18bd82eb062",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
