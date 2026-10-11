@@ -77,6 +77,7 @@ namespace Memento.Bridge
             cam.tag = "MainCamera";
             cam.gameObject.AddComponent<AudioListener>();   // (where the sound is heard: BridgeAudio, muted in batch runs)
             cam.nearClipPlane = 0.1f; cam.farClipPlane = 6000f; cam.fieldOfView = 55;
+            MementoShadows.MainCamera = cam;   // (its shadow maps on their schedule: near every Quality.nearEvery frames, far every farEvery)
             cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.black;
             cam.allowMSAA = false; cam.allowHDR = false;
             var extra = cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
@@ -258,12 +259,11 @@ namespace Memento.Bridge
 #else
             BridgeRenderer.uniformLayout = BridgeArgs.Flag("-uniform-layout");
 #endif
-            // the Xbox's shadow maps (the Unity build only; the shared presets, Quality.Set and the web's perf.js, stay): the near
-            // map redrawn every 2nd frame, the far every 8th, no fine map, casters under 2 texels left out: 938 draws a frame
-            // instead of ~1 100 and 48 fps instead of 46 at the desert's spawn (docs/benchmark-web-vs-unity.md). -shadows-high
-            // keeps the web's High
+            // the Xbox's shadow maps (the Unity build only; the shared presets, Quality.Set and the web's perf.js, stay): the
+            // web's High schedule (near every frame, far every 3rd, now kept in the bridge too: MementoShadows.MainCamera),
+            // casters under 2 texels left out; -shadows-high keeps the web's 0.75
 #if UNITY_WSA && !UNITY_EDITOR
-            if (!BridgeArgs.Flag("-shadows-high")) { Quality.nearEvery = 2; Quality.farEvery = 8; MementoShadows.minCasterTexels = 2; }
+            if (!BridgeArgs.Flag("-shadows-high")) MementoShadows.minCasterTexels = 2;
             // (the fine map stays: without it the traveller's own shadow and a close shard's went, results/tour in rnaud/puerts-uwp)
 #endif
             // (the shadow maps' cost on the main thread, tried apart: the near map redrawn every N frames, no fine map, casters

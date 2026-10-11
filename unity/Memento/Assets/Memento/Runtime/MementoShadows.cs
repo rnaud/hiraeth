@@ -91,6 +91,8 @@ namespace Memento
         public Cascade[] All => new[] { fine, near, far };
         int version = -1, frameNo;
         public static bool On = true;
+        /// <summary>A main camera that is not the port's Game's (the Unity bridge's): it keeps the cascades' schedule.</summary>
+        public static Camera MainCamera;
         /// <summary>The smallest caster drawn, in the cascade's texels (its bounding radius; the web's 0.75).</summary>
         public static float minCasterTexels = 0.75f;
         /// <summary>The far map's own smallest caster, in its texels (~1.1 m: a small thing far off casts a speck there).</summary>
@@ -175,7 +177,8 @@ namespace Memento
             foreach (var c in All) turned |= c.Aim(lightDir);
             // (the main camera keeps the schedule; another view of the world, a page's sketch, draws all three for itself)
             var game = Game.Instance;
-            bool main = game && cam == game.cam && Application.isPlaying;
+            // (the Unity bridge's camera, MainCamera, is a main one too: without it every cascade was drawn every frame there)
+            bool main = ((game && cam == game.cam) || (MainCamera && cam == MainCamera)) && Application.isPlaying;
             if (!main) turned = true;
             var center = main && game.player ? game.player.transform.position : cam.transform.position;
             float camToPlayer = Vector3.Distance(cam.transform.position, center);
