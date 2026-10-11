@@ -144,6 +144,7 @@ installMatrixCache();
 // so it can paint (its pen animation runs on the compositor meanwhile).
 const loadMsg = document.querySelector('#loading .msg');
 const tLoad = performance.now();
+window.__loadT0 = tLoad;   // (when the modules had loaded and this one began: scripts/load-breakdown.mjs's "modules")
 let tStage = tLoad, lastMsg = 'start', loadStep = '';
 // (a stage that runs over 15 s says which step it is on: a stalled load says where)
 const loadWatch = loadWatchdog(() => (loadStep ? `${lastMsg} / ${loadStep}` : lastMsg));
@@ -158,9 +159,13 @@ const setStep = (name) => {
   if (loadStep) loadSteps.push(`${loadStep} ${(t - tStep).toFixed(0)}`);
   loadStep = name; tStep = t;
 };
+// (kept in the page too, for a harness that can't read the console: the Android bench's GeckoView, the console's relay)
+const loadLog = window.__loadLog = [];
 const stage = (msg) => {
-  console.info(`load: ${lastMsg} ${(performance.now() - tStage).toFixed(0)} ms`);
+  const ms = performance.now() - tStage;
+  console.info(`load: ${lastMsg} ${ms.toFixed(0)} ms`);
   setStep('');
+  loadLog.push({ stage: lastMsg, ms: Math.round(ms), steps: loadSteps.map((s) => { const i = s.lastIndexOf(' '); return [s.slice(0, i), +s.slice(i + 1)]; }) });
   if (loadSteps.length) console.info(`load steps: ${lastMsg} ${loadSteps.splice(0).join(' · ')}`);
   tStage = performance.now(); lastMsg = msg; loadStep = '';
   if (loadMsg) loadMsg.textContent = msg;
@@ -294,11 +299,13 @@ const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { cons
 // any world's, ?mh=0 none): the body's one file asked for now, while the rest loads
 const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.meta.env.BASE_URL, levelId).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return null; }) : null;
 await stage(`sketching ${meta.title.toLowerCase()}…`);
+setStep('world');
 const level = meta.build ? await runStepsAsync(meta.build(scene), slice) : meta.create(scene);
 if (level.gadgets === 'all') for (const g of GADGETS) items.grant(g.id);   // (the Gadget Yard: every gadget, to try them: src/levels/gadget-yard.js)
 const terrain = level.ground;
 // where the old walls' cracks may not run: their windows, doors and what is fixed on them (src/wall-openings.js;
 // the builders added their merged pieces as they laid them)
+setStep('openings');
 { const t = performance.now(); wallOpenings.collectScene(scene).flush(sharedUniforms); console.info(`wall openings: ${wallOpenings.boxes} pieces in ${(performance.now() - t).toFixed(0)} ms`); }
 // what the metals see below the horizon: the world's ground (materials.js)
 setEnvGround(level.envGround ?? level.ground?.mesh?.material?.uniforms?.uColor?.value);
@@ -306,15 +313,19 @@ await slice();
 await stage('inking the collisions…');
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
+setStep('bake');
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null, slice, level.collision ?? {});
 physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed: the desert's cave, src/physics.js noClimbNear)
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
+setStep('level init');
 if (level.initSteps) await runStepsAsync(level.initSteps(physics), slice); else level.init?.(physics);
 await slice();
 // every body of water: its look (bed maps, ripples) and swimming in it (src/water.js, src/swim.js)
+setStep('water');
 const waters = new Waters(scene, { physics });
 await slice();
 // trees and shrubs that landed inside a house or a rock are left out (src/physics.js; window.clipAudit lists the rest)
+setStep('buried flora');
 const buriedFlora = await runStepsAsync(dropBuriedFloraSteps(scene, physics), slice);
 if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`);
 await slice();
@@ -324,19 +335,23 @@ const playPrologue = levelId === 'desert' && !viaShip && !minigameDef && (query.
 // coming home by ship plays a homecoming (src/ship/homecoming.js, src/story/ending.js homecomingKind): the first
 // (the stone, the light over the hill), then, with Ilen, the true ending; ?ending=1 replays the first, ?ending=2 the last
 const playHomecoming = (levelId === 'home' && (query.get('ending') === '1' ? 'first' : query.get('ending') === '2' ? 'final' : viaShip ? homecomingKind((k) => game.flag(k)) : null)) || false;
+setStep('ship');
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
 level.ship ??= { pos: ship.rampFoot.clone() };
 await slice();
 const auditRoots = scene.children.slice();   // the level and the ship: what the clipping audit looks over (window.clipAudit)   // quests that say "return to the ship" point at its ramp
+setStep('reactive');
 const reactiveWorld = await runStepsAsync(ReactiveWorld.make(scene, level, physics, content), slice);
 window.addEventListener('pagehide', () => reactiveWorld.flush());
 await slice();
 // tile world-spanning meshes so each pass only draws what it can see
+setStep('tiling');
 const tiled = await runStepsAsync(tileSceneSteps(scene), slice);
 tiled.small.push(...(level.smallProps ?? []));
 await slice();
 await stage('waking the people…');
 // the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
+setStep('player');
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
 // the hoverbike, found in the desert, comes out of the ship in the worlds made for riding (src/bike-worlds.js): the
 // whistle's, unless the bird answers there; then it stands by the ramp to be boarded
@@ -510,6 +525,7 @@ const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.
 const inOffMapRoom = () => offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
 player.opts.canSummon = () => !inOffMapRoom() && !ship?.inside;   // (nor from inside the ship)
 await slice();
+setStep('assets wait');
 const lib = await animLib;
 if (lib) {
   player.animator = player._animator = new Animator(lib, player.char);
@@ -524,6 +540,7 @@ const humanT = await humans;
 // the people on MakeHuman bodies (each by their age, build and world); the traveller stays on his own body
 // (docs/makehuman.md). Without the file, the Quaternius ones.
 const peopleT = humanT && mhPeople ? ((await mhPeople)?.humans() ?? humanT) : humanT;
+setStep('traveller');
 const generatedTraveller = await traveller;
 if (generatedTraveller) {
   player.character = createTravellerV1(player.char, generatedTraveller);
@@ -604,6 +621,7 @@ await slice();
 // ------------------------------------------------------------------ sound, weather, people, story
 // Review playback must be silent before audio initialization or any input starts
 // a context; startReview runs after world loading and is too late for this.
+setStep('sound, tool');
 const sound = new Sound(levelId, { muted: query.has('cinematicReview') ? true : undefined });
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
@@ -637,6 +655,7 @@ addIndoors((p) => !!ship.modelOf(p));   // the traveller's own ship
   const stormColor = { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId];
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
+setStep('npcs');
 const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { lib, humans: peopleT }), slice);
 await slice();
 // city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
@@ -646,9 +665,11 @@ const crowdT0 = performance.now();
 // (no strollers round the ship's hull and ramp, and whoever stands there idles slower: issue #84, src/npc.js SHIP_CALM)
 const shipCalm = shipCalmZones(ship.restPos, ship.rampFoot);
 setCalmZones(shipCalm);
+setStep('crowd');
 const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear, calm: shipCalm }), slice) : null;
 // (the near tier's bodies one at a time: each is a person built and dressed)
 const crowdPool = [];
+setStep('crowd pool');
 if (crowdSpots) for (let i = 0; i < CROWD_BUDGET.pool; i++) { crowdPool.push(pooledNPC(scene, physics, { kind: i % 2 ? 'f' : 'm', lib, humans: peopleT })); await slice(); }
 const crowd = level.crowdSpots ? new Crowd(scene, physics, {
   spots: crowdSpots, built: crowdBuilt, pooled: crowdPool,
@@ -660,6 +681,7 @@ if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.lengt
 registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
 npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
+setStep('story');
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 // (a merged world's parts kept their relics apart before: they join its list, src/save-migrate.js)
 if (migrateJournal(journal.data, RELIC_BASE)) journal.save();
@@ -844,6 +866,7 @@ window.addEventListener('keydown', (e) => {
 // flora: the world's own plants in clumps, clear of the people, the boxes, the relics, the ship and
 // the story's places (src/flora.js); the large ones are solid
 await slice();
+setStep('flora');
 const flora = await runStepsAsync(buildFloraSteps({ scene, level, levelId, physics, density: preset.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }), slice);
 if (flora) {
   tiled.small.push(...flora.small);
@@ -853,6 +876,7 @@ if (flora) {
 }
 await slice();
 // grass blades round the camera on the grassy grounds (src/flora-grass.js), by the graphics preset
+setStep('grass');
 blades.grow = () => {
   if (blades.key === preset.key) return;
   blades.key = preset.key;
@@ -864,6 +888,7 @@ blades.grow = () => {
 blades.grow();
 await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
+setStep('wildlife, foes');
 const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
 // the desert's first steps: the camera and the jump, each said once if you haven't used it yet (src/first-steps.js)
@@ -921,6 +946,7 @@ if (level.foes?.waves && !minigameDef) {   // (the Arena's FOES list, its guardi
   else import('./foe-spawner.js').then((m) => m.mountFoeSpawner(attach));
 }
 await slice();
+setStep('rest');
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
   // the first flight to a world never visited: the chime-pirates on the way (src/ambush.js, src/minigames/pirates.js)
   departure: (to) => (ambushDue({ to, flag: (k) => game.flag(k), seen: (id) => journal.seen(id), settings }) ? ambushHref(to, levelId) : null) });
@@ -2216,6 +2242,7 @@ const gpuPace = gpuPacer(renderer.getContext(), { memory: { get: () => { try { r
 const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null } = {}) =>
   warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace });
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
+setStep('batches');
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 // the world's still meshes, a batch (and a draw) per material, and one for the shadow maps (src/static-batch.js;
 // ?batch=0 leaves each mesh drawing itself)

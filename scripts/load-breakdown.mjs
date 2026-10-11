@@ -3,6 +3,11 @@
 // the GPU (ANGLE on Metal), with a probe on the WebGL calls from the page's first line. Per world:
 //   stages     the loading screen's stages (main.js `load:` lines), ms
 //   programs   how many programs were linked, the surface ones (materials.js), and their sources' size (kB)
+//   phases     the load by kind of work (phasesOf): modules (the page and its scripts, up to main.js's start),
+//              assets (waiting on the models' files), world creation, collision, characters, shaders (compile, link,
+//              first use), GPU warm-up (the passage's draws, the first frame's uploads), the rest; and the first
+//              playable frame (the first of ten frames in a row under 50 ms apart once the world is up)
+//   memory     the JS heap in use, and what the scene holds for the GPU (geometry and texture MB, renderer counts)
 //   gl         time inside the calls that compile (shaderSource/compile/link), that block on a program (its
 //              status, log and uniforms queried), and that upload (buffers, textures), ms
 //
@@ -18,6 +23,12 @@
 //     [--warm]           with --xbox: shaders not salted (a second load, the GPU process's cache kept)
 //     [--salt word]      with --xbox: this salt, not a random one (run twice: a cold load, then a warm one of the same)
 //     [--after s]        wait s seconds after the first frame before reading (what comes after it: warm rest)
+//     [--cpu n]          the page's main thread slowed n times (with --preset handheld: the Retroid's recipe, docs/systems/performance.md)
+//     [--query k=v&…]    added to the page's address (an A/B in one build: defer=0, batch=0)
+//     [--traverse s]     then s seconds of fast traversal (the traveller carried at --speed m/s, 40 by default, past a
+//                        hoverbike's top speed, along the camera's heading and back near the world's edge, after a
+//                        quick full turn of the camera): the frame intervals' p50/p95/p99/max and the frames over 50
+//                        and 100 ms (with --disable-gpu-vsync an interval is the frame's own work)
 //     [--keys]           with --dump, each live program's three.js key and the materials using it (dir/<world>.keys.json)
 //     [--xbox https://hiraeth.example/perf-new.html]   on the Xbox instead (its page navigated there through the Device
 //                        Portal's DevTools relay, scripts/xbox-shaders.mjs connect): the app opens only its own origin,
@@ -26,7 +37,7 @@
 //                        shader salted with a #define of its own (a first launch: the GPU process's cache can't answer),
 //                        the console's own preset. The game must be running.
 // PORT (default 5471) is the server's, CDP its + 1. Never the author's dev server.
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -124,12 +135,58 @@ export const PROBE = (slow, salt = false) => `(() => {
     wrap(n, 'upload', function (o, a) { const b = a.find((x) => x && x.byteLength !== undefined); if (b) G.uploadBytes += b.byteLength; return o.apply(this, a); });
   const info = console.info, warn = console.warn;
   G.stages = []; G.lines = [];
-  console.info = function (...a) { const s = String(a[0] ?? ''); if (s.startsWith('load: ')) { G.stages.push(s.slice(6)); G.lines.push(Math.round(performance.now()) + ' ' + s); } else if (/^(shaders|passage|bounds|bake|load steps|warm rest)/.test(s)) G.lines.push(Math.round(performance.now()) + ' ' + s); return info.apply(this, a); };
+  G.frames = [];   // (every animation frame's time: the first playable frame, the traversal's intervals)
+  { const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = (f) => raf((t) => { if (t !== G.lastT && G.frames.length < 200000) { G.lastT = t; G.frames.push(performance.now()); } return f(t); }); }
+  console.info = function (...a) { const s = String(a[0] ?? ''); if (s.startsWith('load: ')) { G.stages.push(s.slice(6)); G.lines.push(Math.round(performance.now()) + ' ' + s); } else if (/^(shaders|passage|bounds|bake|load steps|warm rest|distant detail)/.test(s)) G.lines.push(Math.round(performance.now()) + ' ' + s); return info.apply(this, a); };
   console.warn = function (...a) { const s = String(a[0] ?? ''); if (/passage|pacer|bake/.test(s)) G.lines.push('warn: ' + s); return warn.apply(this, a); };
 })();`;
 
 /** A program's defines (its prefix's #define lines: the material's and three.js' own). */
 export const definesOf = (vs) => [...vs.matchAll(/^#define ([A-Z_][A-Z0-9_]*)(?: (.*))?$/gm)].map((m) => (m[2] ? `${m[1]}=${m[2]}` : m[1]));
+
+/** Which kind of work a load step is (main.js's stages and their setStep names). */
+const KIND = {
+  world: 'world', openings: 'world', water: 'world', ship: 'world', reactive: 'world', tiling: 'world', flora: 'world', grass: 'world', batches: 'world',
+  bake: 'collision', 'level init': 'collision', 'buried flora': 'collision',
+  player: 'characters', traveller: 'characters', npcs: 'characters', crowd: 'characters', 'crowd pool': 'characters', 'wildlife, foes': 'characters',
+  'assets wait': 'assets',
+  surfaces: 'shaders', post: 'shaders', shadows: 'shaders', 'first use': 'shaders',
+  passage: 'gpu warm-up',
+  'near detail': 'world',
+};
+const SHADER_STAGE = /^mixing/;
+/**
+ * The load by kind of work, ms: main.js's window.__loadLog ({ stage, ms, steps: [[name, ms]] }), its start (loadT0,
+ * from the navigation) and the first frame. A stage's time its steps don't cover goes to `other`, as do the stages'
+ * frames for the loading screen; the time from "ready" to the first frame is `first frame`.
+ */
+export function phasesOf(log, loadT0, firstFrame) {
+  const out = { modules: loadT0, assets: 0, world: 0, collision: 0, characters: 0, shaders: 0, 'gpu warm-up': 0, other: 0, 'first frame': 0 };
+  let sum = 0;
+  for (const { stage, ms, steps } of log) {
+    let covered = 0;
+    for (const [name, t] of steps ?? []) {
+      const kind = SHADER_STAGE.test(stage) && name === 'water' ? 'shaders' : KIND[name] ?? 'other';
+      out[kind] += t; covered += t;
+    }
+    out.other += Math.max(0, ms - covered); sum += ms;
+  }
+  out['first frame'] = Math.max(0, firstFrame - loadT0 - sum);
+  for (const k of Object.keys(out)) out[k] = Math.round(out[k]);
+  return out;
+}
+/** The q-th quantile (0..1) of a list. */
+export const quantile = (a, q) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(q * s.length))]; };
+/** The first playable frame: the first frame from `from` on that begins `run` frames in a row each under `ms` apart. */
+export function firstPlayable(times, from, { run = 10, ms = 50 } = {}) {
+  const t = times.filter((x) => x >= from);
+  for (let i = 0; i + run < t.length; i++) {
+    let ok = true;
+    for (let j = i; j < i + run; j++) if (t[j + 1] - t[j] >= ms) { ok = false; break; }
+    if (ok) return t[i];
+  }
+  return null;
+}
 
 /** The Xbox's game page (scripts/xbox-shaders.mjs connect), shaped as chrome()'s. */
 async function xboxPage() {
@@ -144,7 +201,7 @@ async function xboxPage() {
   return { send: c.send, ev, errors: [], close: async () => c.close() };
 }
 
-async function chrome() {
+export async function chrome() {
   const profile = mkdtempSync(join(tmpdir(), 'hiraeth-load-'));
   const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
     '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check',
@@ -174,7 +231,19 @@ async function chrome() {
     await Promise.race([gone, sleep(5000)]);
     rmSync(profile, { recursive: true, force: true });
   };
-  return { send, ev, errors, close };
+  // the resident memory of this Chrome's renderer and GPU processes, MB (ps, by the profile's directory on their command line)
+  const processes = () => {
+    try {
+      const out = { renderer: 0, gpu: 0 };
+      for (const l of execFileSync('ps', ['-A', '-o', 'rss=,command='], { encoding: 'utf8', maxBuffer: 1 << 26 }).split('\n')) {
+        if (!l.includes(profile)) continue;
+        const rss = Number(l.trim().split(/\s+/)[0]) / 1024;
+        if (l.includes('--type=renderer')) out.renderer += rss; else if (l.includes('--type=gpu-process')) out.gpu += rss;
+      }
+      return { rendererMB: Math.round(out.renderer), gpuMB: Math.round(out.gpu) };
+    } catch { return null; }
+  };
+  return { send, ev, errors, close, processes };
 }
 
 const storage = (preset) => `localStorage.clear();
@@ -192,8 +261,9 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     await c.send('Page.navigate', { url: `${root}manifest.webmanifest` }); await sleep(xbox ? 1500 : 300);
     await c.ev(`${storage(xbox ? null : preset)}; true`);
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE(slow, xbox && !WARM && (arg('salt') ?? true)) });
+    if (!xbox && arg('cpu')) await c.send('Emulation.setCPUThrottlingRate', { rate: Number(arg('cpu')) });   // (the handheld recipe: the main thread slowed n times)
     const t0 = Date.now();
-    await c.send('Page.navigate', { url: `${page}?level=${world}` });
+    await c.send('Page.navigate', { url: `${page}?level=${world}${arg('query') ? `&${arg('query')}` : ''}` });
     let up = false;
     while (!up && Date.now() - t0 < LIMIT) { try { up = await c.ev('!!window.__moebiusBooted'); } catch { /* loading */ } if (!up) await sleep(250); }
     if (!up) throw new Error(`${world}: no first frame in ${LIMIT / 1000} s (${c.errors.slice(-1)[0] ?? 'no error'})`);
@@ -216,7 +286,46 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
       out.sort((a, b) => a - b);
       return { frames: out.length, median: +out[out.length >> 1].toFixed(2), p90: +out[Math.floor(out.length * 0.9)].toFixed(2) };
     })()`) : null;
-    const g = await c.ev(`(() => { const G = window.__gl; return { ...G, programs: G.programs.map((p) => ({ at: p.at, vs: ${dump} ? p.vs : p.vs.slice(0, 6000), fs: ${dump} ? p.fs : '', vsLen: p.vs.length, fsLen: p.fs.length })), nav: Math.round(performance.getEntriesByType('navigation')[0]?.responseEnd ?? 0), now: Math.round(window.__moebiusBootedAt ?? performance.now()), live: renderer.info.programs.length }; })()`);
+    // what the page holds: the JS heap, and the scene's geometry and textures (each counted once)
+    const memory = await c.ev(`(() => { const geos = new Set(), arrays = new Set(), texs = new Set(); let gb = 0, tb = 0;
+      const arr = (x) => { if (x && !arrays.has(x)) { arrays.add(x); gb += x.byteLength ?? 0; } };
+      const tex = (v) => { if (v?.isTexture && !texs.has(v)) { texs.add(v); const i = v.image; tb += (i?.width ?? 0) * (i?.height ?? 0) * (i?.depth ?? 1) * 4; } };
+      scene.traverse((o) => { const g = o.geometry; if (g && !geos.has(g)) { geos.add(g); for (const a of Object.values(g.attributes ?? {})) arr(a.array ?? a.data?.array); arr(g.index?.array); }
+        for (const m of [o.material].flat()) { if (!m) continue; for (const v of Object.values(m)) tex(v); for (const u of Object.values(m.uniforms ?? {})) tex(u?.value); } });
+      return { geometryMB: +(gb / 2 ** 20).toFixed(1), textureMB: +(tb / 2 ** 20).toFixed(1), geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 2 ** 20).toFixed(1) : null }; })()`);
+    Object.assign(memory, c.processes?.() ?? {});
+    try { const h = await c.send('Runtime.getHeapUsage'); const u = h.usedSize ?? h.result?.usedSize; if (u) memory.heapMB = +(u / 2 ** 20).toFixed(1); } catch { /* not there */ }
+    // the levels of detail and the queue of distant detail (src/deferred.js) at the first frame, and after the traversal
+    const stateAt = () => c.ev(`(() => { const L = window.lod?.()?.stats, D = window.deferred; return { lod: L ? { meshes: L.meshes, built: L.built, packMs: Math.round(L.packMs), pending: L.pending } : null, deferred: D ? { pending: D.pending, done: D.done, ms: Math.round(D.ms), forced: D.forced } : null }; })()`);
+    const atBoot = await stateAt();
+    const TRAV = Number(arg('traverse', 0)), SPEED = Number(arg('speed', 40));
+    const traverse = TRAV ? await c.ev(`(async () => {
+      const T = THREE, P = player, start = P.pos.clone(), lim = (level.limit ?? 1900) * 0.7;
+      const dir = new T.Vector3(); camera.getWorldDirection(dir); dir.y = 0; if (dir.lengthSq() < 1e-6) dir.set(0, 0, -1); dir.normalize();
+      const up = new T.Vector3(0, 1, 0), at = start.clone(), t0 = performance.now(), from = window.__gl.frames.length;
+      let last = t0, turned = 0;
+      await new Promise((done) => { const step = () => {
+        const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
+        if (now - t0 > ${TRAV * 1000}) return done();
+        if (turned < Math.PI * 2) { const d = Math.min(Math.PI * 2 - turned, dt * Math.PI * 2); rig.yaw -= d; turned += d; }   // (a full turn in a second)
+        else {
+          at.addScaledVector(dir, ${SPEED} * dt);
+          if (Math.hypot(at.x, at.z) > lim) { dir.negate(); at.addScaledVector(dir, ${SPEED} * dt * 2); }
+          const g = physics.groundAt(at.x, at.y + 60, at.z, 400);
+          if (Number.isFinite(g)) at.y = g + 0.1;
+          P.teleport(at, up, dir, { speed: ${SPEED} });
+          rig.yaw = Math.atan2(-dir.x, -dir.z);
+        }
+        requestAnimationFrame(step); };
+        requestAnimationFrame(step); });
+      const f = window.__gl.frames.slice(from), iv = [];
+      for (let i = 1; i < f.length; i++) iv.push(f[i] - f[i - 1]);
+      return { iv, metres: Math.round(at.distanceTo(start)) };
+    })()`) : null;
+    let trav = null;
+    const afterTrav = TRAV ? await stateAt() : null;
+    if (traverse) { const iv = traverse.iv; trav = { frames: iv.length, p50: +quantile(iv, 0.5).toFixed(1), p95: +quantile(iv, 0.95).toFixed(1), p99: +quantile(iv, 0.99).toFixed(1), max: +Math.max(...iv).toFixed(1), over50: iv.filter((x) => x > 50).length, over100: iv.filter((x) => x > 100).length, speed: SPEED }; }
+    const g = await c.ev(`(() => { const G = window.__gl; return { ...G, frames: [], loadLog: window.__loadLog ?? [], loadT0: window.__loadT0 ?? 0, frameTimes: G.frames.filter((x) => x >= (window.__moebiusBootedAt ?? 0)).slice(0, 2000), programs: G.programs.map((p) => ({ at: p.at, vs: ${dump} ? p.vs : p.vs.slice(0, 6000), fs: ${dump} ? p.fs : '', vsLen: p.vs.length, fsLen: p.fs.length })), nav: Math.round(performance.getEntriesByType('navigation')[0]?.responseEnd ?? 0), now: Math.round(window.__moebiusBootedAt ?? performance.now()), live: renderer.info.programs.length }; })()`);
     const keys = KEYS ? await c.ev(`(() => { const r = renderer, by = new Map();
       scene.traverse((o) => { for (const m of [o.material].flat()) { if (!m) continue; const p = r.properties.get(m).currentProgram; if (!p) continue; if (!by.has(p)) by.set(p, new Set()); by.get(p).add((m.name || m.type) + ' ' + (m.userData?.cacheKey ?? '').slice(0, 120) + ' obc:' + (m.onBeforeCompile?.toString().length ?? 0)); } });
       return r.info.programs.map((p) => ({ key: p.cacheKey, mats: [...(by.get(p) ?? [])].slice(0, 6) })); })()`) : null;
@@ -232,8 +341,10 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
       return { inView: progs.size, meshesInView: meshes, used: all.size, compiled: r.info.programs.length, idx }; })()`);
     const stages = Object.fromEntries(g.stages.map((s) => { const m = s.match(/^(.*) (\d+) ms/); return m ? [m[1], +m[2]] : [s, 0]; }).filter(([k]) => k !== 'start'));
     const surface = g.programs.filter((p) => /\bSURFACE_SPEC\b|uWearLite/.test(p.vs) || p.fsLen > 100000);
+    const playable = firstPlayable(g.frameTimes, g.now);
     return {
-      world, preset, wall, firstFrame: g.now, stages, lines: g.lines, gpu,
+      world, preset, wall, firstFrame: g.now, firstPlayable: playable === null ? null : Math.round(playable), phases: phasesOf(g.loadLog, g.loadT0, g.now), memory, traverse: trav, atBoot, afterTrav,
+      stages, lines: g.lines, gpu,
       programs: { linked: g.links, live: g.live, surface: surface.length, fsKb: Math.round(g.programs.reduce((n, p) => n + p.fsLen, 0) / 1024), vsKb: Math.round(g.programs.reduce((n, p) => n + p.vsLen, 0) / 1024), srcKb: Math.round(g.srcBytes / 1024) },
       gl: { compile: Math.round(g.compile), block: Math.round(g.block), blocks: g.blocks, longestBlock: Math.round(g.longestBlock), upload: Math.round(g.upload), uploadMB: +(g.uploadBytes / 2 ** 20).toFixed(1) },
       view, long: g.long, links: g.programs.map((p) => p.at), firstDraws: g.firstDraws,
@@ -257,9 +368,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         r.wall = median(runs.map((x) => x.wall)); r.firstFrame = median(runs.map((x) => x.firstFrame));
         for (const k of Object.keys(r.stages)) r.stages[k] = median(runs.map((x) => x.stages[k] ?? 0));
         for (const k of Object.keys(r.gl)) r.gl[k] = median(runs.map((x) => x.gl[k]));
+        for (const k of Object.keys(r.phases)) r.phases[k] = median(runs.map((x) => x.phases[k]));
+        r.firstPlayable = median(runs.map((x) => x.firstPlayable ?? Infinity));
+        for (const k of ['heapMB', 'geometryMB', 'textureMB', 'rendererMB', 'gpuMB']) r.memory[k] = median(runs.map((x) => x.memory[k]));
+        if (r.traverse) for (const k of ['p50', 'p95', 'p99', 'max', 'over50', 'over100']) r.traverse[k] = median(runs.map((x) => x.traverse[k]));
       }
       if (DUMP) { mkdirSync(DUMP, { recursive: true }); writeFileSync(join(DUMP, `${w}.json`), JSON.stringify(r.list)); if (r.view) writeFileSync(join(DUMP, `${w}.view.json`), JSON.stringify(r.view.idx)); if (r.keys) writeFileSync(join(DUMP, `${w}.keys.json`), JSON.stringify(r.keys, null, 1)); }
-      console.log(`${w} (${XBOX ? 'xbox' : PRESET}${SLOW ? `, slow ${SLOW.base}+${SLOW.perKb}/kB ×${SLOW.par}` : ''}): first frame ${r.firstFrame} ms`);
+      console.log(`${w} (${XBOX ? 'xbox' : PRESET}${arg('cpu') ? `, CPU ×${arg('cpu')}` : ''}${arg('query') ? `, ${arg('query')}` : ''}${SLOW ? `, slow ${SLOW.base}+${SLOW.perKb}/kB ×${SLOW.par}` : ''}): first frame ${r.firstFrame} ms`);
+      console.log(`  phases  ${Object.entries(r.phases).map(([k, v]) => `${k} ${v}`).join(' · ')} · first playable ${r.firstPlayable ?? '-'}`);
+      console.log(`  memory  heap ${r.memory.heapMB} MB · geometry ${r.memory.geometryMB} MB (${r.memory.geometries}) · textures ${r.memory.textureMB} MB (${r.memory.textures})${r.memory.gpuMB ? ` · processes: renderer ${r.memory.rendererMB} MB, GPU ${r.memory.gpuMB} MB` : ''}`);
+      const st = (x) => [x?.lod && `levels of detail: ${x.lod.meshes} meshes, ${x.lod.built} built (${x.lod.packMs} ms packing), ${x.lod.pending} waiting`, x?.deferred && `distant detail: ${x.deferred.done} done (${x.deferred.ms} ms, ${x.deferred.forced} forced), ${x.deferred.pending} left`].filter(Boolean).join(' · ');
+      console.log(`  boot    ${st(r.atBoot)}`);
+      if (r.afterTrav) console.log(`  after   ${st(r.afterTrav)}`);
+      if (r.traverse) console.log(`  travel  ${r.traverse.frames} frames at ${r.traverse.speed} m/s: p50 ${r.traverse.p50} · p95 ${r.traverse.p95} · p99 ${r.traverse.p99} · max ${r.traverse.max} ms · ${r.traverse.over50} > 50, ${r.traverse.over100} > 100`);
       console.log(`  stages  ${Object.entries(r.stages).map(([k, v]) => `${k.replace(/…$/, '')} ${v}`).join(' · ')}`);
       console.log(`  programs ${r.programs.linked} linked (${r.programs.surface} surface), fragment ${r.programs.fsKb} kB, vertex ${r.programs.vsKb} kB`);
       console.log(`  gl      compile ${r.gl.compile} ms · blocked ${r.gl.block} ms (${r.gl.blocks} calls, longest ${r.gl.longestBlock}) · upload ${r.gl.upload} ms (${r.gl.uploadMB} MB)`);

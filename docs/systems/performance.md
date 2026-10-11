@@ -1321,6 +1321,53 @@ only if its first draw still fits. Its cost is taken as the average first draw o
   before (desert: 2685 meshes in 254 ms).
 - On the Xbox it is seconds, so the ahead part keeps to kinds already drawn. The 8 s budget had become 48 s.
 
+## The load by kind of work, the first playable frame, memory and traversal (October 2026, issue #16)
+
+`scripts/load-breakdown.mjs` now splits a load by the kind of work, as the author's list asks (TODO.md, "Loading
+follow-up"), and reads what comes after the first frame:
+- **Steps everywhere.** main.js names a step (`setStep`) through every stage, not only "mixing the inks": the world's
+  build and the wall openings; the collision's bake (the BVH built in its worker included), the level's own init, the
+  water, the buried flora, the ship, the responsive world and the tiling; the player, the wait for the models' files,
+  the traveller, the sound and tool, the people, the crowd and its pool, the story, the flora, the grass, the wildlife
+  and the foes; the still meshes' batches. Each stage's steps go to `window.__loadLog` too (and `window.__loadT0`, when
+  main.js began), so a harness that can't read the console (GeckoView's bridge, the console's relay) gets them.
+- **`phases`** (`phasesOf`, tested): modules (the page and its scripts up to main.js), assets (waiting for the models),
+  world creation, collision, characters, shaders (compile, link, first use), GPU warm-up (the passage's draws and the
+  first frame's uploads), the rest (sound, story, the loading screen's frames), and from "ready" to the first frame.
+- **The first playable frame**: the first of ten frames in a row under 50 ms apart once the world shows.
+- **Memory**: the JS heap, what the scene holds for the GPU (its geometries' and textures' bytes, each counted once,
+  and three's counts), and the resident memory of Chrome's renderer and GPU processes.
+- **`--traverse s`**: a quick full turn of the camera, then the traveller carried at `--speed` (40 m/s: past the
+  hoverbike) along the view and back at 70 % of the world's limit, every frame on the ground: the frame intervals'
+  p50, p95, p99 and worst, and the frames over 50 and 100 ms.
+- `--cpu n` slows the page's main thread (with `--preset handheld`, the handheld recipe), `--query k=v` adds to the
+  page's address for an A/B in one build (`defer=0`, `batch=0`); the levels of detail's and the distant detail's queue
+  are read at the first frame and after the traversal.
+
+Measured on the Mac (M4 Pro, headless Chrome on ANGLE Metal, High, 1280 × 720, no vsync, one run each, the machine
+shared with other agents' test runs), ms:
+
+| World | modules | assets | world | collision | characters | shaders | GPU warm-up | rest | first frame | first playable | heap MB | geometry MB | GPU process MB | traversal p50 / p95 / p99 / worst, ms |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Desert | 234 | 20 | 1690 | 171 | 424 | 367 | 245 | 491 | 3.64 s | 3.64 s | 129 | 156 | 582 | 7.3 / 9.7 / 12.9 / 83 |
+| City-Shaft | 248 | 18 | 1116 | 3418 | 1444 | 389 | 244 | 444 | 7.32 s | 7.32 s | 166 | 206 | 665 | 10.2 / 12.4 / 17.9 / 355 |
+| Vael | 230 | 21 | 2253 | 232 | 426 | 330 | 274 | 420 | 4.19 s | 4.19 s | 105 | 261 | 734 | 8.1 / 9.5 / 12.0 / 61 |
+| Buried Machine | 272 | 25 | 2518 | 131 | 426 | 403 | 236 | 412 | 4.42 s | 4.43 s | 102 | 165 | 616 | 5.5 / 6.7 / 7.8 / 14 |
+| Lorn | 186 | 23 | 1818 | 628 | 477 | 419 | 342 | 469 | 4.36 s | 4.37 s | 96 | 173 | 641 | 6.8 / 8.6 / 9.9 / 17 |
+| Garden of Spheres | 255 | 24 | 1403 | 240 | 462 | 392 | 240 | 396 | 3.41 s | 3.42 s | 98 | 167 | 608 | 5.5 / 6.9 / 8.4 / 25 |
+| Signal Market | 221 | 21 | 492 | 68 | 507 | 455 | 504 | 381 | 2.65 s | 2.65 s | 117 | 89 | 484 | 6.6 / 9.6 / 13.0 / 29 |
+
+What it says:
+- On this Mac the load is the CPU's: shaders and the GPU warm-up are 0.6-1 s of every world; world creation (the
+  terrain, the sand drifts' field, the buildings) is 0.5-2.5 s, and the City-Shaft's collision 3.4 s, nearly all of it
+  its check for trees a clump had put inside a house (2.5 s: thousands of rays through the BVH), and its crowd's routes
+  (0.9 s: every 1.5 m of every route walked with rays). The traveller is ~0.3 s in every world.
+- The first playable frame is the first frame here: no frame after it is 50 ms apart. The worst frame of a traversal
+  is a few hitches; the City-Shaft's 300-350 ms one is in every build.
+- Not measured this round: the Retroid (asleep and locked all night; it is measured only when awake and unlocked) and
+  the Xbox (in use for the Unity port). The Xbox's own split is above ("The first draws on the Xbox": there the
+  shaders' draw-time compiles are most of the load, which no deferral of the CPU's work changes).
+
 ## The Retroid, round 5: the Xbox's settings, the camps and the City-Shaft again, the machines, the merged worlds (October 2026)
 
 The Retroid Pocket Nova (Adreno 650, pixel ratio 2), the GeckoView test app (`com.rnaud.moebius.gecko`) with the game
