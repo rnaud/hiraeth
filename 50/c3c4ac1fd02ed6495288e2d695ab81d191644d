@@ -1,0 +1,39 @@
+DONE.md
+  s_9ca76055a220ed::t_1812cc18ea610d 2758-2761
+changelog.md
+  s_9ca76055a220ed::t_df4cf8094cd603 7-8
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_6f67c760aef839 1016-1031
+src/changelog-media.js
+  s_9ca76055a220ed::t_f421059cc0ac5e 633-634,696-705
+src/changelog.js
+  s_9ca76055a220ed::t_92aadbdafafe9b 31-33
+src/levels/edena.js
+  s_9ca76055a220ed::t_2119c40637931d 12,604-609,612,617,620-621,624-628,657
+src/temples/edena-data.js
+  s_9ca76055a220ed::t_c98b9a96fac5ad 61-62
+src/temples/edena.js
+  s_9ca76055a220ed::t_3638b3bcaa41ad 63-64,598-612,615,658-664,688
+src/viridel-ways.js
+  s_9ca76055a220ed::t_4b0d0ee1b2b672 81-150
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_8dc768e41ebaf3 377
+tests/viridel-greenhouse-ways.test.js
+  s_9ca76055a220ed::t_f15ccafb4a3337 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "50c3c4ac1fd02ed6495288e2d695ab81d191644d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
