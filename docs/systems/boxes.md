@@ -137,3 +137,14 @@ pier (the mantle is clear). On the dais, a drum ringed with the makers' light ca
 lamp posts flank it and a stone halo with the glyph stands behind it, half in the bark. The
 makers' stone (`M.makers`) is pale, bedded and carved with their inscriptions, banded in their
 blue. The drum is tall enough that the box shows over the dais's edge from the top of the stairs.
+
+## What comes with an item: the gun's two modes in one chest
+
+An item may name what comes with it (`with` in `src/items.js` ITEMS, carried through a gadget's def by
+`src/gadgets/registry.js`): `items.grant` grants those too. The fluid gun comes with ember mode (issue #83, v1.45: "doesn't
+make sense to pick up ember mode and fluid mode as two chests in the same place"), so the Givers' Hearth has one chest,
+`desert.gun`, on the dais of a round room of its own off the hall's east side (`src/desert-hearth.js` CHAMBER: a short
+passage under a carved arch with the Givers' mark, the hall's glowing floor marks running in to a ring round the dais, a
+warm light over it; the hall's own materials). A spare gun by the ship in a later world brings ember mode too.
+`tests/boxes.test.js` counts what comes with a box's item as in that box; step 14 of `src/save-migrate.js` merges v1.44's
+two chests.

@@ -51,9 +51,10 @@ export const ITEMS = {
   },
   // (a gadget, src/gadgets/gun.js registers it with its model; here too so node's tests and the save know it without the registry)
   gun: {
-    name: 'Fluid gun', kind: 'gadget', needs: 'backpack', where: 'In the Givers’ Hearth, the desert’s old fire-house, by the stone ball.',
-    text: "The makers’ leather glove with a brass fitting on the wrist and a vial of the tank’s fluid on its cuff. It drinks from the backpack: the glove is what shoots.",
-    use: 'Choose it with {key:pick}. Aim with {key:aim} and shoot bursts of fluid with {key:fire}; {key:mode} takes the next mode: push people and things away, and the modes you find. A shot or a push spends a third of the magic bar.',
+    // (it comes with ember mode, `with`: one chest for the gun and its two modes, issue #83)
+    name: 'Fluid gun', kind: 'gadget', needs: 'backpack', with: ['fire'], where: 'In the Givers’ Hearth, the desert’s old fire-house, in the Givers’ room off the hall.',
+    text: "The makers’ leather glove with a brass fitting on the wrist, a vial of the tank’s fluid on its cuff and a flint ring on its finger. It drinks from the backpack: the glove is what shoots.",
+    use: 'Choose it with {key:pick}. Aim with {key:aim} and shoot bursts of fluid with {key:fire}. It comes with two modes, {key:mode} takes the next: push people and things away, and ember, which lights lamps, braziers and fuses. A shot or a push spends a third of the magic bar.',
   },
   // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
   // debug menus (the world debug menu's toggle, the dev menu): no box, shop or quest holds it, and old saves lose it
@@ -82,7 +83,7 @@ export const ITEMS = {
     use: 'Switch modes with {key:mode}. A stilling burst freezes creatures and people for a few seconds.',
   },
   fire: {
-    name: 'Ember mode', kind: 'mode', needs: 'gun', where: 'In the Givers’ Hearth, where the Givers kept their fire: across the hall from the fluid gun.',
+    name: 'Ember mode', kind: 'mode', needs: 'gun', where: 'It comes with the fluid gun, in the Givers’ Hearth.',
     text: "A flint ring that turns fluid into ember bursts. Useful fire, small enough to wear on the glove.",
     use: 'Switch modes with {key:mode}. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
@@ -303,11 +304,13 @@ const listeners = new Set();
 
 export const items = {
   has(id) { return !!game.flag(key(id)); },
+  /** Found: and what comes with it (`with`: the gun's ember mode). */
   grant(id) {
     if (!ITEMS[id] || this.has(id)) return false;
     game.set(key(id), true);
     game.emit('item', { id, def: ITEMS[id] });
     for (const fn of listeners) fn(id, true);
+    for (const w of ITEMS[id].with ?? []) this.grant(w);
     return true;
   },
   revoke(id) {

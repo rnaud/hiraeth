@@ -1,6 +1,7 @@
 import * as shipSfx from './ship/sfx.js';
 import { homecomingKind } from './story/ending.js';
-import { updateHazards } from './hazards.js';
+import { updateHazards, registerHazard } from './hazards.js';
+import { fireHazard } from './story/flames.js';
 import * as THREE from 'three';
 import { installMatrixCache } from './matrix-cache.js';
 import { ReactiveWorld } from './reactive-world.js';
@@ -82,6 +83,7 @@ import { routeChart, findableNote } from './story/signature-search.js';
 import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
+import { bikeComes, parkedBike } from './bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
@@ -327,6 +329,10 @@ await slice();
 await stage('waking the people…');
 // the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
+// the hoverbike, found in the desert, comes out of the ship in the worlds made for riding (src/bike-worlds.js): the
+// whistle's, unless the bird answers there; then it stands by the ramp to be boarded
+const bikeHere = bikeComes(levelId, level, (k) => game.flag(k));
+if (bikeHere && !level.mount) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
 const player = new Player(physics, {
   mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
@@ -481,6 +487,13 @@ function updateHealth(dt) {
   hpChimes?.classList.toggle('tick', walletShown !== wallet);
 }
 player.vehicles.push(...(level.vehicles ?? []));
+// every fire drawn in the world burns while you stand in it (src/story/flames.js fireHazard; issue #77)
+registerHazard(fireHazard(scene));
+if (bikeHere && player.mount?.kind !== 'bike') {
+  const bike = parkedBike(physics, level.spawn, level.spawnHeading ?? 0);
+  scene.add(bike.object);
+  player.vehicles.push(bike);
+}
 // rooms off the map, reached through doorways (the desert's chambers and the cave in the
 // giant's chest, ~1 km up): no whistling the mount or hailing a taxi into them; it would
 // come to the same x, z on the dunes far below and wait there

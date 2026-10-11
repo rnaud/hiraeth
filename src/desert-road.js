@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { staticFlame } from './story/flames.js';
 import { rough } from './desert-hearth.js';
 
 // The pilgrims' road: the old way down from Qanat's main gate to the landing, west of the straight way in, marked
@@ -40,7 +41,8 @@ export function buildPilgrimsRoad(scene, terrain, { tree = V(230, 0, 400) } = {}
     const top = V(x, y + h - 0.1, z);
     lamps.push(new THREE.LatheGeometry([[0.03, 0], [0.16, 0.02], [0.2, 0.1], [0.17, 0.14]].map(([r, yy]) => new THREE.Vector2(r, yy)), 9).translate(top.x, top.y, top.z).toNonIndexed());
     const flame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.42, 6).translate(0, 0.32, 0), flameMat);
-    flame.position.copy(top); flame.userData.noCollide = true; flame.visible = false;
+    flame.position.copy(top); flame.userData.noCollide = true; flame.visible = false; flame.name = 'Cairn lamp flame';
+    staticFlame(flame, [V(0, 0.11, 0)], { r: 0.12, h: 0.42 });   // (lit, it burns: issue #77)
     scene.add(flame);
     cairns.push({ at: V(x, y, z), top, flame, light: new THREE.Vector4(top.x, top.y + 0.4, top.z, 0) });
   });

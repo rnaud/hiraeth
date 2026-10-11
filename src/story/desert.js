@@ -349,12 +349,11 @@ export function setupDesert(ctx) {
     toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop.');
   });
 
-  // the Givers' House (src/temples/desert.js) wants the fluid gun from its first room (the push, the splash):
-  // walked in without it, or with an empty tank, you are told where to find what it wants
+  // the Givers' House (src/temples/desert.js, remade in v1.44 for the blade) never asks for the gun, but its Keeper wants
+  // water from your tank: walked in with an empty tank, you are told where to fill it (it once sent you for the gun)
   game.on('flag:temple.desert.entered', (v) => {
     if (!v) return;
-    if (!items.has('gun')) setTimeout(() => toast('Nothing in the Givers’ House moves for hands. Its balls and fires want the fluid gun: the Givers kept one by their fire, in the Hearth far out in the red rocks.'), 2500);
-    else if (dry()) setTimeout(() => toast('Your tank is empty, and nothing in the Givers’ House will answer an empty tank. Fill it first, at the giant’s pool past Qanat’s back gate.'), 2500);
+    if (dry()) setTimeout(() => toast('Your tank is empty, and the Keeper deep in the Givers’ House will want water. Fill it at the giant’s pool past Qanat’s back gate.'), 2500);
   });
 
   // ---------------------------------------------------------------- the drum, and the mask's eyes

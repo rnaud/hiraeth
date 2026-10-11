@@ -40,8 +40,7 @@ nothing in his hands; the order in the desert is:
 | the lift valve (the double jump) | by the giant's pool (`desert.lift`) | unchanged; the Givers' House's sand pit wants it (Sabri says so if it isn't had) |
 | the Givers' blade (`sword`) | the Givers' House's Sword Chamber, half-way (`desert.temple.sword`, the temple's gadget) | the house's dungeon item: thorns, a ball a cut sends far, an eye to strike, the Keeper's spokes |
 | the Givers' guard (`shield`) | the Givers' House, the Hall of Fires' far landing (`desert.temple.shield`, a `find`) | the bellows' wind in the Hall of Winds, the Keeper's charge |
-| the fluid gun | the Givers' Hearth (`desert.gun`, unchanged) | its stone ball wants the push; nothing in the house needs it, before or after |
-| ember mode (`fire`) | the Givers' Hearth, across the hall from the gun (`desert.hearth.fire`) | the house's old key; the Givers kept their fire there |
+| the fluid gun, with ember mode (`fire`) | the Givers' Hearth, the Givers' room off its hall (`desert.gun`; v1.45, issue #83) | its stone ball wants the push; nothing in the house needs it, before or after. Ember mode, the house's old key, comes with it (`with`, docs/systems/boxes.md): in v1.44 it had a chest of its own beside the gun's |
 
 The house is off the main quest's line (Sabri starts it), so the order is the player's: the house before the Hearth
 or after it, both work (the house never asks for the gun; the Hearth never asks for the blade). A traveller who
@@ -70,7 +69,9 @@ his. Each is taught once when its chest opens (`hint.sword`, `hint.shield`).
 the house or not (since v1.38 both were his from the start: nobody loses a weapon), their chests open; a save with
 ember mode finds the Hearth's chest open; the old house's doors and fires go (the save comes in at the door of the
 remade house), unless the Keeper was calmed (its doors open, its fires lit). A save from before the items still gets
-the backpack (src/boxes/index.js's legacy rule doesn't count the two). `tests/save-migrate.test.js`.
+the backpack (src/boxes/index.js's legacy rule doesn't count the two). Step 14 (`migrateGunChest`, v1.45) gives a save
+that opened either of the Hearth's two v1.44 chests, or has the gun or ember mode, both, the gun's chest open (the gun in
+hand if nothing else was). `tests/save-migrate.test.js`.
 
 ## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
 

@@ -110,8 +110,9 @@ export const QUESTS = [
       { id: 'bike', text: 'Find the hoverbike under the tarp', label: 'The tarp in the hollow', flag: 'desert.bike.found', at: 'bikeHollow', ahead: false },
       { id: 'hearth', text: 'Ride south-east to the Givers’ Hearth', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth' },
       // (src/desert-hearth.js: dark; the stone pulses behind a grille; a shove of fluid rolls the weight that lifts it)
-      // the Givers' chest in the hall: the fluid gun (a gadget, src/gadgets/gun.js; src/boxes/placements.js desert.gun), whose push rolls the ball
-      { id: 'gun', text: 'Open the Givers’ chest by their fire', label: 'The Givers’ chest', flag: 'item.gun', at: 'box.desert.gun' },
+      // the Givers' chest in its own room off the hall (issue #83): the fluid gun with its push and ember modes (a gadget,
+      // src/gadgets/gun.js; src/boxes/placements.js desert.gun), whose push rolls the ball
+      { id: 'gun', text: 'Open the Givers’ chest off the hall', label: 'The Givers’ chest', flag: 'item.gun', at: 'box.desert.gun' },
       { id: 'stone', text: 'Shove the stone ball and take the spark-stone', label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
       { id: 'light', text: 'Set the spark-stone in the well', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well', via: 'the marked stones' },
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)

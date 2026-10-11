@@ -5,8 +5,8 @@ import { makeMaterial } from './materials.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Things an ember glob (the backpack's 'fire' mode, src/items.js) sets alight.
-// The fire never hurts: lamps light, fires flare, dry brambles burn away and
-// grow back later. A generic hook: a level lists
+// Lamps light, fires flare, dry brambles burn away and grow back later; the fire
+// burns you as any fire does while you stand in it (src/story/flames.js fireHazard, issue #77). A generic hook: a level lists
 //   level.flammables = [{ at: Vector3, kind, r?, lit?, onFire?() }]
 // and every spot becomes a target (kind: 'flammable', accepts: ['fire']; any
 // other glob just splashes on it). Kinds:

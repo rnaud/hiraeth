@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 13);
+  assert.equal(MIGRATED(), 14);
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -121,11 +121,28 @@ test('the Givers’ House remade (v1.44, step 13): every old save keeps the swor
   const both = run({ 'item.backpack': true, 'met.mireille': true, 'quest.bazaar.nightmail': 'done' });
   assert.equal(both['met.solange'], true, 'step 12: Solange met');
   assert.equal(both['item.sword'], true, 'step 13: the sword kept');
-  assert.equal(both['save.migrated'], 13);
+  assert.equal(both['save.migrated'], 14);
   // a save that had step 12 already gets only 13
   const after12 = { 'save.migrated': 12, 'item.backpack': true };
   migrateFlags(after12);
   assert.equal(after12['item.shield'], true);
+});
+
+test('the gun and ember mode in one chest (issue #83, step 14): a save that opened either of the Hearth’s two chests has both', () => {
+  const run = (flags) => { const f = { 'save.migrated': 13, ...flags }; migrateFlags(f); return f; };
+  // the gun's chest opened, ember mode's not: ember comes with it
+  const gun = run({ 'item.backpack': true, 'item.gun': true, 'box.desert.gun': true, 'gadget.equipped': 'gun' });
+  assert.equal(gun['item.fire'], true, 'ember mode with the gun');
+  // ember mode's chest opened first, the gun's not: the gun too, in hand, its chest open
+  const ember = run({ 'item.backpack': true, 'item.fire': true, 'box.desert.hearth.fire': true });
+  assert.equal(ember['item.gun'], true); assert.equal(ember['box.desert.gun'], true);
+  assert.equal(ember['gadget.equipped'], 'gun');
+  // another gadget in hand stays there
+  assert.equal(run({ 'item.gun': true, 'gadget.equipped': 'hook' })['gadget.equipped'], 'hook');
+  // neither: nothing given
+  const none = run({ 'item.backpack': true, 'item.doublejump': true });
+  assert.equal(none['item.gun'], undefined); assert.equal(none['item.fire'], undefined); assert.equal(none['box.desert.gun'], undefined);
+  assert.equal(none['save.migrated'], 14);
 });
 
 test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness (since v1.42 its bellows)', () => {

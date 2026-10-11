@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
+import { staticFlame } from '../story/flames.js';
 import { mergeWithMaterials, restKey } from '../vertex-material.js';
 import { Taxi } from '../taxi.js';
 import { dropBuriedInstances, dropBuriedInstancesSteps } from '../physics.js';
@@ -820,14 +821,17 @@ export function* buildIncal(scene) {
     const m2 = new THREE.Mesh(bowl, bowlM);
     m2.position.copy(S); m2.userData.noCollide = true;
     shrineG.add(m2);
-    const candles = [], flames = [];
+    const candles = [], flames = [], wicks = [];
     for (let i = 0; i < 11; i++) {
       const a = (i / 11) * TAU, r = 2.15 + (i % 2) * 0.2, h = 0.18 + (i % 3) * 0.08;
       candles.push(new THREE.CylinderGeometry(0.06, 0.07, h, 6).translate(Math.cos(a) * r, 0.34 + h / 2, Math.sin(a) * r));
       flames.push(new THREE.OctahedronGeometry(0.06, 0).scale(1, 1.8, 1).translate(Math.cos(a) * r, 0.34 + h + 0.1, Math.sin(a) * r));
+      wicks.push(new THREE.Vector3(Math.cos(a) * r, 0.34 + h, Math.sin(a) * r));
     }
     const cm = new THREE.Mesh(mergeGeometries(candles), cream), fm = new THREE.Mesh(mergeGeometries(flames), makeMaterial({ color: '#ffd27a', glow: 1, flat: true }));
     for (const m of [cm, fm]) { m.position.copy(S); m.userData.noCollide = true; shrineG.add(m); }
+    fm.name = 'Shrine candle flames';
+    staticFlame(fm, wicks, { r: 0.06, h: 0.22 });   // (the candles burn too: issue #77)
     const floorGlyph = new THREE.Mesh(glyphGeometry(2.6, 0.02).rotateX(-Math.PI / 2).rotateY(face + Math.PI).translate(0, 0.36, 0.0), ink);
     floorGlyph.position.copy(S).add(new THREE.Vector3(Math.sin(face) * 1.35, 0, Math.cos(face) * 1.35));
     floorGlyph.userData.noCollide = true;

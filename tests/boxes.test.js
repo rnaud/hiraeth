@@ -82,7 +82,7 @@ test('every placement stands on reachable ground, with room to stand and rise', 
 });
 
 test('the jetpack, glider, stun and fire unlocks each have a box; every special item too', () => {
-  const where = Object.fromEntries(Object.values(PLACEMENTS).flat().map((p) => [p.item, p.id]));
+  const where = Object.fromEntries(Object.values(PLACEMENTS).flat().flatMap((p) => [[p.item, p.id], ...(ITEMS[p.item]?.with ?? []).map((w) => [w, p.id])]));   // (what comes with an item is in its box: the gun's ember mode)
   for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest && !ITEMS[id].trial && !ITEMS[id].debug) assert.ok(where[id], `${id} is in a box somewhere`);   // (a trial's reward is won: src/trials/)
   assert.ok(!where.cabpass, 'the cab pass is a quest’s, not a box’s');
   assert.match(where.wardenbellows, /^incal\./, 'the Warden’s bellows in the City-Shaft (the jets anywhere are a debug item: no box)');

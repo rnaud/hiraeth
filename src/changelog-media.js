@@ -557,6 +557,14 @@ const PIRATES_TURN = "const M = window.minigame; M.begin(); await new Promise((r
 // (taken with scripts/changelog-shots.mjs on the agent branch, before the rebase that lands it: `from`, not `commit`)
 const FROM45 = 'scripts/changelog-shots.mjs (headless Chrome, High, 1280 × 720, muted) at the fix’s commit and its parent on the agent branch, before it was rebased onto main (11 October)';
 const SAVE45 = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'items.v': 2, 'save.migrated': 13, 'tool.empty': false, 'ship.powered': true, 'world.desert.done': true, 'box.desert.backpack': true, 'box.desert.lift': true, 'box.desert.gun': true }, keepsakes: [] };
+// (v1.45: the Givers' Hearth's gun chest in a room of its own, issue #83; the views in the Hearth, built far over the desert)
+const C45_GUN = 'b79e4ae9';
+const C45_DOOR = '7ca66d68';
+// (the porch, from 14 m out on the way in, a little to the side)
+const HP = { eye: [1606.5, 61.3, -420.5], target: [1620.4, 61.7, -432.3], player: [1609.7, 59.2, -425.9] };
+const C45_BIKE = '387743a2';
+const SAVE45_BIKE = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'item.fire': true, 'items.v': 2, 'save.migrated': 14, 'tool.empty': false, 'desert.bike.found': true, 'world.desert.done': true, 'ship.level': 'glassdunes' }, keepsakes: [] };
+const SAVE45_VAEL = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'items.v': 2, 'save.migrated': 14, 'tool.empty': false, 'desert.pool.tinted': true, 'desert.channel.open': true }, keepsakes: [] };
 export const CHANGELOG_MEDIA = {
   '1.45': [
     { match: 'The lift valve’s chest in the cave now stands on its own round dais', shots: [
@@ -620,7 +628,7 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'No more free chests by your ship when you land in Vael', shots: [
       { name: 'vael-landing', caption: 'Down the ramp in Vael after the desert, the Givers’ House skipped: before, the blade’s and the guard’s chests waiting by the ship; after, the plain', from: FROM45,
-        view: { level: 'arzach', save: SAVE45, hour: 11, fov: 65, eye: [-263.5, 59.2, -1112.2], target: [-251.5, 56.2, -1106.5], player: [-262, 55.8, -1116] } },
+        view: { level: 'arzach', save: SAVE45_VAEL, hour: 11, fov: 65, eye: [-263.5, 59.2, -1112.2], target: [-251.5, 56.2, -1106.5], player: [-262, 55.8, -1116] } },
     ] },
     // (the shadow QC's fixes, 3dfa45fc: the hero map on Deck and Handheld, the near map's bias and offset; the same views before and after)
     { match: 'On the Steam Deck and Handheld settings your own shadow', shots: [
@@ -628,6 +636,20 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'spheres', quality: 'deck', size: [1280, 800], player: [0, 0, 0], heading: 2.4, eye: [3, 2.6, 4.5], target: [0, 0.4, -1], fov: 50 } },
       { name: 'hero-edena', title: 'Edena, Handheld', caption: 'In Edena’s meadow on the Handheld setting: before, a grey smudge beside him; after, his legs, his arms and the pack in his shadow', commit: '3dfa45fc',
         view: { level: 'edena', quality: 'handheld', player: [0, 0, 0], heading: 2.4, eye: [3, 2.6, 4.5], target: [0, 0.4, -1], fov: 50 } },
+    ] },
+    { match: 'The fluid gun comes with both its modes now', shots: [
+      { name: 'hearth-gun-arch', caption: 'In the Givers’ Hearth, looking east across the hall: before, the gun’s chest on the bare floor and the dome’s wall behind it; after, the arch to the Givers’ room with the Givers’ mark over it, the glowing marks leading in, and the chest on its dais beyond', commit: C45_GUN,
+        view: { level: 'desert', save: SAVE45, hour: 12, fov: 70, wait: 3500, eye: [1255, 1002.3, -1250.5], target: [1280, 1001.2, -1252], player: [1254, 1000.05, -1249] } },
+      { name: 'hearth-gun-room', only: 'after', caption: 'In the Givers’ room: the gun’s chest on its dais, the ring of marks round it and the Givers’ mark on the wall, under a warm light', commit: C45_GUN,
+        view: { level: 'desert', save: SAVE45, hour: 12, fov: 70, wait: 3500, eye: [1272.5, 1002.4, -1250.5], target: [1281, 1000.9, -1252], player: [1273, 1000.05, -1249.5] } },
+    ] },
+    { match: 'The Givers’ Hearth’s doorway is open now', shots: [
+      { name: 'hearth-porch', caption: 'The Givers’ Hearth’s porch from the way in: before, a flat black wall in the doorway; after, an open passage back into the rock, the sand drifted up it, lamp-stones in its sides and the dark inner door at its end', commit: C45_DOOR,
+        view: { level: 'desert', save: SAVE45, hour: 10, fov: 60, wait: 3500, eye: HP.eye, target: HP.target, player: HP.player } },
+    ] },
+    { match: 'Once you have found the hoverbike in the desert', shots: [
+      { name: 'bike-glassdunes', caption: 'Landed in the Glass Dunes with the hoverbike found in the desert: before, only the ship; after, the hoverbike waiting by the ship, a few steps from where you come down', commit: C45_BIKE,
+        view: { level: 'glassdunes', save: SAVE45_BIKE, hour: 16.5, fov: 60, wait: 4000, eye: [-7, 4.5, 207], target: [3, 1.5, 226] } },
     ] },
   ],
   '1.44': [

@@ -135,7 +135,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   and the ring), a little bubble level at the screen's right edge shows how the
   floor lies under the view (`effects.js`, it needs the camera).
 - **Items**: `fire` moved into the Givers' House (and out again in v1.44, to the Givers' Hearth: the house holds the
-  `sword` and the `shield` now), `jetpack` into the Warden's
+  `sword` and the `shield` now; since v1.45 it comes with the gun, in one chest), `jetpack` into the Warden's
   Well, `bell` into the Founders' Belfry, `cell` into the Engine-House, `lens` into
   the Footprint, `lantern` into the Lamp-House, `stun` into the Hush-House, `glider` into the Aerie,
   `coil` into the First Garage; new tools in the last two: `bloom` (the Greenhouse) and `echo`
@@ -277,7 +277,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   Keeper's spokes run from the basin out to hooded bowls on the rim, a fire half-way (`HEARTH_FIRE`): cut out, a
   ball lights its bowl (its first phase); a guard against its charge jars it and it pants, and water from your tank
   at its mouth (an interactable, `temple.desert.water`) calms it (its second); a ball cut back in from a lit bowl
-  rolls burning to it (its last, and the only way it pants then). Ember mode waits in the Givers' Hearth now.
+  rolls burning to it (its last, and the only way it pants then). Ember mode comes with the fluid gun now, in the Givers' Hearth.
 - **The Givers carried their fire** (the Givers' House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

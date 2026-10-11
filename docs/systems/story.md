@@ -434,7 +434,11 @@ catches**), the ship.
 - **The Givers' Hearth** (`src/desert-hearth.js`, `STORY.hearth`, ~1.6 km south-east of Qanat on a
   hilltop of the red rocks, its chimney seen from the way; `hearthStones()`: nine marked stones
   along the way): a butte with a porch whose door looks back at the city, and a dark round hall
-  far overhead (portals, like the giant's chest). `src/story/desert-spark.js` drives it: the
+  far overhead (portals, like the giant's chest). The porch's doorway is an open passage (issue #80, `PORCH`,
+  `porchPassage`: cut out of the butte and its lip): you walk in up the sand drifted in from the dune, past
+  lamp-stones and a light, to the dark inner door where the portal is (`tests/desert-hearth-door.test.js`). Off
+  the hall's east side, under a carved arch, the Givers' room holds the gun's chest, with ember mode in it
+  (issue #83, `CHAMBER`: docs/systems/boxes.md). `src/story/desert-spark.js` drives it: the
   stone breathes (its light, the floor marks and the chimney slit pulse with it); a push target
   rolls the ball down its groove into the hole, the chain lifts the grille into the rock
   (`desert.hearth.open`); E on the shelf takes the stone (`desert.stone.taken`, item `stone`)

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
+import { staticFlame } from '../story/flames.js';
 import { drawingMaterial } from './home-drawings.js';
 
 // The two houses at home (src/levels/home.js), both walked into, with their
@@ -343,7 +344,8 @@ export function buildFamilyHouse(scene, { centre, heading, mat }) {
   r(new THREE.BoxGeometry(0.95, 0.65, 0.3), ink, 0, 0.42, -R + 0.98).userData.noCollide = true;
   r(new THREE.BoxGeometry(1.2, WALL - 1.25, 0.6), stone, 0, 1.25 + (WALL - 1.25) / 2, -R + 0.5);
   const fire = r(new THREE.ConeGeometry(0.26, 0.5, 7), mat('#f2a33a', { glow: 1 }), 0, 0.33, -R + 1.08);
-  fire.userData.noCollide = true;
+  fire.userData.noCollide = true; fire.name = 'Hearth fire';
+  staticFlame(fire, [new THREE.Vector3(0, -0.25, 0)], { r: 0.26, h: 0.5 });   // (it burns: issue #77)
   const embers = r(new THREE.SphereGeometry(0.3, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.3, 0.6), mat('#e6503a', { glow: 0.9 }), 0, 0.1, -R + 1.08);
   embers.userData.noCollide = true;
   r(new THREE.CylinderGeometry(0.17, 0.2, 0.24, 10), mat('#3b3a3f', { metal: 'iron' }), 0.65, 1.37, -R + 0.75).userData.noCollide = true;   // the kettle on the mantel

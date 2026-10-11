@@ -90,7 +90,7 @@ export const templesIn = (world) => Object.keys(TEMPLES).filter((id) => templeWo
  * tests/temples.test.js checks the split, and that it matches PLACEMENTS.
  */
 export const GADGETS = {
-  desert: { temple: 'sword', world: ['backpack', 'star'], built: true },   // (the Givers' blade, and their guard beside it; the main quest's own since v1.38, the lift valve by the giant's pool and the fluid gun in the Givers' Hearth, with ember mode since v1.44: src/boxes/placements.js)
+  desert: { temple: 'sword', world: ['backpack', 'star'], built: true },   // (the Givers' blade, and their guard beside it; the main quest's own since v1.38, the lift valve by the giant's pool and the fluid gun in the Givers' Hearth, with ember mode in the same chest since v1.45: src/boxes/placements.js)
   incal: { temple: 'wardenbellows', world: ['soles'], built: true },   // (the Warden's bellows, the wings' third strength: v1.42; the Warden's harness, the City-Shaft's own jets, before it)
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
   arzach: { temple: 'glider', world: ['hush'], built: true },         // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire

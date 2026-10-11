@@ -58,14 +58,14 @@ export const BOSS_HINTS = {
   desert: {
     phases: [
       ['It is afraid of the dark round the walls.',
-        'Light the four braziers round the rim. Your ember lights them.',
-        'Switch the tool to ember and shoot each dark brazier round the rim. Every one lit calms it.'],
+        'Light the four braziers round the rim: a ball cut out through its spoke’s little fire lights one.',
+        'Cut each spoke’s ball out: it rolls through its little fire into the hooded bowl. Each bowl lit calms it.'],
       ['It is thirsty. Watch for it to pant.',
         'When it pants with its mouth open, give it water. A fire rolled to it makes it pant too.',
-        'Let it strike, then shoot plain fluid into its open mouth while it pants. Or roll a spoke’s ball in past a lit brazier.'],
+        'Take its charge on your guard and it pants: give it water at its mouth. Or cut a ball down past a lit bowl.'],
       ['It will not pant in the dark any more.',
         'Roll a burning ball down the spoke nearest it: by the fire it pants.',
-        'Push the ball nearest it in past its lit brazier. When it pants by the flame, shoot water in its mouth.'],
+        'Cut the ball nearest it down its spoke past a lit bowl. When it pants by the flame, give it water.'],
     ],
     // (from its second phase: the spoke ball nearest it, to roll in to it)
     at: (g, i) => (i === 0 ? nearestUnlit(g, ['b6', 'b7', 'b8', 'b9']) : nearestPiece(g, ['kb1', 'kb2', 'kb3', 'kb4'], g.model.pos)),

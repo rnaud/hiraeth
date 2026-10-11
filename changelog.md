@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.45 — 2026-10-11
 
+- Every fire burns you now, as Qanat’s burning tree does: the camp fires, the braziers, the temples’ flames and lit bowls, a burning tar ball, the Wick, hearths, candles and the pilgrims’ lamps. Step out of the flames and it stops.
+- Once you have found the hoverbike in the desert, it comes with you: in Viridel, the Glass Dunes, the Buried Machine and the Garden of Spheres it waits by your ship when you land, and you can whistle for it as in the desert. Where Vael’s bird answers your whistle, the bike stands by the ship to climb on. In the worlds with no room to ride, the domes, the shaft, the islands and the streets, you go on foot.
+- The Givers’ Hearth’s doorway is open now: walk in under the carved lintel and up the sand that has drifted into the passage, past little lamp-stones, to the dark inner door at its end. The old door looked blocked up by a flat black wall.
+- The fluid gun comes with both its modes now, the push and ember, in one chest in the Givers’ Hearth. That chest stands on a dais in a round room of its own off the hall, under a carved arch, the glowing floor marks leading in to it. A save that had opened either of the two old chests has the gun and ember mode both.
 - Shadows no longer come loose from what casts them: the lit strip under a balcony or along the foot of a wall, as tall as 40 cm on Handheld, is gone or a sliver of what it was.
 - On the Steam Deck and Handheld settings your own shadow is whole and sharp again and starts right at your feet: it was half drawn, a grey blur round it, and often a hand’s width away from you.
 - A new test room in the Debug menu, the Shadow Room: thin poles and a grate, a colonnade, leaf cut-outs, an arch under a balcony, a stair, slopes the sun grazes, a dark house, things that move and a tall tower whose shadow crosses the yard, all along one walk. The boards by the spawn hold the sun lower, turn it round, or give it back to the clock.

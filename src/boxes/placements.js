@@ -55,21 +55,19 @@ export const PLACEMENTS = {
       ready: (g, it) => it.has('backpack') && (!!g.flag('desert.pool.tinted') || (!!g.flag('desert.channel.open') && !g.flag('tool.empty'))),
       sealed: 'The makers’ chest sits shut and silent on its dais. Whatever it keeps wants a full tank: fill yours at the pool first.',
       note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), on a dais in a shaft of light by the pool, at the foot of the broken keepers’ stair. It opens once the pool has filled the tank.' },
-    // the fluid gun (a gadget) in the Givers' Hearth, by the stone ball its push rolls (the main quest's spark-stone):
-    // on the hall's floor across from the plinth, facing the passage in
-    { id: 'desert.gun', item: 'gun', site: (level) => level.hearth?.local && { at: level.hearth.local(8.5, 0, -2).toArray(), face: 0 }, story: true,
-      note: 'In the Givers’ Hearth far out in the red rocks (the hoverbike’s ride), on the hall’s floor across from the stone ball. The main quest goes there for the spark-stone.' },
-    // ember mode (v1.44: the Givers' House's key until the house was remade for the blade): in the Givers' Hearth, where
-    // the Givers kept their fire, by the gun (a mode: the gun shoots it; the main quest goes there)
-    { id: 'desert.hearth.fire', item: 'fire', site: (level) => level.hearth?.local && { at: level.hearth.local(5.5, 0, 6).toArray(), face: Math.PI * 0.75 }, story: true,
-      note: 'In the Givers’ Hearth, where the Givers kept their fire: on the hall’s floor, by the gun, nearer the passage in.' },
+    // the fluid gun (a gadget) in the Givers' Hearth, whose push rolls the stone ball (the main quest's spark-stone), with
+    // its two modes, the push and ember (issue #83: one chest, not two side by side; ember mode had a chest of its own
+    // here in v1.44, src/save-migrate.js step 14 merges them): on the dais of the Givers' room, a round room of its own
+    // off the hall's east side (src/desert-hearth.js CHAMBER), facing the passage in
+    { id: 'desert.gun', item: 'gun', site: (level) => level.hearth?.chamber && { at: level.hearth.chamber.clone().setY(level.hearth.chamber.y + 0.3).toArray(), face: -Math.PI / 2 }, story: true,
+      note: 'In the Givers’ Hearth far out in the red rocks (the hoverbike’s ride), on the dais of the Givers’ room off the hall’s east side. The main quest goes there for the spark-stone.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       hint: 'On a roof just inside Qanat’s main gate',
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },
     // the Givers' House (src/temples/desert.js, v1.44): on the dais in its Sword Chamber, half-way through, the Givers'
     // blade, the key to the rest (the thorns, the balls a cut sends far, the eye, the Keeper's spokes); on the Hall of
-    // Fires' far landing their guard, for the wind of their bellows and the Keeper's charge. (Ember mode was here before.)
+    // Fires' far landing their guard, for the wind of their bellows and the Keeper's charge. (Ember mode was here before: it comes with the gun now.)
     { id: 'desert.temple.sword', item: 'sword', temple: 'desert', site: templeSite('desert'),
       note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
     { id: 'desert.temple.shield', item: 'shield', temple: 'desert', site: findSite('desert', 'guard'),

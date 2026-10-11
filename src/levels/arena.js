@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
+import { staticFlame } from '../story/flames.js';
 import { Terrain } from '../world.js';
 import { stepped } from '../load-steps.js';
 import { DESERT_WORLD_LOOK } from '../desert-sites.js';
@@ -147,7 +148,7 @@ export function markingsGeometry() {
 
 /** Braziers at the gates (bronze bowls on stone drums, a still flame in each: glowing, no light) and banner poles on the top tier. */
 function furniture() {
-  const bronze = [], flame = [], wood = [], red = [], teal = [];
+  const bronze = [], flame = [], wood = [], red = [], teal = [], fires = [];
   for (const phi of [0, Math.PI]) {
     const c = new THREE.Vector3(Math.sin(phi), 0, Math.cos(phi)), side = new THREE.Vector3(c.z, 0, -c.x);
     for (const s of [-1, 1]) {
@@ -156,6 +157,7 @@ function furniture() {
       bronze.push(new THREE.CylinderGeometry(0.75, 0.42, 0.45, 12, 1, true).translate(at.x, 1.32, at.z));
       bronze.push(new THREE.TorusGeometry(0.75, 0.06, 4, 16).rotateX(Math.PI / 2).translate(at.x, 1.55, at.z));
       flame.push(new THREE.ConeGeometry(0.42, 1.1, 7).translate(at.x, 1.95, at.z));
+      fires.push(new THREE.Vector3(at.x, 1.4, at.z));   // (its foot: it burns, src/story/flames.js staticFlame)
       flame.push(new THREE.ConeGeometry(0.24, 0.8, 6).translate(at.x + 0.18, 1.85, at.z - 0.12));
     }
   }
@@ -172,7 +174,7 @@ function furniture() {
     const cloth = new THREE.ShapeGeometry(s).rotateY(phi + Math.PI).translate(at.x - c.x * 0.14, hTop + 6.0, at.z - c.z * 0.14);
     (i % 2 ? teal : red).push(cloth);
   }
-  return { bronze, flame, wood, red, teal };
+  return { meshes: { bronze, flame, wood, red, teal }, fires };
 }
 
 export function* buildArena(scene) {
@@ -203,7 +205,7 @@ export function* buildArena(scene) {
   scene.add(floor, stands);
   yield;
   // braziers at the gates (their flames glow: no light) and the banners along the top tier, a mesh per material
-  const F = furniture(), solid = [];
+  const { meshes: F, fires } = furniture(), solid = [];
   const mats = {
     bronze: makeMaterial({ color: '#a9783e', flat: true, metal: 'brass', key: 'arena.bronze' }),
     flame: makeMaterial({ color: '#ffb347', flat: true, glow: 1, key: 'arena.flame' }),
@@ -215,6 +217,7 @@ export function* buildArena(scene) {
     const m = new THREE.Mesh(mergeGeometries(list.map((g) => { const n = g.index ? g.toNonIndexed() : g; n.deleteAttribute('uv'); if (n.attributes.normal) n.deleteAttribute('normal'); n.computeVertexNormals(); return n; })), mats[k]);
     m.name = `Arena ${k}`;
     if (k === 'flame' || k === 'red' || k === 'teal') m.userData.noCollide = true;
+    if (k === 'flame') staticFlame(m, fires, { r: 0.42, h: 1.1 });   // (the braziers' flames burn: issue #77)
     solid.push(m);
   }
   scene.add(...solid);

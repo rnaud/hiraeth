@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { lodView, sphereError } from '../lod.js';
 import { makeMaterial } from '../materials.js';
+import { HAZARD_DPS } from '../hazards.js';
 
 // Stylised fire: tongues of flat colour bands that lick, sway and flicker.
 // Each tongue is a little lathe whose vertices move every frame; their
@@ -52,6 +53,84 @@ export function flameVeils(near = null, within = 30) {
     }
   }
   return out;
+}
+
+// ------------------------------------------------------------------ every fire burns (issue #77)
+// A fire burns you while you stand in it, as the Qanat tree's does (src/desert-city.js flameHazard): every set of
+// tongues alive (LIVE: camp fires, braziers, the temples' pilot flames and lit bowls, a burning tar ball, the Wick, a
+// lit lamp's tongue), and the few fires drawn as a still shape (a glowing cone in a brazier, a hearth, a cairn's lamp,
+// candles) registered with staticFlame. One hazard tests them all (fireHazard, registered by main.js for the world's
+// scene), so a fire burns exactly while it is drawn: lit, shown, its intensity up. tests/fire-hazards.test.js.
+
+const STATIC = new Set();
+const _fc = new THREE.Vector3(), _fs = new THREE.Vector3();
+/** The scene a thing is drawn in (it and every parent visible), or null. */
+function sceneOf(o) {
+  for (; o; o = o.parent) { if (!o.visible) return null; if (o.isScene) return o; }
+  return null;
+}
+/**
+ * A fire drawn as a still shape: its tongues' bases (local to `obj`, which hides and shows it), each `h` tall and `r`
+ * wide. Burns while `obj` is drawn. Returns a remover.
+ */
+export function staticFlame(obj, bases, { r = 0.3, h = 0.8 } = {}) {
+  const e = { ref: new WeakRef(obj), bases: bases.map((b) => b.clone()), r, h };
+  STATIC.add(e);
+  return () => STATIC.delete(e);
+}
+/** Every fire drawn in `scene` now, as upright columns { base, top, r } in world space (one a tongue). */
+export function fireColumns(scene) {
+  const out = [];
+  for (const ref of LIVE) {
+    const f = ref.deref();
+    if (!f) { LIVE.delete(ref); continue; }
+    if (f.intensity <= 0.05 || sceneOf(f.mesh) !== scene) continue;
+    f.mesh.updateWorldMatrix(true, false);
+    const s = f.mesh.matrixWorld.getMaxScaleOnAxis();
+    for (const tg of f.tongues) {
+      const base = f.mesh.localToWorld(_fc.copy(tg.at)).clone();
+      out.push({ base, top: base.clone().add(_fs.set(0, tg.h * f.intensity * s, 0)), r: tg.r * s });
+    }
+  }
+  for (const e of STATIC) {
+    const o = e.ref.deref();
+    if (!o) { STATIC.delete(e); continue; }
+    if (sceneOf(o) !== scene) continue;
+    o.updateWorldMatrix(true, false);
+    const s = o.matrixWorld.getMaxScaleOnAxis();
+    for (const b of e.bases) { const base = o.localToWorld(_fc.copy(b)).clone(); out.push({ base, top: base.clone().add(_fs.set(0, e.h * s, 0)), r: e.r * s }); }
+  }
+  return out;
+}
+/** Is someone standing at `p` (their feet; a body `height` tall, `body` round) in a fire drawn in `scene`? */
+export function burningAt(scene, p, { body = 0.2, height = 1.6 } = {}) {
+  for (const ref of LIVE) {
+    const f = ref.deref();
+    if (!f || f.intensity <= 0.05) continue;
+    // (a quick look first: the mesh's place as last drawn, its sway's bound; then the tongues)
+    const bs = f.mesh.geometry.boundingSphere, m = f.mesh.matrixWorld;
+    if (bs && _fc.copy(bs.center).applyMatrix4(m).distanceTo(_fs.set(p.x, p.y + height / 2, p.z)) > bs.radius * m.getMaxScaleOnAxis() * f.intensity + height) continue;
+    if (sceneOf(f.mesh) !== scene) continue;
+    const s = m.getMaxScaleOnAxis();
+    for (const tg of f.tongues) {
+      const b = _fc.copy(tg.at).applyMatrix4(m), h = tg.h * f.intensity * s * 0.85, r = tg.r * s + body;
+      if (p.y + height > b.y && p.y < b.y + h && (p.x - b.x) ** 2 + (p.z - b.z) ** 2 < r * r) return true;
+    }
+  }
+  for (const e of STATIC) {
+    const o = e.ref.deref();
+    if (!o) continue;
+    const m = o.matrixWorld, s = m.getMaxScaleOnAxis(), r = e.r * s + body, h = e.h * s;
+    for (const at of e.bases) {
+      const b = _fc.copy(at).applyMatrix4(m);
+      if (p.y + height > b.y && p.y < b.y + h && (p.x - b.x) ** 2 + (p.z - b.z) ** 2 < r * r && sceneOf(o) === scene) return true;
+    }
+  }
+  return false;
+}
+/** The hazard every fire in `scene` makes (src/hazards.js registerHazard): it burns as the tree's flame does. */
+export function fireHazard(scene, { dps = HAZARD_DPS.fire } = {}) {
+  return { kind: 'fire', dps, fires: true, test: (p) => burningAt(scene, p), push: null };
 }
 
 /**

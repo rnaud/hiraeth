@@ -65,6 +65,17 @@ export const CHANGELOG = [
         ], source: 'the shadow QC: probes shaded by something within 60 cm, drawn lit' },
       ],
       see: 'In the Shadow Room, walk through the arch and look at the wall under the balcony: its shadow starts right under the slab.' },
+    // the Givers' Hearth (issue #83)
+    { text: 'The fluid gun comes with both its modes now, the push and ember, in one chest in the Givers’ Hearth. That chest stands on a dais in a round room of its own off the hall, under a carved arch, the glowing floor marks leading in to it. A save that had opened either of the two old chests has the gun and ember mode both.',
+      see: 'In the Givers’ Hearth, follow the glowing marks on the floor east, away from the stone ball, through the arch with the Givers’ mark over it: the chest waits on its dais under a warm light. Open it and press D-pad → to switch between the push and ember.' },
+    { text: 'The Givers’ Hearth’s doorway is open now: walk in under the carved lintel and up the sand that has drifted into the passage, past little lamp-stones, to the dark inner door at its end. The old door looked blocked up by a flat black wall.',
+      see: 'Ride to the Givers’ Hearth and stand in front of its porch: the passage runs back into the rock, lit inside. Walk up it to the inner door to go in.' },
+    // the hoverbike after the desert (issue #86)
+    { text: 'Once you have found the hoverbike in the desert, it comes with you: in Viridel, the Glass Dunes, the Buried Machine and the Garden of Spheres it waits by your ship when you land, and you can whistle for it as in the desert. Where Vael’s bird answers your whistle, the bike stands by the ship to climb on. In the worlds with no room to ride, the domes, the shaft, the islands and the streets, you go on foot.',
+      see: 'With the hoverbike found, fly to the Glass Dunes: it stands by the ramp. Ride off, leave it, and whistle (D-pad ↓, or E): it drives back to you.' },
+    // fire (issue #77)
+    { text: 'Every fire burns you now, as Qanat’s burning tree does: the camp fires, the braziers, the temples’ flames and lit bowls, a burning tar ball, the Wick, hearths, candles and the pilgrims’ lamps. Step out of the flames and it stops.',
+      see: 'In the desert, walk into the big camp fire by the pilgrims’ camp: “It burns!”, and a quarter heart goes at a time while you stand in it. Step back out and it stops. A brazier not yet lit doesn’t burn.' },
   ] },
   { v: '1.44', date: '2026-10-11', items: [
     // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)

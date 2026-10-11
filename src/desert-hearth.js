@@ -152,6 +152,28 @@ export const HEARTH = {
   pulse: 3.2,                    // s: the stone's breath
 };
 
+/**
+ * The Givers' room off the hall's east side, where the fluid gun's chest stands on a dais of its own (issue #83: "make
+ * the chest exciting and important by putting it in its own room"): its centre (interior local x, z), its radius, the
+ * passage's half-width and height, the dais.
+ */
+export const CHAMBER = { x: 30, z: -2, r: 6.5, door: 2.1, doorH: 4.4, dais: { r: 1.5, h: 0.5 } };
+/** The hall's dome is open where the passage to the Givers' room leaves it (east, x > 12). */
+export const sideDoor = (x, y, z) => x > 12 && Math.abs(z - CHAMBER.z) < CHAMBER.door + 0.2 && y < CHAMBER.doorH + 0.2;
+/** The Givers' room's dome, roughened (at the origin: the build moves it to CHAMBER). */
+export function chamberDome(seg) {
+  return rough(new THREE.SphereGeometry(CHAMBER.r, seg, Math.round(seg / 2), 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 1.05, 1), 0.45, 0.35, 9);
+}
+
+/**
+ * The Hearth's porch (porch-local: +z out of the butte, y from the butte's base): its blocks from z0 to the door's face
+ * z1, PH high (at least: taller where the sand has drifted in) and PW wide; the opening IW wide between the jambs, an
+ * open passage back to the inner door at z0 (issue #80), the portal in front of it.
+ */
+export const PORCH = { z0: 30, z1: 38.5, PH: 7.5, PW: 8, IW: 3.2, portal: 32.4 };
+/** The passage through the porch (IH: the opening's height), cut out of the butte and its lip (inside the porch's blocks: no sky shows through). */
+export const porchPassage = (doorY, IH) => (x, y, z) => Math.abs(x) < PORCH.IW / 2 + 0.6 && z > PORCH.z0 + 0.9 && y > doorY - 0.2 && y < doorY + IH + 0.4;
+
 /** The Hearth outside and in. Returns its places, lights, portals and the pieces the story moves. */
 export function buildDesertHearth(scene, terrain) {
   const root = new THREE.Group(); root.name = 'Givers’ Hearth'; scene.add(root);
@@ -187,11 +209,21 @@ export function buildDesertHearth(scene, terrain) {
   const R0 = 36, R1 = 24, H = 68;   // (tall: it stands in high dunes, and must show over them from the way)
   const base = Math.min(...Array.from({ length: 12 }, (_, i) => { const a = i / 12 * Math.PI * 2; return terrain.heightAt(S.x + Math.sin(a) * R0, S.z + Math.cos(a) * R0); })) - 5;
   const out = new Kit(root, 'Givers’ Hearth butte', V(S.x, base, S.z), S.yaw);
+  // the porch's doorway (porch-local, +z out of the butte toward the city): its threshold, and the passage in
+  const doorR = R0 + 2.5, doorG = terrain.heightAt(...[S.x + Math.sin(S.yaw) * (doorR + 2), S.z + Math.cos(S.yaw) * (doorR + 2)]);
+  const doorY = doorG - base;   // (porch-local: the threshold over the butte's base)
+  // the dune runs on into the passage, rising toward the back (its floor is the sand there): the porch stands taller by as
+  // much, so the inner door has its full height over the drift
+  const sandAt = (z) => { const p = out.world(0, 0, z); return terrain.heightAt(p.x, p.z) - base; };
+  const drift = Math.max(0, ...[1, 1.6, 2.4, 3.2].map((dz) => sandAt(PORCH.z0 + dz) - doorY));
+  const PH = PORCH.PH + Math.max(0, drift - 0.8), IH = PH - 1.6, backY = doorY + drift;
   {
-    // (the butte and its lip collide as they are drawn: a smooth stand-in lay up to 2.6 m inside the rough sides)
-    out.both(M.rose, rough(new THREE.CylinderGeometry(R1, R0, H, 18, 6).translate(0, H / 2, 0), 1.6, 0.18, 2));
+    // (the butte and its lip collide as they are drawn: a smooth stand-in lay up to 2.6 m inside the rough sides; the
+    // passage through the porch is cut out of both, inside the porch's blocks, so it can be walked into: issue #80)
+    const passage = porchPassage(doorY, IH);
+    out.both(M.rose, cut(rough(new THREE.CylinderGeometry(R1, R0, H, 18, 6).translate(0, H / 2, 0), 1.6, 0.18, 2), passage));
     // a lip of fallen rock round its foot
-    out.both(M.rose, rough(new THREE.CylinderGeometry(R0 + 2, R0 + 7, 7, 18, 2).translate(0, 3.5, 0), 1.4, 0.3, 5));
+    out.both(M.rose, cut(rough(new THREE.CylinderGeometry(R0 + 2, R0 + 7, 7, 18, 2).translate(0, 3.5, 0), 1.4, 0.3, 5), passage));
     // the chimney: a finger of rock on the flat top, a dark slit near its tip (it glows at night: the stone below)
     const CH = { h: 38, r0: 5, r1: 2.8 };
     out.both(M.rose, rough(new THREE.CylinderGeometry(CH.r1, CH.r0, CH.h, 9, 4).translate(-4, H + CH.h / 2 - 0.5, -3), 0.5, 0.4, 7));
@@ -199,16 +231,21 @@ export function buildDesertHearth(scene, terrain) {
     out.add(M.slit, box(0.5, 5, 0.8, -4 + CH.r1 + 0.75, H + CH.h - 5.5, -3));
   }
   // the porch: a carved block standing out of the butte's foot, its doorway toward the city
-  const doorR = R0 + 2.5, doorG = terrain.heightAt(...[S.x + Math.sin(S.yaw) * (doorR + 2), S.z + Math.cos(S.yaw) * (doorR + 2)]);
-  const doorY = doorG - base;   // (porch-local: the threshold over the butte's base)
   {
-    const z0 = R0 - 6, z1 = doorR, d = z1 - z0, zc = (z0 + z1) / 2, PH = 7.5, PW = 8;
+    const { z0, z1, PW } = PORCH, d = z1 - z0, zc = (z0 + z1) / 2;
     // the floor of the porch at the threshold, a slab out over the sand, and the block round the doorway
     out.both(M.roseCarved, box(PW, 0.6, d + 3, 0, doorY - 0.3, zc + 1.5));
     for (const s of [-1, 1]) out.both(M.roseCarved, box(2.4, PH, d, s * (PW / 2 - 1.2), doorY + PH / 2, zc));
     out.both(M.roseCarved, box(PW, 1.6, d, 0, doorY + PH - 0.8, zc));
-    out.add(M.ink, new THREE.PlaneGeometry(PW - 4.8, PH - 1.6).translate(0, doorY + (PH - 1.6) / 2, z1 - 0.6));
-    out.solid(box(PW - 4.8, PH - 1.6, 0.4, 0, doorY + (PH - 1.6) / 2, z1 - 1.2));
+    // the doorway is an open passage (issue #80: a flat black plane in its mouth read as a door blocked up): you walk in
+    // under the lintel, between the jambs, up the sand that has drifted in, past little lamp-stones toward a warm light at
+    // the back; the dark (the way on, the portal) is a smaller inner doorway at the passage's end, inside the butte
+    const { IW } = PORCH, ID = Math.min(4.2, doorY + IH - 0.5 - backY);   // (the inner door's height over the drift)
+    out.both(M.roseCarved, box(PW, PH, 1.2, 0, doorY + PH / 2, z0 + 0.6));   // the passage's back wall, in the rock
+    for (const sx of [-1, 1]) out.both(M.roseCarved, box(0.5, ID + 1.2, 0.5, sx * (IW / 2 - 0.25), backY - 1 + (ID + 1.2) / 2, z0 + 1.45));   // the inner door's jambs
+    out.both(M.roseCarved, box(IW, 0.5, 0.5, 0, backY + ID + 0.25, z0 + 1.45));   // and its lintel
+    out.add(M.ink, new THREE.PlaneGeometry(IW - 1.0, ID + 1).translate(0, backY - 1 + (ID + 1) / 2, z0 + 1.22));
+    for (const sx of [-1, 1]) for (const zz of [z0 + 2.6, z0 + 5.4]) out.add(M.spark, box(0.06, 0.3, 0.22, sx * (IW / 2 - 0.03), Math.max(doorY, sandAt(zz)) + 2.2, zz));   // little lamp-stones in the jambs' faces
     // the Givers' mark over the door, and a pale step of fallen stones up to it
     out.add(M.glyph, glyphGeometry(1.6).translate(0, doorY + PH - 0.8, z1 + 0.05));
     // the frieze along the lintel, left of the mark: five small figures passing a light hand to hand, to a tree
@@ -228,8 +265,11 @@ export function buildDesertHearth(scene, terrain) {
     for (let i = 0; i < 3; i++) out.both(M.stone, box(PW - 1 - i * 0.6, 0.35, 1.0, 0, doorY - 0.55 - i * 0.35, z1 + 3.2 + i * 1.0));
   }
   out.flush();
-  const door = out.world(0, doorY, doorR + 1.2);
-  const carving = out.world(FRIEZE.x, doorY + 7.5 - 0.9, doorR + 0.1), carvingFoot = out.world(-2.6, doorY, doorR + 2.4);
+  // (the portal at the passage's end, before the inner door: walked in, the hall; tests/desert-hearth-door.test.js)
+  const door = out.world(0, Math.max(doorY, sandAt(PORCH.portal)), PORCH.portal);
+  const porchLight = new THREE.Vector4(...out.world(0, backY + 2.6, PORCH.z0 + 3.6).toArray(), 9);   // the light inside the passage
+  lights.push(porchLight);
+  const carving = out.world(FRIEZE.x, doorY + PH - 0.9, doorR + 0.1), carvingFoot = out.world(-2.6, doorY, doorR + 2.4);
   const doorFront = out.world(0, doorY, doorR + 4.5);
   const chimneyTop = out.world(-4, H + 38, -3);
   // the stone's light seeps up the chimney: a warm point at the slit (the story pulses it)
@@ -375,7 +415,7 @@ export function buildDesertHearth(scene, terrain) {
     // the floor runs on under the dome's foot (HEARTH.floorOut): roughened, the foot ring stands 17.4 to 19.8 m out,
     // and a floor of HR + 1 left a hairline between its edge and the wall where the sky showed (visual-v1.4)
     cave.both(M.caveFloor, new THREE.CylinderGeometry(HR + HEARTH.floorOut, HR + HEARTH.floorOut, 1, 28).translate(0, -0.5, 0));
-    const door = (x, y, z) => Math.abs(x) < 2.7 && y < 4.8 && z > 10;
+    const door = (x, y, z) => (Math.abs(x) < 2.7 && y < 4.8 && z > 10) || sideDoor(x, y, z);
     const dome = (seg) => cut(inward(hallDome(seg)), door);
     cave.both(M.cave, dome(28), dome(14));
     // the passage from the door, and the dark at its end (the way back out)
@@ -415,6 +455,36 @@ export function buildDesertHearth(scene, terrain) {
     }
     // a few rocks fallen from the dome
     for (const [x, z, r] of [[8, 4, 1.1], [11, -6, 1.5], [-13, 6, 1.2], [5, -10, 0.8], [13, 2, 0.9]]) cave.both(M.cave, rough(new THREE.IcosahedronGeometry(r, 1).translate(x, r * 0.5, z), 0.15, 2.5, x));
+
+    // the Givers' room (issue #83): the gun's chest in a round room of its own off the hall's east side, down a short
+    // passage under a carved arch with the Givers' mark over it; the old marks run on in to a ring round its dais, and
+    // a warm light stands over the chest. The same materials as the hall (the Xbox's shader budget)
+    const C = CHAMBER, pz = C.z, pw = C.door;
+    const room = (seg) => cut(inward(chamberDome(seg)).translate(C.x, 0, pz), (x, y, z) => x < C.x - 3.5 && Math.abs(z - pz) < pw && y < C.doorH);
+    cave.both(M.cave, room(24), room(12));
+    cave.both(M.caveFloor, new THREE.CylinderGeometry(C.r + 2.5, C.r + 2.5, 1, 24).translate(C.x, -0.5, pz));
+    // (the walls and the lintel run on into the room past the dome's roughened foot, so no slit of sky shows between them)
+    const p0 = 15.8, p1 = C.x - C.r + 2.2, plen = p1 - p0, pc = (p0 + p1) / 2;
+    for (const s of [-1, 1]) cave.both(M.cave, box(plen, C.doorH + 0.4, 1.4, pc, (C.doorH + 0.4) / 2, pz + s * (pw + 0.7)));
+    cave.both(M.cave, box(plen + 1, 1.4, pw * 2 + 2.8, pc + 0.5, C.doorH + 0.7, pz));
+    cave.both(M.caveFloor, box(plen, 0.5, pw * 2 + 0.2, pc, -0.25, pz));
+    // its arch on the hall's side: two carved jambs and a lintel standing proud of the dome, the mark over it
+    for (const s of [-1, 1]) cave.both(M.carved, box(1.2, C.doorH + 0.6, 1.0, p0 + 0.2, (C.doorH + 0.6) / 2, pz + s * (pw + 0.5)));
+    cave.both(M.carved, box(1.2, 1.0, pw * 2 + 2.2, p0 + 0.2, C.doorH + 0.6 + 0.5, pz));
+    cave.add(M.glyph, glyphGeometry(1.1).rotateY(-Math.PI / 2).translate(p0 - 0.42, C.doorH + 1.1, pz));
+    // the dais and the ring of marks round it, the Givers' mark on the wall behind
+    cave.both(M.carved, new THREE.CylinderGeometry(C.dais.r, C.dais.r + 0.25, C.dais.h, 16).translate(C.x, C.dais.h / 2, pz));
+    cave.both(M.carved, new THREE.CylinderGeometry(C.dais.r + 0.9, C.dais.r + 1.1, C.dais.h / 2, 16).translate(C.x, C.dais.h / 4, pz));   // (its step)
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      cave.add(M.marks, glyphGeometry(0.6, 0.04).rotateX(-Math.PI / 2).rotateY(-a).translate(C.x + Math.cos(a) * (C.dais.r + 2.1), 0.03, pz + Math.sin(a) * (C.dais.r + 2.1)));
+    }
+    cave.add(M.glyph, glyphGeometry(1.4).rotateY(-Math.PI / 2).translate(C.x + C.r - 0.9, 3.2, pz));
+    // the marks from the hall's floor on through the passage to the ring
+    for (let i = 0; i <= 5; i++) {
+      const x = 11 + i * ((C.x - C.dais.r - 3 - 11) / 5);
+      cave.add(M.marks, glyphGeometry(0.75, 0.04).rotateX(-Math.PI / 2).rotateY(-Math.PI / 2).translate(x, 0.03, pz));
+    }
   }
   cave.flush();
   const L = (x, y, z) => cave.world(x, y, z);
@@ -443,7 +513,10 @@ export function buildDesertHearth(scene, terrain) {
   const stoneLight = new THREE.Vector4(...L(0, HEARTH.shelf + 0.8, -14.2).toArray(), 14);
   const plinthLight = new THREE.Vector4(...L(HEARTH.plinth.x + 1.8, 2.6, -2.5).toArray(), 6);
   const doorLight = new THREE.Vector4(...L(0, 3, 19).toArray(), 8);
-  lights.push(stoneLight, plinthLight, doorLight);
+  // the Givers' room: a warm light over the gun's chest, and a little of it spilling out under the arch
+  const chamberLight = new THREE.Vector4(...L(CHAMBER.x - 0.5, 3.4, CHAMBER.z).toArray(), 15);
+  const archLight = new THREE.Vector4(...L(18.5, 2.8, CHAMBER.z).toArray(), 9);
+  lights.push(stoneLight, plinthLight, doorLight, chamberLight, archLight);
 
   // ---- the way in and out
   const inside = L(...HEARTH.inside.toArray()), exitAt = L(...HEARTH.exit.toArray());
@@ -454,11 +527,12 @@ export function buildDesertHearth(scene, terrain) {
   );
 
   const H_ = {
-    root, site: V(S.x, doorG, S.z), door, doorFront, carving, carvingFoot, yaw: S.yaw, chimneyTop, stones, slitLight,
+    root, site: V(S.x, doorG, S.z), door, doorFront, porchLight, porchMouth: out.world(0, doorY, doorR), porch: { PH, IH, drift, threshold: doorY + base }, carving, carvingFoot, yaw: S.yaw, chimneyTop, stones, slitLight,
     origin: O, local: L, inside, exit: exitAt, group: cave.group,
     grille, grilleRest: grille.position.clone(), ball, ballRest: ball.position.clone(), ballEnd: L(...HEARTH.ball.end.toArray()),
     stone, stoneRest: stone.position.clone(), stoneLight, plinthLight, doorLight,
     shelfFront: L(0, HEARTH.shelf, -11.6), plinthFront: L(HEARTH.plinth.x, 0, HEARTH.plinth.z0 + 1.6),
+    chamber: L(CHAMBER.x, CHAMBER.dais.h, CHAMBER.z), chamberDoor: L(16, 0, CHAMBER.z), chamberLight,
     materials: { marks: M.marks, slit: M.slit, spark: M.spark, wayMark: M.wayMark, wayFluid: M.wayFluid, glint: M.glint }, way, ride,
     lights, portals, late,
     /** Show the hall only when the camera is down there; the butte is always drawn (it is a landmark). */

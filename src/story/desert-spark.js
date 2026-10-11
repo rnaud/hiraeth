@@ -14,7 +14,7 @@ import { quietOr } from '../hint-level.js';
 // groove, a chain running from the hole at the groove's end up the wall and over
 // to the grille. Hands can't move it (E: a look); a shove of fluid (push: the
 // tank was filled at the giant's pool; the fluid gun waits in a makers' chest in
-// this same hall, src/boxes/placements.js 'desert.gun') rolls it down the groove and into the
+// the Givers' room off this same hall, src/boxes/placements.js 'desert.gun') rolls it down the groove and into the
 // hole: the chain runs and the grille grinds up into the rock. Climb the shelf
 // (the wall's face is plain rock) and take the stone: it goes into your pack
 // (the gear page lists it: the quest items you carry), glowing faintly through
@@ -64,7 +64,7 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     distance: (p) => (inside() && Math.abs(p.pos.y - H.ball.position.y) < 3 ? flat(p.pos, H.ball.position) : Infinity),
     use: () => {
       dialogue.start(THINGS.weight, null, H.ball.position.clone());
-      if (!hasGun()) setTimeout(() => hint(quietOr('Hands won’t move it.', 'Hands won’t move it. A shove of fluid would: the makers’ chest in this hall holds the Givers’ gun.'), 0), 600);
+      if (!hasGun()) setTimeout(() => hint(quietOr('Hands won’t move it.', 'Hands won’t move it. A shove of fluid would: the Givers’ chest, in the room off this hall, holds their gun.'), 0), 600);
       else if (!hasPush()) setTimeout(() => hint(quietOr('Your tank is empty.', 'Your tank is empty: fill it where the water is (the giant’s pool, past Qanat’s back gate).'), 0), 600);
     } });
   registerInteractable({ id: 'hearth.grille', priority: PRIORITY.use, range: 3, at: () => H.stone.position, enabled: () => !opened() && st.roll < 0,

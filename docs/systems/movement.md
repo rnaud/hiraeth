@@ -253,6 +253,20 @@ method (outermost call only) and reads per-frame sums.
   high) and it swoops in from behind and below, faster than you fall,
   catches you and flies on. On the ground it lands beside you as before.
 
+## The hoverbike in other worlds (issue #86)
+
+Found in the desert (`desert.bike.found`), the hoverbike rides along in the ship's hold. `src/bike-worlds.js`
+`BIKE_WORLDS` lists the worlds made for riding, where it is brought out and parked by the ramp when you land
+(`parkingSpot`: 5 m out and 4 m to the right of the way out): Viridel's meadows, the Glass Dunes' valley, the dunes and
+trench of the Buried Machine, the Garden of Spheres. There the whistle brings it over as in the desert; where Vael's
+bird has promised to answer (Viridel, the Garden of Spheres: `birdAnswers`), she keeps the whistle and the bike
+stands by the ship to be boarded (`player.vehicles`). Everywhere else you walk, and the module says why for each world:
+the Underwater City's domes, the City-Shaft's terraces and the Signal Market's streets (cabs carry you), the Moon
+Foundry's workshop floor, the floating city's islands, Home's village, the Lantern's island, the Arena, the train; a
+world with a mount of its own keeps it (the desert's bike, Lorn's skiff, Vael's bird). Rooms off the map refuse the
+whistle as before. It runs on the backpack as in the desert. Nothing to migrate: a save that found the bike has it
+in every riding world. `tests/bike-worlds.test.js`.
+
 ## Footprints
 
 Footprints are boot-sole decals that multiply the G-buffer albedo
@@ -281,6 +295,17 @@ spines that push you out and a step back in don't prick on every touch), says wh
 ("It burns!"), and spines push you back out. The burning tree registers its flame's volume (`flameHazard`, from just
 over the fork to the tip); flora species with `hurts: 'spikes'` (the desert's sand
 candelabra, the Hangar's bolt cactus) register a cylinder round each plant.
+
+**Every fire burns** (issue #77): one hazard for the world's scene (`src/story/flames.js` `fireHazard`, registered by
+main.js) tests every set of flame tongues alive (`Flames`: the camp fires, Qanat's avenue braziers, the temples' pilot
+flames and lit bowls, a burning tar ball or bramble, the Wick, a lamp or bramble set alight by ember mode, the makers'
+court's hut fire) and every fire drawn as a still shape (`staticFlame`: the Arena's gate braziers, a house's hearth,
+the pilgrims' cairn lamps once lit, the City-Shaft's shrine candles), at the fire rate, while it is drawn: unlit,
+hidden or burnt out (intensity under 0.05), it doesn't. A tongue burns you when your body (0.2 m round, 1.6 m tall)
+is inside its column (its radius, 85 % of its height). A fire in another scene (a minigame's stage) never does.
+Walking through a pilot flame on a groove behind a tar ball costs a bite or two; beside the groove, nothing. The
+tree keeps its own volume. Not counted: the caged lantern on Lorn's skiff (glass round it) and the shop's candle on
+its ledger table (3 cm, on the table). `tests/fire-hazards.test.js`.
 
 ## Health and falls (v0.39)
 

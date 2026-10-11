@@ -56,6 +56,8 @@
 // open; ember mode, the house's old key, waits in the Givers' Hearth now, its chest open for a save that has it. A
 // save inside the house, not done, starts the remade house from its door (its doors and fires were the old puzzle's);
 // a save that had calmed the Keeper keeps it calmed, its doors open.
+// The fluid gun comes with ember mode, in one chest in the Givers' room off the Hearth's hall (issue #83): step 14 gives
+// a save that opened either of v1.44's two chests (or has either item) both, the gun's chest open.
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -194,7 +196,21 @@ const STEPS = [
   // Every save from before keeps both, their chests open (a save from before the items, too: src/boxes/index.js
   // migrateSave's legacy rule doesn't count them). The old house's puzzle state goes, unless the Keeper was calmed.
   (flags) => migrateGivers(flags),
+  // 14: the fluid gun and ember mode in one chest (issue #83): v1.44 had two chests side by side in the Givers' Hearth.
+  // A save that opened either (or has either item) has both, the gun's chest open
+  (flags) => migrateGunChest(flags),
 ];
+
+/** Step 14 (pure, in place): the gun and its ember mode, one chest. */
+export function migrateGunChest(flags) {
+  if (!(flags['item.gun'] || flags['item.fire'] || flags['box.desert.gun'] || flags['box.desert.hearth.fire'])) return flags;
+  const hadGun = !!flags['item.gun'];
+  flags['item.gun'] = true;
+  flags['item.fire'] = true;
+  flags['box.desert.gun'] = true;
+  if (!hadGun && !flags['gadget.equipped']) flags['gadget.equipped'] = 'gun';   // (the gun in hand, as its chest gives it)
+  return flags;
+}
 
 /** The remade Givers' House's doors and fires (src/temples/desert.js LOGIC): open and lit for a save that had calmed the Keeper. */
 export const GIVERS_DONE = { open: ['d1', 'dc', 'dk', 'br1', 'sc', 'd3'], lit: ['b0', 'bw0', 'b3', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'] };

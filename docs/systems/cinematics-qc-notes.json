@@ -268,8 +268,8 @@
   },
   "box.desert.gun": {
    "verdict": "Not reviewed",
-   "text": "New in v1.38 (the fluid gun’s chest in the Givers’ Hearth): the box scene inside an interior, not looked at yet.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "text": "Moved in v1.45 (issue #83): the gun's chest, now with ember mode in it, on the dais of the Givers' room off the Hearth's hall (a smaller room than the hall): the box scene, not looked at yet.",
+   "updated": "2026-10-11T12:00:00.000Z"
   },
   "box.desert.star": {
    "verdict": "Pass",
@@ -284,11 +284,6 @@
   "box.desert.temple.shield": {
    "verdict": "Not reviewed",
    "text": "New in v1.44 (the Givers' guard's chest on the Hall of Fires' far landing): the box scene, not looked at yet.",
-   "updated": "2026-10-10T22:00:00.000Z"
-  },
-  "box.desert.hearth.fire": {
-   "verdict": "Not reviewed",
-   "text": "New in v1.44 (ember mode's chest, moved from the Givers' House to the Givers' Hearth): the box scene inside an interior, not looked at yet.",
    "updated": "2026-10-10T22:00:00.000Z"
   },
   "box.incal.soles": {
