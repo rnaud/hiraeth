@@ -1,0 +1,53 @@
+changelog.md
+  s_9ca76055a220ed::t_8dd3df6928b9ba 7-9
+docs/story-bible.md
+  s_9ca76055a220ed::t_57cda22478e50a 720-726
+docs/systems/story.md
+  s_9ca76055a220ed::t_81489c1b44d1b3 154-178
+src/changelog-media.js
+  s_9ca76055a220ed::t_d4b49b3f08ffc2 650-657
+src/changelog.js
+  s_9ca76055a220ed::t_25ab07ee088f29 18-21
+src/main.js
+  s_9ca76055a220ed::t_b054956745d346 121,1073-1077
+src/post.js
+  s_9ca76055a220ed::t_665820a4fa92ca 252,260,415,726-762,961-963,1632
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_291636dfd7f7f5 11,729-731
+src/ship/ship.js
+  s_9ca76055a220ed::t_a906090ecf89ac 15,17,345,546,553-554
+src/story/calls.js
+  s_9ca76055a220ed::t_c622aa1fcbf3ce 45-47,185-219,539,555,594,600-601,604,647-661
+src/story/charge.js
+  s_9ca76055a220ed::t_25c5fe1089ba18 26,54-55,66
+src/story/ending.js
+  s_9ca76055a220ed::t_de736e69b914b9 107-108
+src/story/lantern-sky.js
+  s_9ca76055a220ed::t_aedb6d2aebb280 1-45
+src/story/relay.js
+  s_9ca76055a220ed::t_9aa01a6bffa763 60-61
+tests/charge.test.js
+  s_9ca76055a220ed::t_fadb26eb40c75a 29,33-34
+tests/finale.test.js
+  s_9ca76055a220ed::t_80f59ec1b57b15 70,78
+tests/lantern-path.test.js
+  s_9ca76055a220ed::t_00f253351ccca1 1-133
+tests/shard-timings.json
+  s_9ca76055a220ed::t_298b689f3f772d 3,6,10,26,39,42,56,60,62-65,70,78,85,87,89,102,107,132-133,174,202,206,210-215,220,225,227,235-236,246,250,258-259,261,264-265,271,312,348,389,405,448
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0c3decd4cd34be2f533440a3213eb04126c6e078",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
