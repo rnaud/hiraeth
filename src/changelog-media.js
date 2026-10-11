@@ -609,6 +609,9 @@ const C49_BELFRY = { commit: '4bfdf04a' };
 const FB = (x, y, z) => [80 + x, 1600 + y, 150 + z];   // (the Founders' Belfry's own metres, in Vael)
 export const CHANGELOG_MEDIA = {
   '1.49': [
+    { match: 'What’s new has a Refresh button', shots: [
+      { name: 'whats-new-refresh', caption: 'The top of What’s new: Refresh beside Play, its button glyph shown', size: [1280, 400], from: 'screenshots of changelog.html in headless Chrome, without and with the button (11 October)' },
+    ], see: 'Open What’s new from the title (or N, then See what changed) and press Refresh: on the website the page loads again; in the app it checks for an update, downloads it with its progress beside the count, and restarts at the title in the new build.' },
     { match: 'In the Unity test build, water foams', shots: [
       { name: 'unity-water-foam', caption: 'Lorn’s landing in the Unity test build: the bank to the right of the ship’s ramp', from: 'the Unity editor in batch mode (unity-batch.sh Play -tour, 1280 × 720, muted), the same view without and with the foam (11 October)' },
     ] },

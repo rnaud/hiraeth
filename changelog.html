@@ -35,8 +35,11 @@
   #worlds .chip { flex: none; }
   .chip.world { border-style: dashed; }
   .chip.world[aria-pressed="true"] { border-style: solid; }
-  .summary { max-width: 1100px; margin: 6px auto 0; font-size: 12px; color: var(--soft); }
+  .summary { display: flow-root; max-width: 1100px; margin: 6px auto 0; font-size: 12px; color: var(--soft); }
   .hint { float: right; }
+  #refresh-note:not(:empty)::before { content: ' · '; }
+  #refresh-note.busy { color: var(--ink); }
+  #refresh[aria-busy="true"] { opacity: 0.6; cursor: progress; }
 
   main { max-width: 1100px; margin: 0 auto; }
   section.version > h2 { position: relative; margin: 26px 0 10px; font-size: 16px; letter-spacing: 0.1em; border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
@@ -142,12 +145,13 @@
   <div class="top">
     <h1 class="debug-room">WHAT CHANGED <span id="version"></span></h1>
     <input id="search" type="search" placeholder="Search the changes" aria-label="Search the changes" autocomplete="off">
+    <button class="btn" id="refresh" type="button" title="Fetch the newest changes">Refresh</button>
     <a class="btn standalone" href="./">Play</a>
     <button class="btn embedded" id="close" type="button">Close</button>
   </div>
   <div class="chips" id="kinds" role="toolbar" aria-label="What kind of change"></div>
   <div class="chips" id="worlds" role="toolbar" aria-label="Which world"></div>
-  <div class="summary"><span id="count"></span><span class="hint" id="hint"></span></div>
+  <div class="summary"><span id="count"></span><span id="refresh-note" role="status" aria-live="polite"></span><span class="hint" id="hint"></span></div>
   <div class="offline-note">You are offline: the pictures are on the game’s site and show when you are back online. The words and numbers are all here.</div>
 </header>
 <main id="list"></main>

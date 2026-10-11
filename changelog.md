@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- What’s new has a Refresh button (Y / △, or R): on the website it loads the newest changes; in the Android app, on the Xbox and on the Steam Deck it fetches the newest game over the air and restarts into it, your game saved first, or tells you that you already have it.
 - In the Founders’ Belfry, the west stone store shuts behind you until its keepers are beaten and gives a small key. The Hall of Stones’ door takes that key and the east store’s ball.
 - The Lamp-House has two new rooms. East off the Hall of Dark Pools, the Kennel shuts behind you in the dark until its keepers are beaten, and gives the small key the Lamp Passage’s door now takes. Past the Dark Gallery, the Wick Room holds the great key behind a grille between two niches. A niche only burns while the pool-orb in it glows, so light one orb with your lantern and roll it home, then the other, before the first one fades. The gallery’s far door now takes the great key.
 - In the Undertower, the Listening Passage’s horn is deaf until a ball is rolled onto its footstone. Past the Gallery of Voices, the new Choir holds the great key between two horns. The far horn only hears the low stone’s own song, carried by a pair of dishes, and the near one wants the high note played back from your shell. The gallery’s far door now takes the great key as well.

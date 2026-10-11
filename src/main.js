@@ -1210,7 +1210,10 @@ settings.on((k) => {
   if (settings.quality !== lastQuality || k === null) { lastQuality = settings.quality; applyQuality(); }
   else applyDetail();
 });
-const changelog = new Changelog();
+// an update restarts the game (at the title, in the new build): the position and the time played first
+// (the settings' Updates, and What's new's Refresh: src/changelog-refresh.js)
+const saveBeforeRestart = () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); };
+const changelog = new Changelog({ onBeforeRestart: saveBeforeRestart });
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
@@ -1219,8 +1222,7 @@ const menu = new SettingsMenu(settings, {
   onPhoto: () => setPhoto(true),   // (photo mode from the menu: the only way on a touch screen; View + D-pad ↑ on a pad, P)
   onDebug: () => showPicker(true),
   onQuit: () => quitToTitle(),
-  // an update restarts the game (at the title, in the new build): the position and the time played first
-  onBeforeRestart: () => { if (!player.riding && !ship.playing) writeSave(); flushPlay(); reactiveWorld.flush(); },
+  onBeforeRestart: saveBeforeRestart,
   // where you are, at the top of the Start menu
   where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)

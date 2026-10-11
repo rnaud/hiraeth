@@ -41,6 +41,8 @@ export const CHANGELOG = [
     'In the Undertower, the Listening Passage’s horn is deaf until a ball is rolled onto its footstone. Past the Gallery of Voices, the new Choir holds the great key between two horns. The far horn only hears the low stone’s own song, carried by a pair of dishes, and the near one wants the high note played back from your shell. The gallery’s far door now takes the great key as well.',
     'The Lamp-House has two new rooms. East off the Hall of Dark Pools, the Kennel shuts behind you in the dark until its keepers are beaten, and gives the small key the Lamp Passage’s door now takes. Past the Dark Gallery, the Wick Room holds the great key behind a grille between two niches. A niche only burns while the pool-orb in it glows, so light one orb with your lantern and roll it home, then the other, before the first one fades. The gallery’s far door now takes the great key.',
     'In the Founders’ Belfry, the west stone store shuts behind you until its keepers are beaten and gives a small key. The Hall of Stones’ door takes that key and the east store’s ball.',
+    // menus (docs/systems/changelog.md "Refresh"; issue #114)
+    'What’s new has a Refresh button (Y / △, or R): on the website it loads the newest changes; in the Android app, on the Xbox and on the Steam Deck it fetches the newest game over the air and restarts into it, your game saved first, or tells you that you already have it.',
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)
@@ -2467,8 +2469,10 @@ export const newestFirst = (entry) => [...entry.items].reverse();
 export const PICTURES_PAGE = 'changelog.html';
 
 export class Changelog {
-  constructor({ onOpen } = {}) {
+  constructor({ onOpen, onBeforeRestart } = {}) {
     const el = (this.el = document.createElement('div'));
+    // the page's Refresh may restart the game into a newer build (src/changelog-refresh.js): save it first
+    window.changelogBeforeRestart = () => onBeforeRestart?.();
     el.id = 'changelog';
     el.innerHTML = `<div class="panel"><h1>WHAT'S NEW <span>v${VERSION}</span></h1><div class="list">${
       CHANGELOG.map((r) => `<section><h2>v${r.v} <span>${r.date}</span></h2><ul>${newestFirst(r).map((i) => `<li>${lineText(i)}</li>`).join('')}</ul></section>`).join('')

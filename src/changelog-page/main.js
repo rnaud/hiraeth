@@ -7,6 +7,9 @@ import { CHANGELOG, VERSION } from '../changelog.js';
 import { changelogEntries } from '../changelog-media.js';
 import { Controller } from '../controller.js';
 import { padFaces, watchLabels } from '../native-pad.js';
+import { glyph, installGlyphs } from '../pad-glyphs.js';
+import { callApp, inApp } from '../native-app.js';
+import { refreshChangelog } from '../changelog-refresh.js';
 import { filterChips, filtered, lineHtml, MEDIA_SITE, pageOfId, pagerHtml, paginate, shotHtml, versionHtml } from './view.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -16,7 +19,7 @@ document.body.classList.toggle('embed', embed);
 $('#version').textContent = `v${VERSION}`;
 
 const entries = changelogEntries(CHANGELOG);
-watchLabels();   // (the lines' buttons, "B / ○ or Esc", as one half: the pad last used here, else Xbox's; src/native-pad.js)
+watchLabels(); installGlyphs();   // (the lines' buttons, "B / ○ or Esc", as one half: the pad last used here, else Xbox's; src/native-pad.js)
 
 
 // ------------------------------------------------------------------ filters, search and pages
@@ -196,6 +199,25 @@ function close() {
 }
 $('#close').addEventListener('click', close);
 
+// Refresh (issue #114): the site's newest page, or in an app the newest game over the air (src/changelog-refresh.js)
+const appWin = embed && parent !== window ? parent : window;
+$('#refresh').innerHTML = `${glyph('y', { key: 'R' })}Refresh`;
+let refreshing = null;
+function refresh() {
+  if (refreshing) return refreshing;
+  const b = $('#refresh'), note = $('#refresh-note');
+  b.setAttribute('aria-busy', 'true');
+  const say = (text, busy) => { note.textContent = text; note.classList.toggle('busy', !!busy); };
+  refreshing = refreshChangelog({
+    app: inApp(appWin) ? (m) => callApp(m, appWin) : null, version: VERSION, say,
+    reload: () => location.reload(),
+    beforeRestart: () => appWin.changelogBeforeRestart?.(),
+  }).finally(() => { refreshing = null; b.removeAttribute('aria-busy'); });
+  return refreshing;
+}
+window.changelogRefresh = refresh;
+$('#refresh').addEventListener('click', refresh);
+
 /** What a controller press does here: the game's own Controller (embedded, the game passes them on). */
 const pad = (name, ...a) => {
   if (lightbox && ['back', 'confirm', 'start', 'select'].includes(name)) { closeSheet(); return true; }
@@ -203,6 +225,7 @@ const pad = (name, ...a) => {
   else if (name === 'scroll') scrollBy(0, a[0]);
   else if (name === 'confirm') confirm();
   else if (name === 'back' || name === 'start' || name === 'select') close();
+  else if (name === 'y') refresh();
   else if (name === 'tabPrev' || name === 'tabNext') version(name === 'tabPrev' ? -1 : 1);
   return true;
 };
@@ -217,6 +240,7 @@ addEventListener('keydown', (e) => {
   if (k) { e.preventDefault(); pad(...k); return; }
   if ((e.key === 'Enter' || e.key === ' ') && document.activeElement?.matches?.('article.line')) { e.preventDefault(); confirm(); }
   if (e.key === '/') { e.preventDefault(); $('#search').focus(); }
+  if (e.code === 'KeyR' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); refresh(); }
 });
 
 // a controller of its own when the page is opened by itself (the site, the Deck's browser)

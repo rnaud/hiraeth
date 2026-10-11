@@ -34,6 +34,19 @@ app and on the Deck too). While it is up the game passes its controller presses 
 posts `changelog-close` and the panel takes the frame away. On the site the page also works by itself
 (its own controller loop).
 
+## Refresh
+
+The page's **Refresh** (its header, beside Play; Y / △ on a pad, R on the keyboard; issue #114) gets the
+newest changes (`src/changelog-refresh.js`). On the site the page is the newest build's own, so it reloads
+(in the frame over the game only the frame reloads; the game goes on). In an app (Android, the Xbox, the
+Steam Deck: `native-app.js` `inApp`, through the game's window when framed) the page is the bundle on the
+device, so a reload would show the same lines: Refresh asks the app to `check`, `download` what it finds
+(the progress beside the count, from `updateView`'s titles) and `restart` into it once it is ready, the
+game saved first (`window.changelogBeforeRestart`, set by the game's `Changelog` to the settings' own
+save). Nothing newer: "You have the newest game." Offline, a new APK needed, a check that fails: one
+line saying so. Apps from before NATIVE_API 4 can't check from a page and reload, as on the site.
+Tests: `tests/changelog-refresh.test.js`.
+
 ## Where a line's media lives
 
 `src/changelog.js` stays the source of the lines: the game's panel, `changelog.md`

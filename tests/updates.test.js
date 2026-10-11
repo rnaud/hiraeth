@@ -195,7 +195,8 @@ test('the settings carry the update section in the app, and save before an updat
   assert.match(ui, /\$\{isNativeApp \|\| isDeckApp \|\| isXboxApp \? '<section class="updates" hidden><\/section>' : ''\}/, 'the Android app, the Steam Deck and the Xbox app');
   assert.match(ui, /new UpdatePanel\(el\.querySelector\('\.updates'\), \{ onBeforeRestart \}\)/);
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /onBeforeRestart: \(\) => \{ if \(!player\.riding && !ship\.playing\) writeSave\(\); flushPlay\(\); reactiveWorld\.flush\(\); \}/);
+  assert.match(main, /const saveBeforeRestart = \(\) => \{ if \(!player\.riding && !ship\.playing\) writeSave\(\); flushPlay\(\); reactiveWorld\.flush\(\); \};/);
+  assert.match(main, /onBeforeRestart: saveBeforeRestart,/);
   const panel = readFileSync(new URL('../src/update-panel.js', import.meta.url), 'utf8');
   assert.ok(panel.indexOf('await this.onBeforeRestart?.()') < panel.indexOf("await callApp('restart'"), 'saved first');
 });
