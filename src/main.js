@@ -34,7 +34,7 @@ import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { partsOf } from './levels/names.js';
-import { Player, CameraRig, jetCameraPitch } from './player.js';
+import { Player, CameraRig, jetCameraPitch, WIDE } from './player.js';
 import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
@@ -941,6 +941,7 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
 const flurryFx = new FlurryFx();
 let flurryAgainAt = 0, flurryChain = null;
 const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
+const LOCK_NEAR = [1.2, 2.8];   // m: the locked foe this near (flat), the lock camera turns after it less, not at all under the first
 function startFlurry() {
   const now = performance.now() / 1000;
   if (flurryLeft() > 0 || now < flurryAgainAt) return;
@@ -1998,7 +1999,7 @@ function frame(ts) {
     player.update(pdt, busy() ? noInput : ctl, rig.yaw);
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
-    const wide = player.riding ? null : player.gliding ? 7 : jets || player.jetHold ? 3.5 + Math.min(jetSpeed, 30) * 0.12 : player.climbing ? 1.5 : player.swim ? 0.8 : 0;
+    const wide = player.riding ? null : player.gliding ? WIDE.glide : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
     // flying on the jets the camera comes round behind the nose and tips with it, as a ride's does (the right stick or the mouse take it for a moment)
     const jetShot = jets ? (jetShotK.pitch = jetCameraPitch(player.jetFlight.pitch), jetShotK) : null;
     rig.follow(player.ride?.heading ?? player.heading, pdt, player.riding || player.gliding || jets, player.ride?.shot ?? jetShot, wide);
@@ -2168,7 +2169,10 @@ function frame(ts) {
       line += lockView.angle;
     }
     const want = aim ? aim.yaw : line, da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
-    rig.yaw += da * (1 - Math.exp(-(aim ? LOCK_AIM.rate : 6) * realDt));
+    // (a foe right at his feet, stepped into: the line to it swings about wildly, so the camera turns after it less the
+    // nearer it is, and not at all within LOCK_NEAR[0]; v1.49, the closer camera showed it: the camera QC's arena-lock)
+    const near = aim ? 1 : THREE.MathUtils.smoothstep(Math.hypot(dx, dz), LOCK_NEAR[0], LOCK_NEAR[1]);
+    rig.yaw += da * (1 - Math.exp(-(aim ? LOCK_AIM.rate : 6 * near) * realDt));
     if (aim) rig.pitch += (aim.pitch - rig.pitch) * (1 - Math.exp(-LOCK_AIM.rate * realDt));
   }
   // levels with zones (the Hangar) switch ink style as you cross between them

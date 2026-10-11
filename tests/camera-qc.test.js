@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { analyse, steps, worst, LIMITS } from '../scripts/camera-qc/lib.mjs';
+import { analyse, steps, worst, framing, LIMITS } from '../scripts/camera-qc/lib.mjs';
 import { trainWorld, runWalk } from '../scripts/camera-qc/sim-train.mjs';
 import { Physics } from '../src/physics.js';
 import { CameraRig } from '../src/player.js';
@@ -52,6 +52,20 @@ test('the judgement: a smooth walk is green; a pop, a snap, a spin, the lens in 
   // the worst, one a moment
   const w = worst([{ t: 1, sev: 3 }, { t: 1.1, sev: 2 }, { t: 3, sev: 1 }], 6, 0.6);
   assert.deepEqual(w.map((e) => e.t), [1, 3]);
+});
+
+test('the framing (v1.49, Sable\'s): on foot in the open the traveller a third of the frame; riding and close in not judged', () => {
+  const at = (share, edit = () => {}) => track(240, (s, i) => { s.share = share; s.tight = 0; s.ride = false; edit(s, i); });
+  assert.ok(analyse(at(0.33), LIMITS, { framing: true }).green, 'a third: green');
+  const far = analyse(at(0.25), LIMITS, { framing: true });
+  assert.ok(!far.green && far.fails.some((f) => f.startsWith('framing')), 'a quarter (the v0.82 framing): red');
+  assert.ok(!analyse(at(0.5), LIMITS, { framing: true }).green, 'half the frame: too close');
+  assert.ok(analyse(at(0.25)).green, 'a scenario that does not ask is not judged on it');
+  // the bike's small rider and the shoulder view close in are left out of the median
+  const mixed = at(0.33, (s, i) => { if (i % 3 === 0) { s.share = 0.1; s.ride = true; } else if (i % 3 === 1) { s.share = 0.7; s.tight = 1; } });
+  assert.equal(framing(mixed).share, 0.33);
+  assert.ok(analyse(mixed, LIMITS, { framing: true }).green);
+  assert.ok(!analyse(at(0.33, (s) => { s.ride = true; }), LIMITS, { framing: true }).green, 'nothing on foot to judge: red, not green by default');
 });
 
 test('a ball swept along the arm sees a row of thin uprights as the band it is, where a ray flickers between them', () => {

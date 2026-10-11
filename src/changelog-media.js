@@ -489,6 +489,14 @@ const FACE_TALK = `const ns = window.npcs.filter((n) => n.def && n.def.id !== 't
 
 const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
 /** A save whose temple flags have a latched way open (the pit's pillars, the Root Stair's stones, the Warden's Well's irises). */
+/** The v1.49 camera pairs (made by hand: the follow camera has to be the game's own, not a pinned view). */
+const CAM49 = 'headless Chrome (High, 1280 × 720, hour 10, clear, the HUD hidden), the camera left to the game and put behind the traveller (his heading + π, the default pitch), 3 s settled; before at a1ad9e1b, after on this branch; cwebp -q 72 (11 October)';
+/** The traveller's height on the screen before and after (measured with the shots). */
+const CAM49_ROWS = [
+  { where: 'the desert, Qanat’s street, the City-Shaft’s rim', before: 24.8, after: 32.8 },
+  { where: 'the Undertower’s hall (under its roof, 3 s in)', before: 24.8, after: 31.1 },
+];
+
 const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...Object.fromEntries(keys.map((k) => [k, true])) }, keepsakes: [] });
 const FROM_HINTS31 = 'headless Chrome (High, 1280 × 720) against this branch’s own dev server, the desert, the traveller placed 2.4 m from Naji with the camera behind him; before with the setting on Hints: Full (the prompts as they were), after on Subtle; cwebp -q 72 (10 October)';
 /** The guardians on the kit (v1.29): eight frames of a walk, a quarter second apart, side-on in the Arena; made by hand. */
@@ -624,6 +632,18 @@ export const CHANGELOG_MEDIA = {
       { name: 'first-chest-close', title: 'Up close', caption: 'In front of it, a few steps off: before, the bare paving under the shelf’s root; after, the dais, its gold band and glowing ring, and the temple chest, the same as in the Givers’ House', from: 'changelog-shots.mjs in headless Chrome, as the picture from the avenue',
         view: { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 55, eye: [228.6, 2.9, 389.4], target: [232.3, 2.6, 393.6], player: [226.5, 1.3, 386.5] } },
     ], see: 'Start a new game and walk up to Qanat: the chest stands on its dais at the tree’s foot, left of the well. Walk up its steps and open it: it opens like the temples’ chests, its petals falling open and its jade heart rising.' },
+    { match: 'The camera follows closer on foot',
+      shots: [
+        { name: 'camera-desert', title: 'The desert', caption: 'A few steps off the ship’s ramp in the desert, Qanat ahead: before, the traveller a quarter of the frame from 6.4 m back; after, a third of it from just over his head', from: CAM49 },
+        { name: 'camera-qanat', title: 'Qanat’s street', caption: 'Inside Qanat’s gate on the street to the tree: the traveller nearer, the paving filling the lower half', from: CAM49 },
+        { name: 'camera-temple', title: 'A temple’s hall', caption: 'The Undertower’s hall in the Signal Market: under the roof the camera stands higher and looks down more steeply', from: CAM49 },
+        { name: 'camera-shaft', title: 'The City-Shaft’s rim', caption: 'The City-Shaft’s rim by the ship', from: CAM49 },
+        { name: 'camera-bike', title: 'The hoverbike', caption: 'Riding out from the ship in the desert: before 13.4 m back at the on-foot pitch; after 14 m back and lower, the rider small and the sand ahead reading', from: CAM49 },
+      ],
+      numbers: [
+        { title: 'The traveller’s height on the screen, on foot in the open', unit: '% of the frame', better: 'higher', device: 'Mac (Apple M4 Pro), headless Chrome, High, 1280 × 720, FOV 55°', rows: CAM49_ROWS, source: 'the camera put behind him, his feet to 1.75 m over them projected (on the hoverbike 12 % before and after: the arm 13.4 → 14 m, a lower view); the camera QC judges it in desert-open (28–40 %)' },
+      ],
+      see: 'Step off the ship anywhere and walk: you are bigger on the screen and the camera sits just over your head. Walk into a temple’s great hall and it rises a little; call the hoverbike and ride, and it drops back behind you.' },
     { match: 'Light falls in soft shafts in every temple', shots: [
       { name: 'shafts-bud', title: 'The Bud Passage', caption: 'The Builders’ Greenhouse’s Bud Passage, its louvre’s light on the floor by the pots: before, thin glowing bars from the louvre; after, a soft shaft down to the pool of light', ...C49_SHAFTS,
         view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(2.6, 21, 91.7), target: GR(-1.5, 19.5, 102), player: GR(3, 18.05, 92) } },

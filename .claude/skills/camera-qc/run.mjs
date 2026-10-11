@@ -165,6 +165,10 @@ function install(L) {
         const fb = rect(f.pos, r, f.pos.y, f.chest.y + r * 0.5), pb = rect(player.pos, 0.3, player.pos.y, player.pos.y + 1.75);
         return fb && pb ? +L.cover(fb, pb).toFixed(3) : 0; })(),
       foeD: window.foes?.lock?.pos ? +Math.hypot(window.foes.lock.pos.x - player.pos.x, window.foes.lock.pos.z - player.pos.z).toFixed(2) : null,
+      // the framing: the traveller's height on the screen (his feet to 1.75 m over them, a share of the frame's height), and
+      // whether he rides or flies (the open framing is judged on foot only: L.analyse's framing)
+      share: (() => { const f = ndc(player.pos), h = ndc(player.pos.clone().addScaledVector(up, 1.75)); return f && h ? +((h[1] - f[1]) / 2).toFixed(3) : null; })(),
+      ride: !!(player.riding || player.gliding || player.onJets || player.climbing || player.swim),
       seg: st.seg, stick: input.stick ? [+input.stick.x.toFixed(2), +input.stick.y.toFixed(2)] : null, spd: +Math.hypot(player.vel.x, player.vel.z).toFixed(2),
     };
     st.samples.push(s);
@@ -241,7 +245,7 @@ for (const [wn, world] of byWorld.entries()) {
     const t0 = Date.now();
     while (!(await ev('window.__cq.done')) && Date.now() - t0 < (total * 3 + 30) * 1000) await sleep(250);
     const { samples, shots, log } = await ev('(() => { const s = window.__cq; s.rec = false; return { samples: s.samples, shots: s.shots, log: s.log }; })()');
-    const r = L.analyse(samples);
+    const r = L.analyse(samples, L.LIMITS, { framing: sc.framing });
     results[sc.name] = { world, about: sc.about, ...r, events: r.events.slice(0, 40) };
     logs[sc.name] = log;
     writeFileSync(join(OUT, `${sc.name}.json`), JSON.stringify(samples));

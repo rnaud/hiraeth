@@ -35,6 +35,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Unity test build, water foams where it meets the shore and whatever stands in it, as it does in the browser: a pale band along the banks, off on phones as on the Handheld preset.
 - The City-Shaft opens close to a second sooner, and on a handheld some three seconds: the people strolling its far terraces set out after you arrive, those within sight of you before you see them. The crowd is a little different: other strollers, and walks that no longer stop where they cross.
 - The Buried Machine opens about three quarters of a second sooner: where the sand banks up against walls far from you, its footing is worked out after you arrive, nearest first, and always before you get near it.
+- The camera follows closer on foot, the way Sable frames its rider: you stand about a third of the screen’s height, a little below the middle, with the camera just over your head looking gently down, so the ground fills the lower half and the world rises behind you. Under a roof, in a temple’s great hall, it stands higher and looks down more steeply. On the hoverbike it hangs further back and a little lower, so the road ahead reads; gliding, the jets and the cabs keep their long view.
 
 ## v1.48 — 2026-10-11
 

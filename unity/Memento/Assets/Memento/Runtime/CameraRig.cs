@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Memento
 {
     /// <summary>
-    /// The game's camera rig (src/player.js CameraRig): an arm of 9.5 m from a look point 1.8 m
-    /// over the traveller, yaw and pitch from the right stick / mouse, swinging round behind
+    /// The game's camera rig (src/player.js CameraRig): Sable's framing (v1.49), an arm of 4.8 m from a look
+    /// point 1.7 m over the traveller looking 9.2° down (riding, 14 m back), yaw and pitch from the right stick / mouse, swinging round behind
     /// the heading while you move and don't steer it; a line-of-sight ray pulls it in front of
     /// walls (snap in, ease out) and the ground keeps it 0.4 m clear.
     /// </summary>
@@ -13,10 +13,10 @@ namespace Memento
         public Camera cam;
         public Transform target;
         public Player player;
-        public float yaw, pitch = 12.6f, dist = 9.5f;
+        public float yaw, pitch = 9.2f, dist = 4.8f;
         public float follow = 1;            // 0..1, swing behind the heading
-        public Vector3 lookOffset = new Vector3(0, 1.8f, 0);
-        Vector3 tgt; float cur = 9.5f, lookIdle = 9;
+        public Vector3 lookOffset = new Vector3(0, 1.7f, 0);
+        Vector3 tgt; float cur = 4.8f, lookIdle = 9;
         public bool external;               // a conversation or a scene has the camera
         /// <summary>The frame gravity turns the world to (the Hangar: upside down, round the ring): the arm's yaw and pitch are in it.</summary>
         public Quaternion frame = Quaternion.identity;
@@ -42,7 +42,7 @@ namespace Memento
             var dir = frame * (Quaternion.Euler(pitch, yaw, 0) * Vector3.back);
             // tight spaces (player.js tightness): a room, a corridor, a low roof bring the arm in close
             UpdateTight(dt);
-            float open = player && player.riding ? dist * 0.95f : dist;
+            float open = player && player.riding ? dist * 14f / 4.8f : dist;   // (the bike's arm: src/bike.js BIKE_SHOT)
             float want = Mathf.Lerp(open, Mathf.Min(open, 2.6f), tightK);
             float allowed = want;
             if (Physics.SphereCast(lookAt, 0.25f, dir, out var hit, want + 0.5f)) allowed = Mathf.Max(1.2f, Mathf.Min(want, hit.distance - 0.4f));

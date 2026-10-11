@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.49', date: '2026-10-11', items: [
+    // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)
+    'The camera follows closer on foot, the way Sable frames its rider: you stand about a third of the screen’s height, a little below the middle, with the camera just over your head looking gently down, so the ground fills the lower half and the world rises behind you. Under a roof, in a temple’s great hall, it stands higher and looks down more steeply. On the hoverbike it hangs further back and a little lower, so the road ahead reads; gliding, the jets and the cabs keep their long view.',
     // loading (docs/systems/performance.md "The drifts' collision and the crowd's strollers, later too"; issue #14)
     { text: 'The Buried Machine opens about three quarters of a second sooner: where the sand banks up against walls far from you, its footing is worked out after you arrive, nearest first, and always before you get near it.',
       numbers: [

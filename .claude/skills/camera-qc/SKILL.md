@@ -54,7 +54,7 @@ the real player's physics, frame times and crowd differ.
 | incal-pillar | incal | riding the City-Shaft's halfway air pillar on the wings (`hold`: jump held): straight up past the terraces, the camera turned while rising, then steered out |
 
 A segment: `{ for, path: [[x, z]…] | stick: [x, y] | wander, run, jumpEvery, hold (jump held), turn / pitch (°/s), steer (°/s), lock }`;
-a scenario: `{ name, world, at, yaw, setup (page code), flags, settle, segs }`. Add one for any new tight space.
+a scenario: `{ name, world, at, yaw, setup (page code), flags, settle, framing, segs }`. Add one for any new tight space.
 
 ## 3. What is measured (`scripts/camera-qc/lib.mjs`, tested by `tests/camera-qc.test.js`)
 
@@ -70,6 +70,7 @@ a scenario: `{ name, world, at, yaw, setup (page code), flags, settle, segs }`. 
 | **reversals** | the arm going in and out (moves > 1 cm changing direction): jitter against small or moving geometry | ≤ 1.5 a second |
 | **roughness** | the kinks' root mean square, every frame | ≤ 1.5 cm |
 | **foe hidden** | locked on: the frames where the traveller's body covers half the locked foe's screen box or more (`cover`; combat-v1.47, a small foe lined up behind him) | ≤ 10 % of the locked frames |
+| **framing** | a scenario with `framing` (desert-open): the traveller's median height on the screen (feet to 1.75 m), on foot in the open (not riding, gliding, climbing or swimming; tight < 0.1): Sable's third of the frame (v1.49) | 0.28–0.40 |
 
 "A minute" is rounded up for a short run (a 30-second scenario may have one). A teleport (> 3 m in a frame) is not
 judged. The in-page picture is kept for the ten worst frames by a quick severity; node's judgement is the one reported.

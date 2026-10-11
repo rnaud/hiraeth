@@ -1,11 +1,12 @@
-// The follow camera's framing (v0.82, docs/systems/movement-and-camera.md): Ocarina of Time's in the
-// open, Uncharted's over-the-shoulder close in (the shoulder with room, never swapping jumpily), a
+// The follow camera's framing (v0.82, docs/systems/movement-and-camera.md): Sable's in the open (v1.49; Ocarina of
+// Time's from v0.82), higher and steeper under a roof, Uncharted's over-the-shoulder close in (the shoulder with room, never swapping jumpily), a
 // further-back arm in a hall, smooth blends between them, and the wider arms of the glide and the jets.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
-import { CameraRig, hallness, OPEN_DIST, OPEN_LOOK, OPEN_PITCH, TIGHT_DIST, HALL_DIST } from '../src/player.js';
+import { CameraRig, hallness, roofness, OPEN_DIST, OPEN_LOOK, OPEN_PITCH, TIGHT_DIST, HALL_DIST, ROOF_TILT, RIDE_ARM, WIDE } from '../src/player.js';
+import { BIKE_SHOT } from '../src/bike.js';
 
 globalThis.window ??= { addEventListener() {} };
 const dom = { addEventListener() {} };
@@ -30,23 +31,75 @@ function framing(rig, p) {
   return { height: (b.y - a.y) / 2, feet: 0.5 - a.y / 2, head: 0.5 - b.y / 2, x: (a.x + b.x) / 4 + 0.5 };
 }
 
-test('open ground: the Ocarina framing (closer and lower than before, the traveller a quarter of the frame, in its lower middle)', () => {
+test('open ground: Sable\'s framing (the traveller a third of the frame, a little below its middle, the camera just over his head)', () => {
   const rig = rigIn(blockScene([0, -0.5, 0, 400, 1, 400]));
   const p = v(0, 0, 0);
   for (let i = 0; i < 120; i++) rig.update(p, dt);
   assert.equal(rig.pitch, OPEN_PITCH);
   const c = rig.camera.position, f = framing(rig, p);
   assert.ok(Math.abs(c.distanceTo(rig._look) - OPEN_DIST) < 0.05);
-  assert.ok(OPEN_DIST < 7.5, 'closer than the 9.5 m arm it had');
-  assert.ok(c.y > 2.4 && c.y < 3.4, `the camera a little over the head (${c.y.toFixed(2)} m)`);
+  assert.ok(OPEN_DIST < 5.5, 'closer than the 6.4 m arm it had (v0.82)');
+  assert.ok(c.y > 2.1 && c.y < 2.8, `the camera just over the head (${c.y.toFixed(2)} m)`);
+  assert.ok(Math.hypot(c.x, c.z) > 4 && Math.hypot(c.x, c.z) < 5.5, `a few metres behind (${Math.hypot(c.x, c.z).toFixed(2)} m)`);
+  assert.ok(OPEN_PITCH > 0.1 && OPEN_PITCH < 0.25, 'a gentle look down');
   assert.ok(Math.abs(rig._look.y - OPEN_LOOK) < 0.01);
-  assert.ok(f.height > 0.22 && f.height < 0.3, `a quarter of the frame's height (${f.height.toFixed(3)})`);
-  assert.ok(f.head > 0.5 && f.feet > 0.75 && f.feet < 0.9, `in the lower middle (head ${f.head.toFixed(2)}, feet ${f.feet.toFixed(2)})`);
+  assert.ok(f.height > 0.3 && f.height < 0.36, `a third of the frame's height (${f.height.toFixed(3)})`);
+  assert.ok(f.head > 0.45 && f.head < 0.55 && f.feet > 0.75 && f.feet < 0.88, `a little below the middle (head ${f.head.toFixed(2)}, feet ${f.feet.toFixed(2)})`);
   assert.ok(Math.abs(f.x - 0.5) < 0.01, 'centred');
   // the player's zoom still works, round the new default
   rig.zoom(2); assert.ok(Math.abs(rig.dist - 2 * OPEN_DIST) < 1e-9);
   rig.zoom(0.01); assert.equal(rig.dist, 3);
   rig.zoom(1e3); assert.equal(rig.dist, 60);
+});
+
+test('under a roof (a temple\'s great hall) the open framing stands higher and looks down more steeply, eased; out again it settles', () => {
+  const I = Infinity;
+  assert.equal(roofness({ ceil: I, up: [I, I, I, I] }), 0, 'open sky');
+  assert.equal(roofness({ ceil: 12, up: [I, I, 30, I] }), 0, 'a canopy overhead, the slanting rays through it');
+  assert.ok(roofness({ ceil: 12, up: [20, 22, 18, 25] }) > 0.99, 'a hall\'s roof');
+  // a hall 40 m across under a 12 m roof: open to the probes (not tight), roofed
+  const rig = rigIn(blockScene([0, -0.5, 0, 400, 1, 400], [0, 12.5, 0, 80, 1, 80]));
+  const p = v(0, 0, 0);
+  rig.update(p, dt);
+  let last = null, step = 0;
+  for (let i = 0; i < 6 * 60; i++) {
+    rig.update(p, dt);
+    if (last) step = Math.max(step, last.distanceTo(rig.camera.position));
+    last = rig.camera.position.clone();
+  }
+  assert.ok(rig.tightK < 0.1, `the hall reads as open (${rig.tightK.toFixed(2)})`);
+  assert.ok(rig.roofK > 0.9, `roofed (${rig.roofK.toFixed(2)})`);
+  const c = rig.camera.position, f = framing(rig, p);
+  assert.ok(c.y > 3, `higher (${c.y.toFixed(2)} m)`);
+  const look = Math.asin(rig._look.clone().sub(c).normalize().y * -1);
+  assert.ok(Math.abs(look - (OPEN_PITCH + ROOF_TILT)) < 0.03, `steeper (${look.toFixed(2)} rad)`);
+  assert.ok(f.height > 0.26 && f.feet < 0.9, `still well framed (${f.height.toFixed(2)}, feet ${f.feet.toFixed(2)})`);
+  assert.equal(rig.pitch, OPEN_PITCH, 'the stick\'s pitch untouched: the tilt is the framing\'s');
+  // stepping out from under it: eased back, never a jump
+  const q = v(60, 0, 0);
+  for (let i = 0; i < 40; i++) { const t = v(i * 1.5, 0, 0); rig.update(t, dt); }
+  last = rig.camera.position.clone(); step = 0;
+  for (let i = 0; i < 6 * 60; i++) { rig.update(q, dt); step = Math.max(step, Math.abs(last.y - rig.camera.position.y)); last = rig.camera.position.clone(); }
+  assert.ok(rig.roofK < 0.05, 'out in the open again');
+  assert.ok(step < 0.05, `the camera lowers smoothly (${step.toFixed(3)} m a frame at most)`);
+});
+
+test('what rides, glides and flies keeps its long arm: the bike further back and lower than on foot, as Sable\'s', () => {
+  assert.ok(Math.abs(OPEN_DIST + WIDE.glide - 13.4) < 1e-9, 'gliding: the 13.4 m it had');
+  assert.ok(Math.abs(OPEN_DIST + WIDE.jets - 9.9) < 1e-9, 'the jets: the 9.9 m it had');
+  assert.equal(RIDE_ARM, 13.4, 'a ride\'s default: the skiff, the bird');
+  assert.ok(BIKE_SHOT.arm >= 13.4 && BIKE_SHOT.pitch < OPEN_PITCH, 'the bike: at least as far back, a lower view');
+  const rig = rigIn(blockScene([0, -0.5, 0, 800, 1, 800]));
+  const p = v(0, 0, 0);
+  for (let i = 0; i < 6 * 60; i++) { rig._now += 2; rig._lastMouse = -1e9; rig.follow(Math.PI / 2, dt, true, BIKE_SHOT); rig.update(p, dt); }
+  assert.ok(Math.abs(rig.armLength() - BIKE_SHOT.arm) < 0.05, `the bike's arm (${rig.armLength().toFixed(2)} m)`);
+  assert.ok(Math.abs(rig.pitch - BIKE_SHOT.pitch) < 0.01, 'its pitch');
+  const f = framing(rig, p);
+  assert.ok(f.height < 0.15, `the rider small (${f.height.toFixed(3)})`);
+  // off it: the pitch eases back to the on-foot one, the arm comes in
+  for (let i = 0; i < 4 * 60; i++) { rig.follow(0, dt, false, null); rig.update(p, dt); }
+  assert.ok(Math.abs(rig.pitch - OPEN_PITCH) < 1e-6, 'on foot again');
+  assert.ok(rig.armLength() < OPEN_DIST + 0.2, 'and close');
 });
 
 test('hallness: a corridor and a cabin are not halls; the giant\'s chest is', () => {

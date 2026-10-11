@@ -32,9 +32,9 @@ export const GRAVITY = 32;   // (m/s²; the blade's rising cut leaps with it: sr
 const JUMP = 13;
 export { JUMP, STEP };   // (how high a jump reaches: the desert cave's ledges are set above it, src/desert-city.js CAVE_LEDGES)
 const LIMIT = 1900;
-// The follow camera's look down when a world starts (rad, the rig's pitch): a little down the way the
-// traveller faces, as Ocarina of Time's (CameraRig).
-export const OPEN_PITCH = 0.13;
+// The follow camera's look down when a world starts (rad, the rig's pitch): a gentle look down the way the
+// traveller faces, as Sable's (CameraRig; 0.13 until v1.49).
+export const OPEN_PITCH = 0.16;
 /**
  * The jets fly like a plane (Player.startJets / flyJets; docs/systems/movement-and-camera.md).
  * Jump held in the air is the throttle, full (A / ×, SPACE, touch ⤒; until v1.38 RT / R2 was, analog,
@@ -2642,16 +2642,25 @@ export class Player {
 // stick or the mouse); where a wall is close behind, the arm comes in rather than climbing.
 const INDOOR_PITCH = 0.1;        // rad: a touch down from level, at shoulder height
 
-// The follow camera's arm. Out in the open it hangs back like Ocarina of Time's: low behind the
-// traveller, a little over his head, looking a little down the way he faces, the traveller about a
-// quarter of the frame's height in its lower middle and the world ahead filling the rest
-// (OPEN_DIST, OPEN_LOOK, OPEN_PITCH; the wheel and LB + the right stick zoom it, ZOOM). In closed
+// The follow camera's arm. Out in the open it stands as Sable's does (v1.49, the author: "this is the camera angle in
+// sable, it's closer to the character"): a few metres behind the traveller, just over his head, looking gently down the
+// way he faces, the traveller about a third of the frame's height a little below its middle, the ground filling the
+// lower half and the world rising behind him (OPEN_DIST, OPEN_LOOK, OPEN_PITCH; the wheel and LB + the right stick
+// zoom it, ZOOM). It hung back like Ocarina of Time's from v0.82 (6.4 m, a quarter of the frame) and 9.5 m before.
+// Under a roof (a temple's hall, a great room: the probes' ceiling and slanting rays all stopped) it stands higher and
+// looks down more steeply (ROOF_TILT), Sable's view indoors. In closed
 // spaces it comes in close over a shoulder, like Uncharted: about 2 m back at shoulder height, the
 // traveller big in the frame and to one side, the way ahead beside him (TIGHT_DIST, TIGHT_LOOK,
 // TIGHT_SIDE): the ship, rooms, temples, the giant's chest, caves, alleys, canyons, low ceilings.
 // The shoulder is the one with room beside it (CameraRig.pickShoulder), the right by default.
-export const OPEN_DIST = 6.4;      // m, the arm from the look point (was 9.5 until v0.82)
-export const OPEN_LOOK = 2.15;     // m over the feet: the look point in the open, over the head
+// What rides, flies or glides keeps the arm it had (RIDE_ARM, WIDE: speed wants the way ahead to read).
+export const OPEN_DIST = 4.8;      // m, the arm from the look point (6.4 from v0.82, 9.5 before)
+export const OPEN_LOOK = 1.7;      // m over the feet: the look point in the open, at the head (2.15 until v1.49)
+export const ROOF_TILT = 0.2;      // rad: under a roof in the open framing, the camera this much steeper (higher), eased
+/** m: the arm a ride gets by default (the skiff, the bird; the bike's and a cab's own shot say theirs): what it was, 6.4 + 7. */
+export const RIDE_ARM = 13.4;
+/** m over the open arm: gliding, the jets (and a little more the faster), climbing, swimming (main.js; glide and jets kept at the ~13.4 and ~9.9 m they had). */
+export const WIDE = { glide: RIDE_ARM - OPEN_DIST, jets: 9.9 - OPEN_DIST, jetsPerMs: 0.12, climb: 1.5, swim: 0.8 };
 export const TIGHT_DIST = 1.9;     // m, at the default zoom (scaled with the wheel; was 2.6)
 export const TIGHT_LOOK = 1.5;     // m over the feet: close in, at the shoulders
 export const HALL_DIST = 2.6;      // m: close in, but in a hall (hallness): a little further back (the close arm before v0.82), the room round him
@@ -2740,6 +2749,17 @@ export function hallness({ ceil = Infinity, ring = [] }) {
   return smoothstep(6, 14, ceil) * smoothstep(9, 20, width);
 }
 
+/**
+ * How much of a roof is overhead, 0..1, from the same probes: a ceiling within ENCLOSED.ceil and the slanting rays
+ * stopped (a temple's hall, a great room, a cave's dome; not a tree's canopy, which lets most of them through).
+ * There the open framing stands higher and looks down more steeply (ROOF_TILT): Sable's view indoors.
+ */
+export function roofness({ ceil = Infinity, up = [] }) {
+  if (!(ceil < ENCLOSED.ceil) || !up.length) return 0;
+  const hits = up.filter((d) => d < ENCLOSED.up).length / up.length;
+  return smoothstep(0.5, 1, hits) * (1 - smoothstep(ENCLOSED.ceil * 0.6, ENCLOSED.ceil, ceil));
+}
+
 export class CameraRig {
   constructor(camera, dom, physics) {
     this.camera = camera;
@@ -2771,6 +2791,8 @@ export class CameraRig {
     this.tightK = 0;         // eased: what the arm uses
     this.hallRaw = 0;        // how much of a hall the last probe saw (hallness)
     this.hallK = 0;          // eased
+    this.roofRaw = 0;        // how much of a roof the last probe saw overhead (roofness): the open framing stands higher there
+    this.roofK = 0;          // eased
     this._probeT = 0;
     this._lowT = 0;
     this._riding = false;
@@ -2906,6 +2928,7 @@ export class CameraRig {
       }
     }
     this.hallRaw = hallness({ ceil, ring: this._ring });
+    this.roofRaw = roofness({ ceil, up: this._up });
     return tightness({ ceil, ring: this._ring, up: this._up });
   }
 
@@ -2927,6 +2950,7 @@ export class CameraRig {
       this._probeT = PROBE_EVERY;
       // riding or gliding: speed wants room, whatever the walls
       let raw = this._riding ? 0 : this.probe(playerPos, U, Fw, Rt);
+      if (this._riding) this.roofRaw = 0;
       raw = Math.max(raw, this.tight || 0, this.indoor ? 1 : 0, inTightRoom(playerPos) ? 1 : 0);
       this.tightRaw = raw;
       if (jumped) { this.tightGoal = raw; this._lowT = 0; }
@@ -2936,8 +2960,11 @@ export class CameraRig {
         if ((this._lowT += step) > 1.0) { this.tightGoal = raw; this._lowT = 0; }
       } else this._lowT = 0;
     }
-    if (jumped) { this.tightK = this.tightGoal; this.hallK = this.hallRaw; }
-    else this.hallK += (this.hallRaw - this.hallK) * (1 - Math.exp(-0.8 * dt));
+    if (jumped) { this.tightK = this.tightGoal; this.hallK = this.hallRaw; this.roofK = this.roofRaw; }
+    else {
+      this.hallK += (this.hallRaw - this.hallK) * (1 - Math.exp(-0.8 * dt));
+      this.roofK += (this.roofRaw - this.roofK) * (1 - Math.exp(-0.8 * dt));   // (slow: stepping under a roof, the view rises over a second or two)
+    }
     const rate = this.tightGoal > this.tightK ? 3.2 : 1.1;
     this.tightK += (this.tightGoal - this.tightK) * (1 - Math.exp(-rate * dt));
     return this.tightK;
@@ -2952,7 +2979,7 @@ export class CameraRig {
 
   /**
    * While riding: swing behind the bike unless the mouse moved recently. A ride may ask for its own
-   * view (shot: { side, boost, pitch }): a cab, which drives itself, is watched from beside and a
+   * view (shot: { side, arm (m) or boost (m over the open arm), pitch }): a cab, which drives itself, is watched from beside and a
    * little above, where you see the traveller seated in it under its canopy.
    * The jets' flight asks for the same chase behind the nose (main.js: shot { pitch, keepTight }).
    * `wide` (metres, not riding a vehicle): a longer arm for what needs to see ahead and below
@@ -2968,7 +2995,8 @@ export class CameraRig {
       if (wide >= this._wide) { this._wide = wide; this._wideT = 0; }
       else if ((this._wideT += dt) > 1.2) this._wide = wide;
     }
-    const goal = wide != null ? this._wide : riding ? shot?.boost ?? 7 : 0;
+    // (a ride's arm: its shot's own, in metres (arm), or over the open arm (boost), else RIDE_ARM)
+    const goal = wide != null ? this._wide : riding ? (shot?.arm != null ? shot.arm - OPEN_DIST : shot?.boost ?? RIDE_ARM - OPEN_DIST) : 0;
     this._distBoost += (goal - this._distBoost) * (1 - Math.exp(-2 * dt));
     if (!riding || this._now - this._lastMouse < 1.5) return;
     let d = heading + (shot?.side ?? 0) + Math.PI - this.yaw;
@@ -3171,7 +3199,9 @@ export class CameraRig {
     // the head, eased, so the traveller stays in the frame rather than his shoulders filling it (the camera QC's "out")
     const tiltGoal = k > 0.5 && ak < 0.5 ? THREE.MathUtils.clamp((SHORT_ARM - this._curDist) / (SHORT_ARM - 0.45), 0, 1) : 0;
     this._tilt = (this._tilt ?? 0) + (tiltGoal - (this._tilt ?? 0)) * (1 - Math.exp(-5 * dt));
-    const pitch = Math.min(this.pitch + this._tilt * SHORT_TILT, PITCH_DOWN);
+    // under a roof, in the open framing (not close in, not aiming), Sable's higher, steeper view indoors (ROOF_TILT)
+    this._roofPitch = this.roofK * (1 - k) * (1 - ak) * (1 - this.downK) * ROOF_TILT;
+    const pitch = Math.min(this.pitch + this._tilt * SHORT_TILT + this._roofPitch, PITCH_DOWN);
     // (in the ship's rooms, and close in anywhere the walls cut the arm: a vestibule, a corridor's end; never aiming)
     if (Math.max(ik, this.physics.sweepSphere ? tk : 0) > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
     const cp = Math.cos(pitch);
@@ -3364,7 +3394,7 @@ export class CameraRig {
     if (P.sweepSphere(this._look, to, L + 0.05, this._sweepR ?? LENS_R) < L) return false;   // (as the arm will be found next frame: else it holds, lets go, holds…)
     const head = _head.copy(this.target).addScaledVector(U, 1.55), toH = _ct.subVectors(H, head), Lh = toH.length();
     if (Lh > 0.3 && P.rayDistance(head, toH.divideScalar(Lh), Lh) < Lh - 0.1) return false;
-    const pitch = Math.asin(THREE.MathUtils.clamp(to.dot(U), -1, 1)) - (this._tilt ?? 0) * SHORT_TILT;
+    const pitch = Math.asin(THREE.MathUtils.clamp(to.dot(U), -1, 1)) - (this._tilt ?? 0) * SHORT_TILT - (this._roofPitch ?? 0);
     if (pitch < this.pitchUpLimit() || pitch > PITCH_DOWN) return false;
     this.yaw = Math.atan2(to.dot(Rt), to.dot(Fw));
     this.pitch = pitch;

@@ -9,7 +9,7 @@ camera put behind the traveller, FOV 55°):
 | | arm | camera height | look down | traveller's height in frame |
 |---|---|---|---|---|
 | open, before | 9.5 m | 3.9 m | 12.6° | 0.17 (head at the centre) |
-| open, now | 6.4 m (`OPEN_DIST`) | 3.0 m | 7.4° (`OPEN_PITCH`) | 0.26, head at 0.55, feet at 0.81 |
+| open, v0.82 | 6.4 m (`OPEN_DIST`; 4.8 m since v1.49, below) | 3.0 m | 7.4° (`OPEN_PITCH`) | 0.26, head at 0.55, feet at 0.81 |
 | close in, before | 2.6 m, right shoulder | 2.1 m | | 0.59 |
 | close in, now | 1.9 m (`TIGHT_DIST`), the shoulder with room | 1.75 m | | 0.68–0.84 (head to the thighs) |
 
@@ -43,6 +43,44 @@ camera put behind the traveller, FOV 55°):
 Tests: `tests/camera-framing.test.js` (the framing in the open, hallness, the shoulder in a corridor and its
 stability, a swap past a wall without a jump, the blend in and out without a snap, a hall, aiming and the
 wider arms); `tests/camera.test.js` and `tests/ship-camera.test.js` as before.
+
+## Sable's framing on foot (v1.49, `OPEN_DIST`, `OPEN_LOOK`, `OPEN_PITCH`, `ROOF_TILT`, `RIDE_ARM`, `WIDE`, `BIKE_SHOT`)
+
+The author, with five frames of Sable: "this is the camera angle in sable, it's closer to the character I believe than
+what we have? the hover bike is further out though." Sable on foot: the character about a third of the frame's height a
+little below its middle, the camera just over the head a few metres back looking gently down; indoors higher and
+steeper; on the bike well back and lower, the rider small. Measured in the running game (headless Chrome, High,
+1280 × 720, FOV 55°, the camera put behind the traveller; the traveller's feet to 1.75 m over them):
+
+| | arm | camera height | look down | traveller's height in frame |
+|---|---|---|---|---|
+| open, v0.82 | 6.4 m | 2.98 m | 7.4° | 0.25, head at 0.56, feet at 0.81 |
+| open, now | 4.8 m (`OPEN_DIST`), look point 1.7 m (`OPEN_LOOK`) | 2.47 m | 9.2° (`OPEN_PITCH` 0.16) | 0.33, head at 0.49, feet at 0.82 |
+| under a roof (the Undertower's hall, 3 s in, `roofK` 0.5), now | 4.8 m | 2.93 m | 14.9° (up to 20.6°: + `ROOF_TILT` 0.2) | 0.31 |
+| the bike, before / now | 13.4 m at 7.4° / 14 m at 5.7° (`BIKE_SHOT`) | 3.9 / 3.1 m | | 0.12 / 0.12, the road ahead lower in the frame |
+
+- **Under a roof** (`roofness`: the probes' ceiling within 26 m and the slanting rays stopped; a tree's canopy lets them
+  through) the open framing tips down `ROOF_TILT` more, eased over a second or two (`roofK`), so the camera stands
+  higher over the traveller as Sable's does indoors. It is the framing's own tilt: the stick's pitch is left as it was,
+  and close in (`tightK`), aiming or knocked down it is off (the shoulder view of the rooms and corridors is unchanged).
+- **What rides, glides or flies keeps its arm** in metres, whatever the on-foot arm: gliding 13.4 m and the jets 9.9 m
+  (+0.12 m per m/s) as before (`WIDE`, main.js), a ride 13.4 m (`RIDE_ARM`: the skiff, the bird), a cab 10 m
+  (`shot.arm`), and the bike 14 m and a little lower (`BIKE_SHOT`), so speed and the road read. Climbing (+1.5 m) and
+  swimming (+0.8 m) stay over the on-foot arm.
+- **The lock camera** (#107, `lockViewAngle`) takes the arm it is given (`rig._curDist`): with the shorter arm the swing
+  off the line that clears a small foe of the traveller's body is a little wider, and the camera QC's `foe hidden` holds
+  (arena-lock 4.3 % before, 3.6 % now; the lizard 0 %). Stepping into a locked foe (within `LOCK_NEAR`, 1.2–2.8 m,
+  main.js) the camera turns after it less, and not at all within 1.2 m: the line to a foe at your feet swings about,
+  and the closer camera showed it (arena-lock's jumps; it is green now, red on roughness before).
+- The camera QC (browser, Medium) after the change: the train, the Signal Market, the City-Shaft's pillar and the two
+  locks green, the open framing 30–33 % wherever it is judged; train-run 2 one-frame spins at a sleeping car's door at a
+  run (the node walk finds the same door spots before and after: 11 events before, 9 now); desert-open and desert-shop
+  red as before (the dunes' pops, smaller now: 3.9 m at most against 5.7; the shop's look jumps unchanged).
+- Nothing new moves the view: no bob, no roll; the roof's tilt and every arm are eased.
+- The Unity bridge draws the game's own rig (engine/mirror.js `camera`), so it follows; the C# port's own rig
+  (`unity/Memento/.../CameraRig.cs`) had kept the 9.5 m arm and now has the same numbers (4.8 m, 1.7 m, 9.2°).
+- Tests: `tests/camera-framing.test.js` (the open framing's share, the roof's tilt in and out, the rides' arms);
+  the camera QC judges the framing in `desert-open` (`framing`: the median share on foot in the open within 0.28–0.40).
 
 ## The camera QC and what it fixed (v1.40, `.claude/skills/camera-qc`)
 

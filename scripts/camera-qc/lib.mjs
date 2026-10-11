@@ -12,6 +12,8 @@
 //   occl         the head hidden from the lens by the collision (bool)
 //   head, chest  where the head and the chest land on the screen (NDC [x, y], or null behind the camera)
 //   tight        rig.tightK (0 open .. 1 close in), side (the shoulder offset, m), shoulder (±1)
+//   share        the traveller's height on the screen (feet to 1.75 m over them), a share of the frame's height
+//   ride         riding, gliding, on the jets, climbing or swimming (the open framing is judged on foot only)
 
 /** The thresholds a scenario is green under. Per minute of the run unless said. */
 export const LIMITS = {
@@ -30,6 +32,9 @@ export const LIMITS = {
   hideFrom: 2.5,   // and it is at least this far off (m): nearer, in the cut's reach, the two overlap from any camera behind him
   reversals: 1.5,     // a second: the arm going in and out (jitter against small or moving geometry)
   rms: 0.015,         // m: the camera's roughness (its kinks' root mean square, every frame)
+  // a scenario that asks (`framing`): on foot in the open (tight under openBelow), the traveller's median height on the
+  // screen within this range (Sable's framing, v1.49: about a third of the frame), judged over at least `minFrames`
+  framing: [0.28, 0.4], openBelow: 0.1, minFrames: 30,
 };
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -97,8 +102,17 @@ function spikes(vals, abs, k) {
   return hit;
 }
 
-/** The scenario's measures, its events (worst first) and its verdict against LIMITS. */
-export function analyse(S, L = LIMITS) {
+/**
+ * The open framing: the traveller's median height on the screen (a share of the frame's) over the frames on foot in the
+ * open (not riding, gliding, climbing or swimming; tight under L.openBelow), and how many frames that was.
+ */
+export function framing(S, L = LIMITS) {
+  const xs = S.filter((s) => s.share != null && !s.ride && (s.tight ?? 0) < L.openBelow).map((s) => s.share);
+  return { share: xs.length ? +pct(xs, 0.5).toFixed(3) : null, frames: xs.length };
+}
+
+/** The scenario's measures, its events (worst first) and its verdict against LIMITS (opts.framing: judge the open framing too). */
+export function analyse(S, L = LIMITS, opts = {}) {
   const st = steps(S), ok = st.filter(Boolean);
   const secs = ok.reduce((s, x) => s + x.dt, 0) || 1e-3, mins = secs / 60;
   const events = [];
@@ -143,6 +157,7 @@ export function analyse(S, L = LIMITS) {
     reversals: +(rev / secs).toFixed(2), rms: +rms.toFixed(4),
     lockHidden: +(hid / Math.max(1, locked)).toFixed(3), locked,
     armMin: +Math.min(...ok.map((x) => x.arm), Infinity).toFixed(2), armMax: +Math.max(...ok.map((x) => x.arm), 0).toFixed(2),
+    framing: framing(S, L).share,
   };
   const fails = [];
   // (so many a minute, rounded up: a half-minute run may have one)
@@ -150,6 +165,11 @@ export function analyse(S, L = LIMITS) {
   for (const k of ['clip', 'occluded', 'out', 'lockHidden']) if (m[k] > L.share[k]) fails.push(`${k} ${(m[k] * 100).toFixed(1)} % > ${L.share[k] * 100} %`);
   if (m.reversals > L.reversals) fails.push(`reversals ${m.reversals}/s > ${L.reversals}`);
   if (m.rms > L.rms) fails.push(`roughness ${(m.rms * 100).toFixed(1)} cm > ${L.rms * 100} cm`);
+  if (opts.framing) {
+    const [lo, hi] = Array.isArray(opts.framing) ? opts.framing : L.framing, fr = framing(S, L);
+    if (fr.frames < L.minFrames) fails.push(`framing: only ${fr.frames} frames on foot in the open`);
+    else if (!(fr.share >= lo && fr.share <= hi)) fails.push(`framing: the traveller ${(fr.share * 100).toFixed(0)} % of the frame's height, not ${lo * 100}–${hi * 100} %`);
+  }
   events.sort((a, b) => b.sev - a.sev);
   return { measures: m, events, fails, green: fails.length === 0 };
 }
@@ -167,11 +187,11 @@ export function worst(events, n = 6, gap = 0.6) {
 
 /** A markdown table of scenarios (name → analyse()). */
 export function table(results) {
-  const rows = [['scenario', 'verdict', 's', 'fps', 'pops', 'jumps', 'look', 'spins', 'pop max (m)', 'jump max (m)', 'spin p95 (°/s)', 'clip', 'hidden', 'out', 'rev/s', 'rough (cm)', 'arm (m)', 'foe hidden']];
+  const rows = [['scenario', 'verdict', 's', 'fps', 'pops', 'jumps', 'look', 'spins', 'pop max (m)', 'jump max (m)', 'spin p95 (°/s)', 'clip', 'hidden', 'out', 'rev/s', 'rough (cm)', 'arm (m)', 'foe hidden', 'framing']];
   for (const [name, r] of Object.entries(results)) {
     const m = r.measures;
     rows.push([name, r.green ? 'green' : `**red**: ${r.fails.join('; ')}`, m.secs, m.fps, m.pops, m.jumps, m.lookJumps, m.spins, m.popMax, m.jumpMax, m.spinP95,
-      `${(m.clip * 100).toFixed(1)} %`, `${(m.occluded * 100).toFixed(1)} %`, `${(m.out * 100).toFixed(1)} %`, m.reversals, (m.rms * 100).toFixed(2), `${m.armMin}–${m.armMax}`, m.locked ? `${(m.lockHidden * 100).toFixed(1)} %` : '-']);
+      `${(m.clip * 100).toFixed(1)} %`, `${(m.occluded * 100).toFixed(1)} %`, `${(m.out * 100).toFixed(1)} %`, m.reversals, (m.rms * 100).toFixed(2), `${m.armMin}–${m.armMax}`, m.locked ? `${(m.lockHidden * 100).toFixed(1)} %` : '-', m.framing != null ? `${(m.framing * 100).toFixed(0)} %` : '-']);
   }
   return rows.map((r, i) => `| ${r.join(' | ')} |${i === 0 ? `\n|${r.map(() => '---').join('|')}|` : ''}`).join('\n');
 }

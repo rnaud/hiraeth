@@ -36,7 +36,8 @@ export const SCENARIOS = [
   { name: 'train-deck', world: 'overnighttrain', about: 'round the ship on the landing wagon’s deck, by its rails',
     at: [SHIP_SITE.x + 12, FLOOR + 0.1, 10], yaw: along, segs: [{ for: 30, path: [[LW.x0 + 3, 11], [LW.x0 + 3, -11], [LW.x1 - 3, -11], [LW.x1 - 3, 11]], steer: 120 }] },
   // ---------------------------------------------------------------- the open, a town, a room, a fight
-  { name: 'desert-open', world: 'desert', about: 'running across the open sand from the landing: turns, jumps',
+  // (framing: the traveller's height on the screen judged on foot in the open, Sable's third of the frame: lib.mjs LIMITS.framing)
+  { name: 'desert-open', world: 'desert', about: 'running across the open sand from the landing: turns, jumps', framing: true,
     segs: [{ for: 8, stick: [0, 1], run: true }, { for: 4, stick: [0, 1], run: true, turn: 70 }, { for: 6, stick: [0, 1], run: true, jumpEvery: 1.3 }, { for: 4, turn: -150 }, { for: 6, stick: [0.6, 0.8] }] },
   { name: 'desert-shop', world: 'desert', about: 'inside Qanat’s shop (an 8 × 7 m room): round the room between the counter and the door, turning, the camera after the way',
     setup: `const s = level.shops?.[0]; if (s) { const c = s.counter.at, l = s.counter.look, d = new THREE.Vector3(c.x - l.x, 0, c.z - l.z).normalize(), r = new THREE.Vector3(-d.z, 0, d.x);

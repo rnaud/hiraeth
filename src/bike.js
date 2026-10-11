@@ -157,6 +157,9 @@ export function bikeSteer(x, forward = false) {
   return Math.sign(x) * Math.min(1, (a - dz) / (1 - dz)) ** 1.6;
 }
 
+/** The bike's ride camera: its arm (m) and its look down (rad: the rig's pitch, 0.16 on foot). */
+export const BIKE_SHOT = { arm: 14, pitch: 0.1 };
+
 export class Hoverbike {
   /**
    * @param {object} [opts]
@@ -184,6 +187,10 @@ export class Hoverbike {
     // dormant: not found yet (the desert's bike under its tarp, src/story/desert.js): it lies
     // where it is, can't be boarded or whistled for, and nothing moves it
     this.dormant = false;
+    // the ride camera (CameraRig.follow): the bike well back and low behind the rider, as Sable's, so speed and the
+    // road ahead read (v1.49: 14 m, the view a touch lower than on foot; it was 13.4 m at the on-foot pitch). The
+    // skiff and the other mounts built on this keep the default ride arm (src/player.js RIDE_ARM).
+    this.shot = this.kind === 'bike' ? { ...BIKE_SHOT } : null;
     this.pos = new THREE.Vector3(8, 0, 4);
     this.pos.y = this.groundAt(8, 1e4, 4) + HOVER;
     this.vel = new THREE.Vector3();
