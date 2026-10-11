@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.44 — 2026-10-11
 
+- Capes and cloaks hang behind the people who wear them: Nour’s cloak no longer swings out in front of her and stays there when she walks up to talk to you, and nobody’s cape blows forward over their front when they stand with the wind at their back.
 - Doorframes, sills, roof edges and wall ends in every temple no longer flicker and stripe where two surfaces lay in the same plane. The Givers’ House has none left, and the other temples have far fewer.
 - Your saves keep the sword and the guard you had. A save from inside the old house starts the new one from its door, and if you had calmed the Keeper already, it stays calm.
 - Ember mode is in the Givers’ Hearth now, beside the fluid gun. If you leave the desert without the blade and the guard, they wait by your ship in the next world.

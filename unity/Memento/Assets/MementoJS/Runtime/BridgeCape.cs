@@ -21,7 +21,7 @@ namespace Memento.Bridge
 
         public int gid;
         public readonly int cols, rows, n;
-        NativeArray<float> cons, seatedK, seatRest, side, P, Q, pins, caps, mc, field, K, nrm, scal;
+        NativeArray<float> cons, seatedK, seatRest, side, back, P, Q, pins, caps, mc, field, K, nrm, scal;
         NativeArray<int> idx, ints;
         public Vector3[] outPos, outNrm;
         readonly float[] snap;
@@ -36,8 +36,10 @@ namespace Memento.Bridge
             int o = 4;
             NativeArray<float> Fa(int k) { var a = new NativeArray<float>(k, Allocator.Persistent); NativeArray<float>.Copy(f, o, a, 0, k); o += k; return a; }
             cons = Fa(nc * 4); seatedK = Fa(nc); seatRest = Fa(nc); side = Fa(n);
-            idx = new NativeArray<int>(ni, Allocator.Persistent); NativeArray<int>.Copy(u, o, idx, 0, ni);
+            idx = new NativeArray<int>(ni, Allocator.Persistent); NativeArray<int>.Copy(u, o, idx, 0, ni); o += ni;
             NativeArray<float> Z(int k) => new NativeArray<float>(k, Allocator.Persistent);
+            // (the columns of its back panel: the arms lift only the front panels over them; an older description ends before them)
+            back = o + cols <= count / 4 ? Fa(cols) : Z(cols);
             P = Z(n * 3); Q = Z(n * 3); nrm = Z(n * 3); pins = Z(cols * 12); caps = Z(16 * 16); mc = Z(16); field = Z(10 + 17 * 17); K = Z(16 * 11); scal = Z(32);
             ints = new NativeArray<int>(8, Allocator.Persistent);
             outPos = new Vector3[n]; outNrm = new Vector3[n]; snap = new float[n * 6];
@@ -62,7 +64,7 @@ namespace Memento.Bridge
                 field[0] = fn; NativeArray<float>.Copy(ff, o + 1, field, 1, 9 + fn * fn); o += 10 + fn * fn;
             }
             ints[0] = steps; ints[1] = iters; ints[2] = nc; ints[3] = (int)flags;
-            job = new Steps { cols = cols, rows = rows, cons = cons, seatedK = seatedK, seatRest = seatRest, side = side, idx = idx, P = P, Q = Q, nrm = nrm, pins = pins, caps = caps, mc = mc, field = field, K = K, scal = scal, ints = ints }.Schedule();
+            job = new Steps { cols = cols, rows = rows, cons = cons, seatedK = seatedK, seatRest = seatRest, side = side, back = back, idx = idx, P = P, Q = Q, nrm = nrm, pins = pins, caps = caps, mc = mc, field = field, K = K, scal = scal, ints = ints }.Schedule();
             running = true;
             return o - start;
         }
@@ -94,7 +96,7 @@ namespace Memento.Bridge
         public void Dispose()
         {
             if (running) job.Complete();
-            foreach (var a in new[] { cons, seatedK, seatRest, side, P, Q, pins, caps, mc, field, K, nrm, scal }) if (a.IsCreated) a.Dispose();
+            foreach (var a in new[] { cons, seatedK, seatRest, side, back, P, Q, pins, caps, mc, field, K, nrm, scal }) if (a.IsCreated) a.Dispose();
             if (idx.IsCreated) idx.Dispose(); if (ints.IsCreated) ints.Dispose();
         }
 
@@ -102,7 +104,7 @@ namespace Memento.Bridge
         struct Steps : IJob
         {
             public int cols, rows;
-            [ReadOnly] public NativeArray<float> cons, seatedK, seatRest, side, pins, caps, mc, field, scal;
+            [ReadOnly] public NativeArray<float> cons, seatedK, seatRest, side, back, pins, caps, mc, field, scal;
             [ReadOnly] public NativeArray<int> idx, ints;
             public NativeArray<float> P, Q, nrm, K;
 
@@ -191,6 +193,7 @@ namespace Memento.Bridge
                 for (int i = cols * 3, end = rows * cols * 3; i < end; i += 3)
                 {
                     float x = P[i], y = P[i + 1], z = P[i + 2];
+                    bool bk = back[(i / 3) % cols] != 0;
                     for (int o = 0; o < nc * 11; o += 11)
                     {
                         float bx = K[o + 3], by = K[o + 4], bz = K[o + 5];
@@ -198,7 +201,7 @@ namespace Memento.Bridge
                         if (K[o + 9] != 0) { if (t < 0 || t > 1) continue; } else t = t < 0 ? 0 : t > 1 ? 1 : t;
                         float cx = K[o] + bx * t, cy = K[o + 1] + by * t, cz = K[o + 2] + bz * t;
                         float dx = x - cx, dy = y - cy, dz = z - cz, r = K[o + 7] + K[o + 8] * t;
-                        if (K[o + 10] != 0 && !onSeat)
+                        if (K[o + 10] != 0 && !onSeat && !(bk && K[o + 10] > 0))
                         {
                             float rx = cx - floor.x, ry = cy - floor.y, rz = cz - floor.z;
                             float ru = rx * up.x + ry * up.y + rz * up.z; rx -= up.x * ru; ry -= up.y * ru; rz -= up.z * ru;

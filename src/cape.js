@@ -21,7 +21,22 @@ import { makeMaterial } from './materials.js';
 // so the cloth doesn't drop into place in front of you.
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _r = new THREE.Vector3();
-const _mi = new THREE.Matrix4(), _mc = new THREE.Matrix4(), _lag = new THREE.Vector3(), ZERO = new THREE.Vector3();
+const _mi = new THREE.Matrix4(), _mc = new THREE.Matrix4(), _lag = new THREE.Vector3(), _f = new THREE.Vector3(), ZERO = new THREE.Vector3();
+
+/**
+ * The ambient wind on a cape, `wind` (changed in place and returned) with no part of it blowing toward the way its wearer
+ * faces (`fwd`, the collar's +z in the world; `up` the body's up): the part that would push the cloth out in front is turned
+ * round to push it out behind instead, so a cape streams behind or beside whoever wears it, whichever way they stand to the
+ * wind. Their own motion still swings it as it will.
+ */
+export function behindWind(wind, fwd, up) {
+  const fx = fwd.x - up.x * fwd.dot(up), fy = fwd.y - up.y * fwd.dot(up), fz = fwd.z - up.z * fwd.dot(up);
+  const L = Math.hypot(fx, fy, fz);
+  if (L < 1e-6) return wind;
+  const ahead = (wind.x * fx + wind.y * fy + wind.z * fz) / L;
+  if (ahead > 0) { const k = (2 * ahead) / L; wind.x -= fx * k; wind.y -= fy * k; wind.z -= fz * k; }
+  return wind;
+}
 const KS = 11;   // numbers per collider (Cape.capsulesAt)
 /**
  * The arms and hands under a cloak (a collider's `over`: Humanoid's CAPE_OVER): the cloth goes out over them,
@@ -231,6 +246,9 @@ export class Cape {
     // none it crumpled into folded shards: SEATED.bend)
     this.seatedK = new Float32Array(seated);
     this.seatRest = new Float32Array(seatRest);
+    // the columns of its back panel (within 45° of straight behind at rest): the arms under the cloak lift only the cloth
+    // round the sides and the front over them, never the back's
+    this.backCol = Uint8Array.from({ length: cols }, (_, c) => (this.local[c * 3 + 2] < -0.7 * Math.hypot(this.local[c * 3], this.local[c * 3 + 2]) ? 1 : 0));
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.p, 3));
@@ -302,8 +320,11 @@ export class Cape {
     const fast = Math.hypot(s.vel.x, s.vel.y, s.vel.z);
     const { cols, rows } = this;
     const up = s.up;
-    // relative air: ambient wind minus our own motion, plus an updraft for the jetpack
-    const air = _d.copy(s.wind).multiplyScalar(this.windScale).sub(s.vel).addScaledVector(up, (s.lift ?? 0) * 9);
+    // relative air: ambient wind minus our own motion, plus an updraft for the jetpack. The ambient wind
+    // only ever blows a cape out behind or beside its wearer (behindWind): a wearer standing with the wind
+    // at their back had the cloth thrown forward over their front, in your face as they talked to you
+    // (the author's playthrough, issues #59 and #64)
+    const air = behindWind(_d.copy(s.wind).multiplyScalar(this.windScale), _f.set(0, 0, 1).transformDirection(m), up).sub(s.vel).addScaledVector(up, (s.lift ?? 0) * 9);
     const right = _r.set(1, 0, 0).transformDirection(m);
     // where the collar and the colliders were at the last update: each step pins and collides
     // with them on their way from there to here (all at the end of the update, they jumped a
@@ -615,9 +636,10 @@ export class Cape {
   collide(s) {
     const { cols, rows } = this, P = this.p, F = s.field ?? null;
     const K = this._k, nc = this._nc;
-    const ux = s.up.x, uy = s.up.y, uz = s.up.z, fx = s.floor.x, fy = s.floor.y, fz = s.floor.z;
+    const ux = s.up.x, uy = s.up.y, uz = s.up.z, fx = s.floor.x, fy = s.floor.y, fz = s.floor.z, BC = this.backCol;
     for (let i = cols * 3, n = rows * cols * 3; i < n; i += 3) {
       let x = P[i], y = P[i + 1], z = P[i + 2];
+      const back = BC[(i / 3) % cols] === 1;
       for (let o = 0; o < nc * KS; o += KS) {
         const bx = K[o + 3], by = K[o + 4], bz = K[o + 5];
         let t = ((x - K[o]) * bx + (y - K[o + 1]) * by + (z - K[o + 2]) * bz) * K[o + 6];
@@ -625,7 +647,9 @@ export class Cape {
         else t = t < 0 ? 0 : t > 1 ? 1 : t;
         const cx = K[o] + bx * t, cy = K[o + 1] + by * t, cz = K[o + 2] + bz * t;
         const dx = x - cx, dy = y - cy, dz = z - cz, r = K[o + 7] + K[o + 8] * t;
-        if (K[o + 10] !== 0 && !F) {
+        // (the back panel's cloth only goes round an arm, as round any limb: lifted out over a forearm held in front, a cape
+        //  swung forward when its wearer stopped short stayed on top of the arms, in front of her: issues #59 and #64)
+        if (K[o + 10] !== 0 && !F && !(back && K[o + 10] > 0)) {
           // an arm (or a hand) lies under the cloak: the cloth goes over it, never between it and the body. Seen
           // from the body's upright line (through the feet), the arm shades a wedge in toward the body; cloth in
           // it (or in the arm) goes out to the arm's far side. Only the nearest way out (a capsule's) left the

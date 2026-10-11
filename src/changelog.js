@@ -62,6 +62,10 @@ export const CHANGELOG = [
     'Your saves keep the sword and the guard you had. A save from inside the old house starts the new one from its door, and if you had calmed the Keeper already, it stays calm.',
     // z-fighting (docs/systems/rendering.md "Z-fighting", the zfight-qc skill)
     'Doorframes, sills, roof edges and wall ends in every temple no longer flicker and stripe where two surfaces lay in the same plane. The Givers’ House has none left, and the other temples have far fewer.',
+    // >>> the author’s desert playthrough (issues #58–#73)
+    // capes (docs/systems/characters.md "The cloth goes over the forearms and hands")
+    'Capes and cloaks hang behind the people who wear them: Nour’s cloak no longer swings out in front of her and stays there when she walks up to talk to you, and nobody’s cape blows forward over their front when they stand with the wind at their back.',
+    // <<< the author’s desert playthrough
   ] },
   { v: '1.43', date: '2026-10-10', items: [
     // the chime-pirates between worlds (docs/systems/minigames.md "Pirates between worlds")

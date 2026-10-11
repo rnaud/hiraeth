@@ -632,6 +632,14 @@ collar inside the arms stayed under them, and the hands had no colliders at all.
   8 points), and a face between two points either side of a hand otherwise ran through it.
 - Not the upper arms (lifting the shoulders' cloth pulled the front edges onto a robe's legs once hung), and not
   seated: the hands rest in the lap, and lifting the cloth over them stood it out over the seat.
+- Not the back panel's cloth (`Cape.backCol`: the columns within 45° of straight behind at rest): it only goes
+  round an arm, as round any limb. Nour stopping short in front of you swung her cloak on forward over the
+  forearms that hold her staff, and lifting the back's cloth out over them kept it lying in front of her, a sheet
+  held out at you (October 2026, issues #59 and #64). The engines' cloth does the same (`engine/cape-job.js`,
+  `BridgeCape.cs`: the description's last `cols` numbers).
+- **The ambient wind never blows a cape out in front of its wearer** (`behindWind`): the part of it toward the way
+  they face is turned to blow behind, so whoever stands with the wind at their back has it streaming behind or
+  beside them. Their own motion still swings it. `tests/cape-behind.test.js`.
 
 Measured in the studio on MakeHuman bodies (the share of hand and forearm points with the cloak between them
 and the body, idle / walking / talking): Bako 84 / 71 / 51 % → 0, the Speaker 65 / 64 / 51 → 0, Nour 41 / 31 /

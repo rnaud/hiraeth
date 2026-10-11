@@ -548,6 +548,9 @@ const COST42 = { device: 'the Mac (M4 Pro), headless Chrome, 1280 × 720, hour 1
 const C44 = 'da872d94';
 const SAVE44 = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'save.migrated': 13, 'tool.empty': false }, keepsakes: [] };
 const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, fov: 70, wait: 3500, eye: [eye[0] + 150, eye[1] + 2400, eye[2] - 250], target: [target[0] + 150, target[1] + 2400, target[2] - 250], player: [player[0] + 150, player[1] + 2400, player[2] - 250] });
+// (v1.44: the author's desert playthrough, issues #58–#73; pictures made by hand with a scratch shooter against this
+// branch's own Vite, before and after the change, the same scripted moment for both)
+const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
 export const CHANGELOG_MEDIA = {
   '1.44': [
     { match: 'At the edge of Vael’s plain stands the riders’ gate', shots: [
@@ -613,6 +616,11 @@ export const CHANGELOG_MEDIA = {
       ], source: 'src/temples/kit.js Z_GAP: doorframes 2 cm into their openings, sills 2 cm under the floor, roofs 2 cm inside the walls, open-sided walls’ ends 2 cm short; docs/systems/rendering.md “Z-fighting”' },
     ], see: 'In any temple, look along a doorway’s frame or up at a roof’s edge from a few metres off and walk past: no stripes. In the Givers’ House, none anywhere.' },
     // (a new game: pictures with no before; the run flown ahead by its pilot, minigame.session.forward)
+    // >>> the author’s desert playthrough (issues #58–#73)
+    { match: 'Capes and cloaks hang behind the people who wear them', shots: [
+      { name: 'cape-nour', caption: 'Nour a few seconds after she has walked up to you from her bench, from behind her: before, her cloak lies out in front of her at you, held up on her arms; after, it hangs down her back', from: FROM44 },
+    ], see: 'Open the chest on the great tree in Qanat and climb down: Nour walks over to you and stops in front of you, her cloak hanging behind her.' },
+    // <<< the author’s desert playthrough
   ],
   '1.43': [
     // (the merged worlds' crossings, f8095c14; the trials on the wings, 9ad95b78: the same view before and after)

@@ -14,17 +14,21 @@ export const CAPE_K = { fold: 0.6, fieldEdge: 0.1, lift: 0.03, reach: 0.1, groun
 /** The packet's flags. */
 export const CAPE_FLAG = { push: 1, carry: 2, field: 4, fieldData: 8 };
 
-/** A cape's description: u32 cols, rows, nCons, nIdx, then f32 cons × 4 nCons, seatedK × nCons, seatRest × nCons, side × n, u32 idx × nIdx. */
+/**
+ * A cape's description: u32 cols, rows, nCons, nIdx, then f32 cons × 4 nCons, seatedK × nCons, seatRest × nCons, side × n,
+ * u32 idx × nIdx, then f32 back × cols (1: a column of its back panel, cape.js backCol; an older description ends before it).
+ */
 export function packCapeDesc(cape) {
   const { cols, rows } = cape, n = cols * rows, C = cape.cons, nc = C.length / 4, idx = cape.geo.index.array;
-  const buf = new ArrayBuffer((4 + nc * 6 + n + idx.length) * 4), u = new Uint32Array(buf), f = new Float32Array(buf);
+  const buf = new ArrayBuffer((4 + nc * 6 + n + idx.length + cols) * 4), u = new Uint32Array(buf), f = new Float32Array(buf);
   u[0] = cols; u[1] = rows; u[2] = nc; u[3] = idx.length;
   let o = 4;
   f.set(C, o); o += nc * 4;
   f.set(cape.seatedK, o); o += nc;
   f.set(cape.seatRest, o); o += nc;
   for (let i = 0; i < n; i++) f[o++] = Math.sign(cape.local[i * 3]) || 0;
-  u.set(idx, o);
+  u.set(idx, o); o += idx.length;
+  for (let c = 0; c < cols; c++) f[o++] = cape.backCol?.[c] ?? 0;
   return buf;
 }
 
@@ -80,7 +84,8 @@ export class CapeJob {
     this.seatRest = f.slice(o, o + nc); o += nc;
     const n = this.cols * this.rows;
     this.side = f.slice(o, o + n); o += n;
-    this.idx = u.slice(o, o + ni);
+    this.idx = u.slice(o, o + ni); o += ni;
+    this.back = o + this.cols <= f.length ? f.slice(o, o + this.cols) : new Float32Array(this.cols);
     this.P = new Float32Array(n * 3); this.Q = new Float32Array(n * 3); this.nrm = new Float32Array(n * 3);
     this.K = new Float64Array(0); this.field = null;
   }
@@ -173,16 +178,17 @@ export class CapeJob {
 
   collide(K, nc, up, floor, F) {
     const { cols, rows } = this, P = this.P;
-    const ux = up[0], uy = up[1], uz = up[2], fx = floor[0], fy = floor[1], fz = floor[2];
+    const ux = up[0], uy = up[1], uz = up[2], fx = floor[0], fy = floor[1], fz = floor[2], B = this.back;
     for (let i = cols * 3, n = rows * cols * 3; i < n; i += 3) {
       let x = P[i], y = P[i + 1], z = P[i + 2];
+      const back = B[(i / 3) % cols] !== 0;
       for (let o = 0; o < nc * 11; o += 11) {
         const bx = K[o + 3], by = K[o + 4], bz = K[o + 5];
         let t = ((x - K[o]) * bx + (y - K[o + 1]) * by + (z - K[o + 2]) * bz) * K[o + 6];
         if (K[o + 9]) { if (t < 0 || t > 1) continue; } else t = t < 0 ? 0 : t > 1 ? 1 : t;
         const cx = K[o] + bx * t, cy = K[o + 1] + by * t, cz = K[o + 2] + bz * t;
         const dx = x - cx, dy = y - cy, dz = z - cz, r = K[o + 7] + K[o + 8] * t;
-        if (K[o + 10] !== 0 && !F) {
+        if (K[o + 10] !== 0 && !F && !(back && K[o + 10] > 0)) {
           let rx = cx - fx, ry = cy - fy, rz = cz - fz;
           const ru = rx * ux + ry * uy + rz * uz; rx -= ux * ru; ry -= uy * ru; rz -= uz * ru;
           const rl = Math.sqrt(rx * rx + ry * ry + rz * rz);
