@@ -163,12 +163,14 @@ namespace Memento.Bridge
         /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
+        static readonly List<string> madeNames = new();
         static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
         public static string TakeMade()
         {
             if (Made.Count == 0) return "";
             var s = string.Join(", ", System.Linq.Enumerable.Select(System.Linq.Enumerable.OrderByDescending(Made, kv => kv.Value), kv => $"{kv.Key} {kv.Value}"));
-            Made.Clear();
+            if (madeNames.Count > 0) s += " [" + string.Join("; ", madeNames) + "]";
+            Made.Clear(); madeNames.Clear();
             return s;
         }
 
@@ -326,6 +328,7 @@ namespace Memento.Bridge
             var mids = d.L("mids");
             n.mids = new int[mids?.Count ?? 0];
             for (int i = 0; i < n.mids.Length; i++) n.mids[i] = (int)Json.Num(mids[i]);
+            if (madeNames.Count < 24) madeNames.Add($"{n.kind}:{d.S("name", "?")}:{n.mesh}:m{(n.mids.Length > 0 ? n.mids[0] : -1)}");
             n.go = new GameObject($"{d.S("name", n.kind)} {id}");
             n.go.transform.SetParent(transform, false);
             n.go.SetActive(false);

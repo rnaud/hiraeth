@@ -209,6 +209,11 @@ namespace Memento.EditorTools
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.WindowsStoreApps, Il2CppCompilerConfiguration.Release);
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.WSAPlayer, false);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.WSAPlayer, new[] { GraphicsDeviceType.Direct3D11 });
+            // (a test: graphics jobs off, Unity's plain render thread. With the legacy jobs on, the Xbox's main thread waited
+            // ~9.5 ms a frame on the present whatever its own work, as if the render thread's frame came after its own;
+            // MEMENTO_XBOX_GFX_JOBS=1 keeps them)
+            PlayerSettings.graphicsJobs = System.Environment.GetEnvironmentVariable("MEMENTO_XBOX_GFX_JOBS") == "1";
+            Debug.Log($"Memento: graphics jobs {(PlayerSettings.graphicsJobs ? "on" : "off")}, multithreaded rendering {PlayerSettings.MTRendering}");
             var icon = IconTexture("icon-512.png", ReleaseIcon);
             if (icon != null) PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
             // the UWP build's own settings (by name: they moved between Unity versions, and an editor without the module has none)
