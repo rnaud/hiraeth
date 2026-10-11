@@ -1,0 +1,83 @@
+.claude/skills/shadow-qc/SKILL.md
+  s_9ca76055a220ed::t_429b3cadc90fdb 1-102
+.claude/skills/shadow-qc/run.mjs
+  s_9ca76055a220ed::t_32e99769398e0b 1-308
+changelog.md
+  s_9ca76055a220ed::t_b3dd17cbc6b478 7-9
+docs/README.md
+  s_9ca76055a220ed::t_89445e06e2ec44 48
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_497c09bcf23472 15
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_0111a76e12f105 1046-1114
+scripts/shadow-qc/lib.mjs
+  s_9ca76055a220ed::t_c638a594557a50 1-211
+scripts/shadow-qc/probes.js
+  s_9ca76055a220ed::t_6eb29f331bb8e9 1-416
+src/audio.js
+  s_9ca76055a220ed::t_caab8a28f047b8 46,55
+src/changelog-media.js
+  s_9ca76055a220ed::t_96bd118971849c 625-631
+src/changelog.js
+  s_9ca76055a220ed::t_cddd7689a173c7 37-67
+src/costumes.js
+  s_9ca76055a220ed::t_12427086d8d9f5 439-446
+src/edge.js
+  s_9ca76055a220ed::t_07233ff4547a36 35
+src/foes.js
+  s_9ca76055a220ed::t_977c5ff8f33282 84
+src/levels/content.js
+  s_9ca76055a220ed::t_685cb7ea724e49 155-165
+src/levels/index.js
+  s_9ca76055a220ed::t_9fbcc22e8d1afb 11,187-193
+src/levels/shadow-room.js
+  s_9ca76055a220ed::t_58a734af7bdb21 1-386
+src/main.js
+  s_9ca76055a220ed::t_ac25a045e9b57b 50,194,197-201,1113-1117,1572-1589,1642-1643,1646-1651
+src/makehuman/people.js
+  s_9ca76055a220ed::t_8b276bd4837fa6 166
+src/materials.js
+  s_9ca76055a220ed::t_74cdaf67b2fbeb 66,752-838,862,986
+src/passage.js
+  s_9ca76055a220ed::t_7229d536b525f1 187-191
+src/perf.js
+  s_9ca76055a220ed::t_235ded559efa19 355,379,390
+src/reactive-world.js
+  s_9ca76055a220ed::t_00737523aee36e 28
+src/shadows.js
+  s_9ca76055a220ed::t_61dea1b82ab329 181-201
+src/title-world.js
+  s_9ca76055a220ed::t_9b368f4153d991 7,161,225
+tests/makehuman.test.js
+  s_9ca76055a220ed::t_f071906b675ae1 88
+tests/passage.test.js
+  s_9ca76055a220ed::t_47b13284d62be7 246-260
+tests/quality.test.js
+  s_9ca76055a220ed::t_f80746d2ef75ed 24-26
+tests/scripts.test.js
+  s_9ca76055a220ed::t_e44435dcacc7bb 20
+tests/shadow-qc.test.js
+  s_9ca76055a220ed::t_a76aefc0c72823 1-122
+tests/shadow-room.test.js
+  s_9ca76055a220ed::t_8c3120e4eac2ce 1-92
+tests/shadows.test.js
+  s_9ca76055a220ed::t_6bd556879c1a00 176-202
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_2e933040bf662e 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3f4d1a4f6bc55eab10fcbe577d42ce2c7ebcb702",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
