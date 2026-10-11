@@ -26,7 +26,7 @@ export const PEOPLE = {
         hello: {
           say: ["~curious~ Teasel. Reed-cutter. I work round the cave island, except beside that dome. Prefer my reeds without screaming in the background.",
             "~solemn~ *The Hush-House.* The makers taught jaw-plants to settle there, Wendel says. Their mark is the Hush, the one we paint on our doors.",
-            "~whisper~ Something inside woke when the sky rang. It’s been snapping ever since. You can hear the jaws through stone."],
+            "~whisper~ Something inside woke on the dry night, when the singing light went over. It’s been snapping ever since. You can hear the jaws through stone."],
           do: { set: { 'met.teasel': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide' }, goto: 'go' },

@@ -28,7 +28,7 @@ export const PEOPLE = {
         hello: {
           say: ['~neutral~ Anselme. I keep the Whale-House’s door. I dived, once. Now I sit.',
             '~solemn~ The makers built that house to talk to the whales. Shell and glass, and horns out into the sea. The whales came right up to it.',
-            '~sad~ Since the night the sky rang, something in there sings the light’s note back at them. Every time they come near, it sends them off.'],
+            '~sad~ Since the night the whales went quiet, something in there sings the light’s note back at them. Every time they come near, it sends them off.'],
           do: { set: { 'met.anselme': true } },
           choices: [
             { text: '~neutral~ I’ll go in and stop it.', do: { start: 'temple.underwater' }, goto: 'go' },

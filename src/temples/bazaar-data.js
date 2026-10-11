@@ -27,7 +27,7 @@ export const PEOPLE = {
         hello: {
           say: ["~whisper~ (A man has his ear against the paving at the tower’s foot. One raised finger asks you to wait.) Nearly. Listen.",
             "~solemn~ *Somebody.* There it is again. I’m Hobb. I listen to this stone. Everyone else here is trying to be louder than the next stall.",
-            "~curious~ Below us is *the Undertower*, older than the market. They say it once spoke a whole sentence. Since the sky rang, it can only repeat that first word."],
+            "~curious~ Below us is *the Undertower*, older than the market. They say it once spoke a whole sentence. Since the night every sign showed the mark, it can only repeat that first word."],
           do: { set: { 'met.pell': true } },
           choices: [
             { text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' },

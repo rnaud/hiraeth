@@ -74,6 +74,9 @@ export const CHANGELOG = [
       see: 'In the Buried Machine, hear Wen out in the great dome: the quest log’s next step is the sand ramp into the canyon, not Hask’s bench. In Vael, ride the bird up to the monastery: the next step is the clapper.' },
     { text: 'In Viridel, the silt in the tea terraces’ runnels moves for whoever gets there first: shove the top clod and Esk’s errand starts from it, with no “ask her first”.',
       see: 'In Viridel, before speaking to Sol or Esk, walk up the tea terraces south-east of the landing and shove the top runnel’s clod: it slides out and “Water for the Tea Terraces” begins at the runnels.' },
+    // the temple guides (lore/voice-guide.md, the night's names; issue #119)
+    { text: 'The temple guides name the night the singing light went over in their own world’s words, as everyone else there does: under the sea the night the whales went quiet, in Lorn the dry night, in the Buried Machine the night the Tuning Star came over, in the Signal Market the night every sign showed the mark. Only the City-Shaft still says the sky rang.',
+      see: 'In the Underwater City, talk to Anselme at the Whale-House’s door: “Since the night the whales went quiet, something in there sings the light’s note back at them.” Hobb under the silent tower, Teasel by the Hush-House and Fisk at the Engine-House say their own world’s night too.' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

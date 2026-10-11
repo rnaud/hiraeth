@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- The temple guides name the night the singing light went over in their own world’s words, as everyone else there does: under the sea the night the whales went quiet, in Lorn the dry night, in the Buried Machine the night the Tuning Star came over, in the Signal Market the night every sign showed the mark. Only the City-Shaft still says the sky rang.
 - In Viridel, the silt in the tea terraces’ runnels moves for whoever gets there first: shove the top clod and Esk’s errand starts from it, with no “ask her first”.
 - The quest log no longer sends you to people. Its steps name the place or the thing: after Wen, the ramp down to the canyon (Hask’s fear is still his to tell, if you sit with him); at the monastery, the bell’s clapper on the floating church (Calix still says where it lies). Nobody in the desert or under the sea ends on “Ask her.” any more.
 - Continue gets you playing much sooner: while you look at the title, your world loads behind it, so Continue goes straight in. If you are quicker than the load, a small mark where the menu was shows it finishing. Choosing another save, or changing a setting first, loads as before.

@@ -88,7 +88,12 @@ for (const s of sources) {
     worlds.set(s.world, w);
     const speaker = { where: t.where, name: t.name ?? t.where.split('.').slice(-2, -1)[0] ?? t.where, kind: t.kind, nodes: [] };
     w.speakers.push(speaker);
-    const add = (text, tone, kind, at) => { const l = { world: s.world, speaker: speaker.name, at, text, tone, kind, words: words(text), flags: flagsOf(text, kind) }; w.lines.push(l); return l; };
+    const add = (text, tone, kind, at) => {
+      const l = { world: s.world, speaker: speaker.name, at, text, tone, kind, words: words(text), flags: flagsOf(text, kind) };
+      // (the City-Shaft's name for the night, said anywhere else: the story data and the temples' guides alike, issue #119)
+      if (s.world !== 'incal' && /sky rang/i.test(text)) l.flags.push('the City-Shaft’s “the sky rang” outside it (lore/voice-guide.md)');
+      w.lines.push(l); return l;
+    };
     if (t.kind === 'listen') {
       t.talk.listen.forEach((e, i) => {
         const ps = pages(e && typeof e === 'object' && 'say' in e ? e.say : e);

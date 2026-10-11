@@ -40,3 +40,29 @@ test('the Lodestar: fading all Nima’s life, and going out since the night the 
   assert.match(what, /every year/);
   assert.match(what, /since the night the sky rang, it’s been going out/);
 });
+
+// "The night the sky rang" belongs to the City-Shaft (lore/voice-guide.md; the dialogue review v1.48): every other people
+// names the night by what it saw, the temple guides too (issue #119: the Whale-House's, the Hush-House's, the
+// Engine-House's and the Undertower's said it). Every string in the worlds' data and the temples', comments aside.
+test('only the City-Shaft says “the night the sky rang”, its temple guide included', async () => {
+  const { readdirSync } = await import('node:fs');
+  const SRC = new URL('../src/', import.meta.url);
+  const strings = (v, out = []) => {
+    if (typeof v === 'string') out.push(v);
+    else if (Array.isArray(v)) v.forEach((x) => strings(x, out));
+    else if (v && typeof v === 'object') Object.values(v).forEach((x) => strings(x, out));
+    return out;
+  };
+  const files = [
+    ...readdirSync(new URL('story/', SRC)).filter((x) => /-(data|people)\.js$/.test(x)).map((x) => `story/${x}`),
+    ...readdirSync(new URL('temples/', SRC)).filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
+  ];
+  assert.ok(files.includes('temples/underwater-data.js'));
+  const bad = [];
+  for (const f of files) {
+    if (/\/incal-data\.js$/.test(f)) continue;   // (the City-Shaft's own)
+    const m = await import(new URL(f, SRC));
+    for (const s of strings(Object.values(m))) if (/sky rang/i.test(s)) bad.push(`${f}: ${s.slice(0, 80)}`);
+  }
+  assert.deepEqual(bad, []);
+});
