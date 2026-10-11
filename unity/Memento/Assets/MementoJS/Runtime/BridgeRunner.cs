@@ -251,13 +251,20 @@ namespace Memento.Bridge
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
+            // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
+            // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
+#if UNITY_WSA && !UNITY_EDITOR
+            BridgeRenderer.uniformLayout = !BridgeArgs.Flag("-no-uniform-layout");
+#else
             BridgeRenderer.uniformLayout = BridgeArgs.Flag("-uniform-layout");
+#endif
             // the Xbox's shadow maps (the Unity build only; the shared presets, Quality.Set and the web's perf.js, stay): the near
             // map redrawn every 2nd frame, the far every 8th, no fine map, casters under 2 texels left out: 938 draws a frame
             // instead of ~1 100 and 48 fps instead of 46 at the desert's spawn (docs/benchmark-web-vs-unity.md). -shadows-high
             // keeps the web's High
 #if UNITY_WSA && !UNITY_EDITOR
-            if (!BridgeArgs.Flag("-shadows-high")) { Quality.nearEvery = 2; Quality.farEvery = 8; Quality.fineSize = 0; MementoShadows.minCasterTexels = 2; }
+            if (!BridgeArgs.Flag("-shadows-high")) { Quality.nearEvery = 2; Quality.farEvery = 8; MementoShadows.minCasterTexels = 2; }
+            // (the fine map stays: without it the traveller's own shadow and a close shard's went, results/tour in rnaud/puerts-uwp)
 #endif
             // (the shadow maps' cost on the main thread, tried apart: the near map redrawn every N frames, no fine map, casters
             // under T texels left out)
@@ -307,6 +314,16 @@ namespace Memento.Bridge
             gpuSplit?.Tick();
             if (thread != null)
             {
+                // while the script builds the world (Memento.start: seconds), Unity goes on drawing, the script's ops and
+                // questions served a few ms a frame, instead of the main thread waiting it out in one frame: the GPU's
+                // first-draw work for what is already there, and the loading screen, go on meanwhile (-boot-blocking: as before)
+                if (!booted && !bootBlocking)
+                {
+                    double until = Time.realtimeSinceStartupAsDouble + 0.008;
+                    do { BridgeHost.RunOps(); if (done) break; BridgeHost.Wake.WaitOne(1); } while (Time.realtimeSinceStartupAsDouble < until);
+                    if (!done) return;
+                }
+                booted = true;
                 // the frame the script played while Unity drew the last, and the next one let go
                 var t0 = Time.realtimeSinceStartupAsDouble;
                 bool ok;
@@ -350,6 +367,8 @@ namespace Memento.Bridge
             }
             gc0 = gc;
         }
+        bool booted;
+        static bool bootBlocking => BridgeArgs.Flag("-boot-blocking");
         /// <summary>The main thread's time waiting on the script (ms, summed; BridgeHost.WaitMs reads and clears it).</summary>
         public double waitMs;
         /// <summary>The same wait summed for good, and the script's own time on its thread (ms; BridgeMetrics reads them).</summary>

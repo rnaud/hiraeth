@@ -128,7 +128,9 @@ test('the PlayerLoop timed step by step, a slow frame named by its steps; -no-hu
   assert.match(runner, /QualitySettings\.maxQueuedFrames = nq/);
   assert.match(runner, /Flag\("-no-shadows"\)\) MementoShadows\.On = false/);
   assert.match(runner, /Arg\("-shadow-near-every"\)/);
-  assert.match(runner, /UNITY_WSA && !UNITY_EDITOR\s*\n\s*if \(!BridgeArgs\.Flag\("-shadows-high"\)\) \{ Quality\.nearEvery = 2; Quality\.farEvery = 8; Quality\.fineSize = 0; MementoShadows\.minCasterTexels = 2; \}/, 'the Xbox\'s own shadow settings');
+  assert.match(runner, /UNITY_WSA && !UNITY_EDITOR\s*\n\s*if \(!BridgeArgs\.Flag\("-shadows-high"\)\) \{ Quality\.nearEvery = 2; Quality\.farEvery = 8; MementoShadows\.minCasterTexels = 2; \}/, 'the Xbox\'s own shadow settings (the fine map kept)');
+  assert.match(runner, /uniformLayout = !BridgeArgs\.Flag\("-no-uniform-layout"\)/, 'uniform vertex layouts on the Xbox');
+  assert.match(runner, /if \(!booted && !bootBlocking\)/, 'Unity draws on while the script builds the world');
   assert.match(read('engine/unity/game.js'), /if \(args\.tour\)/);
   assert.match(runner, /Arg\("-shadow-min"\)/);
   assert.match(runner, /Flag\("-warm"\)[\s\S]*Shader\.WarmupAllShaders\(\)/);
