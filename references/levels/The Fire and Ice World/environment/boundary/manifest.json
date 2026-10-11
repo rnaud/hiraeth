@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: the boundary where a slow river of glowing lava meets the wall of a blue glacier, seen up close at ground level. The lava front crawls forward in rounded crusted lobes, cracks of bright orange light between black crust; the glacier's face towers above it, translucent blue ice with deep turquoise crevasses, melting into a hissing curtain of steam and small hot pools where the two touch; icicles drip onto cooling black rock and freeze again into strange glassy shapes; fallen blocks of ice float in a steaming lake rimmed with obsidian. A narrow path of basalt stepping stones crosses between them, and a small cloaked human traveller with a round jade glass fluid backpack walks it for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, glowing ember orange and rose lava, ice blues from pale cyan to deep glacier teal, white steam, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/fire-ice-prompts.md#boundary",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-00-23-00-9fa6",
+      "candidate": "openai/2",
+      "sha256": "53cdb0b61c17cf44653171983ca5e8383180682dfd396e7768b5a6b65f01fa7b",
+      "bytes": 322917,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design lineup for a science fiction exploration game: seven inhabitants of a world where fire and ice live side by side, standing in a row at the same scale on a plain cream background, full body, each clearly different: an old ice carver in thick pale blue furs with frost in her braids and bone tools at her belt; a young lava smith in a heat-proof leather apron and copper goggles, hands glowing faintly orange; a steam keeper in layered robes half white and half ember red, carrying a lantern of fire inside a globe of clear ice; a glacier guide with spiked boots, a rope coiled over one shoulder and a long staff tipped with a blue crystal; a child in a round fur hood holding a small warm fire stone in both hands; a tall masked pilgrim of the temple, one half of the mask ice and the other half basalt; a trader with a sled of fire stones and frozen fish. The small cloaked human traveller with a round jade glass fluid backpack stands at the end of the row for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, glowing ember orange and rose, ice blues from pale cyan to deep glacier teal, warm copper, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/fire-ice-prompts.md#characters",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-00-25-10-22ef",
+      "candidate": "openai/1",
+      "sha256": "613e68a1502289dad72bfebf54d4a4c257cdc3c9b64729de279b82072f97f35d",
+      "bytes": 242963,
+      "costUSD": 0.041
+    }
+  ]
+}

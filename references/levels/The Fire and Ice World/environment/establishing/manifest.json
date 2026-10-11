@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a strange world where fire and ice live side by side, seen from a high ridge at dawn. Vast blue glaciers flow down between dark volcanic mountains; rivers of glowing orange lava run across the white ice fields in slow braided channels, great plumes of white steam rising where they touch; frozen waterfalls hang from black basalt cliffs next to small smoking craters; a pale sun low on the horizon and a second ember-red moon in a lavender sky. Far away a settlement of domes and towers sits on the line between the ice and the lava. A small cloaked human traveller with a round jade glass fluid backpack stands on the ridge in the foreground, tiny against the view. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, glowing ember orange and rose lava, ice blues from pale cyan to deep glacier teal, white steam, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/fire-ice-prompts.md#establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-00-22-31-6df8",
+      "candidate": "openai/2",
+      "sha256": "c12bc7fe749d6989e2cd1fb8b38e2c8f9e29ea4f641a8b2219783eecb44f3324",
+      "bytes": 272902,
+      "costUSD": 0.041
+    }
+  ]
+}

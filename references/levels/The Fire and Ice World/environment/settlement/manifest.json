@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a town built on the line between a glacier and a lava field, seen from its main street at dusk. On the ice side houses are carved into the glacier and domed with blocks of blue ice, lit from within; on the lava side houses of black basalt and copper stand on stilts over warm vents, chimneys and pipes carrying heat across the street into the ice houses; bridges of rope and bone cross steaming channels; greenhouses glow with plants grown on the warmth; people in layered fur cloaks and heat-proof leather aprons, lanterns of glowing embers hanging in clear ice globes, a small market selling fire stones and ice fish. A small cloaked human traveller with a round jade glass fluid backpack walks down the street for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, glowing ember orange and rose, ice blues from pale cyan to deep glacier teal, warm copper, white steam, violet dusk shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/fire-ice-prompts.md#settlement",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-00-23-32-a1be",
+      "candidate": "openai/2",
+      "sha256": "bd7cbdc2dab595d11ac1bb61751fed9a801ceb1aa098499b96a80f7252258c48",
+      "bytes": 327322,
+      "costUSD": 0.041
+    }
+  ]
+}

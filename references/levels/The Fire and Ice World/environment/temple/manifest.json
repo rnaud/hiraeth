@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: an ancient temple standing exactly where a glacier meets a volcano, half of it carved from translucent blue ice and half built of black basalt glowing with veins of molten orange; a great round doorway in the middle where the two halves join, a soft jade-green light inside; a frozen waterfall pours down one side of the temple and a slow lava fall down the other, both feeding a still round pool in front of the steps that steams at one edge and is frosted at the other; tall pillars topped with braziers of cold blue flame and warm orange flame in turn; pilgrims' ribbons frozen stiff in the wind. A small cloaked human traveller with a round jade glass fluid backpack climbs the steps for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, glowing ember orange and rose, ice blues from pale cyan to deep glacier teal, a touch of jade, white steam, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/fire-ice-prompts.md#temple",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-00-24-06-07d9",
+      "candidate": "openai/1",
+      "sha256": "082030425aec24fd54b2ee190cb3a21e3822d49881d399f19d540e614c73c4ef",
+      "bytes": 321576,
+      "costUSD": 0.041
+    }
+  ]
+}

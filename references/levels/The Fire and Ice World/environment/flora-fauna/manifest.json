@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a world where fire and ice live side by side, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a frost-feathered bird whose wings glow like embers underneath; a slow armoured grazer with a shell of black basalt plates and a fur of icicles, warming itself on a vent; a lizard of translucent blue ice with a glowing orange heart visible inside; a fish that swims through steaming meltwater, half its scales frosted and half red-hot; crystal flowers that open only where steam rises; a creeping moss that glows orange on hot rock and turns blue on the ice; a tall tree with a trunk of black glass and leaves of frost that drip and refreeze; small fire beetles crawling over a snow drift. A small cloaked human traveller with a round jade glass fluid backpack stands among them for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, glowing ember orange and rose, ice blues from pale cyan to deep glacier teal, white steam, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/fire-ice-prompts.md#flora-fauna",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-00-24-36-3ff9",
+      "candidate": "openai/2",
+      "sha256": "8cc926e4d8926b0f6fec922bc573122953e12d6e6efd08d7d09eb551d6d3ba05",
+      "bytes": 311894,
+      "costUSD": 0.041
+    }
+  ]
+}
