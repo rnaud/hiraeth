@@ -13,8 +13,11 @@ const boxItems = [...new Set(Object.values(PLACEMENTS).flat().map((p) => p.item)
 test('closing beats: each kind of item has its beat, the finders point and the whistles play', () => {
   assert.equal(beatFor('hook', ITEMS.hook), 'try', 'a gadget: tried once');
   assert.equal(beatFor('fire', ITEMS.fire), 'try', 'a gun mode too');
-  assert.equal(beatFor('jetpack', ITEMS.jetpack), 'try', 'the jets too');
-  assert.equal(beatFor('backpack', ITEMS.backpack), 'try');
+  // (the backpack and its parts come before the gun: him firing them read as shooting with nothing to shoot, issues #58, #70)
+  assert.equal(beatFor('jetpack', ITEMS.jetpack), 'fit', 'the jets: a part fitted to the pack, not fired');
+  assert.equal(beatFor('doublejump', ITEMS.doublejump), 'fit', 'the lift valve too');
+  assert.equal(beatFor('backpack', ITEMS.backpack), 'none', 'the backpack: none, he wears it from the card on');
+  for (const [id, def] of Object.entries(ITEMS)) if (beatFor(id, def) === 'try') assert.ok(def.kind === 'gadget' || def.kind === 'mode', `${id}: only what shoots is tried, by firing it`);
   assert.equal(beatFor('star', ITEMS.star), 'wear', 'a cosmetic: worn');
   assert.equal(beatFor('soles', ITEMS.soles), 'keep', 'a charm: turned over and pocketed');
   assert.equal(beatFor('coil', ITEMS.coil), 'fit', 'a tank part: fitted to the pack');
@@ -27,11 +30,14 @@ test('closing beats: each kind of item has its beat, the finders point and the w
   // every box's item has a beat, and every beat is used by some box
   const used = new Set();
   for (const id of boxItems) { const b = beatFor(id, ITEMS[id]); assert.ok(BEATS[b], `${id}: ${b}`); used.add(b); }
-  assert.deepEqual([...used].sort(), Object.keys(BEATS).sort(), 'all six beats are seen');
+  assert.deepEqual([...used].sort(), Object.keys(BEATS).sort(), 'every beat is seen');
 });
 
 test('closing beats are short, act after the item reaches him, and end stowed', () => {
+  assert.equal(BEATS.none.dur, 0, 'the backpack’s: no beat at all');
+  assert.equal(BEATS.none.stow, 'worn');
   for (const [name, b] of Object.entries(BEATS)) {
+    if (name === 'none') continue;
     assert.ok(b.dur > 0.8 && b.dur <= MAX_BEAT, `${name}: ${b.dur} s, at most ${MAX_BEAT}`);
     assert.ok(b.act >= 0.45 && b.act < b.dur - 0.2, `${name}: acts once it is held, before the end`);
     assert.ok(b.scale > 0 && b.scale < 1, `${name}: smaller in the hand than hovering`);

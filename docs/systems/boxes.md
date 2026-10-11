@@ -75,10 +75,11 @@ to the plan (`closingShot`: mirrored for **left**, swung toward his side for **s
 
 | Beat | Items | What happens |
 |---|---|---|
-| `try` | gadgets, gun modes, the jets, the wings, the backpack | held out in his right hand, it fires once: a spray of light ahead, a kick back, its sound (the mode's own shot) |
+| `try` | gadgets, gun modes (only what shoots) | held out in his right hand, it fires once: a spray of light ahead, a kick back, its sound (the mode's own shot) |
+| `none` | the backpack | no beat: he wears it from the card on |
 | `wear` | cosmetics (the pale star) | pinned on; a close look at it worn on his lapel |
 | `keep` | charms | turned over in his fingers, then pocketed with a soft chime |
-| `fit` | tank upgrades (coil, chamber) | over his shoulder onto the pack, a click; shot from behind him |
+| `fit` | tank upgrades (coil, chamber), the pack's parts (the lift valve, the jets, the wings, the bellows), the Givers' blade and guard | over his shoulder onto the pack, a click; shot from behind him |
 | `point` | the glyph lens, the listening shell | held up, he turns (≤ 70°) toward the nearest box still shut (`pointAt`), a thread of light that way, a faint answer |
 | `play` | the bell-note whistle, the echo shell | to his lips: the bell's note, or a few notes on the shell; notes of light rise |
 
@@ -89,6 +90,17 @@ reveal 1.15 s (it cuts to a new angle there). E / A on the card plays the beat; 
 past it, and in the beat ends it. After a beat the camera cuts back to play (its closing shot faces him,
 and a blend would swing through him) and hands back in 0.5 s; `fit`, shot from behind, blends.
 `?boxPlan=<name>` forces a plan (the QC script's `--query boxPlan=high`).
+
+Since the author's desert playthrough (October 2026, issues #58 and #70): **nothing is fired before there is
+something to fire it with.** The backpack and its parts used to be `try`, held out and fired: the backpack
+sprayed light out of the city's chest and the lift valve did the same by the pool, long before the gun. Only
+gadgets and gun modes are tried now (`tests/box-beats.test.js` checks every item). **Nothing shrinks away
+into him**: put away in a beat, an item goes at its hold size and is gone; in the hand-back the hovering item
+is simply gone (it flew to his chest and shrank to nothing), being his now, where it lives. **The tank comes
+out as it is**: the desert's placement has `dry` (a function of the game, as `src/story/desert.js` leaves the
+tank: empty unless the pool has risen), and the scene draws the glass empty (`BoxScene.fill`). **Nothing over the
+card**: toasts wait while `#boxscene` is on (`HOLD_TOASTS`, src/ship/cinema.js) and nobody's balloon shows
+(main.js), so the square's murmurs no longer come up over it.
 
 ## Nothing before the first
 

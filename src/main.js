@@ -1920,7 +1920,9 @@ function frame(ts) {
     // (while a moment is filmed only a shout the moment asked for: an idle bark over a panel reads as a caption, src/story/moment.js)
     const filming = storyRt.moments.playing;
     // (and nobody at all until the player has the controls: the crash, a landing, a recording: src/ship/landing.js)
-    const talk = talkAllowed({ shipPlaying: ship.playing }) && !shopPanel.isOpen;   // (nor over the shop panel: the keeper speaks in it)
+    // (nor over the shop panel: the keeper speaks in it; nor over a chest's opening and its card: the square's murmurs
+    //  and shouts came up over the backpack's card, the author's playthrough, issue #58)
+    const talk = talkAllowed({ shipPlaying: ship.playing }) && !shopPanel.isOpen && !boxes?.busy?.();
     if (talk) for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);

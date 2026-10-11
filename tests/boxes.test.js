@@ -249,9 +249,14 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   const step = Math.max(...real.slice(1).map((o, i) => o.pos.distanceTo(real[i].pos)));
   assert.ok(step < 0.25, `no jump in the camera (largest step ${step.toFixed(2)} m)`);
   assert.equal(items.has('backpack'), false, 'not yours until you press on');
+  // (the author's playthrough, issue #58: the tank came out of the chest full when it is empty)
+  assert.equal(boxes.scene.fill, 0, 'the backpack comes out of the city’s chest dry, as it will be on his back');
+  assert.ok(boxes.scene.fluid.length && boxes.scene.fluid.every((m) => m.uniforms.uFluidA.value.x === 0), 'its glass drawn empty');
   assert.equal(boxes.dismiss(), true);
-  assert.equal(boxes.scene.phase, 'beat', 'the closing beat (the backpack: he tries it once)');
-  assert.equal(items.has('backpack'), true, 'granted as the beat starts');
+  // (no beat for the backpack: it is on his back from the card on; nothing flies off and shrinks, issue #58)
+  assert.equal(boxes.scene.phase, 'out', 'no closing beat for the backpack: he wears it');
+  assert.equal(items.has('backpack'), true, 'granted as the card goes');
+  assert.equal(boxes.scene.model.visible, false, 'the hovering one gone, not flying into him and shrinking');
   for (let i = 0; i < 30 * 3.5; i++) boxes.update(1 / 30, 9 + i / 30);
   assert.ok(!boxes.busy(), 'over');
   assert.ok(shots.includes('release'), 'the camera goes back');

@@ -42,7 +42,8 @@ export const PLACEMENTS = {
     // root standing on a buttress root's shoulder: two pitches to climb (src/desert-city.js builds it),
     // over the town's square beside the dry well. Up the avenue from the gate, on the left of the well;
     // the box's pale column shows the way.
-    { id: 'desert.backpack', item: 'backpack', found: 'box.found.backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
+    // (`dry`: its tank comes out empty, as src/story/desert.js leaves it, unless the pool has already risen: the box's scene shows it so)
+    { id: 'desert.backpack', item: 'backpack', found: 'box.found.backpack', dry: (game) => !game.flag('desert.channel.open') && !game.flag('desert.pool.tinted'), site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
       note: 'In Qanat, on the makers’ ledge high on the burning tree’s trunk in the town’s square, left of the dry well: climb the buttress root, then the pier. The first find, and the elder’s.' },
     // the progression rewrite (v1.38, docs/systems/progression.md; v1.44: he comes with nothing in his hands). The backpack's first
     // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main

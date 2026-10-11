@@ -226,7 +226,8 @@ function shown(e) {
   return r.width > 1 && r.height > 1 ? { x0: r.left, y0: r.top, x1: r.right, y1: r.bottom } : null;
 }
 // (.mg-hud on: a game or a challenge is being played, its clock and goal the only words on the screen: src/minigames/kit/runner.js)
-const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on, .mg-hud:not(.off)';
+// (#boxscene.on: a chest opening, its card up, whatever the camera does: nothing over the card, issue #58)
+const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on, .mg-hud:not(.off), #boxscene.on';
 // (#health whether it shows or not: it comes up the moment you are hurt, and a toast must never sit on it)
 export const OBSTACLES = ['#health', '#cue.show', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
 

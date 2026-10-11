@@ -625,6 +625,11 @@ export const CHANGELOG_MEDIA = {
         { where: 'from the first letters of her second page to her answers under it', before: 96, after: 0 },
       ], source: 'the top of the panel’s words (getBoundingClientRect) as Nour’s “It opened!” lines are typed and answered, the same talk for both (before: the old layout, the unseen words and the kept room taken out)' },
     ], see: 'Talk to anyone with answers: the panel comes up at its full size and the words don’t move while they are typed; when they are done the answers fade in under them, in place.' },
+    { match: 'The backpack comes out of Qanat’s chest as empty as it is', shots: [
+      { name: 'backpack-card', title: 'The card', caption: 'The backpack over its card in the city’s chest: before, its glass full of swirling jade; after, dry glass, as it is on his back', from: FROM44 },
+      { name: 'backpack-beat', title: 'After the card', caption: 'A second after Continue: before, the backpack held out and fired, a spray of light out of it; after, no beat, the camera going back to him with it on his back', from: FROM44 },
+    ], see: 'In a new game, climb to the chest on the great tree in Qanat and open it.' },
+    { match: 'Out of the chest by the giant’s pool, the lift valve goes over his shoulder', see: 'Let the water up in the giant’s chest and open the chest by the pool: the valve goes over his shoulder onto the pack, a click, and the camera comes back.' },
     { match: 'The drone says where it is off to the moment you send it', numbers: [
       { title: 'Sending the drone to Qanat from the ship (390 m)', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720', rows: [
         { where: 'from the press to the line on the screen', before: 1.85, after: 0.15 },

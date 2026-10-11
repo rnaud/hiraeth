@@ -21,8 +21,11 @@ import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 //   card      what it is, what it does: E, click or tap to go on
 //   beat      the item is granted, and a short closing beat that depends on what it is (beats.js:
 //             a gadget tried once, the star pinned on, a charm turned over and pocketed, a tank part
-//             fitted, a finder pointing the way, a whistle played), on a closing shot in the plan
-//   out       the camera blends back (an item the beat didn't stow flies to the traveller)
+//             fitted, a finder pointing the way, a whistle played), on a closing shot in the plan;
+//             the backpack has none: he wears it from the card on
+//   out       the camera blends back. The item doesn't shrink away into him (it flew to his chest and
+//             shrank to nothing, the author's playthrough, issue #58): granted, it is where it lives
+//             (on his back, in his gear), and the one that hovered is simply gone
 //
 // Esc (or the skip button, or the pad's back button) jumps straight to the card; on the card
 // it dismisses it, past the beat; in the beat it ends it. Nothing here can trap the player: every way of pressing on
@@ -121,6 +124,7 @@ export class BoxScene {
     this.model = buildItemModel(this.item);
     this.model.visible = false;
     this.fluid = fluidMaterials(this.model);
+    this.fill = this.dry ? 0 : 1;   // (the backpack out of its first chest: its glass dry, as it will be on his back)
     this.sparkles = buildSparkles();
     this.sparkles.visible = false;
     this.motes = buildMotes();
@@ -207,6 +211,7 @@ export class BoxScene {
       this.cam?.release?.(beatOut.blend);
       if (!this.granted) { this.granted = true; this.onGrant?.(); }
       this.from = this.model.position.clone();
+      this.model.visible = false; this.sparkles.visible = false;   // (granted: where it lives now, no copy flying off and shrinking)
       if (!this.acted) s?.chime?.();
     }
   }
@@ -231,7 +236,7 @@ export class BoxScene {
   dismiss(force = false) {
     if (this.phase !== 'card') return false;
     if (!force && this.cardT < CARD_MIN) return false;
-    this.enter(force ? 'out' : 'beat');
+    this.enter(force || this.beat === 'none' ? 'out' : 'beat');
     return true;
   }
 
@@ -337,14 +342,8 @@ export class BoxScene {
       } else if (this.phase === 'reveal' || this.phase === 'card') {
         this.model.position.copy(hover);
         this.model.scale.setScalar(ITEM_SCALE);
-      } else if (this.phase === 'out') {
-        const u = smooth(t / 0.6), chest = this.P(0, 1.2, STAND_AT);
-        const s0 = this.model.scale.x;
-        this.model.position.copy(this.from).lerp(chest, u);
-        this.model.scale.setScalar(Math.max(1e-3, Math.min(s0, ITEM_SCALE * (1 - u))));
-        if (u >= 1) this.model.visible = false;
       }
-      for (const m of this.fluid) { m.uniforms.uFluidA.value.set(1, 4, time, 0); }
+      for (const m of this.fluid) { m.uniforms.uFluidA.value.set(this.fill, 4, time, 0); }
     }
     if (this.phase === 'beat') this.beatFrame(t, time);
     else if (this.model.visible) {
@@ -486,7 +485,7 @@ export class BoxScene {
       // (on the way from the hover a little arc up, so it reads as handed over, not slid)
       m.position.y += Math.sin(Math.PI * toHold) * 0.12 * (1 - toStow);
       m.position.lerp(stow, toStow);
-      const sc = ITEM_SCALE * (1 + (B.scale - 1) * toHold) * (1 - toStow);
+      const sc = ITEM_SCALE * (1 + (B.scale - 1) * toHold);   // (put away at its own size, then gone: no shrinking to nothing)
       m.scale.setScalar(Math.max(1e-3, sc));
       const face = (this.box.yaw + Math.PI) - this.turn;   // (his heading: the item faces where he does)
       if (name === 'try') {

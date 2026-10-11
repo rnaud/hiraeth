@@ -315,7 +315,9 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       sound?.boxHum?.(0);
       // (the finders' closing beat turns him toward the nearest box still shut)
       const pointAt = () => list.filter((x) => x !== b && !spent(x)).sort((x, y) => flat(x.pos, b.pos) - flat(y.pos, b.pos))[0]?.pos ?? null;
-      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground, physics, pointAt,
+      // (`dry`: the backpack comes out of the desert's chest empty, until the giant's pool fills it: shown so, issue #58)
+      const dry = typeof b.place?.dry === 'function' ? !!b.place.dry(g) : !!b.place?.dry;
+      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground, physics, pointAt, dry,
         onGrant: grant,
         onEnd: () => { current = null; finish(); } });
       current.start();

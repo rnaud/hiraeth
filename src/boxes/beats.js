@@ -1,11 +1,14 @@
 // The box opening's closing beat: after the card, a short moment that depends on what the box held
 // (the cinematics QC pass: every box ended the same way, the item flying into his chest whatever it was).
 //
-//   try    a gadget, a gun mode, the jets, the wings, the backpack: he tries it once (held out in his
-//          right hand, it fires a spray of light ahead of him, a kick back, its sound)
+//   try    a gadget, a gun mode: he tries it once (held out in his right hand, it fires a spray of light ahead of
+//          him, a kick back, its sound). Only what shoots: the backpack and its parts came before the gun, and him
+//          firing them read as shooting with nothing to shoot (the author's playthrough, issues #58 and #70)
+//   none   the backpack: none (he wears it the moment the card goes: on his back, its tank as it is)
 //   wear   a cosmetic (the pale star): he pins it on, and a close look at it worn
 //   keep   a charm or a token: he turns it over in his hand, then pockets it (the act: the pocket)
-//   fit    an upgrade for the tank: it goes over his shoulder onto the pack, a click
+//   fit    an upgrade for the tank, a part for the pack (the lift valve, the jets, the wings, the bellows), and the
+//          Givers' blade and guard (onto his back, never swung or fired out of the chest): over his shoulder, a click
 //   point  a finder (the glyph lens, the listening shell): held up, he turns toward where it points
 //          (the nearest unopened box), a thread of light going that way, a faint answer
 //   play   something that sounds (the bell-note whistle, the echo shell): to his lips, a few notes
@@ -33,10 +36,11 @@ export const BEATS = {
   fit: { dur: 1.5, act: 1.25, hold: [0.32, 1.7, 0.02], stow: [0, 1.3, 0.24], scale: 0.4 },
   point: { dur: 1.8, act: 0.6, hold: [0.2, 1.45, -0.32], stow: [0.26, 0.96, -0.04], scale: 0.38 },
   play: { dur: 1.8, act: 0.5, hold: [0.04, 1.56, -0.24], stow: [0.26, 0.96, -0.04], scale: 0.32 },
+  none: { dur: 0, act: 0, hold: [0, 1.3, 0.24], stow: 'worn', scale: 1 },
 };
 
 /** The beat for each kind of item (src/items.js ITEMS[id].kind). */
-export const KIND_BEATS = { core: 'try', weapon: 'try', movement: 'try', mode: 'try', gadget: 'try', cosmetic: 'wear', charm: 'keep', pass: 'keep', upgrade: 'fit' };
+export const KIND_BEATS = { core: 'none', weapon: 'fit', movement: 'fit', mode: 'try', gadget: 'try', cosmetic: 'wear', charm: 'keep', pass: 'keep', upgrade: 'fit' };
 /** Items whose use is not their kind's: the finders point, the things that sound play. */
 export const ITEM_BEATS = { lens: 'point', shell: 'point', bell: 'play', echo: 'play' };
 

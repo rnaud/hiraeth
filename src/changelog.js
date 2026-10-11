@@ -68,6 +68,9 @@ export const CHANGELOG = [
     // the conversation panel (docs/systems/conversations.md "The panel never moves while you read")
     'In conversations the words stay where they are while you read them: the panel is its full size from the first letter, and the answers come up in the room kept for them instead of pushing the words up the screen.',
     // the drone's find (docs/systems/ui.md "What it says")
+    // the chests (docs/systems/boxes.md "nothing is fired before there is something to fire it with")
+    'The backpack comes out of Qanat’s chest as empty as it is: its glass is dry on the card, and nothing comes up over the card while you read it. After it, he simply has it on his back: no more firing it, and no copy of it flying into him and shrinking away.',
+    'Out of the chest by the giant’s pool, the lift valve goes over his shoulder onto the pack with a click instead of being fired like a gun he doesn’t have yet; the same for the other parts of the pack. Nothing found in a chest shrinks away to nothing any more.',
     'The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.',
     // <<< the author’s desert playthrough
   ] },
