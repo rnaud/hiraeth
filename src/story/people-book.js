@@ -206,7 +206,7 @@ export const BOOK = {
     // the fellow traveller (src/story/fellow-data.js): met four times along the route, listed where the route
     // first puts her (Vael), her story growing a meeting at a time
     P('tansy', 'Tansy', 'From the Salt Harbour, following the singing too', [
-      'A girl from the Salt Harbour, a harbour with no sea. The night the sky rang, every compass there swung round the same way, and hers never swung back. She follows its needle from world to world on whatever is going, a world ahead of you, she says.',
+      'A girl from the Salt Harbour, a harbour with no sea. The night the singing went over, every compass there swung round the same way, and hers never swung back. She follows its needle from world to world on whatever is going, a world ahead of you, she says.',
       [f('fellow.after', 'value'), 'You told her you were after something of value. She wants something nobody has yet.'],
       [f('fellow.after', 'light'), 'You told her you were after whatever brought your ship down. She made it a race.'],
       [f('fellow.after', 'unsure'), 'You told her you were not sure any more. Nobody had told her that was allowed.'],
@@ -374,7 +374,7 @@ export const BOOK = {
   underwater: [
     P('bastien', 'Bastien', 'Keeps the lock', [
       'Bastien keeps the Underwater City’s lock and its Dock, where your ship came down like a stone down a well. Nobody walks outside there: they go hall to hall through the glass tubes.',
-      [f('underwater.bastien.heard'), 'Since the night the sky rang the glass has hummed one note all over the city: the wrong note, he says, and the whales won’t come near it.'],
+      [f('underwater.bastien.heard'), 'Since the night the whales went quiet the glass has hummed one note all over the city: the wrong note, he says, and the whales won’t come near it.'],
       [f('underwater.window.heard'), 'At the window over the deep you heard where it comes from: up through the sea floor, from the makers’ Whale-House.'],
       [f('temple.underwater.done'), 'Since the whales came back, one swims up to the lock some mornings to look in at the ship.'],
     ], ['At the Dock, by the moon pool.']),
@@ -391,7 +391,7 @@ export const BOOK = {
       [done('underwater.lamps'), 'He has lit the lamps every dusk since the whales went away, so they could find the city again. Maelle says it’s a fine thing for a whale to see.'],
     ], ['In the Crown, up the lift in the Plaza’s column.']),
     P('maelle', 'Maelle', 'Listens to the whales', [
-      'Maelle listens to the whales from the gallery over the deep. The night the sky rang, a light came down through the sea singing one note; the whales sang it back and went away.',
+      'Maelle listens to the whales from the gallery over the deep. One night a light came down through the sea singing one note; the whales sang it back and went away.',
       [f('temple.underwater.done'), 'The whales came back to the glass, singing the light’s note first and then their own.'],
       [f('clue.underwater.incal'), 'The old ones in the pod say the light went up, on to a city built down a well.'],
     ], ['In the Whale Gallery, down the slope east of the Plaza.']),
@@ -581,11 +581,11 @@ export const BOOK = {
   spacecity: [
     P('rosa', 'Rosa', 'Chalks the bridges', [
       'Every morning Rosa chalks where each bridge’s end sits on its island, on the Pier where your ship came down.',
-      [f('spacecity.rosa.heard'), 'Since the night the sky rang the islands have crept apart a hand’s width a night, and the cables hum one note while they pull.'],
+      [f('spacecity.rosa.heard'), 'Since the night the cables sang the islands have crept apart a hand’s width a night, and the cables hum one note while they pull.'],
       [f('temple.spacecity.done'), 'Her chalk hasn’t moved in three mornings. She is looking for something else to worry about.'],
     ], ['On the Pier, by the ship.']),
     P('tamar', 'Tamar', 'Minds the cables', [
-      'Tamar minds the cables under the Towers; her grandmother hung the first. Long ago a ship with no name hailed the city with a sung note, and the night the sky rang the same note passed again, going somewhere.',
+      'Tamar minds the cables under the Towers; her grandmother hung the first. Long ago a ship with no name hailed the city with a sung note, and the night the cables sang the same note passed again, going somewhere.',
       [done('spacecity.notes'), 'Madame Sel’s notes on the planet’s hum and Tamar’s cables wrote the same line.'],
       [f('temple.spacecity.done'), 'The cables are taut again, and the islands have stopped drifting.'],
     ], ['Under her cables on the Towers island.']),
@@ -604,7 +604,7 @@ export const BOOK = {
     ], ['At the foot of the broadcast tower.']),
     P('kip', 'Kip', 'Courier of the skybridges', [
       'The fastest courier on the bridges, paid in fruit.',
-      [f('bazaar.kip.gave'), 'Kip ran off with the tower’s last message the night the sky rang: it arrived singing, and every sign flashed the same mark. Kip gave you the cylinder.'],
+      [f('bazaar.kip.gave'), 'Kip ran off with the tower’s last message the night the signs went white: it arrived singing, and every sign flashed the same mark. Kip gave you the cylinder.'],
     ], ['On the second skybridge.']),
     P('ferro', 'Ferro', 'Rigs the antenna', [
       'Ferro has tried to tune the antenna since the singing light passed, but its three bulbs must be lit together.',

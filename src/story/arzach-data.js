@@ -95,7 +95,7 @@ export const PEOPLE = {
           ],
         },
         silence: {
-          say: ["~whisper~ (You sit beside her. High over the haze a long white shape turns once, and is gone. The two of you watch the tower.)", "~happy~ (Oïa almost smiles. You seem to have said the right thing.)"],
+          say: ["~whisper~ (You sit beside her. High over the haze a long white shape turns once, and is gone. The two of you watch the tower.)", "~happy~ (Oïa almost smiles, and goes on watching.)"],
           choices: [{ text: '~curious~ Who lived in the tower?', goto: 'rider' }, { text: '~neutral~ (get up)', end: true }],
         },
         rider: {
@@ -163,7 +163,7 @@ export const LOCALS = [
           say: ['~whisper~ Shh.', "~whisper~ (Her ear rests against the foot of a needle spire. One raised finger asks you to wait.)", "~whisper~ Listen. The stones have hummed since the light passed."],
           choices: [
             { text: '~curious~ What light?', goto: 'light' },
-            { text: '~curious~ The bird over the haze?', goto: 'bird' },
+            { text: '~curious~ And the tower?', goto: 'bird' },
           ],
         },
         light: {

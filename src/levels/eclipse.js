@@ -68,7 +68,7 @@ export const ECLIPSE_CONTENT = {
     { ...EDENA_PEOPLE.mira, at: [-9, 6], radius: 2, world: 'edena', lang: 'edena',
       lines: ['~whisper~ My water clock says it is noon. The sky says it is midnight. I am staying out of it.', '~curious~ Look up. Not at it! Beside it. There, the light like hair.'],
       talk: { listen: [
-        '~happy~ Mira, who keeps the water clock. I carried it all the way here to see what it does in the dark at noon.',
+        '~happy~ I carried my water clock all the way here, to see what it does in the dark at noon.',
         '~curious~ It keeps running. The drops don’t care that the sun is covered. I find that comforting, and a little rude.',
         '~whisper~ The people here eat outside whenever it happens. They say a meal in the eclipse keeps you through the year.',
         '~playful~ They offered me soup. I said I had come to measure the dark, not eat in it. Then I had two bowls.',
@@ -77,7 +77,7 @@ export const ECLIPSE_CONTENT = {
     { ...SKY_STONES_PEOPLE.ysolde, at: [-6, BOWL.Z0 - 14], y: LEVEL.high, radius: 2, world: 'arzach2', lang: 'arzach2',
       lines: ['~solemn~ I write a letter at every eclipse. To no one. The dark reads it.', '~neutral~ Sit, child. It does not last, and it does not hurry.'],
       talk: { listen: [
-        '~neutral~ Mother Ysolde. I came down from the stones for this. The cloud lets us see nothing so plain.',
+        '~neutral~ I came down from the stones for this. The cloud lets us see nothing so plain.',
         '~solemn~ The pale ones on the walls? The city makes them for the eclipse. They lean out to look up, so the living don’t have to stare.',
         '~curious~ Every tier of the bowl lights one lamp more than the tier below. Count them, if your eyes will let you.',
         '~whisper~ When the sun comes back they take the figures in. Nobody watches them do it.',
@@ -85,7 +85,7 @@ export const ECLIPSE_CONTENT = {
     { ...BURIED_PEOPLE.wen, at: [-BOUNDS.W + 3.5, -92.5], y: LEVEL.high, radius: 2, world: 'buried', lang: 'buried',
       lines: ['~curious~ I count windows now. Two thousand and something lit, out there. I keep losing the something.', '~happy~ Down under the sand we never had a sky to lose.'],
       talk: { listen: [
-        '~neutral~ Wen, who counts the teeth. Out here there are no teeth, so I count the lamps of the lower city.',
+        '~neutral~ No teeth out here to count, so I count the lamps of the lower city.',
         '~curious~ The whole plain lights up when the moon goes over. Every house, all at once, as if somebody said a word.',
         '~playful~ I asked the woman at the tables how long it lasts. She said: as long as dinner.',
       ] } },
@@ -97,7 +97,7 @@ export const ECLIPSE_CONTENT = {
       lines: ['~solemn~ My grandmother made the figure on our wall. It leans a little more each year.', '~neutral~ Up the bowl, at the top, the old house sees the whole sky.'],
       talk: { listen: [
         { after: () => true, say: [
-          '~solemn~ The night the sky rang, a light came over the roofs singing, and stopped where the black sun sits at noon.',
+          '~solemn~ One night a light came over the roofs singing, and stopped where the black sun sits at noon.',
           '~curious~ It hung there a long while, the way you stand at a door you aren’t sure of.',
           '~whisper~ By morning every figure on the walls leaned the way it went. They lean that way still.',
         ], do: { set: { 'sight.eclipse.ansel': true } } },

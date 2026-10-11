@@ -61,18 +61,18 @@ export const PEOPLE = {
             '~curious~ It came down the rails at dawn, glowing, and settled in my mould like it lived there. Nobody here poured it. Nobody here was awake.'],
           choices: [
             { text: '~curious~ Then who poured it?', goto: 'who' },
-            { text: '~neutral~ Not now.', end: true },
+            { text: '~playful~ I’ll let it settle in first.', end: true },
           ],
         },
         who: {
-          say: ['~solemn~ The night the sky rang, every hung moon on the floor turned on its hook. They’ve faced the same way since.',
+          say: ['~solemn~ The night the singing went over, every hung moon on the floor turned on its hook. They’ve faced the same way since.',
             '~neutral~ *Climb the old hoist*, the iron tower past the moon in the claws, to its first deck, and look at them. Whatever they face pours at night.'],
           do: { set: { 'moonfoundry.hedda.heard': true } },
           choices: [{ text: '~neutral~ I’ll climb it.', end: true }],
         },
         again: { say: ['~neutral~ The old hoist, the iron tower past the moon in the claws. Its first deck. Look at the moons.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
-          say: ['~happy~ No moon came down the rails this morning. The floor slept, and so did I. First time in a year.'],
+          say: ['~happy~ No moon came down the rails this morning. My mould’s empty, and I don’t know what to do with my hands.'],
           choices: [{ text: '~neutral~ Goodbye, Hedda.', end: true }],
         },
       },
@@ -95,7 +95,7 @@ export const PEOPLE = {
             '~curious~ He won’t come for it. Says he’s too busy keeping the furnace warm. You look like you walk about. Would you take it?'],
           choices: [
             { text: '~happy~ I’ll take it to him.', do: [{ start: 'moonfoundry.hook' }, { give: 'ladlehook' }], goto: 'go' },
-            { text: '~neutral~ Not now.', end: true },
+            { text: '~neutral~ I’m walking the other way.', end: true },
           ],
         },
         go: { say: ['~playful~ *The last furnace, across the floor toward the mouth.* Follow the warm. Tell him it’s straighter than he is.'], choices: [{ text: '~neutral~ I’ll tell him.', end: true }] },
@@ -122,8 +122,8 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Years back I cast a plate for a ship’s nose, for a woman who came on her own and asked nicely.',
-            '~curious~ She drew it in soot on the floor, slowly, like a new word: {glyph}. *So they’ll know me,* she said.',
+          say: ['~neutral~ Years back I cast a plate for a ship’s nose, for a woman who asked nicely and paid in advance.',
+            '~curious~ She drew it in soot on the floor: {glyph}. *So they’ll know me,* she said.',
             '~solemn~ I didn’t ask who they were. I poured it twice to get the arc right.'],
           do: { set: { 'sight.moonfoundry.bertil': true } },
           choices: [{ text: '~curious~ Where did she go?', goto: 'where' }, { text: '~neutral~ Goodbye, Bertil.', end: true }],
@@ -160,7 +160,7 @@ export const VISITORS = {
       ],
       nodes: {
         hello: {
-          say: ['~happy~ Wen, who counts the teeth on the great wheel at home. I count moons now, on holiday. Thirty-one, not counting the far ones.',
+          say: ['~happy~ At home I count the great wheel’s teeth. Here I count moons, on holiday. Thirty-one, not counting the far ones.',
             '~curious~ Only I can’t see behind the cradle from this walkway, and my knees won’t do ladders. Somebody should count from the pillar. The one with the moon on top.'],
           choices: [
             { text: '~neutral~ I’ll climb up and count.', do: { start: 'moonfoundry.count' }, goto: 'go' },

@@ -125,14 +125,14 @@ export const KEEPERS = [
             { if: { not: { flag: 'perdide2.pools.lit' } }, text: "~happy~ Shoot fluid into the three dark pools between here and the root cave. That may relight them." },
             { if: { flag: 'perdide2.pools.lit' }, text: "~surprised~ You’ve already started! I saw new colours and blamed my eyes. *Light whichever pools are still dark.*" }],
           do: { set: { 'perdide2.hollin.met': true } },
-          choices: [{ text: '~neutral~ I’ll light them.', end: true }, { text: '~curious~ What happened the night the sky rang?', goto: 'rang' }],
+          choices: [{ text: '~neutral~ I’ll light them.', end: true }, { text: '~curious~ What happened, the night the pools went dark?', goto: 'rang' }],
         },
-        rang: { say: ["~playful~ Ask Robin beside the second dark pool, past the glass dome. She saw it happen. I was asleep. At my age, one defends a successful night’s sleep."], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
+        rang: { say: ["~playful~ I slept through it. At my age, one defends a successful night’s sleep. Robin was up, by the second dark pool past the glass dome. She hasn’t let me forget it."], choices: [{ text: '~neutral~ I’ll light your pools.', end: true }] },
         again: {
           say: [{ if: { flag: 'perdide2.pools.lit', is: 1 }, text: "~surprised~ One pool lit! Two still need your fluid." },
             { if: { flag: 'perdide2.pools.lit', is: 2 }, text: "~happy~ Two burning! The last is *beside the root cave at the path’s end*." },
             { if: { not: { flag: 'perdide2.pools.lit' } }, text: "~sad~ Find the three unlit pools on the way to the root cave. Shoot each with your fluid." }],
-          choices: [{ text: '~curious~ What happened the night the sky rang?', goto: 'rang' }, { text: '~neutral~ On my way.', end: true }],
+          choices: [{ text: '~curious~ What happened, the night the pools went dark?', goto: 'rang' }, { text: '~neutral~ On my way.', end: true }],
         },
         answer: { say: ["~surprised~ The deep pool answered? By the sky-boat? *Whistle for the skiff and investigate.* I’ll meet you at *the root cave*."], choices: [{ text: '~neutral~ Meet you there.', end: true }] },
         tell: {
@@ -256,9 +256,9 @@ export const KEEPERS = [
           ],
         },
         skiff: {
-          say: ["~neutral~ That skiff of yours came up from the swamp with you? She used to tie up here, before my time. A boat that comes when anyone whistles was somebody’s first.", "~neutral~ Ask *Fen in the far dome*, on the deep water *between here and the saucer’s pool*. Take the skiff; visiting him requires a boat."],
+          say: ["~neutral~ That skiff of yours came up from the swamp with you? She used to tie up here, before my time. A boat that comes when anyone whistles was somebody’s first.", "~neutral~ Fen’s, in *the far dome* on the deep water, *between here and the saucer’s pool*. Visiting him requires a boat. You have one."],
           do: { start: 'perdide2.skiff' },
-          choices: [{ text: '~neutral~ I’ll ask him.', end: true }],
+          choices: [{ text: '~neutral~ I’ll take her to him.', end: true }],
         },
         cave: { say: ["~playful~ The cave glows all the way back. The two travellers slept there before leaving. Dry, warm, good roof. I see their reasoning."], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~curious~ Where did the two travellers go?', goto: 'two' }] },
         two: { say: ["~neutral~ They borrowed Fen’s skiff and went down into the swamp, toward the Great Crystal. The boat never came back up here. Nobody here knows where they went next."], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
@@ -298,7 +298,7 @@ export const PEOPLE = {
         after: { say: ["~happy~ Every pool lit. Hollin walked down to the root cave faster than I’ve ever seen him walk.", "~playful~ He says he wasn’t hurrying. He was."], choices: [{ text: '~happy~ Goodbye, Robin.', end: true }] },
         lit: {
           say: ["~surprised~ You lit it! And look at those colours. The pool’s borrowed your whole journey.", "~happy~ I’ll brighten the lamps ahead. Follow the pools; I’ll make sure you can see them!"],
-          choices: [{ text: '~curious~ What happened the night the sky rang?', goto: 'night', if: { not: { flag: 'perdide2.rumour.light' } } }, { text: '~happy~ Thank you, Robin.', end: true }],
+          choices: [{ text: '~curious~ What happened, the night the pools went dark?', goto: 'night', if: { not: { flag: 'perdide2.rumour.light' } } }, { text: '~happy~ Thank you, Robin.', end: true }],
         },
       },
     },

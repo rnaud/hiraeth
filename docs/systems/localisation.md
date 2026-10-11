@@ -76,3 +76,27 @@ lines, each with a tone (`'~sad~ …'`, src/story/tone.js). The way to bring it 
 - **One table a world**, loaded with the world (`src/i18n/<lang>/<world>.js`, dynamic import), so the
   first load does not carry every world's words.
 - Names (people, places, relics) are a glossary of their own, translated once and used everywhere.
+
+## Notes for the dialogue's translator (the dialogue review v1.48)
+
+The jokes below play on English words. Translate the idea, not the words; where a line carries an
+instruction, the instruction must survive (the same instruction is always said plainly nearby too).
+
+| Who (world) | The line | What it plays on |
+|---|---|---|
+| Kesh (Vael) | "Small to tall." | a rhyme for the knuckles' order; Kesh also mimes "little, first, ring, middle" |
+| Fisk (the Buried Machine) | "A stone in the teeth" | gear teeth and a mouth's: the hint is to jam the gear |
+| Ummu (the Signal Market) | "YOU HAVE A PUSH. WE HEARD IT." | the gun's push mode, heard as a sound |
+| Lou (home) | "Admission is one button." | a coat's button, not a key |
+| a window cleaner (the Signal Market) | "BUY becomes YUB." | the sign read backwards from behind the glass |
+| the noodle cook (the Signal Market) | "three noodle men in a coat. … It's two." | the stacked-in-a-coat image |
+| Corm (Lorn) | "Professional respect. One set of teeth to another." | the plants' jaws and the crystal as a "sky-tooth" |
+| Perrine (the City-Shaft) | "Halfway prices: half of nothing." / "Hot at the top and warm at the bottom, like the city." | the middle levels; the city's rich top and poor bottom |
+| Marrow (the desert) | "You've come to the right liar. Specialist, I meant." | a slip he means you to hear |
+| Wendel (Lorn) | "The patient are never eaten." | a motto: keep it short and proverbial |
+| Kip, Tansy (the Underside, the detours) | "their word for stop … is the same word as sorry"; "their word for sorry. It's a nod." | words that mean two things in a local tongue |
+| Nima (the City-Shaft) | "the night the sky rang" | a shaft that rings like a bell: keep a bell's word; other worlds name the night their own way (lore/voice-guide.md) |
+
+**Gender.** The bird, the skiff (Fen's) and Ummu's listeners are "she", "she" and "it" in English on
+purpose; the stilt-walkers and the shellbacks are "it". Speakers' sexes are in the people's `kind`
+(`'m'`, `'f'`) for the languages that need them in an adjective or a past participle.

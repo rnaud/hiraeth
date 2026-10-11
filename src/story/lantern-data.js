@@ -146,7 +146,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Your answer?', goto: 'answer' }, { text: '~angry~ It drained my ship. I came down in a desert.', goto: 'sorry' }],
         },
         sorry: {
-          say: ['~sad~ I know. I’m sorry. They drink what a ship runs on as they pass. In thirty years I’ve never seen one of them be gentle.', '~solemn~ Let me tell you what it is. Then be angry, if you still want to. I’d understand.'],
+          say: ['~sad~ I know. I’m sorry. They drink what a ship runs on as they pass. In thirty years I’ve never seen one of them be gentle.', '~solemn~ I’ll tell you what I know. Then be angry, if you still want to.'],
           next: 'answer',
         },
         answer: {
@@ -155,7 +155,7 @@ export const PEOPLE = {
             '~sad~ One brought me in, thirty years ago. My ship never flew again. That’s the top half of it, there. I live in it.',
             { text: '~sad~ (You tell her what Mum’s recording said: the last sound from her ship was singing.) Then she heard the light that took me. I’m glad she heard something.', if: told },
             '~neutral~ Then Dad’s message came, crawling along the old relays. *Come with empty hands. Just come.* Thirty years on the way.',
-            '~solemn~ A light can’t carry words. It carries a song. So I sang his own message into one, and put the makers’ sign on it, and sent it home.',
+            '~solemn~ So I sang it back. His own message, with the makers’ sign on it. I sent it home.',
           ],
           choices: [{ text: '~curious~ The sign. Three dots over an arc.', goto: 'sign' }, { text: '~curious~ Then why did it come to my ship?', goto: 'why' }],
         },
@@ -167,7 +167,7 @@ export const PEOPLE = {
           say: [
             '~sad~ I sent it home. I think it got there: it sang over the house, and nobody called back. A light can’t knock.',
             '~solemn~ Then it went looking for the voice that had called me, I think. His voice, on a reel, playing in his own ship.',
-            '~sad~ Talo used to say they only know straight. If he was right, it wasn’t trying to bring you down. It was trying to bring him here.',
+            '~sad~ It wasn’t trying to bring you down. It was trying to bring him here.',
           ],
           choices: [
             { text: '~whisper~ The reel was playing when it came. His message. I stopped it to listen.', goto: 'reel' },

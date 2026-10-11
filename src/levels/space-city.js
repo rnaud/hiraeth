@@ -75,7 +75,7 @@ export const SPACECITY_CONTENT = {
   // Mooring-House's Anchor-Warden is resolved (src/story/spacecity.js)
   story: {
     title: 'THE NOTE THAT PASSED',
-    intro: 'A city of heaped houses on islands floating in the dark, joined by bridges, moored to each other by the moorers’ cables. Since the night the sky rang the cables have hummed one note, and the islands drift apart a hand’s width a night.',
+    intro: 'A city of heaped houses on islands floating in the dark, joined by bridges, moored to each other by the moorers’ cables. Since the night the singing light passed the cables have hummed one note, and the islands drift apart a hand’s width a night.',
     outro: 'The cables are taut, the islands home, and lamps run along them in the dark. Joss says the planet’s hum on the cables carries a broadcast now: a market of a thousand signs, where one tower is silent.',
     label: 'the Mooring-House', goal: [96, 14, -176], radius: 16, verticalRadius: 8, manual: true,
   },
@@ -91,7 +91,7 @@ export const SPACECITY_CONTENT = {
     { ...INCAL_PEOPLE.nima, at: [-6, I0.gate.z - 4], y: 0, radius: 2, world: 'incal', lang: 'incal',
       lines: ['~playful~ Up the shaft I swept the high terrace. Here every terrace is the high one.', '~neutral~ Mind the dust. It goes over the edge and just… floats.'],
       talk: { listen: [
-        '~neutral~ Nima. I sweep. I came to see a city that has no bottom, and I found I still have a broom.',
+        '~neutral~ A city with no bottom. I came to see it, and found I’d brought my broom.',
         '~curious~ The dust doesn’t fall here. You sweep it over the parapet and it hangs there in the dark, a little cloud of it, for days.',
         '~happy~ The people here sweep toward the planet. For luck, they say. I sweep toward the planet now too.',
       ] } },

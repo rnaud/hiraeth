@@ -118,7 +118,7 @@ export const MOONFOUNDRY_CONTENT = {
   // the world's page: opened on arrival, closed when the Last Founder is stopped (src/story/moonfoundry.js)
   story: {
     title: 'THE MOON NOBODY CAME FOR',
-    intro: 'A workshop for making moons, left unfinished; the workers live in the old machinery. Since the night the sky rang every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
+    intro: 'A workshop for making moons, left unfinished; the workers live in the old machinery. Since the night the singing light passed every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
     outro: 'The Last Founder is still, the last moon is on its hook, and the hung moons turn slowly toward it. Ilse’s ledger says the first moons went to a garden far off, and fell short.',
     label: 'the Casting-House', goal: [CASTING_HOUSE.x, 'ground', CASTING_HOUSE.z], radius: 18, manual: true,
   },
@@ -132,7 +132,7 @@ export const MOONFOUNDRY_CONTENT = {
     { ...BURIED_PEOPLE.dun, at: [FURNACE.x - 9, FURNACE.z + 6], radius: 1.5, world: 'buried', lang: 'buried',
       lines: ['~happy~ One furnace still breathing. I came to see a chimney that works.', '~neutral~ Stand back from the pour. It spits.'],
       talk: { listen: [
-        '~neutral~ Dun. I keep the domes breathing, under the sand. I heard there was a chimney here that never went out, and I had to see it.',
+        '~neutral~ A chimney that never goes out. At home I’d be up all night unlocking it. I had to see one.',
         '~curious~ They keep this one lit for the warmth. Nobody pours a moon any more. They pour door handles and soup pots and the odd bell.',
         '~playful~ The ladle tips by itself every so often. I asked who works it. Everyone pointed at someone else.',
         { after: 'met.dun', say: '~happy~ Still warm. Mind your eyebrows.' },
@@ -142,7 +142,7 @@ export const MOONFOUNDRY_CONTENT = {
     { ...SPHERES_PEOPLE.ivo, at: [BOWL.x + 4, BOWL.z + 3], y: G + 0.05, radius: 1.5, world: 'spheres', lang: 'spheres',
       lines: ['~curious~ Our spheres grow. These were built. I can’t decide which is stranger.', '~happy~ You can see the whole floor from up here.'],
       talk: { listen: [
-        '~curious~ Emrys, from the Garden of Spheres. I climb the white hill at home. Here I climb gantries.',
+        '~curious~ At home I climb the white hill. Here I climb gantries. The gantries mind less.',
         '~playful~ They planted a garden in half a moon. At home we would call that a very good idea that took too long.',
         '~neutral~ Follow the walkway north and it goes straight into the broken one. There’s a whole street in there.',
         { after: 'clue.moonfoundry.spheres', say: '~surprised~ The first moons went to a garden and fell short? Our spheres? I’ve been climbing somebody’s sky all my life.' },

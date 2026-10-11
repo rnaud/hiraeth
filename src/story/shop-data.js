@@ -45,7 +45,7 @@ export const SHOPKEEPERS = {
       nodes: {
         hello: {
           say: [
-            '~happy~ A customer from the sky! Come in, come in. I’m Haddu. Forty Drinkings I’ve kept this shop, and the sun has never once followed me inside.',
+            '~happy~ Mind the scale; it sulks if it’s knocked. I’m Haddu. Forty Drinkings I’ve kept this shop, and the sun has never once followed me inside.',
             '~playful~ I sell what the walk takes out of people. *Healing potions*, a few *hearts’ worth of courage*, a little more room in that tank of yours. All for chimes.',
           ],
           choices: [
@@ -145,7 +145,7 @@ export const SHOPKEEPERS = {
     palette: { cloak: '#7fae6a', lining: '#5f8a4e', cloth: '#7fae6a', legs: '#6a5a40', hat: '#e2c47a', accent: '#e98fb0', hair: '#3a2a22' },
     head: 'straw', cape: 0, look: { head: 'straw', body: 'garland', prop: 'flower', robe: 0.12, trim: 'bib', build: 'slim', height: 1.04, mood: 'kind' },
     lines: ['~happy~ Everything here grew. Nothing was dug up.', '~neutral~ Mind the seedlings.', '~happy~ The garden gives what it gives.'],
-    hello: ['~happy~ Hello, you. Come in out of the light, the glass keeps it soft. I’m Clover. I pot what the garden gives and sell it to whoever needs it.', '~neutral~ Cures from the red-leaf. A heart, when one ripens. I dig up nothing the builders left. Chimes, please.'],
+    hello: ['~happy~ Come in out of the light; the glass keeps it soft. I’m Clover. I pot what the garden gives and sell it to whoever needs it.', '~neutral~ Cures from the red-leaf. A heart, when one ripens. I dig up nothing the builders left. Chimes, please.'],
     again: [{ if: { quest: 'edena.garden', done: true }, text: '~happy~ The ship’s flank is in flower. Mira hasn’t stopped smiling. Neither have my pots.' }, '~happy~ Back again. The seedlings remember you.'],
     topic: { ask: '~curious~ A heart that ripens?', flag: 'edena.clover.hearts', say: ['~whisper~ Under the umbrella trees, once a season, a red thing grows in the moss, the size of a fist. It beats if you hold it.', '~solemn~ I take one and leave the rest. Mira says that’s the only rule the garden ever had: take, leave, and dig up nothing.'] },
     bye: '~happy~ Take one, leave the rest. Goodbye.',
@@ -185,7 +185,7 @@ export const SHOPKEEPERS = {
     palette: { cloak: '#d9b48a', lining: '#5fb7ad', cloth: '#e6d3b8', legs: '#5a4a3a', hat: '#ead6b4', accent: '#4f8a7f', hair: '#3a2a22' },
     head: 'hair', cape: 0.4, look: { head: 'hair', body: 'scarf', trim: 'none', robe: 0.3, build: 'slim', height: 1.0, mood: 'kind' },
     lines: ['~neutral~ Cures, cooled slow. A heart, if you have the chimes.', '~happy~ Mind the counter. It’s still warm.', '~curious~ Glass floats? No. Those are for the kiln.'],
-    hello: ['~happy~ A traveller, from the ship! Marit. I keep the kiln-stall. What the kiln can spare, I sell.', '~neutral~ Cures in the green flasks, a heart in the clay jar. Priced by how long they took to cool. Chimes in the bowl.'],
+    hello: ['~happy~ Stand back from the kiln; it’s in a mood. Marit. I keep the kiln-stall. What the kiln can spare, I sell.', '~neutral~ Cures in the green flasks, a heart in the clay jar. Priced by how long they took to cool. Chimes in the bowl.'],
     again: [{ if: { flag: 'temple.garage.done' }, text: '~surprised~ The clocks agree now. My kiln cools on time for the first time in my life. Everything costs the same, though.' }, '~happy~ Back again. The kiln’s been busy.'],
     topic: { ask: '~curious~ Priced by how long they took to cool?', flag: 'glassdunes.marit.cooling', say: ['~solemn~ The slower glass cools, the less it cracks. A slow cure is a good cure.', '~playful~ Since the clocks went wrong, nobody knows how long anything took. So I guess. Generously.'] },
     bye: '~neutral~ Keep cool.',
@@ -215,7 +215,7 @@ export const SHOPKEEPERS = {
     lines: ['~whisper~ Listen. That one hums true.', '~neutral~ Every cure here has been listened to.', '~whisper~ The spheres are quiet today.'],
     hello: ['~whisper~ Softly, if you would. I am listening. Hale. I keep the Listening Stall.', '~neutral~ Every cure here has been struck and heard. A heart that beats in tune. Chimes, if you please. They ring, too. I listen to those as well.'],
     again: [{ if: { quest: 'spheres.listen', done: true }, text: '~happy~ The spheres remember aloud now. Everything in the stall hums a little sweeter.' }, '~whisper~ Ah. Your footsteps. I knew them.'],
-    topic: { ask: '~curious~ You listen to the cures?', flag: 'spheres.hale.listen', say: ['~whisper~ Strike the fork, hold the flask to it. A good cure hums back the same note. One that hums flat has turned, and I pour it away.', '~solemn~ The spheres taught us. Everything that is well holds a note. Even you. Yours is a little tired, I think.'] },
+    topic: { ask: '~curious~ You listen to the cures?', flag: 'spheres.hale.listen', say: ['~whisper~ Strike the fork, hold the flask to it. A good cure hums back the same note. One that hums flat has turned, and I pour it away.', '~solemn~ The spheres taught us. Everything that is well holds a note. Your chimes do. I checked when you came in.'] },
     bye: '~neutral~ I’ll listen too. Goodbye.',
   }),
 
@@ -239,7 +239,7 @@ export const SHOPKEEPERS = {
     palette: { cloak: '#4a8790', lining: '#f0aa98', cloth: '#efd2a6', legs: '#3d727a', hat: '#f0aa98', accent: '#d6a13e', hair: '#5a3a2a' },
     head: 'bun', cape: 0.3, look: { head: 'bun', body: 'scarf', trim: 'none', robe: 0.2, build: 'heavy', height: 0.96, mood: 'kind' },
     lines: ['~happy~ Cures and a heart, under glass.', '~playful~ Everything here’s been to the bottom and back.', '~neutral~ Dry inside. Mind the floats.'],
-    hello: ['~happy~ A visitor from up top! Odette. I dived for forty years, and now I keep the Air-Shop and let others get wet.', '~neutral~ Cures in the red flasks, a heart in the glass jar. Chimes in the shell, love.'],
+    hello: ['~happy~ Dry feet? Then you came down the lock. Odette. I dived for forty years, and now I keep the Air-Shop and let others get wet.', '~neutral~ Cures in the red flasks, a heart in the glass jar. Chimes in the shell, love.'],
     again: [{ if: { flag: 'temple.underwater.done' }, text: '~surprised~ Did you hear them this morning? The whole dome rang. I sold three cures to people who fell off their chairs.' }, '~happy~ Back again. The floats remember you.'],
     topic: { ask: '~curious~ Why the diving helmet?', flag: 'underwater.odette.helmet', say: ['~solemn~ It was my mother’s. She walked the sea floor in it, before the domes reached this far, carrying glass from hall to hall.', '~playful~ Nobody walks out there now. We have tubes. Tubes are very good. Tubes are also very boring.'] },
     bye: '~happy~ Keep your feet dry.',
@@ -253,7 +253,7 @@ export const SHOPKEEPERS = {
     head: 'bald', cape: 0, look: { head: 'bald', body: 'apron', trim: 'bib', robe: 0, build: 'heavy', height: 1.08, mood: 'stern' },
     lines: ['~neutral~ Cures, poured true. A heart, cast once.', '~solemn~ Nothing in here cracked in the cooling.', '~playful~ It’s a crucible. Of course it’s warm.'],
     hello: ['~neutral~ Gunnar. This was a crucible once. The founders poured moons out of it. Now it holds cures, and me.', '~solemn~ Red flasks for the hurt, a heart in the box. Each poured once, cooled slow. Chimes on the ingot.'],
-    again: [{ if: { flag: 'temple.moonfoundry.done' }, text: '~surprised~ The floor’s still at night now. I slept through till the morning shift. First time in a year.' }, '~neutral~ Back. Good. The pour’s steady today.'],
+    again: [{ if: { flag: 'temple.moonfoundry.done' }, text: '~surprised~ The floor’s still at night now. My ladles have stopped walking off the shelf.' }, '~neutral~ Back. Good. The pour’s steady today.'],
     topic: { ask: '~curious~ Moons came out of this?', flag: 'moonfoundry.gunnar.crucible', say: ['~solemn~ The small ones. Plums, apples. The founders tried their light in little moons first, to see if it would hold.', '~playful~ Mostly it didn’t. You’re standing on the cracked ones. I made a floor of them.'] },
     bye: '~neutral~ Pour true.',
   }),
@@ -265,7 +265,7 @@ export const SHOPKEEPERS = {
     palette: { cloak: '#e89a7e', lining: '#3f6f78', cloth: '#f2e2c4', legs: '#3f6f78', hat: '#f2e2c4', accent: '#d6a13e', hair: '#2b211f' },
     head: 'hat', cape: 0.2, look: { head: 'hat', body: 'collar', trim: 'stripes', robe: 0.1, build: 'slim', height: 1.06, mood: 'amused' },
     lines: ['~happy~ Cures, a heart, and lamps. Mostly lamps.', '~playful~ We pay in oil here. You can pay in chimes. I’ll allow it.', '~curious~ Don’t lean on the lamps. They’re lit.'],
-    hello: ['~happy~ A traveller across the dark! Amaro. I sell lamp oil, which here is also money, so I am the bank. The cures are a sideline.', '~neutral~ Red flasks for the hurt, a heart in the basket. Chimes will do, though oil would be nicer.'],
+    hello: ['~happy~ Mind the oil; it’s money here. Amaro. I sell lamp oil, so I am the bank. The cures are a sideline.', '~neutral~ Red flasks for the hurt, a heart in the basket. Chimes will do, though oil would be nicer.'],
     again: [{ if: { flag: 'temple.spacecity.done' }, text: '~surprised~ The bridges stopped creaking, and nobody needs a lamp to find their way home. Business is terrible. I’ve never been happier.' }, '~happy~ Welcome back. The lamps have missed you. I asked.'],
     topic: { ask: '~curious~ Why pay in lamp oil?', flag: 'spacecity.amaro.oil', say: ['~solemn~ Out here, the dark is the one thing there’s plenty of. Light is what’s worth something.', '~playful~ Also, coins roll off the islands. Oil just makes things slippery.'] },
     bye: '~happy~ Keep a light on.',

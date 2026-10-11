@@ -346,3 +346,62 @@ The extractor read 30 worlds this time (the new worlds' people through `src/leve
 `*-moments.js` (the cinematics) or the balloons' `lines:` on the new worlds' locals; both were sampled by hand. A
 check worth adding: a phrase list per world, so that a world's own phrase ("the night the sky rang") is flagged when
 it turns up anywhere else.
+
+## After the rewrites
+
+Asked for this time: the rewrites were applied in the same branch, after the review above was committed. About
+140 lines changed (the line count of the corpus is the same: no page, answer, id, condition or effect was added or
+removed). Each kept its speaker's sheet and its tone tag; the quest steps, the people book's notes, the sketchbook's
+sightings and the worlds' cards were changed with the lines they repeat.
+
+**By area:**
+
+| Area | Lines | What changed |
+|---|---|---|
+| One phrase in every mouth (finding 1) | 27 | Each people's own name for the night: the whales went quiet, the cables sang, the singing went over, every sign showed the mark, the falls went quiet; the shellbacks' "high sound", the Mimmis' "one long note", Ummu's "LOUD NIGHT". The worlds' cards and the people book follow. The rule is now in `lore/voice-guide.md` |
+| Hand-offs (finding 2) | 15 | Aube, Ysolde, Sol, Wen, Linnet (twice), Ume, Sedge, Hollin, Bram, Ommo, an old trader: a place and a verb instead of a person |
+| Cameo introductions (finding 3) | 25 | Every visitor's first line starts with what they came to see; Lune and Zazie no longer say they come from the dismissed Hangar |
+| Shops (finding 5) | 7 | Five arrival lines in the shop's own trade; Hale no longer diagnoses you; Gunnar no longer the third sleeper |
+| Answers that follow (finding 6) | 10 | Tull's clock-winder, Ysse's sound, Senn's tower, Cael's question, Corm's doubled line, Sedge's thanks, Madame Sel's own market, Fabre's "Here." |
+| The lessons (finding 7) | 15 | Viridel's three "both"s down to Esk's; Ket's maxim; Hessa's well; the nine gift lines at the stone now say what each thing is or does |
+| The Lantern (finding 8) | 4 | "I'll tell you what I know"; her answer is what she did, not how a light carries a song; "they only know straight" cut. Nothing added |
+| The traveller's exits | 9 | The new worlds' "Not now." in his voice ("One well a day is enough."), Teo's, two of the Speaker's seven "Walk on, Speaker." |
+| The lone women, learning a word (finding 10) | 8 | Liss, Hesper, Coralie and Bertil no longer "alone"; Liss and Bertil no longer learn the mark "like a word"; their sketchbook notes follow |
+| Greetings, repeats, continuity | 12 | Calix, Ondine and Wen start mid-task; "eleven" and "in their slippers" once fewer each in the City-Shaft; Esk and Saba no longer say "the Singer" (Viridel's name, before it is given); the Fallen Ring's sketchbook note no longer says "not long ago" |
+| Localisation | 2 + notes | The two directions hidden in a pun ("Give it a shot") said plainly; `docs/systems/localisation.md` gains notes for the dialogue's translator (twelve lines of wordplay, and gender) |
+
+**By world:** the desert 6, the City-Shaft 3, Vael 2, Vael II 5, the Buried Machine 8, Viridel 6, the Garden of
+Spheres 8 (three of them its drifters), Lorn 6, Lorn II 5, the Signal Market 7, the Underwater City 12, the Moon
+Foundry 13, the City Floating in Space 14, the Glass Dunes 2, the detour worlds and Tansy 28, the Lantern 4, home
+(the stone) 9.
+
+**Not applied:**
+- the temple guides (finding 4) and their phrase (Anselme's "Ask her", Teasel's and Hobb's "the sky rang"): their
+  houses are being reworked now;
+- the renames (finding 9): for the author;
+- the 142 goodbye-only answers, beyond the new worlds' first exits;
+- the combat barks (being reworked).
+
+**The extractor after the rewrites:** "the night the sky rang" 18 → 4 (all in the City-Shaft); greetings as a first
+line 5 → 1; no repeated phrase from three speakers except the shop's "Show me what you have", the mark's own
+description and the guides' "you went in, is it…".
+
+**The scores, estimated.** These are an estimate by the same reader, not a second measured review: the next review
+should measure them. Each cell is this review's measured score, then the estimate.
+
+| Area | Estimate | Why |
+|---|---|---|
+| Brevity | 4 → 4 | unchanged in kind |
+| Subtext | 4 → 4 | fewer morals; the guides' remain |
+| Distinct voices | 3 → 3.5 | the cameo and shop templates gone; the guides' template stays |
+| The traveller's voice | 3 → 3 | better exits, but he still diagnoses fifteen guardians |
+| Choices | 3 → 3 | no new choices; the exits only got a voice |
+| Listen lines | 4 → 4 | unchanged |
+| Tone | 4 → 4 | unchanged |
+| Mystery | 4 → 4 | the Lantern trimmed, still long |
+| Aliens and the translator | 3 → 3.5 | each alien people names the night its own way; the drifters' quirk is still thin |
+| Lore load | 3 → 3 | the names are unchanged until the author decides |
+| Quest clarity | 4 → 4.5 | no hand-off left outside the temple guides |
+| Localisation | 3 → 3.5 | no direction in a pun; the translator's notes |
+
+Estimated mean: **3.67** (measured: 3.50).

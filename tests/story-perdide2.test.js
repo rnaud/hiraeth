@@ -164,7 +164,7 @@ test('the main quest: three pools relit, the saucer answers, Hollin asks you to 
     T.onHit('shoot');
     assert.equal(game.flag('perdide2.pools.lit'), i + 1);
     assert.ok(!T.enabled(), 'once lit it stays lit');
-    if (i === 1) talk(PEOPLE.wick, ['What happened the night']);
+    if (i === 1) talk(PEOPLE.wick, ['What happened, the night']);
   }
   assert.equal(game.flag('perdide2.rumour.light'), true, 'Robin saw the singing light');
   step(2);

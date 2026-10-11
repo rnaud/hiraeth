@@ -46,7 +46,7 @@ export const LOCALS = {
             '~curious~ Ask anyone the time here and they’ll give you a different one. Every clock in the dunes stopped the night the light passed, each at its own minute.'],
           choices: [
             { text: '~curious~ Which one stopped first?', goto: 'first' },
-            { text: '~neutral~ Not now.', end: true },
+            { text: '~playful~ I’ll find out the time myself.', end: true },
           ],
         },
         first: {

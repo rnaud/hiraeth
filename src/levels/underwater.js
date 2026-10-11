@@ -120,7 +120,7 @@ export const UNDERWATER_CONTENT = {
   // the world's page: opened on arrival, closed when the Whale-House's keeper is calmed (src/story/underwater.js)
   story: {
     title: 'THE SONG THROUGH THE GLASS',
-    intro: 'A city under glass at the bottom of the sea, its halls joined by tubes. Outside, the whales used to come to the glass and sing. Since the night the sky rang, they keep away, and the glass hums one wrong note.',
+    intro: 'A city under glass at the bottom of the sea, its halls joined by tubes. Outside, the whales used to come to the glass and sing. Since the night the singing light passed, they keep away, and the glass hums one wrong note.',
     outro: 'The whales came back to the glass. Maelle says they sang the note the light sang, and then their own, and that the light went up, toward a city built down a well.',
     label: 'the Whale-House', goal: [WHALE_HOUSE.x, 0, WHALE_HOUSE.door + 6], radius: 10, verticalRadius: 6, manual: true,
   },
@@ -138,7 +138,7 @@ export const UNDERWATER_CONTENT = {
       lines: ['~happy~ Come in, come in. It’s dry inside, it always is: the glass keeps the sea out.', '~playful~ Tea, or soup? Everything tastes a little of salt down here. We call it seasoning.'],
       talk: { listen: [
         { after: () => true, say: [
-          '~neutral~ Years ago a woman from up top came in alone, very tired. She sat at that window all night, listening to the whales.',
+          '~neutral~ Years ago a woman from up top came in, too tired to take her coat off. She sat at that window all night, listening to the whales.',
           '~solemn~ One was singing something she knew, she said. She hummed it back to it. I didn’t know the tune. By lamp-up she was gone.',
         ], do: { set: { 'sight.underwater.coralie': true } } },
         '~happy~ Come in, come in. It’s dry inside, it always is: the glass keeps the sea out.',

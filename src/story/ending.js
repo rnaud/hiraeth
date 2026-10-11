@@ -184,16 +184,16 @@ export const TOKEN_ITEMS = ['stun', 'fire', 'cell', 'coil', 'lantern', 'lens', '
 
 /** What each gift means now, set on the stone. */
 const ITEM_LINES = {
-  stun: "~solemn~ (The stilling lens. So many things changed when you stopped rushing.)",
-  fire: "~solemn~ (The ember ring. You learned to carry fire.)",
-  cell: "~solemn~ (The fourth chamber. Room for a little more.)",
-  coil: "~solemn~ (The quick coil. Something to help you get up again.)",
-  lantern: "~solemn~ (The lantern charm. A light you could take with you.)",
-  lens: "~solemn~ (The glyph lens. Marks you would once have walked past.)",
-  bell: "~solemn~ (The bell-note whistle. One clear note, wherever you play it.)",
-  shell: "~solemn~ (The listening shell. What was hidden hummed back, if you were quiet enough to hear it.)",
+  stun: "~solemn~ (The stilling lens. You set it down slowly, out of habit.)",
+  fire: "~solemn~ (The ember ring. Still a little warm, after all this way.)",
+  cell: "~solemn~ (The fourth chamber. It sloshes when you set it down.)",
+  coil: "~solemn~ (The quick coil. It hums against the stone, then stops.)",
+  lantern: "~solemn~ (The lantern charm. It lights their names a moment, then settles.)",
+  lens: "~solemn~ (The glyph lens. You hold it up to the stone out of habit. Only their names.)",
+  bell: "~solemn~ (The bell-note whistle. You don’t blow it. Not here.)",
+  shell: "~solemn~ (The listening shell. Held to your ear, it gives you the wind over the hill.)",
   echo: "~solemn~ (The echo shell. It keeps the last note it heard, the way the reel kept their voices.)",
-  star: "~solemn~ (The pale star from your overshirt. A traveller’s sign.)",
+  star: "~solemn~ (The pale star from your overshirt. It leaves a small clean patch on the cloth.)",
 };
 
 /** Keepsakes that never go on the slab: Ilen (the Lantern's keepsake is her, and she walks to the stone herself). */

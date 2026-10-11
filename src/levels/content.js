@@ -117,7 +117,7 @@ export const CONTENT = {
         lines: ['~whisper~ Shh. Listen. Under the roar there’s the valley: goats, a bell, somebody singing badly.', '~happy~ Every child in the city has stood on this balcony and shouted. The water always wins.'],
         talk: { listen: [
           { after: () => true, say: [
-            '~whisper~ The night the sky rang, the falls went quiet. Then a light came down the outside of the water, singing one high note.',
+            '~whisper~ The night the falls went quiet, a light came down the outside of the water, singing one high note.',
             '~solemn~ It hung off this balcony a long while, as if waiting for an answer. We all shouted. The water won. It went on.',
           ], do: { set: { 'sight.waterfall.pell': true } } },
           '~whisper~ Shh. Listen. Under the roar there’s the valley: goats, a bell, somebody singing badly.',
@@ -247,7 +247,7 @@ export const CONTENT = {
       // (src/desert-sites.js ridePlaces; her sunshade is drawn in src/desert-hearth.js `ride`)
       { at: [RIDE_SHADE.x + 0.6, RIDE_SHADE.z + 0.4], radius: 1.2, palette: pal('#e2b552', { cloth: '#f3ead8', hat: '#c8483a' }), lines: ['~tired~ Shade. Mine. Share it.', '~neutral~ The wind’s from the flats. Salt on everything.'],
         id: 'yara', name: 'Yara', title: 'who carries salt', color: '#e2b552', talk: { listen: [
-          '~neutral~ Yara. I haul salt from the flats to Qanat on that sledge. This shade is the only one between the camps and the red rocks, so I sit in it on the way. Sit, if you like.',
+          '~neutral~ I haul salt from the flats to Qanat on that sledge. This is the only shade between the camps and the red rocks. Sit, if you like.',
           '~curious~ Going out to the Hearth? Keep its chimney ahead. Halfway there’s a sand-skiff on its side, mast still up. Somebody sailed this far once. After that, only the red rocks.',
           '~solemn~ Coming home, take the marked stones. They run from the Hearth’s door all the way back to Qanat: the fire-bearers walked the fire home along them. You can’t miss them, and they don’t drift.',
           { after: { flag: 'world.desert.done' }, say: '~happy~ I saw the tree’s smoke from the flats this morning. First time in my life. The salt felt lighter all the way.' },

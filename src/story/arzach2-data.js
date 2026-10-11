@@ -107,7 +107,7 @@ export const PEOPLE = {
           do: [{ give: 'letter' }, { start: 'arzach2.letter' }],
           choices: [{ text: '~neutral~ I’ll bring it to her.', end: true }],
         },
-        bell: { say: ["~playful~ Ask *Brother Calix at the monastery*. His bell stopped when the cloud rose. Which caused which? Ondine and I used to argue it over supper. I’ve missed the arguing."], choices: [{ text: '~happy~ I could carry a letter to your sister.', goto: 'carry' }, { text: '~happy~ Thank you.', end: true }] },
+        bell: { say: ["~playful~ Brother Calix’s bell? It stopped when the cloud rose. Which caused which? Ondine and I used to argue it over supper. I’ve missed the arguing."], choices: [{ text: '~happy~ I could carry a letter to your sister.', goto: 'carry' }, { text: '~happy~ Thank you.', end: true }] },
         waiting: { say: ["~scared~ Still carrying it? Good. No, bad. Take it to Ondine! *The aqueduct is past the needles.*"], choices: [{ text: '~neutral~ On my way.', end: true }] },
         watching: { say: ["~scared~ She has it? Don’t tell me what she said. I’ll watch *the tower* from our wall tonight. Just in case."], choices: [{ text: '~neutral~ Keep watching.', end: true }] },
         answered: { say: [
@@ -171,7 +171,7 @@ export const LOCALS = [
           ],
         },
         why: {
-          say: ["~solemn~ The monks say their bell held the world down. They say everything loose fell up when it stopped, and the cloud followed. They think *ringing it* will lower the cloud.", "~tired~ It has been silent for thirty years. Ask *Brother Calix at the monastery* why. You’ll need the bird to reach him."],
+          say: ["~solemn~ The monks say their bell held the world down. They say everything loose fell up when it stopped, and the cloud followed. They think *ringing it* will lower the cloud.", "~tired~ It has been silent for thirty years. The bell is at *the white monastery*, on the rose cliff. You’ll need the bird to reach it."],
           do: { set: { 'arzach2.aube.heard': true } },
           choices: [{ text: '~neutral~ I’ll go up to the monastery.', goto: 'go' }, { text: '~curious~ What are the floating stones?', goto: 'stones' }],
         },
@@ -195,7 +195,7 @@ export const LOCALS = [
       ],
       nodes: {
         hello: {
-          say: ["~happy~ Welcome, welcome. You’ve come about the bell, I expect. Everyone who climbs this far has.", "~sad~ Thirty years silent, up in that belfry. I oil the yoke every morning. A bell should be ready when its day comes."],
+          say: ["~happy~ Mind the oil; I’ve just done the yoke. You’ve come about the bell, I expect. Everyone who climbs this far has.", "~sad~ Thirty years silent, up in that belfry, and oiled every morning. A bell should be ready when its day comes."],
           choices: [
             { text: '~curious~ Why doesn’t it ring?', goto: 'why' },
             { text: '~neutral~ Sister Aube says the cloud rose when it stopped.', goto: 'why' },
@@ -236,7 +236,7 @@ export const LOCALS = [
       entry: [{ if: { has: 'letter' }, node: 'letter' }, { if: { quest: 'arzach2.letter', stage: 'lamp' }, node: 'lamp' }, { if: { quest: 'arzach2.letter', started: true }, node: 'after' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~surprised~ Hello! Someone out on the aqueduct! I walk out this far every day from the tower on the plain, as far as the island. Then I walk back.", "~playful~ I’m Ondine. Thirty years studying how old that tower is. All I’ve established is that we’re both older now."],
+          say: ["~surprised~ Someone out on the aqueduct! I walk out this far every day from the tower on the plain, as far as the island. Then I walk back.", "~playful~ I’m Ondine. Thirty years studying how old that tower is. All I’ve established is that we’re both older now."],
           choices: [
             { text: '~curious~ What’s so special about the tower?', goto: 'tower' },
             { text: '~curious~ Why stop here?', goto: 'island' },

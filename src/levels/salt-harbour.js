@@ -100,7 +100,7 @@ export const SALT_CONTENT = {
     { ...DESERT_PEOPLE.marrow, at: [8, 62], radius: 2, world: 'desert', lang: 'desert',
       lines: ['~shout~ Sky-person! A whole street of hulls, and not one of them for sale!', '~playful~ I came to salvage. They invited me to dinner instead. Suspicious.'],
       talk: { listen: [
-        '~happy~ Marrow, salvager, at your service, as ever. I heard there was a harbour with no sea. I had to see the ships nobody can sail.',
+        '~happy~ Sky-person! A harbour with no sea, and ships nobody can sail. You can see why I had to come.',
         '~curious~ They ran aground on nothing. The water went and the salt came up round them. Now they’re streets.',
         '~playful~ I offered to buy a porthole. They offered me the whole cabin behind it. For rent. I had no answer.',
         '~whisper~ Up the stair on the first hull, the decks join across the street. Mind the gangway. It sways when it laughs.',
@@ -109,7 +109,7 @@ export const SALT_CONTENT = {
     { ...INCAL_RIM.corvin, at: [SHIP.e1.x - 16, SHIP.e1.z - 8], y: SHIP.e1.D - SHIP.e1.sink - 0.3, radius: 1.5, kind: 'm', world: 'incal', lang: 'incal',
       lines: ['~playful~ An address with a view of the sky on every side. They don’t even charge for it.', '~neutral~ Mind the rail. The salt is a long way down.'],
       talk: { listen: [
-        '~neutral~ Corvin Sale. Of the rim. On holiday, if anybody asks, which they don’t.',
+        '~neutral~ On holiday, if anybody asks. Nobody asks. Nobody here has heard of the rim.',
         '~curious~ At home the expensive addresses are at the top. Here every deck is a top. It confuses me.',
         '~playful~ The neighbours across the street come over the gangway to borrow salt. Out of politeness, I assume.',
         '~solemn~ I looked down at the street from here and it looked back up. Nobody does that in the shaft.',
@@ -117,7 +117,7 @@ export const SALT_CONTENT = {
     { ...INCAL_PEOPLE.pip, at: [SHIP.up.x + 8, SHIP.up.z + 30], radius: 1.5, world: 'incal', lang: 'incal',
       lines: ['~surprised~ It goes all the way up! Like the shaft, but outside!', '~happy~ The sky here doesn’t stop anywhere.'],
       talk: { listen: [
-        '~happy~ Pip. From the bottom of the shaft. I saw the sky once, and then I came to see all of it.',
+        '~happy~ I saw the sky once, for eleven seconds. Then I came to see all of it.',
         '~curious~ This ship stands up like a tower. They say it got tired of lying down.',
         '~playful~ I counted the ropes on the big red one. Then I lost count, and started again, and lost it again.',
       ] } },
@@ -127,7 +127,7 @@ export const SALT_CONTENT = {
       lines: ['~happy~ Morning. The awnings are up.', '~neutral~ The street runs north to the standing ship. Everything else is salt.'],
       talk: { listen: [
         { after: () => true, say: [
-          '~curious~ Everyone signs the harbour book. The one before you came alone, a woman. She wrote in letters none of us read.',
+          '~curious~ Everyone signs the harbour book. The one before you was a woman. She wrote in letters none of us read.',
           '~solemn~ (Home letters: your own. The salt has eaten most of the line: *…where the singing goes. If anyone from home…* Where the name was, the page is white.)',
         ], do: { set: { 'sight.saltharbour.book': true } } },
         '~happy~ Morning. The awnings are up.',

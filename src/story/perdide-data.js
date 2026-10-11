@@ -155,7 +155,7 @@ export const LANDING = [
       entry: [{ if: { flag: 'met.sedge' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ['~neutral~ Mm. Hello. Mind the reeds, they cut.', "~playful~ Sedge. I cut reeds. They cut back. We keep the arrangement civil."],
+          say: ['~neutral~ Mm. Mind the reeds, they cut.', "~playful~ Sedge. I cut reeds. They cut back. We keep the arrangement civil."],
           choices: [
             { text: '~curious~ What’s out in the water?', goto: 'water' },
             { text: '~curious~ You look like you’ve seen something.', goto: 'light' },
@@ -183,8 +183,8 @@ export const LANDING = [
           do: { set: { 'perdide.rumour.light': true } },
           choices: [{ text: '~solemn~ I think something like it drained my ship.', goto: 'ship' }, { text: '~happy~ I believe you.', goto: 'believe' }],
         },
-        ship: { say: ['~solemn~ Then it didn’t climb far enough.', "~neutral~ Ask *Saba at the Great Crystal*. She knows its songs better than anyone."], choices: [{ text: '~neutral~ I will.', end: true }] },
-        believe: { say: ['~playful~ Mm. Well. That makes one of you.'], choices: [{ text: '~neutral~ Bye, Sedge.', end: true }] },
+        ship: { say: ['~solemn~ Then it didn’t climb far enough.', "~neutral~ The Great Crystal sang back to it. *East, through the ford.* Go and hear it."], choices: [{ text: '~neutral~ I will.', end: true }] },
+        believe: { say: ['~playful~ Mm. That makes two of us. The reeds still have their doubts.'], choices: [{ text: '~neutral~ Bye, Sedge.', end: true }] },
       },
     },
   },
@@ -317,7 +317,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ (go)', end: true }],
         },
         after: {
-          say: ["~happy~ I wrote down the new phrase. Two hundred and thirteen. Tomorrow I listen for another.", "~solemn~ If you meet the Singer again, let it hear this piece. It may not know where it fell."],
+          say: ["~happy~ I wrote down the new phrase. Two hundred and thirteen. Tomorrow I listen for another.", "~solemn~ If you meet that light again, let it hear this piece. It may not know where it fell."],
           choices: [
             { text: '~solemn~ I will, Saba.', end: true },
             { text: "~curious~ Did Odile and Talo ever come here? Two travellers looking for the light?", if: { any: [{ flag: 'clue.edena.pod' }, { flag: 'clue.perdide2.edena' }] }, goto: 'two', once: true },
@@ -366,7 +366,7 @@ export const PEOPLE = {
         try: { say: ["~playful~ You’ll stand still until they like you? Fine. I’ll be over here, being interesting."], choices: [{ text: '~playful~ We’ll see.', end: true }] },
         feed: { say: ["~playful~ Fish heads, reed pith, slow moths. Once a boot. It wasn’t occupied. I checked."], choices: [{ text: '~neutral~ Wendel says not to feed them.', goto: 'wendel' }, { text: '~neutral~ Bye, Corm.', end: true }] },
         crystal: {
-          say: ["~curious~ The crystal? A sky-tooth. My plants close their mouths when it sings. Professional respect.", '~playful~ Professional respect. One set of teeth to another.'],
+          say: ["~curious~ The crystal? A sky-tooth. My plants close their mouths when it sings.", '~playful~ Professional respect. One set of teeth to another.'],
           choices: [{ text: '~curious~ Have you ever seen it sing?', goto: 'seen' }, { text: '~neutral~ Bye, Corm.', end: true }],
         },
         seen: { say: ["~playful~ They shut every rain. And once that dry night when Sedge saw the singing light. Even I found that peculiar."], choices: [{ text: '~neutral~ Bye, Corm.', end: true }] },
@@ -397,7 +397,7 @@ export const PEOPLE = {
         hello: {
           say: ['~angry~ Mind your head. And your feet. And your elbows.', "~neutral~ I’m Ysse. I clean the cave crystals. Dust muffles their sound. Visitors generally add dust."],
           choices: [
-            { text: '~curious~ Hear what?', goto: 'hear' },
+            { text: '~curious~ Their sound?', goto: 'hear' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far' },
           ],
         },

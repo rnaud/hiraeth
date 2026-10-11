@@ -52,7 +52,7 @@ const KIP = {
       ],
       nodes: {
         hello: {
-          say: ['~happy~ Kip, courier of the skybridges. The Market’s were the best in the world. Then I came here.',
+          say: ['~happy~ Skybridges! I thought the Market’s were the best in the world. Then I came here.',
             '~curious~ They don’t pay in fruit. They pay in lamp oil. I have nine lamps now and nowhere to put them.'],
           choices: [
             { text: '~curious~ Give me one.', goto: 'one' },
@@ -93,7 +93,7 @@ export const VISITORS = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Madame Sel. Forty years I listened to the sky from a tower in the Market. Here the sky is all round, even under your feet.',
+          say: ['~neutral~ Forty years I listened to the sky from a tower in the Market. Here the sky is all round, even under your feet.',
             '~curious~ The cables under the islands aren’t tied to anything. They’re antennas. The whole city is listening to the planet, and I’ve been writing down what it hears.'],
           choices: [
             { text: '~curious~ What does it hear?', goto: 'hears' },
@@ -112,7 +112,7 @@ export const VISITORS = {
         waiting: { say: ['~neutral~ The Towers, east of the Market, up the narrow bridge. Tamar.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~happy~ The same line, she says. So the planet’s talking, and the cables are listening. I’ll learn the language yet.' },
-            { if: { flag: 'temple.spacecity.done' }, text: '~surprised~ Since the cables went taut the line comes clear. It’s a broadcast, love, from far off, and I know its voice: a market with a silent tower.' }],
+            { if: { flag: 'temple.spacecity.done' }, text: '~surprised~ Since the cables went taut the line comes clear. It’s a broadcast, love, from far off, and I know its voice. My market. And in the middle of it, my tower, saying nothing.' }],
           choices: [{ text: '~neutral~ Goodbye, Madame Sel.', end: true }],
         },
       },
@@ -138,10 +138,10 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~neutral~ Rosa. Every morning I chalk where each bridge sits on its island. Every morning it’s crept another hand’s width.',
-            '~tired~ The islands are drifting apart. A hand’s width a night, since the night the sky rang. The bridges creak all night about it.'],
+            '~tired~ The islands are drifting apart, since the night the cables sang. The bridges creak all night about it.'],
           choices: [
             { text: '~curious~ What pulls them apart?', goto: 'why' },
-            { text: '~neutral~ Not now.', end: true },
+            { text: '~neutral~ I’ll stay on this island for now.', end: true },
           ],
         },
         why: {
@@ -173,7 +173,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~solemn~ Long ago a ship came by with no name to give: one pilot, on her own. It hailed us with a sung note instead.',
-            '~curious~ The cables kept the note. The night the sky rang it came by again, fast and very high. It didn’t stop this time.',
+            '~curious~ The cables kept the note. The night they sang, it came by again, fast and very high. It didn’t stop this time.',
             '~whisper~ It was going somewhere.'],
           do: { set: { 'sight.spacecity.tamar': true, 'spacecity.rumour.light': true } },
           choices: [{ text: '~curious~ And the cables since?', goto: 'since' }, { text: '~neutral~ Goodbye, Tamar.', end: true }],

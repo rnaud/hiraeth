@@ -660,6 +660,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'warden-ash', title: 'The Ash Store', caption: 'The Ash Store, the tower’s old ash banked by its walls: its door shuts behind you while the keepers stand, the key caged at the far end', ...C48_WARDEN, only: 'after',
         view: { level: 'incal', save: SAVE48_ARMED, hour: 12, fov: 75, eye: [406.2, 1405, 190.6], target: [394, 1401.5, 198], player: [405.4, 1400.05, 191.6] } },
     ] },
+    // the dialogue (docs/audits/dialogue-v1.48.md): lines with no picture, each a person to talk to
+    { match: 'Each world now names the night the singing light went over', see: 'In the Underwater City, talk to Bastien at the lock; in the City Floating in Space, to Rosa on the Pier; in the Moon Foundry, to Hedda by her mould. Each names that night their own way.' },
+    { match: 'Nobody sends you off to ask somebody else', see: 'In the Garden of Spheres, talk to Linnet in the umbrella grove and ask how to hear the spheres: after the three, she sends you to splash the pole on the plaza, not to find Ume.' },
+    { match: 'Visitors from other worlds no longer open', see: 'In the White Mangrove, listen to Bram and Fen on the walks; in the Salt Harbour, to Pip. In Qanat, open Haddu’s shop.' },
+    { match: 'Answers that follow what was just said', see: 'In the Buried Machine, talk to Tull by the oculus and ask whether anyone else came down; once the Wick is lit, talk to her again: you ask after the clock-winder she told you of, not a man in a helmet.' },
+    { match: 'At the Lantern, Ilen explains less', see: 'Meet Ilen at the Lantern and ask about the light that drained your ship; then, at home, set your keepsakes on your parents’ stone.' },
   ],
   '1.47': [
     { match: 'Arriving in the Underwater City, the Dock is no longer a bare floor', shots: [

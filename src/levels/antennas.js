@@ -114,7 +114,7 @@ export const ANTENNAS_CONTENT = {
     { ...HANGAR_PEOPLE.lune, at: [OBS.x - 1.5, OBS.z + 1.2], y: OBS.top + 0.15, radius: 1, kind: 'f', world: 'garage', lang: 'garage',
       lines: ['~curious~ Listen. Every one of them is still turned to something.', '~happy~ From up here you can hear the whole forest humming.'],
       talk: { listen: [
-        '~curious~ Lune. I read the signal in the Sealed Hangar, the one nobody could read. I came to find where signals go when nobody answers.',
+        '~curious~ I came to find where signals go when nobody answers. Mine never got one.',
         '~neutral~ They come here. Every dish in this forest is still turned to something, a star, a ship, a voice from before.',
         '~whisper~ At night the receiver hums louder. Put your hand on the rail and you can feel it.',
         { after: 'met.lune', say: '~playful~ Still here. The bridge goes over to the receiver’s balcony. Mind the birds, they think it’s theirs.' },
@@ -122,14 +122,14 @@ export const ANTENNAS_CONTENT = {
     { ...HANGAR_PEOPLE.ottla, at: [SETTLEMENT.x - 6, SETTLEMENT.z + 9], radius: 1.5, kind: 'f', world: 'garage', lang: 'garage',
       lines: ['~neutral~ That one’s not broken. It’s listening.', '~angry~ Who rewired the plaza lamp to a dish? Nobody? Again?'],
       talk: { listen: [
-        '~happy~ Ottla, mechanic of everything. Everything here is a lot of things. I may never leave.',
+        '~happy~ Every mast here needs something mending. I may never leave.',
         '~curious~ They keep the masts standing out of habit, the folk here. One falls, they put a new one up. Nobody asks what it’s for.',
         '~playful~ The birds nest in the dishes. I asked them to move. They asked me to move. We’re negotiating.',
       ] } },
     { ...BAZAAR_STREET.teb, at: [SHIP.x - 7, SHIP.z - 32], radius: 2, kind: 'm', world: 'bazaar', lang: 'bazaar',
       lines: ['~shout~ Cab! Cab! No cabs. Nothing to wave at but masts.', '~playful~ The quiet here is the loudest thing I ever heard.'],
       talk: { listen: [
-        '~neutral~ Teb. I tout cabs in the Signal Market. A man needs a holiday from shouting.',
+        '~neutral~ No cabs to tout out here. A man needs a holiday from shouting.',
         '~curious~ Follow the path north. The workshops are under the big dish. You can’t miss it, it’s been trying to get your attention since you landed.',
         '~whisper~ The masts out here hum. Same note as our broadcast tower, before it went quiet. I don’t like to think about that.',
       ] } },

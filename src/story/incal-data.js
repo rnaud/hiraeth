@@ -521,7 +521,7 @@ export const RIM = {
       '~neutral~ {glyph} The palace seal. It’s on every cab licence, every permit, every gate. It means *approved*. You, for instance, are not stamped.',
       { if: { not: { flag: 'temple.incal.done' } }, say: '~playful~ That tower round the rim from your ship? *The makers’ tower*. A folly. Somebody built a well that goes up. We don’t talk about it.' },
       { after: LOOKED, say: ["~surprised~ Yes, I looked up. Everyone else did. I wasn’t going to be the only one missing something.", '~whisper~ Don’t tell anyone I said it was beautiful.'] },
-      { after: { flag: 'temple.incal.done' }, say: '~surprised~ The air rises up the shaft now, by the old shrine, and the lower levels ride it all the way to the rim. Uninvited. In their slippers.' },
+      { after: { flag: 'temple.incal.done' }, say: '~surprised~ The air rises up the shaft now, by the old shrine, and the lower levels ride it all the way to the rim. Uninvited. Some of them in aprons.' },
     ] },
   },
   lio: {
@@ -765,7 +765,7 @@ export const CROWD_TALK = {
       "~tired~ I pass the light twice a day. Its colour? I… couldn’t tell you. That’s odd.",
       '~tired~ Up a level, down a level. I have been late on every level of this city.',
       '~angry~ Excuse me. Excuse me! Some of us have a cab to catch.',
-      { after: LOOKED, say: '~surprised~ I stopped on the stairs this morning to look at it. First time in eleven years. I was late. I didn’t mind.' },
+      { after: LOOKED, say: '~surprised~ I stopped on the stairs this morning to look at it. First time in years. I was late. I didn’t mind.' },
     ] } },
   ],
   lower: [
@@ -778,7 +778,7 @@ export const CROWD_TALK = {
     { name: 'A laundry hanger', title: 'of the bottom terraces', talk: { listen: [
       "~playful~ The splinter landed in Behla’s washing. She now describes her vests as historically significant.",
       '~playful~ Down here the laundry never dries. We hang it out anyway. It’s a kind of prayer.',
-      { if: { not: { quest: 'incal.wren', done: true } }, say: '~neutral~ No cab stops below the smog. Except old Wren, they say, a cab that still answers *the old call-lamp* at the edge of the terrace. Light it. Give it a shot.' },
+      { if: { not: { quest: 'incal.wren', done: true } }, say: '~neutral~ No cab stops below the smog. Except old Wren, they say, a cab that still answers *the old call-lamp* at the edge of the terrace. Light it, and see who comes.' },
       '~tired~ Mind the sheets. That one is drier than you, and it’s still wet.',
     ] } },
     { name: 'A child', title: 'who wants to go up', talk: { listen: [

@@ -56,6 +56,22 @@ the glyph’s many names. Vary the witness accounts: a compass failure, flowers
 turning at night, a bell ringing without a clapper. Repeating “a wet finger
 round a glass” everywhere makes different witnesses sound like one author.
 
+The same goes for the night itself. “The night the sky rang” belongs to the
+City-Shaft, a shaft that rings; every other people names it by what it saw
+(the dialogue review v1.48): the night the light passed (Qanat, the Glass
+Dunes), the night every sign showed the mark (the Signal Market), the night
+the whales went quiet (the Underwater City), the night the singing went over
+(the Moon Foundry, the Salt Harbour), the night the cables sang (the City
+Floating in Space), the night the pools went dark (the Deep Wood), the night
+the falls went quiet (the Waterfall City). Aliens keep their own: “when the
+high sound came” (the shellbacks), “when the sky made its one long note” (the
+Mimmis), “the loud night” (Ummu). The traveller asks with the speaker's words,
+never his own.
+
+Nobody sends the player to somebody else for the next step. Say where to go and
+what to do there; a person may be named as the one who keeps a place, or as the
+one an errand is for.
+
 Not everyone knows the protagonist is grieving. Avoid supernatural insight from
 ordinary musicians, children, or shopkeepers. They may notice tiredness or
 homesickness; they do not deliver the ending’s lesson ahead of schedule.

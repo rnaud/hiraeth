@@ -37,6 +37,12 @@ export const CHANGELOG = [
     'The Builders’ Greenhouse opens out the same way. Off the Potting Hall, the dark Shade House shuts behind you until its keepers are beaten, and in the Cold Frame one ball has to bring the sun to two eyes in turn. Each room gives a small key for the Glass Stair’s door.',
     'The Undertower opens out round its Cable Well too. The Cable Store shuts behind you until its keepers are beaten. In the Tuning Room, a ball rolled in from the well wakes a dish that carries a stone’s high note across to a far horn. The door to the Shell Chamber takes a small key from each.',
     'The Warden’s Well opens out round its Climb. The Ash Store shuts behind you until its keepers are beaten. In the Vane Room, the chasm’s stones only stand while the vane on its far wall turns, so you splash it and cross before it slows. The door at the balcony’s end takes a small key from each.',
+    // the dialogue (docs/audits/dialogue-v1.48.md)
+    'Each world now names the night the singing light went over in its own words: under the sea it is the night the whales went quiet, in the City Floating in Space the night the cables sang, in the Moon Foundry the night the singing went over. Only the City-Shaft still says the sky rang, and when you ask about it you use the words you were just told.',
+    'Nobody sends you off to ask somebody else any more. Sister Aube, Mother Ysolde, Sol, Wen, Linnet, Sedge, Bram and Hollin tell you where to go and what to do there, and the pilgrims and passers-by who used to point you at a person point you at the place.',
+    'Visitors from other worlds no longer open by telling you their name and where they are from: Fen, Bram, Pip, Marrow, Zazie, Tiv, Kip, Saba and the others start with what they came to see. Five shopkeepers greet you with their own trade instead of the same welcome, and Hale no longer tells you that you sound tired.',
+    'Answers that follow what was just said: asking Tull about the clock-winder, Ysse about her crystals’ sound, Senn about the tower, and telling Cael how long the avenue was. Madame Sel knows her own market’s voice in the City Floating in Space, and a few talks lose the moral at their end.',
+    'At the Lantern, Ilen explains less: she tells you what she did with your father’s message and leaves out how a light carries a song. At your parents’ stone, each gift is set down as what it is, not as a lesson.',
   ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)

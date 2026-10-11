@@ -95,7 +95,7 @@ export const RING_CONTENT = {
     { ...EDENA_PEOPLE.oro, at: [TUBE.B[0] - 14, TUBE.B[1] + 1], radius: 1.5, kind: 'm', world: 'edena', lang: 'edena',
       lines: ['~curious~ Pyramids grow slowly. This fell quickly. Both took a long time.', '~happy~ Look, they planted a garden in its street.'],
       talk: { listen: [
-        '~neutral~ Oro, from Viridel. I grow pyramids. I came to see a thing that was built, for once, and then fell down.',
+        '~neutral~ At home the pyramids grow. I came to see a thing that was built, for once, and then fell down.',
         '~curious~ It was a street, this. Up was the middle of the ring. Now up is the sky, and the lamps hang sideways.',
         '~playful~ The folk here grow beans along the old floor. Very straight rows. The ring was good at straight.',
         { after: 'met.oro', say: '~solemn~ Something that big falls, and the grass just goes on. I find that a comfort.' },
@@ -103,7 +103,7 @@ export const RING_CONTENT = {
     { ...SPHERES_PEOPLE.ivo, at: [TUBE.M[0] + 4, TUBE.M[1] - 1], y: 2 * TUBE.r - 2.2, radius: 1.2, kind: 'm', world: 'spheres', lang: 'spheres',
       lines: ['~shout~ The view! The arch goes right into the cloud!', '~happy~ I climbed the tube. Next, the tilted one. Then the arch. Then lunch.'],
       talk: { listen: [
-        '~happy~ Emrys. I climb things. The Garden of Spheres ran out of things.',
+        '~happy~ I climb things. The Garden of Spheres ran out of things.',
         '~curious~ Look at the arch’s legs, the cut-open floors in them. People lived in there, sideways, and they kept their gardens.',
         '~whisper~ The far pieces go all the way round the horizon. If you squint, you can see where the circle was.',
         '~tired~ The tilted one is steeper than it looks. Everything here is bigger than it looks.',

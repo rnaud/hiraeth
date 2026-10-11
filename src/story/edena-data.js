@@ -208,7 +208,7 @@ export const PEOPLE = {
       ],
       nodes: {
         tea: {
-          say: ["~happy~ Our tea comes from *Esk’s terraces, south-east of the landing*, above the dry hollow. Every cup starts there.", "~sad~ The spring has slowed since the light passed. Esk’s worried about the bushes. Go see her. She’ll pretend she isn’t glad of company."],
+          say: ["~happy~ Our tea comes from *Esk’s terraces, south-east of the landing*, above the dry hollow. Every cup starts there.", "~sad~ The spring has slowed since the light passed, and her bushes are browning at the tips. She’d never ask for help. She’d take it, though."],
           do: (ctx) => { if (!ctx.quests?.isStarted('edena.terraces') && ctx.quests?.def('edena.terraces')) ctx.quests.start('edena.terraces'); },
           choices: [{ text: '~neutral~ I’ll go and see her.', end: true }],
         },
@@ -234,7 +234,7 @@ export const PEOPLE = {
         },
         struck: { say: ["~curious~ You too? Then there’s something to ask Talo, if he returns. I hope he does."], choices: [{ text: '~neutral~ Goodbye, Sol.', end: true }] },
         again: { say: ['~tired~ Any sign of them? No. Tea keeps.'], choices: [{ text: '~curious~ Tell me about the light again.', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
-        after: { say: ["~sad~ You know why they went now. I knew they’d leave, and I still hope they’ll come back. It’s a tiring arrangement."], choices: [{ text: '~solemn~ Both can be true.', end: true }] },
+        after: { say: ["~sad~ You know why they went now. I knew they’d leave, and I still hope they’ll come back. It’s a tiring arrangement."], choices: [{ text: '~playful~ Keep the kettle on.', end: true }] },
       },
     },
   },
@@ -356,7 +356,7 @@ export const PEOPLE = {
           do: { set: { 'edena.vey.flood': true } },
           choices: [{ text: '~sad~ I only meant to help.', goto: 'floodMeant' }],
         },
-        floodMeant: { say: ["~tired~ You meant to help. So did Esk. Remember that, and remember the damage. Both matter."], choices: [{ text: '~solemn~ Both. I’ll remember.', end: true }] },
+        floodMeant: { say: ["~tired~ You meant to help. So did Esk. The mud doesn’t know that. Remember it anyway."], choices: [{ text: '~solemn~ I’ll remember.', end: true }] },
       },
     },
   },
@@ -392,7 +392,7 @@ export const PEOPLE = {
         },
         teaAll: { say: ["~happy~ Every cup comes from here. Sol drinks enough to count as weather."], choices: [{ text: '~curious~ And why are they thirsty?', goto: 'dry' }] },
         dry: {
-          say: ["~sad~ Since the Singer passed, the spring barely runs. Silt has blocked the channels. Those brown tips mean the bushes are drying out.", "~neutral~ Use your fluid’s *Push* from the path to clear *three clods of silt*. Start at *the top terrace*, then work down. Don’t trample the beds."],
+          say: ["~sad~ Since the light passed, the spring barely runs. Silt has blocked the channels. Those brown tips mean the bushes are drying out.", "~neutral~ Use your fluid’s *Push* from the path to clear *three clods of silt*. Start at *the top terrace*, then work down. Don’t trample the beds."],
           choices: [
             { text: '~neutral~ I’ll clear them.', do: (ctx) => { const q = ctx.quests; if (!q.isStarted('edena.terraces')) q.start('edena.terraces', 'runnels'); else q.advance('edena.terraces', 'esk'); ctx.game.set('edena.esk.asked', true); }, goto: 'thanks' },
             { text: '~neutral~ Maybe later.', end: true },

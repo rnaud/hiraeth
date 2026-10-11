@@ -111,7 +111,7 @@ export const MANGROVE_CONTENT = {
       palette: { cloak: '#84bab3', lining: '#2b211f' },
       lines: ['~happy~ Lanterns go further here. The water lights them from underneath.', '~playful~ Nobody haggles on a deck this high. Too much to look at.'],
       talk: { listen: [
-        '~happy~ Oyo, lanterns! The market had too many already, so I followed the light out here. Every walk wants one, every evening.',
+        '~happy~ Lanterns! The market had too many already, so I followed the light out here. Every walk wants one, every evening.',
         '~curious~ Look down off the rail when the lanterns are lit. The lake answers them in blue and pink. I’ve stopped trying to sell that part.',
         '~playful~ They pay in fish and good advice. I am very well advised now.',
         { after: 'met.oyo', say: '~neutral~ Back again? The ring walk goes all the way round. Every spoke ends at a stair.' },
@@ -119,14 +119,14 @@ export const MANGROVE_CONTENT = {
     { ...LORN_PEOPLE.fen, at: [DECKED[3].platform.x + 2, DECKED[3].platform.z], y: WALK_Y + 0.2, radius: 1.5, world: 'perdide2', lang: 'perdide2',
       lines: ['~surprised~ The water’s black here, but it isn’t deep.', '~neutral~ Mind the roots under the planks.'],
       talk: { listen: [
-        '~curious~ Fen. From the far dome, in the Deep Wood. I came to see how other people live on water. Better than me, it turns out.',
+        '~curious~ People who live on water and don’t mind it. I came to see how. Better than me, it turns out.',
         '~neutral~ The white roots don’t rot. They just keep growing out and down, and the people build along them.',
         '~whisper~ At night the creatures come up under the walks. Stand still and they gather round your feet.',
       ] } },
     { ...KEEPERS[2], at: [3, ISLAND.z - ISLAND.r + 6], radius: 2, kind: 'm', world: 'perdide2', lang: 'perdide2',
       lines: ['~tired~ Different water. Same sitting.', '~playful~ The roots here are white. I disapprove on principle.'],
       talk: { listen: [
-        '~tired~ Bram. I mind a cave mouth in the Deep Wood. I came here for the quiet, and it is very quiet.',
+        '~tired~ I came here for the quiet, and it is very quiet. I may have overdone it.',
         '~neutral~ Walk north along the planks. The great tree has a deck round it, and the stair is on this side.',
         '~playful~ I counted the lanterns. Then a boat went by and I lost count.',
       ] } },
@@ -137,9 +137,9 @@ export const MANGROVE_CONTENT = {
       lines: ['~curious~ You came by the sky? We came by boat, a long time ago.', '~whisper~ Don’t lean on the lantern posts. They lean back.'],
       talk: { listen: [
         { after: () => true, say: [
-          '~curious~ Another one from the sky. Long ago a woman came down alone, in a ship no bigger than my boat.',
+          '~curious~ Another one from the sky. Long ago a woman came down in a ship no bigger than my boat.',
           '~neutral~ She asked about the {glyph} on the great tree’s roots. I showed her how it goes: dots, then arc.',
-          '~solemn~ She drew it on her knee until her hand knew it, thanked me in words that didn’t come through, and went up.',
+          '~solemn~ She drew it on her knee, over and over, thanked me in words that didn’t come through, and went up.',
         ], do: { set: { 'sight.mangrove.liss': true } } },
         '~whisper~ Don’t lean on the lantern posts. They lean back.',
         '~neutral~ The roots grow out and down, and the mark on them grows too. A little wider every year.',

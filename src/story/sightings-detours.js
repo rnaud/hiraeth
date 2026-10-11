@@ -5,8 +5,8 @@
 // (a person's first listen entry, in their world's content, or a trace's look: its content's `traces`).
 export const DETOUR_SIGHTINGS = [
   // ---------------------------------------------------------------- someone came this way before
-  { id: 'mangrove.liss', thread: 'before', world: 'mangrove', who: 'Liss', line: 'Long ago a woman came down alone and learned the mark on the roots, drawing it on her knee until her hand knew it.' },
-  { id: 'saltharbour.book', thread: 'before', world: 'saltharbour', who: 'the harbour book', line: 'The line before yours is in home letters, a woman’s, who came alone. The salt has eaten her name.' },
+  { id: 'mangrove.liss', thread: 'before', world: 'mangrove', who: 'Liss', line: 'Long ago a woman came down in a ship no bigger than a boat and learned the mark on the roots, drawing it on her knee.' },
+  { id: 'saltharbour.book', thread: 'before', world: 'saltharbour', who: 'the harbour book', line: 'The line before yours is in home letters, a woman’s. The salt has eaten her name.' },
   // ---------------------------------------------------------------- the father's signal
   { id: 'antennas.grete', thread: 'signal', world: 'antennas', who: 'Grete', line: 'An old dish caught a man’s voice from very far, and under the hiss something singing his words back, as if learning them.' },
   { id: 'underside.maudie', thread: 'signal', world: 'underside', who: 'Maudie', line: 'A woman wintered here alone, listening every night to a receiver’s hiss, as if waiting for a voice.' },
@@ -14,6 +14,6 @@ export const DETOUR_SIGHTINGS = [
   { id: 'waterfall.pell', thread: 'light', world: 'waterfall', who: 'Aldo', line: 'The night the falls went quiet, a light hung singing off the balcony, as if waiting for an answer.' },
   { id: 'eclipse.ansel', thread: 'light', world: 'eclipse', who: 'Ansel', line: 'It hung singing where the black sun sits. By morning every figure on the walls leaned the way it went.' },
   // ---------------------------------------------------------------- the makers' sign
-  { id: 'fallenring.mark', thread: 'glyph', world: 'fallenring', who: 'a mark on the fallen ring', line: 'Burned into the hull, and not long ago: by a hand that learned it, the arc drawn twice.' },
+  { id: 'fallenring.mark', thread: 'glyph', world: 'fallenring', who: 'a mark on the fallen ring', line: 'Burned into the hull years ago, by a hand that learned it: the arc stops, and starts again.' },
   { id: 'overnighttrain.chalk', thread: 'glyph', world: 'overnighttrain', who: 'a mark on the last carriage', line: 'Chalked on the last carriage’s roof, drawn again over the old chalk many times, by someone who keeps it.' },
 ];

@@ -82,7 +82,7 @@ export const TANSY = {
           { if: not({ flag: 'fellow.late' }), text: '~happy~ I saw your ship come down. You’re following the singing too! I’m Tansy, from the Salt Harbour. I’ve been a world ahead of you the whole way.' },
           { if: { flag: 'fellow.late' }, text: '~playful~ So it’s you! I’m Tansy, from the Salt Harbour. I’ve been a world behind you the whole way. You leave very clear footprints.' },
           '~curious~ (She holds up a brass compass on a cord. The needle points up and away. It shivers three times, then holds still.)',
-          '~solemn~ The night the sky rang, every compass in our harbour swung round the same way. By morning the others had swung back. Mine never did.',
+          '~solemn~ The night the singing went over, every compass in our harbour swung round the same way. By morning the others had swung back. Mine never did.',
         ],
         choices: [
           { text: '~curious~ So you followed the needle?', goto: 'm1.follow' },

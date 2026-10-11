@@ -201,7 +201,7 @@ export const PEOPLE = {
         },
         run: { say: ["~playful~ Letters, bills, threats. Fish orders, mostly. People pay in fruit. I could retire if retirement accepted pears."], choices: [{ text: '~curious~ And what’s in the bag?', goto: 'recording' }] },
         recording: {
-          say: ["~sad~ The silent tower’s last cylinder. Sel’s. I’ve had it since the night the sky rang. Here.",
+          say: ["~sad~ The silent tower’s last cylinder. Sel’s. I’ve had it since the night the signs went white. Here.",
             "~surprised~ It arrived *singing*. A note around the voice, like a tuning fork held to a speaker. Every street sign flashed the same mark. Cylinders aren’t supposed to do that.",
             "~scared~ I ran. Took it with me. It’s hummed against my back ever since. Not my cleverest escape."],
           do: [{ give: 'recording' }, { set: { 'bazaar.kip.gave': true } }],
@@ -306,7 +306,7 @@ export const STREET = {
     id: 'doss', name: 'Doss', title: 'who welcomes everyone', color: '#dca273', head: 'wrap', look: { body: 'badge' },
     talk: { listen: [
         "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
-        { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the end of the avenue. It went silent the night the sky rang. *Madame Sel* sits at its foot, waiting for somebody to care.' },
+        { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the end of the avenue. It went silent the night every sign showed the mark. *Madame Sel* sits at its foot, waiting for somebody to care.' },
         { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The blue ledges up its front*, or the parked cab right here, or that pack on your back. The skybridges are for walking; mind the gaps.' },
         '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
         '~curious~ The first thing anybody ever sold here was an answer. Then somebody sold the question, and we never looked back.',
@@ -336,7 +336,7 @@ export const STREET = {
         { if: { not: ON_AIR }, say: "~neutral~ The transmitter’s *on the cream balcony*. Need a cab? *Wave at one circling the tower.*" },
         ['~whisper~ The quiet ones? The lavender folk with the big heads. They came with the market, or the market came with them.', '~whisper~ They don’t talk. They listen. When they all turn their heads at once, something’s about to happen.'],
         '~shout~ Cab! Cab! Not you, you’re not a cab. Move, you’re in my wave.',
-        { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign in the market hangs *under the second skybridge*. Dark for years. Give it a shot of something; signs like attention.' },
+        { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign in the market hangs *under the second skybridge*. Dark for years. Splash it with something bright; signs like attention.' },
         '~playful~ Fares are cheap, views are free, and the drop is extra.',
         { after: ON_AIR, say: '~happy~ Every cab in the sky stopped to listen. First traffic jam in thirty years. Beautiful.' },
       ] },
@@ -399,7 +399,7 @@ export const THINGS = {
         hello: {
           say: ["~neutral~ (The listener turns its broad head. Words appear on the screen above it.)",
             '~playful~ YOU ARE LOUD. WE LIKE IT.',
-            "~sad~ (New words appear.) OUR BOWL IS *UNDER THE BOXES*. IT FELL WHEN THE SKY RANG. WE CANNOT LIFT THEM."],
+            "~sad~ (New words appear.) OUR BOWL IS *UNDER THE BOXES*. IT FELL ON THE LOUD NIGHT. WE CANNOT LIFT THEM."],
           do: [{ emit: ['bazaar:ummu', 'YOU ARE\nLOUD'] }, { start: 'bazaar.bowl' }],
           choices: [{ text: '~curious~ What do you listen to?', goto: 'listen' }, { text: '~neutral~ I’ll move the boxes.', end: true }],
         },
@@ -489,7 +489,7 @@ export const CROWD_TALK = {
     { name: 'An old trader', title: 'in Signal Square', talk: { listen: [
       "~solemn~ That mark filled every sign when the sky sang. Grandmother says it was here before the market. Before there was anything to advertise.",
       '~solemn~ Every sign in this market lies a little. The silent tower was the only one that ever told the truth.',
-      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Hobb sits by it, listening. Ask him what he hears. He’ll say one word.' },
+      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Hobb sits by it with his ear to the paving. Whatever he hears, it’s one word.' },
       '~angry~ In my day a sign was a sign. Now they sing, they dance, they follow you home.',
     ] } },
   ],

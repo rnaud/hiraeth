@@ -56,10 +56,10 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~neutral~ Bastien. I keep the lock. Your ship came down it like a stone down a well. A polite stone.',
-            '~tired~ Hear that hum in the glass? One note, all over the city, since the night the sky rang. It’s the wrong note. The whales won’t come near it.'],
+            '~tired~ Hear that hum in the glass? One note, all over the city, since the night the whales went quiet. It’s the wrong note. The whales won’t come near it.'],
           choices: [
             { text: '~curious~ Where does it come from?', goto: 'where' },
-            { text: '~neutral~ Not now.', end: true },
+            { text: '~playful~ One well a day is enough.', end: true },
           ],
         },
         where: {
@@ -93,7 +93,7 @@ export const PEOPLE = {
             '~curious~ You came down the lock, didn’t you? Then you’ve got young knees. Would you take something up the column for me?'],
           choices: [
             { text: '~neutral~ Up the column?', goto: 'column' },
-            { text: '~neutral~ Not now.', end: true },
+            { text: '~playful~ My knees are spoken for.', end: true },
           ],
         },
         column: {
@@ -144,7 +144,7 @@ export const PEOPLE = {
           do: [{ take: 'kelpcutting' }, { advance: ['underwater.kelp', 'fabre'] }],
           choices: [{ text: '~neutral~ She says it hates the cold.', goto: 'cold' }],
         },
-        cold: { say: ['~playful~ Then we’ll get on.', '~neutral~ Here. Now that you know the way up: there’s something else.'], choices: [{ text: '~curious~ What is it?', goto: 'lamps' }] },
+        cold: { say: ['~playful~ Then we’ll get on.', '~neutral~ You know the way up now. So there’s something else.'], choices: [{ text: '~curious~ What is it?', goto: 'lamps' }] },
         lamps: {
           say: ['~solemn~ I’ve lit the Crown’s lamps every dusk since the whales went away. For them, so they can find the city again.',
             '~curious~ Maelle listens for them in the Whale Gallery, down the slope past the Plaza. *Go down and tell her the lamps are lit.* She’ll know if they’ve seen them.'],
@@ -177,7 +177,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~whisper~ Maelle. I listen to the whales. This gallery hangs over the deep: they used to come up out of it and sing against the glass.',
-            '~sad~ The night the sky rang, a light came down through the sea, singing one note. The whales sang it back, all of them at once. Then they went away, and they haven’t come back.',
+            '~sad~ One night a light came down through the sea, singing one note. The whales sang it back, all of them at once. Then they went away, and they haven’t come back.',
             '~solemn~ And the glass has hummed that one note ever since, all over the city. You can feel it in your teeth.'],
           do: { set: { 'met.maelle': true, 'underwater.rumour.light': true } },
           choices: [
@@ -203,7 +203,7 @@ export const PEOPLE = {
         after: {
           say: ['~happy~ Listen. (Against the glass, close enough to fog it, a whale is singing: long, low, and then a high clear note at the end.)',
             '~solemn~ That high note is the light’s. They kept it. They sang it to me first, as if to say sorry, and then their own song after it.',
-            '~curious~ The old ones in the pod say where it went: up out of the sea, and on to a city built down a well, where a light hangs that nobody looks at.'],
+            '~curious~ The old ones in the pod say where it went. Up out of the sea, and on to a city built down a well, where a light hangs that nobody looks at.'],
           do: { set: { 'clue.underwater.incal': true } },
           choices: [
             { text: '~curious~ A city down a well?', goto: 'well' },

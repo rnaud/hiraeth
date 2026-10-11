@@ -157,7 +157,7 @@ test('the Lantern: Ilen tells him what the light was, why it struck, the makers\
   }
   const all = said.join(' ');
   assert.match(all, /makers built this lantern/, 'what the light is');
-  assert.match(all, /sang his own message/, 'her answer');
+  assert.match(all, /sang it back. His own message/, 'her answer');
   assert.match(all, /we heard you/i, 'the sign');
   assert.match(all, /trying to bring him here/, 'why it struck');
   assert.match(all, /Odile and Talo got here first/);

@@ -78,7 +78,7 @@ export const UNDERSIDE_CONTENT = {
     { ...GARAGE_PEOPLE.pip, at: [20, -60], y: DECK, radius: 2, world: 'garage', lang: 'garage',
       lines: ['~surprised~ Don’t look down. I looked down. There’s nothing down there but more down.', '~playful~ Everything here hangs off something. I keep checking what I hang off.'],
       talk: { listen: [
-        '~neutral~ Zazie. From the Hangar, where the floor goes round and up is wherever you stand. I don’t trust down. Here down is all there is.',
+        '~neutral~ I don’t trust down. I never have. Here down is all there is.',
         '~curious~ They built the town under the rock so the rain can’t find it. The rain comes up out of the cloud anyway, they say. Sideways.',
         '~playful~ I asked how they mend a deck. They lower a man on a rope with a hammer. He whistles the whole way.',
         '~whisper~ The red cloths are for whoever lives under the cloud. So they know which way is up.',
@@ -87,7 +87,7 @@ export const UNDERSIDE_CONTENT = {
     { ...SKY_STONES_PEOPLE.tiv, at: [180, -150], y: DECK, radius: 2, world: 'arzach2', lang: 'arzach2',
       lines: ['~solemn~ On the stones we balance things on the ground. Here the whole town balances on nothing.', '~curious~ Come and look. The rock just stops.'],
       talk: { listen: [
-        '~neutral~ Tiv, a novice of the Sky Stones. Mother Ysolde sent me to learn how they hang things here.',
+        '~neutral~ Mother Ysolde sent me to study how they hang things here. I have filled two pages on rope.',
         '~curious~ Every house is tied to the rock with three ropes. If one breaks, they say, the other two argue about it.',
         '~playful~ I put a stone on the rail and it stayed. Then the wind came up out of the cloud and I caught it. Nobody saw.',
         '~solemn~ The cloud goes on to the edge of the sky. Maybe the stones were shelves like this once, and the cloud took the rest.',
@@ -95,7 +95,7 @@ export const UNDERSIDE_CONTENT = {
     { ...BAZAAR_PEOPLE.kip, at: [80, -46], y: LOW, radius: 2, world: 'bazaar', lang: 'bazaar',
       lines: ['~happy~ Baskets! The best couriers there are. They never argue about the way.', '~neutral~ Up, down, up, down. That’s the whole map here.'],
       talk: { listen: [
-        '~neutral~ Kip, courier of the skybridges, at the Signal Market. Here they don’t need me. They have ropes.',
+        '~neutral~ Here they don’t need a courier. They have ropes. I’ve never felt so unnecessary.',
         '~curious~ Bread goes down in the morning, the washing comes up at night. What goes down at night, nobody says.',
         '~playful~ I rode a basket once. Halfway down I learned their word for stop. It is the same word as sorry.',
         '~whisper~ Some of the ropes go right down into the cloud. Nobody hauls those up.',

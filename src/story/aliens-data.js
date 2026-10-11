@@ -21,7 +21,7 @@ export const ALIENS = {
       voice: 0.62, kind: 'm', color: '#d9b8d4', age: 'elder',
       lines: ['~solemn~ Walk softly. The grass is listening.', '~happy~ A new shape on the path. Hello, new shape.'],
       talk: { listen: [
-        { if: { quest: SPHERES, stage: 'aube' }, say: ['~solemn~ You found the umbrella trees. Good. They are almost as old as I am.', '~neutral~ The spheres are Linnet’s work. Ask *Linnet, in the grove*. She talks faster than I do.'] },
+        { if: { quest: SPHERES, stage: 'aube' }, say: ['~solemn~ You found the umbrella trees. Good. They are almost as old as I am.', '~neutral~ The spheres are Linnet’s. She listens to them all day, in the grove, and talks faster than I do.'] },
         { if: { quest: SPHERES, stage: 'listen' }, say: '~whisper~ The spheres that remember hum under your feet. *Splash them* with your bright water, then keep still while they play.' },
         '~solemn~ We came down with the spheres, my mother said. They fell; we floated. We still argue about who was luckier.',
         '~solemn~ The night the light passed, every thread I have pointed the same way, like grass in a river. Then it turned, and they all fell slack.',
@@ -34,7 +34,7 @@ export const ALIENS = {
       voice: 1.0, kind: 'f', color: '#e8c4cf', tint: { skin: '#eccfd3', rib: '#d49cab', rim: '#b8748a', glow: '#ffd9b0' },
       lines: ['~curious~ Oh. You are standing on the ground again.', '~playful~ Look how still the lake is. Look how still I am.'],
       talk: { listen: [
-        '~curious~ You walk on the ground? All the time? Doesn’t it wear your feet out?',
+        '~curious~ You walk on the ground? All the time? Does it not wear your feet out?',
         '~playful~ Nell says upside down is just another way up. For us it is the only way. We have tried the other.',
         '~tired~ Not now. I am watching a cloud. It has almost finished becoming a sphere.',
         '~neutral~ (She turns slowly away from you, then slowly back.) I was not leaving. I was looking at the lake.',
@@ -59,7 +59,7 @@ export const ALIENS = {
       lines: ['~playful~ Pass me if you like. Everyone does.', '~solemn~ Slowly. It is that kind of road.'],
       talk: { listen: [
         { if: { quest: 'spheres.avenue', active: true }, say: '~whisper~ You are walking the avenue slowly too? Then we are racing. I am winning.' },
-        '~solemn~ Cael says it is that kind of road. I have been on it eleven years. I am nearly at the end.',
+        '~solemn~ Cael says it is that kind of road. I have been on it eleven summers. I am nearly at the end.',
         '~playful~ Go on, pass me. The cypresses and I will talk about you.',
         '~curious~ What is the hurry where you come from? Is something chasing it?',
       ] },
@@ -113,7 +113,7 @@ export const ALIENS = {
       lines: ['~neutral~ Mind my foot. It is most of me.', '~tired~ Going to the cave. Set out in spring.'],
       talk: { listen: [
         { if: { quest: LAMPS, stage: 'hollin' }, say: '~neutral~ Hollin is on the island, by the big lamp. He has practised “welcome” for forty years. Let him say it.' },
-        { if: { quest: LAMPS, stage: 'pools' }, say: ['~sad~ Three pools along the path went dark the night the sky rang. We all pulled in at once.', '~curious~ The pools take colours. Yours are bright ones. *Shoot the dark pools* and see.'] },
+        { if: { quest: LAMPS, stage: 'pools' }, say: ['~sad~ Three pools along the path went dark when the high sound came. We all pulled in at once.', '~curious~ The pools take colours. Yours are bright ones. *Shoot the dark pools* and see.'] },
         { if: { quest: LAMPS, stage: 'answer' }, say: '~surprised~ Three short, one long, from across the water. My eyes went all the way up. *Whistle for the skiff*.' },
         '~tired~ Hurry is for people without a house. I have mine with me.',
         '~playful~ I am going to the cave. I set out in spring. Don’t wait for me.',
@@ -164,7 +164,7 @@ export const ALIENS = {
       lines: ['~whisper~ Shh. We are listening to the tower.', '~curious~ Did you hear that? Neither did we.'],
       talk: { listen: [
         { if: { quest: SIGNAL, stage: 'kip' }, say: '~whisper~ A courier ran up to the *second skybridge*. He hums when he runs. We know a hum when we hear one.' },
-        '~solemn~ The night the sky rang, the five of us said one word at once. None of us knew it. We still say it sometimes, by accident.',
+        '~solemn~ When the sky made its one long note, the five of us said one word at once. None of us knew it. We still say it sometimes, by accident.',
         '~neutral~ The tower never talked. We liked it for that. Everything else here talks.',
         '~playful~ Sel says we finish each other’s sentences. We say we never start them alone.',
         { after: { flag: 'bazaar.broadcast.on' }, say: '~sad~ We heard the tower speak. A man, calling for someone. We keep saying it over to each other, quietly, so it lasts.' },

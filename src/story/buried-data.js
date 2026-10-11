@@ -88,7 +88,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~happy~ Welcome down! I’m Wen. Sit anywhere you like sand. That gives you a good choice.", "~neutral~ Today is *Tooth Day*. Once a year the great wheel turns one tooth. I’m forty-one teeth old. Jot is nine and negotiating."],
+          say: ["~happy~ Down the ramp in one piece? Good. I’m Wen. Sit anywhere you like sand. That gives you a good choice.", "~neutral~ Today is *Tooth Day*. Once a year the great wheel turns one tooth. I’m forty-one teeth old. Jot is nine and negotiating."],
           choices: [
             { text: '~curious~ What wheel?', goto: 'wheel' },
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
@@ -111,11 +111,11 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ And the wheel turns today?', goto: 'today' }],
         },
         today: {
-          say: ["~neutral~ The wheel needs light. Every Tooth Day Hask goes into the canyon and lights *the Wick*, a lamp inside the oculus.", "~scared~ This year he refuses to go. Won’t tell me why. *Ask him.* Strangers sometimes get the answers neighbours don’t."],
+          say: ["~neutral~ The wheel needs light. Every Tooth Day Hask goes into the canyon and lights *the Wick*, a lamp inside the oculus.", "~scared~ This year he refuses to go. Won’t tell me why. He sits on *the bench beside his dome*, watching the sky."],
           do: { set: { 'buried.wen.heard': true } },
-          choices: [{ text: '~curious~ Where is Hask?', goto: 'where' }, { text: '~neutral~ I’ll talk to him.', end: true }],
+          choices: [{ text: '~curious~ Watching for what?', goto: 'where' }, { text: '~neutral~ I’ll talk to him.', end: true }],
         },
-        where: { say: ["~sad~ The bench beside his dome, just west of mine. Since the singing light passed, he watches the sky. He used to watch for people owing him things."], choices: [{ text: '~neutral~ I’ll go.', end: true }] },
+        where: { say: ["~sad~ For the singing light, since it passed. He used to watch for people owing him things. His bench is just west of my dome."], choices: [{ text: '~neutral~ I’ll go.', end: true }] },
         again: {
           say: [
             { if: { flag: 'buried.hask.asked' }, text: "~neutral~ He told you? Good. Take *the ramp south of the domes*, where the pipes go underground. Mind your footing." },
@@ -310,7 +310,7 @@ export const PEOPLE = {
           next: 'tell2',
         },
         tell2: { say: ["~happy~ Still running after all this time. Thank you for checking. Now go see the wheel turn."], choices: [{ text: '~happy~ Thank you, Ket.', end: true }] },
-        after: { say: ["~whisper~ Quiet again. Sometimes a machine just needs someone to hear it."], choices: [{ text: '~neutral~ (listen with her)', end: true }] },
+        after: { say: ["~whisper~ Quiet again. Ninety, ninety-one, ninety, and now nothing to report. I’ll miss the news."], choices: [{ text: '~neutral~ (listen with her)', end: true }] },
       },
     },
   },
@@ -327,7 +327,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~surprised~ A visitor! Tull. I oil the doors. Unpaid appointment. The alternative was listening to them squeal.", "~whisper~ Go in and look *at the window on the balcony*. It’s always warm. I think someone, or something, is still working behind it."],
+          say: ["~surprised~ A visitor! Tull. I keep the warm window company. Unpaid appointment. It’s better company than most.", "~whisper~ Go in and look *at the window on the balcony*. It’s always warm. I think someone, or something, is still working behind it."],
           choices: [
             { text: '~curious~ What’s behind the window?', goto: 'behind' },
             { text: '~curious~ Has anyone else come down here?', goto: 'helmet' },
@@ -343,10 +343,10 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll look at them.', end: true }, { text: '~curious~ What’s behind the window?', goto: 'behind' }],
         },
         again: {
-          say: [{ if: { flag: 'buried.oculus.lit' }, text: "~surprised~ You lit it! The whole drum is amber. Even the window’s warmer." }, { if: { not: { flag: 'buried.oculus.lit' } }, text: "~playful~ No squeak. Lovely. *The window is up on the balcony* if you’re going to look." }],
+          say: [{ if: { flag: 'buried.oculus.lit' }, text: "~surprised~ You lit it! The whole drum is amber. Even the window’s warmer." }, { if: { not: { flag: 'buried.oculus.lit' } }, text: "~playful~ Warmer, even. Lovely. *The window is up on the balcony* if you’re going to look." }],
           choices: [
             { text: '~curious~ Tell me about the window.', if: { quest: 'buried.window', started: false }, goto: 'behind' },
-            { text: '~curious~ The man in the helmet?', if: { all: [{ not: { flag: 'clue.buried.garage' } }, { quest: 'buried.window', started: true }] }, goto: 'helmet' },
+            { text: '~curious~ The clock-winder?', if: { all: [{ not: { flag: 'clue.buried.garage' } }, { quest: 'buried.window', started: true }] }, goto: 'helmet' },
             { text: '~happy~ Bye, Tull.', end: true },
           ],
         },

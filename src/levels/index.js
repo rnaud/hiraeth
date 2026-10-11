@@ -118,7 +118,7 @@ export const LEVELS = [
     // on the route since v1.40, the fifth world (names.js ORDER), with its temple, the Whale-House
     id: 'underwater', create: createUnderwater, build: buildUnderwater,
     title: TITLES.underwater, source: 'a city under glass on the sea floor',
-    blurb: 'A city of glass domes on the floor of the sea, its halls joined by sealed tubes, towers of amber pods and whales on the other side of the glass. The whales used to sing against it; since the night the sky rang they keep away, and the glass hums one wrong note.',
+    blurb: 'A city of glass domes on the floor of the sea, its halls joined by sealed tubes, towers of amber pods and whales on the other side of the glass. The whales used to sing against it; since the night the singing light passed they keep away, and the glass hums one wrong note.',
     moves: 'walk · climb · the lift',
   },
   {
@@ -139,7 +139,7 @@ export const LEVELS = [
     // on the route since v1.40, after the Buried Machine (names.js ORDER), with its temple, the Casting-House
     id: 'moonfoundry', create: createMoonFoundry, build: buildMoonFoundry,
     title: TITLES.moonfoundry, source: 'a workshop for making moons',
-    blurb: 'Unfinished ivory moons hang from the cranes of a vast open hangar or rest in orange claws, and the workers live in the old machinery. Since the night the sky rang every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
+    blurb: 'Unfinished ivory moons hang from the cranes of a vast open hangar or rest in orange claws, and the workers live in the old machinery. Since the night the singing light passed every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
     moves: 'walk · climb',
   },
   {
@@ -153,7 +153,7 @@ export const LEVELS = [
     // on the route since v1.40, before the Signal Market (names.js ORDER), with its temple, the Mooring-House
     id: 'spacecity', create: createSpaceCity, build: buildSpaceCity,
     title: TITLES.spacecity, source: 'a city of islands in the dark',
-    blurb: 'Rounded houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges, a great pale planet over the roofs. The islands are drifting apart a hand’s width a night, and the moorers’ cables have hummed one note since the sky rang.',
+    blurb: 'Rounded houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges, a great pale planet over the roofs. The islands are drifting apart a hand’s width a night, and the moorers’ cables have hummed one note since the singing light passed.',
     moves: 'walk · climb · glide',
   },
   {
