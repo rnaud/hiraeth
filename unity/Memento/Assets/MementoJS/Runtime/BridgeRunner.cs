@@ -250,8 +250,18 @@ namespace Memento.Bridge
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
+            // (-warm: every shader's variants made now, timed: is the load's first-render stall the shaders being made?)
+            if (BridgeArgs.Flag("-warm"))
+            {
+                var tw = System.Diagnostics.Stopwatch.StartNew();
+                foreach (var n in new[] { "Memento/Surface", "Memento/Mote", "Memento/Wisp", "Memento/Print", "Memento/Flame" }) Shader.Find(n);
+                Debug.Log($"Memento bridge: the bridge's shaders found in {tw.ElapsedMilliseconds} ms");
+                tw.Restart();
+                Shader.WarmupAllShaders();
+                Debug.Log($"Memento bridge: Shader.WarmupAllShaders took {tw.ElapsedMilliseconds} ms");
+            }
             Debug.Log($"Memento bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}; " +
-                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, shadows {(MementoShadows.On ? "on" : "off")}");
+                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, shadows {(MementoShadows.On ? "on" : "off")}");
         }
         /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
         public static string ResidentDrawerState()

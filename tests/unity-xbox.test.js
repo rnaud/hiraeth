@@ -126,4 +126,7 @@ test('the PlayerLoop timed step by step, a slow frame named by its steps; -no-hu
   const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /Flag\("-no-hud"\)/);
   assert.match(runner, /QualitySettings\.maxQueuedFrames = nq/);
+  assert.match(runner, /Flag\("-no-shadows"\)\) MementoShadows\.On = false/);
+  assert.match(runner, /Flag\("-warm"\)[\s\S]*Shader\.WarmupAllShaders\(\)/);
+  assert.match(metrics, /frames ≤17\.5 ms/, 'the frames against the refresh');
 });

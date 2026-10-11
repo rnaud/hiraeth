@@ -163,6 +163,10 @@ namespace Memento.Bridge
             { cpuMain += timing[0].cpuMainThreadFrameTime; cpuRender += timing[0].cpuRenderThreadFrameTime; gpu += timing[0].gpuFrameTime; cpuAll += timing[0].cpuFrameTime; presentWait += timing[0].cpuMainThreadPresentWaitTime; timed++; }
             if (now - windowStart >= 5 && frames.Count > 0)
             {
+                // (how the frames fall against the TV's refresh: whole vblanks say the present waits for one)
+                int v1 = 0, v2 = 0, v3 = 0;
+                foreach (var x in frames) { if (x < 17.5f) v1++; else if (x < 34f) v2++; else v3++; }
+                string vblanks = $" · frames ≤17.5 ms {100 * v1 / frames.Count}%, ≤34 {100 * v2 / frames.Count}%, more {100 * v3 / frames.Count}%";
                 frames.Sort();
                 float span = now - (float)windowStart;
                 double fps = frames.Count / span;
@@ -178,7 +182,7 @@ namespace Memento.Bridge
                 // frame and its wait on the present; ops still held back by -ops-cap)
                 string detail = (pFrames > 0 ? $" · phases scripts {pScripts / pFrames:0.0} (ops {ops / n:0.0}) before render {pBefore / pFrames:0.0} contexts {pContexts / pFrames:0.0} after {pAfter / pFrames:0.0} ms" : "")
                     + (timed > 0 ? $" · cpu frame {cpuAll / timed:0.0} present wait {presentWait / timed:0.0} ms" : "") + (BridgeHost.Held > 0 ? $" · {BridgeHost.Held} ops held" : "")
-                    + (BridgeLoopTimer.Installed ? $" · steps {BridgeLoopTimer.TakeWindow(8)}" : "");
+                    + (BridgeLoopTimer.Installed ? $" · steps {BridgeLoopTimer.TakeWindow(8)}" : "") + vblanks;
                 Write((settled < 0 ? "loading: " : "frames: ") + readout + detail);
                 frames.Clear(); windowStart = now; cpuMain = cpuRender = gpu = cpuAll = presentWait = 0; timed = 0;
                 pScripts = pBefore = pContexts = pAfter = 0; pFrames = 0;
