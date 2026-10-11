@@ -1,0 +1,116 @@
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_f77271909ccf4e 105
+  s_9ca76055a220ed::t_84624291dd5e55 35,87,89,92-94,99-104,106-135,137-138,140,143-144,157-159,164,167
+.claude/skills/zfight-qc/SKILL.md
+  s_9ca76055a220ed::t_f9172f44a211a5 1-67
+changelog.md
+  s_9ca76055a220ed::t_283b4a1371c014 7-15
+docs/README.md
+  s_9ca76055a220ed::t_b58820d38a5888 47
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_b3455d277c99ec 279-292
+docs/systems/progression.md
+  s_9ca76055a220ed::t_dd3c744310868c 31-63
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_685a9f00425405 1004-1045
+docs/systems/temples.md
+  s_9ca76055a220ed::t_f3590982584150 137-138,248-280,282
+index.html
+  s_9ca76055a220ed::t_408fa2821f3401 419-420
+scripts/temple-design/audit.mjs
+  s_9ca76055a220ed::t_ccd6dc78c6b596 46-47,50-52,55
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_5060147228840a 73,292
+scripts/zfight/audit.mjs
+  s_9ca76055a220ed::t_29a7507037bb2d 1-81
+scripts/zfight/lib.mjs
+  s_9ca76055a220ed::t_a2a85c01d3552f 1-227
+scripts/zfight/list-temple.mjs
+  s_9ca76055a220ed::t_d0ead71755a26e 1-23
+src/boxes/beats.js
+  s_9ca76055a220ed::t_0717a273bbbcfb 39
+src/boxes/index.js
+  s_9ca76055a220ed::t_8dc77a02903465 68-69
+src/boxes/model.js
+  s_9ca76055a220ed::t_a22d23c0f5273d 240-259,550
+src/boxes/placements.js
+  s_9ca76055a220ed::t_4a2cbc535d701f 34-35,47,57-60,65-68,70-71,278-281,291
+src/changelog.js
+  s_9ca76055a220ed::t_68d1328931015d 54-64
+src/fluid-blade.js
+  s_9ca76055a220ed::t_6ec17d5e89b1ff 426-428,741,1041
+src/fluid-tool.js
+  s_9ca76055a220ed::t_3d7c49c53a9f82 1007-1008,1010-1011
+src/foes.js
+  s_9ca76055a220ed::t_b5a2a5dcf50734 1514-1516,1519-1520,1702,1804-1809,1813-1816,1823-1824,1830-1832,1835-1846,1908,1928,2227-2232,2972
+src/game-menu-data.js
+  s_9ca76055a220ed::t_c5e414915b62ba 17
+src/game-menu.js
+  s_9ca76055a220ed::t_d3f670f426468a 120,124
+src/i18n/en.js
+  s_9ca76055a220ed::t_7c6a4dce5bb786 292-293,377
+src/i18n/fr.js
+  s_9ca76055a220ed::t_9c65c1d5700d16 290-291,375
+src/items.js
+  s_9ca76055a220ed::t_db7c2651f56a90 5-6,30-41,85,325
+src/main.js
+  s_9ca76055a220ed::t_9332ac21d0aaf6 383,590-599,1850
+src/minigames/kit/onfoot.js
+  s_9ca76055a220ed::t_a0d4c0f2088070 11,21-22
+src/save-migrate.js
+  s_9ca76055a220ed::t_ab00259643ce48 53-58,193-196,199-217
+src/temples/boss.js
+  s_9ca76055a220ed::t_5ad33d291e7a18 48-49,536-538
+src/temples/desert-data.js
+  s_9ca76055a220ed::t_04f21b85e5526f 52-54
+src/temples/desert.js
+  s_9ca76055a220ed::t_472b26f6fb84c9 7-9,20-24,28-53,84-86,88,90,96-98,100,107,109,112-119,121-122,124-128,130-131,134-137,147,150,152-154,158-159,161,165,170-171,175-177,180-182,184-188,190,194,208-225,227,230,234,242-253,287-290,296,300-301,304,306-311,313,318-322,328-332,334-335,342-344,352,354-355,357-358,361-364,368-375,392-393,396,398-400,437,443,671-684,687-690,700-715,717-718,721-730
+src/temples/index.js
+  s_9ca76055a220ed::t_ad45bc13837c5c 93,308
+src/temples/kit.js
+  s_9ca76055a220ed::t_bb7943dad30b79 26-31,344-346,357-361,368,370-371,386-392,394-395,398-402
+src/temples/logic.js
+  s_9ca76055a220ed::t_4f49fde4bd481c 15,25-27,127-133,218,220,222,240-248,278-282,284,289-290
+src/temples/migrate.js
+  s_9ca76055a220ed::t_8958c75293df23 11-12
+src/temples/pieces.js
+  s_9ca76055a220ed::t_a09f504cd920b8 13,24-25,28-29,282-284,310-313,367,394-402,462,498-514,664-672,697-700,704,718-742,775-776,791-800,811-818,837-838,882,888-892,1326-1328,1376-1377,1381-1383,1386-1388,1396-1402
+src/temples/runtime.js
+  s_9ca76055a220ed::t_b2a5392d651040 54,106-110,183
+tests/abilities.test.js
+  s_9ca76055a220ed::t_061c579c66ccc5 76-91
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_d853e1a98723e8 101-102
+tests/foes.test.js
+  s_9ca76055a220ed::t_1da1526e026540 153-175
+tests/items-page.test.js
+  s_9ca76055a220ed::t_97b33b8a953612 18-19
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_d90e64eae5e874 592,624-626
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_a39b7d407e6a76 307-309
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_12c99831687127 3-5,90-128
+tests/shard-timings.json
+  s_9ca76055a220ed::t_b92746defc7bb0 2-5,9-15,17-18,20-48,51-67,69,71,73-78,80-85,87-129,131,134-135,137-143,145-152,156,159-163,166,168-174,176-177,183-184,188-193,195,197-202,204-212,214-259,261-266,268,270-281,283-286,288-292,294,298-300,302,304,311-312,316,328-329,335-337,343-344,347,349-351,353-354,356,359-364,368,375,383,387-392,397,401-402,406,416,422,427-428,430-432
+tests/temples.test.js
+  s_9ca76055a220ed::t_52d4b365b3d86a 133-134,145,264,266,352,354,371-373,375-390,394,396,399,401-403,405-407,411-431,436-437,439-440,442-458,460-469,472-475,479-481,484,487,489-498,500,502-503,506-511,513-516,518,521-522,524-526,528,531,541-545,547-564,566,568,571-574,577-578,585,600,605-616
+tests/zfight.test.js
+  s_9ca76055a220ed::t_2b1481abd25950 1-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "da872d94d263e83b1aa56378392d9a463353344c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
