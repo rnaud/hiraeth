@@ -628,6 +628,8 @@ const SQ_FROM = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 72
 const SQ_AVENUE = { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 58, eye: [215.5, 3.4, 374.5], target: [231.5, 3.2, 397.5], player: [212.5, 1.3, 369.5] };
 // (v1.50: the walks home from the temples, issue #132: this branch's own Vite and the same tree before it, the world's temple done)
 const HOME50 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5473, changelog-shots.mjs’s shoot) and the same tree before the change, 11 October; cwebp -q 72';
+// (v1.50: the landmarks for the blind legs, issues #134-#136: scripts/design-qc/capture.mjs's views, this tree before and after)
+const WAYS50 = 'headless Chrome (muted, High, 960 × 540) against this branch’s own Vite (port 5361, scripts/design-qc/capture.mjs) before the change and after it, 11 October; cwebp -q 72';
 const SAVE_HOME = (w) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...(w === 'incal' ? { 'item.cabpass': true } : { [`temple.${w}.done`]: true }) }, keepsakes: [] });
 // (v1.50: the camera at the sleeping car's door: the camera QC's own frames, the same moment before and after)
 // (v1.50: Viridel's Greenhouse, issue #131: this branch's own Vite and the same tree before the change)
@@ -721,6 +723,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'founders-lamp', title: 'From the bell tower', caption: 'From beside Calix at the foot of the monastery’s bell tower, the bell rung: before, the Belfry’s dome over the roofs; after, its bronze needle and lit lamp over it', from: VA50,
         view: { level: 'arzach', save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'arzach2.bell.rung': true }, keepsakes: [] }, hour: 10, fov: 50, eye: [-226, 80.6, -232], target: [-128, 104, -6], player: [-224.5, 77.2, -229], heading: 0.41 } },
     ], see: 'Ring the bell, then step out beside Calix and look north-east: the lamp over the Belfry is lit.' },
+    { match: 'In Lorn, the lamp-keepers’ old boat-way is marked again', shots: [
+      { name: 'stakes-mouth', title: 'Out of the crystal cave', caption: 'From the crystal cave’s south mouth, looking toward Hollin’s island: before, the open water and the wood beyond; after, the first coral float at the mouth and the next out on the water', from: WAYS50,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-206, 3.2, 84], target: [-7, 2, -469], player: [-205, 2, 86] } },
+      { name: 'stakes-water', title: 'On the open water', caption: 'Halfway across, toward Hollin: before, nothing on the water; after, the stakes running on toward the wood', from: WAYS50,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-130, 2.6, -90], target: [-7, 4, -469], player: [-130, 0.5, -90] } },
+    ], numbers: [{ title: 'The long legs that see their goal or a landmark by it (level design audit)', unit: '%', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'Lorn (wayfinding 4 → 5)', before: 78, after: 100 }], source: 'node audit, this build against v1.50 before it: the crystal cave → Hollin (631 m) now led by the stakes; Wendel → the Great Crystal (188 m) was always in sight, the audit now aims at the crystal’s tip' }],
+      see: 'Ring the heart of the crystal cave, then leave by its south mouth on the skiff: follow the coral floats to Hollin.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

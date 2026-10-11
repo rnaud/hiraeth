@@ -11,7 +11,7 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildCaveCrown, buildEggLamps, crownWindow, buildLookout } from '../lorn-ways.js';
-import { buildKeepersLight, buildFerryBell, buildWaterWaySouth } from '../lorn-crossing.js';
+import { buildKeepersLight, buildFerryBell, buildWaterWaySouth, buildKeepersStakes } from '../lorn-crossing.js';
 import { buildDeepWood, deepWoodHeight, deepWoodWeight, DEEP_WOOD_HAZE, DEEP_WOOD } from './perdide2.js';
 import { FLORA_WORLDS } from '../flora.js';
 
@@ -383,7 +383,12 @@ export function* buildPerdide(scene) {
     scene.add(ring);
     const light = new THREE.Vector4(gx, base + 20, gz, 60);
     lights.push(light);
-    crystal = { mesh: cr, mat: crMat, ring, light, pos: new THREE.Vector3(gx, base, gz), center: new THREE.Vector3(gx, base + 18, gz), spires };
+    // (its tip, the tallest spire's point: what shows over the landing's grove)
+    const P = cr.geometry.attributes.position;
+    let k = 0;
+    for (let i = 1; i < P.count; i++) if (P.getY(i) > P.getY(k)) k = i;
+    const tip = new THREE.Vector3(P.getX(k) + gx, P.getY(k) + base, P.getZ(k) + gz);
+    crystal = { mesh: cr, mat: crMat, ring, light, pos: new THREE.Vector3(gx, base, gz), center: new THREE.Vector3(gx, base + 18, gz), spires, tip };
   }
 
   // ---------------------------------------------------------- the crystal cave
@@ -622,6 +627,15 @@ export function* buildPerdide(scene) {
   // (the way home by water runs on to the ship: the Deep Wood's water-way and its lamps south, one line)
   level.lines = level.lines.map((l) => (l.name === 'the water-way' ? { ...l, points: [...l.points, ...south.points] } : l));
   level.sights = [...level.sights, { name: 'the keepers’ light', at: light.at }, { name: 'the ferry bell', at: bell.at }, { name: 'the lamp-boat', at: south.boat }];
+  // the keepers' stakes (src/lorn-crossing.js; level design audit v1.49, issue #135): their old boat-way from the crystal
+  // cave's south mouth past the keepers' light to Hollin's island, a coral float on every pole; built last, as the rest
+  const stakes = buildKeepersStakes(scene, terrain);
+  level.crossing.stakes = stakes;
+  level.lines = [...level.lines, { name: 'the keepers’ stakes', points: stakes.points }];
+  level.sights = [...level.sights, { name: 'the keepers’ stakes', at: stakes.sight }];
+  // (and the Great Crystal, aimed at by its own tip: the audit's height grid keeps the thirty most striking peaks, and the
+  // Deep Wood's mushrooms are all taller, so the crystal over the landing's grove was measured as no landmark at all)
+  level.beacons = [...level.beacons, { name: 'the Great Crystal', top: crystal.tip.toArray(), height: crystal.tip.y - crystal.pos.y }];
   return level;
 }
 export const createPerdide = stepped(buildPerdide);

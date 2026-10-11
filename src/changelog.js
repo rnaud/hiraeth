@@ -35,6 +35,8 @@ export const CHANGELOG = [
     'In Vael, the long walk over the plain from the Aerie to the lone tower passes two new things to turn aside for: the white bones of a great bird a rider once flew, lying across the sand, and the riders’ little shrine in the lee of a hoodoo, ringed with their streamers. Both can be looked at.',
     'In Vael, Sister Aube keeps a fire in her hermitage: from the riders’ gate its thread of smoke rises high over the sky stones, so you can fly straight to her.',
     'In Vael, Brother Calix now waits at the foot of his bell tower, and the Founders’ Belfry wears a bronze needle with a lamp on its dome, seen over the monastery roofs from there. The lamp lights when the bell rings.',
+    // things to steer by (docs/systems/worlds.md "Landmarks for the blind legs"; issues #135, #136, #134)
+    'In Lorn, the lamp-keepers’ old boat-way is marked again: a row of tall stakes, each with a coral float on top, leads from the crystal cave’s south mouth across the open water, past the keepers’ light, to Hollin’s island.',
   ] },
   { v: '1.49', date: '2026-10-11', items: [
     // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)

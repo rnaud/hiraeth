@@ -1848,6 +1848,19 @@ out on, 0.4 m proud of the face below (the mantle still clears it):
 
 Each climb is walked in `tests/spacecity-world.test.js`, `tests/moonfoundry.test.js` and `tests/spheres.test.js`.
 
+## Landmarks for the blind legs (level design audit v1.49, issues #134-#136; v1.50)
+
+Legs of the main quest with nothing to steer by, and high places that did not pull. Each landmark is checked from the
+spots it is there for, with the audit's own rays, in `tests/level-design-landmarks.test.js`.
+- **Lorn, the crystal cave → Hollin** (631 m by skiff; `src/lorn-crossing.js` `KEEPERS_STAKES`): the keepers' stakes,
+  their old boat-way up to the cave, a pole every 40 m with a coral float on top, from just inside the cave's south
+  mouth (52 m from its heart, in sight of it) over the water, past the keepers' light's west side, to the shallows off
+  Hollin's island. A leading line (`the keepers' stakes`), drawn last with the rest of the crossing. The poles collide
+  (the skiff bumps them), the floats are drawn only.
+- **Lorn, Wendel → the Great Crystal** (188 m): it was always in sight (the pink spire with its ring over the landing's
+  grove), but the audit's height grid keeps the thirty most striking peaks and the Deep Wood's mushrooms are all taller,
+  so the crystal was no landmark to it. It is a beacon now, aimed at by its tallest spire's tip (`crystal.tip`).
+
 ## A shop in every route world (v1.14)
 
 Each route world has one shop, in its own architecture, by the way the player walks (the level design audit's

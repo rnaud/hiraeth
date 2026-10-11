@@ -17,9 +17,15 @@ import { makeMaterial } from './materials.js';
 //                        the open water and down the channel east of the landing island, with the keepers' lamp-boat
 //                        moored halfway: the way home by water ends at your ship now. Lit with the rest of the water-way.
 //
+//   the keepers' stakes  (level design audit v1.49, issue #135: from the crystal cave's heart to Hollin was 631 m with
+//                        nothing to steer by) the keepers' old boat-way up to the cave, when they came for its crystals:
+//                        tall poles every forty metres, each with a coral float lashed at its top, from the cave's south
+//                        mouth across the open water, past the keepers' light, to Hollin's island.
+//
 //   buildKeepersLight(scene, terrain) → { at, top, lamp, height }
 //   buildFerryBell(scene, terrain)    → { at }
 //   buildWaterWaySouth(scene, terrain) → { points, boat, lit(on) }
+//   buildKeepersStakes(scene, terrain) → { points, stakes, floats, sight }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const nonIdx = (g) => (g.index ? g.toNonIndexed() : g);
@@ -138,4 +144,54 @@ export function buildWaterWaySouth(scene, terrain) {
   const lit = (on) => { litGlass.visible = !!on; unlit.visible = !on; };
   const points = WATER_WAY_SOUTH.map(([x, z]) => [x, Math.max(terrain.heightAt(x, z), 0) + 0.5, z]);
   return { points, boat: V(B.x, 0.5, B.z), lit };
+}
+
+/**
+ * The keepers' stakes' way, [x, z]: from just inside the crystal cave's south mouth (src/levels/perdide.js CAVE: 52 m
+ * down the tube from its heart) out over the water, past the keepers' light's west side, to the shallows off Hollin's
+ * island.
+ */
+export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-215.2, 74], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 40 };
+
+/** Where the stakes stand along their way, [x, z]: one every `every` metres from its start, the last at its end. */
+export function keepersStakeSpots({ way, every } = KEEPERS_STAKES) {
+  const out = [way[0]];
+  let carry = 0;
+  for (let i = 1; i < way.length; i++) {
+    const [ax, az] = way[i - 1], [bx, bz] = way[i], L = Math.hypot(bx - ax, bz - az);
+    for (let s = every - carry; s < L; s += every) out.push([ax + (bx - ax) * (s / L), az + (bz - az) * (s / L)]);
+    carry = (carry + L) % every;
+  }
+  const end = way.at(-1), last = out.at(-1);
+  if (Math.hypot(end[0] - last[0], end[1] - last[1]) > every * 0.4) out.push(end); else out[out.length - 1] = end;
+  return out;
+}
+
+export function buildKeepersStakes(scene, terrain) {
+  const { wood, lamp } = mats();
+  const band = makeMaterial({ color: '#c46f5c', flat: true });   // (the keepers' coral, painted on)
+  const poles = [], bands = [], floats = [], stakes = [];
+  keepersStakeSpots().forEach(([x, z], i) => {
+    // (driven into the water's bed, or stood on the cave's floor inside its mouth), leaning a little this way or that
+    const g = terrain.heightAt(x, z), foot = g > 0 ? g : g - 0.5, top = Math.max(g, 0) + 4.6 + (i % 2) * 0.5;
+    const lean = (((i * 5) % 3) - 1) * 0.035, m = new THREE.Matrix4().makeRotationZ(lean).setPosition(x, 0, z);
+    poles.push(nonIdx(new THREE.CylinderGeometry(0.11, 0.17, top - foot, 6).translate(0, (top + foot) / 2, 0).applyMatrix4(m)));
+    bands.push(nonIdx(new THREE.CylinderGeometry(0.15, 0.15, 0.5, 6).translate(0, top - 0.9, 0).applyMatrix4(m)));
+    // the float: a coral glass ball in a ring of cord, lashed on the top
+    floats.push(nonIdx(new THREE.SphereGeometry(0.6, 10, 8).translate(0, top + 0.45, 0).applyMatrix4(m)));
+    poles.push(nonIdx(new THREE.TorusGeometry(0.5, 0.04, 4, 10).rotateX(Math.PI / 2).translate(0, top + 0.2, 0).applyMatrix4(m)));
+    stakes.push(V(x - Math.sin(lean) * top, Math.cos(lean) * top, z));
+  });
+  const g = new THREE.Group();
+  g.name = 'The keepers’ stakes';
+  // the poles collide as drawn (the skiff bumps them, as it does the water-way's posts); the bands and floats are drawn only
+  const pm = new THREE.Mesh(mergeGeometries(poles), wood), bm = new THREE.Mesh(mergeGeometries(bands), band), fm = new THREE.Mesh(mergeGeometries(floats), lamp);
+  pm.userData.castShadow = true;
+  for (const m of [bm, fm]) m.userData.noCollide = true;
+  g.add(pm, bm, fm);
+  scene.add(g);
+  // (the way along them, for the level design audit: each stake, at the water)
+  const points = stakes.map((p) => [p.x, Math.max(terrain.heightAt(p.x, p.z), 0) + 0.5, p.z]);
+  const mid = stakes[Math.floor(stakes.length / 2)];
+  return { points, stakes, floats: stakes.map((p) => p.clone().setY(p.y + 0.45)), sight: V(mid.x, 0.5, mid.z) };
 }
