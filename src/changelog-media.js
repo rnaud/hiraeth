@@ -544,6 +544,10 @@ const FROM_PIRATES = 'headless Chrome against this branch’s own dev server, Hi
 // pinned in the chest's own frame, the traveller placed by it; the opening held at the same share of the opening)
 const FROM_CHESTS42 = 'headless Chrome (High, 1280 × 720, hour 10, clear, muted) against this branch’s own Vite and its parent commit’s tree, the camera pinned in the chest’s own frame and the traveller placed beside it, the opening held at the same moment: the same views for both';
 const COST42 = { device: 'the Mac (M4 Pro), headless Chrome, 1280 × 720, hour 10', source: 'renderer.info over renderFrame() with the desert’s chests shown and hidden (the least of 5), the programs linked once the view is up; the same views as the pictures' };
+// (v1.44: the Givers' House remade, the sword and the shield found in it; the views in the house, far over the desert)
+const C44 = 'da872d94';
+const SAVE44 = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'save.migrated': 13, 'tool.empty': false }, keepsakes: [] };
+const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, fov: 70, wait: 3500, eye: [eye[0] + 150, eye[1] + 2400, eye[2] - 250], target: [target[0] + 150, target[1] + 2400, target[2] - 250], player: [player[0] + 150, player[1] + 2400, player[2] - 250] });
 export const CHANGELOG_MEDIA = {
   '1.44': [
     { match: 'At the edge of Vael’s plain stands the riders’ gate', shots: [
@@ -569,6 +573,45 @@ export const CHANGELOG_MEDIA = {
       { name: 'film-cables', title: 'The cables', caption: 'The second panel: before, the island’s underside and the void; after, the great cable to the Towers drawn taut, its lamps running along it', from: FROM_CINE43 },
       { name: 'film-clock', title: 'The clock', caption: 'A second into the first shot: before, the lens pulled in against the Clock-House’s wall; after, the house, its cogs and the clock from out on the sand', from: FROM_CINE43 },
     ] },
+    { match: 'You set out with empty hands now', shots: [
+      { name: 'empty-hands', caption: 'His back in a new game: before, the sword in its sheath across his back from the start; after, the backpack alone, his hands empty until the Givers’ House', commit: C44,
+        view: { level: 'desert', hour: 10, save: SAVE44, people: [{ id: 'traveller', yaw: Math.PI * 0.62, dist: 1.7, height: 1.2 }, { id: 'traveller', yaw: Math.PI * 1.25, dist: 1.7, height: 1.2 }], setup: "await new Promise((r) => setTimeout(r, 2500));" } },
+    ], see: 'Start a new game: no sword on his back, and RB / R1 and LB / L1 do nothing. Walk out into the desert: no ink blots come for you. In the Givers’ House, open the chest on the dais half-way through.' },
+    { match: 'The Givers’ House is remade for what you carry', shots: [
+      { name: 'givers-channel', caption: 'The Dry Channel, from its door: before, the bridge’s sockets choked with thorns, a tar ball and its flame on the ledge; after, one pier of the old channel standing in the sand, a double jump from either side', commit: C44,
+        view: GH([-8, 3, 55], [4, -2, 75], [-8, 0.1, 54]) },
+    ], see: 'In the Givers’ House, walk into the tar ball in the first hall along its groove: it rolls ahead of you through the old flame. In the sand pit beyond, run and jump from the ledge, and jump again in the air.' },
+    { match: 'Taking the blade wakes the chamber’s machines', see: 'Open the chest on the dais in the Givers’ House’s round chamber: two machines wake beside you and both doors grind shut; break them with the blade and the doors sink open.' },
+    { match: 'Cut the corridor’s thorns with the blade', see: 'In the round chamber, walk the tar ball north into the corridor: it catches at the little fire but goes out before the bowl at the far end. Cut it with RB / R1 instead: it reaches the bowl still burning and the bridge rises.' },
+    { match: 'The Givers’ guard is on the far landing', shots: [
+      { name: 'givers-winds', caption: 'The hall east of the far landing: before, the Hall of Channels with its relay brazier; after, the Hall of Winds, the bellows’ vents in its walls, the struck eye high on the end wall, the ball and its fire at the far end', commit: C44,
+        view: GH([16, 10, 150], [38, 10, 145], [16, 7.1, 150]) },
+    ], see: 'Open the chest on the Hall of Fires’ far landing, then walk east into the next hall: the wind shoves you back; hold LB / L1 facing into it and you walk on.' },
+    { match: 'The Keeper is calmed with what you found', shots: [
+      { name: 'givers-cistern', caption: 'The cistern from its door: before, four tall braziers round the rim and balls by them; after, each spoke runs out to a hooded bowl on the rim, a little fire half-way along it, its ball at the basin’s edge', commit: C44,
+        view: GH([0, 12, 170], [0, 7, 190], [0, 7.1, 165]) },
+    ], see: 'In the cistern, cut each spoke’s ball outward: it catches at the little fire and lights the hooded bowl. When the Keeper charges, hold LB / L1: it reels and pants; walk to its mouth and press A / × to give it water.' },
+    { match: 'Ember mode is in the Givers’ Hearth now', see: 'In the Givers’ Hearth, a chest stands on the hall’s floor by the fluid gun’s, nearer the passage in. Leave the desert without entering the Givers’ House: by the ship in the next world, two chests hold the blade and the guard.' },
+    { match: 'Your saves keep the sword and the guard you had', see: 'Load a save from v1.43: the sword is on his back and the guard on his arm as before. A save from inside the old Givers’ House comes in at its door; one that had calmed the Keeper finds its doors open.' },
+    { match: 'Doorframes, sills, roof edges and wall ends in every temple', numbers: [
+      { title: 'Visible z-fighting, temple by temple (sites where two looks share a plane, seen from where someone could stand)', unit: '', better: 'lower', device: 'Node: each world built as the game builds it, every static mesh’s triangles (scripts/zfight/audit.mjs, tests/zfight.test.js)', rows: [
+        { where: 'the Givers’ House (desert)', before: 87, after: 0 },
+        { where: 'the Warden’s Well (City-Shaft)', before: 83, after: 47 },
+        { where: 'the Founders’ Belfry (Vael)', before: 84, after: 11 },
+        { where: 'the Aerie (Vael)', before: 66, after: 8 },
+        { where: 'the Lamp-House (Lorn)', before: 74, after: 9 },
+        { where: 'the Hush-House (Lorn)', before: 69, after: 10 },
+        { where: 'the Builders’ Greenhouse (Viridel)', before: 43, after: 4 },
+        { where: 'the Whale-House (Underwater City)', before: 161, after: 19 },
+        { where: 'the Clock-House (Glass Dunes)', before: 59, after: 3 },
+        { where: 'the Engine-House (Buried Machine)', before: 72, after: 0 },
+        { where: 'the Casting-House (Moon Foundry)', before: 118, after: 20 },
+        { where: 'the Footprint (Garden of Spheres)', before: 59, after: 2 },
+        { where: 'the Mooring-House (City Floating in Space)', before: 73, after: 5 },
+        { where: 'the Undertower (Signal Market)', before: 85, after: 12 },
+        { where: 'all fourteen', before: 1133, after: 150 },
+      ], source: 'src/temples/kit.js Z_GAP: doorframes 2 cm into their openings, sills 2 cm under the floor, roofs 2 cm inside the walls, open-sided walls’ ends 2 cm short; docs/systems/rendering.md “Z-fighting”' },
+    ], see: 'In any temple, look along a doorway’s frame or up at a roof’s edge from a few metres off and walk past: no stripes. In the Givers’ House, none anywhere.' },
     // (a new game: pictures with no before; the run flown ahead by its pilot, minigame.session.forward)
   ],
   '1.43': [
