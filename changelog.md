@@ -4,7 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.46 — 2026-10-11
 
-- Each frame skips more work the graphics chip already had: lists of lights and colours it was sent unchanged at every surface, the settings of textures sent again with the people’s every move. A little more time for everything else, most of all on the Xbox.
+- Each frame skips more work it had already done: lists of lights and colours sent unchanged at every surface, the settings of textures sent again with the people’s every move, and the walk through the parts of the world with nothing left to draw on their own. A little more time for everything else, most of all on the Xbox.
 - Every world draws its buildings, rocks and props that never move in a few batches instead of one at a time: a third to a half fewer instructions to the graphics chip each frame on every device, with the same picture.
 - On the Xbox the game now holds an even 30 frames a second where it can’t yet reach 60, instead of jumping between 20 and 50, and stays at the TV’s full sharpness: it no longer drops the resolution when the console’s processor, not its graphics chip, is what is slow. Its shadows are drawn as on the Steam Deck, which takes about a sixth of the work off each frame.
 - The world debug menu can save a screenshot as a draft for the Notes page: the picture, the world, where you stand, the build and the preset. The first time, the game shows a code to enter on the Notes page to pair the device. Drafts wait on the Notes page, apart from the issues, to be written up and sent, or deleted.

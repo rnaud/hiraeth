@@ -255,11 +255,12 @@ class StillBatch extends THREE.BatchedMesh {
     let n = 0;
     for (const it of this.items) {
       const e = it.e;
-      if (e.out || !this.want(e)) continue;
+      if (e.out) continue;
+      // (the frustum first: most of a batch is off screen, and the visibility walks up the mesh's parents)
+      if (e.sphereOf !== e.o.geometry) this.owner.place(e);
+      if (!_frustum.intersectsSphere(e.sphere) || !this.want(e)) continue;
       const gid = this.geometryFor(it);
       if (gid < 0) { this.owner.release(e, 'room'); continue; }
-      if (e.sphereOf !== e.o.geometry) this.owner.place(e);
-      if (!_frustum.intersectsSphere(e.sphere)) continue;
       // (three's opaque order inside a material: by the depth of the object's origin on screen)
       if (sort) e.z = _v.setFromMatrixPosition(e.o.matrixWorld).applyMatrix4(_pm).z;
       it.cur = gid;
@@ -425,6 +426,41 @@ export class StaticBatches {
     for (const b of this.view) root.add(b);
     this.stats.meshes = this.entries.filter((e) => e.view).length; this.stats.batches = this.view.length;
     this.stats.alone = this.entries.length - this.stats.meshes;
+    this.skip();
+  }
+
+  /**
+   * The subtrees with nothing for a pass to draw (every mesh in them drawn by a view batch, nothing else but empty groups
+   * and bones: a body's skeleton, ~900 bones at the desert's spawn)
+   * marked renderSkip: three's walk of the scene (projectObject, patched in scripts/three-program-keys.mjs) doesn't go
+   * into them. A mark comes off with anything added under it or a mesh in it drawing itself again.
+   */
+  skip() {
+    this.unskip();
+    const batched = new Set(this.entries.filter((e) => e.view && !e.out).map((e) => e.o));
+    const plain = (o) => !o.isMesh && !o.isLight && !o.isPoints && !o.isLine && !o.isSprite && !o.isCamera && !o.isScene && !o.material && o.constructor !== undefined && o.type !== 'LOD';
+    const empty = new Map();
+    const judge = (o) => {
+      let ok = batched.has(o) ? o.layers.mask === 0 : plain(o);
+      for (const c of o.children) ok = judge(c) && ok;
+      empty.set(o, ok);
+      return ok;
+    };
+    judge(this.root);
+    this.skipped = [];
+    const onAdd = () => { this.unskip(); this.skipAgain = 120; };   // (marked again two seconds on: a body's hand took a prop)
+    for (const [o, ok] of empty) {
+      if (!ok || o === this.root || empty.get(o.parent)) continue;
+      o.renderSkip = true;
+      this.skipped.push(o);
+      o.traverse((d) => { d.addEventListener('childadded', onAdd); });
+    }
+    this.onAdd = onAdd;
+    this.stats.skipped = this.skipped.length;
+  }
+  unskip() {
+    for (const o of this.skipped ?? []) { o.renderSkip = false; o.traverse((d) => d.removeEventListener('childadded', this.onAdd)); }
+    this.skipped = [];
   }
 
   /** An entry's world sphere for its current geometry. */
@@ -442,12 +478,14 @@ export class StaticBatches {
     if (e.lent || e.view) e.o.layers.mask = e.mask;
     e.lent = false;
     e.released = why;
+    for (let p = e.o; p; p = p.parent) if (p.renderSkip) p.renderSkip = false;   // (it draws itself: its walk again)
     this.stats.released++;
   }
 
   /** Once a frame, after the scene's matrices (main.js renderFrame): what moved or changed since. */
   update(renderer = null) {
     if (!this.on) return;
+    if (this.skipAgain > 0 && --this.skipAgain === 0) this.skip();
     const T = this.tables;
     for (const e of this.entries) {
       if (e.out) continue;
@@ -503,6 +541,7 @@ export class StaticBatches {
     this.on = v;
     for (const e of this.entries) if (!e.out && e.view) e.o.layers.mask = v ? 0 : e.mask;
     for (const b of this.view) b.visible = v;
+    if (v) this.skip(); else this.unskip();
   }
   get enabled() { return this.on; }
 

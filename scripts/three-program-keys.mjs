@@ -58,6 +58,10 @@ export const THREE_PATCHES = [
   //  they changed; a GL texture keeps them. Each upload had set four or five, ~95 texParameteri calls a frame)
   ['\t\t\tsetTextureParameters( textureType, texture );\n',
     '\t\t\tconst paramsKey = texture.wrapS + \',\' + texture.wrapT + \',\' + texture.wrapR + \',\' + texture.magFilter + \',\' + texture.minFilter + \',\' + texture.anisotropy + \',\' + texture.compareFunction + \',\' + texture.generateMipmaps;\n\t\t\tif ( textureProperties.__paramsKey !== paramsKey || sourceProperties.__version === undefined || forceUpload === true ) {\n\n\t\t\t\tsetTextureParameters( textureType, texture ); textureProperties.__paramsKey = paramsKey;\n\n\t\t\t}\n'],
+  // (a subtree with nothing a pass would draw, every mesh in it drawn by a static batch (src/static-batch.js marks it):
+  //  not walked at all; each object visited cost ~1 µs on the Xbox)
+  ['function projectObject( object, camera, groupOrder, sortObjects ) {\n\n\t\t\tif ( object.visible === false ) return;',
+    'function projectObject( object, camera, groupOrder, sortObjects ) {\n\n\t\t\tif ( object.visible === false || object.renderSkip === true ) return;'],
   ['// Array of vectors (from flat array or array of THREE.VectorN)\n',
     `// Array of vectors (from flat array or array of THREE.VectorN), compared with what was sent before they are\n${ARRAY_CACHE}`],
 ];

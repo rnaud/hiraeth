@@ -167,3 +167,24 @@ test('the surface shader reads a batched mesh by its id, its matrix as an instan
   assert.match(src, /#if defined\(S_VMAT\) \|\| defined\(S_BATCH\)/);
   assert.match(readFileSync(new URL('../src/main.js', import.meta.url), 'utf8'), /statics\?\.drawShadows\(renderer, c\.cam\)/);
 });
+
+test('a subtree with only batched meshes is not walked by the passes; a mesh drawing itself again walks it again', () => {
+  const W = world();
+  const holder = new THREE.Group(); W.scene.add(holder);
+  for (let i = 0; i < 3; i++) { const m = new THREE.Mesh(box(), W.a); m.position.set(i, 1, -5); holder.add(m); }
+  new StaticBatches(W.scene, { keep: [W.mover] });
+  assert.equal(holder.renderSkip, true, 'every mesh under it batched');
+  assert.ok(!W.scene.renderSkip && !W.mover.renderSkip);
+  for (const m of W.meshes) assert.equal(m.renderSkip, true);
+  assert.ok(!W.lone.renderSkip, 'a mesh drawing itself is walked');
+  holder.add(new THREE.Mesh(box(), W.odd));
+  assert.ok(!holder.renderSkip, 'something new under it: walked again');
+  const S2 = new StaticBatches(world().scene);
+  const e = S2.entries.find((x) => x.view);
+  assert.equal(e.o.renderSkip, true);
+  S2.release(e, 'test');
+  assert.ok(!e.o.renderSkip, 'a released mesh: walked again');
+  S2.enabled = false;
+  assert.ok(S2.entries.every((x) => !x.o.renderSkip));
+  assert.match(readFileSync(new URL('../scripts/three-program-keys.mjs', import.meta.url), 'utf8'), /object\.renderSkip === true/);
+});

@@ -632,6 +632,11 @@ is simulated on the main thread, ~7 ms of `player` in both: the app itself runs 
 - the static batches' watch on their materials: a number set on a uniform marks it at once (an accessor), vectors are
   compared in turn, an eighth of the materials a frame (0.2 → 0.1 ms on the Mac).
 
+- the passes no longer walk a subtree with nothing to draw of its own (`renderSkip`, marked by the static batches:
+  every mesh in it batched, or a body's bones; a mark comes off when something is added under it, and is put back two
+  seconds on): at the desert's spawn 2 442 of the ~5 200 shown objects (Mac), pixel-identical; on the console 52.5 →
+  51.2 ms, the same page with and without.
+
 **5. WebGPU**: `navigator.gpu` is not there in WebView2 150 on the console (checked in a secure, HTTPS page), so no
 WebGPU path for now. Were it to come: three's WebGPURenderer runs the same scene graph with node materials, so the
 surface and ink shaders (materials.js, post.js: GLSL, ~250 kB) would have to be written again in TSL or WGSL, the
@@ -645,6 +650,26 @@ its WebGL calls, 20 ms with them made no-ops), the shadow passes 3.5-3.8, the ga
 cloth above, wind 1.2, people 0.7). The JavaScript is spread thin: three's scene walk (`projectObject`, the matrix
 cache: ~6 700 objects every frame), the material uniform uploads at each change of material (~60 compared a change,
 ~150 changes), skinned bodies' bones, the flames, the culler.
+
+**The three worlds on the console** (the Xbox preset, the build served from the Mac in the iframe, every step in;
+batches off → on in the same page; main thread incl. ~6.6 ms of the cloth that the app runs in its worker):
+
+| | draws | WebGL calls | main thread | fps |
+|---|---|---|---|---|
+| the desert's spawn (by the ship) | 937 → 378 | 3 868 → 2 472 | 59-62 → 49-51 ms | 18 → 20 |
+| the City-Shaft | 916 → 471 | 3 252 → 2 397 | 57 → 54 ms | |
+| the Signal Market | | 1 879 | 39-41 ms | 25 (half its frames at 30) |
+
+(Turning the batches off at runtime made the console compile the meshes' own programs: an 11 s freeze in the
+City-Shaft, 2.5 s in the desert. With them on from the load, nothing compiles in play.)
+
+**What stands in the way of 60** (16.7 ms): the real app's desert is ~43-44 ms. The WebGL calls, the start of this
+work, are now ~12 ms of it (2 500 at ~5 µs); the rest is JavaScript at the console's memory latency: three.js's
+`setProgram` (~8 ms: a material change compares ~60 uniforms and rebinds the textures), the scene walk and the matrix
+cache (~7 ms), the game's systems (~8 ms), the batches' own upkeep (~2.5 ms). No single change is worth more than 2-3 ms
+any more. 30 steady (33 ms) is within reach of a few more of these; 60 would need a renderer that doesn't revisit
+every object and material each frame (uniform buffers for the 43 shared uniforms, retained draw lists for what doesn't
+move), or the Unity bridge (41 fps at the same spawn, "The Unity build on the Xbox").
 
 ## Unknowns (to check on the console)
 
