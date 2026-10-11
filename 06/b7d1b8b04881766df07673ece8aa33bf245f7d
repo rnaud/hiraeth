@@ -1,0 +1,176 @@
+src/levels/perdide.js
+  s_9ca76055a220ed::t_34c0896bce7ca7 14,613-625
+tests/level-design-glass.test.js
+  s_9ca76055a220ed::t_14e88dc2770a7a 1-21
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_40b03bdf675f75 192-224
+src/save-migrate.js
+  s_9ca76055a220ed::t_d073e45debb9dc 51-53,181-186
+tests/level-design.test.js
+  s_9ca76055a220ed::t_1ed85a01206fa3 55-63
+tests/night-mail.test.js
+  s_9ca76055a220ed::t_2d7734f7fd4055 4,20,50,55-57,62,64,112
+scripts/temple-design/audit.mjs
+  s_9ca76055a220ed::t_4ec0ad64ef9607 30,42-54,69,95
+src/trials/data.js
+  s_9ca76055a220ed::t_1929bf0e78b6eb 79-80,82-84,86-87,90,92-94,96-97,133,135-137,139-140
+src/story/buried-data.js
+  s_9ca76055a220ed::t_5b5907bbd0d88f 17-19,340,401,411-412
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_6efcf1f63e4938 16,270-272
+changelog.md
+  s_9ca76055a220ed::t_6c21acf8f45504 9
+  s_9ca76055a220ed::t_a7c4ca7676c5a4 7
+  s_9ca76055a220ed::t_909574c971e8de 8
+  s_9ca76055a220ed::t_e9ce7dd2d223db 10
+  s_9ca76055a220ed::t_daa2021474745d 16-21
+  s_9ca76055a220ed::t_3dde45fc5f9a22 11-15
+src/story/underwater.js
+  s_9ca76055a220ed::t_95d229b4675192 56,59-60
+src/changelog-media.js
+  s_9ca76055a220ed::t_5591772de837ef 541,565-571
+  s_9ca76055a220ed::t_e857aafb0cd5f2 549-564
+scripts/level-design/lib.mjs
+  s_9ca76055a220ed::t_d4bd4a3bba6a07 73-77,89-90,185-190,192,342-343
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_2cb483d55bd261 6,62-64,72-76,123-133
+src/story/spacecity-moments.js
+  s_9ca76055a220ed::t_89a3e3c544b403 2,10-11,32-35,43-46
+src/story/night-train.js
+  s_9ca76055a220ed::t_410e29d2aa7ed9 13,94
+src/levels/overnight-train.js
+  s_9ca76055a220ed::t_75bf96d9ac7e49 74,130
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_ad040b38e66e09 14,148-153,189-191,233-245
+tests/trials.test.js
+  s_9ca76055a220ed::t_9a0be4797412ef 86-92
+src/trials/kit-data.js
+  s_9ca76055a220ed::t_4874562d837b9f 11-12,27,209-256
+src/story/ending.js
+  s_9ca76055a220ed::t_ebf9cd82397970 54,62,382-383,391-394,396
+scripts/design-qc/capture.mjs
+  s_9ca76055a220ed::t_4efb5b0ad079ec 9-10,65
+src/trials/index.js
+  s_9ca76055a220ed::t_1160f5b3dbdbfd 53-54
+src/quest.js
+  s_9ca76055a220ed::t_5ed8364c21b4d8 233-246,302
+docs/systems/challenges.md
+  s_9ca76055a220ed::t_04b743b198ce12 115-117,192-193
+src/vael-crossing.js
+  s_9ca76055a220ed::t_438fb9c7fb419b 1-149
+src/items.js
+  s_9ca76055a220ed::t_d357bdf2fb8afe 228,233,243
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_973a65e1409189 156,170
+  s_9ca76055a220ed::t_8005e324f7a859 259,264,314,317,321,339
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_4a64ec4685d014 51-52,54-55,57,215-216,224,275-286
+src/story/glassdunes-moments.js
+  s_9ca76055a220ed::t_89aa7eb76cd875 34-37
+tests/merged-ways.test.js
+  s_9ca76055a220ed::t_9810435c42a53c 1-102
+src/story/night-train-data.js
+  s_9ca76055a220ed::t_2b6263b7c0e0e3 6,8,13,16,21,25-26,68,127,156-158,190,213
+src/story/underwater-moments.js
+  s_9ca76055a220ed::t_a86ca1e249bac7 9-10,30-35,43-44
+tests/temple-design.test.js
+  s_9ca76055a220ed::t_2b073257663536 182-204
+src/levels/arzach.js
+  s_9ca76055a220ed::t_71e9aa5520cae3 13,461-473
+src/story/calls.js
+  s_9ca76055a220ed::t_a522d850cc5187 102-110,136,139,520-538,542,558,572,704-705,711
+tests/trials-kit.test.js
+  s_9ca76055a220ed::t_c2acc6138df749 110-111
+src/temples/garage-data.js
+  s_9ca76055a220ed::t_9d0829ef7624f8 64-65
+src/game-menu-data.js
+  s_9ca76055a220ed::t_2b00785fc8871b 66,73-75
+src/story/arzach2.js
+  s_9ca76055a220ed::t_c09f60f548258d 80-83,103,465-466,522-523
+src/story/home-data.js
+  s_9ca76055a220ed::t_e45a3e0b67731e 96
+tests/story-buried.test.js
+  s_9ca76055a220ed::t_0eaa322dec83c4 234
+docs/story-bible.md
+  s_9ca76055a220ed::t_7c7f0ca0fc5bf7 307-314,467-472,512,516,520,522,527,531,582,604-612,749-751,789-792,795-797,803-804
+src/story/perdide2.js
+  s_9ca76055a220ed::t_4130b0aeea1eb1 20-22
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_5be1637c383762 110
+src/trials/kit-courses.js
+  s_9ca76055a220ed::t_faa3fadf48dcb2 17-19,45-46,120,122,285-401
+src/arena-guardians.js
+  s_9ca76055a220ed::t_63d86f6f52c80b 17-23,46,50,52
+src/story/index.js
+  s_9ca76055a220ed::t_b9df68ac23d1e3 47,102-107,252
+tests/telegraphs.test.js
+  s_9ca76055a220ed::t_0f303379af8d29 52,81
+src/changelog.js
+  s_9ca76055a220ed::t_8f763168aa8b5a 51-53
+  s_9ca76055a220ed::t_d34f35476154f6 48-49
+  s_9ca76055a220ed::t_231e26de3ddfbe 50
+  s_9ca76055a220ed::t_c7c2ab9bf113cf 34-44
+  s_9ca76055a220ed::t_a31043ef2e4a3f 12-33
+  s_9ca76055a220ed::t_3fdff98c2fc8fe 45-47
+src/story/people-book.js
+  s_9ca76055a220ed::t_f6ca9fe7ebee1a 517
+TODO.md
+  s_9ca76055a220ed::t_f26b34ad15c0b5 91,93-101,104-106,110,114
+tests/moments-underwater.test.js
+  s_9ca76055a220ed::t_9d37d26856a2f4 76-81
+src/levels/underwater.js
+  s_9ca76055a220ed::t_c46029fb87b74a 411-412
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_3e35c991793d7d 2,435-437,440-442,445-447,450-452,455-457,460-462,465-467,470-472,475-477,480-482,485-487,490-492,495-507
+src/glass-dunes-ways.js
+  s_9ca76055a220ed::t_4e37643ae960f6 1-78
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_3a3a831cf0ac94 475-481
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_3e13fdd520712f 100-101
+src/sky-stones-ways.js
+  s_9ca76055a220ed::t_527b8a2c851ccf 69,76-77,89,103
+src/story/quests.js
+  s_9ca76055a220ed::t_9c5b6697990c82 244-245
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_9a1e2d0c5ff1e1 200-210,310,317
+  s_9ca76055a220ed::t_fc4cfc24e12302 330,332
+src/levels/arzach2.js
+  s_9ca76055a220ed::t_0f6f0decc3f5bf 928
+src/game-menu.js
+  s_9ca76055a220ed::t_642ba6acc4db1e 236-239,241
+src/story/moonfoundry-moments.js
+  s_9ca76055a220ed::t_7df7cc47dac4d1 31,39-42
+tests/merged-story.test.js
+  s_9ca76055a220ed::t_dff12a40031a7c 1-88
+src/lorn-crossing.js
+  s_9ca76055a220ed::t_0e19776cc53740 1-141
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_4d913740f8f9c2 88,202-211
+src/cinematics-page/catalog.js
+  s_9ca76055a220ed::t_dcc5ec993deddb 4,13-14
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_da2f498880de27 30-31,80-83,85-88,102,114,162-163,168-176,185
+  s_9ca76055a220ed::t_4b3b86dec85a9b 33,135-142,149-150
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_66220596b873b3 861-901
+  s_9ca76055a220ed::t_60cc76b46cb84f 1576,1578,1600
+src/main.js
+  s_9ca76055a220ed::t_55b4007ec23531 35,756-757
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06b7d1b8b04881766df07673ece8aa33bf245f7d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
