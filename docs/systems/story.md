@@ -690,7 +690,7 @@ idea." "All quests should be solvable by just going to the end if you can."
 - **Elsewhere, flagged** (one person sending you to another, left as they are for now): the Signal Market's
   Madame Sel → Kip (`bazaar.signal`); the City-Shaft's Nima → Ossa at the Upward Shrine → Dov (`incal.light`),
   and Lio → Tobin → Lio for the cab pass (`incal.pass`); Viridel's Mira → Vey → Mira (`edena.garden`); Lorn's
-  Wendel → Saba (`perdide.crystal`); the Overnight Train's Edda → the conductor → Mireille (`bazaar.nightmail`).
+  Wendel → Saba (`perdide.crystal`); the Overnight Train's Edda → the conductor → Solange (`bazaar.nightmail`); filed as #85.
 
 ## Places to stop on the way (the second story pass, October 2026)
 
