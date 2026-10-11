@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_2b32d91097b41f 7
+docs/systems/temples.md
+  s_9ca76055a220ed::t_711b9a453ca311 475-483
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_3d13b2168f2f6b 153,225-228,341-343,353,422
+src/changelog.js
+  s_9ca76055a220ed::t_107ee8327ea3f0 40
+src/temples/edena.js
+  s_9ca76055a220ed::t_12a0e2a3e12800 34-36,45-48,85,97-101,115,118-119,122,130-133,144-152,241-247,296-332,424,426-434,438,485,516-517,524
+src/temples/migrate.js
+  s_9ca76055a220ed::t_36cf2bce12274c 54-55,57,60
+src/temples/pieces.js
+  s_9ca76055a220ed::t_f99f03d52d60ae 1913-1914
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_275fc9759863f9 613-614,673-674
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_fa23d4b43e8746 377-378
+tests/temples.test.js
+  s_9ca76055a220ed::t_90d940b75d7794 30,406-414,3062,3199-3208,3243-3272,3278-3279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed19aef0e85934c16a701d51ef5c59e2d6cc7250",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
