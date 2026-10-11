@@ -32,6 +32,7 @@ export const EDGE_HINTS = {
   lab: 'The Lab ends here.',
   arena: 'The Arena ends here.',
   gadgetyard: 'The Gadget Yard ends here.',
+  shadows: 'The Shadow Room ends here.',
   arcade: 'The Arcade ends here.',
   default: 'The wind pushes you back.',
   underwater: 'The glass holds the sea back; there is nowhere further to go.',

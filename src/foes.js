@@ -81,7 +81,7 @@ for (const D of Object.values(FOES)) {
 /** A kind's attack by its id (a combo's next). */
 export const attackOf = (kind, id) => FOES[kind]?.attacks.find((a) => a.id === id) ?? null;
 /** Worlds with no foes at all. */
-export const PEACEFUL = new Set(['home', 'lab', 'references', 'atelier', 'overnighttrain', 'lantern']);   // (the Arena has its own waves: level.foes; the Overnight Train has no wilds: off it is the running land)
+export const PEACEFUL = new Set(['home', 'lab', 'references', 'atelier', 'overnighttrain', 'lantern', 'shadows']);   // (the Arena has its own waves: level.foes; the Overnight Train has no wilds: off it is the running land)
 /** Where the wilds start: this far from any person, and from where the ship lands. */
 export const WILD = { people: 45, spawn: 55 };
 /** The packs of ink blots: how many at once, how far out they come in, how long before the next. */

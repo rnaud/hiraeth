@@ -4,7 +4,7 @@ import { createPost, createBloom, PRESETS } from './post.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
-import { Cascade, shadowDirection, selfLitSkips } from './shadows.js';
+import { Cascade, NEAR_CASCADE, shadowDirection, selfLitSkips } from './shadows.js';
 import { detectDeck, detectHandheld, resolveQuality, waterContactOn, tileSceneSteps, cullFar } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
@@ -158,7 +158,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
 
   const cascades = {
     fine: new Cascade({ name: 'fine', size: 1024, extent: 12, depth: 1600, bias: 3.4, offset: 2.6, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0, texel: [SU.uShadowTexel, 0] } }),
-    near: new Cascade({ name: 'near', size: 2048, extent: 220, depth: 1600, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset, texel: [SU.uShadowTexel, 1] } }),
+    near: new Cascade({ name: 'near', size: 2048, extent: 220, depth: 1600, ...NEAR_CASCADE, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset, texel: [SU.uShadowTexel, 1] } }),
     far: new Cascade({ name: 'far', size: 2048, extent: 1150, depth: 3200, bias: 2.2, offset: 2.4, uniforms: { map: SU.uShadowMap2, matrix: SU.uShadowMatrix2, bias: SU.uShadowBias2, offset: SU.uShadowNormalOffset2, texel: [SU.uShadowTexel, 2] } }),
   };
   const configureShadows = () => {
@@ -222,6 +222,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     U.uAO.value = preset.ao && !low ? baseAO : 0;
     SU.uCloudShadows.value = preset.cloudShadows && !low ? baseCloud : 0;
     SU.uShadowTaps.value = preset.taps ?? 9;
+    SU.uShadowHero.value = 0;   // (its own fine map holds everything: main.js heroPass is the game's)
     U.uPostLite.value = preset.postLite ? 1 : 0;
     SU.uWearLite.value = low || preset.postLite ? 1 : 0;
     waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;

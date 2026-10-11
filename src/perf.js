@@ -352,6 +352,7 @@ export class InteriorCuller {
  *    missed refreshes (that many in half a second) and wait that many half-seconds before
  *    climbing back (adaptScale)
  *  - shadow: map size per cascade (fine 24 m, near, far 2.3 km), 0 = no such cascade;
+ *    hero: with no fine map, the size of the hero map (the traveller alone, round him: shadows.js HERO_CASCADE);
  *    nearExtent: half-size of the near map (m)
  *  - nearEvery / farEvery: refresh the near / far map every n-th frame
  *  - crowdFar: crowd figures drawn up to (m); crowdMid: full-figure range (m)
@@ -375,7 +376,7 @@ export const waterContactOn = (preset) => preset?.waterContact !== false;
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
   handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
-    shadow: { fine: 0, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
+    shadow: { fine: 0, hero: 1024, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2, waterContact: false },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75, lodPx: 1.5 },
@@ -386,7 +387,7 @@ export const QUALITY_PRESETS = {
   // pass of the scene a frame), a sharper near map over a smaller square instead (the GPU has room);
   // capes simulated within 14 m (clothFar; further off they hang on the body)
   deck:     { label: 'Steam Deck', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
-    shadow: { fine: 0, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 4, taps: 4,
+    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 4, taps: 4,
     ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14 },
   // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
   // reports a pixel ratio of 2 at 1080p, where High renders 1× as well), adapting down to 0.6 when a scene is too

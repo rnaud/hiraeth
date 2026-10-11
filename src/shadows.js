@@ -178,6 +178,27 @@ export function fitShadowExtent(r, height, sinEl, { min = 2, max = 12, step = 1 
   return THREE.MathUtils.clamp(Math.ceil(half / step) * step, min, max);
 }
 
+/**
+ * The near map's bias and normal offset, in its texels (main.js cascades.near; 11 cm on High, 6 cm on the Steam
+ * Deck, 16 cm on Handheld). They were 2.3 and 3.2: the shadow QC (.claude/skills/shadow-qc) measured the shadows
+ * come loose from what casts them by that much (a lit band 40–50 cm tall under the Shadow Room's balcony on
+ * Handheld: 72 % of the probes at contacts drawn lit) with no acne to show for it; at 1 and 1.6 the slopes stay
+ * clean down to a 12° sun.
+ */
+export const NEAR_CASCADE = { bias: 1.0, offset: 1.6 };
+
+/**
+ * The hero map (the presets with no fine map: Steam Deck, Handheld; perf.js `shadow.hero`): the fine cascade's map
+ * holds the traveller alone, in a window fitted round him and his shadow (fitShadowExtent: his radius `r`, his
+ * height, the sun's elevation; held to [min, max] m), drawn from his own meshes only (a pass a few draws long), and
+ * read with the near map by min (materials.js uShadowHero); the near map leaves him out. The shadow QC
+ * (.claude/skills/shadow-qc) found his shadow in the near map alone 30–70 % drawn and starting 10–55 cm from his
+ * feet: a 6–16 cm texel under a 12 cm leg, and the bias and offset that go with it.
+ */
+export const HERO_CASCADE = { r: 0.6, height: 2.1, min: 3, max: 8 };
+/** The hero map's half-width (m) for a sun `sinEl` high. */
+export const heroExtent = (sinEl, H = HERO_CASCADE) => fitShadowExtent(H.r, H.height, sinEl, { min: H.min, max: H.max });
+
 // ------------------------------------------------------------------ caster culling
 const _s = new THREE.Vector3(), _sph = new THREE.Sphere(), _pm = new THREE.Matrix4(), _fr = new THREE.Frustum(), _f = new THREE.Vector3(), _e = new THREE.Vector3();
 

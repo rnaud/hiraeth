@@ -34,6 +34,37 @@ export const CHANGELOG = [
     'When your ship comes down to land, the flame of its jets stays under it: it no longer shoots up through the hull as the ship drops.',
     // chests earn their place (docs/systems/progression.md; issue #91)
     'No more free chests by your ship when you land in Vael: if you left the desert without going into the Givers’ House, the blade and the guard are still waiting for you there.',
+    // the Shadow Room and the shadow QC (docs/systems/rendering.md "The Shadow Room and the shadow QC"; issue #67)
+    { text: 'A new test room in the Debug menu, the Shadow Room: thin poles and a grate, a colonnade, leaf cut-outs, an arch under a balcony, a stair, slopes the sun grazes, a dark house, things that move and a tall tower whose shadow crosses the yard, all along one walk. The boards by the spawn hold the sun lower, turn it round, or give it back to the clock.',
+      see: 'Open the Debug menu, Test rooms, The Shadow Room. Walk up to the boards on your left at the start and press the interact button on the yellow one a few times: the sun sinks and every shadow in the yard stretches.' },
+    { text: 'On the Steam Deck and Handheld settings your own shadow is whole and sharp again and starts right at your feet: it was half drawn, a grey blur round it, and often a hand’s width away from you.',
+      numbers: [
+        { title: 'How much of the traveller’s shadow is drawn (the Shadow Room’s whole walk, a 35° sun)', unit: '%', better: 'higher', device: 'the Mac, headless Chrome, 1280 × 720 (the shadow QC)', rows: [
+          { where: 'Steam Deck', before: 65, after: 93 },
+          { where: 'Handheld', before: 50, after: 92 },
+          { where: 'High (unchanged)', before: 92, after: 92 },
+        ], source: 'the shadow QC (.claude/skills/shadow-qc): his shadow’s true area on the ground (rays through his body as drawn) against the shade the surfaces draw there' },
+        { title: 'How far from a planted foot his shadow starts (the worst spots, a 35° sun)', unit: 'cm', better: 'lower', device: 'the Mac, headless Chrome, 1280 × 720 (the shadow QC)', rows: [
+          { where: 'Steam Deck', before: '9–27', after: '0–3' },
+          { where: 'Handheld', before: '22–51', after: '0–3' },
+        ], source: 'the shadow QC, p90 of each spot of the walk' },
+        { title: 'What it costs a frame (main thread, renderFrame)', unit: 'ms', better: 'lower', device: 'the Mac, headless Chrome; the Deck’s main thread is about two to three times slower', rows: [
+          { where: 'the Signal Market, Steam Deck', before: 5.45, after: 5.85 },
+          { where: 'the Signal Market, Handheld', before: 4.75, after: 4.95 },
+          { where: 'Edena, Steam Deck', before: 4.75, after: 4.95 },
+          { where: 'Edena, Handheld', before: 4.45, after: 4.7 },
+        ], source: 'the median of 4 × 40 frames at each world’s start, the traveller’s own shadow map off and on in turns (+9 to 10 draws)' },
+      ],
+      see: 'Set the graphics to Steam Deck or Handheld and stand in the sun: the shadow of your legs reaches your boots, and your arms and the pack show in it.' },
+    { text: 'Shadows no longer come loose from what casts them: the lit strip under a balcony or along the foot of a wall, as tall as 40 cm on Handheld, is gone or a sliver of what it was.',
+      numbers: [
+        { title: 'Shadow at a contact drawn lit (the Shadow Room’s balcony over its wall, a 35° sun)', unit: '%', better: 'lower', device: 'the Mac, headless Chrome, 1280 × 720 (the shadow QC)', rows: [
+          { where: 'High', before: 7.5, after: 0.6 },
+          { where: 'Steam Deck', before: 6.0, after: 0 },
+          { where: 'Handheld', before: 72, after: 25 },
+        ], source: 'the shadow QC: probes shaded by something within 60 cm, drawn lit' },
+      ],
+      see: 'In the Shadow Room, walk through the arch and look at the wall under the balcony: its shadow starts right under the slab.' },
   ] },
   { v: '1.44', date: '2026-10-11', items: [
     // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)

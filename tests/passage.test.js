@@ -243,3 +243,18 @@ test('WarmDraw: the G-buffer pass takes only what writes all three targets (a hi
   assert.deepEqual(new Set(seen[1][1]), new Set([gbuf, proxy]), 'into the shadow map: both');
   assert.equal(proxy.visible, false, 'the stand-in hidden again');
 });
+
+test('WarmDraw.compile: a mesh and its own tile both in the list wear the override once and get their own material back', () => {
+  // (the Shadow Room's ground: the terrain and its tiles (perf.js tileScene) were both compiled; the tile's override was
+  // taken for its own material and put back for good, and the ground under the stations drew nothing)
+  const own = new THREE.MeshBasicMaterial(), tileOwn = new THREE.MeshBasicMaterial(), override = new THREE.MeshBasicMaterial();
+  const parent = new THREE.Mesh(new THREE.BoxGeometry(), own), tile = new THREE.Mesh(new THREE.BoxGeometry(), tileOwn);
+  parent.add(tile);
+  const scene = new THREE.Scene(); scene.add(parent); scene.updateMatrixWorld();
+  const worn = [];
+  const renderer = { t: null, getRenderTarget() { return this.t; }, setRenderTarget(t) { this.t = t; }, compile(H) { H.traverse((o) => { if (o.material) worn.push(o.material); }); return []; } };
+  new WarmDraw(renderer, scene, { passes: [{ target: 'shadow', camera: new THREE.OrthographicCamera(), override }] }).compile([parent, tile]);
+  assert.ok(worn.length && worn.every((m) => m === override), 'compiled in the override');
+  assert.equal(parent.material, own);
+  assert.equal(tile.material, tileOwn, 'the tile its own material again');
+});

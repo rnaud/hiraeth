@@ -184,7 +184,11 @@ export class WarmDraw {
         const kids = pass.accepts ? todo.filter(pass.accepts) : todo;
         if (!kids.length) continue;
         const worn = [];
-        if (pass.override) for (const o of kids) o.traverse((c) => { if (c.material) { worn.push([c, c.material]); c.material = pass.override; } });
+        // (each mesh worn once: a parent and its own child both in the list (a mesh and its tiles, perf.js tileScene)
+        // had the child's override taken for its own material and put back for good: the Shadow Room's ground under
+        // its stations drew nothing, every frame after the load)
+        const wearing = new Set();
+        if (pass.override) for (const o of kids) o.traverse((c) => { if (c.material && !wearing.has(c)) { wearing.add(c); worn.push([c, c.material]); c.material = pass.override; } });
         H.children = kids;
         R.setRenderTarget(pass.target);
         try { for (const m of R.compile(H, pass.camera)) mats.add(m); } finally { for (const [c, m] of worn) c.material = m; }

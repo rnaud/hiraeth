@@ -25,6 +25,7 @@ export const WORLD_REACTIONS = {
   lab: {kind:'flower',quiet:'#b9b5ad',awake:'#71d7cf',radius:9},
   arena: {kind:'flower',quiet:'#c9b48e',awake:'#71d7cf',radius:9},
   gadgetyard: {kind:'flower',quiet:'#c9b48e',awake:'#71d7cf',radius:9},
+  shadows: {kind:'flower',quiet:'#c9b48e',awake:'#71d7cf',radius:9},   // (none grow there: level.reactions false)
   arcade: {kind:'flower',quiet:'#c9b48e',awake:'#f2c54b',radius:9},
   references: {kind:'flower',quiet:'#d9b88c',awake:'#71d7cf',radius:9},   // (none grow there: level.reactions false)
   atelier: {kind:'fan',quiet:'#c4beb0',awake:'#8cbdb7',radius:10},

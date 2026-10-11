@@ -63,6 +63,7 @@ export const sharedUniforms = {
   // each cascade's texel in metres (fine, near, far): the filter widens to the pixel's
   // footprint where a texel is smaller than a pixel, instead of aliasing
   uShadowTexel: { value: new THREE.Vector3(0.0117, 0.107, 1.12) },
+  uShadowHero: { value: 0 },     // 1: the fine map is the hero map (the traveller alone, main.js heroPass), taken with the near map's by min
   uShadowTaps: { value: 9 },      // PCF taps: 9 (a sliding 5x5-texel tent) or 4 (3x3, the handheld preset): shadows.js tentTaps
   uTime: { value: 0 },
   // the world's wind for the plants (flora.js sway): x, z downwind direction, strength (0 still,
@@ -748,6 +749,93 @@ const vertexShader = /* glsl */ `
   }
 `;
 
+/**
+ * The sun's shadow lookup (the three cascades' maps, their tent filter, the steepened lit fraction), as the
+ * surface shader runs it: also compiled on its own by the shadow QC's probes (.claude/skills/shadow-qc), so what
+ * they measure is exactly what every surface draws. Needs the uShadow* uniforms and uSunDir declared before it.
+ */
+export const SHADOW_GLSL = /* glsl */ `
+  // Hand-rolled shadow map lookup over three cascades (fine, near, far; main.js
+  // and shadows.js). "inside" fades out at each map's border so the hand-over
+  // between cascades is a blend, not a seam.
+  //  - the maps are depth textures with hardware comparison and linear
+  //    filtering: every tap is a bilinear 2x2 PCF
+  //  - the taps are weighted by a tent that slides with the point inside its
+  //    texel (shadows.js tentTaps, Castano's filter from The Witness): 3x3
+  //    texels in 4 taps (handheld), 5x5 in 9. The lit fraction is then a smooth
+  //    function of the position, and the toon threshold cuts it along a smooth
+  //    curve. (A plain box of bilinear taps has a kink at every texel border:
+  //    the threshold drew the texel grid into every cast shadow's edge as steps,
+  //    worse where the spot tier darkens the shadow and the edge line inks it.)
+  //  - normal offset and bias are in texels of each cascade (main.js sets
+  //    them from the map size); the offset grows towards grazing light,
+  //    where acne starts, and stays small facing the sun (no peter-panning)
+  //  - where a texel is smaller than the pixel (far walls in the near
+  //    cascade, the handheld's low resolution) the tent spreads to the
+  //    pixel's footprint: a filtered edge instead of shimmering texels
+  // one tap, o texels from the corner base (texel units), its distance from the point uv scaled by spread
+  // (about the point, on the map's own grid: a window moved by whole texels reads exactly the same)
+  float shadowTap(highp sampler2DShadow map, vec2 uv, vec2 base, vec2 o, vec2 inv, float spread, float z) {
+    return texture(map, vec3((uv + (base + o - uv) * spread) * inv, z));
+  }
+  float sampleShadow(highp sampler2DShadow map, mat4 m, vec3 wp, vec3 n, float sinL, float off, float bias, float spread, out float inside) {
+    vec4 sc = m * vec4(wp + n * (off * (0.35 + 0.65 * sinL)), 1.0);
+    vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
+    vec2 e = smoothstep(0.0, 0.06, p.xy) * (1.0 - smoothstep(0.94, 1.0, p.xy));
+    inside = p.z > 1.0 ? 0.0 : e.x * e.y;
+    if (inside <= 0.0) return 1.0;
+    float z = p.z - bias;
+    // the tent on the map's own texels (tentTaps): st, where the point lies past the nearest texel corner (0..1);
+    // where a texel is under the pixel the taps spread about the point (spread), the grid unchanged
+    vec2 inv = 1.0 / vec2(textureSize(map, 0));
+    vec2 uv = p.xy / inv, base = floor(uv + 0.5), st = uv + 0.5 - base;
+    base -= 0.5;
+    if (uShadowTaps < 5.0) {
+      vec2 w0 = 3.0 - 2.0 * st, w1 = 1.0 + 2.0 * st;
+      vec2 o0 = (2.0 - st) / w0 - 1.0, o1 = st / w1 + 1.0;
+      return (w0.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o0.y), inv, spread, z) + w1.x * shadowTap(map, uv, base, vec2(o1.x, o0.y), inv, spread, z))
+            + w1.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o1.y), inv, spread, z) + w1.x * shadowTap(map, uv, base, vec2(o1.x, o1.y), inv, spread, z))) / 16.0;
+    }
+    vec2 w0 = 4.0 - 3.0 * st, w2 = 1.0 + 3.0 * st;
+    vec2 o0 = (3.0 - 2.0 * st) / w0 - 2.0, o1 = (3.0 + st) / 7.0, o2 = st / w2 + 2.0;
+    float s = w0.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o0.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o0.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o0.y), inv, spread, z));
+    s += 7.0 * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o1.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o1.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o1.y), inv, spread, z));
+    s += w2.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o2.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o2.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o2.y), inv, spread, z));
+    return s / 144.0;
+  }
+
+  // ndl: light facing (> 0); px: the pixel's footprint in metres; deep: the depth bias × (1: the surface's own;
+  // TERMINATOR_REACH: only what stands well toward the sun from it, past its own body)
+  float shadowLit(vec3 wp, vec3 n, float ndl, float px, float deep) {
+    float iF, i0, i1;
+    float sinL = sqrt(max(1.0 - ndl * ndl, 0.0));
+    vec3 spread = clamp(vec3(px) / uShadowTexel, 1.0, 2.5);
+    float sF = sampleShadow(uShadowMap0, uShadowMatrix0, wp, n, sinL, uShadowNormalOffset0, uShadowBias0 * deep, spread.x, iF);
+    if (iF >= 1.0 && uShadowHero < 0.5) return sF;
+    float s0 = sampleShadow(uShadowMap, uShadowMatrix, wp, n, sinL, uShadowNormalOffset, uShadowBias * deep, spread.y, i0);
+    if (i0 < 1.0) {
+      float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, sinL, uShadowNormalOffset2, uShadowBias2 * deep, spread.z, i1);
+      s0 = mix(mix(1.0, s1, i1), s0, i0);
+    }
+    // (the hero map, uShadowHero: the fine map holds the traveller alone, round him; the rest is the near map's)
+    if (uShadowHero > 0.5) return min(s0, mix(1.0, sF, iF));
+    return mix(s0, sF, iF);
+  }
+  // A face turned from the sun: is it also inside another's cast shadow? (the half-tone is a form's turned side
+  // under no cast shadow: a back wall in the shade of the building across keeps the full shadow, as drawn.) One
+  // tap of the middle cascade at a point HALFTONE_REACH m toward the sun, past the form's own body.
+  float castBeyond(vec3 wp) {
+    vec4 sc = uShadowMatrix * vec4(wp + uSunDir * ${HALFTONE_REACH.toFixed(1)}, 1.0);
+    vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
+    if (p.z > 1.0 || p.x < 0.0 || p.y < 0.0 || p.x > 1.0 || p.y > 1.0) return 0.0;
+    return 1.0 - texture(uShadowMap, vec3(p.xy, p.z - uShadowBias * 4.0));
+  }
+  // the lit fraction steepened about its half (SHADOW_CUT): the toon threshold cuts the shadow at its true edge
+  float getShadow(vec3 wp, vec3 n, float ndl, float px, float deep) {
+    return clamp((shadowLit(wp, n, ndl, px, deep) - 0.5) * ${SHADOW_CUT.toFixed(1)} + 0.5, 0.0, 1.0);
+  }
+`;
+
 const fragmentShader = /* glsl */ `
   precision highp float;
   ${SURFACE_ALL}
@@ -771,6 +859,7 @@ const fragmentShader = /* glsl */ `
   uniform float uShadowNormalOffset0;
   uniform vec3 uShadowTexel;
   uniform float uShadowTaps;
+  uniform float uShadowHero;
   uniform highp sampler2DShadow uShadowMap2;
   uniform mat4 uShadowMatrix2;
   uniform float uShadowBias2;
@@ -894,85 +983,7 @@ const fragmentShader = /* glsl */ `
   }
 
   ${BIOME_GLSL}
-
-  // Hand-rolled shadow map lookup over three cascades (fine, near, far; main.js
-  // and shadows.js). "inside" fades out at each map's border so the hand-over
-  // between cascades is a blend, not a seam.
-  //  - the maps are depth textures with hardware comparison and linear
-  //    filtering: every tap is a bilinear 2x2 PCF
-  //  - the taps are weighted by a tent that slides with the point inside its
-  //    texel (shadows.js tentTaps, Castano's filter from The Witness): 3x3
-  //    texels in 4 taps (handheld), 5x5 in 9. The lit fraction is then a smooth
-  //    function of the position, and the toon threshold cuts it along a smooth
-  //    curve. (A plain box of bilinear taps has a kink at every texel border:
-  //    the threshold drew the texel grid into every cast shadow's edge as steps,
-  //    worse where the spot tier darkens the shadow and the edge line inks it.)
-  //  - normal offset and bias are in texels of each cascade (main.js sets
-  //    them from the map size); the offset grows towards grazing light,
-  //    where acne starts, and stays small facing the sun (no peter-panning)
-  //  - where a texel is smaller than the pixel (far walls in the near
-  //    cascade, the handheld's low resolution) the tent spreads to the
-  //    pixel's footprint: a filtered edge instead of shimmering texels
-  // one tap, o texels from the corner base (texel units), its distance from the point uv scaled by spread
-  // (about the point, on the map's own grid: a window moved by whole texels reads exactly the same)
-  float shadowTap(highp sampler2DShadow map, vec2 uv, vec2 base, vec2 o, vec2 inv, float spread, float z) {
-    return texture(map, vec3((uv + (base + o - uv) * spread) * inv, z));
-  }
-  float sampleShadow(highp sampler2DShadow map, mat4 m, vec3 wp, vec3 n, float sinL, float off, float bias, float spread, out float inside) {
-    vec4 sc = m * vec4(wp + n * (off * (0.35 + 0.65 * sinL)), 1.0);
-    vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
-    vec2 e = smoothstep(0.0, 0.06, p.xy) * (1.0 - smoothstep(0.94, 1.0, p.xy));
-    inside = p.z > 1.0 ? 0.0 : e.x * e.y;
-    if (inside <= 0.0) return 1.0;
-    float z = p.z - bias;
-    // the tent on the map's own texels (tentTaps): st, where the point lies past the nearest texel corner (0..1);
-    // where a texel is under the pixel the taps spread about the point (spread), the grid unchanged
-    vec2 inv = 1.0 / vec2(textureSize(map, 0));
-    vec2 uv = p.xy / inv, base = floor(uv + 0.5), st = uv + 0.5 - base;
-    base -= 0.5;
-    if (uShadowTaps < 5.0) {
-      vec2 w0 = 3.0 - 2.0 * st, w1 = 1.0 + 2.0 * st;
-      vec2 o0 = (2.0 - st) / w0 - 1.0, o1 = st / w1 + 1.0;
-      return (w0.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o0.y), inv, spread, z) + w1.x * shadowTap(map, uv, base, vec2(o1.x, o0.y), inv, spread, z))
-            + w1.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o1.y), inv, spread, z) + w1.x * shadowTap(map, uv, base, vec2(o1.x, o1.y), inv, spread, z))) / 16.0;
-    }
-    vec2 w0 = 4.0 - 3.0 * st, w2 = 1.0 + 3.0 * st;
-    vec2 o0 = (3.0 - 2.0 * st) / w0 - 2.0, o1 = (3.0 + st) / 7.0, o2 = st / w2 + 2.0;
-    float s = w0.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o0.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o0.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o0.y), inv, spread, z));
-    s += 7.0 * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o1.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o1.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o1.y), inv, spread, z));
-    s += w2.y * (w0.x * shadowTap(map, uv, base, vec2(o0.x, o2.y), inv, spread, z) + 7.0 * shadowTap(map, uv, base, vec2(o1.x, o2.y), inv, spread, z) + w2.x * shadowTap(map, uv, base, vec2(o2.x, o2.y), inv, spread, z));
-    return s / 144.0;
-  }
-
-  // ndl: light facing (> 0); px: the pixel's footprint in metres; deep: the depth bias × (1: the surface's own;
-  // TERMINATOR_REACH: only what stands well toward the sun from it, past its own body)
-  float shadowLit(vec3 wp, vec3 n, float ndl, float px, float deep) {
-    float iF, i0, i1;
-    float sinL = sqrt(max(1.0 - ndl * ndl, 0.0));
-    vec3 spread = clamp(vec3(px) / uShadowTexel, 1.0, 2.5);
-    float sF = sampleShadow(uShadowMap0, uShadowMatrix0, wp, n, sinL, uShadowNormalOffset0, uShadowBias0 * deep, spread.x, iF);
-    if (iF >= 1.0) return sF;
-    float s0 = sampleShadow(uShadowMap, uShadowMatrix, wp, n, sinL, uShadowNormalOffset, uShadowBias * deep, spread.y, i0);
-    if (i0 < 1.0) {
-      float s1 = sampleShadow(uShadowMap2, uShadowMatrix2, wp, n, sinL, uShadowNormalOffset2, uShadowBias2 * deep, spread.z, i1);
-      s0 = mix(mix(1.0, s1, i1), s0, i0);
-    }
-    return mix(s0, sF, iF);
-  }
-  // A face turned from the sun: is it also inside another's cast shadow? (the half-tone is a form's turned side
-  // under no cast shadow: a back wall in the shade of the building across keeps the full shadow, as drawn.) One
-  // tap of the middle cascade at a point HALFTONE_REACH m toward the sun, past the form's own body.
-  float castBeyond(vec3 wp) {
-    vec4 sc = uShadowMatrix * vec4(wp + uSunDir * ${HALFTONE_REACH.toFixed(1)}, 1.0);
-    vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
-    if (p.z > 1.0 || p.x < 0.0 || p.y < 0.0 || p.x > 1.0 || p.y > 1.0) return 0.0;
-    return 1.0 - texture(uShadowMap, vec3(p.xy, p.z - uShadowBias * 4.0));
-  }
-  // the lit fraction steepened about its half (SHADOW_CUT): the toon threshold cuts the shadow at its true edge
-  float getShadow(vec3 wp, vec3 n, float ndl, float px, float deep) {
-    return clamp((shadowLit(wp, n, ndl, px, deep) - 0.5) * ${SHADOW_CUT.toFixed(1)} + 0.5, 0.0, 1.0);
-  }
-
+${SHADOW_GLSL}
   // Cloud shadows: the ground point is projected along the light onto a cloud
   // layer ~300 m up, where a drifting fbm field (same threshold as the sky's
   // cloud cover) decides whether it is shaded.

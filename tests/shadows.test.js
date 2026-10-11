@@ -173,3 +173,30 @@ test('the far pass leaves out pebbles and shrubs, not a tile of boulders; self-l
   assert.equal(selfLitSkips(lit(0.8, { castShadow: true })), false, 'a glowing solid (the great crystal) casts');
   assert.equal(selfLitSkips(lit(0, { castShadow: false })), true, 'anything can opt out');
 });
+
+test('the hero map (Steam Deck, Handheld): the traveller alone round him, read with the near map by min; the near map\'s bias and offset', async () => {
+  const { heroExtent, HERO_CASCADE, NEAR_CASCADE, fitShadowExtent } = await import('../src/shadows.js');
+  const { QUALITY_PRESETS } = await import('../src/perf.js');
+  const { readFileSync } = await import('node:fs');
+  const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
+  // the window holds him and his shadow: short at noon, long at a low sun, held to [min, max]
+  assert.equal(heroExtent(1), HERO_CASCADE.min);
+  assert.ok(heroExtent(Math.sin((20 * Math.PI) / 180)) > heroExtent(Math.sin((60 * Math.PI) / 180)));
+  assert.equal(heroExtent(0.05), HERO_CASCADE.max);
+  assert.equal(heroExtent(0.5), fitShadowExtent(HERO_CASCADE.r, HERO_CASCADE.height, 0.5, { min: HERO_CASCADE.min, max: HERO_CASCADE.max }));
+  // on the presets with no fine map only
+  for (const [k, p] of Object.entries(QUALITY_PRESETS)) if (p.shadow.hero) assert.equal(p.shadow.fine, 0, `${k}: a hero map instead of a fine one`);
+  assert.ok(QUALITY_PRESETS.deck.shadow.hero && QUALITY_PRESETS.handheld.shadow.hero);
+  // main.js: drawn from his object alone, the near map without him; the shader takes the two by min
+  const main = src('src/main.js');
+  assert.match(main, /heroScene\.children = \[player\.object\]/);
+  assert.match(main, /heroScene\.overrideMaterial = shadowOverride/);
+  assert.match(main, /if \(heroOn\) heroPass\(\);/);
+  assert.match(main, /const hero = heroOn && player\.object\.visible \? \[player\.object\] : \[\];/);
+  assert.match(main, /sharedUniforms\.uShadowHero\.value = heroOn \? 1 : 0/);
+  assert.match(src('src/materials.js'), /if \(uShadowHero > 0\.5\) return min\(s0, mix\(1\.0, sF, iF\)\);/);
+  assert.match(src('src/title-world.js'), /SU\.uShadowHero\.value = 0/, 'the title\'s own fine map holds everything');
+  // the near map: bias 1 and normal offset 1.6 texels (they were 2.3 and 3.2: shadows come loose by that much)
+  assert.deepEqual(NEAR_CASCADE, { bias: 1.0, offset: 1.6 });
+  assert.match(main, /near: new Cascade\(\{ name: 'near', size: 4096, extent: 220, depth: 1600, \.\.\.NEAR_CASCADE,/);
+});

@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.45 — 2026-10-11
 
+- Shadows no longer come loose from what casts them: the lit strip under a balcony or along the foot of a wall, as tall as 40 cm on Handheld, is gone or a sliver of what it was.
+- On the Steam Deck and Handheld settings your own shadow is whole and sharp again and starts right at your feet: it was half drawn, a grey blur round it, and often a hand’s width away from you.
+- A new test room in the Debug menu, the Shadow Room: thin poles and a grate, a colonnade, leaf cut-outs, an arch under a balcony, a stair, slopes the sun grazes, a dark house, things that move and a tall tower whose shadow crosses the yard, all along one walk. The boards by the spawn hold the sun lower, turn it round, or give it back to the clock.
 - No more free chests by your ship when you land in Vael: if you left the desert without going into the Givers’ House, the blade and the guard are still waiting for you there.
 - When your ship comes down to land, the flame of its jets stays under it: it no longer shoots up through the hull as the ship drops.
 - The first message from your father, after the desert, makes sense now: the neighbours swore they would help him dig out the dry well, and nobody came. He is bitter about it, and your traveller keeps his thoughts to himself.

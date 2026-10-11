@@ -8,6 +8,7 @@ import { createBazaar, buildBazaar } from './bazaar.js';
 import { createArena, buildArena } from './arena.js';
 import { createArcade, buildArcade } from './arcade.js';
 import { createGadgetYard, buildGadgetYard } from './gadget-yard.js';
+import { createShadowRoom, buildShadowRoom } from './shadow-room.js';
 import { createLab, buildLab } from './lab.js';
 import { createBuried, buildBuried } from './buried.js';
 import { createSpheres, buildSpheres } from './spheres.js';
@@ -182,6 +183,13 @@ export const LEVELS = [
     title: 'The Gadget Yard', source: 'for trying the gadgets',
     blurb: 'A round yard with a bay for each gadget: rings to hook, towers across a gap, cracked walls to blow open, crates to drag about, a pen of ink blots. Every gadget is yours here: LT / L2 (R) aims the one in hand and RT / R2 (T) uses it, D-pad ↑ (B) changes it.',
     moves: 'the gadgets · walk · climb · jetpack',
+  },
+  {
+    // a developer's world: the hard cases for the sun's shadows along one walk, the sun held by boards (in the worlds list, L; never on the route)
+    id: 'shadows', create: createShadowRoom, build: buildShadowRoom, hidden: true, dev: true,
+    title: 'The Shadow Room', source: 'for testing the shadows',
+    blurb: 'A pale yard of the hard cases for shadows: thin poles and a grate, a colonnade, leaf cut-outs, an arch and a balcony, a stair, slopes the sun grazes, a dark house, things that move and a tower whose shadow crosses the yard. The boards by the spawn hold the sun lower, turn it round, or give it back to the clock.',
+    moves: 'walk · climb · jetpack',
   },
   {
     // a developer's world: every minigame (src/minigames/) with its arcade sign round a plaza, to try them one after another (in the worlds list, L; never on the route)

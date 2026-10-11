@@ -1043,3 +1043,72 @@ buildings' merged meshes against each other), the Buried Machine's two layers of
 Foundry's cells' solid surfaces against their drawn ones, Qanat's walls (25 m² on two of its houses), the cave of the
 giant's heart's floor and the keepers' stair, the Givers' Hearth's floor. The Warden's Well's 47 are nearly all on its
 tower's foot and crown outside, in the shaft.
+## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
+
+Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.
+
+**The room** (`src/levels/shadow-room.js`, Debug menu → Test rooms): a pale flat yard with the hard cases one after
+another along one walk (`SHADOW_ROOM.path`, a loop from the spawn): small props round the spawn, six poles from 20 cm
+down to 6 mm, a grate of 3 cm bars overhead and a fence of 2 cm bars, a colonnade throwing stripes across the walk, a
+pergola of two layers of leaf cut-outs (real holes: the depth pass has no alpha test), an arch and a balcony over a
+wall, a stair of 17 steps up to a terrace with balusters and a ramp down, wedges at 25°, 30° and 33° and a mound the
+sun grazes, a closed house with a door and a slit window (light to dark), things that move (a lift and a slider you
+can stand on, a pendulum, a fan, a rolling ball) and an 82 m tower (shaft, balconies, a lattice crown, a spire) whose
+shadow runs west across the yard through all three cascades. Each station is a mesh per material, so the shadow
+culler judges them one by one as it does a world's buildings. Four boards by the spawn (interact) hold the sun lower
+(35°, 20°, 12°, 6°, 62°), turn it round in 45° steps, give it back to the clock (then step the hour) and stop the
+movers; `level.shadowRoom` does the same from code (`setSun`, `useClock`, `freeze`). Peaceful, nothing grows.
+
+**The QC** (the skill's SKILL.md has the how): the traveller walks the path at a run, turning the camera after the way,
+and stops at eleven places to turn it once round; every frame the game's own shadow lookup (`SHADOW_GLSL`, the
+surfaces' code, compiled into a point shader with the frame's maps and uniforms) is evaluated at ~350 000 probes laid
+on the room's surfaces and judged against rays to the sun through a BVH of the room; his body is rebuilt as a BVH every
+frame (skinned as the GPU skins it) for the truth of his own shadow. Per spot: acne, leaks, peter-panning, casters off
+screen, shimmer, cascade pops and seams, how much of his shadow is drawn, how much spills, how far from his planted
+foot it starts.
+
+- **The ground under the stations was missing** in this room after the load: passage.js `WarmDraw.compile` wore the
+  shadows' depth material on each mesh of its list and on their children, and a mesh listed after its own parent (a
+  terrain tile, perf.js `tileScene`) had the override taken for its own material and put back for good. Each mesh now
+  wears it once. (`tests/passage.test.js`.)
+
+**Found** (the Mac, headless Chrome, 1280 × 720, the whole walk; the spots merged):
+
+| preset, sun | his shadow drawn | spill | gap from the foot (p90 by spot) | peter-pan | the balcony's wall (peter-pan) | leaks |
+|---|---|---|---|---|---|---|
+| High, 35° | 92 % → 92 % | 13 % → 13 % | 0–5 cm → 0–5 cm | 4.6 % → 0.4 % | 7.5 % → 0.6 % | 0 → 0 |
+| High, 12° | 93 % → 93 % | 14 % → 14 % | 0–2 cm → 0–2 cm | 1.4 % → 0.6 % | 6.6 % → 6.0 % | 0.45 % → 0.41 % |
+| Steam Deck, 35° | 65 % → 93 % | 41 % → 12 % | 9–27 cm → 0–3 cm (two spots 16, 22) | 4.8 % → 0 | 6.0 % → 0 | 0 → 0 |
+| Steam Deck, 12° | 65 % → 89 % | 39 % → 15 % | 8–27 cm → 0–5 cm | 3.4 % → 0.7 % | 17 % → 0 | 0.13 % → 0.01 % |
+| Handheld, 35° | 50 % → 92 % | 46 % → 15 % | 22–51 cm → 0–3 cm (the house 27) | 43 % → 16 % | 72 % → 25 % | 0.99 % → 0 |
+| Handheld, 12° | 42 % → 88 % | 59 % → 18 % | 22–55 cm → 0–3 cm | 9.2 % → 4.0 % | 0 → 0 | 1.5 % → 0.26 % |
+
+Acne stayed under 0.03 % everywhere at 35° and 12°; shimmer (0.003–0.03 % of the edge probes a frame) and the cascade
+pops (High only: the fine map's edge) did not change.
+
+- **His shadow on the presets with no fine map** (Steam Deck, Handheld) lived in the near map alone: a 6 cm (Deck)
+  or 16 cm (Handheld) texel under a 12 cm leg, the 4-tap tent widened to the pixel, and a bias and offset of 2.3
+  and 3.2 of those texels. Half of it drawn, a grey blur round it, starting a hand's width from his feet. **The hero
+  map** (shadows.js `HERO_CASCADE`, `heroExtent`; main.js `heroPass`; perf.js `shadow.hero`): the fine cascade's map
+  (1024 px) holds the traveller alone, in a window fitted round him and his shadow (3 m at noon, up to 8 m at a low
+  sun: `fitShadowExtent`), drawn from his own meshes in a scene of their own; the surfaces take it with the near map
+  by `min` (materials.js `uShadowHero`), and the near map leaves him out. High (the fine map holds everything) is
+  unchanged.
+- **Shadows come loose from their casters** (peter-panning: a lit band under the balcony on the wall, 40–50 cm tall
+  on Handheld; the feet of walls and posts): the near map's bias and normal offset (shadows.js `NEAR_CASCADE`) from
+  2.3 and 3.2 texels to 1 and 1.6. The normal offset keeps the grazing faces clean: at a 12° sun acne stays at
+  0.18 % at worst (Handheld's stair, under the 0.2 % limit); at 6° the Handheld's terrace has 0.76 % (0.21 % before)
+  in exchange for its leaks (6 % → 1.5 %) and the off-screen casters' shadows it lost (22 % → 6 %).
+
+**Cost** (renderFrame, the Mac, the median of 4 × 40 frames, the hero map off and on, interleaved): the Signal
+Market's start, Steam Deck 5.45 → 5.85 ms of CPU (+9 draws, +20 k triangles), Handheld 4.75 → 4.95 ms (+10, +14 k);
+Edena's start, Deck 4.75 → 4.95, Handheld 4.45 → 4.70 (+9–10 draws). About 0.2–0.4 ms on the Mac's main thread,
+so roughly 0.5–1 ms on the Deck's: the price of his shadow, every frame. The bias change costs nothing; High and the
+Xbox preset don't draw the hero map.
+
+**Left as they are** (the room shows them; none is a regression): on High the fine map's edge ~11 m from him still
+pops thin shadows in and out (a 2 cm pole's shadow is the fine map's alone: seams 3–10 % of the fade band's probes);
+at a low sun, thin long shadows seen from 30–40 m fade out as the lookup widens to the pixel (the boards' posts at
+12°: the props spot's leaks on High); the Handheld's balcony keeps 25 % of its contact probes lit (a 16 cm texel);
+the 2 cm fence and the 3 cm grate shimmer a little as the near window steps (sub-texel rasterisation, 0.04 % a frame).
+`tests/shadow-room.test.js`, `tests/shadow-qc.test.js`, `tests/shadows.test.js` (the hero map, `NEAR_CASCADE`).

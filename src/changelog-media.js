@@ -622,6 +622,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'vael-landing', caption: 'Down the ramp in Vael after the desert, the Givers’ House skipped: before, the blade’s and the guard’s chests waiting by the ship; after, the plain', from: FROM45,
         view: { level: 'arzach', save: SAVE45, hour: 11, fov: 65, eye: [-263.5, 59.2, -1112.2], target: [-251.5, 56.2, -1106.5], player: [-262, 55.8, -1116] } },
     ] },
+    // (the shadow QC's fixes, 3dfa45fc: the hero map on Deck and Handheld, the near map's bias and offset; the same views before and after)
+    { match: 'On the Steam Deck and Handheld settings your own shadow', shots: [
+      { name: 'hero-spheres', title: 'The Spheres, Steam Deck', caption: 'The traveller on the Spheres’ path on the Steam Deck setting: before, a soft blot that comes loose from his feet; after, his legs, his arms and the pack, from his boots', commit: '3dfa45fc',
+        view: { level: 'spheres', quality: 'deck', size: [1280, 800], player: [0, 0, 0], heading: 2.4, eye: [3, 2.6, 4.5], target: [0, 0.4, -1], fov: 50 } },
+      { name: 'hero-edena', title: 'Edena, Handheld', caption: 'In Edena’s meadow on the Handheld setting: before, a grey smudge beside him; after, his legs, his arms and the pack in his shadow', commit: '3dfa45fc',
+        view: { level: 'edena', quality: 'handheld', player: [0, 0, 0], heading: 2.4, eye: [3, 2.6, 4.5], target: [0, 0.4, -1], fov: 50 } },
+    ] },
   ],
   '1.44': [
     { match: 'At the edge of Vael’s plain stands the riders’ gate', shots: [

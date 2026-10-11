@@ -152,6 +152,17 @@ export const CONTENT = {
     relics: { spots: [], names: [] },
     npcs: [],
   },
+  shadows: {
+    weather: [],
+    story: {
+      title: 'THE SHADOW ROOM',
+      intro: 'The hard cases for shadows, one after another along the yard. The boards by the spawn move the sun.',
+      outro: 'That is the yard. Watch the shadows as you walk.',
+      label: 'the yard', goal: [0, 'ground', 4], radius: 8,   // (at the start: told at once)
+    },
+    relics: { spots: [], names: [] },
+    npcs: [],
+  },
   arcade: {
     weather: [],
     story: {

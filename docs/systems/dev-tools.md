@@ -12,7 +12,7 @@ page in sections, each a heading with one line, in this order (`menuSections`):
 | --- | --- |
 | **Play** | Continue (the world this save was left in), then the route's worlds (`ORDER`) in story order, each in the debug save |
 | **Story places** | the finished worlds off the route: Home, the Lantern, the Atelier (in your save) |
-| **Test rooms** | the `dev: true` levels: the Lab, the Arena, the Gadget Yard, the Arcade, the References |
+| **Test rooms** | the `dev: true` levels: the Lab, the Arena, the Gadget Yard, the Arcade, the References, the Shadow Room (`?level=shadows`: rendering.md, "The Shadow Room and the shadow QC") |
 | **Worlds in progress** | the `WIP` worlds (off the galactic map) |
 | **Games** | the minigames (`gamesRow`), each with its best |
 | **Pages** | `PAGES` (What's new, Audits, Items, Creatures & spirits, Character studio, Motion, Cinematics, Trailer, and References, `references.html`, tagged "reference material"), `MAYBE_PAGES` (pages listed once they answer, `probePages`; none now) and on the dev server `DEV_PAGES` (the reference lab, tagged "dev server"; a build never lists it) |

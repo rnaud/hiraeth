@@ -21,7 +21,9 @@ test('the handheld preset is the cheap one: lower resolution held by dynamic res
   const H = QUALITY_PRESETS.handheld, M = QUALITY_PRESETS.medium;
   assert.ok(H.scale < M.scale);
   assert.ok(H.dynamic && H.dynamic.low >= 30 && H.dynamic.high <= 60, 'aims between 30 and 60 fps');
-  const maps = (p) => Object.values(p.shadow).filter(Boolean);
+  // (the world's cascades; the hero map, the traveller alone in a 1024 map, is a pass a few draws long: shadows.js HERO_CASCADE)
+  const maps = (p) => [p.shadow.fine, p.shadow.near, p.shadow.far].filter(Boolean);
+  assert.ok(!H.shadow.hero || H.shadow.hero <= 1024, 'a small hero map');
   assert.ok(maps(H).length < maps(M).length, 'fewer cascades');
   assert.ok(maps(H).reduce((s, n) => s + n * n, 0) <= maps(M).reduce((s, n) => s + n * n, 0) / 3 + 1, 'a third of the shadow texels');
   assert.ok(H.farEvery > M.farEvery, 'the far cascade refreshes less often');

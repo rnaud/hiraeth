@@ -19,7 +19,7 @@ test('every world is in exactly one section: the route in story order, the place
   const s = worldSections(LEVELS);
   assert.deepEqual(s.play.map((l) => l.id), ORDER, 'Play: the route, in story order');
   assert.ok(s.rooms.length >= 4 && s.rooms.every((l) => l.dev), 'Test rooms: the dev rooms');
-  for (const id of ['arena', 'arcade', 'lab', 'references']) assert.ok(s.rooms.some((l) => l.id === id), id);
+  for (const id of ['arena', 'arcade', 'lab', 'references', 'shadows']) assert.ok(s.rooms.some((l) => l.id === id), id);
   assert.ok(s.progress.every((l) => WIP.includes(l.id)), 'Worlds in progress: names.js WIP');
   assert.deepEqual(s.places.slice(0, 2).map((l) => l.id), ['home', 'lantern']);
   // (the dismissed worlds, src/levels/dismissed/, are in no section: not levels any more)

@@ -85,7 +85,7 @@ test('MakeHuman\'s macro blend: the age slider, the corner weights, a corner is 
   const waist = (p) => { const b = part(data, shapeOf(data, p).pos, 'body'); let w = 0; for (let k = 0; k < b.length; k += 3) if (Math.abs(b[k + 1] - 1.08) < 0.1) w = Math.max(w, b[k + 2]); return w; };
   assert.ok(waist(personParams({ build: 'heavy' })) > waist(personParams({ build: 'slim' })) + 0.03, 'the heavy have a belly');
   assert.notEqual(paramsKey(personParams({ build: 'slim' })), paramsKey(personParams({ build: 'broad' })));
-  for (const w2 of COSTUME_WORLDS.filter((x) => !['lab', 'atelier', 'references', 'arena', 'gadgetyard', 'arcade'].includes(x))) assert.ok(WORLD_BODIES[w2], `${w2}'s people have their proportions`);
+  for (const w2 of COSTUME_WORLDS.filter((x) => !['lab', 'atelier', 'references', 'arena', 'gadgetyard', 'arcade', 'shadows'].includes(x))) assert.ok(WORLD_BODIES[w2], `${w2}'s people have their proportions`);
   // the Moebius face for grown-ups, none on a child; bigger eyes for everyone, more for a child
   assert.ok(faceTargets('m', 35).chinLong > 0.4 && !faceTargets('f', 7).chinLong);
   assert.ok(faceTargets('f', 7).eyes > faceTargets('m', 35).eyes && faceTargets('m', 35).eyes > 0);

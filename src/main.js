@@ -47,7 +47,7 @@ import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
-import { Cascade, FINE_CASCADE, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft } from './shadows.js';
+import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { JumpShadow } from './jump-shadow.js';
@@ -191,9 +191,14 @@ const SU = sharedUniforms;
 const brushTrail = new BrushTrail(sharedUniforms);   // the plants and the grass feel the traveller pass (src/brush.js)
 const cascades = {
   fine: new Cascade({ name: 'fine', ...FINE_CASCADE, depth: 1600, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0, texel: [SU.uShadowTexel, 0] } }),
-  near: new Cascade({ name: 'near', size: 4096, extent: 220, depth: 1600, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset, texel: [SU.uShadowTexel, 1] } }),
+  near: new Cascade({ name: 'near', size: 4096, extent: 220, depth: 1600, ...NEAR_CASCADE, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset, texel: [SU.uShadowTexel, 1] } }),
   far: new Cascade({ name: 'far', size: 2048, extent: 1150, depth: 3200, bias: 2.2, offset: 2.4, uniforms: { map: SU.uShadowMap2, matrix: SU.uShadowMatrix2, bias: SU.uShadowBias2, offset: SU.uShadowNormalOffset2, texel: [SU.uShadowTexel, 2] } }),
 };
+// (the hero map's: heroPass)
+let heroOn = false;
+const heroScene = new THREE.Scene();
+heroScene.matrixWorldAutoUpdate = false;
+heroScene.overrideMaterial = shadowOverride;
 const shadowTexels = () => SU.uShadowTexel.value.set(cascades.fine.texel, cascades.near.texel, cascades.far.texel);
 
 const post = createPost();
@@ -1105,8 +1110,11 @@ function applyQuality() {
   quality.renderScale = preset.scale;
   adapt.slow = adapt.fast = adapt.hold = adapt.noProbe = 0; adapt.probe = null; adapt.dropped = false;
   const S = preset.shadow;
-  cascades.fine.configure(S.fine || 256, cascades.fine.extent);
-  if (!S.fine) cascades.fine.disable();
+  // (no fine map: the hero map instead, the traveller alone in the fine cascade's map, heroPass)
+  heroOn = !S.fine && !!S.hero;
+  cascades.fine.configure(S.fine || S.hero || 256, heroOn ? heroExtent(sharedUniforms.uSunDir.value.y) : FINE_CASCADE.extent);
+  if (!S.fine && !S.hero) cascades.fine.disable();
+  sharedUniforms.uShadowHero.value = heroOn ? 1 : 0;
   cascades.near.configure(S.near, preset.nearExtent);
   cascades.far.configure(S.far, cascades.far.extent);
   for (const c of Object.values(cascades)) c.prime(renderer);
@@ -1561,6 +1569,24 @@ const shadowDir = new THREE.Vector3();
 const frameStats = { calls: 0, tris: 0, n: 0, culled: 0 };
 renderer.info.autoReset = false;   // one frame's draw calls over all its passes (the F readout)
 
+/**
+ * The hero map (shadows.js HERO_CASCADE; the presets with no fine map): the fine cascade's map, fitted round the
+ * traveller and his shadow, drawn from his own meshes only (a scene of its own holding his object, not reparented,
+ * as passage.js's WarmDraw does). The near pass leaves him out.
+ */
+function heroPass() {
+  const c = cascades.fine;
+  const e = heroExtent(shadowDir.y);
+  if (e !== c.extent) { c.configure(c.size, e); c.aim(shadowDir); shadowTexels(); }
+  c.place(player.pos);
+  renderer.setRenderTarget(c.rt);
+  renderer.clear();
+  if (!player.object.visible) return;
+  heroScene.children = [player.object];
+  try { renderer.render(heroScene, c.cam); } finally { heroScene.children = []; }
+  for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
+}
+
 /** One shadow pass: place the cascade, hide what it doesn't need, render, show it again. A map kept over
  *  several frames (kept) holds the casters of every view within VIEW_SLACK of this one (shadows.js). */
 function shadowPass(c, reach, hide = [], kept = false) {
@@ -1613,10 +1639,16 @@ function renderFrame() {
     for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
   shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
   const camToPlayer = camera.position.distanceTo(player.pos);
-  if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
+  if (heroOn) heroPass();
+  else if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
   // (and drawn again as soon as the view has turned or moved out of what the last one was culled for)
   const nearKept = preset.nearEvery > 1;
-  if (turned || frameNo % preset.nearEvery === 0 || (nearKept && viewLeft(cascades.near.view, camera))) shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8, [], nearKept);
+  if (turned || frameNo % preset.nearEvery === 0 || (nearKept && viewLeft(cascades.near.view, camera))) {
+    // (the traveller is the hero map's alone; in the near map his coarse shadow only blurred its edge)
+    const hero = heroOn && player.object.visible ? [player.object] : [];
+    for (const o of hero) o.visible = false;
+    shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8, hero, nearKept);
+  }
   if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0) || viewLeft(cascades.far.view, camera)) {
     // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
     const small = farPassSkips(tiled.small, cascades.far.texel);
