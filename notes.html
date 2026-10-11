@@ -28,6 +28,16 @@
           <div class="input-row"><textarea id="new-note" name="note" rows="1" placeholder="Add a note…" maxlength="4000" autocomplete="off" required></textarea><button id="add" type="submit">Add</button></div>
           <div class="composer-foot"><span id="draft-hint">Enter for a new line · ⌘/Ctrl + Enter to add</span><span id="length" aria-hidden="true">0 / 4000</span></div>
         </form>
+        <section id="drafts-section" class="drafts" aria-labelledby="drafts-title" hidden>
+          <div class="list-heading"><h2 id="drafts-title">Screenshot drafts <span id="drafts-count"></span></h2></div>
+          <p class="drafts-line">Taken in the game's debug menu. Not issues yet: write one up and send it, or delete it.</p>
+          <ul id="drafts" aria-label="Screenshot drafts"></ul>
+        </section>
+        <details class="pair">
+          <summary>Pair a device</summary>
+          <form id="pair-form"><label for="pair-code">The code the game shows</label><div class="input-row"><input id="pair-code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="6" pattern="[A-Za-z2-9]{6}" required placeholder="ABC234"><button id="pair" type="submit">Pair</button></div></form>
+          <p id="pair-status" role="status" aria-live="polite"></p>
+        </details>
         <section class="open-notes" aria-labelledby="open-title">
           <div class="list-heading"><h2 id="open-title">To do <span id="count"></span></h2><button id="refresh" class="text-button">Refresh <span aria-hidden="true">↻</span></button></div>
           <label class="sr-only" for="search">Find a note in the loaded list</label><input id="search" type="search" placeholder="Find a note…" autocomplete="off">

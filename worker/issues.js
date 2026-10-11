@@ -1,3 +1,5 @@
+import { handleDrafts, doStore, CORS } from './drafts.js';
+
 // The private notebook: GitHub is the store; neither credential reaches the page.
 // Set HIRAETH_ISSUES_TOKEN (this repo, Issues read/write) and HIRAETH_NOTES_PASSWORD
 // with Wrangler secrets. Missing configuration fails closed. docs/systems/notes.md.
@@ -104,8 +106,20 @@ function githubFailure(response, writing = false) {
   return failure(502, writing ? 'We could not confirm whether the note was saved. Refresh the list before trying again.' : 'The notes could not be loaded. Please try again.');
 }
 
-export async function handleIssues(request, env, fetcher = fetch, now = Date.now()) {
+/** The drafts' routes (worker/drafts.js): screenshot drafts from a paired device, and the notebook's own handling of them. */
+const DRAFT_ROUTE = /^\/api\/notes\/(pair(\/approve)?|drafts(\/[a-f0-9]{32}(\/publish)?)?|shots\/[a-f0-9]{32}\.jpg)$/;
+
+export async function handleIssues(request, env, fetcher = fetch, now = Date.now(), store = env.NOTES_DRAFTS ? doStore(env.NOTES_DRAFTS) : null) {
   const url = new URL(request.url), session = url.pathname === '/api/notes/session';
+  if (DRAFT_ROUTE.test(url.pathname)) {
+    const device = /^\/api\/notes\/(pair|drafts)$/.test(url.pathname);
+    if (device && request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+    if (!configured(env)) return json({ error: 'The notebook is not connected yet. Please come back after setup.' }, 503, device ? CORS : {});
+    return handleDrafts(request, env, {
+      store, signedIn: () => signedIn(request, env, now), rateLimit, api: API,
+      github: (u, options) => github(fetcher, env, u, options), githubFailure, issueView,
+    }, now);
+  }
   if (!session && url.pathname !== '/api/notes/issues') return failure(404, 'Not found.');
   const allowed = session ? ['GET', 'POST', 'DELETE'] : ['GET', 'POST'];
   if (!allowed.includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: allowed.join(', ') });

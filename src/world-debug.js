@@ -11,6 +11,7 @@
 //                where they are staged, then back where you stood
 //   Quest stage  any of this world's quests set to a stage (the flags of the stages before it set as the debug
 //                save sets them, src/debug-save.js), with a warning: it changes the save being played
+//   Notes        a screenshot as a draft for the Notes page (src/issue-draft.js: the frame, where you are, the build)
 //   Toggles      the hitbox overlay (F4: what L3 + R3 did before), the input display (F6), god mode, endless
 //                potions, full hearts, the time of day, and back to the Debug menu
 //
@@ -255,7 +256,7 @@ export const HOURS = [['dawn', 6], ['morning', 9], ['noon', 12], ['afternoon', 1
  * link to `#wd-<n>`; `acts[n]` says what it does ({ do: 'tp', point } · { do: 'film', entry } · { do: 'quest', id,
  * stage } · { do: 'toggle', key } · { do: 'hour', h } · ...). `state`: { quests, toggles: { key: bool }, save }.
  */
-export function debugSections({ points = [], films = [], quests = [], toggles = {}, save = '' } = {}) {
+export function debugSections({ points = [], films = [], quests = [], toggles = {}, save = '', notes = null } = {}) {
   const acts = [];
   const row = (act, o) => { const n = acts.push(act) - 1; return rowHtml({ href: `#wd-${n}`, ...o, extra: ` data-wd="${n}"` }); };
   const out = [];
@@ -275,6 +276,14 @@ export function debugSections({ points = [], films = [], quests = [], toggles = 
       [...q.stages, { id: 'done', label: 'done (the quest finished)' }].map((s, i) => row({ do: 'quest', id: q.id, stage: s.id }, {
         label: `${s.id === 'done' ? '✓' : `${i + 1}.`} ${esc(s.label)}`, hint: `${q.id} → ${s.id}`, q: `${q.title} ${q.id} ${s.id} quest stage`, tag: q.now === s.id ? '<small class="best">now</small>' : '' })).join('')}</div>`).join('');
     out.push({ key: 'quests', title: 'Quest stage', line: 'set a quest of this world to a stage · changes the save', html: `<div class="rows wd-lead">${warn}${reload}</div>${rows}` });
+  }
+  // the Notes page's screenshot drafts (src/issue-draft.js, issue #8): the frame and where you are, kept for the notebook
+  if (notes) {
+    const waiting = notes.code ? row({ do: 'shot', pairOnly: true }, { label: `Pairing code: ${esc(notes.code)}`, hint: 'on the Notes page, choose Pair a device and enter it', q: 'pair code notes' }) : '';
+    const queued = notes.queued ? row({ do: 'flush' }, { label: `↑ Send ${notes.queued} waiting screenshot${notes.queued === 1 ? '' : 's'}`, hint: 'kept on this device until the notebook has them', q: 'send waiting screenshots notes' }) : '';
+    out.push({ key: 'notes', title: 'Notes', line: `a screenshot as a draft for the Notes page · ${notes.paired ? 'this device is paired' : 'pairs this device the first time'}`, html: `<div class="rows">${
+      row({ do: 'shot' }, { label: '📷 Screenshot to a Notes draft', hint: 'this frame, the world, where you stand, the build and the preset · write it up on the Notes page', q: 'screenshot draft issue notes photo bug' })
+      + waiting + queued}</div>` });
   }
   const tog = (key, label, hint) => row({ do: 'toggle', key }, { label, hint, q: `${key} toggle`, tag: `<small class="tag wd-state${toggles[key] ? ' on' : ''}" data-state="${key}">${toggles[key] ? 'on' : 'off'}</small>` });
   const hours = () => HOURS.map(([name, h]) => row({ do: 'hour', h }, { label: `☼ ${name}`, hint: `the time of day: ${String(Math.floor(h)).padStart(2, '0')}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`, q: `time hour ${name}` })).join('');

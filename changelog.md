@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.46 — 2026-10-11
 
+- The world debug menu can save a screenshot as a draft for the Notes page: the picture, the world, where you stand, the build and the preset. The first time, the game shows a code to enter on the Notes page to pair the device. Drafts wait on the Notes page, apart from the issues, to be written up and sent, or deleted.
 - A world’s main quest now counts what you did before anyone told you of it: fetch the splinter, sing the crystal or go into the fallen ship first, and the quest picks up from there.
 - On the Overnight Train, Edda tells you her grandmother rides the last roof, and Solange pulls the cord for the market’s halt herself: no more asking the conductor, twice.
 - In Lorn, Wendel tells you what makes the Great Crystal sing, and the song leads straight to the splinter. Saba still listens at its foot, for whoever wants to know what the new phrase means.

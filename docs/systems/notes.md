@@ -68,3 +68,38 @@ them strong. This is a private author notebook, not a public feedback endpoint.
 Tests in `tests/notes-worker.test.js` exercise the Worker with a fake GitHub transport: cookie tampering,
 expiry/rotation, Origin checks, title and body limits, pagination/PR exclusion, errors, and creation.
 No test creates real issues. The existing update-download tests cover unchanged archive behavior.
+
+## Screenshot drafts (issue #8, v1.46)
+
+The world debug menu (L3 + R3, F2) has **Screenshot to a Notes draft**: the frame just drawn, 640 px wide as a JPEG
+under 88 KB (`src/issue-draft.js` `grabFrame`, `shotJpeg`), with where the game is (`shotContext`: world, position,
+heading, version, build, commit, preset, device, tracked quest and stage, hour, save slot). It is a **draft**, not an
+issue: it waits in the notebook's own store, and the Notes page lists it under *Screenshot drafts* with its picture
+and state, to be written up (the first line is the title) and sent as an issue, or deleted. Nothing is filed from
+the game.
+
+**Pairing.** The game runs on other origins (the Android app, GitHub Pages, the Deck) and never holds the password.
+The first screenshot asks the Worker for a six-letter code (`POST /api/notes/pair`, valid ten minutes), says it in a
+toast and in the menu's Notes section, and polls (`GET /api/notes/pair?code&secret`; the secret only the asking
+device has). On the signed-in Notes page, *Pair a device* takes the code (`POST /api/notes/pair/approve`); the device
+collects a **device token** once: drafts-write only (it can't read the notebook or file issues), signed from both
+Worker secrets like the session cookie, 400 days, so rotating either secret unpairs every device. It is kept in the
+device's localStorage (`hiraeth.notes.device.v1`). Until a draft is sent it waits on the device
+(`hiraeth.notes.shots.v1`, six at most, the oldest dropped first): offline, or before pairing, it goes up later
+(a row in the menu sends what waits).
+
+**Storage.** `worker/drafts.js`: one SQLite Durable Object, `NotesDrafts` (`wrangler.jsonc`: binding `NOTES_DRAFTS`,
+migration `notes-drafts-v1`; the deploy creates it, no namespace to make by hand). Keys: `draft:<id>` (text,
+state, device, shot id), `shot:<id>` (the JPEG, base64, under a value's 128 KiB), `pair:<code>`. Without the binding
+the drafts' routes answer 503 and the Notes page hides the section; the notes themselves are unaffected.
+
+| Route | Who | What |
+| --- | --- | --- |
+| `POST /api/notes/pair`, `GET /api/notes/pair` | any origin (CORS `*`, no credentials) | a code; the token once approved |
+| `POST /api/notes/drafts` | a paired device (`Authorization: Bearer`) | `{ text, context, shot }`: 200 KB a request, a JPEG of 90 KB at most, text 4,000 characters, the state 24 plain values (2,000 characters), 50 drafts at most |
+| `GET /api/notes/drafts`, `POST …/drafts/<id>/publish`, `DELETE …/drafts/<id>` | the notebook (the session cookie, same Origin) | list; send as an issue (the text, the picture, the state in a `<details>`), the draft removed; delete it with its picture |
+| `GET /api/notes/shots/<id>.jpg` | anyone with the link | the picture, by an unguessable 128-bit id, so the issue on GitHub can show it (GitHub's image proxy fetches it) |
+
+The write limiter covers pairing and drafts too. `tests/notes-drafts.test.js` (the Worker: pairing, tokens, limits,
+publish with a fake GitHub) and `tests/issue-draft.test.js` (the game's side over the real Worker and a store in
+memory; the menu's section). No test files a real issue.

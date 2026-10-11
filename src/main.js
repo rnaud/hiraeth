@@ -108,7 +108,8 @@ import { DevMenu } from './dev-menu.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
 import { hitboxes, registerHitboxes } from './hitboxes.js';
 import { inputDisplay } from './input-display.js';
-import { fillPicker, pickHref } from './world-picker.js';
+import { fillPicker, pickHref, buildInfo } from './world-picker.js';
+import { ShotDrafts, grabFrame, shotJpeg, shotContext } from './issue-draft.js';
 import { WorldDebugMenu, gatherPoints, debugSections, cinematicsFor, questList, applyQuestJump, landingSpot } from './world-debug.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
@@ -1291,6 +1292,23 @@ function worldFilm(entry) {
     .catch((err) => { showToast(`Could not play ${entry.title}: ${err.message}`); console.error(err); })
     .finally(watch);
 }
+// a screenshot as a Notes draft (src/issue-draft.js, issue #8): taken right after the next frame is drawn (takeShot, in the loop)
+const shotDrafts = new ShotDrafts({ toast: showToast });
+let shotPending = false;
+function takeShot() {
+  shotPending = false;
+  const frame = grabFrame(renderer.domElement);
+  if (!frame) { showToast('Could not take the screenshot here.'); return; }
+  const b = buildInfo(), tracked = storyRt.quests?.tracked?.();
+  const context = shotContext({ levelId, world: meta.title, pos: player.pos, heading: player.heading, version: VERSION, build: b.build, commit: b.commit,
+    preset: preset?.label ?? preset?.key, device: isXboxApp ? 'xbox' : deck ? 'deck' : handheld ? 'handheld' : isNativeApp ? 'android' : 'web',
+    quest: tracked ?? undefined, stage: tracked ? storyRt.quests.stage(tracked) : undefined, hour: sky.hour, slot: slots.active });
+  sound.page?.();
+  showToast('Screenshot taken.');
+  // (promises, not awaits: main.js's load guard reads every await in it, tests/load-awaits.test.js)
+  shotJpeg(frame).then((shot) => (shot ? shotDrafts.save({ shot, context }) : showToast('The screenshot came out too big to keep.')))
+    .catch((err) => { showToast(`Could not keep the screenshot: ${err.message}`); console.error(err); });
+}
 const worldDebug = new WorldDebugMenu({
   fill: fillPicker,
   title: () => meta.title,
@@ -1300,6 +1318,7 @@ const worldDebug = new WorldDebugMenu({
     quests: questList(storyRt.quests, levelId),
     toggles: worldToggles(),
     save: slots.active === DEBUG_SLOT ? 'the debug save' : `save ${slots.active}`,
+    notes: shotDrafts.status(),
   }),
   onToggle: (on) => {
     if (on) { for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false); showPicker(false); document.exitPointerLock?.(); }
@@ -1326,6 +1345,9 @@ const worldDebug = new WorldDebugMenu({
     else if (a.do === 'heal') { player.restore(player.maxHearts); showToast('Every heart back.'); }
     else if (a.do === 'hour') { sky.hour = a.h; updateSky(); }
     else if (a.do === 'picker') { worldDebug.toggle(false); showPicker(true); }
+    else if (a.do === 'shot' && a.pairOnly) void shotDrafts.pair();
+    else if (a.do === 'shot') { worldDebug.toggle(false); shotPending = true; }   // (the next frame, the menu gone)
+    else if (a.do === 'flush') { worldDebug.toggle(false); void shotDrafts.flush(); }
   },
 });
 
@@ -2084,6 +2106,7 @@ function frame(ts) {
   gpuTimer.end();
   setView(camera);   // (what the camera saw: the locomotion kit's detail tiers next frame, src/motion-kit/view.js)
   if (photo.capture) savePhoto();
+  if (shotPending) takeShot();
   cpuMs += performance.now() - tFrame;
 
   requestAnimationFrame(frame);

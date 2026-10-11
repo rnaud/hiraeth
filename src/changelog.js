@@ -24,6 +24,9 @@ export const CHANGELOG = [
       see: 'Take Edda’s letter, ring the bell, climb to the last roof and give it to Solange: the train brakes for the halt a minute later.' },
     { text: 'A world’s main quest now counts what you did before anyone told you of it: fetch the splinter, sing the crystal or go into the fallen ship first, and the quest picks up from there.',
       see: 'In the City-Shaft, go down to the Upward Shrine before talking to Nima: Ossa’s splinter starts the quest at its last climb.' },
+    // screenshot drafts for the Notes page (docs/systems/notes.md "Screenshot drafts"; issue #8)
+    { text: 'The world debug menu can save a screenshot as a draft for the Notes page: the picture, the world, where you stand, the build and the preset. The first time, the game shows a code to enter on the Notes page to pair the device. Drafts wait on the Notes page, apart from the issues, to be written up and sent, or deleted.',
+      see: 'In a world, press both sticks (or F2), open the Notes section and choose Screenshot to a Notes draft. Then open the Notes page on your phone.' },
   ] },
   { v: '1.45', date: '2026-10-11', items: [
     // the author's desert playtest (issues #66, #68, #69, #71, #76)

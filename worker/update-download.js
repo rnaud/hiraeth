@@ -1,4 +1,6 @@
 import { handleIssues } from './issues.js';
+// (the notebook's screenshot drafts live in this Durable Object: wrangler.jsonc, worker/drafts.js)
+export { NotesDrafts } from './drafts.js';
 // Keep existing Android/Deck zip URLs while storing each asset below 25 MiB.
 export default {
   async fetch(request, env, ctx) {

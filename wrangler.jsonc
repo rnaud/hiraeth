@@ -9,6 +9,10 @@
     { "name": "NOTES_LOGIN_LIMITER", "namespace_id": "17291001", "simple": { "limit": 5, "period": 60 } },
     { "name": "NOTES_WRITE_LIMITER", "namespace_id": "17291002", "simple": { "limit": 30, "period": 60 } }
   ],
+  // The notebook's screenshot drafts (docs/systems/notes.md "Screenshot drafts"): one SQLite Durable Object,
+  // created by the deploy itself (no namespace to make by hand; the free plan has SQLite Durable Objects).
+  "durable_objects": { "bindings": [{ "name": "NOTES_DRAFTS", "class_name": "NotesDrafts" }] },
+  "migrations": [{ "tag": "notes-drafts-v1", "new_sqlite_classes": ["NotesDrafts"] }],
   // Large update archives stream from bounded assets; the game stays static.
   // Keep all three HTML entry points; missing assets must remain real 404s.
   "assets": {

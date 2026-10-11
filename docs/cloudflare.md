@@ -58,6 +58,8 @@ changelog's pictures (`changelog-media/`, copied in after the content update), t
 The private [Notes page](systems/notes.md) uses this same Worker for `/api/notes/*`, backed by GitHub
 Issues. Its GitHub token and notebook password are separate Worker secrets; see that page for setup.
 They are not needed to serve the game or its updates. Without them the notebook stays closed.
+Its screenshot drafts live in a SQLite Durable Object (`NotesDrafts`, binding `NOTES_DRAFTS` in `wrangler.jsonc`),
+created by `wrangler deploy` from the migration there; nothing to set up by hand.
 
 1. In Cloudflare, select the account that should own `memento`. Check that the
    name is not already used by another application in that account.

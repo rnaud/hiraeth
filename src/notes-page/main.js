@@ -124,7 +124,65 @@ async function load(page = 1) {
   } catch (e) { $('list-status').textContent = e.message; }
   finally { loading = false; $('refresh').disabled = $('more').disabled = false; }
 }
-async function enter() { signedIn(true); notice(); await load(); }
+// ---- the screenshot drafts (worker/drafts.js, issue #8): taken in the game, written up and sent from here
+let drafts = [];
+const SHOTS = `${location.origin}/api/notes/shots/`;
+function draftRow(d) {
+  const li = element('li', 'draft'); li.dataset.draft = d.id;
+  const img = document.createElement('img'); img.alt = 'Screenshot'; img.loading = 'lazy';
+  if (typeof d.shot === 'string' && d.shot.startsWith(SHOTS)) img.src = d.shot;
+  const body = element('div', 'draft-body');
+  const meta = element('div', 'issue-meta');
+  const c = d.context ?? {};
+  for (const part of [c.world ?? c.level, c.x !== undefined ? `${c.x} ${c.y} ${c.z}` : null, c.build ? `build ${c.build}` : null, c.preset, c.device]) if (part) meta.append(element('span', '', String(part)));
+  const date = new Date(d.createdAt);
+  if (!Number.isNaN(date.valueOf())) meta.append(element('span', '', date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })));
+  const text = document.createElement('textarea'); text.maxLength = 4000; text.value = d.text ?? ''; text.setAttribute('aria-label', 'What this screenshot shows');
+  text.placeholder = 'What is wrong here? The first line is the title.';
+  const actions = element('div', 'draft-actions');
+  const send = element('button', 'send', 'Send as an issue'); send.type = 'button';
+  const remove = element('button', 'text-button', 'Delete'); remove.type = 'button';
+  const error = element('span', 'draft-error');
+  send.addEventListener('click', async () => {
+    if (!text.value.trim()) { error.textContent = 'Write a line first.'; text.focus(); return; }
+    send.disabled = remove.disabled = true; error.textContent = '';
+    try {
+      const { issue } = await api(`drafts/${d.id}/publish`, { method: 'POST', body: JSON.stringify({ text: text.value }) });
+      generation++;
+      issues = [issue, ...issues.filter((i) => i.number !== issue.number)];
+      drafts = drafts.filter((x) => x.id !== d.id); renderDrafts(); render();
+    } catch (e) { error.textContent = e.message; send.disabled = remove.disabled = false; }
+  });
+  remove.addEventListener('click', async () => {
+    if (!confirm('Delete this screenshot draft?')) return;
+    send.disabled = remove.disabled = true;
+    try { await api(`drafts/${d.id}`, { method: 'DELETE' }); drafts = drafts.filter((x) => x.id !== d.id); renderDrafts(); }
+    catch (e) { error.textContent = e.message; send.disabled = remove.disabled = false; }
+  });
+  actions.append(send, remove, error);
+  body.append(meta, text, actions);
+  li.append(img, body);
+  return li;
+}
+function renderDrafts() {
+  $('drafts').replaceChildren(...drafts.map(draftRow));
+  $('drafts-count').textContent = drafts.length ? `${drafts.length}` : '';
+  $('drafts-section').hidden = !drafts.length;
+}
+async function loadDrafts() {
+  try { ({ drafts } = await api('drafts')); renderDrafts(); }
+  catch { drafts = []; renderDrafts(); }   // (no drafts store yet: the section stays hidden)
+}
+$('pair-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const code = $('pair-code').value.trim().toUpperCase();
+  $('pair').disabled = true; $('pair-status').textContent = '';
+  try { await api('pair/approve', { method: 'POST', body: JSON.stringify({ code }) }); $('pair-code').value = ''; $('pair-status').textContent = 'Paired. The device sends its screenshots in a moment.'; setTimeout(loadDrafts, 8000); }
+  catch (err) { $('pair-status').textContent = err.message; }
+  finally { $('pair').disabled = false; }
+});
+
+async function enter() { signedIn(true); notice(); await Promise.all([load(), loadDrafts()]); }
 
 $('login-form').addEventListener('submit', async (e) => {
   e.preventDefault(); if ($('unlock').disabled) return;
@@ -149,7 +207,7 @@ $('new-note').addEventListener('keydown', (e) => {
 window.addEventListener('resize', resizeComposer);
 $('new-note').addEventListener('input', updateDraft);
 $('search').addEventListener('input', render);
-$('refresh').addEventListener('click', () => load());
+$('refresh').addEventListener('click', () => { load(); loadDrafts(); });
 $('more').addEventListener('click', () => { if (nextPage) load(nextPage); });
 $('lock').addEventListener('click', async () => {
   if (outbox.some((n) => n.state === 'sending')) return;
