@@ -51,7 +51,7 @@ namespace Memento.Bridge
         readonly FrameTiming[] timing = new FrameTiming[1];
         readonly List<float> frames = new();
         double windowStart, cpuMain, cpuRender, gpu, cpuAll, presentWait; int timed;
-        double scriptAt, waitAt, opsAt;
+        double scriptAt, waitAt, opsAt, shPrepAt, shRecAt; long shDrawsAt;
         string readout = "";
         // the load
         float firstNode = -1, settled = -1, lastGrowth; int lastNodes;
@@ -174,6 +174,9 @@ namespace Memento.Bridge
                 double script = runner ? runner.scriptMsTotal - scriptAt : 0, wait = runner ? runner.waitMsTotal - waitAt : 0, ops = BridgeHost.opsMsTotal - opsAt;
                 if (runner) { scriptAt = runner.scriptMsTotal; waitAt = runner.waitMsTotal; }
                 opsAt = BridgeHost.opsMsTotal;
+                // (the port's shadow maps on the main thread: their casters gathered, their draws recorded, how many)
+                string shadows = MementoShadows.On ? $" · shadows prepare {(MementoShadows.msPrepare - shPrepAt) / n:0.0} record {(MementoShadows.msRecord - shRecAt) / n:0.0} ms, {(MementoShadows.drawsTotal - shDrawsAt) / n} draws" : " · shadows off";
+                shPrepAt = MementoShadows.msPrepare; shRecAt = MementoShadows.msRecord; shDrawsAt = MementoShadows.drawsTotal;
                 int n = frames.Count;
                 string t = timed > 0 ? $"cpu main {cpuMain / timed:0.0} render {cpuRender / timed:0.0} gpu {gpu / timed:0.0} ms" : "no frame timing";
                 readout = $"{fps:0.0} fps · {p50:0.0} ms (p95 {p95:0.0}, max {max:0}) · {t} · script {script / n:0.0} wait {wait / n:0.0} ms · {nodes} nodes";
@@ -182,7 +185,7 @@ namespace Memento.Bridge
                 // frame and its wait on the present; ops still held back by -ops-cap)
                 string detail = (pFrames > 0 ? $" · phases scripts {pScripts / pFrames:0.0} (ops {ops / n:0.0}) before render {pBefore / pFrames:0.0} contexts {pContexts / pFrames:0.0} after {pAfter / pFrames:0.0} ms" : "")
                     + (timed > 0 ? $" · cpu frame {cpuAll / timed:0.0} present wait {presentWait / timed:0.0} ms" : "") + (BridgeHost.Held > 0 ? $" · {BridgeHost.Held} ops held" : "")
-                    + (BridgeLoopTimer.Installed ? $" · steps {BridgeLoopTimer.TakeWindow(8)}" : "") + vblanks;
+                    + shadows + (BridgeLoopTimer.Installed ? $" · steps {BridgeLoopTimer.TakeWindow(8)}" : "") + vblanks;
                 Write((settled < 0 ? "loading: " : "frames: ") + readout + detail);
                 frames.Clear(); windowStart = now; cpuMain = cpuRender = gpu = cpuAll = presentWait = 0; timed = 0;
                 pScripts = pBefore = pContexts = pAfter = 0; pFrames = 0;

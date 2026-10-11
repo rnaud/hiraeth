@@ -129,7 +129,12 @@ namespace Memento
         public bool anyMap;
 
         // the casters that move (people, capes, the ship, what the story moves): rescanned now and then
-        readonly List<Renderer> movers = new();
+        // (each with its materials' shadow passes, read at the scan: a renderer's sharedMaterials makes a new array each call,
+        // and the bridge's ~1 300 movers were read for every cascade every frame)
+        struct Mover { public Renderer r; public bool skinned; public Material[] mats; public int[] pass; }
+        readonly List<Mover> movers = new();
+        /// <summary>The main thread's time in Prepare and Render (ms, summed for good: the bridge's metrics read them) and the draws.</summary>
+        public static double msPrepare, msRecord; public static long drawsTotal;
         float scanAt = -99; WorldDetail scannedFor;
         public void Rescan() => scanAt = -99;
 
@@ -143,6 +148,12 @@ namespace Memento
         /// redrawn, placed where, with which casters. Called by MementoFeature while it records the frame.
         /// </summary>
         public List<Plan> Prepare(Camera cam, WorldDetail detail)
+        {
+            long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+            try { return PrepareTimed(cam, detail); }
+            finally { msPrepare += (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency; }
+        }
+        List<Plan> PrepareTimed(Camera cam, WorldDetail detail)
         {
             plans.Clear();
             if (!On || detail == null) return plans;
@@ -176,7 +187,12 @@ namespace Memento
                 var statics = new HashSet<Renderer>();
                 foreach (var u in detail.units) if (u.mr) statics.Add(u.mr);
                 foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
-                    if (r.shadowCastingMode != ShadowCastingMode.Off && (r is MeshRenderer || r is SkinnedMeshRenderer) && !statics.Contains(r)) movers.Add(r);
+                    if (r.shadowCastingMode != ShadowCastingMode.Off && (r is MeshRenderer || r is SkinnedMeshRenderer) && !statics.Contains(r))
+                    {
+                        var mats = r.sharedMaterials; var pass = new int[mats.Length];
+                        for (int k = 0; k < mats.Length; k++) pass[k] = mats[k] ? ShadowPassOf(mats[k]) : -1;
+                        movers.Add(new Mover { r = r, skinned = r is SkinnedMeshRenderer, mats = mats, pass = pass });
+                    }
             }
 
             GeometryUtility.CalculateFrustumPlanes(cam, planes);
@@ -208,17 +224,18 @@ namespace Memento
                     plan.draws.Add(new Draw { mesh = mesh, mat = u.mat, pass = ShadowPassOf(u.mat) });
                 }
                 // what moves
-                foreach (var r in movers)
+                foreach (var mv in movers)
                 {
+                    var r = mv.r;
                     if (!r || !r.enabled || !r.gameObject.activeInHierarchy || r.shadowCastingMode == ShadowCastingMode.Off) continue;
-                    var bb = r.bounds; float rad = bb.extents.magnitude * (r is SkinnedMeshRenderer ? 1.4f : 1) + (r is SkinnedMeshRenderer ? 0.3f : 0);
+                    var bb = r.bounds; float rad = bb.extents.magnitude * (mv.skinned ? 1.4f : 1) + (mv.skinned ? 0.3f : 0);
                     // (main.js tinyShadowCasters: bits of people under 7 cm don't cast)
                     if (rad < Mathf.Max(minR, 0.07f) || !c.Holds(bb.center, rad) || !Sees(bb.center, rad, c.depth, floor, vertical)) continue;
-                    var mats = r.sharedMaterials;
+                    var mats = mv.mats;
                     for (int s = 0; s < mats.Length; s++)
                     {
-                        var m = mats[s]; if (!m) continue;
-                        int pass = ShadowPassOf(m); if (pass < 0) continue;
+                        var m = mats[s]; int pass = mv.pass[s];
+                        if (pass < 0 || !m) continue;
                         plan.draws.Add(new Draw { renderer = r, mat = m, pass = pass, sub = s });
                     }
                 }
@@ -281,6 +298,13 @@ namespace Memento
         static readonly int IdLightDir = Shader.PropertyToID("_LightDirection"), IdBias = Shader.PropertyToID("_ShadowBias"), IdCamPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         /// <summary>One cascade's pass (MementoFeature): the casters into its map, as plain depth (the bias is applied when it is read).</summary>
         public void Render(RasterCommandBuffer cmd, Plan plan, Vector3 camPos)
+        {
+            long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+            RenderTimed(cmd, plan, camPos);
+            msRecord += (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+            drawsTotal += plan.draws.Count;
+        }
+        void RenderTimed(RasterCommandBuffer cmd, Plan plan, Vector3 camPos)
         {
             var c = plan.cascade;
             cmd.ClearRenderTarget(RTClearFlags.Depth, Color.clear, 1, 0);
