@@ -1965,3 +1965,14 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   updateMatrixWorld (cameras, skinned meshes, the part batches) is called as the walk would. The same matrices bit for
   bit (tests/scene-matrices.test.js). City-Shaft matrices 3.2 → 2.4 ms, mirror 8 → 7; fps 47.7 / 50.8 / 41.0, the
   desert 66.1 / 57.1, the Market 73.3 / 78.0 / 77.3.
+- **A depth prepass on the Linux player** (MementoFeature `Settings.prepass`, the Surface shader's `MEMENTO_PREPASS`;
+  `-no-prepass` off, `-prepass` elsewhere): the opaques' depth drawn alone first by the same G-buffer pass, its
+  vertex the pass's own position and no fragment work (the glass and the dissolve, which discard, write no depth
+  there), then the G-buffer pass shades each pixel once. The City-Shaft's GPU 20.3 / 16.1 / 24.1 → 16.8 / 17.2 / 19.8
+  ms (the crowd view the same: little overdraw there), the desert's ~1 ms more (open ground: the prepass's vertices
+  for little), the Market the same. City-Shaft 46.8 / 50.9 / 40.1 → 58.3 / 55.6 / 50.6 fps. The pictures the same
+  (the pixels that differ are those that differ between two runs without it: people walking, the far city's boil).
+- Measured and left out: the albedo target in 8 bits a channel (the same GPU time), no shadows with the prepass
+  (−0.5 to −1 ms). With the prepass, the composite (its creases' and pockets' taps) is ~4-6 ms of the City-Shaft's GPU
+  (`-debug-view 2` returns before them), and render scale 0.5 leaves 11-15 ms: most of what is left does not scale with
+  the pixels (the draws' vertices, the shadow maps, and the GPU waiting on the main thread's submission).

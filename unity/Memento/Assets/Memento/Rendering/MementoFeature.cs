@@ -69,6 +69,9 @@ namespace Memento.Rendering
             /// <summary>The depth the G-buffer's depth is cleared to (1: far, Unity turning it for a reversed depth); the bridge's
             /// -gclear-depth, a test for the Xbox's missing surfaces; under 0 the depth is not cleared here.</summary>
             public static float gDepthClear = 1f;
+            /// <summary>The opaques' depth drawn alone before the G-buffer (the Surface shader's MEMENTO_PREPASS), so the G-buffer
+            /// pass shades each pixel once: the bridge's Linux player (BridgeRunner), docs/systems/performance.md "round 7".</summary>
+            public static bool prepass;
             public static bool waterContact = WaterContactAsked(System.Environment.GetCommandLineArgs(), UnityEngine.Application.isMobilePlatform);
             /// <summary>The foam's default: on unless a mobile player or -noWaterContact; -waterContact wins.</summary>
             public static bool WaterContactAsked(string[] args, bool mobile) =>
@@ -152,7 +155,9 @@ namespace Memento.Rendering
 
         class GBufferPass : ScriptableRenderPass
         {
-            class PassData { public RendererListHandle list, water; public WorldDetail detail; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; }
+            class PassData { public RendererListHandle list, water; public WorldDetail detail; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; public bool pre; }
+            class PrepassData { public RendererListHandle list; public Matrix4x4 view, proj; }
+            static readonly GlobalKeyword PrepassKeyword = GlobalKeyword.Create("MEMENTO_PREPASS");
             class DepthData { public Material mat; public TextureHandle src; public Vector4 zp; public MaterialPropertyBlock mpb; }
             class WaterData { public RendererListHandle list; public TextureHandle scene; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; }
             readonly MaterialPropertyBlock depthMpb = new();
@@ -188,6 +193,27 @@ namespace Memento.Rendering
                 bool contact = split && copy != null;
                 var waterDraw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonTransparent);
                 var waterFilter = new FilteringSettings(new RenderQueueRange(WaterQueue, WaterQueue));
+                // the depth prepass (Settings.prepass, the bridge's -prepass): the opaques' depth alone first (the Surface
+                // shader's MEMENTO_PREPASS variant of the same pass), so the G-buffer pass after it shades each pixel once
+                bool pre = Settings.prepass;
+                if (pre)
+                {
+                    using var builder = rg.AddRasterRenderPass<PrepassData>("Memento depth prepass", out var pp);
+                    var draw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonOpaque);
+                    pp.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, draw, new FilteringSettings(RenderQueueRange.opaque)));
+                    pp.view = cam.GetViewMatrix(); pp.proj = cam.GetProjectionMatrix();
+                    builder.UseRendererList(pp.list);
+                    builder.SetRenderAttachmentDepth(data.depth, AccessFlags.Write);
+                    builder.AllowGlobalStateModification(true);
+                    builder.SetRenderFunc((PrepassData d, RasterGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetViewProjectionMatrices(d.view, d.proj);
+                        if (Settings.gDepthClear >= 0) ctx.cmd.ClearRenderTarget(RTClearFlags.Depth, Color.clear, Settings.gDepthClear, 0);
+                        ctx.cmd.EnableKeyword(PrepassKeyword);
+                        ctx.cmd.DrawRendererList(d.list);
+                        ctx.cmd.DisableKeyword(PrepassKeyword);
+                    });
+                }
                 using (var builder = rg.AddRasterRenderPass<PassData>("Memento G-buffer", out var pass))
                 {
                     var draw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonOpaque);
@@ -199,7 +225,7 @@ namespace Memento.Rendering
                     var sm = ShadowMaps.Of(rg, frame);
                     pass.shadowMaps = sm.maps;
                     foreach (var m in sm.maps) if (m.IsValid()) builder.UseTexture(m, AccessFlags.Read);
-                    pass.view = cam.GetViewMatrix(); pass.proj = cam.GetProjectionMatrix();
+                    pass.view = cam.GetViewMatrix(); pass.proj = cam.GetProjectionMatrix(); pass.pre = pre;
                     builder.UseRendererList(pass.list);
                     if (split && !contact) builder.UseRendererList(pass.water);
                     builder.SetRenderAttachment(data.albedo, 0, AccessFlags.Write);
@@ -214,7 +240,7 @@ namespace Memento.Rendering
                         // (the shadow passes drew from the sun: the camera's matrices again)
                         ctx.cmd.SetViewProjectionMatrices(d.view, d.proj);
                         MementoShadows.Instance.SetGlobals(ctx.cmd, d.shadowMaps);
-                        ctx.cmd.ClearRenderTarget(Settings.gDepthClear >= 0 ? RTClearFlags.All : RTClearFlags.Color, Color.clear, Mathf.Max(0, Settings.gDepthClear), 0);   // (under 0: the colours only, the depth as the graph cleared it)
+                        ctx.cmd.ClearRenderTarget(d.pre || Settings.gDepthClear < 0 ? RTClearFlags.Color : RTClearFlags.All, Color.clear, Mathf.Max(0, Settings.gDepthClear), 0);   // (under 0: the colours only, the depth as the graph cleared it; after the prepass: its depth kept)
                         ctx.cmd.DrawRendererList(d.list);
                         d.detail?.DrawGBuffer(ctx.cmd);   // (the flora: instanced, one draw a species)
                         if (d.water.IsValid()) { ctx.cmd.SetGlobalFloat(ContactOn, 0); ctx.cmd.DrawRendererList(d.water); }

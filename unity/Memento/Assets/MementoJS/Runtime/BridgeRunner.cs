@@ -285,6 +285,13 @@ namespace Memento.Bridge
             // (-no-bloom, -no-fxaa: the ink look's glow and its smoothing off, tests of the GPU's frame)
             if (BridgeArgs.Flag("-no-bloom")) Memento.Rendering.MementoFeature.Settings.bloom = false;
             if (BridgeArgs.Flag("-no-fxaa")) Memento.Rendering.MementoFeature.Settings.fxaa = false;
+            // the opaques' depth drawn first, so the G-buffer shades each pixel once (MementoFeature.Settings.prepass): on the
+            // Linux player (the Deck: the City-Shaft's GPU 24 -> 20 ms in its wide view), -prepass elsewhere, -no-prepass off
+#if UNITY_STANDALONE_LINUX && !UNITY_EDITOR
+            Memento.Rendering.MementoFeature.Settings.prepass = !BridgeArgs.Flag("-no-prepass");
+#else
+            Memento.Rendering.MementoFeature.Settings.prepass = BridgeArgs.Flag("-prepass");
+#endif
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
             // the shadow maps' movers culled by the engine per cascade and drawn as renderer lists (the SRP Batcher's path) on the

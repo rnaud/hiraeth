@@ -237,9 +237,14 @@ Shader "Memento/Surface"
 
       HLSLPROGRAM
       #pragma target 4.5
-      #pragma vertex vert
-      #pragma fragment frag
+      #pragma vertex vertEntry
+      #pragma fragment fragEntry
       #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS MEMENTO_FLORA MEMENTO_VMAT
+      // MEMENTO_PREPASS (global, MementoFeature's depth prepass, -prepass): the same pass drawing depth alone first, its
+      // vertex the G-buffer's own position (the rest of vert left to the compiler to drop), no fragment work but the
+      // glass's and the dissolve's (they write no depth there: drawn in full by the G-buffer pass after); the G-buffer pass
+      // then shades each pixel once. Off, the pass is as before.
+      #pragma multi_compile _ MEMENTO_PREPASS
       // MEMENTO_LEAN: a material that is no water, terrain, glass, fluid, makers' box, scrub, veins, drawn face or dissolve
       // (BridgeRenderer.Lean, the Unity bridge's Linux player) on a variant without those paths (LEANK false: the compiler
       // drops them). The full pass is ~25 000 instructions and 168 VGPRs on the Deck's RADV (6 waves a SIMD), the lean
@@ -1112,6 +1117,15 @@ Shader "Memento/Surface"
         }
         return o;
       }
+
+      #if defined(MEMENTO_PREPASS)
+        struct DepthVaryings { float4 positionCS : SV_POSITION; };
+        DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; return d; }
+        void fragEntry(DepthVaryings i) { if (_Glass > 0.0 || _Dissolve.x > 0.0) discard; }
+      #else
+        Varyings vertEntry(Attributes v) { return vert(v); }
+        GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }
+      #endif
       ENDHLSL
     }
 
