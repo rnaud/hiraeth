@@ -716,7 +716,7 @@ Shader "Memento/Surface"
         #endif
         int mode = (int)(_Mode + 0.5);
         // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
-        if (LEANK && _Glass > 0.0)
+        if (LEANK && _Glass > 0.0 && _MSurfaceDebug < 3.5)
         {
           float3 Vg = normalize(toThree(_WorldSpaceCameraPos) - i.worldPos);
           float fr = 1.0 - abs(dot(normalize(i.normal), Vg));
@@ -727,7 +727,7 @@ Shader "Memento/Surface"
         float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
         // a makers' box coming apart (boxes/scene.js): eaten from the top down, the edge burning bright
         float dEdge = 0.0;
-        if (LEANK && _Dissolve.x > 0.0)
+        if (LEANK && _Dissolve.x > 0.0 && _MSurfaceDebug < 3.5)
         {
           float dh = saturate((i.worldPos.y - _Dissolve.z) / max(_Dissolve.w - _Dissolve.z, 1e-3));
           float dn = vnoise(i.worldPos.xz * 6.0 + i.worldPos.y * 2.3) * 0.42 + vnoise(i.worldPos.zy * 15.0 + 3.1) * 0.18 + (1.0 - dh) * 0.4;
@@ -1074,12 +1074,21 @@ Shader "Memento/Surface"
           o.hatch.rg = min(o.hatch.rg, float2(1, 1)) + 2.0 * float2(hq, floor(saturate(lift) * 15.0 + 0.5));
         }
         // (a test for the Xbox's see-through picture, BridgeRunner -surface-debug N: 1 the material's plain colour, no strokes;
-        // 2 every normal up; 3 both)
+        // 2 every normal up; 3 both; from 4 the glass and the dissolve never discard, and the albedo shows what the GPU reads
+        // of the rare paths' values: 4 (glass, dissolve, fluid), 5 (veins, box, scrub), 6 (drawn face, mode / 4, water))
         if (_MSurfaceDebug > 0.5)
         {
           int sd = (int)(_MSurfaceDebug + 0.5);
-          if (sd & 1) { o.albedoLight = float4(_Color.rgb, 1); o.hatch = 0; }
-          if (sd & 2) o.normalDepth.xyz = float3(0, 1, 0);
+          if (sd < 4)
+          {
+            if (sd & 1) { o.albedoLight = float4(_Color.rgb, 1); o.hatch = 0; }
+            if (sd & 2) o.normalDepth.xyz = float3(0, 1, 0);
+          }
+          else
+          {
+            float3 v = sd == 4 ? float3(_Glass, _Dissolve.x, _Fluid) : sd == 5 ? float3(_Veins, _BoxOn, _Scrub) : float3(_TripoFace, _Mode * 0.25, _WaterOpt.x);
+            o.albedoLight = float4(saturate(v), 1); o.hatch = 0;
+          }
         }
         return o;
       }

@@ -157,7 +157,7 @@ namespace Memento.Bridge
                 if (!n.go || n.go.name.IndexOf(sub, StringComparison.Ordinal) < 0) { if (solo && n.r) n.r.enabled = false; continue; }
                 var m = n.mf ? n.mf.sharedMesh : n.smr ? n.smr.sharedMesh : null;
                 sb.Append($"\n  {n.go.name}: active {n.go.activeInHierarchy} renderer {(n.r ? n.r.enabled.ToString() : "none")} mesh {(m ? m.name + " v" + m.vertexCount + " sub" + m.subMeshCount + " bounds " + n.r.bounds : "none")} mats ");
-                if (n.r) foreach (var mt in n.r.sharedMaterials) sb.Append(mt ? $"{mt.name}(cull {mt.GetFloat("_Cull")}, q {mt.renderQueue}) " : "null ");
+                if (n.r) foreach (var mt in n.r.sharedMaterials) sb.Append(mt ? $"{mt.name}(cull {mt.GetFloat("_Cull")}, q {mt.renderQueue}, mode {mt.GetFloat("_Mode")}, glass {mt.GetFloat("_Glass")}, dissolve {mt.GetVector("_Dissolve").x}, fluid {mt.GetFloat("_Fluid")}, keywords {string.Join(" ", mt.shaderKeywords)}) " : "null ");
                 sb.Append($" pos {n.go.transform.position} scale {n.go.transform.lossyScale} shadows {(n.r ? n.r.shadowCastingMode + "/" + n.r.receiveShadows : "-")}{(n.im != null ? " gpu instances " + n.rawN + " of mesh " + n.mesh : "")}");
             }
             return sb.ToString();
