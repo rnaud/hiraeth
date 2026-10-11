@@ -1,0 +1,43 @@
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_6392d3c6ca8ae3 462-464,468-469
+engine/game.js
+  s_9ca76055a220ed::t_0097befa563ed0 34-35,149,151-155,235-238,259,265,314-323,407,579-581,593-594,596
+engine/unity/game.js
+  s_9ca76055a220ed::t_2ae347f880cd81 42
+scripts/bench/deck-unity.sh
+  s_9ca76055a220ed::t_94371bf062a201 1-45
+scripts/release-info.mjs
+  s_9ca76055a220ed::t_6b81069bd3a374 155
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_9ca76055a220ed::t_34f6ec77252a76 52,68
+unity/Memento/Assets/Memento/Runtime/Quality.cs
+  s_9ca76055a220ed::t_31f32c4b429d1f 11,33-36
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_74ed6129120f6d::t_0eb24c3395ef98 77-88,91,113
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_74ed6129120f6d::t_b014ceacb1d815 87,255-257,277-279,304-306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a9ca99a72c70bc8e53bab1c585cec5213ed3277",
+  "prompts": {},
+  "sessions": {
+    "s_74ed6129120f6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12b36-7519-7462-9cc9-a30336c7a79d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
