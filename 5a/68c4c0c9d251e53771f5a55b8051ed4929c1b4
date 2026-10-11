@@ -1,0 +1,69 @@
+changelog.md
+  s_9ca76055a220ed::t_3dde45fc5f9a22 7-11
+docs/story-bible.md
+  s_9ca76055a220ed::t_7c7f0ca0fc5bf7 307-314,467-472,512,516,520,522,527,531,582,604-612,749-751,789-792,795-797,803-804
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_60cc76b46cb84f 1551,1553,1575
+src/changelog.js
+  s_9ca76055a220ed::t_c7c2ab9bf113cf 45-55
+src/game-menu-data.js
+  s_9ca76055a220ed::t_2b00785fc8871b 66,73-75
+src/game-menu.js
+  s_9ca76055a220ed::t_642ba6acc4db1e 236-239,241
+src/levels/overnight-train.js
+  s_9ca76055a220ed::t_75bf96d9ac7e49 74,130
+src/main.js
+  s_9ca76055a220ed::t_55b4007ec23531 35,756-757
+src/quest.js
+  s_9ca76055a220ed::t_5ed8364c21b4d8 233-246,302
+src/save-migrate.js
+  s_9ca76055a220ed::t_d073e45debb9dc 51-53,181-186
+src/story/buried-data.js
+  s_9ca76055a220ed::t_5b5907bbd0d88f 17-19,340,401,411-412
+src/story/calls.js
+  s_9ca76055a220ed::t_a522d850cc5187 102-110,136,139,520-538,542,558,572,704-705,711
+src/story/ending.js
+  s_9ca76055a220ed::t_ebf9cd82397970 54,62,382-383,391-394,396
+src/story/home-data.js
+  s_9ca76055a220ed::t_e45a3e0b67731e 96
+src/story/index.js
+  s_9ca76055a220ed::t_b9df68ac23d1e3 47,102-107,252
+src/story/night-train-data.js
+  s_9ca76055a220ed::t_2b6263b7c0e0e3 6,8,13,16,21,25-26,68,127,156-158,190,213
+src/story/night-train.js
+  s_9ca76055a220ed::t_410e29d2aa7ed9 13,94
+src/story/people-book.js
+  s_9ca76055a220ed::t_f6ca9fe7ebee1a 517
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_8005e324f7a859 259,264,314,317,321,339
+src/story/perdide2.js
+  s_9ca76055a220ed::t_4130b0aeea1eb1 20-22
+tests/merged-story.test.js
+  s_9ca76055a220ed::t_dff12a40031a7c 1-88
+tests/night-mail.test.js
+  s_9ca76055a220ed::t_2d7734f7fd4055 4,20,50,55-57,62,64,112
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_5be1637c383762 110
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_fc4cfc24e12302 330,332
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_4d913740f8f9c2 88,202-211
+tests/story-buried.test.js
+  s_9ca76055a220ed::t_0eaa322dec83c4 234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5a68c4c0c9d251e53771f5a55b8051ed4929c1b4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
