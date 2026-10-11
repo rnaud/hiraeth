@@ -74,7 +74,11 @@ its best move from the kinds run (the riposte left out; from behind where the ki
 cadence while the pack fights back, `--clear-cap 90` s at most. The curve then has **cleared in (s)**, the **hearts to
 clear** it and their share of the hearts on arrival (the clear share): the cost measured, not multiplied. He never
 misses and never guards, so it is a floor (October 2026, two packs each: the Signal Market's packs cleared in 3-7 s for
-none of his hearts where the still traveller's cost said 5 hearts; locked on, the Garden's attacks a minute 28-68 → 56-76). Guardians are scored from their tuning
+none of his hearts where the still traveller's cost said 5 hearts; locked on, the Garden's attacks a minute 28-68 → 56-76). With **`--clear-dodge`** the
+same pack is cleared again by a traveller who also hops back at every blow due inside the perfect dodge's window (the
+game's own keys, so main.js decides each flurry and its length: `clearDodge` has the hops, the flurries and the s spent in
+them), and **`--dodge-watch 30`** adds 30 s of only that, no cut, the pack never thinned: how often and how long the
+flurries chain (combat-v1.47's question; `src/flurry.js` `CHAIN` since v1.48). Guardians are scored from their tuning
 (telegraphs, attacks, openings, phases); play their temples for the rest (`?level=<world>` and the temple's door, or the
 dev menu's temple jump).
 

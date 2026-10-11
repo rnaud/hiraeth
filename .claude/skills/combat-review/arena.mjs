@@ -343,6 +343,10 @@ if (PACKS) {
   // each striker as a player would (the foe whose blow comes soonest, else the nearest: foes.lock, which turns the camera),
   // so a pack's off-screen members aren't held back by the turns' rule (one off the screen waits while another strikes)
   const LOOK = arg('pack-look', 'still'), CLEAR = args.includes('--pack-clear'), CLEAR_CAP = +arg('clear-cap', 90);
+  // --clear-dodge (with --pack-clear): the pack cleared a second time by the same traveller hopping back at every blow due
+  // inside the perfect dodge's window (src/flurry.js), so the flurries chain as often as main.js lets them (combat-v1.47's
+  // question: chained flurries against a late pack); the row's clearDodge has the s, the hearts, the hops and the flurries
+  const DODGE = CLEAR && args.includes('--clear-dodge'), FLURRY_REST = 7000, DODGE_WATCH = +arg('dodge-watch', 0);
   // --pack-clear: then the same pack placed again and cleared by a scripted traveller: he locks on the nearest, walks to it
   // and deals its best move from the kinds run (--ttk: the fastest that kills it, the riposte left out) at that move's
   // cadence, from behind where the kinds run had to flank it, while the pack fights back: the s to clear it and the hearts
@@ -370,34 +374,50 @@ if (PACKS) {
   };
   if (CLEAR) await ev(`(() => {
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    window.__clear = async (best, cap) => {
+    const key = (type, code) => window.dispatchEvent(new KeyboardEvent(type, { code, key: code === 'Space' ? ' ' : code.slice(3).toLowerCase(), bubbles: true }));
+    window.__clear = async (best, cap, dodge = false, strike = true) => {
       const P = player, V = THREE.Vector3, t0 = performance.now(), d0 = window.__dmg.length, up = new V(0, 1, 0);
-      const next = new Map(); let blows = 0, glanced = 0, walked = 0, last = t0;
+      const fl = window.__fl, feel = await import('/src/feel.js'), FL = fl.FLURRY;
+      const next = new Map(); let blows = 0, glanced = 0, walked = 0, last = t0, hops = 0, flurries = [], inFlurry = 0, was = 0;
       while (performance.now() - t0 < cap * 1000) {
         const left = foes.list.filter((x) => x.alive && x.dead === undefined);
         if (!left.length) break;
         const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
+        // (--clear-dodge: a perfect hop whenever a blow is due inside its window, as dodge.mjs presses it: the game's own
+        // keys, so main.js decides whether a flurry opens and how long; the flurries' own lengths are read back)
+        const fLeft = feel.flurryLeft();
+        if (fLeft > 0 && !was) flurries.push({ at: +((now - t0) / 1000).toFixed(2), s: +feel.feelState().flurryFor.toFixed(2) });
+        if (fLeft > 0) inFlurry += dt; was = fLeft > 0;
+        if (dodge && !fLeft && P.onGround && !P.hopping) {
+          const T = left.map((x) => fl.foeThreat(x, P, foes.env.slow?.() ?? 1)).find((T) => T && T.near && T.t <= fl.dodgeLead(T.wind, foes.gentle) * 0.75);
+          if (T) { key('keydown', 'KeyS'); await new Promise(requestAnimationFrame); key('keydown', 'Space'); await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame);
+            key('keyup', 'Space'); key('keyup', 'KeyS'); hops++; continue; }
+        }
         const f = left.sort((a, b) => a.pos.distanceTo(P.pos) - b.pos.distanceTo(P.pos))[0], m = best[f.kind];
         foes.lock = f;
         const to = f.pos.clone().sub(P.pos).setY(0), d = to.length();
         if (!m) { foes.remove(f); continue; }   // (a kind the kinds run never killed: left out, counted below)
-        if (d > m.reach) {   // (walked to it, a run's pace, on the ground)
+        const reach = fLeft > 0 && m.mode === 'blade' ? Math.max(m.reach, FL.reach) : m.reach;   // (in a flurry the cut pulls you in)
+        if (P.hopping) { await wait(30); continue; }   // (mid-hop: no walking)
+        if (d > reach) {   // (walked to it, a run's pace, on the ground)
           const step = Math.min(d - m.reach * 0.8, 6 * dt), at = P.pos.clone().addScaledVector(to.normalize(), step);
           const y = physics.groundAt(at.x, at.y + 2, at.z, 6); if (Number.isFinite(y)) at.y = y;
           P.teleport(at, up, to.clone()); P.heading = Math.atan2(to.x, to.z); walked += step;
-        } else if (now >= (next.get(f) ?? 0)) {
+        } else if (strike && now >= (next.get(f) ?? 0)) {
           const i = f.__blow ?? 0, dir = m.from === 'behind' ? new V(Math.sin(f.heading ?? 0), 0, Math.cos(f.heading ?? 0)) : to.normalize(), hp = f.hp;
           if (m.stunned) f.stunned = Math.max(f.stunned ?? 0, 1);
           if (f.def.clapper) f.open = Math.max(f.open ?? 0, 1);
           foes.hurt(f, m.mode, dir, { damage: m.hits ? m.hits[i % m.hits.length] : m.damage, source: m.source, breaks: !!m.breaks, air: m.source === 'air', ...(m.hits ? { combo: i % m.hits.length } : {}) });
           blows++; if (f.alive && !(f.hp < hp)) glanced++;
-          f.__blow = i + 1; next.set(f, now + 1000 * (m.cycles ? m.cycles[i % m.cycles.length] : m.cycle));
+          // (in a flurry the combo chains without its rest: its cooldown × FLURRY.cool)
+          const cyc = m.cycles ? m.cycles[i % m.cycles.length] : m.cycle, rest = fLeft > 0 && m.cooldown && m.cycles && i % m.cycles.length === m.cycles.length - 1 ? m.cooldown * (1 - FL.cool) : 0;
+          f.__blow = i + 1; next.set(f, now + 1000 * (cyc - rest));
         }
         await wait(30);
       }
       const left = foes.list.filter((x) => x.alive && x.dead === undefined).length, s = (performance.now() - t0) / 1000;
       const harm = window.__dmg.slice(d0).reduce((a, x) => a + x.d, 0);
-      return { cleared: !left, s: +s.toFixed(1), left, hearts: +harm.toFixed(2), blows, glanced, walked: +walked.toFixed(1) };
+      return { cleared: !left, s: +s.toFixed(1), left, hearts: +harm.toFixed(2), blows, glanced, walked: +walked.toFixed(1), ...(dodge ? { hops, flurries, inFlurry: +inFlurry.toFixed(1) } : {}) };
     };
     return true; })()`);
   for (const world of PACKS) for (let j = 0; j < NPACK; j++) {
@@ -429,10 +449,21 @@ if (PACKS) {
       row.clear = await ev(`__clear(${JSON.stringify(best)}, ${CLEAR_CAP})`).catch((e) => ({ error: String(e).slice(0, 120) }));
       row.clear.unknown = Object.entries(best).filter(([, m]) => !m).map(([k]) => k);   // (no best move from the kinds run: removed, not fought)
       await ev('(() => { foes.list.slice().forEach((x) => foes.remove(x)); foes.lock = null; return true; })()');
+      if (DODGE) {   // (the same pack again, cleared with a perfect hop at every blow: the flurry chained as often as the game lets it)
+        await sleep(FLURRY_REST);   // (main.js's wait before another flurry, and its chain, run out)
+        await placePack(world, j); await sleep(300);
+        row.clearDodge = await ev(`__clear(${JSON.stringify(best)}, ${CLEAR_CAP}, true)`).catch((e) => ({ error: String(e).slice(0, 120) }));
+        await ev('(() => { foes.list.slice().forEach((x) => foes.remove(x)); foes.lock = null; return true; })()');
+        if (DODGE_WATCH) {   // (and the chain itself: --dodge-watch s of hopping at every blow, no cut, the pack never thinned)
+          await sleep(FLURRY_REST); await placePack(world, j); await sleep(300);
+          row.dodgeWatch = await ev(`__clear(${JSON.stringify(best)}, ${DODGE_WATCH}, true, false)`).catch((e) => ({ error: String(e).slice(0, 120) }));
+          await ev('(() => { foes.list.slice().forEach((x) => foes.remove(x)); foes.lock = null; return true; })()');
+        }
+      }
     }
     row.look = LOOK;
     packRows.push(row);
-    console.log(`${world.padEnd(10)} pack ${j + 1}: ${pack.join(', ')} · ${row.heartsPerMin} hearts/min · ${row.attacksPerMin} attacks/min · ttk ${row.ttkBest} s${row.clear ? ` · cleared in ${row.clear.s} s, ${row.clear.hearts} hearts` : ''}`);
+    console.log(`${world.padEnd(10)} pack ${j + 1}: ${pack.join(', ')} · ${row.heartsPerMin} hearts/min · ${row.attacksPerMin} attacks/min · ttk ${row.ttkBest} s${row.clear ? ` · cleared in ${row.clear.s} s, ${row.clear.hearts} hearts` : ''}${row.clearDodge ? ` · dodging: ${row.clearDodge.s} s, ${row.clearDodge.hearts} hearts, ${row.clearDodge.hops} hops, ${row.clearDodge.flurries?.length} flurries (${row.clearDodge.inFlurry} s in them)` : ''}${row.dodgeWatch ? ` · chain watch ${row.dodgeWatch.s} s: ${row.dodgeWatch.flurries?.length} flurries [${row.dodgeWatch.flurries?.map((x) => x.s).join(' ')}], ${row.dodgeWatch.inFlurry} s in them, ${row.dodgeWatch.hearts} hearts` : ''}`);
   }
   const hearts = heartsOnArrival(SHOPS, ORDER);
   const { WORLDS, BUDGET } = await import(join(ROOT, 'src/foe-worlds.js'));

@@ -106,7 +106,7 @@ import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft } from './feel.js';
-import { FLURRY, FlurryFx } from './flurry.js';
+import { FLURRY, FlurryFx, nextFlurry } from './flurry.js';
 import { DevMenu } from './dev-menu.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
 import { hitboxes, registerHitboxes } from './hitboxes.js';
@@ -927,12 +927,14 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
 // Locked on, the back flip and the side hop (src/jump.js HOP, Player.hop): their dodge frames (FluidBlade.hop), and begun
 // just before a blow lands, a perfect dodge: the flurry, the world slowed round you a few seconds (src/flurry.js)
 const flurryFx = new FlurryFx();
-let flurryAgainAt = 0;
+let flurryAgainAt = 0, flurryChain = null;
 function startFlurry() {
   const now = performance.now() / 1000;
   if (flurryLeft() > 0 || now < flurryAgainAt) return;
-  flurry(FLURRY.time, FLURRY.rate, FLURRY.ease);
-  flurryAgainAt = now + FLURRY.time + FLURRY.again;
+  // (back to back, each shorter and the wait after it longer: src/flurry.js CHAIN)
+  const F = flurryChain = nextFlurry(flurryChain, now);
+  flurry(F.time, FLURRY.rate, FLURRY.ease);
+  flurryAgainAt = F.nextAt;
   sound.flurry?.(true); kick(0.1); rumblePlay('flurry');
   if (!game.flag('hint.flurry') && hintsFor('tip')) { game.set('hint.flurry', true); showToast(tr('hint.flurry')); }   // (said after the fact, hints full)
 }

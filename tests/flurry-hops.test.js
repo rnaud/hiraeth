@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FLIP, BACK_FLIP, SIDE_HOP, HOP, flipAngle, flipPose, hopKind } from '../src/jump.js';
-import { DODGE, FLURRY, dodgeLead, landsIn, foeThreat, guardianThreat, perfectAgainst, harmful } from '../src/flurry.js';
+import { DODGE, FLURRY, CHAIN, nextFlurry, dodgeLead, landsIn, foeThreat, guardianThreat, perfectAgainst, harmful } from '../src/flurry.js';
 import { feelDt, selfDt, flurry, endFlurry, flurryLeft, flurryK, resetFeel, hitStop } from '../src/feel.js';
 import { Foes, FOES, GuardianLock } from '../src/foes.js';
 import { ARCHETYPES } from '../src/enemies/archetypes.js';
@@ -285,4 +285,24 @@ test('the traveller, locked on: jump with back is the back flip, with a side the
   press({ KeyS: true }, false);
   assert.equal(p.hopping, null, 'not locked on: the jump');
   assert.ok(p.vel.y > 8, 'a jump');
+});
+
+test('flurries back to back are rationed: one is whole, a chain grows shorter and waits longer, a pause forgives it (combat-v1.47 rec. 2, #106)', () => {
+  // a single perfect dodge: the flurry as it always was
+  const one = nextFlurry(null, 100);
+  assert.equal(one.n, 0); assert.equal(one.time, FLURRY.time); assert.equal(one.nextAt, 100 + FLURRY.time + FLURRY.again);
+  // a hop at every blow of a late pack (one a second): each next flurry as soon as it is allowed
+  let c = one; const seen = [c];
+  for (let i = 0; i < 5; i++) seen.push(c = nextFlurry(c, c.nextAt + 0.1));
+  assert.deepEqual(seen.map((x) => x.n), [0, 1, 2, 2, 2, 2]);
+  for (let i = 1; i < seen.length; i++) assert.ok(seen[i].time <= seen[i - 1].time && seen[i].again >= seen[i - 1].again, 'never longer, never sooner');
+  // the share of your time spent untouchable, chained over a minute: was 3.5 / 4.7 (three quarters), now under half
+  let t = 0, inF = 0, ch = null;
+  while (t < 60) { ch = nextFlurry(ch, t); inF += ch.time; t = ch.nextAt + 0.05; }
+  assert.ok(inF / t < 0.45, `untouchable ${(100 * inF / t).toFixed(0)} % of a chained minute`);
+  assert.ok(FLURRY.time / (FLURRY.time + FLURRY.again) > 0.7, 'unrationed it was three quarters');
+  // a real pause (longer than CHAIN.within after the last one ended) and the next is whole again
+  const rest = nextFlurry(seen.at(-1), seen.at(-1).endsAt + CHAIN.within + 0.5);
+  assert.equal(rest.n, 0); assert.equal(rest.time, FLURRY.time);
+  assert.ok(CHAIN.within > Math.max(...CHAIN.again), 'the chain outlasts its own longest wait');
 });

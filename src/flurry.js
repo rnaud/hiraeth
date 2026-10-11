@@ -21,6 +21,25 @@ import { flurryK } from './feel.js';
 export const DODGE = { share: 0.35, min: 0.2, max: 0.42, gentle: 1.3, margin: 1.2 };
 /** The flurry: `time` s of your time, the world at `rate`, eased over `ease` s; the cut's pull `reach` m; the combo's rest × `cool`; `again` s before the next may start. */
 export const FLURRY = { time: 3.5, rate: 0.12, ease: 0.2, reach: 6, cool: 0.3, again: 1.2 };
+/**
+ * Flurries back to back (combat-v1.47 rec. 2, issue #106): a late pack strikes about once a second, so a hop at every
+ * blow chained flurry on flurry, three quarters of your time untouchable, a late pack cleared in half the time for a
+ * third of the hearts. One flurry is as it was; one begun within `within` s of the last one's end is the next of a
+ * chain, and the nth in a row (0 the first) lasts FLURRY.time × `time[n]` and is followed by `again[n]` s before another
+ * may start (the last of each held for longer chains). `within` is longer than the longest wait, so the chain is only
+ * forgotten by a real pause: a few seconds without a perfect dodge and the next is whole again.
+ */
+export const CHAIN = { within: 6, time: [1, 0.7, 0.5], again: [1.2, 2.5, 4] };
+
+/**
+ * The next flurry (pure: tests): `chain` { n, endsAt } the last one (null: none yet), `now` s. Returns { n, time (s),
+ * again (s after it ends before the next), endsAt, nextAt (the earliest the next may start) }.
+ */
+export function nextFlurry(chain, now, F = FLURRY, C = CHAIN) {
+  const n = chain && now - chain.endsAt <= C.within ? Math.min(chain.n + 1, C.time.length - 1) : 0;
+  const time = F.time * C.time[Math.min(n, C.time.length - 1)], again = C.again[Math.min(n, C.again.length - 1)];
+  return { n, time, again, endsAt: now + time, nextAt: now + time + again };
+}
 
 /** How long before a blow lands a hop is perfect, for a wind-up of `wind` s (pure: tests). */
 export function dodgeLead(wind, gentle = false, D = DODGE) {

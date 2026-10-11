@@ -46,6 +46,18 @@ export const CHANGELOG = [
     // the fight (docs/audits/combat-v1.47.md; issues #106–#109)
     { text: 'With Reduce motion on, the lock-on’s four arrows hold still at the corners of the foe you lock: they no longer turn round it, breathe or whirl in, they simply fade in where they stay.',
       see: 'Turn on Reduce motion in the settings, then lock on to a foe (R3 / Tab): the arrows appear at its corners and stay put.' },
+    { text: 'Perfect dodges back to back are rationed. A single one opens the same flurry as ever, but one that follows another within a few seconds is shorter and makes you wait longer before the next: the second lasts about two and a half seconds, the third and any after under two. Pause for a few seconds and the next is whole again.',
+      numbers: [
+        { title: 'Hopping at every blow of a late pack for 30 seconds: time spent in flurries', unit: 's', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, two packs a world', rows: [
+          { where: 'Lorn', before: 15.9, after: 10.9 },
+          { where: 'the City-Shaft', before: 17.4, after: 9.2 },
+          { where: 'the Moon Foundry', before: 18.0, after: 11.3 },
+          { where: 'the Garden of Spheres', before: 20.2, after: 10.2 },
+        ], source: '.claude/skills/combat-review/arena.mjs --pack-clear --clear-dodge --dodge-watch 30' },
+        { title: 'Share of your own time spent untouchable, chaining flurries flat out', unit: '%', better: 'lower', device: 'any (from the tuning)', rows: [
+          { where: 'a flurry every time one is allowed', before: 74, after: 30 },
+        ], source: 'src/flurry.js FLURRY and CHAIN' },
+      ] },
   ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)

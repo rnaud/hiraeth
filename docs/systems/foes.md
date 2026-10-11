@@ -818,6 +818,12 @@ Breath of the Wild's evade, asked for by the author (2026-10-10). Locked on, jum
   `P.untouchable`), a combo swing pulls you in from up to `reach` 6 m (`MAGNET.max` is 2.2) and the third swing's rest is
   × `cool` 0.3: a few free blows. It ends early when nothing is left fighting (`Foes.anyFighting`), and another may only
   begin `time` + `again` (1.2 s) after one began. Said once after the fact with Hints full (`hint.flurry`).
+- **Back to back, rationed** (v1.48, `CHAIN`, `nextFlurry`; combat-v1.47 rec. 2, issue #106): a late pack strikes about
+  once a second, so a hop at every blow chained flurry on flurry (74 % of your time untouchable). One flurry is as it was;
+  one begun within `within` 6 s of the last one's end is the next of a chain: the second lasts × 0.7 (2.45 s) and waits
+  2.5 s after it, the third and on × 0.5 (1.75 s) and 4 s. Chained flat out that is about 30 % of your time; a pause of
+  6 s and the next is whole again. Measured with `arena.mjs --pack-clear --clear-dodge --dodge-watch 30`: a traveller
+  hopping at every blow of a late pack for 30 s, the flurries counted.
 - **Slow time, simulated right** (`feelDt`, `selfDt`): main.js gives the world (the foes, the guardians, physics' movers,
   the weather, every system on `dt`) the slowed step and the traveller's own systems (`controller`, `player`, `rig`,
   `tool`, `gadgets`) `selfDt()`: the same step but for the flurry. Everything stays a plain function of its own `dt`, so a
