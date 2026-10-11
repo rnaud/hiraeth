@@ -5,7 +5,7 @@
 // --views 1: a row a view as well. Prints the tables of docs/systems/performance.md ("The Steam Deck").
 import { readFileSync } from 'node:fs';
 
-const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const args = process.argv.slice(2).filter((a) => !a.startsWith('--') && a.includes('='));   // ("--views 1": its 1 is no column)
 const perView = process.argv.includes('--views');
 const med = (xs) => { const s = xs.filter((x) => x != null).sort((a, b) => a - b); return s.length ? s[s.length >> 1] : null; };
 const f = (x, d = 0) => (x == null ? '–' : (+x).toFixed(d));

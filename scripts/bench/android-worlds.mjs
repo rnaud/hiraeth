@@ -8,6 +8,12 @@
 //                                 in a synced loop, each toggle between two base runs)
 //        [--apk 1]                the game from the APK (its own server on http://127.0.0.1:6281/)
 //        [--pick 1]               choose the views of worlds that have none yet (viewpoints-worlds.json)
+//        [--quality handheld]     the Graphics setting to run (auto: what the game picks on the device; high, xbox, ...)
+//        [--scale 0.75]           the render scale to hold (or start from, mode dynamic); 'preset': the preset's own
+//        [--foes brute,drone,cart]  those foes stood 7-11 m in front of the traveller (posed every frame, still; the
+//                                 world's own foes removed), as scripts/enemy-roster/bench.mjs does; with --spawn 1
+//        [--tag name]             added to the result's file name
+//        [--spawn 1]              the world as booted instead of its views: the boot camera held, then 40 m walked on
 // Per world: the app started afresh, the world loaded (navigation to the first frame), the memory of the
 // app's three processes (its content process, where the page runs; its GPU process, where WebGL runs
 // remoted; the parent), then every view of the world (viewpoints-worlds.json; the desert's are
@@ -42,6 +48,8 @@ const WORLDS = String(opt.worlds ?? 'desert,incal,bazaar,arzach,arzach2,garage,b
 const only = typeof opt.only === 'string' ? opt.only.split(',') : null;
 const toggles = typeof opt.toggles === 'string' ? opt.toggles.split(',') : null;
 const startC = +(opt.startC ?? 48);
+const QUALITY = String(opt.quality ?? 'handheld');
+const SCALE = opt.scale === 'preset' ? 'preset' : +(opt.scale ?? 0.75);
 const RAW = resolve(opt.raw ?? `${ROOT}/scripts/bench/results/raw/android-worlds-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}`);
 mkdirSync(RAW, { recursive: true });
 
@@ -118,12 +126,13 @@ const EXTRA = `(() => {
 })();`;
 
 /** the storage of the test app's origin: the prologue done, the preset, the frame readout on, every volume at 0 */
-const prepare = (ev) => ev(() => {
+const prepare = (ev) => ev((q) => {
   localStorage.clear();
   localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'handheld', showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('moebius.muted', '1');
   return true;
-});
+}, QUALITY);
 
 /** views of a world that has none yet: the boot camera, its two densest knots of people, a wide look, a walk */
 const pickViews = (ev) => ev(() => {
@@ -304,6 +313,24 @@ async function runWorld(world, mode) {
   await ev(() => { window.story?.closePage?.(); return true; });
   // the views
   let W = world === 'desert' ? { views: VP.views, paths: VP.paths } : picked.worlds[world];
+  if (typeof opt.foes === 'string') {
+    const made = await ev((pack) => {
+      const { THREE, player, foes } = window;
+      const P = player.pos.clone(), f = new THREE.Vector3(Math.sin(player.heading ?? 0), 0, Math.cos(player.heading ?? 0)), r = new THREE.Vector3(f.z, 0, -f.x);
+      foes.update = () => { for (const x of foes.list) foes.look(x, 1 / 60); };
+      for (const x of [...foes.list]) foes.remove(x);
+      return pack.map((id, i) => { const at = P.clone().addScaledVector(f, 7 + (i % 3) * 2.2).addScaledVector(r, ((i / 3) | 0) * 2.4 - 3.6); try { const x = foes.add(id, at); if (x) { x.heading = Math.atan2(-f.x, -f.z); x.provoked = true; foes.look(x, 0); } return x ? id : null; } catch (e) { return 'x:' + id + ' ' + e.message; } });
+    }, opt.foes.split(',').filter((x) => x && x !== 'none'));
+    console.log(`${world}: foes ${JSON.stringify(made)}`);
+  }
+  if (opt.spawn) { const P = await pickViews(ev); W = { views: P.views.filter((v) => v.name === 'start'), paths: P.paths }; }
+  // what the game chose on the device: the preset, its scale, the pixel ratio; and the sound, which must be silent
+  const chosen = await ev(() => ({ preset: window.preset().key, label: window.preset().label, setting: window.settings.quality, scale: window.quality.renderScale,
+    dynamic: window.preset().dynamic, dpr: window.devicePixelRatio, canvas: [window.renderer.domElement.width, window.renderer.domElement.height],
+    gpu: (() => { const gl = window.renderer.getContext(), x = gl.getExtension('WEBGL_debug_renderer_info'); return x ? gl.getParameter(x.UNMASKED_RENDERER_WEBGL) : null; })(),
+    sound: { music: window.sound?.musicVol, fx: window.sound?.fxVol, voices: window.sound?.voiceVol, muted: window.sound?.muted, settings: [window.settings.music, window.settings.effects, window.settings.voices] } }));
+  console.log(`${world}: preset ${chosen.preset} (${chosen.label}), scale ${chosen.scale}, dpr ${chosen.dpr}, canvas ${chosen.canvas}, ${chosen.gpu}; sound ${JSON.stringify(chosen.sound)}`);
+  if ([chosen.sound.music, chosen.sound.fx, chosen.sound.voices].some((v) => v > 0)) throw new Error(`the game's sound is not at 0: ${JSON.stringify(chosen.sound)}`);
   if (!W && opt.pick) {
     W = await pickViews(ev);
     picked.worlds[world] = W;
@@ -313,7 +340,7 @@ async function runWorld(world, mode) {
   if (!W) throw new Error(`no views for ${world}: --pick 1`);
   const dyn = mode === 'dynamic';
   if (dyn) await ev(() => { window.__dyn = window.preset().dynamic; return true; });
-  const canvas = await conditions(ev, { hour: VP.hour, weather: VP.weather, scale: 0.75 });
+  const canvas = await conditions(ev, { hour: VP.hour, weather: VP.weather, scale: SCALE === 'preset' ? chosen.scale : SCALE });
   if (dyn) await ev(() => { window.preset().dynamic = window.__dyn; return true; });
   await ev(() => { const st = document.createElement('style'); st.textContent = '#fps { visibility: visible !important; }'; document.head.appendChild(st); return true; });
   const gs = gpuSampler();
@@ -354,8 +381,8 @@ async function runWorld(world, mode) {
   gs.stop();
   const memEnd = memory(processes(), { [tabPid]: 1 });
   stopApp();
-  const result = { world, mode, apk, load, memLoaded, memEnd, canvas, start: cool, end: temps(), errors: [...new Set(errors)].slice(0, 10), time: new Date().toISOString(), views };
-  writeFileSync(`${RAW}/${world}-${mode}${apk ? '-apk' : ''}.json`, JSON.stringify(result) + '\n');
+  const result = { world, mode, apk, quality: QUALITY, chosen, load, memLoaded, memEnd, canvas, start: cool, end: temps(), errors: [...new Set(errors)].slice(0, 10), time: new Date().toISOString(), views };
+  writeFileSync(`${RAW}/${world}-${mode}${QUALITY !== 'handheld' ? '-' + QUALITY : ''}${opt.tag ? '-' + opt.tag : ''}${apk ? '-apk' : ''}.json`, JSON.stringify(result) + '\n');
   console.log(`${label}: first frame ${load.firstFrame} s; memory after load: tab ${memLoaded.tab?.pssMB} MB, gpu ${memLoaded.gpu?.pssMB} MB, parent ${memLoaded.parent?.pssMB} MB${errors.length ? `; ${errors.length} errors: ${errors[0]}` : ''}`);
   return result;
 }
@@ -364,7 +391,7 @@ console.log(`device ${sh('getprop ro.product.model').trim()}; raw results in ${R
 let failed = 0;
 try {
   for (const mode of modes) for (const world of WORLDS) {
-    if (opt.resume && existsSync(`${RAW}/${world}-${mode}${apk ? '-apk' : ''}.json`)) continue;
+    if (opt.resume && existsSync(`${RAW}/${world}-${mode}${QUALITY !== 'handheld' ? '-' + QUALITY : ''}${apk ? '-apk' : ''}.json`)) continue;
     for (let attempt = 1; attempt <= 2; attempt++) {
       try { await runWorld(world, mode); break; } catch (err) { console.error(`${world} ${mode} failed (attempt ${attempt}): ${err.stack ?? err}`); stopApp(); if (attempt === 2) failed++; }
     }

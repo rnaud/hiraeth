@@ -926,6 +926,39 @@ handheld had locked itself behind its PIN, which only the author can open. The w
 same views are in performance.md, "The Retroid, round 4" (the desert's views: the camps 56 fps, JS 17.2 ms;
 the dunes 60, 11.7; the spawn 59, 13.6).
 
+## On the Retroid, the first run (2026-10-11)
+
+The bridge's APK built from 1606a596 (`BridgeBuild.Android`: IL2CPP ARM64, Vulkan then GLES3), installed as
+`com.rnaud.memento.bridge`, and run with `android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8
+-split -metrics` (the on-screen readout on).
+
+**The sound.** The first try read its plan with `-mute`, but Android listed its audio stream as playing. `-mute`
+pauses the listener and never starts the bridge's AudioSource, yet Unity's own output stream still runs. Silent or
+not, that could not be confirmed, so the script stopped it within 5 s. Two changes since:
+- **The bench's player is built with Unity's audio disabled** (`BridgeBuild.UnityAudio`: the project's "Disable Unity
+  Audio" set for that build alone, then restored; the testers' APK keeps its sound).
+- **`android-bridge.sh` stops a player that sounds:** it needs `-mute` in the plan the player logs, and stops the
+  player whenever `dumpsys audio` lists one of its streams as started (checked 4 s in, then every 5 s).
+
+It also read the keyguard from `showingAndNotOccluded`, which stays true on the unlocked Retroid. It reads
+`mIsShowing` now. On the second build the package had no audio stream at all; it ran its plan and exited itself.
+
+**The frames** (1280 × 720, the script on its own thread, the sound's renderer on its own at 24 kHz with no output):
+
+| view | frame ms (p95) | fps | script (vm) ms | update / mirror ms | the main thread's wait ms | drawn |
+|---|---|---|---|---|---|---|
+| spawn | 91.5 (95.3) | 11 | 14.0 | 6.7 / 6.8 | 1.9 | 1287 |
+| qanat-tree | 72.6 (75.6) | 14 | 17.6 | 10.0 / 7.3 | 2.0 | 1291 |
+| camps | 89.1 (92.7) | 11 | 16.6 | 8.7 / 7.5 | 2.3 | 1286 |
+| dunes | 73.4 (76.5) | 14 | 10.3 | 4.8 / 5.3 | 1.5 | 1177 |
+| cave | 73.8 (77.5) | 14 | 10.5 | 4.8 / 5.4 | 1.2 | 1165 |
+
+On the same views the web game in GeckoView runs at 50–60 fps (performance.md, "The Retroid, round 5"). The Unity
+player is bound by the GPU: 72–91 ms of GPU time a frame against a CPU frame of the same length. Its script and
+mirror take 10–18 ms on their own thread, and the main thread waits only 1–2 ms for them. The 1 165–1 291 draws (the
+web draws 100–450 on these views) and the full-resolution URP passes are where the time goes. With the script and
+the sound off the main thread (#55), the CPU side fits in a 60 Hz frame; the GPU side would need about 5× less.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

@@ -1317,3 +1317,168 @@ only if its first draw still fits. Its cost is taken as the average first draw o
 - On the Mac that average is a few ms, and everything round the traveller, the ship and the ways through is drawn as
   before (desert: 2685 meshes in 254 ms).
 - On the Xbox it is seconds, so the ahead part keeps to kinds already drawn. The 8 s budget had become 48 s.
+
+## The Retroid, round 5: the Xbox's settings, the camps and the City-Shaft again, the machines, the merged worlds (October 2026)
+
+The Retroid Pocket Nova (Adreno 650, pixel ratio 2), the GeckoView test app (`com.rnaud.moebius.gecko`) with the game
+served from the Mac, built from 1606a596; the player's app untouched. The frame readout on. The game's sound at 0, read
+back from the page before every run (`android-worlds.mjs` stops if music, effects or voices are above 0).
+`android-worlds.mjs` has three new flags for this round. `--quality` runs a Graphics setting other than Handheld
+(`auto`: what the game picks on the device). `--scale preset` keeps the scale the game chose. `--spawn 1` holds the
+world's boot camera, then walks 40 m on from it. A fourth, `--foes`, stands a pack in front of the traveller (below).
+
+**The Xbox's settings on the Retroid.** The Xbox runs the desert's spawn at 17–21 fps, with 46–56 ms of main thread a
+frame. On the Retroid, the same spawn: held still 10 s ("start"), then walked ("walk"):
+
+| preset | scale | view | fps | frame p50 / p95 ms | missed % | JS ms | draws | triangles | GPU busy % |
+|---|---|---|---|---|---|---|---|---|---|
+| Auto (it picks Handheld), dynamic | 0.65 (its own: 0.75 at first, 0.65 after the load) | start | 58.6 | 16.7 / 16.7 | 2.5 | 14.8 | 423 | 499 k | 54 |
+| | | walk | 58.5 | 16.7 / 16.7 | 2.7 | 14.4 | 399 | 492 k | 53 |
+| High, fixed | 1 (a pixel ratio of 2 is HiDPI: no 1.5×) | start | 42.9 | 16.7 / 33.4 | 28.6 | 18.0 | 511 | 807 k | 94 |
+| | | walk | 44.0 | 16.7 / 33.4 | 26.8 | 17.5 | 492 | 803 k | 94 |
+| Xbox, dynamic (as on the console) | 0.8, then 0.6 | start | 55.7 | 16.7 / 33.3 | 7.3 | 17.2 | 509 | 722 k | 67 |
+| | | walk | 57.6 | 16.7 / 16.7 | 4.2 | 16.5 | 487 | 714 k | 66 |
+| Xbox, held at 1 | 1 | start | 50.2 | 16.7 / 33.3 | 16.4 | 17.4 | 508 | 727 k | 92 |
+| | | walk | 51.4 | 16.7 / 33.3 | 14.4 | 16.9 | 487 | 802 k | 92 |
+
+- The Retroid drops too when given the full recipe, but on the GPU (92–94 % busy). Its main thread stays at 17–18 ms
+  on High and on the Xbox preset, against 15 on Handheld. On High, of 19.0 ms: the G-buffer's draw loop 5.2, the
+  shadow passes 3.45 (1.5 on Handheld), the traveller 1.4, the people 0.95. So the Xbox's 46–56 ms are not the
+  preset's: the same preset's work costs the Adreno's phone CPU 17 ms. What is left is the console's own platform:
+  WebView2's GL calls through ANGLE, or its JS.
+
+**The camps and the City-Shaft again (#49).** These views are slower than in round 4. An A/B in one sitting, round
+4's build (81f0311) against this one, at the fixed 0.75, settles that it is the build and not the device's heat:
+
+| view | fps | missed % | JS ms | draws | triangles | load s | memory after load (tab) MB |
+|---|---|---|---|---|---|---|---|
+| City-Shaft, the rim (start) | 58.6 → 45.6 | 2.5 → 24.1 | 14.2 → 21.9 | 868 → 1011 | 2.7 M → 3.3 M | 17.1 → 23.2 | 858 → 1080 |
+| City-Shaft, wide | 43.5 → 39.5 | 27.6 → 34.2 | 17.1 → 23.4 | 1152 → 1196 | 3.1 M → 3.4 M | | |
+| the camps | 55.5 → 50.9 | 7.6 → 15.2 | 17.0 → 18.6 | 409 → 446 | 738 k → 560 k | 9.8 → 14.7 | 744 → 840 |
+| the walk through the camps | 49.8 → 46.6 | 17.1 → 22.5 | 18.9 → 20.3 | 478 → 520 | 729 k → 560 k | | |
+
+At the City-Shaft's rim, by system (`--profile`), 14.6 → 21.9 ms:
+- the G-buffer's draw loop 4.7 → 6.8;
+- the shadow passes 2.2 → 2.9;
+- the level's own update 0.5 → 1.3;
+- the room culler (`r.interior`) 1.0, not there in round 4;
+- the rest 2.0 → 3.4.
+
+At the camps the people are 3.8 → 2.8 ms, cheaper, but the G-buffer is 4.9 → 5.7. The shirt (the traveller's update)
+is 1.0–1.4 ms in both builds, not the ~0.3 hoped for. The commits between 81f0311 and 1606a596 that add draws and
+work to the City-Shaft are the place to look: a bisect on the rim's view is the next step.
+
+The rest of the desert and the City-Shaft (this build, fixed 0.75): Qanat 52 fps (JS 18.6), the ride to the city 51
+(18.2), the City-Shaft's crowd 49 (20.2), crowd2 53 (18.8), its walk 44 (21.0). The cave holds 59.4 fps (GPU 44 %,
+fixed and dynamic alike, #50).
+
+**The machines' CPU (#30).** The Arena at its boot camera, Handheld at 0.75, a pack of six stood 7–11 m ahead (each
+posed every frame, still, as `scripts/enemy-roster/bench.mjs` does; their AI, so the cart's ground rays, not run):
+
+| pack | fps | JS ms | G-buffer ms | shadows ms | draws | triangles |
+|---|---|---|---|---|---|---|
+| none | 60 | 7.5 | 2.6 | 0.7 | 134 | 170 k |
+| six blots | 60 | 9.9 | 3.6 | 1.4 | 362 | 190 k |
+| two brutes, two drones, two carts | 60 | 12.0 | 5.5 | 1.4 | 247 | 325 k |
+| six carts | 60 | 12.5 | 5.7 | 1.7 | 302 | 308 k |
+
+So a machine costs the handheld ~0.75–0.8 ms, a blot ~0.4. Most of it is three.js drawing their skinned parts in the
+G-buffer (+2.9 ms for six machines), not their posing. Headless on the Mac it was 0.25 ms a machine: the Retroid
+is about 3× the Mac. Six in view still leave the Arena at 60 fps, with 4–5 ms to spare.
+
+**The merged worlds (#19).** Handheld, fixed at 0.75 → dynamic. Vael and Lorn are measured at the views picked before
+they were merged, the Glass Dunes at views picked this round (`--pick 1`):
+
+| world | fps | JS ms | draws | GPU % | load s | memory after load (tab) MB |
+|---|---|---|---|---|---|---|
+| Vael (start, crowd, crowd2, wide, walk) | 57.6–59.9 → 58.1–59.9 | 12.2–16.5 | 249–772 | 71–80 → 60–79 | 14.0 | 1398 |
+| Lorn | 58.9–60.1 → 59.1–59.9 | 12.1–15.6 | 347–695 | 61–81 → 67–84 | 15.6 | 854 |
+| The Glass Dunes | 59.6–60 → 59.5–60 | 12.1–14.0 | 216–477 | 54–63 → 64–77 | 11.7 | 663 |
+
+The bigger terrains hold 60 on the handheld. The heaviest is Vael's start and its walk: 740–770 draws, JS 15–16.5
+ms, 58–59 fps. Dynamic resolution there sits at 0.65–0.8.
+
+**The speaker's portrait in the device's Chrome (#48).** `scripts/portrait-check.mjs --android 1` (new: the device's
+Chrome over `adb forward … chrome_devtools_remote`, in a tab the script's intent opened and that it closes) in Chrome
+154 (it reports "Adreno (TM) 740"). Four conversations in the desert, Handheld and High at the device's 2×, every
+portrait drawn: 210 × 210, 223–441 colours, the commonest 38–61 %. The item card's picture drew too. The blank disc
+does not reproduce in Chrome either.
+
+**The buttons in GeckoView (#50).** `scripts/bench/android-pad.mjs` sends each control as a gamepad key, held
+(`input gamepad keyevent --longpress`). A plain tap's press and release land within PadBridge's 8 ms batch and
+reach the page as nothing. It then reads what the page received. Every control reached the page's Standard Gamepad
+at its own index except the d-pad's up. Up never reached it, alone or in the sequence, while down, left and right
+did. B (the bottom button on the Retroid) made the traveller jump, 2.5 m. Start opened the menu and Select closed it.
+The injected device is "Virtual", so the Retroid's name-based layout guess is not tested this way. A real press of
+up, and the layout, still need hands on the device. The upgrade over the installed app was not tried: the only app to
+upgrade over is the player's own.
+
+## The Steam Deck, round 3: every world after the Deck's pass, GL against Vulkan (October 2026)
+
+**How it was measured.** The Steam Deck OLED in Gaming Mode, plugged in, on 11 October. Runtime 1668001 served the
+game of 1606a596 (`dist/` copied to `~/.local/share/moebius-bench-games/`):
+`PORT=5420 REFRESH=90 scripts/bench/deck-run.sh start headless <dir>`, then
+`deck-worlds.mjs --secs 6 --warmup 2`. The settings were the Steam Deck preset, fixed and dynamic, then High at 1.5×.
+1280 × 800, ANGLE on radeonsi GL. Only the bench ran this time; in round 2 the player's game was open on its title,
+so round 2's "before" was a little pessimistic.
+
+**Every world** (each cell: the views' median fps (the slowest view's), then the JS / GPU ms a frame (medians of the
+views); dynamic: the lowest view's median scale):
+
+| world | High 1.5× | Steam Deck, fixed | Steam Deck, dynamic | Steam Deck in round 2 |
+|---|---|---|---|---|
+| desert | 32 (28); 30.1 / 25.5 | 39 (36); 24.7 / 10.6 | 47 (40); 21.1 / 6.4; ×0.70 | 29 (26) |
+| City-Shaft (incal) | 26 (19); 37.0 / 33.2 | 33 (33); 29.4 / 14.1 | 35 (35); 28.0 / 13.7; ×1.00 | 26 (26) |
+| Signal Market | 42 (40); 22.8 / 21.2 | 56 (48); 17.6 / 10.7 | 56 (48); 17.6 / 8.7; ×0.90 | 46 (39) |
+| Vael | 40 (33); 22.3 / 24.3 | 58 (39); 17.0 / 14.5 | 58 (41); 17.2 / 11.1; ×1.00 | 53 (43) |
+| Vael II (arzach2) | 42 (30); 22.6 / 18.9 | 50 (42); 19.7 / 9.4 | 52 (40); 19.0 / 8.9; ×0.90 | 48 (42) |
+| Sealed Hangar | 54 (51); 16.9 / 18.0 | 74 (64); 13.1 / 9.4 | 72 (65); 13.6 / 7.5; ×0.90 | 53 (45) |
+| Buried Machine | 48 (47); 19.2 / 19.8 | 65 (59); 15.1 / 10.3 | 63 (61); 15.5 / 8.9; ×0.90 | 52 (50) |
+| Viridel | 56 (45); 16.8 / 16.5 | 61 (52); 16.3 / 8.0 | 65 (56); 15.1 / 6.9; ×0.90 | 51 (43) |
+| Garden of Spheres | 53 (48); 17.5 / 18.3 | 65 (55); 15.2 / 9.8 | 70 (60); 14.2 / 8.2; ×0.90 | 56 (48) |
+| Lorn | 41 (38); 23.1 / 22.4 | 48 (43); 20.6 / 11.9 | 49 (45); 20.2 / 11.7; ×1.00 | 54 (52) |
+| Lorn II (perdide2) | 41 (39); 23.0 / 22.5 | 51 (45); 19.5 / 12.0 | 50 (45); 19.9 / 9.0; ×0.80 | 50 (47) |
+| Home | 60 (56); 15.5 / 16.1 | 71 (67); 14.0 / 8.4 | 73 (70); 13.7 / 8.3; ×1.00 | 57 (55) |
+
+The desert's views, High 1.5× → Deck fixed → Deck dynamic, in fps:
+- the spawn 34 → 39 → 43;
+- Qanat 32 → 40 → 48;
+- the camps 31 → 38 → 47;
+- the dunes 49 → 58 → 62;
+- the cave 65 → 74 → 81;
+- the ride 30 → 37 → 44;
+- the walk through the camps 28 → 36 → 40.
+
+The City-Shaft's rim: 19 → 33 → 35.
+
+- **The Steam Deck preset is 7–20 fps ahead of High at 1.5× in every world.** Its JS is 2–8 ms lower, and its GPU
+  time about half of High's.
+- **Against round 2** (v1.37, its Deck preset before the round's changes): ahead by 5–21 fps in ten worlds. The run
+  conditions differ (above), so part of that is the player's game no longer running. Lorn is 6 fps slower
+  (54 → 48), its JS 18.0 → 20.6 ms: Lorn grew with its merge (#19).
+- **Dynamic resolution helps now in the desert.** The probe (`D.probe`) steps the desert down to 0.7, and its views
+  run 4–9 fps faster: the JS also falls, 24.7 → 21.1 ms, since the main thread waits less on the GPU. Elsewhere it
+  holds 0.9–1.0 at the same frame rate as fixed.
+- **The City-Shaft is still the slowest**, at 33–35 fps (29 ms of JS, 870–1110 draws). It was 42 on 7 October (v0.80).
+  It is the same slowdown as on the Retroid (round 5 above: the rim's JS 14 → 22 ms since round 4).
+- Loads: 11–37 s. The first load was 36.7 s, since it spends ~1 s learning the GPU pacer's fences never signal on GL;
+  the next loads skip that. The Buried Machine's dynamic load once sat on "mixing the inks… / passage" past 16 s
+  (35 s in all).
+
+**ANGLE's GL against Vulkan (#52)**, the same build, the Steam Deck preset fixed at 1 (`GPU=vulkan deck-run.sh …`;
+the GL column from the run above). Each cell: fps; JS / GPU ms:
+
+| view | GL | Vulkan |
+|---|---|---|
+| desert spawn | 39; 24.7 / 12.1 | 20.6; 27.6 / 26.6 |
+| desert camps | 38; 25.8 / 11.2 | 21.1; 27.6 / 26.1 |
+| desert dunes | 58; 16.2 / 10.6 | 27.7; 17.1 / 20.4 |
+| desert cave | 74; 12.9 / 6.7 | 34.4; 14.6 / 12.5 |
+| City-Shaft start | 33; 30.7 / 13.2 | 17.4; 31.9 / 36.7 |
+| City-Shaft wide | 33; 30.4 / 20.1 | 16.3; 32.6 / 41.9 |
+| Signal Market start | 48; 20.4 / 10.7 | 23.5; 23.3 / 24.9 |
+| Signal Market crowd | 58; 16.8 / 8.3 | 28.4; 18.9 / 19.4 |
+
+Vulkan halves the frame rate everywhere: the GPU's time is 2–3× GL's, and the JS is about the same. This agrees
+with round 2 (19 against 33 fps at the spawn). On Vulkan the fences do signal: the desert loaded in 12 s with no
+pacer warning. The Deck stays on GL.

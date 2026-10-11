@@ -10,6 +10,10 @@
 //
 // The Retroid runs Chrome 154 on an Adreno; this runs the same Chrome on the Mac's GPU, so it tells
 // a software fault (the preset, the pixel ratio, the portrait's own path) from a driver one.
+//   --android 1: the device's own Chrome instead, in a tab of its own (opened by an intent on the game's
+//     origin, closed here) over
+//     `adb forward tcp:9339 localabstract:chrome_devtools_remote` and `adb reverse` of the game's port;
+//     --dpr is the device's then
 import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -19,13 +23,14 @@ const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ?
 const BASE = arg('url', 'http://localhost:5245/').replace(/\/?$/, '/');
 const LEVEL = arg('level', 'desert'), PRESET = arg('preset', 'handheld'), DPR = +arg('dpr', 2);
 const OUT = resolve(arg('out', join(tmpdir(), 'memento-portrait')));
-const CDP = +arg('cdp', 6361);
+const ANDROID = !!arg('android');
+const CDP = +arg('cdp', ANDROID ? 9339 : 6361);
 const CHROME = process.env.CHROME ?? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome'].find((p) => existsSync(p));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 mkdirSync(OUT, { recursive: true });
 
-const profile = mkdtempSync(join(tmpdir(), 'memento-portrait-'));
-const chrome = spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio',
+const profile = ANDROID ? null : mkdtempSync(join(tmpdir(), 'memento-portrait-'));
+const chrome = ANDROID ? null : spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio',
   '--window-size=1280,720', `--force-device-scale-factor=${DPR}`, '--no-first-run', '--no-default-browser-check',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', `--remote-debugging-port=${CDP}`,
   `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
@@ -39,10 +44,12 @@ const ev = async (e) => {
 };
 const until = async (e, secs = 240) => { for (let t = 0; t < secs * 4; t++) { try { if (await ev(e)) return true; } catch { /* loading */ } await sleep(250); } throw new Error(`timed out: ${e}`); };
 const QUIET = `localStorage.setItem('moebius.muted','1'); localStorage.setItem('moebius.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: '${PRESET}' }));`;
-let bad = 0;
+let bad = 0, own = null;
 try {
   let tabs;
   for (let i = 0; i < 80; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); break; } catch { await sleep(250); } }
+  // (Chrome on Android opens no tab over DevTools: the tab is the one the intent opened on the game's origin)
+  if (ANDROID) { own = tabs.find((t) => t.type === 'page' && t.url.startsWith(BASE)); if (!own) throw new Error(`no tab on ${BASE}: adb shell am start -a android.intent.action.VIEW -d ${BASE}manifest.webmanifest com.android.chrome`); tabs = [own]; }
   ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
   await new Promise((r) => ws.addEventListener('open', r));
   ws.addEventListener('message', (m) => { const d = JSON.parse(m.data); if (d.id && waits.has(d.id)) { const [res, rej] = waits.get(d.id); waits.delete(d.id); d.error ? rej(new Error(d.error.message)) : res(d.result); } });
@@ -54,7 +61,8 @@ try {
   await until('!!window.__moebiusBooted && !!window.storyRt && !!window.npcs');
   await sleep(4000);
   const gl = await ev(`(() => { const g = document.createElement('canvas').getContext('webgl2'); const d = g?.getExtension('WEBGL_debug_renderer_info'); return d ? g.getParameter(d.UNMASKED_RENDERER_WEBGL) : 'none'; })()`);
-  console.log(`${gl}; the ${PRESET} preset at ${DPR}× — ${LEVEL}`);
+  const dpr = await ev('window.devicePixelRatio');
+  console.log(`${gl}; the ${PRESET} preset at ${ANDROID ? dpr : DPR}× — ${LEVEL}; ${await ev('navigator.userAgent')}; sound ${JSON.stringify(await ev('[window.sound?.musicVol, window.sound?.fxVol, window.sound?.voiceVol, window.sound?.muted]'))}`);
   const who = await ev(`(() => {
     const ns = window.npcs.filter((n) => n.def).sort((a, b) => a.pos.distanceTo(window.player.pos) - b.pos.distanceTo(window.player.pos));
     return ns.slice(0, 4).map((n) => n.def.id);
@@ -87,6 +95,7 @@ try {
   console.log(join(OUT, `portrait-${LEVEL}-${PRESET}-dpr${DPR}.png`));
 } finally {
   try { ws?.close(); } catch { /* closed */ }
-  chrome.kill();
+  if (own) await fetch(`http://127.0.0.1:${CDP}/json/close/${own.id}`).catch(() => {});
+  chrome?.kill();
 }
 process.exit(bad ? 1 : 0);

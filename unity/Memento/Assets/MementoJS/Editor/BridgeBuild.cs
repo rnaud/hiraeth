@@ -117,7 +117,25 @@ namespace Memento.EditorTools
             long folder = Directory.Exists(dir) ? Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length) : 0;
             Debug.Log($"Memento: bridge build {s.result}: {outPath}, {size / 1e6:0.0} MB ({folder / 1e6:0.0} MB the folder), {s.totalTime.TotalSeconds:0} s, {s.totalErrors} errors, {s.totalWarnings} warnings");
             foreach (var st in r.steps) foreach (var m in st.messages) if (m.type == LogType.Error || m.type == LogType.Exception) Debug.Log("Memento: build error: " + m.content);
+            UnityAudio(null);
             Exit(s.result == BuildResult.Succeeded);
+        }
+
+        static bool? audioWas;
+        /// <summary>
+        /// The project's "Disable Unity Audio" for one build: the bench's Android player is built without Unity's audio
+        /// output at all, so it cannot make a sound on the handheld (-mute only pauses the listener, and its output stream
+        /// still runs; android-bridge.sh stops a player whose stream is playing). null: back to what it was.
+        /// </summary>
+        static void UnityAudio(bool? disable)
+        {
+            var am = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/AudioManager.asset")[0]);
+            var p = am.FindProperty("m_DisableAudio");
+            if (disable is bool d) { audioWas ??= p.boolValue; p.boolValue = d; }
+            else if (audioWas is bool w) { p.boolValue = w; audioWas = null; }
+            else return;
+            am.ApplyModifiedPropertiesWithoutUndo();
+            AssetDatabase.SaveAssets();
         }
 
         static void Standalone(string name)
@@ -264,6 +282,7 @@ namespace Memento.EditorTools
             if (release && !Release()) { EditorApplication.Exit(1); return; }
             EditorUserBuildSettings.buildAppBundle = false;
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+            if (!release) UnityAudio(true);   // (the bench's player: silent on the device whatever its flags; the testers' has its sound)
             Build(BuildTarget.Android, outPath);
         }
 
