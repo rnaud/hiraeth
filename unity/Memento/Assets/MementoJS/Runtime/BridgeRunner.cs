@@ -88,6 +88,10 @@ namespace Memento.Bridge
             RenderSettings.skybox = null; RenderSettings.ambientMode = AmbientMode.Flat;
             look = gameObject.AddComponent<MementoLook>();
             look.sun = sun;
+            // (-debug-view N: the composite's debug view (MementoLook.debugView, post.js DEBUG_VIEWS: 2 albedo, 3 normals, 4 depth, 5
+            // light; 10 where the G-buffer holds NaNs), a test for the Xbox's see-through picture)
+            if (BridgeArgs.Arg("-debug-view") is string dv && int.TryParse(dv, out int dvi)) look.debugView = dvi;
+            Shader.SetGlobalFloat("_MSurfaceDebug", BridgeArgs.Arg("-surface-debug") is string sdv && int.TryParse(sdv, out int sdi) ? sdi : 0);
             scene = new GameObject("Mirrored scene").AddComponent<BridgeRenderer>();
             scene.transform.SetParent(transform, false);
             scene.cam = cam; scene.look = look;
@@ -515,7 +519,7 @@ namespace Memento.Bridge
             if (pi >= 0 && pi + 1 < probe.Length) Debug.Log($"Memento bridge: probe '{probe[pi + 1]}' at {Path.GetFileName(path)}:{scene.Probe(probe[pi + 1], Array.IndexOf(probe, "-solo") >= 0)}");
             // (-look: the frame's look as the shaders have it, at each shot)
             if (Array.IndexOf(probe, "-look") >= 0)
-                Debug.Log($"Memento bridge: look at {Path.GetFileName(path)}: sky {Shader.GetGlobalVector("_SkyTop")} {Shader.GetGlobalVector("_SkyHorizon")} night {Shader.GetGlobalFloat("_Night")} ink {Shader.GetGlobalVector("_Ink")} toon {Shader.GetGlobalFloat("_Toon")} fog {Shader.GetGlobalFloat("_FogDensity")}x{Shader.GetGlobalFloat("_FogMul")} sun {Shader.GetGlobalVector("_SunDir")} wind {Shader.GetGlobalVector("_Wind")} bloom {Shader.GetGlobalFloat("_Bloom")} cam {cam.transform.position} {cam.transform.forward}");
+                Debug.Log($"Memento bridge: look at {Path.GetFileName(path)}: sky {Shader.GetGlobalVector("_SkyTop")} {Shader.GetGlobalVector("_SkyHorizon")} night {Shader.GetGlobalFloat("_Night")} ink {Shader.GetGlobalVector("_Ink")} toon {Shader.GetGlobalFloat("_Toon")} fog {Shader.GetGlobalFloat("_FogDensity")}x{Shader.GetGlobalFloat("_FogMul")} sun {Shader.GetGlobalVector("_SunDir")} wind {Shader.GetGlobalVector("_Wind")} bloom {Shader.GetGlobalFloat("_Bloom")} cam {cam.transform.position} {cam.transform.forward} near {cam.nearClipPlane} far {cam.farClipPlane} reversed z {SystemInfo.usesReversedZBuffer} uv at top {SystemInfo.graphicsUVStartsAtTop}");
             int w = 1280, h = 720;
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var prev = cam.targetTexture;

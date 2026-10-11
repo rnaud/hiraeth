@@ -660,6 +660,7 @@ Shader "Memento/Surface"
         return col;
       }
 
+      float _MSurfaceDebug;   // (global: BridgeRunner -surface-debug)
       struct GBufferOut
       {
         float4 albedoLight : SV_Target0;
@@ -1031,6 +1032,14 @@ Shader "Memento/Surface"
           o.hatch.rg *= hatchK * float2(1.0 - 0.8 * liftK, max(1.0 - 2.5 * liftK, 0.0));
           float hq = _Shade.y < 0.0 ? 0.0 : _Shade.y >= 2.0 ? 10.0 + floor((_Shade.y - 2.0) * 5.0 + 0.5) : 1.0 + floor(_Shade.y * 8.0 + 0.5);
           o.hatch.rg = min(o.hatch.rg, float2(1, 1)) + 2.0 * float2(hq, floor(saturate(lift) * 15.0 + 0.5));
+        }
+        // (a test for the Xbox's see-through picture, BridgeRunner -surface-debug N: 1 the material's plain colour, no strokes;
+        // 2 every normal up; 3 both)
+        if (_MSurfaceDebug > 0.5)
+        {
+          int sd = (int)(_MSurfaceDebug + 0.5);
+          if (sd & 1) { o.albedoLight = float4(_Color.rgb, 1); o.hatch = 0; }
+          if (sd & 2) o.normalDepth.xyz = float3(0, 1, 0);
         }
         return o;
       }

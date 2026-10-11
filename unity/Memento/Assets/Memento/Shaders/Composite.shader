@@ -535,6 +535,15 @@ Shader "Hidden/Memento/Composite"
         }
 
         int dbg = (int)(_Debug + 0.5);
+        if (dbg == 10)
+        {
+          // (a NaN in the G-buffer, read by its bits (the compiler may take x != x for false): red the depth's (or none, the
+          // sky: dark red), green the normal's, blue the albedo's; grey a surface with none)
+          uint4 nb = asuint(N) & 0x7fffffffu, ab = asuint(A) & 0x7fffffffu;
+          bool nanW = nb.w > 0x7f800000u, nanN = any(nb.xyz > 0x7f800000u), nanA = any(ab.rgb > 0x7f800000u);
+          if (!nanW && !nanN && !nanA) return float4(isSky ? float3(0.25, 0, 0) : float3(0.5, 0.5, 0.5), 1);
+          return float4(nanW ? 1 : 0, nanN ? 1 : 0, nanA ? 1 : 0, 1);
+        }
         if (dbg == 2) return float4(toLinear(isSky ? skyBase(rd) : A.rgb), 1);
         if (dbg == 3) return float4(toLinear(isSky ? 0 : N.rgb * 0.5 + 0.5), 1);
         if (dbg == 4) return float4(toLinear((isSky ? 1.0 : pow(depth / 3000.0, 0.4)).xxx), 1);
