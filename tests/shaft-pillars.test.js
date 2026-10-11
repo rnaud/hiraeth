@@ -185,3 +185,18 @@ test('the pillars draw a window round the camera: a few hundred pieces at most, 
     assert.ok(pillarAt(m, pillars.pillars) || pillars.pillars.some((c) => Math.abs(m.y - c.top) < 1), `ring ${i} in a pillar`);
   }
 });
+
+test('a piece\'s matrix is written as three would make it (setFromAxisAngle, compose, setMatrixAt), number for number', () => {
+  const M4 = Object.getPrototypeOf(pillars._m).constructor, Q = Object.getPrototypeOf(pillars._q).constructor, V3 = Object.getPrototypeOf(pillars._p).constructor;
+  const mesh = pillars.motes, ref = new Float32Array(16), m = new M4(), q = new Q(), up = new V3(0, 1, 0);
+  let seed = 9;
+  const r = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296) * 20 - 10;
+  for (let n = 0; n < 200; n++) {
+    const a = [r(), r(), r(), r() / 4, r() / 4, r() / 4, n % 7 === 0 ? 0 : r()];
+    if (n % 11 === 0) a[6] = -a[6];
+    pillars.set(mesh, 3, ...a);
+    q.setFromAxisAngle(up, a[6]);
+    m.compose(new V3(a[0], a[1], a[2]), q, new V3(a[3], a[4], a[5])).toArray(ref, 0);
+    assert.deepEqual(Array.from(mesh.instanceMatrix.array.subarray(48, 64)), Array.from(ref), `piece ${n}`);
+  }
+});

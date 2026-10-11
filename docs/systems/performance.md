@@ -1976,3 +1976,8 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   (−0.5 to −1 ms). With the prepass, the composite (its creases' and pockets' taps) is ~4-6 ms of the City-Shaft's GPU
   (`-debug-view 2` returns before them), and render scale 0.5 leaves 11-15 ms: most of what is left does not scale with
   the pixels (the draws' vertices, the shadow maps, and the GPU waiting on the main thread's submission).
+- **The City-Shaft's air pillars' pieces written straight into their instance arrays** (src/shaft-pillars.js `set`,
+  for the web build too): three's own arithmetic (setFromAxisAngle, compose, setMatrixAt) without the temporaries,
+  the same numbers (tests/shaft-pillars.test.js). ~2 000 pieces a frame: the update 8.9 / 10.3 / 8.5 → 7.6 / 9.3 / 7.7 ms.
+- Tried and left out: the people's rigs, walked from their roots several times a frame, from lists as the scene is
+  (the same time: their cost is not the walk's reads).

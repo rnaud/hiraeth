@@ -139,9 +139,22 @@ export class ShaftPillars {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }
+  /**
+   * Instance i's matrix: at (x, y, z), scaled, turned yaw about up. Written straight into the instance array with
+   * three's own arithmetic (Quaternion.setFromAxisAngle, then Matrix4.compose, then setMatrixAt: the same numbers):
+   * ~2 000 pieces a frame in the City-Shaft, and their temporaries were 1.3 ms of the Unity bridge's frame on the Deck.
+   */
   set(mesh, i, x, y, z, sx, sy, sz, yaw = 0) {
-    this._q.setFromAxisAngle(_up, yaw);
-    mesh.setMatrixAt(i, this._m.compose(this._p.set(x, y, z), this._q, this._s.set(sx, sy, sz)));
+    const half = yaw / 2, s = Math.sin(half);
+    const qx = _up.x * s, qy = _up.y * s, qz = _up.z * s, qw = Math.cos(half);
+    const x2 = qx + qx, y2 = qy + qy, z2 = qz + qz;
+    const xx = qx * x2, xy = qx * y2, xz = qx * z2, yy = qy * y2, yz = qy * z2, zz = qz * z2;
+    const wx = qw * x2, wy = qw * y2, wz = qw * z2;
+    const te = mesh.instanceMatrix.array, o = i * 16;
+    te[o] = (1 - (yy + zz)) * sx; te[o + 1] = (xy + wz) * sx; te[o + 2] = (xz - wy) * sx; te[o + 3] = 0;
+    te[o + 4] = (xy - wz) * sy; te[o + 5] = (1 - (xx + zz)) * sy; te[o + 6] = (yz + wx) * sy; te[o + 7] = 0;
+    te[o + 8] = (xz + wy) * sz; te[o + 9] = (yz - wx) * sz; te[o + 10] = (1 - (xx + yy)) * sz; te[o + 11] = 0;
+    te[o + 12] = x; te[o + 13] = y; te[o + 14] = z; te[o + 15] = 1;
   }
   update(dt, t, { player, camera } = {}) {
     const cy = camera?.position.y ?? player?.pos.y ?? 0;
