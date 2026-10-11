@@ -1,5 +1,5 @@
 import { defineConfig, searchForWorkspaceRoot } from 'vite';
-import { existsSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { auditsPlugin } from './scripts/audits-data.mjs';
@@ -53,6 +53,20 @@ export function gitBuildInfo(run = (...a) => execFileSync('git', a, { encoding: 
   try { if (run('rev-parse', '--is-shallow-repository') === 'false') info.build = Number(run('rev-list', '--count', 'HEAD')) || undefined; } catch { /* no count */ }
   return info;
 }
+/**
+ * The game's version written into the build (src/version.js): the newest entry's `v` in src/changelog.js, so the
+ * title and the settings needn't load the whole changelog for it. The dev server leaves version.js as it is (it
+ * reads the changelog there, and a version added while it runs shows at once).
+ */
+export const changelogVersion = (text = readFileSync(new URL('./src/changelog.js', import.meta.url), 'utf8')) => /\{\s*v:\s*'([^']+)'/.exec(text)?.[1] ?? null;
+const versionModule = () => {
+  let build = false;
+  return {
+    name: 'version-module',
+    configResolved(config) { build = config.command === 'build'; },
+    transform(code, id) { return build && /[\\/]src[\\/]version\.js$/.test(id) ? `export const VERSION = ${JSON.stringify(changelogVersion())};` : null; },
+  };
+};
 export default defineConfig({
   base: './',
   define: { __HIRAETH_BUILD__: JSON.stringify(gitBuildInfo()) },
@@ -63,6 +77,6 @@ export default defineConfig({
   // (the reference lab, reference-lab.html: dev server only, not built: docs/systems/reference-lab.md; the
   // references page's live index is the dev server's, the site's is written by the deploy: docs/systems/references.md)
   // (threeProgramKeys: the surfaces' programs keyed without their side, normals or colours: fewer programs to compile)
-  plugins: [threeProgramKeys(), dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin()],
+  plugins: [threeProgramKeys(), versionModule(), dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });

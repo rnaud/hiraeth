@@ -14,7 +14,7 @@ import { AudioContext as EngineAudioContext } from '../engine/webaudio.js';
 const src = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-test('the title draws and wires its menu first; the sound and the world wait for idle time and a pause in the presses', () => {
+test('the title draws and wires its menu first; the sound and the game behind it wait for idle time and a pause in the presses', () => {
   const t = src('title.js');
   const at = (s) => { const i = t.indexOf(s); assert.ok(i > 0, s); return i; };
   // the sound is made without its start (opening an audio context to ask is 100-250 ms)
@@ -24,7 +24,10 @@ test('the title draws and wires its menu first; the sound and the world wait for
   assert.ok(at('markBooted(win)') < at('sound.startIfAllowed()'));
   // both in whenIdle: requestIdleCallback (with a timeout), put off while busy()
   assert.match(t, /const whenIdle = \(fn, timeout = \d+\) => \{[\s\S]*?if \(busy\(\)\) setTimeout\(\(\) => whenIdle\(fn, timeout\), \d+\); else fn\(\);[\s\S]*?requestIdleCallback\(go, \{ timeout \}\)/);
-  assert.match(t, /whenIdle\(\(\) => \{\s*sound\.startIfAllowed\(\);[\s\S]{0,200}?if \(shot && liveWorld\([^)]*\)\) whenIdle\(startWorld\);/);
+  assert.match(t, /whenIdle\(\(\) => \{\s*sound\.startIfAllowed\(\);\s*if \(live\) whenIdle\(startWorld\);\s*else if \(behind\) whenIdle\(startGame\);/);
+  // the game behind it builds in a gated slicer too, standing aside while the player presses (src/main.js, src/title-hold.js)
+  assert.match(t, /behind\.hold\.busy = \(\) => now\(\) - lastInput < BEHIND_QUIET \|\| screen !== 'main' \|\| settingsMenu\.open \|\| !confirmEl\.hidden;/);
+  assert.match(src('main.js'), /const slice = titleHold \? gatedSlicer\(\{ busy: \(\) => titleHold\.busy\(\) \}\) : slicer\(\);/);
   // every press counts: keys, pointers, touches (the capture listeners) and the pad (the Controller's activity)
   assert.match(t, /const onInput = \(e\) => \{ pressed\(\);/);
   assert.match(t, /activity: \(\) => \{ pressed\(\);/);

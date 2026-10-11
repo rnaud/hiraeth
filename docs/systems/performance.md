@@ -1053,11 +1053,12 @@ Not measured: the Retroid and the Deck, and the frame-time gain (under the Mac's
 
 ## The title's world on a slow shader compiler (October 2026)
 
-The title opens on a still of its shot (`public/title-stills/<id>.jpg`, the world's own pixels, made by
-`node scripts/title-shots.mjs --stills`, ~140 kB each) and the live world fades in over it. Where making the
-world costs too much the still stays: on the Xbox always, and on any GPU whose last build ran past
-`TITLE_SLOW_MS` (25 s; remembered per GPU in `moebius.title.slow`, `src/title-still.js`; `?vista=live` /
-`?vista=still` override). Measured on the Xbox (docs/systems/xbox.md, "The 100-second title"): 38 programs,
+(Since v1.49, issue #110, the title builds no world at all: its shot is a vector drawing painted at once, and the
+game loads behind the menu instead; docs/systems/ui.md, "The title's drawing and the game behind it". What follows
+is the history, and the game's own loads.) The title opened on a still of its shot (the world's own pixels, made by
+`node scripts/title-shots.mjs --stills`, ~140 kB each, now `docs/title-shots/stills/`, what the drawings are traced
+from) and the live world faded in over it. Where making the world cost too much the still stayed: on the Xbox
+always, and on any GPU whose last build ran past 25 s. Measured on the Xbox (docs/systems/xbox.md, "The 100-second title"): 38 programs,
 ~1 s each for the surfaces and 22-28 s for the ink pass, 100-131 s to the world cold and 20-46 s warm, the
 menu frozen up to 22.6 s at a time.
 

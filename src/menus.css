@@ -10,43 +10,58 @@
   transition: opacity 0.45s;
 }
 #title.leaving { opacity: 0; pointer-events: none; }
-#title .land { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity 0.6s; }
-/* the world behind the menu (src/title-world.js): the cover's paper until it fades in; the drawn land if it can't */
-#title.vista-wait, #title.vista-on { background: #efe0bf; }
-#title.vista-wait .land { opacity: 0; }
-#title.vista-on .land { display: none; }
+#title .land { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+/* the drawn land (BACKDROP): only if the shot's drawing can't load */
+#title.art-none .land { display: block; }
+/* the shot's drawing (src/title-paint.js, issue #110): flat colour and ink traced off the game's own render of it,
+   painted the moment the page's script runs; the cover's paper until it is in */
+#title img.art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.25s ease-out; }
+#title.art-on img.art { opacity: 1; }
+/* ?vista=live: the old live world (src/title-world.js) fades in over the drawing */
 #title canvas.vista { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.4s ease-out; }
 #title.vista-on canvas.vista { opacity: 1; }
-/* the paper: cream with a printed grain, under the name while the world is made (and faded out over it) */
-#title .paper { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.4s ease-out;
+#title.vista-on img.art { opacity: 0; transition: opacity 1.4s ease-out; }
+/* the paper: cream with a printed grain, under the name until the drawing is in */
+#title .paper { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.4s ease-out;
   background: radial-gradient(ellipse 90% 80% at 50% 40%, #f6ead0, #ead7b1 100%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .17 0 0 0 0 .13 0 0 0 0 .1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   background-blend-mode: multiply; }
-#title.vista-wait .paper { opacity: 1; }
-#title.vista-on .paper { opacity: 0; }
-/* the world in print, once it is in: the covers' cream paper over it, multiplied (its whites cream, its tooth a
-   printed grain). The title's camera never moves, so a grain fixed to the screen doesn't swim as it would in the
-   game (src/post.js keeps the game's world free of one). CSS alone: nothing more to download. */
-#title .print { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.4s ease-out; mix-blend-mode: multiply;
+#title.art-wait .paper { opacity: 1; }
+/* the world in print: the covers' cream paper over it, multiplied (its whites cream, its tooth a printed grain).
+   The title's camera never moves, so a grain fixed to the screen doesn't swim as it would in the game. CSS alone. */
+#title .print { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.6s ease-out; mix-blend-mode: multiply;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .17 0 0 0 0 .13 0 0 0 0 .1 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"),
     radial-gradient(ellipse 95% 85% at 50% 45%, #fbf1dc, #f1dfbb 100%); }
-#title.vista-on .print { opacity: 1; }
-/* the shot's still (src/title-still.js): its world drawn ahead of time, in print, from the first moment; the live
-   world fades in over it (the same frame), or never comes (the Xbox, a slow GPU) */
-#title img.still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.35s ease-out; }
-#title.still-on img.still { opacity: 1; }
-#title.still-on.vista-on img.still { opacity: 0; transition: opacity 1.4s ease-out; }
-#title.still-on .land { display: none; }
-#title.still-on .paper { opacity: 0; }
-#title.still-on .print { opacity: 1; }
+#title.art-on .print, #title.vista-on .print { opacity: 1; }
+/* the singing light, now and then across the sky: a small warm glow drifting on a slow arc (the compositor's alone) */
+#title .light { position: absolute; inset: 0 0 35% 0; pointer-events: none; overflow: hidden; }
+#title .light i { position: absolute; left: -4vw; top: 30%; width: clamp(9px, 1.5vmin, 20px); aspect-ratio: 1; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, #fffdf0 0 28%, rgba(255, 241, 196, 0.8) 42%, rgba(255, 226, 150, 0) 70%);
+  box-shadow: 0 0 1.4em 0.7em rgba(255, 238, 178, 0.42); mix-blend-mode: screen; }
+#title.art-on .light i { animation: title-light 34s linear 2.5s infinite; }
+@keyframes title-light {
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+  5% { opacity: 0.95; }
+  20% { transform: translate(28vw, -9vh) scale(1); }
+  38% { transform: translate(56vw, -4vh) scale(1.1); opacity: 0.9; }
+  52% { transform: translate(82vw, 6vh) scale(0.9); opacity: 0; }
+  100% { transform: translate(82vw, 6vh) scale(0.9); opacity: 0; }
+}
+/* the game behind the title still loading when its save is chosen: the menu gives way to a quiet mark (src/title.js) */
+#title .starting { position: absolute; top: var(--menu-top, 62vh); left: var(--menu-left, 4vw); margin: 0; display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px; font-size: calc(clamp(11px, 1.7vh, 14px) * var(--ts, 1)); background: rgba(247, 236, 210, 0.82); border: 1.5px solid #2b211f; }
+#title .starting[hidden] { display: none; }
+#title .starting .pen { width: 14px; height: 14px; border: 2px solid #2b211f; border-right-color: transparent; border-radius: 50%; animation: title-pen 0.9s linear infinite; }
+@keyframes title-pen { to { transform: rotate(360deg); } }
+#title.waiting .main-menu, #title.waiting .saves { visibility: hidden; }
 #title .clouds { animation: title-clouds 70s linear infinite alternate; }
 @keyframes title-clouds { to { transform: translateX(220px); } }
 #title .planet { animation: title-float 9s ease-in-out infinite alternate; }
 @keyframes title-float { to { transform: translateY(10px); } }
 #title .cape { transform-box: fill-box; transform-origin: right top; animation: title-cape 1.9s ease-in-out infinite alternate; }
 @keyframes title-cape { from { transform: rotate(-5deg) scaleX(0.92); } to { transform: rotate(6deg) scaleX(1.06); } }
-@media (prefers-reduced-motion: reduce) { #title .clouds, #title .planet, #title .cape { animation: none; } }
-html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduce-motion #title .cape { animation: none; }   /* (the "Reduce motion" setting: src/ui.js) */
+@media (prefers-reduced-motion: reduce) { #title .clouds, #title .planet, #title .cape, #title.art-on .light i { animation: none; } }
+html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduce-motion #title .cape, html.reduce-motion #title.art-on .light i { animation: none; }   /* (the "Reduce motion" setting: src/ui.js) */
 
 #title .front {
   position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; justify-items: center;

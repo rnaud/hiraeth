@@ -53,6 +53,7 @@ export class SlotStore {
     this._active = null;
     this._migrated = false;
     this._sandbox = null;
+    this._held = null;
   }
   /**
    * Point the slot view (slotStorage) at an in-memory save until the page ends: `seed` is its keys
@@ -61,6 +62,20 @@ export class SlotStore {
    */
   sandbox(seed = {}) { this._sandbox = new Map(Object.entries(seed).map(([k, v]) => [k, String(v)])); return this; }
   get sandboxed() { return !!this._sandbox; }
+  /**
+   * The slot view's writes kept in memory from now on (the game loading behind the title, src/title-hold.js): it
+   * reads them back, the selector and the disk don't see them; commitWrites() puts them on the disk (the save was
+   * chosen), dropWrites() forgets them (another was).
+   */
+  holdWrites() { this._held = new Map(); return this; }
+  get holding() { return !!this._held; }
+  commitWrites() {
+    const held = this._held;
+    this._held = null;
+    for (const [k, v] of held ?? []) if (v === null) this.del(k); else this.put(k, v);
+    return held?.size ?? 0;
+  }
+  dropWrites() { const n = this._held?.size ?? 0; this._held = null; return n; }
   get(k) { try { return this.storage?.getItem(k) ?? null; } catch { return null; } }
   put(k, v) { try { this.storage?.setItem(k, v); } catch { /* private mode, full */ } }
   del(k) { try { this.storage?.removeItem(k); } catch { /* ignore */ } }
@@ -103,9 +118,14 @@ export class SlotStore {
     const at = () => n ?? this.active;
     const sb = () => (n === null ? this._sandbox : null);
     return {
-      getItem: (k) => { const m = sb(); if (m) return m.get(k) ?? null; this.ready(); return this.get(slotKey(k, at())); },
-      setItem: (k, v) => { const m = sb(); if (m) { m.set(k, String(v)); return; } this.ready(); this.put(slotKey(k, at()), String(v)); },
-      removeItem: (k) => { const m = sb(); if (m) { m.delete(k); return; } this.ready(); this.del(slotKey(k, at())); },
+      getItem: (k) => {
+        const m = sb(); if (m) return m.get(k) ?? null;
+        this.ready();
+        const key = slotKey(k, at());
+        return this._held?.has(key) ? this._held.get(key) : this.get(key);
+      },
+      setItem: (k, v) => { const m = sb(); if (m) { m.set(k, String(v)); return; } this.ready(); const key = slotKey(k, at()); if (this._held) this._held.set(key, String(v)); else this.put(key, String(v)); },
+      removeItem: (k) => { const m = sb(); if (m) { m.delete(k); return; } this.ready(); const key = slotKey(k, at()); if (this._held) this._held.set(key, null); else this.del(key); },
     };
   }
 

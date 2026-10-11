@@ -215,8 +215,10 @@ with a `#define`, so the GPU process compiles it afresh, as on a first launch):
   0.6-3.8 s: what remains is the driver's own work on each program, not kept across loads.
 
 So no cache makes the live title quick here. The fix (performance.md, "The title's world on a slow shader
-compiler"): the title shows the shot's still at once (`public/title-stills/`, `src/title-still.js`) and on the
-Xbox never builds the live world (`?vista=live` to try it); first uses wait for the driver instead of blocking;
+compiler"): the title shows the shot's still at once and on the
+Xbox never builds the live world (since v1.49 no title builds one: the shot is a vector drawing, painted at once, and
+the game loads behind the menu: docs/systems/ui.md, so its programs compile while the player looks at the title,
+and Continue waits only for what is left); first uses wait for the driver instead of blocking;
 the ink pass compiles without its debug views and lite path (28 → 16.5 s here). The game's own load gets the last
 two as well. Measuring: the probes' method is the salted reload above; `scripts/xbox-devtools.mjs js` reads
 `title.timing` (`still`: the picture shown; `live: false`: no world built).

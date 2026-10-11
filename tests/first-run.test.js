@@ -34,7 +34,7 @@ test('a brand-new profile is not greeted with "Updated to": the version is marke
   assert.equal(quietFirstRun(null, '0.97'), false, 'no storage: nothing to do');
   // boot runs it before the title (which writes a save on New game)
   const boot = src('src/boot.js');
-  assert.ok(boot.indexOf('quietFirstRun(') > 0 && boot.indexOf('quietFirstRun(') < boot.indexOf('await showTitle()'));
+  assert.ok(boot.indexOf('quietFirstRun(') > 0 && boot.indexOf('quietFirstRun(') < boot.indexOf('await showTitle('));
 });
 
 test('the debug entries are the author’s: the Developer panel setting, a dev build or ?dev=1', () => {

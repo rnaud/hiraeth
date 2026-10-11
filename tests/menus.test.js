@@ -15,11 +15,11 @@ test('the title screen opens the game, a world asked for directly skips it', () 
   // the page's entry runs the title before the game's modules (and so before any store reads a slot)
   assert.match(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), /<script type="module" src="\/src\/boot\.js"><\/script>/);
   const boot = src('boot.js');
-  assert.ok(boot.indexOf("await showTitle()") < boot.indexOf("await import('./main.js')"));
+  assert.ok(boot.indexOf('await showTitle(') < boot.indexOf("if (!worldsOnly && !chosen?.behind) await import('./main.js')"));
   // the title's Debug entry: the worlds list alone (?worlds=1), without the game (no world built behind it)
   assert.match(src('title.js'), /pathname\}\?worlds=1`/);
   assert.match(boot, /if \(worldsOnly\)[\s\S]*showWorldsOnly\(\)/);
-  assert.match(boot, /if \(!worldsOnly\) await import\('\.\/main\.js'\)/);
+  assert.match(boot, /if \(!worldsOnly && !chosen\?\.behind\) await import\('\.\/main\.js'\)/, 'the game, unless it already runs from behind the title');
   assert.doesNotMatch(src('world-picker.js'), /from '\.\/main\.js'|import\('\.\/main\.js'\)/);
   // every world has its picture in the list (scripts/world-thumbs.mjs), and the other pages are linked from it
   for (const l of LEVELS) assert.ok(existsSync(new URL(`../public/thumbs/${l.id}.jpg`, import.meta.url)), `thumbs/${l.id}.jpg`);

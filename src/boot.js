@@ -9,7 +9,9 @@ if (new URLSearchParams(location.search).has('cinematicReview')) {
 // shortcut), ?prologue=1, ?ending=1, and ?start (a save started over from the Start menu).
 // ?worlds=1 alone (the title's Debug entry) shows only the worlds list. ?level=<id>&debugsave=1 (a
 // route world picked in that list) first writes the debug save for it (src/debug-save.js).
-// In the Android app, an update downloaded meanwhile is switched to before the title shows.
+// In the Android app, an update downloaded meanwhile is switched to before the menu shows.
+// The title's picture and name are painted first of all (src/title-paint.js, issue #110), and once
+// its menu answers the game loads behind it (src/title-hold.js): Continue goes on into it.
 
 import './menus.css';
 import './game-menu.css';
@@ -24,8 +26,13 @@ import { installKeyRemap } from './remap.js';
 import { translatePage } from './i18n.js';
 import { installXbox } from './xbox.js';
 import { cameFromDebug, installDebugBack } from './debug-back.js';
+import { paintTitle } from './title-paint.js';
+import { createHold } from './title-hold.js';
 
 installXbox();        // (the Xbox app only: the TV's safe area, the Back button; a no-op elsewhere: src/xbox.js)
+// the title's drawing and name on the screen before anything else runs (the menu and the game follow)
+const titled = opensTitle(location.search) && new URLSearchParams(location.search).get('worlds') !== '1';
+const painted = titled ? paintTitle() : null;
 audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
 installKeyRemap();    // (the player's own keys, first of every key listener: src/remap.js)
 translatePage();      // (index.html's own words in the player's language: src/i18n.js)
@@ -34,7 +41,7 @@ watchLabels();
 installGlyphs();   // (the button glyphs in the menus, for the pad in hand: src/pad-glyphs.js)
 // a brand-new profile (no seen version, no save anywhere) counts this version as seen, before the
 // title writes a save: the "Updated to v…" toast is for players coming from an older version (src/first-run.js)
-try { const [{ quietFirstRun }, { VERSION }] = await Promise.all([import('./first-run.js'), import('./changelog.js')]); quietFirstRun(globalThis.localStorage, VERSION); } catch (e) { console.warn(e); }
+try { const [{ quietFirstRun }, { VERSION }] = await Promise.all([import('./first-run.js'), import('./version.js')]); quietFirstRun(globalThis.localStorage, VERSION); } catch (e) { console.warn(e); }
 // a route world picked in the worlds list (Debug): its own save, as if every world before it were played
 // through (src/debug-save.js), written into the debug slot before the game reads a save; a reload goes on with it
 // a world opened from the Debug menu (its list, or a debug page's link, as the Arena from Creatures & spirits):
@@ -49,6 +56,7 @@ if (new URLSearchParams(location.search).has('debugsave')) {
   history.replaceState(null, '', `${location.pathname}?${q}`);
 }
 const worldsOnly = new URLSearchParams(location.search).get('worlds') === '1' && opensTitle(location.search);
+let chosen = null;
 if (worldsOnly) {
   // the title's Debug entry: the worlds list alone, without building a world behind it (src/world-picker.js)
   const { showWorldsOnly } = await import('./world-picker.js');
@@ -57,9 +65,13 @@ if (worldsOnly) {
   // the Android app: a downloaded update starts here, before anything runs (the page reloads into it)
   if (await applyReadyUpdate()) await new Promise((r) => setTimeout(r, 5000));
   const { showTitle } = await import('./title.js');
-  await showTitle();
+  // the game behind the title: loaded under the menu in the save Continue plays, it waits at its first frame
+  const hold = createHold(window);
+  const load = () => { window.__titleHold = hold; return import('./main.js'); };
+  chosen = await showTitle({ painted, behind: { hold, load } });
 } else if (new URLSearchParams(location.search).has('start')) history.replaceState(null, '', location.pathname);   // (a reload goes back to the title)
-if (!worldsOnly) await import('./main.js');
+// (the game already running, from behind the title; else it loads now)
+if (!worldsOnly && !chosen?.behind) await import('./main.js');
 if (fromDebugMenu) installDebugBack({ keys: false, pad: false, fade: true });
 
 if (new URLSearchParams(location.search).has('cinematicReview')) {

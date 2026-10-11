@@ -179,7 +179,7 @@ test('the title screen is the safe point: a downloaded update starts there, once
   assert.ok(Date.now() - t < 1000);
   // boot.js asks before the title, in the app only
   const boot = readFileSync(new URL('../src/boot.js', import.meta.url), 'utf8');
-  assert.ok(boot.indexOf('applyReadyUpdate()') > 0 && boot.indexOf('applyReadyUpdate()') < boot.indexOf('await showTitle()'));
+  assert.ok(boot.indexOf('applyReadyUpdate()') > 0 && boot.indexOf('applyReadyUpdate()') < boot.indexOf('await showTitle('));
 });
 
 test('callApp: the app\'s answer or its refusal', async () => {

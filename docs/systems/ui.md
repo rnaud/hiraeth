@@ -208,7 +208,44 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   scripts/title-shots.mjs [ids] [--sizes]` renders each shot (its own Vite on 5345, one headless Chrome)
   and writes it beside its cover into `docs/title-shots/<id>-compare.jpg`; `CAMS='[…]'` tries several poses
   on one load (a contact sheet with the cover).
-- **The world behind it** (`src/title-world.js`): the shot's level built by its own code (loaded on demand:
+- **The title's drawing and the game behind it** (v1.49, issue #110: "something that loads very very quickly"). The
+  title builds no 3D world any more. Its shot is a **vector drawing** of the game's own render of it
+  (`public/title-vectors/<id>.svg`, 35-180 kB, a third of that compressed): `node scripts/title-vectors.mjs [ids]
+  [--preview]` traces each still (`docs/title-shots/stills/<id>.jpg`, `scripts/title-shots.mjs --stills`, the mirrored
+  shots flipped) into flat colour and ink (`scripts/title-trace.mjs`): 18 colours by k-means, plus the ones they fit
+  worst (a red coat, a green orb), the ink's pixels left out of them; speckle away (a majority filter, pieces under
+  14 cells merged); each colour's outline along the cells' edges, simplified and drawn through its edges' midpoints
+  (the frame's corners kept), stroked in its own colour so no seam shows; the sky one rectangle under all; and the
+  ink, the still's own line work at full size (pixels darker than both sides across them: a pen line, never a dark
+  sea), closed, thinned to centre lines and drawn as 1.8-unit pen strokes. `src/title-paint.js` puts it up with the
+  name, laid out as the menu will lay it, the moment the page's script runs (`src/boot.js` calls `paintTitle()`
+  before anything else; it imports only the shots, the lettering, the layout and the slots); the cover's paper shows
+  until the drawing is in, the print's grain is multiplied over it, and the singing light crosses its sky now and
+  then (CSS, `#title .light`, still with reduced motion). The menu joins the same screen when `src/title.js` has
+  loaded (it no longer waits for the 430 kB changelog: the version comes from `src/version.js`, written into the
+  build by `vite.config.js`; nor for three.js: `src/feel.js` has none). Without the drawing: the drawn land
+  (`BACKDROP`).
+  Once the menu answers, the **game loads behind it** (`src/title-hold.js`): the save Continue plays (a new
+  player's first empty slot, the prologue) is made active and `src/main.js` loads under the title. It must not
+  hear the player meanwhile: every input listener added to the window or the document from then on is wrapped to
+  ignore what comes while the hold lasts (`holdInput`; the title's own were added before), its sound doesn't start,
+  what it writes to the save stays in memory (`slots.holdWrites()`; `commitWrites()` once that save is chosen,
+  `dropWrites()` if another is), and its build stands aside (a `gatedSlicer`) within `BEHIND_QUIET` (1.5 s) of a
+  press and all the while the player is in the saves, the settings or a question (its load has steps of 0.35 s on
+  a desktop, 1.4 s on a processor four times slower, which a press would wait through). It stops at its first
+  frame's door (`hold.arrive()`, `await hold.go`). Continue on that save releases it: the title fades out over the
+  game's first frame (`hold.played()`), at once if the load is done, else after a quiet mark where the menu was (a
+  turning pen and the load's stage). Any other choice (another save, a new game in another slot, a setting or the
+  language changed, that save deleted, the load failed) opens the game in a fresh page (`?start`), as before.
+  `window.title.timing`: `start` (the script), `painted`, `picture`, `shown` (the menu), `game` (the load began).
+  `node scripts/title-boot.mjs [--presets high,handheld] [--cpu 1,4] [--net 4g] [--press ms]` measures a built game:
+  from the navigation, the first pixel, the script, the title's paint, its picture, its menu, and the game's first
+  frame after Continue. Mac (M4 Pro), headless Chrome, median of three: the name and drawing painted 12-16 ms after
+  the script runs (45-50 ms with the processor slowed four times, 17 ms on a mobile connection), Continue at 8 s
+  playing in 0.7 s (4.8 s before), 6.5 s at ×4 (12.9 s); `scripts/title-perf.mjs --cpu 4` with ↓ every 0.7 s: the
+  slowest press 19-26 ms while the game loads behind. Tests: `tests/title-paint.test.js`.
+  `?vista=live` builds the old live world instead (below; no game behind it), to compare.
+- **The world behind it** (`?vista=live` only, since v1.49; `src/title-world.js`): the shot's level built by its own code (loaded on demand:
   `TITLE_LEVELS`, not `levels/index.js`), its collision as a static BVH (for the plants and the traveller's
   feet), its water, flora and grass, its flocks and its own motion (`level.update`), drawn by the game's
   pipeline (G-buffer materials, the near and wide shadow maps once, the traveller's fine one each frame,
@@ -238,7 +275,7 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
     and each program first used a slice at a time (`firstUse`), so the first frame has nothing left to wait
     for. The bug it fixed: `compileAsync` and the first frame ran in one task, 0.6–0.9 s on the Mac (7 s in a
     cold Chrome), the sound's two contexts 250 ms more before the menu showed, and presses waited.
-    `window.title.timing` has the times (and `stages`, `traveller:*` among them); `node
+    (v1.37-v1.48; the drawing above replaced it.) `window.title.timing` has the times (and `stages`, `traveller:*` among them); `node
     scripts/title-perf.mjs` measures the built game in a fresh headless Chrome a run, pressing ↓ every
     0.7 s: on the Mac (High) the menu up at 44 ms (210 before), the longest task 119 ms (699), the slowest
     press 10 ms (599), the world in at 4.2 s (2.8: it now gives way to the presses); `--cpu 4` for a

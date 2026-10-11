@@ -107,7 +107,7 @@ const _skyColor = new THREE.Color();
  * @param o.signal    an AbortSignal: the player went on before the view was ready (it stops building and frees itself)
  * @param o.onStage   (name) as each part of the build begins (the boot's timings)
  * @param o.busy      () => true while the player is pressing: the build waits between its slices (the menu first)
- * @param o.skip      (gpu) => true: don't build here (a GPU remembered as slow: src/title-still.js); resolves null
+ * @param o.skip      (gpu) => true: don't build on this GPU; resolves null
  */
 export async function startTitleWorld({ parent, shot, settings, native = false, touch = false, still = false, signal = null, win = window, onStage = () => {}, busy = () => false, skip = () => false } = {}) {
   THREE.ColorManagement.enabled = false;   // (as the game: colours are authored as display values)
@@ -129,7 +129,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     try { return String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? ''); } catch { return ''; }
   })();
   if (/SwiftShader|llvmpipe|softpipe/i.test(gpu)) { renderer.dispose(); renderer.forceContextLoss(); return null; }   // a software GPU: the paper
-  if (skip(gpu)) { renderer.dispose(); renderer.forceContextLoss(); return null; }   // a GPU whose last build ran long: the still (src/title-still.js)
+  if (skip(gpu)) { renderer.dispose(); renderer.forceContextLoss(); return null; }   // (a GPU the caller doesn't want it on)
   const handheld = detectHandheld({ native, touch, gpu });
   const onDeck = detectDeck({ app: win.location?.protocol === 'moebius:', gpu }), xbox = onXbox(win);
   const hiDPI = (win.devicePixelRatio ?? 1) >= 2;

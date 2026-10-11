@@ -38,6 +38,7 @@ const KNOWN = [
   [/^firstUse\(/, 'slices, and for each program a poll of isReady() capped at its `wait` (60 s)'],
   [/^settle\(renderer, [^,]+, PASSAGE\.loadBudget\)/, 'a poll of the programs\' isReady() capped at the passage budget'],
   [/^Promise\.race\(\[/, 'a race with a timer', (after) => /setTimeout\(/.test(after.slice(0, 300))],
+  [/^titleHold\.go\b/, 'loaded behind the title (src/title-hold.js): the player\'s choice there, after the load is done and its watchdog stopped; any other choice, or a failed load, opens a fresh page'],
   [/^new Promise\(\(r\) => setTimeout\(r, \d+\)\)/, 'a poll in a loop with a time cap', (_, line) => /while \(.*performance\.now\(\) - t0 < \d+/.test(line)],
 ];
 

@@ -1,5 +1,5 @@
 import { store } from './platform.js';
-import { VERSION } from './changelog.js';
+import { VERSION } from './version.js';
 import { confirmKey, backKey } from './native-pad.js';
 import { PAD, PAD_VERBS, KEYS, BUTTON_NAME, PAD_SCHEME } from './bindings.js';
 import { slotStorage } from './save-slots.js';

@@ -9,7 +9,8 @@
 //
 //   node scripts/title-shots.mjs                    every shot
 //   node scripts/title-shots.mjs H1,E3 [--sizes] [--clean]   those (clean: the world alone, no name or menu)
-//   node scripts/title-shots.mjs [ids] --stills       the title's stills, public/title-stills/<id>.jpg (QUALITY=high)
+//   node scripts/title-shots.mjs [ids] --stills       the title's stills, docs/title-shots/stills/<id>.jpg (QUALITY=high):
+//                                                    what scripts/title-vectors.mjs traces the title's drawings from
 //   CAM='{"camera":{"eye":[…],"target":[…],"fov":50},"traveller":{…}}' node scripts/title-shots.mjs H1   (try a pose)
 // PORT (default 5345) is Vite's, CDP (default 5395) Chrome's debugging port.
 import { execFileSync } from 'node:child_process';
@@ -28,7 +29,7 @@ const PORT = Number(process.env.PORT);
 const BASE = `http://127.0.0.1:${PORT}/`;
 const DOCS = join(ROOT, 'docs/title-shots');
 const REFS = join(ROOT, 'references/Title Screen');
-const STILLS = join(ROOT, 'public/title-stills');
+const STILLS = join(ROOT, 'docs/title-shots/stills');
 export const SIZES = [[1920, 1080], [2560, 1080], [1280, 800], [1024, 768], [812, 375], [375, 812], [412, 915]];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const args = process.argv.slice(2);
@@ -49,7 +50,7 @@ async function open(c, id, [w, h], { dpr = 1, mobile = false } = {}) {
   await c.ev(`${storage}; true`);
   c.errors.length = 0;
   const t0 = Date.now();
-  await c.send('Page.navigate', { url: `${BASE}?shot=${encodeURIComponent(id)}` });
+  await c.send('Page.navigate', { url: `${BASE}?shot=${encodeURIComponent(id)}&vista=live` });   // (the live world: the title draws its picture now, issue #110)
   let state = 'wait';
   for (let i = 0; i < 360 && state === 'wait'; i++) {
     await sleep(250);
@@ -119,7 +120,7 @@ try {
   for (const shot of shots) {
     const png = join(OUT, `${shot.id}.png`);
     if (flag('stills')) {
-      // the title's still (src/title-still.js): the world's own pixels, read straight off its canvas (no name, menu
+      // the title's still (traced into its drawing: scripts/title-vectors.mjs): the world's own pixels, read straight off its canvas (no name, menu
       // or print over it: the title lays those over the picture), at 1920 × 1080
       const r = await open(c, shot.id, [1920, 1080]);
       const url = r.state === 'on' && await c.ev(`(() => { const v = window.title.vista; v.draw(); return v.canvas.toDataURL('image/png'); })()`);

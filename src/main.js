@@ -121,7 +121,7 @@ import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as 
 import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
-import { slicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
+import { slicer, gatedSlicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
 import { warmShadersSliced as warmSliced, firstUse, settle, programKind } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
@@ -153,7 +153,9 @@ let tStage = tLoad, lastMsg = 'start', loadStep = '';
 const loadWatch = loadWatchdog(() => (loadStep ? `${lastMsg} / ${loadStep}` : lastMsg));
 // Between stages, the build gives the main thread back every LOAD_BUDGET ms (src/load-steps.js:
 // await slice() as often as you like; a world's own build yields from inside itself)
-const slice = slicer();
+// (loading behind the title, src/title-hold.js: the build stands aside while the player presses, so the menu answers first)
+const titleHold = window.__titleHold ?? null;
+const slice = titleHold ? gatedSlicer({ busy: () => titleHold.busy() }) : slicer();
 // (a stage's steps timed too, logged as one line: the load's breakdown, docs/systems/performance.md "Where a load goes")
 const loadSteps = [];
 let tStep = 0;
@@ -172,6 +174,7 @@ const stage = (msg) => {
   if (loadSteps.length) console.info(`load steps: ${lastMsg} ${loadSteps.splice(0).join(' · ')}`);
   tStage = performance.now(); lastMsg = msg; loadStep = '';
   if (loadMsg) loadMsg.textContent = msg;
+  if (titleHold) titleHold.stage = msg;   // (the title's progress mark, while it waits for the load)
   // (a frame so the screen paints, or a moment if no frame comes: a window not shown may run none)
   return nextFrame().then(() => new Promise((r) => setTimeout(() => { slice.reset(); r(); }, 0)));
 };
@@ -633,7 +636,8 @@ await slice();
 // Review playback must be silent before audio initialization or any input starts
 // a context; startReview runs after world loading and is too late for this.
 setStep('sound, tool');
-const sound = new Sound(levelId, { muted: query.has('cinematicReview') ? true : undefined });
+// (behind the title, the game's sound waits for its first frame: the title's music plays meanwhile)
+const sound = new Sound(levelId, { muted: query.has('cinematicReview') ? true : undefined, autoStart: !titleHold });
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)
@@ -2429,11 +2433,14 @@ window.trials = trialsRt;
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); },   // (the far side's detail finished, under the paper)
   busy: () => !!blades.grass?.placing });
 loadWatch.stop();
+// loaded behind the title (src/title-hold.js): here it waits for its save to be chosen there
+if (titleHold) { titleHold.arrive(); await titleHold.go; sound.startIfAllowed(); }
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   renderer.domElement.style.visibility = '';
   frame(t);
   markBooted();   // the heartbeat: the Android app keeps a downloaded web build only once it gets here (native-app.js)
+  titleHold?.played();   // (the title fades out over this frame)
   startThemeDownload(THEME_FILES, { first: SOUNDTRACKS[levelId] });   // on a device: the themes it hasn't got, in the background once settled (src/music-store.js)
   const ld = document.getElementById('loading');
   ld?.classList.add('done');

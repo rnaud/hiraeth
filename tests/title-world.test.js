@@ -9,7 +9,7 @@ import { SlotStore, slotKey } from '../src/save-slots.js';
 
 const src = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
 
-test('the title shows its name and menu first; the world is imported after, on a sandboxed save', () => {
+test('the title shows its name and menu first; the live world (?vista=live) is imported after, on a sandboxed save', () => {
   const title = src('title.js');
   assert.doesNotMatch(title, /from '\.\/title-world\.js'/, 'never a static import: the menu must not wait for it');
   assert.match(title, /import\('\.\/title-world\.js'\)/);
@@ -18,7 +18,9 @@ test('the title shows its name and menu first; the world is imported after, on a
   assert.ok(title.indexOf('slots.sandbox(') < title.indexOf("import('./title-world.js')"), 'sandboxed before any world module reads the save');
   // freed before the game: stopped, disposed; then a fresh page in the chosen slot
   assert.match(title, /vista\?\.dispose\(\)/);
-  assert.match(title, /if \(worldStarted\) \{ win\.location\.replace\(`\$\{win\.location\.pathname\}\?start`\); return; \}/);
+  assert.match(title, /const freshPage = \(\) => \{ store\.dropWrites\(\); win\.location\.replace\(`\$\{win\.location\.pathname\}\?start`\); \};/);
+  assert.match(title, /if \(worldStarted \|\| game\) \{ freshPage\(\); return; \}/);
+  assert.match(title, /const live = !!shot && new URLSearchParams\(win\.location\?\.search \?\? ''\)\.get\('vista'\) === 'live';/, 'only when asked for');
   // and ?start is a page that skips the title and plays the active slot (src/boot.js, src/save-slots.js)
   assert.match(src('boot.js'), /has\('start'\)\) history\.replaceState/);
   assert.match(src('save-slots.js'), /'start'/);

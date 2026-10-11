@@ -66,6 +66,9 @@ export const CHANGELOG = [
       see: 'In the Greenhouse, climb the Glass Stair’s root-wall and push on into the round wall above it: you no longer take hold. In the Engine-House, push into the gantry’s face in the Piston Hall: the pistons are the way up.' },
     // light (docs/systems/rendering.md "Shafts of light"; issue #116)
     'Light falls in soft shafts in every temple, as it does in the skull cave: the Builders’ Greenhouse’s sunbeams from its louvres are broad pale shafts down to their pools of light instead of thin glowing bars, the Lamp-House’s beam turns over the wood as a soft shaft instead of a solid cone, and the Wick’s light rises out of the Buried Machine’s oculus the same way.',
+    // the title screen (docs/systems/ui.md "The title's drawing and the game behind it"; issue #110)
+    'The title screen is there the moment the game opens: its world is a drawing in the game’s own ink and flat colour, painted with the name at once, instead of a 3D world built behind the menu. Now and then the singing light crosses its sky.',
+    'Continue gets you playing much sooner: while you look at the title, your world loads behind it, so Continue goes straight in. If you are quicker than the load, a small mark where the menu was shows it finishing. Choosing another save, or changing a setting first, loads as before.',
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

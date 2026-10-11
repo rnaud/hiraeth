@@ -1,13 +1,15 @@
 // The title screen: the game's name (Hiraeth, lettered in src/title-logo.js) over one of the
 // worlds, seen from a fixed camera framed like one of the covers it was designed from (a
-// different shot each time the game opens: src/title-shots.js, drawn by src/title-world.js).
-// The name and the menu show at once over the paper; the world fades in when it is ready (the
-// drawn backdrop below when WebGL can't). Then Continue (the save played last), Saves (the
-// slots: continue one, start a new game in an empty one, delete one), Settings, What's new.
+// different shot each time the game opens: src/title-shots.js). The world is a vector drawing of
+// the game's own render of that shot, flat colour and ink, painted with the name the moment the
+// page's script runs (src/title-paint.js, issue #110): no 3D world is built for the title. The
+// menu joins them here: Continue (the save played last), Saves (the slots: continue one, start a
+// new game in an empty one, delete one), Settings, What's new.
 // It runs before the game's modules load (src/boot.js), so the slot chosen here is the one
-// every store reads (src/save-slots.js). The world's modules read the game state as they load:
-// the slots are sandboxed meanwhile, and once a save is chosen the game starts in a fresh page
-// (?start), so nothing of the title's world reaches the game.
+// every store reads (src/save-slots.js). Once the menu answers, the game loads behind it, in the
+// save Continue would play, and waits at its first frame (src/title-hold.js): choosing that save
+// lets it go on; any other choice opens the game in a fresh page (?start).
+// ?vista=live builds the old live world behind the menu instead (src/title-world.js, to compare).
 //
 // Layout: src/title-layout.js places the name across the top and the menu small, low at the left: the
 // main entries (Continue or New game, Saves) a short column of text buttons, the tools (Settings, What's
@@ -30,18 +32,22 @@ import { glyph } from './pad-glyphs.js';
 import { markBooted } from './native-app.js';
 import { startThemeDownload } from './music-store.js';
 import { THEME_FILES } from './soundtracks.js';
-import { VERSION } from './changelog.js';
+import { VERSION } from './version.js';
 import { buildLabel } from './build-label.js';
 
 import { devMode } from './dev-gate.js';
 import { padConfirm } from './menu-pad.js';
-import { logoSvg } from './title-logo.js';
 import { titleLayout, layoutVars } from './title-layout.js';
-import { chooseShot } from './title-shots.js';
-import { stillUrl, showStill, liveWorld, rememberBuild } from './title-still.js';
+import { paintTitle, safeInsets, LOGO } from './title-paint.js';
 
 /** ms after the player's last press before what can wait (the sound's start, the world's build) goes on. */
 export const TITLE_QUIET = 400;
+/**
+ * ms after the player's last press before the game loading behind the title goes on (src/title-hold.js): its load has
+ * steps of up to 0.35 s on a desktop (1.4 s with the processor slowed four times, a handheld's), which a press waits
+ * through, so it stands aside the while the player is moving through the menu.
+ */
+export const BEHIND_QUIET = 1500;
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -110,8 +116,7 @@ export const BACKDROP = `
   </g>
 </svg>`;
 
-/** The name: HIRAETH in ivory block capitals, an ink line and a vermilion shadow (src/title-logo.js). */
-export const LOGO = logoSvg();
+export { LOGO };
 
 function slotHtml(s) {
   if (s.empty) {
@@ -127,39 +132,32 @@ function slotHtml(s) {
     <button class="del" data-del="${s.n}" aria-label="${t('title.deleteSave', { n: s.n })}">${glyph('x', { key: 'Del' })}${t('title.delete')}</button></li>`;
 }
 
-/** The safe-area insets (a phone's notch and rounded corners), read off a probe, in CSS px. */
-function safeInsets(doc, win) {
-  const el = doc.createElement('div');
-  el.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
-  doc.body.appendChild(el);
-  const cs = win.getComputedStyle?.(el);
-  const v = (k) => parseFloat(cs?.[k]) || 0;
-  const out = { top: v('paddingTop'), right: v('paddingRight'), bottom: v('paddingBottom'), left: v('paddingLeft') };
-  el.remove();
-  return out;
-}
-
 /**
- * Show the title screen; resolves with the chosen slot ({ slot, fresh }) once the player
- * picks one (it is already the active slot then), after the title has faded out. When the
- * world behind it was started, the game opens in a fresh page instead (?start: the world's
- * modules read the sandboxed save, not the chosen one) and this never resolves.
+ * Show the title screen; resolves with the chosen slot ({ slot, fresh, behind }) once the player
+ * picks one (it is already the active slot then), after the title has faded out. `painted`: the screen
+ * src/title-paint.js already put up (src/boot.js paints it first), else it is painted here. `behind`:
+ * { hold, load } to load the game behind the menu (src/title-hold.js); when it was loaded for the save
+ * chosen, it goes on and this resolves with behind: true. When it (or the live world) was loaded on
+ * another save, the game opens in a fresh page instead (?start) and this never resolves.
  */
-export function showTitle({ store = slots, doc = document, win = window, vista: wantVista = true } = {}) {
+export function showTitle({ store = slots, doc = document, win = window, vista: wantVista = true, painted = null, behind = null } = {}) {
   return new Promise((resolve) => {
     const settings = new Settings();
     // (the title's own recording takes over from the procedural menu music once it has loaded: src/soundtracks.js TITLE_THEME)
     // (started once the menu answers: startIfAllowed below; a press starts it at once, as anywhere)
     const sound = new Sound('title', { score: false, titleTheme: true, autoStart: false });
-    let vista = null, vistaQuality = settings.quality, worldStarted = false, noWorld = false;
-    // (a different world each opening, never the last one shown: src/title-shots.js)
+    let vista = null, vistaQuality = settings.quality, worldStarted = false;
     let ls = null;
     try { ls = win.localStorage; } catch { /* private mode */ }
-    const shot = wantVista ? chooseShot({ storage: ls, search: win.location?.search ?? '', saves: (() => { try { return store.list(); } catch { return []; } })() }) : null;
-    // (the boot's timings: the name on the screen, the world faded in; window.title.timing)
+    // the drawing and the name, on the screen already (src/title-paint.js), or now
+    const paint = painted ?? paintTitle({ doc, win, store, ...(wantVista ? {} : { shot: null }) });
+    const { root, shot } = paint;
+    // (the boot's timings: the drawing and the name painted, the menu, the live world faded in; window.title.timing)
     const now = () => win.performance?.now?.() ?? Date.now();
-    const timing = { shot: shot?.id ?? null, shown: null, world: null, stages: {} };
-    // the player's last press (a key, a touch, the pad): what can wait (the sound's start, the world's build)
+    const timing = Object.assign(paint.timing, { shown: null, world: null, stages: {} });
+    // ?vista=live: the old live world behind the menu (src/title-world.js), over the drawing (to compare; no game behind it)
+    const live = !!shot && new URLSearchParams(win.location?.search ?? '').get('vista') === 'live';
+    // the player's last press (a key, a touch, the pad): what can wait (the sound's start, the game's load)
     // waits while they are pressing, so the menu answers first (TITLE_QUIET)
     let lastInput = -Infinity;
     const busy = () => now() - lastInput < TITLE_QUIET;
@@ -170,43 +168,26 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     });
     sound.menuMusic(true);
 
-    const root = doc.createElement('div');
-    root.id = 'title';
-    root.className = shot ? 'vista-wait' : '';   // (the paper until the world fades in)
-    if (shot) root.dataset.shot = shot.id;
-    // the shot's still (src/title-still.js): its world as the game draws it, at once; the live world fades in over
-    // it, or never comes where it would take too long to make (the Xbox, a GPU remembered as slow)
-    const still = showStill(shot, win.innerWidth, win.innerHeight) ? doc.createElement('img') : null;
-    if (still) {
-      still.className = 'still';
-      still.alt = '';
-      still.setAttribute('aria-hidden', 'true');
-      if (shot.mirror) still.style.transform = 'scaleX(-1)';
-      still.onload = () => { timing.still = now(); if (!done) root.classList.add('still-on'); };
-      still.onerror = () => { still.remove(); if (noWorld && !done) drawn(); };   // (no picture and no world: the drawn land)
-      still.src = stillUrl(shot);
-    }
     // (Full screen only where it does something: not in the apps (the Deck's, the Xbox's, Android's are full
     // screen already), nor in an installed web app already shown full screen)
     const fullscreen = () => !isNativeApp && !isDeckApp && !isXboxApp && !!doc.fullscreenEnabled
       && !(!doc.fullscreenElement && win.matchMedia?.('(display-mode: fullscreen)')?.matches);
-    root.innerHTML = `${BACKDROP}<div class="paper" aria-hidden="true"></div><div class="print" aria-hidden="true"></div>
-      <div class="front">
-        <header>${LOGO}</header>
+    // the menu joins the name (the drawn land under all, shown only if the drawing can't load)
+    root.insertAdjacentHTML('afterbegin', BACKDROP);
+    root.querySelector('.front').insertAdjacentHTML('beforeend', `
         <nav class="screen main-menu" data-screen="main"></nav>
         <section class="screen saves" data-screen="saves" hidden>
           <div class="head"><h2 data-t="title.savesHead">${t('title.savesHead')}</h2><button data-a="back">${glyph('back', { key: 'Esc' })}<span data-t="title.back">${t('title.back')}</span></button></div>
           <ol class="slots"></ol>
         </section>
         <p class="version">v${VERSION}${buildLabel()}</p>
-      </div>
-      <div class="confirm" hidden><div class="card" role="alertdialog" aria-labelledby="title-confirm-q">
+        <p class="starting" role="status" aria-live="polite" hidden><span class="pen" aria-hidden="true"></span><span class="what"></span></p>`);
+    root.insertAdjacentHTML('beforeend', `<div class="confirm" hidden><div class="card" role="alertdialog" aria-labelledby="title-confirm-q">
         <h3 id="title-confirm-q"></h3><p class="what"></p><p data-t="title.undone">${t('title.undone')}</p>
         <div class="row"><button data-a="keep">${glyph('back', { key: 'Esc' })}<span data-t="title.keep">${t('title.keep')}</span></button><button data-a="delete" class="danger">${glyph('ok', { focus: true })}<span data-t="title.delete">${t('title.delete')}</span></button></div>
       </div></div>
-      <div id="title-settings"></div>`;
-    if (still) root.prepend(still);
-    doc.body.appendChild(root);
+      <div id="title-settings"></div>`);
+    if (!root.isConnected) doc.body.appendChild(root);
     const settingsMenu = new SettingsMenu(settings, { sound, el: root.querySelector('#title-settings'), title: true });
     // (a new language, chosen in the settings: the title's own words in it; the menu and saves draw as they show)
     onLanguage(() => { if (done) return; for (const e of root.querySelectorAll('.front [data-t], .confirm [data-t]')) e.textContent = t(e.dataset.t); if (screen === 'saves') renderSaves(); else renderMain(); });
@@ -276,18 +257,33 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       if (done) return;
       done = true;
       const fresh = store.summary(n).empty;
+      const ours = game && gameFits(n);
       store.setActive(n);
       store.touch(n);   // (the selector's "last played", and Continue, follow it from now on)
       sound.menuMusic(false);
-      root.classList.add('leaving');
       cleanup();
       vistaAbort.abort(); vista?.stop();   // (its last frame fades out with the title)
-      setTimeout(() => {
-        vista?.dispose(); vista = null; sound.dispose();
-        // the world's modules were loaded on the sandboxed save: the game starts in a fresh page, in the chosen slot
-        if (worldStarted) { win.location.replace(`${win.location.pathname}?start`); return; }
-        root.remove(); resolve({ slot: n, fresh });
-      }, 450);
+      const fade = (then) => {
+        root.classList.add('leaving');
+        setTimeout(() => { vista?.dispose(); vista = null; sound.dispose(); then(); }, 450);
+      };
+      const freshPage = () => { store.dropWrites(); win.location.replace(`${win.location.pathname}?start`); };
+      if (ours) {
+        // the game loaded behind the title for this save: it goes on, and the title fades out over its first frame
+        // (at once if the load is done; a quiet progress mark until then)
+        store.commitWrites();
+        const hold = behind.hold;
+        const mark = root.querySelector('.starting'), what = mark.querySelector('.what');
+        const tick = () => { what.textContent = hold.stage || ''; };
+        let timer = 0;
+        if (!hold.isArrived) { root.classList.add('waiting'); mark.hidden = false; tick(); timer = setInterval(tick, 250); }
+        hold.onFail(() => { clearInterval(timer); fade(freshPage); });
+        hold.release();
+        hold.playing.then(() => { clearInterval(timer); fade(() => { root.remove(); resolve({ slot: n, fresh, behind: true }); }); });
+        return;
+      }
+      // the live world's modules (or the game's) were loaded on another save: the game starts in a fresh page, in the chosen slot
+      fade(() => { if (worldStarted || game) { freshPage(); return; } root.remove(); resolve({ slot: n, fresh }); });
     };
 
     const back = () => {
@@ -316,6 +312,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       else if (a === 'delete') {
         const n = toDelete;
         store.remove(n);
+        if (game?.slot === n) game.spoilt = true;   // (the game behind the title was loading it: a fresh page, if chosen)
         confirmEl.hidden = true; toDelete = null;
         renderSaves();
         root.querySelector(`[data-slot="${n}"]`)?.focus({ preventScroll: true });
@@ -431,10 +428,9 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     startThemeDownload(THEME_FILES);
 
     // What can wait, once the menu has painted and answers: first the sound (asking whether it may start opens
-    // an audio context, 100-250 ms), then the world behind the menu, built in small steps that pause while the
-    // player presses (src/title-world.js), its shaders compiled and first used a slice at a time, faded in on
-    // its first frame; without WebGL (or on a software GPU) the drawn backdrop shows instead. Each in the
-    // browser's idle time (at most `timeout` ms away) and never while the player is pressing (busy).
+    // an audio context, 100-250 ms), then the game behind the menu (startGame), its build pausing while the player
+    // presses (or with ?vista=live the title's own world, src/title-world.js, faded in over the drawing on its first
+    // frame). Each in the browser's idle time (at most `timeout` ms away) and never while the player is pressing (busy).
     const whenIdle = (fn, timeout = 500) => {
       const go = () => { if (done) return; if (busy()) setTimeout(() => whenIdle(fn, timeout), 100); else fn(); };
       if (win.requestIdleCallback) win.requestIdleCallback(go, { timeout }); else setTimeout(go, 30);
@@ -443,10 +439,30 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const drawn = () => root.classList.remove('vista-wait', 'vista-on');
     (win.requestAnimationFrame ?? ((f) => setTimeout(f, 16))).call(win, () => whenIdle(() => {
       sound.startIfAllowed();
-      // (the live world only where it is worth making: not on the Xbox, nor on a GPU remembered as slow; src/title-still.js)
-      if (shot && liveWorld({ xbox: isXboxApp, search: win.location?.search ?? '' })) whenIdle(startWorld);
-      else if (shot) { noWorld = true; timing.live = false; if (!still?.isConnected) drawn(); }
+      if (live) whenIdle(startWorld);
+      else if (behind) whenIdle(startGame);
     }));
+    // The game behind the title (src/title-hold.js): the save Continue plays (a new player's: the first empty one,
+    // the prologue) loads under the menu, its writes kept in memory, its input and its sound held, its build
+    // standing aside while the player presses. It is the one that plays if that save is chosen and nothing it
+    // read has changed meanwhile (the settings, the language, the save deleted).
+    let game = null;
+    const SETTINGS_KEYS = ['moebius.settings.v1', 'moebius.muted'];
+    const settingsNow = () => SETTINGS_KEYS.map((k) => { try { return ls?.getItem(k) ?? ''; } catch { return ''; } }).join('\n');
+    const gameFits = (n) => !!game && game.slot === n && !game.spoilt && !behind.hold.failed && settingsNow() === game.settings;
+    function startGame() {
+      if (done || game) return;
+      const slot = store.latest() ?? store.firstEmpty() ?? 1;
+      game = { slot, settings: settingsNow(), spoilt: false };
+      timing.game = now();
+      store.setActive(slot);
+      store.holdWrites();
+      // (its load stands aside while the player moves through the menu: within BEHIND_QUIET of a press, and all the time
+      // they are in the saves, the settings or a question; on the main screen, idle, it goes on)
+      behind.hold.busy = () => now() - lastInput < BEHIND_QUIET || screen !== 'main' || settingsMenu.open || !confirmEl.hidden;
+      behind.hold.start();
+      Promise.resolve().then(() => behind.load()).catch((e) => { console.warn('the game behind the title did not load', e); behind.hold.fail(e); });
+    }
     function startWorld() {
       if (done) return;
       const stillOnly = reducedMotion(settings, win);   // (the "Reduce motion" setting; not set: prefers-reduced-motion)
@@ -455,21 +471,16 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       worldStarted = true;
       import('./title-world.js')
         .then(({ startTitleWorld }) => startTitleWorld({ parent: root, shot, settings, native: isNativeApp, touch: isTouch, still: stillOnly, signal: vistaAbort.signal, win, busy,
-          skip: (gpu) => !liveWorld({ search: win.location?.search ?? '', storage: ls, gpu }),
           onStage: (name) => { timing.stages[name] = Math.round(now()); } }))
         .then((v) => {
-          if (!v) { noWorld = true; if (!done) drawn(); return; }
+          if (!v) { if (!done) drawn(); return; }
           if (done) { v.dispose(); return; }
           vista = v;
           v.onLost = () => { drawn(); v.dispose(); if (vista === v) vista = null; };
-          win.requestAnimationFrame(() => {
-            root.classList.replace('vista-wait', 'vista-on'); timing.world = now();
-            // (a build that ran long: this GPU's next titles keep the still)
-            rememberBuild(ls, v.gpu, timing.world - (timing.stages.world ?? timing.world));
-          });
+          win.requestAnimationFrame(() => { root.classList.add('vista-on'); timing.world = now(); });
         })
-        .catch((e) => { console.warn('title world unavailable', e); noWorld = true; if (!done) drawn(); });
+        .catch((e) => { console.warn('title world unavailable', e); if (!done) drawn(); });
     }
-    Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound, shot, timing, relayout, get vista() { return vista; } } });
+    Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound, shot, timing, relayout, get vista() { return vista; }, get game() { return game; } } });
   });
 }

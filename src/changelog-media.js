@@ -621,6 +621,37 @@ export const CHANGELOG_MEDIA = {
       { name: 'shafts-wick', title: 'The Wick', caption: 'The Buried Machine’s oculus, the Wick lit: before, its light a solid glowing tube up out of the oculus; after, a soft shaft', ...C49_SHAFTS,
         view: { level: 'buried', save: { ...SAVE47, flags: { ...SAVE47.flags, 'buried.oculus.lit': true } }, hour: 12, fov: 70, eye: [52, -31.2, -468], target: [28, -8, -480], player: [52.5, -33.9, -467.5] } },
     ], see: 'In the Builders’ Greenhouse, the louvres’ light in the Bud Passage and over the Vine Gulf; outside, once the Lamp-House’s lamp burns again, its beam over the Deep Wood at dusk; in the Buried Machine, the Wick’s light up its oculus.' },
+    { match: 'The title screen is there the moment the game opens', numbers: [
+      { title: 'The title’s first frame (its name over the paper), from the page’s start', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, 1280 × 720, a save to continue', rows: [
+        { where: 'High', before: 87, after: 44 },
+        { where: 'Handheld, the processor slowed 4× (a Retroid, roughly)', before: 143, after: 95 },
+        { where: 'the Xbox app’s title (no live world), the processor slowed 2×', before: 89, after: 51 },
+        { where: 'the website on a mobile connection (9 Mbit/s, 170 ms)', before: 2290, after: 779 },
+      ], source: 'scripts/title-boot.mjs, median of three: before, the name came with the menu' },
+      { title: 'The title’s picture on the screen, from the page’s start', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, 1280 × 720', rows: [
+        { where: 'High', before: 88, after: 67 },
+        { where: 'Handheld, the processor slowed 4×', before: 160, after: 112 },
+        { where: 'the website on a mobile connection', before: 2564, after: 1031 },
+      ], source: 'scripts/title-boot.mjs: before, the shot’s still (a JPEG) under the live world still building; after, the drawing' },
+      { title: 'The menu answering (“Press A”), from the page’s start', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+        { where: 'High', before: 87, after: 74 },
+        { where: 'Handheld, the processor slowed 4×', before: 143, after: 170 },
+        { where: 'the website on a mobile connection', before: 2290, after: 1691 },
+      ], source: 'scripts/title-boot.mjs (the slowed handheld paints the drawing first, then the menu); the slowest of the ↓ presses every 0.7 s while the game loads behind, slowed 4×: 19-26 ms (scripts/title-perf.mjs)' },
+      { title: 'The live 3D world behind the menu', unit: 's', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+        { where: 'High', before: 2.97, after: 0 },
+        { where: 'Handheld, the processor slowed 4×', before: 7.78, after: 0 },
+      ], source: 'scripts/title-boot.mjs: no world is built for the title now (?vista=live builds it, to compare)' },
+    ], see: 'Open the game: the name and the drawn world are there at once, the menu a moment later. Wait half a minute and watch the sky for the singing light.' },
+    { match: 'Continue gets you playing much sooner', numbers: [
+      { title: 'From Continue to the world’s first frame, pressed 8 s after the page opened', unit: 's', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, a save in the Desert', rows: [
+        { where: 'High', before: 4.83, after: 0.75 },
+        { where: 'Handheld', before: 4.09, after: 0.72 },
+        { where: 'Handheld, the processor slowed 4× (the load not done yet at 8 s)', before: 12.87, after: 6.45 },
+        { where: 'the Xbox app’s title, the processor slowed 2×', before: 7.37, after: 1.16 },
+        { where: 'the website on a mobile connection, pressed at 10 s', before: 22.1, after: 15.5 },
+      ], source: 'scripts/title-boot.mjs, median of three' },
+    ], see: 'Open the game, wait a few seconds on the title and press Continue: your world is there almost at once. Press it straight away instead: the menu gives way to a small turning pen and the load’s words until the world is ready.' },
     { match: 'What’s new has a Refresh button', shots: [
       { name: 'whats-new-refresh', caption: 'The top of What’s new: Refresh beside Play, its button glyph shown', size: [1280, 400], from: 'screenshots of changelog.html in headless Chrome, without and with the button (11 October)' },
     ], see: 'Open What’s new from the title (or N, then See what changed) and press Refresh: on the website the page loads again; in the app it checks for an update, downloads it with its progress beside the count, and restarts at the title in the new build.' },

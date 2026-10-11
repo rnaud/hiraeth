@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-
 // How a blow feels (docs/systems/foes.md, "Feel"): a hit-stop (the frame freezes: the world stops dead for a
 // few hundredths of a second as a cut lands, so the impact reads) and a camera kick that dies away. main.js runs
 // the frame's time through feelDt() and shakes the camera after the rig has placed it.
@@ -17,6 +15,9 @@ import * as THREE from 'three';
 // The player's motion settings (src/ui.js: "Reduce motion", "Camera shake"; docs/systems/ui.md) turn them down:
 //   setMotion({ reduce: true })   no hit-stop, no slow motion, no camera kick
 //   setMotion({ shake: 0.5 })     the kicks at half their size (0: none)
+
+// (no three.js here: the settings, and so the title screen, import this; issue #110)
+const lerp = (a, b, t) => a + (b - a) * t;
 
 export const FEEL = { slow: 0, settle: 0.28, reach: 0.14, maxStop: 0.14 };
 const state = { stop: 0, shake: 0, t: 0, slow: 0, rate: 1, self: 0, flurry: 0, flurryFor: 0, flurryRate: 1, flurryEase: 0.2 };
@@ -47,7 +48,7 @@ export function feelDt(dt) {
     else {
       state.slow = Math.max(0, state.slow - dt);
       const ease = Math.min(1, state.slow / (state.slowFor / 3));   // (1 until the last third, then back to full speed)
-      step = dt * THREE.MathUtils.lerp(1, state.rate, ease);
+      step = dt * lerp(1, state.rate, ease);
     }
   } else {
     state.stop -= dt;
@@ -73,7 +74,7 @@ function flurryScale(dt) {
   const into = state.flurryFor - state.flurry, e = state.flurryEase;
   state.flurry = Math.max(0, state.flurry - dt);
   const k = Math.min(1, into / e, state.flurry / e);   // (in over its first `ease` s, out over its last)
-  return THREE.MathUtils.lerp(1, state.flurryRate, Math.max(0, k));
+  return lerp(1, state.flurryRate, Math.max(0, k));
 }
 /** (tests, the screen treatment) how far into the slow time it is now: 0 none .. 1 fully slowed. */
 export function flurryK() {
@@ -81,14 +82,15 @@ export function flurryK() {
   const into = state.flurryFor - state.flurry, e = state.flurryEase;
   return Math.max(0, Math.min(1, into / e, state.flurry / e));
 }
-const _o = new THREE.Vector3();
 /** The camera's jolt (after the rig placed it): a quick wobble, smaller as it settles. */
 export function shakeCamera(camera, dt) {
   if (state.shake <= 0.001) { state.shake = 0; return; }
   state.t += dt;
   const a = state.shake * state.shake * FEEL.reach;
-  _o.set(Math.sin(state.t * 71) + Math.sin(state.t * 43) * 0.5, Math.sin(state.t * 59 + 1) * 0.8, Math.sin(state.t * 67 + 2) * 0.5).multiplyScalar(a);
-  camera.position.add(_o);
+  const p = camera.position;
+  p.x += (Math.sin(state.t * 71) + Math.sin(state.t * 43) * 0.5) * a;
+  p.y += Math.sin(state.t * 59 + 1) * 0.8 * a;
+  p.z += Math.sin(state.t * 67 + 2) * 0.5 * a;
   state.shake = Math.max(0, state.shake - dt / FEEL.settle);
 }
 /** (tests) */

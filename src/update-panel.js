@@ -11,7 +11,7 @@
 // position and time played are written first (onBeforeRestart).
 // Buttons are plain <button>s in the panel, so the menus' controller navigation reaches them.
 
-import { VERSION } from './changelog.js';
+import { VERSION } from './version.js';
 import { updateView, armedStep } from './updates.js';
 import { callApp, inApp } from './native-app.js';
 import { themeProgressText } from './music-store.js';
