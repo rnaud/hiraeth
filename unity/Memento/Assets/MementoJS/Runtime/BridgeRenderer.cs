@@ -156,7 +156,7 @@ namespace Memento.Bridge
                 var n = kv.Value;
                 if (!n.go || n.go.name.IndexOf(sub, StringComparison.Ordinal) < 0) { if (solo && n.r) n.r.enabled = false; continue; }
                 var m = n.mf ? n.mf.sharedMesh : n.smr ? n.smr.sharedMesh : null;
-                sb.Append($"\n  {n.go.name}: active {n.go.activeInHierarchy} renderer {(n.r ? n.r.enabled.ToString() : "none")} mesh {(m ? m.name + " v" + m.vertexCount + " sub" + m.subMeshCount + " bounds " + n.r.bounds : "none")} mats ");
+                sb.Append($"\n  {n.go.name}: active {n.go.activeInHierarchy} renderer {(n.r ? n.r.enabled.ToString() : "none")} mesh {(m ? m.name + " v" + m.vertexCount + " sub" + m.subMeshCount + " bounds " + n.r.bounds + " attrs " + string.Join(",", System.Linq.Enumerable.Select(m.GetVertexAttributes(), a => $"{a.attribute}{a.dimension}")) + (n.smr ? " skinned" : "") : "none")} mats ");
                 if (n.r) foreach (var mt in n.r.sharedMaterials) sb.Append(mt ? $"{mt.name}(cull {mt.GetFloat("_Cull")}, q {mt.renderQueue}, mode {mt.GetFloat("_Mode")}, glass {mt.GetFloat("_Glass")}, dissolve {mt.GetVector("_Dissolve").x}, fluid {mt.GetFloat("_Fluid")}, keywords {string.Join(" ", mt.shaderKeywords)}) " : "null ");
                 sb.Append($" pos {n.go.transform.position} scale {n.go.transform.lossyScale} shadows {(n.r ? n.r.shadowCastingMode + "/" + n.r.receiveShadows : "-")}{(n.im != null ? " gpu instances " + n.rawN + " of mesh " + n.mesh : "")}");
             }
@@ -173,7 +173,7 @@ namespace Memento.Bridge
         /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
-        public static bool oneVariant, uniformLayout;
+        public static bool oneVariant, uniformLayout, fullLayout;
         public static string cullTest;
         /// <summary>The vertex data -uniform-layout added (bytes, on the CPU and again on the GPU).</summary>
         public static long uniformBytes;
@@ -315,6 +315,21 @@ namespace Memento.Bridge
             }
             mesh.subMeshCount = ng;
             for (int g = 0; g < ng; g++) mesh.SetIndices(d.subs[g], MeshTopology.Triangles, g, false);
+            // (-full-layout, a test for the Xbox's missing surfaces: every mesh with every attribute the Surface shader's vertex
+            // stage reads (normals, colours, uv0 and uv1-6 at 0 where it has none): if they come back, D3D left out the draws
+            // of a mesh short of one, where Vulkan and Metal read 0)
+            if (fullLayout)
+            {
+                if (!mesh.HasVertexAttribute(VertexAttribute.Normal)) { var nn = new Vector3[n]; for (int i = 0; i < n; i++) nn[i] = Vector3.up; mesh.SetNormals(nn); }
+                if (!mesh.HasVertexAttribute(VertexAttribute.Color)) { var w = new Color[n]; for (int i = 0; i < n; i++) w[i] = Color.white; mesh.SetColors(w); }
+                if (!mesh.HasVertexAttribute(VertexAttribute.TexCoord0)) mesh.SetUVs(0, new Vector2[n]);
+                int[] dims = { 2, 4, 3, 3, 4, 3 };   // uv1 fold, uv2 sway, uv3 bind, uv4 bindN, uv5 formC, uv6 formA
+                for (int c = 1; c <= 6; c++)
+                {
+                    if (mesh.HasVertexAttribute(VertexAttribute.TexCoord0 + c)) continue;
+                    if (dims[c - 1] == 2) mesh.SetUVs(c, new Vector2[n]); else if (dims[c - 1] == 3) mesh.SetUVs(c, new Vector3[n]); else mesh.SetUVs(c, new Vector4[n]);
+                }
+            }
             mesh.RecalculateBounds();
             if (rig != null) mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
             d.mesh = mesh;

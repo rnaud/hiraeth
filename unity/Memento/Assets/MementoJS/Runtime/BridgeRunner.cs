@@ -295,6 +295,7 @@ namespace Memento.Bridge
             MementoShadows.UseRendererLists = BridgeArgs.Flag("-shadow-lists");
 #endif
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
+            BridgeRenderer.fullLayout = BridgeArgs.Flag("-full-layout");
             BridgeRenderer.cullTest = BridgeArgs.Arg("-cull");
             // (the Surface shader's lean variant for the materials that need none of its rare paths: the Linux player's, -lean
             // elsewhere, -no-lean off)
