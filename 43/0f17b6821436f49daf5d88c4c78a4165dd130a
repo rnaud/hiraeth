@@ -1,0 +1,55 @@
+src/flora.js
+  s_9ca76055a220ed::t_bdfd5aee8aef36 279
+src/levels/arcade.js
+  s_9ca76055a220ed::t_29bc7c859945a6 15,196
+src/levels/desert.js
+  s_9ca76055a220ed::t_c919cd4781de77 23,121-122
+src/levels/spheres.js
+  s_9ca76055a220ed::t_dd6570bb8806de 13,186,425,1014
+src/paved.js
+  s_9ca76055a220ed::t_da161c72b7d2bb 1-34
+src/reactive-world.js
+  s_9ca76055a220ed::t_7ee829f58ec3e6 247
+tests/paved.test.js
+  s_9ca76055a220ed::t_f97d18815dd396 1-54
+changelog.md
+  s_cbc2a591d01e41::t_7ebec35603a414 7
+docs/systems/worlds.md
+  s_90b42125a8cbdb::t_b1ae1ae8d5ebe7 636-647
+src/changelog-media.js
+  s_cbc2a591d01e41::t_04571396b6c469 563-566
+src/changelog.js
+  s_cbc2a591d01e41::t_eff55aef31ff60 44-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "430f17b6821436f49daf5d88c4c78a4165dd130a",
+  "prompts": {},
+  "sessions": {
+    "s_90b42125a8cbdb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac9f78f046f306df3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_cbc2a591d01e41": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a629a956edd1c8ec7",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
