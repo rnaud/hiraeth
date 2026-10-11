@@ -1,0 +1,77 @@
+.claude/skills/level-design-qc/SKILL.md
+  s_9ca76055a220ed::t_ee694e215da7c9 140-146
+changelog.md
+  s_9ca76055a220ed::t_807085e5832c92 7-11
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_09f4cec9cecbfc 377-391,511-515,950-955,1209-1214,1738-1754
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_71387b2aae6229 144-146,150,153-157
+scripts/level-design/lib.mjs
+  s_9ca76055a220ed::t_a0490df8c47625 288-290,307-312,318-320
+src/buried-ways.js
+  s_9ca76055a220ed::t_6297ef6d8d2228 46-92
+src/changelog-media.js
+  s_9ca76055a220ed::t_3ebfa449e068c1 571-581,583-621
+src/changelog.js
+  s_9ca76055a220ed::t_fba87d2e235302 30-41
+src/desert-road.js
+  s_9ca76055a220ed::t_c65188624028a6 6,10-13,18-21,81-151
+src/glass-dunes-ways.js
+  s_9ca76055a220ed::t_114f6cce6fada0 28-29,61-63,67-68,71,73,79
+src/levels/buried.js
+  s_9ca76055a220ed::t_64ae89e68ba25b 13,1158,1166-1168,1219-1221
+src/levels/desert.js
+  s_9ca76055a220ed::t_b8fe4a6bc83c01 18,114-119,135,143,159-163
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_871259be6e7d71 14,149-150,152-156,195,237-238,249-250,252
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_9c31f3b40b9471 61-71,159-160,377-397,500-525,621-622
+src/levels/space-city.js
+  s_9ca76055a220ed::t_a2fd6b5fe709bc 62-63,322-323,328-344,353,430
+src/levels/spheres.js
+  s_9ca76055a220ed::t_6e8e610d66e550 48-50,342-344,353,355-366,369,520,593-594,1041-1043
+src/levels/underwater.js
+  s_9ca76055a220ed::t_c57b8dfd3c79c5 71-72,225-257
+src/story/buried-data.js
+  s_9ca76055a220ed::t_25405c82fa0b2a 40-41
+src/story/desert-data.js
+  s_9ca76055a220ed::t_2eb9e4f23447fb 111-112,882-892
+src/story/desert-road.js
+  s_9ca76055a220ed::t_97936ac95ab52b 38-42
+src/temples/desert.js
+  s_9ca76055a220ed::t_ce18d72cf04aae 542-543
+tests/buried.test.js
+  s_9ca76055a220ed::t_c36e47966aa98a 237-254
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_d8e0d52447b9c4 129-132
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_f88e2390d74466 446-450,485-515
+tests/level-design.test.js
+  s_9ca76055a220ed::t_b8d1f6f9fb6154 5,103-116
+tests/merged-ways.test.js
+  s_9ca76055a220ed::t_c114faa486caac 103-115
+tests/moonfoundry.test.js
+  s_9ca76055a220ed::t_80efce5c3f0d3c 214-239
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_9b3903bbd87ee7 319-320,329-330
+tests/spacecity-world.test.js
+  s_9ca76055a220ed::t_2ab2e88838ba1c 103-129
+tests/spheres.test.js
+  s_9ca76055a220ed::t_c0b5b4d863ee11 156-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cefad90bbc0da857a1e2e97faa6589f603ab6e00",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
