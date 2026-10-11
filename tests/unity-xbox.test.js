@@ -225,6 +225,15 @@ test('the Surface shader is the SRP Batcher\'s: every value a material sets in o
   for (const f of ['Figure.hlsl', 'Marks.hlsl', 'Crowd.hlsl', 'TripoFace.hlsl']) assert.match(read(`unity/Memento/Assets/Memento/Shaders/${f}`), /#ifndef MEMENTO_PER_MATERIAL/, f);
 });
 
+test('every value of the Surface shader\'s UnityPerMaterial but its arrays is in its Properties block (one left out was not reset per material on the Xbox: another material\'s glass on the sand)', () => {
+  const sh = read('unity/Memento/Assets/Memento/Shaders/Surface.shader');
+  const props = new Set([...sh.slice(0, sh.indexOf('SubShader')).matchAll(/^\s*(_\w+) \(/gm)].map((m) => m[1]));
+  const buf = sh.slice(sh.indexOf('CBUFFER_START(UnityPerMaterial)'), sh.indexOf('CBUFFER_END')).replace(/\/\/.*$/gm, '');
+  const names = [...buf.matchAll(/\bfloat[234]?\s+([^;]+);/g)].flatMap((m) => m[1].split(',').map((x) => x.trim())).filter((x) => !x.includes('['));
+  assert.ok(names.length > 60, `${names.length} values`);
+  for (const n of names) assert.ok(props.has(n), `${n} is not in Properties`);
+});
+
 test('the shadow maps\' movers culled per cascade by the engine and drawn as renderer lists on the Xbox (the SRP Batcher\'s path)', () => {
   const sh = read('unity/Memento/Assets/Memento/Runtime/MementoShadows.cs');
   assert.match(sh, /public void CullFor\(ScriptableRenderContext ctx, Camera cam, WorldDetail detail\)/);

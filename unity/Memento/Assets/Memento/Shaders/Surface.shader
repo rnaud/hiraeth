@@ -53,6 +53,46 @@ Shader "Memento/Surface"
     _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
     _BoxLight ("Box: the ray", Vector) = (1, 0.98, 0.92, 1)
+    // (every other value of UnityPerMaterial, 0 unless a material sets it: one left out of this block is the suspect for the
+    // Xbox's see-through picture on D3D11 and D3D12, a material that never set it drawing with another's (the helmet's glass
+    // on the sand and the people: gone but for their rims). The arrays (_Palette, _Limbs, _FluidTones) go by a value here.)
+    _NoVertexColor ("NoVertexColor", Float) = 0
+    _Bind ("Bind", Float) = 0
+    _Cracks ("Cracks", Float) = 0
+    _Creases ("Creases", Float) = 0
+    _Glass ("Glass", Float) = 0
+    _Fluid ("Fluid", Float) = 0
+    _CrowdTime ("CrowdTime", Float) = 0
+    _GrassMirrored ("GrassMirrored", Float) = 0
+    _BedBox ("BedBox", Vector) = (0, 0, 0, 0)
+    _BedRef ("BedRef", Vector) = (0, 0, 0, 0)
+    _Outfit ("Outfit", Vector) = (0, 0, 0, 0)
+    _Skin ("Skin", Vector) = (0, 0, 0, 0)
+    _Glove ("Glove", Vector) = (0, 0, 0, 0)
+    _Trim ("Trim", Vector) = (0, 0, 0, 0)
+    _Face ("Face", Vector) = (0, 0, 0, 0)
+    _Mood ("Mood", Vector) = (0, 0, 0, 0)
+    _Mood2 ("Mood2", Vector) = (0, 0, 0, 0)
+    _FaceKit ("FaceKit", Vector) = (0, 0, 0, 0)
+    _FaceKit2 ("FaceKit2", Vector) = (0, 0, 0, 0)
+    _EyeC ("EyeC", Vector) = (0, 0, 0, 0)
+    _EyeR ("EyeR", Vector) = (0, 0, 0, 0)
+    _EyeLook ("EyeLook", Vector) = (0, 0, 0, 0)
+    _GlassCenter ("GlassCenter", Vector) = (0, 0, 0, 0)
+    _FluidA ("FluidA", Vector) = (0, 0, 0, 0)
+    _FluidB ("FluidB", Vector) = (0, 0, 0, 0)
+    _FluidBox ("FluidBox", Vector) = (0, 0, 0, 0)
+    _FluidBase ("FluidBase", Vector) = (0, 0, 0, 0)
+    _Dissolve ("Dissolve", Vector) = (0, 0, 0, 0)
+    _DissolveColor ("DissolveColor", Vector) = (0, 0, 0, 0)
+    _TfBrowA ("TfBrowA", Vector) = (0, 0, 0, 0)
+    _TfBrowB ("TfBrowB", Vector) = (0, 0, 0, 0)
+    _TfEye ("TfEye", Vector) = (0, 0, 0, 0)
+    _TfMouth ("TfMouth", Vector) = (0, 0, 0, 0)
+    _FarDepth ("FarDepth", Vector) = (0, 0, 0, 0)
+    _GrassView ("GrassView", Vector) = (0, 0, 0, 0)
+    _GrassLod ("GrassLod", Vector) = (0, 0, 0, 0)
+    _GrassLook ("GrassLook", Vector) = (0, 0, 0, 0)
     _Cull ("Cull", Float) = 2
     _ZWrite ("ZWrite (0: the water, drawn last over the scene's depth)", Float) = 1
   }
