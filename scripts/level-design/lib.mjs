@@ -19,6 +19,7 @@
 //   legGuidance(stops, landmarks, los)    does each leg's start see where it goes (or a landmark by it)?
 //   vertical(pois, samples, ground)       height range, raised places, the climb along the path
 //   pacing(stops)                         the kinds of stop along the path, and the longest run of one kind
+//   templeFor(temples, id, fallback)      the temple a route step goes in at: a merged world carries its parts' (Vael the Belfry)
 //   scoreWorld(m)                         the rubric's criteria, 1-5 each
 //   mapPng(grid, overlay) / encodePNG     a top-down map: relief, the path, the places, the landmarks
 
@@ -27,6 +28,13 @@ import { deflateSync } from 'node:zlib';
 export const RUN = 8.2, WALK = 3.8;   // m/s (src/player.js RUN, WALK)
 export const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 export const flat = (a, b) => Math.hypot(a[0] - b[0], a[2] - b[2]);
+
+/**
+ * The temple a route step `{ temple, id }` goes in at: the one with that id among the world's (a merged world carries
+ * its parts', Vael the Aerie and the sky stones' Belfry, Lorn the Hush-House and the Deep Wood's Lamp-House), else the
+ * world's own (a step with no id, the temple of the gadget).
+ */
+export const templeFor = (temples, id, fallback = null) => (id && temples.find((t) => t.id === id)) || fallback;
 
 /** Points closer than r (horizontally, and within 8 m of height) merged into one; kinds and names kept. */
 export function dedupe(pois, r = 6) {

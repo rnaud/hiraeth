@@ -142,7 +142,10 @@ seen as it would be: far overhead, when the ray stops on what carries it, within
 balcony under Vael's window, the City-Shaft palace's legs under its crown): `goal overhead`; far below, past the floor at
 your feet (12 m stepped through, the crow's nest's own deck): `goal below`. And every eye steps out of what it stands
 inside within 0.8 m of it: a line's points are its markers, so the walk along it passed through each post or cairn and
-saw nothing (the Glass Dunes' float-posts: 35 % of the path saw a landmark, 88 % since). The pure logic is
+saw nothing (the Glass Dunes' float-posts: 35 % of the path saw a landmark, 88 % since). Since v1.49 a merged world
+(`src/levels/names.js` `PARTS`: Vael carries the sky stones, Lorn the Deep Wood) is read with its parts: their quests'
+places, their trials, courts and temples' doors, and a route step `{ temple: 'done', id }` goes in at that part's temple
+(`templeFor`; before, Vael's Belfry was measured at the Aerie's door, 1.1 km off). The pure logic is
 `scripts/level-design/lib.mjs` (`tests/level-design.test.js`).
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`

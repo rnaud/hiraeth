@@ -43,7 +43,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
   assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
-  assert.equal(theme('level-design').prev.id, 'level-design-v1.20'); assert.equal(theme('level-design').delta, 0.13);
+  assert.equal(theme('level-design').prev.id, 'level-design-v1.23'); assert.equal(theme('level-design').delta, -0.03);   // (level-design-v1.49: 4.35 over twelve, v1.23: 4.38 over eleven)
   assert.equal(theme('temple-design').delta, 0.18);   // (temple-design-v1.49: 4.21, v1.48: 4.03, both over fourteen)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.49: 3.9, game-v1.46: 3.8)
   assert.equal(theme('dialogue').prev.id, 'dialogue-v1.0'); assert.equal(theme('dialogue').delta, 0.08);   // (dialogue-v1.48: 3.50, v1.0: 3.42)
@@ -56,7 +56,9 @@ test('the change since the one before: overall, and each item since the last tim
   }
 
   const desert = group('level-design', 'Worlds').rows.find((r) => r.label === 'The Desert');
-  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4, 3.89, '1.20', 0.11]);
+  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4, 4, '1.23', 0]);
+  const viridel = group('level-design', 'Worlds').rows.find((r) => r.label === 'Viridel');
+  assert.deepEqual([viridel.value, viridel.from, viridel.delta], [4, 4.56, -0.56], 'a world compared by its row\'s name (v1.49: the Greenhouse on the route)');
   // combat v1.47 judged the whole roster again: each is compared with the last report that judged it (v1.22; the makers'
   // machine, unjudged since v1.6, with v1.6's; the three new guardians with nothing)
   const arche = group('combat', 'Archetypes').rows;
@@ -85,7 +87,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(arche.length, 22); assert.equal(guards.length, 14);
   assert.ok(near(avg([...arche, ...guards].map((r) => r.value)), theme('combat').latest.overall, 0.02), 'the 36 totals\' mean');
   const worlds = group('level-design', 'Worlds').rows;
-  assert.equal(worlds.length, 11);
+  assert.equal(worlds.length, 12, 'the twelve route worlds (v1.49)');
   assert.ok(near(avg(worlds.map((r) => r.value)), theme('level-design').latest.overall));
   const temples = group('temple-design', 'Temples').rows;
   assert.equal(temples.length, 14, 'the fourteen temples (v1.48; not a changed temples\' table)');

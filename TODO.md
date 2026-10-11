@@ -34,18 +34,27 @@ existing loading/performance worktrees rather than starting another competing sh
 Never delete a temple or a character: a dismissed world moves whole to a dismissed-levels folder
 (`src/levels/dismissed/`), out of the route and the Debug menu's worlds, so its pieces can be reused elsewhere.
 
-- [ ] [#19](https://github.com/rnaud/hiraeth/issues/19) **The merged worlds' follow-ups** (v1.39 level-design audit: Vael 4.56 → 3.89, Lorn 4.44 → 3.89, Glass Dunes 3.22):
-  the long empty walks back (Vael's 760 m from the monastery to the clapper), a weenie and a reason to cross each join;
-  the Glass Dunes' spread of places and height. Can the sky stones be reached on foot from Vael's plain?
-  (2026-10-10, v1.43: Vael's riders' gate, riders' lanterns and the monks' old rope way; Lorn's keepers' light, ferry
-  bell and the water-way south to the ship; the Glass Dunes' float-posts and the wave's cairn. The audit, with its walk
-  between two shops' rooms through the sky fixed and Vael's bell flown on the bird: Vael 3.78 → 4.33, Lorn 4.0 → 4.33,
-  the Glass Dunes 3.22 → 3.89. The sky stones' first plateaus are a walk along the long aqueduct; the rose cliff and the
-  island are the bird's. docs/systems/worlds.md "The merged worlds' crossings".) (Reopened as the Glass Dunes' landmarks
-  and height; 2026-10-11: the Glass Dunes at 4.56 (6db05a01, 093db2b2). Left: onboarding, its first goal 186 m off the
-  landing; under 150 m needs the Disc run or the slalom moved with the ship, a layout call for the author.)
-- [ ] **Frame rate of the bigger terrains on Android** (left from #19): Vael's 5.2 km and Lorn's 3.2 km terrains since the
-  merge, and the crossings' new pieces, measured on the Retroid.
+## Level design (audit)
+
+From docs/audits/level-design-v1.49.md (twelve route worlds, 4.35), worst first by (gain × players) / cost:
+
+- [ ] [#137](https://github.com/rnaud/hiraeth/issues/137) **The new worlds' route quests still hand you from one person to another**
+  (the Moon Foundry's hook and count, the City Floating in Space's notes, the Underwater City's cutting and lamps): each
+  completes at its goal. Pacing 4 → 5 in the Moon Foundry.
+- [ ] [#131](https://github.com/rnaud/hiraeth/issues/131) **Viridel's Greenhouse**: blind from Mira's (281 m) and home (324 m), and the walk home
+  passes nothing. Wayfinding 3 → 4, loops 3 → 5 (Viridel 4 → 4.33).
+- [ ] [#132](https://github.com/rnaud/hiraeth/issues/132) **The walks home from the temple** in the Underwater City (310 m), the City Floating in
+  Space (296 m), the Buried Machine (106 m) and the City-Shaft from Tobin (119 m): loops 3–4 → 5 in each.
+- [ ] [#133](https://github.com/rnaud/hiraeth/issues/133) **Vael's plain** (483 m empty, 59 s) and its blind legs to the monastery (966 m) and the
+  Belfry (279 m): density 3 → 4, wayfinding 4 → 5.
+- [ ] [#136](https://github.com/rnaud/hiraeth/issues/136) **The Buried Machine's landmarks** (57 % of the path sees one) and its blind canyon and
+  Engine-House legs: landmarks 3 → 4, wayfinding 4 → 5.
+- [ ] [#134](https://github.com/rnaud/hiraeth/issues/134) **The belvedere and the breaker's cairn** don't pull (154 m and 368 m off the path): the
+  Garden's loner gone, the Glass Dunes' optional pull 3 → 4.
+- [ ] [#135](https://github.com/rnaud/hiraeth/issues/135) **Lorn's blind legs**: Wendel → the Great Crystal (188 m), the crystal cave → Hollin (631 m).
+  Wayfinding 4 → 5.
+- [ ] [#138](https://github.com/rnaud/hiraeth/issues/138) **The audit's "raised" measure** reads a place on a tower as 0 m up; measure it over the
+  terrain.
 
 ## Temples
 

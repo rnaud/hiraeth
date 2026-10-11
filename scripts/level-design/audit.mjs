@@ -32,7 +32,8 @@ const MOUNTED_AFTER = { arzach: { after: 'arzach.bird', by: 'bird' } };
 const THREE = await import('three');
 const { Physics } = await import(join(ROOT, 'src/physics.js'));
 const L = await import(join(ROOT, 'scripts/level-design/lib.mjs'));
-const { TRIALS } = await import(join(ROOT, 'src/trials/data.js'));
+const { trialsFor } = await import(join(ROOT, 'src/trials/data.js'));
+const { partsOf } = await import(join(ROOT, 'src/levels/names.js'));
 const { kitTrialsFor } = await import(join(ROOT, 'src/trials/kit-data.js'));
 
 const worlds = (arg('worlds') ?? A.ORDER.join(',')).split(',').filter(Boolean);
@@ -47,8 +48,13 @@ for (const id of worlds) {
   globalThis.location = { search: sub ? `?level=${id}&from=${sub.from}` : `?level=${id}` };   // (a sub-level arrived at as its quest arrives)
   const W = A.loadWorld(id);
   const { level, physics } = W;
+  // (a merged world carries its parts' temples, Vael the Aerie and the sky stones' Belfry: `level.temples`; a route step
+  // `{ temple, id }` goes in at that one's door, and nothing inside any of them is a place outside)
+  const temples = level.temples ?? (level.temple ? [level.temple] : []);
   const rt = level.temple;
-  const inTemple = (p) => !!rt && (rt.inside(new THREE.Vector3(...p)) || p[1] > 1200);
+  const templeOf = (tid) => L.templeFor(temples, tid, rt);
+  const inTemple = (p) => temples.some((t) => t.inside(new THREE.Vector3(...p))) || (!!temples.length && p[1] > 1200);
+  const parts = partsOf(id);
   const ground = (x, z) => physics.groundAt(x, 1100, z, 2500);
   const onGround = (x, z, y = null) => { const g = ground(x, z); return [x, Number.isFinite(g) ? g : y ?? 0, z]; };
 
@@ -58,15 +64,16 @@ for (const id of worlds) {
   const spawn = arr(level.ship?.pos ?? level.spawn);
   put('ship', 'the ship', spawn, { main: true });
   for (const n of W.npcs) if (!n.pooled && n.def?.id) put('person', n.def.name ?? n.def.id, n.pos, { optional: true });
-  const quests = [...W.quests.defs.values()].filter((d) => d.world === id);
+  const quests = [...W.quests.defs.values()].filter((d) => parts.includes(d.world));   // (a merged world's parts' quests too)
   const routeQuests = new Set(ROUTE.find((r) => r.id === id)?.play.filter((p) => typeof p === 'string') ?? []);
   for (const q of quests) for (const s of q.stages) put(q.main || routeQuests.has(q.id) ? 'goal' : q.id.startsWith('box.') ? 'box goal' : 'side goal', `${q.title ?? q.id}: ${s.label ?? s.id}`, W.quests.where(s), { main: q.main || routeQuests.has(q.id), optional: !(q.main || routeQuests.has(q.id)) });
   for (const b of W.boxes.list) put('box', `box: ${b.item ?? b.id}`, b.pos, { optional: true });
-  if (rt?.outside?.door) put('temple', `the temple's door`, rt.outside.door.at, { optional: !ROUTE.find((r) => r.id === id)?.play.some((p) => p.temple) });
-  if (TRIALS[id]) { const [x, z] = TRIALS[id].marker; put('trial', `trial: ${TRIALS[id].name}`, onGround(x, z)); }
+  const entered = (t) => ROUTE.find((r) => r.id === id)?.play.some((p) => p.temple && (p.id ? p.id === t.id : t === rt));
+  for (const t of temples) if (t.outside?.door) put('temple', temples.length > 1 ? `the temple's door (${t.id})` : `the temple's door`, t.outside.door.at, { optional: !entered(t) });
+  for (const T of trialsFor(id)) { const [x, z] = T.marker; put('trial', `trial: ${T.name}`, onGround(x, z)); }
   for (const T of kitTrialsFor(id)) put('trial', `makers' run: ${T.name}`, T.origin, { optional: true });
   for (const pt of level.portals ?? []) if (!pt.temple && pt.at) put('door', pt.label ?? 'a way in', pt.at, { optional: true });
-  if (level.finds?.court) put('court', "the makers' court", level.finds.court.at ?? level.finds.court.box ?? level.finds.court.frame?.origin, { optional: true });
+  for (const C of Object.values(level.finds?.courts ?? (level.finds?.court ? { one: level.finds.court } : {}))) put('court', "the makers' court", C.at ?? C.box ?? C.frame?.origin, { optional: true });
   // things to stop for that are neither people nor quests (a bowl to fill, a cold camp, a wreck: a level's `sights`)
   for (const s of (typeof level.sights === 'function' ? level.sights() : level.sights) ?? []) put('sight', s.name, s.at, { optional: true });
   for (const p of pois) if (p.kind === 'trial') p.optional = true;
@@ -86,7 +93,7 @@ for (const id of worlds) {
     if (pending) { mountedFrom ??= stops.length; pending = false; }
     if (later && p === later.after) pending = true;
     // (a temple whose keeper sends you home along a leading line after it, the Glass Dunes' Wim by the float-posts: `home`)
-    if (p.temple && rt?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(rt.outside.door.at) }); if (p.home) home = p.home; continue; }
+    if (p.temple && templeOf(p.id)?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(templeOf(p.id).outside.door.at) }); if (p.home) home = p.home; continue; }
     // (an act the route plays where someone stands, Vael's Oïa by the landing opening the main quest: a talk there)
     if (p.act && p.at) { met.add(p.at); const w = arr(W.quests.resolve(p.at)); if (w && !inTemple(w)) stops.push({ label: p.label ?? p.at, kind: people.has(p.at) ? 'talk' : 'do', pos: w }); continue; }
     if (typeof p !== 'string') continue;

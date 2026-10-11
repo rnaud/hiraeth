@@ -2737,3 +2737,17 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
   batch mode instead (`scripts/unity-export/unity-batch.sh`).
   (Issue closed 2026-10-11: Closed as blocked: an organization policy blocks registering unknown MCP servers; Unity is driven in batch mode instead.)
+- [x] [#19](https://github.com/rnaud/hiraeth/issues/19) **The merged worlds' follow-ups** (v1.39 level-design audit: Vael 4.56 → 3.89, Lorn 4.44 → 3.89, Glass Dunes 3.22):
+  the long empty walks back (Vael's 760 m from the monastery to the clapper), a weenie and a reason to cross each join;
+  the Glass Dunes' spread of places and height. Can the sky stones be reached on foot from Vael's plain?
+  (2026-10-10, v1.43: Vael's riders' gate, riders' lanterns and the monks' old rope way; Lorn's keepers' light, ferry
+  bell and the water-way south to the ship; the Glass Dunes' float-posts and the wave's cairn. The audit, with its walk
+  between two shops' rooms through the sky fixed and Vael's bell flown on the bird: Vael 3.78 → 4.33, Lorn 4.0 → 4.33,
+  the Glass Dunes 3.22 → 3.89. The sky stones' first plateaus are a walk along the long aqueduct; the rose cliff and the
+  island are the bird's. docs/systems/worlds.md "The merged worlds' crossings".) (Reopened as the Glass Dunes' landmarks
+  and height; 2026-10-11: the Glass Dunes at 4.56 (6db05a01, 093db2b2). Left: onboarding, its first goal 186 m off the
+  landing; under 150 m needs the Disc run or the slalom moved with the ship, a layout call for the author.)
+  (Issue closed 2026-10-11: the level design audit v1.49 (docs/audits/level-design-v1.49.md) has the Glass Dunes at 4.56 with onboarding 5: Oren by the discs, 26 m from the landing, opens its quest (v1.48). Vael 4.44 and Lorn 4.44 with their parts. What it found left went to #133–#135.)
+- [x] **Frame rate of the bigger terrains on Android** (left from #19): Vael's 5.2 km and Lorn's 3.2 km terrains since the
+  merge, and the crossings' new pieces, measured on the Retroid.
+  (Measured on the Retroid on 2026-10-11, #19's comment: Vael 57.6–59.9 fps, Lorn 58.9–60.1, the Glass Dunes 59.5–60, GeckoView, Handheld dynamic.)

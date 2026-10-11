@@ -2,7 +2,7 @@
 // each function shown the case it is for, on small made-up worlds.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines, steepness } from '../scripts/level-design/lib.mjs';
+import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines, steepness, templeFor } from '../scripts/level-design/lib.mjs';
 
 const P = (name, x, z, o = {}) => ({ name, kind: o.kind ?? 'person', pos: [x, o.y ?? 0, z], ...o });
 const S = (label, x, z, kind = 'go', y = 0) => ({ label, kind, pos: [x, y, z] });
@@ -205,4 +205,12 @@ test('the map is a real PNG', () => {
   const m = mapPng({ x0: 0, z0: 0, cell: 10, nx: 4, nz: 4, top }, { path: [[0, 0, 0], [30, 0, 30]], pois: [P('a', 10, 10)], spawn: [0, 0, 0], px: 64 });
   assert.equal(m.w, 64);
   assert.ok(m.png.length > 100);
+});
+
+test('a merged world\'s route step goes in at its part\'s temple, not the world\'s own (Vael\'s Belfry, not the Aerie)', () => {
+  const aerie = { id: 'arzach' }, belfry = { id: 'arzach2' };
+  assert.equal(templeFor([belfry, aerie], 'arzach2', aerie), belfry);
+  assert.equal(templeFor([belfry, aerie], undefined, aerie), aerie, 'a step with no id: the world\'s own');
+  assert.equal(templeFor([aerie], 'garage', aerie), aerie, 'an id the world does not carry: its own');
+  assert.equal(templeFor([], 'arzach2'), null);
 });
