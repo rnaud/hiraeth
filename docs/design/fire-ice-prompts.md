@@ -5,7 +5,7 @@ ice live side by side, not a fire world and an ice world. Plain text prompts for
 (`reference-lab.html`, `scripts/gen-reference.mjs --from docs/design/fire-ice-prompts.md#<id>`); a pick goes to
 the folder below.
 
-Target folder: `references/levels/The Fire and Ice World/<id>/`
+Target folder: `references/levels/The Fire and Ice World/environment/<id>/`
 
 Every prompt keeps the house style of the other reference prompts and this world's palette (glowing embers,
 molten orange and rose lava, ice blues from pale cyan to deep glacier teal, white steam, violet shadows), shows the
