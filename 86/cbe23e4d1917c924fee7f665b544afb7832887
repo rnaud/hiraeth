@@ -1,0 +1,47 @@
+DONE.md
+  s_9ca76055a220ed::t_2b41e59c77c958 2762-2766
+changelog.md
+  s_9ca76055a220ed::t_2d07c551488732 7-9
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_2b9df197f8e55f 1032-1053
+src/changelog-media.js
+  s_9ca76055a220ed::t_c79b3cbc4d711e 635-636,708-723
+src/changelog.js
+  s_9ca76055a220ed::t_89d09b7eaa79b1 34-37
+src/levels/arzach.js
+  s_9ca76055a220ed::t_4e35df8f3b721f 8,12-14,473-490,492-499
+src/levels/arzach2.js
+  s_9ca76055a220ed::t_d8990e1dd67f54 99
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_23a5349bc4fb58 268-289
+src/story/arzach.js
+  s_9ca76055a220ed::t_c583d498784ad3 195-199
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_cb46ed41f75a37 283
+src/story/arzach2.js
+  s_9ca76055a220ed::t_3b578b63a91b02 525
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_9b6edd495d1866 509-524,528
+src/vael-crossing.js
+  s_9ca76055a220ed::t_057b38bf39554d 38-43
+src/vael-ways.js
+  s_9ca76055a220ed::t_171e4915994569 25-33,161-254
+tests/vael-plain-sights.test.js
+  s_9ca76055a220ed::t_700c0bd6c5403c 1-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "86cbe23e4d1917c924fee7f665b544afb7832887",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
