@@ -5,6 +5,7 @@ The same release notes shown in the game (press **N** or open settings).
 ## v1.49 — 2026-10-11
 
 - A world’s trial whose prize improves one of your gadgets now waits until you have found that gadget, so you no longer win an upgrade for a tool you haven’t got. Its sign says which one it is for.
+- When the foe you are locked on to is out of your blade’s reach (a hound running as a shadow, a ray under the sand), the four arrows go hollow, just an outline, instead of only fading, so you can tell at a glance on a small screen, in bright worlds and whatever colours you see.
 - Settings no longer offers to invert the jets’ pitch until you have the jets, and the developer switches have their own group at the very end, below the reset, instead of sitting among yours.
 - The City-Shaft runs about a seventh faster on the Steam Deck, 35 → 39–41 frames a second at the rim and looking down the shaft: its banners are drawn together, and so are its towers, and the cabs, the drones, the room checks and your shield’s disc take less of each frame. It looks the same. The desert and the Signal Market are as they were, and none of the three holds 60 yet.
 - What a guardian’s fight writes on the screen is one short line you can read while dodging: what to do, not why. The hints at the start of a fight and at each change were often three or four sentences; now each says the move in a few words, and so do the lines when it wakes, opens, tires and settles. The drone still explains more if you ask.

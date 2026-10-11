@@ -3,6 +3,7 @@
 // language with English to fall back on, and the lock-on's states by shape as well as colour.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 globalThis.matchMedia ??= () => ({ matches: false });
 globalThis.window ??= new EventTarget();
@@ -307,6 +308,33 @@ test('the lock-on says nothing by colour: one look (four gold arrows), only dimm
   // (v1.42: the author asked for Ocarina of Time's arrows with no red for an attack; a foe's wind-up is told by its body)
   for (const f of [{}, { state: 'wind', k: 0.5 }, { state: 'strike' }, { stunned: 1 }]) assert.equal(reticleLook({ hp: 3, def: { hp: 3 }, ...f }).mode, 'calm');
   assert.equal(reticleLook({ buried: true }).mode, 'veiled');
+});
+
+test('a veiled lock changes shape, not just opacity: its arrows go hollow (issue #126)', async () => {
+  const { reticleArrows, LockReticle } = await import('../src/lock-reticle.js');
+  assert.deepEqual(reticleArrows({ mode: 'calm' }), { hollow: false, opacity: 1 });
+  const v = reticleArrows({ mode: 'veiled' });
+  assert.equal(v.hollow, true, 'hollow arrows: a cue by shape');
+  assert.ok(v.opacity >= 0.7 && v.opacity < 1, `still a little fainter, but not faint (${v.opacity})`);
+  // drawn: hollow leaves the ink edge and the halo as outlines (no fill) and hides the gold faces; calm puts them back
+  const node = (tag) => { const a = {}; return { tag, a, kids: [], style: {}, setAttribute(k, x) { a[k] = String(x); }, appendChild(c) { this.kids.push(c); return c; }, remove() {} }; };
+  const had = globalThis.document;
+  globalThis.document = { createElementNS: (ns, tag) => node(tag), createElement: (tag) => node(tag) };
+  try {
+    const r = new LockReticle(node('body'));
+    const look = () => r.parts.map((p) => [p.halo.a.fill, p.ink.a.fill, ...p.faces.map((f) => f.a.display ?? 'inline')]);
+    const calm = look();
+    assert.ok(calm.every(([halo, ink, ...faces]) => halo !== 'none' && ink !== 'none' && faces.every((d) => d === 'inline')), 'calm: filled');
+    r.setHollow(true);
+    assert.equal(r.parts.length, 4);
+    assert.ok(look().every(([halo, ink, ...faces]) => halo === 'none' && ink === 'none' && faces.every((d) => d === 'none')), 'veiled: outlines only');
+    assert.ok(r.parts.every((p) => +p.ink.a['stroke-width'] > 0), 'the ink outline stays');
+    r.setHollow(false);
+    assert.deepEqual(look(), calm, 'and back');
+  } finally { globalThis.document = had; }
+  // update() draws the look it reads (src/lock-reticle.js)
+  const src = readFileSync(new URL('../src/lock-reticle.js', import.meta.url), 'utf8');
+  assert.match(src, /const A = reticleArrows\(look\);\s*this\.setHollow\(A\.hollow\);/);
 });
 
 test('reduce motion holds the lock-on\'s arrows still: no turn, no breathing, no fly-in or whirl, only a fade (combat-v1.47 rec. 4, #108)', () => {

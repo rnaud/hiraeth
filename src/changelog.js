@@ -105,6 +105,8 @@ export const CHANGELOG = [
     // the settings (docs/systems/ui.md; issue #122)
     { text: 'Settings no longer offers to invert the jets’ pitch until you have the jets, and the developer switches have their own group at the very end, below the reset, instead of sitting among yours.',
       see: 'Open Settings (Menu / Esc) in a game: Camera and motion has no jets row; the Developer group is last. Give yourself the jets in the world debug menu (L3 + R3, F2: Toggles) and the row is back.' },
+    // the lock-on (docs/systems/foes.md "The lock-on"; issue #126)
+    'When the foe you are locked on to is out of your blade’s reach (a hound running as a shadow, a ray under the sand), the four arrows go hollow, just an outline, instead of only fading, so you can tell at a glance on a small screen, in bright worlds and whatever colours you see.',
     // the trials (docs/systems/minigames.md "Best and reward"; issue #125)
     { text: 'A world’s trial whose prize improves one of your gadgets now waits until you have found that gadget, so you no longer win an upgrade for a tool you haven’t got. Its sign says which one it is for.',
       see: 'In Vael before finding the grappling hook, press A / × at the Wind ladder’s sign: “Wind ladder: Its prize is for the grappling hook. Come back with it.” With the hook it starts as before.' },

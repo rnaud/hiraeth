@@ -723,6 +723,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'belfry-store', title: 'The west store', caption: 'From the Hall of Stones into the west store: before, a ball in its groove and its plate; after, the archway’s door (it shuts behind you while the keepers stand) and the small key caged at the far end', ...C49_BELFRY,
         view: { level: 'arzach', save: SAVE48_ARMED, hour: 11, fov: 70, eye: FB(-8, 3.5, 22), target: FB(-20, 1.5, 23.5), player: FB(-7.5, 0.05, 21.5) } },
     ], see: 'In the Founders’ Belfry, go west off the Hall of Stones into the west store.' },
+    { match: 'When the foe you are locked on to is out of your blade’s reach', shots: [
+      { name: 'lock-veiled', title: 'A hound running as a shadow, locked on', caption: 'The Arena on the Handheld preset with Reduce motion on, locked on an antler hound running as a shadow; each picture shows normal vision, then protanopia, deuteranopia and tritanopia simulated (Machado 2009): before, the gold arrows at half opacity; after, hollow arrows, their ink outline only', from: 'headless Chrome against this branch’s own dev server and the commit before, 1280 × 720, the camera pinned beside the traveller (11 October)' },
+    ], see: 'In the Arena (the worlds list, Debug), lock on (R3) to an antler hound while it runs as a shadow: the arrows are outlines; light it with an ember and they fill gold again.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)

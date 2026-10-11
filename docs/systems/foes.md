@@ -685,7 +685,9 @@ The count is said every 5 ink.
   the ring with an extra `whirl` of turn. With Reduce motion on (v1.48, combat-v1.47 rec. 4, `reticleMotion`) none of
   that moves: the arrows rest at the box's corners (`still`, π/4), the gap doesn't breathe, a new lock appears at its ring
   and only fades in. Off the screen they wait small at the edge on its side. `reticleLook(f)` is only
-  `calm` or `veiled` (buried, phased: the whole drawn at `veiled` 0.5 opacity): no health pips, and nothing for the
+  `calm` or `veiled` (buried, phased: the arrows hollow, their ink outline and halo with no gold faces, at `veiled` 0.75
+  opacity, `reticleArrows`; v1.49, issue #126: by shape, not by opacity alone, checked on the Handheld preset with Reduce
+  motion on in simulated protanopia, deuteranopia and tritanopia; before, only 0.5 opacity): no health pips, and nothing for the
   foe's wind-up, strike or stagger, which its body, its glow and its sound tell. Before: v0.96's gold chevrons on a ring
   over the chest; v1.39's corner ticks, a diamond over the head and hp pips, coral and doubled while it wound up, pale blue
   when open (v1.41 drew them bolder). Tests: `tests/combat-feel.test.js` (the tips outside the body, pointing in, the ring's

@@ -7,7 +7,8 @@ import { motionState } from './feel.js';
 // red when the character is attacking: it should be obvious". So: four gold arrowheads round the foe, their tips pointing
 // in at it, turning slowly round it. No health pips, no colours or shapes for its wind-up, its strike or its stagger:
 // the foe's own body tells those. Only a foe out of the blade's reach (a ray under the sand, a hound running as a shadow)
-// dims it.
+// changes it: the arrows go hollow (their ink outline and halo, no gold faces) and a little fainter, so it reads by shape
+// and not by opacity alone (issue #126, combat-v1.47 recommendation 5: checked in simulated colour vision).
 // The arrows ride a rounded box round the foe's drawn body on the screen (src/foe-body.js bodySpan, its parts as posed)
 // grown by a gap, so they turn round it without sitting on it, and a far foe's ring is no smaller than RETICLE.min. A new
 // lock flies them in from wider, spinning faster as they come (as Ocarina's did). Off the screen they wait small at the
@@ -33,7 +34,7 @@ export const RETICLE = {
   from: 2.4,                  // × the ring's size the arrows fly in from
   whirl: 5,                   // rad: the extra turn while they fly in
   still: Math.PI / 4,         // rad: where the arrows rest with Reduce motion on (the box's corners)
-  veiled: 0.5,                // opacity out of the blade's reach
+  veiled: 0.75,               // opacity out of the blade's reach (the arrows hollow too: reticleArrows)
   scale: { at: 720, lo: 1, hi: 1.7, small: 560, boost: 1.25 },   // reticleScale
   ink: '#2b211f', gold: '#f2c54b', shade: '#c98f22', light: '#fff6dc',
 };
@@ -52,6 +53,15 @@ export function reticleScale(W, H, R = RETICLE) {
 export function reticleLook(f) {
   if (!f) return null;
   return { mode: f.buried || f.phased ? 'veiled' : 'calm' };
+}
+
+/**
+ * How the arrows are drawn for a look (pure: tests): { hollow, opacity }. Veiled: hollow (outline only, no gold faces)
+ * and at RETICLE.veiled; calm: filled, whole. The shape is the cue; the opacity only adds to it.
+ */
+export function reticleArrows(look, R = RETICLE) {
+  const veiled = look?.mode === 'veiled';
+  return { hollow: veiled, opacity: veiled ? R.veiled : 1 };
 }
 
 /**
@@ -113,17 +123,34 @@ export class LockReticle {
     this.root.appendChild(this.svg);
     // each arrow drawn pointing down (+y) with its tip at the origin: a halo, an ink edge, then two faces (lit, shaded)
     const tri = `M0,0 L${w},${-L} L${-w},${-L}Z`;
+    // (veiled, the arrows go hollow: the halo and the ink edge lose their fill and the faces hide: setHollow)
+    this.parts = [];
     this.arrows = [0, 1, 2, 3].map(() => {
       const g = el('g', {}, this.svg);
-      el('path', { d: tri, fill: R.light, stroke: R.light, 'stroke-width': R.edge + R.halo * 2, 'stroke-linejoin': 'round', opacity: R.haloA }, g);
-      el('path', { d: tri, fill: R.ink, stroke: R.ink, 'stroke-width': R.edge * 2, 'stroke-linejoin': 'round', opacity: 0.85 }, g);
-      el('path', { d: `M0,0 L${w},${-L} L0,${-L * 0.72}Z`, fill: R.shade }, g);
-      el('path', { d: `M0,0 L0,${-L * 0.72} L${-w},${-L}Z`, fill: R.gold }, g);
+      const halo = el('path', { d: tri, fill: R.light, stroke: R.light, 'stroke-width': R.edge + R.halo * 2, 'stroke-linejoin': 'round', opacity: R.haloA }, g);
+      const ink = el('path', { d: tri, fill: R.ink, stroke: R.ink, 'stroke-width': R.edge * 2, 'stroke-linejoin': 'round', opacity: 0.85 }, g);
+      const lit = el('path', { d: `M0,0 L${w},${-L} L0,${-L * 0.72}Z`, fill: R.shade }, g);
+      const dark = el('path', { d: `M0,0 L0,${-L * 0.72} L${-w},${-L}Z`, fill: R.gold }, g);
+      this.parts.push({ halo, ink, faces: [lit, dark] });
       return g;
     });
+    this.hollow = false;
     parent.appendChild(this.root);
     this.t = 0; this.snap = 1; this.foe = null;
     this.span = { lo: 0, hi: 0, centre: new THREE.Vector3(), radius: 0 };
+  }
+
+  /** The arrows hollow (veiled: outline and halo only) or filled (calm). */
+  setHollow(on) {
+    if (on === this.hollow) return;
+    this.hollow = on;
+    const R = RETICLE;
+    for (const p of this.parts) {
+      p.halo.setAttribute('fill', on ? 'none' : R.light);
+      p.ink.setAttribute('fill', on ? 'none' : R.ink);
+      p.ink.setAttribute('opacity', on ? 1 : 0.85);
+      for (const f of p.faces) f.setAttribute('display', on ? 'none' : 'inline');
+    }
   }
 
   /** A new foe locked: the arrows fly in on it. */
@@ -179,7 +206,9 @@ export class LockReticle {
     }
     if (this.shown !== true) { this.root.style.display = ''; this.shown = true; }
     this.root.style.transform = `translate(${ring.cx.toFixed(1)}px,${ring.cy.toFixed(1)}px)`;
-    const opacity = ((look.mode === 'veiled' ? R.veiled : 1) * M.fade).toFixed(2);
+    const A = reticleArrows(look);
+    this.setHollow(A.hollow);
+    const opacity = (A.opacity * M.fade).toFixed(2);
     if (opacity !== this.opacity) { this.root.style.opacity = opacity; this.opacity = opacity; }
     // the turn: steady, with an extra whirl as a new lock flies in (held still with Reduce motion)
     const turn = M.turn;
