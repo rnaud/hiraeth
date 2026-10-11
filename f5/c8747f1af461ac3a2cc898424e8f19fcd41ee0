@@ -1,0 +1,23 @@
+src/temples/garage.js
+  s_9ca76055a220ed::t_a76a95878ff2c8 250-251,278,281-287,417-419,428
+src/temples/kit.js
+  s_9ca76055a220ed::t_33bf7527ab7a31 430-436
+tests/temples.test.js
+  s_9ca76055a220ed::t_608565e9b9f8b3 2673
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f5c8747f1af461ac3a2cc898424e8f19fcd41ee0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
