@@ -595,6 +595,11 @@ const C48_WARDEN = { commit: '86f06aba' };   // (the Warden's Well round its Cli
 // (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
 // (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
 export const CHANGELOG_MEDIA = {
+  '1.49': [
+    { match: 'In the Unity test build, water foams', shots: [
+      { name: 'unity-water-foam', caption: 'Lorn’s landing in the Unity test build: the bank to the right of the ship’s ramp', from: 'the Unity editor in batch mode (unity-batch.sh Play -tour, 1280 × 720, muted), the same view without and with the foam (11 October)' },
+    ] },
+  ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
     { match: 'Locked on to a small foe a few steps away', shots: [

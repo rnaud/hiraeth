@@ -28,6 +28,9 @@ export const CHANGELOG = [
         ], source: 'scripts/load-breakdown.mjs, its load steps' },
       ],
       see: 'Fly to the City-Shaft and look down from the rim: the terraces below fill with people as they always did.' },
+    // the Unity test build (docs/systems/water.md "In Unity"; issue #53)
+    { text: 'In the Unity test build, water foams where it meets the shore and whatever stands in it, as it does in the browser: a pale band along the banks, off on phones as on the Handheld preset.',
+      see: 'In the Unity test build, step off the ship in Lorn and look along the water’s edge to the right of the ramp.' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

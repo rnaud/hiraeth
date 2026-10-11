@@ -175,7 +175,11 @@ namespace Memento
                 // to the cockpit
                 pad.move = new Vector2(0, 1); yield return Wait(1.2f); pad.move = Vector2.zero;
                 var cockpit = game.world.World.O("ship").O("space").V3("pos") + game.world.World.O("ship").O("spacePoints").V3("cockpit");
-                Put(cockpit + new Vector3(0, 0.1f, 1.2f), 180); yield return Wait(0.5f);
+                // (if the walk fell short: held on the cockpit's own point, where the call stands him, a frame at a time till
+                // the call starts. Put there once after the title, he was carried two metres in a frame and up onto the angular
+                // hull's roof, the call never started and every later shot was the same frame)
+                for (int f = 0; f < 120 && game.ship.Stage == "walk"; f++) { game.player.frozen = true; Put(cockpit + new Vector3(0, 0.1f, 0), 180); yield return null; }
+                Log($"prologue: by the cockpit {cockpit}, the traveller at {game.player.transform.position}, stage {game.ship.Stage}");
                 yield return Until("call", 7f); yield return Shoot("prologue_the_recording");
                 yield return Wait(9f); yield return Shoot("prologue_the_father");
                 Log($"prologue: {game.ship.Stage}, hologram {game.ship.holo.Live}, subtitle '{game.ship.subtitle}'");

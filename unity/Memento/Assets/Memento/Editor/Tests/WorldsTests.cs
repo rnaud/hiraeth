@@ -166,9 +166,11 @@ namespace Memento.Tests
         [Test]
         public void EveryWorldHasAShipSiteTheRampReachesTheGround()
         {
+            int seen = 0;
             foreach (var id in Order.Append("home"))
             {
-                Assume.That(WorldLoader.Exported(id));
+                if (!WorldLoader.Exported(id)) continue;   // (a world merged into another, Vael II and Lorn II, is no longer exported)
+                seen++;
                 var s = Read(id, "world.json").O("ship");
                 var ramp = s.V3("rampFoot"); var rest = s.V3("rest");
                 Assert.Less(ramp.y, rest.y, id);
@@ -181,6 +183,7 @@ namespace Memento.Tests
                 foreach (var k in new[] { "cockpit", "projector", "table", "tableFoot", "hatchIn", "threshold", "aboard", "bunkStand" })
                     Assert.IsTrue(s.O("points").Has(k), $"{id}: the ship's point '{k}'");
             }
+            Assume.That(seen > 0, "no world exported");
         }
     }
 }

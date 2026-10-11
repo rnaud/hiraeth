@@ -58,14 +58,18 @@ namespace Memento.Rendering
 
         protected override void Dispose(bool disposing) { CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); }
 
-        /// <summary>Switches the game can flip (the settings: FXAA). `waterContact`: the water's contact foam, **off by default
-        /// until it has been seen working** (TODO.md); on with `-waterContact` on the command line (read once, before the
-        /// world's materials are made: WorldLoader.MakeMaterial). Off, the water's materials and the G-buffer pass are as
-        /// before it existed.</summary>
+        /// <summary>Switches the game can flip (the settings: FXAA). `waterContact`: the water's contact foam, on (seen working
+        /// in batch renders, October 2026, issue #53) except on mobile players, as the web's Handheld (perf.js waterContactOn);
+        /// `-noWaterContact` on the command line turns it off, `-waterContact` on anywhere (read once, before the world's
+        /// materials are made: WorldLoader.MakeMaterial). Off, the water's materials and the G-buffer pass are as before it
+        /// existed.</summary>
         public static class Settings
         {
             public static bool fxaa = true;
-            public static bool waterContact = System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-waterContact") >= 0;
+            public static bool waterContact = WaterContactAsked(System.Environment.GetCommandLineArgs(), UnityEngine.Application.isMobilePlatform);
+            /// <summary>The foam's default: on unless a mobile player or -noWaterContact; -waterContact wins.</summary>
+            public static bool WaterContactAsked(string[] args, bool mobile) =>
+                System.Array.IndexOf(args, "-waterContact") >= 0 || (!mobile && System.Array.IndexOf(args, "-noWaterContact") < 0);
         }
 
         /// <summary>The render queue of the water's materials: drawn after everything else in the G-buffer, over the

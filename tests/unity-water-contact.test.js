@@ -28,8 +28,9 @@ test("the Unity shader's contact foam uses the web's CONTACT numbers", () => {
   assert.match(surface, /float wavelets = contactFoam\(p, t, px, wd, pix, vd, foam\);/, 'waterLook raises its foam and draws its wavelets');
 });
 
-test('the foam is off unless asked for (-waterContact): the shipped render path unchanged until it is seen working', () => {
-  assert.match(feature, /public static bool waterContact = System\.Array\.IndexOf\(System\.Environment\.GetCommandLineArgs\(\), "-waterContact"\) >= 0;/);
+test('the foam is on (seen working, #53), off on mobile players and with -noWaterContact, on with -waterContact anywhere', () => {
+  assert.match(feature, /public static bool waterContact = WaterContactAsked\(System\.Environment\.GetCommandLineArgs\(\), UnityEngine\.Application\.isMobilePlatform\);/);
+  assert.match(feature, /System\.Array\.IndexOf\(args, "-waterContact"\) >= 0 \|\| \(!mobile && System\.Array\.IndexOf\(args, "-noWaterContact"\) < 0\)/);
   assert.match(feature, /bool split = Settings\.waterContact && WaterSeen;/, 'off, no water pass and no water list');
 });
 

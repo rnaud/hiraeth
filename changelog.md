@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- In the Unity test build, water foams where it meets the shore and whatever stands in it, as it does in the browser: a pale band along the banks, off on phones as on the Handheld preset.
 - The City-Shaft opens close to a second sooner, and on a handheld some three seconds: the people strolling its far terraces set out after you arrive, those within sight of you before you see them. The crowd is a little different: other strollers, and walks that no longer stop where they cross.
 - The Buried Machine opens about three quarters of a second sooner: where the sand banks up against walls far from you, its footing is worked out after you arrive, nearest first, and always before you get near it.
 
