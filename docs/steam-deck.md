@@ -87,6 +87,43 @@ that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appi
 `shortcuts.vdf`, unsigned (2165417005 on the author's Deck; its 64-bit game id, in Steam's logs, is
 `appid << 32 | 0x02000000`).
 
+## The Unity preview (issue #146)
+
+A second shortcut, **Hiraeth (Unity preview)**, starts the Unity bridge's Linux player (IL2CPP,
+Vulkan; `docs/systems/unity.md`, measured in `docs/systems/performance.md`, "The Steam Deck, round
+6") beside the game. It is for testers: no menus, conversations or pages yet, its own saves. The web
+build stays the main shortcut, unchanged.
+
+- **Its own component, not in the package.** The player (`memento-unity-linux.tar.gz`, ~300 MB,
+  built by `unity-android.yml` at its own pace) would triple the runtime package. `deck.py` reads the
+  `unity-linux` release from GitHub's API (`get_unity_manifest`: the asset's `size`, its URL and its
+  `digest`, `sha256:…`) and, when the digest differs from the installed one (`install_unity`),
+  downloads it, checks size and SHA-256, unpacks it as the runtime is unpacked (no absolute paths, no
+  `..`, no links; the build's `*_BackUpThisFolder_ButDontShipItWithYourGame` and
+  `*_BurstDebugInformation_DoNotShip` folders left out; the player at the top or in one folder, as the
+  workflow's `bridge-linux/`) to `unity/<first 12 of sha256>/`, and switches the `unity/current`
+  symlink. The one before is kept; older ones are removed unless a preview still runs them (its
+  `.in-use` lock).
+- **When.** The installer installs it after the runtime and the game (a failure never fails the
+  install); the background update checks it too, reported as `unity` in `update.log` (never the
+  exit code). The settings' Download (`--update --progress`) leaves it out. `--status-local` says
+  which player is here (`unity`, its sha's first 12; the panel ignores it).
+- **Launch.** `launch-unity` (written by `write_launchers` next to `launch`, with
+  `~/.local/share/applications/moebius-unity.desktop`) runs `deck.py --launch-unity`: no player yet,
+  it downloads one first (logged; none and no network: exit 1 and a line in `unity-launch.log`);
+  starts the background update; pins `unity/current` and execs `memento-js.x86_64 -screen-fullscreen
+  1 -screen-width 1280 -screen-height 800 -logFile unity-data/player.log`, sound on, with `TMPDIR` set
+  to `unity-cache/` (Unity's Vulkan pipeline cache lives in `temporaryCachePath`, under `TMPDIR`,
+  which SteamOS clears at boot) and `XDG_CONFIG_HOME` to `unity-data/` (its `persistentDataPath` and
+  PlayerPrefs; never `~/.config/moebius`).
+- **Steam.** Each shortcut is known by its own Exe (`launch`, `launch-unity`). The preview's appid is
+  Steam's scheme from its own Exe and name (`unity_appid`); the game's stays as it was. It takes the
+  game's icon and library artwork. Accounts that have the game's shortcut get the preview's at
+  install or `--register-steam`, or from a background update that finds Steam closed (`steam_entry`),
+  with the same backup first; the update offers it once per account (`unity-shortcut.json`), so a
+  preview the player removed stays removed until the installer runs again. As Steam runs whenever a
+  game launches from it, an existing install gets the preview by rerunning the installer.
+
 ## Install by hand
 
 Once the repository is private, its release files need a GitHub login. Download the
@@ -185,7 +222,9 @@ while the repository is public): launch the game twice before the repository goe
 - Save data and settings: `~/.config/moebius/` (separate from browser/Android saves)
 - Downloaded game updates: `~/.local/share/moebius-deck/web/<build>/`
 - Update and launch diagnostics: `~/.local/share/moebius-deck/update.log`, `launch.log`
-- Desktop launcher: `~/.local/share/applications/moebius.desktop`
+- The Unity preview: its player in `~/.local/share/moebius-deck/unity/`, its saves and logs in
+  `unity-data/`, its pipeline cache in `unity-cache/`, `unity-launch.log`
+- Desktop launchers: `~/.local/share/applications/moebius.desktop`, `moebius-unity.desktop`
 
 For a manual update or to retry Steam registration, rerun the installation command.
 For registration without downloading, run:
@@ -229,5 +268,5 @@ Do not add `--no-sandbox` to the installed shortcut. That flag is used only in C
 
 Remove the shortcut through Steam's **Manage → Remove non-Steam game from your
 library**. With the game closed, delete `~/.local/share/moebius-deck` and
-`~/.local/share/applications/moebius.desktop` to uninstall. Keep
+`~/.local/share/applications/moebius.desktop` (and `moebius-unity.desktop`) to uninstall. Keep
 `~/.config/moebius` to preserve progress.

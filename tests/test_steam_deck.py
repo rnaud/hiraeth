@@ -310,7 +310,8 @@ class ContentUpdateTests(unittest.TestCase):
             raise OSError('HTTP Error 404: Not Found')
         with patch('sys.stderr', io.StringIO()), patch('sys.stdout', io.StringIO()):
             failures = deck.update_all(self.root, runtime=private,
-                                       content=lambda: deck.install_content(self.root, manifest, fetch))
+                                       content=lambda: deck.install_content(self.root, manifest, fetch),
+                                       unity=lambda: False, art=lambda: False)
         self.assertEqual(failures, ['runtime'])
         self.assertTrue((self.root / 'web/601/index.html').is_file())
 
@@ -485,10 +486,12 @@ class SteamArtTests(unittest.TestCase):
     def test_the_shortcuts_app_id_names_the_art(self):
         appid = deck.shortcut_appid(self.root)
         self.assertEqual(appid, zlib.crc32((f'"{self.root / "launch"}"' + 'Moebius').encode()) | 0x80000000)
-        self.assertEqual(deck.shortcut_appids(self.config, self.root), [appid])
-        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 5)
+        preview = deck.unity_appid(self.root)
+        self.assertEqual(deck.shortcut_appids(self.config, self.root), [appid, preview])
+        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 10, 'the game\'s art for both shortcuts')
         grid = sorted(path.name for path in (self.config / 'grid').iterdir())
-        self.assertEqual(grid, sorted(f'{appid}{suffix}' for suffix in ('p.png', '.png', '_hero.png', '_logo.png', '_icon.png')))
+        self.assertEqual(grid, sorted(f'{id}{suffix}' for id in (appid, preview) for suffix in ('p.png', '.png', '_hero.png', '_logo.png', '_icon.png')))
+        self.assertEqual((self.config / f'grid/{preview}p.png').read_bytes(), b'art steam/portrait.png')
         self.assertEqual((self.config / f'grid/{appid}p.png').read_bytes(), b'art steam/portrait.png')
         self.assertEqual((self.config / f'grid/{appid}_icon.png').read_bytes(), b'art game/icons/icon-512.png')
         self.assertEqual(deck.install_art(self.root, [self.config], self.app), 0, 'nothing to do the second time')
@@ -499,7 +502,7 @@ class SteamArtTests(unittest.TestCase):
         (self.config / f'grid/{appid}_hero.png').write_bytes(b'the player\'s own hero')
         for name in deck.STEAM_ART.values():
             (self.app / name).write_bytes(f'new art {name}'.encode())
-        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 4)
+        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 4 + 5, 'all but the player\'s, the preview\'s too')
         self.assertEqual((self.config / f'grid/{appid}_hero.png').read_bytes(), b'the player\'s own hero')
         self.assertEqual((self.config / f'grid/{appid}.png').read_bytes(), b'new art steam/wide.png')
 
@@ -522,7 +525,7 @@ class SteamArtTests(unittest.TestCase):
         entry = self.entry()
         self.assertEqual((deck.field(entry, 'AppName'), deck.field(entry, 'icon')), ('Hiraeth', str(self.root / 'icon.png')))
         self.assertEqual(deck.field(entry, 'appid'), deck.shortcut_appid(self.root), 'the same id: its playtime and artwork stay')
-        self.assertEqual(len(deck.field(deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes()), 'shortcuts')), 1, 'no duplicate')
+        self.assertEqual(len(deck.field(deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes()), 'shortcuts')), 2, 'no duplicate (the game, the preview)')
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
 
@@ -692,6 +695,277 @@ class LaunchTests(unittest.TestCase):
         with patch.object(deck.shutil, 'which', return_value=None), patch.object(deck.subprocess, 'Popen') as popen:
             self.assertEqual(deck.start_updater(self.root, current), 'child')
         self.assertTrue(popen.call_args.kwargs['start_new_session'])
+
+
+class PreviewShortcutTests(unittest.TestCase):
+    """The second Steam shortcut, "Hiraeth (Unity preview)", beside the game's (issue #146)."""
+
+    setUp_base = SteamDeckTests.setUp
+    bundle = SteamDeckTests.bundle
+
+    def setUp(self):
+        self.setUp_base()
+        self.vdf = self.config / 'shortcuts.vdf'
+
+    def entries(self):
+        return deck.field(deck.parse_vdf(self.vdf.read_bytes()), 'shortcuts')
+
+    def by_exe(self, launcher):
+        return [value for _, value in self.entries() if deck.field(value, 'Exe') == f'"{self.root / launcher}"']
+
+    def test_a_fresh_account_gets_both_shortcuts(self):
+        self.assertTrue(deck.add_shortcut(self.config, self.root))
+        main, preview = self.by_exe('launch'), self.by_exe('launch-unity')
+        self.assertEqual((len(main), len(preview), len(self.entries())), (1, 1, 2))
+        self.assertEqual(deck.field(main[0], 'AppName'), 'Hiraeth')
+        self.assertEqual(deck.field(preview[0], 'AppName'), 'Hiraeth (Unity preview)')
+        self.assertEqual(deck.field(preview[0], 'icon'), str(self.root / 'icon.png'))
+        # the game's id exactly as before; the preview's from its own launcher and name
+        self.assertEqual(deck.field(main[0], 'appid'), zlib.crc32((f'"{self.root / "launch"}"' + 'Moebius').encode()) | 0x80000000)
+        self.assertEqual(deck.field(preview[0], 'appid'),
+                         zlib.crc32((f'"{self.root / "launch-unity"}"' + 'Hiraeth (Unity preview)').encode()) | 0x80000000)
+        self.assertNotEqual(deck.shortcut_appid(self.root), deck.unity_appid(self.root))
+        self.assertFalse(deck.shortcut_stale(self.config, self.root))
+        self.assertFalse(deck.add_shortcut(self.config, self.root))
+
+    def test_an_existing_shortcuts_file_keeps_its_entries(self):
+        other = ('0', [('appid', 7), ('AppName', 'Other'), ('Exe', '"/other"')])
+        original = deck.encode_vdf([('shortcuts', [other])])
+        self.vdf.write_bytes(original)
+        self.assertTrue(deck.add_shortcut(self.config, self.root))
+        self.assertEqual(self.entries()[0], other)
+        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Other', 'Hiraeth', 'Hiraeth (Unity preview)'])
+        self.assertEqual(next(self.config.glob('*.bak')).read_bytes(), original)
+
+    def test_an_account_with_only_the_game_gets_the_preview_once(self):
+        deck.add_shortcut(self.config, self.root, preview=False)
+        main = self.by_exe('launch')[0]
+        deck.set_field(main, 'AppName', 'My own name', lambda _old: True)
+        main.append(('LaunchOptions2', 'the player\'s'))
+        document = deck.parse_vdf(self.vdf.read_bytes())
+        deck.field(document, 'shortcuts')[0] = ('0', main)
+        self.vdf.write_bytes(deck.encode_vdf(document))
+        self.assertFalse(self.by_exe('launch-unity'))
+        self.assertTrue(deck.shortcut_stale(self.config, self.root))
+        self.assertFalse(deck.shortcut_stale(self.config, self.root, preview=False))
+        # Steam running: nothing written
+        with patch.object(deck, 'steam_running', return_value=True):
+            deck.steam_entry(self.root, [self.config])
+        self.assertFalse(self.by_exe('launch-unity'))
+        before = self.vdf.read_bytes()
+        self.assertTrue(deck.steam_entry(self.root, [self.config]))
+        self.assertEqual(len(self.by_exe('launch-unity')), 1)
+        self.assertEqual(self.by_exe('launch')[0], main, 'the player\'s edits to the game\'s shortcut stay')
+        self.assertIn(before, [path.read_bytes() for path in self.config.glob('*.bak')])
+        # the player removes the preview: the background update leaves it removed
+        document = deck.parse_vdf(self.vdf.read_bytes())
+        entries = deck.field(document, 'shortcuts')
+        entries[:] = [(key, value) for key, value in entries if deck.field(value, 'Exe') != f'"{self.root / "launch-unity"}"']
+        self.vdf.write_bytes(deck.encode_vdf(document))
+        deck.steam_entry(self.root, [self.config])
+        self.assertFalse(self.by_exe('launch-unity'))
+
+    def test_an_account_without_the_game_gets_nothing_from_the_update(self):
+        self.vdf.write_bytes(deck.encode_vdf([('shortcuts', [])]))
+        deck.steam_entry(self.root, [self.config])
+        self.assertEqual(self.entries(), [])
+
+    def test_the_launchers_and_desktop_entries(self):
+        runtime, fetch = self.bundle(1001)
+        deck.install_update(self.root, runtime, fetch)
+        deck.write_launchers(self.root, home=self.home)
+        script = (self.root / 'launch-unity').read_text()
+        self.assertTrue((self.root / 'launch-unity').stat().st_mode & 0o111)
+        self.assertIn('/current/resources/app/deck.py', script)
+        self.assertTrue(script.rstrip().endswith('--launch-unity "$@"'))
+        self.assertTrue((self.root / 'launch').read_text().rstrip().endswith(' --launch "$@"'))
+        entry = (self.home / '.local/share/applications/moebius-unity.desktop').read_text()
+        self.assertIn('Name=Hiraeth (Unity preview)\n', entry)
+        self.assertIn(f'Exec="{self.root / "launch-unity"}"', entry)
+        self.assertIn('Name=Hiraeth\n', (self.home / '.local/share/applications/moebius.desktop').read_text())
+
+
+class UnityPlayerTests(unittest.TestCase):
+    """The Unity preview's player, from the unity-linux release: its own component (unity/<sha>/)."""
+
+    setUp_base = SteamDeckTests.setUp
+
+    def setUp(self):
+        self.setUp_base()
+        self.count = 0
+
+    def player(self, top='bridge-linux', extra=(), files=None):
+        """A fake memento-unity-linux.tar.gz: its release JSON (the asset GitHub lists) and a downloader."""
+        self.count += 1
+        source = self.home / f'player-{self.count}.tar.gz'
+        prefix = f'{top}/' if top else ''
+        files = files or {
+            'memento-js.x86_64': (b'#!/bin/sh\n' + str(self.count).encode(), 0o644),   # (made executable on install)
+            'UnityPlayer.so': (b'so', 0o755),
+            'memento-js_Data/data.unity3d': (b'data', 0o644),
+            'memento-js_BackUpThisFolder_ButDontShipItWithYourGame/huge.cpp': (b'x' * 100, 0o644),
+        }
+        with tarfile.open(source, 'w:gz') as archive:
+            for name, (data, mode) in files.items():
+                item = tarfile.TarInfo(prefix + name)
+                item.size, item.mode = len(data), mode
+                archive.addfile(item, io.BytesIO(data))
+            for item in extra:
+                archive.addfile(item, io.BytesIO(b'x' * item.size))
+        data = source.read_bytes()
+        release = {'tag_name': 'unity-linux', 'assets': [
+            {'name': 'notes.txt', 'size': 1, 'digest': 'sha256:' + '0' * 64, 'browser_download_url': 'https://example.com/x'},
+            {'name': deck.UNITY_ASSET, 'size': len(data), 'digest': 'sha256:' + hashlib.sha256(data).hexdigest(),
+             'browser_download_url': deck.UNITY_ASSET_URL}]}
+        return release, lambda _manifest, target: shutil.copyfile(source, target)
+
+    def install(self, top='bridge-linux', **kwargs):
+        release, fetch = self.player(top, **kwargs)
+        manifest = deck.unity_manifest(release)
+        return manifest, deck.install_unity(self.root, manifest, fetch)
+
+    def test_the_release_json_names_the_player(self):
+        release, _ = self.player()
+        manifest = deck.unity_manifest(release)
+        self.assertEqual(manifest['url'], 'https://github.com/rnaud/hiraeth/releases/download/unity-linux/memento-unity-linux.tar.gz')
+        self.assertEqual(manifest['sha256'], release['assets'][1]['digest'][7:])
+        asset = release['assets'][1]
+        for bad in ({'browser_download_url': 'https://example.com/memento-unity-linux.tar.gz'}, {'digest': None},
+                    {'digest': 'md5:abc'}, {'size': 0}, {'size': deck.MAX_ARCHIVE + 1}, {'name': 'other.tar.gz'}):
+            with self.assertRaises(ValueError):
+                deck.unity_manifest({'assets': [{**asset, **bad}]})
+
+    def test_the_api_is_asked_with_a_user_agent_and_a_timeout(self):
+        release, _ = self.player()
+        seen = {}
+
+        def urlopen(request, timeout):
+            seen.update(url=request.full_url, agent=request.get_header('User-agent'), timeout=timeout)
+            return io.BytesIO(json.dumps(release).encode())
+        with patch.object(deck.urllib.request, 'urlopen', side_effect=urlopen):
+            self.assertEqual(deck.get_unity_manifest(), deck.unity_manifest(release))
+        self.assertEqual(seen['url'], 'https://api.github.com/repos/rnaud/hiraeth/releases/tags/unity-linux')
+        self.assertTrue(seen['agent'])
+        self.assertLessEqual(seen['timeout'], 30)
+
+    def test_installs_switches_and_keeps_the_one_before(self):
+        first, changed = self.install()
+        self.assertTrue(changed)
+        current = (self.root / 'unity/current').resolve()
+        self.assertEqual(current.name, first['sha256'][:12])
+        self.assertTrue((current / 'memento-js.x86_64').stat().st_mode & 0o111, 'executable')
+        self.assertTrue((current / 'memento-js_Data/data.unity3d').is_file())
+        self.assertFalse(list(current.glob('*_BackUpThisFolder_ButDontShipItWithYourGame')), 'the build\'s leftovers stay out')
+        self.assertEqual(deck.unity_installed(self.root)['sha256'], first['sha256'])
+        self.assertFalse(deck.install_unity(self.root, first, lambda *_: self.fail('not downloaded again')))
+        second, _ = self.install(top='')   # (the player at the archive's top works too)
+        self.assertEqual((self.root / 'unity/current').resolve().name, second['sha256'][:12])
+        self.assertTrue((self.root / 'unity' / first['sha256'][:12]).is_dir(), 'the one before is kept')
+        third, _ = self.install()
+        players = sorted(path.name for path in (self.root / 'unity').iterdir() if not path.name.startswith('.') and path.is_dir() and path.name != 'current')
+        self.assertEqual(players, sorted([second['sha256'][:12], third['sha256'][:12]]))
+        self.assertFalse(list((self.root / 'unity').glob('.download-*')))
+
+    def test_a_running_preview_keeps_its_player(self):
+        first, _ = self.install()
+        with ((self.root / 'unity/current').resolve() / '.in-use').open('a') as pin:
+            fcntl.flock(pin, fcntl.LOCK_SH)
+            self.install()
+            self.install()
+            self.assertTrue((self.root / 'unity' / first['sha256'][:12] / 'memento-js.x86_64').is_file())
+        self.install()
+        self.assertFalse((self.root / 'unity' / first['sha256'][:12]).exists())
+
+    def test_a_wrong_checksum_or_size_changes_nothing(self):
+        first, _ = self.install()
+        for key, value in (('sha256', '0' * 64), ('size', 5)):
+            release, fetch = self.player()
+            manifest = {**deck.unity_manifest(release), key: value}
+            with self.assertRaises(ValueError):
+                deck.install_unity(self.root, manifest, fetch)
+            self.assertEqual(deck.unity_installed(self.root)['sha256'], first['sha256'])
+        self.assertFalse(list((self.root / 'unity').glob('.download-*')))
+
+    def test_unsafe_archives_are_refused(self):
+        link = tarfile.TarInfo('bridge-linux/escape')
+        link.type, link.linkname = tarfile.SYMTYPE, '/tmp'
+        outside = tarfile.TarInfo('../../escaped')
+        outside.size = 1
+        absolute = tarfile.TarInfo(str(self.home / 'absolute'))
+        absolute.size = 1
+        for entry in (link, outside, absolute):
+            with self.assertRaises(ValueError):
+                self.install(extra=[entry])
+        with self.assertRaises(ValueError):
+            self.install(files={'readme.txt': (b'no player', 0o644)})
+        self.assertIsNone(deck.unity_installed(self.root))
+        self.assertFalse((self.home / 'escaped').exists() or (self.home / 'absolute').exists())
+
+    def test_the_update_reports_it_apart_and_the_settings_skip_it(self):
+        def offline():
+            raise OSError('offline')
+        with patch('sys.stderr', io.StringIO()), patch('sys.stdout', io.StringIO()):
+            self.assertEqual(deck.update_all(self.root, runtime=lambda: False, content=lambda: False,
+                                             unity=offline, art=lambda: False), ['unity'])
+            self.assertEqual(deck.update_all(self.root, runtime=lambda: False, content=lambda: False,
+                                             unity=offline, art=lambda: False, with_unity=False), [])
+
+
+class LaunchUnityTests(unittest.TestCase):
+    """--launch-unity: the installed player, pinned, its own data folder and a cache that lasts."""
+
+    setUp_base = SteamDeckTests.setUp
+    bundle = SteamDeckTests.bundle
+    player = UnityPlayerTests.player
+    install = UnityPlayerTests.install
+
+    def setUp(self):
+        self.setUp_base()
+        self.count = 0
+        runtime, fetch = self.bundle(1001)
+        deck.install_update(self.root, runtime, fetch)
+
+    def launch(self, install=None):
+        seen = {}
+
+        def run(command, env, cwd, keep, output):
+            seen.update(command=command, env=env, cwd=cwd)
+            with (cwd / '.in-use').open('a') as lock:
+                with self.assertRaises(BlockingIOError):
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        with patch('sys.stderr', io.StringIO()):
+            deck.launch_unity(self.root, ['-level', 'desert'], run=run, updater=lambda *_: 'child',
+                              install=install or (lambda _root: self.fail('installed already')))
+        return seen
+
+    def test_the_players_environment_and_arguments(self):
+        manifest, _ = self.install()
+        seen = self.launch()
+        player = (self.root / 'unity/current').resolve()
+        self.assertEqual(seen['cwd'], player)
+        self.assertEqual(seen['env']['TMPDIR'], str(self.root / 'unity-cache'))
+        self.assertEqual(seen['env']['XDG_CONFIG_HOME'], str(self.root / 'unity-data'))
+        self.assertTrue((self.root / 'unity-cache').is_dir() and (self.root / 'unity-data').is_dir())
+        self.assertEqual(seen['command'], [str(player / 'memento-js.x86_64'), '-screen-fullscreen', '1', '-screen-width', '1280',
+                                           '-screen-height', '800', '-logFile', str(self.root / 'unity-data/player.log'),
+                                           '-level', 'desert'])
+        self.assertNotIn('-mute', seen['command'])
+        self.assertIn('Starting', (self.root / 'unity-launch.log').read_text())
+        self.assertEqual(deck.local_state(self.root)['unity'], manifest['sha256'][:12])
+
+    def test_no_player_yet_installs_it_first(self):
+        seen = self.launch(install=lambda root: self.install()[1])
+        self.assertTrue(seen['command'][0].endswith('/memento-js.x86_64'))
+        self.assertIn('downloading', (self.root / 'unity-launch.log').read_text())
+
+    def test_no_player_and_no_network_exits_with_a_line(self):
+        def offline(_root):
+            raise OSError('offline')
+        with self.assertRaises(SystemExit) as done:
+            self.launch(install=offline)
+        self.assertEqual(done.exception.code, 1)
+        self.assertIn('not installed', (self.root / 'unity-launch.log').read_text())
+        self.assertEqual(deck.local_state(self.root)['unity'], '')
 
 
 if __name__ == '__main__':

@@ -8,8 +8,11 @@ Two kinds of update, both checked in the background at each launch:
   (desktop/main.mjs, MOEBIUS_GAME), unless it needs a newer runtime (minDesktop).
 - the runtime (Electron, main.mjs, this updater, a packaged copy of the game): from the
   game's site too (RUNTIME_SITE_URL, in parts: scripts/deck-runtime.mjs), else the
-  steam-deck GitHub release, out of reach while the repository is private; a package
-  downloaded by hand installs with --from (docs/steam-deck.md).
+  steam-deck GitHub release; a package downloaded by hand installs with --from (docs/steam-deck.md).
+
+And a third, its own component: the Unity bridge's Linux player (the unity-linux GitHub release),
+unpacked to unity/<sha>/ and started by a second Steam shortcut, "Hiraeth (Unity preview)"
+(--launch-unity, the launch-unity script), with its own data folder; the web build stays the game.
 
 Standard-library only; no root, FUSE, Proton, or SteamOS system changes.
 """
@@ -34,7 +37,7 @@ import urllib.request
 import zipfile
 import zlib
 
-# The runtime package: the GitHub release (private: by hand with --from), and the game's site
+# The runtime package: the GitHub release (or by hand with --from), and the game's site
 BASE_URL = 'https://github.com/rnaud/hiraeth/releases/download/steam-deck/'
 MANIFEST_URL = BASE_URL + 'steam-deck.json'
 # The game's content updates, next to the web game (scripts/web-update.mjs)
@@ -45,6 +48,16 @@ RUNTIME_SITE_URL = CONTENT_URL + 'steam-deck.json'
 ROOT = Path.home() / '.local/share/moebius-deck'
 MAX_ARCHIVE = 1024 * 1024 * 1024
 MAX_CONTENT = 300 * 1024 * 1024
+# The Unity preview's player: the asset of the unity-linux release, read from GitHub's API
+UNITY_RELEASE_URL = 'https://api.github.com/repos/rnaud/hiraeth/releases/tags/unity-linux'
+UNITY_ASSET = 'memento-unity-linux.tar.gz'
+UNITY_ASSET_URL = 'https://github.com/rnaud/hiraeth/releases/download/unity-linux/' + UNITY_ASSET
+UNITY_PLAYER = 'memento-js.x86_64'
+# (the build's own leftovers, not for shipping: never unpacked)
+UNITY_SKIP = ('_BackUpThisFolder_ButDontShipItWithYourGame', '_BurstDebugInformation_DoNotShip')
+# The two Steam shortcuts, each known by its launcher (its Exe): the game, and the Unity preview
+MAIN_NAME, UNITY_NAME = 'Hiraeth', 'Hiraeth (Unity preview)'
+OLD_NAMES = (None, '', 'Moebius', 'moebius', 'Memento', 'memento')
 
 
 def atomic_write(path, data, mode=0o644):
@@ -138,7 +151,20 @@ def steam_configs(home):
                    if p.parent.name.isdigit() and p.parent.name != '0' and p.is_dir()})
 
 
-def add_shortcut(config, root):
+def shortcut_exe(root, launcher='launch'):
+    """A shortcut's identity: its stable executable (launch: the game; launch-unity: the Unity preview)."""
+    return f'"{root / launcher}"'
+
+
+def our_entries(entries, exe):
+    return [value for _, value in (entries if isinstance(entries, list) else [])
+            if isinstance(value, list) and field(value, 'exe') == exe]
+
+
+def add_shortcut(config, root, preview=True):
+    """The game's shortcut and the Unity preview's in one account's shortcuts.vdf (one write, backed up
+    first). preview: add the preview's when the account lacks it (the background update offers it once
+    per account, so one the player removed stays removed). @return whether the file changed"""
     if steam_running():
         raise RuntimeError('Exit Steam completely before adding the shortcut, then run the installer again.')
     path = config / 'shortcuts.vdf'
@@ -147,20 +173,27 @@ def add_shortcut(config, root):
     entries = field(document, 'shortcuts')
     if not isinstance(entries, list):
         raise ValueError('Missing shortcuts map; Steam files unchanged')
-    exe = f'"{root / "launch"}"'
+    icon = str(root / 'icon.png')
     # Identity is the stable executable, not the display name. Keep user edits, but a shortcut
     # still under the game's old names ('Moebius' or 'Memento') or without an
     # icon gets the game's.
-    ours = [value for _, value in entries if isinstance(value, list) and field(value, 'exe') == exe]
-    if ours:
-        changed = False
-        for entry in ours:
-            changed |= set_field(entry, 'AppName', 'Hiraeth', lambda name: name in (None, '', 'Moebius', 'moebius', 'Memento', 'memento'))
-            changed |= set_field(entry, 'icon', str(root / 'icon.png'), lambda icon: not icon)
-        if not changed:
-            return False
-    else:
-        add_entry(entries, exe, root)
+    changed = False
+    ours = our_entries(entries, shortcut_exe(root))
+    for entry in ours:
+        changed |= set_field(entry, 'AppName', MAIN_NAME, lambda name: name in OLD_NAMES)
+        changed |= set_field(entry, 'icon', icon, lambda icon: not icon)
+    if not ours:
+        add_entry(entries, shortcut_exe(root), root, MAIN_NAME, shortcut_appid(root))
+        changed = True
+    previews = our_entries(entries, shortcut_exe(root, 'launch-unity'))
+    for entry in previews:
+        changed |= set_field(entry, 'AppName', UNITY_NAME, lambda name: not name)
+        changed |= set_field(entry, 'icon', icon, lambda icon: not icon)
+    if not previews and preview:
+        add_entry(entries, shortcut_exe(root, 'launch-unity'), root, UNITY_NAME, unity_appid(root))
+        changed = True
+    if not changed:
+        return False
     # Check again immediately before writing; don't overwrite intervening edits.
     if steam_running() or (path.read_bytes() if path.exists() else None) != original:
         raise RuntimeError('Steam shortcuts changed during installation; please retry with Steam closed.')
@@ -183,10 +216,9 @@ def set_field(entry, key, value, replace):
     return True
 
 
-def add_entry(entries, exe, root):
-    appid = shortcut_appid(root)   # (from the old name: the id stays stable)
+def add_entry(entries, exe, root, name, appid):
     entries.append((str(len(entries)), [
-        ('appid', appid), ('AppName', 'Hiraeth'), ('Exe', exe),
+        ('appid', appid), ('AppName', name), ('Exe', exe),
         ('StartDir', f'"{root}"'), ('icon', str(root / 'icon.png')),
         ('ShortcutPath', ''), ('LaunchOptions', ''), ('IsHidden', 0),
         ('AllowDesktopConfig', 1), ('AllowOverlay', 1), ('OpenVR', 0),
@@ -195,15 +227,17 @@ def add_entry(entries, exe, root):
     entries[:] = [(str(i), value) for i, (_, value) in enumerate(entries)]
 
 
-def shortcut_stale(config, root):
-    """Whether this account lacks our shortcut, or has it under the old name or without an icon."""
+def shortcut_stale(config, root, preview=True):
+    """Whether this account lacks our shortcut, or has it under the old name or without an icon; or
+    (preview) lacks the Unity preview's, or has it without a name or an icon."""
     try:
         entries = field(parse_vdf((config / 'shortcuts.vdf').read_bytes()), 'shortcuts')
     except (OSError, ValueError):
         return True
-    ours = [value for _, value in (entries if isinstance(entries, list) else [])
-            if isinstance(value, list) and field(value, 'exe') == f'"{root / "launch"}"']
-    return not ours or any(field(value, 'AppName') in (None, '', 'Moebius', 'moebius', 'Memento', 'memento') or not field(value, 'icon') for value in ours)
+    ours = our_entries(entries, shortcut_exe(root))
+    previews = our_entries(entries, shortcut_exe(root, 'launch-unity'))
+    return (not ours or any(field(value, 'AppName') in OLD_NAMES or not field(value, 'icon') for value in ours)
+            or (preview and not previews) or any(not field(value, 'AppName') or not field(value, 'icon') for value in previews))
 
 
 def fetch_manifest(url):
@@ -268,9 +302,9 @@ def progress(step, got, total, done=False):
         pass
 
 
-def download(manifest, destination):
+def download(manifest, destination, step='runtime', seconds=900):
     digest, size = hashlib.sha256(), 0
-    deadline = time.monotonic() + 900
+    deadline = time.monotonic() + seconds
     with destination.open('wb') as output:
         for url in manifest.get('parts') or [manifest['url']]:
             request = urllib.request.Request(url, headers={'User-Agent': 'Moebius-Updater'})
@@ -279,7 +313,7 @@ def download(manifest, destination):
                     size += len(chunk)
                     if size > MAX_ARCHIVE or time.monotonic() > deadline:
                         raise ValueError('Download exceeded its size or time limit')
-                    progress('runtime', size, manifest.get('size'))
+                    progress(step, size, manifest.get('size'))
                     digest.update(chunk)
                     output.write(chunk)
     if 'size' in manifest and size != manifest['size']:
@@ -288,7 +322,8 @@ def download(manifest, destination):
         raise ValueError('Download checksum mismatch; installed game unchanged')
 
 
-def extract(archive, destination):
+def extract(archive, destination, skip=()):
+    """skip: entries under a folder whose name ends so are left out (checked all the same)."""
     with tarfile.open(archive, 'r:gz') as bundle:
         members = bundle.getmembers()
         if sum(member.size for member in members) > 3 * MAX_ARCHIVE:
@@ -300,6 +335,8 @@ def extract(archive, destination):
                 raise ValueError('Unsafe archive entry')
         # Only regular files/directories; no symlinks, devices, ownership, or setuid.
         for member in members:
+            if skip and any(part.endswith(skip) for part in Path(member.name).parts):
+                continue
             target = base / member.name
             if member.isdir():
                 target.mkdir(parents=True, exist_ok=True)
@@ -575,6 +612,147 @@ def install_content(root, manifest, downloader=download_content):
         return True
 
 
+# ---------------------------------------------------------------- the Unity preview's player
+
+def get_unity_manifest():
+    """The unity-linux release's player, from GitHub's API: {url, size, sha256} (its asset's digest)."""
+    request = urllib.request.Request(UNITY_RELEASE_URL, headers={
+        'User-Agent': 'Moebius-Updater', 'Accept': 'application/vnd.github+json'})
+    with urllib.request.urlopen(request, timeout=10) as response:
+        data = response.read(1024 * 1024 + 1)
+    if len(data) > 1024 * 1024:
+        raise ValueError('Unity release is too large')
+    return unity_manifest(json.loads(data))
+
+
+def unity_manifest(release):
+    asset = next((asset for asset in (release.get('assets') or []) if isinstance(asset, dict)
+                  and asset.get('name') == UNITY_ASSET), None)
+    if asset is None:
+        raise ValueError(f'No {UNITY_ASSET} on the unity-linux release')
+    digest = asset.get('digest') or ''
+    manifest = {'url': asset.get('browser_download_url'), 'size': asset.get('size'),
+                'sha256': digest[len('sha256:'):] if digest.startswith('sha256:') else ''}
+    validate_unity_manifest(manifest)
+    return manifest
+
+
+def validate_unity_manifest(manifest):
+    if manifest.get('url') != UNITY_ASSET_URL:
+        raise ValueError('Unexpected Unity player URL')
+    if type(manifest.get('size')) is not int or not 0 < manifest['size'] <= MAX_ARCHIVE:
+        raise ValueError('Invalid Unity player size')
+    if not re.fullmatch(r'[0-9a-f]{64}', manifest.get('sha256') or ''):
+        raise ValueError('Invalid Unity player checksum')
+
+
+def download_unity(manifest, destination):
+    download(manifest, destination, step='unity', seconds=1800)
+
+
+def unity_installed(root):
+    """The installed player's {sha256, size, installedAt} (unity/current/unity.json), or None."""
+    try:
+        current = (root / 'unity/current').resolve(strict=True)
+        data = json.loads((current / 'unity.json').read_text())
+        if (current / UNITY_PLAYER).is_file() and isinstance(data.get('sha256'), str):
+            return data
+    except (OSError, ValueError, AttributeError):
+        pass
+    return None
+
+
+def prune_unity(root, keep=2):
+    """Keep the current player and the one before it, and any one in use (a running preview pins it)."""
+    unity = root / 'unity'
+    current = (unity / 'current').resolve()
+
+    def installed_at(path):
+        try:
+            return json.loads((path / 'unity.json').read_text()).get('installedAt', 0)
+        except (OSError, ValueError, AttributeError):
+            return 0
+    players = sorted((path for path in unity.iterdir() if re.fullmatch(r'[0-9a-f]{12}', path.name) and path.is_dir()),
+                     key=lambda path: (path == current, installed_at(path)), reverse=True)
+    for path in players[keep:]:
+        if path == current:
+            continue
+        with (path / '.in-use').open('a') as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                continue
+            shutil.rmtree(path)
+
+
+def install_unity(root, manifest, downloader=download_unity):
+    """Download, verify and unpack the unity-linux player when its digest differs from the installed
+    one, then point unity/current at it. @return whether one was installed"""
+    validate_unity_manifest(manifest)
+    unity = root / 'unity'
+    unity.mkdir(parents=True, exist_ok=True)
+    with (unity / 'update.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return False
+        if (unity_installed(root) or {}).get('sha256') == manifest['sha256']:
+            return False
+        destination = unity / manifest['sha256'][:12]
+        with tempfile.TemporaryDirectory(dir=unity, prefix='.download-') as temporary:
+            staging = Path(temporary)
+            archive = staging / 'player.tar.gz'
+            downloader(manifest, archive)
+            # Check here too, so every path verifies the download.
+            digest, size = hashlib.sha256(), 0
+            with archive.open('rb') as stream:
+                while chunk := stream.read(1024 * 1024):
+                    digest.update(chunk)
+                    size += len(chunk)
+            if size != manifest['size']:
+                raise ValueError('Unity player size mismatch; installed player unchanged')
+            if digest.hexdigest() != manifest['sha256']:
+                raise ValueError('Unity player checksum mismatch; installed player unchanged')
+            content = staging / 'player'
+            content.mkdir()
+            extract(archive, content, skip=UNITY_SKIP)
+            archive.unlink()
+            # the player at the archive's top, or in its one folder (the workflow's bridge-linux/)
+            if not (content / UNITY_PLAYER).is_file():
+                inner = [path for path in content.iterdir() if path.is_dir()]
+                if len(inner) != 1 or not (inner[0] / UNITY_PLAYER).is_file():
+                    raise ValueError('Incomplete Unity player')
+                content = inner[0]
+            (content / UNITY_PLAYER).chmod(0o755)
+            atomic_write(content / 'unity.json', json.dumps({
+                'sha256': manifest['sha256'], 'size': manifest['size'], 'installedAt': time.time()}).encode())
+            with (unity / 'state.lock').open('a') as state:
+                fcntl.flock(state, fcntl.LOCK_EX)
+                if destination.exists():
+                    # (an earlier player again, or an interrupted activation: the fresh files replace it,
+                    # unless a preview still runs it)
+                    with (destination / '.in-use').open('a') as pin:
+                        try:
+                            fcntl.flock(pin, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        except BlockingIOError:
+                            raise ValueError('That Unity player is running; it updates next time') from None
+                        shutil.rmtree(destination)
+                content.rename(destination)
+                link = unity / '.current-new'
+                link.unlink(missing_ok=True)
+                link.symlink_to(destination.name, target_is_directory=True)
+                link.replace(unity / 'current')
+                try:
+                    prune_unity(root)
+                except OSError as error:
+                    print(f'Unity player installed, but old-player cleanup failed: {error}', file=sys.stderr)
+        return True
+
+
+def update_unity(root):
+    return install_unity(root, get_unity_manifest())
+
+
 # ---------------------------------------------------------------- Steam's library artwork
 
 # Steam's names in an account's config/grid/, after the shortcut's app id → the runtime's files
@@ -585,24 +763,30 @@ STEAM_ART = {'p.png': 'steam/portrait.png', '.png': 'steam/wide.png', '_hero.png
 
 
 def shortcut_appid(root):
-    """The app id Steam gives our shortcut (add_shortcut writes it; Steam names its artwork after it)."""
+    """The app id Steam gives our shortcut (add_shortcut writes it; Steam names its artwork after it),
+    from the old name: the id stays stable."""
     return zlib.crc32((f'"{root / "launch"}"' + 'Moebius').encode()) | 0x80000000
 
 
-def shortcut_appids(config, root):
-    """Our shortcut's app ids in one account, read from its shortcuts.vdf (by the stable executable)."""
+def unity_appid(root):
+    """The Unity preview's: Steam's scheme too, from its own launcher and name (never the game's id)."""
+    return zlib.crc32((shortcut_exe(root, 'launch-unity') + UNITY_NAME).encode()) | 0x80000000
+
+
+def shortcut_appids(config, root, launchers=('launch', 'launch-unity')):
+    """Our shortcuts' app ids in one account, read from its shortcuts.vdf (by their stable executables)."""
     try:
         document = parse_vdf((config / 'shortcuts.vdf').read_bytes())
     except (OSError, ValueError):
         return []
     entries = field(document, 'shortcuts')
-    exe = f'"{root / "launch"}"'
-    return [field(value, 'appid') for _, value in (entries if isinstance(entries, list) else [])
-            if isinstance(value, list) and field(value, 'exe') == exe and type(field(value, 'appid')) is int]
+    return [field(value, 'appid') for launcher in launchers for value in our_entries(entries, shortcut_exe(root, launcher))
+            if type(field(value, 'appid')) is int]
 
 
 def install_art(root, configs, app=None):
-    """Steam's library artwork for our shortcut, in each account's config/grid/: files only, never
+    """Steam's library artwork for our shortcuts (the Unity preview takes the game's), in each account's
+    config/grid/: files only, never
     shortcuts.vdf, so it is safe while Steam runs (it shows them once it restarts). Artwork the player
     chose in Steam (a file there that isn't one we wrote) is kept. @return how many files changed"""
     app = app or root / 'current/resources/app'
@@ -647,6 +831,8 @@ def local_state(root):
         version = ''
     state = {'runtime': installed_build(root), 'runtimeVersion': version, 'desktop': carried['desktop'],
              'nextWeb': carried['web'], 'nextVersion': version}
+    # the Unity preview's player, its sha256's first 12 ('' before one is installed; the panel ignores it)
+    state['unity'] = ((unity_installed(root) or {}).get('sha256') or '')[:12]
     game = choose_content(root, current)
     if game:
         try:
@@ -679,28 +865,65 @@ def status(root, content=None, runtime=None):
     return state
 
 
+def preview_offered(root):
+    """The accounts (their config folders) the Unity preview's shortcut was given to (unity-shortcut.json)."""
+    try:
+        return set(json.loads((root / 'unity-shortcut.json').read_text()))
+    except (OSError, ValueError, TypeError):
+        return set()
+
+
+def remember_preview(root, configs):
+    offered = preview_offered(root)
+    if not {str(config) for config in configs} <= offered:
+        atomic_write(root / 'unity-shortcut.json', json.dumps(sorted(offered | {str(config) for config in configs})).encode())
+
+
 def steam_entry(root, configs):
-    """Our shortcut's artwork and, while Steam is closed (it rewrites shortcuts.vdf from memory as it
-    exits), its name and icon in accounts that have it under the old name. @return whether anything changed"""
+    """Our shortcuts' artwork and, while Steam is closed (it rewrites shortcuts.vdf from memory as it
+    exits), in accounts that have the game's shortcut: its name and icon if it has the old name, and the
+    Unity preview's shortcut, once (one the player removed stays removed; the installer adds it again).
+    @return whether anything changed"""
     renamed = False
     if not steam_running():
+        offered, given = preview_offered(root), []
         for config in configs:
-            if shortcut_appids(config, root) and shortcut_stale(config, root):
-                try:
-                    renamed |= add_shortcut(config, root)
-                except (RuntimeError, ValueError, OSError):
-                    pass   # (Steam started meanwhile, or files we won't touch: next time)
+            if not shortcut_appids(config, root, ('launch',)):
+                continue
+            preview = str(config) not in offered
+            try:
+                if shortcut_stale(config, root, preview):
+                    renamed |= add_shortcut(config, root, preview)
+            except (RuntimeError, ValueError, OSError):
+                continue   # (Steam started meanwhile, or files we won't touch: next time)
+            if preview:
+                given.append(config)
+        if given:
+            remember_preview(root, given)
     return install_art(root, configs) > 0 or renamed
 
 
-def update_all(root, runtime=None, content=None, art=None):
-    """The background update: the runtime and the game separately, so one failing (the runtime's
-    feed once GitHub is out of reach, or offline) never holds back the other; and Steam's artwork
-    for the shortcut. @return what failed"""
+def steam_refresh(root):
+    """The background update's Steam step: the launchers (launch-unity is new to installs from before
+    the preview), then steam_entry."""
+    try:
+        write_launchers(root)
+    except OSError as error:
+        print(f'launchers: not rewritten ({error})', file=sys.stderr, flush=True)
+    return steam_entry(root, steam_configs(Path.home()))
+
+
+def update_all(root, runtime=None, content=None, art=None, unity=None, with_unity=True):
+    """The background update: the runtime, the game and the Unity preview's player separately, so one
+    failing (a feed out of reach, or offline) never holds back the others; and Steam's shortcuts and
+    artwork. with_unity: False for the settings' download (its bar covers the runtime and the game).
+    @return what failed"""
     failures = []
-    steps = (('runtime', runtime or (lambda: install_update(root, get_manifest()))),
-             ('game', content or (lambda: install_content(root, get_content_manifest()))),
-             ('artwork', art or (lambda: steam_entry(root, steam_configs(Path.home())))))
+    steps = [('runtime', runtime or (lambda: install_update(root, get_manifest()))),
+             ('game', content or (lambda: install_content(root, get_content_manifest())))]
+    if with_unity:
+        steps.append(('unity', unity or (lambda: update_unity(root))))
+    steps.append(('artwork', art or (lambda: steam_refresh(root))))
     for name, step in steps:
         try:
             changed = step()
@@ -722,14 +945,21 @@ def local_package(directory):
     return manifest, lambda _manifest, target: shutil.copyfile(archive, target)
 
 
-def write_launchers(root):
-    script = '#!/bin/sh\nexec python3 ' + shlex.quote(str(root / 'current/resources/app/deck.py')) + ' --launch "$@"\n'
-    atomic_write(root / 'launch', script.encode(), 0o755)
-    atomic_write(root / 'icon.png', (root / 'current/resources/app/game/icons/icon-512.png').read_bytes())
+def desktop_entry(name, command, icon):
     # Desktop Exec quoting is not shell quoting; escape its reserved characters.
-    command = str(root / 'launch').replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$').replace('%', '%%')
-    entry = f'[Desktop Entry]\nType=Application\nName=Hiraeth\nExec="{command}"\nIcon={root / "icon.png"}\nTerminal=false\nCategories=Game;\n'
-    atomic_write(Path.home() / '.local/share/applications/moebius.desktop', entry.encode(), 0o755)
+    command = str(command).replace('\\', '\\\\').replace('"', '\\"').replace('`', '\\`').replace('$', '\\$').replace('%', '%%')
+    return f'[Desktop Entry]\nType=Application\nName={name}\nExec="{command}"\nIcon={icon}\nTerminal=false\nCategories=Game;\n'.encode()
+
+
+def write_launchers(root, home=None):
+    """launch (the game's shortcut) and launch-unity (the Unity preview's), their icon and desktop entries."""
+    applications = (home or Path.home()) / '.local/share/applications'
+    deck = shlex.quote(str(root / 'current/resources/app/deck.py'))
+    for launcher, flag, name, entry in (('launch', '--launch', MAIN_NAME, 'moebius.desktop'),
+                                        ('launch-unity', '--launch-unity', UNITY_NAME, 'moebius-unity.desktop')):
+        atomic_write(root / launcher, f'#!/bin/sh\nexec python3 {deck} {flag} "$@"\n'.encode(), 0o755)
+        atomic_write(applications / entry, desktop_entry(name, root / launcher, root / 'icon.png'), 0o755)
+    atomic_write(root / 'icon.png', (root / 'current/resources/app/game/icons/icon-512.png').read_bytes())
 
 
 # ---------------------------------------------------------------- launching
@@ -941,9 +1171,71 @@ def launch_once(root, arguments, run=run_game):
         sys.exit(1)
 
 
+def unity_env(root, base=None):
+    """The Unity preview's environment: TMPDIR a folder that lasts (Unity keeps its Vulkan pipeline cache
+    in temporaryCachePath, under TMPDIR, which SteamOS clears at boot), XDG_CONFIG_HOME its own data
+    folder (persistentDataPath and PlayerPrefs: never the web game's profile)."""
+    env = dict(os.environ if base is None else base)
+    env.update(TMPDIR=str(root / 'unity-cache'), XDG_CONFIG_HOME=str(root / 'unity-data'))
+    return env
+
+
+def unity_command(player, root, arguments):
+    return [str(player / UNITY_PLAYER), '-screen-fullscreen', '1', '-screen-width', '1280', '-screen-height', '800',
+            '-logFile', str(root / 'unity-data/player.log'), *arguments]
+
+
+def exec_player(command, env, cwd, keep, output):
+    """Become the player, so Steam tracks it (and its Exit Game reaches it) directly; the pin's lock
+    (keep) and the log (output, its stdout and stderr) go with it."""
+    os.set_inheritable(keep.fileno(), True)
+    os.dup2(output.fileno(), 1)
+    os.dup2(output.fileno(), 2)
+    os.chdir(cwd)
+    os.execve(command[0], command, env)
+
+
+def launch_unity(root, arguments, run=exec_player, install=update_unity, updater=start_updater):
+    """The Unity preview's shortcut: the installed player (installed first if it isn't yet), pinned so an
+    update never removes it while it runs, with its own data folder and a lasting cache."""
+    for folder in ('unity-cache', 'unity-data'):
+        (root / folder).mkdir(parents=True, exist_ok=True)
+    record = (root / 'unity-launch.log').open('w')
+
+    def log(line):
+        print(f'Hiraeth (Unity preview): {line}', file=sys.stderr, flush=True)
+        record.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {line}\n')
+        record.flush()
+    if unity_installed(root) is None:
+        log('No Unity player yet: downloading it (about 300 MB)…')
+        try:
+            install(root)
+        except Exception as error:
+            log(f'Download failed ({error}).')
+    try:   # (the background update, as the game's launch starts it: the runtime, the game, this player)
+        updater(root, (root / 'current').resolve(strict=True))
+    except OSError as error:
+        log(f'No update check ({error}).')
+    (root / 'unity').mkdir(parents=True, exist_ok=True)
+    with (root / 'unity/state.lock').open('a') as state:
+        fcntl.flock(state, fcntl.LOCK_SH)
+        if unity_installed(root) is None:
+            log('The Unity player is not installed (no network, or the background update is still downloading it): try again later.')
+            record.close()
+            sys.exit(1)
+        player = (root / 'unity/current').resolve(strict=True)
+        pin = (player / '.in-use').open('a')
+        fcntl.flock(pin, fcntl.LOCK_SH)
+    command = unity_command(player, root, arguments)
+    log(f'Starting {player.name}: {shlex.join(command)}')
+    with pin, record:   # (exec_player never returns: the player holds them from here)
+        run(command, unity_env(root), player, pin, record)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--launch', action='store_true')
+    parser.add_argument('--launch-unity', action='store_true', help='the Unity preview (launch-unity)')
     parser.add_argument('--update', action='store_true')
     parser.add_argument('--register-steam', action='store_true')
     parser.add_argument('--from', dest='source', metavar='DIR',
@@ -961,6 +1253,9 @@ def main():
     if args.launch:
         launch(root, extra)
         return
+    if args.launch_unity:
+        launch_unity(root, extra)
+        return
     if extra:
         parser.error('Unknown arguments: ' + ' '.join(extra))
     if args.status or args.status_local:
@@ -969,7 +1264,9 @@ def main():
     if args.update:
         global PROGRESS
         PROGRESS = Path(args.progress) if args.progress else None
-        failures = update_all(root)
+        # (the settings' download, --progress, leaves the Unity preview to the launch's update; a
+        # 'unity' failure never fails it)
+        failures = update_all(root, with_unity=PROGRESS is None)
         progress('done', 0, 0, done=True)
         sys.exit(1 if 'runtime' in failures and 'game' in failures else 0)
     if not args.register_steam:
@@ -986,6 +1283,12 @@ def main():
                 print('The newest game was downloaded too.', flush=True)
         except Exception as error:
             print(f'The game looks for its newest version again at the next launch ({error}).', flush=True)
+        try:
+            print('Checking for the Unity preview\'s player (about 300 MB the first time)…', flush=True)
+            if update_unity(ROOT):
+                print('The Unity preview was installed too.', flush=True)
+        except Exception as error:
+            print(f'The Unity preview is downloaded at the next update instead ({error}).', flush=True)
     write_launchers(ROOT)
     configs = steam_configs(Path.home())
     if not configs:
@@ -993,6 +1296,7 @@ def main():
     # accounts that have the shortcut as it should be need nothing from Steam, only the artwork
     missing = [config for config in configs if shortcut_stale(config, ROOT)]
     if not missing:
+        remember_preview(ROOT, configs)
         changed = install_art(ROOT, configs)
         print('Hiraeth is installed and in Steam' + (' with its library artwork: restart Steam to see it.' if changed else '.'), flush=True)
         return
@@ -1006,6 +1310,7 @@ def main():
         time.sleep(2)  # allow Steam to finish flushing its configuration
     for config in configs:
         add_shortcut(config, ROOT)
+    remember_preview(ROOT, configs)
     install_art(ROOT, configs)
     print('Hiraeth is installed and added to Steam. Reopen Steam or return to Gaming Mode. Updates download while you play and apply next launch.', flush=True)
 

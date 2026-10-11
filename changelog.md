@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.50 — 2026-10-11
 
+- On the Steam Deck, a second game can join Hiraeth in your library: “Hiraeth (Unity preview)”, an early look at the game on a new engine, smoother in most places. It is for trying out: it has no menus or conversations yet and keeps its own progress, so Hiraeth stays the game to play. Run the installer again to add it (new installs get it at once); after that it downloads and updates by itself.
 - Once you are back from home, the quest log names the goal: make the Signal Market’s silent tower speak. The galactic map marks the market NEXT, even before it is charted, and the ship’s console and recordings say the light went that way.
 - After your first homecoming, each world’s recording plays a little more of your father’s, made at the window the night the light came over the house: a new line in each world, the light a little further out every time.
 - From your seventh world on, a far light hangs in every sky: a small inked star with four long rays and a wash of gold round it, faint at first and brighter with every world you finish.

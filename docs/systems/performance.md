@@ -1930,9 +1930,8 @@ persistent folder (it moves there: tried). GraphicsStateCollection would do what
 the mirror 10) and the GPU (the G-buffer's pixels, ~12 ms of the 19-24). The desert and the Signal Market are over 55,
 and the Market over 60 at 60 Hz.
 
-**How players could get it** (a proposal, not done). The Unity player is not the whole game yet: no menus,
-conversations or pages (the page's in the web build), and its saves are its own (PlayerPrefs, not the Electron
-profile's). So not *instead of* the web build. *Beside* it: the Deck package (`scripts/package-steam-deck.mjs`,
-`steam-deck.yml`) could carry the `unity-linux` player as a second Steam shortcut, "Hiraeth (Unity preview)", launched
-by deck.py with `TMPDIR` set and its own data folder, updated with the package. That is for the testers, until the bridge
-has the menus, conversations and a save shared with the web build.
+**How players get it** (done, issue #146). The Unity player is not the whole game yet: no menus, conversations or
+pages, and its saves are its own (PlayerPrefs, not the Electron profile's). So not *instead of* the web build but
+*beside* it: a second Steam shortcut, "Hiraeth (Unity preview)", launched by deck.py with `TMPDIR` set and its own data
+folder. Not in the package (it would triple it): deck.py installs and updates the `unity-linux` player as its own
+component, by the release asset's digest (docs/steam-deck.md, "The Unity preview").

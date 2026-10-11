@@ -655,6 +655,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'Once you are back from home, the quest log names the goal', shots: [
       { name: 'quest-step', title: 'The quest log', caption: 'The Quests page after the first homecoming, seven worlds done: before, “The singing light went out along the route: follow it”; after, “Make the Signal Market’s silent tower speak”', ...C50_MAP },
     ], see: 'After the first homecoming, open the menu’s Quests page, then the galactic map: the Signal Market (or its faint dot) carries NEXT and “the silent tower”, with a gold line out to it from your ship.' },
+    { match: 'On the Steam Deck, a second game can join Hiraeth', see: 'On a Steam Deck with Hiraeth installed, rerun the install command in Konsole (Desktop Mode) and choose Steam → Exit when it asks: back in Steam, Non-Steam shows “Hiraeth (Unity preview)” beside Hiraeth, with the same artwork. Its first start downloads the player if the installer could not (about 300 MB); ~/.local/share/moebius-deck/unity-launch.log says what ran.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [
