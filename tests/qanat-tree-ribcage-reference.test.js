@@ -1,8 +1,8 @@
 // Qanat's burning tree and the giant ribcage, rebuilt after the author's picked references
 // (references/levels/The Desert/places/qanat-tree, ribcage; src/desert-city.js, src/desert-ribcage.js). What the story
 // and the walk rely on: the crown's leaves are the fire (a glowing mesh coloured per vertex, no light of its own), bare
-// while the tree is cold; the buttress roots leave the ring round the trunk walkable; the low arm arches over Nour's
-// bench with room under it; the makers' chest sits on the plank shelf. The ribcage is one mesh: ribs arching into a hall
+// while the tree is cold; the buttress roots leave the ring round the trunk walkable; the low arm leaves room under it;
+// Nour's bench stands out of the chest's close view; the makers' chest sits on its dais. The ribcage is one mesh: ribs arching into a hall
 // you walk through, the drum's rib foot where Teo's drum is jammed, the skull's horns high at the head end, and the
 // cloth and footprints by the drum (the drum itself: tests/desert-errands.test.js).
 import test from 'node:test';
@@ -68,6 +68,7 @@ test('the buttress roots leave the ring round the trunk walkable: nothing over a
   for (let a = -Math.PI; a < Math.PI; a += 0.05) for (const r of [8, 9, 10]) {
     const p = round(a, r);
     if (Math.hypot(p.x - C.center.x, p.z - C.center.z) > 11.2) continue;   // (the ring by the trunk: the tree's foot)
+    if (Math.hypot(p.x - C.shrine.dais.center.x, p.z - C.shrine.dais.center.z) < C.shrine.dais.r + 0.1) continue;   // (the makers' dais: walked up its steps, checked below)
     const g = physics.groundAt(p.x, top + 1.2, p.z, 3);
     if (Number.isFinite(g) && g - top > 0.6) bad.push(`${a.toFixed(2)}/${r}: ${(g - top).toFixed(2)} m`);
   }
@@ -78,28 +79,52 @@ test('the buttress roots leave the ring round the trunk walkable: nothing over a
   assert.ok(tall > 10, `tall fins against the trunk (${tall} samples)`);
 });
 
-test('the low arm arches over Nour’s bench, with room to walk under it on the way round to the back gate', () => {
-  const b = C.shrine.bench.at;
-  const over = physics.rayDistance(b.clone().add(V(0, 0.6, 0)), V(0, 1, 0), 12);
-  // (the arm passes beside and over the bench: look for it within a couple of metres)
-  let low = Infinity;
-  for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1.4, 1.4], [-1.4, -1.4], [1.4, -1.4], [-1.4, 1.4]]) low = Math.min(low, physics.rayDistance(b.clone().add(V(dx, 0.6, dz)), V(0, 1, 0), 12));
-  assert.ok(Number.isFinite(low) && low > 1.2 && low < 6, `the arm ${low.toFixed(2)} m over the bench's sitter (straight up: ${over})`);
-  // under it, on the walk round the trunk (city-local -8, 2.7), a person stands upright
+test('Nour’s bench stands out of the chest’s close view, facing it, a clear walk from the dais; the low arm leaves room to walk under it', () => {
+  // (issue #160, the author: move the bench further from the chest, out of the close view. It stood 3 m behind the dais
+  // under the low arm, in every picture of the chest close up; now out in the square to the left as you come up the avenue)
+  const L = C.shrine, b = L.bench.at, c = L.dais.center;
+  const dc = Math.hypot(b.x - c.x, b.z - c.z);
+  assert.ok(dc > 6 && dc < 9, `well off the chest, still in sight of it (${dc.toFixed(1)} m)`);
+  // out of the close view: from the square in front of the chest, looking at it, the bench is out of a 16:9 frame at 55°
+  const eye = L.foot.clone().add(V(0, 1.6, 0)), to = L.box.clone().sub(eye).setY(0).normalize(), tb = b.clone().sub(eye).setY(0).normalize();
+  const half = Math.atan(Math.tan(55 / 2 * Math.PI / 180) * 16 / 9);
+  assert.ok(Math.acos(to.dot(tb)) > half + 0.1, `out of the close view (${(Math.acos(to.dot(tb)) * 180 / Math.PI).toFixed(0)}° off, the frame ${(half * 180 / Math.PI).toFixed(0)}°)`);
+  // nor in front of it from the avenue: beside the sightline from the avenue's end, not across it
+  const av = C.plinthStair, ab = L.box.clone().sub(av).setY(0), k = THREE.MathUtils.clamp(b.clone().sub(av).setY(0).dot(ab) / ab.lengthSq(), 0, 1);
+  const off = av.clone().addScaledVector(ab, k).sub(b).setY(0).length();
+  assert.ok(off > 3, `clear of the avenue's sightline (${off.toFixed(1)} m)`);
+  // she sits facing the chest, sky over her, the dais in sight from the seat
+  const hd = L.bench.heading, f = V(Math.sin(hd), 0, Math.cos(hd)), tc = c.clone().sub(b).setY(0).normalize();
+  assert.ok(f.dot(tc) > 0.95, 'the bench faces the chest');
+  assert.equal(physics.rayDistance(b.clone().add(V(0, 0.6, 0)), V(0, 1, 0), 12), Infinity, 'open sky over it');
+  const seat = b.clone().add(V(0, 0.75, 0)), lid = L.box.clone().add(V(0, 0.8, 0));
+  assert.ok(physics.rayDistance(seat, lid.clone().sub(seat).normalize(), seat.distanceTo(lid)) > seat.distanceTo(lid) - 0.3, 'the chest in sight from the seat');
+  // her walk to the dais's foot when it opens and back (src/story/desert.js nourWait, nourHome): no wall, no step
+  const wait = L.at(-1.0, 0, L.face + 1.1).setY(top), from = b.clone().setY(top).addScaledVector(f, 0.7);
+  const n = Math.ceil(from.distanceTo(wait) / 0.25), dir = wait.clone().sub(from).setY(0).normalize();
+  for (let i = 0; i <= n; i++) {
+    const q = from.clone().lerp(wait, i / n), g = physics.groundAt(q.x, top + 0.6, q.z, 2);
+    assert.ok(Math.abs(g - top) < 0.1, `level ground on her way (${(g - top).toFixed(2)} m at ${i}/${n})`);
+    for (const h of [0.5, 1.2]) assert.ok(physics.rayDistance(V(q.x, top + h, q.z), dir, 0.3) > 0.29, `nothing in her way at ${i}/${n}`);
+  }
+  // the low arm: on the walk round the trunk under it (city-local -8, 2.7), a person stands upright
   const w = C.local(-8, top - C.center.y, 2.7), head = physics.rayDistance(w.clone().setY(top + 0.2), V(0, 1, 0), 10);
   assert.ok(head > 2.4, `head room under the arm (${head.toFixed(2)} m)`);
 });
 
 test('the makers’ chest sits on its round white dais at the tree’s foot, in a clearing of flagstones (issue #140)', () => {
   const L = C.shrine;
-  assert.ok(Math.abs(L.box.y - L.dais.y) < 0.01 && L.dais.y - top > 0.3 && L.dais.y - top < 0.6, 'on the dais, a step over the square');
+  // (issue #160: taller, so it reads from the avenue 27 m off: three steps of 0.3 m, the top at 0.9 m)
+  assert.ok(Math.abs(L.box.y - L.dais.y) < 0.01 && L.dais.y - top > 0.8 && L.dais.y - top < 1.0, `on the dais, three steps over the square (${(L.dais.y - top).toFixed(2)} m)`);
   const g = physics.groundAt(L.box.x, L.box.y + 0.5, L.box.z, 2);
   assert.ok(Math.abs(g - L.box.y) < 0.02, 'the dais holds it');
-  // two steps, each walked up (no climb): the lower step's top half way
-  const c = L.dais.center, mid = (L.dais.r + L.dais.r2) / 2;
-  const toFoot = V(L.foot.x - c.x, 0, L.foot.z - c.z).normalize();
-  const s1 = physics.groundAt(c.x + toFoot.x * mid, top + 1, c.z + toFoot.z * mid, 2);
-  assert.ok(Math.abs(s1 - top - L.dais.step) < 0.03, `the lower step (${(s1 - top).toFixed(2)} m)`);
+  // three steps, each walked up (no climb): the lower and the middle step's tops, a third and two thirds of the way
+  const c = L.dais.center, toFoot = V(L.foot.x - c.x, 0, L.foot.z - c.z).normalize();
+  for (const [r, h, name] of [[(L.dais.r + L.dais.r1) / 2, L.dais.step, 'lower'], [(L.dais.r1 + L.dais.r2) / 2, L.dais.step2, 'middle']]) {
+    const s = physics.groundAt(c.x + toFoot.x * r, top + 1.5, c.z + toFoot.z * r, 2);
+    assert.ok(Math.abs(s - top - h) < 0.03, `the ${name} step (${(s - top).toFixed(2)} m)`);
+  }
+  assert.ok(L.dais.step < 0.4 && L.dais.step2 - L.dais.step < 0.4 && L.dais.y - top - L.dais.step2 < 0.4, 'each a stair’s step');
   // the plank shelf, its pier and its climbing root are gone: nothing up the trunk over the dais
   for (const y of [3.2, 5, 7.2]) assert.equal(physics.rayDistance(V(L.box.x, top + y, L.box.z), V(0, 1, 0), 0.5), Infinity, `nothing ${y} m over it`);
   const mats = new Set(); scene.getObjectByName('Old city of Qanat').traverse((m) => { if (m.isMesh) mats.add(m.material); });

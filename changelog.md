@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.50 — 2026-10-11
 
+- The makers’ dais under Qanat’s tree stands taller, three white steps instead of two, so the chest on it shows clearly from the gate and all the way up the avenue. Nour’s bench has moved out of the way: it stands a few steps off to the left of the dais, facing it, instead of right behind the chest.
 - Qanat’s square is clearer round its great tree: the stone well and the carved stele are gone. The water now climbs the tree’s own roots while you watch, and you set the spark-stone in the roots at the trunk’s foot, on the avenue’s side. Hessa sweeps round the roots instead of the well.
 
 ## v1.49 — 2026-10-11

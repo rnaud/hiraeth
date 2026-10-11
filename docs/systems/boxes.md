@@ -139,7 +139,7 @@ The first chest is everything (issue #140, v1.49: "The first chest by the tree s
 tree, feels unnecessary … it should be like a temple chest"). It stands on the square at the burning tree's foot
 (`city.shrine`), in a clearing between the roots toward the old shrine's corner, left of the trunk as you come up
 the avenue from the gate, the bare bark behind it and the low arm reaching over it: a round dais of the Givers' white
-stone in two walkable steps (0.22 m each, `DAIS` in src/desert-city.js: the temples' altar of
+stone in three walkable steps (0.3 m each, the top at 0.9 m, `DAIS` in src/desert-city.js: the temples' altar of
 `references/Core Objects/Chests/temple/sheet-2.jpg`), a gold band round its top, the makers' ring glowing on it and
 their mark on the lower riser toward the avenue; a ring of pale flagstones edged in gold round its foot, nothing else
 in the clearing; a soft light over it for the dusk. On it the **temple chest** (`chest: 'temple'` on the placement:
@@ -147,6 +147,13 @@ in the clearing; a soft light over it for the dusk. On it the **temple chest** (
 opening. Its id is the same (`desert.backpack`), so a save that opened it keeps it opened. (Until v1.49 it stood on a
 plank shelf 7 m up the trunk, on a pier over a buttress root: a climb in two pitches.) `tests/boxes.test.js` checks the
 place: on the ground, in sight from the avenue, nothing within 3 m, the bark behind, the walk up from the gate.
+
+Issue #160 (the author: the bench out of the close view, the dais taller so it reads from the avenue): the dais was two
+steps of 0.22 m, its top at 0.46 m, and hardly showed over the paving from the avenue's end 27 m off; it is three of
+0.3 m now (a gold ring on each step's edge, the colliders as many-sided as the drawn steps), its clearing 3.3 m across.
+Nour's stone bench stood 3 m behind it under the low arm, in every close picture of the chest; it stands 7 m off now,
+out in the square to the left as you come up the avenue, facing the chest, clear of the avenue's sightline, with an
+open walk to where she waits at the dais's foot (`tests/qanat-tree-ribcage-reference.test.js`).
 
 ## What comes with an item: the gun's two modes in one chest
 

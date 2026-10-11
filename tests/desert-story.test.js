@@ -386,7 +386,7 @@ test('the makers’ chest is on its dais at the tree’s foot; opening it (its t
   const box = boxes.list.find((b) => b.item === 'backpack');
   const L = Q.city.shrine;
   assert.ok(box.pos.distanceTo(L.box) < 0.05, 'on the makers’ dais');
-  assert.ok(box.pos.y - Q.city.top < 0.6, 'on the square, not up the tree (issue #140)');
+  assert.ok(box.pos.y - Q.city.top < 1.0, 'on the square, not up the tree (issue #140; its dais three steps high, issue #160)');
   assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
   const W = rt.world, nour = W.people.nour;
   assert.ok(nour.seat !== null && nour.pos.distanceTo(L.bench.at) < 0.5, 'Nour sits on her bench beside the dais');

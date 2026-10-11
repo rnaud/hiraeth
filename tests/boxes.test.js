@@ -142,9 +142,9 @@ test('the desert backpack box is a temple chest on the makers’ dais at the bur
   const at = resolvePlacement(p, { physics, level });
   assert.ok(at, 'resolves');
   assert.ok(at.pos.distanceTo(L.box) < 0.05, 'on the dais');
-  // on the ground: the dais's top, a step up from the square (no ledge, no climb)
+  // on the ground: the dais's top, three steps up from the square (no ledge, no climb; issue #160: it was two)
   const rise = at.pos.y - C.top;
-  assert.ok(rise > 0.3 && rise < 0.6, `on the dais on the square (${rise.toFixed(2)} m up)`);
+  assert.ok(rise > 0.8 && rise < 1.0, `on the dais on the square (${rise.toFixed(2)} m up)`);
   const g = physics.groundAt(at.pos.x, at.pos.y + 1, at.pos.z, 2);
   assert.ok(Math.abs(g - at.pos.y) < 0.03, 'the dais holds it');
   // at the tree's foot, left of the trunk from the avenue, in the middle of the city
@@ -159,7 +159,7 @@ test('the desert backpack box is a temple chest on the makers’ dais at the bur
   // nothing round it within 3 m at a body's height but the dais it stands on (the author's rule, issue #81)
   for (let i = 0; i < 24; i++) {
     const a = i / 24 * Math.PI * 2, d = V(Math.sin(a), 0, Math.cos(a));
-    for (const h of [0.7, 1.3, 2]) assert.equal(physics.rayDistance(V(at.pos.x, C.top + h, at.pos.z), d, 3), Infinity, `clear round it (${(a * 180 / Math.PI).toFixed(0)}° at ${h} m)`);
+    for (const h of [0.25, 0.85, 1.55]) assert.equal(physics.rayDistance(V(at.pos.x, at.pos.y + h, at.pos.z), d, 3), Infinity, `clear round it (${(a * 180 / Math.PI).toFixed(0)}° at ${h} m over the dais)`);
   }
   // the bark behind it, the chest facing out of the tree toward the avenue's end
   const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw));
@@ -173,7 +173,7 @@ test('the desert backpack box is a temple chest on the makers’ dais at the bur
     const eye = q.clone().setY(physics.groundAt(q.x, q.y + 2, q.z) + 1.6), lid = at.pos.clone().add(V(0, 0.8, 0)), d = eye.distanceTo(lid);
     assert.ok(physics.rayDistance(eye, lid.clone().sub(eye).normalize(), d) > d - 0.2, `seen from ${name}`);
   }
-  // on foot from the gate: up the avenue, across the square, up the dais's steps to the chest (no step over 0.62 m, no wall)
+  // on foot from the gate: up the avenue, across the square, up the dais's three steps to the chest (no step over 0.62 m, no wall)
   const route = [C.gate, C.plinthStair, C.stairTop, L.foot, at.pos.clone().addScaledVector(F, 0.9)];
   for (let i = 0; i < route.length - 1; i++) {
     const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);

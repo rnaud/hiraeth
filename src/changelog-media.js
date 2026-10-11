@@ -622,7 +622,7 @@ const SAVE_ARRIVAL = { flags: { 'prologue.done': true, 'items.v': 2, 'save.migra
 const MINUTE_ON = 'const w = window.weather; w.timer = 0; w.update(0.01); w.intensity = w.target; await new Promise((r) => setTimeout(r, 1500));';
 // (issue #147: the conversation panel at three sizes, before and after)
 const TALK49 = 'headless Chrome (muted, 11 October) against this branch’s own dev server and against main before it, Qanat’s camp in the desert, the traveller beside the speaker; the game held still for the picture; cwebp -q 72';
-// (v1.50: Qanat's square, issue #161: a new game before the chest, at ten in the morning)
+// (v1.50: Qanat's square, issues #161 and #160: a new game before the chest, at ten in the morning)
 const SQ_FROM = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720, a new game before the chest), Vite on port 5463, at the commit before the change and at the change (before its rebase), 11 October';
 const SQ_AVENUE = { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 58, eye: [215.5, 3.4, 374.5], target: [231.5, 3.2, 397.5], player: [212.5, 1.3, 369.5] };
 export const CHANGELOG_MEDIA = {
@@ -633,6 +633,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'square-close', title: 'Where they stood', caption: 'A few steps into the square, looking where the well and the stele stood: before, the well’s kerb with Hessa beside it and the stele; after, the open paving up to the bare roots, where the water now climbs and the spark-stone is set', from: SQ_FROM,
         view: { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 60, eye: [218.8, 2.95, 384.5], target: [223.0, 2.3, 394.0], player: [214.5, 1.3, 373] } },
     ], see: 'Walk up the avenue into Qanat: no well and no stele in the square. Later in the quest, once the rib is off the channel, come back to the roots on the avenue’s side of the trunk and watch the tree drink.' },
+    { match: 'The makers’ dais under Qanat’s tree stands taller', shots: [
+      { name: 'dais-avenue', title: 'From the avenue', caption: 'From the end of the avenue, 27 m off: before, the dais two low steps, Nour’s bench behind it; after, three steps, the chest standing clear over the paving and the bench off to the left', from: SQ_FROM,
+        view: SQ_AVENUE },
+      { name: 'dais-gate', title: 'From the gate', caption: 'From inside the main gate, 65 m off, up the avenue', from: SQ_FROM,
+        view: { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 32, eye: [195.6, 2.9, 340.2], target: [232.3, 2.3, 392.9], player: [193.5, 1.3, 336.5] } },
+      { name: 'dais-close', title: 'Up close', caption: 'In front of the chest, a few steps off: before, Nour on her bench right behind it; after, nobody behind the chest, and the dais a step taller', from: SQ_FROM,
+        view: { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 55, eye: [228.6, 2.9, 389.4], target: [232.3, 2.6, 393.0], player: [226.5, 1.3, 386.5] } },
+    ], see: 'Start a new game and walk up to Qanat: the chest shows on its white dais from the gate. Nour sits on her bench out in the square to the left of it.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

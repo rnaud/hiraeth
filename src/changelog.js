@@ -11,6 +11,8 @@ export const CHANGELOG = [
   { v: '1.50', date: '2026-10-11', items: [
     // Qanat's square (docs/systems/worlds.md "Qanat's square without the well and the stele"; issue #161)
     'Qanat’s square is clearer round its great tree: the stone well and the carved stele are gone. The water now climbs the tree’s own roots while you watch, and you set the spark-stone in the roots at the trunk’s foot, on the avenue’s side. Hessa sweeps round the roots instead of the well.',
+    // the dais and Nour's bench (docs/systems/boxes.md "The tree's dais"; issue #160)
+    'The makers’ dais under Qanat’s tree stands taller, three white steps instead of two, so the chest on it shows clearly from the gate and all the way up the avenue. Nour’s bench has moved out of the way: it stands a few steps off to the left of the dais, facing it, instead of right behind the chest.',
   ] },
   { v: '1.49', date: '2026-10-11', items: [
     // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)
