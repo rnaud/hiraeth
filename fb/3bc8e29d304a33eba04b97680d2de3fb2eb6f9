@@ -1,0 +1,55 @@
+src/levels/incal.js
+  s_9ca76055a220ed::t_d1d2fcf1d77739 11,364,408-409
+src/changelog-media.js
+  s_9ca76055a220ed::t_71bc9721da7b0c 660-663
+docs/systems/performance.md
+  s_9ca76055a220ed::t_972440934d804e 1782-1862
+src/shield.js
+  s_9ca76055a220ed::t_95f0e10828b9a3 2,182-184,186-187,189
+changelog.md
+  s_9ca76055a220ed::t_b4a51ad74dcda7 7
+scripts/bench/draw-census.js
+  s_9ca76055a220ed::t_64eb6a1c9d974c 1-35
+tests/banners.test.js
+  s_9ca76055a220ed::t_7468b8dfecc0fb 7,31-61
+src/taxi.js
+  s_9ca76055a220ed::t_c02ab5d5b9c580 524-528
+src/changelog.js
+  s_9ca76055a220ed::t_99305efb1e3314 72-93
+src/life.js
+  s_9ca76055a220ed::t_8c07f3c2de0820 5,170-171,176-177,190-235
+tests/matrix-cache.test.js
+  s_9ca76055a220ed::t_a07f9518ef7d02 73-93
+src/static-batch.js
+  s_9ca76055a220ed::t_e396c6bcf086be 2,78-80,82
+tests/static-batch.test.js
+  s_9ca76055a220ed::t_65379524ffddfe 10,51-56
+src/materials.js
+  s_9ca76055a220ed::t_b0c7f928dc532f 481,968-970
+src/perf.js
+  s_9ca76055a220ed::t_35553ceba9b6ac 4,288-304,347-349,360,629-630
+tests/interior-cull.test.js
+  s_9ca76055a220ed::t_2de2ad8e379fa0 150-166
+src/render-frame.js
+  s_9ca76055a220ed::t_bca17e4a964089 1-4
+scripts/bench/deck-worlds.mjs
+  s_9ca76055a220ed::t_9fb6f2eb084bab 6,14-16,89,179-183,206-213
+src/enemies/plans/kit.js
+  s_9ca76055a220ed::t_875169716fcfd7 5,122-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fb3bc8e29d304a33eba04b97680d2de3fb2eb6f9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
