@@ -38,6 +38,12 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
 - **Weather** (`src/weather.js`): each world alternates clear spells with
   its own weather, ramping in and out over a few seconds. You can force it
   from World → weather.
+  - **The first arrival is clear** (issue #139): a world's content may hold its
+    sky clear until a flag is set (`calmUntil`, the `calm` option of `Weather`).
+    The desert's is `item.backpack`: you step out of the crashed ship, walk to
+    Qanat and open the makers' chest under a clean sky; once it is open a whole
+    clear spell (70–150 s) passes before the first sandstorm. The Unity port
+    reads the same (`weather.calmUntil`, Ambient.cs). Tests: `tests/weather.test.js`.
   - Sandstorms: a warm haze swallows the distance, and streaks of sand race
     across the screen.
   - Rain: slanted ink strokes falling over the scene.

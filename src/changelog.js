@@ -120,6 +120,8 @@ export const CHANGELOG = [
     // the trials (docs/systems/minigames.md "Best and reward"; issue #125)
     { text: 'A world’s trial whose prize improves one of your gadgets now waits until you have found that gadget, so you no longer win an upgrade for a tool you haven’t got. Its sign says which one it is for.',
       see: 'In Vael before finding the grappling hook, press A / × at the Wind ladder’s sign: “Wind ladder: Its prize is for the grappling hook. Come back with it.” With the hook it starts as before.' },
+    // the Desert's start (docs/systems/story.md "The first arrival is clear"; issue #139)
+    'Your first steps out of the ship in the Desert are under a clear sky: no sandstorm blows in until you have opened the makers’ chest in Qanat. After that the storms come and go as before.',
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

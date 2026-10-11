@@ -22,6 +22,7 @@ namespace Memento
         Color stormColor = Json.Hex("#e3c58f");
         public float Storm => kind == "storm" ? intensity : 0;
         /// <summary>Rain and fog banks (weather.js kinds): the desert has only its sandstorm; another world's weather, or the dev panel's, brings these.</summary>
+        string calmUntil; bool calmed;   // (clear until this flag: the desert's first chest, weather.js calm)
         public float Rain => kind == "rain" ? intensity : 0;
         public float Fog => kind == "fog" ? intensity : 0;
         public bool Indoors { get; private set; }
@@ -42,7 +43,7 @@ namespace Memento
         {
             game = g;
             var w = g.world.World.O("weather");
-            if (w != null) { foreach (var k in w.L("kinds") ?? new List<object>()) kinds.Add(k as string); stormColor = Json.Hex(w.S("stormColor", "#e3c58f")); }
+            if (w != null) { foreach (var k in w.L("kinds") ?? new List<object>()) kinds.Add(k as string); stormColor = Json.Hex(w.S("stormColor", "#e3c58f")); calmUntil = w.S("calmUntil", null); }
             timer = Random.Range(70f, 150f) * 0.5f;
             Shader.SetGlobalVector("_StormColor", stormColor);
             for (int i = 0; i < wisps.Length; i++) wisps[i] = new Wisp();
@@ -104,8 +105,10 @@ namespace Memento
             bool indoors = (game.ship && (game.ship.inside || game.ship.insideSpace)) || pl.y > 500;   // (the ship; the cave, high over the plain)
             // ---- the weather (weather.js)
             if (forced != null) { kind = forced == "clear" ? kind : forced; target = forced == "clear" ? 0 : 1; }
+            else if (calmUntil != null && !(game.state?.Is(calmUntil) ?? true)) { calmed = true; target = 0; }   // (the first arrival held clear: weather.js calm, issue #139)
             else if (kinds.Count > 0)
             {
+                if (calmed) { calmed = false; target = 0; timer = Random.Range(70f, 150f); }
                 timer -= dt;
                 if (timer <= 0)
                 {

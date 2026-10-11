@@ -609,8 +609,15 @@ const C49_BELFRY = { commit: '4bfdf04a' };
 const FB = (x, y, z) => [80 + x, 1600 + y, 150 + z];   // (the Founders' Belfry's own metres, in Vael)
 // (issue #116: every shaft of light a soft wash, as the skull cave's; taken before the branch was rebased: no commit to re-take them at)
 const C49_SHAFTS = { from: 'changelog-shots.mjs views in headless Chrome (muted), the game served by Vite at the commit before the change and at the change (11 October)' };
+// (the Desert's first arrival, issue #139: a new game's save, before the backpack; the weather a minute on, its first spell over)
+const SAVE_ARRIVAL = { flags: { 'prologue.done': true, 'items.v': 2, 'save.migrated': 17 }, keepsakes: [] };
+const MINUTE_ON = 'const w = window.weather; w.timer = 0; w.update(0.01); w.intensity = w.target; await new Promise((r) => setTimeout(r, 1500));';
 export const CHANGELOG_MEDIA = {
   '1.49': [
+    { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [
+      { name: 'arrival-weather', title: 'Out of the ship', caption: 'A new game at the ship’s ramp, a minute after stepping out, before the chest: before, the first sandstorm had come in (it came 35–75 s after you landed); after, the sky stays clear', from: 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720), Vite on port 5437, at the commit before the change and at the change (before its rebase), 11 October',
+        view: { level: 'desert', save: SAVE_ARRIVAL, weather: 'auto', setup: MINUTE_ON, wait: 3000 } },
+    ], see: 'Start a new game and stay by the ship for a few minutes: no storm. Open the chest in Qanat, and a storm can come a couple of minutes later.' },
     { match: 'Light falls in soft shafts in every temple', shots: [
       { name: 'shafts-bud', title: 'The Bud Passage', caption: 'The Builders’ Greenhouse’s Bud Passage, its louvre’s light on the floor by the pots: before, thin glowing bars from the louvre; after, a soft shaft down to the pool of light', ...C49_SHAFTS,
         view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(2.6, 21, 91.7), target: GR(-1.5, 19.5, 102), player: GR(3, 18.05, 92) } },

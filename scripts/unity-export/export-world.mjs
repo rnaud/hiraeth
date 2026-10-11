@@ -684,7 +684,7 @@ const world = {
   frame: 'Unity: x mirrored from three.js (x -> -x), y up, metres; headings are Unity yaw in radians',
   materials, chunks: statics, collision, terrain: terrainOut, objects, look, places, people, crowd: crowdOut, fires, lights, fx,
   // the weather it can have (content.js; main.js: a sandstorm in the desert and Vael) and the life in it (motes, footprints)
-  weather: { kinds: content.weather ?? [], stormColor: { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId] ?? '#e3c58f' }, life: { motes: level.life?.motes ?? null, footprints: level.life?.footprints ?? null },
+  weather: { kinds: content.weather ?? [], calmUntil: content.calmUntil ?? null, stormColor: { desert: '#e3c58f', arzach: '#e8dfcb' }[levelId] ?? '#e3c58f' }, life: { motes: level.life?.motes ?? null, footprints: level.life?.footprints ?? null },
   // walking into one puts you at its other end (the skull's mouth and the cave passage, doorways into rooms)
   portals: (level.portals ?? []).filter((p) => p.at && p.to).map((p) => ({ at: V3(p.at), r: p.r ?? 1.5, to: V3(p.to), heading: -(p.heading ?? 0), label: p.label ?? '' })),
   ship: { site: places.shipSite, ramp: places.shipRamp, ...shipOut },

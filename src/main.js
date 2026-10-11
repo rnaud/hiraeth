@@ -663,7 +663,7 @@ await slice();
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
 // what an ember glob sets alight: the camp fires, the market's lamps, dry brambles (flammable.js)
 const flammables = new Flammables(scene, flammableSpots(level), { lights: levelLights, sound });
-const weather = new Weather(content.weather);
+const weather = new Weather(content.weather, { calm: content.calmUntil ? () => !game.flag(content.calmUntil) : null });   // (the desert's first arrival: clear, issue #139)
 const shelter = new Shelter(physics);   // the weather stays outdoors: rooms, the ship, under roofs (src/shelter.js)
 addIndoors((p) => !!ship.modelOf(p));   // the traveller's own ship
 {

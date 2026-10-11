@@ -176,6 +176,8 @@ export const CONTENT = {
   },
   desert: {
     weather: ['storm'],
+    // the first arrival stays clear (issue #139): no storm until the makers' chest in Qanat has been opened (src/weather.js calm)
+    calmUntil: 'item.backpack',
     // the desert's story is a quest (src/story/desert-data.js): this page
     // opens on the first visit and closes when the ship has power again
     story: {
