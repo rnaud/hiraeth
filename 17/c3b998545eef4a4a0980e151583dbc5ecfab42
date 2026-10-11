@@ -1,0 +1,61 @@
+.claude/skills/quest-qc/SKILL.md
+  s_9ca76055a220ed::t_bcedb11dd8e719 18-19
+changelog.md
+  s_9ca76055a220ed::t_a83e3922dbc63b 7-8
+docs/systems/story.md
+  s_9ca76055a220ed::t_a27fcde6a441cb 726-736
+src/changelog.js
+  s_9ca76055a220ed::t_140ae1a7dd04a5 69-73
+src/save-migrate.js
+  s_9ca76055a220ed::t_d8791dd03dc082 67-68,211-212,222-229,231-232,236
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_c4c349159a77cf 47-48,50,181
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_271d4924971801 50
+src/story/buried-data.js
+  s_9ca76055a220ed::t_b3273702deb957 33-34,36,115,117,119,122,171
+src/story/buried.js
+  s_9ca76055a220ed::t_020efdda2d6979 59-60,62
+src/story/desert-data.js
+  s_9ca76055a220ed::t_43f8de0f358f7a 107,254
+src/story/edena-data.js
+  s_9ca76055a220ed::t_25b30b14ef75ba 71,77,213,382
+src/story/night-train-data.js
+  s_9ca76055a220ed::t_e370c2edcc482f 25
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_3c9c97c09c99ad 56,77
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_6371ff216dbcda 41
+src/story/terraces.js
+  s_9ca76055a220ed::t_e9b991ffd5e088 340-342
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_85d78c40148441 77-78
+tests/quest-steps.test.js
+  s_9ca76055a220ed::t_c900a9f2062abe 3,36-84
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_973c0bae3fe84e 90
+tests/story-arzach2.test.js
+  s_9ca76055a220ed::t_056ed659ba95c4 116,124
+tests/story-buried.test.js
+  s_9ca76055a220ed::t_888d30d26a01dc 85,87,310
+tests/story-spheres.test.js
+  s_9ca76055a220ed::t_65d44e21e91a90 203-220
+tests/story-terraces.test.js
+  s_9ca76055a220ed::t_3d5770046c5855 257-282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "17c3b998545eef4a4a0980e151583dbc5ecfab42",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
