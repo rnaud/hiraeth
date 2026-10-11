@@ -40,6 +40,8 @@ const SURFACE_DEFINE = /^(SURFACE_SPEC|S_[A-Z_]+|METAL|METAL_BRUSHED|LAMP_TINT|N
 export const VARIES = ['uColor', 'uColor2', 'uColor3', 'uFlat'];
 /** The id attribute's name (materials.js USE_BATCHING). */
 export const BATCH_ID = 'aBatchId';
+/** In how many frames every material a batch copied has been compared whole (StaticBatches.update). */
+const ROUNDS = 8;
 const _frustum = new THREE.Frustum(), _pm = new THREE.Matrix4(), _v = new THREE.Vector3();
 
 /** Why this mesh can't be drawn by a static batch ('' if it can, before the movers are judged). */
@@ -146,6 +148,22 @@ class Watch {
     this.keys = Object.keys(m.uniforms).filter((k) => !shared.has(k) && !VARIES.includes(k));
     this.rest = this.snap(this.keys);
     this.vary = this.snap(VARIES);
+    this.dirty = false;
+    this.listen();
+  }
+  /** A number or flag set on one of its uniforms marks it at once (an accessor on the uniform); what changes inside an
+   *  object (a vector set in place) is found by the rounds of holds() (StaticBatches.update). */
+  listen() {
+    for (const k of this.keys) {
+      const u = this.m.uniforms[k];
+      if (u?.__watches) { u.__watches.add(this); continue; }
+      const d = u && Object.getOwnPropertyDescriptor(u, 'value');
+      if (!d || !('value' in d) || (d.value !== null && typeof d.value === 'object')) continue;
+      let v = d.value;
+      const ws = u.__watches = new Set([this]);
+      Object.defineProperty(u, 'value', { get: () => v, set: (x) => { if (x !== v) for (const w of ws) w.dirty = true; v = x; }, enumerable: true, configurable: true });
+      Object.defineProperty(u, '__watches', { enumerable: false });
+    }
   }
   snap(keys) { const out = []; for (const k of keys) numbersOf(this.m.uniforms[k]?.value, out); return Float64Array.from(out); }
   /** Do the material's uniforms `keys` still hold the numbers `snap` took (no allocation: every frame)? */
@@ -447,9 +465,11 @@ export class StaticBatches {
     // the materials the view's batches copied: their varying values written again when they change; any other change
     // and their meshes draw themselves (every frame: a change shows the frame it is made)
     if (!this.watchList) { this.watchList = [...this.watches.values()]; this.watchAt = 0; }
-    const W = this.watchList, n = W.length;
+    // (the colours every frame, for every material; the rest when a number was set on it, and a share of them a frame
+    //  in turn, ROUNDS frames for all: a vector changed in place shows within that)
+    const W = this.watchList, n = W.length, turn = (this.round = ((this.round ?? 0) + 1) % ROUNDS);
     for (let i = 0; i < n; i++) {
-      const w = W[this.watchAt = (this.watchAt + 1) % W.length];
+      const w = W[i];
       if (w.gone) continue;
       // (only what the batch's program reads: a prop's material carries the face's and the eyes' uniforms too, unused; known
       // once the program is linked, asked only then: the query would wait for it)
@@ -457,7 +477,7 @@ export class StaticBatches {
         const p = renderer.properties.get(w.batch.material).currentProgram;
         if (p && (!p.isReady || p.isReady())) { const used = p.getUniforms().map; w.keys = w.keys.filter((k) => k in used); w.rest = w.snap(w.keys); w.narrowed = true; }
       }
-      if (!w.holds(w.keys, w.rest)) { w.gone = true; for (const e of this.entries) if (e.mat === w.m) this.release(e, 'values'); continue; }
+      if ((w.dirty || i % ROUNDS === turn) && (w.dirty = false, !w.holds(w.keys, w.rest))) { w.gone = true; for (const e of this.entries) if (e.mat === w.m) this.release(e, 'values'); continue; }
       if (!w.holds(VARIES, w.vary)) { w.vary = w.snap(VARIES); for (const e of this.entries) if (e.mat === w.m && !e.out) T.setValues(e.id, w.m); }
     }
   }

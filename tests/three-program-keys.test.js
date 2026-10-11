@@ -51,3 +51,22 @@ test('the surface shader reads no define the patch leaves out', () => {
   for (const d of ['DOUBLE_SIDED', 'FLIP_SIDED', 'HAS_NORMAL']) assert.ok(!src.includes(d), d);
   assert.match(src, /else if \(!gl_FrontFacing\) n = -n;/, 'it turns a back face\'s normal itself');
 });
+
+test('an array of vectors is not sent again while it holds what the program last got', async () => {
+  const { ARRAY_CACHE } = await import('../scripts/three-program-keys.mjs');
+  const { sameArray, keepArray } = new Function(`${ARRAY_CACHE}; return { sameArray, keepArray };`)();
+  const THREE = await import('three');
+  const u = { size: 2, cache: [] };
+  const v = [new THREE.Color(0.1, 0.2, 0.3), new THREE.Vector3(1, 2, 3)];
+  assert.equal(sameArray(u, v, 3), false, 'nothing sent yet');
+  keepArray(u, [0.1, 0.2, 0.3, 1, 2, 3], 3);
+  assert.equal(sameArray(u, v, 3), true);
+  v[1].z = 4;
+  assert.equal(sameArray(u, v, 3), false, 'a changed item');
+  assert.equal(sameArray(u, [0.1, 0.2, 0.3, 1, 2, 3], 3), true, 'a flat array');
+  assert.equal(sameArray(u, [0.1, 0.2, 0.3], 3), false, 'too short');
+  const w = { size: 1, cache: [] };
+  keepArray(w, [1, 2, 3, 4], 4);
+  assert.equal(sameArray(w, [new THREE.Vector4(1, 2, 3, 4)], 4), true);
+  assert.equal(sameArray(w, [new THREE.Vector4(1, 2, 3, 5)], 4), false);
+});

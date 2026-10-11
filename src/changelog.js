@@ -58,6 +58,14 @@ export const CHANGELOG = [
           { where: 'the Signal Market', before: 645, after: 500 },
         ], source: 'the frame readout', note: 'The same frozen frame with the batches off and on: 0.003–0.01 % of the pixels differ, single pixels on ink edges, by at most 16 of 255 at the desert’s spawn.' },
       ] },
+    { text: 'Each frame skips more work the graphics chip already had: lists of lights and colours it was sent unchanged at every surface, the settings of textures sent again with the people’s every move. A little more time for everything else, most of all on the Xbox.',
+      numbers: [
+        { title: 'The desert’s spawn, the Xbox preset', unit: '', better: 'lower', device: 'Xbox Series X (Dev Mode, WebView2 150) and the Mac (Apple M4 Pro, headless Chrome)', rows: [
+          { where: 'WebGL calls a frame, the console', before: 2588, after: 2493 },
+          { where: 'WebGL calls a frame, the Mac', before: 2602, after: 2504 },
+          { where: 'array uniforms sent, Mac with the processor slowed 4×, ms a frame', before: 2.1, after: 0.4 },
+        ], source: 'every WebGL call counted for 4 s; V8’s sampling profile' },
+      ] },
   ] },
   { v: '1.45', date: '2026-10-11', items: [
     // the author's desert playtest (issues #66, #68, #69, #71, #76)

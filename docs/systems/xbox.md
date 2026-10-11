@@ -619,6 +619,33 @@ toggles it in the page.
 | the City-Shaft | 3 369 → 2 291 | 913 → 461 | 10.0 → 9.4 ms |
 | the Signal Market | 2 528 → 2 105 | 645 → 500 | 5.5 → 5.2 ms |
 
+On the console (the desert's spawn by the ship, main's heavier scene, the same page, batches off → on): draws 937 →
+399, WebGL calls 3 868 → 2 577, main thread 59-62 → 52.5 ms. (In the iframe no worker starts, so the traveller's cloth
+is simulated on the main thread, ~7 ms of `player` in both: the app itself runs it in its worker.)
+
+**4. What three.js does again for nothing** (scripts/three-program-keys.mjs, more patches of three's module):
+- an array uniform (the light list, a palette) is compared with what its program last got before it is flattened and
+  sent (`sameArray`); three flattened every one at every material change (`setValueV3fArray` / `V4fArray`: 2.1 →
+  0.4 ms a frame on the Mac with its processor slowed 4 times);
+- a texture uploaded again (the people's bones, every frame) keeps its sampling parameters (`__paramsKey`): ~95
+  `texParameteri` calls a frame fewer (Mac: 2 602 → 2 504 calls);
+- the static batches' watch on their materials: a number set on a uniform marks it at once (an accessor), vectors are
+  compared in turn, an eighth of the materials a frame (0.2 → 0.1 ms on the Mac).
+
+**5. WebGPU**: `navigator.gpu` is not there in WebView2 150 on the console (checked in a secure, HTTPS page), so no
+WebGPU path for now. Were it to come: three's WebGPURenderer runs the same scene graph with node materials, so the
+surface and ink shaders (materials.js, post.js: GLSL, ~250 kB) would have to be written again in TSL or WGSL, the
+G-buffer's three targets and the shadow cascades rebuilt on its passes; what it would buy is render bundles and far
+cheaper draws (no per-call validation through the GPU process), the part of the frame measured above as ~13 ms of
+WebGL calls. Weeks of work, not a setting.
+
+**Where the frame goes now** (the console, desert spawn, 52 ms of main thread; `scripts/xbox-probes/systems.js` and a
+V8 profile through the iframe): the G-buffer pass ~21 ms, mostly three.js's JavaScript (renderFrame takes 34 ms with
+its WebGL calls, 20 ms with them made no-ops), the shadow passes 3.5-3.8, the game's systems the rest (story 2-2.5, the
+cloth above, wind 1.2, people 0.7). The JavaScript is spread thin: three's scene walk (`projectObject`, the matrix
+cache: ~6 700 objects every frame), the material uniform uploads at each change of material (~60 compared a change,
+~150 changes), skinned bodies' bones, the flames, the culler.
+
 ## Unknowns (to check on the console)
 
 - WebView2 on the console passes the pad to the Gamepad API (seen, runtime 150); whether it also sends it as keys or
