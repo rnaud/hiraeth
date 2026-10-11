@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_909574c971e8de 8
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_3e35c991793d7d 2,435-437,440-442,445-447,450-452,455-457,460-462,465-467,470-472,475-477,480-482,485-487,490-492,495-507
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_40b03bdf675f75 192-224
+src/changelog-media.js
+  s_9ca76055a220ed::t_5591772de837ef 541,549-555
+src/changelog.js
+  s_9ca76055a220ed::t_231e26de3ddfbe 61
+src/cinematics-page/catalog.js
+  s_9ca76055a220ed::t_dcc5ec993deddb 4,13-14
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_2cb483d55bd261 6,62-64,72-76,123-133
+src/story/glassdunes-moments.js
+  s_9ca76055a220ed::t_89aa7eb76cd875 34-37
+src/story/moonfoundry-moments.js
+  s_9ca76055a220ed::t_7df7cc47dac4d1 31,39-42
+src/story/spacecity-moments.js
+  s_9ca76055a220ed::t_89a3e3c544b403 2,10-11,32-35,43-46
+src/story/underwater-moments.js
+  s_9ca76055a220ed::t_a86ca1e249bac7 9-10,30-35,43-44
+src/story/underwater.js
+  s_9ca76055a220ed::t_95d229b4675192 56,59-60
+tests/moments-underwater.test.js
+  s_9ca76055a220ed::t_9d37d26856a2f4 76-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6c0b8c4710b192905f16cb0733d8b7b86ab5ba88",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
