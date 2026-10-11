@@ -94,6 +94,7 @@ Shader "Memento/Surface"
     _GrassLod ("GrassLod", Vector) = (0, 0, 0, 0)
     _GrassLook ("GrassLook", Vector) = (0, 0, 0, 0)
     _Cull ("Cull", Float) = 2
+    _MZTest ("ZTest (4: LEqual; 8: Always, the bridge's -ztest-always test)", Float) = 4
     _ZWrite ("ZWrite (0: the water, drawn last over the scene's depth)", Float) = 1
   }
   SubShader
@@ -232,7 +233,7 @@ Shader "Memento/Surface"
       Tags { "LightMode" = "MementoGBuffer" }
       Cull [_Cull]
       ZWrite [_ZWrite]
-      ZTest LEqual
+      ZTest [_MZTest]
 
       HLSLPROGRAM
       #pragma target 4.5

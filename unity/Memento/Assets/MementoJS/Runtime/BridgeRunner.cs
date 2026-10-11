@@ -296,6 +296,11 @@ namespace Memento.Bridge
 #endif
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             BridgeRenderer.fullLayout = BridgeArgs.Flag("-full-layout");
+            BridgeRenderer.zTestAlways = BridgeArgs.Flag("-ztest-always");
+            // (-no-water-contact: the water in the G-buffer's own pass, no copy of the scene's depth; the console has no command line
+            // for MementoFeature's -noWaterContact)
+            if (BridgeArgs.Flag("-no-water-contact")) Memento.Rendering.MementoFeature.Settings.waterContact = false;
+            if (BridgeArgs.Arg("-gclear-depth") is string gcd && float.TryParse(gcd, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float gcv)) Memento.Rendering.MementoFeature.Settings.gDepthClear = gcv;
             BridgeRenderer.cullTest = BridgeArgs.Arg("-cull");
             // (the Surface shader's lean variant for the materials that need none of its rare paths: the Linux player's, -lean
             // elsewhere, -no-lean off)

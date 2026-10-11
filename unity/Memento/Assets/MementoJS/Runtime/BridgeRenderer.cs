@@ -173,7 +173,7 @@ namespace Memento.Bridge
         /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
-        public static bool oneVariant, uniformLayout, fullLayout;
+        public static bool oneVariant, uniformLayout, fullLayout, zTestAlways;
         public static string cullTest;
         /// <summary>The vertex data -uniform-layout added (bytes, on the CPU and again on the GPU).</summary>
         public static long uniformBytes;
@@ -384,6 +384,8 @@ namespace Memento.Bridge
             }
             // (-one-variant, a test: every material of the port's Surface on its plain variant, no keywords; the picture is
             // wrong, but if the load's 24 s stall goes, it was the GPU's driver compiling each variant at its first draw)
+            // (-ztest-always, a test for the Xbox's missing surfaces: drawn whatever the depth holds, in the order drawn)
+            if (zTestAlways && materials[mid].HasProperty("_MZTest")) materials[mid].SetFloat("_MZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
             if (oneVariant) materials[mid].shaderKeywords = System.Array.Empty<string>();
             else Lean(materials[mid]);
         }

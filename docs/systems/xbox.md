@@ -435,6 +435,12 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
    `GET /api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=<full name>&path=\LocalState&filename=unity.log`.
    The first launch is the cold one; quit and launch again for the warm one (`unity.prev.log` keeps the first).
 
+**Two install traps.** A workflow dispatch builds with the version of the push build of the same commit (1.50.1904 both,
+D3D11 and D3D12 alike), so installing one over the other reports success and changes nothing (the log's device line
+still says the old API): `uninstall` the Unity package first (only `rnaud.HiraethUnity`, never `rnaud.Hiraeth`; its
+LocalState goes with it: `args.txt`, `views.json`, `prewarm.txt`). And a launch right after a fresh install fails with
+0x80070002 (file not found): wait ~10 s after the install before the first launch.
+
 **What the console showed (October 2026, build 1726):**
 - Puerts' QuickJS runs there: the player is up at 2.6 s (Direct3D 11, `SraKmd_arden`, 832 MB), the engine is made at
   3.0 s, the 10.7 MB bundle is evaluated in 2.8 s. `Memento.start` (the JavaScript building the desert) takes

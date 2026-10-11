@@ -66,6 +66,9 @@ namespace Memento.Rendering
         public static class Settings
         {
             public static bool fxaa = true, bloom = true;   // (bloom: the glow, a test switch: the bridge's -no-bloom)
+            /// <summary>The depth the G-buffer's depth is cleared to (1: far, Unity turning it for a reversed depth); the bridge's
+            /// -gclear-depth, a test for the Xbox's missing surfaces; under 0 the depth is not cleared here.</summary>
+            public static float gDepthClear = 1f;
             public static bool waterContact = WaterContactAsked(System.Environment.GetCommandLineArgs(), UnityEngine.Application.isMobilePlatform);
             /// <summary>The foam's default: on unless a mobile player or -noWaterContact; -waterContact wins.</summary>
             public static bool WaterContactAsked(string[] args, bool mobile) =>
@@ -211,7 +214,7 @@ namespace Memento.Rendering
                         // (the shadow passes drew from the sun: the camera's matrices again)
                         ctx.cmd.SetViewProjectionMatrices(d.view, d.proj);
                         MementoShadows.Instance.SetGlobals(ctx.cmd, d.shadowMaps);
-                        ctx.cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1f, 0);
+                        ctx.cmd.ClearRenderTarget(Settings.gDepthClear >= 0 ? RTClearFlags.All : RTClearFlags.Color, Color.clear, Mathf.Max(0, Settings.gDepthClear), 0);   // (under 0: the colours only, the depth as the graph cleared it)
                         ctx.cmd.DrawRendererList(d.list);
                         d.detail?.DrawGBuffer(ctx.cmd);   // (the flora: instanced, one draw a species)
                         if (d.water.IsValid()) { ctx.cmd.SetGlobalFloat(ContactOn, 0); ctx.cmd.DrawRendererList(d.water); }
