@@ -26,8 +26,6 @@ test('every quest step in the story data is one short line, no buttons named', a
 
 test('the temples’ steps and the makers’ boxes’ are short too', async () => {
   for (const f of readdirSync(new URL('temples/', SRC)).filter((x) => /-data\.js$/.test(x))) {
-    // (the Givers' House is being reworked on its own branch: its steps are shortened there)
-    if (f === 'desert-data.js') continue;
     const { QUEST } = await import(new URL(`temples/${f}`, SRC));
     if (!QUEST) continue;
     for (const k of ['find', 'gadget', 'keeper']) if (QUEST[k]) assert.ok(words(QUEST[k]) <= MAX, `${f} ${k}: “${QUEST[k]}”`);

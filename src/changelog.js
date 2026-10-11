@@ -70,7 +70,7 @@ export const CHANGELOG = [
     // the drone's find (docs/systems/ui.md "What it says")
     // the chests (docs/systems/boxes.md "nothing is fired before there is something to fire it with")
     'The backpack comes out of Qanat’s chest as empty as it is: its glass is dry on the card, and nothing comes up over the card while you read it. After it, he simply has it on his back: no more firing it, and no copy of it flying into him and shrinking away.',
-    'Out of the chest by the giant’s pool, the lift valve goes over his shoulder onto the pack with a click instead of being fired like a gun he doesn’t have yet; the same for the other parts of the pack. Nothing found in a chest shrinks away to nothing any more.',
+    'Out of the chest by the giant’s pool, the lift valve goes over his shoulder onto the pack with a click instead of being fired like a gun he doesn’t have yet; the same for the other parts of the pack, and the Givers’ blade and guard from their chests in the Givers’ House. Nothing found in a chest shrinks away to nothing any more.',
     'When your empty tank first fills in the giant’s pool, the scene no longer ends with you firing water over the pool with a gun you don’t have yet: the tank’s lights come on, the chest beside the pool hums back, and you turn to it.',
     // the desert's story (docs/systems/story.md "Straight to the end, and nobody sends you to somebody else")
     'In Qanat, Nour sends you straight down the giant after the chest opens: no more fetching Ama’s jar from the camps first. Ama still gives her jar to whoever stops at her fire, and it fills at the pool too.',

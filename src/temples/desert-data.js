@@ -6,9 +6,9 @@
 export const QUEST = {
   id: 'temple.desert', title: 'The Givers’ House', world: 'desert',
   outro: 'The water runs from the Givers’ House again, and the old fields round Qanat are green.',
-  find: 'Find the Givers’ house: a great drum of rose stone half sunk in the dunes east of Qanat',
+  find: 'Find the Givers’ house east of Qanat',
   gadget: 'Find what the Givers left inside their house',
-  keeper: 'Something lives in the dark at the heart of the house. Go down to the cistern',
+  keeper: 'Go down to what lives in the cistern',
 };
 
 export const PEOPLE = {

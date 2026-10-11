@@ -648,10 +648,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'quest-card', caption: 'The main quest given by Marrow at the ship, hints full: before, “New quest”, the title and a four-line step in a big card; after, one line, the gold ◆, the title and “Walk to Qanat, under the dark tree”', from: FROM44 },
     ], numbers: [
       { title: 'Quest steps in every world', unit: '', better: 'lower', device: 'the story data, the temples’ quests and the makers’ boxes (.claude/skills/quest-qc/check.mjs)', rows: [
-        { where: 'steps over 9 words (of 225)', before: 171, after: 2 },
+        { where: 'steps over 9 words (of 225)', before: 171, after: 0 },
         { where: 'steps naming buttons', before: 11, after: 0 },
         { where: 'lines on the quest’s first card (hints full)', before: 3, after: 1 },
-      ], source: 'every step of every quest, counted before and after; the two long ones left are the Givers’ House’s, reworked on its own branch' },
+      ], source: 'every step of every quest, counted before and after' },
     ] },
     { match: 'The drone says where it is off to the moment you send it', numbers: [
       { title: 'Sending the drone to Qanat from the ship (390 m)', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720', rows: [
