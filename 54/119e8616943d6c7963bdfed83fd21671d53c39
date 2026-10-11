@@ -1,0 +1,137 @@
+.claude/skills/zfight-qc/SKILL.md
+  s_9ca76055a220ed::t_42593cd95f2050 58
+LORE.md
+  s_9ca76055a220ed::t_89f3f61e212922 273,406,476,490,497,1303,1310,1315,1754
+changelog.md
+  s_9ca76055a220ed::t_0b0e363a85a3fd 12,14-16,22
+docs/story-bible.md
+  s_9ca76055a220ed::t_d46991d6c89f6a 319-321,339,369,410,414-415,459,464,608,612
+docs/systems/challenges.md
+  s_9ca76055a220ed::t_f7e61f25de86e9 137
+docs/systems/movement.md
+  s_9ca76055a220ed::t_3ab0efc6cb24a3 59
+docs/systems/performance.md
+  s_9ca76055a220ed::t_9fd827d00bd5fa 95,244
+docs/systems/progression.md
+  s_9ca76055a220ed::t_a9cb492a0ce693 31,40-42,97,102
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_0af3dcb9d6f794 1045,1057,1060,1064
+docs/systems/story.md
+  s_9ca76055a220ed::t_46f1a130a036a0 252,664-678,755,758
+docs/systems/temples.md
+  s_9ca76055a220ed::t_984f1ee85f074d 137,248,281,310,399,534
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_f9a9036e6e2cf3 386,924,1148-1150,1205-1206,1242,1522
+lore/characters/temple-guides.md
+  s_9ca76055a220ed::t_ddfb7c2b01aa7e 11
+lore/characters/worlds.md
+  s_9ca76055a220ed::t_f473219d3d9b16 109-117
+scripts/temple-design/audit.mjs
+  s_9ca76055a220ed::t_bfca03deba15e8 51
+src/changelog.js
+  s_9ca76055a220ed::t_aa073668d55386 65,78-80,82-83,87-89
+src/desert-road.js
+  s_9ca76055a220ed::t_74a75e1c893afc 124
+src/foes.js
+  s_9ca76055a220ed::t_96003ae5810834 1897
+src/items.js
+  s_9ca76055a220ed::t_de88e7c0b226a7 6,30,33,38
+src/levels/antennas.js
+  s_9ca76055a220ed::t_60517f0f2f8426 112-115,117,120,125,128
+src/levels/content.js
+  s_9ca76055a220ed::t_b8437c47611256 384-385,415-416
+src/levels/eclipse.js
+  s_9ca76055a220ed::t_3c7969c3294c36 95-96
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_230193d4940da8 304
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_1d27d00f21f163 114,122,157,611
+src/levels/space-city.js
+  s_9ca76055a220ed::t_6f7973caf22d94 98,106
+src/levels/underside.js
+  s_9ca76055a220ed::t_d4996fc78bdcbb 76-78,80,83
+src/levels/underwater.js
+  s_9ca76055a220ed::t_79c92961721c2b 28,149,158
+src/main.js
+  s_9ca76055a220ed::t_4d7a9e38ecfcac 651
+src/save-migrate.js
+  s_9ca76055a220ed::t_ac0ed14eb25ad6 69,234,236,247
+src/story/desert.js
+  s_9ca76055a220ed::t_67470046825474 355
+src/story/glassdunes-people.js
+  s_9ca76055a220ed::t_388b54440a6c01 12,19,35,45,61
+src/story/glassdunes.js
+  s_9ca76055a220ed::t_f79a412d91bb8f 20
+src/story/moonfoundry-people.js
+  s_9ca76055a220ed::t_471f4e2707f7aa 3,5,7,13,34,87,98,110,138,144,177
+src/story/moonfoundry.js
+  s_9ca76055a220ed::t_5c7730489c41b1 2,6,9,39
+src/story/people-book.js
+  s_9ca76055a220ed::t_6f1eca480e39c0 372,384-385,390,492-493,543,545-546,587-589
+src/story/sightings-detours.js
+  s_9ca76055a220ed::t_8d11ee0dbaef27 15
+src/story/sightings.js
+  s_9ca76055a220ed::t_424acd29e3f56c 64
+src/story/spacecity-people.js
+  s_9ca76055a220ed::t_5a8cef59984ef5 4,6,12,33,166,168,184,186,190,196
+src/story/underwater-people.js
+  s_9ca76055a220ed::t_977662382d52ce 76,87,108,137
+src/story/underwater.js
+  s_9ca76055a220ed::t_2ea6e135833791 7
+src/temples/desert-data.js
+  s_9ca76055a220ed::t_c3c47b4831afdc 7-9,85
+src/temples/desert.js
+  s_9ca76055a220ed::t_15c0661791e3f2 12,449,475,689,697
+src/temples/hints.js
+  s_9ca76055a220ed::t_770998795881c9 57
+src/temples/kit.js
+  s_9ca76055a220ed::t_26d16ba9da8ab2 12,231
+src/temples/logic.js
+  s_9ca76055a220ed::t_d8ab92b7ba9232 26,282
+src/temples/moonfoundry-data.js
+  s_9ca76055a220ed::t_17a182bf6698e4 2,16,23,32,35,42,79
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_5a67aea82a8391 476
+src/temples/pieces.js
+  s_9ca76055a220ed::t_035157715ca2cb 348,362,660,890,941,1380,1449
+src/trials/kit-data.js
+  s_9ca76055a220ed::t_bd00a3e7d511e5 238,286
+tests/antennas.test.js
+  s_9ca76055a220ed::t_860a139d4f7195 110
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_a1468ada5dc562 108
+tests/boxes.test.js
+  s_9ca76055a220ed::t_9103fb56fae19e 115,123
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_5c13c8c3b7be60 119
+tests/goal-reached-early.test.js
+  s_9ca76055a220ed::t_d043f22c1c9647 39,46,67
+tests/names.test.js
+  s_9ca76055a220ed::t_dad6417aba949d 66-113
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_7c88332d14fa92 359,367,369,380,383,387,389
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_4ee5c29265b519 264,304,308
+tests/spacecity-world.test.js
+  s_9ca76055a220ed::t_19d5fc625dbcd1 36
+tests/temples.test.js
+  s_9ca76055a220ed::t_b76b2e5a594aa2 632,885
+tests/zfight.test.js
+  s_9ca76055a220ed::t_eeaddc8fc41a2c 3,67,80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "54119e8616943d6c7963bdfed83fd21671d53c39",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
