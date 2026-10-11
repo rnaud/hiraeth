@@ -1,0 +1,77 @@
+tests/ship.test.js
+  s_9ca76055a220ed::t_13979f13f0855f 310,555-567
+tests/cutscenes.test.js
+  s_9ca76055a220ed::t_89be03bcc8a326 63,86-112
+tests/ambush.test.js
+  s_9ca76055a220ed::t_8738af53a6d528 2,7,22,39,43-44,51-55,76-80
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_a5ec2d20b24ad0 25,35-40,375-381,397,435-436,449,458,464-467,476-477,491-494,504,506-507,509-512,514,630,632-633,696,701-702,704,740,742-744,746-747
+docs/story-bible.md
+  s_9ca76055a220ed::t_9a295ed149ecdc 615-616,636-641
+docs/design/shield-prompts.md
+  s_9ca76055a220ed::t_bd28c8190da59f 1-46
+src/ambush.js
+  s_9ca76055a220ed::t_6980b7b0453d08 8,11,23,28-30,45-49,57-58
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_965f798b719640 395,399
+src/minigames/pirates-rules.js
+  s_9ca76055a220ed::t_041464af20ec1b 13,17-21,25-29,33,35-36,40-53,67-71,74-88,90-91,93-94,108,110-112,150-155,157-158,161,163-164,168-173,177,184-189,231,244-250,252-257,266,325,344-345,471-473,484-486,549,582,628-630,633,643,648
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_32e28b4277e541 12,477-479,481-483
+src/ship/ship.js
+  s_9ca76055a220ed::t_218cb52936a16f 202-204,722
+tests/pirates.test.js
+  s_9ca76055a220ed::t_2b86c6a31c74cf 6,29,31,38,43,47-48,171-174,184-254
+src/minigames/kit/flow.js
+  s_9ca76055a220ed::t_fa509041924399 72-73,75,80-81
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_69c36815255ca4 149,156,178-180,191,241,287,369
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_d5242ba051abab 421-422,425-433,436,438-456,469-506
+src/changelog.js
+  s_9ca76055a220ed::t_db7b4cbb54d6a3 26-27
+  s_9ca76055a220ed::t_6dd5508ce57f3f 11,23-25,30
+  s_9ca76055a220ed::t_e0a1909e48ced5 28-29
+  s_9ca76055a220ed::t_5ccc84223de732 12-22
+src/changelog-media.js
+  s_9ca76055a220ed::t_f3de727eda30ed 555-556,562-569
+  s_9ca76055a220ed::t_b920c8ee44199b 554,557-559,561,573-577
+  s_9ca76055a220ed::t_4c44eb231bbfe2 570-572
+src/story/calls.js
+  s_9ca76055a220ed::t_be94bc1075738a 69-70,126-127,129-133,190-192,538,541,588-590,598
+docs/systems/progression.md
+  s_9ca76055a220ed::t_19c47f0ea0d0ee 48-60
+tests/boxes.test.js
+  s_9ca76055a220ed::t_4d9e290e1399ed 115-128
+tests/relay.test.js
+  s_9ca76055a220ed::t_c47dc5b5bf3bfe 101
+src/boxes/placements.js
+  s_9ca76055a220ed::t_f11216da515a66 279-285
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_b9c692b537d6fe 17,21-27
+src/ship/exhaust.js
+  s_9ca76055a220ed::t_d001a80ec5adf3 37-41,49,89-102
+src/main.js
+  s_9ca76055a220ed::t_d1a68c99c9c42c 2216-2217
+changelog.md
+  s_9ca76055a220ed::t_3e6b0a5579bad4 8
+  s_9ca76055a220ed::t_0f2bd5ce365e68 5-6,9,15
+  s_9ca76055a220ed::t_10a322d5490369 10-14
+  s_9ca76055a220ed::t_1f6a9a8753d9de 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1ec82d4416ac3aaa6ec610aa590666cea90941f1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
