@@ -117,3 +117,11 @@ mid-talk), `tests/scripts.test.js` (the translator), `tests/convo-closeup.test.j
 holds and spacing, no thrash, the close shot's size, angle, side, height, walls and giants, the
 answer not said back, his portrait), `tests/idle-legs.test.js` (held still, the real rig),
 `tests/dialogue-playtest.test.js` (calm layer and eyes, Nour's answers, fires, balloons).
+
+**The panel never moves while you read** (October 2026, issue #60). The panel stands on the bottom of
+the screen and grows upward, so the words climbed as they were typed (a new line) and jumped up again
+when the answers came up under a finished line (96 px for Nour's first answers at 1280 × 720). Now the
+node's longest page is laid out unseen under the words being typed (`.dlg-ghost` and `.dlg-live`,
+stacked in one grid cell), and the answers the node ends on (`DialogueRunner.choicesAhead`) are there
+from its first page, unseen and untouchable (`.dlg-choices.waiting`) until the last page's words are
+done. A new node can still be a different size: its words start again. `tests/dialogue.test.js`.

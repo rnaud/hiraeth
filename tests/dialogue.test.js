@@ -258,3 +258,16 @@ test('the desert’s conversations are well formed: every goto, quest and condit
   }
   assert.ok(people.length >= 15);
 });
+
+// "When a character is done talking the answers appear and shift everything as I'm reading" (issue #60): the panel
+// keeps the answers' room from the first page, so the runner names them before the last page is up.
+test('the answers a node ends on are known from its first page (the panel keeps their room)', () => {
+  const { ctx } = world();
+  const ANN = { id: 'ann', name: 'Ann', talk: { nodes: { hi: { say: ['~neutral~ One.', '~neutral~ Two, and longer.'], choices: [{ text: '~happy~ Yes.', end: true }, { text: '~neutral~ No.', end: true }] } } } };
+  const r = new DialogueRunner(ANN, ctx);
+  assert.deepEqual(r.choices(), [], 'not yet to answer on the first page');
+  assert.deepEqual(r.choicesAhead().map((c) => c.text), ['Yes.', 'No.']);
+  assert.equal(r.page, 0, 'looking ahead leaves the page where it was');
+  r.advance();
+  assert.deepEqual(r.choices().map((c) => c.text), ['Yes.', 'No.']);
+});

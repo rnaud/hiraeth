@@ -65,6 +65,8 @@ export const CHANGELOG = [
     // >>> the author’s desert playthrough (issues #58–#73)
     // capes (docs/systems/characters.md "The cloth goes over the forearms and hands")
     'Capes and cloaks hang behind the people who wear them: Nour’s cloak no longer swings out in front of her and stays there when she walks up to talk to you, and nobody’s cape blows forward over their front when they stand with the wind at their back.',
+    // the conversation panel (docs/systems/conversations.md "The panel never moves while you read")
+    'In conversations the words stay where they are while you read them: the panel is its full size from the first letter, and the answers come up in the room kept for them instead of pushing the words up the screen.',
     // <<< the author’s desert playthrough
   ] },
   { v: '1.43', date: '2026-10-10', items: [

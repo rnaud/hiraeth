@@ -187,6 +187,16 @@ export class DialogueRunner {
     if (this.node.next) return [];
     return [{ text: this.node.bye ?? '(leave)', end: true, index: -1 }];
   }
+  /**
+   * The answers this node will end on, whichever page is up (the panel keeps their room from the first page: answers
+   * coming up when the words were done moved the words up the screen as you read them, issue #60).
+   */
+  choicesAhead() {
+    if (this.ended || this.listening) return [];
+    const page = this.page;
+    this.page = Math.max(0, this.pages.length - 1);
+    try { return this.choices(); } finally { this.page = page; }
+  }
   /** Next page, or the node's `next`; false if it is waiting for a choice. */
   advance() {
     if (this.ended) return false;
@@ -301,7 +311,7 @@ export class Dialogue {
         <p class="dlg-text"></p><div class="dlg-choices"></div><i class="dlg-more" aria-hidden="true"></i></div>`;
       this.q = (s) => this.el.querySelector(s);
       this.el.addEventListener('click', (e) => {
-        const b = e.target.closest('button[data-i]');
+        const b = e.target.closest('.dlg-choices:not(.waiting) button[data-i]');
         if (b) this.choose(+b.dataset.i);
         else if (e.target.closest('.dlg-panel')) this.next();
       });
@@ -459,17 +469,27 @@ export class Dialogue {
     // reveal letter by letter, keeping the motifs whole: the words come in the speaker's own
     // script as they are said, and turn into the translation a moment behind (revealHtml)
     const n = Math.floor(this.revealed), revealing = n < full.length;
-    const text = revealHtml(full, { lang: plan.foreign ? plan.lang : null, shown: n, translated: this.translated, spoken: plan.mask })
-      + (revealing ? '<span class="dlg-caret">▍</span>' : '');
+    // the node's longest page laid out unseen under the words typed so far (.dlg-ghost): the panel is its full size
+    // from the first letter, and nothing moves as the words come or the pages turn (issue #60)
+    const ghost = (r.pages ?? []).reduce((a, b) => (b.length > a.length ? b : a), full);
+    const text = `<span class="dlg-ghost" aria-hidden="true">${formatText(ghost)}</span><span class="dlg-live">`
+      + revealHtml(full, { lang: plan.foreign ? plan.lang : null, shown: n, translated: this.translated, spoken: plan.mask })
+      + (revealing ? '<span class="dlg-caret">▍</span>' : '') + '</span>';
     const el = this.q('.dlg-text');
     if (el._html !== text) { el.innerHTML = text; el._html = text; }
     this.q('.dlg-text').classList.toggle('player', r.speaker === 'player');
     const done = this.revealed >= full.length;
     const choices = done ? r.choices() : [];
+    // the answers' room kept while the words are said (.dlg-choices.waiting: there, unseen and untouchable), so they
+    // come up where they will stand, under words that stay where they are
+    const ahead = choices.length ? choices : r.choicesAhead(), waiting = !choices.length && ahead.length > 0;
     const box = this.q('.dlg-choices');
-    const html = choices.map((c, k) => choiceHtml(c, k)).join('');
-    if (box.dataset.html !== html) {
-      box.innerHTML = html; box.dataset.html = html;
+    const html = ahead.map((c, k) => choiceHtml(c, k)).join('');
+    box.classList.toggle('waiting', waiting);
+    if (box.dataset.html !== html) { box.innerHTML = html; box.dataset.html = html; }
+    if (box.dataset.shown !== String(choices.length > 0)) {
+      box.dataset.shown = String(choices.length > 0);
+      for (const b of box.querySelectorAll('button')) b.tabIndex = choices.length ? 0 : -1;
       if (choices.length && page.hasBodyClass('controller')) box.querySelector('button')?.focus();
     }
     // a small mark at the panel's corner when the line is done and the next press turns the page

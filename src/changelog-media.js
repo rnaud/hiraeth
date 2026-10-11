@@ -620,6 +620,11 @@ export const CHANGELOG_MEDIA = {
     { match: 'Capes and cloaks hang behind the people who wear them', shots: [
       { name: 'cape-nour', caption: 'Nour a few seconds after she has walked up to you from her bench, from behind her: before, her cloak lies out in front of her at you, held up on her arms; after, it hangs down her back', from: FROM44 },
     ], see: 'Open the chest on the great tree in Qanat and climb down: Nour walks over to you and stops in front of you, her cloak hanging behind her.' },
+    { match: 'In conversations the words stay where they are while you read them', numbers: [
+      { title: 'How far the words move while you read Nour’s first lines', unit: 'px', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720', rows: [
+        { where: 'from the first letters of her second page to her answers under it', before: 96, after: 0 },
+      ], source: 'the top of the panel’s words (getBoundingClientRect) as Nour’s “It opened!” lines are typed and answered, the same talk for both (before: the old layout, the unseen words and the kept room taken out)' },
+    ], see: 'Talk to anyone with answers: the panel comes up at its full size and the words don’t move while they are typed; when they are done the answers fade in under them, in place.' },
     // <<< the author’s desert playthrough
   ],
   '1.43': [
