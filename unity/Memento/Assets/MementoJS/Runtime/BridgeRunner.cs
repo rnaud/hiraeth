@@ -252,6 +252,13 @@ namespace Memento.Bridge
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             BridgeRenderer.uniformLayout = BridgeArgs.Flag("-uniform-layout");
+            // the Xbox's shadow maps (the Unity build only; the shared presets, Quality.Set and the web's perf.js, stay): the near
+            // map redrawn every 2nd frame, the far every 8th, no fine map, casters under 2 texels left out: 938 draws a frame
+            // instead of ~1 100 and 48 fps instead of 46 at the desert's spawn (docs/benchmark-web-vs-unity.md). -shadows-high
+            // keeps the web's High
+#if UNITY_WSA && !UNITY_EDITOR
+            if (!BridgeArgs.Flag("-shadows-high")) { Quality.nearEvery = 2; Quality.farEvery = 8; Quality.fineSize = 0; MementoShadows.minCasterTexels = 2; }
+#endif
             // (the shadow maps' cost on the main thread, tried apart: the near map redrawn every N frames, no fine map, casters
             // under T texels left out)
             if (BridgeArgs.Arg("-shadow-near-every") is string ne && int.TryParse(ne, out int nev)) Quality.nearEvery = Mathf.Max(1, nev);

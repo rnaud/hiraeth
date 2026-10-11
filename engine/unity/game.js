@@ -102,13 +102,22 @@ function makePlan(args) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-walk.png` });
   }
+  if (args.tour) {
+    // a fixed little tour for side-by-side pictures (the Xbox's shadow settings: -tour, LocalState\args.txt): still at
+    // the spawn, a walk forward, a quarter turn, each followed by a hold the pictures are taken in ("[unity] tour: …")
+    const say = (what) => ({ kind: 'say', text: `[unity] tour: ${what}` });
+    steps.push({ kind: 'wait', frames: 240, secs: 6 }, say('still'), { kind: 'wait', frames: 360, secs: 6 },
+      say('walking'), { kind: 'key', code: 'KeyW', down: true }, { kind: 'wait', frames: 150, secs: 2.5 }, say('walking, mid-step'), { kind: 'wait', frames: 60, secs: 1 }, { kind: 'key', code: 'KeyW', down: false },
+      say('walked'), { kind: 'wait', frames: 360, secs: 6 },
+      say('turning'), { kind: 'turn', frames: 90, dx: 8 }, say('turned'), { kind: 'wait', frames: 360, secs: 6 }, say('done'), { kind: 'hold' });
+  }
   if (args.idle) {
     // the spawn as it is, measured once the load's tail is over (-idle N -split: the Xbox's frame taken apart, with
     // no command line there: LocalState\args.txt); the game goes on after it, nothing pinned, nothing pressed
     steps.push({ kind: 'wait', frames: 120, secs: 3 }, { kind: 'measure', view: { name: 'spawn' }, secs: args.idle }, { kind: 'hold' });
   }
   if (!steps.length) return null;
-  if (!args.idle) steps.push({ kind: 'done' });
+  if (!args.idle && !args.tour) steps.push({ kind: 'done' });
   return { steps, i: 0, wait: 0, t: 0, samples: null };
 }
 
@@ -195,6 +204,8 @@ export function frame(dt) {
   const next = () => { P.i++; P.wait = 0; P.t = 0; };
   if (step.kind === 'pin') { game.pin(aimed(game, step.view)); next(); }
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
+  else if (step.kind === 'say') { console.log(step.text); next(); }
+  else if (step.kind === 'turn') { game.look(step.dx, 0); if (++P.wait >= step.frames) next(); }
   else if (step.kind === 'approach') {
     const people = game.npcs.filter((n) => n.def && !n.pooled);
     const n = people.find((x) => x.def.id === step.who) ?? people[0];

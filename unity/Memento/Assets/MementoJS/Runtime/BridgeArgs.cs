@@ -98,6 +98,7 @@ namespace Memento.Bridge
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);
+            if (Flag("-tour")) args["tour"] = true;
             return JsonText(args);
         }
 
