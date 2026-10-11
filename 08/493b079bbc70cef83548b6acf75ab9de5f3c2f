@@ -1,0 +1,33 @@
+scripts/unity-export/tripo-face-hlsl.mjs
+  s_9ca76055a220ed::t_d1238efc7b9182 15-16
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_23c12ec364fabc 108,154-166
+unity/Memento/Assets/Memento/Shaders/Crowd.hlsl
+  s_9ca76055a220ed::t_72a6245a2c58b4 20,22
+unity/Memento/Assets/Memento/Shaders/Figure.hlsl
+  s_9ca76055a220ed::t_40c8386f54033d 13,30,221,228,327,331
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl
+  s_9ca76055a220ed::t_c9355977e14480 10,16
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_9ca76055a220ed::t_a242fac1e6556b 67-71,85-113
+unity/Memento/Assets/Memento/Shaders/TripoFace.hlsl
+  s_9ca76055a220ed::t_8282e259b0164b 6-17
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_4fa29a78a13f6f 251-255,257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "08493b079bbc70cef83548b6acf75ab9de5f3c2f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
