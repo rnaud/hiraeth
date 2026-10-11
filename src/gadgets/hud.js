@@ -13,17 +13,17 @@ import * as THREE from 'three';
 
 const CSS = `
 #gadget-chip { position: fixed; left: calc(16px + var(--safe-left, 0px)); bottom: calc(16px + var(--safe-bottom, 0px)); z-index: 30;
-  display: none; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; background: rgba(247, 236, 210, 0.9); border: 1.5px solid #2b211f;
-  box-shadow: 3px 3px 0 #2b211f; font: 11px/1.3 ui-monospace, Menlo, monospace; color: #2b211f; pointer-events: none; transform: rotate(-0.6deg); }
+  display: none; align-items: center; gap: 0.6em; padding: 0.3em 0.8em 0.3em 0.3em; background: rgba(247, 236, 210, 0.9); border: 1.5px solid #2b211f;
+  box-shadow: 3px 3px 0 #2b211f; font: calc(var(--type-s) * 0.9)/1.3 var(--face); color: #2b211f; pointer-events: none; transform: rotate(-0.6deg); }
 #gadget-chip.on { display: flex; }
 body.minigame #gadget-chip, body.minigame #gadget-reticle, body.minigame #gadget-wheel { display: none !important; }   /* (a game takes the buttons: src/minigames/) */
-#gadget-chip .g img { width: 34px; height: 34px; border-radius: 50%; }
-#gadget-chip .g { width: 34px; height: 34px; overflow: hidden; border: 1.5px solid #2b211f; border-radius: 50%; display: grid; place-items: center; font-size: 17px; background: #fffaf0; }
+#gadget-chip .g img { width: 100%; height: 100%; border-radius: 50%; }
+#gadget-chip .g { width: 2.2em; height: 2.2em; overflow: hidden; border: 1.5px solid #2b211f; border-radius: 50%; display: grid; place-items: center; font-size: 1.4em; background: #fffaf0; }
 #gadget-chip b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; display: block; }
-#gadget-chip .pips { letter-spacing: 2px; font-size: 10px; }
+#gadget-chip .pips { letter-spacing: 2px; font-size: 0.85em; }
 #gadget-chip .pips i { font-style: normal; color: #2b211f; }
 #gadget-chip .pips i.off { color: rgba(43, 33, 31, 0.25); }
-#gadget-chip .gkey { margin-left: 4px; padding: 0 5px; border: 1px solid #2b211f; border-radius: 9px; font-size: 10px; background: #fffaf0; }
+#gadget-chip .gkey { margin-left: 4px; padding: 0 5px; border: 1px solid #2b211f; border-radius: 9px; font-size: 0.85em; background: #fffaf0; }
 #gadget-chip.flash { animation: gchip 0.5s ease-out; }
 @keyframes gchip { 0% { transform: rotate(-0.6deg) scale(1.25); } 100% { transform: rotate(-0.6deg) scale(1); } }
 body.touch #gadget-chip { pointer-events: auto; bottom: calc(86px + var(--safe-bottom, 0px)); }
@@ -39,11 +39,11 @@ body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wh
 #gadget-reticle.target .r { border-color: #2f7f86; }
 #gadget-reticle.far .r { border-style: dashed; opacity: 0.55; transform: scale(0.7); }
 #gadget-reticle span { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 5px;
-  font: 10px/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
+  font: calc(var(--type-s) * 0.8)/1.5 var(--face); color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
 #gadget-marks { position: fixed; inset: 0; z-index: 31; pointer-events: none; }
 #gadget-marks .m { position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; }
 #gadget-marks .m::before { content: ''; position: absolute; inset: 3px; border: 2.5px solid #c8483a; background: rgba(247, 236, 210, 0.75); transform: rotate(45deg); box-shadow: 0 0 0 1.5px #2b211f; }
-#gadget-marks .m b { position: absolute; inset: 0; display: grid; place-items: center; font: bold 11px/1 ui-monospace, Menlo, monospace; color: #2b211f; }
+#gadget-marks .m b { position: absolute; inset: 0; display: grid; place-items: center; font: bold 11px/1 var(--face); color: #2b211f; }
 #gadget-marks .m.new { animation: gmark 0.25s ease-out; }
 @keyframes gmark { 0% { transform: scale(1.9); } 100% { transform: scale(1); } }
 #gadget-wheel { position: fixed; left: 50%; top: 50%; z-index: 40; width: 300px; height: 300px; margin: -150px 0 0 -150px; display: none; pointer-events: none; }
@@ -53,10 +53,10 @@ body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wh
   display: grid; place-items: center; font-size: 24px; box-shadow: 3px 3px 0 #2b211f; transition: transform 0.08s; color: #2b211f; }
 #gadget-wheel .slot img { width: 48px; height: 48px; border-radius: 50%; }
 #gadget-wheel .slot { overflow: hidden; }
-#gadget-wheel .slot.none { font-size: 11px; font-family: ui-monospace, Menlo, monospace; }
+#gadget-wheel .slot.none { font-size: 11px; font-family: var(--face); }
 #gadget-wheel .slot.hi { transform: scale(1.25); background: #f2c54b; }
 #gadget-wheel .name { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 3px 8px; background: #f7ecd2; border: 1.5px solid #2b211f;
-  font: 12px/1.4 ui-monospace, Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: #2b211f; }
+  font: var(--type-s)/1.4 var(--face); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: #2b211f; }
 #touch .b-gadget { display: none; }   /* (its place and size: src/touch-layout.js, set by ui.js TouchControls) */
 body.gadget-on #touch .b-gadget { display: block; }
 body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !important; }   /* (a game, a conversation: nothing to use it on) */

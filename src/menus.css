@@ -6,7 +6,7 @@
 /* ------------------------------------------------------------------ the title screen */
 #title {
   position: fixed; inset: 0; z-index: 9500; overflow: hidden; background: #f2c890; color: #2b211f;
-  font: calc(14px * var(--ts, 1))/1.4 ui-monospace, Menlo, monospace; user-select: none; -webkit-user-select: none;
+  font: calc(14px * var(--ts, 1))/1.4 var(--face); user-select: none; -webkit-user-select: none;
   transition: opacity 0.45s;
 }
 #title.leaving { opacity: 0; pointer-events: none; }
@@ -149,7 +149,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 
 /* ------------------------------------------------------------------ the Start menu (and the title's settings) */
 .fullmenu {
-  position: fixed; inset: 0; z-index: 8600; display: none; color: #2b211f; font: calc(13px * var(--ts, 1))/1.45 ui-monospace, Menlo, monospace;
+  position: fixed; inset: 0; z-index: 8600; display: none; color: #2b211f; font: var(--type-s)/1.45 var(--face);
   background: #f3e7cc; background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(43, 33, 31, 0.07) 27px 28px);
 }
 #title-settings.fullmenu { z-index: 3; }
@@ -161,35 +161,35 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   background: #f2c54b; border-right: 3px solid #2b211f; box-shadow: inset -8px 0 0 rgba(43, 33, 31, 0.1);
 }
 .fullmenu .brand {
-  font: 900 calc(clamp(28px, min(7vh, 8vw), 66px) * var(--ts, 1))/1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.06em;
+  font: 900 calc(clamp(28px, min(7vh, 8vw), 66px) * var(--ts, 1))/1 var(--face-title); letter-spacing: 0.06em;
   color: #fbf4e2; -webkit-text-stroke: 2px #2b211f; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b211f; transform: rotate(-2deg); transform-origin: left;
 }
-.fullmenu .where { font-size: calc(clamp(11px, 1.8vh, 14px) * var(--ts, 1)); line-height: 1.5; }
+.fullmenu .where { font-size: calc(clamp(11px, 1.8vh, 26px) * var(--ts, 1)); line-height: 1.5; }
 .fullmenu .where b { display: block; font-size: 1.15em; }
 .fullmenu .where:empty { display: none; }
 .fullmenu .menu-nav { display: flex; flex-direction: column; gap: clamp(7px, 1.7vh, 14px); }
 .fullmenu .menu-nav button {
-  font: inherit; font-size: calc(clamp(14px, 2.4vh, 20px) * var(--ts, 1)); font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; text-align: left;
+  font: inherit; font-size: calc(clamp(14px, 2.4vh, 36px) * var(--ts, 1)); font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; text-align: left;
   padding: clamp(6px, 1.4vh, 12px) 14px; color: #2b211f; background: #fbf4e2; border: 2.5px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; cursor: pointer;
   transition: transform 0.08s, box-shadow 0.08s;
 }
 .fullmenu .menu-nav button:hover, .fullmenu .menu-nav button:focus { outline: none; background: #fff6dc; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #2b211f; }
 .fullmenu .menu-nav button:focus { background: #c8483a; color: #fff6dc; }
-.fullmenu .saved { margin: auto 0 0; font-size: calc(11px * var(--ts, 1)); opacity: 0.7; }
+.fullmenu .saved { margin: auto 0 0; font-size: 0.85em; opacity: 0.7; }
 .fullmenu .saved:empty { display: none; }
 .fullmenu .panel {
   min-height: 0; overflow-y: auto; box-sizing: border-box;
   padding: calc(clamp(12px, 5vh, 56px) + var(--safe-top, env(safe-area-inset-top, 0px))) calc(clamp(14px, 4vw, 64px) + var(--safe-right, env(safe-area-inset-right, 0px))) calc(28px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))) clamp(14px, 4vw, 64px);
 }
-.fullmenu .panel > * { max-width: 760px; }
-.fullmenu h1 { margin: 0 0 12px; font-size: calc(clamp(17px, 3.2vh, 26px) * var(--ts, 1)); letter-spacing: 0.16em; }
-.fullmenu h1 span { font-size: calc(12px * var(--ts, 1)); letter-spacing: 0; opacity: 0.6; font-weight: normal; }
+.fullmenu .panel > * { max-width: max(760px, 56em); }
+.fullmenu h1 { margin: 0 0 12px; font-size: calc(clamp(17px, 3.2vh, 46px) * var(--ts, 1)); letter-spacing: 0.16em; }
+.fullmenu h1 span { font-size: calc(var(--type-s) * 0.92); letter-spacing: 0; opacity: 0.6; font-weight: normal; }
 .fullmenu .row { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 0; padding: clamp(5px, 1.1vh, 10px) 6px; border-bottom: 1px dashed rgba(43, 33, 31, 0.28); }
 .fullmenu .row[hidden] { display: none; }   /* (the jets' pitch without the jets, the dev menu without the gate: src/ui.js) */
 .fullmenu .row:focus-within { background: rgba(242, 197, 75, 0.3); }
 .fullmenu select, .fullmenu input[type=range] { width: 46%; accent-color: #c8483a; font: inherit; }
 .fullmenu select { padding: 4px 6px; color: #2b211f; background: #fffaf0; border: 2px solid #2b211f; border-radius: 0; }
-.fullmenu input[type=checkbox] { width: 18px; height: 18px; accent-color: #c8483a; }
+.fullmenu input[type=checkbox] { width: max(18px, calc(var(--type-s) * 1.3)); height: max(18px, calc(var(--type-s) * 1.3)); accent-color: #c8483a; }
 /* a dropdown opened with a controller (src/menu-pad.js): its row tinted, the dropdown yellow in a red frame
    while the D-pad goes through its choices; A / × keeps the one shown, B / ○ puts the old one back */
 .fullmenu .row.pad-open { background: rgba(200, 72, 58, 0.2); }
@@ -199,7 +199,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .danger [data-a="reset"], .fullmenu .danger [data-a="reset-yes"] { color: #c8483a; }
 .fullmenu .danger [hidden] { display: none; }
 .fullmenu .ask { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.fullmenu .keys { margin: 14px 0 0; font-size: calc(11px * var(--ts, 1)); opacity: 0.65; line-height: 1.5; }
+.fullmenu .keys { margin: 14px 0 0; font-size: 0.85em; opacity: 0.65; line-height: 1.5; }
 .fullmenu .panel :focus { outline: 3px solid #277e86; outline-offset: 3px; }
 /* a phone held upright: the menu on top, the settings scroll under it */
 @media (max-width: 720px) and (orientation: portrait) {
@@ -248,7 +248,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-height: var(--btn-h, 44px); box-sizing: border-box;
   padding: 3px calc(var(--btn-font, 14px) * 1.05); text-align: left; color: #211a17; background: rgba(251, 232, 196, 0.9);
   border: 1.5px solid #211a17; border-radius: 3px; box-shadow: 2px 2px 0 #e27c5b;
-  font: 800 calc(var(--btn-font, 14px) * var(--ts, 1))/1.1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
+  font: 800 calc(var(--btn-font, 14px) * var(--ts, 1))/1.1 var(--face);
   letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
   transition: transform 0.08s, box-shadow 0.08s, background 0.12s, color 0.12s;
 }
@@ -265,7 +265,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 #title .main-menu .tool .ico { width: 58%; height: 58%; display: block; pointer-events: none; }
 #title .main-menu .tool .tip {
   position: absolute; top: 50%; left: calc(100% + var(--k, 0) * (var(--icon, 44px) + var(--btn-gap, 8px)) + 10px); transform: translateY(-50%); padding: 4px 8px; pointer-events: none;
-  font: 700 calc(11px * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.08em; text-transform: uppercase;
+  font: 700 calc(11px * var(--ts, 1))/1.2 var(--face); letter-spacing: 0.08em; text-transform: uppercase;
   color: #fffaf0; background: #211a17; border-radius: 3px; white-space: nowrap; opacity: 0; transition: opacity 0.12s;
 }
 #title .main-menu .tool:hover .tip, #title .main-menu .tool:focus .tip { opacity: 1; }
@@ -292,17 +292,17 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   box-shadow: 0 6px 24px rgba(43, 33, 31, 0.1);
 }
 .fullmenu .updates[hidden] { display: none; }
-.fullmenu .updates h2 { margin: 0 0 4px; font: 300 calc(clamp(11px, 1.8vh, 13px) * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.4em; opacity: 0.7; }
+.fullmenu .updates h2 { margin: 0 0 4px; font: 300 calc(clamp(11px, 1.8vh, 13px) * var(--ts, 1))/1.2 var(--face); letter-spacing: 0.4em; opacity: 0.7; }
 .fullmenu .updates p { margin: 0; }
-.fullmenu .updates .up-running { font-size: calc(11px * var(--ts, 1)); opacity: 0.65; }
+.fullmenu .updates .up-running { font-size: 0.85em; opacity: 0.65; }
 .fullmenu .updates .up-title { margin-top: 6px; font-size: calc(clamp(14px, 2.4vh, 18px) * var(--ts, 1)); font-weight: bold; }
-.fullmenu .updates .up-detail, .fullmenu .updates .up-pct, .fullmenu .updates .up-more, .fullmenu .updates .up-music { margin-top: 4px; font-size: calc(12px * var(--ts, 1)); opacity: 0.8; }
+.fullmenu .updates .up-detail, .fullmenu .updates .up-pct, .fullmenu .updates .up-more, .fullmenu .updates .up-music { margin-top: 4px; font-size: 0.92em; opacity: 0.8; }
 .fullmenu .updates[data-state="offline"] .up-title, .fullmenu .updates[data-state="error"] .up-title { color: #a8392d; }
 .fullmenu .updates[data-state="current"] .up-title::before { content: '✓ '; color: #277e86; }
 .fullmenu .updates .up-bar { position: relative; height: 4px; margin-top: 8px; border-radius: 2px; background: rgba(43, 33, 31, 0.14); overflow: hidden; }
 .fullmenu .updates .up-bar i { position: absolute; inset: 0 auto 0 0; background: #c8483a; border-radius: 2px; transition: width 0.3s; }
-.fullmenu .updates .up-new { margin-top: 10px; font-size: calc(11px * var(--ts, 1)); letter-spacing: 0.08em; opacity: 0.7; }
-.fullmenu .updates .up-notes { margin: 4px 0 0; padding: 0 0 0 1.1em; font-size: calc(12px * var(--ts, 1)); line-height: 1.45; }
+.fullmenu .updates .up-new { margin-top: 10px; font-size: 0.85em; letter-spacing: 0.08em; opacity: 0.7; }
+.fullmenu .updates .up-notes { margin: 4px 0 0; padding: 0 0 0 1.1em; font-size: 0.92em; line-height: 1.45; }
 .fullmenu .updates .up-notes li { margin: 0 0 2px; }
 .fullmenu .updates .up-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .fullmenu .updates .up-actions button {
@@ -310,7 +310,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   border-radius: 4px; box-shadow: none; letter-spacing: 0.06em;
 }
 .fullmenu .updates .up-actions button.primary { background: #2b211f; color: #fff6dc; border-color: #2b211f; }
-.fullmenu .updates .up-actions button.quiet { margin-left: auto; padding: 4px 8px; font-size: calc(11px * var(--ts, 1)); border-color: transparent; background: none; opacity: 0.7; }
+.fullmenu .updates .up-actions button.quiet { margin-left: auto; padding: 4px 8px; font-size: 0.85em; border-color: transparent; background: none; opacity: 0.7; }
 .fullmenu .updates .up-actions button:hover, .fullmenu .updates .up-actions button:focus { background: #f2c54b; color: #2b211f; border-color: #2b211f; opacity: 1; }
 .fullmenu .updates .up-log {
   margin: 8px 0 0; max-height: 30vh; overflow: auto; padding: 6px 8px; font-size: calc(10px * var(--ts, 1)); line-height: 1.4;
@@ -321,7 +321,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
    Settings and Controls (Items and Quests open the game menu: src/game-menu.css) */
 .fullmenu .menu-nav button.on { border-left: 9px solid #c8483a; }
 .fullmenu .menu-nav button.on:focus { border-left-color: #2b211f; }
-.fullmenu .panel h2 { margin: clamp(10px, 2.2vh, 20px) 0 6px; font-size: calc(clamp(13px, 2.1vh, 16px) * var(--ts, 1)); letter-spacing: 0.08em; }
+.fullmenu .panel h2 { margin: clamp(10px, 2.2vh, 20px) 0 6px; font-size: calc(clamp(13px, 2.1vh, 30px) * var(--ts, 1)); letter-spacing: 0.08em; }
 .fullmenu .panel h2 span { font-weight: normal; opacity: 0.6; }
 .fullmenu .ctl { list-style: none; margin: 0 0 6px; padding: 0; }
 .fullmenu .ctl li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: clamp(3px, 0.8vh, 6px) 6px; border-bottom: 1px dashed rgba(43, 33, 31, 0.28); }
@@ -329,7 +329,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .ctl li b { flex: 1 1 56%; font-weight: normal; text-align: right; }
 
 /* the settings' groups, and the Controls page's own keys and buttons (src/ui.js rebindHtml) */
-.fullmenu .panel[data-page="settings"] h2 { margin: clamp(12px, 2.4vh, 22px) 0 2px; font-size: calc(clamp(11px, 1.8vh, 14px) * var(--ts, 1)); letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.75; }
+.fullmenu .panel[data-page="settings"] h2 { margin: clamp(12px, 2.4vh, 22px) 0 2px; font-size: calc(clamp(11px, 1.8vh, 26px) * var(--ts, 1)); letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.75; }
 .fullmenu .rebind { margin: 0 0 clamp(10px, 2vh, 18px); }
 .fullmenu .rb { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); column-gap: 18px; }
 .fullmenu .rb li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: clamp(2px, 0.6vh, 5px) 6px; border-bottom: 1px dashed rgba(43, 33, 31, 0.28); }

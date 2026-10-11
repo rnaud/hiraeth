@@ -50,7 +50,7 @@ const _aim = new THREE.Vector3();
 
 const CSS = `
 #homeward { position: fixed; right: 4vw; top: calc(11vh + 14px); bottom: max(calc(11vh + 66px), var(--cine-sub-clear, 0px)); width: min(470px, 46vw); z-index: 8100; display: none; flex-direction: column;
-  background: #f7ecd2; color: #2b211f; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+  background: #f7ecd2; color: #2b211f; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: var(--type-s)/1.4 var(--face); }
 #homeward.open { display: flex; }
 #homeward header { padding: 12px 16px 8px; border-bottom: 2px solid #2b211f; }
 #homeward h2 { margin: 0; font-size: 17px; letter-spacing: .14em; }
@@ -73,7 +73,7 @@ const CSS = `
   background: linear-gradient(rgba(43, 33, 31, .55), rgba(43, 33, 31, .35)); }
 #credits.on { opacity: 1; }
 #endcard { position: fixed; inset: 0; z-index: 8150; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: #2b211f; color: #f7ecd2; font: 14px/1.6 ui-monospace, Menlo, monospace; text-align: center; opacity: 0; transition: opacity 1.6s; }
+  background: #2b211f; color: #f7ecd2; font: var(--type)/1.6 var(--face); text-align: center; opacity: 0; transition: opacity 1.6s; }
 #endcard.on { opacity: 1; }
 #endcard h1 { margin: 0 0 14px; font-size: 30px; letter-spacing: .3em; font-weight: normal; }
 #endcard .glyph { font-size: 22px; line-height: .7; margin: 0 0 22px; color: #9fe0d6; }
@@ -83,7 +83,7 @@ const CSS = `
 body.touch #homeward footer span { display: none; }
 #credits .roll { position: absolute; left: 50%; top: 0; width: min(560px, 86vw); margin-left: calc(min(560px, 86vw) / -2); padding: 48px 40px 70px; box-sizing: border-box;
   background: #f7ecd2; color: #2b211f; border-left: 2px solid #2b211f; border-right: 2px solid #2b211f; box-shadow: 8px 0 0 #2b211f;
-  font: 13px/1.5 ui-monospace, Menlo, monospace; text-align: center; will-change: transform;
+  font: var(--type-s)/1.5 var(--face); text-align: center; will-change: transform;
   background-image: repeating-linear-gradient(transparent 0 27px, rgba(43, 33, 31, .05) 27px 28px); }
 #credits h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: .26em; }
 #credits .glyph { font-size: 20px; line-height: .7; margin: 10px 0 18px; }

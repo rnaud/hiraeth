@@ -23,8 +23,8 @@ const CSS = `
 #cine .bar.top { top: 0; } #cine .bar.bot { bottom: 0; }
 #cine.on .bar { height: 11vh; }
 #cine.lids .bar { height: 50.5vh; transition-duration: 0s; }
-#cine .sub { position: absolute; left: 50%; bottom: calc(11vh + 14px); transform: translateX(-50%); width: min(820px, calc(100vw - 32px)); text-align: center;
-  font: clamp(14px, 3.9vw, 17px)/1.4 ui-monospace, Menlo, monospace; color: #2b211f; opacity: 0; transition: opacity .2s; }
+#cine .sub { position: absolute; left: 50%; bottom: calc(11vh + 14px); transform: translateX(-50%); width: min(max(820px, 46em), calc(100vw - 32px)); text-align: center;
+  font: var(--type)/1.4 var(--face); color: #2b211f; opacity: 0; transition: opacity .2s; }
 #cine .sub span { display: block; width: fit-content; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 5px 12px 6px;
   background: rgba(247, 236, 210, 0.95); border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; text-wrap: balance; }
 #cine .sub b { letter-spacing: .14em; margin-right: 8px; font-weight: bold; }
@@ -35,7 +35,7 @@ const CSS = `
 #cine .sub.show { opacity: 1; transition: opacity .2s, bottom .3s; }
 #cine .sub.show.in span { animation: cine-sub-in .22s ease-out; }
 @keyframes cine-sub-in { from { opacity: 0; transform: translateY(4px); } }
-#cine .skip { position: absolute; right: calc(22px + var(--safe-right, 0px)); bottom: calc(5.5vh - 10px); font: 12px ui-monospace, Menlo, monospace; color: #f7ecd2; opacity: 0;
+#cine .skip { position: absolute; right: calc(22px + var(--safe-right, 0px)); bottom: calc(5.5vh - 10px); font: calc(var(--type-s) * 0.9) var(--face); color: #f7ecd2; opacity: 0;
   transition: opacity .3s; letter-spacing: .08em; padding: 3px 8px; background: rgba(43, 33, 31, .82); white-space: nowrap; }
 #cine .skip.show { opacity: .9; }
 #cine .skip.press { pointer-events: auto; cursor: pointer; } #cine .skip.press i { display: none; }
@@ -45,19 +45,19 @@ const CSS = `
 #cine .fade.white { background: #fff6dc; }
 #cine .red { position: absolute; inset: 0; opacity: 0; mix-blend-mode: multiply;
   background: radial-gradient(ellipse at center, rgba(255, 150, 130, .55) 30%, rgba(170, 30, 25, .95) 100%); }
-#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: 12px ui-monospace, Menlo, monospace; color: #2b211f;
-  width: max-content; max-width: min(560px, calc(100vw - 40px)); box-sizing: border-box; text-align: center;
+#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: var(--type-s) var(--face); color: #2b211f;
+  width: max-content; max-width: min(40em, calc(100vw - 40px)); box-sizing: border-box; text-align: center;
   padding: 4px 11px; background: rgba(255, 246, 220, .84); border: 1px solid rgba(43, 33, 31, .5); border-radius: 10px; opacity: 0; transition: opacity .4s; }
 #cine .hint.show { opacity: 1; transition: opacity .4s, top .3s; }
 #objective { position: fixed; left: 50%; top: 18vh; transform: translateX(-50%); z-index: 7900; pointer-events: none; text-align: center; opacity: 0;
-  width: max-content; max-width: min(640px, calc(100vw - 32px)); font: 13px ui-monospace, Menlo, monospace; color: #2b211f; }
-#objective .k { letter-spacing: .3em; font-size: 11px; opacity: .75; }
-#objective .t { margin: 6px 6px 6px 0; padding: 10px 22px; font-size: clamp(18px, 5vw, 24px); letter-spacing: .06em; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; text-wrap: balance; }
+  width: max-content; max-width: min(max(640px, 40em), calc(100vw - 32px)); font: var(--type-s) var(--face); color: #2b211f; }
+#objective .k { letter-spacing: .3em; font-size: 0.85em; opacity: .75; }
+#objective .t { margin: 6px 6px 6px 0; padding: 10px 22px; font-size: max(clamp(18px, 5vw, 24px), calc(var(--type) * 1.3)); letter-spacing: .06em; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; text-wrap: balance; }
 #objective.show { animation: objective 6.5s forwards; transition: top .3s; }
 @keyframes objective { 0% { opacity: 0; transform: translate(-50%, 10px) rotate(-1deg); } 8%, 82% { opacity: 1; transform: translate(-50%, 0) rotate(-.6deg); } 100% { opacity: 0; } }
 #warp { position: fixed; inset: 0; z-index: 8400; pointer-events: none; opacity: 0; transition: opacity .5s; }
 #warp.on { opacity: 1; }
-#warp .title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 30px ui-monospace, Menlo, monospace; letter-spacing: .24em;
+#warp .title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 900 max(30px, calc(var(--type) * 1.6)) var(--face-title); letter-spacing: .24em;
   color: #2b211f; padding: 10px 22px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; text-transform: uppercase; opacity: 0; transition: opacity .6s .4s; }
 #warp.on .title { opacity: 1; }
 `;

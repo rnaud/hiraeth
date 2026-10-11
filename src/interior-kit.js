@@ -4,6 +4,7 @@ import { makeMaterial, MODE_STRATA } from './materials.js';
 import { buildRoom, portalPair } from './interiors.js';
 import { textGeometry } from './story/sign-text.js';
 import { crystalGeometry } from './chimes.js';
+import { FACE, TITLE_FACE } from './typefaces.js';
 
 // The interior kit (docs/systems/interiors.md): a building you walk into and play inside. One call gives a
 // door in the world (a shopfront: a plastered house with its door, an awning, a name board over the door and
@@ -67,7 +68,7 @@ const strata = (color, color2 = color, color3 = '#f6e6d6', o = {}) => makeMateri
 
 /**
  * The name board's face, painted: ink letters on cream with a ruled line (a canvas texture, the game's own
- * monospace face), or null where there is no canvas (node's tests: the board gets block letters instead).
+ * title face, src/typefaces.js), or null where there is no canvas (node's tests: the board gets block letters instead).
  */
 function boardTexture(text, sub, w, h) {
   const doc = globalThis.document;
@@ -81,9 +82,9 @@ function boardTexture(text, sub, w, h) {
   g.fillStyle = '#2b211f'; g.textAlign = 'center'; g.textBaseline = 'middle';
   let size = Math.round(H * (sub ? 0.5 : 0.62));
   const name = String(text).toUpperCase();
-  do { g.font = `900 ${size}px ui-monospace, Menlo, monospace`; size -= 2; } while (g.measureText(name).width > W - 80 && size > 16);
+  do { g.font = `900 ${size}px ${TITLE_FACE}`; size -= 2; } while (g.measureText(name).width > W - 80 && size > 16);
   g.fillText(name, W / 2, H * (sub ? 0.4 : 0.52));
-  if (sub) { g.font = `italic 700 ${Math.round(H * 0.24)}px ui-monospace, Menlo, monospace`; g.fillStyle = '#8a4a2c'; g.fillText(sub, W / 2, H * 0.76); }
+  if (sub) { g.font = `italic 700 ${Math.round(H * 0.24)}px ${FACE}`; g.fillStyle = '#8a4a2c'; g.fillText(sub, W / 2, H * 0.76); }
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;

@@ -19,6 +19,16 @@
         --safe-right: env(safe-area-inset-right, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
         --safe-left: env(safe-area-inset-left, 0px);
+        /* the game's type (docs/systems/ui.md "Type", src/typefaces.js; issue #128): one face for everything a player reads,
+           the title face for names and headings, the mono for the debug and dev panels alone. Numbers are in the face too,
+           with figures of one width (tabular-nums) where they count. Sizes follow the screen's height, as the conversation
+           panel's (issue #147): --type for what is read (a notice, the cue, a game's card, the settings), --type-s for the
+           small print (labels, a card's strip, the HUD's chips); both under the text size setting (--ts) */
+        --face: 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
+        --face-title: Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif;
+        --face-mono: ui-monospace, Menlo, Consolas, monospace;
+        --type: calc(clamp(15px, 2.4vh, 36px) * var(--ts, 1));
+        --type-s: calc(clamp(13px, 1.9vh, 28px) * var(--ts, 1));
       }
       /* the Xbox app on a TV (src/xbox.js): the HUD and the menus inside the TV's safe area, 5 % from each edge */
       :root.tv-safe {
@@ -34,20 +44,20 @@
          seconds, a region's name as you cross into it; it fades in and out */
       #cue {
         position: fixed; left: 50%; bottom: calc(22px + var(--safe-bottom, 0px)); z-index: 31; transform: translateX(-50%);
-        width: max-content; max-width: min(720px, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
-        font: calc(12px * var(--ts, 1))/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(255, 250, 240, 0.8);
-        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 14px; padding: 2px 11px;
+        width: max-content; max-width: min(44em, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
+        font: var(--type)/1.4 var(--face); color: #2b211f; background: rgba(255, 250, 240, 0.8);
+        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 1.2em; padding: 0.15em 0.95em;
         pointer-events: none; user-select: none; opacity: 0; transition: opacity 0.35s;
       }
       #cue.show { opacity: 1; }
       #cue .key { font-size: 0.9em; min-width: 1.7em; height: 1.7em; margin: -2px 1px 0 0; }
       /* a region's name: thin capitals on the land, no box */
       #cue.place { background: none; border: 0; box-shadow: none; padding: 0; transition: opacity 0.9s;
-        font: 300 calc(clamp(13px, 2.4vh, 19px) * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
+        font: 300 calc(clamp(13px, 2.4vh, 19px) * var(--ts, 1))/1.2 var(--face);
         letter-spacing: 0.32em; text-transform: uppercase; text-shadow: 0 0 2px #fffaf0, 0 0 6px #fffaf0, 0 0 14px rgba(255, 250, 240, 0.95); }
       /* the scout's find: the quest's goal, small, over its next step (src/hud.js findSummary) */
       #cue.quest { padding: 4px 16px 5px; border-radius: 12px; }
-      #cue.quest .goal { display: block; font: italic 500 calc(clamp(10px, 1.7vh, 12px) * var(--ts, 1))/1.3 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.06em; opacity: 0.75; }
+      #cue.quest .goal { display: block; font: italic 500 0.85em/1.3 var(--face); letter-spacing: 0.06em; opacity: 0.75; }
       #cue.quest .step { display: block; font-weight: bold; }
       body.talking #cue, body.cine-on #cue { visibility: hidden; }
       /* hearts, the magic bar and the potion, top left: only while a heart is missing, the bar spends or refills,
@@ -70,7 +80,7 @@
       #health .h.low .hf { fill: #e8643c; }
       /* the healing potion: a little corked flask, its stock beside it (∞ until the shops); on a touch screen it is the button */
       #health .potion { position: relative; display: flex; align-items: center; gap: 2px; padding: 0; margin: 0; border: 0; background: none; color: #2b211f;
-        font: 800 calc(var(--hh) * 0.9)/1 ui-monospace, Menlo, monospace; pointer-events: none; }
+        font: 800 calc(var(--hh) * 0.9)/1 var(--face); font-variant-numeric: tabular-nums; pointer-events: none; }
       #health .potion svg { display: block; height: calc(var(--hh) * 1.15); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
       #health .potion b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; }
       #health .potion.none { opacity: 0.4; }
@@ -78,7 +88,7 @@
       @keyframes pdrink { 30% { transform: rotate(-35deg) translateY(-2px); } 60% { transform: rotate(-35deg) translateY(-2px); } }
       body.touch #health.on .potion { pointer-events: auto; padding: 6px; margin: -6px; }
       /* the chimes (src/chimes.js): a small cyan crystal (src/chime-icon.js) and the wallet's count, counting up; it turns as one rings in */
-      #health .chimes { display: flex; align-items: center; gap: 3px; margin-left: calc(var(--hh) * 0.2); color: #2b211f; font: 800 calc(var(--hh) * 0.8)/1 ui-monospace, Menlo, monospace; }
+      #health .chimes { display: flex; align-items: center; gap: 3px; margin-left: calc(var(--hh) * 0.2); color: #2b211f; font: 800 calc(var(--hh) * 0.8)/1 var(--face); font-variant-numeric: tabular-nums; }
       #health .chimes svg { display: block; height: calc(var(--hh) * 0.95); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
       #health .chimes b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; transition: color .2s, transform .2s; display: inline-block; }
       #health .chimes.tick b { color: #1f7f95; transform: scale(1.15); }
@@ -107,21 +117,21 @@
         opacity: 0; visibility: hidden; transition: opacity .9s, visibility 0s .9s; }
       #restart.open { opacity: 1; visibility: visible; transition: opacity .9s; }
       #restart .sheet { padding: 18px 26px 14px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; transform: rotate(-0.8deg);
-        font: calc(13px * var(--ts, 1))/1.5 ui-monospace, Menlo, monospace; color: #2b211f; text-align: center; min-width: 220px; }
+        font: var(--type)/1.5 var(--face); color: #2b211f; text-align: center; min-width: 13em; }
       #restart p { margin: 0 0 12px; letter-spacing: 0.04em; }
-      #restart button { font: 700 calc(16px * var(--ts, 1))/1 ui-monospace, Menlo, monospace; letter-spacing: 0.14em; color: #2b211f; background: #f2c54b;
+      #restart button { font: 800 calc(var(--type) * 1.15)/1 var(--face); letter-spacing: 0.14em; color: #2b211f; background: #f2c54b;
         border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; padding: 10px 22px; cursor: pointer; border-radius: 4px; }
       #restart button:focus-visible, #restart button:hover { background: #ffd866; outline: none; }
       #restart button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2b211f; }
       #restart button { display: inline-flex; align-items: center; }   /* (the confirm glyph inside it: src/pad-glyphs.js) */
       #photo {
         position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: none;
-        font: 12px ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.8);
-        border: 1.5px solid #2b211f; padding: 6px 12px; pointer-events: none; animation: fadehint 4s forwards;
+        font: var(--type-s) var(--face); color: #2b211f; background: rgba(247, 236, 210, 0.8);
+        border: 1.5px solid #2b211f; padding: 0.45em 0.95em; pointer-events: none; animation: fadehint 4s forwards;
       }
       #photo.open { display: block; }
       @keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
-      #fps { position: fixed; right: 64px; bottom: 22px; z-index: 30; font: 12px ui-monospace, Menlo, monospace; color: #2b211f;
+      #fps { position: fixed; right: 64px; bottom: 22px; z-index: 30; font: 12px var(--face-mono);   /* (a measuring readout: the mono's even columns) */ color: #2b211f;
         background: rgba(255, 250, 240, 0.8); border: 1.5px solid #2b211f; padding: 3px 7px; pointer-events: none; }
       #fps:empty, body.nofps #fps { display: none; }
       body.touch #fps { top: 22px; bottom: auto; right: 64px; }
@@ -136,13 +146,14 @@
       #changelog { position: fixed; inset: 0; z-index: 8700; display: none; place-items: center; background: rgba(43, 33, 31, 0.45); }
       #changelog.open { display: grid; }
       #changelog .panel {
-        width: min(620px, 94vw); max-height: 86vh; display: flex; flex-direction: column; padding: 20px 24px; background: #f7ecd2;
-        border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: 13px/1.45 ui-monospace, Menlo, monospace; color: #2b211f;
+        width: min(46em, 94vw); max-height: 86vh; display: flex; flex-direction: column; padding: 1.5em 1.8em; background: #f7ecd2;
+        border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; font: var(--type-s)/1.45 var(--face); color: #2b211f;
       }
-      #changelog h1 { margin: 0 0 10px; font-size: 20px; letter-spacing: 0.14em; }
-      #changelog h1 span, #changelog h2 span { font-size: 12px; letter-spacing: 0; opacity: 0.6; font-weight: normal; }
+      #changelog h1 { margin: 0 0 10px; font: 900 1.55em/1.1 var(--face-title); letter-spacing: 0.1em; }
+      #changelog h1 span, #changelog h2 span { font-family: var(--face); font-size: 0.6em; letter-spacing: 0; opacity: 0.6; font-weight: normal; }
       #changelog .list { overflow-y: auto; padding-right: 8px; }
-      #changelog h2 { margin: 14px 0 4px; font-size: 14px; border-bottom: 1px solid #2b211f; }
+      #changelog h2 { margin: 14px 0 4px; font-size: 1.08em; border-bottom: 1px solid #2b211f; }
+      #changelog h2 span { font-size: 0.85em; }
       #changelog ul { margin: 0; padding-left: 18px; }
       #changelog li { margin: 3px 0; }
       #changelog .buttons { margin-top: 12px; text-align: right; }
@@ -163,7 +174,7 @@
       #touch .stick.on { display: block; }
       #touch .nub { position: absolute; left: 45px; top: 45px; width: 50px; height: 50px; border-radius: 50%; background: rgba(43, 33, 31, 0.55); }
       #touch button {
-        position: fixed; z-index: 36; width: 64px; height: 64px; border-radius: 50%; font: 18px ui-monospace, Menlo, monospace;
+        position: fixed; z-index: 36; width: 64px; height: 64px; border-radius: 50%; font: 700 18px var(--face);
         color: #2b211f; background: rgba(255, 250, 240, 0.8); border: 2px solid #2b211f; touch-action: none;
       }
       /* each button's place and size: src/touch-layout.js (ui.js TouchControls sets them, scaled to the screen's short side) */
@@ -171,7 +182,7 @@
       body.touch #gear { top: 14px; bottom: auto; }
       #loading {
         position: fixed; inset: 0; z-index: 9000; display: grid; place-content: center; justify-items: center; gap: 18px;
-        font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
+        font: var(--type-s) var(--face); color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
       }
       #loading.done { opacity: 0; pointer-events: none; }
       /* arriving from the ship's jump (?via=ship), or the chime-pirates on the way (?game=pirates): the warp's space ink, not the paper (src/ship/cinema.js WARP) */
@@ -189,8 +200,8 @@
       @keyframes spin { to { transform: rotate(360deg); } }
 
       .balloon {
-        position: fixed; left: 0; top: 0; z-index: 40; will-change: transform; max-width: 240px; padding: 7px 11px;
-        font: calc(13px * var(--ts, 1))/1.35 ui-monospace, Menlo, monospace; color: #2b211f; background: #fffaf0;
+        position: fixed; left: 0; top: 0; z-index: 40; will-change: transform; max-width: 17em; padding: 0.5em 0.85em;
+        font: var(--type-s)/1.35 var(--face); color: #2b211f; background: #fffaf0;
         border: 2px solid #2b211f; border-radius: 16px; pointer-events: none; opacity: 0; transition: opacity 0.25s;
       }
       .balloon::after {
@@ -209,7 +220,7 @@
         --dlg: calc(clamp(17px, 2.9vh, 46px) * var(--ts, 1) * var(--fit, 1));
         position: fixed; left: 50%; bottom: calc(clamp(18px, 3.6vh, 60px) + var(--safe-bottom)); z-index: 75; width: min(46em, calc(100vw - 32px));
         transform: translate(-50%, 24px); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1.2);
-        font: var(--dlg)/1.45 ui-monospace, Menlo, monospace; color: #2b211f;
+        font: var(--dlg)/1.45 var(--face); color: #2b211f;
       }
       #dialogue.open { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
       #dialogue .dlg-panel {
@@ -307,12 +318,12 @@
       /* the prompt over whoever (or whatever) the use button would use: a round button badge and the action */
       #prompt {
         position: fixed; left: 0; top: 0; z-index: 39; will-change: transform; pointer-events: none; opacity: 0; transition: opacity 0.2s;
-        font: calc(12px * var(--ts, 1)) ui-monospace, Menlo, monospace; color: #2b211f; background: #fffaf0; border: 1.5px solid #2b211f; padding: 3px 10px 3px 4px; white-space: nowrap;
-        box-shadow: 2px 2px 0 #2b211f; border-radius: 14px; display: flex; align-items: center; gap: 6px;
+        font: var(--type-s) var(--face); color: #2b211f; background: #fffaf0; border: 1.5px solid #2b211f; padding: 0.25em 0.8em 0.25em 0.3em; white-space: nowrap;
+        box-shadow: 2px 2px 0 #2b211f; border-radius: 1.2em; display: flex; align-items: center; gap: 0.5em;
       }
       #prompt.show { opacity: 1; }
       /* hints subtle or off (src/hint-level.js): the button alone, a small quiet glyph, no words */
-      #prompt.glyph { background: none; border: 0; box-shadow: none; padding: 0; font-size: calc(11px * var(--ts, 1)); }
+      #prompt.glyph { background: none; border: 0; box-shadow: none; padding: 0; font-size: calc(var(--type-s) * 0.9); }
       #prompt.glyph.show, #cue.glyph.show { opacity: 0.8; }
       #prompt.glyph .key, #cue.glyph .key { box-shadow: 0 0 0 1.5px #fffaf0, 1.5px 1.5px 0 1.5px rgba(43, 33, 31, 0.35); }
       #cue.glyph { background: none; border: 0; box-shadow: none; padding: 0; }
@@ -324,10 +335,7 @@
       /* a {key:verb} in a line (src/prompt-keys.js keyText): the player's own key or button, in the line's own type, bold */
       kbd.kp { font: inherit; font-weight: bold; white-space: nowrap; }
       /* the father's charge (src/story/charge.js): its own gold tag on the objective line */
-      @media (min-width: 1700px) and (min-height: 900px) {
-        #prompt { font-size: calc(15px * var(--ts, 1)); padding: 4px 13px 4px 5px; border-radius: 18px; gap: 8px; }
-        body:not(.touch) #cue:not(.place) { font-size: calc(15px * var(--ts, 1)); }
-      }
+      /* (a big screen needs no step up of its own: the prompt and the cue are --type-s, from the screen's height) */
       /* in a conversation only the panel speaks: no prompts, no button lists */
       body.talking .balloon, body.talking #prompt, body.talking #controller-hint, body.talking #gear { visibility: hidden; }
       /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
@@ -337,27 +345,27 @@
 
       /* a notice: quiet paper, a thin rule, no shadow (src/ship/cinema.js places it clear of the health bar) */
       #toast {
-        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 5px 12px;
-        font: calc(12px * var(--ts, 1))/1.45 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(255, 250, 240, 0.84);
-        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 10px; opacity: 0; pointer-events: none;
+        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 0.35em 0.9em;
+        font: var(--type)/1.4 var(--face); color: #2b211f; background: rgba(255, 250, 240, 0.84);
+        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 0.8em; opacity: 0; pointer-events: none;
       }
       /* a quest begins (src/story/quests.js startToast): its own card, ink with a gold rule, its title large */
       /* a quest's start: one short line, its mark and its title (the step after it with hints full), quiet but plainly a
          quest: the gold diamond for a main one (issue #72: it was a head, the title and the step on three lines) */
-      #toast.quest { padding: 5px 16px 6px; background: rgba(43, 33, 31, 0.86); color: #f7ecd2; border: 0; border-radius: 3px; white-space: nowrap; }
+      #toast.quest { padding: 0.35em 1.2em 0.45em; background: rgba(43, 33, 31, 0.86); color: #f7ecd2; border: 0; border-radius: 3px; white-space: nowrap; }
       #toast.quest span { display: inline; }
-      #toast.quest .qk { margin-right: 0.5em; color: #f2c54b; font-size: calc(13px * var(--ts, 1)); }
+      #toast.quest .qk { margin-right: 0.5em; color: #f2c54b; font-size: 1.05em; }
       #toast.quest .qk.errand { color: #d9c9a3; }
-      #toast.quest .qt { font: italic 500 calc(15px * var(--ts, 1))/1.3 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.03em; }
-      #toast.quest .qs { font-size: calc(12.5px * var(--ts, 1)); opacity: 0.85; }
+      #toast.quest .qt { font: italic 500 1.2em/1.3 var(--face); letter-spacing: 0.03em; }
+      #toast.quest .qs { font-size: 1em; opacity: 0.85; }
       #toast.quest .qs::before { content: '·'; margin: 0 0.55em; opacity: 0.7; }
       #toast.show { animation: toast 4.5s forwards; }
       /* the toast is placed in the stack of things written on the screen (src/ship/cinema.js layoutCinema):
          one line where it can, centred, and over the letterbox's frame during a scene, below its top bar */
-      #toast { width: max-content; max-width: min(560px, calc(100vw - 32px)); box-sizing: border-box; text-align: center; transition: top 0.3s; }
+      #toast { width: max-content; max-width: min(40em, calc(100vw - 32px)); box-sizing: border-box; text-align: center; transition: top 0.3s; }
       body.cine-on #toast { z-index: 8050; }
       /* a phone on its side: the buttons fill the right, so a notice wraps narrower and slides left of them (src/ship/cinema.js) */
-      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(560px, 60vw); } }
+      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(40em, 60vw); } }
       @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
       #page {
@@ -377,17 +385,16 @@
       #page .p3 { aspect-ratio: 440 / 300; transform: rotate(-0.4deg); }
       #page .cap {
         position: absolute; left: 12px; top: 12px; max-width: 46%; padding: 7px 10px; background: #fff6dc;
-        border: 2px solid #2b211f; font: calc(13px * var(--ts, 1))/1.4 ui-monospace, Menlo, monospace; color: #2b211f;
+        border: 2px solid #2b211f; font: var(--type-s)/1.4 var(--face); color: #2b211f;
       }
       #page .cap b { letter-spacing: 0.12em; }
-      #page .hint { grid-column: 1 / 3; text-align: right; font: calc(20px * var(--ts, 1))/1 ui-monospace, Menlo, monospace; color: #c8483a; margin: -6px 2px -8px 0; }
+      #page .hint { grid-column: 1 / 3; text-align: right; font: calc(var(--type) * 1.15)/1 var(--face); color: #c8483a; margin: -6px 2px -8px 0; }
 
       @media (max-width: 600px) {
         #page .sheet { width: 92vw; padding: 12px; gap: 8px; max-height: calc(100dvh - 32px); overflow: auto; }
         #page .p1 { aspect-ratio: auto; }
         #page .p1 img { height: auto; aspect-ratio: 900 / 380; }
-        #page .cap { position: static; max-width: none; margin: 8px; font-size: calc(11px * var(--ts, 1)); }
-        #page .hint { font-size: calc(16px * var(--ts, 1)); }
+        #page .cap { position: static; max-width: none; margin: 8px; }
       }
 
       /* The canvas fills the screen; interactive UI stays inside iOS safe areas. */
@@ -399,7 +406,7 @@
       #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
       #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
       @media (display-mode: standalone) { .install-tip { display: none; } }
-      #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: 12px monospace; pointer-events: none; }
+      #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: var(--type-s) var(--face); pointer-events: none; }
       body.controller.controller-hint #controller-hint { display: block; }
       /* holding a controller (a Retroid, a pad on a phone): no buttons on the screen at all */
       body.controller #touch, body.controller #gear { display: none; }
@@ -427,7 +434,7 @@
       @keyframes toolhit { 0% { transform: scale(1.9); border-color: #c8483a; } 100% { transform: scale(1); } }
       @keyframes toolempty { 0%, 100% { translate: 0; } 30% { translate: -3px; } 70% { translate: 3px; } }
       #tool .mode { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px;
-        font: 11px/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
+        font: calc(var(--type-s) * 0.9)/1.5 var(--face); color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
       #tool .mode b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; }
       #touch .b-aim.on { background: #9fd6e8; }
       body:not(.combat) #touch .b-lock { display: none; }   /* (only with a foe near: src/foes.js) */
@@ -464,7 +471,7 @@
       html.reduce-motion #page.open, html.reduce-motion #dialogue .dlg-more, html.reduce-motion #dialogue .dlg-text.heard > .dlg-live { animation: none; }
       /* not by colour alone: low health is hatched as well as red and pulsing, winded stamina dashed as well as red */
       #health .h.low .hf { stroke: #2b211f; stroke-width: 0.8; stroke-dasharray: 1.5 1.5; }
-      #stamina.winded::after { content: '!'; position: absolute; left: 100%; top: -4px; margin-left: 1px; font: bold 15px/1 ui-monospace, Menlo, monospace; color: #c8483a; text-shadow: 1px 1px 0 #2b211f; }
+      #stamina.winded::after { content: '!'; position: absolute; left: 100%; top: -4px; margin-left: 1px; font: 900 15px/1 var(--face-title); color: #c8483a; text-shadow: 1px 1px 0 #2b211f; }
     </style>
   </head>
   <body>

@@ -584,6 +584,33 @@ settings get the screen), and PAUSED is sized by the width too (`min(7vh, 8vw)`:
 tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-10 px floor, and the title's
 "Continue" world name at least 11 px. Still open (TODO.md): the touch controls' size on a phone held sideways.
 
+## Type (issue #128, v1.51)
+
+One face for what a player reads, named once in index.html's `:root` (and in `src/typefaces.js` for canvases
+and for styles shown outside the game's page):
+- **`var(--face)`** (`FACE`): Avenir Next, then Futura, Helvetica Neue, Roboto (Android, the Deck). The cue,
+  the prompts, the notices, the balloons, the conversation panel, the item card, the gadget chip, the restart
+  card, the minigames and trials (their cards, HUD and labels), the settings, the game menu, the shop, the
+  ship's scenes and map, the button glyphs. Numbers are in it too, `font-variant-numeric: tabular-nums` where
+  they count (a timer, a score, the chimes, the potions).
+- **`var(--face-title)`** (`TITLE_FACE`): Futura heavy, for names and headings: PAUSED, a game's title and its
+  score, the 3-2-1, the item's name on its card, a name board, the warp's title.
+- **`var(--face-mono)`** (`MONO_FACE`): only the debug and dev panels (the Debug menu, the dev menu, the foe
+  spawner, the hitboxes, the input display, the References, the frame-time readout) and a machine's screen in
+  the world (the ship's console, the Arcade's score board). `tests/typefaces.test.js` lists these and fails on
+  a monospace anywhere else.
+
+Sizes follow the screen's height, as the conversation panel's `--dlg` (2.9 % of it, issue #147):
+`--type` (2.4 %, 15–36 px: the cue, a notice, the restart card, the story pages' hint, subtitles) and
+`--type-s` (1.9 %, 13–28 px: the prompts, the item card, the minigames' cards, the settings, the game menu).
+Both include `--ts`. A component's other sizes are in `em` of these, its boxes too (a notice at most 40 em
+wide, a game's card 34 em), so a 1440p screen gets the same layout as a 720p one, larger.
+
+The conversation panel's scripts (`src/story/scripts.js`) drew each word `n ch` wide while the panel was mono;
+now `setWordMeasure` (set by the dialogue, a canvas in the panel's face) gives each word its English width in
+`em` (bold inside a highlight), so a word still turns into English without moving the line. Without a canvas
+(node's tests, tools/tongues.html) a word is still `n ch`.
+
 
 ## Back to the Debug menu from its pages (v1.6, `src/debug-back.js`)
 

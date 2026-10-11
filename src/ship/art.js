@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { FACE, TITLE_FACE } from '../typefaces.js';
 
 // Little hand-drawn things for the ship's walls, painted on canvases in the
 // game's ink-and-flat-colour look: a child's drawing of the family, the
@@ -58,14 +59,14 @@ export const familyDrawing = () => canvasTexture(256, 192, (g, w, h) => {
   wobblyLine(g, [[166, 128], [176, 132]], 2); wobblyLine(g, [[204, 136], [216, 146]], 2);
   // ground line and the signature
   g.strokeStyle = '#c9a27a'; wobblyLine(g, [[8, 182], [248, 180]], 3);
-  g.fillStyle = INK; g.font = 'bold 15px ui-monospace, Menlo, monospace'; g.fillText('US', 16, 176);
+  g.fillStyle = INK; g.font = `900 15px ${TITLE_FACE}`; g.fillText('US', 16, 176);
 });
 
 /** The mother's note, pinned in the galley (its last words are the lamp she keeps: the final recording's are its own, src/story/ending.js). */
 export const motherNote = () => canvasTexture(192, 160, (g, w, h) => {
   g.fillStyle = '#fff6dc'; g.fillRect(0, 0, w, h);
   g.fillStyle = '#e9998a'; g.fillRect(0, 0, w, 14);
-  g.fillStyle = INK; g.font = '15px ui-monospace, Menlo, monospace';
+  g.fillStyle = INK; g.font = `15px ${FACE}`;
   ['Eat something warm.', 'Sleep in the bunk,', 'not in the chair.', '', 'The lamp stays on', 'in the window.', '            — M.'].forEach((l, i) => g.fillText(l, 12, 36 + i * 18));
   g.strokeStyle = '#c8483a'; g.lineWidth = 2; g.beginPath(); g.arc(160, 132, 9, 0, Math.PI * 2); g.stroke();   // a little heart-ish circle
 });
@@ -93,5 +94,5 @@ export const starChart = () => canvasTexture(256, 192, (g, w, h) => {
   g.setLineDash([]);
   const cols = ['#d9a477', '#5fb7ad', '#f2ead6', '#e6875f', '#8a6fb8', '#7fa86a'];
   [[30, 160], [70, 120], [110, 130], [150, 80], [200, 60], [232, 28]].forEach(([x, y], i) => { g.fillStyle = cols[i]; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke(); });
-  g.fillStyle = INK; g.font = '11px ui-monospace, Menlo, monospace'; g.fillText('HOME', 210, 182); g.fillText('?', 240, 24);
+  g.fillStyle = INK; g.font = `11px ${FACE}`; g.fillText('HOME', 210, 182); g.fillText('?', 240, 24);
 });

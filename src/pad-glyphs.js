@@ -18,6 +18,7 @@
 // menus' confirm and back buttons, printed A and B whatever the layout (native-pad.js confirmKey).
 
 import { padText, labelState, onLabels, padFaces, padLayout, pageFamily } from './native-pad.js';
+import { FACE } from './typefaces.js';
 
 /** The roles, and the prompt each stands for (Xbox / PlayStation form; ok / back depend on the faces). */
 export const GLYPH_ROLES = {
@@ -80,7 +81,7 @@ ${keys[r] ? '' : `body:not(.controller) .glyph[data-glyph="${r}"]:not([data-key]
   return `:root { --glyph-ink: #f7ecd2; }
 .glyph { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 1.7em; height: 1.7em;
   padding: 0 .4em; margin: 0 .5em 0 0; vertical-align: middle; border-radius: .3em; background: #2b211f; color: var(--gc, var(--glyph-ink));
-  font: 700 max(10px, .68em)/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; text-transform: none; text-indent: 0;
+  font: 700 max(10px, .68em)/1 ${FACE}; letter-spacing: 0; text-transform: none; text-indent: 0;
   white-space: nowrap; flex: none; pointer-events: none; font-style: normal; }
 .glyph.end { margin: 0 0 0 .5em; }
 body.controller .glyph:is([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { border-radius: 50%; padding: 0; width: 1.7em; font-size: max(11px, .74em); }

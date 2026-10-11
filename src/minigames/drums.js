@@ -15,6 +15,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { Flames } from '../story/flames.js';
+import { TITLE_FACE } from '../typefaces.js';
 import { NPC } from '../npc.js';
 import { playVoice, hit as playHit } from '../score-voices.js';
 import { scoreFor, scoreFreq } from '../score.js';
@@ -233,7 +234,7 @@ class Overlay {
     // the buttons' names beside their sockets (DOM text: the handhelds' names are written over it, native-pad.js)
     this.labels = LANES.slice(0, lanes).map((L) => {
       const d = document.createElement('div');
-      d.style.cssText = `position:absolute;transform:translate(-50%,-50%);font:700 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:${INK};background:${PAPER};border:2px solid ${INK};box-shadow:2px 2px 0 ${INK};padding:3px 6px;white-space:nowrap;`;
+      d.style.cssText = `position:absolute;transform:translate(-50%,-50%);font:700 12px/1 var(--face);letter-spacing:.06em;color:${INK};background:${PAPER};border:2px solid ${INK};box-shadow:2px 2px 0 ${INK};padding:3px 6px;white-space:nowrap;`;
       this.el.appendChild(d);
       return d;
     });
@@ -319,7 +320,7 @@ class Overlay {
         const word = last.kind === 'perfect' ? 'PERFECT' : last.kind === 'good' ? 'GOOD' : last.kind === 'miss' ? 'MISS' : '';
         if (word) {
           const wx = sx + dx * (r * 3.4) + (dy ? r * 3.6 : 0), wy = sy + dy * (r * 2.6) - (dx ? r * 2.2 : 0) - k * 10;
-          g.font = `900 ${Math.round(r * 0.95)}px ui-monospace, Menlo, monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.font = `900 ${Math.round(r * 0.95)}px ${TITLE_FACE}`; g.textAlign = 'center'; g.textBaseline = 'middle';
           g.globalAlpha = 1 - k * k; g.lineWidth = 4; g.strokeStyle = INK; g.strokeText(word, wx, wy);
           g.fillStyle = last.kind === 'miss' ? '#d9643a' : last.kind === 'perfect' ? '#f2c54b' : '#fbf4e2'; g.fillText(word, wx, wy);
           g.globalAlpha = 1;
@@ -352,10 +353,10 @@ class Overlay {
     // the combo in the ring's middle, over the fire
     if (combo >= 3) {
       g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.font = `900 ${Math.round(R * 0.42)}px ui-monospace, Menlo, monospace`;
+      g.font = `900 ${Math.round(R * 0.42)}px ${TITLE_FACE}`;
       g.lineWidth = 5; g.strokeStyle = INK; g.strokeText(String(combo), cx, cy - R * 0.08);
       g.fillStyle = mult >= 4 ? '#f2c54b' : PAPER; g.fillText(String(combo), cx, cy - R * 0.08);
-      g.font = `700 ${Math.round(R * 0.13)}px ui-monospace, Menlo, monospace`;
+      g.font = `700 ${Math.round(R * 0.13)}px ${TITLE_FACE}`;
       const sub = `COMBO${mult > 1 ? ` ×${mult}` : ''}`;
       g.lineWidth = 3; g.strokeText(sub, cx, cy + R * 0.26); g.fillStyle = PAPER; g.fillText(sub, cx, cy + R * 0.26);
     }

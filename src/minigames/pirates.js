@@ -17,6 +17,7 @@ import { makeMaterial } from '../materials.js';
 import { arenaLevel } from './kit/world.js';
 import { WorldLabels } from './kit/labels.js';
 import { buildShipModel } from '../ship/model.js';
+import { FACE } from '../typefaces.js';
 import { Puffs } from '../ship/fx.js';
 import { PLANETS } from '../ship/planets.js';
 import { SPACE_LOOK, SPACE_DAY } from '../levels/space-city-kit.js';
@@ -334,7 +335,7 @@ function shooterSounds(sound) {
 const HUD_CSS = `
 #minigame canvas.pirates-hud { position: absolute; inset: 0; width: 100%; height: 100%; }
 #minigame .pirates-comms { position: absolute; left: 18px; bottom: 22px; max-width: min(420px, 70vw); padding: 7px 12px 8px; background: #2b211f; color: #f7ecd2; border: 2px solid #2b211f;
-  box-shadow: 4px 4px 0 rgba(0,0,0,.35); font: 14px/1.35 ui-monospace, Menlo, monospace; transform: rotate(-0.6deg); transition: opacity .3s, transform .3s; }
+  box-shadow: 4px 4px 0 rgba(0,0,0,.35); font: calc(var(--type-s) * 1.05)/1.35 var(--face); transform: rotate(-0.6deg); transition: opacity .3s, transform .3s; }
 #minigame .pirates-comms b { display: block; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #9ff2e6; }
 #minigame .pirates-comms.captain b { color: #ef9479; }
 #minigame .pirates-comms.off { opacity: 0; transform: translateY(8px) rotate(-0.6deg); }
@@ -650,7 +651,7 @@ function start(ctx) {
           const x = p.x * W, y = p.y * H, r = Math.max(10, 900 / Math.max(10, at.ds + CAM.back)) * (at.r ?? 2.5) / 2;
           const b = (sx, sy) => { g.beginPath(); g.moveTo(x + sx * r, y + sy * (r - 6)); g.lineTo(x + sx * r, y + sy * r); g.lineTo(x + sx * (r - 6), y + sy * r); g.stroke(); };
           for (const [lw, c] of [[5, INK], [2.4, '#ef9479']]) { g.lineWidth = lw; g.strokeStyle = c; b(-1, -1); b(1, -1); b(-1, 1); b(1, 1); }
-          g.font = '700 10px ui-monospace, Menlo, monospace'; g.textAlign = 'center';
+          g.font = `700 10px ${FACE}`; g.textAlign = 'center';
           g.lineWidth = 3; g.strokeStyle = INK; g.strokeText('LOCK', x, y + r + 12); g.fillStyle = '#ef9479'; g.fillText('LOCK', x, y + r + 12);
         }
       }
@@ -659,7 +660,7 @@ function start(ctx) {
     const B = S.boss;
     if (B && B.age > 1 && !B.dying && !B.fled) {
       const w = Math.min(260, W * 0.6), x0 = (W - w) / 2, y0 = 44;
-      g.font = '700 10px ui-monospace, Menlo, monospace'; g.textAlign = 'center';
+      g.font = `700 10px ${FACE}`; g.textAlign = 'center';
       g.lineWidth = 3; g.strokeStyle = INK; g.strokeText('THE CAPTAIN’S GALLEON', W / 2, y0 - 4); g.fillStyle = '#f7ecd2'; g.fillText('THE CAPTAIN’S GALLEON', W / 2, y0 - 4);
       const order = ['gunL', 'core', 'gunR'], seg = (w - 8) / 3;
       order.forEach((id, i) => {

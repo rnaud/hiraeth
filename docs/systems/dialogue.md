@@ -100,8 +100,9 @@ it now shows the page in English at once (*The panel reads at a glance*, above).
   A word is always written the same way (hashes, no randomness), so words recur. Letter
   scripts use a cipher giving the commonest letters the simplest glyphs; syllable and
   word scripts pick with a Zipf weighting. Each script has its own punctuation.
-- **No reflow**: the panel's font is monospaced, so each run of non-blank characters
-  (`lineChunks`) is drawn as an inline `<svg>` exactly as many `ch` wide as its English.
+- **No reflow**: each run of non-blank characters (`lineChunks`) is drawn as an inline `<svg>`
+  exactly as wide as its English in the panel's face (`wordWidth`: measured on a canvas, set by the
+  dialogue with `setWordMeasure`; `n ch` where nothing measures, as while the panel was mono).
   Inside that box a script lays out its glyphs its own way: one a letter, consonants
   stretched along a joining stroke, one logogram a word. Stage directions and narration
   aren't spoken, so they show in English at once.

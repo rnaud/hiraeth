@@ -18,9 +18,10 @@ test('the card is a low strip along the foot of the screen at every size, the it
 
 test('on the strip the item\'s name comes first and largest, the words after it, small', () => {
   const h2 = rule('#boxcard h2');
-  const size = (s) => Number(s.match(/font-size: (\d+)px/)?.[1]);
-  assert.ok(size(h2) >= 18, 'the name large');
-  assert.match(rule('#boxcard'), /font: 12px/, 'the words small');
+  const size = (s) => Number(s.match(/font: \d+ ([\d.]+)em/)?.[1]);
+  assert.ok(size(h2) >= 1.5, 'the name large (in em of the words: the title face)');
+  assert.match(h2, /var\(--face-title\)/, 'the name in the title face');
+  assert.match(rule('#boxcard'), /font: var\(--type-s\)/, 'the words small (the small print, from the screen\'s height: issue #128)');
   assert.ok(card.indexOf('class="name"') < card.indexOf('class="text"') && card.indexOf('class="name"') < card.indexOf('class="use"'), 'the name before what it is and does');
   assert.match(rule('#boxcard .body'), /grid-template-columns: 1fr 1fr/, 'what it is and what it does side by side');
   assert.doesNotMatch(card, /Left by the makers for one who has come a long way/, 'one line fewer');

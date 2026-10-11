@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../../materials.js';
 import { registerInteractable, PRIORITY } from '../../interact.js';
 import { gameById, gameHref } from '../index.js';
+import { FACE, TITLE_FACE } from '../../typefaces.js';
 
 // ------------------------------------------------------------------ the arcade sign
 /** The sign's model: a stone post, a slanted board with the game's glyph glowing, a lamp on top. */
@@ -53,9 +54,9 @@ export function signPlate(title, sub = '', color = '#71d7cf', w = 1.5, h = 0.56)
   g.fillStyle = '#2b211f'; g.textAlign = 'center'; g.textBaseline = 'middle';
   let size = 58;
   const name = String(title).toUpperCase();
-  do { g.font = `900 ${size}px ui-monospace, Menlo, monospace`; size -= 2; } while (g.measureText(name).width > W - 40 && size > 20);
+  do { g.font = `900 ${size}px ${TITLE_FACE}`; size -= 2; } while (g.measureText(name).width > W - 40 && size > 20);
   g.fillText(name, W / 2, H * (sub ? 0.38 : 0.48));
-  if (sub) { g.font = '600 34px ui-monospace, Menlo, monospace'; g.fillStyle = '#6b4a36'; g.fillText(sub, W / 2, H * 0.72); }
+  if (sub) { g.font = `600 34px ${FACE}`; g.fillStyle = '#6b4a36'; g.fillText(sub, W / 2, H * 0.72); }
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;

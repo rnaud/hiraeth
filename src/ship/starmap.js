@@ -126,7 +126,7 @@ const CSS = `
 #starmap { position: fixed; inset: 0; z-index: 7000; display: none; place-items: center; background: rgba(20, 24, 44, 0.72); }
 #starmap.open { display: grid; }
 #starmap .chart { position: relative; display: grid; grid-template-columns: 1fr clamp(210px, 27%, 300px); width: min(1200px, 96vw); height: min(720px, 90vh);
-  background: #1f2747; border: 2px solid #2b211f; box-shadow: 8px 8px 0 #2b211f; overflow: hidden; font: 13px/1.4 ui-monospace, Menlo, monospace; color: #f7ecd2; }
+  background: #1f2747; border: 2px solid #2b211f; box-shadow: 8px 8px 0 #2b211f; overflow: hidden; font: var(--type-s)/1.4 var(--face); color: #f7ecd2; }
 #starmap .chart::before { content: ''; position: absolute; inset: 0; opacity: .45; pointer-events: none;
   background-image: radial-gradient(#f7ecd2 1px, transparent 1.3px), radial-gradient(#f7ecd2 .7px, transparent 1px);
   background-size: 97px 89px, 41px 37px; background-position: 13px 7px, 0 0; }
@@ -157,7 +157,7 @@ const CSS = `
 @keyframes relay { 0% { transform: scale(.82); opacity: .95; } 100% { transform: scale(1.18); opacity: 0; } }
 #starmap .world.signal .tag { color: #f2c54b; }
 #starmap svg.route .relay { fill: none; stroke: #f2c54b; stroke-width: 1.6; stroke-dasharray: 2 3; transform-box: fill-box; transform-origin: center; animation: relay 1.8s ease-out infinite; }
-#starmap svg.route text.relay-tag { fill: #f2c54b; font: 10.5px ui-monospace, Menlo, monospace; letter-spacing: .06em; }
+#starmap svg.route text.relay-tag { fill: #f2c54b; font: 10.5px var(--face); letter-spacing: .06em; }
 #starmap .panel p.relay { color: #8a5a3c; font-style: italic; border-left: 3px solid #f2c54b; padding-left: 7px; }
 #starmap .world.unvisited .disc::after { border: 2px dashed rgba(247, 236, 210, .75); }
 #starmap .world.current .disc::after { border: 3px solid #e6875f; }
@@ -170,7 +170,7 @@ const CSS = `
 #starmap .world.next .pennant::after { content: ''; position: absolute; left: 50%; top: 100%; margin-left: -4px; border: 4px solid transparent; border-top-color: #2b211f; }
 #starmap svg.route .wayon { stroke: #f2c54b; stroke-width: 2; stroke-dasharray: 7 5; stroke-linecap: round; animation: sm-way 1.4s linear infinite; }
 #starmap svg.route .wayon-head { fill: #f2c54b; stroke: #2b211f; stroke-width: 1.2; }
-#starmap svg.route text.next-tag { fill: #f2c54b; font: bold 10px ui-monospace, Menlo, monospace; letter-spacing: .16em; }
+#starmap svg.route text.next-tag { fill: #f2c54b; font: bold 10px var(--face); letter-spacing: .16em; }
 @keyframes sm-way { to { stroke-dashoffset: -24; } }
 .reduce-motion #starmap svg.route .wayon { animation: none; }
 #starmap .world.home .disc { background: radial-gradient(circle at 50% 70%, #f6c89a 0 34%, #f2c54b 35% 38%, #4a5a8a 39%); border: 2.5px solid #f2c54b; box-sizing: border-box; }
@@ -221,7 +221,7 @@ const CSS = `
 /* the signature search (src/story/signature-search.js): the uncharted regions, the scanner, the meter, a planet resolving */
 #starmap.searching .field { touch-action: none; cursor: crosshair; }
 #starmap svg.route .uncharted { fill: url(#sm-static); stroke: rgba(205, 180, 255, .5); stroke-width: 1.4; stroke-dasharray: 3 6; }
-#starmap svg.route text.uncharted-tag { fill: rgba(233, 220, 255, .75); font: 10.5px ui-monospace, Menlo, monospace; letter-spacing: .18em; }
+#starmap svg.route text.uncharted-tag { fill: rgba(233, 220, 255, .75); font: 10.5px var(--face); letter-spacing: .18em; }
 #starmap .scanner { position: absolute; z-index: 3; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; pointer-events: none; display: none;
   border: 2.5px solid var(--sc, #cdb4ff); box-shadow: 0 0 calc(4px + 26px * var(--warm, 0)) calc(1px + 8px * var(--warm, 0)) var(--sc, #cdb4ff), inset 0 0 0 2px #1f2747; background: radial-gradient(circle, rgba(255,255,255,.0) 40%, color-mix(in srgb, var(--sc, #cdb4ff) calc(35% * var(--warm, 0)), transparent) 70%); }
 #starmap.searching .scanner { display: block; }

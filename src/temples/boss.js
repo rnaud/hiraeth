@@ -152,9 +152,9 @@ const PAIRED = new Set(['arms', 'wings', 'feet']);
 export const SHIFT = 2.4;
 /**
  * The longest a guardian's notice may be (characters; a ${…} not counted), so it is one line a player reads mid-fight
- * (issue #120: "what to do, not why"). A notice is the #toast (index.html): 12 px ui-monospace, each character 0.6 em
- * = 7.2 px wide, in a box at most 560 px wide less 24 px of padding and 2 of border, 534 px: 74 characters a line at
- * the default text size; 72 keeps a margin. The quest steps keep under it too (tests/quest-steps.test.js).
+ * (issue #120: "what to do, not why"). A notice is the #toast (index.html): the game's face (issue #128), about 0.5 em
+ * a character in English, in a box at most 40 em wide less 1.8 em of padding: about 76 characters a line at any
+ * screen size (its type follows the screen's height); 72 keeps a margin. The quest steps keep under it too (tests/quest-steps.test.js).
  */
 export const NOTICE_CHARS = 72;
 /** The shockwave ring a slam sends out: drawn as it runs (it is the attack, not a warning), jump it. */

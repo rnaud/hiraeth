@@ -17,9 +17,9 @@
 //   words that share letters or syllables share glyphs. Letter scripts use a cipher that gives
 //   the commonest letters the simplest glyphs, so the glyphs come out frequency-weighted as in a
 //   real script; the syllable and word scripts pick with a Zipf weighting.
-// - The panel's font is monospaced, so a chunk's glyphs are drawn in a box exactly its English
-//   width (CH units a letter): the words keep the line's structure and the line never reflows
-//   when a word turns into English. Inside the box each script has its own rhythm: one glyph a
+// - A chunk's glyphs are drawn in a box exactly its English width, measured in the panel's own
+//   face (setWordMeasure; 1ch a letter where nothing measures: node's tests, the tongues page):
+//   the words keep the line's structure and the line never reflows when a word turns into English. Inside the box each script has its own rhythm: one glyph a
 //   letter, a few consonants stretched along a joining stroke, one logogram a word, a mark or
 //   nothing (Vael leaves words out).
 // - Punctuation has each script's own marks; right-to-left scripts write each word from the
@@ -987,6 +987,7 @@ export function lineChunks(text) {
     const first = ch.text.match(/[\p{L}]/u)?.[0];
     ch.proper = !!first && first !== first.toLowerCase() && before.length > 0 && !/[.!?…:“"‘(]$/.test(before) && ch.text.match(/[\p{L}]+/u)[0].length > 1;
     ch.space = /^\s/.test(s.slice(ch.to, ch.to + 1));
+    ch.bold = (s.slice(0, ch.from).match(/\*/g)?.length ?? 0) % 2 === 1;   // (inside a *highlight*: drawn bold, so measured bold)
   }
   return out;
 }
@@ -1044,9 +1045,9 @@ function writeWord(S, pen, word, at, shown, out) {
   });
 }
 
-/** The markup: `len` letters wide (1ch each), 1.2em tall, its baseline on the text's. */
-function svgOf(w, S, len, style = '') {
-  return `<svg class="tg" aria-hidden="true" viewBox="0 0.5 ${w.width} 12" preserveAspectRatio="none" style="width:${len}ch;height:1.2em;vertical-align:-0.25em;overflow:visible;color:${S?.ink ?? 'inherit'}${style ? `;${style}` : ''}">`
+/** The markup: `width` wide (a CSS length: wordWidth), 1.2em tall, its baseline on the text's. */
+function svgOf(w, S, width, style = '') {
+  return `<svg class="tg" aria-hidden="true" viewBox="0 0.5 ${w.width} 12" preserveAspectRatio="none" style="width:${width};height:1.2em;vertical-align:-0.25em;overflow:visible;color:${S?.ink ?? 'inherit'}${style ? `;${style}` : ''}">`
     + (w.d ? `<path d="${w.d}" fill="none" stroke="currentColor" stroke-width="${S.width}" stroke-linecap="${S.cap ?? 'round'}" stroke-linejoin="round"/>` : '')
     + (w.f ? `<path d="${w.f}" fill="currentColor"/>` : '') + '</svg>';
 }
@@ -1057,22 +1058,33 @@ export function glyphSvg(lang, id) {
   const W = cells * CH, pen = new Pen({ slant: S.slant ?? 0 });
   const slot = { x0: 0, x1: W, c: W / 2, k: 0, n: 2, tok: { t: 'ka', from: 0, to: 2 }, toks: [{ t: '' }], word: 'sample' };
   if (S.sample) S.sample(pen, g, slot); else S.draw(pen, g, slot);
-  return svgOf({ d: pen.s, f: pen.f, width: W }, S, cells);
+  return svgOf({ d: pen.s, f: pen.f, width: W }, S, `${cells}ch`);
 }
 
 const CACHE = new Map();
+let measure = null;
 /**
- * A chunk as an inline <svg>, as wide as its letters in the panel's monospaced font (its ink and
- * stroke inline, so it needs no stylesheet). o.style: more inline style (the translator's fade).
+ * How wide a word is in the panel's face: (text, bold) => its width in em (the dialogue sets it, from a canvas in
+ * the panel's own font: src/story/dialogue.js), or null: 1ch a letter (node's tests, tools/tongues.html).
+ */
+export function setWordMeasure(f) { measure = f; CACHE.clear(); }
+/** A chunk's width as CSS: measured in em (a bold one, a *highlight*, measured bold), or its letters in ch. */
+export function wordWidth(text, bold = false) {
+  const em = measure?.(text, bold);
+  return Number.isFinite(em) && em > 0 ? `${em.toFixed(3)}em` : `${[...text].length}ch`;
+}
+/**
+ * A chunk as an inline <svg>, exactly as wide as its English (wordWidth; its ink and stroke inline, so it needs no
+ * stylesheet). o.style: more inline style (the translator's fade); o.bold: in a *highlight* (drawn bold).
  */
 export function chunkSvg(text, lang, o = {}) {
   const S = scriptOf(lang);
   const len = [...text].length, shown = Math.min(o.shown ?? Infinity, len);
-  const key = `${lang}|${text}|${shown}|${o.proper ? 1 : 0}${o.space ? 1 : 0}|${o.style ?? ''}`;
+  const key = `${lang}|${text}|${shown}|${o.proper ? 1 : 0}${o.space ? 1 : 0}${o.bold ? 1 : 0}|${o.style ?? ''}`;
   let svg = CACHE.get(key);
   if (svg) return svg;
   const w = writeChunk(text, S, { ...o, shown });
-  svg = svgOf(w, S, len, o.style);
+  svg = svgOf(w, S, wordWidth(text, o.bold), o.style);
   if (CACHE.size > 600) CACHE.clear();
   CACHE.set(key, svg);
   return svg;

@@ -36,7 +36,7 @@ level.portals.push(...it.portals); level.lights.push(...it.lights);
   sinks it to the lowest ground under its corners), a plinth course and a parapet, a little dome on the roof, the
   door as a recess 0.6 m deep with a jamb frame and a step, two lattice windows; what shows through them is the
   warm lit inside (a self-lit sheet: no shadow). Over the door a striped awning with a scalloped hem; over that a
-  name board, painted on a canvas in the game's monospace (block letters where there is no canvas: node's tests);
+  name board, painted on a canvas in the game's title face (src/typefaces.js) (block letters where there is no canvas: node's tests);
   beside it a hanging sign on a bracket, turned along the street: the shop's emblem (`emblem: 'chime'`, a
   pierced brass disc). A lantern by the door goes into the level's lights. The body is solid: you can climb it
   and stand on its roof.

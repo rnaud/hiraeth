@@ -15,18 +15,18 @@ import { ARCADE } from '../minigames/kit/arcade.js';
 
 const CSS = `
   #arcade-board-btn { position: fixed; left: calc(14px + var(--safe-left, env(safe-area-inset-left, 0px))); top: calc(14px + var(--safe-top, env(safe-area-inset-top, 0px))); z-index: 6;
-    font: 700 11px/1 ui-monospace, Menlo, monospace; letter-spacing: 0.2em; text-transform: uppercase; color: #2b211f; padding: 8px 12px;
+    font: 700 11px/1 var(--face); letter-spacing: 0.2em; text-transform: uppercase; color: #2b211f; padding: 8px 12px;
     background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; border-radius: 4px; cursor: pointer; }
   #arcade-board-btn:hover, #arcade-board-btn:focus { outline: none; background: #ffd866; }
   body.controller #arcade-board-btn, body.arcade-board #arcade-board-btn { display: none; }
   #arcade-board { position: fixed; inset: 0; z-index: 8000; display: none; place-items: center; color: #2b211f;
-    font: 13px/1.4 ui-monospace, Menlo, monospace; background: rgba(43, 33, 31, 0.42); }
+    font: var(--type-s)/1.4 var(--face); background: rgba(43, 33, 31, 0.42); }
   #arcade-board.open { display: grid; }
   #arcade-board .sheet { position: relative; width: min(860px, 94vw); max-height: 90vh; overflow: auto; box-sizing: border-box; padding: 18px 24px 14px;
     background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; transform: rotate(-0.5deg); }
   #arcade-board .kicker { margin: 0 0 2px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a5a3c; }
   #arcade-board h1 { margin: 0 0 12px; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; }
-  #arcade-board .close { position: absolute; right: 14px; top: 12px; font: 700 16px/1 ui-monospace, Menlo, monospace; padding: 4px 9px; color: #2b211f; cursor: pointer;
+  #arcade-board .close { position: absolute; right: 14px; top: 12px; font: 700 16px/1 var(--face); padding: 4px 9px; color: #2b211f; cursor: pointer;
     background: #fbf4e2; border: 2px solid #2b211f; border-radius: 4px; }
   #arcade-board .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
   #arcade-board .game { position: relative; display: grid; grid-template-columns: 14px 1fr; gap: 2px 10px; align-items: start; padding: 9px 10px 9px 9px; text-align: left;

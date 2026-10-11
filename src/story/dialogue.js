@@ -4,12 +4,33 @@ import { parseLine, stripTone } from './tone.js';
 import { pickTwoShot, pickLookShot, pickSingle, pullIn } from './shot.js';
 import { Coverage } from './coverage.js';
 import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote, spokenMask } from './voice.js';
-import { scriptOf, lineChunks, chunkSvg } from './scripts.js';
+import { scriptOf, lineChunks, chunkSvg, setWordMeasure, wordWidth } from './scripts.js';
 import { syllableOpen, syllableEnvelope } from '../talk-face.js';
 import { confirmKey } from '../native-pad.js';
 import { keyBadge, keyText, keySig, hasKeys, inputKind } from '../prompt-keys.js';
 import { markKeyPhrase } from './key-phrase.js';
 const _ac = new THREE.Vector3(), _bq = new THREE.Vector3(), _cv = new THREE.Vector3();
+
+/**
+ * A word's width in em in the panel's face (index.html #dialogue: var(--face)), from a canvas: what the script's boxes
+ * are sized by (src/story/scripts.js setWordMeasure). Null without a canvas (node's tests: 1ch a letter).
+ */
+function panelMeasure(el) {
+  const g = typeof document !== 'undefined' ? document.createElement?.('canvas')?.getContext?.('2d') : null;
+  if (!g || typeof getComputedStyle !== 'function') return null;
+  const seen = new Map();
+  return (text, bold) => {
+    const k = `${bold ? 1 : 0}${text}`;
+    let w = seen.get(k);
+    if (w === undefined) {
+      g.font = `${bold ? 'bold' : 'normal'} 100px ${getComputedStyle(el).fontFamily}`;
+      w = g.measureText(text).width / 100;
+      if (seen.size > 4000) seen.clear();
+      seen.set(k, w);
+    }
+    return w;
+  };
+}
 
 // Conversations. People are data:
 //
@@ -252,7 +273,7 @@ let _chunks = { text: null, list: [] };
  * but not yet translated in the speaker's own script (src/story/scripts.js: each world's), the
  * rest in your words. A word turns when `translated` (letters, LAG behind the reveal) passes its
  * end, its English fading in over its glyphs. The glyphs are drawn exactly as wide as the
- * English (the font is monospaced), so nothing moves when a word turns.
+ * English (measured in the panel's face: scripts.js wordWidth), so nothing moves when a word turns.
  * @param o.lang        the speaker's tongue; null: no translation (home speech, the traveller)
  * @param o.spoken      spokenMask(text): stage directions and narration aren't in the script
  */
@@ -279,11 +300,11 @@ export function revealHtml(full, { lang = null, shown = full.length, translated 
   const shownText = disp.replace(/\{[\w:]*$/, '').replace(/\*([^*]*)$/, (m, w) => ((disp.match(/\*/g)?.length ?? 0) % 2 ? w : m));
   let u = 0;
   return formatText(shownText).replace(/\uE000([^\uE001]*)\uE001/g, (m, eng) => {
-    const x = units[u++], o = { shown: x.shown, proper: x.ch.proper, space: x.ch.space };
+    const x = units[u++], o = { shown: x.shown, proper: x.ch.proper, space: x.ch.space, bold: x.ch.bold };
     if (!x.a) return chunkSvg(x.ch.text, lang, o);
     // turning: the English fading in, the glyphs fading out over it
-    const len = [...x.ch.text].length, a = Math.min(1, x.a);
-    return `<span style="white-space:nowrap"><span style="opacity:${a.toFixed(2)}">${eng}</span>${chunkSvg(x.ch.text, lang, { ...o, style: `margin-left:-${len}ch;opacity:${(1 - a).toFixed(2)}` })}</span>`;
+    const a = Math.min(1, x.a);
+    return `<span style="white-space:nowrap"><span style="opacity:${a.toFixed(2)}">${eng}</span>${chunkSvg(x.ch.text, lang, { ...o, style: `margin-left:-${wordWidth(x.ch.text, x.ch.bold)};opacity:${(1 - a).toFixed(2)}` })}</span>`;
   });
 }
 
@@ -308,6 +329,7 @@ export class Dialogue {
     this._eye = new THREE.Vector3(); this._look = new THREE.Vector3(); this._eyeC = new THREE.Vector3(); this._q = new THREE.Quaternion();
     this._m = new THREE.Matrix4();
     if (this.el) {
+      setWordMeasure(panelMeasure(this.el));   // (a script's words as wide as their English in the panel's face)
       // the speaker's name in a caption tab along the panel's top edge, their portrait at its corner;
       // no button hints and no translator tag (a foreign page fades in once as it comes: .dlg-text.heard)
       this.el.innerHTML = `<div class="dlg-panel"><div class="dlg-who"><div class="dlg-chip"><img alt=""><span></span></div></div>

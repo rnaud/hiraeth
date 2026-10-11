@@ -260,7 +260,7 @@ export class TempleRuntime {
       el = this.meterEl = document.createElement('div');
       el.className = 'temple-meter';
       el.style.cssText = 'position:fixed;left:50%;bottom:calc(62px + var(--safe-bottom, 0px));transform:translateX(-50%);z-index:30;pointer-events:none;'
-        + 'font:700 11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#2b211f;text-transform:uppercase;text-align:center;opacity:0;transition:opacity .6s;';
+        + 'font:700 11px/1.2 var(--face);letter-spacing:.14em;color:#2b211f;text-transform:uppercase;text-align:center;opacity:0;transition:opacity .6s;';
       const bar0 = guardianBar(G.def, G.meter);
       const label = document.createElement('div');
       label.style.cssText = 'margin-bottom:4px;text-shadow:0 0 3px #f7ecd2';

@@ -465,7 +465,7 @@ function poseSitting(player, S, t) {
 
 // ------------------------------------------------------------------ the HUD of its own
 const CSS = `
-#fishing-hud { position: fixed; inset: 0; pointer-events: none; z-index: 79; color: #2b211f; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+#fishing-hud { position: fixed; inset: 0; pointer-events: none; z-index: 79; color: #2b211f; font: var(--type-s)/1.4 var(--face); }
 #fishing-hud .fh-journal { position: absolute; left: 16px; top: 64px; width: 210px; padding: 7px 10px 8px; background: rgba(247, 236, 210, 0.92); border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; transform: rotate(-0.6deg); }
 #fishing-hud .fh-journal h3 { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
 #fishing-hud .fh-journal li { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; line-height: 1.5; color: #4a3b33; }
@@ -485,11 +485,11 @@ const CSS = `
 #fishing-hud .fh-meter b { position: absolute; top: -2px; bottom: -2px; border-left: 2px dashed #2b211f; }
 #fishing-hud .fh-meter.tension::after { content: ''; position: absolute; left: 80%; right: 0; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(217, 100, 58, 0.35) 0 4px, transparent 4px 8px); }
 #fishing-hud .fh-meter span { position: absolute; left: 6px; top: 1px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-#fishing-hud .fh-pull { font: 900 26px/1 ui-monospace, Menlo, monospace; color: #f2c54b; -webkit-text-stroke: 2px #2b211f; paint-order: stroke fill; min-height: 26px; }
+#fishing-hud .fh-pull { font: 900 2em/1 var(--face-title); color: #f2c54b; -webkit-text-stroke: 2px #2b211f; paint-order: stroke fill; min-height: 26px; }
 #fishing-hud .fh-catch { position: absolute; right: 5%; top: 30%; transform: rotate(-1deg); padding: 10px 20px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; text-align: center; display: none; max-width: 380px; }
 #fishing-hud .fh-catch.on { display: block; animation: fhnow .35s ease-out; }
 #fishing-hud .fh-catch h2 { margin: 0; font-size: 20px; letter-spacing: 0.1em; text-transform: uppercase; }
-#fishing-hud .fh-catch .kg { font: 900 30px/1.1 ui-monospace, Menlo, monospace; }
+#fishing-hud .fh-catch .kg { font: 900 2.3em/1.1 var(--face-title); font-variant-numeric: tabular-nums; }
 #fishing-hud .fh-catch .tag { display: inline-block; margin-top: 4px; padding: 1px 8px; border: 2px solid #d9643a; color: #d9643a; font-weight: 900; letter-spacing: 0.12em; transform: rotate(4deg); }
 #fishing-hud .fh-catch p { margin: 4px 0 0; font-size: 11px; color: #4a3b33; }
 body.touch #fishing-hud .fh-journal { display: none; }
