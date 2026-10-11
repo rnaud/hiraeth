@@ -1,0 +1,31 @@
+.claude/skills/cinematics-qc/SKILL.md
+  s_9ca76055a220ed::t_3db5ce47e3bd67 108
+changelog.md
+  s_9ca76055a220ed::t_19e04fe4ae7957 8
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_4ef1777be1d99a 138-144
+src/changelog-media.js
+  s_9ca76055a220ed::t_d8c0ea34e8876c 633-635
+src/changelog.js
+  s_9ca76055a220ed::t_53293d2dbf982b 74
+src/story/desert-moments.js
+  s_9ca76055a220ed::t_364800e895eb97 4,24-28,31,46-47,161-163,177-178,181-184,192,194-195,207-209
+tests/moment.test.js
+  s_9ca76055a220ed::t_eb50014ec6b5d5 268-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b1490243f6409d528e0d652ec1ecdec931e8d4d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
