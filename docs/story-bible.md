@@ -205,15 +205,16 @@ written in).
      traveller talks to first). On the way the camps and the procession wave them on
      (Ama: "To the city, sky-stranger! Up to the tree!"; the Speaker: "Qanat is
      ahead, little star"). Nothing on the way needs the tool.
-  2. `box`: "Something is humming on a ledge up the burning tree's trunk." Up
-     the main stairs, the ledge is left of the well; you climb the buttress root. The first time you come near, the people
+  2. `box`: "Open the humming chest under the tree." At the tree's foot, left
+     of the well as you come up the avenue, the makers' chest stands on its round
+     dais of white stone and gold (the temples' own chest). The first time you come near, the people
      on the terrace turn and murmur, Hessa calls her grandmother, the tree
      flares. Nour, asked before it opens: it has not opened for anyone in
      living memory; it opens only for "one who fell from the sky".
   3. `elder`: it opens for the traveller (the backpack). Qanat gathers at the
-     tree's foot under the ledge (the ones in the avenue come up the stairs),
-     everyone looks up, the tree flares high, and Nour gets off her bench, waits
-     for you to climb down ("Come down, child!"), comes to you and calls you
+     tree's foot by the dais (the ones in the avenue come up the stairs),
+     everyone turns, the tree flares high, and Nour gets off her bench ("Hey you!"),
+     comes to you and calls you
      over ("Psst. Child."), but leaves the talk to you: the old words, the singing light the chest hummed back to, the
      Givers, the star, the tank ("the same water the giants carried"), and the
      one power in the desert, the water that has not risen. She sends you on

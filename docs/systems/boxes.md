@@ -1,7 +1,7 @@
 # The makers' chests (v1.42 redesign; the boxes of v0.63 before them)
 
 Code: `src/boxes/` (chest (the models), model, scene, index, placements), the shader block `MAKERS_BOX` in
-`src/materials.js`, the desert's pedestal in `src/desert-city.js`. Tests: `tests/boxes.test.js`.
+`src/materials.js`, the desert's dais in `src/desert-city.js`. Tests: `tests/boxes.test.js`.
 
 ## The look: one chest in every world
 
@@ -133,15 +133,20 @@ yet", and the Qanat pilgrim who tells of the roof box keeps quiet. The world's o
 start `BOX_QUEST_DELAY` s after the first box opens (the story's own box in the desert, or a
 fallback by the ship).
 
-## The tree's pedestal (desert)
+## The tree's dais (desert)
 
-The backpack's box stands high on the burning tree (`city.ledge`): a climb in two pitches, up
-the buttress root's face onto its shoulder (`ledge.shoulder`, 3.2 m), then up the plumb face of
-a carved stone pier to an eight-sided dais (`ledge.dais`, 7.2 m) whose front is flush with the
-pier (the mantle is clear). On the dais, a drum ringed with the makers' light carries the box;
-lamp posts flank it and a stone halo with the glyph stands behind it, half in the bark. The
-makers' stone (`M.makers`) is pale, bedded and carved with their inscriptions, banded in their
-blue. The drum is tall enough that the box shows over the dais's edge from the top of the stairs.
+The first chest is everything (issue #140, v1.49: "The first chest by the tree shouldn't be on a platform up in the
+tree, feels unnecessary … it should be like a temple chest"). It stands on the square at the burning tree's foot
+(`city.shrine`), in a clearing between the roots toward the old shrine's corner, left of the dry well as you come up
+the avenue from the gate, the bare bark behind it and the low arm reaching over it: a round dais of the Givers' white
+stone in two walkable steps (0.22 m each, `DAIS` in src/desert-city.js: the temples' altar of
+`references/Core Objects/Chests/temple/sheet-2.jpg`), a gold band round its top, the makers' ring glowing on it and
+their mark on the lower riser toward the avenue; a ring of pale flagstones edged in gold round its foot, nothing else
+in the clearing; a soft light over it for the dusk. On it the **temple chest** (`chest: 'temple'` on the placement:
+`chestKind` gives the temple chest to the temples' own and to this one, the makers' to every other), with the temples'
+opening. Its id is the same (`desert.backpack`), so a save that opened it keeps it opened. (Until v1.49 it stood on a
+plank shelf 7 m up the trunk, on a pier over a buttress root: a climb in two pitches.) `tests/boxes.test.js` checks the
+place: on the ground, in sight from the avenue, nothing within 3 m, the bark behind, the walk up from the gate.
 
 ## What comes with an item: the gun's two modes in one chest
 

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- The first chest in Qanat no longer sits on a shelf high up the great tree: it stands at the tree’s foot on a round dais of white stone and gold, in a clearing of pale flagstones, in sight all the way up the avenue, and it is the same chest you find in the temples, opening the same way. You walk up its two steps instead of climbing. If you already opened it, it stays open.
 - Your first steps out of the ship in the Desert are under a clear sky: no sandstorm blows in until you have opened the makers’ chest in Qanat. After that the storms come and go as before.
 - A world’s trial whose prize improves one of your gadgets now waits until you have found that gadget, so you no longer win an upgrade for a tool you haven’t got. Its sign says which one it is for.
 - When the foe you are locked on to is out of your blade’s reach (a hound running as a shadow, a ray under the sand), the four arrows go hollow, just an outline, instead of only fading, so you can tell at a glance on a small screen, in bright worlds and whatever colours you see.

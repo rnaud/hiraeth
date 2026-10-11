@@ -394,7 +394,7 @@ const places = {
   shipSite: V3(new THREE.Vector3(ship.site.x, ship.site.ground, ship.site.z)), shipHeading: -ship.site.heading, shipRamp: V3(ship.rampFoot),
 };
 if (desert) {
-  const city = Q.city, camps = Q.camps, cave = Q.cave, giant = Q.giant, ledge = city.ledge;
+  const city = Q.city, camps = Q.camps, cave = Q.cave, giant = Q.giant, ledge = city.shrine;   // (the makers' dais at the tree's foot: the keys keep their old names, ledgeBox…)
   Object.assign(places, {
     cityCenter: V3(city.center), cityGate: V3(city.gate), backGate: V3(city.backGate), cityTop: city.top, cityYaw: -city.yaw,
     well: V3(city.well), wellLook: V3(city.wellLook), stele: V3(city.stele), treeBase: V3(city.treeBase), crown: V3(city.crown),

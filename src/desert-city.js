@@ -352,6 +352,8 @@ function materials() {
     mural: makeMaterial({ color: '#e9dcc0', flat: true, grid: 0.9 }),
     glyph: makeMaterial({ color: '#70e7df', glow: 0.85, flat: true }),
     dry: paint('#5a4a40'),
+    // the makers' dais at the tree's foot: the Givers' white stone (the temple chest's own), its gold, pale flagstones
+    daisStone: paint('#f1eee6'), gold: paint('#d2a847'), flag: paint('#f0e3c8'),
     boneMesh: makeMaterial({ color: '#f2ead6' }),
   };
 }
@@ -552,12 +554,13 @@ export function buildDesertCity(scene, terrain) {
     // (shut at both ends: under the paving, and a low crown over the top, between the limbs)
     const CROWN = [[3.2, 22.6], [0, 23]];
     city.both(M.bark, twist(lathe([[0, -0.3], ...PROFILE, ...CROWN], 40)), twist(lathe([[0, -0.3], [5.4, -0.3], ...PROFILE.slice(1), ...CROWN], 40)));
-    // the makers' ledge (below): a plank shelf high on the trunk, over a buttress root, toward the old shrine's corner
-    const LEDGE = { phi: -0.5, H: 3.2, H2: 7.2, shoulder: 1.6 };   // H the root's shoulder, H2 the shelf, over the square
+    // the makers' dais (below): at the trunk's foot, toward the old shrine's corner, left of the well from the avenue
+    const LEDGE = { phi: -0.6 };
+    const DAIS = { r: 1.75, r2: 1.25, h1: 0.22, h: 0.46, ring: 2.8 };   // the lower and upper step's radius and top, the flagstones' ring
     // tree-local helpers: a point at angle a (local angle: 0 toward the main gate), r out from the axis, y over the square
     const onTree = (a, r, y) => V(TREE.x + Math.sin(a) * r, top + y, TREE.z + Math.cos(a) * r);
     // the buttress roots: tall fins flowing out of the trunk and down over the square, each ending in a low tail you
-    // step over (none toward the well and the stairs, the back stair, the ledge's own buttress or the low arm). A fin
+    // step over (none toward the well and the stairs, the back stair, the makers' dais or the low arm). A fin
     // stands 7–8 m up the trunk and is down to 0.4 m by 7.4 m out: the ring round the trunk is walked round (the
     // routes: tests/desert-story.test.js, tests/boxes.test.js)
     const FINS = [[0.75, 7.6], [1.35, 8.2], [1.95, 7.0], [2.55, 7.8], [-2.5, 7.4], [-1.85, 8.0], [-1.4, 6.8]];
@@ -652,93 +655,55 @@ export function buildDesertCity(scene, terrain) {
     city.add(M.ink, mural(3.0, 3.0).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 2.0, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.31))));
     city.add(M.glyph, glyphGeometry(0.55).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 3.9, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.32))));
 
-    // the makers' ledge: high up the trunk, a plank shelf on a pier of root, the pier standing
-    // on the shoulder of a buttress root that rises out of the square. On the dais, on a low drum
-    // ringed with the makers' light, the box that holds the backpack (src/boxes/placements.js:
-    // 'desert.backpack'), out in the open where you see it from the stairs. A real little climb, in
-    // two pitches: up the root's face onto its shoulder, then up the pier's face and over the dais's
-    // edge (player.js tryMantle), where there is room to stand in front of the box.
-    // Ledge frame L: x across, y up from the square, z out from the tree's axis (toward phi).
-    const { phi, H, H2 } = LEDGE;
+    // the makers' dais at the tree's foot (issue #140: the chest stood on a plank shelf 7 m up the trunk, a climb in
+    // two pitches; "a platform up in the tree, feels unnecessary. That first chest is everything. Also it should be
+    // like a temple chest"). Down on the square now, in a clearing between the roots with the bare bark behind it and
+    // the low arm reaching over it: a round dais of the Givers' white stone in two steps (the temples' altar, as in
+    // references/Core Objects/Chests/temple/sheet-2.jpg), a gold band round its top and the makers' ring glowing on it,
+    // a ring of pale flagstones round its foot and nothing else in the clearing; on it the temple chest itself
+    // (src/boxes/placements.js 'desert.backpack', chest: 'temple'). Up the avenue from the gate it stands in sight,
+    // left of the dry well, the first thing under the tree.
+    // Dais frame L: x across, y up from the square, z out from the tree's axis (toward phi).
+    const { phi } = LEDGE;
     const lM = new THREE.Matrix4().compose(V(TREE.x, top, TREE.z), new THREE.Quaternion().setFromAxisAngle(UP, phi), V(1, 1, 1));
     const lg = (g) => g.applyMatrix4(lM);
     const lToCity = (x, y, z) => V(x, y, z).applyMatrix4(lM);
-    // the bark's reach along the dais (the twist and the knots), so the box sits just clear of it
+    // the bark's reach at a dais-frame point (the flare, the twist and the knots): metres clear of it
     const reach = (x, z, y) => { const p = lToCity(x, 0, z); return Math.hypot(p.x - TREE.x, p.z - TREE.z) - barkR(Math.atan2(p.z - TREE.z, p.x - TREE.x), y); };
-    const DRUM = { r: 0.86, h: 0.78 };   // the chest's stand: tall enough that the box shows over the shelf's edge from the stairs
-    let sBack = 2.5;
-    for (; sBack < 6; sBack += 0.05) {
+    const { r: DR, r2: DR2, h1: DH1, h: DH, ring: RING } = DAIS;
+    // its centre: as near the trunk as leaves a stride of square between the bark and the lower step
+    let sC = 6;
+    for (; sC < 12; sC += 0.05) {
       let clear = true;
-      for (let x = -0.85; x <= 0.85 && clear; x += 0.17) for (let y = H2 + DRUM.h; y <= H2 + DRUM.h + 1.5 && clear; y += 0.3) if (reach(x, sBack, y) < 0.12) clear = false;
+      for (let a = 0; a <= Math.PI && clear; a += Math.PI / 12) for (const y of [-0.3, 0.3, 1.2]) if (reach(Math.cos(a) * DR, sC - Math.sin(a) * DR, y) < 0.9) clear = false;
       if (clear) break;
     }
-    const BOX_HALF = 0.55;                 // half the box's depth (src/boxes/model.js BOX.d * BOX_SCALE / 2)
-    const sC = sBack + BOX_HALF;           // the box's centre
-    const sF2 = sC + 1.7;                  // the shelf's front edge (the pier's face): room to stand, and for the climb's last reach
-    const sF = sF2 + LEDGE.shoulder;       // the root's face, its shoulder between the two
-    const sIn = sBack - 1.1;               // well into the bark
-    // ---- the buttress root: a flat-faced wall of bark you can climb, flaring a little at its foot; its top the shoulder
-    const BW = 2.0, bIn = sIn - 0.4, bD = sF - bIn;
-    city.solid(lg(new THREE.BoxGeometry(BW, H + 0.3, bD).translate(0, (H - 0.3) / 2, bIn + bD / 2)));
-    {
-      const b = new THREE.BoxGeometry(BW, H + 0.3, bD, 6, 8, 7).translate(0, (H - 0.3) / 2, bIn + bD / 2);
-      const p = b.attributes.position;
-      for (let i = 0; i < p.count; i++) {
-        let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-        const foot = THREE.MathUtils.clamp((0.6 - y) / 0.9, 0, 1);             // the flare at the foot
-        const side = Math.abs(Math.abs(x) - BW / 2) < 0.01, front = Math.abs(z - sF) < 0.01;
-        if (side) x += Math.sign(x) * (0.08 * Math.sin(y * 3.1 + z * 2.3) + 0.35 * foot * foot);
-        if (front) z += 0.04 * Math.sin(x * 4.1 + y * 2.7);                      // (the climbing face stays flat)
-        p.setXYZ(i, x, y, z);
-      }
-      b.computeVertexNormals();
-      city.add(M.bark, lg(b));
-      // two roots twisting down its sides into the paving
-      for (const s of [-1, 1]) city.add(M.bark, lg(taper([V(s * 0.62, H - 0.6, sF - 1.5), V(s * 1.25, H * 0.5, sF - 0.9), V(s * 1.5, 0.15, sF - 0.6), V(s * 1.7, -0.25, sF - 0.3)], 0.42, 0.2, 10, 6)));
-      // the makers' mark on its face, and offering cloths tied to the shoulder's corners
-      city.add(M.glyph, lg(glyphGeometry(0.42).translate(0, 1.75, sF + 0.06)));
-      [[-1, 0, 1.25], [1, 1, 0.95]].forEach(([s, c, len]) => city.add(M.cloth[c], lg(new THREE.PlaneGeometry(0.2, len).translate(s * (BW / 2 - 0.08), H - 0.1 - len / 2, sF + 0.02))));
-    }
-    // ---- the pier: the root climbing on up the trunk, its front face flat and plumb (the second pitch)
-    const PW = 1.6, pIn = sIn, pD = sF2 - pIn;
-    // (its own batch of the same bark: it stands into the trunk, and the tree's own mesh stays one closed skin, tests/desert-tree.test.js)
-    // (drawn up to the planks' underside: its top level with the boards showed through them; it collides up to the shelf's top)
-    city.add(M.barkRoot, lg(new THREE.BoxGeometry(PW, H2 - H - 0.15, pD).translate(0, (H + H2 - 0.15) / 2, pIn + pD / 2)));
-    city.solid(lg(new THREE.BoxGeometry(PW, H2 - H, pD).translate(0, (H + H2) / 2, pIn + pD / 2)));
-    for (const s of [-1, 1]) city.add(M.barkRoot, lg(taper([V(s * 0.5, H2 - 0.5, sF2 - 0.9), V(s * 0.95, (H + H2) / 2, sF2 - 0.6), V(s * 1.0, H + 0.2, sF2 - 0.2), V(s * 1.15, H - 0.2, sF2 + 0.2)], 0.36, 0.22, 10, 6)));
-    // the glyph painted on its face, lit like the root's mark
-    city.add(M.glyph, lg(glyphGeometry(0.32).translate(0, (H + H2) / 2 + 0.15, sF2 + 0.03)));
-    // ---- the shelf: planks across two joists, its front edge flush with the pier's face, braced back to the bark
-    const DT = 0.42, DW = 3.6, dz0 = sBack - 0.9, dz1 = sF2;
-    city.solid(lg(new THREE.BoxGeometry(DW, DT, dz1 - dz0).translate(0, H2 - DT / 2, (dz0 + dz1) / 2)));
-    { const n = Math.round((dz1 - dz0) / 0.5), pw = (dz1 - dz0) / n;
+    // ---- the clearing: a ring of pale flagstones round the dais's foot, set flush in the square's paving
+    { const n = 16, r0 = DR + 0.12, r1 = RING;
       for (let i = 0; i < n; i++) {
-        const w = DW + (i % 3 === 1 ? -0.12 : i % 3 === 2 ? 0.08 : 0), x = i % 2 ? 0.05 : -0.04;
-        city.add(M.wood, lg(new THREE.BoxGeometry(w, 0.14, pw - 0.05).translate(x, H2 - 0.07, dz0 + pw * (i + 0.5))));
+        const a = (i + 0.5) / n * Math.PI * 2, rm = (r0 + r1) / 2, w = 2 * Math.PI * rm / n - 0.07;
+        const x = Math.cos(a) * rm, z = sC + Math.sin(a) * rm;
+        if (reach(x, z, 0) < 0.6) continue;   // (none under the bark)
+        city.add(M.flag, lg(new THREE.BoxGeometry(w, 0.05, r1 - r0).rotateY(Math.PI / 2 - a).translate(x, -0.018, z)));
       }
-      for (const s of [-1, 1]) city.add(M.wood, lg(new THREE.BoxGeometry(0.24, 0.3, dz1 - dz0).translate(s * 1.35, H2 - 0.29, (dz0 + dz1) / 2)));   // the joists
-      // braces from the bark up to the joists' ends
-      for (const s of [-1, 1]) { const a = V(s * 1.35, H2 - 2.6, sBack - 0.2), b = V(s * 1.35, H2 - 0.4, dz1 - 0.35); city.add(M.wood, lg(strut(a, b, 0.11))); }
-      // the front plank painted with the makers' colours, and their glyph painted on the boards before the chest
-      city.add(M.lav, lg(new THREE.BoxGeometry(DW + 0.02, 0.06, 0.03).translate(0, H2 - 0.05, dz1 + 0.005)));
-      city.add(M.ochre, lg(new THREE.BoxGeometry(DW + 0.02, 0.04, 0.03).translate(0, H2 - 0.11, dz1 + 0.005)));
-      city.add(M.glyph, lg(glyphGeometry(0.42).rotateX(-Math.PI / 2).translate(0, H2 + 0.006, (sC + BOX_HALF + dz1) / 2 + 0.1)));
+      city.add(M.gold, lg(new THREE.RingGeometry(RING, RING + 0.09, 56).rotateX(-Math.PI / 2).translate(0, 0.009, sC)));   // its gold edge (flush: the feet stand where it is drawn)
     }
-    // cloths tied to its corners, hanging long
-    [[-1, dz1 - 0.06, 3, 2.3, 0], [1, dz1 - 0.06, 2, 1.7, 0], [-1, sC - 0.5, 1, 1.9, 1], [1, sC - 0.3, 7, 1.4, 1]].forEach(([s, z, c, len, side]) => {
-      const g = new THREE.PlaneGeometry(0.24, len, 1, 4);
-      { const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, 0.05 * Math.sin(p.getY(i) * 2.4 + s)); }
-      g.translate(0, -len / 2, 0);
-      if (side) g.rotateY(Math.PI / 2);
-      city.add(M.cloth[c], lg(g.translate(s * (DW / 2 + 0.02), H2 - 0.12, z + (side ? 0 : 0.02))));
-    });
-    // the stand the chest sits on (where it shows over the shelf's edge from the stairs): a low box of planks, a cloth over it
-    // (narrower than the chest, so the climb's last reach over the shelf's edge stays clear of it: tests/boxes.test.js)
-    city.both(M.wood, lg(new THREE.BoxGeometry(1.2, DRUM.h, 0.6).translate(0, H2 + DRUM.h / 2, sC)));
-    city.add(M.ink, lg(new THREE.BoxGeometry(1.24, 0.04, 0.64).translate(0, H2 + DRUM.h * 0.5, sC)));
-    city.add(M.cloth[0], lg(new THREE.PlaneGeometry(0.5, DRUM.h - 0.04).translate(0, H2 + DRUM.h / 2 + 0.02, sC + 0.31)));
-    // a stone bench in the square below, under the tree's arm: where Nour keeps the chest company
-    const BENCH = { x: -7.33, z: 2.22 }, footC = lToCity(0, 0, sF + 0.8), benchYaw = Math.atan2(footC.x - BENCH.x, footC.z - BENCH.z);
+    // ---- the dais: two round steps of white stone, the gold band round the top, the makers' ring on it
+    // (it collides as its two steps: 0.22 m each, walked up)
+    city.add(M.daisStone, lg(lathe([[DR, -0.05], [DR, DH1], [DR2, DH1 + 0.01], [DR2, DH], [0.01, DH]], 40).translate(0, 0, sC)));
+    city.solid(lg(new THREE.CylinderGeometry(DR, DR, DH1 + 0.05, 24).translate(0, (DH1 - 0.05) / 2, sC)));
+    city.solid(lg(new THREE.CylinderGeometry(DR2, DR2, DH, 24).translate(0, DH / 2, sC)));
+    city.add(M.gold, lg(new THREE.CylinderGeometry(DR2 + 0.02, DR2 + 0.02, 0.07, 40, 1, true).translate(0, DH - 0.06, sC)));
+    city.add(M.gold, lg(new THREE.TorusGeometry(DR - 0.02, 0.03, 3, 56).rotateX(Math.PI / 2).translate(0, DH1 + 0.005, sC)));
+    city.add(M.glyph, lg(new THREE.TorusGeometry(DR2 - 0.28, 0.035, 3, 48).rotateX(Math.PI / 2).translate(0, DH + 0.012, sC)));
+    // it faces the way you come to it: down the square to the avenue's end (fa: that way, from the dais frame's +z);
+    // the makers' mark on the lower step's riser, on that side
+    const dc = lToCity(0, 0, sC), face = Math.atan2(0 - dc.x, 31 - dc.z), fa = face - phi;
+    city.add(M.glyph, lg(glyphGeometry(0.16).translate(0, DH1 / 2, DR + 0.012).rotateY(fa).translate(0, 0, sC)));
+    // a soft light over it, for the dusk and the night (the chest's own jade glows in its seams)
+    { const p = city.world(...lToCity(0, DH + 2.4, sC).toArray()); lights.push(new THREE.Vector4(p.x, p.y, p.z, 7)); }
+    // a stone bench in the square under the tree's arm, just outside the dais's clearing: where Nour keeps the chest company
+    const BENCH = { x: -7.33, z: 2.22 }, footC = lToCity(0, 0, sC), benchYaw = Math.atan2(footC.x - BENCH.x, footC.z - BENCH.z);
     city.both(M.stone, T(new THREE.BoxGeometry(1.5, 0.42, 0.5), [BENCH.x, 0.21 + top, BENCH.z], [0, benchYaw, 0]));
     city.add(M.cloth[1], T(new THREE.BoxGeometry(1.2, 0.04, 0.44), [BENCH.x, 0.44 + top, BENCH.z], [0, benchYaw, 0]));
     // pilgrims' lanterns on posts round the tree's foot, and cloths hung from the low arm
@@ -754,14 +719,13 @@ export function buildDesertCity(scene, terrain) {
       city.add(M.cloth[c], new THREE.PlaneGeometry(0.3, len, 1, 3).rotateY(ARM).translate(p.x, p.y, p.z));
     });
     const toWorld = (x, y, z) => { const p = lToCity(x, y, z); return city.world(p.x, p.y, p.z); };
-    // (ledge-local points: x across, y up from the square, z out from the chest's centre)
-    const ledge = {
-      box: toWorld(0, H2 + DRUM.h, sC), yaw: city.heading(phi), height: H2 + DRUM.h,
+    // (dais-local points: x across, y up from the square, z out from the chest's centre)
+    const shrine = {
+      box: toWorld(0, DH, sC), yaw: city.heading(face), height: DH,
       at: (x, y, z) => toWorld(x, y, sC + z),
-      foot: toWorld(0, 0, sF + 0.8),        // in the square in front of the buttress: push into it and climb
-      face: sF - sC,                        // the root's climbing face, metres in front of the box
-      shoulder: toWorld(0, H, (sF + sF2) / 2),   // the root's top, between the two pitches
-      dais: { y: toWorld(0, H2, sC).y, face: sF2 - sC },   // the dais's top, and its edge (the pier's face) in front of the box
+      foot: toWorld(Math.sin(fa) * (RING + 0.8), 0, sC + Math.cos(fa) * (RING + 0.8)),   // on the square in front of the dais, the way you come to it
+      face: DR,                               // the lower step's edge, metres in front of the chest
+      dais: { y: toWorld(0, DH, sC).y, r: DR, r2: DR2, step: DH1, ring: RING, center: toWorld(0, 0, sC) },
       bench: { at: city.world(BENCH.x, top + 0.42, BENCH.z), heading: city.heading(benchYaw) },
     };
 
@@ -774,7 +738,7 @@ export function buildDesertCity(scene, terrain) {
       flames, foliage, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
       plinthStair: city.world(0, 0, 31),   // (the avenue's end at the square, where the stairs up to the tree once began)
       local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
-      stairTop: city.world(0, top, 12.6), ledge,   // (in the square before the well, where the stairs came up)
+      stairTop: city.world(0, top, 12.6), shrine,   // (in the square before the well, where the stairs came up; shrine: the makers' dais)
       // the fire: 0 (the tree stands cold, no flame, no smoke, no sparks) .. 1 (burning). A new game starts
       // at 0; src/story/desert.js lights it once the spark-stone is set in the full well
       lit: 1,

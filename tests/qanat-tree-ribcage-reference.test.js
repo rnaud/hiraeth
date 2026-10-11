@@ -80,7 +80,7 @@ test('the buttress roots leave the ring round the trunk walkable: nothing over a
 });
 
 test('the low arm arches over Nour’s bench, with room to walk under it on the way round to the back gate', () => {
-  const b = C.ledge.bench.at;
+  const b = C.shrine.bench.at;
   const over = physics.rayDistance(b.clone().add(V(0, 0.6, 0)), V(0, 1, 0), 12);
   // (the arm passes beside and over the bench: look for it within a couple of metres)
   let low = Infinity;
@@ -91,14 +91,30 @@ test('the low arm arches over Nour’s bench, with room to walk under it on the 
   assert.ok(head > 2.4, `head room under the arm (${head.toFixed(2)} m)`);
 });
 
-test('the makers’ chest sits on the plank shelf, cloths hanging from its corners', () => {
-  const L = C.ledge;
-  assert.ok(L.box.y - L.dais.y > 0.5 && L.box.y - L.dais.y < 0.8, 'on its stand, on the shelf');
+test('the makers’ chest sits on its round white dais at the tree’s foot, in a clearing of flagstones (issue #140)', () => {
+  const L = C.shrine;
+  assert.ok(Math.abs(L.box.y - L.dais.y) < 0.01 && L.dais.y - top > 0.3 && L.dais.y - top < 0.6, 'on the dais, a step over the square');
   const g = physics.groundAt(L.box.x, L.box.y + 0.5, L.box.z, 2);
-  assert.ok(Math.abs(g - L.box.y) < 0.02, 'the stand holds it');
-  // the stone dais's materials are gone: the shelf is wood
+  assert.ok(Math.abs(g - L.box.y) < 0.02, 'the dais holds it');
+  // two steps, each walked up (no climb): the lower step's top half way
+  const c = L.dais.center, mid = (L.dais.r + L.dais.r2) / 2;
+  const toFoot = V(L.foot.x - c.x, 0, L.foot.z - c.z).normalize();
+  const s1 = physics.groundAt(c.x + toFoot.x * mid, top + 1, c.z + toFoot.z * mid, 2);
+  assert.ok(Math.abs(s1 - top - L.dais.step) < 0.03, `the lower step (${(s1 - top).toFixed(2)} m)`);
+  // the plank shelf, its pier and its climbing root are gone: nothing up the trunk over the dais
+  for (const y of [3.2, 5, 7.2]) assert.equal(physics.rayDistance(V(L.box.x, top + y, L.box.z), V(0, 1, 0), 0.5), Infinity, `nothing ${y} m over it`);
   const mats = new Set(); scene.getObjectByName('Old city of Qanat').traverse((m) => { if (m.isMesh) mats.add(m.material); });
   assert.ok(![...mats].some((m) => m.uniforms?.uColor?.value.getHexString() === '25386c'), 'no makers’ blue bands');
+  // the bench beside it, not in its clearing
+  assert.ok(Math.hypot(L.bench.at.x - c.x, L.bench.at.z - c.z) > 3, 'Nour’s bench outside the 3 m round the chest');
+});
+
+test('a save left up on the old shelf in the tree comes down to the dais’s foot; one on the square stays put', () => {
+  const T = top - C.center.y, sh = C.local(Math.sin(-0.5) * 7.2, T + 8, -3 + Math.cos(-0.5) * 7.2);   // (where the shelf's chest stood, v1.48)
+  const moved = level.settleSaved(sh, physics);
+  assert.ok(moved && moved.distanceTo(C.shrine.foot) < 0.01, 'down at the dais’s foot');
+  assert.equal(level.settleSaved(C.shrine.foot.clone(), physics), null, 'on the square: where it was');
+  assert.equal(level.settleSaved(C.gate.clone().setY(C.gate.y + 5), physics), null, 'far from the tree: untouched');
 });
 
 // ---------------------------------------------------------------- the ribcage

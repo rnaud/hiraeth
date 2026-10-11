@@ -131,6 +131,14 @@ export function* buildDesert(scene) {
     paved: pavedMask({ discs: [{ x: STORY.city.x, z: STORY.city.z, r: STORY.city.r }] }),
     observatory,
     qanat,
+    // a save left standing up the tree where the makers' shelf was (until v1.49, issue #140): down to the dais's foot
+    // instead of a fall onto the square (main.js, where a save is resumed)
+    settleSaved: (p, physics) => {
+      const C = qanat.city;
+      if (Math.hypot(p.x - C.treeBase.x, p.z - C.treeBase.z) > 13 || p.y < C.top + 2.5 || p.y > C.top + 12) return null;
+      const g = physics.groundAt(p.x, p.y + 0.5, p.z, 4);
+      return Number.isFinite(g) && p.y - g < 0.5 ? null : C.shrine.foot.clone();
+    },
     hearth,
     road,
     fieldStone,

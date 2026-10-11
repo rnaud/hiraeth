@@ -370,20 +370,21 @@ test('a new game steps out with a bare back to a cold tree: no flame, no smoke, 
   // through the gate: inside the walls
   at(Q.city.plinthStair); step(2);
   assert.equal(quests.stage('desert.power'), 'box');
-  assert.equal(quests.current('desert.power').label, 'The ledge on the tree');
+  assert.equal(quests.current('desert.power').label, 'The chest under the tree');
 });
 
-test('the makers’ chest is on its ledge up the tree; opening it (its tank empty) brings Nour alone, calling “Hey you!”', async (t) => {
+test('the makers’ chest is on its dais at the tree’s foot; opening it (its tank empty) brings Nour alone, calling “Hey you!”', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
   const { createBoxes } = await import('../src/boxes/index.js');
   const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player, quests });
   const box = boxes.list.find((b) => b.item === 'backpack');
-  const L = Q.city.ledge;
-  assert.ok(box.pos.distanceTo(L.box) < 0.05, 'on the makers’ ledge');
+  const L = Q.city.shrine;
+  assert.ok(box.pos.distanceTo(L.box) < 0.05, 'on the makers’ dais');
+  assert.ok(box.pos.y - Q.city.top < 0.6, 'on the square, not up the tree (issue #140)');
   assert.ok(quests.objective().position.distanceTo(box.pos) < 0.01, 'the marker stands on the box');
   const W = rt.world, nour = W.people.nour;
-  assert.ok(nour.seat !== null && nour.pos.distanceTo(L.bench.at) < 0.5, 'Nour sits on her bench under the ledge');
+  assert.ok(nour.seat !== null && nour.pos.distanceTo(L.bench.at) < 0.5, 'Nour sits on her bench beside the dais');
   // first sight of it: the people on the terrace turn and murmur (the tree's flare: it shows once the tree burns)
   W.state.flare = 0;
   at(Q.city.stairTop); step(40);
@@ -407,20 +408,15 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.equal(game.flag('tool.dregs'), undefined, 'no makers’ dregs any more (v1.38: no gun to shoot them with)');
   assert.equal(Q.city.lit, 0, 'the tree stays cold');
   const homeOf = new Map(W.villagers.map((n) => [n, n.pos.clone()]));
-  // nobody else comes (the author's call, October 2026): Nour alone gets up, calls out and waits at the tree's foot
-  // while you're still up on the ledge, calling you down; once you're down, she comes to you and calls you
-  // over (a "psst" and a wave, once: issue #79), but never starts talking herself: that is yours, on the prompt
+  // nobody else comes (the author's call, October 2026): Nour alone gets up, calls out, comes over to you by the
+  // dais and calls you over (a "psst" and a wave, once: issue #79), but never starts talking herself: that is
+  // yours, on the prompt
   assert.equal(nour.seat, null, 'Nour stands');
+  const p0 = sound.pssts;
   step(60, 1 / 30, { people: true });
   assert.match(nour.shout?.text ?? '', /^(~shout~ )?Hey you!$/, 'Nour calls out, just “Hey you!”');
   assert.ok(![...W.villagers, W.people.hessa].some((n) => n.shout && /open|Nour/i.test(n.shout.text)), 'and only Nour');
-  for (let i = 60; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
-  assert.ok(!rt.dialogue.open, 'not while you are up there');
-  assert.ok(flat(nour.pos, L.foot) < 3 && Math.abs(nour.pos.y - L.foot.y) < 0.6, 'she waits at the foot of the ledge');
-  assert.match(nour.shout?.text ?? '', /Hey you/, 'and calls you down');
-  at(L.foot.clone().addScaledVector(V(Math.sin(L.yaw), 0, Math.cos(L.yaw)), 1.5));
-  const p0 = sound.pssts;
-  for (let i = 0; i < 30 * 30; i += 10) step(10, 1 / 30, { people: true });
+  for (let i = 60; i < 30 * 30; i += 10) step(10, 1 / 30, { people: true });
   assert.ok(!rt.dialogue.open, 'Nour doesn’t start talking by herself');
   assert.ok(flat(nour.pos, player.pos) < 3, 'she has come to you');
   assert.equal(sound.pssts - p0, 1, 'she calls you once in thirty seconds, not again and again (issue #79)');

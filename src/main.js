@@ -989,6 +989,7 @@ if (arrival) {
 const saved = SaveGame.load();
 if (!viaShip && !arrival && !playPrologue && saved?.level === levelId && saved.pos && !level.keepSpawn) {   // (keepSpawn: the Arcade, back in front of a game's sign)
   const p = new THREE.Vector3(...saved.pos);
+  { const moved = level.settleSaved?.(p, physics); if (moved) p.copy(moved); }   // (a place the world has since taken away: the desert's tree shelf)
   player.respawn(p);
   if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
   player.heading = saved.heading ?? player.heading;

@@ -175,7 +175,7 @@ namespace Memento
             Thing("brow", giantDoor + new Vector3(Mathf.Sin(-gy) * -3, 0, Mathf.Cos(-gy) * 3), 4f, "look up at the skull");
             Thing("mural", new Vector3(P.V3("mural").x, caveOrigin.y, P.V3("mural").z), 4f, "look at the mural");
 
-            // the makers' chest on the ledge up the tree: it opens for one who fell from the sky
+            // the makers' chest on its dais at the tree's foot (ledgeBox: the old name): it opens for one who fell from the sky
             Interact.Add(new Interactable
             {
                 id = "box.desert.backpack", at = () => ledgeBox, range = 2.6f, priority = 1,

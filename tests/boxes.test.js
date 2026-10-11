@@ -126,72 +126,81 @@ test('a run never lands beside free chests: the desert done and the Rose House s
   assert.ok(PLACEMENTS.desert.some((p) => p.item === 'sword' && p.temple) && PLACEMENTS.desert.some((p) => p.item === 'shield' && p.temple), 'both in the house');
 });
 
-test('the desert backpack box sits on the makers’ pedestal high up the burning tree’s trunk: in sight from the stairs, a climb in two pitches', () => {
+test('the desert backpack box is a temple chest on the makers’ dais at the burning tree’s foot: on the ground, in sight from the avenue, nothing round it (issue #140)', () => {
   const { physics, level } = world('desert');
-  const C = level.qanat.city, L = C.ledge;
+  const C = level.qanat.city, L = C.shrine;
   const p = PLACEMENTS.desert.find((x) => x.item === 'backpack');
+  assert.equal(p.id, 'desert.backpack', 'the same id: a save that opened it keeps it opened');
   assert.ok(!p.debris && p.beacon, 'no crash trail; a pale column over it');
+  // the temples' own chest: the same model, the same opening
+  assert.equal(chestKind(p), 'temple', 'the temple chest');
+  const model = buildBox(p.id, { kind: chestKind(p) });
+  assert.equal(model.kind, 'temple');
+  assert.equal(model.shell.geometry, chestGeometry('temple').closed, 'the one temple chest model');
+  const sword = PLACEMENTS.desert.find((x) => x.id === 'desert.temple.sword');
+  assert.equal(buildBox(sword.id, { kind: chestKind(sword) }).shell.geometry, model.shell.geometry, 'exactly the Givers’ House’s chest');
   const at = resolvePlacement(p, { physics, level });
   assert.ok(at, 'resolves');
-  assert.ok(at.pos.distanceTo(L.box) < 0.05, 'on the pedestal');
-  // inside the walls, at the burning tree beside the well, high over the square (out of reach of a jump or one climb)
-  assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
+  assert.ok(at.pos.distanceTo(L.box) < 0.05, 'on the dais');
+  // on the ground: the dais's top, a step up from the square (no ledge, no climb)
   const rise = at.pos.y - C.top;
-  assert.ok(rise > 6.5 && rise < 9, `high up the trunk (${rise.toFixed(2)} m)`);
-  assert.ok(L.shoulder.y - C.top > 2.5 && L.dais.y - L.shoulder.y > 3, 'two pitches: the root, then the pier');
+  assert.ok(rise > 0.3 && rise < 0.6, `on the dais on the square (${rise.toFixed(2)} m up)`);
+  const g = physics.groundAt(at.pos.x, at.pos.y + 1, at.pos.z, 2);
+  assert.ok(Math.abs(g - at.pos.y) < 0.03, 'the dais holds it');
+  // at the tree's foot, beside the well, in the middle of the city
+  assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
+  const dt = Math.hypot(at.pos.x - C.treeBase.x, at.pos.z - C.treeBase.z);
+  assert.ok(dt > 7 && dt < 11, `at the tree’s foot (${dt.toFixed(1)} m from its axis)`);
   const dw = Math.hypot(at.pos.x - C.well.x, at.pos.z - C.well.z);
   assert.ok(dw > 3.5 && dw < 12, `beside the well (${dw.toFixed(1)} m)`);
-  // in the open (no roof: it shows from afar, and there's room for the opening scene), its back to the bark
+  // open sky over it (the light, the beacon, room for the opening scene) and somewhere to stand in front
   assert.equal(physics.rayDistance(at.pos.clone().add(V(0, 0.5, 0)), V(0, 1, 0), 12), Infinity, 'open sky over it');
   reachable(physics, at.pos, at.yaw, 'desert.backpack');
+  // nothing round it within 3 m at a body's height but the dais it stands on (the author's rule, issue #81)
+  for (let i = 0; i < 24; i++) {
+    const a = i / 24 * Math.PI * 2, d = V(Math.sin(a), 0, Math.cos(a));
+    for (const h of [0.7, 1.3, 2]) assert.equal(physics.rayDistance(V(at.pos.x, C.top + h, at.pos.z), d, 3), Infinity, `clear round it (${(a * 180 / Math.PI).toFixed(0)}° at ${h} m)`);
+  }
+  // the bark behind it, the chest facing out of the tree toward the avenue's end
   const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw));
-  assert.ok(physics.rayDistance(at.pos.clone().add(V(0, 1.2, 0)), F.clone().negate(), 1.4) < 1.4, 'the trunk just behind it');
   const out = at.pos.clone().sub(C.treeBase).setY(0).normalize();
-  assert.ok(F.dot(out) > 0.95, 'it faces out from the trunk');
-  // in sight from the top of the main stairs, the way you come up from the gate (well clear of the flame)
-  const eye = C.stairTop.clone().add(V(0, 1.6, 0)), lid = at.pos.clone().add(V(0, 0.8, 0)), d = eye.distanceTo(lid);
-  assert.ok(physics.rayDistance(eye, lid.clone().sub(eye).normalize(), d) > d - 0.2, 'seen from the top of the stairs');
-  // on foot from the gate: up the avenue, the stairs, round the well to the buttress's foot (no step over 0.62 m, no wall)
-  const route = [C.gate, C.plinthStair, C.stairTop, C.local(-4, C.top - C.center.y, 9.6), L.foot];
+  assert.ok(F.dot(out) > 0.5, 'it faces out from the trunk');
+  assert.ok(physics.rayDistance(V(at.pos.x, C.top + 1, at.pos.z), out.clone().negate(), 6) < 6, 'the bark behind it');
+  const toAvenue = C.plinthStair.clone().sub(at.pos).setY(0).normalize();
+  assert.ok(F.dot(toAvenue) > 0.95, 'it faces the way you come up the avenue');
+  // in sight all the way up the avenue: from the gate, the avenue's end and the square before the well
+  for (const [name, q] of [['the gate', C.gate], ['the avenue’s end', C.plinthStair], ['the square', C.stairTop]]) {
+    const eye = q.clone().setY(physics.groundAt(q.x, q.y + 2, q.z) + 1.6), lid = at.pos.clone().add(V(0, 0.8, 0)), d = eye.distanceTo(lid);
+    assert.ok(physics.rayDistance(eye, lid.clone().sub(eye).normalize(), d) > d - 0.2, `seen from ${name}`);
+  }
+  // on foot from the gate: up the avenue, round the well, up the dais's two steps to the chest (no step over 0.62 m, no wall)
+  const route = [C.gate, C.plinthStair, C.stairTop, L.foot, at.pos.clone().addScaledVector(F, 0.9)];
   for (let i = 0; i < route.length - 1; i++) {
     const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);
     let y = physics.groundAt(a.x, a.y + 1, a.z);
     const dir = b.clone().sub(a).setY(0).normalize();
     for (let k = 1; k <= n; k++) {
-      const q = a.clone().lerp(b, k / n), g = physics.groundAt(q.x, y + 0.65, q.z);
-      assert.ok(g > y - 3 && g - y < 0.62, `a step of ${(g - y).toFixed(2)} m at ${q.x.toFixed(1)},${q.z.toFixed(1)} (leg ${i})`);
-      for (const h of [0.9, 1.6]) assert.ok(physics.rayDistance(V(q.x, g + h, q.z).addScaledVector(dir, -0.25), dir, 0.5) > 0.49, `a wall at ${q.x.toFixed(1)},${q.z.toFixed(1)}`);
-      y = g;
+      const q = a.clone().lerp(b, k / n), gq = physics.groundAt(q.x, y + 0.65, q.z);
+      assert.ok(gq > y - 3 && gq - y < 0.62, `a step of ${(gq - y).toFixed(2)} m at ${q.x.toFixed(1)},${q.z.toFixed(1)} (leg ${i})`);
+      for (const h of [0.9, 1.6]) assert.ok(physics.rayDistance(V(q.x, gq + h, q.z).addScaledVector(dir, -0.25), dir, 0.5) > 0.49, `a wall at ${q.x.toFixed(1)},${q.z.toFixed(1)}`);
+      y = gq;
     }
   }
-  // the climb: walk into the buttress root's face, climb it, pull up onto its shoulder; walk on into the
-  // pier's face, climb that, pull up over the dais's edge and stand in front of the box
+  // walked there: the traveller walks from the square up onto the dais, in front of the chest
   {
     const P = new Player(physics, { health: false });
     P.pos.copy(L.foot); P.heading = at.yaw + Math.PI; P.onGround = true;
-    const camYaw = Math.atan2(F.x, F.z);   // W walks toward -F: into the trunk
-    let climbs = 0, wasClimbing = false, onShoulder = false, onDais = false;
-    for (let i = 0; i < 60 * 30 && !onDais; i++) {
+    const camYaw = Math.atan2(F.x, F.z);   // W walks toward -F: to the chest
+    let onDais = false, climbed = false;
+    for (let i = 0; i < 60 * 6 && !onDais; i++) {
       quiet(() => P.update(1 / 60, { KeyW: true }, camYaw));
-      if (P.climbing && !wasClimbing) climbs++;
-      wasClimbing = P.climbing;
-      const standing = P.onGround && !P.climbing && !P.mantle;
-      onShoulder ||= standing && Math.abs(P.pos.y - L.shoulder.y) < 0.15;
-      onDais = standing && Math.abs(P.pos.y - L.dais.y) < 0.15;
+      climbed ||= P.climbing;
+      onDais = P.onGround && Math.abs(P.pos.y - L.dais.y) < 0.1;
     }
-    assert.ok(onShoulder, 'it climbs the root onto its shoulder');
-    assert.ok(climbs >= 2, `two pitches (${climbs} climbs)`);
-    assert.ok(onDais, `and stands on the dais (${P.pos.y.toFixed(2)} vs ${L.dais.y.toFixed(2)})`);
-    const fd = Math.hypot(P.pos.x - at.pos.x, P.pos.z - at.pos.z);
-    assert.ok(fd > 1.0 && fd < 2.4, `in front of the box, within reach (${fd.toFixed(2)} m)`);
+    assert.ok(onDais, `up its steps onto the dais (${P.pos.y.toFixed(2)} vs ${L.dais.y.toFixed(2)})`);
+    assert.ok(!climbed, 'walked, not climbed');
   }
-  // no short cut: from the terrace, no jump or single climb gets onto the dais (the shoulder is between)
-  assert.ok(L.dais.y - C.top > 6, 'out of reach from the terrace');
-  // (the mocap climb hugs the face closer, 0.27 m: its last reach over the edge still clears the box,
-  // so the climb ends in a pull-up onto the dais, not against the box's front)
-  const face = at.pos.clone().addScaledVector(F, L.dais.face + 0.27).setY(L.dais.y);
-  for (const h of [0.15, 0.5, 0.85]) assert.equal(physics.rayDistance(face.clone().add(V(0, h, 0)), F.clone().negate(), 1.6), Infinity, `over the edge at ${h} m: clear`);
-  // the opening scene up there: every shot sees the traveller and the chest, from the open air
+  // the opening scene there: every shot sees the traveller and the chest, from the open air
   game.reset();
   clearInteractables();
   const shots = [];
@@ -208,7 +217,7 @@ test('the desert backpack box sits on the makers’ pedestal high up the burning
     const d = s.pos.distanceTo(chest);
     assert.ok(physics.rayDistance(chest, s.pos.clone().sub(chest).normalize(), d) >= d - 0.05, 'a clear view of the traveller');
     assert.ok(!physics.embedded(s.pos), 'the lens is in the open');
-    assert.ok(s.pos.y > C.top + 1 && s.pos.y < C.top + 12 * 1.45, 'up by the pedestal, under the flame');
+    assert.ok(s.pos.y > C.top + 0.5 && s.pos.y < C.top + 12 * 1.45, 'by the dais, under the flame');
   }
   boxes.dispose();
   clearInteractables();
@@ -407,12 +416,12 @@ test('a rounded box (the small items’ slabs) has no edges: one closed smooth s
   for (let i = 0; i < n.count; i++) assert.ok(Math.abs(new THREE.Vector3().fromBufferAttribute(n, i).length() - 1) < 1e-3);
 });
 
-test('one chest for every world: the makers’ everywhere, the temple chest in the temples, nothing by the world', () => {
+test('one chest for every world: the makers’ everywhere, the temple chest in the temples and the desert’s first, nothing by the world', () => {
   const seen = { makers: 0, temple: 0 };
   for (const [world, list] of Object.entries(PLACEMENTS)) {
     for (const p of list) {
       const kind = chestKind(p);
-      assert.equal(kind, p.temple ? 'temple' : 'makers', `${world} ${p.id}: its kind by what it is, not where`);
+      assert.equal(kind, p.temple || p.chest === 'temple' ? 'temple' : 'makers', `${world} ${p.id}: its kind by what it is, not where`);
       const box = buildBox(p.id, { kind });
       assert.equal(box.kind, kind);
       assert.equal(box.shell.geometry, chestGeometry(kind).closed, `${p.id}: the one shared model of its kind`);

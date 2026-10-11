@@ -293,6 +293,6 @@ export function chestGeometry(kind = 'makers') {
   return built.get(k);
 }
 /** Which chest a placement gets: the temple's own (src/boxes/placements.js `temple`) or the makers'. Never the world. */
-export const chestKind = (place) => (place?.temple ? 'temple' : 'makers');
+export const chestKind = (place) => (place?.chest === 'temple' || place?.temple ? 'temple' : 'makers');   // (`chest`: the desert's first, issue #140)
 /** How far a chest has opened at k (0..1) of its petals' swing: eased. */
 export const openEase = (k) => smooth(0, 1, k);

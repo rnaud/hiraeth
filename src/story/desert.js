@@ -28,9 +28,9 @@ import { t as tr } from '../i18n.js';
 //                benches; Ilo running between the tents; Marrow by his crates
 //   the circuit  the Speaker walks ahead of the procession (crowd.js column)
 //   the city     Hessa keeps the dry well at the great tree's roots; beside
-//                it, a few metres up the trunk, the makers' ledge with their
-//                chest on it (src/boxes/: the backpack), Nour the eldest on her
-//                bench below it, and a few people of Qanat about the terraces
+//                it, at the trunk's foot, the makers' dais with their chest
+//                on it (src/boxes/: the backpack), Nour the eldest on her
+//                bench beside it, and a few people of Qanat about the terraces
 //                and the avenue
 //   the dunes    old Oum sits on a stone where she fell behind
 //   the cave     the dry pool, the fallen rib across the channel, the mural (the keepers'
@@ -248,8 +248,8 @@ export function setupDesert(ctx) {
     heading: game.flag('desert.oum.home') ? oumSeat.heading : 1.2,
   });
   const oum = people.oum;
-  // Nour: on her bench under the makers' ledge, keeping their chest company (desert-city.js)
-  const ledge = city.ledge;
+  // Nour: on her bench beside the makers' dais, keeping their chest company (desert-city.js)
+  const ledge = city.shrine;
   people.nour = spawn(PEOPLE.nour, { route: [ledge.bench.at.clone()], seat: 0.02, heading: ledge.bench.heading, speed: 0.8 });
   const nour = people.nour;
   // the people of Qanat: two on the top terrace, the rest down in the avenue by the main stairs
@@ -263,7 +263,7 @@ export function setupDesert(ctx) {
     n.home = homes[i];
     return n;
   });
-  const terraceY = ledge.foot.y;   // (the square at the tree's foot, where you climb from)
+  const terraceY = ledge.foot.y;   // (the square at the tree's foot, round the dais)
   // a stone for Oum to sit on, and her staff
   {
     const st = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0).scale(1.2, 0.8, 1), makeMaterial({ color: '#c9b8a0', flat: true }));
@@ -719,7 +719,7 @@ export function setupDesert(ctx) {
     } });
   void treeTarget;
 
-  // ---------------------------------------------------------------- the ledge: Qanat notices, and Nour calls out
+  // ---------------------------------------------------------------- the dais: Qanat notices, and Nour calls out
   const say = (n, text, secs = 3) => { n.shout = { text, until: n.time + secs }; };
   const pick = (list, i) => list[i % list.length];
   const boxAt = ledge.box;
@@ -727,7 +727,7 @@ export function setupDesert(ctx) {
   const sh = { noticed: false, gather: null, nour: null, timers: [] };
   const later = (secs, fn) => sh.timers.push({ at: secs, fn });
   const boxOpen = () => !!game.flag('box.desert.backpack') || items.has('backpack');
-  // where Nour waits for you at the tree's foot, beside the buttress you climb, looking up at the chest
+  // where Nour waits for you at the tree's foot, beside the dais, looking at the chest
   const nourWait = ledge.at(-1.0, 0, ledge.face + 1.1).setY(terraceY);
   // (waiting there, she turns to you when you're about: a call is no use with her back to you)
   const nourToFoot = () => ({ pos: nourWait, speed: 0.95, near: 0.4, max: 1.4, face: flat(player.pos, nourWait) < 22 ? Math.atan2(player.pos.x - nourWait.x, player.pos.z - nourWait.z) : faceBox(nourWait) });
@@ -744,17 +744,16 @@ export function setupDesert(ctx) {
     sh.noticed = true;
     st.flare = Math.max(st.flare, 1.1);
     let k = 0;
-    const climbing = player.climbing || player.pos.y > terraceY + 1.5;
     for (const n of [...villagers, people.hessa]) {
       if (flat(n.pos, boxAt) > 30) continue;
-      const line = n === people.hessa ? (climbing ? '~shout~ Grandmother! The sky-stranger is climbing the tree!' : '~shout~ Grandmother! The sky-stranger is at the chest!') : pick(MURMURS.near, k);
+      const line = n === people.hessa ? '~shout~ Grandmother! The sky-stranger is at the chest!' : pick(MURMURS.near, k);
       later(0.3 + k++ * 0.9, () => say(n, line, 3));
     }
     crowd?.lookAt(boxAt.clone().setY(boxAt.y + 1), 6, { near: boxAt, r: 60 });
   };
   const gather = () => {
     // the chest is open: the tree flares, and only Nour gets up off her bench and calls out (the author's call,
-    // October 2026: no crowd walking over, just her "hey you!"); she comes to the foot of the ledge
+    // October 2026: no crowd walking over, just her "hey you!"); she comes to the dais's side
     game.set('desert.shrine.gathered', true);
     sh.gather = { t: 0 };
     st.flare = Math.max(st.flare, 2.4);
@@ -782,7 +781,7 @@ export function setupDesert(ctx) {
     for (const tm of sh.timers) tm.at -= dt;
     for (const tm of sh.timers.filter((x) => x.at <= 0)) { sh.timers.splice(sh.timers.indexOf(tm), 1); tm.fn(); }
     const dBox = flat(pp, boxAt);
-    const onTerrace = Math.abs(pp.y - terraceY) < 1.2, up = !onTerrace && pp.y > terraceY;   // (up: on the ledge, or climbing to it)
+    const onTerrace = Math.abs(pp.y - terraceY) < 1.2, up = !onTerrace && pp.y > terraceY;   // (up: climbed onto something by it, a root or the low arm)
     sh.up = up && dBox < 12;
     if (!sh.noticed && !boxOpen() && dBox < 13 && pp.y > terraceY - 1 && pp.y < boxAt.y + 2.5) notice();
     if (sh.gather) sh.gather.t += dt;
@@ -838,7 +837,7 @@ export function setupDesert(ctx) {
     turn: (near) => { const m = people.marrow; if (m.route === marrowHome) return; m.facing = near ? Math.atan2(player.pos.x - m.pos.x, player.pos.z - m.pos.z) : Math.atan2(hull.x - m.pos.x, hull.z - m.pos.z); } });
   // Nour, when she has a word for you: the chest opened (she has come over), or the tree drank and stays cold
   const nourHasWord = () => (sh.nour && !sh.nour.talked) || quests.stage('desert.power') === 'spark';
-  // (not while you're up on the ledge: she has called you down from there already)
+  // (not while you're up on something by the dais: she has called you down from there already)
   const nourCall = caller(nour, { lines: CALLS.nour, range: 15, every: 7, wait: 5, psst: true, moment: () => (sh.nour && !sh.nour.talked ? 'chest' : 'spark'), when: () => nourHasWord() && !sh.up });
   // Ama, while her jar is still yours to take: she calls you to her fire (twice at most, the shout as you come
   // up to the camps counts), so the jar on the way in isn't only for whoever happens to stop (October 2026)

@@ -97,7 +97,7 @@ export const BOOK = {
       'At her fire by the pilgrims’ camps, outside Qanat.',
     ]),
     P('nour', 'Nour', 'The eldest of Qanat, keeper of the Givers’ chest', [
-      'The eldest of Qanat. She sat sixty years by the Givers’ chest on the great tree, as her mother did, waiting for “one who fell from the sky”.',
+      'The eldest of Qanat. She sat sixty years by the Givers’ chest under the great tree, as her mother did, waiting for “one who fell from the sky”.',
       [f('item.backpack'), 'The chest opened for you. She calls its makers the Givers: they made the giants walk and signed their work with three dots over an arc.'],
       [f('desert.spark.heard'), 'Her grandmother spoke of a spark-stone that first lit the tree, kept in the Givers’ Hearth in the red rocks.'],
       [f('desert.nour.ilen'), 'You told her your parents heard a singing light once. She thinks it sang over your house long before it sang over hers.'],

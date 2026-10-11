@@ -13,7 +13,7 @@ test('the items page: every item with its picture, what it does, and where it is
   assert.equal(cards.length, Object.keys(ITEMS).length);
   for (const id of Object.keys(ITEMS)) assert.ok(existsSync(new URL(`../public/item-pictures/${id}.webp`, import.meta.url)), `${id}: its picture (node scripts/item-pictures.mjs)`);
   const w = whereFound('backpack', PLACEMENTS, FALLBACKS, TITLES);
-  assert.ok(w.some((x) => x.world === 'desert' && /ledge/.test(x.note)), 'the backpack: Qanat\'s ledge on the tree');
+  assert.ok(w.some((x) => x.world === 'desert' && /dais/.test(x.note)), 'the backpack: Qanat\'s dais at the tree\'s foot');
   assert.ok(w.some((x) => x.title === 'By the ship'), 'and the spare by the ship');
   assert.ok(whereFound('sword', PLACEMENTS, FALLBACKS, TITLES).some((x) => x.temple), 'the blade: in a temple');
   // ember mode comes with the gun, in its chest in the Givers' Hearth (issue #83: one chest, not two side by side)

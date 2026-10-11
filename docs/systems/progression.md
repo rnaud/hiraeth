@@ -36,7 +36,7 @@ nothing in his hands; the order in the desert is:
 
 | what | where | why there |
 |---|---|---|
-| the backpack | Qanat's chest on the tree's ledge (`desert.backpack`) | unchanged |
+| the backpack | Qanat's chest on its dais at the tree's foot (`desert.backpack`; on the tree's ledge until v1.49) | unchanged |
 | the lift valve (the double jump) | by the giant's pool (`desert.lift`) | unchanged; the Rose House's sand pit wants it (Sabri says so if it isn't had) |
 | the Givers' blade (`sword`) | the Rose House's Sword Chamber, half-way (`desert.temple.sword`, the temple's gadget) | the house's dungeon item: thorns, a ball a cut sends far, an eye to strike, the Keeper's spokes |
 | the Givers' guard (`shield`) | the Rose House, the Hall of Fires' far landing (`desert.temple.shield`, a `find`) | the bellows' wind in the Hall of Winds, the Keeper's charge |
@@ -84,7 +84,7 @@ get that by default. By default we should just get the sword."
 | what | where | why there |
 |---|---|---|
 | the fluid sword (and the shield's guard) | from the start | the one thing he carries off the ship |
-| the backpack (the round tank, empty) | Qanat's chest on the tree's ledge (`desert.backpack`), the main quest's `box` stage | as before: the story's first find, a container until the pool |
+| the backpack (the round tank, empty) | Qanat's chest on its dais at the tree's foot (`desert.backpack`), the main quest's `box` stage | as before: the story's first find, a container until the pool |
 | the lift valve: the double jump with a flip, the backpack's first strength | a makers' chest beside the giant's pool (`desert.lift`), the new stage `valve` after `fill` | the tank first fills there, so its first strength wakes beside the water; nothing in the desert before it asks for a second jump, and Vael's tower steps and Vael II's sky stones (each a double jump above the last), Viridel's crown and the kits after it are drawn for it |
 | the fluid gun (a gadget) | a makers' chest in the Givers' Hearth's hall (`desert.gun`), the new stage `gun` before `stone` | its first use is right there: the push that rolls the stone ball and lifts the grille; everything before it (the rib, the drum) is done by hand, and every world after it wants shots |
 | the wings, the second strength | Vael's Aerie (unchanged) | |

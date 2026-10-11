@@ -122,6 +122,8 @@ export const CHANGELOG = [
       see: 'In Vael before finding the grappling hook, press A / × at the Wind ladder’s sign: “Wind ladder: Its prize is for the grappling hook. Come back with it.” With the hook it starts as before.' },
     // the Desert's start (docs/systems/story.md "The first arrival is clear"; issue #139)
     'Your first steps out of the ship in the Desert are under a clear sky: no sandstorm blows in until you have opened the makers’ chest in Qanat. After that the storms come and go as before.',
+    // the first chest (docs/systems/boxes.md "The tree's dais"; issue #140)
+    'The first chest in Qanat no longer sits on a shelf high up the great tree: it stands at the tree’s foot on a round dais of white stone and gold, in a clearing of pale flagstones, in sight all the way up the avenue, and it is the same chest you find in the temples, opening the same way. You walk up its two steps instead of climbing. If you already opened it, it stays open.',
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

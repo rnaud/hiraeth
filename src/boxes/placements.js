@@ -19,6 +19,7 @@
 //            starts when you arrive (once you have found a box of your own) and leads the scout there
 //            (the desert's first box is the story's)
 //   note     where it is and how you get there (for people, not the code)
+//   chest    'temple': the temple chest though it stands outside a temple (the desert's first, issue #140)
 //   temple   the box stands inside that world's temple (src/temples/): the gadget there is the key to
 //            the temple's later rooms; no box quest of its own (the temple's quest leads to it)
 //   story    the main quest leads there (the desert's lift valve and gun, in the cave and the Hearth: interiors
@@ -38,13 +39,14 @@ const courtSite = (id) => (level) => level?.finds?.courts?.[id]?.box ?? level?.f
 
 export const PLACEMENTS = {
   desert: [
-    // the makers' ledge in Qanat: a plank shelf high on the burning tree's trunk (7 m up), on a pier of
-    // root standing on a buttress root's shoulder: two pitches to climb (src/desert-city.js builds it),
-    // over the town's square beside the dry well. Up the avenue from the gate, on the left of the well;
-    // the box's pale column shows the way.
+    // the makers' dais in Qanat (issue #140, v1.49): at the burning tree's foot in the town's square, in a clearing of
+    // pale flagstones between the roots, left of the dry well as you come up the avenue from the gate; a round dais of
+    // white stone and gold, and on it the temple chest (`chest: 'temple'`: the first chest is the temples' own, the same
+    // in every world). It stood on a plank shelf 7 m up the trunk before, a climb in two pitches (src/desert-city.js
+    // builds the dais). The box's pale column shows the way.
     // (`dry`: its tank comes out empty, as src/story/desert.js leaves it, unless the pool has already risen: the box's scene shows it so)
-    { id: 'desert.backpack', item: 'backpack', found: 'box.found.backpack', dry: (game) => !game.flag('desert.channel.open') && !game.flag('desert.pool.tinted'), site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
-      note: 'In Qanat, on the makers’ ledge high on the burning tree’s trunk in the town’s square, left of the dry well: climb the buttress root, then the pier. The first find, and the elder’s.' },
+    { id: 'desert.backpack', item: 'backpack', chest: 'temple', found: 'box.found.backpack', dry: (game) => !game.flag('desert.channel.open') && !game.flag('desert.pool.tinted'), site: (level) => level.qanat?.city.shrine && { at: level.qanat.city.shrine.box.toArray(), face: level.qanat.city.shrine.yaw }, beacon: 170,
+      note: 'In Qanat, on the makers’ dais at the burning tree’s foot in the town’s square, left of the dry well. The first find, and the elder’s.' },
     // the progression rewrite (v1.38, docs/systems/progression.md; v1.44: he comes with nothing in his hands). The backpack's first
     // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main
     // quest leads down there to fill the tank (and the box hums once it is full), on the dry floor between the basin and
