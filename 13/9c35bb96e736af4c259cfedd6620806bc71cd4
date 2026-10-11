@@ -1,0 +1,96 @@
+src/levels/buried.js
+  s_9ca76055a220ed::t_c03f40519ea189 13,1158,1166-1168,1219-1221
+scripts/level-design/lib.mjs
+  s_9ca76055a220ed::t_f941d140e986b6 288-290,307-312,318-320
+src/story/desert-data.js
+  s_9ca76055a220ed::t_e740a75c1cc250 111-112,882-892
+changelog.md
+  s_9ca76055a220ed::t_a50fcd48a47159 9
+  s_9ca76055a220ed::t_ba80788ad24c3d 14
+  s_9ca76055a220ed::t_f988245b00ac30 8
+  s_9ca76055a220ed::t_fbbcd9fc0eb3a4 5-6,10-11
+  s_9ca76055a220ed::t_dbedf7812fd644 7
+tests/spheres.test.js
+  s_9ca76055a220ed::t_4064fc7d57da2c 156-178
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_c6e235769a126a 14,149-150,152-156,195,237-238,249-250,252
+src/changelog.js
+  s_9ca76055a220ed::t_dfee54f4ec0520 11-14,21
+  s_9ca76055a220ed::t_a92893096cb9bf 17-18
+  s_9ca76055a220ed::t_f21ab5d0e3bd12 19-20
+  s_9ca76055a220ed::t_26210a23676673 15-16
+  s_9ca76055a220ed::t_d03f43f4809fd5 80-82
+src/desert-road.js
+  s_9ca76055a220ed::t_d7eb1538940d66 6,10-13,18-21,81-151
+tests/moonfoundry.test.js
+  s_9ca76055a220ed::t_4f1f7990762249 214-239
+src/changelog-media.js
+  s_9ca76055a220ed::t_e3d979e4768735 571-575,611-621
+  s_9ca76055a220ed::t_4edc5ce708a697 580,584-589
+  s_9ca76055a220ed::t_8c094cfda3b383 579,590-593
+  s_9ca76055a220ed::t_f742d447462d8a 578,594-601
+  s_9ca76055a220ed::t_fb8ba4495345f9 576-577,581,583,602-610
+tests/buried.test.js
+  s_9ca76055a220ed::t_0852e82c4b2471 237-254
+src/levels/space-city.js
+  s_9ca76055a220ed::t_b13cf7e511f846 62-63,322-323,328-344,353,430
+src/story/desert-road.js
+  s_9ca76055a220ed::t_31891d5333cdb9 38-42
+tests/merged-ways.test.js
+  s_9ca76055a220ed::t_18f247be0b6eff 103-115
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_0ff7ba463e1730 446-450,485-515
+.claude/skills/level-design-qc/SKILL.md
+  s_9ca76055a220ed::t_b1f7534a1c1348 140-146
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_dac0826fbf3252 511-515
+  s_9ca76055a220ed::t_e6e67addd992be 377-391
+  s_9ca76055a220ed::t_368b4f5b2f19d1 950-955
+  s_9ca76055a220ed::t_7dc48e71db5ba4 1738-1754
+  s_9ca76055a220ed::t_1931d823364e64 1209-1214
+src/story/buried-data.js
+  s_9ca76055a220ed::t_5391e919fb47a6 40-41
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_cb04d5e566cdb4 301-302,311-312
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_81a7c51f0f6ec9 61-66,377-397,621-622
+  s_9ca76055a220ed::t_0110b5b41ee93f 67-71,159-160,500-525
+tests/level-design.test.js
+  s_9ca76055a220ed::t_6ee105f0a626ec 5,103-116
+tests/spacecity-world.test.js
+  s_9ca76055a220ed::t_953992aa61d62c 103-129
+src/levels/spheres.js
+  s_9ca76055a220ed::t_61eda60700d733 48-50,342-344,353,355-366,369,520,593-594,1041-1043
+src/levels/underwater.js
+  s_9ca76055a220ed::t_4c0fb82737bdd7 71-72,225-257
+src/levels/desert.js
+  s_9ca76055a220ed::t_f249f6b3b7d547 18,114-119,135,143,159-163
+src/buried-ways.js
+  s_9ca76055a220ed::t_541aa2b3964d54 46-92
+src/temples/desert.js
+  s_9ca76055a220ed::t_8b9e5d21ca8b2e 542-543
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_da0ae69897207f 129-132
+src/glass-dunes-ways.js
+  s_9ca76055a220ed::t_69f8a265b7bdef 28-29,61-63,67-68,71,73,79
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_53b023e8102357 153-154
+  s_9ca76055a220ed::t_7d6e90a78ab601 150
+  s_9ca76055a220ed::t_152c46a194f925 144-146,155-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "139c35bb96e736af4c259cfedd6620806bc71cd4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
