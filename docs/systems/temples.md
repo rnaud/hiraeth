@@ -134,7 +134,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   wall where the quick coil was): where down has turned (the upside-down quarter
   and the ring), a little bubble level at the screen's right edge shows how the
   floor lies under the view (`effects.js`, it needs the camera).
-- **Items**: `fire` moved into the Givers' House (and out again in v1.44, to the Givers' Hearth: the house holds the
+- **Items**: `fire` moved into the Rose House (and out again in v1.44, to the Givers' Hearth: the house holds the
   `sword` and the `shield` now; since v1.45 it comes with the gun, in one chest), `jetpack` into the Warden's
   Well, `bell` into the Founders' Belfry, `cell` into the Engine-House, `lens` into
   the Footprint, `lantern` into the Lamp-House, `stun` into the Hush-House, `glider` into the Aerie,
@@ -245,7 +245,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   Chamber's four share one crank (one ball holds all four up); the Furnace's two west pistons have a crank each, the
   other two are caught in turn. The cranks are a `Cranks` (buried.js: wheels that turn unless jammed, rods to their
   pistons) and the hall's great gear a `Gear`; the Tooth-Warden turns on it (docs/systems/foes.md).
-- **The Givers' House remade for empty hands** (v1.44, issues #74 and #7). The house is walked into with the backpack
+- **The Rose House remade for empty hands** (v1.44, issues #74 and #7). The house is walked into with the backpack
   and the lift valve's double jump only (docs/systems/progression.md), and its gadget is the **Givers' blade** (`sword`),
   half-way, with their **guard** (`shield`) a little after: no gun, no gun mode anywhere in it
   (`tests/temples.test.js` solves it with `['backpack', 'doublejump']`). New parts it brought, any temple can use:
@@ -278,7 +278,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   ball lights its bowl (its first phase); a guard against its charge jars it and it pants, and water from your tank
   at its mouth (an interactable, `temple.desert.water`) calms it (its second); a ball cut back in from a lit bowl
   rolls burning to it (its last, and the only way it pants then). Ember mode comes with the fluid gun now, in the Givers' Hearth.
-- **The Givers carried their fire** (the Givers' House, from the v1.24 audit; the house's one fire, the pilot flame,
+- **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
   floor, or a lit `Brazier`); it burns `burns` s, its flames shrinking, then goes out. A `Brazier` with `hood: { ball }`
@@ -307,7 +307,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   shortcut). The **Last Founder** (`founderModel`, a robot): splash its molten heart when its crucible doors open; from
   its second phase an iron moon in its casting cradle (`mA` on `pA`) makes it stop to look (a splash counts twice); in
   its last it tips the moon out as it shifts and the water only takes with the moon back in. After: its one whole moon
-  hangs from the jib over the door and the chimney's glow is steady (`change`). Ilse, who keeps the founders' ledger, is
+  hangs from the jib over the door and the chimney's glow is steady (`change`). Petra, who keeps the founders' ledger, is
   its local.
 - **Pulling things home across the void** (the City Floating in Space's Mooring-House, `spacecity.js` +
   `spacecity-data.js`, v1.40; its guardian's body `guardian-anchor.js`). A round adobe drum with the moorers' great
@@ -396,7 +396,7 @@ the interior's collision proxy `userData.noClimb`; the solids built inside `K.cl
 (through `noClimbNear`), and `updateClimb` holds a climb to it, so you can't shuffle off a climb wall onto the walls round
 it. Pieces' colliders (doors, brambles, gates, bridges) are added `noClimb`. The exteriors stay climbable.
 
-The climbs the houses keep (`rt.kit.climbWhy` lists them): the Givers' House's gallery (the Dry Channel's way up to the
+The climbs the houses keep (`rt.kit.climbWhy` lists them): the Rose House's gallery (the Dry Channel's way up to the
 Sword Chamber, its glyph handholds), the Warden's Well's Climb (the block's face to the balcony), the Clock-House's
 Winding Well block (to the ledge and the door of two keyholes), the Hush-House's and the Lamp-House's root-walls (from the
 riding disc and the moss-stones to the landing at 9) and the Lamp-House's loft of roots (the third pool), the
@@ -531,7 +531,7 @@ house. Now each temple's `PALETTE` (its world file) carries, besides its colours
   (`M.paintLook`: the vertex-coloured paint mesh is the house's own, still one mesh): its shade kept in its own hue
   (`shadeFlat` low, `shadeHue` high), lifted (`shade`), its spot blacks fewer (`spot`), the lamps' pools in a colour
   (`lampTint`: the Lamp-House's amber). `wall` / `floor` change the stone itself: ashlar in staggered blocks
-  (`mode: 0, grid, plates`: the Givers' House, the Engine-House, the Undertower), big smooth panels (the Well, the
+  (`mode: 0, grid, plates`: the Rose House, the Engine-House, the Undertower), big smooth panels (the Well, the
   Belfry, the Garage), cracked beds (the Hush-House), riveted iron (`detail: 'built'`). `trim` makes the frames a
   material of their own (the Garage's brass); `fitting` and `glyph` colour the pieces' fittings (door bands, plate
   rims, braziers) and the frieze apart from the pieces' own glow.

@@ -9,14 +9,14 @@ export const KEEPSAKE = {
   text: '“Tick, tock, all together.” The Clock-House’s clock and every clock in the camps, keeping the same time at last. Wim counted it for you, twice.',
 };
 
-// the dunes' own main quest (v1.48, issue #101): Oren by the makers' discs, the minute every clock stopped; the Clock-House's
+// the dunes' own main quest (v1.48, issue #101): Halden by the makers' discs, the minute every clock stopped; the Clock-House's
 // face read from the glass mound by the warm flow; and in at its door (src/story/glassdunes.js)
 export const QUESTS = [
   {
     id: 'glassdunes.minute', title: 'The Minute It Stopped', world: 'glassdunes', main: true,
     outro: 'Seven minutes to the hour, over the Clock-House’s door: the minute the light passed. Every clock in the dunes stopped after it.',
     stages: [
-      { id: 'oren', text: 'Hear Oren out by the makers’ discs', label: 'Oren, by the discs', flag: 'glassdunes.oren.heard', at: 'oren' },
+      { id: 'oren', text: 'Hear Halden out by the makers’ discs', label: 'Halden, by the discs', flag: 'glassdunes.oren.heard', at: 'oren' },
       { id: 'mound', text: 'Climb the glass mound by the warm flow', label: 'The glass mound by the warm flow', goto: 'flowMound', radius: 5, vertical: 3, at: 'flowMound', via: 'the float-posts' },
       { id: 'house', text: 'Go in at the Clock-House’s door', label: 'The Clock-House’s door', flag: 'temple.garage.entered', at: 'temple.garage.door' },
     ],
@@ -32,7 +32,7 @@ export const LOCALS = {
     lines: ['~whisper~ My grandmother said they were asleep in there. My mother said they were only shapes.', '~playful~ I say they are good company. They never want the last float.'] },
   // (resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
   // (he opens the dunes' main quest: QUESTS above)
-  oren: { id: 'oren', name: 'Oren', title: 'who carries the floats', color: '#5fb7ad', voice: 0.95, kind: 'm',
+  oren: { id: 'oren', name: 'Halden', title: 'who carries the floats', color: '#5fb7ad', voice: 0.95, kind: 'm',
     lines: ['~playful~ Discs that ride themselves over the sand. The makers never walked anywhere, I think.', '~neutral~ The Clock-House is east, past the wave. Wim will talk your ear off about the time.'],
     talk: {
       entry: [
@@ -42,7 +42,7 @@ export const LOCALS = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Oren. I carry the floats from the kilns to the camps. Mind the discs: they’ll carry you too, if you let them.',
+          say: ['~neutral~ Halden. I carry the floats from the kilns to the camps. Mind the discs: they’ll carry you too, if you let them.',
             '~curious~ Ask anyone the time here and they’ll give you a different one. Every clock in the dunes stopped the night the light passed, each at its own minute.'],
           choices: [
             { text: '~curious~ Which one stopped first?', goto: 'first' },
@@ -58,7 +58,7 @@ export const LOCALS = {
         again: { say: ['~neutral~ The glass mound by the warm flow, along the float-posts. Read the Clock-House’s face from the top.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ I asked three people the time this morning. Same answer, three times. I didn’t know what to do with myself.'],
-          choices: [{ text: '~neutral~ Goodbye, Oren.', end: true }],
+          choices: [{ text: '~neutral~ Goodbye, Halden.', end: true }],
         },
       },
     },

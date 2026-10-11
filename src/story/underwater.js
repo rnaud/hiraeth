@@ -4,7 +4,7 @@
 // keeper is calmed (`temple.underwater.done`) the world is done on the route (`world.underwater.done`), its keepsake given
 // (the whales' answer) and its page closes (src/levels/underwater.js UNDERWATER_CONTENT.story); out of the house, the
 // first time, the whales coming to the glass are filmed (src/story/underwater-moments.js). An errand of the city's own:
-// Mireille's glow-kelp cutting up the lift to the Crown, done there, in Fabre's window box (issue #137).
+// Brune's glow-kelp cutting up the lift to the Crown, done there, in Fabre's window box (issue #137).
 
 import * as THREE from 'three';
 import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './underwater-people.js';

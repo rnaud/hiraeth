@@ -12,7 +12,7 @@ export const DETOUR_SIGHTINGS = [
   { id: 'underside.maudie', thread: 'signal', world: 'underside', who: 'Maudie', line: 'A woman wintered here alone, listening every night to a receiver’s hiss, as if waiting for a voice.' },
   // ---------------------------------------------------------------- the singing light
   { id: 'waterfall.pell', thread: 'light', world: 'waterfall', who: 'Aldo', line: 'The night the falls went quiet, a light hung singing off the balcony, as if waiting for an answer.' },
-  { id: 'eclipse.ansel', thread: 'light', world: 'eclipse', who: 'Ansel', line: 'It hung singing where the black sun sits. By morning every figure on the walls leaned the way it went.' },
+  { id: 'eclipse.ansel', thread: 'light', world: 'eclipse', who: 'Yusuf', line: 'It hung singing where the black sun sits. By morning every figure on the walls leaned the way it went.' },
   // ---------------------------------------------------------------- the makers' sign
   { id: 'fallenring.mark', thread: 'glyph', world: 'fallenring', who: 'a mark on the fallen ring', line: 'Burned into the hull years ago, by a hand that learned it: the arc stops, and starts again.' },
   { id: 'overnighttrain.chalk', thread: 'glyph', world: 'overnighttrain', who: 'a mark on the last carriage', line: 'Chalked on the last carriage’s roof, drawn again over the old chalk many times, by someone who keeps it.' },

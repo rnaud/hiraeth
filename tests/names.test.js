@@ -63,3 +63,51 @@ test('the near-misses are gone, and only the protagonist is the traveller', asyn
   // the renamed, where they live now
   for (const n of ['Zazie', 'Rue', 'Tobin', 'Ket', 'Jot', 'Kesh', 'Emrys', 'Linnet', 'Hobb', 'Agathe', 'Rima', 'Dalia', 'Gaspard', 'Fisk', 'Robin', 'Naji']) assert.ok(names.has(n), `${n} is someone`);
 });
+
+// Issue #141 (the dialogue review, docs/audits/dialogue-v1.48.md): names a player could not keep apart were changed,
+// and the Sealed Hangar's three travellers given homes on the route. Ids and flags kept the old names; nothing a
+// player sees may (the dismissed Hangar, the save migrations and the changelog's earlier versions aside).
+const OLD_NAMES = /Givers['’] [Hh]ouse|\b(?:Mireille|Ansel|Oren|Ilse|Tamar|Ottilie)\b/;
+const RENAMES_LINE = 'A few names were too alike to keep apart';
+/** A source file without its comments (a `//` after code or a blank, and block comments). */
+const uncommented = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[\s;,{}()[\]])\/\/.*$/gm, '$1');
+
+test('the old names are gone from what a player sees: the Rose House, Brune, Yusuf, Halden, Petra, Ines, Liesel', async () => {
+  const { readFileSync: read, readdirSync: list } = await import('node:fs');
+  const root = new URL('../src/', import.meta.url);
+  const SKIP = /^(?:levels\/dismissed\/|changelog\.js$|changelog-media\.js$|save-migrate\.js$)/;
+  const files = list(root, { recursive: true }).filter((f) => f.endsWith('.js') && !SKIP.test(f.split('\\').join('/')));
+  assert.ok(files.length > 300, `read ${files.length} files`);
+  const found = [];
+  for (const f of files) {
+    uncommented(read(new URL(f, root), 'utf8')).split('\n').forEach((line, i) => { const m = line.match(OLD_NAMES); if (m) found.push(`src/${f}:${i + 1} ${m[0]}`); });
+  }
+  assert.deepEqual(found, []);
+  const names = new Set((await everyone()).map((p) => p.name));
+  for (const n of ['Brune', 'Yusuf', 'Halden', 'Petra', 'Ines', 'Liesel']) assert.ok(names.has(n), `${n} is someone`);
+  // the newest changelog entry: only the line that says what changed names them
+  const { CHANGELOG, lineText } = await import('../src/changelog.js');
+  for (const item of CHANGELOG[0].items) {
+    const text = lineText(item);
+    if (!text.startsWith(RENAMES_LINE)) assert.ok(!OLD_NAMES.test(`${text} ${item.see ?? ''}`), `v${CHANGELOG[0].v}: ${text.slice(0, 60)}…`);
+  }
+});
+
+test('Lune, Ottla and Zazie come from worlds the route reaches, not the dismissed Hangar', async () => {
+  const { isDismissed } = await import('../src/levels/names.js');
+  const met = [];
+  for (const [world, c] of Object.entries(CONTENT)) {
+    if (isDismissed(world)) continue;
+    for (const p of (c.npcs ?? []).filter((n) => ['lune', 'ottla', 'pip.garage'].includes(n.id))) {
+      met.push(p.name);
+      assert.ok(!isDismissed(p.lang), `${p.name} in ${world} speaks a tongue of the route, not ${p.lang}`);
+      const said = JSON.stringify([p.lines, p.talk, p.title]);
+      assert.ok(!/Hangar|Major|Brask/.test(said), `${p.name} in ${world} says nothing of the Hangar`);
+    }
+  }
+  assert.deepEqual(met.sort(), ['Lune', 'Ottla', 'Zazie']);
+  const lineOf = (id) => JSON.stringify([...CONTENT.antennas.npcs, ...CONTENT.underside.npcs].find((p) => p.id === id)?.talk);
+  assert.match(lineOf('lune'), /Signal Market/);
+  assert.match(lineOf('ottla'), /Glass Dunes/);
+  assert.match(lineOf('pip.garage'), /City-Shaft/);
+});

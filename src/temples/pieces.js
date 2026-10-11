@@ -345,7 +345,7 @@ export class Ball {
    * Greenhouse: a bloom glob makes it grow, lighting element `id`, a 'switch' that needs the bloom mode, whose `when`
    * says where it must lie (in a sunbeam: on its plate); bloomed elsewhere it sprouts pale and folds back (`shade`).
    * Grown, it roots where it lies and rolls no more),
-   * tar: { burns, caught, out, back } (a tar ball, the Givers' House: an ember glob sets it alight, and so does rolling
+   * tar: { burns, caught, out, back } (a tar ball, the Rose House: an ember glob sets it alight, and so does rolling
    * it through a fire beside its groove (a Flame, a lit Brazier: their `fire`); it burns `burns` s, then goes out.
    * Burning, it lights the hooded bowl it comes to rest in (Brazier `hood`) and burns the thorns on its groove; cold,
    * the bowl tips it back out (`back` m/s)),
@@ -359,7 +359,7 @@ export class Ball {
    * heavy: item (an iron moon of the Moon Foundry's Casting-House: only a push, or a tether, made while carrying that
    * item (the founders' tongs) rolls it; anything else rocks it where it lies; heavyLine: what it says then),
    * iron: true (drawn as cast iron, dark with a rust ring),
-   * shove: true (the Givers' House, v1.44: walked into along its groove, it rolls ahead of you at your pace, `shove` m/s
+   * shove: true (the Rose House, v1.44: walked into along its groove, it rolls ahead of you at your pace, `shove` m/s
    * at most when a number: hands, no gadget), blade: true (a cut of the sword sends it rolling, BALL_CUT m/s: far
    * faster than a shove) }
    * A tether (the City Floating in Space's gun mode, 'tether') rolls any ball toward whoever pulled it: the cone hands
@@ -657,7 +657,7 @@ export class Ball {
 export class Brazier {
   /**
    * o: { id, at, scale, tripod (a tall bronze stand of three legs round its stem), hood: { ball, yaw, said, cold }
-   * (a hooded bowl, the Givers' House: a stone hood over it with a low mouth on its groove, facing `yaw`; no ember
+   * (a hooded bowl, the Rose House: a stone hood over it with a low mouth on its groove, facing `yaw`; no ember
    * glob reaches the coals, only the tar ball `ball` rolled burning into its mouth (at rest on its plate) lights it;
    * cold, the mouth tips the ball back out) }. Lit, it is a `fire` a tar ball rolled past it catches from.
    */
@@ -887,7 +887,7 @@ export class Switch {
    * o: { id, at, yaw (the way it faces), size, crystal?: height, wrong?: text }: a carved eye that a splash of
    * fluid wakes. crystal: a singing crystal standing on the floor instead (its foot at `at`, this tall).
    * wrong: said when a splash does not wake it (it comes `after` another: logic.js). lids: stone lids over the eye,
-   * shut while its element's `when` fails (it can't wake now). blade: a struck eye (the Givers' House): only a cut of the
+   * shut while its element's `when` fails (it can't wake now). blade: a struck eye (the Rose House): only a cut of the
    * sword wakes it (its element `needs: ['sword']`). pull: a moorers' ring (the City Floating in Space's
    * Mooring-House) instead of an eye: a brass ring on a post that only a tether wakes (its element `needs: ['tether']`);
    * a splash or a push only rings it (o.wrong or its own line).
@@ -938,7 +938,7 @@ export class Switch {
   }
   /** A splash (any mode: it is fluid) wakes it; a moorers' ring (o.pull) only a tether's pull. */
   hit(mode) {
-    // a struck eye (o.blade, the Givers' House): only the sword's cut wakes it; a splash only wets the stone
+    // a struck eye (o.blade, the Rose House): only the sword's cut wakes it; a splash only wets the stone
     if (this.o.blade && mode !== 'blade') {
       if (!this.on) { this.flash = 0.4; this.rt.notice?.(this.o.wrong ?? 'The eye is cut in hard stone, and rings when you knock on it. It wants striking.', `wrong.${this.id}`); }
       return true;
@@ -1377,7 +1377,7 @@ export class Updraft {
  * box) it can't reach you. o: { min, max: the hall (local), dir: [x, 0, z], shelters: [[min, max]], calm, blow, push,
  * when (a condition: it blows only while that holds, the Aerie's vents), carry (m/s: with the wings open it carries you
  * along `dir` instead of shoving you back, a tailwind: push by default), carried (said the first time it does), guard
- * (the Givers' House: the shield raised into the wind breaks it, and you walk on into it at `guardPace` m/s), guarded
+ * (the Rose House: the shield raised into the wind breaks it, and you walk on into it at `guardPace` m/s), guarded
  * (said the first time) }
  */
 export class Gust {
@@ -1446,7 +1446,7 @@ export class Gust {
     if (!P || P.dead || st < 1) return;
     const l = this.rt.kit.local(P.pos);
     if (!this.box.containsPoint(l) || this.sheltered(l) || screened(P.pos, this.dirW)) return;   // (or behind a wall drawn in ink: src/wind-screens.js)
-    // the shield raised into it (o.guard, the Givers' House): it breaks the wind, and you walk on into it, slowly
+    // the shield raised into it (o.guard, the Rose House): it breaks the wind, and you walk on into it, slowly
     if (this.o.guard && P.guarding?.() && this.facing(P.guardDir?.())) {
       const into = P.vel.x * -this.dirW.x + P.vel.z * -this.dirW.z, pace = this.o.guardPace ?? 2.2;
       if (into > pace) { const k = pace / into; P.vel.x *= k; P.vel.z *= k; }

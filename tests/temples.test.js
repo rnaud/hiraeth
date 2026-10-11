@@ -629,7 +629,7 @@ test('a temple door is solid until it opens, and the doorway is free after', () 
 });
 
 // ------------------------------------------------------------------ on foot: the desert temple, room by room
-test('the Givers’ House on foot, with nothing in hand: the ball leaned on through the pilot flame into the hooded bowl, the pier crossed on the double jump, the blade and its chamber’s doors, the thorns cut, the ball too slow by hand and in time when cut, the guard, the bellows’ wind broken, the eye struck and the relay, the keepers’ door, the Keeper calmed with the guard and the tank’s water, out', () => {
+test('the Rose House on foot, with nothing in hand: the ball leaned on through the pilot flame into the hooded bowl, the pier crossed on the double jump, the blade and its chamber’s doors, the thorns cut, the ball too slow by hand and in time when cut, the guard, the bellows’ wind broken, the eye struck and the relay, the keepers’ door, the Keeper calmed with the guard and the tank’s water, out', () => {
   game.reset();
   own('backpack', 'doublejump');
   const { level, physics, rt } = world('desert');
@@ -882,7 +882,7 @@ test('the Givers’ House on foot, with nothing in hand: the ball leaned on thro
   own();
 });
 
-test('the Givers’ House is solved with the backpack and the double jump, the blade and the guard found inside: no gun; not without the double jump, the blade or the guard', () => {
+test('the Rose House is solved with the backpack and the double jump, the blade and the guard found inside: no gun; not without the double jump, the blade or the guard', () => {
   const L = TEMPLES.desert.def.logic;
   const r = solve(L, { items: ['backpack', 'doublejump'] });
   assert.equal(r.done, true, r.log.join(' / '));

@@ -66,7 +66,7 @@
 //
 // Two more went in v1.49 (issue #118): Hask's (Wen says where the ramp is) and Calix's (the clapper is the goal): step 16.
 // And the three worlds of v1.40 (issue #137): the errands that carried something from one person to another end where
-// the thing is used (Wen's count at the lookout, Ottilie's hook on the furnace's crane, Sel's notes on the cables, the
+// the thing is used (Wen's count at the lookout, Liesel's hook on the furnace's crane, Sel's notes on the cables, the
 // cutting in the Crown), and Fabre's word down to Maelle is no quest: step 17 (QUEST_STAGE_MOVES_137).
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
@@ -231,9 +231,9 @@ export const QUEST_STAGE_MOVES_118 = {
 };
 /** The quest steps removed in v1.49 (issue #137): step 17. */
 export const QUEST_STAGE_MOVES_137 = {
-  'moonfoundry.count': { ilse: 'done' },        // (the count to Ilse: it is done at the lookout, where it is counted)
+  'moonfoundry.count': { ilse: 'done' },        // (the count to Petra: it is done at the lookout, where it is counted)
   'moonfoundry.hook': { bertil: 'crane' },      // (the hook to Bertil: it is hung on his crane at the last furnace)
-  'spacecity.notes': { tamar: 'cables' },       // (the notes to Tamar: they are laid on the cables under the Towers)
+  'spacecity.notes': { tamar: 'cables' },       // (the notes to Ines: they are laid on the cables under the Towers)
   'underwater.kelp': { fabre: 'done' },         // (the cutting to Fabre: it goes in his window box as you come up into the Crown)
   'underwater.lamps': { maelle: 'done' },       // (Fabre's word down to Maelle: no quest now, her line when you pass)
 };
@@ -244,7 +244,7 @@ export function migrateCarries137(flags) {
   migrateQuestStages(flags, QUEST_STAGE_MOVES_137);
   if (kelpAtFabre && flags['item.kelpcutting'] > 0) flags['item.kelpcutting'] -= 1;   // (in the window box now)
   if (was('moonfoundry.count') === 'done') flags['moonfoundry.moons.counted'] = true;
-  if (counted) { flags['moonfoundry.ilse.counted'] = true; flags['moonfoundry.wen.counted'] = true; }   // (Ilse wrote it in)
+  if (counted) { flags['moonfoundry.ilse.counted'] = true; flags['moonfoundry.wen.counted'] = true; }   // (Petra wrote it in)
   // (what was said already, under the old steps, is not said again)
   if (was('moonfoundry.hook') === 'done') flags['moonfoundry.bertil.thanked'] = true;
   if (was('spacecity.notes') === 'done') flags['spacecity.notes.laid'] = true;

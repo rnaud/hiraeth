@@ -61,7 +61,7 @@ const ROUTE = [
   // sight.<id>, set by the line that tells it, and a light of their own)
   { id: 'underwater.maelle', thread: 'light', world: 'underwater', who: 'Maelle', line: 'A light came down through the sea singing one note. The whales sang it back, all at once, and went away.', heard: { who: 'maelle', node: 'hello' } },
   { id: 'moonfoundry.wen', thread: 'light', world: 'moonfoundry', who: 'Wen', line: 'The night the singing went over, every hung moon turned on its hook toward where the light went.', heard: { who: 'wen', node: 'after' } },
-  { id: 'spacecity.tamar', thread: 'light', world: 'spacecity', who: 'Tamar', line: 'A ship with no name once hailed with one sung note. The night the cables sang, the same note passed again, going somewhere.' },
+  { id: 'spacecity.tamar', thread: 'light', world: 'spacecity', who: 'Ines', line: 'A ship with no name once hailed with one sung note. The night the cables sang, the same note passed again, going somewhere.' },
   // ---------------------------------------------------------------- the makers' sign
   { id: 'desert.hull', thread: 'glyph', world: 'desert', who: 'Marrow', line: 'Burned into your ship’s hull where the light brushed it, and still warm.', heard: { who: 'marrow', node: 'wreck' } },
   { id: 'desert.givers', thread: 'glyph', world: 'desert', who: 'Nour', line: 'The Givers’ mark: on the giants, the carved stones, the chests. The same signature.', heard: { who: 'nour', node: 'givers' } },

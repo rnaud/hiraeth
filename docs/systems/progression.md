@@ -28,7 +28,7 @@ now: Vael II waited for Vael's bird until it became part of Vael).
   taken away is the debug jets (step 9 of src/save-migrate.js: a save that owned them had the Warden's harness instead,
   and `jets.lost`; step 11 turns that harness into the Warden's bellows, `harness.lost`).
 
-## Empty hands (v1.44): the sword and the shield found in the Givers' House
+## Empty hands (v1.44): the sword and the shield found in the Rose House
 
 From the author (issues #74, #7): "The Givers' House can't be solved now that I don't have the push gun. Remake this so
 it uses what I have so far (double jump) and make me find the sword and the shield in the temple." He starts with
@@ -37,9 +37,9 @@ nothing in his hands; the order in the desert is:
 | what | where | why there |
 |---|---|---|
 | the backpack | Qanat's chest on the tree's ledge (`desert.backpack`) | unchanged |
-| the lift valve (the double jump) | by the giant's pool (`desert.lift`) | unchanged; the Givers' House's sand pit wants it (Sabri says so if it isn't had) |
-| the Givers' blade (`sword`) | the Givers' House's Sword Chamber, half-way (`desert.temple.sword`, the temple's gadget) | the house's dungeon item: thorns, a ball a cut sends far, an eye to strike, the Keeper's spokes |
-| the Givers' guard (`shield`) | the Givers' House, the Hall of Fires' far landing (`desert.temple.shield`, a `find`) | the bellows' wind in the Hall of Winds, the Keeper's charge |
+| the lift valve (the double jump) | by the giant's pool (`desert.lift`) | unchanged; the Rose House's sand pit wants it (Sabri says so if it isn't had) |
+| the Givers' blade (`sword`) | the Rose House's Sword Chamber, half-way (`desert.temple.sword`, the temple's gadget) | the house's dungeon item: thorns, a ball a cut sends far, an eye to strike, the Keeper's spokes |
+| the Givers' guard (`shield`) | the Rose House, the Hall of Fires' far landing (`desert.temple.shield`, a `find`) | the bellows' wind in the Hall of Winds, the Keeper's charge |
 | the fluid gun, with ember mode (`fire`) | the Givers' Hearth, the Givers' room off its hall (`desert.gun`; v1.45, issue #83) | its stone ball wants the push; nothing in the house needs it, before or after. Ember mode, the house's old key, comes with it (`with`, docs/systems/boxes.md): in v1.44 it had a chest of its own beside the gun's |
 
 The house is off the main quest's line (Sabri starts it), so the order is the player's: the house before the Hearth
@@ -94,12 +94,12 @@ The old boost (a powered jump on every press in the air while the bar lasted: wi
 is gone; the double jump costs nothing and comes once each time you leave the ground. Every place that wanted a
 boost-jump wanted one (the tower's steps, the sky stones: `tests/story-arzach.test.js`, `tests/story-arzach2.test.js`
 hop them with the double jump), so the levels are unchanged. Gun modes, temples' guardians, drums and the makers'
-runs that shoot or push need the gun (`needs: ['gun', …]`, src/resources.js `meetsWith`); the Givers' House (the
+runs that shoot or push need the gun (`needs: ['gun', …]`, src/resources.js `meetsWith`); the Rose House (the
 desert's temple, off the route) says so when walked into without it.
 
 **Saves** (src/save-migrate.js step 8): the backpack and a tank that had been filled (it could boost) → the lift
 valve, its chest open; past the Hearth (its grille up, the stone taken, the tree lit, the desert done, another world
-started, a gun mode or the wings found, the Givers' House entered) → the gun too, in hand unless another gadget was.
+started, a gun mode or the wings found, the Rose House entered) → the gun too, in hand unless another gadget was.
 An earlier save follows the new order. `tests/save-migrate.test.js`.
 
 **Completability** (`tests/playthrough.test.js`): the agent opens the two chests on the way (`openBox`: somewhere to

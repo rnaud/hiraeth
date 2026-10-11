@@ -36,14 +36,14 @@ const opensOn = (W, id) => {
   return node;
 };
 
-test('the Moon Foundry: the count is done at the lookout, Wen asked or not; Ilse is no step', () => {
+test('the Moon Foundry: the count is done at the lookout, Wen asked or not; Petra is no step', () => {
   const W = fresh('moonfoundry');
   try {
     assert.equal(W.quests.isStarted('moonfoundry.count'), false, 'nobody has asked');
     standBy(W, 'lookout', { radius: 6, up: 3 });
     assert.equal(W.quests.isDone('moonfoundry.count'), true, 'up on the lookout, the moons counted: done');
     assert.ok(W.toasts.some((t) => /thirty-two/i.test(String(t))), 'the count said up there');
-    assert.ok(!W.quests.def('moonfoundry.count').stages.some((s) => s.talk || s.at === 'ilse'), 'no step at Ilse');
+    assert.ok(!W.quests.def('moonfoundry.count').stages.some((s) => s.talk || s.at === 'ilse'), 'no step at Petra');
     assert.equal(opensOn(W, 'wen'), 'counted', 'Wen has her word on it when you pass');
   } finally { W.dispose(); }
   // asked first, the same: the lookout is where it ends
@@ -64,7 +64,7 @@ test('the Moon Foundry: the ladle-hook is done on the last furnace’s crane, wi
   } finally { W.dispose(); }
 });
 
-test('the City Floating in Space: Sel’s notes are done on the cables under the Towers, without Tamar', () => {
+test('the City Floating in Space: Sel’s notes are done on the cables under the Towers, without Ines', () => {
   const W = fresh('spacecity', { 'quest.spacecity.notes': 'cables', 'item.selnotes': 1 });
   try {
     standBy(W, 'towerCables', { radius: 3, up: 2 });

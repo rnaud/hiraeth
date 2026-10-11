@@ -73,7 +73,7 @@ export const PEOPLE = {
   },
 
   mireille: {
-    id: 'mireille', name: 'Mireille', title: 'who grows the glow-kelp', color: '#5f8f7a', voice: 1.05, kind: 'f',
+    id: 'mireille', name: 'Brune', title: 'who grows the glow-kelp', color: '#5f8f7a', voice: 1.05, kind: 'f',
     head: 'wrap', cape: 0.6,
     lines: ['~happy~ Glow-kelp. It lights the troughs and it lights the soup.', '~tired~ Every trough watered, every frond counted. Twice.', '~curious~ Mind the troughs. The kelp likes a visitor, not a boot.'],
     talk: {
@@ -84,7 +84,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~happy~ Mireille. I grow the glow-kelp. Every lamp in the city has a frond of mine in it somewhere.',
+          say: ['~happy~ Brune. I grow the glow-kelp. Every lamp in the city has a frond of mine in it somewhere.',
             '~curious~ You came down the lock, didn’t you? Then you’ve got young knees. Would you take something up the column for me?'],
           choices: [
             { text: '~neutral~ Up the column?', goto: 'column' },
@@ -105,7 +105,7 @@ export const PEOPLE = {
           say: ['~happy~ He sent word down the column: it glows. He says it’s the first green thing he’s owned since he was a boy.',
             { if: { not: { flag: 'temple.underwater.done' } }, text: '~sad~ The kelp leans toward the glass at night, the way it used to when the whales came by. It’s still waiting for them.' },
             { if: { flag: 'temple.underwater.done' }, text: '~surprised~ And the whales are back. The kelp leans all one way when they sing. Look at it.' }],
-          choices: [{ text: '~neutral~ Goodbye, Mireille.', end: true }],
+          choices: [{ text: '~neutral~ Goodbye, Brune.', end: true }],
         },
       },
     },
@@ -134,7 +134,7 @@ export const PEOPLE = {
         },
         sky: { say: ['~solemn~ I’ve looked at the underneath of it for fifty years. I like to think the top is just as good.'], choices: [{ text: '~neutral~ It is.', end: true }] },
         cutting: {
-          say: ['~surprised~ Mireille’s kelp, in my window box! She remembered.',
+          say: ['~surprised~ Brune’s kelp, in my window box! She remembered.',
             '~happy~ Look at it go green. The first thing I’ve grown in fifty years that isn’t a beard.'],
           do: { set: { 'underwater.fabre.thanked': true } },
           choices: [{ text: '~neutral~ She says it hates the cold.', goto: 'cold' }],

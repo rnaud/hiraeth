@@ -648,7 +648,7 @@ for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y
 const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
-// the sword and the shield's guard are found (v1.44, the Givers' House): without them no cut, no guard, and neither drawn
+// the sword and the shield's guard are found (v1.44, the Rose House): without them no cut, no guard, and neither drawn
 // on him (the tool's items: a game on foot lends them, src/minigames/kit/onfoot.js)
 const armTool = () => {
   const s = !!tool.items.has('sword'), g = !!tool.items.has('shield');

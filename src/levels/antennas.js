@@ -109,20 +109,23 @@ export const ANTENNAS_CONTENT = {
     label: 'the observation deck', goal: [OBS.x, OBS.top, OBS.z], radius: 4, verticalRadius: 3, manual: true,   // (no beacon: nothing to do here but look)
   },
   relics: { spots: [], names: [] },
-  // three people from elsewhere who came to hear the forest, and its own folk at the workshops and along the path
+  // three people from elsewhere who came to hear the forest, and its own folk at the workshops and along the path.
+  // (Lune and Ottla were the Sealed Hangar's; since it was dismissed they come from worlds the route still goes to
+  // (issue #141): Lune from the Signal Market, Ottla from the Glass Dunes, and speak those tongues. `world` stays the
+  // Hangar's, for the looks drawn for them: src/characters/quest-looks.js.)
   npcs: [
-    { ...HANGAR_PEOPLE.lune, at: [OBS.x - 1.5, OBS.z + 1.2], y: OBS.top + 0.15, radius: 1, kind: 'f', world: 'garage', lang: 'garage',
+    { ...HANGAR_PEOPLE.lune, at: [OBS.x - 1.5, OBS.z + 1.2], y: OBS.top + 0.15, radius: 1, kind: 'f', world: 'garage', lang: 'bazaar',
       lines: ['~curious~ Listen. Every one of them is still turned to something.', '~happy~ From up here you can hear the whole forest humming.'],
       talk: { listen: [
-        '~curious~ I came to find where signals go when nobody answers. Mine never got one.',
+        '~curious~ I read signals in the Signal Market, under Madame Sel’s tower. I came to find where they go when nobody answers.',
         '~neutral~ They come here. Every dish in this forest is still turned to something, a star, a ship, a voice from before.',
         '~whisper~ At night the receiver hums louder. Put your hand on the rail and you can feel it.',
         { after: 'met.lune', say: '~playful~ Still here. The bridge goes over to the receiver’s balcony. Mind the birds, they think it’s theirs.' },
       ] } },
-    { ...HANGAR_PEOPLE.ottla, at: [SETTLEMENT.x - 6, SETTLEMENT.z + 9], radius: 1.5, kind: 'f', world: 'garage', lang: 'garage',
+    { ...HANGAR_PEOPLE.ottla, at: [SETTLEMENT.x - 6, SETTLEMENT.z + 9], radius: 1.5, kind: 'f', world: 'garage', lang: 'glassdunes',
       lines: ['~neutral~ That one’s not broken. It’s listening.', '~angry~ Who rewired the plaza lamp to a dish? Nobody? Again?'],
       talk: { listen: [
-        '~happy~ Every mast here needs something mending. I may never leave.',
+        '~happy~ In the Glass Dunes I keep the kilns’ bellows going. Here every mast needs something mending. I may never leave.',
         '~curious~ They keep the masts standing out of habit, the folk here. One falls, they put a new one up. Nobody asks what it’s for.',
         '~playful~ The birds nest in the dishes. I asked them to move. They asked me to move. We’re negotiating.',
       ] } },

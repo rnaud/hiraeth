@@ -25,7 +25,7 @@ import {
 //   the long tube    north from the Dock to the Avenue, glass all round, the towers of pods outside it
 //   the Avenue       the greatest dome: the city's street under glass, its cafés (Coralie's, glass, teal and pink
 //                    domes inside the great one), lamps, benches; tubes west to the Garden and north to the Plaza
-//   the Garden       a dome of glow-kelp beds and troughs (Mireille, who grows it)
+//   the Garden       a dome of glow-kelp beds and troughs (Brune, who grows it)
 //   the Plaza        the round dome at the north, the great column of luminous water in its middle: the Breathing
 //                    Tower, the city's air coming down from the surface. A lift in its foot to the Crown
 //   the Crown        a glass bubble round the column's head, 64 m up, just under the surface's ripples (Fabre)
@@ -146,7 +146,7 @@ export const UNDERWATER_CONTENT = {
         '~neutral~ Her cup is still on the shelf. Nobody uses it. Nobody decided that; it just happened.',
         { after: { flag: 'temple.underwater.done' }, say: '~happy~ Listen. That’s them. The cups rattle when they sing close by. I had forgotten how much I liked it.' },
       ] } },
-    // Mireille grows glow-kelp in the Garden: her cutting goes up to Fabre in the Crown (src/story/underwater-people.js)
+    // Brune grows glow-kelp in the Garden: her cutting goes up to Fabre in the Crown (src/story/underwater-people.js)
     { ...UW_PEOPLE.mireille, at: [D.garden.x + 8, D.garden.z - 6], y: 0, radius: 1.2, facing: Math.PI / 2, palette: pal('#5f8f7a', { cloth: '#efd2a6' }), lang: 'underwater' },
     // Fabre keeps the Crown's lamps, up the lift; he has never seen the sky
     { ...UW_PEOPLE.fabre, at: [-5, D.crown.z + 5], y: D.crown.y, radius: 1, facing: Math.PI, palette: pal('#e3b06a', { cloth: '#3a5f6a' }), lang: 'underwater' },
@@ -155,7 +155,7 @@ export const UNDERWATER_CONTENT = {
     // the city's own, in passing
     { at: [-6, D.plaza.z + 16], y: 0, radius: 2, palette: pal('#e3b06a', { cloth: '#3a5f6a' }), lang: 'underwater', lines: ['~curious~ The column brings the air down from the top. Put your hand on it. It breathes.', '~playful~ I rode the lift to the Crown once. My ears went pop and I saw a fish the size of my house.'] },
     { at: [-8, 70], y: 0, radius: 2, palette: pal('#7a6e9e', { cloth: '#efd2a6' }), lang: 'underwater', lines: ['~neutral~ The Avenue’s the big dome. Cafés, lamps, people, the lot.', '~whisper~ Look up as you walk through the tube. Sometimes a manta goes over and the whole tube goes dark.'] },
-    { at: [D.avenue.x - 30, D.avenue.z - 8], y: 0, radius: 2, palette: pal('#c4604a', { cloth: '#f2e6d0' }), lang: 'underwater', lines: ['~tired~ The kelp garden is through the west tube. Mireille will put you to work.', '~happy~ Glow-kelp in the soup, glow-kelp on the lamps. It’s all glow-kelp down here.'] },
+    { at: [D.avenue.x - 30, D.avenue.z - 8], y: 0, radius: 2, palette: pal('#c4604a', { cloth: '#f2e6d0' }), lang: 'underwater', lines: ['~tired~ The kelp garden is through the west tube. Brune will put you to work.', '~happy~ Glow-kelp in the soup, glow-kelp on the lamps. It’s all glow-kelp down here.'] },
   ],
 };
 

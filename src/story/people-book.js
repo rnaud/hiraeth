@@ -369,7 +369,7 @@ export const BOOK = {
       [f('edena.clover.hearts'), 'Once a season a red heart grows in the moss under the umbrella trees. She takes one and leaves the rest, and digs up nothing.'],
     ], ['In her potting house under the umbrella tree.']),
   ],
-  // (the three worlds that joined the route in v1.40; their temples' locals, Anselme, Ilse and Joss, are not listed,
+  // (the three worlds that joined the route in v1.40; their temples' locals, Anselme, Petra and Joss, are not listed,
   // as Wim isn't, and the visitors from other worlds are listed under their own)
   underwater: [
     P('bastien', 'Bastien', 'Keeps the lock', [
@@ -381,13 +381,13 @@ export const BOOK = {
     P('coralie', 'Coralie', 'Keeps the café', [
       'Coralie keeps a glass café on the Avenue. Years ago a woman from up top sat at her window all night listening to the whales, and hummed back the one that sang something she knew.',
     ], [[f('temple.underwater.done'), 'In her café; the cups rattle again when the whales sing close.'], 'In her glass café on the Avenue.']),
-    P('mireille', 'Mireille', 'Grows the glow-kelp', [
-      'Mireille grows the glow-kelp that lights every lamp in the city, in troughs under the Garden dome.',
+    P('mireille', 'Brune', 'Grows the glow-kelp', [
+      'Brune grows the glow-kelp that lights every lamp in the city, in troughs under the Garden dome.',
       [done('underwater.kelp'), 'You carried her cutting up the lift to Fabre’s window box in the Crown.'],
     ], ['Among the kelp troughs in the Garden dome.']),
     P('fabre', 'Fabre', 'Keeps the Crown’s lamps', [
       'Fabre lights the six lamps round the Crown, at the top of the Plaza’s column, just under the surface he has never been through.',
-      [done('underwater.kelp'), 'Mireille’s glow-kelp grows in his window box now: the first green thing he has owned since he was a boy.'],
+      [done('underwater.kelp'), 'Brune’s glow-kelp grows in his window box now: the first green thing he has owned since he was a boy.'],
       [f('underwater.fabre.lamps'), 'He has lit the lamps every dusk since the whales went away, so they could find the city again.'],
     ], ['In the Crown, up the lift in the Plaza’s column.']),
     P('maelle', 'Maelle', 'Listens to the whales', [
@@ -489,8 +489,8 @@ export const BOOK = {
   // (on the route since October 2026, in the Sealed Hangar's place; Wim, at the Clock-House's door, is a temple's local,
   // and the glassworkers only call out as you pass)
   glassdunes: [
-    P('oren', 'Oren', 'Carries the floats', [
-      'Oren carries the glassworkers’ floats from the kilns to the camps, and rests by the makers’ riding discs east of where your ship came down.',
+    P('oren', 'Halden', 'Carries the floats', [
+      'Halden carries the glassworkers’ floats from the kilns to the camps, and rests by the makers’ riding discs east of where your ship came down.',
       [f('glassdunes.oren.heard'), 'Every clock in the dunes stopped the night the light passed, each at its own minute; the Clock-House’s first.'],
       [f('temple.garage.done'), 'He asked three people the time one morning and got the same answer three times, and didn’t know what to do with himself.'],
     ], ['By the makers’ discs, east of the ship.']),
@@ -540,10 +540,10 @@ export const BOOK = {
     ], ['On the apron, by her mould.']),
     P('bertil', 'Bertil', 'Pours at the last furnace', [
       'Bertil keeps the Moon Foundry’s last furnace warm. Years back he cast a plate for a lone woman’s ship, with the mark she drew for him in soot: “So they’ll know me.”',
-      [done('moonfoundry.hook'), 'Ottilie mended his ladle-hook and you hung it on his crane. He says the ladle pours a little kinder.'],
+      [done('moonfoundry.hook'), 'Liesel mended his ladle-hook and you hung it on his crane. He says the ladle pours a little kinder.'],
     ], ['At the last furnace on the foundry floor.']),
-    P('ottilie', 'Ottilie', 'Mends in the quarter', [
-      'Ottilie mends kettles, hinges and hooks in a workshop that was a polishing drum, in the workers’ quarter.',
+    P('ottilie', 'Liesel', 'Mends in the quarter', [
+      'Liesel mends kettles, hinges and hooks in a workshop that was a polishing drum, in the workers’ quarter.',
       [f('temple.moonfoundry.done'), 'The floor doesn’t shake at night any more; she slept straight through.'],
     ], ['In her workshop in the workers’ quarter.']),
     P('gunnar', 'Gunnar', 'Keeps the Crucible', [
@@ -584,9 +584,9 @@ export const BOOK = {
       [f('spacecity.rosa.heard'), 'Since the night the cables sang the islands have crept apart a hand’s width a night, and the cables hum one note while they pull.'],
       [f('temple.spacecity.done'), 'Her chalk hasn’t moved in three mornings. She is looking for something else to worry about.'],
     ], ['On the Pier, by the ship.']),
-    P('tamar', 'Tamar', 'Minds the cables', [
-      'Tamar minds the cables under the Towers; her grandmother hung the first. Long ago a ship with no name hailed the city with a sung note, and the night the cables sang the same note passed again, going somewhere.',
-      [done('spacecity.notes'), 'Madame Sel’s notes on the planet’s hum and Tamar’s cables wrote the same line.'],
+    P('tamar', 'Ines', 'Minds the cables', [
+      'Ines minds the cables under the Towers; her grandmother hung the first. Long ago a ship with no name hailed the city with a sung note, and the night the cables sang the same note passed again, going somewhere.',
+      [done('spacecity.notes'), 'Madame Sel’s notes on the planet’s hum and Ines’s cables wrote the same line.'],
       [f('temple.spacecity.done'), 'The cables are taut again, and the islands have stopped drifting.'],
     ], ['Under her cables on the Towers island.']),
     P('amaro', 'Amaro', 'Keeps the Oil-Lamp Shop', [

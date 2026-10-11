@@ -235,7 +235,7 @@ export const KIT_TRIALS = {
     onFoot: true, noWings: true, offFeet: 'Feet only: the discs carry you over, not the wings or the jets.',
     fall: { after: 0, below: -2, from: 8, words: 'Down on the sand' },
     voice: {
-      who: 'oren', name: 'Oren', from: 'who carries the floats',
+      who: 'oren', name: 'Halden', from: 'who carries the floats',
       first: '~happy~ The old ones say the makers rode discs like those over the hot sand at noon. You kept your feet cooler than they did.',
       beaten: '~surprised~ Under the makers’ own mark! I’ll tell the kiln. The kiln will not care, but I’ll tell it.',
       again: '~playful~ Round again? The discs don’t mind. They have nowhere else to be either.',
@@ -283,7 +283,7 @@ export const KIT_TRIALS = {
     onFoot: true, offFeet: 'Wings and feet only: no jets.',
     fall: { after: 1, below: 3, words: 'Into the dark' },
     voice: {
-      who: 'tamar', name: 'Tamar', from: 'who minds the cables',
+      who: 'tamar', name: 'Ines', from: 'who minds the cables',
       first: '~solemn~ Up the breath, over the dark, and all three eyes. The moorers used to do that with a rope round their waists.',
       beaten: '~surprised~ Quicker than the moorers! The cables hummed when you landed. I felt it in my teeth.',
       again: '~playful~ Again? The dark is patient. I am too, mostly.',

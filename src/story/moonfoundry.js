@@ -1,12 +1,12 @@
 // The Moon Foundry's story ("The Moon Nobody Came For"; on the route since v1.40, after the Buried Machine:
-// src/levels/names.js). Its thread is its temple, the Casting-House (src/temples/moonfoundry.js; Ilse at its door with
+// src/levels/names.js). Its thread is its temple, the Casting-House (src/temples/moonfoundry.js; Petra at its door with
 // the founders' ledger, src/temples/moonfoundry-data.js). When the Last Founder is stopped (`temple.moonfoundry.done`)
 // the world is done on the route (`world.moonfoundry.done`), its keepsake given (a pocket moon) and its page closes
 // (src/levels/moon-foundry.js MOONFOUNDRY_CONTENT.story); out of the house, the first time, the moons turning to it are
-// filmed (src/story/moonfoundry-moments.js). Ilse's word after it is the way on: the ledger's first moons went to a garden
+// filmed (src/story/moonfoundry-moments.js). Petra's word after it is the way on: the ledger's first moons went to a garden
 // far off and fell short (the Garden of Spheres: clue.moonfoundry.spheres). Two errands of the foundry's own, each done
 // where its goal is (issue #137): Wen's count at the pillar's lookout (reached before she asked, it starts and ends
-// there), and Ottilie's mended hook hung on the last furnace's crane.
+// there), and Liesel's mended hook hung on the last furnace's crane.
 
 import * as THREE from 'three';
 import { KEEPSAKE, QUESTS, LINES_AFTER } from './moonfoundry-people.js';
@@ -36,7 +36,7 @@ export function setupMoonFoundry(ctx) {
   const L = level?.lookout;
   const lookoutAt = L ? new THREE.Vector3(L.x, L.y, L.z) : null;
   if (lookoutAt && quests?.locate) quests.locate('lookout', () => lookoutAt);
-  // the jib crane over the last furnace's mould (src/levels/moon-foundry.js level.crane): Ottilie's ladle-hook is hung on it
+  // the jib crane over the last furnace's mould (src/levels/moon-foundry.js level.crane): Liesel's ladle-hook is hung on it
   const C = level?.crane;
   if (C && quests?.locate) { const at = new THREE.Vector3(C.x, C.y, C.z); quests.locate('crane', () => at); }
   const offHook = game.on?.('quest', (e) => {

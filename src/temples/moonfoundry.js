@@ -473,7 +473,7 @@ function exterior(scene, level, rt) {
   for (let i = 0; i < 9; i++) { const a = (i / 8) * Math.PI; K.add(ochre, T(new THREE.SphereGeometry(0.11, 5, 3), [Math.cos(a) * 2.75, sill + 4.2 + Math.sin(a) * 2.75, z1 + 0.2])); }
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
   K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
-  // Ilse's ledger desk by the door, under a little tin roof; two cracked moons lying on the apron
+  // Petra's ledger desk by the door, under a little tin roof; two cracked moons lying on the apron
   const dx = -(R + 3.0), dz = 3.2;
   K.both({ paint: new THREE.Color('#8a5a3a'), smooth: false, side: THREE.FrontSide }, box(2.2, 0.15, 1.0, dx, sill + 1.0, dz));
   for (const [x, z] of [[dx - 0.9, dz - 0.35], [dx + 0.9, dz - 0.35], [dx - 0.9, dz + 0.35], [dx + 0.9, dz + 0.35]]) K.add(iron, box(0.1, 1.0, 0.1, x, sill + 0.5, z));

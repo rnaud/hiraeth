@@ -17,7 +17,7 @@ export const FILM_NEAR = 45;
 export function setupGlassDunes(ctx) {
   const { game, story, level, player, quests, physics, npcs = [], toast = () => {} } = ctx;
   const rt = level?.temples?.find((t) => t.id === 'garage') ?? (level?.temple?.id === 'garage' ? level.temple : null);
-  // the dunes' own main quest (v1.48, issue #101): it starts when you talk to Oren by the discs (src/story/quests.js opensWith)
+  // the dunes' own main quest (v1.48, issue #101): it starts when you talk to Halden by the discs (src/story/quests.js opensWith)
   for (const q of QUESTS) quests?.define?.(q);
   if (quests?.opensWith && !quests.isStarted?.('glassdunes.minute')) quests.opensWith('glassdunes.minute', 'oren');
   for (const n of npcs) if (['oren', 'aster', 'corin'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);

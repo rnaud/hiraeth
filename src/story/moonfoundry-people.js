@@ -1,16 +1,16 @@
 // The Moon Foundry's people with something to do (on the route since v1.40, after the Buried Machine: src/levels/names.js
 // ORDER), placed by src/levels/moon-foundry.js (MOONFOUNDRY_CONTENT npcs), their errands defined by src/story/moonfoundry.js.
-// The world's thread is its temple, the Casting-House (src/temples/moonfoundry.js, Ilse at its door with the founders'
+// The world's thread is its temple, the Casting-House (src/temples/moonfoundry.js, Petra at its door with the founders'
 // ledger); these are the foundry's folk and its visitors: Bertil at the last furnace (who cast the mark for a lone woman's
-// ship: the light's trace, kept from the world's days as a detour), Ottilie who mends in the workers' quarter, and Wen of
+// ship: the light's trace, kept from the world's days as a detour), Liesel who mends in the workers' quarter, and Wen of
 // the Buried Machine, counting moons. Each errand ends where its goal is (issue #137): the count at the pillar's lookout,
-// the hook on the last furnace's crane; Ilse and Bertil say their word when you pass, and are no step. Every line
+// the hook on the last furnace's crane; Petra and Bertil say their word when you pass, and are no step. Every line
 // carries a tone.
 
 /** What the Moon Foundry gives you to keep (src/story/moonfoundry.js, when the Last Founder is stopped). */
 export const KEEPSAKE = {
   id: 'moonfoundry.moon', level: 'moonfoundry', kind: 'thing', name: 'A pocket moon',
-  text: 'The last moon the Casting-House poured, no bigger than a plum: ivory, cratered, still faintly warm. Ilse says the founders made the first ones this size, to see if they would hold their light.',
+  text: 'The last moon the Casting-House poured, no bigger than a plum: ivory, cratered, still faintly warm. Petra says the founders made the first ones this size, to see if they would hold their light.',
 };
 
 /** The things carried for the errands. */
@@ -31,7 +31,7 @@ export const QUESTS = [
   {
     id: 'moonfoundry.count', title: 'Thirty-One Moons', world: 'moonfoundry',
     outro: 'Thirty-two from the top of the pillar: one more than anybody counts from the floor.',
-    // (counted where it is counted, issue #137: the lookout reached is the quest done, before Wen asked too, and Ilse's
+    // (counted where it is counted, issue #137: the lookout reached is the quest done, before Wen asked too, and Petra's
     //  step went; src/story/moonfoundry.js sets the flag up there, src/save-migrate.js QUEST_STAGE_MOVES_137)
     stages: [
       { id: 'climb', text: 'Climb the pillar and count the moons', label: 'The lookout on the pillar', flag: 'moonfoundry.moons.counted', at: 'lookout' },
@@ -84,7 +84,7 @@ export const PEOPLE = {
   },
 
   ottilie: {
-    id: 'ottilie', name: 'Ottilie', title: 'who mends in the quarter', color: '#c9703e', voice: 1.1, kind: 'f',
+    id: 'ottilie', name: 'Liesel', title: 'who mends in the quarter', color: '#c9703e', voice: 1.1, kind: 'f',
     head: 'wrap', cape: 0.4,
     lines: ['~neutral~ Bring it here, I’ll mend it. Kettles, hinges, hearts. Mostly kettles.', '~tired~ Every hook in the foundry bends the same way eventually.', '~playful~ The polishing drum was a kitchen before it was my workshop. It still smells of soup.'],
     talk: {
@@ -95,7 +95,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Ottilie. I mend things. This one’s Bertil’s ladle-hook: the old crane bent it pouring a bell last winter.',
+          say: ['~neutral~ Liesel. I mend things. This one’s Bertil’s ladle-hook: the old crane bent it pouring a bell last winter.',
             '~curious~ He won’t come for it. Too busy keeping the furnace warm. Would you hang it on his crane?'],
           choices: [
             { text: '~happy~ I’ll hang it.', do: [{ start: 'moonfoundry.hook' }, { give: 'ladlehook' }], goto: 'go' },
@@ -107,7 +107,7 @@ export const PEOPLE = {
         after: {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~happy~ He sent a pot of soup back with a boy. That’s Bertil for thank you.' },
             { if: { flag: 'temple.moonfoundry.done' }, text: '~surprised~ The floor doesn’t shake at night any more. I slept straight through. I’d forgotten what that was like.' }],
-          choices: [{ text: '~neutral~ Goodbye, Ottilie.', end: true }],
+          choices: [{ text: '~neutral~ Goodbye, Liesel.', end: true }],
         },
       },
     },
@@ -135,13 +135,13 @@ export const PEOPLE = {
         },
         where: { say: ['~neutral~ Up. Same as everyone who lands on the apron. She looked back at the moons the whole way out to her ship.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         again: {
-          say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~whisper~ At night the old Casting-House pours by itself. I hear the moulds crack from here. Ilse says it’s the founders’ machine, still at it.' },
+          say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~whisper~ At night the old Casting-House pours by itself. I hear the moulds crack from here. Petra says it’s the founders’ machine, still at it.' },
             { if: { flag: 'temple.moonfoundry.done' }, text: '~happy~ Quiet, the Casting-House, at last. My furnace sounds lonely without it. I’ve started talking to it more.' }],
           choices: [{ text: '~neutral~ Goodbye, Bertil.', end: true }],
         },
         hook: {
           say: ['~surprised~ My ladle, hanging straight! (He gives it a push and watches it swing.)',
-            '~happy~ She’s a marvel, Ottilie. Don’t tell her I said so.'],
+            '~happy~ She’s a marvel, Liesel. Don’t tell her I said so.'],
           do: { set: { 'moonfoundry.bertil.thanked': true } },
           choices: [{ text: '~playful~ She says it’s straighter than you.', goto: 'straighter' }],
         },
@@ -174,7 +174,7 @@ export const VISITORS = {
             { text: '~curious~ Who were they for?', goto: 'who' },
           ],
         },
-        who: { say: ['~solemn~ Nobody knows. Somebody’s sky, somewhere, waiting for them. Ilse at the Casting-House says the ledger knows. She won’t say what it says.'], choices: [{ text: '~neutral~ I’ll count them for you.', do: { start: 'moonfoundry.count' }, goto: 'go' }, { text: '~neutral~ Goodbye, Wen.', end: true }] },
+        who: { say: ['~solemn~ Nobody knows. Somebody’s sky, somewhere, waiting for them. Petra at the Casting-House says the ledger knows. She won’t say what it says.'], choices: [{ text: '~neutral~ I’ll count them for you.', do: { start: 'moonfoundry.count' }, goto: 'go' }, { text: '~neutral~ Goodbye, Wen.', end: true }] },
         go: { say: ['~happy~ *The pillar east of the floor, under the moon on top.* Rungs up its side, a lookout at the top. Count slowly. Moons hate being rushed.'], choices: [{ text: '~neutral~ Slowly.', end: true }] },
         waiting: { say: ['~curious~ The pillar east of the floor, the lookout under its moon. I’ll wait. I’m good at waiting.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         counted: {

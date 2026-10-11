@@ -261,7 +261,7 @@ test('the Overnight Train’s Mireille is Solange (v1.43), with an id of her own
   const sent = { 'save.migrated': 11, 'met.mireille': true, 'quest.bazaar.nightmail': 'done' };
   migrateFlags(sent);
   assert.equal(sent['met.solange'], true);
-  assert.equal(sent['met.mireille'], true, 'the Underwater City’s Mireille: unchanged');
+  assert.equal(sent['met.mireille'], true, 'the Underwater City’s kelp grower (Brune now): unchanged');
   const kelp = { 'save.migrated': 11, 'met.mireille': true, 'quest.underwater.kelp': 'done' };
   migrateFlags(kelp);
   assert.equal(kelp['met.solange'], undefined, 'never on the train');
@@ -301,11 +301,11 @@ test('nobody sends you to somebody else (issue #85, step 15): a save on a step t
 test('the new worlds’ carries from one person to another (issue #137, step 17): a save on one is where the thing is used', async () => {
   const { QUEST_STAGE_MOVES_137 } = await import('../src/save-migrate.js');
   const run = (flags) => { const f = { 'save.migrated': 16, ...flags }; migrateFlags(f); return f; };
-  // the count to Ilse: done (it is counted at the lookout); the hook to Bertil: on to his crane; the notes to Tamar: on to the cables
+  // the count to Petra: done (it is counted at the lookout); the hook to Bertil: on to his crane; the notes to Ines: on to the cables
   const count = run({ 'quest.moonfoundry.count': 'ilse' });
   assert.equal(count['quest.moonfoundry.count'], 'done');
   assert.equal(count['moonfoundry.moons.counted'], true);
-  assert.equal(count['moonfoundry.ilse.counted'], undefined, 'Ilse still writes it in when you pass');
+  assert.equal(count['moonfoundry.ilse.counted'], undefined, 'Petra still writes it in when you pass');
   assert.equal(run({ 'quest.moonfoundry.hook': 'bertil', 'item.ladlehook': 1 })['quest.moonfoundry.hook'], 'crane');
   assert.equal(run({ 'quest.spacecity.notes': 'tamar', 'item.selnotes': 1 })['quest.spacecity.notes'], 'cables');
   // the cutting to Fabre: done, in his window box (the cutting gone from the bag); Fabre's word to Maelle: done, no quest now

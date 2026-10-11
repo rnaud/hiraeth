@@ -56,7 +56,7 @@ is left are in the test). The real traveller (`tests/gait-sim.js`) rides a risin
 height over its top, and on Vael II's rock lands with his feet on the drawn surface.
 
 **The desert, made exact (October 2026).** The Givers' Hearth butte and the lip of rock round its foot, the
-Givers' House's drum, its fins' caps and the sunken leviathan, the crashed hull and its salvage camp, the
+Rose House's drum, its fins' caps and the sunken leviathan, the crashed hull and its salvage camp, the
 fallen giant and the petal station all collided as coarse stand-ins up to 3.7 m inside what is drawn; they
 collide as drawn now. Three bugs came out with them:
 - **A proxy moved twice.** `Kit.both(mat, geo)` in `src/desert-hearth.js` and `src/desert-city.js` took its

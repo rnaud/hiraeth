@@ -9,7 +9,7 @@ import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Gust, Switch, P
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { keeperModel } from './guardians.js';
 
-// The desert's temple: the Givers' House, the great drum of rose stone the
+// The desert's temple: the Rose House, the great drum of rose stone the
 // people of Qanat call the house of the Givers, half sunk in the dunes east
 // of the city. The Givers kept the water there: a cistern under a dome,
 // fed by channels that once ran to Qanat's fields. The water stopped long
@@ -446,7 +446,7 @@ function layout(rt) {
   };
 }
 
-// ------------------------------------------------------------------ outside: the Givers' House in the dunes
+// ------------------------------------------------------------------ outside: the Rose House in the dunes
 /** The Givers' channel from the door toward Qanat: world points every 3 m, winding a little, level down the steps, then on the sand. */
 function channelPath(from, doorY, H) {
   const toward = V(STORY.city.x - from.x, 0, STORY.city.z - from.z).normalize();
@@ -472,7 +472,7 @@ function exterior(scene, level, rt) {
   const foot = V(SITE.x, 0, SITE.z).addScaledVector(f, R + 6);
   const doorY = Math.max(H(foot.x, foot.z), H(SITE.x + f.x * (R + 1), SITE.z + f.z * (R + 1))) + 0.3;
   const base = lo - 7;
-  const K = new TempleKit(rt.root, 'The Givers’ House', V(SITE.x, base, SITE.z), yaw, rt.M);
+  const K = new TempleKit(rt.root, 'The Rose House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M, dy = doorY - base;
   const top = Math.max(hi - base + 22, dy + 28);
   const rose = { paint: new THREE.Color('#dd8f86'), smooth: true };
@@ -686,7 +686,7 @@ export function chamberHeld(rt) {
 }
 
 export const DESERT_TEMPLE = {
-  id: 'desert', levelId: 'desert', name: 'The Givers’ House', doorLabel: 'door of the Givers’ House',
+  id: 'desert', levelId: 'desert', name: 'The Rose House', doorLabel: 'door of the Rose House',
   gadget: 'sword', gadgetBox: 'desert.temple.sword', arenaDoor: 'd4',
   // (the blade taken, the Sword Chamber's machines wake: one by its mark and one more, src/foes.js; its doors hold
   // while they stand and you are in it, and a load puts them back as they were: broken stay broken)
@@ -694,7 +694,7 @@ export const DESERT_TEMPLE = {
   origin: [150, 2400, -250], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
-  enterLine: 'Cool air, and the smell of old water. The Givers’ House is dark inside, and very large.',
+  enterLine: 'Cool air, and the smell of old water. The Rose House is dark inside, and very large.',
   pitLine: 'You climb back out of the sand, to the last glyph stone.',
   onResolved(rt) { rt.notice('Water. Above, it is already running out of the house toward Qanat.', 'resolved.out'); },
   // the four braziers round the cistern calm it, a tenth each: lit before it woke, or before a knockout, they still count

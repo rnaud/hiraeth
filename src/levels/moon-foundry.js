@@ -111,7 +111,7 @@ function nearWay(pts, x, z) {
 
 // ------------------------------------------------------------------ content: the foundry's story page, relics, its folk and its visitors
 // (on the route since v1.40, after the Buried Machine: its story src/story/moonfoundry.js, its people and errands
-// src/story/moonfoundry-people.js; the Casting-House and Ilse at its door src/temples/moonfoundry.js)
+// src/story/moonfoundry-people.js; the Casting-House and Petra at its door src/temples/moonfoundry.js)
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
 export const MOONFOUNDRY_CONTENT = {
   weather: [],
@@ -119,7 +119,7 @@ export const MOONFOUNDRY_CONTENT = {
   story: {
     title: 'THE MOON NOBODY CAME FOR',
     intro: 'A workshop for making moons, left unfinished; the workers live in the old machinery. Since the night the singing light passed every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
-    outro: 'The Last Founder is still, the last moon is on its hook, and the hung moons turn slowly toward it. Ilse’s ledger says the first moons went to a garden far off, and fell short.',
+    outro: 'The Last Founder is still, the last moon is on its hook, and the hung moons turn slowly toward it. Petra’s ledger says the first moons went to a garden far off, and fell short.',
     label: 'the Casting-House', goal: [CASTING_HOUSE.x, 'ground', CASTING_HOUSE.z], radius: 18, manual: true,
   },
   // (high and out of the way: the pillar's lookout, the courtyard in the broken moon, the bowl's deck, the gantry, the quarter's roofs)
@@ -154,7 +154,7 @@ export const MOONFOUNDRY_CONTENT = {
     { at: [10, 30], radius: 2, lang: 'moonfoundry', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship on the apron! We usually only get pigeons and inspectors.'] },
     // Bertil at the last furnace (the light's trace from the world's detour days, and the ladle-hook's end): src/story/moonfoundry-people.js
     { ...MF_PEOPLE.bertil, at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'moonfoundry', palette: pal('#c8693c', { cloth: '#e8d2a8' }) },
-    // Ottilie mends in the quarter (her ladle-hook goes on the last furnace's crane; the cast bell to the Garden of Spheres: src/levels/content.js)
+    // Liesel mends in the quarter (her ladle-hook goes on the last furnace's crane; the cast bell to the Garden of Spheres: src/levels/content.js)
     { ...MF_PEOPLE.ottilie, at: [QUARTER.x + 14, QUARTER.z - 10], radius: 1.5, lang: 'moonfoundry', palette: pal('#c9703e', { cloth: '#efe4cc' }) },
     // (v1.46, issue #102: on the apron, by the little moon cooling in its mould; last, as the errands name people by place)
     // (v1.48, issue #101: Hedda, whose mould the moon nobody poured came down to: the foundry's main quest is hers)
@@ -608,7 +608,7 @@ export function* buildMoonFoundry(scene) {
     // the lookout on the pillar under the moon on its pillar (Wen's count: src/story/moonfoundry-people.js), the hung moon
     // the climax looks up at (src/story/moonfoundry-moments.js)
     lookout: { x: PMOON.x, y: PMOON.h * 0.78, z: PMOON.z },
-    // the jib crane over the last furnace's mould, the ladle on its hook (Ottilie's mended ladle-hook is hung on it:
+    // the jib crane over the last furnace's mould, the ladle on its hook (Liesel's mended ladle-hook is hung on it:
     // src/story/moonfoundry.js; its mast as the furnace's section above draws it)
     crane: { x: FURNACE.x - 17, y: 0, z: FURNACE.z - 2 },
     hoist: HOIST,   // (its first deck: the foundry's main quest looks at the hung moons from it, src/story/moonfoundry.js)

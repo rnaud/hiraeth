@@ -383,7 +383,7 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   the straight ride from Marrow's hollow to the tusk gate (not on its stops). Out of the hollow nothing of the Hearth
   shows; the `hearth` stage says to ride them and names them (`via`).
 - **The Givers' field-stone** (`buildFieldStone`, `FIELD_STONE`, `THINGS.fieldStone`): a carved boundary stone on the
-  dunes between the Givers' House and the ship. The walk home from the House went back the way it came; now Sabri sends
+  dunes between the Rose House and the ship. The walk home from the House went back the way it came; now Sabri sends
   you from the camps (the route's `askSabri`), and the straight walk home passes the stone. Once the House is done, a
   field of the temple's `change` grows beside it.
 - For the audit: the camps' banners run on to the gate itself (read from the well: down through the camps, the
@@ -921,7 +921,7 @@ clock tower east of the valley with its cogs half sunk in the sand (a level floo
 kept in `src/levels/dismissed/hangar/temple-words.js`. The dunes gained a story page ("The Clock in the Glass",
 `src/story/glassdunes.js`: the world done when the Foreman keeps time, Wim's tick as its keepsake, the clock filmed
 coming round), Marit's Kiln-Stall (the kiosk), a court, boxes, a trial (the Glass slalom), a makers' run, five
-relics, three locals (Aster, Corin, Oren), cog mice and glass hoppers. **The Atelier** left the picker (home and
+relics, three locals (Aster, Corin, Halden), cog mice and glass hoppers. **The Atelier** left the picker (home and
 the Lantern remain).
 
 ## The merged worlds' crossings (v1.43)
@@ -1145,8 +1145,9 @@ A world to look at, after its four reference pictures (`references/levels/The Fo
 references.md): abandoned radio masts by the thousand on a rolling plain of violet grass, great dishes tilted every
 way, lattice towers joined by vine-grown cables, birds nesting on the rims, and a small settlement of rounded repair
 workshops under one immense receiver. No story to follow and no errands: three people from other worlds came to hear
-it (Lune, who reads the Sealed Hangar's signal, on the observation deck; Ottla, its mechanic, on the plaza; Teb, the
-Signal Market's cab tout, by the ship), and five of the mast-menders stand about with a few toned lines each. Its folk
+it (Lune, who reads signals under the Signal Market's silent tower, on the observation deck; Ottla, who keeps the Glass
+Dunes' kilns going, on the plaza; Teb, the Signal Market's cab tout, by the ship. Lune and Ottla were the Sealed Hangar's
+until it was dismissed: issue #141 gave them homes on the route, and their tongues, keeping the looks drawn for them), and five of the mast-menders stand about with a few toned lines each. Its folk
 speak the Sealed Hangar's tongue (`lang: 'garage'`: a world off the route borrows a neighbour's script).
 
 - **Off the route** (`SIDE`, `src/levels/names.js`): on the galactic map from the start, `?level=antennas`.
@@ -1201,8 +1202,8 @@ and a drawing of Lou's (`src/levels/names.js` ORDER; why each sits where it does
 
 | World | Place | Its temple (gadget) | Errands | Shop | Trial |
 |---|---|---|---|---|---|
-| The Underwater City | 5th, after Viridel | the Whale-House (`horn`, the whale-horn: the deep note) | Mireille's cutting up the lift to the Crown | Odette's Air-Shop (`bubble`) | the Tube run (on foot, hall to hall) |
-| The Moon Foundry | 9th, after the Buried Machine | the Casting-House (`tongs`, the founders' tongs: the push takes iron) | Ottilie's ladle-hook on the last furnace's crane; Wen's count at the lookout | the Crucible (`crucible`) | the Floor round (on foot) |
+| The Underwater City | 5th, after Viridel | the Whale-House (`horn`, the whale-horn: the deep note) | Brune's cutting up the lift to the Crown | Odette's Air-Shop (`bubble`) | the Tube run (on foot, hall to hall) |
+| The Moon Foundry | 9th, after the Buried Machine | the Casting-House (`tongs`, the founders' tongs: the push takes iron) | Liesel's ladle-hook on the last furnace's crane; Wen's count at the lookout | the Crucible (`crucible`) | the Floor round (on foot) |
 | The City Floating in Space | 11th, before the Signal Market | the Mooring-House (`tether`, a cone that pulls) | Kip's lamp up the Balcony's mast; Sel's notes on the Towers' cables | Amaro's Oil-Lamp Shop (`adobe`) | the Courier's round (on foot, over the bridges) |
 
 - **Stories**: `src/story/<id>.js` (the world done when its temple is: `world.<id>.done`, the keepsake, the page closed, the
@@ -1238,7 +1239,7 @@ the mantas and the whales are all on the other side of the glass.
 
 - **The halls** (`DOMES`, floors at y 0 but the Gallery's at -16 and the Crown's at 64): the **Dock** (the ship on its
   floor, the moon pool railed, Bastien), the **Avenue** (the greatest dome, 46 m: Coralie's café and four more cafés as
-  domes inside it, a tower of pods to climb, Odette's Air-Shop), the **Garden** (glow-kelp troughs, Mireille), the
+  domes inside it, a tower of pods to climb, Odette's Air-Shop), the **Garden** (glow-kelp troughs, Brune), the
   **Plaza** (the great column of luminous water, the Breathing Tower, the lift in its foot), the **Crown** (a bubble round
   the column's head, 64 m up under the surface, Fabre) and the **Whale Gallery** (down a sloped tube over the deep, Maelle,
   a listening horn). The last tube runs north from the Plaza to the makers' **Whale-House** (`src/temples/underwater.js`).
@@ -1518,7 +1519,7 @@ page names the place and closes on the tip deck). `?level=underside`.
   climbs inside 0, walks through 5 (a hung house's crown up in the rock). Collision ~174 k triangles (the mountain's bulk solid too: what overlaps its face is the same rock).
 - **The cloud**: three instanced puff meshes by distance (`cloudPuffs`, `puffGeo`: gently lumped, the far ones
   lumped least: Vael II's sharper lumps read as ice floes from above) on a deck, 110 m under the town.
-- **People**: Zazie of the Sealed Hangar (who doesn't trust down) on the south gallery, Kip of the Signal Market on
+- **People**: Zazie of the City-Shaft (who doesn't trust down; the Sealed Hangar's until issue #141) on the south gallery, Kip of the Signal Market on
   the basket deck, Tiv of the Sky Stones at the tip (their own words, `talk.listen`, no errands); six of the town's
   folk with toned lines (Vael II's tongue, `lang: 'arzach2'`), a crowd in the Salt Harbour's cloaks
   (`COSTUMES.underside`) walking the galleries and cross decks, gathered on the Bell Deck and the tip, at the rails.

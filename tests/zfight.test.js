@@ -1,6 +1,6 @@
 // Z-fighting (scripts/zfight, .claude/skills/zfight-qc, docs/systems/rendering.md "Z-fighting"): two faces of different
 // looks in one plane flicker as the camera moves. The finder on made-up faces, and every temple held to its count:
-// the Givers' House at none (the author's issue #75), the others at or under their baselines (ZFIGHT_BASELINE), so a
+// the Rose House at none (the author's issue #75), the others at or under their baselines (ZFIGHT_BASELINE), so a
 // new room can't bring the stripes back. Lower a baseline when a fix lands; never raise one without a reason.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -64,7 +64,7 @@ test('the finder counts only what someone could see: a fight inside a wall or un
   assert.ok(seen.length >= 1 && seen.every((x) => x.seen.at[1] > -1), 'only the pair in the open is seen');
 });
 
-test('every temple’s visible z-fights at or under its baseline; the Givers’ House has none', () => {
+test('every temple’s visible z-fights at or under its baseline; the Rose House has none', () => {
   const report = {};
   for (const id of Object.keys(TEMPLES)) {
     const scene = new THREE.Scene();
@@ -77,5 +77,5 @@ test('every temple’s visible z-fights at or under its baseline; the Givers’ 
     level.dispose?.();
     assert.ok(sites.length <= (ZFIGHT_BASELINE[id] ?? 0), `${id}: ${sites.length} z-fight sites (baseline ${ZFIGHT_BASELINE[id]}): ${sites.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${rt.kit.local(new THREE.Vector3(...s.seen.at)).toArray().map((v) => v.toFixed(1))}`).join('; ')} (node scripts/zfight/list-temple.mjs ${id})`);
   }
-  assert.equal(report.desert, 0, 'the Givers’ House: none');
+  assert.equal(report.desert, 0, 'the Rose House: none');
 });

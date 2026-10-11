@@ -23,7 +23,7 @@ import { meetsWith } from '../resources.js';
 //     links: [{ a, b, door?: id, needs?: ['jetpack'] }],        rooms you walk between (both ways)
 //     elements: { id: { type, room, needs?: [items], ... } } }
 //   types: plate · drum { plate, plateAt?, stops?, needs? (an iron moon: the tongs; a ball only a tether reaches), roll? (rolls) } · brazier · bramble · switch · bell · gadget { item } · boss
-//          · find { item, box } (a second chest, the Givers' House's guard: its item a key of the rooms after it; the
+//          · find { item, box } (a second chest, the Rose House's guard: its item a key of the rooms after it; the
 //           gadget stays the temple's own, the dungeon item)
 //          (a drum with `stops: { plate: t }` rests on any of several plates along its groove: one ball, two
 //           places, the Builders' Greenhouse's louvres and the Aerie's vents)
@@ -279,7 +279,7 @@ export function stopOf(e, plate) {
 
 const isGate = (e) => e?.type === 'door' || e?.type === 'bridge';
 /**
- * What rolls a drum (its `roll`): 'hand' a shove (nothing carried, the Givers' House's first ball), 'sword' a cut of the
+ * What rolls a drum (its `roll`): 'hand' a shove (nothing carried, the Rose House's first ball), 'sword' a cut of the
  * blade (or a push of the gun); left out, the gun's push, as every temple's balls before v1.44.
  */
 export function rolls(e, has) {

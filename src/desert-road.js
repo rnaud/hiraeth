@@ -121,7 +121,7 @@ export function buildRiderStrips(scene, terrain) {
 }
 
 // ------------------------------------------------------------------ the Givers' field-stone
-// On the dunes between the Givers' House and the ship, a boundary stone of Qanat's old fields, carved with a channel:
+// On the dunes between the Rose House and the ship, a boundary stone of Qanat's old fields, carved with a channel:
 // what the walk home from the House passes (level design audit v1.46: it came back the way it went, past nothing new).
 // Once the House's water runs, the field beside it grows green (src/temples/desert.js change: its plot).
 //

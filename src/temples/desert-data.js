@@ -4,9 +4,9 @@
 // tests/temples.test.js checks them).
 
 export const QUEST = {
-  id: 'temple.desert', title: 'The Givers’ House', world: 'desert',
-  outro: 'The water runs from the Givers’ House again, and the old fields round Qanat are green.',
-  find: 'Find the Givers’ house east of Qanat',
+  id: 'temple.desert', title: 'The Rose House', world: 'desert',
+  outro: 'The water runs from the Rose House again, and the old fields round Qanat are green.',
+  find: 'Find the Rose House east of Qanat',
   gadget: 'Find what the Givers left inside their house',
   keeper: 'Go down to what lives in the cistern',
 };
@@ -82,4 +82,4 @@ export const PEOPLE = {
 };
 
 /** What Qanat's crowd says once the fields are green (crowd lines are short, one tone each). */
-export const LINES_AFTER = ['~happy~ The old fields are green!', '~surprised~ Water in the channel, from the Givers’ house!', '~happy~ Have you seen the shoots?', '~solemn~ The Keeper sleeps by its water.'];
+export const LINES_AFTER = ['~happy~ The old fields are green!', '~surprised~ Water in the channel, from the Rose House!', '~happy~ Have you seen the shoots?', '~solemn~ The Keeper sleeps by its water.'];

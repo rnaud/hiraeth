@@ -381,8 +381,8 @@ export const ERRAND_PLACES = [
     wait: "~neutral~ *Mira, at the water clock in Viridel.*",
     thanks: "~happy~ A gear, from Lorn’s domes? *Fit it on the clock’s axle*, please. I’ve missed knowing when to water." },
   { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['underwater', 2],
-    ask: "~neutral~ Going on, under the sea? Take this glass seed to *Mireille, who grows the glow-kelp in the Underwater City*. Nothing grows down there without the sun, they say. This one doesn’t need it.",
-    wait: "~neutral~ *Mireille, in the Underwater City’s kelp garden*, through the west tube from the Avenue.",
+    ask: "~neutral~ Going on, under the sea? Take this glass seed to *Brune, who grows the glow-kelp in the Underwater City*. Nothing grows down there without the sun, they say. This one doesn’t need it.",
+    wait: "~neutral~ *Brune, in the Underwater City’s kelp garden*, through the west tube from the Avenue.",
     thanks: "~happy~ A seed, from a garden in the sun? Glass, so the damp can’t touch it. I’ll set it in the brightest trough, where the kelp can show it how it’s done." },
   // (v1.40: the Underwater City between Viridel and the City-Shaft; the Moon Foundry after the Buried Machine; the City
   // Floating in Space before the Signal Market: an errand into each and one on from each)
@@ -412,8 +412,8 @@ export const ERRAND_PLACES = [
     wait: "~neutral~ *Linnet, in the Garden of Spheres’ umbrella grove.* Ring it once for her, no more.",
     thanks: "~surprised~ A bell made from a moon? (Linnet rings it once. Far off, a sphere answers on the same note.) Oh. They know each other. Thank you." },
   { id: 'mirror', item: 'a sliver of lake mirror', from: ['spheres', 1], to: ['spacecity', 6],
-    ask: "~playful~ Going on to the city that floats in the dark? Take this *sliver of lake mirror* to *Tamar, who minds the cables there*. It holds a little sky. They have nothing but sky, and none of it blue.",
-    wait: "~neutral~ *Tamar, on the Towers island of the City Floating in Space.* Keep the sky side up.",
+    ask: "~playful~ Going on to the city that floats in the dark? Take this *sliver of lake mirror* to *Ines, who minds the cables there*. It holds a little sky. They have nothing but sky, and none of it blue.",
+    wait: "~neutral~ *Ines, on the Towers island of the City Floating in Space.* Keep the sky side up.",
     thanks: "~surprised~ A bit of blue sky, from a garden? (She holds it under a cable. The cable hums a little higher.) It likes it. I’ll hang it where the planet can see it." },
   { id: 'lampoil', item: 'a flask of lamp oil', from: ['spacecity', 5], to: ['bazaar', 1],
     ask: "~happy~ Going on to the market with all the signs? Take this flask of our lamp oil to *Oyo, who sells lanterns there*. We pay everything in lamp oil. He sells little suns. Fair trade.",

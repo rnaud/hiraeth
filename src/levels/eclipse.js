@@ -92,8 +92,8 @@ export const ECLIPSE_CONTENT = {
     // the city's own folk
     { at: [10, 2], radius: 3, lang: 'desert', lines: ['~happy~ Sit anywhere! Nobody owns a table at the eclipse.', '~whisper~ Don’t look straight at it. Look at the lamps instead. They’re ours.'] },
     { at: [-6, -22], radius: 3, lang: 'desert', lines: ['~curious~ You came by the sky? Today of all days. It is closed.', '~playful~ The Great Stair has forty steps by day and forty-one in the dark. Count them.'] },
-    // (Ansel: the detour's trace, src/story/sightings-detours.js)
-    { id: 'ansel', name: 'Ansel', title: 'whose grandmother made the figure', color: '#9a8cc8', kind: 'm', at: [12, BOWL.Z0 - 20], y: LEVEL.high, radius: 3, lang: 'desert',
+    // (Yusuf: the detour's trace, src/story/sightings-detours.js)
+    { id: 'ansel', name: 'Yusuf', title: 'whose grandmother made the figure', color: '#9a8cc8', kind: 'm', at: [12, BOWL.Z0 - 20], y: LEVEL.high, radius: 3, lang: 'desert',
       lines: ['~solemn~ My grandmother made the figure on our wall. It leans a little more each year.', '~neutral~ Up the bowl, at the top, the old house sees the whole sky.'],
       talk: { listen: [
         { after: () => true, say: [

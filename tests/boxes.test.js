@@ -112,7 +112,7 @@ test('worlds after the desert give a box of what the route brought by the ship t
   game.reset();
 });
 
-test('a run never lands beside free chests: the desert done and the Givers’ House skipped, nothing by the ship in Vael (issue #91)', () => {
+test('a run never lands beside free chests: the desert done and the Rose House skipped, nothing by the ship in Vael (issue #91)', () => {
   // (the desert's main quest gives the backpack, the lift valve and the gun before the ship flies: src/story/desert.js)
   const run = new Set(['backpack', 'doublejump', 'gun']);
   for (const id of ['arzach', 'perdide', 'edena', 'incal']) {
@@ -120,7 +120,7 @@ test('a run never lands beside free chests: the desert done and the Givers’ Ho
     assert.deepEqual(list.filter((p) => p.fallback).map((p) => p.item), [], `${id}: no fallback box`);
     assert.ok(!list.some((p) => p.near === 'ship'), `${id}: no box by the ship`);
   }
-  // the blade and the guard wait in the Givers' House, never by the ship, even for a save with nothing at all
+  // the blade and the guard wait in the Rose House, never by the ship, even for a save with nothing at all
   const bare = placementsFor('arzach', { has: () => false });
   assert.ok(!bare.some((p) => p.fallback && (p.item === 'sword' || p.item === 'shield')), 'no blade or guard by the ship');
   assert.ok(PLACEMENTS.desert.some((p) => p.item === 'sword' && p.temple) && PLACEMENTS.desert.some((p) => p.item === 'shield' && p.temple), 'both in the house');

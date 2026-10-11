@@ -1,5 +1,5 @@
 // The Casting-House's words (src/temples/moonfoundry.js builds it, in the Moon Foundry): the local who sends you in,
-// and what she says after. The foundry folk keep the founders' casting ledger by the house's door; Ilse reads it.
+// and what she says after. The foundry folk keep the founders' casting ledger by the house's door; Petra reads it.
 // She speaks the Buried Machine's tongue, as the foundry folk do (src/levels/moon-foundry.js). Conversation format:
 // src/story/dialogue.js. Every line carries a tone.
 
@@ -13,14 +13,14 @@ export const QUEST = {
 
 export const PEOPLE = {
   ilse: {
-    id: 'ilse', name: 'Ilse', title: 'who keeps the founders’ ledger', color: '#c9703e', voice: 0.96, kind: 'f', lang: 'buried',
+    id: 'ilse', name: 'Petra', title: 'who keeps the founders’ ledger', color: '#c9703e', voice: 0.96, kind: 'f', lang: 'buried',
     palette: { cloak: '#c9703e', lining: '#efe6d2', cloth: '#e8d2a8', legs: '#45403f', hat: '#7f93a3', hair: '#5a3a2c' }, head: 'hair', cape: 0.4,
     lines: ['~neutral~ Moon forty-one: cracked. Moon forty-two: cracked. Very consistent.', '~tired~ The ledger is heavier than it looks. So is the house.', '~curious~ You hear it at night? The rolling?'],
     talk: {
       entry: [
         { if: { flag: 'temple.moonfoundry.done' }, node: 'after' },
         { if: { flag: 'temple.moonfoundry.entered' }, node: 'inside' },
-        // (Wen's count, done at the pillar's lookout: Ilse writes it in when you pass, no step of it, issue #137)
+        // (Wen's count, done at the pillar's lookout: Petra writes it in when you pass, no step of it, issue #137)
         { if: { all: [{ flag: 'met.ilse' }, { quest: 'moonfoundry.count', done: true }, { not: { flag: 'moonfoundry.ilse.counted' } }] }, node: 'count' },
         { if: { flag: 'met.ilse' }, node: 'again' },
         { node: 'hello' },
@@ -29,17 +29,17 @@ export const PEOPLE = {
         count: {
           say: ['~surprised~ You counted from the pillar? Thirty-two, then. Nobody gets it right from the floor. (She writes it in.)'],
           do: { set: { 'moonfoundry.ilse.counted': true } },
-          choices: [{ text: '~neutral~ And the house?', goto: 'again' }, { text: '~neutral~ Goodbye, Ilse.', end: true }],
+          choices: [{ text: '~neutral~ And the house?', goto: 'again' }, { text: '~neutral~ Goodbye, Petra.', end: true }],
         },
         hello: {
-          say: ['~neutral~ Ilse. I keep the founders’ ledger. Somebody has to, and the founders left a long time ago.',
+          say: ['~neutral~ Petra. I keep the founders’ ledger. Somebody has to, and the founders left a long time ago.',
             '~solemn~ That’s *the Casting-House*. The first moons were poured in there. Every page of the ledger starts at its door.',
             '~sad~ The night the singing light went over, every hung moon in the hangar turned on its hook to watch it go. And since then, at night, the house pours by itself. The floor shakes.'],
           do: { set: { 'met.ilse': true } },
           choices: [
             { text: '~neutral~ I’ll go in and look.', do: { start: 'temple.moonfoundry' }, goto: 'go' },
             { text: '~curious~ It pours by itself?', goto: 'pours' },
-            { text: '~neutral~ Goodbye, Ilse.', end: true },
+            { text: '~neutral~ Goodbye, Petra.', end: true },
           ],
         },
         pours: {
@@ -76,7 +76,7 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What’s on the ledger’s first page?', goto: 'first' },
             { text: '~happy~ Can I see the ledger?', goto: 'ledger' },
-            { text: '~neutral~ Goodbye, Ilse.', end: true },
+            { text: '~neutral~ Goodbye, Petra.', end: true },
           ],
         },
         // (the route's way on: the Garden of Spheres, src/story/spheres-data.js)

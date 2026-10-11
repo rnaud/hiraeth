@@ -356,7 +356,7 @@ Object.assign(ACTIONS, {
   meetMireille: meet('mireille', 'underwater.kelp'),
   meetWen: meet('wen', 'moonfoundry.count'),
   meetOttilie: meet('ottilie', 'moonfoundry.hook'),
-  // (the desert: Sabri in the camps sends you to the Givers' House once Qanat has fed your ship)
+  // (the desert: Sabri in the camps sends you to the Rose House once Qanat has fed your ship)
   askSabri: meet('sabri', 'temple.desert'),
   meetSel: meet('sel', 'spacecity.notes'),
   meetKip: meet('kip', 'spacecity.lamp'),
@@ -364,9 +364,9 @@ Object.assign(ACTIONS, {
 
 // ------------------------------------------------------------------ the route
 export const ROUTE = [
-  // (the Givers' House after the main quest: it asks for nothing the Hearth gives, and its blade and guard are the
+  // (the Rose House after the main quest: it asks for nothing the Hearth gives, and its blade and guard are the
   // traveller's before he leaves; tests/temples.test.js plays it on foot with nothing in hand)
-  // (Sabri in the camps sends you east to the Givers' House: the way there is not the way home past its field-stone)
+  // (Sabri in the camps sends you east to the Rose House: the way there is not the way home past its field-stone)
   { id: 'desert', play: ['desert.power', { act: 'askSabri', at: 'sabri', label: 'Sabri, in the camps' }, { temple: 'done', id: 'desert' }] },
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
@@ -377,16 +377,16 @@ export const ROUTE = [
   { id: 'edena', play: ['edena.garden', { temple: 'done', id: 'edena' }] },
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, done there (#137), then the Whale-House)
   // (v1.48: Bastien at the lock opens the city's own quest; the window over the deep, then in at the Whale-House's door)
-  { id: 'underwater', play: [{ act: 'meetBastien', at: 'bastien', label: 'Bastien, at the lock' }, { act: 'meetMireille', at: 'mireille', label: 'Mireille, in the kelp garden' }, 'underwater.kelp', 'underwater.note', { temple: 'done', id: 'underwater' }] },
+  { id: 'underwater', play: [{ act: 'meetBastien', at: 'bastien', label: 'Bastien, at the lock' }, { act: 'meetMireille', at: 'mireille', label: 'Brune, in the kelp garden' }, 'underwater.kelp', 'underwater.note', { temple: 'done', id: 'underwater' }] },
   { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the bellows, the light (the air pillars up), the pass
   // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
-  // (v1.48: Oren by the discs opens the dunes' own quest: the Clock-House's face read from the glass mound, then in at its door)
+  // (v1.48: Halden by the discs opens the dunes' own quest: the Clock-House's face read from the glass mound, then in at its door)
   { id: 'glassdunes', play: ['glassdunes.minute', { temple: 'done', id: 'garage', home: 'the float-posts' }] },
   // (v1.49: and the Engine-House to its guardian, its hub past the chest and both wings: issue #23)
   { id: 'buried', play: ['buried.tooth', { temple: 'done', id: 'buried' }] },
-  // (v1.40: the foundry: Ottilie's hook hung on the last furnace's crane, Wen's count at the pillar's lookout (#137), then the Casting-House)
+  // (v1.40: the foundry: Liesel's hook hung on the last furnace's crane, Wen's count at the pillar's lookout (#137), then the Casting-House)
   // (v1.48: Hedda on the apron opens the foundry's own quest: the hung moons from the old hoist, then in at the Casting-House)
-  { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Ottilie, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry' }] },
+  { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Liesel, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry' }] },
   { id: 'spheres', play: ['spheres.listen'] },
   // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for the Towers' cables (#137), then
   // the Mooring-House north of the Towers)

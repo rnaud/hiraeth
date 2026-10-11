@@ -9,7 +9,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 // is drawn with these, in its own world's palette, and inked like everything
 // else (flat colours; the post pass draws the lines).
 //
-//   const K = new TempleKit(root, 'The Givers’ house', origin, yaw, palette);
+//   const K = new TempleKit(root, 'The Rose House', origin, yaw, palette);
 //   K.hall({ x, z, w, d, y, h, doors: [{ side: 'n', at: 0, w: 5, h: 6 }], roof: 'oculus' })
 //   K.rotunda({ x, z, y, r, h, gaps: [{ a: 0, w: 5, h: 6 }] })
 //   K.stairs([x, y, z], [x, y, z], w) · K.ramp(a, b, w) · K.slab(x0, z0, x1, z1, y, t) · K.column(x, z, y, h, r)
@@ -228,7 +228,7 @@ const ORNAMENTS = {
     at(M.a, new THREE.SphereGeometry(1, 8, 5).scale(0.28, 1.25, 0.02), 0, -2.1, 0.02);
     at(M.b, new THREE.BoxGeometry(0.04, 2.3, 0.015), 0, -2.1, 0.035);
   },
-  /** the makers' three dots over an arc, cut into the stone (the Givers' House) */
+  /** the makers' three dots over an arc, cut into the stone (the Rose House) */
   mark(at, M) {
     for (const x of [-0.42, 0, 0.42]) at(M.b, new THREE.CircleGeometry(0.13, 8), x, -1.35, 0.012);
     at(M.b, flat(new THREE.TorusGeometry(0.55, 0.06, 3, 10, Math.PI * 0.8).rotateZ(Math.PI * 0.1), 0.3), 0, -2.05, 0.02);

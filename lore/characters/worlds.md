@@ -106,6 +106,15 @@ labelled as hypotheses. Nikko notices friction. Gaspard notices that his own
 footprints are older than they should be. Zazie mistrusts down for excellent
 local reasons. Each gets one specific concern; none needs a universal maxim.
 
+**Since the Hangar was dismissed (October 2026).** The world left the route; three
+of its people still travel and are met in the detours, each from a world the
+player can reach. **Ottla** is from the Glass Dunes, where she keeps the kilns'
+bellows going (the Forest of Antennas). **Lune** reads signals in the Signal
+Market, under Madame Sel's silent tower, and came to find where signals go when
+nobody answers (the Forest of Antennas). **Zazie** is a City-Shaft child: down
+goes on for ever there, which is why she mistrusts it (the Underside). None of
+them mentions the Hangar.
+
 ## The Buried Machine: people living inside a calendar
 
 **Wen** counts lives in teeth of the wheel; forty-one teeth old. Writing

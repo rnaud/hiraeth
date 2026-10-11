@@ -3,7 +3,7 @@ import { game } from './game-state.js';
 
 // The traveller's items: what they have found (in boxes, through quests) and
 // can use. He starts with nothing in his hands (v1.44): the fluid sword and the shield's guard (src/fluid-blade.js) are
-// found in the Givers' House, the desert's temple (`sword`, `shield`; src/temples/desert.js). The magic-fluid
+// found in the Rose House, the desert's temple (`sword`, `shield`; src/temples/desert.js). The magic-fluid
 // backpack holds the fluid: without it there is no double jump, no glider, no jetpack, no gun
 // (the glove drinks from it) and vehicles cannot be powered.
 //
@@ -27,15 +27,15 @@ import { game } from './game-state.js';
 // shows name, text ("what it is") and use ("what it does").
 
 export const ITEMS = {
-  // the fluid sword and the shield's guard (v1.44: found in the Givers' House; before, his from the start). Without
+  // the fluid sword and the shield's guard (v1.44: found in the Rose House; before, his from the start). Without
   // them the blade button and the guard do nothing, and neither is drawn on him (main.js: tool.swordOn, tool.shieldOn)
   sword: {
-    name: 'Givers’ blade', kind: 'weapon', where: 'In the Givers’ House, the rose-stone drum in the dunes east of Qanat: on the dais under the sword chamber’s oculus.',
+    name: 'Givers’ blade', kind: 'weapon', where: 'In the Rose House, the great stone drum in the dunes east of Qanat: on the dais under the sword chamber’s oculus.',
     text: "A hilt of old brass, its cup worn smooth by other hands. Held, the fluid grows out of it into a blade: the Givers cut their thorns and their roads with it.",
     use: 'Cut with {key:blade}: three cuts in a row, the third the heaviest; hold it to charge a sweeping cut. It cuts dry thorns, strikes the makers’ eyes awake and sends a stone ball rolling far along its groove.',
   },
   shield: {
-    name: 'Givers’ guard', kind: 'weapon', where: 'In the Givers’ House: on the far landing of the Hall of Fires, before the windy hall.',
+    name: 'Givers’ guard', kind: 'weapon', where: 'In the Rose House: on the far landing of the Hall of Fires, before the windy hall.',
     text: "A folded disc of brass on a bracer for the left hand. It opens like a fan and holds like a wall.",
     use: 'Hold {key:guard} to raise it: it takes a blow from in front (with the backpack, a unit of the magic bar), and a guard raised just in time turns the blow back. Raised, it breaks a wind that would push you back.',
   },

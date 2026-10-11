@@ -48,7 +48,7 @@ const gadgetsOf = (id) => Object.values(TEMPLES[id]?.def.logic.elements ?? {}).f
 // what the traveller carries in by then (the audit once solved every temple with the backpack alone, so no ball rolled,
 // no eye was shot and no tether pulled: no temple solved, and every door counted shut for the sight lines): the
 // backpack, the gun and the double jump from the desert's boxes, and each gadget of the temples before it on the route.
-// The Givers' House (v1.44) is walked into with empty hands: the backpack and the double jump only (the gun is the
+// The Rose House (v1.44) is walked into with empty hands: the backpack and the double jump only (the gun is the
 // Hearth's, and the house never asks for it); the blade and the guard it holds are carried into every temple after it
 const carriedInto = (id) => {
   const k = ROUTE_TEMPLES.indexOf(id);

@@ -1,15 +1,15 @@
 // The City Floating in Space's people with something to do (on the route since v1.40, before the Signal Market:
 // src/levels/names.js ORDER), placed by src/levels/space-city.js (SPACECITY_CONTENT npcs), their errands defined by
 // src/story/spacecity.js. The world's thread is its temple, the Mooring-House on its own island (src/temples/spacecity.js,
-// Joss the moorer at its door); these are the city's folk and its visitors: Tamar who minds the cables (the light's trace,
+// Joss the moorer at its door); these are the city's folk and its visitors: Ines who minds the cables (the light's trace,
 // kept from the world's days as a detour), Madame Sel and Kip of the Signal Market. Each errand ends where its goal is
-// (issue #137): Sel's notes laid on the cables under the Towers, Kip's lamp in the crow's nest; Tamar says her word on the
+// (issue #137): Sel's notes laid on the cables under the Towers, Kip's lamp in the crow's nest; Ines says her word on the
 // notes when you pass, and is no step. Every line carries a tone.
 
 /** What the city gives you to keep (src/story/spacecity.js, when the Anchor-Warden is resolved). */
 export const KEEPSAKE = {
   id: 'spacecity.cables', level: 'spacecity', kind: 'knowing', name: 'What the cables are for',
-  text: 'The cables under the islands were never holding them up. Tamar says so, and Joss, and the hum in them: they hold the islands together by listening to each other, and to whatever passes in the dark.',
+  text: 'The cables under the islands were never holding them up. Ines says so, and Joss, and the hum in them: they hold the islands together by listening to each other, and to whatever passes in the dark.',
 };
 
 /** The things carried for the errands. */
@@ -30,7 +30,7 @@ export const QUESTS = [
   {
     id: 'spacecity.notes', title: 'The Planet’s Hum', world: 'spacecity',
     outro: 'Laid on the cable, Sel’s notes kept time with its hum, stroke for stroke. The city and the planet are humming one tune.',
-    // (laid where they are used, issue #137: Tamar's step went, she says her word when you pass; a save at it goes on to
+    // (laid where they are used, issue #137: Ines's step went, she says her word when you pass; a save at it goes on to
     //  `cables`, src/save-migrate.js QUEST_STAGE_MOVES_137; the cables' own talk lays them, THINGS.cables below)
     stages: [
       { id: 'cables', text: 'Lay Sel’s notes on the cables under the Towers', label: 'The cables under the Towers', flag: 'spacecity.notes.laid', at: 'towerCables', via: 'the Towers bridge' },
@@ -163,9 +163,9 @@ export const PEOPLE = {
     },
   },
 
-  // Tamar who minds the cables (the light's trace: the ship with no name that hailed them with a sung note)
+  // Ines who minds the cables (the light's trace: the ship with no name that hailed them with a sung note)
   tamar: {
-    id: 'tamar', name: 'Tamar', title: 'who minds the cables', color: '#d98a7a', voice: 1.0, kind: 'f',
+    id: 'tamar', name: 'Ines', title: 'who minds the cables', color: '#d98a7a', voice: 1.0, kind: 'f',
     head: 'wrap', cape: 0.7,
     lines: ['~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.', '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.'],
     talk: {
@@ -181,19 +181,19 @@ export const PEOPLE = {
             '~curious~ The cables kept the note. The night they sang, it came by again, fast and very high. It didn’t stop this time.',
             '~whisper~ It was going somewhere.'],
           do: { set: { 'sight.spacecity.tamar': true, 'spacecity.rumour.light': true } },
-          choices: [{ text: '~curious~ And the cables since?', goto: 'since' }, { text: '~neutral~ Goodbye, Tamar.', end: true }],
+          choices: [{ text: '~curious~ And the cables since?', goto: 'since' }, { text: '~neutral~ Goodbye, Ines.', end: true }],
         },
-        since: { say: ['~sad~ They hum that note night and day. And the islands drift, a hand’s width a night. Joss at the Mooring-House says something in there is letting the cables out.'], choices: [{ text: '~neutral~ Goodbye, Tamar.', end: true }] },
+        since: { say: ['~sad~ They hum that note night and day. And the islands drift, a hand’s width a night. Joss at the Mooring-House says something in there is letting the cables out.'], choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }] },
         again: {
           say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~sad~ Feel that? The bridge creaks. Another hand’s width tonight. The Mooring-House is north of here, over the long bridge.' },
             { if: { flag: 'temple.spacecity.done' }, text: '~happy~ Taut, all of them. My grandmother would have cried. I did, a bit. Don’t tell the Market.' }],
-          choices: [{ text: '~neutral~ Goodbye, Tamar.', end: true }],
+          choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }],
         },
         notes: {
           say: ['~curious~ That was Sel’s paper on my cable? It kept her line, stroke for stroke.',
             '~solemn~ So the planet’s talking, and my cables have been listening all along. She isn’t going mad. We both are.'],
           do: { set: { 'spacecity.tamar.notes': true } },
-          choices: [{ text: '~neutral~ Goodbye, Tamar.', end: true }],
+          choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }],
         },
       },
     },

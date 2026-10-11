@@ -352,7 +352,7 @@ export function setupDesert(ctx) {
   // water from your tank: walked in with an empty tank, you are told where to fill it (it once sent you for the gun)
   game.on('flag:temple.desert.entered', (v) => {
     if (!v) return;
-    if (dry()) setTimeout(() => toast('Your tank is empty, and the Keeper deep in the Givers’ House will want water. Fill it at the giant’s pool past Qanat’s back gate.'), 2500);
+    if (dry()) setTimeout(() => toast('Your tank is empty, and the Keeper deep in the Rose House will want water. Fill it at the giant’s pool past Qanat’s back gate.'), 2500);
   });
 
   // ---------------------------------------------------------------- the drum, and the mask's eyes

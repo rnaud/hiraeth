@@ -249,7 +249,7 @@ walkthroughs and local names; each data file's header lists its flags.
 | Underwater City (v1.48) | *The Wrong Note*: Bastien at the lock, an ear on the window over the deep, in at the Whale-House's door (the temple's quest takes it on) | the whales' answer (song), when the Whale-House's keeper is calmed |
 | Moon Foundry (v1.48) | *Nobody Poured It*: Hedda on the apron, the hung moons seen from the old hoist's first deck, in at the Casting-House's door | a pocket moon (thing), when the Last Founder stops |
 | City Floating in Space (v1.48) | *A Hand's Width a Night*: Rosa on the Pier, a hand on the cables by the Moorings bridge, in at the Mooring-House's door | what the cables are for (knowing), when the Anchor-Warden is resolved |
-| Glass Dunes (v1.48) | *The Minute It Stopped*: Oren by the discs, the Clock-House's face read from the glass mound, in at its door | Wim's tick (song), when the Foreman keeps time |
+| Glass Dunes (v1.48) | *The Minute It Stopped*: Halden by the discs, the Clock-House's face read from the glass mound, in at its door | Wim's tick (song), when the Foreman keeps time |
 
 The four of v1.48 (issue #101): until then the temple's own quest was the whole of these worlds' thread. Each world's own
 main quest is opened by someone a few steps from the ship (`quests.opensWith`), is three steps long and ends at the
@@ -661,6 +661,21 @@ sound to make it clear I should chat with her".
   "The traveller", is **Naji**. Only names changed: ids and flags are kept (`hask`, `pip.garage`,
   `wick`…), so saves carry on. `tests/names.test.js` fails if two people (story people, the
   level people, the temple guides, the drifters) share a name or a name is "The traveller".
+- **Names a player can keep apart** (v1.49, issue #141, from the dialogue review
+  docs/audits/dialogue-v1.48.md): the desert's temple, the Givers' House, is **the Rose House**
+  (the Givers' Hearth is a few minutes away; the pilgrims already called it "the rose-stone
+  house"); the Underwater City's Mireille is **Brune** (beside Maelle), the eclipse's Ansel
+  **Yusuf** (beside Anselme; the city speaks the desert's tongue, and no other name starts Yu),
+  the Glass Dunes' Oren **Halden** (Oro), the Moon Foundry's Ilse **Petra** (Ilen, Ilo) and
+  Ottilie **Liesel** (Ottla), the floating city's Tamar **Ines** (Tamra, Tamsy, Tam). Ids, flags
+  and quest ids are kept (`mireille`, `ansel`, `oren`, `ilse`, `ottilie`, `tamar`,
+  `temple.desert`, `sight.eclipse.ansel`…), so saves carry on. Lune, Ottla and Zazie, the
+  dismissed Sealed Hangar's, met in the detours, come from worlds the route reaches now: Lune
+  from the Signal Market (the Forest of Antennas), Ottla from the Glass Dunes (the same) and
+  Zazie from the City-Shaft (the Underside), speaking those tongues; their `world` stays
+  `garage` for the looks drawn for them. `tests/names.test.js` fails if an old name comes back
+  in the game's code outside comments (the dismissed Hangar, the save migrations and the
+  changelog's history aside), or if the three mention the Hangar again.
 
 ## Quests played out of order (the story pass, October 2026)
 
@@ -737,10 +752,10 @@ idea." "All quests should be solvable by just going to the end if you can."
 - **The new worlds' carries, done where the thing is used** (#137, v1.49): the Moon Foundry, the City Floating in
   Space and the Underwater City had errands that carried something from one person to another, and the foundry's
   route ran four talks in a row. Each now ends at its goal: Wen's count at the pillar's lookout (the lookout reached
-  sets `moonfoundry.moons.counted` and starts the errand if Wen hadn't asked: `src/story/moonfoundry.js`), Ottilie's
+  sets `moonfoundry.moons.counted` and starts the errand if Wen hadn't asked: `src/story/moonfoundry.js`), Liesel's
   ladle-hook on the jib crane at the last furnace (`level.crane`), Sel's notes laid on the cables under the Towers (the
   cables' own talk, which is the main quest's hand on them too), the kelp cutting as you come up into the Crown. Fabre's
-  word down to Maelle (*Lamps for the Whales*) is no quest. Ilse, Bertil, Tamar, Fabre and Maelle say their word when
+  word down to Maelle (*Lamps for the Whales*) is no quest. Petra, Bertil, Ines, Fabre and Maelle say their word when
   you pass (a once-only entry, flag `<world>.<who>.<thing>`), and are no step. `src/save-migrate.js` step 17
   (`QUEST_STAGE_MOVES_137`) moves a save on a removed step on, the thing used. `tests/quest-steps.test.js` (no quest
   in these worlds needs two talks in a row or ends on one), `tests/goal-reached-early.test.js` (each goal reached

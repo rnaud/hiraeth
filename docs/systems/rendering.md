@@ -1042,7 +1042,7 @@ pictures print it (references/levels/The City Floating in Space/).
 ## Z-fighting (scripts/zfight, `Z_GAP`; v1.44)
 
 Two faces of different looks lying in one plane are drawn in an order the depth buffer can't decide: they stripe
-and flicker as the camera moves (the author's issue #75, the Givers' House's "ton of visual artifacts"). The
+and flicker as the camera moves (the author's issue #75, the Rose House's "ton of visual artifacts"). The
 `zfight-qc` skill (`.claude/skills/zfight-qc/SKILL.md`) finds them by geometry in node: every visible static mesh's
 triangles, bucketed by plane, each pair of looks (a material, and for the temples' vertex-coloured paint its colour)
 within 4 mm, parallel and overlapping by more than 0.05 m² is a **site** (one per pair of looks per 3 m), kept only if
@@ -1054,14 +1054,14 @@ temples; `node scripts/zfight/list-temple.mjs <id>` lists one temple's sites in 
 opening over the wall's own reveal, and its lintel 2 cm under the wall over the hole; a sill stops 2 cm under the hole's
 foot, under the floor laid through it; a hall's roof stops 2 cm inside its walls' outer faces (a taller hall beyond
 sees that face); a wall's end at a side the hall leaves open stops 2 cm short of the far face of the wall that closes
-it. The Givers' House's layout started its corridors and gallery inside the walls they meet, not on their faces.
+it. The Rose House's layout started its corridors and gallery inside the walls they meet, not on their faces.
 
 Visible sites, before → after (v1.44; `ZFIGHT_BASELINE` in `tests/zfight.test.js` holds each temple to its count, the
-Givers' House to none):
+Rose House to none):
 
 | world | the world (all) | its temples |
 |---|---|---|
-| desert | 105 → 18 | the Givers' House 87 → **0** |
+| desert | 105 → 18 | the Rose House 87 → **0** |
 | incal | 4007 → 3971 | the Warden's Well 83 → 47 |
 | arzach | 153 → 22 | the Founders' Belfry 84 → 11, the Aerie 66 → 8 |
 | glassdunes | 60 → 4 | the Clock-House 59 → 3 |

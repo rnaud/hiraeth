@@ -73,12 +73,14 @@ export const UNDERSIDE_CONTENT = {
     label: 'the tip deck', goal: [(TIP.x0 + TIP.x1) / 2 + 12, DECK, (TIP.z0 + TIP.z1) / 2], radius: 9, verticalRadius: 4, manual: true,
   },
   relics: { spots: [], names: [] },
-  // three people from elsewhere who came to see the town hung under the rock, and its own folk
+  // three people from elsewhere who came to see the town hung under the rock, and its own folk.
+  // (Zazie was the Sealed Hangar's; since it was dismissed she comes from the City-Shaft (issue #141) and speaks its
+  // tongue. `world` stays the Hangar's, for the body drawn for her.)
   npcs: [
-    { ...GARAGE_PEOPLE.pip, at: [20, -60], y: DECK, radius: 2, world: 'garage', lang: 'garage',
+    { ...GARAGE_PEOPLE.pip, at: [20, -60], y: DECK, radius: 2, world: 'garage', lang: 'incal',
       lines: ['~surprised~ Don’t look down. I looked down. There’s nothing down there but more down.', '~playful~ Everything here hangs off something. I keep checking what I hang off.'],
       talk: { listen: [
-        '~neutral~ I don’t trust down. I never have. Here down is all there is.',
+        '~neutral~ I don’t trust down. In the City-Shaft it goes on for ever. Here it goes into cloud, which is worse.',
         '~curious~ They built the town under the rock so the rain can’t find it. The rain comes up out of the cloud anyway, they say. Sideways.',
         '~playful~ I asked how they mend a deck. They lower a man on a rope with a hammer. He whistles the whole way.',
         '~whisper~ The red cloths are for whoever lives under the cloud. So they know which way is up.',

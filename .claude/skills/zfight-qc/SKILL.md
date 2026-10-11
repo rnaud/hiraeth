@@ -55,7 +55,7 @@ layout's (a slab placed flush on a wall's face).
 
 ## 3. Keep it fixed
 
-`tests/zfight.test.js` holds every temple to its count (`ZFIGHT_BASELINE`), the Givers' House at none. Lower a
+`tests/zfight.test.js` holds every temple to its count (`ZFIGHT_BASELINE`), the Rose House at none. Lower a
 baseline when a fix lands; a new site in a temple fails the test with where it is and the command to list them.
 The worlds outside the temples are counted by `audit.mjs` and reported in docs/systems/rendering.md "Z-fighting"
 (not tested: a world takes seconds to build, the City-Shaft minutes).

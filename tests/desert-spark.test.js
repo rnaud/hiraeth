@@ -116,7 +116,7 @@ test('the cold tree: no burn, ember mode only hisses on it, and the well refuses
   assert.equal(Q.city.lit, 0);
   const inFlame = { pos: Q.city.crown.clone().add(V(0, -6, 0)), vel: V(0, 0, 0), hurt() {} };
   assert.equal(updateHazards(0.5, inFlame), null, 'nothing burns in a cold crown');
-  // an ember glob (the Givers' House's ember mode) spits and dies on it
+  // an ember glob (the Rose House's ember mode) spits and dies on it
   const tree = allTargets().find((t) => t.kind === 'tree');
   assert.ok(tree.accepts.includes('fire'));
   tree.onHit('fire');

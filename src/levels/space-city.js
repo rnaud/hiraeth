@@ -95,7 +95,7 @@ export const SPACECITY_CONTENT = {
         '~curious~ The dust doesn’t fall here. You sweep it over the parapet and it hangs there in the dark, a little cloud of it, for days.',
         '~happy~ The people here sweep toward the planet. For luck, they say. I sweep toward the planet now too.',
       ] } },
-    // (Madame Sel's errand: her notes on the planet's hum to Tamar on the Towers, src/story/spacecity-people.js VISITORS)
+    // (Madame Sel's errand: her notes on the planet's hum to Ines on the Towers, src/story/spacecity-people.js VISITORS)
     { ...BAZAAR_PEOPLE.sel, ...SC_VISITORS.sel, at: [8, I0.balcony.z - 12], y: 0, radius: 2, world: 'bazaar', lang: 'bazaar' },
     // the city's own folk
     // (v1.48, issue #101: Rosa, who chalks the bridges: the city's main quest is hers, src/story/spacecity-people.js)
@@ -103,7 +103,7 @@ export const SPACECITY_CONTENT = {
     { at: [6, I0.gate.z + 12], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Welcome to the Gate. We sweep the lane every morning, so mind your boots.', '~whisper~ Don’t lean on the parapet at the corner. It leans back.'] },
     // (Liane: her flask of lamp oil goes to the Signal Market, src/levels/content.js errands)
     { id: 'liane', name: 'Liane', title: 'who sells at the plaza', color: '#e89a7e', kind: 'f', at: [PLAZA.x + 10, PLAZA.z + 6], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Lamp oil, cloth, bread from the garden! Everything grows up here, even bread.', '~playful~ Sit, eat. Nothing falls off a table here. Things fall off the island.'] },
-    // (Tamar: the light's trace from the world's detour days, and her word on Sel's notes: src/story/spacecity-people.js)
+    // (Ines: the light's trace from the world's detour days, and her word on Sel's notes: src/story/spacecity-people.js)
     { ...SC_PEOPLE.tamar, at: [I0.towers.x - 6, I0.towers.z + 10], y: 6, radius: 3, lang: 'spacecity' },
     { at: [I0.garden.x + 4, I0.garden.z - 6], y: -4, radius: 3, lang: 'spacecity', lines: ['~tired~ Every tree here was carried over a bridge in a pot. Every one.', '~happy~ Sit under the dark ones. They grow toward the planet, not the sun.'] },
   ],

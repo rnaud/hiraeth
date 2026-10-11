@@ -301,7 +301,7 @@ export const GLASS_CONTENT = {
     { ...LOCALS.corin, at: [-112, 38], radius: 2, palette: pal('#4f8a7f') },
     { at: [16, -186], radius: 3, palette: pal('#c98a4a', { cloth: '#3f4b44' }), lines: ['~solemn~ The wave has been breaking over this camp for longer than we have names.', '~happy~ It has not finished yet. We are in no hurry.'] },
     { at: [-66, -214], radius: 2, palette: pal('#e6d3b8'), lines: ['~curious~ The archways only open to the light. Stand here when the sun is low.', '~neutral~ Beyond? More glass. It is always more glass.'], shy: true },
-    // (Oren, resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
+    // (Halden, resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
     { ...LOCALS.oren, at: [24, 228], radius: 2, palette: pal('#5fb7ad', { cloth: '#e6d3b8' }) },
   ],
   // the detour's trace (src/story/sightings-detours.js): the mark pressed into the glass from above, by the west camp

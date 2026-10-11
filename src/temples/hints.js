@@ -54,7 +54,7 @@ function hiddenVent(g, n) {
 }
 
 export const BOSS_HINTS = {
-  // the Givers' House: the Keeper of the cistern (organic: calmed)
+  // the Rose House: the Keeper of the cistern (organic: calmed)
   desert: {
     phases: [
       ['It is afraid of the dark round the walls.',

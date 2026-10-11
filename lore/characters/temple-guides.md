@@ -8,7 +8,7 @@ believe about the makers. On a repeat visit, put the next action first.
 
 | Guide / house | Established connection | Writing premise and voice |
 |---|---|---|
-| Sabri / Givers' House, Qanat | Digs wells. | A person who trusts a measured depth more than an ancient claim. Friendly, physical instructions; mild professional envy of the makers' plumbing. |
+| Sabri / Rose House, Qanat | Digs wells. | A person who trusts a measured depth more than an ancient claim. Friendly, physical instructions; mild professional envy of the makers' plumbing. |
 | Vell / Warden's Well, City-Shaft | Lights the rim's lamps. | Notices which useful things the wealthy have forgotten are being maintained. Dry, economical, practical about levels and access. |
 | Lark / Aerie, Vael | Sweeps the steps. | Has learned the bird's habits through daily work. Sparse speech, patient gestures; more verbal than Oïa, never a lore lecturer. |
 | Agathe / Founders' Belfry, Vael II | Keeps the founders' bridge. | Respects a ritual most when it gets someone safely across. Orderly, ceremonious, with small admissions of inconvenience. |

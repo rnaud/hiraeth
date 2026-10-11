@@ -270,7 +270,7 @@ never seen one open.
 **Their gifts** (`src/items.js`, `src/boxes/placements.js`), half in the
 open and half in the temples (§11 has why):
 - *In the open*: the **magic-fluid backpack** (desert, the tree's ledge in Qanat: shoot, push, boost; it powers vehicles; it comes out of its chest empty and first fills at the giant's pool), the **pale star** (desert, a roof inside Qanat's gate: worn on the hood, does nothing, looks very good), the **soft-fall soles** (City-Shaft, the makers' pillar on the rim), the **hush-cloth** (Vael, the cap of the needle spire north of the landing), the **wind-silk scarf** (Vael II, the top of the balanced stack), the **brass level** (Hangar, the keep's south wall), the **climber's resin** (Buried Machine, the chimney stack's ring), the **seed pouch** (Viridel, an umbrella tree's top canopy), the **listening shell** (Spheres, the grove's umbrella canopy), the **breathing reed** (Lorn, the mossy rise among the creatures) and the **glow-moss pin** (Lorn II, the first root arch). The Signal Market has no chest in the open.
-- *In the temples* (each one's key): **ember mode** (the Givers' House: a fire that hurts nobody), the **fluid jets** (the Warden's Well), the **fluid wings** (the Aerie), the **bell-note whistle** (the Founders' Belfry: a little whistle of blue-glazed clay shaped like a bell, not bone: the rider's whistle in Vael's tower is the bone one; one clear bell note, the same in every world; nearby chests answer), the **quick coil** (the First Garage: faster refill), the **fourth chamber** (the Engine-House: four charges), **bloom mode** (the Builders' Greenhouse: the makers' plants grow), the **glyph lens** (the Footprint: shows unopened chests from afar, and what is hidden), the **stilling mode** (the Hush-House: freezes for a few seconds), the **lantern charm** (the Lamp-House: never goes out) and the **echo shell** (the Undertower: keeps a note and plays it back).
+- *In the temples* (each one's key): **ember mode** (the Rose House: a fire that hurts nobody), the **fluid jets** (the Warden's Well), the **fluid wings** (the Aerie), the **bell-note whistle** (the Founders' Belfry: a little whistle of blue-glazed clay shaped like a bell, not bone: the rider's whistle in Vael's tower is the bone one; one clear bell note, the same in every world; nearby chests answer), the **quick coil** (the First Garage: faster refill), the **fourth chamber** (the Engine-House: four charges), **bloom mode** (the Builders' Greenhouse: the makers' plants grow), the **glyph lens** (the Footprint: shows unopened chests from afar, and what is hidden), the **stilling mode** (the Hush-House: freezes for a few seconds), the **lantern charm** (the Lamp-House: never goes out) and the **echo shell** (the Undertower: keeps a note and plays it back).
 
 **The tank's colours.** The tank comes out of the desert's chest empty; the
 giant's pool fills it with cyan and violet and the pool's own coral at once.
@@ -403,7 +403,7 @@ the tree once, long ago, with a stone carried from their hearth, the
 **spark-stone**, and the keepers put it back in the Hearth afterwards; the tree
 had never gone out since, so nobody living had needed it. Nothing else lights
 living water: Ama's torches, the camp fires and the tank's own fire (ember mode,
-the Givers' House) only hiss on the wet bark (and before the water rises, the
+the Rose House) only hiss on the wet bark (and before the water rises, the
 wood itself never burned: only the water in it ever did).
 
 People:
@@ -473,7 +473,7 @@ opens on a constellation).
 
 Keepsakes: *knowing* "What the giants left" (the cave's mural: the giants
 carried the water; the tree drinks what they left); *song* "Teo's walking
-rhythm". Chests: the backpack, the pale star (ember mode waits in the Givers' House, §11).
+rhythm". Chests: the backpack, the pale star (ember mode waits in the Rose House, §11).
 
 Ties: the giants "came down from the swamp of lights" (Lorn); the light was
 seen the night before the ship came down, and the tree went out under it; the glyph is "the Givers' mark", "even you,
@@ -487,14 +487,14 @@ fire-bearer. Errands start here (a jar of singing sand for the City-Shaft).
   (older saves) can still push it.
 - *Where the tank fills*: the first wade in the risen pool (the same moment the jar fills).
   Every early step that wanted fluid was rerouted: the drum's knuckle is heaved by hand while
-  the tank is empty; the bike, the masked head's eyes and the Givers' House wait for a filled
+  the tank is empty; the bike, the masked head's eyes and the Rose House wait for a filled
   tank (Sabri and a toast on entering the house say so); a press on an empty tank only
   sputters, and the HUD reads "empty".
 - *The tank's colours*: it starts with nothing; the giant's pool fills it with cyan, violet and
   the pool's coral at once (the "starting" two tones and the desert's band arrive together).
 - *The well fills itself, from below*, once the channel runs (the roots carry the water up):
   you go back and watch it rise. The jar is not poured into it.
-- *Ember mode and the tree*: the Givers' House can be done before the tree is lit, but ember
+- *Ember mode and the tree*: the Rose House can be done before the tree is lit, but ember
   fire is the tank's own water set alight, and living water does not take it: only the spark
   it was first lit with. So ember mode lights braziers, brambles and lamps, never the tree.
 - *The ship's power*: Qanat's gift, not the tree's by itself (October 2026, the third clarity
@@ -1300,19 +1300,19 @@ fires and dry brambles were always there to be lit. The City-Shaft is the one
 world you can hardly cross without your temple's gadget: its quest starts as
 you land, and the scout knows the way.
 
-### The Givers' House (the Desert)
+### The Rose House (the Desert; the Givers' House until v1.49)
 A great drum of rose stone, cornice, fins and a low pink dome, half sunk in the
 high dunes east of Qanat (you see it from the walls); its door looks toward the
 city. Qanat calls it the house of the Givers: the water once came from there,
 down channels to the fields round the walls, until one year it stopped and the
 fields went to sand.
 - **The local: Sabri**, who digs wells (every one dry), at the camps' east
-  edge. Her grandmother's stories: the Givers' house, the Keeper "who let the
+  edge. Her grandmother's stories: the Rose House, the Keeper "who let the
   children ride on its shell to the fields", a lamp left lit for it in the
   fields because it hated the dark. Afterwards: the old channel runs, "I am
   going to dig a well that has water in it. Just to see what that's like."
 - **Before the tree is lit**: the house wants the fluid from its first room (the push, the
-  splash), so it waits for a filled tank (Sabri: "Nothing in the Givers' house will answer an
+  splash), so it waits for a filled tank (Sabri: "Nothing in the Givers' House will answer an
   empty jar"; walking in empty, a toast sends you to the giant's pool). Its ember mode does not
   light Qanat's tree: ember fire is the tank's own water set alight, and the tree's living water
   takes only the spark-stone's fire (section 6, the desert). The house's world change (the
@@ -1751,7 +1751,7 @@ if you put your ear to the stones.
   grandfather swore there was a house in the dunes that the water came from").
 - Ket (Buried Machine) still says a chest waits "on the chimney ring" (it does:
   the resin now). Nour's lines about the desert's makers do not mention the
-  Givers' House; Sabri carries that.
+  Rose House; Sabri carries that.
 - The City-Shaft's main quest still reads as if you could reach Nima without
   the jets; the temple quest says where they are.
 - ~~Lorn's section 9 still says its chest holds the stilling mode ("the sky-egg"),

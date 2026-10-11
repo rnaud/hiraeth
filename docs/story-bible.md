@@ -316,7 +316,9 @@ as they were, in the one world.)*
 
 ### 8. The Sealed Hangar — "The Major Forgot"
 *(Dismissed in October 2026, kept whole in `src/levels/dismissed/hangar/` with its people and story, to be used
-elsewhere; its temple went to the Glass Dunes, below. Its place on the route is the Glass Dunes'.)*
+elsewhere; its temple went to the Glass Dunes, below. Its place on the route is the Glass Dunes'. Three of its people
+still travel the detours, homed since v1.49 in worlds the route reaches: Ottla in the Glass Dunes, Lune in the Signal
+Market and Zazie in the City-Shaft; none of them mentions the Hangar.)*
 - **Local story**: Major Brask built this pocket universe and forgot why.
   His people keep the machines turning out of habit, passing a signal around
   the three zones that nobody can read.
@@ -334,7 +336,7 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   round stair-house of the makers with a clock over its door; its works set the
   pace for the camps' clocks, and they all stopped the night the singing light
   passed. Something underneath has been winding tighter ever since.
-- **Quests**: the dunes' own, *The Minute It Stopped* (v1.48): Oren, who carries
+- **Quests**: the dunes' own, *The Minute It Stopped* (v1.48): Halden, who carries
   the floats, by the makers' discs next to the ship: every clock in the dunes
   stopped the night the light passed, each at its own minute, and the Clock-House's
   first; climb the glass mound by the warm flow and read its face (seven minutes to
@@ -364,7 +366,7 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   in at the Whale-House's door. The temple, **the Whale-House** (Anselme at its
   door; Maelle in the Whale Gallery tells why the whales keep away): find the
   makers' **whale-horn** inside and calm its keeper. An errand of the city's
-  own: Mireille's glow-kelp cutting up the lift to Fabre's window box in the Crown
+  own: Brune's glow-kelp cutting up the lift to Fabre's window box in the Crown
   (*A Cutting for the Crown*, done as you come up into the Crown). Fabre has lit
   the Crown's lamps every dusk for the whales; Maelle hears of it when you pass
   (no quest since v1.49, #137). Odette keeps the Air-Shop; Bastien the lock;
@@ -405,12 +407,12 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   small moons on the apron by the ship, found a moon in her mould at dawn that
   nobody there poured; from the old hoist's first deck every hung moon faces one
   way, at the Casting-House; then in at its door. The temple, **the Casting-House**
-  (Ilse at its door with the founders' ledger): find the **founders' tongs** inside
+  (Petra at its door with the founders' ledger): find the **founders' tongs** inside
   (the push takes hold of the iron moons) and stop the Last Founder. Two errands of the foundry's
   own: Wen of the Buried Machine, on holiday, wants the moons counted from the
   lookout on the pillar under the moon on its pillar (*Thirty-One Moons*: there are
-  thirty-two, one in the mould; done up there, and Ilse writes it in when you
-  pass); Ottilie's mended ladle-hook hung on the crane at Bertil's furnace (*The
+  thirty-two, one in the mould; done up there, and Petra writes it in when you
+  pass); Liesel's mended ladle-hook hung on the crane at Bertil's furnace (*The
   Ladle-Hook*). Gunnar keeps the Crucible.
 - **Keepsake**: *thing*: a pocket moon, the last the Casting-House poured, still warm.
 - **Trace (from its detour days)**: Bertil cast the mark on a plate for a lone
@@ -454,12 +456,12 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   Moorings, feels them pull north; then in at the Mooring-House's door. The temple,
   **the Mooring-House** (Joss the moorer at its door): find **tether mode** inside
   (a cone that pulls instead of pushing) and resolve the Anchor-Warden. Two errands of the city's own: Madame Sel's notes on
-  the planet's hum laid on the cables under the Towers (*The Planet's Hum*; Tamar
+  the planet's hum laid on the cables under the Towers (*The Planet's Hum*; Ines
   says the cables kept the line when you pass), and one of Kip's
   nine lamps hung at the far end of the Moorings bridge (*A Lamp at the Edge*).
   Amaro keeps the Oil-Lamp Shop: the city pays in lamp oil.
 - **Keepsake**: *knowing*: what the cables are for: not holding the islands up, listening.
-- **Trace (from its detour days)**: Tamar: a ship with no name, one pilot alone,
+- **Trace (from its detour days)**: Ines: a ship with no name, one pilot alone,
   hailed the city with a sung note; the night the sky rang the same note passed
   again, fast and high, going somewhere.
 - **Clue**: with the cables taut, the planet's hum carries a broadcast from a
@@ -603,11 +605,11 @@ time it is told (`sight.<id>`; the route's own sightings are listed in src/story
 | The Salt Harbour | The harbour book (Hesper): the line before yours is in home letters, a woman who came alone; "…where the singing goes. If anyone from home…"; the salt has eaten her name | before |
 | The Forest of Antennas | Grete: her grandmother's dish caught a man's voice ("…older when you hear it…"), and under the hiss something singing his words back, as if learning them | signal |
 | The Underwater City (on the route since v1.40) | Coralie: a woman from up top listened all night to the whales; one sang something she knew, and she hummed it back | before |
-| The City During the Eclipse | Ansel: the light hung singing where the black sun sits; by morning every figure on the walls leaned the way it went | light |
+| The City During the Eclipse | Yusuf: the light hung singing where the black sun sits; by morning every figure on the walls leaned the way it went | light |
 | The Fallen Ring | The makers' sign burned fresh into the tilted piece's foot, by a hand that learned it: the arc wavers and starts again | glyph |
 | The Moon Foundry | Bertil cast the mark on a plate for a lone woman's ship's nose; she drew it in soot like a new word: "So they'll know me" | before |
 | The Underside | Maudie: a woman wintered alone and played a man's voice every night, always stopping it before the end | signal |
-| The City Floating in Space (on the route since v1.40) | Tamar: a ship with no name, one pilot alone, hailed with a sung note; the night the sky rang the same note passed again, fast and high, going somewhere | light |
+| The City Floating in Space (on the route since v1.40) | Ines: a ship with no name, one pilot alone, hailed with a sung note; the night the sky rang the same note passed again, fast and high, going somewhere | light |
 | The Overnight Train | The mark chalked on the last carriage's roof, drawn again over old chalk many times by someone who keeps it (Solange, the night mail: she found it there, nearly gone, the night she boarded) | glyph |
 
 ## The recordings (built: src/story/calls.js, src/ship/hologram.js)

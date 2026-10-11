@@ -33,7 +33,7 @@ test('the City Floating in Space: on the route since v1.40, before the Signal Ma
   assert.ok(entries.at(-1).home, 'home still last');
   const named = SPACECITY_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id).sort();
   assert.deepEqual(named, ['kip', 'nima', 'sel'], 'Kip and Madame Sel of the Signal Market, Nima of the City-Shaft');
-  assert.ok(SPACECITY_CONTENT.npcs.some((p) => p.id === 'tamar' && p.talk?.nodes), 'Tamar: the trace, and Sel’s notes’ end');
+  assert.ok(SPACECITY_CONTENT.npcs.some((p) => p.id === 'tamar' && p.talk?.nodes), 'Ines: the trace, and Sel’s notes’ end');
   for (const p of SPACECITY_CONTENT.npcs) for (const l of p.lines) assert.match(l, /^~[a-z]+~ /, 'every line toned');
   for (const l of CROWD_LINES) assert.match(l, /^~[a-z]+~ /);
   assert.ok(PLANET.size > 15 && PLANET.craters === false, 'a great plain planet over the roofs');

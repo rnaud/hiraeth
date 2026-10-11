@@ -1894,7 +1894,7 @@ export class Foes {
     for (const rt of this.level?.temples ?? (this.level?.temple ? [this.level.temple] : [])) this.placeMachinesIn(rt);
   }
   /**
-   * He carries the sword (v1.44: found in the Givers' House; main.js sets tool.swordOn). Unarmed, no pack comes in from
+   * He carries the sword (v1.44: found in the Rose House; main.js sets tool.swordOn). Unarmed, no pack comes in from
    * the wilds, no relic's guards rise, no placed encounter wakes and the temples' machines wait: nothing he must fight
    * before he has the blade. (No tool, or swordOn left unset, as in the tests: armed.)
    */
