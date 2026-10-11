@@ -1,0 +1,60 @@
+tests/quality.test.js
+  s_49c6193040b974::t_9675d886316591 142,177-181
+scripts/bench/deck-worlds.mjs
+  s_9ca76055a220ed::t_f37d3a983f6197 23-26,112-113,146,207
+  s_9ca76055a220ed::t_2b1536ac374504 208-209
+src/levels/desert.js
+  s_9ca76055a220ed::t_9dadb7b2436f86 11,207
+scripts/bench/deck-mac.mjs
+  s_49c6193040b974::t_7824fd6ec3966f 1-29
+tests/pose-exact-web.test.js
+  s_74ed6129120f6d::t_2077aaf77c9b0c 114-115,119-126
+src/life.js
+  s_49c6193040b974::t_82095c69d22fce 190-208
+src/perf.js
+  s_9ca76055a220ed::t_113806410eb7b7 392-396
+src/matrix-cache.js
+  s_9ca76055a220ed::t_9522e2d355888d 40-44,46-52,54-79,81-85
+src/levels/incal.js
+  s_9ca76055a220ed::t_07585355ea8f50 11,1324
+docs/systems/performance.md
+  s_9ca76055a220ed::t_69d7a1c173712e 1715-1780
+src/changelog.js
+  s_9ca76055a220ed::t_b38373fd08f09c 49-66
+tests/shard-timings.json
+  s_9ca76055a220ed::t_bd9920471ec7e0 7,10,22,25,36,39,42,46,52,54,62-65,69-71,85,87,101-102,107,131,148,152,165,171,196,226,233,238,243,263,276,279,285,295,298,316-317,321,330-334,336-338,340-341,344-346,355,357,366,368,372,405,412,414-415,418,429,432,438,443,447,456,458
+tests/banners.test.js
+  s_9ca76055a220ed::t_eed2284207189c 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06909e91b2cf5b625cf9bc9f6f38104d269b5b59",
+  "prompts": {},
+  "sessions": {
+    "s_49c6193040b974": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a21013971e0e1a607",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_74ed6129120f6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12b36-7519-7462-9cc9-a30336c7a79d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
