@@ -1,0 +1,21 @@
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_9ca76055a220ed::t_71bfe9c8457f28 719,730,1077-1078,1082-1091
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_882c1ab04d333c 160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d34c932f3e07c9876eef9d448119975688dc727",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
