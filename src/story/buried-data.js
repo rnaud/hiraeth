@@ -37,7 +37,8 @@ export const QUESTS = [
       { id: 'oculus', text: 'Follow the canyon to the oculus', label: 'The oculus', flag: 'buried.oculus.seen', at: 'oculus' },
       { id: 'valve', text: 'Shove the rusted oil valve open', label: 'The oil valve', flag: 'buried.valve.open', at: 'valve' },
       { id: 'light', text: 'Give the Wick a spark of fluid', label: 'The Wick', flag: 'buried.oculus.lit', at: 'wick' },
-      { id: 'watch', text: 'Climb out and watch the great wheel', label: 'The great wheel', flag: 'buried.wheel.turned', at: 'watch' },
+      // (via: the oil main the valve feeds runs out to the wheel, src/buried-ways.js; for the level design audit)
+      { id: 'watch', text: 'Follow the oil pipe out to the great wheel', label: 'The great wheel', flag: 'buried.wheel.turned', at: 'watch', via: 'the oil main' },
       { id: 'tooth', text: 'Pick up what fell from the wheel', label: 'At the wheel’s foot', flag: 'buried.tooth.found', at: 'tooth' },
       { id: 'count', text: 'Bring the tooth to Wen, along the posts', label: 'Wen, by the great dome', bring: 'tooth', to: 'wen', via: 'the Tooth Day posts' },
     ],

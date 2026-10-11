@@ -43,3 +43,50 @@ export function buildToothPosts(scene, terrain) {
   const every = (k) => pts.filter((_, i) => i % k === 0 || i === pts.length - 1);
   return { points: every(4), sight: V(...pts[Math.floor(count * 0.45)]), oldest: V(...pts[count - 1]) };
 }
+
+// The oil main (level design audit v1.46, issue #42: the oculus → the great wheel was 351 m and blind): the pipe the
+// Wick's valve feeds, from the valve out of the drum's doorway, north along the canyon floor by its east side (through
+// the cross-walls beside their openings, as a pipe goes through a bulkhead, the way through them left bare), up the sand ramp and over the dunes, east of the Tooth Day posts, to the great
+// wheel's foot, where it dives into the sand under the wheel. Half sunk, painted as the rims' pipe bundles, a flange every
+// 12 m. Solid as drawn, sunk so its top stands 0.4 m over the sand: a low pipe you step over.
+//
+//   buildOilMain(scene, terrain, { from, to, cx, floorAt, narrows }) → { points }
+
+/** How far east of the canyon's centreline the main runs on its floor: 14 m, in to 3 m through a narrow (the drum's doorway). */
+export const oilMainOffset = (z, narrows = []) => 14 - 11 * Math.max(0, ...narrows.map((w) => 1 - Math.min(1, Math.max(0, (Math.abs(z - w) - 10) / 16))));
+
+export function buildOilMain(scene, terrain, { from, to, cx, floorAt, narrows = [] }) {
+  const H = (x, z) => terrain.heightAt(x, z), r = 0.55;
+  const pts = [V(from.x, from.y, from.z)];
+  // out of the drum's doorway (it faces +z, back up the canyon), then the floor north to the ramp's head
+  for (let z = from.z + 18; z <= -56; z += 8) {
+    const x = cx(z) + oilMainOffset(z, narrows);
+    pts.push(V(x, Math.max(floorAt(z), H(x, z)) - 0.15, z));
+  }
+  // over the ramp's shallow east side onto the dunes, then east and round to the wheel's foot from the north, well
+  // clear of the posts (the walk back along them still passes what the way out did not)
+  const way = [V(cx(-48) + 22, 0, -48), V(58, 0, -42), V(90, 0, -66), to.clone().lerp(V(90, 0, -66), 0.2)];
+  for (let i = 1; i < way.length; i++) for (let t = 0; t < 1; t += 0.25) {
+    const p = way[i - 1].clone().lerp(way[i], t);
+    pts.push(V(p.x, H(p.x, p.z) - 0.15, p.z));
+  }
+  const end = way.at(-1);
+  pts.push(V(end.x, H(end.x, end.z) - 0.15, end.z));
+  const line = pts.map((p) => [p.x, p.y, p.z]);
+  // (and into the sand toward the wheel)
+  pts.push(V(end.x + (to.x - end.x) * 0.15, H(end.x, end.z) - 1.4, end.z + (to.z - end.z) * 0.15));
+  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+  const L = curve.getLength();
+  const tube = nonIdx(new THREE.TubeGeometry(curve, Math.ceil(L / 3), r, 8));
+  const flanges = [];
+  for (let s = 6; s < L - 4; s += 12) {
+    const u = s / L, p = curve.getPointAt(u), d = curve.getTangentAt(u);
+    flanges.push(nonIdx(new THREE.CylinderGeometry(r * 1.35, r * 1.35, 0.5, 10).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), d)).translate(p.x, p.y, p.z)));
+  }
+  const pipe = new THREE.Mesh(tube, makeMaterial({ color: '#d8dcc8', metal: 'painted' }));   // (the rims' pipe bundles' paint, src/levels/buried.js M.pipe)
+  const rings = new THREE.Mesh(mergeGeometries(flanges), makeMaterial({ color: '#a9b4a8', flat: true, metal: 'steel' }));   // (M.flange)
+  pipe.name = 'The oil main'; rings.name = 'The oil main’s flanges';
+  rings.userData.noCollide = true;   // (the pipe solid as drawn, its top 0.4 m over the sand: stepped over)
+  scene.add(pipe, rings);
+  return { points: line.filter((_, i) => i % 3 === 0 || i === line.length - 1) };
+}

@@ -108,7 +108,8 @@ export const QUESTS = [
       // the Givers' Hearth is far out in the red rocks: the hoverbike Marrow hid in the hollow first (src/story/desert-bike.js);
       // found on its own errand it doesn't carry the quest on before Nour has sent you (ahead: false)
       { id: 'bike', text: 'Find the hoverbike under the tarp', label: 'The tarp in the hollow', flag: 'desert.bike.found', at: 'bikeHollow', ahead: false },
-      { id: 'hearth', text: 'Ride south-east to the Givers’ Hearth', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth' },
+      // (via: the riders' red strips lead out of the hollow along the ride, src/desert-road.js; for the level design audit)
+      { id: 'hearth', text: 'Ride the red strips south-east to the Givers’ Hearth', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth', via: 'the riders’ red strips' },
       // (src/desert-hearth.js: dark; the stone pulses behind a grille; a shove of fluid rolls the weight that lifts it)
       // the Givers' chest in its own room off the hall (issue #83): the fluid gun with its push and ember modes (a gadget,
       // src/gadgets/gun.js; src/boxes/placements.js desert.gun), whose push rolls the ball
@@ -876,6 +877,17 @@ export const THINGS = {
         "~curious~ Strips of cloth are tied to a stake beside it, faded to the colour of the sand. One looks new."],
       do: { set: { 'desert.road.rested': true } },
       choices: [{ text: '~solemn~ (sit, and look at the tree a while)', end: true }],
+    } } },
+  },
+  // the Givers' field-stone on the dunes below their House, on the way home from it (src/desert-road.js FIELD_STONE)
+  fieldStone: {
+    id: 'fieldStone', name: 'The Givers’ field-stone', title: 'on the dunes below their House', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A carved stone stands to your shoulder in the sand. On its face a channel runs down from a little round cistern, three rows of shoots beside it.",
+        { if: { not: { flag: 'temple.desert.done' } }, text: "~sad~ The boundary of a field, with no field. The sand is the same on both sides of it." },
+        { if: { flag: 'temple.desert.done' }, text: "~happy~ Beside it the sand is dark and wet, and young green stands in rows. The stone has its field again." }],
+      do: { set: { 'desert.fieldstone.seen': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
   // the tusk gate where the red rocks begin (src/desert-hearth.js ride.tusks): the last shade before the Hearth

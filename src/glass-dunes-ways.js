@@ -25,6 +25,8 @@ const nonIdx = (g) => (g.index ? g.toNonIndexed() : g);
 export const FLOAT_POSTS = [[104, 94], [84, 104], [62, 108], [40, 113], [18, 122], [-2, 136], [-18, 156], [-26, 178], [-18, 200]];
 /** The float-blowers' rack, by the sixth post. */
 export const FLOAT_RACK = { x: 6, z: 134, yaw: 0.6 };
+/** The breaker's cairn on the breaking wave's crest, at its highest (90 m), walked up to along its back from its east foot. */
+export const BREAKER_CAIRN = { x: -80, z: -236 };
 /** The wave's cairn on the frozen wave's crest (src/levels/glass-dunes.js GLASS_RIDGES 'wave'; its top found by a ray). */
 export const WAVE_CAIRN = { x: 20, z: 31 };
 
@@ -56,23 +58,23 @@ export function buildFloatPosts(scene, M, terrain) {
   return { points, rack: V(x, y + 0.5, z) };
 }
 
-export function buildWaveCairn(scene, M, top) {
-  const { x, z } = WAVE_CAIRN;
-  const y = top;
+export function buildWaveCairn(scene, M, top, { at = WAVE_CAIRN, name = 'The wave’s cairn', tall = false } = {}) {
+  const { x, z } = at;
+  const y = top, k = tall ? 1.6 : 1;   // (the breaker's taller, its streamer longer: seen over the valley from the landing)
   const stones = [], floats = [];
   // cracked floats heaped round the pole's foot, the pole, a crossbar, the streamer off it
   for (let i = 0; i < 9; i++) { const a = i * 0.7, r = 0.5 + (i % 3) * 0.22; floats.push(nonIdx(new THREE.IcosahedronGeometry(0.3 + (i % 2) * 0.08, 0).translate(x + Math.cos(a) * r, y + 0.2 + Math.floor(i / 4) * 0.35, z + Math.sin(a) * r))); }
-  stones.push(nonIdx(new THREE.CylinderGeometry(0.06, 0.08, 5, 5).translate(x, y + 2.4, z)), nonIdx(new THREE.CylinderGeometry(0.04, 0.04, 1.4, 4).rotateZ(Math.PI / 2).translate(x, y + 4.4, z)));
-  const L = 9, tail = new THREE.PlaneGeometry(L, 0.7, 16, 1).translate(L / 2, 0, 0);
+  stones.push(nonIdx(new THREE.CylinderGeometry(0.06 * k, 0.08 * k, 5 * k, 5).translate(x, y + 2.4 * k, z)), nonIdx(new THREE.CylinderGeometry(0.04, 0.04, 1.4, 4).rotateZ(Math.PI / 2).translate(x, y + 4.4 * k, z)));
+  const L = 9 * k, tail = new THREE.PlaneGeometry(L, 0.7 * k, 16, 1).translate(L / 2, 0, 0);
   { const p = tail.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / L; p.setY(i, p.getY(i) * (1 - 0.8 * u)); p.setZ(i, Math.sin(u * 7) * 0.4 * u); } tail.computeVertexNormals(); }
   const streamer = new THREE.Mesh(tail, M.cloth[0]);
-  streamer.position.set(x, y + 4.7, z); streamer.rotation.y = 0.9;
+  streamer.position.set(x, y + 4.7 * k, z); streamer.rotation.y = 0.9;
   const g = new THREE.Group();
-  g.name = 'The wave’s cairn';
+  g.name = name;
   const pole = new THREE.Mesh(mergeGeometries(stones), M.pole), heap = new THREE.Mesh(mergeGeometries(floats), M.float);
   for (const m of [heap, streamer]) m.userData.noCollide = true;
   g.add(pole, heap, streamer);
   scene.add(g);
   const base = streamer.rotation.y;
-  return { at: V(x + 1.2, y + 0.5, z), top: V(x, y + 5, z), wave: (t) => { streamer.rotation.y = base + Math.sin(t * 0.8) * 0.15; streamer.rotation.x = Math.sin(t * 1.4) * 0.2; } };
+  return { at: V(x + 1.2, y + 0.5, z), top: V(x, y + 5 * k, z), wave: (t) => { streamer.rotation.y = base + Math.sin(t * 0.8) * 0.15; streamer.rotation.x = Math.sin(t * 1.4) * 0.2; } };
 }

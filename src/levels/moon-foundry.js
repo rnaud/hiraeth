@@ -58,6 +58,17 @@ export const HUNG2 = { x: -116, z: -226, R: 22, y: 56 };
 export const CRADLE = { x: 64, z: -92, R: 20, yc: 22.5 };
 export const BOWL = { x: -88, z: -150, R: 16, cut: 0.22 };
 export const PMOON = { x: 108, z: -210, R: 12, h: 40 };
+/**
+ * The old hoist tower (v1.46, the level design audit's verticality, issue #40): where the moons were lifted to their
+ * hooks, a stepped iron tower from the floor to just under the roof between its girders, three stages, each top a deck
+ * the climb comes out on (a climb is ~30 m of grip: src/player.js), the last a railed gallery 80 m up under the roof.
+ */
+export const HOIST = { x: 53, z: -175, stages: [[5, 26.8], [3.8, 53.6], [2.6, 80.4]] };
+/**
+ * What the apron's first view looks across: the cooling mould (west of the way in), a siding of rails east of it with two
+ * carts of slag on it ([x, z0, z1]: between its rails), the floor's rails run out of the mouth to `rails` (z).
+ */
+export const APRON = { mould: [-15, 72], siding: [13, 66, 90], carts: [72, 81], rails: 106 };
 export const FURNACE = { x: 70, z: -14, r: 6.5, h: 9 };
 export const QUARTER = { x: -102, z: -46, r: 26 };
 export const LIMIT = 330;
@@ -145,6 +156,8 @@ export const MOONFOUNDRY_CONTENT = {
     { ...MF_PEOPLE.bertil, at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'moonfoundry', palette: pal('#c8693c', { cloth: '#e8d2a8' }) },
     // Ottilie mends in the quarter (her ladle-hook goes to Bertil; the cast bell to the Garden of Spheres: src/levels/content.js)
     { ...MF_PEOPLE.ottilie, at: [QUARTER.x + 14, QUARTER.z - 10], radius: 1.5, lang: 'moonfoundry', palette: pal('#c9703e', { cloth: '#efe4cc' }) },
+    // (v1.46, issue #102: on the apron, by the little moon cooling in its mould; last, as the errands name people by place)
+    { at: [APRON.mould[0] + 5.6, APRON.mould[1] + 2.2], radius: 1, lang: 'moonfoundry', lines: ['~happy~ A small one, for somebody’s bell-tower. Still warm. Don’t touch.', '~curious~ Every so often somebody orders a moon. We say yes before we think.'] },
   ],
 };
 
@@ -361,6 +374,27 @@ export function* buildMoonFoundry(scene) {
     for (const w of Hh.windows) lamp(...w, 3);
   }
 
+  // ---------------------------------------------------------------- the old hoist tower: three stages to a gallery under the roof
+  yield;
+  {
+    const { x, z } = HOIST, iron = [], decks = [], rails = [];
+    let y0 = 0;
+    for (const [i, [w, top]] of HOIST.stages.entries()) {
+      iron.push(new THREE.BoxGeometry(w, top - y0, w).translate(x, (y0 + top) / 2, z));
+      // rungs up its south face (toward the mouth), two rails either side of them
+      for (let r = y0 + 0.6; r < top - 0.4; r += 0.45) rails.push(new THREE.BoxGeometry(0.9, 0.07, 0.12).translate(x, r, z + w / 2 + 0.12));
+      for (const e of [-1, 1]) rails.push(new THREE.BoxGeometry(0.07, top - y0, 0.07).translate(x + e * 0.45, (y0 + top) / 2, z + w / 2 + 0.1));
+      // the deck on top, wider than the stage above it, a rail round three sides (open where the rungs come up)
+      const d = w + 0.8;   // (0.4 m proud of the face below: the climb still comes out over its edge)
+      decks.push(new THREE.BoxGeometry(d, 0.25, d).translate(x, top + 0.12, z));
+      for (const [dx, dz, a, b] of [[0, -d / 2, d, 0.06], [d / 2, 0, 0.06, d], [-d / 2, 0, 0.06, d]]) rails.push(new THREE.BoxGeometry(a, 0.06, b).translate(x + dx, top + 1.15, z + dz));
+      for (const [dx, dz] of [[d / 2, d / 2], [-d / 2, d / 2], [d / 2, -d / 2], [-d / 2, -d / 2]]) rails.push(new THREE.BoxGeometry(0.06, 1, 0.06).translate(x + dx, top + 0.65, z + dz));
+      y0 = top;
+    }
+    put(x, z, { rust: iron, plank: decks, rail: rails }, { tones: { rust: 'rust2' } });
+    lamp(x, HOIST.stages.at(-1)[1] + 2.5, z, 8);
+  }
+
   // ---------------------------------------------------------------- the last furnace: its drum, the glowing mouth, the ladle's pour into a mould
   yield;
   const F = FURNACE, pour = { stream: null, mould: null, phase: 0 };
@@ -463,6 +497,32 @@ export function* buildMoonFoundry(scene) {
     } else for (let k = 0; k < 3; k++) { const s = R(0.8, 1.4); put(x, z, { plank: [new THREE.BoxGeometry(s, s * 0.8, s).rotateY(rng()).translate(x + k * 1.3, s * 0.4, z + (k % 2) * 0.9)] }); }
   }
 
+  // ---------------------------------------------------------------- the apron: what the first view looks across (the v1.46 game
+  // audit, issue #102: a broad field of bare ground between the ramp and the hangar's mouth), either side of the way in
+  yield;
+  {
+    const A = APRON;
+    // the floor's rails run on out of the mouth over the apron, toward the ship (they ended 30 m inside it)
+    for (const x of [-30, -27.6, 36, 38.4]) kitAt(x, A.rails).kit.add(M.steel, new THREE.BoxGeometry(0.14, 0.08, A.rails - (MOUTH + 30)).translate(x, 0.04, (A.rails + MOUTH + 30) / 2), LOOSE_NS);
+    // a little moon cooling in its mould: a squat drum banded in iron, the moon's crown showing over the rim, a slab to stand on
+    {
+      const [x, z] = A.mould, r = 3.4, h = 2.2, cap = 0.9;
+      put(x, z, { rust: [new THREE.CylinderGeometry(r + 0.5, r + 0.8, h, 24).translate(x, h / 2, z)], rust2: [0.5, 1.5].map((y) => new THREE.CylinderGeometry(r + 0.72, r + 0.72, 0.22, 24).translate(x, y, z)),
+        shell: [new THREE.SphereGeometry(r, 24, 8, 0, Math.PI * 2, 0, cap).translate(x, h - r * Math.cos(cap), z)], plank: [new THREE.BoxGeometry(2.4, 0.5, 1.4).translate(x + r + 2, 0.25, z)] }, { tones: { shell: 'ivory2' } });
+      lamp(x, h + 1.5, z, 6);
+    }
+    // a siding of rails east of the way in, two tipping carts of slag on it, as they came out of the hangar
+    const [sx, s0, s1] = A.siding;
+    for (const e of [-1.2, 1.2]) kitAt(sx, s0).kit.add(M.steel, new THREE.BoxGeometry(0.14, 0.08, s1 - s0).translate(sx + e, 0.04, (s0 + s1) / 2), LOOSE_NS);
+    for (let z = s0 + 1; z < s1; z += 1.6) kitAt(sx, z).kit.add(M.steel, new THREE.BoxGeometry(3.0, 0.05, 0.22).translate(sx, 0.025, z), LOOSE_NS);
+    for (const z of A.carts) {
+      const x = sx;
+      const tub = new THREE.BoxGeometry(2.6, 1.2, 1.7).translate(x, 1.1, z), wheels = [-0.8, 0.8].flatMap((dz) => [-1.2, 1.2].map((dx) => new THREE.CylinderGeometry(0.34, 0.34, 0.16, 10).rotateZ(Math.PI / 2).translate(x + dx * 0.9, 0.34, z + dz)));
+      const slag = [0, 1, 2, 3].map((k) => new THREE.IcosahedronGeometry(0.42 + (k % 2) * 0.14, 0).translate(x - 0.7 + k * 0.5, 1.75 + (k % 2) * 0.12, z + (k % 3 - 1) * 0.35));
+      put(x, z, { rust: [tub], dark: [...wheels, ...slag] }, { tones: { rust: 'rust3' } });
+    }
+  }
+
   // ---------------------------------------------------------------- beyond the hangar: moons far off on their cradles and cranes (drawn only)
   yield;
   const far = [];
@@ -558,6 +618,8 @@ export function* buildMoonFoundry(scene) {
       { name: 'the last furnace’s pour', at: [FURNACE.x - 8, 0, FURNACE.z] },
       { name: 'the moon in the claws', at: [CRADLE.x, 0, CRADLE.z + CRADLE.R + 4] },
       { name: 'the courtyard in the broken moon', at: [COURT.x, COURT_Y, COURT.z] },
+      // (v1.46: the hoist tower's gallery under the roof, 80 m up, every moon on the floor below it)
+      { name: 'the hoist tower’s gallery', at: [HOIST.x, HOIST.stages.at(-1)[1] + 0.25, HOIST.z] },
     ],
     ground: terrain,
     collision: { strategy: 'SAH' },

@@ -68,6 +68,8 @@ export const COLUMN = { x: D.plaza.x, z: D.plaza.z, r: 4.2 };
 export const LIFT = { foot: [COLUMN.x, 0, COLUMN.z + COLUMN.r + 1.0], head: [COLUMN.x, D.crown.y, COLUMN.z + COLUMN.r + 1.6] };
 /** The moon pool beside the ship (the lock's water: drawn only, railed). */
 export const POOL = { x: -19, z: 118, r: 6 };
+/** What the Dock's first view looks across, either side of the way to the long tube: the divers' rack, the cargo, the stripe ([from z, to z]). */
+export const DOCK_DRESSING = { rack: [-9, 102], cargo: [9.5, 100.5], stripe: [109, 96] };
 export const LIMIT = 300;
 /** Odette's Air-Shop: under the Avenue's dome east of the street, its door turned to it (west). */
 export const UW_SHOP = { x: 28, z: 24, heading: -Math.PI / 2 };
@@ -220,6 +222,39 @@ export function* buildUnderwater(scene) {
     kit.add(M.frame, new THREE.BoxGeometry(0.5, 0.5, 12).rotateY(0.9).translate(POOL.x - 3.5, 9, POOL.z - 0.5), drawn);
     for (const [x, z, s] of [[22, 140, 1.4], [24, 137.5, 1.1], [21, 112, 1.2], [-24, 140, 1.3], [-26, 136, 1.0], [26, 124, 1.0]]) kit.add(M.rim, new THREE.BoxGeometry(s * 1.6, s, s * 1.2).translate(x, s / 2, z), solid);
     for (let a = 0.5; a < Math.PI * 2; a += 0.95) lampPost(kit, M, dk.x + Math.sin(a) * (dk.r - 4), 0, dk.z + Math.cos(a) * (dk.r - 4), { h: 4 });
+    // what the Dock's first view looks across (the v1.46 game audit, issue #102: a bare tiled plaza between the ramp and the
+    // long tube), either side of the way, none of it on it: DOCK_DRESSING
+    const DR = DOCK_DRESSING;
+    // a stripe painted from the landing ring to the long tube's door, the way the lock-keepers walk a visitor in
+    kit.add(M.streetPale, new THREE.PlaneGeometry(0.5, DR.stripe[0] - DR.stripe[1]).rotateX(-Math.PI / 2).translate(0, 0.07, (DR.stripe[0] + DR.stripe[1]) / 2), drawn);
+    for (let z = DR.stripe[1] + 1.5; z < DR.stripe[0]; z += 4) kit.add(M.streetPale, new THREE.PlaneGeometry(1.6, 0.4).rotateX(-Math.PI / 2).translate(0, 0.07, z), drawn);
+    // the divers' rack: two posts and a bar, three suits hung on it, helmets on a shelf, air tanks stood under it
+    {
+      const [x, z] = DR.rack;
+      for (const e of [-1, 1]) kit.add(M.frame, new THREE.BoxGeometry(0.16, 2.6, 0.16).translate(x + e * 2.2, 1.3, z), solid);
+      kit.add(M.frame, new THREE.BoxGeometry(4.6, 0.12, 0.12).translate(x, 2.45, z), drawn);
+      kit.add(M.pier, new THREE.BoxGeometry(4.2, 0.08, 0.5).translate(x, 1.9, z - 0.2), drawn);
+      for (const [i, dx] of [-1.4, 0, 1.4].entries()) {
+        kit.add(M.suit, new THREE.CapsuleGeometry(0.26, 0.95, 3, 8).translate(x + dx, 1.62 - (i % 2) * 0.06, z + 0.12), drawn);   // (hung empty from the bar)
+        kit.add(M.suit, new THREE.SphereGeometry(0.24, 10, 8).translate(x + dx + 0.3, 2.08, z - 0.2), drawn);   // (its helmet on the shelf)
+        kit.add(M.bubble, new THREE.CircleGeometry(0.12, 10).translate(x + dx + 0.3, 2.08, z + 0.05), drawn);   // (the visor)
+      }
+      for (const dx of [-1.8, -1.2, 1.5]) kit.add(M.tank, new THREE.CylinderGeometry(0.17, 0.17, 0.9, 10).translate(x + dx, 0.45, z + 0.7), solid);
+      kit.light(x, 2.4, z + 1, 5);
+    }
+    // the cargo off the last boat down: crates on a pallet, a drum, a coil of hose, a hand-cart stood by them
+    {
+      const [x, z] = DR.cargo;
+      kit.add(M.pier, new THREE.BoxGeometry(3.4, 0.18, 2.4).translate(x, 0.09, z), solid);
+      for (const [dx, dy, dz, s] of [[-0.8, 0.18, -0.4, 1.1], [0.6, 0.18, -0.3, 1.0], [-0.1, 0.18, 0.6, 0.9], [-0.5, 1.28, -0.35, 0.8]]) kit.add(M.rim, new THREE.BoxGeometry(s * 1.2, s, s).rotateY(dx * 0.4).translate(x + dx, dy + s / 2, z + dz), solid);
+      kit.add(M.shell.pink, new THREE.CylinderGeometry(0.45, 0.45, 1.1, 12).translate(x + 2.4, 0.55, z + 0.4), solid);
+      kit.add(M.frame, new THREE.TorusGeometry(0.55, 0.12, 6, 16).rotateX(Math.PI / 2).translate(x - 2.3, 0.14, z + 0.9), drawn);
+      kit.add(M.frame, new THREE.TorusGeometry(0.42, 0.12, 6, 16).rotateX(Math.PI / 2).translate(x - 2.3, 0.36, z + 0.9), drawn);
+      // the hand-cart: a flat bed on two wheels, its handle up
+      kit.add(M.frame, new THREE.BoxGeometry(1.2, 0.08, 0.8).translate(x + 1.2, 0.42, z + 2.0), drawn);
+      for (const e of [-1, 1]) kit.add(M.post, new THREE.CylinderGeometry(0.28, 0.28, 0.08, 12).rotateZ(Math.PI / 2).translate(x + 1.2 + e * 0.62, 0.28, z + 2.0), drawn);
+      kit.add(M.post, new THREE.BoxGeometry(0.06, 1.0, 0.06).rotateX(-0.5).translate(x + 1.2, 0.85, z + 2.55), drawn);
+    }
   }
   yield;
 

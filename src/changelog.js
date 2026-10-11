@@ -27,6 +27,18 @@ export const CHANGELOG = [
       see: 'At the Lantern, walk the sand bar onto the island, then follow the beam to each lamp and press Y / △ (V) beside it.' },
     { text: 'After the Lantern, the sketchbook’s Sightings are answered: under each of the four threads, the singing light, the makers’ sign, the father’s signal and who came this way before, Ilen’s answer in her own words. The makers’ sign’s notes sit in their grid like the others again, instead of spilling off to the side.',
       see: 'Meet Ilen at the Lantern, then open the game menu’s Sketchbook: each thread has its answer under its name.' },
+    // the worlds' layout, from the level design audit (issues #42, #40, #102, #19)
+    { text: 'In the Buried Machine, the oil pipe the Wick’s valve feeds runs out of the oculus, along the canyon floor, up the sand ramp and over the dunes to the great wheel: once the valve is open, follow it out.',
+      see: 'Open the oil valve in the oculus and light the Wick, then follow the pale pipe from the valve out of the drum.' },
+    { text: 'Three high places to climb to, each in stages with a deck to rest on: in the City Floating in Space the Balcony’s mast stands on a broad iron foot and its crow’s nest is 44 m up; in the Moon Foundry an old hoist tower climbs to a gallery under the roof, 80 m over the floor; in the Garden of Spheres a white belvedere rises from the pyramid on the white hill.',
+      see: 'Climb the Balcony’s mast for Kip’s lamp; in the Moon Foundry, the stepped iron tower between the moon in the claws and the pillar moon; in the Garden, up the white hill’s stairs and the summit temple’s tower.' },
+    { text: 'In the Glass Dunes a tall cairn with a long streamer stands on the breaking wave’s crest, 90 m over the valley: walk up its long back from its east end and see the whole basin from the top.',
+      see: 'Walk to the east end of the great breaking wave in the north of the Glass Dunes and up its back.' },
+    { text: 'Arriving in the Underwater City, the Dock is no longer a bare floor: the divers’ rack with its suits and air tanks, the cargo off the last boat and a stripe painted to the long tube. On the Moon Foundry’s apron a little moon cools in its mould with a worker by it, and carts of slag stand on a siding.',
+      see: 'Step off the ship in the Underwater City and in the Moon Foundry and look ahead.' },
+    // the desert's ways (docs/systems/worlds.md "The desert's ways, after the empty-hands rewrite"; issue #39)
+    { text: 'In the desert, tall poles with red strips lead the hoverbike out of Marrow’s hollow toward the Givers’ Hearth, the pilgrims’ lit road comes down to your ship again instead of where it used to land, and a carved field-stone stands on the dunes between the Givers’ House and your ship: once the House’s water runs, a field grows green beside it.',
+      see: 'Ride out of Marrow’s hollow toward the red rocks; after the tree burns, walk the cairns down from the gate; walk home from the Givers’ House toward your ship.' },
   ] },
   { v: '1.46', date: '2026-10-11', items: [
     // nobody sends you to somebody else (docs/systems/story.md "Straight to the end"; issue #85)

@@ -15,7 +15,7 @@ import { SHOPS } from '../shop.js';
 import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
 import { attachTemple, clearInstances } from '../temples/index.js';
-import { buildPilgrimsRoad } from '../desert-road.js';
+import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK, DESERT_CLOUD_SHADOWS } from '../desert-sites.js';
@@ -111,7 +111,12 @@ export function* buildDesert(scene) {
   const road = buildPilgrimsRoad(scene, terrain, { tree: qanat.city.crown });
   lights.push(...road.cairns.map((c) => c.light));
   clearInstances(scene, road.clear, road.group);
-  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || avoidWorld(x, z, r);
+  // the riders' red strips along the ride out from Marrow's hollow, and the Givers' field-stone on the way home from
+  // their House (src/desert-road.js; level design audit v1.46)
+  const strips = buildRiderStrips(scene, terrain), fieldStone = buildFieldStone(scene, terrain);
+  clearInstances(scene, strips.clear, strips.group);
+  clearInstances(scene, fieldStone.clear, fieldStone.group);
+  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || strips.avoid(x, z, r) || fieldStone.avoid(x, z, r) || avoidWorld(x, z, r);
   // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
   // the Canyon run under the lavender cliffs by the rope bridge
   for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
@@ -127,6 +132,7 @@ export function* buildDesert(scene) {
     qanat,
     hearth,
     road,
+    fieldStone,
     vistas,
     landmarks,
     maskRooms,
@@ -134,7 +140,7 @@ export function* buildDesert(scene) {
     sights: () => [
       { name: 'the keepers’ bowl', at: hearth.way.bowl.at }, { name: 'the keepers’ cold camp', at: hearth.way.camp.at }, { name: 'a bell in the sand', at: hearth.way.bell.at },
       { name: 'the skiff’s anchor', at: hearth.ride.anchor.at }, { name: 'a sand-skiff’s wreck', at: hearth.ride.wreck.at }, { name: 'the tusk gate', at: hearth.ride.tusks.at },
-      { name: 'the pilgrims’ resting stone', at: road.rest.at },
+      { name: 'the pilgrims’ resting stone', at: road.rest.at }, { name: 'the Givers’ field-stone', at: fieldStone.at },
     ],
     // tall things seen over the dunes that the collision doesn't make tall (the audit aims at them as at landmarks): the camps'
     // smoke while the tree is cold, then the tree's own column; the Hearth's chimney, out past the audit's map
@@ -150,7 +156,11 @@ export function* buildDesert(scene) {
     lines: () => [
       { name: 'the marked stones', points: hearth.stones.map((s) => [s.x, s.y, s.z]) },
       // (v1.42: the way through the camps to the gate, between its two rows of banners)
-      { name: 'the camps’ banners', points: qanat.camps.way.map((p) => [p.x, p.y, p.z]) },
+      // (v1.42: the way through the camps to the gate, between its two rows of banners; v1.46: on to the gate itself,
+      // where the rows end, so it is read from the well inside: down through the camps, the hollow's rag in sight)
+      { name: 'the camps’ banners', points: [...qanat.camps.way.map((p) => [p.x, p.y, p.z]), [qanat.city.gate.x, qanat.city.gate.y, qanat.city.gate.z]] },
+      // (v1.46: the riders' red strips, from Marrow's hollow out along the ride to the tusk gate)
+      { name: 'the riders’ red strips', points: strips.points },
       ...(level.dryChannel ? [{ name: 'the Givers’ dry channel', points: level.dryChannel }] : []),
       // (the way home: its lamps are lit once the tree burns, and the last stage sends you down it; not the way in)
       { name: 'the pilgrims’ road', points: road.points, auto: false },

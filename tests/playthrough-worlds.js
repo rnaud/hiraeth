@@ -316,6 +316,8 @@ Object.assign(ACTIONS, {
   meetFabre: meet('fabre', 'underwater.lamps'),
   meetWen: meet('wen', 'moonfoundry.count'),
   meetOttilie: meet('ottilie', 'moonfoundry.hook'),
+  // (the desert: Sabri in the camps sends you to the Givers' House once Qanat has fed your ship)
+  askSabri: meet('sabri', 'temple.desert'),
   meetSel: meet('sel', 'spacecity.notes'),
   meetKip: meet('kip', 'spacecity.lamp'),
 });
@@ -324,7 +326,8 @@ Object.assign(ACTIONS, {
 export const ROUTE = [
   // (the Givers' House after the main quest: it asks for nothing the Hearth gives, and its blade and guard are the
   // traveller's before he leaves; tests/temples.test.js plays it on foot with nothing in hand)
-  { id: 'desert', play: ['desert.power', { temple: 'done', id: 'desert' }] },
+  // (Sabri in the camps sends you east to the Givers' House: the way there is not the way home past its field-stone)
+  { id: 'desert', play: ['desert.power', { act: 'askSabri', at: 'sabri', label: 'Sabri, in the camps' }, { temple: 'done', id: 'desert' }] },
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell'] },

@@ -568,7 +568,57 @@ const SAVE45_VAEL = { flags: { 'prologue.done': true, 'item.backpack': true, 'it
 // (v1.45: a quieter screen, issues #78–#87; pictures made by hand with a scratch shooter against this branch's own Vite,
 // before and after the change, the same scripted moment for both)
 const FROM45 = 'headless Chrome (Low, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
+// (v1.46: the level design audit's edits; the desert's ways, issue #39)
+const C46_DESERT = 'e9f2a9d4d0727cdbe1fe04131b0f51dd61adefd0';
+const SAVE46_DESERT = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'items.v': 2, 'save.migrated': 15, 'tool.empty': false, 'box.desert.backpack': true, 'box.desert.lift': true }, keepsakes: [] };
+const SAVE46_DESERT_LIT = { ...SAVE46_DESERT, flags: { ...SAVE46_DESERT.flags, 'desert.tree.lit': true } };
+const SAVE46_DESERT_DONE = { ...SAVE46_DESERT, flags: { ...SAVE46_DESERT_LIT.flags, 'temple.desert.done': true } };
+// (v1.47: the worlds' layout, the level design audit's edits continued; the Buried Machine's oil main, issue #42)
+const C47_OIL = '7747f9ef60cf59c9d5baf1b1e86fdc2ea3303715';
+const C47_HEIGHT = '17e3487f4fdd23c842fa7fe67627d77b0dbe6204';   // (the high places, issue #40)
+const C47_DUNES = 'ee36b1b3287cacf1927d237b6e1a16378bfb239a';   // (the breaker's cairn, issue #19)
+const C47_ARRIVAL = 'b78671a35ee4a75e132bb5e523f85cd09b0bd110';   // (the Dock's and the apron's first view, issue #102)
+const SAVE47 = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'items.v': 2, 'save.migrated': 15, 'tool.empty': false, 'ship.powered': true, 'world.desert.done': true }, keepsakes: [] };
 export const CHANGELOG_MEDIA = {
+  '1.47': [
+    { match: 'Arriving in the Underwater City, the Dock is no longer a bare floor', shots: [
+      { name: 'arrival-dock', title: 'The Dock', caption: 'Off the ramp in the Underwater City, toward the long tube: before, a bare tiled plaza; after, the divers’ rack with its suits and air tanks (left), the cargo and its hand-cart (right), a stripe painted to the tube’s door', commit: C47_ARRIVAL,
+        view: { level: 'underwater', save: SAVE47, hour: 12, fov: 60, eye: [0, 3.6, 118.5], target: [0, 1.5, 80], player: [0, 0.1, 112] } },
+      { name: 'arrival-apron', title: 'The apron', caption: 'Off the ramp in the Moon Foundry, toward the hangar’s mouth: before, bare ground; after, a little moon cooling in its mould with a worker by it (left), two carts of slag on a siding (right)', commit: C47_ARRIVAL,
+        view: { level: 'moonfoundry', save: SAVE47, hour: 12, fov: 60, eye: [0, 3.6, 100.5], target: [0, 1.5, 62], player: [0, 0.1, 94] } },
+    ] },
+    { match: 'In the Glass Dunes a tall cairn with a long streamer', shots: [
+      { name: 'dunes-breaker', caption: 'On the breaking wave’s crest, 90 m over the valley: before, bare glass; after, the breaker’s cairn, its long streamer out over the basin', commit: C47_DUNES,
+        view: { level: 'glassdunes', save: SAVE47, hour: 16.5, fov: 60, eye: [-60, 95, -225], target: [-80, 93, -236], player: [-55, 92, -222] } },
+    ] },
+    { match: 'Three high places to climb to, each in stages', shots: [
+      { name: 'height-spacecity', title: 'The floating city', caption: 'The Balcony’s mast from the Market Bridge’s end: before, a plain mast 30 m to its crow’s nest; after, a broad iron foot with a railed deck halfway, the nest 44 m up', commit: C47_HEIGHT,
+        view: { level: 'spacecity', save: SAVE47, hour: 12, fov: 60, eye: [14, 3, -140], target: [-7, 24, -180], player: [18, 0.3, -136] } },
+      { name: 'height-moonfoundry', title: 'The Moon Foundry', caption: 'From the floor by the broken moon: before, the roof’s pillars; after, the old hoist tower among them, three stepped stages to its gallery under the roof', commit: C47_HEIGHT,
+        view: { level: 'moonfoundry', save: SAVE47, hour: 12, fov: 60, eye: [30, 3, -110], target: [53, 38, -175], player: [26, 0.3, -104] } },
+      { name: 'height-spheres', title: 'The Garden of Spheres', caption: 'The white hill from the meadow: before, the stepped pyramid and its little summit temple; after, the white belvedere rising from the temple, 80 m up', commit: C47_HEIGHT,
+        view: { level: 'spheres', save: SAVE47, hour: 10, fov: 60, eye: [-140, 10, -20], target: [-215, 58, -140], player: [-136, 1, -14] } },
+    ] },
+    { match: 'In the Buried Machine, the oil pipe the Wick’s valve feeds', shots: [
+      { name: 'oil-main-drum', title: 'Out of the oculus', caption: 'From the Wick’s valve toward the drum’s doorway: before, the bare floor; after, the oil main running out through the doorway and up the canyon', commit: C47_OIL,
+        view: { level: 'buried', save: SAVE47, hour: 12, fov: 60, eye: [33, -29.5, -476], target: [28, -31, -440], player: [36, -33, -480] } },
+      { name: 'oil-main-ramp', title: 'Up the ramp', caption: 'On the canyon floor below the sand ramp: before, the floor and the ramp; after, the oil main along the floor’s east side and up the ramp to the dunes', commit: C47_OIL,
+        view: { level: 'buried', save: SAVE47, hour: 12, fov: 60, eye: [-10, -30, -200], target: [-5, -32, -160], player: [-14, -33, -206] } },
+      { name: 'oil-main-wheel', title: 'To the wheel', caption: 'At the ramp’s head, looking toward the great wheel: after, the oil main coming over the dunes and round to the wheel’s foot', commit: C47_OIL,
+        view: { level: 'buried', save: SAVE47, hour: 12, fov: 60, eye: [12, 10, -40], target: [80, 8, -100], player: [6, 6, -36] } },
+    ] },
+    { match: 'In the desert, tall poles with red strips lead the hoverbike', shots: [
+      { name: 'desert-strips', title: 'The red strips', caption: 'Out of Marrow’s hollow toward the red rocks: before, bare dunes; after, the first of the riders’ red strips on its pole, the next ones beyond the crest', commit: C46_DESERT,
+        view: { level: 'desert', save: SAVE46_DESERT, hour: 10, fov: 60, eye: [150, 21, 146], target: [420, 14, 30], player: [140, 14, 152] } },
+      { name: 'desert-road', title: 'The road home', caption: 'From beside the ship, west up the dune: before, sand (the road ran down to where the ship used to land); after, the pilgrims’ cairns coming down to the ship', commit: C46_DESERT,
+        view: { level: 'desert', save: SAVE46_DESERT_LIT, hour: 10, fov: 60, eye: [62, 24, 150], target: [0, 24, 185], player: [70, 19, 146] } },
+      { name: 'desert-field-stone', title: 'The field-stone', caption: 'On the dunes between the Givers’ House (left) and the ship, the House done: before, sand; after, the Givers’ field-stone, the green field beside it', commit: C46_DESERT,
+        view: { level: 'desert', save: SAVE46_DESERT_DONE, hour: 10, fov: 60, eye: [268, 8, 248], target: [302, 3, 278], player: [262, 7, 243] } },
+    ] },
+  ],
+  '1.46': [
+    // (the level design audit's edits, issues #39 #40 #42 #19 #102)
+  ],
   '1.45': [
     { match: 'The lift valve’s chest in the cave now stands on its own round dais', shots: [
       { name: 'cave-chest', caption: 'Across the full pool toward the keepers’ stair, the tank filled: before, the stair’s foot bare (the chest was out of sight, on the floor between the basin and the wall across the pool); after, the chest on its dais in a shaft of light, humming, nothing round it', commit: '8dfce275a09a1b94aab3f9bfe4e89205dfad3479',

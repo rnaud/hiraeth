@@ -100,3 +100,16 @@ test('the Glass Dunes: the float-posts lead from the Clock-House’s door to the
     assert.ok(r.ok, `up the wave's back on foot to the cairn (reached ${r.y.toFixed(1)} m)`);
   } finally { W.dispose(); }
 });
+
+test('the Glass Dunes (level design audit v1.46, issue #19): the breaker’s cairn is walked up to, 90 m over the valley', () => {
+  globalThis.location = { search: '?level=glassdunes' };
+  const W = A.loadWorld('glassdunes');
+  try {
+    const cairn = W.level.sights.find((s) => /breaker/.test(s.name)).at;
+    assert.ok(cairn.y > 85, `the breaker's cairn ${cairn.y.toFixed(0)} m up`);
+    // up the breaking wave's long back from its east foot, on foot
+    const g = W.physics.groundAt(185, 300, -195, 600);
+    const r = pitch(W.physics, V(185, g, -195), cairn.clone().setY(cairn.y - 0.5), { seconds: 90 });
+    assert.ok(r.y > cairn.y - 2, `walked up to it (reached ${r.y.toFixed(1)} m, the cairn ${cairn.y.toFixed(1)} m)`);
+  } finally { W.dispose(); }
+});

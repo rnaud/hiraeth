@@ -285,7 +285,9 @@ export function visibleCount(points, landmarks, los, { far = 900, eye = 1.7 } = 
 /**
  * For each leg: from its start, can you see its end (2 m or 8 m over it), or a landmark within `by` m of it, or does a
  * leading line take you there: a leg walked along one (`followLines`), or a line that starts within `lineBy` m of the
- * leg's start and ends within `lineBy` m (or 15 % of the leg) of its goal, or where its goal comes into sight?
+ * leg's start and ends within `lineBy` m (or 15 % of the leg) of its goal, or where its goal comes into sight? A goal
+ * looked at steeply (`steepness`) is seen as it would be: overhead, when the ray stops on what carries it (within
+ * max(15 m, a tenth of the leg) of it); below, past the floor at your feet (12 m stepped through). `los(a, b, { near, skip })`.
  */
 export function legGuidance(stops, landmarks, los, { by = 80, eye = 1.7, lines = [], lineBy = 60 } = {}) {
   const legs = [];
@@ -302,13 +304,19 @@ export function legGuidance(stops, landmarks, los, { by = 80, eye = 1.7, lines =
     if (stops[i + 1].jump) continue;
     if (d < 25) { legs.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seen: true, how: 'close' }); continue; }
     const direct = los(e, [b[0], b[1] + 2, b[2]]) || los(e, [b[0], b[1] + 8, b[2]]);   // (the place, or what stands over it: a roof, a tower)
-    const mark = direct ? null : landmarks.find((l) => flat(l.pos, b) < by && los(e, [l.pos[0], l.pos[1] - l.height * 0.2, l.pos[2]]));
-    const line = direct || mark ? null : stops[i + 1].line ? { name: stops[i + 1].line } : lineTo(a, b, d);
-    legs.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seen: direct || !!mark || !!line, how: direct ? 'goal in sight' : mark ? 'landmark by it' : line ? `leading line (${line.name})` : 'blind' });
+    // (a goal far overhead, looked up at: the ray stops on what carries it, the balcony's underside, a palace's legs, and
+    // that is seen; far below, looked down on: what is at your feet, the floor's edge you look over, is stepped past)
+    const st = steepness(e, b), over = !direct && st > 0 && los(e, [b[0], b[1] + 2, b[2]], { near: Math.max(15, 0.1 * d) }), under = !direct && st < 0 && los(e, [b[0], b[1] + 2, b[2]], { skip: 12 });
+    const mark = direct || over || under ? null : landmarks.find((l) => flat(l.pos, b) < by && los(e, [l.pos[0], l.pos[1] - l.height * 0.2, l.pos[2]]));
+    const line = direct || over || under || mark ? null : stops[i + 1].line ? { name: stops[i + 1].line } : lineTo(a, b, d);
+    legs.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seen: direct || over || under || !!mark || !!line, how: direct ? 'goal in sight' : over ? 'goal overhead' : under ? 'goal below' : mark ? 'landmark by it' : line ? `leading line (${line.name})` : 'blind' });
   }
   const long = legs.filter((l) => l.how !== 'close');
   return { legs, guidedShare: long.length ? +(long.filter((l) => l.seen).length / long.length).toFixed(2) : 1 };
 }
+
+/** Looked at steeply: 1 up, -1 down (more than `angle` degrees from level), 0 otherwise; a goal far overhead or below. */
+export const steepness = (a, b, { angle = 40 } = {}) => (Math.atan2(Math.abs(b[1] - a[1]), flat(a, b)) > (angle * Math.PI) / 180 ? Math.sign(b[1] - a[1]) : 0);
 
 /** Height: the places' range, how many stand raised (over `raised` m above the ground under them), and the climb along the path. */
 export function vertical(pois, samples, ground = null, { raised = 8 } = {}) {

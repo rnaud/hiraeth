@@ -539,7 +539,8 @@ function change(scene, level, rt) {
   root.visible = false;
   // ---- the fields round Qanat
   const C = STORY.city;
-  const plots = [[92, 92, 30, 20], [118, 96, 26, 18], [62, 98, 24, 18], [250, 90, 32, 20], [282, 96, 24, 16], [148, 94, 22, 16]];   // [angle (deg from +z, toward +x), distance, length, width]
+  // (the last, out on the dunes toward the House: the field the Givers' field-stone bounds, src/desert-road.js FIELD_STONE)
+  const plots = [[92, 92, 30, 20], [118, 96, 26, 18], [62, 98, 24, 18], [250, 90, 32, 20], [282, 96, 24, 16], [148, 94, 22, 16], [154, 130, 26, 18]];   // [angle (deg from +z, toward +x), distance, length, width]
   // a young crop: four broad blades leaning out of the soil, and on some an ear of ochre grain
   const blade = (a, lean) => new THREE.ConeGeometry(0.16, 1.15, 3).scale(1, 1, 0.35).translate(0, 0.55, 0).rotateZ(lean).rotateY(a).toNonIndexed();
   const leaf = mergeGeometries([0, 1, 2, 3].map((i) => blade(i * 1.6 + 0.3, 0.32 + (i % 2) * 0.16)));

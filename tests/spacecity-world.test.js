@@ -100,3 +100,30 @@ test('the edge: a parapet round every island but where a bridge lands; off it, t
   assert.ok(level.unsafe(V(0, UNSAFE_Y - 1, 0)) && !level.unsafe(V(0, 0, 0)) && !level.unsafe(V(-92, -4, -60)), 'below the islands is the void; the decks are safe');
   assert.equal(level.features.jetpack, false, 'no jets: a fall is a fall');
 });
+
+test('the Balcony’s mast is climbed in two: up its broad foot to the railed deck, rest, then on up to the crow’s nest 44 m up (level design audit v1.46)', async () => {
+  const { Player } = await import('../src/player.js');
+  const { MASTS, BALCONY_MAST } = await import('../src/levels/space-city.js');
+  const { physics, level } = built();
+  const [x, z] = MASTS.balcony, y0 = ISLANDS.balcony.y, top = level.mastTop;
+  assert.ok(Math.abs(top.y - (y0 + BALCONY_MAST.h + 0.3)) < 0.05, `the nest ${(top.y - y0).toFixed(1)} m up`);
+  const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
+  // (as tests/merged-ways.test.js pitch: walk at it holding forward; facing a wall he climbs it)
+  const climb = (from, to, seconds = 40) => {
+    const P = new Player(physics, { health: false });
+    P.pos.copy(from); P.onGround = true;
+    for (let i = 0; i < 60 * seconds; i++) {
+      const yaw = Math.atan2(to.x - P.pos.x, to.z - P.pos.z) || 0;
+      P.heading = yaw;
+      quiet(() => P.update(1 / 60, { KeyW: true }, yaw + Math.PI));
+      if (P.onGround && !P.climbing && !P.mantle && P.pos.y > to.y - 0.4) return P;
+    }
+    return P;
+  };
+  const deck = y0 + BALCONY_MAST.base + 0.25;
+  const a = climb(V(x, deckAt(physics, V(x, y0, z + 4)), z + 4), V(x, deck, z));
+  assert.ok(a.pos.y > deck - 0.4 && a.stamina > 0, `up the foot to the deck (${(a.pos.y - y0).toFixed(1)} m, stamina ${a.stamina.toFixed(2)})`);
+  // rested on the deck, on up the mast's own rungs
+  const b = climb(V(x, deck, z + 1.3), V(top.x, top.y, top.z));
+  assert.ok(b.pos.y > top.y - 0.6, `up to the crow’s nest (${(b.pos.y - y0).toFixed(1)} m)`);
+});

@@ -443,8 +443,11 @@ test('the pilgrims’ road home (level design audit v1.15): cairns from the gate
   // stands well off the line from the landing to the gate (it bends west over the dunes, past Oum's stone)
   const gate = V(STORY.city.x, 0, STORY.city.z).addScaledVector(V(-STORY.city.x, 0, -STORY.city.z).normalize(), STORY.city.r);
   assert.ok(Math.hypot(C[0].at.x - gate.x, C[0].at.z - gate.z) < 50, 'it starts by the gate');
-  assert.ok(Math.hypot(C.at(-1).at.x, C.at(-1).at.z) < 40, 'it ends by the ship');
-  const off = (p) => Math.abs(p.x * gate.z - p.z * gate.x) / Math.hypot(gate.x, gate.z);
+  // (v1.46: by the ship where it came down nearer the city, issue #71, not at the old landing)
+  const ship = D.level.spawn;
+  assert.ok(Math.hypot(C.at(-1).at.x - ship.x, C.at(-1).at.z - ship.z) < 40, `it ends by the ship (${Math.hypot(C.at(-1).at.x - ship.x, C.at(-1).at.z - ship.z).toFixed(0)} m)`);
+  const gx = gate.x - ship.x, gz = gate.z - ship.z;
+  const off = (p) => Math.abs((p.x - ship.x) * gz - (p.z - ship.z) * gx) / Math.hypot(gx, gz);
   assert.ok(C.slice(2, -2).every((c) => off(c.at) > 40), `the middle cairns stand off the way in (${C.map((c) => off(c.at).toFixed(0)).join(', ')} m)`);
   assert.ok(C.some((c) => Math.hypot(c.at.x - STORY.pilgrim.x, c.at.z - STORY.pilgrim.z) < 15), 'past Oum’s stone');
   for (let i = 1; i < C.length; i++) assert.ok(C[i].at.distanceTo(C[i - 1].at) < 60, `cairn ${i} in sight of the last`);
@@ -477,5 +480,36 @@ test('the pilgrims’ road home (level design audit v1.15): cairns from the gate
   assert.equal(game.flag('desert.road.rested'), true);
   // the quest's last stage sends you down it
   assert.equal(QUESTS.find((q) => q.id === 'desert.power').stages.find((s) => s.id === 'ship').via, 'the pilgrims’ road');
+  game.reset();
+});
+
+test('the riders’ red strips lead out of Marrow’s hollow along the ride, and the Givers’ field-stone stands on the way home from their House (level design audit v1.46)', async () => {
+  const { STORY, ridePlaces } = await import('../src/desert-sites.js');
+  const { FIELD_STONE } = await import('../src/desert-road.js');
+  const { THINGS } = await import('../src/story/desert-data.js');
+  const { DialogueRunner } = await import('../src/story/dialogue.js');
+  const D = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 4, 'desert.bike.v': 1 });
+  const strips = D.level.lines().find((l) => l.name === 'the riders’ red strips').points;
+  const a = STORY.bike, b = STORY.hearth, L = Math.hypot(b.x - a.x, b.z - a.z);
+  const fromHollow = (p) => Math.hypot(p[0] - a.x, p[2] - a.z);
+  assert.ok(fromHollow(strips[0]) < 120, `the first by the hollow (${fromHollow(strips[0]).toFixed(0)} m)`);
+  for (let i = 1; i < strips.length; i++) assert.ok(Math.hypot(strips[i][0] - strips[i - 1][0], strips[i][2] - strips[i - 1][2]) < 170, `strip ${i} in sight of the last`);
+  // beside the way, never on it: off the straight ride by a few metres, and clear of its stops
+  const off = (p) => Math.abs((p[0] - a.x) * (b.z - a.z) - (p[2] - a.z) * (b.x - a.x)) / L;
+  assert.ok(strips.every((p) => off(p) > 2 && off(p) < 8), strips.map((p) => off(p).toFixed(1)).join(', '));
+  for (const s of Object.values(ridePlaces())) assert.ok(strips.every((p) => Math.hypot(p[0] - s.x, p[2] - s.z) > 20), 'not on a stop of the ride');
+  assert.ok(Math.hypot(strips.at(-1)[0] - b.x, strips.at(-1)[2] - b.z) < L * 0.3, 'on to the red rocks, near the tusk gate');
+  assert.equal(QUESTS.find((q) => q.id === 'desert.power').stages.find((s) => s.id === 'hearth').via, 'the riders’ red strips');
+  // the field-stone: between the House and the ship, something to look at, its words changed once the House's water runs
+  const F = D.level.fieldStone, ship = D.level.spawn, door = D.temple?.outside?.door?.at ?? D.level.temple.outside.door.at;
+  const toLine = Math.abs((F.at.x - ship.x) * (door.z - ship.z) - (F.at.z - ship.z) * (door.x - ship.x)) / Math.hypot(door.x - ship.x, door.z - ship.z);
+  assert.ok(toLine < 30, `on the straight way home (${toLine.toFixed(0)} m off it)`);
+  assert.ok(Math.hypot(F.at.x - FIELD_STONE.x, F.at.z - FIELD_STONE.z) < 3);
+  D.player.pos.copy(F.at);
+  assert.equal(bestInteractable(D.player)?.entry.id, 'field.stone');
+  const r = new DialogueRunner(THINGS.fieldStone, { game, quests: D.quests });
+  assert.ok(r.pages.some((t) => /no field/.test(t)) && !r.pages.some((t) => /young green/.test(t)), 'before the House: a boundary with no field');
+  while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
+  assert.equal(game.flag('desert.fieldstone.seen'), true);
   game.reset();
 });

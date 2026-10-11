@@ -234,3 +234,21 @@ test('the cross-walls’ opening rims collide as drawn, and the way through them
   }
   assert.ok(banked >= 2, `sand against the walls beside the openings (${banked} of 8)`);
 });
+
+test('the oil main runs from the Wick’s valve out of the oculus to the great wheel’s foot, low enough to step over (level design audit v1.46)', async () => {
+  const { QUESTS } = await import('../src/story/buried-data.js');
+  const line = level.lines().find((l) => l.name === 'the oil main');
+  assert.ok(line, 'a line the audit reads');
+  const P = line.points, valve = level.buried.wick.valve.at, face = level.buried.wheel.face, watch = level.buried.wheel.centre.clone().addScaledVector(face, 46);
+  assert.ok(Math.hypot(P[0][0] - valve.x, P[0][2] - valve.z) < 3, 'from the valve');
+  assert.ok(Math.hypot(P.at(-1)[0] - watch.x, P.at(-1)[2] - watch.z) < 30, `to the wheel's foot (${Math.hypot(P.at(-1)[0] - watch.x, P.at(-1)[2] - watch.z).toFixed(0)} m)`);
+  for (let i = 1; i < P.length; i++) assert.ok(Math.hypot(P[i][0] - P[i - 1][0], P[i][2] - P[i - 1][2]) < 40, `in sight of itself (${i})`);
+  // out of the drum through its doorway, and along the floor (never up the canyon's walls)
+  const pipe = scene.getObjectByName('The oil main');
+  assert.ok(pipe && !pipe.userData.noCollide, 'solid as drawn');
+  for (const [x, , z] of P) if (z < -160 && z > OCULUS.z + OCULUS.r) {
+    const top = physics.groundAt(x, floorAt(z) + 3, z, 6) - floorAt(z);
+    assert.ok(top < 0.6, `its top ${top.toFixed(2)} m over the floor at z ${z.toFixed(0)}: stepped over`);
+  }
+  assert.equal(QUESTS.find((q) => q.id === 'buried.tooth').stages.find((s) => s.id === 'watch').via, 'the oil main');
+});

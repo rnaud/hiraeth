@@ -2,7 +2,7 @@
 // each function shown the case it is for, on small made-up worlds.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines } from '../scripts/level-design/lib.mjs';
+import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines, steepness } from '../scripts/level-design/lib.mjs';
 
 const P = (name, x, z, o = {}) => ({ name, kind: o.kind ?? 'person', pos: [x, o.y ?? 0, z], ...o });
 const S = (label, x, z, kind = 'go', y = 0) => ({ label, kind, pos: [x, y, z] });
@@ -98,6 +98,20 @@ test('sight: a wall hides a landmark, a leg whose goal is hidden but has a landm
   const g = legGuidance([S('a', 0, 0), S('tower foot', 100, 20), S('hut', 100, 100)], marks, wallAtX50);
   assert.equal(g.legs[0].how, 'landmark by it');
   assert.equal(g.legs[1].how, 'goal in sight');
+});
+
+test('sight: a goal far overhead is seen on what carries it, one far below past the floor at your feet (issue #43)', () => {
+  // a window 200 m up a tower, on a balcony whose underside stops every ray 10 m short of it; a crow's nest 30 m over a
+  // deck, its own floor in the way of a ray down within 2 m of the eye
+  const balcony = (a, b, { near = 3 } = {}) => !(b[1] > 150) || near >= 10;
+  const nest = (a, b, { skip = 0 } = {}) => !(a[1] > 25 && b[1] < 10) || skip >= 2;
+  assert.equal(legGuidance([S('foot', 0, 0), S('window', 10, 0, 'go', 200)], [], balcony).legs[0].how, 'goal overhead');
+  assert.equal(legGuidance([S('nest', 0, 0, 'go', 30), S('deck', 18, 0)], [], nest).legs[0].how, 'goal below');
+  // not steep: a goal across the way behind the same floor stays blind
+  assert.equal(legGuidance([S('nest', 0, 0, 'go', 30), S('far deck', 120, 0)], [], nest).legs[0].how, 'blind');
+  assert.equal(steepness([0, 0, 0], [10, 200, 0]), 1);
+  assert.equal(steepness([0, 30, 0], [18, 0, 0]), -1);
+  assert.equal(steepness([0, 30, 0], [120, 0, 0]), 0);
 });
 
 test('height and pacing', () => {

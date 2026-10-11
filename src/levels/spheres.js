@@ -45,6 +45,9 @@ export const LAYOUT = {
   ruin: { x: -186, z: -418 },                      // a climbable white block in the android wood
 };
 
+/** The belvedere on the white hill's summit: its deck this many metres over the summit (one climb up its face: src/player.js). */
+export const BELVEDERE = { h: 27 };
+
 function lakeE(x, z) {
   const L = LAYOUT.lake;
   return Math.hypot((x - L.x) / L.rx, (z - L.z) / L.rz);
@@ -336,7 +339,9 @@ export function* buildSpheres(scene) {
   // ---------------------------------------------------------- pyramids
   // Stepped: white tiers with a central staircase over the tier corners and a
   // small temple with an antenna on the summit platform.
-  function stepPyramid(cx, cy, cz, { half, height: ht, tiers, top }, facing = [0, 1], reflectIt = false) {
+  // (`belvedere`: the summit temple's top rises into a square white tower that many metres over the summit, rungs up
+  // its face, a railed deck on top: the white hill's, v1.46, the level design audit's verticality, issue #40)
+  function stepPyramid(cx, cy, cz, { half, height: ht, tiers, top }, facing = [0, 1], reflectIt = false, { belvedere = 0 } = {}) {
     const th = ht / tiers, parts = [];
     for (let i = 0; i < tiers; i++) {
       const hw = half - (i * (half - top)) / (tiers - 1);
@@ -345,11 +350,23 @@ export function* buildSpheres(scene) {
     const temple = [
       new THREE.BoxGeometry(top * 0.9, 3.4, top * 0.9).translate(cx, cy + ht + 1.7, cz),
       new THREE.BoxGeometry(top * 1.05, 0.5, top * 1.05).translate(cx, cy + ht + 3.65, cz),
-      new THREE.BoxGeometry(top * 0.6, 1.4, top * 0.6).translate(cx, cy + ht + 4.6, cz),
+      ...(belvedere ? [] : [new THREE.BoxGeometry(top * 0.6, 1.4, top * 0.6).translate(cx, cy + ht + 4.6, cz)]),
     ];
+    let mast = cy + ht + 9.8;
+    if (belvedere) {
+      // the tower on the temple's roof (its cap 3.9 m over the summit: climbed onto from the summit, then the tower's face)
+      const w = top * 0.6, y0 = cy + ht + 3.9, y1 = cy + ht + belvedere, d = w + 0.8, [fx, fz] = facing;
+      temple.push(new THREE.BoxGeometry(w, y1 - y0, w).translate(cx, (y0 + y1) / 2, cz), new THREE.BoxGeometry(d, 0.25, d).translate(cx, y1 + 0.12, cz));
+      const iron = [];
+      for (let r = y0 + 0.6; r < y1 - 0.4; r += 0.45) iron.push(new THREE.BoxGeometry(0.9, 0.07, 0.12).translate(cx + fx * (w / 2 + 0.12), r, cz + fz * (w / 2 + 0.12)));
+      for (const [dx, dz, a, b] of [[0, -d / 2, d, 0.06], [d / 2, 0, 0.06, d], [-d / 2, 0, 0.06, d]]) iron.push(new THREE.BoxGeometry(a, 0.06, b).translate(cx + dx, y1 + 1.15, cz + dz));
+      for (const [dx, dz] of [[d / 2, d / 2], [-d / 2, d / 2], [d / 2, -d / 2], [-d / 2, -d / 2]]) iron.push(new THREE.BoxGeometry(0.06, 1, 0.06).translate(cx + dx, y1 + 0.65, cz + dz));
+      for (const g of iron) add(M.pole, g);
+      mast = y1 + 4.6;
+    }
     for (const p of parts) { add(M.white, p, true); if (reflectIt) reflect.push({ geo: p.clone(), key: 'white' }); }
     for (const p of temple) { add(M.white, p, true); if (reflectIt) reflect.push({ geo: p.clone(), key: 'white' }); }
-    add(M.pole, new THREE.CylinderGeometry(0.12, 0.18, 9, 6).translate(cx, cy + ht + 9.8, cz));
+    add(M.pole, new THREE.CylinderGeometry(0.12, 0.18, 9, 6).translate(cx, mast, cz));
     add(M.cave, new THREE.PlaneGeometry(top * 0.32, 2.1).translate(0, 1.05, top * 0.452)
       .rotateY(Math.atan2(facing[0], facing[1])).translate(cx, cy + ht, cz));
     // stairs over the tier corners
@@ -500,6 +517,7 @@ export function* buildSpheres(scene) {
   yield;
   const Hl = LAYOUT.hill;
   const hillBase = terrain.baseAt(Hl.x, Hl.z, Hl.r[0]) - 0.8;
+  let belvedereTop = null;
   yield;
   {
     let prev = 0;
@@ -572,7 +590,8 @@ export function* buildSpheres(scene) {
       flight(Hl.x, hillBase + prevTop, Hl.z + Hl.r[i] * 1.06 + run, 0, -1, rise, 5, M.white, { tread: 0.42, landing: Hl.r[i] * 0.06 + 3 });
       prevTop = Hl.top[i];
     }
-    stepPyramid(Hl.x, hillBase + Hl.top[2], Hl.z, LAYOUT.hillPyr, [0, 1]);
+    stepPyramid(Hl.x, hillBase + Hl.top[2], Hl.z, LAYOUT.hillPyr, [0, 1], false, { belvedere: BELVEDERE.h });
+    belvedereTop = new THREE.Vector3(Hl.x, hillBase + Hl.top[2] + LAYOUT.hillPyr.height + BELVEDERE.h + 0.25, Hl.z);
     // round dark shrubs crowding the terraces
     for (let i = 0; i < 260; i++) {
       const tier = Math.floor(rng() * 3), rin = tier === 2 ? 27 : Hl.r[tier + 1] + 1, rout = Hl.r[tier] - 1.5;
@@ -1019,7 +1038,9 @@ export function* buildSpheres(scene) {
       // (fifth round: the meadow path home, from the plaza back up the avenue, through the arch, round the meadow pyramid and
       //  up the pyramid path to the grove; followed only where Ume sends you along it)
       { name: 'the meadow path', points: [...AVENUE].reverse().concat(MEADOW_PATH, [[MP.x, -110], [-24, -64], [-2, -30], [0, 8]]), auto: false }],
-    sights: [{ name: 'the chalked sphere', at: new THREE.Vector3(CHALKED.x, chalkY + CHALKED.R, CHALKED.z) }, { name: 'the answering spheres', at: new THREE.Vector3(0, H(0, -480) + 1, -480) }],
+    sights: [{ name: 'the chalked sphere', at: new THREE.Vector3(CHALKED.x, chalkY + CHALKED.R, CHALKED.z) }, { name: 'the answering spheres', at: new THREE.Vector3(0, H(0, -480) + 1, -480) },
+      // (v1.46: the belvedere on the white hill's summit, the garden's highest place, 80 m up)
+      { name: 'the belvedere on the white hill', at: belvedereTop }],
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {

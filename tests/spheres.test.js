@@ -153,3 +153,26 @@ test('climbing an olive’s trunk you stop under its crown or climb its leaves, 
   }
   assert.ok(climbed >= 5, `climbs: ${climbed}`);
 });
+
+test('the belvedere on the white hill: up onto the summit temple’s roof, then its face to the deck, the garden’s highest place (level design audit v1.46)', async () => {
+  const { Player } = await import('../src/player.js');
+  const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
+  const top = level.sights.find((s) => /belvedere/.test(s.name)).at;
+  assert.ok(top.y > 79, `its deck ${top.y.toFixed(1)} m up`);
+  const climb = (from, to, seconds = 40) => {
+    const P = new Player(physics, { health: false });
+    P.pos.copy(from); P.onGround = true;
+    for (let i = 0; i < 60 * seconds; i++) {
+      const yaw = Math.atan2(to.x - P.pos.x, to.z - P.pos.z) || 0;
+      P.heading = yaw;
+      quiet(() => P.update(1 / 60, { KeyW: true }, yaw + Math.PI));
+      if (P.onGround && !P.climbing && !P.mantle && P.pos.y > to.y - 0.4) return P;
+    }
+    return P;
+  };
+  const Hl = LAYOUT.hill, summit = top.y - 0.25 - 27, cap = summit + 3.9;
+  const a = climb(new THREE.Vector3(Hl.x, summit + 0.1, Hl.z + 4.8), new THREE.Vector3(Hl.x, cap, Hl.z));
+  assert.ok(a.pos.y > cap - 0.3, `onto the temple’s roof (${(a.pos.y - summit).toFixed(1)} m over the summit)`);
+  const b = climb(new THREE.Vector3(Hl.x, cap + 0.1, Hl.z + 2.4), top);
+  assert.ok(b.pos.y > top.y - 0.4, `up the tower to its deck (${b.pos.y.toFixed(1)} m)`);
+});

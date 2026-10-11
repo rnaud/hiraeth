@@ -374,6 +374,21 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
 - For the audit: the stones and the road are the level's `lines` (the road `auto: false`: only the last stage's `via`
   follows it), the tusk gate and the resting stone are `sights`.
 
+## The desert's ways, after the empty-hands rewrite (level design audit v1.46, issue #39)
+
+- **The road reaches the ship again.** Since the ship came down nearer Qanat (issue #71) the road ran on to the old
+  landing, 150 m short of it. Its last cairns (`ROAD`, nine now) turn down from the dune's shoulder to the ship from the
+  west, the resting stone (`REST`) on that shoulder.
+- **The riders' red strips** (`buildRiderStrips`, `STRIPS`): 6 m poles with a long red strip, every 80 m either side of
+  the straight ride from Marrow's hollow to the tusk gate (not on its stops). Out of the hollow nothing of the Hearth
+  shows; the `hearth` stage says to ride them and names them (`via`).
+- **The Givers' field-stone** (`buildFieldStone`, `FIELD_STONE`, `THINGS.fieldStone`): a carved boundary stone on the
+  dunes between the Givers' House and the ship. The walk home from the House went back the way it came; now Sabri sends
+  you from the camps (the route's `askSabri`), and the straight walk home passes the stone. Once the House is done, a
+  field of the temple's `change` grows beside it.
+- For the audit: the camps' banners run on to the gate itself (read from the well: down through the camps, the
+  hollow's rag in sight); the strips are a `line`, the stone a `sight`.
+
 ## Vael's layout, from the level design audit (v1.9)
 
 - **The plain** between the landing and the lone tower (445 m with nothing on it): Senn (`src/levels/content.js`) listens
@@ -493,7 +508,11 @@ the post's top.
   (a beacon; one tall house that stood between it and the ring's portal is cleared like the story's spots, `B_VIEW`),
   and **his telescope** halfway back to the portal home.
 - **The Buried Machine** (`src/buried-ways.js`): **the Tooth Day posts**, forty-one posts with the year's sliver on
-  top from the wheel's foot (outside its sand strip) to Wen's dome; `count` sends you along them.
+  top from the wheel's foot (outside its sand strip) to Wen's dome; `count` sends you along them. **The oil main**
+  (`buildOilMain`, v1.46, issue #42): the pipe the Wick's valve feeds, out of the drum's doorway, along the canyon
+  floor's east side (through the cross-walls beside their openings, which stay bare), up the sand ramp and round over
+  the dunes east of the posts to the wheel's foot. Solid, its top 0.4 m over the sand (stepped over); `watch` names it
+  ("Follow the oil pipe out"), and it guides the oculus → the wheel, 351 m that saw nothing.
 - **The Signal Market** (`src/market-ways.js`): **the listeners' lane**, the back lane behind the west towers by the
   alleys behind Signal Square and by the lantern market, its old dishes all turned to the silent tower, the
   radio-mender's table halfway; Sel sends you home that way (`home` on `sel2`).
@@ -928,6 +947,12 @@ at her speed and not draped down into the cloud): Vael 3.89 → 3.78 (the honest
   the way home Wim sends you by (her `after` line; the route's temple step names it, `home`, which the audit reads).
   **The wave's cairn** (`WAVE_CAIRN`) on the frozen wave's crest, 33 m up, walked up from the wave's north-west back.
   For the audit: the two camps, the passage through the wave, the rack and the cairn are `sights`, the cairn a beacon.
+- **The Glass Dunes' height and landmarks** (level design audit v1.46, issue #19, 3.89 → 4.22): **the breaker's cairn**
+  (`BREAKER_CAIRN`, `buildWaveCairn` with `tall`) on the breaking wave's crest at its highest, 90 m, its long back walked
+  up from its east foot: a `sight` and a beacon. The landmarks' share had been the audit's own doing: walking along the
+  float-posts, its eye stood inside each pole (35 % of the path saw a landmark, 94 % now). The first goal stays 186 m
+  off: the landing flat is hemmed in by the Glass slalom's column and last ring (west, overhead) and the Disc run's
+  course (east), and the valley floor nearer the Clock-House is crossed by the warm flows.
 All of it is drawn with its world's own materials (no new shader programs); what stands on the ground collides as drawn,
 what hangs in the air or rides the water is drawn only and marked `floats`.
 
@@ -1181,6 +1206,12 @@ and a drawing of Lou's (`src/levels/names.js` ORDER; why each sits where it does
 - **Level design**: each world gives the audit its own `lines` (the Underwater City's tubes, the foundry's aisle and
   gantry, the floating city's bridges), `sights` and `beacons` (the Breathing Tower; the moorers' three lamp-masts, the
   Balcony's climbed to its crow's nest).
+- **The first view** (v1.46 game audit, issue #102): two arrivals looked across bare floor. Now, either side of the way in
+  and none of it on it: the Dock (`DOCK_DRESSING`) has the divers' rack (three suits hung empty, helmets on a shelf,
+  air tanks), the cargo off the last boat (crates on a pallet, a drum, a coil of hose, a hand-cart) and a stripe painted
+  from the landing ring to the long tube's door. The Moon Foundry's apron (`APRON`) has a little moon cooling in its
+  mould with a worker by it, a siding of rails with two carts of slag, and the floor's rails run out of the mouth over
+  the apron. All of it uses the worlds' own materials.
 
 ## The Underwater City (`underwater`, on the route since v1.40, redesigned so nobody swims)
 
@@ -1703,6 +1734,23 @@ One small island in a still, shallow sea of light at dusk, a big ringed planet l
 
 Built with the Lab's room kit (merged per material), no foes (`PEACEFUL`), no reactions, home's theme for
 music. `tests/finale.test.js` checks the bar stays wadeable and the island's places stand clear of the water.
+
+## Height in the newer worlds (level design audit v1.46, issue #40)
+
+Verticality scored 2 in four worlds: the places spanned 30–42 m and the path climbed little. A climb holds about 30 m
+of grip (`src/player.js`, ~22 s), so each high place is reached in stages, every stage's top a deck the climb comes
+out on, 0.4 m proud of the face below (the mantle still clears it):
+- **The City Floating in Space** (`BALCONY_MAST`): the Balcony's mast has a broad iron foot 22 m tall with a railed
+  deck, and its crow's nest (Kip's lamp) is 44 m up, not 30. The path climbs 51 → 65 m.
+- **The Moon Foundry** (`HOIST`): the old hoist tower between the cradle and the pillar moon, three stepped stages
+  (26.8, 53.6, 80.4 m) to a railed gallery between the roof's girders. The gallery is a `sight`, so the places span
+  81 m.
+- **The Garden of Spheres** (`BELVEDERE`): the white hill's summit temple rises into a square white tower, 27 m over the
+  summit, rungs up its south face, a railed deck on top: the garden's highest place, 80 m up (a `sight`; places span
+  83 m).
+- The Glass Dunes' height: its own section ("The Glass Dunes' height and landmarks").
+
+Each climb is walked in `tests/spacecity-world.test.js`, `tests/moonfoundry.test.js` and `tests/spheres.test.js`.
 
 ## A shop in every route world (v1.14)
 

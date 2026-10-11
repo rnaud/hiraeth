@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.47 — 2026-10-11
 
+- In the desert, tall poles with red strips lead the hoverbike out of Marrow’s hollow toward the Givers’ Hearth, the pilgrims’ lit road comes down to your ship again instead of where it used to land, and a carved field-stone stands on the dunes between the Givers’ House and your ship: once the House’s water runs, a field grows green beside it.
+- Arriving in the Underwater City, the Dock is no longer a bare floor: the divers’ rack with its suits and air tanks, the cargo off the last boat and a stripe painted to the long tube. On the Moon Foundry’s apron a little moon cools in its mould with a worker by it, and carts of slag stand on a siding.
+- In the Glass Dunes a tall cairn with a long streamer stands on the breaking wave’s crest, 90 m over the valley: walk up its long back from its east end and see the whole basin from the top.
+- Three high places to climb to, each in stages with a deck to rest on: in the City Floating in Space the Balcony’s mast stands on a broad iron foot and its crow’s nest is 44 m up; in the Moon Foundry an old hoist tower climbs to a gallery under the roof, 80 m over the floor; in the Garden of Spheres a white belvedere rises from the pyramid on the white hill.
+- In the Buried Machine, the oil pipe the Wick’s valve feeds runs out of the oculus, along the canyon floor, up the sand ramp and over the dunes to the great wheel: once the valve is open, follow it out.
 - After the Lantern, the sketchbook’s Sightings are answered: under each of the four threads, the singing light, the makers’ sign, the father’s signal and who came this way before, Ilen’s answer in her own words. The makers’ sign’s notes sit in their grid like the others again, instead of spilling off to the side.
 - The Lantern has a last stretch before the meeting. Once the light has come down into the crown, it sings to three lamps round the island’s shore, one at a time, its beam on the one it is singing to. Whistle back by each, with nothing in your hands, and the lamp lights. When all three are lit the light rings out, and Ilen comes out of her house to see who answered.
 - At the stone, keeping Dov’s lift token and saying no to Hollin are remembered too: the traveller names each choice, whichever way it went, and so does Ilen at the end.

@@ -35,6 +35,11 @@ export function setupRoad(ctx) {
   registerInteractable({ id: 'road.rest', priority: PRIORITY.use, range: 2.6, at: () => at, prompt: 'look at the resting stone',
     distance: (p) => (Math.abs(p.pos.y - at.y) < 3 ? Math.hypot(p.pos.x - at.x, p.pos.z - at.z) : Infinity),
     use: () => dialogue.start(THINGS.roadStone, null, R.rest.at.clone(), at.clone().add(new THREE.Vector3(0, 0.2, 0))) });
+  // the Givers' field-stone on the way home from their House (src/desert-road.js buildFieldStone)
+  const F = level.fieldStone;
+  if (F) registerInteractable({ id: 'field.stone', priority: PRIORITY.use, range: 2.8, at: () => F.look, prompt: 'look at the carved stone',
+    distance: (p) => (Math.abs(p.pos.y - F.at.y) < 3 ? Math.hypot(p.pos.x - F.look.x, p.pos.z - F.look.z) : Infinity),
+    use: () => dialogue.start(THINGS.fieldStone, null, F.at.clone(), F.look.clone()) });
 
   return {
     state: st,

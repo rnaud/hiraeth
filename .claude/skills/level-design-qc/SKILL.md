@@ -137,8 +137,13 @@ if it is a person: Vael's route starts by meeting Oïa beside the landing, who o
 the line its words send you **home** along (`home: 'the lantern stones'`: the walk back to the ship after the last stage
 that names one follows it, as a named `via` does), and where its person **stands** by the time you get there (`stands:
 'hollinEnd'`, a locator: Hollin walks down to the root cave while you are at the saucer; without it the audit measures
-him where he stood at the start). The pure logic is `scripts/level-design/lib.mjs`
-(`tests/level-design.test.js`).
+him where he stood at the start). Since v1.46 a goal looked at **steeply** (more than 40° up or down, `steepness`) is
+seen as it would be: far overhead, when the ray stops on what carries it, within max(15 m, a tenth of the leg) of it (the
+balcony under Vael's window, the City-Shaft palace's legs under its crown): `goal overhead`; far below, past the floor at
+your feet (12 m stepped through, the crow's nest's own deck): `goal below`. And every eye steps out of what it stands
+inside within 0.8 m of it: a line's points are its markers, so the walk along it passed through each post or cairn and
+saw nothing (the Glass Dunes' float-posts: 35 % of the path saw a landmark, 88 % since). The pure logic is
+`scripts/level-design/lib.mjs` (`tests/level-design.test.js`).
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`
 (relief from above, +z up: the path dark, the four longest empty stretches red, places on the route blue,

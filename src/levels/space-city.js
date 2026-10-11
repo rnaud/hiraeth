@@ -59,6 +59,8 @@ export const SHIP_SITE = { x: 0, z: 128 };
 export const UNSAFE_Y = -40;
 /** The Market's plaza (clear of houses): its middle and radius. */
 export const PLAZA = { x: 0, z: -70, r: 19 };
+/** The Balcony's mast: its crow's nest 44 m up, a railed deck on its broad iron foot halfway (a climb is ~30 m of grip: src/player.js). */
+export const BALCONY_MAST = { h: 44, base: 22 };
 /** The moorers' lamp-masts: the Balcony's by the railing (climbed: its crow's nest), the Market's over the plaza, the Garden's over the trees. */
 export const MASTS = { balcony: [-7, -180], market: [14, -58], garden: [-108, -48] };
 /** Amaro's Oil-Lamp Shop: on the Pier west of the ship, its door turned east to the way up to the bridge. */
@@ -317,16 +319,29 @@ export function* buildSpaceCity(scene) {
 
   let mastTop = null;
   // ---------------------------------------------------------- the moorers' lamp-masts (v1.40): the city's tall marks over its roofs
-  // A square mast of the moorers' iron on the Balcony by the railing, rungs up its south face to a crow's nest 30 m up
+  // A square mast of the moorers' iron on the Balcony by the railing, rungs up its south face to a deck on its broad foot
+  // 22 m up and on to a crow's nest 44 m up (v1.46: 30 m until then)
   // with its lamp (Kip's lamp is hung there: src/story/spacecity-people.js); two more, drawn, over the Market's plaza and
   // the Garden's trees (beacons below: the level design audit aims at them).
   yield;
   {
-    const mast = (k, M, x, y, z, { h = 30, solid = false } = {}) => {
-      const o = { solid, shadow: true };
-      k.add(M.iron, new THREE.BoxGeometry(1.4, h, 1.4).translate(x, y + h / 2, z), o);
-      for (let r = 0.6; r < h - 0.4; r += 0.45) k.add(M.iron, new THREE.BoxGeometry(0.9, 0.07, 0.12).translate(x, y + r, z + 0.82), { solid: false, shadow: false });
-      for (const e of [-1, 1]) k.add(M.iron, new THREE.BoxGeometry(0.07, h, 0.07).translate(x + e * 0.45, y + h / 2, z + 0.8), { solid: false, shadow: false });
+    // (`base`: a broader iron foot `base` m tall, its top a railed deck the climb comes out on: a rest halfway up, the
+    // climb on above it from the deck; v1.46, the level design audit's verticality, issue #40)
+    const mast = (k, M, x, y, z, { h = 30, solid = false, base = 0 } = {}) => {
+      const o = { solid, shadow: true }, thin = { solid: false, shadow: false };
+      const rungs = (y0, y1, half) => {
+        for (let r = y0 + 0.6; r < y1 - 0.4; r += 0.45) k.add(M.iron, new THREE.BoxGeometry(0.9, 0.07, 0.12).translate(x, y + r, z + half + 0.12), thin);
+        for (const e of [-1, 1]) k.add(M.iron, new THREE.BoxGeometry(0.07, y1 - y0, 0.07).translate(x + e * 0.45, y + (y0 + y1) / 2, z + half + 0.1), thin);
+      };
+      if (base > 0) {
+        k.add(M.iron, new THREE.BoxGeometry(2.8, base, 2.8).translate(x, y + base / 2, z), o);
+        rungs(0, base, 1.4);
+        k.add(M.wood, new THREE.BoxGeometry(3.6, 0.25, 3.6).translate(x, y + base + 0.12, z), o);
+        for (const [dx, dz, w, d] of [[0, -1.75, 3.6, 0.06], [1.75, 0, 0.06, 3.6], [-1.75, 0, 0.06, 3.6]]) k.add(M.iron, new THREE.BoxGeometry(w, 0.06, d).translate(x + dx, y + base + 1.15, z + dz), thin);
+        for (const [dx, dz] of [[1.75, 1.75], [-1.75, 1.75], [1.75, -1.75], [-1.75, -1.75]]) k.add(M.iron, new THREE.BoxGeometry(0.06, 1.0, 0.06).translate(x + dx, y + base + 0.65, z + dz), thin);
+      }
+      k.add(M.iron, new THREE.BoxGeometry(1.4, h - base, 1.4).translate(x, y + (h + base) / 2, z), o);
+      rungs(base, h, 0.7);
       k.add(M.wood, new THREE.CylinderGeometry(2.4, 2.4, 0.3, 16).translate(x, y + h + 0.15, z), o);
       k.add(M.iron, new THREE.TorusGeometry(2.35, 0.06, 4, 24).rotateX(Math.PI / 2).translate(x, y + h + 1.15, z), { solid: false, shadow: false });
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) k.add(M.iron, new THREE.BoxGeometry(0.06, 1.0, 0.06).translate(x + Math.cos(a) * 2.35, y + h + 0.65, z + Math.sin(a) * 2.35), { solid: false, shadow: false });
@@ -335,7 +350,7 @@ export function* buildSpaceCity(scene) {
       k.light(x, y + h + 2.8, z, 14);
       return [x, y + h + 0.3, z];
     };
-    mastTop = mast(decks.balcony.kit, decks.balcony.M, MASTS.balcony[0], I0.balcony.y, MASTS.balcony[1], { solid: true });
+    mastTop = mast(decks.balcony.kit, decks.balcony.M, MASTS.balcony[0], I0.balcony.y, MASTS.balcony[1], { h: BALCONY_MAST.h, base: BALCONY_MAST.base, solid: true });
     mast(decks.market.kit, decks.market.M, MASTS.market[0], I0.market.y, MASTS.market[1], { h: 32 });
     mast(decks.garden.kit, decks.garden.M, MASTS.garden[0], I0.garden.y, MASTS.garden[1], { h: 28 });
   }
@@ -412,7 +427,7 @@ export function* buildSpaceCity(scene) {
     // the Mooring-House over the roofs, seen from across the city
     beacons: [
       { name: 'the Mooring-House', top: [I0.moorings.x, I0.moorings.y + 31, I0.moorings.z - 4], height: 5 },
-      { name: 'the Balcony’s lamp-mast', top: [MASTS.balcony[0], I0.balcony.y + 33, MASTS.balcony[1]], height: 33 },
+      { name: 'the Balcony’s lamp-mast', top: [MASTS.balcony[0], I0.balcony.y + BALCONY_MAST.h + 3, MASTS.balcony[1]], height: BALCONY_MAST.h + 3 },
       { name: 'the Market’s lamp-mast', top: [MASTS.market[0], I0.market.y + 35, MASTS.market[1]], height: 35 },
       { name: 'the Garden’s lamp-mast', top: [MASTS.garden[0], I0.garden.y + 31, MASTS.garden[1]], height: 31 },
     ],

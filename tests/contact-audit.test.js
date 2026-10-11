@@ -126,7 +126,10 @@ const KNOWN = {
   // all over the world, the sand banks, the grove and the cave most; the old city itself 2 more, its roofs' edges)
   incal: { sink: 0, hover: 0, inside: 2, walk: 0 },
   arzach: { sink: 5, hover: 0, inside: 5, walk: 34 }, arzach2: { sink: 3, hover: 1, inside: 4, walk: 2 },
-  garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 23, hover: 1, inside: 24, walk: 4 },
+  garage: { sink: 0, hover: 0, inside: 13, walk: 1 },
+  // (v1.46: the oil main, a solid pipe 0.4 m over the sand from the oculus to the wheel, moved the samples: 43 → 45 climbs
+  // inside, none on the pipe, the sand banks' and the Engine-House's)
+  buried: { sink: 23, hover: 1, inside: 30, walk: 4 },
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
   perdide: { sink: 3, hover: 0, inside: 4, walk: 7 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
   bazaar: { sink: 4, hover: 0, inside: 2, walk: 2 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },

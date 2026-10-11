@@ -211,3 +211,29 @@ test('solid as drawn: the pillars, the moons, the furnace; drawn only overhead; 
   assert.ok(C.array.some((v, i) => Math.abs(v - a[i]) > 1e-3), 'the bands move');
   assert.ok(BOWL.R > 0 && level.far.every((m) => m.userData.floats), 'the far moons are out of reach');
 });
+
+test('the old hoist tower is climbed stage by stage, a deck to rest on at each, to its gallery 80 m up under the roof (level design audit v1.46)', async () => {
+  const { Player } = await import('../src/player.js');
+  const { HOIST } = await import('../src/levels/moon-foundry.js');
+  const { physics, level } = built();
+  const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
+  const climb = (from, to, seconds = 40) => {
+    const P = new Player(physics, { health: false });
+    P.pos.copy(from); P.onGround = true;
+    for (let i = 0; i < 60 * seconds; i++) {
+      const yaw = Math.atan2(to.x - P.pos.x, to.z - P.pos.z) || 0;
+      P.heading = yaw;
+      quiet(() => P.update(1 / 60, { KeyW: true }, yaw + Math.PI));
+      if (P.onGround && !P.climbing && !P.mantle && P.pos.y > to.y - 0.4) return P;
+    }
+    return P;
+  };
+  let y = 0;
+  for (const [w, top] of HOIST.stages) {
+    const P = climb(new THREE.Vector3(HOIST.x, y + 0.3, HOIST.z + w / 2 + 2.2), new THREE.Vector3(HOIST.x, top + 0.25, HOIST.z));
+    assert.ok(P.pos.y > top - 0.2, `up the ${w} m stage to its deck at ${top} m (reached ${P.pos.y.toFixed(1)} m)`);
+    y = top + 0.25;
+  }
+  assert.ok(y + 1.9 < HALL.roof - 3.6, 'room to stand under the roof’s girders');
+  assert.ok(level.sights.some((s) => s.at[1] > 80), 'its gallery a place the level design audit counts');
+});

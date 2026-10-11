@@ -141,15 +141,20 @@ for (const id of worlds) {
   const sight = glassy.length ? new Physics(W.scene, level.ground?.heightAt ? level.ground : null) : physics;
   for (const o of glassy) delete o.userData.noCollide;
   const _o = new THREE.Vector3(), _d = new THREE.Vector3();
-  const los = (a, b) => {
+  // (`near`: a hit that close to b still sees it, what carries a goal overhead; `skip`: what is that close to the eye is
+  // stepped through, the floor's edge you look down over: lib.mjs legGuidance, for a goal far overhead or far below)
+  const los = (a, b, { near = 3, skip = 0 } = {}) => {
     const d = L.dist(a, b);
     if (d < 1) return true;
     _o.set(...a); _d.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]).normalize();
-    // (from the landing the eye stands inside the ship's own hull: step through what is within 16 m of it)
+    // (from the landing the eye stands inside the ship's own hull: step through what is within 16 m of it, four times at most)
     let left = d, hit = sight.rayDistance(_o, _d, left);
     for (let k = 0; k < 4 && hit < 16 && L.flat(a, spawn) < 3; k++) { _o.addScaledVector(_d, hit + 0.3); left -= hit + 0.3; hit = sight.rayDistance(_o, _d, left); }
-    if (hit < left - 3) return false;
-    if (base) for (let s = 6; s < d - 3; s += 6) { const t = s / d, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t, z = a[2] + (b[2] - a[2]) * t, h = base(x, z); if (Number.isFinite(h) && y < h - 0.3) return false; }
+    // (and wherever the eye stands, what it is inside, within 0.8 m of it: the post or cairn of a line walked along; and
+    // within `skip`)
+    for (let k = 0; k < 6 && d - left + hit < Math.max(0.8, skip); k++) { _o.addScaledVector(_d, hit + 0.3); left -= hit + 0.3; hit = sight.rayDistance(_o, _d, left); }
+    if (hit < left - near) return false;
+    if (base) for (let s = Math.max(6, skip); s < d - near; s += 6) { const t = s / d, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t, z = a[2] + (b[2] - a[2]) * t, h = base(x, z); if (Number.isFinite(h) && y < h - 0.3) return false; }
     return true;
   };
 

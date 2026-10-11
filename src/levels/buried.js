@@ -10,7 +10,7 @@ import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
-import { buildToothPosts } from '../buried-ways.js';
+import { buildToothPosts, buildOilMain } from '../buried-ways.js';
 import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
@@ -1155,7 +1155,7 @@ export function* buildBuried(scene) {
   // the Tooth Day posts (src/buried-ways.js, level design audit, fourth round): a row across the dunes from the great
   // wheel's foot to Wen's dome, the way the counters carry the year's sliver: the way back with yours (built after the
   // temple, last in the scene)
-  let toothPosts = null;
+  let toothPosts = null, oilMain = null;
   const level = attachTemple('buried', scene, {
     id: 'buried',
     portals: [...shop.portals],
@@ -1163,7 +1163,9 @@ export function* buildBuried(scene) {
     floraAvoid: shop.avoid(avoid),   // the flora keeps off the canyon, the oculus, the hollow, the hero props and the shop (src/flora.js)
     // what the level design audit reads (scripts/level-design/audit.mjs): the Tooth Day posts, a leading line followed
     // where the main quest sends you back along it, and the row itself to look at
-    lines: () => [{ name: 'the Tooth Day posts', points: toothPosts.points, auto: false }],
+    lines: () => [{ name: 'the Tooth Day posts', points: toothPosts.points, auto: false },
+      // (v1.46: the oil main from the Wick's valve to the great wheel's foot, the way out once the valve is open)
+      { name: 'the oil main', points: oilMain.points }],
     sights: () => [{ name: 'the Tooth Day posts', at: toothPosts.sight }],
     ground: terrain,
     spawn,
@@ -1214,6 +1216,9 @@ export function* buildBuried(scene) {
     },
   });
   toothPosts = buildToothPosts(scene, terrain);
+  // the oil main from the Wick's valve along the canyon and over the dunes to the great wheel (src/buried-ways.js)
+  oilMain = buildOilMain(scene, terrain, { from: new THREE.Vector3(wick.valve.at.x, FLOOR + 0.25, wick.valve.at.z), to: wheel.centre.clone().addScaledVector(wheel.face, 46),
+    cx, floorAt, narrows: [OZ + OR] });   // (through the drum's doorway; through the cross-walls beside their openings, as pipes go through a bulkhead)
   return level;
 }
 export const createBuried = stepped(buildBuried);

@@ -3,20 +3,22 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { staticFlame } from './story/flames.js';
 import { rough } from './desert-hearth.js';
+import { STORY, RIDE } from './desert-sites.js';
 
 // The pilgrims' road: the old way down from Qanat's main gate to the landing, west of the straight way in, marked
 // with cairns of stacked stones, each with a little clay lamp on top. It bends out over the dunes past Oum's stone and
-// over the crest of the last big dune, where the pilgrims' resting stone looks back at the tree, then down to the
-// landing from the north-west (level design audit v1.15: the walk from the tree back to the ship was the way you
-// came; this is the second way home). While the tree is cold the lamps are dead; when it burns, Qanat lights them
+// over the shoulder of the last big dune, where the pilgrims' resting stone looks back at the tree, then down to the
+// ship from the west (level design audit v1.15: the walk from the tree back to the ship was the way you came; this is
+// the second way home. v1.46: since the ship came down nearer the city, issue #71, the road ran on to the old landing,
+// 150 m short of it; it turns down to the ship now). While the tree is cold the lamps are dead; when it burns, Qanat lights them
 // one after another from the gate down to your ship (src/story/desert-road.js), the road home for its guest.
 //
 //   const road = buildPilgrimsRoad(scene, terrain)  →  { points, cairns: [{ at, top, flame, light }], rest, avoid(x, z, r) }
 
-/** The cairns, [x, z], from just west of the main gate down to the landing. */
-export const ROAD = [[168, 352], [128, 340], [90, 318], [55, 290], [28, 255], [16, 226], [-4, 182], [-24, 146], [-22, 102], [-14, 62], [-6, 30]];
-/** The resting stone on the last dune's crest, between the 7th and 8th cairns ([x, z]; it faces the tree). */
-export const REST = { x: -12, z: 142 };
+/** The cairns, [x, z], from just west of the main gate down to the ship. */
+export const ROAD = [[168, 352], [128, 340], [90, 318], [55, 290], [28, 255], [16, 226], [4, 192], [30, 166], [58, 160]];
+/** The resting stone on the last dune's shoulder, between the 7th and 8th cairns ([x, z]; it faces the tree). */
+export const REST = { x: 10, z: 178 };
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
 export function buildPilgrimsRoad(scene, terrain, { tree = V(230, 0, 400) } = {}) {
@@ -75,4 +77,75 @@ export function buildPilgrimsRoad(scene, terrain, { tree = V(230, 0, 400) } = {}
     /** Nothing grows on a cairn or the resting stone. */
     avoid: (x, z, r = 0) => clear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r),
   };
+}
+
+// ------------------------------------------------------------------ the riders' red strips
+// Riders tie a strip of red cloth on the way to the red rocks (the tusk gate's cairn has one: src/story/desert-data.js
+// rideTusks). Along the straight ride out, from Marrow's hollow to the tusk gate, poles with a red strip each, about
+// every 80 m (6 m tall, a long strip streaming from the top as the salt-carrier's pennant), beside the way that the
+// salt-carrier's shade, the anchor and the wreck stand on (src/desert-sites.js RIDE): what the eye follows out of the
+// hollow, where nothing of the Hearth shows (level design audit v1.46: the hollow → the Hearth was 1.6 km and blind).
+//
+//   const strips = buildRiderStrips(scene, terrain)  →  { points: [[x, y, z], …], avoid(x, z, r) }
+
+/** How far along the ride (0 the hollow, 1 the Hearth) the strips stand: past the hollow's rim to before the tusk gate, not on the ride's stops. */
+export const STRIPS = (() => {
+  const out = [], stops = Object.values(RIDE).map((r) => r.f);
+  for (let f = 0.04; f < 0.8; f += 0.05) if (stops.every((g) => Math.abs(g - f) > 0.02)) out.push(+f.toFixed(3));
+  return out;
+})();
+
+export function buildRiderStrips(scene, terrain) {
+  const a = STORY.bike, b = STORY.hearth, dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz), side = [-dz / L, dx / L];
+  // (the ride's own materials: src/desert-hearth.js, the salt-carrier's pennant and poles)
+  const cloth = makeMaterial({ color: '#c8483a', flat: true, side: THREE.DoubleSide }), wood = makeMaterial({ color: '#8a6a4a', flat: true, side: THREE.DoubleSide });
+  const poles = [], rags = [], points = [], clear = [];
+  STRIPS.forEach((f, i) => {
+    const off = (i % 2 ? 1 : -1) * 4.5;   // (either side of the way, in turn: nothing in the bike's path)
+    const x = a.x + dx * f + side[0] * off, z = a.z + dz * f + side[1] * off, y = terrain.heightAt(x, z);
+    const lean = Math.sin(i * 2.3) * 0.06;
+    poles.push(new THREE.CylinderGeometry(0.07, 0.1, 6, 5).translate(0, 2.9, 0).rotateZ(lean).translate(x, y, z).toNonIndexed());
+    // the strip, knotted near the top and streaming downwind, a little twisted
+    for (let k = 0; k < 3; k++) rags.push(new THREE.PlaneGeometry(2.8 - k * 0.7, 0.5 - k * 0.1).translate(1.4 - k * 0.35, 0, 0).rotateX(0.4 + k * 0.7).rotateZ(-0.1 - k * 0.08).rotateY(i * 0.7).translate(x, y + 5.6 - k * 0.15, z).toNonIndexed());
+    points.push([x, y, z]);
+    clear.push({ x, z, r: 1 });
+  });
+  const group = new THREE.Group(); group.name = 'The riders’ red strips';
+  const strip = (gs) => mergeGeometries(gs.map((g) => { g.deleteAttribute('uv'); return g; }));
+  const p = new THREE.Mesh(strip(poles), wood), r = new THREE.Mesh(strip(rags), cloth);
+  p.name = 'The strips’ stakes'; r.name = 'The red strips';
+  p.userData.noCollide = r.userData.noCollide = true;   // (thin: ridden past, not into)
+  group.add(p, r);
+  scene.add(group);
+  return { group, points, clear, avoid: (x, z, rr = 0) => clear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + rr) };
+}
+
+// ------------------------------------------------------------------ the Givers' field-stone
+// On the dunes between the Givers' House and the ship, a boundary stone of Qanat's old fields, carved with a channel:
+// what the walk home from the House passes (level design audit v1.46: it came back the way it went, past nothing new).
+// Once the House's water runs, the field beside it grows green (src/temples/desert.js change: its plot).
+//
+//   const stone = buildFieldStone(scene, terrain)  →  { at, look, heading, avoid(x, z, r) }
+
+/** Where it stands, [x, z]; its carved face looks up the dunes toward the House (`toward`). */
+export const FIELD_STONE = { x: 300, z: 268, toward: [518, 378] };
+
+export function buildFieldStone(scene, terrain) {
+  const { x, z } = FIELD_STONE, y = terrain.heightAt(x, z), face = Math.atan2(FIELD_STONE.toward[0] - x, FIELD_STONE.toward[1] - z);
+  const stone = makeMaterial({ color: '#cdb38f', color2: '#bfa27c', flat: true }), clay = makeMaterial({ color: '#b86a43', flat: true });
+  const at = (lx, ly, lz) => V(x + Math.cos(face) * lx + Math.sin(face) * lz, y + ly, z - Math.sin(face) * lx + Math.cos(face) * lz);
+  // a slab standing to a man's shoulder, leaning a little, its top worn round by the wind, its foot in the sand
+  const slab = rough(new THREE.CylinderGeometry(0.5, 0.62, 2, 6, 3).scale(1.1, 1, 0.42), 0.09, 1.1, 21).rotateZ(0.07).rotateY(face).translate(x, y + 0.8, z);
+  // the carving on its face: a channel running down from a little round cistern, three rows of shoots beside it
+  const cut = [], f = (lx, ly) => at(lx, ly, 0.24);
+  cut.push(new THREE.BoxGeometry(0.08, 1.1, 0.04).rotateY(face).translate(f(0, 0).x, y + 0.75, f(0, 0).z));
+  cut.push(new THREE.CylinderGeometry(0.14, 0.14, 0.04, 8).rotateX(Math.PI / 2).rotateY(face).translate(f(0, 0).x, y + 1.42, f(0, 0).z));
+  for (const ly of [0.45, 0.7, 0.95]) cut.push(new THREE.BoxGeometry(0.22, 0.04, 0.04).rotateY(face).translate(f(0.26, 0).x, y + ly, f(0.26, 0).z));
+  const g = new THREE.Group(); g.name = 'The Givers’ field-stone';
+  const flatten = (q) => { q = q.index ? q.toNonIndexed() : q; q.deleteAttribute('uv'); return q; };
+  const s = new THREE.Mesh(slab, stone), k = new THREE.Mesh(mergeGeometries(cut.map(flatten)), clay);
+  k.userData.noCollide = true;
+  g.add(s, k);
+  scene.add(g);
+  return { group: g, at: at(0, 0, 1.4), look: at(0, 1.1, 0.25), heading: face, clear: [{ x, z, r: 2 }], avoid: (px, pz, r = 0) => Math.hypot(px - x, pz - z) < 2 + r };
 }
