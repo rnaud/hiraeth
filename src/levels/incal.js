@@ -8,7 +8,7 @@ import { Taxi } from '../taxi.js';
 import { dropBuriedInstances, dropBuriedInstancesSteps } from '../physics.js';
 import { soften } from '../world.js';
 import { Paint, paintMaterial } from '../vehicle-kit.js';
-import { Banner, Puffs } from '../life.js';
+import { Banner, Puffs, waveBanners } from '../life.js';
 import { buildRoom } from '../interiors.js';
 import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
@@ -1321,7 +1321,7 @@ export function* buildIncal(scene) {
       const cy = ctx?.camera?.position.y ?? ctx?.player?.pos.y ?? TOP;
       for (const l of lod) l.obj.visible = Math.abs(cy - l.y) < l.far;
       for (const m of movers) m.update(t);
-      for (const b of banners) b.update(t);
+      waveBanners(banners, t, ctx?.camera);   // (the ones in view, within 160 m)
       steam.update(dt);
       pillars.update(dt, t, ctx ?? {});
     },

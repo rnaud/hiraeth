@@ -23,6 +23,7 @@
  "tests/audits-page.test.js": 0.7,
  "tests/backpack-straps.test.js": 47.4,
  "tests/backstab.test.js": 0.2,
+ "tests/banners.test.js": 0.3,
  "tests/bazaar.test.js": 2,
  "tests/bench.test.js": 0.3,
  "tests/bike-worlds.test.js": 12.5,

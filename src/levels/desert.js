@@ -8,6 +8,7 @@ import { stepped } from '../load-steps.js';
 import { biomeAtmosphere } from '../biome.js';
 import { Hoverbike } from '../bike.js';
 import { makeMaterial } from '../materials.js';
+import { waveBanners } from '../life.js';
 const makeGlow = () => makeMaterial({ color: '#fffaf0', glow: 1 });
 import { buildRoom, doorwayPortals } from '../interiors.js';
 import { buildShop } from '../shop-world.js';
@@ -203,7 +204,7 @@ export function* buildDesert(scene) {
     atmo: (x, z) => biomeAtmosphere(x, z),
     update(dt, t, o = {}) {
       if (o.camera) { qanat.update(dt, t, o); hearth.update(dt, t, o); }
-      for (const b of banners) b.update(t);
+      waveBanners(banners, t, o.camera);   // (the ones in view, within 160 m)
       for (const f of floaters) {
         f.obj.position.y = f.baseY + Math.sin(t * 0.4 + f.phase) * f.amp;
         f.obj.rotation.y += f.spin * dt;

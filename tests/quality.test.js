@@ -139,7 +139,7 @@ test('dynamic resolution leaves the scale alone where the main thread is what is
 test('where the main thread only looks like the limit, a probe step down is kept if it helps (cpuBound probe)', () => {
   const D = QUALITY_PRESETS.handheld.dynamic, P = D.probe;
   assert.ok(P && P.step > 0 && P.windows >= 3 && P.hold > 0);
-  assert.equal(QUALITY_PRESETS.deck.dynamic.probe, P);
+  assert.equal(QUALITY_PRESETS.xbox.dynamic.probe, P);
   // the City-Shaft looking down the shaft (the Retroid, GeckoView): 17 ms of JS a frame at any scale, but the
   // GPU is behind: 44 fps and 7 missed a window at 0.75, 50 and 4 at 0.65, 55 and 2 at 0.55, as at 0.5
   const gpuLimited = (scale) => (scale > 0.7 ? { fps: 44, missed: 7 } : scale > 0.6 ? { fps: 50, missed: 4 } : { fps: 55, missed: 2 });
@@ -174,7 +174,11 @@ test('the Steam Deck has its own preset, between Handheld and Medium, and Auto p
   const { detectDeck } = await import('../src/perf.js');
   const d = QUALITY_PRESETS.deck, h = QUALITY_PRESETS.handheld, m = QUALITY_PRESETS.medium;
   assert.equal(d.scale, 1, 'its own 1280×800');
-  assert.ok(d.dynamic.min < 1 && d.dynamic.max === 1);
+  // (issue #111: its own resolution always, no dynamic resolution: the main thread is the limit there, never the GPU)
+  assert.equal(d.dynamic, null, 'scale 1 whatever the frame rate');
+  assert.equal(resolveQuality('auto', { deck: true }).scale, 1);
+  // the far map less often than the other presets' (most of the shadow draws), the near one as the Handheld's
+  assert.ok(d.farEvery > h.farEvery && d.nearEvery === h.nearEvery);
   assert.ok(d.crowdFar > h.crowdFar && d.propFar > h.propFar && d.propFar < m.propFar);
   assert.ok(d.floraFar > h.floraFar && d.floraFar < m.floraFar);
   // (no fine cascade: a whole pass of the scene a frame on a main thread that is the limit; a sharper near map

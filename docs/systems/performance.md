@@ -1712,3 +1712,69 @@ the GL column from the run above). Each cell: fps; JS / GPU ms:
 Vulkan halves the frame rate everywhere: the GPU's time is 2–3× GL's, and the JS is about the same. This agrees
 with round 2 (19 against 33 fps at the spawn). On Vulkan the fences do signal: the desert loaded in 12 s with no
 pacer warning. The Deck stays on GL.
+
+## The Steam Deck, round 4: its own resolution, and what keeps it from 60 (issue #111, October 2026)
+
+The issue: "it doesn't hit 60 fps and looks low resolution". Native is 1280 × 800 at render scale 1.
+
+**Why it looked low resolution.** The Steam Deck preset adapted its scale (0.6–1) by the missed-refresh rule and its
+probe (`D.probe`), and in round 3 the probe took the desert down to 0.7. It ran 4–9 fps faster there, but the picture
+was 70 % of the screen's. The preset now has no dynamic resolution (`dynamic: null`): it is always 1280 × 800 at
+scale 1. That gives back those fps in the desert (round 3: 47 → 39 at the views' median). Elsewhere the scale held
+0.9–1.0 anyway.
+
+**Measured on the Mac, not the Deck.** The Deck was asleep through this work. The proxy is
+`scripts/bench/deck-mac.mjs`: the built game in a muted headless Chrome at 1280 × 800 on the M4 Pro's GPU. It is driven by
+`deck-worlds.mjs --origin http://127.0.0.1:<port>/index.html --slow 3 --size 1280x800 --profile 1`, the Deck's own
+run with the CPU slowed ×3 (`Emulation.setCPUThrottlingRate`). The GPU isn't slowed, so its ms say nothing about the
+Deck's. Against round 3's Deck numbers, ×3 is close to the Deck's main thread or a little kinder: the desert 20–23 ms
+of JS here against 24.7 there, the City-Shaft 25 against 29, the Market 13–17 against 17.6. `--profile` now also
+counts each pass's draws (`draws.gbuffer`, `draws.shadow`). The Mac was shared with other agents' jobs (load average
+7–35), so two runs of one build differ by up to 10 ms of JS. The draws are exact; the timings are only a guide.
+
+**Where a busy frame goes** (the City-Shaft's start, ×3; V8's profile at ×4 for the shares):
+- the G-buffer pass, 6–7 ms: 350 draws, three's walk of the scene (`projectObject`, ~5 000 objects a pass) and its
+  per-draw work. The far-detail knobs (props, plants, crowd, levels of detail) don't move it (1 draw in 480). What is
+  drawn: the trees (113 draws: 3 kinds × the terraces × 8 sectors), 70 banners in their own materials (each a different
+  glyph size), people (55), the rust drones (25), cabs (25), the still batches (39);
+- the matrices, ~4 ms: 9 700 visits a frame. The scene's walk is ~5 000; the traveller's rig (373 objects) is walked
+  six or seven more times (`standUnder`, the arms, the cloth twice, the body), and the cabs 80 times;
+- the shadow passes, ~2 ms; the traveller, the people and the crowd, ~5 ms;
+- the distant detail checked after arrival (`src/deferred.js`), 2 ms a frame until it is done: about 3 s of work on
+  the Mac, so a minute or two after arriving on the Deck.
+
+**What changed** (draws a frame over all passes, from the passes' own counts; ×3 JS before → after, one run each):
+- **The far map every 8th frame** on the Deck preset (`farEvery: 8`, was 4). It is most of the shadow draws (195 a
+  pass in the City-Shaft against the near map's 140). What it shows is over 120 m off, and nothing there moves enough
+  to see the difference at 1280 × 800. It is still drawn again at once when the sun turns or the view leaves what it
+  was culled for. Shadow draws a frame: the City-Shaft's start 137 → 112, its wide view 165 → 136, the Market's start
+  109 → 87, the desert's spawn 91 → 74, the camps 76 → 60.
+- **Banners wave only within 160 m and in view** (`waveBanners`, `src/life.js`: the City-Shaft's 70 and the desert's
+  two poles; the desert city's own did already). The City-Shaft's level update: 1.8 → 1.1 ms.
+- **The matrix cache multiplies only what changed** (`src/matrix-cache.js`). A forced walk (`updateMatrixWorld(true)`,
+  or one entered below the scene's root) used to multiply every object under its entry. Now it multiplies the entry,
+  and goes on into a child only when the child's world matrix really changed. Objects whose matrix their owner writes
+  (`matrixAutoUpdate` false) are still multiplied in a forced walk. The matrices are the same as three's
+  (`tests/matrix-cache.test.js`, `tests/pose-exact-web.test.js`). It saves the multiplies, ~9 900 → ~8 000 a frame in
+  the City-Shaft, but not the visits: the rig's bones really move between its walks.
+
+**Tried and left out.** The City-Shaft's trees in quarters instead of eighths: draws 521 → 473 at the start and 613 → 551
+at the wide view, but 2.2 → 2.5 M triangles at the crowd, and the near map's triangles were why the eighths were made.
+Not without the Deck's GPU numbers.
+
+**60 at native is not reached in the busy places.** The JS a frame (×3) is still ~20 ms in the desert's spawn and
+camps, ~24 in the City-Shaft and 13–16 in the Market, against the 16.7 ms that 60 needs. The Market's crowd and wide
+views make 60 on the proxy; its start is at 57. Halving the desert's and the City-Shaft's main thread would take
+structural work, not the preset's knobs:
+- fewer draws: the trees in one multi-draw (`BatchedMesh`) instead of 113 instanced meshes, and the banners in one
+  merged mesh with their values per vertex (`S_VMAT`, which needs the glyph size per vertex);
+- the shadow passes culled from a list instead of walking the scene;
+- the rig walked once a frame instead of six or seven times.
+
+**Gaming Mode on the OLED runs at 90 Hz.** Frames come in steps of 11.1 ms, so a 14 ms frame is shown at 45 fps, not
+70. At 60 Hz (Steam's quick-access Performance menu, *Refresh rate*, a per-game setting the player picks), every frame
+under 16.7 ms is a 60.
+
+**To measure on the Deck** (as in "The Steam Deck" above): copy `dist/` there and run
+`deck-run.sh start headless <dir>` with `REFRESH=60`, as well as the usual 90, then `deck-worlds.mjs --quality deck
+--modes fixed --profile 1`.

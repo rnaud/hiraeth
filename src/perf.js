@@ -389,9 +389,11 @@ export const QUALITY_PRESETS = {
   // shading, both ink passes), adapting down to 0.6 when a scene is too much. Its main thread is the
   // limit everywhere (docs/systems/performance.md, "The Steam Deck, round 2"): no fine cascade (a whole
   // pass of the scene a frame), a sharper near map over a smaller square instead (the GPU has room);
-  // capes simulated within 14 m (clothFar; further off they hang on the body)
-  deck:     { label: 'Steam Deck', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
-    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 4, taps: 4,
+  // capes simulated within 14 m (clothFar; further off they hang on the body). Its own resolution always (issue #111:
+  // no dynamic resolution, which only ever cost sharpness there: the GPU has room at scale 1 everywhere measured), and
+  // the far map every 8th frame (the most of the shadow draws; what it shows is over 120 m off and moves little)
+  deck:     { label: 'Steam Deck', scale: 1, dynamic: null,
+    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 8, taps: 4,
     ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14 },
   // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
   // reports a pixel ratio of 1.5 at 1080p), adapting down to 0.6 when a scene is too much. Its main thread is the

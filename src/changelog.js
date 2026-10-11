@@ -43,6 +43,24 @@ export const CHANGELOG = [
     'In the Founders’ Belfry, the west stone store shuts behind you until its keepers are beaten and gives a small key. The Hall of Stones’ door takes that key and the east store’s ball.',
     // menus (docs/systems/changelog.md "Refresh"; issue #114)
     'What’s new has a Refresh button (Y / △, or R): on the website it loads the newest changes; in the Android app, on the Xbox and on the Steam Deck it fetches the newest game over the air and restarts into it, your game saved first, or tells you that you already have it.',
+    // the Steam Deck (docs/systems/performance.md "The Steam Deck, round 4"; issue #111)
+    { text: 'On the Steam Deck the picture is always drawn at the screen’s own 1280 × 800. It used to drop to as little as 60 % of that when a place was busy, and the desert ran at 70 %, which is why it looked soft.',
+      see: 'On a Steam Deck with Graphics on Auto or Steam Deck, turn on Show FPS and frame time in the settings: the line reads 1× everywhere, the desert’s camps too.' },
+    { text: 'The Steam Deck spends less of each frame on things you can’t see: the shadows more than 120 m away are drawn every eighth frame instead of every fourth, and the banners in the City-Shaft and the desert wave only near you and in view. That is 15–30 fewer draws a frame in the busy places. It still doesn’t hold 60 there: the desert’s camps and the City-Shaft need a third or more off the processor’s work each frame first.',
+      numbers: [
+        { title: 'Shadow draws a frame', unit: 'draws', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Steam Deck preset at 1280 × 800, the CPU slowed three times (the Deck was asleep)', rows: [
+          { where: 'the City-Shaft, the rim', before: 137, after: 112 },
+          { where: 'the City-Shaft, down the shaft', before: 165, after: 136 },
+          { where: 'the Signal Market, the start', before: 109, after: 87 },
+          { where: 'the desert, the spawn', before: 91, after: 74 },
+          { where: 'the desert, the camps', before: 76, after: 60 },
+        ], source: 'scripts/bench/deck-worlds.mjs --slow 3 --profile 1 (scripts/bench/deck-mac.mjs), the passes’ own counts' },
+        { title: 'The City-Shaft’s own update a frame (its banners in it)', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Steam Deck preset, the CPU slowed three times', rows: [
+          { where: 'the rim', before: 1.83, after: 1.07 },
+          { where: 'the crowd', before: 1.81, after: 1.09 },
+        ], source: 'scripts/bench/deck-worlds.mjs --profile 1, one run each on a shared machine' },
+      ],
+      see: 'On the Steam Deck, with Show FPS and frame time on, stand in the City-Shaft: fewer calls on the frame line. The far shadows and the banners look as before.' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

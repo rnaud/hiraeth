@@ -20,7 +20,10 @@ import { conditions, runAll } from './web-page.mjs';
 
 const opt = options();
 const PORT = +(opt.port ?? 5310);
-const ORIGIN = 'moebius://game/index.html';
+// (--origin: the same run against another page, e.g. a muted headless Chrome on the Mac at vite preview, with
+//  --slow n: the CPU slowed n times (Emulation.setCPUThrottlingRate) as a proxy for the Deck's main thread)
+const ORIGIN = String(opt.origin ?? 'moebius://game/index.html');
+const SLOW = +(opt.slow ?? 1);
 const VP = viewpoints();
 const picked = JSON.parse(readFileSync(resolve(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8'));
 const WORLDS = String(opt.worlds ?? 'desert,incal,bazaar,arzach,arzach2,garage,buried,edena,spheres,perdide,perdide2,home').split(',');
@@ -106,7 +109,8 @@ const PROFILE = `(() => {
   R.render = function (sc, cam) {
     if (!P.on) return render.call(this, sc, cam);
     const k = sc.overrideMaterial ? 'r.pass.shadow' : sc === W.scene ? 'r.pass.gbuffer' : sc === W.post.scene ? 'r.pass.composite' : 'r.pass.other';
-    const t = performance.now(); try { return render.call(this, sc, cam); } finally { acc[k] = (acc[k] || 0) + performance.now() - t; }
+    const c0 = this.info.render.calls, t = performance.now();
+    try { return render.call(this, sc, cam); } finally { acc[k] = (acc[k] || 0) + performance.now() - t; const d = 'draws.' + k.slice(7); acc[d] = (acc[d] || 0) + this.info.render.calls - c0; }
   };
   return true;
 })()`;
@@ -139,7 +143,7 @@ async function profileView(page, seconds = 4) {
     const P = window.__prof, B = window.__bench; P.on = false; B.rec = false;
     const n = B.cpu.length, total = B.cpu.reduce((s, x) => s + x, 0);
     const per = Object.fromEntries(Object.entries(P.acc).map(([k, v]) => [k, +(v / n).toFixed(2)]).sort((a, b) => b[1] - a[1]));
-    const sum = Object.values(P.acc).reduce((s, v) => s + v, 0);
+    const sum = Object.entries(P.acc).reduce((s, [k, v]) => s + (k.startsWith('draws.') ? 0 : v), 0);
     return { frames: n, jsPerFrame: +(total / n).toFixed(2), bySystem: per, rest: +((total - sum) / n).toFixed(2) };
   });
 }
@@ -200,6 +204,9 @@ async function runWorld(page, world, mode) {
 }
 
 const page = await Page.open(PORT);
+if (SLOW > 1) await page.send('Emulation.setCPUThrottlingRate', { rate: SLOW });
+// (--size 1280x800: the page's own size, where the window's isn't the Deck's: a headless Chrome on the Mac)
+if (opt.size) { const [w, h] = String(opt.size).split('x').map(Number); await page.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false }); }
 await page.send('Page.addScriptToEvaluateOnNewDocument', { source: INSTRUMENT + '\n' + EXTRA });
 const out = { when: new Date().toISOString(), quality, fixedScale, gl: await page.eval(() => {
   const gl = document.createElement('canvas').getContext('webgl2'), d = gl?.getExtension('WEBGL_debug_renderer_info');

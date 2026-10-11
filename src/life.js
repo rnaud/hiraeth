@@ -187,6 +187,25 @@ export class Banner {
   }
 }
 
+const _bFrustum = new THREE.Frustum(), _bPm = new THREE.Matrix4(), _bSph = new THREE.Sphere();
+/**
+ * Wave the banners that can be seen: within `far` m of the camera and in its view (as the desert city's always were).
+ * Further off a banner is a few pixels at 1280 × 800 and holds its last shape; each one waved is its vertices and
+ * normals again on the main thread (issue #111: the City-Shaft's 70, every frame). No camera: all of them.
+ */
+export function waveBanners(banners, t, camera, far = 160) {
+  if (!camera) { for (const b of banners) b.update(t); return; }
+  camera.updateMatrixWorld();
+  _bFrustum.setFromProjectionMatrix(_bPm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  const eye = camera.position, f2 = far * far;
+  for (const b of banners) {
+    const p = b.mesh.getWorldPosition(_bSph.center);
+    if (p.distanceToSquared(eye) > f2) continue;
+    _bSph.radius = b.height;
+    if (_bFrustum.intersectsSphere(_bSph)) b.update(t);
+  }
+}
+
 /** Puffs rising from a surface, swelling then shrinking away (steam, smoke). */
 export class Puffs {
   constructor(scene, { count = 60, color = '#d6e6a0', glow = 0.3, area = (rand) => new THREE.Vector3(), rise = 6, life = 6, size = 4 } = {}) {

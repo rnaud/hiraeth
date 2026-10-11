@@ -111,10 +111,18 @@ test('the cache still skips what did not move: a still scene is neither recompos
     cached(() => W.scene.updateMatrixWorld());
     let under = 0; W.people[2].bones[BONES - 2].traverse(() => under++);
     assert.equal(composed, 1); assert.equal(multiplied, under);
-    // a walk entered at a rig is forced (as three's) but recomposes nothing that did not move
+    // a walk entered at a rig is forced (as three's) but recomposes nothing that did not move, and multiplies only its
+    // entry (its parent may have moved): what hangs under it is multiplied only when that changed its world (issue #111)
     composed = multiplied = 0;
     let rig = 0; W.people[0].root.traverse(() => rig++);
     cached(() => W.people[0].root.updateMatrixWorld());
-    assert.equal(composed, 0); assert.equal(multiplied, rig);
+    assert.equal(composed, 0); assert.equal(multiplied, 1);
+    cached(() => W.people[0].root.updateMatrixWorld(true));
+    assert.equal(composed, 0); assert.equal(multiplied, 2, 'asked to be forced: the same');
+    // its parent moved (and not walked since): the whole rig follows
+    composed = multiplied = 0;
+    W.people[0].root.parent.position.x += 1; W.people[0].root.parent.updateMatrix(); W.people[0].root.parent.updateWorldMatrix(false, false);
+    cached(() => W.people[0].root.updateMatrixWorld());
+    assert.equal(multiplied, rig + 1, 'the parent once, then every object of the rig');
   } finally { M.compose = compose; M.multiplyMatrices = mul; }
 });

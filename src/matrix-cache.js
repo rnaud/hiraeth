@@ -37,34 +37,52 @@ export function updateMatrixCached() {
 
 // how deep in a walk: 0 is a walk's entry, which is forced below the root
 let walking = 0;
+// inside a walk asked to be forced (updateMatrixWorld(true), or entered below the root): every object whose own
+// matrix is its owner's (matrixAutoUpdate false) is multiplied again, as three would, since its owner may have
+// written .matrix without flagging it
+let forcedWalk = 0;
+const _old = new Float64Array(16);
 
-/** The patched method (exported for the tests); installMatrixCache() puts it on Object3D's prototype. */
+/**
+ * The patched method (exported for the tests); installMatrixCache() puts it on Object3D's prototype.
+ *
+ * A forced object's world matrix is multiplied again, but its children are forced only when that changed it: a child
+ * whose own numbers and parent's world matrix are both what they were already has its world matrix (issue #111: the
+ * traveller's rig was walked forced six or seven times a frame, 373 objects multiplied each time, unmoved).
+ */
 export function updateMatrixWorldCached(force) {
-  if (walking === 0 && this.parent !== null) force = true;
-  if (this._mcParent !== this.parent) { this._mcParent = this.parent; force = true; }
-  if (this.matrixAutoUpdate) {
-    const p = this.position, q = this.quaternion, s = this.scale;
-    let k = this._pqs;
-    if (k === undefined) k = this._pqs = new Float64Array(10).fill(NaN);
-    if (k[0] !== p.x || k[1] !== p.y || k[2] !== p.z || k[3] !== q._x || k[4] !== q._y || k[5] !== q._z || k[6] !== q._w
-      || k[7] !== s.x || k[8] !== s.y || k[9] !== s.z) {
-      k[0] = p.x; k[1] = p.y; k[2] = p.z; k[3] = q._x; k[4] = q._y; k[5] = q._z; k[6] = q._w; k[7] = s.x; k[8] = s.y; k[9] = s.z;
-      this.matrix.compose(p, q, s);
-      this.matrixWorldNeedsUpdate = true;
+  const counted = walking === 0 && (force === true || this.parent !== null);
+  if (counted) { force = true; forcedWalk++; }
+  try {
+    if (this._mcParent !== this.parent) { this._mcParent = this.parent; force = true; this.matrixWorldNeedsUpdate = true; }
+    if (this.matrixAutoUpdate) {
+      const p = this.position, q = this.quaternion, s = this.scale;
+      let k = this._pqs;
+      if (k === undefined) k = this._pqs = new Float64Array(10).fill(NaN);
+      if (k[0] !== p.x || k[1] !== p.y || k[2] !== p.z || k[3] !== q._x || k[4] !== q._y || k[5] !== q._z || k[6] !== q._w
+        || k[7] !== s.x || k[8] !== s.y || k[9] !== s.z) {
+        k[0] = p.x; k[1] = p.y; k[2] = p.z; k[3] = q._x; k[4] = q._y; k[5] = q._z; k[6] = q._w; k[7] = s.x; k[8] = s.y; k[9] = s.z;
+        this.matrix.compose(p, q, s);
+        this.matrixWorldNeedsUpdate = true;
+      }
+    } else if (forcedWalk > 0) this.matrixWorldNeedsUpdate = true;
+    let changed = false;
+    if (this.matrixWorldNeedsUpdate || force) {
+      if (this.matrixWorldAutoUpdate === true) {
+        const w = this.matrixWorld.elements;
+        if (this.matrixWorldNeedsUpdate) changed = true;   // (its own matrix changed: so does its world matrix)
+        else for (let i = 0; i < 16; i++) _old[i] = w[i];
+        if (this.parent === null) this.matrixWorld.copy(this.matrix);
+        else this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
+        if (!changed) for (let i = 0; i < 16; i++) if (_old[i] !== w[i]) { changed = true; break; }
+      } else changed = true;   // (its owner keeps its world matrix: the children are judged against whatever it is now)
+      this.matrixWorldNeedsUpdate = false;
     }
-  }
-  if (this.matrixWorldNeedsUpdate || force) {
-    if (this.matrixWorldAutoUpdate === true) {
-      if (this.parent === null) this.matrixWorld.copy(this.matrix);
-      else this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
-    }
-    this.matrixWorldNeedsUpdate = false;
-    force = true;
-  }
-  const children = this.children;
-  if (children.length === 0) return;
-  walking++;
-  try { for (let i = 0, l = children.length; i < l; i++) children[i].updateMatrixWorld(force); } finally { walking--; }
+    const children = this.children;
+    if (children.length === 0) return;
+    walking++;
+    try { for (let i = 0, l = children.length; i < l; i++) children[i].updateMatrixWorld(changed); } finally { walking--; }
+  } finally { if (counted) forcedWalk--; }
 }
 
 let installed = false;

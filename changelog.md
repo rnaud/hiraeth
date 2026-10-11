@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- The Steam Deck spends less of each frame on things you can’t see: the shadows more than 120 m away are drawn every eighth frame instead of every fourth, and the banners in the City-Shaft and the desert wave only near you and in view. That is 15–30 fewer draws a frame in the busy places. It still doesn’t hold 60 there: the desert’s camps and the City-Shaft need a third or more off the processor’s work each frame first.
+- On the Steam Deck the picture is always drawn at the screen’s own 1280 × 800. It used to drop to as little as 60 % of that when a place was busy, and the desert ran at 70 %, which is why it looked soft.
 - What’s new has a Refresh button (Y / △, or R): on the website it loads the newest changes; in the Android app, on the Xbox and on the Steam Deck it fetches the newest game over the air and restarts into it, your game saved first, or tells you that you already have it.
 - In the Founders’ Belfry, the west stone store shuts behind you until its keepers are beaten and gives a small key. The Hall of Stones’ door takes that key and the east store’s ball.
 - The Lamp-House has two new rooms. East off the Hall of Dark Pools, the Kennel shuts behind you in the dark until its keepers are beaten, and gives the small key the Lamp Passage’s door now takes. Past the Dark Gallery, the Wick Room holds the great key behind a grille between two niches. A niche only burns while the pool-orb in it glows, so light one orb with your lantern and roll it home, then the other, before the first one fades. The gallery’s far door now takes the great key.
