@@ -1,0 +1,29 @@
+"references/levels/The Fire and Ice World/characters/lineup/manifest.json"
+  s_9ca76055a220ed::t_46ac5f6ec2fbd5 1-22
+"references/levels/The Fire and Ice World/environment/boundary/manifest.json"
+  s_9ca76055a220ed::t_401e8d0fe97b56 1-22
+"references/levels/The Fire and Ice World/environment/establishing/manifest.json"
+  s_9ca76055a220ed::t_b26ee746b3dc32 1-22
+"references/levels/The Fire and Ice World/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_4238f44fb9857e 1-22
+"references/levels/The Fire and Ice World/environment/settlement/manifest.json"
+  s_9ca76055a220ed::t_6ebe17d8bba004 1-22
+"references/levels/The Fire and Ice World/environment/temple/manifest.json"
+  s_9ca76055a220ed::t_4b91b8605d73db 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f145d683949f777536a1b4c0066f720342dd51ce",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
