@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_81683dbe1432c7 7
+docs/systems/foes.md
+  s_9ca76055a220ed::t_aec80529e64959 81,87-90
+src/changelog-media.js
+  s_9ca76055a220ed::t_7a36b23500e977 595-601
+src/changelog.js
+  s_9ca76055a220ed::t_916c1614b20bf7 16-17
+src/fluid-blade.js
+  s_9ca76055a220ed::t_32f92917a2f5d2 210-211,213,881
+src/foes.js
+  s_9ca76055a220ed::t_33c41fef1580e9 224-225,970-971,1292-1294,2152-2153
+tests/backstab.test.js
+  s_9ca76055a220ed::t_98b8c54f22042b 1-26
+tests/shard-timings.json
+  s_9ca76055a220ed::t_1abc7e239ccef8 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4c69d3ed503a981de775a1a1ec0f3903536b5a15",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
