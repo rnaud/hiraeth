@@ -553,6 +553,12 @@ const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, 
 const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
 export const CHANGELOG_MEDIA = {
   '1.45': [
+    { match: 'The lift valve’s chest in the cave now stands on its own round dais', shots: [
+      { name: 'cave-chest', caption: 'Across the full pool toward the keepers’ stair, the tank filled: before, the stair’s foot bare (the chest was out of sight, on the floor between the basin and the wall across the pool); after, the chest on its dais in a shaft of light, humming, nothing round it', commit: '8dfce275a09a1b94aab3f9bfe4e89205dfad3479',
+        view: { level: 'desert', player: [-1247, 1000.1, 1236], heading: 3.14, eye: [-1243, 1003.2, 1243], target: [-1250, 1001, 1234], fov: 60,
+          save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'desert.channel.open': true, 'desert.pool.tinted': true }, keepsakes: [] },
+          setup: "window.game.set('box.desert.lift', false); window.items.revoke('doublejump')" } },
+    ] },
     { match: 'The cave under the giant’s skull now asks for the lift valve', shots: [
       { name: 'cave-stair', title: 'The stair', caption: 'The keepers’ stair behind the pool: before, eight blocks up from the floor; after, its lower flight fallen and sunk in the sand, what stands beginning 4.2 m up', commit: 'c6bf227af8772f162947e44a41b5bd75fa5014d0',
         view: { level: 'desert', player: [-1252, 1000.1, 1240], heading: 3.14, eye: [-1246, 1003, 1244], target: [-1250, 1002, 1228], fov: 60 } },

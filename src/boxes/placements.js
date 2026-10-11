@@ -49,11 +49,12 @@ export const PLACEMENTS = {
     // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main
     // quest leads down there to fill the tank (and the box hums once it is full), on the dry floor between the basin and
     // the cave's wall, facing the pool
-    // (v1.45, issue #68: shut and silent until the pool has filled your tank, `ready`)
-    { id: 'desert.lift', item: 'doublejump', site: (level) => level.qanat?.cave && { at: level.qanat.cave.local(16, 0, 13).toArray(), face: Math.atan2(-16, -13) }, story: true,
+    // (v1.45, issue #81: on its own dais by the pool's kerb at the keepers' stair's foot, in a shaft of light, nothing round
+    // it; issue #68: shut and silent until the pool has filled your tank, `ready`)
+    { id: 'desert.lift', item: 'doublejump', site: (level) => level.qanat?.cave?.chest && { at: level.qanat.cave.chest.at.toArray(), face: level.qanat.cave.chest.face }, story: true,
       ready: (g, it) => it.has('backpack') && (!!g.flag('desert.pool.tinted') || (!!g.flag('desert.channel.open') && !g.flag('tool.empty'))),
       sealed: 'The makers’ chest sits shut and silent on its dais. Whatever it keeps wants a full tank: fill yours at the pool first.',
-      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), on the floor beside the pool. It opens once the pool has filled the tank.' },
+      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), on a dais in a shaft of light by the pool, at the foot of the broken keepers’ stair. It opens once the pool has filled the tank.' },
     // the fluid gun (a gadget) in the Givers' Hearth, by the stone ball its push rolls (the main quest's spark-stone):
     // on the hall's floor across from the plinth, facing the passage in
     { id: 'desert.gun', item: 'gun', site: (level) => level.hearth?.local && { at: level.hearth.local(8.5, 0, -2).toArray(), face: 0 }, story: true,

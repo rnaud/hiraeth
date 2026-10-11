@@ -15,6 +15,7 @@ export const CHANGELOG = [
     'The desert’s few clouds no longer throw blue patches across the sand: under one, the dunes lost the sun and every shadow in them, with no cloud overhead to say why. The sand behind Qanat, and everywhere else, keeps its sunlight and its shadows.',
     'In the cave under the giant’s skull, the light through the cracks in the vault now falls in soft, broad shafts instead of thin glowing sticks, and the great tree’s roots hang from the vault as a huge braided mass: two twisting bundles splaying into a curtain of long strands over the pool.',
     'The cave under the giant’s skull now asks for the lift valve before it lets you out: the keepers’ stair has fallen at its foot, the way back up the passage is a high ledge, and the cave’s walls give no grip, so you leave with the double jump. Its chest stays shut and silent until the pool has filled your tank, and the skull’s mouth won’t take you down without your backpack.',
+    'The lift valve’s chest in the cave now stands on its own round dais by the pool, at the foot of the broken keepers’ stair, in a shaft of light from a crack in the vault, with nothing piled round it: no longer on the floor at a random spot.',
   ] },
   { v: '1.44', date: '2026-10-11', items: [
     // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)

@@ -102,6 +102,23 @@ tank: empty unless the pool has risen), and the scene draws the glass empty (`Bo
 card**: toasts wait while `#boxscene` is on (`HOLD_TOASTS`, src/ship/cinema.js) and nobody's balloon shows
 (main.js), so the square's murmurs no longer come up over it.
 
+## Where a chest stands (the rule)
+
+A makers' chest is a gift left on purpose (docs/story-bible.md, "The boxes"), so it stands **somewhere that feels
+important and free of environmental noise** (the author, issue #81): on a place made for it (a dais, a ledge, a
+pedestal, a plinth), where the space's lines meet (at the end of the way in, the foot of the way on, the middle of a
+room's axis), in light (a shaft through a crack, a lamp, the open sky), **with nothing round it within 3 m** but the
+ground it stands on: no rocks, rubble, roots, bones, crates or props piled beside it, no wall it is pushed against.
+It faces the way you come to it. Never "on the floor beside" something: a chest at a random spot reads as a dropped
+thing. And it is **there when it makes sense in the story**: one whose gift follows a step (the lift valve after the
+pool has filled your tank) waits, shut, dark and silent, until that step is done (`ready`, below). The lift valve's
+chest (v1.45) stands on its own round dais by the giant's pool, at the foot of the broken keepers' stair it lets you
+climb, under a fifth crack's shaft of light (`cave.chest`, src/desert-city.js); `tests/desert-cave-exit.test.js`
+checks that nothing stands near it, that it faces the pool and that the light falls on it.
+
+**Waiting for a step** (`ready`, `sealed`, src/boxes/placements.js): a placement's `ready(game, items)` keeps the box
+shut until it holds: no hum, no shudder, no light, no beacon; E on it says `sealed` instead of opening it.
+
 ## Nothing before the first
 
 `boxesFound(game)` is true once any `box.*` flag is set (a box opened, a temple's chest, an old

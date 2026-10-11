@@ -1213,14 +1213,21 @@ export function buildDesertCity(scene, terrain) {
     // (v1.45, issue #69: it was six thin glowing bars a crack, "weird 3d sticks"). A shaft is two open cones from
     // the crack to its pool, an outer and a narrower inner one, drawn only as a pale wash over the finished picture
     // (src/veil.js, as the City-Shaft's air pillars: no surface of their own in the G-buffer, so no ink round them,
-    // no shadow, nothing to bump into), brighter at the core where the two overlap.
+    // no shadow, nothing to bump into), brighter at the core where the two overlap. A fifth crack, by the keepers'
+    // stair, lights the makers' chest on its dais (issue #81).
     const sun = makeMaterial({ color: '#fbe3b2', glow: 0.55, flat: true }), slant = V(0.28, -1, 0.18).normalize();
+    const CHEST = { z: HATCH.stair.foot + 1.5, r: 1.5, top: 0.6 };   // the dais by the pool's kerb at the stair's foot, facing the pool
+    {   // its crack: where the sun through it falls on the dais
+      let x = 0, z = CHEST.z, y = 0;
+      for (let i = 0; i < 8; i++) { y = H * Math.sqrt(Math.max(0, (ROOM + 1) ** 2 - x * x - z * z)) - CHEST.top; x = -(slant.x / -slant.y) * y; z = CHEST.z - (slant.z / -slant.y) * y; }
+      SKY.push({ x, z, r: 1.2, y: y + CHEST.top, chest: true });
+    }
     const shaftHolder = new THREE.Group(); shaftHolder.name = 'The cave’s shafts of light (washes)';
     for (const h of SKY) {
       const top = V(h.x, h.y, h.z), n = top.clone().setY(top.y / (H * H)).normalize();
       cave.add(caveBone, new THREE.TorusGeometry(h.r + 0.6, 0.6, 4, 12).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), n)).translate(top.x, top.y, top.z));
-      const t = -top.y / slant.y, foot = top.clone().addScaledVector(slant, t);
-      const fr = floorAt(Math.hypot(foot.x, foot.z)) + 0.12, rr = h.r * 1.15;   // (over the flagstones)
+      const fr0 = h.chest ? CHEST.top : 0, t = -(top.y - fr0) / slant.y, foot = top.clone().addScaledVector(slant, t);
+      const fr = h.chest ? CHEST.top + 0.02 : floorAt(Math.hypot(foot.x, foot.z)) + 0.12, rr = h.r * 1.15;   // (over the flagstones, or on the dais)
       cave.add(sun, new THREE.CylinderGeometry(rr, rr, 0.02, 20).scale(1, 1, 0.8).translate(foot.x, fr, foot.z));
       const bot = V(foot.x, fr, foot.z), len = top.distanceTo(bot), q = new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), top.clone().sub(bot).normalize());
       const mid = top.clone().add(bot).multiplyScalar(0.5);
@@ -1370,6 +1377,10 @@ export function buildDesertCity(scene, terrain) {
         const s2 = k % 2 ? 1 : -1, x = s2 * (2.7 + frng() * 1.4), z = S.foot - 2.0 - k * 1.2, h = CAVE_LEDGES.rubble;
         sk.both(M.stone, new THREE.BoxGeometry(2.4, 0.9, run * 0.95).rotateY((frng() - 0.5) * 1.2).rotateZ(s2 * (0.06 + frng() * 0.08)).translate(x, h - 0.62, z));   // (sunk: no corner over CAVE_LEDGES.rubble)
       }
+      // the makers' chest's dais by the pool's kerb at the stair's foot, in the light of the fifth crack: a round step of the
+      // builders' stone and nothing else on it or round it (issue #81: where the way in from the doorway, across the pool,
+      // meets the way on, up the stair)
+      sk.both(caveStone, new THREE.CylinderGeometry(CHEST.r, CHEST.r + 0.25, CHEST.top, 24).translate(0, CHEST.top / 2, CHEST.z));
       sk.both(M.stone, new THREE.BoxGeometry(3.6, S.y, S.ledge - S.door + 1.4).translate(0, S.y / 2, (S.ledge + S.door - 1.4) / 2));   // the ledge, into the wall
       for (const s of [-1, 1]) sk.both(M.bone, new THREE.BoxGeometry(0.55, 3.2, 0.6).translate(s * 1.35, S.y + 1.6, S.door + 0.2));   // the jambs
       sk.both(M.bone, new THREE.BoxGeometry(3.3, 0.55, 0.7).translate(0, S.y + 3.45, S.door + 0.2));   // the lintel
@@ -1397,6 +1408,8 @@ export function buildDesertCity(scene, terrain) {
       streamAt: (u, out = V(0, 0, 0)) => out.copy(cave.world(...along(THREE.MathUtils.clamp(u, 0, 1), -1.0).toArray())), crack: cave.world(29.6, 3.6, -6.4), mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
       // (the way in comes out on the passage's landing, facing the drop into the cave; the way up from its back)
       inside: cave.world(0, CAVE_LEDGES.landing + 0.05, ROOM + 6.2), exit: cave.world(0, CAVE_LEDGES.landing, ROOM + 9.3), group: cave.group, root,
+      // the makers' chest on its dais, facing the pool (src/boxes/placements.js desert.lift; issue #81)
+      chest: { at: cave.world(0, CHEST.top + 0.5, CHEST.z), face: 0, dais: cave.world(0, CHEST.top, CHEST.z), r: CHEST.r },
       // walls not to be climbed (issue #68): the whole room and its passage
       noClimb: (() => { const c = cave.world(0, 8, 0); return { x: c.x, y: c.y, z: c.z, r: 48 }; })(),
       shafts: shaftHolder,

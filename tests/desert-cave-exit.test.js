@@ -85,3 +85,21 @@ test('the lift valve’s chest (#68): shut and silent until the pool has filled 
   assert.equal(box.ready(), true, 'it hums back at the full tank');
   game.reset();
 });
+
+test('the lift valve’s chest (#81): on its own dais in a shaft of light, nothing else near it, facing the pool', () => {
+  const box = W.boxes.list.find((b) => b.id === 'desert.lift');
+  assert.ok(box, 'the chest is placed');
+  const d = cave.chest.dais;
+  assert.ok(Math.hypot(box.pos.x - d.x, box.pos.z - d.z) < 0.3 && Math.abs(box.pos.y - d.y) < 0.2, 'on its dais');
+  // facing the pool (its front, +z of its yaw, toward the pool's centre)
+  const toPool = Math.atan2(cave.poolCenter.x - box.pos.x, cave.poolCenter.z - box.pos.z);
+  assert.ok(Math.abs(Math.atan2(Math.sin(toPool - box.yaw), Math.cos(toPool - box.yaw))) < 0.2, 'facing the pool');
+  // clear: from 1.2 m round it out to 3 m, the floor or the dais only (no rock, rubble, root or bone over 0.7 m)
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) for (const r of [1.4, 2.2, 3.0]) {
+    const x = box.pos.x + Math.sin(a) * r, z = box.pos.z + Math.cos(a) * r, y = W.physics.groundAt(x, cave.origin.y + 8, z, 12) - cave.origin.y;
+    assert.ok(y < 0.7, `something ${y.toFixed(2)} m high ${r} m from the chest`);
+  }
+  // in a shaft of light: one of the cave's shafts lands on it
+  const lit = cave.shafts.children.some((m) => { m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox.clone().translate(m.position); return b.min.y < d.y + 0.3 && Math.hypot((b.min.x + b.max.x) / 2 - d.x, 0) < 3 && b.containsPoint(d.clone().setY(d.y + 0.1)); });
+  assert.ok(lit, 'a shaft of light falls on the dais');
+});
