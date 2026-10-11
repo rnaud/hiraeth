@@ -195,8 +195,9 @@ export function rebindHtml(kind, prefs = controlPrefs()) {
  */
 export const MENU_PAGES = ['settings', 'controls'];
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
+    this.hasJets = hasJets;   // (the jets' pitch row: shown only once the jets are owned, a debug item since v1.38)
     this.el = el;
     this.where = where;
     this.title = title;
@@ -215,6 +216,8 @@ export class SettingsMenu {
       // the author's entries (src/dev-gate.js): the Developer panel setting, a dev build or ?dev=1
       const dev = devMode({ settings: this.s });
       for (const b of el.querySelectorAll('[data-dev]')) b.hidden = !dev;
+      // the jets' pitch: only where the jets can be had (the debug toggles give them; issue #122)
+      for (const r of el.querySelectorAll('[data-jets]')) r.hidden = !this.hasJets();
       for (const c of el.querySelectorAll('[data-k]')) {
         const k = c.dataset.k;
         const v = k === 'mute' ? sound?.muted : k === 'reduceMotion' ? reducedMotion(this.s) : this.s[k];
@@ -285,7 +288,7 @@ export class SettingsMenu {
   /** Draw the menu (again, in a new language): the side, the settings, the controls' page (filled when it shows). */
   render() {
     const el = this.el, game = !this.title;
-    const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
+    const row = (label, control, attrs = '') => `<label class="row"${attrs}><span>${label}</span>${control}</label>`;
     // (the side's entries: the confirm glyph on the focused one; Resume / Back carries the back button's: src/pad-glyphs.js)
     const F = glyph('ok', { focus: true });
     const go = (page, label) => `<button data-a="page" data-page="${page}">${label}${F}</button>`;
@@ -320,7 +323,7 @@ export class SettingsMenu {
           <h2>${t('set.group.camera')}</h2>
           ${row(t('set.sensitivity'), `<input data-k="sensitivity" type="range" min="0.3" max="3" step="0.05">`)}
           ${row(t('set.invertY'), `<input data-k="invertY" type="checkbox">`)}
-          ${row(t('set.invertFlight'), `<input data-k="invertFlight" type="checkbox">`)}
+          ${row(t('set.invertFlight'), `<input data-k="invertFlight" type="checkbox">`, ' data-jets hidden')}
           ${row(t('set.reduceMotion'), `<input data-k="reduceMotion" type="checkbox">`)}
           ${row(t('set.shake'), `<input data-k="shake" type="range" min="0" max="1" step="0.05">`)}
           <h2>${t('set.group.controls')}</h2>
@@ -340,13 +343,14 @@ export class SettingsMenu {
           <h2>${t('set.group.game')}</h2>
           ${row(t('set.enemies'), opts('enemies', ['normal', 'gentle', 'off']))}
           ${row(t('set.hints'), opts('hints', HINT_LEVELS))}
-          ${game ? `${row(t('set.devPanel'), `<input data-k="devPanel" type="checkbox">`)}
-          ${row(t('set.devMenu'), `<button data-a="dev" type="button">${t('set.devOpen')}</button>`)}
-          <div class="danger">
+          ${game ? `<div class="danger">
             <button data-a="reset">${t('set.reset')}</button>
             <div class="ask" hidden><span>${t('set.resetAsk')}</span>
               <button data-a="reset-yes">${glyph('ok', { focus: true })}${t('set.resetYes')}</button><button data-a="reset-no">${glyph('back', { key: 'Esc' })}${t('set.resetNo')}</button></div>
-          </div>` : ''}
+          </div>
+          <h2 class="dev-group">${t('set.group.dev')}</h2>
+          ${row(t('set.devPanel'), `<input data-k="devPanel" type="checkbox">`)}
+          ${row(t('set.devMenu'), `<button data-a="dev" type="button">${t('set.devOpen')}</button>`, ' data-dev hidden')}` : ''}
           ${isNativeApp || isDeckApp || isXboxApp ? '' : `<p class="keys install-tip">${t('set.installTip')}</p>`}
         </section>
         <section class="panel controls" data-page="controls" hidden></section>

@@ -26,6 +26,7 @@ export const FR = {
   'set.group.controls': 'Commandes',
   'set.group.sound': 'Son',
   'set.group.game': 'Jeu',
+  'set.group.dev': 'Développement',
   'set.lang': 'Langue (menus et invites ; l\'histoire est en anglais pour l\'instant)',
   'set.quality': 'Graphismes',
   'set.quality.auto': 'Auto (s\'adapte pour rester fluide)',

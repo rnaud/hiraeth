@@ -185,6 +185,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu h1 { margin: 0 0 12px; font-size: calc(clamp(17px, 3.2vh, 26px) * var(--ts, 1)); letter-spacing: 0.16em; }
 .fullmenu h1 span { font-size: calc(12px * var(--ts, 1)); letter-spacing: 0; opacity: 0.6; font-weight: normal; }
 .fullmenu .row { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 0; padding: clamp(5px, 1.1vh, 10px) 6px; border-bottom: 1px dashed rgba(43, 33, 31, 0.28); }
+.fullmenu .row[hidden] { display: none; }   /* (the jets' pitch without the jets, the dev menu without the gate: src/ui.js) */
 .fullmenu .row:focus-within { background: rgba(242, 197, 75, 0.3); }
 .fullmenu select, .fullmenu input[type=range] { width: 46%; accent-color: #c8483a; font: inherit; }
 .fullmenu select { padding: 4px 6px; color: #2b211f; background: #fffaf0; border: 2px solid #2b211f; border-radius: 0; }

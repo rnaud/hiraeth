@@ -102,6 +102,9 @@ export const CHANGELOG = [
         ], source: 'the passes’ own counts (--profile 1)' },
       ],
       see: 'On the Steam Deck, with Show FPS and frame time on, stand at the City-Shaft’s rim and look down the shaft: the frame line reads about 40 instead of 35. Fly close to a banner under a terrace: its colour, glyphs and wave are as before.' },
+    // the settings (docs/systems/ui.md; issue #122)
+    { text: 'Settings no longer offers to invert the jets’ pitch until you have the jets, and the developer switches have their own group at the very end, below the reset, instead of sitting among yours.',
+      see: 'Open Settings (Menu / Esc) in a game: Camera and motion has no jets row; the Developer group is last. Give yourself the jets in the world debug menu (L3 + R3, F2: Toggles) and the row is back.' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

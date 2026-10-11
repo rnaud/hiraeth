@@ -26,6 +26,7 @@ export const EN = {
   'set.group.controls': 'Controls',
   'set.group.sound': 'Sound',
   'set.group.game': 'Game',
+  'set.group.dev': 'Developer',
   'set.lang': 'Language (menus and prompts; the story is in English for now)',
   'set.quality': 'Graphics',
   'set.quality.auto': 'Auto (adapts to keep it smooth)',

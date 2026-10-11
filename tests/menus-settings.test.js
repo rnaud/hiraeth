@@ -176,3 +176,28 @@ test('the debug entries stay hidden from players, and with the gate on they surv
   // found by data-a, never by their words
   for (const f of [ui, title]) assert.doesNotMatch(f, /textContent === ['"]D[eé]bog|textContent === ['"]Debug/);
 });
+
+// ------------------------------------------------------------------ issue #122: the jets' row and the developer rows
+
+test('the jets\' pitch row shows only with the jets, and the developer rows are a group of their own at the end (#122)', async () => {
+  globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget();   // (ui.js reads them at import)
+  const { SettingsMenu } = await import('../src/ui.js');
+  const draw = (title) => { const el = { innerHTML: '', querySelector: () => null }; SettingsMenu.prototype.render.call({ el, title }); return el.innerHTML; };
+  for (const html of [draw(false), draw(true)]) {
+    // the row is drawn hidden, behind data-jets (sync() shows it once the jets are owned)
+    assert.match(html, /<label class="row" data-jets hidden><span>[^<]*<\/span><input data-k="invertFlight"/);
+  }
+  const game = draw(false);
+  // the developer rows: after every player's row and the reset, under their own heading; the dev menu behind the gate
+  const dev = game.indexOf('class="dev-group"');
+  assert.ok(dev > game.indexOf('data-a="reset"') && dev > game.indexOf('data-k="hints"'), 'the Developer group comes last');
+  assert.ok(game.indexOf('data-k="devPanel"') > dev && game.indexOf('data-a="dev"') > dev, 'both developer rows are in it');
+  assert.match(game, /<label class="row" data-dev hidden><span>[^<]*<\/span><button data-a="dev"/);
+  assert.doesNotMatch(draw(true), /devPanel|data-a="dev"/, 'none on the title screen');
+  // sync() decides: the jets from the game's items (main.js), the dev menu from the gate
+  const ui = src('src/ui.js'), main = src('src/main.js');
+  assert.match(ui, /for \(const r of el\.querySelectorAll\('\[data-jets\]'\)\) r\.hidden = !this\.hasJets\(\);/);
+  assert.match(ui, /hasJets = \(\) => false/, 'none where nothing says (the title screen)');
+  assert.match(main, /hasJets: \(\) => items\.has\('jetpack'\)/);
+  assert.match(src('src/menus.css'), /\.fullmenu \.row\[hidden\] \{ display: none; \}/);
+});

@@ -7,18 +7,19 @@ The title screen and saves, settings, the pause menus, the empty screen while pl
 - **Continue:** your world, position and time of day are saved every few
   seconds; the picker shows a Continue button.
 - **Settings (O, Esc or ⚙; the title's Settings):** saved in `localStorage` `moebius.settings.v1`
-  (`src/ui.js` `Settings`, `DEFAULTS`), in five groups:
+  (`src/ui.js` `Settings`, `DEFAULTS`), in five groups and, in play, a sixth for the author:
   - *Screen and text:* the language (`lang`: English, Français), graphics (`quality`: Auto,
     Handheld, Steam Deck, Low, Medium, High), the text size (`textSize`: Small, Normal, Large,
     Larger), a solid background behind speech (`speechBg`), the FPS readout (`showFps`, F3);
-  - *Camera and motion:* camera sensitivity, invert Y, invert the jets' pitch (`invertFlight`),
-    reduce motion (`reduceMotion`), camera shake (`shake`, 0..1);
+  - *Camera and motion:* camera sensitivity, invert Y, invert the jets' pitch (`invertFlight`;
+    shown only while the debug jets are owned, `hasJets`, issue #122), reduce motion (`reduceMotion`), camera shake (`shake`, 0..1);
   - *Controls:* the controller's face layout (`padFaces`), run (`run`: L3 until you stop, hold,
     toggle), guard (`guard`: hold, toggle), and a way to the Controls page, where each verb's key
     and button can be moved (`keys`, `pad`: docs/systems/controls.md, "Remapping");
   - *Sound:* music, effects, voices, alien voices, mute (M);
-  - *Game:* enemies (Normal, Gentle, Off); in play only: the developer panel, the dev menu, and
-    restarting the save from the prologue.
+  - *Game:* enemies (Normal, Gentle, Off), hints; in play only: restarting the save from the prologue;
+  - *Developer* (in play only, last, below the reset): the developer panel (the dev gate's own switch,
+    so always there) and the dev menu (`data-dev`: only with the gate on, `src/dev-gate.js`).
 
 ### Accessibility (the Basic tier of the Game Accessibility Guidelines)
 
