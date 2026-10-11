@@ -31,7 +31,8 @@ test('the workflow builds the UWP solution with GameCI on Windows, then packages
   assert.match(workflow, /\.\/scripts\/unity-uwp-v8\.ps1/);
   assert.match(workflow, /'PuertsCore\.dll', 'PapiV8\.dll'/, 'the package checked for its V8');
   // msbuild Master x64, unsigned, then signtool with the WebView2 app's certificate
-  assert.match(workflow, /-p:Configuration=Master -p:Platform=x64/);
+  assert.match(workflow, /-p:Configuration=\$env:MSCONFIG -p:Platform=x64/);
+  assert.match(workflow, /MSCONFIG: \$\{\{ inputs\.development && 'Release' \|\| 'Master' \}\}/, 'Master unless a development player is asked for');
   assert.match(workflow, /-p:AppxPackageSigningEnabled=false/);
   assert.match(workflow, /XBOX_PFX_BASE64: \$\{\{ secrets\.XBOX_PFX_BASE64 \}\}/);
   assert.match(workflow, /signtool/);

@@ -35,6 +35,10 @@ on:
         type: choice
         options: [Direct3D11, Direct3D12]
         default: Direct3D11
+      development:
+        description: "A development player (Unity's own logs, the graphics device's reasons): msbuild Release instead of Master; an artifact, never published"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -47,7 +51,9 @@ concurrency:
 env:
   UNITY_VERSION: 6000.6.4f1   # (unity/Memento/ProjectSettings/ProjectVersion.txt)
   PROJECT: unity/Memento
-  GFX: ${{ inputs.graphics_api || 'Direct3D11' }}   # (a push builds Direct3D11; by hand, either: BridgeBuild.Xbox -graphicsApi)
+  GFX: ${{ inputs.graphics_api || 'Direct3D11' }}
+  DEV: ${{ inputs.development && '-development' || '' }}
+  MSCONFIG: ${{ inputs.development && 'Release' || 'Master' }}   # (a push builds Direct3D11; by hand, either: BridgeBuild.Xbox -graphicsApi)
 
 jobs:
   xbox:
@@ -185,7 +191,7 @@ jobs:
           buildMethod: Memento.EditorTools.BridgeBuild.Xbox
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
-          customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }}
+          customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }} ${{ env.DEV }}
           allowDirtyBuild: true
 
       - name: The UWP solution (IL2CPP x64, D3D11) (again)
@@ -204,7 +210,7 @@ jobs:
           buildMethod: Memento.EditorTools.BridgeBuild.Xbox
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
-          customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }}
+          customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }} ${{ env.DEV }}
           allowDirtyBuild: true
 
       # (saved also when the build failed further on, as "-partial", as the other Unity jobs do)
@@ -301,7 +307,7 @@ jobs:
           if (-not $sln) { throw 'no .sln in Builds\unity-xbox' }
           $pkgDir = (Join-Path (Resolve-Path out).Path 'AppPackages') + '\'
           & $env:MSBUILD $sln.FullName -restore -m -nologo -v:minimal `
-            -p:Configuration=Master -p:Platform=x64 `
+            -p:Configuration=$env:MSCONFIG -p:Platform=x64 `
             -p:AppxPackageSigningEnabled=false -p:AppxBundle=Never -p:UapAppxPackageBuildMode=SideloadOnly `
             -p:AppxPackageDir=$pkgDir -bl:out\msbuild.binlog
           if ($LASTEXITCODE) { throw "msbuild failed ($LASTEXITCODE): see the errors above, or msbuild.binlog in the run's artifact" }
@@ -336,7 +342,7 @@ jobs:
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: ${{ env.GFX == 'Direct3D12' && 'memento-unity-xbox-d3d12' || 'memento-unity-xbox' }}
+          name: memento-unity-xbox${{ env.GFX == 'Direct3D12' && '-d3d12' || '' }}${{ env.DEV != '' && '-dev' || '' }}
           path: |
             out/unity-xbox/
             out/msbuild.binlog
@@ -355,7 +361,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Publish to the release unity-xbox
-        if: env.GFX == 'Direct3D11'
+        if: env.GFX == 'Direct3D11' && env.DEV == ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
