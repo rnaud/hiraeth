@@ -1,0 +1,67 @@
+changelog.md
+  s_9ca76055a220ed::t_1befc243e8904e 13-15
+docs/story-bible.md
+  s_9ca76055a220ed::t_5fac70b1776285 366-371,412-414,457-458
+docs/systems/story.md
+  s_9ca76055a220ed::t_ee8951db6c8bdd 737-747
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_17c605db4bb079 1204-1206
+src/changelog.js
+  s_9ca76055a220ed::t_a055c78246531a 77-83
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_17c1887b754182 140,157,611-613
+src/levels/space-city.js
+  s_9ca76055a220ed::t_2acdfabe8c3eae 106
+src/save-migrate.js
+  s_9ca76055a220ed::t_dd8e7d12e86b6c 68-70,216-217,232-255
+src/story/moonfoundry-people.js
+  s_9ca76055a220ed::t_b4b50a9ea2a5f6 6-8,33-35,37,42-43,45,99,101,105-106,123-124,143-145,162-163,178-184,187
+src/story/moonfoundry.js
+  s_9ca76055a220ed::t_3cb37d5014f111 7-9,15-16,37-52,70,76
+src/story/people-book.js
+  s_9ca76055a220ed::t_44a155bc5c2650 391,543
+src/story/spacecity-people.js
+  s_9ca76055a220ed::t_44a037d9fad642 5-7,32-34,36,89,109,115-116,118,173-174,193-196,209-213,215-234
+src/story/spacecity.js
+  s_9ca76055a220ed::t_80bf13b3876ef8 8-9,40-43
+src/story/underwater-people.js
+  s_9ca76055a220ed::t_bfc11c880ac2b1 4-6,14,32-33,102,120-122,137,139,142,144-146,149,164-165,188-191
+src/story/underwater.js
+  s_9ca76055a220ed::t_1aed6e7d379128 6-7,43-46,77
+src/temples/moonfoundry-data.js
+  s_9ca76055a220ed::t_a1aa7505c59087 23-24,30-32
+tests/goal-reached-early.test.js
+  s_9ca76055a220ed::t_2e24eb473adb80 1-116
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_7f739b7ea27ac8 378,380,387,391
+tests/quest-steps.test.js
+  s_9ca76055a220ed::t_3e6c2341a8d9a4 88-114
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_dce7005b3d2783 90,300-334
+tests/shard-timings.json
+  s_6536f4de62e0c5::t_4517144ad396f0 4-5,11-12,14,16,20,24,27,29,31,33-34,38,41,44-45,48-49,51-52,55,66-69,72,76,79-80,84,86,89,92-93,96-98,100,105-106,109,112-113,116-118,125,127-130,132-134,136,139-143,145,152,157,160,162,165,168-169,179,187-196,199-206,208-215,217-218,222-235,237-242,244-269,271-276,278-293,295,297-312,314-332,334-339,341-350,353,355-372,376-378,380,382,384,386-390,393-394,396-398,404,408,411,420,424-429,434-435,438-440,443,453,455-456,458-459,464,466-467,470
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7040f884689687d72556c196ad91d76a64c60112",
+  "prompts": {},
+  "sessions": {
+    "s_6536f4de62e0c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4411cd923d5635cc",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
