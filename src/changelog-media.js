@@ -597,6 +597,8 @@ const C48_WARDEN = { commit: '86f06aba' };   // (the Warden's Well round its Cli
 // (v1.49: the temples to explore, round 2, issue #23: each house its own shape; the Engine-House at the origin [-150, 2200, -280])
 const C49_ENGINE = { commit: '740920b4' };
 const EH = (x, y, z) => [-150 + x, 2200 + y, -280 + z];   // (the Engine-House's own metres, in the world)
+const C49_AERIE = { commit: 'e6ae6047' };
+const AE = (x, y, z) => [-390 + x, 1638 + y, -780 + z];   // (the Aerie's own metres, in the world)
 export const CHANGELOG_MEDIA = {
   '1.49': [
     { match: 'In the Unity test build, water foams', shots: [
@@ -614,6 +616,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'engine-greatlock', title: 'The great lock', caption: 'Over the Furnace’s bridge: before, a plain door into the Tooth-Warden’s hall; after, the great lock’s brass plate on it', ...C49_ENGINE,
         view: { level: 'buried', save: SAVE47, hour: 12, fov: 60, eye: EH(0, 9.6, 131.8), target: EH(0, 9.4, 136.3), player: EH(0, 7.05, 132.5) } },
     ], see: 'In the Engine-House, once you have the fourth chamber, wake the Fourth Chamber’s four eyes in one breath; the shutters roll up on the Boiler Room and the Governor Room.' },
+    { match: 'The Aerie is a tower of rooms now', shots: [
+      { name: 'aerie-hub', title: 'The Wind Well', caption: 'The Wind Well from its floor, looking west and up: before, its walls; after, a doorway west off the floor into the Moult, and high up the ledge round the wall from the high balcony to the Eyrie’s door', ...C49_AERIE,
+        view: { level: 'arzach', save: SAVE47, hour: 11, fov: 80, eye: AE(7, 3, 61), target: AE(-12, 17, 70), player: AE(8, 0.05, 60) } },
+      { name: 'aerie-ledge', title: 'The ledge', caption: 'From the high balcony: before, the well’s wall; after, the ledge round it to the Eyrie', ...C49_AERIE,
+        view: { level: 'arzach', save: SAVE47, hour: 11, fov: 70, eye: AE(4, 34.5, 78), target: AE(-10, 33, 69), player: AE(4.6, 32.05, 79) } },
+      { name: 'aerie-eyrie', title: 'The Eyrie', caption: 'In from the ledge: the stone in its groove between the two throats, the gap, and the great key’s perch six metres up on the far side', ...C49_AERIE, only: 'after',
+        view: { level: 'arzach', save: SAVE47, hour: 11, fov: 75, eye: AE(-18.6, 35.5, 64.5), target: AE(-34, 36, 68.5), player: AE(-19.2, 32.05, 65) } },
+      { name: 'aerie-moult', title: 'The Moult', caption: 'The Moult, its moulted stone feathers heaped by the walls: its door shuts behind you while the keepers stand, the small key caged at the far end', ...C49_AERIE, only: 'after',
+        view: { level: 'arzach', save: SAVE48_ARMED, hour: 11, fov: 75, eye: AE(-18.6, 4, 65.5), target: AE(-30, 1.5, 69.5), player: AE(-19.2, 0.05, 66.4) } },
+    ], see: 'In the Aerie, west off the Wind Well’s floor into the Moult; with the wings, from the high balcony round the ledge into the Eyrie.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
