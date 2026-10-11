@@ -497,6 +497,10 @@ second orb has to be lit and rolled home inside the first one's glow. The great 
 The audit (`scripts/temple-design/lib.mjs`) sorts a lock whose keys want the gadget after the chest wherever its room is,
 and leaves out a door that opens with another (`{ open }`) as a step of its own.
 
+The **Founders' Belfry** (`arzach2.js`, 4.0, structure 4) had a hub of two stone stores already, a ball in each; its west
+store is an arena now (its archway `dSW` shuts behind you; won, the small key), so the Hall of Stones' door takes the key
+and the east ball's weight (`drumOn`, where it was the plate pressed: standing on it yourself no longer latches it).
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

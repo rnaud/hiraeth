@@ -538,6 +538,22 @@ test('the Lamp-House (issue #23): the Kennel off its first hall gives the small 
   }
 });
 
+test('the Founders’ Belfry (issue #23): its hub’s west store an arena, the east store’s ball, either order; old saves past the hall find it open', () => {
+  const L = TEMPLES.arzach2.def.logic, items = ['backpack', 'gun', 'doublejump', 'glider', 'sword', 'shield'];
+  for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
+  const noArena = solve(L, { items, forbid: ['arW'] });
+  assert.ok(noArena.logic.drumOn('ball2', 'p2') && !noArena.stuck.includes('stair'), 'the ball alone: the hall’s door stays shut');
+  const noBall = solve(L, { items, forbid: ['ball2'] });
+  assert.ok(noBall.logic.isFound('kW') && !noBall.stuck.includes('stair'), 'the key alone: the door stays shut');
+  assert.deepEqual(TEMPLES.arzach2.def.arenas.map((A) => A.el), ['arW']);
+  const g = new GameState(null);
+  for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'drum.ball2': 1, 'open.d1': true, gadget: true, checkpoint: 'bell' })) g.set(`temple.arzach2.${k}`, v);
+  migrateTemples(g);
+  const B = new TempleLogic(L, { store: flagStore(g, 'arzach2'), has: (i) => [...items, 'bell'].includes(i) });
+  B.update();
+  assert.ok(B.isOpen('d1') && B.keys('small') === 0, 'the hall’s door stays open behind them');
+});
+
 // ------------------------------------------------------------------ the words
 function spoken(v, out = [], seen = new Set()) {
   if (!v || typeof v !== 'object' || seen.has(v)) return out;
@@ -1248,7 +1264,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
 });
 
 // ------------------------------------------------------------------ on foot: Vael II's belfry, room by room
-test('the Founders’ Belfry on foot: two balls in the two stores, the founders’ bell struck by a ball and the great stone that falls up (and without you), the eye under the landing, the bell, its try in the chamber, the porch’s held door a room on, the held stones and the ball rolled across them, the Cloud-Mother calmed, the stones come down outside', () => {
+test('the Founders’ Belfry on foot: the west store’s arena and the east store’s ball, the founders’ bell struck by a ball and the great stone that falls up (and without you), the eye under the landing, the bell, its try in the chamber, the porch’s held door a room on, the held stones and the ball rolled across them, the Cloud-Mother calmed, the stones come down outside', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('arzach2');
@@ -1280,17 +1296,29 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the founders�
     }
     return rt.logic.drumOn(id, plate);
   };
-  assert.equal(via([-6, 0, 23], [-13, 0, 23]), true, `into the west store (${where()})`);
-  assert.equal(roll('ball1', 'p1'), true, `the west ball home (${rt.piece('ball1').t.toFixed(2)})`);
-  wait(1);
-  assert.equal(rt.logic.isOpen('d1'), false, 'one lamp of two');
+  // the west store, an arena since v1.49: its archway shuts behind you while its keepers stand
+  const keepers = [{ room: 'storeW', alive: true }, { room: 'storeW', alive: true }];
+  rt.machines = [...(rt.machines ?? []), ...keepers];
+  assert.equal(via([-6, 0, 23], [-15, 0, 23]), true, `into the west store (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isOpen('dSW'), false, 'the archway shuts behind you');
+  for (const k of keepers) k.alive = false;
+  wait(2.5);
+  assert.ok(rt.logic.isLit('arW') && rt.logic.isOpen('dSW'), 'beaten: won, and the archway lets go');
+  assert.equal(walk(rt.piece('kW').pos, { tol: 1.2 }), true, `to the key (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kW'), true, 'a small key');
   assert.equal(via([-13, 0, 23], [-6, 0, 23], [6, 0, 23], [12.6, 0, 23]), true, `into the east store (${where()})`);
   assert.equal(roll('ball2', 'p2'), true, `the east ball home (${rt.piece('ball2').t.toFixed(2)})`);
   wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), false, 'the door’s lamp, and its keyhole still empty');
+  assert.equal(via([12.6, 0, 23], [6, 0, 23], [0, 0, 30], [0, 0, 42.4]), true, `to the door (${where()})`);
+  wait(2.5);
+  assert.equal(rt.logic.keysIn('d1'), 1, 'the small key goes in');
   assert.equal(rt.logic.isOpen('d1'), true);
   // ---- the Stone Stair: the great stone hangs at the top of the well, by the high door; the founders' bell low by the
   // way in, a ball in a groove into its mouth
-  assert.equal(via([12.6, 0, 23], [4, 0, 30], [0, 0, 40], [0, 0, 46.5]), true, `into the well (${where()})`);
+  assert.equal(via([0, 0, 42.4], [0, 0, 46.5]), true, `into the well (${where()})`);
   assert.equal(rt.pieces.filter((p) => p.path && !(p instanceof FallUpStone)).length, 0, 'no riding disc in the belfry');
   const stone = rt.pieces.find((p) => p instanceof FallUpStone);
   assert.ok(stone.s > stone.total - 0.01, 'the great stone hangs at the top');

@@ -109,6 +109,13 @@ export const LAYOUTS = {
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'open.cW': true } },
     ],
   },
+  // v1.49: the Founders' Belfry's west store an arena. Past the Hall of Stones' door: its small key in it, the store won
+  arzach2: {
+    v: 2,
+    steps: [
+      { if: ['open.d1', 'drum.ballS', 'lit.s1', 'open.d2', 'gadget', 'open.br1', 'boss'], set: { 'unlocked.d1': 1, 'found.kW': true, 'lit.arW': true } },
+    ],
+  },
 };
 export function migrateTempleLayouts(g) {
   let n = 0;

@@ -372,7 +372,7 @@ export const ROUTE = [
   { id: 'desert', play: ['desert.power', { act: 'askSabri', at: 'sabri', label: 'Sabri, in the camps' }, { temple: 'done', id: 'desert' }] },
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
-  { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell'] },
+  { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell', { temple: 'done', id: 'arzach2' }] },   // (v1.49: and the Founders' Belfry to its guardian, its west store an arena)
   // (v1.49: and the Lamp-House to its guardian, the Kennel off its first hall and the Wick Room past the gallery: issue #23)
   { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps', { temple: 'done', id: 'perdide2' }] },
   // (v1.49: and the Builders' Greenhouse to its guardian, both its hub's wings and the Seed Vault past the gulf: issue #23)

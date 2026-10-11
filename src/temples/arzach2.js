@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Platform, Bridge, BellEar, Switch, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Platform, Bridge, BellEar, Switch, Mark, Pit, Key } from './pieces.js';
 import { whaleModel } from './guardians.js';
 
 // Vael II's temple: the Founders' Belfry, a tower of bone-white stone that
@@ -15,9 +15,11 @@ import { whaleModel } from './guardians.js';
 // Inside (built far overhead, through its door). The temple's one idea: a founders' bell holds things only
 // while it rings; a stone's weight holds them for good.
 //   the Threshold          the first mark, the way out
-//   the Hall of Stones     a hub: the door on has two lamps, and two archways open off the hall, west and
-//                          east, into the two stone stores. A ball in each, a plate at its groove's end: roll
-//                          both home (the push) and the door sinks. You find the path, in your own order.
+//   the Hall of Stones     a hub: the door on has a lamp and a keyhole, and two archways open off the hall, west and
+//                          east, into the two stone stores. Since v1.49 (issue #23) the west store is an arena: its
+//                          archway shuts behind you while its keepers stand, and won, the small key's cage sinks; in
+//                          the east one a ball, a plate at its groove's end: roll it home (the push). The key and the
+//                          ball, in your own order, and the door sinks.
 //   the Stone Stair        a round well whose stair fell up: one great stone hangs at the top of it, by the
 //                          high door. Low by the way in hangs a founders' bell with no clapper, and a stone ball
 //                          lies in a groove that runs into its mouth: roll the ball in and it strikes the bell
@@ -81,7 +83,7 @@ export const LOGIC = {
   rooms: { threshold: { checkpoint: true }, stones: { checkpoint: true }, storeW: {}, storeE: {}, stair: { checkpoint: true }, landing: {}, bell: { checkpoint: true }, echoes: { checkpoint: true }, echoesFar: {}, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'stones' },
-    { a: 'stones', b: 'storeW' },
+    { a: 'stones', b: 'storeW', door: 'dSW' },      // (open: it shuts behind you while its keepers stand)
     { a: 'stones', b: 'storeE' },
     { a: 'stones', b: 'stair', door: 'd1' },
     { a: 'stair', b: 'landing', door: 'lift' },     // the great stone: rung down, it falls up again with you on it
@@ -92,11 +94,13 @@ export const LOGIC = {
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
-    p1: { type: 'plate', room: 'storeW' },
+    // the west store, an arena since v1.49: its keepers beaten among the stones brought back down, the small key's cage sinks
+    arW: { type: 'arena', room: 'storeW' },
+    kW: { type: 'key', kind: 'small', room: 'storeW', when: { lit: 'arW' } },
+    dSW: { type: 'door', opens: null },
     p2: { type: 'plate', room: 'storeE' },
-    ball1: { type: 'drum', room: 'storeW', plate: 'p1', plateAt: 1, start: 0 },
     ball2: { type: 'drum', room: 'storeE', plate: 'p2', plateAt: 1, start: 0 },
-    d1: { type: 'door', opens: { all: [{ pressed: 'p1' }, { pressed: 'p2' }] }, latch: true },
+    d1: { type: 'door', lock: 'small', opens: { drumOn: ['ball2', 'p2'] }, latch: true },   // (the ball's weight: you alone are not enough)
     // the Stone Stair: the ball rolled into the founders' bell's mouth strikes it; while it rings the great stone is down
     ballS: { type: 'drum', room: 'stair', plate: 'pS', plateAt: 1, start: 0 },
     pS: { type: 'plate', room: 'stair' },
@@ -120,6 +124,13 @@ export const LOGIC = {
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
+
+/** The west store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arW', room: 'storeW', zone: { min: [-23.2, -1, 17], max: [-12.2, 8, 29] }, doors: ['dSW'], extra: 2,
+  shut: 'The archway grinds shut behind you. Among the stones brought back down, something gets up.',
+  won: 'The last of them falls among the stones. The key’s cage sinks, and the archway lets go.',
+}];
 
 /** The held notes: how long the founders' bells hold their door and their stones (s). */
 export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold, stair: LOGIC.elements.e0.hold, chamber: LOGIC.elements.eT.hold };
@@ -303,7 +314,7 @@ function layout(rt) {
   // ---- the Hall of Stones (z 12.6..44): a hub. The door on has two lamps; two archways, west and east, open
   // into the stone stores, a ball and its plate in each (out of sight of the door: you go and find them)
   K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 13, roof: 'oculus', oculus: 0.25, columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.6 }, { side: 'w', at: -5.3, w: 4, h: 5.5 }, { side: 'e', at: -5.3, w: 4, h: 5.5 }] });
-  add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.6, lamps: [{ pressed: 'p1' }, { pressed: 'p2' }] });
+  add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.6, lamps: [{ drumOn: ['ball2', 'p2'] }] });   // (and a keyhole: logic `lock`)
   add(Mark, { room: 'stones', at: [-7.5, 0, 15.5], yaw: Math.PI / 2 });
   // stones that once fell up, heaped in the corners where somebody brought them back down
   [[-9, 0.6, 42, 0.9], [-8.2, 0.5, 40.6, 0.7], [9.1, 0.6, 15, 0.8], [8.4, 1.4, 15.6, 0.6]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i));
@@ -319,12 +330,12 @@ function layout(rt) {
     const { L, yaw, c } = inlay(a, b, 1.0, 0.02);
     for (const sd of [-1, 1]) K.both(M.trim, T(new THREE.BoxGeometry(0.25, 0.12, L), [c[0] + Math.cos(yaw) * sd * 0.75, 0.06, c[1] - Math.sin(yaw) * sd * 0.75], [0, yaw, 0]));
   };
+  // (the west store an arena since v1.49: its archway shuts behind you while its keepers stand; the small key at its far end)
   K.hall({ x: -17.7, z: 23, w: 11, d: 12, y: 0, h: 8, roof: 'oculus', oculus: 0.3, omit: ['e'], frieze: false });
-  groove([-17.7, 19.6], [-17.7, 27]);
-  add(Ball, { id: 'ball1', a: [-17.7, 0.04, 19.6], b: [-17.7, 0.04, 27], r: 1.0 });
-  add(Plate, { id: 'p1', at: [-17.7, 0, 27], r: 1.2 });
-  K.glyph([-23.15, 4.6, 23], 1.3, Math.PI / 2);
-  [[-22, 0.6, 18.4, 0.8], [-21.4, 0.5, 19.6, 0.6]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i + 4));
+  add(Door, { id: 'dSW', at: [-11.6, 0, 23], yaw: Math.PI / 2, w: 4, h: 5.5 });
+  add(Key, { id: 'kW', at: [-21.6, 0, 23], yaw: Math.PI / 2 });
+  K.glyph([-23.15, 4.6, 26.4], 1.3, Math.PI / 2);
+  [[-22, 0.6, 18.4, 0.8], [-21.4, 0.5, 19.6, 0.6], [-14.6, 0.6, 27.8, 0.9], [-21.8, 0.7, 27.6, 1.0]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i + 4));
   K.hall({ x: 17.7, z: 23, w: 11, d: 12, y: 0, h: 8, roof: 'oculus', oculus: 0.3, omit: ['w'], frieze: false });
   groove([15.4, 19.8], [21.2, 19.8]);
   add(Ball, { id: 'ball2', a: [15.4, 0.04, 19.8], b: [21.2, 0.04, 19.8], r: 1.3 });
@@ -439,6 +450,8 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI * 0.85);
   const arena = { center: K.world(0, 16, CH), r: HR, y: K.world(0, 16, 0).y };
 
+  // (the west store's mark last: after the others, so the machines' ids by mark stay as they were)
+  add(Mark, { room: 'storeW', at: [-15.2, 0, 20.2], yaw: Math.PI / 2 });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
@@ -540,7 +553,7 @@ function change(scene, level, rt) {
 
 export const ARZACH2_TEMPLE = {
   id: 'arzach2', levelId: 'arzach2', name: 'The Founders’ Belfry', doorLabel: 'door of the Founders’ Belfry',
-  gadget: 'bell', gadgetBox: 'arzach2.temple.bell', arenaDoor: 'd4',
+  gadget: 'bell', gadgetBox: 'arzach2.temple.bell', arenaDoor: 'd4', arenas: ARENAS,
   origin: [80, 1600, 150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
