@@ -481,6 +481,13 @@ eye now come before their balls in `LOGIC`, so the marker points at an eye that 
 (it went back and forth between the plates; the playthrough now plays the Greenhouse and the Engine-House to their
 guardians, and reports a temple it walks eighty steps in without getting anywhere).
 
+The **Undertower** (`bazaar.js`, 3.89 after round 1, its curve 5 → 3) likewise: the Listening Passage's horn is deaf until
+a ball is on its footstone (an `EchoEar` whose element has a `when` says `deaf` while it does not hold), and past the
+Gallery of Voices, west off its far side, the **Choir** (`CHOIR`): two horns, the great key caged between them. The far
+one hears only a stone's own low song through a pair of dishes (`hears: 'note'`, a ball on the near dish's footstone), the
+near one the high note played back, the high stone at the far end; the shell keeps the last note, so the low stone sung
+by the near dish is caught too. The great key opens the far door (`d4`, its two lamps as before).
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

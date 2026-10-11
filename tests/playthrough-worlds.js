@@ -393,7 +393,8 @@ export const ROUTE = [
   // the Mooring-House north of the Towers)
   // (v1.48: Rosa on the Pier opens the city's own quest: the cables under the Towers, then in at the Mooring-House)
   { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', 'spacecity.drift', { temple: 'done', id: 'spacecity' }] },
-  { id: 'bazaar', play: ['bazaar.signal'] },
+  // (v1.49: and the Undertower to its guardian, its hub's wings and the Choir past the gallery: issue #23)
+  { id: 'bazaar', play: ['bazaar.signal', { temple: 'done', id: 'bazaar' }] },
 ];
 
 // the sub-levels (src/levels/names.js SUB): reached from a route world's quest, not by the ship; the level design audit

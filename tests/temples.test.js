@@ -33,7 +33,7 @@ import { BELLOWS_NEXT, upUsed, VANES } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
 import { HOLD as BELFRY_HOLD, FallUpStone } from '../src/temples/arzach2.js';
 const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones, HOLD_STAIR = BELFRY_HOLD.stair, HOLD_CHAMBER = BELFRY_HOLD.chamber;
-import { HOLD as UNDERTOWER_HOLD } from '../src/temples/bazaar.js';
+import { HOLD as UNDERTOWER_HOLD, CHOIR } from '../src/temples/bazaar.js';
 const HOLD_HORN = UNDERTOWER_HOLD.horn;
 import { TempleKit } from '../src/temples/kit.js';
 import { GULF, STACK } from '../src/temples/arzach.js';
@@ -442,6 +442,15 @@ test('the Undertower is a hub (issue #23): either wing alone gives its key, the 
   const B = new TempleLogic(L, { store: flagStore(g, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
   B.update();
   assert.ok(B.isOpen('dK') && B.keys('small') === 0, 'the Shell Chamber’s door stays open behind them');
+  // (v1.49) past the gallery, the Choir: the great key for the far door, its two horns answered and its ball home
+  const noChoir = solve(L, { items, forbid: ['hB'] });
+  assert.ok(noChoir.stuck.includes('choir') && !noChoir.stuck.includes('hall'), 'without the Choir the First Sign’s hall stays shut');
+  const g2 = new GameState(null);
+  for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'lit.eD': true, 'open.disc': true, 'lit.eW': true, 'open.wdisc': true, gadget: true, 'lit.e0': true, 'open.d3': true, 'drum.ball2': 1, 'lit.e2': true, 'open.d4': true, checkpoint: 'galleryFar' })) g2.set(`temple.bazaar.${k}`, v);
+  migrateTemples(g2);
+  const B2 = new TempleLogic(L, { store: flagStore(g2, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
+  B2.update();
+  assert.ok(B2.isOpen('d4') && B2.isOpen('d3') && B2.keys('big') === 0, 'old saves past the far door find it open, and the passage’s');
 });
 
 test('the Engine-House is a hub past its chest (issue #23): the chamber’s four eyes roll up both shutters; either wing alone gives its key, the small for the passage’s door, the great for the warden’s, solved either way round; old saves past the passage find it open', () => {
@@ -3386,7 +3395,7 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
   own();
 });
 
-test('the Undertower on foot: the singing ball and the dishes and the pillars over the cable pit, the hub’s wings: the Cable Store’s arena and the Tuning Room’s dish, each a small key for the Shell Chamber’s door, the well’s horn and the low stone, the echo shell, the chamber’s low stone carried a room on to the passage’s horn, the held pillars, the middle note sent over through the dish, the way back, the First Sign given its words back, the tower speaks once a night', () => {
+test('the Undertower on foot: the singing ball and the dishes and the pillars over the cable pit, the hub’s wings: the Cable Store’s arena and the Tuning Room’s dish, each a small key for the Shell Chamber’s door, the well’s horn and the low stone, the echo shell, the chamber’s low stone carried a room on to the passage’s horn and the ball on its footstone, the held pillars, the middle note sent over through the dish, the way back, the Choir’s two horns for the great key, the great lock, the First Sign given its words back, the tower speaks once a night', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('bazaar');
@@ -3530,6 +3539,13 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(shell.held?.note, 'low', 'the shell catches the low stone');
   assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back to the door's horn (${where()})`);
   assert.equal(shell.play(), true);
+  assert.equal(rt.logic.isLit('e0'), false, 'the low note, and the horn is deaf: its footstone bare');
+  assert.ok(said(/deaf/), 'it says so');
+  // (v1.49) the passage's ball onto the horn's footstone, and the low note again
+  roll('ballP');
+  assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back by the horn (${where()})`);
+  shell.update(2);
+  assert.equal(shell.play(), true);
   assert.equal(rt.logic.isLit('e0'), true, 'it hears the low note, carried a room on');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
@@ -3589,7 +3605,7 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   wait(1);
   assert.equal(rt.logic.isLit('e2'), true, 'the dish over the far door says the middle note, and the door’s horn answers');
   wait(2.2);
-  assert.equal(rt.logic.isOpen('d4'), true, 'both of the far door’s lamps: it sinks, across the chasm');
+  assert.ok(rt.logic.check(rt.logic.el('d4').opens) && !rt.logic.isOpen('d4'), 'both of the far door’s lamps, across the chasm: and since v1.49 it wants the great key too');
   // then the high note to the great horn: and the pillars wait for whoever is on them
   high.sing(); wait(0.3);
   walk(ear1.at.clone().setY(P.pos.y), { tol: 2.5 });
@@ -3603,8 +3619,37 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(walk(L(0, 12, G0 + 31)), true, `off the far end (${where()})`);
   wait(0.3);
   assert.equal(bridge.open, false, 'and then they sink');
+  // ---- the Choir, west off the far side: the far horn hears the low stone through the dishes, the near one the high
+  // note played back; the great key caged between them
+  const CZ = G0 + CHOIR.door;
+  assert.equal(walk(L(-8, 12, CZ)) && walk(L(-17.6, 12, CZ)), true, `into the Choir (${where()})`);
+  const hA = ear('hA'), hB = ear('hB'), kB = rt.piece('kB');
+  const lowQ = stone('low', L(CHOIR.low[0], 12, G0 + CHOIR.low[1])), highQ = stone('high', L(CHOIR.high[0], 12, G0 + CHOIR.high[1]));
+  assert.equal(kB.free(), false, 'the great key caged');
+  lowQ.sing(); wait(1.2);
+  assert.equal(rt.logic.isLit('hA'), false, 'the low stone sung by a dark dish: the far horn hears nothing');
+  roll('ballQ');
+  lowQ.sing(); wait(1.2);
+  assert.equal(rt.logic.isLit('hA'), true, 'the dish awake: the far horn hears the low stone through it');
+  assert.equal(shell.held.note, 'low', 'and the shell caught the low note too');
+  assert.equal(walk(hB.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `to the near horn (${where()})`);
+  shell.update(2); shell.play(); wait(0.3);
+  assert.equal(rt.logic.isLit('hB'), false, 'the low note: the near horn wants the high one');
+  assert.equal(walk(highQ.center.clone().add(V(2.4, 0, -1)).setY(P.pos.y), { tol: 1.2 }), true, `to the high stone at the far end (${where()})`);
+  highQ.sing(); wait(0.3);
+  assert.equal(shell.held.note, 'high');
+  assert.equal(walk(hB.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back to the near horn (${where()})`);
+  shell.update(2); shell.play(); wait(0.3);
+  assert.equal(rt.logic.isLit('hB'), true, 'the high note, played back: it answers');
+  wait(1.5);
+  assert.equal(kB.free(), true, 'both horns, and the ball home: the cage sinks');
+  assert.equal(walk(kB.pos, { tol: 1.2 }), true, `to the great key (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kB'), true, 'the great key');
+  assert.equal(walk(L(-17.6, 12, CZ)) && walk(L(-8, 12, CZ)) && walk(L(0, 12, G0 + 31)), true, `back out to the far door (${where()})`);
   // ---- the First Sign: when it lowers its dish to listen, play its word back into it; it moves on to the next
-  assert.equal(walk(L(0, 12, G0 + 44)), true, `into the hall (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 44)), true, `through the great lock into the hall (${where()})`);
+  assert.equal(rt.logic.keysIn('d4'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep', 'it wakes');

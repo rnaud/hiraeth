@@ -70,10 +70,13 @@ export const LAYOUTS = {
   },
   // v1.48: the Undertower round its Cable Well. Up the second disc (or with the shell): the Shell Chamber's door has its
   // two small keys, the Cable Store won, the Tuning Room's horn answered
+  // v1.49: the Choir off the Gallery of Voices' far side. Past its far door: the great key in it, the Choir's horns
+  // answered (the passage's horn's new footstone stands behind a door already open)
   bazaar: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['lit.eW', 'open.wdisc', 'gadget', 'lit.e0', 'open.d3', 'open.d4', 'boss'], set: { 'unlocked.dK': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.eT': true, 'drum.ballT': 1 } },
+      { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.hA': true, 'lit.hB': true, 'drum.ballQ': 1 } },
     ],
   },
   // v1.48: the Engine-House round its Fourth Chamber, past the chest. Past the Crank Passage's door: its small key in it,

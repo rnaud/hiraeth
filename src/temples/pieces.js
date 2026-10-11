@@ -2125,7 +2125,7 @@ export class EchoEar {
           this.lit = true;
           if (this.hold) { this.left = this.hold; this.warned = false; }
           rt.sound?.chime?.(); rt.notice?.(o.heard ?? 'It hears its own note, played back close by, and answers.', o.heard && this.hold ? `ear.heard.${this.id}` : null); rt.onLit?.(this.id);
-        }
+        } else if (rt.logic.el?.(this.id)?.when && !rt.logic.check(rt.logic.el(this.id).when)) { this.shrug = 0.8; rt.notice?.(o.deaf ?? 'It hears nothing: it is deaf.', `ear.deaf.${this.id}`); }   // (deaf until its `when` holds: the Undertower's passage horn, v1.49)
       } else if (typeof note === 'string' && !note.startsWith('sign.')) { this.shrug = 0.8; rt.notice?.(o.wrong ?? `It hears the note, and stays still: it listens for the ${N.name} one.`, `ear.wrong.${this.id}`); }
     };
     const offs = [];

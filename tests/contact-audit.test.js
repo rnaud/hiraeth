@@ -136,7 +136,9 @@ const KNOWN = {
   perdide: { sink: 3, hover: 0, inside: 4, walk: 7 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
   // (v1.48: the passages under the towers by Signal Square and the Undertower's wings both moved the samples; nearly all
   // the market's drawn-only strip along its south avenue and the night halt's thin sleepers)
-  bazaar: { sink: 4, hover: 0, inside: 2, walk: 12 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
+  // (v1.49: the Choir off the Undertower's gallery moved them again: 4 → 17 feet sink, all but one 0.12 m on the night
+  // halt's sleepers, the other in the gallery's pit as before)
+  bazaar: { sink: 17, hover: 0, inside: 10, walk: 17 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
   home: { sink: 0, hover: 0, inside: 3, walk: 13 },
   mangrove: { sink: 0, hover: 0, inside: 6, walk: 0 },   // (the White Mangrove: solid as drawn, roots, decks, leaves and all)
   waterfall: { sink: 2, hover: 0, inside: 2, walk: 0 },   // (its mist banks: drawn only, walked through on purpose)
