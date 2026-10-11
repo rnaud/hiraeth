@@ -1,0 +1,31 @@
+docs/audits/combat-v1.47.md
+  s_9ca76055a220ed::t_66bd109d243ad4 1-320
+docs/README.md
+  s_9ca76055a220ed::t_6dd8043124adf3 26
+tests/audits-page-themes.test.js
+  s_7e8d6d6c0ca91f::t_240d50a56f38c4 37,39-41,45,58-59,61-65,82-83,155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "31b69e04185575dca677c782efb7504069779c96",
+  "prompts": {},
+  "sessions": {
+    "s_7e8d6d6c0ca91f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a70eb10e8d9ce91ab",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
