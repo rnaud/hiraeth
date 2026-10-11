@@ -14,7 +14,8 @@ import { glyphGeometry } from '../story/sign-text.js';
 //   K.rotunda({ x, z, y, r, h, gaps: [{ a: 0, w: 5, h: 6 }] })
 //   K.stairs([x, y, z], [x, y, z], w) · K.ramp(a, b, w) · K.slab(x0, z0, x1, z1, y, t) · K.column(x, z, y, h, r)
 //   K.frieze(a, b, y) (glyphs along a wall) · K.glyph([x, y, z], size, yaw)
-//   K.flush()   the batched meshes (noCollide) and one hidden collision proxy
+//   K.climbable(why, () => { ... })   the solids built inside are climbed, in a house whose walls are not (noClimb)
+//   K.flush()   the batched meshes (noCollide) and one hidden collision proxy (and one of its climbs)
 //
 // Local frame: y up, +z into the temple from its entrance; metres. Render
 // meshes are merged per material and never collide; collision comes from the
@@ -263,6 +264,10 @@ export class TempleKit {
     this.inv = this.frame.clone().invert();
     this.batches = new Map(); this.proxies = [];
     this.M = materials;
+    // (a house whose walls are not climbed, its interior: rt.kit, src/temples/runtime.js; issue #115. Its
+    // solids are baked noClimb, but those built inside climbable(): the climbs its design uses, each with its why)
+    this.noClimb = false;
+    this.climbs = []; this.climbWhy = [];
   }
   /** local -> world */
   world(x, y, z) { return V(x, y, z).applyMatrix4(this.frame); }
@@ -276,7 +281,17 @@ export class TempleKit {
     this.batches.get(mat).push(g);
     return this;
   }
-  solid(geo) { this.proxies.push(prep(geo).applyMatrix4(this.frame)); return this; }
+  solid(geo) { (this._climb ? this.climbs : this.proxies).push(prep(geo).applyMatrix4(this.frame)); return this; }
+  /**
+   * The solids fn() builds are climbed (in a house whose walls are not: noClimb): a climb wall, roots, a frame
+   * that the route takes. why says which step it is (listed in climbWhy; tests/temple-climb.test.js).
+   */
+  climbable(why, fn) {
+    const was = this._climb;
+    this._climb = why; this.climbWhy.push(why);
+    try { fn(); } finally { this._climb = was; }
+    return this;
+  }
   // (the proxy is cloned first: add() moves a non-indexed geometry into the world in place)
   both(mat, geo, proxy) { const p = proxy ?? geo.clone(); this.add(mat, geo); this.solid(p); return this; }
   /**
@@ -322,9 +337,16 @@ export class TempleKit {
     if (this.proxies.length) {
       const c = new THREE.Mesh(mergeGeometries(this.proxies), PROXY);
       c.visible = false; c.name = `${this.group.name} collision`;
+      if (this.noClimb) c.userData.noClimb = true;   // (src/physics.js climbable)
       this.group.add(c);
     }
-    this.batches.clear(); this.proxies = [];
+    if (this.climbs.length) {
+      const c = new THREE.Mesh(mergeGeometries(this.climbs), PROXY);
+      c.visible = false; c.name = `${this.group.name} climbs`;
+      c.userData.climb = true;
+      this.group.add(c);
+    }
+    this.batches.clear(); this.proxies = []; this.climbs = [];
     return meshes;
   }
 

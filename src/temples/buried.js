@@ -386,7 +386,7 @@ function layout(rt) {
 
   // ---- the Piston Hall (z 12.6..44): pistons that rise and fall out of step to the gantry (top at 7)
   K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 16, roof: 'oculus', oculus: 0.22, omit: ['s'], doors: [{ side: 'n', w: 8.8, h: 6.4, y0: 7 }] });
-  K.both(M.wallGlyph, box(22, 7, 6, 0, 3.5, 41));                     // the gantry (you could climb its face too; the pistons are the makers' way)
+  K.both(M.wallGlyph, box(22, 7, 6, 0, 3.5, 41));                     // the gantry (its face not climbed, as no wall in the house is: the pistons are the way up, issue #115)
   K.both(M.trim, box(22.2, 0.3, 6.2, 0, 7.05, 41));
   // big pipes along the walls, gauges and valve wheels; the engine's own pistons standing in their cylinders
   for (const s of [-1, 1]) {

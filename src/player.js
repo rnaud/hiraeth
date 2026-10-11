@@ -394,6 +394,7 @@ const _cu = new THREE.Vector3(), _cs = new THREE.Vector3(), _cb = new THREE.Vect
 const _ca = new THREE.Vector3(), _cbb = new THREE.Vector3(), _cA = new THREE.Vector3(), _cv = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _v3 = new THREE.Vector3();
+const _v4 = new THREE.Vector3();
 const _jn = new THREE.Vector3(), _jf = new THREE.Vector3();   // (the jets' nose: flyJets)
 const _mat = new THREE.Matrix4();
 const _q1 = new THREE.Quaternion();
@@ -2047,7 +2048,13 @@ export class Player {
     const fast = (input.ShiftLeft || input.ShiftRight) && canSprint(this);
     const sp = (fast ? 2.1 : 1.4) * (this.climbSpeedK ?? 1);   // (the star-thread: a third faster)
     this._climbRate = sp / 1.4;
+    _v4.copy(this.pos);
     this.pos.addScaledVector(U, f * sp * dt).addScaledVector(right, s * sp * 0.8 * dt);
+    // (a temple's climb ends where its wall does: no shuffling off it onto the walls that are not climbed, issue #115)
+    if (this.physics.climbable && !this.physics.climbable(_v2.copy(this.pos).addScaledVector(U, 1.2), RADIUS + 0.35)) {
+      if (this.physics.climbable(_v2.copy(_v4).addScaledVector(U, 1.2), RADIUS + 0.35)) this.pos.copy(_v4);
+      else { this.stopClimb(false); this._climbCooldown = Math.max(this._climbCooldown, 0.5); return; }
+    }
     this.heading = this.frame.headingOf(into);
     this.phase += dt * (f || s ? 7 : 0);
     this._climbF = f; this._climbS = s;

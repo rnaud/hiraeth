@@ -43,6 +43,7 @@ export class TempleRuntime {
     const res = new Resources(game, items);
     this.logic = new TempleLogic(def.logic, { store: flagStore(game, def.id), has: (it) => res.meets(it) });   // ('magic:4': a bar of four units, src/resources.js)
     this.kit = new TempleKit(this.root, def.name, V(...def.origin), def.yaw ?? 0, this.M);
+    this.kit.noClimb = true;   // (no wall inside is climbed but the climbs its layout marks: K.climbable, issue #115)
     this.pieces = []; this.byId = new Map(); this.marks = []; this.pits = []; this.portals = [];
     this.checkpoint = null;
     this.told = new Set();

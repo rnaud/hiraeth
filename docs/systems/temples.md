@@ -369,7 +369,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets
   `player.inDark` inside, and the lantern charm glows there day or night.
-  A shut door can't be climbed (you slip off it). `Bank`: four eyes that wake only
+  A shut door can't be climbed (its collider is `noClimb`). `Bank`: four eyes that wake only
   together inside a breath (the fourth chamber's key). A `Platform` may start part
   way along its path (`phase`), and keeps a rider on it as it goes down. A world
   change may bring moving floors of its own (`solids()`, like the pipe-cart).
@@ -386,6 +386,24 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   you through; the echo shell and bloom mode have tests of their own.
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.
+
+## No climbing but the climbs (v1.49, issue #115)
+
+A climb past a puzzle trivialises it, so a temple's walls are not climbed. The runtime's kit (`rt.kit.noClimb`) bakes
+the interior's collision proxy `userData.noClimb`; the solids built inside `K.climbable(why, fn)` go into a second proxy
+(`userData.climb`), and `Physics` keeps both as a climb mask (`climbMask`, built only in a world with a temple):
+`climbable(p, r)` lets a climber's chest take hold only where the nearest wall is a marked climb. `startClimb` asks it
+(through `noClimbNear`), and `updateClimb` holds a climb to it, so you can't shuffle off a climb wall onto the walls round
+it. Pieces' colliders (doors, brambles, gates, bridges) are added `noClimb`. The exteriors stay climbable.
+
+The climbs the houses keep (`rt.kit.climbWhy` lists them): the Givers' House's gallery (the Dry Channel's way up to the
+Sword Chamber, its glyph handholds), the Warden's Well's Climb (the block's face to the balcony), the Clock-House's
+Winding Well block (to the ledge and the door of two keyholes), the Hush-House's and the Lamp-House's root-walls (from the
+riding disc and the moss-stones to the landing at 9) and the Lamp-House's loft of roots (the third pool), the
+Greenhouse's Glass Stair root-wall (to the sun-disc) and its two glasses (the Vine Gulf's and the Seed Vault's: climbed
+once a vine is up them, the `Glass` piece slipping you off till then), and the Whale-House's tank glass (its rungs). The
+other seven houses have none. `tests/temple-climb.test.js` pushes a real `Player` into the wall beside every lock's
+doorway, both faces, and into whatever a key stands up on, in every temple: he never takes hold.
 
 ## Hubs, keys and arenas (v1.48, issue #23)
 

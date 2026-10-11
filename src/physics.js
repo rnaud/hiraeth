@@ -22,6 +22,7 @@ const _dir = new THREE.Vector3();
 const _m = new THREE.Matrix4();
 const _Y = new THREE.Vector3(0, 1, 0);
 const _nc = {};
+const _cmNo = {}, _cmYes = {};
 const _swS = new THREE.Vector3();
 
 /** The BVH's options from a level's collision settings ({ strategy: 'CENTER' | 'AVERAGE' | 'SAH' }). */
@@ -105,6 +106,7 @@ export class Physics {
     this.base = base;
     scene.updateMatrixWorld(true);
     const geos = [], objs = [];
+    let mask = null;
     scene.traverse((obj) => { if (obj.isMesh && !isExcluded(obj)) objs.push(obj); });
     for (const obj of objs) {
       yield;
@@ -121,7 +123,11 @@ export class Physics {
       } else {
         geos.push(base.index ? base.clone().applyMatrix4(obj.matrixWorld).toNonIndexed() : base.clone().applyMatrix4(obj.matrixWorld));
       }
+      // (a temple's walls, not to be climbed, and the few that are: climbable() below, src/temples/kit.js)
+      if (obj.userData.noClimb) (mask ??= { no: [], yes: [] }).no.push(geos[geos.length - 1]);
+      else if (obj.userData.climb) (mask ??= { no: [], yes: [] }).yes.push(geos[geos.length - 1]);
     }
+    this.climbMask = mask?.no.length ? { no: new MeshBVH(mergeGeometries(mask.no)), yes: mask.yes.length ? new MeshBVH(mergeGeometries(mask.yes)) : null } : null;
     this.geometry = geos.length ? yield* concatPositions(geos) : new THREE.BufferGeometry();
     this.bvh = geos.length && !deferBVH ? new MeshBVH(this.geometry, this.bvhOptions) : null;
     this.triangles = this.geometry.attributes.position ? this.geometry.attributes.position.count / 3 : 0;
@@ -210,12 +216,27 @@ export class Physics {
    * heart, whose way out wants the double jump: issue #68)?
    */
   noClimbNear(p, r = 0.6) {
+    if (!this.climbable(p, r)) return true;
     for (const z of this.noClimbZones ?? []) if ((p.x - z.x) ** 2 + (p.y - z.y) ** 2 + (p.z - z.z) ** 2 < z.r * z.r) return true;
     for (const e of this.extras ?? []) {
       if (!e.noClimb || e.box.distanceToPoint(p) > r) continue;
       if (e.bvh.closestPointToPoint(p, _nc, 0, r)) return true;
     }
     return false;
+  }
+
+  /**
+   * May a climber's chest at p take hold of the wall nearest it (within r)? Everywhere, but inside a temple (issue #115):
+   * its walls are baked noClimb (src/temples/kit.js) and only the climbs its design uses are marked climbable
+   * (K.climbable), so the nearest of the two decides. A climb is held to it as it goes (src/player.js updateClimb).
+   */
+  climbable(p, r = 0.75) {
+    const M = this.climbMask;
+    if (!M) return true;
+    const no = M.no.closestPointToPoint(p, _cmNo, 0, r);
+    if (!no) return true;
+    const yes = M.yes?.closestPointToPoint(p, _cmYes, 0, r);
+    return !!yes && yes.distance <= no.distance + 0.05;
   }
 
   /**

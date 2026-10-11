@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- Temple walls can no longer be climbed past their puzzles. Inside the makers’ houses only the climbs their way takes still hold you: the Givers’ House’s gallery, the Warden’s Well’s Climb, the Clock-House’s winding wall, the root-walls of the Hush-House, the Lamp-House and the Greenhouse, the Lamp-House’s loft of roots, and the glass a vine or brass rungs climb. Before, you could climb the Engine-House’s gantry instead of riding its pistons, climb round the Greenhouse’s Glass Stair onto the landing without the sun-disc, or go up beside any locked door.
 - The Steam Deck spends less of each frame on things you can’t see: the shadows more than 120 m away are drawn every eighth frame instead of every fourth, and the banners in the City-Shaft and the desert wave only near you and in view. That is 15–30 fewer draws a frame in the busy places. It still doesn’t hold 60 there: the desert’s camps and the City-Shaft need a third or more off the processor’s work each frame first.
 - On the Steam Deck the picture is always drawn at the screen’s own 1280 × 800. It used to drop to as little as 60 % of that when a place was busy, and the desert ran at 70 %, which is why it looked soft.
 - What’s new has a Refresh button (Y / △, or R): on the website it loads the newest changes; in the Android app, on the Xbox and on the Steam Deck it fetches the newest game over the air and restarts into it, your game saved first, or tells you that you already have it.

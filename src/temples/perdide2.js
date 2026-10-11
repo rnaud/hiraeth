@@ -308,10 +308,12 @@ function layout(rt) {
       dark: 'The orb settles in the socket, dark, and the socket tips it back out. The disc’s lamp wants light.',
       woke: 'The glowing orb settles in the socket, and the disc’s lamp catches. The disc wakes.' } });
   // the third pool, up on a loft of roots against the west wall (climb its face): its edge hides it from the floor
-  K.both(M.wallGlyph, box(5, 8, 13.2, -8.5, 4, 19.4));
-  K.both(M.trim, box(5.2, 0.3, 13.4, -8.5, 8.05, 19.4));
-  root([[-6.1, 8, 24.5], [-5.8, 5, 23.6], [-6.2, 2, 24.6], [-5.9, 0, 23.8]], 0.4);
-  root([[-6.1, 8, 15.2], [-5.7, 4, 16.4], [-6.1, 0, 15.6]], 0.35);
+  K.climbable('the loft of roots: climbed from the Hall of Dark Pools\' floor to the third pool', () => {
+    K.both(M.wallGlyph, box(5, 8, 13.2, -8.5, 4, 19.4));
+    K.both(M.trim, box(5.2, 0.3, 13.4, -8.5, 8.05, 19.4));
+    root([[-6.1, 8, 24.5], [-5.8, 5, 23.6], [-6.2, 2, 24.6], [-5.9, 0, 23.8]], 0.4);
+    root([[-6.1, 8, 15.2], [-5.7, 4, 16.4], [-6.1, 0, 15.6]], 0.35);
+  });
   pool('s3', -8.8, 8.2, 21.2, 1.5);
   add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.4, lamps: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] });
   add(Mark, { room: 'pools', at: [7.5, 0, 16], yaw: -Math.PI / 2 });
@@ -326,7 +328,6 @@ function layout(rt) {
   const C2 = 57.2;
   K.rotunda({ x: 0, z: C2, y: -6, r: 10, h: 30, floor: false, gaps: [{ a: Math.PI, w: 5, h: 6.4, y0: 6 }, { a: 0, w: 5, h: 6, y0: 15 }], oculus: 0.3 });
   K.both(M.floor, box(20, 6, 3, 0, -3, C2 - 8.6));            // the near landing (its top at 0)
-  K.both(M.wallGlyph, box(20, 15, 6, 0, 1.5, C2 + 6));        // the root-wall, its top at 9: climb it
   K.both(M.dark, T(new THREE.CylinderGeometry(10, 10, 1, 32), [0, -6.5, C2]));
   const pool2 = makeMaterial({ color: '#2a2f58', glow: 0.18, flat: true, key: 'temple.p2.deep' });
   K.add(pool2, T(new THREE.CylinderGeometry(9.8, 9.8, 0.2, 32), [0, -2.4, C2]));
@@ -334,9 +335,14 @@ function layout(rt) {
   add(Bridge, { id: 'disc', a: [0, 0, C2 - 7.15], b: [0, 0, C2 + 2.95], w: 3.0, n: 6, glow: { color: '#8fd6a8', k: 0.5 } });   // moss-stones, sunk in the pool
   add(Plate, { id: 'p5', at: [1.4, 0, 49.4], r: 1.0 });
   add(LightEar, { id: 'l5', at: [2.9, 0, 49.4], reach: 0 });   // (the disc's lamp: only the glowing orb wakes it)
-  root([[-6, 9, C2 + 3.2], [-5, 5, C2 + 3.1], [-6.2, 1, C2 + 3.15], [-6, -3, C2 + 3.1]], 0.45);
-  root([[5, 9, C2 + 3.2], [6, 4, C2 + 3.1], [4.8, 0, C2 + 3.15], [5.4, -3, C2 + 3.1]], 0.45);
-  K.slab(-6, C2 + 9, 6, C2 + 10.4, 9, 0.6);
+  // the root-wall, its top at 9: climb it (with the roots down its face and the landing on top: the house's
+  // climbs, its other walls are not climbed, issue #115)
+  K.climbable('the Root Stair\'s root-wall: climbed from the moss-stones to the landing at 9', () => {
+    K.both(M.wallGlyph, box(20, 15, 6, 0, 1.5, C2 + 6));
+    root([[-6, 9, C2 + 3.2], [-5, 5, C2 + 3.1], [-6.2, 1, C2 + 3.15], [-6, -3, C2 + 3.1]], 0.45);
+    root([[5, 9, C2 + 3.2], [6, 4, C2 + 3.1], [4.8, 0, C2 + 3.15], [5.4, -3, C2 + 3.1]], 0.45);
+    K.slab(-6, C2 + 9, 6, C2 + 10.4, 9, 0.6);
+  });
   add(Mark, { room: 'roots', at: [-3.2, 0, C2 - 8.6], yaw: Math.PI / 2 });
 
   // ---- the corridor and the Lantern Chamber (floor 9, a dark rotunda): the chest; a lamp-door

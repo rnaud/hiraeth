@@ -104,7 +104,7 @@ export const LOGIC = {
     { a: 'escFar', b: 'well' },
     { a: 'escFar', b: 'cupboard', door: 'dC' },   // the Clockmaker's Cupboard (optional: a coffer)
     // the Winding Well is the hub (v1.48): west the Pendulum Hall (an arena), east the Striking Room, up the climb the
-    // door to the chest (the ledge over the climb is the well's: any wall climbs)
+    // door to the chest (the ledge over the climb is the well's: the block's face is the house's one climb)
     { a: 'well', b: 'pend', door: 'dW' },         // (open: it shuts behind you while the machines stand)
     { a: 'pend', b: 'well', door: 'dWo' },        // the Pendulum Hall's way out, onto the ledge over the climb (the loop)
     { a: 'well', b: 'springs' },
@@ -290,7 +290,8 @@ function wings(rt, K, M, { C2, dial, brass, cream }) {
     K.add(brass, box(0.14, 9.5, 0.14, x, 8.9, Pn.z - 7.2));
     K.add(brass, T(new THREE.CylinderGeometry(1.1, 1.1, 0.25, 20).rotateX(Math.PI / 2), [x, 3.8, Pn.z - 7.2]));
   }
-  dial(-14.1, 9.6, C2, 1.4, -Math.PI / 2, [TAU * 4 / 12, 0.4]);
+  // (beside the ways in and out, not over them: hung in the way out's doorway, it was climbed over, issue #115)
+  dial(-14.1, 9.6, C2 + 4.6, 1.4, -Math.PI / 2, [TAU * 4 / 12, 0.4]);
   add(Mark, { room: 'pend', at: [Pn.x, 0, Pn.z - 2.7], yaw: Math.PI / 2 });
 
   // ---- the Striking Room: the hour track along the east wall, three plates on it, each with its clock
@@ -417,8 +418,11 @@ function layout(rt) {
   // (the house's hub since v1.48: a way west to the Pendulum Hall and east to the Striking Room at its floor, and over
   // the way west the Pendulum Hall's way out, onto a balcony beside the ledge over the climb)
   K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 22, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4, y0: 9 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 4.4, h: 5, y0: WING.upY }], oculus: 0.3 });
-  K.both(M.wallGlyph, box(20, 9, 7.2, 0, 4.5, C2 + 6.4));
-  K.both(M.trim, box(20.2, 0.3, 7.4, 0, 9.05, C2 + 6.4));
+  // (the house's one climb: its other walls are not climbed, issue #115)
+  K.climbable('the Winding Well\'s climb: the block\'s face, from the hub\'s floor to the ledge and the door of two keyholes', () => {
+    K.both(M.wallGlyph, box(20, 9, 7.2, 0, 4.5, C2 + 6.4));
+    K.both(M.trim, box(20.2, 0.3, 7.4, 0, 9.05, C2 + 6.4));
+  });
   K.add(M.dark, box(1.0, 0.04, 21.6, 1.2, 0.02, 51.7));
   for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, 21.6, 1.2 + sd * 0.8, 0.06, 51.7));
   add(Ball, { id: 'ball1', a: [1.2, 0.04, 41.4], b: [1.2, 0.04, C2 + 1.2], r: 1.1, friction: 1.0 });

@@ -3652,7 +3652,9 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.ok(said(/deaf/), 'it says so');
   // (v1.49) the passage's ball onto the horn's footstone, and the low note again
   roll('ballP');
-  assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back by the horn (${where()})`);
+  // (round the ball on its footstone, not over it: no wall in the house is climbed, issue #115)
+  const byBall = rt.kit.local(rt.piece('ballP').center);
+  assert.equal(walk(L(byBall.x - 2.2, 12, byBall.z - 1), { tol: 0.8 }) && walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back by the horn (${where()})`);
   shell.update(2);
   assert.equal(shell.play(), true);
   assert.equal(rt.logic.isLit('e0'), true, 'it hears the low note, carried a room on');

@@ -67,6 +67,8 @@ const UP = V(0, 1, 0);
 // (the moving parts are dynamic too: never tiled, merged or culled as static props, src/perf.js)
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); return o; };
 const ease = (k) => k * k * (3 - 2 * k);
+// (a shut door, a bramble, a gate: never taken hold of to climb, as the house's walls are not: issue #115)
+const NO_CLIMB = { noClimb: true };
 const _dl = new THREE.Vector3(), _dn = new THREE.Vector3(), _mk = new THREE.Vector3(), _mk2 = new THREE.Vector3();
 /** What shows a hidden piece: the glyph lens (hidden: true), or the item named. */
 const shownBy = (h) => (h === true ? 'lens' : h);
@@ -152,7 +154,7 @@ export class Door {
     this.open = this.k > 0.5;
     this.apply();
   }
-  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block, NO_CLIMB) ?? null; }
   /** Someone stands in the doorway (a held door waits for them to step through before it shuts). */
   inDoorway(p = this.rt.player, depth = 1.4) {
     if (!p?.pos) return false;
@@ -165,7 +167,7 @@ export class Door {
     if (!open && !instant && this.inDoorway()) { this.wantShut = true; return; }
     this.open = open;
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
-    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
     if (instant) { this.k = open ? 1 : 0; this.apply(); }
     else { this.rt.sound?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }
   }
@@ -317,7 +319,7 @@ export class LensStones {
       else if (!this.on(c, P)) c.on = 0;
       if (c.down > 0) c.down = Math.max(0, c.down - dt);
       const solid = seen && c.down <= 0;
-      if (solid && !c.handle && this.physics) c.handle = this.physics.addCollider?.(c.block) ?? null;
+      if (solid && !c.handle && this.physics) c.handle = this.physics.addCollider?.(c.block, NO_CLIMB) ?? null;
       if (!solid && c.handle) { this.physics?.removeCollider?.(c.handle); c.handle = null; }
       const drop = c.down > 0 ? Math.min(1, ((o.back ?? 4) - c.down) / 0.8) : 0;
       c.g.position.y = c.y0 - drop * 12;
@@ -835,7 +837,7 @@ export class Bramble {
       push: (p, out) => out.copy(back),
     });
   }
-  init(physics) { this.physics = physics; if (!this.burnt) this.handle = physics.addCollider?.(this.block) ?? null; }
+  init(physics) { this.physics = physics; if (!this.burnt) this.handle = physics.addCollider?.(this.block, NO_CLIMB) ?? null; }
   hit(mode) {
     if (this.burnt) return false;
     if (mode === 'blade' && this.cut) {
@@ -1174,7 +1176,7 @@ export class Jaw {
     const P = this.physics;
     if (!this.open) for (const { g, side } of this.halves) g.rotation.y = side * 0.12;   // (shut: where a snap starts)
     this.movers = P.addMover ? this.halves.map(({ g }) => P.addMover(g, { all: true })).filter(Boolean) : [];
-    this.handle = P.addCollider?.(this.block) ?? null;
+    this.handle = P.addCollider?.(this.block, NO_CLIMB) ?? null;
   }
   hit(mode) {
     if (this.open) return false;
@@ -1602,12 +1604,12 @@ export class Iris {
     this.open = this.k > 0.5;
     this.apply();
   }
-  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block, NO_CLIMB) ?? null; }
   setOpen(open, instant = false) {
     if (open === this.open) return;
     this.open = open;
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
-    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
     if (instant) { this.k = open ? 1 : 0; this.apply(); }
     else { this.rt.sound?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }
   }
@@ -1906,7 +1908,7 @@ export class Bud {
     this.off = registerTarget({ kind: 'bud', radius: Math.max(w, h) * 0.45, accepts: ['bloom', 'fire'], position: () => this.center, enabled: () => !this.open, onHit: (mode) => this.hit(mode) });
     this.apply(0);
   }
-  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block, NO_CLIMB) ?? null; }
   hit(mode) {
     if (this.open) return false;
     if (mode === 'bloom') {
@@ -1933,7 +1935,7 @@ export class Bud {
     if (!open && !instant && this.inDoorway()) { this.wantShut = true; return; }
     this.open = open;
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
-    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
     if (instant) this.k = open ? 1 : 0;
     else this.rt.rumble?.(1.0, 0.25);
   }
@@ -2336,7 +2338,7 @@ export class Bridge {
     this.time = this.open ? 99 : 0;
     this.apply();
   }
-  init(physics) { this.physics = physics; if (this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  init(physics) { this.physics = physics; if (this.open) this.handle = physics.addCollider?.(this.block, NO_CLIMB) ?? null; }
   /** Someone stands on it (stones from below wait for them to step off before they sink). */
   ridden(p = this.rt.player) {
     if (!p?.pos || !this.span) return false;
@@ -2354,7 +2356,7 @@ export class Bridge {
     this.sink = !open && !instant && this.from === 'below' ? 0 : null;   // (stones from below sink back, the far ones first)
     this.open = open;
     this.time = instant ? 99 : 0;
-    if (open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
     if (!open && this.handle) { this.physics.removeCollider?.(this.handle); this.handle = null; }
     if (!instant) this.rt.rumble?.(2.2, 0.4);
   }

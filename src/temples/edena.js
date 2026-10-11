@@ -307,7 +307,8 @@ function vault(rt, K, M, { G0, pot, pane }) {
   // the ledge on the west side, its face a wall of greenhouse glass; the vine grows up it from both seeds
   K.both(M.wallGlyph, box(3.2, Vt.ledge - 18, Vt.d, x0 + 1.6, (18 + Vt.ledge) / 2, Z));
   K.both(M.trim, box(3.4, 0.3, Vt.d, x0 + 1.7, Vt.ledge + 0.05, Z));
-  K.solid(box(0.36, Vt.ledge - 18, Vt.d - 0.4, x0 + 3.38, (18 + Vt.ledge) / 2, Z));   // (the glass's face is where you meet it)
+  // (the glass's face is where you meet it; held only once the vine is up it: the Glass piece slips you off it till then)
+  K.climbable('the Seed Vault\'s glass: the vine up it, grown from both seeds, to the great key', () => K.solid(box(0.36, Vt.ledge - 18, Vt.d - 0.4, x0 + 3.38, (18 + Vt.ledge) / 2, Z)));
   add(Glass, { at: [x0 + 3.25, 18, Z], yaw: Math.PI / 2, w: Vt.d - 0.4, h: Vt.ledge - 18, when: { all: [{ lit: 'sdA' }, { lit: 'sdB' }] },
     slip: 'The glass is too smooth to hold. A vine could climb it, if anything grew at its foot.' });
   const [zA, zB] = Vt.seeds;
@@ -383,7 +384,8 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.8, 45.6));
   const C2 = 57.2;
   K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 30, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6, y0: 18 }], oculus: 0.4 });
-  K.both(M.wallGlyph, box(20, 9, 6.4, 0, 4.5, C2 + 6.2));
+  // (the house's climbs: this, and the glass where a vine grows; its other walls are not climbed, issue #115)
+  K.climbable('the Glass Stair\'s root-wall: from the floor to the disc that rides on up in the sun', () => K.both(M.wallGlyph, box(20, 9, 6.4, 0, 4.5, C2 + 6.2)));
   for (let i = 0; i < 9; i++) K.add(i % 2 ? leaf : leaf2, T(new THREE.CylinderGeometry(0.22, 0.3, 9.2, 5), [-7 + i * 1.75, 4.5, C2 + 2.95], [0, 0, Math.sin(i * 1.7) * 0.12]));   // roots down its face (drawn only: solid, they are a ladder up a wall you are not meant to climb yet)
   // the disc rides only in the sun (lift); one ball, two plates, one louvre in the oculus: west, the sun on the eye
   // high on the west wall (the landing's door wants it); east, on the disc
@@ -452,6 +454,9 @@ function layout(rt) {
   K.slab(-11, G0 + 28, 11, G0 + 44, 18, 24);
   K.both(M.wallGlyph, box(22, 9, 6, 0, 22.5, G0 + 41));          // the high ledge, its face the glass wall
   K.both(M.trim, box(22.2, 0.3, 6.2, 0, 27.05, G0 + 41));
+  // (the glass in its middle is where you meet it, and the only part of the face held: once its vine is up it, the
+  // Glass piece slipping you off it till then; the panes either side are glass too, and no vine grows up them)
+  K.climbable('the Vine Gulf\'s glass: the vine up it, from the seed-ball rooted in the sun, to the high ledge', () => K.solid(box(9, 9, 0.24, 0, 22.5, G0 + 37.86)));
   K.both(M.dark, box(22, 1, 22, 0, -6.4, G0 + 17));
   for (let i = 0; i < 7; i++) K.add(i % 2 ? leaf : leaf2, T(new THREE.SphereGeometry(1.6 + (i % 3) * 0.5, 8, 6).scale(1, 0.5, 1), [-9 + i * 3, -5.6, G0 + 10 + (i % 3) * 5]));   // a jungle down there (drawn only: foliage, and solid it floors the gulf you are meant to bridge)
   add(Pit, { room: 'gulf', min: [-12, -8, G0 + 6], max: [12, 12, G0 + 28] });

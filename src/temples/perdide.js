@@ -235,15 +235,19 @@ function layout(rt) {
   const C2 = 57.2;
   K.rotunda({ x: 0, z: C2, y: -6, r: 10, h: 30, floor: false, gaps: [{ a: Math.PI, w: 5, h: 6.4, y0: 6 }, { a: 0, w: 5, h: 6, y0: 15 }], oculus: 0.3 });
   K.both(M.floor, box(20, 6, 3, 0, -3, C2 - 8.6));            // the near landing (its top at 0)
-  K.both(M.wallGlyph, box(20, 15, 6, 0, 1.5, C2 + 6));        // the root-wall, its top at 9: climb it
   K.both(M.dark, T(new THREE.CylinderGeometry(10, 10, 1, 32), [0, -6.5, C2]));
   const bog = makeMaterial({ color: '#2f4a48', glow: 0.12, flat: true, key: 'temple.lorn.bog' });
   K.add(bog, T(new THREE.CylinderGeometry(9.8, 9.8, 0.2, 32), [0, -2.4, C2]));
   add(Pit, { room: 'well', min: [-11, -8, C2 - 7], max: [11, -1.5, C2 + 3] });
   add(Platform, { path: [[0, 0, C2 - 4.8], [0, 3, C2 + 0.6]], r: 2.2, speed: 1.4, pause: 1.8 });
-  root([[-6, 9, C2 + 3.2], [-5, 5, C2 + 3.1], [-6.2, 1, C2 + 3.15], [-6, -3, C2 + 3.1]], 0.45);
-  root([[5, 9, C2 + 3.2], [6, 4, C2 + 3.1], [4.8, 0, C2 + 3.15], [5.4, -3, C2 + 3.1]], 0.45);
-  K.slab(-6, C2 + 9, 6, C2 + 10.4, 9, 0.6);
+  // the root-wall, its top at 9: climb it (with the roots down its face and the landing on top: the house's
+  // climbs, its other walls are not climbed, issue #115)
+  K.climbable('the Bog Well\'s root-wall: climbed from the riding disc to the door at its top', () => {
+    K.both(M.wallGlyph, box(20, 15, 6, 0, 1.5, C2 + 6));
+    root([[-6, 9, C2 + 3.2], [-5, 5, C2 + 3.1], [-6.2, 1, C2 + 3.15], [-6, -3, C2 + 3.1]], 0.45);
+    root([[5, 9, C2 + 3.2], [6, 4, C2 + 3.1], [4.8, 0, C2 + 3.15], [5.4, -3, C2 + 3.1]], 0.45);
+    K.slab(-6, C2 + 9, 6, C2 + 10.4, 9, 0.6);
+  });
   add(Mark, { room: 'well', at: [-3.2, 0, C2 - 8.6], yaw: Math.PI / 2 });
   // the door at the root-wall's top, and its eye on the wall's face: at eye height on the disc, out of sight above
   add(Door, { id: 'dw', at: [0, 9, C2 + 10.7], w: 5, h: 6, lamps: [{ lit: 'sw' }] });

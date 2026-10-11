@@ -363,7 +363,8 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: 26, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 11 }, { a: -WING.a, w: 5, h: 6 }, { a: WING.a, w: 5, h: 6 }], oculus: 0.35 });
   band(0, C2, 9, 17.5, 1.1, 0.4, [[0, 0.4]]);
   // the north half of the well is a block of stone eleven metres high: climb its straight face to the top
-  K.both(M.wallGlyph, T(sector(0.01, 9.2, rotA(0) - Math.PI / 2, rotA(0) + Math.PI / 2, 11), [0, 11, C2]));
+  // (the house's one climb: its other walls are not climbed, issue #115)
+  K.climbable('the Climb: the block\'s straight face, from the well\'s floor to the balcony', () => K.both(M.wallGlyph, T(sector(0.01, 9.2, rotA(0) - Math.PI / 2, rotA(0) + Math.PI / 2, 11), [0, 11, C2])));
   K.add(M.trim, box(18.2, 0.3, 0.5, 0, 11.05, C2 + 0.1));   // its lip
   for (let i = 0; i < 4; i++) K.add(M.trim, box(3.2, 0.22, 0.3, (i % 2 ? 1.6 : -1.6), 2.4 + i * 2.2, C2 - 0.12));   // handholds up the face
   // the ball's groove along the balcony, to the plate by the north door; a slot across it near its start, whose

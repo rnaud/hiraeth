@@ -304,7 +304,9 @@ function layout(rt) {
   const TX0 = -30, TX1 = 3, TZ = 89.2, GW = -8, GE = -2, SH = 9;
   K.hall({ x: (TX0 + TX1) / 2, z: TZ, w: TX1 - TX0, d: 24, y: 0, h: 22, roof: true, doors: [{ side: 's', at: HCX - (TX0 + TX1) / 2, w: 5, h: 6.4 }, { side: 'e', at: 3.8, y0: SH, w: 5, h: 6.4 }] });
   K.add(water, box(GE - GW - 0.2, SH - 0.4, 23.8, (GW + GE) / 2, (SH - 0.4) / 2, TZ));
-  K.solid(box(0.3, SH, 24, GW, SH / 2, TZ));
+  // (the glass: the house's one climb, held only while its rungs are out, the Glass piece slipping you off it till then;
+  // its other walls are not climbed, issue #115)
+  K.climbable('the Tank Hall\'s glass: its brass rungs, out while the shelf\'s ear rings, up to the shelf', () => K.solid(box(0.3, SH, 24, GW, SH / 2, TZ)));
   add(Glass, { id: 'rungs', at: [GW - 0.05, 0, TZ], yaw: -Math.PI / 2, w: 23.6, h: SH, color: '#bfe4e6', rungs: true, when: { lit: 'e5' },
     slip: 'The tank’s glass is too smooth to hold. Its brass frame has slots all the way up, empty.' });
   K.both(brass, box(GE - GW + 0.2, 0.3, 24, (GW + GE) / 2, SH - 0.15, TZ));   // (the tank's lid: a brass grating)

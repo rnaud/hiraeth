@@ -298,8 +298,10 @@ function layout(rt) {
   K.slab(-13, 52, 13, 58.5, 0, 9.5);            // the near ledge
   K.slab(-13, 80, 13, 84, 0, 9.5);              // the far landing
   // the gallery: a block you climb, under its own top slab (the block stops under the slab: one face, not two)
-  K.both(M.wallGlyph, box(26, 16.1, 8, 0, -1.45, 88));
-  K.slab(-13, 84, 13, 92, 7, 0.4);
+  K.climbable('the gallery: the Dry Channel\'s climb from the far landing up to the Sword Chamber', () => {
+    K.both(M.wallGlyph, box(26, 16.1, 8, 0, -1.45, 88));
+    K.slab(-13, 84, 13, 92, 7, 0.4);
+  });
   K.both(M.sand, box(26, 1, 22, 0, -9.5, 69));  // the pit's sand
   for (let i = 0; i < 7; i++) if (i !== 3) sandDrift(-10 + i * 3.4, 62 + (i % 3) * 6.5, 2.6, 3.4, 0.8 + (i % 2) * 0.5, i, -9);
   add(Pit, { room: 'channel', min: [-14, -14, 58.5], max: [14, -2.5, 80] });
@@ -309,7 +311,7 @@ function layout(rt) {
   add(Plate, { id: 'pp', at: [1.5, 0, 69.25], r: 1.2 });
   // (its side walls glazed: no climbing round the pit; the gallery's face, past it, is the climb)
   add(Glazed, { min: [-14.5, -10, 58.4], max: [14.5, 18, 80.2], said: 'The channel’s walls are glazed smooth by the water that once ran here. Nothing to hold.' });
-  // handholds: a row of glyph ledges up the gallery's face (any wall can be climbed; these say where)
+  // handholds: a row of glyph ledges up the gallery's face (the house's one climb: its other walls are not, issue #115)
   for (let i = 0; i < 3; i++) K.add(M.trim, box(5, 0.25, 0.4, 0, 1.8 + i * 1.8, 83.78));
   K.frieze([-12.9, 56], [-12.9, 88], 10, 'e', 6);
   K.frieze([12.9, 56], [12.9, 88], 10, 'w', 6);
