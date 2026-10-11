@@ -20,6 +20,7 @@ import { HAZE } from './post.js';
 //   mesh.material = makeMaterial({ …, veil: VEIL.cap }); veils.add(mesh, { color, glow })
 //   veils.bind({ tNormal: gbuffer.textures[1], uniforms: post.uniforms })   main.js, once
 //   veils.render(renderer, camera, composeRT)                               main.js, after the composite
+//   new LightShaft(veils, parent, { color, alpha })                         a soft shaft of light (below)
 // ---------------------------------------------------------------------------
 
 /**
@@ -109,6 +110,8 @@ export class Veils {
     mesh.updateMatrixWorld(true);
     wash.matrixAutoUpdate = false; wash.matrix.copy(mesh.matrixWorld); wash.matrixWorld.copy(mesh.matrixWorld);
     wash.userData.of = mesh;
+    // (added after bind: a shaft lit later, the Wick's; it takes the ink pass's light and haze as the rest did)
+    if (this.shared) for (const k of SHARED) if (this.shared[k]) mat.uniforms[k] = this.shared[k];
     this.scene.add(wash);
     this.list.push(wash);
     return wash;
@@ -118,6 +121,7 @@ export class Veils {
     this.uniforms.tNormal.value = tNormal;
     for (const k of SHARED) if (uniforms[k]) for (const w of this.list) w.material.uniforms[k] = uniforms[k];
     for (const w of this.list) { w.material.uniforms.tNormal = this.uniforms.tNormal; w.material.uniforms.uRes = this.uniforms.uRes; }
+    this.shared = uniforms;
     this.bound = true;
     return this;
   }
@@ -136,4 +140,63 @@ export class Veils {
 function shown(o) {
   for (let p = o; p; p = p.parent) if (!p.visible) return false;
   return !!o.parent;
+}
+
+/**
+ * A soft shaft of light (issue #116, the skull cave's way since v1.45: src/desert-city.js): two open cones from where the
+ * light comes in to where it falls, an outer one and a narrower inner one, brighter at the core where they overlap, drawn
+ * only as washes over the finished picture: on layer 31 (no camera draws it into the G-buffer, so no ink round it, no
+ * shadow), noCollide, nothing to bump into. One wash program for every shaft in the game.
+ *
+ *   const s = new LightShaft(veils, parent, { color, alpha: [outer, inner], inner: 0.55, near })
+ *   s.set(top, rTop, bottom, rBottom, { topN, bottomN })   each frame it moves: the two rings (their planes' normals:
+ *                                                         across the shaft by default; the pool's surface for its foot)
+ *   s.fade(k)                                             0..1 of its alpha; s.visible = false hides it
+ * parent: a group at the world's origin (the rings are written in world metres); veils null (a test): the meshes alone.
+ */
+export class LightShaft {
+  constructor(veils, parent, { color = '#fff1c2', glow = 1, alpha = [0.12, 0.14], inner = 0.55, near = 2.5, segments = 18 } = {}) {
+    this.inner = inner; this.alpha = alpha; this.seg = segments;
+    this.group = new THREE.Group();
+    this.group.name = 'A shaft of light (washes)';
+    parent.add(this.group);
+    this.meshes = alpha.map(() => {
+      const g = new THREE.CylinderGeometry(1, 1, 1, segments, 1, true);
+      const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ visible: false }));
+      m.layers.set(31);   // (drawn only as its wash: no camera draws layer 31 into the G-buffer)
+      m.userData.noCollide = true; m.userData.dynamic = true; m.castShadow = false; m.frustumCulled = false;
+      this.group.add(m);
+      return m;
+    });
+    this.group.updateMatrixWorld(true);
+    this.washes = veils ? this.meshes.map((m, i) => { const w = veils.add(m, { color, glow, alpha: alpha[i], near }); w.frustumCulled = false; return w; }) : [];
+  }
+  get visible() { return this.group.visible; }
+  set visible(v) { this.group.visible = v; }
+  /** The shaft from a ring of radius rTop round `top` to one of rBottom round `bottom` (world). */
+  set(top, rTop, bottom, rBottom, { topN = null, bottomN = null } = {}) {
+    const axis = _sa.subVectors(top, bottom).normalize();
+    ringAxes(topN ?? axis, _tu, _tv); ringAxes(bottomN ?? axis, _bu, _bv);
+    this.meshes.forEach((m, i) => {
+      const k = i ? this.inner : 1, pos = m.geometry.attributes.position, n = this.seg + 1;
+      // (CylinderGeometry's open sides: its top row of seg+1 vertices first, then its bottom row)
+      for (let j = 0; j < n; j++) {
+        const a = (j / this.seg) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
+        pos.setXYZ(j, top.x + (_tu.x * c + _tv.x * s) * rTop * k, top.y + (_tu.y * c + _tv.y * s) * rTop * k, top.z + (_tu.z * c + _tv.z * s) * rTop * k);
+        pos.setXYZ(n + j, bottom.x + (_bu.x * c + _bv.x * s) * rBottom * k, bottom.y + (_bu.y * c + _bv.y * s) * rBottom * k, bottom.z + (_bu.z * c + _bv.z * s) * rBottom * k);
+      }
+      pos.needsUpdate = true;
+      m.geometry.computeBoundingSphere();
+    });
+    return this;
+  }
+  /** Its washes at k (0..1) of their alpha. */
+  fade(k) { this.washes.forEach((w, i) => { w.material.uniforms.uWash.value.x = this.alpha[i] * k; }); return this; }
+}
+
+const _sa = new THREE.Vector3(), _tu = new THREE.Vector3(), _tv = new THREE.Vector3(), _bu = new THREE.Vector3(), _bv = new THREE.Vector3();
+/** Two axes across n (a ring's plane). */
+function ringAxes(n, u, v) {
+  u.set(1, 0, 0); if (Math.abs(n.x) > 0.9) u.set(0, 0, 1);
+  v.crossVectors(n, u).normalize(); u.crossVectors(v, n).normalize();
 }

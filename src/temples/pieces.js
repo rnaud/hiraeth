@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
+import { LightShaft } from '../veil.js';
 import { registerTarget } from '../targets.js';
 import { registerHazard, HAZARD_DPS } from '../hazards.js';
 import { screened } from '../wind-screens.js';
@@ -1712,7 +1713,7 @@ export class Hammer {
  * A sunbeam through a louvre in the roof (Viridel's Greenhouse: nothing grows in the shade). The louvre's slats
  * turn, and the beam falls on the first of its spots whose condition holds (a spot with none is where it rests);
  * none: the slats shut and there is no beam. It swings from spot to spot, slowly, so you see where the light went.
- * The light itself is the logic's (an eye's or a seed's `when`); this is how it looks: thin pale rays from the
+ * The light itself is the logic's (an eye's or a seed's `when`); this is how it looks: a soft shaft from the
  * louvre to a pool of light, and the warmth of it on what it lands on.
  * o: { from: [x, y, z] (the louvre, in the roof), w (its width), spots: [{ at, r, normal: [x, y, z], when }], yaw,
  * pick() (instead of the spots' conditions: the index of the spot it falls on, the Glasshouse's footstones) }
@@ -1725,7 +1726,6 @@ export class Sunbeam {
     this.spots = o.spots.map((p) => ({ ...p, pos: K.world(...p.at), n: V(...(p.normal ?? [0, 1, 0])).applyAxisAngle(UP, K.yaw).normalize() }));
     this.group = new THREE.Group();
     rt.root.add(this.group);
-    this.mat = own({ color: '#fff1c2', glow: 0.75, flat: true });
     this.poolMat = own({ color: '#fff4cf', glow: 0.7, flat: true });
     // the louvre: a frame of trim round five slats that turn
     const w = o.w ?? 3.2;
@@ -1736,10 +1736,10 @@ export class Sunbeam {
     this.slats = [];
     for (let i = 0; i < 5; i++) { const sl = mesh([box(w, 0.08, w / 5 + 0.05)], M.trimMat); sl.position.z = -w / 2 + (i + 0.5) * w / 5; this.louvre.add(sl); this.slats.push(sl); }
     this.group.add(this.louvre);
-    // the rays: thin pale bars from the louvre's rim to the pool's rim
-    this.rays = [];
-    const g = new THREE.BoxGeometry(0.05, 0.05, 1).translate(0, 0, 0.5);
-    for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(g, this.mat); this.group.add(m); this.rays.push({ m, a: (i / 9) * Math.PI * 2, top: i % 3 === 0 ? 0.2 : 0.75 }); }
+    // the light: a soft shaft from the louvre to the pool, washes over the finished picture (src/veil.js LightShaft,
+    // the skull cave's way: issue #116; it was nine thin glowing bars, "weird 3d shapes")
+    this.w = w;
+    this.shaft = new LightShaft(rt.veils, this.group, { color: '#fff1c2', alpha: [0.18, 0.2], near: 2.5 });   // (brighter than the cave's: on white walls)
     this.pool = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.04, 28), this.poolMat);
     this.group.add(this.pool);
     noCollide(this.group);
@@ -1769,24 +1769,15 @@ export class Sunbeam {
     for (const sl of this.slats) sl.rotation.x = k * 1.15;   // (open: the slats turned edge-on to the sun)
     const show = k > 0.02;
     this.pool.visible = show;
-    for (const r of this.rays) r.m.visible = show;
+    this.shaft.visible = show;
     if (!show) { this.light.set(0, -1e5, 0, 0); return; }
     // the pool, flush on what it lights (a floor, a wall)
     this.pool.position.copy(this.at).addScaledVector(this.n, 0.05);
     this.pool.quaternion.setFromUnitVectors(UP, this.n);
     this.pool.scale.set(this.r * k, 1, this.r * k);
     this.poolMat.uniforms.uGlow.value = 0.45 + 0.3 * k + 0.05 * Math.sin(t * 1.3);
-    // the rays: from round the louvre to round the pool (a pool's rim: two axes across its normal)
-    const u = this._a.set(1, 0, 0); if (Math.abs(this.n.x) > 0.9) u.set(0, 0, 1);
-    const v = this._b.crossVectors(this.n, u).normalize(); u.crossVectors(v, this.n).normalize();
-    for (const r of this.rays) {
-      const top = this._c.set(Math.cos(r.a) * r.top, 0, Math.sin(r.a) * r.top).add(this.from);
-      const bot = (this._d ??= V()).copy(this.at).addScaledVector(u, Math.cos(r.a) * this.r * 0.85).addScaledVector(v, Math.sin(r.a) * this.r * 0.85);
-      r.m.position.copy(top);
-      r.m.lookAt(bot);
-      r.m.scale.set(1, 1, Math.max(0.01, top.distanceTo(bot) * k));
-    }
-    this.mat.uniforms.uGlow.value = 0.55 + 0.2 * k;
+    // the shaft: from the louvre's opening (level, in the roof) to the pool's rim (flat on what it lights)
+    this.shaft.set(this.from, this.w * 0.45, this._c.copy(this.at).addScaledVector(this.n, 0.06), this.r * 0.95, { topN: UP, bottomN: this.n }).fade(k);
     this.light.set(this.at.x, this.at.y + 2, this.at.z, 7 * k);
   }
 }

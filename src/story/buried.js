@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
+import { Veils, LightShaft } from '../veil.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Flames, Embers } from './flames.js';
@@ -191,6 +192,8 @@ export function setupBuried(ctx) {
     use: () => { if (toolHasPush()) dialogue.start(THINGS.wick, null, K.valve.at); else openValve('heave'); } });
   // the flame (amber tongues in the dish), embers, a light, and the shaft going up through the open sky
   let flames = null, embers = null, shaft = null;
+  level.veils ??= new Veils();
+  const shaftFoot = new THREE.Vector3(), shaftTop = new THREE.Vector3();
   const wickLight = V(0, 0, 0); const wickL = new THREE.Vector4(K.centre.x, K.rim + 2, K.centre.z, 0);
   level.lights.push(wickL);
   const lightUp = (instant) => {
@@ -201,12 +204,9 @@ export function setupBuried(ctx) {
     tongues.push({ at: V(0, 0, 0), h: 3.6, r: 0.8, core: 1 });
     flames = new Flames(parent, tongues, { palette: ['#fff3c4', '#ffd98a', AMBER, '#d9782f', '#a8502a'], seed: 4 });
     embers = new Embers(scene, [K.centre.clone().setY(K.bowlY + 3)], { count: 40, color: '#ffd98a', rise: 3, life: 6, spread: 1.6 });
-    const sm = ownMaterial({ color: '#ffcf7a', glow: 1, flat: true });
-    shaft = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 0.7, 1, 12, 1, true).translate(0, 0.5, 0), sm);
-    shaft.material.side = THREE.DoubleSide;
-    shaft.position.copy(K.centre).setY(K.bowlY + 4.2);
-    shaft.userData.noCollide = true;
-    scene.add(shaft);
+    // (a soft shaft of light, washes over the finished picture: src/veil.js LightShaft, the skull cave's way, issue #116;
+    // it was a solid glowing tube, inked. The level's washes are made at the story's setup, before main binds them)
+    shaft = new LightShaft(level.veils, scene, { color: '#ffcf7a', alpha: [0.2, 0.24], near: 3 });
     st.lightK = instant ? 1 : 0.001;
     oilMat.uniforms.uColor.value.set('#e9a53c'); oilMat.uniforms.uGlow.value = 0.9;
   };
@@ -451,8 +451,8 @@ export function setupBuried(ctx) {
     }
     if (shaft) {
       const k = st.lightK;
-      shaft.scale.set(0.5 + 0.5 * k, Math.max(0.01, (O.top - K.bowlY + 260) * ease(k)), 0.5 + 0.5 * k);
-      shaft.material.uniforms.uGlow.value = 0.65 + 0.2 * Math.sin(t * 1.3);
+      const s = 0.5 + 0.5 * k, foot = shaftFoot.copy(K.centre).setY(K.bowlY + 4.2);
+      shaft.set(shaftTop.copy(foot).setY(foot.y + Math.max(0.01, (O.top - K.bowlY + 260) * ease(k))), 1.5 * s, foot, 0.7 * s).fade(0.9 + 0.1 * Math.sin(t * 1.3));
       wickL.w = 34 * k;
       B.porthole.light.w = 16 + 18 * k;
     }

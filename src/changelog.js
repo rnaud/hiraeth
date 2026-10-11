@@ -64,6 +64,8 @@ export const CHANGELOG = [
     // the temples (docs/systems/temples.md "No climbing but the climbs"; issue #115)
     { text: 'Temple walls can no longer be climbed past their puzzles. Inside the makers’ houses only the climbs their way takes still hold you: the Givers’ House’s gallery, the Warden’s Well’s Climb, the Clock-House’s winding wall, the root-walls of the Hush-House, the Lamp-House and the Greenhouse, the Lamp-House’s loft of roots, and the glass a vine or brass rungs climb. Before, you could climb the Engine-House’s gantry instead of riding its pistons, climb round the Greenhouse’s Glass Stair onto the landing without the sun-disc, or go up beside any locked door.',
       see: 'In the Greenhouse, climb the Glass Stair’s root-wall and push on into the round wall above it: you no longer take hold. In the Engine-House, push into the gantry’s face in the Piston Hall: the pistons are the way up.' },
+    // light (docs/systems/rendering.md "Shafts of light"; issue #116)
+    'Light falls in soft shafts in every temple, as it does in the skull cave: the Builders’ Greenhouse’s sunbeams from its louvres are broad pale shafts down to their pools of light instead of thin glowing bars, the Lamp-House’s beam turns over the wood as a soft shaft instead of a solid cone, and the Wick’s light rises out of the Buried Machine’s oculus the same way.',
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

@@ -607,8 +607,20 @@ const C49_LAMP = { commit: 'a5846a6d' };
 const LH = (x, y, z) => [-140 + x, 1800 + y, -780 + z];   // (the Lamp-House's own metres, in Lorn: names.js PART_OFFSET)
 const C49_BELFRY = { commit: '4bfdf04a' };
 const FB = (x, y, z) => [80 + x, 1600 + y, 150 + z];   // (the Founders' Belfry's own metres, in Vael)
+// (issue #116: every shaft of light a soft wash, as the skull cave's; taken before the branch was rebased: no commit to re-take them at)
+const C49_SHAFTS = { from: 'changelog-shots.mjs views in headless Chrome (muted), the game served by Vite at the commit before the change and at the change (11 October)' };
 export const CHANGELOG_MEDIA = {
   '1.49': [
+    { match: 'Light falls in soft shafts in every temple', shots: [
+      { name: 'shafts-bud', title: 'The Bud Passage', caption: 'The Builders’ Greenhouse’s Bud Passage, its louvre’s light on the floor by the pots: before, thin glowing bars from the louvre; after, a soft shaft down to the pool of light', ...C49_SHAFTS,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(2.6, 21, 91.7), target: GR(-1.5, 19.5, 102), player: GR(3, 18.05, 92) } },
+      { name: 'shafts-gulf', title: 'The Vine Gulf', caption: 'The Vine Gulf from its near ledge: the great louvre’s light falling past the lip into the green dark below, before as bars, after as a shaft', ...C49_SHAFTS,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 75, eye: GR(-6, 21.5, 104.5), target: GR(0, 10, 121), player: GR(-6.5, 18.05, 104) } },
+      { name: 'shafts-lamphouse', title: 'The Lamp-House', caption: 'The Lamp-House over the Deep Wood once its lamp burns again: before, its beam a solid inked cone; after, a soft shaft turning over the wood', ...C49_SHAFTS,
+        view: { level: 'perdide', save: { ...SAVE47, flags: { ...SAVE47.flags, 'temple.perdide2.done': true } }, hour: 19.6, fov: 70, eye: [-30, 22, -850], target: [46, 42, -904], player: [-20, 0.2, -870] } },
+      { name: 'shafts-wick', title: 'The Wick', caption: 'The Buried Machine’s oculus, the Wick lit: before, its light a solid glowing tube up out of the oculus; after, a soft shaft', ...C49_SHAFTS,
+        view: { level: 'buried', save: { ...SAVE47, flags: { ...SAVE47.flags, 'buried.oculus.lit': true } }, hour: 12, fov: 70, eye: [52, -31.2, -468], target: [28, -8, -480], player: [52.5, -33.9, -467.5] } },
+    ], see: 'In the Builders’ Greenhouse, the louvres’ light in the Bud Passage and over the Vine Gulf; outside, once the Lamp-House’s lamp burns again, its beam over the Deep Wood at dusk; in the Buried Machine, the Wick’s light up its oculus.' },
     { match: 'What’s new has a Refresh button', shots: [
       { name: 'whats-new-refresh', caption: 'The top of What’s new: Refresh beside Play, its button glyph shown', size: [1280, 400], from: 'screenshots of changelog.html in headless Chrome, without and with the button (11 October)' },
     ], see: 'Open What’s new from the title (or N, then See what changed) and press Refresh: on the website the page loads again; in the app it checks for an update, downloads it with its progress beside the count, and restarts at the title in the new build.' },

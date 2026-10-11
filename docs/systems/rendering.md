@@ -967,6 +967,26 @@ surface is drawn in two parts:
 - `tests/veil.test.js`: the define and the fallback, one wash per mesh sharing its geometry, bound to the ink pass's
   uniforms, drawn only while its mesh shows.
 
+## Shafts of light (`src/veil.js` `LightShaft`; v1.49, issue #116)
+
+Every shaft of light, beam or god ray is drawn as the skull cave's (v1.45, issue #69): two open cones, an outer one and
+a narrower inner one (0.55 of it), from where the light comes in to where it falls, brighter at the core where they
+overlap, drawn only as washes over the finished picture (the veils above, one wash program). Their meshes are on layer
+31 with an invisible material: no camera draws them into the G-buffer, so no ink round them, no shadow, nothing to
+collide with, and the Unity export leaves them out (veils are not mirrored there). `new LightShaft(veils, parent,
+{ color, alpha: [outer, inner], near })`; `set(top, rTop, bottom, rBottom, { topN, bottomN })` writes the two rings in
+world metres each frame it moves (a ring's plane across the shaft, or the pool's surface for its foot), `fade(k)` its
+alpha, `visible` hides it. A level without washes gets one from the first that needs it (`rt.veils`; the Buried
+Machine's story at its setup, before main binds them; a wash added after the bind takes the ink pass's light then).
+
+The shafts: the skull cave's cracks (`src/desert-city.js`, static cones of its own), the Builders' Greenhouse's nine
+louvres (`Sunbeam` in `src/temples/pieces.js`: louvre to pool, swinging with it, fading with the slats; nine thin
+glowing bars before), the Lamp-House's beam over the wood once its lamp burns (`src/temples/perdide2.js` `change`: a
+solid inked cone before) and the Wick's light up the Buried Machine's oculus (`src/story/buried.js`: a solid glowing
+tube before). Not shafts of light, left as they are: the quest and box beacons, the scout's and the trials' marker
+beams, the sentinel's crown-vent plume (a target), the searchlights' attack cones. `tests/light-shafts.test.js`,
+`tests/veil.test.js`.
+
 ## The eclipse (post.js `drawEclipse`, `uEclipse`; src/eclipse.js; October 2026)
 
 The City During the Eclipse's sky: the sun covered by the moon at midday, drawn as the pictures draw it.

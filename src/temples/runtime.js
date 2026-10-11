@@ -8,6 +8,7 @@ import { TempleKit, templeMaterials } from './kit.js';
 import { TempleLogic, flagStore } from './logic.js';
 import { Guardian, guardianBar } from './boss.js';
 import { Mark, Pit } from './pieces.js';
+import { Veils } from '../veil.js';
 
 // One temple, alive: its rooms (built by the world's layout with the kit and
 // the pieces), its logic (saved in the save slot's flags), its marks
@@ -79,6 +80,9 @@ export class TempleRuntime {
     this.logic.update();
     for (const p of this.pieces) if (p.id && p.setOpen) p.setOpen(this.logic.isOpen(p.id), true);
   }
+
+  /** The level's washes over the finished picture (src/veil.js: the shafts of light, issue #116), made if it has none. */
+  get veils() { return (this.level.veils ??= new Veils()); }
 
   /** Add a piece (a Door, a Plate…: pieces.js) built for this temple. */
   add(Piece, o) {

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
+import { LightShaft } from '../veil.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
@@ -488,11 +489,11 @@ function exterior(scene, level, rt) {
  */
 function change(scene, level, rt) {
   const O = rt.outside;
-  const beamM = makeMaterial({ color: '#ffe2b0', glow: 0.5, flat: true, side: THREE.DoubleSide, key: 'temple.p2.beam' });
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 9, 140, 16, 1, true).translate(0, 70, 0).rotateZ(Math.PI / 2 - 0.08), beamM);
-  beam.userData.noCollide = true; beam.userData.dynamic = true;
-  beam.visible = false;
-  if (O) { beam.position.copy(O.lamp.position); rt.root.add(beam); }
+  // the beam: a soft shaft of light from the lamp out over the wood, washes over the finished picture (src/veil.js
+  // LightShaft, the skull cave's way: issue #116; it was a solid glowing cone, inked)
+  const beam = O ? new LightShaft(rt.veils, rt.root, { color: '#ffe2b0', alpha: [0.14, 0.17], near: 4 }) : null;
+  if (beam) beam.visible = false;
+  const tip = new THREE.Vector3();
   const light = new THREE.Vector4(0, -1e5, 0, 0);
   rt.lights.push(light);
   let k = 0, want = 0;
@@ -504,8 +505,10 @@ function change(scene, level, rt) {
       if (O) {
         O.lampM.uniforms.uGlow.value = 0.04 + 0.96 * k * (0.92 + 0.08 * Math.sin(t * 3));
         beam.visible = on;
-        beam.rotation.y = t * 0.25;
-        beamM.uniforms.uGlow.value = 0.45 * k;
+        // (turning slowly, a little over the level: 140 m out, 9 m across at its end)
+        const a = t * 0.25;
+        tip.set(-Math.cos(0.08) * Math.cos(a), Math.sin(0.08), Math.cos(0.08) * Math.sin(a)).multiplyScalar(140).add(O.lamp.position);
+        if (on) beam.set(O.lamp.position, 0.4, tip, 9).fade(k);
         if (on) light.set(O.lamp.position.x, O.lamp.position.y, O.lamp.position.z, 60 * k); else light.set(0, -1e5, 0, 0);
       }
       const L = rt.lampRoom;

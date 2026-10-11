@@ -1229,6 +1229,7 @@ export function buildDesertCity(scene, terrain) {
       SKY.push({ x, z, r: 1.2, y: y + CHEST.top, chest: true });
     }
     const shaftHolder = new THREE.Group(); shaftHolder.name = 'The cave’s shafts of light (washes)';
+    const shaftOnly = new THREE.MeshBasicMaterial({ visible: false });
     for (const h of SKY) {
       const top = V(h.x, h.y, h.z), n = top.clone().setY(top.y / (H * H)).normalize();
       cave.add(caveBone, new THREE.TorusGeometry(h.r + 0.6, 0.6, 4, 12).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), n)).translate(top.x, top.y, top.z));
@@ -1238,7 +1239,8 @@ export function buildDesertCity(scene, terrain) {
       const bot = V(foot.x, fr, foot.z), len = top.distanceTo(bot), q = new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), top.clone().sub(bot).normalize());
       const mid = top.clone().add(bot).multiplyScalar(0.5);
       for (const [k, alpha] of [[1, 0.12], [0.55, 0.14]]) {
-        const m = new THREE.Mesh(new THREE.CylinderGeometry(h.r * 0.95 * k, rr * k, len, 18, 1, true).applyQuaternion(q), sun);
+        // (its own material never drawn: only its wash is, and the Unity export leaves an invisible material out)
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(h.r * 0.95 * k, rr * k, len, 18, 1, true).applyQuaternion(q), shaftOnly);
         m.position.copy(cave.world(mid.x, mid.y, mid.z));
         m.layers.set(31);   // (drawn only as its wash: no camera draws layer 31 into the G-buffer)
         m.userData.noCollide = true; m.castShadow = false; m.userData.wash = alpha;
