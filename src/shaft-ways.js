@@ -39,6 +39,16 @@ export const CLIMB = { pad: 0.26, relay: { y: 92, r: 44, a: Math.PI }, upper: { 
  */
 /** Tobin's telescopes on the outer rim between him and Lio ([x, z]; the rim's top: RIM_TOP). */
 export const TOBIN_SCOPES = [[344, 108], [353, 93], [358, 74]];
+/**
+ * The cab rank (v1.50, issue #132: the walk home from Tobin was the 119 m of rim you had just crossed): a floating pad
+ * off the rim by the ship, a yellow lamp and a board on it, where the cabs wait for fares between rides. Once Tobin has
+ * handed you Lio's pass you ride home: a cab hailed on the rim goes out over the shaft past it, round, and sets you down
+ * by your ship (src/levels/incal.js shaftRoutes: out to the ring of open air, round it, in). Angle round the shaft (rad),
+ * radius (m), height.
+ */
+export const CAB_RANK = { a: 0.18, r: 162, y: 205 };
+/** Where Tobin sends you to wave one down: the rim's edge at the parapet, a little way round from him toward your ship (angle, radius: the shaft's lip is at 260 m; nearer him the red stair's top is under a cab's way out). */
+export const CAB_HAIL = { a: 0.3, r: 261.5 };
 export const RIM_TOP = 200;
 export const RIM_POSTS = [[-0.19, 298], [-0.175, 280], [-0.15, 264], [-0.095, 264], [0.05, 264], [0.11, 264], [0.17, 264], [0.23, 264], [0.29, 264], [0.35, 264], [0.41, 264], [0.47, 264]];
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -148,6 +158,14 @@ export function buildShaftWays(scene, { terraces, places }) {
   scene.add(scope);
   const sign = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 0.06).translate(0, 1.3, 0), makeMaterial({ color: '#f2c54b', flat: true }));
   sign.position.copy(viewAt).add(V(-1.6, 0, 1.4)); sign.rotation.y = scope.rotation.y; scene.add(sign);
+  // the cab rank: a pad over the shaft off the rim by the ship, its lamp and a yellow board, where the cabs wait
+  const rankAt = V(Math.cos(CAB_RANK.a) * CAB_RANK.r, CAB_RANK.y, Math.sin(CAB_RANK.a) * CAB_RANK.r);
+  floatPad(rankAt, 5, 'The cab rank');
+  {
+    const board = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(2.2, 0.9, 0.08).translate(0, 2.3, 0), new THREE.CylinderGeometry(0.06, 0.06, 1.9, 5).translate(-0.9, 0.95, 0), new THREE.CylinderGeometry(0.06, 0.06, 1.9, 5).translate(0.9, 0.95, 0)].map(flat0)), makeMaterial({ color: '#f2c54b', flat: true }));
+    board.position.copy(rankAt).add(V(1.6, 0, 1.2)); board.rotation.y = Math.atan2(rankAt.x, rankAt.z); board.name = 'The cab rank’s board';
+    scene.add(board);
+  }
   // Tobin's telescopes (level design audit, fifth round: the hop from Tobin back to Lio was the 83 m you had just walked):
   // three more of his coin telescopes round the outer rim between them, each on its post turned to the shaft and the
   // palace over it, with a little yellow price board: the way he sends you back with his coin
@@ -171,6 +189,8 @@ export function buildShaftWays(scene, { terraces, places }) {
     upper: { at: upperAt.clone(), stand: upperAt.clone().add(V(1.5, 0, 0)) },
     relay: { at: relayAt.clone(), glass: relayGlass, light: relayLight, look: relayAt.clone().add(V(0, 2.4, 0)) },
     view: { at: viewAt.clone(), stand: viewAt.clone().add(V(0.4, 0, 0.6)), scope: scope.position.clone().add(V(0, 1.6, 0)) },
+    /** The cab rank over the shaft by the ship, and the ride home from Tobin past it, [x, y, z] (out to the ring, round, in). */
+    rank: { at: rankAt.clone(), ride: [[301, RIM_TOP, 116], [Math.cos(CAB_HAIL.a) * CAB_HAIL.r, RIM_TOP, Math.sin(CAB_HAIL.a) * CAB_HAIL.r], [Math.cos(CAB_HAIL.a) * 150, RIM_TOP + 2.4, Math.sin(CAB_HAIL.a) * 150], [Math.cos(CAB_RANK.a) * 150, RIM_TOP + 2.4, Math.sin(CAB_RANK.a) * 150], [150, RIM_TOP + 2.4, 0], [251, RIM_TOP + 2.4, 0], [263, RIM_TOP, 0]] },
     /** Tobin's telescopes on the outer rim, and the way back past them from Tobin to Lio, [x, y, z]. */
     scopes: { at: scopes[1].clone().add(V(0, 1, 0)), line: [[304, RIM_TOP, 114], ...scopes.map((p) => [p.x, RIM_TOP, p.z]), [340, RIM_TOP, 45]] },
     /** No house or tree on a landing (the ring and the post), the level's clearing (houses still drawn, not kept). */

@@ -626,6 +626,9 @@ const TALK49 = 'headless Chrome (muted, 11 October) against this branch’s own 
 // (v1.50: Qanat's square, issues #161 and #160: a new game before the chest, at ten in the morning)
 const SQ_FROM = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720, a new game before the chest), Vite on port 5463, at the commit before the change and at the change (before its rebase), 11 October';
 const SQ_AVENUE = { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 58, eye: [215.5, 3.4, 374.5], target: [231.5, 3.2, 397.5], player: [212.5, 1.3, 369.5] };
+// (v1.50: the walks home from the temples, issue #132: this branch's own Vite and the same tree before it, the world's temple done)
+const HOME50 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5473, changelog-shots.mjs’s shoot) and the same tree before the change, 11 October; cwebp -q 72';
+const SAVE_HOME = (w) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...(w === 'incal' ? { 'item.cabpass': true } : { [`temple.${w}.done`]: true }) }, keepsakes: [] });
 // (v1.50: the camera at the sleeping car's door: the camera QC's own frames, the same moment before and after)
 const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) in headless Chrome (muted, High), Vite on port 5471, before the change and after it, 11 October; its 480 × 270 frame, cwebp -q 72';
 export const CHANGELOG_MEDIA = {
@@ -666,6 +669,28 @@ export const CHANGELOG_MEDIA = {
         { where: 'the node walk at a run (sim-train.mjs)', before: 363, after: 196 },
       ], source: 'the camera QC (.claude/skills/camera-qc): three runs before, four after; a spin is over 90°/s' },
     ], see: 'In the Overnight Train, run from the dining car into the sleeping car turning after the corridor: the camera slides along the door frame instead of flicking round.' },
+    { match: 'In the Underwater City, once the Listener is calm', shots: [
+      { name: 'home-underwater-court', title: 'The keepers’ hatch', caption: 'In the divers’ court, where the Whale-House’s way out now comes up: before, the dome’s glass; after, the keepers’ hatch in the floor and the new door to the kelp tube', from: HOME50,
+        view: { level: 'underwater', save: SAVE_HOME('underwater'), hour: 11, fov: 62, eye: [-88.6, 2.7, -103.5], target: [-92.6, 1.0, -86], player: [-90.2, 0.1, -98.8], heading: -0.19 } },
+      { name: 'home-underwater-tube', title: 'The kelp tube', caption: 'Halfway down the new tube toward the garden: before, the open sea floor; after, the tube, the kelp outside it and the sunken diving bell on the right', from: HOME50,
+        view: { level: 'underwater', save: SAVE_HOME('underwater'), hour: 11, fov: 60, eye: [-95.5, 2.4, -76], target: [-101, 1.4, -20], player: [-96, 0.1, -72] } },
+    ], numbers: [{ title: 'The walk home from the temple (level design audit)', unit: 'loops score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'the Underwater City', before: 3, after: 5 }], source: 'node audit, this build against v1.50 before it' }],
+      see: 'Calm the Listener in the Whale-House and take its way out: you come up in the divers’ court. Go through its south door into the kelp tube and on to the garden.' },
+    { match: 'In the City Floating in Space, a small new island, the Lamp Rock', shots: [
+      { name: 'home-spacecity', title: 'From the Towers', caption: 'From the Towers’ south edge: before, the void and the Gate far off; after, the Lamp Rock with its lamp, its bridge from the Towers and the next one on to the Gate', from: HOME50,
+        view: { level: 'spacecity', save: SAVE_HOME('spacecity'), hour: 9, fov: 60, eye: [99, 10.5, -70], target: [80, 2, -8], player: [98, 6.1, -67], heading: 3.3 } },
+    ], numbers: [{ title: 'The walk home from the Mooring-House', unit: 'm', better: 'lower', device: 'along the lanes and bridges', rows: [{ where: 'to the ship', before: 369, after: 348 }], source: 'the bridges’ ends and lanes walked (the level design audit: 348); its loops score was 5 before only by a straight line over the void' }],
+      see: 'From the Mooring-House walk back over the Moorings bridge and down the Towers’ south lane: the Lamp Rock’s bridge, then the Gate’s.' },
+    { match: 'In the Buried Machine, a row of iron vent caps runs', shots: [
+      { name: 'home-buried', title: 'From the Engine-House', caption: 'From beside the Engine-House’s door, looking home to the landing hollow: before, bare sand; after, the vent caps leading to the ship and the stokers’ whistle halfway', from: HOME50,
+        view: { level: 'buried', save: SAVE_HOME('buried'), hour: 10, fov: 55, eye: [-97, 9.5, 93], target: [-30, 4.5, 72], player: [-93, 5.6, 89], heading: 1.87 } },
+    ], numbers: [{ title: 'The walk home from the temple (level design audit)', unit: 'loops score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'the Buried Machine', before: 4, after: 5 }], source: 'node audit, this build against v1.50 before it' }],
+      see: 'Stop the Tooth-Warden and come out of the Engine-House: watch the steam run along the caps toward your ship.' },
+    { match: 'In the City-Shaft, once Tobin gives you Lio’s pass, ride home', shots: [
+      { name: 'home-shaft', title: 'The cab rank', caption: 'From the rim’s edge by Tobin, across the shaft: before, open air; after, the cab rank, a floating pad with its yellow board and lamp, that the cab home flies past', from: HOME50,
+        view: { level: 'incal', save: SAVE_HOME('incal'), hour: 10, fov: 30, eye: [262, 204.5, 84], target: [159, 205, 29], player: [266, 200.1, 89], heading: -2.1 } },
+    ], numbers: [{ title: 'The walk home from Tobin (level design audit)', unit: 'loops score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'the City-Shaft', before: 4, after: 5 }], source: 'node audit, the ride weighed at a cab’s speed' }],
+      see: 'Get Lio’s pass from Tobin, walk to the parapet a little way toward your ship and wave a cab down (it stops beside you): choose the rim by the ship.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

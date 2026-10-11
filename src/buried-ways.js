@@ -90,3 +90,50 @@ export function buildOilMain(scene, terrain, { from, to, cx, floorAt, narrows = 
   scene.add(pipe, rings);
   return { points: line.filter((_, i) => i % 3 === 0 || i === line.length - 1) };
 }
+
+// The flue vents (level design audit v1.49, issue #132: the walk home from the Engine-House to the ship was the 106 m of
+// dunes you had crossed toward it, with nothing on them). The engine breathes out under the sand along its old flue,
+// from beside the Engine-House's door to the landing hollow, through a row of iron vent caps on short stacks, and
+// halfway the stokers' whistle stands on its pipe over a valve wheel. Cold while the engine is jammed; once the
+// Tooth-Warden is stopped the caps puff in a wave running from the door to the hollow, and the whistle steams
+// (src/story/buried.js). Low, drawn only, stepped past. No rng.
+//
+//   buildFlueVents(scene, terrain) → { points, vents, whistle, sight }
+
+/** The vents, [x, z]: from beside the Engine-House's door to the landing hollow's west lip; the whistle halfway. */
+export const FLUE_VENTS = { from: [-93, 87], to: [-14, 63], count: 9, whistle: [-44, 81] };
+
+export function buildFlueVents(scene, terrain) {
+  const { from, to, count, whistle } = FLUE_VENTS;
+  const iron = [], rust = [], vents = [];
+  const H = (x, z) => terrain.heightAt(x, z);
+  const dx = to[0] - from[0], dz = to[1] - from[1], L = Math.hypot(dx, dz);
+  for (let i = 0; i < count; i++) {
+    const t = i / (count - 1), bow = Math.sin(t * Math.PI) * 5;   // (a gentle bow south, past the whistle)
+    const x = from[0] + dx * t - (dz / L) * bow, z = from[1] + dz * t + (dx / L) * bow, y = H(x, z);
+    // a short stack out of the sand, a flared cap on three struts over it, a flange at its foot
+    iron.push(nonIdx(new THREE.CylinderGeometry(0.32, 0.36, 0.9, 10).translate(x, y + 0.3, z)));
+    iron.push(nonIdx(new THREE.CylinderGeometry(0.5, 0.5, 0.12, 12).translate(x, y + 0.02, z)));
+    rust.push(nonIdx(new THREE.ConeGeometry(0.62, 0.36, 12).translate(x, y + 1.06, z)));
+    for (let k = 0; k < 3; k++) { const a = k * 2.09 + i; iron.push(nonIdx(new THREE.BoxGeometry(0.05, 0.22, 0.05).translate(x + Math.cos(a) * 0.28, y + 0.82, z + Math.sin(a) * 0.28))); }
+    vents.push(V(x, y + 1.25, z));
+  }
+  // the stokers' whistle: a tall pipe on a flanged foot, the whistle's bell on top, a valve wheel at hand height
+  const [wx, wz] = whistle, wy = H(wx, wz);
+  iron.push(nonIdx(new THREE.CylinderGeometry(0.75, 0.85, 0.3, 14).translate(wx, wy + 0.1, wz)));
+  iron.push(nonIdx(new THREE.CylinderGeometry(0.16, 0.16, 4.6, 8).translate(wx, wy + 2.4, wz)));
+  rust.push(nonIdx(new THREE.CylinderGeometry(0.34, 0.26, 1.1, 12).translate(wx, wy + 5.1, wz)));
+  rust.push(nonIdx(new THREE.SphereGeometry(0.36, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).translate(wx, wy + 5.65, wz)));
+  rust.push(nonIdx(new THREE.TorusGeometry(0.42, 0.06, 5, 16).rotateY(Math.PI / 2).translate(wx + 0.22, wy + 1.35, wz)));
+  for (let k = 0; k < 4; k++) rust.push(nonIdx(new THREE.BoxGeometry(0.04, 0.8, 0.04).rotateX((k * Math.PI) / 4).translate(wx + 0.22, wy + 1.35, wz)));
+  const caps = new THREE.Mesh(mergeGeometries(iron), makeMaterial({ color: '#5f7592', flat: true, metal: 'iron' }));
+  const tops = new THREE.Mesh(mergeGeometries(rust), makeMaterial({ color: '#ad5a3e', flat: true, metal: 'iron' }));
+  caps.name = 'The flue vents'; tops.name = 'The flue vents’ caps and the stokers’ whistle';
+  caps.userData.noCollide = true; tops.userData.noCollide = true;
+  scene.add(caps, tops);
+  return {
+    // (the way along them, for the level design audit: from the Engine-House's door past every cap to the hollow)
+    points: [[from[0] - 4, H(from[0] - 4, from[1] + 3) + 0.5, from[1] + 3], ...vents.map((p) => [p.x, p.y - 0.75, p.z]), [to[0] + 12, H(to[0] + 12, to[1] - 3) + 0.5, to[1] - 3]],
+    vents, whistle: V(wx, wy + 5.9, wz), sight: V(wx, wy + 0.5, wz),
+  };
+}

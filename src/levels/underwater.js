@@ -8,6 +8,7 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { PEOPLE as UW_PEOPLE } from '../story/underwater-people.js';
+import { KEEPERS_HATCH } from '../temples/underwater.js';
 import {
   UNDERWATER_LOOK, UNDERWATER_DAY, UNDERWATER_DUSK, UNDERWATER_NIGHT, SEA_DAY, UW_PAL, uwMats, seaSurface, tower, pod, podRing, glassColumns, cafeDome,
   lampPost, bush, kelp, rock, manta, fishSchool, farCity, bigDome, glassTube, whale,
@@ -33,6 +34,8 @@ import {
 //                    deep where the whales pass (Maelle listens to them)
 //   the Whale-House  the makers' sounding-house on the sea floor north of the Plaza (src/temples/underwater.js): the
 //                    last tube runs from the Plaza to its door
+//   the kelp tube    from the divers' court's south door to the garden's north door, through the kelp outside, past the
+//                    sunken diving bell (v1.50, issue #132): the way home from the Whale-House's keepers' hatch
 //
 // The water is drawn as it was (water.js SEA_LOOK): the sea's surface far overhead, the flat banded haze, the shafts of
 // light, the caustics; `sea.glass` keeps that look on the view from inside the glass (water.js keepCamera), and every
@@ -52,6 +55,9 @@ export const DOMES = {
   court: { x: -90, y: 0, z: -108, r: 22, sy: 0.72 },
 };
 const D = DOMES;
+/** The point on dome `d`'s foot facing dome `to`, and that door's yaw (a tube between them runs along the line of their middles). */
+function domeDoor(d, to) { const a = Math.atan2(to.x - d.x, to.z - d.z); return [d.x + Math.sin(a) * d.r, 0, d.z + Math.cos(a) * d.r]; }
+const doorYaw = (d, to) => Math.atan2(to.x - d.x, to.z - d.z);
 /** Where the tubes run (their floors' ends), each from a dome's door to the next's. */
 export const TUBES = {
   dock: { a: [0, 0, D.dock.z - D.dock.r], b: [0, 0, D.avenue.z + D.avenue.r], R: 5 },
@@ -60,6 +66,8 @@ export const TUBES = {
   gallery: { a: [D.plaza.x + D.plaza.r, 0, D.plaza.z], b: [D.gallery.x - D.gallery.r, D.gallery.y, D.gallery.z], R: 5 },
   temple: { a: [0, 0, D.plaza.z - D.plaza.r], b: [0, 0, -178], R: 5 },
   court: { a: [D.plaza.x - D.plaza.r, 0, D.plaza.z], b: [D.court.x + D.court.r, 0, D.court.z], R: 5 },
+  // (v1.50, issue #132: the way home from the keepers' hatch, the divers' court south to the garden, its doors on the line between them)
+  kelp: { a: domeDoor(D.court, D.garden), b: domeDoor(D.garden, D.court), R: 5 },
 };
 /** The sloped tube's run on the ground (the bed is cut under it: seabed). */
 const TUBES_AT = { gallery: { x0: TUBES.gallery.a[0], x1: TUBES.gallery.b[0], y0: TUBES.gallery.a[1], y1: TUBES.gallery.b[1], z: TUBES.gallery.a[2] } };
@@ -194,9 +202,9 @@ export function* buildUnderwater(scene) {
   const halls = {
     dock: bigDome(kit, M, { ...D.dock, doors: [{ yaw: N, ...door }], floor: M.street }),
     avenue: bigDome(kit, M, { ...D.avenue, doors: [{ yaw: S, ...door }, { yaw: W, ...door }, { yaw: N, ...door }], ribs: 20, floor: M.street, seg: 64 }),
-    garden: bigDome(kit, M, { ...D.garden, doors: [{ yaw: E, ...door }], floor: M.pier }),
+    garden: bigDome(kit, M, { ...D.garden, doors: [{ yaw: E, ...door }, { yaw: doorYaw(D.garden, D.court), ...door }], floor: M.pier }),
     plaza: bigDome(kit, M, { ...D.plaza, doors: [{ yaw: S, ...door }, { yaw: E, ...door }, { yaw: N, ...door }, { yaw: W, ...door }], ribs: 18, floor: M.streetPale, seg: 56 }),
-    court: bigDome(kit, M, { ...D.court, doors: [{ yaw: E, ...door }], ribs: 14, floor: M.pier, seg: 44 }),
+    court: bigDome(kit, M, { ...D.court, doors: [{ yaw: E, ...door }, { yaw: doorYaw(D.court, D.garden), ...door }], ribs: 14, floor: M.pier, seg: 44 }),
     gallery: bigDome(kit, M, { ...D.gallery, doors: [{ yaw: W, ...door }], floor: M.street }),
     crown: bigDome(kit, M, { ...D.crown, doors: [], ribs: 10, floor: M.streetPale, seg: 36 }),
   };
@@ -379,6 +387,39 @@ export function* buildUnderwater(scene) {
   far.traverse((o) => { if (o.isMesh) o.userData.floats = true; });
   yield;
 
+  // ---------------------------------------------------------------- the way home from the Whale-House (v1.50, issue #132)
+  // The keepers' hatch in the divers' court, where its way out comes up; the kelp tube south from the court's south door
+  // to the garden's north door, a bed of tall kelp outside its glass and the old diving bell sunk in it: the divers'
+  // last bell, its hose still running up toward the surface. Its own dice, built after the rest: the city keeps its own.
+  const home = { hatch: [KEEPERS_HATCH.x, 0, KEEPERS_HATCH.z], bell: null };
+  {
+    const r2 = mulberry32(71077), [hx, , hz] = home.hatch;
+    kit.add(M.frame, new THREE.TorusGeometry(1.15, 0.12, 6, 28).rotateX(Math.PI / 2).translate(hx, 0.06, hz), drawn);
+    kit.add(M.rim, new THREE.CircleGeometry(1.05, 28).rotateX(-Math.PI / 2).translate(hx, 0.05, hz), drawn);
+    for (let k = 0; k < 4; k++) kit.add(M.frame, new THREE.BoxGeometry(2.0, 0.05, 0.14).rotateY((k * Math.PI) / 4).translate(hx, 0.08, hz), drawn);
+    kit.light(hx, 2.2, hz, 6);
+    // the kelp bed either side of the tube, outside the glass
+    const T = TUBES.kelp, A = new THREE.Vector3(...T.a), B = new THREE.Vector3(...T.b), side = new THREE.Vector3(B.z - A.z, 0, A.x - B.x).normalize();
+    for (let i = 0; i < 16; i++) {
+      const t = 0.08 + (i / 15) * 0.84, e = i % 2 ? 1 : -1, off = 9 + r2() * 9, p = A.clone().lerp(B, t).addScaledVector(side, e * off);
+      kelp(kit, M, r2, [p.x, H(p.x, p.z), p.z], { n: 4 + Math.floor(r2() * 3), h: 8 + r2() * 7, spread: 2.2 });
+    }
+    // the diving bell, half sunk on the west side of the tube, two-fifths of the way down it, its portholes lit
+    const b = A.clone().lerp(B, 0.42).addScaledVector(side, -14), by = H(b.x, b.z);
+    const tilt = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.22, 0.6, -0.12)).setPosition(b.x, by + 1.0, b.z);
+    kit.add(M.shell.pink, new THREE.CylinderGeometry(1.5, 2.1, 3.0, 18, 1, true).applyMatrix4(tilt), drawn);   // (out in the sea: nobody reaches it)
+    kit.add(M.shell.pink, new THREE.SphereGeometry(1.5, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 1.5, 0).applyMatrix4(tilt), drawn);
+    kit.add(M.frame, new THREE.TorusGeometry(2.1, 0.14, 6, 24).rotateX(Math.PI / 2).translate(0, -1.5, 0).applyMatrix4(tilt), drawn);
+    kit.add(M.frame, new THREE.TorusGeometry(0.4, 0.1, 6, 12).rotateX(Math.PI / 2).translate(0, 3.05, 0).applyMatrix4(tilt), drawn);
+    for (let k = 0; k < 3; k++) { const a = k * 2.1 + 0.4; kit.add(M.windowLit, new THREE.CircleGeometry(0.32, 12).translate(0, 0, 0).applyMatrix4(new THREE.Matrix4().makeRotationY(a)).applyMatrix4(new THREE.Matrix4().makeTranslation(Math.sin(a) * 1.82, 0.4, Math.cos(a) * 1.82)).applyMatrix4(tilt), drawn); }
+    // its hose, slack up toward the light
+    const hose = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 3.1, 0).applyMatrix4(tilt), new THREE.Vector3(b.x + 3, by + 9, b.z - 2), new THREE.Vector3(b.x + 1, by + 18, b.z - 6), new THREE.Vector3(b.x - 2, by + 26, b.z - 8)]);
+    kit.add(M.post, new THREE.TubeGeometry(hose, 24, 0.12, 5), drawn);
+    kit.light(b.x, by + 1.5, b.z, 7);
+    home.bell = [b.x, by, b.z];
+  }
+  yield;
+
   // ---------------------------------------------------------------- the sea: its surface overhead; dry wherever you can go
   const sea = seaSurface(kit, { y: SEA_Y, size: 1400, sea: { ...SEA_DAY, glass: true, shafts: { ...SEA_DAY.shafts }, caustics: { ...SEA_DAY.caustics } }, air });
   // life: mantas, schools of small fish, and the whales out in the deep (the Whale-House's change brings them to the glass)
@@ -450,11 +491,15 @@ export function* buildUnderwater(scene) {
       { name: 'the tube down to the Whale Gallery', points: [[0, 0, COLUMN.z + COLUMN.r + 4], [D.plaza.x + D.plaza.r, 0, D.plaza.z], [D.gallery.x - D.gallery.r, D.gallery.y, D.gallery.z], [D.gallery.x, D.gallery.y, D.gallery.z]] },
       { name: 'the tube to the Whale-House', points: [[D.gallery.x, D.gallery.y, D.gallery.z], [D.gallery.x - D.gallery.r, D.gallery.y, D.gallery.z], [D.plaza.x + D.plaza.r, 0, D.plaza.z], [0, 0, D.plaza.z - D.plaza.r], [0, 0, WHALE_HOUSE.door + 2]] },
       { name: 'the city’s length, back to the Dock', points: [[0, 0, WHALE_HOUSE.door + 2], [0, 0, D.plaza.z - D.plaza.r], [0, 0, D.plaza.z + D.plaza.r], [0, 0, D.avenue.z - D.avenue.r], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [0, 0, SHIP_SITE.z - 12]] },
+      // (v1.50, issue #132: home from the keepers' hatch, down the kelp tube to the garden and the west tube to the Avenue)
+      { name: 'the kelp tube', auto: false, points: [home.hatch, TUBES.kelp.a, TUBES.kelp.b, [D.garden.x + 16, 0, D.garden.z - 12], [D.garden.x + D.garden.r, 0, D.garden.z], [D.avenue.x - D.avenue.r, 0, D.avenue.z], [0, 0, D.avenue.z], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [0, 0, SHIP_SITE.z - 12]] },
     ],
     sights: [
       { name: 'the moon pool', at: [POOL.x, 0, POOL.z] },
       { name: 'the window over the deep', at: [D.gallery.x + D.gallery.r - 4, D.gallery.y, D.gallery.z] },
       { name: 'the glow-kelp troughs', at: [D.garden.x - 2, 0, D.garden.z] },
+      { name: 'the sunken diving bell', at: home.bell },
+      { name: 'the keepers’ hatch', at: home.hatch },
     ],
     atmo: (x, z, y) => ({ tint: [1, 1, 1], fog: 0.6, name: placeAt({ x, y: y ?? 0, z }) }),
     life: { motes: { count: 220, color: '#d8f2ee', size: 0.05, rise: 0.06, wind: [0.08, 0.03] } },

@@ -159,6 +159,10 @@ test('a leading line carries a leg laid from beside its start to beside its goal
   const wander = { name: 'maze', points: [[5, 0, 0], [0, 0, 400], [300, 0, 400], [295, 0, 0]] };
   assert.equal(lineFor([0, 0, 0], [300, 0, 0], [wander]), null, 'far longer than the straight way: nobody walks it');
   assert.deepEqual(lineFor([300, 0, 0], [0, 0, 0], [stones]).points[0], [290, 0, 10], 'walked the other way, the line is reversed');
+  // (v1.50: a line ridden, the City-Shaft's cab home: three times the length is fine at a cab's speed, not on foot)
+  const loop = { name: 'the cab home', points: [[0, 0, 0], [-150, 0, 0], [-150, 0, 150], [100, 0, 150], [100, 0, 0]] };
+  assert.equal(lineFor([0, 0, 0], [100, 0, 0], [loop]), null, 'walked, a loop 5 times as long is not the way');
+  assert.equal(lineFor([0, 0, 0], [100, 0, 0], [{ ...loop, ride: 38 }])?.name, 'the cab home', 'ridden at a cab’s speed, it is');
 });
 
 test('followLines: a leg is walked along its line; a stage that names its line follows it from farther off', () => {

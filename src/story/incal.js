@@ -273,7 +273,7 @@ export function setupIncal(ctx) {
     if (flat(pp, tobin.pos) > 4.5 || Math.abs(pp.y - tobin.pos.y) > 4) return;
     quests.give(PASS);
     tobin.shout = { text: TOBIN_PAYS, until: (tobin.time ?? 0) + 4.5 };
-    toast('Tobin hands over a card with the palace seal, slowly, as if it were the last view on the rim. Lio’s pass, his name crossed out. The cabs stop for you now.');
+    toast('Tobin hands over a card with the palace seal, slowly, as if it were the last view on the rim. Lio’s pass, his name crossed out. The cabs stop for you now: wave one down and ride home.');
   };
 
   // the cabs don't stop in the depths; after Wren, hailing down there brings Wren

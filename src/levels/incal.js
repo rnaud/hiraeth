@@ -1187,9 +1187,12 @@ export function* buildIncal(scene) {
       { name: 'the lamplighters’ rim posts', points: [...ways.rim, ...places.stair.path.map((p) => [p.x, p.y, p.z]), [places.nima.x, places.nima.y, places.nima.z]] }] : []),
     { name: 'the lamplighters’ drops', points: ways.line },
     // (fifth round: the way back from Tobin to Lio round the outer rim past his telescopes, where his words send you)
-    { name: 'Tobin’s telescopes', points: ways.scopes.line, auto: false }],
+    { name: 'Tobin’s telescopes', points: ways.scopes.line, auto: false },
+    // (v1.50, issue #132: and with Lio's pass from Tobin, the ride home by cab past the cab rank, the way his card sends you)
+    // (ridden: a cab flies itself at up to 38 m/s, src/taxi.js ROUTE; about 20 with the hail, getting in and out)
+    { name: 'the cab home', points: ways.rank.ride, auto: false, ride: 20 }],
     // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pads and relay lamp, Tobin's view pad
-    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : [])],
+    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, { name: 'the cab rank', at: ways.rank.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : [])],
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)

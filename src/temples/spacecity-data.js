@@ -66,7 +66,8 @@ export const PEOPLE = {
         after: {
           say: ['~surprised~ Hear that? (A long low hum runs along the cables over the city. The lamps on them are lit, all the way out.)',
             '~happy~ The Towers bridge stopped creaking. The Market will miss the conversation.',
-            '~solemn~ The note that ran down the cables has gone quiet. Something else is on them now.'],
+            '~solemn~ The note that ran down the cables has gone quiet. Something else is on them now.',
+            '~happy~ Go home by *the Lamp Rock*: south off the Towers, over the rock where we keep the lamp oil, and on to the Gate. Shorter than the Market.'],
           do: { set: { 'clue.spacecity.bazaar': true } },
           choices: [
             { text: '~curious~ What is on the cables?', goto: 'broadcast' },

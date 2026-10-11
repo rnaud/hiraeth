@@ -74,6 +74,23 @@ test('every stop: you step out on solid ground, it hovers in the clear, and a ca
   assert.deepEqual(shaft.level.cabStops.filter((s) => s.depths).map((s) => s.id), ['bottom'], 'below the smog only Wren stops');
 });
 
+test('the ride home from Tobin (v1.50, issue #132): a cab hailed beside him flies out over the shaft past the cab rank and down to the stop by the ship', async () => {
+  const { CAB_RANK } = await import('../src/shaft-ways.js');
+  const { level, physics } = shaft;
+  // (from the rim's edge nearest him, where his words send you to wave, facing the shaft: Taxi.hail stops it beside you)
+  const { CAB_HAIL } = await import('../src/shaft-ways.js');
+  const edge = V(Math.cos(CAB_HAIL.a) * CAB_HAIL.r, 200, Math.sin(CAB_HAIL.a) * CAB_HAIL.r), h = Math.atan2(-edge.x, -edge.z), scale = 2.1;
+  const fx = Math.sin(h), fz = Math.cos(h), from = V(edge.x + fz * 4 + fx * 3, edge.y + 1.2 * scale, edge.z - fx * 4 + fz * 3);
+  const rim = level.cabStops.find((s) => s.id === 'rim');
+  const pts = planRoute(physics, level.cabRoutes(from, rim), 1.5 * 2.6);
+  assert.ok(pts, 'a clear way home from the edge by Tobin');
+  const rank = V(Math.cos(CAB_RANK.a) * CAB_RANK.r, CAB_RANK.y, Math.sin(CAB_RANK.a) * CAB_RANK.r), seg = new THREE.Line3(), q = V(0, 0, 0);
+  let near = Infinity;
+  for (let i = 1; i < pts.length; i++) { seg.set(pts[i - 1], pts[i]); seg.closestPointToPoint(rank, true, q); near = Math.min(near, q.distanceTo(rank)); }
+  assert.ok(near < 30 && near > 6, `it passes the cab rank, clear of it (${near.toFixed(1)} m)`);
+  assert.ok(level.sights.some((x) => x.name === 'the cab rank') && level.lines().some((l) => l.name === 'the cab home' && l.ride), 'the audit sees the rank and the ride');
+});
+
 test('a ride: in with E, seated, choose a stop, flown there, out at the stop with B / ○; X / □ asks again', () => {
   const { level, physics } = market;
   game.set(`item.${CAB_PASS}`, true);

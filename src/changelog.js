@@ -23,6 +23,11 @@ export const CHANGELOG = [
     'On the Steam Deck, a second game can join Hiraeth in your library: “Hiraeth (Unity preview)”, an early look at the game on a new engine, smoother in most places. It is for trying out: it has no menus or conversations yet and keeps its own progress, so Hiraeth stays the game to play. Run the installer again to add it (new installs get it at once); after that it downloads and updates by itself.',
     // the camera at a door (docs/systems/movement-and-camera.md "The lens past a door's jamb"; issue #148's follow-up)
     'Running through the Overnight Train’s doors, the camera no longer flicks round for a frame as it brushes the door frame: it comes in along its arm and slides off the frame over a few frames instead, as close behind you as before.',
+    // the walks home from the temples (docs/systems/worlds.md "The walk home from the temple"; issue #132)
+    'In the Underwater City, once the Listener is calm, the Whale-House lets you out through the keepers’ hatch in the divers’ court. A new glass tube runs south from there through a bed of kelp, past an old sunken diving bell, to the kelp garden: a different way home.',
+    'In the City Floating in Space, a small new island, the Lamp Rock, hangs south of the Towers with its tall lamp, the moorers’ oil drums and a bench. Its two bridges take you from the Towers to the Gate: a new way home from the Mooring-House, a little shorter than back through the Market.',
+    'In the Buried Machine, a row of iron vent caps runs from the Engine-House’s door to your landing hollow, the stokers’ tall whistle halfway along. Once the engine runs, puffs of steam roll along them toward your ship.',
+    'In the City-Shaft, once Tobin gives you Lio’s pass, ride home: wave a cab down at the rim’s edge and it flies you out over the shaft, past the new cab rank where the cabs wait, to the stop by your ship.',
   ] },
   { v: '1.49', date: '2026-10-11', items: [
     // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)

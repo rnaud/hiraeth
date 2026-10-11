@@ -173,6 +173,24 @@ test('the lift: up the column to the Crown and down again', () => {
   assert.ok(up.to.distanceTo(down.at) > down.r + 1.5 && down.to.distanceTo(up.at) > up.r + 1.5, 'never straight back');
 });
 
+test('the way home from the Whale-House (v1.50, issue #132): its last way out comes up at the keepers’ hatch in the divers’ court, and the kelp tube runs dry from there to the garden', () => {
+  const outs = level.portals.filter((p) => p.temple === 'underwater' && p.label === 'way out');
+  const last = outs.at(-1), door = level.temple.outside.door.at;
+  assert.ok(last.to.distanceTo(door) > 60, 'not at the Whale-House’s door');
+  assert.equal(placeAt(last.to), 'The divers’ court', 'in the divers’ court');
+  assert.ok(Math.abs(physics.groundAt(last.to.x, last.to.y + 2, last.to.z) - DOMES.court.y) < 0.3 && level.air(last.to.x, 1.2, last.to.z), 'on its floor, in the air');
+  assert.ok(outs[0].to.distanceTo(door) < 6, 'the way out by the entrance still lets you out at the door');
+  // from the hatch through the court's south door, down the kelp tube, into the garden: floor underfoot, dry, nothing in the way
+  const T = level.tubes.kelp, pts = [last.to, V(...T.at(0)), V(...T.at(0.5)), V(...T.at(1)), V(DOMES.garden.x + 16, 0, DOMES.garden.z - 12)];   // (round the troughs’ east end)
+  for (let i = 1; i < pts.length; i++) for (let k = 0; k <= 20; k++) {
+    const p = pts[i - 1].clone().lerp(pts[i], k / 20);
+    assert.ok(Math.abs(physics.groundAt(p.x, 2, p.z) - 0) < 0.3, `the floor at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+    assert.ok(level.air(p.x, 1.2, p.z) && waters.surfaceAt(p.x, p.z, 1.2) === null, `dry at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+    assert.ok(physics.roomAt(V(p.x, 1.0, p.z), 0.45) >= 0.45, `room to walk at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+  }
+  assert.ok(level.lines.some((l) => l.name === 'the kelp tube') && level.sights.some((x) => /diving bell/.test(x.name)), 'the way home and the bell beside it');
+});
+
 test('the ship stands on the Dock’s floor: flat, clear overhead under the dome', () => {
   const y0 = physics.groundAt(SHIP_SITE.x, 5, SHIP_SITE.z);
   for (let a = 0; a < 6.28; a += 0.5) for (const r of [0, 8, 13]) {

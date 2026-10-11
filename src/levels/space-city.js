@@ -44,6 +44,10 @@ export const ISLANDS = {
   moorings: { x: 96, y: 14, z: -176, w: 44, d: 44, cr: 14, deep: 30 },
   // the Yard: the moorers' practice island west of the Gate, the makers' court on it (v1.48, issue #101: src/finds/courts.js)
   yard: { x: -76, y: 0, z: 30, w: 36, d: 32, cr: 10, deep: 22 },
+  // the Lamp Rock: the moorers' little island south of the Towers, where they keep the cable lamps' oil; its two bridges
+  // are the short way home from the Moorings to the Gate and the Pier (v1.50, issue #132: the walk home was the 296 m
+  // back over the same bridges, the Towers, the Market and the Gate the way you came)
+  lamprock: { x: 92, y: 3, z: -14, w: 24, d: 22, cr: 9, deep: 20 },
 };
 const I0 = ISLANDS;
 /** The bridges between them: [from, to] as deck points ([x, y, z]), their width; each starts 1.5 m in on its decks. */
@@ -55,6 +59,9 @@ export const BRIDGES = [
   { name: 'the Balcony bridge', a: [0, 0, I0.market.z - 30.5], b: [0, 0, I0.balcony.z + 18.5], w: 4.6 },
   { name: 'the Moorings bridge', a: [98, 6, I0.towers.z - 19.5], b: [96, 14, I0.moorings.z + 20.5], w: 4.2 },
   { name: 'the Yard bridge', a: [I0.gate.x - 24.5, 0, 30], b: [I0.yard.x + 16.5, 0, 30], w: 4.2 },
+  // (v1.50: the Lamp Rock's: off the Towers' south lane, and on from the rock to the Gate's east lane)
+  { name: 'the Lamp Rock bridge', a: [98, 6, I0.towers.z + 19.5], b: [94, 3, I0.lamprock.z - 9.5], w: 4.2 },
+  { name: 'the Gate’s east bridge', a: [I0.lamprock.x - 10.5, 3, -10], b: [I0.gate.x + 24.5, 0, 30], w: 4.2 },
 ];
 /** Where the ship lands (the Pier's middle, a little south of it: its ramp toward the bridge). */
 export const SHIP_SITE = { x: 0, z: 128 };
@@ -156,6 +163,7 @@ export const LANES = {
   balcony: { lanes: [[0, -144, 0, -178, 3.4]], circles: [[0, -176, 10], [0, -158, 6]] },
   moorings: { lanes: [[96, -154, 96, -167, 3]], circles: [[96, -161, 5]] },   // (no houses: the Mooring-House stands on it)
   yard: { lanes: [], circles: [[-76, 30, 18]] },   // (no houses: the makers' court stands on it)
+  lamprock: { lanes: [[94, -22, 84, -10, 3]], circles: [[90, -14, 7]] },   // (no houses: the moorers' oil and their lamp)
 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -175,7 +183,7 @@ export function* buildSpaceCity(scene) {
     const kit = kitFor(`the ${key}`, 71500 + kits.length * 13), M = spaceMats(kit);
     const extra = key === 'balcony' ? [[0, -20, 17]] : [];   // (the balcony's north edge: its railing instead of the parapet)
     // (the Moorings, added after the city was laid out, draw from their own dice: the islands before them keep theirs)
-    const D = island(kit, M, key === 'moorings' ? mulberry32(71950) : key === 'yard' ? mulberry32(71970) : rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0 });
+    const D = island(kit, M, key === 'moorings' ? mulberry32(71950) : key === 'yard' ? mulberry32(71970) : key === 'lamprock' ? mulberry32(71990) : rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0 });
     decks[key] = { ...D, kit, M };
     const L = LANES[key], clearOf = (x, z, m) => L.lanes.every((s) => segDist(x, z, s) > s[4] + m * 0.9) && L.circles.every(([cx, cz, r]) => Math.hypot(x - cx, z - cz) > r + m * 0.85);
     const nearestLane = (x, z) => {
@@ -184,7 +192,7 @@ export function* buildSpaceCity(scene) {
       for (const [cx, cz, r] of L.circles) { const d = Math.hypot(x - cx, z - cz) - r; if (d < bd) { bd = d; best = [cx, cz]; } }
       return { p: best ?? [I.x, I.z], d: bd };
     };
-    if (key === 'pier' || key === 'moorings' || key === 'yard') continue;
+    if (key === 'pier' || key === 'moorings' || key === 'yard' || key === 'lamprock') continue;
     const peak = { gate: 4, market: 4, towers: 7, garden: 1, balcony: 3 }[key];
     quarter(kit, M, rng, {
       x0: I.x - I.w / 2, x1: I.x + I.w / 2, z0: I.z - I.d / 2, z1: I.z + I.d / 2, y: I.y, n: { gate: 30, market: 44, towers: 30, garden: 10, balcony: 18 }[key], gap: 0,
@@ -282,6 +290,26 @@ export function* buildSpaceCity(scene) {
   {
     const { kit, M } = decks.moorings, Mo = I0.moorings;
     for (let z = Mo.z + 19; z > Mo.z + 8; z -= 5) for (const e of [-1, 1]) lantern(kit, M, Mo.x + e * 3.8, Mo.y, z, { kind: 'post', h: 2.8, r: 8, light: e > 0 });
+  }
+
+  // ---------------------------------------------------------- the Lamp Rock: the moorers' oil drums, their winch, the tall lamp
+  {
+    const { kit, M } = decks.lamprock, R = I0.lamprock, SD = { solid: true, shadow: true };
+    lantern(kit, M, R.x + 3, R.y, R.z - 2, { kind: 'post', h: 9, r: 22, light: true });   // (the rock's lamp: seen from the Towers and the Gate)
+    for (const [dx, dz] of [[-7, -6], [6, 6], [-6, 6]]) lantern(kit, M, R.x + dx, R.y, R.z + dz, { kind: 'post', h: 2.6, r: 8, light: dx > 0 });
+    // the oil drums, stood and lying, by the rock's east edge
+    for (const [dx, dz, lie] of [[6, -5, 0], [7.3, -4.2, 0], [6.6, -6.4, 0], [8, -2.4, 1]]) {
+      const g = new THREE.CylinderGeometry(0.42, 0.42, 1.05, 12);
+      kit.add(M.iron, (lie ? g.rotateZ(Math.PI / 2).translate(R.x + dx, R.y + 0.42, R.z + dz) : g.translate(R.x + dx, R.y + 0.52, R.z + dz)), SD);
+    }
+    // the winch the moorers haul the oil up with: a drum on two posts, its cable over the edge into the void
+    kit.add(M.wood, new THREE.BoxGeometry(0.25, 1.2, 0.25).translate(R.x + 2, R.y + 0.6, R.z + 8.6), SD);
+    kit.add(M.wood, new THREE.BoxGeometry(0.25, 1.2, 0.25).translate(R.x + 4.2, R.y + 0.6, R.z + 8.6), SD);
+    kit.add(M.iron, new THREE.CylinderGeometry(0.35, 0.35, 2.0, 12).rotateZ(Math.PI / 2).translate(R.x + 3.1, R.y + 1.0, R.z + 8.6), SD);
+    kit.add(M.cable, new THREE.CylinderGeometry(0.04, 0.04, 24, 4).translate(R.x + 3.1, R.y - 11, R.z + 10.4), NC);
+    // a bench facing the planet, for the lamp-trimmers
+    kit.add(M.wood, new THREE.BoxGeometry(2.2, 0.12, 0.6).translate(R.x - 4, R.y + 0.48, R.z - 7.4), SD);
+    for (const e of [-1, 1]) kit.add(M.wood, new THREE.BoxGeometry(0.14, 0.46, 0.5).translate(R.x - 4 + e * 0.9, R.y + 0.23, R.z - 7.4), SD);
   }
 
   // ---------------------------------------------------------- the Balcony: its dark teal railing over the void, the tower of pipes
@@ -391,6 +419,7 @@ export function* buildSpaceCity(scene) {
       { name: 'the Balcony’s railing over the void', at: [0, 0, I0.balcony.z - 16] },
       { name: 'the Garden’s overlook', at: [I0.garden.x - 14, I0.garden.y, I0.garden.z] },
       { name: 'the cables under the Towers', at: [I0.towers.x + 18, I0.towers.y, I0.towers.z] },
+      { name: 'the Lamp Rock', at: [I0.lamprock.x + 3, I0.lamprock.y, I0.lamprock.z - 2] },
     ],
     // no ground: only the islands' decks, the bridges and the houses (physics finds them as meshes)
     ground: { heightAt: () => -Infinity },
@@ -444,6 +473,8 @@ export function* buildSpaceCity(scene) {
       { name: 'the bridges north', points: [[0, 0, I0.pier.z - 10], [0, 0, I0.gate.z], [0, 0.9, -15], [0, 0, I0.market.z], [0, 0, I0.balcony.z + 18.5], [0, 0, I0.balcony.z - 8]] },
       { name: 'the Towers bridge and the Moorings bridge', points: [[0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z], [98, 6, I0.towers.z - 19.5], [96, 14, I0.moorings.z + 20.5], [96, 14, I0.moorings.z + 8]] },
       { name: 'the Garden bridge', points: [[0, 0, I0.market.z], [I0.market.x - 36.5, 0, -66], [I0.garden.x + 19.5, -4, -62], [I0.garden.x, -4, I0.garden.z]] },
+      // (v1.50, issue #132: home from the Mooring-House over the Lamp Rock to the Gate, the way Joss sends you)
+      { name: 'the Lamp Rock bridges', auto: false, points: [[96, 14, I0.moorings.z + 8], [96, 14, I0.moorings.z + 20.5], [98, 6, I0.towers.z - 19.5], [I0.towers.x, 6, I0.towers.z], [98, 6, I0.towers.z + 19.5], [94, 3, I0.lamprock.z - 9.5], [90, 3, I0.lamprock.z], [I0.lamprock.x - 10.5, 3, -10], [I0.gate.x + 24.5, 0, 30], [0, 0, 30], [0, 0, I0.gate.z + 24.5], [0, 0, I0.pier.z - 25.5], [0, 0, I0.pier.z - 10]] },
     ],
     // the crow's nest on the Balcony's mast (Kip's lamp: src/story/spacecity-people.js)
     mastTop: mastTop && { x: mastTop[0], y: mastTop[1], z: mastTop[2] },

@@ -121,7 +121,8 @@ export function lineFor(a, b, lines = [], { reach = { a: 30, b: 30 }, slack = 1.
     if (iA === iB || dA > reach.a || dB > reach.b) continue;
     const pts = iA < iB ? P.slice(iA, iB + 1) : P.slice(iB, iA + 1).reverse();
     const metres = dA + polyLength(pts) + dB;
-    if (metres > slack * L) continue;
+    // (a line ridden, not walked: a cab home, `ride` m/s: judged by its time against the walk's, not its length)
+    if ((line.ride ? metres * RUN / line.ride : metres) > slack * L) continue;
     if (!best || metres < best.metres) best = { name: line.name, points: pts.map((p) => p.slice(0, 3)), metres: Math.round(metres) };
   }
   return best;
@@ -132,7 +133,8 @@ export function lineFor(a, b, lines = [], { reach = { a: 30, b: 30 }, slack = 1.
  * along it), and then the line need only start within 80 m (or a tenth of the leg) of where the leg starts and end
  * within 80 m (or a third of the leg) of its goal; otherwise a line is followed only when it runs from beside the leg's
  * start (30 m) to beside its goal (30 m): players walk a line laid from here to there. A line marked `auto: false` is
- * followed only where a stage names it (a way home whose lamps are lit for the way home, not the way out).
+ * followed only where a stage names it (a way home whose lamps are lit for the way home, not the way out). A line with
+ * `ride` (m/s) is ridden (the City-Shaft's cab home): its length is weighed at that speed against the walk.
  */
 export function followLines(stops, lines = [], { reach = 30, slack = 1.6 } = {}) {
   return stops.map((s, i) => {

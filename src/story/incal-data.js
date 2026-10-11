@@ -81,7 +81,8 @@ export const QUESTS = [
     outro: 'A card with the palace seal, Tobin’s name crossed out and something like yours over it. The cabs stop for you now.',
     stages: [
       { id: 'lio', text: 'Find the cab dispatcher on the rim', label: 'Lio, the dispatcher', flag: 'incal.pass.heard', at: 'lio' },
-      { id: 'fare', text: 'Get the cab pass Tobin carries, along the rim', label: 'Tobin, seller of views', when: (q) => q.has('cabpass'), at: 'tobin' },
+      // (home: the ride home by cab his card buys you, for the level design audit: src/shaft-ways.js CAB_RANK)
+      { id: 'fare', text: 'Get the cab pass Tobin carries, along the rim', label: 'Tobin, seller of views', when: (q) => q.has('cabpass'), at: 'tobin', home: 'the cab home' },
     ],
   },
   {
@@ -562,7 +563,7 @@ export const RIM = {
       { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one, since you’re not buying: there’s a box on top of *the lone stone pillar*, round the rim from your ship. A good climb. A terrible view, of a box.' },
       { after: LOOKED, if: { not: { quest: 'incal.pass', active: true } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
       // (last: the list's places are the save's memory of what was said)
-      { after: { quest: 'incal.pass', active: true }, if: { not: { has: 'cabpass' } }, say: ["~angry~ The cabs snubbing you? Here. Lio’s pass. I was going to pay for it. Eventually. Possibly in views.", "~tired~ (Tobin hands over a card with the palace seal, slowly, as if it were the last view on the rim.) Cross my name out. Have a look through the telescopes, on the house."],
+      { after: { quest: 'incal.pass', active: true }, if: { not: { has: 'cabpass' } }, say: ["~angry~ The cabs snubbing you? Here. Lio’s pass. I was going to pay for it. Eventually. Possibly in views.", "~tired~ (Tobin hands over a card with the palace seal, slowly, as if it were the last view on the rim.) Cross my name out. Wave a cab down at the edge and ride home on it."],
         do: [{ give: 'cabpass' }] },
     ] },
   },

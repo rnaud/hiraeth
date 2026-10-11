@@ -377,13 +377,13 @@ export const ROUTE = [
   { id: 'edena', play: ['edena.garden', { temple: 'done', id: 'edena' }] },
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, done there (#137), then the Whale-House)
   // (v1.48: Bastien at the lock opens the city's own quest; the window over the deep, then in at the Whale-House's door)
-  { id: 'underwater', play: [{ act: 'meetBastien', at: 'bastien', label: 'Bastien, at the lock' }, { act: 'meetMireille', at: 'mireille', label: 'Brune, in the kelp garden' }, 'underwater.kelp', 'underwater.note', { temple: 'done', id: 'underwater' }] },
+  { id: 'underwater', play: [{ act: 'meetBastien', at: 'bastien', label: 'Bastien, at the lock' }, { act: 'meetMireille', at: 'mireille', label: 'Brune, in the kelp garden' }, 'underwater.kelp', 'underwater.note', { temple: 'done', id: 'underwater', home: 'the kelp tube' }] },   // (v1.50, #132: out by the keepers' hatch, home down the kelp tube)
   { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the bellows, the light (the air pillars up), the pass
   // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
   // (v1.48: Halden by the discs opens the dunes' own quest: the Clock-House's face read from the glass mound, then in at its door)
   { id: 'glassdunes', play: ['glassdunes.minute', { temple: 'done', id: 'garage', home: 'the float-posts' }] },
   // (v1.49: and the Engine-House to its guardian, its hub past the chest and both wings: issue #23)
-  { id: 'buried', play: ['buried.tooth', { temple: 'done', id: 'buried' }] },
+  { id: 'buried', play: ['buried.tooth', { temple: 'done', id: 'buried', home: 'the flue vents' }] },   // (v1.50, #132: Fisk sends you home by the flue vents)
   // (v1.40: the foundry: Liesel's hook hung on the last furnace's crane, Wen's count at the pillar's lookout (#137), then the Casting-House)
   // (v1.48: Hedda on the apron opens the foundry's own quest: the hung moons from the old hoist, then in at the Casting-House)
   { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Liesel, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry' }] },
@@ -391,7 +391,7 @@ export const ROUTE = [
   // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for the Towers' cables (#137), then
   // the Mooring-House north of the Towers)
   // (v1.48: Rosa on the Pier opens the city's own quest: the cables under the Towers, then in at the Mooring-House)
-  { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', 'spacecity.drift', { temple: 'done', id: 'spacecity' }] },
+  { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', 'spacecity.drift', { temple: 'done', id: 'spacecity', home: 'the Lamp Rock bridges' }] },   // (v1.50, #132: Joss sends you home over the Lamp Rock)
   // (v1.49: and the Undertower to its guardian, its hub's wings and the Choir past the gallery: issue #23)
   { id: 'bazaar', play: ['bazaar.signal', { temple: 'done', id: 'bazaar' }] },
 ];

@@ -57,6 +57,12 @@ const TAU = Math.PI * 2;
  * last tube (TUBES.temple), its door at (0, 0, -178) facing south, down the tube toward the Plaza.
  */
 export const SITE = { x: 0, z: -192, r: 16, heading: 0, door: -178 };
+/**
+ * The keepers' way out (v1.50, issue #132: the walk home from the door was the city's length back, 310 m the way you
+ * came): once the Listener is calmed, the arena's way out lets you up through the keepers' hatch in the divers' court,
+ * west of the Plaza, by its south door; the kelp tube runs on from there to the garden and home (src/levels/underwater.js).
+ */
+export const KEEPERS_HATCH = { x: -91, z: -95, heading: -0.19 };
 
 /**
  * The Whale-House's colours: shell ivory in big smooth panels, a coral course under every frieze and at the foot, the
@@ -407,7 +413,7 @@ function layout(rt) {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(-46, AY - 4, -3), V(46, 30, E1 + 2)),
     gadget: { at: W(HCX, PT, HCZ).toArray(), face: K.heading(Math.PI) },
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, AY + 0.5, E1 - 0.4), r: 1.5 }],
+    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, AY + 0.5, E1 - 0.4), r: 1.5, to: V(KEEPERS_HATCH.x, 0.1, KEEPERS_HATCH.z), heading: KEEPERS_HATCH.heading }],
     lights: [[0, 6, 6, 12], [0, 12, HZ, 26], [0, 4, 40, 14], [-32, 7, HZ, 16], [32, 8, HZ, 16], [HCX, 8, HCZ, 14], [HCX, 5, 71, 10], [-18, 10, TZ, 22], [-1, 13, TZ, 14],
       [12.8, 14, 88, 16], [13, 6, 60, 14], [0, -4, 64, 14], [0, AY + 4, 82, 12], [0, AY + 7, AZ, 28]],
     guardian: { def: { ...LISTENER, onHit: listenerHit }, model, arena },
@@ -528,7 +534,7 @@ export const UNDERWATER_TEMPLE = {
   local: { person: 'anselme', out: 7, side: 1.2 },
   enterLine: 'Inside the Whale-House it is dry and cool and smells of brass and salt. The walls hum one high note, very softly: not a whale’s.',
   pitLine: 'You climb back up, to the last glyph stone.',
-  onResolved(rt) { rt.notice('Outside, the Whale-House’s horns are lit. The whales are coming back.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('The whales are coming back. The way out comes up in the divers’ court.', 'resolved.out'); },
   onLit(rt, id) {
     if (id === 'eD') rt.notice('The eye over the east door wakes, and the door to the Shell Room sinks.', 'eD.lit');
     if (id === 'eP' || id === 'eS') rt.notice(rt.logic.isLit('eP') && rt.logic.isLit('eS') ? 'Both lamps on the Horn Door are lit, and it sinks.' : 'One lamp on the Horn Door lights. One to go.', `dH.${id}`);

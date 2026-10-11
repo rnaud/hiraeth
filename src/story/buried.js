@@ -555,6 +555,17 @@ export function setupBuried(ctx) {
     B.city.rotation.z = 0.0025 * Math.sin(t * 0.09) + 0.03 * big;
     B.city.rotation.x = 0.0018 * Math.cos(t * 0.07) + 0.012 * big;
 
+    // the flue vents (src/buried-ways.js), once the engine runs: a puff running cap by cap from the Engine-House's door
+    // to the landing hollow, the way home, every few seconds; the stokers' whistle steams as the wave passes it
+    if (B.flue && game.flag('temple.buried.done') && flat(pp, B.flue.whistle) < 150) {
+      st.flueT = (st.flueT ?? 0) + dt;
+      const n = B.flue.vents.length, step = 0.45, wave = n * step + 2.5;
+      if (st.flueT >= wave) st.flueT -= wave;
+      const i = Math.floor(st.flueT / step);
+      if (i < n && i !== st.flueI) { puffAt(B.flue.vents[i], 0.3); if (i === Math.floor(n / 2)) puffAt(B.flue.whistle, 0.55); }
+      st.flueI = i < n ? i : -1;
+    }
+
     smoke.update(dt, null);
     sand.update(dt, null);
     dust.update(dt, null);

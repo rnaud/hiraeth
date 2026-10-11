@@ -81,6 +81,23 @@ test('the way through the city is clear: from the ship along the lanes and over 
   for (let a = 0; a < 6.3; a += 0.6) { const p = V(PLAZA.x + Math.cos(a) * 6, 0, PLAZA.z + Math.sin(a) * 6); assert.ok(clearAt(physics, p, deckAt(physics, p)), 'the plaza is open round its middle'); }
 });
 
+test('the way home from the Mooring-House (v1.50, issue #132): down the Towers’ south lane, over the Lamp Rock and on to the Gate, decks underfoot and clear', async () => {
+  const { physics, level } = built();
+  const { PEOPLE } = await import('../src/temples/spacecity-data.js');
+  const home = level.lines.find((l) => l.name === 'the Lamp Rock bridges');
+  assert.ok(home && home.auto === false, 'the line Joss sends you home by');
+  // the walks on the islands between the bridges (the bridges themselves: the test above, every one end to end)
+  const Y = (k) => ISLANDS[k].y, T = ISLANDS.towers, R = ISLANDS.lamprock;
+  const legs = [[[98, Y('towers'), T.z], [98, Y('towers'), T.z + 19.5]], [[94, Y('lamprock'), R.z - 9.5], [R.x - 10.5, Y('lamprock'), -10]], [[ISLANDS.gate.x + 24.5, 0, 30], [0, 0, 30]]];
+  for (const [a, b] of legs) for (const p of line(a, b, 1)) {
+    const g = deckAt(physics, p);
+    assert.ok(Number.isFinite(g) && Math.abs(g - p.y) < 0.15, `a deck at ${p.x.toFixed(1)}, ${p.z.toFixed(1)} (${g?.toFixed(2)})`);
+    assert.ok(clearAt(physics, p, g), `the way is clear at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+  }
+  assert.ok(level.sights.some((x) => x.name === 'the Lamp Rock'), 'the rock is a place to stop');
+  assert.ok(PEOPLE.joss.talk.nodes.after.say.some((l) => /Lamp Rock/.test(l)), 'Joss names it once the cables are taut');
+});
+
 test('the edge: a parapet round every island but where a bridge lands; off it, the void puts you back', () => {
   const { level, physics } = built();
   let walled = 0, open = 0;

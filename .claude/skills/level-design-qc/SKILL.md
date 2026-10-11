@@ -146,7 +146,10 @@ saw nothing (the Glass Dunes' float-posts: 35 % of the path saw a landmark, 88 %
 (`src/levels/names.js` `PARTS`: Vael carries the sky stones, Lorn the Deep Wood) is read with its parts: their quests'
 places, their trials, courts and temples' doors, and a route step `{ temple: 'done', id }` goes in at that part's temple
 (`templeFor`; before, Vael's Belfry was measured at the Aerie's door, 1.1 km off). The pure logic is
-`scripts/level-design/lib.mjs` (`tests/level-design.test.js`).
+`scripts/level-design/lib.mjs` (`tests/level-design.test.js`). Since v1.50 a line may be **ridden** (`ride`: m/s, the
+City-Shaft's cab home): its length is weighed at that speed against the walk; and a temple whose last way out, past its
+guardian, comes out somewhere else (the arena exit's `to`: the Whale-House's keepers' hatch) is gone on from there, the hop
+to it not walked.
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`
 (relief from above, +z up: the path dark, the four longest empty stretches red, places on the route blue,

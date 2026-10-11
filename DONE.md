@@ -2751,3 +2751,7 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
 - [x] **Frame rate of the bigger terrains on Android** (left from #19): Vael's 5.2 km and Lorn's 3.2 km terrains since the
   merge, and the crossings' new pieces, measured on the Retroid.
   (Measured on the Retroid on 2026-10-11, #19's comment: Vael 57.6–59.9 fps, Lorn 58.9–60.1, the Glass Dunes 59.5–60, GeckoView, Handheld dynamic.)
+- [x] [#132](https://github.com/rnaud/hiraeth/issues/132) **The walks home from the temple** in the Underwater City (310 m), the City Floating in
+  Space (296 m), the Buried Machine (106 m) and the City-Shaft from Tobin (119 m): loops 3–4 → 5 in each. Done in v1.50:
+  the keepers' hatch and the kelp tube, the Lamp Rock, the flue vents, the cab home (docs/systems/worlds.md).
+  (2026-10-11, v1.50: done; Fixes #132 in its commit.)

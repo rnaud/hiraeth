@@ -252,3 +252,21 @@ test('the oil main runs from the Wick’s valve out of the oculus to the great w
   }
   assert.equal(QUESTS.find((q) => q.id === 'buried.tooth').stages.find((s) => s.id === 'watch').via, 'the oil main');
 });
+
+test('the flue vents run from the Engine-House’s door home to the landing hollow, the stokers’ whistle among them, drawn only (v1.50, issue #132)', async () => {
+  const { PEOPLE } = await import('../src/temples/buried-data.js');
+  const { FLUE_VENTS } = await import('../src/buried-ways.js');
+  const line = level.lines().find((l) => l.name === 'the flue vents');
+  assert.ok(line && line.auto === false, 'a way home the audit reads where Fisk names it');
+  const door = level.temple.outside.door.at, P = line.points;
+  assert.ok(Math.hypot(P[0][0] - door.x, P[0][2] - door.z) < 12, 'from beside the door');
+  assert.ok(Math.hypot(P.at(-1)[0] - level.spawn.x, P.at(-1)[2] - level.spawn.z) < 20, 'to the landing hollow');
+  for (let i = 1; i < P.length; i++) assert.ok(Math.hypot(P[i][0] - P[i - 1][0], P[i][2] - P[i - 1][2]) < 14, `each cap in sight of the last (${i})`);
+  const { vents, whistle } = level.buried.flue;
+  assert.equal(vents.length, FLUE_VENTS.count);
+  assert.ok(Math.min(...vents.map((v) => Math.hypot(v.x - whistle.x, v.z - whistle.z))) < 8, 'the whistle stands by the row');
+  for (const v of vents) assert.ok(Math.abs(v.y - 1.25 - level.ground.heightAt(v.x, v.z)) < 0.01, 'each cap on the sand');
+  for (const name of ['The flue vents', 'The flue vents’ caps and the stokers’ whistle']) assert.ok(scene.getObjectByName(name)?.userData.noCollide, `${name}: drawn only`);
+  assert.ok(level.sights().some((x) => /whistle/.test(x.name)), 'the whistle is a place to stop');
+  assert.ok(PEOPLE.brann.talk.nodes.after.say.some((l) => /flue vents/.test(l)), 'Fisk names them once the engine runs');
+});

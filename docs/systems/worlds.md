@@ -981,6 +981,38 @@ at her speed and not draped down into the cloud): Vael 3.89 → 3.78 (the honest
 All of it is drawn with its world's own materials (no new shader programs); what stands on the ground collides as drawn,
 what hangs in the air or rides the water is drawn only and marked `floats`.
 
+## The walk home from the temple (level design audit v1.49, issue #132; v1.50)
+
+Since the route goes on into the temples, four worlds sent you home from the guardian the way you came. Each now has a
+way back past something new, named by whoever sees you off (the route's temple step or last stage carries it as `home`,
+which the audit reads). Loops 3–4 → 5 in all four (`scripts/level-design/audit.mjs`; the Underwater City 4.33 → 4.56,
+the Buried Machine 4.0 → 4.11, the City-Shaft 4.33 → 4.44, the City Floating in Space 4.56, its old 5 the audit's
+straight line over the void).
+- **The Underwater City: a way out that comes up elsewhere, and a new tube.** The Whale-House's last way out, past the
+  Listener, lets you up through **the keepers' hatch** in the divers' court (`KEEPERS_HATCH`, src/temples/underwater.js:
+  the arena exit's `to`), by its new south door; **the kelp tube** (`TUBES.kelp`) runs from there to the garden's new
+  north door, the doors on the line between the domes' middles (`domeDoor`), a kelp bed outside its glass and **the
+  sunken diving bell** beside it (its own dice, built after the city). Home by the garden, the west tube and the long
+  tube (322 m against 310, three places new on it). The resolved notice says where its way out comes up.
+- **The City Floating in Space: a shortcut.** **The Lamp Rock** (`ISLANDS.lamprock`, its own dice, no houses), the
+  moorers' oil store south of the Towers, with **the Lamp Rock bridge** off the Towers' south lane and **the Gate's east
+  bridge** on to the Gate's east lane (`BRIDGES`): from the Mooring-House over the rock to the Gate and the Pier, 348 m
+  against 369 by the Towers bridge, the Market and the Market Bridge, and nothing of it walked before. Its tall lamp is seen from the Towers
+  and the Gate. Joss names it in his `after`.
+- **The Buried Machine: a different line over the dunes.** **The flue vents** (`FLUE_VENTS`, src/buried-ways.js): nine
+  iron vent caps from beside the Engine-House's door to the landing hollow, **the stokers' whistle** on its pipe beside
+  them halfway; once the engine runs a puff runs cap by cap toward the hollow every few seconds and the whistle steams
+  as it passes (src/story/buried.js). Drawn only, as the Tooth Day posts. Fisk names them in his `after`.
+- **The City-Shaft: a ride.** With Lio's pass the cabs stop for you, so the way home from Tobin is a cab: wave one down
+  at the parapet a little way round from him (`CAB_HAIL`: nearer him the red stair's top is under a cab's way out), and
+  it flies out over the shaft past **the cab rank** (`CAB_RANK`, src/shaft-ways.js: a floating pad, its lamp and a yellow
+  board, where the cabs wait) and in to the stop by the ship. The audit's line for it, `the cab home`, is **ridden**
+  (`ride: 20` m/s: a line's length weighed at that speed against the walk, scripts/level-design/lib.mjs `lineFor`).
+  Tobin's hand-over and its toast say to ride home. Tested in `tests/cab-ride.test.js`.
+
+The audit also reads a temple whose last way out comes out somewhere else: from the door, the hop to it (`jump`), then on
+from there.
+
 ## The Glass Dunes: a detour off the route (October 2026)
 
 `?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates

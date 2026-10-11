@@ -57,7 +57,8 @@ export const PEOPLE = {
         after: {
           say: ["~surprised~ The grinding stopped! Then the dune hummed and the cart rose out of the sand. Went down the ramp as if it hadn’t missed a day.",
             "~happy~ Children are riding it to the oculus and back. Jot’s done nine trips. I suspect a tenth is already underway.",
-            '~solemn~ I greased the door anyway. Habit.'],
+            '~solemn~ I greased the door anyway. Habit.',
+            "~happy~ Hear the flue? The engine breathes along *the flue vents* now. Follow the puffs home: they run from my door to your hollow."],
           choices: [
             { text: '~solemn~ The warden was stuck. I stopped it.', goto: 'stopped' },
             { text: '~happy~ Ride the cart, Fisk.', end: true },

@@ -93,7 +93,15 @@ for (const id of worlds) {
     if (pending) { mountedFrom ??= stops.length; pending = false; }
     if (later && p === later.after) pending = true;
     // (a temple whose keeper sends you home along a leading line after it, the Glass Dunes' Wim by the float-posts: `home`)
-    if (p.temple && templeOf(p.id)?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(templeOf(p.id).outside.door.at) }); if (p.home) home = p.home; continue; }
+    if (p.temple && templeOf(p.id)?.outside?.door) {
+      const T = templeOf(p.id), door = arr(T.outside.door.at);
+      stops.push({ label: 'the temple', kind: 'temple', pos: door });
+      // (v1.50: a temple whose last way out, past its guardian, lets you out somewhere else, the Whale-House's keepers' hatch
+      // in the divers' court: you go on from there, the hop to it not walked)
+      const out = p.temple === 'done' ? arr(T.portals?.filter((q) => q.label === 'way out' && q.to).at(-1)?.to) : null;
+      if (out && Math.hypot(out[0] - door[0], out[2] - door[2]) > 20) stops.push({ label: 'the temple’s way out', kind: 'temple', pos: out, jump: true });
+      if (p.home) home = p.home; continue;
+    }
     // (an act the route plays where someone stands, Vael's Oïa by the landing opening the main quest: a talk there)
     if (p.act && p.at) { met.add(p.at); const w = arr(W.quests.resolve(p.at)); if (w && !inTemple(w)) stops.push({ label: p.label ?? p.at, kind: people.has(p.at) ? 'talk' : 'do', pos: w }); continue; }
     if (typeof p !== 'string') continue;
@@ -119,7 +127,7 @@ for (const id of worlds) {
   // the level's leading lines (`lines`: [{ name, points: [[x, z] or [x, y, z], …] }], a row of marked stones, a dry
   // channel, cairns: what the eye follows on the ground): a leg one carries is walked along it (lib.mjs followLines)
   const lines = ((typeof level.lines === 'function' ? level.lines() : level.lines) ?? [])
-    .map((l) => ({ name: l.name, auto: l.auto, points: (l.points ?? []).map((p) => (p.length === 2 ? onGround(p[0], p[1]) : arr(p))).filter(Boolean) }))
+    .map((l) => ({ name: l.name, auto: l.auto, ...(l.ride ? { ride: l.ride } : {}), points: (l.points ?? []).map((p) => (p.length === 2 ? onGround(p[0], p[1]) : arr(p))).filter(Boolean) }))
     .filter((l) => l.points.length > 1);
   if (mountedFrom != null) for (let k = mountedFrom; k < stops.length; k++) stops[k].by = later.by;
   const path = L.followLines(L.viaPortals(stops.filter((s, i) => i === 0 || L.dist(s.pos, stops[i - 1].pos) > 15 || i === stops.length - 1), portals), lines);

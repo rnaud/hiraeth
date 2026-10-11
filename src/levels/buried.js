@@ -10,7 +10,7 @@ import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
-import { buildToothPosts, buildOilMain } from '../buried-ways.js';
+import { buildToothPosts, buildOilMain, buildFlueVents } from '../buried-ways.js';
 import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
@@ -1155,7 +1155,7 @@ export function* buildBuried(scene) {
   // the Tooth Day posts (src/buried-ways.js, level design audit, fourth round): a row across the dunes from the great
   // wheel's foot to Wen's dome, the way the counters carry the year's sliver: the way back with yours (built after the
   // temple, last in the scene)
-  let toothPosts = null, oilMain = null;
+  let toothPosts = null, oilMain = null, flue = null;
   const level = attachTemple('buried', scene, {
     id: 'buried',
     portals: [...shop.portals],
@@ -1165,8 +1165,10 @@ export function* buildBuried(scene) {
     // where the main quest sends you back along it, and the row itself to look at
     lines: () => [{ name: 'the Tooth Day posts', points: toothPosts.points, auto: false },
       // (v1.46: the oil main from the Wick's valve to the great wheel's foot, the way out once the valve is open)
-      { name: 'the oil main', points: oilMain.points }],
-    sights: () => [{ name: 'the Tooth Day posts', at: toothPosts.sight }],
+      { name: 'the oil main', points: oilMain.points },
+      // (v1.50, issue #132: the flue vents from the Engine-House's door to the landing hollow, the way home Fisk sends you by)
+      { name: 'the flue vents', points: flue.points, auto: false }],
+    sights: () => [{ name: 'the Tooth Day posts', at: toothPosts.sight }, { name: 'the stokers’ whistle', at: flue.sight }],
     ground: terrain,
     spawn,
     spawnHeading: Math.PI,
@@ -1216,6 +1218,9 @@ export function* buildBuried(scene) {
     },
   });
   toothPosts = buildToothPosts(scene, terrain);
+  // the flue vents from the Engine-House's door home to the landing hollow, the stokers' whistle halfway (src/buried-ways.js)
+  flue = buildFlueVents(scene, terrain);
+  level.buried.flue = flue;
   // the oil main from the Wick's valve along the canyon and over the dunes to the great wheel (src/buried-ways.js)
   oilMain = buildOilMain(scene, terrain, { from: new THREE.Vector3(wick.valve.at.x, FLOOR + 0.25, wick.valve.at.z), to: wheel.centre.clone().addScaledVector(wheel.face, 46),
     cx, floorAt, narrows: [OZ + OR] });   // (through the drum's doorway; through the cross-walls beside their openings, as pipes go through a bulkhead)
