@@ -263,11 +263,16 @@ namespace Memento.Bridge
             // WxH (the swap chain asked for: whether the console gives a UWP app 4K), both logged with what Unity has)
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             if (urp != null && BridgeArgs.Arg("-render-scale") is string rs && float.TryParse(rs, System.Globalization.NumberStyles.Float, inv, out float rsv)) urp.renderScale = rsv;
+            // (-upscale fsr|linear|point: URP's filter from a render scale under 1 to the screen, FSR 1 by default there)
+            if (urp != null && BridgeArgs.Arg("-upscale") is string up)
+                urp.upscalingFilter = up == "linear" ? UpscalingFilterSelection.Linear : up == "point" ? UpscalingFilterSelection.Point : UpscalingFilterSelection.FSR;
             if (BridgeArgs.Arg("-resolution") is string res && res.Split('x') is var wh && wh.Length == 2 && int.TryParse(wh[0], out int rw) && int.TryParse(wh[1], out int rh))
                 Screen.SetResolution(rw, rh, FullScreenMode.FullScreenWindow);
-            Debug.Log($"Memento bridge: the screen {Screen.width}x{Screen.height} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}");
+            Debug.Log($"Memento bridge: the screen {Screen.width}x{Screen.height} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}, upscaling {(urp ? urp.upscalingFilter.ToString() : "?")}");
             // (-queued N: the frames the CPU may run ahead of the GPU; on the Xbox the main thread waited ~9.5 ms a frame on the present)
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
+            // (-vsync N: presented on every Nth refresh, a test once the frames fit)
+            if (BridgeArgs.Arg("-vsync") is string vs && int.TryParse(vs, out int nv)) QualitySettings.vSyncCount = nv;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
             // the shadow maps' movers culled by the engine per cascade and drawn as renderer lists (the SRP Batcher's path) on the
@@ -311,7 +316,7 @@ namespace Memento.Bridge
                 Debug.Log($"Memento bridge: Shader.WarmupAllShaders took {tw.ElapsedMilliseconds} ms");
             }
             Debug.Log($"Memento bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}; " +
-                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, SRP Batcher {(GraphicsSettings.useScriptableRenderPipelineBatching ? "on" : "off")}, shadows {(MementoShadows.On ? $"on ({(MementoShadows.UseRendererLists ? "renderer lists" : "draws")}, fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {MementoShadows.minCasterTexels} texels, far from {Mathf.Max(MementoShadows.minCasterTexels, MementoShadows.minFarCasterTexels)})" : "off")}");
+                      $"queued frames {QualitySettings.maxQueuedFrames}, vsync {QualitySettings.vSyncCount}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, SRP Batcher {(GraphicsSettings.useScriptableRenderPipelineBatching ? "on" : "off")}, shadows {(MementoShadows.On ? $"on ({(MementoShadows.UseRendererLists ? "renderer lists" : "draws")}, fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {MementoShadows.minCasterTexels} texels, far from {Mathf.Max(MementoShadows.minCasterTexels, MementoShadows.minFarCasterTexels)})" : "off")}");
         }
         /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
         public static string ResidentDrawerState()
