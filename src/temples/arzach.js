@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Ball, Plate, Gust, Updraft, Platform, Mark, Pit } from './pieces.js';
+import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
+import { Door, Ball, Plate, Gust, Updraft, Platform, Mark, Pit, Key, Coffer } from './pieces.js';
 import { elderModel } from './guardians.js';
 import { items } from '../items.js';
 import { shiftAt } from '../levels/names.js';
@@ -27,9 +27,19 @@ import { shiftAt } from '../levels/names.js';
 //                        in the floor's vent. Roll it along its groove into the hall's vent (behind you, in the
 //                        corridor's mouth) and the hall falls calm, and the wind rises up the well, and the feather
 //                        raft by the east wall rides up on it to the Wing Chamber's balcony
+//                        (since v1.49, issue #23, the well is a stack, rooms off it at its foot and up its height:)
+//   the Moult            (west off its floor, an arena) where the birds raised here shed their first stone feathers;
+//                        its door shuts behind you while its keepers stand. Won, the small key's cage sinks
 //   the Wing Chamber     the makers' chest: the FLUID WINGS (src/items.js 'glider'). Step back out onto the
 //                        balcony and into the column of wind: it lifts open wings, round and up, to the high
-//                        balcony over the well, the great carved eye beside it (the wind you sent, a room away)
+//                        balcony over the well, the great carved eye beside it (the wind you sent, a room away).
+//                        The way north off it wants the small key
+//   the Eyrie            (west at the high balcony's height, along a ledge round the well's wall) two vents and one
+//                        stone, both throats on its ledge: the stone starts in the throat of the vent at the foot of
+//                        the gap, so the wind comes out of the ledge's own, a column beside a shelf with a coffer;
+//                        the great key's perch six metres over the ledge across the gap, out of a glide's reach.
+//                        Roll the stone into the other throat: the ledge's column dies, and the wind rises out of the
+//                        gap's foot past the perch (the Roost's lesson, a house early). The Roost's door's key
 //   the Gulf             two crossings, each on a wind you send. Forty-six metres of nothing to a stone perch
 //                        four lower: on still air no glide carries so far. A vent's mouth over the door, its stone
 //                        in the throat in the ledge's floor: push it out and the wind pours out over the gulf in
@@ -74,13 +84,19 @@ export const PALETTE = {
 
 export const LOGIC = {
   id: 'arzach', entry: 'threshold', gadget: 'glider',
-  rooms: { threshold: { checkpoint: true }, gusts: { checkpoint: true }, well: { checkpoint: true }, wings: { checkpoint: true }, top: { checkpoint: true }, gulf: { checkpoint: true }, perch: { checkpoint: true }, gulfFar: { checkpoint: true }, roost: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, gusts: { checkpoint: true }, well: { checkpoint: true }, wings: { checkpoint: true }, top: { checkpoint: true }, moult: { checkpoint: true }, eyrie: { checkpoint: true }, eyrieKey: {}, gulf: { checkpoint: true }, perch: { checkpoint: true }, gulfFar: { checkpoint: true }, roost: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'gusts' },
     { a: 'gusts', b: 'well' },                                          // through the gusts, screen to screen
+    // the well is a stack (v1.49, issue #23): a room off it at its foot, the chest's at 16 m, the high balcony at 32 m and a
+    // room off that. The Moult, west off its floor, an arena: the small key; the Eyrie, west off the high balcony: two
+    // winds and one stone, the great key
+    { a: 'well', b: 'moult', door: 'dM' },                              // (open: it shuts behind you while its keepers stand)
     { a: 'well', b: 'wings', door: 'raft' },                            // the feather raft rides up on the well's wind
     { a: 'wings', b: 'top', needs: ['glider'] },                        // the column (the raft's wind) lifts only open wings
-    { a: 'top', b: 'gulf' },
+    { a: 'top', b: 'eyrie' },                                           // along the ledge round the well's west wall
+    { a: 'eyrie', b: 'eyrieKey', door: 'lift', needs: ['glider'] },     // over the gap and up to the great key's perch, on the column out of its foot
+    { a: 'top', b: 'gulf', door: 'dG' },                                // the way north off the balcony: the small key
     { a: 'gulf', b: 'perch', door: 'tail', needs: ['glider'] },         // the Gulf: too far on still air, carried by the vent's gusts
     { a: 'perch', b: 'gulfFar', door: 'rise', needs: ['glider'] },      // to a ledge higher than the perch: lifted by the column beside it
     { a: 'gulfFar', b: 'roost', door: 'd3' },
@@ -102,13 +118,30 @@ export const LOGIC = {
     pP: { type: 'plate', room: 'perch' },
     pQ: { type: 'plate', room: 'perch' },
     rise: { type: 'door', opens: { not: { drumOn: ['ballP', 'pP'] } } },
-    d3: { type: 'door' },                                                // (the arena's door: it shuts behind you)
+    // the Moult: its keepers beaten, the small key's cage sinks
+    arM: { type: 'arena', room: 'moult' },
+    kM: { type: 'key', kind: 'small', room: 'moult', when: { lit: 'arM' } },
+    dM: { type: 'door', opens: null },
+    // the Eyrie: two vents and one stone, both throats on its ledge (the Roost's lesson, a house early). The stone starts in
+    // the gap-vent's throat (pU): the wind comes out of the ledge's own vent, a column beside the coffer's shelf. Rolled into
+    // that vent's throat (pC), the ledge's column dies and the wind comes out of the vent at the gap's foot instead, a
+    // column past the great key's perch, six metres over the ledge
+    bE: { type: 'drum', room: 'eyrie', stops: { pU: 0, pC: 1 }, start: 0 },
+    pU: { type: 'plate', room: 'eyrie' },
+    pC: { type: 'plate', room: 'eyrie' },
+    lift: { type: 'door', opens: { drumOn: ['bE', 'pC'] } },
+    kE: { type: 'key', kind: 'big', room: 'eyrieKey' },
+    dG: { type: 'door', lock: 'small' },
+    d3: { type: 'door', lock: 'big' },                                   // the great key's door (and the arena's: it shuts behind you)
     // the Roost: two vents, one stone (the west, pRW, or the east, pRE): the wind rises from the other
     ballR: { type: 'drum', room: 'roost', plate: 'pRW', plateAt: 0, stops: { pRW: 0, pRE: 1 }, start: 0 },
     pRW: { type: 'plate', room: 'roost' },
     pRE: { type: 'plate', room: 'roost' },
     elder: { type: 'boss', room: 'roost', needs: ['gun', 'glider'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // (optional, so last: the marker never points at it) the coffer on the shelf over the Eyrie's door, beside the ledge's
+    // own column, as its stone starts
+    cache: { type: 'cache', room: 'eyrie' },
   },
 };
 
@@ -169,6 +202,91 @@ function elderHit(g, part, mode) {
   return true;
 }
 
+// ------------------------------------------------------------------ the stack's rooms (v1.49, issue #23)
+/**
+ * The Wind Well's rooms off it (local m): the Moult west off its floor (an arena); a ledge round the well's west wall
+ * from the high balcony's west end (32 m up) to the Eyrie west at that height. The Eyrie: its ledge (the floor you come
+ * in on), a gap over the dark, the great key's perch six metres higher on the far side; one stone in a groove on the
+ * ledge between two throats. In the up-throat (where it starts) the wind comes out of the ledge's own vent, a column to
+ * the coffer's shelf over the door; in the ledge vent's throat, out of the vent at the gap's foot, a column past the
+ * perch.
+ */
+export const STACK = {
+  moult: { x: -25, w: 14, d: 14 },
+  eyrie: { x: -28, w: 20, d: 16, y: 32, floor: 20 },
+  ledge: [-24, -18],                          // the Eyrie's ledge (x), level with the high balcony
+  perch: { x: [-38, -33], z: [63.5, 72.5], y: 38 },
+  column: { x: -29.6, r: 2.6, h: 22 },        // out of the vent at the gap's foot, past the perch
+  shelf: { x: [-21.6, -18], z: [72.8, 76], y: 39.5 },
+  vent: { x: -20.2, z: 71.2, r: 1.2, h: 9.5 }, // the ledge's own: a column beside the coffer's shelf
+  groove: { x: -22.6, z: [61.8, 66.2] },     // the stone's: the gap-vent's throat at its south end (pU), the ledge vent's at its north (pC)
+};
+STACK.zone = { min: [-32, -1, 68 - 7], max: [-18, 10, 68 + 7] };
+
+/** The Moult's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arM', room: 'moult', zone: STACK.zone, doors: ['dM'], extra: 2,
+  shut: 'The door grinds shut behind you. Among the moulted feathers something stirs that is not a bird.',
+  won: 'The last of them falls among the stone feathers. The key’s cage sinks, and the door lets go.',
+}];
+
+/**
+ * The Moult (west off the Wind Well's floor, an arena: where the birds raised here shed their first feathers, stone ones
+ * heaped by the walls; its door shuts behind you while its keepers stand, and won, the small key's cage sinks) and the
+ * Eyrie (west at the high balcony's height, along a ledge round the well's wall: two winds and one stone, the great key).
+ * The small key is for the way north off the high balcony, the great key for the Roost's door.
+ */
+function stack(rt, K, M, { C2, WR, feather }) {
+  const add = (P, o) => rt.add(P, o);
+  const Mo = STACK.moult, E = STACK.eyrie, [L0, L1] = STACK.ledge, Pp = STACK.perch;
+  // ---- the Moult
+  K.corridor([-17.4, C2], [-11.6, C2], 0, { w: 5, h: 6.4 });
+  K.hall({ x: Mo.x, z: C2, w: Mo.w, d: Mo.d, y: 0, h: 10, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });
+  add(Door, { id: 'dM', at: [-16.4, 0, C2], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  // stone feathers moulted and heaped by the walls, a nest of them in the far corner
+  for (const [x, z, a, len] of [[-30, C2 - 5.6, 0.3, 4.4], [-28.4, C2 - 5.9, -0.2, 3.6], [-23, C2 + 5.8, 1.4, 4], [-20.4, C2 + 5.6, 1.9, 3.2], [-30.6, C2 + 4.4, 2.6, 3.8]]) {
+    K.both(M.wall, T(new THREE.SphereGeometry(1, 10, 6).scale(0.9, len / 2, 0.22), [x, 0.25, z], [Math.PI / 2, a, 0], 1, 'YXZ'));
+  }
+  K.both(M.trim, T(annulus(1.6, 2.4, 0.5, 20), [-29.2, 0.5, C2 - 4.2]));
+  add(Key, { id: 'kM', at: [Mo.x - Mo.w / 2 + 1.6, 0, C2], yaw: Math.PI / 2 });
+  add(Mark, { room: 'moult', at: [Mo.x + 3.4, 0, C2 - 2.6], yaw: Math.PI / 2 });
+
+  // ---- the ledge round the well's west wall, from the high balcony's west end to the Eyrie's way in
+  const rotA = (a) => Math.PI / 2 - a;
+  K.both(M.floor, T(sector(9.2, WR - 0.6, rotA(-0.48), rotA(-Math.PI / 2 - 0.3), 0.7), [0, E.y, C2]));
+  K.both(M.trim, T(sector(9.15, 9.4, rotA(-0.48), rotA(-Math.PI / 2 - 0.3), 0.25), [0, E.y + 0.25, C2]));   // (a kerb along its edge)
+  // ---- the Eyrie: its ledge, the gap, the perch higher on the far side
+  K.corridor([-17.4, C2], [-11.6, C2], E.y, { w: 5, h: 6.4 });
+  K.hall({ x: E.x, z: C2, w: E.w, d: E.d, y: E.floor, h: 26, floor: false, roof: 'oculus', oculus: 0.35, doors: [{ side: 'e', at: 0, w: 5, h: 6.4, y0: E.y - E.floor }] });
+  const ez0 = C2 - E.d / 2, ez1 = C2 + E.d / 2, ex0 = E.x - E.w / 2;
+  K.slab(L0, ez0, L1, ez1, E.y, E.y - E.floor);
+  K.slab(Pp.x[0], Pp.z[0], Pp.x[1], Pp.z[1], Pp.y, 1.2);
+  K.both(M.wall, T(new THREE.ConeGeometry(3.2, 5, 4, 1, true).rotateY(Math.PI / 4), [(Pp.x[0] + Pp.x[1]) / 2 - 0.6, Pp.y - 3.7, C2], [Math.PI, 0, 0]));   // (its corbel, down the wall)
+  for (const s of [-1, 1]) feather(M.trim, Pp.x[1] - 0.2, Pp.y, C2 + s * 4.2, 3.4, -Math.PI / 2 + s * 0.5, 0.35);
+  K.both(M.dark, box(L0 - ex0, 1, E.d, (ex0 + L0) / 2, E.floor + 0.5, C2));
+  add(Pit, { room: 'eyrie', min: [ex0, E.floor - 2, ez0], max: [L0, E.y - 3, ez1] });
+  // the coffer's shelf over the door, and the ledge's own vent under it
+  const Sh = STACK.shelf, Vt = STACK.vent;
+  K.slab(Sh.x[0], Sh.z[0], Sh.x[1], Sh.z[1], Sh.y, 0.6);
+  add(Coffer, { id: 'cache', at: [(Sh.x[0] + Sh.x[1]) / 2 + 0.3, Sh.y, (Sh.z[0] + Sh.z[1]) / 2 + 0.2], yaw: -Math.PI / 2 });
+  add(Updraft, { at: [Vt.x, E.y, Vt.z], r: Vt.r, h: Vt.h, lift: 7, when: { drumOn: ['bE', 'pU'] }, still: 'Still air over the grate: its stone has gone from the other throat, and the wind out of the dark beyond.' });
+  // the column out of the vent at the gap's foot, past the perch (while the stone stops the ledge's vent)
+  const Cl = STACK.column;
+  add(Updraft, { at: [Cl.x, E.floor + 1, C2], r: Cl.r, h: Cl.h, lift: 7.5, when: { drumOn: ['bE', 'pC'] }, still: 'Still air: the stone sits in the throat of the vent down there.' });
+  K.add(M.trim, T(annulus(Cl.r + 0.1, Cl.r + 0.6, 0.2, 32), [Cl.x, E.floor + 1.1, C2]));
+  // the stone's groove on the ledge between its two throats
+  const [Z0, Z1] = STACK.groove.z, GX = STACK.groove.x;
+  K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 0.6, GX, E.y + 0.02, (Z0 + Z1) / 2));
+  add(Ball, { id: 'bE', a: [GX, E.y + 0.04, Z0], b: [GX, E.y + 0.04, Z1], r: 1.1 });
+  add(Plate, { id: 'pU', at: [GX, E.y, Z0], r: 1.3 });
+  add(Plate, { id: 'pC', at: [GX, E.y, Z1], r: 1.3 });
+  for (const z of [Z0, Z1]) K.add(M.trim, T(annulus(1.5, 2.0, 0.05, 28), [GX, E.y + 0.02, z]));
+  add(Key, { id: 'kE', big: true, at: [Pp.x[0] + 1.8, Pp.y, C2], yaw: Math.PI / 2 });
+  // the way north off the high balcony, toward the Gulf: the small key's door
+  add(Door, { id: 'dG', at: [0, E.y, C2 + WR + 2], w: 5, h: 6.4 });
+  add(Mark, { room: 'eyrie', at: [L1 - 1.6, E.y, C2 - 3.4], yaw: -Math.PI / 2 });   // (by the way in: taken as you come)
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -209,7 +327,8 @@ function layout(rt) {
   K.wall(-3.2, 52.6, -3.2, 56.2, 0, 6.4, { t: 0.8 }); K.wall(3.2, 56.2, 3.2, 52.6, 0, 6.4, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 4.4, 0, 6.8, 54.4));
   const C2 = 68, WR = 12, WH = 46;
-  K.rotunda({ x: 0, z: C2, y: 0, r: WR, h: WH, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4, y0: 16 }, { a: 0, w: 5, h: 6.4, y0: 32 }], oculus: 0.66 });
+  // (since v1.49 a way west off its floor into the Moult, and another at the high balcony's height into the Eyrie)
+  K.rotunda({ x: 0, z: C2, y: 0, r: WR, h: WH, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4, y0: 16 }, { a: 0, w: 5, h: 6.4, y0: 32 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 5, h: 6.4, y0: 32 }], oculus: 0.66 });
   // bands of ochre round it, glyph lines up its walls like the lines on a wing, carved ledges low down, the crown
   for (const y of [8, 24, 40]) K.both(M.trim, T(annulus(WR - 0.35, WR + 0.1, 0.7, 72), [0, y, C2]));
   const wingLines = makeMaterial({ color: PALETTE.glow, glow: 0.35, flat: true, key: 'temple.vael.winglines' });
@@ -218,11 +337,11 @@ function layout(rt) {
     const a = (i / 14) * TAU + 0.11;
     if (off(a, Math.PI) < 0.35) continue;
     for (const [y0, y1] of [[1.5, 7.2], [9, 23], [25, 39]]) {
-      if ((off(a, Math.PI / 2) < 0.35 && y1 > 15 && y0 < 23) || (off(a, 0) < 0.35 && y1 > 31)) continue;
+      if ((off(a, Math.PI / 2) < 0.35 && y1 > 15 && y0 < 23) || (off(a, 0) < 0.35 && y1 > 31) || (off(a, -Math.PI / 2) < 0.35 && (y0 < 7.2 || (y1 > 31 && y0 < 39)))) continue;
       K.add(wingLines, T(new THREE.BoxGeometry(0.16, y1 - y0, 0.08), [Math.sin(a) * (WR - 0.05), (y0 + y1) / 2, C2 + Math.cos(a) * (WR - 0.05)], [0, a, Math.sin(i * 1.7) * 0.05]));
     }
   }
-  for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; if (off(a, Math.PI) < 0.4 || off(a, Math.PI / 2) < 0.5) continue; K.both(M.floor, T(new THREE.BoxGeometry(1.6, 0.5, 1.2), [Math.sin(a) * (WR - 0.6), 3.2 + (i % 3) * 1.4, C2 + Math.cos(a) * (WR - 0.6)], [0, a, 0])); }
+  for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; if (off(a, Math.PI) < 0.4 || off(a, Math.PI / 2) < 0.5 || off(a, -Math.PI / 2) < 0.5) continue; K.both(M.floor, T(new THREE.BoxGeometry(1.6, 0.5, 1.2), [Math.sin(a) * (WR - 0.6), 3.2 + (i % 3) * 1.4, C2 + Math.cos(a) * (WR - 0.6)], [0, a, 0])); }
   for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU + 0.2, len = 14 + (i % 3) * 4; feather(i % 4 === 1 ? M.trim : M.wall, Math.sin(a) * (WR + 0.6), WH + 0.9, C2 + Math.cos(a) * (WR + 0.6), len, a, 0.45, true); }   // (solid: a climber up the well meets them as drawn)
   // the vent in the well's floor: the wind rises out of it while the hall's vent is stopped (its grate, still till then)
   K.add(M.trim, T(annulus(4.4, 5, 0.05, 40), [0, 0.02, C2]));
@@ -342,13 +461,15 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, RY, CL), r: HR, y: K.world(0, RY, 0).y };
 
+  // (the stack's rooms last: their marks after the others, so the machines' ids by mark stay as they were)
+  stack(rt, K, M, { C2, WR, feather });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -6, -3), V(C3x + 12, Math.max(WH, GULF.top, RY + 24) + 22, CL + HR + 12)),
+    bounds: new THREE.Box3(V(-40, -6, -3), V(C3x + 12, Math.max(WH, GULF.top, RY + 24) + 22, CL + HR + 12)),
     gadget: { at: W(C3x, 16.62, C2).toArray(), face: K.heading(-Math.PI / 2) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, RY + 0.5, CL + HR + 9.6), r: 1.5 }],
-    lights: [[0, 5, 6, 10], [0, 6, 32, 14], [0, 10, C2, 16], [0, 34, C2, 16], [C3x, 20, C2, 10], [0, 36, G0 + 20, 22], [0, 36, PZ + 10, 22], [0, RY + 6, CL, 18]],
+    lights: [[0, 5, 6, 10], [0, 6, 32, 14], [0, 10, C2, 16], [STACK.moult.x, 6, C2, 12], [0, 34, C2, 16], [STACK.eyrie.x, 38, C2, 16], [C3x, 20, C2, 10], [0, 36, G0 + 20, 22], [0, 36, PZ + 10, 22], [0, RY + 6, CL, 18]],
     guardian: { def: { ...ELDER, onHit: elderHit, openFor: elderOpenFor }, model, arena },
   };
 }
@@ -462,7 +583,7 @@ function change(scene, level, rt) {
 
 export const ARZACH_TEMPLE = {
   id: 'arzach', levelId: 'arzach', name: 'The Aerie', doorLabel: 'door of the Aerie',
-  gadget: 'glider', gadgetBox: 'arzach.temple.glider', arenaDoor: 'd3',
+  gadget: 'glider', gadgetBox: 'arzach.temple.glider', arenaDoor: 'd3', arenas: ARENAS,
   origin: shiftAt('arzach', [-200, 1600, 300]), yaw: 0,   // (its rooms over Vael's plain, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

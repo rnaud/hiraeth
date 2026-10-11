@@ -255,13 +255,16 @@ export class TempleLogic {
       if (LATCHED.has(e.type) && !this.isLit(id) && this.canUse(id) && (!held(e) || this.awaited(id))) return id;
       if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it))) return id;
       // (a ball with several stops: worth pushing when one it isn't on is awaited)
-      if (e.type === 'drum' && e.stops && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => !this.drumOn(id, p) && this.awaited(p))) return id;
+      // (or when the one it is on holds a door shut: the Aerie's gulf vent, its stone in the throat)
+      if (e.type === 'drum' && e.stops && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => (!this.drumOn(id, p) && this.awaited(p)) || (this.drumOn(id, p) && this.holdsShut(p)))) return id;
       if (e.type === 'boss' && !this.resolved) return id;
     }
     // a plate still worth standing on: one a shut door is waiting for
     for (const [id, e] of Object.entries(this.def.elements)) if (e.type === 'plate' && reach.has(e.room) && !this.pressed(id) && this.awaited(id)) return id;
     return null;
   }
+  /** A shut door or bridge waits for this plate to be let go (its `opens` wants it `not` pressed: a stone out of a throat). */
+  holdsShut(id) { return Object.entries(this.def.elements).some(([d, g]) => isGate(g) && !this.isOpen(d) && mentionsNot(g.opens, id)); }
   /** A side of the lock's doorway can be walked to. */
   lockReachable(id, reach = this.reachable()) { return this.def.links.some((l) => l.door === id && (reach.has(l.a) || (reach.has(l.b) && !l.oneWay))); }
   /** A shut door or bridge is waiting for this element (a plate, a held bell: worth going to), or an unlit eye's `when` is. */
@@ -284,6 +287,8 @@ export function rolls(e, has) {
   if (e?.roll === 'sword') return has('sword') || has('gun');
   return has('gun');
 }
+/** Does a condition name this element inside a `not` (it wants it let go)? */
+const mentionsNot = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentionsNot(x, id)) : mentions(c.not, id) || mentionsNot(c.all, id) || mentionsNot(c.any, id));
 /** Does a condition name this element (a plate, a brazier…)? */
 const mentions = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions(x, id)) : c.pressed === id || c.lit === id || c.drumOn?.includes(id) || mentions(c.all, id) || mentions(c.any, id) || mentions(c.not, id));
 

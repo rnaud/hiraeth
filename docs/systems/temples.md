@@ -463,6 +463,15 @@ takes the small key and its eyes, the Tooth-Warden's (`d4`) the great key. The a
 two of its stops as an order to find (`sequence`). The wings' marks are placed after all the others, so the machines'
 ids by mark (`foes.<id>.m<i>`) stay as old saves knew them.
 
+The **Aerie** (`arzach.js`, 3.78, structure 3) is a stack: rooms off its Wind Well at its foot and up its height. The
+**Moult**, west off the floor, is an arena (the small key, before the chest: the way north off the high balcony takes it);
+a ledge round the well's west wall from the high balcony leads to the **Eyrie** (`STACK`), two vents and one stone, both
+throats on its ledge: as the stone starts the wind comes out of the ledge's own vent, a column beside a shelf with a
+coffer; rolled into that vent's throat, the column rises out of the gap's foot instead, past the great key's perch six
+metres over the ledge (the Roost's two vents and one stone, taught a house early). The Roost's door takes the great key.
+The marker (`logic.next`) now also points at a ball whose stop holds a door shut (`holdsShut`: a gate that wants it
+`not` there), so it no longer stops pointing at the Gulf's vent stone.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

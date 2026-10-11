@@ -36,6 +36,7 @@ export const CHANGELOG = [
       see: 'On a Steam Deck that had gone quiet: start the game and the title’s music plays; the settings’ Sound sliders for music, effects and voices are back up. Turn effects to 0 and play the prologue: the singing light is no longer heard.' },
     // the temples to explore, round 2: each house its own shape (docs/systems/temples.md "Hubs, keys and arenas"; issue #23)
     'The Engine-House opens out past its chest. The Fourth Chamber’s four eyes now roll up two shutters. To the west, the Boiler Room shuts behind you until its keepers are beaten, then its flue leads on into the Crank Passage. To the east, in the Governor Room, the great key lies caged under a hammer, and one ball has to stop two engines in turn to free it. The Crank Passage’s door takes the small key, and the Tooth-Warden’s door the great one.',
+    'The Aerie is a tower of rooms now, stacked up its Wind Well. Off the well’s floor, the Moult shuts behind you until its keepers are beaten and gives a small key, which the way north off the high balcony now takes. A ledge round the well’s wall leads from the high balcony to the Eyrie, where one stone sits between two vents: whichever it stops, the wind comes out of the other. One wind lifts you to a coffer, the other to the great key for the Roost’s door. In the Gulf, the marker now points at the vent’s stone.',
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

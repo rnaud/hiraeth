@@ -84,6 +84,16 @@ export const LAYOUTS = {
       { if: ['open.br1', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.k3': true } },
     ],
   },
+  // v1.49: the Aerie's stack, the Moult off the Wind Well's floor and the Eyrie off its high balcony. Past the balcony's
+  // way north (its gulf vent's stone moved, or further): the small key in it and the Moult won; past the perch: the great
+  // key in the Roost's door too (before it, the Eyrie is a flight back)
+  arzach: {
+    v: 2,
+    steps: [
+      { if: ['drum.ballB', 'drum.ballP', 'drum.ballR', 'boss'], set: { 'unlocked.dG': 1, 'found.kM': true, 'lit.arM': true } },
+      { if: ['drum.ballP', 'drum.ballR', 'boss'], set: { 'unlocked.d3': 1, 'found.kE': true, 'drum.bE': 1 } },
+    ],
+  },
 };
 export function migrateTempleLayouts(g) {
   let n = 0;

@@ -659,7 +659,9 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
     }
     else if (e.type === 'drum') {
       // (a ball with several stops: to the one a shut door waits for, as logic.next chose it; else to its plate)
-      const stop = e.stops ? Object.entries(e.stops).find(([p]) => !L.drumOn(id, p) && L.awaited(p)) : null;
+      // (or out of the one it is on, when a shut door wants it let go: the Aerie's gulf vent's stone out of the throat)
+      const stop = e.stops ? Object.entries(e.stops).find(([p]) => !L.drumOn(id, p) && L.awaited(p))
+        ?? (Object.keys(e.stops).some((p) => L.drumOn(id, p) && L.holdsShut(p)) ? Object.entries(e.stops).find(([p]) => !L.drumOn(id, p)) : null) : null;
       L.moveDrum(id, stop ? stop[1] : (e.plateAt ?? 1)); log.push(`roll ${id}${stop ? ` onto ${stop[0]}` : ''}`);
     }
     else if (e.type === 'plate') { L.press(id, 'player'); T.applyDoors(); W.step(2); L.release(id, 'player'); log.push(`stand on ${id}`); }

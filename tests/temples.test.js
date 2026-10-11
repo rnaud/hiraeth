@@ -36,7 +36,7 @@ const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones, HOLD_STAIR
 import { HOLD as UNDERTOWER_HOLD } from '../src/temples/bazaar.js';
 const HOLD_HORN = UNDERTOWER_HOLD.horn;
 import { TempleKit } from '../src/temples/kit.js';
-import { GULF } from '../src/temples/arzach.js';
+import { GULF, STACK } from '../src/temples/arzach.js';
 import { setHintLevel } from '../src/hint-level.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -462,6 +462,31 @@ test('the Engine-House is a hub past its chest (issue #23): the chamber’s four
     assert.ok(B.isOpen('d3') && B.keys('small') === 0 && B.isOpen('dS') && B.isLit('arB'), 'the passage’s door stays open behind them');
     assert.equal(B.isOpen('d4'), past, past ? 'past the bridge: the warden’s door open too' : 'before the bridge: the great key is still in the Governor Room');
     if (!past) assert.ok(B.reachable().has('gov'), 'and the way back to it is open');
+  }
+});
+
+test('the Aerie is a stack (issue #23): the Moult off the well’s floor gives the small key, the Eyrie off the high balcony the great key, either order; its stone wanted in the other throat; old saves past the balcony find it open', () => {
+  const L = TEMPLES.arzach.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield'];
+  for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
+  const noEyrie = solve(L, { items, forbid: ['bE'] });
+  assert.ok(noEyrie.logic.isFound('kM') && noEyrie.stuck.includes('gulfFar') && !noEyrie.stuck.includes('roost'), 'the Moult alone: the balcony’s door, and the Roost stays shut');
+  const noArena = solve(L, { items, forbid: ['arM'] });
+  assert.ok(noArena.logic.isFound('kE') && !noArena.stuck.includes('gulf'), 'the Eyrie alone: the great key, and the way north stays shut');
+  assert.deepEqual(TEMPLES.arzach.def.arenas.map((A) => A.el), ['arM']);
+  // the Eyrie: as its stone starts, the wind comes out of the ledge's vent, not the gap's
+  const E = new TempleLogic(L, { has: (i) => ['gun', 'glider'].includes(i) });
+  assert.equal(E.isOpen('lift'), false);
+  E.moveDrum('bE', 1); E.update();
+  assert.equal(E.isOpen('lift'), true, 'the stone in the ledge vent’s throat: the column past the perch');
+  for (const [extra, past] of [[{}, false], [{ 'drum.ballP': 1, checkpoint: 'gulfFar' }, true]]) {
+    const g = new GameState(null);
+    for (const [k, v] of Object.entries({ 'drum.ballW': 1, gadget: true, 'drum.ballB': 1, checkpoint: 'perch', ...extra })) g.set(`temple.arzach.${k}`, v);
+    migrateTemples(g);
+    const B = new TempleLogic(L, { store: flagStore(g, 'arzach'), has: (i) => [...items, 'glider'].includes(i) });
+    B.update();
+    assert.ok(B.isOpen('dG') && B.keys('small') === 0 && B.isLit('arM'), 'the balcony’s door stays open behind them');
+    assert.equal(B.isOpen('d3'), past, past ? 'past the perch: the Roost’s door open too' : 'on the perch: the great key still in the Eyrie');
+    if (!past) assert.ok(B.reachable().has('eyrie'), 'and the way back to it is open');
   }
 });
 
@@ -2479,7 +2504,7 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   own();
 });
 
-test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the feather raft, the wings, the column, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder flown with in the wind, the birds come back', () => {
+test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the Moult’s arena off the well’s floor, the feather raft, the wings, the column, the ledge round the well to the Eyrie and its stone between two throats for the great key, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder flown with in the wind, the birds come back', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('arzach');
@@ -2554,6 +2579,19 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   // ---- the Wind Well: the wind rises; the raft rides it up to the Wing Chamber's balcony
   const column = rt.pieces.find((p) => p.lift && p.o.when?.drumOn?.[0] === 'ballW');
   assert.equal(column.on, true, 'the wind rises in the well');
+  // ---- the Moult, west off the well's floor (an arena): its door shuts behind you while its keepers stand
+  const keepers = [{ room: 'moult', alive: true }, { room: 'moult', alive: true }];
+  rt.machines = [...(rt.machines ?? []), ...keepers];
+  assert.equal(walk(L(-6, 0, 68)) && walk(L(-14, 0, 68)) && walk(L(-22, 0, 68)), true, `into the Moult (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isOpen('dM'), false, 'the door shuts behind you');
+  for (const k of keepers) k.alive = false;
+  wait(2.5);
+  assert.ok(rt.logic.isLit('arM') && rt.logic.isOpen('dM'), 'beaten: won, and the door lets go');
+  assert.equal(walk(rt.piece('kM').pos, { tol: 1.2 }), true, `to the key (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kM'), true, 'a small key');
+  assert.equal(walk(L(-14, 0, 68)) && walk(L(-4, 0, 68)), true, `back into the well (${where()})`);
   assert.equal(walk(L(4, 0, 66)), true, `back in the well (${where()})`);
   for (let i = 0; i < 30 / DT && !(raft.s < 0.2 && raft.wait > 0.8); i++) frame();
   assert.equal(walk(raft.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the raft (${where()})`);
@@ -2570,8 +2608,47 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   assert.ok(top, `lifted up the well (${where()})`);
   assert.ok(Math.abs(glide(0, 6, () => local().z < 76.5, L(0, 32, 79)).y - 32) < 0.6 && local().z > 75, `onto the high balcony (${where()})`);
   assert.equal(walk(L(4.6, 32, 79.2), { tol: 0.8 }), true, `past its mark (${where()})`);
+  // ---- the Eyrie, along the ledge round the well's west wall: two vents, one stone between their throats
+  const bE = rt.piece('bE'), kE = rt.piece('kE');
+  const ring = [-0.55, -0.85, -1.15, -1.4, -Math.PI / 2].map((a) => L(Math.sin(a) * 10.4, 32, 68 + Math.cos(a) * 10.4));
+  assert.ok(ring.every((p) => walk(p, { max: 6 })) && walk(L(-19, 32, 68)), `round the ledge into the Eyrie (${where()})`);
+  const ledgeVent = rt.pieces.find((p) => p.lift && p.o.when?.drumOn?.[1] === 'pU'), gapVent = rt.pieces.find((p) => p.lift && p.o.when?.drumOn?.[1] === 'pC');
+  assert.ok(ledgeVent.on && !gapVent.on, 'the stone in the far vent’s throat: the wind out of the ledge’s own');
+  // the obvious wind: up the ledge's column beside the shelf, and the coffer on it
+  stand(STACK.vent.x, STACK.eyrie.y, STACK.vent.z);
+  top = false;
+  for (let i = 0; i < 12 / DT; i++) { P.heading = 0; frame({ Space: true }, 0); if (local().y > STACK.shelf.y + 1.2) { top = true; break; } }
+  assert.ok(top, `lifted beside the shelf (${where()})`);
+  assert.ok(Math.abs(glide(0, 4, () => local().z < STACK.shelf.z[0] + 0.6, L(-19.6, STACK.shelf.y, 74.4)).y - STACK.shelf.y) < 0.6, `onto the coffer's shelf (${where()})`);
+  rt.piece('cache').openIt();
+  assert.equal(rt.logic.isFound('cache'), true, 'a coffer of chimes');
+  // the perch is six metres over the ledge: on still air no glide climbs to it
+  stand(-23, STACK.eyrie.y, 68);
+  for (let i = 0; i < 0.4 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, -Math.PI / 2);
+  glide(-Math.PI / 2, 8);
+  assert.ok(Math.abs(local().y - STACK.eyrie.y) < 0.6 && local().x > -24.5 && !rt.logic.isFound('kE'), `short of the perch: into the dark, and back at the mark (${where()})`);
+  // the stone into the ledge vent's throat: that wind dies, and the one at the gap's foot rises past the perch
+  stand(-22.6, STACK.eyrie.y, 60.4);
+  assert.equal(roll('bE', 'pC', 1), true, `the stone into the other throat (${where()})`);
+  assert.ok(!ledgeVent.on && gapVent.on, 'the wind out of the vent at the gap’s foot');
+  stand(-23.2, STACK.eyrie.y, 68);
+  top = false;
+  for (let i = 0; i < 12 / DT; i++) { P.heading = -Math.PI / 2; frame({ Space: true, KeyW: i < 30 }, -Math.PI / 2); if (local().y > STACK.perch.y + 2) { top = true; break; } }
+  assert.ok(top, `lifted past the perch (${where()})`);
+  glide(-Math.PI / 2, 6, () => true, L(-36, STACK.perch.y, 68));
+  assert.ok(P.onGround && Math.abs(local().y - STACK.perch.y) < 0.6, `onto the perch (${where()})`);
+  assert.equal(walk(kE.pos, { tol: 1.2, max: 4 }), true, `to the great key (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kE'), true, 'the great key');
+  // back over the gap: down onto the ledge, and round to the balcony
+  stand(-33.4, STACK.perch.y, 68);
+  for (let i = 0; i < 0.4 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, Math.PI / 2);
+  glide(Math.PI / 2, 10, () => local().x < -21, L(-20, 32, 68));   // (through the column, and out of it)
+  assert.ok(Math.abs(local().y - STACK.eyrie.y) < 0.6, `back on the ledge (${where()})`);
+  assert.ok(walk(L(-14, 32, 68)) && ring.slice().reverse().every((p) => walk(p, { max: 6 })) && walk(L(0, 32, 79)), `round the ledge to the balcony (${where()})`);
   // ---- the Gulf: on still air the perch is too far
-  assert.equal(walk(L(0, 32, 85.6)), true, `to the gulf (${where()})`);
+  assert.equal(walk(L(0, 32, 85.6)), true, `through the small key's door to the gulf (${where()})`);
+  assert.equal(rt.logic.keysIn('dG'), 1, 'the small key in it');
   assert.equal(walk(L(6.5, 32, 86.6), { tol: 0.8 }), true, `past the mark (${where()})`);
   stand(0, 32, 88.6);
   const tail = rt.pieces.find((p) => p.o?.carry);
