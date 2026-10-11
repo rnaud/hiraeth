@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_498e89299aba8d 7
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_35c7948d2b7d2f 91-94
+docs/systems/hints.md
+  s_9ca76055a220ed::t_c6235ff598e525 9
+docs/systems/ship.md
+  s_9ca76055a220ed::t_45167e1ab2cd07 163
+src/changelog.js
+  s_9ca76055a220ed::t_a6a86368a4f968 17-18
+src/hud.js
+  s_9ca76055a220ed::t_a89de884db9ee5 26,39
+src/prompt-keys.js
+  s_9ca76055a220ed::t_eed5ed22587dac 38
+src/ship/landing.js
+  s_9ca76055a220ed::t_e944653ea3eaff 6-7,41,45-46
+src/ship/ship.js
+  s_9ca76055a220ed::t_a9ba4a42e81b98 27-28,484-486,492,496-515,593
+tests/hud.test.js
+  s_9ca76055a220ed::t_69dd300996435f 43,57
+tests/landing.test.js
+  s_9ca76055a220ed::t_eb4884e0b84522 3,40,50,76-106
+tests/ship.test.js
+  s_9ca76055a220ed::t_2e446db8f297f2 86,96,98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4de42b9f46bc43036fe9f363188749447b9cabc9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
