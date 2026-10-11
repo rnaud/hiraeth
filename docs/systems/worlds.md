@@ -341,6 +341,10 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   (`src/ship/sites.js` `SITE_OVERRIDES.desert`) came down 70 m nearer, on the brow of the rise in line with the camps'
   lane, 210 m from the gate, its furrow running back behind it (it used to cross the view and hide the walls' lower
   9 m), and the world starts at the ramp's foot facing Qanat (`src/levels/desert.js` `LANDING`).
+- **No cloud shadows in the desert** (`src/desert-sites.js` `DESERT_CLOUD_SHADOWS`, the level's `defaults.cloudShadows`;
+  v1.45, issue #66): a cloud's shadow (materials.js `cloudShadow`) multiplies the lit fraction, so through the toon
+  threshold it was a band of the full blue-violet shade with every cast shadow gone inside it, and the desert's few flat
+  sky clouds never sat over it. The clouds stay in the sky; the sand keeps its sun.
 - **The straight ride out** (`src/desert-sites.js` `RIDE`, `ridePlaces`; drawn in `src/desert-hearth.js` `ride`):
   most riders go straight from Marrow's hollow toward the Hearth's chimney, while the marked stones run from
   Qanat a little to the north. A third of the way, Yara the salt-carrier under her sunshade (`src/levels/content.js`,

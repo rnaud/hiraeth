@@ -12,6 +12,7 @@ export const CHANGELOG = [
     // the author's desert playtest (issues #66, #68, #69, #71, #76)
     'Your backpack’s straps now run over the tops of your shoulders and down your chest to a brass buckle, instead of straight up into your collar beside your ears.',
     'Your ship now comes down closer to Qanat, on the brow of the rise in line with the camps’ lane, and you step out facing the city: its walls, domes and great tree stand in full view across the dunes, no longer half behind the sand your ship ploughed up. The camps’ smoke, the giant’s breath over the back gate and, later, the burning tree’s column are now believable sizes instead of towers over the whole desert.',
+    'The desert’s few clouds no longer throw blue patches across the sand: under one, the dunes lost the sun and every shadow in them, with no cloud overhead to say why. The sand behind Qanat, and everywhere else, keeps its sunlight and its shadows.',
   ] },
   { v: '1.44', date: '2026-10-11', items: [
     // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)

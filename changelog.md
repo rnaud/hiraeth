@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.45 — 2026-10-11
 
+- The desert’s few clouds no longer throw blue patches across the sand: under one, the dunes lost the sun and every shadow in them, with no cloud overhead to say why. The sand behind Qanat, and everywhere else, keeps its sunlight and its shadows.
 - Your ship now comes down closer to Qanat, on the brow of the rise in line with the camps’ lane, and you step out facing the city: its walls, domes and great tree stand in full view across the dunes, no longer half behind the sand your ship ploughed up. The camps’ smoke, the giant’s breath over the back gate and, later, the burning tree’s column are now believable sizes instead of towers over the whole desert.
 - Your backpack’s straps now run over the tops of your shoulders and down your chest to a brass buckle, instead of straight up into your collar beside your ears.
 

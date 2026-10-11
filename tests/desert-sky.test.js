@@ -22,6 +22,11 @@ test('the desert has a few clouds again, sparse, and still no cloud bank on the 
   for (const k of Object.keys(DESERT_LOOK)) if (k !== 'uClouds') assert.deepEqual(look[k], DESERT_LOOK[k], `${k} as the plates’ look`);
 });
 
+test('the desert’s clouds cast no shadow on the sand: no blue band with no cast shadow in it (issue #66)', () => {
+  const level = createDesert(new THREE.Scene());
+  assert.equal(level.defaults.cloudShadows, 0, 'main.js sets uCloudShadows from it: 0, the cloud shadows off');
+});
+
 test('the desert\'s reference views keep their plates\' clean sky', () => {
   assert.equal(DESERT_LOOK.uClouds, 0);
   assert.equal(WORLD_LOOKS.desert.look.uClouds, 0);

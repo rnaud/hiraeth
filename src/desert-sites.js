@@ -104,10 +104,14 @@ export const DUNE_HAZE = { uHazeLayers: [250, 1.9, 0.12, 4], uHazeTone: [1, 1, 1
 export const DESERT_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.95, 0.9, 0.87, 0.55], ...DUNE_HAZE };
 /**
  * The desert world's sky: the plates' (no cumulus bank on the horizon), with a few of the print's flat
- * inked clouds drifting over it, far apart, and their shadows passing over the dunes. (Off from v0.63,
- * when the desert took its plates' clean sky; the reference views keep DESERT_LOOK's.)
+ * inked clouds drifting over it, far apart. (Off from v0.63, when the desert took its plates' clean sky; the
+ * reference views keep DESERT_LOOK's.) They cast no shadow on the sand (DESERT_CLOUD_SHADOWS): a cloud's shadow
+ * took the toon shade whole, a band of the blue-violet shadow tone across the dunes with no cast shadow left
+ * in it and no cloud over it to say why (the author's playtest, issue #66: "the sand looks blue outside the
+ * city behind the great tree? And with no shadows?").
  */
 export const DESERT_CLOUDS = 0.25;
+export const DESERT_CLOUD_SHADOWS = 0;
 /**
  * The world's shade keeps more of the sand's own warmth (the plates shade a dune a deeper orange, not a grey-olive:
  * the print's 0.3 under the blue-grey tint turned the ochre sand khaki; October 2026 colour pass).

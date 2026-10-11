@@ -18,7 +18,7 @@ import { attachTemple, clearInstances } from '../temples/index.js';
 import { buildPilgrimsRoad } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
-import { STORY, DESERT_WORLD_LOOK } from '../desert-sites.js';
+import { STORY, DESERT_WORLD_LOOK, DESERT_CLOUD_SHADOWS } from '../desert-sites.js';
 import { SITE_OVERRIDES } from '../ship/sites.js';
 import { smoothstep } from '../noise.js';
 import { pavedMask } from '../paved.js';
@@ -165,7 +165,7 @@ export function* buildDesert(scene) {
     mount: (physics) => new Hoverbike(physics),
     mountName: 'hoverbike',
     // (as the desert's plates: no cloud bank, the far dunes a pale warm band; a few clouds drifting over)
-    defaults: { hour: 9.5, preset: 'Moebius print', look: DESERT_WORLD_LOOK },
+    defaults: { hour: 9.5, preset: 'Moebius print', look: DESERT_WORLD_LOOK, cloudShadows: DESERT_CLOUD_SHADOWS },
     lights,
     portals,
     // the procession, the camps and the people waiting at the gate (crowd.js)

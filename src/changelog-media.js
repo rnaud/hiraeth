@@ -553,6 +553,10 @@ const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, 
 const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
 export const CHANGELOG_MEDIA = {
   '1.45': [
+    { match: 'The desert’s few clouds no longer throw blue patches', shots: [
+      { name: 'cloud-shadow', caption: 'Out of Qanat’s back gate by the giant’s skull, the cloud cover raised for both pictures so a cloud’s shadow falls in the view: before, a band of the blue shadow tone across the sand on the right, the cast shadows gone in it; after, the sand in the sun and the pillars’ shadows on it', commit: '622faeabaf45dc574c050c24091082ab30fb46c0',
+        view: { level: 'desert', hour: 9.5, player: [300, 3, 480], eye: [290, 8, 466], target: [360, 2, 560], fov: 60, setup: 'setInterval(() => { window.sharedUniforms.uClouds.value = 0.55; }, 50)' } },
+    ] },
     { match: 'Your ship now comes down closer to Qanat', shots: [
       { name: 'stepout', caption: 'Stepping out of the ship in a new game (the prologue skipped), the game’s own camera: before, 270 m off, the furrow’s ridge across the city’s walls and the camps’ smoke a white tower over it; after, 210 m off, the walls, the domes and the dark tree in full view, the smoke a camp fire’s', commit: '529b176e140cfeeb56da622d954adbea6d31e37b',
         view: { level: 'desert', query: 'prologue=1', save: { flags: { 'items.v': 2 }, keepsakes: [] }, settle: 4000, wait: 9000, setup: 'const s = window.ship; (s.prologue.director).finish(true); s.prologue.done = true' } },
