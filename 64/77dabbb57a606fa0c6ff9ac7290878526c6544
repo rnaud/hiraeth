@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_23bf56e7b59ea0 5-7,29
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_bc68db1711bc64 546-570
+src/changelog.js
+  s_9ca76055a220ed::t_ee7ae8ece632d4 11,79-81,92,94-95,96-97
+src/frame-pace.js
+  s_9ca76055a220ed::t_b70228a246843b 1-51
+src/main.js
+  s_9ca76055a220ed::t_54f0a95570ceb0 46,1807,1826-1827,1838-1840
+src/perf.js
+  s_9ca76055a220ed::t_e6c477796462ca 393-399
+tests/frame-pace.test.js
+  s_9ca76055a220ed::t_f40d356efcd47f 1-62
+tests/xbox.test.js
+  s_9ca76055a220ed::t_461617686e2e55 119,121-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6477dabbb57a606fa0c6ff9ac7290878526c6544",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
