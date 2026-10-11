@@ -1,0 +1,21 @@
+.github/workflows/unity-xbox.yml
+  s_9ca76055a220ed::t_39f655b825bac1 38-41,54-56,194,213,310,345,364
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_07848143188d2a 34-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "17b6ff29e9a5a417cb0a7ce05fedcbf6870306a9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
