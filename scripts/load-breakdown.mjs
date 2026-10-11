@@ -296,7 +296,7 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     Object.assign(memory, c.processes?.() ?? {});
     try { const h = await c.send('Runtime.getHeapUsage'); const u = h.usedSize ?? h.result?.usedSize; if (u) memory.heapMB = +(u / 2 ** 20).toFixed(1); } catch { /* not there */ }
     // the levels of detail and the queue of distant detail (src/deferred.js) at the first frame, and after the traversal
-    const stateAt = () => c.ev(`(() => { const L = window.lod?.()?.stats, D = window.deferred; return { lod: L ? { meshes: L.meshes, built: L.built, packMs: Math.round(L.packMs), pending: L.pending } : null, deferred: D ? { pending: D.pending, done: D.done, ms: Math.round(D.ms), forced: D.forced } : null }; })()`);
+    const stateAt = () => c.ev(`(() => { const L = window.lod?.()?.stats, D = window.deferred, LC = window.physics?.late; return { lod: L ? { meshes: L.meshes, built: L.built, packMs: Math.round(L.packMs), pending: L.pending } : null, deferred: D ? { pending: D.pending, done: D.done, ms: Math.round(D.ms), forced: D.forced } : null, late: LC ? { pending: LC.pending, made: LC.made, ms: Math.round(LC.ms), forced: LC.forced, parts: LC.parts.length, triangles: LC.triangles } : null }; })()`);
     const atBoot = await stateAt();
     const TRAV = Number(arg('traverse', 0)), SPEED = Number(arg('speed', 40));
     const traverse = TRAV ? await c.ev(`(async () => {
@@ -377,7 +377,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.log(`${w} (${XBOX ? 'xbox' : PRESET}${arg('cpu') ? `, CPU ×${arg('cpu')}` : ''}${arg('query') ? `, ${arg('query')}` : ''}${SLOW ? `, slow ${SLOW.base}+${SLOW.perKb}/kB ×${SLOW.par}` : ''}): first frame ${r.firstFrame} ms`);
       console.log(`  phases  ${Object.entries(r.phases).map(([k, v]) => `${k} ${v}`).join(' · ')} · first playable ${r.firstPlayable ?? '-'}`);
       console.log(`  memory  heap ${r.memory.heapMB} MB · geometry ${r.memory.geometryMB} MB (${r.memory.geometries}) · textures ${r.memory.textureMB} MB (${r.memory.textures})${r.memory.gpuMB ? ` · processes: renderer ${r.memory.rendererMB} MB, GPU ${r.memory.gpuMB} MB` : ''}`);
-      const st = (x) => [x?.lod && `levels of detail: ${x.lod.meshes} meshes, ${x.lod.built} built (${x.lod.packMs} ms packing), ${x.lod.pending} waiting`, x?.deferred && `distant detail: ${x.deferred.done} done (${x.deferred.ms} ms, ${x.deferred.forced} forced), ${x.deferred.pending} left`].filter(Boolean).join(' · ');
+      const st = (x) => [x?.lod && `levels of detail: ${x.lod.meshes} meshes, ${x.lod.built} built (${x.lod.packMs} ms packing), ${x.lod.pending} waiting`, x?.deferred && `distant detail: ${x.deferred.done} done (${x.deferred.ms} ms, ${x.deferred.forced} forced), ${x.deferred.pending} left`,
+        x?.late && `late collision: ${x.late.made} pieces made (${x.late.ms} ms, ${x.late.forced} by a query), ${x.late.pending} left, ${x.late.triangles} triangles in ${x.late.parts} parts`].filter(Boolean).join(' · ');
       console.log(`  boot    ${st(r.atBoot)}`);
       if (r.afterTrav) console.log(`  after   ${st(r.afterTrav)}`);
       if (r.traverse) console.log(`  travel  ${r.traverse.frames} frames at ${r.traverse.speed} m/s: p50 ${r.traverse.p50} · p95 ${r.traverse.p95} · p99 ${r.traverse.p99} · max ${r.traverse.max} ms · ${r.traverse.over50} > 50, ${r.traverse.over100} > 100`);

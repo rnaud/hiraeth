@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.49 — 2026-10-11
+
+- The City-Shaft opens close to a second sooner, and on a handheld some three seconds: the people strolling its far terraces set out after you arrive, those within sight of you before you see them. The crowd is a little different: other strollers, and walks that no longer stop where they cross.
+- The Buried Machine opens about three quarters of a second sooner: where the sand banks up against walls far from you, its footing is worked out after you arrive, nearest first, and always before you get near it.
+
 ## v1.48 — 2026-10-11
 
 - The cave under the giant’s skull no longer stops you just inside: after you drop off the landing, an unseen ridge of the cave’s wall across the doorway held you in the passage. You walk or run straight in now, at any angle. You still need the double jump to get out, and the chest by the pool still waits for a full tank.

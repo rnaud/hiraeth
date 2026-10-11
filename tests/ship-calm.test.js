@@ -34,13 +34,13 @@ test('a strollers\' route past the ship is cut where it runs by the hull; a proc
   assert.equal(near(withCalm.people), 0, 'nobody walking there');
   assert.ok(withCalm.routes.length >= 1, 'the rest of the route kept');
   const src = readFileSync(new URL('../src/crowd.js', import.meta.url), 'utf8');
-  assert.match(src, /avoid: sp\.column \? avoid : walkAvoid/, 'a procession\'s loop is not cut');
+  assert.match(src, /avoid: sp\.column \? clearOnly : walkAvoid/, 'a procession\'s loop is not cut');
 });
 
 test('the game sets the zones from the ship, and people standing there idle slower', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8'), npc = readFileSync(new URL('../src/npc.js', import.meta.url), 'utf8');
   assert.match(main, /const shipCalm = shipCalmZones\(ship\.restPos, ship\.rampFoot\);\nsetCalmZones\(shipCalm\);/);
-  assert.match(main, /buildPeopleSteps\(physics, crowdSpots, \{ seed: 11, clear: crowdClear, calm: shipCalm \}\)/);
+  assert.match(main, /buildPeopleSteps\(physics, crowdSpots, \{ seed: 11, clear: crowdClear, calm: shipCalm, defer: deferred \}\)/);
   assert.match(npc, /this\.pose\(this\._poseDt \* \(calmIdle \? SHIP_CALM\.idle : 1\)/, 'a story person');
   assert.match(npc, /this\.pose\(dt \* \(calmIdle \? SHIP_CALM\.idle : 1\)/, 'a crowd person close up');
   assert.match(npc, /speed = this\.speed \* \(calm \? SHIP_CALM\.walk : 1\)/, 'a route walked slower there');

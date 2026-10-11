@@ -107,7 +107,7 @@ function collisionGeometries(physics) {
   const g = lvl?.geometry ?? physics.geometry;
   if (g?.attributes?.position) out.push(g);
   // (a moving collider, the great wheel, where it stands now: its BVH is in its own frame)
-  for (const e of physics.extras ?? []) if (e.bvh?.geometry) out.push(e.moving ? e.bvh.geometry.clone().applyMatrix4(e.matrix) : e.bvh.geometry);
+  for (const e of [...(physics.extras ?? []), ...(physics.late?.extras ?? [])]) if (e.bvh?.geometry) out.push(e.moving ? e.bvh.geometry.clone().applyMatrix4(e.matrix) : e.bvh.geometry);
   return out;
 }
 

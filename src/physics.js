@@ -218,6 +218,22 @@ export class Physics {
     return false;
   }
 
+  /**
+   * The colliders added so far as they stand now (the moving ones where they are this moment), for work done later
+   * that must see the world as it was (src/crowd.js: a walk worked out after the first frame, as it would have been at
+   * the load). The late collision (src/late-collision.js) is the world's own and stays in.
+   */
+  freeze() {
+    return (this.extras ?? []).map((e) => (e.moving ? { ...e, matrix: e.matrix.clone(), inverse: e.inverse.clone(), box: e.box.clone(), step: new THREE.Matrix4(), dt: 0 } : e));
+  }
+  /** fn() with the colliders as freeze() found them. */
+  asWas(frozen, fn) {
+    if (!this.extras) return fn();
+    const now = this.extras;
+    this.extras = frozen;
+    try { return fn(); } finally { this.extras = now; }
+  }
+
   removeCollider(handle) {
     const i = this.extras?.indexOf(handle) ?? -1;
     if (i >= 0) this.extras.splice(i, 1);
@@ -495,19 +511,25 @@ function compositeBVH(physics) {
     const h = e.bvh.raycastFirst(_lr.copy(ray).applyMatrix4(e.inverse), side, near, far);
     return h ? worldHit(h, e) : null;
   };
+  // the colliders added (physics.extras) and the late collision's parts (src/late-collision.js: its own list, so a
+  // query with the extras swapped for a while, Physics.asWas, gadgets/world.js, still sees the world's own)
+  const NONE = [];
+  const lists = () => { const L = physics.late?.extras; return L?.length ? [physics.extras, L] : [physics.extras, NONE]; };
   return {
     raycastFirst(ray, side, near, far) {
+      if (physics.late?.pending) physics.late.touchRay(ray, near, far);   // (collision still to be made: what this could meet first, src/late-collision.js)
       let best = physics.levelBVH ? physics.levelBVH.raycastFirst(ray, side, near, far) : null;
-      for (const e of physics.extras) {
+      for (const X of lists()) for (const e of X) {
         if (!reach(e.box, ray, best ? best.distance : far)) continue;
         const h = cast(e, ray, side, near, best ? best.distance : far);
-        if (h && (!best || h.distance < best.distance)) { best = h; best.added = true; }   // (added: groundKind)
+        if (h && (!best || h.distance < best.distance)) { best = h; if (!e.ground) best.added = true; }   // (added: groundKind; ground: the world's own, made late)
       }
       return best;
     },
     raycast(ray, side, near, far) {
+      if (physics.late?.pending) physics.late.touchRay(ray, near, far);   // (collision still to be made: what this could meet first, src/late-collision.js)
       const out = physics.levelBVH ? physics.levelBVH.raycast(ray, side, near, far) : [];
-      for (const e of physics.extras) {
+      for (const X of lists()) for (const e of X) {
         if (!reach(e.box, ray, far)) continue;
         if (e.moving) out.push(...e.bvh.raycast(_lr.copy(ray).applyMatrix4(e.inverse), side, near, far).map((h) => worldHit(h, e)));
         else out.push(...e.bvh.raycast(ray, side, near, far));
@@ -515,8 +537,9 @@ function compositeBVH(physics) {
       return out;
     },
     shapecast(cb) {
+      if (physics.late?.pending) physics.late.touchBox(cb.bounds);
       physics.levelBVH?.shapecast(cb);
-      for (const e of physics.extras) {
+      for (const X of lists()) for (const e of X) {
         if (cb.bounds && !e.box.intersectsBox(cb.bounds)) continue;   // (a query that says where it looks)
         if (!e.moving) { e.bvh.shapecast(cb); continue; }
         // (its boxes and triangles handed over in the world's frame: a box turned is boxed again, so the

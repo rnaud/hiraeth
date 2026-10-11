@@ -343,7 +343,7 @@ export function setupIncal(ctx) {
   })();
   const applyLit = (instant) => {
     lookUp.visible = true;
-    if (crowd) for (const p of crowd.people) { const z = zoneOf(p); p.lines = LINES.lit[z] ?? p.lines; }
+    if (crowd) crowd.persist('lines', (p) => { const z = zoneOf(p); p.lines = LINES.lit[z] ?? p.lines; });   // (and the strollers worked out later)
     for (const l of lowerLights) l.v.copy(l.at);
     sound.setBandMode?.('shrine', 'feast');
     splinter.visible = false;

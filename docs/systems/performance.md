@@ -1421,6 +1421,74 @@ Tried and not kept:
   queries quicker (the trees' check 2.5 → 1.36 s, the crowd's routes 0.9 → 0.48 s), but the worker's build 0.4 → 1.6 s,
   and that is waited for: 6.7 → 6.2 s. With the trees deferred, the build's cost would outweigh the crowd's gain.
 
+### The drifts' collision and the crowd's strollers, later too (October 2026, v1.49)
+
+Two more kinds of work go through the queue, with the same three promises (done before the first frame within 140 m
+of where it looks from, the ship and the ways through; done in the frame the traveller comes within 70 m; the same
+result once drained, whatever the order). `DeferredWork.add` takes a job's **reach** (r: a job is near when its edge
+is, not its middle), and a job run by the guard or a passage sees **`urgent`** (a job that is one part of something
+bigger finishes the whole of it there and then).
+
+**The drifts' collision** (`src/late-collision.js`). Where a skirt of banked sand is drawn over the ground's height, its
+triangles collide as drawn (`SandDrifts.misfits`: 53 k triangles in the Buried Machine, 11 k in the desert, 5 k in Vael,
+each tested at seven points against the height). In the game (`DRIFT_FITS.later`, set by main.js round the world's
+build; off for tests, tools and the studio) `raise` instead cuts the skirts' triangles into 8 m squares
+(`lateFitPieces`: copied, the height they are tested against already the world's), and main.js queues each square as
+a piece once the collision exists. Exactness:
+- **No query misses a piece.** Every waiting piece is listed in the 8 m squares its box covers; every ray, capsule and
+  box through the collision (`compositeBVH`) first makes the pieces in the squares it crosses (a grid walk along a
+  ray, the squares under a box). So the load's own queries (the temples' and the flora's footing, the ship's site,
+  the wildlife's spots, the responsive world's rays) see the sand as before: ~100 of the Buried Machine's 650 pieces
+  are made that way at load, ~80 more as near detail, the rest after the first frame.
+- **A piece is made once**, by whoever asks first; what it makes is its triangles that pass the same test.
+- **Few colliders**: the parts are merged as they come like a binary counter (a new part, then two of about the same
+  size into one; merges over 6 000 triangles built in a worker, the parts answering till it is done), so there are
+  never more than a dozen, and one once all is made. They are their own list (`late.extras`, after `physics.extras`):
+  a query with the extras swapped (`Physics.asWas`, gadgets/world.js) still has the world's own sand. A hit on them is
+  the ground for the footsteps (`ground: true`), as the baked mesh's was.
+Checked in headless Chrome (Buried Machine, desert, Vael; `?defer=0` against the default, the queue then flushed):
+the same fit triangles (53 343), the same answers to 60 000 rays over the map, the same ship site, the same static
+instanced meshes (flora dropped and placed). Tests: `tests/late-collision.test.js`.
+
+**The crowd's strollers** (`src/crowd.js buildPeopleSteps`). The City-Shaft spent 0.9-1.0 s at load testing its 32 walks
+(every 1.5 m of 12 km, some twenty rays a sample). The walks were bound to each other: one random stream for all the
+crowd in order, each walk tested against the lanes of the walks before it, and the people standing about kept clear of
+the lanes as the routes came out. Now each walk stands alone: its own random streams (by its place in the list), its
+route tested against what the level keeps clear and the ship's calm (not the other walks), its people ids of their own
+(`WALK_ID0 + walk × 4096 + n`), and the lanes kept clear of those standing about are the walk's samples as drawn (every
+second one, the same radius). Then a walk can be worked out at any time and comes out the same: with `defer` every walk
+but a procession (the desert's, which the story steers by its id at load) is queued, its samples a chunk of 12 at a
+time, the walk's people added to the crowd once its last chunk is done (`Crowd.addPeople`: the figures' buffers grow,
+the people and routes kept in their id order), the whole walk at once when anything forces one of its chunks. A walk
+worked out later tests the collision as it was at the crowd's step (`Physics.freeze`/`asWas`: the colliders added and
+the moving ones' places then; the Signal Market's walks came out differently without it). What the story sets on
+everyone is set on those who come later (`crowd.persist`: the City-Shaft's lit-lamp lines, the market's broadcast
+lines); the flora no longer keeps clear of a stroller's starting place (nowhere in particular). In both modes the crowd
+is a little different from v1.48's (other strollers, routes no longer cut where they cross); with and without the
+deferral it is the same, person for person (ids, places, looks, routes): checked in the City-Shaft, the Signal
+Market, the desert, the Glass Dunes, the Floating City and the Moon Foundry. Tests: `tests/crowd-later.test.js`.
+
+Measured on the Mac (M4 Pro, headless Chrome, High, the machine shared with other agents; the two builds' runs
+interleaved, three each, medians; `load-breakdown.mjs`):
+
+| World | first frame before | after | the step it was in, before → after |
+|---|---|---|---|
+| Buried Machine | 5.04 s | 4.27 s | world creation 2558 → 1965 ms (and 60 ms more near detail) |
+| City-Shaft | 5.52 s | 4.72 s | the crowd 974 → 149 ms (near detail 416 → 595: the walks by the rim) |
+| City-Shaft, Handheld, CPU ×4 (two runs each) | 19.4 s | 16.1 s | the crowd 5.3 → 1.4 s |
+| Desert, Glass Dunes, Signal Market, Vael | within noise (4.16/4.15, 2.62/2.61, 3.27/3.03, 4.50/4.60 s) | | the desert's pieces are mostly near its spawn |
+
+A fast traversal while the queue drains (40 m/s, 15 s, two runs each), p50 / p95 / p99 / worst: City-Shaft
+15.1 / 18.9 / 26.0 / 529 ms before, 16.1 / 19.5 / 28.4 / 541 after (the 0.5 s frame is in both); Buried Machine
+7.0 / 9.4 / 11.6 / 21 before, 7.0 / 9.9 / 14.1 / 32 after.
+
+**Remote interiors: measured, not deferred.** The rooms far over the map (each world's temple, its shop, the desert's
+chambers and the giant's cave) cost the load their build (the temples 66-154 ms with their outside in node profiles of
+six worlds, the shops 20-46 ms with their fronts), their share of the collision's bake (7-22 % of a world's triangles)
+and their warm-up draws. Deferring them would take every temple's runtime apart (its rooms, solids, doors, puzzles and
+story are built together), and the warm-up moved to "as you come near a door" is a 1-15 s stall on the Xbox (above, "The
+first draws on the Xbox"). At 0.1-0.2 s a world on this Mac, left as they are.
+
 ## The levels of detail against the load: an audit, and coarse-first generation (October 2026, issue #15)
 
 What the levels of detail cost a load, and what they could take off it (the author's list: evaluate coarse-first
@@ -1462,9 +1530,8 @@ first frame and after a 15 s traversal at 40 m/s, High, this Mac):
   far tiles are a few hundred ms in all. Not worth it.
 - *The drifts' collision (`misfits`)*: collision, so it must be there before anyone walks on it, but only near: the far
   chunks could be queued as distant detail and each added as a collider (`physics.addCollider`) before the traveller
-  comes within the guard. About 0.6 s of the Buried Machine's load on this Mac. Not done yet: every added collider is
-  one more box every ray in the game tests (`compositeBVH`), so the chunks would have to be merged into a few as they
-  come; the next candidate.
+  comes within the guard. About 0.6 s of the Buried Machine's load on this Mac. Done in v1.49 (above, "The drifts'
+  collision and the crowd's strollers, later too"), its pieces merged into a few colliders as they come.
 - *The drifts' skirts* (0.48 s in the Buried Machine): they are the silhouette where sand meets a wall, seen from far;
   deferring the far ones would show sand banks appearing in the distance. Kept.
 - *The people*: already coarse-first (GPU figures far, full bodies near). The content NPCs' bodies (36-92 ms) are near.

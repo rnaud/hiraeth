@@ -43,6 +43,8 @@ import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
 import { DeferredWork, DEFER } from './deferred.js';
+import { queueLateCollision } from './late-collision.js';
+import { DRIFT_FITS } from './sand-drifts.js';
 import { tileSceneSteps, cullFar, fitBounds, waterContactOn, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
 import { FramePacer } from './frame-pace.js';
 import { StaticBatches, opaqueSort } from './static-batch.js';
@@ -301,7 +303,11 @@ const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { cons
 const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.meta.env.BASE_URL, levelId).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return null; }) : null;
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 setStep('world');
+// (distant detail on: the sand drifts' collision is cut into pieces made after the world is built, src/late-collision.js)
+const deferOn = query.get('defer') !== '0';
+DRIFT_FITS.later = deferOn;
 const level = meta.build ? await runStepsAsync(meta.build(scene), slice) : meta.create(scene);
+DRIFT_FITS.later = false;
 if (level.gadgets === 'all') for (const g of GADGETS) items.grant(g.id);   // (the Gadget Yard: every gadget, to try them: src/levels/gadget-yard.js)
 const terrain = level.ground;
 // where the old walls' cracks may not run: their windows, doors and what is fixed on them (src/wall-openings.js;
@@ -320,7 +326,9 @@ physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed: the
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 setStep('level init');
 // distant detail, finished after the first frame (src/deferred.js; ?defer=0 does it all now, as before)
-const deferred = query.get('defer') === '0' ? null : new DeferredWork();
+const deferred = deferOn ? new DeferredWork() : null;
+// the drifts' collision, a piece at each 16 m square of sand, made when its turn comes or a query comes near it
+{ const n = deferred ? queueLateCollision(physics, deferred, DRIFT_FITS.pending.splice(0)) : 0; if (n) console.info(`collision: ${n} pieces of the drifts' to make later`); }
 if (level.initSteps) await runStepsAsync(level.initSteps(physics, { defer: deferred }), slice); else level.init?.(physics);
 await slice();
 // every body of water: its look (bed maps, ripples) and swimming in it (src/water.js, src/swim.js)
@@ -669,7 +677,7 @@ const crowdT0 = performance.now();
 const shipCalm = shipCalmZones(ship.restPos, ship.rampFoot);
 setCalmZones(shipCalm);
 setStep('crowd');
-const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear, calm: shipCalm }), slice) : null;
+const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear, calm: shipCalm, defer: deferred }), slice) : null;
 // (the near tier's bodies one at a time: each is a person built and dressed)
 const crowdPool = [];
 setStep('crowd pool');
@@ -680,7 +688,7 @@ const crowd = level.crowdSpots ? new Crowd(scene, physics, {
   makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans: peopleT }),
 }) : null;
 if (crowd && mhPeople) mhPeople.then((p) => p?.warm());   // (the crowd's MakeHuman bodies made ahead, while idle)
-if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${(performance.now() - crowdT0).toFixed(0)} ms`); }
+if (crowd) { npcs.push(...crowd.npcs); console.info(`crowd: ${crowd.people.length} people in ${crowd.groups.length} groups, placed in ${(performance.now() - crowdT0).toFixed(0)} ms${crowd.pending ? `; ${crowd.pending} walks of strollers worked out later, nearest first` : ''}`); }
 registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
 npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
@@ -2272,7 +2280,8 @@ if (deferred?.pending) {
   setStep('near detail');
   const ways = [...(level.portals ?? []), ...(level.navigationPortals ?? [])].map((p) => p.to).filter(Boolean);
   const n = await runStepsAsync(deferred.needSteps([player.pos, ship.rampFoot, ...ways], DEFER.near), slice);
-  console.info(`distant detail: ${n} jobs done near, ${deferred.pending} after the first frame`);
+  const L = physics.late;
+  console.info(`distant detail: ${n} jobs done near, ${deferred.pending} after the first frame${L ? ` (the drifts' collision: ${L.made} pieces made, ${L.forced} by a query, in ${L.ms.toFixed(0)} ms; ${L.pending} after)` : ''}`);
   window.deferred = deferred;   // (measuring: deferred.pending, .done, .ms)
 }
 setStep('batches');

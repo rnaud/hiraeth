@@ -8,6 +8,27 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.49', date: '2026-10-11', items: [
+    // loading (docs/systems/performance.md "The drifts' collision and the crowd's strollers, later too"; issue #14)
+    { text: 'The Buried Machine opens about three quarters of a second sooner: where the sand banks up against walls far from you, its footing is worked out after you arrive, nearest first, and always before you get near it.',
+      numbers: [
+        { title: 'Time to the Buried Machine’s first frame', unit: 's', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High', rows: [
+          { where: 'median of three, interleaved', before: 5.04, after: 4.27 },
+        ], source: 'scripts/load-breakdown.mjs, v1.48 against this build' },
+      ],
+      see: 'Fly to the Buried Machine: the loading screen gives way sooner, and the sand against the domes by the landing holds your feet as before.' },
+    { text: 'The City-Shaft opens close to a second sooner, and on a handheld some three seconds: the people strolling its far terraces set out after you arrive, those within sight of you before you see them. The crowd is a little different: other strollers, and walks that no longer stop where they cross.',
+      numbers: [
+        { title: 'Time to the City-Shaft’s first frame', unit: 's', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+          { where: 'High (median of three)', before: 5.52, after: 4.72 },
+          { where: 'Handheld, the main thread slowed four times (two runs)', before: 19.4, after: 16.1 },
+        ], source: 'scripts/load-breakdown.mjs, v1.48 against this build, interleaved' },
+        { title: 'The City-Shaft’s crowd at load', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High', rows: [
+          { where: 'the crowd’s step', before: 974, after: 149 },
+        ], source: 'scripts/load-breakdown.mjs, its load steps' },
+      ],
+      see: 'Fly to the City-Shaft and look down from the rim: the terraces below fill with people as they always did.' },
+  ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)
     { text: 'The City-Shaft opens two and a half seconds sooner, and on a handheld some thirteen: the trees far from you are checked for standing inside a house after you arrive, the nearest first, instead of all of them before the world shows. Everything near you is checked before you see it, and a door or a portal finishes the far side before it opens.',

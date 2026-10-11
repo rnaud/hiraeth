@@ -15,7 +15,12 @@ import * as THREE from 'three';
 // - whatever is within DEFER.guard of him is done that frame whatever it costs (`run`'s guard, and `need` for a
 //   passage's far side before it is shown), so nothing near is ever seen unfinished;
 // - `cancel` drops what is left (a world left, a test).
-// The jobs are plain functions: each must be safe to run late, once, in any order (a tree dropped).
+// The jobs are plain functions: each must be safe to run late, once, in any order (a tree dropped). A job may say how
+// far round its place what it makes reaches (`add`'s r: a piece of the drifts' collision, a stretch of a crowd's walk),
+// so it counts as near when its edge is; one run by the guard or a passage (`need`) sees `urgent` set, so a job that is
+// one part of something bigger (a walk's chunk) finishes the whole of it there and then.
+// What goes through it: the trees-in-houses and buried-flora checks (src/physics.js), the drifts' collision
+// (src/late-collision.js) and the crowd's strollers (src/crowd.js buildPeopleSteps).
 // ---------------------------------------------------------------------------
 
 export const DEFER = {
@@ -39,33 +44,42 @@ export class DeferredWork {
     this.count = 0;
     this.ring = { key: null, r: 0, list: null };   // (where the walk is: rings inside r are empty round that cell)
     this.done = 0; this.ms = 0; this.queued = 0; this.forced = 0;
+    this.maxR = 0;   // (the widest job's reach: a lookup round a point looks that much further)
+    this.urgent = false;   // (while a forced job runs: see _do)
   }
   get pending() { return this.count; }
-  /** Queue fn, for the place (x, y, z); tag: what it is (cancel by it). */
-  add(x, y, z, fn, tag = '') {
+  /**
+   * Queue fn, for the place (x, y, z); tag: what it is (cancel by it); r: how far round that place what it makes
+   * reaches (a piece of collision 20 m across: it is near when its edge is, not only its middle).
+   */
+  add(x, y, z, fn, tag = '', r = 0) {
     const k = keyOf(Math.floor(x / CELL), Math.floor(z / CELL));
     let c = this.cells.get(k);
     if (!c) this.cells.set(k, (c = []));
-    c.push({ x, y, z, fn, tag });
+    c.push({ x, y, z, fn, tag, r });
+    if (r > this.maxR) this.maxR = r;
     this.count++; this.queued++;
     this.ring.key = null;   // (the walk starts again: this cell may be inside its rings)
     return this;
   }
-  _do(j) {
-    const t = this.now();
-    try { j.fn(); } catch (e) { console.warn('deferred job failed', e); }
+  /** (urgent: the job is forced, by the guard or a place about to be shown: `urgent` tells it, a job in parts finishes all of them) */
+  _do(j, urgent = false) {
+    const t = this.now(), was = this.urgent;
+    this.urgent = urgent;
+    try { j.fn(); } catch (e) { console.warn('deferred job failed', e); } finally { this.urgent = was; }
     this.ms += this.now() - t; this.done++;
   }
-  /** The jobs within r of p, taken out of the queue. */
+  /** The jobs within r of p (their own reach added), taken out of the queue. */
   _take(p, r) {
-    const out = [], r2 = r * r;
+    const out = [];
     if (!this.count) return out;
-    const x0 = Math.floor((p.x - r) / CELL), x1 = Math.floor((p.x + r) / CELL), z0 = Math.floor((p.z - r) / CELL), z1 = Math.floor((p.z + r) / CELL);
+    const R = r + this.maxR;
+    const x0 = Math.floor((p.x - R) / CELL), x1 = Math.floor((p.x + R) / CELL), z0 = Math.floor((p.z - R) / CELL), z1 = Math.floor((p.z + R) / CELL);
     for (let cx = x0; cx <= x1; cx++) for (let cz = z0; cz <= z1; cz++) {
       const k = keyOf(cx, cz), c = this.cells.get(k);
       if (!c) continue;
       const keep = [];
-      for (const j of c) ((j.x - p.x) ** 2 + (j.y - p.y) ** 2 + (j.z - p.z) ** 2 <= r2 ? out : keep).push(j);
+      for (const j of c) ((j.x - p.x) ** 2 + (j.y - p.y) ** 2 + (j.z - p.z) ** 2 <= (r + j.r) ** 2 ? out : keep).push(j);
       if (keep.length) this.cells.set(k, keep); else this.cells.delete(k);
     }
     this.count -= out.length;
@@ -74,7 +88,7 @@ export class DeferredWork {
   /** Every job within r of p, now (what a passage is about to show, or a ride got ahead of). Returns how many. */
   need(p, r) {
     const due = this._take(p, r);
-    for (const j of due) this._do(j);
+    for (const j of due) this._do(j, true);
     this.forced += due.length;
     return due.length;
   }
@@ -84,7 +98,7 @@ export class DeferredWork {
     for (const p of points) {
       if (!p) continue;
       const due = this._take(p, r);
-      for (let i = 0; i < due.length; i++) { this._do(due[i]); n++; if (i % per === per - 1) yield; }
+      for (let i = 0; i < due.length; i++) { this._do(due[i], true); n++; if (i % per === per - 1) yield; }
     }
     return n;
   }

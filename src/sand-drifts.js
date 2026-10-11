@@ -218,6 +218,15 @@ export function edgeDistance(e, x, z) {
   return _ed;
 }
 
+/**
+ * The game's switch for the drifts' collision made later (main.js, with distant detail on: src/deferred.js): while
+ * `later`, raise() leaves misfits' triangles out and puts its pieces (lateFitPieces) in `pending`, for main.js to queue
+ * (src/late-collision.js queueLateCollision) once the collision exists. Off everywhere else (tests, tools, the studio).
+ */
+export const DRIFT_FITS = { later: false, pending: [] };
+/** m: the squares the drifts' late collision is cut into. */
+const FIT_CELL = 8;
+
 export class SandDrifts {
   /** The drifts a sandy world's builders are feeding (Kit.solid), or null. */
   static current = null;
@@ -297,7 +306,9 @@ export class SandDrifts {
     this.ground = base;
     ground.heightAt = (x, z) => base(x, z) + this.fieldAt(x, z);
     ground.drifts = this;   // (for measuring: the field behind the height)
-    // where a built skirt is drawn over that height between its points, it collides there (misfits)
+    // where a built skirt is drawn over that height between its points, it collides there (misfits; or, in the game
+    // with distant detail on, piece by piece after the world is built: DRIFT_FITS)
+    if (this.group && DRIFT_FITS.later) { DRIFT_FITS.pending.push(...this.lateFitPieces(ground.heightAt)); return this; }
     const fit = this.group ? yield* this.misfitsSteps(ground.heightAt) : null;
     if (fit) {
       const m = new THREE.Mesh(fit, new THREE.MeshBasicMaterial());
@@ -323,7 +334,25 @@ export class SandDrifts {
   misfits(heightAt, tol = 0.06) { return runSteps(this.misfitsSteps(heightAt, tol)); }
   *misfitsSteps(heightAt, tol = 0.06) {
     if (!this.group) return null;
-    const out = [], a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), p = new THREE.Vector3();
+    const out = [], a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    const fits = this.fitTest(heightAt, tol);
+    for (const m of this.group.children) {
+      if (!m.isMesh || !m.userData.drifts) continue;
+      const P = m.geometry.attributes.position, I = m.geometry.index;
+      for (let t = 0; t < I.count; t += 3) {
+        a.fromBufferAttribute(P, I.getX(t)); b.fromBufferAttribute(P, I.getX(t + 1)); c.fromBufferAttribute(P, I.getX(t + 2));
+        if (fits(a, b, c)) out.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+      }
+      yield;
+    }
+    if (!out.length) return null;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
+    return g;
+  }
+  /** misfits' test of one triangle (a, b, c: Vector3s): does it stand over the height somewhere, and collide as drawn? */
+  fitTest(heightAt, tol = 0.06) {
+    const p = new THREE.Vector3();
     const SAMPLES = [[1 / 3, 1 / 3], [0.5, 0], [0, 0.5], [0.5, 0.5], [2 / 3, 1 / 6], [1 / 6, 2 / 3], [1 / 6, 1 / 6]];
     const insideOther = (x, z) => {
       for (const s of this.grid.get(Math.floor(x / this.cell) * 65536 + Math.floor(z / this.cell)) ?? []) {
@@ -333,27 +362,61 @@ export class SandDrifts {
       }
       return false;
     };
+    return (a, b, c) => {
+      let over = false;
+      for (const [u, v] of SAMPLES) {
+        p.copy(a).multiplyScalar(1 - u - v).addScaledVector(b, u).addScaledVector(c, v);
+        if (p.y - this.o.lift - heightAt(p.x, p.z) > tol) { over = true; break; }
+      }
+      if (!over) return false;
+      p.copy(a).add(b).add(c).divideScalar(3);
+      return !insideOther(p.x, p.z);
+    };
+  }
+  /**
+   * misfits in pieces, to be made later (src/late-collision.js; DRIFT_FITS): the skirts' triangles copied and cut
+   * into FIT_CELL squares by their middles, each square a piece { x, y, z (its middle), r (its reach from there),
+   * box [x0, z0, x1, z1], make() → its colliding triangles (nine floats each) or null }. Made in any order, at any
+   * time, the pieces make between them the triangles misfits() makes (the field is the world's by now), each once.
+   */
+  lateFitPieces(heightAt, tol = 0.06) {
+    if (!this.group) return [];
+    const cells = new Map();
     for (const m of this.group.children) {
       if (!m.isMesh || !m.userData.drifts) continue;
-      const P = m.geometry.attributes.position, I = m.geometry.index;
-      for (let t = 0; t < I.count; t += 3) {
-        a.fromBufferAttribute(P, I.getX(t)); b.fromBufferAttribute(P, I.getX(t + 1)); c.fromBufferAttribute(P, I.getX(t + 2));
-        let over = false;
-        for (const [u, v] of SAMPLES) {
-          p.copy(a).multiplyScalar(1 - u - v).addScaledVector(b, u).addScaledVector(c, v);
-          if (p.y - this.o.lift - heightAt(p.x, p.z) > tol) { over = true; break; }
-        }
-        if (!over) continue;
-        p.copy(a).add(b).add(c).divideScalar(3);
-        if (insideOther(p.x, p.z)) continue;
-        out.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+      const P = m.geometry.attributes.position.array, I = m.geometry.index.array;
+      for (let t = 0; t < I.length; t += 3) {
+        const i = I[t] * 3, j = I[t + 1] * 3, k = I[t + 2] * 3;
+        const key = Math.floor((P[i] + P[j] + P[k]) / 3 / FIT_CELL) * 65536 + Math.floor((P[i + 2] + P[j + 2] + P[k + 2]) / 3 / FIT_CELL);
+        let c = cells.get(key);
+        if (!c) cells.set(key, (c = []));
+        c.push(P[i], P[i + 1], P[i + 2], P[j], P[j + 1], P[j + 2], P[k], P[k + 1], P[k + 2]);
       }
-      yield;
     }
-    if (!out.length) return null;
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
-    return g;
+    const group = this.group, fits = this.fitTest(heightAt, tol);
+    group.userData.fitTriangles = 0;
+    const pieces = [];
+    for (const list of cells.values()) {
+      const T = Float32Array.from(list);
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+      for (let i = 0; i < T.length; i += 3) {
+        x0 = Math.min(x0, T[i]); x1 = Math.max(x1, T[i]); y0 = Math.min(y0, T[i + 1]); y1 = Math.max(y1, T[i + 1]); z0 = Math.min(z0, T[i + 2]); z1 = Math.max(z1, T[i + 2]);
+      }
+      const x = (x0 + x1) / 2, y = (y0 + y1) / 2, z = (z0 + z1) / 2;
+      pieces.push({
+        x, y, z, r: Math.hypot(x1 - x, y1 - y, z1 - z) + 0.1, box: [x0, z0, x1, z1],
+        make: () => {
+          const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), out = [];
+          for (let i = 0; i < T.length; i += 9) {
+            a.fromArray(T, i); b.fromArray(T, i + 3); c.fromArray(T, i + 6);
+            if (fits(a, b, c)) for (let q = 0; q < 9; q++) out.push(T[i + q]);
+          }
+          group.userData.fitTriangles += out.length / 9;
+          return out.length ? Float32Array.from(out) : null;
+        },
+      });
+    }
+    return pieces;
   }
   /** A round footprint (a dome, a rock): centre, radius. */
   addCircle(x, z, r, extra = {}) {

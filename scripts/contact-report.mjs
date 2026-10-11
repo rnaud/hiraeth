@@ -44,7 +44,7 @@ for (const id of ids) {
   }
   quiet(() => level.init?.(physics));
   const region = level.unsafe ? (p) => !level.unsafe(p) : null;
-  const geos = [(physics.levelBVH !== undefined ? physics.levelBVH : physics.bvh)?.geometry ?? physics.geometry, ...(physics.extras ?? []).map((e) => e.bvh?.geometry)];
+  const geos = [(physics.levelBVH !== undefined ? physics.levelBVH : physics.bvh)?.geometry ?? physics.geometry, ...(physics.extras ?? []).map((e) => e.bvh?.geometry), ...(physics.late?.extras ?? []).map((e) => e.bvh?.geometry)];
   const tris = geos.filter(Boolean).reduce((n, g) => n + (g.index ? g.index.count : g.attributes.position.count) / 3, 0);
   if (COST) { console.log(`${id}: ${Math.round(tris / 1000)} k triangles, bake ${bake.toFixed(0)} ms, ${cost(physics, level)}`); continue; }
   const r = auditContact({ physics, scene, region, solids: level.dynamic?.() ?? [], max: 12000 });

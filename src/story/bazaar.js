@@ -215,7 +215,7 @@ export function setupBazaar(ctx) {
   say();
   game.on('flag', ({ name }) => { if (name.startsWith('bazaar.')) say(); });
   const applyOnAir = () => {
-    if (crowd) for (const p of crowd.people) p.lines = LINES.onAir;
+    if (crowd) crowd.persist('lines', (p) => { p.lines = LINES.onAir; });   // (and the strollers worked out later)
     sound.setBandMode?.('tower', 'play');
   };
   if (onAir()) applyOnAir();

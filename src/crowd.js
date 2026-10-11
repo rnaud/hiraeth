@@ -349,8 +349,8 @@ export function perch(physics, spot, avoid) {
   return { pose: 'look', y: g };
 }
 
-/** Split a polyline into walkable runs (samples ~2.5 m apart, at least minRun of them): [{ pts (with ground heights), loop }]. */
-export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral = 1.1, loop = false, minRun = 5 } = {}) {
+/** A polyline's samples, every 1.5 m or less (a loop closed back to its start), as walkablePath tests them. */
+export function walkSamples(pts, loop = false) {
   const samples = [];
   const src = loop ? [...pts, pts[0]] : pts;
   for (let i = 0; i < src.length - 1; i++) {
@@ -359,109 +359,189 @@ export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral 
     for (let k = 0; k < n; k++) samples.push(a.clone().lerp(b, k / n));
   }
   if (!loop) samples.push(src[src.length - 1].clone());
-  const ok = samples.map((p, i) => {
-    const g = standable(physics, p.x, p.y, p.z, { clear, avoid, pad: 0.5, edge: false, heights: [1.0] });   // the side checks below cover edges
-    if (!Number.isFinite(g)) return false;
-    // room for side by side walkers and sidesteps: ground both sides at the same height
-    const q = samples[(i + 1) % samples.length], dx = q.x - p.x, dz = q.z - p.z, l = Math.hypot(dx, dz) || 1;
-    for (const s of [-lateral, lateral]) {
-      const x = p.x - dz / l * s, z = p.z + dx / l * s;
-      const gs = physics.groundAt(x, g + 0.8, z, 1.5);
-      if (!Number.isFinite(gs) || Math.abs(gs - g) > 0.25 || avoid?.blocked(x, g, z, 0.3)) return false;
-      // and nothing standing in the side lane: a walker stepping aside must not pass through it
-      _d.set(-dz / l * Math.sign(s), 0, dx / l * Math.sign(s));
-      for (const h of [0.5, 1.4]) if (physics.rayDistance(_o.set(p.x, g + h, p.z), _d, lateral + 0.35) < lateral + 0.35) return false;
-    }
-    p.y = g;
-    return true;
-  });
+  return samples;
+}
+/**
+ * Can sample i be walked (walkablePath's test of one sample: rays through the collision)? Its ground height, or NaN.
+ * Depends on nothing but the collision, `avoid` and the next sample's place: the samples can be tested in any order.
+ */
+export function walkSample(physics, samples, i, { avoid = null, clear = 1.3, lateral = 1.1 } = {}) {
+  const p = samples[i];
+  const g = standable(physics, p.x, p.y, p.z, { clear, avoid, pad: 0.5, edge: false, heights: [1.0] });   // the side checks below cover edges
+  if (!Number.isFinite(g)) return NaN;
+  // room for side by side walkers and sidesteps: ground both sides at the same height
+  const q = samples[(i + 1) % samples.length], dx = q.x - p.x, dz = q.z - p.z, l = Math.hypot(dx, dz) || 1;
+  for (const s of [-lateral, lateral]) {
+    const x = p.x - dz / l * s, z = p.z + dx / l * s;
+    const gs = physics.groundAt(x, g + 0.8, z, 1.5);
+    if (!Number.isFinite(gs) || Math.abs(gs - g) > 0.25 || avoid?.blocked(x, g, z, 0.3)) return NaN;
+    // and nothing standing in the side lane: a walker stepping aside must not pass through it
+    _d.set(-dz / l * Math.sign(s), 0, dx / l * Math.sign(s));
+    for (const h of [0.5, 1.4]) if (physics.rayDistance(_o.set(p.x, g + h, p.z), _d, lateral + 0.35) < lateral + 0.35) return NaN;
+  }
+  return g;
+}
+/** The walkable runs of tested samples (heights: walkSample's, NaN where not), at least minRun long. */
+export function walkRuns(samples, heights, { loop = false, minRun = 5 } = {}) {
   const runs = [];
   let cur = [];
   for (let i = 0; i < samples.length; i++) {
-    if (ok[i]) cur.push(samples[i]);
+    if (Number.isFinite(heights[i])) { samples[i].y = heights[i]; cur.push(samples[i]); }
     else { runs.push(cur); cur = []; }
   }
   runs.push(cur);
   if (loop && runs.length === 1) return [{ pts: cur, loop: true }];
   return runs.filter((r) => r.length >= minRun).map((pts) => ({ pts, loop: false }));
 }
+/** Split a polyline into walkable runs (samples ~1.5 m apart, at least minRun of them): [{ pts (with ground heights), loop }]. */
+export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral = 1.1, loop = false, minRun = 5 } = {}) {
+  const samples = walkSamples(pts, loop);
+  const heights = samples.map((_, i) => walkSample(physics, samples, i, { avoid, clear, lateral }));
+  return walkRuns(samples, heights, { loop, minRun });
+}
 
 /** Turn a level's crowd spots into people: validated against the collision world. */
 export function buildPeople(physics, spots, o = {}) { return runSteps(buildPeopleSteps(physics, spots, o)); }
-/** buildPeople a spot at a time (each is rays through the collision): for a world's load (src/load-steps.js). */
-export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm = [] } = {}) {
+/** A walk's samples tested a chunk at a time (a job of distant detail each). */
+const WALK_CHUNK = 12;
+/** The strollers' ids start here, WALK_IDS apart for each walk (the people standing about count from 0). */
+const WALK_ID0 = 1 << 20, WALK_IDS = 4096;
+/**
+ * buildPeople a spot at a time (each is rays through the collision): for a world's load (src/load-steps.js).
+ *
+ * The strollers are worked out walk by walk, each walk on its own: its own random streams (by its place in the
+ * list), its route tested against what the level keeps clear (not against the other walks), and its people given
+ * ids of their own (WALK_ID0 + its index × WALK_IDS + theirs). So a walk can be worked out at any time, in any order,
+ * and come out the same: with `defer` (src/deferred.js DeferredWork) every walk but a procession is (#14: the
+ * City-Shaft's 0.9 s of routes), its samples tested a chunk at a time as distant detail, the walk's people added to
+ * the crowd once its last chunk is done (`addPeople`: the crowd's, or into the lists before there is a crowd), the
+ * whole walk at once when anything forces a chunk of it (the traveller within the guard, a passage's far side). Those
+ * standing about (circles, perches) are placed here, in order: the lanes they keep clear of are the walks' as drawn.
+ */
+export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm = [], defer = null } = {}) {
   const rng = mulberry32(seed);
-  const avoid = new ClearMap([...(spots.avoid ?? []), ...(spots.clear ?? []), ...clear]);
+  const base = [...(spots.avoid ?? []), ...(spots.clear ?? []), ...clear];
+  const avoid = new ClearMap(base), clearOnly = new ClearMap(base);
   // (calm: round the ship's landing and its ramp no strollers' route runs, issue #84: people walking to and fro by
   // the hull as you came to leave; those who stand or sit there stay, a procession keeps its loop)
-  const calmMap = new ClearMap(calm), walkAvoid = calm.length ? { blocked: (x, y, z, pad) => avoid.blocked(x, y, z, pad) || calmMap.blocked(x, y, z, pad) } : avoid;
-  const people = [], groups = [], routes = [];
+  const calmMap = new ClearMap(calm), walkAvoid = calm.length ? { blocked: (x, y, z, pad) => clearOnly.blocked(x, y, z, pad) || calmMap.blocked(x, y, z, pad) } : clearOnly;
+  const out = { people: [], groups: [], routes: [], later: 0 };
+  const frozen = defer ? physics.freeze?.() : null;
+  const { people, groups } = out;
   // looks come from their own random stream (the placement draws stay what they were)
   const world = spots.costume ?? costumeWorld(), lookRng = mulberry32(seed * 7919 + 13);
-  const oldDraws = () => { if (Math.floor(rng() * 6) !== 0) rng(); for (let i = 0; i < 7; i++) rng(); };
-  const person = (o) => {
-    const kind = rng() < 0.5 ? 'm' : 'f';
-    oldDraws();
-    const s = crowdStyle(lookRng, spots.palette, { world, spot: o.spot ?? null, pos: o.pos, kind });
+  const oldDraws = (R) => { if (Math.floor(R() * 6) !== 0) R(); for (let i = 0; i < 7; i++) R(); };
+  let nextId = 0;
+  const person = (o, R = rng, LR = lookRng, id = nextId++) => {
+    const kind = R() < 0.5 ? 'm' : 'f';
+    oldDraws(R);
+    const s = crowdStyle(LR, spots.palette, { world, spot: o.spot ?? null, pos: o.pos, kind });
     // their own height on top of the tribe's size (leaning on a railing: nearly the railing's height, so the arms meet it)
-    const size = (0.95 + rng() * 0.1) * s.size * (o.pose === 'rail' ? 1 + (s.height - 1) * 0.25 : s.height);
-    const p = {
-      id: people.length, kind, style: s, look: packLook(s), size, scale: size * (kind === 'm' ? 1.03 : 1.0),
+    const size = (0.95 + R() * 0.1) * s.size * (o.pose === 'rail' ? 1 + (s.height - 1) * 0.25 : s.height);
+    return {
+      id, kind, style: s, look: packLook(s), size, scale: size * (kind === 'm' ? 1.03 : 1.0),
       pos: o.pos.clone(), home: o.pos.clone(), heading: o.heading, homeHeading: o.heading,
-      pose: POSE[o.pose ?? 'stand'], group: null, walk: null, seed: rng(),
-      phase: rng(), cadence: 0, speed: 0, headYaw: 0, headPitch: 0, talk: 0,
+      pose: POSE[o.pose ?? 'stand'], group: null, walk: null, seed: R(),
+      phase: R(), cadence: 0, speed: 0, headYaw: 0, headPitch: 0, talk: 0,
       startleT: -1e9, stumbleUntil: -1e9, stunUntil: -1e9, stumbleT: 0, lookUntil: -1e9, faceUntil: -1e9, greetT: -1, speaking: false, say: '',
       offset: new THREE.Vector3(), tier: TIER.off, npc: null, unreg: null, chestV: new THREE.Vector3(),
-      lines: o.lines ?? spots.lines ?? GREET_LINES, lineIdx: Math.floor(rng() * 20), shoutUntil: -1e9,
+      lines: o.lines ?? spots.lines ?? GREET_LINES, lineIdx: Math.floor(R() * 20), shoutUntil: -1e9,
       role: o.role ?? null, spot: o.spot ?? null,
     };
-    people.push(p);
-    return p;
   };
-  // strollers, alone or in pairs, both ways along each route (keeping right)
-  for (const sp of spots.walks ?? []) {
-    yield;
-    const runs = walkablePath(physics, sp.path, { avoid: sp.column ? avoid : walkAvoid, loop: sp.loop, lateral: sp.lateral ?? 1.1 });
+  // the people and routes of a walk, in the lists' order (by id, by walk): the same lists whatever order they come in
+  out.addPeople = (ps, rs) => {
+    for (const p of ps) { let i = people.length; while (i > 0 && people[i - 1].id > p.id) i--; people.splice(i, 0, p); }
+    for (const r of rs) { let i = out.routes.length; while (i > 0 && out.routes[i - 1].order > r.order) i--; out.routes.splice(i, 0, r); }
+  };
+  /** A walk's strollers, alone or in pairs, both ways along each run (keeping right), from its tested samples. */
+  const walkers = (k, sp, samples, heights) => {
+    const R = mulberry32(seed * 104729 + k * 7919 + 1), LR = mulberry32(seed * 7919 + k * 104729 + 17);
+    let n = 0;
+    const id = () => WALK_ID0 + k * WALK_IDS + Math.min(n++, WALK_IDS - 1);
+    const runs = walkRuns(samples, heights, { loop: sp.loop });
     const runLen = runs.reduce((s, r) => s + r.pts.length, 0);
-    for (const path of runs) {
-    const pts = path.pts, cum = [0];
-    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
-    const total = path.loop ? cum[cum.length - 1] + pts[pts.length - 1].distanceTo(pts[0]) : cum[cum.length - 1];
-    if (total < 8) continue;
-    const lateral = sp.lateral ?? 1.1;
-    const route = { pts, cum, total, loop: path.loop, keepRight: sp.keepRight ?? 0.7, lateral, id: sp.id ?? null };
-    routes.push(route);
-    // keep the lanes free of standing people
-    for (let i = 0; i < pts.length; i += 2) avoid.add({ x: pts[i].x, y: pts[i].y, z: pts[i].z, r: lateral + 0.45 + (sp.lanes ? sp.lanes * 0.45 : 0) });
-    if (sp.column && path.loop) {
-      // a procession: rows of `lanes`, one way round, spread over a stretch of the loop
-      const lanes = sp.lanes ?? 3, n = sp.n ?? 40, rows = Math.ceil(n / lanes);
-      const [f0, f1] = sp.spread ?? [0, 0.1];
-      route.column = { speed: sp.speed ?? 1.15, clock: 0, holdUntil: -1e9, lead: f1 * total, lanes, gap: sp.gap ?? 0.95 };
-      let k = 0, roles = [...(sp.roles ?? [])];
-      for (let r = 0; r < rows && k < n; r++) for (let l = 0; l < lanes && k < n; l++, k++) {
-        const slot = f1 * total - (r / Math.max(rows - 1, 1)) * (f1 - f0) * total + (rng() - 0.5) * 0.5;
-        const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, role: roles.shift() ?? null, spot: sp });
-        p.walk = { route, u: slot, slot, dir: 1, speed: route.column.speed, side: (l - (lanes - 1) / 2) * route.column.gap * 2 - route.keepRight, step: 0, pause: 0, avoid: 0, partner: null, slow: 1 };
-        placeWalker(p, 0);
+    const ps = [], rs = [];
+    for (const [j, path] of runs.entries()) {
+      const pts = path.pts, cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+      const total = path.loop ? cum[cum.length - 1] + pts[pts.length - 1].distanceTo(pts[0]) : cum[cum.length - 1];
+      if (total < 8) continue;
+      const lateral = sp.lateral ?? 1.1;
+      const route = { pts, cum, total, loop: path.loop, keepRight: sp.keepRight ?? 0.7, lateral, id: sp.id ?? null, order: k * WALK_IDS + j };
+      rs.push(route);
+      if (sp.column && path.loop) {
+        // a procession: rows of `lanes`, one way round, spread over a stretch of the loop
+        const lanes = sp.lanes ?? 3, n = sp.n ?? 40, rows = Math.ceil(n / lanes);
+        const [f0, f1] = sp.spread ?? [0, 0.1];
+        route.column = { speed: sp.speed ?? 1.15, clock: 0, holdUntil: -1e9, lead: f1 * total, lanes, gap: sp.gap ?? 0.95 };
+        let q = 0; const roles = [...(sp.roles ?? [])];
+        for (let r = 0; r < rows && q < n; r++) for (let l = 0; l < lanes && q < n; l++, q++) {
+          const slot = f1 * total - (r / Math.max(rows - 1, 1)) * (f1 - f0) * total + (R() - 0.5) * 0.5;
+          const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, role: roles.shift() ?? null, spot: sp }, R, LR, id());
+          p.walk = { route, u: slot, slot, dir: 1, speed: route.column.speed, side: (l - (lanes - 1) / 2) * route.column.gap * 2 - route.keepRight, step: 0, pause: 0, avoid: 0, partner: null, slow: 1 };
+          placeWalker(p, 0);
+          ps.push(p);
+        }
+        continue;
       }
+      const units = Math.max(1, Math.round((sp.n ?? 4) * pts.length / runLen));
+      for (let u0 = 0; u0 < units; u0++) {
+        const pair = R() < (sp.pair ?? 0.45);
+        const u = R() * total, dir = path.loop ? (R() < 0.7 ? 1 : -1) : (R() < 0.5 ? 1 : -1);
+        const speed = 1.05 + R() * 0.35;
+        const unit = [];
+        for (let q = 0; q < (pair ? 2 : 1); q++) {
+          const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, spot: sp }, R, LR, id());
+          p.walk = { route, u, dir, speed, side: pair ? (q ? 0.36 : -0.36) : 0, step: 0, pause: R() * 2, avoid: 0, partner: null, slow: 1 };
+          unit.push(p);
+        }
+        if (pair) { unit[0].walk.partner = unit[1]; unit[1].walk.partner = unit[0]; }
+        for (const p of unit) { placeWalker(p, 0); ps.push(p); }
+      }
+    }
+    return { ps, rs };
+  };
+  for (const [k, sp] of (spots.walks ?? []).entries()) {
+    yield;
+    const samples = walkSamples(sp.path, sp.loop), heights = new Array(samples.length);
+    const opts = { avoid: sp.column ? clearOnly : walkAvoid, lateral: sp.lateral ?? 1.1 };
+    // keep the lanes free of standing people (along the walk as drawn: those standing about don't wait for it)
+    const laneR = (sp.lateral ?? 1.1) + 0.45 + (sp.lanes ? sp.lanes * 0.45 : 0);
+    for (let i = 0; i < samples.length; i += 2) avoid.add({ x: samples[i].x, y: samples[i].y, z: samples[i].z, r: laneR });
+    const test = (i0) => { for (let i = i0; i < Math.min(i0 + WALK_CHUNK, samples.length); i++) heights[i] = walkSample(physics, samples, i, opts); };
+    // (worked out later, against the collision as it is now: what is added or moves after the load is not in it)
+    const testLater = (i0) => (physics.asWas ? physics.asWas(frozen, () => test(i0)) : test(i0));
+    if (!defer || sp.column) {
+      for (let i = 0; i < samples.length; i += WALK_CHUNK) { test(i); yield; }
+      const w = walkers(k, sp, samples, heights);
+      out.addPeople(w.ps, w.rs);
       continue;
     }
-    const units = Math.max(1, Math.round((sp.n ?? 4) * pts.length / runLen));
-    for (let k = 0; k < units; k++) {
-      const pair = rng() < (sp.pair ?? 0.45);
-      const u = rng() * total, dir = path.loop ? (rng() < 0.7 ? 1 : -1) : (rng() < 0.5 ? 1 : -1);
-      const speed = 1.05 + rng() * 0.35;
-      const unit = [];
-      for (let q = 0; q < (pair ? 2 : 1); q++) {
-        const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, spot: sp });
-        p.walk = { route, u, dir, speed, side: pair ? (q ? 0.36 : -0.36) : 0, step: 0, pause: rng() * 2, avoid: 0, partner: null, slow: 1 };
-        unit.push(p);
-      }
-      if (pair) { unit[0].walk.partner = unit[1]; unit[1].walk.partner = unit[0]; }
-      for (const p of unit) placeWalker(p, 0);
+    // later, a chunk at a time, nearest first (src/deferred.js); all of it when anything forces a chunk
+    const chunks = new Map();
+    let left = 0, done = false;
+    const finish = () => {
+      if (done) return;
+      for (const i of chunks.keys()) if (!chunks.get(i)) { chunks.set(i, true); testLater(i); }
+      done = true; out.later--;
+      const w = walkers(k, sp, samples, heights);
+      out.addPeople(w.ps, w.rs);
+    };
+    for (let i0 = 0; i0 < samples.length; i0 += WALK_CHUNK) {
+      chunks.set(i0, false); left++;
+      const c = new THREE.Vector3(); let n = 0;
+      for (let i = i0; i < Math.min(i0 + WALK_CHUNK, samples.length); i++) { c.add(samples[i]); n++; }
+      c.divideScalar(n);
+      let r = 0; for (let i = i0; i < i0 + n; i++) r = Math.max(r, samples[i].distanceTo(c));
+      defer.add(c.x, c.y, c.z, () => {
+        if (done || chunks.get(i0)) return;
+        if (defer.urgent) { finish(); return; }
+        chunks.set(i0, true); testLater(i0);
+        if (--left === 0) finish();
+      }, 'crowd', r + (sp.lateral ?? 1.1) + 1);
     }
-    }
+    out.later++;
   }
   // conversation circles
   for (const sp of spots.groups ?? []) {
@@ -484,7 +564,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
     }
     if (mem.length < 2) continue;
     const g = { id: groups.length, center: new THREE.Vector3(cx, mem[0].pos.y, cz), r, members: [], speaker: 0, next: rng() * 4, pauseUntil: -1e9, lookUntil: -1e9 };
-    for (const m of mem) { const p = person({ ...m, lines: sp.lines, role: roles.shift() ?? null, spot: sp }); p.group = g; g.members.push(p); }
+    for (const m of mem) { const p = person({ ...m, lines: sp.lines, role: roles.shift() ?? null, spot: sp }); p.group = g; g.members.push(p); out.addPeople([p], []); }
     g.tag = sp.id ?? null;
     groups.push(g);
     avoid.add({ x: cx, y: g.center.y, z: cz, r: r + 0.3 });
@@ -499,9 +579,10 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
     if (ok.back) pos.addScaledVector(fwdOf(sp.heading, _v), -ok.back);
     const p = person({ pos, heading: sp.heading, pose: ok.pose === 'look' ? 'stand' : ok.pose, lines: sp.lines, role: sp.role ?? null, spot: sp });
     p.perch = ok.pose;
+    out.addPeople([p], []);
     avoid.add({ x: pos.x, y: pos.y, z: pos.z, r: 0.45 });
   }
-  return { people, groups, routes };
+  return out;
 }
 
 /** Where a walker is on its route at its current u (with the lateral keep-right / pair / sidestep offsets). */
@@ -568,6 +649,21 @@ class Tier {
     A.aDress.array.set(p.look[2], j);
     A.aBody.array.set(p.look[3] ?? BODY0, j);
   }
+  /** Room for `max` people (more strollers come: a walk worked out after the first frame, buildPeopleSteps). */
+  grow(max) {
+    if (max <= this.max) return;
+    max = Math.max(max, Math.ceil(this.max * 1.5));
+    for (const k of Object.keys(this.attrs)) {
+      const old = this.attrs[k], a = new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4);
+      a.array.set(old.array); a.setUsage(THREE.DynamicDrawUsage);
+      this.geometry.setAttribute(k, a);
+      this.attrs[k] = a;
+    }
+    const m = new THREE.InstancedBufferAttribute(new Float32Array(max * 16), 16);
+    m.array.set(this.mesh.instanceMatrix.array); m.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.instanceMatrix = m;
+    this.max = max;
+  }
   commit(n) {
     this.n = n;
     const m = this.mesh.instanceMatrix;
@@ -609,6 +705,7 @@ export class Crowd {
     this.range = { ...CROWD_RANGE, far: spots.farMax ?? CROWD_RANGE.far, ...range };
     const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
     Object.assign(this, built ?? buildPeople(physics, spots, { seed, clear }));
+    this._built = built;
     this.buildMs = (typeof performance !== 'undefined' ? performance.now() : 0) - t0;
     this.rng = mulberry32(seed + 1);
     const n = this.people.length;
@@ -642,6 +739,20 @@ export class Crowd {
     this.time = 0;
     this.playerPos = new THREE.Vector3();
     this.stats = { people: n, groups: this.groups.length, near: 0, mid: 0, far: 0, shadow: 0, targets: 0, promoted: 0, demoted: 0 };
+    // the strollers of a walk worked out later (buildPeopleSteps with defer) join here; what the story has set on
+    // everyone (persist) is set on them too
+    this.rules = new Map();
+    const into = this.addPeople;
+    this.addPeople = (ps, rs) => {
+      (into ?? ((a, b) => { this.people.push(...a); this.routes.push(...b); }))(ps, rs);
+      for (const fn of this.rules.values()) for (const p of ps) fn(p);
+      const N = this.people.length;
+      for (const t of [this.mid, this.far, this.dist]) t?.grow(N);
+      this.shadow.instanceMatrix = this.mid.mesh.instanceMatrix;
+      this.stats.people = N;
+      this.farDirty = true;
+    };
+    if (built) built.addPeople = this.addPeople;
     this.farDirty = true;
     // the share of the crowd gone home (0 … 1): a world's night thins its street (main.js sets it from level.crowdAway)
     this.away = 0;
@@ -654,6 +765,16 @@ export class Crowd {
   }
 
   get npcs() { return this.pool.map((e) => e.npc); }
+  /** Strollers still to come (walks worked out after the first frame). */
+  get pending() { return this._built?.later ?? 0; }
+  /**
+   * Set something on everyone, and on everyone who comes later (a walk worked out after the first frame): the
+   * story's state on the crowd (what they say once the lamp is lit). The same key again replaces the rule.
+   */
+  persist(key, fn) {
+    this.rules.set(key, fn);
+    for (const p of this.people) fn(p);
+  }
 
   /** A procession route by id. */
   route(id) { return this.routes.find((r) => r.id === id) ?? null; }

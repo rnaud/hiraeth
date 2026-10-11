@@ -179,7 +179,8 @@ export function floraKeep({ level = {}, content = {}, ship = null, npcs = [], cr
   if (ship?.rampFoot) add(ship.rampFoot.x, ship.rampFoot.z, 8);
   for (const s of content.npcs ?? []) add(s.at?.[0], s.at?.[1], 4);
   for (const n of npcs) { const p = n.home ?? n.object?.position; if (p) add(p.x, p.z, 3.5); }
-  for (const p of crowd?.people ?? []) { const h = p.home ?? p.pos; if (h) add(h.x, h.z, 1.6); }
+  // (those standing about: a stroller's start is nowhere in particular, and a walk may be worked out after the flora)
+  for (const p of crowd?.people ?? []) { if (p.walk) continue; const h = p.home ?? p.pos; if (h) add(h.x, h.z, 1.6); }
   for (const b of boxes?.list ?? []) if (b.pos) add(b.pos.x, b.pos.z, 5);
   for (const s of content.relics?.spots ?? []) {
     const a = Array.isArray(s) ? s : s.at;

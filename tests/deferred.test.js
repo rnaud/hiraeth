@@ -140,3 +140,15 @@ test('dropInstance sends only the instance it changed', () => {
   assert.equal(V().setFromMatrixPosition(m).x, 4, 'scaled to nothing where it stood');
   assert.equal(V().setFromMatrixScale(m).x, 0);
 });
+
+test('a job with a reach is near when its edge is; a forced job knows it is forced', () => {
+  const q = new DeferredWork({ budget: 5, guard: 30 }), seen = [];
+  q.add(100, 0, 0, () => seen.push(['wide', q.urgent]), '', 75);   // (its middle 100 m off, its edge 25 m)
+  q.add(60, 0, 0, () => seen.push(['narrow', q.urgent]));
+  q.add(500, 0, 0, () => seen.push(['far', q.urgent]));
+  assert.equal(q.need(V(0, 0, 0), 30), 1, 'only the wide one, by its edge');
+  assert.deepEqual(seen, [['wide', true]]);
+  q.run(V(0, 0, 0));
+  assert.deepEqual(seen.slice(1), [['narrow', false], ['far', false]], 'the budget\'s jobs are not urgent');
+  assert.equal(q.urgent, false);
+});
