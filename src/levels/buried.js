@@ -10,7 +10,7 @@ import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
-import { buildToothPosts, buildOilMain, buildFlueVents } from '../buried-ways.js';
+import { buildToothPosts, buildOilMain, buildFlueVents, buildCanyonStack, buildDoorFlag, buildRampRope, CANYON_STACK } from '../buried-ways.js';
 import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
@@ -1224,6 +1224,21 @@ export function* buildBuried(scene) {
   // the oil main from the Wick's valve along the canyon and over the dunes to the great wheel (src/buried-ways.js)
   oilMain = buildOilMain(scene, terrain, { from: new THREE.Vector3(wick.valve.at.x, FLOOR + 0.25, wick.valve.at.z), to: wheel.centre.clone().addScaledVector(wheel.face, 46),
     cx, floorAt, narrows: [OZ + OR] });   // (through the drum's doorway; through the cross-walls beside their openings, as pipes go through a bulkhead)
+  // the canyon stack at the sand ramp's foot, steaming over the rim, and Fisk's flag by the Engine-House's door
+  // (src/buried-ways.js; level design audit v1.49, issue #136): built last, so the audits' samples of what stood before stay
+  const cz = CANYON_STACK.z, stack = buildCanyonStack(scene, M, { x: cx(cz) + CANYON_STACK.off, z: cz, floor: FLOOR, rim: rimY(cz, -1) });
+  const flag = buildDoorFlag(scene, M, terrain), rope = buildRampRope(scene, M, terrain, { cx });
+  level.buried.stack = stack; level.buried.flag = flag; level.buried.rope = rope;
+  // (the ramp's rope, from the domes down to the stack's foot: the leading line Wen's 'down' stage is walked along)
+  const linesOf = level.lines;
+  level.lines = () => [...linesOf(), { name: 'the ramp’s rope', points: rope.points }];
+  // (for the level design audit: the steam over the canyon and the flag over the door, aimed at as landmarks)
+  const steamTop = stack.steam.pathAt(0.62, new THREE.Vector3());
+  level.beacons = [{ name: 'the canyon stack’s steam', top: steamTop.toArray(), height: 30 }, { name: 'Fisk’s flag', top: flag.top.toArray(), height: flag.height }];
+  const sightsOf = level.sights;
+  level.sights = () => [...sightsOf(), { name: 'the canyon stack', at: stack.at }];
+  const updateOf = level.update;
+  level.update = function (dt, t, ctx) { updateOf.call(this, dt, t, ctx); stack.update(dt, t, ctx); flag.wave(t ?? 0); };
   return level;
 }
 export const createBuried = stepped(buildBuried);

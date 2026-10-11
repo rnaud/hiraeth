@@ -37,6 +37,8 @@ export const CHANGELOG = [
     'In Vael, Brother Calix now waits at the foot of his bell tower, and the Founders’ Belfry wears a bronze needle with a lamp on its dome, seen over the monastery roofs from there. The lamp lights when the bell rings.',
     // things to steer by (docs/systems/worlds.md "Landmarks for the blind legs"; issues #135, #136, #134)
     'In Lorn, the lamp-keepers’ old boat-way is marked again: a row of tall stakes, each with a coral float on top, leads from the crystal cave’s south mouth across the open water, past the keepers’ light, to Hollin’s island.',
+    'In the Buried Machine, a tall chimney stack now rises out of the rust canyon at the foot of the sand ramp, a column of white steam leaning off its top: you see it over the domes, and from the canyon floor looking back. A rope on iron stakes runs down the ramp to its foot.',
+    'Fisk now flies a long teal pennant on a tall mast beside the Engine-House’s door, so you can pick out the door from Wen’s dome over the huts.',
   ] },
   { v: '1.49', date: '2026-10-11', items: [
     // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)

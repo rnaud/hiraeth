@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { SmokeColumn } from './story/flames.js';
 
 // The Buried Machine's way back to Wen (level design audit, fourth round: the walk from the great wheel back to the
 // great dome passed nothing new). The Tooth Day posts: every Tooth Day the counters walk the sliver the wheel dropped
@@ -136,4 +137,110 @@ export function buildFlueVents(scene, terrain) {
     points: [[from[0] - 4, H(from[0] - 4, from[1] + 3) + 0.5, from[1] + 3], ...vents.map((p) => [p.x, p.y - 0.75, p.z]), [to[0] + 12, H(to[0] + 12, to[1] - 3) + 0.5, to[1] - 3]],
     vents, whistle: V(wx, wy + 5.9, wz), sight: V(wx, wy + 0.5, wz),
   };
+}
+
+// The canyon stack (level design audit v1.49, issue #136: from Wen down into the rust canyon was 181 m with nothing to
+// steer by, and the canyon's floor and the oculus saw no landmark: 57 % of the path saw one). The machine breathes out
+// of the canyon too: a chimney stack of the dunes' kind (src/levels/buried.js "tall chimney stacks"), stood on the floor
+// at the foot of the sand ramp against the west wall, rising past the rim to 70 m over the dunes, a ring platform at
+// the rim and one halfway up, and a column of steam out of its top that leans away on the wind. Seen over the domes from
+// Wen's, from the dunes and from the canyon's floor up and down. Solid as drawn; the steam is drawn only. No rng.
+//
+//   buildCanyonStack(scene, M, { x, z, floor, rim }) → { at, top, steam, update(dt, t, ctx) }
+//
+// Fisk's flag (the same issue: Wen → the Engine-House's door, 117 m, was blind by the numbers: the house shows, its
+// door is hidden behind a hut): a tall iron mast beside the oval door with a long teal pennant streaming off it, the
+// doorkeeper's, so the door shows over the domes. Drawn only (a mast you walk round).
+//
+//   buildDoorFlag(scene, M, terrain, { x, z }) → { top, height, wave(t) }
+
+// The ramp's rope (the same issue): iron stakes down the sand ramp's west side from its head by the domes to its foot
+// by the canyon stack, a rope slung between them, for the domes' people going down on Tooth Day. Drawn only. No rng.
+//
+//   buildRampRope(scene, M, terrain, { cx }) → { points }
+
+/** The ramp's rope: a stake every `every` m of z from the ramp's head to its foot, `off` m west of the centreline. */
+export const RAMP_ROPE = { z0: -36, z1: -158, every: 8, off: -12, h: 1.1 };
+
+export function buildRampRope(scene, M, terrain, { cx }) {
+  const { z0, z1, every, off, h } = RAMP_ROPE;
+  const iron = [], rope = [], tops = [];
+  for (let z = z0; z >= z1; z -= every) {
+    const x = cx(z) + off, y = terrain.heightAt(x, z);
+    iron.push(nonIdx(new THREE.CylinderGeometry(0.06, 0.08, h + 0.4, 5).translate(x, y + (h - 0.4) / 2, z)));
+    iron.push(nonIdx(new THREE.TorusGeometry(0.1, 0.03, 4, 8).translate(x, y + h, z)));
+    tops.push(V(x, y + h, z));
+  }
+  // the rope: slung between the stakes, sagging a little in each span
+  const seg = (a, b) => { const d = a.distanceTo(b), c = new THREE.CylinderGeometry(0.03, 0.03, d, 4).translate(0, d / 2, 0); c.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), b.clone().sub(a).normalize())); return nonIdx(c.translate(a.x, a.y, a.z)); };
+  for (let i = 1; i < tops.length; i++) {
+    const a = tops[i - 1], b = tops[i], pts = [0, 0.25, 0.5, 0.75, 1].map((t) => a.clone().lerp(b, t).add(V(0, -0.35 * Math.sin(t * Math.PI), 0)));
+    for (let k = 1; k < pts.length; k++) rope.push(seg(pts[k - 1], pts[k]));
+  }
+  const g = new THREE.Group();
+  g.name = 'The ramp’s rope';
+  const stakes = new THREE.Mesh(mergeGeometries(iron), M.rustDark), line = new THREE.Mesh(mergeGeometries(rope), M.ink);
+  for (const m of [stakes, line]) m.userData.noCollide = true;
+  g.add(stakes, line);
+  scene.add(g);
+  return { points: tops.map((p) => [p.x + 1.5, p.y - h + 0.5, p.z]), tops };
+}
+
+/** The canyon stack: at the sand ramp's foot, this far west of the canyon's centreline. */
+export const CANYON_STACK = { z: -165, off: -15, top: 72 };
+/** Fisk's flag: beside the Engine-House's door, on the side away from the flue vents (src/temples/buried.js SITE). */
+export const DOOR_FLAG = { x: -95.5, z: 99.5, h: 19 };
+
+export function buildCanyonStack(scene, M, { x, z, floor, rim }) {
+  const b = floor - 2, top = CANYON_STACK.top, hh = top - b;
+  const body = [], dark = [], ink = [], pipe = [];
+  body.push(nonIdx(new THREE.CylinderGeometry(2.5, 3.4, hh, 14).translate(x, b + hh / 2, z)));
+  dark.push(nonIdx(new THREE.CylinderGeometry(3.1, 2.7, 3, 14).translate(x, top + 1.5, z)));
+  // the ring platforms: at the canyon's rim (the dunes' height) and halfway up from there
+  for (const y of [rim + 1, (rim + top) / 2]) {
+    dark.push(nonIdx(new THREE.CylinderGeometry(6, 6, 0.8, 18).translate(x, y, z)));
+    ink.push(nonIdx(new THREE.TorusGeometry(6, 0.08, 4, 24).rotateX(Math.PI / 2).translate(x, y + 1.1, z)));
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; ink.push(nonIdx(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 4).translate(x + Math.cos(a) * 6, y + 0.6, z + Math.sin(a) * 6))); }
+  }
+  // a feed pipe up its canyon side and a mast on the cap
+  pipe.push(nonIdx(new THREE.CylinderGeometry(0.8, 0.8, hh * 0.72, 8).translate(x + 4, b + hh * 0.36, z)));
+  ink.push(nonIdx(new THREE.CylinderGeometry(0.15, 0.2, 12, 5).translate(x + 1.5, top + 8, z + 1)));
+  const g = new THREE.Group();
+  g.name = 'The canyon stack';
+  const meshes = [new THREE.Mesh(mergeGeometries(body), M.steelFlat), new THREE.Mesh(mergeGeometries(dark), M.rustDark), new THREE.Mesh(mergeGeometries(pipe), M.pipe2), new THREE.Mesh(mergeGeometries(ink), M.ink)];
+  meshes[3].userData.noCollide = true;
+  for (const m of meshes.slice(0, 3)) m.userData.castShadow = true;
+  g.add(...meshes);
+  scene.add(g);
+  // the steam: white, a little grey where it thins, over the canyon and the dunes
+  const at = V(x, top + 3, z);
+  const steam = new SmokeColumn(scene, at, { count: 90, height: 80, drift: 70, base: 2.4, top: 8, period: 70, palette: ['#f6f3ec', '#ece9e2', '#dfe2e2', '#e8e4da'], tint: '#f6f3ec', glow: 0.9 });
+  steam.mesh.name = 'The canyon stack’s steam';
+  let acc = 0, frame = 0;
+  return {
+    at: V(x, floor + 0.5, z), top: V(x, top + 3, z), steam,
+    // (its column is a landmark: drawn always; moved every other frame, as the desert's camp smoke)
+    update(dt, t, ctx) { acc += dt; if (frame++ % 2) return; steam.update(acc, t, ctx?.player?.wind ?? null, ctx?.camera ?? null); acc = 0; },
+  };
+}
+
+export function buildDoorFlag(scene, M, terrain, { x, z, h } = DOOR_FLAG) {
+  const y = terrain.heightAt(x, z) - 0.3;
+  const iron = [nonIdx(new THREE.CylinderGeometry(0.2, 0.32, h, 8).translate(x, y + h / 2, z)), nonIdx(new THREE.CylinderGeometry(0.5, 0.6, 0.4, 8).translate(x, y + 0.2, z)),
+    nonIdx(new THREE.SphereGeometry(0.28, 8, 6).translate(x, y + h + 0.2, z))];
+  // the pennant: long, tapering, a ripple along it, streaming away from the house broadside to the domes, the teal of the door's ring
+  const L = 11, tail = new THREE.PlaneGeometry(L, 2.6, 22, 1).translate(L / 2, 0, 0);
+  { const p = tail.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / L; p.setY(i, p.getY(i) * (1 - 0.8 * u) - 0.8 * u); p.setZ(i, Math.sin(u * 5) * 0.6 * u); } tail.computeVertexNormals(); }
+  const cloth = makeMaterial({ color: '#3f8c92', flat: true });
+  cloth.side = THREE.DoubleSide;
+  const pennant = new THREE.Mesh(tail, cloth);
+  pennant.position.set(x, y + h - 1.6, z); pennant.rotation.y = -0.69;
+  const g = new THREE.Group();
+  g.name = 'Fisk’s flag';
+  const mast = new THREE.Mesh(mergeGeometries(iron), M.ink);
+  for (const m of [mast, pennant]) m.userData.noCollide = true;
+  g.add(mast, pennant);
+  scene.add(g);
+  const base = pennant.rotation.y;
+  return { top: V(x, y + h + 0.4, z), height: h, wave: (t) => { pennant.rotation.y = base + Math.sin(t * 0.9) * 0.18; pennant.rotation.x = Math.sin(t * 1.6) * 0.15; } };
 }

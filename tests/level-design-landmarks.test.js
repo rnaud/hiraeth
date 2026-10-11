@@ -54,3 +54,37 @@ test('Lorn (issue #135): the Great Crystal shows over the landing’s grove from
     assert.ok(lineOf(W.level, 'the keepers’ stakes'), 'the audit reads them as a leading line');
   } finally { W.dispose(); }
 });
+
+test('the Buried Machine (issue #136): the canyon stack’s steam shows from round Wen’s dome and up from the canyon floor, Fisk’s flag over the door from Wen, the ramp’s rope down to the stack', () => {
+  globalThis.location = { search: '?level=buried' };
+  const W = A.loadWorld('buried');
+  try {
+    const B = W.level.buried, ground = (x, z) => W.physics.groundAt(x, 60, z, 200);
+    const steam = beaconOf(W.level, 'the canyon stack’s steam'), flag = beaconOf(W.level, 'Fisk’s flag');
+    const canyon = A.objectiveAt(W, 'canyon'), wen = A.objectiveAt(W, 'wen');
+    assert.ok(flat(V(...steam.top), canyon) < 80, 'the steam rises within 80 m of the canyon’s goal (the audit’s “landmark by it”)');
+    assert.ok(B.stack.top.y > 65, `the stack’s top ${B.stack.top.y.toFixed(0)} m, over the dunes`);
+    // Wen walks a round of her dome (src/story/buried.js loop: five points 7.2 m out): from the three on its south,
+    // east and west sides the steam shows (from the first, on its north side, the dome itself hides the south)
+    const dome = B.heroDome;
+    for (const i of [1, 2, 3]) {
+      const a = 0.4 + (i / 5) * Math.PI * 2, x = dome.x + Math.sin(a) * 7.2, z = dome.z + Math.cos(a) * 7.2;
+      assert.equal(blocker(W, V(x, ground(x, z) + EYE, z), aimOf(steam)), null, `the steam from Wen’s round, point ${i}`);
+    }
+    // down on the canyon's floor, south of the stack, before the first cross-wall: looking back up the canyon
+    for (const z of [-200, -230, -250]) {
+      const x = B.canyonX(z), from = V(x, B.floorAt(z) + EYE, z);
+      assert.equal(blocker(W, from, aimOf(steam)), null, `the steam from the canyon floor at z ${z}`);
+    }
+    // Fisk's flag over the Engine-House's door, from where Wen is first met (the door itself is behind a hut)
+    assert.equal(blocker(W, eyeAt(wen), aimOf(flag)), null, 'Fisk’s flag from Wen');
+    const door = A.objectiveAt(W, 'temple.buried.door');
+    if (door) assert.ok(flat(V(...flag.top), door) < 20, 'the flag stands by the door');
+    // the ramp's rope: from beside the domes down the sand ramp to the stack's foot, each stake in sight of the next
+    const T = B.rope.tops;
+    assert.ok(flat(T[0], wen) < 60, `the rope starts ${flat(T[0], wen).toFixed(0)} m from Wen (the audit’s reach: 60 m)`);
+    assert.ok(flat(T.at(-1), canyon) < 30, `and ends ${flat(T.at(-1), canyon).toFixed(0)} m from the canyon’s goal`);
+    for (let i = 1; i < T.length; i++) assert.equal(blocker(W, V(T[i - 1].x, T[i - 1].y + 0.6, T[i - 1].z), V(T[i].x, T[i].y + 0.2, T[i].z), { near: 0.5 }), null, `stake ${i} in sight of stake ${i - 1}`);
+    assert.ok(lineOf(W.level, 'the ramp’s rope'), 'the audit reads it as a leading line');
+  } finally { W.dispose(); }
+});

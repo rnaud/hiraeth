@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.50 — 2026-10-11
 
+- Fisk now flies a long teal pennant on a tall mast beside the Engine-House’s door, so you can pick out the door from Wen’s dome over the huts.
+- In the Buried Machine, a tall chimney stack now rises out of the rust canyon at the foot of the sand ramp, a column of white steam leaning off its top: you see it over the domes, and from the canyon floor looking back. A rope on iron stakes runs down the ramp to its foot.
 - In Lorn, the lamp-keepers’ old boat-way is marked again: a row of tall stakes, each with a coral float on top, leads from the crystal cave’s south mouth across the open water, past the keepers’ light, to Hollin’s island.
 - In Vael, Brother Calix now waits at the foot of his bell tower, and the Founders’ Belfry wears a bronze needle with a lamp on its dome, seen over the monastery roofs from there. The lamp lights when the bell rings.
 - In Vael, Sister Aube keeps a fire in her hermitage: from the riders’ gate its thread of smoke rises high over the sky stones, so you can fly straight to her.

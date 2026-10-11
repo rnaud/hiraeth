@@ -730,6 +730,22 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-130, 2.6, -90], target: [-7, 4, -469], player: [-130, 0.5, -90] } },
     ], numbers: [{ title: 'The long legs that see their goal or a landmark by it (level design audit)', unit: '%', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'Lorn (wayfinding 4 → 5)', before: 78, after: 100 }], source: 'node audit, this build against v1.50 before it: the crystal cave → Hollin (631 m) now led by the stakes; Wendel → the Great Crystal (188 m) was always in sight, the audit now aims at the crystal’s tip' }],
       see: 'Ring the heart of the crystal cave, then leave by its south mouth on the skiff: follow the coral floats to Hollin.' },
+    { match: 'In the Buried Machine, a tall chimney stack now rises out of the rust canyon', shots: [
+      { name: 'canyon-steam', title: 'From Wen’s dome', caption: 'From the south side of Wen’s great dome, toward the rust canyon: before, the canyon’s far wall and the sky; after, the canyon stack rising out of it and its steam leaning off over the dunes', from: WAYS50,
+        view: { level: 'buried', hour: 10.5, fov: 60, eye: [-20, 14, -10], target: [-35, 70, -165], player: [-20, 10, -10] } },
+      { name: 'canyon-rope', title: 'At the ramp’s head', caption: 'At the top of the sand ramp: before, the bare sand going down; after, the rope on its stakes down the ramp’s side to the stack’s foot', from: WAYS50,
+        view: { level: 'buried', hour: 10.5, fov: 60, eye: [-5, 8, -30], target: [-30, -20, -150], player: [-5, 5, -30] } },
+      { name: 'canyon-floor', title: 'From the canyon floor', caption: 'On the canyon floor 130 m south of the ramp, looking back through the cross-wall: before, the canyon’s walls and the sky; after, the stack standing over them', from: WAYS50,
+        view: { level: 'buried', hour: 10.5, fov: 60, eye: [-11, -31.5, -300], target: [-30, 10, -175], player: [-11, -33.5, -300] } },
+    ], numbers: [{ title: 'The level design audit, the Buried Machine', unit: '%', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [
+      { where: 'the path that sees a landmark (landmarks 3 → 4)', before: 59, after: 77 },
+      { where: 'the long legs that see their goal or a landmark by it (wayfinding 4 → 5)', before: 75, after: 100 },
+    ], source: 'node audit, this build against v1.50 before it (59 %: with the flue vents of #132 already in)' }],
+      see: 'Hear Wen out by the great dome, step round it to the south: the steam over the canyon, the rope down the ramp to the stack.' },
+    { match: 'Fisk now flies a long teal pennant', shots: [
+      { name: 'door-flag', title: 'From Wen', caption: 'From where you first meet Wen, toward the Engine-House: before, the door hidden behind a hut; after, Fisk’s teal pennant on its mast beside it', from: WAYS50,
+        view: { level: 'buried', hour: 10.5, fov: 40, eye: [-27, 10.6, 1], target: [-98, 18, 96], player: [-27, 8.9, 1] } },
+    ], see: 'From Wen’s dome, look west toward the Engine-House: the pennant marks its door.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

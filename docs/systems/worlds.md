@@ -1860,6 +1860,17 @@ spots it is there for, with the audit's own rays, in `tests/level-design-landmar
 - **Lorn, Wendel → the Great Crystal** (188 m): it was always in sight (the pink spire with its ring over the landing's
   grove), but the audit's height grid keeps the thirty most striking peaks and the Deep Wood's mushrooms are all taller,
   so the crystal was no landmark to it. It is a beacon now, aimed at by its tallest spire's tip (`crystal.tip`).
+- **The Buried Machine, Wen → the rust canyon** (181 m; `src/buried-ways.js` `CANYON_STACK`, `RAMP_ROPE`): the canyon
+  stack, a chimney of the dunes' kind on the canyon floor at the sand ramp's foot against the west wall, 106 m from its
+  foot to its cap (70 m over the dunes), ring platforms at the rim and halfway, solid as drawn; a `SmokeColumn` of
+  white steam off its top (src/story/flames.js, 90 puffs, moved every other frame in the level's update), the beacon
+  `the canyon stack's steam`. Seen from three of the five points of Wen's round of her dome (from the first, on its
+  north side, the dome hides the south below 50°), from the dunes and back up the canyon floor to the first cross-wall.
+  The ramp's rope, iron stakes every 8 m down the ramp's west side with a rope slung between (drawn only), is the
+  leading line from the domes to the stack's foot. The landmarks seen along the path: 59 → 77 %.
+- **The Buried Machine, Wen → the Engine-House's door** (117 m; `DOOR_FLAG`): the house shows, but its door hides behind a
+  hut. Fisk's flag, a 19 m iron mast beside the door with an 11 m pennant in the door ring's teal, broadside to the domes
+  (drawn only), the beacon `Fisk's flag`.
 
 ## A shop in every route world (v1.14)
 
