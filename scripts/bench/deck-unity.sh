@@ -6,7 +6,7 @@
 #   scripts/bench/deck-unity.sh put <dir with memento-js.x86_64 | .tar.gz> <name>      copy a player over
 #   scripts/bench/deck-unity.sh run <name> <level> <views.json> <out dir here> [player args…]
 #   scripts/bench/deck-unity.sh busy | stop | ls | rm <name>   (busy: what bench, if any, runs there now)
-# REFRESH: gamescope's refresh rate (default 90, the OLED's Gaming Mode; 60 for the 60 Hz rows). The player's own
+# REFRESH: gamescope's refresh rate (default 90, the OLED's Gaming Mode; 60 for the 60 Hz rows). (Or -hz N first among the player's arguments.) The player's own
 # arguments follow (-bench 6 -split -metrics are always passed; -vsync 1, -no-grd, -shadow-lists, … for the levers).
 # The player's data (persistentDataPath: prewarm.txt, unity.log, Player.log) goes to
 # ~/.local/share/moebius-bench-unity/config (XDG_CONFIG_HOME), never the player's own game or saves. Only our own unit
@@ -28,6 +28,8 @@ case "$1" in
     ssh -o BatchMode=yes "$DECK" "rm -rf $BASE/$name/*_BackUpThisFolder_ButDontShipItWithYourGame; du -sh $BASE/$name" ;;
   run)
     name=$2; level=$3; views=$4; out=$5; shift 5
+    # (-hz N first among the player's arguments: gamescope's refresh, as REFRESH; -hz 60v: and the player's vsync on)
+    if [ "$1" = -hz ]; then REFRESH=${2%v}; v=$2; shift 2; [ "$v" != "$REFRESH" ] && set -- -vsync 1 "$@"; fi
     busy=$(ssh -o BatchMode=yes "$DECK" "$ENVS; $BUSY")
     if [ -n "$busy" ]; then echo "the Deck is busy with another bench ($busy): not started"; exit 2; fi
     scp -q "$views" "$DECK:$PROF/views.json"
