@@ -390,9 +390,13 @@ export const QUALITY_PRESETS = {
     shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 4, taps: 4,
     ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14 },
   // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
-  // reports a pixel ratio of 2 at 1080p, where High renders 1× as well), adapting down to 0.6 when a scene is too
-  // much: the console's first measurements (docs/systems/xbox.md) will say what to trim
-  xbox:     { ...FULL, label: 'Xbox (High, adapts)', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40 } },
+  // reports a pixel ratio of 1.5 at 1080p), adapting down to 0.6 when a scene is too much. Its main thread is the
+  // limit (docs/systems/xbox.md, "Why 20 fps": every WebGL call costs ~5 µs there), so the Deck's shadows (no fine
+  // cascade, a whole pass of the scene a frame; the near map every other frame over a smaller square, the GPU has
+  // room), no resolution dropped for a slow main thread (cpuBound, as the Deck), and an even 30 while the frames
+  // are too slow for 60 (pace: frame-pace.js)
+  xbox:     { ...FULL, label: 'Xbox (High, adapts)', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
+    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 4, pace: 'auto' },
   medium:   { ...FULL, label: 'Medium', scale: 1 },
   high:     { ...FULL, label: 'High (smooth lines)', scale: 1.5 },
 };

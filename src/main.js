@@ -43,6 +43,8 @@ import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
 import { tileSceneSteps, cullFar, fitBounds, waterContactOn, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
+import { FramePacer } from './frame-pace.js';
+import { StaticBatches, opaqueSort } from './static-batch.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -190,6 +192,12 @@ const gbuffer = createGBuffer({ depthTexture: true });   // (src/pipeline.js: sh
 // fine = crisp character shadows, near = the street around you, far = mesas shadowing distant dunes.
 // Sizes come from the graphics preset (applyQuality); bias and normal offset are in texels.
 const shadowOverride = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, colorWrite: false });
+// (one copy of it for each kind of mesh, so three keeps each kind's program instead of looking it up again whenever
+//  a plain mesh follows an instanced or a skinned one: scripts/three-program-keys.mjs; the same programs)
+{
+  const kinds = { mesh: shadowOverride, instanced: shadowOverride.clone(), skinned: shadowOverride.clone(), batched: shadowOverride.clone() };
+  shadowOverride.overrideFor = (o) => (o.isBatchedMesh ? kinds.batched : o.isInstancedMesh ? kinds.instanced : o.isSkinnedMesh ? kinds.skinned : kinds.mesh);
+}
 const SU = sharedUniforms;
 const brushTrail = new BrushTrail(sharedUniforms);   // the plants and the grass feel the traveller pass (src/brush.js)
 const cascades = {
@@ -1602,6 +1610,7 @@ function glowCasters() {
 const shadowCull = new ShadowCuller(scene);
 const smallCull = new SmallCuller(scene);
 let roomCull = null;
+let statics = null;   // the still meshes' batches (src/static-batch.js), made once the world is built
 const makeRoomCull = () => new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] });
 // and the other way round: inside one of those rooms, the whole map outside it (perf.js InteriorCuller)
 const interiorCull = new InteriorCuller(scene, offMapRooms, { ground: (x, z) => terrain.heightAt?.(x, z) ?? 0 });
@@ -1639,6 +1648,7 @@ function shadowPass(c, reach, hide = [], kept = false) {
   const off = shadowCull.hide(reach, c.texel, c.depth, 0.75, hide, kept ? VIEW_SLACK : null);
   c.view = viewOf(camera, c.view);
   c.render(renderer, scene);
+  statics?.drawShadows(renderer, c.cam);   // (the still meshes, one draw: static-batch.js)
   // (a mesh whose shape its own material makes, drawn with that material: the traveller's overshirt, tripo-cloth.js)
   if (player.object.visible) for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
   frameStats.culled += off.length;
@@ -1656,6 +1666,7 @@ function renderFrame() {
   scene.matrixWorldAutoUpdate = true;
   scene.updateMatrixWorld();
   scene.matrixWorldAutoUpdate = false;
+  statics?.update(renderer);   // (the batched still meshes that moved: static-batch.js)
   // hidden in every pass of this frame (then shown again): far pebbles and shrubs, props under
   // a pixel or two on screen, rooms off the map while the camera is elsewhere
   camera.updateMatrixWorld();
@@ -1679,6 +1690,7 @@ function renderFrame() {
   let turned = false;
   for (const c of Object.values(cascades)) turned = c.aim(shadowDir) || turned;
   scene.overrideMaterial = shadowOverride;
+  statics?.shadowsBegin();
   const shadowHidden = [];
   for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], tinyShadowCasters(), glowCasters()])
     for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
@@ -1705,6 +1717,7 @@ function renderFrame() {
   }
   frameNo++;
   scene.overrideMaterial = null;
+  statics?.shadowsEnd();
   for (const o of shadowHidden) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
@@ -1835,6 +1848,7 @@ const fpsEl = document.getElementById('fps');
 const gpuTimer = new GpuTimer(renderer.getContext());
 let fpsN = 0, fpsT = performance.now(), cpuMs = 0, lastFrameT = 0;
 const gaps = [];   // this window's frame intervals (ms): the missed refreshes, for dynamic resolution
+const pacer = new FramePacer();   // (an even frame rate where the preset asks: frame-pace.js)
 /** Frames in this window that missed a refresh: over 1.5x the window's quickest interval. */
 function missedFrames() {
   let quick = Infinity, n = 0;
@@ -1853,6 +1867,8 @@ function frameReadout(fps) {
     + xboxReadout();   // (the Xbox app only: whether the JIT is on, the JS heap; '' elsewhere)
 }
 function frame(ts) {
+  // (paced: a refresh left out while the frames are too slow for every one, an even 30 rather than 20-50: frame-pace.js)
+  if (pacer.skip(ts)) { requestAnimationFrame(frame); return; }
   const tFrame = performance.now();
   // the missed refreshes from the animation frame's timestamp (when the frame is shown), not from when its
   // callback starts: GeckoView starts a late frame's callback late and evenly (19-22 ms apart while the
@@ -1863,7 +1879,9 @@ function frame(ts) {
   if (++fpsN, tFrame - fpsT > 500) {
     const fps = (fpsN * 1000) / (tFrame - fpsT);
     if (settings.showFps) fpsEl.textContent = frameReadout(fps);
-    adaptQuality(fps, missedFrames(), cpuMs / fpsN, Math.min(...gaps, 1000 / 60));   // (the main thread's time a frame, the refresh)
+    const refresh = Math.min(...gaps, 1000 / 60), every = pacer.judge(cpuMs / fpsN, refresh, preset.pace);
+    // (the main thread's time a frame, the refresh; paced, judged against the rate aimed at: 30 on every second refresh is on time)
+    adaptQuality(fps * every, missedFrames(), cpuMs / fpsN, pacer.interval);
     fpsN = 0; fpsT = tFrame; cpuMs = 0; gaps.length = 0;
     frameStats.calls = frameStats.tris = frameStats.n = frameStats.culled = 0;
   }
@@ -2190,6 +2208,15 @@ const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = nu
   warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace });
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
+// the world's still meshes, a batch (and a draw) per material, and one for the shadow maps (src/static-batch.js;
+// ?batch=0 leaves each mesh drawing itself)
+if (query.get('batch') !== '0') {
+  const t0 = performance.now();
+  statics = new StaticBatches(scene, { keep: [...movers(), foes.group] });
+  console.info(`still meshes: ${statics.stats.meshes} in ${statics.stats.batches} batches, ${(performance.now() - t0).toFixed(0)} ms`);
+  window.statics = statics;   // (measuring: statics.enabled, statics.report())
+  renderer.setOpaqueSort(opaqueSort);   // (each batch drawn where its first material was: coplanar surfaces in the same order)
+}
 await slice();
 // the foes this world can field (every kind in the Arena), in the scene for the warm passes only (src/foes.js warmModels;
 // v1.42, issue #1: a kind's first appearance compiled 1-5 programs mid-fight, 100-200 ms frames in the Arena's waves;
@@ -2215,6 +2242,7 @@ await slice();
 // (a person or a plant first seen in a shadow had stalled a frame on its compile)
 setStep('shadows');
 await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null, { wear: shadowOverride });
+if (statics?.shadow) await warmShaders(statics.shadow, cascades.near.cam, cascades.near.rt);   // (the still meshes' shadow batch)
 // each program's first use, once the driver says it is linked (src/warm-shaders.js firstUse): the warm draws below
 // asked for each one's uniforms at once, and the page froze till it was (the Xbox: 1-4 s a program)
 setStep('first use');

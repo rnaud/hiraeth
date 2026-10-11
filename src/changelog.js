@@ -27,6 +27,37 @@ export const CHANGELOG = [
     // screenshot drafts for the Notes page (docs/systems/notes.md "Screenshot drafts"; issue #8)
     { text: 'The world debug menu can save a screenshot as a draft for the Notes page: the picture, the world, where you stand, the build and the preset. The first time, the game shows a code to enter on the Notes page to pair the device. Drafts wait on the Notes page, apart from the issues, to be written up and sent, or deleted.',
       see: 'In a world, press both sticks (or F2), open the Notes section and choose Screenshot to a Notes draft. Then open the Notes page on your phone.' },
+    // the Xbox's frame rate (docs/systems/xbox.md, "Why 20 fps" and "Towards 60 on the Xbox")
+    { text: 'On the Xbox the game now holds an even 30 frames a second where it can’t yet reach 60, instead of jumping between 20 and 50, and stays at the TV’s full sharpness: it no longer drops the resolution when the console’s processor, not its graphics chip, is what is slow. Its shadows are drawn as on the Steam Deck, which takes about a sixth of the work off each frame.',
+      numbers: [
+        { title: 'The desert’s spawn, the Xbox preset: the main thread’s time a frame', unit: 'ms', better: 'lower', device: 'Xbox Series X (Dev Mode, WebView2 150), the game served from the Mac for both builds', rows: [
+          { where: 'the main thread', before: 53.6, after: 46.3 },
+          { where: 'frames a second', before: 18, after: 21 },
+          { where: 'the slowest frames (95th percentile, ms)', before: 66.8, after: 50.7 },
+        ], source: 'the frame readout over 8 s and the animation frames over 4 s, after 12 s to settle' },
+        { title: 'WebGL calls a frame at the desert’s spawn, the Xbox preset', unit: '', better: 'lower', device: 'Xbox Series X (Dev Mode, WebView2 150)', rows: [
+          { where: 'WebGL calls', before: 3244, after: 2762 },
+          { where: 'draws', before: 819, after: 661 },
+        ], source: 'every WebGL call counted for 4 s (scripts/xbox-probes/glcount.js’s way)' },
+        { title: 'The same on a slower Mac: the main thread and the pacing', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome on ANGLE Metal, 1920 × 1080, the processor slowed 2.5 times', rows: [
+          { where: 'the main thread', before: 25, after: 20 },
+          { where: 'frames a second', before: '37–41', after: 30 },
+          { where: 'the resolution', before: 0.6, after: 1 },
+        ], source: 'scripts/bench/mac-spawn.mjs’s set-up, the frame readout over 6 s' },
+      ] },
+    { text: 'Every world draws its buildings, rocks and props that never move in a few batches instead of one at a time: a third to a half fewer instructions to the graphics chip each frame on every device, with the same picture.',
+      numbers: [
+        { title: 'WebGL calls a frame, the Xbox preset, batches off and on in the same game', unit: '', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome on ANGLE Metal, 1920 × 1080 as the console', rows: [
+          { where: 'the desert’s spawn', before: 3922, after: 2357 },
+          { where: 'the City-Shaft', before: 3369, after: 2291 },
+          { where: 'the Signal Market', before: 2528, after: 2105 },
+        ], source: 'every WebGL call counted, batches off and on in turns three times (statics.enabled)' },
+        { title: 'Draws a frame, the same views', unit: '', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+          { where: 'the desert’s spawn', before: 945, after: 355 },
+          { where: 'the City-Shaft', before: 913, after: 461 },
+          { where: 'the Signal Market', before: 645, after: 500 },
+        ], source: 'the frame readout', note: 'The same frozen frame with the batches off and on: 0.003–0.01 % of the pixels differ, single pixels on ink edges, by at most 16 of 255 at the desert’s spawn.' },
+      ] },
   ] },
   { v: '1.45', date: '2026-10-11', items: [
     // the author's desert playtest (issues #66, #68, #69, #71, #76)

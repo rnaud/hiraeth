@@ -1,0 +1,169 @@
+// The world's still meshes drawn by a few batches (src/static-batch.js, docs/systems/xbox.md "Towards 60 on the
+// Xbox"): which meshes are taken, materials differing only in their colours (and band, grid, flat) sharing a view
+// batch, the ids and textures the surface shader reads, each pass drawing what would have drawn itself (shown, in
+// the frustum, in its current geometry), a moved mesh followed, a changed material's meshes drawing themselves.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import * as THREE from 'three';
+import { StaticBatches, staticReason, restKey, attributeKey, batchCopy, numbersOf, shownUnder, VARIES, BATCH_ID } from '../src/static-batch.js';
+import { makeMaterial } from '../src/materials.js';
+
+const box = () => new THREE.BoxGeometry(1, 1, 1);
+function world() {
+  const scene = new THREE.Scene();
+  const a = makeMaterial({ color: '#aa3322', key: 'test.static.a' }), b = makeMaterial({ color: '#2233aa', key: 'test.static.b' });
+  const odd = makeMaterial({ color: '#2233aa', weathered: 1, key: 'test.static.odd' });   // (other defines: another group)
+  const meshes = [];
+  for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(box(), i % 2 ? b : a); m.position.set(i * 3, 0, -10); scene.add(m); meshes.push(m); }
+  const lone = new THREE.Mesh(box(), odd); lone.position.set(0, 0, -20); scene.add(lone);
+  const mover = new THREE.Group(); scene.add(mover);
+  const carried = new THREE.Mesh(box(), a); mover.add(carried);
+  return { scene, a, b, odd, meshes, lone, mover, carried };
+}
+const camera = () => { const c = new THREE.PerspectiveCamera(60, 1, 0.1, 500); c.updateMatrixWorld(); c.updateProjectionMatrix(); return c; };
+
+test('which meshes a batch may take', () => {
+  const m = makeMaterial({ color: '#ffffff', key: 'test.static.reason' });
+  assert.equal(staticReason(new THREE.Mesh(box(), m)), '');
+  assert.equal(staticReason(new THREE.InstancedMesh(box(), m, 2)), 'kind');
+  assert.equal(staticReason(new THREE.Mesh(box(), new THREE.MeshBasicMaterial())), 'not surface');
+  const glass = makeMaterial({ color: '#ffffff', key: 'test.static.glass' }).clone(); glass.transparent = true;
+  assert.equal(staticReason(new THREE.Mesh(box(), glass)), 'material state');
+  const sway = makeMaterial({ color: '#33aa33', sway: 1, key: 'test.static.sway' });
+  assert.match(staticReason(new THREE.Mesh(box(), sway)), /^define /);
+  const unculled = new THREE.Mesh(box(), m); unculled.frustumCulled = false;
+  assert.equal(staticReason(unculled), 'unculled');
+  const own = new THREE.Mesh(box(), m); own.onBeforeRender = () => {};
+  assert.equal(staticReason(own), 'onBeforeRender');
+  const flagged = new THREE.Mesh(box(), m); flagged.userData.dynamic = true;
+  assert.equal(staticReason(flagged), 'flagged');
+  const ranged = new THREE.Mesh(box(), m); ranged.geometry.setDrawRange(0, 6);
+  assert.equal(staticReason(ranged), 'draw range');
+});
+
+test('materials that differ only in the values read per mesh share a key; any other difference splits them', () => {
+  const a = makeMaterial({ color: '#aa3322', key: 'test.static.k1' }), b = makeMaterial({ color: '#2233aa', flat: true, key: 'test.static.k2' });
+  assert.equal(restKey(a), restKey(b));
+  const c = makeMaterial({ color: '#2233aa', glow: 0.3, key: 'test.static.k3' });
+  assert.notEqual(restKey(a), restKey(c), 'a glow is not read per mesh');
+  assert.ok(VARIES.includes('uColor') && VARIES.includes('uFlat'));
+  assert.notEqual(attributeKey(new THREE.BoxGeometry()), attributeKey(new THREE.BoxGeometry().toNonIndexed()));
+});
+
+test('a batch copy carries the mesh id on every vertex, indexed if the batch is', () => {
+  const g = new THREE.BoxGeometry().toNonIndexed();
+  const c = batchCopy(g, 7, ['position'], true);
+  assert.deepEqual(Object.keys(c.attributes).sort(), ['aBatchId', 'position']);
+  assert.ok(c.index && c.index.count === g.attributes.position.count);
+  assert.ok([...c.attributes[BATCH_ID].array].every((x) => x === 7));
+});
+
+test('the still meshes go into batches; their layers off; movers left alone; one shadow batch for all', () => {
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  assert.equal(S.view.length, 1, 'one view batch for the two colours');
+  assert.equal(S.view[0].items.length, 6);
+  assert.equal(S.view[0].material.defines.S_BATCH, 1);
+  assert.equal(S.why.get(W.carried), 'mover');
+  assert.equal(S.why.get(W.lone), 'few');
+  for (const m of W.meshes) assert.equal(m.layers.mask, 0);
+  assert.notEqual(W.lone.layers.mask, 0, 'too few of its kind: it draws itself');
+  assert.equal(S.shadow.items.length, 7, 'every still mesh casts through the shadow batch, the lone one too');
+  // the shared textures: each mesh's matrix and its own material's colour at its id
+  for (const e of S.entries) {
+    const mat = S.tables.matrices.image.data.subarray(e.id * 16, e.id * 16 + 16);
+    assert.deepEqual([...mat], e.o.matrixWorld.elements.map(Math.fround));
+    const v = S.tables.values.image.data;
+    assert.ok(Math.abs(v[e.id * 16] - e.mat.uniforms.uColor.value.r) < 1e-6);
+  }
+  assert.equal(S.view[0]._matricesTexture, S.shadow._matricesTexture, 'one matrices texture for every batch');
+});
+
+test('a pass draws what would have drawn itself: shown, in the frustum; in front-to-back order by material', () => {
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  const b = S.view[0], cam = camera();
+  W.scene.updateMatrixWorld(true);
+  b.onBeforeRender(null, W.scene, cam);
+  const inView = W.meshes.filter((m) => new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse)).intersectsObject(m)).length;
+  assert.equal(b.drawn, inView);
+  W.meshes[0].visible = false;
+  b.onBeforeRender(null, W.scene, cam);
+  assert.equal(b.drawn, inView - 1, 'a hidden mesh is not drawn');
+  const order = b.list.map((it) => it.e.mat.id);
+  assert.deepEqual(order, [...order].sort((x, y) => x - y));
+  // an override pass (the shadow maps): nothing from the view's batches
+  W.scene.overrideMaterial = new THREE.MeshBasicMaterial();
+  b.onBeforeRender(null, W.scene, cam);
+  assert.equal(b._multiDrawCount, 0);
+});
+
+test('a level of detail swapped in is copied into the batch the first time it is drawn', () => {
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  const b = S.view[0], cam = camera();
+  const before = b._geometryInfo.length;
+  W.meshes[0].geometry = new THREE.BoxGeometry(1, 1, 1, 1, 1, 1).scale(1, 1, 1);
+  b.onBeforeRender(null, W.scene, cam);
+  assert.equal(b._geometryInfo.length, before + 1);
+  b.onBeforeRender(null, W.scene, cam);
+  assert.equal(b._geometryInfo.length, before + 1, 'once');
+});
+
+test('a moved mesh is followed; a material changed beyond its colours sends its meshes back to drawing themselves', () => {
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  const e = S.entries.find((x) => x.o === W.meshes[2]);
+  W.meshes[2].position.x += 5; W.scene.updateMatrixWorld(true);
+  S.update();
+  assert.equal(S.tables.matrices.image.data[e.id * 16 + 12], Math.fround(W.meshes[2].matrixWorld.elements[12]));
+  assert.ok(!e.out);
+  // a colour change: written again
+  W.a.uniforms.uColor.value.set('#00ff00');
+  S.update();
+  const ea = S.entries.find((x) => x.mat === W.a);
+  assert.ok(Math.abs(S.tables.values.image.data[ea.id * 16 + 1] - 1) < 1e-6);
+  assert.ok(!ea.out);
+  // a glow: its meshes draw themselves again
+  W.b.uniforms.uGlow.value = 0.5;
+  S.update();
+  const eb = S.entries.filter((x) => x.mat === W.b);
+  assert.ok(eb.every((x) => x.out && x.o.layers.mask !== 0));
+  W.b.uniforms.uGlow.value = 0;
+});
+
+test('off: every mesh draws itself again, and on again', () => {
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  S.enabled = false;
+  for (const m of W.meshes) assert.notEqual(m.layers.mask, 0);
+  assert.ok(S.view.every((b) => !b.visible));
+  S.enabled = true;
+  for (const m of W.meshes) assert.equal(m.layers.mask, 0);
+});
+
+test('the shadow passes: the lone still mesh lends its shadow to the batch', () => {
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  S.shadowsBegin();
+  assert.equal(W.lone.layers.mask, 0);
+  assert.ok(S.view.every((b) => !b.visible));
+  S.shadowsEnd();
+  assert.notEqual(W.lone.layers.mask, 0);
+  assert.ok(S.view.every((b) => b.visible));
+});
+
+test('numbersOf reads every number of a uniform value', () => {
+  assert.deepEqual(numbersOf(new THREE.Color(1, 0.5, 0), []), [1, 0.5, 0]);
+  assert.deepEqual(numbersOf([new THREE.Vector2(1, 2), 3], []), [1, 2, 3]);
+  assert.ok(shownUnder(new THREE.Object3D(), null) === false);
+});
+
+test('the surface shader reads a batched mesh by its id, its matrix as an instance\'s, its colours under S_BATCH', () => {
+  const src = readFileSync(new URL('../src/materials.js', import.meta.url), 'utf8');
+  assert.match(src, /#ifdef USE_BATCHING[\s\S]*in float aBatchId;/);
+  assert.match(src, /mat4 instanceMatrix = batchMatrix\(aBatchId\);\s*#define USE_INSTANCING/);
+  assert.match(src, /#if defined\(S_VMAT\) \|\| defined\(S_BATCH\)/);
+  assert.match(readFileSync(new URL('../src/main.js', import.meta.url), 'utf8'), /statics\?\.drawShadows\(renderer, c\.cam\)/);
+});

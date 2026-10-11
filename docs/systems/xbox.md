@@ -547,6 +547,78 @@ The per-call cost itself is the platform's, inside WebView2's GL client. The tra
 **Not measured**: the same split on Windows desktop Edge (is the per-call cost the console's or WebView2's?), and
 the cause of the 30 flushes a frame.
 
+## Towards 60 on the Xbox (October 2026)
+
+The work that followed "Why 20 fps", step by step, each measured at the desert's spawn (and the City-Shaft, the
+Signal Market) on the console and on the Mac.
+
+**Measuring an unpushed build on the console.** The app opens only its own origin, but `about:` pages are allowed:
+DevTools (the portal's relay) sends the page to `about:blank`, turns certificate errors off for it
+(`Security.setIgnoreCertificateErrors`) and puts one full-screen iframe on an HTTPS server on the Mac (a
+self-signed certificate on the Mac's LAN address). The iframe is the game, with the app's user agent (so
+`onXbox()`), its own storage (a fresh save) and its own shader cache entries; DevTools reaches it through
+`Target.setAutoAttach`. The build before and the build after are served side by side from the same server, so the
+two are measured the same way. Nothing is installed or replaced on the console.
+
+**1. The Deck's shadows and an even 30** (`QUALITY_PRESETS.xbox`, `src/frame-pace.js`):
+- no fine cascade, the near map 4096 over 120 m every other frame, the far map every 4th (the Deck's);
+- `dynamic.cpuBound` (as the Deck): a slow main thread no longer drops the resolution to 0.6 for nothing;
+- `pace: 'auto'`: while the main thread's time a frame stays over 0.85 of a refresh (three half-second windows),
+  the game draws on every second refresh, an even 30 instead of 20-50; under 0.6 of a refresh for eight windows, on
+  every refresh again. Dynamic resolution then judges the frame rate against the rate aimed at.
+
+| desert's spawn, Xbox preset | before | after |
+|---|---|---|
+| Mac, CPU ×2.5 slower: main thread, fps, scale | 25 ms, 37-41, 0.6× | 20 ms, 30 even, 1× |
+| Mac: WebGL calls, draws a frame | 3 262, 822 | 2 770, 658 |
+
+**2. The shadow passes keep their programs** (`shadowOverride.overrideFor`, a three.js patch in
+`scripts/three-program-keys.mjs`). The shadow passes draw everything with one override material, unsorted (in
+the scene's order). Each time a plain mesh followed an instanced or a skinned one, three found the material's
+program wrong for it and worked out its parameters and cache key again (`getParameters`, `getProgramCacheKey`: the
+"program parameters" 1.8 ms a frame on the console). three's `renderObjects` now asks an override material for
+the copy it keeps for each kind of mesh (plain, instanced, skinned, batched), and each copy keeps its program.
+They are the same programs: nothing new compiles. The same frozen frame drawn both ways is identical to the pixel
+(Xbox and High presets). Mac profile: `getParameters` 0.26 → 0.04 ms a frame, `getProgram` 0.17 → 0.07.
+
+Sorting the G-buffer's draws by program first (three sorts by material, then depth) was tried: 2 773 → 2 660 calls
+a frame (useProgram 110 → 65, bindTexture 90 → 65), 4 %. Not worth the change to the draw order: the calls follow
+the draws (`bindVertexArray` 683, `drawElements` 511, `uniformMatrix4fv` 372 a frame at the spawn), not the state.
+
+**3. The still meshes in a few batches** (`src/static-batch.js`, materials.js `USE_BATCHING` / `S_BATCH`; how it works
+is in the file's header). Once the world is built, every plain mesh of the surface shader that isn't under a mover is
+drawn by a `THREE.BatchedMesh` and one `WEBGL_multi_draw` call (the console has the extension):
+- **the view**: one batch per group of materials that differ only in their three colours and flat shading (every
+  other uniform, the defines and the state equal), the mesh's matrix and its colours read from two textures shared by
+  every batch, by an id each vertex carries. 479 materials of the desert's spawn make 51 batches;
+- **the shadow maps**: one batch of every still mesh, positions only, drawn after each cascade's pass.
+
+Each pass draws what would have drawn itself (shown, in the frustum, its current level of detail), in three's order
+(`opaqueSort` puts a batch where its first material was). What was copied is checked every frame (moves followed;
+a material changed beyond its colours: its meshes draw themselves again). `?batch=0` turns it off; `statics.enabled`
+toggles it in the page.
+
+- **First try, one batch per material**: 3 945 → 3 882 calls. Each batch rebinds its own matrices texture and the
+  desert's materials hold 2-3 still meshes each: nothing saved. Materials merged by their colours, one texture for all:
+  3 923 → 2 251.
+- **The world's tiles share one mesh's vertices** (perf.js tileScene): copied whole, the desert's batches held 82
+  million vertices (3.7 GB), and the passage warm-up took 10 times as long. Each copy keeps only the vertices its index
+  uses now (`compact`): 1.5 million, 74 MB for the view and 55 MB for the shadows.
+- **The picture**: the same frozen frame drawn with the batches off and on, on the Mac, Xbox preset: the desert's spawn
+  201 pixels of 2 million differ (0.01 %, at most 16 of 255), the City-Shaft 54, the Market 100, single pixels on ink
+  edges. Two causes were found and fixed: the batches drawn after everything else (two coplanar surfaces, a sign's face
+  on its board, came out the other way round: `opaqueSort`), and the grid's and strata's sizes read per mesh (a
+  division by a varying compiles to other bits than by a uniform: they stay uniforms, a group's materials agree on
+  them). The shadow batch alone is identical to the pixel.
+- **Programs**: the batched surfaces are programs of their own (82 → 91 at the desert's spawn on the Mac); the meshes
+  they draw no longer compile their own (the warm-ups skip meshes whose layers are off).
+
+| Mac, headless Chrome, Xbox preset, batches off → on (same page) | WebGL calls a frame | draws | main thread |
+|---|---|---|---|
+| the desert's spawn | 3 922 → 2 357 | 945 → 355 | 8.2 → 8.0 ms |
+| the City-Shaft | 3 369 → 2 291 | 913 → 461 | 10.0 → 9.4 ms |
+| the Signal Market | 2 528 → 2 105 | 645 → 500 | 5.5 → 5.2 ms |
+
 ## Unknowns (to check on the console)
 
 - WebView2 on the console passes the pad to the Gamepad API (seen, runtime 150); whether it also sends it as keys or

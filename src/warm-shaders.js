@@ -28,6 +28,8 @@ export async function warmShadersSliced(renderer, targetScene, targetCamera, { t
   const reps = new Map();
   targetScene.traverse((o) => {
     if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return;
+    // (a mesh drawn by a batch, its layers off, never draws itself: its batch's program is the one to compile; static-batch.js)
+    if (o.layers?.mask === 0) return;
     // (a mesh whose geometry is still empty, filled when first shown (a telegraph's mark): its program here would be
     // keyed without a position attribute, one nothing draws with, ~0.7 s of the Xbox's compiler for nothing)
     if (o.geometry && !o.isSprite && !o.geometry.attributes?.position) return;

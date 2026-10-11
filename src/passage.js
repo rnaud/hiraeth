@@ -141,7 +141,8 @@ export class WarmDraw {
   meshes() {
     if (this._list && this._n === this.scene.children.length) return this._list;
     const list = [];
-    this.scene.traverse((o) => { if ((o.isMesh || o.isPoints || o.isLine) && o.material && o.geometry?.attributes?.position) list.push(o); });
+    // (not a mesh drawn by a batch, its layers off: static-batch.js, part-batch.js; the batch is drawn instead)
+    this.scene.traverse((o) => { if ((o.isMesh || o.isPoints || o.isLine) && o.material && o.geometry?.attributes?.position && o.layers?.mask !== 0) list.push(o); });
     this._n = this.scene.children.length;
     return (this._list = list);
   }
@@ -167,7 +168,7 @@ export class WarmDraw {
   /** Every mesh under these roots not drawn yet. */
   of(...roots) {
     const out = [];
-    for (const r of roots) r?.traverse?.((o) => { if ((o.isMesh || o.isPoints || o.isLine) && o.material && o.geometry?.attributes?.position && !this.done.has(o)) out.push(o); });
+    for (const r of roots) r?.traverse?.((o) => { if ((o.isMesh || o.isPoints || o.isLine) && o.material && o.geometry?.attributes?.position && o.layers?.mask !== 0 && !this.done.has(o)) out.push(o); });
     return out;
   }
 

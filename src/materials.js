@@ -505,6 +505,24 @@ const vertexShader = /* glsl */ `
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
   uniform float uVertexColors;   // the material's vertexColors (1: the geometry's colour attribute is read)
+  #ifdef USE_BATCHING
+    // a still mesh drawn by a batch of its material (src/static-batch.js): its world matrix from the batch's texture,
+    // by the id its vertices carry, used as an instance's (modelMatrix * it = its own matrixWorld, as before)
+    in float aBatchId;
+    uniform highp sampler2D batchingTexture;
+    mat4 batchMatrix(float i) {
+      int size = textureSize(batchingTexture, 0).x, j = int(i) * 4, x = j % size, y = j / size;
+      return mat4(texelFetch(batchingTexture, ivec2(x, y), 0), texelFetch(batchingTexture, ivec2(x + 1, y), 0),
+                  texelFetch(batchingTexture, ivec2(x + 2, y), 0), texelFetch(batchingTexture, ivec2(x + 3, y), 0));
+    }
+    #ifdef S_BATCH
+      // and its material's own colours and flat shading (a batch draws materials that differ only in those; the band
+      // size and the grid stay uniforms: a division by one compiles to other bits than by a varying, and the grid's
+      // lines moved by a pixel here and there): (colour, -) (colour 2, -) (colour 3, flat) at its id, as S_VMAT's
+      uniform highp sampler2D uBatchValues;
+      flat out vec3 vMatC1; flat out vec3 vMatC2; flat out vec3 vMatC3; flat out vec3 vMatS;
+    #endif
+  #endif
   #ifdef S_VMAT
     // many meshes merged into one draw, each with its own material values and object space (src/vertex-material.js)
     in vec3 aMatC1; in vec3 aMatC2; in vec3 aMatC3;
@@ -571,6 +589,17 @@ const vertexShader = /* glsl */ `
   #endif
 
   void main() {
+    #ifdef USE_BATCHING
+      mat4 instanceMatrix = batchMatrix(aBatchId);
+      #define USE_INSTANCING
+      #ifdef S_BATCH
+      {
+        int size = textureSize(uBatchValues, 0).x, j = int(aBatchId) * 4, x = j % size, y = j / size;
+        vec4 a = texelFetch(uBatchValues, ivec2(x, y), 0), b = texelFetch(uBatchValues, ivec2(x + 1, y), 0), c = texelFetch(uBatchValues, ivec2(x + 2, y), 0);
+        vMatC1 = a.rgb; vMatC2 = b.rgb; vMatC3 = c.rgb; vMatS = vec3(a.w, b.w, c.w);
+      }
+      #endif
+    #endif
     vec3 transformed = position;
     // a padded suit: the body swells along its normals (baggier on the legs), not the head or hands
     #ifdef S_FIGURE
@@ -651,7 +680,9 @@ const vertexShader = /* glsl */ `
     ${BLADE_VERT}
     vec4 pos = vec4(transformed, 1.0);
     vec3 nrm = objectNormal;
-    #ifdef USE_INSTANCING
+    // (a static batch's mesh, src/static-batch.js: its matrix applied after the thin bars' widening, below, which a mesh
+    // drawing itself makes in its own space)
+    #if defined(USE_INSTANCING) && !defined(USE_BATCHING)
       pos = instanceMatrix * pos;
       nrm = mat3(instanceMatrix) * nrm;
     #endif
@@ -661,13 +692,21 @@ const vertexShader = /* glsl */ `
     // (a perspective view only: a shadow map's orthographic camera draws it as it is)
     if (aThin.w > 0.5 && projectionMatrix[2][3] < -0.5) {
       vec4 ax = vec4(aThin.xyz, 1.0);
-      #ifdef USE_INSTANCING
+      #if defined(USE_INSTANCING) && !defined(USE_BATCHING)
         ax = instanceMatrix * ax;
       #endif
       float r = length(pos.xyz - ax.xyz);
-      float want = uThinPx * length((modelMatrix * ax).xyz - cameraPosition) / (projectionMatrix[1][1] * uViewH);
+      #ifdef USE_BATCHING
+        float want = uThinPx * length((modelMatrix * (instanceMatrix * ax)).xyz - cameraPosition) / (projectionMatrix[1][1] * uViewH);
+      #else
+        float want = uThinPx * length((modelMatrix * ax).xyz - cameraPosition) / (projectionMatrix[1][1] * uViewH);
+      #endif
       if (r > 1e-5 && want > r) pos.xyz = ax.xyz + (pos.xyz - ax.xyz) * (want / r);
     }
+    #endif
+    #ifdef USE_BATCHING
+      pos = instanceMatrix * pos;
+      nrm = mat3(instanceMatrix) * nrm;
     #endif
     vInstColor = vec3(1.0);
     #ifdef GRASS
@@ -915,14 +954,17 @@ const fragmentShader = /* glsl */ `
   #ifdef NIGHT_PAINT
     in vec4 vNight;
   #endif
-  #ifdef S_VMAT
-    // (the material values from the vertex instead of the uniforms: every use below reads these)
+  #if defined(S_VMAT) || defined(S_BATCH)
+    // (the material values from the vertex instead of the uniforms: every use below reads these; S_BATCH: a static
+    //  batch's, src/static-batch.js)
     flat in vec3 vMatC1; flat in vec3 vMatC2; flat in vec3 vMatC3; flat in vec3 vMatS;
     #define uColor vMatC1
     #define uColor2 vMatC2
     #define uColor3 vMatC3
-    #define uStrataSize vMatS.x
-    #define uGrid vMatS.y
+    #ifdef S_VMAT
+      #define uStrataSize vMatS.x
+      #define uGrid vMatS.y
+    #endif
     #define uFlat vMatS.z
   #endif
   #ifdef S_FORM
@@ -2906,6 +2948,7 @@ export function makeMaterial(o) {
   // clone(). Not the ones with attributes of their own: the colour attribute it adds would take a crowd's, the grass's or
   // a merged mesh's vertex attributes past the 16 the Xbox's D3D allows, "Too many attributes")
   mat.userData.sharesProgram = !(o.crowd || o.grass || o.perVertex || o.sway || o.nightPaint);
+  mat.userData.surface = true;   // (the surface shader: a still mesh in it may be drawn by its material's batch, src/static-batch.js)
   mat.vertexColors = !!o.vertexColors;
   mat.defaultAttributeValues = { ...mat.defaultAttributeValues, aFormC: [0, 0, 0, 0], aFormA: [0, 1, 0], aThin: [0, 0, 0, 0] };   // (a part with no axis: plain hatching; no bar: drawn as it is)
   mat.defines = surfaceDefines(o);   // only the features this material uses are compiled

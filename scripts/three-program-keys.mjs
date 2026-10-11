@@ -14,6 +14,11 @@ export const THREE_PATCHES = [
   ['flipSided: material.side === BackSide,', 'flipSided: material.side === BackSide && material.userData.sharesProgram !== true,'],
   ['vertexNormals: !! geometry.attributes.normal,', 'vertexNormals: !! geometry.attributes.normal || material.userData.sharesProgram === true,'],
   ['vertexColors: material.vertexColors,', 'vertexColors: material.vertexColors || material.userData.sharesProgram === true,'],
+  // (renderObjects: a scene's override material may pick one of its variants for each object, `overrideFor(object)`.
+  //  One override material drawing plain, instanced and skinned meshes in turn had three look its program up again at
+  //  every change of kind (getParameters, the cache key: ~1.8 ms a frame of the Xbox's shadow passes); a variant per
+  //  kind keeps each one's program. The variants compile the same programs. main.js shadowOverride)
+  ['material = overrideMaterial;', 'material = overrideMaterial.overrideFor !== undefined ? overrideMaterial.overrideFor( object ) : overrideMaterial;'],
 ];
 
 /** three.module.js with the patches in. Throws if any of them doesn't match exactly once. */
