@@ -1,0 +1,23 @@
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_8e5fdf9760c023 131-132
+unity/Memento/Assets/Memento/Runtime/MementoShadows.cs
+  s_9ca76055a220ed::t_ef8beb1aa3b7ee 94-95,180-181
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_7d5c95e1a47e1d 80,262-264,266
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dea9244ed6df9d506cd20d4721ba102b326b73d4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
