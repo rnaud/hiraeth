@@ -1,0 +1,67 @@
+src/changelog-media.js
+  s_9ca76055a220ed::t_1815ed68b40b16 541,543-553
+src/minigames/pirates-rules.js
+  s_9ca76055a220ed::t_7ba8c02cae542b 1-596
+src/minigames/kit/flow.js
+  s_9ca76055a220ed::t_cf052f6ef18bd8 68-81
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_c9a01dd9d00280 23-24,157-158,191-194,261,284-285,287,345-348,365-366
+tests/pirates.test.js
+  s_9ca76055a220ed::t_11ae8f4bdb9550 1-192
+src/main.js
+  s_9ca76055a220ed::t_e78daa062d229e 124,870-872,2175-2178,2182-2184
+tests/cinema.test.js
+  s_9ca76055a220ed::t_1b6c52b2d191f2 141,144,146
+src/ambush.js
+  s_9ca76055a220ed::t_c29fa3b99ceceb 1-77
+src/ship/ship.js
+  s_9ca76055a220ed::t_3d99419ba1ae9a 331,560-561
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_e4e2a708125d0d 1-734
+tests/tone.test.js
+  s_9ca76055a220ed::t_b4bf7e06bb3051 142-148
+src/i18n/en.js
+  s_9ca76055a220ed::t_d1e65c61ea860e 82
+docs/README.md
+  s_9ca76055a220ed::t_bd42a40a8f6812 79
+changelog.md
+  s_9ca76055a220ed::t_d34f87b1a0ee06 5-11
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_5ce9575f6196ab 3,10-11,413-465
+src/i18n/fr.js
+  s_9ca76055a220ed::t_8b552de0c83465 82
+index.html
+  s_9ca76055a220ed::t_960c8dd1041d15 177,461
+tests/ambush.test.js
+  s_9ca76055a220ed::t_290a0446140c92 1-78
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_56b3349cbd59fe 651,679-683
+docs/story-bible.md
+  s_9ca76055a220ed::t_35c10aeffca5c3 533-544
+src/ui.js
+  s_9ca76055a220ed::t_987b4fe6242678 47,335
+src/changelog.js
+  s_9ca76055a220ed::t_363f1d83ae38e7 11-20
+src/minigames/kit/minigames.css
+  s_9ca76055a220ed::t_13cf4955e19157 101-104
+tests/playthrough.test.js
+  s_9ca76055a220ed::t_bdc8cf40af2216 33-37,65-66
+tests/minigames-qa.test.js
+  s_9ca76055a220ed::t_82c5c3a08f9297 1,17,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d724381f67a748537235c25228abd8d2e205bea4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
