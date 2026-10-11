@@ -1,0 +1,27 @@
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_4b3b86dec85a9b 33,135-142,149-150
+scripts/temple-design/audit.mjs
+  s_9ca76055a220ed::t_4ec0ad64ef9607 30,42-54,69,95
+src/levels/underwater.js
+  s_9ca76055a220ed::t_c46029fb87b74a 411-412
+tests/level-design-glass.test.js
+  s_9ca76055a220ed::t_14e88dc2770a7a 1-21
+tests/temple-design.test.js
+  s_9ca76055a220ed::t_2b073257663536 182-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "83d785732f11dc5d8c6bd4be8e8fc890ef079a0d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
