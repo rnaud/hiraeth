@@ -168,6 +168,7 @@ namespace Memento.Bridge
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
         public static bool oneVariant, uniformLayout;
+        public static string cullTest;
         /// <summary>The vertex data -uniform-layout added (bytes, on the CPU and again on the GPU).</summary>
         public static long uniformBytes;
         /// <summary>The shader variants the scene's materials ask for: materials, distinct (shader, keywords), the commonest.</summary>
@@ -353,6 +354,12 @@ namespace Memento.Bridge
             }
             materials[mid] = WorldLoader.MakeMaterial(surface, m);
             specs[materials[mid]] = json;
+            // (-cull off|flip, a test for the Xbox's see-through picture: every Surface material's culling off, or the other face)
+            if (cullTest != null && materials[mid].HasProperty("_Cull"))
+            {
+                float c = materials[mid].GetFloat("_Cull");
+                materials[mid].SetFloat("_Cull", cullTest == "off" ? 0 : c == 2 ? 1 : c == 1 ? 2 : c);
+            }
             // (-one-variant, a test: every material of the port's Surface on its plain variant, no keywords; the picture is
             // wrong, but if the load's 24 s stall goes, it was the GPU's driver compiling each variant at its first draw)
             if (oneVariant) materials[mid].shaderKeywords = System.Array.Empty<string>();

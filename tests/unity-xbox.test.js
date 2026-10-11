@@ -183,3 +183,10 @@ test('the Unity players carry every character file the bundle reads (the travell
   assert.match(read('unity/Memento/Assets/Memento/Rendering/MementoFeature.cs'), /renderingLayerMask = MementoShadows\.LayerOf\(plan\.cascade\)/);
   assert.match(read('unity/Memento/Assets/Memento/Runtime/MementoShadows.cs'), /CascadeLayer\[2\]/);
 });
+
+test('the Xbox at 1440p by default; the views and pictures of a plan in LocalState; -cull for the see-through test', () => {
+  const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
+  assert.match(runner, /else Screen\.SetResolution\(2560, 1440, FullScreenMode\.FullScreenWindow\)/);
+  assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs'), /root \?\?= Application\.persistentDataPath/);
+  assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs'), /cullTest == "off"/);
+});

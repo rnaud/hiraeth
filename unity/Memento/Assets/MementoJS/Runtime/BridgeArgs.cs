@@ -76,6 +76,10 @@ namespace Memento.Bridge
 
         public static string FromCommandLine(string root = null)
         {
+#if UNITY_WSA && !UNITY_EDITOR
+            // (no working directory of one's own on the console: -views and -out are LocalState's, args.txt beside them)
+            root ??= Application.persistentDataPath;
+#endif
             var args = new Dictionary<string, object> { ["level"] = Arg("-level", "desert") };
             var views = Arg("-views");
             if (views != null)

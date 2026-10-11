@@ -268,6 +268,10 @@ namespace Memento.Bridge
                 urp.upscalingFilter = up == "linear" ? UpscalingFilterSelection.Linear : up == "point" ? UpscalingFilterSelection.Point : UpscalingFilterSelection.FSR;
             if (BridgeArgs.Arg("-resolution") is string res && res.Split('x') is var wh && wh.Length == 2 && int.TryParse(wh[0], out int rw) && int.TryParse(wh[1], out int rh))
                 Screen.SetResolution(rw, rh, FullScreenMode.FullScreenWindow);
+#if UNITY_WSA && !UNITY_EDITOR
+            // the Xbox draws at 1440p by default (the console scales it to the TV: 4K; 54 fps against 55 at 1080p, 46 at native 4K)
+            else Screen.SetResolution(2560, 1440, FullScreenMode.FullScreenWindow);
+#endif
             Debug.Log($"Memento bridge: the screen {Screen.width}x{Screen.height} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}, upscaling {(urp ? urp.upscalingFilter.ToString() : "?")}");
             // (-queued N: the frames the CPU may run ahead of the GPU; on the Xbox the main thread waited ~9.5 ms a frame on the present)
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
@@ -283,6 +287,7 @@ namespace Memento.Bridge
             MementoShadows.UseRendererLists = BridgeArgs.Flag("-shadow-lists");
 #endif
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
+            BridgeRenderer.cullTest = BridgeArgs.Arg("-cull");
             // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
             // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
 #if UNITY_WSA && !UNITY_EDITOR
