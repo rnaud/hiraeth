@@ -1,0 +1,33 @@
+docs/README.md
+  s_9ca76055a220ed::t_9965df99a37222 26
+docs/audits/dialogue-v1.48.md
+  s_9ca76055a220ed::t_2bbce2fda1cba6 1-348
+tests/audits-page-themes.test.js
+  s_dad829ced47bc1::t_7f76aafd909703 49-51,160-161
+tests/audits-page.test.js
+  s_dad829ced47bc1::t_bfed2d2a045794 168-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ec14c2d5d276621f3f2aeeece4d2069ef152538d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_dad829ced47bc1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac9c27c6d01e50bcf",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
