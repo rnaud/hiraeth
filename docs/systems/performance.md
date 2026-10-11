@@ -1421,6 +1421,66 @@ Tried and not kept:
   queries quicker (the trees' check 2.5 → 1.36 s, the crowd's routes 0.9 → 0.48 s), but the worker's build 0.4 → 1.6 s,
   and that is waited for: 6.7 → 6.2 s. With the trees deferred, the build's cost would outweigh the crowd's gain.
 
+## The levels of detail against the load: an audit, and coarse-first generation (October 2026, issue #15)
+
+What the levels of detail cost a load, and what they could take off it (the author's list: evaluate coarse-first
+procedural generation and spatial activation together with the LOD; keep everything procedural).
+
+**What exists, and what it costs at load.** Measured with `load-breakdown.mjs` (its levels of detail's state at the
+first frame and after a 15 s traversal at 40 m/s, High, this Mac):
+
+| World | meshes with levels | built by the first frame (packing on the main thread) | built after the traversal | still waiting |
+|---|---|---|---|---|
+| Desert | 394 | 38-42 (10 ms) | 115 (38-40 ms) | 0 |
+| City-Shaft | 607 | 47-49 (4-10 ms) | 226-227 (58-70 ms) | 0 |
+| Vael | 746 | 46-47 (13-19 ms) | 207 (100-109 ms) | 0 |
+| Buried Machine | 208 | 59-65 (24 ms) | 106 (53 ms) | 0 |
+| Lorn | 304 | 55-66 (17-20 ms) | 159-160 (52-61 ms) | 0 |
+| Garden of Spheres | 505 | 42-59 (23-30 ms) | 168 (79-86 ms) | 0 |
+| Signal Market | 312 | 118-123 (10-11 ms) | 330 (45 ms) | 0 |
+
+- `src/lod.js` (static meshes) collects at load and builds a level the first time it is wanted, in its worker, two
+  at a time: the load pays only the packing of the few the first view wants (4-30 ms). It is already spatial and lazy:
+  a level far off that nobody looks at is never built. After 15 s of fast travel nothing is waiting.
+- `src/skinned-lod.js` (the traveller's and the people's bodies) builds in a worker too, after the body exists; the
+  crowd (`src/crowd.js`) draws its hundreds as GPU-animated figures and builds full bodies only for its pool
+  (`CROWD_BUDGET.pool`: 6-31 ms of the load) and the nearest few promoted.
+- So the levels of detail help the frame (the triangle tables above) and cost the load next to nothing; they cannot make
+  it shorter, since each starts from geometry generated whole.
+
+**Where generation goes** (the load's `phases`, above, and CPU profiles of the unminified build):
+- World creation 0.5-2.5 s a world: the terrain and its relief by rows, the buildings, and in the sandy worlds the
+  drifts' field (`src/sand-drifts.js`): in the Buried Machine 1.17 s of its 1.75 s build is `fieldAt` (the skirts' own
+  points 0.48 s, the triangles that collide where the skirt stands over the height, `misfits`, 0.79 s); 0.27 s of the
+  desert's 1.0 s.
+- The City-Shaft's collision stage: the trees' check (2.5 s, now distant detail: above) and the crowd's routes (0.9 s).
+- The still meshes' batches 60-560 ms (Vael's 564), the traveller ~0.3 s, the sound and tool ~0.12 s, in every world.
+
+**Coarse-first generation, case by case.**
+- *The terrain*: drawn tiled (`tileSceneSteps`) and with levels already; its collision is the exact `heightAt`, not the
+  mesh. A coarse terrain first would be built twice (coarse, then fine) for the near tiles a first frame shows, and its
+  far tiles are a few hundred ms in all. Not worth it.
+- *The drifts' collision (`misfits`)*: collision, so it must be there before anyone walks on it, but only near: the far
+  chunks could be queued as distant detail and each added as a collider (`physics.addCollider`) before the traveller
+  comes within the guard. About 0.6 s of the Buried Machine's load on this Mac. Not done yet: every added collider is
+  one more box every ray in the game tests (`compositeBVH`), so the chunks would have to be merged into a few as they
+  come; the next candidate.
+- *The drifts' skirts* (0.48 s in the Buried Machine): they are the silhouette where sand meets a wall, seen from far;
+  deferring the far ones would show sand banks appearing in the distance. Kept.
+- *The people*: already coarse-first (GPU figures far, full bodies near). The content NPCs' bodies (36-92 ms) are near.
+- *Remote interiors* (the desert's chambers and the giant's cave, ~1 km up): built with the world because the
+  collision is baked once and the passage warms their draws ahead; deferring them means their collision added later
+  (as above) and the warm-up moved to "as you come near a door" (`PASSAGE.near`), which the Xbox's draw-time compiles
+  make a 1-15 s stall (`The first draws on the Xbox`). Not done.
+
+**Spatial activation**: `DeferredWork` (src/deferred.js) is it: jobs in 32 m cells, walked out from the traveller,
+the near ones before the first frame, a guard round him, a passage's far side finished under the paper. Anything that
+decides only how a far thing looks can go through it; the trees and flora checks do.
+
+**Grouped distant geometry**: the draw-call measurements justified it, and it is done for every still mesh, near and
+far (`src/static-batch.js`, v1.45: the Xbox's desert spawn 937 → 399 draws). Impostors and merged far shadow casters
+were measured before and did not pay (above, "Levels of detail far away").
+
 ## The Retroid, round 5: the Xbox's settings, the camps and the City-Shaft again, the machines, the merged worlds (October 2026)
 
 The Retroid Pocket Nova (Adreno 650, pixel ratio 2), the GeckoView test app (`com.rnaud.moebius.gecko`) with the game
