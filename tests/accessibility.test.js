@@ -15,7 +15,7 @@ const { promptText } = await import('../src/native-pad.js');
 const i18n = await import('../src/i18n.js');
 const { EN } = await import('../src/i18n/en.js');
 const feel = await import('../src/feel.js');
-const { reticleLook } = await import('../src/lock-reticle.js');
+const { reticleLook, reticleMotion, RETICLE } = await import('../src/lock-reticle.js');
 
 const IDX = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, View: 8, Menu: 9, L3: 10, R3: 11, '↑': 12, '↓': 13, '←': 14, '→': 15 };
 function pad(prefs, context = 'game') {
@@ -307,4 +307,18 @@ test('the lock-on says nothing by colour: one look (four gold arrows), only dimm
   // (v1.42: the author asked for Ocarina of Time's arrows with no red for an attack; a foe's wind-up is told by its body)
   for (const f of [{}, { state: 'wind', k: 0.5 }, { state: 'strike' }, { stunned: 1 }]) assert.equal(reticleLook({ hp: 3, def: { hp: 3 }, ...f }).mode, 'calm');
   assert.equal(reticleLook({ buried: true }).mode, 'veiled');
+});
+
+test('reduce motion holds the lock-on\'s arrows still: no turn, no breathing, no fly-in or whirl, only a fade (combat-v1.47 rec. 4, #108)', () => {
+  // moving: they turn with time, fly in from wider and whirl as a new lock comes on
+  assert.ok(reticleMotion(0.2, 0.1).ease < 1, 'they fly in');
+  assert.notEqual(reticleMotion(0.2, 0.1).turn - 0.2 * RETICLE.spin, 0, 'the fly-in whirls');
+  assert.notEqual(reticleMotion(2, 1).turn, reticleMotion(3, 1).turn, 'they turn');
+  // still: the same pose at every t and every point of the snap, the ring at its size, only the opacity coming in
+  for (const t of [0, 0.1, 1, 7.3]) for (const snap of [0, 0.3, 1]) {
+    const m = reticleMotion(t, snap, true);
+    assert.equal(m.turn, RETICLE.still); assert.equal(m.ease, 1); assert.equal(m.breathe, 0);
+  }
+  assert.equal(reticleMotion(0, 0, true).fade, 0, 'a new lock fades in');
+  assert.equal(reticleMotion(0, 1, true).fade, 1);
 });

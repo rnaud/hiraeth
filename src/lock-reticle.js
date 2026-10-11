@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { bodySpan } from './foe-body.js';
+import { motionState } from './feel.js';
 
 // The lock-on's reticle (#foe-lock, docs/systems/foes.md "The lock-on"). v1.42, the author: "closer to Ocarina of Time
 // (4 arrows pointing towards the character that are rotating) and less complicated; remove the health bar, and remove the
@@ -13,6 +14,8 @@ import { bodySpan } from './foe-body.js';
 // edge on its side. Each arrow is drawn over a soft pale halo and an ink edge, two-toned like a little pyramid, so it
 // reads on bright sand and on dark rock; the whole drawing scales with the screen (reticleScale: a quarter larger on a
 // small screen, where a CSS pixel is tiny). Replaces v1.39's corner ticks, diamond and pips, and v1.41's bolder ones.
+// With Reduce motion on (src/feel.js setMotion; combat-v1.47 recommendation 4) the arrows hold still at the box's
+// corners: no turn, no breathing, no fly-in or whirl; a new lock only fades in (reticleMotion).
 //
 //   const r = new LockReticle(); r.update(foe | null, camera, dt); r.acquire(); r.dispose()
 
@@ -29,6 +32,7 @@ export const RETICLE = {
   snap: 0.35,                 // s a new lock takes to fly in
   from: 2.4,                  // × the ring's size the arrows fly in from
   whirl: 5,                   // rad: the extra turn while they fly in
+  still: Math.PI / 4,         // rad: where the arrows rest with Reduce motion on (the box's corners)
   veiled: 0.5,                // opacity out of the blade's reach
   scale: { at: 720, lo: 1, hi: 1.7, small: 560, boost: 1.25 },   // reticleScale
   ink: '#2b211f', gold: '#f2c54b', shade: '#c98f22', light: '#fff6dc',
@@ -48,6 +52,18 @@ export function reticleScale(W, H, R = RETICLE) {
 export function reticleLook(f) {
   if (!f) return null;
   return { mode: f.buried || f.phased ? 'veiled' : 'calm' };
+}
+
+/**
+ * How the arrows move at time t (s locked), `snap` (0..1) into a new lock's fly-in (pure: tests): { ease (0..1, the
+ * ring's fly-in), fade (0..1, its opacity), turn (rad), breathe (the t the gap's easing reads) }. With `still` (Reduce
+ * motion) nothing moves: the ring is at its size from the first frame, the arrows rest at RETICLE.still and the gap is
+ * fixed; only the opacity fades in over the snap.
+ */
+export function reticleMotion(t, snap, still = false, R = RETICLE) {
+  if (still) return { ease: 1, fade: Math.min(1, snap * 1.6), turn: R.still, breathe: 0 };
+  const ease = 1 - (1 - snap) ** 3;
+  return { ease, fade: Math.min(1, ease * 1.6), turn: t * R.spin + R.whirl * (1 - ease), breathe: t };
 }
 
 /**
@@ -148,11 +164,11 @@ export class LockReticle {
     this.t += dt; this.snap = Math.min(1, this.snap + dt / R.snap);
     const look = reticleLook(f);
     const W = window.innerWidth, H = window.innerHeight, K = reticleScale(W, H);
-    const ease = 1 - (1 - this.snap) ** 3;
+    const M = reticleMotion(this.t, this.snap, motionState().reduce), ease = M.ease;
     // where: the body's box on the screen; off it (or behind), held small at the edge on its side
     const box = this.screenBox(f, camera, W, H);
     let ring;
-    if (box && box.x1 > W * 0.04 && box.x0 < W * 0.96 && box.y1 > H * 0.05 && box.y0 < H * 0.95) ring = reticleRing(box, ease, _ring, K, this.t);
+    if (box && box.x1 > W * 0.04 && box.x0 < W * 0.96 && box.y1 > H * 0.05 && box.y0 < H * 0.95) ring = reticleRing(box, ease, _ring, K, M.breathe);
     else {
       _p.copy(f.chest).project(camera);
       const behind = _p.z > 1;
@@ -163,10 +179,10 @@ export class LockReticle {
     }
     if (this.shown !== true) { this.root.style.display = ''; this.shown = true; }
     this.root.style.transform = `translate(${ring.cx.toFixed(1)}px,${ring.cy.toFixed(1)}px)`;
-    const opacity = ((look.mode === 'veiled' ? R.veiled : 1) * Math.min(1, ease * 1.6)).toFixed(2);
+    const opacity = ((look.mode === 'veiled' ? R.veiled : 1) * M.fade).toFixed(2);
     if (opacity !== this.opacity) { this.root.style.opacity = opacity; this.opacity = opacity; }
-    // the turn: steady, with an extra whirl as a new lock flies in
-    const turn = this.t * R.spin + R.whirl * (1 - ease);
+    // the turn: steady, with an extra whirl as a new lock flies in (held still with Reduce motion)
+    const turn = M.turn;
     this.arrows.forEach((g, i) => {
       const a = arrowAt(ring, turn + i * Math.PI / 2, _at);
       const deg = Math.atan2(a.dy, a.dx) * 180 / Math.PI - 90;   // (drawn pointing down, +y: turned to point along dx, dy)

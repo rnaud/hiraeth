@@ -674,7 +674,9 @@ The count is said every 5 ink.
   breathing ±6 %), `min` 30 to `max` 300 px half-size, so they turn round the body without sitting on it and a far foe's
   ring stays visible. The drawing scales with the screen (`reticleScale`: 1 at 720 px on the shorter side, up to 1.7,
   × 1.25 under 560 px, a handheld's small CSS pixels). A new lock flies them in over `snap` (0.35 s) from `from` (2.4) ×
-  the ring with an extra `whirl` of turn. Off the screen they wait small at the edge on its side. `reticleLook(f)` is only
+  the ring with an extra `whirl` of turn. With Reduce motion on (v1.48, combat-v1.47 rec. 4, `reticleMotion`) none of
+  that moves: the arrows rest at the box's corners (`still`, π/4), the gap doesn't breathe, a new lock appears at its ring
+  and only fades in. Off the screen they wait small at the edge on its side. `reticleLook(f)` is only
   `calm` or `veiled` (buried, phased: the whole drawn at `veiled` 0.5 opacity): no health pips, and nothing for the
   foe's wind-up, strike or stagger, which its body, its glow and its sound tell. Before: v0.96's gold chevrons on a ring
   over the chest; v1.39's corner ticks, a diamond over the head and hp pips, coral and doubled while it wound up, pale blue

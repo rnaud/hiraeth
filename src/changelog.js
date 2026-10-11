@@ -43,6 +43,9 @@ export const CHANGELOG = [
     'Visitors from other worlds no longer open by telling you their name and where they are from: Fen, Bram, Pip, Marrow, Zazie, Tiv, Kip, Saba and the others start with what they came to see. Five shopkeepers greet you with their own trade instead of the same welcome, and Hale no longer tells you that you sound tired.',
     'Answers that follow what was just said: asking Tull about the clock-winder, Ysse about her crystals’ sound, Senn about the tower, and telling Cael how long the avenue was. Madame Sel knows her own market’s voice in the City Floating in Space, and a few talks lose the moral at their end.',
     'At the Lantern, Ilen explains less: she tells you what she did with your father’s message and leaves out how a light carries a song. At your parents’ stone, each gift is set down as what it is, not as a lesson.',
+    // the fight (docs/audits/combat-v1.47.md; issues #106–#109)
+    { text: 'With Reduce motion on, the lock-on’s four arrows hold still at the corners of the foe you lock: they no longer turn round it, breathe or whirl in, they simply fade in where they stay.',
+      see: 'Turn on Reduce motion in the settings, then lock on to a foe (R3 / Tab): the arrows appear at its corners and stay put.' },
   ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)
