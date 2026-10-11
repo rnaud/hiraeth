@@ -1,0 +1,70 @@
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_44b33fe6b84340 8,36,75-81,83-84,132-133,361-363,370-374,421-423
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_9ca76055a220ed::t_bceb29c85d8c6a 215-216,220-222,225,265-273
+.claude/skills/motion-qc/SKILL.md
+  s_9ca76055a220ed::t_cb27b7d6000ea9 82-87,96-98
+.claude/skills/combat-review/defend.mjs
+  s_9ca76055a220ed::t_f9a40f20571cb4 1-144
+src/changelog.js
+  s_9ca76055a220ed::t_e7421604732f6f 42-68
+src/animator.js
+  s_9ca76055a220ed::t_493b2858518fb6 66-150,162-163
+tests/mocap.test.js
+  s_9ca76055a220ed::t_1f22cb1c052c28 244-245
+changelog.md
+  s_9ca76055a220ed::t_e3345d9c1cb305 7-8
+.claude/skills/combat-review/SKILL.md
+  s_9ca76055a220ed::t_470063b34140b3 48-57,67-77,86-96
+src/post.js
+  s_9ca76055a220ed::t_7550f724bc35c3 99,104,108-109,118-119,122-131,143-149,658-659,662-664,667,691
+tests/shard-timings.json
+  s_9ca76055a220ed::t_bed6ad16a501d8 143
+  s_9ca76055a220ed::t_4629d2209a320d 4-6,23,25-26,28,30-31,35,38,40-46,48-50,52,56,58-59,62-65,67-69,71-72,74,76,78,80-82,85-90,95-97,103-106,109-110,115,119,121,125-126,128,130,133,144-145,153,156,159-160,169,171,173,176,178-180,182-184,192,196,204-205,210-212,214,216-219,221,227-228,232-233,237-239,241,245-249,251-252,256,259-261,270,276-277,281,292-293,295,301,303,306-307,311,314,317,319,321,324,331,347,352,355-356,363,367,369,371,374-378,380-386,389,396-397,409-411,413-414,416,418-420,423-425,444,449,452,455
+  s_9ca76055a220ed::t_b92746defc7bb0 300,329
+  s_9ca76055a220ed::t_6bcee1ace9bc68 3,39,47,124
+  s_9ca76055a220ed::t_5c65a55cd94a33 2,10-16,18-19,22,24,29,32-34,36,57,91-93,98,100-101,107-108,111-114,116-118,120,122,127,129,131-132,134-138,140-142,147-152,154-155,157-158,161-162,164-168,170,172,174-175,181,250,257,274,278,283,285,287,289,297-298,309-310,315,330,344-345,348-349,353-354,357-358,361,364-365,387-388,391,393,421,434,440,442-443,445-446
+  s_9ca76055a220ed::t_43f0151de3ebcc 75,94,163
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_86fd78f3541d8c 646-658
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_958acca57b7c2e 31,45-58,140,150-205,235,300-317,319,342-350,355,363-404,408-412,426-433,435,510
+tests/motion-qc.test.js
+  s_9ca76055a220ed::t_199c934ad1dec3 90-91,94-123
+scripts/combat-review/lib.mjs
+  s_9ca76055a220ed::t_51e51636080960 220-224,232-285
+tests/combat-review.test.js
+  s_9ca76055a220ed::t_11952a097cb025 70-105
+src/feet.js
+  s_9ca76055a220ed::t_a7d1fcff3e5d99 35,42-43,46-47,50,75-90,114,121-122,140,256-259,261,266,280-281,351-356,374-376,378-382,384-390,392,394-396,409,417
+  s_1fd8d0e7b02dcf::t_7e507d259b0405 377
+docs/systems/animation.md
+  s_9ca76055a220ed::t_02883974c75818 656-693
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d2a5723a9edac3f3a1745baf88928dd8c3aaad7d",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
