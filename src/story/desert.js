@@ -145,7 +145,7 @@ export function askedDone(game) {
 
 /** The chest's gift: the backpack, its round glass dry (since v1.38 no makers' dregs: there is no gun to shoot them yet). */
 export function dregsText() {
-  return 'The glass sphere on your back is dry: not a drop in it. Where the water is, it fills (Nour says).';
+  return 'The glass sphere on your back is dry: not a drop in it.';   // ("where the water is, it fills (Nour says)" came up before she had said it: issue #61)
 }
 
 /** The tank's first fill at the pool: what it does now (src/prompt-keys.js verbKey: the buttons as the player holds them). */
@@ -346,7 +346,7 @@ export function setupDesert(ctx) {
     if (st.clock - dryT < 25) return;
     dryT = st.clock;
     if (game.flag('tool.dregs') > 0) { toast('The last swallow in the tank is too little to push with. It will make one shot, no more.'); return; }   // (the dregs only shoot: src/fluid-tool.js)
-    toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop. Where the water is, it fills (Nour says).');
+    toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop.');
   });
 
   // the Givers' House (src/temples/desert.js) wants the fluid gun from its first room (the push, the splash):
@@ -608,7 +608,7 @@ export function setupDesert(ctx) {
   game.on('tool:dregs', ({ left } = {}) => {
     if (left > 0 || game.flag('desert.dregs.spent')) return;
     game.set('desert.dregs.spent', true);
-    setTimeout(() => toast('The makers’ last swallow, gone in one splash. The tank is dry glass now: where the water is, it fills (Nour says).'), 900);
+    setTimeout(() => toast('The makers’ last swallow, gone in one splash. The tank is dry glass now.'), 900);
   });
   quests.def('desert.power').onDone = () => {
     game.set('ship.powered', true);
