@@ -159,6 +159,36 @@ test('mirror: cloth sends its points alone, a new shape the whole geometry', () 
   assert.equal(geomOf.length, 1);
 });
 
+test('mirror: a flame\'s flicker (points, normals and colours moved) goes as its vertices, not the whole geometry; the Unity op carries the colours', async () => {
+  const R = recorder();
+  const verts = [];
+  R.backend.vertices = (gid, pos, nrm, n, alpha, col) => verts.push({ n, col });
+  const mirror = new SceneMirror(R.backend);
+  const scene = new THREE.Scene();
+  const geo = new THREE.PlaneGeometry(1, 1, 1, 1);
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(4 * 3).fill(1), 3));
+  const flame = new THREE.Mesh(geo, makeMaterial({ color: '#ffffff', vertexColors: true }));
+  scene.add(flame);
+  mirror.sync(scene, null);
+  geo.attributes.position.setY(0, 2); geo.attributes.position.needsUpdate = true;
+  geo.attributes.color.setXYZ(0, 0.5, 0.25, 0); geo.attributes.color.needsUpdate = true;
+  mirror.sync(scene, null);
+  assert.equal(R.ops('geometry').length, 1, 'sent whole once');
+  assert.equal(verts.length, 1);
+  assert.deepEqual(Array.from(verts[0].col.array.slice(0, 3)), [0.5, 0.25, 0]);
+  geo.attributes.position.needsUpdate = true;   // (the points alone: no colours)
+  mirror.sync(scene, null);
+  assert.equal(verts[1].col, null);
+  // the Unity backend's op 8: flag 4 and RGBA after the points (and normals)
+  const { UnityBackend } = await import('../engine/unity/backend.js');
+  const B = new UnityBackend({});
+  B.sentGids.add(3);
+  B.vertices(3, new Float32Array([1, 2, 3]), null, 1, null, { array: new Float32Array([0.5, 0.25, 0]), itemSize: 3 });
+  const f = new Float32Array(B.w.take()), u = new Uint32Array(f.buffer);
+  assert.deepEqual([u[0], u[1], u[2], u[3]], [8, 3, 1, 4]);
+  assert.deepEqual(Array.from(f.subarray(4, 11)), [-1, 2, 3, 0.5, 0.25, 0, 1]);
+});
+
 test('mirror: instanced meshes send their instances when they change', () => {
   const R = recorder();
   const mirror = new SceneMirror(R.backend);

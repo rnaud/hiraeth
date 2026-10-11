@@ -527,10 +527,10 @@ namespace Memento.Bridge
                         o += n * 16;
                         break;
                     }
-                    case 8:   // a geometry's points (and normals) moved: cloth, in place
+                    case 8:   // a geometry's points (and normals, alpha, colours) moved: cloth, the flames, in place
                     {
-                        int gid = (int)fu[o++], n = (int)fu[o++]; uint vf = fu[o++]; bool hasN = (vf & 1) != 0, hasA = (vf & 2) != 0;
-                        int po = o; o += n * 3; int no = o; if (hasN) o += n * 3; int ao = o; if (hasA) o += n;
+                        int gid = (int)fu[o++], n = (int)fu[o++]; uint vf = fu[o++]; bool hasN = (vf & 1) != 0, hasA = (vf & 2) != 0, hasC = (vf & 4) != 0;
+                        int po = o; o += n * 3; int no = o; if (hasN) o += n * 3; int ao = o; if (hasA) o += n; int co = o; if (hasC) o += n * 4;
                         if (byGeometry.TryGetValue(gid, out var list))
                             foreach (var md in list)
                             {
@@ -538,7 +538,9 @@ namespace Memento.Bridge
                                 for (int i = 0; i < n; i++) md.pos[i] = new Vector3(ff[po + i * 3], ff[po + i * 3 + 1], ff[po + i * 3 + 2]);
                                 md.mesh.SetVertices(md.pos);
                                 if (hasN && md.nrm != null) { for (int i = 0; i < n; i++) md.nrm[i] = new Vector3(ff[no + i * 3], ff[no + i * 3 + 1], ff[no + i * 3 + 2]); md.mesh.SetNormals(md.nrm); }
-                                if (hasA && md.col != null) { for (int i = 0; i < n; i++) md.col[i].a = ff[ao + i]; md.mesh.SetColors(md.col); }
+                                if (hasC && md.col != null) for (int i = 0; i < n; i++) md.col[i] = new Color(ff[co + i * 4], ff[co + i * 4 + 1], ff[co + i * 4 + 2], ff[co + i * 4 + 3]);
+                                if (hasA && md.col != null) for (int i = 0; i < n; i++) md.col[i].a = ff[ao + i];
+                                if ((hasA || hasC) && md.col != null) md.mesh.SetColors(md.col);
                                 md.mesh.RecalculateBounds();
                             }
                         break;

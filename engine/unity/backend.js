@@ -303,15 +303,20 @@ export class UnityBackend {
   }
 
   /** A geometry's points and normals moved (cloth): into the frame's buffer, for every variant of it sent (op 8). */
-  vertices(gid, pos, nrm, n, alpha = null) { const b0 = this.w.n; this._vertices(gid, pos, nrm, n, alpha); tally(this, 'vertices', b0); }
-  _vertices(gid, pos, nrm, n, alpha = null) {
+  vertices(gid, pos, nrm, n, alpha = null, col = null) { const b0 = this.w.n; this._vertices(gid, pos, nrm, n, alpha, col); tally(this, 'vertices', b0); }
+  _vertices(gid, pos, nrm, n, alpha = null, col = null) {
     if (!this.sentGids.has(gid)) return;
     const w = this.w;
-    w.reserve(4 + n * 7);
-    w.u(OP.vertices); w.i(gid); w.u(n); w.u((nrm ? 1 : 0) | (alpha ? 2 : 0));
+    w.reserve(4 + n * 11);
+    w.u(OP.vertices); w.i(gid); w.u(n); w.u((nrm ? 1 : 0) | (alpha ? 2 : 0) | (col ? 4 : 0));
     for (let i = 0; i < n; i++) { w.f(-pos[i * 3]); w.f(pos[i * 3 + 1]); w.f(pos[i * 3 + 2]); }
     if (nrm) for (let i = 0; i < n; i++) { w.f(-nrm[i * 3]); w.f(nrm[i * 3 + 1]); w.f(nrm[i * 3 + 2]); }
     if (alpha) for (let i = 0; i < n; i++) w.f(alpha[i]);
+    if (col) {
+      // (RGBA, as unityGeometry packs a geometry's colours)
+      const k = col.itemSize, src = col.array, s = col.normalized && !(src instanceof Float32Array) ? 1 / (src instanceof Uint8Array ? 255 : 65535) : 1;
+      for (let i = 0; i < n; i++) { w.f(src[i * k] * s); w.f(src[i * k + 1] * s); w.f(src[i * k + 2] * s); w.f(k === 4 ? src[i * k + 3] * s : 1); }
+    }
     this.stats.vertexBytes = (this.stats.vertexBytes ?? 0) + n * 24;
   }
 
