@@ -1,0 +1,32 @@
+src/changelog-media.js
+  s_9ca76055a220ed::t_9f4d81cabac102 556-562
+src/changelog.js
+  s_9ca76055a220ed::t_e62fdce4a01d57 16
+src/desert-city.js
+  s_9ca76055a220ed::t_53c5f41081a367 14,356-358,1193-1197,1199,1206-1213,1234-1237,1240-1248,1250-1251,1253-1259,1261,1264-1269,1337-1339,1373
+  s_9ca76055a220ed::t_03be77dce80bf2 1249,1270
+src/levels/desert.js
+  s_9ca76055a220ed::t_844c6775e367fb 171-172
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_fd2c5575c0b36a 591-602
+changelog.md
+  s_9ca76055a220ed::t_c5f94b0b4e3c82 7
+tests/desert-cave-light.test.js
+  s_9ca76055a220ed::t_343f350c9c60f3 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8951383da11a4a819201863a338d0e17cd763754",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
