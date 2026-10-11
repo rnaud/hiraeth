@@ -32,6 +32,13 @@ namespace Memento.Bridge
         void BeforeRender() { tBefore = System.Diagnostics.Stopwatch.GetTimestamp(); }
         void BeginContext(ScriptableRenderContext c, List<Camera> cams) { long t = System.Diagnostics.Stopwatch.GetTimestamp(); if (contexts++ == 0) tContext0 = t; tContextEnd = -t; }
         void EndContext(ScriptableRenderContext c, List<Camera> cams) { long t = System.Diagnostics.Stopwatch.GetTimestamp(); contextTicks += t + tContextEnd; tContextEnd = t; }
+        // the same phases summed over the 5 s window (ms), for the steady frames' line
+        double pScripts, pBefore, pContexts, pAfter; int pFrames;
+        void SumPhases()
+        {
+            if (tPrevUpdate == 0 || tBefore == 0 || contexts == 0) return;
+            pScripts += TicksMs(tBefore - tPrevUpdate); pBefore += TicksMs(tContext0 - tBefore); pContexts += TicksMs(contextTicks); pAfter += TicksMs(tUpdate - tContextEnd); pFrames++;
+        }
         string Phases()
         {
             if (tPrevUpdate == 0 || tBefore == 0 || contexts == 0) return "";
@@ -43,8 +50,8 @@ namespace Memento.Bridge
         readonly object gate = new();
         readonly FrameTiming[] timing = new FrameTiming[1];
         readonly List<float> frames = new();
-        double windowStart, cpuMain, cpuRender, gpu; int timed;
-        double scriptAt, waitAt;
+        double windowStart, cpuMain, cpuRender, gpu, cpuAll, presentWait; int timed;
+        double scriptAt, waitAt, opsAt;
         string readout = "";
         // the load
         float firstNode = -1, settled = -1, lastGrowth; int lastNodes;
@@ -97,7 +104,7 @@ namespace Memento.Bridge
         void OnLog(string text, string stack, LogType type)
         {
             bool bad = type == LogType.Error || type == LogType.Exception || type == LogType.Assert;
-            if (!bad && !text.StartsWith("Memento")) return;
+            if (!bad && !text.StartsWith("Memento") && !text.StartsWith("[bench]") && !text.StartsWith("[unity]")) return;
             Write(bad ? $"{type}: {text}\n{stack}" : text);
         }
 
@@ -110,6 +117,7 @@ namespace Memento.Bridge
         {
             tPrevUpdate = tUpdate; tUpdate = System.Diagnostics.Stopwatch.GetTimestamp();
             string phases = Phases();
+            SumPhases();
             contextTicks = 0; contexts = 0;
             float now = Time.realtimeSinceStartup, dt = Time.unscaledDeltaTime * 1000;
             var scene = runner ? runner.scene : null;
@@ -137,6 +145,7 @@ namespace Memento.Bridge
                 if (now - lastGrowth > 2)
                 {
                     settled = lastGrowth;
+                    Write($"load: GPU Resident Drawer {BridgeRunner.ResidentDrawerState()}");
                     Write($"load: world settled {settled * 1000:0} ms after launch ({nodes} nodes, {scene.Geometries} geometries); " +
                           $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms; " +
                           $"Unity's own part (without the wait on the script): {nativeSum:0} ms, longest {nativeMax:0} ms, {nativeSlow} over 50 ms");
@@ -146,20 +155,27 @@ namespace Memento.Bridge
             // the frame's numbers, from settled on (and before, so the readout shows something)
             frames.Add(dt);
             if (timedNow)
-            { cpuMain += timing[0].cpuMainThreadFrameTime; cpuRender += timing[0].cpuRenderThreadFrameTime; gpu += timing[0].gpuFrameTime; timed++; }
+            { cpuMain += timing[0].cpuMainThreadFrameTime; cpuRender += timing[0].cpuRenderThreadFrameTime; gpu += timing[0].gpuFrameTime; cpuAll += timing[0].cpuFrameTime; presentWait += timing[0].cpuMainThreadPresentWaitTime; timed++; }
             if (now - windowStart >= 5 && frames.Count > 0)
             {
                 frames.Sort();
                 float span = now - (float)windowStart;
                 double fps = frames.Count / span;
                 float p50 = frames[frames.Count / 2], p95 = frames[Mathf.Min(frames.Count - 1, (int)(frames.Count * 0.95f))], max = frames[frames.Count - 1];
-                double script = runner ? runner.scriptMsTotal - scriptAt : 0, wait = runner ? runner.waitMsTotal - waitAt : 0;
+                double script = runner ? runner.scriptMsTotal - scriptAt : 0, wait = runner ? runner.waitMsTotal - waitAt : 0, ops = BridgeHost.opsMsTotal - opsAt;
                 if (runner) { scriptAt = runner.scriptMsTotal; waitAt = runner.waitMsTotal; }
+                opsAt = BridgeHost.opsMsTotal;
                 int n = frames.Count;
                 string t = timed > 0 ? $"cpu main {cpuMain / timed:0.0} render {cpuRender / timed:0.0} gpu {gpu / timed:0.0} ms" : "no frame timing";
                 readout = $"{fps:0.0} fps · {p50:0.0} ms (p95 {p95:0.0}, max {max:0}) · {t} · script {script / n:0.0} wait {wait / n:0.0} ms · {nodes} nodes";
-                Write((settled < 0 ? "loading: " : "frames: ") + readout);
-                frames.Clear(); windowStart = now; cpuMain = cpuRender = gpu = 0; timed = 0;
+                // (where the main thread's frame goes: the scripts' part (the wait on the script and the ops applied in it), URP's
+                // part before its first context, its contexts, and after them to the next Update; FrameTimingManager's whole CPU
+                // frame and its wait on the present; ops still held back by -ops-cap)
+                string detail = (pFrames > 0 ? $" · phases scripts {pScripts / pFrames:0.0} (ops {ops / n:0.0}) before render {pBefore / pFrames:0.0} contexts {pContexts / pFrames:0.0} after {pAfter / pFrames:0.0} ms" : "")
+                    + (timed > 0 ? $" · cpu frame {cpuAll / timed:0.0} present wait {presentWait / timed:0.0} ms" : "") + (BridgeHost.Held > 0 ? $" · {BridgeHost.Held} ops held" : "");
+                Write((settled < 0 ? "loading: " : "frames: ") + readout + detail);
+                frames.Clear(); windowStart = now; cpuMain = cpuRender = gpu = cpuAll = presentWait = 0; timed = 0;
+                pScripts = pBefore = pContexts = pAfter = 0; pFrames = 0;
             }
         }
 

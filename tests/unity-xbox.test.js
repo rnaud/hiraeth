@@ -100,3 +100,18 @@ test('the numbers go to LocalState\\unity.log, the native side apart from the sc
   assert.match(runner, /if \(BridgeMetrics\.Wanted\(\)\) gameObject\.AddComponent<BridgeMetrics>\(\)\.runner = this;/);
   assert.match(runner, /scriptMsTotal \+=/);
 });
+
+test('the Xbox\'s experiments from LocalState\\args.txt: -idle (the spawn measured), -no-grd, -ops-cap; the frame\'s phases logged', () => {
+  const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
+  assert.match(runner, /Flag\("-no-grd"\)\) urp\.gpuResidentDrawerMode = GPUResidentDrawerMode\.Disabled/);
+  assert.match(runner, /Arg\("-ops-cap"\)/);
+  const host = read('unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs');
+  assert.match(host, /\(opsCap > 0 \? asks : ops\)\.Add\(ask\)/, 'a question is never held back by the cap');
+  assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs'), /args\["idle"\]/);
+  const game = read('engine/unity/game.js');
+  assert.match(game, /kind: 'measure', view: \{ name: 'spawn' \}, secs: args\.idle \}, \{ kind: 'hold' \}/);
+  const metrics = read('unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs');
+  assert.match(metrics, /phases scripts/);
+  assert.match(metrics, /cpuMainThreadPresentWaitTime/);
+  assert.match(metrics, /StartsWith\("\[bench\]"\)/, 'the bench\'s results reach unity.log');
+});

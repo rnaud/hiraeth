@@ -60,6 +60,7 @@ namespace Memento.Bridge
             if (BridgeMetrics.Wanted()) gameObject.AddComponent<BridgeMetrics>().runner = this;
             if (!JsRuntime.Available) { Debug.LogError("Memento bridge: Puerts is not installed (scripts/unity-js-setup.sh)"); failed = true; return; }
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1;
+            Experiments();
             if (args.Contains("\"split\":true")) gpuSplit = new BridgeGpuSplit();
             // the sound (BridgeAudio): played, except in batch runs and with -mute, where nothing may make any
             bool mute = Application.isBatchMode || Array.IndexOf(BridgeArgs.CommandLine(), "-mute") >= 0;
@@ -231,6 +232,32 @@ namespace Memento.Bridge
             }
         }
 
+        /// <summary>
+        /// The Xbox's experiments, from LocalState\args.txt (BridgeArgs): -no-grd (URP's GPU Resident Drawer off: the
+        /// suspect for the load's 24-27 s stall before the first render, and part of the main thread's frame), -ops-cap N
+        /// (the script's ops applied N a frame at most: the load's objects made over several frames). The drawer's state
+        /// is logged either way.
+        /// </summary>
+        static void Experiments()
+        {
+            var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            if (urp != null && BridgeArgs.Flag("-no-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
+            if (BridgeArgs.Arg("-ops-cap") is string cap && int.TryParse(cap, out int n)) BridgeHost.opsCap = n;
+            Debug.Log($"Memento bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}");
+        }
+        /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
+        public static string ResidentDrawerState()
+        {
+            try
+            {
+                var t = Type.GetType("UnityEngine.Rendering.GPUResidentDrawer, Unity.RenderPipelines.GPUDriven.Runtime", false)
+                    ?? Type.GetType("UnityEngine.Rendering.GPUResidentDrawer, Unity.RenderPipelines.Core.Runtime", false);
+                var m = t?.GetMethod("IsInitialized", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                return m == null ? "unknown" : (bool)m.Invoke(null, null) ? "running" : "off";
+            }
+            catch (Exception e) { return e.GetType().Name; }
+        }
+
         static string Quote(string s) => "\"" + s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n") + "\"";
 
         readonly FrameTiming[] timing = new FrameTiming[1];
@@ -238,6 +265,7 @@ namespace Memento.Bridge
         void Update()
         {
             if (Time.realtimeSinceStartup > limitAt) { Debug.LogError("Memento bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); return; }
+            BridgeHost.NewFrame();
             if (!started || failed) return;
             FrameTimingManager.CaptureFrameTimings();
             if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }

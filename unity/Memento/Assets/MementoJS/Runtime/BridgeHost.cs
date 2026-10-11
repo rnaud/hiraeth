@@ -27,7 +27,7 @@ namespace Memento.Bridge
         // ---------------------------------------------------------------- the script's thread and the main one
         public static Thread Main;
         static readonly object gate = new();
-        static List<Action> ops = new(), spare = new();
+        static List<Action> ops = new(), spare = new(), asks = new(), asksSpare = new();
         static readonly Stopwatch clock = Stopwatch.StartNew();
         static double clock0;
         /// <summary>Set when the script has handed something over (an op, a question, its frame done).</summary>
@@ -47,23 +47,51 @@ namespace Memento.Bridge
             if (OnMain) return f();
             T v = default; Exception err = null;
             using var done = new ManualResetEventSlim(false);
-            On(() => { try { v = f(); } catch (Exception e) { err = e; } done.Set(); });
+            Action ask = () => { try { v = f(); } catch (Exception e) { err = e; } done.Set(); };
+            // (never held back by -ops-cap, the script waits on it: ahead of the ops then; in their order otherwise)
+            lock (gate) (opsCap > 0 ? asks : ops).Add(ask);
+            Wake.Set();
             done.Wait();
             if (err != null) throw err;
             return v;
         }
         /// <summary>A function run on the main thread, its value waited for (Puerts' loader, made on the script's thread).</summary>
         public static object OnMainThread(Func<object> f) => Ask(f);
+        /// <summary>The main thread's time applying the script's ops (ms, summed for good: BridgeMetrics reads it).</summary>
+        public static double opsMsTotal;
+        /// <summary>
+        /// At most this many ops a frame (-ops-cap N, for a test: the load's objects made over several frames instead of
+        /// one); the rest wait, in order, for the next frame. 0: no cap. Questions (Ask) are never held back.
+        /// </summary>
+        public static int opsCap;
+        static int opsThisFrame;
+        public static void NewFrame() { opsThisFrame = 0; }
+        static readonly List<Action> held = new();
         /// <summary>The main thread: what the script handed over since the last call, in order.</summary>
         public static int RunOps()
         {
-            List<Action> list;
-            lock (gate) { if (ops.Count == 0) return 0; list = ops; ops = spare; spare = list; }
-            int n = list.Count;
-            try { foreach (var a in list) a(); }
-            finally { list.Clear(); }
+            List<Action> list, q;
+            lock (gate) { if (ops.Count == 0 && held.Count == 0 && asks.Count == 0) return 0; list = ops; ops = spare; spare = list; q = asks; asks = asksSpare; asksSpare = q; }
+            try { foreach (var a in q) a(); } finally { q.Clear(); }
+            long t0 = Stopwatch.GetTimestamp();
+            int n = 0;
+            try
+            {
+                if (opsCap <= 0) { foreach (var a in list) a(); n = list.Count; }
+                else
+                {
+                    held.AddRange(list);
+                    int take = Math.Min(held.Count, Math.Max(0, opsCap - opsThisFrame));
+                    for (int i = 0; i < take; i++) held[i]();
+                    held.RemoveRange(0, take);
+                    opsThisFrame += take; n = take;
+                }
+            }
+            finally { list.Clear(); opsMsTotal += (Stopwatch.GetTimestamp() - t0) * 1000.0 / Stopwatch.Frequency; }
             return n;
         }
+        /// <summary>Ops still held back by -ops-cap.</summary>
+        public static int Held => held.Count;
         /// <summary>The main thread, at a frame's start: what the script reads this frame (keys, pads, the mouse, the frame times).</summary>
         public static void Snapshot()
         {

@@ -375,6 +375,10 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   `JsRuntime` picks V8 where its package is, QuickJS where it isn't (`PUERTS_BACKENDS=Quickjs` alone). With V8, Puerts'
   `Tick` runs and the sound has its own engine; `-no-tick` and `-audio-js` (in `LocalState\args.txt`, the console's
   stand-in for a command line: `node scripts/xbox-unity.mjs args "-no-tick"`) bring back QuickJS's workarounds.
+  The same file takes the experiments: `-idle 20 -split` (the spawn measured once the load is over, the frame taken
+  apart: a `[bench]` line in unity.log), `-no-grd` (URP's GPU Resident Drawer off), `-ops-cap N` (the script's ops
+  applied N a frame at most). The 5 s `frames:` lines add the main thread's phases (the scripts' part with the ops it
+  applied, URP's part before its first context, its contexts, after them) and FrameTimingManager's present wait.
 - **The build** (`BridgeBuild.Xbox`): the bridge's scene as a UWP D3D solution, IL2CPP x64, Direct3D 11 (what ANGLE
   draws through on the console), Unity's references copied in. Identity `rnaud.HiraethUnity`, shown as *Hiraeth
   (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it plays the desert from the spawn.

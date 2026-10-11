@@ -95,8 +95,13 @@ function makePlan(args) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-walk.png` });
   }
+  if (args.idle) {
+    // the spawn as it is, measured once the load's tail is over (-idle N -split: the Xbox's frame taken apart, with
+    // no command line there: LocalState\args.txt); the game goes on after it, nothing pinned, nothing pressed
+    steps.push({ kind: 'wait', frames: 120, secs: 3 }, { kind: 'measure', view: { name: 'spawn' }, secs: args.idle }, { kind: 'hold' });
+  }
   if (!steps.length) return null;
-  steps.push({ kind: 'done' });
+  if (!args.idle) steps.push({ kind: 'done' });
   return { steps, i: 0, wait: 0, t: 0, samples: null };
 }
 
@@ -179,6 +184,7 @@ export function frame(dt) {
   const P = S.plan;
   if (!P) return;
   const step = P.steps[P.i];
+  if (!step || step.kind === 'hold') return;
   const next = () => { P.i++; P.wait = 0; P.t = 0; };
   if (step.kind === 'pin') { game.pin(aimed(game, step.view)); next(); }
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
