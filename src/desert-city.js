@@ -13,6 +13,8 @@ import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
 import { Veils } from './veil.js';
 import { items } from './items.js';
+// (the Givers' Hearth's cut: it clips a triangle to the opening, not by its centre; issue #6)
+import { cut as clip } from './desert-hearth.js';
 
 // The desert's story places (references/levels/The Desert/environment/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
@@ -1197,7 +1199,11 @@ export function buildDesertCity(scene, terrain) {
     const door = (x, y, z) => Math.abs(x) < 3.0 && y < 5.2 && z > 15;   // the opening to the passage
     const SKY = [[-10, -11.2, 3.3], [8.5, -16.2, 2.8], [13, 8.8, 3.1], [-6.5, 13.8, 2.6]].map(([x, z, r]) => ({ x, z, r, y: H * Math.sqrt(Math.max(0, (ROOM + 1) ** 2 - x * x - z * z)) }));
     const skyHole = (x, y, z) => SKY.some((h) => Math.hypot(x - h.x, y - h.y, z - h.z) < h.r);
-    const d = cut(inward(rough(new THREE.SphereGeometry(ROOM + 1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, H, 1), 1.2, 0.18, 5)), (x, y, z) => door(x, y, z) || skyHole(x, y, z));
+    // (the doorway clipped to its edge, not cut by the triangles' centres: at 40 segments a column of the dome's vertices
+    // stands on the passage's axis, and the foot's triangles from it out to 4.85 m kept their centres 3.2 m out, past
+    // the 3.0 m test: a wedge up to 2 m high across the doorway, facing the cave, unseen from the passage and solid all
+    // the same, the invisible wall of issue #6, since ea27b25e; the cracks stay cut by centre, under their rims)
+    const d = clip(cut(inward(rough(new THREE.SphereGeometry(ROOM + 1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, H, 1), 1.2, 0.18, 5)), skyHole), door);
     cave.both(M.cave, d);   // (the rough dome collides as drawn: a smooth 14-sided one lay up to 1.6 m inside it)
     // the ribs: broad flat bands arching across the nave from the floor, set into the vault (between them its rock);
     // spaced so the channel's crack and the doorways fall between them

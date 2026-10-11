@@ -66,6 +66,9 @@ export const CHANGELOG = [
         ], source: '.claude/skills/camera-qc arena-lock-lizard and arena-lock (foe hidden)' },
       ] },
     'A stunned foe now reels in a slow dizzy circle with little amber stars turning over its head, so you can see it is open to a double cut in any colour vision, not only by its eyes turning pale. A foe knocked off a ledge shows the same stars, now darker and easier to see on pale sand.',
+    // the skull cave's doorway (issue #6)
+    { text: 'The cave under the giant’s skull no longer stops you just inside: after you drop off the landing, an unseen ridge of the cave’s wall across the doorway held you in the passage. You walk or run straight in now, at any angle. You still need the double jump to get out, and the chest by the pool still waits for a full tank.',
+      see: 'Go down the skull’s mouth with the backpack, drop off the landing and walk on toward the pool: nothing stops you in the doorway.' },
   ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)

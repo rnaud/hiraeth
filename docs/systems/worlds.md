@@ -636,6 +636,15 @@ Rebuilt after `references/levels/The Desert/places/skull/sheet-1.jpg` and `skull
   stair the first time without the lift valve, a toast says it has fallen. The lift valve's chest is shut and silent
   until the pool has filled the tank (its placement's `ready`, `sealed`: `docs/systems/boxes.md`).
   `tests/desert-cave-exit.test.js`; the play-through walk takes a `slope` (the dome's steep foot is no ground).
+- **The doorway is clipped, not cut** (issue #6: "an invisible wall after I just enter the cave"). The dome's doorway
+  went through `cut`, which drops a triangle by its centre. At 40 segments (ea27b25e) a column of the dome's vertices
+  stands on the passage's axis, so the foot's triangles from it out to 4.85 m kept their centres 3.2 m out, past the
+  3.0 m door. That left a wedge up to 2 m high across the doorway. It faced the cave, so from the passage you saw only
+  its back faces, which are culled, and it stayed solid. The doorway now goes through the Givers' Hearth's `cut`
+  (`src/desert-hearth.js`, the same fix issue #80 made there), which splits a triangle down to the opening's edge. The
+  cracks are still cut by centre, under their rims. `tests/desert-cave-walk-in.test.js` walks the real Player from the
+  landing into the cave on every heading, walking and running, then all round the floor and the passage. It fails
+  wherever the Player is stopped with nothing drawn ahead.
 
 ## Qanat's burning tree and the giant ribcage, after the picked references (v1.39)
 Rebuilt after `references/levels/The Desert/places/qanat-tree/sheet-1.jpg` and `ribcage/sheet-1.jpg` (prompts in
