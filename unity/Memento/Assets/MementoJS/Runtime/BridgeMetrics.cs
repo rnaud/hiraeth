@@ -120,6 +120,7 @@ namespace Memento.Bridge
             string phases = Phases();
             SumPhases();
             string steps = BridgeLoopTimer.TakeFrame(8);
+            string made = BridgeRenderer.TakeMade();
             contextTicks = 0; contexts = 0;
             float now = Time.realtimeSinceStartup, dt = Time.unscaledDeltaTime * 1000;
             var scene = runner ? runner.scene : null;
@@ -131,7 +132,8 @@ namespace Memento.Bridge
             FrameTimingManager.CaptureFrameTimings();
             bool timedNow = FrameTimingManager.GetLatestTimings(1, timing) > 0;
             // (a frame over a second: which of the engine's own steps it was, BridgeLoopTimer)
-            if (dt > 1000 && steps.Length > 0) Write($"slow frame {dt:0} ms, its steps: {steps}");
+            if (dt > 1000 && steps.Length > 0) Write($"slow frame {dt:0} ms, its steps: {steps}; its ops made: {(made.Length > 0 ? made : "nothing")}");
+            else if (made.Length > 0 && BridgeHost.opsCap > 0 && settled < 0) Write($"load: a frame of {dt:0} ms made {made}");
             // the load's stages
             if (firstNode < 0 && nodes > 0)
             {

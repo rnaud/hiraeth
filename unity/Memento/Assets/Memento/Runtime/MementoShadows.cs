@@ -135,6 +135,7 @@ namespace Memento
         // and the bridge's ~1 300 movers were read for every cascade every frame)
         struct Mover { public Renderer r; public bool skinned; public Material[] mats; public int[] pass; }
         readonly List<Mover> movers = new();
+        readonly List<(Mover mv, Vector3 c, float r)> live = new();
         /// <summary>The main thread's time in Prepare and Render (ms, summed for good: the bridge's metrics read them) and the draws.</summary>
         public static double msPrepare, msRecord; public static long drawsTotal;
         float scanAt = -99; WorldDetail scannedFor;
@@ -202,6 +203,15 @@ namespace Memento
             float floor = detail.Floor;
             bool vertical = L.y > 0.05f;
             int casters = 0;
+            // the movers drawn this frame and their bounds, read once for all the cascades (each a few calls into the engine)
+            live.Clear();
+            foreach (var mv in movers)
+            {
+                var r = mv.r;
+                if (!r || !r.enabled || !r.gameObject.activeInHierarchy || r.shadowCastingMode == ShadowCastingMode.Off) continue;
+                var bb = r.bounds;
+                live.Add((mv, bb.center, bb.extents.magnitude * (mv.skinned ? 1.4f : 1) + (mv.skinned ? 0.3f : 0)));
+            }
             for (int w = 0; w < want.Count; w++)
             {
                 var (c, reach) = want[w];
@@ -226,13 +236,11 @@ namespace Memento
                     plan.draws.Add(new Draw { mesh = mesh, mat = u.mat, pass = ShadowPassOf(u.mat) });
                 }
                 // what moves
-                foreach (var mv in movers)
+                foreach (var (mv, bc, rad) in live)
                 {
                     var r = mv.r;
-                    if (!r || !r.enabled || !r.gameObject.activeInHierarchy || r.shadowCastingMode == ShadowCastingMode.Off) continue;
-                    var bb = r.bounds; float rad = bb.extents.magnitude * (mv.skinned ? 1.4f : 1) + (mv.skinned ? 0.3f : 0);
                     // (main.js tinyShadowCasters: bits of people under 7 cm don't cast)
-                    if (rad < Mathf.Max(minR, 0.07f) || !c.Holds(bb.center, rad) || !Sees(bb.center, rad, c.depth, floor, vertical)) continue;
+                    if (rad < Mathf.Max(minR, 0.07f) || !c.Holds(bc, rad) || !Sees(bc, rad, c.depth, floor, vertical)) continue;
                     var mats = mv.mats;
                     for (int s = 0; s < mats.Length; s++)
                     {

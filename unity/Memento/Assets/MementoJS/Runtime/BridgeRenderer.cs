@@ -160,9 +160,22 @@ namespace Memento.Bridge
 
         void Awake() { surface = Shader.Find("Memento/Surface"); }
 
+        /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
+        /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
+        public static readonly Dictionary<string, int> Made = new();
+        static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
+        public static string TakeMade()
+        {
+            if (Made.Count == 0) return "";
+            var s = string.Join(", ", System.Linq.Enumerable.Select(System.Linq.Enumerable.OrderByDescending(Made, kv => kv.Value), kv => $"{kv.Key} {kv.Value}"));
+            Made.Clear();
+            return s;
+        }
+
         // ------------------------------------------------------------------ geometry
         public void Geometry(string key, byte[] b, int count)
         {
+            Count("geometry"); Count("geometry kB", count / 1024);
             var t0 = Time.realtimeSinceStartupAsDouble;
             var u = new uint[count / 4];
             Buffer.BlockCopy(b, 0, u, 0, count - count % 4);
@@ -265,6 +278,7 @@ namespace Memento.Bridge
         public void Material(int mid, string json)
         {
             var m = Json.Parse(json) as Dictionary<string, object>;
+            Count("material" + (m.S("port") is string port ? " " + port : ""));
             if (m.S("port") == "flame") { materials[mid] = Flame(m); return; }
             if (m.S("port") == "mote")
             {
@@ -308,6 +322,7 @@ namespace Memento.Bridge
         {
             var d = Json.Parse(json) as Dictionary<string, object>;
             var n = new Node { kind = d.S("kind"), mesh = d.S("mesh"), shadow = !(d.Get("shadow") is bool sh) || sh };
+            Count("create " + n.kind);
             var mids = d.L("mids");
             n.mids = new int[mids?.Count ?? 0];
             for (int i = 0; i < n.mids.Length; i++) n.mids[i] = (int)Json.Num(mids[i]);
@@ -485,7 +500,7 @@ namespace Memento.Bridge
                     case 2:   // visible
                     {
                         int id = (int)fu[o++]; bool on = fu[o++] != 0;
-                        if (nodes.TryGetValue(id, out var nd) && nd.go.activeSelf != on) nd.go.SetActive(on);
+                        if (nodes.TryGetValue(id, out var nd) && nd.go.activeSelf != on) { nd.go.SetActive(on); if (on) Count("shown " + nd.kind); }
                         break;
                     }
                     case 3:   // instances: baked into one mesh (in the node's own space)
