@@ -622,6 +622,12 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'buried', save: { ...SAVE47, flags: { ...SAVE47.flags, 'buried.oculus.lit': true } }, hour: 12, fov: 70, eye: [52, -31.2, -468], target: [28, -8, -480], player: [52.5, -33.9, -467.5] } },
     ], see: 'In the Builders’ Greenhouse, the louvres’ light in the Bud Passage and over the Vine Gulf; outside, once the Lamp-House’s lamp burns again, its beam over the Deep Wood at dusk; in the Buried Machine, the Wick’s light up its oculus.' },
     { match: 'The title screen is there the moment the game opens', numbers: [
+    { match: 'The title screen is there the moment the game opens', shots: [
+      { name: 'title-first', title: 'As it opens', caption: 'The Desert’s shot as the title first shows it: before, its still (a picture of the 3D world being built behind the menu); after, the drawing, flat colour and ink traced off the same render', commit: '83604381',
+        view: { query: 'shot=A4', hud: true, ready: "!!window.title?.root?.classList.contains('art-on')", settle: 400, wait: 0, before: { ready: "!!window.title?.root?.classList.contains('still-on')" } } },
+      { name: 'title-live', title: 'Once the world was in', caption: 'The sky stones a few seconds on: before, the live 3D world faded in behind the menu; after, the same drawing as at once (no world is built)', commit: '83604381',
+        view: { query: 'shot=E3', hud: true, ready: "!!window.title?.root?.classList.contains('art-on')", settle: 1800, wait: 0, before: { ready: "!!window.title?.root?.classList.contains('vista-on')" } } },
+    ], numbers: [
       { title: 'The title’s first frame (its name over the paper), from the page’s start', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, 1280 × 720, a save to continue', rows: [
         { where: 'High', before: 87, after: 44 },
         { where: 'Handheld, the processor slowed 4× (a Retroid, roughly)', before: 143, after: 95 },
