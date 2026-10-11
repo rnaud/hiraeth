@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_a2dd60798c5574 7
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_5297f75f1d2310 646-658
+src/changelog.js
+  s_9ca76055a220ed::t_8394d2a8bd522d 77-87
+src/post.js
+  s_9ca76055a220ed::t_cbbd86813f5086 99,104,108-109,118-119,122-131,143-149,658-659,662-664,667,691
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_d76c73f9c6c5ee 8,36,75-81,83-84,132-133,361-363,370-374,421-423
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_9ca76055a220ed::t_af96cd96df4d88 215-216,220-222,225,265-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a7297412e03acfa47cd75b1d8d2e26fe6161952d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
