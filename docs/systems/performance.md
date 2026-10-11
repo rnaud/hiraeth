@@ -815,6 +815,9 @@ main thread's time a frame):
   in main.js): each object keeps the ten numbers its local matrix was composed from and recomposes, and multiplies
   its world matrix, only when they changed, it was flagged, or its parent's world matrix changed; the matrices are
   the same as three's (`tests/matrix-cache.test.js` checks them against three's walk over frames of changes).
+  `updateMatrix()` refreshes the remembered numbers (a rig posed for a moment by `updateRig` and put back), a
+  walk entered below the scene's root and an object given another parent are forced (issue #105; the Unity
+  bridge installs the same cache: `tests/pose-exact-web.test.js` and `tests/pose-exact.test.js` check every bone).
   33.6 → 32.3 ms. (At the City-Shaft's start it saved nothing measurable: 97 groups there move or are flagged every
   frame, so most of the walk's multiplies are real.)
 - **Shadow maps drawn unsorted** (`Cascade.render`: a depth map needs no draw order): 32.4 → 31.7 ms.

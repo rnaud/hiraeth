@@ -7,31 +7,13 @@ import { pads, host, toHost } from './host.js';
 import { createGame } from '../game.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
-import * as THREE from 'three';
-import { updateMatrixWorldCached } from '../../src/matrix-cache.js';
+import { installMatrixCache } from '../../src/matrix-cache.js';
 
-// The scene's matrices recomposed only where something moved (src/matrix-cache.js, as the web game's), for the walk
-// over the whole scene (the mirror's updateMatrixWorld: ~4 200 objects a frame at the desert's spawn, ~13 % of them
-// moved): what three does is kept everywhere else. A walk entered below the scene's root (a rig, a vehicle) is forced,
-// as three's own would recompute it from its parent, which may have moved since, and so is an object given another
-// parent (a carried thing changing hands). tests/pose-exact.test.js: every bone the same as three's own walk.
-const plainWorld = THREE.Object3D.prototype.updateMatrixWorld;
-// (and a matrix composed elsewhere, by updateMatrix (updateWorldMatrix, a rig posed for a moment) keeps the numbers it
-// came from, so the walk does not take a pose put back for the one it already has)
-const plainMatrix = THREE.Object3D.prototype.updateMatrix;
-THREE.Object3D.prototype.updateMatrix = function () {
-  plainMatrix.call(this);
-  const k = this._pqs;
-  if (k !== undefined) { const p = this.position, q = this.quaternion, s = this.scale; k[0] = p.x; k[1] = p.y; k[2] = p.z; k[3] = q._x; k[4] = q._y; k[5] = q._z; k[6] = q._w; k[7] = s.x; k[8] = s.y; k[9] = s.z; }
-};
-let walking = 0;
-THREE.Object3D.prototype.updateMatrixWorld = function (force) {
-  if (walking === 0 && this.parent !== null) force = true;
-  // (an object moved to another parent keeps its own numbers: its world matrix must be made again all the same)
-  if (this._mcParent !== this.parent) { this._mcParent = this.parent; force = true; }
-  walking++;
-  try { updateMatrixWorldCached.call(this, force); } finally { walking--; }
-};
+// The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
+// entered below the root forced, reparented objects forced and updateMatrix remembered), for the walk over the whole
+// scene (the mirror's updateMatrixWorld: ~4 200 objects a frame at the desert's spawn, ~13 % of them moved).
+// tests/pose-exact.test.js: every bone the same as three's own walk.
+installMatrixCache();
 
 let S = null;
 const now = () => host.Now();

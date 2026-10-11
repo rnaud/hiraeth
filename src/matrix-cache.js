@@ -14,12 +14,34 @@
 // matrixWorldNeedsUpdate), matrixWorldAutoUpdate false leaves the world matrix alone. Code that writes
 // .matrix directly on an object that recomposes it anyway would see its write survive until the object
 // moves (three would overwrite it at once); every such write in the game turns matrixAutoUpdate off first.
-// (An explicit updateMatrix() needs nothing: it composes from the same numbers, or newer ones the walk
-// will see differ from its cache and compose again.)
+//
+// Three places where the matrix is not what the remembered numbers say (issue #105, as 80bc70c0 for the Unity
+// bridge): a matrix composed outside the walk, by updateMatrix (updateWorldMatrix: world-read.js updateRig poses a
+// rig for a moment, then its numbers are put back) keeps the numbers it came from, so the walk does not take the pose
+// put back for the one it already has; a walk entered below the scene's root (a rig, a vehicle) is forced, as three's
+// own recomputes it from its parent, which may have moved since; and so is an object given another parent (a carried
+// thing changing hands: its own numbers the same, its world matrix not). Bones are Object3Ds: the same walk.
+// tests/matrix-cache.test.js and tests/pose-exact-web.test.js check every matrix against three's own.
 import * as THREE from 'three';
+
+const plainMatrix = THREE.Object3D.prototype.updateMatrix;
+/** updateMatrix, remembering the numbers it composed from (installMatrixCache() puts it on the prototype). */
+export function updateMatrixCached() {
+  plainMatrix.call(this);
+  const k = this._pqs;
+  if (k !== undefined) {
+    const p = this.position, q = this.quaternion, s = this.scale;
+    k[0] = p.x; k[1] = p.y; k[2] = p.z; k[3] = q._x; k[4] = q._y; k[5] = q._z; k[6] = q._w; k[7] = s.x; k[8] = s.y; k[9] = s.z;
+  }
+}
+
+// how deep in a walk: 0 is a walk's entry, which is forced below the root
+let walking = 0;
 
 /** The patched method (exported for the tests); installMatrixCache() puts it on Object3D's prototype. */
 export function updateMatrixWorldCached(force) {
+  if (walking === 0 && this.parent !== null) force = true;
+  if (this._mcParent !== this.parent) { this._mcParent = this.parent; force = true; }
   if (this.matrixAutoUpdate) {
     const p = this.position, q = this.quaternion, s = this.scale;
     let k = this._pqs;
@@ -40,7 +62,9 @@ export function updateMatrixWorldCached(force) {
     force = true;
   }
   const children = this.children;
-  for (let i = 0, l = children.length; i < l; i++) children[i].updateMatrixWorld(force);
+  if (children.length === 0) return;
+  walking++;
+  try { for (let i = 0, l = children.length; i < l; i++) children[i].updateMatrixWorld(force); } finally { walking--; }
 }
 
 let installed = false;
@@ -48,5 +72,6 @@ let installed = false;
 export function installMatrixCache(proto = THREE.Object3D.prototype) {
   if (installed && proto === THREE.Object3D.prototype) return;
   proto.updateMatrixWorld = updateMatrixWorldCached;
+  proto.updateMatrix = updateMatrixCached;
   if (proto === THREE.Object3D.prototype) installed = true;
 }

@@ -66,6 +66,9 @@ export const CHANGELOG = [
           { where: 'the Qanat tree’s stairs', before: 144, after: 21 },
         ], source: 'the visual audit’s probes (ghost check), before and after on the same spots' },
       ] },
+    // the matrix cache (issue #105)
+    { text: 'People no longer flicker for a frame into another pose: a body caught mid-move, a rider’s seat after the hoverbike moved, or a lantern just handed from one hand to another is always drawn where it really is.',
+      see: 'Walk among the people at the desert’s camps and watch someone pick up or hand over a lantern: no frame shows it in the old hand.' },
   ] },
   { v: '1.46', date: '2026-10-11', items: [
     // nobody sends you to somebody else (docs/systems/story.md "Straight to the end"; issue #85)

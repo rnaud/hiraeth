@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.47 — 2026-10-11
 
+- People no longer flicker for a frame into another pose: a body caught mid-move, a rider’s seat after the hoverbike moved, or a lantern just handed from one hand to another is always drawn where it really is.
 - Standing in a room’s corner, you and the people you meet no longer cut small pale notches into the dark band along the corner’s foot.
 - Your legs move more smoothly at a sprint, on stairs and turning on the spot: the knee no longer snaps straight at every sprinting stride, a swinging foot no longer jumps a stair’s height as it passes over an edge, your feet no longer cross as you step round, and the last step of a stop from a run no longer slides.
 - In the desert, tall poles with red strips lead the hoverbike out of Marrow’s hollow toward the Givers’ Hearth, the pilgrims’ lit road comes down to your ship again instead of where it used to land, and a carved field-stone stands on the dunes between the Givers’ House and your ship: once the House’s water runs, a field grows green beside it.
