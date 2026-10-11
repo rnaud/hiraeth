@@ -164,3 +164,15 @@ test('the Surface shader is the SRP Batcher\'s: every value a material sets in o
   assert.ok(sh.indexOf('#define MEMENTO_PER_MATERIAL') < sh.indexOf('#include "Figure.hlsl"'), 'the headers told before they are read');
   for (const f of ['Figure.hlsl', 'Marks.hlsl', 'Crowd.hlsl', 'TripoFace.hlsl']) assert.match(read(`unity/Memento/Assets/Memento/Shaders/${f}`), /#ifndef MEMENTO_PER_MATERIAL/, f);
 });
+
+test('the shadow maps\' movers culled per cascade by the engine and drawn as renderer lists on the Xbox (the SRP Batcher\'s path)', () => {
+  const sh = read('unity/Memento/Assets/Memento/Runtime/MementoShadows.cs');
+  assert.match(sh, /public void CullFor\(ScriptableRenderContext ctx, Camera cam, WorldDetail detail\)/);
+  assert.match(sh, /plan\.culled = ctx\.Cull\(ref p\)/);
+  const feature = read('unity/Memento/Assets/Memento/Rendering/MementoFeature.cs');
+  assert.match(feature, /renderingLayerMask = MementoShadows\.CasterLayer/);
+  const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
+  assert.match(runner, /UseRendererLists = !BridgeArgs\.Flag\("-shadow-draws"\)/);
+  assert.match(runner, /beginCameraRendering \+= CullShadows/);
+  assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs'), /MementoShadows\.CasterLayer/);
+});

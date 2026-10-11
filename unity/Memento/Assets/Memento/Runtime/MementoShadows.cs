@@ -91,6 +91,15 @@ namespace Memento
         public Cascade[] All => new[] { fine, near, far };
         int version = -1, frameNo;
         public static bool On = true;
+        /// <summary>
+        /// The movers drawn through renderer lists (the Unity bridge on the Xbox): each cascade culled by the engine for its own
+        /// window (CullFor, before the camera renders) and drawn as one list, on the SRP Batcher's path, instead of a
+        /// DrawRenderer a caster (~1 000 a frame on the main thread). The casters are the renderers with CasterLayer in their
+        /// rendering layers; the units and flora as before.
+        /// </summary>
+        public static bool UseRendererLists;
+        public const uint CasterLayer = 1u << 24;
+        int preparedFrame = -1; Camera preparedFor;
         /// <summary>A main camera that is not the port's Game's (the Unity bridge's): it keeps the cascades' schedule.</summary>
         public static Camera MainCamera;
         /// <summary>The smallest caster drawn, in the cascade's texels (its bounding radius; the web's 0.75).</summary>
@@ -127,6 +136,8 @@ namespace Memento
         public class Plan
         {
             public Cascade cascade; public readonly List<Draw> draws = new(); public readonly List<WorldDetail.FloraSet> flora = new();
+            /// <summary>The movers culled for this cascade by the engine (UseRendererLists): drawn as one list, on the SRP Batcher's path.</summary>
+            public CullingResults culled; public bool hasCull;
             public readonly List<System.Action<RasterCommandBuffer, Cascade>> extra = new();
         }
         public readonly List<Plan> plans = new();
@@ -158,6 +169,8 @@ namespace Memento
         /// </summary>
         public List<Plan> Prepare(Camera cam, WorldDetail detail)
         {
+            // (with renderer lists, prepared and culled once a frame, before the camera renders: CullFor)
+            if (UseRendererLists && preparedFrame == Time.frameCount && preparedFor == cam) return plans;
             long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
             try { return PrepareTimed(cam, detail); }
             finally { msPrepare += (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency; }
@@ -212,7 +225,7 @@ namespace Memento
             int casters = 0;
             // the movers drawn this frame and their bounds, read once for all the cascades (each a few calls into the engine)
             live.Clear();
-            foreach (var mv in movers)
+            if (!UseRendererLists) foreach (var mv in movers)
             {
                 var r = mv.r;
                 if (!r || !r.enabled || !r.gameObject.activeInHierarchy || r.shadowCastingMode == ShadowCastingMode.Off) continue;
@@ -280,6 +293,37 @@ namespace Memento
             }
         }
 
+        /// <summary>
+        /// UseRendererLists: this frame's plans made, and each cascade's casters culled by the engine for its window (its light's
+        /// box: the six planes of its projection), from RenderPipelineManager.beginCameraRendering, which has the context.
+        /// </summary>
+        public void CullFor(ScriptableRenderContext ctx, Camera cam, WorldDetail detail)
+        {
+            if (!UseRendererLists || !On || detail == null) return;
+            preparedFrame = -1;
+            var list = Prepare(cam, detail);
+            preparedFrame = Time.frameCount; preparedFor = cam;
+            foreach (var plan in list)
+            {
+                plan.hasCull = false;
+                if (!cam.TryGetCullingParameters(false, out var p)) continue;
+                var c = plan.cascade;
+                var vp = c.proj * c.view;
+                var planes = GeometryUtility.CalculateFrustumPlanes(vp);
+                // (the near plane pushed back towards the sun: anything between it and the window casts, as Holds has it)
+                planes[4].distance += 10000;
+                p.cullingPlaneCount = 6;
+                for (int k = 0; k < 6; k++) p.SetCullingPlane(k, planes[k]);
+                p.cullingMatrix = vp;
+                p.isOrthographic = true;
+                p.cullingOptions = CullingOptions.None;
+                p.shadowDistance = 0;
+                p.maximumVisibleLights = 0;
+                plan.culled = ctx.Cull(ref p);
+                plan.hasCull = true;
+            }
+        }
+
         static readonly Dictionary<Material, int> passes = new();
         static int ShadowPassOf(Material m)
         {
@@ -314,10 +358,11 @@ namespace Memento
 
         static readonly int IdLightDir = Shader.PropertyToID("_LightDirection"), IdBias = Shader.PropertyToID("_ShadowBias"), IdCamPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         /// <summary>One cascade's pass (MementoFeature): the casters into its map, as plain depth (the bias is applied when it is read).</summary>
-        public void Render(RasterCommandBuffer cmd, Plan plan, Vector3 camPos)
+        public void Render(RasterCommandBuffer cmd, Plan plan, Vector3 camPos, RendererList movers = default, bool hasMovers = false)
         {
             long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
             RenderTimed(cmd, plan, camPos);
+            if (hasMovers && movers.isValid) cmd.DrawRendererList(movers);
             msRecord += (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
             drawsTotal += plan.draws.Count;
             drawsBy[plan.cascade == fine ? 0 : plan.cascade == near ? 1 : 2] += plan.draws.Count;

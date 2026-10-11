@@ -106,7 +106,8 @@ namespace Memento.Rendering
         /// </summary>
         class ShadowPass : ScriptableRenderPass
         {
-            class PassData { public MementoShadows.Plan plan; public Vector3 camPos; }
+            class PassData { public MementoShadows.Plan plan; public Vector3 camPos; public RendererListHandle movers; public bool hasMovers; }
+            static readonly ShaderTagId CasterTag = new("ShadowCaster");
             public override void RecordRenderGraph(RenderGraph rg, ContextContainer frame)
             {
                 var cam = frame.Get<UniversalCameraData>();
@@ -123,10 +124,20 @@ namespace Memento.Rendering
                     if (i < 0 || !sm.maps[i].IsValid()) continue;
                     using var builder = rg.AddRasterRenderPass<PassData>("Memento shadows " + plan.cascade.name, out var d);
                     d.plan = plan; d.camPos = cam.camera.transform.position;
+                    d.hasMovers = false;
+                    if (MementoShadows.UseRendererLists && plan.hasCull)
+                    {
+                        // the movers the engine culled for this cascade, one list (MementoShadows.CullFor)
+                        var draw = new DrawingSettings(CasterTag, new SortingSettings(cam.camera) { criteria = SortingCriteria.None }) { perObjectData = PerObjectData.None, enableInstancing = true };
+                        var filter = new FilteringSettings(RenderQueueRange.all) { renderingLayerMask = MementoShadows.CasterLayer };
+                        d.movers = rg.CreateRendererList(new RendererListParams(plan.culled, draw, filter));
+                        builder.UseRendererList(d.movers);
+                        d.hasMovers = true;
+                    }
                     builder.SetRenderAttachmentDepth(sm.maps[i], AccessFlags.Write);
                     builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
-                    builder.SetRenderFunc((PassData x, RasterGraphContext ctx) => MementoShadows.Instance.Render(ctx.cmd, x.plan, x.camPos));
+                    builder.SetRenderFunc((PassData x, RasterGraphContext ctx) => MementoShadows.Instance.Render(ctx.cmd, x.plan, x.camPos, x.movers, x.hasMovers));
                 }
             }
         }

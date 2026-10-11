@@ -484,6 +484,8 @@ namespace Memento.Bridge
                 for (int s = 0; s < mats.Length; s++) materials.TryGetValue(n.mids.Length > 0 ? n.mids[Mathf.Min(md.subMat[s], n.mids.Length - 1)] : 0, out mats[s]);
                 n.r.sharedMaterials = mats;
                 n.r.shadowCastingMode = n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off;   // (both faces, as the web's shadow pass draws every caster: main.js shadowOverride)
+                // (and in the rendering layer the shadow maps' renderer lists draw: MementoShadows.UseRendererLists)
+                n.r.renderingLayerMask = n.shadow ? n.r.renderingLayerMask | MementoShadows.CasterLayer : n.r.renderingLayerMask & ~MementoShadows.CasterLayer;
                 if (n.r is MeshRenderer && n.mf && n.mf.sharedMesh) BridgePrewarm.Note(n.mf.sharedMesh, mats, mt => specs.TryGetValue(mt, out var j) ? j : null);
             }
             nodes[id] = n;

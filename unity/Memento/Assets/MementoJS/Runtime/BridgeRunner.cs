@@ -78,6 +78,9 @@ namespace Memento.Bridge
             cam.gameObject.AddComponent<AudioListener>();   // (where the sound is heard: BridgeAudio, muted in batch runs)
             cam.nearClipPlane = 0.1f; cam.farClipPlane = 6000f; cam.fieldOfView = 55;
             MementoShadows.MainCamera = cam;   // (its shadow maps on their schedule: near every Quality.nearEvery frames, far every farEvery)
+            RenderPipelineManager.beginCameraRendering += CullShadows;
+            // (-no-srp-batcher: the SRP Batcher off, an A/B for the Surface shader's material buffer)
+            if (BridgeArgs.Flag("-no-srp-batcher")) GraphicsSettings.useScriptableRenderPipelineBatching = false;
             cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.black;
             cam.allowMSAA = false; cam.allowHDR = false;
             var extra = cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
@@ -267,6 +270,13 @@ namespace Memento.Bridge
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
+            // the shadow maps' movers culled by the engine per cascade and drawn as renderer lists (the SRP Batcher's path) on the
+            // Xbox, instead of a DrawRenderer a caster; -shadow-draws as before, -shadow-lists elsewhere
+#if UNITY_WSA && !UNITY_EDITOR
+            MementoShadows.UseRendererLists = !BridgeArgs.Flag("-shadow-draws");
+#else
+            MementoShadows.UseRendererLists = BridgeArgs.Flag("-shadow-lists");
+#endif
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
             // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
@@ -301,7 +311,7 @@ namespace Memento.Bridge
                 Debug.Log($"Memento bridge: Shader.WarmupAllShaders took {tw.ElapsedMilliseconds} ms");
             }
             Debug.Log($"Memento bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}; " +
-                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, shadows {(MementoShadows.On ? $"on (fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {MementoShadows.minCasterTexels} texels, far from {Mathf.Max(MementoShadows.minCasterTexels, MementoShadows.minFarCasterTexels)})" : "off")}");
+                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, SRP Batcher {(GraphicsSettings.useScriptableRenderPipelineBatching ? "on" : "off")}, shadows {(MementoShadows.On ? $"on ({(MementoShadows.UseRendererLists ? "renderer lists" : "draws")}, fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {MementoShadows.minCasterTexels} texels, far from {Mathf.Max(MementoShadows.minCasterTexels, MementoShadows.minFarCasterTexels)})" : "off")}");
         }
         /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
         public static string ResidentDrawerState()
@@ -315,6 +325,8 @@ namespace Memento.Bridge
             }
             catch (Exception e) { return e.GetType().Name; }
         }
+
+        void CullShadows(ScriptableRenderContext ctx, Camera c) { if (c == cam && MementoShadows.UseRendererLists) MementoShadows.Instance.CullFor(ctx, c, WorldDetail.Current); }
 
         static string Quote(string s) => "\"" + s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n") + "\"";
 
@@ -519,6 +531,7 @@ namespace Memento.Bridge
 
         void OnDestroy()
         {
+            RenderPipelineManager.beginCameraRendering -= CullShadows;
             quit = true; go.Set(); BridgeHost.AudioWake.Set();
             if (BridgeHost.Runner == this) BridgeHost.Runner = null;
             // (not on the way out: V8 tears down with the process, and disposing its isolate then aborts)
