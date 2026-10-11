@@ -42,11 +42,12 @@ export const QUESTS = [
     stages: [
       // (Sel says where the cylinder is herself; Kip has it, on the second skybridge, and gives it to whoever asks for
       //  it, sent or not: one person sending you to the next was a finding, issue #85)
-      { id: 'sel', text: 'Find who kept the silent tower', label: 'Madame Sel, under the silent tower', flag: 'bazaar.sel.heard', at: 'sel' },
+      // (issue #44: she meets the ship by the landing, then goes back to her crate under the tower: src/story/bazaar.js)
+      { id: 'sel', text: 'Find who kept the silent tower', label: 'Madame Sel, by the landing', flag: 'bazaar.sel.heard', at: 'sel' },
       { id: 'kip', text: 'Get the cylinder back, on the second skybridge', label: 'The cylinder, on the second skybridge', flag: 'bazaar.kip.gave', at: 'kip', gate: true },
       { id: 'tune', text: 'Light the antenna’s three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna' },
       { id: 'play', text: 'Play the recording at the balcony console', label: 'The console', flag: 'bazaar.broadcast.on', at: 'console' },
-      { id: 'sel2', text: 'Go down to Madame Sel', label: 'Madame Sel', talk: 'sel', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
+      { id: 'sel2', text: 'Go down to Madame Sel, under the tower', label: 'Madame Sel, under the silent tower', talk: 'sel', stands: 'selSeat', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
     ],
   },
   {
@@ -111,7 +112,8 @@ export const PEOPLE = {
         self: { say: ["~tired~ Forty years climbing those ledges have collected their fee from my knees. I need someone else to go up."], choices: [{ text: '~curious~ Where is it now?', goto: 'kip' }] },
         kip: {
           say: ["~neutral~ *On the second skybridge*, in Kip’s bag. Fastest courier in the market, when travelling in the correct direction.",
-            "~playful~ Play it at *the console on the cream balcony*. Tune the antenna first: *three bulbs over the dish, lit at once*."],
+            "~playful~ Play it at *the console on the cream balcony*. Tune the antenna first: *three bulbs over the dish, lit at once*.",
+            "~neutral~ I’ll be on my crate under the tower, listening. Off you go, love."],
           do: { set: { 'bazaar.sel.heard': true } },
           choices: [{ text: '~solemn~ Then we listen.', end: true }],
         },

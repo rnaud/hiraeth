@@ -581,7 +581,34 @@ const C47_ARRIVAL = 'b78671a35ee4a75e132bb5e523f85cd09b0bd110';   // (the Dock's
 const SAVE47 = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'items.v': 2, 'save.migrated': 15, 'tool.empty': false, 'ship.powered': true, 'world.desert.done': true }, keepsakes: [] };
 const ART46 = (c) => ({ commit: c, before: `${c}^` });
 const FROM46 = 'the creatures gallery (enemies.html, headless Chrome, 1280 × 720, muted) against this branch’s own Vite, the body held in that pose by a scratch shooter (11 October)';
+// (v1.48: the Signal Market's onboarding and its square's passages, issue #44; taken at the commit before the coordinator's rebase)
+const C48_MARKET = '6f218d44b89a422eb07d2300dc84bdea9067f425';
+const SAVE48 = SAVE47;
+const C48_RUNS = '2abedcdbd0b82b122719cb66c038278874437fb6';   // (the two second makers' runs, issue #45)
+const C48_WORLDS = '9a3536fd6e3904cadd0ef846d8e3a2aa9906b2e8';   // (the new worlds' quests and courts, issue #101)
 export const CHANGELOG_MEDIA = {
+  '1.48': [
+    { match: 'The three newest worlds have a makers’ court each', shots: [
+      { name: 'court-underwater', title: 'The divers’ court', caption: 'In the Underwater City’s Plaza, looking west: before, the dome’s glass; after, a door in it and a tube to the divers’ court under its own dome, its chest’s pale column over it', commit: C48_WORLDS,
+        view: { level: 'underwater', save: SAVE48, hour: 12, fov: 60, eye: [-14, 3, -100], target: [-60, 2, -108], player: [-12, 0.3, -98] } },
+      { name: 'court-moonfoundry', title: 'The founders’ yard', caption: 'On the Moon Foundry’s apron, west of the way in: before, bare ground; after, the founders’ yard, the iron crate in its cage, the pit and the gated alcove', commit: C48_WORLDS,
+        view: { level: 'moonfoundry', save: SAVE48, hour: 12, fov: 60, eye: [-28, 4, 95], target: [-56, 1.5, 86], player: [-26, 0.3, 96] } },
+      { name: 'court-spacecity', title: 'The moorers’ yard', caption: 'From the west end of the floating city’s Gate: before, the dark; after, a bridge out to the Yard, the moorers’ yard on it, the crate on its pillar and the mast with its rings', commit: C48_WORLDS,
+        view: { level: 'spacecity', save: SAVE48, hour: 10, fov: 60, eye: [-20, 3, 33], target: [-77, 1, 30], player: [-18, 0.3, 32] } },
+    ] },
+    { match: 'Two new makers’ runs. In Viridel, the Glass climb', shots: [
+      { name: 'run-glass', title: 'The glass climb', caption: 'On the meadow north-west of Viridel’s white ruins: before, the grass; after, the plinth and its two terraces of greenhouse glass, a seed at the foot of each, the arch on top', commit: C48_RUNS,
+        view: { level: 'edena', save: SAVE48, hour: 11, fov: 60, eye: [109, 1.2, 76], target: [100, 4, 100], player: [108, -3.9, 74] } },
+      { name: 'run-orbs', title: 'The orb walk', caption: 'On the bank east of the Deep Wood’s landing: before, the reeds; after, the first deck on its piers, the pool-orb at the head of its groove and the keeper’s lamp at its foot, the next deck past the gap', commit: C48_RUNS,
+        view: { level: 'perdide', save: SAVE48, hour: 12, fov: 60, eye: [33, 6, -484], target: [62, 1, -490], player: [32, 1, -483] } },
+    ] },
+    { match: 'In the Signal Market, Madame Sel meets your ship', shots: [
+      { name: 'market-sel', title: 'Off the ramp', caption: 'A few steps up the avenue from the ship: before, the street (Sel sat 319 m on, at the silent tower’s foot); after, Madame Sel waiting there, 25 m from the ship', commit: C48_MARKET,
+        view: { level: 'bazaar', save: SAVE48, hour: 12, fov: 50, eye: [-4.5, 2.4, 73], target: [-9, 1.6, 63.5], player: [-3.5, 0.1, 76] } },
+      { name: 'market-passage', title: 'From the back lane', caption: 'From the back lane’s south end, toward Signal Square: before, the tower beside the square, a wall; after, a passage under it, the silent tower’s covered screens at its end', commit: C48_MARKET,
+        view: { level: 'bazaar', save: SAVE48, hour: 12, fov: 60, eye: [-95, 3.4, -255], target: [0, 30, -255], player: [-98, 0.5, -255] } },
+    ] },
+  ],
   '1.47': [
     { match: 'Arriving in the Underwater City, the Dock is no longer a bare floor', shots: [
       { name: 'arrival-dock', title: 'The Dock', caption: 'Off the ramp in the Underwater City, toward the long tube: before, a bare tiled plaza; after, the divers’ rack with its suits and air tanks (left), the cargo and its hand-cart (right), a stripe painted to the tube’s door', commit: C47_ARRIVAL,

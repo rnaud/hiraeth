@@ -15,6 +15,17 @@ export const KEEPSAKE = {
 export const ITEMS = { ladlehook: 'Bertil’s mended ladle-hook' };
 
 export const QUESTS = [
+  // the foundry's own main quest (v1.48, issue #101): Hedda's little moon on the apron, that nobody here poured; the hung
+  // moons seen from the old hoist, all turned one way; and in at the Casting-House's door (src/story/moonfoundry.js)
+  {
+    id: 'moonfoundry.moons', title: 'Nobody Poured It', world: 'moonfoundry', main: true,
+    outro: 'Every hung moon on the floor faces the Casting-House. Whatever pours at night pours in there.',
+    stages: [
+      { id: 'hedda', text: 'Hear Hedda out by her mould', label: 'Hedda, on the apron', flag: 'moonfoundry.hedda.heard', at: 'hedda' },
+      { id: 'hoist', text: 'Climb the old hoist to its first deck', label: 'The old hoist’s first deck', goto: 'hoistDeck', radius: 4.5, vertical: 3, at: 'hoistDeck' },
+      { id: 'house', text: 'Go in at the Casting-House’s door', label: 'The Casting-House’s door', flag: 'temple.moonfoundry.entered', at: 'temple.moonfoundry.door' },
+    ],
+  },
   {
     id: 'moonfoundry.count', title: 'Thirty-One Moons', world: 'moonfoundry',
     outro: 'Thirty-two, from the top of the pillar, written into the founders’ ledger. Wen has started again from one.',
@@ -33,6 +44,41 @@ export const QUESTS = [
 ];
 
 export const PEOPLE = {
+  // Hedda pours the small moons on the apron, by the ship: she opens the foundry's main quest
+  hedda: {
+    id: 'hedda', name: 'Hedda', title: 'who pours the small moons', color: '#d9a07c', voice: 1.05, kind: 'f',
+    head: 'wrap', cape: 0.3,
+    lines: ['~happy~ A small one, for somebody’s bell-tower. Still warm. Don’t touch.', '~curious~ Every so often somebody orders a moon. We say yes before we think.'],
+    talk: {
+      entry: [
+        { if: { flag: 'temple.moonfoundry.done' }, node: 'after' },
+        { if: { flag: 'moonfoundry.hedda.heard' }, node: 'again' },
+        { node: 'hello' },
+      ],
+      nodes: {
+        hello: {
+          say: ['~neutral~ Hedda. I pour the small moons. Bell-tower moons, garden moons. This one, though. I didn’t pour this one.',
+            '~curious~ It came down the rails at dawn, glowing, and settled in my mould like it lived there. Nobody here poured it. Nobody here was awake.'],
+          choices: [
+            { text: '~curious~ Then who poured it?', goto: 'who' },
+            { text: '~neutral~ Not now.', end: true },
+          ],
+        },
+        who: {
+          say: ['~solemn~ The night the sky rang, every hung moon on the floor turned on its hook. They’ve faced the same way since.',
+            '~neutral~ *Climb the old hoist*, the iron tower past the moon in the claws, to its first deck, and look at them. Whatever they face pours at night.'],
+          do: { set: { 'moonfoundry.hedda.heard': true } },
+          choices: [{ text: '~neutral~ I’ll climb it.', end: true }],
+        },
+        again: { say: ['~neutral~ The old hoist, the iron tower past the moon in the claws. Its first deck. Look at the moons.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        after: {
+          say: ['~happy~ No moon came down the rails this morning. The floor slept, and so did I. First time in a year.'],
+          choices: [{ text: '~neutral~ Goodbye, Hedda.', end: true }],
+        },
+      },
+    },
+  },
+
   ottilie: {
     id: 'ottilie', name: 'Ottilie', title: 'who mends in the quarter', color: '#c9703e', voice: 1.1, kind: 'f',
     head: 'wrap', cape: 0.4,

@@ -42,6 +42,8 @@ export const ISLANDS = {
   balcony: { x: 0, y: 0, z: -164, w: 44, d: 40, cr: 13, deep: 30 },
   // the Moorings: the Mooring-House's own island north of the Towers, higher than them (src/temples/spacecity.js)
   moorings: { x: 96, y: 14, z: -176, w: 44, d: 44, cr: 14, deep: 30 },
+  // the Yard: the moorers' practice island west of the Gate, the makers' court on it (v1.48, issue #101: src/finds/courts.js)
+  yard: { x: -76, y: 0, z: 30, w: 36, d: 32, cr: 10, deep: 22 },
 };
 const I0 = ISLANDS;
 /** The bridges between them: [from, to] as deck points ([x, y, z]), their width; each starts 1.5 m in on its decks. */
@@ -52,6 +54,7 @@ export const BRIDGES = [
   { name: 'the Garden bridge', a: [I0.market.x - 36.5, 0, -66], b: [I0.garden.x + 19.5, -4, -62], w: 4.2 },
   { name: 'the Balcony bridge', a: [0, 0, I0.market.z - 30.5], b: [0, 0, I0.balcony.z + 18.5], w: 4.6 },
   { name: 'the Moorings bridge', a: [98, 6, I0.towers.z - 19.5], b: [96, 14, I0.moorings.z + 20.5], w: 4.2 },
+  { name: 'the Yard bridge', a: [I0.gate.x - 24.5, 0, 30], b: [I0.yard.x + 16.5, 0, 30], w: 4.2 },
 ];
 /** Where the ship lands (the Pier's middle, a little south of it: its ramp toward the bridge). */
 export const SHIP_SITE = { x: 0, z: 128 };
@@ -95,7 +98,8 @@ export const SPACECITY_CONTENT = {
     // (Madame Sel's errand: her notes on the planet's hum to Tamar on the Towers, src/story/spacecity-people.js VISITORS)
     { ...BAZAAR_PEOPLE.sel, ...SC_VISITORS.sel, at: [8, I0.balcony.z - 12], y: 0, radius: 2, world: 'bazaar', lang: 'bazaar' },
     // the city's own folk
-    { at: [-5, I0.pier.z - 10], y: 0, radius: 3, lang: 'spacecity', lines: ['~curious~ A ship! Did you come across the dark? Nobody comes across the dark.', '~neutral~ The bridge goes north. Everything goes north from here.'] },
+    // (v1.48, issue #101: Rosa, who chalks the bridges: the city's main quest is hers, src/story/spacecity-people.js)
+    { ...SC_PEOPLE.rosa, at: [-5, I0.pier.z - 10], y: 0, radius: 2, lang: 'spacecity' },
     { at: [6, I0.gate.z + 12], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Welcome to the Gate. We sweep the lane every morning, so mind your boots.', '~whisper~ Don’t lean on the parapet at the corner. It leans back.'] },
     // (Liane: her flask of lamp oil goes to the Signal Market, src/levels/content.js errands)
     { id: 'liane', name: 'Liane', title: 'who sells at the plaza', color: '#e89a7e', kind: 'f', at: [PLAZA.x + 10, PLAZA.z + 6], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Lamp oil, cloth, bread from the garden! Everything grows up here, even bread.', '~playful~ Sit, eat. Nothing falls off a table here. Things fall off the island.'] },
@@ -151,6 +155,7 @@ export const LANES = {
   garden: { lanes: [[-70, -62, -96, -58, 3]], circles: [[-98, -58, 12]] },
   balcony: { lanes: [[0, -144, 0, -178, 3.4]], circles: [[0, -176, 10], [0, -158, 6]] },
   moorings: { lanes: [[96, -154, 96, -167, 3]], circles: [[96, -161, 5]] },   // (no houses: the Mooring-House stands on it)
+  yard: { lanes: [], circles: [[-76, 30, 18]] },   // (no houses: the makers' court stands on it)
 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -170,7 +175,7 @@ export function* buildSpaceCity(scene) {
     const kit = kitFor(`the ${key}`, 71500 + kits.length * 13), M = spaceMats(kit);
     const extra = key === 'balcony' ? [[0, -20, 17]] : [];   // (the balcony's north edge: its railing instead of the parapet)
     // (the Moorings, added after the city was laid out, draw from their own dice: the islands before them keep theirs)
-    const D = island(kit, M, key === 'moorings' ? mulberry32(71950) : rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0 });
+    const D = island(kit, M, key === 'moorings' ? mulberry32(71950) : key === 'yard' ? mulberry32(71970) : rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0 });
     decks[key] = { ...D, kit, M };
     const L = LANES[key], clearOf = (x, z, m) => L.lanes.every((s) => segDist(x, z, s) > s[4] + m * 0.9) && L.circles.every(([cx, cz, r]) => Math.hypot(x - cx, z - cz) > r + m * 0.85);
     const nearestLane = (x, z) => {
@@ -179,7 +184,7 @@ export function* buildSpaceCity(scene) {
       for (const [cx, cz, r] of L.circles) { const d = Math.hypot(x - cx, z - cz) - r; if (d < bd) { bd = d; best = [cx, cz]; } }
       return { p: best ?? [I.x, I.z], d: bd };
     };
-    if (key === 'pier' || key === 'moorings') continue;
+    if (key === 'pier' || key === 'moorings' || key === 'yard') continue;
     const peak = { gate: 4, market: 4, towers: 7, garden: 1, balcony: 3 }[key];
     quarter(kit, M, rng, {
       x0: I.x - I.w / 2, x1: I.x + I.w / 2, z0: I.z - I.d / 2, z1: I.z + I.d / 2, y: I.y, n: { gate: 30, market: 44, towers: 30, garden: 10, balcony: 18 }[key], gap: 0,
@@ -379,6 +384,8 @@ export function* buildSpaceCity(scene) {
     floraAvoid: shop.avoid(),
     edgeHint: 'Past the last islands there is only the dark, and it turns you back.',
     // the far end of the bridge out to the Moorings (Kip's lamp: src/story/spacecity-people.js)
+    // the cables where they leave the Towers for the Moorings, by the Moorings bridge's foot (the city's main quest: a hand on them)
+    mooringsFoot: { x: BRIDGES.find((b) => b.name === 'the Moorings bridge').a[0] + 2.6, y: I0.towers.y, z: BRIDGES.find((b) => b.name === 'the Moorings bridge').a[2] + 0.6 },
     mooringsEnd: { x: BRIDGES.find((b) => b.name === 'the Moorings bridge').b[0], y: I0.moorings.y, z: BRIDGES.find((b) => b.name === 'the Moorings bridge').b[2] + 2 },
     sights: [
       { name: 'the Balcony’s railing over the void', at: [0, 0, I0.balcony.z - 16] },

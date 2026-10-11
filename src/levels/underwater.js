@@ -48,6 +48,8 @@ export const DOMES = {
   plaza: { x: 0, y: 0, z: -108, r: 38, sy: 0.62 },
   gallery: { x: 104, y: -16, z: -108, r: 22, sy: 0.78 },
   crown: { x: 0, y: 64, z: -108, r: 13, sy: 0.85 },
+  // the divers' court (v1.48, issue #101): the makers' court under a dome of its own, west of the Plaza (src/finds/courts.js)
+  court: { x: -90, y: 0, z: -108, r: 22, sy: 0.72 },
 };
 const D = DOMES;
 /** Where the tubes run (their floors' ends), each from a dome's door to the next's. */
@@ -57,6 +59,7 @@ export const TUBES = {
   plaza: { a: [0, 0, D.avenue.z - D.avenue.r], b: [0, 0, D.plaza.z + D.plaza.r], R: 5 },
   gallery: { a: [D.plaza.x + D.plaza.r, 0, D.plaza.z], b: [D.gallery.x - D.gallery.r, D.gallery.y, D.gallery.z], R: 5 },
   temple: { a: [0, 0, D.plaza.z - D.plaza.r], b: [0, 0, -178], R: 5 },
+  court: { a: [D.plaza.x - D.plaza.r, 0, D.plaza.z], b: [D.court.x + D.court.r, 0, D.court.z], R: 5 },
 };
 /** The sloped tube's run on the ground (the bed is cut under it: seabed). */
 const TUBES_AT = { gallery: { x0: TUBES.gallery.a[0], x1: TUBES.gallery.b[0], y0: TUBES.gallery.a[1], y1: TUBES.gallery.b[1], z: TUBES.gallery.a[2] } };
@@ -103,6 +106,7 @@ export function placeAt(p) {
   if (near(D.dock)) return 'The Dock';
   if (near(D.garden)) return 'The kelp garden';
   if (near(D.gallery)) return 'The Whale Gallery';
+  if (near(D.court)) return 'The divers’ court';
   if (near(D.plaza)) return 'The Plaza';
   if (near(D.avenue)) return 'The Avenue';
   if (p.z < D.plaza.z - D.plaza.r + 4) return 'The tube to the Whale-House';
@@ -127,14 +131,8 @@ export const UNDERWATER_CONTENT = {
   },
   npcs: [
     // Bastien keeps the Dock and its lock: he meets the ship, and points the way in
-    { id: 'bastien', name: 'Bastien', title: 'who keeps the lock', color: '#3d6f78', kind: 'm', at: [10, 112], y: 0, radius: 1.5, facing: Math.PI * 0.85, palette: pal('#3d6f78', { cloth: '#e3b06a' }), lang: 'underwater',
-      lines: ['~happy~ Welcome down. Mind the pool, it’s the lock’s and it’s colder than it looks.', '~neutral~ The long tube goes north to the Avenue. Everything’s north of here.'],
-      talk: { listen: [
-        '~neutral~ Bastien. I keep the lock. Your ship came down it like a stone down a well. A polite stone.',
-        '~curious~ Nobody walks outside here. There’s nothing outside but the sea and the things that live in it. We go hall to hall, through the tubes.',
-        { after: { not: { flag: 'temple.underwater.done' } }, say: '~sad~ The whales used to come up to the glass and sing. Since the night the sky rang, they keep away. Maelle in the Whale Gallery will tell you. It’s down the slope, east of the Plaza.' },
-        { after: { flag: 'temple.underwater.done' }, say: '~happy~ They’re back. One came right up to the lock this morning and looked in at your ship. I think it approved.' },
-      ] } },
+    // (v1.48, issue #101: the city's main quest is his, the wrong note in the glass: src/story/underwater-people.js)
+    { ...UW_PEOPLE.bastien, at: [10, 112], y: 0, radius: 1.5, facing: Math.PI * 0.85, palette: pal('#3d6f78', { cloth: '#e3b06a' }), lang: 'underwater' },
     // (Coralie: the trace of the light that the world kept from its days as a detour, src/story/sightings-detours.js)
     { id: 'coralie', name: 'Coralie', title: 'who keeps the café', color: '#d97a5e', kind: 'f', at: [19, 37], y: 0, radius: 1, facing: -Math.PI / 2, palette: pal('#d97a5e', { cloth: '#efd2a6' }), lang: 'underwater',
       lines: ['~happy~ Come in, come in. It’s dry inside, it always is: the glass keeps the sea out.', '~playful~ Tea, or soup? Everything tastes a little of salt down here. We call it seasoning.'],
@@ -197,7 +195,8 @@ export function* buildUnderwater(scene) {
     dock: bigDome(kit, M, { ...D.dock, doors: [{ yaw: N, ...door }], floor: M.street }),
     avenue: bigDome(kit, M, { ...D.avenue, doors: [{ yaw: S, ...door }, { yaw: W, ...door }, { yaw: N, ...door }], ribs: 20, floor: M.street, seg: 64 }),
     garden: bigDome(kit, M, { ...D.garden, doors: [{ yaw: E, ...door }], floor: M.pier }),
-    plaza: bigDome(kit, M, { ...D.plaza, doors: [{ yaw: S, ...door }, { yaw: E, ...door }, { yaw: N, ...door }], ribs: 18, floor: M.streetPale, seg: 56 }),
+    plaza: bigDome(kit, M, { ...D.plaza, doors: [{ yaw: S, ...door }, { yaw: E, ...door }, { yaw: N, ...door }, { yaw: W, ...door }], ribs: 18, floor: M.streetPale, seg: 56 }),
+    court: bigDome(kit, M, { ...D.court, doors: [{ yaw: E, ...door }], ribs: 14, floor: M.pier, seg: 44 }),
     gallery: bigDome(kit, M, { ...D.gallery, doors: [{ yaw: W, ...door }], floor: M.street }),
     crown: bigDome(kit, M, { ...D.crown, doors: [], ribs: 10, floor: M.streetPale, seg: 36 }),
   };

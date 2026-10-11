@@ -6,7 +6,8 @@
 // time, the clock over its door is filmed coming round (src/story/glassdunes-moments.js). Wim's word after it is
 // the way on: the slow time comes from a great wheel under another desert (the Buried Machine: clue.glassdunes.buried).
 
-import { KEEPSAKE } from './glassdunes-people.js';
+import * as THREE from 'three';
+import { KEEPSAKE, QUESTS } from './glassdunes-people.js';
 import { setupGlassDunesMoments } from './glassdunes-moments.js';
 
 /** How near the Clock-House's door (m) the traveller stands, outside, when its clock is filmed. */
@@ -14,8 +15,23 @@ export const FILM_NEAR = 45;
 
 /** The world's story: { people, update, dispose, film } (src/story/index.js WORLDS). */
 export function setupGlassDunes(ctx) {
-  const { game, story, level, player, toast = () => {} } = ctx;
+  const { game, story, level, player, quests, physics, npcs = [], toast = () => {} } = ctx;
   const rt = level?.temples?.find((t) => t.id === 'garage') ?? (level?.temple?.id === 'garage' ? level.temple : null);
+  // the dunes' own main quest (v1.48, issue #101): it starts when you talk to Oren by the discs (src/story/quests.js opensWith)
+  for (const q of QUESTS) quests?.define?.(q);
+  if (quests?.opensWith && !quests.isStarted?.('glassdunes.minute')) quests.opensWith('glassdunes.minute', 'oren');
+  for (const n of npcs) if (['oren', 'aster', 'corin'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // the glass mound by the warm flow (src/levels/glass-dunes.js GLASS_RIDGES 'mound 1'), its top: from it the Clock-House's face
+  const M = level?.flowMound;
+  if (M && quests?.locate) {
+    const top = new THREE.Vector3(M[0], 0, M[1]);
+    const y = physics?.groundAt?.(top.x, 200, top.z, 260);
+    top.y = Number.isFinite(y) ? y : 9;
+    quests.locate('flowMound', () => top);
+  }
+  const offMound = game.on?.('quest', (e) => {
+    if (e?.id === 'glassdunes.minute' && e.prev === 'mound') toast('From the mound the Clock-House’s face reads clear: seven minutes to the hour. Its door stands open.');
+  }) ?? null;
   const film = setupGlassDunesMoments(ctx, { rt });
   let closing = null;
   const finish = () => {
@@ -38,6 +54,6 @@ export function setupGlassDunes(ctx) {
       if (rt.inside?.(player.pos) || player.pos.distanceTo(rt.outside.door.at) > FILM_NEAR) return;
       film.clock({ said: 'Over the door, the clock keeps time. Out in the sand the great cogs turn with it.' });
     },
-    dispose() { off?.(); if (closing) clearTimeout(closing); },
+    dispose() { off?.(); offMound?.(); if (closing) clearTimeout(closing); },
   };
 }

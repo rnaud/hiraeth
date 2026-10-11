@@ -58,11 +58,18 @@ export function setupBazaar(ctx) {
 
   // ---------------------------------------------------------------- the people
   const people = {};
-  people.sel = spawn(PEOPLE.sel, { route: [P.sel.clone()], seat: 0.45, heading: 0 });
+  // (issue #44: until she has told you what is wrong, Sel waits where the avenue opens off the landing, 24 m from the
+  // ship, the silent tower down the avenue behind her; then, once you are off up the street, she is back on her crate
+  // at its foot, where the broadcast ends)
+  const selFirst = () => !game.flag('bazaar.sel.heard') && !quests.reached?.(Q, 'kip');
+  st.selLanding = !!P.selLanding && selFirst();
+  people.sel = spawn(PEOPLE.sel, { route: [(st.selLanding ? P.selLanding : P.sel).clone()], seat: st.selLanding ? null : 0.45, heading: 0 });
+  const selHome = () => { const n = people.sel; st.selLanding = false; n.route = [P.sel.clone()]; n.wp = 0; n.pos.copy(P.sel); n.seat = 0.45; n.heading = 0; };
   people.kip = spawn(PEOPLE.kip, { route: [ground(P.kip), ground(P.kip.clone().add(V(9, 0, 0))), ground(P.kip.clone().add(V(4, 0, -1.2)))], speed: 1.6 });
   people.ferro = spawn(PEOPLE.ferro, { route: [ground(P.ferro), ground(P.ferro.clone().add(V(2.6, 0, -1.6)))], speed: 0.6 });
   people.brush = spawn(PEOPLE.brush, { route: [ground(P.brush.clone().add(V(1.2, 0, 1.3)))], heading: -Math.PI / 2 + 0.4 });
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
+  quests.locate('selSeat', () => P.sel);   // (where she is by the end: the level design audit's `stands`)
   quests.locate('antenna', () => P.antenna);
   quests.locate('console', () => P.console);
   quests.locate('oldSign', () => V(P.oldSign.x, 0, P.oldSign.z + 6));
@@ -283,6 +290,8 @@ export function setupBazaar(ctx) {
   const update = (dt, t, { camera } = {}) => {
     st.time += dt;
     const pp = player.pos;
+    // Sel back to her crate under the tower once she has had her say and you have gone (out of the talk, 30 m off)
+    if (st.selLanding && !selFirst() && !dialogue.open && flat(pp, people.sel.pos) > 30) selHome();
     // the square's small things are drawn only when you are near enough to see them
     if (camera) {
       const nearSquare = camera.position.distanceToSquared(P.square) < 170 * 170, nearSign = camera.position.distanceToSquared(P.oldSign) < 190 * 190;

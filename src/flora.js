@@ -7,6 +7,7 @@ import { biomeWeights } from './biome.js';
 import { SPECIES } from './flora-species.js';
 import { farLevel, farSide } from './lod.js';
 import { runSteps } from './load-steps.js';
+import { kitTrialsFor } from './trials/kit-data.js';
 
 // Flora: every world's own plants, growing in clumps (src/flora-species.js draws them).
 //
@@ -189,6 +190,12 @@ export function floraKeep({ level = {}, content = {}, ship = null, npcs = [], cr
   for (const p of level.portals ?? []) { if (p.at) add(p.at.x, p.at.z, 6); if (p.to) add(p.to.x, p.to.z, 6); }
   for (const p of level.navigationPortals ?? []) { if (p.at) add(p.at.x, p.at.z, 6); if (p.to) add(p.to.x, p.to.z, 6); }
   for (const n of reactiveWorld?.nodes ?? []) add(n.pos.x, n.pos.z, Math.max(1.6, n.reach ?? 0));   // (a flower: its petals' reach awake)
+  // a makers' run that asks for bare ground (`bare`: src/trials/kit-data.js kitBare): Lorn's orb walk, over its reed bank
+  for (const T of level.id ? kitTrialsFor(level.id) : []) {
+    if (!T.bare) continue;
+    const [x0, , z0] = T.origin, s = Math.sin(T.yaw ?? 0), c = Math.cos(T.yaw ?? 0), r = T.bare.w + 1;
+    for (let z = T.bare.z[0]; z <= T.bare.z[1]; z += r) add(x0 + s * z, z0 + c * z, r);
+  }
   return keep;
 }
 

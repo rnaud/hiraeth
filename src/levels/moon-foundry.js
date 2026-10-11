@@ -157,7 +157,8 @@ export const MOONFOUNDRY_CONTENT = {
     // Ottilie mends in the quarter (her ladle-hook goes to Bertil; the cast bell to the Garden of Spheres: src/levels/content.js)
     { ...MF_PEOPLE.ottilie, at: [QUARTER.x + 14, QUARTER.z - 10], radius: 1.5, lang: 'moonfoundry', palette: pal('#c9703e', { cloth: '#efe4cc' }) },
     // (v1.46, issue #102: on the apron, by the little moon cooling in its mould; last, as the errands name people by place)
-    { at: [APRON.mould[0] + 5.6, APRON.mould[1] + 2.2], radius: 1, lang: 'moonfoundry', lines: ['~happy~ A small one, for somebody’s bell-tower. Still warm. Don’t touch.', '~curious~ Every so often somebody orders a moon. We say yes before we think.'] },
+    // (v1.48, issue #101: Hedda, whose mould the moon nobody poured came down to: the foundry's main quest is hers)
+    { ...MF_PEOPLE.hedda, at: [APRON.mould[0] + 5.6, APRON.mould[1] + 2.2], radius: 1, lang: 'moonfoundry', palette: pal('#d9a07c', { cloth: '#efe4cc' }) },
   ],
 };
 
@@ -607,6 +608,7 @@ export function* buildMoonFoundry(scene) {
     // the lookout on the pillar under the moon on its pillar (Wen's count: src/story/moonfoundry-people.js), the hung moon
     // the climax looks up at (src/story/moonfoundry-moments.js)
     lookout: { x: PMOON.x, y: PMOON.h * 0.78, z: PMOON.z },
+    hoist: HOIST,   // (its first deck: the foundry's main quest looks at the hung moons from it, src/story/moonfoundry.js)
     // the floor's leading lines (the level design audit's `lines`): the aisle's painted edges and lamps north from the
     // mouth, the rails in the floor from the furnace to the gantry's stair, and the gantry's railed way to the broken moon
     lines: [

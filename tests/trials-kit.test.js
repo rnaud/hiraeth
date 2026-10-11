@@ -96,7 +96,9 @@ test('the word from whoever stands nearby: first finish, the makers’ mark beat
 test('the makers’ runs: in route worlds, beside their trials, each a course of its own, someone there to speak', () => {
   assert.ok(Object.keys(KIT_TRIALS).length >= 2);
   for (const [id, T] of Object.entries(KIT_TRIALS)) {
-    assert.equal(T.id, id); assert.equal(id, `kit-${T.world}`);
+    // (a world's first run is kit-<world>; a second one, from the rest of its temple's kit, kit-<world>-<what>: v1.48)
+    assert.equal(T.id, id); assert.ok(id === `kit-${T.world}` || id.startsWith(`kit-${T.world}-`), `${id}: named for its world`);
+    assert.ok(KIT_TRIALS[`kit-${T.world}`], `${id}: its world's first run is there too`);
     assert.ok(ROUTE_PARTS.includes(T.world), `${id}: on the route (a place of a route world)`);
     assert.ok(TRIALS[T.world], `${id}: its world has its ride’s trial too`);
     assert.notEqual(TRIALS[T.world].id, T.id);
@@ -185,7 +187,7 @@ for (const T of Object.values(KIT_TRIALS)) {
     const player = traveller();
     const pell = { def: { id: T.voice.who }, time: 10, shout: null };
     const C = createChallenges({ levelId: W0, scene, physics, player, items, game, surfaceAt, npcs: [pell] });
-    assert.equal(C.list.length, 2 * parts.length, 'its ride’s trial and its makers’ run (a merged world’s parts each bring theirs)');
+    assert.equal(C.list.length, parts.length + kitTrialsFor(W0).length, 'its ride’s trial and its makers’ runs (a merged world’s parts each bring theirs)');
     const W = C.byId(T.id);
     const course = W.course;
     assert.ok(allInteractables().some((e) => e.id === `trial.${T.id}`), 'its sign opens its card');
@@ -924,6 +926,142 @@ test('the disc run: a disc shuttles across each gap edge to edge (the last up to
     z = z1 + 0.3;
   }
   step((74.5 - z) / 5 + 1.5);
+  if (process.env.MARKS) console.log(`MARK ${T.id} ${t.toFixed(1)}`);
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});
+
+// (v1.48, issue #45: a second run in a world, from the rest of its temple's kit)
+test('the glass climb: the glass slips a climber off until a seed’s vine runs up it, then the vine is climbed; the meadow and the wings end it', async () => {
+  const { Player } = await import('../src/player.js');
+  const { scene, physics } = world('edena');
+  const T = KIT_TRIALS['kit-edena-glass'];
+  const game = new GameState(), said = [];
+  const P = new Player(physics, { health: false });
+  const C = createChallenges({ levelId: 'edena', scene, physics, player: P, items: { has: () => true }, game, kits: [T], trials: {}, notice: (t) => said.push(t) });
+  const W = C.list[0], course = W.course, K = course.kit, L = course.rt.logic, H = 5.5;
+  const floor = (x, z, y = 30) => { const p = K.world(x, y, z), g = physics.groundAt(p.x, p.y, p.z, 40); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
+  let clock = 0;
+  const DT = 1 / 60;
+  const frame = (input = {}, to = null) => {
+    const yaw = to ? Math.atan2(to.x - P.pos.x, to.z - P.pos.z) + Math.PI : 0;
+    P.update(DT, input, yaw);
+    course.update(DT, (clock += DT));
+  };
+  const at = (x, y, z) => { P.respawn(K.world(x, y + 0.1, z)); for (let i = 0; i < 20; i++) frame(); };
+  /** Walk (and climb) toward a local point for `secs`; → the traveller's local height after. */
+  const go = (x, y, z, secs) => { const to = K.world(x, y, z); for (let i = 0; i < secs / DT; i++) frame({ KeyW: true }, to); return K.local(P.pos).y; };
+  assert.equal(course.glass.length, 2);
+  // the plinth and the terraces, a rise over a double jump's reach each
+  assert.ok(Math.abs(floor(0, 3)) < 0.05 && Math.abs(floor(0, 12.5) - H) < 0.05 && Math.abs(floor(0, 22) - 2 * H) < 0.05, 'the plinth, then 5.5 m up, then 11');
+  assert.ok(H > 4.8 + 0.4, 'no double jump reaches a terrace');
+  const [v1, v2] = course.glass;
+  assert.equal(L.el(v1.id).type, 'switch'); assert.deepEqual(L.el(v1.id).needs, ['bloom']);
+  // the glass: too smooth to hold, the vine's pane and the bare ones round it
+  at(0.8, 0, 6);
+  assert.ok(go(0.8, 3, 8.2, 5) < 1.5, `you can't get up the glass (${K.local(P.pos).y.toFixed(1)} m)`);
+  assert.ok(said.some((s) => /too smooth/i.test(s)), 'and you slip off it');
+  at(3.8, 0, 6);
+  assert.ok(go(3.8, 3, 8.2, 5) < 1.5, 'nor the bare pane beside it');
+  at(6.5, floor(6.5, 12.5, 4), 12.5);
+  assert.ok(go(5, 3, 12.5, 5) < H - 1, 'nor a terrace’s side from the meadow');
+  // plain fluid only soaks in; a bloom grows the vine up the pane, and it is climbed
+  v1.seed.hit('shoot'); frame();
+  assert.ok(!v1.seed.on, 'a splash: still a seed');
+  v1.seed.hit('bloom');
+  for (let i = 0; i < 3 / DT; i++) frame();
+  assert.ok(v1.grown(), 'the vine has grown up the glass');
+  assert.ok(!v2.grown(), 'only its own');
+  at(0.8, 0, 6);
+  go(0.8, H + 2, 9.5, 8);
+  assert.ok(Math.abs(floor(K.local(P.pos).x, K.local(P.pos).z, H + 3) - H) < 0.3 && K.local(P.pos).y > H - 0.3, `up the vine onto the first terrace (${K.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ')})`);
+  if (P.climbing) P.stopClimb?.(false);
+  // a new run: the vines taken back, the seeds closed
+  const pl = traveller();
+  course.rt.player = pl;
+  const ctx = runnerCtx(pl);
+  C.list[0].course.update(DT, clock);
+  let sess = W.session(ctx);
+  assert.ok(!v1.grown() && !v1.seed.on, 'all as it was');
+  // down in the meadow ends it, and so do the wings
+  const m = K.world(0, 0, -3.8);
+  pl.pos.set(m.x, physics.groundAt(m.x, m.y - 1, m.z, 10), m.z);
+  sess.update(DT, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Down in the meadow');
+  sess.end(); ctx.result = null;
+  sess = W.session(ctx);
+  pl.gliding = true;
+  for (let i = 0; i < 20 && !ctx.result; i++) sess.update(DT, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Off your feet', 'the wings opened: over in a moment');
+  pl.gliding = false; sess.end(); ctx.result = null;
+  // the makers' mark: a steady scripted run (walked at 5 m/s; half a second for each bloom, the vine's 2.4 s, a climb of
+  // 5.5 m at 2 m/s, each twice) plus slack
+  const t = scripted(course, [[0.8, 0, 6.4], [0.8, 0, 15.4], [0, 0, 24.6]]) + 2 * (0.5 + 2.4 + H / 2);
+  if (process.env.MARKS) console.log(`MARK ${T.id} ${t.toFixed(1)}`);
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});
+
+test('the orb walk: an orb lit by the lantern and pushed home wakes its lamp and the moss-stones rise; dark, the socket tips it back', () => {
+  const { scene, physics } = world('perdide2');
+  const T = kitTrialsFor('perdide').find((k) => k.id === 'kit-perdide2-orb');   // (in the Deep Wood's part of Lorn: its own coordinates moved)
+  const game = new GameState(), said = [];
+  const pl = traveller();
+  let lantern = false;
+  const C = createChallenges({ levelId: 'perdide2', scene, physics, player: pl, items: { has: (i) => i !== 'lantern' || lantern }, game, kits: [T], trials: {}, notice: (t) => said.push(t) });
+  const W = C.list[0], course = W.course, K = course.kit, L = course.rt.logic;
+  const floor = (x, z) => { const p = K.world(x, 1, z), g = physics.groundAt(p.x, p.y, p.z, 30); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
+  let clock = 0;
+  const stand = (x, z, secs) => { pl.pos.copy(K.world(x, 0, z)); for (let i = 0; i < secs * 60; i++) course.update(1 / 60, (clock += 1 / 60)); };
+  assert.equal(course.orbs.length, 2);
+  // the gaps: far wider than a jump, the bank or the shallows under them below the fall line
+  for (const [z0, z1] of course.gaps) {
+    assert.ok(z1 - z0 > 3 * 3, `a gap no jump crosses (${z1 - z0} m)`);
+    for (const x of [-1.5, 0, 1.5]) assert.ok(floor(x, (z0 + z1) / 2) < T.fall.below, `nothing across the gap at ${(z0 + z1) / 2} yet`);
+  }
+  for (const z of [4, 33, 58]) assert.ok(Math.abs(floor(0, z)) < 0.05, `a deck at ${z}`);
+  const [o1, o2] = course.orbs;
+  assert.deepEqual(L.el('lamp1').needs, ['lantern']);
+  // no lantern: the orb stays dark however long you stand by it
+  stand(-1.4, 0, 3);
+  assert.ok(!(o1.ball.charge > 0), 'no lantern: dark');
+  // dark, pushed home, the socket tips it back out, and nothing rises
+  lantern = false;
+  rollHome(course, o1);
+  stand(-1.4, -1.5, 3);   // (a moment in the socket: it tips it back out)
+  assert.ok(!o1.home(), 'the socket tipped the dark orb back out');
+  assert.ok(!o1.lit() && floor(0, 21) < T.fall.below, 'the lamp dark, the gap open');
+  assert.ok(said.some((s) => /tips it back/.test(s)), 'it says so');
+  o1.reset();
+  // the lantern: a while by the orb and it glows; pushed home, the lamp catches and the stones rise
+  lantern = true;
+  stand(-1.4, 0, 2.6);
+  assert.ok(o1.ball.charge > 0, 'it drinks the lantern’s light');
+  rollHome(course, o1);
+  for (let i = 0; i < 30; i++) course.update(1 / 60, (clock += 1 / 60));
+  assert.ok(o1.home() && o1.lit(), 'home and glowing: the lamp catches');
+  assert.ok(!o2.lit(), 'only its own lamp');
+  assert.ok(Math.abs(floor(0, 21)) < 0.05, `the moss-stones risen across the first gap, a floor at once (${floor(0, 21).toFixed(2)})`);
+  assert.ok(floor(2.4, 21) < T.fall.below, 'only as wide as the stones');
+  // a new run: the orb rolled back, the lamp out, the stones sunk
+  const ctx = runnerCtx(pl);
+  let sess = W.session(ctx);
+  assert.ok(!o1.lit() && !o1.home() && o1.ball.t === 0 && floor(0, 21) < T.fall.below, 'all as it was');
+  // off the decks ends it, past the first; the wings too
+  const g = K.world(0, 0, 21);
+  pl.pos.set(g.x, physics.groundAt(g.x, g.y - 1, g.z, 10), g.z);
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Down off the decks');
+  sess.end(); ctx.result = null;
+  sess = W.session(ctx);
+  pl.gliding = true;
+  for (let i = 0; i < 20 && !ctx.result; i++) sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Off your feet');
+  pl.gliding = false; sess.end(); ctx.result = null;
+  // the makers' mark: a steady scripted run (walked at 5 m/s, the lantern's 2 s by each orb, each pushed home from a
+  // step behind it) plus slack
+  for (const o of course.orbs) o.ball.charge = 60;   // (lit beforehand: the scripted pushes do not stand by them)
+  const t = scripted(course, [[-1.4, 0, 0], { roll: o1 }, [1.4, 0, 26.6], { roll: o2 }, [0, 0, 59.6]]) + 2 * (o1.ball.o.lamp.hold + 0.3);
   if (process.env.MARKS) console.log(`MARK ${T.id} ${t.toFixed(1)}`);
   assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
   C.dispose();

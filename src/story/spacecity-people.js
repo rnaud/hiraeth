@@ -14,6 +14,17 @@ export const KEEPSAKE = {
 export const ITEMS = { selnotes: 'Madame Sel’s notes on the hum', kiplamp: 'one of Kip’s lamps' };   // (the lamp is hung: src/story/spacecity.js takes it)
 
 export const QUESTS = [
+  // the city's own main quest (v1.48, issue #101): Rosa's chalk on the Pier, the islands drifting a hand's width a night;
+  // a hand on the cables under the Towers, pulled north; and in at the Mooring-House's door (src/story/spacecity.js)
+  {
+    id: 'spacecity.drift', title: 'A Hand’s Width a Night', world: 'spacecity', main: true,
+    outro: 'The cables run north to the Mooring-House, and something in there is paying them out. Rosa will want to know.',
+    stages: [
+      { id: 'rosa', text: 'Hear Rosa out on the Pier', label: 'Rosa, on the Pier', flag: 'spacecity.rosa.heard', at: 'rosa' },
+      { id: 'cables', text: 'Lay a hand on the cables under the Towers', label: 'The cables under the Towers', flag: 'spacecity.cables.felt', at: 'towerCables', via: 'the Towers bridge' },
+      { id: 'house', text: 'Go in at the Mooring-House’s door', label: 'The Mooring-House’s door', flag: 'temple.spacecity.entered', at: 'temple.spacecity.door', via: 'the Moorings bridge' },
+    ],
+  },
   {
     id: 'spacecity.notes', title: 'The Planet’s Hum', world: 'spacecity',
     outro: 'Tamar laid Sel’s notes on the cable and the needle wrote the same line. The city and the planet are humming one tune.',
@@ -113,6 +124,41 @@ export const VISITORS = {
 };
 
 export const PEOPLE = {
+  // Rosa chalks the bridges' ends on the Pier, by the ship: she opens the city's main quest
+  rosa: {
+    id: 'rosa', name: 'Rosa', title: 'who chalks the bridges', color: '#e89a7e', voice: 1.1, kind: 'f',
+    head: 'wrap', cape: 0.4,
+    lines: ['~curious~ A ship! Did you come across the dark? Nobody comes across the dark.', '~neutral~ The bridge goes north. Everything goes north from here.'],
+    talk: {
+      entry: [
+        { if: { flag: 'temple.spacecity.done' }, node: 'after' },
+        { if: { flag: 'spacecity.rosa.heard' }, node: 'again' },
+        { node: 'hello' },
+      ],
+      nodes: {
+        hello: {
+          say: ['~neutral~ Rosa. Every morning I chalk where each bridge sits on its island. Every morning it’s crept another hand’s width.',
+            '~tired~ The islands are drifting apart. A hand’s width a night, since the night the sky rang. The bridges creak all night about it.'],
+          choices: [
+            { text: '~curious~ What pulls them apart?', goto: 'why' },
+            { text: '~neutral~ Not now.', end: true },
+          ],
+        },
+        why: {
+          say: ['~neutral~ The cables, I think. They hum one note now, and they pull. *Lay a hand on the cables under the Towers*, by the bridge out to the Moorings. Feel which way.',
+            '~playful~ Over the Market Bridge, then the Towers bridge, east. Don’t lean on the parapet. It leans back.'],
+          do: { set: { 'spacecity.rosa.heard': true } },
+          choices: [{ text: '~neutral~ I’ll feel them.', end: true }],
+        },
+        again: { say: ['~neutral~ The cables under the Towers, by the bridge to the Moorings. A hand on them.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        after: {
+          say: ['~happy~ My chalk hasn’t moved in three mornings. I’m going to have to find something else to worry about.'],
+          choices: [{ text: '~neutral~ Goodbye, Rosa.', end: true }],
+        },
+      },
+    },
+  },
+
   // Tamar who minds the cables (the light's trace: the ship with no name that hailed them with a sung note)
   tamar: {
     id: 'tamar', name: 'Tamar', title: 'who minds the cables', color: '#d98a7a', voice: 1.0, kind: 'f',
@@ -151,4 +197,19 @@ export const PEOPLE = {
 };
 
 /** What the city says once the cables are taut. */
+/** What there is to touch for the main quest (src/story/spacecity.js): the cables under the Towers. */
+export const THINGS = {
+  cables: {
+    id: 'towerCables', name: 'The cables under the Towers', title: 'by the Moorings bridge', color: '#4f9a98', voice: 0.6,
+    talk: { nodes: { touch: {
+      say: [
+        '~neutral~ (You reach over the parapet and lay a hand on the nearest cable. It hums one note into your palm.)',
+        '~solemn~ (And it pulls. Not down into the dark: north, over the bridge, toward the Moorings. Something there is paying them out.)',
+      ],
+      do: { set: { 'spacecity.cables.felt': true } },
+      choices: [{ text: '~neutral~ (take your hand away)', end: true }],
+    } } },
+  },
+};
+
 export const LINES_AFTER = ['~happy~ The bridges don’t creak any more!', '~surprised~ Look at the cables, all lit.', '~solemn~ (she listens to the cables hum, one clear note)', '~playful~ No more drifting. Shame, I liked the exercise.'];

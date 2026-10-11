@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TempleKit, templeMaterials, box, annulus, lathe, paint, T as tf } from '../temples/kit.js';
-import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud, BellEar, Door, LightEar, Platform } from '../temples/pieces.js';
+import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud, BellEar, Door, LightEar, Platform, Glass } from '../temples/pieces.js';
 import { TempleLogic, memoryStore } from '../temples/logic.js';
 import { batchParts } from '../part-batch.js';
 import { PALETTE as DESERT } from '../temples/desert.js';
@@ -251,8 +251,7 @@ export function addLamp(rt, { id, post: at, reach = 3.5, hold = 1.2, a, b, w = 3
   L.def.elements[id] = { type: 'switch', room: 'open', needs: ['lantern'] };
   L.def.elements[bid] = { type: 'bridge', opens: { lit: id } };
   rt.free.add(id);
-  // (the lamp wants the charm itself: the stand-in's logic says yes to everything else)
-  if (!rt.lampHas) { rt.lampHas = true; const was = L.has; L.has = (it) => (it === 'lantern' ? (rt.items ? !!rt.items.has?.('lantern') : true) : was(it)); }
+  lanternAsked(rt);
   const K = rt.kit, [x, y, z] = at;
   // the keeper's post: a slim column with a crook at its head, the lamp (the LightEar's own glow) hanging there
   K.both(K.M.trim, new THREE.CylinderGeometry(0.14, 0.2, 2.9, 8).translate(x, y + 1.45, z));
@@ -268,6 +267,109 @@ export function addLamp(rt, { id, post: at, reach = 3.5, hold = 1.2, a, b, w = 3
     reset() { rt.lit.delete(id); lamp.lit = false; lamp.t = 0; bridge.setOpen(false, true); bridge.apply(); },
   };
 }
+/** The lantern is asked of the traveller's items (the stand-in's logic says yes to everything else): the lamps, the pool-orbs. */
+function lanternAsked(rt) {
+  if (rt.lampHas) return;
+  rt.lampHas = true;
+  const L = rt.logic, was = L.has;
+  L.has = (it) => (it === 'lantern' ? (rt.items ? !!rt.items.has?.('lantern') : true) : was(it));
+}
+
+/** A keeper's post (drawn, its column solid): a slim column with a ring at its head, where a lamp's glow hangs. */
+function keeperPost(K, [x, y, z]) {
+  K.both(K.M.trim, new THREE.CylinderGeometry(0.14, 0.2, 2.9, 8).translate(x, y + 1.45, z));
+  K.add(K.M.trim, new THREE.CylinderGeometry(0.45, 0.55, 0.22, 12).translate(x, y + 0.11, z));
+  K.add(K.M.trim, tf(annulus(0.8, 1.15, 0.05, 24), [x, y + 0.03, z]));
+  K.add(K.M.glyph, new THREE.TorusGeometry(0.62, 0.05, 4, 20).rotateX(Math.PI / 2).translate(x, y + 2.8, z));
+}
+
+/**
+ * A pool-orb rolled to a lamp, stood in the open (Lorn II's Lamp-House: the temples' Ball with its `lamp`, its Plate, the
+ * LightEar on a keeper's post that only a glowing orb wakes, and the Bridge of moss-stones from below that the lamp
+ * raises). Stand by the orb at rest with the lantern charm (`hold` s) and it drinks the light, glowing `lasts` s; rolled
+ * by the fluid's push along its groove from `a` to `b` while it glows, it settles in the socket and the lamp catches, and
+ * the stones rise across the gap ahead: a floor at once. Dark, the socket tips it back out. It answers anyone who carries
+ * the lantern, run or no run (rt.free); a new run rolls the orb back, puts the lamp out and sinks the stones.
+ * o: { id, a, b, r, lamp (its element id), post: [x, y, z], bridge: { a, b, w, n }, hold, lasts }
+ * → { id, ball, plate, ear, bridge, home(), lit(), update(), reset() }
+ */
+export function addOrb(rt, { id, a, b, r = 0.9, lamp: lid, post, bridge: br, hold = 2, lasts = 25 }) {
+  const L = rt.logic, plateId = `${id}.plate`, bid = `${lid}.stones`;
+  L.def.elements[plateId] = { type: 'plate', room: 'open' };
+  L.def.elements[id] = { type: 'drum', room: 'open', plate: plateId, plateAt: 1, start: 0, tolerance: 0.6 / Math.hypot(b[0] - a[0], b[2] - a[2]) };
+  L.def.elements[lid] = { type: 'switch', room: 'open', needs: ['lantern'] };
+  L.def.elements[bid] = { type: 'bridge', opens: { lit: lid } };
+  rt.free.add(lid);
+  lanternAsked(rt);
+  // (the orb's lamp is lit while what has answered says so: the ball and the post read it, and a lit lamp stays lit)
+  if (!rt.orbLamps) { rt.orbLamps = new Set(); const was = L.isLit; L.isLit = (e) => (rt.orbLamps.has(e) ? rt.lit.has(e) : was(e)); }
+  rt.orbLamps.add(lid);
+  const K = rt.kit, len = Math.hypot(b[0] - a[0], b[2] - a[2]), mx = (a[0] + b[0]) / 2, mz = (a[2] + b[2]) / 2, yaw = Math.atan2(b[0] - a[0], b[2] - a[2]);
+  // the groove: a dark channel with a lip of trim either side, as the Lamp-House cuts them
+  K.add(K.M.dark, tf(box(1.0, 0.04, len + 0.6, 0, 0.02, 0), [mx, a[1] - 0.04, mz], [0, yaw, 0]));
+  for (const s of [-1, 1]) K.both(K.M.trim, tf(box(0.25, 0.12, len + 0.6, s * 0.75, 0.06, 0), [mx, a[1] - 0.04, mz], [0, yaw, 0]));
+  keeperPost(K, post);
+  const plate = rt.add(Plate, { id: plateId, at: [b[0], b[1] - 0.04, b[2]], r: r + 0.15 });
+  const ball = rt.add(Ball, { id, a, b, r, lock: true, lamp: { id: lid, reach: 2.8, hold, lasts,
+    caught: 'The orb drinks your lantern’s light and glows, for a while.',
+    dark: 'The orb settles in the socket, dark, and the socket tips it back out. The lamp wants light.',
+    woke: 'The glowing orb settles in the socket, and the keeper’s lamp catches. Stones rise out of the dark ahead.' } });
+  const ear = rt.add(LightEar, { id: lid, at: post, reach: 0 });
+  const bridge = rt.add(Bridge, { id: bid, a: br.a, b: br.b, w: br.w ?? 3.2, n: br.n ?? 6, from: 'below', glow: { k: 0.45 } });
+  return {
+    id, ball, plate, ear, bridge,
+    home: () => ball.rest && L.drumOn(id, plateId),
+    lit: () => rt.lit.has(lid),
+    update() { if (rt.lit.has(lid) && !bridge.open) bridge.setOpen(true); },
+    reset() {
+      L.store.set(`drum.${id}`, 0);
+      Object.assign(ball, { t: 0, v: 0, rest: true, wobble: 0, charge: 0, near: 0, toldDark: false });
+      ball.spin.rotation.set(0, 0, 0);
+      ball.place();
+      rt.lit.delete(lid); ear.lit = false; ear.t = 0;
+      bridge.setOpen(false, true); bridge.apply();
+    },
+  };
+}
+
+/**
+ * The greenhouse glass, stood in the open (Viridel's Greenhouse: the temples' Glass, a pane too smooth to climb, and
+ * the Seed at its foot whose vine climbs it): bloom the seed and the vine grows up the pane (2.4 s), and you climb it;
+ * before that the glass slips you off (the piece's own: it lets go of a climber on its face, with a word). Every other
+ * face of the course is a pane that never grows (`addSlick`): nothing round the vine to climb instead. It answers
+ * anyone, run or no run; a new run takes the vine back and closes the seed.
+ * o: { id, seed: [x, y, z], glass: { at: [x, y, z] (the pane's foot, its face), yaw, w, h }, size, hue }
+ * → { id, seed, glass, grown(), update(), reset() }
+ */
+export function addGlassVine(rt, { id, seed: at, glass: g, size = 0.9, hue = 0 }) {
+  rt.logic.def.elements[id] = { type: 'switch', room: 'open', needs: ['bloom'] };
+  rt.free.add(id);
+  glassAsked(rt);
+  const seed = rt.add(Seed, { id, at, size, seed: hue });
+  rt.kit.solid(new THREE.CylinderGeometry(1.2 * size, 1.25 * size, 0.5 * size, 12).translate(at[0], at[1] + 0.25 * size, at[2]));
+  rt.glassSeeds[id] = seed;
+  const glass = rt.add(Glass, { at: g.at, yaw: g.yaw ?? Math.PI, w: g.w ?? 5, h: g.h ?? 5.5, when: { glassSeed: id },
+    slip: 'The glass is too smooth to hold. Bloom the seed at its foot: its vine will climb it.' });
+  return {
+    id, seed, glass,
+    grown: () => seed.on && glass.k >= 1,
+    update() {},
+    reset() { seed.on = false; seed.k = 0; seed.wobble = 0; seed.apply(); glass.k = 0; glass.apply(); },
+  };
+}
+/** A pane of the greenhouse glass that never grows a vine (it slips a climber off): the faces round the vine. */
+export function addSlick(rt, { at, yaw = 0, w, h }) {
+  glassAsked(rt);
+  return rt.add(Glass, { at, yaw, w, h, when: { never: true }, slip: 'The glass is too smooth to hold. Only the vine grows up it.' });
+}
+/** The stand-in's logic answers the panes: grown once their seed is on, never for the bare ones. */
+function glassAsked(rt) {
+  if (rt.glassSeeds) return;
+  rt.glassSeeds = {};
+  const L = rt.logic, was = L.check;
+  L.check = (w) => (w?.never ? false : w?.glassSeed ? !!rt.glassSeeds[w.glassSeed]?.on : was(w));
+}
+
 /** An old receiving dish of the market's (drawn only), facing `yaw` (0: +z), as the Undertower hangs them. */
 function dish(K, x, y, z, r, yaw, tilt = 0) {
   const prof = []; for (let i = 0; i <= 8; i++) { const q = (i / 8) * r; prof.push([Math.max(0.01, q), (q * q) / (4 * r * 0.7)]); }
@@ -829,6 +931,78 @@ export const COURSES = {
     };
   },
   /**
+   * The glass climb (Viridel, v1.48, issue #45): the Builders' Greenhouse's glass wall stood out on the meadow north-west
+   * of the white ruins, twice over. A white plinth and two terraces stepped up behind it, 5.5 m each, every face of the
+   * terraces greenhouse glass too smooth to climb; at the foot of each terrace's front, a seed. Bloom it, and its vine
+   * runs up the pane over it; climb the vine onto the terrace, and on to the arch on the top one. Down in the meadow
+   * ends the run, and so do the wings.
+   */
+  glassclimb(K, rt) {
+    const W = 10, H = 5.5, base = -2.4, steps = [[-1, 8, 0], [8, 17, H], [17, 27, 2 * H]];
+    for (const [i, [z0, z1, y]] of steps.entries()) {
+      K.slab(-W / 2, z0, W / 2, z1, y, y - base, K.M.wall);
+      // (the floor's lip overhangs the sides and the back, never the front a climber comes over)
+      K.slab(-W / 2 - 0.25, z0, W / 2 + 0.25, z1 + 0.25, y, 0.4, K.M.floor);
+      for (const s of [-1, 1]) K.add(K.M.trim, box(0.3, 0.06, z1 - z0, s * (W / 2 - 0.2), y + 0.03, (z0 + z1) / 2));
+      // the glass: the terraces' sides from the meadow up, the top one's back too (the plinth is the way on)
+      if (i) for (const s of [-1, 1]) rt.slick({ at: [s * (W / 2 + 0.26), base, (z0 + z1) / 2], yaw: s * Math.PI / 2, w: z1 - z0, h: y - base });
+      if (i === 2) rt.slick({ at: [0, base, z1 + 0.26], yaw: 0, w: W, h: y - base });
+    }
+    K.stairs([3, base + 0.4, -6.6], [3, 0, -1.2], 3.2);   // (up onto the plinth from the meadow, to one side)
+    // each terrace's front: the vine's pane in the middle over its seed, bare glass either side
+    const vines = [[8, 0, H, 1], [17, H, 2 * H, 3]].map(([z, y0, y1, hue], i) => {
+      for (const s of [-1, 1]) rt.slick({ at: [s * 3.75, y0, z - 0.01], yaw: Math.PI, w: 2.5, h: y1 - y0 });
+      return rt.glassVine({ id: `seed${i + 1}`, seed: [-1.6, y0, z - 1.6], glass: { at: [0, y0, z - 0.01], yaw: Math.PI, w: 5, h: y1 - y0 }, hue });
+    });
+    // the arch on the top terrace
+    for (const s of [-1, 1]) K.column(s * 2.6, 24.6, 2 * H, 4.4, 0.4);
+    K.both(K.M.wall, box(6.2, 0.6, 1.0, 0, 2 * H + 4.7, 24.6));
+    K.glyph([0, 2 * H + 4.7, 24.08], 0.9, Math.PI);
+    return {
+      // the gates: on the first terrace (the first vine climbed), under the arch on the top one
+      gates: [[0, H + 1.6, 12.5, 2.6], [0, 2 * H + 1.6, 24.6, 2.4]],
+      bank: null, gusts: [], swings: [], updrafts: [], links: vines, glass: vines,
+      bounds: [[-W / 2 - 1, base - 1, -7], [W / 2 + 1, 2 * H + 6, 28]],
+      clear: [[-W / 2 - 1, -7], [W / 2 + 1, 28]],
+      // (the tests' measures: the meadow before the plinth, beside its stairs; each terrace's rise)
+      gulf: { from: -6, to: -3 }, rise: H,
+    };
+  },
+  /**
+   * The orb walk (Lorn II, v1.48, issue #45): the Lamp-House's pool-orbs stood out on the bank east of the deep wood's
+   * landing, a few steps from Hollin: three decks on piers over the bank and the shallows, a groove down each of the
+   * first two with a pool-orb at its head and a keeper's lamp at its foot. Stand by an orb with the lantern charm until
+   * it glows, then push it down its groove into the socket before the glow fades: the lamp catches, and moss-stones rise
+   * across the gap ahead. Off the decks, or on your wings, and the run is over.
+   */
+  orbwalk(K, rt) {
+    const W = 6, depth = 2.6, decks = [[-2, 16], [26, 42], [52, 62]];
+    for (const [i, [z0, z1]] of decks.entries()) {
+      K.slab(-W / 2, z0, W / 2, z1, 0, 0.9, K.M.floor);
+      for (const s of [-1, 1]) K.add(K.M.trim, box(0.3, 0.06, z1 - z0, s * (W / 2 - 0.2), 0.03, (z0 + z1) / 2));
+      for (let z = z0 + 2; z < z1 - 1; z += 5) for (const s of [-1, 1]) K.column(s * (W / 2 - 0.9), z, -depth - 1, depth + 0.1, 0.55, { mat: K.M.stoneMat });
+      if (i < 2) K.glyph([0, -0.45, z1 + 0.02], 0.7, 0);   // (on each deck's face over the gap)
+    }
+    K.stairs([2, -depth + 0.2, -7.6], [2, 0, -2], 2.6);   // (up onto the first deck from the bank, to one side)
+    const orbs = [
+      rt.orb({ id: 'orb1', a: [-1.4, 0.04, 1.6], b: [-1.4, 0.04, 13.6], lamp: 'lamp1', post: [-2.55, 0, 15], bridge: { a: [0, 0, 16], b: [0, 0, 26] } }),
+      rt.orb({ id: 'orb2', a: [1.4, 0.04, 27.6], b: [1.4, 0.04, 39.6], lamp: 'lamp2', post: [2.55, 0, 41], bridge: { a: [0, 0, 42], b: [0, 0, 52] } }),
+    ];
+    // the arch on the last deck
+    for (const s of [-1, 1]) K.column(s * 2.4, 59.6, 0, 4.2, 0.38);
+    K.both(K.M.wall, box(5.8, 0.6, 1.0, 0, 4.5, 59.6));
+    K.glyph([0, 4.5, 59.08], 0.9, Math.PI);
+    return {
+      // the gates: on the second deck (the first orb's stones crossed), under the arch on the last
+      gates: [[0, 1.6, 33, 2.6], [0, 1.6, 59.6, 2.4]],
+      bank: null, gusts: [], swings: [], updrafts: [], links: orbs, orbs,
+      bounds: [[-W / 2 - 1, -depth - 1, -8], [W / 2 + 1, 8, 63]],
+      clear: [[-W / 2 - 1, -8], [W / 2 + 1, 63]],
+      // (the tests' measures: the first gap, and every gap)
+      gulf: { from: 16, to: 26 }, gaps: [[16, 26], [42, 52]],
+    };
+  },
+  /**
    * The disc run (the Sealed Hangar): the First Garage's escapement stood out on the plain east of the clerk's
    * board, in the hangar's brass and blue. A platform up a stair, then two stone islands and a landing on blocks
    * over the plain, 6 m up, and between them riding discs that shuttle back and forth across each gap (the last
@@ -894,6 +1068,9 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   rt.bellBridge = (o) => addBellBridge(rt, o);
   rt.bellDoor = (o) => addBellDoor(rt, o);
   rt.lamp = (o) => addLamp(rt, o);
+  rt.orb = (o) => addOrb(rt, o);
+  rt.glassVine = (o) => addGlassVine(rt, o);
+  rt.slick = (o) => addSlick(rt, o);
   rt.disc = (o) => rt.add(Platform, o);
   const build = COURSES[T.course];
   if (!build) throw new Error(`no makers’ course "${T.course}"`);
@@ -923,7 +1100,7 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   return {
     trial: T, kit, rt, gates, start, heading: kit.heading(T.heading ?? 0), markerAt,
     bank: C.bank, swings: C.swings, gusts: C.gusts, updrafts: C.updrafts ?? [], gulf: C.gulf ?? null, pillars: (C.pillars ?? []).map((p) => ({ ...p, at: at(p.x, p.y, p.z) })), pieces,
-    rollers, stones: C.stones ?? [], ears, vines: C.vines ?? [], bud: C.bud ?? null, bells: C.bells ?? [], door: C.door ?? null, lamps: C.lamps ?? [], discs: C.discs ?? [], task, gaps: C.gaps ?? [],
+    rollers, stones: C.stones ?? [], ears, vines: C.vines ?? [], bud: C.bud ?? null, bells: C.bells ?? [], door: C.door ?? null, lamps: C.lamps ?? [], discs: C.discs ?? [], orbs: C.orbs ?? [], glass: C.glass ?? [], task, gaps: C.gaps ?? [],
     solids: () => solids,
     /** The ground the world's own props should leave clear (world x, z corners). */
     clear: C.clear.map(([x, z]) => at(x, 0, z)),

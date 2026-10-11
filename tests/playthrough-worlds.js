@@ -311,7 +311,49 @@ Object.assign(SOLVERS, {
     W.at(s); W.step(3);
   },
 });
+// (v1.48, issue #101: the three worlds and the Glass Dunes have a main quest of their own, opened by someone near the
+// landing; its last step is in at the temple's door, through its doorway as a player walks in)
+/** In through the temple's door: the step its main quest ends on. */
+const inAt = (id) => (W, { issue }) => {
+  const T = W.level.temples?.find((t) => t.id === id) ?? W.level.temple;
+  if (!T?.outside) return issue('no-temple', `no ${id} temple with a door`);
+  const s = A.standNear(W, T.outside.door.at, { radius: 5, up: 3 });
+  if (s) { W.at(s); W.step(3); }
+  W.at(T.arrival.pos.clone()); W.step(3);
+};
+Object.assign(WAYS, {
+  // (the Moon Foundry's old hoist: its first deck 26.8 m up, climbed; the glass mound by the Glass Dunes' warm flow, 9 m)
+  'moonfoundry.moons:hoist': { needs: [], how: 'up the old hoist’s first stage' },
+  'glassdunes.minute:mound': { needs: [], how: 'up the glass mound' },
+});
+Object.assign(SOLVERS, {
+  'underwater.note:house': inAt('underwater'),
+  'moonfoundry.moons:house': inAt('moonfoundry'),
+  'spacecity.drift:house': inAt('spacecity'),
+  'glassdunes.minute:house': inAt('garage'),
+  // the hoist's deck and the mound's top: climbed (the agent stands where the climb comes out)
+  'moonfoundry.moons:hoist': (W, { issue }) => {
+    const at = A.objectiveAt(W, 'hoistDeck');
+    if (!at) return issue('no-thing', 'no hoist deck');
+    const s = A.standNear(W, at, { radius: 4, up: 2 });
+    if (!s) return issue('no-ground', 'nowhere to stand on the hoist’s deck');
+    W.at(s); W.step(3);
+    // (and back down its rungs to the floor: the way on is on foot)
+    const down = A.standNear(W, V(at.x, 0, at.z + 9), { radius: 6, up: 2 });
+    if (down) { W.at(down); W.step(2); }
+  },
+  'glassdunes.minute:mound': (W, { issue }) => {
+    const at = A.objectiveAt(W, 'flowMound');
+    if (!at) return issue('no-thing', 'no mound');
+    const s = A.standNear(W, at, { radius: 4, up: 2 });
+    if (!s) return issue('no-ground', 'nowhere to stand on the mound’s top');
+    W.at(s); W.step(3);
+  },
+});
 Object.assign(ACTIONS, {
+  meetBastien: meet('bastien', 'underwater.note'),
+  meetHedda: meet('hedda', 'moonfoundry.moons'),
+  meetRosa: meet('rosa', 'spacecity.drift'),
   meetMireille: meet('mireille', 'underwater.kelp'),
   meetFabre: meet('fabre', 'underwater.lamps'),
   meetWen: meet('wen', 'moonfoundry.count'),
@@ -334,17 +376,21 @@ export const ROUTE = [
   { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps'] },
   { id: 'edena', play: ['edena.garden'] },
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, Fabre's word down to the Whale Gallery, then the Whale-House)
-  { id: 'underwater', play: [{ act: 'meetMireille', at: 'mireille', label: 'Mireille, in the kelp garden' }, 'underwater.kelp', { act: 'meetFabre', at: 'fabre', label: 'Fabre, in the Crown' }, 'underwater.lamps', { temple: 'done', id: 'underwater' }] },
+  // (v1.48: Bastien at the lock opens the city's own quest; the window over the deep, then in at the Whale-House's door)
+  { id: 'underwater', play: [{ act: 'meetBastien', at: 'bastien', label: 'Bastien, at the lock' }, { act: 'meetMireille', at: 'mireille', label: 'Mireille, in the kelp garden' }, 'underwater.kelp', { act: 'meetFabre', at: 'fabre', label: 'Fabre, in the Crown' }, 'underwater.lamps', 'underwater.note', { temple: 'done', id: 'underwater' }] },
   { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the bellows, the light (the air pillars up), the pass
   // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
-  { id: 'glassdunes', play: [{ temple: 'done', id: 'garage', home: 'the float-posts' }] },
+  // (v1.48: Oren by the discs opens the dunes' own quest: the Clock-House's face read from the glass mound, then in at its door)
+  { id: 'glassdunes', play: ['glassdunes.minute', { temple: 'done', id: 'garage', home: 'the float-posts' }] },
   { id: 'buried', play: ['buried.tooth'] },
   // (v1.40: the foundry: Ottilie's hook to Bertil at the furnace, Wen's count from the pillar's lookout, then the Casting-House)
-  { id: 'moonfoundry', play: [{ act: 'meetOttilie', at: 'ottilie', label: 'Ottilie, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', { temple: 'done', id: 'moonfoundry' }] },
+  // (v1.48: Hedda on the apron opens the foundry's own quest: the hung moons from the old hoist, then in at the Casting-House)
+  { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Ottilie, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry' }] },
   { id: 'spheres', play: ['spheres.listen'] },
   // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for Tamar on the Towers, then
   // the Mooring-House north of the Towers)
-  { id: 'spacecity', play: [{ act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', { temple: 'done', id: 'spacecity' }] },
+  // (v1.48: Rosa on the Pier opens the city's own quest: the cables under the Towers, then in at the Mooring-House)
+  { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', 'spacecity.drift', { temple: 'done', id: 'spacecity' }] },
   { id: 'bazaar', play: ['bazaar.signal'] },
 ];
 

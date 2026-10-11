@@ -232,6 +232,8 @@ export function* buildGlassDunes(scene) {
       planets: [{ az: 120, el: 30, size: 4, color: '#d6f0d8' }],
     },
     atmo: () => ({ tint: [1, 1, 1], fog: 0.3, name: 'The Glass Dunes' }),
+    // (the glass mound by the warm flow, GLASS_RIDGES 'mound 1': the dunes' main quest reads the Clock-House's face from its top)
+    flowMound: [70, 140],
     // the Clock-House's brass finial over the sand, seen from the ship's flat (scripts/level-design/audit.mjs aims at a
     // level's beacons as landmarks: the height grid's peak of the drum lies inside it, behind its own wall)
     beacons: [{ name: 'the Clock-House', top: [CLOCK_HOUSE.x, CLOCK_HOUSE.y + 30.5, CLOCK_HOUSE.z], height: 5 }, { name: 'the wave’s cairn', top: cairn.top.toArray(), height: 5 },

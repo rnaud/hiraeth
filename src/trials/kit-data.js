@@ -156,6 +156,23 @@ export const KIT_TRIALS = {
       again: '~playful~ Again? The vines are getting used to you. Mind the flowers. They mind you.',
     },
   },
+  // (v1.48, issue #45: a world's second run, from what was left of its temple's kit: the Greenhouse's glass)
+  'kit-edena-glass': {
+    id: 'kit-edena-glass', world: 'edena', mode: 'kit', course: 'glassclimb', name: 'Glass climb', color: '#cfe9e0',
+    blurb: 'The Greenhouse’s glass wall stood out on the meadow north-west of the white ruins: a white plinth and two terraces stepped up behind it, every face of them greenhouse glass, and a seed at the foot of each.',
+    rules: 'Climb the two terraces to the arch on the top one. The glass is too smooth to hold: switch the gun to bloom and wake the seed at the foot of each, and its vine runs up the pane over it. Climb the vine. Down in the meadow, or on your wings, and the run is over.',
+    origin: [100, -2.3, 90], yaw: 0,
+    marker: [-4.6, -4.6], start: [0, 0.6], heading: 0, par: 30,
+    needs: ['backpack', 'gun', 'bloom'], lacks: 'Its seeds want the bloom.',
+    onFoot: true, noWings: true, offFeet: 'Hands and feet only: the vines carry you up, not the wings or the jets.',
+    fall: { after: 0, below: -1.2, words: 'Down in the meadow' },
+    voice: {
+      who: 'oro', name: 'Oro', from: 'who grows pyramids',
+      first: '~happy~ Two vines up the builders’ glass, and you up them before they had finished growing. My pyramids take a thousand years.',
+      beaten: '~surprised~ Quicker than the builders! The leaves were still unrolling under your hands.',
+      again: '~playful~ Again? The glass does not mind. The vines are starting to.',
+    },
+  },
   'kit-arzach2': {
     id: 'kit-arzach2', world: 'arzach2', mode: 'kit', course: 'bellcrossing', name: 'Bell crossing', color: '#f6c84e',
     blurb: 'The Founders’ Belfry’s fallen-up bridges stood out over the sea of cloud from the south rim: four floating decks, three gaps, a bell at each, and a bell-tuned door.',
@@ -187,6 +204,24 @@ export const KIT_TRIALS = {
       first: '~happy~ Three lamps lit and walked before the stones had settled. Forty years I have kept lamps for travellers. That is the first time a traveller lit them for me.',
       beaten: '~surprised~ Quicker than the makers meant it! The moss hardly had time to glow under your feet.',
       again: '~solemn~ Again? Good. A lamp likes to be needed.',
+    },
+  },
+  // (v1.48, issue #45: the Lamp-House's pool-orbs, its kit's other half)
+  'kit-perdide2-orb': {
+    id: 'kit-perdide2-orb', world: 'perdide2', mode: 'kit', course: 'orbwalk', name: 'Orb walk', color: '#8fe0d0',
+    blurb: 'The Lamp-House’s pool-orbs stood out on the bank east of the landing: three decks on piers, a groove down each of the first two, a dark orb at its head and a keeper’s lamp at its foot.',
+    rules: 'Cross to the arch on the last deck. Stand by each orb with the lantern charm until it glows, then push it down its groove into the lamp’s socket before the glow fades: the lamp catches, and moss-stones rise across the gap. Off the decks, or on your wings, and the run is over.',
+    origin: [40, 2.6, -10], yaw: Math.PI / 2,
+    marker: [-4.4, -5.4], start: [0, 0.6], heading: 0, par: 48,
+    needs: ['lantern', 'backpack', 'gun'], lacks: 'Its orbs want the lantern charm’s light and the fluid gun’s push.',
+    wet: true, onFoot: true, noWings: true, offFeet: 'Feet only: the stones carry you over, not the wings or the jets.',
+    fall: { after: 0, below: -1.5, from: 16, words: 'Down off the decks' },
+    bare: { z: [-9, 64], w: 5 },   // (the bank's reeds and crystals kept off the decks: kitBare)
+    voice: {
+      who: 'hollin.perdide2', name: 'Hollin', from: 'the keeper of the lamps',
+      first: '~happy~ Two orbs lit and rolled home before the glow went out. The makers would have kept you on.',
+      beaten: '~surprised~ Under the makers’ mark! The orbs were still warm when the stones came up.',
+      again: '~solemn~ Again? Mind the glow. It never lasts as long as you think.',
     },
   },
   // (the Sealed Hangar's until October 2026, stood on its plain: its world dismissed, it moved to the Glass Dunes with the house)
@@ -257,6 +292,19 @@ export const KIT_TRIALS = {
 };
 
 /** The makers' runs standing in a world (its parts': a merged world has two), each where its part lies in it (names.js PART_OFFSET). */
+/**
+ * The ground a world's makers' runs keep bare (a run's `bare`: { z: [from, to] along it, w: its half-width }): a test
+ * (x, z) → true on it. The world's own planting asks it (src/flora.js floraKeep; the Deep Wood's reeds and crystals,
+ * src/levels/perdide2.js), which draws its dice all the same, so nothing else moves.
+ */
+export function kitBare(world) {
+  const strips = kitTrialsFor(world).filter((T) => T.bare).map((T) => ({ o: T.origin, s: Math.sin(T.yaw ?? 0), c: Math.cos(T.yaw ?? 0), ...T.bare }));
+  if (!strips.length) return () => false;
+  return (x, z, pad = 0) => strips.some(({ o, s, c, z: [z0, z1], w }) => {
+    const dx = x - o[0], dz = z - o[2], along = dx * s + dz * c, across = dx * c - dz * s;
+    return along > z0 - pad && along < z1 + pad && Math.abs(across) < w + pad;
+  });
+}
 export const kitTrialsFor = (world) => {
   const parts = partsOf(world);
   return Object.values(KIT_TRIALS).filter((T) => parts.includes(T.world)).map((T) => ({ ...T, origin: shiftAt(T.world, T.origin) }));

@@ -32,6 +32,8 @@ export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#6e94ac', '#fff1cf', '#ffe1ae'
 /** How flat the walls' shade is printed in the street's teal (makeMaterial shadeFlat: a pink wall's turned side goes blue, as the sheets print it, not brown). */
 export const MARKET_FLAT = 0.75;   // (v0.95: 0.85 before; a wall's own colour shows a little through its shade)
 export const SIGNAL = { x: 0, z: -255, deckY: 44, approachZ: -234 };
+/** The passages under the towers either side of Signal Square, straight at the silent tower (issue #44): w across, h high. */
+export const ARCADE = { w: 16, h: 24 };
 export const BRIDGES = [{ z: 25, y: 19 }, { z: -90, y: 25 }, { z: -190, y: 72 }, { z: -330, y: 64 }];
 /**
  * Where the market's cabs take you (src/taxi.js, src/story/cab.js: they drive themselves): each
@@ -69,7 +71,9 @@ export function* buildBazaar(scene) {
   const paint = (hex) => ({ paint: new THREE.Color(hex) });
   // (the dark rings' and the lit strips' lines stay the walls': a dark line on dark paint is the ink, a light's is thinned anyway)
   const sign = { shop: colors.map(paint), lilac: paint('#b9a9c5'), dark, cream: paint('#f5dfab'), glow };
+  let skip = false;   // (a shop drawn into nothing, its dice still thrown: the stall before a passage under a tower, below)
   function add(geo, material, solid = true) {
+    if (skip) return;
     geo.computeBoundingBox(); const z = geo.boundingBox.getCenter(new THREE.Vector3()).z;
     const key = `${Math.floor(z / 75)}:${material.uuid}:${solid}`;
     if (!buckets.has(key)) buckets.set(key, { geos: [], material, solid });
@@ -98,7 +102,7 @@ export function* buildBazaar(scene) {
   // `solid`: a billboard hung within the climber's reach of its wall must collide as it is drawn,
   // relief and all, or he hangs inside it; the ones that stand well clear of a wall stay drawn only.
   function poster(x,y,z,w,h,yaw,seed,solid=false) {
-    reactiveScreens.push({pos:new THREE.Vector3(x-Math.sin(yaw)*-.9,y,z+Math.cos(yaw)*.9),w,h,yaw});
+    if (!skip) reactiveScreens.push({pos:new THREE.Vector3(x-Math.sin(yaw)*-.9,y,z+Math.cos(yaw)*.9),w,h,yaw});
     // by night: the night sheets' colours for this picture (market-night-kit.js nightPaint), each part's role in it
     const night = nightPaint(seed), NIGHT_GLOW = .6, _n = new THREE.Color();
     const plate = (g,m,role='bg') => {
@@ -137,7 +141,14 @@ export function* buildBazaar(scene) {
   for(let row=0;row<9;row++) for(const side of [-1,1]) {
     const z=105-row*60, x=side*(54+(row%3)*3), h=125+rng()*130, w=34+rng()*7;
     const body = row%3===0 ? coral : row%3===1 ? teal : mat(colors[(row+(side+1))%5],{grid:11,weathered:0.7,...PRINT});
-    box(x,h/2,z,w,h,43,body);
+    // (issue #44, the level design audit since v1.5: the two towers either side of Signal Square stand on legs, a
+    // passage under each straight at the silent tower: from the back lane in the west, from the side streets in the east)
+    const arch = z === SIGNAL.z ? ARCADE : null;
+    if (arch) {
+      for (const e of [-1, 1]) box(x, arch.h/2, z+e*(arch.w/2+(43-arch.w)/4), w, arch.h, (43-arch.w)/2, body);
+      box(x, arch.h+(h-arch.h)/2, z, w, h-arch.h, 43, body);
+      for (const f of [-1, 1]) box(x+f*(w/2+.3), arch.h-.35, z, .6, .7, arch.w+1, ink, false);   // (the lintel's band, each face)
+    } else box(x,h/2,z,w,h,43,body);
     box(x,h+7,z,w*.7,14,31,body);
     box(x+side*5,h+23,z,1.4,32,1.4,ink,false);
     const face=x-side*(w/2+.5), yaw=-side*Math.PI/2;
@@ -148,7 +159,7 @@ export function* buildBazaar(scene) {
       tube([[face-side*1.3,9,z+dz],[face-side*1.3,34,z+dz],[face-side*2.8,37,z+dz],[face-side*2.8,h*.8,z+dz]],.3,ink);
     }
     poster(face-side*1.2,h*.61,z,20,40,yaw,row+(side===1?2:0));
-    poster(face-side*1.6,20,z+9,7,13,yaw,row+1);
+    poster(face-side*1.6,20,z+(arch?15:9),7,13,yaw,row+1);
     // Forward-facing signs are legible as you enter the street.
     poster(x,h*.32,z+22.2,20,24,0,row+2,true);   // (0.3 m off the tower's front: the climber would hang inside it)
     frontPosters.push({x,y:h*.32,z:z+22.2+1.05,w:20,h:24,yaw:0});
@@ -157,7 +168,7 @@ export function* buildBazaar(scene) {
       box(face-side*2.7,5+k*2.1,z-12,.15,.5,3,dark,false);
     }
     // Narrow service balconies give climbers somewhere to rest.
-    for(let k=0;k<4;k++) box(face-side*2.5,8+k*8,z-6,6,.65,11,teal);
+    for(let k=0;k<4;k++) box(face-side*2.5,8+k*8,z-(arch?15:6),6,.65,11,teal);   // (beside the passage, not across its mouth)
     // the back alleys between the towers: their side walls, near the street, dense with the sheets' small machinery
     // (greeble-kit.js: pipe runs, valves, conduits, casings, cables), the spot blacks' pockets; solid as drawn (you
     // climb these walls). Its own numbers, so the street keeps its layout.
@@ -185,6 +196,9 @@ export function* buildBazaar(scene) {
   for(let i=0;i<36;i++) {
     const side=i%2?1:-1, z=100-Math.floor(i/2)*27, x=side*29;
     const body=shop[i%5], yaw=-side*Math.PI/2;
+    // (issue #44: the stall in front of a passage under the towers either side of Signal Square is not built, so the
+    // passage looks straight out at the silent tower; its goods' dice are thrown all the same, and the rest stay put)
+    skip = Math.abs(z - SIGNAL.z) < ARCADE.w / 2 + 6;
     box(x,2,z,8,4,12,body);
     box(x-side*4.05,2,z,.12,2.9,10,dark);   // (the fascia stands 0.11 m proud of the shop front you climb)
     for(let q=0;q<6;q++) gr();   // (the six draws the stain round the opening once made: the goods stay where they were)
@@ -198,7 +212,7 @@ export function* buildBazaar(scene) {
     for(const dz of [-5,5]) {
       box(x-side*6.5,2.3,z+dz,.12,4.6,.12,brass,false);
       sphere(x-side*6.5,3.9,z+dz,.45,.6,.45,glow);
-      flammables.push({at:new THREE.Vector3(x-side*6.5,3.9,z+dz),kind:'lantern',r:.7,top:.55});
+      if (!skip) flammables.push({at:new THREE.Vector3(x-side*6.5,3.9,z+dz),kind:'lantern',r:.7,top:.55});
     }
     // the goods (the sheets' stalls: IMG_3805 p4, IMG_3808 p3): heaps of fruit mounded high over brass
     // bowls (a cone of the fruit's colour under the fruit on its slopes, so the pile reads full), crates
@@ -234,6 +248,7 @@ export function* buildBazaar(scene) {
     }
     box(x+side*4,1,z+8,2,2,2,brass);
     box(x+side*4,2.5,z+8,1.5,1,1.5,cream);
+    skip = false;
   }
 
   // Continuous solid bridge decks, rails and suspension service cables.
@@ -293,6 +308,9 @@ export function* buildBazaar(scene) {
     const story = (o) => { o.userData.noCollide = true; o.traverse?.((c) => { c.userData.noCollide = true; }); scene.add(o); return o; };
     const places = {
       sel: V3(-4.6, 0, -230.6), selSeat: V3(-4.6, 0, -230.6),
+      // (issue #44: she meets the ship where the avenue opens off the landing, the silent tower down the avenue behind her;
+      // once she has told you what is wrong she goes back to her crate: src/story/bazaar.js)
+      selLanding: V3(-8.5, 0, 64),
       kip: V3(-24, 25, -89.4), ferro: V3(6.5, 44, -231.2), brush: V3(-20.9, .3, -164.5),
       ummu: V3(-20.7, .3, -222.2), crates: V3(-21.4, .3, -216.4), console: V3(0, 45.4, -236.9),
       antenna: V3(12, 61.4, -237.5), oldSign: V3(-20, 20.6, -86.1), square: V3(0, 0, -222), towerTop: V3(0, 98, -240),
@@ -365,7 +383,7 @@ export function* buildBazaar(scene) {
     return { places, covers, coversAll, coverMat, bulbs, dish, oldSign, oldMat, crates, bowl, ummu, ummuHead: head, screen, towerPosters, frontPosters };
   })();
   folk.push({ x: signal.places.ummu.x, y: 0, z: signal.places.ummu.z, r: 1.3 }, { x: signal.places.crates.x, y: 0, z: signal.places.crates.z, r: 2.2 },
-    { x: signal.places.sel.x, y: 0, z: signal.places.sel.z, r: 1.8 }, { x: signal.places.brush.x, y: 0, z: signal.places.brush.z, r: 1.6 }, { x: signal.places.brush.x - .5, y: 0, z: signal.places.brush.z + 1, r: .9 });
+    { x: signal.places.sel.x, y: 0, z: signal.places.sel.z, r: 1.8 }, { x: signal.places.selLanding.x, y: 0, z: signal.places.selLanding.z, r: 1.6 }, { x: signal.places.brush.x, y: 0, z: signal.places.brush.z, r: 1.6 }, { x: signal.places.brush.x - .5, y: 0, z: signal.places.brush.z + 1, r: .9 });
 
   // the night halt past the landing at the south end (the night mail: src/levels/night-halt.js, src/story/night-train.js)
   const nightHalt = buildNightHalt({ box, tube, sphere, M: { ink, brass, cream, glow, dark, plank: mat('#7a5446', LT), stone: mat('#c9b9a2', { grid: 4, weathered: 0.5, ...LT }) } });

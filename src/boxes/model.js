@@ -521,6 +521,32 @@ function starthreadModel() {
   g.rotation.z = 0.3;
   return g;
 }
+function floatbeadModel() {
+  // a bead of pale bubble-glass on a loop of cord
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 12), flatM('#cfeef0', { glow: 0.3 })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 6).translate(0.018, 0.02, 0.03), flatM('#ffffff', { glow: 0.6 })));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.005, 3, 30, Math.PI * 1.5).rotateZ(-Math.PI * 0.25).translate(0, 0.09, 0), flatM('#3f6f78')));
+  return g;
+}
+function keeperModel() {
+  // a bar of soft iron, its ends rubbed bright
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.03, 0.04), flatM('#5d6672')));
+  for (const s of [-1, 1]) g.add(new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.032, 0.042).translate(s * 0.085, 0, 0), flatM('#c9cfd6')));
+  g.rotation.set(0.4, 0.5, 0.2);
+  return g;
+}
+function spliceModel() {
+  // a short splice of cable, its two ends wound together, a brass ferrule
+  const g = new THREE.Group();
+  const pts = [];
+  for (let i = 0; i <= 30; i++) { const t = i / 30; pts.push(new THREE.Vector3(-0.11 + t * 0.22, Math.sin(t * Math.PI) * 0.04, 0)); }
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.014, 6), flatM('#c9a66b')));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.05, 10).rotateZ(Math.PI / 2).translate(0, 0.04, 0), flatM('#d6a13e')));
+  g.rotation.z = 0.25;
+  return g;
+}
 function capModel() {
   // the divers' close knitted cap, teal, a brass ring over one ear
   const g = new THREE.Group();
@@ -552,7 +578,7 @@ const MODELS = {
   bloom: bloomModel, echo: echoModel, level: levelModel,
   soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
   tongs: tongsModel, tether: tetherModel, horn: hornModel, pearl: pearlModel, bellows: bellowsModel, starthread: starthreadModel,
-  divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel,
+  divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel, floatbead: floatbeadModel, keeper: keeperModel, splice: spliceModel,
 };
 
 /** An item's model from elsewhere (the gadgets bring their own: src/gadgets/registry.js). */

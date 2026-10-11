@@ -225,7 +225,7 @@ Left from v1.23 (docs/audits/level-design-v1.23.md, "The ranked edits that remai
 - [ ] [#42](https://github.com/rnaud/hiraeth/issues/42) **The Buried Machine's oculus → the wheel** (351 m, blind): an oil pipe from the valve would run beside the Tooth
   Day posts, and the world sits at the contact audit's line (climbs inside 42 of 43); or the audit counts a canyon.
 - [ ] [#43](https://github.com/rnaud/hiraeth/issues/43) **Overhead goals as seen, in the audit**: Vael's window → the tower's foot, the City-Shaft's palace legs.
-- [ ] [#44](https://github.com/rnaud/hiraeth/issues/44) Smaller: Lorn's Great Crystal ↔ Saba ping-pong merged (saves at each stage must still work); the Signal Market's
+- [x] [#44](https://github.com/rnaud/hiraeth/issues/44) (v1.48: Sel by the landing, the passages under the square's towers) Smaller: Lorn's Great Crystal ↔ Saba ping-pong merged (saves at each stage must still work); the Signal Market's
   tower down two more avenues (the west towers stand at every bearing from the back lane); Sel and the Sky Stones'
   monastery over 300 m from their landings (onboarding 3).
 
@@ -241,7 +241,7 @@ three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 
 Ranked; each says why in the review. Playtest with two or three new players before building the big ones.
 
-- [ ] [#45](https://github.com/rnaud/hiraeth/issues/45) A second makers' run in a world, from what is left of its temple's kit (docs/systems/challenges.md, "Next"):
+- [x] [#45](https://github.com/rnaud/hiraeth/issues/45) (v1.48: the glass climb in Viridel, the orb walk in Lorn II) A second makers' run in a world, from what is left of its temple's kit (docs/systems/challenges.md, "Next"):
   Viridel's greenhouse glass (a vine up an unclimbable pane: `noClimb` colliders in the stand-in), the Hangar's
   eye banks on pistons in turn, the Lamp-House's pool-orb rolled to a lamp.
 - [ ] [#46](https://github.com/rnaud/hiraeth/issues/46) The gameplay loop: the fluid blade and the foes are in (v0.87, docs/systems/foes.md; try them in the

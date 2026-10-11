@@ -13,8 +13,14 @@ import { shiftAt, offsetOf } from '../levels/names.js';
 // skiff's sail), and the boomerang in its Deep Wood; the bubble wand in Viridel, the ink bridge pen on the
 // City-Shaft's rim, the magnet glove in the Glass Dunes (the Sealed Hangar's, before it left the route), the
 // seeing lens in the Buried Machine (whose canyon hides a bridge of glass), the ink bombs in the Garden of
-// Spheres and the recall hourglass in the Signal Market (whose cabs it sends back). The Underwater City, the
-// Moon Foundry and the City Floating in Space have none.
+// Spheres and the recall hourglass in the Signal Market (whose cabs it sends back).
+// The three worlds of v1.40 got theirs in v1.48 (issue #101), each with a gadget found two or more worlds before it and a
+// bay of its own (`bay`: BAYS below, not the gadget's Yard bay): the divers' court in a dome of its own off the
+// Underwater City's Plaza (the bubble wand: a crate floated over a wall into a pit), the founders' yard on the Moon
+// Foundry's apron (the magnet glove: an iron crate lifted out of its cage and carried to the pit), the moorers' yard on
+// an island of its own west of the floating city's Gate (the hook: a crate dragged down off a pillar and pushed onto
+// the plate). Their gadget is already yours, so their box is no gadget's: it waits behind the gate the puzzle opens
+// (`boxAt`, in the court's own frame), with a charm for that gadget in it.
 //
 // attachCourt(levelId, scene, level) is called by src/temples/index.js attachTemple, at level build, before
 // the collision is baked: the pavement and the bay's blocks are solid like the rest of the world; what moves
@@ -40,6 +46,66 @@ export const COURTS = {
   buried: { gadget: 'monocle', at: [-88, 38], y: 6.4 },
   spheres: { gadget: 'bomb', at: [-58, -70], y: 1.1 },
   bazaar: { gadget: 'recall', at: [86, 66], y: 0 },
+  // (v1.48, issue #101: the three of v1.40, a gadget you have by then, a bay of their own and the box behind its gate)
+  underwater: { gadget: 'bubble', at: [-90, -108], y: 0, toward: [-60, -108], bay: 'divers', boxAt: [-5, 0, -7.4] },   // (its own dome west of the Plaza, the tube's door east)
+  moonfoundry: { gadget: 'magnet', at: [-56, 86], y: null, toward: [0, 94], bay: 'founders', boxAt: [-5, 0, -7.4] },   // (on the apron west of the way in)
+  spacecity: { gadget: 'hook', at: [-77, 30], y: 0, toward: [-40, 30], bay: 'moorers', boxAt: [-5, 0, -7.4] },   // (the Yard, its island west of the Gate)
+};
+
+/**
+ * The bays of the courts whose gadget you already have (`bay`): the same pieces as a Yard bay (src/gadgets/yard-kit.js),
+ * another puzzle, and an alcove at the back whose gate the puzzle holds open, the box inside it (`boxAt`).
+ */
+function alcove(kit, plates) {
+  // walls either side, a roof, a back wall; its gate across the front, open while any of `plates` is pressed
+  kit.block([0.6, 2.8, 3.6], [-7.3, 1.4, -7.4]); kit.block([0.6, 2.8, 3.6], [-2.7, 1.4, -7.4]); kit.block([5.2, 0.4, 3.6], [-5, 3, -7.4]);
+  kit.block([5.2, 2.8, 0.6], [-5, 1.4, -9.5]);
+  kit.lamp([-3.4, 3.2, -6]);
+  kit.gate([4, 2.6, 0.25], [-5, 1.3, -5.45], { plates });
+}
+export const BAYS = {
+  /** The divers' court (the bubble wand): a pit walled round 3.2 m high; float a crate up over its wall and pop the bubble. */
+  divers(kit) {
+    const pit = [3.5, -6.5], h = 3.2;
+    kit.block([4.4, h, 0.5], [pit[0], h / 2, pit[1] - 2]); kit.block([4.4, h, 0.5], [pit[0], h / 2, pit[1] + 2]);
+    kit.block([0.5, h, 3.5], [pit[0] - 2, h / 2, pit[1]]); kit.block([0.5, h, 3.5], [pit[0] + 2, h / 2, pit[1]]);
+    const plate = kit.plate([pit[0], 0, pit[1]], { radius: 1.2, things: true });   // (a crate presses it; you can't get in)
+    alcove(kit, [plate]);
+    kit.crate([3.2, 0.45, -1.2]); kit.crate([6.4, 0.45, -2.4]);
+    // a pole with a lamp past what can be climbed: float yourself up beside it
+    kit.pole([7.5, 0, 2.5], 6.4);
+    kit.lamp([7.5, 6.4, 2.5]);
+    kit.pickup([7.5, 6.6, 2.5], { amount: 2 });
+  },
+  /** The founders' yard (the magnet glove): an iron crate in a cage too high to climb into; lift it out and carry it to the pit. */
+  founders(kit) {
+    const cage = [5.5, 1.5], h = 3.4;
+    kit.block([3.6, h, 0.4], [cage[0], h / 2, cage[1] - 1.6]); kit.block([3.6, h, 0.4], [cage[0], h / 2, cage[1] + 1.6]);
+    kit.block([0.4, h, 2.8], [cage[0] - 1.6, h / 2, cage[1]]); kit.block([0.4, h, 2.8], [cage[0] + 1.6, h / 2, cage[1]]);
+    kit.crate([cage[0], 0.5, cage[1]], { metal: true });
+    const pit = [3, -6.8], ph = 3;
+    kit.block([4.4, ph, 0.5], [pit[0], ph / 2, pit[1] - 2]); kit.block([4.4, ph, 0.5], [pit[0], ph / 2, pit[1] + 2]);
+    kit.block([0.5, ph, 3.5], [pit[0] - 2, ph / 2, pit[1]]); kit.block([0.5, ph, 3.5], [pit[0] + 2, ph / 2, pit[1]]);
+    const plate = kit.plate([pit[0], 0, pit[1]], { mass: 3, things: true });   // (only iron presses it)
+    alcove(kit, [plate]);
+    // an iron block on a pillar over the court: pull yourself up to it, an ink pot on its cap
+    kit.block([1.2, 6.4, 1.2], [8.4, 3.2, -4]);
+    kit.ironBlock([1.6, 1.6, 1.6], [8.4, 7.2, -4]);
+    kit.pickup([8.4, 8, -4], { amount: 2 });
+  },
+  /** The moorers' yard (the grappling hook): a crate on a pillar too sheer to climb; reel it down, push it onto the plate. */
+  moorers(kit) {
+    kit.block([2.4, 6, 2.4], [5.5, 3, -6]);
+    kit.crate([5.5, 6.45, -6]);
+    const plate = kit.plate([2.2, 0, -1.5], { radius: 1.1, things: true });
+    alcove(kit, [plate]);
+    // a moorers' mast with rings up it, and a crow's nest with an ink pot: reel up from ring to ring
+    kit.pole([7.8, 0, 3], 10.5);
+    kit.anchor([7.8, 5.2, 3.3], { normal: [0, 0, 1] });
+    kit.anchor([7.8, 10.3, 3.86], { normal: [0, 0, 1] });
+    kit.pickup([7.8, 10.6, 3], { amount: 2 });
+    kit.crate([-1, 0.45, 2.2]);
+  },
 };
 
 /** The court's pavement in its own frame: x across ±w/2, z from -back (away) to +front (toward you); the box `box` m out. */
@@ -55,6 +121,11 @@ export function courtFrame(c, level) {
   return { origin: new THREE.Vector3(x, y + COURT.thick, z), yaw };
 }
 
+/** A court's box behind its gate (`boxAt`, in the court's frame): { at, face } facing out of the alcove. */
+export function courtBoxAt(frame, [x, y, z]) {
+  const p = new THREE.Vector3(x, y, z).applyAxisAngle(new THREE.Vector3(0, 1, 0), frame.yaw).add(frame.origin);
+  return { at: [p.x, p.y, p.z], face: frame.yaw };
+}
 /** The box's spot on a court: { at: [x, y, z], face } (src/boxes/placements.js reads it from level.finds). */
 export function courtBoxSite(frame) {
   const f = new THREE.Vector3(Math.sin(frame.yaw), 0, Math.cos(frame.yaw));
@@ -104,7 +175,8 @@ function pavement(group) {
  */
 export function attachCourt(levelId, scene, level, { clear = null, courts = COURTS } = {}) {
   const c = courtOf(levelId, courts), def = c && gadgetById(c.gadget);
-  if (!c || !def?.yard || !level) return null;
+  const build = c?.bay ? BAYS[c.bay] : def?.yard;
+  if (!c || !def || !build || !level) return null;
   const frame = courtFrame(c, level);
   const yard = new YardKit(scene);
   const kit = yard.bay(frame.origin, frame.yaw);
@@ -112,7 +184,7 @@ export function attachCourt(levelId, scene, level, { clear = null, courts = COUR
   kit.flag = () => {};   // (the Yard's banner and statue: not out in a world, where the box is the sign)
   kit.group.name = `Makers’ court (${def.id})`;
   pavement(kit.group);
-  try { def.yard(kit); } catch (e) { console.warn('makers’ court', def.id, e); }
+  try { build.call(def, kit); } catch (e) { console.warn('makers’ court', def.id, e); }
   kit.group.updateMatrixWorld(true);
   const { gadgetYard: spec, targets, flammables } = yard.out();
   spec.pen = null;   // (the Yard's pen of blots: out here the wilds have their own)
@@ -124,7 +196,7 @@ export function attachCourt(levelId, scene, level, { clear = null, courts = COUR
   for (const [k, v] of Object.entries(spec)) if (Array.isArray(v)) (into[k] ??= []).push(...v);
   (level.targets ??= []).push(...targets);
   (level.flammables ??= []).push(...flammables);
-  const box = courtBoxSite(frame);
+  const box = c.boxAt ? courtBoxAt(frame, c.boxAt) : courtBoxSite(frame);
   const court = { id: levelId, gadget: def.id, frame, box, group: kit.group };
   (level.finds ??= {}).court = court;
   (level.finds.courts ??= {})[levelId] = court;

@@ -29,8 +29,9 @@ export function itemsData({ owned = [], mode = null, modes = [], gadget = null, 
     if (d.kind === 'gadget') return { id, name: d.name, kind: d.kind, text: d.text, use: d.use, icon: icon(id), inUse: id === gadget, usable: gadgets.includes(id) && id !== gadget };
     return { id, name: d.name, kind: d.kind, text: d.text, use: d.use, icon: icon(id), inUse: choice && !!m && m === mode, usable: choice && !!m && modes.includes(m) && m !== mode };
   });
-  // (a slot for every item there is to find: the empty ones are drawn, never named)
-  const slots = Object.keys(ITEMS).length;
+  // (a slot for every item there is to find: the empty ones are drawn, never named; not the debug jets, nor what is
+  // retired, kept only for the saves that won it, unless you own it: v1.48)
+  const slots = Math.max(Object.values(ITEMS).filter((d) => !d.debug && !d.retired).length, list.length);
   const pack = carried.map((name, i) => ({ id: `pack.${i}`, name: cap(name) }));
   const keeps = keepsakes.map((k) => ({ id: k.id, name: k.name, text: k.text, world: titles[k.level] ?? '' }));
   return { gear, slots, pack, keepsakes: keeps, chimes };

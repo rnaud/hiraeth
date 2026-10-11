@@ -510,6 +510,21 @@
    "verdict": "Pass",
    "text": "New in v1.43 (the lamp’s own recording, after Lorn II’s story): tech 5/5, interest 3/5. Lamp, then why (the Hangar’s old word), each found and answered; the cuts at the start of lines as every recording’s.",
    "updated": "2026-10-10T23:00:00.000Z"
+  },
+  "box.underwater.court": {
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-11 (v1.48): tech 5/5, interest 4/5. The float-bead behind the gate of the divers’ court: plays as every box (its camera plan, the item, his face, the closing beat), in its alcove under the roof; no problems.",
+   "updated": "2026-10-11T08:00:00.000Z"
+  },
+  "box.moonfoundry.court": {
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-11 (v1.48): tech 5/5, interest 4/5. The founders’ keeper behind the gate of the founders’ yard: plays as every box (its camera plan, the item, his face, the closing beat), in its alcove under the roof; no problems.",
+   "updated": "2026-10-11T08:00:00.000Z"
+  },
+  "box.spacecity.court": {
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-11 (v1.48): tech 5/5, interest 4/5. The moorer’s splice behind the gate of the moorers’ yard: plays as every box (its camera plan, the item, his face, the closing beat), in its alcove under the roof; no problems.",
+   "updated": "2026-10-11T08:00:00.000Z"
   }
  }
 }

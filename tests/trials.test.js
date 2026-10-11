@@ -44,7 +44,8 @@ test('one trial in every place on the route, each with a reward that is an upgra
 // (the v1.0 and v1.46 audits: three trials paid out on a gadget that arrives worlds later; issue #99)
 test('every trial’s first finish is something to use at once: no gadget from further down the route', () => {
   const at = (w) => ORDER.indexOf(partOf(w));
-  const gadgetWorld = Object.fromEntries(Object.entries(COURTS).map(([w, c]) => [c.gadget, w]));
+  // (where each gadget is found: its court's box; a court with a bay of its own, v1.48, is for a gadget found before)
+  const gadgetWorld = Object.fromEntries(Object.entries(COURTS).filter(([, c]) => !c.bay).map(([w, c]) => [c.gadget, w]));
   for (const [w, T] of Object.entries(TRIALS)) {
     const it = ITEMS[T.reward];
     if (!it.needs) continue;   // (the hoverbike's fins, the cosmetics)
@@ -55,17 +56,23 @@ test('every trial’s first finish is something to use at once: no gadget from f
 });
 
 test('a gadget a world, in the makers’ courts, each in a box', () => {
-  const gadgets = Object.values(COURTS).map((c) => c.gadget);
+  const gadgets = Object.values(COURTS).filter((c) => !c.bay).map((c) => c.gadget);
   assert.deepEqual(new Set(gadgets), new Set(GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id)), 'every gadget once (but the fluid gun, the desert\'s main quest\'s own)');
   assert.equal(gadgets.length, 10);
+  const at = (w) => ORDER.indexOf(partOf(w));
   for (const [w, c] of Object.entries(COURTS)) {
     assert.ok(ROUTE_PARTS.includes(w), `${w}: on the route`);
-    assert.ok(PLACEMENTS[w].some((p) => p.item === c.gadget && p.gadget && p.hint), `${w}: its box holds the ${c.gadget}, with a hint`);
+    if (!c.bay) { assert.ok(PLACEMENTS[w].some((p) => p.item === c.gadget && p.gadget && p.hint), `${w}: its box holds the ${c.gadget}, with a hint`); continue; }
+    // (v1.48, issue #101: the three worlds promoted in v1.40, their temples bringing new tools, have a court of a gadget
+    // found worlds before, a bay of its own and a charm for that gadget behind its gate, in a box with a hint)
+    const from = Object.entries(COURTS).find(([, k]) => !k.bay && k.gadget === c.gadget)?.[0];
+    assert.ok(from && at(from) < at(w), `${w}: its ${c.gadget} is found before it, in ${from}`);
+    assert.ok(c.boxAt, `${w}: its box behind the gate`);
+    const box = PLACEMENTS[w].find((p) => !p.gadget && !p.temple && p.id === `${w}.court`);
+    assert.ok(box?.hint && ITEMS[box.item]?.kind === 'charm', `${w}: a charm in its box, with a hint`);
   }
-  // spread along the route: no more than one gadget a place, and every place after the desert has one but the three
-  // worlds promoted in v1.40 (their temples bring new tools: the whale-horn, the founders' tongs, the tether)
-  const NO_COURT = ['underwater', 'moonfoundry', 'spacecity'];
-  assert.deepEqual(Object.keys(COURTS).sort(), ROUTE_PARTS.filter((w) => w !== 'desert' && !NO_COURT.includes(w)).sort());
+  // spread along the route: no more than one gadget's court a place, and every place after the desert has a court
+  assert.deepEqual(Object.keys(COURTS).sort(), ROUTE_PARTS.filter((w) => w !== 'desert').sort());
 });
 
 test('gates: passed when the path goes through them, in order, the last the line', () => {

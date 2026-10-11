@@ -26,6 +26,7 @@ const physics = new Physics(scene, level.ground);
 level.init(physics);
 const G = level.signal, P = G.places;
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const flatD = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const fakeNPC = (kind) => ({ kind, pooled: true, person: null, assign(p) { this.person = p; }, release() { this.person = null; } });
 const crowd = new Crowd(scene, physics, { spots: level.crowdSpots(), makeNPC: fakeNPC });
 const npcs = spawnNPCs(scene, physics, CONTENT.bazaar.npcs, {});
@@ -103,9 +104,15 @@ test('the main quest: Sel, Kip’s recording, the antenna, the broadcast, and wh
   assert.equal(quests.stage('bazaar.signal'), undefined);
   assert.equal(quests.openerObjective()?.id, `opener-${'bazaar.signal'}`);
   assert.ok(quests.objective().position.distanceTo(W.people.sel.pos) < 0.01);
+  // (issue #44) she meets the ship by the landing, not 319 m off at the tower's foot
+  assert.ok(flatD(W.people.sel.pos, level.spawn) < 40, `Sel is ${flatD(W.people.sel.pos, level.spawn).toFixed(0)} m from the landing`);
   talk(PEOPLE.sel, ['Why did it go quiet', 'Where is it now', 'Then we listen']);
   step(2);
   assert.equal(quests.stage('bazaar.signal'), 'kip');
+  // and once you are off up the street she is back on her crate under the tower, where the broadcast ends
+  assert.ok(flatD(W.people.sel.pos, level.spawn) < 40, 'she stays while you are by her');
+  at(P.kip.clone().setY(0)); step(2);
+  assert.ok(flatD(W.people.sel.pos, P.sel) < 0.5 && W.people.sel.seat, 'Sel is back on her crate');
   assert.equal(game.flag('bazaar.rumour.light'), true, 'Sel saw the singing light pass');
   // she says where the cylinder is and what to do with it, not whom to see next (issue #85)
   assert.ok(!/Ferro|Find \*?Kip/.test(PEOPLE.sel.talk.nodes.kip.say.join(' ')), 'no "find Kip", no "Ferro will help"');

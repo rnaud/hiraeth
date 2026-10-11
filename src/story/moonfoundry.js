@@ -20,7 +20,15 @@ export function setupMoonFoundry(ctx) {
   const rt = level?.temples?.find((t) => t.id === 'moonfoundry') ?? (level?.temple?.id === 'moonfoundry' ? level.temple : null);
   const film = setupMoonFoundryMoments(ctx, { rt, level });
   for (const q of QUESTS) quests?.define?.(q);
-  for (const n of npcs) if (['ottilie', 'bertil', 'wen', 'dun', 'ivo'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // the foundry's own main quest doesn't just appear: it starts when you talk to Hedda on the apron (src/story/quests.js opensWith)
+  if (quests?.opensWith && !quests.isStarted?.('moonfoundry.moons')) quests.opensWith('moonfoundry.moons', 'hedda');
+  for (const n of npcs) if (['ottilie', 'bertil', 'wen', 'dun', 'ivo', 'hedda'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // the old hoist's first deck (src/levels/moon-foundry.js HOIST): from it the hung moons, all turned one way
+  const Ho = level?.hoist;
+  if (Ho && quests?.locate) { const at = new THREE.Vector3(Ho.x, Ho.stages[0][1], Ho.z); quests.locate('hoistDeck', () => at); }
+  const offHoist = game.on?.('quest', (e) => {
+    if (e?.id === 'moonfoundry.moons' && e.prev === 'hoist') toast('From the hoist’s deck every hung moon on the floor faces one way: east, at the Casting-House.');
+  }) ?? null;
   // the lookout on the pillar under the moon on its pillar (src/levels/moon-foundry.js PMOON: its platform at 0.78 of it)
   const L = level?.lookout;
   if (L && quests?.locate) { const at = new THREE.Vector3(L.x, L.y, L.z); quests.locate('lookout', () => at); }
@@ -46,6 +54,6 @@ export function setupMoonFoundry(ctx) {
       if (rt.inside?.(player.pos) || player.pos.distanceTo(rt.outside.door.at) > FILM_NEAR) return;
       film.moon({ said: 'Over the floor the hung moons turn on their hooks, slowly, all toward the Casting-House.' });
     },
-    dispose() { off?.(); if (closing) clearTimeout(closing); },
+    dispose() { off?.(); offHoist?.(); if (closing) clearTimeout(closing); },
   };
 }

@@ -232,7 +232,12 @@ export const PLACEMENTS = {
       hint: 'At the makers’ court by the market’s edge',
       note: 'In the makers’ court east of the start: a crate on a high ledge to knock down, ride and send back up. The market’s cabs go back along their lanes too.' },
   ],
+  // (v1.48, issue #101: the makers' courts of the three worlds of v1.40, src/finds/courts.js: no gadget's box, a charm for the
+  // court's gadget behind the gate its puzzle opens)
   moonfoundry: [
+    { id: 'moonfoundry.court', item: 'keeper', site: courtSite('moonfoundry'), beacon: 160,
+      hint: 'Behind the gate in the apron’s court',
+      note: 'In the makers’ court on the apron west of the way in, in the alcove behind its gate: lift the iron crate out of its cage with the magnet glove and set it in the pit, on the plate only iron presses.' },
     // the pocket bellows, a gift in the open: on the crown of the moon in its cradle's claws (a climb up the claws and the shell)
     { id: 'moonfoundry.bellows', item: 'bellows', at: [64, 46, -92], toward: [40, -60],
       hint: 'On top of the moon in the orange claws',
@@ -243,6 +248,9 @@ export const PLACEMENTS = {
       note: 'Inside the Casting-House on the hangar’s east side, in the round chamber at the top of the hoist.' },
   ],
   spacecity: [
+    { id: 'spacecity.court', item: 'splice', site: courtSite('spacecity'), beacon: 160,
+      hint: 'Behind the gate in the Yard’s court',
+      note: 'In the makers’ court on the Yard, the island west of the Gate, in the alcove behind its gate: hook the crate down off its pillar and push it onto the plate.' },
     // the star-thread, a gift in the open: on the flat roof of a tall house on the Towers, just past the Towers bridge
     // (a 12 m climb from the deck)
     { id: 'spacecity.starthread', item: 'starthread', at: [87.5, 18.6, -70.5], toward: [98, -84],
@@ -254,6 +262,9 @@ export const PLACEMENTS = {
       note: 'Inside the Mooring-House on the Moorings north of the Towers, in the round loft past the great door.' },
   ],
   underwater: [
+    { id: 'underwater.court', item: 'floatbead', site: courtSite('underwater'), beacon: 160,
+      hint: 'Behind the gate in the divers’ court',
+      note: 'In the makers’ court under its own dome west of the Plaza, in the alcove behind its gate: float a crate up over the pit’s wall with the bubble wand and pop it there.' },
     // the diver's pearl, a gift in the open: on the top deck of the tower of pods inside the Avenue's dome (a climb up
     // the pods from the street, three decks)
     { id: 'underwater.pearl', item: 'pearl', at: [-22.0, 15.7, -21.3], toward: [-24, -16],

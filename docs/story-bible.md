@@ -334,9 +334,13 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   round stair-house of the makers with a clock over its door; its works set the
   pace for the camps' clocks, and they all stopped the night the singing light
   passed. Something underneath has been winding tighter ever since.
-- **Quests**: Wim, who winds the clocks, sends you down the Clock-House: the
-  Clockwork Foreman at its heart wants six numerals lit together (the makers'
-  quick coil inside makes it possible).
+- **Quests**: the dunes' own, *The Minute It Stopped* (v1.48): Oren, who carries
+  the floats, by the makers' discs next to the ship: every clock in the dunes
+  stopped the night the light passed, each at its own minute, and the Clock-House's
+  first; climb the glass mound by the warm flow and read its face (seven minutes to
+  the hour), then go in at its door. Wim, who winds the clocks, sends you down the
+  Clock-House: the Clockwork Foreman at its heart wants six numerals lit together
+  (the makers' quick coil inside makes it possible).
 - **Keepsake**: *sound*: Wim's tick, every clock in the dunes keeping the same
   time.
 - **Clue**: Wim's word after: the Foreman keeps only the small time; the slow
@@ -354,7 +358,10 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   note; the whales sang it back, all at once, and went away. Since then the glass
   hums that one note all over the city, and something in the makers' Whale-House
   on the sea floor has been singing the light's note back at the whales.
-- **Quests**: the main one is the temple, **the Whale-House** (Anselme at its
+- **Quests**: the city's own, *The Wrong Note* (v1.48): Bastien at the lock, by
+  the ship, hears the wrong note in the glass; an ear on the window over the deep
+  in the Whale Gallery hears it come up through the sea floor from the north; then
+  in at the Whale-House's door. The temple, **the Whale-House** (Anselme at its
   door; Maelle in the Whale Gallery tells why the whales keep away): find the
   makers' **whale-horn** inside and calm its keeper. Two errands of the city's
   own: Mireille's glow-kelp cutting up the lift to Fabre in the Crown (*A Cutting
@@ -393,9 +400,12 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   sky rang every hung moon turned on its hook toward where the light went, and
   since then the makers' **Casting-House** on the east of the floor pours again by
   itself at night, and the moulds crack, and the floor shakes.
-- **Quests**: the main one is the temple, **the Casting-House** (Ilse at its door
-  with the founders' ledger): find the **founders' tongs** inside (the push takes
-  hold of the iron moons) and stop the Last Founder. Two errands of the foundry's
+- **Quests**: the foundry's own, *Nobody Poured It* (v1.48): Hedda, who pours the
+  small moons on the apron by the ship, found a moon in her mould at dawn that
+  nobody there poured; from the old hoist's first deck every hung moon faces one
+  way, at the Casting-House; then in at its door. The temple, **the Casting-House**
+  (Ilse at its door with the founders' ledger): find the **founders' tongs** inside
+  (the push takes hold of the iron moons) and stop the Last Founder. Two errands of the foundry's
   own: Wen of the Buried Machine, on holiday, wants the moons counted from the
   lookout on the pillar under the moon on its pillar (*Thirty-One Moons*: there are
   thirty-two, one in the mould); Ottilie's mended ladle-hook to Bertil at the
@@ -436,9 +446,12 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   **Mooring-House** on the last island. The night the sky rang its note ran down
   every cable; since then the islands drift apart a hand's width a night and the
   bridges creak.
-- **Quests**: the main one is the temple, **the Mooring-House** (Joss the moorer at
-  its door): find **tether mode** inside (a cone that pulls instead of pushing) and
-  resolve the Anchor-Warden. Two errands of the city's own: Madame Sel's notes on
+- **Quests**: the city's own, *A Hand's Width a Night* (v1.48): Rosa, who chalks
+  where each bridge's end sits every morning, on the Pier by the ship: the islands
+  creep apart; a hand on the cables under the Towers, by the bridge out to the
+  Moorings, feels them pull north; then in at the Mooring-House's door. The temple,
+  **the Mooring-House** (Joss the moorer at its door): find **tether mode** inside
+  (a cone that pulls instead of pushing) and resolve the Anchor-Warden. Two errands of the city's own: Madame Sel's notes on
   the planet's hum to Tamar under her cables (*The Planet's Hum*), and one of Kip's
   nine lamps hung at the far end of the Moorings bridge (*A Lamp at the Edge*).
   Amaro keeps the Oil-Lamp Shop: the city pays in lamp oil.

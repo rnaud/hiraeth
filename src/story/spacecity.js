@@ -8,7 +8,8 @@
 // errands of the city's own: Madame Sel's notes to Tamar on the Towers, and one of Kip's lamps hung up the Balcony's mast.
 
 import * as THREE from 'three';
-import { KEEPSAKE, QUESTS, LINES_AFTER } from './spacecity-people.js';
+import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './spacecity-people.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
 import { setupSpaceCityMoments } from './spacecity-moments.js';
 
 /** How near the Mooring-House's door (m) the traveller stands, outside, when the cables are filmed. */
@@ -16,11 +17,22 @@ export const FILM_NEAR = 40;
 
 /** The world's story: { people, update, dispose, film } (src/story/index.js WORLDS). */
 export function setupSpaceCity(ctx) {
-  const { game, story, level, player, quests, npcs = [], toast = () => {} } = ctx;
+  const { game, story, level, player, quests, dialogue, npcs = [], toast = () => {} } = ctx;
   const rt = level?.temples?.find((t) => t.id === 'spacecity') ?? (level?.temple?.id === 'spacecity' ? level.temple : null);
   const film = setupSpaceCityMoments(ctx, { rt });
   for (const q of QUESTS) quests?.define?.(q);
-  for (const n of npcs) if (['tamar', 'sel', 'kip', 'nima'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // the city's own main quest doesn't just appear: it starts when you talk to Rosa on the Pier (src/story/quests.js opensWith)
+  if (quests?.opensWith && !quests.isStarted?.('spacecity.drift')) quests.opensWith('spacecity.drift', 'rosa');
+  for (const n of npcs) if (['tamar', 'sel', 'kip', 'nima', 'rosa'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // the cables under the Towers where they leave for the Moorings (by the Moorings bridge's foot): a hand on them, and they pull north
+  const cab = level?.mooringsFoot;
+  if (cab) {
+    const at = new THREE.Vector3(cab.x, cab.y, cab.z), look = at.clone().setY(at.y + 1.1);
+    quests?.locate?.('towerCables', () => at);
+    registerInteractable({ id: 'towerCables', priority: PRIORITY.use, range: 4.2, prompt: 'lay a hand on the cables', at: () => look,
+      distance: (p) => (Math.abs(p.pos.y - at.y) < 3 ? Math.hypot(p.pos.x - at.x, p.pos.z - at.z) : Infinity),
+      use: () => dialogue?.start?.(THINGS.cables, null, look) });
+  }
   // the crow's nest on the Balcony's lamp-mast (src/levels/space-city.js level.mastTop): Kip's lamp is hung there
   const E = level?.mastTop;
   if (E && quests?.locate) { const at = new THREE.Vector3(E.x, E.y, E.z); quests.locate('mast', () => at); }

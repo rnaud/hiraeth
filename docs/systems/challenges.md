@@ -94,6 +94,24 @@ floor at once. The charm is asked of the traveller's items (`rt.items`, given to
 `makeTrial`; the stand-in's logic says yes to everything else), and the lamps answer anyone who carries it, run or
 no run (`rt.free`); a new run puts the lamps out and sinks the stones.
 
+**The glass climbed** (`rt.glassVine({ id, seed, glass })`, `addGlassVine`; `rt.slick({ at, yaw, w, h })`, `addSlick`, v1.48):
+Viridel's own `Glass`, a pane of greenhouse glass too smooth to hold (a climber on its face is let go, pushed off and
+told so, the piece's own), with a `Seed` at its foot: a bloom wakes the seed (it answers anyone, `rt.free`) and the
+stand-in's logic says the pane is grown (`check({ glassSeed })`), so its vine runs up it and it is climbed like any
+wall. Every other face round it is a pane that never grows (`check({ never })`): the vine is the only way up, without
+the `noClimb` colliders the old note wanted (their test is a collider's box, which would have taken the vine's pane
+too). A new run takes the vines back.
+
+**The orbs rolled to their lamps** (`rt.orb({ id, a, b, lamp, post, bridge })`, `addOrb`, v1.48): Lorn II's Lamp-House's
+own pool-orb (a `Ball` with its `lamp`), in a groove on the deck, its `Plate` the socket at the groove's foot, the
+`LightEar` on a keeper's post beside it (reach 0: only a glowing orb wakes it) and a `Bridge` of moss-stones from below
+across the gap past it. The lantern is asked of the traveller's items as the lamp walk's is; the lamp's element is
+lit in the stand-in's logic once it has answered (`isLit`, from `rt.lit`), so the post glows and the orb, locked home,
+stays. The orbs are the course's links, not its rollers (the run is the gaps; the stones are what the orbs are for):
+a new run rolls them back, puts the lamps out and sinks the stones. The bank's reeds and crystals keep off the decks
+(the run's `bare`: `kitBare`, asked by src/flora.js and the Deep Wood's own planting, which throws its dice all the
+same).
+
 **The discs ridden** (`rt.disc(o)`: the temples' `Platform`, v1.28): a riding disc that shuttles along its path
 (ping-pong, eased near its ends, a pause at each), a moving floor in `course.solids()`, so the traveller rides it as
 he does a temple's (src/player.js `opts.dynamic`, handed over for good by `makeTrial`). A path may climb (the disc
@@ -114,6 +132,8 @@ run's last disc rises 4 m as it crosses).
 | **Disc run** (`kit-garage`, v1.28) | a platform up a stair, two islands and a landing on blocks 6 m over the Hangar's plain east of the clerk's board, running east (origin 52, 6, 38) | ride the disc shuttling across each gap (14 to 16 m; the last climbs 4 m to the landing), step off at the far side; on the landing wake the wall's three eyes inside 4 s; down on the plain, or the wings opened, ends it | on the plain beside the stair | 54 s | the fluid gun | Clemence, who remembers the Major (a story local: `src/story/garage-data.js` LOCALS) |
 | **Sounding walk** (`kit-underwater`, v1.43) | a strip of the Whale-House's shell-pink floor 9 m by 24 in the Avenue's north-west, under the dome, running north (origin −30, 0.12, 26) | past two listening screens hung with dishes (a way past each, east, then west) to the arch at the far end; then wake the three brass horns: the whale-horn's deep note carries 7 m and the horns stand 9–16 m apart, so each wants its own note | on the floor by the strip's south-west corner | 30 s | the whale-horn | Coralie, who keeps the café |
 | **Moon roll** (`kit-moonfoundry`, v1.43) | a plinth 12 m by 40 on the foundry floor south of the last furnace, running south (origin 78, 0.12, −22) | weave round three hoist frames to the arch at the far end, then roll the two stone moons (the Casting-House's test casts) into their cradles with the push, each its own way (8 m and 10 m) | on the floor by the plinth's north-west corner | 50 s | the fluid gun | Bertil, who pours at the last furnace |
+| **Glass climb** (`kit-edena-glass`, v1.48) | a white plinth and two terraces stepped 5.5 m up behind it on the meadow north-west of the white ruins, running north (origin 100, −2.3, 90), every face of the terraces greenhouse glass | bloom the seed at the foot of each terrace's front: its vine runs up the pane over it (2.4 s); climb it, and on to the arch on the top terrace. The glass slips a climber off anywhere else; down in the meadow, or the wings opened, ends it | on the meadow beside the plinth's stairs | 30 s | the bloom mode | Oro, who grows pyramids |
+| **Orb walk** (`kit-perdide2-orb`, v1.48) | three decks on piers over the bank and the shallows east of the deep wood's landing, running east (origin 40, 2.6, −10 in the Deep Wood's own coordinates) | stand by each pool-orb at the head of its groove with the lantern charm (2 s) until it glows, then push it down its groove (12 m) into the socket by the keeper's lamp before the glow fades (25 s): the lamp catches and moss-stones rise across the 10 m gap ahead. Dark, the socket tips it back out. Off the decks, or the wings opened, ends it | on the bank beside the stairs | 48 s | the lantern charm and the fluid gun | Hollin, the keeper of the lamps |
 | **Moorers' leap** (`kit-spacecity`, v1.43) | a plinth out over the Towers' east edge into the dark, a mooring post 12 m up and a landing 6 m up across a 26 m gulf, running east (origin 112, 6.1, −84) | up the void's breath (the Mooring-House's Updraft) on open wings to the post's deck, glide the gulf to the landing, then wake the capstan wall's three eyes in one breath; into the dark once past the first gate ends it | on the island by the plinth | 45 s | the wings and the fluid gun | Tamar, who minds the cables |
 
 Fair on a controller and on touch: walking, jumping, aiming and the splash are all the run asks; the gust's
@@ -190,7 +210,7 @@ Each run is clear of its world's ship and of its makers' court. The trials:
 
 Every route world has its makers' run now (v1.28: Lorn II's lamp walk and the Hangar's disc run finished the
 eleven; v1.43: the three worlds of v1.40 got theirs, from their temples' kit: the Whale-House's horns, the
-Casting-House's moons and cradles, the Mooring-House's breath of the void). A second run in a world could use what is left of its temple's kit: Viridel's greenhouse glass (a vine up
-a pane too smooth to climb) would want the rest of its wall made unclimbable (`noClimb` colliders), which the
-stand-in does not do yet; the Hangar's eye banks on pistons in turn (`Bank` with `stroke`), the Lamp-House's
-pool-orb rolled to a lamp (a `Ball` with its `lamp`).
+Casting-House's moons and cradles, the Mooring-House's breath of the void), and since v1.48 two have a second one from
+what was left of their temples' kit (issue #45: Viridel's greenhouse glass, the Lamp-House's pool-orbs; a world's
+second run is `kit-<world>-<what>`). Left: the Hangar's eye banks on pistons in turn (`Bank` with `stroke`), now the
+Glass Dunes' Clock-House's.

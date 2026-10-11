@@ -16,6 +16,7 @@ import { QUESTS as bazaar } from './bazaar-data.js';
 import { QUESTS as underwater } from './underwater-people.js';
 import { QUESTS as moonfoundry } from './moonfoundry-people.js';
 import { QUESTS as spacecity } from './spacecity-people.js';
+import { QUESTS as glassdunes } from './glassdunes-people.js';
 import { QUESTS as lantern } from './lantern-data.js';
 import { QUESTS as nightmail } from './night-train-data.js';
 import { QUEST as tDesert } from '../temples/desert-data.js';
@@ -41,5 +42,5 @@ const TEMPLE_QUESTS = Object.entries({
 }).map(([id, Q]) => ({ id: Q.id, title: Q.title, world: Q.world ?? id, outro: Q.outro }));
 
 /** [{ id, title, world, outro, failOutro }] of every world's quests (the Lantern's, the night mail's, the temples'). */
-export const ALL_QUESTS = [desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar, underwater, moonfoundry, spacecity, lantern, nightmail, TEMPLE_QUESTS]
+export const ALL_QUESTS = [desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar, underwater, moonfoundry, spacecity, glassdunes, lantern, nightmail, TEMPLE_QUESTS]
   .flat().map(({ id, title, world, outro, failOutro }) => ({ id, title, world, outro, failOutro }));

@@ -547,7 +547,13 @@ What v1.20 left (`docs/audits/level-design-v1.23.md`): the places far from every
   sightline from Saba's stone to the cave's crown only as tall as the line allows (`crownWindow`); the grove draws the
   same random numbers, so nothing else moves.
 - **The Signal Market**: **Wynn**, the last listener, under the dishes halfway up the listeners' lane
-  (`STREET.wynn`); the silent tower's aerial is a beacon.
+  (`STREET.wynn`); the silent tower's aerial is a beacon. Since v1.48 (issue #44) **Madame Sel meets the ship** where
+  the avenue opens off the landing (`signal.places.selLanding`, 25 m from it), the tower down the avenue behind her,
+  and once she has had her say and you have gone 30 m up the street she is back on her crate at its foot
+  (`src/story/bazaar.js` `selHome`; the end's `stands: 'selSeat'`): onboarding 3 → 5. And **the towers either side of
+  Signal Square stand on legs** (`ARCADE`, 16 × 24 m): a passage under each runs straight at the silent tower's
+  screens, from the back lane's end in the west and the side streets in the east; the stall that stood before each
+  mouth is not built (its dice are thrown all the same, so the rest of the street stays where it was).
 - **The City-Shaft: Tobin's telescopes** (`src/shaft-ways.js` `TOBIN_SCOPES`), three coin telescopes round the outer
   rim between Tobin and Lio, the `back` stage's `via`; houses keep clear of them (`ways.clear`).
 - **The desert: the giant's breath** (`src/desert-city.js` `giantBreath`), a thin pale SmokeColumn from the skull's brow

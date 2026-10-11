@@ -246,6 +246,15 @@ walkthroughs and local names; each data file's header lists its flags.
 | Lorn II | relight three dark pools; the saucer answers; it is Odile and Talo's pod | Hollin's lamps (person) |
 | City-Shaft | carry the splinter from the bottom to the palace; the Lodestar brightens | "Look up once a day" (word) |
 | Signal Market | tune the antenna (three shots at once), play the recording: the father's voice; Oyo's last lantern pours into the tank (yellow-green band, `bazaar.tank.lantern`) | "You are not alone" (word) |
+| Underwater City (v1.48) | *The Wrong Note*: Bastien at the lock, an ear on the window over the deep, in at the Whale-House's door (the temple's quest takes it on) | the whales' answer (song), when the Whale-House's keeper is calmed |
+| Moon Foundry (v1.48) | *Nobody Poured It*: Hedda on the apron, the hung moons seen from the old hoist's first deck, in at the Casting-House's door | a pocket moon (thing), when the Last Founder stops |
+| City Floating in Space (v1.48) | *A Hand's Width a Night*: Rosa on the Pier, a hand on the cables by the Moorings bridge, in at the Mooring-House's door | what the cables are for (knowing), when the Anchor-Warden is resolved |
+| Glass Dunes (v1.48) | *The Minute It Stopped*: Oren by the discs, the Clock-House's face read from the glass mound, in at its door | Wim's tick (song), when the Foreman keeps time |
+
+The four of v1.48 (issue #101): until then the temple's own quest was the whole of these worlds' thread. Each world's own
+main quest is opened by someone a few steps from the ship (`quests.opensWith`), is three steps long and ends at the
+temple's door (`flag: 'temple.<id>.entered'`, so a traveller who walks in first has it done), and the temple's quest
+carries on from there; the world is still done, and its keepsake given, when the temple is.
 
 ## The ending (v0.34)
 - **Calls home** (`src/story/calls.js`): 11 calls, one per finished world. Each

@@ -14,6 +14,17 @@ export const KEEPSAKE = {
 export const ITEMS = { kelpcutting: 'a glow-kelp cutting' };
 
 export const QUESTS = [
+  // the city's own main quest (v1.48, issue #101): Bastien at the lock, by the landing, and the wrong note in the glass,
+  // traced to the window over the deep and followed north into the Whale-House (src/story/underwater.js)
+  {
+    id: 'underwater.note', title: 'The Wrong Note', world: 'underwater', main: true,
+    outro: 'The wrong note runs out of the Whale-House, under the sea floor, into every pane of the city. You are inside it now.',
+    stages: [
+      { id: 'bastien', text: 'Hear Bastien out at the lock', label: 'Bastien, at the lock', flag: 'underwater.bastien.heard', at: 'bastien' },
+      { id: 'window', text: 'Listen at the window over the deep', label: 'The window over the deep', flag: 'underwater.window.heard', at: 'deepWindow', via: 'the tube down to the Whale Gallery' },
+      { id: 'house', text: 'Follow the note north to the Whale-House', label: 'The Whale-House’s door', flag: 'temple.underwater.entered', at: 'temple.underwater.door', via: 'the tube to the Whale-House' },
+    ],
+  },
   {
     id: 'underwater.kelp', title: 'A Cutting for the Crown', world: 'underwater',
     outro: 'Fabre’s window box glows green now, sixty metres up the column.',
@@ -32,6 +43,40 @@ export const QUESTS = [
 ];
 
 export const PEOPLE = {
+  // Bastien keeps the lock (on the Dock, by the ship): he opens the city's main quest
+  bastien: {
+    id: 'bastien', name: 'Bastien', title: 'who keeps the lock', color: '#3d6f78', voice: 0.9, kind: 'm',
+    lines: ['~happy~ Welcome down. Mind the pool, it’s the lock’s and it’s colder than it looks.', '~neutral~ The long tube goes north to the Avenue. Everything’s north of here.'],
+    talk: {
+      entry: [
+        { if: { flag: 'temple.underwater.done' }, node: 'after' },
+        { if: { flag: 'underwater.bastien.heard' }, node: 'again' },
+        { node: 'hello' },
+      ],
+      nodes: {
+        hello: {
+          say: ['~neutral~ Bastien. I keep the lock. Your ship came down it like a stone down a well. A polite stone.',
+            '~tired~ Hear that hum in the glass? One note, all over the city, since the night the sky rang. It’s the wrong note. The whales won’t come near it.'],
+          choices: [
+            { text: '~curious~ Where does it come from?', goto: 'where' },
+            { text: '~neutral~ Not now.', end: true },
+          ],
+        },
+        where: {
+          say: ['~neutral~ Nobody’s found out. *Lay your ear on the window over the deep*, in the Whale Gallery: the glass is thinnest there. You’ll hear which way it runs.',
+            '~playful~ North up the long tube, through the Avenue to the Plaza, then east down the tube to the Gallery. Mind the cafés. They’ll feed you.'],
+          do: { set: { 'underwater.bastien.heard': true } },
+          choices: [{ text: '~neutral~ I’ll listen.', end: true }],
+        },
+        again: { say: ['~neutral~ The window over the deep, in the Whale Gallery. Ear to the glass.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        after: {
+          say: ['~happy~ They’re back. One came right up to the lock this morning and looked in at your ship. I think it approved.'],
+          choices: [{ text: '~neutral~ Goodbye, Bastien.', end: true }],
+        },
+      },
+    },
+  },
+
   mireille: {
     id: 'mireille', name: 'Mireille', title: 'who grows the glow-kelp', color: '#5f8f7a', voice: 1.05, kind: 'f',
     head: 'wrap', cape: 0.6,
@@ -168,6 +213,22 @@ export const PEOPLE = {
         well: { say: ['~playful~ Whales don’t give directions. They give songs. But that one sounded like falling a long way, and landing somewhere bright.'], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
       },
     },
+  },
+};
+
+/** What there is to look at for the main quest (src/story/underwater.js): the window over the deep, an ear to it. */
+export const THINGS = {
+  window: {
+    id: 'deepWindow', name: 'The window over the deep', title: 'in the Whale Gallery', color: '#2f8a8f', voice: 0.6,
+    talk: { nodes: { listen: {
+      say: [
+        '~whisper~ (You lay your ear on the cold glass. The hum fills your head: one note, thin and high, the light’s.)',
+        '~solemn~ (Under it, far off in the dark, something long and low: the whales, keeping their distance.)',
+        '~curious~ (The note isn’t theirs. It comes up through the sea floor from the north, from the makers’ Whale-House at the end of the last tube.)',
+      ],
+      do: { set: { 'underwater.window.heard': true } },
+      choices: [{ text: '~neutral~ (lift your ear from the glass)', end: true }],
+    } } },
   },
 };
 

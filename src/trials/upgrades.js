@@ -30,6 +30,16 @@ export const UPGRADES = {
   longsand: [HISTORY, 'window', 12],
 };
 const BASE = Object.fromEntries(Object.entries(UPGRADES).map(([id, [t, k]]) => [id, t[k]]));
+/**
+ * The charms the three worlds of v1.40 keep behind their makers' courts' gates (v1.48, issue #101: src/finds/courts.js),
+ * each a little more for the gadget its court is for, on keys of their own (not the trials'): [the table, its key, the value with it].
+ */
+export const CHARM_TUNES = {
+  floatbead: [BUBBLE, 'maxRise', 10.5],
+  keeper: [MAG, 'pull', 24],
+  splice: [HOOK, 'pull', 34],
+};
+const CHARM_BASE = Object.fromEntries(Object.entries(CHARM_TUNES).map(([id, [t, k]]) => [id, t[k]]));
 // (the bubble you float in yourself lasts longer too)
 const SELF = BUBBLE.self?.life;
 
@@ -42,5 +52,6 @@ export function syncUpgrades(has) {
     if (owned) on.push(id);
   }
   if (BUBBLE.self && SELF != null) BUBBLE.self.life = has('longbreath') ? SELF * 1.5 : SELF;
+  for (const [id, [t, k, v]] of Object.entries(CHARM_TUNES)) t[k] = has(id) ? v : CHARM_BASE[id];
   return on;
 }

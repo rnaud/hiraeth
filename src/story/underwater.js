@@ -7,7 +7,8 @@
 // Mireille's glow-kelp cutting up the lift to Fabre in the Crown, and Fabre's word down to Maelle in the Gallery.
 
 import * as THREE from 'three';
-import { KEEPSAKE, QUESTS, LINES_AFTER } from './underwater-people.js';
+import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './underwater-people.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
 import { setupUnderwaterMoments } from './underwater-moments.js';
 
 /** How near the Whale-House's door (m) the traveller stands, outside, when the whales are filmed. */
@@ -15,12 +16,23 @@ export const FILM_NEAR = 30;
 
 /** The world's story: { people, update, dispose, film } (src/story/index.js WORLDS). */
 export function setupUnderwater(ctx) {
-  const { game, story, level, player, quests, npcs = [], toast = () => {} } = ctx;
+  const { game, story, level, player, quests, dialogue, npcs = [], toast = () => {} } = ctx;
   const rt = level?.temples?.find((t) => t.id === 'underwater') ?? (level?.temple?.id === 'underwater' ? level.temple : null);
   const film = setupUnderwaterMoments(ctx, { rt, level });
   for (const q of QUESTS) quests?.define?.(q);
+  // the city's own main quest doesn't just appear: it starts when you talk to Bastien at the lock (src/story/quests.js opensWith)
+  if (quests?.opensWith && !quests.isStarted?.('underwater.note')) quests.opensWith('underwater.note', 'bastien');
   // where the errands point: the people by their content ids, the lift and the Crown
   for (const n of npcs) if (['mireille', 'fabre', 'maelle', 'bastien', 'coralie'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // the window over the deep in the Whale Gallery (the level's sight): an ear to the glass traces the wrong note north
+  const win = level?.sights?.find((s) => /window over the deep/.test(s.name))?.at;
+  if (win) {
+    const at = new THREE.Vector3(win[0], win[1], win[2]), look = at.clone().setY(at.y + 1.4);
+    quests?.locate?.('deepWindow', () => at);
+    registerInteractable({ id: 'deepWindow', priority: PRIORITY.use, range: 4.2, prompt: 'lay your ear on the glass', at: () => look,
+      distance: (p) => (Math.abs(p.pos.y - at.y) < 4 ? Math.hypot(p.pos.x - at.x, p.pos.z - at.z) : Infinity),
+      use: () => dialogue?.start?.(THINGS.window, null, look) });
+  }
   const crown = level?.halls?.crown;
   if (quests?.locate && crown) {
     const foot = level.lift?.foot ?? [crown.x, 0, crown.z];

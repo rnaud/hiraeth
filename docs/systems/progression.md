@@ -55,7 +55,9 @@ never sees one: they are for a save brought in another way (the worlds menu). Ev
 from each route world's ramp foot (flat metres, then height): the nearest are the makers' courts, each a gadget's showcase
 on its own paved square away from the landing (the City-Shaft's 37 m behind the landing on the plateau, Viridel's 41 m,
 Vael's 49 m and 6 m up its rise), and Lorn's breathing reed, 22 m out but 28 m up Wendel's lookout, a climb in five
-pitches; everything else is 60 m or more away, most in temples. `tests/boxes.test.js` checks that a run's save (the
+pitches; everything else is 60 m or more away, most in temples. (v1.48, issue #101: the three worlds of v1.40 have a
+court each now, a gadget found worlds before; its chest, a charm for that gadget, waits behind the gate its puzzle
+opens, src/finds/courts.js `boxAt`, so even the nearest chest there is earned.) `tests/boxes.test.js` checks that a run's save (the
 desert done, the house skipped) finds nothing by the ship.
 
 **Nothing to fight before the blade.** Unarmed (main.js `tool.swordOn`, from the items), no pack comes in from the

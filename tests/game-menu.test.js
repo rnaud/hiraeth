@@ -197,7 +197,7 @@ test('the Quests panel: the father\'s charge, the quests under way, then a short
 
 test('the Items panel: a slot for every item to find (the empty ones unnamed), the gear first, what you carry and the keepsakes under it', () => {
   const d = itemsData({ owned: ['jetpack', 'backpack', 'lantern'], carried: ['the spark-stone'], keepsakes: [{ id: 'desert.knowing', level: 'desert', name: 'What the giants left', text: 'The giants carried the water.' }], titles: { desert: 'The Desert' }, icon: (id) => (id === 'backpack' ? 'data:image/png;base64,AA' : null) });
-  assert.equal(d.slots, Object.keys(ITEMS).length);
+  assert.equal(d.slots, Object.values(ITEMS).filter((it) => !it.debug && !it.retired).length, 'a slot for every item there is to find');
   const { html, rows } = itemsPanel(d);
   assert.equal((html.match(/class="slot empty"/g) ?? []).length, d.slots - 3, 'empty slots drawn, never named');
   assert.match(html, /<img class="ico" src="data:image\/png;base64,AA"/, 'the item\'s own picture');
@@ -206,7 +206,7 @@ test('the Items panel: a slot for every item to find (the empty ones unnamed), t
   assert.deepEqual(rows[1].map((x) => x.col), [0, CARRY_COL]);
   assert.match(rows[1][1].sub, /from The Desert/);
   assert.deepEqual(moveCursor(rows, { r: 0, c: 2 }, 0, 1), { r: 1, c: 0 }, 'down from the gear: the pack');
-  assert.ok(GEAR_COLS * 6 >= d.slots + 10, 'six rows hold every item, the ten gadgets too (registered in the game, not here)');
+  assert.ok(GEAR_COLS * 6 >= d.slots + 10, `six rows hold every item, the ten gadgets too (registered in the game, not here): ${d.slots} + 10`);
   // the menu learns of a picture once drawn (src/item-icons.js)
   const m = new GameMenu(null, { sources: { items: () => d } });
   m.open('items'); m.iconReady('jetpack', 'data:x');

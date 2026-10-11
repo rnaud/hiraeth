@@ -202,6 +202,23 @@ export const ITEMS = {
     text: "A twist of pale thread that shines a little in the dark. The moorers of the floating city tied it round their wrists for luck on the long climbs.",
     use: 'You climb a third faster.',
   },
+  // the makers' courts of the three worlds of v1.40 (v1.48, issue #101: src/finds/courts.js): each behind its court's
+  // gate, a charm for the gadget the court is for (one found worlds before): src/trials/upgrades.js CHARM_TUNES
+  floatbead: {
+    name: 'Float-bead', kind: 'charm',
+    text: "A bead of the divers' bubble-glass on a cord, light as a held breath. Tied to the wand, it makes a bubble that little bit more buoyant.",
+    use: 'The bubble wand lifts what it holds half as high again: 10 m instead of 7.',
+  },
+  keeper: {
+    name: 'Founders’ keeper', kind: 'charm',
+    text: "A bar of soft iron, rubbed bright at the ends. The founders laid one across each magnet's poles at night, so it would keep its pull.",
+    use: 'The magnet glove pulls you to fixed metal a third faster.',
+  },
+  splice: {
+    name: 'Moorer’s splice', kind: 'charm',
+    text: "A short splice of the moorers' cable, its strands still humming faintly. They wore them on the long hauls, for luck and for the grip.",
+    use: 'The grappling hook reels you in a third faster.',
+  },
   // ---- won in the worlds' mastery trials (src/trials/: the first finish of each), upgrades to the gadgets
   dunefins: {
     name: 'Dune fins', kind: 'upgrade', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',

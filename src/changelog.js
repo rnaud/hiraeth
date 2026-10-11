@@ -21,6 +21,14 @@ export const CHANGELOG = [
         ], source: 'scripts/load-breakdown.mjs, its phases' },
       ],
       see: 'Fly to the City-Shaft: the loading screen gives way sooner, and the trees by the landing are as they were.' },
+    // the three newest worlds and the Glass Dunes (issue #101)
+    { text: 'The Underwater City, the Moon Foundry, the City Floating in Space and the Glass Dunes each have a quest of their own before their temple, opened by someone a few steps from your ship: Bastien at the lock hears the wrong note in the glass, Hedda on the apron found a moon in her mould that nobody poured, Rosa on the Pier chalks the islands drifting apart a hand’s width a night, and Oren by the discs knows the minute every clock stopped. Each leads you to the temple’s door.',
+      see: 'Step off the ship in any of the four and talk to whoever stands nearest it: Bastien by the moon pool, Hedda by her mould, Rosa on the Pier, Oren by the discs.' },
+    'The three newest worlds have a makers’ court each: a gadget you already carry, a puzzle of its own, and a chest behind the gate it opens with a charm for that gadget. The divers’ court under its own dome west of the Underwater City’s Plaza (the bubble wand), the founders’ yard on the Moon Foundry’s apron (the magnet glove), and the moorers’ yard on a new island west of the floating city’s Gate (the grappling hook).',
+    // the makers' runs (issue #45)
+    'Two new makers’ runs. In Viridel, the Glass climb north-west of the white ruins: two terraces of greenhouse glass too smooth to hold; bloom the seed at each one’s foot and climb its vine. In the Deep Wood, the Orb walk on the bank east of the landing: light each pool-orb with your lantern, push it down its groove to the keeper’s lamp before the glow fades, and moss-stones rise across the gap. Oro and Hollin have a word for you at the end.',
+    // the worlds' layout (issue #44)
+    'In the Signal Market, Madame Sel meets your ship where the avenue opens off the landing, the silent tower down the street behind her, and goes back to her crate at its foot once she has had her say. The towers either side of Signal Square stand on legs now: a passage under each runs straight at the silent tower’s screens, from the back lane and from the side streets.',
   ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)

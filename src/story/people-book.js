@@ -374,6 +374,8 @@ export const BOOK = {
   underwater: [
     P('bastien', 'Bastien', 'Keeps the lock', [
       'Bastien keeps the Underwater City’s lock and its Dock, where your ship came down like a stone down a well. Nobody walks outside there: they go hall to hall through the glass tubes.',
+      [f('underwater.bastien.heard'), 'Since the night the sky rang the glass has hummed one note all over the city: the wrong note, he says, and the whales won’t come near it.'],
+      [f('underwater.window.heard'), 'At the window over the deep you heard where it comes from: up through the sea floor, from the makers’ Whale-House.'],
       [f('temple.underwater.done'), 'Since the whales came back, one swims up to the lock some mornings to look in at the ship.'],
     ], ['At the Dock, by the moon pool.']),
     P('coralie', 'Coralie', 'Keeps the café', [
@@ -487,6 +489,11 @@ export const BOOK = {
   // (on the route since October 2026, in the Sealed Hangar's place; Wim, at the Clock-House's door, is a temple's local,
   // and the glassworkers only call out as you pass)
   glassdunes: [
+    P('oren', 'Oren', 'Carries the floats', [
+      'Oren carries the glassworkers’ floats from the kilns to the camps, and rests by the makers’ riding discs east of where your ship came down.',
+      [f('glassdunes.oren.heard'), 'Every clock in the dunes stopped the night the light passed, each at its own minute; the Clock-House’s first.'],
+      [f('temple.garage.done'), 'He asked three people the time one morning and got the same answer three times, and didn’t know what to do with himself.'],
+    ], ['By the makers’ discs, east of the ship.']),
     P('marit', 'Marit', 'Keeps the kiln-stall', [
       'Marit sells what the glassworkers’ kiln can spare from a stall on the valley floor, and prices it by how long it took to cool.',
       [f('glassdunes.marit.cooling'), 'Since the clocks went wrong nobody knows how long anything took, so she guesses. Generously.'],
@@ -526,6 +533,11 @@ export const BOOK = {
     ], ['At the Tooth-Counter, her dome among the domes.']),
   ],
   moonfoundry: [
+    P('hedda', 'Hedda', 'Pours the small moons', [
+      'Hedda pours the small moons on the apron outside the hangar’s mouth: bell-tower moons, garden moons.',
+      [f('moonfoundry.hedda.heard'), 'One dawn a moon came down the rails, still glowing, and settled in her mould. Nobody there poured it.'],
+      [f('temple.moonfoundry.done'), 'No moon comes down the rails at dawn any more. The floor sleeps, and so does she.'],
+    ], ['On the apron, by her mould.']),
     P('bertil', 'Bertil', 'Pours at the last furnace', [
       'Bertil keeps the Moon Foundry’s last furnace warm. Years back he cast a plate for a lone woman’s ship, with the mark she drew for him in soot: “So they’ll know me.”',
       [done('moonfoundry.hook'), 'Ottilie mended his ladle-hook and you carried it to him. He says the ladle pours a little kinder.'],
@@ -567,6 +579,11 @@ export const BOOK = {
     ], ['At the Listening Stall by the cypress avenue.']),
   ],
   spacecity: [
+    P('rosa', 'Rosa', 'Chalks the bridges', [
+      'Every morning Rosa chalks where each bridge’s end sits on its island, on the Pier where your ship came down.',
+      [f('spacecity.rosa.heard'), 'Since the night the sky rang the islands have crept apart a hand’s width a night, and the cables hum one note while they pull.'],
+      [f('temple.spacecity.done'), 'Her chalk hasn’t moved in three mornings. She is looking for something else to worry about.'],
+    ], ['On the Pier, by the ship.']),
     P('tamar', 'Tamar', 'Minds the cables', [
       'Tamar minds the cables under the Towers; her grandmother hung the first. Long ago a ship with no name hailed the city with a sung note, and the night the sky rang the same note passed again, going somewhere.',
       [done('spacecity.notes'), 'Madame Sel’s notes on the planet’s hum and Tamar’s cables wrote the same line.'],

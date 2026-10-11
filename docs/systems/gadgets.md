@@ -470,7 +470,18 @@ pots of ink and its gate are the reward for using it.
 | Buried Machine | seeing lens | the glass bridge and writing in the canyon |
 | Garden of Spheres | ink bombs | |
 | Signal Market | recall hourglass | the cabs |
+| Underwater City (v1.48) | bubble wand, already yours: the divers' court, a dome of its own off the Plaza | float a crate over the pit's wall onto its plate |
+| Moon Foundry (v1.48) | magnet glove, already yours: the founders' yard on the apron | lift the iron crate out of its cage, set it in the pit |
+| City Floating in Space (v1.48) | grappling hook, already yours: the moorers' yard on the Yard, an island west of the Gate | reel the crate off its pillar, push it onto the plate |
 
+- **The three worlds of v1.40** (v1.48, issue #101): their temples bring new tools, so their courts are of a gadget
+  found worlds before, with a bay of their own (`bay`: `BAYS` in src/finds/courts.js, the Yard's pieces in another
+  puzzle), and the box is no gadget's: it stands in an alcove at the back (`boxAt`, the court's frame) whose gate the
+  puzzle holds open (a plate only a thing presses), and holds a charm for that gadget (src/trials/upgrades.js
+  `CHARM_TUNES`: the float-bead lifts a bubble to 10 m, the founders' keeper pulls you to metal a third faster, the
+  moorer's splice reels you in a third faster). The Underwater City's stands under a dome of its own west of the Plaza
+  (`DOMES.court`, its tube `TUBES.court`), the floating city's on an island of its own, the Yard, west of the Gate
+  (`ISLANDS.yard`, `the Yard bridge`). `tests/courts-bays.test.js`.
 - `attachCourt(levelId, scene, level)` runs at the end of `attachTemple` (src/temples/index.js), before the
   collision is baked: the slab and the bay's blocks are solid with the world; what moves or breaks joins
   `level.gadgetWorld` (its plate and prop indices shifted past any the level had), the targets `level.targets`,

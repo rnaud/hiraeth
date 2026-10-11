@@ -14,6 +14,7 @@ import { braid, caveFrame, bankBush, nest } from './wood-kit.js';
 import { buildWaterWay, buildKeepersStalks } from '../deep-wood-ways.js';
 import { Veils, VEIL } from '../veil.js';
 import { offsetOf } from './names.js';
+import { kitBare } from '../trials/kit-data.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -416,14 +417,15 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   {
     const reed = new THREE.ConeGeometry(0.22, 1, 3).translate(0, 0.5, 0);
     const shard = new THREE.CylinderGeometry(0, 1, 1, 6).translate(0, 0.5, 0);
-    const reeds = [], shards = [];
+    const reeds = [], shards = [], bare = kitBare('perdide');   // (the Deep Wood is Lorn's part: its runs in Lorn's coordinates)
     const stand = (cx, cz, n, spread) => {
       for (let i = 0; i < n; i++) {
         const x = cx + R(-1, 1) * spread, z = cz + R(-1, 1) * spread;
         if (pathDist(x, z) < 3.2 || !clear(x, z)) continue;
         const g0 = H(x, z);
         if (g0 < -1.4) continue;
-        reeds.push([place(x, g0 - 0.3, z, R(0.7, 1.4), R(2, 6.5), R(0.7, 1.4), R(-0.12, 0.12), rng() * 6, R(-0.12, 0.12)), pick(['#b6abe2', '#a698d8', '#c4baee', '#9b8ecf'])]);
+        const reed = [place(x, g0 - 0.3, z, R(0.7, 1.4), R(2, 6.5), R(0.7, 1.4), R(-0.12, 0.12), rng() * 6, R(-0.12, 0.12)), pick(['#b6abe2', '#a698d8', '#c4baee', '#9b8ecf'])];
+        if (!bare(x, z, 0.8)) reeds.push(reed);   // (off a makers' run's decks: its dice thrown all the same)
       }
     };
     for (let s = 0; s < 260; s++) {
@@ -442,7 +444,8 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
       if (!clear(cx, cz, 2)) continue;
       for (let i = 0; i < 5 + rng() * 9; i++) {
         const x = cx + R(-2.5, 2.5), z = cz + R(-2.5, 2.5), h = R(3, 11), r = R(0.3, 0.8);
-        shards.push([place(x, H(x, z) - 0.4, z, r, h, r, R(-0.25, 0.25), rng() * 6, R(-0.25, 0.25)), pick(['#c9c3ea', '#e0c8e8', '#d4cdf2'])]);
+        const shard = [place(x, H(x, z) - 0.4, z, r, h, r, R(-0.25, 0.25), rng() * 6, R(-0.25, 0.25)), pick(['#c9c3ea', '#e0c8e8', '#d4cdf2'])];
+        if (!bare(x, z, r + 0.8)) shards.push(shard);
       }
       if (c % 4 === 0) lights.push(new THREE.Vector4(cx, H(cx, cz) + 3, cz, 9));
     }

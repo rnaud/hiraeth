@@ -81,16 +81,19 @@ for (const id of worlds) {
   // the stops after that quest are reached on the mount, its stretches timed at its speed)
   const later = MOUNTED_AFTER[id];
   let mountedFrom = null, pending = false;
+  const met = new Set();
   for (const p of ROUTE.find((r) => r.id === id)?.play ?? []) {
     if (pending) { mountedFrom ??= stops.length; pending = false; }
     if (later && p === later.after) pending = true;
     // (a temple whose keeper sends you home along a leading line after it, the Glass Dunes' Wim by the float-posts: `home`)
     if (p.temple && rt?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(rt.outside.door.at) }); if (p.home) home = p.home; continue; }
     // (an act the route plays where someone stands, Vael's Oïa by the landing opening the main quest: a talk there)
-    if (p.act && p.at) { const w = arr(W.quests.resolve(p.at)); if (w && !inTemple(w)) stops.push({ label: p.label ?? p.at, kind: people.has(p.at) ? 'talk' : 'do', pos: w }); continue; }
+    if (p.act && p.at) { met.add(p.at); const w = arr(W.quests.resolve(p.at)); if (w && !inTemple(w)) stops.push({ label: p.label ?? p.at, kind: people.has(p.at) ? 'talk' : 'do', pos: w }); continue; }
     if (typeof p !== 'string') continue;
     const q = W.quests.def(p);
-    for (const s of q?.stages ?? []) {
+    for (const [i, s] of (q?.stages ?? []).entries()) {
+      // (a quest opened by an act earlier in the route, Bastien at the lock before the errands: its first talk is had)
+      if (i === 0 && met.has(s.at ?? s.talk)) continue;
       // (a stage whose words send you along a leading line, "home along the marked stones": `via` names the line)
       // (a stage whose person has walked on by the time you get there, Hollin down to the root cave: `stands` names where)
       const w = arr(s.stands ? W.quests.resolve(s.stands) : W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w, ...(s.via ? { via: s.via } : {}) });
