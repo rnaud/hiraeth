@@ -1,0 +1,25 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_879a6af202754d 1324-1370
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_6903bfad54b5c7 6-10,26-31,40,138-140,147-190,204,234-246,264,266,289-328,344,346-347,371-374,377-383
+src/main.js
+  s_9ca76055a220ed::t_d8dc4aae4a959d 147,162-163,165-166,168,302,308,316,320,324,328,338,343,348,354,528,543,624,658,668,672,684,869,879,891,949,2245
+tests/load-breakdown.test.js
+  s_9ca76055a220ed::t_e40fd96ba8f22c 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fa06f3bbaf819ed82d18e06c7ed9783e0ae3c873",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
