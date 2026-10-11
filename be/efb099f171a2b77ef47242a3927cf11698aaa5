@@ -1,0 +1,31 @@
+docs/benchmark-web-vs-unity.md
+  s_9ca76055a220ed::t_6ae6269a0b83a3 384-412
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_e2e6be51af3fa1 381-383
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_f08c0566436221 118-129
+unity/Memento/Assets/MementoJS/Runtime/BridgeLoopTimer.cs
+  s_9ca76055a220ed::t_11d1c1eaf3d1be 1-86
+unity/Memento/Assets/MementoJS/Runtime/BridgeLoopTimer.cs.meta
+  s_9ca76055a220ed::t_7e95c6056b802a 1-11
+unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_fabf34a6900623 86,122,133-134,157,180-181
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_d6f28023ed3cc9 90-95,249-252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "beefb099f171a2b77ef47242a3927cf11698aaa5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
