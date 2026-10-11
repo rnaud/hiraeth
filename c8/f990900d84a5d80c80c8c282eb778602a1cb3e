@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_5ab75cfcd4b9ab 7-8
+docs/systems/worlds.md
+  s_74ed6129120f6d::t_681092c80410a1 1863-1873
+src/buried-ways.js
+  s_9ca76055a220ed::t_4ed16695018b66 4,141-246
+src/changelog-media.js
+  s_74ed6129120f6d::t_24c35b6a50bf27 733-748
+src/changelog.js
+  s_74ed6129120f6d::t_4765c3a5697452 40-41
+src/levels/buried.js
+  s_9ca76055a220ed::t_3ff0bda89fda2a 13,1227-1241
+tests/level-design-landmarks.test.js
+  s_9ca76055a220ed::t_302ad7114f3cef 57-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c8f990900d84a5d80c80c8c282eb778602a1cb3e",
+  "prompts": {},
+  "sessions": {
+    "s_74ed6129120f6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12b36-7519-7462-9cc9-a30336c7a79d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
