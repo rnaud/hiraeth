@@ -594,11 +594,26 @@ const C48_WARDEN = { commit: '86f06aba' };   // (the Warden's Well round its Cli
 // (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
 // (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
 // (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
+// (v1.49: the temples to explore, round 2, issue #23: each house its own shape; the Engine-House at the origin [-150, 2200, -280])
+const C49_ENGINE = { commit: '740920b4' };
+const EH = (x, y, z) => [-150 + x, 2200 + y, -280 + z];   // (the Engine-House's own metres, in the world)
 export const CHANGELOG_MEDIA = {
   '1.49': [
     { match: 'In the Unity test build, water foams', shots: [
       { name: 'unity-water-foam', caption: 'Lorn’s landing in the Unity test build: the bank to the right of the ship’s ramp', from: 'the Unity editor in batch mode (unity-batch.sh Play -tour, 1280 × 720, muted), the same view without and with the foam (11 October)' },
     ] },
+    { match: 'The Engine-House opens out past its chest', shots: [
+      { name: 'engine-hub', title: 'The hub', caption: 'The Fourth Chamber from its way in: before, its way on and four still eyes that opened nothing; after, a shutter west and east, two eyes by each, the lamps over them waiting for all four in one breath', ...C49_ENGINE,
+        view: { level: 'buried', save: SAVE47, hour: 12, fov: 80, eye: EH(0, 11.2, 66.6), target: EH(0, 10.2, 80), player: EH(0, 7.05, 67.4) } },
+      { name: 'engine-governor', title: 'The Governor Room', caption: 'The great key caged on its anvil under the hammer; the ball in the hammer’s crank at the groove’s near end, the pistons’ crank at its far end, four eyes on pistons behind the parapet', ...C49_ENGINE, only: 'after',
+        view: { level: 'buried', save: SAVE47, hour: 12, fov: 75, eye: EH(14.8, 12, 68.6), target: EH(27, 9, 77), player: EH(15.4, 7.05, 69.4) } },
+      { name: 'engine-boiler', title: 'The Boiler Room', caption: 'The Boiler Room among the engine’s cold boilers: its doors shut behind you while the keepers stand, the small key caged at the far end, the flue’s door on the right', ...C49_ENGINE, only: 'after',
+        view: { level: 'buried', save: SAVE48_ARMED, hour: 12, fov: 75, eye: EH(-14.8, 11, 72), target: EH(-27, 8.5, 77.5), player: EH(-15.5, 7.05, 72.5) } },
+      { name: 'engine-flue', title: 'The flue', caption: 'The Crank Passage’s west wall, by its door: before, the wall; after, the Boiler Room’s flue coming in, the way on once its keepers are beaten', ...C49_ENGINE,
+        view: { level: 'buried', save: SAVE47, hour: 12, fov: 70, eye: EH(2, 10.5, 92), target: EH(-8.6, 9, 95.2), player: EH(2.5, 7.05, 91.5) } },
+      { name: 'engine-greatlock', title: 'The great lock', caption: 'Over the Furnace’s bridge: before, a plain door into the Tooth-Warden’s hall; after, the great lock’s brass plate on it', ...C49_ENGINE,
+        view: { level: 'buried', save: SAVE47, hour: 12, fov: 60, eye: EH(0, 9.6, 131.8), target: EH(0, 9.4, 136.3), player: EH(0, 7.05, 132.5) } },
+    ], see: 'In the Engine-House, once you have the fourth chamber, wake the Fourth Chamber’s four eyes in one breath; the shutters roll up on the Boiler Room and the Governor Room.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
