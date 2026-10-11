@@ -74,13 +74,25 @@ namespace Memento.Bridge
         }
         public static bool Flag(string name) => Array.IndexOf(CommandLine(), name) >= 0;
 
+        /// <summary>
+        /// The graphics preset (-quality deck|handheld|low|high): the shadow maps (Quality.Set) and the script's detail
+        /// (engine/game.js: src/perf.js QUALITY_PRESETS). The Linux player is the Steam Deck's, so the Deck's by default
+        /// there; High elsewhere.
+        /// </summary>
+        public static string Quality => Arg("-quality",
+#if UNITY_STANDALONE_LINUX && !UNITY_EDITOR
+            "deck");
+#else
+            "high");
+#endif
+
         public static string FromCommandLine(string root = null)
         {
 #if UNITY_WSA && !UNITY_EDITOR
             // (no working directory of one's own on the console: -views and -out are LocalState's, args.txt beside them)
             root ??= Application.persistentDataPath;
 #endif
-            var args = new Dictionary<string, object> { ["level"] = Arg("-level", "desert") };
+            var args = new Dictionary<string, object> { ["level"] = Arg("-level", "desert"), ["quality"] = Quality };
             var views = Arg("-views");
             if (views != null)
             {
@@ -102,8 +114,7 @@ namespace Memento.Bridge
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);
-            if (Flag("-tour")) args["tour"] = true;
-            return JsonText(args);
+            if (Flag("-tour")) args["tour"] = true;            return JsonText(args);
         }
 
         /// <summary>A little JSON writer (numbers, strings, lists, dictionaries).</summary>

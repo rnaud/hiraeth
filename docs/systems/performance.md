@@ -1860,3 +1860,79 @@ any temple (`src/temples/runtime.js`: pieces that are solid or burn update outsi
 Market's wide view is at the edge (16–17 ms). What would take the next third off is structural: a scene walk that skips
 what has not changed (most of the 5 000 objects never move, but three and the matrix cache visit every one each frame),
 and fewer distinct materials in the G-buffer (the uniforms and bindings, not the draws as such).
+
+## The Steam Deck, round 6: the Unity bridge's Linux player (issue #111, October 2026)
+
+**What ran.** The bridge (docs/systems/engine-bridge.md: the same `src/` in Puerts' V8, drawn by the C# port's ink
+look) as a native Linux player, not through Proton: IL2CPP x86_64, Vulkan on RADV (Mesa 26.2.0-devel), the Steam Deck
+OLED in Gaming Mode, plugged in. `scripts/bench/deck-unity.sh` copies a player to `~/.local/share/moebius-bench-games/`
+and runs it in gamescope's headless backend at 1280 × 800 and 90 Hz (`REFRESH=60` for 60), muted (`-mute`), with its
+data in a profile of its own (`XDG_CONFIG_HOME`), at the bench's views (`-views`, the web run's: viewpoints.json's
+desert, viewpoints-worlds.json's City-Shaft and Signal Market), 6 s a view, `-metrics` (BridgeMetrics: unity.log).
+Each view is measured a second time after a first pass (the numbers below), frames uncapped unless said. The web build
+was measured in the same sitting, from the same commit (`deck-worlds.mjs --settle 1 --shots 1`, the Deck preset, 90 Hz).
+
+**Before anything else.** The published Mono player (`unity-linux`, `ba91e960`) never started on the Deck: Puerts threw
+`csType.GetNestedTypes is not a function` (its reflection over System.Type, stripped under Mono most likely), after
+c53ec0a5's shadow NullReferenceException. The Linux player is IL2CPP now (`BridgeBuild.Linux` without `-mono`; on a
+Mac with Unity's Linux sysroot packages, docs/systems/unity.md), as the Mac, the APK and the Xbox are.
+
+**The results** (fps; median and 95th-percentile frame ms; the script's thread ms a frame; GPU ms). The script runs on
+its own thread, so the frame is the longer of the script and Unity's own frame (the GPU, here), not their sum as on the
+web's main thread:
+
+| view | web (Deck preset, vsync 90) | Unity, first run (High; its fps from the median) | Unity now (the Deck's preset, lean variant) |
+|---|---|---|---|
+| desert spawn | 40.9 · 22.3 / 33.4 · JS 23.9 · GPU 10.7 | 56 · 17.8 / 21.5 · 15.2 · 17.2 | **64.2** · 15.3 / 19.5 · 14.1 · 14.8 |
+| desert camps | 36.7 · 22.3 / 33.4 · 26.7 · 11.6 | 48 · 20.8 / 24.7 · 19.4 · 18.7 | **56.5** · 17.6 / 20.1 · 16.2 · 16.1 |
+| City-Shaft rim | 40.7 · 22.2 / 33.4 · 24.1 · 17.2 | 32 · 31.4 / 36.4 · 22.3 · 31.2 | **45.7** · 21.5 / 26.5 · 20.1 · 19.0 |
+| City-Shaft crowd | 38.2 · 22.3 / 33.4 · 25.7 · 14.2 | 41 · 24.1 / 27.5 · 22.7 · 22.4 | **47.3** · 20.6 / 24.5 · 19.2 · 17.9 |
+| City-Shaft wide | 39.6 · 22.3 / 33.4 · 24.6 · 21.6 | 27 · 36.6 / 41.3 · 22.7 · 36.3 | **41.5** · 23.3 / 29.1 · 21.3 · 23.9 |
+| Signal Market start | 49.1 · 22.2 / 22.3 · 19.8 · 11.6 | 54 · 18.6 / 23.9 · 17.6 · 17.3 | **66.3** · 15.0 / 17.0 · 14.0 · 13.3 |
+| Signal Market crowd | 54.1 · 22.2 / 22.3 · 17.9 · 9.4 | 58 · 17.3 / 19.7 · 16.4 · 15.5 | **71.7** · 13.9 / 15.4 · 13.1 · 11.7 |
+| Signal Market wide | 60.2 · 11.2 / 22.3 · 16.2 · 11.7 | 58 · 17.3 / 18.3 · 13.6 · 17.0 | **72.7** · 13.4 / 16.9 · 12.4 · 13.0 |
+
+At 60 Hz with vsync (`-vsync 1`, before the lean variant): the desert 61 / 54, the Signal Market 60 in every view (its
+p95 18 ms), the City-Shaft 43 / 47 / 36. At 90 Hz `-vsync 1` measured as uncapped: gamescope does not hold the
+player's frames to the refresh there. The load (a second launch): the world settled 10-20 s after launch, its longest
+frame under 0.1 s.
+
+**Kept:**
+- **The Deck's preset** (`-quality deck`, the Linux player's default; `Quality.Set("deck")` and engine/game.js's `Q`):
+  the shadow maps as the web's Deck (no fine map, near 4096 over 120 m every 2nd frame, far every 8th, 4 taps), and the
+  script's detail as main.js applies it: flora at 0.65 and to 0.75 of its distance, the Deck's grass patch, the crowd's
+  ranges and distant figures, props under 1.5 px hidden from the mirror, the people's low detail, lighter weathering, no
+  cloud shadows. Before it the bridge drew everything as the bench's High. City-Shaft rim GPU 31 → 23.7 ms, the wide view
+  36 → 31.
+- **The Surface shader's lean variant** (`MEMENTO_LEAN`, `BridgeRenderer.Lean`; `-no-lean` off, `-lean` elsewhere): the
+  G-buffer pass is one shader with every material's paths, ~25 000 instructions and 168 VGPRs on RADV (6 waves a SIMD;
+  `RADV_DEBUG=shaderstats`), and every pixel paid its registers. A material with no water, terrain, glass, fluid, makers'
+  box, scrub, veins, drawn face or dissolve draws a variant without them (about 13 000 instructions, 128 VGPRs, 8 waves):
+  1 551 of the City-Shaft's 1 634 materials. The rim's GPU 26.4 → 19.0 ms, the wide view 27.7 → 23.9; the same picture
+  (the shots differ only where people and motes moved).
+- **The GPU Resident Drawer off** on the Linux player, as on the Xbox (`-grd` keeps it): 0.3-0.7 ms.
+
+**Tried and left out** (the City-Shaft, against the run before): the shadow maps as renderer lists (the same), uniform
+vertex layouts (the same), no shadows at all (GPU −6 ms: the shadows are not what is slow), URP's own shadow pass off
+(nothing: it draws none), bloom or FXAA off (−0.5 ms each), the water's contact foam off (the same), no HUD (the same),
+the web's levels of detail for distant meshes in the bridge (`LodManager`: the GPU −1 ms in the wide view, the same
+elsewhere, and a 130 ms hitch while it builds them), render scale 0.5 (31 → 19 ms GPU: the pixels are half of it; not
+kept: native resolution).
+
+**The load's stall on Vulkan.** A first launch with no caches stalls 4 s on one frame (the pipelines made at first
+draw). After it, Mesa's own disk cache (`~/.cache/mesa_shader_cache`, persistent) takes the stall to under 0.1 s
+on its own; Unity's pipeline cache (`vulkan_pso_cache.bin`) is the same help when Mesa's is off, and the bridge's
+prewarm (BridgePrewarm) does nothing on Vulkan (a 3.8 s first frame with it, no caches). Unity keeps its pipeline
+cache in `temporaryCachePath`, `/tmp/rnaud/Hiraeth JS/`, which SteamOS clears at boot: a launcher should set `TMPDIR` to a
+persistent folder (it moves there: tried). GraphicsStateCollection would do what Mesa's cache already does here.
+
+**What keeps the City-Shaft from 60.** Two things of about 20 ms each: the script's own thread (the game's update 10 ms,
+the mirror 10) and the GPU (the G-buffer's pixels, ~12 ms of the 19-24). The desert and the Signal Market are over 55,
+and the Market over 60 at 60 Hz.
+
+**How players could get it** (a proposal, not done). The Unity player is not the whole game yet: no menus,
+conversations or pages (the page's in the web build), and its saves are its own (PlayerPrefs, not the Electron
+profile's). So not *instead of* the web build. *Beside* it: the Deck package (`scripts/package-steam-deck.mjs`,
+`steam-deck.yml`) could carry the `unity-linux` player as a second Steam shortcut, "Hiraeth (Unity preview)", launched
+by deck.py with `TMPDIR` set and its own data folder, updated with the package. That is for the testers, until the bridge
+has the menus, conversations and a save shared with the web build.

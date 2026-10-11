@@ -8,7 +8,7 @@ namespace Memento
     /// ranges (crowdFar, crowdMid), and the sun's shadow maps: the size of each cascade (fine 24 m,
     /// near, far 2.3 km; 0 = none), the near one's half-width, how often the near and far maps are
     /// redrawn (nearEvery, farEvery: never the far one on the near one's frame) and the filter's taps.
-    /// "high" is the web's High (and Medium) at a render scale of 1; "low" and "handheld" as the web's.
+    /// "high" is the web's High (and Medium) at a render scale of 1; "low", "handheld" and "deck" as the web's.
     /// </summary>
     public static class Quality
     {
@@ -29,6 +29,10 @@ namespace Memento
                 case "handheld":
                     lodPx = 2; propFar = 320; propPx = 2; floraFar = 0.65f; floraDensity = 0.55f; crowdFar = 220; crowdMid = 40;
                     fineSize = 0; nearSize = 2048; farSize = 2048; nearExtent = 160; nearEvery = 2; farEvery = 4; taps = 4; cloudShadows = false;
+                    break;
+                case "deck":   // (the Steam Deck's: src/perf.js QUALITY_PRESETS.deck)
+                    lodPx = 1.5f; propFar = 380; propPx = 1.5f; floraFar = 0.75f; floraDensity = 0.65f; crowdFar = 260; crowdMid = 45;
+                    fineSize = 0; nearSize = 4096; farSize = 2048; nearExtent = 120; nearEvery = 2; farEvery = 8; taps = 4; cloudShadows = false;
                     break;
                 case "low":
                     lodPx = 1.5f; propFar = 420; propPx = 1.5f; floraFar = 0.8f; floraDensity = 0.75f; crowdFar = 300; crowdMid = 45;

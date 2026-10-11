@@ -33,7 +33,13 @@ namespace Memento.Bridge
         // (each port material's spec, for BridgePrewarm: the pairs the next launch draws early)
         readonly Dictionary<Material, string> specs = new();
         /// <summary>A port material made again from its spec (BridgePrewarm).</summary>
-        public Material MaterialFromSpec(string json) => Json.Parse(json) is Dictionary<string, object> m ? WorldLoader.MakeMaterial(surface ? surface : Shader.Find("Memento/Surface"), m) : null;
+        public Material MaterialFromSpec(string json)
+        {
+            if (Json.Parse(json) is not Dictionary<string, object> m) return null;
+            var mat = WorldLoader.MakeMaterial(surface ? surface : Shader.Find("Memento/Surface"), m);
+            Lean(mat);   // (the prewarm's pairs drawn on the variant the scene will use)
+            return mat;
+        }
         readonly Dictionary<int, float> moteSizes = new();
         readonly Dictionary<int, Material> instMaterials = new();   // by node: a material's copy for its GPU instances (MEMENTO_INSTMAT, its own buffer)
         readonly Dictionary<int, List<Material>> copies = new();     // a material's copies (instances, crowds, grass): its live colour and glow go to them too (op 15)
@@ -200,7 +206,8 @@ namespace Memento.Bridge
                 }
             }
             var top = System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(sets, kv => kv.Value), 6);
-            return (uniformLayout ? $"(uniform layouts: +{uniformBytes / 1048576.0:0.0} MB of vertices) " : "") + $"{n} renderer materials, {sets.Count} shader variants (shader and keywords), {layouts.Count} vertex layouts, {states.Count} material states, {pairs.Count} (layout, state) pairs; the commonest variants: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"));
+            return (uniformLayout ? $"(uniform layouts: +{uniformBytes / 1048576.0:0.0} MB of vertices) " : "") + $"{n} renderer materials, {sets.Count} shader variants (shader and keywords), {layouts.Count} vertex layouts, {states.Count} material states, {pairs.Count} (layout, state) pairs; the commonest variants: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"))
+                   + (lean ? "; on the full variant for: " + string.Join(", ", System.Linq.Enumerable.Select(leanWhy, kv => $"{kv.Key} {kv.Value}")) : "");
         }
         static readonly List<string> madeNames = new();
         static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
@@ -363,7 +370,33 @@ namespace Memento.Bridge
             // (-one-variant, a test: every material of the port's Surface on its plain variant, no keywords; the picture is
             // wrong, but if the load's 24 s stall goes, it was the GPU's driver compiling each variant at its first draw)
             if (oneVariant) materials[mid].shaderKeywords = System.Array.Empty<string>();
+            else Lean(materials[mid]);
         }
+
+        /// <summary>
+        /// The Surface shader's lean variant (MEMENTO_LEAN: Surface.shader) for a material that uses none of its rare paths,
+        /// decided once from the values it was made with (the bridge changes none of them later: live values are colours,
+        /// glow, fluid tones and the LiveVectors). On by default on the Linux player (the Deck), -lean elsewhere, -no-lean off.
+        /// </summary>
+        public static bool lean =
+#if UNITY_STANDALONE_LINUX && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
+        static void Lean(Material m)
+        {
+            if (!lean || !m || m.shader == null || !m.shader.name.StartsWith("Memento/Surface") || !m.HasProperty("_Mode")) return;
+            int mode = (int)(m.GetFloat("_Mode") + 0.5f);
+            string why = mode == 1 ? "terrain" : mode == 3 ? "water" : F(m, "_Glass") > 0 ? "glass" : V(m, "_Dissolve").x > 0 ? "dissolve"
+                : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
+                : F(m, "_Scrub") > 0 ? "scrub" : null;
+            if (why == null) m.EnableKeyword("MEMENTO_LEAN");
+            else { leanWhy.TryGetValue(why, out int c); leanWhy[why] = c + 1; }
+        }
+        static readonly Dictionary<string, int> leanWhy = new();
+        static float F(Material m, string p) => m.HasProperty(p) ? m.GetFloat(p) : 0;
+        static Vector4 V(Material m, string p) => m.HasProperty(p) ? m.GetVector(p) : Vector4.zero;
 
         /// <summary>The fire (story/flames.js) on the port's own Memento/Flame: its five bands of colour, its seed, its heat.</summary>
         Material Flame(Dictionary<string, object> m)

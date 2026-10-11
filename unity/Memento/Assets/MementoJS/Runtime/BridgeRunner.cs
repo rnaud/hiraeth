@@ -84,7 +84,7 @@ namespace Memento.Bridge
             cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.black;
             cam.allowMSAA = false; cam.allowHDR = false;
             var extra = cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
-            extra.renderPostProcessing = false; extra.renderShadows = true;
+            extra.renderPostProcessing = false; extra.renderShadows = !BridgeArgs.Flag("-no-urp-shadows");
             RenderSettings.skybox = null; RenderSettings.ambientMode = AmbientMode.Flat;
             look = gameObject.AddComponent<MementoLook>();
             look.sun = sun;
@@ -252,8 +252,9 @@ namespace Memento.Bridge
         {
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             // (the GPU Resident Drawer: off on the Xbox, where it only kept books (our shaders have no DOTS instancing; off changed
-            // neither the load nor the frame); -grd keeps it, -no-grd elsewhere)
-#if UNITY_WSA && !UNITY_EDITOR
+            // neither the load nor the frame), and on the Steam Deck's Linux player (0.3-0.7 ms of its frame in the City-Shaft);
+            // -grd keeps it, -no-grd elsewhere)
+#if (UNITY_WSA || UNITY_STANDALONE_LINUX) && !UNITY_EDITOR
             if (urp != null && !BridgeArgs.Flag("-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
 #else
             if (urp != null && BridgeArgs.Flag("-no-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
@@ -277,6 +278,9 @@ namespace Memento.Bridge
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-vsync N: presented on every Nth refresh, a test once the frames fit)
             if (BridgeArgs.Arg("-vsync") is string vs && int.TryParse(vs, out int nv)) QualitySettings.vSyncCount = nv;
+            // (-no-bloom, -no-fxaa: the ink look's glow and its smoothing off, tests of the GPU's frame)
+            if (BridgeArgs.Flag("-no-bloom")) Memento.Rendering.MementoFeature.Settings.bloom = false;
+            if (BridgeArgs.Flag("-no-fxaa")) Memento.Rendering.MementoFeature.Settings.fxaa = false;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
             // the shadow maps' movers culled by the engine per cascade and drawn as renderer lists (the SRP Batcher's path) on the
@@ -288,6 +292,10 @@ namespace Memento.Bridge
 #endif
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             BridgeRenderer.cullTest = BridgeArgs.Arg("-cull");
+            // (the Surface shader's lean variant for the materials that need none of its rare paths: the Linux player's, -lean
+            // elsewhere, -no-lean off)
+            if (BridgeArgs.Flag("-lean")) BridgeRenderer.lean = true;
+            if (BridgeArgs.Flag("-no-lean")) BridgeRenderer.lean = false;
             // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
             // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
 #if UNITY_WSA && !UNITY_EDITOR
@@ -302,6 +310,9 @@ namespace Memento.Bridge
             if (!BridgeArgs.Flag("-shadows-high")) MementoShadows.minCasterTexels = 2;
             // (the fine map stays: without it the traveller's own shadow and a close shard's went, results/tour in rnaud/puerts-uwp)
 #endif
+            // the graphics preset (Quality: the shadow maps; the script reads the same name for its detail, BridgeArgs):
+            // -quality deck|handheld|low|high, the Steam Deck's own on the Linux player, High elsewhere
+            Quality.Set(BridgeArgs.Quality);
             // (the shadow maps' cost on the main thread, tried apart: the near map redrawn every N frames, no fine map, casters
             // under T texels left out)
             if (BridgeArgs.Arg("-shadow-near-every") is string ne && int.TryParse(ne, out int nev)) Quality.nearEvery = Mathf.Max(1, nev);

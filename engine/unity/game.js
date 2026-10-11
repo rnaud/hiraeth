@@ -39,7 +39,7 @@ export function start(argsJson) {
   const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;
   // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
   const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
-  createGame({ levelId: args.level ?? 'desert', backend, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a) })
+  createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a) })
     .then((game) => {
       S.game = game;
       if (args.freeze !== undefined) game.mirror.freeze = !!args.freeze;   // (-freeze: still subtrees frozen, mirror-freeze.js; off by default)

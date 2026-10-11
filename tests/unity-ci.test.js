@@ -45,6 +45,11 @@ test('the workflow caches what makes a warm build short', () => {
   assert.equal((workflow.match(/uses: actions\/cache\/save@v4\n {8}with:\n {10}path: \$\{\{ env\.PROJECT \}\}\/Library\n {10}key: \$\{\{ steps\.librarysave\.outputs\.key \}\}/g) || []).length, 2);
   // (a failed build's Library is saved as "-partial": the next run with the same inputs misses and saves it whole)
   assert.match(workflow, /echo "key=\$KEY-partial"/);
+  // the Linux player is IL2CPP (the Mono one never ran on the Deck), and its retry starts from no Library (a start
+  // on the cached one was killed at once, exit 137, run after run), saved as -fresh (the restored one deleted)
+  assert.doesNotMatch(workflow, /BridgeBuild\.Linux\n[^\n]*\n {10}customParameters: -mono/);
+  assert.match(workflow, /if: steps\.player\.outcome == 'failure'\n {8}run: sudo rm -rf "\$PROJECT\/Library"/);
+  assert.match(workflow, /FRESH: \$\{\{ steps\.playeragain\.outcome == 'success' && '-fresh' \|\| '' \}\}/);
   // Gradle's downloads: keyed on Unity's version and the packages, saved when that moved, the older deleted
   assert.match(workflow, /~\/\.gradle\/caches/);
   assert.match(workflow, /key: unity-gradle-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\(/);
@@ -53,7 +58,7 @@ test('the workflow caches what makes a warm build short', () => {
   // run skipped on a hit
   assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs', [^\n]*'!unity\/Memento\/Assets\/Gen\/\*\*'\) \}\}/);
   assert.match(workflow, /id: gluebuild\n {8}if: steps\.glue\.outputs\.cache-hit != 'true'\n[^\n]*\n {8}uses: game-ci\/unity-builder@v6/);
-  // (in both jobs: Puerts wants its glue even in the Linux player's Mono build)
+  // (in both jobs: the Linux player is IL2CPP too)
   assert.equal((workflow.match(/key: puerts-glue-3\.0\.3-/g) || []).length, 2);
   assert.match(workflow, /key: puerts-3\.0\.3/);
   // the editor image on the runner's big disk (the Linux job ran out of room pulling it onto the root one),

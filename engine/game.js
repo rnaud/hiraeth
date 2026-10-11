@@ -31,7 +31,8 @@ import { CLOTH_HOST } from '../src/characters/tripo-cloth.js';
 import { CAPE_HOST } from '../src/cape.js';
 import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
-import { Crowd, CROWD_BUDGET, buildPeople } from '../src/crowd.js';
+import { Crowd, CROWD_BUDGET, CROWD_DIST_CELL, buildPeople } from '../src/crowd.js';
+import { QUALITY_PRESETS, SmallCuller } from '../src/perf.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
 import { createStory } from '../src/story/index.js';
 import { game as gameState } from '../src/game-state.js';
@@ -145,8 +146,13 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', log = () => {} } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {} } = {}) {
   const T = {};
+  // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
+  // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
+  // pixels hidden, the people's low detail; none (everything, as the bench's High) without one
+  const Q = quality && quality !== 'high' && QUALITY_PRESETS[quality] ? { ...QUALITY_PRESETS[quality], key: quality } : null;
+  if (Q) grassPreset = Q.key;
   const t0 = performance.now();
   // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage)
   if (flags) Object.assign(gameState.data.flags, flags);
@@ -226,6 +232,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     });
     if (crowd) npcs.push(...crowd.npcs);
   }
+  if (crowd && Q?.crowdMid) {   // (main.js applyDetail)
+    const R = crowd.range, mid = Q.crowdMid;
+    Object.assign(R, { far: Math.min(Q.crowdFar ?? Infinity, R.far), midIn: Math.min(mid, R.midIn), midOut: Math.min(mid + 7, R.midOut), shadow: Math.min(R.shadow, mid * 0.5) });
+  }
   // the world's non-humanoid people (src/aliens/), as main.js puts them among the npcs
   if (people) { const aliens = optional('the aliens', () => spawnAliens(scene, physics, levelId)); if (aliens) npcs.push(...aliens); }
   // the story's people and places (story/index.js), as the exporter builds it (build-world.mjs): its
@@ -246,12 +256,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
+  if (Q) for (const n of npcs) { n.lowDetail = !!Q.lowDetail; n.clothFar = Q.clothFar ?? null; }
   // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found
   const boxes = optional('the boxes', () => createBoxes({ levelId, scene, physics, level, player, sound, quests: story?.quests ?? null, toast,
     anchor: () => ship?.arrivalSpot?.() ?? null, quiet: () => !!story?.dialogue?.open, cam: null }));
   // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
-  const flora = quiet(() => buildFlora({ scene, level, levelId, physics, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
+  const flora = quiet(() => buildFlora({ scene, level, levelId, physics, density: Q?.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
   if (flora?.noShadow) (level.noShadow ??= []).push(...flora.noShadow);
   // grass blades round the camera on the grassy grounds (flora-grass.js), by the graphics preset (the bench's: High), as main.js grows them
   const grass = optional('the grass blades', () => buildGrass({ scene, level, physics, presetKey: grassPreset, water: FLORA_WORLDS[levelId]?.water,
@@ -300,7 +311,16 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     for (const [k, v] of Object.entries(level.defaults?.look ?? {})) if (U[k]) U[k].value = v;
   };
   applyPreset();
-  const sky = { hour: level.defaults?.hour ?? 10 };
+  // the graphics preset's look (main.js applyDetail): the lighter weathering, no cloud shadows or crease shading where it
+  // says, its shadow filter's taps
+  if (Q) {
+    sharedUniforms.uWearLite.value = Q.lowDetail || Q.postLite ? 1 : 0;
+    if (!Q.cloudShadows) sharedUniforms.uCloudShadows.value = 0;
+    if (!Q.ao && U.uAO) U.uAO.value = 0;
+    if (U.uPostLite) U.uPostLite.value = Q.postLite ? 1 : 0;
+    if (Q.taps) sharedUniforms.uShadowTaps.value = Q.taps;
+  }
+  const sky ={ hour: level.defaults?.hour ?? 10 };
   const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
   let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
   const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, U, atmo, atmo?.script ?? script);
@@ -384,6 +404,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let simT = 0, frames = 0;
   // a fixed view (the side-by-sides and the benchmark's viewpoints): the camera pinned there
   let pinned = view ? pin(view) : null;
+  let smallCull = null;
   function pin(v) {
     const eye = new THREE.Vector3(...v.eye), target = new THREE.Vector3(...v.target);
     // the traveller where the view says (scripts/bench/web-page.mjs __benchPlace does the same on the web)
@@ -555,7 +576,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // (the ship stands at its site: its scenes, inside and its console want the story's journal and the page: ship.attach)
       // the plants in view within their distance (main.js renderFrame: flora.update, before the frame is drawn)
       camera.updateMatrixWorld();
-      flora?.update?.(camera, 1, null);
+      const pxPerRad = height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+      flora?.update?.(camera, Q?.floraFar ?? 1, Q?.lodPx ? { pxPerRad, px: Q.lodPx } : null);
+      if (crowd && Q?.lodPx) crowd.range.dist = (CROWD_DIST_CELL * pxPerRad) / Q.lodPx;   // (the crowd's distant figure, as main.js)
       // the grass round the camera: the tufts that wrapped placed again (flora-grass.js; the patch placed whole on its first frame)
       lap?.('flora');
       grass?.update(camera);
@@ -567,7 +590,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('wind');
       const tB = performance.now();
       mirror.time = simT;
+      // (the props under the preset's pixels on screen hidden for this frame's mirror, shown again after: main.js renderFrame)
+      const hidden = Q?.propPx ? (smallCull ??= new SmallCuller(scene)).hide(camera, pxPerRad, Q.propPx, []) : null;
       const stats = mirror.sync(scene, camera);
+      if (hidden) for (const o of hidden) o.visible = true;
       const tC = performance.now();
       return { ms: { update: tB - tA, mirror: tC - tB }, stats, frames };
     },

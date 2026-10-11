@@ -629,7 +629,7 @@ same flat arrays tripo-cloth-sim.js steps) before the Retroid's run.
 node scripts/engine-bundle.mjs unity                              # the bundle first: a build takes StreamingAssets as they are
 scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp            # once: Puerts' IL2CPP glue into Assets/Gen (not committed)
 scripts/unity-export/unity-batch.sh BridgeBuild.Mac               # IL2CPP ARM64: Builds/bridge-macOS/Memento JS.app
-scripts/unity-export/unity-batch.sh BridgeBuild.Linux -mono       # the Steam Deck's: Linux x86_64, Vulkan: Builds/bridge-linux/
+scripts/unity-export/unity-batch.sh BridgeBuild.Linux             # the Steam Deck's: Linux x86_64, IL2CPP, Vulkan: Builds/bridge-linux/ (docs/systems/unity.md: the sysroot)
 scripts/unity-export/unity-batch.sh BridgeBuild.Android           # IL2CPP ARM64, Vulkan then GLES3, debug key: Builds/bridge-android/memento-js.apk
 scripts/unity-js-player.sh bench -views scripts/bench/viewpoints.json -bench 6 -split -out output/engine-bridge/player-mac
 ```
@@ -656,7 +656,7 @@ What came out (Unity 6000.6.4f1, an M-series Mac):
 | player | size | its start |
 |---|---|---|
 | macOS, IL2CPP ARM64 | 163 MB (V8 56, GameAssembly 42, UnityPlayer 29, data 30) | the bundle running 2.4 s after launch, the world ready 1.7 s later |
-| Linux x86_64, Mono (the Deck's) | 133 MB, 46 MB as a .tar.gz | built, not run (no Linux machine; Linux IL2CPP from a Mac wants Unity's Linux sysroot package) |
+| Linux x86_64, Mono (the Deck's then) | 133 MB, 46 MB as a .tar.gz | built, not run then; on the Deck in October 2026 it never started (Puerts: `GetNestedTypes is not a function`): the Deck's is IL2CPP now, 200 MB (docs/systems/performance.md, "The Steam Deck, round 6") |
 | Android, IL2CPP ARM64 | 58 MB APK (149 MB unpacked: libil2cpp 55, libunity 30, V8 18, the bundle 6.7) | in an emulator of its own (Android 15, arm64, software GPU): installed in 14 s; the bundle running 5.5 s after launch, the world ready 9.8 s later, the desert drawn |
 
 The macOS player against the web game in Chrome at the same views, back to back (1280 × 720, the

@@ -467,6 +467,22 @@ test('the bundle lowers Unicode property escapes (GodotJS\'s V8 has no ICU): the
   assert.ok(!lowerUnicodeClasses(readFileSync(new URL('../src/story/voice.js', import.meta.url), 'utf8')).includes('\\p{'));
 });
 
+test('a graphics preset in the engines\' game (the Unity bridge\'s -quality deck): its look and its detail, as main.js applies them', async () => {
+  const file = join(tmpdir(), `memento-engine-quality-${process.pid}.js`);
+  await bundle('godot', { input: 'engine/game.js', out: [file] });
+  const warn = console.warn, info = console.info; console.warn = console.info = () => {};
+  try {
+    const high = await loadBundle(file).exports.createGame({ levelId: 'garage', backend: recorder().backend });
+    high.frame(1 / 30);
+    const deck = await loadBundle(file).exports.createGame({ levelId: 'garage', backend: recorder().backend, quality: 'deck' });
+    deck.frame(1 / 30);
+    const H = high.fullLook().shared, D = deck.fullLook().shared;
+    assert.equal(H.uWearLite, 0); assert.equal(D.uWearLite, 1, 'the lighter weathering');
+    assert.equal(D.uCloudShadows, 0, 'no cloud shadows'); assert.equal(D.uShadowTaps, 4); assert.equal(H.uShadowTaps, 9);
+    if (deck.crowd) assert.ok(deck.crowd.range.far <= 260 && deck.crowd.range.dist < Infinity, 'the crowd\'s ranges');
+  } finally { console.warn = warn; console.info = info; }
+});
+
 test('the game in a bare V8 context: a world with its people, the traveller walks on the keys, the camera follows', async () => {
   const file = join(tmpdir(), `memento-engine-game-${process.pid}.js`);
   await bundle('godot', { input: 'engine/game.js', out: [file] });

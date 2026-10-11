@@ -152,7 +152,7 @@ export function unityNotes({ platform = 'android', sha, subject = '', version = 
       ? `Hiraeth (Unity), for measuring on an Xbox in Developer Mode: the engine bridge as a UWP app (IL2CPP x64, Direct3D 11, the game's JavaScript in Puerts' V8, relinked for UWP). `
         + `Package \`${r.package}\`: it installs next to the WebView2 app (\`rnaud.Hiraeth\`). `
         + `Download \`${r.file}\`, unpack it and add the \`.msix\` with its dependency \`.appx\` files in the Device Portal (docs/systems/xbox.md, "The Unity build on the Xbox"); its numbers are in LocalState\\unity.log.`
-      : `Hiraeth (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, Mono), for the Steam Deck. `
+      : `Hiraeth (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, IL2CPP), for the Steam Deck. `
         + `Download \`${r.file}\`, unpack it and run \`memento-js.x86_64\`.`;
   const from = `Built from commit ${sha ? `\`${sha.slice(0, 12)}\`` : '(unknown)'}${subject ? ` (${subject})` : ''}, web version v${version}${build ? `, build ${build}` : ''}, by ${by} on ${date}.`;
   return `${what}\n\n${from}\n\nNot for players: the game itself is the Hiraeth app and https://memento.alexandria-rnaud.workers.dev/.`;

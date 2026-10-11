@@ -49,7 +49,7 @@ namespace Memento.Rendering
             if (!logged) { logged = true; Debug.Log($"Memento: ink feature: bloom {(bloom && bloomMaterial != null)}, fxaa {(fxaa && fxaaMaterial != null)}"); }
             composite.material = compositeMaterial;
             gbuffer.copy = bloomMaterial;   // (its third pass copies the scene's depth for the water's contact foam)
-            composite.bloom = bloom ? bloomMaterial : null;
+            composite.bloom = bloom && Settings.bloom ? bloomMaterial : null;
             composite.fxaa = fxaa && Settings.fxaa ? fxaaMaterial : null;
             renderer.EnqueuePass(shadows);
             renderer.EnqueuePass(gbuffer);
@@ -65,7 +65,7 @@ namespace Memento.Rendering
         /// existed.</summary>
         public static class Settings
         {
-            public static bool fxaa = true;
+            public static bool fxaa = true, bloom = true;   // (bloom: the glow, a test switch: the bridge's -no-bloom)
             public static bool waterContact = WaterContactAsked(System.Environment.GetCommandLineArgs(), UnityEngine.Application.isMobilePlatform);
             /// <summary>The foam's default: on unless a mobile player or -noWaterContact; -waterContact wins.</summary>
             public static bool WaterContactAsked(string[] args, bool mobile) =>

@@ -199,6 +199,17 @@ Shader "Memento/Surface"
       #pragma vertex vert
       #pragma fragment frag
       #pragma multi_compile_local _ MEMENTO_CROWD MEMENTO_PUFFS MEMENTO_INSTMAT MEMENTO_GRASS MEMENTO_FLORA MEMENTO_VMAT
+      // MEMENTO_LEAN: a material that is no water, terrain, glass, fluid, makers' box, scrub, veins, drawn face or dissolve
+      // (BridgeRenderer.Lean, the Unity bridge's Linux player) on a variant without those paths (LEANK false: the compiler
+      // drops them). The full pass is ~25 000 instructions and 168 VGPRs on the Deck's RADV (6 waves a SIMD), the lean
+      // one about half and 128 (8): the City-Shaft's GPU 3-4 ms quicker, the same picture (docs/systems/performance.md,
+      // "The Steam Deck, round 6")
+      #pragma multi_compile_local _ MEMENTO_LEAN
+      #if defined(MEMENTO_LEAN)
+        #define LEANK false
+      #else
+        #define LEANK true
+      #endif
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
       // the sun's shadow maps (MementoShadows.cs, materials.js getShadow): fine, near, far; each its matrix
@@ -664,7 +675,7 @@ Shader "Memento/Surface"
         #endif
         int mode = (int)(_Mode + 0.5);
         // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
-        if (_Glass > 0.0)
+        if (LEANK && _Glass > 0.0)
         {
           float3 Vg = normalize(toThree(_WorldSpaceCameraPos) - i.worldPos);
           float fr = 1.0 - abs(dot(normalize(i.normal), Vg));
@@ -675,7 +686,7 @@ Shader "Memento/Surface"
         float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
         // a makers' box coming apart (boxes/scene.js): eaten from the top down, the edge burning bright
         float dEdge = 0.0;
-        if (_Dissolve.x > 0.0)
+        if (LEANK && _Dissolve.x > 0.0)
         {
           float dh = saturate((i.worldPos.y - _Dissolve.z) / max(_Dissolve.w - _Dissolve.z, 1e-3));
           float dn = vnoise(i.worldPos.xz * 6.0 + i.worldPos.y * 2.3) * 0.42 + vnoise(i.worldPos.zy * 15.0 + 3.1) * 0.18 + (1.0 - dh) * 0.4;
@@ -763,7 +774,7 @@ Shader "Memento/Surface"
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
         }
         float waterInk = 0.0, waterLit = 0.0;
-        UNITY_BRANCH if (mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
+        UNITY_BRANCH if (LEANK && mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
           albedo = outfitAlbedo(i.bind, _Color.rgb, _Color2.rgb, _Color3.rgb);
         } else if (mode == MODE_EYE) {
@@ -815,13 +826,13 @@ Shader "Memento/Surface"
           float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, _Detail.y, dSeed, _Detail.x > 1.5);
           patInk = max(patInk, di * dUp * 1.35);
         }
-        if (_Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos));
+        if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos));
         albedo *= instColor;
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
         if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
         if (_ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
         // the coral-shirt traveller's drawn face (tripo-face.js, generated: TripoFace.hlsl), after his colours are display values
-        UNITY_BRANCH if (_TripoFace > 0.5) albedo = tripoFace(albedo, i.bind, tfAA);
+        UNITY_BRANCH if (LEANK && _TripoFace > 0.5) albedo = tripoFace(albedo, i.bind, tfAA);
         #if defined(MEMENTO_GRASS)
           // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
           if (i.grassLook.z > 0.0)
@@ -831,7 +842,7 @@ Shader "Memento/Surface"
           }
         #endif
         // a dark cap's underside: its veins drawn lighter, radiating from the stalk, as branches (materials.js FORM.veins)
-        UNITY_BRANCH if (_Veins > 0.0 && _FormHatch > 0.0 && i.form.w > 0.5 && i.form.w < 1.5)
+        UNITY_BRANCH if (LEANK && _Veins > 0.0 && _FormHatch > 0.0 && i.form.w > 0.5 && i.form.w < 1.5)
         {
           const float K = 162.9747;
           float r2 = max(dot(i.form.xy, i.form.xy), 1e-8);
@@ -840,7 +851,7 @@ Shader "Memento/Surface"
           albedo += min(albedo * 1.2, 0.15) * vein * _Veins;
         }
         // a makers' chest: the star painted on, a ray of light travelling across it, a vertex colour over 1 a light (materials.js MAKERS_BOX)
-        UNITY_BRANCH if (_BoxOn > 0.5)
+        UNITY_BRANCH if (LEANK && _BoxOn > 0.5)
         {
           float3 bp = i.objPos - float3(0.0, _BoxB.w, 0.0);
           float mark = boxMarks(i.objPos, i.objNormal, _BoxA);
@@ -907,7 +918,7 @@ Shader "Memento/Surface"
         if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
         if (_Glyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
         float2 gp = i.worldPos.xz;
-        UNITY_BRANCH if (mode == MODE_TERRAIN) {
+        UNITY_BRANCH if (LEANK && mode == MODE_TERRAIN) {
           float gm = max(length(ddx(gp)), length(ddy(gp)));
           float2 q1 = crackCoord(gp, 5.5), q2 = crackCoord(gp + 31.0, 1.6);
           float4 j1 = float4(ddx(q1), ddy(q1)), j2 = float4(ddx(q2), ddy(q2));
@@ -943,7 +954,7 @@ Shader "Memento/Surface"
           detail = max(detail, fissures(float2(faceX, i.objPos.y), fissFw) * 0.85);
           if (_Cracks > 0.0) detail = max(detail, faceCracks(float2(faceX, i.objPos.y), fissFw * 9.0, _Cracks) * 1.7);   // (over 1: a pen line)
         }
-        UNITY_BRANCH if (_Scrub > 0.0) {
+        UNITY_BRANCH if (LEANK && _Scrub > 0.0) {
           float dashN = smoothstep(0.42, 0.6, vnoise(float2(ce1.x * 2.5, ce1.y * 9.0)));
           float dk0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
           detail = max(detail, strokes(ce1, fw1, lerp(6.0, 3.5, dk0), lerp(0.8, 1.3, dk0)) * dashN * (0.6 + 0.4 * dk0));

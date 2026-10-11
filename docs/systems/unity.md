@@ -64,8 +64,13 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   web app's release key (alias `moebius`), so it installs **next to** the app `com.rnaud.moebius`, never
   over it, and every build installs over the last. Published as `memento-unity.apk` on the release
   [`unity-android`](https://github.com/rnaud/hiraeth/releases/tag/unity-android).
-- **Linux** (`BridgeBuild.Linux -mono`, the Steam Deck's: x86_64, Vulkan), after the APK, as
-  `memento-unity-linux.tar.gz` on the release `unity-linux`.
+- **Linux** (`BridgeBuild.Linux`, the Steam Deck's: x86_64, IL2CPP, Vulkan), after the APK, as
+  `memento-unity-linux.tar.gz` on the release `unity-linux`. IL2CPP since October 2026: the Mono player never
+  ran (Puerts' start threw `csType.GetNestedTypes is not a function`). Its build wants Unity's Linux sysroot,
+  a package the job adds to the manifest for that build only (`com.unity.toolchain.linux-x86_64`); on a Mac,
+  `com.unity.toolchain.macos-arm64-linux` and `com.unity.sysroot.linux-x86_64` (not committed). Its retry
+  starts from no Library: from run 38151565992 on, every start on the cached one was killed at once (exit 137).
+  On the Deck: `scripts/bench/deck-unity.sh` (docs/systems/performance.md, "The Steam Deck, round 6").
 - Both releases are prereleases and never "latest" (the app's updater and the players read the
   `vX.Y` releases); each build replaces its file, moves the tag to its commit and rewrites the notes
   (which commit, which web version: `release-info.mjs unity-notes`). `scripts/unity-publish.sh` does it.
