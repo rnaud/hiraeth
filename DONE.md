@@ -2499,3 +2499,241 @@ Landed today (see the changelog, v1.38–v1.42): the three new route worlds (v1.
   halves like petals with jade motes rising; the temples' chest: a bud of white stone and gold, jade in its seams,
   opening like a flower, its heart rising. One vertex-coloured mesh a chest closed, the old box's shader program, the
   same draws: docs/systems/boxes.md.)
+
+## Moved from TODO.md once their issues closed (2026-10-11, issue #123)
+
+The v1.49 game audit found these still open in TODO.md though their issues were closed. Each is as TODO.md had it,
+ticked, with how its issue closed (from the issue's last comment); grouped by the TODO.md heading it sat under.
+
+### Desert progression and screenshot issue drafts (2026-10-10)
+
+- [x] [#6](https://github.com/rnaud/hiraeth/issues/6) **Investigate the skull cave entrance being blocked.** The author cannot enter and feels stuck
+  against an invisible wall. Reproduce and check the entrance collision and progression gates; do not
+  assume the cause is confirmed.
+  (Issue closed 2026-10-11: Fixed in cabb8d90: not the mouth's backpack gate but the cave dome's doorway cut, which kept triangles by their centre and, once the dome had 40 segments, left an invisible solid wedge past the landing. The doorway is clipped to its edge now; tests/desert-cave-walk-in.test.js walks the player in on nine headings.)
+
+### Combat, controls and world feedback (2026-10-10)
+
+- [x] [#10](https://github.com/rnaud/hiraeth/issues/10) **Warm the foes' programs before they are met** (from the v1.41 stutter investigation): call
+  `foes.warmModels(foes.rosterKinds())` from the loading work's warm pass (`warmRest`) so the first of each kind no longer
+  compiles 1–5 programs on the frame it appears (50–183 ms on the Mac, seconds on a console). docs/systems/foes.md,
+  "The stutter when a new foe comes in".
+  (Issue closed 2026-10-11: Done in v1.43 (6a4d2b7f): every foe kind a world can field is warmed during the load (`Foes.warmModels`), so no first-use compile in a fight.)
+
+### Xbox: resume the Unity comparison after the Game-default change (2026-10-10)
+
+- [x] [#11](https://github.com/rnaud/hiraeth/issues/11) **Reinstall/update Hiraeth (Unity), verify Game allocation, and resume Xbox testing.** The author
+  authorized enabling `DefaultUWPContentTypeToGame` at `https://192.168.68.64:11443` and restarting the
+  console to apply it. The default is now saved as `true`; verify it after reboot and confirm the installed
+  Unity package actually receives Game resources before measuring (the new default may not reclassify an
+  existing installation). Install the latest successful Unity Xbox package over the existing one; preserve
+  the WebView app and saves. Resume Claude's existing Unity worktree, not a parallel implementation.
+  Record cold launch, relaunch, world-generation time, shader warm-up, first playable frame, memory limit/peak,
+  and sustained desert-spawn FPS with script/GPU frame times. Compare against WebView at matching settings,
+  verifying its Game allocation too. Keep the previous 215.6-second QuickJS world build and first-frame
+  termination explicitly labelled **App-mode results**, not Game-mode measurements. Report back with actual
+  results and blockers. **No geometry baking.**
+  (Issue closed 2026-10-11: Done: the Unity build reinstalled as a Game and measured on the console (docs/benchmark-web-vs-unity.md, the Xbox section, 1e5509ee).)
+
+### Loading follow-up: procedural worlds, no baking (2026-10-10)
+
+- [x] [#12](https://github.com/rnaud/hiraeth/issues/12) **Prepare the starting view and nearby area first.** Compile only the surface/shadow variants needed
+  for the initial view and its safety margin; prepare upcoming variants incrementally before they are
+  seen. Include off-screen shadow casters, a quick camera turn, saved spawn positions, flight, portals
+  and cutscene cameras. Do not simply defer the same blocking work to the first movement or doorway.
+  (Issue closed 2026-10-11: Done: the warm-up budget (1025748c) draws the first view, then nearby kinds if their first draw fits; the passage warm-up prepares 120 m round the traveller, the ship and every way through, then new things a slice a frame near a door; DeferredWork (#14) finishes everything within 140 m of the first view before the first frame.)
+- [x] [#13](https://github.com/rnaud/hiraeth/issues/13) **Finish shader consolidation and inspect the expensive algorithms.** Reuse the current shader
+  work, profile individual programs on Xbox, and investigate whether the ink pass's nested sampling and
+  large surface feature combinations need restructuring. Keep rare expensive features separate, share
+  cheap uniform-controlled features where measured worthwhile, and preserve the look with before/after
+  images. Moving shader strings to separate files alone does not reduce driver compilation cost.
+  (Issue closed 2026-10-11: Done: the shader consolidation landed (00f8a642, bdd59a6c, 1025748c) and the expensive programs were profiled on the console (docs/systems/xbox.md, "The first draws on the Xbox"); the packed G-buffer design note is on hold with the Xbox direction.)
+- [x] [#14](https://github.com/rnaud/hiraeth/issues/14) **Defer distant procedural detail.** Generate nearby detail before it becomes visible; delay remote
+  interiors, decorative geometry and full crowd bodies where safe. Keep collision, quest state, routes,
+  landmarks and silhouettes available when required. Bound main-thread work and GPU preparation per frame,
+  handle cancellation and newly attached objects, and verify entrances, teleports and fast traversal.
+  (Issue closed 2026-10-11: Done in v1.49 (4ad80712, src/deferred.js): the drifts' far collision and the crowd's placement wait until after the first frame (the Buried Machine 5.04 → 4.27 s, the City-Shaft 5.52 → 4.72 s on High). The remote interiors (0.1–0.2 s a world) stay in the load: moving them to the door risked long stalls on the Xbox.)
+- [x] [#15](https://github.com/rnaud/hiraeth/issues/15) **Audit and extend the existing LOD rather than replacing it blindly.** `src/lod.js` already provides
+  screen-size-based static simplification, a worker, hysteresis and shadow LOD; `src/skinned-lod.js` and
+  `src/crowd.js` cover character geometry, animation rates and crowd tiers. They generally start from
+  already-created full geometry: that helps frame rate but does not remove upfront generation. Evaluate
+  procedural coarse-first generation and spatial activation together with LOD; consider grouped distant
+  geometry only if draw-call measurements justify it. Keep everything procedural; no baked exports.
+  (Issue closed 2026-10-11: Answered (37bbfe40, docs/systems/performance.md): the levels of detail cost the load almost nothing (built lazily in a worker); the cost is generating the full geometry up front, which #14 deferred. Nothing further to extend in the LOD itself.)
+
+### Worlds
+
+- [x] [#17](https://github.com/rnaud/hiraeth/issues/17) **References for a fire-and-ice world** (both at once), in the reference lab.
+  (Issue closed 2026-10-11: Done: the author's picks committed (f145d683), the establishing, boundary, settlement, temple and flora-fauna sheets and the characters' lineup.)
+- [x] [#20](https://github.com/rnaud/hiraeth/issues/20) **Story loose ends from the merge**: the Buried Machine's lines about the Major and the Hangar; Fen's "the skiff
+  is his" (you use your own now); Vael II's and Lorn II's stories no longer close a journal page; recordings 10 and 11
+  never play (the reel words bell, lamp, why unused); the ending's world data covers 6 of the 9 places.
+  (2026-10-10, v1.43: a clock-winder from the glass country wrote on the drum wall; the skiff you whistle for in Lorn
+  was Fen's; the second stories close their own pages and have their own recordings, bell, then lamp and why; the
+  credits know all twelve worlds, their parts and the Overnight Train, whose Mireille is Solange now. docs/story-bible.md.)
+  (Issue closed 2026-10-11: Closed with the v1.43 work above.)
+
+### Traversal and gadgets
+
+- [x] [#21](https://github.com/rnaud/hiraeth/issues/21) **The jets' trials outside the City-Shaft** (the Glass Dunes' Glass slalom, the Buried Machine's Canyon dive, the
+  Signal Market's Avenue run): since the jets became a debug item (v1.38) they want the debug jets, so their rewards
+  (the strong lodestone, the fourth pouch, the racer's ribbon) can't be won in play. Give each another mode. (The
+  Hangar's Pillar slalom is out of play with the Hangar, dismissed in v1.39; its lodestone went to the Glass slalom.)
+  (2026-10-10, v1.43: all three flown on the wings, with columns of rising air to climb again; no trial wants the jets.)
+  (Issue closed 2026-10-11: Closed with the v1.43 work above.)
+
+### Tools and releases
+
+- [x] [#25](https://github.com/rnaud/hiraeth/issues/25) **A Midjourney CLI that uses the author's session cookies** (kept in `.env`, never printed or committed), for the
+  reference lab.
+  (Issue closed 2026-10-11: Closed as not feasible: midjourney.com answers every non-browser request with a Cloudflare challenge and renews its tokens inside the page (557b9137, docs/systems/reference-lab.md). Midjourney stays a browser tool.)
+
+### Visual probes (docs/audits/visual-v1.21.md, 2026-10-10; v1.4's done: DONE.md)
+
+- [x] [#28](https://github.com/rnaud/hiraeth/issues/28) Small pale notches still left at a corner's foot beside a person (300-600 px, Handheld) and Marrow's wide hem
+  darkening the floor a little: where three planes meet, the planes round a hidden tap can miss the one hiding it
+  (a third look-past along the other axis?). The buried world's stairs-0 orbit (Handheld, 0.74) not looked at by eye.
+  (Issue closed 2026-10-11: Fixed in a7297412 (post.js `spotLoop`): two more looks past the person to either side of the tap, and a plane only taken near where it was seen, so the corner's foot no longer reads open and Marrow's hem no longer darkens the floor.)
+
+### Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9), 3 (v1.13) and 4 (v1.16) built)
+
+- [x] [#29](https://github.com/rnaud/hiraeth/issues/29) Batch 3 against its sheets (docs/design/enemy-roster.md "Status"; the jug's ochre marks done in v1.26): the
+  skitters' curved bony legs (the kit's leg segments are straight cylinders: a bowed shin needs the segment's own bend
+  plane); the heron flying off when you run at it (it strides away now); the toad's swollen sac see-through, the glob
+  inside it (no see-through surface yet).
+  (Issue closed 2026-10-11: Done in v1.46 (d2b66338): the skitters' legs bow (`jointedLeg`'s `bow`, aimed into the leg's bend plane each frame); the heron flies off when run at; the toad's sac (changelog-media/1.46/).)
+- [x] [#30](https://github.com/rnaud/hiraeth/issues/30) Measure the machines' CPU on the Retroid and the Deck (combat-v1.16 rec. 3: +0.25 ms a machine in headless Chrome,
+  a pack of six 2.5 → 4.0 ms): the cart's ground rays every other frame and its wheels' instance upload first (a far cart
+  could skip both).
+  (Issue closed 2026-10-11: Measured on the Retroid on 2026-10-11 (GeckoView, Handheld at 0.75, the Arena): a machine costs about 0.75–0.8 ms there, a blot about 0.4; a pack of six carts still holds 60 fps (12.5 ms of script).)
+- [x] [#31](https://github.com/rnaud/hiraeth/issues/31) Batch 4 against its sheets (docs/design/enemy-roster.md "Status"; v1.26 draped the cart's canvas, toothed its
+  sprockets and wound its smoke, plated the brute's fingers and met its fists over its head, banded the bell's yoke):
+  the brute's crack net lighter; the bell's spirit seen from above, its legs' plating; the drone's cloud spreading in
+  wisps at its sides.
+  (Issue closed 2026-10-11: Done in v1.47 (38750a35): the brute's crack net lighter (the `cracks` feature's `share`), the bell's spirit seen from above, the drone's cloud in wisps (changelog-media/1.47/).)
+- [x] [#32](https://github.com/rnaud/hiraeth/issues/32) The combat-review script (combat-v1.18 rec. 4): drive the marionette with a host and time freeing it (strings cut)
+  as well as killing it; the roller's shot and ember times assume it unrolled (rolling, they glance).
+  (Issue closed 2026-10-11: Done in d56ad8a4 (`.claude/skills/combat-review/arena.mjs`): puppeteers called in with their escort, their strings timed, cut and timed again ("free with the air cut / an ember"); rollers dealt live while they roll.)
+- [x] [#33](https://github.com/rnaud/hiraeth/issues/33) Batch 5 against its sheets (docs/design/enemy-roster.md "Status"; v1.26 hung the shade's cloak as a drape in
+  folds and poured the marionette's knot down in a funnel): the shade's smoke in flame-like curls (tried as curling
+  tubes in v1.26: they read as a white-lined fence, kept the wisps); the roller's spiral on one side only and sheet-2's
+  rocking runners in its wind-up, a glistening trail where it grazes; the marionette's glass see-through.
+  (Issue closed 2026-10-11: Done in v1.47 (9d40b26e): the shade's smoke in sixteen flame-like tongues (`flameGeometry`), the roller's spiral and rocking runners and its trail, the marionette's glass (changelog-media/1.47/).)
+- [x] [#34](https://github.com/rnaud/hiraeth/issues/34) The still traveller's measure under-reads a big pack (combat-v1.22): two or three strikers at a time, and off the
+  screen one waits while another strikes, so a pack of five presses about as hard as two. Drive the review's still
+  player with the lock-on camera turning to each striker, or time a scripted player clearing the pack, before tuning the
+  late worlds further by numbers.
+  (Issue closed 2026-10-11: Done in 6e0f08d9 (`arena.mjs --packs`): `--pack-look lock` turns the lock-on camera to each striker (the Garden of Spheres' packs 28 → 56 attacks a minute), and `--pack-clear` times a scripted traveller clearing the pack.)
+
+### Combat review (docs/audits/combat-v1.4.md, 2026-10-09)
+
+- [x] [#35](https://github.com/rnaud/hiraeth/issues/35) The dash cut is the best answer nowhere (combat-v1.22: 1.5 s a blow by its cooldown; the air cut, the combo and the
+  charged cut now each lead somewhere): a dash cut through a foe's back could land double, or its cooldown shorten.
+  (Issue closed 2026-10-11: Done in v1.47 (4c69d3ed): a dash cut through a foe's back lands double (`BACKSTAB`, a gold ring round the foe) and its cooldown went from 1.5 to 1.1 s (docs/audits/combat-v1.47.md).)
+- [x] [#36](https://github.com/rnaud/hiraeth/issues/36) The combat-review script: drive guard, parry and evade timing against each attack; batch and group the report
+  when the larger roster lands (each kind is framed side-on for the contact sheet since v1.26).
+  (Issue closed 2026-10-11: Done in d56ad8a4 (`.claude/skills/combat-review/defend.mjs`): each attack met by the guard and the evade at set leads, read from the player's own hooks; the report batched and grouped (`--kinds`, `--group`).)
+
+### Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20, v1.23: 2026-10-10)
+
+- [x] [#39](https://github.com/rnaud/hiraeth/issues/39) **The desert's two long blind legs**: the well → Marrow (441 m) and Marrow's hollow → the Hearth (1.6 km), and its
+  first goal 391 m off the landing. Wayfinding 4 → 5, onboarding 3 → 4.
+  (Issue closed 2026-10-11: Fixed in 49177913: the riders' red strips along the ride to the Hearth, and the well's leg marked; the desert's level design 3.44 → 4.00 (wayfinding 3 → 4, loops 2 → 5).)
+- [x] [#40](https://github.com/rnaud/hiraeth/issues/40) **Verticality 2 in Lorn, the Hangar and the Garden**: a stage or a box up high, or a path that climbs. +1 each.
+  (Issue closed 2026-10-11: Fixed in b56d1bd4 and 6db05a01: each high place climbed in stages to decks (the City Floating in Space's mast, the Moon Foundry's hoist tower, the Glass Dunes and the Garden), each climb walked by a real `Player` in the tests.)
+- [x] [#41](https://github.com/rnaud/hiraeth/issues/41) **A weenie in each of the Hangar's far zones** (the ring, the upside-down quarter): landmarks 3 → 4.
+  (Issue closed 2026-10-11: Obsolete: the Sealed Hangar was dismissed in v1.39 (src/levels/dismissed/hangar/).)
+- [x] [#42](https://github.com/rnaud/hiraeth/issues/42) **The Buried Machine's oculus → the wheel** (351 m, blind): an oil pipe from the valve would run beside the Tooth
+  Day posts, and the world sits at the contact audit's line (climbs inside 42 of 43); or the audit counts a canyon.
+  (Issue closed 2026-10-11: Fixed in d88b7d05 (`src/buried-ways.js` `buildOilMain`): the oil main runs from the Wick's valve out of the drum, up the ramp and over the dunes to the wheel's foot, solid and stepped over; the `watch` stage says to follow it.)
+- [x] [#43](https://github.com/rnaud/hiraeth/issues/43) **Overhead goals as seen, in the audit**: Vael's window → the tower's foot, the City-Shaft's palace legs.
+  (Issue closed 2026-10-11: Done in e982a3a6: the audit's eyes step out of what they stand in, so a walk along a line of posts sees its landmarks (the Glass Dunes' walk home 35 % → 88 %, Lorn's long legs guided 63 % → 75 %).)
+- [x] [#44](https://github.com/rnaud/hiraeth/issues/44) (v1.48: Sel by the landing, the passages under the square's towers) Smaller: Lorn's Great Crystal ↔ Saba ping-pong merged (saves at each stage must still work); the Signal Market's
+  tower down two more avenues (the west towers stand at every bearing from the back lane); Sel and the Sky Stones'
+  monastery over 300 m from their landings (onboarding 3).
+  (Issue closed 2026-10-11: Closed with the v1.48 work above (e556a7a6): Sel meets the ship 25 m from the landing; the market's towers stand on legs over passages (the market 4.22 → 4.44).)
+
+### Fun and story (docs/fun-and-story-review.md, October 2026)
+
+- [x] [#45](https://github.com/rnaud/hiraeth/issues/45) (v1.48: the glass climb in Viridel, the orb walk in Lorn II) A second makers' run in a world, from what is left of its temple's kit (docs/systems/challenges.md, "Next"):
+  Viridel's greenhouse glass (a vine up an unclimbable pane: `noClimb` colliders in the stand-in), the Hangar's
+  eye banks on pistons in turn, the Lamp-House's pool-orb rolled to a lamp.
+  (Issue closed 2026-10-11: Closed with the v1.48 work above (667aea60): the glass climb in Viridel and the orb walk in Lorn II.)
+- [x] [#46](https://github.com/rnaud/hiraeth/issues/46) The gameplay loop: the fluid blade and the foes are in (v0.87, docs/systems/foes.md; try them in the
+  Arena), and the blade's attacks are all captured swings (the combo, the guard, the whirl, the lunge, and in
+  v1.3 the charged cut and the air cut from the Great Sword pack, in v1.4 the riposte after a perfect parry and
+  the dash cut out of an evade from the Sword and Shield pack, on their clips' own swing frames: DONE.md).
+  In v1.4 foes use the world's height (they climb, hop down and hold off; the spitter takes the high ground;
+  knocked off a ledge they lie dazed; a stilled temple crystal's frost holds them, and knocked into deep water
+  they are swept away: DONE.md). Next: a better machine.
+  (Issue closed 2026-10-11: Closed as obsolete (not planned) by the v1.46 game audit: everything it lists is done; its "next: a better machine" dates from v0.87 and the 21-archetype roster replaced it (the machines are batch 4, #31).)
+
+### Animation
+
+- [x] [#57](https://github.com/rnaud/hiraeth/issues/57) The motion QC's reds in the default walk (`node scripts/motion-qc/run.mjs`): pops at every sprint step (the
+  sprint loop's stance outlasts the leg's reach at 7–8 m/s), the stairs, the feet crossing for a few frames in a pivot,
+  the last step of a stop from a run (29 cm).
+  (Issue closed 2026-10-11: Done in b0fca4d1 (src/animator.js, src/feet.js; docs/systems/animation.md "The sprint, the stairs, the pivots and the stop from a run"): the sprint loop resampled through a cyclic curve, soft IK widening with speed, the pivots' and the stop's feet fixed.)
+
+### Dialogue
+
+- [x] [#48](https://github.com/rnaud/hiraeth/issues/48) Recheck the blank portrait reported in the Retroid's Chrome (not reproduced in GeckoView).
+  Compare portraits, Sketchbook captures and item pictures on the device; use
+  `scripts/portrait-check.mjs` and the existing initial-letter fallback to distinguish blank GPU
+  captures from framing problems. GeckoView verification and diagnostic history are in DONE.md.
+  (Issue closed 2026-10-11: Checked on 2026-10-11 in the Retroid's own Chrome 154 (`scripts/portrait-check.mjs --android 1`, Handheld and High): all four desert portraits and the item card's picture drew. Not reproduced, closed.)
+
+### Android
+
+- [x] [#49](https://github.com/rnaud/hiraeth/issues/49) On the next Retroid session, re-measure the camps and City-Shaft with the shirt on the GPU
+  (expected ~0.3 ms instead of 2.4); use the GeckoView test app, not the player's installed app.
+  Completed load, rendering, portrait and cab checks are recorded in DONE.md.
+  (Issue closed 2026-10-11: Measured on 2026-10-11 (build 1606a596, docs/systems/performance.md "The Retroid, round 5"): the camps and the City-Shaft were slower than in round 4 (the rim 58.6 → 45.6 fps), run back to back with round 4's build.)
+
+### Steam Deck (waiting on the device: it was asleep, 2026-10-07)
+
+- [x] [#51](https://github.com/rnaud/hiraeth/issues/51) Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
+  fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
+  then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the
+  before/after table. Done so far (2026-10-07): the Deck preset, fixed and dynamic, in the desert and the
+  City-Shaft under headless gamescope (Gaming Mode's X11); the Deck slept at the Market. Left: the other ten
+  worlds, High at 1.5×, Desktop Mode. Needs the Deck plugged in (or Desktop Mode): on battery in Gaming
+  Mode it sleeps ~15 min after the last input.
+  (Issue closed 2026-10-11: Done on 2026-10-11 (build 1606a596, headless gamescope at 90 Hz): every world on High at 1.5×, the Deck preset fixed and dynamic (the desert 32 → 39 → 47 fps), in docs/systems/performance.md.)
+
+### The Unity bridge
+
+- [x] [#53](https://github.com/rnaud/hiraeth/issues/53) **See the Unity port's angular ship and the water's contact foam run** (both written 2026-10-10 and checked only
+  by compiling: the C# against the project's assemblies, the HLSL with glslang; no editor run was possible here: an
+  editor needs its own `Library`, and the disk and the shared checkout ruled out a second one). In the main checkout,
+  regenerate the exports (`node scripts/unity-export/export-all.mjs`: the ones there are from 2026-10-05, the ball),
+  then `scripts/unity-export/unity-batch.sh Play -out /tmp/play` (the prologue's shots: `prologue_the_pause`,
+  `_the_light`, `_the_drain`, `_the_glide`, `_the_landing`, the arrival's), the EditMode tests (`WorldsTests` expects
+  the four bells, the hull and its points), and shots of water round something standing in it (Viridel's lake,
+  Lorn II's tree) with `-waterContact` added to the batch command (the foam is off without it) and without, to see
+  the band and that the water is still drawn (docs/systems/water.md, "In Unity"; docs/systems/ship.md). Once it
+  works, turn it on by default (`MementoFeature.Settings.waterContact`, off on mobile as the web's Handheld) and add
+  the changelog line for the Unity test build.
+  (Issue closed 2026-10-11: Seen running (dc9ff455, v1.49): the prologue plays through in Unity batch mode with the faceted hull; the water's contact foam on by default (off on mobile), the changelog line for the Unity test build added.)
+- [x] [#54](https://github.com/rnaud/hiraeth/issues/54) Run the Unity APK on the Retroid once it builds through the bridge
+  (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's
+  APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views
+  scripts/bench/viewpoints.json -bench 8 -split` installs and runs it, muted, and pulls its results.
+  The Linux player for the Deck builds too: engine-bridge.md, "The players again".) (2026-10-07, on the Retroid:
+  it starts, the world ready in 3.5 s, but it never ran its plan: the `unity` extra did not reach it, so neither
+  did `-mute` (it played the desert with its sound for ten minutes before the script's limit stopped it). Fixed,
+  not yet seen on the device: the script quotes the extra, `BridgeArgs.CommandLine` reads the activity's intent
+  on Android, and the script stops a player that has not logged its plan within 20 s, and refuses a locked
+  handheld (the second run met the lock screen: the device had locked itself; engine-bridge.md, "On the
+  Retroid".) Next: unlock, `android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split`.)
+  (Issue closed 2026-10-11: Ran on the Retroid on 2026-10-11 (build 1606a596's bridge APK, `android-bridge.sh desert -bench 8 -split -metrics`), muted: the bench APK is built with Unity's audio off and the script stops any player whose stream starts. GPU-bound at 72–91 ms a frame.)
+- [x] [#55](https://github.com/rnaud/hiraeth/issues/55) The Android player's script thread and sound thread (BridgeRunner runs the script, and the sound's renderer,
+  on threads of their own since 2026-10-07; checked on macOS only, no device): run it there once a device is free
+  (`-js-main`, `-audio-js` if they fail). (2026-10-07, the Retroid: both started on their own threads and the game ran, "the script on its
+  own thread", "the sound on its own thread (24000 Hz)", the audio replay's node counts steady over 6 minutes;
+  their frame times wait for the bench run above.)
+  (Issue closed 2026-10-11: Seen on the Retroid on 2026-10-11 in #54's run: the script on its own thread on every view, the sound's renderer on its own at 24 kHz; the main thread waits 1.2–2.3 ms a frame for the script.)
+- [x] [#56](https://github.com/rnaud/hiraeth/issues/56) Connect an MCP client to the editor. **Blocked**: an organization policy blocks registering
+  unknown MCP servers (the configured UnityMCP server also fails to connect). The editor is driven in
+  batch mode instead (`scripts/unity-export/unity-batch.sh`).
+  (Issue closed 2026-10-11: Closed as blocked: an organization policy blocks registering unknown MCP servers; Unity is driven in batch mode instead.)

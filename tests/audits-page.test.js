@@ -126,9 +126,10 @@ test('the Markdown reader: nested lists, two kinds of list, pictures, captions, 
 });
 
 test('the TODO items each report produced', () => {
-  assert.ok(byId('combat-v1.4').todo.open >= 1);
-  assert.ok(byId('level-design-v1.5').todo.open >= 5);
-  // (TODO.md changes as the work lands: a report whose items all moved to DONE.md has no section left)
+  // (TODO.md changes as the work lands: a report whose items all moved to DONE.md has no section left; the combat
+  // review's and the level design's went in v1.49, issue #123)
+  assert.ok(byId('temple-design-v1.5').todo.open >= 1, 'the temples\' items (#23) are still open');
+  for (const id of ['combat-v1.4', 'level-design-v1.5']) assert.ok(Array.isArray(byId(id).todo.sections), id);
   assert.ok(Array.isArray(byId('temple-design-v1.5').todo.sections));
   assert.ok(Array.isArray(byId('cinematics-v1.6').todo.sections));
   const t = todoSections('# A (docs/audits/x.md)\n\n- [ ] one\n  more\n- [x] two\n\n# B\n\n- [ ] not it', ['docs/audits/x.md']);
