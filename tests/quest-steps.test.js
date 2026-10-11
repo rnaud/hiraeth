@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { PLACEMENTS } from '../src/boxes/placements.js';
+import { NOTICE_CHARS } from '../src/temples/boss.js';
 
 // "Every quest hint should be a few words. 'Bring something of value' for example" (the author's playthrough, October
 // 2026, issue #72): every step of every quest is one short line, with no buttons named in it (the controls are taught
@@ -18,6 +19,8 @@ test('every quest step in the story data is one short line, no buttons named', a
     for (const q of m.QUESTS ?? []) for (const s of q.stages) {
       n++;
       assert.ok(words(s.text) <= MAX, `${q.id}.${s.id}: “${s.text}” (${words(s.text)} words)`);
+      // (and one line of a notice, as the guardians' are: its toast says it as the quest moves on, hints full)
+      assert.ok(s.text.length <= NOTICE_CHARS, `${q.id}.${s.id}: “${s.text}” (${s.text.length} characters)`);
       assert.doesNotMatch(s.text, /\{key:/, `${q.id}.${s.id}: no buttons in a step`);
     }
   }

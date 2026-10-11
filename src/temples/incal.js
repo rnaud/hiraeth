@@ -169,16 +169,16 @@ export const LOGIC = {
 
 export const WARDEN = {
   kind: 'robot', name: 'the warden', final: 'break', speed: 1.8, wakeTime: 2.6,
-  wake: 'The machine in the hall unfolds on its three legs. Its lamp-eye finds you, and turns red.',
+  wake: 'The machine in the hall unfolds on three legs. Its lamp-eye turns red.',
   openHint: 'Its vents open, glowing. Hit them.',
-  resolved: 'The warden sags on its legs. Its eye goes dark, and the hum in the walls stops. Then, far below, a sound like breathing.',
-  missHint: 'Its slam went wide and it rocks on its legs, venting: its vents open, glowing.',
+  resolved: 'The warden sags, its eye dark. Far below, a sound like breathing.',
+  missHint: 'Its slam went wide: its vents open, glowing. Shoot them.',
   phases: [
-    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Its eye burns before it fires: keep out of its line. When its side vents open, shoot them.' },
-    { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.3, hint: 'It shuts its sides, and its eye sweeps the hall. Only the hatch on its crown opens now: get above it, and shoot down. It backs toward a vane in the floor: over a turning vane the draught holds its hatch wide, and a hit counts twice. The breath over each vane bears open wings.',
-      openHint: 'The hatch on its crown swings up, glowing, and it backs toward a vane. Get above it and shoot down: ride the breath over the vane on your wings, and the bellows turn it; its draught holds the hatch wide.' },
-    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.1, hint: 'Cracks glow along its hull, and it keeps its hatch shut against still air. When it backs onto a vane, hover over the vane on your wings, the bellows breathing, until the draught lifts the hatch, then shoot down into it.',
-      openHint: 'It backs onto a vane, its hatch shut tight against still air. Hover over the vane on your wings: the bellows turn it, and its draught lifts the hatch. Then shoot down into it.' },
+    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Keep out of its eye’s line. When its side vents open, shoot them.' },
+    { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.3, hint: 'Only its crown hatch opens now: get above it and shoot down.',
+      openHint: 'Its crown hatch opens: ride the vane’s breath above it, shoot down.' },
+    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.1, hint: 'Hover over its vane on your wings till the hatch lifts, then shoot.',
+      openHint: 'Hatch shut: hover over the vane, bellows going, until it lifts.' },
   ],
   attacks: {
     beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'eye', rig: 'lean', damage: 1, knock: 10, recover: 0.8, open: 2.8 },
@@ -211,7 +211,7 @@ function wardenHit(g, part, mode) {
   const wind = g.phaseIndex >= 1 && !!draught(rt, g);
   if (g.phaseIndex >= 2 && !wind) { rt.sound?.critter?.('clack', 0.8); rt.notice('Its hatch slams shut as the shot comes: in still air it will not open.', 'warden.still'); return true; }
   g.add(wind && g.phaseIndex === 1 ? HALL.washed : HALL.hit, wind ? 'draught' : 'vent');
-  if (wind) rt.notice('The draught off the vane holds its hatch wide, and the shot goes deep. It staggers.', `warden.draught.${g.phaseIndex}`);
+  if (wind) rt.notice('The vane’s draught holds its hatch wide: the shot goes deep.', `warden.draught.${g.phaseIndex}`);
   rt.sound?.critter?.('clank', 1);
   rt.rumble?.(0.4, 0.35);
   return true;
@@ -715,7 +715,7 @@ export const INCAL_TEMPLE = {
   arrivalLine: 'The makers left something for this city in their tower on the rim, round from the ship: the bellows that kept the shaft breathing.',
   used: upUsed,   // (the temple quest's 'use' stage: src/temples/index.js)
   pitLine: 'You climb back up to the last glyph stone.',
-  onResolved(rt) { rt.notice('Far below the rim, by the Upward Shrine, the shaft has begun to breathe again.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Far below, by the Upward Shrine, the shaft begins to breathe again.', 'resolved.out'); },
   // its side vents: each a target while they are open in the first phase (the guardian's own weak point is
   // the one at its front: a shot into one round its side or back counts the same). From its second phase, its hatch
   // open, it backs toward the nearest of the hall's vanes and stands by it: the draught off that vane is the way in

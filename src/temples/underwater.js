@@ -153,15 +153,15 @@ export const LOGIC = {
 
 export const LISTENER = {
   kind: 'organic', name: 'the Listener', final: 'touch', touch: 'lay a hand on its shell', speed: 1.4, wakeTime: 3.2,
-  wake: 'At the bottom of the house a great shell heaves up off the floor. A vast ear unfolds from its front, turns to you, and sings one high clear note: the light’s. The walls hum it back.',
-  openHint: 'It stops, and the lips of its great ear spread wide. It is listening.',
-  weary: 'It sinks down on its foot, its ear wide and slack, humming low. Go to it.',
-  resolved: 'The Listener hums the deep note back, long and low, and then a song of its own under it. Out past the glass, far off, something enormous answers.',
-  missHint: 'It rolls past you into the wall and lies there uncurling, its ear opening.',
+  wake: 'A great shell heaves up, opens a vast ear, and sings the light’s note.',
+  openHint: 'It stops, and its great ear spreads wide. It is listening.',
+  weary: 'It sinks on its foot, its ear slack, humming low. Go to it.',
+  resolved: 'The Listener hums the whales’ note back. Far off, something answers.',
+  missHint: 'It rolls into the wall and lies there, its ear opening.',
   phases: [
     { to: 0.35, attacks: ['sweep', 'slam', 'pearl'], pause: 1.6, hint: 'When it stops and spreads its ear, sound the whale-horn close to it.' },
-    { to: 0.65, attacks: ['song', 'pearls', 'sweep'], pause: 1.3, hint: 'It shuts its ear to anything near it now. Roll a stone onto a dish’s footstone, and sound the horn into the dish while its ear is open.' },
-    { to: 0.9, attacks: ['roll', 'pearls', 'slam'], pause: 1.1, hint: 'It knocked the stones off the footstones as it shook. Roll one back, and sound the horn into its dish while the ear is open.' },
+    { to: 0.65, attacks: ['song', 'pearls', 'sweep'], pause: 1.3, hint: 'It shuts its ear to you: weight a dish’s footstone, horn into the dish.' },
+    { to: 0.9, attacks: ['roll', 'pearls', 'slam'], pause: 1.1, hint: 'Roll a stone back onto a footstone, then sound the horn into its dish.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -177,8 +177,8 @@ export const LISTENER = {
 };
 
 function listenerHit(g, part, mode) {
-  if (mode === 'push') { g.rt.notice('The shove only rocks it on its foot. It isn’t a thing to be pushed: it is a thing to be sung to.', 'ls.push'); return true; }
-  g.rt.notice('The water runs off its shell. It isn’t listening for water: it is listening for a note.', 'ls.fluid');
+  if (mode === 'push') { g.rt.notice('The shove only rocks it. It isn’t a thing to push: it is one to sing to.', 'ls.push'); return true; }
+  g.rt.notice('The water runs off its shell. It is listening for a note.', 'ls.fluid');
   return true;
 }
 
@@ -528,7 +528,7 @@ export const UNDERWATER_TEMPLE = {
   local: { person: 'anselme', out: 7, side: 1.2 },
   enterLine: 'Inside the Whale-House it is dry and cool and smells of brass and salt. The walls hum one high note, very softly: not a whale’s.',
   pitLine: 'You climb back up, to the last glyph stone.',
-  onResolved(rt) { rt.notice('Outside, the lamps in the Whale-House’s horns are lit, and through the glass the whales are coming back.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Outside, the Whale-House’s horns are lit. The whales are coming back.', 'resolved.out'); },
   onLit(rt, id) {
     if (id === 'eD') rt.notice('The eye over the east door wakes, and the door to the Shell Room sinks.', 'eD.lit');
     if (id === 'eP' || id === 'eS') rt.notice(rt.logic.isLit('eP') && rt.logic.isLit('eS') ? 'Both lamps on the Horn Door are lit, and it sinks.' : 'One lamp on the Horn Door lights. One to go.', `dH.${id}`);
@@ -548,15 +548,15 @@ export const UNDERWATER_TEMPLE = {
       if (!dished && pos.distanceTo(G.model.mouth) > LISTEN) return;
       if (note !== 'deep') { rt.notice('It hears the note and shakes its shell. That isn’t the whales’ note.', 'ls.wrong'); return; }
       if (!dished && G.phaseIndex >= 1) {
-        if (!byDish(pos)) rt.notice('Its lips fold shut over its ear as the note reaches it: it won’t hear anything close now. It listens to the house’s dishes.', 'ls.near');
+        if (!byDish(pos)) rt.notice('Its ear folds shut at the note. It hears only the house’s dishes now.', 'ls.near');
         return;
       }
-      if (G.state !== 'open') { rt.notice(G.phaseIndex >= 1 ? 'The dish carries the note to it, but its ear is folded shut. Wait for it to stop and listen.' : 'It hears you, but its ear is folded shut. Wait for it to stop and listen.', G.phaseIndex >= 1 ? 'ls.shut2' : 'ls.shut'); return; }
+      if (G.state !== 'open') { rt.notice(G.phaseIndex >= 1 ? 'The dish carries the note, but its ear is shut. Wait for it to listen.' : 'It hears you, but its ear is shut. Wait for it to stop and listen.', G.phaseIndex >= 1 ? 'ls.shut2' : 'ls.shut'); return; }
       const k = G.phaseIndex === 0 ? CALM.near : G.phaseIndex === 1 ? CALM.dish : CALM.last;
       G.add(k, 'horn');
       rt.rumble?.(0.5, 0.4);
-      if (dished) rt.notice('The note comes down out of the high dish into its open ear, and it goes still, listening.', `ls.dish.${G.phaseIndex}`);
-      else rt.notice('The deep note goes into its open ear. It shivers, and for a moment it hums the note back.', 'ls.near.ok');
+      if (dished) rt.notice('The note comes down from the high dish into its ear. It goes still.', `ls.dish.${G.phaseIndex}`);
+      else rt.notice('The deep note goes into its ear. It shivers, and hums the note back.', 'ls.near.ok');
       if (G.state === 'open') { G.enter('fight'); G.cool = 1.8; }
     }));
     let lastPhase = G.phaseIndex;

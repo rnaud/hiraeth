@@ -160,14 +160,14 @@ export const LOGIC = {
 
 export const FOREMAN = {
   kind: 'robot', name: 'the Clockwork Foreman', final: 'break', speed: 1.5, wakeTime: 2.8,
-  wake: 'In the workshop something winds itself up with a long clatter of springs. A machine with a clock for a chest turns its face to you. Its hands are racing.',
-  openHint: 'The glass over its face swings up and its six numerals glow. Hit all six, inside one breath.',
-  resolved: 'The Clockwork Foreman shudders, and its hands come round, slowly, to the right time, and stop there. Under your feet something begins to tick, in step.',
-  missHint: 'It spins on, dizzy, its hands whirling; the glass over its face swings up. Six numerals: now.',
+  wake: 'A machine with a clock for a chest winds itself up, its hands racing.',
+  openHint: 'Its face opens on six numerals. Hit all six inside one breath.',
+  resolved: 'The Foreman’s hands come round to the right time, and stop there.',
+  missHint: 'It spins on, dizzy, its face open: hit the six numerals now.',
   phases: [
-    { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'When it has struck, its face opens: six numerals, one breath. One tank will not do it.' },
-    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its bell cracks and it winds itself up to spin, throwing cogs. Six numerals, one breath. When its face opens its hands stop at four, as every clock in the house: numerals hit round from there ring in step.' },
-    { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'It strikes faster, out of step, sparks from every seam, and now its numerals take only in step: six in one breath, round the way a clock goes from four, where its hands point.' },
+    { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'When its face opens, hit all six numerals in one breath.' },
+    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its hands stop at four: hit the numerals round from four, in step.' },
+    { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'Only numerals hit in step count now: six, clockwise from four.' },
   ],
   attacks: {
     hammer: { shape: 'cone', range: 10, angle: 0.7, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
@@ -673,7 +673,7 @@ export const GARAGE_TEMPLE = {
   local: { person: 'wim', out: 7, side: 6 },
   enterLine: 'Inside the Clock-House everything ticks, but out of step, like a room full of clocks that have quarrelled.',
   pitLine: 'You climb back up to the last glyph stone.',
-  onResolved(rt) { rt.notice('Out in the dunes, the clock over the Clock-House’s door has begun to keep time.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Out in the dunes, the clock over the Clock-House’s door keeps time.', 'resolved.out'); },
   // the Foreman's six numerals: each a target while its face is open; all six inside a breath is a hit. In step (the
   // clock's order counted from four, where its hands come round to as it opens) each rings and its ring lights; in
   // its last phase only in step takes, and a numeral out of step puts them all out
@@ -713,12 +713,12 @@ export const GARAGE_TEMPLE = {
       if (inStep || (lit === N && !last)) {
         const phase = G.phaseIndex;
         hits.fill(-1e9); dark();
-        if (inStep && phase === 1) rt.notice('All six in step, round from four: its hands catch, and for a moment it keeps time.', 'cf.step');
+        if (inStep && phase === 1) rt.notice('All six in step, round from four: for a moment it keeps time.', 'cf.step');
         rt.notice('All six numerals at once: its hands stagger, and slow.', `cf.volley.${phase}`);
         G.add(0.25, 'volley');
         rt.rumble(0.6, 0.45);
         if (G.state === 'open') { G.enter('fight'); G.cool = 1.6; }
-      } else if (lit === 3 && !rt.logic.has('coil')) rt.notice('Three numerals, and the tank is dry. It would take a tank that fills again faster.', 'cf.three');
+      } else if (lit === 3 && !rt.logic.has('coil')) rt.notice('Three numerals, and the tank is dry. It needs a tank that fills faster.', 'cf.three');
     };
     for (let i = 0; i < N; i++) {
       rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.6, position: () => G.model.vent(i, at[i]), enabled: () => G.state === 'open', onHit: (mode) => { if (mode !== 'push') rt.volley(i); return true; } }));

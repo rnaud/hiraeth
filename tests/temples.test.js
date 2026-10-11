@@ -1685,7 +1685,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   wait(3);
   assert.equal(rt.logic.isOpen('pumps'), false, 'the valve alone does not run them');
   assert.ok(still(), 'they shudder and stay where they are');
-  assert.ok(said(/teeth of their crank/), 'and it says why');
+  assert.ok(said(/jams their crank/), 'and it says why');
   // roll the ball out of the teeth: they run; back in, they stop where they are; out again
   const ball0 = rt.piece('ball0');
   assert.equal(roll(ball0, -1, () => rt.logic.drumOn('ball0', 'pY')), true, `out of the teeth (${ball0.t.toFixed(2)})`);
@@ -2181,11 +2181,11 @@ test('the Whale-House on foot: its door sealing the last tube, the west door’s
   const near = () => horn(G.model.mouth.clone().add(V(0, -3, 0)));
   let shut = false, folded = false, knocked = false;
   for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
-    if (n === 0) { near(); shut = said(/folded shut/); }
+    if (n === 0) { near(); shut = said(/ear is shut/); }
     assert.ok(opening(), `its ear opens (${n}, phase ${G.phaseIndex})`);
     const m = G.meter;
     if (G.phaseIndex === 0) { near(); assert.ok(G.meter > m, `the horn close by calms it (${n})`); continue; }
-    if (!folded) { near(); folded = G.meter === m && said(/won’t hear anything close/); assert.ok(folded, 'from its second phase it shuts its ear to the horn close by'); }
+    if (!folded) { near(); folded = G.meter === m && said(/hears only the house’s dishes/); assert.ok(folded, 'from its second phase it shuts its ear to the horn close by'); }
     if (G.phaseIndex === 2 && !knocked) { knocked = said(/roll off the dishes’ footstones/); assert.ok(knocked, 'shifting it knocks the stones off'); }
     if (!rt.listenerHomed()) { roll('bW'); assert.equal(rt.listenerHomed(), true, 'a stone on a footstone'); assert.ok(opening(), 'its ear opens again'); }
     const m2 = G.meter;
@@ -3172,7 +3172,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   const cog = rt.outside.cogs[0], a0 = cog.m.rotation.z;
   wait(1);
   assert.notEqual(cog.m.rotation.z, a0, 'the cogs in the cliff turn');
-  assert.ok(notes.some((s) => /keep time/i.test(s)), 'it says so');
+  assert.ok(notes.some((s) => /keeps? time/i.test(s)), 'it says so');
   game.reset();
   own();
 });
@@ -3429,7 +3429,7 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
       P.teleport(fs.pos.clone().add(V(0, 0.2, 0)), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0);
       for (let i = 0; i < 3 / DT && sun.want() !== sun.spots[['fs1', 'fs2', 'fs3', 'fs4'].indexOf(fs.id)]; i++) frame();
       wait(1.6);
-      if (!sun.lights(G.model.pos, SUN.pad)) { glob('bloom'); assert.equal(G.meter, before, 'in its last phase, kneeling in the shade, nothing grows on it'); assert.ok(said(/kneeling in the shade/), 'and it says why'); shaded = true; }
+      if (!sun.lights(G.model.pos, SUN.pad)) { glob('bloom'); assert.equal(G.meter, before, 'in its last phase, kneeling in the shade, nothing grows on it'); assert.ok(said(/In the shade nothing grows/), 'and it says why'); shaded = true; }
     }
     if (G.phaseIndex >= 1) assert.ok(sunOnIt(), `the sun brought onto it from the footstone (${n})`);
     const phase = G.phaseIndex;

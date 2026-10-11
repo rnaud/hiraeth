@@ -143,14 +143,14 @@ export const WARDEN = { pull: [0.2, 0.175, 0.125], open: [5.5, 6.5, 8.5], out: 8
 
 export const ANCHOR_WARDEN = {
   kind: 'robot', name: 'the Anchor-Warden', final: 'break', speed: 1.4, wakeTime: 3,
-  wake: 'In the middle of the floor a great capstan of brass and iron turns itself round with a groan of cable. Its bars swing toward you, and its anchors lift.',
-  openHint: 'Its anchor bites into the floor and its drum stalls, the cable slack. Pull the anchor home with the tether.',
-  resolved: 'The Anchor-Warden takes up its last cable with a long sigh, and locks. Far below, every cable in the city draws taut.',
-  missHint: 'It overreaches and its drum runs slack, its anchor lying out on the floor. Pull it home.',
+  wake: 'A great capstan turns itself round with a groan. Its anchors lift.',
+  openHint: 'Its anchor bites the floor and its drum stalls: tether it home.',
+  resolved: 'The Anchor-Warden takes up its last cable, and locks.',
+  missHint: 'It overreaches, its anchor out on the floor: tether it home.',
   phases: [
-    { to: 0.4, attacks: ['bars', 'cast', 'drop'], pause: 1.6, hint: 'When it has thrown its anchor, its drum stalls with the cable slack: pull the anchor home with the tether, and it jams.' },
-    { to: 0.75, attacks: ['cast', 'spin', 'bars'], pause: 1.3, hint: 'Its bands crack, and it throws its anchors over the bollards at the edge and hauls against them. When it stalls, pull one free and home.' },
-    { to: 1.0, attacks: ['casts', 'spin', 'drop'], pause: 1.1, hint: 'Now it pays its anchors out over the void, too far for the tether. A capstan is pushed round: push its bars to wind them in, then pull them home.' },
+    { to: 0.4, attacks: ['bars', 'cast', 'drop'], pause: 1.6, hint: 'When its drum stalls, pull the anchor home with the tether.' },
+    { to: 0.75, attacks: ['cast', 'spin', 'bars'], pause: 1.3, hint: 'It hauls on the edge bollards now: when it stalls, tether one home.' },
+    { to: 1.0, attacks: ['casts', 'spin', 'drop'], pause: 1.1, hint: 'Its anchors are out over the void: push the capstan round, then pull.' },
   ],
   attacks: {
     bars: { shape: 'cone', range: 8.5, angle: 1.1, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', damage: 0.5, knock: 10, recover: 0.6, then: 'bars2' },
@@ -171,11 +171,11 @@ function wardenHit(g, part, mode) {
   const rt = g.rt, an = rt.anchor;
   if (mode === 'push') {
     if (g.state === 'open' && an?.out && an.far > 0) { rt.windAnchor?.(); return true; }
-    rt.notice('The shove rings off its bars. It turns when its drum is slack and an anchor is out.', 'aw.push');
+    rt.notice('The shove rings off its bars. It turns when its drum is slack.', 'aw.push');
     return true;
   }
   if (mode === 'stun') return false;   // (the stilling lens stops a strike, as anywhere)
-  rt.notice('The fluid runs off its brass. It is the anchors that matter: pull them home.', 'aw.fluid');
+  rt.notice('The fluid runs off its brass. Pull the anchors home.', 'aw.fluid');
   return true;
 }
 
@@ -557,10 +557,10 @@ export const SPACECITY_TEMPLE = {
   local: { person: 'joss', out: 7, side: 6 },
   enterLine: 'Inside the Mooring-House the floors stop short over nothing, and under them the stars go on. Somewhere overhead, cable pays out with a long creak.',
   pitLine: 'You catch a hanging cable and haul yourself back up to the last glyph stone.',
-  onResolved(rt) { rt.notice('Out over the city every cable draws taut and hums, and the lamps along them light, one after another.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Over the city every cable draws taut, and its lamps light one by one.', 'resolved.out'); },
   // the loft's try: its ring brings a lamp down on its cord (and nothing else)
   onLit(rt, id) {
-    if (id === 't0') rt.notice('The ring comes home with a clack, and a lamp drops down on its cord from the loft’s roof. That is all it does: the makers liked to see what they were doing.', 'sc.t0');
+    if (id === 't0') rt.notice('The ring comes home with a clack, and a lamp drops from the loft’s roof.', 'sc.t0');
   },
   // the thrown anchor: pull it home while its drum is slack and it jams (in its last phase, out over the void, wind
   // it in first: a push on its bars)
@@ -611,7 +611,7 @@ export const SPACECITY_TEMPLE = {
       overVoid();
       if (an.far <= 0) an.at.set(A.center.x + Math.sin(an.a) * (A.r - 0.6), A.y, A.center.z + Math.cos(an.a) * (A.r - 0.6));
       rt.sound?.critter?.('creak', 0.9);
-      rt.notice('The bars give under the shove: the drum turns a notch and winds the anchor in over the void.', 'aw.wind');
+      rt.notice('The bars give: the drum turns a notch and winds the anchor in.', 'aw.wind');
       return true;
     };
     /** The tether on a thrown anchor: home it comes, and the drum jams. */
@@ -619,7 +619,7 @@ export const SPACECITY_TEMPLE = {
       if (!an.out || G.state !== 'open') return false;
       const P = rt.player;
       if (an.far > WARDEN.out - WARDEN.wind * 1.5 || (P && P.pos.distanceTo(an.at) > WARDEN.reach + 2.5)) {
-        rt.notice('It hangs out over the void, too far for the tether. A capstan is pushed round: push its bars to wind it in.', 'aw.far');
+        rt.notice('Too far over the void to tether. Push the capstan’s bars round.', 'aw.far');
         return false;
       }
       an.out = false; an.back = 0.7; an.far = 0;
@@ -627,7 +627,7 @@ export const SPACECITY_TEMPLE = {
       G.add(WARDEN.pull[Math.min(G.phaseIndex, 2)], 'anchor');
       rt.rumble(0.7, 0.45);
       rt.sound?.chime?.();
-      rt.notice('The anchor comes home across the floor and slams into its drum. The capstan jams, shuddering.', `aw.pull.${G.phaseIndex}`);
+      rt.notice('The anchor slams home into its drum. The capstan jams, shuddering.', `aw.pull.${G.phaseIndex}`);
       if (G.state === 'open') { G.enter('fight'); G.cool = 2; }
       return true;
     };

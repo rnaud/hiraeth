@@ -148,15 +148,15 @@ export const LOGIC = {
 export const ELDER = {
   kind: 'organic', name: 'the Elder', final: 'touch', touch: 'lay a hand on her neck',
   speed: 1.6, wakeTime: 3.2,
-  wake: 'In the roost something heavy shifts: a great bird of stone-white feathers unfolds from the floor, and sees you, and hisses.',
-  openHint: 'She spreads her wings and looks up at the open sky, trembling, and does not go.',
-  weary: 'She folds her wings and settles, the glyphs on them bright with the wind. Go to her.',
-  resolved: 'The Elder stretches her neck to you, then opens her wings wide, and rides the wind up out of the roost.',
-  missHint: 'Her beak is caught in the floor: she pulls, wings spread, and looks up at the open sky.',
+  wake: 'A great bird of stone-white feathers unfolds from the floor, hissing.',
+  openHint: 'She looks up at the open sky, trembling: open your wings near her.',
+  weary: 'She folds her wings and settles. Go to her.',
+  resolved: 'The Elder opens her wings and rides the wind up out of the roost.',
+  missHint: 'Her beak is caught in the floor: open your wings beside her.',
   phases: [
-    { to: 0.45, attacks: ['peck', 'stamp', 'buffet'], pause: 1.5, hint: 'When she spreads her wings and looks up, afraid, ride the wind beside her: open your wings near her.' },
-    { to: 0.75, attacks: ['buffet', 'dive', 'gale'], pause: 1.3, hint: 'She has left the floor, beating hard. When she hangs in the air, over a vent, fly with her again: in the wind out of it her wings lift twice as high.' },
-    { to: 0.9, attacks: ['feathers', 'peck', 'gale'], pause: 1.1, hint: 'Stone feathers fall from her, her glyph lines burning, and she will not trust still air now. When she hangs over a vent, roll the stone into the other so the wind rises by her, and ride it up beside her.' },
+    { to: 0.45, attacks: ['peck', 'stamp', 'buffet'], pause: 1.5, hint: 'When she looks up, afraid, open your wings beside her.' },
+    { to: 0.75, attacks: ['buffet', 'dive', 'gale'], pause: 1.3, hint: 'When she hangs over a vent, ride its wind up beside her.' },
+    { to: 0.9, attacks: ['feathers', 'peck', 'gale'], pause: 1.1, hint: 'Roll the stone into the other vent, then ride its wind up by her.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -198,7 +198,7 @@ export function elderOpenFor(g, a, s, missed = false) {
 function elderHit(g, part, mode) {
   if (mode === 'push') { g.add(-0.04, 'push'); g.rt.notice('She flinches from the shove and hisses, more frightened.', 'elder.push'); return true; }
   if (mode === 'stun') return false;   // (the stilling lens stops a strike, as anywhere)
-  g.rt.notice('The fluid beads on her stone feathers. It is not water she wants: it is the wind.', 'elder.fluid');
+  g.rt.notice('The fluid beads on her feathers. It is the wind she wants.', 'elder.fluid');
   return true;
 }
 
@@ -622,7 +622,7 @@ export const ARZACH_TEMPLE = {
           flown = 0;
           G.add(wind ? ROOST.wind[i] : ROOST.still[i], wind ? 'wind' : 'flown');
           rt.sound?.chime?.();
-          if (wind && i >= 1) rt.notice('You ride the wind up beside her, and her wings fill with it and lift her high, and she cries out, not afraid.', `elder.wind.${G.phaseIndex}`);
+          if (wind && i >= 1) rt.notice('You ride the wind up beside her, and it lifts her high, unafraid.', `elder.wind.${G.phaseIndex}`);
           else rt.notice('She watches you ride the wind beside her, and her wings lift.', `elder.flown.${G.phaseIndex}`);
           if (G.state === 'open') { G.enter('fight'); G.cool = 2.2; }
         }

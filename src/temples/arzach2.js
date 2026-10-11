@@ -140,15 +140,15 @@ export const GROUNDED = 4.5;
 export const MOTHER = {
   kind: 'organic', name: 'the Cloud-Mother', final: 'touch', touch: 'lay a hand on her brow',
   speed: 3.2, wakeTime: 3.4,
-  wake: 'Something huge and pale turns over in the top of the tower: a sky-whale, her flanks full of cloud. She is afraid of you.',
-  openHint: 'She sinks low and cries, a long sound like a bell with no clapper.',
-  missHint: 'Her dive went wide and she ploughs into the floor, her fins caught under her: she lies there crying, a long sound like a bell with no clapper.',
-  weary: 'She settles on the floor of her hall, her fins still. She is listening. Go to her.',
-  resolved: 'She sighs, and the cloud along her back thins away. Far below the tower, something heavy comes down to rest.',
+  wake: 'A sky-whale turns over at the top of the tower. She is afraid of you.',
+  openHint: 'She sinks low and cries. Ring the bell near her.',
+  missHint: 'Her dive went wide: she lies caught, crying. Ring the bell near her.',
+  weary: 'She settles on the floor of her hall, listening. Go to her.',
+  resolved: 'She sighs, and the cloud along her back thins away.',
   phases: [
-    { to: 0.5, attacks: ['gust', 'dive', 'wail'], pause: 1.8, hint: 'She cannot stay down, and she cannot stop crying. When she cries, sound the bell near her.' },
-    { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Her glyphs wake and she rolls in the air, her tail lashing. Answer her crying with the bell. The stones that fell up hang under her dome: ring as she rises to dive, and one comes down where she will dive.' },
-    { to: 0.9, attacks: ['dive', 'rain', 'roll'], pause: 1.2, hint: 'The cloud along her back darkens and hails, and she no longer sinks to cry by herself. Ring as she rises to dive: a stone comes down under her, and when she lies on it, answer her crying with the bell.' },
+    { to: 0.5, attacks: ['gust', 'dive', 'wail'], pause: 1.8, hint: 'When she cries, sound the bell near her.' },
+    { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Ring as she rises to dive: a stone drops where she dives.' },
+    { to: 0.9, attacks: ['dive', 'rain', 'roll'], pause: 1.2, hint: 'Ring as she rises: a stone drops under her. Ring again as she cries.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -181,7 +181,7 @@ export function motherBell(g, pos) {
   if (!pos || !g.awake) return;
   const rt = g.rt, a = g.attack;
   if (g.state === 'fight' && a?.over && !g.struck && rt.hallStones) {
-    if (rt.hallStones.drop(g, a)) rt.notice('The note brings a hanging stone down under her, and holds it there while it sounds.', 'mother.stone');
+    if (rt.hallStones.drop(g, a)) rt.notice('The note brings a hanging stone down under her, and holds it there.', 'mother.stone');
     return;
   }
   if (g.state !== 'open') {
@@ -199,7 +199,7 @@ function motherStrike(g, a) {
   if (!s) return;
   g.grounded = true;
   g.rt.rumble?.(1.0, 0.5);
-  g.rt.notice('She dives onto the held stone and it takes her weight: she lies on it, dazed, crying.', 'mother.grounded');
+  g.rt.notice('She dives onto the held stone and lies on it, dazed, crying.', 'mother.grounded');
 }
 /** How long a combo's end leaves her open: on a held stone, a while; in her last phase, only there. */
 function motherOpen(g, a, s) {
@@ -560,7 +560,7 @@ export const ARZACH2_TEMPLE = {
   local: { person: 'ysel', out: 29, side: 3.5 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the belfry the air is still and white, and somewhere above, something huge is crying.',
   pitLine: 'You climb back up to the last glyph stone.',
-  onResolved(rt) { rt.notice('Far below the tower, the stones that fell up round the belfry begin to come down.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Far below, the stones that fell up round the belfry begin to come down.', 'resolved.out'); },
   // her calm comes from the bell: every 'bell' the whistle sounds, she hears
   onConnect(rt) { rt.offs.push(rt.game.on('bell', ({ pos, soft } = {}) => { if (!soft && rt.guardian?.awake) motherBell(rt.guardian, pos); })); },
 };

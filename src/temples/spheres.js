@@ -119,15 +119,15 @@ export const LOGIC = {
 export const ECHO = {
   kind: 'organic', name: 'the Echo', final: 'touch', touch: 'hold out your hand to it',
   speed: 2.6, wakeTime: 3,
-  wake: 'Light gathers over the floor and turns: rings of glass round a pale heart. It sings at you, one note, very loud. It is lost.',
-  openHint: 'It sings, and one of the spheres round the hall glows with its note.',
-  weary: 'It sinks to the floor, its rings slowing, humming to itself. It is listening for you now.',
-  resolved: 'The Echo hums once with all three spheres at once, and goes quiet, and stays.',
-  missHint: 'It fell short and lies on the floor, ringing: one of the spheres round the hall glows with its note.',
+  wake: 'Rings of glass round a pale heart sing one loud note at you. It is lost.',
+  openHint: 'It sings, and one sphere round the hall glows. Splash that one.',
+  weary: 'It sinks to the floor, humming, listening for you now.',
+  resolved: 'The Echo hums with all three spheres at once, and stays quiet.',
+  missHint: 'It lies on the floor ringing: splash the sphere that glows.',
   phases: [
     { to: 0.45, attacks: ['note', 'pulse', 'ripple'], pause: 1.7, hint: 'When it sings, answer it: splash the sphere that glows with its note.' },
-    { to: 0.75, attacks: ['fall', 'chord', 'note'], pause: 1.3, hint: 'Its rings brighten and lock together into a lens. Keep answering it, note for note: through your own lens, the sphere that answers wears the walker’s print.' },
-    { to: 0.9, attacks: ['scale', 'ripple', 'fall'], pause: 1.1, hint: 'Its heart cracks with light, and it sings three notes at once: all three spheres glow. Only one wears the walker’s print through your lens. Splash that one.' },
+    { to: 0.75, attacks: ['fall', 'chord', 'note'], pause: 1.3, hint: 'Keep answering it: through your lens, the right sphere wears the print.' },
+    { to: 0.9, attacks: ['scale', 'ripple', 'fall'], pause: 1.1, hint: 'All three spheres glow now: splash the one with the walker’s print.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -232,7 +232,7 @@ export const STONES = (() => {
 const GALLERY_Z = 129, GALLERY_S = 84.4;
 function echoHit(g, part, mode) {
   if (mode === 'push') { g.add(-0.05, 'push'); g.rt.notice('The shove scatters its rings. It sings louder, frightened.', 'echo.push'); return true; }
-  g.rt.notice('The fluid passes through its light. It does not want water: it wants an answer.', 'echo.fluid');
+  g.rt.notice('The fluid passes through its light. It wants an answer, not water.', 'echo.fluid');
   return true;
 }
 /** A splash on a resonant sphere: the right one while it sings is an answer. */
@@ -532,7 +532,7 @@ export const SPHERES_TEMPLE = {
   local: { person: 'tessa', out: 12, side: 7 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the heel it is white and round and very quiet, the kind of quiet a sphere keeps.',
   pitLine: 'You climb back up to the last glyph stone.',
-  onResolved(rt) { rt.notice('Outside, the Footprint fills with still water, and every sphere in the garden wears a ring of light.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Outside, the Footprint fills, and every sphere wears a ring of light.', 'resolved.out'); },
   // the Echo sings a note (one of the three spheres) whenever it opens
   onConnect(rt) {
     const G = rt.guardian;

@@ -145,15 +145,15 @@ export const LOGIC = {
 export const LAMPLESS = {
   kind: 'organic', name: 'the Lampless', final: 'touch', touch: 'lay a hand on its back',
   speed: 3.4, wakeTime: 3,
-  wake: 'Wings open in the dark of the lamp-room, wide as sails, and two great eyes of glyph on them. It is hungry, and it is afraid of how dark it is.',
+  wake: 'Wings wide as sails open in the dark lamp-room. It is hungry for light.',
   openHint: 'It hangs low over the floor, turning, searching for light.',
-  missHint: 'Its swoop went wide and its wings catch on the floor: it hangs there low, turning, searching for light.',
-  weary: 'It folds its wings and settles, its glyphs lit with your light. Go to it.',
-  resolved: 'The Lampless sighs, and climbs to the lamp, and the lamp catches from it: the whole room goes gold.',
+  missHint: 'Its swoop went wide: it hangs low. Stand still by it with your lantern.',
+  weary: 'It folds its wings and settles, lit with your light. Go to it.',
+  resolved: 'The Lampless climbs to the lamp, and the whole room goes gold.',
   phases: [
-    { to: 0.45, attacks: ['swoop', 'gust', 'dust'], pause: 1.6, hint: 'When it hangs low, searching, stand still by it with your lantern: let it drink.' },
-    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Its glyphs glow with your light, and it beats its wings at you before it dusts the room. Stand still with it when it searches, or light a pool: it goes down to drink there.' },
-    { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'Its eye-spots burn gold and it circles down twice, and it shies from you now. Light a pool before it searches, splash or lantern, and stand back: it drinks there.' },
+    { to: 0.45, attacks: ['swoop', 'gust', 'dust'], pause: 1.6, hint: 'When it hangs low, stand still by it with your lantern: let it drink.' },
+    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Stand still with it when it searches, or light a pool for it to drink.' },
+    { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'It shies from you now: light a pool before it searches, and stand back.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -529,7 +529,7 @@ export const PERDIDE2_TEMPLE = {
   local: { person: 'tamsy', out: 33, side: 2 },
   enterLine: 'Inside the Lamp-House it is very dark, and it smells of moss and old oil. Somewhere above, wings.',
   pitLine: 'You climb back up to the last glyph stone.',
-  onResolved(rt) { rt.notice('Out over the wood the Lamp-House’s lamp catches, and its beam begins to turn.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Out over the wood, the Lamp-House’s lamp catches and its beam turns.', 'resolved.out'); },
   // the Lampless drinks the lantern's light: stand still by it while it hangs low, searching; or a pool lit earlier
   // lures it down to drink there (its last phase: only a pool, and only while you stand back)
   onConnect(rt) {
@@ -559,7 +559,7 @@ export const PERDIDE2_TEMPLE = {
         }
         rt.notice('It turns from you to the lit pool, and drifts down to it.', 'moth.lured');
         const close = Math.hypot(P.pos.x - lured.at.x, P.pos.z - lured.at.z) < LURE.back;
-        if (over && close && last) { drink = 0; rt.notice('It hangs over the pool, but will not come down to drink while you stand by it.', 'moth.back'); return; }
+        if (over && close && last) { drink = 0; rt.notice('It hangs over the pool, but won’t drink while you stand by it.', 'moth.back'); return; }
         if (over && (drink += dt) > LURE.drink) {
           drink = 0;
           rt.lurePools.drain(lured); lured = null;
@@ -572,7 +572,7 @@ export const PERDIDE2_TEMPLE = {
       }
       const near = Math.hypot(P.pos.x - m.pos.x, P.pos.z - m.pos.z) < 8;
       const quiet = Math.hypot(P.vel.x, P.vel.z) < 0.4 && !P.down;
-      if (last) { if (near) rt.notice('It shies from you, high out of reach: it comes down only to a light left for it.', 'moth.shy'); still = 0; return; }
+      if (last) { if (near) rt.notice('It shies from you: it comes down only to a light left for it.', 'moth.shy'); still = 0; return; }
       if (near && quiet && rt.logic.has('lantern')) {
         if ((still += dt) > 1.4) {
           still = 0;

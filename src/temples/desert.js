@@ -144,14 +144,14 @@ export const KEEPER = {
   kind: 'organic', name: 'the Keeper of the cistern', final: 'touch', touch: 'lay a hand on its brow',
   speed: 2.2, wakeTime: 3.2,
   wake: 'Something vast unfolds in the dark of the cistern. It is afraid of you.',
-  openHint: 'It pants, its mouth open, its tongue dry as the sand. It is thirsty: go to its mouth and give it water from your tank.',
-  weary: 'It lowers its head to the dry spout, worn out. It isn’t afraid any more. Go to it.',
-  resolved: 'It breathes out, long and slow, and the stone under the spout begins to sweat. Water.',
-  missHint: 'Its forefeet are wedged in the stone: it heaves and pants, its mouth open. Give it water.',
+  openHint: 'It pants, its mouth open: give it water from your tank.',
+  weary: 'It lowers its head to the dry spout, worn out. Go to it.',
+  resolved: 'It breathes out, and the stone under the spout begins to sweat.',
+  missHint: 'Its forefeet are wedged in the stone, mouth open. Give it water.',
   phases: [
-    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 1.8, hint: 'It shies from the dark round the walls. Light the four braziers: cut each spoke’s ball out through its little fire, into the hooded bowl on the rim.' },
-    { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 1.5, hint: 'Its glyphs brighten, and it lowers its head to charge. Raise your guard against the charge: jarred, it stops and pants. Then give it water from your tank. It turns to fire, too: cut a ball down a spoke from a lit bowl, and it pants in the light.' },
-    { to: 0.8, attacks: ['burrow', 'spit', 'sweep', 'charge'], pause: 1.3, hint: 'Its shell plates rattle up, glowing: it digs into the sand now, and it will not pant in the dark. Cut a ball from a lit bowl down the spoke nearest it: by that fire it pants, and drinks.' },
+    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 1.8, hint: 'Light the four braziers: cut each spoke’s ball through its fire.' },
+    { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 1.5, hint: 'Guard its charge, then water it. Or cut a lit ball down a spoke.' },
+    { to: 0.8, attacks: ['burrow', 'spit', 'sweep', 'charge'], pause: 1.3, hint: 'It digs in now: cut a lit ball down the spoke nearest it.' },
     { to: 1.0, weary: true },
   ],
   // its moves (src/temples/boss.js): read from its body, never the floor; the sweep runs back the other way and
@@ -196,7 +196,7 @@ export function fireNear(g) {
 }
 /** Its own openings: in its last phase none in the dark, only by a fire rolled to it. */
 function keeperOpen(g, a, s) {
-  if (g.phaseIndex >= 2 && s && !fireNear(g)) { g.rt.notice('It heaves, its mouth shut, and shakes its head at the dark. It will not pant without a fire by it.', 'keeper.dark2'); return 0; }
+  if (g.phaseIndex >= 2 && s && !fireNear(g)) { g.rt.notice('It heaves, mouth shut, at the dark. It won’t pant without a fire by it.', 'keeper.dark2'); return 0; }
   return s;
 }
 /** In its first phase the Keeper's calm is the light round the walls: a tenth for each rim brazier burning. */
@@ -209,7 +209,7 @@ function syncLight(g) {
 function keeperBlocked(g) {
   g.dashing = 0;
   if (g.phaseIndex === 0) { g.rt.notice('It slams into your guard and backs off into the dark, trembling.', 'keeper.guard0'); return; }
-  if (g.phaseIndex >= 2 && !fireNear(g)) { g.rt.notice('It reels from your guard and shakes its head at the dark. It will not pant without a fire by it.', 'keeper.guard2'); return; }
+  if (g.phaseIndex >= 2 && !fireNear(g)) { g.rt.notice('It reels from your guard. It won’t pant without a fire by it.', 'keeper.guard2'); return; }
   g.stop(); g.cool = 1.2;
   g.enter('open'); g.openFor = KEEPER_GUARD.open;
   g.rt.notice('It slams into your guard and reels back, panting, its mouth open.', `keeper.guard.${g.phaseIndex}`);
@@ -227,7 +227,7 @@ function keeperDrinks(g) {
 /** What the fluid does to the Keeper (the gun, for whoever carries one in): water in its open mouth calms it; a push frightens it; ember only startles. */
 function keeperHit(g, part, mode) {
   const rt = g.rt;
-  if (mode === 'blade') { rt.notice('You lower the blade. It is frightened, not wicked: the Givers left it to keep their water.', 'keeper.blade'); return true; }
+  if (mode === 'blade') { rt.notice('You lower the blade. It is frightened, not wicked: it keeps the water.', 'keeper.blade'); return true; }
   if (mode === 'push') { g.add(-0.05, 'push'); rt.notice('It flinches back from the shove, more frightened than before. Gently.', 'keeper.push'); if (g.state === 'fight' && !g.attack) g.cool = 0; return true; }
   if (g.phaseIndex === 0) { if (mode !== 'fire' && (part === 'mouth' || part === 'body')) rt.notice('It snaps at the fluid, frightened. It is the dark it fears.', 'keeper.dark'); return true; }
   if (g.phaseIndex >= 1) {
@@ -696,7 +696,7 @@ export const DESERT_TEMPLE = {
   layout, exterior, change,
   enterLine: 'Cool air, and the smell of old water. The Givers’ House is dark inside, and very large.',
   pitLine: 'You climb back out of the sand, to the last glyph stone.',
-  onResolved(rt) { rt.notice('Water. Somewhere above, it is already running out of the house and down toward Qanat.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Water. Above, it is already running out of the house toward Qanat.', 'resolved.out'); },
   // the four braziers round the cistern calm it, a tenth each: lit before it woke, or before a knockout, they still count
   onLit(rt, id) { if (RIM.includes(id)) syncLight(rt.guardian); },
   onWake(rt) { syncLight(rt.guardian); },
@@ -740,7 +740,7 @@ export const DESERT_TEMPLE = {
       if (!b || b.burn <= (spent.get(b) ?? -1)) return;
       spent.set(b, b.burn);
       G.enter('open'); G.openFor = HEARTH_FIRE.open;
-      rt.notice('It turns to the fire by it, and the light on its face, and pants, its mouth open.', `keeper.firelit.${G.phaseIndex}`);
+      rt.notice('It turns to the fire by it and pants, its mouth open.', `keeper.firelit.${G.phaseIndex}`);
     };
   },
 };

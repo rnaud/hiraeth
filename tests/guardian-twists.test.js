@@ -139,7 +139,7 @@ test('the Keeper’s last phase: it no longer pants in the dark; a cold ball lyi
   const { rt, G, until, said } = A;
   // the failure first: its own openings come to nothing, in the dark; the spokes' balls lie cold at the basin's edge
   assert.equal(until(() => G.state === 'open', 25), false, 'it never pants by itself now');
-  assert.ok(said(/will not pant without a fire/), 'it shakes its head at the dark, and says so');
+  assert.ok(said(/won’t pant without a fire/), 'it shakes its head at the dark, and says so');
   assert.ok(rt.spokes.every((b) => b.burn === 0), 'the balls by it are cold');
   assert.equal(lightRim(A), true, 'the bowls lit');
   for (let n = 0; n < 2 && G.state !== 'weary'; n++) {
@@ -300,7 +300,7 @@ test('the Lampless’s last phase: it shies from you; a pool lit earlier (your l
   wait(LURE.drink + 0.5);
   assert.equal(G.meter, m0, 'not while you stand by the pool');
   assert.equal(pools[0].lit, true, 'the pool still lit');
-  assert.ok(said(/will not come down to drink while you stand by it/), 'it shows it will not come while you stand by (no longer told to stand back)');
+  assert.ok(said(/won’t drink while you stand by it/), 'it shows it will not come while you stand by (no longer told to stand back)');
   // the way: stand back
   stand(px > 0 ? px - 9 : px + 9, pz + 4);
   assert.equal(until(() => G.meter > m0 || G.state === 'weary', 10), true, 'it drinks there');
@@ -346,11 +346,11 @@ test('the Mother Snapper’s last phase: the cold no longer eases her; the three
   const m0 = G.meter;
   G.hit('mouth', 'stun');
   assert.equal(G.meter, m0, 'the cold no longer eases her');
-  assert.ok(said(/crystals ringing out of tune/), 'she looks up at the crystals');
+  assert.ok(said(/crystals out of tune/), 'she looks up at the crystals');
   // out of turn: the middle first rings flat; the smallest, then the biggest: flat again, and the turn starts over
   by(1).hit('stun');
   assert.equal(by(1).taken ?? false, false, 'out of turn it rings flat');
-  assert.ok(said(/smallest crystal first/), 'and says so');
+  assert.ok(said(/smallest crystal first/i), 'and says so');
   by(0).hit('stun');
   assert.equal(by(0).taken, true, 'the smallest rings true');
   by(2).hit('stun');
@@ -504,7 +504,7 @@ test('the Gardener’s last phase: nothing grows on it in the shade; the footsto
   const m0 = G.meter;
   bloomIt(G);
   assert.equal(G.meter, m0, 'in the shade nothing grows on it');
-  assert.ok(said(/kneeling in the shade/), 'and it says to bring the sun');
+  assert.ok(said(/In the shade nothing grows/), 'and it says to bring the sun');
   // the way: each time it kneels, the footstone of its quarter, the sun settles on it, then the bloom
   for (let n = 0; n < 4 && G.state !== 'weary'; n++) {
     if (G.state !== 'open') assert.equal(until(() => G.state === 'open', 40), true, `it kneels (${n})`);

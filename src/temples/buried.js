@@ -164,15 +164,15 @@ export const LOGIC = {
 
 export const TOOTH_WARDEN = {
   kind: 'robot', name: 'the Tooth-Warden', final: 'break', speed: 1.6, wakeTime: 2.8,
-  wake: 'The machine in the hall straightens on its four legs with a noise like a dropped toolbox. Its lamp turns to you.',
-  openHint: 'All four of its vents open at once, glowing. Hit all four, quickly.',
-  resolved: 'The Tooth-Warden locks up, every joint at once, and goes still. Somewhere under your feet the engine catches, and runs.',
-  missHint: 'It ploughs into the wall and stands there shuddering: all four of its vents open at once.',
+  wake: 'The machine in the hall stands up on four legs. Its lamp turns to you.',
+  openHint: 'All four vents open, glowing. Hit all four, quickly.',
+  resolved: 'The Tooth-Warden locks up and goes still. Below you, the engine runs.',
+  missHint: 'It ploughs into the wall: all four vents open. Hit all four.',
   phases: [
     { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'When its four vents open, hit all four inside one breath.' },
-    { to: 0.75, attacks: ['grind', 'beam', 'stomp'], pause: 1.2, hint: 'It grinds round on the great gear in the floor now. Roll the ball by the wall into the gear’s teeth and it cannot turn: four vents in one breath then count twice.' },
-    { to: 1.0, attacks: ['charge', 'mortars', 'grind'], pause: 1.0, hint: 'Its plates are cracked and glowing. It stamped the ball out of the gear: now it opens turning, one vent at a time. Roll the ball back into the teeth, and all four stay open.',
-      openHint: 'Its vents open as it turns on the gear, one at a time facing out. Jam the gear with the ball and all four stay open.' },
+    { to: 0.75, attacks: ['grind', 'beam', 'stomp'], pause: 1.2, hint: 'Jam the floor gear with the ball: then its vents count twice.' },
+    { to: 1.0, attacks: ['charge', 'mortars', 'grind'], pause: 1.0, hint: 'It stamped the ball out: roll it back into the gear’s teeth.',
+      openHint: 'Its vents open one at a time. Jam the gear for all four.' },
   ],
   attacks: {
     beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'eye', rig: 'lean', damage: 1, knock: 10, recover: 0.8, open: 3.2 },
@@ -680,7 +680,7 @@ export const BURIED_TEMPLE = {
   enterLine: 'Inside the Engine-House it is warm, and everything smells of oil. Something far ahead is grinding, stuck.',
   pitLine: 'You climb back out of the furnace pit, to the last glyph stone.',
   onResolved(rt) { rt.notice('Outside, the machine’s old pipe-cart has begun to ride the canyon again.', 'resolved.out'); },
-  onLit(rt, id) { if (id === 's1' && !rt.logic.drumOn('ball0', 'pY')) rt.notice('The valve hisses, and the pistons shudder and stay where they are. By the first one a stone ball sits in the teeth of their crank.', 'valve.jammed'); },
+  onLit(rt, id) { if (id === 's1' && !rt.logic.drumOn('ball0', 'pY')) rt.notice('The valve hisses; the pistons don’t move. A stone ball jams their crank.', 'valve.jammed'); },
   // the warden's four vents: each a target while it faces out, open; all four inside a breath is a hit. From its second
   // phase it turns on the great gear; jammed (a ball in its teeth), a volley counts twice. In its last, the gear free,
   // it opens turning, one vent at a time facing out; and as it shifts into that phase it stamps the ball out
@@ -694,7 +694,7 @@ export const BURIED_TEMPLE = {
     rt.volley = (i) => {
       const clock = rt.time;
       if (G.state !== 'open') { rt.notice('Its vents are shut. Wait for them to open.', 'tw.shut'); return; }
-      if (!facing(i)) { rt.notice('That vent has turned away: it opens them one at a time as it turns on the gear.', 'tw.turned'); return; }
+      if (!facing(i)) { rt.notice('That vent has turned away: they open one at a time as it turns.', 'tw.turned'); return; }
       hits[i] = clock;
       rt.sound?.critter?.('clank', 0.9);
       if (hits.every((h) => clock - h <= VOLLEY)) {
@@ -703,7 +703,7 @@ export const BURIED_TEMPLE = {
         if (G.phaseIndex >= 1 && jammed()) rt.notice('The gear holds it, and all four take it at once. It reels.', `tw.jammed.${G.phaseIndex}`);
         rt.rumble(0.6, 0.45);
         if (G.state === 'open') { G.enter('fight'); G.cool = 1.6; }
-      } else if (hits.filter((h) => clock - h <= VOLLEY).length === 3 && !rt.logic.has('magic:4')) rt.notice('Three vents, and the magic bar is spent. A fourth shot would need a longer bar.', 'tw.three');
+      } else if (hits.filter((h) => clock - h <= VOLLEY).length === 3 && !rt.logic.has('magic:4')) rt.notice('Three vents, and the magic bar is spent. A fourth needs a longer bar.', 'tw.three');
     };
     for (let i = 0; i < 4; i++) {
       rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.9, position: () => G.model.vent(i, at[i]), enabled: () => facing(i), onHit: (mode) => { if (mode !== 'push') rt.volley(i); return true; } }));
@@ -717,7 +717,7 @@ export const BURIED_TEMPLE = {
         const b = rt.piece('bG');
         if (G.phaseIndex === 2 && b && jammed()) {
           b.t = 0.35; b.v = 0; b.rest = true; b.place(); rt.logic.moveDrum('bG', 0.35);
-          rt.notice('It stamps on the great gear as it shifts, and the ball jumps out of its teeth.', 'tw.stamp');
+          rt.notice('It stamps on the great gear, and the ball jumps out of its teeth.', 'tw.stamp');
           rt.rumble?.(0.8, 0.5);
         }
       }

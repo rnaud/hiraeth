@@ -155,15 +155,15 @@ export const QUENCH = { first: 0.175, free: 0.175, cradled: 0.35, last: 0.15 };
 
 export const LAST_FOUNDER = {
   kind: 'robot', name: 'the Last Founder', final: 'break', speed: 1.3, wakeTime: 3.0,
-  wake: 'At the bottom of the house something heavy rolls forward on iron wheels. A founder of cast iron lifts its ladle; a cracked moon drops from its tongs and rolls away.',
-  openHint: 'It pours, and the doors of its crucible chest swing open on the molten heart. Splash the heart with water.',
-  resolved: 'The Last Founder stops with its ladle raised. The moon in its cradle has come out whole, and it stands looking at it, its heart going dark. Overhead, something is lifted out through the chimney.',
-  missHint: 'It rolls past you into the wall and stands there, rocking on its wheels, its crucible doors open.',
+  wake: 'A founder of cast iron rolls forward on its wheels, ladle raised.',
+  openHint: 'Its crucible doors swing open on the molten heart. Splash it.',
+  resolved: 'The Last Founder stops to look at one whole moon. Its heart goes dark.',
+  missHint: 'It rolls into the wall, crucible doors open: splash its heart.',
   phases: [
-    { to: 0.35, attacks: ['ladle', 'slam', 'cast'], pause: 1.6, hint: 'When it has poured, its crucible doors swing open: splash the molten heart.' },
-    { to: 0.7, attacks: ['cast', 'casts', 'ladle'], pause: 1.2, hint: 'It casts moons now, and throws the cracked ones. The iron moon by the wall: roll it into the casting cradle before it, and its next pour finds a whole moon. It stops to look, and a splash counts twice.' },
-    { to: 1.0, attacks: ['charge', 'casts', 'slam'], pause: 1.0, hint: 'It tipped the moon out of its cradle as it shook. Now its heart is too hot for water unless the cradle holds a moon: roll the iron moon back in, and splash the heart while it looks.',
-      openHint: 'Its doors open on a heart too hot for water. With a whole moon in its cradle it stops to look, and cools.' },
+    { to: 0.35, attacks: ['ladle', 'slam', 'cast'], pause: 1.6, hint: 'When it has poured, its doors swing open: splash the molten heart.' },
+    { to: 0.7, attacks: ['cast', 'casts', 'ladle'], pause: 1.2, hint: 'Roll the iron moon into its cradle: as it looks, splashes count double.' },
+    { to: 1.0, attacks: ['charge', 'casts', 'slam'], pause: 1.0, hint: 'Its heart is too hot now: roll the moon back in, splash while it looks.',
+      openHint: 'Too hot for water: with a moon in its cradle it stops, and cools.' },
   ],
   attacks: {
     ladle: { shape: 'cone', range: 9, angle: 0.8, wind: 1.3, track: 0.6, part: 'arms', rig: 'coil', damage: 0.75, knock: 10, recover: 0.5, then: 'ladle2' },
@@ -571,11 +571,11 @@ export const MOONFOUNDRY_TEMPLE = {
   local: { person: 'ilse', out: 8, side: 6 },
   enterLine: 'Inside the Casting-House the air is warm and smells of hot iron. Somewhere below, something heavy rolls, and stops, and rolls.',
   pitLine: 'You climb back out of the channel, to the last glyph stone.',
-  onResolved(rt) { rt.notice('Outside, a small moon is lifted out of the Casting-House and hung from its jib, whole.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Outside, a whole small moon is lifted out and hung from the jib.', 'resolved.out'); },
   onLit(rt, id) {
-    if (id === 'eM') rt.notice('The seam-eye wakes over the full mould, and the door to the stair grinds down.', 'eM.lit');
-    if (id === 'bH') rt.notice('The hot moon settles in the mould’s mouth and the mould takes its heat. Over the channel the bridge’s stones come up out of the iron.', 'bH.lit');
-    if (id === 'bG') rt.notice('The founders’ moon rolls into the great cradle glowing, and the cradle takes it. The Founders’ Door sinks.', 'bG.lit');
+    if (id === 'eM') rt.notice('The seam-eye wakes over the full mould; the stair door grinds down.', 'eM.lit');
+    if (id === 'bH') rt.notice('The hot moon fills the mould. The bridge’s stones rise from the iron.', 'bH.lit');
+    if (id === 'bG') rt.notice('The founders’ moon rolls into its cradle. The Founders’ Door sinks.', 'bG.lit');
   },
   // the founder's heart: a target while its crucible doors are open; a splash there quenches it. From its second phase a
   // whole moon in its casting cradle makes it stop to look (a splash counts twice); in its last only then does the water
@@ -591,11 +591,11 @@ export const MOONFOUNDRY_TEMPLE = {
       const p = G.phaseIndex;
       if (p >= 2 && !cradled()) {
         rt.sound?.critter?.('clank', 0.6);
-        rt.notice('The water hisses off its heart: too hot. It won’t stop to look unless its cradle holds a whole moon.', 'lf.hot');
+        rt.notice('The water hisses off its heart: too hot. Put a whole moon in its cradle.', 'lf.hot');
         return false;
       }
       const k = p === 0 ? QUENCH.first : p === 1 ? (cradled() ? QUENCH.cradled : QUENCH.free) : QUENCH.last;
-      if (p >= 1 && cradled()) rt.notice('Its pour finds a whole moon in the cradle, and it stops to look. The water takes it full in the heart.', `lf.cradled.${p}`);
+      if (p >= 1 && cradled()) rt.notice('It stops to look at the whole moon. The water takes it in the heart.', `lf.cradled.${p}`);
       rt.sound?.critter?.('clank', 0.9);
       G.add(k, 'quench');
       rt.rumble(0.6, 0.45);

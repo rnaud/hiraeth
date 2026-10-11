@@ -135,3 +135,66 @@ test('the warden\'s vents keep opening, fight after fight: its sides in the firs
   assert.equal(guardianHint(rt), null, 'resolved: the ping finds the objective again');
   game.reset();
 });
+
+// "A player mid-fight can't read four sentences" (the v1.49 audit, issue #120): every notice a guardian puts on the
+// screen is one line, NOTICE_CHARS at most (src/temples/boss.js says why 72): its waking, each phase's hint (said as
+// the fight starts and at each change), its openings, its weariness and its end, and every line its own fight's code
+// says (the notice( … ) calls in its temple's file).
+const TEMPLE_FILES = async () => {
+  const { readdirSync } = await import('node:fs');
+  return readdirSync(new URL('../src/temples/', import.meta.url)).filter((f) => f.endsWith('.js') && !/-data|boss|hints|index|kit|logic|migrate|pieces|runtime|guardian/.test(f));
+};
+const plain = (s) => s.replace(/\$\{[^}]*\}/g, '');
+
+test('every guardian notice is one line: its waking, its phase hints, its openings, its end (issue #120)', async () => {
+  const { NOTICE_CHARS } = await import('../src/temples/boss.js');
+  assert.ok(NOTICE_CHARS >= 60 && NOTICE_CHARS <= 74, 'one line of the notice at the default text size');
+  let hints = 0, guardians = 0;
+  const long = [];
+  for (const f of await TEMPLE_FILES()) {
+    const m = await import(new URL(`../src/temples/${f}`, import.meta.url));
+    for (const [name, g] of Object.entries(m)) {
+      if (!g || typeof g !== 'object' || !Array.isArray(g.phases)) continue;
+      guardians++;
+      const said = [['wake', g.wake], ['weary', g.weary], ['resolved', g.resolved], ['missHint', g.missHint], ['openHint', g.openHint],
+        ...g.phases.flatMap((p, i) => [[`phases[${i}].hint`, p.hint], [`phases[${i}].openHint`, p.openHint]])];
+      for (const [k, s] of said) {
+        if (typeof s !== 'string') continue;
+        if (/hint/i.test(k)) hints++;
+        if (plain(s).length > NOTICE_CHARS) long.push(`${f} ${name}.${k} (${s.length}): “${s}”`);
+      }
+    }
+  }
+  assert.equal(guardians, Object.keys(TEMPLES).length, 'every temple’s guardian');
+  assert.ok(hints >= 40, `${hints} hints`);
+  assert.deepEqual(long, []);
+});
+
+test('every line a guardian’s fight says on the screen is one line too (the notice calls in its temple’s file)', async () => {
+  const { NOTICE_CHARS } = await import('../src/temples/boss.js');
+  const long = [];
+  let n = 0;
+  for (const f of await TEMPLE_FILES()) {
+    const src = readFileSync(new URL(`../src/temples/${f}`, import.meta.url), 'utf8');
+    for (let i = src.indexOf('notice'); i >= 0; i = src.indexOf('notice', i + 6)) {
+      const j = src.indexOf('(', i);
+      if (j < 0 || !/^notice(\?\.)?\s*$/.test(src.slice(i, j))) continue;
+      // the call's arguments, to its closing bracket (strings skipped over whole)
+      let depth = 0, k = j, q = null;
+      for (; k < src.length; k++) {
+        const c = src[k];
+        if (q) { if (c === '\\') k++; else if (c === q) q = null; continue; }
+        if (c === '\'' || c === '"' || c === '`') q = c;
+        else if (c === '(') depth++;
+        else if (c === ')' && !--depth) break;
+      }
+      for (const [, , s] of src.slice(j + 1, k).matchAll(/(['"`])((?:\\.|(?!\1)[^\\])*)\1/g)) {
+        if (!/\s/.test(s)) continue;   // (a key: 'mother.wait2')
+        n++;
+        if (plain(s).length > NOTICE_CHARS) long.push(`${f}:${src.slice(0, i).split('\n').length} (${s.length}): “${s}”`);
+      }
+    }
+  }
+  assert.ok(n > 100, `${n} lines`);
+  assert.deepEqual(long, []);
+});

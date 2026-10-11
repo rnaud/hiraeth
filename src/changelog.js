@@ -77,6 +77,9 @@ export const CHANGELOG = [
     // the temple guides (lore/voice-guide.md, the night's names; issue #119)
     { text: 'The temple guides name the night the singing light went over in their own world’s words, as everyone else there does: under the sea the night the whales went quiet, in Lorn the dry night, in the Buried Machine the night the Tuning Star came over, in the Signal Market the night every sign showed the mark. Only the City-Shaft still says the sky rang.',
       see: 'In the Underwater City, talk to Anselme at the Whale-House’s door: “Since the night the whales went quiet, something in there sings the light’s note back at them.” Hobb under the silent tower, Teasel by the Hush-House and Fisk at the Engine-House say their own world’s night too.' },
+    // the guardians (docs/systems/boss-hints.md "One line mid-fight"; issue #120)
+    { text: 'What a guardian’s fight writes on the screen is one short line you can read while dodging: what to do, not why. The hints at the start of a fight and at each change were often three or four sentences; now each says the move in a few words, and so do the lines when it wakes, opens, tires and settles. The drone still explains more if you ask.',
+      see: 'In the Warden’s Well, wake the warden and let it change: the notice now reads “Only its crown hatch opens now: get above it and shoot down.” (it was four sentences). The Keeper of the cistern opens with “Light the four braziers: cut each spoke’s ball through its fire.”' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

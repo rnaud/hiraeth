@@ -167,15 +167,15 @@ export const LOGIC = {
 export const GARDENER = {
   kind: 'organic', name: 'the Gardener', final: 'touch', touch: 'lay a hand on its brow',
   speed: 1.8, wakeTime: 3.2,
-  wake: 'Something vast heaves itself up in the glasshouse: a giant of moss with a face of white stone, bare in patches, brown where nothing grows. It sees you, and roars like a wind through leaves.',
-  openHint: 'It kneels, heaving, its bare back to the glass. Nothing grows on it.',
-  weary: 'It lies down among the beds, flowering all over, breathing slow. Go to it.',
-  resolved: 'The Gardener sighs, a long sigh that smells of rain, and closes its eyes. All round the glasshouse, everything begins to grow.',
-  missHint: 'Its root-claws are sunk in the floor: it kneels, heaving, and pulls at them, its bare back to the glass.',
+  wake: 'A giant of moss with a stone face heaves up in the glasshouse, roaring.',
+  openHint: 'It kneels, heaving, its bare back to the glass. Bloom it.',
+  weary: 'It lies down among the beds, flowering all over. Go to it.',
+  resolved: 'The Gardener sighs and closes its eyes. Everything begins to grow.',
+  missHint: 'Its claws are stuck in the floor: bloom its bare back.',
   phases: [
     { to: 0.4, attacks: ['sweep', 'stamp', 'clods'], pause: 1.7, hint: 'It tramples the dead beds round the walls. Bloom them.' },
-    { to: 0.7, attacks: ['sweep', 'roots', 'stamp'], pause: 1.3, hint: 'Its eyes are greener, and it digs its claws in to send roots at you. When it kneels, bloom its bare back: in the sun the flowers take at once. A footstone before each bed turns the dome’s louvre to its quarter.' },
-    { to: 0.9, attacks: ['crush', 'clods', 'sweep'], pause: 1.1, hint: 'Moss tears from it in clumps, its glyph veins lit, and in the shade nothing will grow on it now. When it kneels, bring the sun to it from the footstone of its quarter, then bloom its back.' },
+    { to: 0.7, attacks: ['sweep', 'roots', 'stamp'], pause: 1.3, hint: 'When it kneels in the sun, bloom its back. Footstones turn the louvre.' },
+    { to: 0.9, attacks: ['crush', 'clods', 'sweep'], pause: 1.1, hint: 'Nothing grows on it in shade: turn the sun on it, then bloom it.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -211,18 +211,18 @@ function gardenerHit(g, part, mode, info) {
   // (its targets take fire and stilling as theirs; a bloom glob reaches them as plain fluid, its own mode in info)
   if (info?.mode === 'bloom') mode = 'bloom';
   if (mode === 'push') { g.add(-0.04, 'push'); g.rt.notice('It flinches from the shove and roars, more frightened.', 'gd.push'); return true; }
-  if (mode === 'fire') { g.add(-0.05, 'fire'); g.rt.notice('It shrinks from the ember, beating at the sparks in its moss. Not fire, never fire, in a garden.', 'gd.fire'); return true; }
+  if (mode === 'fire') { g.add(-0.05, 'fire'); g.rt.notice('It shrinks from the ember, beating at its moss. Never fire, in a garden.', 'gd.fire'); return true; }
   if (mode === 'stun') return false;   // (the stilling lens stops a strike, as anywhere)
-  if (mode !== 'bloom') { g.rt.notice('It drinks the water off its moss, and stays bare. It is not thirsty: nothing will grow on it.', 'gd.water'); return true; }
-  if (g.phaseIndex === 0) { g.rt.notice('A few flowers start on its back, and it shakes them off. It is looking at the dead beds round the walls.', 'gd.early'); return true; }
-  if (g.state !== 'open') { g.rt.notice('The flowers catch on its moss and are torn off as it moves. Wait for it to kneel.', 'gd.moving'); return true; }
+  if (mode !== 'bloom') { g.rt.notice('It drinks the water and stays bare. Nothing grows on it.', 'gd.water'); return true; }
+  if (g.phaseIndex === 0) { g.rt.notice('It shakes the flowers off, looking at the dead beds round the walls.', 'gd.early'); return true; }
+  if (g.state !== 'open') { g.rt.notice('The flowers tear off as it moves. Wait for it to kneel.', 'gd.moving'); return true; }
   // the sun: in its second phase it doubles the bloom, in its last nothing grows on it without it
   const i = Math.min(g.phaseIndex, 2), lit = sunOn(g), k = lit ? SUN.sun[i] : SUN.shade[i];
-  if (!k) { g.rt.notice('A few flowers start on its back and fold, and drop off it. It is kneeling in the shade: nothing grows on it there now.', `gd.shade.${g.phaseIndex}`); return true; }
+  if (!k) { g.rt.notice('The flowers fold and drop off it. In the shade nothing grows on it now.', `gd.shade.${g.phaseIndex}`); return true; }
   g.add(k, lit ? 'sun' : 'bloom');
   g.rt.sound?.chime?.();
-  if (lit && i >= 1) g.rt.notice('In the sun the flowers take at once: they spread over its back, thick and bright, and it goes still under them, its face turned up to the light.', `gd.sun.${g.phaseIndex}`);
-  else g.rt.notice('Flowers break out over its bare back, white and pink. It goes still under them, and looks round at them.', `gd.bloom.${g.phaseIndex}`);
+  if (lit && i >= 1) g.rt.notice('In the sun the flowers take at once. It goes still, face to the light.', `gd.sun.${g.phaseIndex}`);
+  else g.rt.notice('Flowers break out over its bare back, and it goes still under them.', `gd.bloom.${g.phaseIndex}`);
   if (g.state === 'open') { g.enter('fight'); g.cool = 2.4; }
   return true;
 }

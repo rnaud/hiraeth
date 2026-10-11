@@ -32,3 +32,9 @@ has three per phase).
 
 **Per-phase open lines**: a phase may carry its own `openHint` (the warden's crown); the open line is
 said once per phase.
+
+**One line mid-fight** (issue #120, v1.49): every notice a guardian puts on the screen (its `wake`, each phase's
+`hint` said as the fight starts and at each change, `openHint` and `missHint`, `weary`, `resolved`, and every line its
+fight's code passes to `notice`) is at most `NOTICE_CHARS` (72) characters: one line of the 534 px notice in 12 px
+monospace at the default text size (`src/temples/boss.js`). What to do, not why: "When its four vents open, hit all
+four inside one breath." The drone's three lines a phase above say the rest. `tests/bosses.test.js`.
