@@ -1,0 +1,73 @@
+changelog.md
+  s_9ca76055a220ed::t_f6f180bddd80c3 5-8
+docs/story-bible.md
+  s_9ca76055a220ed::t_187d230cbf9ce4 179-180,190,209
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_8fcefe1bb62799 140
+docs/systems/dialogue.md
+  s_9ca76055a220ed::t_f69c49988f6964 172-173
+docs/systems/story.md
+  s_9ca76055a220ed::t_ce9d72ecd228dd 457-461,476-477
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_41e77985c1dc51 698,702-711
+scripts/unity-export/export-world.mjs
+  s_9ca76055a220ed::t_a00799f42ba20c 399
+src/boxes/placements.js
+  s_9ca76055a220ed::t_5051f18b863d18 43,49
+src/changelog-media.js
+  s_9ca76055a220ed::t_2867727892ff48 625-627,629-636
+src/changelog.js
+  s_9ca76055a220ed::t_b67f31c2a151f0 11-14
+src/desert-city.js
+  s_9ca76055a220ed::t_03164561a3ceab 23-25,427,438,556,562,640-644,653,724-727,730,732
+src/game-state.js
+  s_9ca76055a220ed::t_1eeefad6a839f8 37,39
+src/story/desert-data.js
+  s_9ca76055a220ed::t_301de8a47e2e3b 11-12,19-20,25,85,102,104-105,118,225,258,262,375,380,416,428,432,444,448,533,553,571,583,585,589-590,612,614,619,622,626,634,708-711,716,720-721,925,951,962,1001,1030,1054
+src/story/desert-repay.js
+  s_9ca76055a220ed::t_d4706b738ab741 8,122
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_6e5a51d3311460 22,81,145
+src/story/desert.js
+  s_9ca76055a220ed::t_5ffc0a9b294d79 30-31,42,50,73,75,224-227,321-322,401,403,617,621,863,868,873,876,885-888,897,901,903-906,1044-1047,1053,1057,1059,1061-1065
+src/story/magic-water.js
+  s_9ca76055a220ed::t_abdf9180673a5d 7
+src/story/people-book.js
+  s_9ca76055a220ed::t_3e5a49815dd145 108-109,112-113,729
+tests/boxes.test.js
+  s_9ca76055a220ed::t_7b7f44acfec4d6 150,154-155,171,176
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_4e394e5b5ca5eb 111,125-126,128,131,177
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_3433c6e1eb49f3 46,111,119,121-127,205-206,209,473,487,562-564,566,570,639-640,644-645,648,650,803-811,814,819
+tests/level-design-round3.test.js
+  s_9ca76055a220ed::t_d77bb0cd6a396d 26,30-31,34-36,40
+tests/moment.test.js
+  s_9ca76055a220ed::t_09537a1f888a09 295
+unity/Memento/Assets/Memento/Editor/Batch.cs
+  s_9ca76055a220ed::t_733c134ce756b3 278
+unity/Memento/Assets/Memento/Editor/Tests/StoryTests.cs
+  s_9ca76055a220ed::t_9a1dabcc3e54b0 60
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_9ca76055a220ed::t_214419237ab58b 392-394
+unity/Memento/Assets/Memento/Runtime/DesertStory.cs
+  s_9ca76055a220ed::t_2da3e123a4309e 10,23,150,170
+unity/README.md
+  s_9ca76055a220ed::t_0d7952990133a5 181,184,423,425
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ca3184e8f5f6d41f1e084fc2b852a33eca7c726f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
