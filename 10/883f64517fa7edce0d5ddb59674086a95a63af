@@ -1,0 +1,39 @@
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_146c7f797ff710 142,151-157
+src/desert-city.js
+  s_9ca76055a220ed::t_9c0bfd5ce4239c 527,558-560,591,651,663,681-686,688,696-698,720
+tests/boxes.test.js
+  s_9ca76055a220ed::t_5d98b332ffd07a 145,147,162,176
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_7df11551a7c29f 389
+tests/qanat-tree-ribcage-reference.test.js
+  s_9ca76055a220ed::t_1bd83862aac010 4-5,71,82-110,117-118,121-127
+changelog.md
+  s_e1b02e92eaec5e::t_88ba9125273472 8-9
+src/changelog.js
+  s_e1b02e92eaec5e::t_e658964e9c8927 128,130-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "10883f64517fa7edce0d5ddb59674086a95a63af",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e1b02e92eaec5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8c3996fa2c751749",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
