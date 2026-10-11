@@ -42,6 +42,7 @@
 // keeps one must copy it.
 import { inkSpec } from './ink-spec.js';
 import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
+import { updateSceneMatrices } from './scene-matrices.js';
 
 
 /**
@@ -64,8 +65,9 @@ export class SceneMirror {
    * @param o.filter (o) => false to leave an object (and its children) out
    * @param o.freeze  still subtrees taken whole, not walked (mirror-freeze.js; off: in Puerts its watches cost the game more than they saved)
    * @param o.quietWalk  drawables unchanged for QUIET_AFTER frames looked at in full every 4th frame only (the Unity backend's)
+   * @param o.listMatrices  the scene's matrices from a flat list of it (engine/scene-matrices.js), not a walk down it
    */
-  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false, quietWalk = false } = {}) {
+  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false, quietWalk = false, listMatrices = false } = {}) {
     this.backend = backend;
     this.castsShadow = castsShadow;   // (o) → false: left out of the sun's shadow (the game's caster rules: shadows.js)
     this.forgetAfter = forgetAfter;
@@ -85,6 +87,7 @@ export class SceneMirror {
     this.prof = { matrices: 0, walk: 0, bones: 0, tail: 0, frame: 0, frames: 0 };
     this.profiling = false;
     this.freeze = freeze && !filter;
+    this.listMatrices = listMatrices;
     this.quietWalk = quietWalk;   // (a filter may change its mind about what is inside: walked each frame)
     this._frozen = []; this._frozenDirty = false; this._checkAt = 0;
     this.time = 0;            // the game's clock (sharedUniforms.uTime), set before sync: handed to instances()   // (the bones' share timed apart: costs a clock read a skinned mesh)
@@ -209,7 +212,7 @@ export class SceneMirror {
     const f = ++this.frameNo;
     const P = this.prof, now = () => performance.now();
     let t = now();
-    scene.updateMatrixWorld();
+    if (this.listMatrices) updateSceneMatrices(scene); else scene.updateMatrixWorld();
     camera?.updateMatrixWorld();
     P.matrices += now() - t; t = now();
     let n = 0, drawn = 0, tb = 0;

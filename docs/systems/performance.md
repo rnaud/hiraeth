@@ -1956,3 +1956,12 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   2.4 ms through `bones[i].matrixWorld` (the bones' shapes many: each load a megamorphic one in V8), 0.24 ms so. The
   City-Shaft's mirror 10 → 8 ms, the Market's 6.5 → 4.8; fps 45.1 / 45.6 / 41.0 → 47.0 / 49.2 / 41.0 (the wide view
   is the GPU's), the Market 70.5 / 74.9 / 76.5.
+- **The scene's matrices from a flat list** (engine/scene-matrices.js, the Unity backend's `listMatrices`): the
+  mirror's `scene.updateMatrixWorld()` (matrix-cache.js's walk, ~3 900 objects) read a dozen properties off each object,
+  megamorphic loads all. The scene is listed depth first once, with each object's position, quaternion, scale, the
+  numbers its matrix was composed from and its matrix and world matrix's elements in arrays of one kind; a frame runs
+  down the list (three reads off the object itself), and the list is made again, by the walk itself that frame,
+  whenever add, remove or attach ran anywhere (in the City-Shaft 1-2 frames in 300). An object with its own
+  updateMatrixWorld (cameras, skinned meshes, the part batches) is called as the walk would. The same matrices bit for
+  bit (tests/scene-matrices.test.js). City-Shaft matrices 3.2 → 2.4 ms, mirror 8 → 7; fps 47.7 / 50.8 / 41.0, the
+  desert 66.1 / 57.1, the Market 73.3 / 78.0 / 77.3.

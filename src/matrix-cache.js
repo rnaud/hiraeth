@@ -85,6 +85,12 @@ export function updateMatrixWorldCached(force) {
   } finally { if (counted) forcedWalk--; }
 }
 
+/** An object's own updateMatrixWorld called as a walk would call it, from inside one (engine/scene-matrices.js's list). */
+export function updateInWalk(o, force) {
+  walking++;
+  try { o.updateMatrixWorld(force); } finally { walking--; }
+}
+
 let installed = false;
 /** Once, at startup (main.js): every Object3D (and Camera, Bone… through super) walks with the cache. */
 export function installMatrixCache(proto = THREE.Object3D.prototype) {

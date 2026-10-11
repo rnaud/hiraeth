@@ -17,6 +17,8 @@ export class UnityBackend {
     this.host = host;
     // (the mirror's quiet walk: the still drawables looked at in full every 4th frame, engine/mirror.js QUIET_AFTER)
     this.quietWalk = true;
+    // (the scene's matrices from a flat list of it, engine/scene-matrices.js: the walk's reads were megamorphic ones)
+    this.listMatrices = true;
     // (an IL2CPP player takes buffers boxed, { b }: BridgeHost.BoxBuffers)
     this.toHost = host.BoxBuffers?.() ? (b) => ({ b }) : (b) => b;
     this.geoms = new Map();    // gid → the mirror's geometry (uploaded per variant when a node needs it)

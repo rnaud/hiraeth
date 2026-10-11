@@ -8,12 +8,15 @@ import { createGame } from '../game.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
 import { installMatrixCache } from '../../src/matrix-cache.js';
+import { watchSceneEdits } from '../scene-matrices.js';
 
 // The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
 // entered below the root forced, reparented objects forced and updateMatrix remembered), for the walk over the whole
 // scene (the mirror's updateMatrixWorld: ~4 200 objects a frame at the desert's spawn, ~13 % of them moved).
 // tests/pose-exact.test.js: every bone the same as three's own walk.
 installMatrixCache();
+// (and the scene graph's edits counted, so the mirror's flat list of the scene knows when to be made again: engine/scene-matrices.js)
+watchSceneEdits();
 
 let S = null;
 const now = () => host.Now();

@@ -387,7 +387,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const noShadow = new Set();
   for (const r of [...(level.noShadow ?? []), ...(player.gear?.noShadow ?? [])]) r?.traverse?.((o) => noShadow.add(o));
   const castsShadow = (o) => !noShadow.has(o) && !selfLitSkips(o);
-  const mirror = new SceneMirror(backend, { castsShadow, quietWalk: !!backend.quietWalk });
+  const mirror = new SceneMirror(backend, { castsShadow, quietWalk: !!backend.quietWalk, listMatrices: !!backend.listMatrices });
   // a conversation's portrait (src/story/index.js portrait, main.js captureView with keep): the engine draws the kept
   // objects alone against the backdrop, from eye toward look; the panel shows it by the name returned
   let portraits = 0;
