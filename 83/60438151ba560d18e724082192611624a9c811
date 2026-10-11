@@ -1,0 +1,125 @@
+changelog.html
+  s_9ca76055a220ed::t_ceff0d08b21a15 38,40-42,148,154
+changelog.md
+  s_9ca76055a220ed::t_aeff67a2877c0c 13
+  s_9ca76055a220ed::t_1042d364937870 7-8
+docs/systems/changelog.md
+  s_9ca76055a220ed::t_0b281addd25392 37-49
+src/changelog-media.js
+  s_9ca76055a220ed::t_6f0ebb11d5b8b3 655-657
+  s_9ca76055a220ed::t_8b2101a2b88815 624-654
+src/changelog-page/main.js
+  s_9ca76055a220ed::t_aae5246444f697 10-12,22,202-220,228,243
+src/changelog-refresh.js
+  s_9ca76055a220ed::t_6479975b333e54 1-62
+src/changelog.js
+  s_9ca76055a220ed::t_df192857ff88b1 44-45,2498,2500-2501
+  s_9ca76055a220ed::t_659cf5245f69ea 69-71
+src/main.js
+  s_9ca76055a220ed::t_a5a3447a28b40f 1217-1220,1229
+  s_9ca76055a220ed::t_c7932c2a2cc7b8 124,156-158,177,639-640,2436-2437,2443
+tests/changelog-refresh.test.js
+  s_9ca76055a220ed::t_42973661ea2427 1-88
+tests/shard-timings.json
+  s_9ca76055a220ed::t_5ee0de75eced89 57,74,77,110,155,175,185,193,197,219,235,378
+  s_9ca76055a220ed::t_32ee6d8e8a69e1 28,42,50,63-64,70,79,108,111,308-312,337,347,354,413
+tests/updates.test.js
+  s_9ca76055a220ed::t_97ed629c0767d2 198-199
+  s_9ca76055a220ed::t_77303eabac21c2 182
+docs/systems/performance.md
+  s_9ca76055a220ed::t_700198ad121777 1056-1061
+docs/systems/ui.md
+  s_9ca76055a220ed::t_7c9d7793c593eb 211-248,278
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_449afde4333a72 218-221
+public/title-vectors/A4.svg
+  s_9ca76055a220ed::t_97cca4e12fdc0f 1
+public/title-vectors/B4.svg
+  s_9ca76055a220ed::t_bd193533e27790 1
+public/title-vectors/E3.svg
+  s_9ca76055a220ed::t_cd8c71e23e555e 1
+public/title-vectors/F1.svg
+  s_9ca76055a220ed::t_9e00548446be83 1
+public/title-vectors/G4.svg
+  s_9ca76055a220ed::t_f40a030ab95afe 1
+public/title-vectors/H1.svg
+  s_9ca76055a220ed::t_e5b3bee5fcdb4d 1
+public/title-vectors/I1.svg
+  s_9ca76055a220ed::t_7b6becbc305ad7 1
+public/title-vectors/J3.svg
+  s_9ca76055a220ed::t_00441b74f56f2c 1
+public/title-vectors/K4.svg
+  s_9ca76055a220ed::t_f220a17b6842f5 1
+public/title-vectors/L3.svg
+  s_9ca76055a220ed::t_2e301e5cacd64b 1
+public/title-vectors/M1.svg
+  s_9ca76055a220ed::t_5124909a128958 1
+public/title-vectors/N4.svg
+  s_9ca76055a220ed::t_2446dfbd54560e 1
+public/title-vectors/O1.svg
+  s_9ca76055a220ed::t_a90295be84d8d3 1
+public/title-vectors/P1.svg
+  s_9ca76055a220ed::t_2e755fe1ee373c 1
+scripts/title-boot.mjs
+  s_9ca76055a220ed::t_b70cdf81906a84 1-109
+scripts/title-shots.mjs
+  s_9ca76055a220ed::t_0f0ff0cd4fadcb 12-13,32,53,123
+scripts/title-trace.mjs
+  s_9ca76055a220ed::t_512c956eb665d0 1-415
+scripts/title-vectors.mjs
+  s_9ca76055a220ed::t_73bfdc8c1be28b 1-115
+src/boot.js
+  s_9ca76055a220ed::t_5602ea9ce5e423 12-14,29-30,33-35,44,59,68-71,73-74
+src/feel.js
+  s_9ca76055a220ed::t_51b5ed8fc79ad2 19-21,51,77,90-93
+src/menus.css
+  s_9ca76055a220ed::t_f01c3a996ba5c4 13-20,23-25,29-32,35-56,63-64
+src/save-slots.js
+  s_9ca76055a220ed::t_ce2254f4c5f087 56,65-78,121-128
+src/title-hold.js
+  s_9ca76055a220ed::t_584ff46cb4e02f 1-88
+src/title-paint.js
+  s_9ca76055a220ed::t_622a672b794392 1-72
+src/title-world.js
+  s_9ca76055a220ed::t_6bf5e622f3e1df 110,132
+src/title.js
+  s_9ca76055a220ed::t_6df24ef98d51f0 3-7,9-12,35,41,45-50,119,136-141,143,149,152-155,157-160,175-177,184-185,189-190,260,266-286,315,431-433,442-443,445-465,476,480,482,484
+src/ui.js
+  s_9ca76055a220ed::t_5826438a4bf825 2
+src/update-panel.js
+  s_9ca76055a220ed::t_b60109df116958 14
+src/version.js
+  s_9ca76055a220ed::t_94187f910c871e 1-6
+tests/first-run.test.js
+  s_9ca76055a220ed::t_4d7ee5eb8c5b49 37
+tests/load-awaits.test.js
+  s_9ca76055a220ed::t_b9d9e0f04ce276 41
+tests/menus.test.js
+  s_9ca76055a220ed::t_b66bb6abd9fca6 18,22
+tests/title-paint.test.js
+  s_9ca76055a220ed::t_bd99e086117483 1-4,8-10,12-15,19-79,82-113,115-124,126-128,131-167,170-193,196-216,219-273
+tests/title-ready.test.js
+  s_9ca76055a220ed::t_47536c2950bc6e 17,27-30
+tests/title-shots.test.js
+  s_9ca76055a220ed::t_a21753a7995e9e 66
+tests/title-world.test.js
+  s_9ca76055a220ed::t_6532ff57e8201b 12,21-23
+vite.config.js
+  s_9ca76055a220ed::t_adea3675b4924a 2,56-69,80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8360438151ba560d18e724082192611624a9c811",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
