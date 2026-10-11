@@ -1,0 +1,57 @@
+.claude/skills/combat-review/defend.mjs
+  s_9ca76055a220ed::t_b4043f3d078b74 1-144
+.claude/skills/combat-review/SKILL.md
+  s_9ca76055a220ed::t_fb3bd808388a07 67-77
+  s_9ca76055a220ed::t_be6aa819fa3570 48-57,86-96
+scripts/combat-review/lib.mjs
+  s_9ca76055a220ed::t_b902286809f112 220-224,232-236
+  s_9ca76055a220ed::t_a295582ac6d1c9 237-285
+tests/motion-qc.test.js
+  s_9ca76055a220ed::t_e2348b79435141 90-91,94-123
+docs/systems/animation.md
+  s_9ca76055a220ed::t_1ff257408e6f5f 656-693
+src/post.js
+  s_9ca76055a220ed::t_cbbd86813f5086 99,104,108-109,118-119,122-131,143-149,658-659,662-664,667,691
+tests/combat-review.test.js
+  s_9ca76055a220ed::t_42279057ed3a19 70-90
+  s_9ca76055a220ed::t_017dbbffcac00b 91-105
+.claude/skills/motion-qc/SKILL.md
+  s_9ca76055a220ed::t_e81c16e87dea92 82-87,96-98
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_9ca76055a220ed::t_af96cd96df4d88 215-216,220-222,225,265-273
+tests/mocap.test.js
+  s_9ca76055a220ed::t_cff74a05db0295 244-245
+src/changelog.js
+  s_9ca76055a220ed::t_8394d2a8bd522d 77-87
+  s_9ca76055a220ed::t_421dc72bab0aec 61-76
+src/feet.js
+  s_9ca76055a220ed::t_13e48ec66551b6 35,42-43,46-47,50,75-90,114,121-122,140,256-259,261,266,280-281,351-356,374-382,384-390,392,394-396,409,417
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_5297f75f1d2310 646-658
+changelog.md
+  s_9ca76055a220ed::t_d746657d2a8c77 8
+  s_9ca76055a220ed::t_a2dd60798c5574 7
+src/animator.js
+  s_9ca76055a220ed::t_1f3956286c186b 66-150,162-163
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_d76c73f9c6c5ee 8,36,75-81,83-84,132-133,361-363,370-374,421-423
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_eaf528f84d370b 31,45-58,150-205,235,300-317,319,510
+  s_9ca76055a220ed::t_323556d00d7109 140,342-350,355,363-404,408-412,426-433,435
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "70c5c5b3f4f0a2fecb8f643c4aa2e45bdb48fd8b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
