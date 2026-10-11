@@ -14,7 +14,10 @@ name: Unity release (Xbox, Developer Mode)
 #   the WebView2 app's certificate (XBOX_PFX_BASE64, as xbox.yml), its identity rnaud.HiraethUnity so it installs
 #   next to rnaud.Hiraeth.
 # - Published to the prerelease unity-xbox (never the latest): memento-unity-xbox.zip (the .msix, its .cer and the
-#   dependency .appx files). The run keeps the same files as an artifact for a week.
+#   dependency .appx files), from main only. The run keeps the same files as an artifact for a week.
+# - Cached (docs/systems/xbox.md, "The workflow's caches"): Puerts and its UWP natives, Unity's Library, the glue (on
+#   what it is made from), IL2CPP's objects for msbuild (on the C++ Unity wrote, restored from the newest); the
+#   editor image is pulled in the background from the job's start.
 # When: a push that touches the Unity side or this workflow, and by hand. Licensed as the other Unity jobs (UNITY_EMAIL,
 # UNITY_PASSWORD; a Personal seat), on windows-2022 (GameCI's Windows containers; Visual Studio's C++ UWP tools).
 
@@ -44,8 +47,10 @@ permissions:
   contents: write
   actions: write   # (scripts/unity-ci-cache-prune.sh deletes the caches a new entry replaces)
 
+# (a push waits for the push before it, the newest pending one replacing an older; a run by hand is a group of its
+# own, so a push never replaces a pending test build, nor one test build another)
 concurrency:
-  group: unity-xbox
+  group: unity-xbox-${{ github.event_name == 'workflow_dispatch' && format('dispatch-{0}', github.run_id) || 'push' }}
   cancel-in-progress: false
 
 env:
@@ -73,6 +78,11 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # (the build number counts the commits: release-info.mjs build)
+
+      # (GameCI's Windows editor with the UWP module: about 8 minutes to pull, while the next steps run; Docker's
+      # engine waited for and started first, as a runner once came up without it)
+      - name: The editor image (pulled in the background)
+        run: ./scripts/unity-uwp-docker.ps1 start "unityci/editor:windows-$env:UNITY_VERSION-universal-windows-platform-3"
 
       - uses: actions/setup-node@v5
         with:
@@ -125,6 +135,12 @@ jobs:
           restore-keys: |
             unity-library-xbox-
 
+      # (keyed on what the glue is made from: Puerts' configuration in the C#, BridgeBuild.GenerateGlue, the packages;
+      # not every C# file, as the script reaches the rest by reflection: scripts/unity-glue-key.mjs)
+      - name: Puerts' IL2CPP glue (its key)
+        id: gluekey
+        run: '"hash=$(node scripts/unity-glue-key.mjs)" >> $env:GITHUB_OUTPUT'
+
       - name: Puerts' IL2CPP glue (cached)
         id: glue
         uses: actions/cache@v4
@@ -132,7 +148,7 @@ jobs:
           path: |
             ${{ env.PROJECT }}/Assets/Gen
             ${{ env.PROJECT }}/Assets/Gen.meta
-          key: puerts-glue-xbox-3.0.3-v8-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
+          key: puerts-glue-xbox-3.0.3-v8-${{ env.UNITY_VERSION }}-${{ steps.gluekey.outputs.hash }}
 
       - name: Version
         id: meta
@@ -140,6 +156,9 @@ jobs:
           "version=$(node scripts/release-info.mjs version)" >> $env:GITHUB_OUTPUT
           "build=$(node scripts/release-info.mjs build)" >> $env:GITHUB_OUTPUT
           "package=$(node scripts/xbox-package.mjs version)" >> $env:GITHUB_OUTPUT
+
+      - name: The editor image
+        run: ./scripts/unity-uwp-docker.ps1 wait
 
       - name: Puerts' IL2CPP glue
         id: gluebuild
@@ -299,7 +318,24 @@ jobs:
           Write-Host $manifest.FullName
           Select-String -Path $manifest.FullName -Pattern '<Identity|TargetDeviceFamily|DisplayName'
 
+      # IL2CPP's C++ compiled incrementally (10 minutes from nothing on the runner's 4 cores): its objects and bee's
+      # state (build\obj) restored from the newest entry for this Unity and configuration, keyed on the C++ Unity
+      # wrote (an exact hit compiles nothing and saves nothing), the unchanged sources given back the time they had
+      # when those objects were built (scripts/unity-uwp-obj-times.ps1), saved when the key moved, the older deleted
+      - name: IL2CPP's objects (restore)
+        id: objcache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.PROJECT }}/Builds/unity-xbox/build/obj
+          key: il2cpp-obj-xbox-${{ env.UNITY_VERSION }}-${{ env.MSCONFIG }}-${{ hashFiles('unity/Memento/Builds/unity-xbox/Il2CppOutputProject/Source/**', 'unity/Memento/Builds/unity-xbox/*/*.vcxproj', 'unity/Memento/Builds/unity-xbox/*.props', 'unity/Memento/Builds/unity-xbox/HiraethUnity/*.cpp', 'unity/Memento/Builds/unity-xbox/HiraethUnity/*.h') }}
+          restore-keys: |
+            il2cpp-obj-xbox-${{ env.UNITY_VERSION }}-${{ env.MSCONFIG }}-
+
+      - name: IL2CPP's objects (the unchanged sources' times)
+        run: ./scripts/unity-uwp-obj-times.ps1 restore "$env:PROJECT\Builds\unity-xbox"
+
       - name: Build and package (msbuild, Master x64)
+        id: msbuild
         env:
           MSBUILD: ${{ steps.tools.outputs.msbuild }}
         run: |
@@ -312,6 +348,30 @@ jobs:
             -p:AppxPackageDir=$pkgDir -bl:out\msbuild.binlog
           if ($LASTEXITCODE) { throw "msbuild failed ($LASTEXITCODE): see the errors above, or msbuild.binlog in the run's artifact" }
           Get-ChildItem out\AppPackages -Recurse -Include *.msix, *.appx | ForEach-Object { Write-Host ("{0} ({1:N1} MB)" -f $_.FullName, ($_.Length / 1MB)) }
+
+      - name: IL2CPP's objects (the sources' times recorded)
+        id: objrecord
+        if: always() && steps.msbuild.outcome == 'success' && steps.objcache.outputs.cache-hit != 'true'
+        run: |
+          ./scripts/unity-uwp-obj-times.ps1 record "$env:PROJECT\Builds\unity-xbox"
+          Get-ChildItem "$env:PROJECT\Builds\unity-xbox\build\obj" -Directory | ForEach-Object { "{0,8:N0} MB  {1}" -f ((Get-ChildItem $_.FullName -Recurse -File | Measure-Object Length -Sum).Sum / 1MB), $_.Name }
+
+      - name: IL2CPP's objects (save)
+        if: always() && steps.objrecord.outcome == 'success'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.PROJECT }}/Builds/unity-xbox/build/obj
+          key: ${{ steps.objcache.outputs.cache-primary-key }}
+
+      - name: IL2CPP's objects (the older entries deleted)
+        if: always() && steps.objrecord.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.objcache.outputs.cache-primary-key }}
+        run: scripts/unity-ci-cache-prune.sh "il2cpp-obj-xbox-$UNITY_VERSION-$MSCONFIG-" "$KEY"
 
       - name: Sign the package
         env:
@@ -360,8 +420,9 @@ jobs:
           retention-days: 3
           if-no-files-found: warn
 
+      # (main's builds only: a test build from a branch stays an artifact)
       - name: Publish to the release unity-xbox
-        if: env.GFX == 'Direct3D11' && env.DEV == ''
+        if: github.ref == 'refs/heads/main' && env.GFX == 'Direct3D11' && env.DEV == ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

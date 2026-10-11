@@ -391,7 +391,26 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   Windows editor with the UWP module (Puerts' glue, then the
   solution), the package's identity written into Unity's manifest, `msbuild` (Master, x64, sideload, unsigned),
   `signtool` with the WebView2 app's certificate (`XBOX_PFX_BASE64`), published to the prerelease **`unity-xbox`**
-  as `memento-unity-xbox.zip` (the `.msix`, its `.cer`, the dependency `.appx` files).
+  as `memento-unity-xbox.zip` (the `.msix`, its `.cer`, the dependency `.appx` files), from `main` only (a run
+  by hand from a branch keeps the artifact). A run by hand is a concurrency group of its own: a push never replaces it.
+- **The workflow's caches.** A cold run is about 37 minutes: the editor image's pull 8.5, the glue's editor run 2,
+  the solution's 2, IL2CPP's C++ in msbuild 11 (1,220 files at `/Ox` on 4 cores; `Il2CppCompilerConfiguration.Release`
+  whatever msbuild's configuration, no `/GL` or LTCG, so Release instead of Master would not shorten it).
+  - The editor image is pulled in the background from the job's start (`scripts/unity-uwp-docker.ps1 start`; `wait`
+    before the first editor run, pulled again if it failed), after Docker's engine is waited for and started (a
+    runner once had none: "failed to connect to the docker API", both editor runs gone in seconds).
+  - `puerts-glue-xbox-3.0.3-v8-<Unity>-<hash>`: `scripts/unity-glue-key.mjs` hashes what the minimal bridge is made
+    from (Puerts' `[Configure]`/`[Binding]` lines and `UsingAction`/`UsingFunc` calls in the C#, `GenerateGlue`,
+    the packages), not every `.cs`, so a C# edit no longer makes the glue again.
+  - `il2cpp-obj-xbox-<Unity>-<Master|Release>-<hash of the C++ Unity wrote>`: `Builds/unity-xbox/build/obj` (bee's
+    state and IL2CPP's objects, the app's), restored from the newest after Unity writes the solution; an exact hit
+    compiles nothing. Unity writes every source anew, so `scripts/unity-uwp-obj-times.ps1 restore` gives each file
+    whose content is unchanged the time it had when the cached objects were built (`record`, after msbuild, into
+    `build/obj/sources.tsv`): only the changed C++ is compiled. Saved when the key moved, the older pruned.
+  - `scripts/unity-ci-cache-prune.sh` deletes only the run's own branch's entries, older than the one it keeps.
+  - Measured (October 2026, runs 38164706707, 38167510853, 38166569598): cold 25.5 minutes (msbuild 8.6); a C#
+    edit 16.7 (15 C++ files changed, bee 52 s, msbuild 83 s, the glue a hit); nothing changed 12.7 (msbuild 28 s).
+    The obj entry is about 0.7 GB (3.9 GB unpacked).
 - **The numbers** (`BridgeMetrics`, on in the UWP build, `-metrics` elsewhere): `LocalState\unity.log`, new each launch
   (the last in `unity.prev.log`), and a readout at the top left. The load's stages apart: `script's engine made`,
   `the bundle loaded in`, `Memento.start returned in`, `load: first node` (the first mirrored object), `load: world

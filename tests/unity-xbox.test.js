@@ -40,7 +40,67 @@ test('the workflow builds the UWP solution with GameCI on Windows, then packages
   assert.match(workflow, /scripts\/unity-publish\.sh xbox out\/memento-unity-xbox\.zip/);
   assert.match(workflow, /key: unity-library-xbox-/);
   assert.match(workflow, /scripts\/unity-ci-cache-prune\.sh unity-library-xbox- "\$KEY"/);
-  assert.doesNotMatch(workflow, /github\.run_id/);   // (no cache key that changes every run)
+  for (const k of workflow.match(/^\s*key: .*$/gm)) assert.doesNotMatch(k, /github\.run_(id|number)|github\.sha/, 'no cache key that changes every run');
+});
+
+test('the Xbox build\'s caches: the glue on what it is made from, IL2CPP\'s objects for msbuild, the image pulled early', () => {
+  // the glue: keyed on Puerts' configuration, GenerateGlue and the packages (scripts/unity-glue-key.mjs), not every .cs
+  assert.match(workflow, /"hash=\$\(node scripts\/unity-glue-key\.mjs\)" >> \$env:GITHUB_OUTPUT/);
+  assert.match(workflow, /key: puerts-glue-xbox-3\.0\.3-v8-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ steps\.gluekey\.outputs\.hash \}\}\n/);
+  assert.match(workflow, /id: gluebuild\n {8}if: steps\.glue\.outputs\.cache-hit != 'true'/);
+  // IL2CPP's objects and bee's state: restored from the newest for this Unity and configuration, the unchanged
+  // sources' times put back before msbuild, recorded after it, saved when the C++ moved, the older deleted
+  assert.match(workflow, /path: \$\{\{ env\.PROJECT \}\}\/Builds\/unity-xbox\/build\/obj\n {10}key: il2cpp-obj-xbox-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ env\.MSCONFIG \}\}-\$\{\{ hashFiles\('unity\/Memento\/Builds\/unity-xbox\/Il2CppOutputProject\/Source\/\*\*'/);
+  assert.match(workflow, /restore-keys: \|\n {12}il2cpp-obj-xbox-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ env\.MSCONFIG \}\}-\n/);
+  const at = (s) => { const i = workflow.indexOf(s); assert.ok(i > 0, s); return i; };
+  assert.ok(at('unity-uwp-obj-times.ps1 restore') < at('& $env:MSBUILD') && at('& $env:MSBUILD') < at('unity-uwp-obj-times.ps1 record'));
+  assert.ok(at('id: solutionagain') < at('id: objcache'), 'restored after Unity wrote the solution');
+  assert.match(workflow, /run: scripts\/unity-ci-cache-prune\.sh "il2cpp-obj-xbox-\$UNITY_VERSION-\$MSCONFIG-" "\$KEY"/);
+  const times = read('scripts/unity-uwp-obj-times.ps1');
+  assert.match(times, /Get-FileHash -Algorithm MD5/);
+  assert.match(times, /\$f\.LastWriteTimeUtc = \[DateTime\]::new\(\[long\]\$p\[3\]/);
+  // the editor image pulled in the background from the start (Docker's engine waited for), waited for before the first editor run
+  assert.ok(at('unity-uwp-docker.ps1 start "unityci/editor:windows-$env:UNITY_VERSION-universal-windows-platform-3"') < at('uses: actions/setup-node@v5'));
+  assert.ok(at('unity-uwp-docker.ps1 wait') < at('uses: game-ci/unity-builder@v6'));
+  const docker = read('scripts/unity-uwp-docker.ps1');
+  assert.match(docker, /Start-Service docker/);
+  assert.match(docker, /Start-Process pwsh [^\n]*-EncodedCommand/);
+  // a run by hand never waits behind (nor is replaced by) a push; only main's builds are published
+  assert.match(workflow, /group: unity-xbox-\$\{\{ github\.event_name == 'workflow_dispatch' && format\('dispatch-\{0\}', github\.run_id\) \|\| 'push' \}\}/);
+  assert.match(workflow, /if: github\.ref == 'refs\/heads\/main' && env\.GFX == 'Direct3D11' && env\.DEV == ''\n[^\n]*\n[^\n]*\n[^\n]*\n[^\n]*\n {8}run: scripts\/unity-publish\.sh xbox/);
+  // the prune keeps to the run's branch and to the entries older than the one it keeps
+  const prune = read('scripts/unity-ci-cache-prune.sh');
+  assert.match(prune, /\$\{GITHUB_REF:\+--ref "\$GITHUB_REF"\}/);
+  assert.match(prune, /\$2 < t/);
+});
+
+test('the glue\'s key moves with Puerts\' configuration and GenerateGlue, not with the rest of the C#', async () => {
+  const { glueKey } = await import('../scripts/unity-glue-key.mjs');
+  const { mkdtempSync, mkdirSync, writeFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const dir = mkdtempSync(join(tmpdir(), 'glue-key-'));
+  mkdirSync(join(dir, 'Assets', 'MementoJS', 'Editor'), { recursive: true });
+  mkdirSync(join(dir, 'Assets', 'Gen'), { recursive: true });
+  mkdirSync(join(dir, 'Packages'));
+  writeFileSync(join(dir, 'Packages', 'manifest.json'), '{}');
+  const bb = (patch) => `class B {\n        static bool GenerateGlue()\n        {\n            ${patch}\n        }\n\n        static void Il2Cpp() { }\n}\n`;
+  writeFileSync(join(dir, 'Assets', 'MementoJS', 'Editor', 'BridgeBuild.cs'), bb('Unbox();'));
+  writeFileSync(join(dir, 'Assets', 'Runner.cs'), 'class R { void Update() { a(); } }\n');
+  const k0 = glueKey(dir, 'self');
+  writeFileSync(join(dir, 'Assets', 'Runner.cs'), 'class R { void Update() { a(); b(); } }\n');
+  writeFileSync(join(dir, 'Assets', 'Gen', 'Glue.cs'), '[Configure] class G {}\n');
+  writeFileSync(join(dir, 'Assets', 'MementoJS', 'Editor', 'BridgeBuild.cs'), bb('Unbox();') + 'class C { void X() {} }\n');
+  assert.equal(glueKey(dir, 'self'), k0, 'a C# edit elsewhere, Assets/Gen itself');
+  writeFileSync(join(dir, 'Assets', 'Runner.cs'), 'class R { void Update() { env.UsingAction<int>(); } }\n');
+  const k1 = glueKey(dir, 'self');
+  assert.notEqual(k1, k0, 'a UsingAction');
+  writeFileSync(join(dir, 'Assets', 'Cfg.cs'), '[Puerts.Configure] public class Cfg { [Binding] static IEnumerable<Type> B => null; }\n');
+  const k2 = glueKey(dir, 'self');
+  assert.notEqual(k2, k1, 'a [Configure] class');
+  writeFileSync(join(dir, 'Assets', 'MementoJS', 'Editor', 'BridgeBuild.cs'), bb('GetRawData();'));
+  assert.notEqual(glueKey(dir, 'self'), k2, 'GenerateGlue');
+  assert.notEqual(glueKey(dir, 'self2'), glueKey(dir, 'self'), 'the key script itself');
 });
 
 test('the package installs next to the WebView2 app, never over it, to a prerelease of its own', () => {
