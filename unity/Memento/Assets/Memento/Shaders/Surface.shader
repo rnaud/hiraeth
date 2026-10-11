@@ -714,6 +714,14 @@ Shader "Memento/Surface"
           vmColor = float4(i.vm1.xyz, 1); vmColor2 = float4(i.vm2.xyz, 1); vmColor3 = float4(i.vm3.xyz, 1);
           vmStrataSize = i.vm1.w; vmGrid = i.vm2.w; vmFlat = i.vm3.w;
         #endif
+        // (-surface-debug 9: nothing of the shader but its plain colour, normal and view depth, at once: whether a surface that
+        // goes missing on the Xbox is drawn at all)
+        UNITY_BRANCH if (_MSurfaceDebug > 8.5)
+        {
+          GBufferOut d;
+          d.albedoLight = float4(_Color.rgb, 1); d.normalDepth = float4(normalize(i.normal), i.viewDepth); d.hatch = 0;
+          return d;
+        }
         int mode = (int)(_Mode + 0.5);
         // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
         if (LEANK && _Glass > 0.0 && _MSurfaceDebug < 3.5)

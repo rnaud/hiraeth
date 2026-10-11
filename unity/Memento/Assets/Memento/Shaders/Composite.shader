@@ -535,6 +535,14 @@ Shader "Hidden/Memento/Composite"
         }
 
         int dbg = (int)(_Debug + 0.5);
+        if (dbg == 11)
+        {
+          // (what the G-buffer holds where the composite sees sky: red a depth under 0, green a normal with a depth of 0, blue
+          // nothing written (the clear); grey a surface)
+          if (N.w > 0.0) return float4(0.5, 0.5, 0.5, 1);
+          if (N.w < 0.0) return float4(1, 0, 0, 1);
+          return any(N.xyz != 0.0) ? float4(0, 1, 0, 1) : float4(0, 0, 0.6, 1);
+        }
         if (dbg == 10)
         {
           // (a NaN in the G-buffer, read by its bits (the compiler may take x != x for false): red the depth's (or none, the
