@@ -211,6 +211,7 @@ namespace Memento.EditorTools
             // (-graphicsApi Direct3D12: the A/B, unity-xbox.yml's graphics_api; Direct3D11, what ANGLE draws through there, by default)
             var api = Arg("-graphicsApi") == "Direct3D12" ? GraphicsDeviceType.Direct3D12 : GraphicsDeviceType.Direct3D11;
             PlayerSettings.SetGraphicsAPIs(BuildTarget.WSAPlayer, new[] { api });
+            if (api == GraphicsDeviceType.Direct3D12) AllowD3D12AtFeatureLevel11();
             var icon = IconTexture("icon-512.png", ReleaseIcon);
             if (icon != null) PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
             // the UWP build's own settings (by name: they moved between Unity versions, and an editor without the module has none)
@@ -222,6 +223,37 @@ namespace Memento.EditorTools
             try { EditorUserBuildSettings.SetPlatformSettings("WindowsStoreApps", "Architecture", "x64"); } catch (Exception e) { Debug.LogWarning("Memento: Architecture: " + e.Message); }
             Debug.Log($"Memento: the Xbox's UWP solution: {XboxPackage} {PlayerSettings.bundleVersion}, IL2CPP x64, {api}, into {outPath}");
             Build(BuildTarget.WSAPlayer, outPath);
+        }
+
+        /// <summary>
+        /// Unity 6 lets a device use D3D12 only from feature level 12.2 (its default D3D12 device filters); a UWP app on the
+        /// Xbox gets D3D12 at 11_0 (shader model 6.4), so Unity fell back to D3D11. An allow entry for 11.0 and up, the
+        /// project's D3D12 device filter asset (Assets/MementoJS/Editor/XboxD3D12.d3d12devicefilter), for the A/B.
+        /// (By reflection: the filter data's fields and the player setting are not all public.)
+        /// </summary>
+        static void AllowD3D12AtFeatureLevel11()
+        {
+            try
+            {
+                var lists = new D3D12DeviceFilterLists();
+                var data = new D3D12DeviceFilterData();
+                object boxed = data;
+                var t = typeof(D3D12DeviceFilterData);
+                var fl = t.GetField("featureLevel");
+                if (fl != null) fl.SetValue(boxed, fl.FieldType == typeof(string) ? "11.0" : Convert.ChangeType(11.0, fl.FieldType));
+                var flc = t.GetField("featureLevelComparator");
+                if (flc != null) flc.SetValue(boxed, Enum.Parse(flc.FieldType, "GreaterThanOrEqualTo"));
+                var allow = Array.CreateInstance(t, 1); allow.SetValue(boxed, 0);
+                typeof(D3D12DeviceFilterLists).GetProperty("d3D12DeviceAllowFilters").SetValue(lists, allow);
+                const string path = "Assets/MementoJS/Editor/XboxD3D12.d3d12devicefilter";
+                AssetDatabase.DeleteAsset(path);
+                AssetDatabase.CreateAsset(lists, path);
+                AssetDatabase.SaveAssets();
+                var prop = typeof(PlayerSettings).GetProperty("d3D12DeviceFilterListAsset", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                if (prop != null) prop.SetValue(null, AssetDatabase.LoadAssetAtPath<D3D12DeviceFilterLists>(path));
+                Debug.Log($"Memento: D3D12 allowed from feature level 11.0 ({path}; the player setting {(prop != null ? "set" : "not found")})");
+            }
+            catch (Exception e) { Debug.LogWarning("Memento: the D3D12 device filter: " + e); }
         }
 
         static void Wsa(string name, object value)
