@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
-import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Iris, Mark, Pit, Updraft } from './pieces.js';
+import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Iris, Mark, Pit, Updraft, Key } from './pieces.js';
 import { sentinelModel } from './guardians.js';
 import { items } from '../items.js';
 import { t as tr } from '../i18n.js';
@@ -31,7 +31,12 @@ import { registerTarget } from '../targets.js';
 //                          turns: splash it, and go before it slows (the vane, taught where failing costs a wait)
 //   the Climb              a round well: climb its wall to the balcony. The stone ball's groove there crosses a slot
 //                          whose stones stand only while the vane in the well's floor, far below, turns: splash it,
-//                          then roll the ball over the slot before it stops (the vane with the push)
+//                          then roll the ball over the slot before it stops (the vane with the push). The hub since
+//                          v1.48 (issue #23): the door at the balcony's end wants two small keys too, one from each wing:
+//   the Ash Store          (west, an arena) the tower's old ash banked by its walls; its door shuts behind you while its
+//                          keepers stand
+//   the Vane Room          (east) a chasm whose stones stand only while the small vane on its far wall turns: splash it
+//                          from this side, and cross before it slows
 //   the Bellows Chamber    the makers' chest: the WARDEN'S BELLOWS, the wings' third strength (src/items.js 'wardenbellows';
 //                          room id 'jets', from when it held the jets). Lifting them out unstops the plinth: a draught
 //                          rises up through the oculus in the ceiling, the only way on (the wings in rising air)
@@ -95,15 +100,20 @@ export const PALETTE = {
  * long its hatch stays up in its last two phases (s: time to fly to the vane and hover); `breath`: how high the thin breath
  * through a great vane rises (m: it bears open wings and holds you over the vane, within its reach).
  */
-export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 15, breath: 9 };
+export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 15, breath: 9, wing: 12 };
 export const HALL = { vane: 10, reach: 13, near: 8, back: 5, drift: 2.2, hit: 0.125, washed: 0.25, open: [null, 5.5, 7], breath: 10 };
 
 export const LOGIC = {
   id: 'incal', entry: 'threshold', gadget: 'wardenbellows',
-  rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, warden: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, store: { checkpoint: true }, vane: { checkpoint: true }, vaneFar: {}, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, warden: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'turning' },
     { a: 'turning', b: 'climb', door: 'discs' },    // the riding discs, only while the vane over the far door turns
+    // the Climb is the hub (v1.48): west the Ash Store (an arena), east the Vane Room; the door at the balcony's end
+    // wants a small key from each, and the ball on its plate
+    { a: 'climb', b: 'store', door: 'dW' },         // (open: it shuts behind you while its keepers stand)
+    { a: 'climb', b: 'vane' },
+    { a: 'vane', b: 'vaneFar', door: 'vb' },        // the chasm's stones, only while the far wall's vane turns
     { a: 'climb', b: 'jets', door: 'd1' },          // the ball on its plate, rolled over the slot while the well's vane turned
     { a: 'jets', b: 'gallery', needs: ['wardenbellows'] }, // up through the oculus, on the draught the chest unstops
     { a: 'gallery', b: 'loft', door: 'iris' },      // the iris in the gallery's ceiling: the eye whose lids the great vane lifts
@@ -120,7 +130,15 @@ export const LOGIC = {
     slot: { type: 'bridge', opens: { lit: 'v2' } },
     ball1: { type: 'drum', room: 'climb', plate: 'p1', plateAt: 1, start: 0, gap: 'slot' },
     p1: { type: 'plate', room: 'climb' },
-    d1: { type: 'door', opens: { pressed: 'p1' }, latch: true },
+    d1: { type: 'door', lock: 'small', keys: 2, opens: { pressed: 'p1' }, latch: true },
+    // the Ash Store: its keepers beaten, the small key's cage sinks
+    arW: { type: 'arena', room: 'store' },
+    kW: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arW' } },
+    dW: { type: 'door', opens: null },
+    // the Vane Room: the small vane across the chasm, splashed from this side; cross on its stones before it slows
+    vR: { type: 'vane', room: 'vane' },
+    vb: { type: 'bridge', opens: { lit: 'vR' } },
+    kE: { type: 'key', kind: 'small', room: 'vaneFar' },
     chest: { type: 'gadget', room: 'jets', item: 'wardenbellows' },
     // the gallery: the great vane (only the bellows' wash turns it) lifts the lids of the eye over the west shelf
     vG: { type: 'vane', room: 'gallery', needs: ['wardenbellows'] },
@@ -232,6 +250,57 @@ class UpGuide {
   dispose() {}
 }
 
+// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
+/** The Climb's wings (local m): the Ash Store west (an arena), the Vane Room east (a gap the vane across it stands). */
+export const WING = {
+  a: Math.PI / 2 + 0.4,                     // the ways west and east out of the well, south of its block (rotunda angles ±a)
+  z: 58.6 + Math.cos(Math.PI / 2 + 0.4) * 9, // their z (55.1)
+  store: { x: -21, w: 16, d: 14 },
+  vane: { x: 21, w: 16, d: 14 },
+  gap: [19, 23],                            // the Vane Room's chasm, x
+};
+WING.zone = { min: [-29, -1, WING.z - 7], max: [-13, 9, WING.z + 7] };
+
+/** The Ash Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arW', room: 'store', zone: WING.zone, doors: ['dW'], extra: 2,
+  shut: 'The door grinds shut behind you. In the ash the tower once breathed out, something stirs.',
+  won: 'The last of them falls still in the ash. The key’s cage sinks, and the door lets go.',
+}];
+
+/**
+ * The Ash Store (west of the Climb, an arena: where the tower's breath left its ash, banked against the walls; its door
+ * shuts behind you while its keepers stand, and won, the small key's cage sinks) and the Vane Room (east: a chasm across
+ * the room, its stones standing only while the small vane on the far wall turns: splash it from this side, and cross
+ * before it slows; the key on the far side). Each holds one of the two small keys the door at the balcony's end takes.
+ */
+function wings(rt, K, M, { blue }) {
+  const add = (P, o) => rt.add(P, o);
+  const Z = WING.z, S = WING.store, R = WING.vane, [G0, G1] = WING.gap;
+  // ---- the Ash Store
+  K.corridor([-12.4, Z], [-8.6, Z], 0, { w: 5, h: 6 });
+  K.hall({ x: S.x, z: Z, w: S.w, d: S.d, y: 0, h: 10, roof: 'oculus', oculus: 0.25, doors: [{ side: 'e', at: 0, w: 5, h: 6 }] });
+  add(Door, { id: 'dW', at: [-11.4, 0, Z], yaw: Math.PI / 2, w: 5, h: 6 });   // (open: it shuts behind you while they stand)
+  for (const [x, z, s] of [[-27, Z - 5.2, 1.4], [-27.2, Z + 4.6, 1.8], [-21, Z + 5.6, 1.1], [-16, Z - 5.4, 1.2]]) K.both(M.dark, T(new THREE.SphereGeometry(s, 9, 6, 0, TAU, 0, Math.PI / 2).scale(1.4, 0.5, 1), [x, 0, z]));   // (ash banked by the walls)
+  add(Key, { id: 'kW', at: [-27.4, 0, Z], yaw: Math.PI / 2 });
+  add(Mark, { room: 'store', at: [S.x + 2, 0, Z - 2.6], yaw: Math.PI / 2 });
+
+  // ---- the Vane Room: a chasm across it, stones standing in it only while the far wall's vane turns
+  K.corridor([8.6, Z], [12.4, Z], 0, { w: 5, h: 6 });
+  K.hall({ x: R.x, z: Z, w: R.w, d: R.d, y: -9, h: 21, floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: 5, h: 6, y0: 9 }] });
+  K.slab(R.x - R.w / 2, Z - R.d / 2, G0, Z + R.d / 2, 0, 9);
+  K.slab(G1, Z - R.d / 2, R.x + R.w / 2, Z + R.d / 2, 0, 9);
+  K.both(M.dark, box(G1 - G0, 1, R.d, (G0 + G1) / 2, -9, Z));
+  add(Pit, { room: 'vane', min: [G0, -10, Z - R.d / 2], max: [G1, -1.5, Z + R.d / 2] });
+  add(Bridge, { id: 'vb', a: [G0 - 0.1, 0, Z], b: [G1 + 0.1, 0, Z], w: 3, n: 3 });
+  add(Vane, { id: 'vR', at: [R.x + R.w / 2 - 0.18, 5.5, Z + 3.5], wall: true, yaw: -Math.PI / 2, r: 1.5, coast: VANES.wing,
+    turning: 'The vane across the chasm spins, and stones grind up out of the dark. Already it is slowing.',
+    fading: 'The vane is slowing: the stones will sink with it.' });
+  K.add(blue, T(annulus(1.9, 2.3, 0.3, 32).rotateZ(Math.PI / 2), [R.x + R.w / 2 - 0.05, 5.5, Z + 3.5]));
+  add(Key, { id: 'kE', at: [R.x + 5.4, 0, Z - 3.2], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'vane', at: [R.x - 5.4, 0, Z - 4], yaw: Math.PI / 2 });
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -290,7 +359,8 @@ function layout(rt) {
   K.wall(-3.2, 46.6, -3.2, 48.4, 0, 6.5, { t: 0.8 }); K.wall(3.2, 48.4, 3.2, 46.6, 0, 6.5, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.9, 47.4));
   const C2 = 58.6;
-  K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: 26, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 11 }], oculus: 0.35 });
+  // (the house's hub since v1.48: a way west into the Ash Store and east into the Vane Room, south of the block)
+  K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: 26, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 11 }, { a: -WING.a, w: 5, h: 6 }, { a: WING.a, w: 5, h: 6 }], oculus: 0.35 });
   band(0, C2, 9, 17.5, 1.1, 0.4, [[0, 0.4]]);
   // the north half of the well is a block of stone eleven metres high: climb its straight face to the top
   K.both(M.wallGlyph, T(sector(0.01, 9.2, rotA(0) - Math.PI / 2, rotA(0) + Math.PI / 2, 11), [0, 11, C2]));
@@ -307,11 +377,12 @@ function layout(rt) {
     gap: { bridge: 'slot', from: (SL[0] - S0) / (S1 - S0), to: (SL[1] - S0) / (S1 - S0), lip: 'The ball stops at the slot’s lip: its stones are down. Something below drives them.' },
     dropped: 'The slot’s stones sink from under the ball, and it drops. Another rolls out of the wall where the groove begins.' });
   add(Plate, { id: 'p1', at: [S1, 11, C2 + 6.4], r: 1.1 });
-  add(Door, { id: 'd1', at: [0, 11, C2 + 9.7], w: 5, h: 6, lamps: [{ pressed: 'p1' }] });
+  add(Door, { id: 'd1', at: [0, 11, C2 + 9.7], w: 5, h: 6, lamps: [{ pressed: 'p1' }] });   // (and two keyholes: logic `lock`)
   add(Vane, { id: 'v2', at: [0, 0, C2 - 3.4], r: 1.8, coast: VANES.climb,
     turning: 'The vane in the floor spins, and up on the balcony stones grind up into the slot across the groove.',
     fading: 'The vane below is slowing.' });
   add(Mark, { room: 'climb', at: [5.5, 0, C2 - 4.5], yaw: -Math.PI * 0.8 });
+  wings(rt, K, M, { blue });
 
   // ---- the corridor and the Bellows Chamber (floor 11, an oculus in its ceiling at 33)
   K.slab(-3.2, C2 + 9.6, 3.2, C2 + 12.4, 11, 0.8);
@@ -465,10 +536,10 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-26, -17, -3), V(26, 100, CW + HR + 12)),
+    bounds: new THREE.Box3(V(-31, -17, -3), V(31, 100, CW + HR + 12)),
     gadget: { at: W(0, 11.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, H0 + 0.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 14], [0, 6, 18, 20], [0, 6, 40, 20], [0, 8, C2, 16], [0, 16, C2, 14], [0, 18, C3, 18], [0, G0 + 8, C3, 20], [0, G0 + 22, C3, 20], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
+    lights: [[0, 6, 6, 14], [0, 6, 18, 20], [0, 6, 40, 20], [0, 8, C2, 16], [WING.store.x, 6, WING.z, 12], [WING.vane.x, 6, WING.z, 12], [0, 16, C2, 14], [0, 18, C3, 18], [0, G0 + 8, C3, 20], [0, G0 + 22, C3, 20], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
     guardian: { def: { ...WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }
@@ -631,7 +702,7 @@ function change(scene, level, rt) {
 
 export const INCAL_TEMPLE = {
   id: 'incal', levelId: 'incal', name: 'The Warden’s Well', doorLabel: 'door of the makers’ tower',
-  gadget: 'wardenbellows', gadgetBox: 'incal.temple.jetpack', arenaDoor: 'd3',
+  gadget: 'wardenbellows', gadgetBox: 'incal.temple.jetpack', arenaDoor: 'd3', arenas: ARENAS,
   origin: [420, 1400, 140], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

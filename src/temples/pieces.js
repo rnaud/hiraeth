@@ -11,6 +11,7 @@ import { T, box, lathe, prep, annulus, sector } from './kit.js';
 import { sparing, heartsOf, DAMAGE } from '../resources.js';
 import { rideColumn } from '../updraft.js';
 import { stopOf } from './logic.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -45,6 +46,9 @@ import { stopOf } from './logic.js';
 //   Dish     a pair of receiving dishes: a note sung into the near one's mouth comes out of the far one's
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
+//   Key      a key of the makers' brass over a plinth, caged until its element's `when` holds: walk up and it is yours
+//            (a small key turns one lock; the great key, `big`, the guardian's door). A Door with `lock` takes them
+//   Coffer   a little brass-bound coffer in an optional room: open it (interact) for a purse of chimes
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
 //   Pit      a volume below a chasm: fall in and you are back at the room's mark
 //
@@ -63,7 +67,7 @@ const UP = V(0, 1, 0);
 // (the moving parts are dynamic too: never tiled, merged or culled as static props, src/perf.js)
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); return o; };
 const ease = (k) => k * k * (3 - 2 * k);
-const _dl = new THREE.Vector3(), _dn = new THREE.Vector3();
+const _dl = new THREE.Vector3(), _dn = new THREE.Vector3(), _mk = new THREE.Vector3(), _mk2 = new THREE.Vector3();
 /** What shows a hidden piece: the glyph lens (hidden: true), or the item named. */
 const shownBy = (h) => (h === true ? 'lens' : h);
 let uid = 0;
@@ -81,6 +85,8 @@ export class Door {
   /**
    * @param rt   the runtime (kit, root, logic, M)
    * @param o    { id, at: [x, y, z] the doorway's foot, yaw (0: the slab faces ±z), w, h, t, lamps: [condition], bell }
+   * A door whose element has `lock` ('small' | 'big', `keys` keyholes) wears a brass lock plate on both faces, a keyhole
+   * for each key; walk up to it with a key of its kind and the key goes in (Zelda's way: no button), one per keyhole.
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
@@ -109,6 +115,26 @@ export class Door {
       const bell = lathe([[0.02, 0], [0.5, 0.05], [0.55, 0.35], [0.38, 0.9], [0.3, 1.25], [0.02, 1.35]], 14);
       this.slab.add(mesh([T(bell.clone(), [0, h * 0.82, t / 2 + 0.1], [Math.PI / 2, 0, 0], 0.8), T(bell, [0, h * 0.82, -t / 2 - 0.1], [-Math.PI / 2, 0, 0], 0.8)], this.glow));
     }
+    // a lock: a brass plate on both faces, a keyhole for each key it takes (each lights as its key goes in)
+    const lockEl = rt.logic?.el(o.id);
+    if (lockEl?.lock) {
+      const n = lockEl.keys ?? 1, big = lockEl.lock === 'big', pw = big ? 1.5 : 0.9 + 0.55 * (n - 1);
+      const plate = [];
+      for (const sd of [1, -1]) {
+        plate.push(T(new THREE.BoxGeometry(pw, big ? 1.5 : 1.0, 0.12), [0, h * 0.3, sd * (t / 2 + 0.06)]));
+        if (big) plate.push(T(new THREE.TorusGeometry(0.95, 0.09, 6, 24), [0, h * 0.3, sd * (t / 2 + 0.1)]));
+      }
+      this.slab.add(mesh(plate, M.trimMat));
+      this.keyholes = [];
+      for (let i = 0; i < n; i++) {
+        const m = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.04, flat: true });
+        const x = (i - (n - 1) / 2) * 0.55, g = [];
+        for (const sd of [1, -1]) g.push(T(new THREE.CylinderGeometry(0.11, 0.11, 0.06, 10), [x, h * 0.3 + 0.12, sd * (t / 2 + 0.14)], [Math.PI / 2, 0, 0]), T(new THREE.BoxGeometry(0.09, 0.3, 0.06), [x, h * 0.3 - 0.08, sd * (t / 2 + 0.14)]));
+        this.slab.add(mesh(g, m));
+        this.keyholes.push(m);
+      }
+      this.lock = lockEl.lock;
+    }
     // the lamps on the lintel above the doorway: one per condition (both faces)
     this.lamps = (o.lamps ?? []).map((cond, i, all) => {
       const m = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.05, flat: true });
@@ -128,10 +154,10 @@ export class Door {
   }
   init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
   /** Someone stands in the doorway (a held door waits for them to step through before it shuts). */
-  inDoorway(p = this.rt.player) {
+  inDoorway(p = this.rt.player, depth = 1.4) {
     if (!p?.pos) return false;
     const l = this.group.worldToLocal(_dl.copy(p.pos));
-    return Math.abs(l.x) < this.w / 2 + 0.6 && Math.abs(l.z) < 1.4 && l.y > -1 && l.y < this.h;
+    return Math.abs(l.x) < this.w / 2 + 0.6 && Math.abs(l.z) < depth && l.y > -1 && l.y < this.h;
   }
   setOpen(open, instant = false) {
     this.wantShut = false;
@@ -161,6 +187,7 @@ export class Door {
         P._climbCooldown = 1.2;
       }
     }
+    if (this.lock) this.updateLock(dt);
     // hidden: plain wall, no glyph, until the lens shows it
     if (this.o.hidden) { const seen = this.rt.logic.has(shownBy(this.o.hidden)); this.glowMesh.visible = seen; for (const l of this.lamps) l.mesh.visible = seen; if (!seen) return; }
     let met = 0;
@@ -173,6 +200,27 @@ export class Door {
     this.glow.uniforms.uGlow.value = 0.2 + 0.7 * wake * (0.8 + 0.2 * Math.sin(t * 3));
   }
 }
+
+/** A locked door: a key of its kind, walked up to, goes in (one a keyhole); without one it says what it wants, once. */
+Door.prototype.updateLock = function (dt) {
+  const L = this.rt.logic, P = this.rt.player, id = this.id;
+  if (P?.pos && !this.open && !L.unlocked(id) && this.inDoorway(P, 2.6)) {
+    if (L.canUnlock(id)) {
+      this.keyWait = (this.keyWait ?? 0) + dt;
+      if (this.keyWait > 0.35) {
+        this.keyWait = 0;
+        L.unlock(id);
+        this.rt.sound?.critter?.('clank', 0.9); this.rt.sound?.chime?.();
+        const left = L.keyholes(id) - L.keysIn(id);
+        this.rt.notice(left > 0 ? `The key turns. ${left === 1 ? 'One keyhole' : `${left} keyholes`} still empty.` : this.lock === 'big' ? 'The great key turns, and the lock lets go.' : 'The small key turns, and the lock lets go.', left > 0 ? null : `lock.${id}`);
+        this.rt.onUnlock?.(id);
+      }
+    } else if (this.lock === 'big') this.rt.notice('A great lock. It wants the house’s great key.', `locked.${id}`);
+    else this.rt.notice(L.keysIn(id) ? 'One more small key would turn it.' : 'Locked. A small key would turn it.', `locked.${id}.${L.keysIn(id)}`);
+  } else this.keyWait = 0;
+  const n = L.keysIn(id);
+  this.keyholes.forEach((m, i) => { m.uniforms.uGlow.value += ((i < n || this.open ? 0.9 : 0.04) - m.uniforms.uGlow.value) * Math.min(1, dt * 6); });
+};
 
 // ---------------------------------------------------------------------------------------- plates
 const PLATE_TOP = 0.17;   // m: a plate's disc top over the floor, up
@@ -2340,6 +2388,118 @@ export class Bridge {
 }
 
 // ---------------------------------------------------------------------------------------- marks and pits
+// ---------------------------------------------------------------------------------------- keys and coffers
+/** A key's shape (m, the bow up, along y): a ring, a shaft and its bits; a big key is longer, with a second ring. */
+function keyGeometry(big) {
+  const L = big ? 1.5 : 0.85, r = big ? 0.32 : 0.2, g = [T(new THREE.TorusGeometry(r, r * 0.28, 6, 18), [0, L / 2 + r * 0.6, 0])];
+  if (big) g.push(T(new THREE.TorusGeometry(r * 0.55, r * 0.16, 5, 14), [0, L / 2 + r * 0.6, 0]));
+  g.push(T(new THREE.CylinderGeometry(r * 0.16, r * 0.16, L, 8), [0, 0, 0]));
+  for (const [y, w] of big ? [[-L / 2 + 0.12, 0.42], [-L / 2 + 0.38, 0.3], [-L / 2 + 0.6, 0.22]] : [[-L / 2 + 0.1, 0.28], [-L / 2 + 0.3, 0.2]]) g.push(T(new THREE.BoxGeometry(w, 0.12, 0.08), [w / 2, y, 0]));
+  return g;
+}
+const PLINTH = 1.05;   // m: a key's plinth, its top over the floor
+
+export class Key {
+  /**
+   * o: { id, at: the plinth's foot, yaw, big, line }: a key turning slowly over a plinth of the house's stone, a cage of
+   * brass bars round it until its element's `when` holds (then the bars sink into the plinth). Walk up to it and it is
+   * yours (logic.find). Its element: { type: 'key', kind: 'small' | 'big', room, when? }.
+   */
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, big = !!o.big;
+    this.pos = K.world(...o.at);
+    this.group = new THREE.Group();
+    this.group.position.copy(this.pos);
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    this.group.add(mesh([lathe([[0.62, 0], [0.62, 0.18], [0.44, 0.3], [0.38, PLINTH - 0.12], [0.56, PLINTH - 0.02], [0.56, PLINTH], [0.01, PLINTH]], 14)], M.stoneMat));
+    this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.35, flat: true });
+    this.key = new THREE.Group();
+    this.key.add(mesh(keyGeometry(big), M.trimMat), mesh([new THREE.SphereGeometry(big ? 0.14 : 0.09, 8, 6).translate(0, (big ? 0.75 : 0.425) + (big ? 0.19 : 0.12), 0)], this.glow));
+    this.group.add(this.key);
+    // the cage: bars round the key, a ring over them; they sink into the plinth once the key may be taken
+    const bars = [], cr = 0.5, ch = (this.cageH = big ? 2.4 : 1.7);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; bars.push(T(new THREE.CylinderGeometry(0.035, 0.035, ch, 5), [Math.sin(a) * cr, ch / 2, Math.cos(a) * cr])); }
+    bars.push(T(new THREE.TorusGeometry(cr, 0.05, 5, 20), [0, ch, 0], [Math.PI / 2, 0, 0]));
+    this.cage = mesh(bars, M.trimMat);
+    this.group.add(this.cage);
+    noCollide(this.group);
+    this.taken = rt.logic.isFound(o.id);
+    this.key.visible = !this.taken;
+    this.k = this.free() ? 1 : 0;
+    this.pose(0);
+  }
+  /** The key may be taken (its `when` holds), or is taken already. */
+  free() { const L = this.rt.logic; return L.isFound(this.id) || L.check(L.el(this.id)?.when); }
+  pose(t) {
+    this.cage.position.y = PLINTH - ease(this.k) * (this.cageH + 0.05);
+    this.cage.visible = this.k < 0.999;
+    this.key.rotation.y = t * 1.3;
+    this.key.position.y = PLINTH + (this.o.big ? 1.25 : 0.85) + Math.sin(t * 2) * 0.06;
+  }
+  update(dt, t) {
+    const L = this.rt.logic, P = this.rt.player;
+    this.k = THREE.MathUtils.clamp(this.k + (this.free() ? dt / 1.2 : -dt), 0, 1);
+    this.pose(t);
+    this.glow.uniforms.uGlow.value = 0.35 + 0.25 * Math.sin(t * 3);
+    if (this.taken || !P?.pos || this.k < 0.9) return;
+    if (Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) > 1.9 || Math.abs(P.pos.y - this.pos.y) > 2.2 || !L.find(this.id)) return;
+    this.taken = true; this.key.visible = false;
+    this.rt.sound?.chime?.(); this.rt.sound?.critter?.('clank', 0.6);
+    const n = L.keys('small');
+    this.rt.notice(this.o.line ?? (this.o.big ? 'The house’s great key. It opens the guardian’s door.' : `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`));
+    this.rt.game?.emit?.('temple:key', { id: this.rt.id, el: this.id });
+  }
+}
+
+export class Coffer {
+  /**
+   * o: { id, at, yaw, line }: a little coffer of the house's stone bound in brass, in an optional room; its element
+   * { type: 'cache', room, when? }. Opened (interact), its lid swings back and a purse of chimes spills out (game
+   * event 'temple:cache': src/chimes.js drops it, once per save). Nothing waits on it.
+   */
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M;
+    this.pos = K.world(...o.at);
+    this.group = new THREE.Group();
+    this.group.position.copy(this.pos);
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    this.group.add(mesh([box(1.3, 0.7, 0.85, 0, 0.35, 0)], M.stoneMat), mesh([box(1.34, 0.12, 0.89, 0, 0.12, 0), box(0.14, 0.72, 0.89, -0.45, 0.36, 0), box(0.14, 0.72, 0.89, 0.45, 0.36, 0)], M.trimMat));
+    this.lid = new THREE.Group();
+    this.lid.position.set(0, 0.7, -0.42);
+    this.lid.add(mesh([box(1.3, 0.22, 0.85, 0, 0.11, 0.42)], M.stoneMat), mesh([box(0.14, 0.24, 0.89, -0.45, 0.12, 0.42), box(0.14, 0.24, 0.89, 0.45, 0.12, 0.42)], M.trimMat));
+    this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.1, flat: true });
+    this.group.add(mesh([T(new THREE.SphereGeometry(0.1, 8, 6).scale(1, 1, 0.5), [0, 0.5, 0.44])], this.glow));
+    this.group.add(this.lid);
+    noCollide(this.group);
+    this.k = rt.logic.isFound(o.id) ? 1 : 0;
+    this.lid.rotation.x = -this.k * 1.9;
+    const L = rt.logic, at = this.pos.clone().add(V(0, 1.1, 0));
+    this.off = registerInteractable({
+      id: `temple.${rt.id}.${o.id}`, priority: PRIORITY.use, range: 2.6, prompt: 'open the coffer', at: () => at,
+      enabled: () => !L.isFound(o.id) && L.check(L.el(o.id)?.when),
+      distance: (p) => Math.hypot(p.pos.x - this.pos.x, p.pos.z - this.pos.z) + Math.max(0, Math.abs(p.pos.y - this.pos.y) - 1.5) * 4,
+      use: () => this.openIt(),
+    });
+  }
+  openIt() {
+    if (!this.rt.logic.find(this.id)) return false;
+    this.rt.sound?.critter?.('creak', 0.8); this.rt.sound?.chime?.();
+    this.rt.game?.emit?.('temple:cache', { id: this.rt.id, el: this.id, pos: this.pos.clone().add(V(0, 0.9, 0)) });
+    this.rt.notice(this.o.line ?? 'The coffer’s lid swings back. Chimes, left for whoever found it.', `cache.${this.id}`);
+    return true;
+  }
+  update(dt, t) {
+    const want = this.rt.logic.isFound(this.id) ? 1 : 0;
+    if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 0.8 : -dt), 0, 1); this.lid.rotation.x = -ease(this.k) * 1.9; }
+    this.glow.uniforms.uGlow.value = this.k > 0.5 ? 0.05 : 0.1 + 0.08 * Math.sin(t * 2.2);
+  }
+  dispose() { this.off?.(); }
+}
+
 export class Mark {
   /** A checkpoint: a glyph stone. o: { room, at, yaw } */
   constructor(rt, o) {
@@ -2357,9 +2517,17 @@ export class Mark {
     noCollide(this.group);
     this.spot = this.pos.clone().add(V(Math.sin(this.heading) * 1.6, 0.05, Math.cos(this.heading) * 1.6));
   }
+  /** Nothing between you and the stone (a shut door: a mark is never taken through one, v1.48: the great lock's). */
+  inReach(p) {
+    const ph = this.rt.physics;
+    if (!ph?.rayDistance) return true;
+    const from = _mk.copy(p.pos).addScaledVector(UP, 1.1), to = _mk2.copy(this.pos).addScaledVector(UP, 1.1);
+    const d = from.distanceTo(to);
+    return d < 0.3 || ph.rayDistance(from, to.sub(from).normalize(), d) >= d - 0.35;
+  }
   update(dt, t) {
     const p = this.rt.player;
-    if (p && p.onGround && p.pos.distanceTo(this.pos) < 4 && this.rt.checkpoint?.room !== this.room) this.rt.setCheckpoint(this);
+    if (p && p.onGround && p.pos.distanceTo(this.pos) < 4 && this.rt.checkpoint?.room !== this.room && this.inReach(p)) this.rt.setCheckpoint(this);
     const on = this.rt.checkpoint === this;
     this.glow.uniforms.uGlow.value = on ? 0.75 + 0.2 * Math.sin(t * 2) : 0.12;
   }

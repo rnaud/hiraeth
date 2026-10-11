@@ -30,8 +30,8 @@ export const DROP_OF = {
   // the built archetypes (their `drop`): the skitter ½, the moth 1, the blot 2, the toad and the heron 3, the root knot 5…
   ...Object.fromEntries(BUILT.map((a) => [ARCHETYPES[a].kind, ARCHETYPES[a].drop])),
 };
-/** The one-time purses: each temple's guardian resolved (and each sparring bout in the Arena's ring), a makers' run's first finish. */
-export const PURSE = { guardian: 40, run: 15 };
+/** The one-time purses: each temple's guardian resolved (and each sparring bout in the Arena's ring), a makers' run's first finish, a temple's coffer opened (its optional room's reward). */
+export const PURSE = { guardian: 40, run: 15, cache: 25 };
 /** The spread round a drop's base (±), never under one. */
 export const SPREAD = 0.25;
 
@@ -213,7 +213,8 @@ const _mid = new THREE.Vector3(), _dir = new THREE.Vector3(), _side = new THREE.
 /**
  * The drops wired to the game's events (main.js; tests): 'foe:burst' scatters a foe's chimes where it fell (not
  * one lost out of the world or into deep water, none when the policy is 'off'); 'temple:resolved' a guardian's
- * purse, once per temple (flag res.purse.<id>); 'guardian:spar' (the Arena's ring) a purse each bout, as
+ * purse, once per temple (flag res.purse.<id>); 'temple:cache' a temple coffer's (src/temples/pieces.js Coffer), once each
+ * (flag res.cache.<id>.<el>); 'guardian:spar' (the Arena's ring) a purse each bout, as
  * training. `purseAt(pos)`: where a purse lands (main.js: on the floor between the guardian and you).
  * Returns a function that unhooks them.
  */
@@ -230,6 +231,12 @@ export function connectDrops(game, field, { policy = 'on', purseAt = (pos) => po
       if (!id || game.flag(k)) return;
       game.set(k, true);
       field.drop(purseAt(pos), PURSE.guardian); sound?.chimeScatter?.(true);
+    }),
+    game.on('temple:cache', ({ id, el, pos } = {}) => {
+      const k = `res.cache.${id}.${el}`;
+      if (!id || !el || !pos || game.flag(k)) return;
+      game.set(k, true);
+      field.drop(pos, PURSE.cache); sound?.chimeScatter?.(true);
     }),
     game.on('guardian:spar', ({ pos } = {}) => {
       if (policy === 'off' || !pos) return;

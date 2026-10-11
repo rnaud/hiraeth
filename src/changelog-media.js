@@ -586,6 +586,14 @@ const C48_MARKET = '6f218d44b89a422eb07d2300dc84bdea9067f425';
 const SAVE48 = SAVE47;
 const C48_RUNS = '2abedcdbd0b82b122719cb66c038278874437fb6';   // (the two second makers' runs, issue #45)
 const C48_WORLDS = '9a3536fd6e3904cadd0ef846d8e3a2aa9906b2e8';   // (the new worlds' quests and courts, issue #101)
+const C48_HUB = { commit: 'f5c8747f', before: '2687b4bd' };   // (the hub, 53e54051, and its way out over the way in, f5c8747f: before the two)
+const SAVE48_ARMED = { ...SAVE47, flags: { ...SAVE47.flags, 'item.sword': true, 'item.shield': true } };
+const C48_GREEN = { commit: '9f0bfe00' };   // (the Greenhouse round its Potting Hall)
+const C48_UNDER = { commit: '35c406ca' };   // (the Undertower round its Cable Well)
+const C48_WARDEN = { commit: '86f06aba' };   // (the Warden's Well round its Climb)
+// (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
+// (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
+// (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
 export const CHANGELOG_MEDIA = {
   '1.48': [
     { match: 'The three newest worlds have a makers’ court each', shots: [
@@ -607,6 +615,50 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'bazaar', save: SAVE48, hour: 12, fov: 50, eye: [-4.5, 2.4, 73], target: [-9, 1.6, 63.5], player: [-3.5, 0.1, 76] } },
       { name: 'market-passage', title: 'From the back lane', caption: 'From the back lane’s south end, toward Signal Square: before, the tower beside the square, a wall; after, a passage under it, the silent tower’s covered screens at its end', commit: C48_MARKET,
         view: { level: 'bazaar', save: SAVE48, hour: 12, fov: 60, eye: [-95, 3.4, -255], target: [0, 30, -255], player: [-98, 0.5, -255] } },
+    ] },
+    { match: 'The Clock-House is a house to explore now', shots: [
+      { name: 'clock-hub', title: 'The hub', caption: 'The Winding Well from its way in: before, the climb and nothing else; after, a doorway west to the Pendulum Hall and east to the Striking Room, the door over the climb with its two keyholes', ...C48_HUB,
+        view: { level: 'glassdunes', save: SAVE47, hour: 12, fov: 80, eye: [-300, 1804.2, -368.4], target: [-300, 1804, -354], player: [-300, 1800.05, -366.5] } },
+      { name: 'clock-striking', title: 'The Striking Room', caption: 'The hour track along the east wall: a ball and three plates, each with its little clock at two, four and six; the striking eye over them, its lids shut', ...C48_HUB, only: 'after',
+        view: { level: 'glassdunes', save: SAVE47, hour: 12, fov: 70, eye: [-284, 1805, -364.5], target: [-273, 1801.5, -357], player: [-285, 1800.05, -363] } },
+    ] },
+    { match: 'Temples have keys and locks', shots: [
+      { name: 'clock-greatlock', title: 'The great lock', caption: 'Over the Clock Gallery’s bridge: before, a plain door into the Foreman’s workshop; after, the great lock’s brass plate on it', ...C48_HUB,
+        view: { level: 'glassdunes', save: SAVE47, hour: 12, fov: 60, eye: [-300, 1811.5, -282.5], target: [-300, 1811.5, -277.1], player: [-300, 1809.05, -281] } },
+      { name: 'clock-mainspring', title: 'The Mainspring Room', caption: 'The great key caged in the Mainspring Room, the spring on the wall slack until its weight, the ball in the groove, is home', ...C48_HUB, only: 'after',
+        view: { level: 'glassdunes', save: SAVE47, hour: 12, fov: 70, eye: [-285, 1813, -313.5], target: [-274.5, 1814.5, -309], player: [-285, 1809.05, -311.5] } },
+    ], see: 'In the Clock-House, beat the Pendulum Hall’s keepers or wake the Striking Room’s eye, then walk up to the key on its plinth, and on to the door over the climb.' },
+    { match: 'Some temple rooms shut behind you', shots: [
+      { name: 'clock-pendulum', caption: 'The Pendulum Hall: its door shuts behind you while the keepers stand; the small key caged on the landing up the stair, the way out above it', ...C48_HUB, only: 'after',
+        view: { level: 'glassdunes', save: SAVE47, hour: 12, fov: 75, eye: [-315.2, 1806, -365], target: [-326, 1803.5, -356], player: [-316, 1800.05, -363] } },
+    ], see: 'In the Clock-House, go west from the Winding Well into the Pendulum Hall.' },
+    { match: 'Off the Clock-House’s Escapement there is an optional room', shots: [
+      { name: 'clock-cupboard', caption: 'The Clockmaker’s Cupboard, its coffer of chimes', ...C48_HUB, only: 'after',
+        view: { level: 'glassdunes', save: SAVE47, hour: 12, fov: 70, eye: [-315.8, 1803.2, -379], target: [-321.2, 1800.6, -375.4], player: [-316.5, 1800.05, -377] } },
+    ], see: 'On the Escapement’s far landing, wake the three eyes round the little clock over the west door: four, eight, twelve.' },
+    { match: 'The Builders’ Greenhouse opens out the same way', shots: [
+      { name: 'greenhouse-hub', title: 'The hub', caption: 'The Potting Hall’s north end: before, the Glass Stair’s door alone; after, a way west into the Shade House and east into the Cold Frame, the door with its two keyholes', ...C48_GREEN,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 80, eye: [300, 1705, -428], target: [300, 1703.5, -410], player: [300, 1700.05, -426] } },
+      { name: 'greenhouse-frame', title: 'The Cold Frame', caption: 'One louvre, one ball, two plates; an eye over each seed tray, the key caged until both are awake', ...C48_GREEN, only: 'after',
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: [315, 1705, -413.5], target: [326, 1702, -408], player: [316, 1700.05, -412.5] } },
+      { name: 'greenhouse-shade', title: 'The Shade House', caption: 'The Shade House, dark among its dead pots: its door shuts behind you while the keepers stand, the key caged at the far end', ...C48_GREEN, only: 'after',
+        view: { level: 'edena', save: SAVE48_ARMED, hour: 12, fov: 70, eye: [285, 1705, -413.5], target: [273, 1701.5, -409], player: [284, 1700.05, -412.5] } },
+    ] },
+    { match: 'The Undertower opens out round its Cable Well too', shots: [
+      { name: 'undertower-hub', title: 'The hub', caption: 'The Cable Well from its way in: before, the two discs up and nothing else; after, a way west into the Cable Store and east into the Tuning Room, the ball for the Tuning Room’s dish by the way east', ...C48_UNDER,
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 80, eye: [-200, 1604.2, -468.4], target: [-200, 1604, -454], player: [-200, 1600.05, -466.5] } },
+      { name: 'undertower-tune', title: 'The Tuning Room', caption: 'The near dish over its footstone, a low and a high stone by its mouth; across the room its twin over the far horn, the key caged beside it', ...C48_UNDER, only: 'after',
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 75, eye: [-185.4, 1605, -464], target: [-175, 1602, -454], player: [-184.5, 1600.05, -463] } },
+      { name: 'undertower-store', title: 'The Cable Store', caption: 'The Cable Store, its drums of the makers’ spare cable: its door shuts behind you while the keepers stand, the key caged at the far end', ...C48_UNDER, only: 'after',
+        view: { level: 'bazaar', save: SAVE48_ARMED, hour: 12, fov: 75, eye: [-215, 1605, -464], target: [-227, 1601.5, -456], player: [-216, 1600.05, -463] } },
+    ] },
+    { match: 'The Warden’s Well opens out round its Climb', shots: [
+      { name: 'warden-hub', title: 'The hub', caption: 'The Climb from its way in: before, the block’s face to climb and nothing else; after, a way west into the Ash Store and east into the Vane Room, south of the block', ...C48_WARDEN,
+        view: { level: 'incal', save: SAVE47, hour: 12, fov: 90, eye: [420, 1403.8, 189.6], target: [420, 1403.5, 200], player: [420, 1400.05, 191.6] } },
+      { name: 'warden-vane', title: 'The Vane Room', caption: 'The chasm across the Vane Room, the small vane on its far wall that stands its stones while it turns, the key caged beyond', ...C48_WARDEN, only: 'after',
+        view: { level: 'incal', save: SAVE47, hour: 12, fov: 75, eye: [434, 1405, 190.6], target: [446, 1402, 198], player: [434.6, 1400.05, 191.6] } },
+      { name: 'warden-ash', title: 'The Ash Store', caption: 'The Ash Store, the tower’s old ash banked by its walls: its door shuts behind you while the keepers stand, the key caged at the far end', ...C48_WARDEN, only: 'after',
+        view: { level: 'incal', save: SAVE48_ARMED, hour: 12, fov: 75, eye: [406.2, 1405, 190.6], target: [394, 1401.5, 198], player: [405.4, 1400.05, 191.6] } },
     ] },
   ],
   '1.47': [

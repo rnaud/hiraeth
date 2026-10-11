@@ -44,7 +44,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
   assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
   assert.equal(theme('level-design').prev.id, 'level-design-v1.20'); assert.equal(theme('level-design').delta, 0.13);
-  assert.equal(theme('temple-design').delta, 0.03);
+  assert.equal(theme('temple-design').delta, 0.13);   // (temple-design-v1.48: 4.03 over fourteen, v1.27: 3.90 over eleven)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.46: 3.8, game-v1.0: 3.7)
   assert.equal(theme('dialogue').prev, null, 'the first of its kind'); assert.equal(theme('dialogue').delta, null);
   assert.equal(theme('visual').prev.id, 'visual-v1.4', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
@@ -85,7 +85,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(worlds.length, 11);
   assert.ok(near(avg(worlds.map((r) => r.value)), theme('level-design').latest.overall));
   const temples = group('temple-design', 'Temples').rows;
-  assert.equal(temples.length, 11, 'the eleven temples (not the changed temples\' table)');
+  assert.equal(temples.length, 14, 'the fourteen temples (v1.48; not a changed temples\' table)');
   assert.ok(near(avg(temples.map((r) => r.value)), theme('temple-design').latest.overall));
   assert.ok(temples.some((r) => r.alt === 'arzach2'), 'the temple\'s id is its alternative key');
   assert.equal(group('game', 'Themes').rows.length, 12);

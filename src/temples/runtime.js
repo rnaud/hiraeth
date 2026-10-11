@@ -27,6 +27,8 @@ import { Mark, Pit } from './pieces.js';
 // .done (the world has changed), and the logic's own: .open.<door>, .lit.<id>, .drum.<id>.
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+/** The foes of a room still standing (src/foes.js placeMachinesIn: rt.machines, each with its room). */
+export const arenaFoes = (rt, room) => (rt.machines ?? []).filter((f) => f.room === room && f.alive && f.dead === undefined);
 
 export class TempleRuntime {
   constructor({ scene, level, def, game = sharedGame, items = sharedItems }) {
@@ -181,6 +183,7 @@ export class TempleRuntime {
     if (inside || this.time < 0.5) for (const p of this.pieces) p.update(dt, t);
     else for (const p of this.pieces) if (p.solid || p.flames) p.update?.(dt, t);
     this.def.onUpdate?.(this, dt, t);
+    this.updateArenas(dt);
     this.applyDoors();
     // the guardian
     if (this.guardian) {
@@ -201,6 +204,40 @@ export class TempleRuntime {
     // fell into a pit
     if (P && !P.dead && inside) for (const pit of this.pits) if (pit.contains(P.pos)) { this.toCheckpoint({ hurt: DAMAGE.graze }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); break; }
     this.change?.update?.(dt, t);
+  }
+
+  /**
+   * The arena rooms (def.arenas: [{ el, room, zone: { min, max } local, doors: [ids], extra, shut, won }]): step into
+   * one whose element (logic type 'arena') is not lit yet and its doors hold shut behind you while its foes stand
+   * (src/foes.js places them round its mark: rt.machines, by room); once none stands (or none came: the Enemies
+   * setting off) the element is lit for good and the doors let go. Knocked out in it, you wake at its mark and the
+   * fight goes on where it was (the broken stay broken).
+   */
+  updateArenas(dt) {
+    const As = this.def.arenas;
+    if (!As?.length) return;
+    const P = this.player;
+    for (const A of As) {
+      const st = ((this.arenaState ??= {})[A.el] ??= { held: false, clear: 0 });
+      const won = this.logic.isLit(A.el);
+      const zone = (A.box ??= new THREE.Box3(V(...A.zone.min), V(...A.zone.max)));
+      const inside = !won && !!P?.pos && !P.dead && zone.containsPoint(this.kit.local(P.pos));
+      if (inside) {
+        const standing = arenaFoes(this, A.room).length;
+        st.clear = standing ? 0 : st.clear + dt;
+        if (st.clear > (A.settle ?? 0.8) && this.logic.light(A.el)) {
+          this.sound?.chime?.(); this.onLit(A.el);
+          if (st.held) this.notice(A.won ?? 'The last of them falls still, and the doors sink open.', `arena.won.${A.el}`);
+        }
+      }
+      const held = inside && !this.logic.isLit(A.el) && arenaFoes(this, A.room).length > 0;
+      if (held !== st.held) {
+        st.held = held;
+        for (const d of A.doors ?? []) this.logic.force(d, held ? false : null);
+        this.applyDoors();
+        if (held) this.notice(A.shut ?? 'The doors grind shut behind you. Something in the walls is waking.', `arena.shut.${A.el}`);
+      }
+    }
   }
 
   /**

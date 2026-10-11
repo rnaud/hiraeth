@@ -307,6 +307,9 @@ export function nextSpot(rt) {
   if (e?.type === 'gadget' && rt.gadgetSite) return new THREE.Vector3(...rt.gadgetSite.at);
   if (e?.type === 'find' && rt.findSites?.[id]) return new THREE.Vector3(...rt.findSites[id].at);
   if (e?.type === 'boss' && rt.guardian) return rt.guardian.model.pos.clone();
+  // an arena not won yet: the middle of its room (its mark's room)
+  const arena = e?.type === 'arena' && rt.def.arenas?.find((A) => A.el === id);
+  if (arena) return rt.kit.world(...arena.zone.min.map((v, i) => (v + arena.zone.max[i]) / 2)).setY(rt.kit.world(0, arena.zone.min[1] + 1, 0).y);
   const p = id && rt.piece(id);
   const at = p?.center ?? p?.pos ?? p?.group?.position;
   if (at) return at.clone();

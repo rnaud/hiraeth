@@ -76,7 +76,7 @@ pictures show something it misses, with the reason written beside it.
 
 | Criterion | 1 | 3 | 5 | Measure |
 |---|---|---|---|---|
-| **Structure** | a chain: no loops, no hubs, no backtracking, nothing reversible | a hub or a loop, one backtrack | hub and spokes or several loops, keys fetched across wings, a changing state | `structure` |
+| **Structure** | a chain: no loops, no hubs, no backtracking, nothing reversible | a hub or a loop, one backtrack | hub and spokes or several loops, keys fetched across wings, a changing state | `structure` (keys fetched across rooms count: `fetched`; a key's cage is a step of its own, a lock a key alone opens and an arena's way out are no puzzles: docs/systems/temples.md "Hubs, keys and arenas") |
 | **Teach → test → twist** (the gadget) | taught only | taught and tested | taught, tested, twisted (combined or in a new context), examined by the guardian | `mechanics['gadget:<item>']` |
 | **Combination** | no step combines two verbs | 15-30 % of steps do | half or more | `comboShare` |
 | **Non-obvious** | mean obviousness 4.5+ (painfully obvious) | 3.3-4 | 2.5 or less, with no step at 1.5 or under (obscure) | `obviousness` |
@@ -109,7 +109,7 @@ for an echo ear); per lock, the **mechanics** (weight, push, shot, sequence, `ga
 from where you stand to face the lock (a ray through the temple's walls, floors and shut doors); the
 **traversal** pieces per room (discs, winds, gusts, swings, pits, glass); the solve order (`logic.js`
 `solve`). Then the measures and scores above, the temple's **skeleton** (one letter a step: B base verbs, C the
-chest's room, G the gadget alone, X a combination, R a reveal, T a traversal the gadget makes, K the guardian)
+chest's room, G the gadget alone, X a combination, R a reveal, T a traversal the gadget makes, L a lock a key from elsewhere opens, A an arena's way out, K the guardian)
 and how alike every two temples are.
 
 It writes `report.json`, `<id>-plan.svg` (a top-down plan: rooms, pieces, each lock's line to its keys,

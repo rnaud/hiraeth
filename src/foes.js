@@ -1891,9 +1891,10 @@ export class Foes {
         rt.machines.push(f);   // (the temple reads them: a room whose exit holds while its machines stand, desert.js)
         break;
       }
-      // a room's encounter (the temple's `encounter`: { room, extra, on(rt) }): more machines round its mark, while on
-      const E = rt.def?.encounter;
-      if (E && E.room === m.room && (E.on?.(rt) ?? true)) for (let k = 0; k < (E.extra ?? 0); k++) {
+      // a room's encounter (the temple's `encounter`: { room, extra, on(rt) }; and each of its `arenas`, a room that shuts
+      // behind you until they are beaten, src/temples/runtime.js updateArenas): more machines round its mark, while on
+      const E = [rt.def?.encounter, ...(rt.def?.arenas ?? []).filter((A) => !rt.logic?.isLit?.(A.el))].find((x) => x && x.room === m.room);
+      if (E && (E.on?.(rt) ?? true)) for (let k = 0; k < (E.extra ?? 0); k++) {
         const eid = `${id}.e${k}`;
         if (this.game.flag(eid) || this.list.some((f) => f.id === eid && f.alive)) continue;
         const h = m.heading + Math.PI + (k - (E.extra - 1) / 2) * 1.4, x = m.pos.x + Math.sin(h) * 4.5, z = m.pos.z + Math.cos(h) * 4.5;

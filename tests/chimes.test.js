@@ -265,6 +265,11 @@ test('a foe cut down scatters its chimes where it fell; an archetype in any skin
   assert.equal(F.lying, PURSE.guardian); assert.equal(game.flag('res.purse.desert'), true);
   game.emit('temple:resolved', { id: 'desert', pos: v(1, 0, 1) });
   assert.equal(F.lying, PURSE.guardian, 'only the first time');
+  // a temple's coffer, in its optional room: a smaller purse, once each
+  game.emit('temple:cache', { id: 'garage', el: 'cache', pos: v(2, 0, 1) });
+  game.emit('temple:cache', { id: 'garage', el: 'cache', pos: v(2, 0, 1) });
+  assert.equal(F.lying, PURSE.guardian + PURSE.cache, 'a coffer’s purse, only the first time');
+  assert.ok(PURSE.cache < PURSE.guardian && PURSE.cache > 4 * DROP_OF.machine / 2, 'between a foe’s drop and a guardian’s purse');
 });
 
 test('no drops from a game\'s own foes (Ink tide); the Arena\'s waves, list and ring drop as training', () => {

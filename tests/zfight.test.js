@@ -22,7 +22,8 @@ const mat = (color, o = {}) => new THREE.MeshBasicMaterial({ color, ...o });
  */
 export const ZFIGHT_BASELINE = {
   desert: 0, incal: 47, arzach2: 11, spheres: 2, buried: 0, perdide2: 9, perdide: 10, arzach: 8,
-  garage: 3, edena: 4, bazaar: 12, spacecity: 5, moonfoundry: 20, underwater: 19,
+  garage: 1, edena: 2, bazaar: 8,   // (v1.48: the Clock-House, the Greenhouse and the Undertower round their hubs, a rotunda's raised gap with a sill)
+  spacecity: 5, moonfoundry: 20, underwater: 19,
 };
 
 test('the finder: two looks in one plane overlapping fight; set apart, behind, or one look, they don’t', () => {

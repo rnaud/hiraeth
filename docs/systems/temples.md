@@ -387,6 +387,69 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.
 
+## Hubs, keys and arenas (v1.48, issue #23)
+
+A temple to explore, not a corridor of rooms in order: a hub with wings, keys found in one room for locks in another,
+rooms that shut behind you until their foes are beaten, optional rooms with a reward. The kit's pieces for it, any
+temple can use:
+
+- **Keys** (`logic.js`, element `key { kind: 'small' | 'big', room, when? }`; piece `Key`): a key of the house's brass
+  turning over a plinth, in a cage of brass bars that sinks once its `when` holds (the step that earns it). Walk up to it
+  and it is yours (`logic.find`, flag `found.<id>`). A small key turns any small lock (Zelda's: `keys('small')` is the
+  keys found less those put in a lock); the great key the guardian's door.
+- **Locks**: a `door` with `lock: 'small' | 'big'` (and `keys: n`, n keyholes) opens only once its keyholes are filled
+  and its `opens` (if any) holds. The `Door` wears a brass lock plate, a keyhole lit for each key in; walk up to it with
+  a key and the key goes in (no button), one a keyhole (flag `unlocked.<id>`, the count). Without one it says what it
+  wants, once. The marker (`logic.next`) points at a lock a key fits before anything else. Design the keys so none can be
+  wasted: every small lock opens toward rooms that need no other small key, or there are as many keys as keyholes on
+  the way (`solve` with `reverse` and `forbid` checks a hub either way round and each wing alone).
+- **Arenas** (element `arena { room }`, latched; the temple's `arenas: [{ el, room, zone: { min, max }, doors, extra,
+  shut, won }]`, `runtime.js updateArenas`): step into the zone while its element is unlit and its foes stand
+  (`src/foes.js placeMachinesIn`: the room's mark's machine and `extra` more, `rt.machines` by room) and its doors are
+  held shut; once none stands (or none came: the Enemies setting off) the element is lit for good and the doors let go.
+  A door that opens on it (`opens: { lit }`) is the arena's way out; a key may wait on it (`when`). Knocked out in it,
+  you wake at its mark and the fight goes on (the broken stay broken).
+- **Coffers** (element `cache { room, when? }`; piece `Coffer`): a little brass-bound coffer in an optional room; E opens
+  it and a purse of chimes spills out (game event `'temple:cache'`, `src/chimes.js` `PURSE.cache`, once per save: flag
+  `res.cache.<id>.<el>`). Nothing waits on it; it sits last in the elements, so the marker never points at it.
+- **`K.corridor(a, b, y, { w, h })`** (`kit.js`): a short covered passage along x or z between two rooms, a hub's spoke.
+- A **Mark** is never taken through a shut door (a ray from you to it): a mark just past a locked door, within its 4 m,
+  once made a fall put you on the far side of the lock.
+- **Old saves**: `migrate.js LAYOUTS` brings a save from a temple's old layout to its new one once (`temple.<id>.layout`):
+  past the point a new lock or wing sits before, the keys are in the lock and the wing counts as done.
+- **The audit** (`scripts/temple-design/lib.mjs`) reads them: a key's cage is a step of its own (its `when`, in its room),
+  a lock a key alone opens and an arena's way out are not puzzles (a key from afar is no obscurity: the lock says what
+  it wants), keys fetched across rooms count toward the structure, and the skeleton writes `L` for a key lock and `A` for
+  an arena.
+
+The **Clock-House** (`garage.js`) was the first reworked (its audit 2.89, the lowest; structure 2). Its Winding Well is
+the hub: west the **Pendulum Hall** (an arena: two keepers and the mark's; won, the key's cage on the landing sinks and
+a door above opens onto the ledge over the climb, a loop back to the hub), east the **Striking Room** (the hour track: a
+ball and three plates at two, four and six, each with its little clock; on four, the house's hour, which the well's clock
+shows, the striking eye's lids open, and woken it lets the key out), either order; the door over the climb (`d2`) takes
+both keys and the counterweight. After the chest, the **Mainspring Room** east off the Clock Gallery's near landing (a
+ball rolled in from the landing winds the spring, then six eyes round it in one breath: the coil with an older verb)
+holds the great key for the Foreman's door (`d4`, also the arena's door while it fights), seen locked across the bridge
+first. Off the Escapement's far landing the optional **Clockmaker's Cupboard** (its little clock has lost its hand:
+four, eight, twelve, round from the house's hour, a quiet lesson for the gallery's great clock) holds a coffer.
+
+The **Builders' Greenhouse** (`edena.js`, 3.67, structure 2) next: its Potting Hall is the hub. West the **Shade House**
+(an arena in the dark: no louvre, dead pots; won, the small key's cage sinks), east the **Cold Frame** (one louvre, one
+ball, two plates, an eye over each seed tray: an eye woken in the sun stays awake, so the ball serves both in turn, and
+the key wants both, the lesson the Glass Stair's one ball and two plates then turns). The Glass Stair's door (`d1`)
+takes both keys and the Potting Hall's eye in the sun.
+
+The **Undertower** (`bazaar.js`, 3.78, structure 2): its Cable Well is the hub. West the **Cable Store** (an arena among
+drums of spare cable), east the **Tuning Room** (a pair of dishes across the room: the near one deaf until a ball rolled in
+from the well, a room back, is on its footstone; a low and a high stone by its mouth; the far horn wants the high note, its
+ring the high one's colour, as the well's own horn is told by its colour). A door in the passage from the landing into the
+Shell Chamber (`dK`) takes both keys.
+
+The **Warden's Well** (`incal.js`, 4.22, structure 2): its Climb is the hub, its ways west and east south of the block
+(`WING.a`). West the **Ash Store** (an arena in the tower's old ash), east the **Vane Room** (a chasm whose stones stand
+only while the small vane on its far wall turns, `VANES.wing` s: splash it from this side and cross before it slows; the
+key on the far side, and back the same way). The door at the balcony's end (`d1`) takes both keys and the ball on its plate.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Platform, Bridge, Seed, Bud, Glass, Sunbeam, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Switch, Platform, Bridge, Seed, Bud, Glass, Sunbeam, Mark, Pit, Key } from './pieces.js';
 import { gardenerModel } from './guardians.js';
 
 // Viridel's temple: the Builders' Greenhouse, a round house of the white
@@ -19,9 +19,13 @@ import { gardenerModel } from './guardians.js';
 // weight on a plate turns one, and a sunbeam swings down onto whatever it was turned for. The builders' eyes open
 // only in the sun, their discs ride only in it, and a seed wakes to the bloom only where the light falls.
 //   the Threshold        the first mark, the way out
-//   the Potting Hall     an eye behind the potting benches, in the shade: it will not wake. A stone ball rolled
-//                        onto the plate at its groove's end turns the louvre over the benches, and the sunbeam
-//                        swings off the floor onto the eye: splash it then (the push and the shot)
+//   the Potting Hall     the hub (v1.48, issue #23). An eye behind the potting benches, in the shade: it will not wake. A
+//                        stone ball rolled onto the plate at its groove's end turns the louvre over the benches, and the
+//                        sunbeam swings off the floor onto the eye: splash it then (the push and the shot). Its door
+//                        wants that eye and two small keys, one from each wing:
+//   the Shade House      (west, an arena) dark, dead pots; its door shuts behind you while its keepers stand
+//   the Cold Frame       (east) one louvre, one ball, two plates, an eye over each seed tray: the ball brings the sun to
+//                        one, then the other (a woken eye stays awake), and the key wants both
 //   the Glass Stair      one louvre, one ball, two places: on the west plate the sun falls on an eye high on the
 //                        wall (the landing's door wants it), on the east plate on the disc over the root-wall (it
 //                        rides only in the sun). The eye stays open once woken; the disc does not ride in the shade
@@ -73,9 +77,13 @@ const GLASS = '#cfe1f0';
 
 export const LOGIC = {
   id: 'edena', entry: 'threshold', gadget: 'bloom',
-  rooms: { threshold: { checkpoint: true }, potting: { checkpoint: true }, stair: { checkpoint: true }, landing: { checkpoint: true }, seed: { checkpoint: true }, gulf: { checkpoint: true }, gulfFar: { checkpoint: true }, hall: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, potting: { checkpoint: true }, shade: { checkpoint: true }, frame: { checkpoint: true }, stair: { checkpoint: true }, landing: { checkpoint: true }, seed: { checkpoint: true }, gulf: { checkpoint: true }, gulfFar: { checkpoint: true }, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'potting' },
+    // the Potting Hall is the hub (v1.48): west the Shade House (an arena), east the Cold Frame; the Glass Stair's door
+    // wants a small key from each, and the eye in the sun
+    { a: 'potting', b: 'shade', door: 'dW' },          // (open: it shuts behind you while its keepers stand)
+    { a: 'potting', b: 'frame' },
     { a: 'potting', b: 'stair', door: 'd1' },
     { a: 'stair', b: 'landing', door: 'lift' },        // the disc over the root-wall: it rides only in the sun
     { a: 'landing', b: 'seed', door: 'd2' },
@@ -89,7 +97,17 @@ export const LOGIC = {
     ball1: { type: 'drum', room: 'potting', plate: 'p1', plateAt: 1, start: 0 },
     p1: { type: 'plate', room: 'potting' },
     s1: { type: 'switch', room: 'potting', when: { drumOn: ['ball1', 'p1'] } },
-    d1: { type: 'door', opens: { lit: 's1' }, latch: true },
+    d1: { type: 'door', lock: 'small', keys: 2, opens: { lit: 's1' }, latch: true },
+    // the Shade House: in the dark, its keepers beaten, the small key's cage sinks
+    arW: { type: 'arena', room: 'shade' },
+    kW: { type: 'key', kind: 'small', room: 'shade', when: { lit: 'arW' } },
+    dW: { type: 'door', opens: null },
+    // the Cold Frame: one louvre, one ball, two plates, an eye over each tray; woken in the sun, an eye stays awake
+    ballC: { type: 'drum', room: 'frame', stops: { pC1: 1, pC2: 0 }, start: 0.5 },
+    pC1: { type: 'plate', room: 'frame' }, pC2: { type: 'plate', room: 'frame' },
+    sC1: { type: 'switch', room: 'frame', when: { drumOn: ['ballC', 'pC1'] } },
+    sC2: { type: 'switch', room: 'frame', when: { drumOn: ['ballC', 'pC2'] } },
+    kE: { type: 'key', kind: 'small', room: 'frame', when: { all: [{ lit: 'sC1' }, { lit: 'sC2' }] } },
     // the Glass Stair: one ball, two plates, one louvre: the eye (west) or the disc (east)
     ball2: { type: 'drum', room: 'stair', plate: 'pW', plateAt: 0, stops: { pW: 0, pE: 1 }, start: 0.5 },
     pW: { type: 'plate', room: 'stair' },
@@ -189,6 +207,63 @@ function gardenerHit(g, part, mode, info) {
 /** In its last two phases it kneels a little longer: time to reach a footstone and let the sun swing over. */
 function gardenerOpenFor(g, a, s) { const o = SUN.open[Math.min(g.phaseIndex, 2)]; return s && o ? Math.max(s, o) : s; }
 
+// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
+/** The Potting Hall's wings (local m): the Shade House west (an arena), the Cold Frame east (two eyes, one ball, one louvre). */
+export const WING = {
+  z: 40,                                                   // both ways out of the Potting Hall, at its north end
+  shade: { x: -22, z: 40, w: 16, d: 14 },
+  frame: { x: 22, z: 40, w: 16, d: 14 },
+  zone: { min: [-30, -1, 33], max: [-14, 9, 47] },
+};
+
+/** The Shade House's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arW', room: 'shade', zone: WING.zone, doors: ['dW'], extra: 2,
+  shut: 'The door grinds shut behind you. In the dark among the dead pots, something stirs.',
+  won: 'The last of them falls still. The key’s cage sinks, and the door lets go.',
+}];
+
+/**
+ * The Shade House (west of the Potting Hall, an arena: no louvre, only the dark; its door shuts behind you while its
+ * keepers stand, and won, the small key's cage sinks) and the Cold Frame (east: one louvre in its roof, one ball and
+ * two plates; on the north plate the sun falls on the north tray's eye, on the south on the south's. An eye woken in
+ * the sun stays awake, so the ball serves both in turn, and the key wants both). Each holds one of the two small keys
+ * the Glass Stair's door takes.
+ */
+function wings(rt, K, M, { pot, pane, leaf }) {
+  const add = (P, o) => rt.add(P, o);
+  const S = WING.shade, F = WING.frame, Z = WING.z;
+  // ---- the Shade House
+  K.corridor([-13.4, Z], [-11.6, Z], 0, { w: 5, h: 6.4 });
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: 10, roof: true, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });
+  add(Door, { id: 'dW', at: [-12.5, 0, Z], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  for (const [x, z, s] of [[-27, 34.6, 0.9], [-27.6, 45.2, 0.8], [-17, 45.4, 0.7], [-18, 34.4, 0.8], [-24, 45.6, 0.6]]) pot(x, 0, z, s, true);
+  add(Key, { id: 'kW', at: [-27.2, 0, Z], yaw: Math.PI / 2 });
+  add(Mark, { room: 'shade', at: [S.x + 2, 0, S.z - 3.4], yaw: Math.PI / 2 });
+
+  // ---- the Cold Frame: the louvre over the middle, the groove across, a tray of seedlings under each eye
+  K.corridor([11.6, Z], [13.4, Z], 0, { w: 5, h: 6.4 });
+  K.hall({ x: F.x, z: F.z, w: F.w, d: F.d, y: 0, h: 10, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
+  K.add(M.dark, box(1.0, 0.04, 11, F.x + 3, 0.02, F.z));
+  add(Ball, { id: 'ballC', a: [F.x + 3, 0.04, F.z - 5], b: [F.x + 3, 0.04, F.z + 5], r: 1.0 });
+  add(Plate, { id: 'pC1', at: [F.x + 3, 0, F.z + 5], r: 1.2 });
+  add(Plate, { id: 'pC2', at: [F.x + 3, 0, F.z - 5], r: 1.2 });
+  const shade = 'The eye stays shut, in the shade.';
+  add(Switch, { id: 'sC1', at: [F.x - 2, 4.6, F.z + F.d / 2 - 0.15], yaw: Math.PI, size: 0.9, wrong: shade });
+  add(Switch, { id: 'sC2', at: [F.x - 2, 4.6, F.z - F.d / 2 + 0.15], yaw: 0, size: 0.9, wrong: shade });
+  for (const sd of [1, -1]) { K.both(M.wall, box(5, 1.0, 1.6, F.x - 2, 0.5, F.z + sd * (F.d / 2 - 1.0))); for (let i = 0; i < 3; i++) pot(F.x - 3.6 + i * 1.6, 1.0, F.z + sd * (F.d / 2 - 1.0), 0.3, true); }
+  add(Sunbeam, { from: [F.x, 10.2, F.z], w: 3.0, spots: [
+    { at: [F.x - 2, 4.6, F.z + F.d / 2 - 0.2], normal: [0, 0, -1], r: 1.5, when: { drumOn: ['ballC', 'pC1'] } },
+    { at: [F.x - 2, 4.6, F.z - F.d / 2 + 0.2], normal: [0, 0, 1], r: 1.5, when: { drumOn: ['ballC', 'pC2'] } },
+    { at: [F.x - 1, 0.02, F.z], r: 2.2 },
+  ] });
+  for (const sd of [1, -1]) K.add(M.trim, T(new THREE.CylinderGeometry(0.12, 0.12, 10, 5), [F.x + 7.6, 5, F.z + sd * 5]));   // (the rods from each plate up to the louvre)
+  pane(F.x + F.w / 2 - 0.05, 6.5, F.z, 3, 3, -Math.PI / 2);
+  add(Key, { id: 'kE', at: [F.x + 5.6, 0, F.z], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'frame', at: [F.x - 4.5, 0, F.z + 3], yaw: Math.PI / 2 });
+  void leaf;
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -216,14 +291,15 @@ function layout(rt) {
   K.wall(-8.6, 12.6, 8.6, 12.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, w: 6, h: 7 }] });
 
   // ---- the Potting Hall (z 12.6..44): a stone seed onto its plate, an eye behind the benches
-  K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 12, roof: 'oculus', oculus: 0.3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }] });
+  // (the house's hub since v1.48: a way west into the Shade House and east into the Cold Frame at its north end)
+  K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 12, roof: 'oculus', oculus: 0.3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }, { side: 'w', at: WING.z - 28.3, w: 5, h: 6.4 }, { side: 'e', at: WING.z - 28.3, w: 5, h: 6.4 }] });
   K.add(M.dark, box(1.0, 0.04, 21, -6, 0.02, 28));
   add(Ball, { id: 'ball1', a: [-6, 0.04, 17], b: [-6, 0.04, 38.5], r: 1.1 });
   add(Plate, { id: 'p1', at: [-6, 0, 38.5], r: 1.3 });
   // the potting benches along the east wall, dead seedlings in rows; the eye on the wall behind them, over the benches
   for (const z of [20, 27, 34]) { K.both(M.wall, box(3.2, 1.1, 5.2, 8.6, 0.55, z)); for (let i = 0; i < 3; i++) pot(8.6, 1.1, z - 1.7 + i * 1.7, 0.35, true); }
   add(Switch, { id: 's1', at: [10.8, 4.6, 27], yaw: -Math.PI / 2, size: 1.0, wrong: 'The eye stays shut. It is in the shade: the builders’ eyes open only to the sun.' });
-  for (const z of [18, 30, 40]) pane(-10.95, 8.5, z, 4, 4, Math.PI / 2);
+  for (const z of [18, 29]) pane(-10.95, 8.5, z, 4, 4, Math.PI / 2);
   // the louvre over the benches: the ball's weight on its plate turns it, by the brass rod up the wall and over the roof,
   // and its sunbeam swings off the floor onto the eye
   add(Sunbeam, { from: [6.5, 12.0, 27], w: 3.2, spots: [{ at: [10.75, 4.6, 27], normal: [-1, 0, 0], r: 1.7, when: { drumOn: ['ball1', 'p1'] } }, { at: [1.5, 0.02, 25], r: 2.4 }] });
@@ -231,8 +307,9 @@ function layout(rt) {
   K.both(M.trim, box(0.3, 11.6, 0.3, -6, 5.8, 43.7));                  // up it,
   K.add(M.trim, box(12.8, 0.3, 0.3, 0.25, 11.75, 43.7));               // along under the roof,
   K.add(M.trim, box(0.3, 0.3, 16.7, 6.5, 11.75, 35.35));               // and over to the louvre
-  add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.4, lamps: [{ drumOn: ['ball1', 'p1'] }, { lit: 's1' }] });
+  add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.4, lamps: [{ drumOn: ['ball1', 'p1'] }, { lit: 's1' }] });   // (and two keyholes: logic `lock`)
   add(Mark, { room: 'potting', at: [-9.4, 0, 15], yaw: Math.PI / 2 });
+  wings(rt, K, M, { pot, pane, leaf });
 
   // ---- the Glass Stair (a rotunda, floor 0): a root-wall to climb (its top at 9), a disc that rides up to the landing at 18
   K.slab(-3.2, 44, 3.2, 46.6, 0, 0.8);
@@ -365,10 +442,10 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -12, -3), V(24, 58, CW + HR + 12)),
+    bounds: new THREE.Box3(V(-32, -12, -3), V(32, 58, CW + HR + 12)),
     gadget: { at: W(0, 18.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 27.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 12], [0, 7, 28, 16], [0, 10, C2, 14], [0, 22, C3, 12], [0, 22, G0 + 16, 22], [0, 30, G0 + 38, 16], [0, 34, CW, 30]],
+    lights: [[0, 6, 6, 12], [0, 7, 28, 16], [WING.shade.x, 6, WING.z, 12], [WING.frame.x, 6, WING.z, 12], [0, 10, C2, 14], [0, 22, C3, 12], [0, 22, G0 + 16, 22], [0, 30, G0 + 38, 16], [0, 34, CW, 30]],
     guardian: { def: { ...GARDENER, onHit: gardenerHit, openFor: gardenerOpenFor }, model, arena },
   };
 }
@@ -516,7 +593,7 @@ function change(scene, level, rt) {
 
 export const EDENA_TEMPLE = {
   id: 'edena', levelId: 'edena', name: 'The Builders’ Greenhouse', doorLabel: 'door of the Builders’ Greenhouse',
-  gadget: 'bloom', gadgetBox: 'edena.temple.bloom', arenaDoor: 'd4',
+  gadget: 'bloom', gadgetBox: 'edena.temple.bloom', arenaDoor: 'd4', arenas: ARENAS,
   origin: [300, 1700, -450], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

@@ -132,9 +132,9 @@ const KNOWN = {
   buried: { sink: 23, hover: 1, inside: 30, walk: 4 },
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
   perdide: { sink: 3, hover: 0, inside: 4, walk: 7 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
-  // (v1.48: the passages under the towers by Signal Square moved the samples: 13 → 15 walks through, none in them, the
-  // night halt's rails' thin sleepers south of the landing, 0.1-0.2 m)
-  bazaar: { sink: 4, hover: 0, inside: 2, walk: 11 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
+  // (v1.48: the passages under the towers by Signal Square and the Undertower's wings both moved the samples; nearly all
+  // the market's drawn-only strip along its south avenue and the night halt's thin sleepers)
+  bazaar: { sink: 4, hover: 0, inside: 2, walk: 12 }, atelier: { sink: 0, hover: 0, inside: 0, walk: 0 },
   home: { sink: 0, hover: 0, inside: 3, walk: 13 },
   mangrove: { sink: 0, hover: 0, inside: 6, walk: 0 },   // (the White Mangrove: solid as drawn, roots, decks, leaves and all)
   waterfall: { sink: 2, hover: 0, inside: 2, walk: 0 },   // (its mist banks: drawn only, walked through on purpose)

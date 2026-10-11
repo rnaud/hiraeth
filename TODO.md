@@ -237,6 +237,17 @@ with an older verb); since v1.24 every one has its own idea (average 1.84 → 3.
 themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked across the eleven in v1.24 and done in v1.27 but
 three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 
+Issue #23, temples to explore (docs/audits/temple-design-v1.48.md): the kit has keys, locks, arenas and coffers, and the
+Clock-House, the Greenhouse, the Undertower and the Warden's Well were reworked round a hub (structure 2 → 4-5). Left:
+
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) The Engine-House round a hub (structure 2, the last): wings that jam
+  its cranks in turn, one an arena; keys into the way on to the Fourth Chamber.
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Break the shared hub template (identity fell a point in the Warden's
+  Well and the Mooring-House): a loop for the Aerie (3), keys after the gadget for locks back in the Lamp-House's first half (3).
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) A great key past the chest in the Greenhouse, the Undertower and the
+  Warden's Well (their guardian's door is still its puzzle's), which would bring their curve back (the Greenhouse 3 → 1,
+  the Undertower 5 → 3).
+
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 
 Ranked; each says why in the review. Playtest with two or three new players before building the big ones.

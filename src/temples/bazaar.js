@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Platform, Bridge, EchoStone, EchoEar, Dish, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Platform, Bridge, EchoStone, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
 import { signModel } from './guardians.js';
 
 // The Signal Market's temple: the Undertower, the foundations of the silent
@@ -25,8 +25,13 @@ import { signModel } from './guardians.js';
 //                        the dish); splashed there, its note comes out of the dish's twin over the horn, and the
 //                        pillars rise out of the cable (push + shot, and the dishes: a note travels, and a note
 //                        raises the way; taught where failing is free)
-//   the Cable Well       two discs up; the second waits for the horn on the ledge, which listens for the low stone
-//                        on the floor (its ring is the low note's colour; the high stone beside it is not its note)
+//   the Cable Well       the hub (v1.48, issue #23): two discs up; the second waits for the horn on the ledge, which
+//                        listens for the low stone on the floor (its ring is the low note's colour; the high stone
+//                        beside it is not its note); the door from the landing into the Shell Chamber takes two small keys:
+//   the Cable Store      (west, an arena) the makers' spare cable on drums; its door shuts behind you while its keepers stand
+//   the Tuning Room      (east) a pair of dishes across the room: the near one deaf until a ball (rolled in from the well)
+//                        is on its footstone, a low
+//                        and a high stone by its mouth; the far horn, too far for either alone, wants the high one
 //   the Shell Chamber    the makers' chest: the ECHO SHELL (src/items.js 'echo', src/echo-shell.js). Its way on is
 //                        open; a low singing stone stands by the dais: splash it, and the shell keeps its note
 //   the Listening Passage a room on: the door into the gallery listens for the low note through its horn, and
@@ -83,12 +88,17 @@ export const HOLD = { horn: 12 };
 
 export const LOGIC = {
   id: 'bazaar', entry: 'threshold', gadget: 'echo',
-  rooms: { threshold: { checkpoint: true }, dishes: { checkpoint: true }, dishesFar: {}, well: { checkpoint: true }, shell: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: { checkpoint: true }, hall: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, dishes: { checkpoint: true }, dishesFar: {}, well: { checkpoint: true }, store: { checkpoint: true }, tune: { checkpoint: true }, landing: {}, shell: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: { checkpoint: true }, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'dishes' },
     { a: 'dishes', b: 'dishesFar', door: 'disc' },    // the pillars over the cable pit, once their horn has heard the ball
     { a: 'dishesFar', b: 'well' },
-    { a: 'well', b: 'shell', door: 'wdisc' },         // the second disc up the well, once its horn has heard the low stone
+    // the Cable Well is the hub (v1.48): west the Cable Store (an arena), east the Tuning Room; the door from the landing
+    // into the Shell Chamber wants a small key from each
+    { a: 'well', b: 'store', door: 'dW' },            // (open: it shuts behind you while its keepers stand)
+    { a: 'well', b: 'tune' },
+    { a: 'well', b: 'landing', door: 'wdisc' },       // the second disc up the well, once its horn has heard the low stone
+    { a: 'landing', b: 'shell', door: 'dK' },         // two small keys
     { a: 'shell', b: 'gallery', door: 'd3' },          // the Listening Passage's door, a room on from the chest (one room with it)
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
     { a: 'galleryFar', b: 'hall', door: 'd4' },
@@ -101,6 +111,16 @@ export const LOGIC = {
     disc: { type: 'bridge', opens: { all: [{ drumOn: ['ball1', 'p1'] }, { lit: 'eD' }] }, latch: true },
     eW: { type: 'switch', room: 'well' },                             // the horn on the ledge: the low stone's own song
     wdisc: { type: 'bridge', opens: { lit: 'eW' }, latch: true },
+    // the Cable Store: its keepers beaten, the small key's cage sinks
+    arW: { type: 'arena', room: 'store' },
+    kW: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arW' } },
+    dW: { type: 'door', opens: null },
+    // the Tuning Room: the ball on the near dish's footstone, the high stone sung by its mouth, the far horn hears it
+    ballT: { type: 'drum', room: 'well', plate: 'pT', plateAt: 1, start: 0 },   // (still in the well: its groove runs east)
+    pT: { type: 'plate', room: 'tune' },
+    eT: { type: 'switch', room: 'tune' },
+    kE: { type: 'key', kind: 'small', room: 'tune', when: { all: [{ drumOn: ['ballT', 'pT'] }, { lit: 'eT' }] } },
+    dK: { type: 'door', lock: 'small', keys: 2, latch: true },
     chest: { type: 'gadget', room: 'shell', item: 'echo' },
     e0: { type: 'switch', room: 'shell', needs: ['echo'] },          // the passage's horn: the low note, carried from the chamber's stone
     d3: { type: 'door', opens: { lit: 'e0' }, latch: true },
@@ -142,6 +162,65 @@ function signHit(g, part, mode) {
   if (mode === 'push') { g.rt.notice('The shove only rings off its mast.', 'fs.push'); return true; }
   g.rt.notice('The fluid rattles off its dish. It is not listening for water: it is listening for its word.', 'fs.fluid');
   return true;
+}
+
+// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
+/** The Cable Well's wings (local m): the Cable Store west (an arena), the Tuning Room east (a dish across the room). */
+export const WING = {
+  store: { x: -22, z: 61.2, w: 16, d: 16 },
+  tune: { x: 22, z: 61.2, w: 16, d: 16 },
+  zone: { min: [-30, -1, 53.2], max: [-14, 9, 69.2] },
+};
+
+/** The Cable Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arW', room: 'store', zone: WING.zone, doors: ['dW'], extra: 2,
+  shut: 'The door grinds shut behind you. Among the coils of old cable, something lifts its head.',
+  won: 'The last of them falls still among the cable. The key’s cage sinks, and the door lets go.',
+}];
+
+/**
+ * The Cable Store (west of the Cable Well, an arena: the makers' spare cable on drums, its door shut behind you while
+ * its keepers stand; won, the small key's cage sinks) and the Tuning Room (east: a pair of dishes across the room, the
+ * near one deaf until a ball's weight is on its footstone, and the ball is still in the well, its groove through the way
+ * east; a low and a high stone by its mouth, and a horn at the far end too far for either to reach it on their own; it
+ * listens for the high one, its ring the high note's colour, as the well's horn told the low one by its colour). Each
+ * holds one of the two small keys the door to the Shell Chamber takes.
+ */
+function wings(rt, K, M, { C2, cable, dish }) {
+  const add = (P, o) => rt.add(P, o);
+  const S = WING.store, U = WING.tune, TZ = C2 + 1.4;
+  // ---- the Cable Store
+  K.corridor([-13.4, C2], [-9.8, C2], 0, { w: 5, h: 6.4 });
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: 10, roof: 'oculus', oculus: 0.25, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });
+  add(Door, { id: 'dW', at: [-12.2, 0, C2], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  // drums of spare cable along the walls
+  for (const [x, z] of [[-27.5, 55.6], [-27.5, 66.8], [-18, 66.8]]) {
+    K.both(M.dark, T(new THREE.CylinderGeometry(1.4, 1.4, 1.8, 14).rotateZ(Math.PI / 2), [x, 1.4, z]));
+    for (let i = 0; i < 4; i++) K.add(M.trim, T(new THREE.TorusGeometry(1.42, 0.08, 4, 18).rotateY(Math.PI / 2), [x - 0.7 + i * 0.47, 1.4, z]));
+  }
+  for (let i = 0; i < 3; i++) cable([-29.4 + i * 1.4, 9.6, 53.9], [-29.4 + i * 1.4, 0.3, 53.9], 0.16);   // (cable hung down the south-west corner, off the floor)
+  add(Key, { id: 'kW', at: [-27.6, 0, S.z], yaw: Math.PI / 2 });
+  add(Mark, { room: 'store', at: [S.x + 2, 0, S.z - 3], yaw: Math.PI / 2 });
+
+  // ---- the Tuning Room: the near dish on the north wall over its footstone, two stones by its mouth; its twin far east
+  K.corridor([9.8, C2], [13.4, C2], 0, { w: 5, h: 6.4 });
+  K.hall({ x: U.x, z: U.z, w: U.w, d: U.d, y: 0, h: 10, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
+  // the footstone's weight is a ball still in the well: its groove runs from the hub through the way east
+  K.add(M.dark, box(11.8, 0.04, 1.0, 13.3, 0.02, TZ));
+  add(Ball, { id: 'ballT', a: [7.6, 0.04, TZ], b: [19.2, 0.04, TZ], r: 1.0 });
+  add(Plate, { id: 'pT', at: [19.2, 0, TZ], r: 1.2 });
+  add(Dish, { id: 'dishT', at: [18.4, 3.2, 68.9], yaw: Math.PI, tilt: 0.15, r: 2.0, when: { drumOn: ['ballT', 'pT'] },
+    to: { at: [29.6, 3.4, 56.4], yaw: -Math.PI / 2 - 0.3, tilt: 0.3, r: 1.8 },
+    dark: 'The dish is dark and deaf: its footstone is bare.' });
+  add(EchoStone, { note: 'low', at: [15.6, 0, 67.4], yaw: Math.PI * 0.8, h: 2.6 });
+  add(EchoStone, { note: 'high', at: [21.4, 0, 67.6], yaw: -Math.PI * 0.8, h: 3.0 });
+  add(EchoEar, { id: 'eT', note: 'high', hears: 'note', at: [27.4, 0, 55.4], yaw: -Math.PI * 0.75, reach: 5,
+    heard: 'The far dish says the high stone’s note, and the horn under it answers. The key’s cage sinks.',
+    wrong: 'The horn hears the note, and stays still. Its ring is the colour of the high one.' });
+  dish(29.9, 7.4, 66.6, 1.6, -Math.PI / 2);
+  add(Key, { id: 'kE', at: [22.4, 0, 55.4], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'tune', at: [16, 0, 57], yaw: Math.PI / 2 });
 }
 
 // ------------------------------------------------------------------ inside
@@ -201,7 +280,8 @@ function layout(rt) {
   K.wall(-3.2, 48.6, -3.2, 50.6, 0, 6.4, { t: 0.8 }); K.wall(3.2, 50.6, 3.2, 48.6, 0, 6.4, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.8, 49.6));
   const C2 = 61.2;
-  K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 26, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4, y0: 12 }], oculus: 0.3 });
+  // (the house's hub since v1.48: a way west into the Cable Store and east into the Tuning Room at its floor)
+  K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 26, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4, y0: 12 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.3 });
   add(Platform, { path: [[-5, 0, C2 - 1], [-5, 6, C2 - 1]], r: 2.2, speed: 1.4, pause: 1.6 });
   K.slab(-9, C2 + 1.4, 1, C2 + 5.4, 6, 1.0);
   add(Platform, { id: 'wdisc', path: [[3.4, 6, C2 + 3.4], [3.4, 12, C2 + 3.4]], r: 2.2, speed: 1.4, pause: 1.6, phase: 0.5, when: { open: 'wdisc' } });
@@ -213,11 +293,13 @@ function layout(rt) {
     wrong: 'The horn on the ledge hears the note, and stays still. Its ring is the colour of the low one.' });
   for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + 0.4; cable([Math.sin(a) * 9.6, 24, C2 + Math.cos(a) * 9.6], [Math.sin(a) * 9.4, 0.2, C2 + Math.cos(a) * 9.4], 0.22); }
   add(Mark, { room: 'well', at: [-6, 0, C2 - 6.5], yaw: Math.PI * 0.75 });
+  wings(rt, K, M, { C2, cable, dish });
 
   // ---- the corridor and the Shell Chamber (floor 12): the chest; its way on is open, a low singing stone by the dais
   K.slab(-3.2, C2 + 10, 3.2, C2 + 12.6, 12, 0.8);
   K.wall(-3.2, C2 + 10.6, -3.2, C2 + 12.6, 12, 6.4, { t: 0.8 }); K.wall(3.2, C2 + 12.6, 3.2, C2 + 10.6, 12, 6.4, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 18.8, C2 + 11.6));
+  add(Door, { id: 'dK', at: [0, 12, C2 + 11.3], w: 5, h: 6.4 });   // (two keyholes: logic `lock`, a small key from each wing)
   const C3 = C2 + 22.6;
   K.rotunda({ x: 0, z: C3, y: 12, r: 9.5, h: 14, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
   K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 12, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 12.31, C3));
@@ -324,10 +406,10 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -12, -3), V(24, 44, CW + HR + 12)),
+    bounds: new THREE.Box3(V(-32, -12, -3), V(32, 44, CW + HR + 12)),
     gadget: { at: W(0, 12.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 12.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 12], [0, 6, 18, 14], [0, 6, 42, 14], [0, 10, C2, 16], [0, 17, C3, 14], [0, 17, G0 + 6, 16], [0, 17, G0 + 32, 16], [0, 20, CW, 30]],
+    lights: [[0, 6, 6, 12], [0, 6, 18, 14], [0, 6, 42, 14], [0, 10, C2, 16], [WING.store.x, 6, C2, 12], [WING.tune.x, 6, C2, 12], [0, 17, C3, 14], [0, 17, G0 + 6, 16], [0, 17, G0 + 32, 16], [0, 20, CW, 30]],
     guardian: { def: { ...FIRST_SIGN, onHit: signHit }, model, arena },
   };
 }
@@ -424,7 +506,7 @@ function change(scene, level, rt) {
 
 export const BAZAAR_TEMPLE = {
   id: 'bazaar', levelId: 'bazaar', name: 'The Undertower', doorLabel: 'old doorway under the silent tower',
-  gadget: 'echo', gadgetBox: 'bazaar.temple.echo', arenaDoor: 'd4',
+  gadget: 'echo', gadgetBox: 'bazaar.temple.echo', arenas: ARENAS, arenaDoor: 'd4',
   origin: [-200, 1600, -520], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

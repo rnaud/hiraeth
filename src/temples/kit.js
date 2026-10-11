@@ -427,8 +427,13 @@ export class TempleKit {
       const px = x + Math.sin(a) * (r + t / 2), pz = z + Math.cos(a) * (r + t / 2);
       // a gap: this stone is cut from the floor to the gap's height
       // a gap: this stone is cut from the gap's foot (y0, default the floor) to its top
-      const gap = gaps.find((g) => Math.abs(Math.atan2(Math.sin(a - g.a), Math.cos(a - g.a))) * (r + t / 2) < g.w / 2);
-      const spans = gap ? [[0, gap.y0 ?? 0], [(gap.y0 ?? 0) + gap.h, h]] : [[0, h]];
+      // (several gaps may stack on one stone: a doorway at the floor and another over it, a hub's two ways west)
+      const cut = gaps.filter((g) => Math.abs(Math.atan2(Math.sin(a - g.a), Math.cos(a - g.a))) * (r + t / 2) < g.w / 2).map((g) => [g.y0 ?? 0, (g.y0 ?? 0) + g.h]).sort((p, q) => p[0] - q[0]);
+      const spans = [];
+      let from = 0;
+      // (a sill under a gap off the floor: its top Z_GAP under the gap's foot, so the floor laid through it is the face you see)
+      for (const [c0, c1] of cut) { spans.push([from, c0 > 1e-3 ? c0 - Z_GAP : c0]); from = Math.max(from, c1); }
+      spans.push([from, h]);
       for (const [s0, s1] of spans) if (s1 - s0 > 0.05) this.banded(this.M.wall, s0, s1 - s0, h, (yy, hh) => T(new THREE.BoxGeometry(chord, hh, t), [px, y + yy + hh / 2, pz], [0, a, 0]));
     }
     // the trim at the top, round the hall (solid: it overhangs the wall's outer face by 0.4 m, and a
@@ -446,6 +451,28 @@ export class TempleKit {
       if (gaps.some((g) => Math.abs(Math.atan2(Math.sin(a - g.a), Math.cos(a - g.a))) * r < g.w / 2 + 1)) continue;
       this.glyph([x + Math.sin(a) * (r - 0.03), y + h * 0.7, z + Math.cos(a) * (r - 0.03)], 1.1, a + Math.PI);
       this.ornament([x + Math.sin(a) * (r - 0.03), y + h * 0.7, z + Math.cos(a) * (r - 0.03)], a + Math.PI);
+    }
+    return this;
+  }
+  /**
+   * A short covered passage between two rooms (a hub's spoke, the way into a side room): from a to b ([x, z], along x or
+   * along z), its floor at y, a doorway of w by h at each end: a floor, a wall each side, a roof slab. Its walls stand t thick
+   * 0.3 m outside the w, so the rooms' doorways (and their frames) open into it.
+   */
+  corridor(a, b, y, { w = 5, h = 6.4, t = 0.8, roof = true } = {}) {
+    const alongZ = Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1]);
+    const [u0, u1] = alongZ ? [Math.min(a[1], b[1]), Math.max(a[1], b[1])] : [Math.min(a[0], b[0]), Math.max(a[0], b[0])];
+    const c = alongZ ? a[0] : a[1], s = w / 2 + 0.3 + t / 2, L = u1 - u0;   // (its walls 0.3 m outside the doorway's w: clear of the doorways' frames, as the houses' own passages)
+    if (alongZ) {
+      this.slab(c - s - t / 2, u0, c + s + t / 2, u1, y, 0.8);
+      this.wall(c - s, u0, c - s, u1, y, h, { t, cap: false });
+      this.wall(c + s, u1, c + s, u0, y, h, { t, cap: false });
+      if (roof) this.both(this.M.wall, box(2 * s + t, 0.8, L, c, y + h + 0.42, (u0 + u1) / 2));
+    } else {
+      this.slab(u0, c - s - t / 2, u1, c + s + t / 2, y, 0.8);
+      this.wall(u1, c - s, u0, c - s, y, h, { t, cap: false });
+      this.wall(u0, c + s, u1, c + s, y, h, { t, cap: false });
+      if (roof) this.both(this.M.wall, box(L, 0.8, 2 * s + t, (u0 + u1) / 2, y + h + 0.42, c));   // (its underside 2 cm over the doorways' lintels: no face shared with their frames)
     }
     return this;
   }

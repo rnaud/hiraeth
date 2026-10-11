@@ -2,7 +2,7 @@
 // each function shown the case it is for, on small made-up temples, and once on a real temple's logic.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { conditionKeys, reversible, mechanicOf, puzzleGraph, obviousness, templeMetrics, scoreTemple, skeleton, similarity, rankTrend, piecePos, planSvg } from '../scripts/temple-design/lib.mjs';
+import { conditionKeys, reversible, mechanicOf, puzzleGraph, obviousness, templeMetrics, scoreTemple, skeleton, similarity, rankTrend, piecePos, planSvg, assignKeys } from '../scripts/temple-design/lib.mjs';
 
 // a linear temple: a plate door, the chest, a gadget door, the guardian (the shape every temple had in October 2026)
 const LINEAR = {
@@ -158,6 +158,45 @@ test('a clue read a room back is a key of its lock; a plate only the lens shows 
   assert.deepEqual(d4.keys.find((k) => k.id === 'ball').mech, ['push', 'gadget:lens', 'reveal'], 'the hidden plate: the push and the lens');
   assert.equal(skeleton(g)[1], 'R');
   assert.ok(g.traversal.a.includes('stones') || g.traversal.b.includes('stones'), 'the lens stones are a way across');
+});
+
+test('a hub with keys (issue #23): each key goes to a lock in the order they are met, its cage is the step, a lock a key alone opens and an arena’s way out are no puzzles, and keys fetched across rooms count as structure', () => {
+  const H = {
+    id: 'hub', entry: 'hub', gadget: 'fire',
+    rooms: { hub: {}, west: {}, east: {}, chest: {}, big: {}, arena: { boss: true }, out: {} },
+    links: [{ a: 'hub', b: 'west', door: 'dw' }, { a: 'west', b: 'hub', door: 'dwo' }, { a: 'hub', b: 'east' }, { a: 'hub', b: 'chest', door: 'd2' }, { a: 'chest', b: 'big' }, { a: 'chest', b: 'arena', door: 'dB' }, { a: 'arena', b: 'out', door: 'd5' }],
+    elements: {
+      ar: { type: 'arena', room: 'west' }, kw: { type: 'key', room: 'west', when: { lit: 'ar' } }, dw: { type: 'door', opens: null }, dwo: { type: 'door', opens: { lit: 'ar' }, latch: true },
+      pe: { type: 'plate', room: 'east' }, be: { type: 'drum', room: 'east', plate: 'pe' }, se: { type: 'switch', room: 'east', when: { drumOn: ['be', 'pe'] } },
+      ke: { type: 'key', room: 'east', when: { lit: 'se' } },
+      d2: { type: 'door', lock: 'small', keys: 2, latch: true },
+      chest: { type: 'gadget', room: 'chest', item: 'fire' },
+      b1: { type: 'brazier', room: 'big', needs: ['fire'] }, kb: { type: 'key', kind: 'big', room: 'big', when: { lit: 'b1' } },
+      dB: { type: 'door', lock: 'big' },
+      boss: { type: 'boss', room: 'arena', needs: ['fire'] }, d5: { type: 'door', opens: { resolved: true } },
+    },
+  };
+  assert.deepEqual(assignKeys(H), { d2: ['kw', 'ke'], dB: ['kb'] }, 'two small keys in the door of two keyholes, the great one in the great lock');
+  assert.deepEqual(mechanicOf('ar', H.elements.ar), ['fight']);
+  assert.deepEqual(mechanicOf('ke', H.elements.ke, { elements: H.elements }), ['key', 'shot', 'push']);
+  const g = puzzleGraph(H, []);
+  const d2 = g.locks.find((l) => l.id === 'd2');
+  assert.deepEqual(d2.keys.map((k) => [k.id, k.how]), [['kw', 'key'], ['ke', 'key']], 'carried: only the keys, not what earned them');
+  assert.equal(d2.fetched, 2);
+  const cage = g.locks.find((l) => l.id === 'cage:ke');
+  assert.ok(cage && cage.type === 'cage' && cage.keys.some((k) => k.id === 'se') && cage.mechanics.includes('push'), 'the key’s cage is a lock: the ball and the eye');
+  assert.equal(g.locks.find((l) => l.id === 'dB').arena, false, 'a locked door is not the guardian’s arena door');
+  const m = templeMetrics(g);
+  const steps = m.steps.map((s) => s.lock);
+  assert.ok(steps.includes('cage:ke') && steps.includes('cage:kb'), steps.join(', '));
+  assert.ok(!steps.includes('d2') && !steps.includes('dB') && !steps.includes('dwo') && !steps.includes('cage:kw'), `no lock a key alone opens, no arena’s way out (${steps.join(', ')})`);
+  assert.equal(m.structure.fetched, 3);
+  assert.equal(m.structure.arenas, 1);
+  assert.ok(m.structure.branches >= 1 && m.structure.degree.hub === 4, 'the hub, four ways out');
+  assert.ok(m.structure.cycles >= 1, 'the arena’s way out back to the hub');
+  assert.ok(obviousness({ keys: [{ how: 'key', rooms: 2, visible: false, metres: 40 }], mechanics: ['key'] }).score >= 4, 'a key from far away is no obscurity: the lock says what it wants');
+  assert.match(skeleton(g), /A/); assert.match(skeleton(g), /L/);
+  assert.equal(scoreTemple(m).criteria.structure.score, 5);
 });
 
 test('the plan draws every room and every lock', () => {

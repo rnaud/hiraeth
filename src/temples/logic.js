@@ -34,6 +34,12 @@ import { meetsWith } from '../resources.js';
 //          vane   (the makers' bellows, the Warden's Well: held like a bell, lit only while it turns. A splash spins
 //           a small one a while; a great one only turns under the jets' wash. Its piece calls light / quiet.)
 //          door / bridge { opens: condition, latch? }   (latch: once open, open for good, saved)
+//          (a door with `lock: 'small' | 'big'` is locked as well: it opens only once unlocked with a key, and its `opens`
+//           (if any) holds. `keys: n` keyholes (a small lock: n keys, put in one at a time). A small key is any small key:
+//           the ones found less the ones put in a lock, as in Zelda)
+//          key { kind: 'small' | 'big', when? }   a key on a plinth, taken when you reach it (once its `when` holds)
+//          arena { }   a room that shuts behind you until its foes are beaten (the runtime's `arenas`): lit once won
+//          cache { when? }   a coffer of chimes in an optional room (a reward, nothing waits on it)
 //   conditions: { all: [] } · { any: [] } · { pressed: plate } · { lit: id } · { item: id }
 //               · { drumOn: [drum, plate] } · { open: door } · { gadget: true } · { resolved: true }
 
@@ -50,7 +56,9 @@ export function flagStore(game, id) {
   return { get: (k) => game.flag(`temple.${id}.${k}`), set: (k, v) => game.set(`temple.${id}.${k}`, v) };
 }
 
-const LATCHED = new Set(['brazier', 'bramble', 'switch', 'bell', 'vane']);
+const LATCHED = new Set(['brazier', 'bramble', 'switch', 'bell', 'vane', 'arena']);
+/** What is found and kept (a second chest, a key, a coffer): `find(id)`. */
+const FINDS = new Set(['find', 'key', 'cache']);
 /** Held, not latched: lit only while it rings or turns (a held bell, a vane). */
 export const held = (e) => !!e && (e.type === 'vane' || !!e.hold);
 
@@ -124,10 +132,33 @@ export class TempleLogic {
     this.store.set('gadget', true);
     return true;
   }
-  /** A second chest (a `find`) opened; or its item carried in already. */
+  /** A second chest (a `find`) opened, a key taken, a coffer opened (once its `when` holds); or its item carried in already. */
   find(id) {
-    if (this.el(id)?.type !== 'find' || this.store.get(`found.${id}`)) return false;
+    const e = this.el(id);
+    if (!FINDS.has(e?.type) || this.store.get(`found.${id}`) || (e.when && !this.check(e.when))) return false;
     this.store.set(`found.${id}`, true);
+    return true;
+  }
+  // ---------------------------------------------------------------- keys and locks
+  /** Keys of a kind in hand: those taken, less those put in a lock of that kind. */
+  keys(kind = 'small') {
+    let n = 0;
+    for (const [id, e] of Object.entries(this.def.elements)) {
+      if (e.type === 'key' && (e.kind ?? 'small') === kind && this.store.get(`found.${id}`)) n++;
+      if (isGate(e) && e.lock === kind) n -= this.keysIn(id);
+    }
+    return n;
+  }
+  /** How many keys are in a lock now (saved), and how many it takes. */
+  keysIn(id) { return this.store.get(`unlocked.${id}`) ?? 0; }
+  keyholes(id) { return this.el(id)?.lock ? this.el(id).keys ?? 1 : 0; }
+  unlocked(id) { const e = this.el(id); return !e?.lock || this.keysIn(id) >= this.keyholes(id); }
+  /** A key could go into this lock now: a keyhole free and a key of its kind in hand. */
+  canUnlock(id) { const e = this.el(id); return !!e?.lock && !this.unlocked(id) && this.keys(e.lock) > 0; }
+  /** Put one key in (a lock of several keyholes takes them one at a time). Call update() after. */
+  unlock(id) {
+    if (!this.canUnlock(id)) return false;
+    this.store.set(`unlocked.${id}`, this.keysIn(id) + 1);
     return true;
   }
   isFound(id) { const e = this.el(id); return !!this.store.get(`found.${id}`) || (!!e?.item && this.has(e.item)); }
@@ -161,6 +192,8 @@ export class TempleLogic {
     if (!isGate(e)) return true;
     // held shut (the arena's door while the guardian is awake: the runtime decides)
     if (this.forced.has(id)) return this.forced.get(id);
+    if (e.lock && !this.unlocked(id)) return false;   // (locked: whatever else it waits for)
+    if (e.lock && e.opens === undefined) return true;
     if (e.latch && this.store.get(`open.${id}`)) return true;
     return this.check(e.opens);
   }
@@ -213,9 +246,12 @@ export class TempleLogic {
   next() {
     const reach = this.reachable();
     for (const [id, e] of Object.entries(this.def.elements)) {
+      // (a lock a key can go in now, by a room you can reach: a door has no room of its own)
+      if (isGate(e) && e.lock && this.canUnlock(id) && this.lockReachable(id, reach)) return id;
       if (!reach.has(e.room)) continue;
       if (e.type === 'gadget' && !this.gadget) return id;
       if (e.type === 'find' && !this.isFound(id)) return id;
+      if (e.type === 'key' && !this.isFound(id) && this.check(e.when)) return id;
       if (LATCHED.has(e.type) && !this.isLit(id) && this.canUse(id) && (!held(e) || this.awaited(id))) return id;
       if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it))) return id;
       // (a ball with several stops: worth pushing when one it isn't on is awaited)
@@ -226,6 +262,8 @@ export class TempleLogic {
     for (const [id, e] of Object.entries(this.def.elements)) if (e.type === 'plate' && reach.has(e.room) && !this.pressed(id) && this.awaited(id)) return id;
     return null;
   }
+  /** A side of the lock's doorway can be walked to. */
+  lockReachable(id, reach = this.reachable()) { return this.def.links.some((l) => l.door === id && (reach.has(l.a) || (reach.has(l.b) && !l.oneWay))); }
   /** A shut door or bridge is waiting for this element (a plate, a held bell: worth going to), or an unlit eye's `when` is. */
   awaited(id) { return Object.entries(this.def.elements).some(([d, g]) => (isGate(g) && !this.isOpen(d) && mentions(g.opens, id)) || (LATCHED.has(g.type) && g.when && !this.isLit(d) && mentions(g.when, id))); }
 }
@@ -255,21 +293,25 @@ const mentions = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions(x,
  * light what burns, roll the drums onto their plates, stand on each plate in
  * turn), until the guardian can be faced, then resolve it. `items` is what the
  * traveller carries in; `withhold` items never come (to prove a gadget is the
- * key). Returns { done, log, order (rooms in the order reached), gadgetAt
- * (index in log), stuck (rooms reached when it got stuck) }.
+ * key). `reverse`: walk the rooms' elements and the locks the other way round (the wings of a hub, taken in the
+ * other order: a temple whose keys could be wasted fails one way or the other); `forbid`: elements never done (a wing
+ * left alone: the other still gives its key). Returns { done, log, order (rooms
+ * in the order reached), gadgetAt (index in log), stuck (rooms reached when it got stuck) }.
  */
-export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxSteps = 400 } = {}) {
+export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxSteps = 400, reverse = false, forbid = [] } = {}) {
   const owned = new Set(items.filter((i) => !withhold.includes(i)));
   const has = (i) => meetsWith((x) => owned.has(x), i);   // ('magic:4': the bar the items make, src/resources.js)
   const L = new TempleLogic(def, { has });
   const log = [], order = [def.entry];
   let gadgetAt = -1;
+  const lockIds = Object.entries(def.elements).filter(([, e]) => isGate(e) && e.lock).map(([id]) => id);
   const note = (s) => { log.push(s); L.update(); for (const r of L.reachable()) if (!order.includes(r)) order.push(r); };
   for (let step = 0; step < maxSteps; step++) {
     const reach = L.reachable();
     let did = false;
-    for (const [id, e] of Object.entries(def.elements)) {
-      if (!reach.has(e.room)) continue;
+    const els = Object.entries(def.elements);
+    for (const [id, e] of reverse ? els.slice().reverse() : els) {
+      if (!reach.has(e.room) || forbid.includes(id)) continue;
       if (e.type === 'gadget' && !L.store.get('gadget')) {
         L.takeGadget();
         if (e.item && !withhold.includes(e.item)) owned.add(e.item);
@@ -280,14 +322,18 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
         if (e.item && !withhold.includes(e.item)) owned.add(e.item);
         note(`find ${id}${e.item ? ` (${e.item})` : ''}`); did = true; break;
       }
+      if ((e.type === 'key' || e.type === 'cache') && !L.isFound(id) && L.find(id)) { note(`${e.type === 'key' ? 'take' : 'open'} ${id}`); did = true; break; }
       if (LATCHED.has(e.type) && !L.isLit(id) && L.canUse(id)) { L.light(id); note(`${e.type} ${id}`); did = true; break; }
       if (e.type === 'drum' && e.plate && !e.stops && !L.drumOn(id, e.plate) && rolls(e, has) && (e.needs ?? []).every(has)) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
       if (e.type === 'boss' && !L.resolved && (e.needs ?? []).every(has) && L.check(e.requires)) { L.resolve(); note(`resolve ${id}`); did = true; break; }
     }
     if (did) continue;
+    // a lock a key can go in now, beside a room you can reach (in the definition's order, or the other way round: `reverse`)
+    for (const id of reverse ? lockIds.slice().reverse() : lockIds) if (L.canUnlock(id) && L.lockReachable(id, reach)) { L.unlock(id); note(`unlock ${id}`); did = true; break; }
+    if (did) continue;
     // a ball with several stops: roll it to one that lets something new be done (an eye's `when`, a door, a room)
     for (const [id, e] of Object.entries(def.elements)) {
-      if (e.type !== 'drum' || !e.stops || !rolls(e, has) || !reach.has(e.room) || !(e.needs ?? []).every(has)) continue;
+      if (forbid.includes(id) || e.type !== 'drum' || !e.stops || !rolls(e, has) || !reach.has(e.room) || !(e.needs ?? []).every(has)) continue;
       // (tried without update(): a trial must not latch a door open)
       const score = () => {
         const rooms = new Set([def.entry]), todo = [def.entry];
