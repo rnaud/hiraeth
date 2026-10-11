@@ -26,11 +26,12 @@ test('its stages come from the save: not given, out in the worlds, home on the m
   assert.ok(six.waiting);
   assert.match(chargeStep(six), /new message is waiting on the ship’s voicemail/);
   assert.equal(chargeState({ flag: flags({ [GIVEN]: true, 'calls.home': true }), completed: ENDING_WORLDS }).stage, 'home');
-  // the first homecoming: follow the singing light (its trace once the market is heard); Ilen aboard; the true ending
+  // the first homecoming: the market's silent tower is the goal (issue #127; its trace once the market is heard); Ilen aboard; the true ending
   const light = chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true }), completed: ENDING_WORLDS });
   assert.equal(light.stage, 'light');
   assert.equal(light.traced, false);
-  assert.match(chargeStep(light), /follow it/);
+  assert.equal(chargeStep(light), 'Make the Signal Market’s silent tower speak', 'the tower named as the goal, in one line');
+  assert.equal(chargeHud(light), '✦ Make the Signal Market’s silent tower speak');
   const traced = chargeState({ flag: flags({ [GIVEN]: true, 'ending.done': true, 'world.bazaar.done': true }), completed: ENDING_WORLDS });
   assert.ok(traced.traced);
   assert.match(chargeStep(traced), /past the Signal Market/);

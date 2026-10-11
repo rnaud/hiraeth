@@ -12,9 +12,9 @@ import { HoloTable } from './holotable.js';
 import { Puffs } from './fx.js';
 import { Cinema, Warp } from './cinema.js';
 import { StarMap, consoleAction } from './starmap.js';
-import { pendingCall, completedWorlds, callLines, callContext, applyCall, recordingLabel } from '../story/calls.js';
+import { pendingCall, completedWorlds, callLines, callContext, applyCall, recordingLabel, onHologram } from '../story/calls.js';
 import { Hologram } from './hologram.js';
-import { homeOpen, HOME_ID, finaleOpen } from '../story/ending.js';
+import { homeOpen, HOME_ID, finaleOpen, towerDue } from '../story/ending.js';
 import { relaySignal, RELAY_TEXT } from '../story/relay.js';
 import { MAP_LINE } from '../story/signature.js';
 import { foundFlag, foundLine, SEARCH_LINE } from '../story/signature-search.js';
@@ -342,6 +342,7 @@ export class Ship {
       home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
       relay: () => this.relay(),
       finale: () => finaleOpen({ flag: (k) => game.flag(k), completed: this.completed() }),   // the Lantern, past the market (src/story/ending.js)
+      tower: () => towerDue({ flag: (k) => game.flag(k), completed: this.completed() }),   // after the first homecoming: the market's silent tower is the goal
       side: deps.side ?? CHARTED_SIDE,   // (the finished worlds off the route, never the ones still being made: src/levels/names.js WIP)
       onTravel: (id) => this.travel(id),
       sound: () => this.sound,
@@ -542,14 +543,15 @@ export class Ship {
       const done = this.completed();
       const ctx = callContext(game, { titles: this.titles, completed: done, lastWorld: done.slice(-1)[0] });
       const lines = callLines(n, ctx);
-      this.cinematic = new CallDirector(this, { n, lines, label: recordingLabel(n, ctx),
+      this.cinematic = new CallDirector(this, { n, lines, label: recordingLabel(n, ctx), who: onHologram(n, ctx),
         onDone: () => { applyCall(game, lines); game.set(`calls.${n}`, true); game.emit('call', { n }); } });
       this.cinematic.start();
       return;
     }
     sfx.beep(this.sound);
     const sig = this.relay();
-    this.cinema.say(sig ? { who: 'ship', text: RELAY_TEXT.console[sig.stage], tone: 'neutral' } : NO_MESSAGES, { secs: sig ? 5.2 : 2.4 });
+    const tower = sig?.stage === 'far' && towerDue({ flag: (k) => game.flag(k), completed: this.completed() });
+    this.cinema.say(sig ? { who: 'ship', text: RELAY_TEXT.console[tower ? 'tower' : sig.stage], tone: 'neutral' } : NO_MESSAGES, { secs: sig ? 5.2 : 2.4 });
   }
 
   /** The holo table: the galactic map (shown but locked without power). */

@@ -57,6 +57,8 @@ export const RELAY_TEXT = {
   screen: { far: 'RELAY SIGNAL', held: 'RECORDING HELD', trace: 'LIGHT TRACE' },
   console: {
     far: 'No new messages. The receiver still holds a faint signal on an old relay, further along the route. Too weak to read.',
+    // (after the first homecoming, until the market is heard: where it comes from, the goal now, issue #127)
+    tower: 'No new messages. The faint signal on the old relay comes from the Signal Market’s silent tower. The galactic map has it.',
     held: 'One recording held: “For when he asks.” It will wait here.',
     trace: 'No new messages. The light’s trace is charted: past the Signal Market, to a world on no chart. The galactic map has it.',
   },

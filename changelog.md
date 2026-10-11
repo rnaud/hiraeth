@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.50 — 2026-10-11
 
+- Once you are back from home, the quest log names the goal: make the Signal Market’s silent tower speak. The galactic map marks the market NEXT, even before it is charted, and the ship’s console and recordings say the light went that way.
+- After your first homecoming, each world’s recording plays a little more of your father’s, made at the window the night the light came over the house: a new line in each world, the light a little further out every time.
+- From your seventh world on, a far light hangs in every sky: a small inked star with four long rays and a wash of gold round it, faint at first and brighter with every world you finish.
 - The galactic map is a system now: one star, home on the orbit beside it, and every world on an orbit of its own, further out the further along the route, so the way on reads outward. The Moon Foundry goes round the Buried Machine, and the City Floating in Space round the Signal Market. The next place to go wears a gold NEXT, with a line out to it from your ship, and on a handheld the worlds are no longer set out in rows.
 - The makers’ dais under Qanat’s tree stands taller, three white steps instead of two, so the chest on it shows clearly from the gate and all the way up the avenue. Nour’s bench has moved out of the way: it stands a few steps off to the left of the dais, facing it, instead of right behind the chest.
 - Qanat’s square is clearer round its great tree: the stone well and the carved stele are gone. The water now climbs the tree’s own roots while you watch, and you set the spark-stone in the roots at the trunk’s foot, on the avenue’s side. Hessa sweeps round the roots instead of the well.

@@ -151,6 +151,31 @@ themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test
   homecoming (`ending.first: 'old'`); the reel the old ending left on the slab is his again until the true
   ending; the ship's log waits on the voicemail; the Lantern opens once the market has been heard.
 
+## Worlds seven to twelve pull toward the end (v1.50, issue #127)
+Home opens after any six worlds, but the finale needs the Signal Market, the twelfth. Three beats pull the later
+worlds on, none of them a marker on the screen or a hand-off:
+- **The Lantern's light in every sky** (`src/story/lantern-sky.js`, drawn by the ink pass: `src/post.js`
+  `drawLantern`, compiled in only where it is, `INK_LANTERN`). With six worlds done (you are in your seventh) a
+  small far light hangs in every world's sky (the route's, the detours', the sub-levels'; not home's, where the
+  light itself comes over the hill, nor the Lantern's): a flat cream disc inked round, four needle rays (the
+  upright pair longer), two flat gold washes with a dotted ink ring, breathing a little as it sings. Its strength
+  goes from `LIGHT_MIN` (0.3) in the seventh to full by the last, a little more after the first homecoming and once
+  the market is heard; gone once Ilen is found. It hangs where each world's hash puts it in the half of the sky
+  the sun and the moon never cross (azimuth 268–328°), 17–22° up to clear the skyline. Nobody names it.
+- **The window recording** (`src/story/calls.js` `WINDOW`): the ship's log after the stone finds the father at
+  the window, three years ago, the night the light came over the house (`TRACE_CALL`). From then until the true
+  ending every world's recording plays the world's own word, then "the window recording, further on": one line
+  of his for the world just finished (each world's once, `calls.window.<id>`; out of order, the furthest unheard
+  one), the light a little further out each time, pointing on and never explaining; then the ship's pointer on.
+  His alone on the hologram (`onHologram(n, ctx)`), labelled LOGGED 3 YEARS AGO.
+- **The silent tower as the goal** (`towerDue`, `TOWER` in `src/story/ending.js`): after the first homecoming,
+  until the market is heard (its world done, Sel's clue, or the tower speaking: `bazaar.broadcast.on`), the
+  charge's one-line step is "Make the Signal Market's silent tower speak" (the quest log's card and the HUD's ✦
+  line), the galactic map marks the market NEXT (charted or a faint dot, "the silent tower", a gold line out to
+  it), and the homecoming's last objective, the console's "no new messages" and the recordings' last line all say
+  the light went toward the silent tower. Making it speak is the goal reached: the light's trace takes over.
+Tests: `tests/lantern-path.test.js`.
+
 ## The father’s charge
 
 "Bring back something of value", the father's last words on the prologue's

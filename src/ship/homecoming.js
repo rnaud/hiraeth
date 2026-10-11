@@ -8,7 +8,7 @@ import { padIndex } from '../native-pad.js';
 import { glyph } from '../pad-glyphs.js';
 import { exhaust, footPuffs } from './exhaust.js';
 import { spoken } from '../story/tone.js';
-import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID } from '../story/ending.js';
+import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
 import { HOME_SPOTS, tokenModel, REEL_AT, layTokens, laidTokens } from '../levels/home.js';
 import { LOU_AT_STONE } from '../story/home-data.js';
 /** The last recording's busts over the reel (1: life size). */
@@ -726,7 +726,9 @@ export class HomecomingDirector {
     game.set('ship.launched', true);
     s.journal?.markSeen?.('home');
     game.emit('ending', { keepsake: this.chosen, kind: this.kind });
-    setTimeout(() => C.objective(this.final ? 'The ship is ready whenever you are.' : 'The light went out along the route. The ship is ready when you are.'), 1200);
+    // (after the first: where the light went, the market's silent tower, or its trace once the market is heard: src/story/charge.js says the same)
+    const onward = marketHeard({ flag: (k) => game.flag(k) }) ? 'The light’s trace is on the map, past the Signal Market.' : 'The light went toward the Signal Market’s silent tower.';
+    setTimeout(() => C.objective(this.final ? 'The ship is ready whenever you are.' : `${onward} The ship is ready when you are.`), 1200);
     s.onReady?.();
   }
 }

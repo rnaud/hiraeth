@@ -104,8 +104,8 @@ export const FINALE_ID = 'lantern';
 /** The world whose broadcast leads there: the father's message to Ilen. */
 export const FINALE_AFTER = 'bazaar';
 
-/** The Signal Market has been heard (its world done, or the broadcast's clue). */
-export const marketHeard = ({ flag, completed } = {}) => !!(flag?.(`world.${FINALE_AFTER}.done`) || flag?.('clue.bazaar.home')
+/** The Signal Market has been heard (its world done, the broadcast's clue, or its silent tower speaking: reaching the tower's goal is hearing it, issue #127). */
+export const marketHeard = ({ flag, completed } = {}) => !!(flag?.(`world.${FINALE_AFTER}.done`) || flag?.('clue.bazaar.home') || flag?.('bazaar.broadcast.on')
   || (Array.isArray(completed) && completed.includes(FINALE_AFTER)));
 
 /**

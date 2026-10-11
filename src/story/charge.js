@@ -23,7 +23,7 @@
 // Flags: charge.given (the father's words have been heard), charge.card (its title card shown).
 // Its mark is ✦, gold: a world's main quest is ◆, an errand ◇.
 
-import { ENDING_WORLDS, endingUnlocked, homeOpen, finaleOpen } from './ending.js';
+import { ENDING_WORLDS, endingUnlocked, homeOpen, finaleOpen, TOWER } from './ending.js';
 import { escapeHtml } from '../prompt-keys.js';
 
 export const CHARGE = {
@@ -51,7 +51,8 @@ export function chargeStep(st) {
   if (st.stage === 'out' && st.waiting) return 'A new message is waiting on the ship’s voicemail';
   if (st.stage === 'out') return st.kept ? 'Keep looking, out in the worlds' : 'Find it, out in the worlds';
   if (st.stage === 'home') return 'Home is on the map: take it home';
-  if (st.stage === 'light') return st.traced ? 'The light’s trace is on the map, past the Signal Market' : 'The singing light went out along the route: follow it';
+  // (not heard the market yet: its silent tower is the goal, issue #127; the map points at it too, src/ship/starmap.js)
+  if (st.stage === 'light') return st.traced ? 'The light’s trace is on the map, past the Signal Market' : TOWER.step;
   if (st.stage === 'ilen') return 'Ilen is aboard: take her home';
   if (st.stage === 'done') return 'You brought it home on your own two feet.';
   return '';
@@ -62,7 +63,7 @@ export function chargeHud(st, { kept = null } = {}) {
   if (!st?.stage || st.stage === 'done') return null;
   if (kept) return `${CHARGE.mark} Something of value: ${kept}`;   // (one part of the line: its gold tag holds it all)
   if (st.stage === 'home') return `${CHARGE.mark} Home is on the map: take it home`;
-  if (st.stage === 'light') return `${CHARGE.mark} ${st.traced ? 'Follow the light’s trace, past the Signal Market' : 'Follow the singing light, out along the route'}`;
+  if (st.stage === 'light') return `${CHARGE.mark} ${st.traced ? 'Follow the light’s trace, past the Signal Market' : TOWER.step}`;
   if (st.stage === 'ilen') return `${CHARGE.mark} Take Ilen home`;
   return `${CHARGE.mark} ${CHARGE.words.replace(/\.$/, '')}`;
 }

@@ -42,8 +42,9 @@
 //  - After the first homecoming (src/story/ending.js: the light came over the hill; he kept the reel),
 //    the ship has logged it (TRACE_CALL, `calls.trace`): the light's trace runs back out along the
 //    route; he asks the reel for "singing" and finds the father at the window, years ago. Every
-//    recording after that ends by pointing back out (the trace on the map, or the relay further on),
-//    until the true ending (`ending.final`).
+//    recording after that, until the true ending (`ending.final`), plays further into that window recording, a line
+//    for the world just finished (WINDOW, issue #127: the light further out each time), and ends by pointing back out
+//    (the Signal Market's silent tower, or the trace on the map once the market is heard).
 //  - Recording n becomes available once n worlds are complete (`world.<id>.done`
 //    or the world's story page); each is heard once (flag `calls.<n>`).
 //
@@ -180,6 +181,41 @@ export const REEL = {
     you: '~whisper~ (I’m listening now.)' },
 };
 const REEL_ANY = { word: 'home', find: '~neutral~ The house is quiet without you. I don’t mind. I don’t.', you: null };
+
+/**
+ * The window recording, after the first homecoming (issue #127). The ship's log after the stone (TRACE_CALL) finds
+ * the father at the window three years ago, the night the singing light came over the house; it is a long
+ * recording, and from then on, until the true ending, every world's recording ends further into it: one line for the
+ * world just finished, the light a little further out each time, the way the route goes. Each fits the world
+ * loosely, the way the reel does, and points on; none explains. (He spoke softly, not to wake her.)
+ */
+export const WINDOW = {
+  desert: '~whisper~ It’s low over the dry well now. It doesn’t stop. It never stops anywhere.',
+  arzach: '~whisper~ No sound from it tonight. Just the light, going on out.',
+  perdide: '~whisper~ Rain on the glass, and it’s still there past the rain. Further than last night.',
+  edena: '~whisper~ Over the garden wall, and away. The roses turned to watch it go.',
+  underwater: '~whisper~ I thought it went down into the sea. It came up again, further out.',
+  incal: '~whisper~ Past the last of the port lamps now. I keep looking up.',
+  glassdunes: '~whisper~ Same hour every night, a little further each time. You could set the clocks by it.',
+  buried: '~whisper~ Slow tonight. As if it wanted someone to follow.',
+  moonfoundry: '~whisper~ It goes out past the moons and keeps going.',
+  spheres: '~whisper~ I know that note from somewhere. It’s going the way the old ships went.',
+  spacecity: '~whisper~ It hangs out there like something on a line. Out by the old relays.',
+  bazaar: '~whisper~ If anything out there answers it, I want to hear.',
+};
+/** The window recording's line for a world off the route (a detour). */
+export const WINDOW_ANY = '~whisper~ Still going. Further out tonight.';
+/** Is the window recording what the reel plays now? After the first homecoming, until the true ending. */
+export const windowDue = (f) => !!f.ended && !f.final;
+/**
+ * The world whose window line plays: the one just finished if its line is unheard, else the furthest along the route of
+ * the finished ones whose line is (the worlds' order of finishing is not kept); null when every one has played.
+ */
+function windowWorld(f) {
+  const unheard = (id) => !!WINDOW[id] && !f.flag(`calls.window.${id}`);
+  if (f.lastWorld && unheard(f.lastWorld)) return f.lastWorld;
+  return [...(f.completed ?? [])].reverse().find(unheard) ?? null;
+}
 
 /**
  * How old each recording is, and how it shows (n = 1 .. ENDING_WORLDS - 1): its greeting, its
@@ -500,7 +536,7 @@ function traceCall(f) {
   return [
     SHIP('~neutral~ Log from the receiver, while you were at the stone. The singing light passed over home. Same signature as our scar.'),
     SHIP(f.market ? '~neutral~ Its trace runs back out along the route, past the Signal Market, to a world on no chart. Charted on the galactic map.'
-      : '~neutral~ Its trace runs back out along the route, toward the faint signal on the old relay. Too faint to follow past it yet.'),
+      : '~neutral~ Its trace runs back out along the route, toward the Signal Market’s silent tower. Too faint to follow past it yet.'),
     YOU('~solemn~ (You ask the reel for anything about singing.)'),
     SHIP('~neutral~ One match. Your father, late at night.'),
     F('~whisper~ It came over the house again tonight. Singing. Your mother says I dream it. I don’t.'),
@@ -516,7 +552,7 @@ function pointOut(f) {
   if (f.final || !f.ended) return [];
   if (f.met) return [SHIP('~neutral~ Home is on the map. Ilen is aboard, whenever you are both ready.')];
   if (f.traced) return [SHIP('~neutral~ The light’s trace is on the galactic map, past the Signal Market.')];
-  return [SHIP('~neutral~ The light went out along the route. The faint signal on the old relay is still out there.')];
+  return [SHIP('~neutral~ The light went toward the Signal Market’s silent tower. It is marked on the galactic map.')];
 }
 
 /** The father's own, on Ilen: the 'ilen.after' beat as a recording of its own (src/story/relay.js). */
@@ -555,15 +591,17 @@ export function recordingLabel(n, ctx = {}) {
   const f = facts(ctx);
   if (typeof n === 'number' && n >= ENDING_WORLDS) {
     if (!f.asked && !f.ended) return 'THE LAST RECORDING';
+    if (windowDue(f)) return 'LOGGED 3 YEARS AGO';   // (the window recording, as the ship's log after the stone found it)
     return OLDER[(n - ENDING_WORLDS - 1 + OLDER.length) % OLDER.length].label;
   }
   return AGE[n]?.label ?? '';
 }
 
-/** Who stands on the hologram for recording n: 'father' | 'mother' | 'both'. */
-export function onHologram(n) {
+/** Who stands on the hologram for recording n: 'father' | 'mother' | 'both' (ctx: the window recording is his alone). */
+export function onHologram(n, ctx = null) {
   if (n === ILEN_CALL) return 'mother';
   if (n === 'prologue' || n === ILEN_AFTER_CALL || n === TRACE_CALL || isPartCall(n)) return 'father';
+  if (ctx && typeof n === 'number' && n >= ENDING_WORLDS && windowDue(facts(ctx))) return 'father';
   return typeof n === 'number' && n < 3 ? 'father' : 'both';
 }
 
@@ -606,7 +644,21 @@ export function callLines(n, ctx = {}) {
   const answer = met.length === 2 ? [YOU(`~whisper~ ${met[0]} and ${met[1]}.`)] : met.length === 1 ? [YOU(`~whisper~ ${met[0]}.`)] : [];
   const motherOn = k && MOTHER_ON[k.kind] && !answer.length ? [M(MOTHER_ON[k.kind](k))] : [];   // (she asks about the thing when there is nobody to name)
 
-  // after the ending, and after the last recording: the reel's oldest side
+  // after the first homecoming, until the true ending: the world's own word, then the window recording further on,
+  // the line for the world just finished (WINDOW; a world's line plays once: `calls.window.<id>`), then where to go
+  if (windowDue(f)) {
+    const found = !leadBody && REEL[f.lastWorld] ? [...search, ...find, ...react] : [];
+    const w = windowWorld(f);
+    return [
+      ...leadIntro,
+      ...(leadBody ?? []),
+      ...found,
+      SHIP('~neutral~ Then the window recording, further on. Your father, three years ago.'),
+      F(w ? WINDOW[w] : WINDOW_ANY, w ? { [`calls.window.${w}`]: true } : null),
+      ...pointOut(f),
+    ];
+  }
+  // after the true ending, and after the last recording: the reel's oldest side
   if (f.ended || (n >= ENDING_WORLDS && f.asked)) {
     const old = OLDER[(n - ENDING_WORLDS - 1 + OLDER.length * 4) % OLDER.length];
     const c = f.ended ? (f.chosen ?? chosenKeepsake({ flag, keepsakes: () => f.all })) : null;

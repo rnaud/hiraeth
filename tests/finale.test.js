@@ -67,7 +67,7 @@ test('after the first homecoming the ship\'s log waits: the light over the hill,
   const f = { 'ending.done': true };
   assert.equal(pendingCall({ flag: at(f), completed: 0 }), TRACE_CALL);
   const lines = callLines(TRACE_CALL, { flag: at(f), completed: ['desert'] });
-  assert.ok(lines.some((l) => l.who === 'ship' && /faint signal on the old relay/.test(l.text)), 'before the market: toward the relay');
+  assert.ok(lines.some((l) => l.who === 'ship' && /toward the Signal Market’s silent tower/.test(l.text)), 'before the market: toward its silent tower (issue #127)');
   assert.ok(lines.some((l) => l.who === 'father' && /window/.test(l.text)));
   const marked = callLines(TRACE_CALL, { flag: at({ ...f, 'world.bazaar.done': true }), completed: ['bazaar'] });
   assert.ok(marked.some((l) => /past the Signal Market/.test(l.text)), 'after it: past the market, charted');
@@ -75,7 +75,7 @@ test('after the first homecoming the ship\'s log waits: the light over the hill,
   assert.match(recordingLabel(TRACE_CALL), /LOGGED/);
   assert.equal(pendingCall({ flag: at({ ...f, 'calls.trace': true }), completed: 0 }), null, 'once');
   assert.equal(pendingCall({ flag: at({ ...f, 'ending.final': true }), completed: 0 }), null, 'not after the true ending');
-  // the reel's oldest side, between the two homecomings, ends by pointing out
+  // the window recording, between the two homecomings, ends by pointing out
   const old = callLines(8, { flag: at({ ...f, 'calls.home': true, 'world.bazaar.done': true }), completed: ORDER.slice(0, 8), lastWorld: ORDER[7] });
   assert.ok(old.some((l) => l.who === 'ship' && /trace is on the galactic map/.test(l.text)));
   const done = callLines(8, { flag: at({ ...f, 'calls.home': true, 'ending.final': true }), completed: ORDER.slice(0, 8), lastWorld: ORDER[7] });

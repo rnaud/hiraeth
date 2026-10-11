@@ -249,7 +249,7 @@ const comp = (u, i) => { const v = u?.value; return v == null ? 0 : Array.isArra
  * compiled in it stays (INK_STICKY: a zone or a preset turning it off again doesn't recompile). On the Xbox's D3D
  * compiler the eclipse, space and the planets were 4.6 of the pass's 10.8 s, the spot blacks' enclosure 2 s.
  */
-export const INK_STICKY = ['INK_ECLIPSE', 'INK_SPACE', 'INK_PLANETS', 'INK_SKYDOTS', 'INK_CUMULUS', 'INK_SPOT'];
+export const INK_STICKY = ['INK_ECLIPSE', 'INK_SPACE', 'INK_PLANETS', 'INK_SKYDOTS', 'INK_CUMULUS', 'INK_SPOT', 'INK_LANTERN'];
 /** The composite's optional parts, as defines, from the uniforms the look set: the haze (4b) and the cast shadows (2). */
 export function inkFeatures(U) {
   const f = {};
@@ -257,6 +257,7 @@ export function inkFeatures(U) {
   if (comp(U.uSpace, 0) > 0) f.INK_SPACE = '';
   // (a planet: a size and a direction; THREE.Vector4's default (0, 0, 0, 1) has no direction, nothing is drawn)
   if ((U.uPlanet?.value ?? []).some((p) => { const [x, y, z, w] = Array.isArray(p) ? p : [p.x, p.y, p.z, p.w]; return w > 0 && x * x + y * y + z * z > 1e-8; })) f.INK_PLANETS = '';
+  if (comp(U.uLantern, 3) > 0) f.INK_LANTERN = '';   // (the Lantern's light, from the seventh world on: src/story/lantern-sky.js)
   if (U.uSkyDots && U.uSkyDots.value > 0) f.INK_SKYDOTS = '';
   if (U.uCumulus && U.uCumulus.value > 0) f.INK_CUMULUS = '';
   if (comp(U.uSpot, 0) > 0) f.INK_SPOT = '';
@@ -411,6 +412,7 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uStormColor;
   uniform vec4 uPlanet[3];        // xyz = direction, w = angular radius (0 = none)
   uniform vec4 uPlanetColor[3];   // rgb, a = ring (0 none, else ring tilt)
+  uniform vec4 uLantern;          // xyz = the Lantern's light's direction, w = how bright (0 = none: src/story/lantern-sky.js)
   uniform vec3 uPlanetCraters;    // per planet: 1 = cratered, 0 = a plain printed disc
   // the eclipse (src/eclipse.js, docs/systems/rendering.md "The eclipse"): x how far the moon covers the sun
   // (0 … 1 total), y the discs' angular radius (rad; 0: no eclipse, the plain sun), z the corona's reach (× the
@@ -721,6 +723,43 @@ const fragmentShader = /* glsl */ `
     return h;
   }
 
+  // ---------------------------------------------------------------- the Lantern's light
+  // From the seventh world on, the far light the singing light comes from hangs low in every sky (issue #127,
+  // src/story/lantern-sky.js): a small flat disc inked round, four needle rays (the upright pair longer) and two flat
+  // washes of gold round it with a dotted ink ring, all larger and brighter (Lt.w) as the end nears. No gradient,
+  // no glow: the print's flat colour, like the sun's.
+  #ifdef INK_LANTERN
+  void drawLantern(vec3 rd, vec4 Lt, inout vec3 col, inout float ink) {
+    vec3 dir = normalize(Lt.xyz);
+    vec3 e1 = normalize(cross(dir, vec3(0.0, 1.0, 0.0)));
+    vec3 e2 = cross(e1, dir);
+    vec2 q = vec2(dot(rd, e1), dot(rd, e2));
+    float pw = max(max(fwidth(q.x), fwidth(q.y)), 1e-6);   // (radians a pixel, before any branch)
+    if (Lt.w <= 0.0 || dot(rd, dir) <= 0.0) return;
+    float s = clamp(Lt.w, 0.0, 1.0), px = uPixelRatio;
+    float u = mix(0.0072, 0.0125, s), r = length(q);
+    float breathe = 1.0 + 0.05 * sin(uTime * 1.3);   // (it sings: the washes breathe a little)
+    vec3 gold = vec3(0.98, 0.8, 0.42), pale = vec3(1.0, 0.97, 0.86);
+    // the washes: two flat discs, the outer wider and fainter
+    float h2 = u * mix(4.2, 7.5, s) * breathe, h1 = u * mix(2.3, 3.4, s) * breathe;
+    float w2 = 1.0 - smoothstep(h2 - pw, h2 + pw, r), w1 = 1.0 - smoothstep(h1 - pw, h1 + pw, r);
+    col = mix(col, mix(col, gold, 0.6), w2 * mix(0.22, 0.42, s));
+    col = mix(col, mix(col, pale, 0.75), w1 * mix(0.4, 0.62, s));
+    // a dotted ink ring round the inner wash, turning slowly
+    float dots = step(0.45, fract(atan(q.y, q.x) * 3.0 + uTime * 0.05));
+    ink = max(ink, (1.0 - smoothstep(0.0, pw * 1.1 * px, abs(r - h1))) * dots * mix(0.35, 0.6, s));
+    // four needle rays, tapering from the core
+    vec2 a = abs(q);
+    float lv = u * mix(6.5, 14.0, s), lh = u * mix(3.5, 8.0, s);
+    float tv = u * 0.4 * clamp(1.0 - a.y / lv, 0.0, 1.0) + pw * 0.35, th = u * 0.4 * clamp(1.0 - a.x / lh, 0.0, 1.0) + pw * 0.35;
+    float ray = max((1.0 - smoothstep(tv - pw * 0.5, tv + pw * 0.5, a.x)) * step(a.y, lv), (1.0 - smoothstep(th - pw * 0.5, th + pw * 0.5, a.y)) * step(a.x, lh));
+    col = mix(col, pale, ray * mix(0.75, 1.0, s));
+    // the core: a small flat disc, inked round
+    col = mix(col, pale, 1.0 - smoothstep(u - pw, u + pw, r));
+    ink = max(ink, 1.0 - smoothstep(0.0, pw * 1.2 * px, abs(r - u)));
+  }
+  #endif
+
   // ---------------------------------------------------------------- planets
   // Big flat bodies hanging in the sky: toon-lit by the sun, hatched on the
   // night side, a few craters, an optional ring, all inked.
@@ -918,6 +957,9 @@ const fragmentShader = /* glsl */ `
     #endif
     #ifdef INK_PLANETS
     for (int i = 0; i < 3; i++) drawPlanet(rd, uPlanet[i], uPlanetColor[i], uPlanetCraters[i], col, ink);
+    #endif
+    #ifdef INK_LANTERN
+    drawLantern(rd, uLantern, col, ink);
     #endif
 
     // printed sky: a field of fine dots, a bit denser up high
@@ -1587,6 +1629,7 @@ export function createPost() {
     uBackdrop: { value: new THREE.Vector4(0, 0, 0, 0) },
     uPlanet: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
     uPlanetColor: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
+    uLantern: { value: new THREE.Vector4(0, 1, 0, 0) },
     uPlanetCraters: { value: new THREE.Vector3(1, 1, 1) },
     uEclipse: { value: new THREE.Vector4(0, 0, 0, 0) },
     uCorona: { value: new THREE.Vector4(1, 1, 1, 0) },

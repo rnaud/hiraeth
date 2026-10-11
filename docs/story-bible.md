@@ -717,8 +717,13 @@ the father saying it himself: "I said the same words to you at the port that I
 said to her."
 
 **After the first homecoming** the ship's log waits (the light over the hill, its
-trace; "singing" finds the father at the window, three years ago), and the
-reel's oldest side ends by pointing back out. **After the true ending** it plays
+trace; "singing" finds the father at the window, three years ago). It is a
+long recording: every world after that plays a little further into it, one
+line of his for the world just finished, the light further out each time
+("Past the last of the port lamps now"), and the ship points on: to the
+Signal Market's silent tower, the goal once home is done, then to the light's
+trace. From the seventh world on, the light the singing comes from hangs in
+every world's sky, brighter as the end nears; nobody names it. **After the true ending** it plays
 its oldest side, from when he was small; they are happier, and he sometimes
 answers them.
 

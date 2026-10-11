@@ -647,6 +647,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'starmap-handheld', title: 'On a handheld', caption: 'The same at 844 × 390 (a handheld or a phone sideways): before, the worlds in rows; after, the same system, smaller', ...C50_MAP },
       { name: 'starmap-early', title: 'Early on', caption: 'In the City-Shaft with three worlds done: before, the spiral; after, Viridel marked NEXT, the route out from home past the desert, Vael and Lorn, the worlds not yet charted faint dots on their orbits', ...C50_MAP },
     ], see: 'At the ship’s holo table, open the galactic map: the star at the left (at the top on a phone held upright), each world on its orbit, the next place to go in gold. The pad’s D-pad, the mouse and a tap choose as before.' },
+    { match: 'From your seventh world on, a far light hangs in every sky', shots: [
+      { name: 'lantern-sky-early', title: 'The seventh world', caption: 'The Glass Dunes with six worlds done, looking west-north-west from the ship at ten in the morning: before, an empty sky over the glass; after, the far light, small and faint above the dunes', ...C50_MAP },
+      { name: 'lantern-sky-late', title: 'The eleventh', caption: 'The City Floating in Space with ten worlds done and home visited, the same way from the pier: before, stars; after, the light at its brightest, its long rays and its gold wash', ...C50_MAP },
+    ], see: 'With six worlds done, step off the ship in any other world and look round the sky away from the sun: the small star with four rays. Finish another world and it is larger and brighter.' },
+    { match: 'After your first homecoming, each world’s recording plays', see: 'After the first homecoming, finish a world and play the waiting message at the dash: after the world’s own word, “Then the window recording, further on”, and one line of your father’s at the window, different in every world, then the ship points you at the Signal Market’s silent tower.' },
+    { match: 'Once you are back from home, the quest log names the goal', shots: [
+      { name: 'quest-step', title: 'The quest log', caption: 'The Quests page after the first homecoming, seven worlds done: before, “The singing light went out along the route: follow it”; after, “Make the Signal Market’s silent tower speak”', ...C50_MAP },
+    ], see: 'After the first homecoming, open the menu’s Quests page, then the galactic map: the Signal Market (or its faint dot) carries NEXT and “the silent tower”, with a gold line out to it from your ship.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

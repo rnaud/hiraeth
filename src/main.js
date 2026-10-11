@@ -118,6 +118,7 @@ import { ShotDrafts, grabFrame, shotJpeg, shotContext } from './issue-draft.js';
 import { WorldDebugMenu, gatherPoints, debugSections, cinematicsFor, questList, applyQuestJump, landingSpot } from './world-debug.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
+import { lanternSky, applyLanternSky } from './story/lantern-sky.js';
 import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
@@ -1069,6 +1070,11 @@ function setPlanets(list = []) {
   }
 }
 if (level.sky?.planets?.length) setPlanets(level.sky.planets);
+// the Lantern's light low in the sky from the seventh world on, brighter as the end nears (src/story/lantern-sky.js);
+// again when a world is done or the story moves (the homecoming, the market heard)
+const setLanternSky = () => applyLanternSky(post.uniforms.uLantern.value, lanternSky({ level: levelId, completed: ship.completed(), flag: (k) => game.flag(k) }));
+setLanternSky();
+game.on('flag', ({ name }) => { if (/^world\..+\.done$|^ending\.|^finale\.met$|^clue\.bazaar\.home$|^bazaar\.broadcast\.on$/.test(name)) setLanternSky(); });
 updateSky();
 
 // ------------------------------------------------------------------ GUI
