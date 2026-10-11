@@ -64,8 +64,9 @@ test('the cue line and the conversation set their state as they draw', () => {
   const s = screen.state.dialogue;
   assert.equal(s.name, 'Bob'); assert.equal(s.title, 'the potter');
   assert.equal(s.text, 'Hello there, traveller.');
-  assert.ok(s.shown > 0 && s.shown < s.text.length && !s.done, 'revealing');
-  assert.deepEqual(s.choices, [], 'no answers until the line is out');
+  // (the page whole at once, its answers with it, while the voice is still saying it: issue #147)
+  assert.ok(s.shown === s.text.length && s.done, 'all of it shown');
+  assert.ok(d.revealed < s.text.length, 'the voice still going');
   for (let i = 0; i < 200; i++) d.update(0.05);
   assert.equal(screen.state.dialogue.done, true);
   assert.deepEqual(screen.state.dialogue.choices.map((c) => c.text), ['Hello.', 'Bye.']);

@@ -233,9 +233,13 @@ export function choiceHtml(c, k, key = confirmKey()) {
 }
 
 const REVEAL = REVEAL_CPS;   // letters per second at an even pace (each line's voice and tone scale it)
-/** The translator: a word turns into your words LAG letters after it is said, fading over FADE more.
- * (14 and 12 until October 2026: the line stayed alien for half a second or more behind the caret) */
+/** The translator as the tongues page shows it (tools/tongues.html): a word turns into your words LAG letters after
+ * it is said, fading over FADE more. The panel no longer plays it (issue #147: the page is shown whole, in your words,
+ * at once; the voice still says it at its own pace). (14 and 12 until October 2026) */
 export const LAG = 5, FADE = 5;
+
+/** px kept clear over the portrait at the top of the screen when a tall page has to be fitted (Dialogue.fit). */
+export const FIT_MARGIN = 6;
 
 /** The conversation camera: a re-pick this far from the eye (m) is a cut; cuts no closer together than CUT_GAP s (unless the page turns, or the shot is blocked). */
 export const CUT_FAR = 0.8, CUT_GAP = 2.5;
@@ -305,7 +309,7 @@ export class Dialogue {
     this._m = new THREE.Matrix4();
     if (this.el) {
       // the speaker's name in a caption tab along the panel's top edge, their portrait at its corner;
-      // no button hints and no translator tag: the words resolving out of their script say it all
+      // no button hints and no translator tag (a foreign page fades in once as it comes: .dlg-text.heard)
       this.el.innerHTML = `<div class="dlg-panel"><div class="dlg-who"><div class="dlg-chip"><img alt=""><span></span></div></div>
         <div class="dlg-tag"><b class="dlg-name"></b><i class="dlg-title"></i></div>
         <p class="dlg-text"></p><div class="dlg-choices"></div><i class="dlg-more" aria-hidden="true"></i></div>`;
@@ -323,9 +327,9 @@ export class Dialogue {
         if (e.code === 'KeyE' || e.code === 'Space' || e.code === 'Enter') {
           if (performance.now() - this.openedAt < 250) return;   // the press that opened it
           e.preventDefault();
-          // Enter / E on a focused choice picks it; otherwise finish the line, then turn the page
+          // Enter / E on a focused choice picks it; otherwise the page turns (it is all shown at once)
           const f = page.activeElement();
-          if (f?.dataset?.i !== undefined && this.el.contains(f) && this.revealed >= this.runner.text.length) this.choose(+f.dataset.i);
+          if (f?.dataset?.i !== undefined && this.el.contains(f)) this.choose(+f.dataset.i);
           else this.next();
         }
       }, true);
@@ -353,7 +357,7 @@ export class Dialogue {
     if (this.runner.ended) { this.quests?.opened?.(); return false; }
     this.open = true;
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
-    this.revealed = 0; this.translated = -LAG;
+    this.revealed = 0;   // (how far the voice has said the page: its syllables, the mouths, the camera's coverage)
     this._mouth.length = 0;
     this._doneAt = null; this._you.clear(); this._chip = null; this._wordsSaid = null;
     this.cover.reset(this.clock); this._framed = null;
@@ -372,8 +376,8 @@ export class Dialogue {
       this.el.classList.add('open');
       page.bodyClass('talking', true);
       page.exitPointerLock();
-      this.render();
     }
+    this.render();   // (and its state for an engine's panel, which has no page: publish)
     return true;
   }
 
@@ -408,23 +412,23 @@ export class Dialogue {
     if (src) { img.src = src; img.hidden = false; if (shot.background) chip.style.background = shot.background; }
   }
 
+  /** Turn the page (or close on the last one). The page is shown whole as it comes, so a press never just
+   * "finishes the line" (it did until issue #147): the voice of the page left behind stops with it. */
   next() {
     if (!this.open) return;
-    if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.translated = Infinity; this.render(); return; }
-    if (this.runner.advance()) { this.revealed = 0; this.translated = -LAG; this.render(); return; }
+    if (this.runner.advance()) { this.revealed = 0; this.render(); return; }
     if (this.runner.ended) this.close();
     else if (this.runner.choices().length === 1 && this.runner.choices()[0].end) this.close();
   }
 
   choose(i) {
     if (!this.open) return;
-    if (this.revealed < this.runner.text.length) { this.revealed = this.runner.text.length; this.translated = Infinity; this.render(); return; }
     // the answer he picked is not said again (it used to be: his words in the panel, a mumble, the camera on
     // him, before the reply; playtest, October 2026): the one he talks to replies at once
     this.runner.choose(i);
     this.sound?.toolClick?.(true);
     if (this.runner.ended) { this.close(); return; }
-    this.revealed = 0; this.translated = -LAG;
+    this.revealed = 0;
     this.render();
   }
 
@@ -466,40 +470,60 @@ export class Dialogue {
     const r = this.runner;
     const full = r.text;
     const plan = this.voicePlan();
-    // reveal letter by letter, keeping the motifs whole: the words come in the speaker's own
-    // script as they are said, and turn into the translation a moment behind (revealHtml)
-    const n = Math.floor(this.revealed), revealing = n < full.length;
-    // the node's longest page laid out unseen under the words typed so far (.dlg-ghost): the panel is its full size
-    // from the first letter, and nothing moves as the words come or the pages turn (issue #60)
+    // the page whole and in your words at once (issue #147: no typing, no words turning out of the speaker's
+    // script; the voice says it at its own pace). A foreign speaker's page fades in once as it comes (.heard),
+    // the translator's only trace. The node's longest page is laid out unseen under it (.dlg-ghost): the panel
+    // keeps its size as the pages turn (issue #60)
     const ghost = (r.pages ?? []).reduce((a, b) => (b.length > a.length ? b : a), full);
-    const text = `<span class="dlg-ghost" aria-hidden="true">${formatText(ghost)}</span><span class="dlg-live">`
-      + revealHtml(full, { lang: plan.foreign ? plan.lang : null, shown: n, translated: this.translated, spoken: plan.mask })
-      + (revealing ? '<span class="dlg-caret">▍</span>' : '') + '</span>';
+    const text = `<span class="dlg-ghost" aria-hidden="true">${formatText(ghost)}</span><span class="dlg-live">${formatText(full)}</span>`;
     const el = this.q('.dlg-text');
-    if (el._html !== text) { el.innerHTML = text; el._html = text; }
-    this.q('.dlg-text').classList.toggle('player', r.speaker === 'player');
-    const done = this.revealed >= full.length;
-    const choices = done ? r.choices() : [];
-    // the answers' room kept while the words are said (.dlg-choices.waiting: there, unseen and untouchable), so they
-    // come up where they will stand, under words that stay where they are
+    let laid = false;
+    if (el._html !== text) { el.innerHTML = text; el._html = text; laid = true; }
+    el.classList.toggle('player', r.speaker === 'player');
+    el.classList.toggle('heard', !!plan.foreign);
+    const choices = r.choices();
+    // (choicesAhead: the answers' room kept on a page before them, so they stand where they will be)
     const ahead = choices.length ? choices : r.choicesAhead(), waiting = !choices.length && ahead.length > 0;
     const box = this.q('.dlg-choices');
     const html = ahead.map((c, k) => choiceHtml(c, k)).join('');
     box.classList.toggle('waiting', waiting);
-    if (box.dataset.html !== html) { box.innerHTML = html; box.dataset.html = html; }
+    if (box.dataset.html !== html) { box.innerHTML = html; box.dataset.html = html; laid = true; }
     if (box.dataset.shown !== String(choices.length > 0)) {
       box.dataset.shown = String(choices.length > 0);
       for (const b of box.querySelectorAll('button')) b.tabIndex = choices.length ? 0 : -1;
       if (choices.length && page.hasBodyClass('controller')) box.querySelector('button')?.focus();
     }
-    // a small mark at the panel's corner when the line is done and the next press turns the page
-    this.el.classList.toggle('more', done && !choices.length);
+    // a small mark at the panel's corner when the next press turns the page
+    this.el.classList.toggle('more', !choices.length);
+    if (laid) this.fit();
+  }
+
+  /**
+   * The panel kept on the screen: the type is never made smaller to fit the box (the box grows instead), but a
+   * page and its answers too tall for a short screen (the Retroid's 410 CSS px, a phone on its side, a big text
+   * size) are drawn just small enough that the portrait's top stays in view (--fit, index.html #dialogue).
+   */
+  fit() {
+    const el = this.el;
+    if (!el?.style || typeof getComputedStyle === 'undefined') return;
+    el.style.removeProperty('--fit');
+    // (offsetTop: where the panel stands, without the slide it comes in on; the portrait stands 2.1 em over it)
+    const room = () => el.offsetTop - parseFloat(getComputedStyle(el).fontSize) * 2.2 - FIT_MARGIN;
+    let f = 1;
+    for (let k = 0; k < 3; k++) {
+      const over = -room();
+      if (!(over > 0.5)) break;
+      f *= Math.max(0.6, 1 - over / Math.max(1, el.offsetHeight + over * 0.3));
+      el.style.setProperty('--fit', f.toFixed(3));
+    }
+    this.fitted = f;
   }
 
   /** The panel as data (platform.js screen.dialogue): an engine draws its own from it; the page's is render(). */
   publish() {
-    const r = this.runner, full = r.text, n = Math.floor(this.revealed), done = this.revealed >= full.length;
-    const choices = done ? r.choices() : [], you = this.voice === 'player';
+    // (the page whole at once, as the page's panel shows it: issue #147)
+    const r = this.runner, full = r.text, n = full.length, done = true;
+    const choices = r.choices(), you = this.voice === 'player';
     const p = you ? TRAVELLER_TAG : this.person, shot = you ? this.youShot(this.nowTone) : this.shot;
     const text = full;
     screen.set('dialogue', {
@@ -526,10 +550,9 @@ export class Dialogue {
     if (!done) this._doneAt = null; else this._doneAt ??= this.clock;
     this.cover.update({ t: this.clock, page: `${r.nodeId}:${r.page}`, speaker: r.speaker, tone: r.tone,
       done, doneFor: done ? this.clock - this._doneAt : 0, letters: len, can: this._canSingle !== false });
-    if (this.revealed < len || this.translated < len + FADE) {
-      // the voice keeps step with the letters: each syllable sounds as the reveal reaches it
+    if (this.revealed < len) {
+      // the voice says the page at its own pace (the words are all shown already): each syllable as it comes up
       const plan = this.voicePlan();
-      this.translated = plan.foreign ? this.translated + dt * (plan.cps || REVEAL) : Infinity;
       this.revealed = Math.min(len, this.revealed + dt * (plan.cps || REVEAL));
       const S = plan.syllables;
       while (plan.next < S.length && S[plan.next].i < this.revealed) {
@@ -538,7 +561,6 @@ export class Dialogue {
         else this.sound?.blip?.(syl.f0 / 170);
         this.say({ at: this.clock, dur: syl.dur, open: syllableOpen(syl), who: plan.player ? 'player' : 'npc' });
       }
-      this.render();
     }
   }
 

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- Conversations are easier to read: the words are much bigger on every screen, from a handheld to a TV, in a wider box, and each page appears whole and in your own words at once, instead of being typed out letter by letter in the speaker’s script first. A press turns the page straight away. The answers are lighter too: just their words on the paper, the one you would pick in full ink with a red line under it.
 - The first chest in Qanat no longer sits on a shelf high up the great tree: it stands at the tree’s foot on a round dais of white stone and gold, in a clearing of pale flagstones, in sight all the way up the avenue, and it is the same chest you find in the temples, opening the same way. You walk up its two steps instead of climbing. If you already opened it, it stays open.
 - Your first steps out of the ship in the Desert are under a clear sky: no sandstorm blows in until you have opened the makers’ chest in Qanat. After that the storms come and go as before.
 - A world’s trial whose prize improves one of your gadgets now waits until you have found that gadget, so you no longer win an upgrade for a tool you haven’t got. Its sign says which one it is for.

@@ -620,6 +620,8 @@ const C49_SHAFTS = { from: 'changelog-shots.mjs views in headless Chrome (muted)
 // (the Desert's first arrival, issue #139: a new game's save, before the backpack; the weather a minute on, its first spell over)
 const SAVE_ARRIVAL = { flags: { 'prologue.done': true, 'items.v': 2, 'save.migrated': 17 }, keepsakes: [] };
 const MINUTE_ON = 'const w = window.weather; w.timer = 0; w.update(0.01); w.intensity = w.target; await new Promise((r) => setTimeout(r, 1500));';
+// (issue #147: the conversation panel at three sizes, before and after)
+const TALK49 = 'headless Chrome (muted, 11 October) against this branch’s own dev server and against main before it, Qanat’s camp in the desert, the traveller beside the speaker; the game held still for the picture; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [
@@ -759,6 +761,17 @@ export const CHANGELOG_MEDIA = {
     { match: 'When the foe you are locked on to is out of your blade’s reach', shots: [
       { name: 'lock-veiled', title: 'A hound running as a shadow, locked on', caption: 'The Arena on the Handheld preset with Reduce motion on, locked on an antler hound running as a shadow; each picture shows normal vision, then protanopia, deuteranopia and tritanopia simulated (Machado 2009): before, the gold arrows at half opacity; after, hollow arrows, their ink outline only', from: 'headless Chrome against this branch’s own dev server and the commit before, 1280 × 720, the camera pinned beside the traveller (11 October)' },
     ], see: 'In the Arena (the worlds list, Debug), lock on (R3) to an antler hound while it runs as a shadow: the arrows are outlines; light it with an ember and they fill gold again.' },
+    { match: 'Conversations are easier to read', shots: [
+      { name: 'talk-page-desktop', title: 'A page · Desktop, 1280 × 720', caption: 'Ysa in the camp outside Qanat, her first page all said: before, 15 px type in a 720 px box; after, about 3 % of the screen’s height (21 px here, 23 on the Deck, 17 on the Retroid) in a wider box, about 64 letters a line', from: TALK49 },
+      { name: 'talk-page-deck', title: 'A page · Steam Deck, 1280 × 800', caption: 'Ysa in the camp outside Qanat, her first page all said: before, 15 px type in a 720 px box; after, about 3 % of the screen’s height (21 px here, 23 on the Deck, 17 on the Retroid) in a wider box, about 64 letters a line', from: TALK49 },
+      { name: 'talk-page-retroid', title: 'A page · Retroid, 730 × 410', caption: 'Ysa in the camp outside Qanat, her first page all said: before, 15 px type in a 720 px box; after, about 3 % of the screen’s height (21 px here, 23 on the Deck, 17 on the Retroid) in a wider box, about 64 letters a line', from: TALK49 },
+      { name: 'talk-alien-desktop', title: 'A Qanati speaker · Desktop, 1280 × 720', caption: 'Pell, counter of bones, partway through his first page: before, the words typed out and his last ones still in Qanati script turning into English; after, the whole page in English at once, and his answers already under it', from: TALK49 },
+      { name: 'talk-alien-deck', title: 'A Qanati speaker · Steam Deck, 1280 × 800', caption: 'Pell, counter of bones, partway through his first page: before, the words typed out and his last ones still in Qanati script turning into English; after, the whole page in English at once, and his answers already under it', from: TALK49 },
+      { name: 'talk-alien-retroid', title: 'A Qanati speaker · Retroid, 730 × 410', caption: 'Pell, counter of bones, partway through his first page: before, the words typed out and his last ones still in Qanati script turning into English; after, the whole page in English at once, and his answers already under it', from: TALK49 },
+      { name: 'talk-answers-desktop', title: 'The answers · Desktop, 1280 × 720', caption: 'Pell’s answers, the first one picked: before, each in a boxed button with a border and a shadow; after, the words on the paper, the picked one in full ink with a red line under it', from: TALK49 },
+      { name: 'talk-answers-deck', title: 'The answers · Steam Deck, 1280 × 800', caption: 'Pell’s answers, the first one picked: before, each in a boxed button with a border and a shadow; after, the words on the paper, the picked one in full ink with a red line under it', from: TALK49 },
+      { name: 'talk-answers-retroid', title: 'The answers · Retroid, 730 × 410', caption: 'Pell’s answers, the first one picked: before, each in a boxed button with a border and a shadow; after, the words on the paper, the picked one in full ink with a red line under it', from: TALK49 },
+    ], see: 'Talk to anyone in Qanat’s camp: the page is there whole the moment the box opens, bigger than before, and one press of A / × turns it. On a page with answers, move between them with the D-pad: the one you are on is underlined in red. Foreign speakers fade in once rather than being translated word by word.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)

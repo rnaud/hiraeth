@@ -31,6 +31,29 @@ advances or reads a quest step) keep their conversations. `tests/listen.test.js`
 checks that every bystander and crowd person is listen-only, that their lines
 have tones, fit one to three lines, vary and react to progress.
 
+## The panel reads at a glance (issue #147, October 2026)
+
+After the author compared it with Sable's: the words bigger, shown whole, and the answers lighter.
+- **The type from the screen's height**: everything in `#dialogue` (index.html) is in em of `--dlg`,
+  `clamp(17px, 2.9vh, 46px)` times the text size: 21 px at 720, 23 at the Deck's 800, 31 at 1080, 42 at
+  1440 (15 and 19 px before), never under 17 px (the Retroid's 410 CSS px). The panel is 46 em wide, about
+  64 letters a line; the portrait, the name tag (1.2 em), the answers (0.95 em) and the page-turn mark
+  scale with it. A phone held upright takes it from the width (`clamp(15px, 4.5vw, 22px)`). A screen
+  480 px tall or less sets the lines a little closer and the panel lower.
+- **Never off the screen**: the box grows with the page rather than the type shrinking, but a page and
+  its answers too tall for a short screen (the longest node on the Retroid, a big text size) are drawn
+  just small enough for the portrait's top to stay in view (`Dialogue.fit`, `--fit`).
+- **The page whole, at once**: no letters typed, no caret, no words turning out of the speaker's script.
+  The voice still says the page at its own pace (`revealed` is the voice's place in it: syllables, mouths,
+  the camera's coverage), the answers are there with the words, and a press turns the page or picks an
+  answer straight away (it used to finish the line first). The translator's only trace is a 0.3 s fade
+  of a foreign speaker's page as it comes (`.dlg-text.heard`; none with Reduce motion). The engines'
+  panel gets the page whole too (`screen.dialogue.shown` its length, `done` true): the Unity bridge's
+  `BridgeHud.cs` uses the same sizes on its 720-tall canvas.
+- **Answers without boxes**: their words on the paper in a softer ink, the red mark beside each; the
+  one under the pad, the mouse or a finger in full ink with a red ink line under its words. Nothing
+  moves when one is picked. `tests/dialogue-legibility.test.js`.
+
 ## Answers: the mark in its own column
 
 An answer is a flex row (`choiceHtml`): a fixed column for its mark, then its
@@ -55,14 +78,16 @@ letters.
   checks every line in the game has one.
 - **Tongues** (`LANGUAGES`, by level id): Qanati, Shaft cant, the Vael hush, cloud-monk
   chant, Hangar clatter and so on, each written in its own script (*The worlds' scripts*
-  below). The traveller's translator turns the words into yours a moment after they are
-  said (no label: the effect says it).
+  below). The traveller's translator gives you their words in yours at once (the panel
+  shows the page whole, a brief fade its only trace; until issue #147 the words came in
+  their script and turned into yours a moment after they were said).
 
 ## The worlds' scripts
-`src/story/scripts.js` writes a line in the speaker's script; the dialogue panel shows
-each word in it as it is said and turns it into English a moment later
-(`revealHtml` in `src/story/dialogue.js`: a word turns `LAG` letters after it is said,
-its English fading in under its glyphs over `FADE` more; 5 and 5, docs/systems/conversations.md).
+`src/story/scripts.js` writes a line in the speaker's script. The tongues page shows each
+word in it as it is said, turning into English a moment later (`revealHtml` in
+`src/story/dialogue.js`: a word turns `LAG` letters after it is said, its English fading in
+under its glyphs over `FADE` more; 5 and 5). The conversation panel did too until issue #147;
+it now shows the page in English at once (*The panel reads at a glance*, above).
 - **One script a world** (`SCRIPTS`, by tongue): Qanati, a cursive abjad joined along the
   baseline, right to left (the desert); runes with dots between words (City-Shaft); a
   bird's track a word, a dot for each word the voice leaves out (Vael); an abugida

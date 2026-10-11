@@ -86,7 +86,7 @@ export function isolate(keep, root) {
 export function restore(hidden) { for (const o of hidden) o.visible = true; }
 
 // ------------------------------------------------------------------ the sharp portrait
-// The circle shows the portrait at PORTRAIT_CSS px (index.html .dlg-chip: 84, 108 on wide screens, 60 on
+// The circle shows the portrait at PORTRAIT_CSS px (index.html .dlg-chip: 4.6 em of the panel's type, 96 px at 720, 144 at 1080, about 60 on
 // small ones). It used to be the whole frame's middle shrunk in one step to 160 px: ink lines a pixel or
 // two wide in the frame came out as broken, jagged dots, and JPEG rang round them. Now the frame is
 // drawn as if it were the circle's size (portraitPixelRatio: lines, hatching and grain measured in its

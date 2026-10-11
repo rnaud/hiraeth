@@ -119,17 +119,16 @@ test('a new angle mid-talk is a cut, never a swing; small drifts are eased', () 
   assert.ok(maxStep < 0.05, `no camera move between the cuts (largest frame step ${maxStep.toFixed(3)} m)`);
 });
 
-test('the translator is quick: the whole line in English well within half a second of its last word', async () => {
+test('the translator is quick on the tongues page; the panel has no wait at all (issue #147)', async () => {
   const { LAG, FADE } = await import('../src/story/dialogue.js');
   const { REVEAL_CPS } = await import('../src/story/voice.js');
-  // (even the slowest voice, 0.65 of the even pace)
+  // (tools/tongues.html still plays it: even the slowest voice, 0.65 of the even pace)
   assert.ok((LAG + FADE) / (REVEAL_CPS * 0.65) < 0.5, `${((LAG + FADE) / (REVEAL_CPS * 0.65)).toFixed(2)} s`);
-  assert.ok(LAG >= 3, 'still word by word: the word at the caret is in the script');
   const d = panel(), line = 'Go down to the well, child, and wait for me there.';
-  d.start({ id: 'tester', name: 'Tester', kind: 'f', lang: 'desert', talk: { nodes: { a: { say: [`~neutral~ ${line}`] } } } });
-  let t = 0;
-  while (d.revealed < line.length && t < 10) { d.update(1 / 60); t += 1 / 60; }
-  const typed = t;
-  while (d.translated < line.length + FADE && t < 10) { d.update(1 / 60); t += 1 / 60; }
-  assert.ok(t - typed < 0.5, `English ${(t - typed).toFixed(2)} s after the last word`);
+  d.start({ id: 'tester', name: 'Tester', kind: 'f', lang: 'desert', talk: { nodes: { a: { say: [`~neutral~ ${line}`], choices: [{ text: '~neutral~ I will.', end: true }] } } } });
+  // the answers are there with the words, before the voice is done
+  assert.equal(d.runner.choices().length, 1);
+  assert.equal(d.revealed < line.length, true);
+  d.choose(d.runner.choices()[0].index);
+  assert.equal(d.open, false, 'picked at once, the line not finished first');
 });

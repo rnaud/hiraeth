@@ -1591,7 +1591,7 @@ const controller = new Controller({
     if (name === 'y' && worldDebug.open && menuRoot() === worldDebug.el) worldDebug.menu.focusSearch();
     if (name === 'confirm') {
       const root = menuRoot();
-      if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f) && storyRt.dialogue.revealed >= storyRt.dialogue.runner.text.length) f.click(); else storyRt.dialogue.next(); }
+      if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f)) f.click(); else storyRt.dialogue.next(); }
       else if (root.id === 'page') root.click();
       else if (root === journal.el) journal.menu.confirm();
       else if (root.contains(document.activeElement)) {

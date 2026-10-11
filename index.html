@@ -201,41 +201,48 @@
       /* nobody else's chatter while you talk to someone: it landed on top of the choices */
       body.talking .balloon { opacity: 0; transition: none; }
 
-      /* conversations (src/story/dialogue.js): a comic panel along the bottom */
+      /* conversations (src/story/dialogue.js): a comic panel along the bottom. Everything in it is sized in em of
+         --dlg, the page's type: about 2.9 % of the screen's height (21 px at 720, 23 at the Deck's 800, 31 at 1080,
+         42 at 1440), never under 17 px (the Retroid's 410), and the panel 46 em wide (about 64 letters a line);
+         a phone held upright takes it from the width (issue #147: bigger words, read at a glance) */
       #dialogue {
-        position: fixed; left: 50%; bottom: calc(26px + var(--safe-bottom)); z-index: 75; width: min(720px, calc(100vw - 32px));
+        --dlg: calc(clamp(17px, 2.9vh, 46px) * var(--ts, 1) * var(--fit, 1));
+        position: fixed; left: 50%; bottom: calc(clamp(18px, 3.6vh, 60px) + var(--safe-bottom)); z-index: 75; width: min(46em, calc(100vw - 32px));
         transform: translate(-50%, 24px); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1.2);
-        font: calc(15px * var(--ts, 1))/1.5 ui-monospace, Menlo, monospace; color: #2b211f;
+        font: var(--dlg)/1.45 ui-monospace, Menlo, monospace; color: #2b211f;
       }
       #dialogue.open { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
       #dialogue .dlg-panel {
-        position: relative; background: #fffaf0; border: 2.5px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; padding: 26px 22px 14px 112px; min-height: 92px;
-        background-image: repeating-linear-gradient(0deg, transparent 0 26px, rgba(43, 33, 31, 0.05) 26px 27px); cursor: pointer;
+        position: relative; background: #fffaf0; border: 2.5px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; padding: 1.65em 1.3em 0.85em 6.3em; min-height: 5.2em;
+        background-image: repeating-linear-gradient(0deg, transparent 0 1.7em, rgba(43, 33, 31, 0.05) 1.7em calc(1.7em + 1px)); cursor: pointer;
       }
       /* the portrait at the panel's top-left corner, over its edge */
-      #dialogue .dlg-who { position: absolute; left: 14px; top: -36px; }
+      #dialogue .dlg-who { position: absolute; left: 0.8em; top: -2.1em; }
       #dialogue .dlg-chip {
-        width: 84px; height: 84px; border: 2.5px solid #2b211f; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+        width: 4.6em; height: 4.6em; border: 2.5px solid #2b211f; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
         box-shadow: 3px 3px 0 #2b211f; transform: rotate(-3deg); background: #d8a24a;
       }
       #dialogue .dlg-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
       #dialogue .dlg-chip img[hidden] { display: none; }
       #dialogue .dlg-chip img:not([hidden]) + span { display: none; }
-      #dialogue .dlg-chip span { font-size: calc(36px * var(--ts, 1)); font-weight: bold; color: #fffaf0; text-shadow: 2px 2px 0 #2b211f; }
+      #dialogue .dlg-chip span { font-size: 2.1em; font-weight: bold; color: #fffaf0; text-shadow: 2px 2px 0 #2b211f; }
       /* who is speaking: a caption box across the panel's top edge, beside the portrait */
       #dialogue .dlg-tag {
-        position: absolute; left: 104px; top: 0; transform: translateY(-60%) rotate(-1deg); max-width: calc(100% - 124px); box-sizing: border-box;
-        display: flex; align-items: baseline; gap: 12px; padding: 5px 14px 6px; background: #2b211f; color: #fffaf0; box-shadow: 3px 3px 0 #c8483a;
+        position: absolute; left: 5.9em; top: 0; transform: translateY(-60%) rotate(-1deg); max-width: calc(100% - 7em); box-sizing: border-box;
+        display: flex; align-items: baseline; gap: 0.7em; padding: 0.28em 0.85em 0.32em; background: #2b211f; color: #fffaf0; box-shadow: 3px 3px 0 #c8483a;
         white-space: nowrap; overflow: hidden;
       }
-      #dialogue .dlg-name { letter-spacing: 0.14em; text-transform: uppercase; font-size: calc(19px * var(--ts, 1)); line-height: 1.15; }
-      #dialogue .dlg-title { font-size: calc(12.5px * var(--ts, 1)); opacity: 0.85; overflow: hidden; text-overflow: ellipsis; }
+      #dialogue .dlg-name { letter-spacing: 0.14em; text-transform: uppercase; font-size: 1.2em; line-height: 1.15; }
+      #dialogue .dlg-title { font-size: 0.78em; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; }
       #dialogue .dlg-title:empty { display: none; }
-      #dialogue .dlg-text { margin: 4px 0 8px; min-height: 2.9em; display: grid; }
-      /* the whole line laid out unseen under the letters typed so far: the panel never grows as they come (issue #60) */
+      #dialogue .dlg-text { margin: 0.2em 0 0.45em; min-height: 2.9em; display: grid; }
+      /* the node's longest page laid out unseen under the one shown: the panel keeps its size as the pages turn (issue #60) */
       #dialogue .dlg-text > .dlg-ghost, #dialogue .dlg-text > .dlg-live { grid-area: 1 / 1; }
       #dialogue .dlg-text > .dlg-ghost { visibility: hidden; }
-      /* the answers' room, kept while the words are said: they come up in place */
+      /* the translator's only trace: a foreign speaker's page fades in once as it comes (no letters typed, no script turning) */
+      #dialogue .dlg-text.heard > .dlg-live { animation: dlg-heard 0.3s ease-out; }
+      @keyframes dlg-heard { from { opacity: 0.2; } }
+      /* the answers' room, kept on the page before them: they come up in place */
       #dialogue .dlg-choices.waiting { visibility: hidden; pointer-events: none; }
       #dialogue .dlg-text.player { font-style: italic; color: #34405e; }
       /* *highlights*: the places to go, the things to do (in the panel, the choices and the balloons) */
@@ -244,25 +251,28 @@
       #dialogue .dlg-text em.value, #dialogue .dlg-choices em.value, .balloon em.value { font-style: normal; font-weight: bold; color: #8a5a10; background: none; border-bottom: 2px solid #e2b552; padding: 0; white-space: nowrap; }
       #dialogue .dlg-text em.value::before, #dialogue .dlg-choices em.value::before, .balloon em.value::before { content: '✦'; color: #d9a43a; font-size: 0.8em; margin-right: 3px; }
       #dialogue .dlg-text em.quote, .balloon em.quote { font-weight: normal; color: inherit; background: #f2c54b55; }   /* a quoted letter or recording */
-      #dialogue .dlg-caret { animation: blink 0.8s steps(1) infinite; opacity: 0.6; }
-      @keyframes blink { 50% { opacity: 0; } }
-      /* the line is done: a small pointer in the corner (any press turns the page) */
-      #dialogue .dlg-more { display: none; position: absolute; right: 16px; bottom: 11px; width: 0; height: 0;
-        border: 7px solid transparent; border-top: 9px solid #c8483a; border-bottom: 0; animation: dlg-more 1s ease-in-out infinite; }
+      /* the next press turns the page: a small pointer in the corner */
+      #dialogue .dlg-more { display: none; position: absolute; right: 1em; bottom: 0.7em; width: 0; height: 0;
+        border: 0.42em solid transparent; border-top: 0.55em solid #c8483a; border-bottom: 0; animation: dlg-more 1s ease-in-out infinite; }
       #dialogue.more .dlg-more { display: block; }
       @keyframes dlg-more { 50% { transform: translateY(3px); } }
       #dialogue .glyph, .balloon .glyph { width: 1.6em; height: 1.05em; vertical-align: -0.12em; fill: #3aa6a8; stroke: #3aa6a8; margin: 0 2px; }
-      #dialogue .dlg-choices { display: flex; flex-direction: column; gap: 5px; }
+      /* the answers: no boxes, only their words on the paper with a red mark beside each; the one the pad, the mouse or
+         a finger is on in full ink, a red ink line under it (issue #147: lighter than the boxed buttons they were) */
+      #dialogue .dlg-choices { display: flex; flex-direction: column; gap: 0.15em; }
       /* an answer: its mark in a column of its own, its words beside it (they wrap beside the mark, never under or over it) */
       #dialogue .dlg-choices button {
-        display: flex; align-items: flex-start; gap: 0.6em; width: 100%; box-sizing: border-box;
-        text-align: left; font: inherit; font-size: 0.93em; line-height: 1.5; color: #2b211f; background: #f3e7cc; border: 1.5px solid #2b211f; padding: 5px 10px; cursor: pointer;
-        box-shadow: 2px 2px 0 #2b211f; transition: transform 0.08s;
+        display: flex; align-items: flex-start; gap: 0.55em; width: 100%; box-sizing: border-box; margin: 0;
+        text-align: left; font: inherit; font-size: 0.95em; line-height: 1.45; color: #5e4b45; background: none; border: 0; border-radius: 0; padding: 0.12em 0; cursor: pointer;
+        box-shadow: none; -webkit-tap-highlight-color: transparent;
       }
-      #dialogue .dlg-choices button:hover, #dialogue .dlg-choices button:focus { background: #fff6dc; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #2b211f; outline: none; }
+      #dialogue .dlg-choices button:hover, #dialogue .dlg-choices button:focus { color: #2b211f; outline: none; }
+      #dialogue .dlg-choices button:hover .dlg-say, #dialogue .dlg-choices button:focus .dlg-say {
+        text-decoration-line: underline; text-decoration-color: #c8483a; text-decoration-thickness: 0.11em; text-underline-offset: 0.24em; text-decoration-skip-ink: none;
+      }
       #dialogue .dlg-say { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
       /* the mark's column: one line tall, its marks stacked in one cell (src/story/dialogue.js choiceHtml) */
-      #dialogue .dlg-key { flex: 0 0 auto; display: grid; place-items: center; min-width: 1.1em; height: 1.5em; color: #c8483a; font-weight: bold; }
+      #dialogue .dlg-key { flex: 0 0 auto; display: grid; place-items: center; min-width: 1.1em; height: 1.45em; color: #c8483a; font-weight: bold; }
       #dialogue .dlg-key > * { grid-area: 1 / 1; }
       #dialogue .dlg-key .key { font-size: 0.82em; min-width: 1.8em; height: 1.8em; }
       /* the keyboard: the number to press; a touch screen: a plain mark */
@@ -275,27 +285,24 @@
       body.controller #dialogue .dlg-key .key { display: inline-flex; visibility: hidden; }
       body.controller #dialogue button:focus .dlg-key .key { visibility: visible; }
       body.controller #dialogue button:focus .dlg-mark { visibility: hidden; }
-      /* the translator: words still in the speaker's own script (src/story/scripts.js: inline svg, its ink inline) */
+      /* words in a speaker's own script (src/story/scripts.js; only the tongues page draws them now: tools/tongues.html) */
       #dialogue svg.tg { pointer-events: none; }
-      /* a big screen (a 1080p handheld or a monitor): a bigger panel, read from arm's length */
-      @media (min-width: 1700px) and (min-height: 900px) {
-        #dialogue { width: min(920px, calc(100vw - 32px)); font-size: calc(19px * var(--ts, 1)); bottom: calc(40px + var(--safe-bottom)); }
-        #dialogue .dlg-panel { padding: 34px 28px 18px 140px; min-height: 116px; }
-        #dialogue .dlg-who { top: -46px; left: 16px; }
-        #dialogue .dlg-chip { width: 108px; height: 108px; }
-        #dialogue .dlg-tag { left: 132px; max-width: calc(100% - 156px); padding: 6px 18px 7px; }
-        #dialogue .dlg-name { font-size: calc(24px * var(--ts, 1)); }
-        #dialogue .dlg-title { font-size: calc(15px * var(--ts, 1)); }
-        #dialogue .dlg-more { border-width: 9px; border-top-width: 11px; right: 20px; bottom: 14px; }
+      /* a short screen (the Retroid's 410, a phone on its side): the lines a little closer, the panel lower */
+      @media (max-height: 480px) {
+        #dialogue { line-height: 1.36; bottom: calc(10px + var(--safe-bottom)); }
+        #dialogue .dlg-panel { padding-top: 1.45em; padding-bottom: 0.6em; }
+        #dialogue .dlg-choices button { line-height: 1.36; padding: 0.08em 0; }
+        #dialogue .dlg-key { height: 1.36em; }
       }
+      /* a phone held upright: the type from the screen's width (about 32 letters a line), the portrait over the words */
       @media (max-width: 600px) {
-        #dialogue { font-size: calc(13px * var(--ts, 1)); bottom: calc(150px + var(--safe-bottom)); }
-        #dialogue .dlg-panel { padding: 36px 12px 12px 12px; }
-        #dialogue .dlg-chip { width: 60px; height: 60px; }
-        #dialogue .dlg-who { top: -32px; left: 10px; }
-        #dialogue .dlg-tag { left: 78px; max-width: calc(100% - 88px); flex-direction: column; align-items: flex-start; gap: 0; white-space: normal; padding: 4px 10px 5px; }
-        #dialogue .dlg-name { font-size: calc(16px * var(--ts, 1)); }
-        #dialogue .dlg-title { font-size: calc(11px * var(--ts, 1)); }
+        #dialogue { --dlg: calc(clamp(15px, 4.5vw, 22px) * var(--ts, 1) * var(--fit, 1)); bottom: calc(150px + var(--safe-bottom)); }
+        #dialogue .dlg-panel { padding: 2.2em 0.75em 0.75em 0.75em; }
+        #dialogue .dlg-chip { width: 3.5em; height: 3.5em; }
+        #dialogue .dlg-who { top: -1.8em; left: 0.6em; }
+        #dialogue .dlg-tag { left: 4.6em; max-width: calc(100% - 5.2em); flex-direction: column; align-items: flex-start; gap: 0; white-space: normal; padding: 0.25em 0.6em 0.3em; }
+        #dialogue .dlg-name { font-size: 1.1em; }
+        #dialogue .dlg-title { font-size: 0.72em; }
       }
       /* the prompt over whoever (or whatever) the use button would use: a round button badge and the action */
       #prompt {
@@ -447,14 +454,14 @@
          a solid, plain background behind speech: no ruled paper, darker ink, a heavier frame */
       html.speech-solid #dialogue .dlg-panel { background: #ffffff; background-image: none; color: #000000; border-width: 3px; }
       html.speech-solid #dialogue .dlg-text.player { color: #1c2440; }
-      html.speech-solid #dialogue .dlg-choices button { background: #ffffff; color: #000000; }
+      html.speech-solid #dialogue .dlg-choices button { color: #000000; }
       html.speech-solid .balloon { background: #ffffff; color: #000000; border-width: 2.5px; }
       html.speech-solid #cue, html.speech-solid #toast { background: #ffffff; color: #000000; }
       html.speech-solid #toast.quest { background: #000000; color: #ffffff; }
       html.speech-solid #cue.place span { background: #ffffff; color: #000000; padding: 2px 8px; }
       /* reduced motion: the panels and pages arrive without sliding, nothing blinks */
       html.reduce-motion #dialogue { transform: translate(-50%, 0); transition: opacity 0.25s; }
-      html.reduce-motion #page.open, html.reduce-motion #dialogue .dlg-more, html.reduce-motion #dialogue .dlg-caret { animation: none; }
+      html.reduce-motion #page.open, html.reduce-motion #dialogue .dlg-more, html.reduce-motion #dialogue .dlg-text.heard > .dlg-live { animation: none; }
       /* not by colour alone: low health is hatched as well as red and pulsing, winded stamina dashed as well as red */
       #health .h.low .hf { stroke: #2b211f; stroke-width: 0.8; stroke-dasharray: 1.5 1.5; }
       #stamina.winded::after { content: '!'; position: absolute; left: 100%; top: -4px; margin-left: 1px; font: bold 15px/1 ui-monospace, Menlo, monospace; color: #c8483a; text-shadow: 1px 1px 0 #2b211f; }

@@ -133,23 +133,25 @@ test('the translator: words come in the script as they are said and turn into En
   assert.ok(said.startsWith('(She looks away.) <svg') && svgs(said).length === 2, said);
 });
 
-test('the panel goes on translating after the last word is said; a press shows it all in English at once', async () => {
+test('the panel shows a foreign page whole at once; the voice says it at its pace; a press turns the page (issue #147)', async () => {
   const { GameState } = await import('../src/game-state.js');
   const { Quests } = await import('../src/story/quests.js');
   const { Dialogue } = await import('../src/story/dialogue.js');
+  const { screen } = await import('../src/platform.js');
   const m = new Map(), game = new GameState({ getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) });
   const d = new Dialogue({ game, quests: new Quests({ game }) });
   const line = 'Go down to the well, child, and wait.';
   const person = { id: 'tester', name: 'Tester', kind: 'f', lang: 'desert', talk: { nodes: { a: { say: [`~neutral~ ${line}`, '~neutral~ Then come back.'] } } } };
   assert.ok(d.start(person));
-  assert.equal(d.translated, -LAG);
-  let steps = 0;
-  while (d.revealed < line.length && steps++ < 600) d.update(1 / 60);
-  assert.ok(d.translated < line.length + FADE, 'the last words still in the script when the line is said');
-  while (d.translated < line.length + FADE && steps++ < 900) d.update(1 / 60);
-  assert.ok(d.translated >= line.length + FADE, 'then translated');
-  d.next();   // the next page: in the script again from its first word
-  assert.equal(d.revealed, 0); assert.equal(d.translated, -LAG);
-  d.update(1 / 60); d.next();   // a press mid-line: all of it, in English
-  assert.equal(d.translated, Infinity);
+  assert.equal(d.voicePlan().foreign, true, 'a foreign speaker');
+  // (what an engine draws, and the page's panel: the whole page from its first frame)
+  assert.equal(screen.state.dialogue.text, line);
+  assert.equal(screen.state.dialogue.shown, line.length);
+  assert.equal(screen.state.dialogue.done, true);
+  d.update(1 / 60);
+  assert.ok(d.revealed > 0 && d.revealed < line.length, 'the voice is still saying it');
+  d.next();   // one press: the next page, not "the rest of the line"
+  assert.equal(screen.state.dialogue.text, 'Then come back.');
+  assert.equal(d.revealed, 0, 'its voice from its first syllable');
+  d.close();
 });

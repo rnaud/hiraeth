@@ -21,8 +21,11 @@ crowd people are never moved. The traveller is then turned to face them. All of 
 on the frame the camera cuts in, so nobody sees the step. It is skipped while riding,
 swimming, climbing, gliding, knocked down or under changed gravity.
 
-**The translator.** A word turns into English `LAG` = 5 letters after it is said, and its
-English fades in over `FADE` = 5 more. Both were 14 and 12 until October 2026. At the usual
+**The translator.** The panel shows a foreign page whole and in English at once since issue #147
+(a 0.3 s fade as it comes; docs/systems/dialogue.md, *The panel reads at a glance*). What follows is
+the tongues page's (tools/tongues.html), as the panel had it before: a word turns into English
+`LAG` = 5 letters after it is said, and its English fades in over `FADE` = 5 more. Both were 14 and
+12 until October 2026. At the usual
 pace of about 48 letters a second, the line is all English about 0.2 s after its last word
 (it used to be about 0.55 s).
 
