@@ -1,0 +1,111 @@
+src/temples/index.js
+  s_9ca76055a220ed::t_aa3980177e5866 93
+src/temples/hints.js
+  s_9ca76055a220ed::t_cc080a6a9d9801 61-62,65,68
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_de7f30a01364c6 123-133
+src/save-migrate.js
+  s_9ca76055a220ed::t_3cd4c405a41324 59-60,199-201,204-214
+src/boxes/placements.js
+  s_9ca76055a220ed::t_3885d3ae0a68d2 54-59,66
+src/desert-hearth.js
+  s_9ca76055a220ed::t_aa6f230cf9dc1b 168-176,212-219,221-224,226,235,240-248,268-272,530
+  s_9ca76055a220ed::t_bded30fb3100ef 155-167,418,458-487,516-519,535
+tests/fire-hazards.test.js
+  s_9ca76055a220ed::t_bfe88d5a18e3d2 1-77
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_e92e9ae38d1698 90,124,131-147
+src/main.js
+  s_9ca76055a220ed::t_26d0a568c5b393 86,326-329,486-490
+  s_9ca76055a220ed::t_3c636c40fdafa8 3-4,484-485
+src/changelog-media.js
+  s_9ca76055a220ed::t_373ee1b8c9fb0f 559-560,574-577
+  s_9ca76055a220ed::t_b69583eee18092 554-555,561,563-569,578
+  s_9ca76055a220ed::t_4d1efde1f914dc 556-558,570-573
+src/levels/home-houses.js
+  s_9ca76055a220ed::t_f3a45315c9a4f4 4,347-348
+docs/systems/progression.md
+  s_9ca76055a220ed::t_0a4b67632f59d1 43,61-63
+src/flammable.js
+  s_9ca76055a220ed::t_fb3b86e59c0d11 8-9
+src/bike-worlds.js
+  s_9ca76055a220ed::t_5eea6fe7971209 1-52
+src/desert-road.js
+  s_9ca76055a220ed::t_c112ddce7b4800 4,44-45
+src/story/desert.js
+  s_9ca76055a220ed::t_3cb5052d5e0fe4 352-353,356
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_3d85ca80fba32f 17,67
+src/gadgets/gun.js
+  s_9ca76055a220ed::t_f64f6a841d9d17 60
+src/levels/arena.js
+  s_9ca76055a220ed::t_a822ce4c62abfe 4,151,160,177,208,220
+changelog.md
+  s_9ca76055a220ed::t_f7d635e010ca8b 8
+  s_9ca76055a220ed::t_b2b470bbcda8f6 7
+  s_9ca76055a220ed::t_22f712bff5e2f7 9
+  s_9ca76055a220ed::t_6065d4fc658165 5-6,10-11
+tests/items-page.test.js
+  s_9ca76055a220ed::t_49debeb762babf 19-22
+tests/bike-worlds.test.js
+  s_9ca76055a220ed::t_a34152ca898dc9 1-67
+tests/boxes.test.js
+  s_9ca76055a220ed::t_4afa88756ff811 85
+src/gadgets/registry.js
+  s_9ca76055a220ed::t_5a4f8d8fa3ede7 57
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_0548e8e9cb76f5 271-272
+docs/systems/temples.md
+  s_9ca76055a220ed::t_fb2d3d196826a1 138,280
+src/story/desert-data.js
+  s_9ca76055a220ed::t_ab890d7240b144 113-115
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_0c459224ce7511 102
+  s_9ca76055a220ed::t_d853e1a98723e8 103
+docs/systems/movement.md
+  s_9ca76055a220ed::t_66689d668f2c2a 256-269
+  s_9ca76055a220ed::t_ca34ddb125fdb9 299-309
+tests/desert-hearth-door.test.js
+  s_9ca76055a220ed::t_a4849178819e2e 1-65
+docs/systems/story.md
+  s_9ca76055a220ed::t_2598670e987675 438-441
+  s_1fd8d0e7b02dcf::t_a4290c75d772a9 437
+src/changelog.js
+  s_9ca76055a220ed::t_763c40c058eb66 20-22
+  s_9ca76055a220ed::t_1018ae089a9f77 15-16
+  s_9ca76055a220ed::t_964ddfc7c6fc9f 11-14,23
+  s_9ca76055a220ed::t_511641c95d782e 17-19
+src/levels/incal.js
+  s_9ca76055a220ed::t_850783764c363c 5,824,829,833-834
+src/story/flames.js
+  s_9ca76055a220ed::t_1c64344171e817 4,58-135
+src/items.js
+  s_9ca76055a220ed::t_e313274e78949a 54-57,86,307,313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9c198af7f71cc92f4762b6b599fd401f73a20721",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
