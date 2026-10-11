@@ -1,0 +1,27 @@
+.github/workflows/unity-xbox.yml
+  s_9ca76055a220ed::t_ea2a5af8c9cd16 32-37,50,188,207,339,358
+unity/Memento/Assets/Memento/Runtime/MementoShadows.cs
+  s_9ca76055a220ed::t_c398b5640c292c 96-97,227
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_0485370b3ca99c 211-213,223
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_9780b5fce36407 167-168,198,294-296
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_1a8f75c40328d1 267-268,281
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3511b1d6ef5bc684e5a3778c7b00e8d69f2b4c0b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
