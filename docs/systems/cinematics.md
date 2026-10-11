@@ -94,8 +94,10 @@ The ship's cutscenes and the filmed first times.
   (The hidden traveller rides in the parked ship during the landing, so Marrow greeted him through it.)
 - **Marrow at the wreck** stands at `bystanderSpot`: 22 m from the hull's centre (it is 13 m round),
   the hatch's way turned 0.7 rad to a side, never in the skid behind the landing's `travel`.
-- **Stepping out** (`ReboardGate`): while you are aboard or a scene or the autopilot walks you, the
-  ramp's "go aboard" (prompt and E) is held until you have been 7 m from its foot once.
+- **Stepping out** (`ReboardGate`): while you are aboard or a scene or the autopilot walks you, walking
+  into the ramp does nothing until you have been 7 m from its foot once. There is no "go aboard" prompt or
+  button any more (issue #87, "useless"): walking up into the ramp's foot (`RAMP_IN`, `Ship.walksIntoRamp`)
+  walks you aboard; E at the ramp is yours (talk, pick up).
   `tests/landing.test.js`.
 
 ## Moments: first times, filmed (`src/story/moment.js`)

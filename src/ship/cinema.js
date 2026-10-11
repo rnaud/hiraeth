@@ -186,6 +186,34 @@ export function overlaps(rects) {
 }
 
 // ---------------------------------------------------------------------------
+// The notices' order (issue #78: stepping out of the ship, four kinds of words came up at once: the ship's line,
+// the objective card, a caller's balloon, the camera's lesson and the world's opening words). Everything that
+// writes on the screen by itself takes its turn, one at a time, in this order when several wait:
+//
+//   title      the father's charge, lettered over the crash site (src/story/charge.js #charge-card): the scene's own
+//   caption    the region's name (src/hud.js PlaceName), first on arriving: where you are, before anything else
+//   line       a spoken line outside a scene (the ship's word as you step out, a console's answer)
+//   objective  the objective card ("Walk to the city under the great dark tree.")
+//   toast      the notices (#toast: a quest's start, a world's opening words, a find), one after the other
+//   teach      a first lesson on the cue ("Look around with …", src/first-steps.js), a nudge, a caller's balloon
+//
+// Not notices: a prompt (what the use button does right here), the scout's find (asked for), a conversation, and
+// anything inside a letterboxed scene (it has the screen). Each kind waits while another is up, and while a kind
+// ahead of it waits.
+
+export const NOTICE_ORDER = ['title', 'caption', 'line', 'objective', 'toast', 'teach'];
+
+/**
+ * May a notice of `kind` show now? `up`: the kinds on the screen; `waiting`: the kinds waiting their turn.
+ * DOM-free (tests/notices.test.js).
+ */
+export function noticeMay(kind, { up = [], waiting = [] } = {}) {
+  const at = NOTICE_ORDER.indexOf(kind);
+  if (up.some((k) => k !== kind && NOTICE_ORDER.includes(k))) return false;
+  return !waiting.some((k) => k !== kind && NOTICE_ORDER.indexOf(k) >= 0 && NOTICE_ORDER.indexOf(k) < at);
+}
+
+// ---------------------------------------------------------------------------
 // Subtitles: one line at a time
 
 export class Subtitles {
@@ -243,6 +271,9 @@ export class Cinema {
     this.toasts = [];        // waiting their turn (see toast())
     this._toastT = 0;
     this._lidK = 1;
+    this.caption = { up: false, waiting: false };   // the region's name (main.js: src/hud.js PlaceName), the first notice
+    this._held = [];         // lines said while the caption has the screen (say(): they come after it)
+    this._objPending = null; // the objective card, waiting its turn
     if (!this.dom) return;
     if (!document.getElementById('cine-css')) {
       const st = document.createElement('style'); st.id = 'cine-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -290,6 +321,13 @@ export class Cinema {
    * opts.queue: wait for the one up to have its time first.
    */
   say(line, { secs = null, queue = false } = {}) {
+    // outside a scene, a line waits for the region's name (the notices' order, NOTICE_ORDER)
+    if (!line) this._held.length = 0;
+    else if (this.dom && !this._bars && !this.mayNotice('line')) {
+      if (!queue) this._held.length = 0;
+      this._held.push({ line, secs, queue });
+      return;
+    }
     const before = this.subs.line;
     if (queue && line) this.subs.add(line, secs ?? readTime(line.text));
     else this.subs.say(line, secs);
@@ -356,6 +394,9 @@ export class Cinema {
 
   objective(text) {
     if (!this.dom) return;
+    // it waits its turn (the notices' order): after the region's name and a line, before the notices
+    if (!this.mayNotice('objective')) { this._objPending = text; return; }
+    this._objPending = null;
     setText(this.obj.querySelector('.t'), text);
     this.obj.classList.remove('show');
     this._seen('objective', false); this._seen('objective', true);
@@ -394,7 +435,7 @@ export class Cinema {
   }
 
   _pumpToasts() {
-    if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark()) return;
+    if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark() || !this.mayNotice('toast')) return;
     const item = this.toasts.shift(), text = item.text, quest = item.kind === 'quest';
     const secs = toastSeconds(text) + (quest ? 0.5 : 0);   // (a quest's start: a moment longer)
     this.onWords?.(text);   // (words on the screen: main.js listens for the hum)
@@ -405,7 +446,7 @@ export class Cinema {
     this._toastItem = item;
     this.toastEl.style.animationDuration = `${secs}s`;
     this.toastEl.classList.remove('show');
-    this._toastT = secs * 0.58;   // read before the next may take its place (it fades by itself after secs)
+    this._toastT = secs;   // one at a time: the next waits until this one has faded (issue #78; it used to come at 58 %)
     this._seen('toast', false); this._seen('toast', true);
     this._pending = 'toast'; this.layout(); this._pending = null;
     void this.toastEl.offsetWidth; this.toastEl.classList.add('show');
@@ -415,6 +456,12 @@ export class Cinema {
   /** Per frame: timed subtitles, waiting toasts, and a fresh layout now and then (HUD and panels come and go). */
   update(dt) {
     if (this.subs.tick(dt)) this._showLine();
+    // the notices waiting their turn: lines held for the region's name, then the objective card
+    if (this._held.length && (this._bars || this.mayNotice('line'))) {
+      const held = this._held.splice(0);
+      for (const h of held) this.say(h.line, { secs: h.secs, queue: h.queue });
+    }
+    if (this._objPending && this.mayNotice('objective')) this.objective(this._objPending);
     this._toastT = Math.max(0, this._toastT - dt);
     // a toast that went up just before the screen went dark (the opening's black, the eyes shut) comes back after
     const T = this.toastEl;
@@ -427,6 +474,32 @@ export class Cinema {
     this._pumpToasts();
     if ((this._layoutT -= dt) <= 0) { this._layoutT = 0.25; this.layout(); }
   }
+
+  /** The region's name this frame (main.js): `up` on the screen, `waiting` settled and waiting for the screen. */
+  setCaption(up, waiting = false) { this.caption.up = !!up; this.caption.waiting = !!waiting && !up; }
+
+  /**
+   * The notices on the screen (`up`) and waiting their turn (`waiting`), by kind (NOTICE_ORDER). A line counts
+   * only outside a letterboxed scene (inside one the scene has the screen).
+   */
+  notices() {
+    const up = [], waiting = [];
+    if (this.caption.up) up.push('caption');
+    if (this.caption.waiting) waiting.push('caption');
+    if (!this.dom) return { up, waiting };
+    if (document.querySelector('#charge-card.on')) up.push('title');
+    if (this.subs.line && !this._bars) up.push('line');
+    if (this._held.length) waiting.push('line');
+    if (this.obj?.classList.contains('show')) up.push('objective');
+    if (this._objPending) waiting.push('objective');
+    if (this.toastEl?.classList.contains('show') && this._toastT > 0) up.push('toast');
+    if (this.toasts.length) waiting.push('toast');
+    return { up, waiting };
+  }
+  /** May a notice of this kind show now (noticeMay)? */
+  mayNotice(kind) { return noticeMay(kind, this.notices()); }
+  /** Anything written on the screen by itself, or waiting to be (a lesson, a nudge, a caller's balloon wait for it). */
+  noticeBusy() { const n = this.notices(); return n.up.length > 0 || n.waiting.length > 0; }
 
   _seen(id, on) {
     const i = this._order.indexOf(id);

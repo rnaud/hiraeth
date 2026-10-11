@@ -40,7 +40,7 @@ test('the page has no status box: no #hud, no #status, no scout label; only the 
 test('hints subtle (the default) or off: a prompt on the cue is its button alone, a small glyph, no words', () => {
   assert.equal(cueText({ prompt: 'turn the lens' }), 'E', 'the button, no sentence');
   assert.equal(cueText({ prompt: 'turn the lens', controller: true }), 'X / □');
-  assert.equal(cueText({ shipHint: 'E go aboard' }), 'E');
+  assert.equal(cueText({ shipHint: 'E galactic map' }), 'E');
   assert.equal(cueText({ lens: 'E (X / □) turn lens 2 · 1/3 beams aligned' }), 'E');
   assert.equal(cueText({ prompt: 'turn the lens', words: false }), 'E');
   assert.equal(cueText({ prompt: 'talk to Ama', promptAt: { x: 1 } }), '', 'the floating glyph over Ama says it');
@@ -54,7 +54,7 @@ test('hints full: the cue says nothing at rest, and only what the use button doe
   assert.equal(cueText({ prompt: 'talk to Ama', promptAt: { x: 1 } }), '', 'the floating prompt over Ama says it');
   assert.equal(cueText({ prompt: 'turn the lens' }), 'E turn the lens', 'a prompt with nothing to float over');
   assert.equal(cueText({ prompt: 'turn the lens', controller: true }), 'X / □ turn the lens', 'in the pad\'s names');
-  assert.equal(cueText({ shipHint: 'E go aboard', prompt: 'talk to Ama' }), 'E go aboard', 'at the ramp, E is the ship\'s');
+  assert.equal(cueText({ shipHint: 'E step outside', prompt: 'talk to Ama' }), 'E step outside', 'aboard, E is the ship\'s');
   assert.equal(cueText({ shipHint: 'aboard the ship' }), '', 'not a prompt: nothing');
   assert.equal(cueText({ shipPlaying: true, prompt: 'go' }), '', 'in the ship\'s scenes E does nothing');
   assert.equal(cueText({ lens: 'E turn lens 2 · 1/3 beams aligned', prompt: 'turn the lens' }), 'E turn lens 2 · 1/3 beams aligned');
@@ -68,16 +68,34 @@ test('hints full: the cue says nothing at rest, and only what the use button doe
   assert.equal(padCue('E go aboard · SPACE hop · SHIFT boost'), 'X / □ go aboard · A / × hop · L3 boost');
 });
 
-test('a region\'s name shows as you cross into it (not where you arrive, not along a flickering border), then goes', () => {
+test('a region\'s name shows as you cross into it (and first where you arrive, not along a flickering border), then goes', () => {
   const p = new PlaceName({ settle: 1000, show: 3000 });
-  assert.equal(p.update('Golden dunes', 0), '');
-  assert.equal(p.update('Golden dunes', 1500), '', 'where you arrive: the world\'s own words say it');
-  assert.equal(p.update('Rose canyons', 2000), '');
-  assert.equal(p.update('Golden dunes', 2300), '', 'back over the border at once: nothing');
-  assert.equal(p.update('Rose canyons', 3000), '');
-  assert.equal(p.update('Rose canyons', 4100), 'Rose canyons', 'held a second: named');
-  assert.equal(p.update('Rose canyons', 6000), 'Rose canyons');
-  assert.equal(p.update('Rose canyons', 7200), '', 'and gone');
+  assert.equal(p.update('Golden dunes', 0), 'Golden dunes', 'where you arrive: the first thing said (issue #78)');
+  assert.equal(p.update('Golden dunes', 3100), '', 'and gone');
+  assert.equal(p.update('Rose canyons', 4000), '');
+  assert.equal(p.update('Golden dunes', 4300), '', 'back over the border at once: nothing');
+  assert.equal(p.update('Rose canyons', 5000), '');
+  assert.equal(p.update('Rose canyons', 6100), 'Rose canyons', 'held a second: named');
+  assert.equal(p.update('Rose canyons', 8000), 'Rose canyons');
+  assert.equal(p.update('Rose canyons', 9200), '', 'and gone');
+});
+
+test('a region\'s name waits while something else is on the screen, and shows for its full time after (issue #78)', () => {
+  const p = new PlaceName({ settle: 1000, show: 3000 });
+  assert.equal(p.update('Golden dunes', 0, { hold: true }), '', 'a scene plays: it waits');
+  assert.equal(p.waiting, true, 'and says so: the other notices let it go first');
+  assert.equal(p.update('Golden dunes', 5000, { hold: true }), '');
+  assert.equal(p.update('Golden dunes', 6000), 'Golden dunes', 'the screen free: named');
+  assert.equal(p.waiting, false);
+  assert.equal(p.update('Golden dunes', 8900, { hold: true }), 'Golden dunes', 'once up, it keeps its time');
+  assert.equal(p.update('Golden dunes', 9100), '');
+  // the father's charge lettered just after the name came up: the name steps back and comes after it
+  assert.equal(p.update('Rose canyons', 10000), '');
+  assert.equal(p.update('Rose canyons', 11100), 'Rose canyons');
+  p.defer(11200);
+  assert.equal(p.update('Rose canyons', 11300, { hold: true }), '', 'waiting again');
+  assert.equal(p.update('Rose canyons', 15000), 'Rose canyons', 'then its full time');
+  assert.equal(p.update('Rose canyons', 17900), 'Rose canyons');
 });
 
 test('the health bar and the stamina wheel show while it matters and fade a moment after', () => {

@@ -11,7 +11,8 @@ import { check } from './dialogue.js';
 //   'news'       a listen-only person with news you have not heard yet (an `after` entry: dialogue.js pickListen)
 //
 // Everyone else (people you have met who have nothing new, bystanders and the crowd with nothing new,
-// people with no talk at all) still turns and waves, and E still talks to them: just no balloon. Shouts
+// people with no talk at all) still turns to you, and E still talks to them: just no balloon. Only the first
+// two reasons wave you over (beckonFor, issue #79), once each. Shouts
 // and calls a scene asks for (npc.shout, a crowd person's shoutUntil) always show: they are not greetings.
 
 const isEntry = (e) => e && typeof e === 'object' && !Array.isArray(e) && 'say' in e;
@@ -37,6 +38,17 @@ export function balloonReason(person, { game, quests = null, objective = null, a
   if (objective?.position && at && objective.position.distanceTo(at) < NEAR) return 'objective';
   if (quests?.pendingOpener?.()?.who?.includes(person.id)) return 'quest';
   if (!game.flag?.(`met.${person.id}`)) return 'new';
+  return null;
+}
+
+/**
+ * Whether they wave you over (issue #79: only for a very good reason, once): the quest you follow points at them
+ * ('objective') or they open the world's quest ('quest'). The reason's key (the wave is once for each), or null:
+ * someone you have never met, news, a bystander turn to you and greet you, but don't wave.
+ */
+export function beckonFor(why, person, { quests = null, objective = null } = {}) {
+  if (why === 'objective') return `objective:${objective?.id ?? person?.id}`;
+  if (why === 'quest') return `quest:${quests?.pendingOpener?.()?.id ?? person?.id}`;
   return null;
 }
 

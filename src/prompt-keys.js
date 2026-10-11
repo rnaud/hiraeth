@@ -35,7 +35,7 @@ export const escapeHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&
 /** One button as a round badge. */
 export const keyBadge = (label) => `<b class="key">${escapeHtml(label)}</b>`;
 
-// a button name at the start of a prompt: "E go aboard", "B / ○ step outside", "A / × …", "SPACE hop", "W/S throttle"
+// a button name at the start of a prompt: "E galactic map", "B / ○ step outside", "A / × …", "SPACE hop", "W/S throttle"
 // (as a badge, native-pad.js renames it to the player's own key or button: src/remap.js)
 const LEAD = /^(E|SPACE|SHIFT|[WASD]\/[WASD]|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|LB \/ L1|L3|R3|D-pad [↑↓←→])(?: (?=\S)|$)/;   // (alone: a prompt as its button only, hints subtle or off)
 

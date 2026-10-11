@@ -751,6 +751,20 @@ change. Test: `tests/prominence.test.js` (the tiers' order; hue kept; in Qanat, 
 crowd's loudest colours are below the story people's; reference colours kept exactly).
 
 
+## Calm by the ship (issue #84)
+
+The author, about to leave: "people around my ship are moving too much". Round the parked ship (`shipCalmZones` in
+`src/npc.js`: 18 m about the hull, 16 m about the ramp's foot, set by main.js from `ship.restPos` and `ship.rampFoot`):
+
+- **no strollers**: the crowd's walking routes are cut where they would run through it (`calm` in `buildPeopleSteps`,
+  `src/crowd.js`; a procession's loop is left whole). Measured at load: the Underside had 3 strollers on 2 routes by
+  the ship, the City During the Eclipse 1, now none; the other crowded worlds had none there already;
+- **slower idles** (`SHIP_CALM.idle`, 0.55): anyone standing there, a story person (Marrow at the wreck, Qanat's
+  gift-bearers in their half ring) or a crowd person close up, plays their idle at that pace;
+- a story person on a route there walks it slower (`walk`, 0.7) and waits three times as long at each turn (`pause`).
+
+Tests: `tests/ship-calm.test.js`.
+
 ## The family (October 2026, v1.7)
 
 The traveller's family wears one canonical look each, from the user's selected single-view designs in

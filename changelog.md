@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.45 — 2026-10-11
 
+- What you find in a makers’ chest comes first: its card is a low strip along the bottom of the screen, the name large and what it is and does small beside each other, so the thing held up in the light is never behind the words, on a handheld’s screen too.
+- The people round your ship are calmer: nobody strolls past the hull or the ramp any more, and those who stand there (Qanat’s gift-bearers, Marrow at the wreck) shift and breathe more slowly, so the ship’s side is a quiet place to leave from.
+- The ship’s ramp has no button any more: walk up into it and you go aboard. The prompt to board at its foot is gone, and the use button there is yours, to talk or pick something up.
+- People no longer wave at you whenever you pass: only someone with something you need to hear waves you over, once. Marrow at the wreck calls you once, and Nour says “Psst. Child.” once after the chest opens, not every few seconds until you come over.
+- The screen says one thing at a time: first the name of where you are, then what is said, then the objective, then each notice in turn, and a lesson or a greeting only once the screen is clear. Stepping out of the crashed ship no longer brings up the ship’s words, the objective, a call and a lesson all at once, the desert’s opening words are not said twice, and a makers’ box offered on arrival no longer has a card of its own.
 - Every fire burns you now, as Qanat’s burning tree does: the camp fires, the braziers, the temples’ flames and lit bowls, a burning tar ball, the Wick, hearths, candles and the pilgrims’ lamps. Step out of the flames and it stops.
 - Once you have found the hoverbike in the desert, it comes with you: in Viridel, the Glass Dunes, the Buried Machine and the Garden of Spheres it waits by your ship when you land, and you can whistle for it as in the desert. Where Vael’s bird answers your whistle, the bike stands by the ship to climb on. In the worlds with no room to ride, the domes, the shaft, the islands and the streets, you go on foot.
 - The Givers’ Hearth’s doorway is open now: walk in under the carved lintel and up the sand that has drifted into the passage, past little lamp-stones, to the dark inner door at its end. The old door looked blocked up by a flat black wall.

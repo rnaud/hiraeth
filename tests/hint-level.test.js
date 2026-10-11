@@ -81,7 +81,7 @@ test('the setting: in the menu (Game), saved, and settings from before it start 
 test('every channel goes through the setting', () => {
   const main = src('src/main.js');
   assert.match(main, /getHint: \(\) => openHint\(guardianHint\(level\.temple\), struggle\.t\)/, 'the drone in a fight');
-  assert.match(main, /game\.on\('scout:ping', \(e\) => \{ if \(e\?\.why && !hintsFor\('nudge'\)\) return;/, 'a world\'s own ping (the jets): a nudge');
+  assert.match(main, /game\.on\('scout:ping', \(e\) => \{ if \(e\?\.why && \(!hintsFor\('nudge'\) \|\| ship\.cinema\.noticeBusy\(\)\)\) return;/, 'a world\'s own ping (the jets): a nudge');
   assert.match(main, /!hintsFor\('teach'\)\) return;/, 'the potion: taught once');
   assert.match(main, /updateHazards\(dt, player, \{ notice: \(t\) => \{ if \(hintsFor\('tip'\)\) showToast\(t\); \} \}\)/, 'fire and spines');
   assert.match(src('src/player.js'), /this\.opts\.edgeHint && hintsFor\('tip'\)/, 'the world\'s edge');

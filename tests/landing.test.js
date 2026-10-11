@@ -1,6 +1,6 @@
 // The crash landing, from the playtest of 8 October 2026 (src/ship/landing.js): nobody talks while the
 // ship is still coming down, the one who waits at the wreck stands well clear of it, and stepping out
-// doesn't offer to go straight back in.
+// doesn't take you straight back in (walking into the ramp does, later: no "go aboard" button, issue #87).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -37,7 +37,7 @@ test('whoever waits at the wreck stands well clear of the hull and out of its fu
   assert.ok(p.x > 0, 'on the ramp’s side');
 });
 
-test('the ramp’s “go aboard” waits until you have walked away from it once', () => {
+test('walking into the ramp waits until you have walked away from it once', () => {
   const g = new ReboardGate();
   assert.equal(g.update({ fromRamp: 1 }), true, 'never been aboard: the ramp offers it');
   g.update({ aboard: true, fromRamp: 30 });   // inside, or being walked out
@@ -47,7 +47,7 @@ test('the ramp’s “go aboard” waits until you have walked away from it once
   assert.equal(g.update({ fromRamp: 1 }), true, 'and back: it offers to take you aboard');
 });
 
-test('the ship: stepping out at the ramp’s foot shows no prompt, coming back to it does', () => {
+test('the ship: no “go aboard” at the ramp; walking into it takes you in, but not right after stepping out (issue #87)', () => {
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);
@@ -73,5 +73,35 @@ test('the ship: stepping out at the ramp’s foot shows no prompt, coming back t
   frame();
   ship.placePlayer(ship.rampFoot.clone(), 0, true);
   frame();
-  assert.equal(ship.hud(), 'E go aboard');
+  assert.equal(ship.hud(), null, 'back at the ramp: no prompt, no button');
+  assert.ok(ship.input({ KeyE: true }).KeyE && !ship.auto, 'E is still the player’s');
+  ship.input({});
+  // walking up into it: the ship walks you aboard
+  const inward = ship.hinge.clone().sub(ship.rampFoot).setY(0).normalize();
+  ship.player.vel.copy(inward).multiplyScalar(-3);
+  ship.input({});
+  assert.ok(!ship.auto, 'walking away from it: nothing');
+  ship.player.vel.copy(inward).multiplyScalar(3);
+  ship.input({});
+  assert.ok(ship.auto, 'walking into it: aboard');
+});
+
+test('just stepped out, walking straight back into the ramp does nothing (the reboard gate)', () => {
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
+  const physics = new Physics(scene);
+  const level = { spawn: new THREE.Vector3(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  ship.player = new Player(physics);
+  ship.camera = new THREE.PerspectiveCamera();
+  ship.rig = { indoor: false };
+  const m = ship.parked;
+  const frame = () => quiet(() => ship.update(1 / 60, 0, {}));
+  ship.placePlayer(ship.world(m, m.interior.points.hatchIn), 0, true);
+  frame();
+  ship.placePlayer(ship.rampFoot.clone(), 0, true);
+  frame();
+  ship.player.vel.copy(ship.hinge.clone().sub(ship.rampFoot).setY(0).normalize()).multiplyScalar(3);
+  ship.input({});
+  assert.ok(!ship.auto, 'not straight back in');
 });

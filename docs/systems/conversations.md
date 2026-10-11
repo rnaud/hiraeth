@@ -95,9 +95,17 @@ Looking at a thing (`pickLookShot`) ignores them: the thing is often the fire it
 greeting over their head, everyone's, so a street was a wall of balloons. Now a greeting shows only when
 they have something for you: the tracked objective points at them, they open the world's quest that is
 still waiting, they have a conversation and you have never talked to them, or (a bystander or a crowd
-person) they have news you have not heard (`after`). Everyone else still turns and waves and can be
+person) they have news you have not heard (`after`). Everyone else still turns to you and can be
 talked to with E. A shout a scene asks for (`npc.shout`, a crowd person's `shoutUntil`) always shows.
 `createStory` sets `npc.quiet` four times a second.
+
+**A wave only for a word you need, once** (issue #79). Everyone used to wave as you came near, and the desert's
+callers called on a loop (Nour's "Psst. Child." every seven seconds until you came over). Now only the first two
+reasons above (the objective points at them; they open the world's quest) wave you over (`beckonFor`, `npc.beckon`),
+once for each (`npc.waveOnce(why)`); the crowd turns to look but never waves. A caller (`caller` in
+`src/story/desert.js`: Marrow at the wreck, who opens the quest; Nour after the chest and when the tree stays cold)
+calls once for each moment, with one line, a wave and Nour's psst, and the flag `desert.called.<who>.<moment>` keeps
+it said across a reload.
 
 **His portrait.** On his lines the chip shows the traveller's own portrait (`portraitYou` in
 `src/story/index.js`), with the initial letter as the fallback. It is taken with `captureView`, as

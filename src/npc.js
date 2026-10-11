@@ -19,7 +19,7 @@ import { cleanExpression, PEOPLE_REST } from './expression.js';
 import { Knockdown, toppleVelocities, KNOCKOVER, getUpPlacement, GET_UP } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
-import { layWave } from './wave.js';
+import { layWave, WAVE } from './wave.js';
 
 // the upper body over a step aside (NPC.sidestep): Mixamo's breathing idle
 const SIDESTEP_UPPER = 'breathing_idle';
@@ -28,8 +28,10 @@ import { SkinnedLod, skinnedLods } from './skinned-lod.js';
 import { runSteps } from './load-steps.js';
 
 // People of the world: they walk a looping route, pause and look around,
-// turn and wave when you come close, then say a line in a comic speech
-// balloon. Shy ones back away if you run at them. Their cloaks are the same
+// turn to you when you come close, then say a line in a comic speech
+// balloon. They wave only when they have something you need to hear (issue #79:
+// `beckon`, set by src/story/index.js when the quest you follow points at them or
+// they open the world's quest; or `waveOnce()`, a story call): once for each. Shy ones back away if you run at them. Their cloaks are the same
 // cloth simulation as yours, updated only when they are near the camera.
 //
 // Pooled NPCs (pooled: true) are the near tier of the city crowds (crowd.js):
@@ -67,6 +69,20 @@ const STUN_FOR = 3.5;   // seconds a stilling glob holds them (fluid-kit.js STUN
 // the body and the feet were a quarter of the handheld's frame in the desert's camps (docs/systems/performance.md)
 export const NPC_DETAIL = { feet: 22, every2: 30, every3: 60, quarter: 110, still: 8 };
 let poseSeq = 0;   // (each person's posing frames offset from the others')
+/**
+ * Calm by the ship (issue #84: people round the hull moved too much as you came to leave): within a zone (main.js:
+ * the hull and the ramp's foot, shipCalmZones) a person standing idles slower (`idle`, the clip's pace), one on a
+ * route walks slower (`walk`) and waits longer at each turn (`pause`). The crowd's strollers keep out of it (crowd.js).
+ */
+export const SHIP_CALM = { hull: 18, ramp: 16, idle: 0.55, walk: 0.7, pause: 3 };
+let calmZones = [];
+export function setCalmZones(zones = []) { calmZones = zones.filter(Boolean); }
+/** Whether a point is in a calm zone ({ x, z, r }). */
+export function inCalm(p, zones = calmZones) { return zones.some((c) => (p.x - c.x) ** 2 + (p.z - c.z) ** 2 < c.r * c.r); }
+/** The ship's calm zones: the hull and the ramp's foot (pass ship.restPos and ship.rampFoot). */
+export function shipCalmZones(hull, ramp, C = SHIP_CALM) {
+  return [hull && { x: hull.x, z: hull.z, r: C.hull }, ramp && { x: ramp.x, z: ramp.z, r: C.ramp }].filter(Boolean);
+}
 let knockedDown = 0;   // bodies down at once (KNOCKOVER.most)
 
 const _face = new THREE.Vector3();
@@ -514,9 +530,12 @@ export class NPC {
         face = Math.atan2(_w.x, _w.z);
       }
     } else if (dist < greetR) {
-      // stop, face the player, wave once
+      // stop, face the player; a wave only with something you need to hear, once for it (beckon, issue #79)
       face = toYou;
-      if (!this.greeted) { this.greeted = this.time; this.lineIdx = (this.lineIdx + 1) % this.lines.length; }
+      if (!this.greeted) {
+        this.greeted = this.time; this.lineIdx = (this.lineIdx + 1) % this.lines.length;
+        if (this.beckon) this.waveOnce(this.beckon);
+      }
     } else if (fol) {
       // arrived where they were going: waiting, facing their way
       this.greeted = 0;
@@ -532,12 +551,13 @@ export class NPC {
         const target = this.route[this.wp];
         _w.subVectors(target, this.pos); _w.y = 0;
         const d = _w.length();
+        const calm = calmZones.length && inCalm(this.pos);
         if (d < 0.6) {
           this.wp = (this.wp + 1) % this.route.length;
-          this.pause = 1.5 + Math.random() * 4;
+          this.pause = (1.5 + Math.random() * 4) * (calm ? SHIP_CALM.pause : 1);
         } else {
           _w.divideScalar(d);
-          speed = this.speed;
+          speed = this.speed * (calm ? SHIP_CALM.walk : 1);
           this.move(_w, speed, dt);
           face = Math.atan2(_w.x, _w.z);
         }
@@ -556,7 +576,7 @@ export class NPC {
     // (the first frame straight there: a seated person's cape is baked on them as they first sit)
     if (Number.isFinite(g)) { this.pos.y += (g + (this.seat ?? 0) - this.pos.y) * (this._grounded ? 1 - Math.exp(-15 * dt) : 1); this._grounded = true; }
 
-    const waveT = this.talkTo ? -1 : this.greeted && !this.seat ? this.time - this.greeted : -1;
+    const waveT = this.talkTo || this.seat || this._waveAt == null || this.time - this._waveAt > WAVE.dur ? -1 : this.time - this._waveAt;
     // the pose: every frame near the camera, every 2nd / 3rd further off (they still move every frame)
     const D = NPC_DETAIL, near = camD0 < D.feet;
     const still = speed < 0.05 && waveT < 0 && !this.talkTo && !this.talking && camD0 > D.still;
@@ -566,7 +586,9 @@ export class NPC {
     const posing = this._poseN === 0 || !this._posed;
     if (posing) {
       this._posed = true;
-      this.pose(this._poseDt, speed, waveT, dist, player, this.talkTo ? (this.talkTo.speaking ? 'talk' : 'ground') : null, near);
+      // (standing by the ship: a slower idle, issue #84)
+      const calmIdle = speed < 0.05 && waveT < 0 && !this.talkTo && !this.talking && calmZones.length && inCalm(this.pos);
+      this.pose(this._poseDt * (calmIdle ? SHIP_CALM.idle : 1), speed, waveT, dist, player, this.talkTo ? (this.talkTo.speaking ? 'talk' : 'ground') : null, near);
     }
     this.object.position.copy(this.pos);
     this.object.quaternion.setFromAxisAngle(Y, this.heading);
@@ -696,10 +718,11 @@ export class NPC {
     if (now < p.stumbleUntil) this.posture(dt, { stumble: true, still: now < (p.stunUntil ?? -1) });
     else {
       this._frozen = false;
-      const waveT = p.greetT >= 0 && p.pose === 0 && !p.group ? now - p.greetT : -1;
+      const waveT = -1;   // (the crowd turns to look at you, and never waves: issue #79, only someone with a word for you does)
       // stepping out of your way sideways or back: that step from motion capture, not the forward walk sliding sideways
       const stepping = this.sidestep(dt, moving && !p.walk ? p.stepDir : null, p.speed);
-      this.pose(dt, stepping ? 0 : p.speed, waveT, 99, player, p.talk > 0.45 && !moving ? 'talk' : null);
+      const calmIdle = !moving && calmZones.length && inCalm(this.pos);   // (standing by the ship: a slower idle, issue #84)
+      this.pose(dt * (calmIdle ? SHIP_CALM.idle : 1), stepping ? 0 : p.speed, waveT, 99, player, p.talk > 0.45 && !moving ? 'talk' : null);
       // the crowd decides where they look
       this.char.head.rotateY(p.headYaw * 0.85);
       this.char.head.rotateX(p.headPitch * 0.7);
@@ -958,6 +981,18 @@ export class NPC {
   aimAtPlayer(player, dist) {
     _v.subVectors(player.pos, this.pos);
     return dist < 0.7 && this._toYou !== undefined ? this._toYou : Math.atan2(_v.x, _v.z);
+  }
+
+  /**
+   * A wave, once for `why` (a story call, a beckon: issue #79); never again for the same reason. `also`: reasons it
+   * answers too (a call is for the same word their greeting would wave for: one wave, not two).
+   */
+  waveOnce(why = 'call', also = null) {
+    const done = (this._waved ??= new Set());
+    if (done.has(why)) return false;
+    done.add(why); if (also) done.add(also);
+    this._wavedFor = why; this._waveAt = this.time;
+    return true;
   }
 
   /** Mocap clips (walk / jog when fleeing / idle / talking), wave layered on top. */

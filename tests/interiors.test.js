@@ -123,16 +123,16 @@ test('a shopfront alone: a door on the ground, facing its heading, its lantern a
 
 test('main.js: inside a building the air and the place name are the door\'s; the panel takes the controller', () => {
   const m = src('src/main.js');
-  assert.match(m, /placeName\.update\(indoors\?\.label \?\? atmo\?\.name, now, \{ quiet: !indoors && placeName\.wasIndoors \}\)/, 'the cue names the shop as you step in, and not the street as you step out');
+  assert.match(m, /placeName\.update\(indoors\?\.label \?\? atmo\?\.name, now, \{ quiet: !indoors && placeName\.wasIndoors, hold: /, 'the cue names the shop as you step in, and not the street as you step out');
   assert.match(m, /const indoorAt = interiorAt\(player\.pos\)\?\.door\.at/, 'the street\'s light and air inside');
   assert.match(m, /altitude: interiorAt\(player\.pos\) \? 0/, 'no high-altitude wind indoors');
 });
 
 test('the place name: the shop\'s as you step in, nothing as you step back out into the street', () => {
   const p = new PlaceName({ settle: 1000, show: 3000 });
-  p.update('Rose canyons', 0); p.update('Rose canyons', 1500);
-  assert.equal(p.update('The Test Shop', 2000), '');
-  assert.equal(p.update('The Test Shop', 3100), 'The Test Shop', 'inside: named');
+  p.update('Rose canyons', 0); p.update('Rose canyons', 3500);   // (where you arrive: named first, issue #78)
+  assert.equal(p.update('The Test Shop', 4000), '');
+  assert.equal(p.update('The Test Shop', 5100), 'The Test Shop', 'inside: named');
   assert.equal(p.update('Rose canyons', 9000, { quiet: true }), '', 'out again: the street is not news');
   assert.equal(p.update('Rose canyons', 12000), '');
 });

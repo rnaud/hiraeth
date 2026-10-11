@@ -145,7 +145,7 @@ export class Quests {
     else {
       if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
       else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`What happened: ${d.title}`); d.onFail?.(this); }
-      else if (prev === undefined || opening) this.startToast(d, st);
+      else if ((prev === undefined || opening) && !d.background) this.startToast(d, st);   // (a makers' box offered on arrival starts quietly: its card was one notice too many on arriving, issue #78; the Quests page lists it)
       else if (hintsFor('objective')) this.toast(`${d.title}: ${st.text}`);   // (the next step pushed onto the screen: hints full; else its chime, and the quest log has it)
       if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
     }

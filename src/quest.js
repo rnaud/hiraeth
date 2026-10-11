@@ -194,11 +194,14 @@ export class Story {
     this.firstVisit = !journal.seen(levelId);
   }
 
-  /** Called once the world is ready: the intro page on a first visit. */
-  start() {
+  /**
+   * Called once the world is ready: the intro page on a first visit. `quiet`: the arrival already said it (the crash's
+   * objective card, "Walk to the city under the great dark tree.": the same words twice was one notice too many, issue #78).
+   */
+  start({ quiet = false } = {}) {
     if (this.firstVisit) {
       this.journal.markSeen(this.levelId);
-      setTimeout(() => this.showPage('intro'), 600);
+      if (!quiet) setTimeout(() => this.showPage('intro'), 600);
     }
   }
 

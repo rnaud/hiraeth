@@ -555,7 +555,7 @@ const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch�
 // (the pirates mid-turn: started, flown ahead by the pilot to 12 s, then D held 0.4 s)
 const PIRATES_TURN = "const M = window.minigame; M.begin(); await new Promise((r) => setTimeout(r, 3800)); M.session.forward(12); window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyD' })); await new Promise((r) => setTimeout(r, 400));";
 // (taken with scripts/changelog-shots.mjs on the agent branch, before the rebase that lands it: `from`, not `commit`)
-const FROM45 = 'scripts/changelog-shots.mjs (headless Chrome, High, 1280 × 720, muted) at the fix’s commit and its parent on the agent branch, before it was rebased onto main (11 October)';
+const FROM45_NT = 'scripts/changelog-shots.mjs (headless Chrome, High, 1280 × 720, muted) at the fix’s commit and its parent on the agent branch, before it was rebased onto main (11 October)';
 const SAVE45 = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'items.v': 2, 'save.migrated': 13, 'tool.empty': false, 'ship.powered': true, 'world.desert.done': true, 'box.desert.backpack': true, 'box.desert.lift': true, 'box.desert.gun': true }, keepsakes: [] };
 // (v1.45: the Givers' Hearth's gun chest in a room of its own, issue #83; the views in the Hearth, built far over the desert)
 const C45_GUN = 'b79e4ae9';
@@ -565,6 +565,9 @@ const HP = { eye: [1606.5, 61.3, -420.5], target: [1620.4, 61.7, -432.3], player
 const C45_BIKE = '387743a2';
 const SAVE45_BIKE = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'item.fire': true, 'items.v': 2, 'save.migrated': 14, 'tool.empty': false, 'desert.bike.found': true, 'world.desert.done': true, 'ship.level': 'glassdunes' }, keepsakes: [] };
 const SAVE45_VAEL = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'items.v': 2, 'save.migrated': 14, 'tool.empty': false, 'desert.pool.tinted': true, 'desert.channel.open': true }, keepsakes: [] };
+// (v1.45: a quieter screen, issues #78–#87; pictures made by hand with a scratch shooter against this branch's own Vite,
+// before and after the change, the same scripted moment for both)
+const FROM45 = 'headless Chrome (Low, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
 export const CHANGELOG_MEDIA = {
   '1.45': [
     { match: 'The lift valve’s chest in the cave now stands on its own round dais', shots: [
@@ -650,6 +653,13 @@ export const CHANGELOG_MEDIA = {
     { match: 'Once you have found the hoverbike in the desert', shots: [
       { name: 'bike-glassdunes', caption: 'Landed in the Glass Dunes with the hoverbike found in the desert: before, only the ship; after, the hoverbike waiting by the ship, a few steps from where you come down', commit: C45_BIKE,
         view: { level: 'glassdunes', save: SAVE45_BIKE, hour: 16.5, fov: 60, wait: 4000, eye: [-7, 4.5, 207], target: [3, 1.5, 226] } },
+    ] },
+    { match: 'The screen says one thing at a time', shots: [
+      { name: 'one-at-a-time', caption: 'Four seconds after stepping out of the crashed ship (a new game, the prologue skipped): before, the objective card and Marrow’s call together, the camera’s lesson a moment later; after, only the name of the place', from: FROM45_NT },
+    ] },
+    { match: 'What you find in a makers’ chest comes first', shots: [
+      { name: 'item-first', title: 'The lift valve', caption: 'The lift valve’s card in the cave of the giant’s heart, at 800 × 450 (a handheld’s screen): before, the card over the valve; after, the valve held up clear above a low strip', from: FROM45_NT },
+      { name: 'item-first-guard', only: 'after', title: 'The Givers’ guard', caption: 'The Givers’ guard’s card (v1.44’s shield chest), at 800 × 450: the fan above, its longer words beside each other under it', from: FROM45_NT },
     ] },
   ],
   '1.44': [

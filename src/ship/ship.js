@@ -24,6 +24,8 @@ import { padIndex } from '../native-pad.js';
 import { shakeScale } from '../feel.js';
 import { Prologue } from './prologue.js';
 import { ReboardGate } from './landing.js';
+/** Walking into the ramp takes you aboard (issue #87): this near its foot (m), this fast up it (m/s). */
+export const RAMP_IN = { near: 2.4, speed: 1.2 };
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
 // The traveller's ship: the angular family ship, home between worlds (src/ship/hull.js, docs/systems/ship.md).
@@ -482,29 +484,44 @@ export class Ship {
       this._eHeld = !!ctl.KeyE;
       return { ...ctl, KeyE: false };
     }
-    // E belongs to the ship inside it and at the hatch
-    // (not while riding up to it: then E gets you off, as the HUD says)
-    const inShip = this.inside || (this.atRampFoot() && !this.player.ride && this.reboard.open);
-    if (inShip && ctl.KeyE) {
+    // E belongs to the ship inside it; at the ramp you walk in (its "go aboard" button was one press for what your
+    // feet already meant, issue #87: E at the ramp's foot is yours, to talk or pick up)
+    if (this.inside && ctl.KeyE) {
       if (!this._eHeld) this.use();
       this._eHeld = true;
       return { ...ctl, KeyE: false };
     }
     this._eHeld = !!ctl.KeyE;
+    if (!this.inside && this.walksIntoRamp()) { this.walkAboard(); return { ...ctl, KeyW: false, stick: null }; }
     return ctl;
   }
 
-  /** E: the voicemail button, the holo table (the map), the hatch. */
+  /**
+   * Walking into the ramp (issue #87): on foot at its foot (RAMP_IN.near m), heading up it at a walk or more (RAMP_IN.speed
+   * m/s along the way in), and not just stepped out (the reboard gate: walked RAMP_IN's 7 m away once since).
+   */
+  walksIntoRamp() {
+    const P = this.player;
+    if (!P || P.ride || !this.reboard.open || this.auto || (this.cinematic && !this.cinematic.done)) return false;
+    const dx = P.pos.x - this.rampFoot.x, dz = P.pos.z - this.rampFoot.z;
+    if (Math.hypot(dx, dz) > RAMP_IN.near || Math.abs(P.pos.y - this.rampFoot.y) > 3) return false;
+    const ix = this.hinge.x - this.rampFoot.x, iz = this.hinge.z - this.rampFoot.z, il = Math.hypot(ix, iz) || 1;
+    return ((P.vel?.x ?? 0) * ix + (P.vel?.z ?? 0) * iz) / il > RAMP_IN.speed;
+  }
+
+  /** Up the ramp and in, the ship walking you (the ramp has no floor of its own to climb: its collider is the stowed one). */
+  walkAboard() {
+    sfx.hatch(this.sound);
+    this.autopilot([this.rampFoot.clone().lerp(this.hinge, 0.3), this.hinge.clone(), this.world(this.parked, this.parked.interior.points.hatchIn), this.world(this.parked, this.parked.interior.points.aboard)]);
+  }
+
+  /** E aboard: the voicemail button, the holo table (the map), the hatch. */
   use() {
     if (this.atConsole()) return this.useConsole();
     if (this.atTable()) return this.useTable();
     if (this.atHatchInside()) {
       sfx.hatch(this.sound);
       return this.autopilot([this.world(this.parked, this.parked.interior.points.hatchIn), this.hinge.clone(), this.rampFoot.clone()]);
-    }
-    if (this.atRampFoot()) {
-      sfx.hatch(this.sound);
-      return this.autopilot([this.rampFoot.clone().lerp(this.hinge, 0.3), this.hinge.clone(), this.world(this.parked, this.parked.interior.points.hatchIn), this.world(this.parked, this.parked.interior.points.aboard)]);
     }
   }
 
@@ -576,8 +593,7 @@ export class Ship {
       if (this.atHatchInside()) return 'E step outside';
       return 'aboard the ship';
     }
-    if (this.atRampFoot() && !this.player.ride && this.reboard.open) return 'E go aboard';
-    return null;
+    return null;   // (the ramp: walk up it, no "go aboard": issue #87)
   }
 
   /** The ship whose voicemail button blinks: the prologue's, until its message plays; else the parked one while a message waits. */

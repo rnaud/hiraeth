@@ -83,7 +83,7 @@ test('walking straight from the corridor at the console gets you to it (the pilo
   assert.ok(Math.hypot(l.x - c.x, l.z - c.z) < CONSOLE_R - 0.3, `stopped ${Math.hypot(l.x - c.x, l.z - c.z).toFixed(2)} m from the cockpit point`);
 });
 
-test('at the foot of the ramp E goes aboard on foot, but gets you off a vehicle first', () => {
+test('at the foot of the ramp E is yours, riding or on foot: no "go aboard" (issue #87: you walk up the ramp)', () => {
   const { physics, ship } = flatWorld();
   ship.player = new Player(physics);
   ship.player.pos.copy(ship.rampFoot);
@@ -93,9 +93,9 @@ test('at the foot of the ramp E goes aboard on foot, but gets you off a vehicle 
   assert.ok(out.KeyE && !ship.auto, 'E passes through to the player (dismount)');
   ship.input({});
   ship.player.ride = null;
-  assert.equal(ship.hud(), 'E go aboard');
+  assert.equal(ship.hud(), null, 'nor on foot');
   const out2 = ship.input({ KeyE: true });
-  assert.ok(!out2.KeyE && ship.auto, 'on foot, E walks you aboard');
+  assert.ok(out2.KeyE && !ship.auto, 'E passes through: no walk aboard');
 });
 
 test('the holo table in the middle of the deck opens the galactic map; the dash is the voicemail', () => {

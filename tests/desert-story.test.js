@@ -308,10 +308,11 @@ test('a new game: the quest doesn’t just appear; Marrow, at your ship, calls y
   assert.ok(flat(m.pos, level.spawn) < 18, 'Marrow is at your ship');
   // (but well clear of where it came down: the hull is 13 m round, he stands 22 m from its centre: src/ship/landing.js)
   assert.ok(flat(m.pos, level.spawn) > 6, 'not under the ramp');
-  // he calls you over (a word, every few seconds), and turns to you; he never starts talking himself
+  // he calls you over (a word and a wave, once: issue #79), and turns to you; he never starts talking himself
   at(m.pos.clone().add(V(9, 0, 0)));
   for (let i = 0; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
-  assert.ok(W.calls.marrow.calls >= 1 && /Sky-person|Over here/.test(m.shout?.text ?? ''), 'he calls');
+  assert.ok(W.calls.marrow.calls === 1 && /Sky-person|Over here/.test(m.shout?.text ?? ''), `he calls, once in twelve seconds (${W.calls.marrow.calls})`);
+  assert.equal(m._wavedFor, 'desert.called.marrow.opening', 'and waves, once');
   assert.ok(!rt.dialogue.open, 'no talk on its own');
   // talk to him (the usual prompt): the quest starts in that talk, in his words
   at(m.pos.clone().add(V(1.5, 0, 0)));
@@ -408,7 +409,7 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   const homeOf = new Map(W.villagers.map((n) => [n, n.pos.clone()]));
   // nobody else comes (the author's call, October 2026): Nour alone gets up, calls out and waits at the tree's foot
   // while you're still up on the ledge, calling you down; once you're down, she comes to you and calls you
-  // over (a "psst", every few seconds), but never starts talking herself: that is yours, on the prompt
+  // over (a "psst" and a wave, once: issue #79), but never starts talking herself: that is yours, on the prompt
   assert.equal(nour.seat, null, 'Nour stands');
   step(60, 1 / 30, { people: true });
   assert.match(nour.shout?.text ?? '', /^(~shout~ )?Hey you!$/, 'Nour calls out, just “Hey you!”');
@@ -419,10 +420,11 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.match(nour.shout?.text ?? '', /Hey you/, 'and calls you down');
   at(L.foot.clone().addScaledVector(V(Math.sin(L.yaw), 0, Math.cos(L.yaw)), 1.5));
   const p0 = sound.pssts;
-  for (let i = 0; i < 30 * 30 && sound.pssts - p0 < 2; i += 10) step(10, 1 / 30, { people: true });
+  for (let i = 0; i < 30 * 30; i += 10) step(10, 1 / 30, { people: true });
   assert.ok(!rt.dialogue.open, 'Nour doesn’t start talking by herself');
   assert.ok(flat(nour.pos, player.pos) < 3, 'she has come to you');
-  assert.ok(sound.pssts - p0 >= 2, `she calls you, again and again (${sound.pssts - p0})`);
+  assert.equal(sound.pssts - p0, 1, 'she calls you once in thirty seconds, not again and again (issue #79)');
+  assert.equal(game.flag('desert.called.nour.chest'), true, 'kept in the save: not again after a reload');
   assert.match(nour.shout?.text ?? '', /Psst|child/, 'a psst');
   const turned = Math.atan2(player.pos.x - nour.pos.x, player.pos.z - nour.pos.z) - nour.heading;
   assert.ok(Math.abs(Math.atan2(Math.sin(turned), Math.cos(turned))) < 0.6, 'turned to you');

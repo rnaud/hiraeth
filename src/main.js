@@ -55,7 +55,7 @@ import { JumpShadow } from './jump-shadow.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
-import { spawnNPCsSteps, pooledNPC, registerNPCTargets } from './npc.js';
+import { spawnNPCsSteps, pooledNPC, registerNPCTargets, setCalmZones, shipCalmZones } from './npc.js';
 import { spawnAliens, alienSpots } from './aliens/index.js';
 import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
@@ -634,7 +634,10 @@ await slice();
 const crowdSpots = level.crowdSpots ? { lines: level.crowdLines, ...level.crowdSpots() } : null;
 const crowdClear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId)];   // (and the aliens' places: src/aliens/)
 const crowdT0 = performance.now();
-const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear }), slice) : null;
+// (no strollers round the ship's hull and ramp, and whoever stands there idles slower: issue #84, src/npc.js SHIP_CALM)
+const shipCalm = shipCalmZones(ship.restPos, ship.rampFoot);
+setCalmZones(shipCalm);
+const crowdBuilt = crowdSpots ? await runStepsAsync(buildPeopleSteps(physics, crowdSpots, { seed: 11, clear: crowdClear, calm: shipCalm }), slice) : null;
 // (the near tier's bodies one at a time: each is a person built and dressed)
 const crowdPool = [];
 if (crowdSpots) for (let i = 0; i < CROWD_BUDGET.pool; i++) { crowdPool.push(pooledNPC(scene, physics, { kind: i % 2 ? 'f' : 'm', lib, humans: peopleT })); await slice(); }
@@ -675,7 +678,7 @@ await slice();
 const showToast = (text, o) => { if (!text || (typeof text === 'string' && !keyText(text).trim())) return; ship.cinema.toast(text, o); };   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 // the hum, when words on the screen speak of it: a toast, a subtitle, a line of a conversation, a balloon (src/story/hum.js)
 const humCue = new HumCue();
-let lastBalloon = null;
+let lastBalloon = null, balloonAt = -1e9;   // (when a balloon last showed: a lesson on the cue waits for it, issue #79)
 const hearWords = (text) => { if (humCue.hear(text, performance.now() / 1000)) sound.makersHum?.({ vol: 0.7 }); };
 ship.cinema.onWords = hearWords;
 game.on('words', ({ text }) => hearWords(text));
@@ -745,7 +748,7 @@ const scout = new Scout({ scene, player, physics, sound,
 });
 const struggle = new Struggle();   // (the seconds in the guardian's phase: ticked in the loop)
 // a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling): a nudge, hints full only
-game.on('scout:ping', (e) => { if (e?.why && !hintsFor('nudge')) return; if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });
+game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });   // (a nudge is the last of the notices: not over another, issue #78)
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),
@@ -1385,20 +1388,27 @@ function updateHud() {
     prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
   const indoors = interiorAt(player.pos);
   // (inside a shop: its name as you step in; back out, the street's name is not news)
-  const place = quiet || ship.playing || ship.inside ? '' : placeName.update(indoors?.label ?? atmo?.name, now, { quiet: !indoors && placeName.wasIndoors });
+  // The region's name is the first of the notices (src/ship/cinema.js NOTICE_ORDER, issue #78): settled while a scene
+  // plays or something else is up, it waits (and the others wait for it), then shows for its full time.
+  const notices = ship.cinema.notices(), othersUp = notices.up.some((k) => k !== 'caption');
+  if (notices.up.includes('title')) placeName.defer(now);   // (the father's charge goes before it)
+  const named = ship.inside ? '' : placeName.update(indoors?.label ?? atmo?.name, now, { quiet: !indoors && placeName.wasIndoors, hold: quiet || ship.playing || othersUp });
+  const place = quiet || ship.playing ? '' : named;
   placeName.wasIndoors = !!indoors;
+  ship.cinema.setCaption(!!place, placeName.waiting);
   const found = !quiet && now < scoutSaid.until ? (typeof scoutSaid.text === 'function' ? scoutSaid.text() : scoutSaid.text) : '';   // (what the scout found, a moment)
   let teach = '';
   if (firstSteps) {
     if (player._jumped) firstSteps.jumped();
     const moved = Number.isFinite(firstStepsAt.x) ? Math.hypot(player.pos.x - firstStepsAt.x, player.pos.z - firstStepsAt.z) : 0;
     firstStepsAt.copy(player.pos);
-    const open = !quiet && !ship.playing && !ship.inside && !player.ride && !tool.aiming && !found && !text && game.flag('prologue.done') && !game.flag('item.backpack');
+    // (a lesson is the last of the notices: it waits for the region's name, a line, the objective card and every notice)
+    const open = !quiet && !ship.playing && !ship.inside && !player.ride && !tool.aiming && !found && !text && !place && !ship.cinema.noticeBusy() && now - balloonAt > 600 && game.flag('prologue.done') && !game.flag('item.backpack');
     const fdt = firstStepsT ? Math.min(0.1, (now - firstStepsT) / 1000) : 0; firstStepsT = now;
     teach = firstSteps.update(fdt, { active: open, moved: moved < 5 ? moved : 0 });   // (a teleport is no walk)
     if (quiet || ship.playing) teach = '';
   }
-  cue.set(found || text || teach || place, found ? scoutSaid.kind : text || teach ? '' : 'place');
+  cue.set(found || text || place || teach, found ? scoutSaid.kind : text || !place ? '' : 'place');
   // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
   placeToolGauge();
   audioCfg.mute = sound.muted;
@@ -1971,9 +1981,12 @@ function frame(ts) {
     // (nor over the shop panel: the keeper speaks in it; nor over a chest's opening and its card: the square's murmurs
     //  and shouts came up over the backpack's card, the author's playthrough, issue #58)
     const talk = talkAllowed({ shipPlaying: ship.playing }) && !shopPanel.isOpen && !boxes?.busy?.();
-    if (talk) for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
+    // (and a greeting waits while a notice is up or waiting: one thing on the screen at a time, issue #78; a shout a scene asked for still comes)
+    const greet = !ship.cinema.noticeBusy();
+    if (talk) for (const n of npcs) if (n.talking && ((!filming && greet) || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
+    if (best) balloonAt = performance.now();
     // a balloon that speaks of humming: the hum, softly (src/story/hum.js)
     if (best?._balloonLine && best._balloonLine !== lastBalloon) { lastBalloon = best._balloonLine; hearWords(best._balloonLine); }
     // the one who talks near you says it with their face too (src/talk-face.js; a conversation drives its own)
@@ -2293,7 +2306,7 @@ requestAnimationFrame((t) => {
   const ld = document.getElementById('loading');
   ld?.classList.add('done');
   setTimeout(() => ld?.remove(), 900);
-  ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (minigame) return; if (playHomecoming) journal.markSeen(levelId); else story.start(); } });   // the homecoming is its own page
+  ship.start({ via: viaShip ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming, onReady: () => { if (minigame) return; if (playHomecoming) journal.markSeen(levelId); else story.start({ quiet: !!playPrologue }); } });   // the homecoming is its own page
   if (changelog.fresh && !minigameDef) { changelog.markSeen(); setTimeout(() => showToast(`Updated to v${VERSION} · what's new is in the settings`), 4000); }   // after an update: point at what changed, once (not again on the next world; no key: a handheld has none)
 });
 

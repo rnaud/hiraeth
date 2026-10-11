@@ -389,9 +389,12 @@ export function walkablePath(physics, pts, { avoid = null, clear = 1.3, lateral 
 /** Turn a level's crowd spots into people: validated against the collision world. */
 export function buildPeople(physics, spots, o = {}) { return runSteps(buildPeopleSteps(physics, spots, o)); }
 /** buildPeople a spot at a time (each is rays through the collision): for a world's load (src/load-steps.js). */
-export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [] } = {}) {
+export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm = [] } = {}) {
   const rng = mulberry32(seed);
   const avoid = new ClearMap([...(spots.avoid ?? []), ...(spots.clear ?? []), ...clear]);
+  // (calm: round the ship's landing and its ramp no strollers' route runs, issue #84: people walking to and fro by
+  // the hull as you came to leave; those who stand or sit there stay, a procession keeps its loop)
+  const calmMap = new ClearMap(calm), walkAvoid = calm.length ? { blocked: (x, y, z, pad) => avoid.blocked(x, y, z, pad) || calmMap.blocked(x, y, z, pad) } : avoid;
   const people = [], groups = [], routes = [];
   // looks come from their own random stream (the placement draws stay what they were)
   const world = spots.costume ?? costumeWorld(), lookRng = mulberry32(seed * 7919 + 13);
@@ -418,7 +421,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [] } = {})
   // strollers, alone or in pairs, both ways along each route (keeping right)
   for (const sp of spots.walks ?? []) {
     yield;
-    const runs = walkablePath(physics, sp.path, { avoid, loop: sp.loop, lateral: sp.lateral ?? 1.1 });
+    const runs = walkablePath(physics, sp.path, { avoid: sp.column ? avoid : walkAvoid, loop: sp.loop, lateral: sp.lateral ?? 1.1 });
     const runLen = runs.reduce((s, r) => s + r.pts.length, 0);
     for (const path of runs) {
     const pts = path.pts, cum = [0];

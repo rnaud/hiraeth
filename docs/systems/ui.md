@@ -299,7 +299,7 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
     here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
     backpack slotting in), nothing while riding (a ride's controls are in the settings), what the scout
     just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
-    the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
+    the name where you arrive shows first, issue #78: "The notices' order" below). Prompts with a place still float over it (`#prompt`).
   - **hearts, magic, potion** (`#health`, v1.5): while a heart is missing, the magic bar is spending or
     refilling, a fight is on (`body.combat`) or you are down (`Fader(3)`), then fades; **stamina** as
     before. See "Hearts, the magic bar and the potion" below.
@@ -514,6 +514,26 @@ Tests: `tests/resources.test.js` (the SVG's quarters and lines, the bar, the mar
   (the author's playthrough, October 2026, issue #72: "too much visual noise"). Every step of every quest is a
   few words since then (at most 9: `tests/quest-steps.test.js`; the quest QC skill). Later steps, endings and
   every other notice stay plain.
+
+## The notices' order (issue #78)
+
+Stepping out of the ship for the first time, the ship's line, the objective card, Marrow's call, the camera's lesson
+and the desert's opening words all came up within a few seconds. Now everything that writes on the screen by itself
+takes its turn, one at a time (`NOTICE_ORDER`, `noticeMay` in `src/ship/cinema.js`; `tests/notices.test.js`):
+
+0. **the father's charge** (`#charge-card`, lettered over the crash site), the scene's own title;
+1. **the region's name** (`PlaceName`, on the cue), first on arriving and on every load: it settles while the scene
+   plays (`hold`) and the others wait for it (`waiting`);
+2. **a line** outside a scene (the ship's word and his answer as you step out: `Cinema.say` holds it);
+3. **the objective card** (`Cinema.objective` holds it in `_objPending`);
+4. **the notices** (`#toast`), each for its full time before the next (they used to overlap at 58 %);
+5. **a lesson** on the cue (`src/first-steps.js`), a nudge (the scout's auto-ping), a caller's balloon or an idle
+   greeting balloon (`Cinema.noticeBusy()`).
+
+Each waits while another is up and while one ahead of it waits. Not notices: a prompt, the scout's find (asked
+for), a conversation, anything inside a letterboxed scene. The crash's objective card is the desert's opening words,
+so they are not said again as a notice (`Story.start({ quiet })`), and a makers' box offered on arrival
+(`background`) starts without a quest card (the Quests page lists it).
 
 ## Screen sizes (resolution audit, 9 October 2026)
 

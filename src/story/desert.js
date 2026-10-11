@@ -803,12 +803,14 @@ export function setupDesert(ctx) {
   };
 
   // ---------------------------------------------------------------- calling you over
-  // whoever has something for you doesn't start talking by themselves: every few seconds while you're
-  // near and haven't come over, a word (a balloon, said in their own voice), Nour a little "psst"
-  // (sound.psst), and they turn to you. The talk is yours to start, on the usual prompt.
+  // whoever has something you need to hear doesn't start talking by themselves: once you're near, a word (a
+  // balloon, said in their own voice) and a wave, Nour a little "psst" (sound.psst), and they turn to you. The
+  // talk is yours to start, on the usual prompt. Once for each moment (`moment`: the flag desert.called.<who>.<moment>,
+  // kept in the save), never on a loop (issue #79: "Psst. Child." every seven seconds until you came over).
   // (`max`: calls at most that many times, then leaves it to you: Ama and her jar)
   const calls = [];
-  const live = (c) => c.when() && !(c.max && (c.calls ?? 0) >= c.max);
+  const calledFlag = (c) => (c.moment ? `desert.called.${c.n.def?.id ?? 'someone'}.${c.moment()}` : null);
+  const live = (c) => c.when() && !(c.max && (c.calls ?? 0) >= c.max) && !(c.moment && game.flag(calledFlag(c)));
   const caller = (n, o) => {
     const c = { n, range: 16, every: 8, wait: 4, t: 4, k: 0, turn: null, ...o };
     calls.push(c);
@@ -817,9 +819,9 @@ export function setupDesert(ctx) {
     if (e) Object.defineProperty(e, 'priority', { get: () => PRIORITY.talk + (live(c) ? 1 : 0), configurable: true });
     return c;
   };
-  const called = (c) => { c.calls = (c.calls ?? 0) + 1; if (c.flag) game.set(c.flag, true); };
+  const called = (c) => { c.calls = (c.calls ?? 0) + 1; if (c.flag) game.set(c.flag, true); if (c.moment) { game.set(calledFlag(c), true); c.n.waveOnce?.(calledFlag(c), c.n.beckon); } };
   const updateCalls = (dt, pp) => {
-    const busy = dialogue.open || !!moments?.playing || !!ctx.ship?.playing || !!ctx.ship?.busy?.();
+    const busy = dialogue.open || !!moments?.playing || !!ctx.ship?.playing || !!ctx.ship?.busy?.() || !!ctx.ship?.cinema?.noticeBusy?.();   // (a call waits for the notices: issue #78)
     for (const c of calls) {
       const on = live(c), d = flat(c.n.pos, pp), near = on && d < c.range && Math.abs(c.n.pos.y - pp.y) < 6;
       c.turn?.(near);
@@ -833,12 +835,12 @@ export function setupDesert(ctx) {
     }
   };
   // Marrow at your ship, a new game: "Sky-person! Over here!" (he turns from the hull to you)
-  const marrowCall = caller(people.marrow, { lines: CALLS.marrow, range: 30, every: 9, wait: 2.5, when: () => opening() && people.marrow.route !== marrowHome,
+  const marrowCall = caller(people.marrow, { lines: CALLS.marrow, range: 30, every: 9, wait: 2.5, moment: () => 'opening', when: () => opening() && people.marrow.route !== marrowHome,
     turn: (near) => { const m = people.marrow; if (m.route === marrowHome) return; m.facing = near ? Math.atan2(player.pos.x - m.pos.x, player.pos.z - m.pos.z) : Math.atan2(hull.x - m.pos.x, hull.z - m.pos.z); } });
   // Nour, when she has a word for you: the chest opened (she has come over), or the tree drank and stays cold
   const nourHasWord = () => (sh.nour && !sh.nour.talked) || quests.stage('desert.power') === 'spark';
   // (not while you're up on the ledge: she has called you down from there already)
-  const nourCall = caller(nour, { lines: CALLS.nour, range: 15, every: 7, wait: 5, psst: true, when: () => nourHasWord() && !sh.up });
+  const nourCall = caller(nour, { lines: CALLS.nour, range: 15, every: 7, wait: 5, psst: true, moment: () => (sh.nour && !sh.nour.talked ? 'chest' : 'spark'), when: () => nourHasWord() && !sh.up });
   // Ama, while her jar is still yours to take: she calls you to her fire (twice at most, the shout as you come
   // up to the camps counts), so the jar on the way in isn't only for whoever happens to stop (October 2026)
   const amaCall = caller(people.ama, { lines: CALLS.ama, range: 14, every: 12, wait: 3, max: 2, flag: 'desert.ama.called', when: () => amaCallsYou(game) });

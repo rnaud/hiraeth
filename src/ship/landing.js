@@ -3,8 +3,8 @@
 //     controls back (the crash, the landing, the take-off, a recording: main.js);
 //   - whoever waits at the wreck in a new game (Marrow, src/story/desert.js) stands well clear of
 //     where the ship comes down and ploughs in, in front of the hatch and away from its furrow;
-//   - stepping out of the ship doesn't offer to go straight back in: the ramp's "go aboard" waits
-//     until you have walked away from it once (ReboardGate, src/ship/ship.js).
+//   - stepping out of the ship doesn't take you straight back in: walking into the ramp takes you aboard
+//     (no button since issue #87) only once you have walked away from it once (ReboardGate, src/ship/ship.js).
 
 /** Balloons and talk prompts may show: not while a ship's scene plays (the player isn't in control). */
 export const talkAllowed = ({ shipPlaying = false } = {}) => !shipPlaying;
@@ -38,12 +38,12 @@ export function bystanderSpot({ out, hull, travel = null }, B = BYSTANDER) {
   return best ?? { x: hull.x + out.x * B.dist, z: hull.z + out.z * B.dist };
 }
 
-/** How far from the ramp's foot (m) you must have walked before it offers to take you aboard again. */
+/** How far from the ramp's foot (m) you must have walked before walking into it takes you aboard again. */
 export const REBOARD_AWAY = 7;
 
 /**
- * The ramp's "go aboard" after stepping out: armed while you are in the ship or it walks you, it
- * stays quiet at the ramp's foot until you have been REBOARD_AWAY from it once.
+ * The ramp after stepping out: armed while you are in the ship or it walks you, walking into it does
+ * nothing until you have been REBOARD_AWAY from its foot once.
  */
 export class ReboardGate {
   constructor(away = REBOARD_AWAY) { this.away = away; this.armed = false; }

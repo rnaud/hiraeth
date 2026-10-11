@@ -654,8 +654,9 @@ export class PrologueDirector {
       s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
       s.rig.target.copy(a.pos);
       s.cam = null; s.blend = null;
-      if (wait > 0) setTimeout(() => C.objective(stepOutObjective()), wait - 500); else C.objective(stepOutObjective());
-      setTimeout(() => this.landingLines(), Math.max(0, wait) + 1200);
+      // the ship's word and his answer, then the objective card: one after the other, after the region's name (the
+      // notices' order, src/ship/cinema.js NOTICE_ORDER; issue #78: they used to come up together)
+      setTimeout(() => { this.landingLines(); C.objective(stepOutObjective()); }, Math.max(0, wait - 500));
     } else {
       if (!this.landingSaid) C.say(null);   // (the ship's word and his answer play on as he walks out)
       C.hint(null); C.hud(true); C.bars(false);

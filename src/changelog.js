@@ -76,6 +76,19 @@ export const CHANGELOG = [
     // fire (issue #77)
     { text: 'Every fire burns you now, as Qanat’s burning tree does: the camp fires, the braziers, the temples’ flames and lit bowls, a burning tar ball, the Wick, hearths, candles and the pilgrims’ lamps. Step out of the flames and it stops.',
       see: 'In the desert, walk into the big camp fire by the pilgrims’ camp: “It burns!”, and a quarter heart goes at a time while you stand in it. Step back out and it stops. A brazier not yet lit doesn’t burn.' },
+    // a quieter screen (issues #78, #79, #82, #84, #87)
+    { text: 'The screen says one thing at a time: first the name of where you are, then what is said, then the objective, then each notice in turn, and a lesson or a greeting only once the screen is clear. Stepping out of the crashed ship no longer brings up the ship’s words, the objective, a call and a lesson all at once, the desert’s opening words are not said twice, and a makers’ box offered on arrival no longer has a card of its own.',
+      see: 'Start a new game and skip the prologue: the region’s name, then the ship’s words and your answer, then the objective, then the camera’s lesson, one after the other.' },
+    { text: 'People no longer wave at you whenever you pass: only someone with something you need to hear waves you over, once. Marrow at the wreck calls you once, and Nour says “Psst. Child.” once after the chest opens, not every few seconds until you come over.',
+      see: 'Start a new game and stand by the ship: Marrow calls and waves once, then waits. In Qanat, walk past the villagers: they turn to look, nobody waves. Open the chest on the tree and come down: Nour comes to you and calls once.' },
+    { text: 'The ship’s ramp has no button any more: walk up into it and you go aboard. The prompt to board at its foot is gone, and the use button there is yours, to talk or pick something up.',
+      see: 'Walk away from the ship, come back and walk up into the ramp: the hatch sounds and you are walked aboard. Standing at its foot, nothing is shown.' },
+    { text: 'The people round your ship are calmer: nobody strolls past the hull or the ramp any more, and those who stand there (Qanat’s gift-bearers, Marrow at the wreck) shift and breathe more slowly, so the ship’s side is a quiet place to leave from.',
+      numbers: [{ title: 'Crowd strollers whose route runs by the ship (within 16 m of the ramp or 18 m of the hull), at load', unit: '', better: 'lower', device: 'headless Chrome against this branch’s own dev server, the route built with and without the calm zones', rows: [
+        { where: 'the Underside', before: 3, after: 0 }, { where: 'the City During the Eclipse', before: 1, after: 0 }, { where: 'the Signal Market, the City-Shaft, Qanat', before: 0, after: 0 },
+      ], source: 'window.crowd.people: strollers whose route has a point in the zones' }],
+      see: 'Finish the desert’s quest and walk back to the ship: the gift-bearers in their half ring stand nearly still while you go aboard.' },
+    'What you find in a makers’ chest comes first: its card is a low strip along the bottom of the screen, the name large and what it is and does small beside each other, so the thing held up in the light is never behind the words, on a handheld’s screen too.',
   ] },
   { v: '1.44', date: '2026-10-11', items: [
     // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)

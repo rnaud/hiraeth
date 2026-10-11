@@ -6,7 +6,7 @@ help goes through one setting, **Settings → Game → Hints** (`src/ui.js` `hin
 | kind (`hintsFor(kind)`) | what it is | off | subtle (default) | full |
 |---|---|---|---|---|
 | `teach` | the first prompt for a genuinely new verb, once: the camera, the potion, the fight's three verbs, the hoverbike's call, a gadget's own verb | no | yes | yes |
-| `words` | the use prompt's sentence ("talk to Ilen", "go aboard"); its button glyph shows at every level | no | no | yes |
+| `words` | the use prompt's sentence ("talk to Ilen", "galactic map"); its button glyph shows at every level | no | no | yes |
 | `keys` | a control named in a line ({key:verb} in a toast, a quest step, a conversation, the drone's hints) | no | no | yes |
 | `tip` | explanations after the fact, how to beat each foe, the world's edge, "it burns", a gadget's status said again, the ink count, where to look in the menu | no | no | yes |
 | `objective` | the quest's next step pushed onto the screen, a quest card's first step, the gold column over a world's goal | no | no | yes |

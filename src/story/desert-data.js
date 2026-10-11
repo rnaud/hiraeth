@@ -956,12 +956,12 @@ export const MURMURS = {
   lit: ['~shout~ It burns! It burns!', '~surprised~ Look at the colours!', '~happy~ It’s cool! The fire’s cool, feel it!', '~shout~ Ring the bells! Somebody ring the bells!', '~solemn~ It came back. It came back.', '~playful~ I said it would. I said so.'],
 };
 /**
- * Calling you over (src/story/desert.js, "calling you over"): someone with a word for you doesn't start
- * talking by themselves; every few seconds while you're near, one of these, until you come and talk.
+ * Calling you over (src/story/desert.js, "calling you over"): someone with a word you need doesn't start
+ * talking by themselves; once you're near, this, once for each moment (issue #79: no more calling on a loop).
  */
 export const CALLS = {
-  marrow: ['~shout~ Sky-person! Over here!', '~playful~ Over here, by your hull! I don’t bite. I barely even haggle.', '~whisper~ Psst. Sky-person. A word?'],
-  nour: ['~whisper~ Psst. Child.', '~whisper~ Psst! Over here, child.', '~solemn~ Come here, child. A word with an old woman.'],
+  marrow: ['~shout~ Sky-person! Over here!'],
+  nour: ['~whisper~ Psst. Child.'],
   // Ama, while her jar is still to give (src/story/desert.js amaCallsYou): the first is her shout as you come up
   // to the camps, then one more word at most when you pass near her fire
   ama: ['~shout~ Sky-stranger! Come by my fire before you go up. I’ve a jar that wants carrying.', '~playful~ You, from the long ship! One empty jar, and you look like someone who finds water. Come and take it.'],

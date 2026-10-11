@@ -23,7 +23,7 @@ export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('S
  * @param s.quiet      a menu, a conversation, photo mode: nothing
  * @param s.ride       the vehicle's kind while riding (null on foot): nothing (no button hints as you get on)
  * @param s.aiming     the fluid tool's own crosshair speaks
- * @param s.shipHint   ship.hud(): 'E go aboard', 'E galactic map', … (or another line: not a prompt)
+ * @param s.shipHint   ship.hud(): 'E galactic map', 'E step outside', … (or another line: not a prompt)
  * @param s.shipPlaying one of the ship's scenes has the screen
  * @param s.prompt     what the use button does, s.promptAt: where it floats (then the floating prompt says it)
  * @param s.lens       the observatory's lens line, when one is in reach
@@ -36,7 +36,7 @@ export function cueText(s = {}) {
   if (s.quiet) return '';
   let t = '';
   if (s.ride || s.aiming) t = '';
-  else if (s.shipHint || s.shipPlaying) t = /^E /.test(s.shipHint ?? '') ? s.shipHint : '';   // (inside and at its ramp, E is the ship's; in its scenes, nothing)
+  else if (s.shipHint || s.shipPlaying) t = /^E /.test(s.shipHint ?? '') ? s.shipHint : '';   // (inside, E is the ship's; in its scenes, nothing)
   else if (s.lens) t = s.lens;
   else if (s.prompt && !s.promptAt) t = `E ${s.prompt}`;
   else if (s.boarding) t = tr('hud.boarding');
@@ -50,24 +50,27 @@ const PROMPT_ALONE = /^(E|SPACE|X \/ □|A \/ ×|B \/ ○|Y \/ △)$/;
 
 /**
  * A region's name as you cross into it: it has to hold for `settle` ms (no flicker along a
- * border), the first one (where you arrive: the world's own words say it) is not shown, and a
- * name shows for `show` ms.
+ * border), and a name shows for `show` ms. The first one, where you arrive, is the first thing
+ * said on arriving (issue #78: the notices' order, src/ship/cinema.js NOTICE_ORDER): it needs no
+ * settling. `hold`: something else is on the screen (a line, the objective card, a notice) or a
+ * scene plays; a name ready to show waits for it (`waiting`) and shows after, for its full time.
  */
 export class PlaceName {
-  constructor({ settle = 1500, show = 3500 } = {}) { Object.assign(this, { settle, show }); this.name = null; this.pending = null; this.at = 0; this.until = 0; }
+  constructor({ settle = 1500, show = 3500 } = {}) { Object.assign(this, { settle, show }); this.name = null; this.pending = null; this.at = 0; this.until = 0; this.ready = false; }
   /** The name to show now, or ''. `quiet`: take this name at once without showing it (back out of a building into the street you left). */
-  update(name, now, { quiet = false } = {}) {
-    if (quiet && name) { this.name = name; this.pending = null; this.until = 0; return ''; }
+  update(name, now, { quiet = false, hold = false } = {}) {
+    if (quiet && name) { this.name = name; this.pending = null; this.until = 0; this.ready = false; return ''; }
     if (name && name !== this.name) {
       if (name !== this.pending) { this.pending = name; this.at = now; }
-      else if (now - this.at >= this.settle) {
-        const first = this.name === null;
-        this.name = name; this.pending = null;
-        if (!first) this.until = now + this.show;
-      }
+      if (this.name === null || now - this.at >= this.settle) { this.name = name; this.pending = null; this.ready = true; this.until = 0; }
     } else if (name === this.name) this.pending = null;
+    if (this.ready && !hold) { this.ready = false; this.until = now + this.show; }
     return now < this.until ? this.name : '';
   }
+  /** A name settled and waiting for the screen to be free (the others wait for it: it goes first). */
+  get waiting() { return this.ready; }
+  /** Something ahead of it came up after all (the father's charge, lettered as the crash scene hands over): the name up waits again, and shows its full time after. */
+  defer(now) { if (now < this.until) { this.until = 0; this.ready = true; } }
 }
 
 /** Shown while active, and `linger` seconds after: the health bar, the stamina wheel. */

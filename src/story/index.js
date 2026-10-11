@@ -6,7 +6,7 @@ import { Quests, QuestMarker } from './quests.js';
 import { Dialogue, TRAVELLER_TAG } from './dialogue.js';
 import { sightOf } from './shot.js';
 import { flameVeils } from './flames.js';
-import { hasBalloon } from './balloons.js';
+import { balloonReason, beckonFor } from './balloons.js';
 import { talkSpace, stepBack, gapOf } from './spacing.js';
 import { CAPSULE } from '../player.js';
 import { MomentStage } from './moment.js';
@@ -309,7 +309,9 @@ export function createStory(o) {
     for (const n of npcs) {
       const e = crowdOf.get(n);
       const def = e ? (e.person && world?.crowdTalk?.(e.person)) || null : n.def ?? null;
-      n.quiet = !hasBalloon(def, { game, quests, objective, at: n.pos });
+      const why = balloonReason(def, { game, quests, objective, at: n.pos });
+      n.quiet = !why;
+      n.beckon = beckonFor(why, def, { quests, objective });   // (a wave only for what you need to hear, once: src/npc.js, issue #79)
     }
   }
   /** Bystanders the shot should not look through (asked again whenever the shot is). */

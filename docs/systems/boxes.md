@@ -66,7 +66,12 @@ from his chest), the box falls back to the first plan. (The cinematics QC pass: 
 **The card** (`card.js`): the item's name, what it is and what it does, or, for a placement with `found` (an i18n key:
 the desert's backpack, `box.found.backpack`), one short line said instead (it carries a tone, stripped when shown; FR in
 `src/i18n/fr.js`). Its buttons name what to press with the menus' glyphs (`src/pad-glyphs.js`): `A / ×` (Enter on the
-keyboard) on Continue, `B / ○` (Esc) on Skip, nothing on touch (v1.41).
+keyboard) on Continue, `B / ○` (Esc) on Skip, nothing on touch (v1.41). **The item comes first** (issue #82: on a
+handheld's screen, under 980 px wide, the card sat in the middle, its words over the lift valve the scene was holding
+up): the card is a low strip along the foot of the screen, in the letterbox's bottom band and just over it, at every
+size; the name first and largest, the kicker and Continue on its row, then what it is and what it does small and side
+by side (one column under 640 px). The longest card (the Givers' blade's) takes 35 % of an 800 × 450 screen
+(`CARD_MAX_SHARE`); the makers' "left for one who has come a long way" line is gone from it.
 
 **The closing beat** (`beats.js`, v1.3): after the card, a short beat that depends on what the box held
 (`beatFor(id, def)`: `ITEM_BEATS`, then `KIND_BEATS` by the item's kind), on a closing shot that keeps
