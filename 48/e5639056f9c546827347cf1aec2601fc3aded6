@@ -1,0 +1,23 @@
+unity/Memento/Assets/Memento/Runtime/MementoShadows.cs
+  s_6f8b851619b4e6::t_c482ac30b0e8f5 138,206-214,239,243
+unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs
+  s_6f8b851619b4e6::t_5f898804a59e21 123,135-136
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_6f8b851619b4e6::t_c7f507628fa9f7 163-174,178,281,325,503
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48e5639056f9c546827347cf1aec2601fc3aded6",
+  "prompts": {},
+  "sessions": {
+    "s_6f8b851619b4e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a00f740cb7eaf7828",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
