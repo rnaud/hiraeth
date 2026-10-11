@@ -180,7 +180,7 @@ namespace Memento
             // (the Unity bridge's camera, MainCamera, is a main one too: without it every cascade was drawn every frame there)
             bool main = ((game && cam == game.cam) || (MainCamera && cam == MainCamera)) && Application.isPlaying;
             if (!main) turned = true;
-            var center = main && game.player ? game.player.transform.position : cam.transform.position;
+            var center = main && game && game.player ? game.player.transform.position : cam.transform.position;   // (the bridge: no port Game, round its camera)
             float camToPlayer = Vector3.Distance(cam.transform.position, center);
             var want = new List<(Cascade c, float reach)>();
             if (fine.enabled) want.Add((fine, camToPlayer + fine.extent * 1.8f));
