@@ -1,11 +1,11 @@
-// Five save slots. Every store of progress (the game state, the sketchbook, the
+// Three save slots (SLOT_COUNT). Every store of progress (the game state, the sketchbook, the
 // saved position, the reactive world's memory) reads and writes through
 // `slotStorage`, a localStorage look-alike that files each key under the active
 // slot: 'moebius.game.v1' in slot 2 is 'moebius.s2.game.v1'. Settings, mute,
 // the pad layout, the changelog's "seen" mark and the update toast stay global.
 //
 //   import { slots, slotStorage } from './save-slots.js';
-//   slots.active              // 1..5, read once per page from 'moebius.slot' (each world is its own page)
+//   slots.active              // 1..SLOT_COUNT, read once per page from 'moebius.slot' (each world is its own page)
 //   slots.setActive(3)        // the title screen's choice, before the game's modules load
 //   slots.summary(2)          // { empty, level, world, worldsDone, relics, items, playtime, lastPlayed, … }
 //   slots.latest()            // the slot played last (Continue), or null

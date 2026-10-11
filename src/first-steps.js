@@ -17,14 +17,16 @@
 // (full only: a jump is found by pressing the big button, and the first gap asks for it); off, neither.
 
 import { verbKey } from './prompt-keys.js';
+import { t as tr } from './i18n.js';
 import { hintsFor, hintLevel } from './hint-level.js';
 
 export const LOOK = { after: 6, show: 5 };
 export const JUMP = { walk: 25, show: 5 };
 export const TAUGHT = { look: 'teach.look', jump: 'teach.jump' };
 
-export const lookLine = (kind) => `Look around with ${verbKey('look', kind)}`;
-export const jumpLine = (kind) => `Jump with ${verbKey('jump', kind)}`;
+// (in the player's language: src/i18n.js teach.*)
+export const lookLine = (kind) => tr('teach.look', { input: verbKey('look', kind) });
+export const jumpLine = (kind) => tr('teach.jump', { input: verbKey('jump', kind) });
 
 export class FirstSteps {
   constructor(state, { kind = undefined, level = hintLevel } = {}) {

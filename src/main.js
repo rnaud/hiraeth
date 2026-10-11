@@ -7,7 +7,7 @@ import { installMatrixCache } from './matrix-cache.js';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { padConfirm } from './menu-pad.js';
-import { PAD_SCHEME, PAD_SCHEME_KEY, PAD_SCHEME_NOTE } from './bindings.js';
+import { PAD_SCHEME, PAD_SCHEME_KEY } from './bindings.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
 import { startThemeDownload } from './music-store.js';
@@ -1389,11 +1389,20 @@ function photoUpdate(dt, input) {
 function savePhoto() {
   photo.capture = false;
   renderer.domElement.toBlob((blob) => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `moebius-${levelId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    if (!blob) return;
+    const name = `hiraeth-${levelId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
+    const download = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    };
+    // (on a phone, the share sheet: the picture to the gallery or a message; a download everywhere else, or if sharing fails)
+    const file = typeof File === 'function' ? new File([blob], name, { type: 'image/png' }) : null;
+    if (file && matchMedia?.('(pointer: coarse)').matches && navigator.canShare?.({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Hiraeth' }).catch((e) => { if (e?.name !== 'AbortError') download(); });
+    } else download();
   });
 }
 window.addEventListener('keydown', (e) => {
@@ -1471,7 +1480,7 @@ const padSchemeNotice = () => {
     if (localStorage.getItem(PAD_SCHEME_KEY) === String(PAD_SCHEME)) return;
     localStorage.setItem(PAD_SCHEME_KEY, String(PAD_SCHEME));
   } catch { return; }
-  if (savedEarly) setTimeout(() => showToast(quietOr('The controller layout changed. Menu, then Controls, lists every button.', PAD_SCHEME_NOTE)), 600);   // (the list itself: hints full)
+  if (savedEarly) setTimeout(() => showToast(quietOr(tr('teach.padSchemeShort'), tr('teach.padScheme'))), 600);   // (the list itself: hints full)
 };
 const hintShown = { text: '', at: -1e9, active: false };
 const controllerHint = document.createElement('div');

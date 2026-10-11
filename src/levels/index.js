@@ -39,8 +39,8 @@ export const LEVELS = [
   {
     id: 'incal', create: createIncal, build: buildIncal,
     title: TITLES.incal, source: 'a city stacked down a pit',
-    blurb: 'A city stacked down a 600 m pit to an acid lake. The makers’ jets wait in their tower on the rim; the flying taxis stop only for a pass. Quiet terminals recognize returning visitors.',
-    moves: 'jetpack · climb · glide · taxis (with a pass)',
+    blurb: 'A city stacked down a 600 m pit to an acid lake. The makers’ tower on the rim stands still, waiting for a wind; the flying taxis stop only for a pass. Quiet terminals recognize returning visitors.',
+    moves: 'climb · glide · taxis (with a pass)',
   },
   {
     // (with Vael II's sky stones since October 2026: names.js MERGED)
@@ -54,13 +54,13 @@ export const LEVELS = [
     id: 'glassdunes', create: createGlassDunes, build: buildGlassDunes,
     title: TITLES.glassdunes, source: 'a desert that turned to glass',
     blurb: 'Dunes of fused green glass, great shapes held inside them, and the glassworkers’ camps at their feet. East of the valley a round house of the makers stands in the sand with a stopped clock over its door, and every clock in the camps keeps the wrong time.',
-    moves: 'walk · climb · jetpack',
+    moves: 'walk · climb · glide',
   },
   {
     id: 'buried', create: createBuried, build: buildBuried,
     title: TITLES.buried, source: 'a machine under the dunes',
     blurb: 'Domes and pipes surface from pale dunes. Below them lie rust-red machine canyons, giant ring windows, and a city hanging upside down from the sky.',
-    moves: 'climb · jetpack',
+    moves: 'climb · glide',
   },
   {
     id: 'edena', create: createEdena, build: buildEdena,
@@ -84,16 +84,16 @@ export const LEVELS = [
     id: 'bazaar', create: createBazaar, build: buildBazaar,
     title: TITLES.bazaar, source: 'a city of a thousand broadcasts',
     blurb: 'Coral towers, illustrated signs and a busy alien bazaar. Climb the skybridges or hail a cab to the silent broadcast tower. Shop screens wake, recognize you and echo distant encounters.',
-    moves: 'market streets · skybridges · jetpack · taxis',
+    moves: 'market streets · skybridges · glide · taxis',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
     id: 'mangrove', create: createMangrove, build: buildMangrove, hidden: true,
     title: TITLES.mangrove, source: 'a village in the white roots',
     blurb: 'Bone-white trees stand on arching roots in a black lake, and people live in them. Walk the lantern-lit planks, climb to the decks round the trunks, and look down: the lake glows like a second sky.',
     moves: 'walk · climb · swim',
   },  {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
     id: 'saltharbour', create: createSaltHarbour, build: buildSaltHarbour, hidden: true,
     title: TITLES.saltharbour, source: 'a street of ships in the salt',
     blurb: 'Huge old ships stand on their keels in a dry white salt basin, and people live in them. Walk the street between their hulls under the sailcloth, climb the stair to a deck, and cross the gangway to the next.',
@@ -101,14 +101,14 @@ export const LEVELS = [
   },
 
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
     id: 'waterfall', create: createWaterfall, build: buildWaterfall, hidden: true,
     title: TITLES.waterfall, source: 'a city behind a curtain of water',
     blurb: 'A long cavern city hidden behind a towering waterfall. Terraced streets of rounded houses, amber lamps in the deep quarter, and balconies behind slits in the water, looking out over a sunlit valley.',
-    moves: 'walk · climb · swim · jetpack',
+    moves: 'walk · climb · swim',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
     id: 'antennas', create: createAntennas, build: buildAntennas, hidden: true,
     title: TITLES.antennas, source: 'a plain of listening masts',
     blurb: 'Abandoned masts by the thousand on a plain of violet grass, great dishes turned up like flowers, birds nesting in them. Walk to the workshops under the immense receiver and climb the stair to the observation deck.',
@@ -122,14 +122,14 @@ export const LEVELS = [
     moves: 'walk · climb · the lift',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
     id: 'eclipse', create: createEclipse, build: buildEclipse, hidden: true,
     title: TITLES.eclipse, source: 'a city at noon under a black sun',
     blurb: 'A city of white domes and round towers at midday, the moon over the sun: the lamps lit, people eating outside by lantern light, pale figures leaning from the walls. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out over the lit city on the plain.',
     moves: 'walk · climb',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
     id: 'fallenring', create: createFallenRing, build: buildFallenRing, hidden: true,
     title: TITLES.fallenring, source: 'a ring that fell from the sky',
     blurb: 'The pieces of a broken orbital ring lie across a sage-green plain: arches higher than the clouds, tubes in the grass with villages along their feet, broken ends open on the streets inside. Walk among the grazing herds and climb onto the long tube’s crest.',
@@ -143,7 +143,7 @@ export const LEVELS = [
     moves: 'walk · climb',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
     id: 'underside', create: createUnderside, build: buildUnderside, hidden: true,
     title: TITLES.underside, source: 'a town hung under a shelf of rock',
     blurb: 'A shelf of white rock juts out over a sea of cloud, and a town hangs under it: round white houses stuck to the rock, timber decks slung on rods, long red banners falling toward the cloud. Go down the great stair, walk the galleries under the shelf to its tip, and climb back up the timber stair.',
@@ -157,7 +157,7 @@ export const LEVELS = [
     moves: 'walk · climb · glide',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
+    // a sub-level (names.js SUB): reached from the Signal Market's night halt, by its bell (the night mail); never on the ship's map
     id: 'overnighttrain', create: createOvernightTrain, build: buildOvernightTrain, hidden: true,
     title: TITLES.overnighttrain, source: 'a train across a plain by night',
     blurb: 'A long streamlined train crosses a lavender plain by night under two moons, its windows lit, gardens on its roofs. The ship comes down on its landing wagon at a station; walk forward through the library, the sleeping cars and the dining car to the lounge and its balcony at the nose, or climb a porch ladder and walk the roofs in the wind.',

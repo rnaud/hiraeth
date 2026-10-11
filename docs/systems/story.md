@@ -103,7 +103,17 @@ themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test
   to it (`finaleEntry`, `src/ship/starmap.js`). The place: `src/levels/lantern.js` (docs/systems/worlds.md
   has no section: it is one small island; its header says what is where). The story: `src/story/lantern.js`
   and `lantern-data.js`. A filmed moment on first stepping onto the island (the light comes down into
-  the crown, `lantern.moment.arrive`); Ilen at the lantern's step; one talk that answers the light (what it
+  the crown, `lantern.moment.arrive`); then **the light's song** (v1.47, issue #97: the finale's play before
+  the talk): the light sings to the keepers' three lamps round the shore (`LAMPS`, story props in
+  `src/story/lantern.js setupLamps`: a post and a glass cup, a beam from the crown to the one it sings to, its
+  note every `ANSWER.every` s). A whistle within `ANSWER.reach` of an unlit lamp lights it (`lantern.lamp.<i>`):
+  with nothing in hand the whistle button emits the game's `whistle` (`src/boxes/effects.js ring`, which only the
+  Lantern listens for, and plays the whistle there); the bell, the horn and the echo shell's notes answer too.
+  The third rings the island (`lantern.answered`), a short moment at the round house (`lantern.moment.answered`),
+  and Ilen, indoors until then, comes out to the lantern's step. No fight, empty hands: the answer nobody ever
+  gave the light. The quest's stages: `bar` (the island), `answer` (the lamp the light sings to, a `flag` stage),
+  `ilen` (the talk). A save that met her, or was at her stage before v1.47, finds her on the step as before.
+  Ilen at the lantern's step; one talk that answers the light (what it
   is, why it came to his ship, the makers' sign), hears what he chose on the way, and asks him to tell Hollin. She
   comes home with him (`finale.met`, the quest "We Heard You" done, `world.lantern.done`, the keepsake
   `lantern.person`, which never goes on the slab: `NOT_SET_DOWN`). She walks down the bar and goes aboard.
@@ -119,7 +129,8 @@ themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test
   promise in Lorn II, which costs the coming back (`perdide2.promise`; kept by talking to him again after
   finishing another world, `perdide2.promise.kept`; with Ilen's news he hears where Odile and Talo went,
   `src/story/perdide2-data.js promiseDue`); Esk's hill in Viridel (the quest that fails). Each has a line of
-  his at the first homecoming, a reply of Ilen's at the Lantern, and a line of hers at the stone.
+  his at the first homecoming, a reply of Ilen's at the Lantern, and a line of hers at the stone, for every
+  answer (v1.47: the token kept and the promise declined too, `choiceLines`, `ilenOnChoices`).
   A save from before the token was a choice (the keepsake given outright, no `incal.token`) reads as kept
   (`src/save-migrate.js` step 3, which reads the keepsakes too): the Lantern's `tokenKept`, and Dov's `lit`
   has a line for a kept token.
@@ -769,8 +780,17 @@ world holds one more.
   at it (`person`'s talk, a thing's, with no portrait).
 - **The detours' traces** (`src/story/sightings-detours.js`, the lines in each world's content): one a
   world, in its own voice, hints and never answers (docs/story-bible.md, "The detours' traces").
+- **Answered at the Lantern** (v1.47, issue #98): each thread (`THREADS`) has its `answer`, what Ilen tells him
+  there. Once the Lantern is done (`answered(game)`: `finale.met`, `world.lantern.done` or `ending.final`) the
+  page shows it under the thread's name, in her words, and a note's strip says the answer instead of the
+  question.
+- **Only what can be found is counted.** All seven side worlds are `WIP` (src/levels/names.js), off the map, so
+  their traces are left off the page until met (`sightingsData`); what it counts is on the route or in a world
+  reached from it (the Overnight Train's chalk mark). The threads are finished on the main route, at the
+  Lantern; a side world's trace comes back on the page when the world leaves `WIP`.
 - Tests: `tests/sightings.test.js` (every route sighting is keyed on a real line or flag; written down
-  once, with a word, and kept in the save; an old save written quietly; the page), and
+  once, with a word, and kept in the save; an old save written quietly; the page; the answers after the
+  Lantern; nothing counted in a world nobody can reach), and
   `tests/detour-traces.test.js` (one trace a detour world, each set by its own line).
 
 ## Vael's stone hand: the knuckle riddle (`src/story/knuckle-riddle.js`, v1.1)

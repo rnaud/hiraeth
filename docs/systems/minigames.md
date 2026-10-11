@@ -541,8 +541,13 @@ wants the jets.
   `trial.<world>.done` and grants the reward (src/items.js items with `trial`), shown on the results card and the
   item's card. The rewards are upgrades to the gadgets (`upgrades.js` `UPGRADES`: the hook's line 34 m, a fourth
   bomb, a fourth spring bounce, five fan hops in the air, four boomerang locks, bubbles half as long again, half as much
-  ink again in the pen, the magnet's reach 26 m, the lens clouding half as fast, 12 s of recall), set on the tuning
-  tables while owned (`syncUpgrades`, before the gadgets are made and on every grant); the market's is a ribbon.
+  ink again in the pen, the magnet's reach 26 m, the lens clouding half as fast, 12 s of recall) and the hoverbike's
+  (the desert's dune fins: 42 m/s at full throttle, not 34), set on the tuning tables while owned (`syncUpgrades`,
+  before the gadgets are made and on every grant); the three v1.40 worlds give cosmetics. Every reward is for
+  something you already have there (v1.47, issue #99): the Buried Machine's run gives the lens's clear glass, the
+  Garden of Spheres' the bombs' fourth pouch, the Signal Market's the recall's long sand, each that world's own court
+  gadget (`tests/trials.test.js` checks it against the route's order). The market's racer's ribbon stays an item for
+  the saves that won it. A save that finished a trial before keeps what it won and gets the new reward on its next finish.
 - **Fair courses** (`check.js` `checkCourse`): every gate in the open, the way between them clear, a ride with no
   wall or cliff on it (water all the way for the skiff), a glide never asking more than 1 : 5.2 without a column.
   `tests/trials-worlds.test.js` runs it in every world; `tests/trials.test.js` the pure parts.

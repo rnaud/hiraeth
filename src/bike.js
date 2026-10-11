@@ -17,8 +17,8 @@ import { padRide } from './controller.js';
 // it won't start. In the desert it must first be found (src/story/desert-bike.js).
 
 const HOVER = 1.15;
-const MAX = 34;      // m/s
-const BOOST = 54;
+/** Its speeds (m/s): `max` the throttle's top, `boost` with the boost held. The desert's trial raises `max` (src/trials/upgrades.js, the dune fins). */
+export const RIDE_SPEED = { max: 34, boost: 54 };
 const RADIUS = 0.85;
 const LIMIT = 1900;
 
@@ -339,7 +339,7 @@ export class Hoverbike {
         let dh = Math.atan2(dx, dz) - this.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
         this.heading += dh * (1 - Math.exp(-10 * dt)); this.yawRate = 0;
         [fx, fz] = this.forward;
-        const want = Math.min(BOOST, d * 3.5) * Math.max(0.25, Math.cos(dh));
+        const want = Math.min(RIDE_SPEED.boost, d * 3.5) * Math.max(0.25, Math.cos(dh));
         this.speed += (want - this.speed) * (1 - Math.exp(-5 * dt));
       }
     }
@@ -354,7 +354,7 @@ export class Hoverbike {
     }
     const recalling = !ridden && !!this.auto;
     const oldPos = this.pos.clone();
-    const max = boost ? BOOST : MAX;
+    const max = boost ? RIDE_SPEED.boost : RIDE_SPEED.max;
     // (an analog throttle aims at its share of the top speed)
     if (throttle > 0) this.speed += (max * throttle - this.speed) * (1 - Math.exp(-(boost ? 0.9 : 0.6) * dt));
     else if (throttle < 0) this.speed = Math.max(this.speed + 40 * throttle * dt, -8);

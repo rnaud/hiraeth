@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import './register-gadgets.js';
-import { ORDER, ROUTE_PARTS } from '../src/levels/names.js';
+import { ORDER, ROUTE_PARTS, partOf } from '../src/levels/names.js';
 import { ITEMS } from '../src/items.js';
 import { GADGETS } from '../src/gadgets/registry.js';
 import { TRIALS } from '../src/trials/data.js';
@@ -31,13 +31,27 @@ test('one trial in every place on the route, each with a reward that is an upgra
     assert.ok(ITEMS[T.reward]?.trial === w, `${w}: its reward ${T.reward} names it`);
     assert.ok(/./.test(ITEMS[T.reward].where), `${w}: the reward says where it is won`);
   }
-  // the ten gadget upgrades: one for each gadget, each a real change to its tuning
-  const ups = Object.keys(UPGRADES);
+  // the ten gadget upgrades: one for each gadget, each a real change to its tuning (and the desert's, for the hoverbike)
+  const ups = Object.keys(UPGRADES).filter((id) => ITEMS[id].needs);
   assert.equal(ups.length, 10);
+  assert.ok(UPGRADES.dunefins && !ITEMS.dunefins.needs, 'the desert’s trial upgrades the hoverbike');
   const found = GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id);   // (the fluid gun is the desert's main quest's own: no court, no trial)
   assert.deepEqual(new Set(ups.map((id) => ITEMS[id].needs)), new Set(found));
   // the modes: a different way of getting about in most of them
   assert.ok(new Set(Object.values(TRIALS).map((T) => T.mode)).size >= 6);
+});
+
+// (the v1.0 and v1.46 audits: three trials paid out on a gadget that arrives worlds later; issue #99)
+test('every trial’s first finish is something to use at once: no gadget from further down the route', () => {
+  const at = (w) => ORDER.indexOf(partOf(w));
+  const gadgetWorld = Object.fromEntries(Object.entries(COURTS).map(([w, c]) => [c.gadget, w]));
+  for (const [w, T] of Object.entries(TRIALS)) {
+    const it = ITEMS[T.reward];
+    if (!it.needs) continue;   // (the hoverbike's fins, the cosmetics)
+    const from = gadgetWorld[it.needs];
+    assert.ok(from, `${w}: ${T.reward} upgrades ${it.needs}, which a court gives`);
+    assert.ok(at(from) <= at(w), `${w} (world ${at(w) + 1}): ${T.reward} is for the ${it.needs}, found in ${from} (world ${at(from) + 1})`);
+  }
 });
 
 test('a gadget a world, in the makers’ courts, each in a box', () => {

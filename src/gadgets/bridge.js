@@ -3,6 +3,7 @@ import { inkMat, INK, PAPER, aimRay } from './kit.js';
 import { rayWorld } from '../fluid-tool.js';
 import { makeMaterial } from '../materials.js';
 import { addScreen } from '../wind-screens.js';
+import { t as tr } from '../i18n.js';
 
 // The ink bridge pen (docs/systems/gadgets.md, "The ink bridge pen"): hold the use button and a line of ink
 // runs out from your feet the way you aim (sweep the aim and it bends, tip it up and it climbs, never steeper
@@ -252,7 +253,7 @@ export const penSfx = {
 export default {
   id: 'bridge', name: 'Ink bridge pen', glyph: '✒', order: 60, trigger: 'use',
   text: 'A fountain pen as long as your forearm, its barrel lacquered night blue. What it draws in the air holds for a little while: long enough to walk across.',
-  use: 'Hold RT / R2 (T, or the middle mouse button): a line of ink runs out from your feet the way you aim; sweep the aim to bend it, tip it up for a ramp. Let go and it sets into a plank you can walk on, up to 16 m long, for twelve seconds before it wears away from the ends. Aim up steeply as you start to draw a short wall instead (it stops foes and gusts). The ink flows back while you are not drawing.',
+  use: 'Hold {key:use}: a line of ink runs out from your feet the way you aim; sweep the aim to bend it, tip it up for a ramp. Let go and it sets into a plank you can walk on, up to 16 m long, for twelve seconds before it wears away from the ends. Aim up steeply as you start to draw a short wall instead (it stops foes and gusts). The ink flows back while you are not drawing.',
   model: penModel,
   create(ctx) { return new Pen(ctx); },
 
@@ -331,7 +332,7 @@ class Pen {
   release() {
     if (this.state !== 'draw') return;
     const ok = this.mode === 'wall' ? this.half * 2 >= PEN.min : this.len >= PEN.min;
-    if (!ok) { this.abandon(); this.ctx.notice?.('Hold {key:gadget} to draw the line out, then let go.', 'pen-short'); return; }
+    if (!ok) { this.abandon(); this.ctx.notice?.(tr('teach.penShort'), 'pen-short'); return; }
     if (this.mode === 'bridge' && this.tip.distanceTo(this.points[this.points.length - 1]) > 0.05) this.points.push(this.tip.clone());
     this.set(this.points.map((p) => p.clone()), this.mode);
     this.state = 'idle'; this.points = []; this.dots.count = 0; this.pen.visible = false;

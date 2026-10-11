@@ -9,6 +9,7 @@ import { audioAway } from '../audio-guard.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, CAIRN_STONES } from './arzach2-data.js';
 import { setupArzach2Moments } from './arzach2-moments.js';
 import { quietOr } from '../hint-level.js';
+import { t as tr } from '../i18n.js';
 
 // Vael II's story, alive (arzach2-data.js has the words): "The Bell Under the Cloud".
 //
@@ -288,7 +289,7 @@ export function setupArzach2(ctx) {
       onHit: (mode, point, dir) => {
         if (mode !== 'push') {
           for (const x of list) x.m.rotation.z += (Math.random() - 0.5) * 0.04;
-          if (!st.hinted) { st.hinted = true; toast(quietOr('The fluid rattles off the tiles. They are wedged tight.', 'The fluid rattles off the tiles. They are wedged tight, so shove them off: switch the gun to push with {key:mode}, then aim and shoot.')); }
+          if (!st.hinted) { st.hinted = true; toast(quietOr('The fluid rattles off the tiles. They are wedged tight.', `The fluid rattles off the tiles. They are wedged tight: shove them off. ${tr('teach.shove')}`)); }
           return true;
         }
         scatterTiles(st, dir); off(); offLook();

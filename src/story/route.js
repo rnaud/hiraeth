@@ -13,7 +13,8 @@
 //    Vael in October 2026) waits, uncounted, until that one is done.
 //
 // The order puts the fluid wings first (Vael, the second world: its Aerie, and the wind at its lone
-// tower) and the fluid jets in the later half (the City-Shaft, seventh): no world before it needs them.
+// tower), and the City-Shaft's bellows, the wings' third strength, in the middle (sixth). The jets are
+// debug-only since v1.38: no world needs them.
 //
 // The ship's galactic map (src/ship/starmap.js) draws the others as faint,
 // nameless dots; the level picker (L, main.js) leaves them out. Home is not on

@@ -493,6 +493,14 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
   flowers; a bench facing home; two stones on the point: Odile and Talo, who got
   there first (brought down twice, they came looking the third time), kept the lantern
   and kept her, and died there.
+- **The last stretch** (v1.47): nobody has ever answered the light. On the island it
+  sings to three of the keepers' lamps round the shore, one at a time, its beam on the
+  one it sings to; he whistles back by each (his own breath: no tool, no fight, empty
+  hands) and the lamp lights. With the third the light rings out over the island, and
+  Ilen, who has listened to it alone for thirty years, comes out of the round house to
+  the lantern's step to see who answered: "You answered it. Thirty years it's sung, and
+  nobody ever answered." Her light sang over the round house and nobody called back;
+  here, at last, someone does.
 - **Ilen**: about fifty, grey coming into her hair, the mother's teal and coral;
   speaks the home tongue (no translator). A light brought her in thirty years
   ago and her ship never flew again (its last sound home was the light's
@@ -561,6 +569,10 @@ and the ship lands where it was going. Later flights to a world already known ar
 to the Lantern.
 
 ## The detours' traces (built: src/story/sightings-detours.js, each world's content)
+
+While the side worlds are still being made (all seven are `WIP`, off the map), their traces are left off the
+Sightings page; the threads are finished on the main route instead: at the Lantern Ilen answers each one, and
+the page shows her answer under the thread (v1.47).
 
 The twelve worlds off the route each hold one trace of the singing light or of whoever came this way
 before: a person who remembers, a mark, a fragment. They hint and never answer (nobody names anyone;
@@ -762,7 +774,10 @@ parts' people and its sub-levels': the Overnight Train's are the Signal Market's
 bottom himself); the promise to Hollin (Lorn II: it costs the coming back, and
 after the Lantern he can tell him where Odile and Talo went); Esk's hill
 (Viridel: the quest that fails, whatever you do). The traveller names each at the
-first homecoming; Ilen answers each at the Lantern and again at the stone.
+first homecoming; Ilen answers each at the Lantern and again at the stone. Every
+answer has its own line, his and hers (v1.47): keeping Dov's token ("He gave me his way
+home to keep, and I kept it"), and saying no to Hollin ("I didn't want anyone else
+watching a path for me") are remembered as choices too.
 
 **Coming back.** The game goes on; the stone keeps its tokens, the reel plays
 its oldest side. Lou runs to meet him once a visit and asks what he brought (her

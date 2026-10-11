@@ -440,9 +440,10 @@ export class NPC {
       this.updatePuppet(dt, player, camera, this.person);
       return;
     }
-    // far away: hidden past 260 m, updated at a quarter rate past 110 m
+    // far away: hidden past 260 m, updated at a quarter rate past 110 m; `away` (a story's: indoors, aboard) hidden anywhere
     const camD0 = camera.position.distanceTo(this.pos);
-    this.show(camD0 < 260);
+    this.show(!this.away && camD0 < 260);
+    if (this.away) return;
     if (this.cape) this.cape.mesh.visible = camD0 < 220;
     if (camD0 > 110 && this.follow) {
       // far away a follower simply keeps up (no walking simulation)

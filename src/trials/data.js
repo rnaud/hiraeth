@@ -12,7 +12,8 @@
 //   eyes     (mode eyes) [x, z]: eyes on posts to splash, any order
 //   winds    columns of rising air on the way: [x, z, r, h, lift] from the ground there (src/trials/winds.js)
 //   speed    an easy pace along it (m/s): the par is the length at that pace, with room to spare
-//   reward   the item the first finish gives (src/items.js, kind 'upgrade', `trial`)
+//   reward   the item the first finish gives (src/items.js, kind 'upgrade', `trial`): something to use at once, an
+//            upgrade to what that world or one before it on the route gives (tests/trials.test.js checks the order)
 
 import { partsOf, offsetOf, shiftAt } from '../levels/names.js';
 
@@ -23,7 +24,7 @@ export const TRIALS = {
     rules: 'Ride through every gate in order, down into the basin and back up. Stay on the bike.',
     marker: [26, 18], start: [34, null, 16], heading: 2.2, speed: 16, ground: true, up: 1.4,
     gates: [[70, -20, 7], [100, -70, 7], [95, -120, 7], [55, -150, 7], [5, -125, 7], [-30, -80, 7], [-45, -30, 7], [-20, 20, 8]],
-    reward: 'clearglass',
+    reward: 'dunefins',
   },
   arzach: {
     id: 'trial-arzach', world: 'arzach', mode: 'glider', name: 'Wind ladder', color: '#9fd6ee',
@@ -95,7 +96,7 @@ export const TRIALS = {
     marker: [14, 52], start: [10, null, 44], heading: 3.0, speed: 10,
     winds: [[10, 44, 7, 40, 9], [-30, -182, 7, 72, 10]],
     gates: [[10, 41, 44, 7], [-5, 34, 0, 8], [-25, 14, -60, 8], [-30, 0, -100, 8], [-30, -18, -140, 8], [-30, 35, -182, 7], [10, 27, -150, 9]],
-    reward: 'fourthpouch',
+    reward: 'clearglass',
   },
   spheres: {
     id: 'trial-spheres', world: 'spheres', mode: 'foot', name: 'Garden round', color: '#e8c2f0',
@@ -103,7 +104,7 @@ export const TRIALS = {
     rules: 'Run through every gate in order, round the garden and back. Climb, jump, boost, glide: anything goes.',
     marker: [10, -12], start: [14, null, -6], heading: 2.0, speed: 6, ground: true, up: 1.3,
     gates: [[40, -40, 4], [60, -100, 4], [0, -120, 4], [-50, -100, 4], [-90, -80, 4], [-165, -25, 4], [-110, 30, 4], [-90, 70, 4], [-20, 80, 4], [30, 70, 4], [20, 20, 4], [10, -2, 5]],
-    reward: 'longsand',
+    reward: 'fourthpouch',
   },
   // (the three worlds that joined the route in v1.40)
   underwater: {
@@ -138,7 +139,7 @@ export const TRIALS = {
     marker: [-14, 112], start: [-6, null, 118], heading: 3.1, speed: 12,
     winds: [[-6, 118, 7, 52, 9], [0, 10, 7, 54, 9]],
     gates: [[-6, 49, 118, 7], [-15, 43, 70, 8], [15, 34, 40, 8], [0, 51, 10, 7], [-20, 46, -24, 8], [18, 36, -60, 8], [0, 29, -92, 8], [0, 21, -135, 9]],
-    reward: 'racersribbon',
+    reward: 'longsand',
   },
 };
 

@@ -231,6 +231,24 @@ Object.assign(SOLVERS, {
   },
 });
 
+// ------------------------------------------------------------------ the Lantern: the light's song answered (v1.47, issue #97)
+// the light sings to the keepers' three lamps in turn; a whistle by each (nothing in hand: the game's 'whistle',
+// src/boxes/effects.js ring) lights it, and with the third Ilen comes out of her house to the step
+Object.assign(SOLVERS, {
+  'lantern.ilen:answer': (W, { issue }) => {
+    for (let k = 0; k < 4 && W.quests.stage('lantern.ilen') === 'answer'; k++) {
+      const at = W.quests.locators.get('lamp')?.();
+      if (!at) return issue('no-thing', 'no lamp the light sings to');
+      const stand = A.standNear(W, at, { radius: 4 }) ?? at;
+      W.at(stand); W.step(2);
+      game.emit('whistle', { pos: W.player.pos.clone() });
+      W.step(10);
+    }
+    if (!game.flag('lantern.answered')) return issue('soft-lock', 'a whistle by each lamp did not answer the light');
+    W.step(30 * 12);   // (the moment at the house's door; she walks to the step)
+  },
+});
+
 // ------------------------------------------------------------------ the Signal Market: the antenna's bulbs, shot from the broadcast balcony
 /** From the console's balcony, is every bulb in sight and in a shot's reach? */
 function bulbsInSight(W) {

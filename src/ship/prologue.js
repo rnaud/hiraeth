@@ -23,6 +23,7 @@
 // Hold Esc (or B on a pad) to skip; Menu / Start pauses it. `prologue.done` is set at the end.
 
 import { PROLOGUE_CALL } from '../story/calls.js';
+import { t as tr } from '../i18n.js';
 
 /** Seconds a subtitle stays up. */
 export const lineTime = (line) => Math.min(6.2, 1.4 + line.text.length * 0.052);
@@ -76,8 +77,8 @@ export const NUDGE = { after: 20, show: 6 };
  * if you haven't moved yet, else where the message is. `keys(verb)` names a verb's input.
  */
 export function nudgeText({ moved, keys }) {
-  if (!moved) return `Look around: move with ${keys('move')}, look with ${keys('look')}`;
-  return 'A message blinks on the console by the holo table, in the middle of the ship';
+  if (!moved) return tr('teach.nudgeMove', { move: keys('move'), look: keys('look') });
+  return tr('teach.nudgeConsole');
 }
 /** Whether the nudge shows at time t of the walk (s), and if it has shown already, it stays gone. */
 export const nudgeDue = (t, { played = false, shown = false } = {}) => !played && !shown && t >= NUDGE.after;

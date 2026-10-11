@@ -34,26 +34,33 @@ import { stripTone } from '../story/tone.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
-/** What each way of running a trial tells on the start card (Xbox / PlayStation form). */
-const CONTROLS = {
-  bike: { pad: [['Left stick', 'steer'], ['RT / R2', 'throttle'], ['A / ×', 'hop']], keys: [['W A S D', 'ride'], ['Space', 'hop']] },
-  skiff: { pad: [['Left stick', 'steer'], ['RT / R2', 'throttle'], ['Y / △', 'the gust fan, into the sail']], keys: [['W A S D', 'steer'], ['T', 'the gust fan, into the sail']] },
-  bird: { pad: [['Left stick', 'fly'], ['A / ×', 'beat the wings']], keys: [['W A S D', 'fly'], ['Space', 'beat the wings']] },
-  glider: { pad: [['A / ×', 'jump, then hold to open the wings'], ['Left stick', 'steer; back to float']], keys: [['Space', 'jump, then hold to glide'], ['W A S D', 'steer; S to float']] },
-  jets: { pad: [['A / × held in the air', 'thrust'], ['Left stick', 'fly the nose']], keys: [['Space held', 'thrust'], ['W A S D', 'fly the nose']] },
-  foot: { pad: [['Left stick', 'run'], ['A / ×', 'jump']], keys: [['W A S D', 'run'], ['Space', 'jump']] },
-  eyes: { pad: [['LT / L2', 'aim'], ['RT / R2', 'splash']], keys: [['Right mouse', 'aim'], ['Left mouse', 'splash']] },
-  kitwings: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump, then hold to open the wings'], ['Left stick', 'steer the wings; back to float']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump, then hold to glide'], ['W A S D', 'steer the wings; S to float']] },
-  kit: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['LT / L2', 'aim'], ['RT / R2', 'splash'], ['D-pad →', 'the gun’s mode']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['Right mouse', 'aim'], ['Left mouse', 'splash'], ['X', 'the gun’s mode']] },
+/**
+ * What each way of running a trial tells on the start card: the input as {key:verb} (src/prompt-keys.js), shown
+ * as the player's own keys or buttons for the input in hand (src/minigames/kit/runner.js showIntro); a row the
+ * same for every input, or `pad` and `keys` apart where they differ. What has no binding of its own (the
+ * mounts' throttle) stays in Xbox / PlayStation form.
+ */
+const ROWS = {
+  bike: { pad: [['{key:move}', 'steer'], ['RT / R2', 'throttle'], ['{key:jump}', 'hop']], keys: [['{key:move}', 'ride'], ['{key:jump}', 'hop']] },
+  skiff: { pad: [['{key:move}', 'steer'], ['RT / R2', 'throttle'], ['{key:whistle}', 'the gust fan, into the sail']], keys: [['{key:move}', 'steer'], ['{key:gadget}', 'the gust fan, into the sail']] },
+  bird: [['{key:move}', 'fly'], ['{key:jump}', 'beat the wings']],
+  glider: [['{key:jump}', 'jump, then hold to open the wings'], ['{key:move}', 'steer; back to float']],
+  jets: [['{key:thrust}', 'thrust'], ['{key:move}', 'fly the nose']],
+  foot: [['{key:move}', 'run'], ['{key:jump}', 'jump']],
+  eyes: [['{key:aim}', 'aim'], ['{key:fire}', 'splash']],
+  kitwings: [['{key:move}', 'walk; {key:run} to run'], ['{key:jump}', 'jump, then hold to open the wings'], ['{key:move}', 'steer the wings; back to float']],
+  kit: [['{key:move}', 'walk; {key:run} to run'], ['{key:jump}', 'jump'], ['{key:aim}', 'aim'], ['{key:fire}', 'splash'], ['{key:mode}', 'the gun’s mode']],
   // (the echo relay: the stones splashed, the shell played back: src/echo-shell.js, the whistle's button)
   // (the bell crossing: the bell-note whistle on the same button, src/boxes/effects.js ring())
-  kitbell: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the bell']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the bell']] },
+  kitbell: [['{key:move}', 'walk; {key:run} to run'], ['{key:jump}', 'jump'], ['{key:whistle}', 'sound the bell']],
   // (the lamp walk: the lantern charm wakes a lamp by itself; you only stand by it)
-  kitlamp: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump']] },
+  kitlamp: [['{key:move}', 'walk; {key:run} to run'], ['{key:jump}', 'jump']],
   // (the Underwater City's sounding walk: the whale-horn sounds on the bell's button, src/boxes/effects.js)
-  kithorn: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the whale-horn']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the whale-horn']] },
-  kitecho: { pad: [['Left stick', 'walk; L3 to run'], ['LT / L2', 'aim'], ['RT / R2', 'splash a stone'], ['Y / △', 'play the shell back']], keys: [['W A S D', 'walk; Shift to run'], ['Right mouse', 'aim'], ['Left mouse', 'splash a stone'], ['V', 'play the shell back']] },
+  kithorn: [['{key:move}', 'walk; {key:run} to run'], ['{key:jump}', 'jump'], ['{key:whistle}', 'sound the whale-horn']],
+  kitecho: [['{key:move}', 'walk; {key:run} to run'], ['{key:aim}', 'aim'], ['{key:fire}', 'splash a stone'], ['{key:whistle}', 'play the shell back']],
 };
+/** The start card's rows by input: { pad, keys, touch }. */
+export const CONTROLS = Object.fromEntries(Object.entries(ROWS).map(([k, r]) => [k, Array.isArray(r) ? { pad: r, keys: r, touch: r } : { ...r, touch: r.pad }]));
 
 const COUNT = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
 
@@ -64,7 +71,18 @@ const trialMats = (color) => {
   return { ...mats, glow: mats[color] };
 };
 
-// the Signal Market's reward is a ribbon, not an upgrade to a gadget: its own little model
+// the racer's ribbon (the Signal Market's reward until v1.47, kept for the saves that won it) and the desert's dune fins,
+// for the hoverbike: no gadget's model to borrow, their own little ones
+registerItemModel('dunefins', () => {
+  const g = new THREE.Group();
+  const brass = makeMaterial({ color: '#e2b552', flat: true }), ink = makeMaterial({ color: '#2b211f', flat: true });
+  for (const s of [-1, 1]) {
+    const fin = new THREE.Mesh(new THREE.ExtrudeGeometry(new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(0.16, 0), new THREE.Vector2(0.02, 0.12)]), { depth: 0.012, bevelEnabled: false }), brass);
+    fin.position.set(s * 0.05 - 0.08, -0.05, -0.006); g.add(fin);
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), ink); dot.position.set(s * 0.05 - 0.04, -0.02, 0.008); g.add(dot);
+  }
+  return g;
+});
 registerItemModel('racersribbon', () => {
   const g = new THREE.Group();
   const M = (c) => makeMaterial({ color: c, flat: true });
@@ -111,7 +129,7 @@ export function trialGame(T, world) {
     id: T.id, name: T.name, color: T.color, trial: true,
     blurb: T.blurb,
     rules: `${T.rules}${reward ? ` The first finish: ${reward.name}.` : ''}${world.par ? ` The makers’ mark: ${formatTime(world.par)}.` : ''}`,
-    controls: { pad: C.pad, keys: C.keys, touch: C.pad },
+    controls: { pad: C.pad, keys: C.keys, touch: C.touch },
     score: { kind: 'time' },
     drives: false,
     start: (ctx) => world.session(ctx),

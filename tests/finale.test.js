@@ -90,7 +90,20 @@ test('the choices the stone remembers: Dov\'s token, Hollin\'s promise, Esk\'s h
   assert.equal(choicesMade(at({ 'perdide2.promise': 'maybe' })).promise, 'declined');
   assert.equal(choiceLines(all).length, 3);
   assert.equal(ilenOnChoices(all).length, 3);
-  assert.deepEqual(choiceLines({ token: 'kept', promise: 'declined' }), [], 'keeping, or not promising, is not remarked on');
+  // every answer to each choice has its own line at the stone, his and Ilen's (issue #100: a choice the ending ignores reads as none)
+  for (const [k, answers] of [['token', ['returned', 'kept']], ['promise', ['kept', 'made', 'declined']]]) {
+    const seenHis = new Set(), seenHers = new Set();
+    for (const a of answers) {
+      const his = choiceLines({ [k]: a }), hers = ilenOnChoices({ [k]: a });
+      assert.equal(his.length, 1, `${k} ${a}: his line`); assert.equal(hers.length, 1, `${k} ${a}: Ilen's`);
+      assert.equal(hers[0].who, 'ilen');
+      assert.ok(his[0].tone && hers[0].tone, `${k} ${a}: with tone`);
+      seenHis.add(his[0].text); seenHers.add(hers[0].text);
+    }
+    assert.equal(seenHis.size, answers.length, `${k}: a line of its own for each answer`); assert.equal(seenHers.size, answers.length);
+  }
+  assert.ok(tombLines([], { choices: { token: 'kept', promise: 'declined' } }).some((l) => /wouldn’t promise/.test(l.text)), 'saying no to Hollin, at the stone');
+  assert.ok(tombLines([], { choices: { token: 'kept', promise: 'declined' }, final: true }).some((l) => l.who === 'ilen' && /way home safe/.test(l.text)), 'keeping the token, from Ilen');
   const first = tombLines([], { choices: all });
   assert.ok(first.some((l) => /Dov’s lift token isn’t here/.test(l.text)) && first.some((l) => /I went/.test(l.text)), 'the first homecoming: his words');
   const last = tombLines([], { choices: { ...all, promise: 'made' }, final: true });

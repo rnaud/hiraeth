@@ -88,7 +88,7 @@ function hookHead(mat) {
 export default {
   id: 'hook', name: 'Grappling hook', glyph: '⥉', order: 10, trigger: 'aim',
   text: 'A brass reel on a wrist cuff, with a three-pronged hook on a line of makers’ cord thinner than a bootlace and stronger than a cable. Someone left it oiled.',
-  use: 'Aim with LT / L2 (R, or the right mouse button): the ring shows what it will catch, up to 25 m away. RT / R2 (T, or a left click) fires it. Caught on a wall, a ledge or a ring, it reels you in; caught on something loose (a crate, a foe), it drags it to you. Jump while reeling in to let go.',
+  use: 'Aim with {key:aim}: the ring shows what it will catch, up to 25 m away. {key:fire} fires it. Caught on a wall, a ledge or a ring, it reels you in; caught on something loose (a crate, a foe), it drags it to you. Jump while reeling in to let go.',
   model: hookModel,
 
   create(ctx) { return new Hook(ctx); },

@@ -7,6 +7,7 @@ import { STORY } from '../desert-sites.js';
 import { Puffs } from './puffs.js';
 import { THINGS, ITEMS } from './desert-data.js';
 import { quietOr } from '../hint-level.js';
+import { t as tr } from '../i18n.js';
 
 // Two of the desert's errands, hands-on (src/story/desert.js sets them up).
 //
@@ -135,7 +136,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     onHit: (mode, point, dir) => {
       if (mode === 'push') return shove(dir, 'push');
       st.wobble = 1;
-      hint(quietOr('The knuckle of bone rocks against the drum, and settles.', 'The knuckle of bone rocks against the drum, and settles. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.'));
+      hint(quietOr('The knuckle of bone rocks against the drum, and settles.', `The knuckle of bone rocks against the drum, and settles. It needs a shove. ${tr('teach.shove')}`));
       return true;
     } };
   registerTarget(knuckleTarget);

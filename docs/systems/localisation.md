@@ -15,7 +15,7 @@ English (`en.js`) is the source; French (`fr.js`) is the first translation. The 
   `translatePage()` (boot.js) rewrites index.html's `[data-t]` texts and `[data-t-aria]` labels, and
   native-pad.js renames the key badges ("ESPACE"). Words built each frame (the cue, the prompts,
   the toasts) are asked for as they are drawn.
-- Keys are dotted by place: `menu.*` the Start menu, `set.*` the settings (`set.<setting>.<value>`
+- Keys are dotted by place: `teach.*` the teaching lines and toasts, `vk.*` the words inputs are named by, `menu.*` the Start menu, `set.*` the settings (`set.<setting>.<value>`
   for a choice's label), `rebind.*` and `verb.*` the Controls page's own keys and buttons, `ctl.*`
   its lists (`ctl.k.*` keyboard, `ctl.p.*` controller, `ctl.t.*` touch, `.how` the keys), `hud.*`
   the cue's lines, `hint.*`, `restart.*`, `toast.*`, `gm.*` the game menu, `title.*` the title
@@ -37,6 +37,15 @@ The Start menu and the settings, the Controls page (rebinding and every list), t
 menu, saves and delete card, the game menu (tabs, prompts, the panels' fixed words), the cue's ride
 lines and the boarding line, the close hints, the restart card, the hitbox toasts, the photo-mode
 hint, the loading line, the touch buttons' labels.
+
+**The teaching lines and the toasts that teach an input** (`teach.*`, v1.47): the desert's first steps
+(src/first-steps.js), the ship's nudge (src/ship/prologue.js nudgeText), the tank's first fill, the first
+fight's line, the hoverbike's call, the bell, shell and horn, the pen's and the bubble's notices, the
+bellows' next step, the "switch the gun to push" tail of the shove hints, the controller-layout note. The
+words an input is named by (`vk.*`: "the mouse", "the left stick", "R or the right mouse button") are
+French too, so a `{key:verb}` reads whole in French. A shove hint's first sentence is the story's, and
+stays English with it. `tests/teach-i18n.test.js` fails on a toast or notice whose literal text names an
+input (`{key:…}`) without going through `t()`.
 
 Not yet, and still English: the dialogue and the story (src/story/*, the worlds' data), quest titles
 and steps, item names and texts, the scout's lines, the minigames' cards, the loading stages, the

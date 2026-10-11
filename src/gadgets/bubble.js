@@ -5,6 +5,7 @@ import { registerTarget, targetsInCone } from '../targets.js';
 import { hazardAt } from '../hazards.js';
 import { thinRing } from '../thin.js';
 import { kick } from '../feel.js';
+import { t as tr } from '../i18n.js';
 
 // The bubble wand (docs/systems/gadgets.md, "The bubble wand"): hold the use button to aim (the reticle shows
 // what it would catch), let go to blow a bubble. It flies out along the aim (toward a foe, a crate or a bomb
@@ -149,7 +150,7 @@ function wandModel() {
 export default {
   id: 'bubble', name: 'Bubble wand', glyph: '◯', order: 90, trigger: 'aim',
   text: 'A brass loop on a turned handle and a little pot of the makers’ soap, which never runs dry. Its bubbles are tougher than they look, and lighter than air.',
-  use: 'Aim with LT / L2 (R, or the right mouse button) and blow a bubble with RT / R2 (T, or a left click). It catches the first thing it meets (a foe, a crate, a bomb) and floats it up for six seconds: foes are helpless inside, crates can be lifted onto ledges, a bomb’s fuse waits until the bubble pops. Aim at your own feet, or press it in the air, to float up yourself and drift with the stick. Press again (or jump) to pop it. Spikes, fire and blades pop it too.',
+  use: 'Aim with {key:aim} and blow a bubble with {key:fire}. It catches the first thing it meets (a foe, a crate, a bomb) and floats it up for six seconds: foes are helpless inside, crates can be lifted onto ledges, a bomb’s fuse waits until the bubble pops. Aim at your own feet, or press it in the air, to float up yourself and drift with the stick. Press again (or jump) to pop it. Spikes, fire and blades pop it too.',
   model: wandModel,
   create(ctx) { return new Wand(ctx); },
 
@@ -310,7 +311,7 @@ class Wand {
     P.gliding = false;
     bubbleSfx.blow(this.ctx.sound); bubbleSfx.plop(this.ctx.sound);
     this.cool = BUBBLE.cool;
-    this.ctx.notice?.('Floating: steer with {key:move}, press {key:gadget} again (or {key:jump}) to pop it.', 'bubble.self');
+    this.ctx.notice?.(tr('teach.bubbleSelf'), 'bubble.self');
     return b;
   }
 

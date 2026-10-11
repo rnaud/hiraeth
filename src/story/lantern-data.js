@@ -17,12 +17,20 @@
 // drained the ship (they drink what a ship runs on as they pass) and left its sign on the hull, and he came
 // down in the desert. It was trying to bring the father here; it found his son, and his son followed it.
 //
+// The last stretch (v1.47, issue #97): nobody has ever answered the light. On the island it sings to three of the
+// keepers' lamps round the shore, one after another, its beam on the one it sings to; whistle back by each
+// (your own breath, {key:whistle}: the bell, the horn or the shell answer too) and the lamp lights. With empty
+// hands, no fight: her light sang over the round house and nobody called back; here someone does. When all
+// three are lit the light rings out, and Ilen, who has listened to it alone for thirty years, comes out of her
+// house to the step to see who answered.
+//
 // She speaks the home tongue (no translator: the first voice out there that sounds like home). She
 // asks what he brought, and hears what he chose on the way (src/story/ending.js choicesMade): Dov's
 // lift token, Hollin's promise, Esk's hill. Then she comes home with him (`finale.met`), and the true
 // ending plays at the stone (src/ship/homecoming.js).
 //
 // Flags: finale.met, finale.hollin (she has asked him to tell Hollin), lantern.moment.arrive,
+// lantern.song.told (the whistle taught), lantern.lamp.<0-2> (a lamp answered), lantern.answered (all three: Ilen comes out), lantern.moment.answered,
 // world.lantern.done. Keepsake: lantern.person (Ilen herself: she walks to the stone, NOT_SET_DOWN).
 
 import { FAMILY } from '../characters/family.js';
@@ -40,7 +48,9 @@ export const QUESTS = [
     id: Q, title: 'We Heard You', world: 'lantern', main: true,
     outro: 'The singing light was Ilen’s answer. She is coming home with you.',
     stages: [
-      { id: 'ilen', text: 'Walk the sand bar to the lantern', label: 'The lantern', talk: 'ilen' },
+      { id: 'bar', text: 'Walk the sand bar to the island', label: 'The island', goto: 'isle', radius: 14 },
+      { id: 'answer', text: 'Whistle back by each lamp the light sings to', label: 'The lamp the light sings to', at: 'lamp', flag: 'lantern.answered' },
+      { id: 'ilen', text: 'Go up to the lantern’s step', label: 'The lantern’s step', talk: 'ilen' },
     ],
   },
 ];
@@ -75,7 +85,9 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: [
-            '~surprised~ (A woman stands at the lantern’s step, one hand up against its light, watching you come along the bar.)',
+            { text: '~surprised~ (A woman has come out of the round house to the lantern’s step, one hand up against its light.)', if: { flag: 'lantern.answered' } },
+            { text: '~surprised~ (A woman stands at the lantern’s step, one hand up against its light, watching you come along the bar.)', if: { not: { flag: 'lantern.answered' } } },
+            { text: '~whisper~ You answered it. Thirty years it’s sung, and nobody ever answered.', if: { flag: 'lantern.answered' } },
             '~surprised~ That ship. I know that hull. He let me paint the stripe on it when I was nine.',
             '~whisper~ Say something. Anything. I want to hear if you sound like home.',
           ],
@@ -257,6 +269,23 @@ export const ILEN_HOME = {
     },
   },
 };
+
+/**
+ * The keepers' lamps the light sings to (src/story/lantern.js): where each stands on the island's shore (x, z), in the
+ * order it sings to them: by the bar's head, west past the house, out on the point by Odile and Talo.
+ */
+export const LAMPS = [[6, 27], [-27, -12], [22, -29]];
+/** How near a lamp a whistle answers it (m), and how often the light sings to the one it is on (s). */
+export const ANSWER = { reach: 8, every: 3.2 };
+/** Said as each lamp lights (by its index), and when the last one does (the moment at the house's door). */
+export const LAMP_LINES = [
+  '~solemn~ (The lamp catches your note and lights. Up in the crown the light goes quiet, listening.)',
+  '~curious~ (A second lamp lights. The light’s beam swings away along the shore, quicker now.)',
+];
+export const ANSWERED_LINES = [
+  '~solemn~ (The third lamp lights, and the light rings out over the island, all three lamps with it.)',
+  '~surprised~ (A door opens in the round house.)',
+];
 
 /** The moment on first stepping onto the island: the light comes down into the lantern's crown (src/story/lantern.js). */
 export const ARRIVE_LINES = [

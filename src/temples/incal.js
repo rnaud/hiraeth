@@ -6,6 +6,8 @@ import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
 import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Iris, Mark, Pit, Updraft } from './pieces.js';
 import { sentinelModel } from './guardians.js';
 import { items } from '../items.js';
+import { t as tr } from '../i18n.js';
+import { EN } from '../i18n/en.js';
 import { registerTarget } from '../targets.js';
 
 // The City-Shaft's temple: the Warden's Well, the makers' tower on the rim,
@@ -199,7 +201,7 @@ function wardenHit(g, part, mode) {
 /** In its last two phases its hatch stays up a little longer: time to fly to the vane and hover. */
 function wardenOpenFor(g, a, s) { const o = HALL.open[Math.min(g.phaseIndex, 2)]; return s && o ? Math.max(s, o) : s; }
 /** What the bellows are for, said a moment after the box's card closes in the Bellows Chamber. */
-export const BELLOWS_NEXT = 'The bellows breathe on your back, and the plinth under the chest breathes with them: a draught rises straight up through the open ceiling. Jump into it and open your wings ({key:thrust}): it carries you up. In rising air your wings hold you still enough to aim.';
+export const BELLOWS_NEXT = EN['teach.bellowsNext'];   // (said in the player's language: src/i18n.js)
 
 /** Are you past the oculus? (in the gallery or beyond: its mark, an eye lit, the warden met, or simply up there) */
 export function upUsed(rt) {
@@ -222,7 +224,7 @@ class UpGuide {
     // a moment after the chest (its card closes first): what the bellows are for, and the drone shows where
     if (this.wanted && !this.told && rt.player?.pos && rt.inside(rt.player.pos) && (this.since += dt) > 1.2) {
       this.told = true;
-      rt.notice(BELLOWS_NEXT, 'bellows.next');
+      rt.notice(tr('teach.bellowsNext'), 'bellows.next');
       rt.quests?.track?.(`temple.${rt.id}`);
       rt.game.emit('scout:ping', { why: 'bellows' });
     }

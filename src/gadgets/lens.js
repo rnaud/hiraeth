@@ -123,7 +123,7 @@ const sfx = {
 export default {
   id: 'monocle', name: 'Seeing lens', glyph: '◎', order: 70, trigger: 'look',
   text: 'A monocle of the makers’ glass on a short brass stem. Through it the world is drawn in blue ink, and what they hid is drawn too.',
-  use: 'Hold LT / L2 or RT / R2 (R or T, the right or middle mouse button) to look through it. Hidden paths, false floors, writing on walls and buried caches show, boxes and relics shimmer through walls, and a foe’s weak point shows (a cut there bites twice as deep). Hidden paths hold you up only while you look. The glass clouds over as you look (slower while you stand on what it shows) and clears when lowered.',
+  use: 'Hold {key:use} (or {key:aim}) to look through it. Hidden paths, false floors, writing on walls and buried caches show, boxes and relics shimmer through walls, and a foe’s weak point shows (a cut there bites twice as deep). Hidden paths hold you up only while you look. The glass clouds over as you look (slower while you stand on what it shows) and clears when lowered.',
   model: () => lensModel(1),
   create(ctx) { return new Lens(ctx); },
 

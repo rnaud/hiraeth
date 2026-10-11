@@ -250,8 +250,8 @@ export function setupArzach(ctx) {
     if (player.riding || !windContains(wind, pp)) return;
     if (!player.gliding) {
       if (player.canGlide === false) once('nowings', 'The wind rushes up the tower’s side and tugs at your cloak. It would carry wings. The makers’ white house on the plain, west of the landing, keeps a pair.');
-      else if (!player.onGround) once('wings', 'The wind rushes up past you. Open your wings in it: hold A / × as you fall.');
-      else once('jump', 'The wind rushes up the tower’s side. Jump into it, and open your wings as you fall (hold A / ×).');
+      else if (!player.onGround) once('wings', 'The wind rushes up past you. Open your wings in it: hold {key:jump} as you fall.');
+      else once('jump', 'The wind rushes up the tower’s side. Jump into it, and open your wings as you fall (hold {key:jump}).');
       return;
     }
     windLift(wind, player, dt, T.balcony);

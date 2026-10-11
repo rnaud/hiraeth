@@ -18,7 +18,7 @@ import { readInput, NO_INPUT } from './input.js';
 import { gameSfx } from './sfx.js';
 import { disposeTree } from './dispose.js';
 import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
-import { inputKind, escapeHtml } from '../../prompt-keys.js';
+import { inputKind, escapeHtml, keyText } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
 import { stripTone } from '../../story/tone.js';
 import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
@@ -337,7 +337,9 @@ export class MinigameRunner {
 
   showIntro() {
     const d = this.def, S = this.host.state, best = bestScore(S, scoreDef(d, S)), kind = this.introKind = inputKind();
-    const rows = controlsFor(d, kind).map(([k, v]) => `<dt>${h(k)}</dt><dd>${h(v)}</dd>`).join('');
+    // (a {key:verb}: the player's own key or button for the input in hand, src/prompt-keys.js; the rest as written)
+    const keys = (x) => keyText(h(x), { kind, html: true, teach: true });
+    const rows = controlsFor(d, kind).map(([k, v]) => `<dt>${keys(k)}</dt><dd>${keys(v)}</dd>`).join('');
     // the options (def.options): a row of choices each, or a stepper (− value +)
     const opts = (d.options ?? []).map((o) => {
       const v = optionValue(d, S, o.id);

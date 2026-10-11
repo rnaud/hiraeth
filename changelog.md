@@ -2,6 +2,17 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.47 — 2026-10-11
+
+- After the Lantern, the sketchbook’s Sightings are answered: under each of the four threads, the singing light, the makers’ sign, the father’s signal and who came this way before, Ilen’s answer in her own words. The makers’ sign’s notes sit in their grid like the others again, instead of spilling off to the side.
+- The Lantern has a last stretch before the meeting. Once the light has come down into the crown, it sings to three lamps round the island’s shore, one at a time, its beam on the one it is singing to. Whistle back by each, with nothing in your hands, and the lamp lights. When all three are lit the light rings out, and Ilen comes out of her house to see who answered.
+- At the stone, keeping Dov’s lift token and saying no to Hollin are remembered too: the traveller names each choice, whichever way it went, and so does Ilen at the end.
+- Every trial now rewards something you can use straight away. The desert’s Dune line gives the hoverbike dune fins, a higher top speed. The Buried Machine’s run gives the seeing lens its clear glass, the Garden of Spheres’ a fourth bomb pouch, and the Signal Market’s the hourglass’s long sand: each for the gadget found in that same world.
+- In French, the lines that teach the controls are French too: the first steps in the desert, the ship’s nudge, the tank’s first fill, the first fight, the hoverbike’s call, the bell, the shell and the horn, and every hint that tells you which button to press. The names of the inputs (“la souris”, “le stick gauche”) are French as well.
+- The gadget cards, the trials’ start cards and Vael’s wind notices name your own keys and buttons: after remapping a control they show the new one, and only the controller’s names with a controller in hand, only the keyboard’s without.
+- The Worlds page no longer promises the makers’ jets in the City-Shaft, the Glass Dunes, the Buried Machine or the Signal Market, and the Warden’s Well asks you to ride the draught up, not to jet. Photo mode saves its pictures as hiraeth-…png, and on a phone offers them to the share sheet.
+- The Quests page’s Done list now names every quest you have finished, wherever you are: the Lantern’s, the night mail’s and every temple’s, which for the Glass Dunes and the three newest worlds is their whole main quest.
+
 ## v1.46 — 2026-10-11
 
 - Each frame skips more work it had already done: lists of lights and colours sent unchanged at every surface, the settings of textures sent again with the people’s every move, and the walk through the parts of the world with nothing left to draw on their own. A little more time for everything else, most of all on the Xbox.

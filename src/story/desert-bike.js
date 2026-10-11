@@ -6,6 +6,7 @@ import { items } from '../items.js';
 import { Paint, paintMaterial } from '../vehicle-kit.js';
 import { quietOr } from '../hint-level.js';
 import { keyText } from '../prompt-keys.js';
+import { t as tr } from '../i18n.js';
 
 // The desert's hoverbike isn't yours from the start. Marrow the salvager
 // dragged it into a hollow between the ship and the camps (STORY.bike, the dip
@@ -152,7 +153,7 @@ export function setupHoverbike(ctx) {
     if (!fuelled()) { toast(quietOr('It runs on fluid, and your tank is empty.', 'It runs on fluid, and your tank is empty. Fill it first, where the water is: the giant’s pool, past Qanat’s back gate.')); return; }
     game.set('desert.bike.found', true);
     sound.chime?.();
-    toast(keyText('Your pack clicks into the socket behind the seat. The hoverbike hums awake: call it from anywhere with {key:call}.', { teach: true }));   // (a new verb, said once: src/hint-level.js teach)
+    toast(keyText(tr('teach.bikeCall'), { teach: true }));   // (a new verb, said once: src/hint-level.js teach)
     if (bike) setTimeout(() => { if (!player.ride && flat(player.pos, bike.pos) < 6) player.board?.(bike); }, 350);
   };
   registerInteractable({

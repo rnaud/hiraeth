@@ -7,6 +7,7 @@
 //   seen(id, game)   has the traveller met it (its save flag sight.<id>, or the flag it is keyed on)
 //   recordSightings(game, { toast })   once per story runtime (src/story/index.js): writes each one down as it is met
 //   sightingsData({ game, known, titles })   → the Sightings page's threads (src/game-menu-data.js)
+//   answered(game)   the Lantern is done: every thread shows its answer, what Ilen told him there (THREADS `answer`)
 //
 // How one is met:
 //  - heard: { who, node, has? }  a conversation reaches that person's node (Dialogue emits 'dialogue:node';
@@ -20,12 +21,20 @@ import { isWip, partOf } from '../levels/names.js';
 // (the Sealed Hangar's three, Lune's and Clemence's, left with the dismissed world in October 2026: they cannot be met
 // now; a save that met them keeps their flags. Kept in src/levels/dismissed/hangar/sightings.js.)
 
+// Each thread asks its question until the Lantern answers it (`answer`: Ilen's, in her own words, after what she says
+// there: src/story/lantern-data.js).
 export const THREADS = [
-  { id: 'light', name: 'The singing light', ask: 'What drained the ship as it passed, and why did it turn?' },
-  { id: 'glyph', name: 'The makers’ sign', ask: 'Three dots over an arc, burned into the hull. Who signs their work like that?' },
-  { id: 'signal', name: 'The father’s signal', ask: 'A voice sent out a long time ago. Who was it meant for?' },
-  { id: 'before', name: 'Someone came this way before', ask: 'Who else came this far alone?' },
+  { id: 'light', name: 'The singing light', ask: 'What drained the ship as it passed, and why did it turn?',
+    answer: 'It was my answer. I sang his own message into a light and sent it home. It found his voice on the reel instead.' },
+  { id: 'glyph', name: 'The makers’ sign', ask: 'Three dots over an arc, burned into the hull. Who signs their work like that?',
+    answer: 'It’s on everything the makers left. Odile read it as “we heard you”. I put it on the light so he’d know.' },
+  { id: 'signal', name: 'The father’s signal', ask: 'A voice sent out a long time ago. Who was it meant for?',
+    answer: 'It was for me. “Come with empty hands. Just come.” Thirty years on the old relays, and it reached me.' },
+  { id: 'before', name: 'Someone came this way before', ask: 'Who else came this far alone?',
+    answer: 'I did, thirty years ago, brought in by a light. Odile and Talo before me. They kept the lantern, and me.' },
 ];
+/** The Lantern is done: the threads are answered (Ilen met, or the world's page). */
+export const answered = (game) => !!(game?.flag?.('finale.met') || game?.flag?.('world.lantern.done') || game?.flag?.('ending.final'));
 
 const ROUTE = [
   // ---------------------------------------------------------------- the singing light
@@ -119,9 +128,10 @@ export function recordSightings(game, { toast = () => {} } = {}) {
 }
 
 /**
- * The Sightings page: [{ id, name, ask, found, of, entries: [{ id, line, who, world, found }] }], one a
- * thread, in order. A sighting not met yet keeps its world's name only if the world is known (`known(id)`); one in a
- * world still being made (src/levels/names.js WIP) is left out until met.
+ * The Sightings page: [{ id, name, ask, answer, found, of, entries: [{ id, line, who, world, found }] }], one a
+ * thread, in order (`answer`: { line, who } once the Lantern is done, else null). A sighting not met yet keeps its
+ * world's name only if the world is known (`known(id)`); one in a world still being made (src/levels/names.js WIP:
+ * all seven side worlds now) is left out until met, so the page counts only what can be found.
  */
 export function sightingsData({ game, known = () => true, titles = {}, list = SIGHTINGS, wip = isWip } = {}) {
   return THREADS.map((t) => {
@@ -134,6 +144,6 @@ export function sightingsData({ game, known = () => true, titles = {}, list = SI
     });
     // (the ones met first, in the route's order; then the open slots)
     entries.sort((a, b) => Number(b.found) - Number(a.found));
-    return { id: t.id, name: t.name, ask: t.ask, found: entries.filter((e) => e.found).length, of: entries.length, entries };
+    return { id: t.id, name: t.name, ask: t.ask, answer: answered(game) ? { line: t.answer, who: 'Ilen' } : null, found: entries.filter((e) => e.found).length, of: entries.length, entries };
   });
 }

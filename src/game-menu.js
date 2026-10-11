@@ -201,7 +201,7 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
 }
 
 /**
- * Sketchbook: { sightings: [{ id, name, ask, found, of, entries: [{ id, line, who, world, found }] }] | null,
+ * Sketchbook: { sightings: [{ id, name, ask, answer: { line, who } | null, found, of, entries: [{ id, line, who, world, found }] }] | null,
  * worlds: [{ id, title, story: { title, img }, relics: [{ name, img }], found, of }],
  * extra: [{ id, title, tiles: [{ name, img, caption }] }] } (the observatory, the errands).
  * First the Sightings (src/story/sightings.js): a block a thread, its notes SIGHT_COLS a row, the ones met
@@ -221,12 +221,15 @@ export function sketchesPanel({ sightings = null, worlds = [], extra = [] } = {}
         const r = base + Math.floor(i / SIGHT_COLS), c = i % SIGHT_COLS;
         (rows[r] ??= []).push({ col: c, kind: 'sighting', id: e.id, name: e.found ? e.line : 'Not found yet',
           sub: e.found ? [t.name, e.world, e.who].filter(Boolean).join(' · ') : `${t.name} · ${e.world || 'somewhere further on'}`,
-          desc: e.found ? t.ask : `A trace still to find${e.world ? ` in ${e.world}` : ''}. ${t.ask}`, act: null });
+          desc: t.answer ? `${t.answer.who}: “${t.answer.line}”` : e.found ? t.ask : `A trace still to find${e.world ? ` in ${e.world}` : ''}. ${t.ask}`, act: null });
         notes.push(`<button class="note${e.found ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(e.found ? e.line : 'not found yet')}">${e.found
           ? `<q>${esc(e.line)}</q><small>${esc([e.world, e.who].filter(Boolean).join(' · '))}</small>`
           : `<i>?</i>${e.world ? `<small>${esc(e.world)}</small>` : ''}`}</button>`);
       });
-      return `<div class="thread ${esc(t.id)}"><h3>${esc(t.name)} <span>${t.found}/${t.of}</span></h3><div class="notes" style="--cols:${SIGHT_COLS}">${notes.join('')}</div></div>`;
+      // (answered at the Lantern: the thread's answer under its name, in Ilen's words)
+      const answer = t.answer ? `<p class="answer"><q>“${esc(t.answer.line)}”</q><small>${esc(t.answer.who)}</small></p>` : '';
+      // (`t-<id>`: a bare `glyph` class is the pad glyphs' own, src/pad-glyphs.js, and laid the makers' sign's block out as one)
+      return `<div class="thread t-${esc(t.id)}${t.answer ? ' answered' : ''}"><h3>${esc(t.name)} <span>${t.found}/${t.of}</span></h3>${answer}<div class="notes" style="--cols:${SIGHT_COLS}">${notes.join('')}</div></div>`;
     });
     sections.push(`<section class="sightings"><h2>Sightings <span>${found}/${of}</span></h2>${blocks.join('')}</section>`);
   }

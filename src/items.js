@@ -203,8 +203,13 @@ export const ITEMS = {
     use: 'You climb a third faster.',
   },
   // ---- won in the worlds' mastery trials (src/trials/: the first finish of each), upgrades to the gadgets
+  dunefins: {
+    name: 'Dune fins', kind: 'upgrade', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',
+    text: "Two thin brass fins for the hoverbike’s skirt, the makers’ mark stamped on each. The sand slips past them instead of dragging.",
+    use: 'The hoverbike’s top speed is 42 m/s instead of 34.',
+  },
   clearglass: {
-    name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',
+    name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s run on the wings.',
     text: "A second lens of the makers’ glass for the monocle, ground thinner than a fingernail. The world looks a little cleaner through it.",
     use: 'The seeing lens clouds over half as fast.',
   },
@@ -244,17 +249,18 @@ export const ITEMS = {
     use: 'The magnet glove reaches 26 m instead of 18.',
   },
   fourthpouch: {
-    name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s run on the wings.',
+    name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'spheres', where: 'The first finish of the Garden round, the Garden of Spheres’ run on foot.',
     text: "One more leather pouch on the bomb belt. It already smells of ink.",
     use: 'Four ink bombs in the pouch instead of three.',
   },
   longsand: {
-    name: 'Long sand', kind: 'upgrade', needs: 'recall', trial: 'spheres', where: 'The first finish of the Garden round, the Garden of Spheres’ run on foot.',
-    text: "A pinch of the garden’s finest sand for the hourglass. It runs slower and remembers longer.",
+    name: 'Long sand', kind: 'upgrade', needs: 'recall', trial: 'bazaar', where: 'The first finish of the Avenue run, the Signal Market’s run on the wings.',
+    text: "A pinch of the market’s finest sand for the hourglass, swept up under the silent tower. It runs slower and remembers longer.",
     use: 'The recall hourglass sends things back up to 12 seconds instead of 8.',
   },
+  // (the Avenue run's until v1.47, when the run gave the hourglass its long sand: kept for the saves that won it)
   racersribbon: {
-    name: 'Racer’s ribbon', kind: 'cosmetic', trial: 'bazaar', where: 'The first finish of the Avenue run, the Signal Market’s run on the wings.',
+    name: 'Racer’s ribbon', kind: 'cosmetic', retired: true, where: 'The first finish of the Avenue run, the Signal Market’s run on the wings, before v1.47.',
     text: "A ribbon in the market’s racing colours, stamped with the silent tower. The cab drivers nod at it.",
     use: 'It does nothing at all, and everyone in the market knows what it means.',
   },

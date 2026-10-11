@@ -29,6 +29,7 @@ import { partsOf, shiftAt } from './levels/names.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 import { hintsFor, quietOr } from './hint-level.js';
 import { keyText } from './prompt-keys.js';
+import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes } from './enemies/defeat.js';
 import { bodyReach } from './foe-body.js';
@@ -2793,8 +2794,7 @@ export class Foes {
   firstSeen() {
     if (this.game.flag('foes.seen') || !hintsFor('teach')) return;
     this.game.set('foes.seen', true);
-    this.notice?.(keyText(quietOr('{key:blade} cuts · {key:guard} guards · {key:evade} evades.',
-      'Creatures, possessed machines and shadow spirits: watch their bodies wind up. {key:blade} cuts; {key:guard} guards; {key:evade} evades. A last-moment guard parries. Each foe cut gives the tank a charge back.'), { teach: true }));
+    this.notice?.(keyText(quietOr(tr('teach.foesShort'), tr('teach.foes')), { teach: true }));
   }
 
   /** The look follows the mind: a blot wobbles and squashes into its lunge, a machine walks and raises its arms. */

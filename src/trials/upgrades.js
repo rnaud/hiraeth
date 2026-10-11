@@ -8,14 +8,16 @@ import { PEN } from '../gadgets/bridge.js';
 import { MAG } from '../gadgets/magnet.js';
 import { BOMB } from '../gadgets/bomb.js';
 import { HISTORY } from '../gadgets/history.js';
+import { RIDE_SPEED } from '../bike.js';
 
 // The trials' rewards at work (src/items.js, the items with `trial`): each an upgrade to a gadget's tuning
-// table while it is owned, put back when it is not (the dev menu). syncUpgrades(has) is run once a world
+// table (the desert's: the hoverbike's, the one thing it has to upgrade) while it is owned, put back when it is not (the dev menu). syncUpgrades(has) is run once a world
 // starts, before the gadgets are made (the recall's history takes its window when it is made), and again
 // whenever an item is granted or taken (main.js, items.on).
 
 /** Each upgrade: [the table, its key, the value with it]. The value without it is read once, here. */
 export const UPGRADES = {
+  dunefins: [RIDE_SPEED, 'max', 42],
   clearglass: [LENS, 'drain', LENS.drain * 0.5],
   longline: [HOOK, 'range', 34],
   fourthcoil: [BOUNCE, 'max', 4],

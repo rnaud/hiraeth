@@ -1,5 +1,6 @@
 import { game as sharedGame } from './game-state.js';
 import { items as sharedItems } from './items.js';
+import { t as tr } from './i18n.js';
 
 // The echo shell (src/items.js 'echo', found in the Signal Market's
 // Undertower, src/temples/bazaar.js): it catches the last of the makers'
@@ -32,7 +33,7 @@ export function createEchoShell({ player, game = sharedGame, items = sharedItems
       if (!was || was.note !== note) {
         sound?.critter?.('blip', 0.5);
         const key = told.size ? 'again' : 'first';
-        if (!told.has(key)) { told.add(key); toast(key === 'first' ? `The shell catches ${label} and holds it. {key:whistle} plays it back.` : `The shell holds ${label} now.`); }
+        if (!told.has(key)) { told.add(key); toast(key === 'first' ? tr('teach.shellCaught', { label }) : `The shell holds ${label} now.`); }
       }
       return true;
     },

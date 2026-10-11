@@ -7,6 +7,7 @@ import { textGeometry, glyphGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, KEEPSAKE, LANTERN_TONE, LANTERN_FLAG } from './bazaar-data.js';
 import { setupBazaarMoments, BROADCAST } from './bazaar-moments.js';
 import { quietOr } from '../hint-level.js';
+import { t as tr } from '../i18n.js';
 import { setupNightHalt } from './night-train.js';
 
 // The Signal Market's story, alive (bazaar-data.js has the words).
@@ -159,7 +160,7 @@ export function setupBazaar(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearCrates(); return true; }
       st.crateWobble = 1;
-      if (!st.crateHint) { st.crateHint = true; toast(quietOr('The crates rock and settle.', 'The crates rock and settle. They need a shove: switch the gun to push with {key:mode}, then aim and shoot.')); }
+      if (!st.crateHint) { st.crateHint = true; toast(quietOr('The crates rock and settle.', `The crates rock and settle. They need a shove. ${tr('teach.shove')}`)); }
       return true;
     } });
   const placeCrates = (k) => {

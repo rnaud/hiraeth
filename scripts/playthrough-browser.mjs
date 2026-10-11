@@ -6,11 +6,17 @@
 //   1. a new game: the title screen, the prologue (skipped as a player does, holding Esc), and the
 //      desert: no quest on landing, the drone finds Marrow by the ship;
 //   2. an old save from before the save slots and the reorder (the jets and the City-Shaft done, a
-//      message waiting): the title's Continue resumes it in the City-Shaft; the voicemail plays the
-//      waiting message; the holo table opens the galactic map, charting the new route; travel asks,
-//      the ship takes off and the next page is Vael, arriving by a landing (no crash); Vael's opening
-//      talk is what the drone finds; the bird is nowhere;
-//   3. save and load: back to the title and Continue: Vael again, the save as it was.
+//      message waiting): the title's Continue resumes it in the City-Shaft, the jets taken (a debug item
+//      since v1.38: the Warden's bellows instead); the voicemail plays the waiting message; the holo table
+//      opens the galactic map, charting the new route; travel asks, the ship takes off and the chime-pirates
+//      meet it on the way to a world not seen yet (won here by the save's flag, as the fight's page sets it);
+//      the next page is Vael, arriving by a landing (no crash); Vael's opening talk is what the drone finds;
+//      the bird is nowhere;
+//   3. save and load: back to the title and Continue: Vael again, the save as it was;
+//   4. the ending: the debug save of the Signal Market (the route before it done), the market and the first
+//      homecoming marked done, then the flight to the Lantern: the bar, the light's song (a whistle, V, by each of
+//      the lamps it sings to), Ilen out on the step; her coming home (`finale.met`, as her talk's end sets it), the
+//      flight home: the true ending's stone with Ilen's lines, the end card and the credits, with no page error.
 //
 //   node scripts/playthrough-browser.mjs [--port 6101] [--url http://localhost:6101/] [--out dir]
 //
@@ -60,7 +66,7 @@ const shot = async (name) => {
   writeFileSync(f, Buffer.from(r.data, 'base64'));
   return f;
 };
-const results = [];
+const results = [], pageErrors = [];
 const check = (ok, text) => { results.push({ ok: !!ok, text }); console.log(`${ok ? '  ok  ' : '  FAIL'} ${text}`); };
 const key = async (code, type = 'keyDown') => send('Input.dispatchKeyEvent', { type, code, key: code === 'Escape' ? 'Escape' : code.replace(/^Key/, '').toLowerCase(), windowsVirtualKeyCode: code === 'Escape' ? 27 : 0 });
 
@@ -99,7 +105,7 @@ try {
   for (let i = 0; i < 60; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); break; } catch { await sleep(250); } }
   ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
   await new Promise((r) => ws.addEventListener('open', r));
-  ws.addEventListener('message', (m) => { const d = JSON.parse(m.data); if (d.id && waits.has(d.id)) { const [res, rej] = waits.get(d.id); waits.delete(d.id); d.error ? rej(new Error(d.error.message)) : res(d.result); } });
+  ws.addEventListener('message', (m) => { const d = JSON.parse(m.data); if (d.method === 'Runtime.exceptionThrown') pageErrors.push(d.params?.exceptionDetails?.exception?.description ?? d.params?.exceptionDetails?.text ?? 'an error'); if (d.id && waits.has(d.id)) { const [res, rej] = waits.get(d.id); waits.delete(d.id); d.error ? rej(new Error(d.error.message)) : res(d.result); } });
   await send('Page.enable'); await send('Runtime.enable');
   // the volumes at 0 before any of the game runs, on every page
   await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { ${QUIET} } catch {}` });
@@ -134,7 +140,7 @@ try {
   await titleContinue();
   await until('!window.ship.playing', 60, 'the arrival');
   check(await ev(`window.ship.levelId`) === 'incal', `Continue resumes it where the ship stood: ${await ev('window.ship.levelId')}`);
-  check(await ev(`window.items.has('jetpack') && window.items.has('backpack')`), 'it keeps the backpack and the jets');
+  check(await ev(`!window.items.has('jetpack') && window.items.has('backpack') && window.items.has('wardenbellows')`), 'it keeps the backpack; the jets went for the Warden’s bellows (v1.38, v1.42)');
   check(await ev(`window.game.flag('box.incal.temple.jetpack') === true`), 'the Warden’s Well chest stays open');
   check(await ev(`localStorage.getItem('moebius.s1.game.v1') !== null`), 'the save moved into slot 1');
   // the voicemail: message 2 waits (two worlds done, one heard)
@@ -161,7 +167,18 @@ try {
   check(await ev(`window.ship.map.asking?.id === 'arzach'`), 'travel asks first');
   await ev(`window.ship.map.answer(true), true`);
   check(await ev(`window.ship.playing`), 'the ship takes off');
-  await until(`location.search.includes('level=arzach')`, 120, 'the jump to Vael');
+  // a world not seen yet: the chime-pirates on the way (src/ambush.js), their fight's own page; won here as it sets it
+  await until(`location.search.includes('game=pirates') || location.search.includes('level=arzach')`, 120, 'the jump to Vael');
+  const pirates = await ev(`location.search.includes('game=pirates')`);
+  check(pirates, 'the chime-pirates meet the ship on the way to a world not seen yet');
+  if (pirates) {
+    await until(`!!window.game`, 90, 'the pirates’ page');
+    await shot('pirates');
+    await ev(`window.game.set('ambush.arzach', 'won'), true`);
+    await sleep(300);
+    await send('Page.navigate', { url: `${URL_}?level=arzach&via=ship` });
+  }
+  await until(`location.search.includes('level=arzach')`, 120, 'the landing in Vael');
   await inGame();
   check(await ev(`window.ship.levelId === 'arzach' && window.ship.playing`), 'arriving in Vael by ship');
   const arrival = await ev(`window.ship.cinematic?.constructor?.name ?? null`);
@@ -184,8 +201,74 @@ try {
   await titleContinue();
   await until('!window.ship.playing', 60, 'the world');
   check(await ev(`window.ship.levelId`) === 'arzach', `Continue resumes in Vael (${await ev('window.ship.levelId')})`);
-  check(await ev(`window.game.flag('playthrough.mark') === 1 && window.game.flag('calls.2') === true && window.items.has('jetpack')`), 'the save as it was');
+  check(await ev(`window.game.flag('playthrough.mark') === 1 && window.game.flag('calls.2') === true && window.items.has('wardenbellows')`), 'the save as it was');
   console.log(`  ${await shot('reloaded')}`);
+
+  // ---------------------------------------------------------------- 4. the ending
+  console.log('4. the ending: from the debug save at the Signal Market, to the Lantern, its song, Ilen, the stone and the credits');
+  pageErrors.length = 0;
+  await fresh();
+  await send('Page.navigate', { url: `${URL_}?level=bazaar&debugsave=1` });
+  await inGame();
+  await until('!window.ship.playing', 120, 'the market');
+  // the market done and the first homecoming over: the Lantern is on the map (src/story/ending.js finaleOpen)
+  await ev(`(() => { for (const [k, v] of Object.entries({ 'world.bazaar.done': true, 'clue.bazaar.home': true, 'calls.home': true, 'ending.done': true, 'ambush.lantern': 'won' })) window.game.set(k, v); return true; })()`);
+  await sleep(500);
+  await send('Page.navigate', { url: `${URL_}?level=lantern&via=ship` });
+  await inGame();
+  await until('!window.ship.playing', 120, 'the landing at the Lantern');
+  await sleep(1500);
+  const Q = `'lantern.ilen'`;
+  check(await ev(`window.quests.stage(${Q})`) === 'bar', `the Lantern: over the sand bar first (${await ev(`window.quests.stage(${Q})`)})`);
+  check(await ev(`window.storyRt.world?.people?.ilen?.object.visible === false`), 'Ilen indoors until someone answers the light');
+  const tp = (expr) => ev(`(() => { const p = ${expr}; window.player.pos.copy(p); window.player.vel.set(0, 0, 0); return true; })()`);
+  await tp(`window.quests.locators.get('isle')()`);
+  await until(`window.quests.stage(${Q}) === 'answer'`, 30, 'the island');
+  // the light comes down into the crown (a filmed moment), then it sings to the lamps
+  await sleep(1500);
+  await shot('lantern-arrive');
+  for (let k = 0; k < 6 && (await ev('!!window.storyRt.moments?.playing')); k++) { await key('Escape'); await sleep(1400); await key('Escape', 'keyUp'); await sleep(300); }
+  await sleep(10000);
+  for (let i = 0; i < 3; i++) {
+    await tp(`window.quests.locators.get('lamp')().clone().add(new window.THREE.Vector3(3, 0.2, 2))`);
+    await sleep(1200);
+    if (i === 0) console.log(`  ${await shot('lantern-song')}`);
+    await key('KeyV'); await sleep(120); await key('KeyV', 'keyUp');
+    await sleep(900);
+    check(await ev(`window.game.flag('lantern.lamp.${i}') === true`), `a whistle (V) by the lamp the light sings to lights it (${i + 1} of 3)`);
+  }
+  check(await ev(`window.game.flag('lantern.answered') === true`), 'the light answered');
+  await until(`window.quests.stage(${Q}) === 'ilen' && window.storyRt.world.people.ilen.object.visible`, 30, 'Ilen coming out');
+  await sleep(6000);
+  await tp(`window.storyRt.world.people.ilen.pos.clone().add(new window.THREE.Vector3(0, 0, 3))`);
+  await sleep(800);
+  console.log(`  ${await shot('lantern-ilen')}`);
+  check(await ev(`window.storyRt.world.people.ilen.pos.distanceTo(window.level.lantern.spots.ilen) < 3`), 'Ilen on the lantern’s step');
+  // her talk's end (lantern-data.js 'home': finale.met, the quest on), as a player reaches it
+  await ev(`(() => { window.game.set('met.ilen', true); window.game.set('finale.met', true); window.quests.advance(${Q}, 'ilen'); return true; })()`);
+  await sleep(2500);
+  check(await ev(`window.quests.isDone(${Q}) && window.game.flag('world.lantern.done') === true`), 'We Heard You done, the Lantern done');
+  // home, with her: the true ending
+  await send('Page.navigate', { url: `${URL_}?level=home&via=ship` });
+  await inGame();
+  await until(`window.ship.cinematic?.constructor?.name === 'HomecomingDirector'`, 60, 'the homecoming');
+  check(await ev(`window.ship.cinematic.final === true`), 'the true ending plays');
+  const skip = () => ev(`(window.ship.cinematic?.skip?.(), true)`);
+  await sleep(2500); await skip(); await sleep(2500); await skip();
+  await until(`window.ship.cinematic?.stage === 'tomb'`, 60, 'the stone');
+  // (one of the stone's own lines in the subtitles: tombLines, not the cargo check's last word)
+  await until(`(() => { const s = document.querySelector('#cine .sub')?.textContent ?? ''; return (window.ship.cinematic.lines ?? []).some((l) => l.text && s.includes(l.text.slice(0, 24))); })()`, 60, 'a line at the stone');
+  check(true, `a line at the stone: “${(await ev(`document.querySelector('#cine .sub')?.textContent ?? ''`)).trim().slice(0, 70)}”`);
+  check(await ev(`(window.ship.cinematic.lines ?? []).some((l) => l.who === 'ilen')`), 'Ilen speaks at the stone');
+  console.log(`  ${await shot('stone')}`);
+  await skip();
+  await until(`window.ship.cinematic?.stage === 'card' || window.ship.cinematic?.stage === 'credits'`, 30, 'the end card');
+  await sleep(1500); await skip();
+  await until(`!!document.querySelector('#credits.on')`, 30, 'the credits');
+  await sleep(4000);
+  check(await ev(`/The Lantern/.test(document.querySelector('#credits')?.textContent ?? '')`), 'the credits roll, the Lantern in them');
+  console.log(`  ${await shot('credits')}`);
+  check(!pageErrors.length, `no page error on the way (${pageErrors.length ? pageErrors.slice(0, 3).join(' | ') : 'none'})`);
 } catch (e) {
   check(false, `stopped: ${e.message}`);
   try { console.log(`  ${await shot('stopped')}`); } catch { /* */ }

@@ -7,6 +7,7 @@ import { starShape, BOX_COLORS } from './model.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createEchoShell } from '../echo-shell.js';
 import { hintsFor } from '../hint-level.js';
+import { t as tr } from '../i18n.js';
 
 // What the boxes' special items do (src/items.js documents them). Kept cheap
 // and from the outside: nothing here edits the tool or the player.
@@ -113,6 +114,8 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     }
     // (the shell answers a breath after the bell, so the two notes can be told apart)
     if (items.has('echo')) { if (rang) setTimeout(() => echo.play(), items.has('horn') ? 900 : 450); else rang = echo.play(); }
+    // nothing to sound: your own whistle, which only the Lantern's light listens for (src/story/lantern.js, its sound too)
+    if (!rang && player && !player.hidden) g.emit('whistle', { pos: player.pos.clone() });
     return rang;
   };
   const onKey = (e) => { if (e.code === 'KeyV' && !e.repeat && !(globalThis.document?.activeElement?.tagName === 'INPUT')) ring(); };
@@ -120,9 +123,9 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   const off = items.on((id, owned) => {
     applyTank();
     // (the box's card has just said how: these say it again, hints full only: src/hint-level.js)
-    if (owned && id === 'bell' && hintsFor('tip')) setTimeout(() => toast('The bell-note whistle: sound it with {key:whistle}.'), 1800);
-    if (owned && id === 'echo' && hintsFor('tip')) setTimeout(() => toast('The echo shell: let something sing near it, then play it back with {key:whistle}.'), 1800);
-    if (owned && id === 'horn' && hintsFor('tip')) setTimeout(() => toast('The whale-horn: sound its deep note with {key:whistle}.'), 1800);
+    if (owned && id === 'bell' && hintsFor('tip')) setTimeout(() => toast(tr('teach.bell')), 1800);
+    if (owned && id === 'echo' && hintsFor('tip')) setTimeout(() => toast(tr('teach.echo')), 1800);
+    if (owned && id === 'horn' && hintsFor('tip')) setTimeout(() => toast(tr('teach.horn')), 1800);
   });
   // ---- a bloom glob on the world: a few flowers come up where it landed (the pouch's pool)
   const offBloom = g.on?.('tool:bloom', ({ point } = {}) => {

@@ -158,10 +158,17 @@ minute). What only the page has, headless and muted (`--mute-audio`, the game's 
 DevTools protocol, against its own dev server (or `--url`: in CI, `npx vite preview` after the build).
 A new game: the title, the prologue skipped by holding Esc, no quest on landing, the drone on Marrow. An
 old save from before the save slots and the reorder: Continue resumes it in the City-Shaft (moved into
-slot 1); the voicemail plays the waiting message; the holo table opens the map with the new route;
-travel asks, the ship takes off, the next page is Vael and the arrival is a landing; the drone finds
-Oïa; the bird is nowhere. Save and load: back to the title, Continue, Vael again as it was. Screenshots
-go to `--out`; it exits 1 if a check fails.
+slot 1), the jets gone for the Warden's bellows; the voicemail plays the waiting message; the holo table
+opens the map with the new route; travel asks, the ship takes off, the chime-pirates meet it (their page
+opens; the pass marks the fight won, as winning it does, and flies on), the next page is Vael and the arrival
+is a landing; the drone finds Oïa; the bird is nowhere. Save and load: back to the title, Continue, Vael again
+as it was. **The ending** (v1.47, issue #104): the debug save of the Signal Market (`?level=bazaar&debugsave=1`),
+the market and the first homecoming marked done, the flight to the Lantern: the sand bar, Ilen indoors, the
+island, the light's song answered with V by each lamp, Ilen out on the step; her talk's end (`finale.met`, set as
+the talk's last node sets it), the flight home: the true ending (`HomecomingDirector`, final), a line of the
+stone's own in the subtitles and Ilen's among them, the end card, the credits with the Lantern in them, and no
+page error (`Runtime.exceptionThrown`) on the way. Screenshots go to `--out`; it exits 1 if a check fails.
+It passed 40 of 40 on October 11, 2026 (the desert's opening still finds Marrow by the ship).
 
 **What it does not do.** It teleports between objectives once it has found a walk (or a declared way),
 so it does not run the traveller's own movement except where a way is tried for real; the Hangar's

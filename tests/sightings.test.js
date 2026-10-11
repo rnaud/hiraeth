@@ -134,6 +134,34 @@ test('the Sightings page: a block a thread, a ? for each still to find, the worl
   assert.ok(!sketchesPanel({ worlds: sk.worlds }).html.includes('sightings'));
 });
 
+// (issue #98: the threads never closed after the Lantern, and the detours' traces sat in worlds nobody can reach)
+test('after the Lantern every thread shows its answer, in Ilen’s words, on the page', async () => {
+  const { game } = await freshGame();
+  const before = sightingsData({ game });
+  assert.ok(before.every((t) => t.answer === null), 'open questions until then');
+  for (const t of THREADS) assert.ok(t.answer && t.answer.length <= 160 && parseLine(t.answer).text === t.answer, `${t.id}: a short answer, no tone`);
+  game.set('finale.met', true);
+  const after = sightingsData({ game });
+  assert.ok(after.every((t) => t.answer?.line === THREADS.find((x) => x.id === t.id).answer && t.answer.who === 'Ilen'));
+  const { html, rows } = sketchesPanel(sketchesData({ data: { stories: {} }, levels: [], sightings: after }));
+  assert.equal((html.match(/class="answer"/g) ?? []).length, THREADS.length, 'each block its answer');
+  assert.match(rows.flat().find((c) => c.kind === 'sighting').desc, /^Ilen: /, 'a note’s strip says the answer, not the question');
+});
+
+test('the page counts only traces that can be met: none in a world still being made (all seven side worlds)', async () => {
+  const { WIP, SUB: SUBS } = await import('../src/levels/names.js');
+  const { game } = await freshGame();
+  const counted = sightingsData({ game }).flatMap((t) => t.entries.map((e) => SIGHTINGS.find((s) => s.id === e.id)));
+  for (const s of counted) {
+    assert.ok(!WIP.includes(s.world), `${s.id}: in ${s.world}, which nobody can reach yet`);
+    assert.ok(ROUTE_PARTS.includes(s.world) || Object.hasOwn(SUBS, s.world), `${s.id}: in a route world or one reached from it`);
+  }
+  // the detour traces still to be met: the Overnight Train's chalk mark, met by its own flag in its world's content
+  const read = (dir) => readdirSync(new URL(`../src/${dir}/`, import.meta.url)).filter((f) => f.endsWith('.js') && !f.startsWith('sightings')).map((f) => readFileSync(new URL(`../src/${dir}/${f}`, import.meta.url), 'utf8'));
+  const where = [...read('story'), ...read('levels')].join('\n');
+  for (const s of counted.filter((x) => !x.heard && !x.flag)) assert.ok(where.includes(`sight.${s.id}`) || where.includes(`'${s.id}'`), `${s.id}: something in its world sets sight.${s.id}`);
+});
+
 test('every sighting line reads in plain words (no tone tags: they are notes, not dialogue)', () => {
   for (const s of SIGHTINGS) assert.equal(parseLine(s.line).text, s.line, s.id);
 });

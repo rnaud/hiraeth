@@ -58,23 +58,26 @@ export function badgeLine(text) {
 // form (src/bindings.js PAD; native-pad.js prints them as a handheld does), or the touch buttons.
 // (the keys and buttons the player chose, src/remap.js: asked each time, so a rebinding shows at once)
 const VERB_KEYS = {
-  keys: { move: () => ['forward', 'left', 'back', 'right'].map(remapKey).join(''), look: 'the mouse', jump: () => remapKey('jump'), interact: () => remapKey('interact'),
-    aim: () => `${remapKey('aim')} or the right mouse button`, fire: () => `${remapKey('fire')} or a left click`, mode: () => remapKey('mode'),
-    blade: () => `${remapKey('blade')} or a left click`, guard: () => remapKey('guard'), evade: () => remapKey('evade'), lock: () => remapKey('lock'),
-    call: () => remapKey('interact'), gadget: () => remapKey('gadget'), pick: () => remapKey('gadgetNext'), run: () => remapKey('run'), scout: () => remapKey('scout'),
-    whistle: () => remapKey('whistle'), thrust: () => `${remapKey('jump')} held in the air`, potion: () => remapKey('potion') },
-  pad: { move: 'the left stick', look: 'the right stick', jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'),
+  keys: { move: () => ['forward', 'left', 'back', 'right'].map(remapKey).join(''), look: () => t('vk.mouse'), jump: () => remapKey('jump'), interact: () => remapKey('interact'),
+    aim: () => t('vk.orRightMouse', { key: remapKey('aim') }), fire: () => t('vk.orLeftClick', { key: remapKey('fire') }), mode: () => remapKey('mode'),
+    blade: () => t('vk.orLeftClick', { key: remapKey('blade') }), guard: () => remapKey('guard'), evade: () => remapKey('evade'), lock: () => remapKey('lock'),
+    call: () => remapKey('interact'), gadget: () => remapKey('gadget'), use: () => t('vk.orMiddleMouse', { key: remapKey('gadget') }), pick: () => remapKey('gadgetNext'), run: () => remapKey('run'), scout: () => remapKey('scout'),
+    whistle: () => remapKey('whistle'), thrust: () => t('vk.heldInAir', { key: remapKey('jump') }), potion: () => remapKey('potion'),
+    reel: () => `${remapKey('forward')} / ${remapKey('back')}` },
+  pad: { move: () => t('vk.leftStick'), look: () => t('vk.rightStick'), jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'),
     mode: () => verbButton('modeNext'),
     blade: () => verbButton('blade'), guard: () => verbButton('guard'), evade: () => verbButton('evade'), lock: () => verbButton('lock'),
-    call: () => verbButton('call'), gadget: () => verbButton('fire'), pick: () => verbButton('pick'), run: () => verbButton('run'), scout: () => verbButton('lock'),
-    whistle: () => verbButton('whistle'), thrust: () => `${verbButton('jump')} held in the air`, potion: () => verbButton('potion') },
-  touch: { move: 'the stick on the left', look: 'a drag on the right', jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐',
-    blade: '⚔', guard: '◇', evade: '↶', lock: '◉', call: 'E', gadget: '✺', pick: 'the gadget chip', run: 'run', scout: 'ping',
-    whistle: '◆ with no gadget in hand', thrust: '⤒ held in the air', potion: 'the flask by your hearts' },
+    call: () => verbButton('call'), gadget: () => verbButton('fire'), use: () => verbButton('fire'), pick: () => verbButton('pick'), run: () => verbButton('run'), scout: () => verbButton('lock'),
+    whistle: () => verbButton('whistle'), thrust: () => t('vk.heldInAir', { key: verbButton('jump') }), potion: () => verbButton('potion'),
+    reel: () => t('vk.leftStick') },
+  touch: { move: () => t('vk.touchStick'), look: () => t('vk.touchDrag'), jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐',
+    blade: '⚔', guard: '◇', evade: '↶', lock: '◉', call: 'E', gadget: '✺', use: '✺', pick: () => t('vk.touchChip'), run: () => t('vk.touchRun'), scout: () => t('vk.touchPing'),
+    whistle: () => t('vk.touchWhistle'), thrust: () => t('vk.heldInAir', { key: '⤒' }), potion: () => t('vk.touchFlask'),
+    reel: () => t('vk.touchStick') },
 };
 /**
  * The input for a verb (move, look, jump, interact, aim, fire, mode, blade, guard, evade, lock, call, gadget, pick, whistle, thrust,
- * run, scout) on this kind of input; an unknown verb is its own word.
+ * run, scout; use: the gadget in hand's button with the keyboard's middle mouse button; reel: the stick's forward and back) on this kind of input; an unknown verb is its own word.
  */
 export const verbKey = (verb, kind = inputKind()) => {
   const k = VERB_KEYS[kind]?.[verb] ?? VERB_KEYS.keys[verb] ?? verb;

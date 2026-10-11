@@ -1,7 +1,7 @@
 // The ending, in two homecomings (docs/story-bible.md, "The ending"; docs/game-brief.md,
 // working decision 5).
 //
-// THE FIRST HOMECOMING (ENDING_WORLDS worlds done, any six of the route's nine):
+// THE FIRST HOMECOMING (ENDING_WORLDS worlds done, any six of the route's twelve):
 //  - the last recording on the reel asks the traveller home (src/story/calls.js) and the galactic
 //    map shows Home at its centre, where the route starts (src/ship/starmap.js);
 //  - choosing Home flies there (?level=home&via=ship, src/levels/home.js). Out of the jump the ship
@@ -79,7 +79,7 @@ export const endingUnlocked = (completed) => (Array.isArray(completed) ? complet
 
 /**
  * Is Home on the galactic map? The one rule the map, the charge card and the ending share:
- * any six worlds done (of the nine on the route, in any order), and the last recording on
+ * any six worlds done (of the twelve on the route, in any order), and the last recording on
  * the reel heard ("Come home": `calls.home`, or `calls.<ENDING_WORLDS>` on older saves); or
  * the ending already played. The voicemail button blinks on the dash while that message waits
  * (the holo table's map opens either way); the worlds not yet seen stay open, before home or after.
@@ -159,12 +159,14 @@ export function choicesMade(flag = () => undefined) {
   };
 }
 
-/** The traveller's words at the stone for each choice (after the tokens), tone-tagged. */
+/** The traveller's words at the stone for each choice (after the tokens), tone-tagged: every answer to each has its own. */
 export function choiceLines(ch = {}) {
   const out = [];
   if (ch.token === 'returned') out.push(spoken('you', '~whisper~ Dov’s lift token isn’t here. I gave it back to him. He’d carried a way home for eleven years without using it.'));
+  else if (ch.token === 'kept') out.push(spoken('you', '~solemn~ Dov’s lift token is here with the rest. He gave me his way home to keep, and I kept it.'));
   if (ch.promise === 'kept') out.push(spoken('you', '~solemn~ Hollin’s lamps. I told him I’d go back to the deep wood, and I went.'));
   else if (ch.promise === 'made') out.push(spoken('you', '~sad~ And Hollin, in the deep wood, watching the path for me. I promised I’d go back. I haven’t yet.'));
+  else if (ch.promise === 'declined') out.push(spoken('you', '~solemn~ Hollin asked me to come back to the deep wood. I wouldn’t promise. I didn’t want anyone else watching a path for me.'));
   // the quest that failed (src/story/terraces.js): the father's own advice, kept (calls.js, beat 'broke')
   if (ch.broke) out.push(spoken('you', '~sad~ And Esk’s hill, which I could not mend. I helped open the gate that broke. I’m still sorry.'));
   return out;
@@ -315,8 +317,10 @@ const IL = (text, extra) => spoken('ilen', text, extra);
 export function ilenOnChoices(ch = {}) {
   const out = [];
   if (ch.token === 'returned') out.push(IL('~whisper~ He gave a man his way home, Dad. You’d have called it a waste. It wasn’t.'));
+  else if (ch.token === 'kept') out.push(IL('~solemn~ He kept a guard’s way home safe, Dad. Eleven years in a pocket. It can rest here now.'));
   if (ch.promise === 'kept') out.push(IL('~happy~ And he went back to the deep wood, like he said. Hollin knows where Odile and Talo went now.'));
   else if (ch.promise === 'made') out.push(IL('~playful~ He still owes a lamp-keeper a visit. I’ll see that he goes.'));
+  else if (ch.promise === 'declined') out.push(IL('~solemn~ He wouldn’t promise a lamp-keeper he’d come back. He knows what waiting costs. He learned that here.'));
   if (ch.broke) out.push(IL('~solemn~ He broke something he couldn’t mend, and said sorry, and went when he was asked. You taught him that one.'));
   return out;
 }

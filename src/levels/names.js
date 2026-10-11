@@ -32,12 +32,13 @@ export const TITLES = {
 };
 
 // the route, world by world (src/story/route.js). The wings come first (Vael's Aerie, the second world,
-// where the winds lift them); the jets wait in the later half (the City-Shaft's Warden's Well), and the
-// worlds that want them (the Glass Dunes' First Garage, the Buried Machine, the Signal Market) come after it.
+// where the winds lift them); the City-Shaft's Warden's Well gives them their bellows in the middle. (The
+// jets are debug-only since v1.38: no world on the route needs them.)
 // (October 2026, the author's level changes: Vael and Vael II became one world, Lorn and Lorn II too; the
 // Sealed Hangar left the route for the Glass Dunes, which took its temple: MERGED, DISMISSED, PARTS below.)
 export const ORDER = ['desert', 'arzach', 'perdide', 'edena', 'underwater', 'incal', 'glassdunes', 'buried', 'moonfoundry', 'spheres', 'spacecity', 'bazaar'];
-// the worlds off the route: on the ship's map from the start, never needed on the way home (no story to follow)
+// the worlds off the route: never needed on the way home (no story to follow); charted on the ship's map once
+// they leave WIP (CHARTED_SIDE), which all seven are on now
 export const SIDE = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'eclipse', 'fallenring', 'underside'];
 // the worlds still being made: built in a rush in October 2026 and never vetted or finished. The galactic
 // map leaves them off (CHARTED_SIDE) and the Sightings page leaves their slots out; the worlds list (Debug)

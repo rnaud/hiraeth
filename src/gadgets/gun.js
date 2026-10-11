@@ -59,7 +59,7 @@ export default {
   where: ITEMS.gun?.where,
   with: ITEMS.gun?.with,   // (ember mode comes with it: one chest, issue #83)
   text: ITEMS.gun?.text ?? 'The makers’ glove that shoots the backpack’s fluid.',
-  use: ITEMS.gun?.use ?? 'Aim with LT / L2 and shoot with RT / R2; D-pad → takes the next mode.',
+  use: ITEMS.gun?.use ?? 'Aim with {key:aim} and shoot with {key:fire}; {key:mode} takes the next mode.',
   model: () => gunModel(),
   create(ctx) { return new Gun(ctx); },
 };

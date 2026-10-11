@@ -65,7 +65,7 @@ function bombBody(scale = 1) {
 export default {
   id: 'bomb', name: 'Ink bombs', glyph: '●', order: 20, trigger: 'aim',
   text: 'Round pots of the makers’ blackest ink, sealed under a brass cap with a short fuse. They grow back in their pouch, a drop at a time.',
-  use: 'Aim with LT / L2 (R, or the right mouse button): a dotted arc shows where it will land and how far the blast reaches. RT / R2 (T, or a left click) throws it; without aiming, it is thrown at once. It bounces, rolls and goes off after two seconds (at once on a foe): it breaks cracked walls, throws foes and crates, and knocks you back if you stand too close. Three in the pouch; another grows back every five seconds.',
+  use: 'Aim with {key:aim}: a dotted arc shows where it will land and how far the blast reaches. {key:fire} throws it; without aiming, it is thrown at once. It bounces, rolls and goes off after two seconds (at once on a foe): it breaks cracked walls, throws foes and crates, and knocks you back if you stand too close. Three in the pouch; another grows back every five seconds.',
   model: () => bombBody(1),
   create(ctx) { return new Bombs(ctx); },
 

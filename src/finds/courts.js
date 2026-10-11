@@ -8,11 +8,13 @@ import { shiftAt, offsetOf } from '../levels/names.js';
 // a paved square of the makers' pale stone where a box holds a gadget, and round it the very things that
 // gadget is for: the same pieces as its bay in the Gadget Yard (its module's `yard(kit)`), so the tool is
 // useful the moment it is found, and the court's pots of ink and its gate are the reward for using it.
-// One gadget a world, in the route's order (src/levels/names.js ORDER): the hook in Vael, the spring boots
-// on the Sky Stones' plateau, the gust fan in Lorn (its pinwheels; the skiff's sail), the boomerang in the
-// Deep Wood, the bubble wand in Viridel, the ink bridge pen on the City-Shaft's rim, the magnet glove in the
-// Hangar, the seeing lens in the Buried Machine (whose canyon hides a bridge of glass), the ink bombs in the
-// Garden of Spheres and the recall hourglass in the Signal Market (whose cabs it sends back).
+// One gadget a court, in the route's order (src/levels/names.js ORDER; a merged world keeps its parts' two):
+// in Vael the hook, and the spring boots on its sky stones' plateau; in Lorn the gust fan (its pinwheels; the
+// skiff's sail), and the boomerang in its Deep Wood; the bubble wand in Viridel, the ink bridge pen on the
+// City-Shaft's rim, the magnet glove in the Glass Dunes (the Sealed Hangar's, before it left the route), the
+// seeing lens in the Buried Machine (whose canyon hides a bridge of glass), the ink bombs in the Garden of
+// Spheres and the recall hourglass in the Signal Market (whose cabs it sends back). The Underwater City, the
+// Moon Foundry and the City Floating in Space have none.
 //
 // attachCourt(levelId, scene, level) is called by src/temples/index.js attachTemple, at level build, before
 // the collision is baked: the pavement and the bay's blocks are solid like the rest of the world; what moves

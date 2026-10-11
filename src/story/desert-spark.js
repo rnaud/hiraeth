@@ -4,6 +4,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { HEARTH } from '../desert-hearth.js';
 import { THINGS, ITEMS } from './desert-data.js';
 import { quietOr } from '../hint-level.js';
+import { t as tr } from '../i18n.js';
 
 // The spark-stone's errand in the Givers' Hearth (src/desert-hearth.js builds the
 // place; src/story/desert.js sets this up and lights the tree with the stone).
@@ -56,7 +57,7 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     onHit: (mode) => {
       if (mode === 'push') { roll(); return true; }
       st.wobble = 1;
-      hint(quietOr('The ball rocks in its groove, and settles.', 'The ball rocks in its groove, and settles. It wants a shove: switch the gun to push with {key:mode}, then aim and shoot.'));
+      hint(quietOr('The ball rocks in its groove, and settles.', `The ball rocks in its groove, and settles. It wants a shove. ${tr('teach.shove')}`));
       return true;
     } });
   registerInteractable({ id: 'hearth.weight', priority: PRIORITY.use, range: 3, at: () => H.ball.position, enabled: () => !opened() && st.roll < 0,

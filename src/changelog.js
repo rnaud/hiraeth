@@ -8,6 +8,26 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.47', date: '2026-10-11', items: [
+    // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)
+    { text: 'The Quests page’s Done list now names every quest you have finished, wherever you are: the Lantern’s, the night mail’s and every temple’s, which for the Glass Dunes and the three newest worlds is their whole main quest.',
+      see: 'Finish the Casting-House in the Moon Foundry, fly to another world and open the game menu’s Quests page: it is under Done.' },
+    { text: 'The Worlds page no longer promises the makers’ jets in the City-Shaft, the Glass Dunes, the Buried Machine or the Signal Market, and the Warden’s Well asks you to ride the draught up, not to jet. Photo mode saves its pictures as hiraeth-…png, and on a phone offers them to the share sheet.',
+      see: 'Open the game menu’s Worlds page and read the City-Shaft’s card; press P in a world, then take a picture.' },
+    { text: 'The gadget cards, the trials’ start cards and Vael’s wind notices name your own keys and buttons: after remapping a control they show the new one, and only the controller’s names with a controller in hand, only the keyboard’s without.',
+      see: 'In Controls, move Jump to another key, then walk into the wind at Vael’s lone tower, or open a trial’s sign: the card names the new key.' },
+    { text: 'In French, the lines that teach the controls are French too: the first steps in the desert, the ship’s nudge, the tank’s first fill, the first fight, the hoverbike’s call, the bell, the shell and the horn, and every hint that tells you which button to press. The names of the inputs (“la souris”, “le stick gauche”) are French as well.',
+      see: 'Set the Language to Français in the settings, start a new game and wait by the ship’s door: the nudge is in French.' },
+    { text: 'Every trial now rewards something you can use straight away. The desert’s Dune line gives the hoverbike dune fins, a higher top speed. The Buried Machine’s run gives the seeing lens its clear glass, the Garden of Spheres’ a fourth bomb pouch, and the Signal Market’s the hourglass’s long sand: each for the gadget found in that same world.',
+      see: 'Finish the Dune line on the hoverbike in the desert, then ride flat out: the bike tops out faster.' },
+    { text: 'At the stone, keeping Dov’s lift token and saying no to Hollin are remembered too: the traveller names each choice, whichever way it went, and so does Ilen at the end.',
+      see: 'Keep Dov’s token in the City-Shaft, or tell Hollin you can’t promise in the Deep Wood, then go home: listen at the stone.' },
+    // the finale's play (docs/story-bible.md, "The Lantern"; issue #97)
+    { text: 'The Lantern has a last stretch before the meeting. Once the light has come down into the crown, it sings to three lamps round the island’s shore, one at a time, its beam on the one it is singing to. Whistle back by each, with nothing in your hands, and the lamp lights. When all three are lit the light rings out, and Ilen comes out of her house to see who answered.',
+      see: 'At the Lantern, walk the sand bar onto the island, then follow the beam to each lamp and press Y / △ (V) beside it.' },
+    { text: 'After the Lantern, the sketchbook’s Sightings are answered: under each of the four threads, the singing light, the makers’ sign, the father’s signal and who came this way before, Ilen’s answer in her own words. The makers’ sign’s notes sit in their grid like the others again, instead of spilling off to the side.',
+      see: 'Meet Ilen at the Lantern, then open the game menu’s Sketchbook: each thread has its answer under its name.' },
+  ] },
   { v: '1.46', date: '2026-10-11', items: [
     // nobody sends you to somebody else (docs/systems/story.md "Straight to the end"; issue #85)
     { text: 'In the Signal Market, Madame Sel tells you herself where the tower’s last recording is and how to tune the antenna, instead of sending you to find Kip and then Ferro. Kip hands the recording to anyone who asks for it.',
