@@ -1,0 +1,87 @@
+changelog.md
+  s_9ca76055a220ed::t_8559f0a7c23b3c 7-10
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_4be88ce3b53377 140-150
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_7db21c1ff21b4d 271-272
+docs/systems/movement.md
+  s_9ca76055a220ed::t_a45cd1087c5bfc 256-269,299-309
+docs/systems/progression.md
+  s_9ca76055a220ed::t_3a297c080b897c 43,72-74
+docs/systems/story.md
+  s_9ca76055a220ed::t_f2b3b844b53cac 437-441
+docs/systems/temples.md
+  s_9ca76055a220ed::t_917585deca6013 138,280
+src/bike-worlds.js
+  s_9ca76055a220ed::t_49fefd1f13143a 1-52
+src/boxes/placements.js
+  s_9ca76055a220ed::t_96dd546fd009ff 58-63,70
+src/changelog-media.js
+  s_9ca76055a220ed::t_a97565c298e1ea 560-567,631,640-653
+src/changelog.js
+  s_9ca76055a220ed::t_2fc82c2c0fadae 68-78
+src/desert-hearth.js
+  s_9ca76055a220ed::t_ca14764e00c9ab 155-176,212-219,221-224,226,235,240-248,268-272,418,458-487,516-519,530,535
+src/desert-road.js
+  s_9ca76055a220ed::t_83b60046a9f5c2 4,44-45
+src/flammable.js
+  s_9ca76055a220ed::t_adf91974d3be7c 8-9
+src/gadgets/gun.js
+  s_9ca76055a220ed::t_7ba98a39a91b18 60
+src/gadgets/registry.js
+  s_9ca76055a220ed::t_420e11e0ada782 57
+src/items.js
+  s_9ca76055a220ed::t_5a3fa1800d5809 54-57,86,307,313
+src/levels/arena.js
+  s_9ca76055a220ed::t_5f531604fef1b5 4,151,160,177,208,220
+src/levels/home-houses.js
+  s_9ca76055a220ed::t_b9b9af329ef619 4,347-348
+src/levels/incal.js
+  s_9ca76055a220ed::t_4b679a979813e4 5,824,829,833-834
+src/main.js
+  s_9ca76055a220ed::t_778be15d40c1ab 3-4,86,332-335,490-496
+src/save-migrate.js
+  s_9ca76055a220ed::t_e7289dfb331d86 59-60,199-201,204-214
+src/story/desert-data.js
+  s_9ca76055a220ed::t_a740924912ea6d 113-115
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_dfd1c3445208bf 17,67
+src/story/desert.js
+  s_9ca76055a220ed::t_99212f1d9b0acf 352-353,356
+src/story/flames.js
+  s_9ca76055a220ed::t_bc9aaa0353053a 4,58-135
+src/temples/hints.js
+  s_9ca76055a220ed::t_d781e352df67a3 61-62,65,68
+src/temples/index.js
+  s_9ca76055a220ed::t_406eafd27bed61 93
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_27edb41405e931 102-103
+tests/bike-worlds.test.js
+  s_9ca76055a220ed::t_96f7ede66bafc2 1-67
+tests/boxes.test.js
+  s_9ca76055a220ed::t_a80e36eb790095 85
+tests/desert-hearth-door.test.js
+  s_9ca76055a220ed::t_98ffde60db8aff 1-65
+tests/fire-hazards.test.js
+  s_9ca76055a220ed::t_efe40bf607a6c0 1-77
+tests/items-page.test.js
+  s_9ca76055a220ed::t_1462b537dcccbe 19-22
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_7da29968ffe4d7 90,124,131-147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9ce0e5211b8661c8542c5050dc56730db48006ae",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
