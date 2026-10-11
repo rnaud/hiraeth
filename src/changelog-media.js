@@ -621,7 +621,6 @@ export const CHANGELOG_MEDIA = {
       { name: 'shafts-wick', title: 'The Wick', caption: 'The Buried Machine’s oculus, the Wick lit: before, its light a solid glowing tube up out of the oculus; after, a soft shaft', ...C49_SHAFTS,
         view: { level: 'buried', save: { ...SAVE47, flags: { ...SAVE47.flags, 'buried.oculus.lit': true } }, hour: 12, fov: 70, eye: [52, -31.2, -468], target: [28, -8, -480], player: [52.5, -33.9, -467.5] } },
     ], see: 'In the Builders’ Greenhouse, the louvres’ light in the Bud Passage and over the Vine Gulf; outside, once the Lamp-House’s lamp burns again, its beam over the Deep Wood at dusk; in the Buried Machine, the Wick’s light up its oculus.' },
-    { match: 'The title screen is there the moment the game opens', numbers: [
     { match: 'The title screen is there the moment the game opens', shots: [
       { name: 'title-first', title: 'As it opens', caption: 'The Desert’s shot as the title first shows it: before, its still (a picture of the 3D world being built behind the menu); after, the drawing, flat colour and ink traced off the same render', commit: '83604381',
         view: { query: 'shot=A4', hud: true, ready: "!!window.title?.root?.classList.contains('art-on')", settle: 400, wait: 0, before: { ready: "!!window.title?.root?.classList.contains('still-on')" } } },
