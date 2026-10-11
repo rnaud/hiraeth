@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_dcaebc393e8639 7
+docs/systems/water.md
+  s_9ca76055a220ed::t_30aba8bee7290f 173-174,182-188
+src/changelog-media.js
+  s_9ca76055a220ed::t_11904f0b69922e 598-602
+src/changelog.js
+  s_9ca76055a220ed::t_c2ff530d576be7 31-33
+tests/unity-water-contact.test.js
+  s_9ca76055a220ed::t_ca0afbcc6df1db 31-33
+unity/Memento/Assets/Memento/Editor/Tests/WorldsTests.cs
+  s_9ca76055a220ed::t_879cc55fd2549a 169,172-173,186
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_9ca76055a220ed::t_faf2e4b6508605 61-65,69-72
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_9ca76055a220ed::t_971b9ae94433c3 178-182
+unity/Memento/Assets/Memento/Runtime/WorldLoader.cs
+  s_9ca76055a220ed::t_81f12ee7de8c1f 251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc9ff4550f0cb97af41ac5ab588be3f67d5435a3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
