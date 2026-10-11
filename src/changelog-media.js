@@ -626,6 +626,8 @@ const TALK49 = 'headless Chrome (muted, 11 October) against this branch’s own 
 // (v1.50: Qanat's square, issues #161 and #160: a new game before the chest, at ten in the morning)
 const SQ_FROM = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720, a new game before the chest), Vite on port 5463, at the commit before the change and at the change (before its rebase), 11 October';
 const SQ_AVENUE = { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 58, eye: [215.5, 3.4, 374.5], target: [231.5, 3.2, 397.5], player: [212.5, 1.3, 369.5] };
+// (v1.50: the camera at the sleeping car's door: the camera QC's own frames, the same moment before and after)
+const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) in headless Chrome (muted, High), Vite on port 5471, before the change and after it, 11 October; its 480 × 270 frame, cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.50': [
     { match: 'Qanat’s square is clearer round its great tree', shots: [
@@ -656,6 +658,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'quest-step', title: 'The quest log', caption: 'The Quests page after the first homecoming, seven worlds done: before, “The singing light went out along the route: follow it”; after, “Make the Signal Market’s silent tower speak”', ...C50_MAP },
     ], see: 'After the first homecoming, open the menu’s Quests page, then the galactic map: the Signal Market (or its faint dot) carries NEXT and “the silent tower”, with a gold line out to it from your ship.' },
     { match: 'On the Steam Deck, a second game can join Hiraeth', see: 'On a Steam Deck with Hiraeth installed, rerun the install command in Konsole (Desktop Mode) and choose Steam → Exit when it asks: back in Steam, Non-Steam shows “Hiraeth (Unity preview)” beside Hiraeth, with the same artwork. Its first start downloads the player if the installer could not (about 300 MB); ~/.local/share/moebius-deck/unity-launch.log says what ran.' },
+    { match: 'Running through the Overnight Train’s doors, the camera no longer', shots: [
+      { name: 'camera-sleeper-door', title: 'The sleeping car’s door', caption: 'Running from the dining car into the sleeping car’s corridor, 14 s into the camera QC’s train-run, the same frame: before, the lens shoved 14 cm off the door’s jamb in one frame, the view turning 174°/s nobody asked for; after, the same shove eased over a few frames, 70°/s', from: CAM50 },
+    ], numbers: [
+      { title: 'The worst turn of the view nobody asked for, train-run', unit: '°/s', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High, 1280 × 720', rows: [
+        { where: 'at the sleeping car’s door (worst of each run)', before: '169–174', after: '70–82' },
+        { where: 'the node walk at a run (sim-train.mjs)', before: 363, after: 196 },
+      ], source: 'the camera QC (.claude/skills/camera-qc): three runs before, four after; a spin is over 90°/s' },
+    ], see: 'In the Overnight Train, run from the dining car into the sleeping car turning after the corridor: the camera slides along the door frame instead of flicking round.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

@@ -60,7 +60,7 @@ await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceSc
 // ---------------------------------------------------------------- the recorder and the hands, put into the page
 // (one function, stringified: it wraps rig.update, so every frame's camera is read right after the rig placed it, and
 // the script's hands for the next frame are set there too; renderer.render is wrapped to keep a picture of a bad frame)
-function install(L) {
+function install(L, at = []) {
   const { THREE, rig, camera, player, physics, input, renderer } = window;
   const V = (a) => new THREE.Vector3(...a), up = new THREE.Vector3(0, 1, 0);
   const st = window.__cq = { samples: [], shots: [], segs: [], seg: -1, segT: 0, done: true, wp: 0, stuck: 0, stuckP: null, lastT: 0, log: [] };
@@ -178,7 +178,9 @@ function install(L) {
       const sev = Math.max(Math.abs(one.dArm) / L.LIMITS.pop, one.move / (L.LIMITS.jump * 1.5), one.look / (L.LIMITS.lookJump * 1.5), one.spin / (L.LIMITS.spin * 1.5),
         s.clear < L.LIMITS.clip ? 1 + (L.LIMITS.clip - s.clear) / L.LIMITS.clip : 0);
       const weakest = st.shots.length < 10 ? 0 : Math.min(...st.shots.map((x) => x.sev));
-      if (sev >= 1 && sev > weakest && !st.shots.some((x) => Math.abs(x.t - s.t) < 0.6 && x.sev >= sev)) pending = { t: s.t, sev, what: `Δarm ${one.dArm.toFixed(2)} m · off-path ${one.move.toFixed(2)} m · look ${one.look.toFixed(2)} m · spin ${one.spin.toFixed(0)}°/s · lens ${s.clear.toFixed(2)} m` };
+      // (SHOT_AT: a picture at those times as well, whatever happened, for a before and after of the same moment)
+      const asked = at.some((t) => s.t >= t && s.t - s.dt < t);
+      if (asked || (sev >= 1 && sev > weakest && !st.shots.some((x) => Math.abs(x.t - s.t) < 0.6 && x.sev >= sev))) pending = { t: s.t, sev, what: `Δarm ${one.dArm.toFixed(2)} m · off-path ${one.move.toFixed(2)} m · look ${one.look.toFixed(2)} m · spin ${one.spin.toFixed(0)}°/s · lens ${s.clear.toFixed(2)} m` };
     }
     prev2 = prev; prev = s;
     return r;
@@ -233,7 +235,7 @@ for (const [wn, world] of byWorld.entries()) {
   if (!up) { console.log(`${world}: never booted`); for (const s of plan.filter((x) => x.world === world)) results[s.name] = { error: 'never booted' }; continue; }
   await sleep(2500);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; } return true; })()`);
-  await ev(`(async () => { const L = await import('/scripts/camera-qc/lib.mjs'); return (${install.toString()})(L); })()`);
+  await ev(`(async () => { const L = await import('/scripts/camera-qc/lib.mjs'); return (${install.toString()})(L, ${JSON.stringify((process.env.SHOT_AT ?? '').split(',').filter(Boolean).map(Number))}); })()`);
   for (const sc of plan.filter((s) => s.world === world)) {
     // the start: placed, turned, settled
     await ev(`(async () => { const { THREE, player, rig } = window; ${sc.setup ?? ''}

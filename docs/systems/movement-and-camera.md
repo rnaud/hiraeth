@@ -148,6 +148,18 @@ look point (18 cm, 3 in 8 s) and its roughness; a door taken at a run while turn
 frame; crowd strollers still walk through the camera in other worlds' narrow streets (only the train's keep out of the
 aisles).
 
+**The lens past a door's jamb (v1.50).** Sable's closer arm (v1.49, #148) made that last turn at the sleeping car's
+door worse: the lens, coming in on its spring past the jamb, was shoved 14 cm sideways off it in one frame
+(`pushCapsule` after the arm was placed), the view turning 170°/s nobody asked for, and train-run went red on two of
+them in some runs. Close in, that shove is now eased (`SHOVE_RATE` 14/s, never more than `SHOVE_LAG` 8 cm short of
+what the walls ask: the lens keeps most of its room), and where the spring would put the lens in a wall on the way
+(less than `ARM_IN_ROOM`) it comes in along the arm only as far as it has its room again (bisection), not jumped to the
+arm's end. The worst unasked turn at that door: 169–174°/s → 70–82°/s in the browser (under the spin's 90), 363 → 196
+in the node walk at a run; train-run green in every run since. desert-open and desert-shop stay red for causes of
+their own: in the open the ground behind a jump or a dune cuts the arm by 3–4 m at once (the ground limit's
+bisection, snapped in where close in it eases), and the shop's are the look point's small kinks above. The C# port's
+rig (unity/) does not have the eased shove yet.
+
 ## The jets fly like a plane (v0.89, `src/player.js`: `JET`, `startJets`, `flyJets`, `jetSteer`, `jetStep`)
 
 The author, after the Superman jets: "R2 should make me go high fast. Joystick should be for

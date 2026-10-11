@@ -103,8 +103,10 @@ test('the Overnight Train: the sleeping car\'s corridor (open compartment doors 
 
 test('the Overnight Train at a run: at most a small pop at a door taken at speed while turning', () => {
   const r = runWalk(train(), 'train-run');
-  assert.ok(r.measures.pops <= 2 && r.measures.popMax < 0.6, `pops ${r.measures.pops}, at most ${r.measures.popMax} m`);
-  assert.ok(r.measures.spinMax < 400 && r.measures.out < 0.01, `spins at most ${r.measures.spinMax}°/s, out ${r.measures.out}`);
+  assert.ok(r.measures.pops <= 1 && r.measures.popMax < 0.4, `pops ${r.measures.pops}, at most ${r.measures.popMax} m`);
+  // (v1.50: the lens comes in along the arm past a door's jamb and its shove off the jamb is eased over a few frames:
+  // the view turned 363°/s nobody asked for running into the sleeping car, 196 now; in the browser 170 → 80)
+  assert.ok(r.measures.spinMax < 250 && r.measures.out < 0.01, `spins at most ${r.measures.spinMax}°/s, out ${r.measures.out}`);
 });
 
 test('the carriages\' windows are glazed for the camera and the traveller (never drawn): the lens stays inside', () => {

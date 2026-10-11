@@ -28,6 +28,8 @@ It writes `camera.json` (every scenario's measures, events and verdict), `camera
 worst frames, captioned with what happened and how much: the arm's change, the move off the camera's path, the look
 point's, the turn nobody asked for, the lens's room) and `<scenario>.json` (the raw samples). It exits 1 if a scenario
 is red.
+`SHOT_AT=13.97[,…]` (seconds into each scenario) keeps a picture of those frames too, whatever happened there: the
+same moment before and after a fix, for the changelog.
 
 **Without a browser** (seconds, for trying a fix): `node scripts/camera-qc/sim-train.mjs [train-walk,train-run]` walks
 the Overnight Train's carriages with the real `CameraRig` through the real collision in node (`scripts/camera-qc/sim.mjs`:

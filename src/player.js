@@ -405,7 +405,7 @@ const _qId = new THREE.Quaternion();
 const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu2 = new THREE.Vector3();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _cn = new THREE.Vector3(), _cd = new THREE.Vector3(), _ce = new THREE.Vector3(), _sw = new THREE.Vector3(), _ct = new THREE.Vector3();
-const _hs = new THREE.Vector3(), _pv = new THREE.Vector3();
+const _hs = new THREE.Vector3(), _pv = new THREE.Vector3(), _pb = new THREE.Vector3();
 const _sr = new THREE.Vector3(), _sp = new THREE.Vector3(), _lb = new THREE.Vector3();   // (CameraRig.pickShoulder)
 
 /**
@@ -2677,7 +2677,9 @@ const ARM_IN = 9;                  // 1/s: its spring coming in then, if it can'
 const ARM_OUT = 3.6;               // 1/s: its spring letting out again
 const ARM_IN_MAX = 12;             // m/s: and at most this fast
 const ARM_AHEAD = 0.22;            // s: turning by hand, how far ahead along the turn the arm looks for walls
-const ARM_IN_ROOM = 0.16;          // m: as long as the lens keeps this much room on the way (else at once)
+const ARM_IN_ROOM = 0.16;          // m: as long as the lens keeps this much room on the way (else only as far in as it has it)
+const SHOVE_RATE = 14;             // 1/s: close in, the shove off a wall beside the lens eased in at this rate…
+const SHOVE_LAG = 0.08;            // m: …never more than this short of it
 const SHORT_ARM = 1.05;            // m: an arm cut shorter than this close in tips the camera down over the head…
 const SHORT_TILT = 0.7;            // rad: …by up to this much
 const ARM_HOLD_CUT = 0.45;         // m: only a cut this big is held (holdSpot): less comes in on the spring
@@ -3349,8 +3351,15 @@ export class CameraRig {
         if (this._armV < -ARM_IN_MAX) { this._armV = -ARM_IN_MAX; next = this._curDist - ARM_IN_MAX * dt; }
         cam.copy(this._look).addScaledVector(this._dir, next);
         if (next <= soft) { next = soft; this._armV = 0; }
-        // (the lens would be in a wall on the way, or under the ground a heightfield makes: at once)
-        else if (next > allowed && (this.physics.roomAt(cam, LENS_R) < ARM_IN_ROOM || cam.y < this.physics.groundAt(cam.x, cam.y + 0.2, cam.z) + 0.3)) { next = allowed; this._armV = 0; }
+        // (under the ground a heightfield makes: at once)
+        else if (next > allowed && cam.y < this.physics.groundAt(cam.x, cam.y + 0.2, cam.z) + 0.3) { next = allowed; this._armV = 0; }
+        // (the lens would be in a wall on the way: in along the arm only as far as it has its room again, not all the way
+        // to the end: at once, running through a carriage's door, it jumped 40 cm and the view turned 360°/s; v1.50)
+        else if (next > allowed && this.physics.roomAt(cam, LENS_R) < ARM_IN_ROOM) {
+          let lo = allowed, hi = next;
+          for (let i = 0; i < 6; i++) { const m = (lo + hi) / 2; cam.copy(this._look).addScaledVector(this._dir, m); if (this.physics.roomAt(cam, LENS_R) >= ARM_IN_ROOM) lo = m; else hi = m; }
+          next = lo; this._armV = Math.min(this._armV, 0);
+        }
         this._curDist = next;
         this._holdT = ARM_HOLD;
       } else { this._curDist = soft; this._armV = 0; this._holdT = ARM_HOLD; }
@@ -3365,8 +3374,23 @@ export class CameraRig {
     if (k > 0.05 && !rolling) {
       if (!swept) this.unclip(cam, U);   // (the swept ball left the lens its room already: the rays only shoved it about)
       // and off anything else that close (a bunk's edge just under the lens, a corner): a sphere pushed out
-      this.physics.pushCapsule?.(cam, LENS_R, -LENS_R, LENS_R, _ct, U);
-    }
+      if (this.physics.pushCapsule) {
+        // (the shove eased over a few frames, not all in one: a door's jamb beside the arm, running into the sleeping car,
+        // shoved the lens 14 cm sideways in a frame, the view turning 160°/s nobody asked for; the camera QC's train-run, v1.50)
+        _pb.copy(cam);
+        this.physics.pushCapsule(cam, LENS_R, -LENS_R, LENS_R, _ct, U);
+        const need = _pd.subVectors(cam, _pb);
+        const sh = (this._shove ??= new THREE.Vector3());
+        if (this._jumped || !swept) sh.copy(need);
+        else {
+          sh.lerp(need, 1 - Math.exp(-SHOVE_RATE * dt));
+          // (never more than SHOVE_LAG short of it: the lens keeps most of its room)
+          const lag = _ct.subVectors(need, sh), L = lag.length();
+          if (L > SHOVE_LAG) sh.addScaledVector(lag, 1 - SHOVE_LAG / L);
+        }
+        cam.copy(_pb).add(sh);
+      }
+    } else this._shove?.set(0, 0, 0);
     this.constrain?.(cam);
     // roll the camera with gravity (smoothly, so portals don't snap the view)
     // (a quaternion turn, so even a 180° flip rotates instead of collapsing)
