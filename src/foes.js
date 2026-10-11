@@ -1511,9 +1511,13 @@ export class Foes {
       },
       seen: (from, to) => !physics?.rayDistance || physics.rayDistance(from, _w.subVectors(_v.copy(to).setY(to.y + 1), from).normalize(), from.distanceTo(_v)) >= from.distanceTo(_v) - 0.5,
     };
-    if (!this.peaceful) this.placeMachines();
+    // (the machines once he is armed: unarmed, as he comes into the desert, nothing out there or in the temples needs a
+    // fight, and they are placed the moment the sword is his: update)
+    if (!this.peaceful && this.armed()) this.placeMachines();
     // the bell-note whistle (src/boxes/effects.js ring: the game's 'bell'): a bell walker winding up its toll near it chokes
     this.offBell = game?.on?.('bell', (e) => this.bellNote(e)) ?? null;
+    // a temple's chest opened: its room's encounter (the temple's `encounter`) may wake now, placed on the next update
+    this.offChest = game?.on?.('temple:gadget', ({ id } = {}) => { this.encounterFor = id; }) ?? null;
     // the relics' guards: a relic out in the wilds (src/levels/content.js relics.spots), once per save
     this.guards = this.peaceful || level?.foes?.waves || level?.foes?.own ? [] : (content?.relics?.spots ?? []).map((s, i) => {
       const a = Array.isArray(s) ? s : s.at, x = a[0], z = a.length === 2 ? a[1] : a[2];
@@ -1695,6 +1699,7 @@ export class Foes {
 
   wild(p) {
     const L = this.level;
+    if (!this.armed()) return false;   // (unarmed: no wilds yet)
     if (L?.foes?.wild === false) return false;   // (a world with no wilds: the Gadget Yard)
     if (L?.temple?.inside?.(p)) return false;
     if (L?.unsafe?.(p)) return false;
@@ -1796,24 +1801,48 @@ export class Foes {
     // (every temple of the level: a merged world has two; each machine's id by its temple, as it always was)
     for (const rt of this.level?.temples ?? (this.level?.temple ? [this.level.temple] : [])) this.placeMachinesIn(rt);
   }
+  /**
+   * He carries the sword (v1.44: found in the Givers' House; main.js sets tool.swordOn). Unarmed, no pack comes in from
+   * the wilds, no relic's guards rise, no placed encounter wakes and the temples' machines wait: nothing he must fight
+   * before he has the blade. (No tool, or swordOn left unset, as in the tests: armed.)
+   */
+  armed() { return this.tool?.swordOn !== false; }
   placeMachinesIn(rt) {
     const phys = this.physics;
     if (!rt?.marks?.length || !phys) return;
+    this.placedIn ??= new Set();
+    if (this.placedIn.has(rt)) return;
+    this.placedIn.add(rt);
+    rt.machines ??= [];
     const arena = rt.guardian?.arena?.center ?? rt.guardian?.model?.pos ?? null;
     const world = WORLDS[rt.id] ? rt.id : this.levelId;
     rt.marks.forEach((m, i) => {
       if (i === 0) return;
       const id = `foes.${rt.id ?? this.levelId}.m${i}`;
-      if (this.game.flag(id)) return;
       if (arena && m.pos.distanceTo(arena) < 14) return;
-      for (const a of [0.9, -0.9, 2.2, -2.2, Math.PI]) {
+      // (broken, or standing already: placed again for an encounter)
+      if (!this.game.flag(id) && !this.list.some((f) => f.id === id && f.alive)) for (const a of [0.9, -0.9, 2.2, -2.2, Math.PI]) {
         const h = m.heading + a, x = m.pos.x + Math.sin(h) * 3.6, z = m.pos.z + Math.cos(h) * 3.6;
         const y = phys.groundAt(x, m.pos.y + 2, z, 5);
         if (!Number.isFinite(y) || Math.abs(y - m.pos.y) > 1.2) continue;
         const from = _v.copy(m.pos).setY(m.pos.y + 1), to = _w.set(x, y + 1, z);
         if (phys.rayDistance?.(from, to.clone().sub(from).normalize(), from.distanceTo(to)) < from.distanceTo(to) - 0.3) continue;
-        this.add(templeKind(world, i), new THREE.Vector3(x, y, z), { id }).placed = true;
+        const f = this.add(templeKind(world, i), new THREE.Vector3(x, y, z), { id });
+        f.placed = true; f.room = m.room;
+        rt.machines.push(f);   // (the temple reads them: a room whose exit holds while its machines stand, desert.js)
         break;
+      }
+      // a room's encounter (the temple's `encounter`: { room, extra, on(rt) }): more machines round its mark, while on
+      const E = rt.def?.encounter;
+      if (E && E.room === m.room && (E.on?.(rt) ?? true)) for (let k = 0; k < (E.extra ?? 0); k++) {
+        const eid = `${id}.e${k}`;
+        if (this.game.flag(eid) || this.list.some((f) => f.id === eid && f.alive)) continue;
+        const h = m.heading + Math.PI + (k - (E.extra - 1) / 2) * 1.4, x = m.pos.x + Math.sin(h) * 4.5, z = m.pos.z + Math.cos(h) * 4.5;
+        const y = phys.groundAt(x, m.pos.y + 2, z, 5);
+        if (!Number.isFinite(y) || Math.abs(y - m.pos.y) > 1.2) continue;
+        const f = this.add(templeKind(world, i + k + 1), new THREE.Vector3(x, y, z), { id: eid });
+        f.placed = true; f.room = m.room;
+        rt.machines.push(f);
       }
     });
   }
@@ -1876,6 +1905,7 @@ export class Foes {
   /** A guarded relic you come near (in the wilds, not yet cleared, its guards not out): they gather round it. */
   updateGuards() {
     const P = this.player;
+    if (!this.armed()) return;
     for (const g of this.guards) {
       if (this.game.flag(g.id) || P.pos.distanceTo(g.pos) > GUARDS.near) continue;
       if (this.list.some((f) => f.guard === g && f.alive)) continue;
@@ -1895,6 +1925,7 @@ export class Foes {
    */
   updatePosts() {
     const P = this.player;
+    if (!this.armed()) return;
     for (const p of this.posts ?? []) {
       if (this.game.flag(p.id) || P.pos.distanceTo(p.pos) > POSTS.near || this.list.some((f) => f.post === p && f.alive)) continue;
       const kind = ARCHETYPES[p.archetype]?.kind;
@@ -2193,6 +2224,12 @@ export class Foes {
     // left far behind dissolves; after one is cut down, a rest before the next
     if (this.waves && !this.own && !this.practice) this.updateWaves(dt);
     if (this.practice?.kind) this.updatePractice(dt);
+    if (!this.peaceful && this.armed() && !this.placedIn?.size && (this.level?.temples?.length || this.level?.temple)) this.placeMachines();   // (armed now: the temples' machines come)
+    if (this.encounterFor && !this.peaceful && this.armed()) {
+      const rt = (this.level?.temples ?? [this.level?.temple]).find((t) => t?.id === this.encounterFor);
+      this.encounterFor = null;
+      if (rt?.def?.encounter) { this.placedIn?.delete(rt); this.placeMachinesIn(rt); }
+    }
     this.updateGuards();
     this.updatePosts();
     const wild = !this.waves && !P.ride && !P.swim && this.wild(P.pos);
@@ -2932,5 +2969,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { this.offBell?.(); this.offBell = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.shocks = this.patches = this.waveQueue = null; this.hold = null; }
+  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.shocks = this.patches = this.waveQueue = null; this.hold = null; }
 }

@@ -51,6 +51,17 @@ export const CHANGELOG = [
     // the jets' trials outside the City-Shaft (issue #21)
     { text: 'The Glass Dunes’ Glass slalom, the Buried Machine’s Canyon dive and the Signal Market’s Avenue run are flown on your wings now, with columns of rising air to climb again on the way, so their rewards can be won: the strong lodestone, the fourth pouch and the racer’s ribbon.',
       see: 'At each trial’s stone (the Glass Dunes by the ship, the Buried Machine on the canyon’s rim north of the landing, the Signal Market at the avenue’s head), start the run, open your wings in the column of rising rings and ride it up, then glide through the rings. In the Canyon dive the column at the canyon’s end lifts you out.' },
+    // the progression: empty hands, the Givers' House remade (docs/systems/progression.md "Empty hands", temples.md)
+    'You set out with empty hands now. The Givers’ blade and their guard are waiting in the Givers’ House, the rose-stone drum in the dunes east of Qanat, and nothing out in the desert comes to fight you before you have the blade.',
+    'The Givers’ House is remade for what you carry. Lean on its first tar ball to roll it through the old flame and into the hooded bowl. Cross its sand pit with a double jump onto the old pier and on again, and find the blade on the dais half-way.',
+    'Taking the blade wakes the chamber’s machines, and its doors stay shut until you have broken them.',
+    'Cut the corridor’s thorns with the blade. Cut the tar balls along their grooves too: a cut sends them rolling much faster than you can push, so they are still burning when they reach the hooded bowls.',
+    'The Givers’ guard is on the far landing of the Hall of Fires. Hold it up to walk into the wind from the Givers’ bellows. At the far end of that hall, strike the eye high on the wall from a double jump.',
+    'The Keeper is calmed with what you found. Cut each spoke’s ball out to light the bowls round its cistern. Take its charge on your guard, and it stops and pants: then give it water from your tank. Later, cut a burning ball down a spoke to it.',
+    'Ember mode is in the Givers’ Hearth now, beside the fluid gun. If you leave the desert without the blade and the guard, they wait by your ship in the next world.',
+    'Your saves keep the sword and the guard you had. A save from inside the old house starts the new one from its door, and if you had calmed the Keeper already, it stays calm.',
+    // z-fighting (docs/systems/rendering.md "Z-fighting", the zfight-qc skill)
+    'Doorframes, sills, roof edges and wall ends in every temple no longer flicker and stripe where two surfaces lay in the same plane. The Givers’ House has none left, and the other temples have far fewer.',
   ] },
   { v: '1.43', date: '2026-10-10', items: [
     // the chime-pirates between worlds (docs/systems/minigames.md "Pirates between worlds")

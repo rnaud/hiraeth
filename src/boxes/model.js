@@ -237,6 +237,26 @@ function lensModel(color = '#bfe8f2', { glyph = false, ice = false } = {}) {
   return g;
 }
 
+function swordModel() {
+  // the Givers' blade: its brass hilt and cup (src/fluid-sword.js draws the held one), the fluid grown out of it a little,
+  // jade, as it lies in the chest
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.02, 0.13, 10).translate(0, -0.12, 0), flatM(BRASS_DARK)));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8).translate(0, -0.19, 0), flatM(BRASS)));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.02, 0.035, 14).translate(0, -0.04, 0), flatM(BRASS)));
+  g.add(new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.32, 4).scale(1, 1, 0.3).translate(0, 0.14, 0), flatM('#38b8a9', { glow: 0.45 })));
+  g.rotation.set(0, 0.4, 0.55);
+  return g;
+}
+function shieldModel() {
+  // the Givers' guard: a folded disc of brass on its bracer, its fan of leaves half open
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.01, 18, 1, false, 0, Math.PI * 0.55).rotateX(Math.PI / 2).rotateZ(-0.9 + i * 0.32).translate(0, 0, i * 0.008), flatM(i % 2 ? BRASS : BRASS_DARK)));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 18).translate(0, 0, -0.02), flatM('#8a5a3a')));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8).translate(0, 0, 0.05), flatM('#38b8a9', { glow: 0.5 })));
+  g.rotation.set(-0.35, 0.5, 0);
+  return g;
+}
 function flintModel() {
   const g = new THREE.Group();
   g.add(new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.022, 8, 24), flatM(BRASS)));
@@ -527,7 +547,7 @@ function ribbonModel() {
 }
 
 const MODELS = {
-  backpack: tankModel, doublejump: liftModel, jetpack: jetsModel, wardenbellows: wardenbellowsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
+  sword: swordModel, shield: shieldModel, backpack: tankModel, doublejump: liftModel, jetpack: jetsModel, wardenbellows: wardenbellowsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
   cell: cellModel, coil: coilModel, lantern: lanternModel, lens: () => lensModel('#d8d4c8', { glyph: true }), bell: whistleModel, star: starModel,
   bloom: bloomModel, echo: echoModel, level: levelModel,
   soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,

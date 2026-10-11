@@ -14,7 +14,7 @@ import { metPeople, personStory, personNow, interactions, PERSON } from './story
 import { backdropFor } from './story/portrait-bg.js';
 import { TITLES } from './levels/names.js';
 
-const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
+const KIND_ORDER = ['core', 'weapon', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 /** Each gun mode's item (the backpack shoots plain fluid). */
 const MODE_OF = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' };
 const cap = (s) => String(s ?? '').replace(/^./, (c) => c.toUpperCase());

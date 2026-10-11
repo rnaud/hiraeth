@@ -50,6 +50,12 @@
 //
 // The Overnight Train's Mireille shared her name and id with the Underwater City's (v1.43): she is Solange, and step 12
 // marks her met under her own id.
+// The Givers' House remade (v1.44, src/temples/desert.js): he starts with nothing in his hands, and the sword and the
+// shield's guard are found in the desert's temple. Nobody loses a weapon: step 13 gives every save from before the
+// sword and the shield (all of them had both from the start since v1.38, past the temple or not), their temple chests
+// open; ember mode, the house's old key, waits in the Givers' Hearth now, its chest open for a save that has it. A
+// save inside the house, not done, starts the remade house from its door (its doors and fires were the old puzzle's);
+// a save that had calmed the Keeper keeps it calmed, its doors open.
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -184,7 +190,30 @@ const STEPS = [
   (flags) => {
     if (flags['met.mireille'] && ['stop', 'off', 'home', 'done'].includes(flags['quest.bazaar.nightmail'])) flags['met.solange'] ??= true;
   },
+  // 13: the Givers' House remade (v1.44): the sword and the shield were his from the start; now they are found there.
+  // Every save from before keeps both, their chests open (a save from before the items, too: src/boxes/index.js
+  // migrateSave's legacy rule doesn't count them). The old house's puzzle state goes, unless the Keeper was calmed.
+  (flags) => migrateGivers(flags),
 ];
+
+/** The remade Givers' House's doors and fires (src/temples/desert.js LOGIC): open and lit for a save that had calmed the Keeper. */
+export const GIVERS_DONE = { open: ['d1', 'dc', 'dk', 'br1', 'sc', 'd3'], lit: ['b0', 'bw0', 'b3', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'] };
+/** Step 13 (pure, in place): the sword and the shield kept, the house's old state cleared or settled. */
+export function migrateGivers(flags) {
+  flags['item.sword'] ??= true;
+  flags['item.shield'] ??= true;
+  flags['box.desert.temple.sword'] ??= true;
+  flags['box.desert.temple.shield'] ??= true;
+  // ember mode: the house's old chest held it; it waits in the Hearth now
+  if (flags['item.fire'] || flags['box.desert.temple.fire']) { flags['item.fire'] ??= true; flags['box.desert.hearth.fire'] ??= true; }
+  const done = flags['temple.desert.boss'] === 'done' || !!flags['temple.desert.done'];
+  for (const k of Object.keys(flags)) if (/^temple\.desert\.(open|lit|drum)\./.test(k) || k === 'temple.desert.checkpoint') delete flags[k];
+  if (done) {
+    for (const id of GIVERS_DONE.open) flags[`temple.desert.open.${id}`] = true;
+    for (const id of GIVERS_DONE.lit) flags[`temple.desert.lit.${id}`] = true;
+  }
+  return flags;
+}
 
 /** Step 10 (pure, in place): a save's worlds moved to the ones that took their place. */
 export function migrateWorlds(flags) {

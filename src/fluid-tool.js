@@ -1004,8 +1004,11 @@ export class FluidTool {
     this.time += dt;
     const p = this.player, input = toolInput(paused ? {} : ctl);
     // the triggers and the mode button are the gun's only while it is the gadget in hand (src/gadgets/: else the
-    // gadget in hand has them); the blade, the guard and the evade are always his
+    // gadget in hand has them); the evade is always his, the blade and the guard once found (v1.44: swordOn and shieldOn,
+    // set by main.js from the items; left unset, as in the tests, they are his)
     if (!this.gunInHand) { input.aim = input.shoot = input.fire = input.quick = input.mode = false; }
+    if (this.swordOn === false) input.blade = false;
+    if (this.shieldOn === false) input.guard = false;
     const ok = this.allowed(paused), bodyOk = this.bodyFree(paused);
     // a shot: a fresh press of the fire button while aiming (or the touch button's quick shot)
     const quickPress = input.quick && !this.held.quick;

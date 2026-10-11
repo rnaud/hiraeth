@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { migrateFlags, migrateWorlds, migrateWhere, migrateJournal, layoutOf, RENAMED_PEOPLE, MOVED_PEOPLE, MIGRATED } from '../src/save-migrate.js';
+import { migrateFlags, migrateWorlds, migrateWhere, migrateJournal, layoutOf, RENAMED_PEOPLE, MOVED_PEOPLE, MIGRATED, GIVERS_DONE } from '../src/save-migrate.js';
+import { TempleLogic, memoryStore } from '../src/temples/logic.js';
+import { TEMPLES } from '../src/temples/index.js';
 import { ORDER, MERGED, DISMISSED, worldFor } from '../src/levels/names.js';
 import { GameState } from '../src/game-state.js';
 
@@ -85,7 +87,45 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 12);
+  assert.equal(MIGRATED(), 13);
+});
+
+test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
+  const run = (flags) => { const f = { 'save.migrated': 11, ...flags }; migrateFlags(f); return f; };
+  // before the house (the sword and the guard his from the v1.38 start): both kept, their chests open
+  const early = run({ 'prologue.done': true, 'item.backpack': true, 'quest.desert.power.stage': 'down' });
+  assert.equal(early['item.sword'], true, 'nobody loses the sword');
+  assert.equal(early['item.shield'], true, 'nor the guard');
+  assert.equal(early['box.desert.temple.sword'], true); assert.equal(early['box.desert.temple.shield'], true);
+  assert.equal(early['box.desert.hearth.fire'], undefined, 'ember mode still ahead');
+  // inside the old house, not done: its puzzle's state goes (the remade house from its door), the finds stay
+  const inside = run({ 'item.backpack': true, 'item.gun': true, 'item.fire': true, 'box.desert.temple.fire': true, 'temple.desert.entered': true, 'temple.desert.gadget': true,
+    'temple.desert.open.d1': true, 'temple.desert.lit.b0': true, 'temple.desert.drum.ball1': 1, 'temple.desert.checkpoint': 'chest' });
+  assert.equal(inside['item.fire'], true, 'ember mode kept');
+  assert.equal(inside['box.desert.hearth.fire'], true, 'its chest in the Hearth found open');
+  assert.ok(!Object.keys(inside).some((k) => /^temple\.desert\.(open|lit|drum)\./.test(k)) && inside['temple.desert.checkpoint'] === undefined, 'the old doors and fires gone');
+  assert.equal(inside['temple.desert.entered'], true);
+  // the Keeper calmed: it stays calmed, the remade house's doors open and fires lit
+  const done = run({ 'item.backpack': true, 'item.gun': true, 'item.fire': true, 'temple.desert.boss': 'done', 'temple.desert.done': true, 'temple.desert.open.d1': true });
+  assert.equal(done['temple.desert.done'], true);
+  for (const id of GIVERS_DONE.open) assert.equal(done[`temple.desert.open.${id}`], true, id);
+  for (const id of GIVERS_DONE.lit) assert.equal(done[`temple.desert.lit.${id}`], true, id);
+  const L = new TempleLogic(TEMPLES.desert.def.logic, { store: memoryStore(Object.fromEntries(Object.entries(done).filter(([k]) => k.startsWith('temple.desert.')).map(([k, v]) => [k.slice('temple.desert.'.length), v]))), has: (i) => !!done[`item.${i}`] });
+  L.update();
+  assert.ok(L.resolved && ['d1', 'br1', 'sc', 'd3', 'd5'].every((d) => L.isOpen(d)), 'walked back in, the house is open');
+  // (a save from before the items keeps the backpack too: tests/playthrough-saves.test.js) a new game: nothing
+  const fresh = new GameState(null);
+  assert.equal(fresh.flag('item.sword'), undefined, 'a new game starts with nothing in hand');
+  assert.equal(fresh.flag('save.migrated'), MIGRATED());
+  // steps 12 and 13 together: a save from before both is given Solange's own id and keeps its weapons
+  const both = run({ 'item.backpack': true, 'met.mireille': true, 'quest.bazaar.nightmail': 'done' });
+  assert.equal(both['met.solange'], true, 'step 12: Solange met');
+  assert.equal(both['item.sword'], true, 'step 13: the sword kept');
+  assert.equal(both['save.migrated'], 13);
+  // a save that had step 12 already gets only 13
+  const after12 = { 'save.migrated': 12, 'item.backpack': true };
+  migrateFlags(after12);
+  assert.equal(after12['item.shield'], true);
 });
 
 test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness (since v1.42 its bellows)', () => {

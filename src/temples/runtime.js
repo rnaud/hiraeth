@@ -51,6 +51,7 @@ export class TempleRuntime {
     this.arrival = L.arrival;           // { pos, heading } (world) where you come in
     this.bounds = L.bounds;             // Box3 in the kit's local frame: inside the temple
     this.gadgetSite = L.gadget ?? null; // { at: [x, y, z] world, face }
+    this.findSites = L.finds ?? {};     // { [find element]: { at, face } }: its second chests (src/boxes/placements.js)
     for (const l of L.lights ?? []) { const p = this.kit.world(l[0], l[1], l[2]); this.lights.push(new THREE.Vector4(p.x, p.y, p.z, l[3])); }
     // the outside: the building in the world and its door
     this.outside = def.exterior?.(scene, level, this) ?? null;
@@ -102,7 +103,11 @@ export class TempleRuntime {
     // no whistling the mount into the temple: it would come to the same x, z on the ground far below
     if (player?.opts) { const can = player.opts.canSummon; player.opts.canSummon = () => !this.inside(player.pos) && (can ? can() : true); }
     // the chest in the temple: opening it is taking the gadget
-    this.offs.push(this.game.on('box:opened', ({ id } = {}) => { if (id === this.def.gadgetBox) { this.logic.takeGadget(); this.game.emit('temple:gadget', { id: this.id }); } }));
+    this.offs.push(this.game.on('box:opened', ({ id } = {}) => {
+      if (id === this.def.gadgetBox) { this.logic.takeGadget(); this.game.emit('temple:gadget', { id: this.id }); }
+      // a second chest (a `find`: the Givers' guard)
+      for (const [el, e] of Object.entries(this.def.logic.elements)) if (e.type === 'find' && e.box === id && this.logic.find(el)) this.game.emit('temple:find', { id: this.id, el });
+    }));
     const cp = this.game.flag(`temple.${this.id}.checkpoint`);
     if (cp) this.checkpoint = this.marks.find((m) => m.room === cp) ?? null;
     this.def.onConnect?.(this);
@@ -175,6 +180,7 @@ export class TempleRuntime {
     if (inside && !this.game.flag(`temple.${this.id}.entered`)) { this.game.set(`temple.${this.id}.entered`, true); this.notice(this.def.enterLine); }
     if (inside || this.time < 0.5) for (const p of this.pieces) p.update(dt, t);
     else for (const p of this.pieces) if (p.solid || p.flames) p.update?.(dt, t);
+    this.def.onUpdate?.(this, dt, t);
     this.applyDoors();
     // the guardian
     if (this.guardian) {

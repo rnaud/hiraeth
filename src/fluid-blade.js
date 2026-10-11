@@ -423,6 +423,9 @@ export class FluidBlade {
     this.guardArc = null;
     if (tool.player) {
       tool.player.guard = (from) => this.block(from);
+      // (the guard up now, and the way it faces: what a temple's wind asks, src/temples/pieces.js Gust `guard`)
+      tool.player.guarding = () => !!this.guarding && tool.shieldOn !== false;
+      tool.player.guardDir = () => this.dir;
       tool.player.dodge = (from, kind, gentle) => this.dodge(from, kind, gentle);
     }
   }
@@ -735,7 +738,7 @@ export class FluidBlade {
   placeShield(dt = 0) {
     const T = this.tool, p = T.player, D = this.device;
     const U = p?.frame?.up, chest = U ? _f.copy(p.pos).addScaledVector(U, 1.1) : null;   // (the open shield slides to the chest's middle line)
-    const said = D.update(dt, { want: !!this.guardWant, worn: !!p && !p.ride && !p.boarding && !p.unboarding, dir: this.dir, up: U, chest, time: T.time ?? 0 });
+    const said = D.update(dt, { want: !!this.guardWant, worn: !!p && !p.ride && !p.boarding && !p.unboarding && T.shieldOn !== false, dir: this.dir, up: U, chest, time: T.time ?? 0 });
     if (said === 'open') T.sound?.shieldOpen?.();
     else if (said === 'close') T.sound?.shieldClose?.();
     if (p) p.shieldGrip = D.s.k;
@@ -1035,7 +1038,7 @@ export class FluidBlade {
   place(dt) {
     this.previousBlade = this.bladeSegment();
     const T = this.tool, p = T.player, S = this.sheath;
-    const on = p?.object?.visible !== false && T.swordOn !== false;   // (his from the start: no item; a scene may put it away, tool.swordOn)
+    const on = p?.object?.visible !== false && T.swordOn !== false;   // (once found: main.js sets tool.swordOn from the items; a scene may put it away)
     const held = S.held;
     this.group.visible = on;
     const frogOn = on && !!this.mountBack(this.frog);

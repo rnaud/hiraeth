@@ -98,7 +98,8 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   // (v1.39: the merged and dismissed worlds' arrivals, the Hangar's signal and recordings 10-11 out, the Glass Dunes' clock in)
   // (v1.40: the three new worlds' climaxes, chests and gifts, and recordings 10-12: 12 verdicts more, not reviewed yet)
   // (v1.43: the merged worlds' second stories' own recordings, the bell and the lamp: 2 more; the new worlds' films reviewed)
-  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 101, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests, less v1.39\'s five gone, v1.40\'s twelve, v1.43\'s two part recordings');
+  // (v1.44: the Givers' House's two chests, the blade's and the guard's, in the ember's place, and ember mode's in the Hearth: 2 more)
+  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 103, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests, less v1.39\'s five gone, v1.40\'s twelve, v1.43\'s two part recordings, v1.44\'s two');
 
   const perf = theme('perf');
   assert.deepEqual(perf.latest.theme.figure, { text: '2/5', sub: 'budgets over' });

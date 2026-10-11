@@ -2,7 +2,8 @@ import { keyText } from './prompt-keys.js';
 import { game } from './game-state.js';
 
 // The traveller's items: what they have found (in boxes, through quests) and
-// can use. He starts with the fluid sword alone (src/fluid-blade.js: no item). The magic-fluid
+// can use. He starts with nothing in his hands (v1.44): the fluid sword and the shield's guard (src/fluid-blade.js) are
+// found in the Givers' House, the desert's temple (`sword`, `shield`; src/temples/desert.js). The magic-fluid
 // backpack holds the fluid: without it there is no double jump, no glider, no jetpack, no gun
 // (the glove drinks from it) and vehicles cannot be powered.
 //
@@ -26,6 +27,18 @@ import { game } from './game-state.js';
 // shows name, text ("what it is") and use ("what it does").
 
 export const ITEMS = {
+  // the fluid sword and the shield's guard (v1.44: found in the Givers' House; before, his from the start). Without
+  // them the blade button and the guard do nothing, and neither is drawn on him (main.js: tool.swordOn, tool.shieldOn)
+  sword: {
+    name: 'Givers’ blade', kind: 'weapon', where: 'In the Givers’ House, the rose-stone drum in the dunes east of Qanat: on the dais under the sword chamber’s oculus.',
+    text: "A hilt of old brass, its cup worn smooth by other hands. Held, the fluid grows out of it into a blade: the Givers cut their thorns and their roads with it.",
+    use: 'Cut with {key:blade}: three cuts in a row, the third the heaviest; hold it to charge a sweeping cut. It cuts dry thorns, strikes the makers’ eyes awake and sends a stone ball rolling far along its groove.',
+  },
+  shield: {
+    name: 'Givers’ guard', kind: 'weapon', where: 'In the Givers’ House: on the far landing of the Hall of Fires, before the windy hall.',
+    text: "A folded disc of brass on a bracer for the left hand. It opens like a fan and holds like a wall.",
+    use: 'Hold {key:guard} to raise it: it takes a blow from in front (with the backpack, a unit of the magic bar), and a guard raised just in time turns the blow back. Raised, it breaks a wind that would push you back.',
+  },
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: "A makers’ glass sphere in a brass cradle, made to be filled with living water and carried a long way. Someone built it for a traveller they would never meet.",
@@ -69,7 +82,7 @@ export const ITEMS = {
     use: 'Switch modes with {key:mode}. A stilling burst freezes creatures and people for a few seconds.',
   },
   fire: {
-    name: 'Ember mode', kind: 'mode', needs: 'gun',
+    name: 'Ember mode', kind: 'mode', needs: 'gun', where: 'In the Givers’ Hearth, where the Givers kept their fire: across the hall from the fluid gun.',
     text: "A flint ring that turns fluid into ember bursts. Useful fire, small enough to wear on the glove.",
     use: 'Switch modes with {key:mode}. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
@@ -309,7 +322,7 @@ export const items = {
 
 const keys = (t) => keyText(esc(t), { html: true, teach: true });   // (a {key:verb}: the player's own key or button)
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const KIND_ORDER = ['core', 'movement', 'gadget', 'mode', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
+const KIND_ORDER = ['core', 'weapon', 'movement', 'gadget', 'mode', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 
 /**
  * The gear you carry as a plain list: each item's name and what it does, the backpack

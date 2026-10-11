@@ -23,6 +23,12 @@ import { glyphGeometry } from '../story/sign-text.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
+/**
+ * m: how far one face is set off another it would lie on (a doorway's frame over the wall's reveal, a sill under the
+ * floor through it). Two faces of different looks in one plane z-fight: the depth buffer can't tell which is in
+ * front and they stripe as the camera moves (scripts/zfight, tests/zfight.test.js; docs/systems/rendering.md).
+ */
+export const Z_GAP = 0.02;
 const PROXY = new THREE.MeshBasicMaterial({ color: '#ff00ff' });
 const _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _e = new THREE.Euler();
 
@@ -335,8 +341,9 @@ export class TempleKit {
   wall(ax, az, bx, bz, y0, h, { t = 1.2, holes = [], mat = this.M.wall, cap = true, ext = 0 } = {}) {
     let L = Math.hypot(bx - ax, bz - az);
     const dir = [(bx - ax) / L, (bz - az) / L], ry = Math.atan2(-dir[1], dir[0]);
-    // ext: both ends run on by that much (a hall's corners close), holes keep their place from a
-    if (ext) { ax -= dir[0] * ext; az -= dir[1] * ext; L += 2 * ext; holes = holes.map((o) => ({ ...o, at: o.at + ext })); }
+    // ext: both ends run on by that much (a hall's corners close), holes keep their place from a ([a, b]: each its own)
+    const [ea, eb] = Array.isArray(ext) ? ext : [ext, ext];
+    if (ea || eb) { ax -= dir[0] * ea; az -= dir[1] * ea; L += ea + eb; holes = holes.map((o) => ({ ...o, at: o.at + ea })); }
     // a block of the wall: centred s metres along it, from y up hgt, w long (thick: a little proud of the wall, for trim)
     const at = (s, y, hgt, w, thick = t) => box(w, hgt, thick, ax + dir[0] * s, y0 + y + hgt / 2, az + dir[1] * s, ry);
     const H = holes.map((o) => ({ x0: o.at - o.w / 2, x1: o.at + o.w / 2, y0: o.y0 ?? 0, y1: (o.y0 ?? 0) + o.h }));
@@ -347,17 +354,21 @@ export class TempleKit {
       const mid = (a + b) / 2;
       const cut = H.filter((o) => o.x0 <= mid && o.x1 >= mid).sort((p, q) => p.y0 - q.y0);
       let y = 0;
-      for (const o of [...cut, { y0: h, y1: h }]) {
-        if (o.y0 - y > 1e-3) this.banded(mat, y, o.y0 - y, h, (yy, hh) => at(mid, yy, hh, b - a));
+      for (const o of [...cut, { y0: h, y1: h, top: true }]) {
+        // (a sill: its top 2 cm under the hole's foot, so the floor laid through the doorway is the face you see, not
+        // both at once: z-fighting, scripts/zfight)
+        const sill = !o.top && o.y0 > 1e-3 ? Z_GAP : 0;
+        if (o.y0 - sill - y > 1e-3) this.banded(mat, y, o.y0 - sill - y, h, (yy, hh) => at(mid, yy, hh, b - a));
         y = Math.max(y, o.y1);
       }
     }
     // a lintel line of trim along the top, and the doorways' frames (solid: they stand proud of the wall, and a
     // climber's hands and head met them drawn but not felt: src/contact-audit.js)
     if (cap) this.both(this.M.trim, at(L / 2, h - 0.25, 0.5, L + 0.02, t + 0.24));
+    // (each frame reaches Z_GAP into the opening, over the wall's own reveal: two faces in one plane flicker)
     for (const o of H) {
-      if (o.y1 < h - 0.3) this.both(this.M.trim, at((o.x0 + o.x1) / 2, o.y1, 0.45, o.x1 - o.x0 + 1.2, t + 0.24));
-      for (const s of [o.x0 - 0.3, o.x1 + 0.3]) this.both(this.M.trim, at(s, o.y0, o.y1 - o.y0, 0.6, t + 0.24));
+      if (o.y1 < h - 0.3) this.both(this.M.trim, at((o.x0 + o.x1) / 2, o.y1 - Z_GAP, 0.45 + Z_GAP, o.x1 - o.x0 + 1.2, t + 0.24));
+      for (const [s, k] of [[o.x0 - 0.3, 1], [o.x1 + 0.3, -1]]) this.both(this.M.trim, at(s + k * Z_GAP / 2, o.y0, o.y1 - o.y0, 0.6 + Z_GAP, t + 0.24));
     }
     return this;
   }
@@ -372,19 +383,23 @@ export class TempleKit {
     const holes = (side, L) => doors.filter((o) => o.side === side).map((o) => ({ at: L / 2 + (o.at ?? 0), w: o.w, h: o.h, y0: o.y0 ?? 0 }));
     const half = t / 2;
     const W = (side, ...a) => { if (!omit.includes(side)) this.wall(...a); };
-    W('n', x0 - half, z1 + half, x1 + half, z1 + half, y, h, { t, ext: half, holes: holes('n', w + t) });
-    W('s', x1 + half, z0 - half, x0 - half, z0 - half, y, h, { t, ext: half, holes: holes('s', w + t).map((o) => ({ ...o, at: w + t - o.at })) });
-    W('e', x1 + half, z1 + half, x1 + half, z0 - half, y, h, { t, ext: half, holes: holes('e', d + t).map((o) => ({ ...o, at: d + t - o.at })) });
-    W('w', x0 - half, z0 - half, x0 - half, z1 + half, y, h, { t, ext: half, holes: holes('w', d + t) });
+    // (a wall's end at a side left open stops Z_GAP short of the far face of whatever wall closes it, a wall of
+    // another hall, so its end isn't drawn in that wall's face: z-fighting)
+    const e = (side) => (omit.includes(side) ? half - Z_GAP : half);
+    W('n', x0 - half, z1 + half, x1 + half, z1 + half, y, h, { t, ext: [e('w'), e('e')], holes: holes('n', w + t) });
+    W('s', x1 + half, z0 - half, x0 - half, z0 - half, y, h, { t, ext: [e('e'), e('w')], holes: holes('s', w + t).map((o) => ({ ...o, at: w + t - o.at })) });
+    W('e', x1 + half, z1 + half, x1 + half, z0 - half, y, h, { t, ext: [e('n'), e('s')], holes: holes('e', d + t).map((o) => ({ ...o, at: d + t - o.at })) });
+    W('w', x0 - half, z0 - half, x0 - half, z1 + half, y, h, { t, ext: [e('s'), e('n')], holes: holes('w', d + t) });
     if (roof) {
-      const ry = y + h + 0.4;
+      // (its edges Z_GAP inside the walls' outer faces: a taller hall beyond sees that face, and the roof's edge in it)
+      const ry = y + h + 0.4, tr = t - Z_GAP;
       if (roof === 'oculus') {
         const ow = w * oculus, od = d * oculus;
-        this.both(this.M.wall, box(w + 2 * t, 0.8, (d - od) / 2 + t, x, ry, z0 - t + ((d - od) / 2 + t) / 2));
-        this.both(this.M.wall, box(w + 2 * t, 0.8, (d - od) / 2 + t, x, ry, z1 + t - ((d - od) / 2 + t) / 2));
-        this.both(this.M.wall, box((w - ow) / 2 + t, 0.8, od, x0 - t + ((w - ow) / 2 + t) / 2, ry, z));
-        this.both(this.M.wall, box((w - ow) / 2 + t, 0.8, od, x1 + t - ((w - ow) / 2 + t) / 2, ry, z));
-      } else this.both(this.M.wall, box(w + 2 * t, 0.8, d + 2 * t, x, ry, z));
+        this.both(this.M.wall, box(w + 2 * tr, 0.8, (d - od) / 2 + tr, x, ry, z0 - tr + ((d - od) / 2 + tr) / 2));
+        this.both(this.M.wall, box(w + 2 * tr, 0.8, (d - od) / 2 + tr, x, ry, z1 + tr - ((d - od) / 2 + tr) / 2));
+        this.both(this.M.wall, box((w - ow) / 2 + tr, 0.8, od, x0 - tr + ((w - ow) / 2 + tr) / 2, ry, z));
+        this.both(this.M.wall, box((w - ow) / 2 + tr, 0.8, od, x1 + tr - ((w - ow) / 2 + tr) / 2, ry, z));
+      } else this.both(this.M.wall, box(w + 2 * tr, 0.8, d + 2 * tr, x, ry, z));
     }
     if (columns) {
       for (let i = 0; i < columns; i++) {

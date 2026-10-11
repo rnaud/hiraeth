@@ -70,7 +70,7 @@ export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', S
 export const MODIFIERS = ['reveal', 'volley', 'timed'];
 const baseOf = (mechs) => mechs.filter((m) => !MODIFIERS.includes(m));
 /** A gadget item's verb, for the reports. */
-export const GADGET_VERB = { fire: 'ember', jetpack: 'jets', wardenbellows: 'bellows (a steady wash)', glider: 'wings', bell: 'bell', cell: 'fourth unit (volley)', 'magic:4': 'fourth unit (volley)', lens: 'lens (reveal)', lantern: 'lantern (reveal)', stun: 'stilling', coil: 'quick coil (volley)', bloom: 'bloom', echo: 'echo shell', tongs: 'founders’ tongs (heavy push)', tether: 'tether (pull)', horn: 'whale-horn (deep note)' };
+export const GADGET_VERB = { sword: 'blade (cut, strike)', shield: 'guard', fire: 'ember', jetpack: 'jets', wardenbellows: 'bellows (a steady wash)', glider: 'wings', bell: 'bell', cell: 'fourth unit (volley)', 'magic:4': 'fourth unit (volley)', lens: 'lens (reveal)', lantern: 'lantern (reveal)', stun: 'stilling', coil: 'quick coil (volley)', bloom: 'bloom', echo: 'echo shell', tongs: 'founders’ tongs (heavy push)', tether: 'tether (pull)', horn: 'whale-horn (deep note)' };
 const itemOf = (needs = []) => needs.find((n) => n !== 'backpack') ?? null;
 
 /**
@@ -289,7 +289,7 @@ export function rankTrend(ys) {
 
 /** Words in a guardian's lines that tell which verbs its fight asks for. */
 const VERB_WORDS = {
-  fire: /\bbrazier|ember|fire|light\b/i, jetpack: /\bjets?\b|fly|above it/i, wardenbellows: /\bbellows|hover over|above it/i, glider: /\bwings?|wind|glide/i, bell: /\bbell|whistle|sound/i,
+  sword: /\bcut|strike|blade\b/i, shield: /\bguard\b/i, fire: /\bbrazier|ember|fire|light\b/i, jetpack: /\bjets?\b|fly|above it/i, wardenbellows: /\bbellows|hover over|above it/i, glider: /\bwings?|wind|glide/i, bell: /\bbell|whistle|sound/i,
   cell: /\bfour vents|inside a breath|all four/i, lens: /\blens|unseen|glyph/i, lantern: /\blantern|light/i, stun: /\bstill/i,
   coil: /\bsix|inside a breath|numerals/i, bloom: /\bbloom|grow|beds?/i, echo: /\bplay (its|the) word|echo|back into/i,
   push: /\bpush|shove|roll/i, shot: /\bshoot|splash|water|fluid/i,

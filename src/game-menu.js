@@ -117,11 +117,11 @@ export class MenuState {
 
 const cellAttrs = (r, c) => `data-at="${r},${c}"`;
 /** An item's picture: the game's own render of it (src/item-icons.js), or its kind's mark until that is ready. */
-const KIND_MARK = { core: '◍', movement: '➶', mode: '◐', upgrade: '✚', charm: '✧', pass: '▭', cosmetic: '✦', quest: '⧉', keepsake: '✦' };
+const KIND_MARK = { core: '◍', weapon: '⚔', movement: '➶', mode: '◐', upgrade: '✚', charm: '✧', pass: '▭', cosmetic: '✦', quest: '⧉', keepsake: '✦' };
 const icon = (it) => it.icon
   ? `<img class="ico" src="${esc(it.icon)}" alt="" data-icon="${esc(it.id)}">`
   : `<i class="ico mark" data-icon="${esc(it.id)}">${KIND_MARK[it.kind] ?? '✧'}</i>`;
-const KINDS = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic', 'quest', 'keepsake'];
+const KINDS = ['core', 'weapon', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic', 'quest', 'keepsake'];
 const KIND_NAME = Object.defineProperties({}, Object.fromEntries(KINDS.map((k) => [k, { get: () => t(`gm.kind.${k}`), enumerable: true }])));
 
 /**

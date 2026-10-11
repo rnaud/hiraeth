@@ -65,7 +65,8 @@ export function migrateSave(g = sharedGame) {
   const v = g.flag('items.v') ?? 0;
   let legacy = false;
   if (v < 1) {
-    legacy = !!g.flag('prologue.done') && !Object.keys(ITEMS).some((id) => g.flag(`item.${id}`) !== undefined);
+    // (the sword and the shield don't count: src/save-migrate.js step 12 gives them to every old save, before this runs)
+    legacy = !!g.flag('prologue.done') && !Object.keys(ITEMS).some((id) => id !== 'sword' && id !== 'shield' && g.flag(`item.${id}`) !== undefined);
     if (legacy) g.set('item.backpack', true);
   }
   if (v < 2) {

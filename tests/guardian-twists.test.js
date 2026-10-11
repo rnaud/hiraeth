@@ -32,6 +32,7 @@ import { SUN } from '../src/temples/edena.js';
 import { ROOST } from '../src/temples/arzach.js';
 import { HALL, draught } from '../src/temples/incal.js';
 import { allTargets, hitTarget } from '../src/targets.js';
+import { bestInteractable } from '../src/interact.js';
 import { setHintLevel } from '../src/hint-level.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
@@ -83,30 +84,64 @@ function arena(id, gadget, phase) {
 }
 
 // ------------------------------------------------------------------ the Keeper
-/** Roll the cistern's spoke ball nearest the Keeper in toward the basin (from its start), until it pants (tries). */
+/** Cut the cistern's spoke ball nearest the Keeper in from its lit bowl on the rim (v1.44: it rolls burning down the spoke), until it pants (tries). */
 function fireToKeeper(A, tries = 6) {
-  const { rt, G, until } = A;
+  const { rt, G, until, wait } = A;
   for (let k = 0; k < tries; k++) {
     const m = G.model.pos, ball = rt.spokes.slice().sort((a, b) => a.b.distanceTo(m) - b.b.distanceTo(m))[0];
-    if (!ball.rest || ball.t > 0.3) { ball.t = 0; rt.logic.moveDrum(ball.id, 0); ball.place(); ball.rest = true; ball.v = 0; }   // (walked back to its start)
-    ball.hit('push', ball.dir.clone(), { strength: 1 });
+    if (!ball.rest || ball.t > 0.3) { ball.t = 0; rt.logic.moveDrum(ball.id, 0); ball.place(); ball.rest = true; ball.v = 0; }   // (back in its bowl: cut out again)
+    wait(0.3);
+    ball.hit('blade', ball.dir.clone(), {});
     if (until(() => G.state === 'open', 12)) return ball;
   }
   return null;
 }
+/** Each spoke's ball cut out through its fire into its hooded bowl: the four bowls lit. */
+function lightRim(A) {
+  const { rt, until } = A;
+  for (const ball of rt.spokes) { ball.hit('blade', ball.dir.clone().multiplyScalar(-1), {}); until(() => ball.rest && ball.t < 0.05, 10); }
+  return ['b6', 'b7', 'b8', 'b9'].every((b) => rt.logic.isLit(b));
+}
 
-test('the Keeper’s last phase: it no longer pants in the dark; a cold ball rolled to it is nothing; one rolled past a lit brazier down the spoke nearest it burns, and by that fire it pants and drinks', () => {
-  const A = arena('desert', 'fire', 2);
+test('the Keeper’s first phase (v1.44): its bowls are lit by the spokes’ balls, cut out through their fires; a hooded bowl takes no ember', () => {
+  const A = arena('desert', 'sword', 0);
+  const { rt, G } = A;
+  rt.piece('b6').hit('fire');
+  assert.equal(rt.logic.isLit('b6'), false, 'hooded: no ember reaches its coals');
+  assert.equal(lightRim(A), true, 'cut out, each ball catches at its fire and lights its bowl');
+  A.wait(0.5);
+  assert.ok(G.meter >= 0.4 - 1e-6, `light round the walls: its first phase done (${G.meter.toFixed(2)})`);
+  A.done();
+});
+
+test('the Keeper’s charge on the guard (v1.44): jarred, it pants; water from your tank at its mouth calms it', () => {
+  const A = arena('desert', 'sword', 1);
+  const { G, P, until, said, away } = A;
+  away(G.model.pos, 6);
+  let held = 0;
+  P.guard = () => { held++; return true; };
+  G.stop(); G.begin(P, 'charge');
+  assert.equal(until(() => said(/slams into your guard/), 6), true, 'the guard takes the charge, and it reels');
+  assert.ok(held > 0 && G.state === 'open', 'jarred, it pants');
+  delete P.guard;
+  const m = G.meter;
+  P.pos.copy(G.model.mouth).setY(G.arena.y); P.pos.x += 1.6; P.vel.set(0, 0, 0);
+  const near = bestInteractable(P);
+  assert.equal(near?.entry.id, 'temple.desert.water', 'at its mouth: give it water');
+  near.entry.use(P);
+  assert.ok(G.meter > m, 'it drinks, calmer');
+  assert.ok(said(/drinks from your cupped hands/));
+  A.done();
+});
+
+test('the Keeper’s last phase: it no longer pants in the dark; a cold ball lying by it is nothing; one cut down the spoke nearest it from a lit bowl rolls burning to it, and by that fire it pants and drinks', () => {
+  const A = arena('desert', 'sword', 2);
   const { rt, G, until, said } = A;
-  // the failure first: its own openings come to nothing, in the dark
+  // the failure first: its own openings come to nothing, in the dark; the spokes' balls lie cold at the basin's edge
   assert.equal(until(() => G.state === 'open', 25), false, 'it never pants by itself now');
   assert.ok(said(/will not pant without a fire/), 'it shakes its head at the dark, and says so');
-  // a spoke ball rolled cold (its brazier unlit) stays cold, and is nothing to it
-  const cold = fireToKeeper(A, 2);
-  assert.equal(cold, null, 'a cold ball by it: still no panting');
-  assert.ok(rt.spokes.every((b) => b.burn === 0), 'no ball caught');
-  // the rim braziers lit: rolled in past one, a ball catches, and by its fire it pants
-  for (const b of ['b6', 'b7', 'b8', 'b9']) rt.piece(b).hit('fire');
+  assert.ok(rt.spokes.every((b) => b.burn === 0), 'the balls by it are cold');
+  assert.equal(lightRim(A), true, 'the bowls lit');
   for (let n = 0; n < 2 && G.state !== 'weary'; n++) {
     const ball = fireToKeeper(A);
     assert.ok(ball && ball.burn > 0, `a burning ball by it: it pants (${n})`);
@@ -119,17 +154,17 @@ test('the Keeper’s last phase: it no longer pants in the dark; a cold ball rol
   A.done();
 });
 
-test('the Keeper’s second phase teaches the fire: its own panting still opens it, and a burning ball rolled to it makes it pant at once', () => {
-  const A = arena('desert', 'fire', 1);
-  const { rt, G, until } = A;
+test('the Keeper’s second phase teaches the fire: its own panting still opens it, and a burning ball cut to it makes it pant at once', () => {
+  const A = arena('desert', 'sword', 1);
+  const { G, until } = A;
   assert.equal(until(() => G.state === 'open', 40), true, 'it pants by itself, as before');
   const m0 = G.meter;
   G.hit('mouth', 'shoot');
   assert.ok(G.meter > m0, 'and drinks');
-  for (const b of ['b6', 'b7', 'b8', 'b9']) rt.piece(b).hit('fire');
+  assert.equal(lightRim(A), true);
   assert.ok(until(() => G.state === 'fight', 10));
   const ball = fireToKeeper(A);
-  assert.ok(ball && ball.burn > 0, 'a burning ball rolled to it: it pants');
+  assert.ok(ball && ball.burn > 0, 'a burning ball cut to it: it pants');
   G.hit('mouth', 'shoot');
   A.wait(0.5);
   assert.equal(G.phaseIndex, 2, 'into its last phase');

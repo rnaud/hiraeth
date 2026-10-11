@@ -15,7 +15,8 @@ test('the items page: every item with its picture, what it does, and where it is
   const w = whereFound('backpack', PLACEMENTS, FALLBACKS, TITLES);
   assert.ok(w.some((x) => x.world === 'desert' && /ledge/.test(x.note)), 'the backpack: Qanat\'s ledge on the tree');
   assert.ok(w.some((x) => x.title === 'By the ship'), 'and the spare by the ship');
-  assert.ok(whereFound('fire', PLACEMENTS, FALLBACKS, TITLES).some((x) => x.temple), 'ember: in a temple');
+  assert.ok(whereFound('sword', PLACEMENTS, FALLBACKS, TITLES).some((x) => x.temple), 'the blade: in a temple');
+  assert.ok(whereFound('fire', PLACEMENTS, FALLBACKS, TITLES).some((x) => /Hearth/.test(x.note)), 'ember: in the Givers’ Hearth');
   assert.match(cards.find((c) => c.id === 'glider').html, /Fluid wings/);
 });
 

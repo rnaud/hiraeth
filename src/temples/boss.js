@@ -45,7 +45,8 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //                          dash (m it charges through the strike), wave { speed, reach, width, damage } (a ring
 //                          running out along the floor: jump it), reachUp (m: it reaches the air over it),
 //                          then (the next move of a combo), link (a move only met inside a combo), gap (s before
-//                          the next), open (s open after it), miss (s open, stuck, when it missed you) } },
+//                          the next), open (s open after it), miss (s open, stuck, when it missed you), guard (the
+//                          shield takes it: def.onBlock(g, a, perfect)) } },
 //        onHit(g, part ('mouth' | 'body' | 'vent'), mode, info) -> handled, final: 'touch' | 'break',
 //        onStrike(g, a), onCatch(g, a), onReset(g), openFor(g, a, s, missed) -> s (how long a combo's end leaves it open),
 //        touch: 'prompt', wake: text, weary: text, resolved: text }
@@ -532,6 +533,9 @@ export class Guardian {
     if (P.pos.y - this.arena.y > (a.reachUp ?? (a.shape === 'lane' ? 3.5 : HIT.airborne))) return false;   // jumped clear (a beam reaches a little higher)
     const at = this.points(a).find((p) => inArea(a, p, this.attackH, P.pos));
     if (!at) return false;
+    // a move the guard can take (its `guard`: the Keeper's charge and stamp): the shield raised toward it holds it
+    // (src/fluid-blade.js block, through player.guard), and the guardian may answer (def.onBlock: jarred, it pants)
+    if (a.guard) { const held = P.guard?.(this.model.pos); if (held) { this.blocked = (this.blocked ?? 0) + 1; this.def.onBlock?.(this, a, held === 'perfect'); return false; } }
     this.catch(a, P, a.shape === 'ring' ? at : this.model.pos, a.damage, a.knock);
     return true;
   }

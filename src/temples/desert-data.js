@@ -49,7 +49,9 @@ export const PEOPLE = {
         },
         go: {
           say: ["~happy~ Go *east of Qanat into the high dunes*. Look for the rose-stone drum. *Its door faces the city.*", "~whisper~ Bring fluid. Look for the Givers’ fire inside; the Keeper may need light as well as water.",
-            { if: { flag: 'tool.empty' }, text: "~curious~ Your tank’s empty. Find the water through the giant’s mouth beyond Qanat’s back gate first. You’ll need fluid inside the house." }],
+            "~curious~ Grandmother swore the Givers left *their blade and their guard* in there. Nobody has been brave enough to fetch them.",
+            { if: { flag: 'tool.empty' }, text: "~curious~ Your tank’s empty. Find the water through the giant’s mouth beyond Qanat’s back gate first. You’ll need fluid inside the house." },
+            { if: { not: { flag: 'item.doublejump' } }, text: "~neutral~ They say the house’s old channel is a long jump wide. Longer than one jump, anyway." }],
           choices: [{ text: '~happy~ I’ll tell you what I find.', end: true }],
         },
         again: {

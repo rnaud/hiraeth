@@ -589,7 +589,7 @@ export async function generic(W, qid, st, raw) {
  * Through the world's temple (src/temples/) as far as `until` ('gadget': its chest opened; 'done': its
  * guardian resolved), the way its quest marker leads: at each next thing to do (logic.next, the
  * marker's nextSpot) he must have somewhere to stand, and it must be doable with what he carries;
- * he does it (a chest: E; a brazier, a switch, a bell: lit with the right mode; a drum: rolled onto
+ * he does it (a chest, or a temple's second chest: E; a brazier, a switch, a bell: lit with the right mode; a drum: rolled onto
  * its plate; a plate: stood on; the guardian: resolved). Returns the log; issues go to `issue`.
  */
 export async function templeTo(W, until, issue, { nextSpot, id = null }) {
@@ -621,8 +621,9 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
       ?? (at && e.type === 'switch' ? standNear(W, at, { radius: 12, up: 8 }) : null);
     if (!s && e.type !== 'boss') issue('no-ground', `${T.def.name}: ${e.type} ${id} (${fmt(at)}) has nowhere to stand by it`);
     if (s) { W.at(s); W.step(2); }
-    if (e.type === 'gadget') {
-      const box = W.boxes.list.find((b) => b.place.temple === T.id);
+    if (e.type === 'gadget' || e.type === 'find') {
+      // (the temple's chest, or a second one: a `find`, the Givers' guard)
+      const box = W.boxes.list.find((b) => b.place.temple === T.id && b.place.id === (e.type === 'find' ? e.box : T.def.gadgetBox)) ?? (e.type === 'gadget' ? W.boxes.list.find((b) => b.place.temple === T.id) : null);
       if (!box) { issue('no-thing', `${T.def.name}: no chest`); break; }
       const by = standNear(W, box.pos.clone().add(V(Math.sin(box.yaw) * 1.4, 0, Math.cos(box.yaw) * 1.4)), { radius: 2, up: 2 });
       if (by) W.at(by);

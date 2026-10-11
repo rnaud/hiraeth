@@ -4,6 +4,15 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.44 — 2026-10-11
 
+- Doorframes, sills, roof edges and wall ends in every temple no longer flicker and stripe where two surfaces lay in the same plane. The Givers’ House has none left, and the other temples have far fewer.
+- Your saves keep the sword and the guard you had. A save from inside the old house starts the new one from its door, and if you had calmed the Keeper already, it stays calm.
+- Ember mode is in the Givers’ Hearth now, beside the fluid gun. If you leave the desert without the blade and the guard, they wait by your ship in the next world.
+- The Keeper is calmed with what you found. Cut each spoke’s ball out to light the bowls round its cistern. Take its charge on your guard, and it stops and pants: then give it water from your tank. Later, cut a burning ball down a spoke to it.
+- The Givers’ guard is on the far landing of the Hall of Fires. Hold it up to walk into the wind from the Givers’ bellows. At the far end of that hall, strike the eye high on the wall from a double jump.
+- Cut the corridor’s thorns with the blade. Cut the tar balls along their grooves too: a cut sends them rolling much faster than you can push, so they are still burning when they reach the hooded bowls.
+- Taking the blade wakes the chamber’s machines, and its doors stay shut until you have broken them.
+- The Givers’ House is remade for what you carry. Lean on its first tar ball to roll it through the old flame and into the hooded bowl. Cross its sand pit with a double jump onto the old pier and on again, and find the blade on the dais half-way.
+- You set out with empty hands now. The Givers’ blade and their guard are waiting in the Givers’ House, the rose-stone drum in the dunes east of Qanat, and nothing out in the desert comes to fight you before you have the blade.
 - The Glass Dunes’ Glass slalom, the Buried Machine’s Canyon dive and the Signal Market’s Avenue run are flown on your wings now, with columns of rising air to climb again on the way, so their rewards can be won: the strong lodestone, the fourth pouch and the racer’s ribbon.
 - The films at the end of the Glass Dunes, the Underwater City, the Moon Foundry and the floating city show what they are about: a whale passes close outside the Whale Gallery’s glass, the hung moon is seen whole on its hook, the camera follows the great cable to the Towers with its lamps, and the clock’s first shot no longer jams against the house’s wall.
 - The Underwater City, the Moon Foundry and the City Floating in Space each have a makers’ run of their own, built from their temple’s kit: the Sounding walk in the Avenue, three brass horns that wake to the whale-horn’s note; the Moon roll on the foundry floor, two stone moons to roll into their cradles; and the Moorers’ leap off the Towers into the dark, up the void’s breath and over the gulf.

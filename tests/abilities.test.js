@@ -73,7 +73,22 @@ test('no backpack: no tank or glove, nothing fires, nothing throws, one jump; fo
   p.pos.set(0, 20, 0); p.onGround = false; p.vel.set(0, 0, 0);
   step(1, { Space: true });
   assert.ok(p.vel.y < 0 && p.flipping == null, 'no double jump');
-  assert.equal(tool.blade.group.visible, true, 'the sword is his from the start');
+  assert.equal(tool.blade.group.visible, true, 'left unset (as here), the sword is drawn: main.js sets swordOn from the items');
+  // (v1.44) not found: no sword on him, no cut, no guard; the evade stays his
+  tool.swordOn = false; tool.shieldOn = false;
+  p.pos.set(0, 0, 0); p.onGround = true; p.vel.set(0, 0, 0);
+  step(2);
+  assert.equal(tool.blade.group.visible, false, 'not found: no sword drawn on him');
+  assert.equal(tool.blade.frog.visible, false, 'nor its sheath on his back');
+  step(1, { KeyF: true }); step(5);
+  assert.equal(!!tool.blade.swinging, false, 'the blade button cuts nothing');
+  step(1, { ControlLeft: true }); step(3, { ControlLeft: true });
+  assert.equal(!!tool.blade.guarding, false, 'the guard button raises nothing');
+  assert.equal(tool.blade.device.root.visible, false, 'no shield on his hand');
+  step(4);
+  tool.swordOn = true; tool.shieldOn = true;
+  step(2);
+  assert.equal(tool.blade.group.visible, true, 'found: the sword is his');
   // found (a box, a quest, the dev menu): live
   items.grant('backpack');
   assert.equal(tool.appear, 0, 'the shimmer starts');

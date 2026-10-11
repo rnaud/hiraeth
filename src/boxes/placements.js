@@ -31,6 +31,8 @@
 
 /** A temple's chest (the temple by its id: a merged world has two). */
 const templeSite = (id) => (level) => (level.temples?.find((t) => t.id === id) ?? level.temple)?.gadgetSite;
+/** A temple's second chest (a `find`, logic.js: the Givers' guard), by the find's element id. */
+const findSite = (id, el) => (level) => (level.temples?.find((t) => t.id === id) ?? level.temple)?.findSites?.[el];
 /** A makers' court's box (the court by the part it was made for: src/finds/courts.js courtBoxOf). */
 const courtSite = (id) => (level) => level?.finds?.courts?.[id]?.box ?? level?.finds?.court?.box ?? null;
 
@@ -42,7 +44,7 @@ export const PLACEMENTS = {
     // the box's pale column shows the way.
     { id: 'desert.backpack', item: 'backpack', found: 'box.found.backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
       note: 'In Qanat, on the makers’ ledge high on the burning tree’s trunk in the town’s square, left of the dry well: climb the buttress root, then the pier. The first find, and the elder’s.' },
-    // the progression rewrite (v1.38, docs/systems/progression.md): he comes with his sword alone. The backpack's first
+    // the progression rewrite (v1.38, docs/systems/progression.md; v1.44: he comes with nothing in his hands). The backpack's first
     // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main
     // quest leads down there to fill the tank (and the box hums once it is full), on the dry floor between the basin and
     // the cave's wall, facing the pool
@@ -52,14 +54,21 @@ export const PLACEMENTS = {
     // on the hall's floor across from the plinth, facing the passage in
     { id: 'desert.gun', item: 'gun', site: (level) => level.hearth?.local && { at: level.hearth.local(8.5, 0, -2).toArray(), face: 0 }, story: true,
       note: 'In the Givers’ Hearth far out in the red rocks (the hoverbike’s ride), on the hall’s floor across from the stone ball. The main quest goes there for the spark-stone.' },
+    // ember mode (v1.44: the Givers' House's key until the house was remade for the blade): in the Givers' Hearth, where
+    // the Givers kept their fire, by the gun (a mode: the gun shoots it; the main quest goes there)
+    { id: 'desert.hearth.fire', item: 'fire', site: (level) => level.hearth?.local && { at: level.hearth.local(5.5, 0, 6).toArray(), face: Math.PI * 0.75 }, story: true,
+      note: 'In the Givers’ Hearth, where the Givers kept their fire: on the hall’s floor, by the gun, nearer the passage in.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       hint: 'A makers’ box sits on a flat roof just inside Qanat’s main gate. Climb the house wall',
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },
-    // the Givers' House (src/temples/desert.js): on the dais in its Chest Chamber, half-way through. Ember mode
-    // is the key to the rest: the braziers by the door beyond, the bridge, the thorns, the Keeper's cistern.
-    { id: 'desert.temple.fire', item: 'fire', temple: 'desert', site: templeSite('desert'),
+    // the Givers' House (src/temples/desert.js, v1.44): on the dais in its Sword Chamber, half-way through, the Givers'
+    // blade, the key to the rest (the thorns, the balls a cut sends far, the eye, the Keeper's spokes); on the Hall of
+    // Fires' far landing their guard, for the wind of their bellows and the Keeper's charge. (Ember mode was here before.)
+    { id: 'desert.temple.sword', item: 'sword', temple: 'desert', site: templeSite('desert'),
       note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
+    { id: 'desert.temple.shield', item: 'shield', temple: 'desert', site: findSite('desert', 'guard'),
+      note: 'Inside the rose-stone house in the eastern dunes, on the far landing of the Hall of Fires.' },
   ],
   incal: [
     // the first jetpack world: the jets wait on the makers' pillar, a lone stone column on the rim 130 m
@@ -266,6 +275,10 @@ export const FALLBACKS = [
   // tower's steps, the crowns of trees) and the fluid gun (lamps, plates, the hands-on errands, the temples)
   { item: 'doublejump', slot: 2, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
   { item: 'gun', slot: 3, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
+  // the Givers' blade and guard (v1.44): the desert's temple holds them, and a traveller who left the desert without
+  // going in finds them by the ship in the next world (every world after it has foes in its wilds)
+  { item: 'sword', slot: 1, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
+  { item: 'shield', slot: 4, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
   // (the jets anywhere are a debug item since v1.38: no fallback box of them; the City-Shaft has its bellows in its temple)
 ];
 
@@ -275,4 +288,5 @@ export const FALLBACK_OFFSETS = [
   [[-3.6, 5.6], [3.6, 6.2], [-5, 2.8], [5, 3], [0, 9], [-7, 7], [7, 7], [-3, 11], [3, 11]],
   [[6.4, 2.2], [-6.4, 2.6], [1.6, 7.8], [-8, 4.4], [8, 9], [-5.4, 10], [9.5, 2], [-9.5, 2], [5, 12.5]],
   [[-1.6, 7.8], [6.8, 5.4], [-6.8, 6.2], [9, 5.2], [-9, 8.6], [1.4, 12.5], [-6, 13], [10.5, 11], [-11, 3]],
+  [[1.8, 10.4], [-8.2, 3.6], [8.6, 7.8], [-4.4, 9.6], [11.5, 4], [-10.5, 6.6], [4.5, 14], [-8.5, 12], [12, 13]],
 ];

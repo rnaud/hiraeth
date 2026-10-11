@@ -28,6 +28,39 @@ now: Vael II waited for Vael's bird until it became part of Vael).
   taken away is the debug jets (step 9 of src/save-migrate.js: a save that owned them had the Warden's harness instead,
   and `jets.lost`; step 11 turns that harness into the Warden's bellows, `harness.lost`).
 
+## Empty hands (v1.44): the sword and the shield found in the Givers' House
+
+From the author (issues #74, #7): "The Givers' House can't be solved now that I don't have the push gun. Remake this so
+it uses what I have so far (double jump) and make me find the sword and the shield in the temple." He starts with
+nothing in his hands; the order in the desert is:
+
+| what | where | why there |
+|---|---|---|
+| the backpack | Qanat's chest on the tree's ledge (`desert.backpack`) | unchanged |
+| the lift valve (the double jump) | by the giant's pool (`desert.lift`) | unchanged; the Givers' House's sand pit wants it (Sabri says so if it isn't had) |
+| the Givers' blade (`sword`) | the Givers' House's Sword Chamber, half-way (`desert.temple.sword`, the temple's gadget) | the house's dungeon item: thorns, a ball a cut sends far, an eye to strike, the Keeper's spokes |
+| the Givers' guard (`shield`) | the Givers' House, the Hall of Fires' far landing (`desert.temple.shield`, a `find`) | the bellows' wind in the Hall of Winds, the Keeper's charge |
+| the fluid gun | the Givers' Hearth (`desert.gun`, unchanged) | its stone ball wants the push; nothing in the house needs it, before or after |
+| ember mode (`fire`) | the Givers' Hearth, across the hall from the gun (`desert.hearth.fire`) | the house's old key; the Givers kept their fire there |
+
+The house is off the main quest's line (Sabri starts it), so the order is the player's: the house before the Hearth
+or after it, both work (the house never asks for the gun; the Hearth never asks for the blade). A traveller who
+leaves the desert without going in finds the blade and the guard by the ship in the next world (`FALLBACKS`, slots 1
+and 4), as the backpack's other finds.
+
+**Nothing to fight before the blade.** Unarmed (main.js `tool.swordOn`, from the items), no pack comes in from the
+wilds, no relic's guards rise, no placed encounter wakes and no temple's machines stand (src/foes.js `armed()`); they
+come the moment the blade is his. The blade button and the guard do nothing without them, and neither is drawn on
+him, in the game or its cinematics (`tool.swordOn`, `tool.shieldOn`; a game on foot lends them,
+src/minigames/kit/onfoot.js; the title screen and the studio draw their own traveller, armed). The evade is always
+his. Each is taught once when its chest opens (`hint.sword`, `hint.shield`).
+
+**Saves** (src/save-migrate.js step 13, `migrateGivers`, after step 12's Solange): every save from before keeps the sword and the shield, past
+the house or not (since v1.38 both were his from the start: nobody loses a weapon), their chests open; a save with
+ember mode finds the Hearth's chest open; the old house's doors and fires go (the save comes in at the door of the
+remade house), unless the Keeper was calmed (its doors open, its fires lit). A save from before the items still gets
+the backpack (src/boxes/index.js's legacy rule doesn't count the two). `tests/save-migrate.test.js`.
+
 ## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
 
 From the author: "We shouldn't get the triple jump automatically, it should be a double jump, have a flip animation

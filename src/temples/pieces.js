@@ -10,6 +10,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { T, box, lathe, prep, annulus, sector } from './kit.js';
 import { sparing, heartsOf, DAMAGE } from '../resources.js';
 import { rideColumn } from '../updraft.js';
+import { stopOf } from './logic.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -20,11 +21,12 @@ import { rideColumn } from '../updraft.js';
 //            bell-note whistle, sounded near it, opens it).
 //   Plate    a disc in the floor that a weight holds down (you, or a stone ball on it)
 //   Ball     a stone ball in a groove (a "drum"): the fluid push rolls it along; at rest on its
-//            plate it holds the plate down, and where it stopped is saved (a tar ball burns a while: `tar`)
+//            plate it holds the plate down, and where it stopped is saved (a tar ball burns a while: `tar`;
+//            `shove`: walked into, it rolls at your pace; `blade`: a cut sends it rolling far)
 //   Brazier  a cold bowl: an ember glob lights it for good (it answers 'fire' only); hooded, only a burning ball
 //   Flame    the Givers' pilot flame in the floor: a tar ball rolled through it catches
-//   Bramble  dry thorns across a doorway: an ember glob burns them away for good
-//   Switch   a carved eye on a wall: a splash of fluid wakes it for good
+//   Bramble  dry thorns across a doorway: an ember glob burns them away for good (cut: the sword cuts them too)
+//   Switch   a carved eye on a wall: a splash of fluid wakes it for good (blade: struck with the sword, only that)
 //   Bank     four eyes that wake only together, inside a breath: it wants the fourth chamber
 //   LightEar a lamp that wakes when you stand by it with the lantern charm
 //   Jaw      a gate of snapping jaws: a stilling glob stills them, and they rest open for good
@@ -277,6 +279,9 @@ export class LensStones {
 }
 
 // ---------------------------------------------------------------------------------------- balls
+/** m/s: a ball walked into rolls ahead at your pace, at most SHOVE (Ball `shove`); a cut of the sword sends it at BALL_CUT. */
+export const SHOVE = 2.6;
+export const BALL_CUT = 7.5;
 export class Ball {
   /**
    * o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r, friction (1/s: 1.6, less
@@ -302,7 +307,10 @@ export class Ball {
    * bell at `at`, a game 'bell' event there; and a splash on it as it lies there rocks it and strikes again),
    * heavy: item (an iron moon of the Moon Foundry's Casting-House: only a push, or a tether, made while carrying that
    * item (the founders' tongs) rolls it; anything else rocks it where it lies; heavyLine: what it says then),
-   * iron: true (drawn as cast iron, dark with a rust ring) }
+   * iron: true (drawn as cast iron, dark with a rust ring),
+   * shove: true (the Givers' House, v1.44: walked into along its groove, it rolls ahead of you at your pace, `shove` m/s
+   * at most when a number: hands, no gadget), blade: true (a cut of the sword sends it rolling, BALL_CUT m/s: far
+   * faster than a shove) }
    * A tether (the City Floating in Space's gun mode, 'tether') rolls any ball toward whoever pulled it: the cone hands
    * it the way back to the hand as its `dir`.
    * Its element (logic.js) may have `stops`: several plates along the groove, and it settles into whichever it slows by.
@@ -356,7 +364,7 @@ export class Ball {
     };
     this.place();
     this.off = registerTarget({
-      kind: 'ball', radius: this.r + 0.15, position: () => this.center, accepts: o.seed ? ['bloom', 'tether'] : ['tether'],
+      kind: 'ball', radius: this.r + 0.15, position: () => this.center, accepts: [...(o.seed ? ['bloom', 'tether'] : ['tether']), ...(o.blade ? ['blade'] : [])],
       onHit: (mode, point, dir, info) => this.hit(mode, dir, info),
     });
     this.rest = true;
@@ -383,6 +391,15 @@ export class Ball {
     if (this.o.strike && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate)) { this.wobble = 0.4; this.strike(); return true; }
     if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
+    if (mode === 'blade') {
+      if (!this.o.blade) return false;
+      // a cut: the flat of the blade sends it rolling, hard, the way the cut went (along its groove)
+      const along = dir.x * this.dir.x + dir.z * this.dir.z;
+      if (Math.abs(along) < 0.2) { this.wobble = 0.4; this.rt.sound?.critter?.('clack', 0.6); return true; }
+      this.v = Math.sign(along) * BALL_CUT; this.rest = false;
+      this.rt.sound?.critter?.('clack', 0.9);
+      return true;
+    }
     const cone = mode === 'push' || mode === 'tether';
     // an iron moon: only a push (or a tether) made with the founders' tongs takes hold of it
     if (this.o.heavy && !(cone && this.rt.logic.has(this.o.heavy))) {
@@ -442,6 +459,7 @@ export class Ball {
       if (!still && !berth && this.t > 0.004) { this.v -= (Cu.pull ?? 0.7) * dt; this.rest = false; this.pulled = true; if (Cu.stirs && this.v < -0.5) this.rt.notice?.(Cu.stirs, `${this.id}.stirs`); }
       if (still !== this.wasStill) { if (still && Cu.stilled) this.rt.notice?.(Cu.stilled, `${this.id}.stilled`); this.wasStill = still; }
     }
+    if (this.o.shove) this.shoved(dt);
     if (this.rest) { this.solid.vel.set(0, 0, 0); return; }
     // rolling friction, and a gentle settle into the plate's dip when it is slow and close
     const L = this.rt.logic, e = L.el(this.id);
@@ -476,6 +494,23 @@ export class Ball {
       this.v = 0; this.rest = true;
       if (L.moveDrum(this.id, this.t) && [e?.plate, ...Object.keys(e?.stops ?? {})].some((p) => p && L.drumOn(this.id, p))) { this.rt.sound?.chime?.(); if (this.o.strike && L.drumOn(this.id, e.plate)) this.strike(); }
     }
+  }
+  /**
+   * Hands on it (o.shove): you walk into it along its groove, and it rolls ahead of you at your pace (at most `shove`
+   * m/s, SHOVE by default); stop, and it slows and stops.
+   */
+  shoved() {
+    const P = this.rt.player;
+    if (!P?.pos || P.dead || !P.onGround || P.ride || P.climbing) return;
+    const dx = this.center.x - P.pos.x, dz = this.center.z - P.pos.z, d = Math.hypot(dx, dz);
+    if (d > this.r + 0.85 || d < 1e-3 || Math.abs(P.pos.y - this.group.position.y) > 0.8) return;
+    const vx = P.vel?.x ?? 0, vz = P.vel?.z ?? 0, sp = Math.hypot(vx, vz);
+    if (sp < 0.8 || (vx * dx + vz * dz) / (sp * d) < 0.55) return;   // (walking into it, not past it)
+    const along = (vx * this.dir.x + vz * this.dir.z) / sp, max = typeof this.o.shove === 'number' ? this.o.shove : SHOVE;
+    if (Math.abs(along) < 0.5) return;
+    const want = Math.sign(along) * Math.min(max, sp * Math.abs(along));
+    if (Math.abs(this.v) < Math.abs(want) || Math.sign(this.v) !== Math.sign(want)) { this.v = want; this.rest = false; }
+    this.rt.notice?.(this.o.shoveLine ?? 'You lean on the ball, and it rolls ahead of you along its groove.', `${this.id}.shove`);
   }
   /** A pool-orb: it catches the lantern's light, glows a while, and on its plate, glowing, wakes its lamp. */
   lamp(dt) {
@@ -626,7 +661,15 @@ export class Brazier {
   hooded(dt) {
     const L = this.rt.logic, H = this.o.hood, b = this.rt.piece(H.ball);
     if (!b || L.isLit(this.id)) return;
-    const home = b.rest && !b.drop && L.drumOn(b.id, H.plate ?? L.el(b.id)?.plate);
+    const plate = H.plate ?? L.el(b.id)?.plate, stop = stopOf(L.el(b.id), plate);
+    // (burning, it lights the coals as it rolls in slow, where it is now, not where it last lay; cold, it is tipped back
+    // once it lies there)
+    if (!b.drop && b.burn > 0 && Math.abs(b.v) < 0.8 && stop != null && Math.abs(b.t - stop) <= (L.el(b.id)?.tolerance ?? 0.06)) {
+      L.moveDrum(b.id, b.t);
+      if (L.light(this.id)) { this.ignite(false); this.rt.onLit?.(this.id); }
+      return;
+    }
+    const home = b.rest && !b.drop && L.drumOn(b.id, plate);
     if (!home) { this.wait = 0; return; }
     if (b.burn > 0) {
       if (L.light(this.id)) { this.ignite(false); this.rt.onLit?.(this.id); }
@@ -651,10 +694,14 @@ export class Brazier {
   dispose() { this.off?.(); }
 }
 
-/** The Givers' pilot flame: a fire that never went out, in a stone ring sunk in the floor; a tar ball rolled through it catches. o: { at, r } */
+/**
+ * The Givers' pilot flame: a fire that never went out, in a stone ring sunk in the floor; a tar ball rolled through it
+ * catches. o: { at, r, when (a condition: it burns only while that holds, under a stone lid till then), lid (draw the lid) }
+ */
 export class Flame {
   constructor(rt, o) {
     this.rt = rt; this.o = o;
+    this.when = o.when ?? null;
     const K = rt.kit, M = rt.M, r = o.r ?? 0.9;
     this.pos = K.world(...o.at);
     this.group = new THREE.Group();
@@ -667,11 +714,33 @@ export class Flame {
     this.flames = new Flames(this.group, [{ at: V(0, 0.05, 0), h: 1.7, r: 0.5 }, { at: V(0.3, 0.05, 0.15), h: 1.1, r: 0.3, phase: 2 }, { at: V(-0.28, 0.05, -0.2), h: 1.25, r: 0.3, phase: 4 }, { at: V(0, 0.05, 0), h: 0.9, r: 0.22, core: 1, phase: 1 }], { seed: 17 });
     this.flames.mesh.userData.dynamic = true;
     this.center = this.pos.clone().addScaledVector(UP, 0.9);
-    this.fire = this.center;
     this.fireReach = r + 0.9;
-    rt.lights.push(new THREE.Vector4(this.pos.x, this.pos.y + 1.6, this.pos.z, 12));
+    this.light = new THREE.Vector4(this.pos.x, this.pos.y + 1.6, this.pos.z, 12);
+    rt.lights.push(this.light);
+    if (o.lid) {
+      // a stone lid over the ring (the Hall of Winds' relay): it slides off when `when` holds
+      this.lid = new THREE.Group();
+      this.lid.add(mesh([T(new THREE.CylinderGeometry(r + 0.3, r + 0.35, 0.22, 16), [0, 0.13, 0])], M.stoneMat));
+      this.group.add(this.lid);
+      noCollide(this.lid);
+    }
+    this.k = this.burning ? 1 : 0;
+    this.show();
   }
-  update(dt, t) { this.flames.update(dt, t); }
+  /** It burns now (always, or while its `when` holds). */
+  get burning() { return !this.when || !!this.rt.logic?.check(this.when); }
+  /** Lit: where its flame is, for a tar ball rolled past it (Ball `tar`). */
+  get fire() { return this.burning ? this.center : null; }
+  show() {
+    this.flames.mesh.visible = this.k > 0.5;
+    this.light.w = this.k > 0.5 ? 12 : 0;
+    if (this.lid) { this.lid.position.set(Math.min(1, this.k) * ((this.o.r ?? 0.9) * 2.4), 0, 0); this.lid.rotation.z = -0.12 * this.k; }
+  }
+  update(dt, t) {
+    const want = this.burning ? 1 : 0;
+    if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 0.9 : -dt), 0, 1); this.show(); if (want && this.k >= 1) this.rt.sound?.whoosh?.(); }
+    if (this.k > 0.5) this.flames.update(dt, t);
+  }
 }
 
 export class Bramble {
@@ -703,7 +772,8 @@ export class Bramble {
     this.k = this.burnt ? 1 : 0;
     this.tangle.visible = !this.burnt;
     // (burning: the world's chemistry, src/chemistry.js, lets its fire reach the next bramble in the room)
-    this.off = registerTarget({ kind: 'flammable', flammable: 'bramble', radius: Math.max(w, h) * 0.45, accepts: ['fire'], position: () => this.center, enabled: () => !this.burnt, burning: () => !!this.flames && this.burning < 2.2, onHit: (mode) => this.hit(mode) });
+    this.cut = !!o.cut;
+    this.off = registerTarget({ kind: 'flammable', flammable: 'bramble', radius: Math.max(w, h) * 0.45, accepts: o.cut ? ['fire', 'blade'] : ['fire'], position: () => this.center, enabled: () => !this.burnt, burning: () => !!this.flames && this.burning < 2.2, onHit: (mode) => this.hit(mode) });
     this.h = h; this.w = w;
     // thorns prick: push into them and they push you back off (you can't climb a tangle of wire)
     const inv = this.group.matrixWorld.clone(), _l = V();
@@ -718,7 +788,16 @@ export class Bramble {
   init(physics) { this.physics = physics; if (!this.burnt) this.handle = physics.addCollider?.(this.block) ?? null; }
   hit(mode) {
     if (this.burnt) return false;
-    if (mode !== 'fire') { this.rt.notice?.('Dry thorns, as hard as wire. Fluid only beads on them.', 'thorns'); return true; }
+    if (mode === 'blade' && this.cut) {
+      // cut: the tangle falls apart where it stood, no fire (the element's `needs`: the sword)
+      if (!this.rt.logic.light(this.id)) return true;
+      this.rt.onLit?.(this.id);
+      this.burnt = true; this.burning = 0; this.felled = true;
+      this.rt.sound?.critter?.('creak', 0.9); this.rt.sound?.whoosh?.();
+      if (this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
+      return true;
+    }
+    if (mode !== 'fire') { this.rt.notice?.(this.cut ? 'Dry thorns, as hard as wire. A blade would go through them.' : 'Dry thorns, as hard as wire. Fluid only beads on them.', 'thorns'); return true; }
     if (!this.rt.logic.light(this.id)) return true;
     this.rt.onLit?.(this.id);
     this.burnt = true; this.burning = 0;
@@ -729,6 +808,14 @@ export class Bramble {
     return true;
   }
   update(dt, t) {
+    if (this.felled && this.tangle.visible) {
+      // (cut: it slumps and goes in a second, no flames)
+      this.burning += dt;
+      const k = Math.min(1, this.burning / 0.9);
+      this.tangle.scale.set(1 + 0.15 * k, Math.max(0.02, 1 - k), 1);
+      if (k >= 1) this.tangle.visible = false;
+      return;
+    }
     if (this.burning === undefined || !this.flames) return;
     this.burning += dt;
     this.flames.update(dt, t);
@@ -747,7 +834,8 @@ export class Switch {
    * o: { id, at, yaw (the way it faces), size, crystal?: height, wrong?: text }: a carved eye that a splash of
    * fluid wakes. crystal: a singing crystal standing on the floor instead (its foot at `at`, this tall).
    * wrong: said when a splash does not wake it (it comes `after` another: logic.js). lids: stone lids over the eye,
-   * shut while its element's `when` fails (it can't wake now). pull: a moorers' ring (the City Floating in Space's
+   * shut while its element's `when` fails (it can't wake now). blade: a struck eye (the Givers' House): only a cut of the
+   * sword wakes it (its element `needs: ['sword']`). pull: a moorers' ring (the City Floating in Space's
    * Mooring-House) instead of an eye: a brass ring on a post that only a tether wakes (its element `needs: ['tether']`);
    * a splash or a push only rings it (o.wrong or its own line).
    */
@@ -791,12 +879,17 @@ export class Switch {
     this.on = rt.logic.isLit(o.id);
     this.hidden = !!o.hidden;
     const seen = () => !this.hidden || rt.logic.has(shownBy(o.hidden));
-    this.off = registerTarget({ kind: 'switch', radius: o.crystal ? Math.max(s, o.crystal * 0.45) : s, position: () => this.center, enabled: seen, accepts: o.pull ? ['tether'] : undefined, onHit: (mode) => this.hit(mode) });
+    this.off = registerTarget({ kind: 'switch', radius: o.crystal ? Math.max(s, o.crystal * 0.45) : s, position: () => this.center, enabled: seen, accepts: o.pull ? ['tether'] : o.blade ? ['blade'] : undefined, onHit: (mode) => this.hit(mode) });
     this.seen = seen;
     this.flash = 0;
   }
   /** A splash (any mode: it is fluid) wakes it; a moorers' ring (o.pull) only a tether's pull. */
   hit(mode) {
+    // a struck eye (o.blade, the Givers' House): only the sword's cut wakes it; a splash only wets the stone
+    if (this.o.blade && mode !== 'blade') {
+      if (!this.on) { this.flash = 0.4; this.rt.notice?.(this.o.wrong ?? 'The eye is cut in hard stone, and rings when you knock on it. It wants striking.', `wrong.${this.id}`); }
+      return true;
+    }
     if (this.o.pull && mode !== 'tether') {
       if (!this.on) { this.flash = 0.6; this.rt.sound?.critter?.('clank', 0.5); this.rt.notice?.(this.o.wrong ?? 'The ring clanks on its post and hangs still. It wants pulling, not wetting.', `wrong.${this.id}`); }
       return true;
@@ -1230,7 +1323,9 @@ export class Updraft {
  * along `dir` (local) and shoves whoever stands in the open back along it. Behind a screen (a `shelter`
  * box) it can't reach you. o: { min, max: the hall (local), dir: [x, 0, z], shelters: [[min, max]], calm, blow, push,
  * when (a condition: it blows only while that holds, the Aerie's vents), carry (m/s: with the wings open it carries you
- * along `dir` instead of shoving you back, a tailwind: push by default), carried (said the first time it does) }
+ * along `dir` instead of shoving you back, a tailwind: push by default), carried (said the first time it does), guard
+ * (the Givers' House: the shield raised into the wind breaks it, and you walk on into it at `guardPace` m/s), guarded
+ * (said the first time) }
  */
 export class Gust {
   constructor(rt, o) {
@@ -1278,15 +1373,19 @@ export class Gust {
     return 1;
   }
   sheltered(l) { return this.shelters.some((b) => b.containsPoint(l)); }
+  /** A guard turned this way (world) faces into the wind. */
+  facing(g) { return !g || g.x * -this.dirW.x + g.z * -this.dirW.z > 0.35; }
   update(dt) {
     this.t += dt;
     const st = this.state;
-    // the streaks: along the hall, from its far end to its near
-    const len = this.size.z;
+    // the streaks: along the hall, from its far end to its near (a hall along x: across it, its width in z)
+    const alongX = Math.abs(this.dirL.x) > Math.abs(this.dirL.z), len = alongX ? this.size.x : this.size.z;
+    const d = alongX ? this.dirL.x : this.dirL.z, lo = alongX ? this.box.min.x : this.box.min.z, hi = alongX ? this.box.max.x : this.box.max.z;
     for (const s of this.streaks) {
       s.u = (s.u + dt * (st === 1 ? 0.9 : 0.3) * s.v) % 1;
-      const z = this.dirL.z < 0 ? this.box.max.z - s.u * len : this.box.min.z + s.u * len;
-      s.m.position.set(s.x, s.y, z);
+      const w = d < 0 ? hi - s.u * len : lo + s.u * len;
+      if (alongX) { s.m.position.set(w, s.y, this.box.min.z + ((s.x - this.box.min.x) / Math.max(1e-3, this.size.x)) * this.size.z); s.m.rotation.y = Math.PI / 2; }
+      else s.m.position.set(s.x, s.y, w);
       s.m.visible = st > 0 && !(st === 0.5 && s.v > 1.1);
     }
     this.mat.uniforms.uGlow.value = st === 1 ? 0.6 : 0.35;
@@ -1294,6 +1393,13 @@ export class Gust {
     if (!P || P.dead || st < 1) return;
     const l = this.rt.kit.local(P.pos);
     if (!this.box.containsPoint(l) || this.sheltered(l) || screened(P.pos, this.dirW)) return;   // (or behind a wall drawn in ink: src/wind-screens.js)
+    // the shield raised into it (o.guard, the Givers' House): it breaks the wind, and you walk on into it, slowly
+    if (this.o.guard && P.guarding?.() && this.facing(P.guardDir?.())) {
+      const into = P.vel.x * -this.dirW.x + P.vel.z * -this.dirW.z, pace = this.o.guardPace ?? 2.2;
+      if (into > pace) { const k = pace / into; P.vel.x *= k; P.vel.z *= k; }
+      this.rt.notice?.(this.o.guarded ?? 'The gust breaks on your guard, and you lean on into it.', 'gust.guarded');
+      return;
+    }
     if (P.gliding) {
       // the wings open: it carries you along with it (the glide keeps its own way and sink; the wind adds its own)
       const c = (this.o.carry ?? this.push) * dt;

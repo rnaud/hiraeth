@@ -1001,3 +1001,45 @@ pictures print it (references/levels/The City Floating in Space/).
   turns it on. Cost: one branch on a uniform in the sky; in space a handful of hashes and a five-octave noise per
   sky pixel (the nebula), nothing measurable at Handheld.
 - `tests/spacecity.test.js`: every preset turns it off; the city's look turns it on, flat and black.
+
+## Z-fighting (scripts/zfight, `Z_GAP`; v1.44)
+
+Two faces of different looks lying in one plane are drawn in an order the depth buffer can't decide: they stripe
+and flicker as the camera moves (the author's issue #75, the Givers' House's "ton of visual artifacts"). The
+`zfight-qc` skill (`.claude/skills/zfight-qc/SKILL.md`) finds them by geometry in node: every visible static mesh's
+triangles, bucketed by plane, each pair of looks (a material, and for the temples' vertex-coloured paint its colour)
+within 4 mm, parallel and overlapping by more than 0.05 m² is a **site** (one per pair of looks per 3 m), kept only if
+someone standing near could see it (a floor under him, no ceiling on his head, not inside a wall, a clear line to it on
+its faces' side; inside a temple's box only in a room). `node scripts/zfight/audit.mjs` counts every world and its
+temples; `node scripts/zfight/list-temple.mjs <id>` lists one temple's sites in its own frame.
+
+**The kit's fix** (src/temples/kit.js, `Z_GAP` 2 cm), for every temple at once: a doorway's frame reaches 2 cm into the
+opening over the wall's own reveal, and its lintel 2 cm under the wall over the hole; a sill stops 2 cm under the hole's
+foot, under the floor laid through it; a hall's roof stops 2 cm inside its walls' outer faces (a taller hall beyond
+sees that face); a wall's end at a side the hall leaves open stops 2 cm short of the far face of the wall that closes
+it. The Givers' House's layout started its corridors and gallery inside the walls they meet, not on their faces.
+
+Visible sites, before → after (v1.44; `ZFIGHT_BASELINE` in `tests/zfight.test.js` holds each temple to its count, the
+Givers' House to none):
+
+| world | the world (all) | its temples |
+|---|---|---|
+| desert | 105 → 18 | the Givers' House 87 → **0** |
+| incal | 4007 → 3971 | the Warden's Well 83 → 47 |
+| arzach | 153 → 22 | the Founders' Belfry 84 → 11, the Aerie 66 → 8 |
+| glassdunes | 60 → 4 | the Clock-House 59 → 3 |
+| buried | 1778 → 1706 | the Engine-House 72 → 0 |
+| edena | 43 → 4 | the Builders' Greenhouse 43 → 4 |
+| spheres | 69 → 12 | the Footprint 59 → 2 |
+| perdide | 143 → 19 | the Lamp-House 74 → 9, the Hush-House 69 → 10 |
+| bazaar | 181 → 108 | the Undertower 85 → 12 |
+| underwater | 189 → 47 | the Whale-House 161 → 19 |
+| moonfoundry | 341 → 243 | the Casting-House 118 → 20 |
+| spacecity | 420 → 352 | the Mooring-House 73 → 5 |
+
+Left (the worlds outside their temples, not fixed here): the City-Shaft's city down the pit (most of its 3900, its
+buildings' merged meshes against each other), the Buried Machine's two layers of the drawn city at 522 m (`city1` and
+`city2`, perhaps two levels of detail, both counted), the Underwater City's floor and its paving at 4 cm, the Moon
+Foundry's cells' solid surfaces against their drawn ones, Qanat's walls (25 m² on two of its houses), the cave of the
+giant's heart's floor and the keepers' stair, the Givers' Hearth's floor. The Warden's Well's 47 are nearly all on its
+tower's foot and crown outside, in the shaft.

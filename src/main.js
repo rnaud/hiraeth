@@ -380,7 +380,7 @@ function potionHint() {
 // The progression's new verbs (v1.38: the lift valve's double jump, the fluid gun, the jets on jump held), each
 // taught once when its chest opens, after the card; and the choosing, once a second gadget is carried
 // (a genuinely new verb: hints subtle or full, src/hint-level.js)
-const TEACH_ON_FIND = { doublejump: 'hint.lift', gun: 'hint.gun', wardenbellows: 'hint.bellows' };
+const TEACH_ON_FIND = { sword: 'hint.sword', shield: 'hint.shield', doublejump: 'hint.lift', gun: 'hint.gun', wardenbellows: 'hint.bellows' };
 game.on('box:opened', ({ item } = {}) => {
   const key = TEACH_ON_FIND[item] ?? (gadgets?.owned?.().length >= 2 && gadgets.owned().includes(item) ? 'hint.pick' : null);
   if (!key || game.flag(`${key}.taught`) || !hintsFor('teach')) return;
@@ -587,6 +587,16 @@ for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y
 const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
+// the sword and the shield's guard are found (v1.44, the Givers' House): without them no cut, no guard, and neither drawn
+// on him (the tool's items: a game on foot lends them, src/minigames/kit/onfoot.js)
+const armTool = () => {
+  const s = !!tool.items.has('sword'), g = !!tool.items.has('shield');
+  // (the touch screen's ⚔ and ◇ only once found: index.html body.no-sword, body.no-shield)
+  if (s !== tool.swordOn) document.body.classList.toggle('no-sword', !s);
+  if (g !== tool.shieldOn) document.body.classList.toggle('no-shield', !g);
+  tool.swordOn = s; tool.shieldOn = g;
+};
+armTool();
 if (level.lendTool) lendTool(tool, level.lendTool);   // (the Arena: the backpack, the blade and the shield lent for the visit, whatever the save: src/minigames/kit/onfoot.js)
 await slice();
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
@@ -1837,6 +1847,7 @@ function frame(ts) {
   boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
   itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
+  armTool();
   tool.update(pdt, ctl, busy() || photo.on || !!minigame?.drives);   // (a game on foot keeps the blade and the gun)
   gadgets.update(pdt, busy() || photo.on || ship.playing || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);

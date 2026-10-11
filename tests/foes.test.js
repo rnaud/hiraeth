@@ -150,6 +150,29 @@ test('cutting a foe down gives the tank a charge back; a broken machine stays br
   clearTargets();
 });
 
+test('unarmed (v1.44: the sword not found), nothing comes to fight: no pack, no temple machine; armed, they come; a chest’s encounter brings more round its room’s mark', () => {
+  clearTargets();
+  const game = new GameState(null);
+  const tool = { swordOn: false, reserve: { level: 1, max: 3 }, drops: { add() {} }, glow: { add() {} }, modeTones: ['#fff'] };
+  const marks = [{ pos: v(0, 0, 0), heading: 0, room: 'a' }, { pos: v(0, 0, 30), heading: 0, room: 'chest' }];
+  let on = false;
+  const rt = { id: 'desert', marks, inside: () => false, def: { encounter: { room: 'chest', extra: 1, on: () => on } } };
+  const level = { spawn: v(), temple: rt };
+  const P = player(v(0, 0, 400));
+  const foes = new Foes({ scene: new THREE.Scene(), level, levelId: 'desert', physics: flat, player: P, tool, settings: { enemies: true }, game });
+  for (let i = 0; i < 12 / DT; i++) foes.update(DT);
+  assert.equal(foes.list.length, 0, 'unarmed: no pack out in the wilds, no machine in the temple');
+  assert.equal(foes.wild(P.pos), false);
+  tool.swordOn = true;
+  foes.update(DT);
+  assert.equal(foes.list.filter((f) => f.kind === 'machine' && f.room === 'chest').length, 1, 'armed: the machine by the chest room’s mark');
+  assert.equal(rt.machines.length, 1, 'the temple can count them');
+  on = true; game.emit('temple:gadget', { id: 'desert' });
+  foes.update(DT);
+  assert.equal(foes.list.filter((f) => f.kind === 'machine' && f.room === 'chest').length, 2, 'the chest opened: one more wakes, the first not doubled');
+  foes.dispose(); clearTargets();
+});
+
 test('the blade: three arcs, a soft lock on the nearest foe, and only targets that list the blade feel it', () => {
   for (const n of [0, 1, 2]) {
     const a = swingArc(n, 0), b = swingArc(n, 1);

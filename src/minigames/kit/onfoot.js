@@ -8,7 +8,7 @@
 //   const keep = tune(BLADE, { reach: 3.6 });  …  keep();   // a table of tunings changed for the game, put back after
 
 /**
- * The fluid tool lent for a game: worn and full, the fluid gun in hand, even on a save that has not found the backpack or the gun yet (or
+ * The fluid tool lent for a game: worn and full, the fluid gun in hand (and the sword and the shield), even on a save that has not found the backpack or the gun yet (or
  * whose tank is still dry), in plain shooting mode, with a magic bar of `max` units refilling `delay` s after
  * the last shot at `rate` units a second (all left out: the save's own bar, upgrades and all). Nothing is written to the save.
  * Returns the function that puts it all back.
@@ -18,7 +18,8 @@ export function lendTool(tool, { max = null, delay = null, rate = null, mode = '
   if (!tool) return none;
   const items = tool.items, had = items.has('backpack');
   // (the fluid gun lent with it, and in hand for the game: src/gadgets/gun.js, FluidTool.gunInHand)
-  const lent = { ...items, has: (id) => id === 'backpack' || id === 'gun' || items.has(id), on: (fn) => items.on(fn), owned: () => items.owned() };
+  // (and the sword and the guard: a game on foot is played with them, found or not)
+  const lent = { ...items, has: (id) => id === 'backpack' || id === 'gun' || id === 'sword' || id === 'shield' || items.has(id), on: (fn) => items.on(fn), owned: () => items.owned() };
   tool.items = lent;
   const gunWas = Object.getOwnPropertyDescriptor(tool, 'forceGun');
   tool.forceGun = true;

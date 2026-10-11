@@ -43,13 +43,16 @@ const quiet = (f) => { const w = console.warn, l = console.log; console.warn = c
 // Founders' Belfry; Lorn's Hush-House, then the Lamp-House), the Clock-House in the Glass Dunes (src/temples/index.js
 // templesIn, TEMPLE_HOME)
 const ROUTE_TEMPLES = ORDER.flatMap((w) => templesIn(w).sort((a, b) => (b === w) - (a === w)));
-const gadgetOf = (id) => Object.values(TEMPLES[id]?.def.logic.elements ?? {}).find((e) => e.type === 'gadget')?.item ?? null;
+// (a temple's finds: its gadget, and a second chest's item, the Givers' guard)
+const gadgetsOf = (id) => Object.values(TEMPLES[id]?.def.logic.elements ?? {}).filter((e) => (e.type === 'gadget' || e.type === 'find') && e.item).map((e) => e.item);
 // what the traveller carries in by then (the audit once solved every temple with the backpack alone, so no ball rolled,
 // no eye was shot and no tether pulled: no temple solved, and every door counted shut for the sight lines): the
-// backpack, the gun and the double jump from the desert's boxes, and each gadget of the temples before it on the route
+// backpack, the gun and the double jump from the desert's boxes, and each gadget of the temples before it on the route.
+// The Givers' House (v1.44) is walked into with empty hands: the backpack and the double jump only (the gun is the
+// Hearth's, and the house never asks for it); the blade and the guard it holds are carried into every temple after it
 const carriedInto = (id) => {
   const k = ROUTE_TEMPLES.indexOf(id);
-  return ['backpack', 'gun', 'doublejump', ...(k < 0 ? [] : ROUTE_TEMPLES.slice(0, k).map(gadgetOf).filter(Boolean))];
+  return ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun']), ...(k < 0 ? [] : ROUTE_TEMPLES.slice(0, k).flatMap(gadgetsOf))];
 };
 const ids = (arg('temples') ?? ROUTE_TEMPLES.join(',')).split(',').filter((id) => TEMPLES[id]);
 const report = { date: new Date().toISOString(), temples: [] };

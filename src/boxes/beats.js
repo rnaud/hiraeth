@@ -36,7 +36,7 @@ export const BEATS = {
 };
 
 /** The beat for each kind of item (src/items.js ITEMS[id].kind). */
-export const KIND_BEATS = { core: 'try', movement: 'try', mode: 'try', gadget: 'try', cosmetic: 'wear', charm: 'keep', pass: 'keep', upgrade: 'fit' };
+export const KIND_BEATS = { core: 'try', weapon: 'try', movement: 'try', mode: 'try', gadget: 'try', cosmetic: 'wear', charm: 'keep', pass: 'keep', upgrade: 'fit' };
 /** Items whose use is not their kind's: the finders point, the things that sound play. */
 export const ITEM_BEATS = { lens: 'point', shell: 'point', bell: 'play', echo: 'play' };
 

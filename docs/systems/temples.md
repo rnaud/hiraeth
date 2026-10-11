@@ -134,7 +134,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   wall where the quick coil was): where down has turned (the upside-down quarter
   and the ring), a little bubble level at the screen's right edge shows how the
   floor lies under the view (`effects.js`, it needs the camera).
-- **Items**: `fire` moved into the Givers' House, `jetpack` into the Warden's
+- **Items**: `fire` moved into the Givers' House (and out again in v1.44, to the Givers' Hearth: the house holds the
+  `sword` and the `shield` now), `jetpack` into the Warden's
   Well, `bell` into the Founders' Belfry, `cell` into the Engine-House, `lens` into
   the Footprint, `lantern` into the Lamp-House, `stun` into the Hush-House, `glider` into the Aerie,
   `coil` into the First Garage; new tools in the last two: `bloom` (the Greenhouse) and `echo`
@@ -244,8 +245,41 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   Chamber's four share one crank (one ball holds all four up); the Furnace's two west pistons have a crank each, the
   other two are caught in turn. The cranks are a `Cranks` (buried.js: wheels that turn unless jammed, rods to their
   pistons) and the hall's great gear a `Gear`; the Tooth-Warden turns on it (docs/systems/foes.md).
+- **The Givers' House remade for empty hands** (v1.44, issues #74 and #7). The house is walked into with the backpack
+  and the lift valve's double jump only (docs/systems/progression.md), and its gadget is the **Givers' blade** (`sword`),
+  half-way, with their **guard** (`shield`) a little after: no gun, no gun mode anywhere in it
+  (`tests/temples.test.js` solves it with `['backpack', 'doublejump']`). New parts it brought, any temple can use:
+  - a `Ball` with `shove` rolls ahead of you when you walk into it along its groove (at most `SHOVE`, 2.6 m/s: hands),
+    and with `blade` a cut of the sword sends it rolling at `BALL_CUT` (7.5 m/s); a drum's logic `roll: 'hand' | 'sword'`
+    says what moves it (logic.js `rolls`; left out, the gun's push, as before);
+  - a `Bramble` with `cut` falls to the sword (its element `needs: ['sword']`); a `Switch` with `blade` wakes only to
+    a cut (a splash says it wants striking); a `Gust` with `guard` breaks on the shield raised into it
+    (`player.guarding()`, `player.guardDir()` from src/fluid-blade.js), and you walk on into it at `guardPace`;
+  - a `Flame` with `when` (and `lid`) burns only while its condition holds, under a stone lid until then;
+  - a hooded `Brazier` catches from its burning ball as the ball rolls in slow (where it is, not where it last lay);
+  - a `find` element: a second chest (`{ type: 'find', item, box }`, logic.js `find` / `isFound`, the layout's
+    `finds` sites, src/boxes/placements.js `findSite`): the guard on the Hall of Fires' far landing;
+  - a guardian's attack with `guard: true` is taken by the shield (boss.js `strike`, through `player.guard`), and
+    `def.onBlock(g, a, perfect)` answers: the Keeper, jarred, pants;
+  - a temple's `encounter: { room, extra }` (src/foes.js placeMachinesIn: the room's mark's machine and `extra` more),
+    and `def.onUpdate(rt)` each frame: the Sword Chamber's doors `dc` and `dk` (opens: null) are held while its
+    machines stand and you are in it (`chamberHeld`), so taking the blade wakes them and the way out waits until
+    they are broken; a load puts the unbroken ones back, and nobody is shut out (the doors hold only with you inside).
+  The rooms: the Hall of the Flame leans its ball by hand through the pilot flame into the hooded bowl (`b0`, the
+  door `d1`); the Dry Channel is a sand pit with one pier, 9 m of air either side (one jump is about 6 m, the double
+  jump 13), its side walls glazed against climbing (`Glazed`), and a plate on the pier's head (`pp`) wakes the
+  chamber's door at the top of the gallery (`dc`, across the pit); the Sword Chamber holds the blade, its north door
+  (`dk`) sinks for the blade in hand, the thorns over the chest ball's groove (`bw0`) are the blade alone, and its ball (`ball3`, a fire on its groove) leaned on goes out before the Hall of
+  Fires' bowl (`b3`) while a cut gets it there burning (`CHEST_BALL`); the far landing holds the guard (`guard`); the
+  Hall of Winds' bellows blow west down it (a `Gust` `guard`, out to `WING.lee`), and at its far end, out of the
+  wind, a ball cut down the long groove burns out short of the far door's bowl (`b4`) unless the eye high on the end
+  wall (`e10`, struck from a double jump) has lifted the relay fire's lid, and woken the keepers' door `sc`; the
+  Keeper's spokes run from the basin out to hooded bowls on the rim, a fire half-way (`HEARTH_FIRE`): cut out, a
+  ball lights its bowl (its first phase); a guard against its charge jars it and it pants, and water from your tank
+  at its mouth (an interactable, `temple.desert.water`) calms it (its second); a ball cut back in from a lit bowl
+  rolls burning to it (its last, and the only way it pants then). Ember mode waits in the Givers' Hearth now.
 - **The Givers carried their fire** (the Givers' House, from the v1.24 audit; the house's one fire, the pilot flame,
-  never went out). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
+  never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
   floor, or a lit `Brazier`); it burns `burns` s, its flames shrinking, then goes out. A `Brazier` with `hood: { ball }`
   takes no ember: only its ball, at rest in its mouth (its plate) and burning, lights it; cold, the mouth tips the ball

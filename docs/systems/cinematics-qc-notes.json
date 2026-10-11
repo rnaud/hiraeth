@@ -276,10 +276,20 @@
    "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); v1.3: a closing beat by kind, here wear (the item pinned on and shown worn).",
    "updated": "2026-10-09T22:00:00.000Z"
   },
-  "box.desert.temple.fire": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+  "box.desert.temple.sword": {
+   "verdict": "Not reviewed",
+   "text": "New in v1.44 (the Givers' blade's chest in the Givers' House's Sword Chamber, the house's gadget since ember mode moved to the Hearth): the box scene, not looked at yet.",
+   "updated": "2026-10-10T22:00:00.000Z"
+  },
+  "box.desert.temple.shield": {
+   "verdict": "Not reviewed",
+   "text": "New in v1.44 (the Givers' guard's chest on the Hall of Fires' far landing): the box scene, not looked at yet.",
+   "updated": "2026-10-10T22:00:00.000Z"
+  },
+  "box.desert.hearth.fire": {
+   "verdict": "Not reviewed",
+   "text": "New in v1.44 (ember mode's chest, moved from the Givers' House to the Givers' Hearth): the box scene inside an interior, not looked at yet.",
+   "updated": "2026-10-10T22:00:00.000Z"
   },
   "box.incal.soles": {
    "verdict": "Pass",

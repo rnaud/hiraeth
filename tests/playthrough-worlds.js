@@ -304,7 +304,9 @@ Object.assign(ACTIONS, {
 
 // ------------------------------------------------------------------ the route
 export const ROUTE = [
-  { id: 'desert', play: ['desert.power'] },
+  // (the Givers' House after the main quest: it asks for nothing the Hearth gives, and its blade and guard are the
+  // traveller's before he leaves; tests/temples.test.js plays it on foot with nothing in hand)
+  { id: 'desert', play: ['desert.power', { temple: 'done', id: 'desert' }] },
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell'] },
