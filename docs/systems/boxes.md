@@ -137,7 +137,7 @@ fallback by the ship).
 
 The first chest is everything (issue #140, v1.49: "The first chest by the tree shouldn't be on a platform up in the
 tree, feels unnecessary … it should be like a temple chest"). It stands on the square at the burning tree's foot
-(`city.shrine`), in a clearing between the roots toward the old shrine's corner, left of the dry well as you come up
+(`city.shrine`), in a clearing between the roots toward the old shrine's corner, left of the trunk as you come up
 the avenue from the gate, the bare bark behind it and the low arm reaching over it: a round dais of the Givers' white
 stone in two walkable steps (0.22 m each, `DAIS` in src/desert-city.js: the temples' altar of
 `references/Core Objects/Chests/temple/sheet-2.jpg`), a gold band round its top, the makers' ring glowing on it and

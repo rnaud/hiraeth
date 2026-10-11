@@ -147,12 +147,12 @@ test('the desert backpack box is a temple chest on the makers’ dais at the bur
   assert.ok(rise > 0.3 && rise < 0.6, `on the dais on the square (${rise.toFixed(2)} m up)`);
   const g = physics.groundAt(at.pos.x, at.pos.y + 1, at.pos.z, 2);
   assert.ok(Math.abs(g - at.pos.y) < 0.03, 'the dais holds it');
-  // at the tree's foot, beside the well, in the middle of the city
+  // at the tree's foot, left of the trunk from the avenue, in the middle of the city
   assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
   const dt = Math.hypot(at.pos.x - C.treeBase.x, at.pos.z - C.treeBase.z);
   assert.ok(dt > 7 && dt < 11, `at the tree’s foot (${dt.toFixed(1)} m from its axis)`);
-  const dw = Math.hypot(at.pos.x - C.well.x, at.pos.z - C.well.z);
-  assert.ok(dw > 3.5 && dw < 12, `beside the well (${dw.toFixed(1)} m)`);
+  const dr = Math.hypot(at.pos.x - C.roots.x, at.pos.z - C.roots.z);
+  assert.ok(dr > 3.5 && dr < 12, `beside the roots the water climbs (${dr.toFixed(1)} m)`);
   // open sky over it (the light, the beacon, room for the opening scene) and somewhere to stand in front
   assert.equal(physics.rayDistance(at.pos.clone().add(V(0, 0.5, 0)), V(0, 1, 0), 12), Infinity, 'open sky over it');
   reachable(physics, at.pos, at.yaw, 'desert.backpack');
@@ -168,12 +168,12 @@ test('the desert backpack box is a temple chest on the makers’ dais at the bur
   assert.ok(physics.rayDistance(V(at.pos.x, C.top + 1, at.pos.z), out.clone().negate(), 6) < 6, 'the bark behind it');
   const toAvenue = C.plinthStair.clone().sub(at.pos).setY(0).normalize();
   assert.ok(F.dot(toAvenue) > 0.95, 'it faces the way you come up the avenue');
-  // in sight all the way up the avenue: from the gate, the avenue's end and the square before the well
+  // in sight all the way up the avenue: from the gate, the avenue's end and the square before the trunk
   for (const [name, q] of [['the gate', C.gate], ['the avenue’s end', C.plinthStair], ['the square', C.stairTop]]) {
     const eye = q.clone().setY(physics.groundAt(q.x, q.y + 2, q.z) + 1.6), lid = at.pos.clone().add(V(0, 0.8, 0)), d = eye.distanceTo(lid);
     assert.ok(physics.rayDistance(eye, lid.clone().sub(eye).normalize(), d) > d - 0.2, `seen from ${name}`);
   }
-  // on foot from the gate: up the avenue, round the well, up the dais's two steps to the chest (no step over 0.62 m, no wall)
+  // on foot from the gate: up the avenue, across the square, up the dais's steps to the chest (no step over 0.62 m, no wall)
   const route = [C.gate, C.plinthStair, C.stairTop, L.foot, at.pos.clone().addScaledVector(F, 0.9)];
   for (let i = 0; i < route.length - 1; i++) {
     const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);

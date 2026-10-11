@@ -169,8 +169,8 @@ cuts it. A thing whose `at` is only where you stand (the foot of the stone hand)
 part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
 `player.faceToward` turns the traveller to the person or the thing (to `look` when there is one, else
 to `at`: so a thing asked from a spot beside it must pass its `look`, or he turns to that spot. Qanat's
-well is asked from the terrace 3.4 m out from its middle; standing between there and the rim he turned
-his back on it. It passes `wellInside`, down the shaft: `tests/desert-story.test.js`).
+roots are asked from the square 2.6 m out from the bark; they pass `city.roots`, the bark knee high:
+`tests/desert-story.test.js`; the well before them, until v1.49, passed its shaft for the same reason).
 
 ## The speaker's portrait, and when it comes back empty (October 2026)
 

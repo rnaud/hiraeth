@@ -43,7 +43,7 @@ const npcs = [];
 const rt = createStory({ levelId: 'desert', scene, physics, level, player, npcs, crowd, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete: () => { storyDone = true; } },
   capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
 const { quests } = rt;
-const wellEntry = INTERACT.allInteractables().find((x) => x.id === 'well');   // (the well's prompt: the last test looks into it)
+const rootsEntry = INTERACT.allInteractables().find((x) => x.id === 'roots');   // (the roots' prompt: a later test looks at them)
 // people: also walk the story people (main.js does it every frame; most tests don't need them to move)
 const step = (n = 1, dt = 1 / 30, { people = false } = {}) => { for (let i = 0; i < n; i++) { camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, i * dt, { camera }); crowd.update(dt, i * dt, player, camera); if (people) for (const p of npcs) p.update(dt, player, camera); } };
 const talk = (person, choices) => {
@@ -108,8 +108,7 @@ test('the city, its camps, the giant and the cave stand on solid ground, 300–6
   stand(Q.city.gate, 'the main gate');
   stand(Q.city.backGate, 'the back gate');
   stand(Q.city.plinthStair, 'the foot of the stairs');
-  stand(Q.city.wellLook, 'the top terrace by the well');
-  stand(Q.city.stele, 'the stele');
+  stand(Q.city.rootsLook, 'the square before the roots');
   stand(Q.camps.center, 'the camps');
   for (const f of Q.camps.fires) stand(f.clone().setY(f.y), 'a camp fire');
   stand(Q.giant.door, 'the skull’s mouth');
@@ -117,9 +116,15 @@ test('the city, its camps, the giant and the cave stand on solid ground, 300–6
   const pool = Q.cave.poolCenter, bed = physics.groundAt(pool.x, pool.y + 3, pool.z);
   assert.ok(bed < Q.cave.origin.y - 1 && bed > Q.cave.origin.y - 2.2, 'the pool has a shallow bed you can wade on');
   // the tree is rooted in the town's square, on the ground: no terrace, dais or plinth under it (the author's call,
-  // October 2026, after the picked reference), the well and the stele beside it at the square's level
+  // October 2026, after the picked reference), the spot before its roots at the square's level
   assert.ok(Math.abs(Q.city.treeBase.y - Q.city.center.y) < 0.1, 'the tree stands on the square');
-  assert.ok(Math.abs(Q.city.wellLook.y - Q.city.center.y) < 0.1, 'the well too');
+  assert.ok(Math.abs(Q.city.rootsLook.y - Q.city.center.y) < 0.1, 'the roots’ spot too');
+  // the well and the carved stele are gone from the square (the author, issue #161): nothing stands before the roots
+  assert.equal(Q.city.well, undefined); assert.equal(Q.city.stele, undefined); assert.equal(THINGS.well, undefined); assert.equal(THINGS.stele, undefined);
+  for (const [lx, lz] of [[0, 8], [6.2, 8.2]]) {   // (where they stood, city-local)
+    const w = Q.city.local(lx, Q.city.top - Q.city.center.y + 2, lz), g = physics.groundAt(w.x, w.y + 3, w.z, 6);
+    assert.ok(Math.abs(g - Q.city.top) < 0.1, `bare paving where the well and the stele stood (${(g - Q.city.top).toFixed(2)} m at ${lx}, ${lz})`);
+  }
   for (let a = 0; a < Math.PI * 2; a += 0.2) for (const r of [16, 20, 24]) {
     const w = Q.city.local(Math.sin(a) * r, 3, -3 + Math.cos(a) * r), g = physics.groundAt(w.x, w.y, w.z, 6);
     if (Number.isFinite(g)) assert.ok(g - Q.city.center.y < 0.6, `the square is flat round the tree (${(g - Q.city.center.y).toFixed(2)} m at ${a.toFixed(1)}, ${r} m)`);
@@ -197,11 +202,11 @@ test('feet stand on what is drawn: the square round the tree, the avenue, and th
   assert.ok(n > 40, `the trunk checked all round (${n})`);
 });
 
-test('you can walk from the camps through the gate, up the stairs to the well, and out of the back gate', () => {
-  const path = [Q.camps.center, Q.city.gate, Q.city.plinthStair, Q.city.wellLook];
+test('you can walk from the camps through the gate, up the avenue to the tree’s roots, and out of the back gate', () => {
+  const path = [Q.camps.center, Q.city.gate, Q.city.plinthStair, Q.city.rootsLook];
   // round the trunk, through the back gate, then round the jaw to its open front
   const C = Q.city, top = C.top - C.center.y;
-  const back = [C.wellLook.clone(), C.local(-4, top, 9.6), C.local(-8, top, 4), C.local(-8, top, -6), C.local(0, top, -11), C.local(0, 0, -32), C.backGate, Q.giant.local(-22, 0, -8), Q.giant.local(-18, 0, 24), Q.giant.local(0, 0, 24), Q.giant.door];
+  const back = [C.rootsLook.clone(), C.local(-4, top, 9.6), C.local(-8, top, 4), C.local(-8, top, -6), C.local(0, top, -11), C.local(0, 0, -32), C.backGate, Q.giant.local(-22, 0, -8), Q.giant.local(-18, 0, 24), Q.giant.local(0, 0, 24), Q.giant.door];
   for (const route of [path, back]) {
     for (let i = 0; i < route.length - 1; i++) {
       const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);
@@ -465,7 +470,7 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.equal(quests.objective().label, 'The giant’s skull');
   // Nour said the old verse herself: the mouth is a door
   assert.match(PEOPLE.nour.talk.nodes.power.say.map((s) => s.text ?? s).join(' '), /mouth is a door/);
-  talk(THINGS.well, [0]);   // (the well can still be looked at: it isn't a stage any more)
+  talk(THINGS.roots, [0]);   // (the roots can be looked at: no stage of the quest)
   // Ama's jar is her own small gift now, no step of the quest (issue #63): taken, it fills at the pool too
   const ama = talk(PEOPLE.ama, ['I’ll bring it back full']);
   assert.ok(quests.has('jar'), 'Ama gives the jar to whoever sits at her fire');
@@ -479,7 +484,7 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   step(2);
   assert.equal(quests.stage('desert.power'), 'down');
   // the objective is in the cave, so the guide routes through the skull's mouth
-  at(Q.city.wellLook);
+  at(Q.city.rootsLook);
   assert.match(rt.objective().label, /giant’s mouth/);
   at(Q.cave.inside); step(2);
   assert.equal(quests.stage('desert.power'), 'channel');
@@ -554,17 +559,15 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   game.emit('ship:enter');
   assert.ok(quests.has('water') && !game.flag('desert.ship.fed'), 'the jar’s water is still: it wants the spark too');
 
-  // ---- the well: you watch the water rise up the shaft; the tree stays cold
-  assert.ok(quests.objective().position.distanceTo(Q.city.wellLook) < 0.01, 'the marker is at the well');
-  at(Q.city.wellLook);
+  // ---- the roots: you watch the water climb them; the tree stays cold
+  assert.ok(quests.objective().position.distanceTo(Q.city.rootsLook) < 0.01, 'the marker is at the roots');
+  at(Q.city.rootsLook);
   step(3);
-  assert.ok(W.rise.on, 'the water rises while you watch');
-  assert.ok(Q.city.wellWater.visible && Q.city.wellWater.position.y < Q.city.well.y + 0.4, 'from low in the shaft');
+  assert.ok(W.rise.on, 'the water climbs while you watch');
   for (let i = 0; i < 40 && !game.flag('desert.well.watched'); i++) step(30, 1 / 10);
   assert.equal(game.flag('desert.well.watched'), true);
-  assert.ok(Math.abs(Q.city.wellWater.position.y - (Q.city.well.y + 0.95)) < 1e-3, 'it brims');
   assert.equal(Q.city.lit, 0, 'and still the tree is cold');
-  assert.equal(talk(THINGS.well, []).nodeId, 'full');
+  assert.equal(talk(THINGS.roots, []).nodeId, 'full');
   step(2);
   assert.equal(quests.stage('desert.power'), 'spark');
   // Nour tells of the spark-stone and the Givers' Hearth
@@ -633,18 +636,18 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.ok(quests.carried().includes(ITEMS.stone), 'your gear lists it');
   assert.equal(talk(PEOPLE.nour, []).nodeId, 'stone');
 
-  // ---- home to the well: set the stone in the water; the spark climbs the trunk and the tree catches
-  at(Q.city.wellLook); step(2);
+  // ---- home to the roots: set the stone in them; the spark climbs the trunk and the tree catches
+  at(Q.city.rootsLook); step(2);
   assert.equal(Q.city.lit, 0);
   const sm = Q.city.smoke, warm = coolness(sm);
   const setIt = bestInteractable(player);
-  assert.equal(setIt?.entry.id, 'well.stone');
-  assert.equal(promptOf(setIt), 'set the spark-stone in the well');
+  assert.equal(setIt?.entry.id, 'roots.stone');
+  assert.equal(promptOf(setIt), 'set the spark-stone in the roots');
   setIt.entry.use(player);
   step(8);
-  assert.ok(H.stone.visible && H.stone.position.distanceTo(player.pos) < 6, 'out of your pack, from your hand into the well');
+  assert.ok(H.stone.visible && H.stone.position.distanceTo(player.pos) < 6, 'out of your pack, from your hand into the roots');
   assert.equal(game.flag('desert.tree.lit'), true);
-  assert.ok(!quests.has('stone'), 'the stone stays in the well');
+  assert.ok(!quests.has('stone'), 'the stone stays in the roots');
   step(30 * 4);
   assert.ok(Q.city.lit > 0 && Q.city.lit < 1, `it catches, and the fire grows (${Q.city.lit.toFixed(2)})`);
   step(30 * 8);
@@ -797,21 +800,23 @@ test('the water let out before anyone sent you down: the steps that lead there p
   clearInteractables();
 });
 
-test('looking into the well: he turns to the shaft, not to the spot on the terrace he was asked from', () => {
-  const C = Q.city, e = wellEntry;   // (taken as the story set it up: later tests clear the prompts)
-  assert.ok(e, 'the well can be looked into');
-  // between the rim and the place the prompt is asked from (city.wellLook, 3.4 m out from the middle), a little to the side
-  const p = C.well.clone().lerp(C.wellLook, 0.85); p.x += 0.6;
-  at(p); facing(C.well);
+test('looking at the roots: he turns to the bark, not to the spot on the square he was asked from', () => {
+  const C = Q.city, e = rootsEntry;   // (taken as the story set it up: later tests clear the prompts)
+  assert.ok(e, 'the roots can be looked at');
+  // the bark at the trunk's foot toward the avenue, knee high; asked from the square 2.6 m out from it
+  assert.ok(Math.abs(C.roots.y - C.top - 0.8) < 0.01, 'knee high on the bark');
+  const g = physics.rayDistance(C.rootsLook.clone().setY(C.top + 0.8), C.roots.clone().sub(C.rootsLook.clone().setY(C.top + 0.8)).normalize(), 8);
+  assert.ok(Math.abs(g - flat(C.rootsLook, C.roots)) < 0.6, `the bark is there (${g.toFixed(2)} m, ${flat(C.rootsLook, C.roots).toFixed(2)})`);
+  const p = C.roots.clone().lerp(C.rootsLook, 0.7).setY(C.top); p.x += 0.6;
+  at(p); facing(C.roots);
   assert.ok(e.distance(player) < e.range, 'the prompt answers there');
   e.use(player);
-  assert.ok(rt.dialogue.open, 'the well speaks');
+  assert.ok(rt.dialogue.open, 'the roots speak');
   step(1);
   const to = player.faceToward;
   assert.ok(to, 'he turns to something');
   const dir = (a) => { const d = a.clone().sub(player.pos); d.y = 0; return d.normalize(); };
-  assert.ok(dir(to).dot(dir(C.well)) > 0.99, `toward the well (${dir(to).dot(dir(C.well)).toFixed(2)}; it was -0.62: his back to it)`);
-  assert.ok(flat(to, C.well) < 0.01 && to.y > C.well.y && to.y < C.well.y + 1.15, 'down into the shaft, under the rim');
+  assert.ok(dir(to).dot(dir(C.roots)) > 0.99, `toward the roots (${dir(to).dot(dir(C.roots)).toFixed(2)})`);
   rt.dialogue.close();
   step(1);
 });

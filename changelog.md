@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.50 — 2026-10-11
+
+- Qanat’s square is clearer round its great tree: the stone well and the carved stele are gone. The water now climbs the tree’s own roots while you watch, and you set the spark-stone in the roots at the trunk’s foot, on the avenue’s side. Hessa sweeps round the roots instead of the well.
+
 ## v1.49 — 2026-10-11
 
 - Conversations are easier to read: the words are much bigger on every screen, from a handheld to a TV, in a wider box, and each page appears whole and in your own words at once, instead of being typed out letter by letter in the speaker’s script first. A press turns the page straight away. The answers are lighter too: just their words on the paper, the one you would pick in full ink with a red line under it.

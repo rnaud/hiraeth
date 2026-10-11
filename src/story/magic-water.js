@@ -4,7 +4,7 @@ import { FLUID_TONES } from '../fluid-tool.js';
 
 // The desert's magical water is the backpack's fluid: the same FLUID shader
 // (materials.js, makeMaterial({ fluid })) and the same tones (fluid-tool.js),
-// so the pool, the stream and the well visibly match the tank.
+// so the pool and the stream visibly match the tank.
 //
 // The shader paints a surface from its object-space shape (an angle round
 // +y, and a height): the pool is built as a cone in object space (height =

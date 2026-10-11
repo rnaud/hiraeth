@@ -34,9 +34,9 @@
 //                         speaker.heard, well.seen, cave.seen, pole.tried, lever (heaves), channel.open
 //                         (the rib is off and the water rises: the tree drinks, and stays cold), jar.filled,
 //                         well.watched, spark.heard, hearth.seen / hearth.open, stone.taken, tree.lit (the
-//                         spark-stone is in the well: it burns), ship.fed, pool.tinted, teo.drumming,
+//                         spark-stone is in the roots: it burns), ship.fed, pool.tinted, teo.drumming,
 //                         ilo.following / ilo.atSkull / ilo.told, oum.following / oum.home,
-//                         stele.read, mural.read, brow.seen, rumour.light, quest.v; clue.desert.perdide
+//                         stele.read (the stele, gone in v1.49), mural.read, brow.seen, rumour.light, quest.v; clue.desert.perdide
 //   minigame.<id>.best    a minigame's best score (minigame.<id>.plays: runs finished; src/minigames/kit/scores.js)
 //   tool.empty            the backpack's tank has never been filled (src/fluid-tool.js: no magic,
 //                         no refill); the first magical water clears it

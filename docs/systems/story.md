@@ -454,9 +454,11 @@ catches**), the ship.
   on the mural, then to **the carved post** beside the gutter; three presses there
   (`desert.lever`) each lift the rib a little more, the third tips it off. A full tank still
   pushes it.
-- **The well filling**: once the water runs, walking up to the well starts its rise (some ten seconds of
-  living water coming up the shaft, pale motes climbing the trunk, Hessa calling out); brimmed, it sets
-  `desert.well.watched` and Nour has a story to tell.
+- **The roots drinking** (the well's filling until v1.49, issue #161: the well and the stele are gone from the
+  square): once the water runs, walking up to the bare roots at the trunk's foot toward the avenue (`city.roots`,
+  asked from `city.rootsLook`) starts the rise (`RISE_T`, ten seconds of pale motes climbing the trunk, Hessa calling
+  out); then it sets `desert.well.watched` (the flag keeps the well's name, for the saves) and Nour has a story to
+  tell. Until the tree burns, a few motes go on climbing the bark while you are near.
 - **The Givers' Hearth** (`src/desert-hearth.js`, `STORY.hearth`, ~1.6 km south-east of Qanat on a
   hilltop of the red rocks, its chimney seen from the way; `hearthStones()`: nine marked stones
   along the way): a butte with a porch whose door looks back at the city, and a dark round hall
@@ -471,8 +473,8 @@ catches**), the ship.
   into your pack: nothing floats about you (players: "it should go in my inventory"); the
   sketchbook's Gear section lists the quest items you carry under "In your pack"
   (`quests.carried()`, `gearHtml({ carried })`), and so does the menu's Quests page; in the dark
-  hall it glows a little through the pack. E at the well takes it out into your hand and into
-  the water: it sinks, a spark climbs the outside of the trunk, and the fire catches over six seconds in the
+  hall it glows a little through the pack. E at the roots (`roots.stone`) takes it out into your hand and into
+  the wet roots: it sinks in, a spark climbs the outside of the trunk, and the fire catches over six seconds in the
   cool colours (`desert.tree.lit`; the procession sings, the bands feast). The ship only takes
   the jar's water once the tree burns.
 - **Old saves** (`migrateDesertQuest`, `desert.quest.v` 3, now 4: see below): a save whose water had already

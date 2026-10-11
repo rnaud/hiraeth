@@ -68,7 +68,6 @@ test('the buttress roots leave the ring round the trunk walkable: nothing over a
   for (let a = -Math.PI; a < Math.PI; a += 0.05) for (const r of [8, 9, 10]) {
     const p = round(a, r);
     if (Math.hypot(p.x - C.center.x, p.z - C.center.z) > 11.2) continue;   // (the ring by the trunk: the tree's foot)
-    if (p.distanceTo(C.well) < 3.2 || p.distanceTo(C.stele) < 2.6) continue;
     const g = physics.groundAt(p.x, top + 1.2, p.z, 3);
     if (Number.isFinite(g) && g - top > 0.6) bad.push(`${a.toFixed(2)}/${r}: ${(g - top).toFixed(2)} m`);
   }

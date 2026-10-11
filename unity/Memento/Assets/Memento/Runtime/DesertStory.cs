@@ -7,7 +7,7 @@ namespace Memento
     /// <summary>
     /// The desert's story, alive (src/story/desert.js): who stands where, what reacts to you and
     /// the chain of the main quest "The Tree That Drinks": follow the smoke to Qanat, climb to
-    /// the makers' chest on the tree's ledge (the backpack), hear Nour, listen at the dry well,
+    /// the makers' chest on the tree's ledge (the backpack), hear Nour, look at the tree's roots,
     /// take Ama's jar, find the Speaker at the head of the procession, go down under the giant,
     /// push the fallen rib off the channel, fill the jar in the risen pool, feed the ship.
     /// The words are story.json (src/story/desert-data.js); this is the glue.
@@ -20,7 +20,7 @@ namespace Memento
         readonly Dictionary<string, Npc> people = new();
         Vector3 cityCenter, caveOrigin, poolCenter, fire, ship, ledgeBox, giantDoor;
         float poolR, flare;
-        GameObject bone, pool, stream, wellWater, drum, chest, tarp, starBox;
+        GameObject bone, pool, stream, drum, chest, tarp, starBox;
         public BoxScene boxScene;
         float BoxYaw(string id) { foreach (var b in P.L("boxes")) if (b.S("id") == id) return b.F("yaw"); return 0; }
         Vector3 BoxAt(string id) { foreach (var b in P.L("boxes")) if (b.S("id") == id) return b.V3("pos"); return Vector3.zero; }
@@ -48,14 +48,12 @@ namespace Memento
             game.world.Objects.TryGetValue("bone", out bone);
             game.world.Objects.TryGetValue("pool", out pool);
             game.world.Objects.TryGetValue("stream", out stream);
-            game.world.Objects.TryGetValue("wellWater", out wellWater);
             game.world.Objects.TryGetValue("drum", out drum);
             game.world.Objects.TryGetValue("tarp", out tarp);
             game.world.Objects.TryGetValue("box:desert.backpack", out chest);
             if (bone) { boneFrom = bone.transform.position; boneRotFrom = bone.transform.rotation; }
             if (pool) { poolY0 = pool.transform.position.y; pool.SetActive(false); }
             if (stream) stream.SetActive(false);
-            if (wellWater) wellWater.SetActive(false);
             game.world.Objects.TryGetValue("box:desert.star", out starBox);
 
             if (!Q.IsStarted("desert.power")) Q.Start("desert.power");
@@ -149,7 +147,7 @@ namespace Memento
         {
             Q.Locate("camps", () => P.V3("camps"));
             Q.Locate("cityGate", () => P.V3("cityGate"));
-            Q.Locate("well", () => P.V3("wellLook"));
+            Q.Locate("roots", () => P.V3("rootsLook"));
             Q.Locate("caveIn", () => P.V3("caveInside"));
             Q.Locate("skull", () => giantDoor);
             Q.Locate("bone", () => bone ? bone.transform.position : P.V3("bone"));
@@ -169,8 +167,7 @@ namespace Memento
 
         void Things()
         {
-            Thing("well", P.V3("wellLook"), 3.4f, "look into the well");
-            Thing("stele", P.V3("stele"), 3.2f, "read the stele");
+            Thing("roots", P.V3("rootsLook"), 3.4f, "look at the roots");   // (the well and the stele went in v1.49)
             var gy = P.F("giantYaw");
             Thing("brow", giantDoor + new Vector3(Mathf.Sin(-gy) * -3, 0, Mathf.Cos(-gy) * 3), 4f, "look up at the skull");
             Thing("mural", new Vector3(P.V3("mural").x, caveOrigin.y, P.V3("mural").z), 4f, "look at the mural");
@@ -289,7 +286,6 @@ namespace Memento
             boneT = 0;
             if (stream) stream.SetActive(true);
             if (pool) pool.SetActive(true);
-            if (wellWater) wellWater.SetActive(true);
             treeFlame?.SetPalette(new[] { "#fff6dc", "#9ff0e6", "#62c3c9", "#a99be0", "#e88fa6" }.Select(Json.Hex).ToArray());
             flare = 2f;
             foreach (var n in people.Values) n.lines = new List<string> { "~happy~ It drinks!", "~happy~ Every colour!" };

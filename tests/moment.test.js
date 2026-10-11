@@ -292,7 +292,7 @@ test('without the ship’s camera (or once seen) the desert does what it always 
   const refills = [];
   game.on('tool:refill', (e) => refills.push(e));
   toasts.length = 0;
-  player.pos.copy(Q.city.wellLook); step(2);
+  player.pos.copy(Q.city.rootsLook); step(2);
   const c = C.poolCenter;
   player.pos.copy(V(c.x, C.origin.y - 1.5, c.z)); step(2);
   assert.ok(!rt.moments.playing, 'no second time');

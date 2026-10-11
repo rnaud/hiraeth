@@ -19,7 +19,7 @@ import { t as tr } from '../i18n.js';
 // hole: the chain runs and the grille grinds up into the rock. Climb the shelf
 // (the wall's face is plain rock) and take the stone: it goes into your pack
 // (the gear page lists it: the quest items you carry), glowing faintly through
-// it in the dark of the hall, and comes out again in your hand at Qanat's well.
+// it in the dark of the hall, and comes out again in your hand at Qanat's tree.
 //
 // Flags: desert.hearth.seen (you reached it), desert.hearth.open (the ball has
 // dropped: the grille is up), desert.stone.taken (+ the item 'stone' while you
@@ -78,7 +78,7 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     quests.give('stone');
     game.set('desert.stone.taken', true);
     sound.chime?.();
-    toast(`You lift ${ITEMS.stone} out of its cup, warm and breathing light, and stow it in your pack. Bring it to Qanat’s well.`);
+    toast(`You lift ${ITEMS.stone} out of its cup, warm and breathing light, and stow it in your pack. Bring it to the roots of Qanat’s tree.`);
   };
   registerInteractable({ id: 'hearth.stone', priority: PRIORITY.use, range: 2.9, at: () => H.stone.position, enabled: () => opened() && !taken() && st.roll === Infinity,
     prompt: 'take the spark-stone',
@@ -142,7 +142,7 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
       _r.copy(pp).addScaledVector(f, -0.3);
       H.stoneLight.set(_r.x, _r.y + 1.3, _r.z, 7 + 2 * b);
     } else if (H.stone.userData.placing) {
-      // (out of your pack and on its way into the well: src/story/desert.js updateLighting moves it)
+      // (out of your pack and on its way into the roots: src/story/desert.js updateLighting moves it)
     } else {
       H.stone.visible = false;
       H.stoneLight.w = 0;

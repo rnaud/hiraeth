@@ -40,13 +40,13 @@ const courtSite = (id) => (level) => level?.finds?.courts?.[id]?.box ?? level?.f
 export const PLACEMENTS = {
   desert: [
     // the makers' dais in Qanat (issue #140, v1.49): at the burning tree's foot in the town's square, in a clearing of
-    // pale flagstones between the roots, left of the dry well as you come up the avenue from the gate; a round dais of
+    // pale flagstones between the roots, left of the trunk as you come up the avenue from the gate; a round dais of
     // white stone and gold, and on it the temple chest (`chest: 'temple'`: the first chest is the temples' own, the same
     // in every world). It stood on a plank shelf 7 m up the trunk before, a climb in two pitches (src/desert-city.js
     // builds the dais). The box's pale column shows the way.
     // (`dry`: its tank comes out empty, as src/story/desert.js leaves it, unless the pool has already risen: the box's scene shows it so)
     { id: 'desert.backpack', item: 'backpack', chest: 'temple', found: 'box.found.backpack', dry: (game) => !game.flag('desert.channel.open') && !game.flag('desert.pool.tinted'), site: (level) => level.qanat?.city.shrine && { at: level.qanat.city.shrine.box.toArray(), face: level.qanat.city.shrine.yaw }, beacon: 170,
-      note: 'In Qanat, on the makers’ dais at the burning tree’s foot in the town’s square, left of the dry well. The first find, and the elder’s.' },
+      note: 'In Qanat, on the makers’ dais at the burning tree’s foot in the town’s square. The first find, and the elder’s.' },
     // the progression rewrite (v1.38, docs/systems/progression.md; v1.44: he comes with nothing in his hands). The backpack's first
     // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main
     // quest leads down there to fill the tank (and the box hums once it is full), on the dry floor between the basin and

@@ -176,8 +176,8 @@ written in).
   Pilgrims cross the dunes in procession to see it. This year the water has
   not risen.
 - **Place**: the old city of **Qanat** (230, 400), built round the burning tree,
-  with pilgrims' camps outside its main gate (168, 292). Its sacred well is dry.
-  Beside the well, opposite the carved stele, a **ledge juts out of the burning
+  with pilgrims' camps outside its main gate (168, 292). The tree's roots are dry
+  (its well and carved stele left the square in v1.49). Once a **ledge jutted out of the burning
   tree's trunk** a few metres up: a plank shelf on a buttress root marked with
   the glyph, cloths tied to its corners. On it, in the open where you see it
   from the stairs, the makers' chest that holds the backpack; you climb the
@@ -187,7 +187,7 @@ written in).
 - **People**: Ama, keeper of the camp fires; Teo, a drummer who lost his drum;
   Sefa (oud) and Bako (ney), the camp musicians; the Speaker who leads the
   procession; a child, Ilo, who wants to see the cave; old Oum, the pilgrim who
-  fell behind; Hessa, keeper of the dry well; Marrow, a salvager; **Nour, the
+  fell behind; Hessa, keeper of the tree, who sweeps round its roots; Marrow, a salvager; **Nour, the
   eldest of Qanat**, Hessa's grandmother, who has kept the chest company for
   sixty years (her mother kept it before her); and a few people of Qanat (a
   weaver, a potter, a boy, a baker, a guard, a sweeper) about the terraces and
@@ -206,7 +206,7 @@ written in).
      (Ama: "To the city, sky-stranger! Up to the tree!"; the Speaker: "Qanat is
      ahead, little star"). Nothing on the way needs the tool.
   2. `box`: "Open the humming chest under the tree." At the tree's foot, left
-     of the well as you come up the avenue, the makers' chest stands on its round
+     of the trunk as you come up the avenue, the makers' chest stands on its round
      dais of white stone and gold (the temples' own chest). The first time you come near, the people
      on the terrace turn and murmur, Hessa calls her grandmother, the tree
      flares. Nour, asked before it opens: it has not opened for anyone in

@@ -695,9 +695,19 @@ lanterns, the fire's hazard and the crown all come down 6.6 m with it, and every
 `treeBase`, `ledge.*`, `well`, `wellLook`; `plinthStair` is the avenue's end at the square, `stairTop` a spot in the square
 before the well). The fins' tails and the low arm run down into the paving instead of over a tier's edge. The square
 (`SQUARE`, 23 m) is paved out to 26 m and the houses are laid round it from 24 m (they started at 31 m, past the tiers),
-their doors on the tree. `tests/desert-story.test.js` checks the tree, the well and the ground round them stand at the
+their doors on the tree. `tests/desert-story.test.js` checks the tree, the roots' spot and the ground round them stand at the
 square's level (no step over 0.6 m from 16 to 24 m out). When the chest opens, only Nour calls out ("Hey you!",
 `MURMURS.nour`) and comes to the tree's foot; nobody else walks over (`gather` in `src/story/desert.js`).
+
+## Qanat's square without the well and the stele (v1.49)
+The author, issue #161: "we can remove the well as well, it's not super interesting, and neither is the steel". The
+round well (and its hidden water, `wellWater`) and the carved stele are gone from the square, with their colliders. What
+used the well uses the roots instead: the bare bark at the trunk's foot toward the avenue, where no fin stands
+(`city.roots`, knee high on the bark, and `city.rootsLook`, the square 2.6 m out from it, where the quest's marker, the
+`roots` thing and the `roots.stone` prompt are). The water climbs the roots while you watch (`rise`), and the spark-stone
+is set in them (`light`); the flags keep their names (`desert.well.seen`, `desert.well.watched`). Hessa is the tree's
+keeper and sweeps round its foot between the dais's clearing and the fins on the right; the villager's clue about the
+well's kneeling figures is the roots running toward the back gate. The Unity export's places are `roots` / `rootsLook`.
 
 ## The way through the camps (v1.42, `CAMP_WAY` in `src/desert-city.js`)
 The author's note: "the tent area in the desert feels too crowded; unsure where to go". The landing, the camps and

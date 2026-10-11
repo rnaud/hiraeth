@@ -108,7 +108,7 @@ test('an old save at the jar: the tree already burns; wading fills the jar and t
   assert.equal(quests.isDone('desert.power'), true);
 });
 
-test('the cold tree: no burn, ember mode only hisses on it, and the well refuses a stone before the water rises', () => {
+test('the cold tree: no burn, ember mode only hisses on it, and the roots refuse a stone before the water rises', () => {
   resetHazardNotes();
   const D = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 3, 'desert.bike.v': 1, 'desert.elder.heard': true, 'quest.desert.power': 'down', 'item.stone': 1 });
   const { Q, step, toasts, player } = D;
@@ -122,13 +122,13 @@ test('the cold tree: no burn, ember mode only hisses on it, and the well refuses
   tree.onHit('fire');
   assert.ok(toasts.at(-1).includes('never burned'), 'its wood never burned: only the water in it');
   assert.equal(Q.city.lit, 0, 'and it stays cold');
-  // a stone in a dry well: no
-  player.pos.copy(Q.city.wellLook);
+  // a stone in dry roots: no
+  player.pos.copy(Q.city.rootsLook);
   const e = bestInteractable(player);
-  assert.equal(e?.entry.id, 'well.stone');
+  assert.equal(e?.entry.id, 'roots.stone');
   e.entry.use(player);
   assert.equal(game.flag('desert.tree.lit'), undefined);
-  assert.ok(toasts.at(-1).includes('The well is dry'));
+  assert.ok(toasts.at(-1).includes('The roots are dry'));
   // lit, the crown burns again
   Q.city.setLit(1);
   assert.equal(updateHazards(0.5, inFlame), 'fire');
@@ -174,7 +174,7 @@ test('the Hearth: the grille holds until a shove rolls the ball; a save part-way
   R.player.pos.copy(R.H.inside); R.step(2);
   assert.equal(R.H.stone.visible, false);
   assert.ok(R.H.stoneLight.w > 5 && Math.hypot(R.H.stoneLight.x - R.player.pos.x, R.H.stoneLight.z - R.player.pos.z) < 1.5, 'in the dark hall it glows through your pack');
-  assert.equal(R.quests.objective().label, 'The well at the tree');
+  assert.equal(R.quests.objective().label, 'The tree’s roots');
   void quests;
 });
 

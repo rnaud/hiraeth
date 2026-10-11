@@ -178,10 +178,10 @@ the star chart's layout, the planets and the region names against the web's.
   - **collision**: what `physics.js` bakes (every mesh not under `noCollide`,
     the city's invisible proxies, the flora's trunks), in tiles, both sides;
   - **moving things** in their own frame: the hoverbike, the tarp, the makers'
-    chests, the fallen rib, the pool, the stream, the well's water, Teo's drum;
+    chests, the fallen rib, the pool, the stream, Teo's drum;
   - **the look**: the post pass's uniforms with the "Moebius print" preset and
     the time-of-day palette at every quarter hour (`timeofday.js`), planets;
-  - **the story's places** (the gate, the ledge, the well, the camps, the
+  - **the story's places** (the gate, the ledge, the tree's roots, the camps, the
     giant's door, the cave, the pool, the ship's ramp…), **portals** (the
     skull's mouth and the passage), **the people** (palettes, scale, routes,
     seats), the crowd and the procession's route, the tree's flame, the local
@@ -420,9 +420,9 @@ lod.js's error-by-distance with its hysteresis):
   `DialogueRunner` (`dialogue.js`: entries, conditions, effects, pages, at
   most three answers, `once`, `next`), tones (`tone.js`).
 - `DesertStory` (`story/desert.js`): the people at their places (Ama by the
-  fire, the musicians, Ilo, Marrow, Hessa at the well, Nour on her bench, the
+  fire, the musicians, Ilo, Marrow, Hessa at the tree's roots, Nour on her bench, the
   people of Qanat, Oum on her stone, the Speaker ahead of the procession), the
-  things to look at (the well, the stele, the skull's brow, the mural), the
+  things to look at (the tree's roots, the skull's brow, the mural), the
   makers' chest on the ledge (the backpack), Qanat gathering, Teo's drum, Oum
   and Ilo following you, the rib (heaved, or pushed with the backpack), the
   stream and the rising pool, the jar, the ship; fire hurts.

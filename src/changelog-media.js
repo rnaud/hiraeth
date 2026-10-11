@@ -622,7 +622,18 @@ const SAVE_ARRIVAL = { flags: { 'prologue.done': true, 'items.v': 2, 'save.migra
 const MINUTE_ON = 'const w = window.weather; w.timer = 0; w.update(0.01); w.intensity = w.target; await new Promise((r) => setTimeout(r, 1500));';
 // (issue #147: the conversation panel at three sizes, before and after)
 const TALK49 = 'headless Chrome (muted, 11 October) against this branch’s own dev server and against main before it, Qanat’s camp in the desert, the traveller beside the speaker; the game held still for the picture; cwebp -q 72';
+// (v1.50: Qanat's square, issue #161: a new game before the chest, at ten in the morning)
+const SQ_FROM = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720, a new game before the chest), Vite on port 5463, at the commit before the change and at the change (before its rebase), 11 October';
+const SQ_AVENUE = { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 58, eye: [215.5, 3.4, 374.5], target: [231.5, 3.2, 397.5], player: [212.5, 1.3, 369.5] };
 export const CHANGELOG_MEDIA = {
+  '1.50': [
+    { match: 'Qanat’s square is clearer round its great tree', shots: [
+      { name: 'square-avenue', title: 'From the avenue', caption: 'Qanat’s square from the end of the avenue: before, the round well under the trunk and the carved stele on the right; after, bare paving between the chest’s dais and the roots', from: SQ_FROM,
+        view: SQ_AVENUE },
+      { name: 'square-close', title: 'Where they stood', caption: 'A few steps into the square, looking where the well and the stele stood: before, the well’s kerb with Hessa beside it and the stele; after, the open paving up to the bare roots, where the water now climbs and the spark-stone is set', from: SQ_FROM,
+        view: { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 60, eye: [218.8, 2.95, 384.5], target: [223.0, 2.3, 394.0], player: [214.5, 1.3, 373] } },
+    ], see: 'Walk up the avenue into Qanat: no well and no stele in the square. Later in the quest, once the rib is off the channel, come back to the roots on the avenue’s side of the trunk and watch the tree drink.' },
+  ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [
       { name: 'arrival-weather', title: 'Out of the ship', caption: 'A new game at the ship’s ramp, a minute after stepping out, before the chest: before, the first sandstorm had come in (it came 35–75 s after you landed); after, the sky stays clear', from: 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720), Vite on port 5437, at the commit before the change and at the change (before its rebase), 11 October',

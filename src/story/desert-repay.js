@@ -5,7 +5,7 @@ import * as THREE from 'three';
 // The ship came down drained (the singing light passed it: src/ship/cinematics.js), and nothing he carries
 // could fill it. He puts Qanat's tree right, its water and its fire, for the city's sake; and because he did,
 // the city chooses to help him in return: every house carries what it can spare of the burning water to his
-// ship (the camps' share of the Drinking, the well's first water, the lamps of a street, an oven's fire-water,
+// ship (the camps' share of the Drinking, the first water up the roots, the lamps of a street, an oven's fire-water,
 // Marrow's last cell) and pours it in together. That is what powers the ship, not the tree by itself.
 //
 //   - The tree catches (`desert.tree.lit`): a little after (LEAVE_AFTER), the ones who bring something (REPAY in
@@ -119,7 +119,7 @@ export function setupRepay(ctx, { people, gifts, call, ramp, hull, onGround = (v
     }
     if (!repayDue({ lit: lit(), fed: fed() })) return;
     if (!party.length) { feed(); st.done = true; return; }   // (nobody to bring anything: never stuck)
-    // they set off once the tree has caught and the city has seen it (Nour has her word at the well first),
+    // they set off once the tree has caught and the city has seen it (Nour has her word at the tree first),
     // or as soon as he heads for the ship
     st.litT = (st.litT ?? 0) + dt;
     if (!st.placed && (st.litT > LEAVE_AFTER || flat(pp, ramp()) < 120)) place();

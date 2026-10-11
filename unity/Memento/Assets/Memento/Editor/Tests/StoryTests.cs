@@ -57,7 +57,7 @@ namespace Memento.Tests
             Talk(Person("nour"), "Who are the Givers?", "Why a star?", "My ship has no power", "Why me?", "All right", "The well");
             quests.Update(Vector3.zero);
             Assert.AreEqual("well", Stage);
-            Talk(Thing("well"), 0); quests.Update(Vector3.zero);
+            Talk(Thing("roots"), 0); quests.Update(Vector3.zero);
             Assert.AreEqual("ama", Stage);
             Talk(Person("ama"), "I’ll bring it back full"); quests.Update(Vector3.zero);
             Assert.IsTrue(quests.Has("jar"), "Ama's jar");

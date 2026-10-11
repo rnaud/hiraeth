@@ -23,21 +23,21 @@ test('the desert: the keepers’ stair climbs from the cave’s floor to its doo
     assert.ok(!A.walkTo(W, from, cave.stairTop, { cell: 0.5, rise: A.RISE.jump, near: 1.2, slope: 0.6 }).ok, 'nor with a jump (the dome’s steep foot no ground: slope)');
     const walk = A.walkTo(W, from, cave.stairTop, { cell: 0.5, rise: A.RISE.doublejump, near: 1.2 });
     assert.ok(walk.ok, `up the stair to the doorway with the double jump (closest ${walk.closest?.toFixed?.(1)} m)`);
-    // the hatch: on the city's floor in the back lane, halfway from the terraces to the back gate, under 80 m from the well
+    // the hatch: on the city's floor in the back lane, halfway from the terraces to the back gate, under 80 m from the tree
     const out = Q.hatch.out, g = W.physics.groundAt(out.x, out.y + 3, out.z, 6);
     assert.ok(Number.isFinite(g) && Math.abs(g - out.y) < 0.4, `you come up standing on the lane (${g?.toFixed?.(2)} vs ${out.y.toFixed(2)})`);
     assert.ok(HATCH.z < -31 && HATCH.z > -60, 'between the terraces and the back gate');
-    const well = Q.city.wellLook;
-    assert.ok(Math.hypot(out.x - well.x, out.z - well.z) < 80, 'a short walk to the well, past nothing you walked before');
+    const roots = Q.city.rootsLook;   // (the tree's roots: the well stood before them until v1.49)
+    assert.ok(Math.hypot(out.x - roots.x, out.z - roots.z) < 80, 'a short walk to the tree, past nothing you walked before');
     // one way: no doorway down at the hatch, so the skull's mouth stays the way in
     assert.ok(!W.level.portals.some((p) => p.at.distanceTo(out) < 6));
-    // from the hatch the well is a walk over the city's floor
-    const toWell = A.walkTo(W, out, well, { cell: 1, near: 4 });
-    assert.ok(toWell.ok, `from the hatch to the well (closest ${toWell.closest?.toFixed?.(1)} m)`);
+    // from the hatch the tree's roots are a walk over the city's floor
+    const toRoots = A.walkTo(W, out, roots, { cell: 1, near: 4 });
+    assert.ok(toRoots.ok, `from the hatch to the roots (closest ${toRoots.closest?.toFixed?.(1)} m)`);
   } finally { W.dispose(); }
 });
 
-test('the desert: out by the skull’s mouth instead, watching the well rise passes the way up over', () => {
+test('the desert: out by the skull’s mouth instead, watching the roots drink passes the way up over', () => {
   game.reset();
   const W = A.loadWorld('desert');
   try {

@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.50', date: '2026-10-11', items: [
+    // Qanat's square (docs/systems/worlds.md "Qanat's square without the well and the stele"; issue #161)
+    'Qanat’s square is clearer round its great tree: the stone well and the carved stele are gone. The water now climbs the tree’s own roots while you watch, and you set the spark-stone in the roots at the trunk’s foot, on the avenue’s side. Hessa sweeps round the roots instead of the well.',
+  ] },
   { v: '1.49', date: '2026-10-11', items: [
     // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)
     'The camera follows closer on foot, the way Sable frames its rider: you stand about a third of the screen’s height, a little below the middle, with the camera just over your head looking gently down, so the ground fills the lower half and the world rises behind you. Under a roof, in a temple’s great hall, it stands higher and looks down more steeply. On the hoverbike it hangs further back and a little lower, so the road ahead reads; gliding, the jets and the cabs keep their long view.',

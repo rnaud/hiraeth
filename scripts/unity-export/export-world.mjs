@@ -141,7 +141,6 @@ if (desert) {
   Object.assign(dyn, {
     bike: bike.object,
     bone: Q.cave.bone,
-    wellWater: Q.city.wellWater,
     pool: Q.cave.pool,
     stream: Q.cave.stream,
     drum: W.storyRoots.find((r) => near(r, STORY.drum.x, STORY.drum.z)),
@@ -397,7 +396,7 @@ if (desert) {
   const city = Q.city, camps = Q.camps, cave = Q.cave, giant = Q.giant, ledge = city.shrine;   // (the makers' dais at the tree's foot: the keys keep their old names, ledgeBox…)
   Object.assign(places, {
     cityCenter: V3(city.center), cityGate: V3(city.gate), backGate: V3(city.backGate), cityTop: city.top, cityYaw: -city.yaw,
-    well: V3(city.well), wellLook: V3(city.wellLook), stele: V3(city.stele), treeBase: V3(city.treeBase), crown: V3(city.crown),
+    roots: V3(city.roots), rootsLook: V3(city.rootsLook), treeBase: V3(city.treeBase), crown: V3(city.crown),
     plinthStair: V3(city.plinthStair), stairTop: V3(city.stairTop),
     ledgeBox: V3(ledge.box), ledgeYaw: -ledge.yaw, ledgeHeight: ledge.height, ledgeFoot: V3(ledge.foot), nourBench: V3(ledge.bench.at),
     camps: V3(camps.center), fire: V3(camps.fires[0]), fires: camps.fires.map(V3),

@@ -275,7 +275,7 @@ namespace Memento.EditorTools
             var game = UnityEngine.Object.FindAnyObjectByType<Game>();
             game.BuildForEditor();
             Physics.SyncTransforms();
-            foreach (var k in new[] { "caveInside", "pool", "bone", "ledgeFoot", "ledgeBox", "wellLook", "giantDoor", "shipRamp", "cityGate" })
+            foreach (var k in new[] { "caveInside", "pool", "bone", "ledgeFoot", "ledgeBox", "rootsLook", "giantDoor", "shipRamp", "cityGate" })
             {
                 var p = game.world.Places.V3(k);
                 bool hit = Physics.Raycast(p + Vector3.up * 2, Vector3.down, out var h, 10);

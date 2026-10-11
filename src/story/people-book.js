@@ -105,12 +105,12 @@ export const BOOK = {
       [f('desert.tree.lit'), 'Under the great tree in Qanat, which burns again.'],
       'Under the great tree in Qanat, beside the chest.',
     ]),
-    P('hessa', 'Hessa', 'Keeper of Qanat’s well', [
-      'Nour’s granddaughter keeps the well at the tree’s roots. Usually the water rises through the roots and feeds the tree’s fire; this year she was keeping dust.',
+    P('hessa', 'Hessa', 'Keeper of Qanat’s tree', [
+      'Nour’s granddaughter sweeps round the great tree’s roots. Usually the water rises through the roots and feeds the tree’s fire; this year she was keeping dust.',
       [f('desert.channel.open'), 'The water came back through the roots, every colour.'],
     ], [
-      [f('desert.tree.lit'), 'At the well; the tree burns, and she has put down her broom.'],
-      'At the well beneath the great tree.',
+      [f('desert.tree.lit'), 'At the tree’s roots; it burns, and she has put down her broom.'],
+      'At the roots of the great tree.',
     ]),
     P('speaker', 'The Speaker', 'Leads the procession round Qanat', [
       'He leads the pilgrims’ procession round the walls and keeps the old accounts. They circle the city until the tree drinks.',
@@ -726,7 +726,7 @@ export const CHOICES = {
   'hollin.perdide2': [[f('perdide2.promise.kept'), 'You promised to come back, and you came back.'], [f('perdide2.promise', 'yes'), 'You promised to come back.'], [f('perdide2.promise', 'maybe'), 'You would not promise to come back. A welcome isn’t a debt, he said.']],
   esk: [[failed('edena.terraces'), 'You turned the builders’ gate once, as she asked. Her hill went down into the hollow.']],
   tansy: [[f('fellow.advice', 'write'), 'You told her to send word home.'], [f('fellow.advice', 'go'), 'You told her to keep going.'], [f('fellow.advice', 'self'), 'You told her it was hers to decide.']],
-  ilo: [[f('desert.ilo.told', 'true'), 'You told Ilo the truth about the giant’s well.'], [f('desert.ilo.told', 'monster'), 'You told Ilo there is a monster under the city.'], [f('desert.ilo.told', 'secret'), 'You kept it a secret until Ilo is older.']],
+  ilo: [[f('desert.ilo.told', 'true'), 'You told Ilo the truth about the giant’s water.'], [f('desert.ilo.told', 'monster'), 'You told Ilo there is a monster under the city.'], [f('desert.ilo.told', 'secret'), 'You kept it a secret until Ilo is older.']],
 };
 
 const firstThat = (list, flags) => { for (const x of list ?? []) { if (typeof x === 'string') return x; if (test(x[0], flags)) return x[1]; } return null; };

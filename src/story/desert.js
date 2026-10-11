@@ -27,8 +27,8 @@ import { t as tr } from '../i18n.js';
 //   the camps    Ama by the main fire; Sefa (oud), Bako (ney) and Teo on the
 //                benches; Ilo running between the tents; Marrow by his crates
 //   the circuit  the Speaker walks ahead of the procession (crowd.js column)
-//   the city     Hessa keeps the dry well at the great tree's roots; beside
-//                it, at the trunk's foot, the makers' dais with their chest
+//   the city     Hessa sweeps round the great tree's roots; beside
+//                them, at the trunk's foot, the makers' dais with their chest
 //                on it (src/boxes/: the backpack), Nour the eldest on her
 //                bench beside it, and a few people of Qanat about the terraces
 //                and the avenue
@@ -39,7 +39,7 @@ import { t as tr } from '../i18n.js';
 //
 // The tree is cold (src/desert-city.js city.setLit: no flame, no smoke column,
 // no sparks, no burn, a lone bell for music) until the spark-stone is set in
-// its full well; then the fire grows up out of the crown in the cool colours
+// its roots, the water up; then the fire grows up out of the crown in the cool colours
 // of the drinking, the smoke column climbs from it, and the feast begins
 // (the procession sings, the bands play double time).
 //
@@ -47,7 +47,7 @@ import { t as tr } from '../i18n.js';
 // The backpack comes out of its chest empty (game flag tool.empty, src/fluid-tool.js), and he has no gun yet.
 // The rib is heaved off the channel with the old keepers' pole over the carved post (three heaves); the pool
 // rises and the first wade fills the tank (and adds the giant's colour) and Ama's jar. The water climbs
-// the roots into the well while you watch (desert.well.watched). Beside the pool a makers' chest holds the
+// the roots while you watch (desert.well.watched: the flag kept its name from the well, gone in v1.49). Beside the pool a makers' chest holds the
 // lift valve (the double jump, the backpack's first strength: src/boxes/placements.js 'desert.lift'); in the
 // Givers' Hearth a chest holds the fluid gun (a gadget, 'desert.gun'), whose push rolls the stone ball.
 //
@@ -70,9 +70,9 @@ import { t as tr } from '../i18n.js';
 // desert.speaker.heard, desert.well.seen, desert.cave.seen, desert.pole.tried
 // (the rib wouldn't move for your arms), desert.lever (heaves on the pole so far),
 // desert.channel.open (the rib is clear: the water rises and the tree drinks),
-// desert.jar.filled, desert.well.watched (you saw the well fill), desert.spark.heard
+// desert.jar.filled, desert.well.watched (you saw the roots drink), desert.spark.heard
 // (Nour told of the spark-stone), desert.hearth.seen / .open, desert.stone.taken
-// (src/story/desert-spark.js), desert.tree.lit (the stone is in the well: it burns),
+// (src/story/desert-spark.js), desert.tree.lit (the stone is in the roots: it burns),
 // desert.ship.fed, desert.pool.tinted (the first wade filled the tank and added a
 // colour), desert.teo.drumming, desert.ilo.following, desert.ilo.atSkull,
 // desert.oum.following, desert.oum.home, desert.drum.freed and desert.mask.eyes
@@ -85,8 +85,6 @@ const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
 const CATCH_UP = ['elder', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
 
-/** Where the traveller looks when he looks into the well: down the shaft, under the rim (the rim stands 1.15 m). */
-export function wellInside(city) { return city.well.clone().add(V(0, 0.45, 0)); }
 
 /**
  * Old saves. v < 2: the stages before the cave moved (the box is in the city
@@ -223,9 +221,10 @@ export function setupDesert(ctx) {
     m.route = marrowHome; m.wp = 0; m.facing = null;
     m.pos.copy(marrowHome[0]);
   };
-  // Hessa sweeps round the well on the top terrace
-  const wellC = city.well;
-  people.hessa = spawn(PEOPLE.hessa, { route: [0.9, 2.2, 3.6].map((a) => onGround(V(wellC.x + Math.sin(a + city.yaw) * 3.6, wellC.y, wellC.z + Math.cos(a + city.yaw) * 3.6))), speed: 0.5 });
+  // Hessa sweeps round the tree's foot on the avenue's side, between the dais's clearing and the roots on the right
+  // (tree-local angle, 0 toward the avenue, and metres from the trunk's axis: clear of the fins and the lanterns)
+  const treeLocal = (a, r) => city.local(Math.sin(a) * r, city.top - city.center.y, -3 + Math.cos(a) * r);
+  people.hessa = spawn(PEOPLE.hessa, { route: [[0.05, 8.6], [0.3, 8.9], [0.52, 8.6]].map(([a, r]) => onGround(treeLocal(a, r))), speed: 0.5 });
   // the Speaker walks a few steps ahead of the procession
   const head = V(0, 0, 0);
   people.speaker = spawn(PEOPLE.speaker, {
@@ -319,10 +318,8 @@ export function setupDesert(ctx) {
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < 4 ? flat(p.pos, at) : Infinity),
     use: use ?? (() => dialogue.start(def, null, at, look)),
   });
-  // (asked from the terrace beside it, city.wellLook; he turns to the shaft itself and looks down into it, not
-  // at the spot he was asked from: standing between that spot and the rim, he turned his back on the well)
-  thing(THINGS.well, city.wellLook, { range: 3.4, prompt: 'look into the well', look: wellInside(city) });
-  thing(THINGS.stele, city.stele, { range: 3.2, prompt: 'read the stele', look: city.stele.clone().add(V(0, 2.4, 0)) });
+  // (asked from the square in front of them, city.rootsLook; he turns to the bark itself, not to the spot he was asked from)
+  thing(THINGS.roots, city.rootsLook, { range: 3.4, prompt: 'look at the roots', look: city.roots });
   const browAt = Q.giant.door.clone().add(V(Math.sin(Q.giant.yaw) * 3, 0, Math.cos(Q.giant.yaw) * 3));
   thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
   thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural', look: cave.local(-17.5, 3.2, 20.5) });
@@ -401,11 +398,9 @@ export function setupDesert(ctx) {
     } });
   const lever = setupLever();
 
-  // the water: the pool, the stream and the well (the tree drinks, and stays cold until it is lit)
+  // the water: the pool, the stream, and up the roots (the tree drinks, and stays cold until it is lit)
   const applyWater = (instant) => {
-    city.wellWater.visible = true;
-    // (the well rises while you watch it: the 'rise' stage; a save that saw it finds it full)
-    if (instant && (game.flag('desert.well.watched') || lit())) city.wellWater.position.y = city.well.y + 0.95;
+    st.watered = true;   // (it climbs the roots while you watch: the 'rise' stage)
     if (instant) { st.level = cave.levels.high; st.flow = 1; st.boneT = 1; st.drink = 1; }
     else if (!st.boneT) st.boneT = 0.001;   // (the flag set some other way: the rib still rolls off)
     cave.setWater(st.flow, st.level);
@@ -619,11 +614,11 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- places for the quest markers
   quests.locate('camps', () => camps.center);
   quests.locate('cityGate', () => city.gate);
-  quests.locate('well', () => city.wellLook);
+  quests.locate('roots', () => city.rootsLook);
   quests.locate('caveIn', () => cave.inside);
   // the keepers' hatch in the back lane, where their stair from the cave comes up (the 'up' stage: src/desert-city.js HATCH)
   if (Q.hatch) quests.locate('hatch', () => Q.hatch.out);
-  // out by the skull's mouth instead, the well rising while you watch passes the way up over
+  // out by the skull's mouth instead, the water climbing the roots while you watch passes the way up over
   game.on('flag:desert.well.watched', (v) => { if (v && quests.stage('desert.power') === 'up') quests.advance('desert.power', 'up'); });
   quests.locate('skull', () => Q.giant.door);
   quests.locate('bone', () => cave.bone.position);
@@ -865,20 +860,20 @@ export function setupDesert(ctx) {
   const way = setupWay(ctx);
   const road = setupRoad(ctx);   // the pilgrims' road home, its lamps lit once the tree burns
 
-  // the well fills while you watch: the roots drink (pale motes climb the trunk), Hessa calls out, the tree stays cold
+  // the roots drink while you watch (pale motes climb the trunk), Hessa calls out, the tree stays cold
   const drinkAt = [0, 1, 2, 3, 4, 5].map((i) => { const a = i / 6 * Math.PI * 2; return city.treeBase.clone().add(V(Math.sin(a) * 4.2, 0.6, Math.cos(a) * 4.2)); });
   const motes = new Embers(scene, drinkAt, { count: 46, color: '#9ff0e6', rise: 2.6, life: 5, spread: 1.2, size: 0.22 });
   motes.mesh.visible = false;
   const rise = { on: false, t: 0, done: !!game.flag('desert.well.watched') };
+  const RISE_T = 10;   // s: the water climbing the roots while you watch
   const startRise = () => {
     if (rise.on || rise.done) return;
     rise.on = true; rise.t = 0;
-    city.wellWater.position.y = Math.min(city.wellWater.position.y, city.well.y + 0.12);
     sound.waterRise?.();
-    later(1.0, () => say(people.hessa, '~shout~ Grandmother! The well! It’s coming up!', 3));
+    later(1.0, () => say(people.hessa, '~shout~ Grandmother! The roots! They’re drinking!', 3));
   };
 
-  // the stone in the well: the spark runs up the roots and the trunk to the crown, and the tree catches
+  // the stone in the roots: the spark runs up the roots and the trunk to the crown, and the tree catches
   const sparkM = makeMaterial({ color: '#fff6dc', glow: 1, flat: true });
   const spark = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 1), sparkM);
   spark.visible = false; spark.userData.noCollide = true; spark.userData.dynamic = true;
@@ -887,10 +882,10 @@ export function setupDesert(ctx) {
   level.lights?.push(sparkLight);
   const LIGHT = { fly: 0.9, climb: 2.8, catch: 6 };   // s: the stone into the water, the spark up the trunk, the fire growing
   const lighting = { t: -1, from: V(0, 0, 0) };
-  // (up the outside of the trunk on the well's side, where you see it climb, then into the crown)
-  const toWell = V(city.well.x - city.treeBase.x, 0, city.well.z - city.treeBase.z).normalize();
-  const bark = (r, y) => city.treeBase.clone().addScaledVector(toWell, r).add(V(0, y, 0));
-  const sparkPath = [city.well.clone().add(V(0, 0.9, 0)), bark(6.4, 1.4), bark(5.4, 7), bark(5.1, 15), bark(4.9, 23), bark(4.2, 30), city.crown.clone()];
+  // (up the outside of the trunk on the avenue's side, where you see it climb, then into the crown)
+  const toRoots = V(city.roots.x - city.treeBase.x, 0, city.roots.z - city.treeBase.z).normalize();
+  const bark = (r, y) => city.treeBase.clone().addScaledVector(toRoots, r).add(V(0, y, 0));
+  const sparkPath = [city.roots.clone(), bark(6.0, 1.4), bark(5.4, 7), bark(5.1, 15), bark(4.9, 23), bark(4.2, 30), city.crown.clone()];
   const sparkCurve = new THREE.CatmullRomCurve3(sparkPath);
   const setStone = () => {
     if (lit() || !quests.has('stone') || !open()) return;
@@ -899,16 +894,16 @@ export function setupDesert(ctx) {
     // out of your pack: in your hand, held out over the water (it was never drawn while you carried it)
     const hand = player.humanoid?.b?.hand_r;
     if (hand && player.object?.visible !== false) hand.getWorldPosition(lighting.from);
-    else lighting.from.copy(player.pos).add(V(0, 1.15, 0)).addScaledVector(V(city.well.x - player.pos.x, 0, city.well.z - player.pos.z).normalize(), 0.45);
+    else lighting.from.copy(player.pos).add(V(0, 1.15, 0)).addScaledVector(V(city.roots.x - player.pos.x, 0, city.roots.z - player.pos.z).normalize(), 0.45);
     if (level.hearth) level.hearth.stone.userData.placing = true;
     game.set('desert.tree.lit', true);
     sound.chime?.();
-    toast('You let the spark-stone down into the well. It sinks, glowing, into the living water…');
+    toast('You set the spark-stone in the wet roots. The living water draws it in, glowing…');
   };
-  registerInteractable({ id: 'well.stone', priority: PRIORITY.use + 1, range: 3.6, at: () => city.well, enabled: () => quests.has('stone') && !lit(),
-    prompt: () => (open() ? 'set the spark-stone in the well' : 'look into the dry well'),
-    distance: (p) => (Math.abs(p.pos.y - city.well.y) < 4 ? flat(p.pos, city.well) : Infinity),
-    use: () => { if (open()) setStone(); else toast('The well is dry: the stone would only lie in the dust. The water must come up first.'); } });
+  registerInteractable({ id: 'roots.stone', priority: PRIORITY.use + 1, range: 3.6, at: () => city.roots, enabled: () => quests.has('stone') && !lit(),
+    prompt: () => (open() ? 'set the spark-stone in the roots' : 'look at the dry roots'),
+    distance: (p) => (Math.abs(p.pos.y - city.roots.y) < 4 ? flat(p.pos, city.roots) : Infinity),
+    use: () => { if (open()) setStone(); else toast('The roots are dry: the stone would only lie in the dust. The water must come up first.'); } });
   const updateLighting = (dt) => {
     if (lighting.t < 0) return;
     lighting.t += dt;
@@ -928,7 +923,6 @@ export function setupDesert(ctx) {
       // a trail of pale sparks behind it, up the bark
       motes.sources = [spark.position];
       motes.mesh.visible = true; motes.rate = 1.6; motes.update(dt, T, null);
-      setMagic(city.wellMat, T * 3, { bright: 1, tones: 6 });
     } else {
       // it catches: the fire grows up out of the crown, cool and in every colour, and the smoke climbs from it
       if (spark.visible) {
@@ -1047,31 +1041,29 @@ export function setupDesert(ctx) {
       setMagic(cave.poolMat, st.poolT, { bright: 0.25 + 0.75 * st.drink, tones: st.drink > 0.5 ? 6 : 4 });
       if (st.flow > 0) setMagic(cave.streamMat, t * 2.2, { bright: 1, tones: 6 });
     }
-    // the well: once the water is up, you come and watch it rise up the shaft (the 'rise' stage), slowly,
-    // the roots drinking; then it stands brimming
-    if (open() && !rise.done && !rise.on && flat(pp, city.well) < 14 && Math.abs(pp.y - city.well.y) < 5) startRise();
-    if (city.wellWater.visible && flat(camPos, city.well) < 250) {
-      const brim = city.well.y + 0.95;
+    // the roots: once the water is up, you come and watch it climb them (the 'rise' stage), the tree drinking;
+    // then, until it burns, they go on drinking (a few motes up the bark while you are near)
+    if (open() && !rise.done && !rise.on && flat(pp, city.roots) < 14 && Math.abs(pp.y - city.roots.y) < 5) startRise();
+    if (st.watered && flat(camPos, city.roots) < 250 && lighting.t < 0) {
       if (rise.on) {
         rise.t += dt;
-        city.wellWater.position.y = Math.min(brim, city.wellWater.position.y + dt * 0.085);
         motes.mesh.visible = true;
         motes.rate = 1;
         motes.update(dt, t, null);
-        if (city.wellWater.position.y >= brim - 1e-3 && rise.t > 4) {
+        if (rise.t > RISE_T) {
           rise.on = false; rise.done = true; rise.endT = st.clock;
           game.set('desert.well.watched', true);
           sound.chime?.();
-          say(people.hessa, '~sad~ It’s full. It’s full, and the tree… Grandmother?', 3.5);
+          say(people.hessa, '~sad~ It’s drinking. It’s drinking, and the tree… Grandmother?', 3.5);
           later(2.2, () => say(nour, '~solemn~ Come here, child. Let an old woman tell you a story.', 3.5));
-          toast('The well brims with living water, and the roots drink it. The great tree stands as cold as before.');
+          toast('Living water climbs the roots, and the tree drinks it. It stands as cold as before.');
         }
-      } else {
-        // (not seen yet: the water waits low in the shaft for you)
-        city.wellWater.position.y = rise.done || lit() ? brim : city.well.y + 0.12;
-        if (motes.mesh.visible) { motes.rate = 0.6; motes.update(dt, t, null); if (st.clock - (rise.endT ?? 0) > 6) motes.mesh.visible = false; }
+      } else if (rise.done && !lit() && flat(camPos, city.roots) < 60) {
+        motes.mesh.visible = true; motes.rate = 0.3; motes.update(dt, t, null);
+      } else if (motes.mesh.visible) {
+        motes.rate = 0.6; motes.update(dt, t, null);
+        if (st.clock - (rise.endT ?? 0) > 6) motes.mesh.visible = false;
       }
-      setMagic(city.wellMat, t, { bright: 1, tones: 6 });
     }
 
     // the musicians pick up your tune when you stand with them

@@ -389,9 +389,9 @@ namespace Memento
             yield return CloseUp("nour_at_the_ledge_foot", nour.transform, 2.6f, 0.4f, 0.1f);
             yield return Talk(game.story.Def("nour"), nour, "Who are the Givers?", "Why a star?", "My ship has no power", "Why me?", "All right", "The well");
             Log($"after Nour: stage {Stage}");
-            Put(game.world.Places.V3("wellLook"), 0); yield return Wait(0.5f);
-            yield return Talk(game.story.ThingDef("well"), null, 0);
-            Log($"after the well: stage {Stage}");
+            Put(game.world.Places.V3("rootsLook"), 0); yield return Wait(0.5f);
+            yield return Talk(game.story.ThingDef("roots"), null, 0);
+            Log($"after the roots: stage {Stage}");
             PutNear(ama.pos, 2f); yield return Wait(0.5f);
             yield return Talk(game.story.Def("ama"), ama, "I’ll bring it back full");
             Log($"after Ama: stage {Stage}, jar {game.quests.Has("jar")}");
