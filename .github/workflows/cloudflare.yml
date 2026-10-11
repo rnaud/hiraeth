@@ -104,12 +104,12 @@ jobs:
           retry npx wrangler deploy
       - name: Verify the public deployment
         run: |
-          # every built file, the content update included
-          for attempt in 1 2 3; do
+          # every built file, the content update included (new files can take a minute or two to reach every edge)
+          for attempt in 1 2 3 4 5 6; do
             if npm run check:deployment -- https://memento.alexandria-rnaud.workers.dev/; then
               exit 0
             fi
-            if [ "$attempt" -lt 3 ]; then sleep 10; fi
+            if [ "$attempt" -lt 6 ]; then sleep 20; fi
           done
           exit 1
       - name: Commit status (the outcome)

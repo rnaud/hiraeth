@@ -143,8 +143,7 @@ export class ShotDrafts {
         this.pairing = null;
         this.write(DEVICE_KEY, { token: r.data.token, at: Date.now() });
         this.toast('Paired with your notebook.');
-        void this.flush();
-        return;
+        return this.flush();
       }
       if (r && r.status === 404) { this.pairing = null; return; }
       this.st?.(tick, this.pollMs);
