@@ -521,7 +521,11 @@ export class Taxi {
     if (dt > 0) this.vel.subVectors(this.pos, this._prev).divideScalar(dt);
     this.object.position.copy(this.pos);
     this.object.rotation.set(this.pitch, this.heading, this.bank, 'YXZ');
-    this.object.updateMatrixWorld();
+    // (its own world matrix now, for its seat and its collision; the parts under it the frame's walk does: a forced
+    //  walk of every cab's ~30 parts a frame was ~0.7 ms of the Steam Deck's main thread in the City-Shaft, issue #111;
+    //  the one you ride walks them all, as before)
+    if (this.mode === 'aboard' || this.mode === 'route') this.object.updateMatrixWorld();
+    else this.object.updateWorldMatrix(false, false);
     this.animate(dt);
   }
 

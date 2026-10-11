@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { featherGeometry, smallWingGeometry } from './avian.js';
 import { makeMaterial } from './materials.js';
+import { mergeWithMaterials } from './vertex-material.js';
 
 // Small ambient life: none of it is gameplay, all of it is drawn with the same
 // inked G-buffer materials so it sits in the picture like everything else.
@@ -166,12 +167,14 @@ export class Banner {
     this.base = g.attributes.position.array.slice();
     this.geo = g;
     this.height = height;
-    this.mesh = new THREE.Mesh(g, makeMaterial({ color, side: THREE.DoubleSide, grid: glyphs ? width / 2 : 0, glyphs }));
+    this.opts = { color, side: THREE.DoubleSide, grid: glyphs ? width / 2 : 0, glyphs };
+    this.mesh = new THREE.Mesh(g, makeMaterial(this.opts));
     this.mesh.position.copy(pos);
     this.mesh.rotation.y = rotY;
     this.mesh.userData.noCollide = true;
     this.phase = Math.random() * 10;
-    scene.add(this.mesh);
+    this.set = null;   // (a BannerSet drawing it: its shape is written there)
+    if (scene) scene.add(this.mesh);
   }
 
   update(t) {
@@ -184,6 +187,52 @@ export class Banner {
     }
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
+    this.set?.write(this);
+  }
+}
+
+/**
+ * Many banners drawn as one mesh (issue #111: the City-Shaft's 70 were a draw and a material each, ~70 of the G-buffer's
+ * 340 draws at its rim). Each keeps its colour and its glyphs' size per vertex (S_VMAT, src/vertex-material.js; the
+ * glyphs' cells are the grid's, S_VGLYPH) and is still waved on the main thread by its own Banner (waveBanners: in
+ * view and near), which writes its new shape here: the merged mesh's points and normals, and its own object-space ones
+ * the hatching and the glyphs are anchored to. The same picture, one draw a pass. Banners built with no scene (null),
+ * each turned about y only, every one with glyphs or none.
+ */
+export class BannerSet {
+  constructor(scene, banners) {
+    this.banners = banners;
+    const items = banners.map((b) => ({ geometry: b.geo, x: b.mesh.position.x, y: b.mesh.position.y, z: b.mesh.position.z, rotY: b.mesh.rotation.y, material: b.mesh.material }));
+    this.geo = mergeWithMaterials(items);
+    // (room for the wave: up to 1.35 m off the plane, below and beside where they hang)
+    this.geo.boundingSphere.radius += 2;
+    this.mesh = new THREE.Mesh(this.geo, makeMaterial({ ...banners[0].opts, perVertex: true, vertexGlyphs: true }));
+    this.mesh.name = 'Banners';
+    this.mesh.userData.noCollide = true;
+    this.mesh.userData.noBatch = true;   // (its shape changes: static-batch.js would draw the copy it took)
+    this.mesh.userData.tiled = true;
+    let at = 0;
+    for (const b of banners) {
+      b.set = this; b.at = at; at += b.geo.attributes.position.count;
+      b.cos = Math.cos(b.mesh.rotation.y); b.sin = Math.sin(b.mesh.rotation.y);
+      b.mesh.material.dispose();
+    }
+    scene.add(this.mesh);
+  }
+  /** A banner's new shape (its own geometry, in its own frame), into the merged mesh. */
+  write(b) {
+    const A = this.geo.attributes, src = b.geo.attributes.position.array, nrm = b.geo.attributes.normal.array;
+    const P = A.position.array, N = A.normal.array, OP = A.aObjP.array, ON = A.aObjN.array;
+    const o = b.mesh.position, c = b.cos, s = b.sin, j0 = b.at * 3, n = src.length;
+    for (let i = 0; i < n; i += 3) {
+      const x = src[i], y = src[i + 1], z = src[i + 2], nx = nrm[i], ny = nrm[i + 1], nz = nrm[i + 2], j = j0 + i;
+      OP[j] = x; OP[j + 1] = y; OP[j + 2] = z;
+      ON[j] = nx; ON[j + 1] = ny; ON[j + 2] = nz;
+      // (as Object3D turns it about y: x' = c x + s z, z' = -s x + c z; then where it stands)
+      P[j] = c * x + s * z + o.x; P[j + 1] = y + o.y; P[j + 2] = -s * x + c * z + o.z;
+      N[j] = c * nx + s * nz; N[j + 1] = ny; N[j + 2] = -s * nx + c * nz;
+    }
+    for (const a of [A.position, A.normal, A.aObjP, A.aObjN]) { a.addUpdateRange(j0, n); a.needsUpdate = true; }
   }
 }
 

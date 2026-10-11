@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.49 — 2026-10-11
 
+- The City-Shaft runs about a seventh faster on the Steam Deck, 35 → 39–41 frames a second at the rim and looking down the shaft: its banners are drawn together, and so are its towers, and the cabs, the drones, the room checks and your shield’s disc take less of each frame. It looks the same. The desert and the Signal Market are as they were, and none of the three holds 60 yet.
 - What a guardian’s fight writes on the screen is one short line you can read while dodging: what to do, not why. The hints at the start of a fight and at each change were often three or four sentences; now each says the move in a few words, and so do the lines when it wakes, opens, tires and settles. The drone still explains more if you ask.
 - The temple guides name the night the singing light went over in their own world’s words, as everyone else there does: under the sea the night the whales went quiet, in Lorn the dry night, in the Buried Machine the night the Tuning Star came over, in the Signal Market the night every sign showed the mark. Only the City-Shaft still says the sky rang.
 - In Viridel, the silt in the tea terraces’ runnels moves for whoever gets there first: shove the top clod and Esk’s errand starts from it, with no “ask her first”.

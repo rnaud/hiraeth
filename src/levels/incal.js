@@ -8,7 +8,7 @@ import { Taxi } from '../taxi.js';
 import { dropBuriedInstances, dropBuriedInstancesSteps } from '../physics.js';
 import { soften } from '../world.js';
 import { Paint, paintMaterial } from '../vehicle-kit.js';
-import { Banner, Puffs, waveBanners } from '../life.js';
+import { Banner, BannerSet, Puffs, waveBanners } from '../life.js';
 import { buildRoom } from '../interiors.js';
 import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
@@ -361,7 +361,7 @@ export function* buildIncal(scene) {
       for (let k = 0; k < Math.floor(span * 3); k++) {
         if (rng() < 0.4) continue;
         const ang = a0 + rng() * span, rr = r0 + 0.3;
-        banners.push(new Banner(scene, new THREE.Vector3(Math.cos(ang) * rr, y - 5, Math.sin(ang) * rr), -ang + Math.PI / 2,
+        banners.push(new Banner(null, new THREE.Vector3(Math.cos(ang) * rr, y - 5, Math.sin(ang) * rr), -ang + Math.PI / 2,
           { width: 2 + rng() * 3, height: 5 + rng() * 9, color: pick(depth < 0.45 ? PASTELS : RUST) }));
       }
 
@@ -405,6 +405,8 @@ export function* buildIncal(scene) {
       a += TAU / nSectors;   // the next sector round the ring, past this one's gap (tests/incal-terraces.test.js)
     }
   }
+  // (the banners one mesh, each its own colour and glyphs per vertex: 1 draw a pass instead of 70, src/life.js BannerSet)
+  if (banners.length) new BannerSet(scene, banners);
 
   curGroup = 'misc'; curY = TOP;
   const bridges = [];   // spire ring → terrace: { y, phi, r0 } (for the story's routes)

@@ -3,6 +3,7 @@
 // (scripts/bench/deck-run.sh does both), then on the Mac:
 //   node scripts/bench/deck-worlds.mjs [--port 5310] [--worlds desert,incal,...] [--quality deck|high|handheld]
 //        [--scale 1] [--modes fixed,dynamic] [--secs 8] [--warmup 3] [--only spawn,qanat] [--profile 1] [--cpuprofile 1] [--raw dir]
+//        [--settle 1] [--draws 1] [--shots 1]
 // Per world: the world loaded (?level=, navigation to the first frame), then every view of the world
 // (viewpoints-worlds.json; the desert's are viewpoints.json's) placed, warmed up and recorded with the page
 // logic of the other runs (web-page.mjs): frame intervals, the screen refreshes missed, the JS time of
@@ -10,6 +11,9 @@
 // the game chose. --profile: the main thread's time by system at each view (the Android run's profiler).
 // --cpuprofile: V8's sampling profile of each view (4 s; <raw>/<world>-<view>.cpuprofile, for DevTools) and
 // its heaviest functions by self time.
+// --settle: wait for the distant detail queued at the load (src/deferred.js) to finish before the views (the steady
+// frame; on the Deck it takes 1-2 minutes in the City-Shaft at 2 ms a frame). --draws: each view's draw calls a frame
+// by pass and by what they draw (draw-census.js). --shots: a screenshot of each view (<raw>/<world>-<view>.png).
 // The game's sound stays at 0 (and the Deck's game runs with --mute-audio). See docs/systems/performance.md,
 // "Every world on the Steam Deck".
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
@@ -82,6 +86,7 @@ class Page {
   }
 }
 
+const CENSUS = readFileSync(resolve(ROOT, 'scripts/bench/draw-census.js'), 'utf8');
 const EXTRA = `(() => {
   const B = window.__bench, reset = B.reset;
   B.reset = () => { B.scales = []; reset(); };
@@ -171,6 +176,11 @@ async function runWorld(page, world, mode) {
   console.log(`${label}: loaded in ${load} s${loadWarnings.length ? ' — ' + loadWarnings.join(' | ') : ''}`);
   await sleep(4000);
   await page.eval(() => { window.story?.closePage?.(); window.sound?.setVolumes?.(0, 0); return true; });
+  if (opt.settle) {   // (the distant detail finished first, src/deferred.js: the steady frame, not the minutes after arriving)
+    const t = Date.now();
+    await page.waitFor('!window.deferred?.pending', 400000, 1000).catch(() => 0);
+    console.log(`${label}: distant detail settled in ${((Date.now() - t) / 1000).toFixed(0)} s`);
+  }
   const W = world === 'desert' ? { views: VP.views, paths: VP.paths } : picked.worlds[world];
   if (!W) throw new Error(`no views for ${world}`);
   const dyn = mode === 'dynamic';
@@ -192,6 +202,14 @@ async function runWorld(page, world, mode) {
     if (opt.profile) {
       v.profile = await profileView(page);
       console.log(`  ${name} profile: js ${v.profile.jsPerFrame} ms ` + Object.entries(v.profile.bySystem).slice(0, 10).map(([k, x]) => `${k} ${x}`).join(', ') + ` rest ${v.profile.rest}`);
+    }
+    if (opt.shots) {   // (the view as the Deck shows it, for a before / after: <raw>/<world>-<view>.png)
+      const r = await page.send('Page.captureScreenshot', { format: 'png' });
+      if (r.result?.data) writeFileSync(`${RAW}/${world}-${name}.png`, Buffer.from(r.result.data, 'base64'));
+    }
+    if (opt.draws) {
+      v.census = await page.eval(CENSUS);
+      for (const [pass, c] of Object.entries(v.census)) console.log(`  ${name} ${pass} draws ${c.total}: ` + c.top.slice(0, 16).map(([k, x]) => `${x} ${k}`).join(' | '));
     }
     if (opt.cpuprofile) {
       v.cpuTop = await cpuProfile(page, `${RAW}/${world}-${name}.cpuprofile`);

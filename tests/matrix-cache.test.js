@@ -70,3 +70,24 @@ test('an object that did not move is not recomposed, and its children are not mu
   assert.equal(composed, 2); assert.equal(multiplied, 2, 'the parent moved: the child follows');
   assert.equal(child.matrixWorld.elements[12], 4);
 });
+
+test('a skinned machine\'s bounds: once a frame in its passes, exact outside them (issue #111)', async () => {
+  const { skinned } = await import('../src/enemies/plans/kit.js');
+  const { RENDER_FRAME } = await import('../src/render-frame.js');
+  const owner = new THREE.Group(), joint = new THREE.Bone();
+  owner.add(joint);
+  joint.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial()));
+  const sm = skinned(owner, [joint.children[0]], new THREE.MeshBasicMaterial());
+  const at = () => sm.boundingSphere.center.x;
+  assert.ok(Math.abs(at()) < 1e-6);
+  joint.position.x = 5; owner.updateMatrixWorld(true);
+  assert.ok(Math.abs(at() - 5) < 1e-6, 'outside the passes: where its joints are now');
+  RENDER_FRAME.n++; RENDER_FRAME.on = true;
+  try {
+    assert.ok(Math.abs(at() - 5) < 1e-6);
+    joint.position.x = 9; owner.updateMatrixWorld(true);
+    assert.ok(Math.abs(at() - 5) < 1e-6, 'in a frame\'s passes: worked out once');
+    RENDER_FRAME.n++;
+    assert.ok(Math.abs(at() - 9) < 1e-6, 'the next frame: again');
+  } finally { RENDER_FRAME.on = false; }
+});

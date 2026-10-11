@@ -147,3 +147,20 @@ test('the sun\'s sparkle pass runs for water that sparkles, not for the cave\'s 
   waters.keepCamera(camera);
   assert.equal(waters.inView, true);
 });
+
+test('the bounds are kept between frames, and taken again for what moved (issue #111)', () => {
+  const w = world();
+  const cull = new InteriorCuller(w.scene, [door], { ground: () => 0 });
+  w.camera.position.set(0, 1002, 20);
+  const frame = () => { const h = cull.hide(w.camera); for (const o of h) o.visible = true; return h; };
+  assert.ok(!frame().includes(w.guest));
+  // the figure walks out through the wall, far off: hidden the next frame
+  w.guest.position.set(400, 1000, 400); w.scene.updateMatrixWorld();
+  assert.ok(frame().includes(w.guest), 'moved out: hidden');
+  // and back in
+  w.guest.position.set(4, 1000, 6); w.scene.updateMatrixWorld();
+  assert.ok(!frame().includes(w.guest), 'back: drawn');
+  // a sphere changed in place (the same object, its numbers new)
+  w.pool.geometry.boundingSphere.center.set(0, -2000, 0);
+  assert.ok(frame().includes(w.pool), 'its sphere moved: taken again');
+});

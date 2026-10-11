@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { StaticBatches, staticReason, restKey, attributeKey, batchCopy, numbersOf, shownUnder, VARIES, BATCH_ID } from '../src/static-batch.js';
-import { makeMaterial } from '../src/materials.js';
+import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 
 const box = () => new THREE.BoxGeometry(1, 1, 1);
 function world() {
@@ -48,6 +48,12 @@ test('materials that differ only in the values read per mesh share a key; any ot
   const c = makeMaterial({ color: '#2233aa', glow: 0.3, key: 'test.static.k3' });
   assert.notEqual(restKey(a), restKey(c), 'a glow is not read per mesh');
   assert.ok(VARIES.includes('uColor') && VARIES.includes('uFlat'));
+  // merged meshes (S_VMAT) carry their colours, band size and grid per vertex: two such materials share a batch when
+  // the rest agrees (each merged group of the City-Shaft's towers was a draw of its own, issue #111)
+  const v1 = makeMaterial({ color: '#f1e6cf', mode: MODE_STRATA, strataSize: 3, grid: 2, perVertex: true, key: 'test.static.v1' });
+  const v2 = makeMaterial({ color: '#9fb2c6', mode: MODE_STRATA, strataSize: 5, grid: 4, perVertex: true, key: 'test.static.v2' });
+  assert.equal(restKey(v1), restKey(v2));
+  assert.notEqual(restKey(v1), restKey(makeMaterial({ color: '#9fb2c6', mode: MODE_STRATA, strataSize: 5, grid: 4, key: 'test.static.v3' })), 'and never with a plain one');
   assert.notEqual(attributeKey(new THREE.BoxGeometry()), attributeKey(new THREE.BoxGeometry().toNonIndexed()));
 });
 

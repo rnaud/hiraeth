@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { VERTEX_UNIFORMS } from './vertex-material.js';
 
 // ---------------------------------------------------------------------------
 // The world's still meshes drawn by a few batches (docs/systems/xbox.md, "Towards 60 on the Xbox").
@@ -74,9 +75,11 @@ const valueKey = (v) => (v === null || v === undefined ? 'n' : v.isTexture ? 't'
   : Array.isArray(v) ? v.map(valueKey).join(';') : typeof v === 'object' ? JSON.stringify(v) : String(v));
 /** What of a material must agree for its meshes to share a view batch with another's: all but the varying values. */
 export function restKey(m) {
-  const vary = m.defines?.S_VMAT ? [] : VARIES;   // (merged meshes carry their own values already: batched by material)
+  // (merged meshes, S_VMAT, carry their own values per vertex already: theirs share a batch when everything else agrees,
+  //  each merged group of the City-Shaft's towers a draw and a material of its own before, issue #111)
+  const vary = m.defines?.S_VMAT ? VERTEX_UNIFORMS : VARIES;
   const u = Object.entries(m.uniforms ?? {}).filter(([k]) => !vary.includes(k)).map(([k, x]) => k + '=' + valueKey(x.value));
-  return [m.defines?.S_VMAT ? m.uuid : '', JSON.stringify(m.defines ?? {}), m.side, m.depthWrite, m.depthTest, m.depthFunc, m.blending, m.colorWrite,
+  return [m.defines?.S_VMAT ? 'vmat' : '', JSON.stringify(m.defines ?? {}), m.side, m.depthWrite, m.depthTest, m.depthFunc, m.blending, m.colorWrite,
     m.polygonOffset, m.polygonOffsetFactor, m.polygonOffsetUnits, m.vertexColors, m.alphaTest, m.vertexShader.length, m.fragmentShader.length, ...u].join('|');
 }
 

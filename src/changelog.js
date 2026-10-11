@@ -80,6 +80,28 @@ export const CHANGELOG = [
     // the guardians (docs/systems/boss-hints.md "One line mid-fight"; issue #120)
     { text: 'What a guardian’s fight writes on the screen is one short line you can read while dodging: what to do, not why. The hints at the start of a fight and at each change were often three or four sentences; now each says the move in a few words, and so do the lines when it wakes, opens, tires and settles. The drone still explains more if you ask.',
       see: 'In the Warden’s Well, wake the warden and let it change: the notice now reads “Only its crown hatch opens now: get above it and shoot down.” (it was four sentences). The Keeper of the cistern opens with “Light the four braziers: cut each spoke’s ball through its fire.”' },
+    // the Steam Deck, measured on it (docs/systems/performance.md "The Steam Deck, round 5"; issue #111)
+    { text: 'The City-Shaft runs about a seventh faster on the Steam Deck, 35 → 39–41 frames a second at the rim and looking down the shaft: its banners are drawn together, and so are its towers, and the cabs, the drones, the room checks and your shield’s disc take less of each frame. It looks the same. The desert and the Signal Market are as they were, and none of the three holds 60 yet.',
+      numbers: [
+        { title: 'Frames a second', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, Steam Deck preset, 1280 × 800, Gaming Mode at 90 Hz', rows: [
+          { where: 'the City-Shaft, the rim', before: 35.5, after: 40.9 },
+          { where: 'the City-Shaft, the crowd', before: 34.6, after: 38.3 },
+          { where: 'the City-Shaft, down the shaft', before: 34.8, after: 39.0 },
+          { where: 'the desert, the spawn', before: 40.4, after: 40.9 },
+          { where: 'the Signal Market, the start', before: 47.7, after: 47.7 },
+        ], source: 'scripts/bench/deck-worlds.mjs --settle 1 --profile 1 on the Deck, main (de6bf70b) against this build' },
+        { title: 'The processor’s work a frame (JS)', unit: 'ms', better: 'lower', device: 'Steam Deck OLED, Steam Deck preset, 1280 × 800', rows: [
+          { where: 'the City-Shaft, the rim', before: 28.0, after: 24.0 },
+          { where: 'the City-Shaft, the crowd', before: 28.5, after: 25.8 },
+          { where: 'the City-Shaft, down the shaft', before: 28.6, after: 24.7 },
+          { where: 'the desert, the camps', before: 27.4, after: 27.4 },
+        ], source: 'the same runs; 60 needs 16.7' },
+        { title: 'Draws a frame in the City-Shaft (view + shadows)', unit: 'draws', better: 'lower', device: 'Steam Deck OLED, Steam Deck preset, 1280 × 800', rows: [
+          { where: 'the rim', before: 440, after: 359 },
+          { where: 'down the shaft', before: 506, after: 389 },
+        ], source: 'the passes’ own counts (--profile 1)' },
+      ],
+      see: 'On the Steam Deck, with Show FPS and frame time on, stand at the City-Shaft’s rim and look down the shaft: the frame line reads about 40 instead of 35. Fly close to a banner under a terrace: its colour, glyphs and wave are as before.' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

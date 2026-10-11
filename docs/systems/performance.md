@@ -1779,3 +1779,84 @@ under 16.7 ms is a 60.
 **To measure on the Deck** (as in "The Steam Deck" above): copy `dist/` there and run
 `deck-run.sh start headless <dir>` with `REFRESH=60`, as well as the usual 90, then `deck-worlds.mjs --quality deck
 --modes fixed --profile 1`.
+
+## The Steam Deck, round 5: measured on the Deck, and the levers (issue #111, October 2026)
+
+**How it was measured.** The Steam Deck OLED (Galileo) in Gaming Mode, plugged in, 11 October, runtime 1819001.
+Each build was copied to `~/.local/share/moebius-bench-games/` and run in gamescope's headless backend
+(`PORT=5420 REFRESH=90 deck-run.sh start headless <dir>`, the OLED's 90 Hz; `REFRESH=60` for the 60 Hz rows), muted,
+in the bench's own profile. `deck-worlds.mjs --settle 1 --profile 1 --draws 1 --shots 1`: 1280 × 800, the Steam Deck
+preset at scale 1, ANGLE on radeonsi GL, 6 s a view after 2 s of warm-up. New in the script:
+- `--settle` waits for the distant detail queued at the load (`src/deferred.js`) before the views. In the City-Shaft that is
+  18 000 jobs, ~9 s of work at 2 ms a frame: **86 s after arriving on the Deck**, during which every frame carries 2 ms more.
+  The first runs of this round, without it, measured the City-Shaft 2 ms slower than it settles.
+- `--draws` counts each pass's draws by what they draw (`scripts/bench/draw-census.js`).
+- `--shots` saves each view as the Deck shows it.
+
+V8's profile on the Deck (`--cpuprofile 1` on an unminified build) said where the frame goes; the levers below were picked
+by it and each was measured on the Deck against the build before it, in the same sitting. Two runs of one build differ by
+up to ~1 ms of JS.
+
+**Before → after** (90 Hz; frames come in steps of 11.1 ms, so a 24 ms frame shows as 22 or 33):
+
+| view | fps | frame ms (median) | frame ms (p95) | JS ms | GPU ms | draws (G-buffer + shadows) |
+|---|---|---|---|---|---|---|
+| desert spawn | 40.4 → 40.9 | 22.2 → 22.2 | 33.4 → 33.4 | 24.4 → 24.1 | 10.7 → 10.7 | 237 + 68 → 226 + 69 |
+| desert camps | 36 → 35.8 | 33.2 → 33.2 | 33.4 → 33.4 | 27.4 → 27.4 | 11.5 → 11.6 | 211 + 50 → 204 + 54 |
+| City-Shaft rim (start) | 35.5 → 40.9 | 33.2 → 22.2 | 33.4 → 33.4 | 28 → 24 | 17.4 → 14.3 | 337 + 103 → 257 + 102 |
+| City-Shaft crowd | 34.6 → 38.3 | 33.3 → 22.3 | 33.4 → 33.4 | 28.5 → 25.8 | 12.5 → 14.4 | 200 + 75 → 190 + 76 |
+| City-Shaft wide | 34.8 → 39 | 33.3 → 22.3 | 33.4 → 33.4 | 28.6 → 24.7 | 20 → 21.7 | 381 + 125 → 261 + 128 |
+| Signal Market start | 47.7 → 47.7 | 22.2 → 22.2 | 22.3 → 22.3 | 20.3 → 20.4 | 11.6 → 11.6 | 176 + 79 → 177 + 78 |
+| Signal Market crowd | 52.6 → 52 | 22.2 → 22.2 | 22.3 → 22.3 | 18.4 → 18.6 | 8.3 → 9.5 | 91 + 56 → 85 + 53 |
+| Signal Market wide | 59.8 → 57.3 | 22.1 → 22.1 | 22.3 → 22.3 | 16.3 → 16.9 | 12 → 12.1 | 167 + 63 → 164 + 61 |
+
+(GPU ms is the timer queries' median; the City-Shaft's GPU numbers wander by 2–3 ms between runs of one build.)
+
+At 60 Hz (`REFRESH=60`) the old build measured the same as at 90: the desert's spawn 41.4 fps (JS 23.7), the camps 37.6
+(26.4), the City-Shaft 34.7–35.7 (27.7–28.6), every view's p95 33.4 ms. The Deck left the network before the new build's
+60 Hz run, so that row is still to take; with 24–27 ms of JS a frame it can't be under 16.7 at 60 Hz either.
+
+**Kept** (City-Shaft JS before → after each, the views' range):
+- **The City-Shaft's 70 banners are one mesh** (`src/life.js BannerSet`). Each was a draw and a material of its own (its
+  colour, its glyphs' size). Now their colours and grid go per vertex (S_VMAT), the glyphs' cells with the grid
+  (`S_VGLYPH`), and each is still waved on the main thread by its own Banner (in view, within 160 m), which writes its new
+  shape into the merged mesh's ranges. The same picture: 470–533 draws from 501–585, JS −1.3 to −1.6 ms.
+- **The merged towers share batches** (`src/static-batch.js restKey`). The still meshes' batches kept every merged
+  (S_VMAT) material apart, so each merged group of towers was a draw; now those whose other uniforms agree share one. The
+  City-Shaft −45 to −60 draws, JS −1 to −1.5 ms; nothing elsewhere changed.
+- **The room culler keeps its bounds** (`perf.js InteriorCuller.boundsAt`). The rim is a room's height over the map, and
+  its room is the whole city, so the culler took ~3 000 spheres into the world every frame. Now a sphere is taken again
+  only when its matrix or its own sphere changed: 1.5 → 0.7 ms.
+- **A cab updates its own matrix only** (`src/taxi.js`): `updateWorldMatrix(false, false)` for its seat and its
+  collision, its ~30 parts left to the frame's walk (the one you ride walks them all). The forced walks were 0.7 ms; the
+  frame's walk took 0.4 of it back.
+- **A machine's bounds once a frame** (`src/enemies/plans/kit.js`, `src/render-frame.js`): three reads a skinned
+  machine's `boundingSphere` in every pass to sort it, and the getter walked every joint's box up to the root each time
+  (the City-Shaft's 25 rust-drone parts, ~1 ms). It now works it out once per frame while the passes draw (`RENDER_FRAME`,
+  kept by `pinRenderFrame`), exactly outside them. G-buffer pass 6.9 → 6.5 ms.
+- **The shield's disc is three meshes, not nine** (`src/shield.js`): its rim and the six folded ribs merged (one
+  material, never moved apart). −6 draws in every view where it is worn.
+
+**Tried and left out**:
+- **The City-Shaft's trees in quarters** (round 4's idea): draws 473 → 422 at the rim, 533 → 467 down the shaft, but the
+  JS the same (25.9 → 26.9, 26.6 → 26.6) and the GPU no better (14.4 → 17.7, 21.7 → 21.8). The tree draws share one
+  material, so three hardly pays for them; the eighths stay. A multi-draw (`BatchedMesh`) of the trees would need the
+  surface shader to read an instance from `gl_DrawID`, and three's per-instance culling of 8 700 trees in every pass
+  would cost about what it saves.
+- **The desert's mesas in one batch** (each mesa's colours and band size per vertex, one material for all): −14 draws at
+  the spawn, the JS the same (23.6 → 23.6).
+- **The traveller's rig walked once** and **the shadow passes from a list**: measured first, not done. Since round 4's
+  matrix cache the rig's extra walks are ~0.7 ms in all; the shadow passes' walk of the scene is ~1 ms of their ~2.5.
+  Neither moves a view across a step of the refresh.
+
+**Where a frame goes now** (City-Shaft rim, V8's profile, which adds ~15 %): the G-buffer pass 9.3 ms (three's walk of
+the scene 3.4: ~5 000 objects; the draws 5.8: uniforms, program and vertex-array binding for ~260 draws), the matrix walk
+3.5 (the whole scene, 5 000 objects, 38 % of them under something hidden), the shadow passes 2.7, the still batches'
+checks 1.3, the shadow culling 0.8, the hero map 0.7, the small-prop and room cullers 1.3; the traveller 2.2, the
+crowd's walkers 2.2, the people 1.0, the level 1.3. In the desert, the temples' update runs 1 ms a frame far from
+any temple (`src/temples/runtime.js`: pieces that are solid or burn update outside too), and the wind's field 0.7.
+
+**60 at native is still not reached** in the desert or the City-Shaft: 24–27 ms of JS a frame against 16.7. The Signal
+Market's wide view is at the edge (16–17 ms). What would take the next third off is structural: a scene walk that skips
+what has not changed (most of the 5 000 objects never move, but three and the matrix cache visit every one each frame),
+and fewer distinct materials in the G-buffer (the uniforms and bindings, not the draws as such).

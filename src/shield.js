@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { bracerMount, carry, fitScale } from './blade-grip.js';
 
@@ -178,13 +179,14 @@ export class ShieldDevice {
     // the disc on the back of the hand: a brass drum with a raised rim and a bead of fluid at its hub, strapped round the palm
     const disc = new THREE.Group();
     disc.add(new THREE.Mesh(new THREE.CylinderGeometry(SHIELD.hub, SHIELD.hub * 1.06, 0.01, 18).rotateX(Math.PI / 2).translate(0, 0, 0.002), brass));
-    disc.add(new THREE.Mesh(new THREE.TorusGeometry(SHIELD.hub * 0.92, 0.0035, 5, 20).translate(0, 0, 0.0085), dark));
-    // the ribs folded into it, their ends drawn on its face like the leaves of a closed iris
+    // its rim and the ribs folded into it, their ends drawn on its face like the leaves of a closed iris: one mesh (the
+    // same dark brass, never moved apart: 1 draw a pass instead of 7, worn in every view; issue #111)
+    const darkParts = [new THREE.TorusGeometry(SHIELD.hub * 0.92, 0.0035, 5, 20).translate(0, 0, 0.0085)];
     for (let i = 0; i < SHIELD.ribs; i++) {
-      const a = (i / SHIELD.ribs) * Math.PI * 2, leaf = new THREE.Mesh(new THREE.BoxGeometry(0.0025, SHIELD.hub * 0.5, 0.002).translate(0, SHIELD.hub * 0.5, 0.0078), dark);
-      leaf.rotation.z = a + 0.35;
-      disc.add(leaf);
+      const a = (i / SHIELD.ribs) * Math.PI * 2;
+      darkParts.push(new THREE.BoxGeometry(0.0025, SHIELD.hub * 0.5, 0.002).translate(0, SHIELD.hub * 0.5, 0.0078).rotateZ(a + 0.35));
     }
+    disc.add(new THREE.Mesh(mergeGeometries(darkParts), dark));
     this.bead = new THREE.Mesh(new THREE.SphereGeometry(0.014, 12, 8).scale(1, 1, 0.5).translate(0, 0, 0.008), tool.globMat);
     disc.add(this.bead);
     this.root.add(disc);

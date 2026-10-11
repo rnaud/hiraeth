@@ -478,6 +478,7 @@ export function surfaceFeatures(o) {
   on('S_MAP', o.map);
   on('METAL_BRUSHED', o.metal && o.brushed);
   on('S_VMAT', o.perVertex);   // (merged meshes: their material values per vertex, src/vertex-material.js)
+  on('S_VGLYPH', o.perVertex && o.vertexGlyphs);   // (and their glyphs' cells the grid's, per vertex: life.js BannerSet)
   on('S_THIN', o.thin);        // (thin bars kept a least width on screen, src/thin.js)
   delete d.undefined;
   return d;
@@ -964,6 +965,9 @@ const fragmentShader = /* glsl */ `
     #ifdef S_VMAT
       #define uStrataSize vMatS.x
       #define uGrid vMatS.y
+      #ifdef S_VGLYPH
+        #define uGlyphs vMatS.y
+      #endif
     #endif
     #define uFlat vMatS.z
   #endif

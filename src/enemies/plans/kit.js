@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { makeMaterial, releaseMaterial } from '../../materials.js';
 import { surfaceFor } from '../surfaces.js';
+import { RENDER_FRAME } from '../../render-frame.js';
 
 // Shared pieces for the archetypes' body builders (src/enemies/plans/): the game's ink materials per skin, meshes
 // placed in one call, tubes along points, and the finishing pass every model gets. A body is drawn in the Moebius
@@ -118,7 +119,15 @@ export function skinned(owner, meshes, mat, shared = null) {
   };
   sm.userData.boneBoxes = { bones, local };   // (each joint's box of its own vertices, in its frame: the body the blade meets, src/foe-body.js)
   Object.defineProperty(sm, 'boundingBox', { configurable: true, get: bounds, set() {} });
-  Object.defineProperty(sm, 'boundingSphere', { configurable: true, get: () => bounds().getBoundingSphere(sphere), set() {} });
+  // (three asks for it in every pass of a frame, for the passes' sort: once a frame there, its joints' boxes walked up
+  //  to the root each time, 25 machines' worth ~1 ms of the Steam Deck's main thread in the City-Shaft, issue #111;
+  //  exact outside the passes)
+  let sphereAt = -1;
+  Object.defineProperty(sm, 'boundingSphere', { configurable: true, get: () => {
+    if (RENDER_FRAME.on && sphereAt === RENDER_FRAME.n) return sphere;
+    sphereAt = RENDER_FRAME.on ? RENDER_FRAME.n : -1;
+    return bounds().getBoundingSphere(sphere);
+  }, set() {} });
   return sm;
 }
 

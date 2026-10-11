@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { runSteps } from './load-steps.js';
 import { INSTANCE_COPIES } from './deferred.js';
+import { RENDER_FRAME } from './render-frame.js';
 
 // Split world-spanning meshes into tiles so frustum culling can skip what's
 // off-screen in each pass (main view and each shadow cascade). Without this
@@ -284,6 +285,23 @@ export class InteriorCuller {
     const list = [];
     this.scene.traverse((o) => { if ((o.isMesh || o.isPoints || o.isLine || o.isSprite) && o.geometry) list.push(o); });
     this.list = list; this.n = this.scene.children.length; this.age = 0;
+    this.cache = new Array(list.length).fill(null);
+  }
+  /**
+   * list[i]'s bounds (as bounds()), taken again only when its matrix or its own sphere changed: the City-Shaft's rim
+   * stands a room's height over the map, and its room is the whole city, so this ran over ~3 000 renderables a frame
+   * (~1 ms of the Deck's main thread, issue #111) for spheres that never move.
+   */
+  boundsAt(i, o) {
+    const src = o.isInstancedMesh || o.isBatchedMesh ? (o.boundingSphere ?? (o.computeBoundingSphere(), o.boundingSphere)) : o.geometry && (o.geometry.boundingSphere ?? (o.geometry.computeBoundingSphere(), o.geometry.boundingSphere));
+    if (!src || !Number.isFinite(src.radius)) return null;
+    const e = o.matrixWorld.elements, c = src.center;
+    const k = e[12] + e[13] * 3 + e[14] * 7 + e[0] * 11 + e[1] * 19 + e[2] * 23 + e[5] * 13 + e[8] * 29 + e[10] * 17 + src.radius * 31 + c.x * 37 + c.y * 41 + c.z * 43;
+    let it = this.cache[i];
+    if (it && it.src === src && it.k === k) return it.s;
+    if (!it) it = this.cache[i] = { src, k, s: new THREE.Sphere() };
+    it.src = src; it.k = k;
+    return it.s.copy(src).applyMatrix4(o.matrixWorld);
   }
   /** The room's box: the static meshes near its door clear of the ground, then those near them, until none is added. */
   extent(room) {
@@ -326,7 +344,9 @@ export class InteriorCuller {
     if (++this.age > 180 || this.n !== this.scene.children.length) this.collect();   // (anything added since, every few seconds)
     this.frame++;
     const keep = _ib.copy(box).expandByScalar(this.margin);
-    for (const o of this.list) {
+    const list = this.list;
+    for (let i = 0; i < list.length; i++) {
+      const o = list[i];
       if (!o.visible) continue;
       // Left unculled (frustumCulled false): drawn wherever it is, its bounds not kept (the fluid's
       // rings and spray, splats, splashes). Their cached bounds are stale or empty, and
@@ -337,7 +357,7 @@ export class InteriorCuller {
         if (!o.isInstancedMesh || o.count === 0) continue;
         if (o.count <= 512 || !o.boundingSphere || (this.frame & 15) === 0) o.computeBoundingSphere();
       }
-      const s = InteriorCuller.bounds(o, _is);
+      const s = this.boundsAt(i, o);
       if (s && !keep.intersectsSphere(s)) { o.visible = false; out.push(o); }
     }
     return out;
@@ -606,7 +626,7 @@ export function pinRenderFrame(renderer) {
     return render.call(this, scene, camera);
   };
   return {
-    begin() { pinned = renderer.info.render.frame; },
-    end() { if (pinned !== null) { renderer.info.render.frame = pinned + 1; pinned = null; } },
+    begin() { pinned = renderer.info.render.frame; RENDER_FRAME.n++; RENDER_FRAME.on = true; },
+    end() { RENDER_FRAME.on = false; if (pinned !== null) { renderer.info.render.frame = pinned + 1; pinned = null; } },
   };
 }

@@ -657,6 +657,10 @@ export const CHANGELOG_MEDIA = {
         { where: 'the website on a mobile connection, pressed at 10 s', before: 22.1, after: 15.5 },
       ], source: 'scripts/title-boot.mjs, median of three' },
     ], see: 'Open the game, wait a few seconds on the title and press Continue: your world is there almost at once. Press it straight away instead: the menu gives way to a small turning pen and the load’s words until the world is ready.' },
+    { match: 'The City-Shaft runs about a seventh faster on the Steam Deck', shots: [
+      { name: 'deck-banners', title: 'A banner', caption: 'A banner under a terrace, close up, on the Steam Deck: before, its own mesh; after, one of the seventy drawn as one. Its colour, glyphs and wave are the same (the cloth is caught at another moment)', size: [1280, 800], from: 'Page.captureScreenshot on the Steam Deck OLED (deck-worlds.mjs’s page, the camera set by hand), main against this build (11 October)' },
+      { name: 'deck-shaft', title: 'Down the shaft', caption: 'The City-Shaft’s wide view on the Steam Deck at 1280 × 800: the towers now drawn in shared batches, the banners as one mesh; the same picture. The cabs and people moved', size: [1280, 800], from: 'deck-worlds.mjs --shots 1 on the Steam Deck OLED, main against this build (11 October)' },
+    ] },
     { match: 'What’s new has a Refresh button', shots: [
       { name: 'whats-new-refresh', caption: 'The top of What’s new: Refresh beside Play, its button glyph shown', size: [1280, 400], from: 'screenshots of changelog.html in headless Chrome, without and with the button (11 October)' },
     ], see: 'Open What’s new from the title (or N, then See what changed) and press Refresh: on the website the page loads again; in the app it checks for an update, downloads it with its progress beside the count, and restarts at the title in the new build.' },
