@@ -7,6 +7,11 @@ import { pads, host, toHost } from './host.js';
 import { createGame } from '../game.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
+import { installMatrixCache } from '../../src/matrix-cache.js';
+
+// the scene's matrices recomposed only where something moved, as the web game's (src/matrix-cache.js): the mirror's
+// updateMatrixWorld walked ~4 200 objects a frame, ~13 % of them moved (3 ms of the Xbox's script frame)
+installMatrixCache();
 
 let S = null;
 const now = () => host.Now();
