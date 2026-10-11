@@ -1,0 +1,58 @@
+engine/unity/game.js
+  s_9ca76055a220ed::t_2ae347f880cd81 42
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_9ca76055a220ed::t_34f6ec77252a76 52,68
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_74ed6129120f6d::t_b014ceacb1d815 87,255-257,277-279,290-293,308-310
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_74ed6129120f6d::t_0eb24c3395ef98 77-88,91,113
+unity/Memento/Assets/Memento/Runtime/Quality.cs
+  s_9ca76055a220ed::t_31f32c4b429d1f 11,33-36
+scripts/bench/deck-unity.sh
+  s_9ca76055a220ed::t_94371bf062a201 1-45
+scripts/release-info.mjs
+  s_9ca76055a220ed::t_6b81069bd3a374 155
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_6392d3c6ca8ae3 451,474-476,480
+  s_9ca76055a220ed::t_d49f8413fa999b 9,421-430,445,448-450,452-454,469,481
+engine/game.js
+  s_9ca76055a220ed::t_0097befa563ed0 34-35,149,151-155,235-238,259,265,314-323,407,579-581,593-594,596
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_ddad28c9f35b68 632,659
+docs/systems/performance.md
+  s_9ca76055a220ed::t_4e886fb5bc70e2 1863-1938
+docs/systems/unity.md
+  s_74ed6129120f6d::t_24f24b61540005 67-73
+tests/engine-bridge.test.js
+  s_74ed6129120f6d::t_341986dc314bb2 470-485
+tests/unity-ci.test.js
+  s_9ca76055a220ed::t_f350e76e30deb7 48-52,61
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_74ed6129120f6d::t_9684dd1b5a387f 202-212,678,689,777,829,835,845,854,921,957
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_6d3ad77499844f 36-42,208-209,366-388,390-392
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d7c0d5b48ac0b252cde50663ceb77e9d17dad248",
+  "prompts": {},
+  "sessions": {
+    "s_74ed6129120f6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12b36-7519-7462-9cc9-a30336c7a79d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
