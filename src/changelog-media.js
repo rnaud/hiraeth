@@ -603,6 +603,8 @@ const C49_GREEN = { commit: 'be2aecbf' };
 const GR = (x, y, z) => [300 + x, 1700 + y, -450 + z];   // (the Greenhouse's own metres, in the world)
 const C49_UNDER = { commit: '02e1a9d0' };
 const UT = (x, y, z) => [-200 + x, 1600 + y, -520 + z];   // (the Undertower's own metres, in the world)
+const C49_LAMP = { commit: 'a5846a6d' };
+const LH = (x, y, z) => [-140 + x, 1800 + y, -780 + z];   // (the Lamp-House's own metres, in Lorn: names.js PART_OFFSET)
 export const CHANGELOG_MEDIA = {
   '1.49': [
     { match: 'In the Unity test build, water foams', shots: [
@@ -650,6 +652,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'undertower-greatlock', title: 'The great lock', caption: 'The gallery’s far door: before, its two lamps; after, the great lock’s plate under them', ...C49_UNDER,
         view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 60, eye: UT(0, 14.6, 141.5), target: UT(0, 14.4, 145.1), player: UT(0, 12.05, 142) } },
     ], see: 'In the Undertower, in the Listening Passage past the chest; and across the Gallery of Voices, west off its far side into the Choir.' },
+    { match: 'The Lamp-House has two new rooms', shots: [
+      { name: 'lamp-halldoor', title: 'The Hall of Dark Pools', caption: 'Looking east across the hall: before, its wall; after, the doorway into the Kennel', ...C49_LAMP,
+        view: { level: 'perdide', save: SAVE47, hour: 12, fov: 70, eye: LH(2, 3, 18), target: LH(11.6, 2.5, 22.4), player: LH(1.5, 0.05, 17.5) } },
+      { name: 'lamp-kennel', title: 'The Kennel', caption: 'The Kennel, the keepers’ old stalls along its walls: its door shuts behind you while they stand, the small key caged at the far end', ...C49_LAMP, only: 'after',
+        view: { level: 'perdide', save: SAVE48_ARMED, hour: 12, fov: 75, eye: LH(15, 3.8, 21), target: LH(28, 1.5, 24), player: LH(15.6, 0.05, 21.6) } },
+      { name: 'lamp-wick', title: 'The Wick Room', caption: 'Two niches low in the east wall, a pool-orb in its groove before each, and the great key behind the grille between them, two lamps over it', ...C49_LAMP, only: 'after',
+        view: { level: 'perdide', save: SAVE47, hour: 12, fov: 75, eye: LH(15, 12, 133.9), target: LH(30, 10, 133.9), player: LH(15.6, 9.05, 134.5) } },
+      { name: 'lamp-greatlock', title: 'The great lock', caption: 'The Dark Gallery’s far door: before, its three lamps; after, the great lock’s plate under them', ...C49_LAMP,
+        view: { level: 'perdide', save: SAVE47, hour: 12, fov: 60, eye: LH(0, 11.6, 135.4), target: LH(0, 11.4, 138.9), player: LH(0, 9.05, 136) } },
+    ], see: 'In the Lamp-House, east off the Hall of Dark Pools into the Kennel; and across the Dark Gallery, east off its far side into the Wick Room.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
