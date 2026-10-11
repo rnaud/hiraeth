@@ -110,7 +110,8 @@ from where you stand to face the lock (a ray through the temple's walls, floors 
 **traversal** pieces per room (discs, winds, gusts, swings, pits, glass); the solve order (`logic.js`
 `solve`). Then the measures and scores above, the temple's **skeleton** (one letter a step: B base verbs, C the
 chest's room, G the gadget alone, X a combination, R a reveal, T a traversal the gadget makes, L a lock a key from elsewhere opens, A an arena's way out, K the guardian)
-and how alike every two temples are.
+and how alike every two temples are. (Since v1.49: a lock that wants one ball at two of its stops has an order to find; a
+lock whose keys want the gadget is sorted after the chest wherever its room is; a door that opens with another is no step.)
 
 It writes `report.json`, `<id>-plan.svg` (a top-down plan: rooms, pieces, each lock's line to its keys,
 coloured by obviousness, dashed when out of sight) and `views.json` (each temple's two most obvious steps, from

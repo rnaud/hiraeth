@@ -44,7 +44,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
   assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
   assert.equal(theme('level-design').prev.id, 'level-design-v1.20'); assert.equal(theme('level-design').delta, 0.13);
-  assert.equal(theme('temple-design').delta, 0.13);   // (temple-design-v1.48: 4.03 over fourteen, v1.27: 3.90 over eleven)
+  assert.equal(theme('temple-design').delta, 0.18);   // (temple-design-v1.49: 4.21, v1.48: 4.03, both over fourteen)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.46: 3.8, game-v1.0: 3.7)
   assert.equal(theme('dialogue').prev.id, 'dialogue-v1.0'); assert.equal(theme('dialogue').delta, 0.08);   // (dialogue-v1.48: 3.50, v1.0: 3.42)
   const loc = group('dialogue', 'Areas').rows.find((r) => r.label === 'Localisation');
