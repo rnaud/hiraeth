@@ -47,7 +47,7 @@ export const QUESTS = [
       { id: 'kip', text: 'Get the cylinder back, on the second skybridge', label: 'The cylinder, on the second skybridge', flag: 'bazaar.kip.gave', at: 'kip', gate: true },
       { id: 'tune', text: 'Light the antenna’s three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna' },
       { id: 'play', text: 'Play the recording at the balcony console', label: 'The console', flag: 'bazaar.broadcast.on', at: 'console' },
-      { id: 'sel2', text: 'Go down to Madame Sel, under the tower', label: 'Madame Sel, under the silent tower', talk: 'sel', stands: 'selSeat', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
+      { id: 'sel2', text: 'Go back down under the silent tower', label: 'Madame Sel, under the silent tower', talk: 'sel', stands: 'selSeat', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
     ],
   },
   {

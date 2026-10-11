@@ -38,7 +38,7 @@ export const QUESTS = [
     id: Q, title: 'What the Spheres Remember', world: 'spheres', main: true,
     outro: 'Three sounds, carried to the pole, sounding together.',
     stages: [
-      { id: 'aube', text: 'Talk to Linnet, the listener, in the umbrella grove', label: 'Linnet, the listener', flag: 'spheres.aube.heard', at: 'aube' },
+      { id: 'aube', text: 'Hear Linnet out in the umbrella grove', label: 'Linnet, the listener', flag: 'spheres.aube.heard', at: 'aube' },
       { id: 'listen', text: 'Splash the three spheres that remember', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
       { id: 'plaza', text: 'Carry the sounds down the avenue to the plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza', via: 'the white path and the avenue' },   // (via: the way its words send you, for the level design audit)
       { id: 'pole', text: 'Splash the humming pole, and listen', label: 'The humming pole', flag: 'spheres.chord.heard', at: 'pole' },

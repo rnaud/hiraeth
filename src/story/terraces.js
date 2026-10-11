@@ -330,7 +330,6 @@ export function setupTerraces(ctx) {
     registerTarget({
       kind: 'clod', radius: 1.0, position: () => r.at, enabled: () => r.clod.visible && flat(player.pos, r.at) < 60,
       onHit: (mode) => {
-        if (!quests.isActive(Q) || !quests.reached(Q, 'runnels')) { r.shiver = 1; toast(quietOr('A clod of silt chokes the runnel. Esk keeps these terraces.', 'A clod of silt chokes the runnel. Esk keeps these terraces: ask her first.')); return true; }
         if (mode !== 'push') { r.shiver = 0.6; toast(quietOr('The silt drinks it up and stays put.', 'The silt drinks it up and stays put. Shove it out instead (push).')); return true; }
         if (r.k !== cleared()) {
           r.shiver = 1;
@@ -338,6 +337,9 @@ export function setupTerraces(ctx) {
           toast('The clod shifts, and slumps back: the runnel above is still choked, so there is nothing to carry the silt away. Top terrace first.');
           return true;
         }
+        // straight to the runnels, before Esk (issue #118): the errand starts, or goes on, from the clod you shift
+        if (!quests.isStarted(Q)) quests.start(Q, 'runnels');
+        else if (quests.stage(Q) === 'esk') quests.advance(Q, 'esk');
         game.set(`edena.runnel.${r.k}`, true);
         game.set('edena.runnels', cleared() + 1);
         r.out = 0.001;

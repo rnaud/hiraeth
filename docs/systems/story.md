@@ -723,6 +723,17 @@ idea." "All quests should be solvable by just going to the end if you can."
   An opening quest whose talk never came starts past what is done, or ends (`Quests.openAhead`, run by `update`):
   the splinter fetched from the shrine before you met Nima, the crystal sung before Wendel spoke of it.
   `tests/quest-skip.test.js`.
+- **The quest log, swept** (#118, v1.49): no step asks, meets, sees, finds or goes down to a person. Two more steps
+  went: Hask's (Wen says where the ramp is herself; his Tuning Star is for whoever sits with him) and Calix's (at the
+  monastery the clapper is the goal; he says where it lies to whoever asks): `src/save-migrate.js` step 16
+  (`QUEST_STAGE_MOVES_118`). A world's opening talk reads "Hear X out at <place>" (Aube, Wen, Linnet, Edda, the
+  lamp-keeper); a step back to the one who gave the quest names the place ("Go back down under the silent tower",
+  "Go back down to the bottom terrace"); Nour's spark is "Hear Nour out by the cold tree"; the skiff's first step
+  is the far dome. Ama no longer ends on "Ask her", nor Anselme on "Maelle… Ask her". Viridel's clods move for
+  whoever gets there first: the first one shoved starts the errand at the runnels (or carries it on from Esk's
+  step), with no "ask her first". The builders' gate still waits for Esk's asking: the flood is hers to ask for.
+  `tests/quest-steps.test.js` (the words), `tests/story-terraces.test.js` and `tests/story-spheres.test.js` (the
+  goals reached first).
 
 ## Places to stop on the way (the second story pass, October 2026)
 

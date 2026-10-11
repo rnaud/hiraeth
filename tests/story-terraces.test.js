@@ -254,3 +254,29 @@ test('the Hangar’s gear ends at Mira’s water clock: fit it, then three quick
   step(2);
   assert.equal(quests.isDone(C), true);
 });
+
+test('straight to the runnels, before Sol or Esk: the clods move, and the errand starts from them (issue #118)', () => {
+  game.reset();
+  W = visit();
+  const { quests, step, at, toasts } = W;
+  step(2);
+  assert.equal(quests.isStarted(Q), false, 'nobody has spoken of the terraces');
+  const clods = targets('clod').sort((a, b) => b.position().x - a.position().x);
+  at(clods[0].position());
+  clods[0].onHit('push');
+  assert.equal(game.flag('edena.runnels'), 1, 'the top clod goes out at the first shove: no “ask her first”');
+  assert.equal(quests.stage(Q), 'runnels', 'the errand is under way, at the runnels');
+  assert.ok(!toasts.some((t) => /ask her/i.test(t)), 'nobody sends you to Esk');
+  for (const c of clods.slice(1)) c.onHit('push');
+  step(30);
+  assert.equal(quests.stage(Q), 'ask', 'three runnels cleared: on to what Esk makes of the trickle');
+  // a save that had only met Esk's lead (the step before): the clods carry it on too
+  game.reset();
+  W = visit();
+  W.quests.start(Q);
+  assert.equal(W.quests.stage(Q), 'esk');
+  const c2 = targets('clod').sort((a, b) => b.position().x - a.position().x);
+  W.at(c2[0].position());
+  c2[0].onHit('push');
+  assert.equal(W.quests.stage(Q), 'runnels');
+});

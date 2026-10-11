@@ -22,7 +22,7 @@ export const QUESTS = [
     id: Q, title: 'The Night Mail', world: 'bazaar', major: true,
     outro: 'Solange’s answer is pinned up under the halt’s lamp. Edda reads it every night, before the bell.',
     stages: [
-      { id: 'edda', text: 'Meet Edda at the night halt', label: 'Edda, at the night halt', talk: 'edda' },
+      { id: 'edda', text: 'Hear Edda out at the night halt', label: 'Edda, at the night halt', talk: 'edda' },
       { id: 'board', text: 'Ring the bell and board the train', label: 'The halt’s bell', at: 'bell' },
       { id: 'mireille', text: 'Give Solange the letter, on the last roof', label: 'Solange, on the last carriage’s roof', bring: 'letter', to: 'mireille' },
       { id: 'off', text: 'Step off when the train halts', label: 'The platform', at: 'stepOff' },

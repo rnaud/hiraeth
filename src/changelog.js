@@ -69,6 +69,11 @@ export const CHANGELOG = [
     // the title screen (docs/systems/ui.md "The title's drawing and the game behind it"; issue #110)
     'The title screen is there the moment the game opens: its world is a drawing in the game’s own ink and flat colour, painted with the name at once, instead of a 3D world built behind the menu. Now and then the singing light crosses its sky.',
     'Continue gets you playing much sooner: while you look at the title, your world loads behind it, so Continue goes straight in. If you are quicker than the load, a small mark where the menu was shows it finishing. Choosing another save, or changing a setting first, loads as before.',
+    // the quests (docs/systems/story.md "The quest log, swept"; issue #118)
+    { text: 'The quest log no longer sends you to people. Its steps name the place or the thing: after Wen, the ramp down to the canyon (Hask’s fear is still his to tell, if you sit with him); at the monastery, the bell’s clapper on the floating church (Calix still says where it lies). Nobody in the desert or under the sea ends on “Ask her.” any more.',
+      see: 'In the Buried Machine, hear Wen out in the great dome: the quest log’s next step is the sand ramp into the canyon, not Hask’s bench. In Vael, ride the bird up to the monastery: the next step is the clapper.' },
+    { text: 'In Viridel, the silt in the tea terraces’ runnels moves for whoever gets there first: shove the top clod and Esk’s errand starts from it, with no “ask her first”.',
+      see: 'In Viridel, before speaking to Sol or Esk, walk up the tea terraces south-east of the landing and shove the top runnel’s clod: it slides out and “Water for the Tea Terraces” begins at the runnels.' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

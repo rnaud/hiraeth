@@ -82,9 +82,9 @@ test('the main quest: Tooth Day, the Wick lit, the wheel turns one tooth, Wen co
   assert.equal(quests.openerObjective()?.id, `opener-${Q}`);
   talk(PEOPLE.wen, ['What wheel?', 'And it turns today?']);
   step(2);
-  assert.equal(quests.stage(Q), 'hask');
+  assert.equal(quests.stage(Q), 'down', 'Wen says where the ramp is herself: nobody sends you on to Hask (issue #118)');
   talk(PEOPLE.hask, ['Why not this year?', 'Then let me light it.']);
-  assert.equal(game.flag('buried.rumour.light'), true, 'Hask saw the Tuning Star');
+  assert.equal(game.flag('buried.rumour.light'), true, 'Hask saw the Tuning Star, if you ask him');
   step(2);
   assert.equal(quests.stage(Q), 'down');
   at(V(B.canyonX(-180), B.floorAt(-180), -180)); step(2);
@@ -307,7 +307,7 @@ test('out of order: the Wick lit and the gauges read before anyone asked; Wen an
   const say = (person) => { q4.opening(person.id); const r = new DialogueRunner(person, { game, quests: q4 }); while (!r.ended && r.advance()); q4.opened(); return r; };
   say(PEOPLE.wen);
   for (let i = 0; i < 8; i++) rt4.update(1 / 30, i / 30, { camera });
-  assert.equal(q4.stage('buried.tooth'), 'watch', 'Wen’s and Hask’s talks pass over: on to the wheel');
+  assert.equal(q4.stage('buried.tooth'), 'watch', 'Wen’s talk passes over: on to the wheel');
   // Ket, met after the three gauges were read: her reading starts and ends the quest
   say(PEOPLE.ossa);
   assert.equal(q4.isDone('buried.gauges'), true);

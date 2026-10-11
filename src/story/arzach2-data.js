@@ -44,10 +44,11 @@ export const QUESTS = [
   {
     id: Q, title: 'The Bell Under the Cloud', world: 'arzach2', main: true,
     outro: 'The bell rang. The cloud settled a little. So did the stones.',
+    // (Calix's step went, issue #118: the clapper is the goal, and he says where it lies to whoever asks; a save at it
+    //  goes on to `clapper`, src/save-migrate.js QUEST_STAGE_MOVES_118)
     stages: [
-      { id: 'aube', text: 'Ask Sister Aube about the cloud', label: 'Sister Aube', flag: 'arzach2.aube.heard', at: 'aube' },
+      { id: 'aube', text: 'Hear Sister Aube out at her hermitage', label: 'Sister Aube', flag: 'arzach2.aube.heard', at: 'aube' },
       { id: 'monastery', text: 'Ride the bird up to the monastery', label: 'The monastery', goto: 'monastery', radius: 45, vertical: 20, at: 'monastery' },
-      { id: 'calix', text: 'Find Brother Calix, keeper of the bell', label: 'Brother Calix', flag: 'arzach2.calix.asked', at: 'calix' },
       // (out by the knots of the monks' old rope way, src/vael-crossing.js; home by the tiles)
       { id: 'clapper', text: 'Fetch the clapper from the floating church', label: 'The clapper', bring: 'clapper', at: 'clapper', to: 'calix', via: 'the old rope way' },
       // (the clapper's way home is along the roof tiles that fell up with it: src/sky-stones-ways.js; `via` names the line for the
@@ -177,7 +178,7 @@ export const LOCALS = [
         },
         stones: { say: ["~curious~ The sky stones were floating long before the bell stopped. They were here in my mother’s day. Monks have a talent for leaving out inconvenient stones."], choices: [{ text: '~curious~ Why is the cloud higher?', goto: 'why' }] },
         go: { say: ["~neutral~ *Whistle for the bird* with {key:call}, out in the open. Fly *south-west to the white monastery on the rose cliff*. Stay clear of the cloud."], choices: [{ text: '~happy~ Thank you, Sister.', end: true }] },
-        again: { say: ["~playful~ Calix is at *the white monastery, on the south-western rose cliff*. He still tends the bell, every morning, whether it rings or not."], choices: [{ text: '~happy~ Thank you.', end: true }] },
+        again: { say: ["~playful~ The bell is at *the white monastery, on the south-western rose cliff*. Its clapper fell up onto *the floating church*. Thirty years of falling the wrong way."], choices: [{ text: '~happy~ Thank you.', end: true }] },
         after: { say: ["~surprised~ The cloud has dropped! A whole hand’s width. I can see the table stalks again!", "~solemn~ Come back and ring it sometime. I’d like a better view before I die."], choices: [{ text: '~neutral~ I will.', end: true }] },
       },
     },

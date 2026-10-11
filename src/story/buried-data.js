@@ -30,9 +30,10 @@ export const QUESTS = [
   {
     id: Q, title: 'One Tooth a Year', world: 'buried', main: true,
     outro: 'The wheel turned one tooth, and then it kept on turning. You were there.',
+    // (Hask's step went, issue #118: Wen points you at the ramp herself, and Hask's fear is his own to tell, if you ask;
+    //  a save at it goes on to `down`, src/save-migrate.js QUEST_STAGE_MOVES_118)
     stages: [
-      { id: 'wen', text: 'Meet Wen in the great dome', label: 'Wen, by the great dome', flag: 'buried.wen.heard', at: 'wen' },
-      { id: 'hask', text: 'Ask Hask why he hasn’t gone down', label: 'Hask, on his bench', flag: 'buried.hask.asked', at: 'hask' },
+      { id: 'wen', text: 'Hear Wen out in the great dome', label: 'Wen, by the great dome', flag: 'buried.wen.heard', at: 'wen' },
       { id: 'down', text: 'Go down the sand ramp into the canyon', label: 'The rust canyon', flag: 'buried.canyon.seen', at: 'canyon' },
       { id: 'oculus', text: 'Follow the canyon to the oculus', label: 'The oculus', flag: 'buried.oculus.seen', at: 'oculus' },
       { id: 'valve', text: 'Shove the rusted oil valve open', label: 'The oil valve', flag: 'buried.valve.open', at: 'valve' },
@@ -111,15 +112,14 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ And the wheel turns today?', goto: 'today' }],
         },
         today: {
-          say: ["~neutral~ The wheel needs light. Every Tooth Day Hask goes into the canyon and lights *the Wick*, a lamp inside the oculus.", "~scared~ This year he refuses to go. Won’t tell me why. He sits on *the bench beside his dome*, watching the sky."],
+          say: ["~neutral~ The wheel needs light. Every Tooth Day Hask goes into the canyon and lights *the Wick*, a lamp inside the oculus.", "~scared~ This year he won’t go. He sits on his bench, watching the sky.", "~neutral~ *The ramp south of the domes* goes down to the canyon. The oculus is at its end."],
           do: { set: { 'buried.wen.heard': true } },
-          choices: [{ text: '~curious~ Watching for what?', goto: 'where' }, { text: '~neutral~ I’ll talk to him.', end: true }],
+          choices: [{ text: '~neutral~ I’ll light it.', end: true }, { text: '~curious~ Watching for what?', goto: 'where' }],
         },
-        where: { say: ["~sad~ For the singing light, since it passed. He used to watch for people owing him things. His bench is just west of my dome."], choices: [{ text: '~neutral~ I’ll go.', end: true }] },
+        where: { say: ["~sad~ For the singing light, since it passed. He used to watch for people owing him things."], choices: [{ text: '~neutral~ I’ll light the Wick.', end: true }] },
         again: {
           say: [
-            { if: { flag: 'buried.hask.asked' }, text: "~neutral~ He told you? Good. Take *the ramp south of the domes*, where the pipes go underground. Mind your footing." },
-            { if: { not: { flag: 'buried.hask.asked' } }, text: "~scared~ Try *Hask’s bench, west of here*. We can’t have Tooth Day without a turn. I’ve made preparations for being forty-two." },
+            "~neutral~ *The ramp south of the domes*, where the pipes go underground. Mind your footing. We can’t have Tooth Day without a turn.",
           ],
           choices: [
             { text: '~curious~ What’s the mark on your door?', goto: 'mark', once: true },
@@ -168,7 +168,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~tired~ Mm. The sky-child. Wen sent you.', "~solemn~ Hask. I tend *the Wick in the oculus*. Fifty-two years lighting it. Fifty-two turns of the wheel. I used to find that comforting."],
+          say: ['~tired~ Mm. The sky-child.', "~solemn~ Hask. I tend *the Wick in the oculus*. Fifty-two years lighting it. Fifty-two turns of the wheel. I used to find that comforting."],
           choices: [
             { text: '~curious~ Why not this year?', goto: 'why' },
             { text: '~curious~ What is the oculus?', goto: 'oculus' },

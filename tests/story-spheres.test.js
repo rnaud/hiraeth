@@ -200,3 +200,21 @@ test('out of order: all three spheres heard before meeting Linnet; her talk stil
   for (let i = 0; i < 4; i++) q.update(null);
   assert.ok(q.reached('spheres.listen', 'plaza'), `on to the plaza (${q.stage('spheres.listen')})`);
 });
+
+test('straight to the pole, Linnet never met: on the plaza with the three sounds it sings, and the quest goes on from there (issue #118)', () => {
+  game.reset();
+  clearInteractables(); clearTargets();
+  const scene2 = new THREE.Scene(), level2 = createSpheres(scene2), physics2 = new Physics(scene2, level2.ground);
+  const rt2 = createStory({ levelId: 'spheres', scene: scene2, physics: physics2, level: level2, player, npcs: spawnNPCs(scene2, physics2, CONTENT.spheres.npcs), crowd: null, sound,
+    journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} }, capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
+  const Q = 'spheres.listen', q2 = rt2.quests;
+  for (const f of ['spheres.heard.bell', 'spheres.heard.chant', 'spheres.heard.drum', 'spheres.heard.three']) game.set(f, true);
+  at(rt2.world.pole.clone().add(V(0, G.plaza.inner, 3)));
+  for (let i = 0; i < 2; i++) rt2.update(1 / 30, i / 30, { camera });
+  assert.ok(q2.reached(Q, 'pole'), `the three sounds carried onto the plaza start the quest past Linnet (${q2.stage(Q)})`);
+  allTargets().find((x) => x.kind === 'pole').onHit('shoot');
+  assert.equal(game.flag('spheres.chord.heard'), true, 'the pole sings: no step before it to wait for');
+  for (let i = 0; i < 4; i++) rt2.update(1 / 30, i / 30, { camera });
+  assert.equal(q2.stage(Q), 'ume', 'the quest starts past what is done');
+  clearInteractables(); clearTargets();
+});

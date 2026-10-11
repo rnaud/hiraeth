@@ -15,7 +15,8 @@ like this, it goes back in here.
    `questToastHtml`), and so is the drone's find ("◆ label · how far", `findSummary`).
 2. **Nobody sends you to somebody else.** A quest giver says where to go and what is there, not whom to ask next. "Ask
    Marrow at the camps", then Marrow sends you to the hollow, is one person too many: Nour says where the bike is
-   herself. A chain of talk steps to different people (Sel → Kip, Lio → Tobin → Lio) is a finding; so is a line that
+   herself. No step starts "Ask", "Talk to", "Meet", "See", "Find" or "Go down to" and a person's name (a world's
+   opening talk reads "Hear X out at <place>"), and no line ends "Ask her." (`tests/quest-steps.test.js`, issue #118). A chain of talk steps to different people (Sel → Kip, Lio → Tobin → Lio) is a finding; so is a line that
    ends "go and ask X" outside the step that is X.
 3. **Straight to the end.** If the player can do the last thing first (they know the way, have the skill or the item,
    are already there), the quest completes. Every step that can be seen done has a goal the game sees (`flag`,

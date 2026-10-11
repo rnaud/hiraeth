@@ -104,7 +104,7 @@ export const QUESTS = [
       // back in the city: the water climbs the roots and fills the well while you watch, and the tree stays cold
       { id: 'rise', text: 'Watch the well at the tree’s foot fill', label: 'The well, filling', flag: 'desert.well.watched', at: 'well' },
       // Nour calls you over (src/story/desert.js nourCall): the spark-stone, and where the bike is
-      { id: 'spark', text: 'Ask Nour why the tree won’t burn', label: 'Nour, the eldest', flag: 'desert.spark.heard', at: 'nour' },
+      { id: 'spark', text: 'Hear Nour out by the cold tree', label: 'Nour, the eldest', flag: 'desert.spark.heard', at: 'nour' },
       // the Givers' Hearth is far out in the red rocks: the hoverbike Marrow hid in the hollow first (src/story/desert-bike.js);
       // found on its own errand it doesn't carry the quest on before Nour has sent you (ahead: false)
       { id: 'bike', text: 'Find the hoverbike under the tarp', label: 'The tarp in the hollow', flag: 'desert.bike.found', at: 'bikeHollow', ahead: false },
@@ -251,7 +251,7 @@ export const PEOPLE = {
             { text: '~happy~ See you, Ama.', end: true },
           ],
         },
-        rumour: { say: ["~playful~ Strange lately? A person fell out of the sky in a ball and asked me for fuel. Fairly full week.", "~playful~ Oum saw the singing light the night before you came down. Ask her. She notices things the rest of us hurry past."], choices: [{ text: '~curious~ Where is Oum?', goto: 'oum' }, { text: '~neutral~ Thanks.', end: true }] },
+        rumour: { say: ["~playful~ Strange lately? A person fell out of the sky in a ball and asked me for fuel. Fairly full week.", "~playful~ Oum saw the singing light the night before you came down. She notices things the rest of us hurry past."], choices: [{ text: '~curious~ Where is Oum?', goto: 'oum' }, { text: '~neutral~ Thanks.', end: true }] },
         oum: { say: ["~tired~ She fell behind *in the western dunes*. Go find her, would you? The procession has been very poor at noticing who isn’t in it."], do: { start: 'desert.oum' }, choices: [{ text: '~neutral~ I’ll look for her.', end: true }] },
         // the water is up, the tree drank, and it is still cold
         drank: {

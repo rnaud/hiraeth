@@ -74,8 +74,8 @@ export const PEOPLE = {
         },
         night: {
           say: ['~whisper~ Sang the light’s note back to it, all together, the way they greet each other. Then they went where it went.',
-            '~neutral~ Maelle in the Gallery has listened to them longer than I have. Ask her.'],
-          choices: [{ text: '~neutral~ I will.', end: true }],
+            '~sad~ Nobody here could follow. We stood at the glass and listened till morning.'],
+          choices: [{ text: '~sad~ I see.', end: true }],
         },
         out: {
           say: ['~playful~ (He laughs.) At my age? I’ll sit by the door and let them come to me. They always did.'],

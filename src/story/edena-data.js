@@ -68,13 +68,13 @@ export const QUESTS = [
     id: 'edena.terraces', title: 'Water for the Tea Terraces', world: 'edena', major: true,
     failOutro: 'You turned the builders’ gate once, as Esk asked. It had been shut a thousand years, and it gave way; the middle of her hill went down into the hollow with the water. She asked you to leave her with it.',
     stages: [
-      { id: 'esk', text: 'See Esk on the tea terraces', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
+      { id: 'esk', text: 'Climb to the tea terraces above the dry hollow', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
       { id: 'runnels', text: 'Shove the silt out of the three runnels', label: 'A choked runnel', when: (q) => (q.game.flag('edena.runnels') ?? 0) >= 3, at: 'clod' },
       { id: 'ask', text: 'Tell Esk it’s only a trickle', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
       { id: 'roots', text: 'Water the roots in the gate’s wheel', label: 'The builders’ gate', flag: 'edena.gate.roots', at: 'gate' },
       { id: 'gate', text: 'Give the gate’s wheel one shove', label: 'The builders’ gate', flag: 'edena.gate.turned', at: 'gate' },
       { id: 'flood', text: 'The gate is giving way', label: 'The terraces', flag: 'edena.terraces.flooded', at: 'esk' },
-      { id: 'sorry', text: 'Go down to Esk', label: 'Esk', talk: 'esk', at: 'esk' },
+      { id: 'sorry', text: 'Go back down to the bottom terrace', label: 'Esk', talk: 'esk', at: 'esk' },
     ],
   },
   {
@@ -210,7 +210,7 @@ export const PEOPLE = {
         tea: {
           say: ["~happy~ Our tea comes from *Esk’s terraces, south-east of the landing*, above the dry hollow. Every cup starts there.", "~sad~ The spring has slowed since the light passed, and her bushes are browning at the tips. She’d never ask for help. She’d take it, though."],
           do: (ctx) => { if (!ctx.quests?.isStarted('edena.terraces') && ctx.quests?.def('edena.terraces')) ctx.quests.start('edena.terraces'); },
-          choices: [{ text: '~neutral~ I’ll go and see her.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go up to the terraces.', end: true }],
         },
         flood: {
           say: ["~sad~ I saw the flood from here. All that water where her rows used to be.", "~tired~ We have last year’s tea. I kept saying it would keep. I’d rather have been right about something less necessary."],
@@ -379,7 +379,7 @@ export const PEOPLE = {
         { if: { quest: 'edena.terraces', stage: 'flood' }, node: 'flood' },
         { if: { quest: 'edena.terraces', stage: ['roots', 'gate'] }, node: 'go' },
         { if: { quest: 'edena.terraces', stage: 'ask' }, node: 'ask' },
-        { if: { quest: 'edena.terraces', stage: 'runnels' }, node: 'runnels' },
+        { if: { all: [{ quest: 'edena.terraces', stage: 'runnels' }, { flag: 'edena.esk.asked' }] }, node: 'runnels' },   // (the errand begun at a clod, before her: she says hello first)
         { node: 'hello' },
       ],
       nodes: {

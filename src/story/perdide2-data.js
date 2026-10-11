@@ -53,7 +53,7 @@ export const QUESTS = [
     id: Q, title: 'The Lamps Are Kept', world: 'perdide2', main: true,
     outro: 'Hollin has welcomed a traveller at last. He hopes you will visit again; the pools will stay lit either way.',
     stages: [
-      { id: 'hollin', text: 'Talk to the old lamp-keeper on the island', label: 'Hollin, the lamp-keeper', flag: 'perdide2.hollin.met', at: 'hollin' },
+      { id: 'hollin', text: 'Hear the old lamp-keeper out on the island', label: 'Hollin, the lamp-keeper', flag: 'perdide2.hollin.met', at: 'hollin' },
       // (for the level design audit: the pools are done at the last one, `ends`; Hollin is met at the root cave, where he has
       //  walked down to, `stands`; and he sends you home by the water-way, `home`)
       { id: 'pools', text: 'Relight the three dark pools with your fluid', label: 'A dark pool', when: (q) => (q.game.flag('perdide2.pools.lit') ?? 0) >= 3, at: 'darkPool', ends: 'lastPool' },
@@ -74,7 +74,7 @@ export const QUESTS = [
     id: 'perdide2.skiff', title: 'Whose Skiff?', world: 'perdide2',
     outro: 'The skiff is Fen’s, and Fen says it is yours now, for as long as you need it.',
     stages: [
-      { id: 'owner', text: 'Find the skiff’s owner in the far dome', label: 'The far dome', talk: 'fen', at: 'fen' },
+      { id: 'owner', text: 'Take the skiff to the far dome', label: 'The far dome', talk: 'fen', at: 'fen' },
       { id: 'home', text: 'Light Fen’s lamp and berth his skiff', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
     ],
   },

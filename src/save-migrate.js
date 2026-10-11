@@ -64,6 +64,8 @@
 // old last step (bring Tobin's coin back to Lio) is the pass in hand, the errand done; a save on the train that had
 // still to ask Ambrose to stop has the stop asked (Solange pulls the cord herself now).
 //
+// Two more went in v1.49 (issue #118): Hask's (Wen says where the ramp is) and Calix's (the clapper is the goal): step 16.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -206,6 +208,8 @@ const STEPS = [
   (flags) => migrateGunChest(flags),
   // 15: the quest steps that only sent you to somebody else, gone (issue #85): a save on one goes on to the step after
   (flags) => migrateQuestStages(flags),
+  // 16: two more steps that only sent you to a person, gone (issue #118, v1.49): a save on one goes on to the step after
+  (flags) => migrateQuestStages(flags, QUEST_STAGE_MOVES_118),
 ];
 
 /** The quest steps removed in v1.46 (issue #85), each to the step a save on it goes on to. */
@@ -215,14 +219,21 @@ export const QUEST_STAGE_MOVES = {
   'perdide.crystal': { saba: 'sing', listen: 'splinter' },   // (Saba at the crystal: Wendel says what makes it sing)
   'bazaar.nightmail': { find: 'mireille', stop: 'off' },     // (Ambrose aboard: Edda says where Solange rides; Solange pulls the cord)
 };
-/** Step 15 (pure, in place). */
-export function migrateQuestStages(flags) {
+/** The quest steps removed in v1.49 (issue #118): step 16. */
+export const QUEST_STAGE_MOVES_118 = {
+  'buried.tooth': { hask: 'down' },             // (Hask on his bench: Wen says where the ramp is)
+  'arzach2.bell': { calix: 'clapper' },         // (Calix at the monastery: the clapper is the goal; he says where it lies)
+};
+/** Steps 15 and 16 (pure, in place). */
+export function migrateQuestStages(flags, table = QUEST_STAGE_MOVES) {
+  const first = table === QUEST_STAGE_MOVES;
   // (a save on the train that had still to ask for the stop: asked, as Solange's cord does now)
-  if (flags['quest.bazaar.nightmail'] === 'stop') flags['nightmail.stop'] = true;
-  for (const [id, moves] of Object.entries(QUEST_STAGE_MOVES)) {
+  if (first && flags['quest.bazaar.nightmail'] === 'stop') flags['nightmail.stop'] = true;
+  for (const [id, moves] of Object.entries(table)) {
     const k = `quest.${id}`, to = moves[flags[k]];
     if (to) flags[k] = to;
   }
+  if (!first) return flags;
   // the cab pass: Tobin's coin brought back to Lio was the last step; the pass is in hand now
   if (flags['quest.incal.pass'] === 'back') {
     flags['quest.incal.pass'] = 'done';

@@ -113,7 +113,7 @@ test('the sky stones are boost-jumps: a plain jump falls short, jump and boost l
   }
 });
 
-test('the main quest: Aube, the monastery, Calix, the clapper, the bell, the note; the cloud settles', () => {
+test('the main quest: Aube, the monastery, the clapper (Calix says where), the bell, the note; the cloud settles', () => {
   // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
   assert.equal(quests.stage('arzach2.bell'), undefined);
   assert.equal(quests.openerObjective()?.id, `opener-${'arzach2.bell'}`);
@@ -121,7 +121,7 @@ test('the main quest: Aube, the monastery, Calix, the clapper, the bell, the not
   step(2);
   assert.equal(quests.stage('arzach2.bell'), 'monastery');
   at(A.monastery.clone().add(V(-10, 0.3, -20))); step(2);
-  assert.equal(quests.stage('arzach2.bell'), 'calix');
+  assert.equal(quests.stage('arzach2.bell'), 'clapper', 'at the monastery the clapper is the goal: nobody to find first (issue #118)');
   talk(calix, ['Why doesn’t', 'What’s that mark', 'A light that sang', 'I’ll bring it']);
   assert.equal(game.flag('arzach2.rumour.light'), true, 'the bell hummed for the singing light');
   step(2);

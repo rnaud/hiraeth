@@ -56,10 +56,10 @@ export function setupBuried(ctx) {
   const Q = 'buried.tooth';
   // the main quest doesn't just appear: it starts when you talk to Wen (the scout finds them till then: src/story/quests.js opensWith)
   if (!quests.isStarted(Q)) quests.opensWith(Q, 'wen');
-  // the Wick lit before anyone sent you to it (Wen and Ket both say where it is): the talks that only lead
-  // there (Wen's Tooth Day, Hask's refusal) are passed over, and the quest goes on from what you did
+  // the Wick lit before anyone sent you to it (Wen and Ket both say where it is): Wen's Tooth Day talk is passed
+  // over (and Hask's, no step of the quest now: issue #118), and the quest goes on from what you did
   const caughtUp = () => {
-    if (!game.flag('buried.oculus.lit') || !['wen', 'hask'].includes(quests.stage(Q))) return;
+    if (!game.flag('buried.oculus.lit') || quests.stage(Q) !== 'wen') return;
     for (const f of ['buried.wen.heard', 'buried.hask.asked']) if (!game.flag(f)) game.set(f, true);
   };
   quests.onChange(({ id }) => { if (id === Q) caughtUp(); });
