@@ -1,12 +1,15 @@
 // The Xbox app's page from the Mac, through the console's Device Portal (docs/systems/xbox.md, "Debugging on the
 // console"). The portal relays WebView2's DevTools at /msedge (no flag in the app needed in Developer Mode).
 //
-//   node scripts/xbox-devtools.mjs js '<expression>'     → its value (JSON), evaluated in the game's page
+//   node scripts/xbox-devtools.mjs js '<expression>'     → its value (JSON), evaluated in the game's page (@file.js: a
+//                                                           file's script)
 //   node scripts/xbox-devtools.mjs console [seconds]     → the page's console for a while (default 30 s)
 //   node scripts/xbox-devtools.mjs load [url] [seconds]  → open the page (default index.html?start: the save played
 //                                                           last), print its console and the loading screen's stages
 //                                                           until the first frame (default at most 300 s)
 //   node scripts/xbox-devtools.mjs log [page|update]     → LocalState\web\page.log (or update.log), via the file API
+//   node scripts/xbox-devtools.mjs launch | stop         → start or stop the app (POST / DELETE /api/taskmanager/app with
+//                                                           the portal's CSRF token)
 //
 // XBOX_PORTAL (default https://192.168.68.64:11443) and XBOX_PACKAGE (the installed package's full name; default:
 // read from the portal) say which console. The portal's certificate is self-signed: TLS checks are off here.
@@ -51,13 +54,24 @@ function printConsole(m) {
   }
 }
 
-if (cmd === 'log') {
+if (cmd === 'launch' || cmd === 'stop') {
+  // (the portal checks a CSRF token on writes: the CSRF-Token cookie of a first GET, sent back as X-CSRF-Token)
+  const g = await fetch(`${PORTAL}/api/app/packagemanager/packages`);
+  const kv = (g.headers.getSetCookie?.() ?? []).map((c) => c.split(';')[0]);
+  const csrf = kv.find((x) => x.startsWith('CSRF-Token='))?.slice('CSRF-Token='.length) ?? '';
+  const full = await packageName(), rel = `${full.split('_')[0]}_${full.split('_').pop()}!App`;
+  const b64 = (x) => Buffer.from(x).toString('base64');
+  const q = cmd === 'launch' ? `appid=${b64(rel)}&package=${b64(full)}` : `package=${b64(full)}`;
+  const r = await fetch(`${PORTAL}/api/taskmanager/app?${q}`, { method: cmd === 'launch' ? 'POST' : 'DELETE', headers: { cookie: kv.join('; '), 'X-CSRF-Token': csrf, 'Content-Length': '0' } });
+  console.log(`${cmd} ${full}: ${r.status} ${await r.text()}`);
+} else if (cmd === 'log') {
   const name = `${a1 === 'update' ? 'update' : 'page'}.log`;
   const q = new URLSearchParams({ knownfolderid: 'LocalAppData', packagefullname: await packageName(), filename: name, path: '\\LocalState\\web' });
   process.stdout.write(await (await fetch(`${PORTAL}/api/filesystem/apps/file?${q}`)).text());
 } else if (cmd === 'js') {
   const c = await connect();
-  const r = await c.send('Runtime.evaluate', { expression: a1 ?? 'location.href', awaitPromise: true, returnByValue: true });
+  const expr = a1?.startsWith('@') ? (await import('node:fs')).readFileSync(a1.slice(1), 'utf8') : a1;   // (js @file.js: a longer probe)
+  const r = await c.send('Runtime.evaluate', { expression: expr ?? 'location.href', awaitPromise: true, returnByValue: true });
   console.log(JSON.stringify(r.result?.result?.value ?? r.result?.exceptionDetails ?? r.result, null, 1));
   c.close();
 } else if (cmd === 'console') {

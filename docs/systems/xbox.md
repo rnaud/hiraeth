@@ -160,7 +160,9 @@ Dev Home opens; under *Remote access* turn on the **Device Portal** (a user name
   in the app (Developer Mode; the documented switch, `--enable-features=msEdgeDevToolsWdpRemoteDebugging`, wasn't
   needed with runtime 150). `node scripts/xbox-devtools.mjs js '<expr>'` evaluates in the game's page, `console [s]`
   prints its console, `load [url]` opens a page (`index.html?start`: the save played last) and prints its load until
-  the first frame, `log [page|update]` fetches the app's logs. Edge's `edge://inspect` → *Connect to a remote
+  the first frame, `log [page|update]` fetches the app's logs. `launch` / `stop` start and stop the app. `js @file.js` runs a
+  longer probe (`scripts/xbox-probes/`). `scripts/xbox-trace.mjs` records a Chromium trace of every process
+  (`record`, `analyze`) or V8's sampling profile (`profile`) of the game's frames ("Why 20 fps" below). Edge's `edge://inspect` → *Connect to a remote
   Windows device* works too.
 - **Files**: `GET /api/filesystem/apps/files?knownfolderid=LocalAppData&packagefullname=<package>&path=\LocalState\web`
   lists, `/api/filesystem/apps/file?…&filename=page.log&path=\LocalState\web` fetches.
@@ -419,6 +421,119 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
 - Crash dumps: `POST /api/debug/dump/usermode/crashcontrol?packageFullName=<full name>` turns them on, `GET
   /api/debug/dump/usermode/dumps` lists them, `GET /api/debug/dump/usermode/crashdump?packageFullName=…&fileName=…`
   fetches one (the parameter is spelt `packageFullName` there). `UnityPlayer.log` is in `TempState`.
+
+## Why 20 fps (October 2026)
+
+"The Retroid holds 60 fps; how can the Xbox struggle?" Measured on the Series X (Dev Mode, app type Game,
+WebView2 150, build 1696) at the desert's spawn, the traveller standing and then walking 17 m, against the Mac
+(M4 Pro, headless Chrome 155, the same build, view and canvas: `scripts/bench/mac-spawn.mjs`; the Mac was shared
+with other agents, so its numbers are if anything high) and the Retroid (the device agent's run, GeckoView, the
+same spawn).
+
+**The main thread is computing. It isn't waiting.** In a 5 s trace (`scripts/xbox-trace.mjs record` / `analyze`),
+the renderer's main thread is busy 100 % of the wall time: 52 ms a frame at 19 fps, the same walking (54 ms).
+- 45 ms of that is inside script (`FunctionCall`), WebGL's bindings included;
+- 3.4 ms is command-buffer flushes;
+- 0.5 ms is style, layout and paint;
+- 0.2 ms is GC.
+
+There is no synchronous GL call in a frame: no `getError`, `readPixels`, `getProgramInfoLog` or fence wait. The one
+`getQueryParameter` a frame comes from the readout's GPU timer (`scripts/xbox-probes/glcount.js`).
+
+The GPU isn't what holds it back either:
+- The GPU process's main thread (`CrGpuMain`) is 35 % busy (18.5 ms a frame, mostly `CommandBufferService:PutChanged`,
+  decoding the commands), so it isn't starved or pegged.
+- The portal's process list shows the renderer at about 15 % of the 8 cores (one core and a bit), the GPU process at
+  7–9 %, and the partition 76–78 % idle. The CPU share isn't the limit.
+- The render scale makes no difference: Medium at 1× runs the same 20 fps and 46 ms as the Xbox preset at 0.6×.
+- Eight frames drawn back to back, then one pixel read back, wait only 4–6 ms for the GPU.
+
+The rule of thumb in `perf.js` ("the console's GPU has room") holds. The frame is CPU-bound.
+
+**Where the 46–52 ms goes** (the Xbox preset, the game's own split, `scripts/xbox-probes/systems.js`, the same
+wrappers as `android-worlds.mjs --profile`), with the Retroid's split at High beside it:
+
+| | Xbox | Retroid (High) | ratio |
+|---|---|---|---|
+| G-buffer pass (`renderer.render`) | 19.3 ms | 5.2 ms | 3.7× |
+| shadow passes | 10.8 ms | 3.45 ms | 3.1× |
+| player | 1.7 ms | 1.4 ms | 1.2× |
+| people (`npcs`) | 1.2 ms | 0.95 ms | 1.25× |
+| story | 1.3 ms | 0.9 ms | 1.5× |
+| shadow cull | 1.0 ms | 0.6 ms | 1.7× |
+
+The game's own JavaScript runs about as fast as on the phone (player, people: 1.2×). What is slow is **the render
+passes**, and within them **the WebGL calls**:
+- **The calls cost about 15 times more.** `renderFrame()` takes 32 ms on the console. With its state, uniform and
+  draw calls made no-ops (`scripts/xbox-probes/gl-noop.js`; the same three.js JavaScript runs, nothing reaches the
+  GPU process) it takes **14.8 ms**. On the Mac it takes 5.4 ms either way. So about **17 ms a frame is the calls
+  themselves**: about 3,240 a frame (860 `bindVertexArray`, 600 `drawElements`, 450 `uniformMatrix4fv`, 3,270 on
+  the Mac: the same work), about 5 µs each on the console against about 0.3 µs on the Mac.
+- **The flushes are frequent and slow.** About 30 command-buffer flushes a frame at 120 µs each, against 9 at
+  10 µs on the Mac. That is the IPC side: about 4 ms of the 17.
+- **The three.js JavaScript is 2.7× the Mac's** (14.8 against 5.4 ms with the calls off): the scene walk
+  (`projectObject`, 4.2 ms against 1.7), the matrix cache (2.9 against 1.1), program parameters (1.8 against 0.4),
+  uniform uploads. This is pointer-chasing work over 5,770 objects and 4,290 meshes.
+- **The console's memory latency explains the rest.** It is fine in the small caches and poor beyond them
+  (`scripts/xbox-probes/membench.js`, ns per dependent load, console against Mac):
+
+  | | console | Mac |
+  |---|---|---|
+  | 16 kB | 1.8 | 2.1 |
+  | 1 MB | 10 | 9 |
+  | 4 MB | 70 | 19 |
+  | 64 MB | 182 | 124 |
+  | a walk through 100,000 JS objects | 80 | 19 |
+
+  `performance.now()` takes 241 ns against 93. Plain arithmetic runs at the same speed (`cpubench.js`), so the JIT
+  is on.
+- **The readout's "jit off 31.7 ns" is wrong.** The probe runs once, during the load's first frames, when the CPU is
+  contended. Run again in play, the same loop takes 0.8 ns a turn.
+
+**Each preset at the spawn** (`scripts/xbox-probes/presets.js`, 8 s each after 12 s to settle):
+
+| preset | fps | ms median / p95 | main thread | draws |
+|---|---|---|---|---|
+| Xbox (default, Auto) | 20 | 50 / 67 | 45–46 ms | 833 |
+| Medium (1×) | 20 | 50 / 67 | 46 ms | 835 |
+| Low | 20 | 50 / 50 | 42 ms | 755 |
+| Deck | 25–30 | 34 / 50 | 38 ms | 638 |
+| Handheld | 25–30 | 34 / 50 | 38 ms | 643 |
+
+The Mac runs the Xbox preset at 12 ms of main thread and Handheld at 7.6 ms. The Retroid runs Handheld at 14.8 ms
+and the Xbox preset at 16.5–17 ms. **No preset reaches 60 on the console.** Handheld saves only 8 ms: its shadows
+are lighter (10.8 → 4.4 ms), but the G-buffer pass stays at 18 ms.
+
+**So the answer.** The preset isn't the reason: it adds 2–3 ms on the phone. The GPU isn't the reason: it has
+room. CPU share isn't the reason either. The console runs this game's main thread 3–4 times slower than the
+Retroid because:
+- (1) **Each WebGL call costs about 5 µs in WebView2 on the console**, and a frame makes 3,200 of them (17 ms),
+  with three times as many and much slower IPC flushes;
+- (2) **three.js's scene walk is memory-bound**, and the console's caches beyond 1 MB are 3–4 times slower than
+  the Mac's.
+
+The phone runs the same calls through GeckoView at a fraction of that cost, and its JavaScript isn't held back.
+
+**The cheapest fix: fewer WebGL calls, not fewer pixels.**
+- (a) For now, set the Xbox preset to Handheld's or Deck's shadows (no fine cascade, the near map every 2nd frame:
+  −6 ms), with the frame held at an even 30 rather than an uneven 20–25.
+- (b) Cut the draws, which is where the time is (about 20 µs of WebGL calls a draw, 40 µs of main thread):
+  - merge the static props and buildings per material (`BatchedMesh` or merged geometry);
+  - instance what repeats;
+  - draw fewer shadow casters per cascade;
+  - check that `bindVertexArray` isn't called more than once a draw (860 for about 780 draws).
+- (c) Check that the flushes aren't forced by the texture and buffer uploads (16 `texSubImage2D` and 54
+  `bufferSubData` a frame).
+
+60 fps would need about two-thirds of the calls gone. **Deeper work**:
+- a renderer path with far fewer state changes (sorting by program and VAO, uniform buffers in place of the 450
+  `uniformMatrix4fv` and 450 `uniform1f`/`3f` a frame);
+- or WebGPU, if WebView2 on the console has it.
+
+The per-call cost itself is the platform's, inside WebView2's GL client. The trace has no finer events for it.
+
+**Not measured**: the same split on Windows desktop Edge (is the per-call cost the console's or WebView2's?), and
+the cause of the 30 flushes a frame.
 
 ## Unknowns (to check on the console)
 
