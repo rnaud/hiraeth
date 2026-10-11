@@ -27,7 +27,10 @@ const A = await import(join(ROOT, 'tests/playthrough-agent.js'));
 const { ROUTE: MAIN_ROUTE, SUBROUTES } = await import(join(ROOT, 'tests/playthrough-worlds.js'));
 // (a sub-level, the Overnight Train: walked from where you arrive to where you leave, SUBROUTES)
 const ROUTE = [...MAIN_ROUTE, ...SUBROUTES];
+// (the mounts had partway along a world's route: { world: { after: the quest that gives it, by } })
+const MOUNTED_AFTER = { arzach: { after: 'arzach.bird', by: 'bird' } };
 const THREE = await import('three');
+const { Physics } = await import(join(ROOT, 'src/physics.js'));
 const L = await import(join(ROOT, 'scripts/level-design/lib.mjs'));
 const { TRIALS } = await import(join(ROOT, 'src/trials/data.js'));
 const { kitTrialsFor } = await import(join(ROOT, 'src/trials/kit-data.js'));
@@ -74,8 +77,15 @@ for (const id of worlds) {
   const people = new Set(W.npcs.map((n) => n.def?.id).filter(Boolean));
   const kindOf = (s) => (s.talk || people.has(s.at) ? 'talk' : s.goto ? 'go' : s.bring ? 'bring' : 'do');
   let home = null;   // (a route quest's stage whose words send you home along a leading line names it: `home`)
+  // (a mount had partway: Vael's bird answers at the end of its first quest, and the bell under the cloud is flown on her:
+  // the stops after that quest are reached on the mount, its stretches timed at its speed)
+  const later = MOUNTED_AFTER[id];
+  let mountedFrom = null, pending = false;
   for (const p of ROUTE.find((r) => r.id === id)?.play ?? []) {
-    if (p.temple && rt?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(rt.outside.door.at) }); continue; }
+    if (pending) { mountedFrom ??= stops.length; pending = false; }
+    if (later && p === later.after) pending = true;
+    // (a temple whose keeper sends you home along a leading line after it, the Glass Dunes' Wim by the float-posts: `home`)
+    if (p.temple && rt?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(rt.outside.door.at) }); if (p.home) home = p.home; continue; }
     // (an act the route plays where someone stands, Vael's Oïa by the landing opening the main quest: a talk there)
     if (p.act && p.at) { const w = arr(W.quests.resolve(p.at)); if (w && !inTemple(w)) stops.push({ label: p.label ?? p.at, kind: people.has(p.at) ? 'talk' : 'do', pos: w }); continue; }
     if (typeof p !== 'string') continue;
@@ -89,6 +99,7 @@ for (const id of worlds) {
       if (s.home) home = s.home;
     }
   }
+  if (pending) mountedFrom ??= stops.length;
   // (the walk back to the ship: along the line the last stage that names one sends you home by, "fly home along the lanterns")
   if (!sub) stops.push({ label: 'back to the ship', kind: 'ship', pos: spawn, ...(home ? { via: home } : {}) });   // (a sub-level ends where you step off)
   const oneWay = (level.navigationPortals ?? level.portals ?? []).filter((p) => !p.temple).map((p) => ({ at: arr(p.at ?? p.pos), to: arr(p.to), label: p.label ?? 'portal', only: !!p.oneWay })).filter((p) => p.at && p.to);
@@ -100,6 +111,7 @@ for (const id of worlds) {
   const lines = ((typeof level.lines === 'function' ? level.lines() : level.lines) ?? [])
     .map((l) => ({ name: l.name, auto: l.auto, points: (l.points ?? []).map((p) => (p.length === 2 ? onGround(p[0], p[1]) : arr(p))).filter(Boolean) }))
     .filter((l) => l.points.length > 1);
+  if (mountedFrom != null) for (let k = mountedFrom; k < stops.length; k++) stops[k].by = later.by;
   const path = L.followLines(L.viaPortals(stops.filter((s, i) => i === 0 || L.dist(s.pos, stops[i - 1].pos) > 15 || i === stops.length - 1), portals), lines);
 
   // ---- the height grid (the collision's tops seen from above), for landmarks and the map
@@ -120,14 +132,22 @@ for (const id of worlds) {
 
   // ---- sight: the collision, and the terrain under the ray
   const base = level.ground?.heightAt ? (x, z) => level.ground.heightAt(x, z) : null;
+  // (glass is seen through: the Underwater City's domes and tubes, every mesh drawn with the glass look (materials.js
+  // S_GLASS, `uGlass`), stood in the way of every sight ray though it hides nothing. The rays use a collision of their
+  // own without it; walking still bumps into it)
+  const glassy = [];
+  W.scene.traverse((o) => { if (o.isMesh && !o.userData.noCollide && [].concat(o.material).some((m) => m?.uniforms?.uGlass?.value > 0)) glassy.push(o); });
+  for (const o of glassy) o.userData.noCollide = true;
+  const sight = glassy.length ? new Physics(W.scene, level.ground?.heightAt ? level.ground : null) : physics;
+  for (const o of glassy) delete o.userData.noCollide;
   const _o = new THREE.Vector3(), _d = new THREE.Vector3();
   const los = (a, b) => {
     const d = L.dist(a, b);
     if (d < 1) return true;
     _o.set(...a); _d.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]).normalize();
     // (from the landing the eye stands inside the ship's own hull: step through what is within 16 m of it)
-    let left = d, hit = physics.rayDistance(_o, _d, left);
-    for (let k = 0; k < 4 && hit < 16 && L.flat(a, spawn) < 3; k++) { _o.addScaledVector(_d, hit + 0.3); left -= hit + 0.3; hit = physics.rayDistance(_o, _d, left); }
+    let left = d, hit = sight.rayDistance(_o, _d, left);
+    for (let k = 0; k < 4 && hit < 16 && L.flat(a, spawn) < 3; k++) { _o.addScaledVector(_d, hit + 0.3); left -= hit + 0.3; hit = sight.rayDistance(_o, _d, left); }
     if (hit < left - 3) return false;
     if (base) for (let s = 6; s < d - 3; s += 6) { const t = s / d, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t, z = a[2] + (b[2] - a[2]) * t, h = base(x, z); if (Number.isFinite(h) && y < h - 0.3) return false; }
     return true;
@@ -139,11 +159,21 @@ for (const id of worlds) {
   const below = (x, y, z, d) => physics.groundAt(x, y, z, d);   // (the first surface under a point, not the highest at x, z: a porch roof)
   const onFoot = (p) => { const g = below(p[0], p[1] + 2, p[2], 6); return Number.isFinite(g) && Math.abs(p[1] - g) < 3; };
   const drape = (pos, a, b) => {
-    if (b.jump || L.flat(a.pos, b.pos) < 200 || !onFoot(a.pos) || !onFoot(b.pos)) return pos;
+    // (nor a leg flown on the bird: she carries you over the basin, not down into it)
+    if (b.jump || b.by === 'bird' || L.flat(a.pos, b.pos) < 200 || !onFoot(a.pos) || !onFoot(b.pos)) return pos;
     const g = below(pos[0], pos[1], pos[2], 70);
     return Number.isFinite(g) && g < pos[1] ? [pos[0], g + 1, pos[2]] : pos;
   };
   const samples = L.samplePath(path, 10, drape);
+  if (later) {
+    // (each stretch timed at the speed it is crossed: on foot, or on the mount once it is had; a stop added on the way,
+    // a portal or a line's point, goes as the stop after it)
+    const byAt = path.map((_, i) => path.slice(i).find((q) => !q.jump && q.label && q.kind !== 'portal')?.by ?? null);
+    for (let k = 0; k < samples.length; k++) {
+      const v = L.TRAVEL[byAt[samples[k].leg + 1] ?? 'foot'] ?? L.RUN;
+      samples[k].t = k ? samples[k - 1].t + (samples[k].at - samples[k - 1].at) / v : 0;
+    }
+  }
   const metres = L.pathLength(path);
   const gaps = L.interestGaps(samples, places.filter((p) => p.kind !== 'ship' || true), 40);
   const seen = L.visibleCount(samples.filter((_, i) => i % 3 === 0).map((s) => s.pos), landmarks, los);
@@ -152,7 +182,7 @@ for (const id of worlds) {
   const mount = id === 'arzach' ? null : level.mountName ?? (level.vehicles?.length ? 'vehicle' : null);
   const by = mount === 'bird' ? 'bird' : /bike/i.test(mount ?? '') ? 'bike' : /skiff/i.test(mount ?? '') ? 'skiff' : 'foot';
   const m = {
-    travel: { by: by === 'foot' ? 'running' : `on the ${by}`, speed: L.TRAVEL[by], mount },
+    travel: { by: by === 'foot' ? 'running' : `on the ${by}`, speed: L.TRAVEL[by], mount, ...(later ? { then: `running, then on the ${later.by}` } : {}) },
     spacing: L.spacing(places, { lonely: L.lonelyFor(L.TRAVEL[by]) }),   // (a loner: 18 s from anything at the travel speed)
     path: { stops: path.length, metres: Math.round(metres), seconds: Math.round(metres / L.RUN) },
     gaps,

@@ -31,8 +31,10 @@ export function setupGlassDunesMoments(ctx, { rt }) {
     const m = moments.play({
       id: 'glassdunes.clock', flag: 'glassdunes.moment.clock', dur: C0 + CLOCK.C,
       shots: [
-        // A: wide, out from the door and to one side: the house, its cogs, him small at the door
-        { dur: CLOCK.A, from: { pos: door.clone().addScaledVector(out, CLOCK.BACK).addScaledVector(side, -12).addScaledVector(UP, 6), look: face.clone().addScaledVector(UP, -5), fov: 46 },
+        // A: wide, out from the door and to one side: the house, its cogs, him small at the door (out on the open sand:
+        // not pulled in, or the pendulum swinging under the clock, between the lens and the face, jammed it against the
+        // wall a second in: the cinematics QC, v1.43)
+        { dur: CLOCK.A, clear: false, from: { pos: door.clone().addScaledVector(out, CLOCK.BACK).addScaledVector(side, -12).addScaledVector(UP, 6), look: face.clone().addScaledVector(UP, -5), fov: 46 },
           to: { pos: door.clone().addScaledVector(out, CLOCK.BACK - 4).addScaledVector(side, -10).addScaledVector(UP, 6.5), look: face.clone().addScaledVector(UP, -4), fov: 44 } },
         // B: the clock, close, straight on: its hands come round
         { dur: CLOCK.B, clear: false, from: { pos: face.clone().addScaledVector(out, 8).addScaledVector(UP, -0.6), look: face.clone(), fov: 34 },

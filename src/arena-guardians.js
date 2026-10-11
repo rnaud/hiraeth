@@ -14,6 +14,13 @@ import { WARDEN } from './temples/incal.js';
 import { MOTHER as SNAPPER } from './temples/perdide.js';
 import { LAMPLESS } from './temples/perdide2.js';
 import { ECHO } from './temples/spheres.js';
+// (the three guardians that joined the route in v1.40)
+import { LISTENER } from './temples/underwater.js';
+import { LAST_FOUNDER } from './temples/moonfoundry.js';
+import { ANCHOR_WARDEN } from './temples/spacecity.js';
+import { listenerModel } from './temples/guardian-listener.js';
+import { founderModel } from './temples/guardian-founder.js';
+import { anchorModel } from './temples/guardian-anchor.js';
 import { TITLES } from './levels/names.js';
 
 // The Arena's guardians (docs/systems/foes.md "The Arena"): the FOES list's Guardians section calls the thing at
@@ -36,10 +43,13 @@ export const GUARDIANS = [
   { id: 'perdide', def: SNAPPER, model: () => snapperModel({ reach: 12 }) },
   { id: 'perdide2', def: LAMPLESS, model: () => mothModel() },
   { id: 'edena', def: GARDENER, model: () => gardenerModel() },
+  { id: 'underwater', def: LISTENER, model: () => listenerModel() },
   { id: 'garage', def: FOREMAN, model: () => foremanModel() },
   // (the Tooth-Warden's targets in its temple are its four vents, rt.volley: in the ring, its body is)
   { id: 'buried', def: TOOTH_WARDEN, model: () => Object.assign(sentinelModel({ hull: '#c4553a', hull2: '#8e3a2b', dark: '#33485a', brass: '#e2b552', eye: '#f6c84e', vents: 4, legs: 4, guarded: false }), { mouthR: 0.01, bodyR: 2.0 }) },
+  { id: 'moonfoundry', def: LAST_FOUNDER, model: () => founderModel() },
   { id: 'spheres', def: ECHO, model: () => echoModel() },
+  { id: 'spacecity', def: ANCHOR_WARDEN, model: () => anchorModel() },
   { id: 'bazaar', def: FIRST_SIGN, model: () => signModel() },
 ].map((g) => ({ ...g, name: g.def.name.replace(/^the /, 'The '), world: TITLES[g.id] ?? g.id, kind: g.def.kind }));
 export const GUARDIAN_BY_ID = Object.fromEntries(GUARDIANS.map((g) => [g.id, g]));

@@ -17,8 +17,9 @@ import { quietOr } from '../hint-level.js';
 //                moss: wake the moss lamp over it with a shot, then push it shut),
 //                Robin at the second dark pool
 //   the water    the saucer in the deep pool (Odile and Talo's lifeboat), and old
-//                Fen in the far dome on its mud islet (the skiff is his: light the
-//                lamp on his mooring post, then nudge the empty skiff into its berth)
+//                Fen in the far dome on its mud islet (the skiff you whistle for in Lorn was his, lent
+//                to Odile and Talo forty years ago and never brought back up: light the lamp on his
+//                mooring post, then nudge the empty skiff into its berth)
 //   the cave     Bram minds the mouth; Hollin walks down to wait there at the end
 //
 // The world notices you: once Hollin knows you're here, the lamp-keepers

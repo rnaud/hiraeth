@@ -153,7 +153,7 @@ export const KEEPERS = [
             { text: '~sad~ I can’t promise that.', do: [{ set: { 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true } }], goto: 'maybe' },
           ],
         },
-        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ I’ll keep the pool by the landing for you, then. Promises keep a long time out here, if someone trims the wick.", "~happy~ Go home by water tonight. I’ve lit *the water-way*, the old lamps for boats: out through the gate by the lagoon, round the deep water. Your skiff knows it."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
+        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ I’ll keep the pool by the landing for you, then. Promises keep a long time out here, if someone trims the wick.", "~happy~ Go home by water tonight. I’ve lit *the water-way*, the old lamps for boats: out through the gate by the lagoon, round the deep water, and on south over the open water to your ship. Your skiff knows it."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
         came: {
           say: ["~surprised~ You came back. By a path you already knew. (He has to sit down on a root to look at you properly.)", "~happy~ Forty years I lit these for somebody to come back. It turns out it only takes the once."],
           do: { set: { 'perdide2.promise.kept': true } },
@@ -167,7 +167,7 @@ export const KEEPERS = [
           say: ["~solemn~ (You tell him: the lantern on its island, the woman who kept it with them, the two stones on the point.)", "~sad~ They got there. And kept a light at the end of it. Of course they did.", "~happy~ Then my lamps were lit for travellers who arrived somewhere. That’s all I ever wanted for them."],
           choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }],
         },
-        maybe: { say: ["~solemn~ You don’t have to promise. Come if you can. A welcome isn’t a debt.", "~neutral~ Go home by water, at least. I’ve lit *the water-way*, the old lamps for boats, out through the gate by the lagoon."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
+        maybe: { say: ["~solemn~ You don’t have to promise. Come if you can. A welcome isn’t a debt.", "~neutral~ Go home by water, at least. I’ve lit *the water-way*, the old lamps for boats, out through the gate by the lagoon and south to your ship."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
         after: {
           say: ["~happy~ The lights are on. Whenever you come, they’ll be on."],
           choices: [
@@ -256,12 +256,12 @@ export const KEEPERS = [
           ],
         },
         skiff: {
-          say: ["~neutral~ The skiff comes when you whistle and returns when you’re done. It’s been moored here longer than I’ve kept watch.", "~neutral~ Ask *Fen in the far dome*, on the deep water *between here and the saucer’s pool*. Take the skiff; visiting him requires a boat."],
+          say: ["~neutral~ That skiff of yours came up from the swamp with you? She used to tie up here, before my time. A boat that comes when anyone whistles was somebody’s first.", "~neutral~ Ask *Fen in the far dome*, on the deep water *between here and the saucer’s pool*. Take the skiff; visiting him requires a boat."],
           do: { start: 'perdide2.skiff' },
           choices: [{ text: '~neutral~ I’ll ask him.', end: true }],
         },
         cave: { say: ["~playful~ The cave glows all the way back. The two travellers slept there before leaving. Dry, warm, good roof. I see their reasoning."], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~curious~ Where did the two travellers go?', goto: 'two' }] },
-        two: { say: ["~neutral~ They borrowed Fen’s skiff and crossed the swamp toward the Great Crystal. Days later the boat came back alone. Nobody here knows where they went next."], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
+        two: { say: ["~neutral~ They borrowed Fen’s skiff and went down into the swamp, toward the Great Crystal. The boat never came back up here. Nobody here knows where they went next."], choices: [{ text: '~curious~ Whose skiff is that?', goto: 'skiff' }, { text: '~neutral~ Bye, Bram.', end: true }] },
       },
     },
   },
@@ -311,14 +311,14 @@ export const PEOPLE = {
       entry: [{ if: { quest: 'perdide2.skiff', done: true }, node: 'after' }, { if: { quest: 'perdide2.skiff', stage: 'home' }, node: 'waiting' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~surprised~ A visitor? Over all that deep water? What brought you—", "~happy~ My skiff! Teal, white stripe. I’d recognise her anywhere. Forty years since I last saw her here."],
+          say: ["~surprised~ A visitor? Over all that deep water? What brought you—", "~happy~ My skiff! Orange, navy under the waterline, a cream rim. I’d recognise her anywhere. Forty years since I last saw her here."],
           choices: [
             { text: '~curious~ It’s yours?', goto: 'mine' },
-            { text: '~neutral~ It was moored at the root cave.', goto: 'mine' },
+            { text: '~neutral~ She comes when I whistle, down in the swamp.', goto: 'mine' },
           ],
         },
         mine: {
-          say: ["~tired~ I lent her to Odile and Talo after their saucer crashed. They stayed a season, waiting for the singing light to return.", "~sad~ They fished, watched from the saucer, then gave up waiting and crossed the swamp. The skiff came back to the cave without them. I heard. Never went to fetch her."],
+          say: ["~tired~ I lent her to Odile and Talo after their saucer crashed. They stayed a season, waiting for the singing light to return.", "~sad~ They fished, watched from the saucer, then gave up waiting and went down into the swamp in her. She never came back up to me. I heard she’d taken to coming to anyone who whistles down there. Never went to fetch her."],
           do: [{ set: { 'perdide2.fen.told': true } }, { start: 'perdide2.skiff' }],
           choices: [
             { text: '~curious~ Where did they go?', goto: 'where' },
@@ -336,7 +336,7 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ Thank you, Fen.', goto: 'berth' }],
         },
         berth: {
-          say: ["~solemn~ Could you bring her into *the berth between those two posts*? Just once. For an old man.", "~sad~ I kept the bow-post lamp lit until I heard she’d settled at the cave. Then I stopped. Perhaps I shouldn’t have.", "~playful~ First *shoot the bow-post lamp to light it*. Then step onto my landing and push the skiff into the berth. She won’t dock in darkness, or while you’re steering."],
+          say: ["~solemn~ Could you bring her into *the berth between those two posts*? Just once. For an old man.", "~sad~ I kept the bow-post lamp lit until I heard she’d settled down in the swamp. Then I stopped. Perhaps I shouldn’t have.", "~playful~ First *shoot the bow-post lamp to light it*. Then step onto my landing and push the skiff into the berth. She won’t dock in darkness, or while you’re steering."],
           choices: [{ text: '~happy~ I’ll bring it home.', end: true }],
         },
         waiting: {

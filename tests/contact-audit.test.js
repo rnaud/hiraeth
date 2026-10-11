@@ -13,6 +13,7 @@ import { standGround } from '../src/carriers.js';
 import { StepLag } from '../src/locomotion.js';
 import { builtWorld, quiet } from './built-worlds.js';
 import { Player } from '../src/player.js';
+import { MERGED } from '../src/levels/names.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const mesh = (scene, geo, { at = [0, 0, 0], free = false, hidden = false, name = '' } = {}) => {
@@ -266,7 +267,9 @@ test('every way a quest sends you along is a line its world declares', async () 
   const ROUTE_WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
   let named = 0;
   for (const id of ROUTE_WORLDS) {
-    const { level } = builtWorld(id);
+    // (a merged world's part's quests are played in the world that holds it, its lines declared there: Vael II's monks
+    //  send you out by the rope way and home by the riders' lanterns, which join the sky stones to Vael's plain)
+    const { level } = builtWorld(MERGED[id] ?? id);
     const lines = new Set(((typeof level.lines === 'function' ? level.lines() : level.lines) ?? []).map((l) => l.name));
     const { QUESTS } = await import(id === 'garage' ? '../src/levels/dismissed/hangar/story-data.js' : `../src/story/${id}-data.js`);   // (the Hangar's, dismissed whole: src/levels/dismissed/)
     for (const q of QUESTS.filter((q) => q.world === id)) for (const s of q.stages) for (const k of ['via', 'home']) {

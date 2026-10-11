@@ -3,27 +3,27 @@
 //
 // At the market's south end, past the landing, a spur of rail runs out into the dark to a night halt: a platform, a
 // lamp, a bell. The Overnight Train has no address; for forty years the halt has been its post office. Edda keeps the
-// lamp there and sorts the night mail. Her grandmother Mireille boarded the night Edda was born, "to see where the plain
+// lamp there and sorts the night mail. Her grandmother Solange boarded the night Edda was born, "to see where the plain
 // ends", and never got off: a postcard comes back to the halt every year, never a word more. This year Edda has
-// written back, and she can't leave the lamp. Ring the bell, board, find Mireille (up on the roofs of the long tail, by
+// written back, and she can't leave the lamp. Ring the bell, board, find Solange (up on the roofs of the long tail, by
 // the chalk mark she keeps: the train's trace, sightings-detours.js), give her the letter, ask Ambrose the conductor to
 // stop at the market's halt, step off, and bring Edda the answer.
 //
 // Flags: nightmail.rang (the bell rung, the train called), nightmail.stop (Ambrose asked: the train brakes into the halt).
-// Items: letter (Edda's letter), reply (Mireille's answer). Quest stages: edda, board, find, mireille, stop, off, home.
+// Items: letter (Edda's letter), reply (Solange's answer). Quest stages: edda, board, find, mireille, stop, off, home.
 
 export const Q = 'bazaar.nightmail';
-export const ITEMS = { letter: 'Edda’s letter', reply: 'Mireille’s answer' };
+export const ITEMS = { letter: 'Edda’s letter', reply: 'Solange’s answer' };
 
 export const QUESTS = [
   {
     id: Q, title: 'The Night Mail', world: 'bazaar', major: true,
-    outro: 'Mireille’s answer is pinned up under the halt’s lamp. Edda reads it every night, before the bell.',
+    outro: 'Solange’s answer is pinned up under the halt’s lamp. Edda reads it every night, before the bell.',
     stages: [
       { id: 'edda', text: 'Someone keeps a lamp at the night halt past the market’s south gate', label: 'Edda, at the night halt', talk: 'edda' },
       { id: 'board', text: 'Ring the halt’s bell and board the Overnight Train', label: 'The halt’s bell', at: 'bell' },
-      { id: 'find', text: 'Find Mireille aboard: ask the conductor', label: 'Ambrose, the conductor', talk: 'ambrose' },
-      { id: 'mireille', text: 'Give Mireille Edda’s letter, up on the roofs of the long tail', label: 'Mireille, on the last carriage’s roof', bring: 'letter', to: 'mireille' },
+      { id: 'find', text: 'Find Solange aboard: ask the conductor', label: 'Ambrose, the conductor', talk: 'ambrose' },
+      { id: 'mireille', text: 'Give Solange Edda’s letter, up on the roofs of the long tail', label: 'Solange, on the last carriage’s roof', bring: 'letter', to: 'mireille' },
       { id: 'stop', text: 'Ask the conductor to stop at the market’s halt', label: 'Ambrose, the conductor', talk: 'ambrose' },
       { id: 'off', text: 'Step down onto the platform when the train halts', label: 'The platform', at: 'stepOff' },
       { id: 'home', text: 'Bring Edda her grandmother’s answer', label: 'Edda, at the night halt', bring: 'reply', to: 'edda' },
@@ -65,7 +65,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Tell me about her.', goto: 'mireille' }],
         },
         mireille: {
-          say: ['~solemn~ Mireille. She boarded the night I was born. To see where the plain ends, she wrote. Forty years ago.',
+          say: ['~solemn~ Solange. She boarded the night I was born. To see where the plain ends, she wrote. Forty years ago.',
             '~sad~ Every year one postcard. Never a question. I never wrote back: she never stayed anywhere long enough to have an address.',
             '~neutral~ This year I wrote. It’s here. But I can’t leave the lamp, and the conductor only takes sacks, not people’s words.'],
           choices: [{ text: '~neutral~ I’ll take it to her.', goto: 'take' }, { text: '~curious~ What does it say?', goto: 'says' }],
@@ -124,7 +124,7 @@ export const PEOPLE = {
           ],
         },
         find: {
-          say: ['~surprised~ Mireille? Somebody’s come for Mireille?',
+          say: ['~surprised~ Solange? Somebody’s come for Solange?',
             '~neutral~ She doesn’t sit inside. Forty years, and she’s never once taken a seat. She rides *the roofs of the long tail*, at the very back.',
             '~playful~ Out past the landing wagon, *up the ladder on the porch*, and walk till the rails run out behind you. Hold on to your hat.'],
           do: [{ advance: [Q, 'find'] }],
@@ -153,7 +153,9 @@ export const PEOPLE = {
     },
   },
   mireille: {
-    id: 'mireille', name: 'Mireille', title: 'who rides the roofs', color: '#c86a5a', voice: 0.9, kind: 'f', age: 'elder', scale: 0.92, lang: 'bazaar',
+    // (Solange since v1.43: she was a second Mireille, with the Underwater City's kelp grower's id, so meeting one marked
+    //  the other; src/save-migrate.js step 12)
+    id: 'solange', name: 'Solange', title: 'who rides the roofs', color: '#c86a5a', voice: 0.9, kind: 'f', age: 'elder', scale: 0.92, lang: 'bazaar',
     palette: { cloak: '#c86a5a', lining: '#4a3a5a', cloth: '#e8dcc8', legs: '#4a3a5a', hat: '#e8dcc8', hair: '#f0ece4' }, head: 'wrap', cape: 1.5,
     lines: ['~whisper~ Sit, if you like. Hold on.', '~happy~ Look at it go.', '~solemn~ The chalk again. Every night.'],
     talk: {
@@ -185,7 +187,7 @@ export const PEOPLE = {
           say: ['~neutral~ It was here the night I boarded. Old chalk, nearly gone. I drew it over so it wouldn’t be.',
             '~curious~ I don’t know who drew it first. Somebody who rode up here, and wanted to be seen from the sky, I think.',
             '~playful~ So I keep it. A train should have one thing nobody can explain.'],
-          choices: [{ text: '~neutral~ Goodnight, Mireille.', end: true }],
+          choices: [{ text: '~neutral~ Goodnight, Solange.', end: true }],
         },
         after: {
           say: [{ if: { has: 'reply' }, text: '~neutral~ Go on, go on. Ambrose, then the halt. She’ll be waiting by the lamp. She always is, I expect.' },
@@ -208,5 +210,5 @@ export const THINGS = {
 export const BOARDING_LINES = [
   '~surprised~ Someone got on! At a halt! I saw it.',
   '~curious~ You’re the one with the letter? The whole carriage knows.',
-  '~whisper~ Mireille? On the roofs. She always is.',
+  '~whisper~ Solange? On the roofs. She always is.',
 ];

@@ -408,8 +408,8 @@ export function* buildUnderwater(scene) {
     // the great column over the Plaza and the towers of pods round the city, seen through the glass (the level design
     // audit's landmarks: the column's glass is see-through to the height grid; the Crown's bubble at its head)
     beacons: [{ name: 'the Breathing Tower', top: [COLUMN.x, D.crown.y + D.crown.r * D.crown.sy, COLUMN.z], height: 8 }],
-    // the city's leading lines (the level design audit's `lines`; its glass blocks the audit's sight rays though it hides
-    // nothing): the sealed tubes, lamplit, hall to hall, and the street through the Avenue
+    // the city's leading lines (the level design audit's `lines`; the audit sees through its glass since v1.43): the
+    // sealed tubes, lamplit, hall to hall, and the street through the Avenue
     lines: [
       { name: 'the long tube and the west tube', points: [[0, 0, D.dock.z - 14], [0, 0, D.dock.z - D.dock.r], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.avenue.z], [D.avenue.x - D.avenue.r, 0, D.avenue.z], [D.garden.x + D.garden.r, 0, D.garden.z], [D.garden.x + 6, 0, D.garden.z]] },
       { name: 'the Avenue’s street to the Plaza', points: [[D.garden.x + 6, 0, D.garden.z], [D.avenue.x - D.avenue.r, 0, D.avenue.z], [0, 0, D.avenue.z], [0, 0, D.avenue.z - D.avenue.r], [0, 0, D.plaza.z + D.plaza.r], [0, 0, COLUMN.z + COLUMN.r + 2]] },

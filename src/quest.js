@@ -230,6 +230,20 @@ export class Story {
     return true;
   }
 
+  /**
+   * A merged world's later part has finished its own story (Vael II's bell under the cloud, Lorn II's lamps): its own
+   * page in the sketchbook (keyed by the part's id), drawn now, and its closing words; the world's page is the first
+   * part's (src/story/index.js partPage).
+   */
+  completePart(part, def) {
+    if (!def || this.journal.storyDone(part)) return false;
+    const s = this.clear(this.shots('outro')[0]);
+    this.journal.addStory(part, { img: this.capture(s.eye, s.look, 900, 380), t: Date.now() });
+    const show = { which: 'part', text: def.outro };
+    if (this.waitFor?.()) this.pending = show; else this.openPage(show);
+    return true;
+  }
+
   hud() {
     if (this.done || this.def.manual) return null;
     const d = this.player.pos.distanceTo(this.goal);
@@ -285,6 +299,7 @@ export class Story {
   openPage({ which, text }) {
     this.pending = null;
     if (text) this.say(text);
+    if (which === 'part') { this.sound.chime(); this.sound.musicCue?.('moment', { delay: 1 }); return; }   // (a part's story: no next world named)
     if (which !== 'outro') return;
     this.sound.chime();
     this.sound.musicCue?.('moment', { delay: 1 });   // (a world's story done)

@@ -225,12 +225,12 @@ export const ITEMS = {
     use: 'The ink bridge pen holds half as much ink again: longer bridges, more of them.',
   },
   lodestone: {
-    name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'glassdunes', where: 'The first finish of the Glass slalom, the Glass Dunes’ jet run.',
+    name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'glassdunes', where: 'The first finish of the Glass slalom, the Glass Dunes’ run on the wings.',
     text: "A darker lodestone for the glove’s palm, from deep in the Hangar’s floor. Spoons follow you about.",
     use: 'The magnet glove reaches 26 m instead of 18.',
   },
   fourthpouch: {
-    name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s jet run.',
+    name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s run on the wings.',
     text: "One more leather pouch on the bomb belt. It already smells of ink.",
     use: 'Four ink bombs in the pouch instead of three.',
   },
@@ -240,7 +240,7 @@ export const ITEMS = {
     use: 'The recall hourglass sends things back up to 12 seconds instead of 8.',
   },
   racersribbon: {
-    name: 'Racer’s ribbon', kind: 'cosmetic', trial: 'bazaar', where: 'The first finish of the Avenue run, the Signal Market’s jet run.',
+    name: 'Racer’s ribbon', kind: 'cosmetic', trial: 'bazaar', where: 'The first finish of the Avenue run, the Signal Market’s run on the wings.',
     text: "A ribbon in the market’s racing colours, stamped with the silent tower. The cab drivers nod at it.",
     use: 'It does nothing at all, and everyone in the market knows what it means.',
   },

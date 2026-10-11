@@ -63,14 +63,16 @@ export function questsData({ quests = null, charge = null, errands = {}, defs = 
 
 /**
  * Sketchbook: the Sightings page (`sightings`: src/story/sightings.js sightingsData, or null), a row for
- * each world you know (`levels` [{ id, title, hidden, relicNames, storyTitle }], `known(id)`), then the
+ * each world you know (`levels` [{ id, title, hidden, relicNames, storyTitle, parts: [{ id, storyTitle }] }], `known(id)`), then the
  * observatory's sketch and the errands' (journal.data).
  */
 export function sketchesData({ data = {}, levels = [], known = () => true, sightings = null } = {}) {
   const worlds = levels.filter((L) => (!L.hidden || data.completed) && known(L.id)).map((L) => {
     const relics = (L.relicNames ?? []).map((name, i) => ({ name, img: data.relics?.[L.id]?.[i]?.img ?? null }));
     const st = data.stories?.[L.id];
-    return { id: L.id, title: L.title, story: { title: L.storyTitle ?? L.title, img: st?.img || null, told: !!st }, relics, found: relics.filter((r) => r.img).length, of: relics.length };
+    // (a merged world's later parts keep their own pages: Vael II's bell, Lorn II's lamps, `parts`)
+    const more = (L.parts ?? []).map((p) => { const ps = data.stories?.[p.id]; return { id: p.id, title: p.storyTitle ?? p.id, img: ps?.img || null, told: !!ps }; });
+    return { id: L.id, title: L.title, story: { title: L.storyTitle ?? L.title, img: st?.img || null, told: !!st }, ...(more.length ? { more } : {}), relics, found: relics.filter((r) => r.img).length, of: relics.length };
   });
   const extra = [];
   const obs = data.observatory;

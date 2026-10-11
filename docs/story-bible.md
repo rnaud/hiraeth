@@ -304,6 +304,14 @@ as they were, in the one world.)*
   when you shoot afterwards.
 - **Clue**: the tower on the plain holds the same masked face as the desert's
   sleeping head → the giants were here too.
+- **The crossing** (v1.43): the bird riders of the plain set off over the cloud
+  from the riders' gate at the plain's edge (their names scratched in its
+  pillars, the newest thirty years old); the monks lit a string of lanterns from
+  the rose cliff home to it, and strung a rope way to the island church before
+  the cloud rose (its knots still hang on little stones). The first plateaus are
+  a walk from the plain along the long aqueduct, where Ondine walks out each day.
+- **Its page**: the bell closes Vael II's own page in the sketchbook (THE BELL
+  UNDER THE CLOUD), after Vael's, and its own recording waits (*bell*).
 
 ### 8. The Sealed Hangar — "The Major Forgot"
 *(Dismissed in October 2026, kept whole in `src/levels/dismissed/hangar/` with its people and story, to be used
@@ -456,7 +464,12 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **Local story**: In the deep wood people keep the pools lit for travellers
   who never come. You are the first in a long time.
 - **Quests**: relight three dark pools (shoot them); return the moss-dome
-  latch; find the skiff's owner.
+  latch; find the skiff's owner (Fen, in the far dome: the skiff you whistle for
+  in Lorn's swamp was his, lent to Odile and Talo forty years ago and never
+  brought back up; he gives it to you).
+- **Its page**: since v1.43 the lamps close Lorn II's own page in the sketchbook
+  (THE LAMPS ARE KEPT), after Lorn's, and its own recording waits (*lamp*, then
+  *why*: see "The recordings").
 - **Keepsake**: *person*: the lamp-keeper asks you to come back one day.
 - **Clue**: the saucer half-sunk in the pool is Odile and Talo's escape pod
   → Viridel.
@@ -496,26 +509,26 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **Place**: past the landing at the market's south end, a single line of rail runs out east and west into the dark:
   the night halt (src/levels/night-halt.js). A low platform, a lamp on an iron post, a brass bell, a shelter with the
   timetable under glass (every column says WHEN RUNG), a board: NIGHT HALT.
-- **People**: **Edda**, who keeps the halt's lamp and sorts the night mail; **Mireille**, her grandmother, who boarded
+- **People**: **Edda**, who keeps the halt's lamp and sorts the night mail; **Solange**, her grandmother, who boarded
   the night Edda was born "to see where the plain ends" and never got off, and rides the roofs of the long tail by the
   chalk mark she keeps; **Ambrose**, the conductor, who knows everyone aboard by the cup they drink from.
 - **The quest** (`bazaar.nightmail`, "The Night Mail"; stages wren, board, find, agathe, stop, off, home):
-  1. Edda at the halt: forty years of postcards from Mireille, one a year, never a question; this year Edda has written
+  1. Edda at the halt: forty years of postcards from Solange, one a year, never a question; this year Edda has written
      back, and can't leave the lamp. She gives you the letter.
   2. Ring the bell: the train stops for the bell, it has to. The screen fades and you are aboard on the station-side
      porch, the train pulling out of the halt (`?level=overnighttrain&from=bazaar`).
-  3. Ambrose on the porch: Mireille never sits inside; she rides the roofs at the very back. Out past the landing wagon, up
+  3. Ambrose on the porch: Solange never sits inside; she rides the roofs at the very back. Out past the landing wagon, up
      the ladder, and walk the roofs of the long tail till the rails run out behind you, the plain racing past.
-  4. Mireille by the chalk mark: she reads the letter with her back to the wind and writes her answer on the back of it
+  4. Solange by the chalk mark: she reads the letter with her back to the wind and writes her answer on the back of it
      in chalk. (The mark was there the night she boarded, nearly gone; she drew it over so it wouldn't be, and doesn't
      know who drew it first. A train should have one thing nobody can explain.)
   5. Back to Ambrose: he pulls the cord; a minute on, the brakes take hold and the train brakes into the market's halt.
   6. Step down on the station side once it has stopped (`?level=bazaar&from=overnighttrain`: on the halt's platform).
-  7. Edda reads the answer under the lamp, twice: the plain doesn't end, and Mireille will get off at the market's halt
+  7. Edda reads the answer under the lamp, twice: the plain doesn't end, and Solange will get off at the market's halt
      next spring, to see if the lamp is still lit. "It will be."
 - **After**: the bell calls the train whenever it is rung (a ride for its own sake; Ambrose stops at the halt when asked).
   A save on the train wakes on the train, still running; the train never waits at a station unless someone asks.
-- **Keepsake**: none; the quest's outro (Mireille's answer pinned under the halt's lamp).
+- **Keepsake**: none; the quest's outro (Solange's answer pinned under the halt's lamp).
 
 ## The fellow traveller: Tansy (built: src/story/fellow-data.js; docs/systems/story.md)
 
@@ -566,7 +579,7 @@ time it is told (`sight.<id>`; the route's own sightings are listed in src/story
 | The Moon Foundry | Bertil cast the mark on a plate for a lone woman's ship's nose; she drew it in soot like a new word: "So they'll know me" | before |
 | The Underside | Maudie: a woman wintered alone and played a man's voice every night, always stopping it before the end | signal |
 | The City Floating in Space (on the route since v1.40) | Tamar: a ship with no name, one pilot alone, hailed with a sung note; the night the sky rang the same note passed again, fast and high, going somewhere | light |
-| The Overnight Train | The mark chalked on the last carriage's roof, drawn again over old chalk many times by someone who keeps it (Mireille, the night mail: she found it there, nearly gone, the night she boarded) | glyph |
+| The Overnight Train | The mark chalked on the last carriage's roof, drawn again over old chalk many times by someone who keeps it (Solange, the night mail: she found it there, nearly gone, the night she boarded) | glyph |
 
 ## The recordings (built: src/story/calls.js, src/ship/hologram.js)
 
@@ -588,8 +601,15 @@ after each finished world, as the calls were). The traveller asks the reel for
 a word that belongs to the world just finished (the desert: *water*; the
 City-Shaft: *looking up*; Vael: *quiet*; the Glass Dunes: *time*;
 the Buried Machine: *patience*; Viridel: *garden*; the spheres: *remember*;
-Lorn: *rain*; the Signal Market: *listening*; the old words *bell*, *lamp* and
-*why*, of Vael II, Lorn II and the Hangar, wait unplayed). The ship finds
+Lorn: *rain*; the Signal Market: *listening*; the Underwater City: *deep*; the
+Moon Foundry: *finish*; the City Floating in Space: *drift*). The merged worlds'
+second stories have recordings of their own, after the world's (v1.43,
+`PART_CALLS`): when Vael II's bell has rung he asks for *bell* (the father,
+twenty years ago: "Ring the bell once. Once is plenty."); when Lorn II's lamps
+are lit, for *lamp* (the mother's lamp in the window, eight years ago), then
+*why*, the Hangar's old word ("Why did you start it? The boat, the radio…",
+eleven years ago, when he was fifteen), and answers it with Hollin's forty years
+of lamps. The ship finds
 one match and plays it: the parents rise over the projector on the dash as a
 hologram, as they were when they made it, and the traveller stands facing them.
 The recording fits loosely, sometimes oddly (he asks for water and gets his
@@ -726,7 +746,9 @@ goodbye. Lou: "Was that you? The little one, waving?" "That was me." The closing
 line ("Something of value. You brought it home on your own two feet."), an end
 card, then the credits: the worlds and their people, "At home" (the bird if she
 promised, the parents on the hill, Lou, Aunt Tove and Moustache in the small
-house, Ilen if told), and what he left on the stone. Flags: `ending.done`;
+house, Ilen if told), and what he left on the stone (every world on the route, its
+parts' people and its sub-levels': the Overnight Train's are the Signal Market's,
+`peopleOf`). Flags: `ending.done`;
 `ending.keepsake` is `all` (saves that chose one keepsake before keep theirs).
 
 **The choices the stone remembers.** Three, across the route: Dov's lift token
@@ -764,18 +786,22 @@ gadget at its heart; half the makers' gifts wait inside them, half in the open
 
 Built details beyond the bible: the bird's promise (`bird.promise`) could later
 let her answer a whistle in other worlds; Vael II's clapper "fell up"; the
-Major once visited the wheel and wrote "FOUND IT. NOW WHAT?" on the drum wall;
+clock-winder from the glass country (Wim's teacher: the Glass Dunes come just
+before the Buried Machine) once came down to see where the slow time comes from,
+and wrote "FOUND IT. NOW WHAT?" and a clock face with one hand on a single tooth
+on the drum wall (it was the Hangar's Major until the Hangar left the route);
 Odile and Talo left Viridel in the saucer for the deep wood, the way the light
 went; it brought them down again over the wood; they waited a season in Lorn II, then
-crossed the swamp in Fen's skiff to ask the Great Crystal, and went on (where,
-nobody knows); each sphere remembers the last sound it heard before it came down
+went down into the swamp in Fen's skiff to ask the Great Crystal, and went on
+(where, nobody knows; the skiff stayed in the swamp and comes to anyone who
+whistles: the one you ride in Lorn); each sphere remembers the last sound it heard before it came down
 out of the sky (the white builders found the spheres and the pyramids already
 there and copied both, and the mark).
 
 More built details: the Great Crystal adds a crystal-violet band to the tank,
 and Wendel gives a second keepsake ("The patient are never eaten"). Hollin has
-kept the deep wood's lamps for 40 years; the skiff came back to the root cave on
-its own after Odile and Talo crossed the swamp in it. The City-Shaft's rule: a light
+kept the deep wood's lamps for 40 years, and the keepers' light between the
+swamp and the wood; the water-way he lights runs on south to Lorn's landing. The City-Shaft's rule: a light
 nobody looks at goes out. The Signal Market's rule: the first thing anyone ever
 sold there was an answer.
 

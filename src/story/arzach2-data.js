@@ -48,11 +48,13 @@ export const QUESTS = [
       { id: 'aube', text: 'A hermit keeps the edge of the start plateau. Ask her about the cloud', label: 'Sister Aube', flag: 'arzach2.aube.heard', at: 'aube' },
       { id: 'monastery', text: 'Ride the bird up to the white monastery on the rose cliff', label: 'The monastery', goto: 'monastery', radius: 45, vertical: 20, at: 'monastery' },
       { id: 'calix', text: 'Find Brother Calix, keeper of the silent bell', label: 'Brother Calix', flag: 'arzach2.calix.asked', at: 'calix' },
-      { id: 'clapper', text: 'Fetch the bell’s clapper from the floating island’s church, and bring it to Calix', label: 'The clapper', bring: 'clapper', at: 'clapper', to: 'calix' },
+      // (out by the knots of the monks' old rope way, src/vael-crossing.js; home by the tiles)
+      { id: 'clapper', text: 'Fetch the bell’s clapper from the floating island’s church, out along the knots of the monks’ old rope way, and bring it to Calix', label: 'The clapper', bring: 'clapper', at: 'clapper', to: 'calix', via: 'the old rope way' },
       // (the clapper's way home is along the roof tiles that fell up with it: src/sky-stones-ways.js; `via` names the line for the
-      //  level design audit; and Calix sends you home along the lantern stones, lit when the bell rings: `home`)
+      //  level design audit; and Calix sends you home along the riders' lanterns, lit when the bell rings, north over the cloud to
+      //  the riders' gate on the plain and your ship: `home`, src/vael-crossing.js)
       { id: 'ring', text: 'Ring the bell: carry the clapper home along the roof tiles that fell up with it, over the great table, and pull the rope at the foot of the bell tower', label: 'The bell rope', flag: 'arzach2.bell.rung', at: 'rope', via: 'the fallen-up tiles' },
-      { id: 'listen', text: 'Listen with Brother Calix', label: 'Brother Calix', talk: 'calix', at: 'calix', home: 'the lantern stones' },
+      { id: 'listen', text: 'Listen with Brother Calix', label: 'Brother Calix', talk: 'calix', at: 'calix', home: 'the riders’ lanterns' },
     ],
   },
   {
@@ -210,8 +212,8 @@ export const LOCALS = [
           choices: [{ text: '~surprised~ A light that sang? That was the night it passed my ship.', goto: 'light' }, { text: '~neutral~ I’ll bring the clapper back.', goto: 'bring' }],
         },
         light: { say: ["~solemn~ Then we heard the same light. *Bring back the clapper.* Perhaps the bell has more to say."], choices: [{ text: '~neutral~ I’ll bring it.', goto: 'bring' }] },
-        bring: { say: ["~neutral~ Fly *east to the floating island*. Look for *the church with two towers*. The bronze clapper is outside its door. Mind the edge; the island tilts.", "~playful~ Our roof tiles went with it. They hang out there in a long string, over Tiv’s great table. *Follow them home* with it; they know the way better than anyone."], choices: [{ text: '~neutral~ I’ll be back.', end: true }] },
-        again: { say: ["~neutral~ *East, on the floating island.* Find *the two-towered church*. The clapper lies at its door."], choices: [{ text: '~curious~ What’s that mark on the bell?', goto: 'mark' }, { text: '~neutral~ On my way.', end: true }] },
+        bring: { say: ["~neutral~ Fly *east to the floating island*. Look for *the church with two towers*. The bronze clapper is outside its door. Mind the edge; the island tilts.", "~sad~ We strung a rope way out to that church once, before the cloud rose. *Its knots still hang on the little stones* between here and there. Follow them out.", "~playful~ Our roof tiles went with it. They hang out there in a long string, over Tiv’s great table. *Follow them home* with it; they know the way better than anyone."], choices: [{ text: '~neutral~ I’ll be back.', end: true }] },
+        again: { say: ["~neutral~ *East, on the floating island,* past the knots of the old rope way. Find *the two-towered church*. The clapper lies at its door."], choices: [{ text: '~curious~ What’s that mark on the bell?', goto: 'mark' }, { text: '~neutral~ On my way.', end: true }] },
         clapper: {
           say: ["~surprised~ You found it! Still bright where it struck the bell. Here, let me hold it. Thirty years. It’s heavier than I remembered.", "~playful~ (Calix scrambles up the belfry stairs. Hammering follows, with a few words that do not sound like prayers.)", "~scared~ It’s fitted. Now *pull the rope at the tower’s foot*. You do it. My hands won’t stop shaking."],
           do: [{ take: 'clapper' }, { set: { 'arzach2.clapper.hung': true } }, { advance: [Q, 'clapper'] }],
@@ -219,7 +221,7 @@ export const LOCALS = [
         },
         rope: { say: ["~neutral~ *Pull the rope at the tower’s foot*, on the plateau side. Give it a proper pull."], choices: [{ text: '~neutral~ All right.', end: true }] },
         listen: {
-          say: ["~whisper~ (Calix closes his eyes. The bell’s note travels through the stone beneath your feet.)", "~happy~ The cloud moved down. A little, but down. Thirty years, and it still knows the way.", "~solemn~ Listen to your tank. It has caught the bell’s note. When you use the fluid, you’ll hear it again. Take that with you.", "~surprised~ And look, off the north lip: *the lantern stones are lit*. We lit them for riders coming home in the cloud. Fly home along them, past the Founders’ Belfry."],
+          say: ["~whisper~ (Calix closes his eyes. The bell’s note travels through the stone beneath your feet.)", "~happy~ The cloud moved down. A little, but down. Thirty years, and it still knows the way.", "~solemn~ Listen to your tank. It has caught the bell’s note. When you use the fluid, you’ll hear it again. Take that with you.", "~surprised~ And look: *the lantern stones are lit*. We lit them for riders coming home in the cloud. The riders’ string runs *north off the cliff to their gate on the plain*. Your ship is that way. Fly home along them."],
           do: [{ set: { 'arzach2.bell.note': true } }, { advance: [Q, 'listen'] },
             { keepsake: { id: 'arzach2.song', level: 'arzach2', name: 'The bell’s note', kind: 'song', text: 'One low note, and the cloud settling a hand’s width under it. It sounds from the tank now whenever you shoot.' } }],
           choices: [{ text: '~happy~ Thank you, Brother.', end: true }],
@@ -270,6 +272,18 @@ export const LOCALS = [
 
 // The scenery you can look at.
 export const THINGS = {
+  // (in Vael, at the plain's edge: src/vael-crossing.js)
+  gate: {
+    id: 'gate', name: 'The riders’ gate', title: 'at the edge of the plain', color: '#f2d6c4', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~solemn~ Two pillars of rose stone lean together at the edge of the plain, with the cloud below and the stones that fell up beyond it. A lantern hangs from the lintel on a chain.",
+        "~curious~ Names are scratched into the pillars, hundreds of them, each beside a little bird. The riders set off from here, and the newest name is thirty years old.",
+        { if: { not: { flag: 'arzach2.bell.rung' } }, text: "~sad~ The lantern is cold. Out over the cloud, a string of small dark stones leads south toward a white monastery." },
+        { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ The lantern burns again, and so does the string of stones over the cloud, all the way to the rose cliff." }],
+      do: { set: { 'arzach2.gate.seen': true } },
+      choices: [{ text: '~solemn~ (read a few names)', end: true }],
+    } } },
+  },
   face: {
     id: 'face', name: 'The face on the tower', title: 'carved into the plinth', color: '#f4ecdc', voice: 0.6,
     talk: { nodes: { look: {

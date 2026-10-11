@@ -99,6 +99,15 @@ export const ILEN_CALL = 'ilen';
 export const ILEN_AFTER_CALL = 'ilen.after';
 /** The ship's log after the first homecoming: the light over the hill, its trace, and the father at the window. */
 export const TRACE_CALL = 'trace';
+/**
+ * The merged worlds’ second stories have their own recordings (the eleven places had one each before the merge): when
+ * Vael II's bell has rung he asks the reel for *bell*; when Lorn II's lamps are lit, for *lamp*, and then *why*
+ * (the Hangar's old word: the boat, the radio, the things he gave up on, beside Hollin's forty years). They wait at
+ * the console after the world's own (`world.<part>.done`, heard: `calls.<id>`).
+ */
+export const PART_CALLS = { arzach2: 'part.arzach2', perdide2: 'part.perdide2' };
+const PART_OF_CALL = Object.fromEntries(Object.entries(PART_CALLS).map(([w, id]) => [id, w]));
+export const isPartCall = (n) => !!PART_OF_CALL[n];
 
 // (the places whose people spoke of the light: the parts of merged worlds keep their own flags, and the Hangar's stay counted for a save that went there)
 const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar', 'underwater', 'moonfoundry', 'spacecity'];
@@ -124,9 +133,10 @@ export const REEL = {
   arzach2: { word: 'bell',
     find: "~tired~ Ring the bell once. Once is plenty. Some of us heard the first six demonstrations.",
     you: '~whisper~ (I rang it. The cloud came down.)' },
+  // (the Hangar's word, dismissed with it: asked after Lorn II's lamps now, in its own recording, PART_CALLS)
   garage: { word: 'why',
     find: "~tired~ Why did you start it? The boat, the radio. There’s no room in the shed for another thing you’ve given up on.",
-    you: '~whisper~ (So did the Major. He kept going anyway.)' },
+    you: '~whisper~ (Hollin never gave up on his lamps. Forty years.)' },
   // (the Glass Dunes, on the route since October 2026 in the Sealed Hangar's place: the Hangar's 'why' is kept above)
   glassdunes: { word: 'time',
     find: "~tired~ Every clock in this house says a different time. I’ve stopped asking them. Your mother goes by the kettle, and the kettle is always right.",
@@ -507,9 +517,29 @@ function fatherOnIlen(f) {
   return [...b.intro(f), ...b.body(f), YOU('~whisper~ (Empty hands. He meant me too.)'), SHIP('~neutral~ Logged five years ago.')];
 }
 
+/** The ages of the merged worlds' own recordings (PART_CALLS): the bell when he was small, the lamp after he had gone. */
+const PART_AGES = { arzach2: { label: 'LOGGED 20 YEARS AGO', log: '~neutral~ Logged twenty years ago.' }, perdide2: { label: 'LOGGED 8 YEARS AGO', log: '~neutral~ Logged eight years ago.' } };
+
+/**
+ * A merged world's second story's own recording (PART_CALLS): he asks the reel for its word, one match plays; after
+ * Lorn II's lamp he asks it why, and the Hangar's old line comes up. Short, the father alone.
+ */
+function partCall(part, f) {
+  const r = REEL[part];
+  const ask = (word) => [YOU(`~neutral~ (You ask the reel for anything about ${word}.)`), SHIP('~neutral~ One match.')];
+  const lines = [...ask(r.word), F(r.find), YOU(r.you), SHIP(PART_AGES[part].log)];
+  if (part === 'perdide2') {
+    const why = REEL.garage;
+    lines.push(YOU('~neutral~ (You ask the reel one more thing: why.)'), SHIP('~neutral~ One match.'), F(why.find), YOU(why.you), SHIP('~neutral~ Logged eleven years ago. You were fifteen.'));
+  }
+  if (f.k) lines.splice(3, 0, YOU(`~neutral~ (You lift ${nameIn(f.k)} into the projector’s light. The message is already over.)`));
+  return lines;
+}
+
 /** The label on the console's screen while recording n plays (src/ship/portrait.js). */
 export function recordingLabel(n, ctx = {}) {
   if (n === 'prologue') return '';
+  if (isPartCall(n)) return PART_AGES[PART_OF_CALL[n]].label;
   if (n === ILEN_CALL) return 'FOR WHEN HE ASKS';
   if (n === ILEN_AFTER_CALL) return 'LOGGED 5 YEARS AGO';
   if (n === TRACE_CALL) return 'LOGGED 3 YEARS AGO';
@@ -525,7 +555,7 @@ export function recordingLabel(n, ctx = {}) {
 /** Who stands on the hologram for recording n: 'father' | 'mother' | 'both'. */
 export function onHologram(n) {
   if (n === ILEN_CALL) return 'mother';
-  if (n === 'prologue' || n === ILEN_AFTER_CALL || n === TRACE_CALL) return 'father';
+  if (n === 'prologue' || n === ILEN_AFTER_CALL || n === TRACE_CALL || isPartCall(n)) return 'father';
   return typeof n === 'number' && n < 3 ? 'father' : 'both';
 }
 
@@ -539,6 +569,7 @@ export function callLines(n, ctx = {}) {
   if (n === ILEN_CALL) return motherAlone(f);
   if (n === ILEN_AFTER_CALL) return fatherOnIlen(f);
   if (n === TRACE_CALL) return traceCall(f);
+  if (isPartCall(n)) return partCall(PART_OF_CALL[n], f);
   const { k, quiet, flag } = f;
   f.shifted = f.ilenTold;   // once the truth is told, the recordings he finds are the sorrier ones
   f.tier = f.shifted ? 3 : Math.min(2, Math.floor(quiet / 2) + (n >= 4 ? 1 : 0));
@@ -670,13 +701,14 @@ export const tracePending = (flag) => !!flag('ending.done') && !flag(`calls.${TR
 /**
  * The recording waiting at the console, or null: the mother's own first (see
  * ilenPending), then the ship's log of the light over home (tracePending), then the first unheard
- * recording n with n <= the number of completed worlds (one per completion, in order), then the
- * father's own on Ilen (ilenAfterPending).
+ * recording n with n <= the number of completed worlds (one per completion, in order), then a merged world's
+ * second story's own (PART_CALLS), then the father's own on Ilen (ilenAfterPending).
  */
 export function pendingCall({ flag, completed }) {
   if (ilenPending(flag)) return ILEN_CALL;
   if (tracePending(flag)) return TRACE_CALL;
   for (let n = 1; n <= Math.min(CALL_COUNT, completed); n++) if (!flag(`calls.${n}`)) return n;
+  for (const [part, id] of Object.entries(PART_CALLS)) if (flag(`world.${part}.done`) && !flag(`calls.${id}`)) return id;
   if (ilenAfterPending(flag)) return ILEN_AFTER_CALL;
   return null;
 }

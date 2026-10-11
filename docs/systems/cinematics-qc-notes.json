@@ -1,5 +1,5 @@
 {
- "exported": "2026-10-09T22:00:00.000Z",
+ "exported": "2026-10-10T23:00:00.000Z",
  "notes": {
   "prologue": {
    "verdict": "Needs work",
@@ -432,69 +432,79 @@
    "updated": "2026-10-09T12:00:00.000Z"
   },
   "glassdunes.clock": {
-   "verdict": "Needs work",
-   "text": "New with the Glass Dunes on the route (October 2026): not yet through a QC pass. The Clock-House clock comes round over its door, the cogs turn in the sand.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 4.5 → 5/5, interest 4/5. Filmed from the landing (the review page staged it there, the house unchanged), and its wide pulled in against the house’s wall a second in (the pendulum under the clock swung between the lens and the face). Fixed: staged a few steps out of the door with the house’s change (the clock keeping time, the cogs turning); the wide, out on the open sand, not pulled in.",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "underwater.whales": {
-   "verdict": "Needs work",
-   "text": "New with the Underwater City on the route (v1.40): not yet through a QC pass. Down the last tube from the Whale-House, a whale comes up to the glass and sings.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 4.5/5 (the dark sea reads as nearly empty to the script, by design), interest 4/5. Its second panel looked out of the tube at the Whale-House toward whales 150 m off: nothing but dark water; filmed from the landing. Fixed: the second panel cut to the Whale Gallery’s glass, a whale passing close outside; the film waits until the whales have come in (8 s after the keeper is calmed); staged at the house’s door with the change.",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "moonfoundry.moon": {
-   "verdict": "Needs work",
-   "text": "New with the Moon Foundry on the route (v1.40): not yet through a QC pass. The Casting-House from the floor, the hung moon turning on its hook toward it.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. Its second panel stood 37 m under the hung moon, which filled the frame; filmed from the landing. Fixed: the hung moon from the floor 50 m off on the house’s side, seen whole on its hook under the roof as it turns; staged at the Casting-House’s door with the change.",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "spacecity.cables": {
-   "verdict": "Needs work",
-   "text": "New with the City Floating in Space on the route (v1.40): not yet through a QC pass. The Mooring-House from over the void, the cables drawn taut under the island.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. Its second panel looked down at the island’s underside, where no cable runs, the cables slack (the review page left the world unchanged); filmed from the landing. Fixed: out over the void beside the great cable to the Towers, taut, its lamps running away along it; staged at the Mooring-House’s door with the change.",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "call.10": {
-   "verdict": "Needs work",
-   "text": "New with the route of twelve worlds (v1.40): the tenth recording, not yet through a QC pass (it plays as the ninth does).",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 3/5. Every recording from the 6th on was reviewed as the last on the reel (the page staged each with all twelve worlds done). Fixed: each staged after its own world on the route (the 10th: its word, then the reel’s oldest side, as in play). The long push-in of every recording is in TODO.md (Cinematics).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "call.11": {
-   "verdict": "Needs work",
-   "text": "New with the route of twelve worlds (v1.40): the eleventh recording, not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 3/5. Every recording from the 6th on was reviewed as the last on the reel (the page staged each with all twelve worlds done). Fixed: each staged after its own world on the route (the 11th: its word, then the reel’s oldest side, as in play). The long push-in of every recording is in TODO.md (Cinematics).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "call.12": {
-   "verdict": "Needs work",
-   "text": "New with the route of twelve worlds (v1.40): the twelfth recording, not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 3/5. Every recording from the 6th on was reviewed as the last on the reel (the page staged each with all twelve worlds done). Fixed: each staged after its own world on the route (the 12th: its word, then the reel’s oldest side, as in play). The long push-in of every recording is in TODO.md (Cinematics).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "box.moonfoundry.bellows": {
-   "verdict": "Needs work",
-   "text": "New with the Moon Foundry on the route (v1.40): the pocket bellows on the crown of the moon in the claws; not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. The pocket bellows on the moon in the claws: plays as every box (its camera plan, the item, his face, the closing beat); no problems (the review page drops him by the chest in its first frame: the staging only).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "box.moonfoundry.temple.tongs": {
-   "verdict": "Needs work",
-   "text": "New with the Moon Foundry on the route (v1.40): the founders’ tongs in the Casting-House; not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. The founders’ tongs in the Casting-House: plays as every box (its camera plan, the item, his face, the closing beat); no problems (the review page drops him by the chest in its first frame: the staging only).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "box.spacecity.starthread": {
-   "verdict": "Needs work",
-   "text": "New with the City Floating in Space on the route (v1.40): the star-thread on a Towers roof; not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. The star-thread on a Towers roof: plays as every box (its camera plan, the item, his face, the closing beat); no problems (the review page drops him by the chest in its first frame: the staging only).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "box.spacecity.temple.tether": {
-   "verdict": "Needs work",
-   "text": "New with the City Floating in Space on the route (v1.40): tether mode in the Mooring-House; not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. Tether mode in the Mooring-House: plays as every box (its camera plan, the item, his face, the closing beat); no problems (the review page drops him by the chest in its first frame: the staging only).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "box.underwater.pearl": {
-   "verdict": "Needs work",
-   "text": "New with the Underwater City on the route (v1.40): the diver’s pearl on the pod tower’s top deck in the Avenue; not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. The diver’s pearl on the pod tower’s top deck: plays as every box (its camera plan, the item, his face, the closing beat); no problems (the review page drops him by the chest in its first frame: the staging only).",
+   "updated": "2026-10-10T23:00:00.000Z"
   },
   "box.underwater.temple.horn": {
-   "verdict": "Needs work",
-   "text": "New with the Underwater City on the route (v1.40): the whale-horn in the Whale-House; not yet through a QC pass.",
-   "updated": "2026-10-10T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-10 (v1.43): tech 5/5, interest 4/5. The whale-horn in the Whale-House: plays as every box (its camera plan, the item, his face, the closing beat); no problems (the review page drops him by the chest in its first frame: the staging only).",
+   "updated": "2026-10-10T23:00:00.000Z"
+  },
+  "call.part.arzach2": {
+   "verdict": "Pass",
+   "text": "New in v1.43 (the bell’s own recording, after Vael II’s story): tech 5/5, interest 3/5. He asks the reel for bell; the father’s line, his answer, the age. Short, one beat; plays as the others do.",
+   "updated": "2026-10-10T23:00:00.000Z"
+  },
+  "call.part.perdide2": {
+   "verdict": "Pass",
+   "text": "New in v1.43 (the lamp’s own recording, after Lorn II’s story): tech 5/5, interest 3/5. Lamp, then why (the Hangar’s old word), each found and answered; the cuts at the start of lines as every recording’s.",
+   "updated": "2026-10-10T23:00:00.000Z"
   }
  }
 }

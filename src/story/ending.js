@@ -51,7 +51,7 @@ import * as arzach2 from './arzach2-data.js';
 import * as garage from '../levels/dismissed/hangar/story-data.js';
 import * as glassdunesLocals from './glassdunes-people.js';
 import { PEOPLE as CLOCK_HOUSE } from '../temples/garage-data.js';
-import { partsOf } from '../levels/names.js';
+import { partsOf, SUB } from '../levels/names.js';
 import * as buried from './buried-data.js';
 import * as edena from './edena-data.js';
 import * as spheres from './spheres-data.js';
@@ -59,6 +59,7 @@ import * as perdide from './perdide-data.js';
 import * as perdide2 from './perdide2-data.js';
 import * as bazaar from './bazaar-data.js';
 import * as lantern from './lantern-data.js';
+import * as overnighttrain from './night-train-data.js';
 import * as underwaterPeople from './underwater-people.js';
 import * as moonfoundryPeople from './moonfoundry-people.js';
 import * as spacecityPeople from './spacecity-people.js';
@@ -378,6 +379,8 @@ export function tombLines(tokens = [], ctx = {}) {
 // save that went there; the Glass Dunes' are its glassworkers and Wim at the Clock-House)
 export const WORLD_DATA = {
   desert, incal, arzach, arzach2, garage, glassdunes: { ...glassdunesLocals, PEOPLE: CLOCK_HOUSE }, buried, edena, spheres, perdide, perdide2, bazaar, lantern,
+  // (the Signal Market's sub-level, the Overnight Train: its people are the market's in the credits, src/levels/names.js SUB)
+  overnighttrain,
   // (the three worlds that joined the route in v1.40: their people, and their temples' locals)
   underwater: { ...underwaterPeople, PEOPLE: { ...underwaterPeople.PEOPLE, ...WHALE_HOUSE } },
   moonfoundry: { ...moonfoundryPeople, PEOPLE: { ...moonfoundryPeople.PEOPLE, ...CASTING_HOUSE } },
@@ -385,9 +388,12 @@ export const WORLD_DATA = {
 };
 const PEOPLE_LISTS = ['PEOPLE', 'LANDING', 'LOCALS', 'KEEPERS', 'RIM', 'STREET'];
 
-/** [{ id, name, title }] for one world (people only: not signs, stones or bowls): its parts' (Vael's and the sky stones'). */
+/**
+ * [{ id, name, title }] for one world (people only: not signs, stones or bowls): its parts' (Vael's and the sky stones'),
+ * then its sub-levels' (the Signal Market's Overnight Train), each name once.
+ */
 export function peopleOf(world) {
-  const parts = partsOf(world);
+  const parts = [...partsOf(world), ...Object.keys(SUB).filter((id) => SUB[id] === world)];
   if (parts.length > 1) { const seen = new Set(); return parts.flatMap(peopleOfPart).filter((p) => !seen.has(p.name) && seen.add(p.name)); }
   return peopleOfPart(world);
 }

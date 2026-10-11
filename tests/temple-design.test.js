@@ -179,3 +179,26 @@ test('every real temple builds a graph its measures can read (no layout needed)'
     assert.ok(skeleton(g).includes('C') && skeleton(g).endsWith('K'), `${id}: ${skeleton(g)}`);
   }
 });
+
+// The audit plays each temple with what the traveller carries in by then (the backpack, the gun, the double jump, and
+// every gadget of the temples before it on the route): with the backpack alone no ball rolled and no eye was shot, no
+// temple solved and every door counted shut for its sight lines (the three v1.40 temples' tongs, horn and tether among them).
+test('the audit carries in the gadgets the route has given by then, and every temple it plays is solved', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const out = mkdtempSync(join(tmpdir(), 'temple-audit-'));
+  try {
+    const r = spawnSync(process.execPath, ['scripts/temple-design/audit.mjs', out, '--temples', 'moonfoundry,spacecity,bazaar'], { encoding: 'utf8', timeout: 120000 });
+    assert.equal(r.status, 0, r.stderr.slice(-400));
+    const rep = JSON.parse(readFileSync(join(out, 'report.json'), 'utf8'));
+    for (const t of rep.temples) {
+      assert.ok(t.solved, `${t.id}: not solved with ${t.carried.join(', ')}`);
+      assert.ok(t.carried.includes('gun'), `${t.id}: the gun carried in`);
+    }
+    const by = Object.fromEntries(rep.temples.map((t) => [t.id, t.carried]));
+    assert.ok(by.bazaar.includes('tether') && by.bazaar.includes('tongs'), 'the Signal Market: after the Moorings and the Casting-House');
+    assert.ok(!by.moonfoundry.includes('tongs') && !by.spacecity.includes('tether'), 'never a temple’s own gadget before its chest');
+  } finally { rmSync(out, { recursive: true, force: true }); }
+});

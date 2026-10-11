@@ -52,6 +52,15 @@ test('a portal hop: the leg goes through it when that is much shorter, and the h
   assert.ok(samplePath(p, 10).every((s) => s.pos[0] < 20 || s.pos[0] > 2990), 'nothing sampled in the void between');
 });
 
+test('two rooms built far overhead are never walked between: each is left by its own door', () => {
+  // (two shops' rooms 90 m apart in the sky, their doors on the ground 1 km apart: the walk is on the ground)
+  const portals = [{ at: [0, 0, 0], to: [-900, 3000, 900], label: 'shop door' }, { at: [-900, 3000, 905], to: [0, 0, 0], label: 'door' },
+    { at: [0, 0, 1000], to: [-810, 3000, 900], label: 'shop door' }, { at: [-810, 3000, 905], to: [0, 0, 1000], label: 'door' }];
+  assert.equal(portalRoute([0, 0, -5], [0, 0, 1005], portals), null, 'no hop from one room to the other');
+  const p = viaPortals([S('a', 0, 0, 'go'), S('b', 0, 1005)], portals);
+  assert.ok(pathLength(p) > 990, `${pathLength(p)}`);
+});
+
 test('a leg draped over a basin: the points laid on the ground under the straight line, its length the straight one', () => {
   const stops = [S('a', 0, 0, 'go', 40), S('b', 400, 0, 'go', 40)];
   const basin = (pos) => [pos[0], Math.min(pos[1], 40 - 30 * Math.sin(Math.PI * pos[0] / 400)), pos[2]];

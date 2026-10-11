@@ -88,20 +88,30 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 - [ ] [#17](https://github.com/rnaud/hiraeth/issues/17) **References for a fire-and-ice world** (both at once), in the reference lab.
 
-- [ ] [#19](https://github.com/rnaud/hiraeth/issues/19) **The merged worlds' follow-ups** (v1.39 level-design audit: Vael 4.56 → 3.89, Lorn 4.44 → 3.89, Glass Dunes 3.22):
+- [x] [#19](https://github.com/rnaud/hiraeth/issues/19) **The merged worlds' follow-ups** (v1.39 level-design audit: Vael 4.56 → 3.89, Lorn 4.44 → 3.89, Glass Dunes 3.22):
   the long empty walks back (Vael's 760 m from the monastery to the clapper), a weenie and a reason to cross each join;
-  the Glass Dunes' spread of places and height. Can the sky stones be reached on foot from Vael's plain? Frame rate of
-  the bigger terrains on Android.
-- [ ] [#20](https://github.com/rnaud/hiraeth/issues/20) **Story loose ends from the merge**: the Buried Machine's lines about the Major and the Hangar; Fen's "the skiff
+  the Glass Dunes' spread of places and height. Can the sky stones be reached on foot from Vael's plain?
+  (2026-10-10, v1.43: Vael's riders' gate, riders' lanterns and the monks' old rope way; Lorn's keepers' light, ferry
+  bell and the water-way south to the ship; the Glass Dunes' float-posts and the wave's cairn. The audit, with its walk
+  between two shops' rooms through the sky fixed and Vael's bell flown on the bird: Vael 3.78 → 4.33, Lorn 4.0 → 4.33,
+  the Glass Dunes 3.22 → 3.89. The sky stones' first plateaus are a walk along the long aqueduct; the rose cliff and the
+  island are the bird's. docs/systems/worlds.md "The merged worlds' crossings".)
+- [ ] **Frame rate of the bigger terrains on Android** (left from #19): Vael's 5.2 km and Lorn's 3.2 km terrains since the
+  merge, and the crossings' new pieces, measured on the Retroid.
+- [x] [#20](https://github.com/rnaud/hiraeth/issues/20) **Story loose ends from the merge**: the Buried Machine's lines about the Major and the Hangar; Fen's "the skiff
   is his" (you use your own now); Vael II's and Lorn II's stories no longer close a journal page; recordings 10 and 11
   never play (the reel words bell, lamp, why unused); the ending's world data covers 6 of the 9 places.
+  (2026-10-10, v1.43: a clock-winder from the glass country wrote on the drum wall; the skiff you whistle for in Lorn
+  was Fen's; the second stories close their own pages and have their own recordings, bell, then lamp and why; the
+  credits know all twelve worlds, their parts and the Overnight Train, whose Mireille is Solange now. docs/story-bible.md.)
 
 ## Traversal and gadgets
 
-- [ ] [#21](https://github.com/rnaud/hiraeth/issues/21) **The jets' trials outside the City-Shaft** (the Glass Dunes' Glass slalom, the Buried Machine's Canyon dive, the
+- [x] [#21](https://github.com/rnaud/hiraeth/issues/21) **The jets' trials outside the City-Shaft** (the Glass Dunes' Glass slalom, the Buried Machine's Canyon dive, the
   Signal Market's Avenue run): since the jets became a debug item (v1.38) they want the debug jets, so their rewards
   (the strong lodestone, the fourth pouch, the racer's ribbon) can't be won in play. Give each another mode. (The
   Hangar's Pillar slalom is out of play with the Hangar, dismissed in v1.39; its lodestone went to the Glass slalom.)
+  (2026-10-10, v1.43: all three flown on the wings, with columns of rising air to climb again; no trial wants the jets.)
 
 ## Combat, more like Breath of the Wild
 

@@ -472,8 +472,13 @@ One optional **mastery trial** in each route world, built from what that world g
 wings up two columns of rising air and through rings between them), the Sky Stones' **Stone circuit** (the bird,
 round the Needles, the great Table and the Monastery), Lorn's **Reed race** and Lorn II's **Lagoon laps** (the skiff;
 the gust fan fills its sail), Viridel's **Eye garden** (eight sleeping eyes to splash), the City-Shaft's **Shaft
-climb** (the wings, up the halfway air pillar from the middle terrace to the rim, v1.42; the jets before), the Hangar's **Pillar slalom**, the Buried Machine's **Canyon
-dive** and the Signal Market's **Avenue run** (the jets), and the Garden of Spheres' **Garden round** (on foot).
+climb** (the wings, up the halfway air pillar from the middle terrace to the rim, v1.42; the jets before), the Glass
+Dunes' **Glass slalom** (the Hangar's Pillar slalom that was), the Buried Machine's **Canyon dive** and the Signal Market's
+**Avenue run** (on the jets until the jets became a debug item; on the wings since v1.43, each with columns of rising
+air to climb again: the slalom four, the dive one on the rim and one at the canyon's end to climb out, the avenue one at
+its head and one halfway), the Garden of Spheres' **Garden round** (on foot), and the three of v1.40 (the Underwater
+City's **Tube run**, the Moon Foundry's **Floor round** and the floating city's **Courier's round**, on foot). No trial
+wants the jets.
 
 - **Data** (`data.js` `TRIALS`): mode, the sign, the start, gates (`[x, y, z, r]`, or `ground: true` laid `up` m over
   the ground or the water), eyes, wind columns, an easy pace (the par), the reward. **Rules** (`course.js`, pure): a

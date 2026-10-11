@@ -6,7 +6,8 @@ import { V, UP, closeUp } from './film.js';
 //   whales  out of the Whale-House after its keeper is calmed (underwater.moment.whales)
 //           A  wide, from down the last tube: the traveller small at the makers' door, the glass arching over him,
 //              the dark water beyond; the camera eases toward him                                         0.0–2.6
-//           B  through the tube's glass: a whale comes up out of the deep, close, its flank sliding past    2.6–5.4
+//           B  through the Whale Gallery's glass: a whale comes up out of the deep, close, its flank sliding
+//              past (a cut across the city: the whales come to the gallery)                              2.6–5.4
 //           C  his face, three-quarter, turned to the glass: he listens, and the corner of his mouth goes up;
 //              the controls come back with the whale still passing                                        5.4–7.6
 //           sound: the father's theme in the world's mode (sound.swell('father'): the whales' answer)
@@ -26,8 +27,12 @@ export function setupUnderwaterMoments(ctx, { rt, level }) {
   function whales({ said = null } = {}) {
     const O = rt.outside, door = O.door.at, h = O.door.heading;
     const out = V(Math.sin(h), 0, Math.cos(h)), side = V(out.z, 0, -out.x);
-    const whale = level?.whales?.[0];
-    const at = () => (whale ? whale.position.clone() : door.clone().addScaledVector(side, 30).addScaledVector(UP, 6));
+    // (B is seen from the Whale Gallery, where the whales come to the glass: from the tube at the house they swam 150 m off,
+    //  dots in the dark: the cinematics QC, v1.43); the whale nearest the gallery's glass, as it passes
+    const G = { x: 104, y: -16, z: -108, r: 22, ...(level?.halls?.gallery ?? {}) }, gc = V(G.x, G.y, G.z);
+    const nearest = () => (level?.whales ?? []).reduce((b, w) => (!b || w.position.distanceTo(gc) < b.position.distanceTo(gc) ? w : b), null);
+    const at = () => nearest()?.position.clone() ?? door.clone().addScaledVector(side, 30).addScaledVector(UP, 6);
+    const galleryEye = (w) => gc.clone().addScaledVector(w.clone().sub(gc).setY(0).normalize(), G.r - 3).addScaledVector(UP, 2.4);
     const B0 = WHALES.A, C0 = B0 + WHALES.B;
     const m = moments.play({
       id: 'underwater.whales', flag: 'underwater.moment.whales', dur: C0 + WHALES.C,
@@ -35,8 +40,8 @@ export function setupUnderwaterMoments(ctx, { rt, level }) {
         // A: wide, down the tube: the door, the arch of glass, him small before it
         { dur: WHALES.A, from: { pos: door.clone().addScaledVector(out, WHALES.BACK).addScaledVector(side, 1.6).addScaledVector(UP, 2.6), look: door.clone().addScaledVector(UP, 2.2), fov: 50 },
           to: { pos: door.clone().addScaledVector(out, WHALES.BACK - 5).addScaledVector(side, 1.2).addScaledVector(UP, 2.4), look: door.clone().addScaledVector(UP, 2.0), fov: 46 } },
-        // B: through the glass at the whale passing (the camera at his shoulder in the tube, aimed out)
-        { dur: WHALES.B, clear: false, from: (t) => { const w = at(); const eye = door.clone().addScaledVector(out, 6).addScaledVector(UP, 2.2); return { pos: eye, look: w, fov: 44 - t * 2 }; } },
+        // B: through the Whale Gallery's glass at the whale passing close outside it
+        { dur: WHALES.B, clear: false, from: (t) => { const w = at(); return { pos: galleryEye(w), look: w, fov: 42 - t * 2 }; } },
         // C: his face, turned to it
         { dur: WHALES.C, clear: false, from: closeUp(player, { angle: 0.6, dur: WHALES.C }) },
       ],

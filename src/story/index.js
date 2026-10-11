@@ -44,7 +44,7 @@ import { setupTempleStory } from '../temples/index.js';
 import { setupShops } from './shops.js';
 import { setupFellow } from './fellow.js';
 import { partsOf } from '../levels/names.js';
-import { NPC_BASE } from '../levels/content.js';
+import { NPC_BASE, CONTENT } from '../levels/content.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -99,8 +99,12 @@ export function combineWorlds(list) {
     crowdTalk: ws.some(([, w]) => w.crowdTalk) ? (p) => { for (const [, w] of ws) { const d = w.crowdTalk?.(p); if (d) return d; } return null; } : undefined,
   };
 }
-/** The story page as a later part sees it: its own ending does not close the world's page (the first part's story does). */
-const quietPage = (story) => (story ? Object.assign(Object.create(story), { complete() {} }) : story);
+/**
+ * The story page as a later part sees it: its own ending does not close the world's page (the first part's story does);
+ * it closes the part's own page in the sketchbook, with the part's closing words (Vael II's bell, Lorn II's lamps:
+ * src/quest.js Story.completePart).
+ */
+const partPage = (story, part) => (story ? Object.assign(Object.create(story), { complete: () => story.completePart?.(part, CONTENT[part]?.story) ?? false }) : story);
 
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _eyes = new THREE.Vector3();
@@ -245,7 +249,7 @@ export function createStory(o) {
   // (a later part's own people come after the parts before it in the world's list: its `npcs` start at them, so its
   // LOCALS bind to its own spawn spots, src/levels/content.js NPC_BASE)
   world = combineWorlds(partsOf(levelId).map((part, i) => [part, WORLDS[part]?.({
-    ...o, story: i ? quietPage(story) : story, quests, dialogue, game, moments,
+    ...o, story: i ? partPage(story, part) : story, quests, dialogue, game, moments,
     npcs: i && NPC_BASE[part] ? npcs.slice(NPC_BASE[part][1]) : npcs,
     // (and speaking their part's tongue: the sky stones' monks chant, they do not hush as Vael does)
     spawn: i ? (def, opt = {}) => spawn(def.lang ? def : { ...def, lang: part }, { world: part, ...opt }) : spawn,

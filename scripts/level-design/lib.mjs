@@ -70,6 +70,11 @@ export function viaPortals(stops, portals = [], { gain = 0.95 } = {}) {
   return out;
 }
 /** The shortest way from a to b walking and through any number of portals (Dijkstra over their mouths): { cost, via: [portals in order] } or null when none is used. */
+// (a room built far overhead, a shop's or a hut's, ROOM_Y up: one room's door is never walked to from another's, though
+// two worlds' rooms may stand 90 m apart up there; the audit once walked from Vael's plain into one shop and out of
+// the next, by the monastery, through the sky)
+export const ROOM_Y = 1200;
+const walk = (p, q) => { const d = dist(p, q); return (p[1] > ROOM_Y || q[1] > ROOM_Y) && d > 20 ? Infinity : d; };
 export function portalRoute(a, b, portals) {
   // nodes: 0 = a, 1 = b, then each portal's far end (2 + i); from a node you walk to b or into any portal's mouth
   const n = 2 + portals.length, cost = new Array(n).fill(Infinity), prev = new Array(n).fill(-1), done = new Array(n).fill(false);
@@ -81,8 +86,8 @@ export function portalRoute(a, b, portals) {
     if (u < 0 || u === 1) break;
     done[u] = true;
     const here = pos(u);
-    if (cost[u] + dist(here, b) < cost[1]) { cost[1] = cost[u] + dist(here, b); prev[1] = u; }
-    portals.forEach((p, i) => { const c = cost[u] + dist(here, p.at); if (c < cost[2 + i]) { cost[2 + i] = c; prev[2 + i] = u; } });
+    if (cost[u] + walk(here, b) < cost[1]) { cost[1] = cost[u] + walk(here, b); prev[1] = u; }
+    portals.forEach((p, i) => { const c = cost[u] + walk(here, p.at); if (c < cost[2 + i]) { cost[2 + i] = c; prev[2 + i] = u; } });
   }
   const via = [];
   for (let k = prev[1]; k > 0; k = prev[k]) via.unshift(portals[k - 2]);
@@ -177,10 +182,14 @@ export function interestGaps(samples, pois, r = 40) {
   if (start != null) gaps.push(gap(start, last));
   const total = samples.length ? samples[samples.length - 1].at : 0;
   const empty = gaps.reduce((a, g) => a + g.metres, 0);
-  const longest = gaps.reduce((a, g) => (g.metres > a.metres ? g : a), { metres: 0, seconds: 0, from: null, to: null });
-  return { gaps: gaps.filter((g) => g.metres > 0).sort((a, b) => b.metres - a.metres), longest, emptyShare: total ? +(empty / total).toFixed(2) : 0 };
+  // (samples timed along the way, `t` in seconds: a world crossed partly on foot, partly on a mount had later; the longest
+  // stretch is the longest in time)
+  const timed = samples.length > 0 && samples.every((s) => Number.isFinite(s.t));
+  const key = timed ? 'seconds' : 'metres';
+  const longest = gaps.reduce((a, g) => (g[key] > a[key] ? g : a), { metres: 0, seconds: 0, from: null, to: null });
+  return { gaps: gaps.filter((g) => g.metres > 0).sort((a, b) => b[key] - a[key]), longest, emptyShare: total ? +(empty / total).toFixed(2) : 0, ...(timed ? { timed } : {}) };
 }
-const gap = (a, b) => ({ from: a.pos.map(Math.round), to: b.pos.map(Math.round), at: a.at, metres: +(b.at - a.at).toFixed(1), seconds: +((b.at - a.at) / RUN).toFixed(1) });
+const gap = (a, b) => ({ from: a.pos.map(Math.round), to: b.pos.map(Math.round), at: a.at, metres: +(b.at - a.at).toFixed(1), seconds: +(Number.isFinite(a.t) && Number.isFinite(b.t) ? b.t - a.t : (b.at - a.at) / RUN).toFixed(1) });
 /** How fast a world is crossed, m/s: on foot (running), or on its mount once you have it (the bike, the bird, the skiff). */
 export const TRAVEL = { foot: RUN, bike: 20, bird: 18, skiff: 12 };
 
@@ -330,8 +339,8 @@ export function scoreWorld(m) {
   const S = {};
   S.landmarks = { score: clamp5(1 + (m.landmarks.count >= 3 ? 1 : 0) + (m.landmarks.fromSpawn >= 1 ? 1 : 0) + (m.landmarks.seenShare >= 0.6 ? 1 : 0) + (m.landmarks.seenShare >= 0.9 ? 1 : 0)), from: `${m.landmarks.count} landmarks, ${m.landmarks.fromSpawn} seen from the landing, ${Math.round(m.landmarks.seenShare * 100)} % of the path sees one` };
   S.wayfinding = { score: band(m.guidance.guidedShare, [[0.2, 1], [0.4, 2], [0.6, 3], [0.8, 4]], 5), from: `${Math.round(m.guidance.guidedShare * 100)} % of the long legs see their goal or a landmark by it` };
-  const speed = m.travel?.speed ?? RUN, gapS = Math.round(m.gaps.longest.metres / speed);
-  S.density = { score: band(gapS, [[20, 5], [35, 4], [60, 3], [100, 2]], 1), from: `longest empty stretch ${m.gaps.longest.metres} m (${gapS} s ${m.travel?.by ?? 'running'}); ${Math.round(m.gaps.emptyShare * 100)} % of the path empty` };
+  const speed = m.travel?.speed ?? RUN, gapS = Math.round(m.gaps.timed ? m.gaps.longest.seconds : m.gaps.longest.metres / speed);
+  S.density = { score: band(gapS, [[20, 5], [35, 4], [60, 3], [100, 2]], 1), from: `longest empty stretch ${m.gaps.longest.metres} m (${gapS} s ${m.gaps.timed ? m.travel?.then ?? m.travel?.by : m.travel?.by ?? 'running'}); ${Math.round(m.gaps.emptyShare * 100)} % of the path empty` };
   S.spacing = { score: clamp5(5 - (m.spacing.p90 > 120 ? 1 : 0) - (m.spacing.p90 > 200 ? 1 : 0) - Math.min(2, m.spacing.loners.length * 0.5) - (m.spacing.count < 12 ? 1 : 0)), from: `${m.spacing.count} places, nearest neighbour median ${m.spacing.median} m, 90th ${m.spacing.p90} m, ${m.spacing.loners.length} loners` };
   const empties = m.returns.filter((r) => r.empty);
   S.loops = { score: clamp5(5 - empties.length - Math.min(2, m.remote.length * 0.5) - (empties.some((r) => r.metres > 300) ? 1 : 0)), from: `${m.returns.length} walks back (${empties.length} with nothing new), ${m.remote.length} remote dead ends` };

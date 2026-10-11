@@ -538,14 +538,41 @@ const FACING = (id, d = 12, lift = 3.2, side = 0) => PIN(`npcs.find((q) => q.def
 // (the desert's crowd is its pilgrims' procession, desert-city.js desertCrowdSpots: from beside a banner-bearer)
 const PROCESSION_VIEW = PIN(`crowd.people.filter((p) => p.role === 'banner')[3]`, 14, 3.6, 'Math.PI / 2 + 0.5', 55);
 const C42_PEOPLE = '95e2a3fb';
+const FROM_CINE43 = 'The cinematics QC’s own frames (scripts/cinematics-qc.mjs, 960 × 540, High): the same second of the review page’s film before the v1.43 fixes and after';
 const FROM_PIRATES = 'headless Chrome against this branch’s own dev server, High, 1280 × 720, ?game=pirates&to=edena (Edena’s planet ahead), the run flown ahead by the game’s pilot (10 October)';
 // (v1.42's chests: made by hand, a scratch shooter against this branch's own Vite and its parent's tree, the camera
 // pinned in the chest's own frame, the traveller placed by it; the opening held at the same share of the opening)
 const FROM_CHESTS42 = 'headless Chrome (High, 1280 × 720, hour 10, clear, muted) against this branch’s own Vite and its parent commit’s tree, the camera pinned in the chest’s own frame and the traveller placed beside it, the opening held at the same moment: the same views for both';
 const COST42 = { device: 'the Mac (M4 Pro), headless Chrome, 1280 × 720, hour 10', source: 'renderer.info over renderFrame() with the desert’s chests shown and hidden (the least of 5), the programs linked once the view is up; the same views as the pictures' };
 export const CHANGELOG_MEDIA = {
-  '1.43': [
+  '1.44': [
+    { match: 'At the edge of Vael’s plain stands the riders’ gate', shots: [
+      { name: 'vael-gate', caption: 'The plain’s edge between the tower and the great table: before, the sand running out to the cloud; after, the riders’ gate, its lantern on its chain, the stones that fell up beyond', commit: 'f8095c14b3adc6c86da10242098879326ce0b449',
+        view: { level: 'arzach', eye: [-58, 26, -985], target: [-40, 30, -930], fov: 60, hour: 12 } },
+    ] },
+    { match: 'Between Lorn’s swamp and the Deep Wood, the keepers’ light', shots: [
+      { name: 'lorn-light', caption: 'Over the open water where the swamp meets the wood, at dusk: before, the wood’s trunks and nothing on the water; after, the keepers’ light on its stilts, its coral lamp lit', commit: 'f8095c14b3adc6c86da10242098879326ce0b449',
+        view: { level: 'perdide', eye: [-20, 5, -290], target: [-44, 14, -330], fov: 60, hour: 18.4 } },
+    ] },
+    { match: 'In the Glass Dunes, the float-posts lead', shots: [
+      { name: 'dunes-floats', caption: 'From beside the Clock-House’s door, west along the warm flow: before, the sand; after, the float-posts, a green float on each, leading back toward the landing flat', commit: 'f8095c14b3adc6c86da10242098879326ce0b449',
+        view: { level: 'glassdunes', eye: [118, 4, 104], target: [30, 3, 118], fov: 60, hour: 16.5 } },
+    ] },
+    { match: 'The Glass Dunes’ Glass slalom, the Buried Machine’s Canyon dive', shots: [
+      { name: 'trial-column', caption: 'The Glass slalom’s start by the ship: before, only its stone (a run for the jets); after, the column of rising rings that lifts your wings to the first ring', commit: '9ad95b78aa1b3bbaad14ab256fa8ae1cf40af141',
+        view: { level: 'glassdunes', eye: [-10, 8, 236], target: [18, 20, 204], fov: 60, hour: 16.5 } },
+    ] },
+    // (the cinematics QC, v1.43: the same frame of the review page's film before and after the fix, docs/systems/cinematics-qc.md)
+    { match: 'The films at the end of the Glass Dunes', shots: [
+      { name: 'film-whales', title: 'The whales', caption: 'The second panel: before, out of the last tube at whales 150 m off, only dark water; after, a whale close outside the Whale Gallery’s glass', from: FROM_CINE43 },
+      { name: 'film-moon', title: 'The moon', caption: 'The second panel: before, 37 m under the hung moon, its shell filling the frame; after, the moon whole on its hook under the roof', from: FROM_CINE43 },
+      { name: 'film-cables', title: 'The cables', caption: 'The second panel: before, the island’s underside and the void; after, the great cable to the Towers drawn taut, its lamps running along it', from: FROM_CINE43 },
+      { name: 'film-clock', title: 'The clock', caption: 'A second into the first shot: before, the lens pulled in against the Clock-House’s wall; after, the house, its cogs and the clock from out on the sand', from: FROM_CINE43 },
+    ] },
     // (a new game: pictures with no before; the run flown ahead by its pilot, minigame.session.forward)
+  ],
+  '1.43': [
+    // (the merged worlds' crossings, f8095c14; the trials on the wings, 9ad95b78: the same view before and after)
     { match: 'Pirates between worlds', shots: [
       { name: 'pirates-fight', only: 'after', title: 'The raiders', caption: 'Two raiders holding ahead of the ship, firing, the destination’s planet over them', from: FROM_PIRATES },
       { name: 'pirates-captain', only: 'after', title: 'The captain', caption: 'The captain’s galleon under its solar sails: its two brass guns first', from: FROM_PIRATES },

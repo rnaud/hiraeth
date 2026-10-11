@@ -514,7 +514,7 @@ export const BOOK = {
     ], ['On her ledge in the canyon.']),
     P('tull', 'Tull', 'Oils the oval doors', [
       'Tull oils the oval doors, unpaid; the alternative was listening to them squeal. The window on the balcony is always warm, as if something is still working behind it.',
-      [f('clue.buried.garage'), 'A man in a tall helmet came down once, a Major who had built a world and forgotten why. He wrote numbers on the drum wall, laughed once and left.'],
+      [f('clue.buried.garage'), 'A clock-winder from the glass country came down once to see where the slow time came from. She wrote numbers on the drum wall, laughed once and went back up to her clocks.'],
     ], ['At the oval doors in the canyon.']),
     P('pim', 'Jot', 'Nine teeth old', [
       'Jot was nine teeth old and waiting to be ten. Ten-teeth-olds are allowed down the ramp.',

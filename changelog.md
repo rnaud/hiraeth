@@ -2,6 +2,24 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.44 — 2026-10-11
+
+- The Glass Dunes’ Glass slalom, the Buried Machine’s Canyon dive and the Signal Market’s Avenue run are flown on your wings now, with columns of rising air to climb again on the way, so their rewards can be won: the strong lodestone, the fourth pouch and the racer’s ribbon.
+- The films at the end of the Glass Dunes, the Underwater City, the Moon Foundry and the floating city show what they are about: a whale passes close outside the Whale Gallery’s glass, the hung moon is seen whole on its hook, the camera follows the great cable to the Towers with its lamps, and the clock’s first shot no longer jams against the house’s wall.
+- The Underwater City, the Moon Foundry and the City Floating in Space each have a makers’ run of their own, built from their temple’s kit: the Sounding walk in the Avenue, three brass horns that wake to the whale-horn’s note; the Moon roll on the foundry floor, two stone moons to roll into their cradles; and the Moorers’ leap off the Towers into the dark, up the void’s breath and over the gulf.
+- The Arena’s list of temple guardians has the three newest too: the Listener of the Whale-House, the Last Founder of the Casting-House and the Anchor-Warden of the Mooring-House, to spar with in the ring.
+- On the Overnight Train, Edda’s grandmother on the last roof is called Solange now, so she is never mixed up with Mireille of the Underwater City, and the credits list the train’s people with the Signal Market’s.
+- Fen, in the far dome of the Deep Wood, knows the skiff you whistle for in Lorn’s swamp: it was his, lent to Odile and Talo forty years ago, and he gives it to you.
+- Deep in the Buried Machine, Tull at the oval doors and the numbers scratched on the drum wall now tell of a clock-winder from the Glass Dunes who came down to see the great wheel, where they spoke of a Major from a world no longer on your way.
+- Each of those stories has its own recording now: after the bell you ask the reel for “bell”, and after the lamps for “lamp”, then “why”.
+- Ringing the bell under the cloud and lighting the Deep Wood’s lamps close their own pages in the sketchbook again, beside Vael’s and Lorn’s, each with its own closing words.
+- In the Glass Dunes, the float-posts lead from the Clock-House back to your landing flat past the float-blowers’ rack, and a cairn with a streamer stands on the frozen wave’s crest, 33 m up: walk up the wave’s back to it and see both camps from the top.
+- The water-way Hollin lights for you now runs on south over the open water, past the keepers’ lamp-boat, all the way to your ship.
+- Between Lorn’s swamp and the Deep Wood, the keepers’ light now stands in the open water, a lamp tower on stilts that Hollin fills each evening, and the ferry bell hangs on its post off the landing island.
+- Knots of the monks’ old rope way still hang on little floating stones between the monastery and the floating island: Calix tells you to follow them out to the clapper, and the fallen-up tiles home.
+- A string of riders’ lanterns now crosses the cloud from the rose cliff north to the gate, with a wide stone halfway where riders waited out a fog. They light with the monks’ lanterns when the bell rings, and Brother Calix sends you home by them, to your ship on the plain.
+- At the edge of Vael’s plain stands the riders’ gate, two tall pillars of rose stone where the bird riders set off over the cloud to the stones that fell up. Once the bird has answered you, the scout leads you to it first, then on to Sister Aube.
+
 ## v1.43 — 2026-10-10
 
 - No more frame drops in the Arena when a new kind of foe comes in or the first one falls: every foe the world can field is made ready while it loads.

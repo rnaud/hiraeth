@@ -77,7 +77,10 @@ export function setupArzach2(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   // the main quest doesn't just appear: it starts when you talk to Sister Aube (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted('arzach2.bell')) quests.opensWith('arzach2.bell', 'aube');
+  // (in Vael the sky stones lie over the cloud south of the plain: from the plain the scout finds the riders' gate at its
+  //  edge first, where the riders set off over the cloud, then Aube; src/vael-crossing.js)
+  const onPlain = () => !!A.gate && player.pos.z < (A.plainEdgeAt?.(player.pos.x) ?? A.plainEdge) - 6 && flat(player.pos, A.gate.at) > 18;
+  if (!quests.isStarted('arzach2.bell')) quests.opensWith('arzach2.bell', 'aube', { at: 'aubeWay', label: () => (onPlain() ? 'The riders’ gate, the way to Sister Aube' : null) });
   if (game.flag('arzach2.cairn.placed') === undefined) game.set('arzach2.cairn.placed', 0);
   const ground = (x, z, from) => { const g = physics.groundAt(x, from, z, 60); return Number.isFinite(g) ? g : from - 3; };
   const Q = 'arzach2.bell';
@@ -97,6 +100,7 @@ export function setupArzach2(ctx) {
     use: use ?? (() => dialogue.start(def, null, at)),
   });
   thing(THINGS.face, A.face, { range: 7, height: 8, prompt: 'look at the face on the tower' });
+  if (A.gate) thing(THINGS.gate, A.gate.look, { range: 5, height: 6, prompt: 'look at the riders’ gate' });
 
   // ---------------------------------------------------------------- the signal lamp on the plinth, and Ysolde's lamp on the cliff
   // Ondine answers the letter with a light: the monks' old signal brazier beside the face. Its
@@ -458,6 +462,8 @@ export function setupArzach2(ctx) {
   // ---------------------------------------------------------------- places for the quest markers
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
   quests.locate('monastery', () => A.monastery);
+  quests.locate('gate', () => A.gate?.at ?? null);
+  quests.locate('aubeWay', () => (onPlain() ? A.gate.at : people.aube?.pos ?? null));
   quests.locate('clapper', () => clapperAt);
   quests.locate('rope', () => A.ropeFoot);
   quests.locate('cairn', () => A.cairn);
@@ -513,6 +519,8 @@ export function setupArzach2(ctx) {
     if (game.flag('arzach2.bell.rung') && bell.settle < 1 && !bell.hold) bell.settle = Math.min(1, bell.settle + dt / (bell.settleFor ?? 12));
     // the riders' lantern stones light again once the bell has rung (src/sky-stones-ways.js): the way home
     A.lanterns?.lit(!!game.flag('arzach2.bell.rung'));
+    A.riders?.lit(!!game.flag('arzach2.bell.rung'));   // (in Vael: the riders' lanterns and the gate's, home to the plain)
+    A.gate?.lit(!!game.flag('arzach2.bell.rung'));
     bell.dip = Math.max(0, bell.dip - dt / 6);
     const k = THREE.MathUtils.smootherstep(bell.settle, 0, 1), dip = Math.sin(Math.PI * bell.dip) * 2.5;
     const drop = SETTLE * k + dip;

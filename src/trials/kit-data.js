@@ -8,7 +8,8 @@
 //
 //   id       'kit-<world>' (its best: minigame.kit-<world>.best; its first finish: trial.kit-<world>.done)
 //   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps',
-//            'spherecourt', 'longlook', 'echorelay', 'vinewalk', 'bellcrossing', 'lampwalk', 'discrun'
+//            'spherecourt', 'longlook', 'echorelay', 'vinewalk', 'bellcrossing', 'lampwalk', 'discrun', 'soundwalk',
+//            'moonroll', 'moorleap'
 //   origin   [x, y, z] the course's frame (its entrance, at floor level) and yaw (radians: its +z runs
 //            into it); everything else is in that frame, metres
 //   marker   [x, z] the sign, in the course's frame (on the ground there)
@@ -23,7 +24,7 @@
 //   noWings  the wings opened end it at once too (the vine walk: a glide would carry you over its gaps)
 //   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash;
 //            'kitwings'; 'kitecho': walk, splash, play the shell back; 'kitbell': walk, jump, sound the bell;
-//            'kitlamp': walk, jump, stand by a lamp with the lantern)
+//            'kitlamp': walk, jump, stand by a lamp with the lantern; 'kithorn': walk, jump, sound the whale-horn)
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
 //            lines: first, beaten (the makers' mark, the first time), again }): every line carries its tone
 
@@ -203,6 +204,54 @@ export const KIT_TRIALS = {
       first: '~happy~ The old ones say the makers rode discs like those over the hot sand at noon. You kept your feet cooler than they did.',
       beaten: '~surprised~ Under the makers’ own mark! I’ll tell the kiln. The kiln will not care, but I’ll tell it.',
       again: '~playful~ Round again? The discs don’t mind. They have nowhere else to be either.',
+    },
+  },
+  // (the three worlds that joined the route in v1.40, each from its temple's kit)
+  'kit-underwater': {
+    id: 'kit-underwater', world: 'underwater', mode: 'kit', course: 'soundwalk', name: 'Sounding walk', color: '#6f8fd8',
+    blurb: 'The Whale-House’s brass horns stood out on a strip of its shell-pink floor in the Avenue’s north-west, under the dome: two listening screens and three horns that wait for the whales’ deep note.',
+    rules: 'Walk the strip past the screens to the arch at its end. Then wake the three horns: sound the whale-horn by each, close enough for it to hear. Its note carries only a few steps.',
+    origin: [-30, 0.12, 26], yaw: 0,
+    marker: [-4.8, -4], start: [0, 0.6], heading: 0, par: 30,
+    needs: ['horn'], lacks: 'Its horns answer only the whale-horn’s deep note.',
+    onFoot: true, offFeet: 'Feet only: walked, not flown.',
+    controls: 'kithorn',
+    voice: {
+      who: 'coralie', name: 'Coralie', from: 'who keeps the café',
+      first: '~happy~ Three horns, one after another! The cups on my counter rattled with every note. I’ll call that a review.',
+      beaten: '~surprised~ Quicker than the makers meant! The last horn was still humming when the first one woke.',
+      again: '~playful~ Again? The regulars have started timing you. They bet in sugar lumps.',
+    },
+  },
+  'kit-moonfoundry': {
+    id: 'kit-moonfoundry', world: 'moonfoundry', mode: 'kit', course: 'moonroll', name: 'Moon roll', color: '#e89a5a',
+    blurb: 'The Casting-House’s stone moons and cradles stood out on the foundry floor south of the last furnace: three hoist frames to weave round and two test casts to roll home.',
+    rules: 'Weave round the hoist frames to the arch at the far end. Then roll both stone moons into their cradles with the fluid’s push, each its own way: a splash only nudges one.',
+    origin: [78, 0.12, -22], yaw: Math.PI,
+    marker: [5.4, -7], start: [0, 0.6], heading: 0, par: 50,
+    needs: ['backpack', 'gun'], lacks: 'The moons roll only for the fluid gun’s push.',
+    onFoot: true,
+    voice: {
+      who: 'bertil', name: 'Bertil', from: 'who pours at the last furnace',
+      first: '~happy~ Both moons in their cradles, and neither one cracked. My first test casts went into the wall. Twice.',
+      beaten: '~surprised~ Under the founders’ own mark! The furnace roared when the second one went home. It likes a good roll.',
+      again: '~neutral~ Again? Mind the cradles. They’re older than the floor.',
+    },
+  },
+  'kit-spacecity': {
+    id: 'kit-spacecity', world: 'spacecity', mode: 'kit', course: 'moorleap', name: 'Moorers’ leap', color: '#f0c06a',
+    blurb: 'The Mooring-House’s breath of the void stood out from the Towers’ east edge into the dark: a mooring post, a gulf of open dark and a landing with a capstan wall.',
+    rules: 'Open your wings in the void’s breath beside the mooring post and ride it up to the deck. Glide the gulf to the landing, then wake the capstan wall’s three eyes with the fluid in one breath. Into the dark, and the run is over.',
+    origin: [112, 6.1, -84], yaw: Math.PI / 2,
+    marker: [5.4, -6.4], start: [0, 1.5], heading: 0, par: 45,
+    needs: ['backpack', 'gun', 'glider'], lacks: 'It is flown as much as walked: it wants the fluid wings, and the gun for its eyes.',
+    onFoot: true, offFeet: 'Wings and feet only: no jets.',
+    fall: { after: 1, below: 3, words: 'Into the dark' },
+    voice: {
+      who: 'tamar', name: 'Tamar', from: 'who minds the cables',
+      first: '~solemn~ Up the breath, over the dark, and all three eyes. The moorers used to do that with a rope round their waists.',
+      beaten: '~surprised~ Quicker than the moorers! The cables hummed when you landed. I felt it in my teeth.',
+      again: '~playful~ Again? The dark is patient. I am too, mostly.',
     },
   },
 };

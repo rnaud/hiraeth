@@ -76,21 +76,25 @@ export const TRIALS = {
     gates: [[-53.3, -6, 179.2, 6], [-53.3, 40, 179.2, 6], [-53.3, 90, 179.2, 6], [-53.3, 140, 179.2, 6], [-53.3, 190, 179.2, 6], [-72.7, 211, 244.4, 9]],
     reward: 'deepwell',
   },
-  // (the Sealed Hangar's Pillar slalom until October 2026, its world dismissed: the jets' run moved to the Glass Dunes)
+  // (the Sealed Hangar's Pillar slalom until October 2026, its world dismissed: the jets' run moved to the Glass Dunes;
+  // on the wings since v1.43, the jets a debug item since v1.38: four columns of rising air carry you round)
   glassdunes: {
-    id: 'trial-glassdunes', world: 'glassdunes', mode: 'jets', name: 'Glass slalom', color: '#d6a94a',
-    blurb: 'A slalom of the glass dunes on the jets: up the valley, over the frozen wave, round the breaking one and home.',
-    rules: 'Fly through every ring in order, round the walls of glass and back down the valley to the ship.',
+    id: 'trial-glassdunes', world: 'glassdunes', mode: 'glider', name: 'Glass slalom', color: '#d6a94a',
+    blurb: 'A slalom of the glass dunes on the wings: up a column of rising air by the ship, round the Clock-House, up again by the billows, under the breaking wave, round the giants’ cliff and home.',
+    rules: 'Open your wings in the first column and ride it up, then glide through every ring in order; each column on the way lifts you again. Round the walls of glass and back down the valley to the ship.',
     marker: [14, 212], start: [18, null, 204], heading: 3.1, speed: 12,
-    gates: [[36, 16, 150, 8], [96, 24, 104, 8], [128, 32, 20, 8], [80, 46, -60, 8], [10, 44, -110, 8], [-70, 34, -120, 8], [-110, 30, -10, 8], [-50, 44, 60, 8], [-24, 18, 140, 8], [10, 12, 190, 9]],
+    winds: [[18, 204, 7, 58, 9], [140, 0, 7, 60, 9], [-60, -130, 7, 56, 9], [-118, 66, 7, 52, 9]],
+    gates: [[18, 56, 204, 7], [60, 44, 150, 8], [96, 32, 104, 8], [140, 58, 0, 7], [90, 44, -70, 8], [20, 26, -120, 8], [-60, 54, -130, 7], [-125, 31, -20, 8], [-118, 51, 66, 7], [-60, 33, 150, 8], [5, 17, 195, 9]],
     reward: 'lodestone',
   },
+  // (on the wings since v1.43: down into the canyon on a glide, and out on the column of rising air at its end)
   buried: {
-    id: 'trial-buried', world: 'buried', mode: 'jets', name: 'Canyon dive', color: '#c98d4f',
-    blurb: 'Rings down into the canyon north of the landing, and out again.',
-    rules: 'On the jets, dive through every ring in order down the canyon and climb out at its end.',
+    id: 'trial-buried', world: 'buried', mode: 'glider', name: 'Canyon dive', color: '#c98d4f',
+    blurb: 'Rings down into the canyon north of the landing, and a column of rising air at its end to carry you out.',
+    rules: 'Open your wings in the column on the rim and ride it up, then dive through every ring in order down the canyon. At its end the column lifts you out to the last ring on the rim.',
     marker: [14, 52], start: [10, null, 44], heading: 3.0, speed: 10,
-    gates: [[-5, 22, 0, 8], [-25, 8, -60, 8], [-30, -4, -100, 8], [-30, -16, -140, 8], [-30, 0, -175, 8], [10, 24, -150, 9]],
+    winds: [[10, 44, 7, 40, 9], [-30, -182, 7, 72, 10]],
+    gates: [[10, 41, 44, 7], [-5, 34, 0, 8], [-25, 14, -60, 8], [-30, 0, -100, 8], [-30, -18, -140, 8], [-30, 35, -182, 7], [10, 27, -150, 9]],
     reward: 'fourthpouch',
   },
   spheres: {
@@ -126,12 +130,14 @@ export const TRIALS = {
     gates: [[0, 80, 3], [0, 34, 3], [0, -10, 3], [0, -44, 3], [24, -74, 3], [56, -77, 3], [24, -74, 3], [-24, -66, 3], [-58, -63, 3], [-24, -66, 3], [0, -76, 3], [0, -104, 3], [0, -136, 3.5]],
     reward: 'courierribbon',
   },
+  // (on the wings since v1.43: two columns of rising air, one at the avenue's head and one halfway)
   bazaar: {
-    id: 'trial-bazaar', world: 'bazaar', mode: 'jets', name: 'Avenue run', color: '#ff5fa2',
-    blurb: 'Rings of light down the market’s avenue, between the towers and over the skybridges.',
-    rules: 'On the jets, fly through every ring in order down the avenue to the silent tower’s square.',
+    id: 'trial-bazaar', world: 'bazaar', mode: 'glider', name: 'Avenue run', color: '#ff5fa2',
+    blurb: 'Rings of light down the market’s avenue on the wings, between the towers and over the skybridges.',
+    rules: 'Open your wings in the column at the avenue’s head and ride it up, then glide through every ring in order down the avenue; halfway a second column lifts you again, on to the silent tower’s square.',
     marker: [-14, 112], start: [-6, null, 118], heading: 3.1, speed: 12,
-    gates: [[-15, 12, 70, 8], [15, 24, 40, 8], [0, 34, 28, 8], [-20, 38, -20, 8], [18, 42, -60, 8], [0, 42, -92, 8], [0, 26, -135, 9]],
+    winds: [[-6, 118, 7, 52, 9], [0, 10, 7, 54, 9]],
+    gates: [[-6, 49, 118, 7], [-15, 43, 70, 8], [15, 34, 40, 8], [0, 51, 10, 7], [-20, 46, -24, 8], [18, 36, -60, 8], [0, 29, -92, 8], [0, 21, -135, 9]],
     reward: 'racersribbon',
   },
 };

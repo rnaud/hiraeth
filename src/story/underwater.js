@@ -53,8 +53,11 @@ export function setupUnderwater(ctx) {
       // the whales, filmed once: out of the house after its keeper is calmed, near its door
       if (!rt?.outside || !player?.pos || !game.flag('temple.underwater.done') || game.flag('underwater.moment.whales')) return;
       if (rt.inside?.(player.pos) || player.pos.distanceTo(rt.outside.door.at) > FILM_NEAR) return;
+      if (near < 1) return;   // (once the whales have come in to the glass: the film's second panel is of them)
       film.whales({ said: 'Against the glass, close enough to fog it, a whale is singing.' });
     },
+    /** The whales in at the glass at once (the review page's staging: src/cinematics-page/runtime.js). */
+    whalesIn() { near = 1; level?.whalesNear?.(1); },
     dispose() { off?.(); if (closing) clearTimeout(closing); },
   };
 }

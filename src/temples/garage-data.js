@@ -61,7 +61,8 @@ export const PEOPLE = {
         after: {
           say: ["~surprised~ Listen. A steady tick. (The hands above the door move. The great cogs in the sand turn.)",
             "~happy~ Every clock agrees! I checked twice. The kiln-keepers laughed and blamed the smoke in their eyes.",
-            "~solemn~ I’ll still wind them each morning. Now I’ll know when morning is."],
+            "~solemn~ I’ll still wind them each morning. Now I’ll know when morning is.",
+            "~happy~ Go home by *the float-posts*, the green floats on poles. The carriers set them out from my door to your landing flat."],
           do: { set: { 'clue.glassdunes.buried': true } },
           choices: [
             { text: '~curious~ What does the Foreman keep time for?', goto: 'wheel' },

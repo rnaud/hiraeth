@@ -66,15 +66,15 @@ export function buildFallenTiles(scene) {
   return { points: TILE_TRAIL.map((p) => p.slice()), sight: mid.clone(), mesh: im, update };
 }
 
-export function buildLanternStones(scene) {
+export function buildLanternStones(scene, { stones = LANTERN_STONES, name = 'The lantern stones', wide = {} } = {}) {
   const stone = makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', flat: true });
   const iron = makeMaterial({ color: '#3c4660', flat: true });
   const dark = makeMaterial({ color: '#8a7a62', flat: true });
   const lamp = makeMaterial({ color: '#ffd9a0', glow: 1 });
   const rock = [], crook = [], glass = [];
   const tops = [];
-  LANTERN_STONES.forEach(([x, y, z], i) => {
-    const r = 2.6 + (i % 3) * 0.5;
+  stones.forEach(([x, y, z], i) => {
+    const r = wide[i] ?? 2.6 + (i % 3) * 0.5;   // (a wide one: a stone to stop on, src/vael-crossing.js)
     // a flat-topped stone with a point of rock under it, a crook of iron on its top, and a lantern hung from the crook
     rock.push(flat0(new THREE.CylinderGeometry(r, r * 0.86, 1.2, 9).translate(x, y - 0.6, z)), flat0(new THREE.ConeGeometry(r * 0.86, r * 2.2, 8).rotateX(Math.PI).translate(x, y - 1.2 - r * 1.1, z)));
     const yaw = i * 0.9;
@@ -86,7 +86,7 @@ export function buildLanternStones(scene) {
     tops.push(V(x, y, z));
   });
   const rocks = new THREE.Mesh(mergeGeometries(rock), stone);
-  rocks.name = 'The lantern stones';
+  rocks.name = name;
   const crooks = new THREE.Mesh(mergeGeometries(crook), iron);
   const glassGeo = mergeGeometries(glass);
   const unlit = new THREE.Mesh(glassGeo, dark), litGlass = new THREE.Mesh(glassGeo, lamp);
@@ -100,7 +100,7 @@ export function buildLanternStones(scene) {
   const lit = (on) => { litGlass.visible = !!on; unlit.visible = !on; };
   // they bob, a little out of step with the floating stones
   const update = (t) => { g.position.y = Math.sin(t * 0.3 + 1.1) * 0.9; };
-  return { points: LANTERN_STONES.map((p) => [p[0], p[1] + 2, p[2]]), sight: tops[3].clone(), stones: tops, group: g, lit, update };
+  return { points: stones.map((p) => [p[0], p[1] + 2, p[2]]), sight: tops[Math.min(3, tops.length - 1)].clone(), stones: tops, group: g, lit, isLit: () => litGlass.visible, update };
 }
 
 /**

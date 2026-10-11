@@ -231,7 +231,7 @@ test('side quests: Dun’s key off the floating derrick, the three gauges, the w
   talk(PEOPLE.ossa, []);
   assert.equal(quests.isDone('buried.gauges'), true);
   assert.equal(game.flag('clue.buried.mark'), true, 'the Maker’s Thumb is the glyph');
-  // the window, and the numbers by the doorway (the clue back to the Hangar)
+  // the window, and the numbers by the doorway (the clue back to the Glass Dunes' clock-winder)
   talk(PEOPLE.tull, ['What’s behind the window?', 'I’ll climb up']);
   assert.equal(quests.stage('buried.window'), 'climb');
   at(V(B.oculus.x, B.oculus.balcony, B.oculus.z - B.oculus.r + 3));

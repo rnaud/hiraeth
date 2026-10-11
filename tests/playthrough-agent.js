@@ -107,7 +107,7 @@ export function loadWorld(id, { journal = memoryJournal(), report = () => {} } =
   const toasts = [];
   let pageDone = false;
   journal.seen.add(id);
-  const story = { complete: () => { pageDone = true; journal.done.add(id); }, def: CONTENT[id]?.story ?? {}, done: false, goal: null };
+  const story = { complete: () => { pageDone = true; journal.done.add(id); }, completePart: (part) => { journal.done.add(part); return true; }, def: CONTENT[id]?.story ?? {}, done: false, goal: null };
   const rt = quiet(() => createStory({ levelId: id, scene, physics, level, player, npcs, crowd: null, sound, journal, story, capture: null, lib: null, humans: null,
     toast: (t) => toasts.push(t), tool: null, isNight: () => false }));
   // the ship's ramp stands in for the ship (src/ship/ship.js arrivalSpot): where the fallback boxes go and "back to the ship" points

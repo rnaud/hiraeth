@@ -50,6 +50,8 @@ const CONTROLS = {
   kitbell: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the bell']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the bell']] },
   // (the lamp walk: the lantern charm wakes a lamp by itself; you only stand by it)
   kitlamp: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump']] },
+  // (the Underwater City's sounding walk: the whale-horn sounds on the bell's button, src/boxes/effects.js)
+  kithorn: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the whale-horn']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the whale-horn']] },
   kitecho: { pad: [['Left stick', 'walk; L3 to run'], ['LT / L2', 'aim'], ['RT / R2', 'splash a stone'], ['Y / △', 'play the shell back']], keys: [['W A S D', 'walk; Shift to run'], ['Right mouse', 'aim'], ['Left mouse', 'splash a stone'], ['V', 'play the shell back']] },
 };
 

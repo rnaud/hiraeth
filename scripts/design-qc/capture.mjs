@@ -6,6 +6,8 @@
 //   node scripts/design-qc/capture.mjs <out-dir> [--views a/views.json,b/views.json] [--svgs dir1,dir2]
 //        [--worlds desert,incal] [--rest 15] [--res 960x540] [--preset high]
 //   PORT (default 5344; never 5173, the author's own server). Chrome's debugging port: chosen by Chrome.
+//   QC_VITE_CACHE: the dev server's cache folder (default: in Chrome's throwaway profile; in a worktree whose node_modules is
+//   a link to the main checkout's, give one inside the worktree, .vite-cache/qc, or its deps cannot find three)
 // Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -60,7 +62,7 @@ const worlds = [...new Set(views.map((v) => v.world))].filter((w) => !only || on
 if (worlds.length) {
   const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
   // (its own dependency cache: in a worktree node_modules is the main checkout's, and its .vite is the author's server's)
-  server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false, server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
+  server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.QC_VITE_CACHE ?? join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false, server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
   await server.listen();
   await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 }

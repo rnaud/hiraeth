@@ -858,6 +858,47 @@ coming round), Marit's Kiln-Stall (the kiosk), a court, boxes, a trial (the Glas
 relics, three locals (Aster, Corin, Oren), cog mice and glass hoppers. **The Atelier** left the picker (home and
 the Lantern remain).
 
+## The merged worlds' crossings (v1.43)
+
+The merged worlds' follow-ups (issue #19). The level design audit (v1.39) found Vael's and Lorn's joins empty and the
+Glass Dunes bunched and flat; it had also been walking from one shop's room into the next one's through the sky (two
+worlds' rooms stand 90 m apart over the map), which hid the real walks between the parts. Measured again with that
+fixed (`scripts/level-design/lib.mjs` `portalRoute`: no walk from a room built far overhead to any other), with Vael's
+bell flown on the bird once she has answered (`MOUNTED_AFTER` in `scripts/level-design/audit.mjs`: those stretches timed
+at her speed and not draped down into the cloud): Vael 3.89 → 3.78 (the honest walk) → **4.33**, Lorn 3.89 → 4.0 →
+**4.33**, the Glass Dunes 3.22 → **3.89**.
+
+- **Can the sky stones be reached on foot from Vael's plain?** Yes, their first plateaus: the long aqueduct from the
+  plain's edge to the needle plateau (where Ondine walks out), and the short one on to the start plateau and Sister
+  Aube. The rose cliff (the monastery), the great table and the floating island stand out of the cloud on their own:
+  the bell's quest is flown on the bird. `tests/merged-ways.test.js` walks it.
+- **Vael** (`src/vael-crossing.js`, built last in `finishVael`): **the riders' gate** (`GATE`), two leaning pillars of
+  the plain's rose stone and a lintel 27 m tall, 30 m in from the plain's edge between the tower and the great table,
+  a riders' lantern on a chain, a streamer and the riders' pennon: the crossing's weenie, seen from the landing, the
+  tower's window and the rose cliff; a thing to look at (`THINGS.gate`: the riders' names scratched in it). Once the
+  bird has answered, the scout finds the gate first from the plain, then Sister Aube over the cloud (the bell's opener
+  `at: 'aubeWay'`, a label that changes with where you are; the route's `crossGate` act checks it). **The riders'
+  lanterns** (`RIDERS_LANTERNS`), nine lantern stones from the rose cliff's north lip to the gate, the fifth a wide
+  stone with a bench and a hand-bell (the halfway stone): dark until the bell rings, with the gate's lantern; Calix's
+  `listen` stage sends you home by them (`home: 'the riders’ lanterns'`; the monks' lantern stones still lead to
+  Aube). **The old rope way** (`ROPE_WAY`): a post on the monastery's east lip and one before the island church's
+  porch, their frayed ropes, and three knots of it snagged on small floating stones between: the clapper's way out
+  (`via` on `clapper`), the tiles its way home. Calix's `bring` and `again` lines name it.
+- **Lorn** (`src/lorn-crossing.js`, built last in `buildPerdide`): **the keepers' light** (`KEEPERS_LIGHT`), a lamp
+  tower on three stilts in the open water between the swamp and the wood, on the line from the crystal cave to Hollin,
+  its coral lamp 18 m up and lit (Hollin fills it): the crossing's weenie. **The ferry bell** (`FERRY_BELL`) on a post
+  in the shallows off the landing island's north-west shore. **The water-way south** (`WATER_WAY_SOUTH`): the
+  water-way's lamps carried on from the Deep Wood's island over the open water and down the channel east of the landing
+  island, the keepers' lamp-boat moored halfway, lit with the rest of the water-way (`level.waterWay.lit` lights both):
+  the merged level's line `the water-way` runs on to the ship, so Hollin's `home` reaches it. Hollin says so.
+- **The Glass Dunes** (`src/glass-dunes-ways.js`): **the float-posts** (`FLOAT_POSTS`), poles with a green float on each
+  from the Clock-House's door west along the warm flow and north to the landing flat, the float-blowers' rack halfway:
+  the way home Wim sends you by (her `after` line; the route's temple step names it, `home`, which the audit reads).
+  **The wave's cairn** (`WAVE_CAIRN`) on the frozen wave's crest, 33 m up, walked up from the wave's north-west back.
+  For the audit: the two camps, the passage through the wave, the rack and the cairn are `sights`, the cairn a beacon.
+All of it is drawn with its world's own materials (no new shader programs); what stands on the ground collides as drawn,
+what hangs in the air or rides the water is drawn only and marked `floats`.
+
 ## The Glass Dunes: a detour off the route (October 2026)
 
 `?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates
@@ -1532,9 +1573,9 @@ after references/levels/The Overnight Train/; its kit `overnight-train-kit.js` s
   it belongs to; no longer in SIDE or WIP). The Signal Market's night halt (`src/levels/night-halt.js`: past the landing
   at the market's south end, a line of rail out to the dark, a platform, a lamp, a bell, a shelter with the timetable)
   is where the night mail (docs/story-bible.md, `src/story/night-train.js`) begins: Edda gives you a letter for her
-  grandmother Mireille, the bell calls the train (`?level=overnighttrain&from=bazaar`: aboard on the dining car's
+  grandmother Solange, the bell calls the train (`?level=overnighttrain&from=bazaar`: aboard on the dining car's
   station-side porch, the train pulling out of the halt), Ambrose the conductor sends you up onto the roofs of the long
-  tail where Mireille keeps the chalk mark, and, asked, brakes the train into the market's halt; the step down on the
+  tail where Solange keeps the chalk mark, and, asked, brakes the train into the market's halt; the step down on the
   station side (`?level=bazaar&from=overnighttrain`) puts you on the halt's platform. A page's `?from=<world>` arrives at
   the level's `arrivals[from]` (main.js; the address then loses it, so a reload continues from the save). A save on the
   train wakes on the running train with the quest where it was. The ship rides the landing wagon (the night train
@@ -1556,7 +1597,7 @@ after references/levels/The Overnight Train/; its kit `overnight-train-kit.js` s
   night mail’s steps aboard: tests/playthrough-worlds.js `SUBROUTES`): 2.78 → 3.22, wayfinding 3 → 5 (two roof riders on the long tail with
   a line each, the roof gardens, the sky lounge, the balcony and the chalk mark as sights: the longest empty stretch
   149 m → none), with the roof walk as the leading line Ambrose sends you along. Landmarks and verticality score 1 by
-  nature (a train is long and level); the walk back from Mireille to Ambrose is the same roofs (300 m, 37 s).
+  nature (a train is long and level); the walk back from Solange to Ambrose is the same roofs (300 m, 37 s).
 
 - **The train stands still; the land runs past.** The world's frame is the train's: its carriages, floors, walls,
   rails and roofs are ordinary static collision (27 k triangles), the crowd and the traveller walk them as any town.

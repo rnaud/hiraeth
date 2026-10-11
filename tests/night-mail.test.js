@@ -1,7 +1,7 @@
 // The night mail, played through (src/story/night-train.js, docs/story-bible.md "The night mail"): the Signal Market's
 // side quest that takes you aboard the Overnight Train, its sub-level. In node, on the game's own modules (the
 // play-through's agent, tests/playthrough-agent.js): the market's halt, Edda and her bell; the train boarded from it,
-// running, Ambrose on the porch, Mireille on the last roof; the stop asked for, the halt, the step down; back at the
+// running, Ambrose on the porch, Solange on the last roof; the stop asked for, the halt, the step down; back at the
 // halt with the answer. And the saves: a save on the train wakes on the running train with the quest where it was.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,7 +17,7 @@ const use = (W, id) => { const e = allInteractables().find((x) => x.id === id); 
 /** Where the page would go (src/story/night-train.js travel: game 'travel:page'). */
 const listen = () => { const went = []; const off = game.on('travel:page', ({ href }) => went.push(href)); return { went, off }; };
 
-test('the night mail: the market\'s halt, the train boarded from it, Mireille on the last roof, the stop, the step down, the answer home', () => {
+test('the night mail: the market\'s halt, the train boarded from it, Solange on the last roof, the stop, the step down, the answer home', () => {
   loadSave({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.powered': true }, keepsakes: [] });
   assert.equal(SUB.overnighttrain, 'bazaar');
 
@@ -47,21 +47,21 @@ test('the night mail: the market\'s halt, the train boarded from it, Mireille on
   assert.ok(W.level.spawn.distanceTo(NIGHT_MAIL.arrival.pos) < 0.01 && W.level.arrivals.bazaar === NIGHT_MAIL.arrival, 'you step aboard on the station-side porch');
   assert.equal(W.level.run.phase, 'leaving', 'the train pulling out of the halt');
   assert.ok(standNear(W, NIGHT_MAIL.arrival.pos, { radius: 0.5, up: 0.4 }), 'the porch is solid under you');
-  assert.equal(W.quests.stage(Q), 'find', 'aboard: find Mireille, ask the conductor');
+  assert.equal(W.quests.stage(Q), 'find', 'aboard: find Solange, ask the conductor');
   W.step(60 * 1.5);   // (the train gets going)
   r = talkTo(W, 'ambrose', goalOf(W, Q));
   assert.ok(!r.error, r.error);
   assert.equal(W.quests.stage(Q), 'mireille', 'Ambrose sends you to the roofs of the long tail');
-  // Mireille: on the last carriage's roof by the chalk mark, reached by the ladder on the long tail's first porch
-  const m = W.npcs.find((n) => n.def?.id === 'mireille');
-  assert.ok(m && m.pos.x < TAIL + 6 && m.pos.y > WALK - 0.2, 'Mireille on the last roof');
+  // Solange: on the last carriage's roof by the chalk mark, reached by the ladder on the long tail's first porch
+  const m = W.npcs.find((n) => n.def?.id === 'solange');
+  assert.ok(m && m.pos.x < TAIL + 6 && m.pos.y > WALK - 0.2, 'Solange on the last roof');
   assert.ok(standNear(W, m.pos, { radius: 2, up: 0.6 }), 'room to stand by her on the roof');
   const tail = CARS.filter((c) => c.kind === 'coach');
   for (const c of tail) assert.ok(Math.abs(W.physics.groundAt(c.xc, WALK + 3, 0, 5) - WALK) < 0.15, `the roof walk over the long tail (${c.i})`);
   o = objectiveNow(W);
-  assert.ok(o.raw && o.raw.position.distanceTo(m.pos) < 1, 'the objective is Mireille');
+  assert.ok(o.raw && o.raw.position.distanceTo(m.pos) < 1, 'the objective is Solange');
   W.at(standNear(W, m.pos, { radius: 2, up: 0.6 }).add(V(1.2, 0, 0))); W.step(3);   // (walked up to her: people far off aren't drawn)
-  r = talkTo(W, 'mireille', goalOf(W, Q));
+  r = talkTo(W, 'solange', goalOf(W, Q));
   assert.ok(!r.error, r.error);
   assert.equal(W.quests.stage(Q), 'stop', 'she writes her answer');
   assert.ok(W.quests.has('reply') && !W.quests.has('letter'));
@@ -109,7 +109,7 @@ test('a save on the train wakes on the running train, the night mail where it wa
   assert.equal(W.level.from, null);
   assert.equal(W.level.run.phase, 'running', 'running, not waiting at a station');
   assert.equal(W.quests.stage(Q), 'mireille', 'the quest where it was');
-  assert.ok(W.npcs.some((n) => n.def?.id === 'mireille') && W.npcs.some((n) => n.def?.id === 'ambrose'));
+  assert.ok(W.npcs.some((n) => n.def?.id === 'solange') && W.npcs.some((n) => n.def?.id === 'ambrose'));
   W.step(60 * 20);
   assert.equal(W.level.run.phase, 'running', 'still running twenty seconds on: nobody asked it to stop');
   W.dispose();

@@ -3,6 +3,7 @@ import { progressBefore } from '../debug-save.js';
 import { CINEMATICS } from './catalog.js';
 import { CallDirector, TakeoffDirector } from '../ship/cinematics.js';
 import { callLines, callContext, recordingLabel } from '../story/calls.js';
+import { ENDING_WORLDS } from '../story/ending.js';
 import { ORDER, TITLES } from '../levels/names.js';
 const selected = () => CINEMATICS.find(e => e.id === new URLSearchParams(location.search).get('cinematicReview'));
 export async function seedReview() {
@@ -58,6 +59,9 @@ export async function startReview(w) {
  * refused to start. The review page calls it after seeding its save; the world debug menu (src/world-debug.js)
  * calls it in the save being played.
  */
+/** The worlds whose climax is filmed outside their temple once its guardian is done: the temple's id. */
+const TEMPLE_MOMENTS = { glassdunes: 'garage', underwater: 'underwater', moonfoundry: 'moonfoundry', spacecity: 'spacecity' };
+
 export async function stageCinematic(w, e) {
   const W = w.storyRt.world, V = (...a) => new w.THREE.Vector3(...a), up = V(0, 1, 0);
   const place = (p, offset = V(0, 0, 0)) => { if (!p) throw new Error('Missing staging position'); w.player.teleport(p.clone().add(offset), up, V(0, 0, 1)); };
@@ -65,7 +69,11 @@ export async function stageCinematic(w, e) {
   const settle = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   let ok = true;
   if (e.id.startsWith('call.')) {
-    const ctx = callContext(game, { titles: TITLES, completed: ORDER, lastWorld: 'bazaar' });
+    // (recording n after the n-th world on the route, as in play: its word that world's; past the last on the reel,
+    //  the reel's oldest side, the last one heard: every one from the 6th on played the last recording's words before)
+    const done = typeof e.n === 'number' ? ORDER.slice(0, Math.min(e.n, ORDER.length)) : ORDER;
+    if (typeof e.n === 'number' && e.n > ENDING_WORLDS) game.set('calls.home', true);
+    const ctx = callContext(game, { titles: TITLES, completed: done, lastWorld: done.at(-1) ?? 'bazaar' });
     w.ship.cinematic = new CallDirector(w.ship, { n: e.n, lines: callLines(e.n, ctx), label: recordingLabel(e.n, ctx), onDone() {} });
     w.ship.cinematic.start();
   } else if (e.id === 'takeoff') {
@@ -112,6 +120,17 @@ export async function stageCinematic(w, e) {
       place(w.level.shaft.places.palace.crown, V(3.2, 0, 1.2)); await settle();   // (on the terrace round the needle, not in it)
       if (w.rig) w.rig.pitch = w.rig.pitchUpLimit?.() ?? -0.6;
       W.giveBack(w.camera); ok = w.storyRt.moments.current?.id === e.id;
+    } else if (TEMPLE_MOMENTS[e.world]) {
+      // as in play: out of the temple once its guardian is done, a few steps from its door, the world's change shown (the
+      // whales in at the glass, the cables taut, the moons turned, the clock keeping time). They were filmed from the
+      // landing, the world unchanged: the cinematics QC, v1.43
+      const id = TEMPLE_MOMENTS[e.world];
+      game.set(`temple.${id}.done`, true);
+      const T = w.level.temples?.find((t) => t.id === id) ?? w.level.temple, d = T?.outside?.door;
+      place(d?.at, V(Math.sin(d?.heading ?? 0) * 4, 0.1, Math.cos(d?.heading ?? 0) * 4));
+      W.whalesIn?.();
+      await settle(); await settle();
+      ok = w.storyRt.moments.current?.id === e.id || W.film[key]('');
     } else { await settle(); ok = W.film[key](); }
   }
   return ok;

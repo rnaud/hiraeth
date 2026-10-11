@@ -11,6 +11,7 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { LOCALS } from '../story/glassdunes-people.js';
+import { buildFloatPosts, buildWaveCairn, WAVE_CAIRN } from '../glass-dunes-ways.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes (?level=glassdunes; docs/systems/worlds.md "The Glass Dunes"): on the route since
@@ -144,6 +145,12 @@ export function* buildGlassDunes(scene) {
     ridges.push({ ...r, ridge });
     glass.add(M.glass, ridge.geo, { shadow: r.shadow ?? true, solid: r.solid ?? true });
   }
+  // (the frozen wave's crest where the cairn stands, src/glass-dunes-ways.js: found on the ridge as drawn)
+  const crest = (() => {
+    const wave = ridges.find((r) => r.name === 'wave'), ray = new THREE.Raycaster(new THREE.Vector3(WAVE_CAIRN.x, 300, WAVE_CAIRN.z), new THREE.Vector3(0, -1, 0));
+    const hit = wave && ray.intersectObject(new THREE.Mesh(wave.ridge.geo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })))[0];
+    return hit ? hit.point.y : 33;
+  })();
   yield;
   for (const [i, path] of GLASS_FLOWS.entries()) {
     const flow = glassRidge({ H: (x, z) => terrain.heightAt(x, z), seed: 80 + i, path, height: 0.5, depth: 4, depthVary: 0.8, profile: 'flow', folds: { width: 30, amp: 0.6, lean: 0, crest: 0 }, sink: 0.4, ends: 6, thin: 0.9 });
@@ -179,6 +186,9 @@ export function* buildGlassDunes(scene) {
   for (const r of ridges) for (const q of r.ridge.passages) for (const s of [0, q.d]) lights.push(new THREE.Vector4(q.x + q.nx * s, q.y + q.h * 0.4, q.z + q.nz * s, q.w * 1.2));
   for (const c of Object.values(GLASS_CAMPS)) lights.push(new THREE.Vector4(c.x, terrain.heightAt(c.x, c.z) + 2, c.z, 12));
 
+  // the float-posts from the Clock-House home to the landing flat, and the cairn on the frozen wave's crest
+  // (src/glass-dunes-ways.js, the merged worlds' follow-ups: the walk back was the way out, and the basin all one level)
+  const floats = buildFloatPosts(scene, M, terrain), cairn = buildWaveCairn(scene, M, crest);
   const spawn = new THREE.Vector3(GLASS_SHIP.x, 0, GLASS_SHIP.z - 24);
   spawn.y = terrain.heightAt(spawn.x, spawn.z);
   // Marit's kiln-stall (src/shop-world.js, src/shop-fronts.js 'kiosk': the riveted cabin that stood by the First
@@ -220,8 +230,19 @@ export function* buildGlassDunes(scene) {
     atmo: () => ({ tint: [1, 1, 1], fog: 0.3, name: 'The Glass Dunes' }),
     // the Clock-House's brass finial over the sand, seen from the ship's flat (scripts/level-design/audit.mjs aims at a
     // level's beacons as landmarks: the height grid's peak of the drum lies inside it, behind its own wall)
-    beacons: [{ name: 'the Clock-House', top: [CLOCK_HOUSE.x, CLOCK_HOUSE.y + 30.5, CLOCK_HOUSE.z], height: 5 }],
-    update() {},
+    beacons: [{ name: 'the Clock-House', top: [CLOCK_HOUSE.x, CLOCK_HOUSE.y + 30.5, CLOCK_HOUSE.z], height: 5 }, { name: 'the wave’s cairn', top: cairn.top.toArray(), height: 5 }],
+    // what the level design audit reads (scripts/level-design/audit.mjs): the float-posts, the way home Wim sends you by
+    // (only where it is named: the route's temple step, tests/playthrough-worlds.js); the places to stop at that are
+    // neither people nor quests: the camps, the passage through the wave, the rack, the cairn
+    lines: [{ name: 'the float-posts', points: floats.points, auto: false }],
+    sights: [
+      { name: 'the west camp', at: new THREE.Vector3(GLASS_CAMPS.west.x, terrain.heightAt(GLASS_CAMPS.west.x, GLASS_CAMPS.west.z) + 0.5, GLASS_CAMPS.west.z) },
+      { name: 'the north camp, under the breaking wave', at: new THREE.Vector3(GLASS_CAMPS.north.x, terrain.heightAt(GLASS_CAMPS.north.x, GLASS_CAMPS.north.z) + 0.5, GLASS_CAMPS.north.z) },
+      { name: 'the passage through the frozen wave', at: new THREE.Vector3(-12, terrain.heightAt(-12, 44) + 0.5, 44) },
+      { name: 'the float-blowers’ rack', at: floats.rack },
+      { name: 'the wave’s cairn', at: cairn.at },
+    ],
+    update(dt, t) { cairn.wave(t ?? 0); },
   };
   return attachTemple('garage', scene, level);
 }

@@ -8,6 +8,50 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.44', date: '2026-10-11', items: [
+    // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)
+    { text: 'At the edge of Vael’s plain stands the riders’ gate, two tall pillars of rose stone where the bird riders set off over the cloud to the stones that fell up. Once the bird has answered you, the scout leads you to it first, then on to Sister Aube.',
+      numbers: [
+        { title: 'How Vael, Lorn and the Glass Dunes are laid out (the level design audit, 1 to 5)', unit: '', better: 'higher', device: 'Node, the level design audit (scripts/level-design/audit.mjs), each world as the play-through builds it', rows: [
+          { where: 'Vael', before: 3.78, after: 4.33 },
+          { where: 'Lorn', before: 4.0, after: 4.33 },
+          { where: 'the Glass Dunes', before: 3.22, after: 3.89 },
+          { where: 'Vael: the longest empty stretch (s)', before: 55, after: 29 },
+          { where: 'Lorn: the longest empty stretch on the skiff (s)', before: 30, after: 20 },
+        ], source: 'before: the audit with its walk between two shops’ rooms through the sky fixed, so the real walks between the parts count' },
+      ],
+      see: 'In Vael, once the bird has answered, look south from the landing: the gate stands at the plain’s edge with the cloud beyond. Walk up to it and look at it: the riders’ names are scratched in the pillars.' },
+    { text: 'A string of riders’ lanterns now crosses the cloud from the rose cliff north to the gate, with a wide stone halfway where riders waited out a fog. They light with the monks’ lanterns when the bell rings, and Brother Calix sends you home by them, to your ship on the plain.',
+      see: 'In Vael, ring the bell and listen with Calix: off the monastery’s north lip the lantern stones lead over the cloud to the riders’ gate, its lantern lit too.' },
+    { text: 'Knots of the monks’ old rope way still hang on little floating stones between the monastery and the floating island: Calix tells you to follow them out to the clapper, and the fallen-up tiles home.',
+      see: 'In Vael, from the monastery’s east lip by the rope’s post, look east toward the island church: three small stones with frayed rope and planks hanging from them lead the way.' },
+    { text: 'Between Lorn’s swamp and the Deep Wood, the keepers’ light now stands in the open water, a lamp tower on stilts that Hollin fills each evening, and the ferry bell hangs on its post off the landing island.',
+      see: 'In Lorn, look north from the landing over the water: the coral lamp at the wood’s edge is the keepers’ light, on the way from the crystal cave to Hollin.' },
+    { text: 'The water-way Hollin lights for you now runs on south over the open water, past the keepers’ lamp-boat, all the way to your ship.',
+      see: 'In Lorn, finish the lamps and tell Hollin at the root cave: follow the lit water-way round the deep water and on south down the channel to the landing.' },
+    { text: 'In the Glass Dunes, the float-posts lead from the Clock-House back to your landing flat past the float-blowers’ rack, and a cairn with a streamer stands on the frozen wave’s crest, 33 m up: walk up the wave’s back to it and see both camps from the top.',
+      see: 'In the Glass Dunes, after the Clock-House Wim sends you home by the float-posts. The frozen wave is in the middle of the valley; climb its gentle north-west side to the cairn.' },
+    // the story's loose ends from the merge (docs/story-bible.md; issue #20)
+    { text: 'Ringing the bell under the cloud and lighting the Deep Wood’s lamps close their own pages in the sketchbook again, beside Vael’s and Lorn’s, each with its own closing words.',
+      see: 'Ring Vael II’s bell and listen with Calix, then open the Sketchbook: Vael’s row has a second story picture, The Bell Under the Cloud. Lorn’s gets The Lamps Are Kept once you have told Hollin.' },
+    { text: 'Each of those stories has its own recording now: after the bell you ask the reel for “bell”, and after the lamps for “lamp”, then “why”.',
+      see: 'After the bell (or the lamps), go back to the ship: the voicemail blinks once the world’s own recording has played. Press it at the console.' },
+    { text: 'Deep in the Buried Machine, Tull at the oval doors and the numbers scratched on the drum wall now tell of a clock-winder from the Glass Dunes who came down to see the great wheel, where they spoke of a Major from a world no longer on your way.',
+      see: 'In the Buried Machine, ask Tull at the oval doors whether anyone else has come down here, then read the scratched numbers by the drum’s doorway. With Wim’s word from the Glass Dunes, the numbers say more.' },
+    { text: 'Fen, in the far dome of the Deep Wood, knows the skiff you whistle for in Lorn’s swamp: it was his, lent to Odile and Talo forty years ago, and he gives it to you.',
+      see: 'In Lorn, ask Bram at the cave mouth whose skiff that is, then take the skiff out to Fen’s far dome on the deep water.' },
+    { text: 'On the Overnight Train, Edda’s grandmother on the last roof is called Solange now, so she is never mixed up with Mireille of the Underwater City, and the credits list the train’s people with the Signal Market’s.',
+      see: 'Ring the Signal Market’s halt bell with Edda’s letter, board the train and climb to the last carriage’s roof: Solange reads the letter there. The credits show her under the Signal Market.' },
+    // the three new worlds' loose ends (v1.40's batch)
+    { text: 'The Arena’s list of temple guardians has the three newest too: the Listener of the Whale-House, the Last Founder of the Casting-House and the Anchor-Warden of the Mooring-House, to spar with in the ring.',
+      see: 'In the Arena, open the FOES list and go down to Temple guardians: the Listener, the Last Founder and the Anchor-Warden are there. Call one and step into the ring.' },
+    { text: 'The Underwater City, the Moon Foundry and the City Floating in Space each have a makers’ run of their own, built from their temple’s kit: the Sounding walk in the Avenue, three brass horns that wake to the whale-horn’s note; the Moon roll on the foundry floor, two stone moons to roll into their cradles; and the Moorers’ leap off the Towers into the dark, up the void’s breath and over the gulf.',
+      see: 'The Sounding walk: the Avenue’s north-west, by Coralie’s café (it wants the whale-horn). The Moon roll: the foundry floor south of Bertil’s furnace. The Moorers’ leap: the Towers’ east edge, by Tamar (it wants the wings). Each has a makers’ sign at its start.' },
+    'The films at the end of the Glass Dunes, the Underwater City, the Moon Foundry and the floating city show what they are about: a whale passes close outside the Whale Gallery’s glass, the hung moon is seen whole on its hook, the camera follows the great cable to the Towers with its lamps, and the clock’s first shot no longer jams against the house’s wall.',
+    // the jets' trials outside the City-Shaft (issue #21)
+    { text: 'The Glass Dunes’ Glass slalom, the Buried Machine’s Canyon dive and the Signal Market’s Avenue run are flown on your wings now, with columns of rising air to climb again on the way, so their rewards can be won: the strong lodestone, the fourth pouch and the racer’s ribbon.',
+      see: 'At each trial’s stone (the Glass Dunes by the ship, the Buried Machine on the canyon’s rim north of the landing, the Signal Market at the avenue’s head), start the run, open your wings in the column of rising rings and ride it up, then glide through the rings. In the Canyon dive the column at the canyon’s end lifts you out.' },
+  ] },
   { v: '1.43', date: '2026-10-10', items: [
     // the chime-pirates between worlds (docs/systems/minigames.md "Pirates between worlds")
     { text: 'Pirates between worlds: the first time your ship flies to a world you have never been to, chime-pirates come after it on the way. “They are after your chimes!” Fly on through the dark, among the stars and the drifting rocks, shoot them down, roll away from their fire, and beat their captain’s galleon before you land. Later flights to that world go straight there.',

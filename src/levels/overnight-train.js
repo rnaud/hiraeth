@@ -71,7 +71,7 @@ export const SHIP_SITE = { x: LW.xc - 4, z: 0, heading: Math.PI / 2 };
 export const STATION = { x: -70, half: 72, z0: TR.half + 0.35, depth: 7 };
 /** The station-side porch you board at from the market's halt: the dining car's back porch (the gap's middle is railed but for the plate). */
 export const PORCH_X = car('dining').x0 - 0.6;
-/** The night mail aboard (src/story/night-train.js): where you step on and off, Ambrose, Mireille by her chalk mark. */
+/** The night mail aboard (src/story/night-train.js): where you step on and off, Ambrose, Solange by her chalk mark. */
 export const NIGHT_MAIL = {
   arrival: { pos: new THREE.Vector3(PORCH_X, FLOOR + 0.05, 1.3), heading: Math.PI / 2 },
   stepOff: new THREE.Vector3(PORCH_X, FLOOR, 2.0),
@@ -127,7 +127,7 @@ export const TRAIN_CONTENT = {
         '~curious~ Nobody gets on and nobody gets off. The stations are for the tea, I think, and for the quiet.',
         '~whisper~ At the very back the carriages are shut. People sleep there who boarded long ago.',
       ] } },
-    // up on the long tail's roofs, on the way to Mireille: two who ride outside too (the night mail's walk back there)
+    // up on the long tail's roofs, on the way to Solange: two who ride outside too (the night mail's walk back there)
     { at: [car('coach', 1).xc + 2, 0.55], y: WALK + 0.02, radius: 2.4, lang: 'bazaar', lines: ['~happy~ Sit down, sit down. Standing up here, the wind takes your hat to the next station.', '~curious~ Going to see the chalk lady? She’s at the very end. Mind the planks.'] },
     { at: [car('coach', 3).xc - 3, -0.55], y: WALK + 0.02, radius: 2.4, lang: 'bazaar', lines: ['~whisper~ Look back. You can see the whole night we’ve come through.', '~playful~ The gantries! Duck! (He never ducks.)'] },
     // the train's own folk

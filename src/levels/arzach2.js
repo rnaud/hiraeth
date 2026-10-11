@@ -925,7 +925,7 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
       monastery: new THREE.Vector3(MONASTERY.x, MONASTERY.top, MONASTERY.z),
       face: new THREE.Vector3(FACE.x, FACE.y, FACE.z),
       tower: new THREE.Vector3(TOWER.x, terrain.heightAt(TOWER.x, TOWER.z), TOWER.z),
-      plainEdge: PLAIN_EDGE,
+      plainEdge: PLAIN_EDGE, plainEdgeAt: plainEdge,
       tiles, lanterns, clapperLamp,
     },
     atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Vael II · the peach plain' : 'Vael II · the sky stones' }),

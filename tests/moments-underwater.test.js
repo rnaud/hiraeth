@@ -73,6 +73,12 @@ test('out of the Whale-House once its keeper is calmed: the world is done, its k
   w.player.pos.copy(level.spawn);
   w.step(2);
   assert.equal(ship.shots.length, 0, 'not from the ship');
+  // (the whales come in to the glass over 8 s first: the film's second panel is of them, from the Whale Gallery)
+  w.player.pos.copy(rt0.outside.door.at).addScaledVector(V(Math.sin(rt0.outside.door.heading), 0, Math.cos(rt0.outside.door.heading)), 6);
+  w.step(30);
+  assert.equal(ship.shots.length, 0, 'not before the whales are in');
+  w.player.pos.copy(level.spawn);
+  w.step(30 * 9);
   // out by the door
   const D = rt0.outside.door, out = V(Math.sin(D.heading), 0, Math.cos(D.heading));
   w.player.pos.copy(D.at).addScaledVector(out, 6);

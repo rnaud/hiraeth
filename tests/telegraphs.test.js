@@ -49,7 +49,7 @@ test('every wind-up is long enough to read (Normal; Gentle longer): foes by weig
 });
 
 test('each guardian is a staged fight: 4-6 moves of its own, three phases that add moves, a combo that ends in an opening, an opening in every phase', () => {
-  assert.equal(GUARDIANS.length, 11);
+  assert.equal(GUARDIANS.length, 14, 'every temple’s guardian, the three of v1.40 too (the Listener, the Last Founder, the Anchor-Warden)');
   const ids = new Set();
   for (const G of GUARDIANS) {
     const D = G.def, A = D.attacks, own = Object.keys(A).filter((k) => !A[k].link);
@@ -78,7 +78,7 @@ test('each guardian is a staged fight: 4-6 moves of its own, three phases that a
       assert.ok(opens, `${G.id}: phase ${i} opens somewhere`);
     }
   }
-  assert.equal(ids.size, 11, 'no two guardians fight with the same moves');
+  assert.equal(ids.size, 14, 'no two guardians fight with the same moves');
 });
 
 function stub(def, model = null) {

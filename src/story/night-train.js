@@ -10,7 +10,7 @@ import { Q, QUESTS, PEOPLE, THINGS, ITEMS } from './night-train-data.js';
 //     the bell on its post. Ringing it (once Edda has given you her letter, or any time after) calls the Overnight
 //     Train: the screen fades and the next page is the train, pulling out of the halt (?level=overnighttrain&from=bazaar).
 //   aboard (setupTrainStory, the train's own story): Ambrose the conductor on the station-side porch where you boarded,
-//     Mireille on the last carriage's roof by her chalk mark; asking Ambrose to stop brakes the train into the market's halt
+//     Solange on the last carriage's roof by her chalk mark; asking Ambrose to stop brakes the train into the market's halt
 //     (level.requestStop), and once it halts the step down on the station side takes you back to the market's halt
 //     (?level=bazaar&from=overnighttrain: level.arrivals, main.js).
 //
@@ -91,7 +91,7 @@ export function setupNightHalt(ctx) {
 // ------------------------------------------------------------------ aboard the Overnight Train
 
 /**
- * The train's own story (src/story/index.js WORLDS.overnighttrain): Ambrose, Mireille, the step down at a halt, the stop
+ * The train's own story (src/story/index.js WORLDS.overnighttrain): Ambrose, Solange, the step down at a halt, the stop
  * asked for. Needs the train level's `nightMail` ({ ambrose, mireille, stepOff, heading… }) and its run (level.run,
  * level.requestStop, level.from).
  */

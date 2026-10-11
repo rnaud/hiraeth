@@ -27,7 +27,7 @@ globalThis.document ??= { createElement: (tag) => (tag === 'canvas' ? Object.ass
 
 const THREE = await import('three');
 await import(join(ROOT, 'tests/register-gadgets.js'));
-const { TEMPLES } = await import(join(ROOT, 'src/temples/index.js'));
+const { TEMPLES, templesIn } = await import(join(ROOT, 'src/temples/index.js'));
 const { TempleRuntime } = await import(join(ROOT, 'src/temples/runtime.js'));
 const { solve } = await import(join(ROOT, 'src/temples/logic.js'));
 const L = await import(join(ROOT, 'scripts/temple-design/lib.mjs'));
@@ -39,7 +39,19 @@ const add = TempleRuntime.prototype.add;
 TempleRuntime.prototype.add = function (Piece, o) { record?.push({ cls: Piece.name, o }); return add.call(this, Piece, o); };
 const quiet = (f) => { const w = console.warn, l = console.log; console.warn = console.log = () => {}; try { return f(); } finally { console.warn = w; console.log = l; } };
 
-const ids = (arg('temples') ?? ORDER.filter((id) => TEMPLES[id]).join(',')).split(',').filter((id) => TEMPLES[id]);
+// the temples in the order the route reaches them: a merged world's own first, then its part's (the Aerie, then the
+// Founders' Belfry; Lorn's Hush-House, then the Lamp-House), the Clock-House in the Glass Dunes (src/temples/index.js
+// templesIn, TEMPLE_HOME)
+const ROUTE_TEMPLES = ORDER.flatMap((w) => templesIn(w).sort((a, b) => (b === w) - (a === w)));
+const gadgetOf = (id) => Object.values(TEMPLES[id]?.def.logic.elements ?? {}).find((e) => e.type === 'gadget')?.item ?? null;
+// what the traveller carries in by then (the audit once solved every temple with the backpack alone, so no ball rolled,
+// no eye was shot and no tether pulled: no temple solved, and every door counted shut for the sight lines): the
+// backpack, the gun and the double jump from the desert's boxes, and each gadget of the temples before it on the route
+const carriedInto = (id) => {
+  const k = ROUTE_TEMPLES.indexOf(id);
+  return ['backpack', 'gun', 'doublejump', ...(k < 0 ? [] : ROUTE_TEMPLES.slice(0, k).map(gadgetOf).filter(Boolean))];
+};
+const ids = (arg('temples') ?? ROUTE_TEMPLES.join(',')).split(',').filter((id) => TEMPLES[id]);
 const report = { date: new Date().toISOString(), temples: [] };
 const graphs = {};
 const views = [];
@@ -54,7 +66,7 @@ for (const id of ids) {
   const solids = [];
   rt.root.traverse((o) => { if (o.isMesh && o.geometry && !(rt.guardian && isUnder(o, rt.guardian.model?.group))) solids.push(o); });
   const ray = new THREE.Raycaster();
-  const s = solve(def.logic, { items: ['backpack'] });
+  const s = solve(def.logic, { items: carriedInto(id) });
   // the gates you came through to reach a lock's room stand open by then (an iris you flew up through, a door): their
   // pieces' meshes are left out of that lock's line of sight. A gate counts as come through when both rooms of its link
   // are reached no later than the lock's room.
@@ -80,7 +92,7 @@ for (const id of ids) {
   const guardian = rt.guardian?.def ?? null;
   const m = L.templeMetrics(g, { guardian });
   graphs[id] = g;
-  report.temples.push({ id, name: def.name, solved: s.done, skeleton: L.skeleton(g), graph: { rooms: g.rooms, order: g.roomOrder, chestRoom: g.chestRoom, locks: g.locks.map((l) => ({ id: l.id, a: l.a, b: l.b, type: l.type, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, how: k.how, room: k.room, metres: k.metres, rooms: k.rooms, visible: k.visible, mech: k.mech })), arena: l.arena, bossDoor: l.bossDoor })), traversal: g.traversal, pieces: countBy(pieces.map((p) => p.cls)) }, metrics: m });
+  report.temples.push({ id, name: def.name, solved: s.done, carried: carriedInto(id), skeleton: L.skeleton(g), graph: { rooms: g.rooms, order: g.roomOrder, chestRoom: g.chestRoom, locks: g.locks.map((l) => ({ id: l.id, a: l.a, b: l.b, type: l.type, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, how: k.how, room: k.room, metres: k.metres, rooms: k.rooms, visible: k.visible, mech: k.mech })), arena: l.arena, bossDoor: l.bossDoor })), traversal: g.traversal, pieces: countBy(pieces.map((p) => p.cls)) }, metrics: m });
   writeFileSync(join(OUT, `${id}-plan.svg`), L.planSvg(g, m, { title: `${def.name} (${id}): ${L.skeleton(g)}` }));
   // the two most obvious steps, seen from where you stand to face the lock, looking at the key
   for (const st of [...m.steps].sort((a, b) => b.obvious - a.obvious).slice(0, 2)) {

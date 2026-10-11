@@ -48,6 +48,9 @@
 // went: step 11 gives a save that had it the Warden's bellows, the Warden's Well's chest's new find (the chest stays
 // opened).
 //
+// The Overnight Train's Mireille shared her name and id with the Underwater City's (v1.43): she is Solange, and step 12
+// marks her met under her own id.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -174,6 +177,12 @@ const STEPS = [
     flags['harness.lost'] = true;
     flags['item.wardenbellows'] ??= true;
     flags['box.incal.temple.jetpack'] ??= true;
+  },
+  // 12: the Overnight Train's Mireille (the night mail's, who rides the roofs) shared her name and her id with the
+  // Underwater City's, who grows the glow-kelp: meeting one marked the other. She is Solange now ('solange'); a save that
+  // got the letter to her has met her (the kelp grower keeps 'mireille')
+  (flags) => {
+    if (flags['met.mireille'] && ['stop', 'off', 'home', 'done'].includes(flags['quest.bazaar.nightmail'])) flags['met.solange'] ??= true;
   },
 ];
 

@@ -83,6 +83,13 @@ test('what a trial wants: the items, the mount found, staying on it', () => {
   assert.equal(inMode(TRIALS.perdide, { mount, ride: mount }), true);
   assert.equal(inMode(TRIALS.perdide, { mount, ride: null }), false, 'off the skiff');
   assert.equal(inMode(TRIALS.incal, { ride: null }), true);
+  // the jets are a debug item (v1.38): no trial wants them, so every reward can be won in play (the Glass slalom, the
+  // Canyon dive and the Avenue run on the wings since v1.43, with columns of rising air to climb again)
+  for (const T of Object.values(TRIALS)) assert.notEqual(T.mode, 'jets', `${T.id}: wants the jets`);
+  for (const w of ['glassdunes', 'buried', 'bazaar']) {
+    assert.equal(lacks(TRIALS[w], { has: has('backpack', 'glider') }), '', `${w}: the wings are enough`);
+    assert.ok(TRIALS[w].winds?.length >= 2, `${w}: columns to climb again`);
+  }
 });
 
 test('the par: the course at an easy pace, with room to spare (gentle to start)', () => {

@@ -241,7 +241,8 @@ export class Quests {
     const p = this.resolve(o.at ?? o.who[0]);
     if (!p) return null;
     const st = this.def(o.id).stages[0];
-    return { id: `opener-${o.id}`, quest: o.id, label: o.label ?? st.label ?? st.text, position: p.clone() };
+    const label = typeof o.label === 'function' ? o.label() : o.label;   // (a label that changes with where you are: Vael's gate, then Aube)
+    return { id: `opener-${o.id}`, quest: o.id, label: label ?? st.label ?? st.text, position: p.clone() };
   }
 
   /** The tracked quest's objective for the scout and the marker: { id, label, position } or null. */

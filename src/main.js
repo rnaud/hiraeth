@@ -32,6 +32,7 @@ import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
 import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
+import { partsOf } from './levels/names.js';
 import { Player, CameraRig, jetCameraPitch } from './player.js';
 import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
@@ -752,7 +753,8 @@ function pumpPortraits() {
 window.portraits = portraits;   // (the console, the shot scripts)
 Object.assign(journal.menu, {
   sources: menuSources({ items, wallet: () => resources.chimes, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id), game, portrait: (id) => portraits.get(id),
-    levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title })),
+    levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title,
+      parts: partsOf(l.id).slice(1).map((p) => ({ id: p, storyTitle: CONTENT[p]?.story?.title })) })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     icon: (id) => itemIcons.get(id) }),
   onTrack: (id) => storyRt.quests.choose(id),

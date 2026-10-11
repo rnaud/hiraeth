@@ -233,9 +233,12 @@ export function sketchesPanel({ sightings = null, worlds = [], extra = [] } = {}
   for (const w of worlds) {
     const r = rows.length, cells = [];
     cells.push({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: t(w.story?.img || w.story?.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(w.story?.img ? 'gm.storyDrawn' : w.story?.told ? 'gm.storyOld' : 'gm.storyLater'), act: w.story?.img ? 'look' : null, img: w.story?.img ?? null });
-    (w.relics ?? []).forEach((x, i) => cells.push({ col: 1 + i, kind: 'relic', id: `${w.id}.${i}`, name: x.img ? x.name : t('gm.notFoundYet'), sub: t('gm.relicOf', { world: w.title, i: i + 1, n: w.relics.length }), desc: t(x.img ? 'gm.relicFound' : 'gm.relicHint'), act: x.img ? 'look' : null, img: x.img ?? null }));
+    // (a merged world's later parts' own pages, after its first: Vael II's bell, Lorn II's lamps)
+    (w.more ?? []).forEach((m, k) => cells.push({ col: 1 + k, kind: 'story', id: `${m.id}.story`, name: m.title, sub: t(m.img || m.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(m.img ? 'gm.storyDrawn' : m.told ? 'gm.storyOld' : 'gm.storyLater'), act: m.img ? 'look' : null, img: m.img ?? null }));
+    const off = 1 + (w.more?.length ?? 0);
+    (w.relics ?? []).forEach((x, i) => cells.push({ col: off + i, kind: 'relic', id: `${w.id}.${i}`, name: x.img ? x.name : t('gm.notFoundYet'), sub: t('gm.relicOf', { world: w.title, i: i + 1, n: w.relics.length }), desc: t(x.img ? 'gm.relicFound' : 'gm.relicHint'), act: x.img ? 'look' : null, img: x.img ?? null }));
     rows.push(cells);
-    sections.push(`<section class="world"><h2>${esc(w.title)} <span>${w.found ?? 0}/${w.of ?? (w.relics ?? []).length}</span></h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, c === 0)).join('')}</div></section>`);
+    sections.push(`<section class="world"><h2>${esc(w.title)} <span>${w.found ?? 0}/${w.of ?? (w.relics ?? []).length}</span></h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, x.kind === 'story')).join('')}</div></section>`);
   }
   for (const e of extra) {
     const r = rows.length;

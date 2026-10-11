@@ -189,6 +189,39 @@ room's alcove. Re-checked with `scripts/cinematics-qc.mjs --only prologue,call.1
 | `homecoming.first` | 3.5 → 3.5 (long, partly played) | 4 | — (the pops at 7.4 and 14.8 s are the approach's cuts, as before; the look out of the windshield unchanged, the second seat clear of it) | — |
 | `arrival.arzach` | 5 → 5 | 4 | — (the door's round porthole shows as the hatch opens) | — |
 
+### The new worlds' films (v1.43)
+
+The thirteen cinematics that came with the Glass Dunes and the three worlds of v1.40 (marked "Needs work: not yet
+through a QC pass"), and the merged worlds' two new recordings, at 1280 × 720 on High. Every box plays as every box
+(tech 5, interest 4: the shared design). The four world moments and the recordings from the 6th on had a staging
+problem and a framing one each:
+
+- **Staged where no player sees them.** The review page filmed the four moments from the landing, the temple not
+  done (`src/cinematics-page/runtime.js` fell back to `film[key]()`): the close-up of his face had the ship behind
+  him, and the world's change (the clock keeping time, the whales in, the cables taut, the moons turned) was not
+  there to film. They are staged now as they play: `temple.<id>.done` set, the traveller a few steps out of the
+  temple's door (`TEMPLE_MOMENTS`), the whales in at once (`whalesIn`). Every recording from the 6th on was staged
+  with all twelve worlds done, so each played the last recording's words: each is staged after its own world now.
+- **The Glass Dunes' clock**: its wide was pulled in against the house's wall a second in (the pendulum under the
+  clock swung between the lens and the face): the wide, out on the open sand, is no longer pulled in.
+- **The Underwater City's whales**: the second panel looked out of the last tube at whales 150 m off, dots in the
+  dark: it cuts to the Whale Gallery's glass, a whale passing close outside, and the film waits until the whales
+  have come in (8 s after the keeper is calmed).
+- **The Moon Foundry's moon**: the second panel stood 37 m under the hung moon (it filled the frame): from the floor
+  50 m off on the house's side now, the moon whole on its hook.
+- **The floating city's cables**: the second panel looked down at the island's underside, where no cable runs: out
+  over the void beside the great cable to the Towers now, its lamps running away along it.
+
+| Cinematic | Tech /5 (first run → after) | Interest /5 | Fixed |
+|---|---|---|---|
+| `glassdunes.clock` | 4.5 → 5 | 4 | staged at the door with the change; the wide not pulled in |
+| `underwater.whales` | 4.5 → 4.5 (the dark sea, by design) | 4 | the whale from the Whale Gallery; waits for the whales; staged |
+| `moonfoundry.moon` | 5 → 5 | 4 | the moon whole from the floor; staged |
+| `spacecity.cables` | 5 → 5 | 4 | along the great cable; staged with the change |
+| `call.10` – `call.12` | 4.5 → 5 | 3 | staged after their own worlds |
+| `call.part.arzach2`, `call.part.perdide2` (new) | 5 | 3 | — |
+| the six boxes of the three worlds | 5 | 4 | — |
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score

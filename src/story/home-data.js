@@ -93,7 +93,7 @@ export const PEOPLE = {
             { text: "~surprised~ A song AND words AND a thing! How did you pack the song?", if: band(1) },
             { text: "~happy~ I made copies from your cards. Come check mine. Be nice about the glue.", if: band(1) },
             { text: "~surprised~ So many! Did you leave anything out there?", if: band(2) },
-            { text: "~happy~ My shelf’s nearly full. The Major has to live by my socks. He doesn’t mind. I asked.", if: band(2) },
+            { text: "~happy~ My shelf’s nearly full. Wim’s clock has to live by my socks. It doesn’t mind. I asked.", if: band(2) },
             { text: "~surprised~ You brought everything! How did you still fit?", if: band(3) },
             { text: "~playful~ Tove calls my shelf a museum. Admission is one button. Family too. Rules are rules.", if: band(3) },
           ],

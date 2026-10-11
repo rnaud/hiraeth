@@ -107,7 +107,8 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
     assert.ok(homeOf(T.world, T.voice.who), `${id}: ${T.voice.who} lives in ${T.world}`);
     const def = trialGame(T, { par: T.par, session: () => ({}) });
     assert.equal(def.drives, false); assert.equal(def.score.kind, 'time'); assert.ok(def.trial);
-    if (!['kitwings', 'kitbell', 'kitlamp'].includes(T.controls)) assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
+    if (!['kitwings', 'kitbell', 'kitlamp', 'kithorn'].includes(T.controls)) assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
+    if (T.controls === 'kithorn') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /horn/.test(what)), `${id}: the card names the horn’s button`);
     if (T.controls === 'kitbell') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /bell/.test(what)), `${id}: the card names the bell’s button`);
     if (T.controls === 'kitecho') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /shell/.test(what)), `${id}: the card names the shell’s button`);
     if (T.controls === 'kitwings') assert.ok(def.controls.pad.some(([b, what]) => b === 'A / ×' && /wings/.test(what)), `${id}: the card names the wings`);

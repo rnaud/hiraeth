@@ -85,7 +85,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 11);
+  assert.equal(MIGRATED(), 12);
 });
 
 test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness (since v1.42 its bellows)', () => {
@@ -198,4 +198,14 @@ test('the merged worlds’ relic and people bases match their content', async ()
   assert.deepEqual(RELIC_BASE.arzach2, ['arzach', CONTENT.arzach.relics.spots.length - CONTENT.arzach2.relics.spots.length]);
   assert.deepEqual(NPC_BASE.perdide2, ['perdide', CONTENT.perdide.npcs.length - CONTENT.perdide2.npcs.length]);
   assert.equal(CONTENT.arzach.relics.names.at(-1), CONTENT.arzach2.relics.names.at(-1));
+});
+
+test('the Overnight Train’s Mireille is Solange (v1.43), with an id of her own: a save that brought her the letter has met her, the kelp grower stays met as she was', () => {
+  const sent = { 'save.migrated': 11, 'met.mireille': true, 'quest.bazaar.nightmail': 'done' };
+  migrateFlags(sent);
+  assert.equal(sent['met.solange'], true);
+  assert.equal(sent['met.mireille'], true, 'the Underwater City’s Mireille: unchanged');
+  const kelp = { 'save.migrated': 11, 'met.mireille': true, 'quest.underwater.kelp': 'done' };
+  migrateFlags(kelp);
+  assert.equal(kelp['met.solange'], undefined, 'never on the train');
 });

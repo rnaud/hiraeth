@@ -11,6 +11,7 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildCaveCrown, buildEggLamps, crownWindow, buildLookout } from '../lorn-ways.js';
+import { buildKeepersLight, buildFerryBell, buildWaterWaySouth } from '../lorn-crossing.js';
 import { buildDeepWood, deepWoodHeight, deepWoodWeight, DEEP_WOOD_HAZE, DEEP_WOOD } from './perdide2.js';
 import { FLORA_WORLDS } from '../flora.js';
 
@@ -609,6 +610,18 @@ export function* buildPerdide(scene) {
     },
   };
   attachTemple('perdide2', scene, level);
-  return attachTemple('perdide', scene, level);
+  attachTemple('perdide', scene, level);
+  // the crossing between the swamp and the wood (src/lorn-crossing.js, the merged worlds' follow-ups): the keepers' light
+  // in the open water, the ferry bell off the landing island, the water-way carried on south to the ship (built last, after
+  // the temples, so the audits' samples of what stood before stay where they were)
+  const light = buildKeepersLight(scene, terrain), bell = buildFerryBell(scene, terrain), south = buildWaterWaySouth(scene, terrain);
+  const way = level.waterWay, wayLit = way.lit;
+  way.lit = (on) => { wayLit(on); south.lit(on); };   // (src/story/perdide2.js lights the whole way once Hollin has heard)
+  level.crossing = { light, bell, south };
+  level.beacons = [...level.beacons, { name: 'the keepers’ light', top: light.top.toArray(), height: light.height }];
+  // (the way home by water runs on to the ship: the Deep Wood's water-way and its lamps south, one line)
+  level.lines = level.lines.map((l) => (l.name === 'the water-way' ? { ...l, points: [...l.points, ...south.points] } : l));
+  level.sights = [...level.sights, { name: 'the keepers’ light', at: light.at }, { name: 'the ferry bell', at: bell.at }, { name: 'the lamp-boat', at: south.boat }];
+  return level;
 }
 export const createPerdide = stepped(buildPerdide);

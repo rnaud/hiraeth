@@ -14,9 +14,9 @@
 // off into a long hollow, and from then on it keeps turning.
 //
 // The glyph is "the Maker's Thumb" here, pressed into every plate and gauge.
-// The Major himself (a man in a tall helmet) once came down to see the wheel,
-// left numbers on the drum wall and went back up very quiet (the Hangar's
-// note led him here, and leads you; tell the wheel the Hangar is still turning). Conversations: src/story/dialogue.js; quests:
+// A clock-winder from the glass country (the Glass Dunes, the world before this one: Wim's teacher) once came
+// down to see where the slow time comes from, left numbers on the drum wall and went back up to her clocks very
+// quiet (Wim's word leads you here; tell the wheel the dunes keep time again). Conversations: src/story/dialogue.js; quests:
 // src/story/quests.js. Flags (game-state.js): buried.* below.
 
 const Q = 'buried.tooth';
@@ -337,7 +337,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll climb up and see.', do: { start: 'buried.window' }, end: true }, { text: '~curious~ Has anyone else come down here?', goto: 'helmet' }],
         },
         helmet: {
-          say: ["~solemn~ A man in a tall helmet visited once. Called himself a Major. He’d built a world and forgotten why. Wanted to see a machine that still knew its job.", "~sad~ He wrote *on the drum wall by the doorway*. Numbers. Then watched the Wick, laughed once, and left very quietly."],
+          say: ["~solemn~ A clock-winder from the glass country came down once. An old woman, a clock on a cord round her neck. She wound every clock in her camps and wanted to see where the slow time came from.", "~sad~ She wrote *on the drum wall by the doorway*. Numbers. Then watched the Wick, laughed once, and went back up to her clocks very quietly."],
           do: { set: { 'clue.buried.garage': true } },
           choices: [{ text: '~neutral~ I’ll look at them.', end: true }, { text: '~curious~ What’s behind the window?', goto: 'behind' }],
         },
@@ -398,7 +398,7 @@ export const THINGS = {
   numbers: {
     id: 'numbers', name: 'Scratched numbers', title: 'on the drum wall', color: '#c9d4b8', voice: 0.6,
     talk: { nodes: { read: {
-      say: ["~neutral~ Someone has scratched bearings, depths and a date into the paint. A box surrounds several numbers. An arrow points down.", "~surprised~ Beneath them: FOUND IT. NOW WHAT? You recognise the Major’s approach to discovery."],
+      say: ["~neutral~ Someone has scratched bearings, depths and a date into the paint. A box surrounds several numbers. An arrow points down.", "~surprised~ Beneath them: FOUND IT. NOW WHAT? And a little clock face drawn in the paint, its one hand on a single tooth.", { if: { flag: 'clue.glassdunes.buried' }, text: "~happy~ The glassworkers draw their clocks like that. Wim said the old ones knew where the slow time came from." }],
       do: { set: { 'clue.buried.garage': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
@@ -408,11 +408,10 @@ export const THINGS = {
     talk: {
       entry: [{ if: { flag: 'buried.wheel.turned' }, node: 'after' }, { node: 'look' }],
       nodes: {
-        look: { say: ["~solemn~ Each tooth is taller than you. Sand trickles down its worn face. The wheel’s low hum reaches your feet before your ears."], choices: [{ text: '~neutral~ (tell it the dunes keep time again)', if: { all: [{ flag: 'clue.glassdunes.buried' }, { not: { flag: 'buried.told.glassdunes' } }] }, goto: 'dunes' }, { text: '~neutral~ (tell it the Hangar is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
-        after: { say: ["~solemn~ The wheel keeps turning. Tooth after tooth rises from the sand. Its hum has become a steady beat."], choices: [{ text: '~neutral~ (tell it the dunes keep time again)', if: { all: [{ flag: 'clue.glassdunes.buried' }, { not: { flag: 'buried.told.glassdunes' } }] }, goto: 'dunes' }, { text: '~neutral~ (tell it the Hangar is still turning)', if: { all: [{ flag: 'clue.garage.buried' }, { not: { flag: 'buried.told.garage' } }] }, goto: 'garage' }, { text: '~neutral~ (step back)', end: true }] },
+        look: { say: ["~solemn~ Each tooth is taller than you. Sand trickles down its worn face. The wheel’s low hum reaches your feet before your ears."], choices: [{ text: '~neutral~ (tell it the dunes keep time again)', if: { all: [{ flag: 'clue.glassdunes.buried' }, { not: { flag: 'buried.told.glassdunes' } }] }, goto: 'dunes' }, { text: '~neutral~ (step back)', end: true }] },
+        after: { say: ["~solemn~ The wheel keeps turning. Tooth after tooth rises from the sand. Its hum has become a steady beat."], choices: [{ text: '~neutral~ (tell it the dunes keep time again)', if: { all: [{ flag: 'clue.glassdunes.buried' }, { not: { flag: 'buried.told.glassdunes' } }] }, goto: 'dunes' }, { text: '~neutral~ (step back)', end: true }] },
         // (Wim's word from the Glass Dunes' Clock-House: src/temples/garage-data.js)
         dunes: { say: ["~playful~ You tell the wheel, a little self-consciously: the dunes keep time again, the Clock-House and every clock in the camps.", "~solemn~ The hum steadies, one deep beat. Somewhere far off, a small clock agrees with it."], do: { set: { 'buried.told.glassdunes': true } }, choices: [{ text: '~neutral~ (step back)', end: true }] },
-        garage: { say: ["~playful~ You tell the wheel, a little self-consciously: the Hangar is still turning.", "~solemn~ The hum changes for a moment. Almost long enough for an answer."], do: { set: { 'buried.told.garage': true } }, choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
   },

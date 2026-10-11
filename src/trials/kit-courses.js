@@ -14,6 +14,9 @@ import { PALETTE as VIRIDEL } from '../temples/edena.js';
 import { PALETTE as BELFRY } from '../temples/arzach2.js';
 import { PALETTE as LAMPHOUSE } from '../temples/perdide2.js';
 import { PALETTE as HANGAR } from '../temples/garage.js';
+import { PALETTE as WHALEHOUSE } from '../temples/underwater.js';
+import { PALETTE as CASTING } from '../temples/moonfoundry.js';
+import { PALETTE as MOORING } from '../temples/spacecity.js';
 
 // The makers' runs in the open (docs/systems/challenges.md, src/trials/kit-data.js): the temples' own kit
 // (src/temples/kit.js: halls, slabs, stairs, columns) and moving pieces (src/temples/pieces.js: Gust, Swing,
@@ -39,7 +42,8 @@ import { PALETTE as HANGAR } from '../temples/garage.js';
 //   course.update(dt, t) · course.dispose()
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL, arzach2: BELFRY, perdide2: LAMPHOUSE, garage: HANGAR, glassdunes: HANGAR };   // (the Clock-House, the First Garage that was: its palette)
+const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL, arzach2: BELFRY, perdide2: LAMPHOUSE, garage: HANGAR, glassdunes: HANGAR,   // (the Clock-House, the First Garage that was: its palette)
+  underwater: WHALEHOUSE, moonfoundry: CASTING, spacecity: MOORING };   // (the three of v1.40: their temples' own)
 
 /**
  * What a temple piece asks of its temple (src/temples/runtime.js), for a piece stood in the open. Its logic is
@@ -113,9 +117,9 @@ export function addRoller(rt, { id, a, b, r = 1, plateR = r + 0.25 }) {
  * puts it to sleep again. A post you cannot walk through. o: { id, note, at, yaw, reach }
  * → { id, note, ear, lit(), reset() }
  */
-export function addEar(rt, { id, note, at, yaw = 0, reach = 7 }) {
+export function addEar(rt, { id, note, at, yaw = 0, reach = 7, deaf = 'The horn hears its note, and stays still. It answers someone running the relay: start at the sign.' }) {
   rt.logic.def.elements[id] = { type: 'switch', room: 'open', needs: ['echo'] };
-  rt.deaf[id] = 'The horn hears its note, and stays still. It answers someone running the relay: start at the sign.';
+  rt.deaf[id] = deaf;
   const ear = rt.add(EchoEar, { id, note, at, yaw, reach });
   rt.kit.solid(new THREE.CylinderGeometry(0.3, 0.3, 2.6, 8).translate(at[0], at[1] + 1.3, at[2]));
   return {
@@ -278,6 +282,123 @@ function dish(K, x, y, z, r, yaw, tilt = 0) {
  * (local [x, y, z, r]), its bank, its swings and gusts.
  */
 export const COURSES = {
+  /**
+   * The sounding walk (the Underwater City): the Whale-House's horns stood out on a strip of its shell-pink floor in
+   * the Avenue's north-west, under the dome. Two listening screens hung with dishes, out from each side in turn; three
+   * brass horns that listen for the whales' deep note, each over 9 m from the next (the whale-horn's note carries 7 m),
+   * the last by an arch at the far end. Through the screens to the arch, then the horns, one note each.
+   */
+  soundwalk(K, rt) {
+    const W = 9, L = 24, sl = 4;
+    K.slab(-W / 2, -1, W / 2, L, 0, 0.5, K.M.floor);
+    for (const s of [-1, 1]) K.add(K.M.trim, box(0.35, 0.06, L + 1, s * (W / 2 - 0.18), 0.03, (L - 1) / 2));
+    const screens = [9, 16];
+    screens.forEach((z, i) => {
+      const side = i % 2 ? 1 : -1, x0 = side * W / 2, x1 = side * (W / 2 - sl), cx = (x0 + x1) / 2;
+      K.both(K.M.wall, box(sl, 3.2, 0.7, cx, 1.6, z));
+      K.both(K.M.trim, box(sl + 0.2, 0.3, 0.9, cx, 3.25, z));
+      dish(K, cx, 1.8, z - 0.38, 1.0, Math.PI);
+      dish(K, cx, 1.8, z + 0.38, 1.0, 0);
+    });
+    for (const s of [-1, 1]) K.column(s * 2.8, L - 1, 0, 4.2, 0.35);
+    K.both(K.M.wall, box(6.2, 0.5, 0.9, 0, 4.45, L - 1));
+    K.glyph([0, 4.45, L - 1.47], 0.8, Math.PI);
+    const deaf = 'The horn hears the deep note, and stays still. It answers someone walking the sounding walk: start at the sign.';
+    const ears = [
+      rt.ear({ id: 'n1', note: 'deep', at: [-3.2, 0, 5.5], yaw: 0, deaf }),
+      rt.ear({ id: 'n2', note: 'deep', at: [3.2, 0, 13], yaw: Math.PI, deaf }),
+      rt.ear({ id: 'n3', note: 'deep', at: [-2.6, 0, 22], yaw: Math.PI, deaf }),
+    ];
+    return {
+      // the gates: through the way past each screen, then before the arch
+      gates: [[2.4, 1.6, screens[0], 1.8], [-2.4, 1.6, screens[1], 1.8], [1.2, 1.6, L - 3, 2.2]],
+      bank: null, gusts: [], swings: [], updrafts: [], ears,
+      earGoal: 'wake the horns', earFlash: 'Now the horns: sound the whale-horn by each',
+      bounds: [[-W / 2 - 1, -3, -3], [W / 2 + 1, 6, L + 1]],
+      clear: [[-W / 2 - 1, -3], [W / 2 + 1, L + 1]],
+    };
+  },
+  /**
+   * The moon roll (the Moon Foundry): the Casting-House's stone moons and cradles stood out on the foundry floor south
+   * of the last furnace. A plinth 12 m wide and 40 long; down its first half a slalom round three hoist frames, then two
+   * grooves running into a pair of cradles in the middle (a plate each). One stone moon lies at the near end of the west
+   * groove, one at the far end of the east, so each is rolled the other way (the fluid's push; a splash only nudges one).
+   */
+  moonroll(K, rt) {
+    const W = 12, L = 40, D = 26, gx = 3.2, R = 1.1;
+    K.slab(-W / 2, -1, W / 2, L, 0, 0.5, K.M.floor);
+    for (const s of [-1, 1]) K.add(K.M.trim, box(0.35, 0.06, L + 1, s * (W / 2 - 0.18), 0.03, (L - 1) / 2));
+    // the hoist frames: two posts and a beam each, a chain and a hook hanging from it, out from each side in turn
+    const slalom = [5, 10, 15].map((z, i) => ({ x: (i % 2 ? 1 : -1) * 2.6, z }));
+    for (const { x, z } of slalom) {
+      for (const dx of [-1.1, 1.1]) K.both(K.M.trim, box(0.45, 5, 0.45, x + dx, 2.5, z));
+      K.both(K.M.wall, box(3.2, 0.5, 0.6, x, 5.2, z));
+      K.add(K.M.dark, box(0.08, 2.2, 0.08, x, 3.85, z));
+      K.add(K.M.trim, tf(new THREE.TorusGeometry(0.3, 0.07, 4, 12, Math.PI * 1.3), [x, 2.6, z], [0, 0, Math.PI * 0.85]));
+    }
+    // the cradles between the grooves (a ring each), the grooves, the stops past the plates
+    for (const s of [-1, 1]) K.add(K.M.trim, tf(annulus(1.3, 1.6, 0.08, 28), [s * gx, 0.04, D]));
+    K.glyph([0, 0.06, D], 1.4, 0);
+    const grooves = [{ id: 'west', a: 18, x: -gx }, { id: 'east', a: 36, x: gx }];
+    for (const g of grooves) {
+      const z0 = Math.min(g.a, D) - 1.2, z1 = Math.max(g.a, D) + 1.2;
+      K.add(K.M.dark, box(0.7, 0.03, z1 - z0, g.x, 0.015, (z0 + z1) / 2));
+      K.add(K.M.trim, box(1.4, 0.35, 0.3, g.x, 0.17, g.a < D ? D + R + 0.9 : D - R - 0.9));
+    }
+    const rollers = grooves.map((g) => rt.roller({ id: g.id, a: [g.x, 0.04, g.a], b: [g.x, 0.04, D], r: R, plateR: 1.35 }));
+    for (const s of [-1, 1]) K.column(s * 2.8, L - 1.6, 0, 4.6, 0.42);
+    K.both(K.M.wall, box(6.6, 0.6, 1.0, 0, 4.9, L - 1.6));
+    K.glyph([0, 4.9, L - 2.12], 0.9, Math.PI);
+    return {
+      // the gates: round each hoist frame (on the side away from it), then under the far arch
+      gates: [...slalom.map(({ x, z }) => [-Math.sign(x) * 2.4, 1.6, z, 2.0]), [0, 1.6, L - 3, 2.6]],
+      bank: null, gusts: [], swings: [], updrafts: [], rollers,
+      rollGoal: 'roll the moons home', rollFlash: 'Now the moons: roll both onto the plates in their cradles',
+      bounds: [[-W / 2 - 1, -3, -3], [W / 2 + 1, 8, L + 1]],
+      clear: [[-W / 2 - 1, -3], [W / 2 + 1, L + 1]],
+    };
+  },
+  /**
+   * The moorers' leap (the City Floating in Space): the Mooring-House's breath of the void and its far landing stood
+   * out from the Towers' east edge into the dark. A plinth out over the edge, then the void's breath rising beside a
+   * mooring post to its deck 12 m up; off the deck's end a gulf of open dark to a landing 6 m up, and on the landing a
+   * capstan wall with three eyes that wake only together, inside one breath. Into the dark, and the run is over.
+   */
+  moorleap(K, rt) {
+    const W = 8, U = 21.5;
+    const T0 = 25, T1 = 40, TH = 12, TW = 7;       // the mooring post's deck
+    const L0 = 66, L1 = 80, LH = 6, LW = 9;        // the far landing
+    K.slab(-W / 2, -1, W / 2, T0, 0, 3, K.M.floor);
+    for (const s of [-1, 1]) K.add(K.M.trim, box(0.35, 0.06, T0 + 1, s * (W / 2 - 0.18), 0.03, (T0 - 1) / 2));
+    const up = rt.add(Updraft, { at: [0, 0, U], r: 4, h: 16, lift: 7,
+      hint: 'The void breathes up beside the post. Jump, and hold jump to open your wings in it.' });
+    // the mooring post: a block of the moorers' adobe, its deck on top, a bollard and a rail at its back
+    K.slab(-TW / 2, T0, TW / 2, T1, TH - 0.5, TH + 3, K.M.wall);
+    K.slab(-TW / 2 - 0.3, T0 - 0.3, TW / 2 + 0.3, T1 + 0.3, TH, 0.5, K.M.floor);
+    for (const s of [-1, 1]) K.both(K.M.trim, box(0.4, 1.0, T1 - T0, s * (TW / 2 + 0.05), TH + 0.5, (T0 + T1) / 2));
+    K.both(K.M.trim, new THREE.CylinderGeometry(0.5, 0.6, 1.2, 12).translate(0, TH + 0.6, T0 + 2.6));
+    K.glyph([0, TH * 0.55, T0 - 0.32], 2.2, Math.PI);
+    // the far landing over the dark, the capstan wall at its end with its three eyes
+    K.slab(-LW / 2, L0, LW / 2, L1, LH - 0.5, LH + 3, K.M.wall);
+    K.slab(-LW / 2 - 0.3, L0 - 0.3, LW / 2 + 0.3, L1 + 0.3, LH, 0.5, K.M.floor);
+    K.add(K.M.trim, tf(annulus(2.4, 2.8, 0.06, 36), [0, LH + 0.03, L0 + 4.5]));
+    K.both(K.M.wall, box(LW, 5.5, 1.0, 0, LH + 2.75, L1 - 0.5));
+    K.both(K.M.trim, new THREE.CylinderGeometry(1.4, 1.4, 0.6, 16).translate(0, LH + 5.8, L1 - 0.5));
+    K.glyph([0, LH + 4.4, L1 - 1.02], 1.0, Math.PI);
+    const bank = rt.add(Bank, {
+      id: 'eyes', window: 2.6,
+      eyes: [[-2.4, 1.6], [0, 3.2], [2.4, 1.6]].map(([x, y]) => ({ at: [x, LH + y, L1 - 1.02], yaw: Math.PI })),
+      full: 'The three eyes wake, and sleep again. They answer someone who has crossed the dark: start at the sign.',
+    });
+    return {
+      // the gates: on the post's deck (up the void's breath), at its far end, on the landing (the gulf glided)
+      gates: [[0, TH + 1.8, T0 + 4, 3.0], [0, TH + 1.8, T1 - 1.4, 3.0], [0, LH + 1.8, L0 + 4.5, 3.6]],
+      bank, gusts: [], swings: [], updrafts: [up],
+      bounds: [[-7, -5, -3], [7, TH + 8, L1 + 2]],
+      clear: [[-7, -3], [7, L1 + 2]],
+      gulf: { from: T1, to: L0, drop: TH - LH },
+    };
+  },
   /**
    * The wind hall (the desert): a roofless hall 7 m wide and 46 long on a plinth in the dunes, its door at the
    * south end, a porch roofed over its north end. Gusts blow down it from the porch to the door; four stone

@@ -28,6 +28,7 @@ export function setupMoonFoundryMoments(ctx, { rt, level }) {
     const out = V(Math.sin(h), 0, Math.cos(h)), side = V(out.z, 0, -out.x);
     const hung = level?.hung ? V(level.hung.x, level.hung.y, level.hung.z) : door.clone().addScaledVector(out, 60).addScaledVector(UP, 40);
     const top = door.clone().addScaledVector(UP, 16);
+    const toHouse = door.clone().sub(hung).setY(0).normalize(), floor = door.y;
     const B0 = MOON.A, C0 = B0 + MOON.B;
     const m = moments.play({
       id: 'moonfoundry.moon', flag: 'moonfoundry.moment.moon', dur: C0 + MOON.C,
@@ -35,9 +36,10 @@ export function setupMoonFoundryMoments(ctx, { rt, level }) {
         // A: wide, out on the floor: the house's tower, him small at its door
         { dur: MOON.A, from: { pos: door.clone().addScaledVector(out, MOON.BACK).addScaledVector(side, -10).addScaledVector(UP, 5), look: top, fov: 50 },
           to: { pos: door.clone().addScaledVector(out, MOON.BACK - 5).addScaledVector(side, -8).addScaledVector(UP, 5.5), look: top, fov: 46 } },
-        // B: up at the hung moon, from under it a little to the side
-        { dur: MOON.B, clear: false, from: { pos: hung.clone().addScaledVector(UP, -34).addScaledVector(side, 14), look: hung, fov: 40 },
-          to: { pos: hung.clone().addScaledVector(UP, -33).addScaledVector(side, 11), look: hung, fov: 37 } },
+        // B: up at the hung moon from the floor on the house's side of it, far enough to see it whole on its hook as it
+        // turns toward the house (from under it, 37 m off, it filled the frame: the cinematics QC, v1.43)
+        { dur: MOON.B, clear: false, from: { pos: hung.clone().addScaledVector(toHouse, 52).setY(floor + 4), look: hung, fov: 46 },
+          to: { pos: hung.clone().addScaledVector(toHouse, 47).setY(floor + 5), look: hung.clone().addScaledVector(UP, 2), fov: 44 } },
         // C: his face, turned up to it
         { dur: MOON.C, clear: false, from: closeUp(player, { angle: 0.5, dur: MOON.C }) },
       ],

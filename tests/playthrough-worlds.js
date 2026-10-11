@@ -197,6 +197,17 @@ export const ACTIONS = {
     if (!W.quests.isStarted('arzach.bird')) issue('soft-lock', 'talking to Oïa by the landing started nothing');
     if (!r.said.some((t) => /white streamer/.test(t))) issue('lead', 'Oïa did not point the way to the Aerie');
   },
+  // Vael: with the bird's promise kept, the scout leads over the plain to the riders' gate at its edge, then on over the
+  // cloud to Sister Aube, who opens the bell's quest (src/vael-crossing.js, src/story/arzach2.js aubeWay)
+  crossGate: (W, issue) => {
+    const gate = W.quests.resolve('gate');
+    if (!gate) return issue('lead', 'no riders’ gate in Vael');
+    const o = W.quests.objective();
+    if (!o || !/riders’ gate/.test(o.label) || o.position.distanceTo(gate) > 3) issue('lead', `from the tower the scout finds ${o ? `“${o.label}”` : 'nothing'}, not the riders’ gate`);
+    W.at(gate.clone()); W.step(2);
+    const o2 = W.quests.objective();
+    if (!o2 || /riders’ gate/.test(o2.label)) issue('lead', 'at the riders’ gate the scout does not move on to Sister Aube');
+  },
   cabTakesYou: (W, issue) => {
     const cab = cabOf(W);
     if (cab && cab.refuses(W.player, 'hail')) issue('cab', 'with the pass, the cabs still refuse him');
@@ -296,14 +307,14 @@ export const ROUTE = [
   { id: 'desert', play: ['desert.power'] },
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
-  { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', 'arzach2.bell'] },
+  { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell'] },
   { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps'] },
   { id: 'edena', play: ['edena.garden'] },
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, Fabre's word down to the Whale Gallery, then the Whale-House)
   { id: 'underwater', play: [{ act: 'meetMireille', at: 'mireille', label: 'Mireille, in the kelp garden' }, 'underwater.kelp', { act: 'meetFabre', at: 'fabre', label: 'Fabre, in the Crown' }, 'underwater.lamps', { temple: 'done', id: 'underwater' }] },
   { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the bellows, the light (the air pillars up), the pass
   // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
-  { id: 'glassdunes', play: [{ temple: 'done', id: 'garage' }] },
+  { id: 'glassdunes', play: [{ temple: 'done', id: 'garage', home: 'the float-posts' }] },
   { id: 'buried', play: ['buried.tooth'] },
   // (v1.40: the foundry: Ottilie's hook to Bertil at the furnace, Wen's count from the pillar's lookout, then the Casting-House)
   { id: 'moonfoundry', play: [{ act: 'meetOttilie', at: 'ottilie', label: 'Ottilie, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', { temple: 'done', id: 'moonfoundry' }] },
@@ -316,9 +327,9 @@ export const ROUTE = [
 
 // the sub-levels (src/levels/names.js SUB): reached from a route world's quest, not by the ship; the level design audit
 // walks them from where you arrive (?from=<world>) to where you leave, by the quest's steps there (the night mail aboard
-// the Overnight Train: Ambrose on the porch, Mireille on the last roof, Ambrose again, the step down at the halt)
+// the Overnight Train: Ambrose on the porch, Solange on the last roof, Ambrose again, the step down at the halt)
 export const SUBROUTES = [
-  { id: 'overnighttrain', from: 'bazaar', play: [{ act: 'askAmbrose', at: 'ambrose', label: 'Ambrose, the conductor' }, { act: 'letter', at: 'mireille', label: 'Mireille, on the last roof' },
+  { id: 'overnighttrain', from: 'bazaar', play: [{ act: 'askAmbrose', at: 'ambrose', label: 'Ambrose, the conductor' }, { act: 'letter', at: 'mireille', label: 'Solange, on the last roof' },
     { act: 'askStop', at: 'ambrose', label: 'Ambrose, asked to stop' }, { act: 'stepOff', at: 'stepOff', label: 'the step down at the halt' }] },
 ];
 

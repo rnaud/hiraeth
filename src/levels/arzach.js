@@ -10,6 +10,7 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildBirdTracks, buildRidersRoost, buildRidersMast } from '../vael-ways.js';
+import { buildRidersGate, buildRidersLanterns, buildRopeWay, GATE } from '../vael-crossing.js';
 import { buildSkyStones, skyStonesHeight, SKY_STONES, SKY_STONES_GROUND } from './arzach2.js';
 import { offsetOf } from './names.js';
 import { FLORA_WORLDS } from '../flora.js';
@@ -457,6 +458,19 @@ function finishVael(scene, terrain, S, V) {
   attachTemple('arzach2', scene, level);
   attachTemple('arzach', scene, level);
   scene.add(mastGroup);
+  // the crossings between the plain and the sky stones (src/vael-crossing.js, the merged worlds' follow-ups): the riders'
+  // gate at the plain's edge, the riders' lanterns from the rose cliff home to it, the monks' old rope way out to the island
+  // (built last, after the temples and the mast, so the audits' samples of what stood before stay where they were)
+  const gate = buildRidersGate(scene, terrain, new THREE.Vector3(GATE.x, 0, SKY_STONES.plainEdge(GATE.x) - GATE.in));
+  const riders = buildRidersLanterns(scene), ropeWay = buildRopeWay(scene, S.topAt);
+  level.arzach.gate = gate;
+  level.arzach2 = { ...level.arzach2, gate, riders, ropeWay };   // (src/story/arzach2.js: lit with the monks' lanterns when the bell rings)
+  level.beacons = [...level.beacons, { name: 'the riders’ gate', top: gate.top.toArray(), height: GATE.h }];
+  level.lines = [...level.lines, { name: 'the riders’ lanterns', points: [...riders.points, [gate.at.x, gate.at.y + 3, gate.at.z]], auto: false }, { name: 'the old rope way', points: ropeWay.points, auto: false }];
+  level.sights = [...level.sights, { name: 'the riders’ gate', at: gate.at }, { name: 'the riders’ halfway stone', at: riders.halfway },
+    ...ropeWay.knots.map((at, i) => ({ name: `a knot of the old rope way (${i + 1})`, at }))];
+  const update = level.update;
+  level.update = function (dt, t, ctx) { update.call(this, dt, t, ctx); gate.wave(t); riders.update(t); ropeWay.update(t); };
   return level;
 }
 export const createArzach = stepped(buildArzach);

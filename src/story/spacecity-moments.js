@@ -1,4 +1,5 @@
 import { V, UP, closeUp } from './film.js';
+import { CABLES as CABLE_ENDS } from '../temples/spacecity.js';
 
 // The City Floating in Space's climax, filmed (src/story/moment.js): once per save, skippable, never in the way (when
 // it can't play, nothing is lost: the cables draw taut all the same, the temple's change, src/temples/spacecity.js).
@@ -6,8 +7,8 @@ import { V, UP, closeUp } from './film.js';
 //   cables  out of the Mooring-House after the Anchor-Warden is resolved (spacecity.moment.cables)
 //           A  wide, from out over the void beside the Moorings' bridge: the house on its island, the traveller
 //              small at its door, the stars under it all; the camera eases in                          0.0–2.6
-//           B  down past the island's edge: the cables under it drawn taut, lamps running along them toward the
-//              city                                                                                    2.6–5.2
+//           B  out over the void beside the great cable to the Towers: drawn taut, its lamps running along it
+//              toward the city                                                                          2.6–5.2
 //           C  his face, three-quarter: he listens to the cables hum one clear note, and the corner of his mouth
 //              goes up; the controls come back with the lamps still running                             5.2–7.4
 //           sound: the father's theme in the world's mode (sound.swell('father'))
@@ -28,7 +29,10 @@ export function setupSpaceCityMoments(ctx, { rt }) {
     const O = rt.outside, door = O.door.at, h = O.door.heading;
     const out = V(Math.sin(h), 0, Math.cos(h)), side = V(out.z, 0, -out.x);
     const top = door.clone().addScaledVector(UP, 12);
-    const under = door.clone().addScaledVector(out, 12).addScaledVector(UP, -14);
+    // (the great cable from the capstan on the roof to the Towers' pipe stack, src/temples/spacecity.js CABLES)
+    const roof = O.top?.clone() ?? top.clone(), stack = V(...CABLE_ENDS[0]);
+    const along = (t) => roof.clone().lerp(stack, t).addScaledVector(UP, -2.5 * Math.sin(Math.PI * t));
+    const across = stack.clone().sub(roof).setY(0).normalize(); across.set(across.z, 0, -across.x);
     const B0 = CABLES.A, C0 = B0 + CABLES.B;
     const m = moments.play({
       id: 'spacecity.cables', flag: 'spacecity.moment.cables', dur: C0 + CABLES.C,
@@ -36,9 +40,10 @@ export function setupSpaceCityMoments(ctx, { rt }) {
         // A: wide, out over the void: the house on its island, him small at its door
         { dur: CABLES.A, from: { pos: door.clone().addScaledVector(out, CABLES.OUT).addScaledVector(side, 16).addScaledVector(UP, 4), look: top, fov: 52 },
           to: { pos: door.clone().addScaledVector(out, CABLES.OUT - 5).addScaledVector(side, 13).addScaledVector(UP, 4.5), look: top, fov: 48 } },
-        // B: down past the island's edge at the cables, taut, lamps running along them
-        { dur: CABLES.B, clear: false, from: { pos: door.clone().addScaledVector(out, 16).addScaledVector(side, 22).addScaledVector(UP, 1), look: under, fov: 46 },
-          to: { pos: door.clone().addScaledVector(out, 16).addScaledVector(side, 19).addScaledVector(UP, 0), look: under.clone().addScaledVector(UP, -6), fov: 44 } },
+        // B: out over the void beside the great cable to the Towers, taut, its lamps running away along it toward the city
+        // (it looked down at the island's underside, where no cable runs: the cinematics QC, v1.43)
+        { dur: CABLES.B, clear: false, from: { pos: along(0.22).addScaledVector(across, 9).addScaledVector(UP, -3), look: along(0.75), fov: 50 },
+          to: { pos: along(0.3).addScaledVector(across, 8).addScaledVector(UP, -2.5), look: along(0.85), fov: 46 } },
         // C: his face, listening
         { dur: CABLES.C, clear: false, from: closeUp(player, { angle: 0.55, dur: CABLES.C }) },
       ],
