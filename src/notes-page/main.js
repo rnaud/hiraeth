@@ -1,4 +1,5 @@
 // No game engine, audio or GitHub credential. Same-origin Worker calls only.
+import { questionCard, pageTitle } from './needs-you.js';
 const $ = (id) => document.getElementById(id);
 const DRAFT = 'hiraeth.notes.draft.v1';
 const OUTBOX = 'hiraeth.notes.outbox.v1';
@@ -182,7 +183,24 @@ $('pair-form').addEventListener('submit', async (e) => {
   finally { $('pair').disabled = false; }
 });
 
-async function enter() { signedIn(true); notice(); await Promise.all([load(), loadDrafts()]); }
+// ---- the questions waiting on the author (worker/questions.js, the `needs-author` label)
+let questions = [];
+function renderQuestions() {
+  $('needs').replaceChildren(...questions.map((item) => questionCard(document, item, async (answer) => {
+    await api(`questions/${Number(item.number)}/answer`, { method: 'POST', body: JSON.stringify(answer) });
+    questions = questions.filter((x) => x.number !== item.number); renderQuestions();
+    notice(`Answered #${item.number}.`);
+  })));
+  $('needs-count').textContent = questions.length ? `${questions.length}` : '';
+  $('needs-section').hidden = !questions.length;
+  document.title = pageTitle(questions.length);
+}
+async function loadQuestions() {
+  try { ({ questions } = await api('questions')); renderQuestions(); }
+  catch { questions = []; renderQuestions(); }   // (an older Worker: the section stays hidden)
+}
+
+async function enter() { signedIn(true); notice(); await Promise.all([load(), loadDrafts(), loadQuestions()]); }
 
 $('login-form').addEventListener('submit', async (e) => {
   e.preventDefault(); if ($('unlock').disabled) return;
@@ -207,12 +225,12 @@ $('new-note').addEventListener('keydown', (e) => {
 window.addEventListener('resize', resizeComposer);
 $('new-note').addEventListener('input', updateDraft);
 $('search').addEventListener('input', render);
-$('refresh').addEventListener('click', () => { load(); loadDrafts(); });
+$('refresh').addEventListener('click', () => { load(); loadDrafts(); loadQuestions(); });
 $('more').addEventListener('click', () => { if (nextPage) load(nextPage); });
 $('lock').addEventListener('click', async () => {
   if (outbox.some((n) => n.state === 'sending')) return;
   $('lock').disabled = true;
-  try { await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; render(); signedIn(false); notice('Signed out.'); }
+  try { await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; questions = []; renderQuestions(); render(); signedIn(false); notice('Signed out.'); }
   catch (e) { notice(e.message, true); }
   finally { $('lock').disabled = false; }
 });

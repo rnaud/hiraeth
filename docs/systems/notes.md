@@ -103,3 +103,49 @@ the drafts' routes answer 503 and the Notes page hides the section; the notes th
 The write limiter covers pairing and drafts too. `tests/notes-drafts.test.js` (the Worker: pairing, tokens, limits,
 publish with a fake GitHub) and `tests/issue-draft.test.js` (the game's side over the real Worker and a store in
 memory; the menu's section). No test files a real issue.
+
+## Questions for the author (`needs-author`)
+
+When an agent or the coordinator needs a decision, it asks on a GitHub issue: the label **`needs-author`**, and a
+question block in the issue's body or in a new comment. The Notes page lists every open `needs-author` issue under
+**Needs you**, at the top (a count badge, and the count in the page's title), with the question, the context above it
+and a link to the issue. The author answers there: the Worker posts a comment, takes `needs-author` off and puts
+**`answered`** on, so the coordinator picks the issue up (`gh issue list -l answered`) and takes `answered` off
+once it has acted.
+
+The block, exactly (`worker/questions.js` parses it strictly; a block that doesn't match is ignored):
+
+```
+The crab fight takes 40 s now; the brief says 20.
+<!-- question -->
+**Question:** Which way should it go?
+<!-- options: single -->
+- [ ] Halve its health
+- [ ] Double the traveller's damage
+<!-- /question -->
+```
+
+- **Context:** the paragraph directly above the block (its lines up to the first blank line, 12 at most).
+- **The question:** the first line inside starts `**Question:**`; one or two lines (three at most).
+- **Options** (optional): `<!-- options: single -->` (one choice: buttons) or `<!-- options: multi -->` (any number:
+  checkboxes and Send), then one `- [ ] option` a line, no other lines, no duplicates. Without them it is a free-text
+  question. A free-text box is always there too.
+- **The latest valid block on the issue wins** (the body, then the comments, oldest first; only the newest 100
+  comments are read). Only blocks written by the repository's owner, members or collaborators count: anyone can
+  comment on this public repository.
+- **Answered on GitHub** counts too: a box ticked in the block (`- [x]`, ticked or edited in place), or **any later
+  comment** on the issue (from the repository's people), is the answer, and the issue leaves Needs you, though its
+  `needs-author` label stays for the coordinator to swap. So put the context above the block in the same comment,
+  never in a comment after it. The coordinator reads the ticks and the comments after the block as the answer.
+- **The answer from the page** is a comment: `**Answer:** Lorn; Vael` (the options picked, joined by `; `), then the
+  free text as its own paragraph (with no option picked, the free text follows `**Answer:**`), then `Answered from
+  the Hiraeth notebook.` The chosen boxes are ticked in the block too (the body or the comment that holds it is
+  edited), so GitHub and the page agree. To ask again, post a new block and put `needs-author` back.
+
+| Route | Who | What |
+| --- | --- | --- |
+| `GET /api/notes/questions` | the notebook (the session cookie) | the open `needs-author` issues (20 at most, oldest first), each with its parsed question or `null` |
+| `POST /api/notes/questions/<n>/answer` | the notebook (cookie, same Origin, the write limiter) | `{ choices, text }`, checked against the question as it stands (the options offered, one for single; the issue open, still `needs-author` and not answered on GitHub, else 409); the comment, the boxes ticked, then the labels |
+
+If the comment is posted but ticking the boxes or a label change fails, the page says so (502) rather than inviting a second answer.
+Tests: `tests/notes-questions.test.js` (the parser, the routes over a fake GitHub, the page's card on a stand-in DOM).

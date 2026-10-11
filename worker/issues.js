@@ -1,4 +1,5 @@
 import { handleDrafts, doStore, CORS } from './drafts.js';
+import { handleQuestions } from './questions.js';
 
 // The private notebook: GitHub is the store; neither credential reaches the page.
 // Set HIRAETH_ISSUES_TOKEN (this repo, Issues read/write) and HIRAETH_NOTES_PASSWORD
@@ -108,6 +109,8 @@ function githubFailure(response, writing = false) {
 
 /** The drafts' routes (worker/drafts.js): screenshot drafts from a paired device, and the notebook's own handling of them. */
 const DRAFT_ROUTE = /^\/api\/notes\/(pair(\/approve)?|drafts(\/[a-f0-9]{32}(\/publish)?)?|shots\/[a-f0-9]{32}\.jpg)$/;
+/** The questions for the author (worker/questions.js): the list, and an answer to one issue's. */
+const QUESTION_ROUTE = /^\/api\/notes\/questions(?:\/([1-9]\d{0,6})\/answer)?$/;
 
 export async function handleIssues(request, env, fetcher = fetch, now = Date.now(), store = env.NOTES_DRAFTS ? doStore(env.NOTES_DRAFTS) : null) {
   const url = new URL(request.url), session = url.pathname === '/api/notes/session';
@@ -120,8 +123,9 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
       github: (u, options) => github(fetcher, env, u, options), githubFailure, issueView,
     }, now);
   }
-  if (!session && url.pathname !== '/api/notes/issues') return failure(404, 'Not found.');
-  const allowed = session ? ['GET', 'POST', 'DELETE'] : ['GET', 'POST'];
+  const question = QUESTION_ROUTE.exec(url.pathname);
+  if (!session && !question && url.pathname !== '/api/notes/issues') return failure(404, 'Not found.');
+  const allowed = session ? ['GET', 'POST', 'DELETE'] : question ? [question[1] ? 'POST' : 'GET'] : ['GET', 'POST'];
   if (!allowed.includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: allowed.join(', ') });
   // SameSite cookies plus explicit Origin validation: no public token-backed write proxy.
   if (request.method !== 'GET' && request.headers.get('Origin') !== url.origin) return failure(403, 'Please open the notebook directly to make changes.');
@@ -151,6 +155,10 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
   }
 
   try {
+    if (question) {
+      return await handleQuestions(request, { github: (u, options) => github(fetcher, env, u, options), githubFailure, api: API, repository: REPOSITORY, json, failure },
+        question[1] ? Number(question[1]) : null, body);
+    }
     if (request.method === 'GET') {
       const pageText = url.searchParams.get('page') ?? '1';
       if (!/^[1-9]\d{0,3}$/.test(pageText)) return failure(400, 'Invalid page.');
@@ -176,6 +184,9 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
     if (!Number.isSafeInteger(issue.number)) return failure(502, 'We could not confirm whether the note was saved. Refresh the list before trying again.');
     return json({ issue: issueView(issue) }, 201);
   } catch {
+    if (question) return failure(502, request.method === 'POST'
+      ? 'We could not confirm whether the answer was posted. Refresh the list before answering again.'
+      : 'The questions could not be loaded. Please check your connection and try again.');
     return failure(502, request.method === 'POST'
       ? 'We could not confirm whether the note was saved. Refresh the list before trying again.'
       : 'The notes could not be loaded. Please check your connection and try again.');

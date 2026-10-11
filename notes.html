@@ -23,6 +23,11 @@
         </div>
       </section>
       <section id="board" hidden>
+        <section id="needs-section" class="needs" aria-labelledby="needs-title" hidden>
+          <div class="list-heading"><h2 id="needs-title">Needs you <span id="needs-count" class="badge"></span></h2></div>
+          <p class="drafts-line">Questions waiting on your answer. Answering posts it on the issue.</p>
+          <ul id="needs" aria-label="Questions for you"></ul>
+        </section>
         <form id="note-form" class="composer">
           <label class="sr-only" for="new-note">Add a note</label>
           <div class="input-row"><textarea id="new-note" name="note" rows="1" placeholder="Add a note…" maxlength="4000" autocomplete="off" required></textarea><button id="add" type="submit">Add</button></div>
