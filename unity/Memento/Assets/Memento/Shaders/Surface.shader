@@ -356,6 +356,8 @@ Shader "Memento/Surface"
       #endif
       };
 
+      float _MSurfaceDebug;   // (global: BridgeRunner -surface-debug)
+
       Varyings vert(Attributes v)
       {
         Varyings o;
@@ -504,6 +506,16 @@ Shader "Memento/Surface"
             o.bind = 0;
           }
         #endif
+        // (-surface-debug 10 and 11: the position, normal and depth from the object's own transform alone, none of the above:
+        // whether a surface missing on the Xbox goes in the vertex stage; 10 with the fragment's plain values, 11 with all of it)
+        UNITY_BRANCH if (_MSurfaceDebug > 9.5)
+        {
+          float3 pw = TransformObjectToWorld(v.positionOS.xyz);
+          o.positionCS = TransformWorldToHClip(pw);
+          o.posWS = pw; o.worldPos = toThree(pw);
+          o.normal = toThree(TransformObjectToWorldNormal(v.normalOS));
+          o.viewDepth = -TransformWorldToView(pw).z;
+        }
         return o;
       }
 
@@ -701,7 +713,6 @@ Shader "Memento/Surface"
         return col;
       }
 
-      float _MSurfaceDebug;   // (global: BridgeRunner -surface-debug)
       struct GBufferOut
       {
         float4 albedoLight : SV_Target0;
@@ -717,7 +728,7 @@ Shader "Memento/Surface"
         #endif
         // (-surface-debug 9: nothing of the shader but its plain colour, normal and view depth, at once: whether a surface that
         // goes missing on the Xbox is drawn at all)
-        UNITY_BRANCH if (_MSurfaceDebug > 8.5)
+        UNITY_BRANCH if (_MSurfaceDebug > 8.5 && _MSurfaceDebug < 10.5)
         {
           GBufferOut d;
           d.albedoLight = float4(_Color.rgb, 1); d.normalDepth = float4(normalize(i.normal), i.viewDepth); d.hatch = 0;
@@ -1085,7 +1096,7 @@ Shader "Memento/Surface"
         // (a test for the Xbox's see-through picture, BridgeRunner -surface-debug N: 1 the material's plain colour, no strokes;
         // 2 every normal up; 3 both; from 4 the glass and the dissolve never discard, and the albedo shows what the GPU reads
         // of the rare paths' values: 4 (glass, dissolve, fluid), 5 (veins, box, scrub), 6 (drawn face, mode / 4, water))
-        if (_MSurfaceDebug > 0.5)
+        if (_MSurfaceDebug > 0.5 && _MSurfaceDebug < 8.5)
         {
           int sd = (int)(_MSurfaceDebug + 0.5);
           if (sd < 4)
