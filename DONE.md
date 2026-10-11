@@ -2755,3 +2755,7 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   Space (296 m), the Buried Machine (106 m) and the City-Shaft from Tobin (119 m): loops 3–4 → 5 in each. Done in v1.50:
   the keepers' hatch and the kelp tube, the Lamp Rock, the flue vents, the cab home (docs/systems/worlds.md).
   (2026-10-11, v1.50: done; Fixes #132 in its commit.)
+- [x] [#131](https://github.com/rnaud/hiraeth/issues/131) **Viridel's Greenhouse**: blind from Mira's (281 m) and home (324 m), and the walk home
+  passed nothing. Done in v1.50: the Greenhouse's glass spire, seen over the meadow's rise from Mira's, and the long seed
+  row home past the seed-drill and the white ruins (docs/systems/worlds.md). Wayfinding 3 → 5, loops 3 → 5, Viridel 4 → 4.56.
+  (2026-10-11, v1.50: done; Fixes #131 in its commit.)

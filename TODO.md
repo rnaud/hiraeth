@@ -41,8 +41,6 @@ From docs/audits/level-design-v1.49.md (twelve route worlds, 4.35), worst first 
 - [ ] [#137](https://github.com/rnaud/hiraeth/issues/137) **The new worlds' route quests still hand you from one person to another**
   (the Moon Foundry's hook and count, the City Floating in Space's notes, the Underwater City's cutting and lamps): each
   completes at its goal. Pacing 4 → 5 in the Moon Foundry.
-- [ ] [#131](https://github.com/rnaud/hiraeth/issues/131) **Viridel's Greenhouse**: blind from Mira's (281 m) and home (324 m), and the walk home
-  passes nothing. Wayfinding 3 → 4, loops 3 → 5 (Viridel 4 → 4.33).
 - [ ] [#133](https://github.com/rnaud/hiraeth/issues/133) **Vael's plain** (483 m empty, 59 s) and its blind legs to the monastery (966 m) and the
   Belfry (279 m): density 3 → 4, wayfinding 4 → 5.
 - [ ] [#136](https://github.com/rnaud/hiraeth/issues/136) **The Buried Machine's landmarks** (57 % of the path sees one) and its blind canyon and

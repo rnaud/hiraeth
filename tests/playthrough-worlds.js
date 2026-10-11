@@ -374,7 +374,7 @@ export const ROUTE = [
   // (v1.49: and the Lamp-House to its guardian, the Kennel off its first hall and the Wick Room past the gallery: issue #23)
   { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps', { temple: 'done', id: 'perdide2' }] },
   // (v1.49: and the Builders' Greenhouse to its guardian, both its hub's wings and the Seed Vault past the gulf: issue #23)
-  { id: 'edena', play: ['edena.garden', { temple: 'done', id: 'edena' }] },
+  { id: 'edena', play: ['edena.garden', { temple: 'done', id: 'edena', home: 'the long seed row' }] },   // (v1.50, #131: Sorrel sends you home by the long seed row)
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, done there (#137), then the Whale-House)
   // (v1.48: Bastien at the lock opens the city's own quest; the window over the deep, then in at the Whale-House's door)
   { id: 'underwater', play: [{ act: 'meetBastien', at: 'bastien', label: 'Bastien, at the lock' }, { act: 'meetMireille', at: 'mireille', label: 'Brune, in the kelp garden' }, 'underwater.kelp', 'underwater.note', { temple: 'done', id: 'underwater', home: 'the kelp tube' }] },   // (v1.50, #132: out by the keepers' hatch, home down the kelp tube)

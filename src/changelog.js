@@ -28,6 +28,9 @@ export const CHANGELOG = [
     'In the City Floating in Space, a small new island, the Lamp Rock, hangs south of the Towers with its tall lamp, the moorers’ oil drums and a bench. Its two bridges take you from the Towers to the Gate: a new way home from the Mooring-House, a little shorter than back through the Market.',
     'In the Buried Machine, a row of iron vent caps runs from the Engine-House’s door to your landing hollow, the stokers’ tall whistle halfway along. Once the engine runs, puffs of steam roll along them toward your ship.',
     'In the City-Shaft, once Tobin gives you Lio’s pass, ride home: wave a cab down at the rim’s edge and it flies you out over the shaft, past the new cab rank where the cabs wait, to the stop by your ship.',
+    // Viridel's Greenhouse (docs/systems/worlds.md "Viridel: the Greenhouse's spire and the long seed row"; issue #131)
+    'In Viridel, a slender glass spire rises from the Builders’ Greenhouse’s dome, a pink glass bud at its top, so from Mira’s water clock you can see where the Greenhouse stands over the rise of the meadow.',
+    'In Viridel, a long row of seed beds runs from the Greenhouse down the meadow, past the white ruins, to your landing, the builders’ old seed-drill standing where it stopped. Once the Gardener sleeps every bed comes up green, and Sorrel sends you home along it.',
   ] },
   { v: '1.49', date: '2026-10-11', items: [
     // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)

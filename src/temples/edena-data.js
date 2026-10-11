@@ -58,7 +58,8 @@ export const PEOPLE = {
         after: {
           say: ["~surprised~ (Green fills the seed rows. Sorrel stands with soil in both hands.) Every one. This morning. I didn’t have to beg a single seed.",
             "~happy~ Look at the ruins: vines to the top, flowers below. Oro hasn’t stopped staring. Says they were always meant to look like that.",
-            "~solemn~ The gardener’s asleep beneath the glass. Covered in flowers, like Grandmother remembered."],
+            "~solemn~ The gardener’s asleep beneath the glass. Covered in flowers, like Grandmother remembered.",
+            "~happy~ Go home by *the long seed row*. It’s come up all the way down, past Oro’s ruins to your ship."],
           choices: [
             { text: '~solemn~ It was only bare. It needed help to bloom.', goto: 'bare' },
             { text: '~sad~ And Esk’s hill?', if: { flag: 'edena.terraces.flooded' }, goto: 'esk' },

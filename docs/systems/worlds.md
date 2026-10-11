@@ -1013,6 +1013,22 @@ straight line over the void).
 The audit also reads a temple whose last way out comes out somewhere else: from the door, the hop to it (`jump`), then on
 from there.
 
+## Viridel: the Greenhouse's spire and the long seed row (level design audit v1.49, issue #131; v1.50)
+
+Since the route goes on into the Builders' Greenhouse, both its legs were blind: from Mira's water clock the meadow's rise
+hides all of it but the dome's cap (281 m), and the way home from its door was the same meadow back (324 m). Wayfinding
+3 → 5, loops 3 → 5, landmarks 4 → 5: Viridel 4 → 4.56 (`scripts/level-design/audit.mjs --worlds edena`).
+- **The glass spire** (`SPIRE`, src/temples/edena.js `exterior`): out of the dome's teal finial a white ringed mast, a
+  lantern of glass ribbed in white and a pink glass bud on it (the reference's bud over the Bud Passage), 49 m over the
+  door, drawn only. It shows whole over the rise from Mira's; the audit aims at it as a beacon (`level.beacons`).
+- **The long seed row** (`SEED_ROW`, src/viridel-ways.js `buildSeedRow`): Sorrel's beds go on as one row of white-kerbed
+  beds, a bed every 11.5 m (the step that misses the android garden's pedestals), from below the Greenhouse's steps
+  south past the white ruins, Oro and his planted seed, then west to the landing; **the builders' seed-drill** (a sight,
+  `SEED_DRILL`) stands beside it halfway down to the ruins, where it stopped. The beds are drawn only, the drill collides.
+  Once the Gardener sleeps the world change brings every bed up green (`change`: `beds`). Sorrel's `after` names it; the
+  route's temple step carries it as `home` (375 m home, four places on it not passed on the way in).
+Tested in `tests/viridel-greenhouse-ways.test.js`.
+
 ## The Glass Dunes: a detour off the route (October 2026)
 
 `?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates

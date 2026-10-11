@@ -630,6 +630,8 @@ const SQ_AVENUE = { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 58, eye:
 const HOME50 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5473, changelog-shots.mjs’s shoot) and the same tree before the change, 11 October; cwebp -q 72';
 const SAVE_HOME = (w) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...(w === 'incal' ? { 'item.cabpass': true } : { [`temple.${w}.done`]: true }) }, keepsakes: [] });
 // (v1.50: the camera at the sleeping car's door: the camera QC's own frames, the same moment before and after)
+// (v1.50: Viridel's Greenhouse, issue #131: this branch's own Vite and the same tree before the change)
+const GH50 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5487, changelog-shots.mjs’s shoot) and the same tree before the change, 11 October; cwebp -q 72';
 const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) in headless Chrome (muted, High), Vite on port 5471, before the change and after it, 11 October; its 480 × 270 frame, cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.50': [
@@ -691,6 +693,16 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'incal', save: SAVE_HOME('incal'), hour: 10, fov: 30, eye: [262, 204.5, 84], target: [159, 205, 29], player: [266, 200.1, 89], heading: -2.1 } },
     ], numbers: [{ title: 'The walk home from Tobin (level design audit)', unit: 'loops score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'the City-Shaft', before: 4, after: 5 }], source: 'node audit, the ride weighed at a cab’s speed' }],
       see: 'Get Lio’s pass from Tobin, walk to the parapet a little way toward your ship and wave a cab down (it stops beside you): choose the rim by the ship.' },
+    { match: 'In Viridel, a slender glass spire rises', shots: [
+      { name: 'greenhouse-spire', title: 'From Mira’s', caption: 'From beside Mira at her water clock, toward the Greenhouse: before, only the dome’s cap over the meadow’s rise; after, the glass spire and its bud over it', from: GH50,
+        view: { level: 'edena', hour: 10.5, fov: 50, eye: [34.5, 2.6, 26], target: [110, 14, 320], player: [37.5, -0.9, 29.5], heading: 0.25 } },
+    ], numbers: [{ title: 'Mira’s to the Greenhouse, and home (level design audit)', unit: 'wayfinding score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'Viridel', before: 3, after: 5 }], source: 'node audit, this build against v1.50 before it: the two legs to and from the Greenhouse were blind' }],
+      see: 'Stand by Mira’s water clock and look north: the spire shows over the rise where the Greenhouse is.' },
+    { match: 'In Viridel, a long row of seed beds runs', shots: [
+      { name: 'seed-row', title: 'Home from the Greenhouse', caption: 'From the Greenhouse’s steps, looking home, the Gardener asleep: before, the bare meadow; after, the long seed row come up green, leading past the seed-drill to the white ruins', from: GH50,
+        view: { level: 'edena', save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'temple.edena.done': true }, keepsakes: [] }, hour: 10.5, fov: 60, eye: [117, -2.5, 290], target: [146, -5, 175], player: [118.5, -6.5, 283], heading: 2.95 } },
+    ], numbers: [{ title: 'The walk home from the Greenhouse (level design audit)', unit: 'loops score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'Viridel', before: 3, after: 5 }], source: 'node audit: home along the row, 375 m, past four places not passed on the way in' }],
+      see: 'Calm the Gardener and come out of the Greenhouse: follow the green beds down past Oro’s ruins to your ship.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

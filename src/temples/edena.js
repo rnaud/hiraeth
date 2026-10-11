@@ -60,6 +60,8 @@ const TAU = Math.PI * 2;
 /** In the flat meadow hollow north of the white ruins; its door looks south, toward the ruins and the landing. */
 export const SITE = { x: 110, z: 320, r: 22, path: [150, 100] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
+/** The glass spire on the dome's finial (issue #131): its mast and its lantern, m. */
+export const SPIRE = { mast: 22, lantern: 6, r: 2.4 };
 
 /**
  * The Greenhouse's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/builders-greenhouse):
@@ -593,9 +595,24 @@ function exterior(scene, level, rt) {
     K.add(soil, box(3.0, 0.5, 8.4, x, gy + 0.2, z));
     for (let j = 0; j < 4; j++) K.add(M.trim, box(0.06, 0.6, 0.06, x + (j % 2 ? 0.6 : -0.6), gy + 0.7, z - 3 + j * 2));   // the little marker sticks
   }
+  // the glass spire (level design audit v1.49, issue #131: from Mira's the meadow's crest hid all but the dome's cap, so
+  // the walk there was blind): out of the teal finial a slender white mast, ringed, carries a lantern of glass ribbed in
+  // white, and on it a glass bud, the reference's bud over the Bud Passage at the meadow's scale. It shows whole over the
+  // crest from the water clock, and the lantern's glass catches the sun. Drawn only, as the creepers.
+  const S0 = sill + 7 + R + 2.2, { mast, lantern, r } = SPIRE, L0 = S0 + mast;
+  const spireGlass = makeMaterial({ color: '#e8f4ff', glow: 0.8, flat: true, key: 'temple.edena.spire' });
+  const budGlass = makeMaterial({ color: '#f4c9d3', color2: '#9fd6c9', glow: 0.3, flat: true, key: 'temple.edena.bud' });
+  K.add(ribs, new THREE.CylinderGeometry(0.45, 0.9, mast + 0.6, 10).translate(0, S0 - 0.3 + (mast + 0.6) / 2, 0));
+  for (const k of [0.3, 0.6, 0.85]) K.add(ribs, T(new THREE.TorusGeometry(1.1 - k * 0.4, 0.16, 4, 14), [0, S0 + mast * k, 0], [Math.PI / 2, 0, 0]));
+  K.add(ribs, new THREE.CylinderGeometry(r + 0.4, r, 0.4, 8).translate(0, L0, 0));
+  K.add(spireGlass, new THREE.CylinderGeometry(r, r, lantern, 8, 1, true).translate(0, L0 + lantern / 2, 0));
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.add(ribs, box(0.22, lantern, 0.22, Math.sin(a) * (r + 0.02), L0 + lantern / 2, Math.cos(a) * (r + 0.02))); }
+  K.add(ribs, new THREE.CylinderGeometry(r - 0.4, r + 0.4, 0.45, 8).translate(0, L0 + lantern + 0.2, 0));
+  K.add(budGlass, new THREE.SphereGeometry(r * 0.85, 14, 10).scale(1, 1.75, 1).translate(0, L0 + lantern + 0.4 + r * 1.45, 0));
+  K.add(ribs, new THREE.ConeGeometry(0.28, 3, 8).translate(0, L0 + lantern + 0.4 + r * 2.9 + 1.2, 0));
   K.flush();
   const at = K.world(0, sill, R + 1.4);
-  return { door: { at, heading: yaw }, kit: K, base, R, sill, glassM, clear: [{ x: SITE.x, z: SITE.z, r: R + 9 }, { x: K.world(0, 0, R + 9).x, z: K.world(0, 0, R + 9).z, r: 7 }, { x: K.world(0, 0, R + 15).x, z: K.world(0, 0, R + 15).z, r: 18 }] };
+  return { door: { at, heading: yaw }, kit: K, base, R, sill, glassM, spire: { top: K.world(0, L0 + lantern + r * 2.9 + 3.1, 0), lantern: K.world(0, L0 + lantern / 2, 0), height: mast + lantern + r * 2.9 + 3.1 }, clear: [{ x: SITE.x, z: SITE.z, r: R + 9 }, { x: K.world(0, 0, R + 9).x, z: K.world(0, 0, R + 9).z, r: 7 }, { x: K.world(0, 0, R + 15).x, z: K.world(0, 0, R + 15).z, r: 18 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the white ruins flower
@@ -638,6 +655,13 @@ function change(scene, level, rt) {
     }
     for (let k = 0; k < 4; k++) { _p.set((k / 3 - 0.5) * w * 0.7, h + 0.2, 0).applyMatrix4(m.matrixWorld); flowers.push({ at: _p.clone(), s: 1.6, c: k % 5 }); leaves.push({ at: _p.clone().add(V(0, -0.3, 0)), s: 1.3, r: k }); }
   }
+  // the long seed row down the meadow (src/viridel-ways.js, issue #131): every bed comes up, a line of leaves and a flower
+  for (const [i, b] of (level.edena?.seedRow?.beds ?? []).entries()) {
+    const fx = Math.sin(b.yaw), fz = Math.cos(b.yaw);
+    for (let j = 0; j < 4; j++) { const u = -1.8 + j * 1.2; leaves.push({ at: V(b.at.x + fx * u, b.at.y + 0.1, b.at.z + fz * u), s: 0.85, r: i + j * 1.3 }); }
+    flowers.push({ at: V(b.at.x + fx * 0.6, b.at.y + 0.5, b.at.z + fz * 0.6), s: 1.4, c: i % 5 });
+    if (i % 2) flowers.push({ at: V(b.at.x - fx * 1.4, b.at.y + 0.45, b.at.z - fz * 1.4), s: 1.2, c: (i + 2) % 5 });
+  }
   // the dome: leaves and blossom over the glass
   const O = rt.outside;
   if (O) {
@@ -661,7 +685,7 @@ function change(scene, level, rt) {
   // (they come up a few at a time: the instance counts grow with k)
   const apply = () => { root.visible = k > 0.01; fm.count = Math.round(k * flowers.length); lm.count = Math.round(Math.min(1, k * 1.3) * leaves.length); };
   return {
-    root, count: { flowers: flowers.length, leaves: leaves.length, slabs: slabs.length },
+    root, count: { flowers: flowers.length, leaves: leaves.length, slabs: slabs.length, beds: level.edena?.seedRow?.beds.length ?? 0 },
     set(on, { instant = false } = {}) { want = on ? 1 : 0; if (instant) { k = want; apply(); } },
     update(dt) {
       if (k === want) return;

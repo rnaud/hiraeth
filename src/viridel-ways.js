@@ -78,3 +78,73 @@ export function buildRunnel(scene, terrain) {
   const points = RUNNEL.map(([x, z]) => [x, H(x, z) + 0.3, z]);
   return { points, sluice: V(SLUICE[0], H(...SLUICE), SLUICE[1]), basin: V(BASIN[0], H(...BASIN), BASIN[1]) };
 }
+
+// Viridel's way home from the Greenhouse (level design audit v1.49, issue #131: the walk home from its door was the
+// meadow you had crossed toward it, 324 m with nothing on it). The long seed row: Sorrel's beds round the Greenhouse
+// go on as one row of white-kerbed beds down the meadow, south past the white ruins where Oro grows his pyramid, then
+// west to the landing; a marker stick in each, nothing come up. Halfway down to the ruins the builders' seed-drill stands
+// where it stopped at the row's end, its hopper still half full. Once the Gardener sleeps every bed comes up green with a
+// flower or two (src/temples/edena.js change: `beds`). Low and drawn only, the drill collides. No rng.
+//
+//   buildSeedRow(scene, terrain) → { points, beds: [{ at, yaw }], drill, sight }
+//   seedRowDist(x, z)            → m from the row's middle
+
+/** The seed row's line, [x, z]: from below the Greenhouse's sown beds, south past the white ruins, west to the landing. */
+export const SEED_ROW = [[117, 280], [131, 238], [145, 196], [142, 155], [135, 122], [118, 92], [89, 66], [56, 28]];
+/** The seed-drill, [x, z] beside the row, where it stopped; and a bed every `step` m. */
+export const SEED_DRILL = [152, 201], SEED_STEP = 11.5;
+
+const ROW = new THREE.CatmullRomCurve3(SEED_ROW.map(([x, z]) => V(x, 0, z)), false, 'centripetal');
+const ROW_PTS = ROW.getSpacedPoints(120);
+export function seedRowDist(x, z) {
+  let best = Infinity;
+  for (let i = 0; i + 1 < ROW_PTS.length; i++) {
+    const a = ROW_PTS[i], b = ROW_PTS[i + 1], ex = b.x - a.x, ez = b.z - a.z, L = ex * ex + ez * ez;
+    const t = Math.max(0, Math.min(1, ((x - a.x) * ex + (z - a.z) * ez) / L));
+    best = Math.min(best, Math.hypot(x - a.x - ex * t, z - a.z - ez * t));
+  }
+  return best;
+}
+
+export function buildSeedRow(scene, terrain) {
+  const H = (x, z) => terrain.heightAt(x, z);
+  const n = Math.round(ROW.getLength() / SEED_STEP);
+  const kerb = [], soil = [], sticks = [], beds = [];
+  const flat0 = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position') g.deleteAttribute(k); g.computeVertexNormals(); return g; };
+  for (let i = 0; i <= n; i++) {
+    const p = ROW.getPointAt(i / n), t = ROW.getTangentAt(i / n), yaw = Math.atan2(t.x, t.z), y = H(p.x, p.z);
+    const f = new THREE.Matrix4().compose(V(p.x, y, p.z), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw), V(1, 1, 1));
+    // a bed along the row: white kerbs round a strip of brown earth, sunk a little where the meadow slopes
+    kerb.push(new THREE.BoxGeometry(2.6, 0.5, 5.6).translate(0, 0.05, 0).applyMatrix4(f));
+    soil.push(new THREE.BoxGeometry(2.0, 0.5, 5.0).translate(0, 0.14, 0).applyMatrix4(f));
+    sticks.push(new THREE.BoxGeometry(0.06, 0.75, 0.06).translate(0.5, 0.65, -1.9).applyMatrix4(f));
+    beds.push({ at: V(p.x, y + 0.4, p.z), yaw });
+  }
+  // the seed-drill: a white hopper on two tall thin wheels, a row of coulters under it, the drawbar down on the grass
+  // where whoever pulled it let go, a teal band round the hopper; its seed spilled in a little heap below the spout
+  const [dx, dz] = SEED_DRILL, dy = H(dx, dz), near = ROW.getPointAt(ROW_PTS.reduce((k, q, i) => (Math.hypot(q.x - dx, q.z - dz) < Math.hypot(ROW_PTS[k].x - dx, ROW_PTS[k].z - dz) ? i : k), 0) / 120);
+  const dt = ROW.getTangentAt(0.33), dyaw = Math.atan2(dt.x, dt.z) + 0.25;
+  const F = new THREE.Matrix4().compose(V(dx, dy, dz), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), dyaw), V(1, 1, 1));
+  const body = [new THREE.BoxGeometry(2.6, 1.3, 1.5).translate(0, 1.75, 0), new THREE.BoxGeometry(2.0, 0.5, 1.1).translate(0, 0.95, 0)];
+  for (const s of [-1, 1]) body.push(new THREE.CylinderGeometry(1.15, 1.15, 0.14, 18).rotateZ(Math.PI / 2).translate(s * 1.45, 1.15, 0));
+  const fit = [new THREE.BoxGeometry(2.7, 0.22, 1.6).translate(0, 2.0, 0)];
+  for (let k = 0; k < 5; k++) fit.push(new THREE.BoxGeometry(0.07, 0.75, 0.3).rotateX(0.35).translate(-0.9 + k * 0.45, 0.4, 0.2));
+  for (const s of [-1, 1]) fit.push(new THREE.CylinderGeometry(0.05, 0.05, 2.6, 5).rotateX(Math.PI / 2 - 0.42).translate(s * 0.5, 0.55, 1.9));
+  fit.push(new THREE.CylinderGeometry(0.05, 0.05, 1.1, 5).rotateZ(Math.PI / 2).translate(0, 0.08, 3.05));
+  const white = makeMaterial({ color: '#f7f4ec', flat: true, grid: 3 });
+  const drill = new THREE.Mesh(mergeGeometries(body.map((g) => flat0(g.applyMatrix4(F)))), white);
+  drill.name = 'The builders’ seed-drill';
+  scene.add(drill);   // (collides as drawn: a box on two wheels to climb onto and look down the row)
+  const band = new THREE.Mesh(mergeGeometries(fit.map((g) => flat0(g.applyMatrix4(F)))), makeMaterial({ color: '#62c3c9', flat: true, grid: 3 }));
+  band.userData.noCollide = true;
+  const heap = new THREE.Mesh(flat0(new THREE.SphereGeometry(0.55, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.4, 1).applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -1.1)).applyMatrix4(F)), makeMaterial({ color: '#8a5f3e', flat: true }));
+  heap.userData.noCollide = true;
+  const mk = (list, mat, name) => { const m = new THREE.Mesh(mergeGeometries(list.map(flat0)), mat); m.name = name; m.userData.noCollide = true; return m; };
+  scene.add(band, heap,
+    mk(kerb, makeMaterial({ color: '#f8f6f0', flat: true }), 'The long seed row'),
+    mk(soil, makeMaterial({ color: '#8a5f3e', flat: true }), 'The long seed row’s earth'),
+    mk(sticks, makeMaterial({ color: '#f8f6f0', flat: true }), 'The long seed row’s marker sticks'));
+  // (the way along it, for the level design audit: the row's own points, from the Greenhouse's beds to the landing)
+  const points = SEED_ROW.map(([x, z]) => [x, H(x, z) + 0.3, z]);
+  return { points, beds, drill: V(dx, dy + 2.4, dz), sight: V(dx, dy, dz), near: V(near.x, H(near.x, near.z), near.z) };
+}

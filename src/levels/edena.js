@@ -9,7 +9,7 @@ import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
-import { buildRunnel, runnelDist } from '../viridel-ways.js';
+import { buildRunnel, runnelDist, buildSeedRow, seedRowDist, SEED_DRILL } from '../viridel-ways.js';
 
 // ---------------------------------------------------------------------------
 // Viridel: a paradise planet with pale meadows,
@@ -601,21 +601,31 @@ export function* buildEdena(scene) {
   yield;
   const runnel = buildRunnel(scene, terrain);
 
+  // the long seed row (src/viridel-ways.js, level design audit v1.49, issue #131): from below the Greenhouse's sown beds
+  // south past the white ruins and west to the landing, the builders' seed-drill halfway down to the ruins: the way home
+  // from the Greenhouse, Sorrel's beds that come up once the Gardener sleeps (src/temples/edena.js change)
+  yield;
+  const seedRow = buildSeedRow(scene, terrain);
+
   // (the white builders' Greenhouse in the hollow north of the ruins: src/temples/edena.js)
   yield;
-  return attachTemple('edena', scene, {
+  const level = attachTemple('edena', scene, {
     id: 'edena',
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch
     // and the veil over it), the tallest tree and its lookout, the pond
-    edena: { crashed, tall, pond: { ...POND, y: pondY }, ruins: ruinSlabs },
+    edena: { crashed, tall, pond: { ...POND, y: pondY }, ruins: ruinSlabs, seedRow },
     // no flora in the pond, round the crashed ship or at the foot of the tallest tree (src/flora.js)
     floraAvoid: shop.avoid((x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
-      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r) || runnelDist(x, z) < 1 + r),
+      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r) || runnelDist(x, z) < 1 + r
+      || seedRowDist(x, z) < 1.6 + r || Math.hypot(x - SEED_DRILL[0], z - SEED_DRILL[1]) < 4 + r),
     // what the level design audit reads (scripts/level-design/audit.mjs): the runnel, a leading line followed where the
     // main quest sends you back up it; the sluice-gate and the basin on it, to look at
-    lines: [{ name: 'Mira’s runnel', points: runnel.points, auto: false }],
-    sights: [{ name: 'the runnel’s sluice-gate', at: runnel.sluice }, { name: 'the runnel’s basin', at: runnel.basin }],
+    // (v1.50, issue #131: the long seed row, the way home from the Greenhouse Sorrel names; the seed-drill on it; and the
+    // Greenhouse's glass spire, thin, so the audit's height grid never sees it)
+    lines: [{ name: 'Mira’s runnel', points: runnel.points, auto: false }, { name: 'the long seed row', points: seedRow.points, auto: false }],
+    sights: [{ name: 'the runnel’s sluice-gate', at: runnel.sluice }, { name: 'the runnel’s basin', at: runnel.basin }, { name: 'the builders’ seed-drill', at: seedRow.sight }],
+    beacons: () => { const s = level.temple?.outside?.spire; return s ? [{ name: 'the Greenhouse’s glass spire', top: s.top.toArray(), height: s.height }] : []; },
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,
@@ -644,5 +654,6 @@ export function* buildEdena(scene) {
     },
     update(dt, t, ctx) { for (const m of movers) m(t, ctx?.player?.pos); },
   });
+  return level;
 }
 export const createEdena = stepped(buildEdena);
