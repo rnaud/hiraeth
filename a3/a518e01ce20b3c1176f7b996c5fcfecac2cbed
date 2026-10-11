@@ -1,0 +1,21 @@
+docs/README.md
+  s_9ca76055a220ed::t_4578919c77a4b7 26
+docs/audits/game-v1.46.md
+  s_9ca76055a220ed::t_fa36efa2fc676f 1-364
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3a518e01ce20b3c1176f7b996c5fcfecac2cbed",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
