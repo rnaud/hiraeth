@@ -82,7 +82,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
-const CATCH_UP = ['elder', 'ask', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
+const CATCH_UP = ['elder', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
 
 /** Where the traveller looks when he looks into the well: down the shaft, under the rim (the rim stands 1.15 m). */
 export function wellInside(city) { return city.well.clone().add(V(0, 0.45, 0)); }
@@ -97,9 +97,9 @@ export function wellInside(city) { return city.well.clone().add(V(0, 0.45, 0)); 
  * is skipped (SPARK_STAGES: setupDesert jumps over them to the ship). A save
  * short of that finds the tree cold and does the new errand; its tank is full
  * already (it was never empty: tool.empty is only set for a chest opened now).
- * v < 4: the four talks in a row (elder, well, ama, speaker) are two now: a save at the
- * well, Ama or the Speaker goes to the merged stage (STAGE_MERGE), keeping what it did
- * (it needs only Ama's jar now: askedDone).
+ * v < 4: the four talks in a row (elder, well, ama, speaker) were two; v < 5: Ama's jar is no step of
+ * the main quest any more (Nour points you at the skull herself, issue #63): a save at the well, Ama, the
+ * Speaker or the jar's stage ('ask') goes on to the way down (STAGE_MERGE), keeping what it did.
  * Returns the new stage, or null if the stage did not change.
  */
 export function migrateDesertQuest(game) {
@@ -118,12 +118,14 @@ export function migrateDesertQuest(game) {
 }
 
 /**
- * Ama still has her jar for you: until she has given it (and while the tree is cold), she calls you over to
- * her fire instead of waving you on to the city ("calling you over", below: twice at most, CALLS.ama).
- * Her talk gives it on the way in (jarEarly), after Nour (power), or late (lateJar).
+ * Ama doesn't call you over for her jar any more: it pulled you off the way to the city, one more person to see
+ * before the one who matters (the author's playthrough, October 2026, issue #63). The jar is hers to give whoever
+ * sits at her fire (jarEarly, after the chest: power, late: lateJar), and no step of the quest. Kept, false, for
+ * the callers below and the tests.
  */
 export function amaCallsYou(game) {
-  return !game.flag('desert.jar.given') && !game.flag('desert.tree.lit');
+  void game;
+  return false;
 }
 
 /** What Ama shouts as you come up to the camps before the chest is open: the jar if she has it for you. */
@@ -132,9 +134,8 @@ export function amaCampShout(game) {
 }
 
 /**
- * The stage after Nour ('ask') is done once Ama has given you her jar. Nour says the Speaker's verse herself
- * now (her `quest` node), so walking with the Speaker is for whoever wants the old words whole (October 2026:
- * the desert's first hour shorter, three talks in a row became two).
+ * Ama has given you her jar (desert.asked): the jar's stage ('ask') was the step after Nour until Nour pointed you
+ * at the skull herself (issue #63, DESERT_QUEST_V 5). The flag is still kept, for old saves and the journal.
  */
 export function askedDone(game) {
   if (game.flag('desert.asked') || !game.flag('desert.jar.given')) return false;

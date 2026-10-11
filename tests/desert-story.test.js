@@ -389,10 +389,10 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.ok(W.ledge.noticed, 'the chest is noticed');
   assert.ok(W.state.flare > 0.5, 'the tree notices');
   assert.ok([...W.villagers, W.people.hessa].some((n) => n.shout && /sky|hum|fell|tree|Grandmother/.test(n.shout.text)), 'a murmur');
-  // Nour, before it opens: it has not opened in living memory; it opens for one who fell from the sky
+  // Nour, before it opens: it has never opened; it opens for one who fell from the sky
   const before = talk(PEOPLE.nour, []);
   assert.equal(before.nodeId, 'shut');
-  assert.match(before.pages.join(' '), /living memory/);
+  assert.match(before.pages.join(' '), /Never opened/);
   assert.match(before.pages.join(' '), /fell from the sky/);
   // open it (the opening scene itself is tested in boxes.test.js)
   at(box.pos.clone().add(V(Math.sin(box.yaw) * 0.8, 0, Math.cos(box.yaw) * 0.8)));
@@ -431,19 +431,19 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   prompt.entry.use(player);
   assert.ok(rt.dialogue.open && rt.dialogue.person.id === 'nour', 'and you talk');
   assert.equal(rt.dialogue.runner.nodeId, 'opened');
-  assert.match(rt.dialogue.runner.pages.join(' '), /opened/);
+  assert.match(rt.dialogue.runner.pages.join(' '), /it opens/);
   rt.dialogue.close();
   step(18 * 30, 1 / 30, { people: true });
   for (const n of W.villagers) assert.ok(flat(n.pos, homeOf.get(n)) < 8, `${n.id ?? 'a villager'} stays by their door: no crowd walks over`);
-  // a real conversation, with choices
-  // (and the well beside her, listened at with her: it was a stage of its own)
-  const r = talk(PEOPLE.nour, ['Who are the Givers?', 'Why a star?', 'My ship has no power', 'Why me?', 'All right', 'The well is right here', 'Ama’s jar']);
+  // a real conversation, with choices, and short (the author's playthrough, October 2026, issue #62): the Givers only
+  // asked about once she has named them (#61), and she points you at the skull herself (#63)
+  const r = talk(PEOPLE.nour, ['The Givers?', 'My ship has no power']);
   assert.equal(game.flag('desert.elder.heard'), true);
-  assert.equal(game.flag('desert.well.seen'), true, 'the well, heard with Nour');
-  assert.match(PEOPLE.nour.talk.nodes.rim.say.join(' '), /face the back gate/, 'what the well said is hers to say now');
+  assert.match(r.pages.join(' '), /marked skull, past the back gate/, 'she points you at the skull');
+  assert.doesNotMatch(r.pages.join(' '), /Ama|Speaker|jar from/, 'and sends you to nobody else');
   assert.equal(r.ended, false, 'a last word before you go');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'ask');
+  assert.equal(quests.stage('desert.power'), 'down', 'straight on to the way down: no jar to fetch from Ama first');
   t.mock.timers.tick(3400);
   assert.ok(toasts.some((t) => /dry: not a drop/.test(t)), 'it says the tank is dry');
   assert.ok(!toasts.some((t) => /Try shooting/.test(t)), 'no nudge to try an empty tool');
@@ -463,19 +463,19 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
   const W = rt.world, H = level.hearth;
-  assert.equal(quests.stage('desert.power'), 'ask');
-  assert.equal(quests.objective().label, 'Ama’s jar, at the camp fires');
-  assert.ok(quests.objective().position.distanceTo(W.people.ama.pos) < 0.01, 'the marker is on Ama');
-  // Nour said the Speaker's verse herself (the first hour shorter: the Speaker is no stage of his own now)
-  assert.match(PEOPLE.nour.talk.nodes.quest.say.map((s) => s.text ?? s).join(' '), /mouth is a door/);
+  assert.equal(quests.stage('desert.power'), 'down');
+  assert.equal(quests.objective().label, 'The giant’s skull');
+  // Nour said the old verse herself: the mouth is a door
+  assert.match(PEOPLE.nour.talk.nodes.power.say.map((s) => s.text ?? s).join(' '), /mouth is a door/);
   talk(THINGS.well, [0]);   // (the well can still be looked at: it isn't a stage any more)
+  // Ama's jar is her own small gift now, no step of the quest (issue #63): taken, it fills at the pool too
   const ama = talk(PEOPLE.ama, ['I’ll bring it back full']);
-  assert.ok(quests.has('jar'), 'Ama gives the jar, now that Nour sent you');
-  assert.match(ama.pages.join(' '), /skull is beyond the back gate/, 'and points the way');
+  assert.ok(quests.has('jar'), 'Ama gives the jar to whoever sits at her fire');
+  assert.doesNotMatch(ama.pages.join(' '), /Nour sent/, 'nobody sent you to her');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'down', 'the jar is the one errand before the way down');
+  assert.equal(quests.stage('desert.power'), 'down', 'the jar changes nothing');
   // the Speaker still has the old words whole, for whoever walks with him
-  const said = talk(PEOPLE.speaker, ['Nour says', 'Is there a way down']);
+  const said = talk(PEOPLE.speaker, ['Until it drinks', 'Is there a way down']);
   assert.match(said.pages.join(' '), /mouth is a door/);
   assert.equal(game.flag('desert.speaker.heard'), true, 'his old words (the giants, the swamp of lights)');
   step(2);
@@ -575,18 +575,15 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.match(cold.pages.join(' '), /spark-stone/);
   assert.match(cold.pages.join(' '), /Givers’ Hearth/);
   while (!cold.ended && (!cold.lastPage || !cold.choices().length) && cold.advance());
-  assert.deepEqual(cold.choices().map((c) => c.text.replace(/^~\w+~ /, '')), ['How far is it?', 'I’ll bring the stone back.']);
+  assert.deepEqual(cold.choices().map((c) => c.text.replace(/^~\w+~ /, '')), ['I’ll bring the stone back.', 'Marrow won’t mind?']);
+  // she says where the bike is herself (it was "ask Marrow at the camps": issue #63)
+  assert.match(cold.pages.join(' '), /hollow with the red rag/);
   assert.equal(game.flag('desert.spark.heard'), true);
   step(2);
   assert.equal(quests.stage('desert.power'), 'bike');
-  // the bike's errand starts a moment after her words; the marker goes to Marrow, then the hollow
   t.mock.timers.tick(2600);
-  assert.equal(quests.stage('desert.bike'), 'ask');
-  quests.track('desert.power');
-  assert.ok(quests.objective().position.distanceTo(W.people.marrow.pos) < 0.01, 'the marker is on Marrow');
-  talk(PEOPLE.marrow, ['I’ll go and dig it out']);
-  quests.track('desert.power');
-  assert.ok(quests.objective().position.distanceTo(W.hollow.site.bike) < 0.01, 'then on the hollow');
+  assert.equal(quests.stage('desert.bike'), undefined, 'no errand to go and ask Marrow first');
+  assert.ok(quests.objective().position.distanceTo(W.hollow.site.bike) < 0.01, 'the marker is on the hollow');
   at(W.hollow.site.bike.clone().add(V(1.5, 0, 0)).setY(terrain.heightAt(W.hollow.site.bike.x + 1.5, W.hollow.site.bike.z)));
   use('bike.tarp');           // the tarp
   step(30);
@@ -789,16 +786,16 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
 
 test('the water let out before anyone sent you down: the steps that lead there pass, and Ama still gives the jar', () => {
   // Ilo, Bako and Hessa all point at the giant's mouth: a player can lever the rib off before Nour, the well, Ama and the Speaker
-  for (const f of ['desert.elder.heard', 'desert.well.seen', 'desert.speaker.heard', 'desert.asked', 'desert.cave.seen', 'desert.jar.given', 'desert.jar.filled', 'desert.tree.lit', 'desert.ship.fed']) game.set(f, undefined);
+  for (const f of ['desert.elder.heard', 'desert.well.seen', 'desert.speaker.heard', 'desert.asked', 'desert.cave.seen', 'desert.jar.given', 'desert.jar.filled', 'desert.pool.tinted', 'desert.well.watched', 'desert.spark.heard', 'desert.hearth.seen', 'desert.stone.taken', 'desert.tree.lit', 'desert.ship.fed']) game.set(f, undefined);
   while (quests.has('water')) quests.take('water');
   game.set('desert.channel.open', true);
   quests.set('desert.power', 'elder');
   step(6);
-  assert.equal(quests.stage('desert.power'), 'ask', 'Nour’s sending and the well pass over; the jar is still needed');
+  assert.equal(quests.stage('desert.power'), 'fill', 'Nour’s sending and the way down pass over: on to the pool');
   talk(PEOPLE.ama, ['I’ll bring it back full']);
-  assert.ok(quests.has('jar'), 'Ama gives the jar');
+  assert.ok(quests.has('jar'), 'Ama still gives the jar, to fill there if you like');
   step(6);
-  assert.equal(quests.stage('desert.power'), 'fill', 'the Speaker and the way down pass too: on to the pool');
+  assert.equal(quests.stage('desert.power'), 'fill');
   clearInteractables();
 });
 

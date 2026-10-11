@@ -13,10 +13,9 @@ import { keyText } from '../prompt-keys.js';
 // pole marks the place. Until it is found the bike lies there half in the
 // sand (Hoverbike.rest: dormant, so no whistle, no "ride" prompt, nothing
 // moves it). The quest desert.bike (desert-data.js) is started by Rook near
-// the ship, by Marrow ("Got anything faster than walking?"), or once Nour has
-// sent you for the spark-stone (desert.spark.heard: the Givers' Hearth is
-// farther than walking, and the main quest waits on the bike); it leads to
-// Marrow, then to the hollow:
+// the ship or by Marrow ("Got anything faster than walking?"), and leads to the
+// hollow; once Nour has sent you for the spark-stone (desert.spark.heard: the
+// Givers' Hearth is farther than walking) the main quest's own step does:
 //
 //   E on the tarp      pulls it back (desert.bike.uncovered)
 //   E on the bike      with a full tank: the tank swings into its cradle,
@@ -134,15 +133,9 @@ export function setupHoverbike(ctx) {
   // ---------------------------------------------------------------- the quest
   const marker = site.bike.clone().setY(site.bike.y + 0.6);
   quests.locate('bike', () => (bike && !bike.dormant ? bike.pos : marker));
-  // (started on its own, it doesn't take the tracked objective from the main quest)
-  const start = () => {
-    if (found() || quests.isStarted('desert.bike')) return;
-    const tracked = quests.tracked();
-    quests.start('desert.bike');
-    if (tracked) quests.track(tracked);
-  };
-  if (game.flag('desert.spark.heard')) start();
-  game.on('flag:desert.spark.heard', (v) => { if (v) setTimeout(start, 2500); });   // (after Nour's own toasts)
+  // (Nour's sending for the spark-stone no longer starts it: she says where the bike is herself, and the main quest's
+  //  own step leads to the hollow, issue #63; a save at its old first step, "ask Marrow", goes on to the hollow)
+  if (quests.stage('desert.bike') === 'ask') quests.set('desert.bike', 'find');
 
   const pullTarp = () => {
     game.set('desert.bike.uncovered', true);
@@ -151,7 +144,7 @@ export function setupHoverbike(ctx) {
     // found before anyone told you of it: the errand picks up here
     const s = quests.stage('desert.bike');
     // (not when you could wake it this moment: no errand to hand you and take back at once)
-    if ((s === undefined && !fuelled()) || s === 'ask' || s === 'find') quests.set('desert.bike', 'wake');
+    if ((s === undefined && !fuelled()) || s === 'find') quests.set('desert.bike', 'wake');
     toast(fuelled() ? 'A hoverbike, half in the sand, smelling of fluid. Its cradle is empty.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
   };
   const wakeBike = () => {

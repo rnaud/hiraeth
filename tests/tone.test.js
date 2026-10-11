@@ -18,7 +18,7 @@ const DATA = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data
 const LEVELS = readdirSync(new URL('levels/', SRC)).filter((f) => f.endsWith('.js'));
 const STORY = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('.js') && !f.endsWith('-data.js'));
 const SPOKEN_LISTS = /LINES|MURMURS|_TALK/;
-const NOT_SPOKEN = new Set(['QUESTS', 'ITEMS', 'KEEPSAKE', 'MACHINES', 'SOUNDS', 'STAGE_MIGRATION', 'SIGNAL', 'CAIRN_STONES', 'BOARD_GLYPH']);
+const NOT_SPOKEN = new Set(['QUESTS', 'ITEMS', 'KEEPSAKE', 'MACHINES', 'SOUNDS', 'STAGE_MIGRATION', 'STAGE_MERGE', 'SIGNAL', 'CAIRN_STONES', 'BOARD_GLYPH']);
 
 /** Every spoken string under a value: say pages, choice texts, bye, lines, and all strings of a spoken list. */
 function collect(v, where, out, all = false, seen = new Set()) {

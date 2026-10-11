@@ -61,28 +61,32 @@ test('calm eyes: on the speaker whenever they are in reach; otherwise fewer, sma
 
 // ---------------------------------------------------------------- Nour: "stand in water"
 
-test('Nour: the answers to "stand in water" follow on from it', () => {
+// (cut down after the author's playthrough, October 2026: issue #62, short; #61, every answer follows from what was
+//  just said, nobody asks "who are the Givers?" before she names them; #63, she points you at the skull herself)
+test('Nour, the chest open: short, each answer follows from her words, and she points you at the skull', () => {
   const game = new GameState(memory()), quests = new Quests({ game });
   game.set('item.backpack', 1); game.set('tool.empty', true);
   const r = new DialogueRunner(PEOPLE.nour, { game, quests });
   assert.equal(r.nodeId, 'opened');
   while (!r.lastPage) r.advance();
-  r.choose(r.choices().find((c) => /on my back/.test(c.text)).index);
-  assert.equal(r.nodeId, 'pack');
+  assert.match(r.pages.join(' '), /Givers/, 'she names the Givers');
+  r.choose(r.choices().find((c) => /^The Givers\?$/.test(c.text)).index);
+  assert.equal(r.nodeId, 'givers', 'and only then are they asked about');
+  r.choose(r.choices().find((c) => /no power/.test(c.text)).index);
+  assert.equal(r.nodeId, 'power');
   while (!r.lastPage) r.advance();
-  assert.match(r.text, /Stand in water/);
-  const answers = r.choices().map((c) => c.text);
-  assert.equal(answers.length, 2);
-  assert.ok(answers.every((a) => /water/i.test(a)), `each answer takes up the water: ${answers.join(' / ')}`);
-  assert.ok(!answers.some((a) => /didn’t fall/.test(a)), 'not the crash, out of nowhere');
-  // where is there water: she says why there is none, and the crash and the ship follow from that
-  r.choose(r.choices().find((c) => /Where/.test(c.text)).index);
-  assert.equal(r.nodeId, 'water');
-  while (!r.lastPage) r.advance();
-  assert.match(r.pages.join(' '), /stopped rising/);
-  assert.deepEqual(r.choices().map((c) => PEOPLE.nour.talk.nodes.water.choices[c.index].goto), ['struck', 'power']);
-  // every line in the new node has a tone
-  for (const s of [...PEOPLE.nour.talk.nodes.water.say, ...PEOPLE.nour.talk.nodes.water.choices.map((c) => c.text), ...PEOPLE.nour.talk.nodes.pack.choices.map((c) => c.text)]) assert.notEqual(stripTone(s), s);
+  assert.match(r.pages.join(' '), /Stand in the water/);
+  assert.match(r.pages.join(' '), /marked skull, past the back gate/);
+  assert.equal(game.flag('desert.elder.heard'), true);
+  // each answer takes up her words: the skull, the giant
+  assert.deepEqual(r.choices().map((c) => c.text), ['The skull past the back gate. Thank you, Nour.', 'Inside the giant?']);
+  // short: the whole talk from the chest to the skull is a few pages, no page over 45 words
+  const N = PEOPLE.nour.talk.nodes, pages = ['opened', 'givers', 'power'].flatMap((id) => [].concat(N[id].say));
+  for (const p of pages) assert.ok(stripTone(p.text ?? p).split(/\s+/).length <= 45, stripTone(p.text ?? p));
+  assert.ok(pages.length <= 6, `${pages.length} pages from the chest to the skull`);
+  // nobody else to see first: no Ama, no Speaker, no jar in what she says
+  for (const p of pages) assert.doesNotMatch(stripTone(p.text ?? p), /Ama|Speaker|jar from/);
+  for (const id of ['opened', 'givers', 'power', 'giant', 'cold', 'marrow', 'bring']) for (const s of [].concat(N[id].say, (N[id].choices ?? []).map((c) => c.text))) assert.notEqual(stripTone(s.text ?? s), s.text ?? s, `${id}: a tone`);
 });
 
 test('no reply in the desert opens by repeating the question it answers', () => {

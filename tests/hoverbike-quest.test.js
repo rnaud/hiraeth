@@ -95,7 +95,7 @@ test('the quest: Rook or Marrow send you to the hollow; the tarp, then the backp
   assert.ok(Math.hypot(STORY.bike.x, STORY.bike.z) > 150, 'a walk from the ship');
   const floor = terrain.heightAt(STORY.bike.x, STORY.bike.z), rim = Math.min(...[0, 1, 2, 3, 4, 5].map((i) => terrain.heightAt(STORY.bike.x + Math.cos(i) * 30, STORY.bike.z + Math.sin(i) * 30)));
   assert.ok(floor < rim, 'a hollow');
-  // Rook, near the ship, sends you to Marrow
+  // Rook, near the ship, says where the bike is (it was "ask Marrow", one person sending you to another: issue #63)
   const rook = CONTENT.desert.npcs.find((n) => n.id === 'rook');
   const talk = (person, picks) => {
     const r = new DialogueRunner(person, { game, quests });
@@ -107,9 +107,10 @@ test('the quest: Rook or Marrow send you to the hollow; the tarp, then the backp
       while (!r.ended && r.advance());
     }
   };
-  talk(rook, ['I’ll ask him']);
-  assert.equal(quests.stage('desert.bike'), 'ask');
-  talk(PEOPLE.marrow, ['I’ll go and dig it out']);
+  talk(rook, ['I’ll have a look']);
+  assert.equal(quests.stage('desert.bike'), 'find', 'straight to the hollow');
+  // Marrow says the same if you ask him, and it changes nothing
+  talk(PEOPLE.marrow, ['Thanks, Marrow']);
   assert.equal(quests.stage('desert.bike'), 'find');
   assert.ok(quests.where(quests.current('desert.bike')).distanceTo(bike.pos) < 2, 'the marker is on the bike');
   // at the hollow: pull back the tarp

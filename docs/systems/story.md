@@ -657,6 +657,41 @@ can be done in another order, the quest catches up instead (docs/story-audit.md)
 
 Each has an out-of-order test in its world's story test.
 
+## Straight to the end, and nobody sends you to somebody else (the author's desert playthrough, October 2026)
+
+Issues #61, #62, #63 and #73. "Why do I need to go talk to Ama when I'm already there? Just have Nour point me at
+the skull. [...] the idea of one character who tells me to talk to another character and then another is a bad
+idea." "All quests should be solvable by just going to the end if you can."
+
+- **Going straight to the end** (`src/story/quests.js` `skipAhead`, run by `update` before each quest's own
+  step): when a later step's goal is already met (a `flag` step's flag, a `when`), the quest moves on past it at
+  once and the steps before it are passed over, with one toast for where it lands. A step with `gate: true` is
+  never passed over unless its own goal is met (the desert's `channel` and `fill`: the fire's steps can't carry
+  the quest past the water); one with `ahead: false` doesn't pull the quest forward (its flag can be set out of
+  order: the desert's `valve`, a chest by the pool, and `bike`, found on its own errand). goto, talk and bring
+  steps are done by doing them. This is the general form of the per-world `caughtUp`s above, which stay.
+  `tests/quest-skip.test.js`.
+- **The desert's intro, one person at a time.** Marrow sends you to Qanat's great tree and the chest humming on
+  it (not "ask old Nour"); the chest opens and Nour comes to you; she points you straight at the marked skull
+  (her verse, "its mouth is a door") and says the glass on your back fills where the water is. **Ama's jar is no
+  step of the main quest** (`ask` is gone, `DESERT_QUEST_V` 5: `STAGE_MERGE` sends a save at `ask`, `well`,
+  `ama` or `speaker` to `down`): she gives it to whoever sits at her fire (`jarEarly`, `sent` → `power`,
+  `lateJar`) and it fills at the pool too, for the Drinking; she no longer calls you over for it
+  (`amaCallsYou` is false). The pool's step is the tank filled (`desert.pool.tinted`), jar or no jar. The
+  Speaker points at the chest, not at Nour, and keeps the old words for whoever walks with him. Later, Nour says
+  where Marrow hid the hoverbike herself (the main quest's `bike` step leads to the hollow, `bikeHollow`), and
+  the bike's own errand has no "ask Marrow" step (`desert.bike`: `find`, `wake`; Rook says where it is, and a
+  save at its old `ask` goes to `find`). Hessa, Ama and the Speaker no longer say "ask Nour".
+- **Nour, cut down** (#62): her talk from the open chest to the skull is three short nodes (`opened`, `givers`,
+  `power`), five pages, no page over 45 words; the spark-stone is two pages (`cold`).
+- **Every answer follows from what was just said** (#61): nobody asks "Who are the Givers?" before Nour has named
+  them; the Speaker's "The swamp of lights?" is offered where he says it, not a node later; Ama's "Draws it up
+  from where?" answers her "when Qanat's tree draws up its water". `tests/dialogue-playtest.test.js`.
+- **Elsewhere, flagged** (one person sending you to another, left as they are for now): the Signal Market's
+  Madame Sel → Kip (`bazaar.signal`); the City-Shaft's Nima → Ossa at the Upward Shrine → Dov (`incal.light`),
+  and Lio → Tobin → Lio for the cab pass (`incal.pass`); Viridel's Mira → Vey → Mira (`edena.garden`); Lorn's
+  Wendel → Saba (`perdide.crystal`); the Overnight Train's Edda → the conductor → Mireille (`bazaar.nightmail`).
+
 ## Places to stop on the way (the second story pass, October 2026)
 
 The audit's empty stretches (docs/story-audit.md, "Places to fill"), one at a time, with the worlds'

@@ -201,12 +201,13 @@ export const CONTENT = {
         } } },
       { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ["~curious~ Seen a riderless bike? Mine has gone exploring.", "~tired~ It had a red seat. It probably still thinks it has a red seat.", "~playful~ If you meet a bike with opinions, tell it I’ve forgiven it."], shy: true,
         id: 'rook', name: 'Rook', title: 'who lost a bike', color: '#8a6fb8', talk: {
-          // before you have a hoverbike of your own, Rook sends you to Marrow for one (quest desert.bike)
+          // before you have a hoverbike of your own, Rook tells you where Marrow hid one (quest desert.bike: it was "ask
+          // Marrow", one person sending you to another, the author's playthrough, issue #63)
           entry: [{ if: { not: { flag: 'desert.bike.found' } }, node: 'walk' }, { node: 'hello' }],
           nodes: {
-          walk: { say: ["~curious~ I’m Rook. Looking for my bike. It leaves without consulting me. You’re walking too, I see.", "~whisper~ Try *Marrow at the camps*. He’s hidden a bike under a tarp. Not mine; I checked. Ask him where to find it."],
+          walk: { say: ["~curious~ I’m Rook. Looking for my bike. It leaves without consulting me. You’re walking too, I see.", "~whisper~ Marrow hid a bike under a tarp, *in the hollow with the red rag on a pole*, between here and the camps. Not mine; I checked."],
             do: (ctx) => { if (!ctx.quests?.isStarted('desert.bike') && ctx.quests?.def('desert.bike')) ctx.quests.start('desert.bike'); },
-            choices: [{ text: '~happy~ I’ll ask him. Good luck, Rook.', end: true }] },
+            choices: [{ text: '~happy~ I’ll have a look. Good luck, Rook.', end: true }] },
           hello: { say: ["~playful~ Your bike comes when called. Mine seems to consider that a suggestion. Seen it anywhere?"], choices: [{ text: '~playful~ What does yours think?', goto: 'op' }, { text: '~happy~ Good luck, Rook.', end: true }] },
           op: { say: ["~tired~ It thinks I’m slow and talk too much. Probably gone to the procession, where both are encouraged."], choices: [{ text: '~happy~ Good luck.', end: true }] },
         } } },

@@ -17,7 +17,7 @@ test('the gate: the ship is powered only once the tree burns and Qanat has broug
   const last = main.stages.at(-1);
   assert.equal(last.id, 'ship');
   assert.equal(last.flag, 'desert.ship.fed');
-  assert.match(last.text, /Qanat is repaying you/);
+  assert.match(last.text, /Meet Qanat at your ship/);
   assert.match(main.outro, /gave Qanat back its light, and Qanat filled your ship/);
 });
 
@@ -42,10 +42,9 @@ test('the words: Qanat helps because he helped; the tree alone never powers the 
   assert.match(say('marrow', 'fire'), /drained/);
   assert.match(say('marrow', 'fire'), /doesn’t hand its fire to strangers/);
   // Nour: help us, and Qanat will see to your ship
-  assert.match(say('nour', 'power'), /Qanat will not let you leave in the dark/);
-  assert.match(say('nour', 'why'), /Qanat will see to your ship/);
+  assert.match(say('nour', 'power'), /Qanat won’t send you off in the dark/);
   assert.match(say('nour', 'drinking'), /Qanat pays its debts/);
-  for (const [who, node] of [['ama', 'power'], ['nour', 'power'], ['nour', 'why'], ['ama', 'drinking'], ['nour', 'drinking']]) {
+  for (const [who, node] of [['ama', 'power'], ['nour', 'power'], ['ama', 'drinking'], ['nour', 'drinking']]) {
     assert.ok(!/water will power your ship|glowing water to your ship|Take it to the ship|Take your jar to the ship/.test(say(who, node)), `${who}.${node}`);
   }
 });

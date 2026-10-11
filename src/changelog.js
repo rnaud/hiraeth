@@ -72,6 +72,11 @@ export const CHANGELOG = [
     'The backpack comes out of Qanat’s chest as empty as it is: its glass is dry on the card, and nothing comes up over the card while you read it. After it, he simply has it on his back: no more firing it, and no copy of it flying into him and shrinking away.',
     'Out of the chest by the giant’s pool, the lift valve goes over his shoulder onto the pack with a click instead of being fired like a gun he doesn’t have yet; the same for the other parts of the pack. Nothing found in a chest shrinks away to nothing any more.',
     'When your empty tank first fills in the giant’s pool, the scene no longer ends with you firing water over the pool with a gun you don’t have yet: the tank’s lights come on, the chest beside the pool hums back, and you turn to it.',
+    // the desert's story (docs/systems/story.md "Straight to the end, and nobody sends you to somebody else")
+    'In Qanat, Nour sends you straight down the giant after the chest opens: no more fetching Ama’s jar from the camps first. Ama still gives her jar to whoever stops at her fire, and it fills at the pool too.',
+    'Nobody in the desert sends you on to somebody else any more: Marrow points you at the humming chest on Qanat’s tree, Nour tells you herself where Marrow hid his hoverbike, and Rook says where it lies.',
+    'Nour’s talk is much shorter, and more her own: what the chest gave you, where the water is, and the way down, in a few lines. Every answer you can give follows from what was just said: no more asking who the Givers are before anyone has named them.',
+    'Quests can be finished by going straight to their end: a step you have already done (the rib off the channel, the tank filled) is passed over, instead of the quest sending you back to someone first.',
     'The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.',
     // <<< the author’s desert playthrough
   ] },

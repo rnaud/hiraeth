@@ -52,6 +52,7 @@ function desert(flags = {}) {
   return { level, Q: level.qanat, H: level.hearth, player, physics, rt, quests: rt.quests, step, toasts };
 }
 
+const { DESERT_QUEST_V } = await import('../src/story/desert-data.js');
 test('saves from before the rework: a tree that already drank keeps burning, and the spark-stone’s errand is skipped', () => {
   const store = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
   const save = (stage, flags = {}) => {
@@ -66,7 +67,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
     const g = save(stage, flags);
     assert.equal(migrateDesertQuest(g), null, `${stage}: the stage stays where it was`);
     assert.equal(g.flag('desert.tree.lit'), true, `${stage}: the tree burns`);
-    assert.equal(g.flag('desert.quest.v'), 4);
+    assert.equal(g.flag('desert.quest.v'), DESERT_QUEST_V);
     assert.equal(g.flag('tool.empty'), undefined, 'and the tank was never empty');
   }
   // short of the water: the tree is cold now, the new errand waits
@@ -81,7 +82,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
   // a v1 save gets both migrations: the moved stages, and the tree
   const old = save('ama', { 'desert.quest.v': undefined });
   assert.equal(migrateDesertQuest(old), 'elder');
-  assert.equal(old.flag('desert.quest.v'), 4);
+  assert.equal(old.flag('desert.quest.v'), DESERT_QUEST_V);
   void Quests;
 });
 
@@ -193,47 +194,39 @@ test('the hoverbike won’t wake on an empty tank', () => {
   game.reset();
 });
 
-test('saves from before the four talks were folded into two (desert.quest.v 3): the well, Ama and the Speaker go to the merged stage (Ama’s jar), keeping what was done', async () => {
-  const { STAGE_MERGE, DESERT_QUEST_V } = await import('../src/story/desert-data.js');
-  assert.equal(DESERT_QUEST_V, 4);
+test('old saves at the stages that left the main quest (the well, Ama, the Speaker, and Ama’s jar since v5) go on to the way down, keeping what was done', async () => {
+  const { STAGE_MERGE } = await import('../src/story/desert-data.js');
+  assert.equal(DESERT_QUEST_V, 5);
   const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
-  for (const gone of ['well', 'ama', 'speaker']) assert.ok(!ids.includes(gone), `${gone} is no stage now`);
-  assert.deepEqual(ids.slice(0, 5), ['city', 'box', 'elder', 'ask', 'down']);
+  for (const gone of ['well', 'ama', 'speaker', 'ask']) assert.ok(!ids.includes(gone), `${gone} is no stage now`);
+  // (Nour points you at the skull herself: the author's playthrough, October 2026, issue #63)
+  assert.deepEqual(ids.slice(0, 4), ['city', 'box', 'elder', 'down']);
   for (const to of Object.values(STAGE_MERGE)) assert.ok(ids.includes(to));
   const base = { 'prologue.done': true, 'items.v': 1, 'item.backpack': true, 'box.desert.backpack': true, 'tool.empty': true, 'desert.quest.v': 3, 'desert.bike.v': 1, 'desert.elder.heard': true };
-  // at the well (heard Nour, nothing else): the merged stage, Ama first
+  // at the well (heard Nour, nothing else): the way down
   let D = desert({ ...base, 'quest.desert.power': 'well' });
   D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'ask');
-  assert.equal(game.flag('desert.quest.v'), 4);
-  assert.ok(D.quests.objective().position.distanceTo(D.rt.world.people.ama.pos) < 0.01, 'the marker on Ama');
-  // (since the first hour was shortened, October 2026, the jar alone finishes it: Nour says the Speaker's verse herself)
-  game.set('desert.jar.given', true);
-  D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'down', 'the jar: the way down, the Speaker optional');
-  // at the Speaker, the jar already given: straight on to the way down
+  assert.equal(D.quests.stage('desert.power'), 'down');
+  assert.equal(game.flag('desert.quest.v'), DESERT_QUEST_V);
+  // at the Speaker, the jar already given: the way down, the jar kept
   D = desert({ ...base, 'quest.desert.power': 'speaker', 'desert.well.seen': true, 'desert.jar.given': true, 'item.jar': 1 });
   D.step(3);
   assert.equal(D.quests.stage('desert.power'), 'down');
   assert.ok(D.quests.has('jar'), 'the jar is kept');
-  // at Ama, having heard the Speaker first (the old order allowed it): the jar finishes it
-  D = desert({ ...base, 'quest.desert.power': 'ama', 'desert.well.seen': true, 'desert.speaker.heard': true });
+  // a v4 save at Ama's jar ('ask'), no jar yet: the way down all the same
+  D = desert({ ...base, 'desert.quest.v': 4, 'quest.desert.power': 'ask' });
   D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'ask');
-  game.set('desert.jar.given', true);
-  D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'down');
+  assert.equal(D.quests.stage('desert.power'), 'down', 'the jar is no step any more');
   // already past it (the cave, the fill): untouched
   D = desert({ ...base, 'quest.desert.power': 'channel' });
   D.step(3);
   assert.equal(D.quests.stage('desert.power'), 'channel');
-  // a v1 save at its old 'speaker' stage: to Nour first (STAGE_MIGRATION), not the merged stage
+  // a v1 save at its old 'speaker' stage: to Nour first (STAGE_MIGRATION), not the way down
   const g = new GameState({ getItem: () => null, setItem() {} });
   g.set('quest.desert.power', 'speaker'); g.set('prologue.done', true);
   assert.equal(migrateDesertQuest(g), 'elder');
   game.reset();
 });
-
 test('the fire-bearers’ way: a bowl that wakes its stone, a cold camp and a glinting bell, by the marked stones on the ride to the Hearth', async () => {
   const { wayPlaces, hearthStones, STORY } = await import('../src/desert-sites.js');
   const { PEOPLE, THINGS } = await import('../src/story/desert-data.js');
@@ -281,7 +274,7 @@ test('the fire-bearers’ way: a bowl that wakes its stone, a cold camp and a gl
   game.reset();
 });
 
-test('the first hour shorter: Ama’s jar on the way in, so after the chest only Nour stands between you and the way down', async () => {
+test('the first hour shorter still: after the chest, Nour sends you straight down the giant; Ama’s jar is only hers to give', async () => {
   const { PEOPLE } = await import('../src/story/desert-data.js');
   const { DialogueRunner } = await import('../src/story/dialogue.js');
   const D = desert({ 'prologue.done': true, 'desert.quest.v': 4, 'quest.desert.power': 'city', 'met.marrow': true });
@@ -298,70 +291,40 @@ test('the first hour shorter: Ama’s jar on the way in, so after the chest only
     while (!r.ended) { pages.push(r.text); if (!r.advance()) break; }
     return pages.join(' ');
   };
-  // passing her fire on the way to the city: she gives the jar there
-  say(PEOPLE.ama, ['My ship has no power', 'I’ll go to the city', 'I’ll bring it back full']);
-  assert.ok(D.quests.has('jar'), 'the jar, before Nour has sent you');
-  // the chest opens; Nour sends you straight to the giant's mouth, the jar already on your hip
+  // passing her fire on the way to the city: she points at the chest, not at someone else, and gives the jar if you stop
+  const ama = say(PEOPLE.ama, ['My ship has no power', 'I’ll go and see', 'I’ll bring it back full']);
+  assert.match(ama, /chest on the great tree’s trunk/);
+  assert.doesNotMatch(ama, /Find \*Nour/);
+  assert.ok(D.quests.has('jar'), 'the jar, if you stop at her fire');
+  // the chest opens; Nour sends you straight to the giant's mouth
   game.set('item.backpack', true); game.set('box.desert.backpack', true); game.set('desert.city.entered', true);
   D.step(3);
   assert.equal(D.quests.stage('desert.power'), 'elder');
-  const words = say(PEOPLE.nour, ['My ship has no power', 'Then I’ll find out', 'The giant’s mouth']);
-  assert.match(words, /jar on your hip already/);
+  const words = say(PEOPLE.nour, ['My ship has no power', 'The skull past the back gate']);
   assert.match(words, /mouth is a door/);
-  assert.doesNotMatch(words, /Get \*the drinking jar/);
+  assert.doesNotMatch(words, /drinking jar|Ama/);
   D.step(3);
-  assert.equal(D.quests.stage('desert.power'), 'down', 'Ama’s stage passes at once');
+  assert.equal(D.quests.stage('desert.power'), 'down', 'on to the way down at once');
   // once given, she has no second jar to give
   assert.equal(new DialogueRunner(PEOPLE.ama, { game, quests: D.quests }).nodeId, 'again');
   assert.equal(game.flag('item.jar'), 1, 'one jar');
   assert.equal(PEOPLE.ama.talk.nodes.early.choices.filter((c) => c.goto === 'jarEarly').every((c) => c.if?.not?.flag === 'desert.jar.given'), true, 'only offered without it');
   game.reset();
 });
-
-test('Ama calls you to her fire about the jar while she still has it for you, twice at most, and not once it is yours', async () => {
-  const { PEOPLE, CALLS } = await import('../src/story/desert-data.js');
+test('Ama doesn’t call you over for her jar any more: everyone waves you on to the city (issue #63)', async () => {
   const { amaCallsYou, amaCampShout } = await import('../src/story/desert.js');
-  const { DialogueRunner } = await import('../src/story/dialogue.js');
   const flags = { 'prologue.done': true, 'desert.quest.v': 4, 'quest.desert.power': 'city', 'met.marrow': true };
   const D = desert(flags);
   const ama = D.rt.world.people.ama, call = D.rt.world.calls.ama;
-  assert.equal(amaCallsYou(game), true);
-  assert.equal(amaCampShout(game), CALLS.ama[0], 'coming up to the camps, she calls you over instead of waving you on');
-  assert.match(amaCampShout(game), /jar/);
-  // standing a few steps from her fire for a minute: two words, then she leaves it to you
+  assert.equal(amaCallsYou(game), false);
+  assert.match(amaCampShout(game), /To the city/, 'coming up to the camps, she waves you on');
+  // standing a few steps from her fire for a minute: no call
   D.player.pos.copy(ama.pos).add(V(6, 0, 0));
-  const heard = new Set();
-  for (let i = 0; i < 60 * 10; i++) { D.step(1, 1 / 10); D.player.pos.copy(ama.pos).add(V(6, 0, 0)); if (ama.shout) heard.add(ama.shout.text); }
-  assert.equal(call.calls, 2, 'twice, not nagging');
-  assert.ok([...heard].every((t) => CALLS.ama.includes(t)) && heard.size === 2, `her words: ${[...heard].join(' | ')}`);
-  assert.equal(game.flag('desert.ama.called'), true);
-  // and her talk has the jar straight away once she has called
-  const r = new DialogueRunner(PEOPLE.ama, { game, quests: D.quests });
-  assert.equal(r.nodeId, 'hello');
-  while (!r.choices().length) r.advance();
-  const c = r.choices().find((x) => x.text.startsWith('You called me over'));
-  assert.ok(c, 'a choice for the jar she called about');
-  r.choose(c.index);
-  while (!r.choices().length && !r.ended) r.advance();
-  assert.equal(D.quests.has('jar'), true);
-  assert.equal(game.flag('desert.jar.given'), true);
-  // once the jar is yours: no call, and the old wave on to the city
-  assert.equal(amaCallsYou(game), false);
-  assert.match(amaCampShout(game), /To the city/);
-  const D2 = desert({ ...flags, 'desert.jar.given': true, 'item.jar': 1 });
-  const ama2 = D2.rt.world.people.ama;
-  for (let i = 0; i < 30 * 10; i++) { D2.step(1, 1 / 10); D2.player.pos.copy(ama2.pos).add(V(6, 0, 0)); }
-  assert.equal(D2.rt.world.calls.ama.calls ?? 0, 0, 'no call with the jar on your hip');
-  // and a cold save that never had it called about: no jar choice in hello
-  game.set('desert.ama.called', undefined);
-  game.set('desert.jar.given', undefined);
-  assert.equal(PEOPLE.ama.talk.nodes.hello.choices.find((x) => x.goto === 'jarCalled').if.all[0].flag, 'desert.ama.called');
-  // the tree lit (whatever the jar): she has nothing to call about
-  game.set('desert.tree.lit', true);
-  assert.equal(amaCallsYou(game), false);
+  for (let i = 0; i < 60 * 10; i++) { D.step(1, 1 / 10); D.player.pos.copy(ama.pos).add(V(6, 0, 0)); }
+  assert.equal(call.calls ?? 0, 0, 'no call');
+  assert.equal(game.flag('desert.ama.called'), undefined);
   game.reset();
 });
-
 test('the ride to the Hearth: each thing on the way is named once as it comes up ahead, and the butte on the way out', async () => {
   const { STORY } = await import('../src/desert-sites.js');
   const { CALLS, CALL } = await import('../src/story/desert-way.js');
@@ -513,6 +476,6 @@ test('the pilgrims’ road home (level design audit v1.15): cairns from the gate
   while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
   assert.equal(game.flag('desert.road.rested'), true);
   // the quest's last stage sends you down it
-  assert.match(QUESTS.find((q) => q.id === 'desert.power').stages.find((s) => s.id === 'ship').text, /pilgrims’ road/);
+  assert.equal(QUESTS.find((q) => q.id === 'desert.power').stages.find((s) => s.id === 'ship').via, 'the pilgrims’ road');
   game.reset();
 });

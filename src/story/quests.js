@@ -32,7 +32,14 @@ import { hintsFor } from '../hint-level.js';
 //   bring item, to npc: the marker is on the item (at) until you have it, then on `to`
 //   flag  name (+ value, default true): advances when the flag is set, by anyone
 // `at` overrides where the marker stands for any kind. A stage with
-// `optional: true` is not shown as the tracked objective. A quest with `background: true` (it
+// `optional: true` is not shown as the tracked objective.
+//
+// Going straight to the end (the author's playthrough, issue #73: "all quests should be solvable by just going to
+// the end if you can"): when a later stage's goal is already met (a `flag` stage's flag, a `when`), the quest moves
+// on past it at once, and the steps before it are passed over (skipAhead). A stage with `gate: true` is never
+// passed over unless its own goal is met (the desert's water must be up before its fire's steps can carry the quest
+// on); one with `ahead: false` doesn't pull the quest forward (its flag can be set out of order: a hoverbike found
+// on a side errand). A quest with `background: true` (it
 // starts on its own: the makers' boxes) is only tracked when nothing else is, or when chosen.
 // One with `arrival: true` (a temple's, started on arrival) gives the scout to the world's opening
 // conversation while that waits (opensWith, below).
@@ -259,11 +266,38 @@ export class Quests {
     return position ? { id: `quest-${id}-${st.id}`, quest: id, label: st.label ?? st.text, position } : null;
   }
 
+  /** A stage's goal is met as things stand (a flag stage's flag, a `when`); goto, talk and bring stages are done by doing them. */
+  met(st) {
+    if (!st) return false;
+    if (st.flag) return this.game.flag(st.flag) === (st.value ?? true);
+    return !!st.when?.(this);
+  }
+
+  /**
+   * Going straight to the end: the furthest later stage of `id` whose goal is met already (and not behind a `gate`
+   * that isn't), the quest moved on past it. Returns whether it moved.
+   */
+  skipAhead(id) {
+    const d = this.def(id), s = this.stage(id);
+    if (!d || !this.isActive(id)) return false;
+    const i = d.stages.findIndex((x) => x.id === s);
+    if (i < 0) return false;
+    let to = -1;
+    for (let j = i; j < d.stages.length; j++) {
+      const st = d.stages[j], ok = this.met(st);
+      if (j > i && ok && st.ahead !== false) to = j;
+      if (st.gate && !ok) break;   // (nothing past a gate whose own goal isn't met, the stage you are on included)
+    }
+    if (to < 0) return false;
+    return this.set(id, to + 1 < d.stages.length ? d.stages[to + 1].id : DONE);
+  }
+
   /** Arrivals and flags: advance any stage whose condition is met. */
   update(player) {
     for (const d of this.defs.values()) {
       const st = this.current(d.id);
       if (!st) continue;
+      if (this.skipAhead(d.id)) continue;
       if (st.goto !== undefined && player) {
         const p = this.resolve(st.goto);
         if (p) {

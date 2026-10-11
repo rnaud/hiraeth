@@ -633,6 +633,17 @@ export const CHANGELOG_MEDIA = {
     { match: 'When your empty tank first fills in the giant’s pool', shots: [
       { name: 'fill-moment', caption: 'The tank’s first fill, 7 s in: before, his arm raised to fire the first glob over the pool; after, over his shoulder as he turns to the chest humming back beside the pool', from: 'scripts/cinematics-qc.mjs --only desert.fill (headless Chrome, High, 960 × 540, muted) on this branch, the before with the moment’s file as it was (10 October)' },
     ] },
+    { match: 'In Qanat, Nour sends you straight down the giant', numbers: [
+      { title: 'From the open chest to being sent down the giant', unit: '', better: 'lower', device: 'the story data, a direct player’s shortest answers (the jar not taken on the way in)', rows: [
+        { where: 'conversations', before: 2, after: 1 },
+        { where: 'pages to read', before: 11, after: 4 },
+        { where: 'words to read', before: 257, after: 97 },
+        { where: 'steps of the main quest between the chest and the skull', before: 3, after: 2 },
+      ], source: 'Nour’s opened, power and quest, then Ama’s sent and power (before); Nour’s opened and power (after): src/story/desert-data.js' },
+    ], see: 'Open the chest on the great tree in Qanat and talk to Nour when she comes over: she points you at the marked skull past the back gate, and the quest goes on to it at once.' },
+    { match: 'Nobody in the desert sends you on to somebody else any more', see: 'Talk to Marrow by your ship, Nour once the well has filled (about the cold tree), or Rook near the ship: each says where to go, not whom to ask.' },
+    { match: 'Nour’s talk is much shorter, and more her own', see: 'Talk to Nour before and after the chest opens: two or three short pages each time, and the Givers only come up once she has named them.' },
+    { match: 'Quests can be finished by going straight to their end', see: 'Open the chest on Qanat’s tree, then walk past Nour: straight out of the back gate to the skull, lever the rib off the channel and wade into the pool. The quest goes on from there, to the chest by the pool.' },
     { match: 'The drone says where it is off to the moment you send it', numbers: [
       { title: 'Sending the drone to Qanat from the ship (390 m)', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720', rows: [
         { where: 'from the press to the line on the screen', before: 1.85, after: 0.15 },
