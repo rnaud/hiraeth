@@ -172,15 +172,18 @@ test('the site search does not hang on float noise (the browser and node found d
 
 test('the desert crash site faces Qanat, and the city shows on the horizon from the ramp', async () => {
   const { desertHeight } = await import('../src/desert-landmarks.js');
-  const s = SITE_OVERRIDES.desert, city = { x: 230, z: 400 };
-  assert.ok(Math.hypot(s.x, s.z) < 160, 'near the old camp');
+  const s = SITE_OVERRIDES.desert, city = { x: 230, z: 400 }, gate = { x: 195.1, z: 339.3 };
+  assert.ok(Math.hypot(s.x, s.z) < 190, 'near the old camp');
+  // close (the author's playtest, issue #71: "make it closer and what I'm facing when coming out of the ship")
+  assert.ok(Math.hypot(gate.x - s.x, gate.z - s.z) < 230, `${Math.hypot(gate.x - s.x, gate.z - s.z).toFixed(0)} m to the main gate`);
   assert.ok(s.crash && s.crash.sink > 2 && s.crash.length > 30 && s.crash.length < 70, 'dug in at the end of a short skid: a forced landing on its belly, not a crash');
   assert.ok(Math.abs(s.crash.roll) < 0.01 && Math.abs(s.crash.pitch) < 0.01, 'upright: the deck inside is level, walking it never goes up and down');
   const toCity = Math.atan2(city.x - s.x, city.z - s.z);
   assert.ok(Math.abs(Math.atan2(Math.sin(toCity - s.heading), Math.cos(toCity - s.heading))) < 0.2, 'the hatch faces the city');
   // from eye height at the foot of the ramp, nothing in the dunes rises above the line to the city walls
   const dx = Math.sin(s.heading), dz = Math.cos(s.heading), fx = s.x + dx * 18, fz = s.z + dz * 18;
-  const eye = desertHeight(fx, fz) + 1.7, wall = desertHeight(city.x, city.z) + 10, D = Math.hypot(city.x - fx, city.z - fz);
+  // (the walls whole, down to 3 m over their foot: from the old site the near dune hid their lower 9 m)
+  const eye = desertHeight(fx, fz) + 1.7, wall = desertHeight(city.x, city.z) + 3, D = Math.hypot(city.x - fx, city.z - fz);
   for (let t = 8; t < D - 40; t += 4) {
     const k = t / D, x = fx + (city.x - fx) * k, z = fz + (city.z - fz) * k;
     assert.ok(eye + (wall - eye) * k > desertHeight(x, z), `a dune hides the city ${t.toFixed(0)} m out`);

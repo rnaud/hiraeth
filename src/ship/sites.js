@@ -8,18 +8,23 @@ import { LIFT, R } from './hull.js';
 // its ramp face (a player heading: 0 = +z, PI/2 = +x).
 //
 // The desert is special: the forced landing of the prologue. The ship came
-// in low over Qanat and lies half dug into the dune, upright, at the end of a
-// long furrow ploughed from the north (it slid south, -z, and stopped). Sand is
-// heaped against its leading (south) side; the hatch opens back up the furrow,
-// so stepping out you see the city and its burning tree on the horizon.
+// in low from the south and lies half dug into the dune, upright, at the end of a
+// long furrow (it slid toward Qanat and stopped short of it). Sand is heaped
+// against its leading side; the hatch opens toward the city, so stepping out you
+// see it, its walls whole and its great tree, across the dunes.
 
 export const SITE_OVERRIDES = {
   desert: {
-    // on a rise north of the old camp where nothing hides the horizon: the hatch faces Qanat
-    // (230, 400), so stepping out you see the city and its burning tree across the dunes
-    x: 20, z: 120, heading: Math.atan2(230 - 20, 400 - 120),
+    // on the brow of the rise north of the old camp, on the line of the camps' lane to the gate (CAMP_WAY), where nothing hides the horizon: the hatch faces Qanat
+    // (230, 400), so stepping out you see the city, its walls whole and its great tree, across the dunes, 210 m to
+    // its gate (the author's playtest, issue #71: from (20, 120) the near dune hid the walls' lower 9 m, the city
+    // 270 m off was a pale strip, and only the camps' huge smoke said where to go)
+    x: 86, z: 149, heading: Math.atan2(230 - 86, 400 - 149),
     crash: {
-      travel: Math.PI,    // the direction it was moving (heading): -z, sliding on its side away from the city
+      // the direction it was moving (heading): toward Qanat, a little west of the hatch's line, so its furrow runs back
+      // behind the ship and to the right, out of the view from the ramp (it was -z, sliding away from the city, and
+      // the furrow's ridge stood between the ramp and the city's walls: issue #71)
+      travel: Math.atan2(230 - 86, 400 - 149) - 0.6,
       length: 52,         // the skid behind it (m): a forced landing on its belly, not a crash (it was 118 m)
       // it came to rest upright: a tilted hull tilts the deck, and walking it the traveller went up and down
       // (players: "the floor on the ship must be flat"). The skid, the heaped sand and the sink say "came down hard"

@@ -21,7 +21,7 @@ const onWay = (z, x = 0, lift = 1) => {
 
 test('the way runs from the dunes to the gate, along the line from the landing', () => {
   assert.ok(Math.abs(local(gate).x) < 2 && local(gate).z < CAMP_WAY.to + 10, 'the gate at its end');
-  assert.ok(Math.abs(local(level.spawn).x) < 10 && local(level.spawn).z > 200, 'the landing behind you as you come in');
+  assert.ok(Math.abs(local(level.spawn).x) < 10 && local(level.spawn).z > 140, `the landing behind you as you come in (${local(level.spawn).x.toFixed(1)}, ${local(level.spawn).z.toFixed(0)}; 160 m out since the landing moved closer, issue #71)`);
   const line = level.lines().find((l) => l.name === 'the camps’ banners');
   assert.ok(line && line.points.length >= 2, 'the level design audit reads it as a leading line');
 });

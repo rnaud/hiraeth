@@ -19,6 +19,7 @@ import { buildPilgrimsRoad } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK } from '../desert-sites.js';
+import { SITE_OVERRIDES } from '../ship/sites.js';
 import { smoothstep } from '../noise.js';
 import { pavedMask } from '../paved.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
@@ -29,6 +30,8 @@ import wingDrop from '../minigames/wingdrop.js';
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 /** The day's colours: the print's flat cerulean over cream sand; the shade a violet-blue, as the plates' cast shadows (October 2026: it was a blue-grey, #93a6cf, that greyed the sand). */
+/** Where the desert starts: the foot of the ship's ramp (8 m out of the hull's centre along the hatch's heading), facing Qanat. */
+export const LANDING = (() => { const s = SITE_OVERRIDES.desert; return { x: s.x + Math.sin(s.heading) * 8, z: s.z + Math.cos(s.heading) * 8, heading: s.heading }; })();
 export const DESERT_DAY = ['#92b6c5', '#d7dfd9', '#9b9bd2', '#fff9ee', '#fff6dc'];
 
 export function* buildDesert(scene) {
@@ -137,10 +140,10 @@ export function* buildDesert(scene) {
     // smoke while the tree is cold, then the tree's own column; the Hearth's chimney, out past the audit's map
     beacons: () => {
       const cs = qanat.campSmoke.at, cr = qanat.city.crown, ch = hearth.chimneyTop, gb = qanat.giantBreath?.at;
-      return [qanat.city.lit < 0.5 ? { name: 'the camps’ smoke', top: [cs.x, cs.y + 70, cs.z], height: 70 } : { name: 'the tree’s smoke', top: [cr.x, cr.y + 120, cr.z], height: 120 },
+      return [qanat.city.lit < 0.5 ? { name: 'the camps’ smoke', top: [cs.x, cs.y + 30, cs.z], height: 30 } : { name: 'the tree’s smoke', top: [cr.x, cr.y + 120, cr.z], height: 120 },
         { name: 'the Givers’ Hearth’s chimney', top: [ch.x, ch.y, ch.z], height: 40 },
         // (fifth round: the giant's breath over the back gate while the tree is cold, its lower half, before it bends away)
-        ...(gb && qanat.city.lit < 0.5 ? [{ name: 'the giant’s breath', top: [gb.x, gb.y + 40, gb.z], height: 30 }] : [])];
+        ...(gb && qanat.city.lit < 0.5 ? [{ name: 'the giant’s breath', top: [gb.x, gb.y + 28, gb.z], height: 22 }] : [])];
     },
     // what the eye follows on the sand (the audit walks a leg one carries along it, and counts it as guiding): the
     // fire-bearers' marked stones from Qanat to the Hearth, the Givers' dry channel from the city to their house
@@ -154,8 +157,9 @@ export function* buildDesert(scene) {
     ],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter, the wares on it; main.js: the shop panel)
     ground: terrain,
-    spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
-    spawnHeading: Math.PI,
+    // the landing: at the foot of the ship's ramp, facing Qanat (src/ship/sites.js SITE_OVERRIDES.desert; issue #71)
+    spawn: new THREE.Vector3(LANDING.x, terrain.heightAt(LANDING.x, LANDING.z), LANDING.z),
+    spawnHeading: LANDING.heading,
     camYaw: 0,
     features: { mount: true, wind: true, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics),

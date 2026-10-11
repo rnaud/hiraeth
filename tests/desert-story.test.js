@@ -288,7 +288,7 @@ test('the great tree’s smoke column (once it burns) is a tall landmark that ne
   const base = Q.city.treeBase;
   const puffs = smokePuffs(sm).filter((p) => p.size > 0.5);
   const top = Math.max(...puffs.map((p) => p.pos.y));
-  assert.ok(top - base.y > 250, `the column reaches ${(top - base.y).toFixed(0)} m above the tree`);
+  assert.ok(top - base.y > 180 && top - base.y < 320, `the column reaches ${(top - base.y).toFixed(0)} m above the tree (a landmark, not a mountain: issue #71)`);
   // it starts in the tree's crown and leans downwind (never upwind)
   const low = puffs.filter((p) => p.pos.y - base.y < 70);
   assert.ok(low.length > 4 && low.every((p) => Math.hypot(p.pos.x - base.x, p.pos.z - base.z) < 25), 'the lowest puffs rise out of the crown');
@@ -296,7 +296,7 @@ test('the great tree’s smoke column (once it burns) is a tall landmark that ne
   const downwind = high.reduce((a, p) => a + (p.pos.x - base.x) * wind.x + (p.pos.z - base.z) * wind.z, 0);
   assert.ok(downwind > 0, 'the plume drifts downwind');
   // nothing to stand on: straight down through the column you land on the tree or the sand, not on smoke
-  const mid = puffs.find((p) => p.pos.y - base.y > 150);
+  const mid = puffs.find((p) => p.pos.y - base.y > 120);
   const g = physics.groundAt(mid.pos.x, mid.pos.y + 5, mid.pos.z, 400);
   assert.ok(!Number.isFinite(g) || g < base.y + 40, `the ray through a puff at ${mid.pos.y.toFixed(0)} m lands at ${g}`);
 });

@@ -615,7 +615,8 @@ export function buildDesertCity(scene, terrain) {
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
     // the landmark: a tall column of light smoke from the crown flame, high over the horizon haze,
     // bending downwind into a long drifting plume, so the city can be found from anywhere on the plain
-    const smoke = new SmokeColumn(root, crown);
+    // (240 m, its puffs up to 26 m across: it stood 430 m with 44 m puffs, comically big beside the tree; issue #71)
+    const smoke = new SmokeColumn(root, crown, { count: 200, height: 240, drift: 260, base: 4, top: 13 });
     const treeLight = new THREE.Vector4(crown.x, crown.y - 12, crown.z, 90);
     const treeLight2 = new THREE.Vector4(crown.x, top + floor + 6, crown.z, 58);   // the plaza and the nearest roofs, warm at night
     lights.push(treeLight, treeLight2);
@@ -815,7 +816,10 @@ export function buildDesertCity(scene, terrain) {
     // fell behind the procession can find the way in. A column over the dunes, seen from the landing, where the city
     // itself is behind the ridge (level design audit v1.9: the first leg was blind). Once the tree burns, its own
     // column is the way to the city, and this one is let die down (out.update).
-    out.campSmoke = new SmokeColumn(root, camp.world(0, 2.5, 0), { count: 140, height: 190, drift: 170, base: 2.2, top: 13, period: 110 });
+    // (a camp fire's smoke, 50 m up and drifting off: it was 190 m tall, its puffs 26 m across, a beacon over the
+    // whole desert for a city you could not see from the landing; the author's playtest, issue #71, "comically too big".
+    // Now the landing looks at the city itself: src/ship/sites.js)
+    out.campSmoke = new SmokeColumn(root, camp.world(0, 2.5, 0), { count: 56, height: 48, drift: 36, base: 1.1, top: 4.2, period: 55 });
 
     // tents: peaked cloth tents and round domed ones, with poles and pennants. v1.42 (the author: "the tent area feels too
     // crowded, unsure where to go"): seven of the twelve, none in the way through (CAMP_WAY): a pair either side of it
@@ -1097,9 +1101,10 @@ export function buildDesertCity(scene, terrain) {
     out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, yaw: G.yaw, brow: giant.world(brow.x, brow.y, brow.z), hand: giant.world(wr.x, wr.y, wr.z), cairns: cairns.map((c) => giant.world(c.x, ground(c.x, c.z), c.z)), glow: giant.world(...skp(0, 0.5, 3.85).toArray()) };
     // the giant's breath (level design audit, fifth round: from Ama's fire the skull's mouth was blind, the skull 17 m
     // high behind the city's walls): the cool air of the cave under it breathing out through the skull's brow into the
-    // morning heat, a thin pale column over the back gate, seen from the camps over the walls. While the tree stands
+    // morning heat, a thin pale column over the back gate, seen from the camps over the walls (55 m: it was 85 m, as big
+    // as the camps' smoke beside the tree from the landing; issue #71). While the tree stands
     // cold (with the camps' smoke: out.update); once it burns, the giant has been found.
-    out.giantBreath = new SmokeColumn(root, out.giant.brow.clone().add(V(0, 1.5, 0)), { count: 80, height: 85, drift: 45, base: 1.9, top: 6, period: 80, palette: ['#f4f0e8', '#ebe8e2', '#dfe4e5'], tint: '#f4f0e8' });
+    out.giantBreath = new SmokeColumn(root, out.giant.brow.clone().add(V(0, 1.5, 0)), { count: 56, height: 55, drift: 32, base: 1.3, top: 3.8, period: 65, palette: ['#f4f0e8', '#ebe8e2', '#dfe4e5'], tint: '#f4f0e8' });
   }
 
   // ================================================================ the cave

@@ -553,6 +553,20 @@ const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, 
 const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
 export const CHANGELOG_MEDIA = {
   '1.45': [
+    { match: 'Your ship now comes down closer to Qanat', shots: [
+      { name: 'stepout', caption: 'Stepping out of the ship in a new game (the prologue skipped), the game’s own camera: before, 270 m off, the furrow’s ridge across the city’s walls and the camps’ smoke a white tower over it; after, 210 m off, the walls, the domes and the dark tree in full view, the smoke a camp fire’s', commit: '529b176e140cfeeb56da622d954adbea6d31e37b',
+        view: { level: 'desert', query: 'prologue=1', save: { flags: { 'items.v': 2 }, keepsakes: [] }, settle: 4000, wait: 9000, setup: 'const s = window.ship; (s.prologue.director).finish(true); s.prologue.done = true' } },
+    ], numbers: [
+      { title: 'The desert’s landing (the level design audit)', unit: '', better: 'higher', device: 'Node, scripts/level-design/audit.mjs --worlds desert (before: the audit stood at the world’s old start, 120 m behind the ship)', rows: [
+        { where: 'share of the long legs that see their goal or a landmark by it (%)', before: 57, after: 64 },
+        { where: 'share of the path that sees a landmark (%)', before: 72, after: 76 },
+        { where: 'the desert’s mean score (1 to 5)', before: 3.67, after: 3.78 },
+      ] },
+      { title: 'How far the landing is from Qanat', unit: 'm', better: 'lower', device: 'Node, the level design audit and tests/ship.test.js', rows: [
+        { where: 'to the first goal, the main gate (the audit)', before: 391, after: 212 },
+        { where: 'the ship to the gate', before: 281, after: 211 },
+      ], note: 'Seen from the ramp’s foot (tests/ship.test.js): the dunes hid the lowest 9 m of the walls from the old site, none of them now. The camps’ smoke: 190 m tall, puffs 26 m across → 48 m, 8 m.' },
+    ] },
     { match: 'Your backpack’s straps now run over the tops of your shoulders', shots: [
       { name: 'straps-side', caption: 'The traveller in the desert, close, from his left and from the front: before, the strap straight up from the plate into his collar under his ear; after, over the top of his shoulder and down his chest to a buckle', commit: 'dbdfeafe88ccd5b3fa1c119dea073a0c740eddb2',
         view: { level: 'desert', people: [{ id: 'traveller', yaw: 1.3, dist: 1.2, height: 1.4, lift: 0.15 }, { id: 'traveller', yaw: 0.35, dist: 1.2, height: 1.4, lift: 0.15 }], hour: 10 } },

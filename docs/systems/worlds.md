@@ -335,8 +335,12 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
 
 `docs/audits/level-design-v1.9.md` has the before and after. What changed, and where:
 - **The stragglers' smoke** (`src/desert-city.js`, `campSmoke`): while the tree is cold (`city.lit < 0.5`) a
-  smaller `SmokeColumn` rises from the camps' big fire, seen over the dune from the landing (the city is behind
-  it); once the tree burns its own column takes over and this one is hidden.
+  smaller `SmokeColumn` rises from the camps' big fire; once the tree burns its own column takes over and this one is
+  hidden. Since v1.45 (the author's playtest, issue #71: "comically too big") it is a camp fire's, 48 m (it was 190 m),
+  the giant's breath 55 m (85), the tree's column 240 m (430): the landing itself looks at the city now. The ship
+  (`src/ship/sites.js` `SITE_OVERRIDES.desert`) came down 70 m nearer, on the brow of the rise in line with the camps'
+  lane, 210 m from the gate, its furrow running back behind it (it used to cross the view and hide the walls' lower
+  9 m), and the world starts at the ramp's foot facing Qanat (`src/levels/desert.js` `LANDING`).
 - **The straight ride out** (`src/desert-sites.js` `RIDE`, `ridePlaces`; drawn in `src/desert-hearth.js` `ride`):
   most riders go straight from Marrow's hollow toward the Hearth's chimney, while the marked stones run from
   Qanat a little to the north. A third of the way, Yara the salt-carrier under her sunshade (`src/levels/content.js`,
