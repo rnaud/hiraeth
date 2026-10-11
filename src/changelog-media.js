@@ -601,6 +601,8 @@ const C49_AERIE = { commit: 'e6ae6047' };
 const AE = (x, y, z) => [-390 + x, 1638 + y, -780 + z];   // (the Aerie's own metres, in the world)
 const C49_GREEN = { commit: 'be2aecbf' };
 const GR = (x, y, z) => [300 + x, 1700 + y, -450 + z];   // (the Greenhouse's own metres, in the world)
+const C49_UNDER = { commit: '02e1a9d0' };
+const UT = (x, y, z) => [-200 + x, 1600 + y, -520 + z];   // (the Undertower's own metres, in the world)
 export const CHANGELOG_MEDIA = {
   '1.49': [
     { match: 'In the Unity test build, water foams', shots: [
@@ -638,6 +640,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'greenhouse-greatlock', title: 'The great lock', caption: 'Past the bud at the top of the glass: before, the way into the Glasshouse; after, a door with the great lock’s plate', ...C49_GREEN,
         view: { level: 'edena', save: SAVE47, hour: 12, fov: 60, eye: GR(0, 29.4, 148.8), target: GR(0, 29.2, 151), player: GR(0, 27.05, 149.2) } },
     ], see: 'In the Builders’ Greenhouse, in the Bud Passage past the chest; and across the Vine Gulf, west off its far side into the Seed Vault.' },
+    { match: 'In the Undertower, the Listening Passage’s horn is deaf', shots: [
+      { name: 'undertower-passage', title: 'The Listening Passage', caption: 'The door’s horn: before, on bare floor; after, its footstone, and the ball in its groove from the way in', ...C49_UNDER,
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(-2, 15, 96.7), target: UT(3.7, 13, 103.7), player: UT(-2.4, 12.05, 96.2) } },
+      { name: 'undertower-choirdoor', title: 'Past the gallery', caption: 'The Gallery of Voices’ far side, looking west: before, its wall and cable; after, the doorway into the Choir', ...C49_UNDER,
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(-3, 15, 137.9), target: UT(-11.6, 14, 140.3), player: UT(-2.5, 12.05, 137.5) } },
+      { name: 'undertower-choir', title: 'The Choir', caption: 'In from the gallery: the near dish over its footstone and the low stone by its mouth (right), the near horn (left), the great key caged between; the far horn under the dish’s twin, and the high stone, at the far end', ...C49_UNDER, only: 'after',
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 80, eye: UT(-15.2, 15.5, 140.3), target: UT(-28, 13.5, 136.5), player: UT(-15.8, 12.05, 140.8) } },
+      { name: 'undertower-greatlock', title: 'The great lock', caption: 'The gallery’s far door: before, its two lamps; after, the great lock’s plate under them', ...C49_UNDER,
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 60, eye: UT(0, 14.6, 141.5), target: UT(0, 14.4, 145.1), player: UT(0, 12.05, 142) } },
+    ], see: 'In the Undertower, in the Listening Passage past the chest; and across the Gallery of Voices, west off its far side into the Choir.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
