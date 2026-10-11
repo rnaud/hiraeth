@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_22f712bff5e2f7 7
+src/changelog-media.js
+  s_9ca76055a220ed::t_4d1efde1f914dc 556-558,568-571
+src/changelog.js
+  s_9ca76055a220ed::t_1018ae089a9f77 15-16
+src/desert-hearth.js
+  s_9ca76055a220ed::t_aa6f230cf9dc1b 168-176,212-219,221-224,226,235,240-248,268-272,530
+tests/desert-hearth-door.test.js
+  s_9ca76055a220ed::t_a4849178819e2e 1-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7ca66d6884a36eaac0324727cfdbf46f525b2a67",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
