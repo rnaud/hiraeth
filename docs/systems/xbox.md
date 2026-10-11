@@ -412,6 +412,10 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   player the bridge no longer calls Puerts' `Tick` (`BridgeRunner.tickJs`): the script objects C# drops are freed only
   with the engine. Crash dumps are off again after each reinstall: turn them on before measuring. The workflow keeps
   GameAssembly's `.pdb` as an artifact (`memento-unity-xbox-symbols`, 3 days) to read a dump.
+- **As a Game it plays** (build 1743): 172 s of QuickJS, then a 24–26 s stall before the world draws (every launch;
+  build 1751's phases put it between `onBeforeRender` and URP's first render context, not in shader compiling), then
+  2.7 fps at the spawn, all of it the script, with the GPU at 7.3 ms a frame. Numbers and reading:
+  docs/benchmark-web-vs-unity.md, "On the Xbox: WebView2 against the Unity bridge".
 - Crash dumps: `POST /api/debug/dump/usermode/crashcontrol?packageFullName=<full name>` turns them on, `GET
   /api/debug/dump/usermode/dumps` lists them, `GET /api/debug/dump/usermode/crashdump?packageFullName=…&fileName=…`
   fetches one (the parameter is spelt `packageFullName` there). `UnityPlayer.log` is in `TempState`.

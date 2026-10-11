@@ -37,7 +37,10 @@ async function installed() {
   return r.InstalledPackages.filter((p) => p.PackageFamilyName?.startsWith('rnaud.Hiraeth'));
 }
 async function unityPackage() {
-  const p = (await installed()).find((x) => x.PackageFamilyName.startsWith(FAMILY));
+  // (the newest: right after an update the portal can list the old version beside the new one for a while)
+  const version = (x) => (/_(\d+)\.(\d+)\.(\d+)\.(\d+)_/.exec(x.PackageFullName) ?? []).slice(1).map(Number);
+  const newer = (a, b) => { const [x, y] = [version(a), version(b)]; for (let i = 0; i < 4; i++) if (x[i] !== y[i]) return (x[i] ?? 0) - (y[i] ?? 0); return 0; };
+  const p = (await installed()).filter((x) => x.PackageFullName.startsWith(`${FAMILY}_`)).sort((a, b) => newer(b, a))[0];
   if (!p) throw new Error(`${FAMILY} is not installed on the console`);
   return p;
 }

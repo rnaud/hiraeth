@@ -318,3 +318,66 @@ Raw runs in `scripts/bench/results/raw/android-gecko-main/` and `android-gecko-a
 the game and the page bridge itself, stops both apps between runs and after a stall, and removes its port rules;
 `--resume` goes on where it stopped), `--engines gecko-apk` for the bundled run, then
 `node scripts/bench/android-gecko-summary.mjs <dir> --apk <apk dir>`; afterwards uninstall both test apps.
+
+## On the Xbox: WebView2 against the Unity bridge
+
+The Xbox Series X in Developer Mode (October 2026), the desert from the spawn, both apps set to **Game** (5 GB).
+The web build: the WebView2 app (`rnaud.Hiraeth`, ANGLE → Direct3D 11, the Xbox preset). The Unity build: the engine
+bridge as a UWP app (`rnaud.HiraethUnity`, builds 1743 and 1751: IL2CPP x64, Direct3D 11, 1920 × 1080, the C# port's
+ink look), its JavaScript in Puerts' **QuickJS**, an interpreter, as Puerts has no V8 for UWP; WebView2 runs its
+JavaScript with the JIT on (the probe: 0.4 ns a turn). So only the native side compares: how fast each draws, and how
+long its first frame takes once the world exists. How it was built and measured: docs/systems/xbox.md, "The Unity build
+on the Xbox"; Unity's numbers are `LocalState\unity.log` (`BridgeMetrics`), the web's its frame readout and load log.
+
+### Load
+
+| | Web, cold | Web, relaunch | Unity, cold | Unity, relaunch |
+|---|---|---|---|---|
+| First frame of the world | 139.7 s | 51 s | ~209 s | ~208 s |
+| The JavaScript builds the world | | | 172.8 s (QuickJS) | 170.8 s |
+| The native warm-up before the world draws | ~90 s of console shader compiling (desert view, `bdd59a6c`) | | **~29 s** | **~31 s** |
+
+- **Unity's warm-up is one main-thread stall of 24–26 s**, right after the first mirrored objects appear (1238
+  objects, 1227–1230 geometries; the wait on the script 1 ms), plus ~5 s for the frame that makes the meshes. It doesn't
+  shrink on a relaunch (the web's 139.7 → 51 s does).
+- **Where the stall is** (build 1751, the frame's phases): scripts 91 ms, **before the render 23 963 ms**, URP's render
+  contexts 9 ms, after them 0 ms. "Before the render" runs from `Application.onBeforeRender` to the first render
+  context: Unity's CPU-side work on the new scene before URP draws (the renderers, meshes and materials taken in; the
+  PC pipeline asset has the GPU Resident Drawer on, `m_GPUResidentDrawerMode: 1`, the first suspect). The render
+  contexts, where a shader's or a pipeline state's first use on D3D11 lands, took 9 ms: **it is not shader
+  compilation**, so a `ShaderVariantCollection` warmed during the load wouldn't hide it. The shaders were compiled to
+  DXBC when the player was built. Next experiment: the Xbox build with the GPU Resident Drawer off.
+- The JavaScript side is QuickJS's: 171–173 s on one of the eight cores, against 41 s on an M4 Pro in the editor and a
+  few seconds with V8. With V8 and the stall gone, Unity's first frame would come at roughly 15 s.
+
+### Frames at the spawn
+
+| | Web | Unity |
+|---|---|---|
+| fps | 17–21 (48–59 ms; your earlier run: 22, p50 50 ms) | 2.7 (367 ms) |
+| Main thread a frame | **46–56 ms**: CPU-bound | 367 ms, all of it the script (the wait on it 360 ms) |
+| GPU a frame | not measurable (below) | **7.3 ms** at 1920 × 1080 |
+| Render thread a frame | | 5.5 ms |
+| Resolution | dynamic, settled at 0.6× (1920 × 1080 canvas) | 1920 × 1080 |
+
+- **The web's frame is CPU-bound**: its main thread is 95 % or more of the frame, and dynamic resolution dropping to
+  0.6× didn't raise the frame rate.
+- **The web's GPU time couldn't be read**: WebView2 exposes `EXT_disjoint_timer_query_webgl2` on the console, but no
+  query ever returned a result (115 frames, none available, none disjoint); the game's own readout shows no `gpu` for
+  the same reason. The Device Portal's `systemperf` showed engine 0 at ~14 % during the desert (≈7 ms of a 48 ms
+  frame if that is the 3D engine), but it reports a 512 MB adapter, likely the system's view: a hint, not a number.
+- **Unity's GPU is nearly idle**: 7.3 ms a frame at full 1080p, room for 60 fps and more; its frame is the interpreted
+  script, nothing else. The pictures aren't the same renderer (three.js with the web's post passes, against the C#
+  port's ink look): a bound on what the native path costs, not a like-for-like frame.
+
+### What it means
+
+- **Neither build is held back by the GPU at the spawn**: the web by its main thread (JavaScript, WebGL calls through
+  ANGLE), Unity by QuickJS. Unity's native drawing costs 7.3 ms of GPU and 5.5 ms of render thread for this world.
+- **The first frame**: the web pays ~90 s of ANGLE's shader compiling (less on a relaunch); Unity pays no shader
+  compiling but a 24–26 s CPU stall taking the new scene in, every launch, which looks fixable.
+- **The Unity route is blocked by the script engine**: without a JIT (Puerts' V8 built for UWP with the
+  `codeGeneration` capability, or V8 jitless) the game's JavaScript runs about 7× slower than the frame needs. That port
+  is the large piece of work the comparison points at; QuickJS makes the build run, not play.
+- Found on the way, in Puerts' IL2CPP glue with QuickJS: two engines at once, and `ScriptEnv.Tick`, crash the player
+  (worked around: one engine, no Tick).
