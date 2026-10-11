@@ -1,0 +1,106 @@
+src/foes.js
+  s_9ca76055a220ed::t_5efb39bf43ef7b 1894-1897
+src/temples/runtime.js
+  s_9ca76055a220ed::t_5d674c70c7c440 30-31,186,209-242
+src/temples/pieces.js
+  s_9ca76055a220ed::t_23bbca6f40d0c5 14,49-51,70,88-89,118-137,157,160,190,204-224,2391-2502,2520-2527,2530
+src/temples/logic.js
+  s_9ca76055a220ed::t_4fb02fa82114a9 37-42,59-61,135,137-138,142-163,195-196,249-250,254,265-266,296-299,301,307,312-314,325,331-333,336
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_2e1469bfb36129 640-659
+  s_9ca76055a220ed::t_ceb0ccd12602cb 626
+src/temples/incal.js
+  s_9ca76055a220ed::t_a7d676baaf86fa 6,34-39,103,108,112-116,133-141,253-303,362-363,380,385,539,542,705
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_760b44a9849aa1 135-137
+src/temples/index.js
+  s_9ca76055a220ed::t_0adcd8cb2976d1 310-312
+.claude/skills/temple-design-qc/SKILL.md
+  s_9ca76055a220ed::t_5bf2d07914e4aa 79,112
+tests/chimes.test.js
+  s_9ca76055a220ed::t_1bda6beac302d8 268-272
+tests/temple-design.test.js
+  s_9ca76055a220ed::t_86830e45c2e52d 5,163-201
+tests/zfight.test.js
+  s_9ca76055a220ed::t_e4cf108e3b9aee 26
+  s_9ca76055a220ed::t_46785ef78f46ca 25
+src/temples/migrate.js
+  s_9ca76055a220ed::t_1f9b5fafa65535 69-76
+  s_9ca76055a220ed::t_7df4c91f96d238 33-52,77-88
+  s_9ca76055a220ed::t_3a36c6d9d9b4ec 61-68
+  s_9ca76055a220ed::t_b69e2ba5da2fe5 53-60
+docs/README.md
+  s_9ca76055a220ed::t_962f91f290f801 26
+src/chimes.js
+  s_9ca76055a220ed::t_1a855e173dc240 33-34,216-217,235-240
+src/temples/kit.js
+  s_9ca76055a220ed::t_33bf7527ab7a31 430-436
+  s_9ca76055a220ed::t_54010292e7d4a4 457-478
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_589bc052ca9096 5,28-34,91,96-101,114-123,167-225,283-284,296,302,409,412,509
+changelog.md
+  s_9ca76055a220ed::t_86b04270c5a794 8
+  s_9ca76055a220ed::t_137025713f107a 9
+  s_9ca76055a220ed::t_89d2096f68fc9d 7
+  s_9ca76055a220ed::t_a3692cd3e74b4b 5-6,10-14
+docs/audits/temple-design-v1.48.md
+  s_8d10daf58ed7fb::t_dd8203ee6c9b12 1-100
+src/temples/edena.js
+  s_9ca76055a220ed::t_9f66c1f9978797 6,22-28,80,83-86,100-110,210-266,294-295,302,310,312,445,448,596
+tests/temples.test.js
+  s_9ca76055a220ed::t_d452e4c21573a4 406,423-437,3191,3266-3295,3309-3311
+  s_9ca76055a220ed::t_608565e9b9f8b3 2757
+  s_9ca76055a220ed::t_c111fca01669e5 389-405,2904,2953-2990
+  s_9ca76055a220ed::t_376a295ff5a47a 408-422,779,869-903,924-926
+  s_9ca76055a220ed::t_ee8679bdf092c6 130-219,240-244,369-388,2648,2688-2710,2712-2714,2717,2732-2756,2758-2795,2836-2866
+  s_9ca76055a220ed::t_0af274c2a8fffc 407
+src/temples/garage.js
+  s_9ca76055a220ed::t_4cb97e66ef7bd4 6,26-27,32-41,51-54,97-100,105-113,115,126-137,141-145,148,151-157,228-229,247-249,252-277,279-280,288-363,392,409,427,430,457,476,511,514,665
+  s_9ca76055a220ed::t_a76a95878ff2c8 250-251,278,281-287,417-419,428
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_8d16687c70aa68 69-71,94-96,147-151,153-156,167-168,173,191,217,220,234-250,294-297,299-301,332-335,368-371,387,406,414,419-420,451
+  s_9ca76055a220ed::t_13df72287f3fd8 343-344
+src/changelog-media.js
+  s_9ca76055a220ed::t_adcbc1ba5052fb 583,589,592-612,637
+  s_9ca76055a220ed::t_558458e612f31b 584,587-588,613-620
+  s_9ca76055a220ed::t_e7b2cfe2ec902c 585,621-628
+  s_9ca76055a220ed::t_7391fe201e8d0b 586,629-636
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_f4e1b7e09705ea 47,88
+TODO.md
+  s_8d10daf58ed7fb::t_910e559a38a9e8 240-250
+docs/systems/temples.md
+  s_9ca76055a220ed::t_a66be9a8aee9e2 436-441
+  s_9ca76055a220ed::t_6914b9d2b168e3 448-452
+  s_8d10daf58ed7fb::t_968e771d8eb3bd 390-435
+  s_9ca76055a220ed::t_df65300a192fad 442-447
+src/changelog.js
+  s_9ca76055a220ed::t_2421b3d54ca1e1 18
+  s_9ca76055a220ed::t_999752fae608e2 17
+  s_9ca76055a220ed::t_c446c0a00de1f3 11-16,20
+  s_9ca76055a220ed::t_58daa94a4bb98d 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6a3ae64e9843697efe74b1d540fee4f12299c297",
+  "prompts": {},
+  "sessions": {
+    "s_8d10daf58ed7fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a50bb88bb4ac0fb6a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
