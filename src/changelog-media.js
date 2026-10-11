@@ -605,6 +605,8 @@ const C49_UNDER = { commit: '02e1a9d0' };
 const UT = (x, y, z) => [-200 + x, 1600 + y, -520 + z];   // (the Undertower's own metres, in the world)
 const C49_LAMP = { commit: 'a5846a6d' };
 const LH = (x, y, z) => [-140 + x, 1800 + y, -780 + z];   // (the Lamp-House's own metres, in Lorn: names.js PART_OFFSET)
+const C49_BELFRY = { commit: '4bfdf04a' };
+const FB = (x, y, z) => [80 + x, 1600 + y, 150 + z];   // (the Founders' Belfry's own metres, in Vael)
 export const CHANGELOG_MEDIA = {
   '1.49': [
     { match: 'In the Unity test build, water foams', shots: [
@@ -662,6 +664,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'lamp-greatlock', title: 'The great lock', caption: 'The Dark Gallery’s far door: before, its three lamps; after, the great lock’s plate under them', ...C49_LAMP,
         view: { level: 'perdide', save: SAVE47, hour: 12, fov: 60, eye: LH(0, 11.6, 135.4), target: LH(0, 11.4, 138.9), player: LH(0, 9.05, 136) } },
     ], see: 'In the Lamp-House, east off the Hall of Dark Pools into the Kennel; and across the Dark Gallery, east off its far side into the Wick Room.' },
+    { match: 'In the Founders’ Belfry, the west stone store', shots: [
+      { name: 'belfry-store', title: 'The west store', caption: 'From the Hall of Stones into the west store: before, a ball in its groove and its plate; after, the archway’s door (it shuts behind you while the keepers stand) and the small key caged at the far end', ...C49_BELFRY,
+        view: { level: 'arzach', save: SAVE48_ARMED, hour: 11, fov: 70, eye: FB(-8, 3.5, 22), target: FB(-20, 1.5, 23.5), player: FB(-7.5, 0.05, 21.5) } },
+    ], see: 'In the Founders’ Belfry, go west off the Hall of Stones into the west store.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
