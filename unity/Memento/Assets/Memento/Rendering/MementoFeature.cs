@@ -129,7 +129,7 @@ namespace Memento.Rendering
                     {
                         // the movers the engine culled for this cascade, one list (MementoShadows.CullFor)
                         var draw = new DrawingSettings(CasterTag, new SortingSettings(cam.camera) { criteria = SortingCriteria.None }) { perObjectData = PerObjectData.None, enableInstancing = true };
-                        var filter = new FilteringSettings(RenderQueueRange.all) { renderingLayerMask = MementoShadows.CasterLayer };
+                        var filter = new FilteringSettings(RenderQueueRange.all) { renderingLayerMask = MementoShadows.LayerOf(plan.cascade) };
                         d.movers = rg.CreateRendererList(new RendererListParams(plan.culled, draw, filter));
                         builder.UseRendererList(d.movers);
                         d.hasMovers = true;

@@ -99,6 +99,10 @@ namespace Memento
         /// </summary>
         public static bool UseRendererLists;
         public const uint CasterLayer = 1u << 24;
+        /// <summary>The casters big enough for each cascade (fine, near, far: two texels of it and up, as the draws' path had
+        /// it per caster), set at the movers' scan; each cascade's list draws its own.</summary>
+        public static readonly uint[] CascadeLayer = { 1u << 25, 1u << 26, 1u << 27 };
+        public static uint LayerOf(Cascade c) => c == Instance.fine ? CascadeLayer[0] : c == Instance.near ? CascadeLayer[1] : CascadeLayer[2];
         int preparedFrame = -1; Camera preparedFor;
         /// <summary>A main camera that is not the port's Game's (the Unity bridge's): it keeps the cascades' schedule.</summary>
         public static Camera MainCamera;
@@ -215,6 +219,17 @@ namespace Memento
                         var mats = r.sharedMaterials; var pass = new int[mats.Length];
                         for (int k = 0; k < mats.Length; k++) pass[k] = mats[k] ? ShadowPassOf(mats[k]) : -1;
                         movers.Add(new Mover { r = r, skinned = r is SkinnedMeshRenderer, mats = mats, pass = pass });
+                        if (UseRendererLists && (r.renderingLayerMask & CasterLayer) != 0)
+                        {
+                            // (the cascades this caster is big enough for, by its bounds now: the scan is every 2 s)
+                            bool sk = r is SkinnedMeshRenderer;
+                            float rad = r.bounds.extents.magnitude * (sk ? 1.4f : 1) + (sk ? 0.3f : 0);
+                            uint m = r.renderingLayerMask & ~(CascadeLayer[0] | CascadeLayer[1] | CascadeLayer[2]);
+                            if (rad >= Mathf.Max(fine.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[0];
+                            if (rad >= Mathf.Max(near.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[1];
+                            if (rad >= Mathf.Max(far.Texel * Mathf.Max(minCasterTexels, minFarCasterTexels), 0.07f)) m |= CascadeLayer[2];
+                            r.renderingLayerMask = m;
+                        }
                     }
             }
 

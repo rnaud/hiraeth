@@ -170,9 +170,16 @@ test('the shadow maps\' movers culled per cascade by the engine and drawn as ren
   assert.match(sh, /public void CullFor\(ScriptableRenderContext ctx, Camera cam, WorldDetail detail\)/);
   assert.match(sh, /plan\.culled = ctx\.Cull\(ref p\)/);
   const feature = read('unity/Memento/Assets/Memento/Rendering/MementoFeature.cs');
-  assert.match(feature, /renderingLayerMask = MementoShadows\.CasterLayer/);
+  assert.match(feature, /renderingLayerMask = MementoShadows\.LayerOf\(plan\.cascade\)/);
   const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /UseRendererLists = !BridgeArgs\.Flag\("-shadow-draws"\)/);
   assert.match(runner, /beginCameraRendering \+= CullShadows/);
   assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs'), /MementoShadows\.CasterLayer/);
+});
+
+test('the Unity players carry every character file the bundle reads (the traveller\'s head-v2 too), and the shadow lists keep each cascade\'s smallest caster', () => {
+  const build = read('unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs');
+  assert.match(build, /"characters\/traveller-v1\/head-v2", new\[\] \{ "model\.glb", "colors\.json" \}/);
+  assert.match(read('unity/Memento/Assets/Memento/Rendering/MementoFeature.cs'), /renderingLayerMask = MementoShadows\.LayerOf\(plan\.cascade\)/);
+  assert.match(read('unity/Memento/Assets/Memento/Runtime/MementoShadows.cs'), /CascadeLayer\[2\]/);
 });
