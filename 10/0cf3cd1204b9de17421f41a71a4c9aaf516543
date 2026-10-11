@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_e911a7adfc530e 5-8
+docs/systems/ui.md
+  s_9ca76055a220ed::t_b737af0ab803d3 302,518-537
+src/changelog-media.js
+  s_9ca76055a220ed::t_8b03df1f060c5a 554-556,558-562
+src/changelog.js
+  s_9ca76055a220ed::t_0606b17808f9b4 11-15
+src/hud.js
+  s_9ca76055a220ed::t_3e80c20dc46ca8 53-56,59,61-62,65,67,70-73
+src/main.js
+  s_9ca76055a220ed::t_969ccf3d1f8a64 729,1366-1371,1373,1380-1381,1386,1933-1935,2256
+src/quest.js
+  s_9ca76055a220ed::t_ecafe7194123b1 197-201,204
+src/ship/cinema.js
+  s_9ca76055a220ed::t_6551443fa1e246 188-215,274-276,324-330,397-399,438,449,459-464,478-503
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_bf381604a9ba12 653-655
+src/story/desert.js
+  s_9ca76055a220ed::t_ef9792aba50f7e 823
+src/story/quests.js
+  s_9ca76055a220ed::t_bcfca015046a11 148
+tests/hint-level.test.js
+  s_9ca76055a220ed::t_fb85b7905cd215 84
+tests/hud.test.js
+  s_9ca76055a220ed::t_3e95023f3d1da3 71,73-98
+tests/interiors.test.js
+  s_9ca76055a220ed::t_7b2281333c5fb5 126,133-135
+tests/notices.test.js
+  s_9ca76055a220ed::t_f89615677fb94d 1-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "100cf3cd1204b9de17421f41a71a4c9aaf516543",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
