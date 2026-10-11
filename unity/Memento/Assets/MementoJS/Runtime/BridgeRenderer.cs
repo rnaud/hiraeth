@@ -163,6 +163,24 @@ namespace Memento.Bridge
         /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
+        public static bool oneVariant;
+        /// <summary>The shader variants the scene's materials ask for: materials, distinct (shader, keywords), the commonest.</summary>
+        public string Variants()
+        {
+            var sets = new Dictionary<string, int>();
+            int n = 0;
+            foreach (var r in GetComponentsInChildren<Renderer>(true))
+                foreach (var mt in r.sharedMaterials)
+                {
+                    if (!mt) continue;
+                    n++;
+                    var kw = mt.shaderKeywords; System.Array.Sort(kw);
+                    var key = mt.shader.name + "|" + string.Join(" ", kw);
+                    sets.TryGetValue(key, out int c); sets[key] = c + 1;
+                }
+            var top = System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(sets, kv => kv.Value), 6);
+            return $"{n} renderer materials, {sets.Count} shader variants (shader and keywords); the commonest: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"));
+        }
         static readonly List<string> madeNames = new();
         static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
         public static string TakeMade()
@@ -306,6 +324,9 @@ namespace Memento.Bridge
                 return;
             }
             materials[mid] = WorldLoader.MakeMaterial(surface, m);
+            // (-one-variant, a test: every material of the port's Surface on its plain variant, no keywords; the picture is
+            // wrong, but if the load's 24 s stall goes, it was the GPU's driver compiling each variant at its first draw)
+            if (oneVariant) materials[mid].shaderKeywords = System.Array.Empty<string>();
         }
 
         /// <summary>The fire (story/flames.js) on the port's own Memento/Flame: its five bands of colour, its seed, its heat.</summary>

@@ -152,6 +152,7 @@ namespace Memento.Bridge
                 {
                     settled = lastGrowth;
                     Write($"load: GPU Resident Drawer {BridgeRunner.ResidentDrawerState()}");
+                    try { Write($"load: {scene.Variants()}"); } catch (Exception e) { Write("load: the variants: " + e.Message); }
                     Write($"load: world settled {settled * 1000:0} ms after launch ({nodes} nodes, {scene.Geometries} geometries); " +
                           $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms; " +
                           $"Unity's own part (without the wait on the script): {nativeSum:0} ms, longest {nativeMax:0} ms, {nativeSlow} over 50 ms");
