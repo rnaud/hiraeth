@@ -62,6 +62,7 @@ const DEFAULTS = {
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
   padV: PAD_SCHEME,     // the pad's overrides saved before the layout's version 4 (one job per button) are brought up to date once
   deckV: 1,             // the Steam Deck before v1 started on High (its first save kept it): it goes to Auto (its own preset) once
+  soundV: 1,            // music, effects and voices all saved at 0 (the Deck's old bench wrote them into the player's own settings): back to the defaults once
 };
 
 /** The text sizes (× the words' size): the "Text size" setting. */
@@ -117,6 +118,13 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
   // (the pad's verbs saved before PAD_SCHEME 4: one job per button now, src/remap.js migratePad)
   if (!(out.padV >= PAD_SCHEME) && out.pad && typeof out.pad === 'object' && Object.keys(out.pad).length) { out.pad = migratePad(out.pad, out.padV ?? 0); out.padV = PAD_SCHEME; }
   if (deck && !(out.deckV >= 1)) { if (['high', 'medium', undefined].includes(out.quality)) out.quality = 'auto'; out.deckV = 1; }
+  // (issue #112: the Steam Deck's bench, before it ran in a profile of its own, saved music, effects and voices at 0 into
+  // the player's settings, and the game went silent but for the singing light; all three at 0 is that footprint (a
+  // player who wants silence has Mute): they come back once)
+  if (!(out.soundV >= 1)) {
+    if (out.music === 0 && out.effects === 0 && out.voices === 0) { out.music = DEFAULTS.music; out.effects = DEFAULTS.effects; out.voices = DEFAULTS.voices; }
+    out.soundV = 1;
+  }
   // (hints: none saved before hintsV 1, the game said everything; a player starts on the new default, and can turn them back up)
   if (typeof out.hints === 'boolean') out.hints = out.hints ? 'full' : 'off';
   if (!(out.hintsV >= 1) || !HINT_LEVELS.includes(out.hints)) { out.hints = HINT_LEVELS.includes(out.hints) ? out.hints : DEFAULT_HINTS; out.hintsV = 1; }

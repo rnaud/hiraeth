@@ -314,6 +314,10 @@ export class Sound {
     this.fx.connect(this.world);
     this.fxSend = ctx.createGain(); this.fxSend.gain.value = 0.25;
     this.fx.connect(this.fxSend).connect(this.reverb);
+    // an effect's own room (the singing light's theme, the makers' hum): the effects volume too, so at 0 nothing
+    // of it reaches the reverb (it used to go straight in: issue #112, the only sound left with effects at 0)
+    this.fxRoom = ctx.createGain(); this.fxRoom.gain.value = this.fxVol;
+    this.fxRoom.connect(this.reverb);
     // the voices: their own bus (the voice volume), a touch of the room
     this.voices = ctx.createGain(); this.voices.gain.value = VOICE_LEVEL * this.voiceVol;
     this.voices.connect(this.world);
@@ -603,6 +607,7 @@ export class Sound {
     if (!this.ctx) return;
     this.music.gain.setTargetAtTime(0.62 * music, this.ctx.currentTime, 0.2);
     this.fx.gain.setTargetAtTime(1.6 * fx, this.ctx.currentTime, 0.2);
+    this.fxRoom?.gain.setTargetAtTime(fx, this.ctx.currentTime, 0.2);
     if (this.menuBus && this.menuOn) this.menuBus.gain.setTargetAtTime(0.62 * music * MENU_LEVEL, this.ctx.currentTime, 0.2);
   }
 
@@ -1143,7 +1148,7 @@ export class Sound {
     const ctx = this.ctx, g = ctx.createGain();
     g.gain.value = vol;
     g.connect(this.fx);
-    const send = ctx.createGain(); send.gain.value = 0.5; g.connect(send).connect(this.reverb);
+    const send = ctx.createGain(); send.gain.value = 0.5; g.connect(send).connect(this.fxRoom);
     setTimeout(() => { try { g.disconnect(); send.disconnect(); } catch { /* gone */ } }, until * 1000);
     return g;
   }
@@ -1222,7 +1227,7 @@ export class Sound {
     if (pn) { pn.pan.setValueAtTime(from, t0); pn.pan.linearRampToValueAtTime(to, end); }
     oo.connect(air).connect(g).connect(out);
     if (pn) out.connect(pn).connect(this.fx); else out.connect(this.fx);
-    const send = ctx.createGain(); send.gain.value = 0.9; out.connect(send).connect(this.reverb);
+    const send = ctx.createGain(); send.gain.value = 0.9; out.connect(send).connect(this.fxRoom);
     const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 5.2; vg.gain.value = 0;
     vib.connect(vg); vib.start(t0); vib.stop(end + 1.7);
     // the voice (a sine and a soft triangle a breath apart) and the glass over it

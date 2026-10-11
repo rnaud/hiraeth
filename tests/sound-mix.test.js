@@ -110,3 +110,18 @@ test('water welling up: a soft gurgle, well under the old whoosh, with no click'
   assert.ok(first < 0.05, `no click as it starts (peak ${first.toFixed(3)})`);
   s.waterRise({ vol: 0 });   // (nothing, and no exponential ramp to 0, which a browser throws on)
 });
+
+test('with music, effects and voices at 0 nothing is heard: the singing light\'s theme and the makers\' hum neither (issue #112)', () => {
+  // (the Deck's old bench saved all three at 0 into the player's settings; the theme and the hum went into the
+  // reverb straight, past the effects volume, and were the only sounds left)
+  const sung = (vols) => seeded(() => {
+    const s = fresh('desert');
+    if (vols === 0) { s.setVolumes(0, 0); s.setVoices(0); }
+    s.ctx.render(48000 * 2);   // (the volumes glide there)
+    s.lightTheme({ vol: 1.2 }); s.makersHumRise(4);
+    return dB(peakRms(s.ctx.render(48000 * 5)));
+  });
+  const on = sung(1), off = sung(0);
+  assert.ok(on > -45, `heard at the default volumes: ${on.toFixed(1)} dB`);
+  assert.ok(off < -90, `silent at 0: ${off.toFixed(1)} dB`);
+});

@@ -64,7 +64,7 @@ test('the setting: in the menu (Game), saved, and settings from before it start 
   const { migrateSettings, applyAccess } = await ui();
   assert.match(src('src/ui.js'), /row\(t\('set\.hints'\), opts\('hints', HINT_LEVELS\)\)/);
   for (const lv of HINT_LEVELS) assert.ok(t(`set.hints.${lv}`) && t(`set.hints.${lv}`) !== `set.hints.${lv}`, lv);
-  assert.deepEqual(migrateSettings({ music: 0.5, hudV: 1 }), { music: 0.5, hudV: 1, hints: 'subtle', hintsV: 1 }, 'before the setting: the new default');
+  assert.deepEqual(migrateSettings({ music: 0.5, hudV: 1 }), { music: 0.5, hudV: 1, hints: 'subtle', hintsV: 1, soundV: 1 }, 'before the setting: the new default');
   assert.equal(migrateSettings({ hudV: 1, hints: 'full', hintsV: 1 }).hints, 'full', 'chosen since: kept');
   assert.equal(migrateSettings({ hudV: 1, hints: 'off', hintsV: 1 }).hints, 'off');
   assert.equal(migrateSettings({ hudV: 1, hints: true }).hints, 'full', 'an on / off from a test build: full');

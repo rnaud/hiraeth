@@ -31,6 +31,9 @@ export const CHANGELOG = [
     // the Unity test build (docs/systems/water.md "In Unity"; issue #53)
     { text: 'In the Unity test build, water foams where it meets the shore and whatever stands in it, as it does in the browser: a pale band along the banks, off on phones as on the Handheld preset.',
       see: 'In the Unity test build, step off the ship in Lorn and look along the water’s edge to the right of the ramp.' },
+    // sound (docs/systems/audio.md "The volumes"; issue #112)
+    { text: 'The Steam Deck has its sound back: a measuring run had saved the music, the effects and the voices at nothing into the game’s settings, so all you heard was the singing light in the prologue. Those three come back to their usual levels once, and with the effects turned all the way down the singing light and the makers’ hum are silent too.',
+      see: 'On a Steam Deck that had gone quiet: start the game and the title’s music plays; the settings’ Sound sliders for music, effects and voices are back up. Turn effects to 0 and play the prologue: the singing light is no longer heard.' },
   ] },
   { v: '1.48', date: '2026-10-11', items: [
     // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)

@@ -146,13 +146,20 @@ test('the frame readout is off unless asked for (F, the settings, ?fps=1), and o
   const { Settings, migrateSettings } = await ui();
   globalThis.localStorage = { getItem: () => null, setItem() {} };
   try { assert.equal(new Settings().showFps, false); } finally { delete globalThis.localStorage; }
-  assert.deepEqual(migrateSettings({ showFps: true, music: 0.5 }), { music: 0.5, hudV: 1, hints: 'subtle', hintsV: 1 }, 'saved before: the old default goes');
-  assert.deepEqual(migrateSettings({ showFps: true, hudV: 1, hints: 'full', hintsV: 1 }), { showFps: true, hudV: 1, hints: 'full', hintsV: 1 }, 'turned on since: kept');
+  assert.deepEqual(migrateSettings({ showFps: true, music: 0.5 }), { music: 0.5, hudV: 1, hints: 'subtle', hintsV: 1, soundV: 1 }, 'saved before: the old default goes');
+  assert.deepEqual(migrateSettings({ showFps: true, hudV: 1, hints: 'full', hintsV: 1 }), { showFps: true, hudV: 1, hints: 'full', hintsV: 1, soundV: 1 }, 'turned on since: kept');
   // the Steam Deck started on High before its own preset: Auto once; a lighter choice is kept
   assert.equal(migrateSettings({ hudV: 1, quality: 'high' }, { deck: true }).quality, 'auto');
   assert.equal(migrateSettings({ hudV: 1, quality: 'low' }, { deck: true }).quality, 'low');
   assert.equal(migrateSettings({ hudV: 1, quality: 'high', deckV: 1 }, { deck: true }).quality, 'high', 'chosen again since: kept');
   assert.equal(migrateSettings({ hudV: 1, quality: 'high' }).quality, 'high', 'elsewhere: untouched');
+  // issue #112: the Deck's old bench saved music, effects and voices at 0 into the player's settings: back once
+  const bench = migrateSettings({ hudV: 1, quality: 'deck', showFps: false, music: 0, effects: 0, voices: 0 }, { deck: true });
+  assert.deepEqual([bench.music, bench.effects, bench.voices, bench.soundV], [0.8, 1, 0.8, 1]);
+  assert.equal(bench.quality, 'deck', 'the rest as saved');
+  assert.equal(migrateSettings({ hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1 }).music, 0, 'set to 0 again since: kept');
+  assert.deepEqual(migrateSettings({ hudV: 1, music: 0, effects: 1, voices: 0.8 }).music, 0, 'only the music off: a choice, kept');
+  assert.match(src('scripts/bench/deck-run.sh'), /G='XDG_CONFIG_HOME=\/home\/deck\/\.local\/share\/moebius-bench /, 'the bench runs in a profile of its own, never the player\'s');
   assert.match(src('src/main.js'), /if \(query\.get\('fps'\) === '1'\) settings\.showFps = true;/);
   assert.match(src('scripts/handheld-perf/lib.mjs'), /showFps: true, hudV: 1/, 'the handheld measuring keeps it on');
 });

@@ -13,6 +13,21 @@ since a suspended context would only queue sounds to burst out at once. The
 ship's arrival sets its engines every frame, so they come in even when the
 sound starts partway through.
 
+## The volumes (issue #112, October 2026)
+
+Settings' music, effects and voices scale the `music`, `fx` and `voices` buses (`setVolumes`, `setVoices`).
+Everything reaches the reverb through a bus too: the buses' own sends, the bands' gains (music volume), and
+`fxRoom` (the effects volume) for the effects that keep their own room, the singing light's theme
+(`lightTheme`) and the makers' hum (`_humOut`). Before, those two went into the reverb straight, so with the
+effects at 0 they were still heard (about -32 dB).
+
+That is what the Steam Deck played (issue #112): the Deck bench of early October (`scripts/bench/web-page.mjs`
+writes `music: 0, effects: 0, voices: 0`) ran in the player's own Electron profile before `deck-run.sh` gave it
+one of its own (10 October), and left those settings in the player's game: silent but for the singing light in
+the prologue. The audio itself was fine: the context ran at once (Electron's autoplay), and the mp3s decode.
+Settings saved with all three at 0 come back to their defaults once (`soundV`, `migrateSettings` in
+`src/ui.js`). Tests: `tests/sound-mix.test.js` (silent at 0), `tests/hud.test.js` (the repair).
+
 ## The hum (v1.0)
 
 Everyone on the route talks about humming (the chest on the great tree, Vael's stones, the bell, the
