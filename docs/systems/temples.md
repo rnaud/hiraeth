@@ -488,6 +488,15 @@ one hears only a stone's own low song through a pair of dishes (`hears: 'note'`,
 near one the high note played back, the high stone at the far end; the shell keeps the last note, so the low stone sung
 by the near dish is caught too. The great key opens the far door (`d4`, its two lamps as before).
 
+The **Lamp-House** (`perdide2.js`, 3.67, structure 3, its curve 1): the **Kennel**, east off the Hall of Dark Pools, is an
+arena in the dark (`KENNEL`; the small key, for the Lamp Passage's door, a room past the chest); past the Dark Gallery, east
+off its far side, the **Wick Room** (`WICK`): two niches, two pool-orbs, one lantern, the great key behind a grille (`cW`)
+that lifts for good only while both niches burn. A niche's lamp burns only while its orb glows: its element has `hold`
+(the orb's time) and a `when` (its orb home), and the orb's piece puts it out when its glow ends (`Ball` `lamp`), so the
+second orb has to be lit and rolled home inside the first one's glow. The great key opens the gallery's far door (`d4`).
+The audit (`scripts/temple-design/lib.mjs`) sorts a lock whose keys want the gadget after the chest wherever its room is,
+and leaves out a door that opens with another (`{ open }`) as a step of its own.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

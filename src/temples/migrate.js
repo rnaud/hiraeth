@@ -99,6 +99,16 @@ export const LAYOUTS = {
       { if: ['drum.ballP', 'drum.ballR', 'boss'], set: { 'unlocked.d3': 1, 'found.kE': true, 'drum.bE': 1 } },
     ],
   },
+  // v1.49: the Lamp-House's Kennel off the Hall of Dark Pools and its Wick Room off the Dark Gallery's far side. Past the
+  // Lamp Passage's door: its small key in it, the Kennel won; past the gallery's far door: the great key in it too
+  // (before it, the Wick Room is a few steps off the far side)
+  perdide2: {
+    v: 2,
+    steps: [
+      { if: ['open.d2', 'lit.s4', 'drum.orb', 'lit.l2', 'open.d4', 'boss'], set: { 'unlocked.d2': 1, 'found.kS': true, 'lit.arK': true } },
+      { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'open.cW': true } },
+    ],
+  },
 };
 export function migrateTempleLayouts(g) {
   let n = 0;

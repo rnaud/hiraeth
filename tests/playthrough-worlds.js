@@ -373,7 +373,8 @@ export const ROUTE = [
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell'] },
-  { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps'] },
+  // (v1.49: and the Lamp-House to its guardian, the Kennel off its first hall and the Wick Room past the gallery: issue #23)
+  { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps', { temple: 'done', id: 'perdide2' }] },
   // (v1.49: and the Builders' Greenhouse to its guardian, both its hub's wings and the Seed Vault past the gulf: issue #23)
   { id: 'edena', play: ['edena.garden', { temple: 'done', id: 'edena' }] },
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, Fabre's word down to the Whale Gallery, then the Whale-House)

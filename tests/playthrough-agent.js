@@ -637,7 +637,12 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
       if (b?.id !== `box.${box.id}`) issue('temple', `${T.def.name}: E by the chest is ${b?.id ?? 'nothing'}`);
       if (b?.id === `box.${box.id}`) { b.use(W.player); finishScenes(W); } else W.boxes.open(box.id, { instant: true });
       log.push(`chest: ${box.item}`);
-    } else if (['brazier', 'bramble', 'switch', 'bell', 'vane'].includes(e.type)) { L.light(id); T.onLit(id); log.push(`${e.type} ${id}`); }   // (a vane: set turning; nothing here runs it down)
+    } else if (['brazier', 'bramble', 'switch', 'bell', 'vane'].includes(e.type)) {
+      // (a lamp a pool-orb's glow wakes and holds, `hold`: the orb lit first, as his lantern held by it would: the Wick Room's)
+      const orb = T.pieces.find((p) => p.o?.lamp?.id === id);
+      if (orb && e.hold) orb.charge = orb.o.lamp.lasts ?? 25;
+      L.light(id); T.onLit(id); log.push(`${e.type} ${id}`);
+    }   // (a vane: set turning; nothing here runs it down)
     else if (e.type === 'arena') {
       // (a room that shuts behind him until its foes are beaten: in it, he beats them, and the runtime lets him out)
       const A = T.def.arenas?.find((x) => x.el === id);

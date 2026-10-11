@@ -583,6 +583,8 @@ export class Ball {
       }
     }
     if (!home) this.toldDark = false;
+    // (a lamp held only while its orb glows, `hold` on its element: the Lamp-House's Wick Room) out with the orb's glow
+    if (L.isLit(o.id) && L.el(o.id)?.hold && (this.charge <= 0 || !home)) { L.quiet(o.id); if (this.charge <= 0) this.rt.notice?.(o.faded ?? 'The orb’s glow has gone out, and its lamp with it.', `${o.id}.faded`); }
     const lit = L.isLit(o.id), k = lit ? 1 : Math.min(1, this.charge / 4) * (0.85 + 0.15 * Math.sin(this.rt.time * 4));
     this.orb.uniforms.uGlow.value = 0.08 + 0.85 * k + (by ? 0.25 * Math.min(1, this.near / (o.hold ?? 2)) : 0);
   }
