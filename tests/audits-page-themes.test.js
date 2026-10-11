@@ -46,7 +46,9 @@ test('the change since the one before: overall, and each item since the last tim
   assert.equal(theme('level-design').prev.id, 'level-design-v1.20'); assert.equal(theme('level-design').delta, 0.13);
   assert.equal(theme('temple-design').delta, 0.13);   // (temple-design-v1.48: 4.03 over fourteen, v1.27: 3.90 over eleven)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.46: 3.8, game-v1.0: 3.7)
-  assert.equal(theme('dialogue').prev, null, 'the first of its kind'); assert.equal(theme('dialogue').delta, null);
+  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.0'); assert.equal(theme('dialogue').delta, 0.08);   // (dialogue-v1.48: 3.50, v1.0: 3.42)
+  const loc = group('dialogue', 'Areas').rows.find((r) => r.label === 'Localisation');
+  assert.deepEqual([loc.value, loc.from], [3, 2], 'an area compared with the review before');
   assert.equal(theme('visual').prev.id, 'visual-v1.4', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
   for (const t of themes) for (let i = 1; i < t.history.length; i++) {
     const h = t.history[i], before = t.history.slice(0, i).reverse().find((x) => x.overall != null);
@@ -155,7 +157,8 @@ test('the cards: score, change, items, the link to the full audit, History behin
   }
   assert.match(themeCard(theme('combat')), /▲ \+0\.01 <small>since v1\.22/);
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
-  assert.match(themeCard(theme('dialogue')), /the first dialogue audit/);
+  assert.match(themeCard(theme('dialogue')), /▲ \+0\.08 <small>since v1\.0/);
+  assert.doesNotMatch(themeCard(theme('dialogue')), /the first dialogue audit/);
   assert.match(themeCard(theme('perf')), /2\/4/);
   assert.doesNotMatch(themeCard(theme('combat'), { open: true }), /class="history"[^>]* hidden/);
   assert.match(trendHtml(theme('level-design').history), /<path d="M/);

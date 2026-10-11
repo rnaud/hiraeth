@@ -165,7 +165,8 @@ test('the screens: every tab of every report draws; the pad\'s buttons and glyph
   }
   assert.match(kindChips(index), /data-glyph="lb".*data-glyph="rb"/s);
   assert.match(tabHtml(byId('game-v1.0'), 'compare', { reports }), /v0\.97.*v1\.0/s);
-  assert.match(tabHtml(byId('dialogue-v1.0'), 'compare', { reports }), /Only one dialogue audit/);
+  assert.match(tabHtml(byId('dialogue-v1.0'), 'compare', { reports }), /v1\.0.*v1\.48/s);
+  assert.match(tabHtml(byId('dialogue-v1.48'), 'compare', { reports }), /Localisation.*s2">2<.*s3">3</s, 'v1.48 against v1.0, area by area');
   for (const h of ['#/', '#/combat-v1.4', '#/game-v1.0/compare/game-v0.97', '#/level-design-v1.5/edits']) assert.equal(routeHash(parseRoute(h)), h);
   assert.deepEqual(parseRoute('#/game-v1.0/compare/game-v0.97'), { id: 'game-v1.0', tab: 'compare', other: 'game-v0.97' });
 
