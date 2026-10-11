@@ -1,0 +1,55 @@
+changelog.md
+  s_9ca76055a220ed::t_299f4cea5038dc 5-9
+docs/systems/performance.md
+  s_9ca76055a220ed::t_2f5f0b80972cc0 1424-1491,1533-1534
+scripts/contact-report.mjs
+  s_9ca76055a220ed::t_04d5e7b8459564 47
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_39f7865ae15d0b 299,380-381
+src/changelog.js
+  s_9ca76055a220ed::t_f09b4603bf05bc 11-31
+src/contact-audit.js
+  s_9ca76055a220ed::t_46ee1f67c27365 110
+src/crowd.js
+  s_9ca76055a220ed::t_22a311a9389a66 352-353,362-385,389,396-401,405-421,423-424,427-430,433-438,440-442,444-445,448,452-462,464-486,488-500,503-542,544,567,582,585,652-666,708,742-755,768-777
+src/deferred.js
+  s_9ca76055a220ed::t_1b7ba138476bcc 18-23,47-48,51-55,59-60,65-69,72,74,76-77,82,91,101
+src/flora.js
+  s_9ca76055a220ed::t_0731736b1dbec6 182-183
+src/late-collision.js
+  s_9ca76055a220ed::t_9d2ede8765c85a 1-200
+src/main.js
+  s_9ca76055a220ed::t_8218f363ae659e 46-47,306-308,310,329-331,680,691,2263-2264
+src/physics.js
+  s_9ca76055a220ed::t_853d0db84a6be7 221-236,514-517,520,522,525,530,532,540,542
+src/sand-drifts.js
+  s_9ca76055a220ed::t_cde91c34e8b66a 221-229,309-311,337-355,365-384,387-393,396-419
+src/story/bazaar.js
+  s_9ca76055a220ed::t_d9b7ea8eebc9b1 218
+src/story/incal.js
+  s_9ca76055a220ed::t_1e862301ba699d 346
+tests/crowd-later.test.js
+  s_9ca76055a220ed::t_11b3f7fd670eac 1-85
+tests/deferred.test.js
+  s_9ca76055a220ed::t_e171aa12aec79f 143-154
+tests/late-collision.test.js
+  s_9ca76055a220ed::t_49d1080bf23962 1-96
+tests/ship-calm.test.js
+  s_9ca76055a220ed::t_b4298a171b762c 37,43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4ad80712fbc5ce57e427613499cdbb0ad22e39a7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
