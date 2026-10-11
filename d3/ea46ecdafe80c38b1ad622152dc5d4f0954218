@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_9c7ff54a0e02ae 7
+docs/story-bible.md
+  s_9ca76055a220ed::t_f4a360c38ca256 573-576
+docs/systems/story.md
+  s_9ca76055a220ed::t_18e9ce59004b37 783-790,792-793
+src/changelog.js
+  s_9ca76055a220ed::t_9093c4279197df 28-29
+src/game-menu.css
+  s_9ca76055a220ed::t_1600c4ba71a324 233-235,247-250
+src/game-menu.js
+  s_9ca76055a220ed::t_79f1058355d1d2 204,224,229-232
+src/story/sightings.js
+  s_9ca76055a220ed::t_11d445b27b58d8 10,24-25,27-34,36-37,131-134,147
+tests/sightings.test.js
+  s_9ca76055a220ed::t_fcae3dea4b2fe8 137-164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d3ea46ecdafe80c38b1ad622152dc5d4f0954218",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
