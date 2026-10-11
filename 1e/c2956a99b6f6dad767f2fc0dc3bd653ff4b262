@@ -1,0 +1,25 @@
+changelog.md
+  s_9ca76055a220ed::t_e9ce7dd2d223db 7
+src/arena-guardians.js
+  s_9ca76055a220ed::t_63d86f6f52c80b 17-23,46,50,52
+src/changelog.js
+  s_9ca76055a220ed::t_3fdff98c2fc8fe 56-58
+tests/telegraphs.test.js
+  s_9ca76055a220ed::t_0f303379af8d29 52,81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1ec2956a99b6f6dad767f2fc0dc3bd653ff4b262",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
