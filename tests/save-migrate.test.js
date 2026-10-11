@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 16);
+  assert.equal(MIGRATED(), 17);
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -296,4 +296,39 @@ test('nobody sends you to somebody else (issue #85, step 15): a save on a step t
   }
   // a save on a step that stays is left where it was
   assert.equal(run({ 'quest.incal.light': 'ossa' })['quest.incal.light'], 'ossa');
+});
+
+test('the new worlds’ carries from one person to another (issue #137, step 17): a save on one is where the thing is used', async () => {
+  const { QUEST_STAGE_MOVES_137 } = await import('../src/save-migrate.js');
+  const run = (flags) => { const f = { 'save.migrated': 16, ...flags }; migrateFlags(f); return f; };
+  // the count to Ilse: done (it is counted at the lookout); the hook to Bertil: on to his crane; the notes to Tamar: on to the cables
+  const count = run({ 'quest.moonfoundry.count': 'ilse' });
+  assert.equal(count['quest.moonfoundry.count'], 'done');
+  assert.equal(count['moonfoundry.moons.counted'], true);
+  assert.equal(count['moonfoundry.ilse.counted'], undefined, 'Ilse still writes it in when you pass');
+  assert.equal(run({ 'quest.moonfoundry.hook': 'bertil', 'item.ladlehook': 1 })['quest.moonfoundry.hook'], 'crane');
+  assert.equal(run({ 'quest.spacecity.notes': 'tamar', 'item.selnotes': 1 })['quest.spacecity.notes'], 'cables');
+  // the cutting to Fabre: done, in his window box (the cutting gone from the bag); Fabre's word to Maelle: done, no quest now
+  const kelp = run({ 'quest.underwater.kelp': 'fabre', 'item.kelpcutting': 1 });
+  assert.equal(kelp['quest.underwater.kelp'], 'done');
+  assert.equal(kelp['item.kelpcutting'], 0);
+  assert.equal(kelp['underwater.fabre.thanked'], undefined, 'Fabre still thanks you when you pass');
+  const lamps = run({ 'quest.underwater.kelp': 'done', 'quest.underwater.lamps': 'maelle' });
+  assert.equal(lamps['quest.underwater.lamps'], 'done');
+  assert.equal(lamps['underwater.fabre.lamps'], true);
+  assert.equal(lamps['underwater.fabre.thanked'], true, 'thanked under the old step');
+  // what was said under the old steps is not said again
+  const old = run({ 'quest.moonfoundry.count': 'done', 'quest.moonfoundry.hook': 'done', 'quest.spacecity.notes': 'done', 'quest.underwater.lamps': 'done' });
+  for (const k of ['moonfoundry.ilse.counted', 'moonfoundry.wen.counted', 'moonfoundry.bertil.thanked', 'spacecity.notes.laid', 'underwater.maelle.lamps']) assert.equal(old[k], true, k);
+  // a save on a step that stays is left where it was
+  assert.equal(run({ 'quest.underwater.kelp': 'lift' })['quest.underwater.kelp'], 'lift');
+  // where they go is a stage the quest still has (or done), and the steps that went are gone
+  const defs = {};
+  for (const f of ['moonfoundry-people.js', 'spacecity-people.js', 'underwater-people.js']) for (const q of (await import(`../src/story/${f}`)).QUESTS) defs[q.id] = q;
+  for (const [id, moves] of Object.entries(QUEST_STAGE_MOVES_137)) for (const [gone, to] of Object.entries(moves)) {
+    const st = defs[id]?.stages.map((s) => s.id) ?? [];
+    assert.ok(!st.includes(gone), `${id} has no ${gone}`);
+    assert.ok(to === 'done' || st.includes(to), `${id} has ${to}`);
+  }
+  assert.equal(defs['underwater.lamps'], undefined, 'Fabre’s word to Maelle is no quest');
 });

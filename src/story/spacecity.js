@@ -5,7 +5,8 @@
 // (src/levels/space-city.js SPACECITY_CONTENT.story); out of the house, the first time, the cables drawing taut are
 // filmed (src/story/spacecity-moments.js). Joss's word after it is the way on: the planet's hum on the cables carries a
 // broadcast from a market of a thousand signs where one tower is silent (the Signal Market: clue.spacecity.bazaar). Two
-// errands of the city's own: Madame Sel's notes to Tamar on the Towers, and one of Kip's lamps hung up the Balcony's mast.
+// errands of the city's own, each done where its goal is (issue #137): Madame Sel's notes laid on the cables under the
+// Towers (the cables' own talk, THINGS.cables), and one of Kip's lamps hung up the Balcony's mast.
 
 import * as THREE from 'three';
 import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './spacecity-people.js';
@@ -36,7 +37,10 @@ export function setupSpaceCity(ctx) {
   // the crow's nest on the Balcony's lamp-mast (src/levels/space-city.js level.mastTop): Kip's lamp is hung there
   const E = level?.mastTop;
   if (E && quests?.locate) { const at = new THREE.Vector3(E.x, E.y, E.z); quests.locate('mast', () => at); }
-  const offLamp = game.on?.('quest', (e) => { if (e?.id === 'spacecity.lamp' && e.stage === 'done') quests?.take?.('kiplamp'); }) ?? null;
+  const offLamp = game.on?.('quest', (e) => {
+    if (e?.id === 'spacecity.lamp' && e.stage === 'done') quests?.take?.('kiplamp');
+    if (e?.id === 'spacecity.notes' && e.stage === 'done') quests?.take?.('selnotes');   // (left on the cable)
+  }) ?? null;
   let closing = null;
   const finish = () => {
     if (!game.flag('world.spacecity.done')) {

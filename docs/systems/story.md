@@ -734,6 +734,17 @@ idea." "All quests should be solvable by just going to the end if you can."
   step), with no "ask her first". The builders' gate still waits for Esk's asking: the flood is hers to ask for.
   `tests/quest-steps.test.js` (the words), `tests/story-terraces.test.js` and `tests/story-spheres.test.js` (the
   goals reached first).
+- **The new worlds' carries, done where the thing is used** (#137, v1.49): the Moon Foundry, the City Floating in
+  Space and the Underwater City had errands that carried something from one person to another, and the foundry's
+  route ran four talks in a row. Each now ends at its goal: Wen's count at the pillar's lookout (the lookout reached
+  sets `moonfoundry.moons.counted` and starts the errand if Wen hadn't asked: `src/story/moonfoundry.js`), Ottilie's
+  ladle-hook on the jib crane at the last furnace (`level.crane`), Sel's notes laid on the cables under the Towers (the
+  cables' own talk, which is the main quest's hand on them too), the kelp cutting as you come up into the Crown. Fabre's
+  word down to Maelle (*Lamps for the Whales*) is no quest. Ilse, Bertil, Tamar, Fabre and Maelle say their word when
+  you pass (a once-only entry, flag `<world>.<who>.<thing>`), and are no step. `src/save-migrate.js` step 17
+  (`QUEST_STAGE_MOVES_137`) moves a save on a removed step on, the thing used. `tests/quest-steps.test.js` (no quest
+  in these worlds needs two talks in a row or ends on one), `tests/goal-reached-early.test.js` (each goal reached
+  first completes its errand; the route has no run of more than two talks).
 
 ## Places to stop on the way (the second story pass, October 2026)
 

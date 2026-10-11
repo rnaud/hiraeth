@@ -363,11 +363,12 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   in the Whale Gallery hears it come up through the sea floor from the north; then
   in at the Whale-House's door. The temple, **the Whale-House** (Anselme at its
   door; Maelle in the Whale Gallery tells why the whales keep away): find the
-  makers' **whale-horn** inside and calm its keeper. Two errands of the city's
-  own: Mireille's glow-kelp cutting up the lift to Fabre in the Crown (*A Cutting
-  for the Crown*), and Fabre's word down to Maelle that he has lit the Crown's
-  lamps every dusk for the whales (*Lamps for the Whales*). Odette keeps the
-  Air-Shop; Bastien the lock; Coralie a café.
+  makers' **whale-horn** inside and calm its keeper. An errand of the city's
+  own: Mireille's glow-kelp cutting up the lift to Fabre's window box in the Crown
+  (*A Cutting for the Crown*, done as you come up into the Crown). Fabre has lit
+  the Crown's lamps every dusk for the whales; Maelle hears of it when you pass
+  (no quest since v1.49, #137). Odette keeps the Air-Shop; Bastien the lock;
+  Coralie a café.
 - **Keepsake**: *song*: the whales' answer, the light's note first and then their own.
 - **Trace (from its detour days)**: Coralie: a woman from up top listened all night
   to the whales, and hummed back the one that sang something she knew.
@@ -408,8 +409,9 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   (the push takes hold of the iron moons) and stop the Last Founder. Two errands of the foundry's
   own: Wen of the Buried Machine, on holiday, wants the moons counted from the
   lookout on the pillar under the moon on its pillar (*Thirty-One Moons*: there are
-  thirty-two, one in the mould); Ottilie's mended ladle-hook to Bertil at the
-  furnace (*The Ladle-Hook*). Gunnar keeps the Crucible.
+  thirty-two, one in the mould; done up there, and Ilse writes it in when you
+  pass); Ottilie's mended ladle-hook hung on the crane at Bertil's furnace (*The
+  Ladle-Hook*). Gunnar keeps the Crucible.
 - **Keepsake**: *thing*: a pocket moon, the last the Casting-House poured, still warm.
 - **Trace (from its detour days)**: Bertil cast the mark on a plate for a lone
   woman's ship's nose: "So they'll know me."
@@ -452,7 +454,8 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   Moorings, feels them pull north; then in at the Mooring-House's door. The temple,
   **the Mooring-House** (Joss the moorer at its door): find **tether mode** inside
   (a cone that pulls instead of pushing) and resolve the Anchor-Warden. Two errands of the city's own: Madame Sel's notes on
-  the planet's hum to Tamar under her cables (*The Planet's Hum*), and one of Kip's
+  the planet's hum laid on the cables under the Towers (*The Planet's Hum*; Tamar
+  says the cables kept the line when you pass), and one of Kip's
   nine lamps hung at the far end of the Moorings bridge (*A Lamp at the Edge*).
   Amaro keeps the Oil-Lamp Shop: the city pays in lamp oil.
 - **Keepsake**: *knowing*: what the cables are for: not holding the islands up, listening.

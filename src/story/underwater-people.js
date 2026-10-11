@@ -1,8 +1,9 @@
 // The Underwater City's people with something to do (on the route since v1.40: src/levels/names.js ORDER), placed by
 // src/levels/underwater.js (UNDERWATER_CONTENT npcs), their side quests defined by src/story/underwater.js. The world's
 // thread is its temple, the Whale-House (src/temples/underwater.js, Anselme at its door): Maelle in the Whale Gallery
-// tells you why the whales keep away, and what they sang once they came back (the way on: the City-Shaft). Every line
-// carries a tone; a talk's answers stay at three a node at most.
+// tells you why the whales keep away, and what they sang once they came back (the way on: the City-Shaft). The cutting's
+// errand ends where its goal is, in the Crown (issue #137); Fabre thanks you and Maelle hears of his lamps when you pass,
+// no step of either. Every line carries a tone; a talk's answers stay at three a node at most.
 
 /** What the Underwater City gives you to keep (src/story/underwater.js, when the Whale-House's keeper is calmed). */
 export const KEEPSAKE = {
@@ -10,7 +11,7 @@ export const KEEPSAKE = {
   text: 'The song the whales sang against the glass the morning they came back: the light’s one note first, then their own, long and low, and the cups in Coralie’s café rattling in their saucers.',
 };
 
-/** The things carried for the side quests. */
+/** The things carried for the side quests (the cutting goes in the Crown's window box: src/story/underwater.js takes it). */
 export const ITEMS = { kelpcutting: 'a glow-kelp cutting' };
 
 export const QUESTS = [
@@ -28,16 +29,10 @@ export const QUESTS = [
   {
     id: 'underwater.kelp', title: 'A Cutting for the Crown', world: 'underwater',
     outro: 'Fabre’s window box glows green now, sixty metres up the column.',
+    // (done in the Crown, where the cutting goes in the window box: Fabre's step went, issue #137, and so did "Lamps for
+    //  the Whales", his word down to Maelle; saves at either are done, src/save-migrate.js QUEST_STAGE_MOVES_137)
     stages: [
       { id: 'lift', text: 'Take the kelp cutting up to the Crown', label: 'The lift in the column', goto: 'crown', radius: 11, vertical: 6, at: 'lift' },
-      { id: 'fabre', text: 'Give the cutting to Fabre', label: 'Fabre, in the Crown', talk: 'fabre', at: 'fabre' },
-    ],
-  },
-  {
-    id: 'underwater.lamps', title: 'Lamps for the Whales', world: 'underwater',
-    outro: 'Maelle says a lamp at the top of the city is a fine thing for a whale to see. She would know.',
-    stages: [
-      { id: 'maelle', text: 'Tell Maelle the Crown’s lamps are lit', label: 'Maelle, in the Whale Gallery', talk: 'maelle', at: 'maelle', via: 'the tube down to the Whale Gallery' },
     ],
   },
 ];
@@ -104,7 +99,7 @@ export const PEOPLE = {
             { text: '~neutral~ Another time.', end: true },
           ],
         },
-        go: { say: ['~happy~ Keep it wet. Tell him it likes the dark and hates the cold, like him.'], choices: [{ text: '~neutral~ I’ll tell him.', end: true }] },
+        go: { say: ['~happy~ Keep it wet. It likes the dark and hates the cold, like him.'], choices: [{ text: '~neutral~ Wet. Got it.', end: true }] },
         waiting: { say: ['~curious~ Up the lift in the Plaza’s column, to the Crown. Fabre will be fussing with his lamps.'], choices: [{ text: '~neutral~ On my way.', end: true }] },
         after: {
           say: ['~happy~ He sent word down the column: it glows. He says it’s the first green thing he’s owned since he was a boy.',
@@ -122,9 +117,9 @@ export const PEOPLE = {
     lines: ['~neutral~ Six lamps round the Crown. I light them at dusk so the city can see where its top is.', '~curious~ Look up. That’s the surface. I’ve never been through it.', '~tired~ The lift again. Up and down, up and down.'],
     talk: {
       entry: [
-        { if: { quest: 'underwater.kelp', stage: 'fabre' }, node: 'cutting' },
-        { if: { quest: 'underwater.lamps', done: true }, node: 'after' },
-        { if: { quest: 'underwater.lamps', active: true }, node: 'waiting' },
+        // (the cutting in his window box: his thanks when you pass, no step of it, issue #137)
+        { if: { all: [{ quest: 'underwater.kelp', done: true }, { not: { flag: 'underwater.fabre.thanked' } }] }, node: 'cutting' },
+        { if: { flag: 'underwater.fabre.lamps' }, node: 'after' },
         { if: { quest: 'underwater.kelp', done: true }, node: 'lamps' },
         { node: 'hello' },
       ],
@@ -139,23 +134,19 @@ export const PEOPLE = {
         },
         sky: { say: ['~solemn~ I’ve looked at the underneath of it for fifty years. I like to think the top is just as good.'], choices: [{ text: '~neutral~ It is.', end: true }] },
         cutting: {
-          say: ['~surprised~ Is that Mireille’s kelp? She remembered. (He takes the cutting in both hands and settles it in the window box under the glass.)',
+          say: ['~surprised~ Mireille’s kelp, in my window box! She remembered.',
             '~happy~ Look at it go green. The first thing I’ve grown in fifty years that isn’t a beard.'],
-          do: [{ take: 'kelpcutting' }, { advance: ['underwater.kelp', 'fabre'] }],
+          do: { set: { 'underwater.fabre.thanked': true } },
           choices: [{ text: '~neutral~ She says it hates the cold.', goto: 'cold' }],
         },
-        cold: { say: ['~playful~ Then we’ll get on.', '~neutral~ You know the way up now. So there’s something else.'], choices: [{ text: '~curious~ What is it?', goto: 'lamps' }] },
+        cold: { say: ['~playful~ Then we’ll get on.'], choices: [{ text: '~curious~ What are the lamps for?', goto: 'lamps' }, { text: '~neutral~ Goodbye, Fabre.', end: true }] },
         lamps: {
-          say: ['~solemn~ I’ve lit the Crown’s lamps every dusk since the whales went away. For them, so they can find the city again.',
-            '~curious~ Maelle listens for them in the Whale Gallery, down the slope past the Plaza. *Go down and tell her the lamps are lit.* She’ll know if they’ve seen them.'],
-          choices: [
-            { text: '~neutral~ I’ll tell her.', if: { quest: 'underwater.lamps', started: false }, do: { start: 'underwater.lamps' }, end: true },
-            { text: '~neutral~ Goodbye, Fabre.', end: true },
-          ],
+          say: ['~solemn~ I’ve lit the Crown’s lamps every dusk since the whales went away. For them, so they can find the city again.'],
+          do: { set: { 'underwater.fabre.lamps': true } },
+          choices: [{ text: '~neutral~ Goodbye, Fabre.', end: true }],
         },
-        waiting: { say: ['~neutral~ Down the lift, east through the Plaza, down the tube to the Gallery. Maelle will be by the glass.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
-          say: [{ if: { not: { flag: 'temple.underwater.done' } }, text: '~neutral~ She said they’ll see them when they’re ready to look. That’s the sort of thing Maelle says.' },
+          say: [{ if: { not: { flag: 'temple.underwater.done' } }, text: '~neutral~ Six lamps, every dusk. When they come back, the top of the city will be lit.' },
             { if: { flag: 'temple.underwater.done' }, text: '~happy~ A whale came right up to the Crown at dusk. It looked at the lamps, and then at me, and then it sang. I didn’t know what to do, so I waved.' }],
           choices: [{ text: '~neutral~ Goodbye, Fabre.', end: true }],
         },
@@ -169,8 +160,9 @@ export const PEOPLE = {
     lines: ['~whisper~ Shh. Listen. That far hum, under the hum of the glass.', '~sad~ They keep away now. They used to come so close the glass shook.', '~solemn~ The deep is listening. It always is.'],
     talk: {
       entry: [
-        { if: { quest: 'underwater.lamps', stage: 'maelle' }, node: 'lamps' },
         { if: { flag: 'temple.underwater.done' }, node: 'after' },
+        // (Fabre's lamps: her word on them when you pass, once you know of them; no step of it, issue #137)
+        { if: { all: [{ flag: 'met.maelle' }, { flag: 'underwater.fabre.lamps' }, { not: { flag: 'underwater.maelle.lamps' } }] }, node: 'lamps' },
         { if: { flag: 'met.maelle' }, node: 'again' },
         { node: 'hello' },
       ],
@@ -193,11 +185,10 @@ export const PEOPLE = {
         },
         again: { say: ['~whisper~ North of the Plaza, down the last tube. The Whale-House. Listen at its door before you go in.'], choices: [{ text: '~neutral~ I’m going.', end: true }] },
         lamps: {
-          say: ['~curious~ Fabre’s lamps? Every dusk, all these months?',
-            { if: { not: { flag: 'temple.underwater.done' } }, text: '~solemn~ Then when they come back, they’ll find the top of the city lit. Tell him that’s a fine thing for a whale to see.' },
-            { if: { flag: 'temple.underwater.done' }, text: '~happy~ Tell him they saw. The big one turned toward the column last night and sang at it for an hour.' }],
-          do: { advance: ['underwater.lamps', 'maelle'] },
-          choices: [{ text: '~neutral~ I’ll tell him.', end: true }],
+          say: ['~curious~ Fabre lights the Crown’s lamps every dusk, for them? All these months?',
+            '~solemn~ Then when they come back, they’ll find the top of the city lit. A fine thing for a whale to see.'],
+          do: { set: { 'underwater.maelle.lamps': true } },
+          choices: [{ text: '~curious~ And the Whale-House?', goto: 'again' }, { text: '~neutral~ Goodbye, Maelle.', end: true }],
         },
         // (the route's way on: the City-Shaft, the light that went up a well)
         after: {

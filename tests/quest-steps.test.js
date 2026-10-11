@@ -85,3 +85,30 @@ test('no line ends by sending you on: no “Ask her.”, no “go and ask X” (
   }
   assert.deepEqual(bad, []);
 });
+
+// "No character handing you off to another; a quest completes when you reach its goal" (the author's standing rules; the
+// v1.49 level design audit, issue #137): in the worlds that joined the route in v1.40 no quest needs two talks in a row
+// with no goal between. Every quest is given by a talk (an errand by its giver; a main quest by its opener, whose first
+// step is that talk), so a step after a talk is a goal: a place or a thing, not a talk step (`talk`), a person's marker
+// (`at` one of the world's people, the temple's local too) or a thing to bring to one (`to`).
+const NEW_WORLDS = { moonfoundry: 'moonfoundry-people.js', spacecity: 'spacecity-people.js', underwater: 'underwater-people.js' };
+test('in the Moon Foundry, the City Floating in Space and the Underwater City no quest needs two talks in a row (issue #137)', async () => {
+  const bad = [];
+  let n = 0;
+  for (const [world, f] of Object.entries(NEW_WORLDS)) {
+    const m = await import(new URL(`story/${f}`, SRC)), T = await import(new URL(`temples/${world}-data.js`, SRC));
+    const who = new Set([...Object.keys(m.PEOPLE ?? {}), ...Object.keys(m.VISITORS ?? {}), ...Object.keys(T.PEOPLE ?? {})]);
+    assert.ok(who.size >= 4, `${world}: ${[...who]}`);
+    const talk = (s) => !!(s.talk || who.has(s.at) || (s.bring && who.has(s.to)));
+    for (const q of m.QUESTS) {
+      n++;
+      // (the talk that gives it, unless the quest's first step is that talk: an opener's "Hear Hedda out on the apron")
+      const steps = [{ id: '(given)', talk: true }, ...q.stages.slice(q.main && talk(q.stages[0]) ? 1 : 0).map((s) => ({ id: s.id, talk: talk(s) }))];
+      for (let i = 1; i < steps.length; i++) if (steps[i].talk && steps[i - 1].talk) bad.push(`${q.id}: ${steps[i - 1].id} → ${steps[i].id}`);
+      // (nor does it end on one: the count is done at the lookout, the cutting in the Crown, not where they are reported)
+      if (steps.at(-1).talk) bad.push(`${q.id}: ends on a talk, ${steps.at(-1).id}`);
+    }
+  }
+  assert.ok(n >= 7, `${n} quests`);
+  assert.deepEqual(bad, []);
+});

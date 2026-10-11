@@ -1201,9 +1201,9 @@ and a drawing of Lou's (`src/levels/names.js` ORDER; why each sits where it does
 
 | World | Place | Its temple (gadget) | Errands | Shop | Trial |
 |---|---|---|---|---|---|
-| The Underwater City | 5th, after Viridel | the Whale-House (`horn`, the whale-horn: the deep note) | Mireille's cutting up the lift to Fabre; Fabre's word down to Maelle | Odette's Air-Shop (`bubble`) | the Tube run (on foot, hall to hall) |
-| The Moon Foundry | 9th, after the Buried Machine | the Casting-House (`tongs`, the founders' tongs: the push takes iron) | Ottilie's ladle-hook to Bertil; Wen's count from the lookout to Ilse | the Crucible (`crucible`) | the Floor round (on foot) |
-| The City Floating in Space | 11th, before the Signal Market | the Mooring-House (`tether`, a cone that pulls) | Kip's lamp up the Balcony's mast; Sel's notes to Tamar | Amaro's Oil-Lamp Shop (`adobe`) | the Courier's round (on foot, over the bridges) |
+| The Underwater City | 5th, after Viridel | the Whale-House (`horn`, the whale-horn: the deep note) | Mireille's cutting up the lift to the Crown | Odette's Air-Shop (`bubble`) | the Tube run (on foot, hall to hall) |
+| The Moon Foundry | 9th, after the Buried Machine | the Casting-House (`tongs`, the founders' tongs: the push takes iron) | Ottilie's ladle-hook on the last furnace's crane; Wen's count at the lookout | the Crucible (`crucible`) | the Floor round (on foot) |
+| The City Floating in Space | 11th, before the Signal Market | the Mooring-House (`tether`, a cone that pulls) | Kip's lamp up the Balcony's mast; Sel's notes on the Towers' cables | Amaro's Oil-Lamp Shop (`adobe`) | the Courier's round (on foot, over the bridges) |
 
 - **Stories**: `src/story/<id>.js` (the world done when its temple is: `world.<id>.done`, the keepsake, the page closed, the
   climax filmed), `src/story/<id>-people.js` (the people with errands, the quests, the keepsake, the visitors' words),

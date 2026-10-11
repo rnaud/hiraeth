@@ -18,23 +18,19 @@ export const PEOPLE = {
     lines: ['~neutral~ Moon forty-one: cracked. Moon forty-two: cracked. Very consistent.', '~tired~ The ledger is heavier than it looks. So is the house.', '~curious~ You hear it at night? The rolling?'],
     talk: {
       entry: [
-        // (Wen's count, from the lookout on the pillar: it goes into the ledger, src/story/moonfoundry-people.js)
-        { if: { quest: 'moonfoundry.count', stage: 'ilse' }, node: 'count' },
         { if: { flag: 'temple.moonfoundry.done' }, node: 'after' },
         { if: { flag: 'temple.moonfoundry.entered' }, node: 'inside' },
+        // (Wen's count, done at the pillar's lookout: Ilse writes it in when you pass, no step of it, issue #137)
+        { if: { all: [{ flag: 'met.ilse' }, { quest: 'moonfoundry.count', done: true }, { not: { flag: 'moonfoundry.ilse.counted' } }] }, node: 'count' },
         { if: { flag: 'met.ilse' }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
         count: {
-          say: ['~curious~ A count, from Wen? From up the pillar? How many did you make it?'],
-          choices: [
-            { text: '~neutral~ Thirty-one.', goto: 'one' },
-            { text: '~curious~ Thirty-two. One in the Casting-House mould.', goto: 'two' },
-          ],
+          say: ['~surprised~ You counted from the pillar? Thirty-two, then. Nobody gets it right from the floor. (She writes it in.)'],
+          do: { set: { 'moonfoundry.ilse.counted': true } },
+          choices: [{ text: '~neutral~ And the house?', goto: 'again' }, { text: '~neutral~ Goodbye, Ilse.', end: true }],
         },
-        one: { say: ['~playful~ Then you missed the one in the mould, as everybody does. (She writes) Thirty-two. Wen will start again from one, she always does.'], do: { advance: ['moonfoundry.count', 'ilse'] }, choices: [{ text: '~neutral~ Goodbye, Ilse.', end: true }] },
-        two: { say: ['~surprised~ Thirty-two. The ledger says thirty-two, and nobody has ever counted it right from the floor. (She writes it in.) Tell Wen she has a rival.'], do: { advance: ['moonfoundry.count', 'ilse'] }, choices: [{ text: '~neutral~ Goodbye, Ilse.', end: true }] },
         hello: {
           say: ['~neutral~ Ilse. I keep the founders’ ledger. Somebody has to, and the founders left a long time ago.',
             '~solemn~ That’s *the Casting-House*. The first moons were poured in there. Every page of the ledger starts at its door.',

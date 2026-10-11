@@ -388,7 +388,7 @@ export const BOOK = {
     P('fabre', 'Fabre', 'Keeps the Crown’s lamps', [
       'Fabre lights the six lamps round the Crown, at the top of the Plaza’s column, just under the surface he has never been through.',
       [done('underwater.kelp'), 'Mireille’s glow-kelp grows in his window box now: the first green thing he has owned since he was a boy.'],
-      [done('underwater.lamps'), 'He has lit the lamps every dusk since the whales went away, so they could find the city again. Maelle says it’s a fine thing for a whale to see.'],
+      [f('underwater.fabre.lamps'), 'He has lit the lamps every dusk since the whales went away, so they could find the city again.'],
     ], ['In the Crown, up the lift in the Plaza’s column.']),
     P('maelle', 'Maelle', 'Listens to the whales', [
       'Maelle listens to the whales from the gallery over the deep. One night a light came down through the sea singing one note; the whales sang it back and went away.',
@@ -540,7 +540,7 @@ export const BOOK = {
     ], ['On the apron, by her mould.']),
     P('bertil', 'Bertil', 'Pours at the last furnace', [
       'Bertil keeps the Moon Foundry’s last furnace warm. Years back he cast a plate for a lone woman’s ship, with the mark she drew for him in soot: “So they’ll know me.”',
-      [done('moonfoundry.hook'), 'Ottilie mended his ladle-hook and you carried it to him. He says the ladle pours a little kinder.'],
+      [done('moonfoundry.hook'), 'Ottilie mended his ladle-hook and you hung it on his crane. He says the ladle pours a little kinder.'],
     ], ['At the last furnace on the foundry floor.']),
     P('ottilie', 'Ottilie', 'Mends in the quarter', [
       'Ottilie mends kettles, hinges and hooks in a workshop that was a polishing drum, in the workers’ quarter.',

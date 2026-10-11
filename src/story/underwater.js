@@ -3,8 +3,8 @@
 // Maelle in the Whale Gallery tells why the whales keep away (src/story/underwater-people.js). When the Whale-House's
 // keeper is calmed (`temple.underwater.done`) the world is done on the route (`world.underwater.done`), its keepsake given
 // (the whales' answer) and its page closes (src/levels/underwater.js UNDERWATER_CONTENT.story); out of the house, the
-// first time, the whales coming to the glass are filmed (src/story/underwater-moments.js). Two errands of the city's own:
-// Mireille's glow-kelp cutting up the lift to Fabre in the Crown, and Fabre's word down to Maelle in the Gallery.
+// first time, the whales coming to the glass are filmed (src/story/underwater-moments.js). An errand of the city's own:
+// Mireille's glow-kelp cutting up the lift to the Crown, done there, in Fabre's window box (issue #137).
 
 import * as THREE from 'three';
 import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './underwater-people.js';
@@ -40,6 +40,10 @@ export function setupUnderwater(ctx) {
     quests.locate('crown', () => c);
     quests.locate('lift', () => l);
   }
+  // the cutting goes in Fabre's window box as you come up into the Crown (the errand's goal: issue #137)
+  const offKelp = game.on?.('quest', (e) => {
+    if (e?.id === 'underwater.kelp' && e.stage === 'done') { quests?.take?.('kelpcutting'); toast('In the Crown, the cutting goes into Fabre’s window box under the glass, and glows.'); }
+  }) ?? null;
   let closing = null;
   // the whales come to the glass: the level's whales drawn in (src/levels/underwater.js whalesNear), eased
   let near = game.flag('temple.underwater.done') ? 1 : 0;
@@ -70,6 +74,6 @@ export function setupUnderwater(ctx) {
     },
     /** The whales in at the glass at once (the review page's staging: src/cinematics-page/runtime.js). */
     whalesIn() { near = 1; level?.whalesNear?.(1); },
-    dispose() { off?.(); if (closing) clearTimeout(closing); },
+    dispose() { off?.(); offKelp?.(); if (closing) clearTimeout(closing); },
   };
 }

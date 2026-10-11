@@ -65,6 +65,9 @@
 // still to ask Ambrose to stop has the stop asked (Solange pulls the cord herself now).
 //
 // Two more went in v1.49 (issue #118): Hask's (Wen says where the ramp is) and Calix's (the clapper is the goal): step 16.
+// And the three worlds of v1.40 (issue #137): the errands that carried something from one person to another end where
+// the thing is used (Wen's count at the lookout, Ottilie's hook on the furnace's crane, Sel's notes on the cables, the
+// cutting in the Crown), and Fabre's word down to Maelle is no quest: step 17 (QUEST_STAGE_MOVES_137).
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -210,6 +213,8 @@ const STEPS = [
   (flags) => migrateQuestStages(flags),
   // 16: two more steps that only sent you to a person, gone (issue #118, v1.49): a save on one goes on to the step after
   (flags) => migrateQuestStages(flags, QUEST_STAGE_MOVES_118),
+  // 17: the new worlds' carries from one person to another, done where the thing is used (issue #137, v1.49)
+  (flags) => migrateCarries137(flags),
 ];
 
 /** The quest steps removed in v1.46 (issue #85), each to the step a save on it goes on to. */
@@ -224,6 +229,30 @@ export const QUEST_STAGE_MOVES_118 = {
   'buried.tooth': { hask: 'down' },             // (Hask on his bench: Wen says where the ramp is)
   'arzach2.bell': { calix: 'clapper' },         // (Calix at the monastery: the clapper is the goal; he says where it lies)
 };
+/** The quest steps removed in v1.49 (issue #137): step 17. */
+export const QUEST_STAGE_MOVES_137 = {
+  'moonfoundry.count': { ilse: 'done' },        // (the count to Ilse: it is done at the lookout, where it is counted)
+  'moonfoundry.hook': { bertil: 'crane' },      // (the hook to Bertil: it is hung on his crane at the last furnace)
+  'spacecity.notes': { tamar: 'cables' },       // (the notes to Tamar: they are laid on the cables under the Towers)
+  'underwater.kelp': { fabre: 'done' },         // (the cutting to Fabre: it goes in his window box as you come up into the Crown)
+  'underwater.lamps': { maelle: 'done' },       // (Fabre's word down to Maelle: no quest now, her line when you pass)
+};
+/** Step 17 (pure, in place): the stages moved on, the things used where they were for, and who has said their word. */
+export function migrateCarries137(flags) {
+  const was = (id) => flags[`quest.${id}`];
+  const kelpAtFabre = was('underwater.kelp') === 'fabre', lamps = was('underwater.lamps'), counted = was('moonfoundry.count') === 'done';
+  migrateQuestStages(flags, QUEST_STAGE_MOVES_137);
+  if (kelpAtFabre && flags['item.kelpcutting'] > 0) flags['item.kelpcutting'] -= 1;   // (in the window box now)
+  if (was('moonfoundry.count') === 'done') flags['moonfoundry.moons.counted'] = true;
+  if (counted) { flags['moonfoundry.ilse.counted'] = true; flags['moonfoundry.wen.counted'] = true; }   // (Ilse wrote it in)
+  // (what was said already, under the old steps, is not said again)
+  if (was('moonfoundry.hook') === 'done') flags['moonfoundry.bertil.thanked'] = true;
+  if (was('spacecity.notes') === 'done') flags['spacecity.notes.laid'] = true;
+  if (was('underwater.kelp') === 'done' && !kelpAtFabre) flags['underwater.fabre.thanked'] = true;
+  if (lamps !== undefined) flags['underwater.fabre.lamps'] = true;
+  if (lamps === 'done') flags['underwater.maelle.lamps'] = true;
+  return flags;
+}
 /** Steps 15 and 16 (pure, in place). */
 export function migrateQuestStages(flags, table = QUEST_STAGE_MOVES) {
   const first = table === QUEST_STAGE_MOVES;

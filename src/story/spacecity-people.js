@@ -2,7 +2,9 @@
 // src/levels/names.js ORDER), placed by src/levels/space-city.js (SPACECITY_CONTENT npcs), their errands defined by
 // src/story/spacecity.js. The world's thread is its temple, the Mooring-House on its own island (src/temples/spacecity.js,
 // Joss the moorer at its door); these are the city's folk and its visitors: Tamar who minds the cables (the light's trace,
-// kept from the world's days as a detour), Madame Sel and Kip of the Signal Market. Every line carries a tone.
+// kept from the world's days as a detour), Madame Sel and Kip of the Signal Market. Each errand ends where its goal is
+// (issue #137): Sel's notes laid on the cables under the Towers, Kip's lamp in the crow's nest; Tamar says her word on the
+// notes when you pass, and is no step. Every line carries a tone.
 
 /** What the city gives you to keep (src/story/spacecity.js, when the Anchor-Warden is resolved). */
 export const KEEPSAKE = {
@@ -27,9 +29,11 @@ export const QUESTS = [
   },
   {
     id: 'spacecity.notes', title: 'The Planet’s Hum', world: 'spacecity',
-    outro: 'Tamar laid Sel’s notes on the cable and the needle wrote the same line. The city and the planet are humming one tune.',
+    outro: 'Laid on the cable, Sel’s notes kept time with its hum, stroke for stroke. The city and the planet are humming one tune.',
+    // (laid where they are used, issue #137: Tamar's step went, she says her word when you pass; a save at it goes on to
+    //  `cables`, src/save-migrate.js QUEST_STAGE_MOVES_137; the cables' own talk lays them, THINGS.cables below)
     stages: [
-      { id: 'tamar', text: 'Take Sel’s notes to Tamar on the Towers', label: 'Tamar, on the Towers', talk: 'tamar', at: 'tamar', via: 'the Towers bridge' },
+      { id: 'cables', text: 'Lay Sel’s notes on the cables under the Towers', label: 'The cables under the Towers', flag: 'spacecity.notes.laid', at: 'towerCables', via: 'the Towers bridge' },
     ],
   },
   {
@@ -82,7 +86,7 @@ const KIP = {
 
 /** The visitors from the Signal Market: their words here (their bodies and names are their own world's: src/story/bazaar-data.js). */
 export const VISITORS = {
-  // Madame Sel of the Signal Market, listening to the planet from the Balcony (her errand: her notes to Tamar)
+  // Madame Sel of the Signal Market, listening to the planet from the Balcony (her errand: her notes laid on the Towers' cables)
   sel: {
     lines: ['~solemn~ Listen. The planet hums. Very low. You need the old tower’s ears to hear it.', '~happy~ Mind the railing, love. There’s nothing under it for a long way.'],
     talk: {
@@ -102,16 +106,16 @@ export const VISITORS = {
         },
         hears: {
           say: ['~solemn~ A hum, very low, and over it a line that comes and goes. I don’t know the language yet.',
-            '~curious~ Tamar on the Towers minds the old cables: her grandmother hung the first. *Take her my notes.* If the cables keep the same line, I’m not going mad.'],
+            '~curious~ *Lay my notes on the cables under the Towers.* If the cables keep the same line, I’m not going mad.'],
           choices: [
             { text: '~happy~ I’ll take them.', do: [{ start: 'spacecity.notes' }, { give: 'selnotes' }], goto: 'go' },
             { text: '~neutral~ Another time.', end: true },
           ],
         },
-        go: { say: ['~neutral~ *East from the Market, up the Towers bridge.* Tamar will be under her cables, listening. Don’t whistle near them.'], choices: [{ text: '~neutral~ I won’t.', end: true }] },
-        waiting: { say: ['~neutral~ The Towers, east of the Market, up the narrow bridge. Tamar.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        go: { say: ['~neutral~ *East from the Market, up the Towers bridge,* where the cables leave for the Moorings. Don’t whistle near them.'], choices: [{ text: '~neutral~ I won’t.', end: true }] },
+        waiting: { say: ['~neutral~ The cables under the Towers, east of the Market, up the narrow bridge.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
-          say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~happy~ The same line, she says. So the planet’s talking, and the cables are listening. I’ll learn the language yet.' },
+          say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~happy~ The same line, on the cables? So the planet’s talking, and the cables are listening. I’ll learn the language yet.' },
             { if: { flag: 'temple.spacecity.done' }, text: '~surprised~ Since the cables went taut the line comes clear. It’s a broadcast, love, from far off, and I know its voice. My market. And in the middle of it, my tower, saying nothing.' }],
           choices: [{ text: '~neutral~ Goodbye, Madame Sel.', end: true }],
         },
@@ -166,7 +170,8 @@ export const PEOPLE = {
     lines: ['~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.', '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.'],
     talk: {
       entry: [
-        { if: { quest: 'spacecity.notes', stage: 'tamar' }, node: 'notes' },
+        // (Sel's notes laid on her cables: her word on them when you pass, no step of it, issue #137)
+        { if: { all: [{ flag: 'sight.spacecity.tamar' }, { quest: 'spacecity.notes', done: true }, { not: { flag: 'spacecity.tamar.notes' } }] }, node: 'notes' },
         { if: { flag: 'sight.spacecity.tamar' }, node: 'again' },
         { node: 'hello' },
       ],
@@ -185,10 +190,10 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ Goodbye, Tamar.', end: true }],
         },
         notes: {
-          say: ['~curious~ Sel’s notes? (She lays the paper along a cable and holds a needle to it. The needle shivers, and writes the same line, stroke for stroke.)',
-            '~solemn~ The same. So the planet’s talking, and my cables have been listening all along. Tell Sel she isn’t going mad. Tell her we both are.'],
-          do: [{ take: 'selnotes' }, { advance: ['spacecity.notes', 'tamar'] }],
-          choices: [{ text: '~neutral~ I’ll tell her.', end: true }],
+          say: ['~curious~ That was Sel’s paper on my cable? It kept her line, stroke for stroke.',
+            '~solemn~ So the planet’s talking, and my cables have been listening all along. She isn’t going mad. We both are.'],
+          do: { set: { 'spacecity.tamar.notes': true } },
+          choices: [{ text: '~neutral~ Goodbye, Tamar.', end: true }],
         },
       },
     },
@@ -201,14 +206,32 @@ export const PEOPLE = {
 export const THINGS = {
   cables: {
     id: 'towerCables', name: 'The cables under the Towers', title: 'by the Moorings bridge', color: '#4f9a98', voice: 0.6,
-    talk: { nodes: { touch: {
-      say: [
-        '~neutral~ (You reach over the parapet and lay a hand on the nearest cable. It hums one note into your palm.)',
-        '~solemn~ (And it pulls. Not down into the dark: north, over the bridge, toward the Moorings. Something there is paying them out.)',
+    talk: {
+      // (with Sel's notes in hand: laid along the cable, issue #137; that is the cables felt too, for the main quest)
+      entry: [
+        { if: { all: [{ quest: 'spacecity.notes', active: true }, { not: { flag: 'spacecity.notes.laid' } }] }, node: 'notes' },
+        { node: 'touch' },
       ],
-      do: { set: { 'spacecity.cables.felt': true } },
-      choices: [{ text: '~neutral~ (take your hand away)', end: true }],
-    } } },
+      nodes: {
+        notes: {
+          say: [
+            '~neutral~ (You lay Sel’s notes along the nearest cable. The paper shivers in its hum.)',
+            '~curious~ (Her pencil line and the hum rise and fall together, stroke for stroke.)',
+            '~solemn~ (And the cable pulls: north, over the bridge, toward the Moorings.)',
+          ],
+          do: { set: { 'spacecity.notes.laid': true, 'spacecity.cables.felt': true } },
+          choices: [{ text: '~neutral~ (lift your hand from the cable)', end: true }],
+        },
+        touch: {
+          say: [
+            '~neutral~ (You reach over the parapet and lay a hand on the nearest cable. It hums one note into your palm.)',
+            '~solemn~ (And it pulls. Not down into the dark: north, over the bridge, toward the Moorings. Something there is paying them out.)',
+          ],
+          do: { set: { 'spacecity.cables.felt': true } },
+          choices: [{ text: '~neutral~ (take your hand away)', end: true }],
+        },
+      },
+    },
   },
 };
 

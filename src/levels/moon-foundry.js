@@ -137,7 +137,7 @@ export const MOONFOUNDRY_CONTENT = {
         '~playful~ The ladle tips by itself every so often. I asked who works it. Everyone pointed at someone else.',
         { after: 'met.dun', say: '~happy~ Still warm. Mind your eyebrows.' },
       ] } },
-    // (Wen's errand: the moons counted from the pillar's lookout, the count to Ilse: src/story/moonfoundry-people.js VISITORS)
+    // (Wen's errand: the moons counted from the pillar's lookout, done up there: src/story/moonfoundry-people.js VISITORS)
     { ...BURIED_PEOPLE.wen, ...MF_VISITORS.wen, at: [WAYS.main[2][0] - 1.2, WAYS.main[2][2]], y: G + 0.05, radius: 0.8, world: 'buried', lang: 'buried' },   // (on the gantry, out over the floor before the broken moon)
     { ...SPHERES_PEOPLE.ivo, at: [BOWL.x + 4, BOWL.z + 3], y: G + 0.05, radius: 1.5, world: 'spheres', lang: 'spheres',
       lines: ['~curious~ Our spheres grow. These were built. I can’t decide which is stranger.', '~happy~ You can see the whole floor from up here.'],
@@ -154,7 +154,7 @@ export const MOONFOUNDRY_CONTENT = {
     { at: [10, 30], radius: 2, lang: 'moonfoundry', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship on the apron! We usually only get pigeons and inspectors.'] },
     // Bertil at the last furnace (the light's trace from the world's detour days, and the ladle-hook's end): src/story/moonfoundry-people.js
     { ...MF_PEOPLE.bertil, at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'moonfoundry', palette: pal('#c8693c', { cloth: '#e8d2a8' }) },
-    // Ottilie mends in the quarter (her ladle-hook goes to Bertil; the cast bell to the Garden of Spheres: src/levels/content.js)
+    // Ottilie mends in the quarter (her ladle-hook goes on the last furnace's crane; the cast bell to the Garden of Spheres: src/levels/content.js)
     { ...MF_PEOPLE.ottilie, at: [QUARTER.x + 14, QUARTER.z - 10], radius: 1.5, lang: 'moonfoundry', palette: pal('#c9703e', { cloth: '#efe4cc' }) },
     // (v1.46, issue #102: on the apron, by the little moon cooling in its mould; last, as the errands name people by place)
     // (v1.48, issue #101: Hedda, whose mould the moon nobody poured came down to: the foundry's main quest is hers)
@@ -608,6 +608,9 @@ export function* buildMoonFoundry(scene) {
     // the lookout on the pillar under the moon on its pillar (Wen's count: src/story/moonfoundry-people.js), the hung moon
     // the climax looks up at (src/story/moonfoundry-moments.js)
     lookout: { x: PMOON.x, y: PMOON.h * 0.78, z: PMOON.z },
+    // the jib crane over the last furnace's mould, the ladle on its hook (Ottilie's mended ladle-hook is hung on it:
+    // src/story/moonfoundry.js; its mast as the furnace's section above draws it)
+    crane: { x: FURNACE.x - 17, y: 0, z: FURNACE.z - 2 },
     hoist: HOIST,   // (its first deck: the foundry's main quest looks at the hung moons from it, src/story/moonfoundry.js)
     // the floor's leading lines (the level design audit's `lines`): the aisle's painted edges and lamps north from the
     // mouth, the rails in the floor from the furnace to the gantry's stair, and the gantry's railed way to the broken moon
