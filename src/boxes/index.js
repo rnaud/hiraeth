@@ -181,6 +181,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   const opened = (b) => !!g.flag(`box.${b.id}`);
   // a world's own box is spent once opened, or once you have its item anyway; a fallback only while you have it
   const spent = (b) => (b.fallback ? items.has(b.item) : opened(b) || items.has(b.item));
+  // a placement may wait for something first (`ready(game, items)`: the lift valve's chest, till the pool has filled your tank)
+  const ready = (b) => !b.place.ready || !!b.place.ready(g, items);
 
   function build() {
     const anc = typeof anchor === 'function' ? anchor() : anchor;
@@ -196,7 +198,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       const b = {
         id: p.id, item: p.item, def: ITEMS[p.item], pos: at.pos, yaw: at.yaw, parts, place: p, fallback: !!p.fallback, scene, noShadow,
         light: new THREE.Vector4(0, -1e5, 0, 0), near: 0, shake: 0, glow: 0, sceneLight: 0, phase: Math.random() * 6,
-        spent: () => spent(b), opened: () => opened(b),
+        spent: () => spent(b), opened: () => opened(b), ready: () => ready(b),
       };
       lights.push(b.light);
       // solid: an invisible block the size of the body (you can stand on it)
@@ -216,7 +218,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + (parts.size.h + 0.1) * BOX_SCALE + 0.5, b.pos.z),
         enabled: () => !spent(b) && !current && !player?.riding,
         distance: (pl) => (Math.abs(pl.pos.y - b.pos.y) < 2 ? flat(pl.pos, b.pos) : Infinity),
-        use: () => api.open(b.id),
+        // (a box that waits for something first, the placement's `ready`: shut and quiet till then, its `sealed` said on E)
+        use: () => (ready(b) ? api.open(b.id) : (toast(p.sealed ?? 'The chest is shut fast, and silent.'), sound?.boxAnswer?.(0.15))),
       });
       quests?.locate?.(`box.${p.id}`, () => b.pos);
       setSpentLook(b, spent(b));
@@ -364,6 +367,8 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
           continue;
         }
         if (b.isSpent) continue;
+        // (not ready yet: dark and still, no hum, no shudder, no beacon)
+        if (!ready(b)) { b.near = 0; b.light.set(0, -1e5, 0, 0); if (b.beacon) b.beacon.visible = false; P.root.rotation.set(0, b.yaw, 0); const A0 = M.body.uniforms.uBoxA.value; A0.x = 0.25; A0.y = 0.05; continue; }
         const near = (b.near = smoothstep(22, 3.2, d));
         hum = Math.max(hum, near);
         far = Math.max(far, smoothstep(HUM.reach, 4, d));

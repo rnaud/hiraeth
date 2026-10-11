@@ -448,7 +448,7 @@ Small fixes from `docs/audits/level-design-v1.15.md`'s "what's left" (`docs/audi
   floating pad just off the 150 m ring's edge past the relay lamp, 79 m from it. **Tobin pays as you walk up**: the
   pass's `fare` stage is a `goto` to him (`locate('tobin')`); arriving gives the fare and his line (`TOBIN_PAYS`), and
   talking to him first still works.
-- **The desert.** **The keepers' stair** (`HATCH` in `src/desert-city.js`): eight stone blocks behind the pool up to a
+- **The desert.** **The keepers' stair** (`HATCH` in `src/desert-city.js`): stone blocks behind the pool (since v1.45 the lower five fallen: a double jump up) to a
   bone-framed doorway in the dome's far wall, a root climbing beside it; its portal (`oneWay: true`) comes up under a
   hatch in the back lane (`qanat.hatch`, city-local z −42), 53 m from the well. The hatch only lifts from below: no
   portal down. The main quest has an `up` stage (a `goto` to `hatch`) between `fill` and `rise`; out by the skull's mouth
@@ -599,6 +599,18 @@ Rebuilt after `references/levels/The Desert/places/skull/sheet-1.jpg` and `skull
   they break through the vault; two bundles of seven thick roots wound round each other to a waist and splaying over the
   pool; 34 long strands a bundle from the waist down to the pool's bed; a fringe of thinner roots round them.
   `tests/desert-cave-light.test.js`.
+- **The way out wants the double jump** (issue #68: "I should only be able to leave the cave after I get the double
+  jump"). The keepers' stair (`HATCH.stair`) is taller (5.6 m) and its lower five blocks lie fallen, sunk in the sand
+  either side of its foot; what stands begins 4.2 m up (`CAVE_LEDGES.stair`). The entrance passage is a tall shaft
+  whose way up is a landing 4.2 m over its floor (`CAVE_LEDGES.landing`): the skull's mouth brings you onto the landing
+  (`cave.inside`), you drop into the cave, and the `passage up` portal is at its back. Both are over a jump's reach from
+  the floor or anything on it (2.6 m and a 0.6 step; the fallen blocks stay under 0.35 m) and under the double jump's
+  (6 m). The cave's walls are a no-climb zone (`cave.noClimb`, the level's `noClimb`, `physics.noClimbZones`: a sphere
+  `Physics.noClimbNear` also answers for). The skull's mouth won't take you down before the backpack (the portal's `when`
+  and `refuse`, read by main.js and the play-through's walk), so no one is shut in without the means out. Under the
+  stair the first time without the lift valve, a toast says it has fallen. The lift valve's chest is shut and silent
+  until the pool has filled the tank (its placement's `ready`, `sealed`: `docs/systems/boxes.md`).
+  `tests/desert-cave-exit.test.js`; the play-through walk takes a `slope` (the dome's steep foot is no ground).
 
 ## Qanat's burning tree and the giant ribcage, after the picked references (v1.39)
 Rebuilt after `references/levels/The Desert/places/qanat-tree/sheet-1.jpg` and `ribcage/sheet-1.jpg` (prompts in

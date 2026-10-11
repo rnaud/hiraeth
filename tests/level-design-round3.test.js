@@ -18,8 +18,11 @@ test('the desert: the keepers’ stair climbs from the cave’s floor to its doo
     const Q = W.level.qanat, cave = Q.cave;
     // a walk from the pool's edge up the stair to its doorway, on what is built
     const from = cave.local(0, 0.05, -16);
-    const walk = A.walkTo(W, from, cave.stairTop, { cell: 0.5, rise: 0.6, near: 1.2 });
-    assert.ok(walk.ok, `up the stair to the doorway (closest ${walk.closest?.toFixed?.(1)} m)`);
+    // (since v1.45 its lower flight lies fallen, issue #68: not on foot, nor with a jump; with the lift valve's double jump)
+    assert.ok(!A.walkTo(W, from, cave.stairTop, { cell: 0.5, rise: 0.6, near: 1.2, slope: 0.6 }).ok, 'not up the stair on foot');
+    assert.ok(!A.walkTo(W, from, cave.stairTop, { cell: 0.5, rise: A.RISE.jump, near: 1.2, slope: 0.6 }).ok, 'nor with a jump (the dome’s steep foot no ground: slope)');
+    const walk = A.walkTo(W, from, cave.stairTop, { cell: 0.5, rise: A.RISE.doublejump, near: 1.2 });
+    assert.ok(walk.ok, `up the stair to the doorway with the double jump (closest ${walk.closest?.toFixed?.(1)} m)`);
     // the hatch: on the city's floor in the back lane, halfway from the terraces to the back gate, under 80 m from the well
     const out = Q.hatch.out, g = W.physics.groundAt(out.x, out.y + 3, out.z, 6);
     assert.ok(Number.isFinite(g) && Math.abs(g - out.y) < 0.4, `you come up standing on the lane (${g?.toFixed?.(2)} vs ${out.y.toFixed(2)})`);

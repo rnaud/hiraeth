@@ -30,6 +30,7 @@ const WALK = 3.8;
 const RUN = 8.2;   // (7.2 until October 2026: a little faster now that it costs stamina, src/stamina.js)
 export const GRAVITY = 32;   // (m/s²; the blade's rising cut leaps with it: src/fluid-blade.js RISE)
 const JUMP = 13;
+export { JUMP, STEP };   // (how high a jump reaches: the desert cave's ledges are set above it, src/desert-city.js CAVE_LEDGES)
 const LIMIT = 1900;
 // The follow camera's look down when a world starts (rad, the rig's pitch): a little down the way the
 // traveller faces, as Ocarina of Time's (CameraRig).

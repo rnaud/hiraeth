@@ -12,6 +12,7 @@ import { registerHazard, flameHazard, HAZARD_DPS } from './hazards.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
 import { Veils } from './veil.js';
+import { items } from './items.js';
 
 // The desert's story places (references/levels/The Desert/environment/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
@@ -37,7 +38,15 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
  * height), and comes out under a hatch in Qanat's back lane (`z`: city-local, on the back lane's axis). One way: the
  * hatch only lifts from below.
  */
-export const HATCH = { z: -42, stair: { foot: -17.5, ledge: -25.6, door: -28.4, y: 3.0 } };
+// (stair: v1.45, issue #68: taller, its lower five blocks lie fallen; what stands starts CAVE_LEDGES.stair m up)
+export const HATCH = { z: -42, stair: { foot: -17.5, ledge: -25.6, door: -28.4, y: 5.6, fallen: 5 } };
+/**
+ * The cave's ways out want the lift valve's double jump (issue #68): the keepers' stair's first standing block and the
+ * entrance passage's landing stand higher than a jump reaches (JUMP 13 m/s under 32 m/s²: 2.6 m, and a step of 0.6),
+ * from the floor or anything standing on it, and lower than a double jump does (6 m); the cave's walls are a no-climb
+ * zone (level.noClimb, src/physics.js noClimbNear).
+ */
+export const CAVE_LEDGES = { stair: HATCH.stair.y * (HATCH.stair.fallen + 1) / 8, landing: 4.2, rubble: 0.35 };
 const UP = V(0, 1, 0);
 /**
  * The way through the pilgrims' camps (camp-local: x across, z from the gate's side, -z, to the landing's, +z; v1.42,
@@ -1127,12 +1136,22 @@ export function buildDesertCity(scene, terrain) {
     // the entrance passage on the +z side (the way back to the skull). First into the batches: from the
     // passage its walls hide the dome's far side and the room's floor, and drawn before them they keep
     // the GPU from painting those first (a third more fragments in the passage)
-    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(-3.6, 3, ROOM + 4));
-    cave.both(M.cave, new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4), new THREE.BoxGeometry(2.2, 6, 12).translate(3.6, 3, ROOM + 4));
-    cave.both(M.cave, new THREE.BoxGeometry(9.4, 1.5, 12).translate(0, 5.6, ROOM + 4));
+    // (v1.45, issue #68: a tall shaft whose way up is a landing CAVE_LEDGES.landing m over its floor, its face dressed
+    // smooth: you come down the skull's mouth onto the landing and drop into the cave; back up wants the double jump)
+    const LH = CAVE_LEDGES.landing, PH = 11;   // (the landing's height, the shaft's)
+    // (low through the dome's wall, as it was; tall only outside it, where the room never sees it)
+    const IN = ROOM + 0.4, DH = 5.2;
+    for (const sx of [-1, 1]) {
+      cave.both(M.cave, new THREE.BoxGeometry(2.2, DH, IN - (ROOM - 2)).translate(sx * 3.6, DH / 2, (IN + ROOM - 2) / 2));
+      cave.both(M.cave, new THREE.BoxGeometry(2.2, PH, ROOM + 10 - IN).translate(sx * 3.6, PH / 2, (IN + ROOM + 10) / 2));
+    }
+    cave.both(M.cave, new THREE.BoxGeometry(9.4, 0.8, IN - (ROOM - 2)).translate(0, DH + 0.4, (IN + ROOM - 2) / 2));
+    cave.both(M.cave, new THREE.BoxGeometry(9.4, 1.5, ROOM + 10 - IN).translate(0, PH + 0.6, (IN + ROOM + 10) / 2));
+    cave.both(M.cave, new THREE.BoxGeometry(9.4, PH - DH, 0.6).translate(0, DH + (PH - DH) / 2, IN + 0.3));   // (over the doorway, its passage side)
     cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
-    cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, 2.4, ROOM + 9.9));
-    cave.solid(new THREE.BoxGeometry(6, 6, 0.5).translate(0, 3, ROOM + 10.2));
+    cave.both(caveStone, new THREE.BoxGeometry(5.2, LH, 5.4).translate(0, LH / 2, ROOM + 7.6));   // the landing
+    cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, LH + 2.4, ROOM + 9.9));
+    cave.solid(new THREE.BoxGeometry(6, PH, 0.5).translate(0, PH / 2, ROOM + 10.2));
     // the floor: the pool's bed in the middle, four stone steps down into it, a paved kerb round it, then sand running
     // on under the dome's roughened foot (out to 32.8 m: a floor ending at ROOM + 2 left a hairline under the wall in
     // places, as the Givers' Hearth's did: visual-v1.4)
@@ -1340,9 +1359,16 @@ export function buildDesertCity(scene, terrain) {
     cave.flush();
     {
       const S = HATCH.stair, n = 8, run = (S.foot - S.ledge) / n, sk = new Kit(late, 'The keepers’ stair', O, 0);
-      for (let k = 0; k < n; k++) {
+      // its lower flight fell long ago (v1.45, issue #68): the blocks that stand start CAVE_LEDGES.stair m up, sheer; the
+      // fallen ones lie broken and sunk in the sand either side of its foot, too low to jump from; up it with the double jump
+      for (let k = S.fallen; k < n; k++) {
         const top = (k + 1) * S.y / n, z = S.foot - (k + 0.5) * run;
         sk.both(M.stone, new THREE.BoxGeometry(3.0, top, run + 0.02).translate(0, top / 2, z));
+      }
+      const frng = mulberry32(9127);
+      for (let k = 0; k < S.fallen; k++) {
+        const s2 = k % 2 ? 1 : -1, x = s2 * (2.7 + frng() * 1.4), z = S.foot - 2.0 - k * 1.2, h = CAVE_LEDGES.rubble;
+        sk.both(M.stone, new THREE.BoxGeometry(2.4, 0.9, run * 0.95).rotateY((frng() - 0.5) * 1.2).rotateZ(s2 * (0.06 + frng() * 0.08)).translate(x, h - 0.62, z));   // (sunk: no corner over CAVE_LEDGES.rubble)
       }
       sk.both(M.stone, new THREE.BoxGeometry(3.6, S.y, S.ledge - S.door + 1.4).translate(0, S.y / 2, (S.ledge + S.door - 1.4) / 2));   // the ledge, into the wall
       for (const s of [-1, 1]) sk.both(M.bone, new THREE.BoxGeometry(0.55, 3.2, 0.6).translate(s * 1.35, S.y + 1.6, S.door + 0.2));   // the jambs
@@ -1369,7 +1395,10 @@ export function buildDesertCity(scene, terrain) {
       stream, streamMat, chDir, rootTips,
       // the stream's way: its head at u (0 the crack, 1 the pool's edge), and the crack it runs out of (a moment frames them: desert.js)
       streamAt: (u, out = V(0, 0, 0)) => out.copy(cave.world(...along(THREE.MathUtils.clamp(u, 0, 1), -1.0).toArray())), crack: cave.world(29.6, 3.6, -6.4), mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
-      inside: cave.world(0, 0.05, ROOM + 5.5), exit: cave.world(0, 0, ROOM + 9.3), group: cave.group, root,
+      // (the way in comes out on the passage's landing, facing the drop into the cave; the way up from its back)
+      inside: cave.world(0, CAVE_LEDGES.landing + 0.05, ROOM + 6.2), exit: cave.world(0, CAVE_LEDGES.landing, ROOM + 9.3), group: cave.group, root,
+      // walls not to be climbed (issue #68): the whole room and its passage
+      noClimb: (() => { const c = cave.world(0, 8, 0); return { x: c.x, y: c.y, z: c.z, r: 48 }; })(),
       shafts: shaftHolder,
       // the keepers' stair: its foot, and the doorway at its top (the way up to the hatch in the back lane)
       stairFoot: cave.world(0, 0, HATCH.stair.foot + 1), stairTop: cave.world(0, HATCH.stair.y, HATCH.stair.door + 0.9),
@@ -1390,7 +1419,9 @@ export function buildDesertCity(scene, terrain) {
   // the way down: the skull's mouth ↔ the passage
   const gd = out.giant.door, fwd = V(Math.sin(G.yaw), 0, Math.cos(G.yaw));
   portals.push(
-    { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth' },
+    // (not before the backpack: the way back up wants the lift valve's double jump, and its chest a full tank: issue #68)
+    { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth',
+      when: () => items.has('backpack'), refuse: 'Below the skull’s mouth the dark drops away, deep and sheer. Not with empty hands: nothing down there would bring you back up.' },
     { at: cv.exit.clone().add(V(0, 0.5, 0)), r: 1.6, to: gd.clone().addScaledVector(fwd, 3.2), heading: G.yaw, label: 'passage up' },
     // the keepers' stair up to the hatch in the back lane, coming out facing the tree (one way: the hatch only lifts from below)
     { at: cv.stairTop.clone().add(V(0, 0.5, 0)), r: 1.4, to: out.hatch.out.clone(), heading: C.yaw, label: 'the keepers’ stair', oneWay: true },

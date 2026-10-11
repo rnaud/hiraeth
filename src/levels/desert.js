@@ -168,8 +168,9 @@ export function* buildDesert(scene) {
     defaults: { hour: 9.5, preset: 'Moebius print', look: DESERT_WORLD_LOOK, cloudShadows: DESERT_CLOUD_SHADOWS },
     lights,
     portals,
-    // (the see-through washes: the cave's shafts of light, src/veil.js)
+    // (the see-through washes: the cave's shafts of light, src/veil.js) and the walls not to be climbed (the cave: issue #68)
     veils: qanat.veils,
+    noClimb: [qanat.cave.noClimb].filter(Boolean),
     // the procession, the camps and the people waiting at the gate (crowd.js)
     crowdSpots: () => desertCrowdSpots(terrain, { ...qanat, lines: LINES }),
     crowdLines: LINES.camp,

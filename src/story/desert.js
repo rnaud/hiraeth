@@ -1037,6 +1037,11 @@ export function setupDesert(ctx) {
       }
     }
     const inCave = camPos.distanceTo(cave.origin) < 300;
+    // the keepers' stair's fallen foot (v1.45, issue #68): said once, the first time you stand under it without the lift valve
+    if (inCave && cave.stairFoot && !items.has('doublejump') && !game.flag('desert.stair.fallen') && flat(pp, cave.stairFoot) < 4 && Math.abs(pp.y - cave.stairFoot.y) < 2) {
+      game.set('desert.stair.fallen', true);
+      toast('The keepers’ stair has fallen at its foot. What still stands begins far over your head, and these walls give no grip.');
+    }
     if (inCave) {
       // the same fluid as the tank: dull and slow while the channel is blocked, alive once the water runs
       st.poolT = (st.poolT ?? 0) + dt * (0.35 + 0.65 * st.drink);

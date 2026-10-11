@@ -203,8 +203,13 @@ export class Physics {
     for (const e of this.extras ?? []) if (e.moving) syncMover(e, dt);
   }
 
-  /** Is a collider added with noClimb within r of p (the wall a climb would take hold of)? */
+  /**
+   * Is a collider added with noClimb within r of p (the wall a climb would take hold of)? Or is p inside one of the
+   * level's no-climb zones (`noClimbZones`: [{ x, y, z, r }] spheres, level.noClimb; the desert's cave of the giant's
+   * heart, whose way out wants the double jump: issue #68)?
+   */
   noClimbNear(p, r = 0.6) {
+    for (const z of this.noClimbZones ?? []) if ((p.x - z.x) ** 2 + (p.y - z.y) ** 2 + (p.z - z.z) ** 2 < z.r * z.r) return true;
     for (const e of this.extras ?? []) {
       if (!e.noClimb || e.box.distanceToPoint(p) > r) continue;
       if (e.bvh.closestPointToPoint(p, _nc, 0, r)) return true;

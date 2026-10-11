@@ -96,6 +96,7 @@ export function loadWorld(id, { journal = memoryJournal(), report = () => {} } =
   const scene = new THREE.Scene();
   const level = quiet(() => meta.create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
+  physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed: the desert's cave, src/physics.js noClimbNear)
   quiet(() => level.init?.(physics));
   if (birdAnswers(id, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
   const player = quiet(() => new Player(physics, { mount: level.mount, jetpack: level.features?.jetpack, climb: level.features?.climb ?? true, spawn: level.spawn, spawnHeading: level.spawnHeading,
@@ -497,7 +498,9 @@ export function walkCheck(W, fromPos, to, bad) {
  * (level.portals) as a player walks into them. Floors stacked over one another are told apart (a key
  * per 4 m of height). { ok, closest (m), nodes }.
  */
-export function walkTo(W, from, to, { cell = 2, rise = 1.4, drop = 6, near = 5, max = 120000 } = {}) {
+/** How high a hop he gets up onto: a jump's (1.4 m a cell, the walk's own), or with the lift valve's double jump 4.8 m (the desert's cave: its ledges want it). */
+export const RISE = { jump: 1.4, doublejump: 4.8 };
+export function walkTo(W, from, to, { cell = 2, rise = RISE.jump, drop = 6, near = 5, max = 120000, slope = 0 } = {}) {
   const { physics } = W;
   const key = (x, y, z) => `${Math.round(x / cell)},${Math.round(z / cell)},${Math.round(y / 4)}`;
   const h = (x, y, z) => Math.hypot(x - to.x, z - to.z) + Math.abs(y - to.y) * 2;
@@ -505,7 +508,7 @@ export function walkTo(W, from, to, { cell = 2, rise = 1.4, drop = 6, near = 5, 
   const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l].f < heap[m].f) m = l; if (r < heap.length && heap[r].f < heap[m].f) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
   const seen = new Set([key(from.x, from.y, from.z)]);
   push({ x: from.x, y: from.y, z: from.z, f: h(from.x, from.y, from.z) });
-  const portals = (W.level.portals ?? []).filter((p) => p.at && p.to);
+  const portals = (W.level.portals ?? []).filter((p) => p.at && p.to && (!p.when || p.when()));   // (a doorway that lets you through now: when)
   let closest = Infinity, at = from, n = 0;
   while (heap.length && n++ < max) {
     const c = pop();
@@ -517,6 +520,8 @@ export function walkTo(W, from, to, { cell = 2, rise = 1.4, drop = 6, near = 5, 
       const x = c.x + dx, z = c.z + dz;
       const g = physics.groundAt(x, c.y + rise + 0.2, z, rise + drop + 0.2);
       if (!Number.isFinite(g) || g - c.y > rise || c.y - g > drop) continue;
+      // (slope: ground whose normal's up is under it is a wall, not stood on: the cave's dome by its foot)
+      if (slope && (physics.rayHit(V(x, c.y + rise + 0.2, z), V(0, -1, 0), rise + drop + 0.2)?.normal.y ?? 1) < slope) continue;
       if (physics.rayDistance(V(x, g + 0.3, z), V(0, 1, 0), 1.9) < 1.5) continue;
       next.push([x, g, z]);
     }

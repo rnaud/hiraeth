@@ -291,6 +291,7 @@ await stage('inking the collisions…');
 // Collision against the real level geometry (built before the player / vehicles join the scene).
 const t0 = performance.now();
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null, slice, level.collision ?? {});
+physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed: the desert's cave, src/physics.js noClimbNear)
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 if (level.initSteps) await runStepsAsync(level.initSteps(physics), slice); else level.init?.(physics);
 await slice();
@@ -1899,6 +1900,8 @@ function frame(ts) {
   if (!portalCool && !passage.active && !player.riding && !player.dead && level.portals) {
     for (const pt of level.portals) {
       const d = player.pos.distanceTo(pt.at);
+      // (a doorway that won't take you yet, `when`: its `refuse` said once as you walk into it: the giant's mouth before the backpack)
+      if (pt.when && !pt.when()) { if (d < pt.r) { if (!pt._refused && pt.refuse) showToast(pt.refuse); pt._refused = true; } else if (d > pt.r + 3) pt._refused = false; continue; }
       if (d < pt.r + PASSAGE.near) passage.prepare(pt.to);
       if (d < pt.r) {
         passage.go({ to: pt.to, heading: pt.heading });
