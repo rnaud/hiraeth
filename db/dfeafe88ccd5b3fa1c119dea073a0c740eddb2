@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_b52891d012ee07 5-8
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_3cedfcd3f79bb3 26-29
+src/changelog-media.js
+  s_9ca76055a220ed::t_88e67180b5e76b 548-560
+src/changelog.js
+  s_9ca76055a220ed::t_ae4d63e4a8d05d 11-14
+src/fluid-tool.js
+  s_9ca76055a220ed::t_e4ce8651990a51 597-611,672-673,675-682
+tests/backpack-straps.test.js
+  s_9ca76055a220ed::t_45a9124d5bc6b1 1-126
+tests/gait-sim.js
+  s_9ca76055a220ed::t_623777fd883a28 58-70,78-79,81,88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dbdfeafe88ccd5b3fa1c119dea073a0c740eddb2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
