@@ -1,0 +1,65 @@
+changelog.md
+  s_9ca76055a220ed::t_c0e3ff2b47a70f 7
+docs/systems/localisation.md
+  s_9ca76055a220ed::t_c8a3985c0e032f 18,41-49
+src/bindings.js
+  s_9ca76055a220ed::t_d89dc989760f6a 127
+src/boxes/effects.js
+  s_9ca76055a220ed::t_70375dbc01b2cc 10,124-126
+src/changelog.js
+  s_9ca76055a220ed::t_0690abb06c9566 19-20
+src/echo-shell.js
+  s_9ca76055a220ed::t_cf06cede07fba9 3,36
+src/first-steps.js
+  s_9ca76055a220ed::t_78b6ca6ee04cc7 20,27-29
+src/foes.js
+  s_9ca76055a220ed::t_382973b5e391b0 32,2797
+src/gadgets/bridge.js
+  s_9ca76055a220ed::t_8102b2ff6a3dc7 6,335
+src/gadgets/bubble.js
+  s_9ca76055a220ed::t_f3cda3d4fffdb9 8,314
+src/i18n/en.js
+  s_9ca76055a220ed::t_909faf96fae3c5 439-472
+src/i18n/fr.js
+  s_9ca76055a220ed::t_dd325a74bab2d0 436-469
+src/main.js
+  s_9ca76055a220ed::t_47066157b03b57 10,1483
+src/prompt-keys.js
+  s_9ca76055a220ed::t_b56607e7719264 61-65,67,71-76
+src/ship/prologue.js
+  s_9ca76055a220ed::t_09de6cabfe63c2 26,80-81
+src/story/arzach2.js
+  s_9ca76055a220ed::t_07b082d226fcd9 12,292
+src/story/bazaar.js
+  s_9ca76055a220ed::t_988f560b0cffd7 10,163
+src/story/buried.js
+  s_9ca76055a220ed::t_03b17917191a2e 11,185
+src/story/desert-bike.js
+  s_9ca76055a220ed::t_f16e4e8828b28a 9,156
+src/story/desert-errands.js
+  s_9ca76055a220ed::t_403220fedac3cd 10,139
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_0049d06f80f835 7,60
+src/story/desert.js
+  s_9ca76055a220ed::t_c50605c1126de9 22,156,386
+src/temples/incal.js
+  s_9ca76055a220ed::t_ef0ee631f7e898 9-10,204,227
+tests/teach-i18n.test.js
+  s_9ca76055a220ed::t_4ba0293702a3c4 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c6ca3b81c6a19a5019f64b4e38532df2c5f0c8a8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
