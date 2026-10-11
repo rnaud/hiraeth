@@ -87,9 +87,12 @@ namespace Memento.Bridge
             scene = new GameObject("Mirrored scene").AddComponent<BridgeRenderer>();
             scene.transform.SetParent(transform, false);
             scene.cam = cam; scene.look = look;
-            hud = new GameObject("HUD").AddComponent<BridgeHud>();
-            hud.transform.SetParent(transform, false);
-            hud.cam = cam;
+            if (!BridgeArgs.Flag("-no-hud"))   // (-no-hud: none, a test: its dynamic OS fonts are a suspect for the load's stall)
+            {
+                hud = new GameObject("HUD").AddComponent<BridgeHud>();
+                hud.transform.SetParent(transform, false);
+                hud.cam = cam;
+            }
             // the port's shadow pass draws casters over a WorldDetail; the bridge's are all "movers" (MementoShadows
             // finds them), the detail only says where the lowest ground is
             var detail = new WorldDetail();
@@ -243,7 +246,10 @@ namespace Memento.Bridge
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             if (urp != null && BridgeArgs.Flag("-no-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
             if (BridgeArgs.Arg("-ops-cap") is string cap && int.TryParse(cap, out int n)) BridgeHost.opsCap = n;
-            Debug.Log($"Memento bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}");
+            // (-queued N: the frames the CPU may run ahead of the GPU; on the Xbox the main thread waited ~9.5 ms a frame on the present)
+            if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
+            Debug.Log($"Memento bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}; " +
+                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}");
         }
         /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
         public static string ResidentDrawerState()

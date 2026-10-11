@@ -83,6 +83,7 @@ namespace Memento.Bridge
             }
             catch (Exception e) { Debug.LogWarning("Memento metrics: no log file: " + e.Message); }
             Application.logMessageReceivedThreaded += OnLog;
+            BridgeLoopTimer.Install();
             Application.onBeforeRender += BeforeRender;
             RenderPipelineManager.beginContextRendering += BeginContext;
             RenderPipelineManager.endContextRendering += EndContext;
@@ -118,6 +119,7 @@ namespace Memento.Bridge
             tPrevUpdate = tUpdate; tUpdate = System.Diagnostics.Stopwatch.GetTimestamp();
             string phases = Phases();
             SumPhases();
+            string steps = BridgeLoopTimer.TakeFrame(8);
             contextTicks = 0; contexts = 0;
             float now = Time.realtimeSinceStartup, dt = Time.unscaledDeltaTime * 1000;
             var scene = runner ? runner.scene : null;
@@ -128,6 +130,8 @@ namespace Memento.Bridge
             double native = Math.Max(0, dt - frameWait);
             FrameTimingManager.CaptureFrameTimings();
             bool timedNow = FrameTimingManager.GetLatestTimings(1, timing) > 0;
+            // (a frame over a second: which of the engine's own steps it was, BridgeLoopTimer)
+            if (dt > 1000 && steps.Length > 0) Write($"slow frame {dt:0} ms, its steps: {steps}");
             // the load's stages
             if (firstNode < 0 && nodes > 0)
             {
@@ -150,6 +154,7 @@ namespace Memento.Bridge
                           $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms; " +
                           $"Unity's own part (without the wait on the script): {nativeSum:0} ms, longest {nativeMax:0} ms, {nativeSlow} over 50 ms");
                     windowStart = now; frames.Clear();
+                    BridgeLoopTimer.ResetWindow();
                 }
             }
             // the frame's numbers, from settled on (and before, so the readout shows something)
@@ -172,7 +177,8 @@ namespace Memento.Bridge
                 // part before its first context, its contexts, and after them to the next Update; FrameTimingManager's whole CPU
                 // frame and its wait on the present; ops still held back by -ops-cap)
                 string detail = (pFrames > 0 ? $" · phases scripts {pScripts / pFrames:0.0} (ops {ops / n:0.0}) before render {pBefore / pFrames:0.0} contexts {pContexts / pFrames:0.0} after {pAfter / pFrames:0.0} ms" : "")
-                    + (timed > 0 ? $" · cpu frame {cpuAll / timed:0.0} present wait {presentWait / timed:0.0} ms" : "") + (BridgeHost.Held > 0 ? $" · {BridgeHost.Held} ops held" : "");
+                    + (timed > 0 ? $" · cpu frame {cpuAll / timed:0.0} present wait {presentWait / timed:0.0} ms" : "") + (BridgeHost.Held > 0 ? $" · {BridgeHost.Held} ops held" : "")
+                    + (BridgeLoopTimer.Installed ? $" · steps {BridgeLoopTimer.TakeWindow(8)}" : "");
                 Write((settled < 0 ? "loading: " : "frames: ") + readout + detail);
                 frames.Clear(); windowStart = now; cpuMain = cpuRender = gpu = cpuAll = presentWait = 0; timed = 0;
                 pScripts = pBefore = pContexts = pAfter = 0; pFrames = 0;

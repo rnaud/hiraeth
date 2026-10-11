@@ -378,7 +378,9 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   The same file takes the experiments: `-idle 20 -split` (the spawn measured once the load is over, the frame taken
   apart: a `[bench]` line in unity.log), `-no-grd` (URP's GPU Resident Drawer off), `-ops-cap N` (the script's ops
   applied N a frame at most). The 5 s `frames:` lines add the main thread's phases (the scripts' part with the ops it
-  applied, URP's part before its first context, its contexts, after them) and FrameTimingManager's present wait.
+  applied, URP's part before its first context, its contexts, after them) FrameTimingManager's present wait,
+  and the PlayerLoop's longest steps (`BridgeLoopTimer`: a mark before each engine step; a frame over a second is
+  logged with its own). `-no-hud` (no uGUI HUD) and `-queued N` (`QualitySettings.maxQueuedFrames`) are tests too.
 - **The build** (`BridgeBuild.Xbox`): the bridge's scene as a UWP D3D solution, IL2CPP x64, Direct3D 11 (what ANGLE
   draws through on the console), Unity's references copied in. Identity `rnaud.HiraethUnity`, shown as *Hiraeth
   (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it plays the desert from the spawn.

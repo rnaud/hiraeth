@@ -115,3 +115,15 @@ test('the Xbox\'s experiments from LocalState\\args.txt: -idle (the spawn measur
   assert.match(metrics, /cpuMainThreadPresentWaitTime/);
   assert.match(metrics, /StartsWith\("\[bench\]"\)/, 'the bench\'s results reach unity.log');
 });
+
+test('the PlayerLoop timed step by step, a slow frame named by its steps; -no-hud and -queued as experiments', () => {
+  const timer = read('unity/Memento/Assets/MementoJS/Runtime/BridgeLoopTimer.cs');
+  assert.match(timer, /PlayerLoop\.SetPlayerLoop\(root\)/);
+  assert.match(timer, /outList\.Add\(Mark\(-1\)\)/, 'a mark at each phase\'s end');
+  const metrics = read('unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs');
+  assert.match(metrics, /BridgeLoopTimer\.Install\(\)/);
+  assert.match(metrics, /slow frame \{dt:0\} ms, its steps/);
+  const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
+  assert.match(runner, /Flag\("-no-hud"\)/);
+  assert.match(runner, /QualitySettings\.maxQueuedFrames = nq/);
+});
