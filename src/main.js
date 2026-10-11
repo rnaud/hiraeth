@@ -101,7 +101,7 @@ import { createChallenges } from './trials/index.js';
 import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
-import { Foes } from './foes.js';
+import { Foes, lockViewAngle } from './foes.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
@@ -928,6 +928,7 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
 // just before a blow lands, a perfect dodge: the flurry, the world slowed round you a few seconds (src/flurry.js)
 const flurryFx = new FlurryFx();
 let flurryAgainAt = 0, flurryChain = null;
+const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
 function startFlurry() {
   const now = performance.now() / 1000;
   if (flurryLeft() > 0 || now < flurryAgainAt) return;
@@ -2126,6 +2127,7 @@ function frame(ts) {
   // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
   player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
   if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
+  if (!foes.lock) { lockView.foe = null; lockView.angle = 0; }
   if (foes.lock && !busy() && !photo.on) {
     const f = foes.lock, F = player.frame;
     // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
@@ -2133,7 +2135,23 @@ function frame(ts) {
     const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, f.chest, F) : null;
     const dx = f.pos.x - player.pos.x, dz = f.pos.z - player.pos.z;
     const r = dx * F.right.x + dz * F.right.z, a = dx * F.fwd.x + dz * F.fwd.z;
-    const want = aim ? aim.yaw : Math.atan2(-r, -a), da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
+    // (a small foe is not set straight behind the traveller's back: the camera stands off the line by the least angle
+    // that shows the foe's body clear of his, src/foes.js LOCK_VIEW, combat-v1.47 rec. 3; on whichever side it already
+    // is, so circling the foe, its lag behind the turn does the work and nothing pulls it back across)
+    let line = Math.atan2(-r, -a);
+    if (!aim) {
+      const off = Math.atan2(Math.sin(rig.yaw - line), Math.cos(rig.yaw - line));
+      if (lockView.foe !== f) { lockView.foe = f; lockView.side = Math.abs(off) > 0.03 ? Math.sign(off) : 1; lockView.line = line; lockView.turn = 0; }
+      // (circling it, the camera trails the turn: stand off on the trailing side, the lag and the swing together)
+      const dl = Math.atan2(Math.sin(line - lockView.line), Math.cos(line - lockView.line)) / Math.max(1e-3, realDt);
+      lockView.line = line; lockView.turn += (dl - lockView.turn) * (1 - Math.exp(-4 * realDt));
+      if (Math.abs(lockView.turn) > 0.3) lockView.side = -Math.sign(lockView.turn);
+      else if (Math.abs(off) > 0.03 && Math.sign(off) !== lockView.side) lockView.side = Math.sign(off);
+      const goal = lockView.side * lockViewAngle(Math.hypot(dx, dz), rig._curDist, f.def?.radius ?? 0.6, (f.chest?.y ?? f.pos.y + 1) - f.pos.y);
+      lockView.angle += (goal - lockView.angle) * (1 - Math.exp(-4 * realDt));
+      line += lockView.angle;
+    }
+    const want = aim ? aim.yaw : line, da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
     rig.yaw += da * (1 - Math.exp(-(aim ? LOCK_AIM.rate : 6) * realDt));
     if (aim) rig.pitch += (aim.pitch - rig.pitch) * (1 - Math.exp(-LOCK_AIM.rate * realDt));
   }

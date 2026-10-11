@@ -74,6 +74,11 @@ function install(L) {
     return m;
   };
   const ndc = (p) => { _n.copy(p).project(camera); return _n.z > 1 ? null : [+_n.x.toFixed(3), +_n.y.toFixed(3)]; };
+  // a box's screen rectangle [x0, y0, x1, y1] (NDC) from its corners: the traveller's body, a locked foe's
+  const rect = (c, rx, y0, y1) => { let b = [Infinity, Infinity, -Infinity, -Infinity];
+    for (let k = 0; k < 8; k++) { _n.set(c.x + (k & 1 ? rx : -rx), (k & 2 ? y1 : y0), c.z + (k & 4 ? rx : -rx)).project(camera); if (_n.z > 1) return null;
+      b = [Math.min(b[0], _n.x), Math.min(b[1], _n.y), Math.max(b[2], _n.x), Math.max(b[3], _n.y)]; }
+    return b.map((x) => +x.toFixed(4)); };
   let pending = 0, prev = null, prev2 = null;
   const update = rig.update.bind(rig);
   rig.update = function (pos, dt, frame) {
@@ -92,7 +97,8 @@ function install(L) {
         if (s && typeof s.path === 'string') s.path = window.__cqPaths?.[s.path] ?? [];   // (a path the scenario's setup worked out in the page)
       }
       if (s) {
-        if (s._tab != null && (s._tab -= dt) <= 0) { input.Tab = false; s._tab = null; }
+        // (the lock: Tab tapped; should the tap not take, R3's own Foes.cycleLock, so a lock scenario is locked)
+        if (s._tab != null && (s._tab -= dt) <= 0) { input.Tab = false; s._tab = null; if (s.lock && !window.foes?.lock) window.foes?.cycleLock?.(); }
         input.ShiftLeft = !!s.run;
         let want = null;
         if (s.path && st.wp < s.path.length) {
@@ -154,6 +160,11 @@ function install(L) {
       pos: player.pos.toArray().map((x) => +x.toFixed(4)), fwd: _f.toArray().map((x) => +x.toFixed(5)), cmdYaw: +cmdYaw.toFixed(5), cmdPitch: +cmdPitch.toFixed(5),
       clear: +clearance().toFixed(3), occl, head: ndc(head), chest: ndc(chest), tight: +rig.tightK.toFixed(3), side: +rig._side.toFixed(3), shoulder: rig.shoulder,
       cur: +rig._curDist.toFixed(3), push: +push.toFixed(3),
+      // locked on: how much of the foe's screen box the traveller's body covers (L.cover; combat-v1.47: a small foe hidden behind him)
+      foeCover: (() => { const f = window.foes?.lock; if (!f?.pos || !f.def) return null; const r = f.def.radius ?? 0.6;
+        const fb = rect(f.pos, r, f.pos.y, f.chest.y + r * 0.5), pb = rect(player.pos, 0.3, player.pos.y, player.pos.y + 1.75);
+        return fb && pb ? +L.cover(fb, pb).toFixed(3) : 0; })(),
+      foeD: window.foes?.lock?.pos ? +Math.hypot(window.foes.lock.pos.x - player.pos.x, window.foes.lock.pos.z - player.pos.z).toFixed(2) : null,
       seg: st.seg, stick: input.stick ? [+input.stick.x.toFixed(2), +input.stick.y.toFixed(2)] : null, spd: +Math.hypot(player.vel.x, player.vel.z).toFixed(2),
     };
     st.samples.push(s);
@@ -236,7 +247,7 @@ for (const [wn, world] of byWorld.entries()) {
     writeFileSync(join(OUT, `${sc.name}.json`), JSON.stringify(samples));
     const png = await sheet(sc.name, shots.sort((a, b) => b.sev - a.sev).slice(0, 6));
     if (png) writeFileSync(join(OUT, `${sc.name}.png`), Buffer.from(png.split(',')[1], 'base64'));
-    console.log(`${sc.name.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${log.length ? ` (${log.length} stuck)` : ''}`);
+    console.log(`${sc.name.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${r.measures.locked ? ` foe hidden ${(r.measures.lockHidden * 100).toFixed(1)}%` : ''}${log.length ? ` (${log.length} stuck)` : ''}`);
   }
 }
 writeFileSync(join(OUT, 'camera.json'), JSON.stringify({ when: new Date().toISOString(), preset: PRESET, limits: L.LIMITS, results, logs, errors: errors.slice(0, 20) }, null, 2));

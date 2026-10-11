@@ -121,6 +121,27 @@ export const POSTS = { near: 60 };
 /** The lock-on (R3 / Tab): a foe within `reach` (the nearest in front first); lost past `lose` or when it falls. */
 export const LOCK = { reach: 18, lose: 26 };
 /**
+ * The lock camera's turn off the line (combat-v1.47 rec. 3, issue #107). main.js turns the camera to keep the locked foe
+ * ahead; straight down the line from the traveller to it, a small foe (a blot, a lizard, a toad 6-9 m off) stood right
+ * behind his back, its tell hidden. So the camera swings round him by the least angle that sets the foe's body clear of
+ * his on the screen: from an arm `arm` m behind him, a foe `d` m on, its centre `body` (his half-width) + its own
+ * radius + `margin` (rad) off his, at most `max` rad. A foe that stands tall over him (its chest over `tall`) needs none,
+ * nor one in the cut's reach (under `near`): there the two overlap from any camera behind him, and the swing would only
+ * churn the view as it dodges round him.
+ */
+export const LOCK_VIEW = { body: 0.42, margin: 0.06, max: 0.5, tall: [1.5, 2.6], near: [1.5, 3] };
+/** The angle (rad, ≥ 0) the lock camera swings off the line, for a foe `d` m away, `r` its radius, `h` its chest's height (pure: tests). */
+export function lockViewAngle(d, arm, r = 0.6, h = 1, V = LOCK_VIEW) {
+  if (!(d > 0.1) || !(arm > 0.1)) return 0;
+  const small = (1 - THREE.MathUtils.smoothstep(h, V.tall[0], V.tall[1])) * THREE.MathUtils.smoothstep(d, V.near[0], V.near[1]);
+  if (small <= 0) return 0;
+  // the foe's centre seen at atan2(d sin θ, arm + d cos θ) off his: solve for the θ that gives `need`
+  const need = Math.atan(V.body / arm) + Math.atan(r / (arm + d)) + V.margin, t = Math.tan(need);
+  const k = (t * arm) / (d * Math.sqrt(1 + t * t));
+  const theta = k >= 1 ? V.max : need + Math.asin(k);
+  return Math.min(V.max, theta) * small;
+}
+/**
  * Switching the lock with a flick (v0.97): while locked, the look's sideways motion (the right stick, the mouse, a
  * touch drag: px as rig.look gets them) gathers in a leaky sum (`decay` /s); past `px` the lock jumps to the nearest
  * foe on that side of the screen, then rests `rest` s. The stick's full tilt (~900 px/s) gets there in ~0.12 s; held

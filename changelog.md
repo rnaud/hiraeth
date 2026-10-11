@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.48 — 2026-10-11
 
+- Locked on to a small foe a few steps away, the camera no longer lines it up straight behind your back: it stands a little to one side, so the foe and its wind-up stay in view. Circling it, the camera keeps to the side it trails on.
 - Perfect dodges back to back are rationed. A single one opens the same flurry as ever, but one that follows another within a few seconds is shorter and makes you wait longer before the next: the second lasts about two and a half seconds, the third and any after under two. Pause for a few seconds and the next is whole again.
 - With Reduce motion on, the lock-on’s four arrows hold still at the corners of the foe you lock: they no longer turn round it, breathe or whirl in, they simply fade in where they stay.
 - At the Lantern, Ilen explains less: she tells you what she did with your father’s message and leaves out how a light carries a song. At your parents’ stone, each gift is set down as what it is, not as a lesson.

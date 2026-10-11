@@ -53,4 +53,12 @@ export const SCENARIOS = [
   { name: 'arena-lock', world: 'arena', about: 'locked on to an ink blot: circling it, stepping in and back',
     setup: `foes.setPractice('blot'); player.health = 1;`, settle: 3,
     segs: [{ for: 1, lock: true }, { for: 8, stick: [1, 0] }, { for: 3, stick: [0, 1] }, { for: 3, stick: [0, -1] }, { for: 6, stick: [-1, 0.3], run: true }] },
+  // (combat-v1.47: the lock camera lined a small foe up behind the traveller; the foe hidden is measured while locked)
+  { name: 'arena-lock-lizard', world: 'arena', about: 'locked on to a horn lizard standing 7 m off to one side: standing, circling it each way, stepping back and in',
+    // (from the Arena's spawn, facing north, whatever the scenario before left: the lizard 7 m ahead, 2.4 m to the left)
+    setup: `foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x)); foes.waveRest = 1e9; player.health = 1;
+      { const V = THREE.Vector3; player.teleport(new V(0, 0, 6), new V(0, 1, 0), new V(0, 0, -1)); player.heading = Math.PI;
+        const F = player.frame; if (F?.right) rig.yaw = Math.atan2(F.right.z, F.fwd.z);   // (the camera behind him, as main.js's lock sets it for a foe due north)
+        const f = foes.add('lizard', new V(-2.4, 0, -1)); f.heading = 0; f.update = () => []; f.state = 'chase'; }`, settle: 3,
+    segs: [{ for: 1, lock: true }, { for: 3 }, { for: 5, stick: [1, 0.3] }, { for: 1.5, stick: [0, -1] }, { for: 5, stick: [-1, 0.3] }, { for: 2, stick: [0, 1] }] },
 ];

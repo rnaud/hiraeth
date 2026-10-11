@@ -596,6 +596,10 @@ const C48_WARDEN = { commit: '86f06aba' };   // (the Warden's Well round its Cli
 // (with the blade: the temples' keepers wait for it, and an arena with none in it is won as you step in)
 export const CHANGELOG_MEDIA = {
   '1.48': [
+    // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
+    { match: 'Locked on to a small foe a few steps away', shots: [
+      { name: 'lock-small', title: 'Locked on to a blot 6 m off', caption: 'The game’s own lock camera, Handheld preset: before, the blot hidden behind the traveller, only the arrows round it showing; after, the camera a little to the side and the blot in view', from: 'headless Chrome in the Arena (Handheld, 1280 × 720, Reduce motion on), the commit before and this one, 11 October' },
+    ] },
     { match: 'The three newest worlds have a makers’ court each', shots: [
       { name: 'court-underwater', title: 'The divers’ court', caption: 'In the Underwater City’s Plaza, looking west: before, the dome’s glass; after, a door in it and a tube to the divers’ court under its own dome, its chest’s pale column over it', commit: C48_WORLDS,
         view: { level: 'underwater', save: SAVE48, hour: 12, fov: 60, eye: [-14, 3, -100], target: [-60, 2, -108], player: [-12, 0.3, -98] } },

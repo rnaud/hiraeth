@@ -22,7 +22,7 @@ node .claude/skills/camera-qc/run.mjs <scratch>/camera [--only train-walk,desert
 PORT (default 5361; **never 5173**, the author's own server) and CDP (default 5362); VITE_CACHE a dependency cache inside the
 checkout when the temporary one can't resolve the packages (a worktree whose node_modules is a link). One muted headless Chrome
 (`--mute-audio`, the game's volumes at 0) and one Vite server with its own dependency cache, both closed at the end;
-worlds one after another with a rest between. A full run (11 scenarios, 5 worlds) takes about 8 minutes.
+worlds one after another with a rest between. A full run (13 scenarios, 5 worlds) takes about 8 minutes.
 
 It writes `camera.json` (every scenario's measures, events and verdict), `camera.md` (the table), `<scenario>.png` (the
 worst frames, captioned with what happened and how much: the arm's change, the move off the camera's path, the look
@@ -50,6 +50,7 @@ the real player's physics, frame times and crowd differ.
 | desert-shop | desert | inside Qanat's shop: wandering against its walls and counter |
 | bazaar-streets | bazaar | wandering the market's street with the camera after the way |
 | arena-lock | arena | locked on to an ink blot: circling, stepping in and back |
+| arena-lock-lizard | arena | locked on to a horn lizard: standing, stepping back, circling it |
 | incal-pillar | incal | riding the City-Shaft's halfway air pillar on the wings (`hold`: jump held): straight up past the terraces, the camera turned while rising, then steered out |
 
 A segment: `{ for, path: [[x, z]…] | stick: [x, y] | wander, run, jumpEvery, hold (jump held), turn / pitch (°/s), steer (°/s), lock }`;
@@ -68,6 +69,7 @@ a scenario: `{ name, world, at, yaw, setup (page code), flags, settle, segs }`. 
 | **out** | the head or the chest off the screen | ≤ 1 % |
 | **reversals** | the arm going in and out (moves > 1 cm changing direction): jitter against small or moving geometry | ≤ 1.5 a second |
 | **roughness** | the kinks' root mean square, every frame | ≤ 1.5 cm |
+| **foe hidden** | locked on: the frames where the traveller's body covers half the locked foe's screen box or more (`cover`; combat-v1.47, a small foe lined up behind him) | ≤ 10 % of the locked frames |
 
 "A minute" is rounded up for a short run (a 30-second scenario may have one). A teleport (> 3 m in a frame) is not
 judged. The in-page picture is kept for the ten worst frames by a quick severity; node's judgement is the one reported.

@@ -25,7 +25,9 @@ export const LIMITS = {
   wobble: 0.01,       // m: the arm's in-out moves smaller than this are not counted as a reversal
   // the verdict: at most this many of each a minute (pops, jumps, look jumps, spins), these shares of the frames
   perMin: { pops: 2, jumps: 2, lookJumps: 2, spins: 2 },
-  share: { clip: 0.01, occluded: 0.03, out: 0.01 },
+  share: { clip: 0.01, occluded: 0.03, out: 0.01, lockHidden: 0.1 },
+  hide: 0.5,   // locked on, the foe counts as hidden when the traveller's body covers this share of its screen box,
+  hideFrom: 2.5,   // and it is at least this far off (m): nearer, in the cut's reach, the two overlap from any camera behind him
   reversals: 1.5,     // a second: the arm going in and out (jitter against small or moving geometry)
   rms: 0.015,         // m: the camera's roughness (its kinks' root mean square, every frame)
 };
@@ -42,6 +44,12 @@ const offScreen = (n) => !n || Math.abs(n[0]) > 1 || Math.abs(n[1]) > 1;
 
 /** Is a frame a hand-over (a teleport, a respawn, a door): the traveller moved more than 3 m in it. Not judged. */
 export const isCut = (a, b) => len(sub(b.pos, a.pos)) > 3;
+/** How much of rectangle `a` ([x0, y0, x1, y1]) rectangle `b` covers, 0..1 (a locked foe's screen box, the traveller's). */
+export function cover(a, b) {
+  const w = Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])), h = Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+  const A = (a[2] - a[0]) * (a[3] - a[1]);
+  return A > 0 ? (w * h) / A : 0;
+}
 
 /**
  * The per-frame measures between consecutive samples: the arm's change (pop), the camera's move off its smooth
@@ -104,13 +112,14 @@ export function analyse(S, L = LIMITS) {
   const spins = st.map((x) => x?.spin ?? null);
   for (const j of spikes(spins, L.spin, L.spinK)) events.push({ kind: 'spin', t: st[j].t, i: st[j].i, size: st[j].spin, sev: st[j].spin / L.spin });
   // the lens: in a wall, the traveller hidden or out of the frame
-  let clip = 0, occl = 0, out = 0, n = 0;
+  let clip = 0, occl = 0, out = 0, n = 0, locked = 0, hid = 0;
   for (let i = 1; i < S.length; i++) {
     const s = S[i];
     n++;
     if (s.clear < L.clip) { clip++; events.push({ kind: 'clip', t: s.t, i, size: s.clear, sev: 1 + (L.clip - s.clear) / L.clip }); }
     if (s.occl) occl++;
     if (offScreen(s.head) || offScreen(s.chest)) { out++; events.push({ kind: 'out', t: s.t, i, size: 0, sev: 1.5 }); }
+    if (s.foeCover != null && !(s.foeD < L.hideFrom)) { locked++; if (s.foeCover > L.hide) { hid++; events.push({ kind: 'foe hidden', t: s.t, i, size: s.foeCover, sev: 1 + s.foeCover }); } }
   }
   // jitter: the arm going in and out, frame to frame (reversals a second), and the path's roughness
   let rev = 0, lastSign = 0;
@@ -132,12 +141,13 @@ export function analyse(S, L = LIMITS) {
     spinP95: +pct(spins.filter((x) => x != null), 0.95).toFixed(0), spinMax: +Math.max(0, ...spins.filter((x) => x != null)).toFixed(0),
     clip: +(clip / Math.max(1, n)).toFixed(3), occluded: +(occl / Math.max(1, n)).toFixed(3), out: +(out / Math.max(1, n)).toFixed(3),
     reversals: +(rev / secs).toFixed(2), rms: +rms.toFixed(4),
+    lockHidden: +(hid / Math.max(1, locked)).toFixed(3), locked,
     armMin: +Math.min(...ok.map((x) => x.arm), Infinity).toFixed(2), armMax: +Math.max(...ok.map((x) => x.arm), 0).toFixed(2),
   };
   const fails = [];
   // (so many a minute, rounded up: a half-minute run may have one)
   for (const k of ['pops', 'jumps', 'lookJumps', 'spins']) if (m[k] > Math.ceil(L.perMin[k] * mins - 1e-9)) fails.push(`${k} ${m[k]} in ${m.secs} s (${(m[k] / mins).toFixed(1)}/min > ${L.perMin[k]})`);
-  for (const k of ['clip', 'occluded', 'out']) if (m[k] > L.share[k]) fails.push(`${k} ${(m[k] * 100).toFixed(1)} % > ${L.share[k] * 100} %`);
+  for (const k of ['clip', 'occluded', 'out', 'lockHidden']) if (m[k] > L.share[k]) fails.push(`${k} ${(m[k] * 100).toFixed(1)} % > ${L.share[k] * 100} %`);
   if (m.reversals > L.reversals) fails.push(`reversals ${m.reversals}/s > ${L.reversals}`);
   if (m.rms > L.rms) fails.push(`roughness ${(m.rms * 100).toFixed(1)} cm > ${L.rms * 100} cm`);
   events.sort((a, b) => b.sev - a.sev);
@@ -157,11 +167,11 @@ export function worst(events, n = 6, gap = 0.6) {
 
 /** A markdown table of scenarios (name → analyse()). */
 export function table(results) {
-  const rows = [['scenario', 'verdict', 's', 'fps', 'pops', 'jumps', 'look', 'spins', 'pop max (m)', 'jump max (m)', 'spin p95 (°/s)', 'clip', 'hidden', 'out', 'rev/s', 'rough (cm)', 'arm (m)']];
+  const rows = [['scenario', 'verdict', 's', 'fps', 'pops', 'jumps', 'look', 'spins', 'pop max (m)', 'jump max (m)', 'spin p95 (°/s)', 'clip', 'hidden', 'out', 'rev/s', 'rough (cm)', 'arm (m)', 'foe hidden']];
   for (const [name, r] of Object.entries(results)) {
     const m = r.measures;
     rows.push([name, r.green ? 'green' : `**red**: ${r.fails.join('; ')}`, m.secs, m.fps, m.pops, m.jumps, m.lookJumps, m.spins, m.popMax, m.jumpMax, m.spinP95,
-      `${(m.clip * 100).toFixed(1)} %`, `${(m.occluded * 100).toFixed(1)} %`, `${(m.out * 100).toFixed(1)} %`, m.reversals, (m.rms * 100).toFixed(2), `${m.armMin}–${m.armMax}`]);
+      `${(m.clip * 100).toFixed(1)} %`, `${(m.occluded * 100).toFixed(1)} %`, `${(m.out * 100).toFixed(1)} %`, m.reversals, (m.rms * 100).toFixed(2), `${m.armMin}–${m.armMax}`, m.locked ? `${(m.lockHidden * 100).toFixed(1)} %` : '-']);
   }
   return rows.map((r, i) => `| ${r.join(' | ')} |${i === 0 ? `\n|${r.map(() => '---').join('|')}|` : ''}`).join('\n');
 }

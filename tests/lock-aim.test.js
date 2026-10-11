@@ -9,6 +9,7 @@ import { GameState } from '../src/game-state.js';
 import { items } from '../src/items.js';
 import { clearTargets } from '../src/targets.js';
 import { traveller, course } from './gait-sim.js';
+import { LOCK_VIEW, lockViewAngle } from '../src/foes.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const F = { up: v(0, 1, 0), fwd: v(0, 0, 1), right: v(-1, 0, 0) };
@@ -48,4 +49,19 @@ test('locked on, the crosshair near the foe\'s chest takes it; far off, or with 
   assert.ok(tool.aimPoint.distanceTo(chest) > 0.3 && !tool.aimLocked);
   assert.ok(LOCK_AIM.snap >= 1 && LOCK_AIM.rate > 6, 'the camera turns quicker than the lock\'s own (6)');
   tool.dispose();
+});
+
+test('the lock camera swings a small foe out from behind the traveller (combat-v1.47 rec. 3, #107)', () => {
+  // from the swing θ, where the foe's centre is seen from the camera, off the traveller's: atan2(d sin θ, arm + d cos θ)
+  const seen = (d, arm, th) => Math.atan2(d * Math.sin(th), arm + d * Math.cos(th));
+  for (const [d, r] of [[3, 0.6], [6, 0.6], [9, 0.85], [14, 0.32]]) {
+    const arm = 5, th = lockViewAngle(d, arm, r, 0.55), need = Math.atan(LOCK_VIEW.body / arm) + Math.atan(r / (arm + d));
+    assert.ok(th > 0 && th <= LOCK_VIEW.max, `a swing (${th.toFixed(2)} rad at ${d} m)`);
+    if (th < LOCK_VIEW.max) assert.ok(seen(d, arm, th) >= need - 1e-6, `clear of his body at ${d} m`);
+  }
+  // nearer needs more, further less; a tall foe (its chest over his head) needs none; a guardian none
+  assert.ok(lockViewAngle(4, 5, 0.6, 0.6) > lockViewAngle(9, 5, 0.6, 0.6) && lockViewAngle(9, 5, 0.6, 0.6) > lockViewAngle(16, 5, 0.6, 0.6));
+  assert.equal(lockViewAngle(6, 5, 1.2, 3), 0);
+  assert.equal(lockViewAngle(0, 5), 0);
+  assert.equal(lockViewAngle(1.2, 5, 0.6, 0.55), 0, 'in the cut\'s reach: none (they overlap from anywhere behind him)');
 });

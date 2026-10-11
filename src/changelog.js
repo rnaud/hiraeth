@@ -58,6 +58,13 @@ export const CHANGELOG = [
           { where: 'a flurry every time one is allowed', before: 74, after: 30 },
         ], source: 'src/flurry.js FLURRY and CHAIN' },
       ] },
+    { text: 'Locked on to a small foe a few steps away, the camera no longer lines it up straight behind your back: it stands a little to one side, so the foe and its wind-up stay in view. Circling it, the camera keeps to the side it trails on.',
+      numbers: [
+        { title: 'Locked-on frames with the foe mostly behind the traveller', unit: '%', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+          { where: 'a horn lizard standing 7 m off: still, circling it, stepping back and in', before: 32, after: 0 },
+          { where: 'fighting an ink blot, whenever it is 2.5 m off or more', before: 27, after: 6 },
+        ], source: '.claude/skills/camera-qc arena-lock-lizard and arena-lock (foe hidden)' },
+      ] },
   ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)

@@ -657,6 +657,14 @@ The count is said every 5 ink.
   is lost past `LOCK.lose`; when its foe falls it moves on to the nearest still standing in reach (`nextLock`, v0.96).
 - While locked, main.js turns `rig.yaw` to keep the foe ahead, the reticle marks it, and the blade's soft
   lock, the guard and the cut's pull turn to it first (`tool.lockOn`; `lockTarget()` carries its body's radius).
+- **A small foe kept in view** (v1.48, `LOCK_VIEW`, `lockViewAngle`; combat-v1.47 rec. 3, issue #107): straight down
+  the line from the traveller to the foe, the camera set a blot, a lizard or a toad 6-9 m off right behind his back, its
+  tell hidden. Now the camera swings round him off that line, on the side it was already on when the lock began, by the
+  least angle that sets the foe's centre clear of his body on the screen (his half-width `body` 0.42 m at the arm's
+  length, the foe's radius, `margin`), at most `max` 0.5 rad, eased at 3/s: about 21° at 6 m, 17° at 9 m, 14° at 14 m.
+  A foe whose chest stands over `tall` (1.5–2.6 m: the brute, the bell, a jelly, a ray in the air, a guardian) needs
+  none. The camera QC's `arena-lock` and `arena-lock-lizard` measure it (`foe hidden`: the frames where his body covers
+  half the foe's screen box).
 - **Aiming locked on** (v1.41, the author: "gun aim stays on the locked target when aiming with L2 while locked on";
   `src/fluid-tool.js` `LOCK_AIM`, `lockAim`): aiming (the tool's `k` and `camK` up), main.js turns the rig's yaw *and*
   pitch so the camera, from where it stands over the shoulder, looks at the foe's chest (at `LOCK_AIM.rate` 14/s); before,
