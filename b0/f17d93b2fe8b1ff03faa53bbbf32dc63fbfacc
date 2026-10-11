@@ -1,0 +1,33 @@
+.claude/skills/combat-review/SKILL.md
+  s_9ca76055a220ed::t_b593328d40df55 77-81
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_24b5775135d29b 346-349,377-378,380-381,386-395,400-402,406,412-414,420,452-462,466
+changelog.md
+  s_9ca76055a220ed::t_03e629d8ed31ef 7
+docs/systems/foes.md
+  s_9ca76055a220ed::t_928c14837060c6 821-826
+src/changelog.js
+  s_9ca76055a220ed::t_bbb007db759521 49-60
+src/flurry.js
+  s_9ca76055a220ed::t_56efa5ab16b2ff 24-42
+src/main.js
+  s_9ca76055a220ed::t_9f6e41d2331d88 109,930,934-937
+tests/flurry-hops.test.js
+  s_9ca76055a220ed::t_880e1010b608bc 8,289-308
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b0f17d93b2fe8b1ff03faa53bbbf32dc63fbfacc",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
