@@ -1,0 +1,88 @@
+src/main.js
+  s_9ca76055a220ed::t_ac25a045e9b57b 50,194,197-201,1113-1117,1572-1589,1642-1643,1646-1651
+tests/shard-timings.json
+  s_9ca76055a220ed::t_6bcee1ace9bc68 3,19,24,36,44,56-58,63,67,71,78,118-119,257,271,283,294,309-310,439
+  s_9ca76055a220ed::t_5c65a55cd94a33 2,4-5,9-15,17-18,20-23,25-35,37-43,45-49,52-55,59-62,64-66,68-69,73,75,77,79,82-89,91-117,120-130,132-133,135-136,139,142,144-156,159-160,163-167,169-170,172-178,180,183-188,192-197,201-245,247-252,254,258,260-261,263-267,270,272,274-276,278-279,281-282,284,286,290,292,295-296,298-301,303,305-308,311,313,315,317,319-320,323-325,329,331-333,336-338,341-345,347,349-352,355,357-359,361-377,380-383,386-387,390-391,394-397,399-402,405,409-411,418,424-438,440
+  s_9ca76055a220ed::t_43f0151de3ebcc 70,179,182,200,302,348,354,408,413
+  s_9ca76055a220ed::t_b92746defc7bb0 268,289
+src/costumes.js
+  s_9ca76055a220ed::t_12427086d8d9f5 439-446
+src/changelog.js
+  s_9ca76055a220ed::t_cddd7689a173c7 37-67
+src/passage.js
+  s_9ca76055a220ed::t_7229d536b525f1 187-191
+src/audio.js
+  s_9ca76055a220ed::t_caab8a28f047b8 46,55
+scripts/shadow-qc/lib.mjs
+  s_9ca76055a220ed::t_c638a594557a50 1-211
+tests/shadow-qc.test.js
+  s_9ca76055a220ed::t_a76aefc0c72823 1-122
+src/shadows.js
+  s_9ca76055a220ed::t_61dea1b82ab329 181-201
+src/levels/content.js
+  s_9ca76055a220ed::t_685cb7ea724e49 155-165
+docs/README.md
+  s_9ca76055a220ed::t_89445e06e2ec44 48
+src/reactive-world.js
+  s_9ca76055a220ed::t_00737523aee36e 28
+tests/passage.test.js
+  s_9ca76055a220ed::t_47b13284d62be7 246-260
+src/changelog-media.js
+  s_9ca76055a220ed::t_96bd118971849c 625-631
+tests/quality.test.js
+  s_9ca76055a220ed::t_f80746d2ef75ed 24-26
+src/makehuman/people.js
+  s_9ca76055a220ed::t_8b276bd4837fa6 166
+src/edge.js
+  s_9ca76055a220ed::t_07233ff4547a36 35
+src/levels/shadow-room.js
+  s_9ca76055a220ed::t_58a734af7bdb21 1-386
+tests/shadows.test.js
+  s_9ca76055a220ed::t_6bd556879c1a00 176-202
+tests/shadow-room.test.js
+  s_9ca76055a220ed::t_8c3120e4eac2ce 1-92
+tests/makehuman.test.js
+  s_9ca76055a220ed::t_f071906b675ae1 88
+scripts/shadow-qc/probes.js
+  s_9ca76055a220ed::t_6eb29f331bb8e9 1-416
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_497c09bcf23472 15
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_0111a76e12f105 1046-1114
+src/title-world.js
+  s_9ca76055a220ed::t_9b368f4153d991 7,161,225
+.claude/skills/shadow-qc/run.mjs
+  s_9ca76055a220ed::t_32e99769398e0b 1-308
+src/levels/index.js
+  s_9ca76055a220ed::t_9fbcc22e8d1afb 11,187-193
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_2e933040bf662e 22
+.claude/skills/shadow-qc/SKILL.md
+  s_9ca76055a220ed::t_429b3cadc90fdb 1-102
+tests/scripts.test.js
+  s_9ca76055a220ed::t_e44435dcacc7bb 20
+src/materials.js
+  s_9ca76055a220ed::t_74cdaf67b2fbeb 66,752-838,862,986
+src/foes.js
+  s_9ca76055a220ed::t_977c5ff8f33282 84
+src/perf.js
+  s_9ca76055a220ed::t_235ded559efa19 355,379,390
+changelog.md
+  s_9ca76055a220ed::t_b3dd17cbc6b478 7-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d33f5f5e1313fdee83a87953be2772c42feac01d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
