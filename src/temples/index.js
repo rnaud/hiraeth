@@ -130,7 +130,7 @@ export function attachTemple(id, scene, level, { game = sharedGame } = {}) {
   }
   const init = level.init, initSteps = level.initSteps, dynamic = level.dynamic, update = level.update;
   // (in steps when the level's own are: src/load-steps.js; init runs them straight through)
-  level.initSteps = function* (physics) { if (initSteps) yield* initSteps.call(level, physics); else init?.call(level, physics); rt.init(physics); };
+  level.initSteps = function* (physics, o) { if (initSteps) yield* initSteps.call(level, physics, o); else init?.call(level, physics); rt.init(physics); };
   level.init = (physics) => runSteps(level.initSteps(physics));
   level.dynamic = () => { const base = dynamic ? dynamic.call(level) : []; return base.length ? [...base, ...rt.solids()] : rt.solids(); };
   level.update = function (dt, t, o = {}) {

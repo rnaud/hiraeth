@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.48 — 2026-10-11
+
+- The City-Shaft opens two and a half seconds sooner, and on a handheld some thirteen: the trees far from you are checked for standing inside a house after you arrive, the nearest first, instead of all of them before the world shows. Everything near you is checked before you see it, and a door or a portal finishes the far side before it opens.
+
 ## v1.47 — 2026-10-11
 
 - Three creatures now match their drawings more closely: the skitters walk on curved, bony legs bowed out like sickles instead of straight sticks; a stilt heron you run at takes off and flies away to wade somewhere else, its legs trailing behind it (walk up to it and it still strides off); and a bellows toad’s swollen throat goes see-through as it winds up its spore lob, so you can see the glob floating inside it.

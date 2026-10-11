@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { runSteps } from './load-steps.js';
+import { INSTANCE_COPIES } from './deferred.js';
 
 // Split world-spanning meshes into tiles so frustum culling can skip what's
 // off-screen in each pass (main view and each shadow cascade). Without this
@@ -41,8 +42,10 @@ export function* tileSceneSteps(scene, { tile = 260, propTile = 110 } = {}) {
   for (const o of todo) {
     yield;
     const size = !o.isInstancedMesh && triangleCount(o.geometry) >= 150000 ? tile : propTile;
-    const tiles = o.isInstancedMesh ? tileInstances(o, size) : yield* tileTriangles(o, size);
+    const copies = o.isInstancedMesh ? [] : null;
+    const tiles = o.isInstancedMesh ? tileInstances(o, size, copies) : yield* tileTriangles(o, size);
     if (tiles.length < 2) continue;
+    if (copies) INSTANCE_COPIES.set(o, copies);   // (a buried tree dropped later drops its copy too: src/deferred.js)
     for (const t of tiles) {
       t.userData = { ...o.userData, tiled: true };
       t.castShadow = o.castShadow; t.receiveShadow = o.receiveShadow; t.renderOrder = o.renderOrder;
@@ -93,7 +96,7 @@ function* tileTriangles(mesh, size) {
   return out;
 }
 
-function tileInstances(mesh, size) {
+function tileInstances(mesh, size, copies = null) {
   const buckets = new Map();
   for (let i = 0; i < mesh.count; i++) {
     mesh.getMatrixAt(i, _m);
@@ -109,6 +112,7 @@ function tileInstances(mesh, size) {
     ids.forEach((src, j) => {
       mesh.getMatrixAt(src, _m);
       t.setMatrixAt(j, _m);
+      if (copies) copies[src] = [t, j];
       if (mesh.instanceColor) { mesh.getColorAt(src, _c); t.setColorAt(j, _c); }
     });
     t.computeBoundingSphere();

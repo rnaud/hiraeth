@@ -3,6 +3,7 @@ import { MeshBVH, ExtendedTriangle, CENTER, AVERAGE, SAH } from 'three-mesh-bvh'
 import { GenerateMeshBVHWorker } from 'three-mesh-bvh/src/workers/GenerateMeshBVHWorker.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { runSteps, runStepsAsync } from './load-steps.js';
+import { dropInstance } from './deferred.js';
 
 // Collision against the real level geometry. Every static mesh in the scene
 // (minus anything flagged userData.noCollide, e.g. moving vehicles, plants or
@@ -603,17 +604,19 @@ function ownCollider(physics, p, box) {
  * inside a solid that is not just its own collider. Returns how many.
  */
 export function dropBuriedInstances(mesh, physics, heights, o = {}) { return runSteps(dropBuriedInstancesSteps(mesh, physics, heights, o)); }
-/** dropBuriedInstances a few instances a step (each is a dozen rays through the collision): for a world's load. */
-export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false, ring = 0 } = {}) {
+/**
+ * dropBuriedInstances a few instances a step (each is a dozen rays through the collision): for a world's load. With
+ * `defer` (src/deferred.js DeferredWork) each instance's check is queued at its place instead, to run before the first
+ * frame if it is near where that looks from and after it if not (it decides how a far tree looks, nothing else); the
+ * count is then of the checks queued.
+ */
+export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false, ring = 0, defer = null } = {}) {
   let n = 0;
   mesh.updateMatrixWorld();
   const gb = geoBox(mesh.geometry);
   const cx = (gb.min.x + gb.max.x) / 2, cz = (gb.min.z + gb.max.z) / 2;
-  for (let i = 0; i < mesh.count; i++) {
-    if ((i & 7) === 7) yield;
-    mesh.getMatrixAt(i, _dbM);
-    _dbW.multiplyMatrices(mesh.matrixWorld, _dbM);
-    if (Math.abs(_dbW.determinant()) < 1e-9) continue;   // (already gone)
+  /** Is instance i buried (its world matrix in _dbW)? */
+  const buried = (i) => {
     _dbB.copy(gb).applyMatrix4(_dbW).expandByScalar(0.15);
     const at = (x, h, z) => { _dbX.set(x, h, z).applyMatrix4(_dbW); return (physics.buried ?? physics.embedded).call(physics, _dbX) && !ownCollider(physics, _dbX, _dbB); };
     // (on its axis; with a ring, also round it: a crown pushed through a wall beside its trunk)
@@ -623,12 +626,24 @@ export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false,
     const under = !!physics.base && H((_dbB.min.x + _dbB.max.x) / 2, (_dbB.min.z + _dbB.max.z) / 2) && H(_dbB.min.x, _dbB.min.z) && H(_dbB.max.x, _dbB.min.z) && H(_dbB.min.x, _dbB.max.z) && H(_dbB.max.x, _dbB.max.z);
     // (a leaning blade or a tumbled rock: only when buried root, middle and tip, along its own axis)
     const e = _dbW.elements, upright = e[5] / Math.hypot(e[4], e[5], e[6]) > 0.95;
-    if (!under && !((upright || (all && heights.length > 2)) && heights.length && (all ? heights.every(inside) : heights.some(inside)))) continue;
+    return under || ((upright || (all && heights.length > 2)) && heights.length > 0 && (all ? heights.every(inside) : heights.some(inside)));
+  };
+  const world = (i) => { mesh.getMatrixAt(i, _dbM); _dbW.multiplyMatrices(mesh.matrixWorld, _dbM); return Math.abs(_dbW.determinant()) >= 1e-9; };   // (false: already gone)
+  for (let i = 0; i < mesh.count; i++) {
+    if (defer) {
+      if (!world(i)) continue;
+      _dbX.set(cx, (gb.min.y + gb.max.y) / 2, cz).applyMatrix4(_dbW);
+      defer.add(_dbX.x, _dbX.y, _dbX.z, () => { if (world(i) && buried(i)) dropInstance(mesh, i); }, 'buried');
+      n++;
+      continue;
+    }
+    if ((i & 7) === 7) yield;
+    if (!world(i) || !buried(i)) continue;
     _dbM.elements[0] = _dbM.elements[1] = _dbM.elements[2] = _dbM.elements[4] = _dbM.elements[5] = _dbM.elements[6] = _dbM.elements[8] = _dbM.elements[9] = _dbM.elements[10] = 0;   // (scaled to nothing where it stood)
     mesh.setMatrixAt(i, _dbM);
     n++;
   }
-  if (n) mesh.instanceMatrix.needsUpdate = true;
+  if (n && !defer) mesh.instanceMatrix.needsUpdate = true;
   return n;
 }
 
@@ -641,7 +656,7 @@ export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false,
  */
 export function dropBuriedFlora(scene, physics, o = {}) { return runSteps(dropBuriedFloraSteps(scene, physics, o)); }
 /** dropBuriedFlora a few instances a step (src/load-steps.js). */
-export function* dropBuriedFloraSteps(scene, physics, { minHeight = 2, maxCount = 6000 } = {}) {
+export function* dropBuriedFloraSteps(scene, physics, { minHeight = 2, maxCount = 6000, defer = null } = {}) {
   let n = 0;
   const meshes = [];
   scene.traverse((o) => {
@@ -653,7 +668,7 @@ export function* dropBuriedFloraSteps(scene, physics, { minHeight = 2, maxCount 
     const b = geoBox(o.geometry), h = b.max.y - b.min.y;
     // (a tree by its trunk and middle; a tuft, a blade or a stone only when buried root to tip)
     const fr = h >= minHeight ? [0.3, 0.55] : [0.35, 0.65, 0.95];
-    n += yield* dropBuriedInstancesSteps(o, physics, fr.map((f) => b.min.y + h * f), { all: true });
+    n += yield* dropBuriedInstancesSteps(o, physics, fr.map((f) => b.min.y + h * f), { all: true, defer });
   }
   return n;
 }

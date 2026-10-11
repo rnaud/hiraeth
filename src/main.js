@@ -42,6 +42,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
+import { DeferredWork, DEFER } from './deferred.js';
 import { tileSceneSteps, cullFar, fitBounds, waterContactOn, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
 import { FramePacer } from './frame-pace.js';
 import { StaticBatches, opaqueSort } from './static-batch.js';
@@ -318,7 +319,9 @@ const physics = await Physics.create(scene, level.ground.heightAt ? level.ground
 physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed: the desert's cave, src/physics.js noClimbNear)
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 setStep('level init');
-if (level.initSteps) await runStepsAsync(level.initSteps(physics), slice); else level.init?.(physics);
+// distant detail, finished after the first frame (src/deferred.js; ?defer=0 does it all now, as before)
+const deferred = query.get('defer') === '0' ? null : new DeferredWork();
+if (level.initSteps) await runStepsAsync(level.initSteps(physics, { defer: deferred }), slice); else level.init?.(physics);
 await slice();
 // every body of water: its look (bed maps, ripples) and swimming in it (src/water.js, src/swim.js)
 setStep('water');
@@ -326,8 +329,8 @@ const waters = new Waters(scene, { physics });
 await slice();
 // trees and shrubs that landed inside a house or a rock are left out (src/physics.js; window.clipAudit lists the rest)
 setStep('buried flora');
-const buriedFlora = await runStepsAsync(dropBuriedFloraSteps(scene, physics), slice);
-if (buriedFlora) console.info(`flora: ${buriedFlora} buried instances left out`);
+const buriedFlora = await runStepsAsync(dropBuriedFloraSteps(scene, physics, { defer: deferred }), slice);
+if (buriedFlora) console.info(deferred ? `flora: ${buriedFlora} instances to check for burial, near first` : `flora: ${buriedFlora} buried instances left out`);
 await slice();
 // the traveller's ship at this world's arrival point (src/ship/); a new game opens with the prologue
 // (no ?level and prologue.done unset, or ?prologue=1 to replay it)
@@ -1961,6 +1964,7 @@ function frame(ts) {
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on && !player.down; eWasDown = !!ctl.KeyE;   // (no talking while knocked down)
   const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on || ship.playing }).handled;
   passage.update(dt);   // a hand-over under way: the move happens here, before the traveller and the camera do
+  if (deferred?.pending) deferred.run(player.pos);   // distant detail, a share a frame, nearest first (src/deferred.js)
   if (photo.on) {
     if (!busy()) photoUpdate(dt, mergedInput);
   } else if (minigame?.drives) {
@@ -2242,6 +2246,15 @@ const gpuPace = gpuPacer(renderer.getContext(), { memory: { get: () => { try { r
 const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null } = {}) =>
   warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace });
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
+// the distant detail queued while building (src/deferred.js): what is near where the first frame looks from, the ship
+// and the ways through is done now; the rest after the first frame, nearest first
+if (deferred?.pending) {
+  setStep('near detail');
+  const ways = [...(level.portals ?? []), ...(level.navigationPortals ?? [])].map((p) => p.to).filter(Boolean);
+  const n = await runStepsAsync(deferred.needSteps([player.pos, ship.rampFoot, ...ways], DEFER.near), slice);
+  console.info(`distant detail: ${n} jobs done near, ${deferred.pending} after the first frame`);
+  window.deferred = deferred;   // (measuring: deferred.pending, .done, .ms)
+}
 setStep('batches');
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 // the world's still meshes, a batch (and a draw) per material, and one for the shadow maps (src/static-batch.js;
@@ -2382,7 +2395,8 @@ trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, leve
     return true;
   } });
 window.trials = trialsRt;
-const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
+const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); },   // (the far side's detail finished, under the paper)
+  busy: () => !!blades.grass?.placing });
 loadWatch.stop();
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {

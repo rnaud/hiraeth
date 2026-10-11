@@ -1191,9 +1191,10 @@ export function* buildIncal(scene) {
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)
-    *initSteps(physics) {
+    // (defer: the game's queue of distant detail, src/deferred.js: the far trees are checked after the first frame)
+    *initSteps(physics, { defer = null } = {}) {
       // trees a clump put inside a house (or a crown through a wall) are left out
-      for (const m of treeMeshes) yield* dropBuriedInstancesSteps(m, physics, [1, 3.5, 6], { ring: 0.9 });
+      for (const m of treeMeshes) yield* dropBuriedInstancesSteps(m, physics, [1, 3.5, 6], { ring: 0.9, defer });
       // (the cabs in one group, their parts drawn as instances: each cab's body, trim, tail and seat a draw for all the
       // cabs of one colour, not one a cab; some 80 cabs were ~500 meshes, src/part-batch.js)
       const cabs = new THREE.Group();

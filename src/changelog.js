@@ -8,6 +8,20 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.48', date: '2026-10-11', items: [
+    // loading (docs/systems/performance.md "Distant detail after the first frame"; issue #14)
+    { text: 'The City-Shaft opens two and a half seconds sooner, and on a handheld some thirteen: the trees far from you are checked for standing inside a house after you arrive, the nearest first, instead of all of them before the world shows. Everything near you is checked before you see it, and a door or a portal finishes the far side before it opens.',
+      numbers: [
+        { title: 'Time to the City-Shaft’s first frame', unit: 's', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+          { where: 'High (median of three)', before: 7.76, after: 5.28 },
+          { where: 'Handheld, the main thread slowed four times (two runs)', before: 31.9, after: 19.0 },
+        ], source: 'scripts/load-breakdown.mjs --query defer=0 and defer=1, interleaved' },
+        { title: 'The City-Shaft’s collision stage (the trees’ check was in it)', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High', rows: [
+          { where: 'inking the collisions', before: 3398, after: 500 },
+        ], source: 'scripts/load-breakdown.mjs, its phases' },
+      ],
+      see: 'Fly to the City-Shaft: the loading screen gives way sooner, and the trees by the landing are as they were.' },
+  ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)
     { text: 'The Quests page’s Done list now names every quest you have finished, wherever you are: the Lantern’s, the night mail’s and every temple’s, which for the Glass Dunes and the three newest worlds is their whole main quest.',

@@ -1368,6 +1368,59 @@ What it says:
   the Xbox (in use for the Unity port). The Xbox's own split is above ("The first draws on the Xbox": there the
   shaders' draw-time compiles are most of the load, which no deferral of the CPU's work changes).
 
+## Distant detail after the first frame (`src/deferred.js`, October 2026, issue #14)
+
+The City-Shaft's load spent 2.5 s of its 6.8 s (on this Mac, High) checking every one of its trees against the
+houses: a clump planted by the generator may stand a tree inside a house or push a crown through a wall, and each tree
+is a dozen rays through the collision (`dropBuriedInstancesSteps`, at three heights on its axis and round it). That
+check decides how a far tree looks and nothing else: the trees are walk-through, their trunk colliders stay, no route,
+quest or person depends on them. So it, and the generic buried-flora check every world runs, are now queued as
+**distant detail** (`DeferredWork`), a job at each tree's place:
+- **Before the first frame**, every job within `DEFER.near` (140 m) of where the first frame looks from (the spawn, a
+  saved place, an arrival by ship), of the ship's ramp and of every way through's far side ("near detail", a load
+  step, sliced like the rest).
+- **After it**, `DEFER.budget` (2 ms) a frame, the nearest first: the jobs sit in 32 m cells, and the queue walks rings
+  of cells out from the traveller's (no sorting; a move to another cell starts the walk again round it), so a teleport,
+  a passage or a fast ride is followed.
+- **Within `DEFER.guard`** (70 m) of the traveller a job is done in that frame whatever the budget, and a passage
+  finishes everything within 140 m of its far side under the paper (`need`), so nothing near is ever seen unfinished.
+- An instanced mesh already cut into tiles (perf.js `tileSceneSteps`) draws from copies of its instances: the tiling
+  records each instance's copy (`INSTANCE_COPIES`) and a late drop (`dropInstance`) drops both, sending only that
+  instance's 16 floats again (`addUpdateRange`; dropping a few trees a frame had re-sent whole buffers).
+- `?defer=0` checks everything at load as before (for A/B runs, `load-breakdown.mjs --query defer=0`).
+
+What is kept as it was: collision (baked from everything at load), the routes and the crowd's places, the quests, the
+landmarks, every silhouette. A buried tree far away can be seen for a few seconds after the first frame before its
+job drops it; the near ones are gone before the world shows. The same trees end up dropped: every static instanced
+mesh's dropped instances compared after the queue drained, with and without the deferral, are identical (the
+City-Shaft's 285 of 8745, Vael's 91, the desert's 71). Tests: `tests/deferred.test.js`.
+
+Measured on the Mac (M4 Pro, headless Chrome, ANGLE Metal, the machine loaded by other agents' test runs; the two
+builds' runs interleaved, three each, medians; `load-breakdown.mjs --query defer=0|1`):
+
+| World, preset | first frame before | after | collision before | after |
+|---|---|---|---|---|
+| City-Shaft, High | 7.76 s | 5.28 s | 3398 ms | 500 ms (and 350 ms of near detail) |
+| City-Shaft, Handheld, CPU ×4 (the handheld recipe; two runs each) | 31.9 s | 19.0 s | 15.4-15.8 s | 0.77-0.79 s (and ~2 s of near detail) |
+| Desert, High | 4.21 s | 4.17 s | 134 ms | 146 ms |
+| Buried Machine, High | 4.51 s | 4.47 s | 136 ms | 128 ms |
+| Lorn, High | 4.34 s | 4.38 s | 543 ms | 527 ms |
+
+Elsewhere the flora checks were already quick (5,000-7,000 jobs done in 8-25 ms in all): the gain is the City-Shaft's.
+After the first frame the queue drains in about 15 s of play on this Mac (17,378 jobs, 3.2 s of work). While it does,
+a fast traversal there (40 m/s, `--traverse 15`) pays the budget: p50 / p95 / p99 9.1 / 11.1 / 15.5 ms before,
+10.8 / 13.7 / 18.4 after (no frame over 50 ms more; the 300 ms frame is in both builds). The guard never had to
+force a job on that run (the nearest-first walk stays ahead at 40 m/s); a teleport to the far end of the queue forced
+176 jobs in one frame.
+
+Tried and not kept:
+- **One point for a tree in the open.** If no surface crosses the box round a tree's test points, they are all on one
+  side of everything, so one point could stand for all. It is not exact: the City-Shaft's open meshes answer differently
+  from points a metre apart, and 24 buried trees stayed (285 → 261). Testing only the axis in such a box: 263.
+- **SAH for the City-Shaft's BVH** (`collision: { strategy: 'SAH' }`, as Lorn II's): the same trees dropped and the
+  queries quicker (the trees' check 2.5 → 1.36 s, the crowd's routes 0.9 → 0.48 s), but the worker's build 0.4 → 1.6 s,
+  and that is waited for: 6.7 → 6.2 s. With the trees deferred, the build's cost would outweigh the crowd's gain.
+
 ## The Retroid, round 5: the Xbox's settings, the camps and the City-Shaft again, the machines, the merged worlds (October 2026)
 
 The Retroid Pocket Nova (Adreno 650, pixel ratio 2), the GeckoView test app (`com.rnaud.moebius.gecko`) with the game
