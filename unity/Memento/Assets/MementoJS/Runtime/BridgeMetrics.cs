@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Memento.Bridge
 {
@@ -19,8 +20,24 @@ namespace Memento.Bridge
     /// - every 5 s: fps, the frame's ms (median, 95th, longest), FrameTimingManager's CPU main / render thread and GPU
     ///   times, and the script's own time a frame (its thread) and the main thread's wait on it.
     /// </summary>
+    [DefaultExecutionOrder(-1000)]   // (its Update first in the frame: the phases below start there)
     public class BridgeMetrics : MonoBehaviour
     {
+        // a frame's phases (Stopwatch ticks): the scripts (Update to onBeforeRender), before the render (to the first
+        // render context), the render pipeline's contexts (URP's culling, its passes' setup and submission: a shader's or
+        // a pipeline state's first use on D3D11 lands here), and the rest (the last context to the next Update: the
+        // present, the wait for the render thread and the GPU)
+        long tUpdate, tBefore, tContext0, tContextEnd, tPrevUpdate; double contextTicks; int contexts;
+        static double TicksMs(double t) => t * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+        void BeforeRender() { tBefore = System.Diagnostics.Stopwatch.GetTimestamp(); }
+        void BeginContext(ScriptableRenderContext c, List<Camera> cams) { long t = System.Diagnostics.Stopwatch.GetTimestamp(); if (contexts++ == 0) tContext0 = t; tContextEnd = -t; }
+        void EndContext(ScriptableRenderContext c, List<Camera> cams) { long t = System.Diagnostics.Stopwatch.GetTimestamp(); contextTicks += t + tContextEnd; tContextEnd = t; }
+        string Phases()
+        {
+            if (tPrevUpdate == 0 || tBefore == 0 || contexts == 0) return "";
+            return $" [scripts {TicksMs(tBefore - tPrevUpdate):0}, before the render {TicksMs(tContext0 - tBefore):0}, render contexts {TicksMs(contextTicks):0} ({contexts}), " +
+                   $"after them {TicksMs(tUpdate - tContextEnd):0} ms]";
+        }
         public BridgeRunner runner;
         StreamWriter log;
         readonly object gate = new();
@@ -59,6 +76,9 @@ namespace Memento.Bridge
             }
             catch (Exception e) { Debug.LogWarning("Memento metrics: no log file: " + e.Message); }
             Application.logMessageReceivedThreaded += OnLog;
+            Application.onBeforeRender += BeforeRender;
+            RenderPipelineManager.beginContextRendering += BeginContext;
+            RenderPipelineManager.endContextRendering += EndContext;
             Write($"launch {DateTime.Now:yyyy-MM-dd HH:mm:ss}; {Application.productName} {Application.version} ({Application.platform}); " +
                   $"{SystemInfo.graphicsDeviceType} {SystemInfo.graphicsDeviceName} ({SystemInfo.graphicsMemorySize} MB); {SystemInfo.processorType} x{SystemInfo.processorCount}; " +
                   $"{SystemInfo.systemMemorySize} MB; {Screen.width}x{Screen.height}; frame timing {(FrameTimingManager.IsFeatureEnabled() ? "on" : "off")}");
@@ -68,6 +88,9 @@ namespace Memento.Bridge
         void OnDestroy()
         {
             Application.logMessageReceivedThreaded -= OnLog;
+            Application.onBeforeRender -= BeforeRender;
+            RenderPipelineManager.beginContextRendering -= BeginContext;
+            RenderPipelineManager.endContextRendering -= EndContext;
             lock (gate) { log?.Dispose(); log = null; }
         }
 
@@ -85,6 +108,9 @@ namespace Memento.Bridge
 
         void Update()
         {
+            tPrevUpdate = tUpdate; tUpdate = System.Diagnostics.Stopwatch.GetTimestamp();
+            string phases = Phases();
+            contextTicks = 0; contexts = 0;
             float now = Time.realtimeSinceStartup, dt = Time.unscaledDeltaTime * 1000;
             var scene = runner ? runner.scene : null;
             int nodes = scene ? scene.Nodes : 0;
@@ -107,7 +133,7 @@ namespace Memento.Bridge
                 nativeSum += native; if (native > nativeMax) nativeMax = native; if (native > 50) nativeSlow++;
                 if (warmFrames <= 10)
                     Write($"load: frame {warmFrames} after the first node: {dt:0} ms, the script's wait {frameWait:0}, Unity's own {native:0}" +
-                          (timedNow ? $" (cpu main {timing[0].cpuMainThreadFrameTime:0.0} render {timing[0].cpuRenderThreadFrameTime:0.0} gpu {timing[0].gpuFrameTime:0.0} ms)" : ""));
+                          (timedNow ? $" (cpu main {timing[0].cpuMainThreadFrameTime:0.0} render {timing[0].cpuRenderThreadFrameTime:0.0} gpu {timing[0].gpuFrameTime:0.0} ms)" : "") + phases);
                 if (now - lastGrowth > 2)
                 {
                     settled = lastGrowth;
