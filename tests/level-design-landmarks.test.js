@@ -88,3 +88,63 @@ test('the Buried Machine (issue #136): the canyon stack’s steam shows from rou
     assert.ok(lineOf(W.level, 'the ramp’s rope'), 'the audit reads it as a leading line');
   } finally { W.dispose(); }
 });
+
+test('the Garden of Spheres (issue #134): the hill path runs from the meadow path to the white hill’s stair, the belvedere shows from it, the sphere at the foot is answered by the bell, and the bell by the garden', async () => {
+  globalThis.location = { search: '?level=spheres' };
+  const W = A.loadWorld('spheres');
+  try {
+    const L = W.level, path = lineOf(L, 'the hill path').points, top = L.sights.find((s) => /belvedere/.test(s.name)).at;
+    const foot = L.sights.find((s) => /white hill’s foot/.test(s.name)).at, meadow = lineOf(L, 'the meadow path').points;
+    const [mx, mz] = path[0], [ex, ez] = path.at(-1);
+    assert.ok(meadow.some(([x, z]) => Math.hypot(x - mx, z - mz) < 3), 'the hill path starts on the meadow path');
+    assert.ok(Math.hypot(ex - top.x, ez - top.z) < 90 && top.distanceTo(foot) < 150, `it ends at the hill’s foot, the sphere ${top.distanceTo(foot).toFixed(0)} m from the deck (a loner is 150 m from anything)`);
+    // the belvedere's deck, its mast and streamer over it, in sight from where the hill path leaves the meadow path and
+    // from the sphere at the foot
+    const H = (x, z) => W.physics.groundAt(x, 60, z, 200);
+    for (const [x, z, what] of [[mx, mz, 'the hill path’s start'], [-150, -96, 'halfway along it'], [foot.x, foot.z, 'the sphere at the foot']]) {
+      assert.equal(blocker(W, V(x, H(x, z) + EYE, z), V(top.x, top.y + 9, top.z)), null, `the belvedere’s mast top from ${what}`);
+    }
+    // splash the sphere at the foot: the bell answers from the deck; ring the bell: the garden's spheres answer it
+    const { allTargets } = await import('../src/targets.js');
+    const { game } = await import('../src/game-state.js');
+    const hill = L.spheres.hill, notes = [];
+    W.sound.orbNote = (deg, at) => { notes.push(at.clone()); };
+    const hit = (o) => allTargets().find((t) => t.orb === o).onHit('shoot', null);
+    assert.ok(hill.foot && hill.bell, 'the sphere and the bell are spheres the story listens to');
+    hit(hill.foot);
+    await new Promise((r) => setTimeout(r, 900));
+    assert.ok(notes.some((p) => flat(p, V(hill.bell.x, 0, hill.bell.z)) < 1 && p.y > top.y), 'the bell answers from the belvedere');
+    notes.length = 0;
+    hit(hill.bell);
+    await new Promise((r) => setTimeout(r, 4600));
+    assert.ok(notes.length >= 10, `${notes.length} spheres answer the bell`);
+    assert.ok(game.flag('spheres.belvedere.rung'), 'and the garden remembers it was rung');
+  } finally { W.dispose(); }
+});
+
+test('the Glass Dunes (issue #134): the kiln’s smoke over the breaker’s cairn shows from the landing and the Clock-House, and its amber posts lead up to it', () => {
+  globalThis.location = { search: '?level=glassdunes' };
+  const W = A.loadWorld('glassdunes');
+  try {
+    const L = W.level, smoke = beaconOf(L, 'the breaker’s smoke'), cairn = L.sights.find((s) => /breaker’s cairn/.test(s.name)).at;
+    const door = A.objectiveAt(W, 'temple.garage.door');
+    assert.ok(flat(V(...smoke.top), cairn) < 80, 'the smoke rises by the cairn');
+    // from the landing (the ship's flat) and from the Clock-House's door: the smoke's rise, over the far cliffs
+    assert.equal(blocker(W, eyeAt(L.spawn), aimOf(smoke)), null, 'the smoke from the landing');
+    assert.equal(blocker(W, V(door.x - 6, door.y + EYE, door.z + 8), aimOf(smoke)), null, 'the smoke from beside the Clock-House’s door');
+    // the posts: from beside the door to the cairn, each float in sight of the next
+    const P = L.cairnWay.posts;
+    assert.ok(flat(P[0], door) < 30, `the first post ${flat(P[0], door).toFixed(0)} m from the Clock-House’s door`);
+    assert.ok(flat(P.at(-1), cairn) < 15 && P.at(-1).y > cairn.y - 6, 'the last by the cairn, up on the crest');
+    for (let i = 1; i < P.length; i++) {
+      assert.ok(flat(P[i], P[i - 1]) < 32, `posts ${i - 1} and ${i} ${flat(P[i], P[i - 1]).toFixed(0)} m apart`);
+      const b = blocker(W, V(P[i - 1].x + 1, P[i - 1].y - 1.6, P[i - 1].z), P[i], { near: 0.6 });   // (from beside post i - 1, at eye height)
+      assert.equal(b, null, `post ${i}’s float in sight from post ${i - 1} (${P[i - 1].toArray().map((v) => v.toFixed(1))} to ${P[i].toArray().map((v) => v.toFixed(1))}: ${b?.toArray().map((v) => v.toFixed(1))})`);
+    }
+    // the carriers' things on the way: each pulls from the path, 30-150 m off it (the audit's pull band)
+    for (const s of L.cairnWay.sights) {
+      const d = flat(s.at, door);
+      assert.ok(d > 30 && d < 150, `${s.name} ${d.toFixed(0)} m from the Clock-House’s door`);
+    }
+  } finally { W.dispose(); }
+});

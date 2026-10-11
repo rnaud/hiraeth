@@ -1871,6 +1871,18 @@ spots it is there for, with the audit's own rays, in `tests/level-design-landmar
 - **The Buried Machine, Wen → the Engine-House's door** (117 m; `DOOR_FLAG`): the house shows, but its door hides behind a
   hut. Fisk's flag, a 19 m iron mast beside the door with an 11 m pennant in the door ring's teal, broadside to the domes
   (drawn only), the beacon `Fisk's flag`.
+- **The Garden of Spheres, the belvedere** (`src/levels/spheres.js` "the hill path and the belvedere's bell"): it read well
+  from the meadow path but stood 154 m off it and 161 m from anything. The hill path, a white path (paved) from the meadow
+  path's end west past the hill tree's north to the white hill's stair; a little sphere at the stair's foot (a sight, 120 m
+  from the deck: no loner); a small yellow bell hung off the belvedere's mast; a 20 m yellow streamer off the mast's top,
+  waving (the level's update). Splash the sphere and the bell answers (src/story/spheres.js); splash the bell and the
+  sixteen nearest spheres answer, nearest first, once every 8 s (flag `spheres.belvedere.rung`, a toast the first time).
+- **The Glass Dunes, the breaker's cairn** (`src/glass-dunes-ways.js` `CAIRN_WAY`, `buildCairnWay`): 368 m off the path,
+  lost against the green cliffs from the landing. A kiln beside it whose `SmokeColumn` (110 puffs, 120 m) stands over the far
+  cliffs from the landing (and across the sun at the world's hour), the beacon `the breaker's smoke`; posts with amber
+  floats (the way home's are green) every 28 m on the sand from beside the Clock-House's door to the wave's east foot and
+  every 18 m up its back to the cairn (`the cairn's posts`); on the way, 30–150 m from the door, the carriers' float-sledge,
+  their shade and the wind-glass (sights: optional pull 3 → 4). All drawn only.
 
 ## A shop in every route world (v1.14)
 

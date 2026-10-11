@@ -26,7 +26,7 @@ import { hintsFor } from '../hint-level.js';
 //
 // Flags (game-state.js): spheres.aube.heard, spheres.heard.bell / chant /
 // drum, spheres.heard.three, spheres.chord.heard, spheres.rumour.light,
-// spheres.pebble.out / taken / placed, spheres.avenue.walked;
+// spheres.pebble.out / taken / placed, spheres.avenue.walked, spheres.belvedere.rung;
 // clue.spheres.desert. Items: pebble.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -96,6 +96,18 @@ export function setupSpheres(ctx) {
   };
   // every great sphere is a note: shoot one and it rings (bigger, lower); the three that remember play their sound
   const rememberer = (o) => L.find((s) => s.o === o);
+  /** A sphere rings on its own (answering): its note, soft, and a few motes off its top. */
+  const ring = (o, n = 3) => { const at = V(o.x, o.y + o.R, o.z); sound.orbNote?.(orbDegree(o.R), at, { size: Math.min(1, o.R / 46), soft: true }); motes.burst(at, { n, rise: 1.6, size: 0.26 + Math.min(o.R, 40) * 0.004, spread: 1, life: 2.4 }); };
+  /** The belvedere's bell rung: the garden's spheres answer, the nearest first, out across the meadow to the avenue. */
+  let hillT = -Infinity;
+  const answerTheHill = (bell) => {
+    const now = performance.now();
+    if (now - hillT < 8000) return;
+    hillT = now;
+    const others = (G.orbs ?? []).filter((q) => q !== bell && q.R <= 100).map((q) => [q, Math.hypot(q.x - bell.x, q.z - bell.z)]).filter(([, d]) => d < 520).sort((a, b) => a[1] - b[1]).slice(0, 16);
+    others.forEach(([q, d], i) => setTimeout(() => ring(q, 4), 600 + d * 5 + i * 60));
+    if (!game.flag('spheres.belvedere.rung')) { game.set('spheres.belvedere.rung', true); setTimeout(() => toast('The garden answers the bell, sphere by sphere, out to the avenue.'), 900); }
+  };
   const orbHit = (o) => (mode, point) => {
     const at = V(o.x, o.y, o.z), s = rememberer(o), soft = mode === 'push';
     motes.burst(point ?? at, { n: soft ? 2 : 5, rise: 1.6, size: 0.25 + Math.min(o.R, 40) * 0.006, spread: 1, life: 2.2 });
@@ -104,6 +116,11 @@ export function setupSpheres(ctx) {
       // the avenue's answering pair: the other one rings back across the road a moment later
       const pair = G.answering ?? [], other = pair.includes(o) ? pair.find((q) => q && q !== o) : null;
       if (other) setTimeout(() => { const oa = V(other.x, other.y, other.z); sound.orbNote?.(orbDegree(other.R), oa, { size: Math.min(1, other.R / 46), soft: true }); motes.burst(oa, { n: 3, rise: 1.6, size: 0.26, spread: 1, life: 2.2 }); }, 420);
+      // the white hill's (src/levels/spheres.js, issue #134): the little sphere at its foot is answered by the bell on the
+      // belvedere, 80 m up; the bell, rung from its deck, by the garden's spheres one after another, outward from the hill
+      const hill = G.hill;
+      if (hill?.bell && o === hill.foot) setTimeout(() => ring(hill.bell, 4), 700);
+      if (hill?.bell && o === hill.bell && !soft) answerTheHill(hill.bell);
       return true;
     }
     s.flash = 1;

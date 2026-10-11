@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.50 — 2026-10-11
 
+- In the Glass Dunes, the carriers keep a kiln burning beside the breaker’s cairn, and its smoke now stands over the far cliffs, seen from your landing. From beside the Clock-House’s door, posts with amber floats lead north and up the breaking wave’s back to the cairn, past the carriers’ sledge, their shade and a frame of wind-glass.
+- In the Garden of Spheres, a white path branches off the meadow path to the foot of the white hill’s stair, where a little sphere waits. Splash it and a bell answers from the belvedere high above, a yellow streamer flying from its mast. Climb up and ring the bell: the garden’s spheres answer it one after another, out across the meadow.
 - Fisk now flies a long teal pennant on a tall mast beside the Engine-House’s door, so you can pick out the door from Wen’s dome over the huts.
 - In the Buried Machine, a tall chimney stack now rises out of the rust canyon at the foot of the sand ramp, a column of white steam leaning off its top: you see it over the domes, and from the canyon floor looking back. A rope on iron stakes runs down the ramp to its foot.
 - In Lorn, the lamp-keepers’ old boat-way is marked again: a row of tall stakes, each with a coral float on top, leads from the crystal cave’s south mouth across the open water, past the keepers’ light, to Hollin’s island.

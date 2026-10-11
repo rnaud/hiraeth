@@ -746,6 +746,27 @@ export const CHANGELOG_MEDIA = {
       { name: 'door-flag', title: 'From Wen', caption: 'From where you first meet Wen, toward the Engine-House: before, the door hidden behind a hut; after, Fisk’s teal pennant on its mast beside it', from: WAYS50,
         view: { level: 'buried', hour: 10.5, fov: 40, eye: [-27, 10.6, 1], target: [-98, 18, 96], player: [-27, 8.9, 1] } },
     ], see: 'From Wen’s dome, look west toward the Engine-House: the pennant marks its door.' },
+    { match: 'In the Garden of Spheres, a white path branches off the meadow path', shots: [
+      { name: 'belvedere-meadow', title: 'From the meadow path', caption: 'From the meadow path by the meadow pyramid, toward the white hill: before, the belvedere’s bare mast; after, its yellow streamer, and the new path leaving the meadow path toward the hill', from: WAYS50,
+        view: { level: 'spheres', hour: 8.5, fov: 60, eye: [-45, 2.2, -118], target: [-215, 60, -140], player: [-45, 0.5, -118] } },
+      { name: 'hill-path', title: 'Where it branches', caption: 'At the meadow path’s end, looking west: before, grass; after, the white path running on to the hill', from: WAYS50,
+        view: { level: 'spheres', hour: 8.5, fov: 60, eye: [-66, 2.4, -116], target: [-215, 22, -70], player: [-66, 0.5, -116] } },
+      { name: 'hill-foot', title: 'At the hill’s foot', caption: 'At the foot of the white hill’s stair, looking up: before, the stair; after, the little sphere at its foot (bottom left) and the bell hung on the belvedere’s deck', from: WAYS50,
+        view: { level: 'spheres', hour: 8.5, fov: 60, eye: [-196, 2.6, -40], target: [-213, 40, -110], player: [-196, 0.6, -40] } },
+    ], numbers: [{ title: 'The belvedere in the level design audit', unit: 'm', better: 'lower', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'to the nearest other place (a loner past 150 m)', before: 161, after: 120 }], source: 'node audit, this build against v1.50 before it: the Garden has no loner and no remote dead end now' }],
+      see: 'Walk the meadow path to its end by the meadow pyramid and take the white path west to the hill. Splash the little sphere, climb to the belvedere’s deck and splash the bell.' },
+    { match: 'In the Glass Dunes, the carriers keep a kiln burning', shots: [
+      { name: 'cairn-landing', title: 'From the landing', caption: 'From beside your ship toward the breaking wave: before, the cairn lost against the green cliffs; after, the kiln’s smoke rising from it past the skyline', from: WAYS50,
+        view: { level: 'glassdunes', hour: 16.5, fov: 60, eye: [0, 2.2, 222], target: [-79, 90, -236], player: [0, 0.5, 222] } },
+      { name: 'cairn-door', title: 'From the Clock-House', caption: 'Beside the Clock-House’s door, looking north: before, the open sand; after, the first amber-floated posts', from: WAYS50,
+        view: { level: 'glassdunes', hour: 16.5, fov: 60, eye: [102, 3.8, 92], target: [150, 8, -60], player: [102, 2.2, 92] } },
+      { name: 'cairn-back', title: 'At the wave’s east foot', caption: 'At the foot of the breaking wave’s long back: before, the glass slope; after, the posts going up it and the smoke over the crest', from: WAYS50,
+        view: { level: 'glassdunes', hour: 16.5, fov: 60, eye: [176, 3.5, -170], target: [-60, 95, -236], player: [176, 1.5, -170] } },
+    ], numbers: [{ title: 'The Glass Dunes in the level design audit', unit: 'score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [
+      { where: 'optional pull', before: 3, after: 4 },
+      { where: 'landmarks in sight from the landing', before: 3, after: 5 },
+    ], source: 'node audit, this build against v1.50 before it' }],
+      see: 'Come out of the Clock-House’s door and follow the amber floats north, then up the breaking wave’s back to the cairn and its kiln.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

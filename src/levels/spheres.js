@@ -1003,6 +1003,40 @@ export function* buildSpheres(scene) {
   const ANSWERING = [[-6.4, -480, 1.5], [6.4, -480, 1.25]];   // (between two pairs of the avenue's olives, z -474 and -486)
   for (const [x, z, Rs] of ANSWERING) sphere(x, z, Rs, 0.5, { seg: 24 });
 
+  // ---------------------------------------------------------- the hill path and the belvedere's bell
+  // (level design audit v1.49, issue #134: the belvedere stood 154 m off the path and 161 m from anything, a lone climb
+  // with nothing at the top.) A white path branches off the meadow path's end, west past the hill tree's north to the
+  // foot of the white hill's stair, where a little sphere sits beside it; splash it and the bell on the belvedere's deck
+  // answers from 80 m up. Up there, ring the bell and the garden's spheres answer it one after another, outward from the
+  // hill (src/story/spheres.js).
+  yield;
+  const stairFoot = Hl.z + Hl.r[0] * 1.06 + Math.ceil(Hl.top[0] / 0.4) * 0.42;   // (the first flight's foot: the stairs above)
+  const HILL_PATH = [[MP.x, MP.z + MP.half + 12], [-100, -112], [-150, -96], [-192, -72], [Hl.x + 3, stairFoot + 4]];
+  path(HILL_PATH, 2.2);
+  const HILL_SPHERE = { x: Hl.x + 9, z: stairFoot + 7, R: 1.7 };
+  const hillSphereY = sphere(HILL_SPHERE.x, HILL_SPHERE.z, HILL_SPHERE.R, 0.5, { seg: 24 });
+  const deckY = hillBase + Hl.top[2] + LAYOUT.hillPyr.height + BELVEDERE.h;
+  const BELL = { x: Hl.x + 0.75, z: Hl.z - 0.75, R: 0.42 };
+  const bellY = deckY + 2.5;
+  sphere(BELL.x, BELL.z, BELL.R, 0, { y: bellY, yellow: true, collide: false, seg: 16 });
+  // (its arm off the belvedere's mast)
+  add(M.pole, new THREE.BoxGeometry(0.06, 0.06, 1.1).rotateY(Math.PI / 4).translate(Hl.x + 0.38, bellY + BELL.R + 0.05, Hl.z - 0.38));
+  add(M.pole, new THREE.CylinderGeometry(0.015, 0.015, 0.1, 3).translate(BELL.x, bellY + BELL.R + 0.02, BELL.z));
+  // and a long yellow streamer off the mast's top, broadside to the meadow path: what moves up there, seen from below
+  const streamer = (() => {
+    const L = 20, tail = new THREE.PlaneGeometry(L, 2, 24, 1).translate(L / 2, 0, 0), p = tail.attributes.position;
+    for (let i = 0; i < p.count; i++) { const u = p.getX(i) / L; p.setY(i, p.getY(i) * (1 - 0.85 * u) - 1.4 * u); p.setZ(i, Math.sin(u * 6) * 0.8 * u); }
+    tail.computeVertexNormals();
+    const mat = makeMaterial({ color: '#f1cc5c', flat: true });
+    mat.side = THREE.DoubleSide;
+    const m = new THREE.Mesh(tail, mat);
+    m.position.set(Hl.x, deckY + 8.7, Hl.z); m.rotation.y = -Math.PI / 2 + 0.25;
+    m.userData.noCollide = true;
+    m.name = 'The belvedere’s streamer';
+    scene.add(m);
+    return m;
+  })();
+
   // ---------------------------------------------------------- flush batches
   yield;
   for (const { mat, collide, list } of batches.values()) {
@@ -1037,16 +1071,22 @@ export function* buildSpheres(scene) {
     lines: [{ name: 'the white path and the avenue', points: [...LAKE_PATH].reverse().concat(WAY.slice(1), AVENUE.slice(1)) },
       // (fifth round: the meadow path home, from the plaza back up the avenue, through the arch, round the meadow pyramid and
       //  up the pyramid path to the grove; followed only where Ume sends you along it)
-      { name: 'the meadow path', points: [...AVENUE].reverse().concat(MEADOW_PATH, [[MP.x, -110], [-24, -64], [-2, -30], [0, 8]]), auto: false }],
+      { name: 'the meadow path', points: [...AVENUE].reverse().concat(MEADOW_PATH, [[MP.x, -110], [-24, -64], [-2, -30], [0, 8]]), auto: false },
+      // (v1.50, issue #134: the hill path, from the meadow path's end to the white hill's stair)
+      { name: 'the hill path', points: HILL_PATH }],
     sights: [{ name: 'the chalked sphere', at: new THREE.Vector3(CHALKED.x, chalkY + CHALKED.R, CHALKED.z) }, { name: 'the answering spheres', at: new THREE.Vector3(0, H(0, -480) + 1, -480) },
       // (v1.46: the belvedere on the white hill's summit, the garden's highest place, 80 m up)
-      { name: 'the belvedere on the white hill', at: belvedereTop }],
+      { name: 'the belvedere on the white hill', at: belvedereTop },
+      // (v1.50: the little sphere at the hill's foot, answered by the bell on the belvedere: issue #134)
+      { name: 'the sphere at the white hill’s foot', at: new THREE.Vector3(HILL_SPHERE.x, hillSphereY - HILL_SPHERE.R * 0.5 + 0.5, HILL_SPHERE.z + HILL_SPHERE.R + 1) }],
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {
       orbs, plaza, lake: { ...LAYOUT.lake, level: W }, avenue: { ...LAYOUT.avenue }, arch: { ...LAYOUT.arch },
       listen: { bell: orb(LAYOUT.pearl.x, LAYOUT.pearl.z), chant: orb(-120, -262), drum: orb(380, -320) },
       answering: ANSWERING.map(([x, z]) => orb(x, z)),   // (the avenue's pair: splash one and the other answers, src/story/spheres.js)
+      // (the white hill's: the little sphere at its foot and the bell on the belvedere, which answer each other)
+      hill: { foot: orb(HILL_SPHERE.x, HILL_SPHERE.z), bell: orbs.find((o) => o.y === bellY && Math.hypot(o.x - BELL.x, o.z - BELL.z) < 0.1) },
       great: orb(0, -1320),
     },
     ground: terrain,
@@ -1075,7 +1115,7 @@ export function* buildSpheres(scene) {
       footprints: '#9fb04a',
     },
     atmo: () => ({ tint: [1.0, 0.99, 1.0], fog: 0.55, name: 'Garden of Spheres' }),
-    update() {},
+    update(dt, t) { streamer.rotation.y = -Math.PI / 2 + 0.25 + Math.sin((t ?? 0) * 0.8) * 0.2; streamer.rotation.x = Math.sin((t ?? 0) * 1.3) * 0.18; },
   });
 }
 export const createSpheres = stepped(buildSpheres);

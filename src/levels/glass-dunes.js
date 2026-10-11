@@ -11,7 +11,7 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { LOCALS } from '../story/glassdunes-people.js';
-import { buildFloatPosts, buildWaveCairn, WAVE_CAIRN, BREAKER_CAIRN } from '../glass-dunes-ways.js';
+import { buildFloatPosts, buildWaveCairn, buildCairnWay, WAVE_CAIRN, BREAKER_CAIRN } from '../glass-dunes-ways.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes (?level=glassdunes; docs/systems/worlds.md "The Glass Dunes"): on the route since
@@ -193,6 +193,9 @@ export function* buildGlassDunes(scene) {
   // (src/glass-dunes-ways.js, the merged worlds' follow-ups: the walk back was the way out, and the basin all one level)
   const floats = buildFloatPosts(scene, M, terrain), cairn = buildWaveCairn(scene, M, crest);
   const breaker = buildWaveCairn(scene, M, breakerCrest, { at: BREAKER_CAIRN, name: 'The breaker’s cairn', tall: true });
+  // the way up to it (src/glass-dunes-ways.js; level design audit v1.49, issue #134): the kiln's smoke by the cairn, the
+  // amber-floated posts from the Clock-House's door to the breaker's east foot and up its back, the carriers' things on the way
+  const up = buildCairnWay(scene, M, terrain, (x, z) => crestOf('breaker', { x, z }, null));
   const spawn = new THREE.Vector3(GLASS_SHIP.x, 0, GLASS_SHIP.z - 24);
   spawn.y = terrain.heightAt(spawn.x, spawn.z);
   // Marit's kiln-stall (src/shop-world.js, src/shop-fronts.js 'kiosk': the riveted cabin that stood by the First
@@ -237,11 +240,13 @@ export function* buildGlassDunes(scene) {
     // the Clock-House's brass finial over the sand, seen from the ship's flat (scripts/level-design/audit.mjs aims at a
     // level's beacons as landmarks: the height grid's peak of the drum lies inside it, behind its own wall)
     beacons: [{ name: 'the Clock-House', top: [CLOCK_HOUSE.x, CLOCK_HOUSE.y + 30.5, CLOCK_HOUSE.z], height: 5 }, { name: 'the wave’s cairn', top: cairn.top.toArray(), height: 5 },
-      { name: 'the breaker’s cairn', top: breaker.top.toArray(), height: 8 }],
+      { name: 'the breaker’s cairn', top: breaker.top.toArray(), height: 8 },
+      // (v1.50: the kiln's smoke over the cairn, the top of its rise, issue #134)
+      { name: 'the breaker’s smoke', top: up.smoke.pathAt(0.62, new THREE.Vector3()).toArray(), height: 40 }],
     // what the level design audit reads (scripts/level-design/audit.mjs): the float-posts, the way home Wim sends you by
     // (only where it is named: the route's temple step, tests/playthrough-worlds.js); the places to stop at that are
     // neither people nor quests: the camps, the passage through the wave, the rack, the cairn
-    lines: [{ name: 'the float-posts', points: floats.points, auto: false }],
+    lines: [{ name: 'the float-posts', points: floats.points, auto: false }, { name: 'the cairn’s posts', points: up.points }],
     sights: [
       { name: 'the west camp', at: new THREE.Vector3(GLASS_CAMPS.west.x, terrain.heightAt(GLASS_CAMPS.west.x, GLASS_CAMPS.west.z) + 0.5, GLASS_CAMPS.west.z) },
       { name: 'the north camp, under the breaking wave', at: new THREE.Vector3(GLASS_CAMPS.north.x, terrain.heightAt(GLASS_CAMPS.north.x, GLASS_CAMPS.north.z) + 0.5, GLASS_CAMPS.north.z) },
@@ -250,8 +255,11 @@ export function* buildGlassDunes(scene) {
       { name: 'the wave’s cairn', at: cairn.at },
       // (v1.46: the breaking wave's crest, 90 m over the valley, the world's high place: issue #19)
       { name: 'the breaker’s cairn', at: breaker.at },
+      // (v1.50: on the way up to it, issue #134)
+      ...up.sights,
     ],
-    update(dt, t) { cairn.wave(t ?? 0); breaker.wave(t ?? 0); },
+    cairnWay: up,
+    update(dt, t, ctx) { cairn.wave(t ?? 0); breaker.wave(t ?? 0); up.update(dt, t, ctx); },
   };
   return attachTemple('garage', scene, level);
 }
