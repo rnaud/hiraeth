@@ -5,6 +5,7 @@ The same release notes shown in the game (press **N** or open settings).
 ## v1.44 — 2026-10-11
 
 - The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.
+- When your empty tank first fills in the giant’s pool, the scene no longer ends with you firing water over the pool with a gun you don’t have yet: the tank’s lights come on, the chest beside the pool hums back, and you turn to it.
 - Out of the chest by the giant’s pool, the lift valve goes over his shoulder onto the pack with a click instead of being fired like a gun he doesn’t have yet; the same for the other parts of the pack. Nothing found in a chest shrinks away to nothing any more.
 - The backpack comes out of Qanat’s chest as empty as it is: its glass is dry on the card, and nothing comes up over the card while you read it. After it, he simply has it on his back: no more firing it, and no copy of it flying into him and shrinking away.
 - In conversations the words stay where they are while you read them: the panel is its full size from the first letter, and the answers come up in the room kept for them instead of pushing the words up the screen.

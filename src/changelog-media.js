@@ -630,6 +630,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'backpack-beat', title: 'After the card', caption: 'A second after Continue: before, the backpack held out and fired, a spray of light out of it; after, no beat, the camera going back to him with it on his back', from: FROM44 },
     ], see: 'In a new game, climb to the chest on the great tree in Qanat and open it.' },
     { match: 'Out of the chest by the giant’s pool, the lift valve goes over his shoulder', see: 'Let the water up in the giant’s chest and open the chest by the pool: the valve goes over his shoulder onto the pack, a click, and the camera comes back.' },
+    { match: 'When your empty tank first fills in the giant’s pool', shots: [
+      { name: 'fill-moment', caption: 'The tank’s first fill, 7 s in: before, his arm raised to fire the first glob over the pool; after, over his shoulder as he turns to the chest humming back beside the pool', from: 'scripts/cinematics-qc.mjs --only desert.fill (headless Chrome, High, 960 × 540, muted) on this branch, the before with the moment’s file as it was (10 October)' },
+    ] },
     { match: 'The drone says where it is off to the moment you send it', numbers: [
       { title: 'Sending the drone to Qanat from the ship (390 m)', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720', rows: [
         { where: 'from the press to the line on the screen', before: 1.85, after: 0.15 },

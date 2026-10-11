@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { TANK } from '../fluid-tool.js';
 import { faceOf } from './moment.js';
+import { PLACEMENTS } from '../boxes/placements.js';
 
 // The desert's two first times, filmed (src/story/moment.js): once per save, skippable, and
 // never in the way (when one can't play, desert.js does what it always did).
@@ -20,11 +21,14 @@ import { faceOf } from './moment.js';
 //         A  wide, over the water: the traveller stops in the glowing pool              0.0–2.3
 //         B  over his shoulder, close on the tank: the water climbs into the dry glass,
 //            slowly, in three colours, its glow on his back                            2.3–5.9
-//         C  beside him: he lifts the glove, its knuckles light one by one, and a first
-//            glob leaves the nozzle and splashes out across the pool                    5.9–8.7
+//         C  beside him, the full tank glowing on his back, its lights coming on one by
+//            one: something beside the pool hums back, and he turns to it (the chest
+//            with the lift valve). Nothing is fired: he has nothing to fire it with yet
+//            (the gun is in the Givers' Hearth; it ended with a glob shot out over the
+//            pool until the author's playthrough, issue #70)                            5.9–8.7
 //         D  his face: a slight smirk, nothing said                                    8.7–11.2
 //         sound: the father's theme on the desert's duduk (sound.swell('father')), the
-//         tank's bubbling run, the glob's shot and splash; then the toast with the controls
+//         tank's bubbling run, the chest's faint answer; then the toast
 //
 // What they show is applied for sure: the channel is open before the flow's first frame (the
 // water runs on its own clock, paced a little); the tank fills on a beat of `fill`, and if that
@@ -39,7 +43,8 @@ const smooth = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 *
 
 // SMIRK: s into the face's panel before the corner of his mouth goes up
 export const FLOW = { A: 2.6, B: 2.7, C: 3.3, D: 2.9, flowDelay: 2.4, SMIRK: 1.1 };
-export const FILL = { A: 2.3, B: 3.6, C: 2.8, D: 2.5, fillAt: 2.5, fillFor: 2.8, sparkAt: 7.2, SMIRK: 0.9 };
+// answerAt: s into the moment the chest by the pool hums back (panel C)
+export const FILL = { A: 2.3, B: 3.6, C: 2.8, D: 2.5, fillAt: 2.5, fillFor: 2.8, answerAt: 6.5, SMIRK: 0.9 };
 
 export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fillJar, FILLED }) {
   const { player, sound, level, toast } = ctx;
@@ -153,8 +158,9 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
       return out.copy(player.pos).addScaledVector(UP, 1.3).addScaledVector(facing(_f), -0.25);
     };
     const chest = (out = V(0, 0, 0)) => out.copy(player.pos).addScaledVector(UP, 1.35);
-    const aimDir = n.clone().addScaledVector(UP, 0.32).normalize();
-    const sparkTo = P.clone().addScaledVector(n, 8).addScaledVector(UP, 1.2);
+    // what hums back from beside the pool: the lift valve's chest (src/boxes/placements.js desert.lift), else ahead over the water
+    const lift = PLACEMENTS.desert?.find((x) => x.id === 'desert.lift')?.site?.(level);
+    const answer = lift ? V(lift.at[0], lift.at[1] + 0.6, lift.at[2]) : ahead.clone();
     const m = moments.play({
       id: 'desert.fill', flag: 'desert.moment.fill', dur: FILL.A + FILL.B + FILL.C + FILL.D,
       shots: [
@@ -168,13 +174,14 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
             const side = rightOf(f);
             return { pos: tk.clone().addScaledVector(f, -(1.05 - 0.2 * k)).addScaledVector(side, 0.5 - 0.08 * k).addScaledVector(UP, 0.28), look: tk.clone().addScaledVector(UP, 0.02), fov: 40 };
           } },
-        // C: beside him, along the raised arm and out over the pool where the glob goes (from behind and well out
-        //    to his side, him at the frame's left: from just behind his head, it filled half the frame in
-        //    silhouette and hid the glove; the cinematics QC pass, docs/systems/cinematics-qc.md)
+        // C: over his shoulder (the lit tank on his back at the frame's side) toward what hums back beside the pool,
+        //    as he turns to it: the chest beyond him
         { dur: FILL.C, clear: false,
           from: (t) => {
-            const k = smooth(t / FILL.C), c = chest(_h), f = facing(_f), side = rightOf(f);
-            return { pos: c.clone().addScaledVector(side, 1.6).addScaledVector(f, -1.7 + 0.2 * k).addScaledVector(UP, 0.15), look: c.clone().addScaledVector(f, 3).addScaledVector(UP, 0.05), fov: 50 };
+            const k = smooth(t / FILL.C), c = chest(_h);
+            const to = V(answer.x - c.x, 0, answer.z - c.z);
+            const d = to.lengthSq() > 1 ? to.normalize() : facing(_f), side = rightOf(d);
+            return { pos: c.clone().addScaledVector(d, -(2.1 - 0.3 * k)).addScaledVector(side, 0.75).addScaledVector(UP, 0.3), look: c.clone().addScaledVector(d, 4).addScaledVector(UP, -0.25), fov: 46 };
           } },
         // D: his face
         { dur: FILL.D, clear: false, from: closeUp({ angle: -0.5, dur: FILL.D }) },
@@ -182,9 +189,10 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
       beats: [
         { t: 0.2, run: () => sound.swell?.('father', P.clone()) },
         { t: FILL.fillAt, run: () => doFill() },
-        // the glove's knuckles light again, one after another, for the shot to see
+        // the tank's lights come on again, one after another, for the shot to see
         { t: FILL.A + FILL.B + 0.2, run: () => { if (tool?.ringLit) tool.ringLit = tool.ringLit.map((_, i) => -i * 0.7); } },
-        { t: FILL.sparkAt, run: () => tool?.spark?.(aimDir) },
+        // and something beside the pool hums back
+        { t: FILL.answerAt, run: () => sound.boxAnswer?.(0.6) },
       ],
       onStart: (mm) => {
         if (tool) tool.fillTo = 0;   // (the glass stays dry until its beat, then fills slowly)
@@ -196,15 +204,13 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
         if (tool) tool.fillTo = t < FILL.fillAt ? 0 : k;
         // the tank glows on his back as it fills
         if (t > B0 && t < D0 + 0.5) { const tk = tankAt(_h); tankLight.set(tk.x, tk.y + 0.3, tk.z, 7 * k); } else dark(tankLight);
-        // he lifts the glove and lets the first glob go
-        const lift = t < C0 ? 0 : t < D0 ? smooth((t - C0) / 0.6) * (1 - smooth((t - D0 + 1.0) / 0.6)) : 0;   // (down before his face's panel)
-        player.aim = lift > 0.01 ? { k: lift, point: sparkTo, dir: aimDir } : null;
-        mm.eyes = t < C0 ? tankAt(_f) : t < D0 ? sparkTo : ahead;
+        // he looks round at the full tank, then turns to what hums back (no aiming, nothing fired: issue #70)
+        if (t > FILL.answerAt) mm.face = answer;
+        mm.eyes = t < C0 ? tankAt(_f) : t < FILL.answerAt ? tankAt(_f) : answer;
         mm.look = t > D0 + FILL.SMIRK ? 'smirk' : null;
       },
       onEnd: () => {
         if (tool) tool.fillTo = null;
-        player.aim = null;
         dark(tankLight);
         doFill();
         if (filled.wasDry) toast(FILLED());

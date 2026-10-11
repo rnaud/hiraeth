@@ -135,10 +135,13 @@ tone, a swell of the world's score, then back to you.
   - *the empty tank's first fill* (`desert.moment.fill`), the first wade with the dry tank: A,
     over the water at him standing in the pool; B, over his shoulder on the glass as the water
     climbs into it slowly in three colours (`tool.fillTo` holds the glass's level), its glow on
-    his back; C, beside him: he lifts the glove, its knuckles light one by one, and a first glob
-    (`tool.spark(dir)`, spending nothing) splashes out across the pool; D, his face: a slight
-    smirk. To the father's theme. The jar fills and the controls are said (RT / R2, RB / R1) at
-    its end.
+    his back; C, over his shoulder, the tank's lights coming on one by one: the chest beside the
+    pool hums back (`sound.boxAnswer`) and he turns to it (the lift valve's, found from
+    `PLACEMENTS`); D, his face: a slight smirk. To the father's theme. The jar fills and the tank's
+    words are said at its end. Until the author's playthrough (October 2026, issue #70) C ended
+    with him lifting the glove and firing a first glob over the pool: he has nothing to fire with
+    until the gun in the Givers' Hearth. No cinematic shows a thing used before it is found (the
+    cinematics QC skill's checklist).
   - **Show, don't tell** (players: "the character feels corny"): the traveller says nothing in
     them and reacts with his face only, a slight smirk at most; no surprised or happy faces, no
     gestures. `tests/moment.test.js` holds them to it (no line in his voice, no big look).

@@ -71,6 +71,7 @@ export const CHANGELOG = [
     // the chests (docs/systems/boxes.md "nothing is fired before there is something to fire it with")
     'The backpack comes out of Qanat’s chest as empty as it is: its glass is dry on the card, and nothing comes up over the card while you read it. After it, he simply has it on his back: no more firing it, and no copy of it flying into him and shrinking away.',
     'Out of the chest by the giant’s pool, the lift valve goes over his shoulder onto the pack with a click instead of being fired like a gun he doesn’t have yet; the same for the other parts of the pack. Nothing found in a chest shrinks away to nothing any more.',
+    'When your empty tank first fills in the giant’s pool, the scene no longer ends with you firing water over the pool with a gun you don’t have yet: the tank’s lights come on, the chest beside the pool hums back, and you turn to it.',
     'The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.',
     // <<< the author’s desert playthrough
   ] },

@@ -105,6 +105,7 @@ The script's `scoreTechnical` starts at 5 and takes points off; confirm or overr
 | Every line carries a tone | `node --test tests/tone.test.js` |
 | Desktop and phone landscape | a `--size 844x390 --mobile` run: subtitle, skip tag and letterbox fit, the subject still in frame at the narrower aspect |
 | Moebius style | ink lines on everything, flat colour, no white or swimming shadows, no off-palette blooms; compare with `docs/systems/references.md` |
+| **Nothing used before it is found** | the author's rule (issue #70): a cinematic never shows him using a weapon, a gadget or a strength the player can't have at that point in the progression (`docs/systems/progression.md`: what he starts with, which chest gives what, in which order). Check what each panel and beat does (`player.aim`, `tool.spark`, `fluidShoot`, a sword drawn, a jump he can't make yet), and the box beats (`src/boxes/beats.js`: only what shoots is fired, `tests/box-beats.test.js`). The desert's tank fill ended with a glob fired over the pool before the gun; the backpack's and the lift valve's chests fired them like guns. Count it a technical fault, and fix it by showing something else (a look, a sound answering, the next goal) |
 
 ## 4. Interest checklist (score /5)
 

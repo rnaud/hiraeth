@@ -265,6 +265,12 @@ test('the empty tank’s first fill is filmed once: it fills on its beat, the ja
   assert.deepEqual(refills, [], 'the glass is still dry: it fills on its beat');
   step(Math.round(FILL.fillAt * 30) + 3);
   assert.equal(refills.length, 1, 'it fills');
+  // (he has nothing to shoot with yet, the gun is in the Givers' Hearth: the fill no longer ends with a glob fired
+  //  over the pool, the author's playthrough, issue #70)
+  let aimed = false;
+  for (let i = 0; i < Math.round((FILL.B + FILL.C) * 30) - 6; i++) { step(1); if (player.aim) aimed = true; }
+  assert.equal(aimed, false, 'he never raises anything to fire');
+  assert.equal(FILL.sparkAt, undefined, 'nothing is shot');
   assert.equal(game.flag('tool.empty'), false, 'for good');
   assert.ok(!rt.quests.has('water'), 'the jar waits for the end');
   assert.deepEqual(sound.swells.slice(-1), ['father'], 'the father’s theme');
