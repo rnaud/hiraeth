@@ -5,7 +5,7 @@
 # views; its bench JSON, its metrics log and its pictures fetched back to this Mac.
 #   scripts/bench/deck-unity.sh put <dir with memento-js.x86_64 | .tar.gz> <name>      copy a player over
 #   scripts/bench/deck-unity.sh run <name> <level> <views.json> <out dir here> [player args…]
-#   scripts/bench/deck-unity.sh stop | ls | rm <name>
+#   scripts/bench/deck-unity.sh busy | stop | ls | rm <name>   (busy: what bench, if any, runs there now)
 # REFRESH: gamescope's refresh rate (default 90, the OLED's Gaming Mode; 60 for the 60 Hz rows). The player's own
 # arguments follow (-bench 6 -split -metrics are always passed; -vsync 1, -no-grd, -shadow-lists, … for the levers).
 # The player's data (persistentDataPath: prewarm.txt, unity.log, Player.log) goes to
@@ -14,6 +14,10 @@
 DECK=${DECK:-deck@steamdeck.local}
 BASE=.local/share/moebius-bench-games
 PROF=.local/share/moebius-bench-unity
+# One bench at a time: a run refuses to start while either bench's unit (this one's, or deck-run.sh's memento-bench)
+# is active, or a bench player or headless gamescope is still up (two agents' runs once collided and both measured wrong).
+BUSY='for u in memento-unity-bench memento-bench; do systemctl --user is-active -q $u && echo -n "$u "; done
+  pgrep -f "memento-js[.]x86_64|gamescope --backend[ ]headless" >/dev/null && echo -n "a bench player"; true'
 ENVS='export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus'
 case "$1" in
   put)
@@ -24,6 +28,8 @@ case "$1" in
     ssh -o BatchMode=yes "$DECK" "rm -rf $BASE/$name/*_BackUpThisFolder_ButDontShipItWithYourGame; du -sh $BASE/$name" ;;
   run)
     name=$2; level=$3; views=$4; out=$5; shift 5
+    busy=$(ssh -o BatchMode=yes "$DECK" "$ENVS; $BUSY")
+    if [ -n "$busy" ]; then echo "the Deck is busy with another bench ($busy): not started"; exit 2; fi
     scp -q "$views" "$DECK:$PROF/views.json"
     ssh -o BatchMode=yes "$DECK" "$ENVS
       rm -rf $PROF/out && mkdir -p $PROF/out $PROF/config
@@ -38,8 +44,9 @@ case "$1" in
     scp -q "$DECK:$PROF/out/*" "$out/" 2>/dev/null
     ssh -o BatchMode=yes "$DECK" "cat \"$PROF/config/unity3d/rnaud/Hiraeth JS/unity.log\"" > "$out/unity.log" 2>/dev/null
     ls "$out" ;;
+  busy) b=$(ssh -o BatchMode=yes "$DECK" "$ENVS; $BUSY"); echo "${b:-idle}" ;;
   stop) ssh -o BatchMode=yes "$DECK" "$ENVS; systemctl --user stop memento-unity-bench 2>/dev/null; true"; echo stopped ;;
   ls) ssh -o BatchMode=yes "$DECK" "du -sh $BASE/* 2>/dev/null" ;;
   rm) ssh -o BatchMode=yes "$DECK" "rm -rf $BASE/$2" ;;
-  *) echo "usage: $0 put <dir|tar.gz> <name> | run <name> <level> <views.json> <out> [args] | stop | ls | rm <name>"; exit 1 ;;
+  *) echo "usage: $0 put <dir|tar.gz> <name> | run <name> <level> <views.json> <out> [args] | busy | stop | ls | rm <name>"; exit 1 ;;
 esac

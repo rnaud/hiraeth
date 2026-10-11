@@ -18,6 +18,10 @@ case "$1" in
   start)
     kind=${2:-desktop}
     game=${3:-}
+    # (one bench at a time: not while deck-unity.sh's player, or another run of this one, is up)
+    busy=$(ssh -o BatchMode=yes "$DECK" 'export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+      for u in memento-unity-bench memento-bench; do systemctl --user is-active -q $u && echo -n "$u "; done; pgrep -f "memento-js[.]x86_64" >/dev/null && echo -n "a bench player"; true')
+    if [ -n "$busy" ]; then echo "the Deck is busy with another bench ($busy): not started"; exit 2; fi
     ssh -o BatchMode=yes "$DECK" "export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
       B=\$(readlink -f ~/.local/share/moebius-deck/current)/moebius
       mkdir -p ~/.local/share/moebius-bench
