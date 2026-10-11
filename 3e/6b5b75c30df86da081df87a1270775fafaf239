@@ -1,0 +1,19 @@
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_d648ce9f9bc257::t_de6de04c70cb7c 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3e6b5b75c30df86da081df87a1270775fafaf239",
+  "prompts": {},
+  "sessions": {
+    "s_d648ce9f9bc257": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a34fd84e7fe7275a6",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
