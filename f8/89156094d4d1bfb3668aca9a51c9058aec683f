@@ -1,0 +1,51 @@
+DONE.md
+  s_9ca76055a220ed::t_0ceaf07cb1d1bf 2483-2491
+changelog.md
+  s_9ca76055a220ed::t_d79b96bc2e0536 13-14
+docs/README.md
+  s_9ca76055a220ed::t_d90b9377b024e2 68
+docs/story-bible.md
+  s_9ca76055a220ed::t_851fbd72564c0c 60-69
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_c2848c63d2aad6 1,3,6,8-39,45,53-57
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_d45fe414ec9f9f 586-587
+docs/systems/items.md
+  s_9ca76055a220ed::t_01b94e7a2e1d6b 9-12
+src/boxes/chest.js
+  s_9ca76055a220ed::t_373a059fb8de1b 1-298
+src/boxes/index.js
+  s_9ca76055a220ed::t_45ebed87525ad8 5,14-20,190,202,215,228-230
+src/boxes/model.js
+  s_9ca76055a220ed::t_b0d84db5fb8827 2,6-9,14-19,21-28,30,33-34,39,47-48,71-74,76-77,81-98,100-112,128-141
+src/boxes/scene.js
+  s_9ca76055a220ed::t_0cf54c7ab0669f 2,5-8,16-19,34-37,119,126-128,187,224,308-314,336,435-456,570
+src/changelog-media.js
+  s_9ca76055a220ed::t_ff925bf7897192 541-544,547-564
+src/changelog.js
+  s_9ca76055a220ed::t_b337a49a70604b 17-19
+src/materials.js
+  s_9ca76055a220ed::t_f68cdd97425a67 1756-1759,1761,1763,1768-1770,1772-1773,2315,2319-2323,2326,2803-2806,2947-2949
+tests/boxes.test.js
+  s_9ca76055a220ed::t_e16d58a9c997a3 18-20,241,370,389-461
+unity/Memento/Assets/Memento/Shaders/Marks.hlsl
+  s_9ca76055a220ed::t_18d647879d9d6d 440,442,444-445
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_9ca76055a220ed::t_2784c685f563b2 52,818,822,825-827,829
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f889156094d4d1bfb3668aca9a51c9058aec683f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
