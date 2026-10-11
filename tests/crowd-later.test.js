@@ -38,7 +38,10 @@ const sig = (b) => ({
 const now = town(), all = buildPeople(now.physics, now.spots, { seed: 5 });
 
 test('worked out later, in any order, the crowd is the one worked out at once', () => {
-  const later = town(), q = new DeferredWork({ guard: 0 });
+  // (a clock that ticks once a look, not the machine's: a few steps a frame however slow the machine; with
+  // performance.now and a 0.0001 ms budget, CI's runners sometimes did nothing in a frame and ran out of frames)
+  let tick = 0;
+  const later = town(), q = new DeferredWork({ guard: 0, now: () => tick++ });
   const b = runSteps(buildPeopleSteps(later.physics, later.spots, { seed: 5, defer: q }));
   assert.equal(b.later, 5, 'every walk waits');
   assert.ok(b.people.every((p) => !p.walk), 'only those standing about so far');
@@ -48,7 +51,7 @@ test('worked out later, in any order, the crowd is the one worked out at once', 
   assert.equal(b.later, 4);
   assert.ok(b.people.some((p) => p.walk && Math.abs(p.home.z - 4) < 2), 'the walk by the spawn is there');
   // then a frame at a time, from far away (the opposite order to the spawn's)
-  for (let f = 0; f < 4000 && q.pending; f++) q.run(V(-500, 0, 6), 0.0001);
+  for (let f = 0; f < 4000 && q.pending; f++) q.run(V(-500, 0, 6), 4);
   assert.equal(b.later, 0);
   assert.deepEqual(sig(b), sig(all));
 });
