@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_a50fcd48a47159 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_7dc48e71db5ba4 1726-1742
+src/changelog.js
+  s_9ca76055a220ed::t_26210a23676673 15-16
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_81a7c51f0f6ec9 61-66,370-390,588-589
+src/levels/space-city.js
+  s_9ca76055a220ed::t_b13cf7e511f846 62-63,322-323,328-344,353,430
+src/levels/spheres.js
+  s_9ca76055a220ed::t_61eda60700d733 48-50,342-344,353,355-366,369,520,593-594,1041-1043
+tests/moonfoundry.test.js
+  s_9ca76055a220ed::t_4f1f7990762249 214-239
+tests/spacecity-world.test.js
+  s_9ca76055a220ed::t_953992aa61d62c 103-129
+tests/spheres.test.js
+  s_9ca76055a220ed::t_4064fc7d57da2c 156-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "17e3487f4fdd23c842fa7fe67627d77b0dbe6204",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
