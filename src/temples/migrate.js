@@ -74,6 +74,16 @@ export const LAYOUTS = {
       { if: ['lit.eW', 'open.wdisc', 'gadget', 'lit.e0', 'open.d3', 'open.d4', 'boss'], set: { 'unlocked.dK': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.eT': true, 'drum.ballT': 1 } },
     ],
   },
+  // v1.48: the Engine-House round its Fourth Chamber, past the chest. Past the Crank Passage's door: its small key in it,
+  // the Boiler Room won and its flue open, the chamber's shutters up; past the Furnace's bridge: the great key in the
+  // warden's door too (before it, the Governor Room is a walk back)
+  buried: {
+    v: 2,
+    steps: [
+      { if: ['open.d3', 'lit.k2', 'open.br1', 'boss'], set: { 'unlocked.d3': 1, 'found.kS': true, 'lit.arB': true, 'open.dBo': true, 'lit.k0': true, 'open.dS': true } },
+      { if: ['open.br1', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.k3': true } },
+    ],
+  },
 };
 export function migrateTempleLayouts(g) {
   let n = 0;

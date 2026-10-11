@@ -450,6 +450,19 @@ The **Warden's Well** (`incal.js`, 4.22, structure 2): its Climb is the hub, its
 only while the small vane on its far wall turns, `VANES.wing` s: splash it from this side and cross before it slows; the
 key on the far side, and back the same way). The door at the balcony's end (`d1`) takes both keys and the ball on its plate.
 
+Round 2 (issue #23) varies the shape, so the reworked houses stop sharing one template (two wings off a hub before the
+chest, one door of two keyholes). The **Engine-House** (`buried.js`, 4.0, structure 2) is a hub *past* its chest: the
+Fourth Chamber's four still eyes, once a try that opened nothing, sit two by each of its two shutters, west and east
+(one element `dS`, two `Door` pieces: a second piece of an id is its twin, `runtime.js` `twins`, and opens with it), so
+the fourth chamber's first lock opens the hub. West the **Boiler Room** (an arena among cold boilers; won, the small
+key's cage sinks and its flue opens, north and east into the Crank Passage beside its door: a loop back), east the
+**Governor Room** (the great key caged on an anvil under a hammer; one ball between two cranks, the hammer's and the
+one under four eyes on pistons. Rolled to the pistons', they stand for four in a breath, but the hammer runs down on the
+cage; rolled back, the eyes stay awake and the cage sinks: `kB`'s `when` wants both). The Crank Passage's door (`d3`)
+takes the small key and its eyes, the Tooth-Warden's (`d4`) the great key. The audit reads a lock that wants one ball at
+two of its stops as an order to find (`sequence`). The wings' marks are placed after all the others, so the machines'
+ids by mark (`foes.<id>.m<i>`) stay as old saves knew them.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

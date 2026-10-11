@@ -178,9 +178,10 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
       if (drum) for (const w of conditionKeys(E[drum[1].gap]?.opens)) if (E[w.id] && !keys.some((x) => x.id === w.id)) keys.push({ id: w.id, how: w.how, room: E[w.id].room ?? null, mech: mechanicOf(w.id, E[w.id], { elements: E, piece: byId.get(w.id) }), gap: true });
     }
     // a plate a ball is meant for: the key is the ball's push (the plate is where it must go)
-    const merged = [];
+    const merged = [], stopsWanted = new Map();
     for (const k of keys) {
       const drum = k.how === 'pressed' ? Object.entries(E).find(([, e]) => drumFor(e, k.id)) : null;
+      if (drum) stopsWanted.set(drum[0], new Set([...(stopsWanted.get(drum[0]) ?? []), k.id]));
       // (a plate only the lens shows, among plain ones: the push and the reveal, the Footprint's walker's print)
       const shown = byId.get(k.id)?.o?.hidden, seenBy = shown ? [`gadget:${shown === true ? 'lens' : shown}`, 'reveal'] : [];
       const q = drum ? { id: drum[0], how: 'drumOn', room: drum[1].room ?? k.room, mech: ['push', ...seenBy], plate: k.id } : k;
@@ -216,7 +217,8 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     locks.push({
       id, a: l.a, b: l.b, door: l.door ?? null, type: l.cage ? 'cage' : lockEl?.type ?? (l.needs ? 'traverse' : 'open'), pos: lockPos, stand,
       keys: ks, mechanics: mech, arena, bossDoor: isBossDoor, latch: !!lockEl?.latch, reversible: isGate && !lockEl.latch ? reversible(lockEl.opens, E) : false,
-      sequence: ks.some((k) => E[k.id]?.after || E[k.id]?.order || Object.values(E).some((e) => e.after === k.id)),
+      // (an order: an eye in turn, or one ball wanted at two of its stops, one after the other: the Engine-House's governor)
+      sequence: ks.some((k) => E[k.id]?.after || E[k.id]?.order || Object.values(E).some((e) => e.after === k.id)) || [...stopsWanted.values()].some((p) => p.size >= 2),
       fetched: ks.filter((k) => k.how === 'key' && k.room !== l.a && k.room !== l.b).length,
       traversalHere: traversal[l.a] ?? [],
       index: roomOrder.indexOf(l.b),

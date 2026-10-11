@@ -129,7 +129,9 @@ const KNOWN = {
   garage: { sink: 0, hover: 0, inside: 13, walk: 1 },
   // (v1.46: the oil main, a solid pipe 0.4 m over the sand from the oculus to the wheel, moved the samples: 43 → 45 climbs
   // inside, none on the pipe, the sand banks' and the Engine-House's)
-  buried: { sink: 23, hover: 1, inside: 30, walk: 4 },
+  // (v1.49: the Engine-House's wings moved the samples: 26 → 46 feet sink, all but one on the canyon's banked sand, the
+  // other in the shutter's doorway; climbs inside 45 → 40)
+  buried: { sink: 46, hover: 1, inside: 40, walk: 4 },
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
   perdide: { sink: 3, hover: 0, inside: 4, walk: 7 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
   // (v1.48: the passages under the towers by Signal Square and the Undertower's wings both moved the samples; nearly all

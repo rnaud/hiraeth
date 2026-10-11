@@ -83,7 +83,9 @@ export class TempleRuntime {
   add(Piece, o) {
     const p = new Piece(this, o);
     this.pieces.push(p);
-    if (o.id) this.byId.set(o.id, p);
+    // (a second piece of the same id, a door's twin: the Engine-House's two shutters, one element; it opens with the first)
+    if (o.id && this.byId.has(o.id)) (this.twins ??= new Map()).set(o.id, [...(this.twins.get(o.id) ?? []), p]);
+    else if (o.id) this.byId.set(o.id, p);
     if (p instanceof Mark) this.marks.push(p);
     if (p instanceof Pit) { this.pits.push(p); this.pieces.pop(); }
     return p;
@@ -171,7 +173,7 @@ export class TempleRuntime {
     this.def.onResolved?.(this);
   }
   applyDoors() {
-    for (const { id, open } of this.logic.update()) this.byId.get(id)?.setOpen?.(open, false);
+    for (const { id, open } of this.logic.update()) for (const p of [this.byId.get(id), ...(this.twins?.get(id) ?? [])]) p?.setOpen?.(open, false);
   }
 
   update(dt, t) {

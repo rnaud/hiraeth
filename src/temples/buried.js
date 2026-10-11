@@ -4,7 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Hammer, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Hammer, Mark, Pit, Key } from './pieces.js';
 import { sentinelModel } from './guardians.js';
 
 // The Buried Machine's temple: the Engine-House, a drum of rust-red iron as
@@ -30,10 +30,19 @@ import { sentinelModel } from './guardians.js';
 //   the Fourth Chamber     the makers' chest: the FOURTH CHAMBER (src/items.js 'cell'): a fourth unit on the magic
 //                          bar. Its way on is open. Four eyes on its north wall wake only together, inside one
 //                          breath: four shots, and the starting bar only holds three (needs 'magic:4', src/resources.js
-//                          meets). Nothing is locked by them: a try
+//                          meets). Since v1.48 (issue #23) they are two by each of its shutters, west and east: woken,
+//                          the shutters roll up (the fourth chamber's first lock, where failing costs nothing). The hub:
+//   the Boiler Room        (west, an arena) the engine's cold boilers; its doors shut behind you while its keepers
+//                          stand. Won, the small key's cage sinks and its flue opens, a way on into the Crank Passage
+//   the Governor Room      (east) the great key caged on an anvil, the hammer over the cage; one ball between two
+//                          cranks, the hammer's and the one under four eyes on pistons behind a parapet. It starts in
+//                          the hammer's: the hammer still, the pistons rising in turn. Roll it to the pistons' crank and
+//                          they stand for four in a breath, but the hammer runs, down on the cage; roll it back (a woken
+//                          eye stays awake) and the hammer stands still, and the cage sinks. The warden's door's key
 //   the Crank Passage      a room on: its door wants four eyes in one breath too, but they stand on pistons behind a
 //                          parapet that rise in turn, one crank for all four: jam it with the ball by it, all four
-//                          up (the fourth chamber's first lock, where failing costs nothing)
+//                          up (the fourth chamber with the push, where failing costs a wait). And the Boiler Room's
+//                          small key
 //   the Furnace            a chasm over embers; the bridge rises on four eyes in one breath, but each eye stands on
 //                          a piston behind the far parapet, and the pistons rise in turn with the stroke, never four
 //                          up inside a breath. Two cranks on the near lip drive the two west pistons, a ball in a
@@ -85,12 +94,19 @@ export const GEAR = { turn: 1.4, jammed: 0.25, free: 0.125 };
 
 export const LOGIC = {
   id: 'buried', entry: 'threshold', gadget: 'cell',
-  rooms: { threshold: { checkpoint: true }, pistons: { checkpoint: true }, weight: { checkpoint: true }, cell: { checkpoint: true }, furnace: { checkpoint: true }, furnaceFar: {}, hall: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, pistons: { checkpoint: true }, weight: { checkpoint: true }, cell: { checkpoint: true }, ways: {}, boiler: { checkpoint: true }, gov: { checkpoint: true }, furnace: { checkpoint: true }, furnaceFar: {}, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'pistons' },
     { a: 'pistons', b: 'weight', door: 'pumps' },   // the pistons, while the valve is open and no ball sits in their crank
     { a: 'weight', b: 'cell', door: 'h1' },         // the hammer over the walkway, stopped: the gantry's ball in its crank
-    { a: 'cell', b: 'furnace', door: 'd3' },        // the Crank Passage's door, a room on from the chest (one room with it)
+    // the Fourth Chamber is the hub (v1.48, issue #23), past the chest: its four eyes roll up the shutters over its ways
+    // west and east (`ways`, one shutter each side, one element); west the Boiler Room (an arena, its flue a way on into
+    // the Crank Passage: the loop), east the Governor Room (one ball, two engines: the great key)
+    { a: 'cell', b: 'ways', door: 'dS' },
+    { a: 'ways', b: 'boiler', door: 'dB' },         // (open: it shuts behind you while its keepers stand)
+    { a: 'boiler', b: 'cell', door: 'dBo' },        // the flue, won: out into the Crank Passage, by its door
+    { a: 'ways', b: 'gov' },
+    { a: 'cell', b: 'furnace', door: 'd3' },        // the Crank Passage's door, a room on from the chest (one room with it): and the small key
     { a: 'furnace', b: 'furnaceFar', door: 'br1' },
     { a: 'furnaceFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
@@ -107,12 +123,29 @@ export const LOGIC = {
     pJ: { type: 'plate', room: 'weight' },
     h1: { type: 'door', opens: { drumOn: ['ballJ', 'pJ'] } },
     chest: { type: 'gadget', room: 'cell', item: 'cell' },
-    k0: { type: 'switch', room: 'cell', needs: ['magic:4'] },       // the chamber's four still eyes: a try, nothing waits on it
+    k0: { type: 'switch', room: 'cell', needs: ['magic:4'] },       // the chamber's four still eyes, two by each shutter
+    dS: { type: 'door', opens: { lit: 'k0' }, latch: true },        // its shutters west and east (two pieces, one element)
     // the Crank Passage: four eyes on pistons that rise in turn, one crank for all four: jammed, all stay up
     bK: { type: 'drum', room: 'cell', plate: 'pK', plateAt: 1, start: 0 },
     pK: { type: 'plate', room: 'cell' },
     k1: { type: 'switch', room: 'cell', needs: ['magic:4'], when: { drumOn: ['bK', 'pK'] } },   // four eyes in one breath
-    d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
+    d3: { type: 'door', lock: 'small', opens: { lit: 'k1' }, latch: true },
+    // the Boiler Room: its keepers beaten, the small key's cage sinks and the flue opens on into the Crank Passage
+    arB: { type: 'arena', room: 'boiler' },
+    kS: { type: 'key', kind: 'small', room: 'boiler', when: { lit: 'arB' } },
+    dB: { type: 'door', opens: null },
+    dBo: { type: 'door', opens: { lit: 'arB' }, latch: true },
+    // the Governor Room: one ball and two cranks, the hammer's (over the great key's cage, on its anvil) and the one
+    // under four eyes on pistons. It starts in the hammer's: the hammer still, the pistons rising in turn. Rolled to the
+    // pistons', they stand for four in a breath, but the hammer runs, down on the cage; rolled back (a woken eye stays
+    // awake), the hammer stands still again and the cage sinks
+    // (the eyes before the ball: once they can wake, the marker points at them, not at the ball's other stop)
+    k3: { type: 'switch', room: 'gov', needs: ['magic:4'], when: { drumOn: ['bQ', 'pQ'] } },
+    bQ: { type: 'drum', room: 'gov', stops: { pH: 0, pQ: 1 }, start: 0 },
+    pH: { type: 'plate', room: 'gov' },
+    pQ: { type: 'plate', room: 'gov' },
+    h2: { type: 'door', opens: { drumOn: ['bQ', 'pH'] } },          // the hammer stopped (no doorway: it guards the cage)
+    kB: { type: 'key', kind: 'big', room: 'gov', when: { all: [{ lit: 'k3' }, { drumOn: ['bQ', 'pH'] }] } },
     // the Furnace: the two west pistons jammed up (a ball in each crank), then four in a breath
     bA: { type: 'drum', room: 'furnace', plate: 'pA', plateAt: 1, start: 0 },
     pA: { type: 'plate', room: 'furnace' },
@@ -120,7 +153,7 @@ export const LOGIC = {
     pB: { type: 'plate', room: 'furnace' },
     k2: { type: 'switch', room: 'furnace', needs: ['magic:4'], when: { all: [{ drumOn: ['bA', 'pA'] }, { drumOn: ['bB', 'pB'] }] } },
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
-    d4: { type: 'door', opens: null },                            // the arena's door: shut while the warden fights
+    d4: { type: 'door', lock: 'big' },                            // the great key's door (and the arena's: shut while the warden fights)
     // the hall's great gear: a ball in its teeth stops the warden turning (its last phase wants it)
     bG: { type: 'drum', room: 'hall', plate: 'pG', plateAt: 1, start: 0 },
     pG: { type: 'plate', room: 'hall' },
@@ -221,6 +254,105 @@ class Cranks {
   }
 }
 
+// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
+/**
+ * The Fourth Chamber's wings (local m, floor 7): the Boiler Room west (an arena), its flue north to the Crank Passage's
+ * west wall (the loop); the Governor Room east (the great key's anvil under the hammer, the hammer's crank and the
+ * pistons' at the two ends of the ball's groove).
+ */
+export const WING = {
+  c: 75.2,                                     // the Fourth Chamber's z (C3)
+  boiler: { x: -21.5, w: 16, d: 14 },
+  flue: { x: -17, z: 95.2 },                   // its way out: north up the flue, then east into the Crank Passage
+  gov: { x: 22.5, w: 18, d: 16 },
+  anvil: [27.6, 71.4], cage: 2.5,              // the great key's anvil, and the hammer's foot over its caged plinth (m)
+  groove: { x: 20.4, z: [70.6, 78.4] },        // the ball's: the hammer's crank at its south end, the pistons' at its north
+  pistons: { x: [16.2, 20.2, 24.8, 28.8], z: 81.8 },
+};
+WING.zone = { min: [-29.5, 6, WING.c - 7], max: [-13.5, 17, WING.c + 7] };
+
+/** The Boiler Room's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arB', room: 'boiler', zone: WING.zone, doors: ['dB', 'dBo'], extra: 2,
+  shut: 'The door clangs shut behind you. Among the cold boilers something gets up, ticking.',
+  won: 'The last of them clatters down among the boilers. The key’s cage sinks, and the flue’s door opens.',
+}];
+
+/**
+ * The Boiler Room (west of the Fourth Chamber, an arena among the engine's cold boilers: its doors shut behind you while
+ * its keepers stand; won, the small key's cage sinks and the flue's door opens, a passage north and east into the Crank
+ * Passage beside its door: the loop) and the Governor Room (east: the great key caged on an anvil, the hammer over the
+ * cage; one ball in a groove between two cranks, the hammer's and the one under four eyes on pistons behind a parapet:
+ * the cage sinks only once the four have woken and while the hammer stands still). The small key is for the Crank
+ * Passage's door, the great key for the Tooth-Warden's.
+ */
+function wings(rt, K, M, { band, brass, rivets }) {
+  const add = (P, o) => rt.add(P, o);
+  const C = WING.c, B = WING.boiler, F = WING.flue, G = WING.gov;
+  // the Fourth Chamber's two shutters (one element: its four eyes in a breath roll both up)
+  for (const s of [-1, 1]) add(Door, { id: 'dS', at: [s * 9.6, 7, C], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ lit: 'k0' }] });
+  // ---- the Boiler Room
+  K.corridor([-12.9, C], [-9.1, C], 7, { w: 5, h: 6.4 });
+  K.hall({ x: B.x, z: C, w: B.w, d: B.d, y: 7, h: 10, roof: 'oculus', oculus: 0.25,
+    doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }, { side: 'n', at: F.x - B.x, w: 4, h: 5.5 }] });
+  add(Door, { id: 'dB', at: [-12.2, 7, C], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  // two boilers along each long wall, cold, their fireboxes dark; a gauge on each
+  for (const s of [-1, 1]) for (const x of [-27.2, -21.9]) {
+    const z = C + s * 5.2;
+    K.both(M.stone, T(new THREE.CylinderGeometry(1.3, 1.3, 4.2, 18), [x, 8.9, z], [0, 0, Math.PI / 2]));
+    for (const dx of [-1.7, 1.7]) K.add(band, T(new THREE.CylinderGeometry(1.42, 1.42, 0.3, 18), [x + dx, 8.9, z], [0, 0, Math.PI / 2]));
+    K.both(M.dark, box(1.6, 1.0, 1.0, x, 7.5, z - s * 0.9));
+    K.add(brass, T(new THREE.CylinderGeometry(0.32, 0.32, 0.1, 14), [x, 10.6, z - s * 0.6], [Math.PI / 2, 0, 0]));
+    K.add(M.trim, new THREE.CylinderGeometry(0.22, 0.22, 7.2, 8).translate(x + 1.2, 13.4, z + s * 0.4));   // (its flue pipe up into the roof)
+  }
+  add(Key, { id: 'kS', at: [B.x - B.w / 2 + 1.8, 7, C], yaw: Math.PI / 2 });
+  add(Mark, { room: 'boiler', at: [B.x + 3.2, 7, C - 2.2], yaw: Math.PI / 2 });
+  // the flue: won, its door opens; north, then east into the Crank Passage by its door
+  const fz0 = C + B.d / 2 + 1.2, fz1 = F.z + 3.0;
+  add(Door, { id: 'dBo', at: [F.x, 7, C + B.d / 2 + 0.6], w: 4, h: 5.5, lamps: [{ lit: 'arB' }] });
+  K.slab(F.x - 2.9, fz0 - 0.6, F.x + 2.9, fz1 + 0.4, 7, 0.8);
+  K.wall(F.x - 2.5, fz0, F.x - 2.5, fz1, 7, 6, { t: 0.8, cap: false });
+  K.wall(F.x + 2.5, fz1, F.x + 2.5, fz0, 7, 6, { t: 0.8, cap: false, holes: [{ at: fz1 - F.z, w: 3.4, h: 5 }] });
+  K.wall(F.x + 2.9, fz1 + 0.4, F.x - 2.9, fz1 + 0.4, 7, 6, { t: 0.8, cap: false });
+  K.both(M.wall, box(5.8, 0.8, fz1 - fz0 + 1.2, F.x, 13.42, (fz0 + fz1) / 2));
+  K.add(band, box(0.12, 0.5, fz1 - fz0, F.x - 2.08, 11, (fz0 + fz1) / 2));
+  K.corridor([F.x + 2.5, F.z], [-8.6, F.z], 7, { w: 3.4, h: 5 });
+
+  // ---- the Governor Room: the great key on its anvil under the hammer, one ball between two cranks
+  K.corridor([9.1, C], [12.9, C], 7, { w: 5, h: 6.4 });
+  K.hall({ x: G.x, z: C, w: G.w, d: G.d, y: 7, h: 16, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
+  const gx0 = G.x - G.w / 2, gx1 = G.x + G.w / 2, gz0 = C - G.d / 2;
+  const [AX, AZ] = WING.anvil, [Z0, Z1] = WING.groove.z, GX = WING.groove.x;
+  K.add(band, box(G.w, 0.5, 0.12, G.x, 13, gz0 + 0.06)); rivets(gx0 + 0.4, gx1 - 0.4, 13.5, gz0 + 0.1); rivets(gx0 + 0.4, gx1 - 0.4, 12.5, gz0 + 0.1);
+  // the anvil, the great key caged on it, and the hammer over the cage: running, it comes down on the bars
+  K.both(M.dark, box(3.4, 0.3, 3.0, AX, 7.15, AZ));
+  K.add(band, box(3.6, 0.12, 3.2, AX, 7.3, AZ));
+  add(Key, { id: 'kB', big: true, at: [AX, 7.3, AZ], yaw: -Math.PI / 2 });
+  add(Hammer, { id: 'h2', at: [AX, 7.3 + WING.cage, AZ], yaw: Math.PI / 2, w: 2.6, d: 2.4, top: 3.0, period: 2.6, crank: [GX, 8.6, Z0 - 0.4], r: 1.5 });
+  // the ball's groove between the two cranks: the hammer's at its south end (where it starts), the pistons' at its north
+  K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 0.6, GX, 7.02, (Z0 + Z1) / 2));
+  add(Ball, { id: 'bQ', a: [GX, 7.04, Z0], b: [GX, 7.04, Z1], r: 0.9 });
+  add(Plate, { id: 'pH', at: [GX, 7, Z0], r: 1.1 });
+  add(Plate, { id: 'pQ', at: [GX, 7, Z1], r: 1.1 });
+  // four eyes on pistons behind the parapet along the north wall, one crank for all four at the groove's north end
+  const PZ = WING.pistons.z, JAM = { drumOn: ['bQ', 'pQ'] };
+  K.both(M.wall, box(G.w - 1.2, 2.4, 0.6, G.x, 8.2, PZ - 1)); K.add(band, box(G.w - 1, 0.3, 0.7, G.x, 9.3, PZ - 1)); rivets(gx0 + 1, gx1 - 1, 8.6, PZ - 1.32);
+  for (const x of WING.pistons.x) K.both(M.dark, new THREE.CylinderGeometry(0.95, 1.05, 0.3, 16).translate(x, 7.15, PZ));
+  K.add(M.stone, box(G.w - 3, 0.36, 0.36, G.x, 7.4, PZ + 0.5));
+  add(Bank, { id: 'k3', window: VOLLEY, stroke: STROKE,
+    eyes: WING.pistons.x.map((x, i) => ({ at: [x, 12.0, PZ - 0.7], yaw: Math.PI, piston: { drop: 3.6, phase: i / 4, jam: JAM } })),
+    unmet: 'All four woke, and went dark again: they never stand up together. Something has to hold their pistons up.',
+    fade: 'They woke one by one as their pistons rose, and sank dark again. The pistons rise in turn: never four in one breath.' });
+  add(Cranks, { at: [[GX, 8.4, Z1 + 0.6]], to: [[GX, 7.4, PZ + 0.5]], r: 1.3, jam: [JAM] });
+  // the governor itself on the east wall: a spindle, two flyballs on their arms (still: the engine is jammed)
+  K.both(M.trim, new THREE.CylinderGeometry(0.16, 0.16, 6, 8).translate(gx1 - 0.9, 11, C + 3.4));
+  for (const s of [-1, 1]) {
+    K.add(M.trim, T(new THREE.BoxGeometry(0.1, 2.4, 0.1), [gx1 - 0.9, 11.6, C + 3.4 + s * 0.85], [s * 0.78, 0, 0]));
+    K.both(brass, new THREE.SphereGeometry(0.5, 12, 8).translate(gx1 - 0.9, 10.9, C + 3.4 + s * 1.7));
+  }
+  add(Mark, { room: 'gov', at: [gx0 + 2.2, 7, C - 4.6], yaw: Math.PI / 2 });
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -311,11 +443,13 @@ function layout(rt) {
   // ---- the Fourth Chamber (a rotunda, floor 7): the chest; four eyes round the far door
   K.slab(-3.2, 63, 3.2, 65.6, 7, 0.8);
   const C3 = 75.2;
-  K.rotunda({ x: 0, z: C3, y: 7, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
+  // (the house's hub since v1.48: a way west into the Boiler Room and east into the Governor Room)
+  K.rotunda({ x: 0, z: C3, y: 7, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.35 });
   K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 7, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 7.31, C3));
   K.add(band, T(annulus(9.32, 9.5, 0.6, 48), [0, 13.2, C3]));
-  // four still eyes on the north wall, either side of the open way on: four in one breath wake them (a try)
-  add(Bank, { id: 'k0', window: VOLLEY, eyes: [-5.6, -3.6, 3.6, 5.6].map((x) => ({ at: [x, 10.6, C3 + Math.sqrt(9.3 ** 2 - x * x)], yaw: Math.PI + Math.asin(x / 9.3) })),
+  // four still eyes, two either side of each shutter (west and east): four in one breath wake them, and the shutters
+  // roll up (v1.48: before, a try that opened nothing)
+  add(Bank, { id: 'k0', window: VOLLEY, eyes: [-Math.PI / 2 - 0.42, -Math.PI / 2 + 0.42, Math.PI / 2 - 0.42, Math.PI / 2 + 0.42].map((a) => ({ at: [Math.sin(a) * 9.3, 10.6, C3 + Math.cos(a) * 9.3], yaw: Math.PI + a })),
     full: 'All four woke, and went dark again: four shots in one breath, and the bar holds three.',
     fade: 'They woke one by one, and went dark again before the last: four in one breath.' });
   add(Mark, { room: 'cell', at: [6, 7, C3 - 5], yaw: -Math.PI * 0.75 });
@@ -323,7 +457,7 @@ function layout(rt) {
   // ---- the Crank Passage (floor 7), a room on: four eyes on pistons round its door, one crank for all four
   const A0 = C3 + 10.9, AD = 14;
   K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 7, 0.8);
-  K.hall({ x: 0, z: A0 + AD / 2, w: 16, d: AD, y: 7, h: 10, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
+  K.hall({ x: 0, z: A0 + AD / 2, w: 16, d: AD, y: 7, h: 10, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }, { side: 'w', at: WING.flue.z - (A0 + AD / 2), w: 3.4, h: 5 }] });   // (and the Boiler Room's flue, in from the west)
   const F0 = A0 + AD + 1.2, DZ = F0 - 0.6;
   add(Door, { id: 'd3', at: [0, 7, DZ], w: 5, h: 6.4, lamps: [{ lit: 'k1' }] });
   const QX = [-5.0, -3.4, 3.4, 5.0], QZ = DZ - 2.9, JAM = { drumOn: ['bK', 'pK'] };
@@ -410,13 +544,15 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, 7, CW), r: HR, y: K.world(0, 7, 0).y };
 
+  // (the wings last: their marks after the others, so the machines' ids by mark stay as they were)
+  wings(rt, K, M, { band, brass, rivets });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -10, -3), V(24, 40, CW + HR + 12)),
+    bounds: new THREE.Box3(V(-31, -10, -3), V(33, 40, CW + HR + 12)),
     gadget: { at: W(0, 7.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 7.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 14], [0, 7, 20, 18], [0, 9, 36, 16], [0, 11, 54.6, 12], [0, 12, C3, 16], [0, 4, F0 + 16, 24], [0, 12, F0 + 28, 18], [0, 14, CW, 30]],
+    lights: [[0, 6, 6, 14], [0, 7, 20, 18], [0, 9, 36, 16], [0, 11, 54.6, 12], [0, 12, C3, 16], [WING.boiler.x, 12, C3, 12], [WING.gov.x, 12, C3, 14], [0, 4, F0 + 16, 24], [0, 12, F0 + 28, 18], [0, 14, CW, 30]],
     guardian: { def: { ...TOOTH_WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }
@@ -536,7 +672,7 @@ function change(scene, level, rt) {
 
 export const BURIED_TEMPLE = {
   id: 'buried', levelId: 'buried', name: 'The Engine-House', doorLabel: 'door of the Engine-House',
-  gadget: 'cell', gadgetBox: 'buried.temple.cell', arenaDoor: 'd4',
+  gadget: 'cell', gadgetBox: 'buried.temple.cell', arenaDoor: 'd4', arenas: ARENAS,
   origin: [-150, 2200, -280], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

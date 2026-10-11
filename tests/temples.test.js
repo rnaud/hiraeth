@@ -435,6 +435,36 @@ test('the Undertower is a hub (issue #23): either wing alone gives its key, the 
   assert.ok(B.isOpen('dK') && B.keys('small') === 0, 'the Shell Chamber’s door stays open behind them');
 });
 
+test('the Engine-House is a hub past its chest (issue #23): the chamber’s four eyes roll up both shutters; either wing alone gives its key, the small for the passage’s door, the great for the warden’s, solved either way round; old saves past the passage find it open', () => {
+  const L = TEMPLES.buried.def.logic, items = ['backpack', 'gun', 'doublejump'];
+  for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
+  const noGov = solve(L, { items, forbid: ['k3'] });
+  assert.ok(noGov.logic.isFound('kS') && noGov.stuck.includes('furnaceFar') && !noGov.stuck.includes('hall'), 'the Boiler Room alone: its key opens the passage, and the warden’s door stays shut');
+  const noArena = solve(L, { items, forbid: ['arB'] });
+  assert.ok(noArena.logic.isFound('kB') && !noArena.stuck.includes('furnace'), 'the Governor Room alone: the great key, and the passage stays shut');
+  const noEyes = solve(L, { items, forbid: ['k0'] });
+  assert.ok(!noEyes.stuck.includes('boiler') && !noEyes.stuck.includes('gov'), 'the shutters stay down until the chamber’s four eyes wake');
+  // the governor: one ball, wanted at both its stops in turn (the pistons' first, then the hammer's)
+  const G = new TempleLogic(L, { has: (i) => ['gun', 'cell', 'magic:4'].includes(i) });
+  assert.equal(G.find('kB'), false, 'caged');
+  G.moveDrum('bQ', 1); assert.ok(G.light('k3'));
+  assert.equal(G.find('kB'), false, 'the eyes awake, and the hammer running on the cage');
+  G.moveDrum('bQ', 0); G.update();
+  assert.ok(G.isOpen('h2') && G.find('kB'), 'the hammer still again: the great key');
+  // an old save past the passage's door, on the furnace's near lip: the small key in it, the Boiler Room won and the
+  // shutters up; the great key still to fetch. Past the bridge: the great key in the warden's door as well
+  for (const [extra, past] of [[{}, false], [{ 'lit.k2': true, 'open.br1': true, checkpoint: 'hall' }, true]]) {
+    const g = new GameState(null);
+    for (const [k, v] of Object.entries({ 'lit.s1': true, 'drum.ball0': 0, 'drum.ballJ': 1, gadget: true, 'drum.bK': 1, 'lit.k1': true, 'open.d3': true, checkpoint: 'furnace', ...extra })) g.set(`temple.buried.${k}`, v);
+    migrateTemples(g);
+    const B = new TempleLogic(L, { store: flagStore(g, 'buried'), has: (i) => ['backpack', 'gun', 'cell', 'magic:4'].includes(i) });
+    B.update();
+    assert.ok(B.isOpen('d3') && B.keys('small') === 0 && B.isOpen('dS') && B.isLit('arB'), 'the passage’s door stays open behind them');
+    assert.equal(B.isOpen('d4'), past, past ? 'past the bridge: the warden’s door open too' : 'before the bridge: the great key is still in the Governor Room');
+    if (!past) assert.ok(B.reachable().has('gov'), 'and the way back to it is open');
+  }
+});
+
 // ------------------------------------------------------------------ the words
 function spoken(v, out = [], seen = new Set()) {
   if (!v || typeof v !== 'object' || seen.has(v)) return out;
@@ -1505,7 +1535,7 @@ test('the Footprint on foot: the sphere set down on the walker’s print and you
 });
 
 // ------------------------------------------------------------------ on foot: the Buried Machine's Engine-House, room by room
-test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the gantry’s ball, the chamber’s four still eyes a try, the passage’s pistons held up a room on, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', () => {
+test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the gantry’s ball, the chamber’s four eyes and its shutters, the hub’s wings: the Boiler Room’s arena and its flue on into the passage, the Governor Room’s one ball and two cranks for the great key, the passage’s pistons held up a room on and its small lock, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('buried');
@@ -1597,21 +1627,63 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   P.teleport(L(0, 7.1, 49.5), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   assert.equal(walk(L(0, 7, 60), { run: false }), true, `over the walkway under the still hammer (${where()})`);
-  // ---- the Fourth Chamber: the chest; its way on is open, four still eyes on its wall a try
+  // ---- the Fourth Chamber: the chest; its way on is open, four still eyes by its two shutters
   assert.equal(walk(L(0, 7, 70)), true, `into the chamber (${where()})`);
   const k0 = rt.piece('k0');
   for (let i = 0; i < 4; i++) k0.hit(i);
   assert.equal(rt.logic.isLit('k0'), false, 'four still eyes in a breath: the starting bar holds three');
   assert.ok(said(/bar holds three/), 'and it says so');
+  assert.equal(walk(L(-7, 7, 75.2), { max: 4 }) && walk(L(-13, 7, 75.2), { max: 3 }), false, 'the west shutter is down');
   items.grant('cell'); game.emit('box:opened', { id: 'buried.temple.cell' });
   wait(3);
   for (let i = 0; i < 4; i++) k0.hit(i);
   assert.equal(rt.logic.isLit('k0'), true, 'with the fourth chamber, four in a breath');
-  assert.equal(rt.logic.isOpen('d3'), false, 'nothing waits on them: the door is a room on');
-  // ---- the Crank Passage: four eyes on pistons that rise in turn; one crank holds them all up
-  assert.equal(walk(L(0, 7, 88)) && walk(L(0, 7, 93)), true, `through the open way into the passage (${where()})`);
+  wait(2.5);
+  assert.ok(rt.logic.isOpen('dS') && rt.twins.get('dS')[0].open && rt.piece('dS').open, 'both shutters roll up');
+  assert.equal(rt.logic.isOpen('d3'), false, 'the passage’s door is a room on');
+  // ---- the Boiler Room, west off the hub (an arena): its doors shut behind you while its keepers stand
+  const C3 = 75.2;
+  const keepers = [{ room: 'boiler', alive: true }, { room: 'boiler', alive: true }];
+  rt.machines = [...(rt.machines ?? []), ...keepers];
+  assert.equal(walk(L(-7, 7, C3)) && walk(L(-14, 7, C3)), true, `through the west shutter (${where()})`);
+  assert.equal(walk(L(-20, 7, C3)), true, `into the Boiler Room (${where()})`);
+  wait(0.3);
+  assert.ok(!rt.logic.isOpen('dB') && !rt.logic.isOpen('dBo'), 'its doors shut behind you');
+  for (const k of keepers) k.alive = false;
+  wait(2.5);
+  assert.ok(rt.logic.isLit('arB') && rt.logic.isOpen('dB') && rt.logic.isOpen('dBo'), 'beaten: won, the door lets go and the flue opens');
+  assert.equal(walk(rt.piece('kS').pos, { tol: 1.2 }), true, `to the key (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kS'), true, 'a small key');
+  // up the flue and out into the Crank Passage, by its door (the loop)
+  assert.equal(walk(L(-17, 7, 80)) && walk(L(-17, 7, 95.2)) && walk(L(-9.5, 7, 95.2)) && walk(L(-7, 7, 94.6)), true, `up the flue into the passage (${where()})`);
   assert.equal(walk(L(0, 7, 102), { max: 4 }), false, 'the passage’s door is shut');
-  walk(L(0, 7, 93));
+  assert.equal(rt.logic.keysIn('d3'), 1, 'the small key goes in, and it still wants its four eyes');
+  // ---- the Governor Room, east: one ball between the hammer's crank and the pistons'
+  assert.equal(walk(L(0, 7, 88)) && walk(L(4, 7, C3 + 2)) && walk(L(12, 7, C3)) && walk(L(15, 7, C3)), true, `back through the chamber and the east shutter (${where()})`);
+  const k3 = rt.piece('k3'), bQ = rt.piece('bQ'), kB = rt.piece('kB'), h2 = rt.piece('h2');
+  assert.equal(kB.free(), false, 'the great key caged on its anvil');
+  wait(3);
+  assert.equal(catchAsTheyRise(k3, 10), false, 'the pistons rise in turn: never four in one breath');
+  assert.equal(roll(bQ, 1, () => rt.logic.drumOn('bQ', 'pQ')), true, `the ball out of the hammer's crank into the pistons' (${bQ.t.toFixed(2)})`);
+  wait(1);
+  assert.ok([0, 1, 2, 3].every((i) => k3.isUp(i)), 'all four stand up together');
+  let fell = false;
+  for (let i = 0; i < 4 / DT; i++) { frame(); fell ||= h2.down > 0.9; }
+  assert.ok(fell && !rt.logic.isOpen('h2'), 'and the hammer runs, down on the cage');
+  for (let i = 0; i < 4; i++) k3.hit(i);
+  assert.equal(rt.logic.isLit('k3'), true, 'four in a breath');
+  wait(1.5);
+  assert.equal(kB.free(), false, 'the cage stays up under the running hammer');
+  assert.equal(roll(bQ, -1, () => rt.logic.drumOn('bQ', 'pH')), true, `the ball back into the hammer's crank (${bQ.t.toFixed(2)})`);
+  wait(2.6);
+  assert.ok(rt.logic.isOpen('h2') && h2.down < 0.01, 'the hammer stands still at the top of its stroke');
+  assert.equal(kB.free(), true, 'the eyes stay awake, and the cage sinks');
+  assert.equal(walk(kB.pos, { tol: 1.2 }), true, `to the anvil (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kB'), true, 'the great key');
+  // ---- the Crank Passage: four eyes on pistons that rise in turn; one crank holds them all up
+  assert.equal(walk(L(12, 7, C3)) && walk(L(4, 7, C3 + 2)) && walk(L(0, 7, 88)) && walk(L(0, 7, 93)), true, `back into the passage (${where()})`);
   const bank = rt.piece('k1');
   wait(3);
   assert.equal(catchAsTheyRise(bank, 10), false, 'caught as they rise, never four in one breath');
@@ -1623,7 +1695,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   for (let i = 0; i < 4; i++) bank.hit(i);
   assert.equal(rt.logic.isLit('k1'), true, 'four in a breath, with the fourth chamber');
   wait(2.2);
-  assert.equal(rt.logic.isOpen('d3'), true);
+  assert.equal(rt.logic.isOpen('d3'), true, 'the small key in it, and its eyes awake');
   // ---- the Furnace: two cranks for the two west pistons; jam those, and catch the other two as they rise in turn
   assert.equal(walk(L(0, 7, 105.2)), true, `to the furnace (${where()})`);
   const k2 = rt.piece('k2'), bA = rt.piece('bA'), bB = rt.piece('bB');

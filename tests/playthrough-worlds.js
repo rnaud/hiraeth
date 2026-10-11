@@ -382,7 +382,8 @@ export const ROUTE = [
   // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
   // (v1.48: Oren by the discs opens the dunes' own quest: the Clock-House's face read from the glass mound, then in at its door)
   { id: 'glassdunes', play: ['glassdunes.minute', { temple: 'done', id: 'garage', home: 'the float-posts' }] },
-  { id: 'buried', play: ['buried.tooth'] },
+  // (v1.49: and the Engine-House to its guardian, its hub past the chest and both wings: issue #23)
+  { id: 'buried', play: ['buried.tooth', { temple: 'done', id: 'buried' }] },
   // (v1.40: the foundry: Ottilie's hook to Bertil at the furnace, Wen's count from the pillar's lookout, then the Casting-House)
   // (v1.48: Hedda on the apron opens the foundry's own quest: the hung moons from the old hoist, then in at the Casting-House)
   { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Ottilie, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry' }] },

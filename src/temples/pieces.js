@@ -2414,6 +2414,7 @@ export class Key {
     this.group.rotation.y = K.heading(o.yaw ?? 0);
     rt.root.add(this.group);
     this.group.add(mesh([lathe([[0.62, 0], [0.62, 0.18], [0.44, 0.3], [0.38, PLINTH - 0.12], [0.56, PLINTH - 0.02], [0.56, PLINTH], [0.01, PLINTH]], 14)], M.stoneMat));
+    K.solid(new THREE.CylinderGeometry(0.56, 0.62, PLINTH, 14).translate(o.at[0], o.at[1] + PLINTH / 2, o.at[2]));   // (the plinth stands: you walk up to it, not through it)
     this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.35, flat: true });
     this.key = new THREE.Group();
     this.key.add(mesh(keyGeometry(big), M.trimMat), mesh([new THREE.SphereGeometry(big ? 0.14 : 0.09, 8, 6).translate(0, (big ? 0.75 : 0.425) + (big ? 0.19 : 0.12), 0)], this.glow));
