@@ -1,0 +1,30 @@
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_0d2b97402c0988 246-252
+unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_e1b39ae79e570e 91-94
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_578186a6ba33b0 177,364-369
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_72e1e8ce01a9d6 276-279,298
+  s_9ca76055a220ed::t_74ffa5a8bc16af 91-94,522
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_9ca76055a220ed::t_642858c13aa8b0 538-546
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_9ca76055a220ed::t_822e79263ef74b 663,1036-1043
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c0369b188d931d518829e8d38428d7e734b721b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
