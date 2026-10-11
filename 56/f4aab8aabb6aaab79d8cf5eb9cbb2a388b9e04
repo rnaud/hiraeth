@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_eb5a7790c54934 7
+docs/systems/performance.md
+  s_9ca76055a220ed::t_3cef79f7310fef 818-820
+engine/unity/game.js
+  s_9ca76055a220ed::t_f76cdfb05d22aa 10,12-16
+src/changelog.js
+  s_9ca76055a220ed::t_20c1d2aabb1b04 42-44
+src/matrix-cache.js
+  s_9ca76055a220ed::t_760708949c4d4e 17-24,27-40,43-44,65-67,75
+tests/pose-exact-web.test.js
+  s_9ca76055a220ed::t_33f7ac0a8135a8 1-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "56f4aab8aabb6aaab79d8cf5eb9cbb2a388b9e04",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
