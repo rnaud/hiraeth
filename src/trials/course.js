@@ -51,13 +51,21 @@ export const MODES = {
   kit: { needs: [], words: '' },   // (a makers' run, src/trials/kit-data.js: its own needs)
 };
 
-/** What the traveller lacks to try a trial (a sentence), or '' if he can. has(id), mount: the level's mount or null. */
-export function lacks(trial, { has = () => false, mount = null } = {}) {
+/**
+ * What the traveller lacks to try a trial (a sentence), or '' if he can. has(id), mount: the level's mount or null.
+ * reward: the trial's prize ({ id, needs, ... }, src/items.js) when it upgrades a gadget (`needs`): the trial waits
+ * for that gadget, so nobody wins a card about a tool he hasn't got (issue #125); a prize already won asks nothing.
+ * gadgetName(id): the gadget's name for the sentence.
+ */
+export function lacks(trial, { has = () => false, mount = null, reward = null, gadgetName = (id) => id } = {}) {
   const M = MODES[trial.mode] ?? MODES.foot;
   for (const id of [...M.needs, ...(trial.needs ?? [])]) if (!has(id)) return trial.lacks ?? M.words ?? 'Not yet.';
   if (M.mount && (!mount || mount.dormant || mount.kind !== M.mount)) return trial.lacks ?? M.words;
+  if (reward?.needs && !has(reward.needs) && !(reward.id && has(reward.id))) return rewardWords(gadgetName(reward.needs));
   return '';
 }
+/** The sentence for a trial whose prize is for a gadget not found yet ("Come back with it." follows it on the notice). */
+export const rewardWords = (name) => `Its prize is for the ${String(name).toLowerCase()}.`;
 
 /** Is the traveller still doing what the trial wants (riding its mount; for a flight, not walking off)? */
 export function inMode(trial, P) {

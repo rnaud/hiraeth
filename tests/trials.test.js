@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import './register-gadgets.js';
 import { ORDER, ROUTE_PARTS, partOf } from '../src/levels/names.js';
@@ -100,6 +101,25 @@ test('what a trial wants: the items, the mount found, staying on it', () => {
   assert.equal(lacks(TRIALS.arzach2, { has: has(), mount: { kind: 'bird' } }), '');
   assert.match(lacks(TRIALS.incal, { has: has('backpack') }), /wings/, 'the Shaft climb rides the halfway air pillar (on the jets until v1.42)');
   assert.equal(lacks(TRIALS.incal, { has: has('backpack', 'glider') }), '');
+  // (issue #125) a trial whose prize upgrades a gadget waits for that gadget, unless the prize is won already
+  const prize = (T) => ({ id: T.reward, ...ITEMS[T.reward] }), name = (id) => ITEMS[id]?.name ?? id;
+  assert.equal(ITEMS[TRIALS.arzach.reward].needs, 'hook', 'Vael’s prize is the hook’s long line');
+  const noHook = lacks(TRIALS.arzach, { has: has('backpack', 'glider'), reward: prize(TRIALS.arzach), gadgetName: name });
+  assert.equal(noHook, 'Its prize is for the grappling hook.');
+  assert.equal(lacks(TRIALS.arzach, { has: has('backpack', 'glider', 'hook'), reward: prize(TRIALS.arzach), gadgetName: name }), '');
+  assert.equal(lacks(TRIALS.arzach, { has: has('backpack', 'glider', TRIALS.arzach.reward), reward: prize(TRIALS.arzach), gadgetName: name }), '', 'won before: run it again');
+  assert.match(lacks(TRIALS.arzach, { has: has('backpack'), reward: prize(TRIALS.arzach), gadgetName: name }), /wings/, 'the mode first');
+  for (const T of Object.values(TRIALS)) {
+    const R = ITEMS[T.reward];
+    const only = (...ids) => has(...MODES[T.mode].needs, ...(T.needs ?? []), ...ids);
+    const ride = MODES[T.mode].mount ? { kind: MODES[T.mode].mount } : null;
+    if (R?.needs) {
+      assert.match(lacks(T, { has: only(), mount: ride, reward: prize(T), gadgetName: name }), /^Its prize is for the /, `${T.id}: waits for its gadget (${R.needs})`);
+      assert.equal(lacks(T, { has: only(R.needs), mount: ride, reward: prize(T), gadgetName: name }), '', `${T.id}: open with it`);
+    } else if (R) assert.equal(lacks(T, { has: only(), mount: ride, reward: prize(T), gadgetName: name }), '', `${T.id}: a prize for no gadget asks nothing more`);
+  }
+  // and the world's trial passes its prize in (src/trials/index.js)
+  assert.match(readFileSync(new URL('../src/trials/index.js', import.meta.url), 'utf8'), /reward: T\.reward && ITEMS\[T\.reward\] \? \{ id: T\.reward, \.\.\.ITEMS\[T\.reward\] \} : null/);
   const mount = { kind: 'skiff' };
   assert.equal(inMode(TRIALS.perdide, { mount, ride: mount }), true);
   assert.equal(inMode(TRIALS.perdide, { mount, ride: null }), false, 'off the skiff');

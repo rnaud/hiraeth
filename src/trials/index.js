@@ -205,7 +205,8 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
     trial: T, gates, start, par, sign, winds, course, running: null,
     game: null,
     /** What the traveller lacks for it now ('' if nothing). */
-    lacks: () => lacks(T, { has: (id) => (id === 'jets' ? items.has('jetpack') : new Resources(game, items).meets(id)), mount: player?.mount ?? null }),   // ('magic:4': src/resources.js; 'jets': the debug jets, or the Warden's harness in the City-Shaft)
+    lacks: () => lacks(T, { has: (id) => (id === 'jets' ? items.has('jetpack') : new Resources(game, items).meets(id)), mount: player?.mount ?? null,
+      reward: T.reward && ITEMS[T.reward] ? { id: T.reward, ...ITEMS[T.reward] } : null, gadgetName: (id) => ITEMS[id]?.name ?? id }),   // (an upgrade waits for its gadget: issue #125)   // ('magic:4': src/resources.js; 'jets': the debug jets, or the Warden's harness in the City-Shaft)
     best: () => bestScore(game, { id: T.id }),
     done: () => !!game.flag(doneKey),
     /** The interact button at the sign. */

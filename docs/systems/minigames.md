@@ -546,7 +546,9 @@ wants the jets.
   before the gadgets are made and on every grant); the three v1.40 worlds give cosmetics. Every reward is for
   something you already have there (v1.47, issue #99): the Buried Machine's run gives the lens's clear glass, the
   Garden of Spheres' the bombs' fourth pouch, the Signal Market's the recall's long sand, each that world's own court
-  gadget (`tests/trials.test.js` checks it against the route's order). The market's racer's ribbon stays an item for
+  gadget (`tests/trials.test.js` checks it against the route's order). Since that court can lie past the trial's sign,
+  a trial whose prize is a gadget's upgrade waits for the gadget (`lacks` with the prize: "Its prize is for the grappling
+  hook. Come back with it.", issue #125); a save that won the prize already runs it freely. The market's racer's ribbon stays an item for
   the saves that won it. A save that finished a trial before keeps what it won and gets the new reward on its next finish.
 - **Fair courses** (`check.js` `checkCourse`): every gate in the open, the way between them clear, a ride with no
   wall or cliff on it (water all the way for the skiff), a glide never asking more than 1 : 5.2 without a column.
