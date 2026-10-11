@@ -1,0 +1,27 @@
+docs/systems/reference-lab.md
+  s_9ca76055a220ed::t_a15fa5221e5eb4 22,186-207
+scripts/reference-lab/env.mjs
+  s_9ca76055a220ed::t_8c66ffd4cc658d 14
+scripts/reference-lab/providers/index.mjs
+  s_9ca76055a220ed::t_d14726b3141b9a 6,8
+scripts/reference-lab/providers/midjourney.mjs
+  s_9ca76055a220ed::t_eb7741a37dccb7 1-42
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_79e9798b5b3e6b 12,355-389
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "557b9137102a4c386b1df59a21a9776b2ace12fe",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
