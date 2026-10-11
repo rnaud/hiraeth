@@ -30,6 +30,10 @@ namespace Memento.Bridge
         Shader surface;
         readonly Dictionary<string, MeshData> meshes = new();
         readonly Dictionary<int, Material> materials = new();
+        // (each port material's spec, for BridgePrewarm: the pairs the next launch draws early)
+        readonly Dictionary<Material, string> specs = new();
+        /// <summary>A port material made again from its spec (BridgePrewarm).</summary>
+        public Material MaterialFromSpec(string json) => Json.Parse(json) is Dictionary<string, object> m ? WorldLoader.MakeMaterial(surface ? surface : Shader.Find("Memento/Surface"), m) : null;
         readonly Dictionary<int, float> moteSizes = new();
         readonly Dictionary<int, Material> instMaterials = new();   // by node: a material's copy for its GPU instances (MEMENTO_INSTMAT, its own buffer)
         readonly Dictionary<int, List<Material>> copies = new();     // a material's copies (instances, crowds, grass): its live colour and glow go to them too (op 15)
@@ -348,6 +352,7 @@ namespace Memento.Bridge
                 return;
             }
             materials[mid] = WorldLoader.MakeMaterial(surface, m);
+            specs[materials[mid]] = json;
             // (-one-variant, a test: every material of the port's Surface on its plain variant, no keywords; the picture is
             // wrong, but if the load's 24 s stall goes, it was the GPU's driver compiling each variant at its first draw)
             if (oneVariant) materials[mid].shaderKeywords = System.Array.Empty<string>();
@@ -479,6 +484,7 @@ namespace Memento.Bridge
                 for (int s = 0; s < mats.Length; s++) materials.TryGetValue(n.mids.Length > 0 ? n.mids[Mathf.Min(md.subMat[s], n.mids.Length - 1)] : 0, out mats[s]);
                 n.r.sharedMaterials = mats;
                 n.r.shadowCastingMode = n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off;   // (both faces, as the web's shadow pass draws every caster: main.js shadowOverride)
+                if (n.r is MeshRenderer && n.mf && n.mf.sharedMesh) BridgePrewarm.Note(n.mf.sharedMesh, mats, mt => specs.TryGetValue(mt, out var j) ? j : null);
             }
             nodes[id] = n;
         }

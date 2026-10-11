@@ -137,3 +137,15 @@ test('the PlayerLoop timed step by step, a slow frame named by its steps; -no-hu
   assert.match(runner, /Flag\("-warm"\)[\s\S]*Shader\.WarmupAllShaders\(\)/);
   assert.match(metrics, /frames ≤17\.5 ms/, 'the frames against the refresh');
 });
+
+test('the GPU driver\'s pipelines made early: the pairs the scene drew kept in LocalState, drawn at the next launch while the script builds the world', () => {
+  const warm = read('unity/Memento/Assets/MementoJS/Runtime/BridgePrewarm.cs');
+  assert.match(warm, /prewarm\.txt/);
+  assert.match(warm, /SetVertexBufferParams\(3, attrs\)/, 'each layout as the scene had it');
+  assert.match(warm, /MementoShadows\.Instanced\.Add\(caster\)/, 'the sun\'s cascades too');
+  const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
+  assert.match(runner, /BridgePrewarm\.Load\(scene\.MaterialFromSpec\)/);
+  assert.match(runner, /BridgePrewarm\.Draw\(cam, !booted\)/);
+  assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs'), /BridgePrewarm\.Save\(\)/);
+  assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs'), /BridgePrewarm\.Note\(/);
+});

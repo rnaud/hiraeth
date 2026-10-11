@@ -94,6 +94,9 @@ namespace Memento.Bridge
                 hud.transform.SetParent(transform, false);
                 hud.cam = cam;
             }
+            // the pipelines the last launch's scene asked of the GPU's driver, drawn while the script builds this one (BridgePrewarm)
+            if (BridgeArgs.Flag("-no-prewarm")) BridgePrewarm.On = false;
+            else { int warmed = BridgePrewarm.Load(scene.MaterialFromSpec); Debug.Log($"Memento bridge: prewarm: {warmed} (layout, state) pairs from the last launch"); }
             // the port's shadow pass draws casters over a WorldDetail; the bridge's are all "movers" (MementoShadows
             // finds them), the detail only says where the lowest ground is
             var detail = new WorldDetail();
@@ -316,6 +319,7 @@ namespace Memento.Bridge
             if (Time.realtimeSinceStartup > limitAt) { Debug.LogError("Memento bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); return; }
             BridgeHost.NewFrame();
             if (!started || failed) return;
+            BridgePrewarm.Draw(cam, !booted);
             FrameTimingManager.CaptureFrameTimings();
             if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }
             gpuSplit?.Tick();
