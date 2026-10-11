@@ -600,6 +600,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'Locked on to a small foe a few steps away', shots: [
       { name: 'lock-small', title: 'Locked on to a blot 6 m off', caption: 'The game’s own lock camera, Handheld preset: before, the blot hidden behind the traveller, only the arrows round it showing; after, the camera a little to the side and the blot in view', from: 'headless Chrome in the Arena (Handheld, 1280 × 720, Reduce motion on), the commit before and this one, 11 October' },
     ] },
+    { match: 'A stunned foe now reels in a slow dizzy circle', shots: [
+      { name: 'stun-cue', title: 'A stunned horn lizard', caption: 'As seen with normal vision, protanopia, deuteranopia and tritanopia (Machado 2009, severity 1): before, nothing tells it is stunned but its eyes’ pale blue, too small and too close to their rest to see; after, the amber stars over it in all four', from: 'headless Chrome in the Arena (Handheld, 1280 × 720, Reduce motion on, the camera pinned beside it), the commit before and this one, 11 October, simulated in the page' },
+    ] },
     { match: 'The three newest worlds have a makers’ court each', shots: [
       { name: 'court-underwater', title: 'The divers’ court', caption: 'In the Underwater City’s Plaza, looking west: before, the dome’s glass; after, a door in it and a tube to the divers’ court under its own dome, its chest’s pale column over it', commit: C48_WORLDS,
         view: { level: 'underwater', save: SAVE48, hour: 12, fov: 60, eye: [-14, 3, -100], target: [-60, 2, -108], player: [-12, 0.3, -98] } },

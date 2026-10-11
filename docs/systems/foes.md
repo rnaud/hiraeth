@@ -1381,10 +1381,17 @@ Walkers follow you up and down the world's height, and the world's height is a w
   comes down.
 - **Knocked off** (`KNOCK`, `knockedOff`, `Foes.knockedOff`): a cut or a push marks a foe as knocked by you for
   `KNOCK.recent` 0.9 s; carried off an edge then, it lands from `KNOCK.min` 1.4 m dazed `KNOCK.stun` 3.5 s
-  (`Foe.dazed`, four pale stars turning over its head: `Foes.daze`; no harm, but stunned, so a cut lands double
+  (`Foe.dazed`, five amber stars turning over its head: `Foes.daze`; no harm, but stunned, so a cut lands double
   and wakes it), from `KNOCK.defeat` 4.5 m it is over (a burst, a machine broken). A heavy thud, a hit-stop, a
   kick, dust, and a note the first time (flag `foes.knocked`). A gust or a pendulum carrying it off is the old
   fall (`FALL`). The charged cut throws `KNOCK.charged` 2.2× (the heavy third's).
+- **Stunned, told by shape and motion** (v1.48, `stunCue`, `STUN_CUE`; combat-v1.47 rec. 5, issue #109): any stun
+  (a perfect parry, a bounce off the guard, a choke, a stall, a fall, a working) shows the same stars over its head
+  and a slow dizzy circle of the body (`tilt` 0.09 rad at `rate` 6.5 rad/s, eased out over its last 0.4 s), not only
+  the eyes' pale blue (`#bfe9ff`, 1.01–1.10 : 1 against the eyes at rest in every simulated colour vision). The stars
+  are amber (`#f0ad2e`) with the ink edge, 7–8.5 : 1 against it in all four visions, scaled to the body and set over
+  it. Not asleep in a bloom (its own look), not while it winds up or strikes, not dying. Tests:
+  `tests/foe-height.test.js`.
 - **Knocked into water** (`KNOCK.deep`, `knockedInto`, `Foe.sweptBy`, `env.water`): knocked by you into water
   `KNOCK.deep` 1.3 m deep or more (as deep as lifts you off your feet, `SWIM.float`), off a bank or off a ledge from
   any height, a foe is swept away ('landed', `knocked: 'swept'`): a great splash on the surface (`Waters.splash`,

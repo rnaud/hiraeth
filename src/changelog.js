@@ -65,6 +65,7 @@ export const CHANGELOG = [
           { where: 'fighting an ink blot, whenever it is 2.5 m off or more', before: 27, after: 6 },
         ], source: '.claude/skills/camera-qc arena-lock-lizard and arena-lock (foe hidden)' },
       ] },
+    'A stunned foe now reels in a slow dizzy circle with little amber stars turning over its head, so you can see it is open to a double cut in any colour vision, not only by its eyes turning pale. A foe knocked off a ledge shows the same stars, now darker and easier to see on pale sand.',
   ] },
   { v: '1.47', date: '2026-10-11', items: [
     // the v1.46 audit's loose ends (docs/audits/game-v1.46.md; issues #93-#100, #104)

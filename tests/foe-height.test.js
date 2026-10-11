@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foe, Foes, FOES, STRIKE_RISE } from '../src/foes.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, linkOf, findRoute, findPerch, hopAt, knockedOff, knockedInto } from '../src/foe-height.js';
-import { WORKS } from '../src/foes.js';
+import { WORKS, stunCue, STUN_CUE } from '../src/foes.js';
 import { foeStatus } from '../src/hitboxes.js';
 import { presenceOf, presenceProblems } from '../src/foe-presence.js';
 import { clearTargets } from '../src/targets.js';
@@ -335,4 +335,31 @@ test('the archetypes (src/enemies/archetypes.js) go by the same rules: up the le
   for (let i = 0; i < 1 / DT; i++) F.update(DT);
   assert.ok(!crabby.alive, 'the anchor crab is swept away');
   F.dispose(); fresh();
+});
+
+test('stunned, a foe reels and stars turn over it, not only its eyes going pale (combat-v1.47 rec. 5, #109)', () => {
+  // the cue: the stars and a dizzy circle of the body while stunned; nothing asleep, winding up or at rest
+  const S = stunCue({ stunned: 2, state: 'chase', alive: true }, 1.3);
+  assert.ok(S.stars && S.sway && Math.hypot(S.roll, S.pitch / 0.6) > STUN_CUE.tilt * 0.99, 'stars and a sway');
+  assert.ok(!stunCue({ stunned: 0, state: 'chase' }).stars && !stunCue({ stunned: 0 }).sway, 'not stunned: nothing');
+  assert.ok(!stunCue({ stunned: 3, sleep: 3 }).stars, 'asleep in a bloom: its own look');
+  assert.ok(!stunCue({ stunned: 1, state: 'wind' }).sway, 'not while it winds up');
+  assert.ok(stunCue({ stunned: 0, dazed: 2 }).stars, 'dazed (knocked off a ledge): stars as before');
+  assert.ok(Math.abs(stunCue({ stunned: 0.1, state: 'chase' }, 0.24).roll) < STUN_CUE.tilt * 0.3, 'eased out as it comes to');
+  // in the game: a stunned blot shows the stars and reels, and once it comes to they go
+  fresh();
+  const P = player(v(0, 0, -30));
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena',
+    physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P,
+    sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+  foes.waveRest = 1e9;
+  const b = foes.add('blot', v(0, 0, -34)); b.state = 'chase'; b.cool = 9; b.stunned = 1.5;
+  let swayed = 0;
+  for (let i = 0; i < 0.6 / DT; i++) { foes.update(DT); swayed = Math.max(swayed, Math.abs(b.model.group.rotation.z)); }
+  assert.ok(b.stars?.visible, 'stars over it');
+  assert.ok(b.stars.position.y > b.chest.y, 'over its head');
+  assert.ok(swayed > 0.03, `it reels (${swayed.toFixed(3)} rad)`);
+  for (let i = 0; i < 1.5 / DT; i++) foes.update(DT);
+  assert.ok(!(b.stunned > 0) && !b.stars.visible, 'come to: the stars go');
+  foes.dispose(); fresh();
 });

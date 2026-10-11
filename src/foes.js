@@ -245,6 +245,18 @@ export const POSSESS = { wind: 0.8, free: 1.2, cut: 1.6 };
 export const LIT = 3;
 /** The dash cut through a foe's back (src/fluid-blade.js DASH; issue #35): the blow's way within acos(`dot`) of the way it faces, `k` times the harm. */
 export const BACKSTAB = { k: 2, dot: 0.25 };
+/**
+ * A stunned foe's cue besides its eyes (combat-v1.47 rec. 5; pure: tests): `stars` turning over its head and a dizzy
+ * `sway` of its body, a circle of `roll` and `pitch` (rad) at STUN_CUE.rate, so the state reads by shape and motion, not
+ * by the eyes' hue. Not asleep (a bloom's sleep has its own look), not dying, not while it winds up or strikes.
+ */
+export const STUN_CUE = { tilt: 0.09, rate: 6.5 };
+export function stunCue(f, t = 0, C = STUN_CUE) {
+  const on = f.stunned > 0 && !(f.sleep > 0) && !f.dying && f.alive !== false && f.state !== 'wind' && f.state !== 'strike';
+  if (!on) return { stars: f.dazed > 0, sway: false, roll: 0, pitch: 0 };
+  const k = Math.min(1, f.stunned / 0.4) * C.tilt;   // (eased out over its last 0.4 s)
+  return { stars: true, sway: true, roll: Math.sin(t * C.rate) * k, pitch: Math.cos(t * C.rate) * k * 0.6 };
+}
 /** A roller's glistening trail (its model's c.trail): strokes `w` × `l` m (half sizes), the ground under them lighter by `sheen`, fading over `life` s; `count` at most. */
 export const SLIME = { count: 90, life: 8, sheen: 1.14, w: 0.27, l: 0.4 };
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
@@ -2950,7 +2962,12 @@ export class Foes {
       const c = f.hop.t < HOP.crouch ? Math.sin(Math.PI * 0.5 * Math.min(1, f.hop.t / (HOP.crouch * 0.6))) : 0, up = c ? 0 : 0.1;
       g.scale.x *= 1 + 0.12 * c - up * 0.5; g.scale.z *= 1 + 0.12 * c - up * 0.5; g.scale.y *= 1 - 0.15 * c + up;
     }
-    this.daze(f, dt);
+    // stunned (a parry, a bounce off the guard, a choke, a stall, a fall: a cut lands double), it reels: a slow dizzy
+    // circle of the body, and the stars turn over it (daze). The eyes' pale blue alone was a hue only some can tell
+    // (combat-v1.47 recommendation 5): the sway and the stars read in every colour vision.
+    const S = stunCue(f, t);
+    if (S.sway) { g.rotateX(S.pitch); g.rotateZ(S.roll); }
+    this.daze(f, dt, S.stars);
     {
     // The body is the tell (src/telegraph.js); only a lobbed shot's landing mark is drawn on the floor.
     const a = f.atk ?? f.def.attack, pts = f.attackPts ?? [f.attackAt];
@@ -2992,18 +3009,21 @@ export class Foes {
     f.glow.set(winding ? f.k : 1, _gl, performance.now() / 1000);
   }
 
-  /** The stars of a foe dazed (Foe.dazed: knocked off a ledge by you), turning over its head. */
-  daze(f, dt) {
-    if (!(f.dazed > 0) && !f.stars) return;
+  /** The stars of a foe dazed (Foe.dazed: knocked off a ledge by you) or stunned (stunCue), turning over its head. */
+  daze(f, dt, on = f.dazed > 0) {
+    if (!on && !f.stars) return;
     if (!f.stars) {
       f.stars = new THREE.Group(); f.stars.name = 'dazed';
-      const mat = makeMaterial({ color: '#fff6c2', flat: true, glow: 1, key: 'foe-daze' }), geo = new THREE.OctahedronGeometry(0.19, 0).scale(1, 1.3, 0.45);
+      const mat = makeMaterial({ color: '#f0ad2e', flat: true, glow: 0.35, key: 'foe-daze' }), geo = new THREE.OctahedronGeometry(0.19, 0).scale(1, 1.3, 0.45);
       for (let i = 0; i < 5; i++) { const m = new THREE.Mesh(geo, mat); const a = (i / 5) * Math.PI * 2; m.position.set(Math.sin(a) * 0.62, (i % 2) * 0.12, Math.cos(a) * 0.62); m.rotation.y = a; f.stars.add(m); }
       this.group.add(f.stars);
     }
-    f.stars.visible = f.dazed > 0 && f.alive && f.dead === undefined;
+    f.stars.visible = on && f.alive && f.dead === undefined;
     if (!f.stars.visible) return;
-    f.stars.position.copy(f.chest); f.stars.position.y += 0.85 + Math.sin(performance.now() / 180) * 0.06;
+    // (over its head whatever its size: a ring as wide as its body, a little above its top)
+    const r = Math.max(1, (f.def.radius ?? 0.6) * 1.1 / 0.62), up = Math.min(1.6, Math.sqrt(r));
+    f.stars.scale.set(r, up, r);
+    f.stars.position.copy(f.chest); f.stars.position.y += 0.6 * up + Math.sin(performance.now() / 180) * 0.06;
     f.stars.rotation.y += dt * 4.5;
   }
 
