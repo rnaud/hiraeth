@@ -1,0 +1,21 @@
+.github/workflows/cloudflare.yml
+  s_9ca76055a220ed::t_fb4f5f838196ec 107-108,112
+src/issue-draft.js
+  s_9ca76055a220ed::t_73d9013c9c141e 146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3e966a3f7163d3a13808846cea267e22297d362",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
