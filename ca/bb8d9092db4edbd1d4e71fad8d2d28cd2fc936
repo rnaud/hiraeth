@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_63abe9d02dae4d 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_34c36cb64a194f 639-647
+src/changelog-media.js
+  s_9ca76055a220ed::t_8bf1392d01914f 606
+src/changelog.js
+  s_9ca76055a220ed::t_fe239afdcd60f0 69-71
+src/desert-city.js
+  s_9ca76055a220ed::t_ceaca6c686a4b9 16-17,1202-1206
+tests/desert-cave-walk-in.test.js
+  s_9ca76055a220ed::t_2b4e331563cdf9 1-82
+tests/shard-timings.json
+  s_9ca76055a220ed::t_a93f707edeb95b 2,4-5,10-17,19-20,22-24,26-38,40-52,54,57-58,60-74,76,78,80-86,88-106,108-127,130-143,145-147,149-150,153-157,159-167,170,172,174-178,181,183-189,195,197-201,204-210,212,216,218-221,224-228,230-233,237-239,242-263,265-271,273,275-276,278-280,282-285,287-289,291-296,298-311,313-319,321-324,326,328-333,335-338,340-344,346-347,349-357,359-364,366-372,374-379,381-397,399,401-404,406,408,411-412,414-424,426-433,435-436,438-441,443,445-451,453-456,459-462
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cabb8d9092db4edbd1d4e71fad8d2d28cd2fc936",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
