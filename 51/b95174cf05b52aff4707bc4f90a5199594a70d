@@ -1,0 +1,65 @@
+changelog.md
+  s_9ca76055a220ed::t_8f4cd8a06c9fd6 7
+src/changelog.js
+  s_9ca76055a220ed::t_50fd891df96eaf 17-18
+src/gadgets/bomb.js
+  s_9ca76055a220ed::t_462a8d3a0cda4a 68
+src/gadgets/boomerang.js
+  s_9ca76055a220ed::t_789025bb4afc55 142
+src/gadgets/bridge.js
+  s_9ca76055a220ed::t_d1ecd583e1e078 255
+src/gadgets/bubble.js
+  s_9ca76055a220ed::t_3c286d8b5eea1c 152
+src/gadgets/fan.js
+  s_9ca76055a220ed::t_6576b6e0abca46 159
+src/gadgets/gun.js
+  s_9ca76055a220ed::t_f8516baaf62938 62
+src/gadgets/hook.js
+  s_9ca76055a220ed::t_4d7c8b93e86ce5 91
+src/gadgets/lens.js
+  s_9ca76055a220ed::t_dd594fb1560814 126
+src/gadgets/magnet.js
+  s_9ca76055a220ed::t_7aad8dc43ac413 176
+src/gadgets/recall.js
+  s_9ca76055a220ed::t_ab978b436a85e5 149
+src/gadgets/springs.js
+  s_9ca76055a220ed::t_f90023111356a9 170
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_55d53287654e62 21,340-342
+src/prompt-keys.js
+  s_9ca76055a220ed::t_516ff63c8f3c7e 64-66,70-72,74-76,80
+src/story/arzach.js
+  s_9ca76055a220ed::t_47710129329ae2 253-254
+src/trials/index.js
+  s_9ca76055a220ed::t_5fe8eba087a636 37-52,55,57,59-60,62-63,121
+tests/bubble-fan.test.js
+  s_9ca76055a220ed::t_96c93240776dc0 51
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_3172adb3856b7d 55
+tests/lens-springs.test.js
+  s_9ca76055a220ed::t_88f5ef0dc0371b 52
+tests/literal-keys.test.js
+  s_9ca76055a220ed::t_b2e6d2253b32aa 1-66
+tests/magnet.test.js
+  s_9ca76055a220ed::t_d2fe0544eacab6 46
+tests/recall-bridge.test.js
+  s_9ca76055a220ed::t_d44e8a695059f6 50
+tests/trials-kit.test.js
+  s_9ca76055a220ed::t_f7ca7ed2937c1b 110-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "51b95174cf05b52aff4707bc4f90a5199594a70d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
