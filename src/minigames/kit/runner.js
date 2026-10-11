@@ -20,7 +20,8 @@ import { disposeTree } from './dispose.js';
 import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { inputKind, escapeHtml } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
-import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss } from './flow.js';
+import { stripTone } from '../../story/tone.js';
+import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
 
 export { COUNT, controlsFor, quitHref };
 
@@ -153,6 +154,8 @@ export class MinigameRunner {
     const sd = scoreDef(this.def, this.host.state);   // (a best of each difficulty: def.bestBy)
     const kept = failed && kind === 'time' ? { best: bestScore(this.host.state, sd), isNew: false } : recordScore(this.host.state, sd, value);
     this.result = { value, failed, title, lines, html, wide, ...kept };   // (html: the game's own block on the results, a page of sketches)
+    if (failed) this.fails = (this.fails ?? 0) + 1;
+    this.host.onResult?.(this.result);   // (a host that keeps more than the best: the pirates between worlds mark the trip won)
     this.phase = 'finishing';
     this.doneT = FINISH_WAIT;
     if (failed) this.sfx.lose(); else this.sfx.finish();
@@ -184,6 +187,10 @@ export class MinigameRunner {
   outButtons() {
     const extra = (this.host.links?.extra ?? []).map((l) => `<button data-act="link:${h(l.id)}">${h(l.label)}${l.sub ? `<small>${h(l.sub)}</small>` : ''}</button>`).join('');
     return `${extra}<button data-act="quit">${h(this.host.links?.quit?.label ?? 'Quit')}</button>`;
+  }
+  /** The results card's buttons (kit/flow.js resultActions: a host's links.win, Skip first after failures). */
+  resultButtons(r) {
+    return resultActions(r, this.host.links, this.fails ?? 0).map((b) => `<button data-act="${h(b.act)}"${b.main ? ' class="main"' : ''}>${h(b.label)}${b.sub ? `<small>${h(b.sub)}</small>` : ''}</button>`).join('');
   }
 
   /** Leave the game: the session's things out of the scene, the camera as it was, the screens gone. */
@@ -251,6 +258,7 @@ export class MinigameRunner {
     else if (name === 'resume') this.setPaused(false);
     else if (name === 'retry') this.retry();
     else if (name === 'quit') this.quit();
+    else if (name === 'win' && this.host.links?.win) this.go(this.host.links.win.href);
     else if (name.startsWith('link:')) { const l = this.link(name.slice(5)); if (l) this.go(l.href); }
   }
   key(e) {
@@ -273,9 +281,10 @@ export class MinigameRunner {
   hint(yes, no) {
     const kind = inputKind();
     const cycle = this.link(1) || this.link(-1);   // (host.links with a step: the Arcade's game before / after)
-    if (kind === 'pad') return `${confirmKey()} ${yes} · ${backKey()} ${no}${cycle ? ' · LB / RB other games' : ''}`;
+    if (no === 'quit' && this.host.links?.quit?.skip) no = 'skip';   // (a game on the way somewhere: its way out skips it)
+    if (kind === 'pad') return `${confirmKey()} ${yes}${no ? ` · ${backKey()} ${no}` : ''}${cycle ? ' · LB / RB other games' : ''}`;
     if (kind === 'touch') return '';
-    return `Enter ${yes} · Esc ${no}${this.phase === 'results' || this.paused ? ' · R retry' : ''}${cycle ? ' · [ ] other games' : ''}`;
+    return `Enter ${yes}${no ? ` · Esc ${no}` : ''}${this.phase === 'results' || this.paused ? ' · R retry' : ''}${cycle ? ' · [ ] other games' : ''}`;
   }
 
   // ---------------------------------------------------------------- the screens
@@ -333,7 +342,10 @@ export class MinigameRunner {
         : `<button type="button" data-opt="${h(o.id)}" data-step="-1" aria-label="less">−</button><b>${h(optionText(o, v))}</b><button type="button" data-opt="${h(o.id)}" data-step="1" aria-label="more">+</button>`;
       return `<div class="opt"><span>${h(o.label)}</span>${body}${o.hint ? `<small>${h(o.hint)}</small>` : ''}</div>`;
     }).join('');
-    this.openCard(`<p class="kicker">A game</p><h1>${h(d.name)}</h1><p>${h(d.blurb)}</p><p class="rules">${h(d.rules)}</p>
+    // (a host's links.intro: a game on the way somewhere says where, and what is said as it begins: the pirates between worlds)
+    const I = this.host.links?.intro;
+    const lead = I?.lead ? `<p class="lead"><b>${h(I.lead.name ?? '')}</b> “${h(stripTone(I.lead))}”</p>` : '';
+    this.openCard(`<p class="kicker">${h(I?.kicker ?? 'A game')}</p><h1>${h(d.name)}</h1>${lead}<p>${h(d.blurb)}</p><p class="rules">${h(d.rules)}</p>
       ${rows ? `<dl>${rows}</dl>` : ''}${opts ? `<div class="opts">${opts}</div>` : ''}
       <p class="best">${best === null ? 'No best yet.' : `Best${d.bestBy ? ` (${h(this.optionLabel(d.bestBy))})` : ''}: ${h(formatScore(d, best))}`}</p>
       <div class="buttons"><button class="main" data-act="start">Start</button>${this.outButtons()}</div>
@@ -350,8 +362,8 @@ export class MinigameRunner {
       ${showValue ? `<div class="big">${h(formatScore(d, r.value))}</div>` : ''}${r.isNew ? '<div class="stamp">New best!</div>' : ''}
       ${lines ? `<ul class="lines">${lines}</ul>` : ''}${r.html ?? ''}
       <p class="best">${r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${h(formatScore(d, r.best))}`}</p>
-      <div class="buttons"><button class="main" data-act="retry">Retry</button>${this.outButtons()}</div>
-      <small>${this.hint('retry', 'quit')}</small>`);
+      <div class="buttons">${this.resultButtons(r)}</div>
+      <small>${this.hint({ win: 'fly on', quit: 'skip' }[resultActions(r, this.host.links, this.fails ?? 0)[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit')}</small>`);   // (won on the way somewhere: Esc flies on too)
     this.sheet.classList.toggle('wide', !!r.wide);
   }
   /** The chosen value's label of a choice option ('Hard'). */

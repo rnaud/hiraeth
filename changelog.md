@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.43 — 2026-10-10
+
+- Chime pirates is in the Debug menu’s Games and on a sign in the Arcade, to play whenever you like.
+- The fight on the way can be skipped from its first card, and after two lost runs Skip the fight comes first. The settings have a switch for it, Pirates on the first flight to a new world; with Enemies off there are no pirates either.
+- Against the pirates, hold the fire button to charge a shot: it locks onto the pirate in your sights, homes in and bursts among them. Teal rings on the way patch the ship’s hull.
+- Pirates between worlds: the first time your ship flies to a world you have never been to, chime-pirates come after it on the way. “They are after your chimes!” Fly on through the dark, among the stars and the drifting rocks, shoot them down, roll away from their fire, and beat their captain’s galleon before you land. Later flights to that world go straight there.
+
 ## v1.42 — 2026-10-10
 
 - Motion matching (the developer menu’s switch) now has the game’s own walk, jog and sprint to choose from as well as the motion capture, so it keeps up with your sprint instead of handing back to the plain animation, takes over without a seam, and slides its feet about half as far as before. It is still not as clean as the normal animation, so it stays off.

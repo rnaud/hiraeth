@@ -1,4 +1,4 @@
-// The QA pass over the ten games (docs/systems/minigames.md): what every game shares (its controls on the
+// The QA pass over the eleven games (docs/systems/minigames.md): what every game shares (its controls on the
 // start card for a pad, the keys and a touch screen; its place in the Games row, with its best), and the fixes
 // of the pass: a run's things let go on Retry, Ink tide's longer blade drawn longer, the gallery's bells in
 // reach, the sketch hunt's readout seeing the crowd in the way.
@@ -14,11 +14,11 @@ import { boonTunings } from '../src/minigames/waves.js';
 import { BELLS, STAND } from '../src/minigames/gallery.js';
 import { crowdInWay, BODY } from '../src/minigames/framing.js';
 
-const IDS = ['ski', 'platformer', 'canyon', 'fishing', 'rings', 'wingdrop', 'gallery', 'waves', 'drums', 'sketchhunt'];
+const IDS = ['ski', 'platformer', 'canyon', 'fishing', 'rings', 'wingdrop', 'gallery', 'waves', 'drums', 'sketchhunt', 'pirates'];
 const modules = Object.fromEntries(await Promise.all(IDS.map(async (id) => [`./${id}.js`, await import(`../src/minigames/${id}.js`)])));
 const GAMES = collectGames(modules, (m) => { throw new Error(m); });
 
-test('all ten games, each in its own place in the Games row', () => {
+test('all eleven games, each in its own place in the Games row', () => {
   assert.deepEqual(GAMES.map((g) => g.id), IDS, 'the row in the order of the docs');
   assert.equal(new Set(GAMES.map((g) => g.order)).size, GAMES.length, 'no two games share an order');
 });

@@ -30,7 +30,11 @@ game.reset();
 for (const [k, R] of ROUTE.entries()) {
   test(`${k + 1}. ${R.id}`, async () => {
     const issue = (kind, text) => report({ world: R.id, quest: '-', stage: '-', kind, text });
-    if (prev) A.shipTurn({ from: prev, to: R.id, journal, issue });
+    if (prev) {
+      // the first flight to a world never visited meets the chime-pirates (src/ambush.js): the playthrough wins the fight
+      const fresh = !journal.seen.has(R.id), t = A.shipTurn({ from: prev, to: R.id, journal, issue });
+      if (fresh !== !!t.ambushed) issue('ambush', `the flight to ${R.id} ${fresh ? 'was not ambushed though it is new' : 'was ambushed though he has been there'}`);
+    }
     const W = A.loadWorld(R.id, { journal, report });
     // nothing he could not have found yet
     for (const [m, at] of Object.entries(FIRST)) if (A.owned(W).includes(m) && before(R.id, at) && R.id !== at) issue('ability', `he arrives with ${m} before ${at}`);
@@ -58,7 +62,8 @@ const { Ship } = await import('../src/ship/ship.js');
 const { HomecomingDirector } = await import('../src/ship/homecoming.js');
 test(`${ROUTE.length + 1}. home: the voicemail asks him home, the map shows it, the first homecoming plays to the stone`, async () => {
   const issue = (kind, text) => report({ world: 'home', quest: '-', stage: '-', kind, text });
-  const { heard, map } = A.shipTurn({ from: prev, to: 'home', journal, issue });
+  const { heard, map, ambushed } = A.shipTurn({ from: prev, to: 'home', journal, issue });
+  assert.equal(ambushed, false, 'no pirates on the way home');
   say(`  messages heard on the way: ${heard.join(', ') || 'none'}; charted: ${map.filter((e) => e.known).map((e) => e.id).join(', ')}`);
   const W = A.loadWorld('home', { journal, report });
   const ship = noDom(() => quiet(() => new Ship({ scene: W.scene, physics: W.physics, level: W.level, levelId: 'home', content: A.CONTENT.home, prologue: true })));

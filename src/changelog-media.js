@@ -538,7 +538,19 @@ const FACING = (id, d = 12, lift = 3.2, side = 0) => PIN(`npcs.find((q) => q.def
 // (the desert's crowd is its pilgrims' procession, desert-city.js desertCrowdSpots: from beside a banner-bearer)
 const PROCESSION_VIEW = PIN(`crowd.people.filter((p) => p.role === 'banner')[3]`, 14, 3.6, 'Math.PI / 2 + 0.5', 55);
 const C42_PEOPLE = '95e2a3fb';
+const FROM_PIRATES = 'headless Chrome against this branch’s own dev server, High, 1280 × 720, ?game=pirates&to=edena (Edena’s planet ahead), the run flown ahead by the game’s pilot (10 October)';
 export const CHANGELOG_MEDIA = {
+  '1.43': [
+    // (a new game: pictures with no before; the run flown ahead by its pilot, minigame.session.forward)
+    { match: 'Pirates between worlds', shots: [
+      { name: 'pirates-fight', only: 'after', title: 'The raiders', caption: 'Two raiders holding ahead of the ship, firing, the destination’s planet over them', from: FROM_PIRATES },
+      { name: 'pirates-captain', only: 'after', title: 'The captain', caption: 'The captain’s galleon under its solar sails: its two brass guns first', from: FROM_PIRATES },
+      { name: 'pirates-core', only: 'after', title: 'The bridge', caption: 'The guns down, the bridge open: rings of slow shots to roll through', from: FROM_PIRATES },
+    ] },
+    { match: 'The fight on the way can be skipped', shots: [
+      { name: 'pirates-card', only: 'after', caption: 'The card on the way to a new world: the ship’s warning, Start and Skip the fight', from: FROM_PIRATES },
+    ] },
+  ],
   '1.42': [
     { match: 'The crowds in the towns wear their world’s colours a little softer now', shots: [
       { name: 'crowd-procession', title: 'Below Qanat', caption: 'The pilgrims’ procession winding below Qanat: before, reds, saffrons and teals as strong as the story’s people wear; after, the same desert colours a step softer (Qanat’s square and the camps’ fires are mostly the story’s own people, who keep their colours)', commit: C42_PEOPLE,

@@ -648,6 +648,7 @@ const { pendingCall, completedWorlds, callLines, callContext, applyCall } = awai
 const { consoleAction, mapEntries } = await import('../src/ship/starmap.js');
 const { homeOpen, HOME_ID, finaleOpen } = await import('../src/story/ending.js');
 const { TITLES } = await import('../src/levels/names.js');
+const { ambushDue, ambushKey } = await import('../src/ambush.js');
 export { homeOpen, HOME_ID, pendingCall, completedWorlds };
 
 /**
@@ -675,7 +676,11 @@ export function shipTurn({ from, to, journal, issue }) {
   if (e?.findable) { game.set(foundFlag(to), true); e = { ...e, known: true }; }
   if (!e?.known) issue('route', `the map does not chart ${to} after ${from} (charted: ${map.filter((x) => x.known).map((x) => x.id).join(', ')})`);
   game.emit('travel', { to }); game.set('ship.level', to); game.set('ship.launched', true);
-  return { heard, map };
+  // the first flight to a world never visited meets the chime-pirates on the way (src/ambush.js, the rail shooter's page):
+  // the playthrough wins it, as the fight's page marks a won trip, and lands
+  const ambushed = ambushDue({ to, flag, seen: (id) => journal.seen.has(id) });
+  if (ambushed) game.set(ambushKey(to), 'won');
+  return { heard, map, ambushed };
 }
 
 /** E on what is here, if it is `id` (throws otherwise). Returns the entry. */

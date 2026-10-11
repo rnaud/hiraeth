@@ -44,6 +44,7 @@ const DEFAULTS = {
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
   alienVoices: true,    // off: conversations go back to plain soft blips
   enemies: 'normal',    // the foes (src/foes.js): normal | gentle (half the harm, slower, one at a time) | off (the calm game)
+  ambush: true,         // the chime-pirates on the first flight to a world never visited (src/ambush.js); off: the ship flies straight there
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
   hitboxes: false,      // the fight's hitbox overlay (F4, the world debug menu (L3 + R3), the dev menu, the Arena's board: src/hitboxes.js)
@@ -331,6 +332,7 @@ export class SettingsMenu {
           ${row(t('set.mute'), `<input data-k="mute" type="checkbox">`)}
           <h2>${t('set.group.game')}</h2>
           ${row(t('set.enemies'), opts('enemies', ['normal', 'gentle', 'off']))}
+          ${row(t('set.ambush'), `<input data-k="ambush" type="checkbox">`)}
           ${row(t('set.hints'), opts('hints', HINT_LEVELS))}
           ${game ? `${row(t('set.devPanel'), `<input data-k="devPanel" type="checkbox">`)}
           ${row(t('set.devMenu'), `<button data-a="dev" type="button">${t('set.devOpen')}</button>`)}

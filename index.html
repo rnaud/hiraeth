@@ -174,7 +174,7 @@
         font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
       }
       #loading.done { opacity: 0; pointer-events: none; }
-      /* arriving from the ship's jump (?via=ship): the warp's space ink, not the paper (src/ship/cinema.js WARP) */
+      /* arriving from the ship's jump (?via=ship), or the chime-pirates on the way (?game=pirates): the warp's space ink, not the paper (src/ship/cinema.js WARP) */
       #loading.space { background: #151a2b; color: #f7ecd2; }
       #loading.space .ring { stroke: #f7ecd2; }
       #loading.space .nib { stroke: #f7ecd2; }
@@ -458,7 +458,7 @@
       </svg></div>
       <div class="msg" data-t="load.sketching">sketching the world…</div>
     </div>
-    <script>if (/[?&]via=ship(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>
+    <script>if (/[?&](via=ship|game=pirates)(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>
     <div id="journal"></div>
     <div id="page"></div>
     <div id="toast"></div>

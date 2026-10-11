@@ -98,3 +98,7 @@ body.minigame:has(#minigame .mg-card.open) #touch { visibility: hidden; }
   #minigame .sheet .buttons { position: sticky; bottom: -8px; margin: 4px -4px -4px; padding: 6px 4px; background: #f7ecd2; }
   #minigame .sheet small { margin-top: 4px; }
 }
+
+/* a game on the way somewhere (host.links.intro: the pirates between worlds): what is said as it begins */
+#minigame .sheet .lead { padding: 7px 10px; background: #2b211f; color: #f7ecd2; transform: rotate(0.6deg); font-size: 13px; }
+#minigame .sheet .lead b { display: block; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #9ff2e6; }

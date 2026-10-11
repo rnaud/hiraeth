@@ -139,6 +139,13 @@ test('every recording and every word at the stone has a tone', () => {
   assert.ok(PROLOGUE_CALL.some((l) => /translator/.test(l.text)), 'the father mentions the translator');
 });
 
+test('the lines said on the way between worlds (the chime-pirates: the ship, their captain) carry tones', async () => {
+  const { AMBUSH_LINES } = await import('../src/ambush.js');
+  const lines = Object.values(AMBUSH_LINES);
+  assert.ok(lines.length >= 6);
+  for (const l of lines) assert.ok(parseLine(l).explicit, `${l.text}: no tone`);
+});
+
 // ------------------------------------------------------------------ the voice
 
 const LINE = 'The water has not risen this year, and the pilgrims are still walking round the walls';

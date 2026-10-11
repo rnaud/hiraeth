@@ -138,10 +138,10 @@ test('heading to space opens on the night’s ink, not a white page (playtest 20
   assert.equal(warpLook(0).hole, 0);
   assert.equal(warpLook(WARP.open).hole, 1);
   assert.ok(warpLook(WARP.open / 2).hole > 0.3 && warpLook(WARP.open / 2).hole < 0.7);
-  // and the next world's loading screen, reached ?via=ship, keeps that ink
+  // and the next world's loading screen, reached ?via=ship (or the chime-pirates' page on the way, ?game=pirates), keeps that ink
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.ok(html.includes(`#loading.space { background: ${WARP.space};`));
-  assert.ok(html.includes("<script>if (/[?&]via=ship(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>"));
+  assert.ok(html.includes("<script>if (/[?&](via=ship|game=pirates)(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>"));
   const ship = readFileSync(new URL('../src/ship/ship.js', import.meta.url), 'utf8');
-  assert.ok(ship.includes('location.search = `?level=${to}&via=ship`'), 'the take-off still arrives ?via=ship');
+  assert.ok(ship.includes('location.search = this.departure?.(to) ?? `?level=${to}&via=ship`'), 'the take-off still arrives ?via=ship (or by way of the pirates: src/ambush.js arrivalHref)');
 });

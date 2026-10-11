@@ -87,8 +87,6 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 (`src/levels/dismissed/`), out of the route and the Debug menu's worlds, so its pieces can be reused elsewhere.
 
 - [ ] [#17](https://github.com/rnaud/hiraeth/issues/17) **References for a fire-and-ice world** (both at once), in the reference lab.
-- [ ] [#18](https://github.com/rnaud/hiraeth/issues/18) **A Star Fox-style space level**: the ship fights space pirates ("They are after your chimes!"); it plays as the
-  passage the first time you fly from the ship to a new destination.
 
 - [ ] [#19](https://github.com/rnaud/hiraeth/issues/19) **The merged worlds' follow-ups** (v1.39 level-design audit: Vael 4.56 → 3.89, Lorn 4.44 → 3.89, Glass Dunes 3.22):
   the long empty walks back (Vael's 760 m from the monastery to the clapper), a weenie and a reason to cross each join;

@@ -65,3 +65,17 @@ export function scoreDef(def, state) {
   if (!def?.bestBy) return def;
   return { ...def, id: `${def.id}.${optionValue(def, state, def.bestBy)}` };
 }
+
+/**
+ * The results card's buttons, in order: [{ act, label, sub?, main? }]. Retry first, then the host's links and Quit;
+ * a host's `links.win` ({ label, href }: a game on the way somewhere, the pirates between worlds) is the main button
+ * after a run not failed (Retry beside it); `links.quit.mainAfterFails` (n) puts the way out first once n runs failed.
+ */
+export function resultActions(r = {}, links = null, fails = 0) {
+  const quit = { act: 'quit', label: links?.quit?.label ?? 'Quit' };
+  const extra = (links?.extra ?? []).map((l) => ({ act: `link:${l.id}`, label: l.label, sub: l.sub }));
+  const retry = { act: 'retry', label: 'Retry' };
+  if (!r.failed && links?.win) return [{ act: 'win', label: links.win.label, main: true }, retry];
+  if (r.failed && links?.quit?.mainAfterFails && fails >= links.quit.mainAfterFails) return [...extra, { ...quit, main: true }, retry];
+  return [{ ...retry, main: true }, ...extra, quit];
+}

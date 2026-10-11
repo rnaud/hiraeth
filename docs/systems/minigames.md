@@ -1,13 +1,14 @@
 # Minigames
 
-Small games played apart from the journey (v0.92), ten of them: each in its own little arena built on the
+Small games played apart from the journey (v0.92), eleven of them: each in its own little arena built on the
 fly, or in a corner of an existing world. **Dune skiing** (`src/minigames/ski.js`), **Sky steps**, the
 platformer (`src/minigames/platformer.js`), the **Canyon run** (`src/minigames/canyon.js`), **Fishing**
 (`src/minigames/fishing.js`), the **Ring race** (`src/minigames/rings.js`), the **Wing drop**
 (`src/minigames/wingdrop.js`), **The shooting gallery** (`src/minigames/gallery.js`) and **Ink tide**
 (`src/minigames/waves.js`), both played on foot with the blade and the fluid gun, the **Drum circle**, a
 rhythm game (`src/minigames/drums.js`), and the **Sketch hunt** in the Signal Market
-(`src/minigames/sketchhunt.js`).
+(`src/minigames/sketchhunt.js`), and **Chime pirates**, the rail shooter in space that is also the first flight to a new
+world (`src/minigames/pirates.js`, below "Pirates between worlds").
 
 ## Playing one
 
@@ -407,6 +408,59 @@ avenue, a skybridge from right under it, the old sign, a cab in flight, a shop s
 - A subject can be sketched again to do better. Each counts its best ×100; the whole list done early adds two
   points a second left (`huntScore`). The sketches are the frames (`ctx.capture`) turned to sepia ink on the
   page (`toSketch`), and the results show them as a two-page spread with their stars.
+
+
+## Pirates between worlds (`pirates.js`, the rules in `pirates-rules.js`, the trip in `src/ambush.js`)
+
+**Chime pirates** (v1.43), a rail shooter in space, is the flight between the take-off and the landing the first time
+the ship goes to a world never visited: pirates are after the chimes aboard (the ship's voice: "They are after your
+chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?game=pirates`).
+
+- **The rail** (`railPoint(s, u, v)`): the ship flies at `FLY.speed` (42 m/s) along a long gentle wander down -z
+  (slopes under 0.3: `railX`, `railY`); it moves only across it, `u` right and `v` up within a 13 × 7.5 m box,
+  steered as the jets fly (the stick forward dives; the "Invert flight" setting climbs). Everything that flies with
+  the ship (the pirates, their shots, the bolts) is kept relative to it (`ds` ahead); the rocks, the mines and the
+  repair rings hang still in space at an absolute `s`. Pure: `runStep(S, input, dt)` returns the step's events
+  (`shot`, `kill`, `hurt`, `deflect`, `blast`, `lock`, `say`, `part`, `win`, `dead`, …), which the game draws.
+- **The run** (`SCRIPT`, about 2½ minutes): skiffs in a sweeping line and in a V, raiders that overtake from under
+  the ship and hold ahead, firing, a hauler laying mines, two teal repair rings, then the captain's galleon
+  (`BOSS`): two brass gun pods (bursts of aimed shots), and once both are down the armoured bridge opens (rings of
+  slow shots, skiffs from its hold). Left alone for `BOSS.stay` (75 s) it breaks off, and the run ends all the same
+  without its bounty: a run always ends. Rock belts (`BELTS`, `courseRocks(seedOf(destination))`): one layout per
+  destination, never a wall (the test checks every 60 m leaves most of the box open).
+- **The ship**: six pips of hull (the runner's lives); a rock, a shot, a ram or a mine costs one, then 1.1 s
+  untouchable (it blinks). A tap of A / × (Space, the touch ✺) fires the twin bolts; RT / R2 held streams them,
+  slower; **held**, the shot charges (0.7 s) and locks the pirate nearest the aim (`findLock`, the coral LOCK
+  brackets): let go and the gold shot homes in and bursts (9 m: everything in it, their shots too; a bonus for each
+  kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶) shoves the ship aside
+  and turns shots away while it spins. Scores: `POINTS`; a pip left at the end is worth 50.
+- **Gentler, fiercer**: the Enemies setting's gentle fires half as often and slower; each ambush met before
+  (`ambushCount`) fires 6 % more often (`heat`, up to ten).
+- **Drawn cheaply, no new shader**: the family ship's own model (`buildShipModel`, a quarter size, its rooms
+  hidden); every pirate, rock, bolt, shot, spark and mote of dust is one of a few instanced meshes of the game's one
+  material, coloured per instance (as the puffs and the dots are: the instancing variant every world compiles); the
+  galleon a few plain meshes; the sky the City Floating in Space's look (its stars and nebula, `INK_SPACE`, the
+  destination's planet ahead in its galactic-map colour), so the ink pass's parts are the ones that world compiles.
+  Measured (headless Chrome on the Mac, High, 1280 × 720): **1.5 ms of CPU and 7.5 ms of GPU a frame, ~50 draw
+  calls, ~55k triangles**, in the waves and against the captain alike (the City Floating in Space's start: 6.7 / 9.2
+  ms, 600 calls); no program on the page that the City Floating in Space, the Arena or the Desert don't build.
+  The traveller waits hidden under the start (the shadows are placed round him, off the action: nothing there casts).
+- **The trip** (`src/ambush.js`): `ambushDue({ to, flag, seen, settings })` is true for the first flight to a world
+  the journal has never seen (old saves have their worlds seen: no migration), not home or the Lantern, not with the
+  setting off ("Pirates on the first flight to a new world", `settings.ambush`) or Enemies off. The ship's take-off
+  asks main.js (`ship.departure(to)`) and goes to `?game=pirates&to=<world>&from=<here>` instead of the landing; the
+  loading screen there is space's ink too (index.html). On that page main.js marks `ambush.<world>` 'met' at once (a
+  crash or a closed tab never sends you round it again), 'won' on a win (`host.onResult`), 'skipped' on leaving
+  otherwise; every way out lands at the world, `?level=<world>&via=ship`. The runner's `host.links` (`transitLinks`):
+  the start card says where you are going and the ship's warning (`links.intro`), Quit is **Skip the fight**, a win's
+  main button **Fly on to <world>** (`links.win`), and after two failed runs Skip comes first (`links.quit.mainAfterFails`,
+  `kit/flow.js resultActions`).
+- Tests: `tests/pirates.test.js` (the rail, the rocks, the pilot `botInput` winning at 120, 60, 30 and 20 fps in two
+  to three minutes, an idle ship lost, the charge's lock and burst, the roll, the rings, the captain breaking off, the
+  controls, the shapes), `tests/ambush.test.js` (which trips, the pages, the cards' buttons, the lines' tones, the
+  wiring); the playthrough wins each ambush on the way (`tests/playthrough-agent.js shipTurn`) and checks that every
+  first flight to a new world is ambushed and none home. `minigame.session.forward(t)` flies the run ahead by the
+  pilot (the screenshots); `globalThis.__piratesBot = true` lets the pilot fly the page.
 
 
 ## Trials in the worlds (v0.98, `src/trials/`)
