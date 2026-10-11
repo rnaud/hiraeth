@@ -16,8 +16,13 @@
 //     or more, COVER.react.after s after it is out;
 //   - consecutive pages by the same speaker keep their shot (the other's pages the two-shot, his his);
 //   - `can` false (riding, no room for the close shot): the two-shot throughout.
+//
+// Since v1.42 the close shot is off (COVER.close false: the author's note, "zooming in on the
+// character's face during dialogues doesn't add much"): every conversation holds the two-shot of both
+// speakers. The machinery stays, tested with COVER.close turned on, should a scene want it back.
 
 export const COVER = {
+  close: false,                                 // the close shot of his face at all (off: the two-shot throughout)
   hold: 1.6,                                    // s a shot is held before it changes by itself
   react: { after: 0.45, gap: 6, min: 18 },      // a reaction: s after the line is out, s since his face was last framed, letters at least
 };
@@ -56,7 +61,7 @@ export class Coverage {
     this.page = page;
     if (turned && this.reaction && this.reaction.page !== page) this.reaction = null;
     let want = 'two';
-    if (!can) this.reaction = null;
+    if (!can || !COVER.close) this.reaction = null;
     else if (answering || speaker === 'player') { want = 'traveller'; this.reaction = null; }
     else if (this.reaction) want = 'traveller';
     else if (REACTS[tone] && done && doneFor >= COVER.react.after && letters >= COVER.react.min

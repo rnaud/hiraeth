@@ -26,7 +26,12 @@ English fades in over `FADE` = 5 more. Both were 14 and 12 until October 2026. A
 pace of about 48 letters a second, the line is all English about 0.2 s after its last word
 (it used to be about 0.55 s).
 
-**His face, close.** In the two-shot the traveller's face was about 35 px tall and mostly in
+**His face, close (off since v1.42).** The author found the zoom on his face added little, so
+`COVER.close` is false and every conversation holds the two-shot of both speakers (or the look over the
+shoulder `pickTwoShot` picks), from its first page to its last: no cut to his face on his own pages or
+on a strong line. What follows is the machinery, kept and tested with `COVER.close` turned on.
+
+In the two-shot the traveller's face was about 35 px tall and mostly in
 profile, so his expressions (`docs/systems/faces.md`) never read. `src/story/coverage.js`
 (`Coverage`, driven each frame by `Dialogue.update`) decides who is framed: the two-shot, or a
 close three-quarter shot of him (`pickSingle` in `src/story/shot.js`). He is framed on his own pages (`speaker: 'player'`), and sometimes when the

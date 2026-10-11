@@ -5,7 +5,7 @@ import { Foe, Foes, FOES, PRESSURE, BURROW, FLICK, KNOCKED_LOW } from '../src/fo
 import { closeInSpeed, MAGNET, BLADE, RISE, riseTo } from '../src/fluid-blade.js';
 import { GRAVITY } from '../src/player.js';
 import { feelDt, slowMo, hitStop, resetFeel } from '../src/feel.js';
-import { reticleLook, chevronSpread, RETICLE } from '../src/lock-reticle.js';
+import { reticleLook, RETICLE } from '../src/lock-reticle.js';
 import { clearTargets, registerTarget } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { FluidTool } from '../src/fluid-tool.js';
@@ -101,19 +101,16 @@ test('the lock: cut down, it moves on to the next foe in reach; the reticle read
   foes.updateLock();
   assert.equal(foes.lock, null, 'none left in reach: it lets go');
   assert.ok(far.alive);
-  // what the reticle shows
+  // what the reticle shows (v1.42: calm, or dimmed out of reach; the foe's wind-up, strike and stagger are its body's to show)
   const f = new Foe('machine', v());
   assert.equal(reticleLook(f).mode, 'calm');
   f.state = 'wind'; f.k = 0.5;
-  assert.equal(reticleLook(f).mode, 'wind');
-  assert.ok(chevronSpread(reticleLook(f)) < 1, 'winding up: the chevrons close in');
-  f.k = 1; assert.ok(Math.abs(chevronSpread(reticleLook(f)) - RETICLE.close) < 1e-6, 'and meet at the strike');
+  assert.equal(reticleLook(f).mode, 'calm', 'winding up: no red, no change');
   f.staggered(true);
-  assert.equal(reticleLook(f).mode, 'open', 'parried: open');
-  assert.ok(chevronSpread(reticleLook(f)) > 1.1);
+  assert.equal(reticleLook(f).mode, 'calm', 'parried: the same');
   const ray = new Foe('worm', v());
   assert.equal(reticleLook(ray).mode, 'veiled', 'under the sand: dimmed');
-  f.hp = 2; assert.deepEqual([reticleLook(f).hp, reticleLook(f).max], [2, FOES.machine.hp]);
+  assert.deepEqual(Object.keys(reticleLook(f)), ['mode'], 'no health on it');
   resetFeel();
   foes.dispose(); clearTargets();
 });
@@ -253,31 +250,34 @@ test('the rising cut: a swing from the ground at a foe hovering over you leaps u
   tool.dispose(); clearTargets();
 });
 
-test('the lock-on reticle frames the body and never sits on it: its ticks outside the body\'s box in every look, closing in only as far as the box', async () => {
-  const { reticleFrame, reticleShape } = await import('../src/lock-reticle.js');
-  const box = { x0: 500, y0: 200, x1: 620, y1: 420 };
-  for (const look of [{ mode: 'calm' }, { mode: 'wind', k: 0 }, { mode: 'wind', k: 0.6 }, { mode: 'wind', k: 1 }, { mode: 'strike', k: 1 }, { mode: 'open' }, { mode: 'veiled' }]) {
-    for (const ease of [0, 0.5, 1]) {
-      const f = reticleFrame(box, chevronSpread(look, 1.3), ease);
-      assert.ok(f.cx - f.hw < box.x0 && f.cx + f.hw > box.x1 && f.cy - f.hh < box.y0 && f.cy + f.hh > box.y1, `${look.mode} at ${ease}: outside the body`);
+test('the lock-on reticle: four arrows turning round the body, never on it, pointing in at it; readable far off and on a handheld', async () => {
+  const { reticleRing, arrowAt, reticleScale } = await import('../src/lock-reticle.js');
+  const box = { x0: 500, y0: 200, x1: 620, y1: 420 }, cx = 560, cy = 310;
+  for (const ease of [0, 0.5, 1]) {
+    const r = reticleRing(box, ease);
+    for (let a = 0; a < Math.PI * 2; a += 0.05) {
+      const p = arrowAt(r, a);
+      const x = cx + p.x, y = cy + p.y;
+      // the tip stays outside the body's box, but for the box's very corners (a body's box is empty there): never within its inner 85 %
+      const inX = Math.abs(x - cx) < 0.85 * 60, inY = Math.abs(y - cy) < 0.85 * 110;
+      assert.ok(!(inX && inY), `at ${ease}, ${a.toFixed(2)}: the tip (${x.toFixed(0)}, ${y.toFixed(0)}) on the body`);
+      // and points in, at the middle
+      assert.ok(p.dx * -p.x + p.dy * -p.y > 0, 'points in');
+      assert.ok(Math.abs(Math.hypot(p.dx, p.dy) - 1) < 1e-9);
     }
-    assert.ok(reticleShape(look));
   }
-  // easing in: from wider, settling onto the body
-  assert.ok(reticleFrame(box, 1, 0).hw > reticleFrame(box, 1, 1).hw);
-  // far away (a body a few px across) it still frames something you can see; close, it never grows past its max
-  const far = reticleFrame({ x0: 640, y0: 360, x1: 643, y1: 366 });
-  assert.ok(far.hw >= RETICLE.min && far.hh >= RETICLE.min);
-  assert.ok(reticleFrame({ x0: -900, y0: -900, x1: 2000, y1: 2000 }).hw <= RETICLE.max);
-  // (v1.41: easy to notice, still fine: a coloured line over an ink one over a pale halo, bolder than v1.39's 1.8 / 3.6 px)
-  assert.ok(RETICLE.line >= 2.5 && RETICLE.line <= 3.5 && RETICLE.under >= 2 * RETICLE.line - 0.01 && RETICLE.halo > RETICLE.under);
-  // drawn larger on a bigger screen, and larger again on a small one (a handheld's CSS pixels are tiny); a far foe's frame
-  // grows with it
-  const { reticleScale } = await import('../src/lock-reticle.js');
+  // flying in: from wider, settling round the body
+  assert.ok(reticleRing(box, 0).rx > reticleRing(box, 1).rx * 2);
+  // far away (a body a few px across) the ring still stands clear of it; close, it never grows past its max
+  const far = reticleRing({ x0: 640, y0: 360, x1: 643, y1: 366 });
+  assert.ok(far.rx >= RETICLE.min && far.ry >= RETICLE.min);
+  assert.ok(reticleRing({ x0: -900, y0: -900, x1: 2000, y1: 2000 }).rx <= RETICLE.max);
+  // drawn larger on a bigger screen, and larger again on a small one (a handheld's CSS pixels are tiny)
   assert.equal(reticleScale(1280, 720), 1);
   assert.ok(reticleScale(1920, 1080) > 1.4 && reticleScale(3840, 2160) <= RETICLE.scale.hi + 1e-9);
   assert.ok(reticleScale(860, 420) > 1.2, `a handheld (${reticleScale(860, 420).toFixed(2)})`);
-  const farK = reticleFrame({ x0: 640, y0: 360, x1: 643, y1: 366 }, 1, 1, {}, 1.5);
-  assert.ok(farK.hw >= RETICLE.min * 1.5 - 1e-9, 'a far foe\'s frame no smaller than min × the scale');
-  assert.ok(RETICLE.min * reticleScale(860, 420) >= 26, 'on a handheld a far foe is framed at least 52 px across');
+  const farK = reticleRing({ x0: 640, y0: 360, x1: 643, y1: 366 }, 1, {}, 1.5);
+  assert.ok(farK.rx >= RETICLE.min * 1.5 - 1e-9, 'a far foe\'s ring no smaller than min × the scale');
+  assert.ok(RETICLE.min * reticleScale(860, 420) >= 36, 'on a handheld a far foe is ringed at least 72 px across');
+  assert.ok(RETICLE.arrow * reticleScale(860, 420) >= 18, 'and each arrow is big enough to see');
 });

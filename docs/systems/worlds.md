@@ -633,6 +633,31 @@ their doors on the tree. `tests/desert-story.test.js` checks the tree, the well 
 square's level (no step over 0.6 m from 16 to 24 m out). When the chest opens, only Nour calls out ("Hey you!",
 `MURMURS.nour`) and comes to the tree's foot; nobody else walks over (`gather` in `src/story/desert.js`).
 
+## The way through the camps (v1.42, `CAMP_WAY` in `src/desert-city.js`)
+The author's note: "the tent area in the desert feels too crowded; unsure where to go". The landing, the camps and
+Qanat's main gate lie on one line, and the first stage sends you along it ("Walk to Qanat and find Nour"), but the way
+in ran into a dome tent, a pennant tent, a banner pole and four circles of people. Now a lane `CAMP_WAY.half` (8 m)
+either side of that line, from `from` (46 m out on the landing's side) to `to` (50 m toward the gate), is kept clear:
+seven tents of the twelve, all off it (a pair where you come in, a pair halfway, a pair where it leaves for the gate,
+one by Marrow's cart); seven circles of people of the thirteen (`desertCrowdSpots`), none in it; no rug, jar or crate
+in it. The big fire stays at its heart: you pass it. The banners are no longer a ring round the camps but two rows
+of three down the lane's sides (`CAMP_WAY.banners`), a leading line from the dunes to the gate, which the level
+design audit reads (`level.lines()`, "the camps’ banners", `qanat.camps.way`). The audit's desert scores are unchanged
+(3.67: its first leg already had a landmark by its goal). `tests/desert-camps.test.js`: nothing across the lane, no
+circle of people in it, the gate in sight from 60 m out to the camps' far side, the banners at its edges.
+
+## Paved ground: nothing grows on a town's streets (v1.42, `src/paved.js`)
+The author's note: "vegetation only where it makes sense: flowers in the middle of the desert city". The responsive
+world seeds its flowers round the story's goal, the people and the relics, and Qanat's goal is its tree, so they bloomed
+on the square and the ledge. A level now gives `level.paved(p)` (`pavedMask({ discs, ways })`: discs for walled towns,
+squares and courts; ways, polylines with their full width, for paths and avenues), and both `src/reactive-world.js` and
+`src/flora.js` (`no('paved')`) leave it bare, as they do the Arena's `keepClear`. Marked: the desert (Qanat inside its
+walls, `STORY.city.r` 66 m: all streets, square and houses), the Spheres (the plaza, and every white path and the avenue
+as `path()` draws them, ×1.12 for their wobble) and the Arcade (its paved court). The other towns grow no flowers
+(screens in the Signal Market and the City-Shaft; the off-route towns have `reactions: false`), and their flora already
+keeps off them through `floraAvoid`. `tests/paved.test.js`: no flower or plant inside Qanat's walls or on the Spheres'
+paving.
+
 ## The ship's deck: flat, smaller, lived in, a holo table in the middle
 (The round deck below was replaced in October 2026 by the angular hull's rooms: docs/systems/ship.md. What
 still holds: one flat plane, blocks over low furniture, the doorway drawn once, the holo table's planet.)

@@ -20,6 +20,31 @@ export const CHANGELOG = [
     // the makers' chests, after the author's picks (references/Core Objects/Chests/; docs/systems/boxes.md)
     'The makers’ chests have a new look, the same in every world: a rounded cream shell like a river stone, the makers’ star on its top, a thin brass band round it and a glowing jade lens in its front, the same jade as your backpack. When you open one, its top parts in two like petals and jade light rises out of it.',
     'At the heart of each temple the chest is a rarer one: a bud of white stone and gold, jade glowing in its seams, that opens like a flower.',
+    // the conversation camera (docs/systems/conversations.md "His face, close (off since v1.42)")
+    { text: 'Conversations no longer cut in close on your face: the camera stays back on both of you for the whole talk, whoever is speaking.',
+      see: 'Talk to Nour in Qanat, or anyone with a sad or surprised line: the camera holds both of you in view from the first page to the last, with no zoom onto your face when you answer or take in a strong line.' },
+    // the lock-on (docs/systems/foes.md "The reticle")
+    'The lock-on is four gold arrows turning round the foe and pointing in at it, as in Ocarina of Time: no health bar on it, and no red while the foe winds up (its body shows you that). A new lock flies the arrows in.',
+    // paved ground (docs/systems/worlds.md "Paved ground")
+    'Flowers grow only where they make sense: none on Qanat’s paved square, its streets or anywhere inside its walls, and none on the Spheres’ white paths and round plaza.',
+    // the way through the camps (docs/systems/worlds.md "The way through the camps")
+    'The pilgrims’ camps outside Qanat are calmer on the way in: fewer tents and fewer groups of people, a clear way straight through past the big fire to the main gate, and two rows of tall banners down its sides that lead you there from the dunes.',
+    // the foes warmed at the load (docs/systems/foes.md "The stutter when a new foe comes in", "Wired in v1.42")
+    { text: 'No more frame drops in the Arena when a new kind of foe comes in or the first one falls: every foe the world can field is made ready while it loads.',
+      numbers: [
+        { title: 'A two-minute fight in the Arena (13 waves)', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), the shipped bundle in Chrome, High, 1280 × 720', rows: [
+          { where: 'worst frame', before: 201.8, after: 22.1 },
+          { where: 'frames over 50 ms (count)', before: 12, after: 0 },
+          { where: 'GPU programs compiled mid-fight (count)', before: 27, after: 0 },
+          { where: '95th percentile frame', before: 4.3, after: 4.5 },
+        ], source: 'a scripted fight: the Arena’s waves round a traveller kept alive, locked on and swinging' },
+        { title: 'The same fight at Handheld', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), the shipped bundle in Chrome, Handheld, 1280 × 720', rows: [
+          { where: 'worst frame', before: 202.5, after: 19.3 },
+          { where: 'frames over 50 ms (count)', before: 6, after: 0 },
+          { where: '95th percentile frame', before: 3.4, after: 3.0 },
+        ], source: 'the same fight' },
+      ],
+      see: 'Open the Arena (?level=arena) and fight through its waves: the first appearance of each kind of foe, and the first one you cut down, no longer hitch.' },
   ] },
   { v: '1.42', date: '2026-10-10', items: [
     { text: 'The Notes box grows as you write. Sending clears it immediately for your next thought, while pending or failed notes stay in the list.', see: 'Write several lines in Notes, then Add (or Ctrl/⌘ + Enter). Start the next note immediately; a failed send stays available to retry.' },

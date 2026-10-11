@@ -2081,6 +2081,11 @@ const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = nu
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 await slice();
+// the foes this world can field (every kind in the Arena), in the scene for the warm passes only (src/foes.js warmModels;
+// v1.42, issue #1: a kind's first appearance compiled 1-5 programs mid-fight, 100-200 ms frames in the Arena's waves;
+// v1.41 measured it). Taken out again before the first frame; their materials keep the programs alive for the foes.
+const foeWarm = foes.on ? foes.warmModels() : null;
+if (foeWarm) { foeWarm.group.position.set(0, -1e4, 0); scene.add(foeWarm.group); }
 {
   const t0 = performance.now();
   setStep('surfaces');
@@ -2104,6 +2109,8 @@ await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.ena
 // asked for each one's uniforms at once, and the page froze till it was (the Xbox: 1-4 s a program)
 setStep('first use');
 await firstUse(renderer, slice);
+foeWarm?.dispose();   // (out of the scene before the passage's draws and the first frame)
+if (foeWarm) console.info(`foes warmed: ${foeWarm.kinds.length} kinds`);
 // The ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
 // leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
 // pipelines built before the first frame (they used to arrive with the first sight of them); and

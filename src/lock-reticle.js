@@ -1,45 +1,37 @@
 import * as THREE from 'three';
 import { bodySpan } from './foe-body.js';
 
-// The lock-on's reticle (#foe-lock, docs/systems/foes.md "The lock-on"; v1.39: thin and quiet, it was four thick gold
-// chevrons on a ring over the foe's chest). Four fine ink ticks frame the foe's drawn body at its corners, a small diamond
-// settles over its head, and a row of tiny pips over the diamond counts what is left of it. Nothing is drawn on the body:
-// the frame is the body's own box on the screen (src/foe-body.js bodySpan, its parts as posed) grown by a gap.
-// It is not only a marker: it reads the foe for you.
-// - calm: gold, breathing a little;
-// - winding up: the ticks tint coral, double and close in on the body as the strike comes (at the strike: guard, or go);
-// - open (stunned, parried, flipped, asleep, reeling): pale blue, the ticks turned in toward it, held wide;
-// - out of the blade's reach (a ray under the sand, a hound running as a shadow): dimmed and dashed.
-// Never by colour alone (a colour-blind player reads the shapes): winding up, each tick doubles and closes in; open, the
-// corner ticks turn into short strokes pointing in, and the diamond becomes a hollow ring; at the strike a small four-point
-// burst; veiled, all of it dashed (reticleShape).
-// It eases in on a new foe (from wider and faint, the diamond dropping onto it). Off the screen it waits at the edge on
-// its side, small. Each stroke is a coloured line over a softer ink one, so it reads on bright sand and in the dark.
-// v1.41 (the author: "a lock-on reticle that's easy to notice but still elegant … it must read at Handheld size and from
-// far away", over v1.39's "subtler"): the same shapes, bolder. Every stroke is drawn three times, a soft pale halo, the
-// ink, then the colour, so it reads on dark rock as well as on bright sand; the strokes, ticks and marker are larger, and
-// the whole drawing scales with the screen (reticleScale: a quarter larger again on a small screen, where a CSS pixel is
-// tiny); a far foe gets a frame no smaller than RETICLE.min × that scale; the diamond over its head is a pointed marker
-// that bobs, and a new lock pulses once as it lands.
+// The lock-on's reticle (#foe-lock, docs/systems/foes.md "The lock-on"). v1.42, the author: "closer to Ocarina of Time
+// (4 arrows pointing towards the character that are rotating) and less complicated; remove the health bar, and remove the
+// red when the character is attacking: it should be obvious". So: four gold arrowheads round the foe, their tips pointing
+// in at it, turning slowly round it. No health pips, no colours or shapes for its wind-up, its strike or its stagger:
+// the foe's own body tells those. Only a foe out of the blade's reach (a ray under the sand, a hound running as a shadow)
+// dims it.
+// The arrows ride a rounded box round the foe's drawn body on the screen (src/foe-body.js bodySpan, its parts as posed)
+// grown by a gap, so they turn round it without sitting on it, and a far foe's ring is no smaller than RETICLE.min. A new
+// lock flies them in from wider, spinning faster as they come (as Ocarina's did). Off the screen they wait small at the
+// edge on its side. Each arrow is drawn over a soft pale halo and an ink edge, two-toned like a little pyramid, so it
+// reads on bright sand and on dark rock; the whole drawing scales with the screen (reticleScale: a quarter larger on a
+// small screen, where a CSS pixel is tiny). Replaces v1.39's corner ticks, diamond and pips, and v1.41's bolder ones.
 //
 //   const r = new LockReticle(); r.update(foe | null, camera, dt); r.acquire(); r.dispose()
 
 export const RETICLE = {
-  min: 22, max: 300,          // px: the frame's half-size on the screen, at least / at most (× reticleScale; v1.39: 14 / 260)
-  margin: 0.35,               // m round the foe's body (the frame of a body with no parts to measure: its sphere)
-  gap: 10,                    // px between the body's box and the ticks (× the spread)
-  tick: 16,                   // px: each corner tick's arms (v1.39: 11)
-  line: 2.8, under: 5.6,      // px: the coloured stroke, the ink one under it (v1.39: 1.8 / 3.6)
-  halo: 9, haloA: 0.4,        // px and opacity: the soft pale stroke under both, so it reads on dark ground
-  bob: 2.5,                   // px the marker over its head bobs
-  pulse: 0.35,                // × its size: the pulse as a new lock lands
+  min: 30, max: 300,          // px: the ring's half-size on the screen, at least / at most (× reticleScale)
+  margin: 0.35,               // m round the foe's body (the ring of a body with no parts to measure: its sphere)
+  gap: 14,                    // px between the body's box and the arrows' tips
+  round: 4,                   // the ring's shape: a superellipse of this power (2 an ellipse, higher a rounder box)
+  arrow: 18, wide: 17,        // px: each arrowhead's length (tip to back) and width at its back
+  edge: 2.6, halo: 5,         // px: the ink edge round each arrow, and the pale halo under it
+  haloA: 0.45,                // the halo's opacity
+  spin: 1.4,                  // rad/s the arrows turn round the foe
+  breathe: 0.06,              // × the gap: the arrows ease in and out a little
+  snap: 0.35,                 // s a new lock takes to fly in
+  from: 2.4,                  // × the ring's size the arrows fly in from
+  whirl: 5,                   // rad: the extra turn while they fly in
+  veiled: 0.5,                // opacity out of the blade's reach
   scale: { at: 720, lo: 1, hi: 1.7, small: 560, boost: 1.25 },   // reticleScale
-  close: 0.35,                // the gap at the strike, × the calm one (the ticks close in, never onto the body)
-  open: 1.7,                  // × the gap while it is open
-  snap: 0.32,                 // s the ease-in takes
-  drop: 16,                   // px the diamond settles from
-  pips: 8,                    // most pips drawn (more hp: each stands for more)
-  ink: '#2b211f', gold: '#f2c54b', cream: '#f7ecd2', red: '#ef6a4c', blue: '#bfe9ff', light: '#fff6dc',
+  ink: '#2b211f', gold: '#f2c54b', shade: '#c98f22', light: '#fff6dc',
 };
 
 /**
@@ -52,55 +44,37 @@ export function reticleScale(W, H, R = RETICLE) {
   return THREE.MathUtils.clamp(m / S.at, S.lo, S.hi) * (m < S.small ? S.boost : 1);
 }
 
-/**
- * What the reticle shows for foe f (pure: tests): { mode: 'calm' | 'wind' | 'strike' | 'open' | 'veiled', k (the
- * wind-up 0..1), hp, max }.
- */
+/** What the reticle shows for foe f (pure: tests): { mode: 'calm' | 'veiled' }, null with no foe. Nothing else: its wind-up, strike and stagger are the body's to show. */
 export function reticleLook(f) {
   if (!f) return null;
-  const hp = Math.max(0, Math.ceil(f.hp ?? 0)), max = f.def?.hp ?? hp;
-  let mode = 'calm';
-  if (f.buried || f.phased) mode = 'veiled';
-  else if (f.stunned > 0 || f.flipped > 0 || f.sleep > 0 || (f.state === 'recover' && f.reel)) mode = 'open';
-  else if (f.state === 'wind') mode = 'wind';
-  else if (f.state === 'strike') mode = 'strike';
-  return { mode, k: mode === 'wind' ? f.k ?? 0 : mode === 'strike' ? 1 : 0, hp, max };
+  return { mode: f.buried || f.phased ? 'veiled' : 'calm' };
 }
 
 /**
- * The shape of each look, besides its colour (pure: tests): the ticks point 'out' (corners round the body: calm, winding
- * up) or 'in' (open: short strokes pointing at it), are single or doubled, dashed or not, under a 'diamond', a hollow
- * 'ring' or a 'burst'. Every mode differs from the others in shape.
+ * The ring round a body box on the screen (pure: tests): `box` { x0, y0, x1, y1 } in px, the ease-in (0..1), the
+ * screen's scale k. Returns { cx, cy, rx, ry }: its centre and half-sizes, the box grown by the gap (and, easing in, by
+ * RETICLE.from), at least RETICLE.min, at most RETICLE.max, × k.
  */
-export function reticleShape(look) {
-  const mode = look?.mode ?? 'calm';
-  return {
-    point: mode === 'open' ? 'in' : 'out',
-    double: mode === 'wind' || mode === 'strike',
-    dash: mode === 'veiled',
-    centre: mode === 'open' ? 'ring' : mode === 'strike' ? 'burst' : 'diamond',
-  };
-}
-
-/** The gap between the body and the ticks, × RETICLE.gap, for a look (pure: tests; the name is the old chevrons'). */
-export function chevronSpread(look, t = 0) {
-  if (!look) return 1;
-  if (look.mode === 'wind') return THREE.MathUtils.lerp(1, RETICLE.close, look.k * look.k);
-  if (look.mode === 'strike') return RETICLE.close * 0.9;
-  if (look.mode === 'open') return RETICLE.open + Math.sin(t * 6) * 0.08;
-  return 1 + Math.sin(t * 2.4) * 0.05;
-}
-
-/**
- * The frame round a body box on the screen (pure: tests): `box` { x0, y0, x1, y1 } in px, the spread, the ease-in (0..1).
- * Returns { cx, cy, hw, hh }: its centre and half-size, the body's box grown by the gap on every side (the ticks sit on
- * its corners, outside the body), at least RETICLE.min, at most RETICLE.max.
- */
-export function reticleFrame(box, spread = 1, ease = 1, out = {}, k = 1) {
-  const R = RETICLE, g = (R.gap * spread + (1 - ease) * 2.2 * R.gap) * k;
+export function reticleRing(box, ease = 1, out = {}, k = 1, t = 0) {
+  const R = RETICLE, g = R.gap * k * (1 + R.breathe * Math.sin(t * 2.6));
+  const grow = 1 + (R.from - 1) * (1 - ease);
   out.cx = (box.x0 + box.x1) / 2; out.cy = (box.y0 + box.y1) / 2;
-  out.hw = THREE.MathUtils.clamp((box.x1 - box.x0) / 2 + g, R.min * k, R.max * k);
-  out.hh = THREE.MathUtils.clamp((box.y1 - box.y0) / 2 + g, R.min * k, R.max * k);
+  out.rx = THREE.MathUtils.clamp((box.x1 - box.x0) / 2 + g, R.min * k, R.max * k) * grow;
+  out.ry = THREE.MathUtils.clamp((box.y1 - box.y0) / 2 + g, R.min * k, R.max * k) * grow;
+  return out;
+}
+
+/**
+ * Where each arrow's tip sits on the ring, and the way it points (pure: tests): angle a round it (0: to the right, y
+ * down the screen). The ring is a superellipse (RETICLE.round), so a turning arrow keeps close to the box's corners
+ * without cutting into them much. Returns { x, y, dx, dy } relative to the centre: the tip, and the unit way in.
+ */
+export function arrowAt(ring, a, out = {}) {
+  const c = Math.cos(a), s = Math.sin(a), p = 2 / RETICLE.round;
+  out.x = ring.rx * Math.sign(c) * Math.abs(c) ** p;
+  out.y = ring.ry * Math.sign(s) * Math.abs(s) ** p;
+  const l = Math.hypot(out.x, out.y) || 1;
+  out.dx = -out.x / l; out.dy = -out.y / l;
   return out;
 }
 
@@ -111,78 +85,33 @@ const el = (tag, attrs = {}, parent = null) => {
   parent?.appendChild(e);
   return e;
 };
-/**
- * A stroke as drawn: a soft pale halo, an ink line over it, a coloured one on top. Returns the coloured one (the ink one
- * is .under, the halo .halo).
- */
-function inked(d, parent, R = RETICLE) {
-  const halo = el('path', { d, fill: 'none', stroke: R.light, 'stroke-width': R.halo, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: R.haloA }, parent);
-  const under = el('path', { d, fill: 'none', stroke: R.ink, 'stroke-width': R.under, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0.75 }, parent);
-  const top = el('path', { d, fill: 'none', stroke: R.gold, 'stroke-width': R.line, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
-  top.under = under; top.halo = halo; under.halo = halo;
-  return top;
-}
 
-const _p = new THREE.Vector3(), _c = new THREE.Vector3(), _k = new THREE.Vector3(), _box = { x0: 0, y0: 0, x1: 0, y1: 0 }, _fr = {};
+const _p = new THREE.Vector3(), _k = new THREE.Vector3(), _box = { x0: 0, y0: 0, x1: 0, y1: 0 }, _ring = {}, _at = {};
 
 export class LockReticle {
   constructor(parent = document.body) {
-    const R = RETICLE, L = R.tick;
+    const R = RETICLE, L = R.arrow, w = R.wide / 2;
     this.root = Object.assign(document.createElement('div'), { id: 'foe-lock' });
     this.root.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:24;display:none';
     this.svg = el('svg', { width: 2, height: 2, style: 'position:absolute;left:0;top:0;overflow:visible' });
     this.root.appendChild(this.svg);
-    // the four corners, each drawn as the top left one turned: an L along the frame's edges (out), or a short stroke
-    // pointing in at the body (in); a second L outside it while winding up
-    this.corners = [0, 1, 2, 3].map((i) => {
-      const g = el('g', {}, this.svg), size = el('g', {}, g), turn = el('g', { transform: `rotate(${i * 90})` }, size);
-      const ell = inked(`M0,${L} L0,0 L${L},0`, turn);
-      const second = el('g', { transform: 'translate(-5,-5)', style: 'display:none' }, turn);
-      const ell2 = inked(`M0,${L * 0.75} L0,0 L${L * 0.75},0`, second);
-      const stroke = inked('M-2,-2 L7,7', turn);
-      return { g, size, ell, second, ell2, stroke };
+    // each arrow drawn pointing down (+y) with its tip at the origin: a halo, an ink edge, then two faces (lit, shaded)
+    const tri = `M0,0 L${w},${-L} L${-w},${-L}Z`;
+    this.arrows = [0, 1, 2, 3].map(() => {
+      const g = el('g', {}, this.svg);
+      el('path', { d: tri, fill: R.light, stroke: R.light, 'stroke-width': R.edge + R.halo * 2, 'stroke-linejoin': 'round', opacity: R.haloA }, g);
+      el('path', { d: tri, fill: R.ink, stroke: R.ink, 'stroke-width': R.edge * 2, 'stroke-linejoin': 'round', opacity: 0.85 }, g);
+      el('path', { d: `M0,0 L${w},${-L} L0,${-L * 0.72}Z`, fill: R.shade }, g);
+      el('path', { d: `M0,0 L0,${-L * 0.72} L${-w},${-L}Z`, fill: R.gold }, g);
+      return g;
     });
-    // over its head: a pointed marker, its tip down at the foe (open: a hollow ring; the strike: a four-point burst), the
-    // pips above it
-    this.crown = el('g', {}, this.svg);
-    this.crownSize = el('g', {}, this.crown);
-    this.diamond = el('g', {}, this.crownSize);
-    el('path', { d: 'M0,10 L7.5,-3 L0,-8 L-7.5,-3Z', fill: R.light, opacity: R.haloA, stroke: R.light, 'stroke-width': 4, 'stroke-linejoin': 'round' }, this.diamond);
-    el('path', { d: 'M0,10 L7.5,-3 L0,-8 L-7.5,-3Z', fill: R.ink, opacity: 0.8 }, this.diamond);
-    this.dot = el('path', { d: 'M0,7 L5.2,-2.4 L0,-5.6 L-5.2,-2.4Z', fill: R.gold }, this.diamond);
-    this.ringC = el('g', { style: 'display:none' }, this.crownSize);
-    this.ringDot = inked('M5.5,0 A5.5,5.5 0 1 1 -5.5,0 A5.5,5.5 0 1 1 5.5,0Z', this.ringC);
-    this.burst = el('g', { style: 'display:none' }, this.crownSize);
-    el('path', { d: 'M0,-10 L2.6,-2.6 L10,0 L2.6,2.6 L0,10 L-2.6,2.6 L-10,0 L-2.6,-2.6Z', fill: R.ink, opacity: 0.8 }, this.burst);
-    this.burstDot = el('path', { d: 'M0,-7.5 L1.6,-1.6 L7.5,0 L1.6,1.6 L0,7.5 L-1.6,1.6 L-7.5,0 L-1.6,-1.6Z', fill: R.red }, this.burst);
-    this.pipsG = el('g', {}, this.crownSize);
-    this.pips = [];
     parent.appendChild(this.root);
-    this.t = 0; this.snap = 1; this.foe = null; this.flash = 0; this.lastMode = null;
+    this.t = 0; this.snap = 1; this.foe = null;
     this.span = { lo: 0, hi: 0, centre: new THREE.Vector3(), radius: 0 };
   }
 
-  /** A new foe locked: the reticle eases in on it. */
+  /** A new foe locked: the arrows fly in on it. */
   acquire() { this.snap = 0; }
-
-  /** The pips: one per hp up to RETICLE.pips (more: each stands for a share), in a row over the diamond. */
-  drawPips(look) {
-    const R = RETICLE, n = Math.min(R.pips, Math.max(1, look.max)), per = look.max / n;
-    while (this.pips.length < n) {
-      const g = el('g', {}, this.pipsG);
-      el('circle', { r: 3.4, fill: R.ink, opacity: 0.75 }, g);
-      this.pips.push({ g, fill: el('circle', { r: 2.2, fill: R.cream }, g) });
-    }
-    const gap = 8;
-    this.pips.forEach((p, i) => {
-      if (i >= n) { p.g.style.display = 'none'; return; }
-      p.g.style.display = '';
-      p.g.setAttribute('transform', `translate(${((i - (n - 1) / 2) * gap).toFixed(1)},-16)`);
-      const left = look.hp / per - i;   // (this pip's share left: 1 full, 0 gone)
-      p.fill.setAttribute('fill', left > 0.5 ? (look.mode === 'open' ? R.blue : R.cream) : R.ink);
-      p.fill.setAttribute('r', left > 0.5 ? 2.2 : 1.1);
-    });
-  }
 
   /** The foe's drawn body as a box on the screen (px), or null (behind the camera: the caller holds it at the edge). */
   screenBox(f, camera, W, H) {
@@ -215,56 +144,34 @@ export class LockReticle {
   update(f, camera, dt = 0) {
     const R = RETICLE;
     if (f !== this.foe) { if (f) this.snap = Math.min(this.snap, 0); this.foe = f; }
-    if (!f || !camera) { this.root.style.display = 'none'; return; }
+    if (!f || !camera) { if (this.shown !== false) { this.root.style.display = 'none'; this.shown = false; } return; }
     this.t += dt; this.snap = Math.min(1, this.snap + dt / R.snap);
     const look = reticleLook(f);
-    if (look.mode === 'strike' && this.lastMode !== 'strike') this.flash = 1;   // (the strike: a white flash as they meet)
-    this.lastMode = look.mode;
-    this.flash = Math.max(0, this.flash - dt * 5);
     const W = window.innerWidth, H = window.innerHeight, K = reticleScale(W, H);
-    const s = this.snap, ease = 1 - (1 - s) ** 3;
-    // (a new lock lands with one pulse: the marks a little larger as they settle, back to size by the end of the ease)
-    const pulse = 1 + R.pulse * Math.sin(Math.PI * Math.min(1, s * 1.4)) * (s < 1 ? 1 : 0);
+    const ease = 1 - (1 - this.snap) ** 3;
     // where: the body's box on the screen; off it (or behind), held small at the edge on its side
     const box = this.screenBox(f, camera, W, H);
-    let fr;
-    const onScreen = box && box.x1 > W * 0.04 && box.x0 < W * 0.96 && box.y1 > H * 0.05 && box.y0 < H * 0.95;
-    if (onScreen) fr = reticleFrame(box, chevronSpread(look, this.t), ease, _fr, K);
+    let ring;
+    if (box && box.x1 > W * 0.04 && box.x0 < W * 0.96 && box.y1 > H * 0.05 && box.y0 < H * 0.95) ring = reticleRing(box, ease, _ring, K, this.t);
     else {
-      _c.copy(f.chest); _p.copy(_c).project(camera);
+      _p.copy(f.chest).project(camera);
       const behind = _p.z > 1;
       let x = behind ? -_p.x : _p.x, y = behind ? -_p.y : _p.y;
       const k = 1 / Math.max(Math.abs(x) / 0.88, Math.abs(y) / 0.84, 1e-3); if (k < 1 || behind) { x *= k; y *= k; }
-      fr = Object.assign(_fr, { cx: (x * 0.5 + 0.5) * W, cy: (0.5 - y * 0.5) * H, hw: R.min * K, hh: R.min * K });
+      const r = R.min * K * (1 + (R.from - 1) * (1 - ease));
+      ring = Object.assign(_ring, { cx: (x * 0.5 + 0.5) * W, cy: (0.5 - y * 0.5) * H, rx: r, ry: r });
     }
-    this.root.style.display = '';
-    this.root.style.transform = `translate(${fr.cx.toFixed(1)}px,${fr.cy.toFixed(1)}px)`;
-    this.root.style.opacity = String((look.mode === 'veiled' ? 0.55 : 1) * ease);
-    const colour = this.flash > 0.3 ? '#ffffff' : look.mode === 'wind' || look.mode === 'strike' ? R.red : look.mode === 'open' ? R.blue : R.gold;
-    const shape = reticleShape(look), dash = shape.dash ? '2.5 3' : 'none';
-    const at = [[-fr.hw, -fr.hh], [fr.hw, -fr.hh], [fr.hw, fr.hh], [-fr.hw, fr.hh]];
-    const size = `scale(${(K * pulse).toFixed(3)})`;
-    this.corners.forEach((c, i) => {
-      c.g.setAttribute('transform', `translate(${at[i][0].toFixed(1)},${at[i][1].toFixed(1)})`);
-      c.size.setAttribute('transform', size);
-      const out = shape.point === 'out';
-      c.ell.style.display = c.ell.under.style.display = out ? '' : 'none';
-      c.stroke.style.display = c.stroke.under.style.display = out ? 'none' : '';
-      c.second.style.display = shape.double && out ? '' : 'none';
-      for (const top of [c.ell, c.ell2, c.stroke]) { top.setAttribute('stroke', colour); top.setAttribute('stroke-dasharray', dash); top.under.setAttribute('stroke-dasharray', dash); top.halo.style.display = top.style.display; }
+    if (this.shown !== true) { this.root.style.display = ''; this.shown = true; }
+    this.root.style.transform = `translate(${ring.cx.toFixed(1)}px,${ring.cy.toFixed(1)}px)`;
+    const opacity = ((look.mode === 'veiled' ? R.veiled : 1) * Math.min(1, ease * 1.6)).toFixed(2);
+    if (opacity !== this.opacity) { this.root.style.opacity = opacity; this.opacity = opacity; }
+    // the turn: steady, with an extra whirl as a new lock flies in
+    const turn = this.t * R.spin + R.whirl * (1 - ease);
+    this.arrows.forEach((g, i) => {
+      const a = arrowAt(ring, turn + i * Math.PI / 2, _at);
+      const deg = Math.atan2(a.dy, a.dx) * 180 / Math.PI - 90;   // (drawn pointing down, +y: turned to point along dx, dy)
+      g.setAttribute('transform', `translate(${a.x.toFixed(1)},${a.y.toFixed(1)}) rotate(${deg.toFixed(1)}) scale(${K.toFixed(3)})`);
     });
-    // the crown over its head, settling onto it as it eases in, and bobbing a little (calm and open: not while it strikes)
-    const bob = look.mode === 'calm' || look.mode === 'open' ? Math.sin(this.t * 3.2) * R.bob : 0;
-    this.crown.setAttribute('transform', `translate(0,${(-fr.hh - (14 + (1 - ease) * R.drop + bob) * K).toFixed(1)})`);
-    this.crownSize.setAttribute('transform', size);
-    this.diamond.style.display = shape.centre === 'diamond' ? '' : 'none';
-    this.ringC.style.display = shape.centre === 'ring' ? '' : 'none';
-    this.burst.style.display = shape.centre === 'burst' ? '' : 'none';
-    this.dot.setAttribute('fill', colour);
-    this.ringDot.setAttribute('stroke', colour);
-    this.burstDot.setAttribute('fill', colour);
-    this.pipsG.style.display = onScreen ? '' : 'none';
-    if (onScreen) this.drawPips(look);
   }
 
   dispose() { this.root.remove(); }

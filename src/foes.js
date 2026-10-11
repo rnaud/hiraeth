@@ -1447,7 +1447,7 @@ const BURST_TONES = {
 /**
  * A guardian as the lock-on sees it (v1.39; src/temples/boss.js Guardian, GUARDIANS_LIVE): the lock, the reticle, the
  * camera and the blade read a foe's fields, so it answers them from the guardian: where it is, its chest, its body
- * (the reticle frames its model), its wind-up (state 'wind' with its k), open (stunned), and pips for its phases left.
+ * (the reticle frames its model), its wind-up (state 'wind' with its k), open (stunned).
  */
 export class GuardianLock {
   constructor(g) { this.g = g; this.guardian = true; this._chest = new THREE.Vector3(); this.dead = undefined; }
@@ -1765,7 +1765,12 @@ export class Foes {
       made.push(kind);
     }
     const tele = new Telegraph(group, '#6d4fa8');
-    return { group, kinds: made, dispose: () => { tele.dispose?.(); group.removeFromParent(); group.traverse((o) => o.geometry?.dispose?.()); } };
+    // the ink a foe leaves where it falls (stain, ShadePools: its decal, drops and licks), in the group too, so their programs
+    // are compiled by the same pass (v1.42, issue #1: the first foe cut down in the Arena compiled the decal's, a 120 ms
+    // frame). Only for the warm: kept in the world from the start, its dynamic meshes had every shadow map redrawn each
+    // frame (+500 draws); its materials outlive it, so the pools made at the first stain find their programs ready.
+    const pools = new ShadePools(group);
+    return { group, kinds: made, dispose: () => { tele.dispose?.(); pools.dispose(); group.removeFromParent(); group.traverse((o) => o.geometry?.dispose?.()); } };
   }
 
   remove(f) {

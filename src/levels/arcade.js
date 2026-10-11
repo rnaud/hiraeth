@@ -12,6 +12,7 @@ import { scoreDef } from '../minigames/kit/flow.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { game } from '../game-state.js';
 import { ArcadeBoard } from './arcade-board.js';
+import { pavedMask } from '../paved.js';
 
 // ---------------------------------------------------------------------------
 // The Arcade: a developer's plaza for trying the minigames (docs/systems/minigames.md, "The Arcade"),
@@ -192,6 +193,7 @@ export function* buildArcade(scene, { games = GAMES, state = game, search = glob
   return {
     id: 'arcade',
     ground: terrain,
+    paved: pavedMask({ discs: [{ x: 0, z: 0, r: PLAZA.wall }] }),   // (the paved court and its ring of signs: nothing grows there, src/paved.js)
     spawn,
     spawnHeading,
     camYaw: spawnHeading + Math.PI,

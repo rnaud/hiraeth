@@ -20,6 +20,7 @@ import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK } from '../desert-sites.js';
 import { smoothstep } from '../noise.js';
+import { pavedMask } from '../paved.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
 import { gameById } from '../minigames/index.js';
 import ringRace from '../minigames/rings.js';
@@ -117,6 +118,8 @@ export function* buildDesert(scene) {
   const level = attachTemple('desert', scene, {
     id: 'desert',
     floraAvoid: avoidShop,
+    // Qanat inside its walls is all streets, the paved square and houses: no flowers or plants there (src/paved.js)
+    paved: pavedMask({ discs: [{ x: STORY.city.x, z: STORY.city.z, r: STORY.city.r }] }),
     observatory,
     qanat,
     hearth,
@@ -143,6 +146,8 @@ export function* buildDesert(scene) {
     // fire-bearers' marked stones from Qanat to the Hearth, the Givers' dry channel from the city to their house
     lines: () => [
       { name: 'the marked stones', points: hearth.stones.map((s) => [s.x, s.y, s.z]) },
+      // (v1.42: the way through the camps to the gate, between its two rows of banners)
+      { name: 'the camps’ banners', points: qanat.camps.way.map((p) => [p.x, p.y, p.z]) },
       ...(level.dryChannel ? [{ name: 'the Givers’ dry channel', points: level.dryChannel }] : []),
       // (the way home: its lamps are lit once the tree burns, and the last stage sends you down it; not the way in)
       { name: 'the pilgrims’ road', points: road.points, auto: false },

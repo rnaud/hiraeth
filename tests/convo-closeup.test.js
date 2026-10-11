@@ -35,6 +35,17 @@ function onScreen(eye, look, face, fov = 55, aspect = 16 / 9) {
 
 // ---------------------------------------------------------------- who is framed
 
+// The close shot is off in the game since v1.42 (COVER.close: the author's note, the zoom on his face added
+// little); the tests of its machinery turn it on for themselves.
+const closeOn = (fn) => () => { COVER.close = true; try { return fn(); } finally { COVER.close = false; } };
+
+test('the close shot is off: his own pages and strong lines keep the two-shot of both of them', () => {
+  assert.equal(COVER.close, false);
+  const { changes, log } = run([{ tone: 'neutral' }, { speaker: 'player', tone: 'surprised' }, { tone: 'sad', letters: 60 }, { tone: 'neutral', answer: true }, { tone: 'shout', letters: 40 }]);
+  assert.equal(changes.length, 0);
+  assert.ok(log.every(([, w]) => w === 'two'));
+});
+
 /** Run a conversation through the coverage: pages [{ speaker, tone, letters, answer }] read at `read` s a page. */
 function run(pages, { dt = 1 / 30, read = 2.5, reveal = 40, can = true } = {}) {
   const c = new Coverage(); c.reset(0);
@@ -60,16 +71,16 @@ test('the two-shot while they speak plainly: several pages in a row, no cut', ()
   assert.ok(log.every(([, w]) => w === 'two'));
 });
 
-test('his answer: his face at once, for as long as he says it; then the two-shot for the reply', () => {
+test('his answer: his face at once, for as long as he says it; then the two-shot for the reply', closeOn(() => {
   const { changes } = run([{ tone: 'neutral' }, { tone: 'neutral', answer: true }]);
   assert.deepEqual(changes.map(([, w]) => w), ['traveller', 'two']);
   assert.ok(changes[1][0] - changes[0][0] >= 1.1, 'held while he says it');
   // his own pages, in a row: one shot of him over all of them
   const own = run([{ tone: 'neutral' }, { speaker: 'player', tone: 'surprised' }, { speaker: 'player', tone: 'scared' }, { tone: 'neutral' }]);
   assert.deepEqual(own.changes.map(([, w]) => w), ['traveller', 'two']);
-});
+}));
 
-test('a strong line: once it is out, his face taking it in, held until the page turns', () => {
+test('a strong line: once it is out, his face taking it in, held until the page turns', closeOn(() => {
   const { changes, c } = run([{ tone: 'neutral' }, { tone: 'sad', letters: 60 }, { tone: 'neutral' }]);
   assert.deepEqual(changes.map(([, w]) => w), ['traveller', 'two']);
   const [[t0], [t1]] = changes;
@@ -82,9 +93,9 @@ test('a strong line: once it is out, his face taking it in, held until the page 
   const r = new Coverage(); r.reset(0);
   r.update({ t: 5, page: 'a', tone: 'angry', done: true, doneFor: 1, letters: 40 });
   assert.equal(r.who, 'traveller'); assert.equal(r.reaction.look, 'scared');
-});
+}));
 
-test('no cut thrash: reactions spaced out, short lines and quick pages left alone, the opening shot held', () => {
+test('no cut thrash: reactions spaced out, short lines and quick pages left alone, the opening shot held', closeOn(() => {
   // a run of strong lines: his face no sooner than COVER.react.gap s after it was last on the screen
   const strong = run(Array.from({ length: 8 }, () => ({ tone: 'shout', letters: 40 })), { read: 1.4 });
   const into = strong.changes.filter(([, w]) => w === 'traveller').map(([t]) => t);
@@ -103,7 +114,7 @@ test('no cut thrash: reactions spaced out, short lines and quick pages left alon
   assert.ok(first.changes[0][0] >= COVER.hold, `${first.changes[0][0]}`);
   // no close shot to be had (riding a cab, swimming): the two-shot throughout
   assert.equal(run([{ tone: 'sad', letters: 60 }, { tone: 'neutral', answer: true }], { can: false }).changes.length, 0);
-});
+}));
 
 // ---------------------------------------------------------------- the close shot
 
@@ -166,7 +177,7 @@ const ANA = {
   } },
 };
 
-test('choosing an answer: it is not said back; she replies at once, the two-shot on her', () => {
+test('choosing an answer: it is not said back; she replies at once, the two-shot on her', closeOn(() => {
   // (playtest, October 2026: picking an answer used to put his words back in the panel, voiced, his face on
   // the screen, before the reply; it read as the line being played back)
   const game = new GameState(memory());
@@ -198,7 +209,7 @@ test('choosing an answer: it is not said back; she replies at once, the two-shot
   assert.ok(cam.position.distanceTo(V(0, 1.61, 0)) < 1.4);
   assert.deepEqual(tones, [], 'no portrait of him: he never had the floor');
   d.close();
-});
+}));
 
 test('no close shot to be had keeps the two-shot', () => {
   const game = new GameState(memory());
@@ -215,5 +226,21 @@ test('no close shot to be had keeps the two-shot', () => {
   for (let i = 0; i < 200; i++) { d.update(1 / 30); d.frameCamera(cam, { pos: V() }, npc.pos, UP, [], { single: null }); }
   assert.ok(d._shot.kind !== 'single');
   assert.ok(cam.position.distanceTo(V(0.725, 1.5, 0)) > 2.5);
+  d.close();
+});
+
+test('in the game a conversation holds the two-shot: no cut to his face on a strong line', () => {
+  const game = new GameState(memory());
+  const d = new Dialogue({ game, quests: new Quests({ game }) });
+  const npc = { talkTo: null, pos: V(1.45, 0, 0) };
+  const cam = new THREE.PerspectiveCamera(55, 16 / 9); cam.position.set(0.7, 2.5, 5);
+  const frame = () => d.frameCamera(cam, { pos: V() }, npc.pos, UP, [], { faceA: V(0, 1.58, 0), faceB: V(1.45, 1.6, 0), single: V(0, 1.61, 0) });
+  d.start(ANA, npc);
+  d.update(10); frame();
+  d.choose(0);
+  for (let i = 0; i < 30 * (COVER.react.gap + 2); i++) { d.update(1 / 30); frame(); }
+  assert.equal(d.cover.who, 'two');
+  assert.ok(d._shot.kind !== 'single');
+  assert.ok(cam.position.distanceTo(V(0.725, 1.5, 0)) > 2.5, 'the camera stays back on both of them');
   d.close();
 });

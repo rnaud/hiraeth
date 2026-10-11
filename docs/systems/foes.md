@@ -661,26 +661,25 @@ The count is said every 5 ink.
   the player's. And `updateAimPoint` gives the crosshair the chest when its ray passes within `snap` (1.4 m) of it, the
   line clear (`aimLocked`). Measured in the Arena on a crab 10 m off to one side: the crosshair settles within 0.1° of its
   chest. Tests: `tests/lock-aim.test.js`.
-- **The reticle** (`src/lock-reticle.js`, `#foe-lock`; v0.96, made thin and quiet in v1.39, bolder again in v1.41: the
-  author found v1.39's too hard to see, "easy to notice but still elegant … at Handheld size and from far away"): an SVG
-  over the game, each stroke three times: a soft pale halo (`halo` 9 px at 0.4), an ink line (`under` 5.6 px) and the
-  coloured one (`RETICLE.line` 2.8 px; v1.39: 1.8 over 3.6, no halo), so it reads on bright sand and on dark rock. The
-  drawing scales with the screen (`reticleScale`: 1 at 720 px on the shorter side, up to 1.7, × 1.25 under 560 px, a
-  handheld's or a phone's small CSS pixels). Four corner ticks (`tick` 16 px arms; 11 before) frame the foe's drawn body: its parts' box as posed (`foe-body.js`
-  `bodySpan`) projected to the screen and grown by `RETICLE.gap` (10 px) × the look's spread (`reticleFrame`, `min`–`max`
-  px half-size × the scale, `min` 22 so a far foe's frame stays visible; no parts to measure: its sphere); nothing is drawn on the body. Over its head a pointed marker, its tip down at the foe, bobbing `bob` px while calm or open,
-  and over it a row of pips for its hp (up to 8; more, each a share). A new lock lands with one pulse of the marks (`pulse`). `reticleLook(f)` reads the foe: `calm` (gold,
-  breathing), `wind` (coral, the gap closing to `RETICLE.close` (0.35) as k²: never onto the body), `strike` (a white flash, a
-  small four-point burst for the diamond), `open` (stunned, reeling, flipped, asleep: pale blue, held wide at `RETICLE.open`),
-  `veiled` (buried, phased: dimmed, dashed). A new lock eases in over `snap` (0.32 s): from wider and faint, the diamond
-  dropping `drop` px onto its head; no spin, no pop. Off the screen it waits small at the edge on its side. Each state has
-  its own shape as well as its colour (`reticleShape`, for colour-blind players): winding up the ticks double, open they turn
-  into short strokes pointing in and the diamond becomes a hollow ring, the strike's burst, veiled dashes them. Before v1.39:
-  four thick gold chevrons on a dashed ring over the foe's chest, which covered the body it marked. Tests:
-  `tests/combat-feel.test.js` (the frame always outside the body's box), `tests/accessibility.test.js` (five shapes).
+- **The reticle** (`src/lock-reticle.js`, `#foe-lock`; v1.42, the author: "closer to Ocarina of Time, 4 arrows pointing
+  towards the character that are rotating, less complicated; remove the health bar, and remove the red when the character
+  is attacking: it should be obvious"): four gold arrowheads, their tips in at the foe, turning round it at `RETICLE.spin`
+  (1.4 rad/s), an SVG over the game. Each is two-toned (a lit and a shaded face, like a little pyramid) over an ink edge
+  (`edge` 2.6 px) and a soft pale halo (`halo` 5 px at 0.45), so it reads on bright sand and on dark rock; `arrow` 18 px
+  long, `wide` 17. They ride a rounded box (`reticleRing`, a superellipse of power `round` 4, `arrowAt`) round the foe's
+  drawn body on the screen (its parts' box as posed, `foe-body.js` `bodySpan`; no parts: its sphere) grown by `gap` (14 px,
+  breathing ±6 %), `min` 30 to `max` 300 px half-size, so they turn round the body without sitting on it and a far foe's
+  ring stays visible. The drawing scales with the screen (`reticleScale`: 1 at 720 px on the shorter side, up to 1.7,
+  × 1.25 under 560 px, a handheld's small CSS pixels). A new lock flies them in over `snap` (0.35 s) from `from` (2.4) ×
+  the ring with an extra `whirl` of turn. Off the screen they wait small at the edge on its side. `reticleLook(f)` is only
+  `calm` or `veiled` (buried, phased: the whole drawn at `veiled` 0.5 opacity): no health pips, and nothing for the
+  foe's wind-up, strike or stagger, which its body, its glow and its sound tell. Before: v0.96's gold chevrons on a ring
+  over the chest; v1.39's corner ticks, a diamond over the head and hp pips, coral and doubled while it wound up, pale blue
+  when open (v1.41 drew them bolder). Tests: `tests/combat-feel.test.js` (the tips outside the body, pointing in, the ring's
+  sizes), `tests/accessibility.test.js` (one look, nothing told by colour).
 - **Guardians** (v1.39, `GuardianLock`, `src/temples/boss.js` `GUARDIANS_LIVE`): a guardian in its fight is locked on as a foe is
   (its body's edge within `LOCK.reach`), through a stand-in that answers the lock's, the reticle's and the blade's fields from
-  it: its chest, its model (the reticle frames it), its wind-up as `wind`, open as stunned, pips for its phases left; weary or
+  it: its chest, its model (the reticle rings it), its wind-up as `wind`, open as stunned; weary or
   calmed, the lock lets go. So the back flip and the side hop work against it.
 - **Switching with a flick** (`FLICK`, `Foes.flickLook`, `switchLock`, v0.97): main.js wraps `rig.look` (the
   right stick, the mouse, a touch drag all pass through it); while locked, the sideways part goes to `flickLook`
@@ -757,6 +756,30 @@ of the target registry, for the loading work's warm pass (src/warm-shaders.js `w
 once; `rosterKinds()` lists the kinds a world can field (every kind in the Arena). Nothing here adds them to the scene:
 when to pay the compile (behind the loading screen, or a slice at a time after the first frame) is the loading work's
 call. Tests: `tests/foe-warm.test.js`.
+
+**Wired in v1.42** (issue #1, the author: "seeing frame drops in the arena"). main.js puts `foes.warmModels()` (the world's
+roster; every kind in the Arena) in the scene, far below it, before the surfaces' and the shadows' warm passes, and takes
+it out after the programs' first use, before the passage's draws and the first frame (`foeWarm`). The group also holds a
+`ShadePools` (the ink a fallen foe leaves: its decal's program was the last one compiled mid-fight, at the first kill), only
+for the warm: kept in the world from the start, its dynamic meshes made every shadow map redraw each frame (+535 draws in
+the Arena's pack view); its materials outlive it, so the pools made at the first stain find their programs ready.
+Measured with a scripted fight (the Arena's own waves round a traveller kept alive, locked on and swinging three times a
+second, a foe cut down after 7 s; the shipped bundle, headless Chrome on the M4 Pro's GPU, 1280 × 720, 120 s, 13 waves; the
+machine shared with other work, so the medians move by a few tenths between runs; the spikes do not):
+
+| Arena fight, Mac | High before | High after | Handheld before | Handheld after |
+|---|---|---|---|---|
+| frame p50 / p95 / p99 (ms) | 3.4 / 4.3 / 5.1 | 3.4 / 4.5 / 5.7 | 2.3 / 3.4 / 4.6 | 1.9 / 3.0 / 3.4 |
+| main thread p95 (ms) | 3.9 | 4.2 | 3.1 | 2.9 |
+| worst frame (ms) | 201.8 | 22.1 | 202.5 | 19.3 |
+| frames over 50 ms | 12 | 0 | 6 | 0 |
+| programs compiled mid-fight | 27 | 0 | 18 | 0 |
+| the Arena's load (s) | 1.6 | 2.0 | 2.2 | 2.1 |
+
+Every spike over 33 ms in the before runs was a frame that compiled 1-5 programs (a kind's first appearance, then the
+first stain); none was a collection alone (the heap's drops came with compiles), the particles, the floor or the reticle.
+The Arena's load grows by about 0.4 s on the Mac (every kind's programs, behind the loading screen); a world's own roster
+is a handful of kinds. Tests: `tests/foe-warm.test.js` (the wiring's order in main.js, the pools warmed and let go).
 
 ## The back flip, the side hop and the flurry (v1.39: `src/jump.js` `HOP`, `src/flurry.js`, `src/feel.js` `flurry`)
 

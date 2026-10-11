@@ -38,6 +38,13 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
  */
 export const HATCH = { z: -42, stair: { foot: -17.5, ledge: -25.6, door: -28.4, y: 3.0 } };
 const UP = V(0, 1, 0);
+/**
+ * The way through the pilgrims' camps (camp-local: x across, z from the gate's side, -z, to the landing's, +z; v1.42,
+ * the author: "the tent area in the desert feels too crowded, unsure where to go"): a lane `half` m either side of the
+ * line from the landing to the main gate, from `from` to `to`, kept clear of tents, rugs and the camp's circles of people
+ * (the big fire stays at its heart: you pass it), with the banners' two rows down its sides.
+ */
+export const CAMP_WAY = { half: 8, from: 46, to: -50, banners: [[-10, 36], [10, 36], [-10, 14], [10, 14], [-10, -36], [10, -36]] };
 const PROXY = makeMaterial({ color: '#ff00ff' });
 const _e = new THREE.Euler(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4();
 
@@ -810,8 +817,10 @@ export function buildDesertCity(scene, terrain) {
     // column is the way to the city, and this one is let die down (out.update).
     out.campSmoke = new SmokeColumn(root, camp.world(0, 2.5, 0), { count: 140, height: 190, drift: 170, base: 2.2, top: 13, period: 110 });
 
-    // tents: peaked cloth tents and round domed ones, with poles and pennants
-    const TENTS = [[-11, -5, 'peak'], [10, 5, 'peak'], [-24, -8, 'dome'], [24, 0, 'dome'], [-14, 22, 'peak'], [14, 24, 'wing'], [-30, 10, 'peak'], [30, 16, 'peak'], [-6, 32, 'dome'], [7, -24, 'wing'], [-22, -24, 'peak'], [26, -20, 'dome']];
+    // tents: peaked cloth tents and round domed ones, with poles and pennants. v1.42 (the author: "the tent area feels too
+    // crowded, unsure where to go"): seven of the twelve, none in the way through (CAMP_WAY): a pair either side of it
+    // where you come in, a pair halfway, a pair where it leaves for the gate, and one by Marrow's cart
+    const TENTS = [[-13, -6, 'peak'], [-24, -8, 'dome'], [24, 0, 'dome'], [-14, 22, 'peak'], [14, 24, 'wing'], [-22, -24, 'peak'], [24, -22, 'dome']];
     TENTS.forEach(([x, z, kind], i) => {
       const cm = M.cloth[i % M.cloth.length], face = Math.atan2(-x, -z);
       if (kind === 'peak') {
@@ -835,10 +844,10 @@ export function buildDesertCity(scene, terrain) {
         camp.add(M.cloth[5], new THREE.BoxGeometry(2.6, 0.04, 2).translate(x, 0.03, z));
       }
     });
-    // rugs, jars, crates and a loom
+    // rugs, jars, crates and a loom (none in the way through)
     for (let i = 0; i < 9; i++) {
       const a = rng() * Math.PI * 2, d = 7 + rng() * 22, x = Math.sin(a) * d, z = Math.cos(a) * d;
-      if (Math.abs(x) < 4) continue;
+      if (Math.abs(x) < CAMP_WAY.half + 2) continue;
       camp.add(M.cloth[Math.floor(rng() * 8)], T(new THREE.BoxGeometry(2.4, 0.03, 1.6), [x, 0.02, z], [0, rng() * 3, 0]));
       if (rng() < 0.7) camp.both(M.ochre, lathe([[0.01, 0], [0.32, 0.05], [0.42, 0.4], [0.2, 0.75], [0.16, 0.85], [0.22, 0.9]], 10).translate(x + 1.4, 0, z), new THREE.CylinderGeometry(0.4, 0.4, 0.9, 6).translate(x + 1.4, 0.45, z));
       if (rng() < 0.5) camp.both(M.wood, T(new THREE.BoxGeometry(0.9, 0.7, 0.7), [x - 1.5, 0.35, z + 0.4], [0, rng(), 0]));
@@ -872,17 +881,20 @@ export function buildDesertCity(scene, terrain) {
       for (const [lx, lz, a, h] of [[0.16, 0.14, 0.5, 0.22], [0.02, 0.46, -0.35, 0.31]]) camp.add(M.bone, at(new THREE.CylinderGeometry(0.055, 0.075, 1.25, 6).rotateZ(Math.PI / 2 + 0.12).rotateY(a), lx, BED + h, lz));
       camp.add(M.ochre, at(lathe([[0.01, 0], [0.2, 0.04], [0.26, 0.26], [0.12, 0.46], [0.15, 0.5]], 8), 0.2, BED + 0.03, -0.62));
     }
-    // banners on tall poles round the camps
-    for (let i = 0; i < 7; i++) {
-      const a = i / 7 * Math.PI * 2 + 0.3, x = Math.sin(a) * 36, z = Math.cos(a) * 36;
+    // banners on tall poles: since v1.42 not a ring round the camps (one stood in the way to the gate) but two rows
+    // either side of the way through, from where you come in to the gate: a leading line you see from the dunes
+    for (const [i, [x, z]] of CAMP_WAY.banners.entries()) {
+      const a = Math.atan2(x, z);
       camp.both(M.wood, new THREE.CylinderGeometry(0.12, 0.16, 11, 5).translate(x, 5.5, z));
       const p = camp.world(x + 0.15, 10.6, z);
-      banners.push(new Banner(root, p, camp.heading(a + Math.PI / 2), { width: 1.4, height: 5.5, color: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9'][i] }));
+      banners.push(new Banner(root, p, camp.heading(a + Math.PI / 2), { width: 1.4, height: 5.5, color: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#62c3c9'][i] }));
     }
     camp.flush();
     out.camps = {
       center: camp.world(0, 0, 0), fire: camp.world(0, 0, 0), toGate: out.city.gate.clone(),
       spot: (x, z) => camp.world(x, 0, z), heading: (h) => camp.heading(h), fires: fires.map((f) => camp.world(f.x, 0, f.z)),
+      // the way through, from where you come in over the dunes to the gate (the audit's leading line, src/levels/desert.js)
+      way: [camp.world(0, 0, CAMP_WAY.from), camp.world(0, 0, 0), camp.world(0, 0, CAMP_WAY.to)],
     };
   }
 
@@ -1465,7 +1477,8 @@ export function desertCrowdSpots(terrain, story) {
     if (s.reserved) continue;
     edges.push({ at: s.at.clone(), heading: s.heading, pose: 'kerb', lines: story.lines.camp, id: 'camp' });
   }
-  const circles = [[-6, 12], [6, 14], [-20, -1], [20, 8], [-3, -16], [12, -2], [-14, 30], [18, 30], [0, 22], [-26, 20], [27, -8], [-9, 40], [9, 42]];
+  // (v1.42: seven of the thirteen, none in the way through, CAMP_WAY: the camps read as a place to cross, not a crowd to push through)
+  const circles = [[-20, -1], [20, 8], [-15, 32], [19, 32], [-26, 18], [27, -8], [-17, -32]];
   for (const [x, z] of circles) {
     const p = camps.spot(x + (rng() - 0.5) * 2, z + (rng() - 0.5) * 2);
     groups.push({ at: V3(p.x, p.z), n: 2 + Math.floor(rng() * 3), lines: story.lines.camp, id: 'camp' });

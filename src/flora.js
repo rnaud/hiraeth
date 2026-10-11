@@ -276,6 +276,7 @@ function growPart({ part: world, species, level, physics, keep, density, why }) 
     if (y < water - (sp.wade ?? 0) + (sp.wade ? 0 : 0.15)) return no('water');
     if (level.unsafe?.(_p.set(x, y, z)) && !sp.wade) return no('unsafe');
     if (level.keepClear?.(_p)) return no('clear');   // (a floor kept bare: the Arena's)
+    if (level.paved?.(_p)) return no('paved');   // (a town's streets, squares and paths: src/paved.js)
     // nothing overhead: not inside a house, under a bridge, a ledge or an awning
     if (ray(x, y + 0.3, z, UP, sp.large ? 9 : 4)) return no('roof');
     if (sp.large) {

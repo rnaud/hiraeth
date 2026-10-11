@@ -10,6 +10,7 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
+import { pavedMask } from '../paved.js';
 import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -182,6 +183,7 @@ export function* buildSpheres(scene) {
   const shrubs = [];    // {x, y, z, s, sy, color}
   const orbs = [];      // every sphere: { x, z, R, y (centre), yellow } (the story listens at three)
   const avoid = [];     // [x, z, r] keep scatter away
+  const ways = [];      // the paths as drawn ({ points, w }): paved ground (src/paved.js)
 
   const M = {
     // (form: the umbrellas' trunks hatched round, their canopies' strokes radiating from the trunk; src/form.js)
@@ -420,6 +422,7 @@ export function* buildSpheres(scene) {
 
   // ---------------------------------------------------------- paths
   function path(points, w = 3.2) {
+    ways.push({ points, w: w * 1.12 });   // (paved: the flowers keep off it, src/paved.js; 1.12 its widest wobble)
     const pts = [];
     for (let i = 0; i < points.length - 1; i++) {
       const [ax, az] = points[i], [bx, bz] = points[i + 1];
@@ -1008,6 +1011,7 @@ export function* buildSpheres(scene) {
     portals: [...shop.portals],
     lights: [...shop.lights],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    paved: pavedMask({ discs: [{ x: plaza.x, z: plaza.z, r: plaza.r + 1 }], ways }),   // the white paths, the avenue and the plaza: no flowers on them (src/paved.js)
     floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
     // what the level design audit reads (scripts/level-design/audit.mjs): the white paths, leading lines: from the lake
     // (the spheres that remember) to the grove's path, through the sphere-arch and down the avenue to the plaza

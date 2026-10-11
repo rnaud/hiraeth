@@ -572,6 +572,28 @@ export const CHANGELOG_MEDIA = {
         reference: { sheet: 'references/Core Objects/Chests/temple/sheet-1.jpg', caption: 'The picked temple chest: closed, waking, opening like a flower, its jade heart risen' } },
       { name: 'chest-temple-open', caption: 'Opening it, the same moment: before, the blue box coming apart; after, the petals fallen open round the foot’s jade disc, its heart rising, jade motes going up', from: FROM_CHESTS42 },
     ] },
+    { match: 'The lock-on is four gold arrows turning round', shots: [
+      { name: 'lock-arrows-near', title: 'Close', caption: 'Locked on to a shellback crab 6 m away: before, corner ticks, a pointed marker and a row of health pips over it; after, four gold arrows round it, pointing in', from: 'headless Chrome against this branch’s dev server before and after the change, the Arena, Medium, 1280 × 720 (10 October)' },
+      { name: 'lock-arrows-windup', title: 'Winding up', caption: 'The same crab three quarters into its pinch: before, the marks turned red and doubled; after, the same four gold arrows (its raised claw tells you)', from: 'headless Chrome against this branch’s dev server before and after the change, the Arena, Medium, 1280 × 720 (10 October)' },
+      { name: 'lock-arrows-far', title: 'Far off', caption: 'The crab 14 m away across the ring: the arrows stand clear of it, as easy to find as the corners were', from: 'headless Chrome against this branch’s dev server before and after the change, the Arena, Medium, 1280 × 720 (10 October)' },
+      { name: 'lock-arrows-handheld', title: 'Small screen', caption: 'The crab 16 m away at 800 × 450 (a handheld’s size): the arrows are drawn a quarter larger there', from: 'headless Chrome against this branch’s dev server before and after the change, the Arena, Medium, 800 × 450 (10 October)' },
+    ] },
+    { match: 'Flowers grow only where they make sense', shots: [
+      { name: 'paved-qanat-flowers', title: 'Qanat', caption: 'Qanat’s square by Nour’s bench under the tree: before, teal flowers opening on the paving, by the houses and on the ledge; after, the square bare', from: 'headless Chrome against this branch’s dev server before and after the change, Medium, 1280 × 720 (10 October)' },
+      { name: 'paved-spheres-plaza', title: 'The Spheres', caption: 'The Spheres’ round plaza by Ume’s pole: before, three flowers standing on the stone rings; after, none (they grow in the meadow round it)', from: 'headless Chrome against this branch’s dev server before and after the change, Medium, 1280 × 720 (10 October)' },
+    ] },
+    { match: 'The pilgrims’ camps outside Qanat are calmer on the way in', shots: [
+      { name: 'way-camps-edge', title: 'Coming in', caption: 'Where you walk into the camps, the gate ahead: before, a dome tent and groups of people in the way; after, a clear way to the gate between the banners', from: 'headless Chrome against this branch’s dev server before and after the change, the desert in a new game, Medium, 1280 × 720 (10 October)' },
+      { name: 'way-camps-above', title: 'From above', caption: 'The camps from over the dunes you come from: before, twelve tents, a ring of banners and thirteen groups of people spread across the way; after, seven tents and seven groups off to the sides, two rows of banners down the way to the gate', from: 'headless Chrome against this branch’s dev server before and after the change, the desert in a new game, Medium, 1280 × 720 (10 October)' },
+      { name: 'way-camps-approach', title: 'From the dunes', caption: '120 m out on the way in: after, the rows of banners stand either side of the line to the gate', from: 'headless Chrome against this branch’s dev server before and after the change, the desert in a new game, Medium, 1280 × 720 (10 October)' },
+    ], numbers: [
+      { title: 'The way through the camps', unit: '', better: 'lower', device: 'Node, the desert built as the play-through builds it (tests/desert-camps.test.js), the 16 m lane from the dunes to the gate', rows: [
+        { where: 'tents', before: 12, after: 7 },
+        { where: 'groups of people at the camps', before: 13, after: 7 },
+        { where: 'groups of people in the way', before: 4, after: 0 },
+        { where: 'rays across the way that hit something (of 42)', before: 3, after: 0 },
+      ], source: 'src/desert-city.js TENTS, desertCrowdSpots, CAMP_WAY' },
+    ] },
   ],
   '1.42': [
     { match: 'The crowds in the towns wear their world’s colours a little softer now', shots: [

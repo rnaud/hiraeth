@@ -15,7 +15,7 @@ const { promptText } = await import('../src/native-pad.js');
 const i18n = await import('../src/i18n.js');
 const { EN } = await import('../src/i18n/en.js');
 const feel = await import('../src/feel.js');
-const { reticleShape, reticleLook } = await import('../src/lock-reticle.js');
+const { reticleLook } = await import('../src/lock-reticle.js');
 
 const IDX = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, View: 8, Menu: 9, L3: 10, R3: 11, '↑': 12, '↓': 13, '←': 14, '→': 15 };
 function pad(prefs, context = 'game') {
@@ -303,14 +303,8 @@ test('the Controls page and the HUD speak the language', async () => {
 
 // ---------------------------------------------------------------- not by colour alone
 
-test('the lock-on: every state has its own shape, not only its colour', () => {
-  const looks = { calm: {}, wind: { state: 'wind', k: 0.5 }, strike: { state: 'strike' }, open: { stunned: 1 }, veiled: { buried: true } };
-  const shapes = Object.fromEntries(Object.entries(looks).map(([m, f]) => {
-    const look = reticleLook({ hp: 3, def: { hp: 3 }, ...f });
-    assert.equal(look.mode, m);
-    return [m, JSON.stringify(reticleShape(look))];
-  }));
-  assert.equal(new Set(Object.values(shapes)).size, 5, `five shapes: ${JSON.stringify(shapes)}`);
-  assert.equal(reticleShape({ mode: 'open' }).point, 'in', 'open: the chevrons turned round');
-  assert.equal(reticleShape({ mode: 'open' }).centre, 'ring');
+test('the lock-on says nothing by colour: one look (four gold arrows), only dimmed out of the blade\'s reach', () => {
+  // (v1.42: the author asked for Ocarina of Time's arrows with no red for an attack; a foe's wind-up is told by its body)
+  for (const f of [{}, { state: 'wind', k: 0.5 }, { state: 'strike' }, { stunned: 1 }]) assert.equal(reticleLook({ hp: 3, def: { hp: 3 }, ...f }).mode, 'calm');
+  assert.equal(reticleLook({ buried: true }).mode, 'veiled');
 });

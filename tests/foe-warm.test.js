@@ -30,3 +30,22 @@ test('warmModels: every kind\'s body, batched as in play, out of the world and o
   const s = new THREE.Scene(); s.add(W.group); W.dispose();
   assert.equal(W.group.parent, null);
 });
+
+test('the loading work warms them (v1.42, issue #1): in the scene for the surfaces\' and shadows\' passes, out before the first frame', async () => {
+  const { readFileSync } = await import('node:fs');
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  const made = main.indexOf('foes.warmModels()'), surfaces = main.indexOf("setStep('surfaces')"), shadows = main.indexOf("setStep('shadows')"), first = main.indexOf('await firstUse(renderer, slice)'), gone = main.indexOf('foeWarm?.dispose()'), passage = main.indexOf("setStep('passage')");
+  assert.ok(made > 0 && made < surfaces, 'made before the surfaces are compiled');
+  assert.ok(main.slice(made, surfaces).includes('scene.add(foeWarm.group)'), 'and put in the scene');
+  assert.ok(shadows > surfaces && first > shadows && gone > first && gone < passage, 'taken out after the programs\' first use, before the passage draws and the first frame');
+});
+
+test('the ink a fallen foe leaves is warmed with them, and not left in the world (it would redraw every shadow map)', () => {
+  const foes = make('arena'), W = foes.warmModels(['blot']);
+  let pools = 0; W.group.traverse((o) => { if (o.isInstancedMesh && o.material?.uniforms?.uDepth) pools++; });
+  assert.equal(pools, 1, 'the decal\'s mesh is in the warm group');
+  assert.equal(foes.shadePools ?? null, null, 'no pools in the world before a foe falls');
+  W.dispose();
+  let left = 0; W.group.traverse((o) => { if (o.isInstancedMesh && o.material?.uniforms?.uDepth) left++; });
+  assert.equal(left, 0, 'let go with the group');
+});

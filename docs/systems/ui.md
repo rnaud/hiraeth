@@ -42,9 +42,7 @@ each choice to what uses it:
 - **Hold or toggle** for run and guard (src/remap.js `RUN_MODES`, `GUARD_MODES`): the controller
   reads them itself; on the keyboard the key listener turns a toggled key into one press down and,
   at the next press, one up.
-- **Not by colour alone:** the lock-on reticle's states differ in shape (src/lock-reticle.js
-  `reticleShape`: doubled chevrons winding up, a burst at the strike, chevrons turned round (tips in) round a
-  hollow ring when open, all dashed when out of reach); low health is hatched as well as red and
+- **Not by colour alone:** the lock-on reticle has one look since v1.42 (four gold arrows, only dimmed out of reach: src/lock-reticle.js); low health is hatched as well as red and
   pulsing, a winded stamina wheel has a "!" beside it; a clash on the Controls page has a ⚠, the
   other verb's name and a dashed frame. The quest markers are shapes already (◆ ◇ ✦ ✉, ✓ and ·).
 - **Language:** docs/systems/localisation.md.

@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.43 — 2026-10-10
 
+- No more frame drops in the Arena when a new kind of foe comes in or the first one falls: every foe the world can field is made ready while it loads.
+- The pilgrims’ camps outside Qanat are calmer on the way in: fewer tents and fewer groups of people, a clear way straight through past the big fire to the main gate, and two rows of tall banners down its sides that lead you there from the dunes.
+- Flowers grow only where they make sense: none on Qanat’s paved square, its streets or anywhere inside its walls, and none on the Spheres’ white paths and round plaza.
+- The lock-on is four gold arrows turning round the foe and pointing in at it, as in Ocarina of Time: no health bar on it, and no red while the foe winds up (its body shows you that). A new lock flies the arrows in.
+- Conversations no longer cut in close on your face: the camera stays back on both of you for the whole talk, whoever is speaking.
 - At the heart of each temple the chest is a rarer one: a bud of white stone and gold, jade glowing in its seams, that opens like a flower.
 - The makers’ chests have a new look, the same in every world: a rounded cream shell like a river stone, the makers’ star on its top, a thin brass band round it and a glowing jade lens in its front, the same jade as your backpack. When you open one, its top parts in two like petals and jade light rises out of it.
 - Chime pirates is in the Debug menu’s Games and on a sign in the Arcade, to play whenever you like.
