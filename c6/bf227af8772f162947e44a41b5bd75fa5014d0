@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_ed6c2ec8d8eb87 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_f02221b852900e 451,602-613
+src/boxes/index.js
+  s_9ca76055a220ed::t_bfb45c071a9f06 184-185,201,221-222,370-371
+src/boxes/placements.js
+  s_9ca76055a220ed::t_eaea4cae55d4e9 52,54-56
+src/changelog-media.js
+  s_9ca76055a220ed::t_2f0b86f1a2bb4c 556-561
+src/changelog.js
+  s_9ca76055a220ed::t_9f33e4c4d9b6d4 17
+src/desert-city.js
+  s_9ca76055a220ed::t_ef3c76c929e4e8 15,41-49,1139-1150,1152-1154,1362-1364,1368-1372,1398-1401,1422-1424
+src/levels/desert.js
+  s_9ca76055a220ed::t_93cfeacdb7f11d 171,173
+src/main.js
+  s_9ca76055a220ed::t_ac46a5235b91d0 294,1903-1904
+src/physics.js
+  s_9ca76055a220ed::t_4a8fc9c884ff6d 206-210,212
+src/player.js
+  s_9ca76055a220ed::t_a3a5b713df4546 33
+src/story/desert.js
+  s_9ca76055a220ed::t_bac34af90d99be 1040-1044
+tests/desert-cave-exit.test.js
+  s_9ca76055a220ed::t_03884ab3e142a6 1-87
+tests/level-design-round3.test.js
+  s_9ca76055a220ed::t_8f3680c2b0af82 21-25
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_bd9acd15afe144 99,501-503,511,523-524
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c6bf227af8772f162947e44a41b5bd75fa5014d0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
