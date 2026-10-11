@@ -247,6 +247,13 @@ namespace Memento.Bridge
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             if (urp != null && BridgeArgs.Flag("-no-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
             if (BridgeArgs.Arg("-ops-cap") is string cap && int.TryParse(cap, out int n)) BridgeHost.opsCap = n;
+            // (the resolution the picture is made at: -render-scale x (URP's, up to 2: 2 at 1080p draws 4K's pixels), -resolution
+            // WxH (the swap chain asked for: whether the console gives a UWP app 4K), both logged with what Unity has)
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            if (urp != null && BridgeArgs.Arg("-render-scale") is string rs && float.TryParse(rs, System.Globalization.NumberStyles.Float, inv, out float rsv)) urp.renderScale = rsv;
+            if (BridgeArgs.Arg("-resolution") is string res && res.Split('x') is var wh && wh.Length == 2 && int.TryParse(wh[0], out int rw) && int.TryParse(wh[1], out int rh))
+                Screen.SetResolution(rw, rh, FullScreenMode.FullScreenWindow);
+            Debug.Log($"Memento bridge: the screen {Screen.width}x{Screen.height} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}");
             // (-queued N: the frames the CPU may run ahead of the GPU; on the Xbox the main thread waited ~9.5 ms a frame on the present)
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)

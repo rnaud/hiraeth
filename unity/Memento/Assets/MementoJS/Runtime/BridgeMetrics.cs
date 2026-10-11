@@ -152,6 +152,8 @@ namespace Memento.Bridge
                 {
                     settled = lastGrowth;
                     Write($"load: GPU Resident Drawer {BridgeRunner.ResidentDrawerState()}");
+                    var cam = Camera.main; var urpAsset = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
+                    Write($"load: the picture: screen {Screen.width}x{Screen.height}, the camera's {(cam ? cam.pixelWidth : 0)}x{(cam ? cam.pixelHeight : 0)}, render scale {(urpAsset ? urpAsset.renderScale : 1)}, the display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz{DisplayModes()}");
                     try { Write($"load: {scene.Variants()}"); } catch (Exception e) { Write("load: the variants: " + e.Message); }
                     Write($"load: world settled {settled * 1000:0} ms after launch ({nodes} nodes, {scene.Geometries} geometries); " +
                           $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms; " +
@@ -194,6 +196,34 @@ namespace Memento.Bridge
                 frames.Clear(); windowStart = now; cpuMain = cpuRender = gpu = cpuAll = presentWait = 0; timed = 0;
                 pScripts = pBefore = pContexts = pAfter = 0; pFrames = 0;
             }
+        }
+
+        /// <summary>The TV's mode and the ones it offers (HDMI display information, the console only).</summary>
+        static string DisplayModes()
+        {
+#if ENABLE_WINMD_SUPPORT
+            try
+            {
+                string r = "";
+                UnityEngine.WSA.Application.InvokeOnUIThread(() =>
+                {
+                    try
+                    {
+                        var di = Windows.Graphics.Display.Core.HdmiDisplayInformation.GetForCurrentView();
+                        if (di == null) { r = "; no HDMI information"; return; }
+                        var m = di.GetCurrentDisplayMode();
+                        var all = new System.Collections.Generic.List<string>();
+                        foreach (var x in di.GetSupportedDisplayModes()) all.Add($"{x.ResolutionWidthInRawPixels}x{x.ResolutionHeightInRawPixels}@{x.RefreshRate:0}");
+                        r = $"; HDMI {m.ResolutionWidthInRawPixels}x{m.ResolutionHeightInRawPixels} at {m.RefreshRate:0.##} Hz, offers {string.Join(" ", System.Linq.Enumerable.Distinct(all))}";
+                    }
+                    catch (Exception e) { r = "; HDMI: " + e.Message; }
+                }, true);
+                return r;
+            }
+            catch (Exception e) { return "; HDMI: " + e.Message; }
+#else
+            return "";
+#endif
         }
 
         /// <summary>The app's memory limit on the console: about 1 GB says its type is App (a share of the GPU too), about 5 GB Game.</summary>
