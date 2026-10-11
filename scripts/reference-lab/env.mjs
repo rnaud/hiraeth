@@ -11,7 +11,7 @@ import { dirname, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 /** Every key name the providers use (fal answers to two names). */
-export const KEY_NAMES = ['OPENAI_API_KEY', 'GEMINI_API_KEY', 'FAL_KEY', 'FAL_API_KEY', 'BFL_API_KEY', 'TRIPO_3D_API_KEY', 'TRIPO_API_KEY'];
+export const KEY_NAMES = ['OPENAI_API_KEY', 'GEMINI_API_KEY', 'FAL_KEY', 'FAL_API_KEY', 'BFL_API_KEY', 'TRIPO_3D_API_KEY', 'TRIPO_API_KEY', 'MJ_AUTH_I', 'MJ_AUTH_R'];   // (MJ_*: Midjourney's session cookies, secret like keys)
 /** Settings read alongside (not secret). */
 export const SETTING_NAMES = ['GEMINI_IMAGE_API'];
 export const ENV_FILES = ['.env.local', '.env'];

@@ -19,6 +19,7 @@ the CLI `scripts/gen-reference.mjs`. The code is in `scripts/reference-lab/` (se
 | `gemini` | `GEMINI_API_KEY` | Google Gemini image, "Nano Banana" (`gemini-nano-banana-2.1` by default; `gemini-3-pro-image` is the one with real style references) |
 | `fal-flux`, `fal-flux-pro`, `fal-seedream`, `fal-ideogram`, `fal-recraft` | `FAL_KEY` or `FAL_API_KEY` | fal.ai: FLUX.2 [dev] and [pro] with several references, Seedream 4.5, Ideogram 3 (references as style), Recraft V3 (one reference, restyled) |
 | `bfl` | `BFL_API_KEY` | Black Forest Labs direct: FLUX.2 [pro] (`flux-2-pro`; `-pro-preview`, `-max`, `-flex`, `-klein-9b`) without fal in between |
+| `midjourney` (opt-in, a stub) | `MJ_AUTH_I`, `MJ_AUTH_R` | Midjourney's web session cookies; makes no request, as midjourney.com needs a browser ([Midjourney](#midjourney-a-stub-it-needs-a-browser)) |
 | `tripo` (3D mode) | `TRIPO_3D_API_KEY` or `TRIPO_API_KEY` | Tripo 3D: a picked reference (or a prompt) turned into a GLB model, optionally rigged ([3D mode](#3d-mode)) |
 
 Put them in **`.env.local`** (or `.env`) at the repository root, one `NAME=value` a line. Both files are
@@ -181,6 +182,28 @@ Each module's header records its endpoints, models and the docs read. In short:
 Rate limits: a 429 is retried once after `Retry-After` (at most 20 s), then reported as `rate-limit`; 401 / 403
 `auth`, 402 `credits`, 5xx `server`. Not checked live by the tests: a provider's first real run is the check
 that its endpoint and model ids still hold.
+
+## Midjourney (a stub: it needs a browser)
+
+`--providers midjourney` (`providers/midjourney.mjs`) was meant to drive midjourney.com with the author's own
+web session: the two HttpOnly cookies `__Host-Midjourney.AuthUserTokenV3_i` and `_r` saved in `.env` as
+`MJ_AUTH_I` and `MJ_AUTH_R` (read like the keys, redacted the same way, never printed), submitting a prompt the
+way the web app does, polling the job and downloading its four grid pictures. Checked on 2026-10-10 with two
+GET requests and no job: **it cannot work without a browser.**
+
+- Cloudflare challenges every request that does not come from a browser, the page and `/api/` alike: HTTP
+  403, `cf-mitigated: challenge`, "Just a moment…", whatever cookies come with it. Getting past it means
+  running Cloudflare's JavaScript in a real browser (or replaying its `cf_clearance` cookie), which is bypassing
+  bot protection, and the lab does not do that.
+- `_i` is a Firebase ID token that runs out after about an hour (the saved one already had); the web app
+  renews it with `_r` from inside the page, behind the same challenge.
+- Midjourney's Terms of Service, as we read them, forbid automated tools that access the service or make
+  pictures, so automating the account could put it at risk.
+
+So the provider is registered but opt-in only (never in `DEFAULT_PROVIDERS`), and it makes **no request**: a
+batch that names it gets a `needs-browser` error saying so, and the other providers carry on. Midjourney stays
+the house tool, used by hand in its web app; save its pictures into `references/` with the prompt in the
+folder's `manifest.json`, as before. If Midjourney ever offers an API, this module is where it goes.
 
 ## 3D mode
 

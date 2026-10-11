@@ -3,8 +3,9 @@ import openai from './openai.mjs';
 import gemini from './gemini.mjs';
 import bfl from './bfl.mjs';
 import { FAL_PROVIDERS } from './fal.mjs';
+import midjourney from './midjourney.mjs';
 
-export const PROVIDERS = [openai, gemini, ...FAL_PROVIDERS, bfl];
+export const PROVIDERS = [openai, gemini, ...FAL_PROVIDERS, bfl, midjourney];   // (midjourney: a stub that needs a browser, opt-in only)
 export const providerById = (id) => PROVIDERS.find((p) => p.id === id) ?? null;
 
 /** The providers a batch uses when none are named (the author's choice, 2026-10-09: Gemini and OpenAI; the rest a click or --providers away). */

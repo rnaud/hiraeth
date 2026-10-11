@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { cleanMidjourney, parsePromptDoc, resolveFrom, manifestPrompts } from '../scripts/reference-lab/prompts.mjs';
 import { parseEnv, loadKeys, availability, keyFor } from '../scripts/reference-lab/env.mjs';
-import { PROVIDERS, providerById } from '../scripts/reference-lab/providers/index.mjs';
+import { PROVIDERS, providerById, DEFAULT_PROVIDERS } from '../scripts/reference-lab/providers/index.mjs';
 import { openaiSize } from '../scripts/reference-lab/providers/openai.mjs';
 import { falImageSize } from '../scripts/reference-lab/providers/fal.mjs';
 import { parseAspect, sizeFor, redact, httpJson, readRef, onHost } from '../scripts/reference-lab/common.mjs';
@@ -349,6 +349,41 @@ test('a batch: every provider at once, one failing without stopping the others, 
   assert.throws(() => checkTarget(root, 'references/_candidates/x'), /inside references/);
   assert.throws(() => readBatch(root, '../../etc'), /batch id/);
   assert.throws(() => readRef(root, '../../etc/passwd.jpg'), /outside/);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('Midjourney: opt-in only, its cookies read like keys and never echoed, no request made (it needs a browser)', async () => {
+  const mj = providerById('midjourney');
+  assert.ok(mj, 'registered, so --providers midjourney names it');
+  assert.ok(!DEFAULT_PROVIDERS.includes('midjourney'), 'never in the default batch');
+  const root = fakeRepo();
+  const I = 'mj-cookie-I-SECRET-0123456789', R = 'mj-cookie-R-SECRET-9876543210';
+  writeFileSync(join(root, '.env'), `MJ_AUTH_I=${I}\nMJ_AUTH_R=${R}\n`);
+  const keys = loadKeys(root, { processEnv: {}, files: [join(root, '.env')] });
+  assert.deepEqual(keys, { MJ_AUTH_I: I, MJ_AUTH_R: R });
+  const av = availability([mj], keys)[0];
+  assert.equal(av.available, true);
+  assert.ok(!JSON.stringify(av).includes('SECRET'), 'availability tells no value');
+  assert.equal(availability([mj], {})[0].available, false);
+  // a batch with the defaults leaves it out, even with its cookies there
+  const calls = [];
+  const spy = async (url, init) => { calls.push({ url: String(url), init }); throw new Error(`unexpected request ${url} ${I}`); };
+  const d = await runBatch({ root, prompt: 'a glacier', providers: null, ar: '16:9', keys, fetch: spy, ...fast, batch: 'mj0' });
+  assert.ok(!('midjourney' in d.providers));
+  // named: it fails clearly, without a single request, and nothing written carries a cookie
+  const m = await runBatch({ root, prompt: 'a glacier', providers: ['midjourney'], ar: '16:9', keys, fetch: spy, ...fast, batch: 'mj1' });
+  assert.equal(calls.length, 0, 'no request to midjourney.com');
+  assert.equal(m.providers.midjourney.status, 'error');
+  assert.equal(m.providers.midjourney.kind, 'needs-browser');
+  assert.match(m.providers.midjourney.error, /Cloudflare challenge/);
+  assert.equal(m.candidates.length, 0);
+  const file = readFileSync(join(root, CANDIDATES_DIR, 'mj1', 'candidates.json'), 'utf8');
+  assert.ok(!file.includes(I) && !file.includes(R), 'no cookie in the manifest');
+  // and the CLI says so, without a value
+  const out = [];
+  await main(['--prompt', 'a glacier', '--providers', 'midjourney'], { root, keys, fetch: spy, log: (s) => out.push(s) });
+  assert.match(out.join('\n'), /midjourney\s+needs-browser/);
+  assert.ok(!out.join('\n').includes('SECRET'));
   rmSync(root, { recursive: true, force: true });
 });
 
