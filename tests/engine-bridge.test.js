@@ -189,6 +189,29 @@ test('mirror: a flame\'s flicker (points, normals and colours moved) goes as its
   assert.deepEqual(Array.from(f.subarray(4, 11)), [-1, 2, 3, 0.5, 0.25, 0, 1]);
 });
 
+test('mirror: the quiet walk (Unity): a still drawable\'s colour and geometry changes still reach the backend within four frames, its moves at once', () => {
+  const live = [], verts = [];
+  const R = recorder();
+  Object.assign(R.backend, { materialLive: (mid, c) => live.push(c), vertices: (gid, pos, nrm, n) => verts.push(n) });
+  const mirror = new SceneMirror(R.backend, { quietWalk: true });
+  const scene = new THREE.Scene();
+  const mat = makeMaterial({ color: '#808080' });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), mat);
+  scene.add(m);
+  for (let i = 0; i < 60; i++) mirror.sync(scene, null);   // (quiet by now)
+  mat.uniforms.uColor.value.setRGB(1, 0, 0);
+  for (let i = 0; i < 4; i++) mirror.sync(scene, null);
+  assert.equal(live.length, 1, 'the colour within four frames');
+  m.geometry.attributes.position.setX(0, 3); m.geometry.attributes.position.needsUpdate = true;
+  for (let i = 0; i < 4; i++) mirror.sync(scene, null);
+  assert.equal(verts.length, 1, 'the points within four frames');
+  for (let i = 0; i < 60; i++) mirror.sync(scene, null);
+  R.log.length = 0;
+  m.position.x = 5;
+  mirror.sync(scene, null);
+  assert.equal(R.ops('transforms').length, 1, 'a move the same frame');
+});
+
 test('mirror: instanced meshes send their instances when they change', () => {
   const R = recorder();
   const mirror = new SceneMirror(R.backend);

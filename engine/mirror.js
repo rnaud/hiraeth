@@ -53,6 +53,8 @@ export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMout
 const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood');
 
 /** What a render hook is handed for the renderer: nothing it can draw with (hooks here read the scene, not it). */
+// (a drawable unchanged this many frames is "quiet": its geometry, materials and keys looked at every 4th frame, quietWalk)
+const QUIET_AFTER = 30;
 const RENDERER_STUB = Object.freeze({ isWebGLRenderer: false, info: { render: { frame: 0 } } });
 
 export class SceneMirror {
@@ -61,8 +63,9 @@ export class SceneMirror {
    * @param o.forgetAfter  frames an object may be out of the scene before it is removed
    * @param o.filter (o) => false to leave an object (and its children) out
    * @param o.freeze  still subtrees taken whole, not walked (mirror-freeze.js; off: in Puerts its watches cost the game more than they saved)
+   * @param o.quietWalk  drawables unchanged for QUIET_AFTER frames looked at in full every 4th frame only (the Unity backend's)
    */
-  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false } = {}) {
+  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false, quietWalk = false } = {}) {
     this.backend = backend;
     this.castsShadow = castsShadow;   // (o) → false: left out of the sun's shadow (the game's caster rules: shadows.js)
     this.forgetAfter = forgetAfter;
@@ -81,7 +84,8 @@ export class SceneMirror {
     this.stats = { nodes: 0, drawn: 0, moved: 0, geometries: 0, materials: 0, uploadedBytes: 0, skipped: 0 };
     this.prof = { matrices: 0, walk: 0, bones: 0, tail: 0, frame: 0, frames: 0 };
     this.profiling = false;
-    this.freeze = freeze && !filter;   // (a filter may change its mind about what is inside: walked each frame)
+    this.freeze = freeze && !filter;
+    this.quietWalk = quietWalk;   // (a filter may change its mind about what is inside: walked each frame)
     this._frozen = []; this._frozenDirty = false; this._checkAt = 0;
     this.time = 0;            // the game's clock (sharedUniforms.uTime), set before sync: handed to instances()   // (the bones' share timed apart: costs a clock read a skinned mesh)
   }
@@ -151,6 +155,7 @@ export class SceneMirror {
         if (L2[0] === Math.fround(A.x) && L2[1] === Math.fround(A.y) && L2[2] === Math.fround(A.z) && L2[3] === Math.fround(A.w)) continue;
         L2[0] = A.x; L2[1] = A.y; L2[2] = A.z; L2[3] = A.w;
         const mid = this.mats.get(m);
+        m.__mirrorMovedAt = f;
         if (mid) this.backend.materialVec(mid, w, [A.x, A.y, A.z, A.w]);
       }
     }
@@ -164,6 +169,7 @@ export class SceneMirror {
       for (let i = 0; i < 6 && i < T.length; i++) { put(8 + i * 3, T[i].r); put(9 + i * 3, T[i].g); put(10 + i * 3, T[i].b); }
       if (FB?.isColor) { put(26, FB.r); put(27, FB.g); put(28, FB.b); }
       const mid = this.mats.get(m);
+      if (moved) m.__mirrorMovedAt = f;
       if (moved && mid) this.backend.materialFluid(mid, F);
     }
     if (!c?.isColor && typeof g !== 'number') return;
@@ -172,6 +178,7 @@ export class SceneMirror {
     if (!L) { m.__mirrorLive = [r, gr, b, gl]; return; }   // (as sent with the material)
     if (L[0] === r && L[1] === gr && L[2] === b && L[3] === gl) return;
     L[0] = r; L[1] = gr; L[2] = b; L[3] = gl;
+    m.__mirrorMovedAt = f;
     const mid = this.mats.get(m);
     if (mid) this.backend.materialLive(mid, c?.isColor ? [c.r, c.g, c.b] : null, typeof g === 'number' ? g : null);
   }
@@ -181,7 +188,7 @@ export class SceneMirror {
     this.ids.set(o, id);
     const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh && isInstGeo(o.geometry) ? 'instgeo' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
     const mats = Array.isArray(o.material) ? o.material : [o.material];
-    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1, changedAt: this.frameNo, frozen: null, owner: this, dead: false };
+    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1, changedAt: this.frameNo, frozen: null, owner: this, dead: false, hook: undefined, matMovedAt: -1e9 };
     o.__mirror = node;   // (the walk finds it on the object: no map lookups a frame)
     this.nodes.set(id, node);
     this.stats.nodes++;
@@ -228,9 +235,14 @@ export class SceneMirror {
         const id = node.id;
         node.seen = f;
         drawn++;
+        // a drawable that has not changed for half a second (no move, geometry, shape key or material value, no render
+        // hook, not skinned or instanced): its geometry, materials and keys looked at every 4th frame (staggered by its
+        // id), its matrix every frame. ~3 000 objects are walked a frame and most stand still: each look touches a few
+        // objects more, which on the Xbox's memory costs more than the arithmetic
+        const look = !this.quietWalk || node.hook !== false || f - node.changedAt <= QUIET_AFTER || f - (node.matMovedAt ?? -1e9) <= QUIET_AFTER || ((f + id) & 3) === 0;
         // a geometry swapped or rewritten (cloth, a trail, a morph baked): sent again, and each node drawing it told
         const geo = o.geometry;
-        if (geo && (geo !== node.geo || node.gv !== attrVersion(geo, f))) {
+        if (look && geo && (geo !== node.geo || node.gv !== attrVersion(geo, f))) {
           this._full = false;
           const gid = this._geometry(geo);
           // (told only when it is another geometry or was sent whole again: moved points alone need nothing)
@@ -239,11 +251,17 @@ export class SceneMirror {
         }
         // an object's own render hook (the crowd's tiers set their count in it; a face binds its keys): called as the
         // renderer would before drawing it, in the main pass (no override material)
-        if (Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
+        if (look) node.hook = Object.prototype.hasOwnProperty.call(o, 'onBeforeRender') || !!o.isSkinnedMesh || !!o.isInstancedMesh || node.kind === 'instgeo';
+        if (look && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
         if (!node.shown) { node.shown = true; node.changedAt = f; B.visible?.(id, true); }
-        if (liveMats) { const M = o.material; if (Array.isArray(M)) { for (const m of M) this._live(m, f); } else if (M) this._live(M, f); }
+        if (look && liveMats) {
+          const M = o.material;
+          let moved = -1e9;
+          if (Array.isArray(M)) { for (const m of M) { this._live(m, f); moved = Math.max(moved, m.__mirrorMovedAt ?? -1e9); } } else if (M) { this._live(M, f); moved = M.__mirrorMovedAt ?? -1e9; }
+          node.matMovedAt = moved;
+        }
         // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
-        const KW = o.userData.keyWeights;
+        const KW = look ? o.userData.keyWeights : null;
         if (KW && B.keyWeights) {
           const S = node.keys ??= new Float32Array(KW.length).fill(NaN);
           let moved = false;

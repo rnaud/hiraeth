@@ -15,6 +15,8 @@ export class UnityBackend {
   /** @param host  the C# side: CS.Memento.Bridge.BridgeHost (or a stand-in in the tests) */
   constructor(host) {
     this.host = host;
+    // (the mirror's quiet walk: the still drawables looked at in full every 4th frame, engine/mirror.js QUIET_AFTER)
+    this.quietWalk = true;
     // (an IL2CPP player takes buffers boxed, { b }: BridgeHost.BoxBuffers)
     this.toHost = host.BoxBuffers?.() ? (b) => ({ b }) : (b) => b;
     this.geoms = new Map();    // gid → the mirror's geometry (uploaded per variant when a node needs it)
