@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_984702b4de5bcc 5-8
+engine/cape-job.js
+  s_9ca76055a220ed::t_7c64f5de496b48 17-20,23,30-31,87-88,181,184,191
+src/cape.js
+  s_9ca76055a220ed::t_0d0ccadbe24c15 24-39,249-251,323-327,639,642,650-652
+src/changelog-media.js
+  s_9ca76055a220ed::t_d429852a772e33 546-548,550-554
+src/changelog.js
+  s_9ca76055a220ed::t_d888a417bf088e 11-14
+tests/cape-behind.test.js
+  s_9ca76055a220ed::t_04fc4226b71f25 1-47
+unity/Memento/Assets/MementoJS/Runtime/BridgeCape.cs
+  s_9ca76055a220ed::t_eb50241887f12b 24,39,41-42,67,99,107,196,204
+docs/systems/characters.md
+  s_94cb46c8d1c83f::t_f1d644be478a59 635-642
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f703f59a90029854f6b94c39f39496f2a6a36984",
+  "prompts": {},
+  "sessions": {
+    "s_94cb46c8d1c83f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a96ded33cfcb1684d",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
