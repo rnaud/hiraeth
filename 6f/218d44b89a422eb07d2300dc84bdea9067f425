@@ -1,0 +1,35 @@
+TODO.md
+  s_9ca76055a220ed::t_4dc30cc2d8dda0 228
+changelog.md
+  s_9ca76055a220ed::t_159bac1eb85016 5-8
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_c3f3a3d79f43d0 550-556
+src/changelog.js
+  s_9ca76055a220ed::t_b25ddf184bbf04 11-14
+src/levels/bazaar.js
+  s_9ca76055a220ed::t_b51160418a4a26 35-36,74,76,105,144-151,162,171,199-201,215,251,311-313,386
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_eb5e482db9c3c5 45-46,50,115-116
+src/story/bazaar.js
+  s_9ca76055a220ed::t_e0ec660c6f06f4 61-67,72,293-294
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_581051022e9182 135-137
+tests/story-bazaar.test.js
+  s_9ca76055a220ed::t_d801d84cb5b155 29,107-108,112-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6f218d44b89a422eb07d2300dc84bdea9067f425",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
