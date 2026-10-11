@@ -1,29 +1,35 @@
 // The galactic map: a star chart over the screen when you use the holo table
-// in the middle of the ship's deck. The worlds (ORDER) lie along a dotted route round home; each is a
-// small drawn planet (src/ship/planets.js) with its name and what you have
-// done there. Without power it is locked.
+// in the middle of the ship's deck. The worlds (ORDER) lie on their orbits round one star, the route
+// reading outward from home (src/ship/system.js, issue #129); each is a small drawn planet
+// (src/ship/planets.js) with its name and what you have done there. Without power it is locked.
 //
 //  - Only the worlds you know of are named and can be chosen; the rest are
 //    faint dots further along the route (the unlock rule: src/story/route.js).
+//  - The way on is marked: the dotted route from orbit to orbit, the ship's world ringed in orange,
+//    the visited ones' orbits drawn firmer, and the next place to go (nextDestination: home when it
+//    waits, the Signal Market's silent tower after the first homecoming, the light's trace, else the next
+//    world charted and not done) in gold, a NEXT pennant on it, its orbit dashed gold and a line out to it
+//    from the ship. Opening the map picks it.
+//  - Moons go round their worlds where the lore says so (system.js MOON_OF: the Moon Foundry round the
+//    Buried Machine, the City Floating in Space round the Signal Market), on small orbits of their own.
 //  - Every world on the chart carries the singing light's signature (src/story/signature.js):
 //    a small glyph mark on its disc, its reading in the panel, and a line beside the
 //    chart saying why these worlds and no others.
 //  - The detours (names.js SIDE: worlds off the route, with no story to finish) are charted after
-//    the route, always, off its dotted line, tagged "a detour".
+//    the route, always, on a belt past the market, tagged "a detour".
 //  - Choosing a world asks first: "Travel to X?" Yes / No (keyboard, mouse,
 //    touch and pad: A / × yes, B / ○ no). The press that opens the question
 //    never answers it.
-//  - The chart is a field (the route) beside the info panel (under it on a
-//    phone held upright), so the panel never covers a name. The route is laid
-//    out in pixels for the field's size: a ring round home when there is room,
-//    else a snake of rows (chartLayout, checked for overlaps by the tests).
+//  - The chart is a field (the system) beside the info panel (under it on a
+//    phone held upright, the star at the top), so the panel never covers a name. The system is laid
+//    out in pixels for the field's size (chartLayout, checked for overlaps by the tests).
 //
-// Pure helpers (consoleAction, mapEntries, chartLayout) are used by the tests.
+// Pure helpers (consoleAction, mapEntries, chartLayout, nextDestination) are used by the tests.
 //
-// Home sits at the centre, where the route begins; it is a destination once
+// Home is on the innermost orbit, by the star, where the route begins; it is a destination once
 // enough worlds are done (src/story/ending.js). After the first homecoming, once the Signal Market has
 // been heard, the Lantern (the final chapter, src/story/ending.js finaleEntry) is charted past the
-// market's place, a dotted line out to it, pulsing while the light's trace leads there.
+// chart's edge beyond the market, a dotted line out to it, pulsing while the light's trace leads there.
 //
 // The signature search (v1.6, src/story/signature-search.js): a world the route has just opened is not
 // named yet. The chart shows an uncharted region somewhere round it, and a scanner (the cursor, a finger
@@ -32,7 +38,8 @@
 // planet resolves and is charted (o.onFound(id): the ship sets `map.found.<id>` and says so). A meter
 // in the chart's corner shows the same in bars and a word, so nothing depends on sound or rumble.
 
-import { homeEntry, finaleEntry, FINALE_AFTER } from '../story/ending.js';
+import { homeEntry, finaleEntry, FINALE_AFTER, TOWER } from '../story/ending.js';
+import { chartLayout, nextDestination, MOON_OF } from './system.js';
 import { knownWorlds } from '../story/route.js';
 import { RELAY_TEXT } from '../story/relay.js';
 import { planetSvg } from './planets.js';
@@ -55,10 +62,13 @@ export function consoleAction({ at = 'dash', powered, pendingCall }) {
 /**
  * The list of worlds on the chart (`known`: named and choosable); Home is last, once the ending is open (src/story/ending.js).
  * `relay` (src/story/relay.js relaySignal, or a function giving it): the world it comes from carries `signal` ('far'),
- * named or a faint dot, and home carries the held recording (`held`).
+ * named or a faint dot, and home carries the held recording (`held`). `tower` (src/story/ending.js towerDue, or a function
+ * giving it): the Signal Market's silent tower is the goal, and its entry carries `tower`. One entry carries `next`: the
+ * place the chart points at (src/ship/system.js nextDestination). A moon carries `moon`: the world it goes round.
  */
-export function mapEntries({ order, levels, flag, journal, current, home, relay, side = [], finale = false }) {
+export function mapEntries({ order, levels, flag, journal, current, home, relay, side = [], finale = false, tower = false }) {
   const sig = typeof relay === 'function' ? relay() : relay ?? null;
+  const towerOn = typeof tower === 'function' ? !!tower() : !!tower;
   const isDone = (id) => !!(flag?.(`world.${id}.done`) || journal?.storyDone?.(id));
   const isVisited = (id) => !!(journal?.seen?.(id) || id === current || isDone(id));
   const known = new Set(knownWorlds({ order, done: isDone, visited: isVisited, current }));
@@ -67,7 +77,8 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
     // opened by the route but not charted yet: found by the signature search (src/story/signature-search.js)
     const findable = known.has(id) && !isCharted({ id, index: i, visited: isVisited(id), done: isDone(id), current: id === current, flag: flag ?? (() => undefined) });
     return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id) && !findable, findable, signature: hasSignature(id),
-      signal: sig?.stage === 'far' && sig.world === id ? 'far' : null };
+      signal: sig?.stage === 'far' && sig.world === id ? 'far' : null, tower: towerOn && id === TOWER.world,
+      moon: MOON_OF[id] && order.includes(MOON_OF[id]) ? MOON_OF[id] : null };
   });
   // the worlds off the route (names.js SIDE): charted from the start, off the dotted line
   for (const id of side) {
@@ -80,76 +91,33 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
   const h = homeEntry({ unlocked: typeof home === 'function' ? home() : !!home, current });
   if (h) out.push({ ...h, i: out.length, known: true, signature: false, held: sig?.stage === 'held', relayFar: !!out.find((e) => e.signal === 'far' && !e.known),
     waiting: !!flag?.('finale.met') && !flag?.('ending.final') });
+  const next = nextDestination(out, { flag: flag ?? (() => undefined), towerDue: towerOn });
+  for (const e of out) e.next = e.id === next;
   return out;
 }
 
 // ------------------------------------------------------------------ layout
 
-/** A world's footprint on the chart at scale s: the disc, then two lines of name and a line of tag under it. */
-// (no narrower than 70 px: twelve worlds and home in five columns on a small phone held sideways, since v1.40)
-export function worldBox(s = 1) {
-  const disc = Math.round(58 * s), font = Math.max(9.5, 11.5 * s), line = font * 1.25;
-  return { disc, font, w: Math.max(70, Math.round(108 * s)), h: disc + 10 + 2 * line + line * 0.95 };
-}
+// The worlds are laid out as a system round one star (src/ship/system.js: the orbits, the moons, the Lantern past the
+// chart's edge); the footprints never overlap (chartLayout, checked by the tests at every chart size).
+export { chartLayout, worldBox, boxRect, MOON_OF, nextDestination } from './system.js';
 
 /** The light's signature as the ship draws it: the glyph, three dots over an upward arc. */
 export const SIG_GLYPH = '<svg class="glyph" viewBox="0 0 20 16" aria-hidden="true"><circle cx="4.5" cy="2.2" r="1.7"/><circle cx="10" cy="2.2" r="1.7"/><circle cx="15.5" cy="2.2" r="1.7"/><path d="M3 15 Q10 4.5 17 15" fill="none" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
 const HEADER = 62;   // the title and the count, top left of the field
-const PAD = 6;
-const RING = { a0: -2.4, span: 6, r0: 0.75, p: 0.6 };   // tuned so 11 worlds fit an 860 x 650 field at full size (nine since October 2026: room to spare)
 
-/** The footprint rectangle of a world whose disc centre is (x, y). */
-export function boxRect(x, y, b) {
-  return { x0: x - b.w / 2, x1: x + b.w / 2, y0: y - b.disc / 2, y1: y - b.disc / 2 + b.h };
-}
-
-const hits = (a, b, m) => a.x0 < b.x1 + m && b.x0 < a.x1 + m && a.y0 < b.y1 + m && b.y0 < a.y1 + m;
-const clear = (rects, m = 3) => { for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) if (hits(rects[i], rects[j], m)) return false; return true; };
-
-function ring(n, W, H, s) {
-  const b = worldBox(s), x0 = PAD, x1 = W - PAD, y0 = HEADER, y1 = H - PAD;
-  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-  const Rx = (x1 - x0 - b.w) / 2, Ry = (y1 - y0 - b.h) / 2;
-  const toDisc = (bx, by, bb) => [bx, by - bb.h / 2 + bb.disc / 2];   // box centre to disc centre
-  const pts = [];
-  for (let i = 0; i < n; i++) {
-    const k = i / Math.max(1, n - 1), a = RING.a0 + k * RING.span, r = RING.r0 + (1 - RING.r0) * Math.pow(k, RING.p);
-    pts.push(toDisc(cx + Math.cos(a) * r * Rx, cy + Math.sin(a) * r * Ry, b));
-  }
-  const hb = worldBox(s * 0.8);
-  const home = toDisc(cx, cy, hb);
-  const rects = [...pts.map(([x, y]) => boxRect(x, y, b)), boxRect(home[0], home[1], hb)];
-  if (Rx < 40 || Ry < 30 || !clear(rects) || rects.some((r) => r.x0 < 0 || r.x1 > W || r.y0 < HEADER - 4 || r.y1 > H)) return null;
-  return { kind: 'ring', scale: s, box: b, homeBox: hb, pts, home, centre: [cx, cy] };
-}
-
-function snake(n, W, H) {
-  const m = n + 1;   // the last place is home's
-  let best = null;
-  for (let cols = 2; cols <= m; cols++) {
-    const rows = Math.ceil(m / cols), cw = (W - 2 * PAD) / cols, ch = (H - HEADER - PAD) / rows;
-    let s = 1;
-    for (; s > 0.5; s -= 0.025) { const b = worldBox(s); if (b.w + 6 <= cw && b.h + 6 <= ch) break; }
-    if (!best || s > best.s + 1e-6) best = { s, cols, rows, cw, ch };
-  }
-  const { s, cols, cw, ch } = best, b = worldBox(s);
-  const at = (i) => {
-    const r = Math.floor(i / cols), c = r % 2 ? cols - 1 - (i % cols) : i % cols;
-    return [PAD + cw * (c + 0.5), HEADER + ch * r + (ch - b.h) / 2 + b.disc / 2];
-  };
-  const pts = Array.from({ length: n }, (_, i) => at(i));
-  return { kind: 'snake', scale: s, box: b, homeBox: b, pts, home: at(n), centre: null };
-}
-
-/**
- * Where the worlds go on a field of W x H px: n world discs along the route,
- * and home's place. A ring round home at the largest scale that fits (down to
- * 0.8), else a snake of rows. Footprints never overlap (worldBox, boxRect).
- */
-export function chartLayout(n, W, H) {
-  for (let s = 1; s >= 0.8 - 1e-6; s -= 0.025) { const L = ring(n, W, H, s); if (L) return L; }
-  return snake(n, W, H);
+/** The star the system goes round, drawn in ink: a flat gold disc, a paler wash on it, a crown of short strokes, a dotted halo. */
+export function starSvg({ x, y, r }) {
+  const rays = Array.from({ length: 20 }, (_, k) => {
+    const a = (k / 20) * Math.PI * 2, r1 = r * 1.12, r2 = r * (k % 2 ? 1.32 : 1.5);
+    return `M${(x + Math.cos(a) * r1).toFixed(1)} ${(y + Math.sin(a) * r1).toFixed(1)}L${(x + Math.cos(a) * r2).toFixed(1)} ${(y + Math.sin(a) * r2).toFixed(1)}`;
+  }).join('');
+  return `<g class="star"><circle cx="${x}" cy="${y}" r="${(r * 1.75).toFixed(1)}" fill="none" stroke="rgba(242,197,75,.45)" stroke-width="1.2" stroke-dasharray="1 4"/>`
+    + `<path d="${rays}" stroke="#f7ecd2" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>`
+    + `<circle cx="${x}" cy="${y}" r="${r}" fill="#f2c54b" stroke="#2b211f" stroke-width="2.5"/>`
+    + `<circle cx="${(x - r * 0.18).toFixed(1)}" cy="${(y - r * 0.18).toFixed(1)}" r="${(r * 0.62).toFixed(1)}" fill="#f8dd8a"/>`
+    + `<path d="M${(x - r * 0.62).toFixed(1)} ${(y - r * 0.2).toFixed(1)}A${(r * 0.66).toFixed(1)} ${(r * 0.66).toFixed(1)} 0 0 1 ${(x - r * 0.15).toFixed(1)} ${(y - r * 0.64).toFixed(1)}" fill="none" stroke="#fff6dc" stroke-width="2.2" stroke-linecap="round"/></g>`;
 }
 
 // ------------------------------------------------------------------ the chart
@@ -194,6 +162,17 @@ const CSS = `
 #starmap .world.unvisited .disc::after { border: 2px dashed rgba(247, 236, 210, .75); }
 #starmap .world.current .disc::after { border: 3px solid #e6875f; }
 #starmap .world.current .tag { color: #e6875f; }
+/* the system (src/ship/system.js): the next place to go, gold; the line out to it from the ship */
+#starmap .world.next .disc::after { border: 3px solid #f2c54b; inset: -6px; }
+#starmap .world.next .tag { color: #f2c54b; }
+#starmap .world .pennant { position: absolute; left: 50%; bottom: calc(100% + 7px); transform: translateX(-50%); padding: 0 5px; font-size: 9.5px; line-height: 14px; letter-spacing: .16em;
+  color: #2b211f; background: #f2c54b; border: 1.5px solid #2b211f; box-shadow: 2px 2px 0 #2b211f; white-space: nowrap; pointer-events: none; }
+#starmap .world.next .pennant::after { content: ''; position: absolute; left: 50%; top: 100%; margin-left: -4px; border: 4px solid transparent; border-top-color: #2b211f; }
+#starmap svg.route .wayon { stroke: #f2c54b; stroke-width: 2; stroke-dasharray: 7 5; stroke-linecap: round; animation: sm-way 1.4s linear infinite; }
+#starmap svg.route .wayon-head { fill: #f2c54b; stroke: #2b211f; stroke-width: 1.2; }
+#starmap svg.route text.next-tag { fill: #f2c54b; font: bold 10px ui-monospace, Menlo, monospace; letter-spacing: .16em; }
+@keyframes sm-way { to { stroke-dashoffset: -24; } }
+.reduce-motion #starmap svg.route .wayon { animation: none; }
 #starmap .world.home .disc { background: radial-gradient(circle at 50% 70%, #f6c89a 0 34%, #f2c54b 35% 38%, #4a5a8a 39%); border: 2.5px solid #f2c54b; box-sizing: border-box; }
 #starmap .world.home .disc::before { content: '⌂'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; color: #2b211f; }
 #starmap .world.home .tag { color: #f2c54b; }
@@ -346,12 +325,12 @@ export class StarMap {
     this.el.innerHTML = `<div class="chart">
       <div class="field">
         <svg class="route"></svg>
-        <h1>GALACTIC MAP</h1><div class="sub">${known.length} ${known.length === 1 ? "world" : "worlds"} charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${toFind ? ` · ${toFind === 1 ? 'a signature' : `${toFind} signatures`} to find` : ''}${farSig ? ' · a faint signal further along the route' : ''}</div>
+        <h1>GALACTIC MAP</h1><div class="sub">${known.length} ${known.length === 1 ? "world" : "worlds"} charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${toFind ? ` · ${toFind === 1 ? 'a signature' : `${toFind} signatures`} to find` : ''}${worlds.some((e) => e.tower) ? ' · the light went toward the silent tower' : farSig ? ' · a faint signal further along the route' : ''}</div>
         <div class="scanner" aria-hidden="true"><span class="ping"></span><span class="ping"></span><span class="ping"></span></div>
         <div class="meter" role="status" aria-live="polite">SIGNAL <i></i><i></i><i></i><i></i><i></i> <b>silent</b></div>
-        ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
-            <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
-            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.finale ? (e.signal ? RELAY_TEXT.traceTag : e.done ? 'Ilen’s island' : 'the last place') : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
+        ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}${e.next ? ' next' : ''}${e.moon ? ' moon' : ''}" data-i="${i}">
+            <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}${e.next ? '<span class="pennant">NEXT</span>' : ''}</span>
+            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.finale ? (e.signal ? RELAY_TEXT.traceTag : e.done ? 'Ilen’s island' : 'the last place') : e.tower ? TOWER.tag : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
         <button class="close">${glyph('back', { key: 'Esc' })}close ✕</button>
       </div>
       <div class="side">
@@ -409,32 +388,57 @@ export class StarMap {
     }
   }
 
-  /** Lay the route out for the field's current size: the discs, the names, the dotted line. */
+  /** Lay the system out for the field's current size: the star, the orbits, the discs and names, the route, the way on. */
   place() {
     const field = this.el.querySelector('.field');
     if (!field) return;
     const W = field.clientWidth, H = field.clientHeight;
     const worlds = this.entries.filter((e) => !e.home), home = this.entries.find((e) => e.home);
-    const L = (this.layout = chartLayout(worlds.length, W, H));
+    const L = (this.layout = chartLayout(worlds, W, H));
     const pos = (e) => (e.home ? L.home : L.pts[e.i]);
+    const boxOf = (e) => (e.home ? L.homeBox : e.moon ? L.moonBox : L.box);
     for (const b of field.querySelectorAll('button.world')) {
-      const e = this.entries[+b.dataset.i], bx = e.home ? L.homeBox : L.box, [x, y] = pos(e);
+      const e = this.entries[+b.dataset.i], bx = boxOf(e), [x, y] = pos(e);
       Object.assign(b.style, { left: `${x}px`, top: `${y - bx.disc / 2}px`, width: `${bx.w}px`, fontSize: `${bx.font}px` });
       Object.assign(b.querySelector('.disc').style, { width: `${bx.disc}px`, height: `${bx.disc}px` });
     }
-    const seg = (a, b, faint) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${faint ? 'rgba(247,236,210,.22)' : '#e6875f'}" stroke-width="${faint ? 1.2 : 1.6}" stroke-dasharray="${faint ? '2 7' : '4 5'}"/>`;
+    const f1 = (v) => v.toFixed(1);
+    const seg = (a, b, faint) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="${faint ? 'rgba(247,236,210,.22)' : '#e6875f'}" stroke-width="${faint ? 1.2 : 1.6}" stroke-dasharray="${faint ? '2 7' : '4 5'}"/>`;
+    const S = L.star, next = this.entries.find((e) => e.next) ?? null;
     let svg = '';
-    if (L.centre) {
-      svg += [0.5, 0.78, 1.05].map((r) => `<ellipse cx="${L.centre[0]}" cy="${L.centre[1]}" rx="${r * (W / 2 - PAD)}" ry="${r * ((H - HEADER) / 2 - PAD)}" fill="none" stroke="rgba(247,236,210,.13)" stroke-width="1"/>`).join('');
-      if (!home) svg += `<circle cx="${L.home[0]}" cy="${L.home[1]}" r="${L.box.disc * 0.2}" fill="#f2c54b" stroke="#2b211f" stroke-width="2"/>`;   // the sun home goes round
+    // the orbits round the star: each world's own, firmer once you have been there; the next place's dashed gold
+    const orbitOf = new Map();
+    for (const o of L.orbits) for (const id of o.ids) orbitOf.set(id, o);
+    for (const o of L.orbits) {
+      const es = o.ids.map((id) => (id === 'home' ? home : worlds.find((e) => e.id === id))).filter(Boolean);
+      const isNext = !!next && o.ids.includes(next.id), seen = es.some((e) => e.visited || e.current);
+      svg += `<circle cx="${f1(S.x)}" cy="${f1(S.y)}" r="${f1(o.r)}" fill="none" stroke="${isNext ? 'rgba(242,197,75,.7)' : seen ? 'rgba(247,236,210,.3)' : 'rgba(247,236,210,.12)'}" stroke-width="${isNext ? 1.4 : 1}"${isNext ? ' stroke-dasharray="6 5"' : o.belt ? ' stroke-dasharray="1 6"' : ''}/>`;
     }
-    for (let i = 1; i < worlds.length; i++) if (!worlds[i].side) svg += seg(L.pts[i - 1], L.pts[i], !worlds[i].known || !worlds[i - 1].known);
+    // the moons' own small orbits round their worlds
+    for (const m of L.moons) if (worlds.find((e) => e.id === m.id)?.known) svg += `<circle cx="${f1(m.x)}" cy="${f1(m.y)}" r="${f1(m.r)}" fill="none" stroke="rgba(247,236,210,.2)" stroke-width="1" stroke-dasharray="2 4"/>`;
+    // the chart's edge: past it, the Lantern ("off every chart")
+    svg += `<circle cx="${f1(S.x)}" cy="${f1(S.y)}" r="${f1(L.edge)}" fill="none" stroke="rgba(205,180,255,.35)" stroke-width="1.2" stroke-dasharray="1 3 6 3"/>`;
+    svg += starSvg(S);
+    // the route, orbit to orbit: from home by the star out to the market (a moon's world and its moon in turn)
+    const route = worlds.filter((e) => !e.side);
+    if (home && route[0]) svg += seg(L.home, L.pts[route[0].i], !route[0].known);
+    for (let k = 1; k < route.length; k++) svg += seg(L.pts[route[k - 1].i], L.pts[route[k].i], !route[k].known || !route[k - 1].known);
     // the light's trace: a dotted line from the market out to the Lantern
     const fin = worlds.find((e) => e.finale), mk = worlds.find((e) => e.id === FINALE_AFTER);
-    if (fin && mk) svg += `<line x1="${L.pts[mk.i][0]}" y1="${L.pts[mk.i][1]}" x2="${L.pts[fin.i][0]}" y2="${L.pts[fin.i][1]}" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="1 5"/>`;
-    if (home) svg += `<path d="M${L.pts[worlds.filter((e) => !e.side).length - 1].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
+    if (fin && mk) svg += `<line x1="${f1(L.pts[mk.i][0])}" y1="${f1(L.pts[mk.i][1])}" x2="${f1(L.pts[fin.i][0])}" y2="${f1(L.pts[fin.i][1])}" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="1 5"/>`;
+    // the way on: from the ship's world to the next place, gold, with an arrowhead short of its disc
+    const cur = this.entries.find((e) => e.current);
+    if (next && cur) {
+      const a = pos(cur), b = pos(next), d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (d > 1) {
+        const ux = (b[0] - a[0]) / d, uy = (b[1] - a[1]) / d, ra = boxOf(cur).disc * 0.62, rb = (next.known ? boxOf(next).disc * 0.68 : 10);
+        const p0 = [a[0] + ux * ra, a[1] + uy * ra], p1 = [b[0] - ux * rb, b[1] - uy * rb];
+        svg += `<line class="wayon" x1="${f1(p0[0])}" y1="${f1(p0[1])}" x2="${f1(p1[0])}" y2="${f1(p1[1])}"/>`
+          + `<path class="wayon-head" d="M${f1(p1[0])} ${f1(p1[1])}L${f1(p1[0] - ux * 9 - uy * 5)} ${f1(p1[1] - uy * 9 + ux * 5)}L${f1(p1[0] - ux * 9 + uy * 5)} ${f1(p1[1] - uy * 9 - ux * 5)}Z"/>`;
+      }
+    }
     // the worlds not known yet: faint dots, no names
-    for (const e of worlds) if (!e.known && !e.findable) svg += `<circle cx="${L.pts[e.i][0]}" cy="${L.pts[e.i][1]}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
+    for (const e of worlds) if (!e.known && !e.findable) svg += `<circle cx="${f1(L.pts[e.i][0])}" cy="${f1(L.pts[e.i][1])}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
     // the worlds to find (the signature search): an uncharted region somewhere round each, never centred on it
     const diag = Math.hypot(W, H);
     this.diag = diag;
@@ -449,15 +453,18 @@ export class StarMap {
     }
     if (!this.scan || this.scan[0] > W || this.scan[1] > H) this.scan = [W / 2, HEADER + (H - HEADER) / 2];
     this.drawScanner();
-    // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js)
-    for (const e of worlds) if (!e.known && e.signal) {
+    // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js); the
+    // silent tower once it is the goal, NEXT over it
+    for (const e of worlds) if (!e.known && (e.signal || e.tower)) {
       const [x, y] = L.pts[e.i], r = Math.max(9, L.box.disc * 0.26);
-      svg += `<circle class="relay" cx="${x}" cy="${y}" r="${r}"/><circle cx="${x}" cy="${y}" r="${Math.max(3, L.box.disc * 0.07)}" fill="#f2c54b"/>`
-        + `<text class="relay-tag" x="${x}" y="${y + r + 13}" text-anchor="middle">${RELAY_TEXT.tag}</text>`;
+      const below = y + r + 13 < H - 4;
+      svg += `<circle class="relay" cx="${f1(x)}" cy="${f1(y)}" r="${r}"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${Math.max(3, L.box.disc * 0.07)}" fill="#f2c54b"/>`
+        + `<text class="relay-tag" x="${f1(x)}" y="${f1(below ? y + r + 13 : y - r - 6)}" text-anchor="middle">${e.tower ? TOWER.tag : RELAY_TEXT.tag}</text>`
+        + (e.next ? `<text class="next-tag" x="${f1(x)}" y="${f1(below ? y - r - 6 : y + r + 13)}" text-anchor="middle">NEXT</text>` : '');
     }
-    const route = field.querySelector('svg.route');
-    route.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    route.innerHTML = svg;
+    const svgEl = field.querySelector('svg.route');
+    svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svgEl.innerHTML = svg;
   }
 
   select(i) {
@@ -468,7 +475,7 @@ export class StarMap {
     const p = this.el.querySelector('.panel');
     const sig = signatureReading(e.id, { visited: e.visited });
     p.innerHTML = `${e.home ? '' : planetSvg(e.id, { cls: 'mini' })}<h2>${e.title}</h2><div class="src">${e.source}</div><p>${e.blurb}</p>
-      ${e.signal === 'trace' ? `<p class="relay">${RELAY_TEXT.trace}</p>` : e.waiting ? '<p class="relay">Ilen is aboard. Home is waiting for both of you.</p>' : e.signal ? `<p class="relay">${RELAY_TEXT.far}</p>` : e.held ? `<p class="relay">${RELAY_TEXT.held}</p>` : e.relayFar ? `<p class="relay">${RELAY_TEXT.farUncharted}</p>` : ''}
+      ${e.signal === 'trace' ? `<p class="relay">${RELAY_TEXT.trace}</p>` : e.tower ? `<p class="relay">${TOWER.panel}</p>` : e.waiting ? '<p class="relay">Ilen is aboard. Home is waiting for both of you.</p>' : e.signal ? `<p class="relay">${RELAY_TEXT.far}</p>` : e.held ? `<p class="relay">${RELAY_TEXT.held}</p>` : e.relayFar ? `<p class="relay">${RELAY_TEXT.farUncharted}</p>` : ''}
       ${sig ? `<div class="sigline">${SIG_GLYPH}<span>SIGNATURE · ${sig}</span></div>` : ''}
       <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.finale ? (e.done ? '✦ ILEN IS COMING HOME' : 'THE LAST PLACE, OFF EVERY CHART') : e.side ? 'A DETOUR, OFF THE ROUTE' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
       <button class="go"${e.current || !this.o.powered?.() ? ' disabled' : ''}>${e.current ? 'you are here' : `${glyph('ok')}Travel ▶`}</button>`;
@@ -531,7 +538,8 @@ export class StarMap {
       const F = this.o.flag ?? (() => undefined), withIlen = F('finale.met') && !F('ending.final');
       const home = F('ending.done') && !withIlen ? -1 : this.entries.findIndex((e) => e.home && !e.current);   // they are waiting
       const trace = this.entries.findIndex((e) => e.finale && e.signal === 'trace' && !e.current);   // the light's trace (src/story/relay.js)
-      this.select(home >= 0 ? home : trace >= 0 ? trace : next >= 0 ? next : any >= 0 ? any : Math.max(0, cur));
+      const marked = this.entries.findIndex((e) => e.next && e.known);   // the place the chart points at (nextDestination)
+      this.select(marked >= 0 ? marked : home >= 0 ? home : trace >= 0 ? trace : next >= 0 ? next : any >= 0 ? any : Math.max(0, cur));
       document.exitPointerLock?.();
     }
   }

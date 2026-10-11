@@ -616,6 +616,7 @@ const LH = (x, y, z) => [-140 + x, 1800 + y, -780 + z];   // (the Lamp-House's o
 const C49_BELFRY = { commit: '4bfdf04a' };
 const FB = (x, y, z) => [80 + x, 1600 + y, 150 + z];   // (the Founders' Belfry's own metres, in Vael)
 // (issue #116: every shaft of light a soft wash, as the skull cave's; taken before the branch was rebased: no commit to re-take them at)
+const C50_MAP = { from: 'headless Chrome (muted) against this branch’s own dev server before and after the change, the High preset at 1280 × 720 unless said, a save with the worlds done (11 October)' };
 const C49_SHAFTS = { from: 'changelog-shots.mjs views in headless Chrome (muted), the game served by Vite at the commit before the change and at the change (11 October)' };
 // (the Desert's first arrival, issue #139: a new game's save, before the backpack; the weather a minute on, its first spell over)
 const SAVE_ARRIVAL = { flags: { 'prologue.done': true, 'items.v': 2, 'save.migrated': 17 }, keepsakes: [] };
@@ -641,6 +642,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'dais-close', title: 'Up close', caption: 'In front of the chest, a few steps off: before, Nour on her bench right behind it; after, nobody behind the chest, and the dais a step taller', from: SQ_FROM,
         view: { level: 'desert', save: SAVE_ARRIVAL, hour: 10, fov: 55, eye: [228.6, 2.9, 389.4], target: [232.3, 2.6, 393.0], player: [226.5, 1.3, 386.5] } },
     ], see: 'Start a new game and walk up to Qanat: the chest shows on its white dais from the gate. Nour sits on her bench out in the square to the left of it.' },
+    { match: 'The galactic map is a system now', shots: [
+      { name: 'starmap', title: 'After the first homecoming', caption: 'The galactic map in the Glass Dunes, seven worlds done and home visited: before, the worlds round home on a spiral of rings; after, the star at the left, each world on its own orbit outward, the Moon Foundry on its small orbit round the Buried Machine, and NEXT on the Signal Market’s silent tower with a gold line out to it', ...C50_MAP },
+      { name: 'starmap-handheld', title: 'On a handheld', caption: 'The same at 844 × 390 (a handheld or a phone sideways): before, the worlds in rows; after, the same system, smaller', ...C50_MAP },
+      { name: 'starmap-early', title: 'Early on', caption: 'In the City-Shaft with three worlds done: before, the spiral; after, Viridel marked NEXT, the route out from home past the desert, Vael and Lorn, the worlds not yet charted faint dots on their orbits', ...C50_MAP },
+    ], see: 'At the ship’s holo table, open the galactic map: the star at the left (at the top on a phone held upright), each world on its orbit, the next place to go in gold. The pad’s D-pad, the mouse and a tap choose as before.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [

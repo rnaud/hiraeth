@@ -8,7 +8,7 @@ import { Ship } from '../src/ship/ship.js';
 import { DECK, R, LIFT, WINDOW } from '../src/ship/hull.js';
 import { CONSOLE_R, inRooms } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
-import { consoleAction, mapEntries, chartLayout, boxRect } from '../src/ship/starmap.js';
+import { consoleAction, mapEntries } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, REEL_FROM, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
 import { holoLayout, mouthOpen, HOLO, BUST, PEOPLE, holoLook } from '../src/ship/hologram.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from '../src/materials.js';
@@ -234,25 +234,7 @@ test('the consoles: the dash plays the waiting message; the holo table opens the
   assert.equal(by.incal.title, LEVELS.find((l) => l.id === 'incal').title);
 });
 
-test('the galactic map spaces its worlds so no two discs or names overlap, in every chart size', () => {
-  // the field beside the panel (or above it, upright): a desktop chart, a smaller window, a handheld, a phone
-  // (measured in Chrome: 1600 x 900 and 1920 x 1080 give 900 x 720, 844 x 390 gives 591 x 351, 390 x 844 gives 374 x 544)
-  const fields = { desktop: [900, 720], laptop: [880, 560], handheld: [591, 351], phone: [374, 544], 'small phone, sideways': [400, 320] };
-  for (const [name, [W, H]] of Object.entries(fields)) {
-    const L = chartLayout(ORDER.length, W, H);
-    const rects = [...L.pts.map(([x, y]) => boxRect(x, y, L.box)), boxRect(L.home[0], L.home[1], L.homeBox)];
-    for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
-      const a = rects[i], b = rects[j];
-      assert.ok(a.x1 <= b.x0 || b.x1 <= a.x0 || a.y1 <= b.y0 || b.y1 <= a.y0, `${name}: places ${i} and ${j} overlap`);
-    }
-    for (const r of rects) assert.ok(r.x0 >= 0 && r.x1 <= W && r.y0 >= 50 && r.y1 <= H + 0.5, `${name}: inside the field, under the title: ${JSON.stringify(r)}`);
-    assert.ok(L.box.font >= 9.5, `${name}: names stay readable`);
-  }
-  const big = chartLayout(ORDER.length, ...fields.desktop);
-  assert.equal(big.kind, 'ring', 'on a desktop the route rings round home');
-  assert.ok(big.scale >= 0.9, `at (nearly) full size: ${big.scale}`);
-  assert.equal(chartLayout(ORDER.length, ...fields.handheld).kind, 'snake', 'a handheld gets rows');
-});
+// (the galactic map's layout, a system round one star: tests/starmap-system.test.js)
 
 test('recordings: one per completed world, each heard once, the mother from the third', () => {
   const store = new Map();

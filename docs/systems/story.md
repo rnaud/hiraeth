@@ -309,11 +309,28 @@ carries on from there; the world is still done, and its keepsake given, when the
   route. Known worlds are drawn planets in flat colours (`src/ship/planets.js`, no
   screenshots): a shadow crescent, an ink outline and one mark each (dunes, bands,
   craters, a ring, a moon, lit windows); ✦ marks a discovery, a dashed ring a world not yet
-  visited. The chart is a grid: the field (the route) and a side column with the info
+  visited. The chart is the field (the system) and a side column with the info
   panel (under the field on a phone held upright), so the panel never covers a name.
-  `chartLayout(n, W, H)` places the worlds in pixels for the field's size: a ring round
-  home when it fits at 80% scale or more, else a snake of rows. The tests check that no
-  two footprints (disc, two lines of name, a tag) overlap at the measured field sizes.
+- **The map is a system** (v1.50, issue #129: "it makes no sense to find the next planet if they are all on a
+  grid"; `src/ship/system.js`). One star at the field's near edge (the left; the top on a phone held upright),
+  home on the innermost orbit beside it, then each world of the route on an orbit of its own, further out the
+  further along the route: distance on the chart is how far out you are. Moons go round their worlds where the
+  lore puts them (`MOON_OF`): the Moon Foundry round the Buried Machine (Dun and Wen come up from its domes), the
+  City Floating in Space round the Signal Market's great pale planet (its cables carry the market's broadcast).
+  The detours lie on a belt past the market, the Lantern past the chart's edge (a dashed violet circle).
+  `chartLayout(entries, W, H)` puts each body on its orbit's arc at a phase of its own (spread by the golden
+  ratio), trying every orbit near its share of the field and every height, cheapest first; if they don't all fit,
+  everything is drawn smaller (to 0.6), then packed nearer the star (to 0.45). The tests check that no two
+  footprints (disc, two lines of name, a tag) meet nor the star, at the measured field sizes, that the route goes
+  outward orbit by orbit, the moons stay by their worlds, and that nothing falls into rows and columns
+  (`tests/starmap-system.test.js`).
+- **The way on is marked** (`nextDestination`): Ilen aboard, home; after the first homecoming until the market is
+  heard, the Signal Market's silent tower (`towerDue`, src/story/ending.js: charted or still a faint dot); the
+  light's trace, the Lantern; home when it waits; else the first world charted and not done. It gets a NEXT
+  pennant, a gold ring and tag, its orbit dashed gold and a gold line with an arrow out to it from the ship's
+  world; opening the map selects it. The ship's world is ringed orange, the orbits of the worlds you have been to
+  are drawn firmer, and the dotted route runs home → the desert → … → the market, through each moon after its
+  world.
 - **Travel asks first:** choosing a world opens "Travel to X?" with Yes / No (Enter / Esc,
   a click, A / × and B / ○). The press that asks never answers: held keys repeat
   (`e.repeat`), the pad needs a fresh A, and a Yes within 150 ms of the question is ignored.

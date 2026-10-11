@@ -13,6 +13,8 @@ export const CHANGELOG = [
     'Qanat’s square is clearer round its great tree: the stone well and the carved stele are gone. The water now climbs the tree’s own roots while you watch, and you set the spark-stone in the roots at the trunk’s foot, on the avenue’s side. Hessa sweeps round the roots instead of the well.',
     // the dais and Nour's bench (docs/systems/boxes.md "The tree's dais"; issue #160)
     'The makers’ dais under Qanat’s tree stands taller, three white steps instead of two, so the chest on it shows clearly from the gate and all the way up the avenue. Nour’s bench has moved out of the way: it stands a few steps off to the left of the dais, facing it, instead of right behind the chest.',
+    // the galactic map (docs/systems/story.md "The map is a system"; issue #129)
+    'The galactic map is a system now: one star, home on the orbit beside it, and every world on an orbit of its own, further out the further along the route, so the way on reads outward. The Moon Foundry goes round the Buried Machine, and the City Floating in Space round the Signal Market. The next place to go wears a gold NEXT, with a line out to it from your ship, and on a handheld the worlds are no longer set out in rows.',
   ] },
   { v: '1.49', date: '2026-10-11', items: [
     // the camera (docs/systems/movement-and-camera.md "Sable's framing on foot"; issue #148)

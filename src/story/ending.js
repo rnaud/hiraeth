@@ -115,6 +115,21 @@ export const marketHeard = ({ flag, completed } = {}) => !!(flag?.(`world.${FINA
 export const finaleOpen = ({ flag, completed } = {}) => !!flag?.('finale.met') || !!flag?.('ending.final')
   || (!!flag?.('ending.done') && marketHeard({ flag, completed }));
 
+/**
+ * After the first homecoming, until the market has been heard: the Signal Market's silent tower is the goal (issue #127).
+ * The charge names it (src/story/charge.js), the galactic map points at it (src/ship/starmap.js); the broadcast heard
+ * there opens the light's trace (finaleOpen), which takes over.
+ */
+export const towerDue = ({ flag, completed } = {}) => !!flag?.('ending.done') && !flag?.('ending.final') && !flag?.('finale.met')
+  && !marketHeard({ flag, completed });
+/** The tower's words: the charge's step, the map's tag and its panel line. */
+export const TOWER = {
+  world: FINALE_AFTER,
+  step: 'Make the Signal Market’s silent tower speak',
+  tag: 'the silent tower',
+  panel: 'The singing light went out along the route, this way. The faint signal on the old relay comes from the market’s silent tower.',
+};
+
 /** Ilen is coming home with him, and the true ending has not played yet: the next flight home is the last homecoming. */
 export const finalDue = (flag) => !!flag?.('finale.met') && !flag?.('ending.final');
 
