@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_24dee7ab638275 7
+docs/story-bible.md
+  s_9ca76055a220ed::t_79ba844e76dee7 496-503
+docs/systems/story.md
+  s_9ca76055a220ed::t_e7a3c9d6986f85 106-116,132-133
+src/boxes/effects.js
+  s_9ca76055a220ed::t_9b8c46dd79ee77 117-118
+src/changelog.js
+  s_9ca76055a220ed::t_a9731df31720f8 25-27
+src/i18n/en.js
+  s_9ca76055a220ed::t_abb981e13d8abd 471
+src/i18n/fr.js
+  s_9ca76055a220ed::t_4f05c5ed484eee 468
+src/npc.js
+  s_9ca76055a220ed::t_b829e4fb45b87f 443,445-446
+src/story/lantern-data.js
+  s_9ca76055a220ed::t_62b737fdb4809e 20-26,33,51-53,88-90,273-289
+src/story/lantern.js
+  s_9ca76055a220ed::t_26f86a763a4eb7 2,5-6,10-12,15-19,56-57,60,62-120,187,189,192,194-199,203,209-258
+tests/lantern-answer.test.js
+  s_9ca76055a220ed::t_92d1c7f26bf9f9 1-57
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_05d04e3d0345fb 234-251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "941b5dc3a49d2134aa573009b5ef98cde47239ab",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
