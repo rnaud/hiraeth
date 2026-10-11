@@ -1,0 +1,61 @@
+changelog.md
+  s_9ca76055a220ed::t_d34f87b1a0ee06 5-11
+index.html
+  s_9ca76055a220ed::t_960c8dd1041d15 177,461
+src/ambush.js
+  s_9ca76055a220ed::t_c29fa3b99ceceb 1-77
+src/changelog-media.js
+  s_9ca76055a220ed::t_1815ed68b40b16 541,543-553
+src/changelog.js
+  s_9ca76055a220ed::t_363f1d83ae38e7 11-20
+src/i18n/en.js
+  s_9ca76055a220ed::t_d1e65c61ea860e 82
+src/i18n/fr.js
+  s_9ca76055a220ed::t_8b552de0c83465 82
+src/main.js
+  s_9ca76055a220ed::t_e78daa062d229e 124,870-872,2175-2178,2182-2184
+src/minigames/kit/flow.js
+  s_9ca76055a220ed::t_cf052f6ef18bd8 68-81
+src/minigames/kit/minigames.css
+  s_9ca76055a220ed::t_13cf4955e19157 101-104
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_c9a01dd9d00280 23-24,157-158,191-194,261,284-285,287,345-348,365-366
+src/minigames/pirates-rules.js
+  s_9ca76055a220ed::t_7ba8c02cae542b 1-596
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_e4e2a708125d0d 1-734
+src/ship/ship.js
+  s_9ca76055a220ed::t_3d99419ba1ae9a 331,560-561
+src/ui.js
+  s_9ca76055a220ed::t_987b4fe6242678 47,335
+tests/ambush.test.js
+  s_9ca76055a220ed::t_290a0446140c92 1-78
+tests/cinema.test.js
+  s_9ca76055a220ed::t_1b6c52b2d191f2 141,144,146
+tests/minigames-qa.test.js
+  s_9ca76055a220ed::t_82c5c3a08f9297 1,17,21
+tests/pirates.test.js
+  s_9ca76055a220ed::t_11ae8f4bdb9550 1-192
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_56b3349cbd59fe 651,679-683
+tests/playthrough.test.js
+  s_9ca76055a220ed::t_bdc8cf40af2216 33-37,65-66
+tests/tone.test.js
+  s_9ca76055a220ed::t_b4bf7e06bb3051 142-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "725d1b95c41a82727253e9d4a2677a83e347e196",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
