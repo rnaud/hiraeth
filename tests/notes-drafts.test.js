@@ -62,7 +62,7 @@ test('a paired device saves a draft with its screenshot and state; the notebook 
   const token = await pair(store, cookie);
   // without the token (or with a forged one) nothing is saved
   assert.equal((await call(store, 'drafts', { method: 'POST', body: { shot: JPEG } })).status, 401);
-  assert.equal((await call(store, 'drafts', { method: 'POST', body: { shot: JPEG }, token: `${token.slice(0, -1)}0` })).status, 401);
+  assert.equal((await call(store, 'drafts', { method: 'POST', body: { shot: JPEG }, token: `${token.slice(0, -1)}${token.endsWith('0') ? '1' : '0'}` })).status, 401);
   const saved = await call(store, 'drafts', { method: 'POST', token, origin: 'https://localhost', body: { text: 'Screenshot · the desert', shot: JPEG, context: { level: 'desert', x: 12.345, build: 2100, preset: 'Handheld', '<b>': 'no', note: 'a\u0000b' } } });
   assert.equal(saved.status, 201);
   assert.equal(saved.headers.get('Access-Control-Allow-Origin'), '*');
