@@ -1,0 +1,25 @@
+src/glass-dunes-ways.js
+  s_9ca76055a220ed::t_8cc3d1540ff912 3-4,83-193
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_00083105fa12d4 14,196-198,243-245,249,258-259,261-262
+src/levels/spheres.js
+  s_9ca76055a220ed::t_71e1dc69fd2515 1006-1025,1060-1062,1065-1067,1074-1075
+src/story/spheres.js
+  s_9ca76055a220ed::t_794e572e9d18f6 29,99-110,119-123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7c79066e40dfb24403430a1d7cc4e60999c12609",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
