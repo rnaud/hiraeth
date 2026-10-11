@@ -251,6 +251,7 @@ namespace Memento.Bridge
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
+            BridgeRenderer.uniformLayout = BridgeArgs.Flag("-uniform-layout");
             // (the shadow maps' cost on the main thread, tried apart: the near map redrawn every N frames, no fine map, casters
             // under T texels left out)
             if (BridgeArgs.Arg("-shadow-near-every") is string ne && int.TryParse(ne, out int nev)) Quality.nearEvery = Mathf.Max(1, nev);

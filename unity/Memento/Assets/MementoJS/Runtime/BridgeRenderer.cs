@@ -163,13 +163,26 @@ namespace Memento.Bridge
         /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
-        public static bool oneVariant;
+        public static bool oneVariant, uniformLayout;
         /// <summary>The shader variants the scene's materials ask for: materials, distinct (shader, keywords), the commonest.</summary>
         public string Variants()
         {
             var sets = new Dictionary<string, int>();
+            var layouts = new HashSet<string>(); var states = new HashSet<string>(); var pairs = new HashSet<string>();
             int n = 0;
             foreach (var r in GetComponentsInChildren<Renderer>(true))
+            {
+                var mesh = r is SkinnedMeshRenderer sk ? sk.sharedMesh : r.GetComponent<MeshFilter>()?.sharedMesh;
+                string layout = "none";
+                if (mesh) { var at = mesh.GetVertexAttributes(); layout = string.Join(",", System.Linq.Enumerable.Select(at, a => $"{a.attribute}{a.dimension}{a.stream}")) + (r is SkinnedMeshRenderer ? "+skin" : ""); }
+                layouts.Add(layout);
+                foreach (var mt in r.sharedMaterials)
+                {
+                    if (!mt) continue;
+                    string state = $"{mt.shader.name} q{mt.renderQueue}" + (mt.HasProperty("_Cull") ? $" c{mt.GetFloat("_Cull")}" : "") + (mt.HasProperty("_ZWrite") ? $" z{mt.GetFloat("_ZWrite")}" : "")
+                        + (mt.HasProperty("_SrcBlend") ? $" b{mt.GetFloat("_SrcBlend")}/{mt.GetFloat("_DstBlend")}" : "");
+                    states.Add(state); pairs.Add(layout + "|" + state);
+                }
                 foreach (var mt in r.sharedMaterials)
                 {
                     if (!mt) continue;
@@ -178,8 +191,9 @@ namespace Memento.Bridge
                     var key = mt.shader.name + "|" + string.Join(" ", kw);
                     sets.TryGetValue(key, out int c); sets[key] = c + 1;
                 }
+            }
             var top = System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(sets, kv => kv.Value), 6);
-            return $"{n} renderer materials, {sets.Count} shader variants (shader and keywords); the commonest: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"));
+            return $"{n} renderer materials, {sets.Count} shader variants (shader and keywords), {layouts.Count} vertex layouts, {states.Count} material states, {pairs.Count} (layout, state) pairs; the commonest variants: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"));
         }
         static readonly List<string> madeNames = new();
         static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
@@ -271,6 +285,14 @@ namespace Memento.Bridge
             if (formC != null) { mesh.SetUVs(5, formC); mesh.SetUVs(6, formA); }
             if (vm != null) for (int c = 0; c < 6; c++) mesh.SetUVs(1 + c, vm[c]);
             if (weights != null) mesh.boneWeights = weights;
+            // (-uniform-layout, a test: every mesh with normals, a uv and colours, so fewer vertex layouts meet each material
+            // state: if the load's stall shrinks, it was the driver making a pipeline for each (layout, state) at its first draw)
+            if (uniformLayout)
+            {
+                if (d.nrm == null) { var nn = new Vector3[n]; for (int i = 0; i < n; i++) nn[i] = Vector3.up; mesh.SetNormals(nn); }
+                if (d.uv == null) mesh.SetUVs(0, new Vector2[n]);
+                if (d.col == null && rig == null) { var w = new Color[n]; for (int i = 0; i < n; i++) w[i] = Color.white; mesh.SetColors(w); }
+            }
             if (rig != null)
             {
                 // the crowd's figure (FarCrowd.cs Figure): the rig in uv2, white, never culled (the shader moves it)

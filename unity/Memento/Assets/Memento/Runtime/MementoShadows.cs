@@ -138,6 +138,8 @@ namespace Memento
         readonly List<(Mover mv, Vector3 c, float r)> live = new();
         /// <summary>The main thread's time in Prepare and Render (ms, summed for good: the bridge's metrics read them) and the draws.</summary>
         public static double msPrepare, msRecord; public static long drawsTotal;
+        /// <summary>The draws by cascade (fine, near, far), summed for good.</summary>
+        public static readonly long[] drawsBy = new long[3];
         float scanAt = -99; WorldDetail scannedFor;
         public void Rescan() => scanAt = -99;
 
@@ -313,6 +315,7 @@ namespace Memento
             RenderTimed(cmd, plan, camPos);
             msRecord += (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
             drawsTotal += plan.draws.Count;
+            drawsBy[plan.cascade == fine ? 0 : plan.cascade == near ? 1 : 2] += plan.draws.Count;
         }
         void RenderTimed(RasterCommandBuffer cmd, Plan plan, Vector3 camPos)
         {

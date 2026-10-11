@@ -51,7 +51,7 @@ namespace Memento.Bridge
         readonly FrameTiming[] timing = new FrameTiming[1];
         readonly List<float> frames = new();
         double windowStart, cpuMain, cpuRender, gpu, cpuAll, presentWait; int timed;
-        double scriptAt, waitAt, opsAt, shPrepAt, shRecAt; long shDrawsAt;
+        double scriptAt, waitAt, opsAt, shPrepAt, shRecAt; long shDrawsAt; readonly long[] shByAt = new long[3];
         string readout = "";
         // the load
         float firstNode = -1, settled = -1, lastGrowth; int lastNodes;
@@ -179,7 +179,8 @@ namespace Memento.Bridge
                 opsAt = BridgeHost.opsMsTotal;
                 int n = frames.Count;
                 // (the port's shadow maps on the main thread: their casters gathered, their draws recorded, how many)
-                string shadows = MementoShadows.On ? $" · shadows prepare {(MementoShadows.msPrepare - shPrepAt) / n:0.0} record {(MementoShadows.msRecord - shRecAt) / n:0.0} ms, {(MementoShadows.drawsTotal - shDrawsAt) / n} draws" : " · shadows off";
+                string shadows = MementoShadows.On ? $" · shadows prepare {(MementoShadows.msPrepare - shPrepAt) / n:0.0} record {(MementoShadows.msRecord - shRecAt) / n:0.0} ms, {(MementoShadows.drawsTotal - shDrawsAt) / n} draws (fine {(MementoShadows.drawsBy[0] - shByAt[0]) / n}, near {(MementoShadows.drawsBy[1] - shByAt[1]) / n}, far {(MementoShadows.drawsBy[2] - shByAt[2]) / n})" : " · shadows off";
+                for (int k = 0; k < 3; k++) shByAt[k] = MementoShadows.drawsBy[k];
                 shPrepAt = MementoShadows.msPrepare; shRecAt = MementoShadows.msRecord; shDrawsAt = MementoShadows.drawsTotal;
                 string t = timed > 0 ? $"cpu main {cpuMain / timed:0.0} render {cpuRender / timed:0.0} gpu {gpu / timed:0.0} ms" : "no frame timing";
                 readout = $"{fps:0.0} fps · {p50:0.0} ms (p95 {p95:0.0}, max {max:0}) · {t} · script {script / n:0.0} wait {wait / n:0.0} ms · {nodes} nodes";
