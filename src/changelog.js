@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.45', date: '2026-10-11', items: [
+    // the author's desert playtest (issues #66, #68, #69, #71, #76)
+    'Your backpack’s straps now run over the tops of your shoulders and down your chest to a brass buckle, instead of straight up into your collar beside your ears.',
+  ] },
   { v: '1.44', date: '2026-10-11', items: [
     // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)
     { text: 'At the edge of Vael’s plain stands the riders’ gate, two tall pillars of rose stone where the bird riders set off over the cloud to the stones that fell up. Once the bird has answered you, the scout leads you to it first, then on to Sister Aube.',

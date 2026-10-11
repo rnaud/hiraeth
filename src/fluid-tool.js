@@ -594,6 +594,21 @@ export function scoutDockPose(k, pos, quat) {
   return pos;
 }
 
+/**
+ * The shoulder straps' way (the wearer's left, +x; the right mirrors it), in the chest anchor's frame of the body
+ * that wears the flask (y 0.74 at the collar, +z forward; src/characters/traveller-v1.js TRAVELLER_V1_TANK_AT):
+ * from the plate's top corner over the top of his shoulder, between his neck and the shoulder's point, and down
+ * the front of his chest to a buckle, 2–3 cm off his shirt. tests/backpack-straps.test.js keeps it clear of his
+ * head, his ears and his body in the poses he takes.
+ */
+export const STRAP_PATH = [[0.104, 0.728, -0.157], [0.112, 0.752, -0.12], [0.115, 0.773, -0.065], [0.115, 0.76, -0.005], [0.114, 0.712, 0.066], [0.108, 0.655, 0.1], [0.102, 0.58, 0.106]];
+/** The straps' leather: width and thickness (tank frame). */
+export const STRAP = { w: 0.046, t: 0.011, at: [0, 0.4, -0.1886] };
+/** A strap's way in the tank's frame (sx: -1 his right, 1 his left). */
+export function strapPath(sx = 1) {
+  return STRAP_PATH.map(([x, y, z]) => new THREE.Vector3((sx * x - STRAP.at[0]) / TANK.scale, (y - STRAP.at[1]) / TANK.scale, (z - STRAP.at[2]) / TANK.scale));
+}
+
 const LEATHER = '#6a4a33', CANVAS = '#7d8a5a', CANVAS_DARK = '#5f6c44', CLOTH = '#3f9a92', LIGHT_OFF = '#3d6b60';
 /**
  * The round backpack itself (the worn tank's and the item's picture, src/boxes/model.js): the glass dome in its
@@ -654,14 +669,17 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
     const edge = shape.getPoints(10).map((p) => new THREE.Vector3(p.x * 0.9, CY + (p.y - CY) * 0.92, PZ - 0.002));
     add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edge.slice(0, -1), true), 72, 0.0035, 4, true), mat(CANVAS_DARK));
     for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.012, 8, 6), dark, sx * (w - 0.04), y0 + h - 0.05, PZ - 0.002);
-    // the leather straps: from the plate's top corners up over his shoulders (into the collar of his shirt), buckled
-    // (their far end where v1.37's sphere had it on the body: the plate's back is where it was)
-    const shift = PZ + P.d + 2 * PLATE_BEVEL - (R + 0.012 + 0.045 + 0.012);
+    // the leather straps: from the plate's top corners up over his shoulders and down his chest to a buckle
+    // (STRAP_PATH: once a straight band up into his collar, whose end stood by his ears: issue #76)
     for (const sx of [-1, 1]) {
-      const a = new THREE.Vector3(sx * (w - 0.05), y0 + h - 0.02, PZ + 0.02), b = new THREE.Vector3(sx * 0.105, 0.43 / TANK.scale + 0.05, 0.27 / TANK.scale + 0.12 + shift), d = b.clone().sub(a);
-      const strap = add(new THREE.BoxGeometry(0.046, 0.011, d.length()), mat(LEATHER), (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-      strap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
-      add(new THREE.BoxGeometry(0.034, 0.018, 0.022), brass, a.x, a.y, a.z + 0.004).quaternion.copy(strap.quaternion);   // its buckle
+      const pts = strapPath(sx);
+      for (let k = 0; k < pts.length - 1; k++) {
+        const a = pts[k], d = pts[k + 1].clone().sub(a), len = d.length();
+        const strap = add(new THREE.BoxGeometry(STRAP.w, STRAP.t, len + 0.012), mat(LEATHER), a.x + d.x / 2, a.y + d.y / 2, a.z + d.z / 2);
+        strap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
+        if (k === 0) add(new THREE.BoxGeometry(0.034, 0.018, 0.022), brass, a.x, a.y, a.z + 0.004).quaternion.copy(strap.quaternion);   // its buckle on the plate
+        if (k === pts.length - 2) add(new THREE.BoxGeometry(0.056, 0.017, 0.034), brass, pts[k + 1].x, pts[k + 1].y, pts[k + 1].z).quaternion.copy(strap.quaternion);   // and on his chest
+      }
     }
   }
   // the stages’ parts (setStage shows them): 1 the lift valve, 2 the wings’ vanes, 3 the bellows’ valve

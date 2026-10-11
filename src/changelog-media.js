@@ -552,6 +552,19 @@ const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, 
 // branch's own Vite, before and after the change, the same scripted moment for both)
 const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
 export const CHANGELOG_MEDIA = {
+  '1.45': [
+    { match: 'Your backpack’s straps now run over the tops of your shoulders', shots: [
+      { name: 'straps-side', caption: 'The traveller in the desert, close, from his left and from the front: before, the strap straight up from the plate into his collar under his ear; after, over the top of his shoulder and down his chest to a buckle', commit: 'dbdfeafe88ccd5b3fa1c119dea073a0c740eddb2',
+        view: { level: 'desert', people: [{ id: 'traveller', yaw: 1.3, dist: 1.2, height: 1.4, lift: 0.15 }, { id: 'traveller', yaw: 0.35, dist: 1.2, height: 1.4, lift: 0.15 }], hour: 10 } },
+    ], numbers: [
+      { title: 'How close the straps come to his head and into his body (the nearest of every pose)', unit: 'cm', better: 'higher', device: 'Node, tests/backpack-straps.test.js (the game’s traveller with his own head, 18 poses)', rows: [
+        { where: 'nearest to his head, standing', before: 0.9, after: 4.7 },
+        { where: 'nearest to his head, looking round', before: 0.5, after: 5.5 },
+        { where: 'nearest to his head, climbing', before: 0.0, after: 5.5 },
+        { where: 'least clearance over his skin, looking round (below 0: inside his neck)', before: -3.5, after: 1.4 },
+      ] },
+    ] },
+  ],
   '1.44': [
     { match: 'At the edge of Vael’s plain stands the riders’ gate', shots: [
       { name: 'vael-gate', caption: 'The plain’s edge between the tower and the great table: before, the sand running out to the cloud; after, the riders’ gate, its lantern on its chain, the stones that fell up beyond', commit: 'f8095c14b3adc6c86da10242098879326ce0b449',

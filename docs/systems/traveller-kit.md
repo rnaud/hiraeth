@@ -23,7 +23,10 @@ the rucksack's outer face. The look and its reasons:
   its outer face (`flask.lights`: lit for the whole units of the magic bar left, as the glove's knuckles are); a boss
   under the ring; a short capped brass neck on the ring's top with a turquoise cloth tied round it; worn, a slim olive
   canvas back plate (`TANK.dome.plate`, padded, stitched round, two rivets) and two leather straps from its top corners
-  up over the shoulders, buckled. No hose. The same model is the item's picture (`worn: false`, stage 0, turned so its
+  over the tops of the shoulders and down the chest to a brass buckle (`STRAP_PATH`, in the chest anchor's frame of
+  the body that wears it: between the neck and the shoulder's point, 2–3 cm off the shirt; until v1.45 they ran
+  straight up into the collar and their ends stood by his ears, issue #76; `tests/backpack-straps.test.js` keeps
+  them 4 cm or more from his head upright and on his skin, not under it, in 18 poses). No hose. The same model is the item's picture (`worn: false`, stage 0, turned so its
   dome faces the icon's camera). It replaced the Ivory and Jade flat flask
   (`references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/`).
 - **Slim, lying flat** (the author on v1.38's first sphere: "it should be a bit slimmer like on the references so it's

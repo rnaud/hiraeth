@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.45 — 2026-10-11
+
+- Your backpack’s straps now run over the tops of your shoulders and down your chest to a brass buckle, instead of straight up into your collar beside your ears.
+
 ## v1.44 — 2026-10-11
 
 - The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.
