@@ -551,6 +551,12 @@ const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, 
 // (v1.44: the author's desert playthrough, issues #58–#73; pictures made by hand with a scratch shooter against this
 // branch's own Vite, before and after the change, the same scripted moment for both)
 const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
+// (v1.45: a run's save, the desert done and the Givers' House skipped: the backpack, the lift valve and the gun, no blade, no guard)
+// (the pirates mid-turn: started, flown ahead by the pilot to 12 s, then D held 0.4 s)
+const PIRATES_TURN = "const M = window.minigame; M.begin(); await new Promise((r) => setTimeout(r, 3800)); M.session.forward(12); window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyD' })); await new Promise((r) => setTimeout(r, 400));";
+// (taken with scripts/changelog-shots.mjs on the agent branch, before the rebase that lands it: `from`, not `commit`)
+const FROM45 = 'scripts/changelog-shots.mjs (headless Chrome, High, 1280 × 720, muted) at the fix’s commit and its parent on the agent branch, before it was rebased onto main (11 October)';
+const SAVE45 = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'items.v': 2, 'save.migrated': 13, 'tool.empty': false, 'ship.powered': true, 'world.desert.done': true, 'box.desert.backpack': true, 'box.desert.lift': true, 'box.desert.gun': true }, keepsakes: [] };
 export const CHANGELOG_MEDIA = {
   '1.45': [
     { match: 'The lift valve’s chest in the cave now stands on its own round dais', shots: [
@@ -600,6 +606,21 @@ export const CHANGELOG_MEDIA = {
         { where: 'nearest to his head, climbing', before: 0.0, after: 5.5 },
         { where: 'least clearance over his skin, looking round (below 0: inside his neck)', before: -3.5, after: 1.4 },
       ] },
+    ] },
+    { match: 'The chime pirates fly more like Star Fox', shots: [
+      { name: 'pirates-turn', caption: 'Twelve seconds in, the stick held right for 0.4 s: before, the ship slid across with the camera glued to it and the aiming squares just in front of its nose; after, banked hard, its nose turned into the move and the squares swung out ahead where the shots will go, the camera trailing', from: FROM45,
+        view: { query: 'game=pirates&to=edena', hud: true, hour: null, settle: 3500, wait: 0, setup: PIRATES_TURN } },
+    ] },
+    { match: 'The fight on the way to a new world can’t be skipped any more', shots: [
+      { name: 'pirates-card', caption: 'The card on the way to a new world: before, Start and Skip the fight; after, Start alone, and the stick’s pitch to choose', from: FROM45,
+        view: { query: 'game=pirates&to=edena', hud: true, hour: null, settle: 3500, wait: 600 } },
+    ], see: 'Lose a pirate fight on the way to a new world: the only button is Retry from the checkpoint.' },
+    { match: 'When your ship comes down to land, the flame of its jets', shots: [
+      { name: 'landing-jets', caption: 'Out of the clouds over Vael, six seconds into the arrival: before, the jets’ flame left behind in the air, a column of it standing up through the falling ship; after, the flame under the bells', from: 'scripts/cinematics-qc.mjs --only arrival.arzach (headless Chrome, High, muted) against this branch’s own Vite before and after the change, the nearest frames at 6.0 s and 6.1 s (11 October)' },
+    ] },
+    { match: 'No more free chests by your ship when you land in Vael', shots: [
+      { name: 'vael-landing', caption: 'Down the ramp in Vael after the desert, the Givers’ House skipped: before, the blade’s and the guard’s chests waiting by the ship; after, the plain', from: FROM45,
+        view: { level: 'arzach', save: SAVE45, hour: 11, fov: 65, eye: [-263.5, 59.2, -1112.2], target: [-251.5, 56.2, -1106.5], player: [-262, 55.8, -1116] } },
     ] },
   ],
   '1.44': [

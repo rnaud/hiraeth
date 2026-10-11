@@ -45,8 +45,19 @@ nothing in his hands; the order in the desert is:
 
 The house is off the main quest's line (Sabri starts it), so the order is the player's: the house before the Hearth
 or after it, both work (the house never asks for the gun; the Hearth never asks for the blade). A traveller who
-leaves the desert without going in finds the blade and the guard by the ship in the next world (`FALLBACKS`, slots 1
-and 4), as the backpack's other finds.
+leaves the desert without going in goes on unarmed: no foe comes for him (below), nothing after the desert asks for the
+blade (its switches are the house's own), and the blade and the guard wait in the house, the desert always on the map.
+Until v1.44 they waited by the ship in the next world instead (`FALLBACKS`, slots 1 and 4), and the author landed in
+Vael beside two free chests (issue #91: "chests should always feel earned").
+
+**Chests earn their place (v1.45, issue #91).** The fallback boxes by the ship (the backpack, the lift valve, the gun)
+are the desert's main quest's three finds, and the ship doesn't fly until that quest is done (`ship.powered`), so a run
+never sees one: they are for a save brought in another way (the worlds menu). Every other chest is a world's own. Measured
+from each route world's ramp foot (flat metres, then height): the nearest are the makers' courts, each a gadget's showcase
+on its own paved square away from the landing (the City-Shaft's 37 m behind the landing on the plateau, Viridel's 41 m,
+Vael's 49 m and 6 m up its rise), and Lorn's breathing reed, 22 m out but 28 m up Wendel's lookout, a climb in five
+pitches; everything else is 60 m or more away, most in temples. `tests/boxes.test.js` checks that a run's save (the
+desert done, the house skipped) finds nothing by the ship.
 
 **Nothing to fight before the blade.** Unarmed (main.js `tool.swordOn`, from the items), no pack comes in from the
 wilds, no relic's guards rise, no placed encounter wakes and no temple's machines stand (src/foes.js `armed()`); they

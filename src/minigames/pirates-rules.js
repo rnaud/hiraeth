@@ -10,23 +10,46 @@
 //   const S = newRun({ seed, heat, gentle });
 //   const ev = runStep(S, input, dt);        // input: { x, y, fire, fireHeld, auto, roll } (pirateInput below)
 //   ev: [{ kind: 'shot' | 'charged' | 'kill' | 'hurt' | 'deflect' | 'blast' | 'say' | 'repair' | 'part' | 'lock' | 'roll' | 'win' | 'dead', … }]
+//   newRun({ from, fails, chimes }): a lost run again from a checkpoint (CHECKPOINTS), kinder each time (MERCY)
 //
 // SCRIPT is the run, by the seconds since GO: the waves, the repair rings, the lines, the captain.
 
+// The feel, after the audit against Star Fox 64 (issue #88, docs/systems/minigames.md "The controls, against Star
+// Fox"): the stick sets where the ship is going, and it gets there with some weight (an easing, not a fixed
+// acceleration: it starts briskly and settles); near the box's edge it slows to a stop instead of hitting a wall
+// and bouncing; it banks hard into the turn and its nose points where it is going, and the bolts go where the nose
+// points (`aim`), so the reticle swings ahead of the ship as it turns and you aim by steering, as there.
 export const FLY = {
   speed: 42,                 // m/s along the rail
   boxU: 13, boxV: 7.5,       // m: how far across and up the ship may go from the rail
-  steer: 19, accel: 75,      // m/s across at full stick, m/s² to get there
+  steer: 19,                 // m/s across at full stick (up and down 0.8 of it)
+  response: 5,               // 1/s: how quickly the ship takes up the stick's speed (63 % in 0.2 s, nearly all in 0.6 s)
+  edge: 0.22,                // the last part of the box (of its half size) over which the way out slows to nothing
+  bank: { max: 0.95, rate: 9 },   // rad of bank at full sideways speed, and how fast it follows (1/s)
+  aim: 0.09,                 // the nose's slope at full stick: the bolts' own way across, besides the ship's speed
   hull: 6,                   // the hull's pips
   iframe: 1.1,               // s untouchable after a hit
   body: { u: 1.8, v: 0.9, s: 3.0 },   // the ship's half sizes (m), for what hits it
-  bolt: { speed: 170, life: 1.25, every: 0.12, auto: 0.2, r: 0.7, spread: 0.9, lead: 0.55 },   // the twin bolts; `lead`: how much of the ship's sideways speed they keep
+  bolt: { speed: 170, life: 1.25, every: 0.12, auto: 0.2, r: 0.7, spread: 0.9, lead: 0.5 },   // the twin bolts; `lead`: how much of the ship's sideways speed they keep
   charge: { after: 0.28, full: 0.7, speed: 120, turn: 6, life: 2.4, blast: 9, dmg: 12 },   // hold to charge (s), the homing shot, its blast (m) and its harm
-  roll: { dur: 0.55, cool: 0.85, push: 24 },   // the barrel roll: s, s before the next, m/s of sideways shove
-  lock: { near: 12, far: 230, cone: 0.11 },     // a charged shot locks what lies within that slope of the aim, between near and far (m ahead)
+  roll: { dur: 0.45, cool: 0.5, push: 14 },   // the barrel roll: s, s before the next, m/s of sideways shove
+  lock: { near: 12, far: 230, cone: 0.11 },     // a charged shot locks what lies within that slope of the reticle, between near and far (m ahead)
   enemyShot: { speed: 50, r: 0.9, life: 4.5 },
-  skipAfter: 2,              // failed runs before the skip is offered first (the transition: src/ambush.js)
 };
+
+/**
+ * Chimes won for what is shot down (issue #88: "make me win chimes when I destroy enemy ships"): counted through the run
+ * (S.chimes), banked into the wallet when the fight is won on the way to a world (main.js onResult), kept across a
+ * retry from a checkpoint. Mines and rocks are not ships; a ship rammed is not shot down.
+ */
+export const CHIMES_OF = { skiff: 1, raider: 3, hauler: 5, gunL: 6, gunR: 6, core: 15 };
+
+/**
+ * After each lost run (from the last checkpoint), the pirates fire less (`fire`, down to `least` of it) and the hull
+ * has a pip more (`hull`, up to `most` more); from `safe` losses on the hull holds at its last pip. Every fight on the
+ * way to a world can be won, and it must be: there is no skip.
+ */
+export const MERCY = { fire: 0.18, least: 0.45, hull: 1, most: 2, safe: 3 };
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -41,30 +64,34 @@ export function railPoint(s, u = 0, v = 0, out = { x: 0, y: 0, z: 0 }) {
 }
 
 // ------------------------------------------------------------------ the run's script
-/** The lines said on the way (the ship's, the captain's): src/ambush.js AMBUSH_LINES has their words. */
+/**
+ * The lines said on the way (the ship's, the captain's): src/ambush.js AMBUSH_LINES has their words. 30 % shorter since
+ * v1.45 (issue #88): the captain at 70 s, not 102 (a wave of skiffs, a hauler and a vee cut, the rest drawn closer).
+ * `checkpoint`: a lost run starts again from the last one passed (newRun's `from`), the hull full.
+ */
 export const SCRIPT = [
   { t: 1.2, say: 'start' },
-  { t: 5, wave: 'line', n: 5, side: -1 },
-  { t: 11, wave: 'line', n: 5, side: 1, v: 3 },
-  { t: 18, wave: 'vee', n: 5 },
-  { t: 26, wave: 'chase', n: 2 },
-  { t: 35, wave: 'line', n: 6, side: -1, v: -3 },
-  { t: 41, wave: 'vee', n: 7 },
-  { t: 47, ring: true, u: -5, v: 2 },
-  { t: 51, wave: 'chase', n: 3 },
-  { t: 61, say: 'hauler' },
-  { t: 62, wave: 'hauler', side: 1 },
-  { t: 69, wave: 'line', n: 6, side: 1, v: 2 },
-  { t: 76, wave: 'hauler', side: -1 },
-  { t: 80, wave: 'vee', n: 7 },
-  { t: 88, wave: 'chase', n: 3 },
-  { t: 95, ring: true, u: 4, v: -2 },
-  { t: 99, say: 'captain' },
-  { t: 102, boss: true },
+  { t: 4, wave: 'line', n: 5, side: -1 },
+  { t: 10, wave: 'vee', n: 5 },
+  { t: 17, wave: 'chase', n: 2 },
+  { t: 25, wave: 'line', n: 6, side: 1, v: 2 },
+  { t: 30, ring: true, u: -5, v: 2 },
+  { t: 33, checkpoint: 1 },
+  { t: 34, wave: 'vee', n: 7 },
+  { t: 40, say: 'hauler' },
+  { t: 41, wave: 'hauler', side: 1 },
+  { t: 49, wave: 'line', n: 6, side: -1, v: -3 },
+  { t: 55, wave: 'chase', n: 3 },
+  { t: 63, ring: true, u: 4, v: -2 },
+  { t: 66, checkpoint: 2 },
+  { t: 67, say: 'captain' },
+  { t: 70, boss: true },
 ];
+/** Where a lost run can start again: the start, then each checkpoint's time (s). */
+export const CHECKPOINTS = [0, ...SCRIPT.filter((e) => e.checkpoint).map((e) => e.t)];
 
-/** The rocks along the way: [s0, s1, rocks per 100 m]. Between the belts, open space. */
-export const BELTS = [[250, 1250, 3.2], [1700, 2700, 4.6], [3000, 3500, 2.2], [3700, 4200, 3]];
+/** The rocks along the way: [s0, s1, rocks per 100 m]. Between the belts, open space (drawn closer with the script, v1.45). */
+export const BELTS = [[175, 875, 3.2], [1190, 1890, 4.6], [2100, 2450, 2.2], [2590, 2940, 3]];
 /** What a kill is worth. */
 export const POINTS = { skiff: 10, raider: 30, hauler: 60, mine: 5, rock: 5, turret: 150, core: 500, ring: 20, hull: 50, multi: 25 };
 /** Each kind's health, size (m) and how often it fires (s, 0: never). */
@@ -78,11 +105,11 @@ export const KINDS = {
 /** The captain's galleon: where its parts sit (u, v from its middle), their health and size; how long it stays. */
 export const BOSS = {
   at: 72, enter: 5,          // m ahead it holds, s to come in
-  stay: 75,                  // s it fights before it breaks off (the run then ends all the same, without its bounty)
+  stay: 52,                  // s it fights before it breaks off (the run then ends all the same, without its bounty; 75 until v1.45)
   parts: [
-    { id: 'gunL', u: -11, v: 0.9, r: 3.4, hp: 45 },
-    { id: 'gunR', u: 11, v: 0.9, r: 3.4, hp: 45 },
-    { id: 'core', u: 0, v: 2.7, r: 3.9, hp: 110, armoured: true },   // (shut until both guns are down)
+    { id: 'gunL', u: -11, v: 0.9, r: 3.4, hp: 32 },
+    { id: 'gunR', u: 11, v: 0.9, r: 3.4, hp: 32 },
+    { id: 'core', u: 0, v: 2.7, r: 3.9, hp: 78, armoured: true },   // (shut until both guns are down; 45, 45 and 110 until v1.45)
   ],
   volley: 2.0, burst: 3, ring: 2.6, ringN: 10, ringSpeed: 34, skiffs: 9,
 };
@@ -120,28 +147,44 @@ export function courseRocks(seed = 7, belts = BELTS, F = FLY) {
  * A new run. `seed`: the rocks' layout (seedOf(destination)); `heat` 0..: how many ambushes came before (their fire a
  * little quicker each time); `gentle`: the Enemies setting's gentle (slower shots, half as many).
  */
-export function newRun({ seed = 7, heat = 0, gentle = false } = {}, F = FLY) {
+export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0, chimes = 0 } = {}, F = FLY) {
+  // (a lost run, again: from the checkpoint at `from` s, the waves before it gone by; `fails` lost runs so far: MERCY)
+  const mercy = Math.min(fails, MERCY.safe);
+  const hull = F.hull + Math.min(MERCY.most, mercy * MERCY.hull);
+  const script = SCRIPT.slice();
+  const next = from > 0 ? script.findIndex((e) => e.t > from) : 0;
   return {
-    t: 0, s: 0, F, rand: rng(seed * 7 + 3),
-    ship: { u: 0, v: -1, vu: 0, vv: 0, hull: F.hull, iframe: 0, roll: 0, rollDir: 1, rollCool: 0, heldT: 0, charge: 0, lock: null, boltT: 0, side: 1, bank: 0 },
+    t: from, s: from * F.speed, F, rand: rng(seed * 7 + 3 + Math.round(from)),
+    ship: { u: 0, v: -1, vu: 0, vv: 0, hull, hull0: hull, iframe: from > 0 ? 1.5 : 0, roll: 0, rollDir: 1, rollCool: 0, heldT: 0, charge: 0, lock: null, boltT: 0, side: 1, bank: 0, aimU: 0, aimV: 0 },
     rocks: courseRocks(seed), rockI: 0,
     foes: [], shots: [], bolts: [], rings: [],
-    script: SCRIPT.slice(), next: 0, nextId: 1,
+    script, next: next < 0 ? script.length : next, nextId: 1,
     boss: null, score: 0, kills: 0, hits: 0, fired: 0, done: null,
-    fireK: (gentle ? 0.5 : 1) * (1 + 0.06 * Math.min(heat, 10)), shotK: gentle ? 0.75 : 1,
+    from, checkpoint: from, chimes, chimesAt: chimes, safe: fails >= MERCY.safe,
+    fireK: (gentle ? 0.5 : 1) * (1 + 0.06 * Math.min(heat, 10)) * Math.max(MERCY.least, 1 - MERCY.fire * mercy), shotK: gentle ? 0.75 : 1,
   };
 }
 
-/** The input the rules read: the game's merged controls through kit/input.js readInput, and the raw buttons. */
-export function pirateInput(inp = {}, raw = {}, { invert = false } = {}) {
+/**
+ * The input the rules read: the game's merged controls through kit/input.js readInput, and the raw buttons.
+ * `climb`: the stick forward climbs (the start card's choice); by default it dives, as a plane's, as in Star Fox 64 and
+ * as the jets fly.
+ */
+export function pirateInput(inp = {}, raw = {}, { climb = false } = {}) {
   const fire = !!(inp.jump || raw.TouchFire);
   return {
     x: inp.x ?? 0,
-    y: (invert ? 1 : -1) * (inp.y ?? 0),   // (as the jets fly: forward dives, unless the "invert flight" setting is on)
+    y: (climb ? 1 : -1) * (inp.y ?? 0),
     fire,
     auto: (inp.trigger ?? 0) > 0.5,         // RT / R2 held: a stream of bolts, no charge
     roll: !!(inp.action || inp.boost || raw.PadEvade || raw.PadGuard || raw.TouchEvade),
   };
+}
+
+/** Where a bolt fired now would be, `ds` m ahead: the reticle (the ship's place, its sideways speed kept in part, and the nose's slope). */
+export function aimAt(P, ds, F = FLY) {
+  const t = ds / F.bolt.speed;
+  return { u: P.u + (P.vu * F.bolt.lead) * t + P.aimU * ds, v: P.v - 0.1 + (P.vv * F.bolt.lead) * t + P.aimV * ds };
 }
 
 function spawnWave(S, w) {
@@ -185,10 +228,10 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
     if (e.ring) S.rings.push({ s: S.s + 230, u: e.u ?? 0, v: e.v ?? 0, r: 3.4, taken: false });
     if (e.say) ev.push({ kind: 'say', id: e.say });
     if (e.boss) spawnBoss(S);
+    if (e.checkpoint) { S.checkpoint = e.t; S.chimesAt = S.chimes; ev.push({ kind: 'checkpoint', n: e.checkpoint }); }
   }
 
   // ---------------------------------------------------------------- the ship
-  const rolling = P.roll > 0;
   P.rollCool = Math.max(0, P.rollCool - dt);
   if (inp.roll && !P.rollHeld && P.rollCool <= 0) {
     P.rollDir = Math.sign(inp.x || 0) || -P.rollDir || 1;
@@ -198,14 +241,20 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   }
   P.rollHeld = !!inp.roll;
   P.roll = Math.max(0, P.roll - dt);
-  const tu = clamp(inp.x ?? 0, -1, 1) * F.steer, tv = clamp(inp.y ?? 0, -1, 1) * F.steer * 0.8;
-  const a = F.accel * dt;
-  P.vu += clamp(tu - P.vu, -a * (rolling ? 0.3 : 1), a * (rolling ? 0.3 : 1));
-  P.vv += clamp(tv - P.vv, -a, a);
+  // the stick sets the speed across it goes at; the ship takes it up with some weight (an easing), and slows to a stop
+  // over the box's last stretch instead of meeting a wall
+  const soft = (pos, box, want) => (Math.sign(want) === Math.sign(pos) ? want * clamp((box - Math.abs(pos)) / (box * F.edge), 0, 1) : want);
+  const tu = soft(P.u, F.boxU, clamp(inp.x ?? 0, -1, 1) * F.steer), tv = soft(P.v, F.boxV, clamp(inp.y ?? 0, -1, 1) * F.steer * 0.8);
+  const k = 1 - Math.exp(-F.response * dt);
+  P.vu += (tu - P.vu) * k * (P.roll > 0 ? 0.4 : 1);   // (rolling, the shove carries it)
+  P.vv += (tv - P.vv) * k;
   P.u += P.vu * dt; P.v += P.vv * dt;
-  if (Math.abs(P.u) > F.boxU) { P.u = Math.sign(P.u) * F.boxU; P.vu *= -0.2; }
-  if (Math.abs(P.v) > F.boxV) { P.v = Math.sign(P.v) * F.boxV; P.vv *= -0.2; }
-  P.bank += (-(P.vu / F.steer) * 0.7 - P.bank) * Math.min(1, dt * 6);
+  if (Math.abs(P.u) > F.boxU) { P.u = Math.sign(P.u) * F.boxU; if (Math.sign(P.vu) === Math.sign(P.u)) P.vu = 0; }
+  if (Math.abs(P.v) > F.boxV) { P.v = Math.sign(P.v) * F.boxV; if (Math.sign(P.vv) === Math.sign(P.v)) P.vv = 0; }
+  // banked hard into the turn; the nose points the way it goes (the bolts follow it: aimAt)
+  P.bank += (-(P.vu / F.steer) * F.bank.max - P.bank) * Math.min(1, dt * F.bank.rate);
+  P.aimU = clamp(P.vu / F.steer, -1, 1) * F.aim;
+  P.aimV = clamp(P.vv / (F.steer * 0.8), -1, 1) * F.aim * 0.8;
   P.iframe = Math.max(0, P.iframe - dt);
 
   // fire: a tap shoots the twin bolts; held, it charges (and locks); let go charged, the homing shot
@@ -214,7 +263,7 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   const shoot = (every = B.every) => {
     if (P.boltT > 0) return;
     P.boltT = every;
-    for (const side of [-1, 1]) S.bolts.push({ ds: 2, u: P.u + side * B.spread, v: P.v - 0.1, vu: P.vu * B.lead, vv: P.vv * B.lead, vds: B.speed, life: B.life, charged: false });
+    for (const side of [-1, 1]) S.bolts.push({ ds: 2, u: P.u + side * B.spread, v: P.v - 0.1, vu: P.vu * B.lead + P.aimU * B.speed, vv: P.vv * B.lead + P.aimV * B.speed, vds: B.speed, life: B.life, charged: false });
     S.fired++;
     ev.push({ kind: 'shot' });
   };
@@ -273,7 +322,7 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
 
   // the end: the hull gone, or the captain sunk (or gone off) with the field clear
   if (P.hull <= 0) { S.done = 'dead'; ev.push({ kind: 'dead' }); }
-  else if (S.boss && (S.boss.dying > 1.6 || S.boss.fled)) { S.done = 'won'; S.score += P.hull * POINTS.hull; ev.push({ kind: 'win', sunk: !S.boss.fled, hull: P.hull }); }
+  else if (S.boss && (S.boss.dying > 1.6 || S.boss.fled)) { S.done = 'won'; S.score += P.hull * POINTS.hull; ev.push({ kind: 'win', sunk: !S.boss.fled, hull: P.hull, chimes: S.chimes }); }
   return ev;
 }
 
@@ -292,7 +341,8 @@ export function findLock(S) {
   let best = null, bd = Infinity;
   const consider = (t, at, r) => {
     if (at.ds < L.near || at.ds > L.far) return;
-    const off = Math.hypot(at.u - P.u, at.v - P.v) - r;
+    const aim = aimAt(P, at.ds, S.F);   // (round the reticle at its distance: where the nose points)
+    const off = Math.hypot(at.u - aim.u, at.v - aim.v) - r;
     const k = off / at.ds;
     if (k < L.cone && k < bd) { bd = k; best = t; }
   };
@@ -418,9 +468,9 @@ function damage(S, target, dmg, ev, by = 'bolt') {
     p.hp -= dmg; p.flash = 0.12;
     if (p.hp <= 0) {
       p.gone = true;
-      const pts = p.id === 'core' ? POINTS.core : POINTS.turret;
-      S.score += pts; S.kills++;
-      ev.push({ kind: 'part', id: p.id, at: partAt(B, p), pts });
+      const pts = p.id === 'core' ? POINTS.core : POINTS.turret, chimes = CHIMES_OF[p.id] ?? 0;
+      S.score += pts; S.kills++; S.chimes += chimes;
+      ev.push({ kind: 'part', id: p.id, at: partAt(B, p), pts, chimes });
       if (p.id === 'core') { B.dying = 0.001; ev.push({ kind: 'sunk', at: partAt(B, p) }); }
       else if (B.parts.filter((q) => q.id !== 'core').every((q) => q.gone)) ev.push({ kind: 'say', id: 'open' });
     }
@@ -431,8 +481,9 @@ function damage(S, target, dmg, ev, by = 'bolt') {
   e.hp -= dmg; e.flash = 0.12;
   if (e.hp <= 0) {
     e.dead = true;
-    S.score += POINTS[e.kind] ?? 0; S.kills++;
-    ev.push({ kind: 'kill', foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v }, pts: POINTS[e.kind] ?? 0, by });
+    const chimes = CHIMES_OF[e.kind] ?? 0;
+    S.score += POINTS[e.kind] ?? 0; S.kills++; S.chimes += chimes;
+    ev.push({ kind: 'kill', foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v }, pts: POINTS[e.kind] ?? 0, by, chimes });
   }
   return true;
 }
@@ -495,7 +546,7 @@ function blast(S, b, ev) {
 function hurt(S, by, ev) {
   const P = S.ship;
   if (P.iframe > 0) return false;
-  P.hull = Math.max(0, P.hull - 1); P.iframe = S.F.iframe; S.hits++;
+  P.hull = Math.max(S.safe ? 1 : 0, P.hull - 1); P.iframe = S.F.iframe; S.hits++;   // (lost often enough, it holds at its last pip: MERCY)
   ev.push({ kind: 'hurt', by, hull: P.hull });
   return true;
 }
@@ -528,7 +579,7 @@ function rocksAndRings(S, ev) {
     if (ds < 0.5 && ds > -2.5) {
       g.taken = true;
       if (Math.hypot(P.u - g.u, P.v - g.v) < g.r + 0.4) {
-        if (P.hull < S.F.hull) { P.hull++; ev.push({ kind: 'repair', hull: P.hull }); }
+        if (P.hull < (P.hull0 ?? S.F.hull)) { P.hull++; ev.push({ kind: 'repair', hull: P.hull }); }
         else { S.score += POINTS.ring; ev.push({ kind: 'repair', hull: P.hull, pts: POINTS.ring }); }
       } else g.missed = true;
     }
@@ -574,10 +625,12 @@ export function botInput(S) {
     const p = liveParts(S.boss).sort((a, b) => (a.id === 'core') - (b.id === 'core'))[0];
     if (p && !best) best = partAt(S.boss, p);
   }
-  if (best) { tu = best.u; tv = best.v; }
+  // (a pirate is aimed at with the reticle, which leads the ship as it turns: aimAt; a ring or a rock by the ship itself)
+  let from = { u: P.u, v: P.v };
+  if (best) { tu = best.u; tv = best.v; from = aimAt(P, Math.max(14, best.ds), S.F); from = { u: P.u + (from.u - P.u) * 0.5, v: P.v + (from.v - P.v) * 0.5 }; }
   // a repair ring ahead, when hurt
   const ring = S.rings.find((g) => !g.taken && g.s - S.s < 160 && g.s - S.s > 0);
-  if (ring && P.hull < S.F.hull) { tu = ring.u; tv = ring.v; }
+  if (ring && P.hull < (P.hull0 ?? S.F.hull)) { tu = ring.u; tv = ring.v; from = { u: P.u, v: P.v }; }
   // rocks just ahead in the way: slide off them
   for (let i = S.rockI; i < S.rocks.length; i++) {
     const r = S.rocks[i], ds = r.s - S.s;
@@ -587,10 +640,11 @@ export function botInput(S) {
     if (Math.abs(du) < r.r + 3.2 && Math.abs(dv) < r.r + 2.4) {
       if (Math.abs(du) / (r.r + 3.2) > Math.abs(dv) / (r.r + 2.4)) tu = P.u + Math.sign(du || 1) * 8;
       else tv = P.v + Math.sign(dv || 1) * 6;
+      from = { u: P.u, v: P.v };
     }
   }
   // a shot about to land: roll
   const close = S.shots.some((b) => b.ds > 0 && b.ds < 12 && Math.hypot(b.u - P.u, b.v - P.v) < 2.6);
-  const x = clamp((tu - P.u) / 4, -1, 1), y = clamp((tv - P.v) / 3, -1, 1);
+  const x = clamp((tu - from.u) / 4, -1, 1), y = clamp((tv - from.v) / 3, -1, 1);
   return { x, y, fire: false, auto: true, roll: close };
 }

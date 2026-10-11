@@ -310,7 +310,7 @@ test('the recordings are old, and it shows a little more each time; they never a
       // (only the third's last word gives it away: "Recording logged nineteen years ago")
       assert.ok(!L.slice(0, -1).some((l) => (l.who === 'ship' || l.who === 'you') && /\b(reel|recording|recorded)\b/i.test(l.text)), `${n}: nobody says recording`);
     } else assert.ok(L.some((l) => l.who === 'you' && l.text.includes(`anything about ${REEL.desert.word}`)), `${n}: he asks the reel for water`);
-    assert.ok(L.some((l) => l.who === 'father' && l.text === REEL.desert.find.replace(/^~\w+~ /, '')), `${n}: the line it finds`);
+    assert.ok(L.some((l) => l.who === 'father' && l.text === [].concat(REEL.desert.find)[0].replace(/^~\w+~ /, '')), `${n}: the line it finds`);
     assert.ok(recordingSpan(L), `${n}: the parents are on it`);
     assert.ok(!L.some((l) => /\bcall\b/i.test(l.text) && l.who === 'ship'), `${n}: nobody calls`);
   }
@@ -554,4 +554,17 @@ test('a recording cuts between angles at its lines, its words and timing untouch
     assert.ok(s.pos.distanceTo(callShot(ship, m, 0, 1).pos) > 0.6, `${a}: a different place from the push-in`);
   }
   assert.equal(callAngle(ship, m, 'over', 0), null);
+});
+
+test('the first recording after the desert: the people who swore they would help and never came, bitter, and no thought of his (issue #90)', () => {
+  const flags = { 'desert.rumour.light': true, 'perdide.clue.ship': true, 'met.nour': true };
+  const L = callLines(1, { flag: (k) => flags[k], completed: ['desert'], lastWorld: 'desert', keepsakes: [{ kind: 'thing' }, { kind: 'thing' }] });
+  const father = L.filter((l) => l.who === 'father');
+  assert.match(father.map((l) => l.text).join(' '), /swore/i, 'they swore to help');
+  assert.match(father.map((l) => l.text).join(' '), /Nobody came/, 'and nobody came');
+  assert.ok(father.some((l) => l.tone === 'angry'), 'he is bitter');
+  assert.deepEqual(L.filter((l) => l.who === 'you'), [], 'nothing of his own: the player reflects');
+  // a keepsake held up is something he does, not a thought: it stays
+  const K = callLines(1, { flag: (k) => flags[k], completed: ['desert'], lastWorld: 'desert', keepsake: { name: 'A gear tooth', kind: 'thing' } });
+  assert.ok(K.filter((l) => l.who === 'you').every((l) => /You lift/.test(l.text)));
 });

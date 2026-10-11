@@ -280,10 +280,13 @@ export const FALLBACKS = [
   // tower's steps, the crowns of trees) and the fluid gun (lamps, plates, the hands-on errands, the temples)
   { item: 'doublejump', slot: 2, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
   { item: 'gun', slot: 3, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
-  // the Givers' blade and guard (v1.44): the desert's temple holds them, and a traveller who left the desert without
-  // going in finds them by the ship in the next world (every world after it has foes in its wilds)
-  { item: 'sword', slot: 1, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
-  { item: 'shield', slot: 4, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
+  // (those three are the desert's main quest's: its ship doesn't fly until they are had, so a run never sees them;
+  // they are for a save brought in some other way, the worlds menu)
+  // (the Givers' blade and guard, v1.44, have no fallback since v1.45, issue #91: "chests should always feel earned;
+  // seeing two chests after just landing on Vael makes no sense". The Givers' House is off the desert's main quest, so a
+  // traveller who skipped it landed in Vael beside two free chests. They wait in the house, the desert always on the map;
+  // nothing after the desert asks for them (no foe comes while he is unarmed, src/foes.js armed(); the blade's switches
+  // are the house's own))
   // (the jets anywhere are a debug item since v1.38: no fallback box of them; the City-Shaft has its bellows in its temple)
 ];
 

@@ -4,6 +4,14 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.45 — 2026-10-11
 
+- No more free chests by your ship when you land in Vael: if you left the desert without going into the Givers’ House, the blade and the guard are still waiting for you there.
+- When your ship comes down to land, the flame of its jets stays under it: it no longer shoots up through the hull as the ship drops.
+- The first message from your father, after the desert, makes sense now: the neighbours swore they would help him dig out the dry well, and nobody came. He is bitter about it, and your traveller keeps his thoughts to himself.
+- Every pirate ship you shoot down is worth chimes now, up to about 80 a fight, added to your purse when you win.
+- The pirate fight is about a third shorter: their captain turns up after a minute and ten seconds.
+- The fight on the way to a new world can’t be skipped any more. Lose it and you start again from the last checkpoint with your hull patched, and every try is a little kinder, so you always get through.
+- The pirates’ start card says which way the stick tips the ship (forward dives, as in Star Fox) and lets you choose climbs instead.
+- The chime pirates fly more like Star Fox: your ship eases into the stick’s moves, banks hard, and its nose turns the way it goes, with your shots following it, so you aim by steering. The edge of the screen slows it gently instead of bouncing it back, the camera trails a little behind so the ship moves about the screen, and the barrel roll snaps round.
 - The lift valve’s chest in the cave now stands on its own round dais by the pool, at the foot of the broken keepers’ stair, in a shaft of light from a crack in the vault, with nothing piled round it: no longer on the floor at a random spot.
 - The cave under the giant’s skull now asks for the lift valve before it lets you out: the keepers’ stair has fallen at its foot, the way back up the passage is a high ledge, and the cave’s walls give no grip, so you leave with the double jump. Its chest stays shut and silent until the pool has filled your tank, and the skull’s mouth won’t take you down without your backpack.
 - In the cave under the giant’s skull, the light through the cracks in the vault now falls in soft, broad shafts instead of thin glowing sticks, and the great tree’s roots hang from the vault as a huge braided mass: two twisting bundles splaying into a curtain of long strands over the pool.

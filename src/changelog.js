@@ -16,6 +16,24 @@ export const CHANGELOG = [
     'In the cave under the giant’s skull, the light through the cracks in the vault now falls in soft, broad shafts instead of thin glowing sticks, and the great tree’s roots hang from the vault as a huge braided mass: two twisting bundles splaying into a curtain of long strands over the pool.',
     'The cave under the giant’s skull now asks for the lift valve before it lets you out: the keepers’ stair has fallen at its foot, the way back up the passage is a high ledge, and the cave’s walls give no grip, so you leave with the double jump. Its chest stays shut and silent until the pool has filled your tank, and the skull’s mouth won’t take you down without your backpack.',
     'The lift valve’s chest in the cave now stands on its own round dais by the pool, at the foot of the broken keepers’ stair, in a shaft of light from a crack in the vault, with nothing piled round it: no longer on the floor at a random spot.',
+    // the chime pirates (docs/systems/minigames.md "Pirates between worlds", "The controls, against Star Fox"; issue #88)
+    { text: 'The chime pirates fly more like Star Fox: your ship eases into the stick’s moves, banks hard, and its nose turns the way it goes, with your shots following it, so you aim by steering. The edge of the screen slows it gently instead of bouncing it back, the camera trails a little behind so the ship moves about the screen, and the barrel roll snaps round.',
+      see: 'Fly to a world you have never been to, or play Chime pirates from the Arcade: hold the stick to one side and watch the two aiming squares swing out ahead of the ship.' },
+    { text: 'The pirates’ start card says which way the stick tips the ship (forward dives, as in Star Fox) and lets you choose climbs instead.',
+      see: 'On the Chime pirates card, under the controls: Stick forward, Dives or Climbs.' },
+    { text: 'The fight on the way to a new world can’t be skipped any more. Lose it and you start again from the last checkpoint with your hull patched, and every try is a little kinder, so you always get through.',
+      see: 'Lose a pirate fight on the way to a new world: the only button is Retry from the checkpoint.' },
+    { text: 'The pirate fight is about a third shorter: their captain turns up after a minute and ten seconds.',
+      numbers: [{ title: 'How long the game’s own pilot takes to win the pirate fight', unit: 's', better: 'lower', device: 'Node, the pilot in tests/pirates.test.js, five destinations at four frame rates', rows: [{ where: 'on average', before: 138.5, after: 96 }], source: 'the rules before and after, flown by botInput' }] },
+    { text: 'Every pirate ship you shoot down is worth chimes now, up to about 80 a fight, added to your purse when you win.',
+      see: 'Shoot pirates down on the way to a new world: each one pops its chimes in teal, and the results card counts them.' },
+    // the reel (docs/story-bible.md "The recordings"; issue #90)
+    { text: 'The first message from your father, after the desert, makes sense now: the neighbours swore they would help him dig out the dry well, and nobody came. He is bitter about it, and your traveller keeps his thoughts to himself.',
+      see: 'Finish the desert and press the blinking button on the ship’s console: the first message plays, the father alone, with no line of your own after it.' },
+    // the landing's jets (docs/systems/cinematics.md "Engines"; issue #89)
+    'When your ship comes down to land, the flame of its jets stays under it: it no longer shoots up through the hull as the ship drops.',
+    // chests earn their place (docs/systems/progression.md; issue #91)
+    'No more free chests by your ship when you land in Vael: if you left the desert without going into the Givers’ House, the blade and the guard are still waiting for you there.',
   ] },
   { v: '1.44', date: '2026-10-11', items: [
     // the merged worlds' crossings (docs/systems/worlds.md "The merged worlds' crossings"; issue #19)

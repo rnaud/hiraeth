@@ -22,7 +22,7 @@ import { PLANETS } from '../ship/planets.js';
 import { SPACE_LOOK, SPACE_DAY } from '../levels/space-city-kit.js';
 import { stripTone } from '../story/tone.js';
 import { AMBUSH_LINES, SPEAKERS, ambushCount } from '../ambush.js';
-import { FLY, BOSS, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput } from './pirates-rules.js';
+import { FLY, BOSS, CHECKPOINTS, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt } from './pirates-rules.js';
 
 const INK = '#2b211f';
 /** The height every ground query answers (no ground in space; finite, so what the host places on the ground has a place). */
@@ -32,8 +32,12 @@ const nc = (m) => { m.userData.noCollide = true; m.userData.dynamic = true; retu
 
 /** The ship's scale here (its hull is 22 m long at home: 5.5 m in the shooter). */
 export const SHIP_SCALE = 0.25;
-/** The camera: behind and over the ship, how much of the ship's offset it follows, its lens. */
-export const CAM = { back: 14, up: 4.4, follow: 0.8, look: 40, fov: 50 };
+/**
+ * The camera: behind and over the ship, how much of the ship's offset it follows (less than all of it, so the ship
+ * moves about the screen, as in Star Fox: 0.8 until v1.45, when it sat nearly still in the middle), how quickly
+ * (`rate`, 1/s), how far ahead it looks and how much it leads the ship's sideways speed there (`lead`, s), its lens.
+ */
+export const CAM = { back: 14, up: 4.4, follow: 0.55, rate: 3.5, look: 40, lead: 0.35, roll: 0.3, fov: 50 };
 
 // ------------------------------------------------------------------ the shapes
 /** Merge primitives into one geometry: non-indexed, position / normal / uv only (as src/ship/geo.js Batch). */
@@ -368,8 +372,13 @@ function start(ctx) {
   const L = level.pirates, snd = shooterSounds(ctx.sound);
   const flags = ctx.state?.data?.flags ?? {};
   const heat = Math.max(0, ambushCount(flags) - (L.to ? 1 : 0));   // (the ambushes before this one: this one is marked as its page opens)
-  const S = newRun({ seed: L.seed, heat, gentle: ctx.settings?.enemies === 'gentle' });
-  const invert = !!ctx.settings?.invertFlight;
+  // a lost run starts again from its last checkpoint, the chimes won up to it kept, the pirates a little kinder each time
+  // (L lives as long as the page: the arena is built once; a Retry after a win, or a new page, starts from the start)
+  const again = L.resume ?? null;
+  L.resume = null;
+  const S = newRun({ seed: L.seed, heat, gentle: ctx.settings?.enemies === 'gentle', from: again?.from ?? 0, fails: again?.fails ?? 0, chimes: again?.chimes ?? 0 });
+  const climb = (ctx.option?.('pitch') ?? 'dive') === 'climb';
+  const transit = !!L.to;   // (on the way to a world: the chimes are won; the Arcade's game only scores)
   const root = document.getElementById('minigame') ?? document.body;
   const hud = typeof document !== 'undefined' ? makeHud(root) : null;
   const words = new WorldLabels(camera);
@@ -385,7 +394,7 @@ function start(ctx) {
   for (const p of Object.values(L.boss.guns)) p.pod.visible = true;
   L.boss.lens.visible = true;
   L.ship.visible = true;
-  ctx.setLives(S.ship.hull, FLY.hull);
+  ctx.setLives(S.ship.hull, S.ship.hull0);
   ctx.setScore(0);
   ctx.setFov(CAM.fov);
   player.object.visible = false;
@@ -423,7 +432,8 @@ function start(ctx) {
       switch (e.kind) {
         case 'shot': snd.shot(); break;
         case 'enemyShot': snd.enemy(); break;
-        case 'kill': boom(e.at, e.foe === 'hauler' ? 1.6 : e.foe === 'raider' ? 1.2 : e.foe === 'mine' ? 0.6 : 0.8); if (e.pts) words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`, e.foe === 'hauler' ? 'gold' : ''); break;
+        case 'kill': boom(e.at, e.foe === 'hauler' ? 1.6 : e.foe === 'raider' ? 1.2 : e.foe === 'mine' ? 0.6 : 0.8); if (e.pts) words.pop(world(e.at.ds, e.at.u, e.at.v, V()), transit && e.chimes ? `+${e.chimes} ${e.chimes === 1 ? 'chime' : 'chimes'}` : `+${e.pts}`, transit && e.chimes ? 'combo' : e.foe === 'hauler' ? 'gold' : ''); break;
+        case 'checkpoint': ctx.flash('Checkpoint', 'good', 1.2); break;
         case 'rock': boom(e.at, 0.5); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`); break;
         case 'spark': spark(world(e.at.ds, e.at.u, e.at.v, V()), 2, '#e0c3a0'); break;
         case 'clank': spark(world(e.at.ds, e.at.u, e.at.v, V()), 4, '#c99d48'); snd.clank(); break;
@@ -436,7 +446,7 @@ function start(ctx) {
           break;
         }
         case 'repair': sfx.checkpoint(); ctx.flash(e.pts ? `Hull full · +${e.pts}` : 'Hull patched', 'good'); break;
-        case 'part': boom(e.at, 2.2); ctx.flash(e.id === 'core' ? 'The bridge is hit!' : 'A gun is down!', 'good'); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`, 'gold'); if (L.boss.guns[e.id]) L.boss.guns[e.id].pod.visible = false; if (e.id === 'core') L.boss.lens.visible = false; break;
+        case 'part': boom(e.at, 2.2); ctx.flash(e.id === 'core' ? 'The bridge is hit!' : 'A gun is down!', 'good'); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), transit && e.chimes ? `+${e.chimes} chimes` : `+${e.pts}`, transit && e.chimes ? 'combo' : 'gold'); if (L.boss.guns[e.id]) L.boss.guns[e.id].pod.visible = false; if (e.id === 'core') L.boss.lens.visible = false; break;
         case 'sunk': run.sinkT = 1.6; break;
         case 'roll': sfx.whoosh(); break;
         case 'lock': snd.lock(); break;
@@ -445,13 +455,16 @@ function start(ctx) {
         case 'win': {
           say(e.sunk ? 'won' : 'fled');
           ctx.setScore(S.score);
-          ctx.finish({ score: S.score, title: e.sunk ? 'Pirates beaten!' : 'They broke off!', lines: resultLines(e) });
+          ctx.finish({ score: S.score, title: e.sunk ? 'Pirates beaten!' : 'They broke off!', lines: resultLines(e), chimes: transit ? S.chimes : 0 });
           break;
         }
         case 'dead': {
           say('lost'); boom({ ds: 0, u: S.ship.u, v: S.ship.v }, 1.8);
           ctx.setScore(S.score);
-          ctx.finish({ score: S.score, failed: true, title: 'Hull breached', lines: [`Pirates downed: ${S.kills}`, `Score ${S.score}`, 'Retry, or skip the fight from the card.'] });
+          // Retry picks up from the last checkpoint passed, the chimes won before it kept (no skip: the fight is the way there)
+          L.resume = { from: S.checkpoint, fails: (again?.fails ?? 0) + 1, chimes: S.chimesAt };
+          const cp = CHECKPOINTS.indexOf(S.checkpoint);
+          ctx.finish({ score: S.score, failed: true, title: 'Hull breached', lines: [`Pirates downed: ${S.kills}`, cp > 0 ? `Retry from checkpoint ${cp}, the hull patched` : 'Retry from the start, the hull patched'] });
           break;
         }
       }
@@ -460,7 +473,8 @@ function start(ctx) {
   function resultLines(e) {
     return [
       `Pirates downed: ${S.kills}`,
-      `Hits taken: ${S.hits} · hull left ${e.hull} of ${FLY.hull} (+${e.hull * 50})`,
+      ...(transit ? [`Chimes won: ${S.chimes}`] : []),
+      `Hits taken: ${S.hits} · hull left ${e.hull} of ${S.ship.hull0} (+${e.hull * 50})`,
       e.sunk ? 'The captain’s galleon: sunk' : 'The captain’s galleon: got away',
     ];
   }
@@ -474,8 +488,10 @@ function start(ctx) {
       run.outT += dt;
       L.ship.position.z -= 30 * run.outT * run.outT;
     }
-    const roll = P.roll > 0 ? P.rollDir * -Math.PI * 2 * (1 - P.roll / FLY.roll.dur) : 0;
-    _e.set(-(P.vv / FLY.steer) * 0.32 + (S.done === 'dead' ? -0.4 : 0), -(P.vu / FLY.steer) * 0.25, P.bank + roll + (S.done === 'dead' ? run.outT * 3 : 0), 'YXZ');
+    // the roll: one whole turn, quick at the start and settling (an ease out), so it reads as a snap
+    const rk = P.roll > 0 ? 1 - P.roll / FLY.roll.dur : 0, roll = P.roll > 0 ? P.rollDir * -Math.PI * 2 * (1 - Math.pow(1 - rk, 2.2)) : 0;
+    // the nose where the bolts go (the rules' aim, drawn twice over so it reads), and the hard bank
+    _e.set(Math.atan(P.aimV) * 2.2 + (S.done === 'dead' ? -0.4 : 0), -Math.atan(P.aimU) * 2.2, P.bank + roll + (S.done === 'dead' ? run.outT * 3 : 0), 'YXZ');
     L.ship.quaternion.setFromEuler(_e);
     // (blinks while it cannot be hit again)
     L.ship.visible = !(P.iframe > 0 && Math.floor(P.iframe * 12) % 2 === 0);
@@ -485,13 +501,17 @@ function start(ctx) {
 
   function drawCamera(dt, snap = false) {
     const P = S.ship, F = CAM;
+    // part of the ship's offset, a little late: the ship moves about the screen and the view swings after it
     const cu = P.u * F.follow, cv = P.v * F.follow;
-    if (!run.cam) run.cam = { u: cu, v: cv, roll: 0 };
-    const k = snap ? 1 : 1 - Math.exp(-5 * dt);
+    if (!run.cam) run.cam = { u: cu, v: cv, roll: 0, lu: 0, lv: 0 };
+    const k = snap ? 1 : 1 - Math.exp(-F.rate * dt);
     run.cam.u += (cu - run.cam.u) * k; run.cam.v += (cv - run.cam.v) * k;
-    run.cam.roll += (P.bank * 0.25 - run.cam.roll) * k;
+    run.cam.roll += (P.bank * F.roll - run.cam.roll) * k;
+    // it looks a little ahead of where the ship is going (its sideways speed, led)
+    const kl = snap ? 1 : 1 - Math.exp(-F.rate * 1.5 * dt);
+    run.cam.lu += (P.vu * F.lead - run.cam.lu) * kl; run.cam.lv += (P.vv * F.lead - run.cam.lv) * kl;
     railPoint(S.s - F.back, run.cam.u, run.cam.v + F.up, camera.position);
-    railPoint(S.s + F.look, run.cam.u + (P.u - run.cam.u) * 0.6, run.cam.v + (P.v - run.cam.v) * 0.6 + 0.4, _look);
+    railPoint(S.s + F.look, run.cam.u + (P.u - run.cam.u) * 0.6 + run.cam.lu, run.cam.v + (P.v - run.cam.v) * 0.6 + 0.4 + run.cam.lv, _look);
     _d.subVectors(_look, camera.position).normalize();
     camera.up.set(0, 1, 0).applyAxisAngle(_d, run.cam.roll);
     camera.lookAt(_look);
@@ -607,10 +627,10 @@ function start(ctx) {
     if (phase !== 'play') return;
     const P = S.ship;
     g.lineJoin = 'round';
-    // the aim: two squares ahead of the nose, the near one smaller
+    // the aim: two squares ahead of the nose, the near one smaller, where the bolts will be (aimAt: they swing ahead as it turns)
     for (const [ds, size] of [[22, 9], [55, 14]]) {
-      const t = ds / FLY.bolt.speed;
-      const p = project(world(ds, P.u + P.vu * FLY.bolt.lead * t, P.v - 0.1 + P.vv * FLY.bolt.lead * t, _p));
+      const a = aimAt(P, ds);
+      const p = project(world(ds, a.u, a.v, _p));
       if (!p.front) continue;
       const x = p.x * W, y = p.y * H;
       g.strokeStyle = INK; g.lineWidth = 3.5; g.strokeRect(x - size, y - size, size * 2, size * 2);
@@ -673,14 +693,15 @@ function start(ctx) {
     /** (the screenshots: the run flown ahead by the pilot to `t` s, quietly) */
     forward(t) {
       while (!S.done && S.t < t) handle(runStep(S, botInput(S), 1 / 60).filter((e) => ['win', 'dead', 'part', 'sunk'].includes(e.kind)));
-      ctx.setLives(S.ship.hull, FLY.hull);
+      ctx.setLives(S.ship.hull, S.ship.hull0);
     },
     update(dt, inp, { live, phase, raw }) {
       dt = Math.min(dt, 0.05);
       if (live) {
-        const input = globalThis.__piratesBot ? botInput(S) : pirateInput(inp, raw, { invert });
+        if (!run.goSaid) { run.goSaid = true; if (S.from > 0) ctx.flash('From the checkpoint', 'good', 1.6); }
+        const input = globalThis.__piratesBot ? botInput(S) : pirateInput(inp, raw, { climb });
         handle(runStep(S, input, dt));
-        if (S.ship.hull !== run.lastHull) { run.lastHull = S.ship.hull; ctx.setLives(S.ship.hull, FLY.hull); }
+        if (S.ship.hull !== run.lastHull) { run.lastHull = S.ship.hull; ctx.setLives(S.ship.hull, S.ship.hull0); }
         ctx.setScore(S.score);
         ctx.speed(S.ship.roll > 0 ? 0.5 : 0.12);
       } else if (phase === 'intro' || phase === 'count') {
@@ -716,12 +737,14 @@ export default {
   id: 'pirates', order: 11,
   name: 'Chime pirates',
   blurb: 'Between worlds, pirates come after the family ship for the chimes aboard. Fly through the dark and fight them off.',
-  rules: 'Shoot the pirates down; roll to turn their fire aside; hold the fire button to charge a shot that locks on and bursts. Rocks and shots cost hull, teal rings patch it. Beat their captain’s galleon at the end.',
+  rules: 'Shoot the pirates down; your shots go where the nose points, so steer to aim. Roll to turn their fire aside; hold fire to charge a shot that locks on and bursts. Rocks and shots cost hull, teal rings patch it. Beat their captain’s galleon at the end.',
   controls: {
-    pad: [['Left stick', 'steer (forward dives, as the jets fly)'], ['A / ×', 'fire; hold to charge, let go to loose it'], ['RT / R2, held', 'a steady stream of fire'], ['B / ○ or LB / L1', 'barrel roll'], ['Menu', 'pause']],
-    keys: [['W A S D  or  arrows', 'steer (W dives)'], ['Space', 'fire; hold to charge, let go to loose it'], ['Shift  or  E', 'barrel roll'], ['Esc', 'pause']],
-    touch: [['Stick', 'steer'], ['✺', 'fire; hold to charge, let go to loose it'], ['↶', 'barrel roll']],
+    pad: [['Left stick', 'steer and aim (forward as chosen below)'], ['A / ×', 'fire; hold to charge, let go to loose it'], ['RT / R2, held', 'a steady stream of fire'], ['B / ○ or LB / L1', 'barrel roll'], ['Menu', 'pause']],
+    keys: [['W A S D  or  arrows', 'steer and aim (W as chosen below)'], ['Space', 'fire; hold to charge, let go to loose it'], ['Shift  or  E', 'barrel roll'], ['Esc', 'pause']],
+    touch: [['Stick', 'steer and aim'], ['✺', 'fire; hold to charge, let go to loose it'], ['↶', 'barrel roll']],
   },
+  // (the stick's pitch, said plainly on the card and kept: dives by default, as a plane's, as in Star Fox 64 and on the jets)
+  options: [{ id: 'pitch', label: 'Stick forward', choices: [['dive', 'Dives'], ['climb', 'Climbs']], default: 'dive' }],
   touchButtons: ['fire', 'evade'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true },

@@ -14,11 +14,17 @@ The ship's cutscenes and the filmed first times.
   step-up walking you up the wall. `tests/ship-camera.test.js` turns round at spots aboard.
 - **Planets that turn** (`strataObject` in `src/materials.js`): strata bands in the object's
   own space, for the prologue's planet seen through the window as the ship tumbles.
-- **Engines** (`src/ship/exhaust.js`): flame out of the three bells under the hull
+- **Engines** (`src/ship/exhaust.js`): flame out of the four bells under the hull
   (`THRUSTERS`) and, where the jets meet the ground, dust in the ground's own colours blown
   flat out from under the ship, stronger the lower it is (`blast`); a puff under each foot
   on touchdown and lift-off. `Ship.floorAt` finds the ground from under the hull (from above,
-  the parked ship's own collider is in the way).
+  the parked ship's own collider is in the way). The flame has its own pool (`Ship.jets`, no
+  drag) and goes where the ship goes (`carryJets`: the live tongues move with the model each
+  frame), so only its jet speed takes it away from the bells (v1.45, issue #89: the landing
+  comes down at up to 220 m/s, and faster at the start of its last stretch than at the end of
+  the fall before it, so the flame left in the air stood up through the hull). The desert's
+  forced landing fires its reserve jets the same way, a swell's reach under the belly.
+  `tests/cutscenes.test.js` flies the landing's curve and checks no tongue rises over the bells.
 - **The hatch** (`setDoor`, `setRamp`): the door pops out of its frame, then slides up the
   hull on its track (a turn about the ship's axis, so it never passes through it); the ramp
   is nested sections that slide out of the doorway, tip down on the hinge, then telescope to

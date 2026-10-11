@@ -418,22 +418,42 @@ chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?ga
 
 - **The rail** (`railPoint(s, u, v)`): the ship flies at `FLY.speed` (42 m/s) along a long gentle wander down -z
   (slopes under 0.3: `railX`, `railY`); it moves only across it, `u` right and `v` up within a 13 × 7.5 m box,
-  steered as the jets fly (the stick forward dives; the "Invert flight" setting climbs). Everything that flies with
+  steered as a plane is (the stick forward dives, as in Star Fox 64 and on the jets; the start card's **Stick forward**
+  choice, `options.pitch`, makes it climb, and says which it is). Everything that flies with
   the ship (the pirates, their shots, the bolts) is kept relative to it (`ds` ahead); the rocks, the mines and the
   repair rings hang still in space at an absolute `s`. Pure: `runStep(S, input, dt)` returns the step's events
-  (`shot`, `kill`, `hurt`, `deflect`, `blast`, `lock`, `say`, `part`, `win`, `dead`, …), which the game draws.
-- **The run** (`SCRIPT`, about 2½ minutes): skiffs in a sweeping line and in a V, raiders that overtake from under
-  the ship and hold ahead, firing, a hauler laying mines, two teal repair rings, then the captain's galleon
-  (`BOSS`): two brass gun pods (bursts of aimed shots), and once both are down the armoured bridge opens (rings of
-  slow shots, skiffs from its hold). Left alone for `BOSS.stay` (75 s) it breaks off, and the run ends all the same
-  without its bounty: a run always ends. Rock belts (`BELTS`, `courseRocks(seedOf(destination))`): one layout per
-  destination, never a wall (the test checks every 60 m leaves most of the box open).
+  (`shot`, `kill`, `hurt`, `deflect`, `blast`, `lock`, `say`, `part`, `checkpoint`, `win`, `dead`, …), which the game draws.
+- **The run** (`SCRIPT`, about a minute and a half: 30 % shorter since v1.45, issue #88, the pilot's 138 s down to
+  96): skiffs in a sweeping line and in a V, raiders that overtake from under the ship and hold ahead, firing, a hauler
+  laying mines, two teal repair rings, then the captain's galleon at 70 s (102 before) (`BOSS`): two brass gun pods
+  (bursts of aimed shots), and once both are down the armoured bridge opens (rings of slow shots, skiffs from its
+  hold). Left alone for `BOSS.stay` (52 s) it breaks off, and the run ends all the same without its bounty: a run
+  always ends. Cut to get there: a line of skiffs, the second hauler and a vee; the belts drawn in with the script;
+  the galleon's parts 30 % lighter (32, 32 and 78). Rock belts (`BELTS`, `courseRocks(seedOf(destination))`): one
+  layout per destination, never a wall (the test checks every 60 m leaves most of the box open).
 - **The ship**: six pips of hull (the runner's lives); a rock, a shot, a ram or a mine costs one, then 1.1 s
   untouchable (it blinks). A tap of A / × (Space, the touch ✺) fires the twin bolts; RT / R2 held streams them,
-  slower; **held**, the shot charges (0.7 s) and locks the pirate nearest the aim (`findLock`, the coral LOCK
+  slower; **held**, the shot charges (0.7 s) and locks the pirate nearest the reticle (`findLock`, the coral LOCK
   brackets): let go and the gold shot homes in and bursts (9 m: everything in it, their shots too; a bonus for each
-  kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶) shoves the ship aside
-  and turns shots away while it spins. Scores: `POINTS`; a pip left at the end is worth 50.
+  kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶): one quick whole turn
+  (0.45 s, eased out so it snaps), a short shove aside, shots turned away while it spins. Scores: `POINTS`; a pip
+  left at the end is worth 50.
+- **Chimes for what is shot down** (v1.45, issue #88: "make me win chimes when I destroy enemy ships"): `CHIMES_OF`,
+  a skiff 1, a raider 3, a hauler 5, a gun pod 6, the bridge 15 (about 79 in a run, against a guardian's purse of 40);
+  mines, rocks and ships rammed give none. Each kill on the way to a world pops its chimes in teal instead of its
+  points; the run counts them (`S.chimes`), the results say "Chimes won", and main.js's `onResult` banks them into the
+  wallet (`resources.addChimes(n, { source: 'pirates' })`) once, as the trip is marked won (a Retry after the win
+  flies it again for the score alone). The Arcade's game only scores.
+- **No skip; lost, from the checkpoint** (v1.45, issue #88: "I shouldn't be able to skip it"): on the way to a world
+  the runner's links are `mandatory` (`transitLinks`): no Quit on any card, Esc backs out of nothing, the results'
+  one button after a loss is **Retry from the checkpoint** (`kit/flow.js resultActions`). The script has two
+  checkpoints (`CHECKPOINTS`: 33 s, after the first ring; 66 s, just before the captain): a lost run starts again from
+  the last one passed (`newRun({ from })`: the waves before it gone by, the hull full, a moment untouchable, the
+  chimes won before it kept), and each loss makes the next run kinder (`MERCY`: the pirates fire 18 % less a loss,
+  down to 45 %; a pip more hull a loss, up to two); from the third loss on the hull holds at its last pip, so the ship
+  always comes through (the captain breaks off in the end if nothing else): every fight on the way can be won. The
+  setting that turned the pirates off on their own ("Pirates on the first flight to a new world") went with the skip;
+  the calm game (Enemies off) still has none, as it has no fights anywhere.
 - **Gentler, fiercer**: the Enemies setting's gentle fires half as often and slower; each ambush met before
   (`ambushCount`) fires 6 % more often (`heat`, up to ten).
 - **Drawn cheaply, no new shader**: the family ship's own model (`buildShipModel`, a quarter size, its rooms
@@ -446,21 +466,44 @@ chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?ga
   ms, 600 calls); no program on the page that the City Floating in Space, the Arena or the Desert don't build.
   The traveller waits hidden under the start (the shadows are placed round him, off the action: nothing there casts).
 - **The trip** (`src/ambush.js`): `ambushDue({ to, flag, seen, settings })` is true for the first flight to a world
-  the journal has never seen (old saves have their worlds seen: no migration), not home or the Lantern, not with the
-  setting off ("Pirates on the first flight to a new world", `settings.ambush`) or Enemies off. The ship's take-off
-  asks main.js (`ship.departure(to)`) and goes to `?game=pirates&to=<world>&from=<here>` instead of the landing; the
-  loading screen there is space's ink too (index.html). On that page main.js marks `ambush.<world>` 'met' at once (a
-  crash or a closed tab never sends you round it again), 'won' on a win (`host.onResult`), 'skipped' on leaving
-  otherwise; every way out lands at the world, `?level=<world>&via=ship`. The runner's `host.links` (`transitLinks`):
-  the start card says where you are going and the ship's warning (`links.intro`), Quit is **Skip the fight**, a win's
-  main button **Fly on to <world>** (`links.win`), and after two failed runs Skip comes first (`links.quit.mainAfterFails`,
-  `kit/flow.js resultActions`).
-- Tests: `tests/pirates.test.js` (the rail, the rocks, the pilot `botInput` winning at 120, 60, 30 and 20 fps in two
-  to three minutes, an idle ship lost, the charge's lock and burst, the roll, the rings, the captain breaking off, the
-  controls, the shapes), `tests/ambush.test.js` (which trips, the pages, the cards' buttons, the lines' tones, the
-  wiring); the playthrough wins each ambush on the way (`tests/playthrough-agent.js shipTurn`) and checks that every
-  first flight to a new world is ambushed and none home. `minigame.session.forward(t)` flies the run ahead by the
-  pilot (the screenshots); `globalThis.__piratesBot = true` lets the pilot fly the page.
+  the journal has never seen (old saves have their worlds seen: no migration), not home or the Lantern, not with
+  Enemies off. The ship's take-off asks main.js (`ship.departure(to)`) and goes to
+  `?game=pirates&to=<world>&from=<here>` instead of the landing; the loading screen there is space's ink too
+  (index.html). On that page main.js marks `ambush.<world>` 'met' at once (a crash or a closed tab never sends you
+  round it again: the one way past it left, and not one the game offers), 'won' on a win (`host.onResult`; saves from
+  before v1.45 may hold 'skipped'); the way out is the win's, `?level=<world>&via=ship`. The runner's `host.links`
+  (`transitLinks`): the start card says where you are going and the ship's warning (`links.intro`), `mandatory` (above),
+  a win's main button **Fly on to <world>** (`links.win`).
+- Tests: `tests/pirates.test.js` (the rail, the rocks, the pilot `botInput` winning at 120, 60, 30 and 20 fps in under
+  three quarters of the old run's time, an idle ship lost, the charge's lock and burst, the roll, the rings, the
+  captain breaking off, the controls and the pitch choice, the feel against Star Fox below, the chimes, the
+  checkpoints and the mercy), `tests/ambush.test.js` (which trips, the pages, the cards' buttons with no skip however
+  often it is lost, the lines' tones, the wiring and the chimes banked); the playthrough wins each ambush on the way
+  (`tests/playthrough-agent.js shipTurn`) and checks that every first flight to a new world is ambushed and none home.
+  `minigame.session.forward(t)` flies the run ahead by the pilot (the screenshots); `globalThis.__piratesBot = true`
+  lets the pilot fly the page.
+
+### The controls, against Star Fox (v1.45, issue #88)
+
+The author: "the controls feel weird and not super close to Star Fox. Do an audit to understand why." What Star Fox 64
+does, what the shooter did (v1.43), and what it does now:
+
+| | Star Fox 64 | Before (v1.43) | Now |
+|---|---|---|---|
+| The stick | sets where the Arwing heads; it gets there with weight, eased | a fixed acceleration (75 m/s²) to a fixed speed: reached in a quarter second, linear, then a hard stop | the stick's speed taken up with an easing (`FLY.response` 5/s: 63 % in 0.2 s, nearly all in 0.6), brisk at first and settling |
+| The edge of the play space | soft: it slows against it | a wall: clamped, thrown back at a fifth of its speed (a bounce) | slowed to nothing over its last 22 % (`FLY.edge`), stopped there, never thrown back |
+| The nose | points where it is going; the shots go where it points | the bolts flew straight down the rail with half the ship's sideways speed; the nose's turn was drawing only | the nose's slope (`FLY.aim` 0.09 at full stick) is the bolts' own way across too (`aimAt`): you aim by steering |
+| The reticle | ahead of the nose, swinging out as it turns | two squares close in front of the ship, barely leading | the same squares where the bolts will be (`aimAt`): 2–8 m ahead of the ship in a full turn; the charge locks round it, not round the ship |
+| Pitch | the nose up when climbing | **drawn nose down when climbing** (the sign was the wrong way round) | nose up when climbing, down when diving |
+| Bank | hard into the turn | 0.7 rad at full speed, slow to follow (6/s) | 0.95 rad (54°), quick (`FLY.bank` 9/s) |
+| The camera | follows part of the ship's move, late, leading it: the Arwing moves about the screen | followed 0.8 of the offset quickly: the ship sat nearly still in the middle and the space seemed to slide | 0.55 of it (`CAM.follow`), slower (`CAM.rate` 3.5/s), looking ahead of the ship's sideways speed (`CAM.lead`), a little of its bank (`CAM.roll`) |
+| Stick forward | dives (a plane's) | dives, said only in the controls' list, tied to the jets' "Invert" setting | dives by default, as there; the start card shows **Stick forward: Dives / Climbs** and keeps the choice |
+| The barrel roll | a quick spin (a double tap) that turns shots away | 0.55 s, linear, a 24 m/s shove, the steering a third as strong while it spun | 0.45 s, eased out (a snap), a 14 m/s shove, the steering kept |
+| Lock-on | hold A: the reticle locks the nearest in it | locked round the ship's place | locked round the reticle at the target's distance |
+
+Not done (Star Fox has them): the boost and the brake (C buttons), and the bank held on Z / R (the roll's buttons
+do the roll here). `tests/pirates.test.js` "the feel, as Star Fox" checks the easing, the soft edge, the bank, the
+nose and that a bolt reaches the reticle.
 
 
 ## Trials in the worlds (v0.98, `src/trials/`)

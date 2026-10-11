@@ -34,6 +34,11 @@ export function blast(h, power = 1) {
 export function exhaust(ship, model, dt, { power = 1, palette, rate = 34 } = {}) {
   model.group.updateMatrixWorld();
   _d.set(0, -1, 0).applyQuaternion(model.group.quaternion);
+  const jets = ship.jets ?? ship.flame;
+  // the flame goes where the ship goes (issue #89: coming down faster than the jet's own speed, and faster at the start
+  // of the last stretch than at the end of the fall before it, the ship was flying down through its own flame): the
+  // tongues already out move with the ship, so only their own jet speed carries them away from the bells
+  if (ship.jets) carryJets(jets, model);
   let most = 0;
   for (const local of THRUSTERS) {
     _n.copy(local).applyMatrix4(model.group.matrixWorld);
@@ -41,7 +46,7 @@ export function exhaust(ship, model, dt, { power = 1, palette, rate = 34 } = {})
     if (power > 0.05) {
       for (let i = 0, m = rnd(dt * 26 * power); i < m; i++) {
         _p.copy(_n).addScaledVector(_d, 0.2 + Math.random() * 0.4).add(_v.set((Math.random() - 0.5) * 0.5, 0, (Math.random() - 0.5) * 0.5));
-        ship.flame.emit(_p, _v.copy(_d).multiplyScalar(10 + Math.random() * 8 * power), 0.45 + Math.random() * 0.35 * power, 0.22 + Math.random() * 0.18, pick(FIRE));
+        jets.emit(_p, _v.copy(_d).multiplyScalar(JET.speed + Math.random() * 8 * power), 0.45 + Math.random() * 0.35 * power, 0.22 + Math.random() * 0.18, pick(FIRE));
       }
     }
     // the blast on the ground right under the bell, blown out flat along it
@@ -79,6 +84,20 @@ export function footPuffs(ship, model, { palette, n = 6, speed = 4 } = {}) {
       ship.dust.emit(_p, _v, 0.45 + Math.random() * 0.35, 1.1 + Math.random() * 0.6, _c.set(pick(palette)));
     }
   }
+}
+
+/** The jets' flame (its own pool, Ship.jets, with no drag): `speed` m/s out of the bell, at the least. */
+export const JET = { speed: 10 };
+const _prev = new WeakMap(), _delta = new THREE.Vector3();
+
+/** Move the jets' live tongues of flame by however far the ship model has moved since its engines last ran. */
+export function carryJets(jets, model) {
+  const at = model.group.position, last = _prev.get(model);
+  if (!last) { _prev.set(model, at.clone()); return; }
+  _delta.subVectors(at, last);
+  last.copy(at);
+  if (_delta.lengthSq() === 0) return;
+  for (const p of jets.items) if (p.age < p.life) p.pos.add(_delta);
 }
 
 /** A whole number of puffs for this frame from a fractional rate (the remainder by chance). */

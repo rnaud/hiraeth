@@ -2216,7 +2216,8 @@ if (minigameDef) {
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || worldDebug.open,
     navigate: (href) => { if (transit && game.flag(ambushKey(transit.to)) === 'met') game.set(ambushKey(transit.to), 'skipped'); flushPlay(); location.href = href; },
-    onResult: (r) => { if (transit && !r.failed) game.set(ambushKey(transit.to), 'won'); },
+    // (won: the chimes shot down go into the wallet, once: a Retry after the win flies it again for the score alone)
+    onResult: (r) => { if (transit && !r.failed) { if (r.chimes && game.flag(ambushKey(transit.to)) !== 'won') resources.addChimes(r.chimes, { source: 'pirates' }); game.set(ambushKey(transit.to), 'won'); } },
     links: transit ?? arcadeLinks(query.get('from'), minigameDef.id) });   // (started from the Arcade: the game before / after, back to its sign)
   window.minigame = minigame;
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)

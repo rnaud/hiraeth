@@ -79,7 +79,6 @@ export const EN = {
   'set.enemies.normal': 'Normal',
   'set.enemies.gentle': 'Gentle (half the harm, slower, one at a time)',
   'set.enemies.off': 'Off (the calm game)',
-  'set.ambush': 'Pirates on the first flight to a new world',
   'set.hints': 'Hints (subtle: a quiet glyph, the drone helps after a while; full: every prompt and tip)',
   'set.hints.off': 'Off',
   'set.hints.subtle': 'Subtle',

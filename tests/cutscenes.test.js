@@ -60,7 +60,7 @@ test('landing: the jets come out of the lift jets under the belly, and the dust 
   m.group.position.copy(ship.restPos).add(v(0, 6, 0));
   const dust = [], flame = [];
   ship.dust.emit = (p, vel) => dust.push({ p: p.clone(), v: vel.clone() });
-  ship.flame.emit = (p, vel) => flame.push({ p: p.clone(), v: vel.clone() });
+  ship.jets.emit = (p, vel) => flame.push({ p: p.clone(), v: vel.clone() });
   for (let i = 0; i < 60; i++) exhaust(ship, m, 1 / 60, { power: 1, palette: ['#ccbb99'] });
   assert.ok(flame.length > 20 && dust.length > 20, `jets ${flame.length}, dust ${dust.length}`);
   const hover = THRUSTERS.map((p) => ship.world(m, p));
@@ -81,6 +81,33 @@ test('landing: the jets come out of the lift jets under the belly, and the dust 
   for (let i = 0; i < 60; i++) exhaust(ship, m, 1 / 60, { power: 1, palette: ['#ccbb99'] });
   assert.equal(dust.length, 0);
   assert.ok(blast(0) === 1 && blast(BLAST_H) === 0 && blast(10) > blast(20));
+});
+
+test('coming down fast, the jets’ flame stays under the bells and never stands up through the hull (issue #89)', async () => {
+  const { Puffs } = await import('../src/ship/fx.js');
+  const { ship } = flatWorld();
+  const m = ship.parked;
+  ship.jets = new Puffs(new THREE.Scene(), { count: 400, glow: 1 });
+  ship.jets.drag = 0;
+  // the landing's last stretch, as cinematics.js plays it: 140 m to the feet in 4.2 s, slowing (landingK), plus
+  // the sky's fall before it (over 200 m/s): every tongue of flame stays below the belly's bells, in the ship's frame
+  const dt = 1 / 60;
+  const radius = (p) => { const k = Math.min(p.age / p.life, 1); return p.size * Math.min(1, k * 6 + 0.25) * (1 + k * 1.4) * (1 - k ** 3); };   // (as Puffs.update draws it)
+  let worst = -Infinity;
+  for (let i = 0; i <= 6 * 60; i++) {
+    const t = i * dt;
+    const y = t < 1.9 ? 400 - 260 * (1 - Math.pow(1 - t / 1.9, 1.6)) : 140 * (1 - (1 - Math.pow(1 - Math.min(1, (t - 1.9) / 4.2), 3)));
+    m.group.position.copy(ship.restPos).add(v(0, y, 0));
+    exhaust(ship, m, dt, { power: 1 });
+    ship.jets.update(dt);
+    // (the bells' mouths hang 0.5 m under the belly, BELLY in src/ship/hull.js: a tongue may swell round the mouth it leaves)
+    const mouth = Math.min(...THRUSTERS.map((p) => ship.world(m, p).y)), belly = mouth + 0.5;
+    for (const p of ship.jets.items) if (p.age < p.life) {
+      worst = Math.max(worst, p.pos.y + radius(p) * 0.85 - belly);
+      assert.ok(p.pos.y < mouth, `t ${t.toFixed(2)}: a tongue's middle ${(p.pos.y - mouth).toFixed(2)} m over the bells`);
+    }
+  }
+  assert.ok(worst < 0, `the flame reaches ${worst.toFixed(2)} m over the belly`);
 });
 
 test('the hatch door pops out of its frame and slides along the hull, never through it', () => {

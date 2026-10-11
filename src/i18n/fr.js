@@ -79,7 +79,6 @@ export const FR = {
   'set.enemies.normal': 'Normal',
   'set.enemies.gentle': 'Doux (moitié moins de dégâts, plus lents, un à la fois)',
   'set.enemies.off': 'Aucun (le jeu paisible)',
-  'set.ambush': 'Pirates au premier vol vers un nouveau monde',
   'set.hints': 'Indices (discrets : un signe, le drone aide après un moment ; complets : chaque invite et conseil)',
   'set.hints.off': 'Aucun',
   'set.hints.subtle': 'Discrets',

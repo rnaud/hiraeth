@@ -392,11 +392,11 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
       if (bad.length) failed.push(`${id}: ${bad.slice(0, 4).join('; ')}`);
     } finally {
       // the world as it was found
-      for (const g of [ship.parked.group, ship.crashSite?.group, ship.smoke?.mesh, ship.flame?.mesh, ship.dust?.mesh]) g?.removeFromParent();
+      for (const g of [ship.parked.group, ship.crashSite?.group, ship.smoke?.mesh, ship.flame?.mesh, ship.jets?.mesh, ship.dust?.mesh]) g?.removeFromParent();
       for (const c of ship.colliders) physics.removeCollider(c);
       for (const list of [lights, noShadow]) {
         if (!list) continue;
-        const mine = new Set([...(ship.parked.lightVecs ?? []), ship.parked.vmailLight, ship.parked.holoTable?.object, ship.smoke?.mesh, ship.flame?.mesh, ship.dust?.mesh]);
+        const mine = new Set([...(ship.parked.lightVecs ?? []), ship.parked.vmailLight, ship.parked.holoTable?.object, ship.smoke?.mesh, ship.flame?.mesh, ship.jets?.mesh, ship.dust?.mesh]);
         for (let i = list.length - 1; i >= 0; i--) if (mine.has(list[i])) list.splice(i, 1);
       }
     }

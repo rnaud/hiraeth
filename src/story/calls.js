@@ -66,6 +66,8 @@ const S = (text, set) => spoken('scene', text, set ? { set } : null);
 const SHIP = (text, set) => spoken('ship', text, set ? { set } : null);
 const YOU = (text, set) => spoken('you', text, set ? { set } : null);
 const pick = (arr, i) => arr[Math.min(i, arr.length - 1)];
+/** The line(s) the reel finds for a world: one string or several, each the father's. */
+const reelLines = (r) => [].concat(r.find).map((t) => F(t));
 
 /**
  * The recording in the prologue: the father, years after the traveller left (story-bible.md, "The recordings":
@@ -121,9 +123,14 @@ const nameIn = (k) => name(k).replace(/^(A|An|The) /, (m) => m.toLowerCase());
  * else, long ago, that happens to fit (or nearly).
  */
 export const REEL = {
+  // (the first after a world, issue #90: people who swore they would help him and did not, and he is bitter about it.
+  // No line of the traveller's own: what he makes of it, after the desert's giants who left, is the player's)
   desert: { word: 'water',
-    find: "~tired~ …and turn the tap off. Water has to get here somehow. Somebody carries it. Don’t waste their work.",
-    you: '~whisper~ (Somebody carried it. The giants did.)' },
+    find: [
+      '~angry~ The well’s dry again. The Orrins swore they’d come and help me dig it out. Swore it, on our doorstep.',
+      '~angry~ I waited all morning with three spades. Nobody came. Nobody ever comes.',
+    ],
+    you: null },
   incal: { word: 'looking up',
     find: "~solemn~ Stop looking up at the lamps and watch the steps. And mind who you argue with at the top. They decide what reaches the bottom.",
     you: '~whisper~ (I looked up anyway.)' },
@@ -180,8 +187,9 @@ const REEL_ANY = { word: 'home', find: '~neutral~ The house is quiet without you
  */
 export const AGE = {
   1: {
-    open: [F('~neutral~ It’s me. You didn’t call back, so I am leaving this.')],
-    close: () => [F("~tired~ Keep looking, then. You always say there’s time. I hope you’re right.")],
+    open: [F('~tired~ It’s me. You didn’t call back.')],
+    close: () => [F('~angry~ So I dug it myself. I always do. Everyone means to help, until the morning comes.')],
+    quiet: true,   // (no thought of his own in the first, issue #90: the player makes of it what they will)
     log: '~neutral~ End of message.', label: '',
   },
   2: {
@@ -527,10 +535,10 @@ const PART_AGES = { arzach2: { label: 'LOGGED 20 YEARS AGO', log: '~neutral~ Log
 function partCall(part, f) {
   const r = REEL[part];
   const ask = (word) => [YOU(`~neutral~ (You ask the reel for anything about ${word}.)`), SHIP('~neutral~ One match.')];
-  const lines = [...ask(r.word), F(r.find), YOU(r.you), SHIP(PART_AGES[part].log)];
+  const lines = [...ask(r.word), ...reelLines(r), YOU(r.you), SHIP(PART_AGES[part].log)];
   if (part === 'perdide2') {
     const why = REEL.garage;
-    lines.push(YOU('~neutral~ (You ask the reel one more thing: why.)'), SHIP('~neutral~ One match.'), F(why.find), YOU(why.you), SHIP('~neutral~ Logged eleven years ago. You were fifteen.'));
+    lines.push(YOU('~neutral~ (You ask the reel one more thing: why.)'), SHIP('~neutral~ One match.'), ...reelLines(why), YOU(why.you), SHIP('~neutral~ Logged eleven years ago. You were fifteen.'));
   }
   if (f.k) lines.splice(3, 0, YOU(`~neutral~ (You lift ${nameIn(f.k)} into the projector’s light. The message is already over.)`));
   return lines;
@@ -577,7 +585,9 @@ export function callLines(n, ctx = {}) {
   const lead = bs.lead[0] ?? null;
   const leadIntro = lead?.intro?.(f, n) ?? [];
   const leadBody = lead?.body?.(f, n) ?? null;
-  const rest = bs.rest.flatMap((b) => b.lines(f, n));
+  const A = AGE[n] ?? AGE[5];
+  // (a recording marked quiet carries no thought of his own: the beats' lines in his voice are dropped)
+  const rest = bs.rest.flatMap((b) => b.lines(f, n)).filter((l) => !(A.quiet && l.who === 'you'));
   const reel = REEL[f.lastWorld] ?? REEL_ANY;
   // the first ones are just a new message on the voicemail; once the date has given them away
   // (REEL_FROM), he asks the reel for the world's word himself
@@ -585,7 +595,7 @@ export function callLines(n, ctx = {}) {
     YOU(`~neutral~ (You ask the reel for anything about ${reel.word}.)`),
     SHIP('~neutral~ One match.'),
   ] : [SHIP('~neutral~ New message.')];
-  const find = leadBody ?? [F(reel.find)];
+  const find = leadBody ?? reelLines(reel);
   const you = reel.youAfter && flag(reel.youAfter.flag) ? reel.youAfter.you : reel.you;
   const react = !leadBody && you ? [YOU(you)] : [];
   // the keepsake: he holds it up to the projector; the recording happens to hold what the father once said about such things
@@ -643,7 +653,6 @@ export function callLines(n, ctx = {}) {
     // the broadcast, still out there (src/story/relay.js): the way to Ilen before the stone
     ...(relaySignal({ flag, completed: f.completed.length || n })?.stage === 'far' ? [SHIP(RELAY_COME_HOME)] : []),
   ];
-  const A = AGE[n] ?? AGE[5];
   return [
     ...leadIntro,
     ...search,

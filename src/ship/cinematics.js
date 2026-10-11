@@ -9,7 +9,7 @@ import { loadCue } from '../soundtracks.js';
 import { callHum, callHumLevel } from '../story/hum.js';
 import { verbKey } from '../prompt-keys.js';
 import * as sfx from './sfx.js';
-import { exhaust, footPuffs } from './exhaust.js';
+import { exhaust, footPuffs, carryJets } from './exhaust.js';
 import { LANDING_LINE, FOLLOW_LINE, arrivalLine } from '../story/signature.js';
 import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD_MS } from '../story/charge.js';
 import { BUST } from './hologram.js';
@@ -474,9 +474,13 @@ export class PrologueDirector {
           const g = new THREE.Color(pickOf(VAPOUR));
           s.smoke.emit(p.clone().addScaledVector(vel, -LENGTH * 0.6).add(V((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 4)), V(0, 2, 0), 2 + Math.random() * 1.5, 1.6 + Math.random(), g);
         }
+        // (carried with the ship and started a swell's reach under the belly, issue #89: left behind in the air, or
+        // swelling up from just under it, the flame stood up through the hull as it came down)
+        if (s.jets) carryJets(s.jets, pk);
         if (u > 0.82) for (let i = 0; i < 2; i++) {
-          const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.4, CENTRE_Z + (Math.random() - 0.5) * 16));
-          s.flame.emit(under, V(0, -14, 0), 1.2 + Math.random(), 0.3, pickOf(FIRE));
+          const size = 0.7 + Math.random() * 0.5;
+          const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.5 - size * 1.3, CENTRE_Z + (Math.random() - 0.5) * 16));
+          (s.jets ?? s.flame).emit(under, V(0, -14, 0), size, 0.3, pickOf(FIRE));
         }
         const cam = s.restPos.clone().addScaledVector(this.N, -64).addScaledVector(this.T, 36).add(V(0, 8, 0));   // (the long low hull: nearer than the ball needed)
         if (t < dt * 1.5) this.look.copy(p);

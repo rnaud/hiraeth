@@ -612,8 +612,8 @@ eleven years ago, when he was fifteen), and answers it with Hollin's forty years
 of lamps. The ship finds
 one match and plays it: the parents rise over the projector on the dash as a
 hologram, as they were when they made it, and the traveller stands facing them.
-The recording fits loosely, sometimes oddly (he asks for water and gets his
-father telling him to turn the tap off; he asks for patience and hears "one
+The recording fits loosely, sometimes oddly (after the desert's water he gets
+his father on the dry well nobody came to help him dig; he asks for patience and hears "one
 tooth at a time, your grandfather said"). It never answers him. His own lines
 are short: a hope that it fits ("He means the water. He must."), later an
 answer the recording cannot hear (he says the names of the people he met
@@ -633,7 +633,12 @@ follow, and the last is n = `ENDING_WORLDS`):
    Under it the singing light's theme comes nearer; he pauses the recording to
    listen, the light passes the ship and drains it, and the hologram goes with
    the power.
-1. The first one after a world: no date; the father is short with him.
+1. The first one after a world (after the desert): no date; the father alone,
+   bitter, about people who were supposed to help him and didn't (the Orrins
+   swore they would help him dig out the dry well; he waited all morning with
+   three spades; "Everyone means to help, until the morning comes"). No line of
+   the traveller's own in it, not even a thought (author, issue #90: the player
+   does the reflecting, after a world whose giants left).
 2. The father mentions things that cannot be now (exams, the fence, the Orrin
    boy). The screen shows a worn date stamp.
 3. The mother joins. A child's voice behind them: "Is that for me?" It is the

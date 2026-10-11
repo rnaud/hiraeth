@@ -146,14 +146,14 @@ export class MinigameRunner {
     this.hud.classList.remove('off');
   }
 
-  finish({ score, failed = false, title, lines = [], html = null, wide = false } = {}) {
+  finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0 } = {}) {
     if (this.phase !== 'play') return;
     const kind = this.def.score?.kind ?? 'points';
     const value = score ?? (kind === 'time' ? this.clock + this.penalty : this.points);
     // (a time trial not finished has no time to keep; points count even when the lives run out)
     const sd = scoreDef(this.def, this.host.state);   // (a best of each difficulty: def.bestBy)
     const kept = failed && kind === 'time' ? { best: bestScore(this.host.state, sd), isNew: false } : recordScore(this.host.state, sd, value);
-    this.result = { value, failed, title, lines, html, wide, ...kept };   // (html: the game's own block on the results, a page of sketches)
+    this.result = { value, failed, title, lines, html, wide, chimes, ...kept };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
     if (failed) this.fails = (this.fails ?? 0) + 1;
     this.host.onResult?.(this.result);   // (a host that keeps more than the best: the pirates between worlds mark the trip won)
     this.phase = 'finishing';
@@ -175,7 +175,9 @@ export class MinigameRunner {
     this.begin();
   }
 
-  quit() { this.go(this.host.links?.quit?.href ?? quitHref(this.host.from)); }
+  /** (a game that must be played, host.links.mandatory: the pirates on the way to a world; no way out but through it) */
+  get mandatory() { return !!this.host.links?.mandatory; }
+  quit() { if (!this.mandatory) this.go(this.host.links?.quit?.href ?? quitHref(this.host.from)); }
   /** Leave the game for another page (Quit, or one of host.links: the Arcade's next game). */
   go(href) {
     this.end();
@@ -186,7 +188,7 @@ export class MinigameRunner {
   /** The cards' buttons out: the host's links, then Quit (under its label). */
   outButtons() {
     const extra = (this.host.links?.extra ?? []).map((l) => `<button data-act="link:${h(l.id)}">${h(l.label)}${l.sub ? `<small>${h(l.sub)}</small>` : ''}</button>`).join('');
-    return `${extra}<button data-act="quit">${h(this.host.links?.quit?.label ?? 'Quit')}</button>`;
+    return this.mandatory ? extra : `${extra}<button data-act="quit">${h(this.host.links?.quit?.label ?? 'Quit')}</button>`;
   }
   /** The results card's buttons (kit/flow.js resultActions: a host's links.win, Skip first after failures). */
   resultButtons(r) {
@@ -236,6 +238,7 @@ export class MinigameRunner {
   }
   back() {
     if (this.paused) this.setPaused(false);
+    else if (this.mandatory) { if (this.phase === 'results' && !this.result?.failed && this.host.links?.win) this.go(this.host.links.win.href); }   // (nothing to back out to: won, it flies on)
     else if (this.phase === 'intro' || this.phase === 'results') this.quit();
   }
   /** The focused button of the card, or its first. */
@@ -281,7 +284,7 @@ export class MinigameRunner {
   hint(yes, no) {
     const kind = inputKind();
     const cycle = this.link(1) || this.link(-1);   // (host.links with a step: the Arcade's game before / after)
-    if (no === 'quit' && this.host.links?.quit?.skip) no = 'skip';   // (a game on the way somewhere: its way out skips it)
+    if (no === 'quit' && this.mandatory) no = null;   // (a game on the way somewhere: no way out but through it)
     if (kind === 'pad') return `${confirmKey()} ${yes}${no ? ` · ${backKey()} ${no}` : ''}${cycle ? ' · LB / RB other games' : ''}`;
     if (kind === 'touch') return '';
     return `Enter ${yes}${no ? ` · Esc ${no}` : ''}${this.phase === 'results' || this.paused ? ' · R retry' : ''}${cycle ? ' · [ ] other games' : ''}`;
@@ -363,7 +366,7 @@ export class MinigameRunner {
       ${lines ? `<ul class="lines">${lines}</ul>` : ''}${r.html ?? ''}
       <p class="best">${r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${h(formatScore(d, r.best))}`}</p>
       <div class="buttons">${this.resultButtons(r)}</div>
-      <small>${this.hint({ win: 'fly on', quit: 'skip' }[resultActions(r, this.host.links, this.fails ?? 0)[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit')}</small>`);   // (won on the way somewhere: Esc flies on too)
+      <small>${this.hint({ win: 'fly on' }[resultActions(r, this.host.links, this.fails ?? 0)[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit')}</small>`);   // (won on the way somewhere: Esc flies on too)
     this.sheet.classList.toggle('wide', !!r.wide);
   }
   /** The chosen value's label of a choice option ('Hard'). */

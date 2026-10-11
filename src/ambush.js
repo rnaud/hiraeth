@@ -5,10 +5,10 @@
 //   ambushDue({ to, flag, seen, settings })   should this flight be ambushed?
 //   ambushHref(to, from)                       the game's page for it: '?game=pirates&to=<to>&from=<from>'
 //   arrivalHref(to)                            where the flight lands, after: '?level=<to>&via=ship'
-//   transitLinks(query, titles)                the runner's ways out on that page (Fly on, Skip the fight)
+//   transitLinks(query, titles)                the runner's ways out on that page (Fly on once won; no skip)
 //
 // The save keeps one flag per destination, `ambush.<to>`: 'met' as the fight's page opens (so a crash or a closed
-// tab never sends you round it again), 'won' or 'skipped' as it ends. A world already visited (the journal's
+// tab never sends you round it again), 'won' as it is won ('skipped' in saves from before v1.45, when it could be). A world already visited (the journal's
 // seen, which old saves have) is never ambushed, so saves from before the pirates need no migration.
 // Pure (tests/ambush.test.js).
 
@@ -20,12 +20,14 @@ export const ambushKey = (to) => `ambush.${to}`;
 export const NO_AMBUSH = new Set(['home', 'lantern']);
 
 /**
- * Should the flight to `to` be ambushed? Not with the setting off (settings.ambush false) or the calm game
+ * Should the flight to `to` be ambushed? Not in the calm game
  * (Enemies off); not to a world visited before (seen(to)) or already ambushed on the way to (its flag); not home.
  */
 export function ambushDue({ to, flag = () => undefined, seen = () => false, settings = {} } = {}) {
   if (!to || NO_AMBUSH.has(to)) return false;
-  if (settings?.ambush === false || settings?.enemies === 'off') return false;
+  // (the calm game, Enemies off, has no fights anywhere; the setting that turned the pirates off alone went with the
+  // skip in v1.45, issue #88)
+  if (settings?.enemies === 'off') return false;
   if (flag(ambushKey(to))) return false;
   if (seen(to)) return false;
   return true;
@@ -40,9 +42,11 @@ export const ambushHref = (to, from = null) => `?game=${AMBUSH_GAME}&to=${encode
 export const arrivalHref = (to) => `?level=${encodeURIComponent(to)}&via=ship`;
 
 /**
- * On the ambush's page (?game=pirates&to=<id>), the runner's ways out (kit/runner.js host.links): Skip the fight
- * (to the landing, on every card), and once won, Fly on (the results' main button). Null on the game's own page
- * (the Debug menu's, the Arcade's: no `to`).
+ * On the ambush's page (?game=pirates&to=<id>), the runner's ways out (kit/runner.js host.links): none but through it
+ * (`mandatory`, v1.45, issue #88: "I shouldn't be able to skip it"; until then Skip the fight sat on every card, and
+ * first after two lost runs). Lost, Retry picks up from the last checkpoint (src/minigames/pirates-rules.js
+ * CHECKPOINTS, MERCY: kinder each time, and from the third loss the hull holds, so every fight can be won); won, Fly
+ * on (the results' main button). Null on the game's own page (the Debug menu's, the Arcade's: no `to`).
  */
 export function transitLinks(query, titles = {}) {
   const to = query?.get?.('to');
@@ -50,14 +54,12 @@ export function transitLinks(query, titles = {}) {
   const title = titles[to] ?? to;
   const href = arrivalHref(to);
   return {
-    to, title,
-    quit: { label: 'Skip the fight', href, skip: true, mainAfterFails: FAILS_BEFORE_SKIP },
+    to, title, mandatory: true,
+    retry: { label: 'Retry from the checkpoint' },
     win: { label: `Fly on to ${title}`, href },
     intro: { kicker: `On the way to ${title}`, lead: { ...AMBUSH_LINES.start, name: SPEAKERS[AMBUSH_LINES.start.who] } },
   };
 }
-/** Failed runs before Skip becomes the results card's first button (Retry stays beside it). */
-export const FAILS_BEFORE_SKIP = 2;
 
 /**
  * What is said on the way, each with its tone (src/story/tone.js): the ship's voice (who: 'ship', as in its other

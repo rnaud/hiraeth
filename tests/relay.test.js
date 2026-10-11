@@ -98,7 +98,7 @@ test('a normal run, in the route’s order, hears every world’s reel line, the
   assert.ok(homeOpen({ flag: s.flag, completed: done }), 'home is open');
   assert.ok(!s.flag('ending.done'));
   const text = heard.join('\n');
-  for (const id of ORDER) assert.ok(text.includes(parseLine(REEL[id].find).text), `${id}: its reel line plays`);
+  for (const id of ORDER) assert.ok(text.includes(parseLine([].concat(REEL[id].find)[0]).text), `${id}: its reel line plays`);
   assert.ok(s.flag('calls.ilen.told'), 'the mother’s recording played');
   assert.ok(s.flag(`calls.${ILEN_CALL}`));
   assert.match(text, /welcomed her back with empty hands/);

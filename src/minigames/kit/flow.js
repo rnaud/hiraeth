@@ -69,13 +69,15 @@ export function scoreDef(def, state) {
 /**
  * The results card's buttons, in order: [{ act, label, sub?, main? }]. Retry first, then the host's links and Quit;
  * a host's `links.win` ({ label, href }: a game on the way somewhere, the pirates between worlds) is the main button
- * after a run not failed (Retry beside it); `links.quit.mainAfterFails` (n) puts the way out first once n runs failed.
+ * after a run not failed (Retry beside it); `links.mandatory` (a game that must be won to go on: no Quit, no skip,
+ * since v1.45) leaves Retry alone after a lost run (`links.retry.label`: what it says). (`fails` is kept for callers.)
  */
-export function resultActions(r = {}, links = null, fails = 0) {
+export function resultActions(r = {}, links = null, fails = 0) {   // eslint-disable-line no-unused-vars
   const quit = { act: 'quit', label: links?.quit?.label ?? 'Quit' };
   const extra = (links?.extra ?? []).map((l) => ({ act: `link:${l.id}`, label: l.label, sub: l.sub }));
   const retry = { act: 'retry', label: 'Retry' };
   if (!r.failed && links?.win) return [{ act: 'win', label: links.win.label, main: true }, retry];
-  if (r.failed && links?.quit?.mainAfterFails && fails >= links.quit.mainAfterFails) return [...extra, { ...quit, main: true }, retry];
+  // (a game that must be played, links.mandatory: the pirates on the way to a world; lost, the one way is again)
+  if (links?.mandatory) return [{ ...retry, label: links.retry?.label ?? retry.label, main: true }, ...extra];
   return [{ ...retry, main: true }, ...extra, quit];
 }

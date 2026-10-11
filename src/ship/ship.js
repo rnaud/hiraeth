@@ -199,6 +199,9 @@ export class Ship {
     this.smoke = new Puffs(this.scene, { count: 150, glow: 0.35, tag: 'ship-smoke', noShadow: this.noShadow });
     this.flame = new Puffs(this.scene, { count: 120, glow: 1, tag: 'ship-flame', noShadow: this.noShadow });
     this.dust = new Puffs(this.scene, { count: 220, glow: 0.55, tag: 'ship-dust', noShadow: this.noShadow });
+    // the lift jets' flame (src/ship/exhaust.js): no drag, so each tongue keeps the ship's speed and leaves the bell downward
+    this.jets = new Puffs(this.scene, { count: 160, glow: 1, tag: 'ship-jets', noShadow: this.noShadow });
+    this.jets.drag = 0;
     this.dust.drag = 1.4;
     this.smoke.lift = 0.5;
     this.smokeT = 0;
@@ -716,6 +719,7 @@ export class Ship {
     this.smoke.update(dt);
     this.dust.update(dt);
     this.flame.update(dt);
+    this.jets.update(dt);
     if (!photo) this.applyCamera(dt);
     // rooms are only drawn when the camera is near enough to see in (measured once the camera is placed: a scene's
     // shot inside the ship while you stand far off, as the review page stages the takeoff, drew no walls)
