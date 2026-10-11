@@ -1,0 +1,59 @@
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_e92e9ae38d1698 90,124,131-147
+src/desert-hearth.js
+  s_9ca76055a220ed::t_bded30fb3100ef 155-167,391,431-460,489-492,508
+src/changelog-media.js
+  s_9ca76055a220ed::t_b69583eee18092 554-556,558-565
+src/boxes/placements.js
+  s_9ca76055a220ed::t_3885d3ae0a68d2 54-59,66
+tests/items-page.test.js
+  s_9ca76055a220ed::t_49debeb762babf 19-22
+changelog.md
+  s_9ca76055a220ed::t_6065d4fc658165 5-8
+tests/boxes.test.js
+  s_9ca76055a220ed::t_4afa88756ff811 85
+src/story/desert.js
+  s_9ca76055a220ed::t_3cb5052d5e0fe4 352-353,356
+src/gadgets/registry.js
+  s_9ca76055a220ed::t_5a4f8d8fa3ede7 57
+src/temples/index.js
+  s_9ca76055a220ed::t_aa3980177e5866 93
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_0548e8e9cb76f5 271-272
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_de7f30a01364c6 123-133
+src/items.js
+  s_9ca76055a220ed::t_e313274e78949a 54-57,86,307,313
+src/gadgets/gun.js
+  s_9ca76055a220ed::t_f64f6a841d9d17 60
+src/story/desert-data.js
+  s_9ca76055a220ed::t_ab890d7240b144 113-115
+src/temples/hints.js
+  s_9ca76055a220ed::t_cc080a6a9d9801 61-62,65,68
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_3d85ca80fba32f 17,67
+src/changelog.js
+  s_9ca76055a220ed::t_964ddfc7c6fc9f 11-15
+src/save-migrate.js
+  s_9ca76055a220ed::t_3cd4c405a41324 59-60,199-201,204-214
+docs/systems/progression.md
+  s_9ca76055a220ed::t_0a4b67632f59d1 43,61-63
+docs/systems/temples.md
+  s_9ca76055a220ed::t_fb2d3d196826a1 138,280
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "72137906c11308262c77466a4e6a32695742bec6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
