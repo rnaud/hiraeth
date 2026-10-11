@@ -63,6 +63,9 @@ test('the wheel’s first turn is filmed once: the arc, the teeth out of the san
   for (let i = 0; i < 60 && !rt.moments.playing; i++) step(1);
   assert.ok(rt.moments.playing, 'standing before it, once the Wick is lit: the moment plays');
   assert.equal(game.flag('buried.moment.wheel'), true, 'once per save');
+  // (the Wick lit before anyone sent you: the main quest started past it, before the film, issue #85)
+  assert.ok(toasts.every((t) => /^Quest: One Tooth a Year/.test(t)), toasts.join(' / '));
+  toasts.length = 0;
   assert.ok(st.turning, 'the wheel turns, film or no film');
   assert.ok(rt.busy(), 'the traveller is held while it plays');
   const n0 = ship.shots.length;

@@ -42,9 +42,11 @@ export const QUESTS = [
     id: Q, title: 'The Garden Grows Over', world: 'edena', main: true,
     outro: 'You looked, and let it be. You were not the first.',
     stages: [
-      { id: 'mira', text: 'Talk to Mira by her water clock', label: 'Mira, the gardener', flag: 'edena.mira.heard', at: 'mira' },
+      { id: 'mira', text: 'Hear Mira out by her water clock', label: 'Mira, the gardener', flag: 'edena.mira.heard', at: 'mira' },
       { id: 'ship', text: 'Find the fallen ship in the south meadow', label: 'The fallen ship', goto: 'ship', radius: 45, at: 'ship' },
-      { id: 'vey', text: 'Ask Vey before you touch the ship', label: 'Vey, by the ship', flag: 'edena.vey.asked', at: 'vey' },
+      // (no "ask Vey" step: Mira says where the hatch is herself, and Vey, who tends the vines, is someone you meet there;
+      //  one person sending you to the next was a finding, issue #85. A save at the old 'vey' goes on to 'inside':
+      //  src/save-migrate.js step 15)
       { id: 'inside', text: 'Go in through the ship’s hatch', label: 'The overgrown hatch', flag: 'edena.cabin.seen', at: 'hatch' },
       { id: 'log', text: 'Play the ship’s last log', label: 'The cockpit panel', flag: 'edena.log.read', at: 'panel' },
       { id: 'veil', text: 'Water the flowers on the ship’s flank', label: 'The flowers on the flank', flag: 'edena.veil.open', at: 'veil' },
@@ -153,11 +155,11 @@ export const PEOPLE = {
           ],
         },
         went: { say: ["~playful~ They left in the small saucer carried inside their ship. Sol is still expecting them back. He keeps quite a lot of tea."], choices: [{ text: '~curious~ Can I see their ship?', goto: 'see' }] },
-        see: { say: ["~neutral~ Go south past the pond to the dip in the meadow. Vey tends the wreck’s vines. *Ask her before touching them.* Looking is allowed. Digging is another matter."], choices: [{ text: '~neutral~ I’ll ask her.', end: true }] },
+        see: { say: ["~neutral~ South past the pond, where the meadow dips. *The hatch is under the flower arch.* Looking is allowed. Cutting the vines is another matter."], choices: [{ text: '~neutral~ I’ll go gently.', end: true }] },
         again: {
           say: [
             { if: { flag: 'edena.log.read' }, text: "~sad~ You’ve seen the wreck. Sit a moment. You look as though you’ve brought a question back." },
-            { if: { not: { flag: 'edena.log.read' } }, text: "~neutral~ *South, beyond the pond, where the meadow dips.* Find Vey by the vines." },
+            { if: { not: { flag: 'edena.log.read' } }, text: "~neutral~ *South, beyond the pond, where the meadow dips.* The hatch is under the flower arch." },
           ],
           choices: [
             { text: '~curious~ Where did Odile and Talo go?', goto: 'went' },
@@ -332,7 +334,7 @@ export const PEOPLE = {
         hello: {
           say: ['~angry~ Stop there. Gently. You’re standing on a root.', "~tired~ Vey. I’ve tended this wreck’s vines for forty years. There was still paint when I started."],
           choices: [
-            { text: '~neutral~ Mira said I should ask before I touch anything.', goto: 'ask' },
+            { text: '~neutral~ May I look inside?', goto: 'ask' },
             { text: '~curious~ Why let the garden take it?', goto: 'why' },
           ],
         },

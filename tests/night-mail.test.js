@@ -1,7 +1,7 @@
 // The night mail, played through (src/story/night-train.js, docs/story-bible.md "The night mail"): the Signal Market's
 // side quest that takes you aboard the Overnight Train, its sub-level. In node, on the game's own modules (the
 // play-through's agent, tests/playthrough-agent.js): the market's halt, Edda and her bell; the train boarded from it,
-// running, Ambrose on the porch, Solange on the last roof; the stop asked for, the halt, the step down; back at the
+// running, Ambrose on the porch, Solange on the last roof (she asks for the stop); the halt, the step down; back at the
 // halt with the answer. And the saves: a save on the train wakes on the running train with the quest where it was.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -47,11 +47,8 @@ test('the night mail: the market\'s halt, the train boarded from it, Solange on 
   assert.ok(W.level.spawn.distanceTo(NIGHT_MAIL.arrival.pos) < 0.01 && W.level.arrivals.bazaar === NIGHT_MAIL.arrival, 'you step aboard on the station-side porch');
   assert.equal(W.level.run.phase, 'leaving', 'the train pulling out of the halt');
   assert.ok(standNear(W, NIGHT_MAIL.arrival.pos, { radius: 0.5, up: 0.4 }), 'the porch is solid under you');
-  assert.equal(W.quests.stage(Q), 'find', 'aboard: find Solange, ask the conductor');
+  assert.equal(W.quests.stage(Q), 'mireille', 'aboard: Solange, on the roofs of the long tail (Edda said where; no asking the conductor, issue #85)');
   W.step(60 * 1.5);   // (the train gets going)
-  r = talkTo(W, 'ambrose', goalOf(W, Q));
-  assert.ok(!r.error, r.error);
-  assert.equal(W.quests.stage(Q), 'mireille', 'Ambrose sends you to the roofs of the long tail');
   // Solange: on the last carriage's roof by the chalk mark, reached by the ladder on the long tail's first porch
   const m = W.npcs.find((n) => n.def?.id === 'solange');
   assert.ok(m && m.pos.x < TAIL + 6 && m.pos.y > WALK - 0.2, 'Solange on the last roof');
@@ -63,14 +60,11 @@ test('the night mail: the market\'s halt, the train boarded from it, Solange on 
   W.at(standNear(W, m.pos, { radius: 2, up: 0.6 }).add(V(1.2, 0, 0))); W.step(3);   // (walked up to her: people far off aren't drawn)
   r = talkTo(W, 'solange', goalOf(W, Q));
   assert.ok(!r.error, r.error);
-  assert.equal(W.quests.stage(Q), 'stop', 'she writes her answer');
-  assert.ok(W.quests.has('reply') && !W.quests.has('letter'));
-  // the stop: Ambrose pulls the cord, the train brakes into the market's halt
-  W.at(NIGHT_MAIL.arrival.pos.clone()); W.step(3);   // (back along the roofs and down the ladder to the porch)
-  r = talkTo(W, 'ambrose', goalOf(W, Q));
-  assert.ok(!r.error, r.error);
+  assert.ok(W.quests.has('reply') && !W.quests.has('letter'), 'she writes her answer');
+  // the stop: she pulls the cord herself, and the train brakes into the market's halt
   assert.equal(W.quests.stage(Q), 'off');
   assert.ok(game.flag('nightmail.stop'));
+  W.at(NIGHT_MAIL.arrival.pos.clone()); W.step(3);   // (back along the roofs and down the ladder to the porch)
   const halt = W.level.plan.halt();
   assert.ok(halt && ['running', 'leaving'].includes(W.level.run.phase), 'a halt planned; still under way for now');
   // not yet: the platform isn't there to step onto

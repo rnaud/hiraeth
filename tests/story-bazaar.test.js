@@ -103,11 +103,15 @@ test('the main quest: Sel, Kip’s recording, the antenna, the broadcast, and wh
   assert.equal(quests.stage('bazaar.signal'), undefined);
   assert.equal(quests.openerObjective()?.id, `opener-${'bazaar.signal'}`);
   assert.ok(quests.objective().position.distanceTo(W.people.sel.pos) < 0.01);
-  talk(PEOPLE.sel, ['Why did it go quiet', 'I’ll find Kip', 'Then we listen']);
+  talk(PEOPLE.sel, ['Why did it go quiet', 'Where is it now', 'Then we listen']);
+  step(2);
   assert.equal(quests.stage('bazaar.signal'), 'kip');
   assert.equal(game.flag('bazaar.rumour.light'), true, 'Sel saw the singing light pass');
-  talk(PEOPLE.kip, ['Sel says', 'Did you hear', 'I’ll take it up']);
+  // she says where the cylinder is and what to do with it, not whom to see next (issue #85)
+  assert.ok(!/Ferro|Find \*?Kip/.test(PEOPLE.sel.talk.nodes.kip.say.join(' ')), 'no "find Kip", no "Ferro will help"');
+  talk(PEOPLE.kip, ['What’s in the bag', 'Did you hear', 'I’ll take it up']);
   assert.ok(quests.has('recording'));
+  step(2);
   assert.equal(quests.stage('bazaar.signal'), 'tune');
   // the console won't play yet: dead air
   at(P.console.clone().setY(44).add(V(0, 0, 1.6)));
@@ -220,7 +224,7 @@ test('Oyo’s last lantern: its little sun goes into the tank as a band of its o
   assert.ok(FLUID.maxColours >= 1 + 4, 'every world’s source has room in the tank');
 });
 
-test('out of order: Kip gave you the cylinder before Sel sent you; telling Kip again moves the quest on', async () => {
+test('out of order: Kip gave you the cylinder before you met Sel; the quest starts past it (issue #85)', async () => {
   const { GameState } = await import('../src/game-state.js');
   const { Quests } = await import('../src/story/quests.js');
   const { QUESTS } = await import('../src/story/bazaar-data.js');
@@ -228,12 +232,22 @@ test('out of order: Kip gave you the cylinder before Sel sent you; telling Kip a
   const g = new GameState({ getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) });
   const q = new Quests({ game: g });
   for (const d of QUESTS) q.define(d);
-  // the parked cab's stop is beside Kip: he hands the cylinder over before the quest has begun
-  g.set('bazaar.kip.gave', true); q.give('recording');
-  q.start('bazaar.signal'); q.advance('bazaar.signal', 'sel');
-  assert.equal(q.stage('bazaar.signal'), 'kip');
+  q.opensWith('bazaar.signal', 'sel');
+  // the parked cab's stop is beside Kip: he hands the cylinder over before the quest has begun, unsent
   const r = new DialogueRunner(PEOPLE.kip, { game: g, quests: q });
-  assert.equal(r.nodeId, 'again');
+  assert.equal(r.nodeId, 'hello');
+  for (const want of ['What’s in the bag', 'I’ll take it up']) {
+    while (!r.ended && !r.choices().length) r.advance();
+    const c = r.choices().find((x) => x.text.includes(want));
+    if (!c) break;
+    r.choose(c.index);
+  }
   while (!r.ended && r.advance());
-  assert.equal(q.stage('bazaar.signal'), 'tune');
+  assert.ok(q.has('recording'), 'Kip gives it to whoever asks');
+  q.update(null);
+  assert.equal(q.stage('bazaar.signal'), 'tune', 'Sel and the cylinder passed over: the antenna next');
+  // and the antenna tuned and the tower on air before anyone sent you: on to Sel, for where it came from
+  g.set('bazaar.antenna.tuned', true); g.set('bazaar.broadcast.on', true);
+  q.update(null);
+  assert.equal(q.stage('bazaar.signal'), 'sel2');
 });

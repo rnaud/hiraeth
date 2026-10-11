@@ -9,7 +9,7 @@
 // showed the same mark at once, and the tower caught one last message and went
 // dumb: the antenna slipped out of tune, and the courier who should have run
 // the recording up to the console ran off with it instead.
-// Find Kip and the recording; tune the antenna (light its three bulbs at once:
+// Get the recording back from Kip; tune the antenna (light its three bulbs at once:
 // the tank holds three shots); play it at the console. The voice is your
 // father's, years younger, speaking to a child called Ilen: someone else's
 // child. Sel reads the header: it was sent from your home system.
@@ -18,7 +18,7 @@
 // awake: it says WE HEARD YOU); Ummu's listening bowl, under the crates that
 // fell the night the sky rang (push them clear).
 //
-// Flags (game-state.js): bazaar.rumour.light, bazaar.kip.gave, bazaar.antenna.tuned,
+// Flags (game-state.js): bazaar.rumour.light, bazaar.sel.heard (she said where the cylinder is), bazaar.kip.gave, bazaar.antenna.tuned,
 // bazaar.broadcast.on (the tower speaks again), bazaar.oldsign.awake,
 // bazaar.crates.clear; bazaar.tank.lantern (Oyo's last lantern poured into the tank: its colour
 // band); clue.bazaar.home. Items: recording, bowl.
@@ -40,8 +40,10 @@ export const QUESTS = [
     id: Q, title: 'You Are Not Alone', world: 'bazaar', main: true,
     outro: 'The tower talks again. It said what it always said, to everyone at once.',
     stages: [
-      { id: 'sel', text: 'Find who kept the silent tower', label: 'Madame Sel, under the silent tower', talk: 'sel' },
-      { id: 'kip', text: 'Find Kip on the second skybridge', label: 'Kip, on the second skybridge', talk: 'kip' },
+      // (Sel says where the cylinder is herself; Kip has it, on the second skybridge, and gives it to whoever asks for
+      //  it, sent or not: one person sending you to the next was a finding, issue #85)
+      { id: 'sel', text: 'Find who kept the silent tower', label: 'Madame Sel, under the silent tower', flag: 'bazaar.sel.heard', at: 'sel' },
+      { id: 'kip', text: 'Get the cylinder back, on the second skybridge', label: 'The cylinder, on the second skybridge', flag: 'bazaar.kip.gave', at: 'kip', gate: true },
       { id: 'tune', text: 'Light the antenna’s three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna' },
       { id: 'play', text: 'Play the recording at the balcony console', label: 'The console', flag: 'bazaar.broadcast.on', at: 'console' },
       { id: 'sel2', text: 'Go down to Madame Sel', label: 'Madame Sel', talk: 'sel', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
@@ -77,7 +79,7 @@ export const PEOPLE = {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { quest: Q, stage: 'sel2' }, node: 'told' },
-        { if: { quest: Q, stage: ['kip', 'tune', 'play'] }, node: 'again' },
+        { if: { any: [{ flag: 'bazaar.sel.heard' }, { quest: Q, stage: ['kip', 'tune', 'play'] }] }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
@@ -104,18 +106,18 @@ export const PEOPLE = {
           say: ["~solemn~ The night the singing light passed, every sign showed the same mark: three dots over an arc. The tower received one last message, then went silent.",
             "~tired~ The antenna lost its tuning. Kip took the message cylinder to carry upstairs, but ran off with it instead."],
           do: { set: { 'bazaar.rumour.light': true } },
-          choices: [{ text: '~neutral~ I’ll find Kip.', goto: 'kip' }, { text: '~curious~ Why not take it up yourself?', goto: 'self' }],
+          choices: [{ text: '~curious~ Where is it now?', goto: 'kip' }, { text: '~curious~ Why not take it up yourself?', goto: 'self' }],
         },
-        self: { say: ["~tired~ Forty years climbing those ledges have collected their fee from my knees. I need someone else to go up."], choices: [{ text: '~neutral~ I’ll find Kip.', goto: 'kip' }] },
+        self: { say: ["~tired~ Forty years climbing those ledges have collected their fee from my knees. I need someone else to go up."], choices: [{ text: '~curious~ Where is it now?', goto: 'kip' }] },
         kip: {
-          say: ["~neutral~ Find *Kip on the second skybridge*. Fastest courier in the market, when travelling in the correct direction.",
-            "~playful~ Take the cylinder to *the console on the cream balcony*. *Ferro is there with the antenna*. She’ll need help tuning it."],
-          do: { advance: [Q, 'sel'] },
+          say: ["~neutral~ *On the second skybridge*, in Kip’s bag. Fastest courier in the market, when travelling in the correct direction.",
+            "~playful~ Play it at *the console on the cream balcony*. Tune the antenna first: *three bulbs over the dish, lit at once*."],
+          do: { set: { 'bazaar.sel.heard': true } },
           choices: [{ text: '~solemn~ Then we listen.', end: true }],
         },
         again: {
-          say: [{ if: { not: { has: 'recording' } }, text: "~neutral~ Kip, second skybridge. Ferro, cream balcony. Tune the antenna, then play the cylinder at the console." },
-            { if: { has: 'recording' }, text: "~surprised~ That’s the cylinder. Take it *to Ferro on the cream balcony*. Tune the antenna before you play it." }],
+          say: [{ if: { not: { has: 'recording' } }, text: "~neutral~ The cylinder’s on the second skybridge. Tune the antenna on the cream balcony, then play it at the console." },
+            { if: { has: 'recording' }, text: "~surprised~ That’s the cylinder. Take it *up to the cream balcony*. Tune the antenna before you play it." }],
           choices: [{ text: '~curious~ What’s that mark the signs showed?', goto: 'glyph', once: true }, { text: '~neutral~ On my way.', end: true }],
         },
         glyph: {
@@ -192,26 +194,25 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~scared~ Sel sent you? I haven’t stolen anything. I’m late. There’s a professional distinction.", "~happy~ Kip. Fastest courier on the bridges. Currently resting the evidence."],
-          choices: [{ text: '~neutral~ Sel says you have the last recording.', goto: 'recording' }, { text: '~curious~ What do you run?', goto: 'run' }],
+          say: ["~scared~ You’re looking at my bag. I haven’t stolen anything. I’m late. There’s a professional distinction.", "~happy~ Kip. Fastest courier on the bridges. Currently resting the evidence."],
+          choices: [{ text: '~curious~ What’s in the bag?', goto: 'recording' }, { text: '~curious~ What do you run?', goto: 'run' }],
         },
-        run: { say: ["~playful~ Letters, bills, threats. Fish orders, mostly. People pay in fruit. I could retire if retirement accepted pears."], choices: [{ text: '~neutral~ Sel says you have the last recording.', goto: 'recording' }] },
+        run: { say: ["~playful~ Letters, bills, threats. Fish orders, mostly. People pay in fruit. I could retire if retirement accepted pears."], choices: [{ text: '~curious~ And what’s in the bag?', goto: 'recording' }] },
         recording: {
-          say: ["~sad~ I’ve got Sel’s cylinder. Here. Since the night the sky rang.",
+          say: ["~sad~ The silent tower’s last cylinder. Sel’s. I’ve had it since the night the sky rang. Here.",
             "~surprised~ It arrived *singing*. A note around the voice, like a tuning fork held to a speaker. Every street sign flashed the same mark. Cylinders aren’t supposed to do that.",
             "~scared~ I ran. Took it with me. It’s hummed against my back ever since. Not my cleverest escape."],
-          do: [{ give: 'recording' }, { set: { 'bazaar.kip.gave': true } }, { advance: [Q, 'kip'] }],
+          do: [{ give: 'recording' }, { set: { 'bazaar.kip.gave': true } }],
           choices: [{ text: '~curious~ Did you hear what it said?', goto: 'said' }, { text: '~neutral~ I’ll take it up.', goto: 'up' }],
         },
         said: { say: ["~whisper~ A man underneath the singing. Saying a name. Nobody here answered to it."], choices: [{ text: '~neutral~ I’ll take it up.', goto: 'up' }] },
         up: {
-          say: ["~playful~ *Cream balcony, halfway up the tower.* Climb the blue ledges, or take a cab. *Help Ferro tune the antenna* before trying the console."],
+          say: ["~playful~ It goes in the console on *the cream balcony, halfway up the tower*. Climb the blue ledges, or take a cab. *Tune the antenna* before you try it."],
           choices: [{ text: '~happy~ Thanks, Kip.', end: true }],
         },
-        again: { say: ['~curious~ Did you play it yet? Is it still singing?'], do: { advance: [Q, 'kip'] }, choices: [{ text: '~neutral~ Not yet.', end: true }] },
+        again: { say: ['~curious~ Did you play it yet? Is it still singing?'], choices: [{ text: '~neutral~ Not yet.', end: true }] },
         heard: {
           say: ["~surprised~ Heard it up here. Everyone stopped. Even the fish man, and silence costs him money.", "~playful~ Nearly threw the cylinder off the bridge. Glad I didn’t. Very glad."],
-          do: { advance: [Q, 'kip'] },
           choices: [{ text: '~happy~ I’m glad too.', end: true }],
         },
       },

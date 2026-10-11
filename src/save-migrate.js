@@ -59,6 +59,11 @@
 // The fluid gun comes with ember mode, in one chest in the Givers' room off the Hearth's hall (issue #83): step 14 gives
 // a save that opened either of v1.44's two chests (or has either item) both, the gun's chest open.
 //
+// Nobody sends you to somebody else (issue #85): the steps whose only purpose was going to see the next person went from
+// five quests. Step 15 moves a save standing on one of them on to the step after (QUEST_STAGE_MOVES); the cab pass's
+// old last step (bring Tobin's coin back to Lio) is the pass in hand, the errand done; a save on the train that had
+// still to ask Ambrose to stop has the stop asked (Solange pulls the cord herself now).
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -199,7 +204,33 @@ const STEPS = [
   // 14: the fluid gun and ember mode in one chest (issue #83): v1.44 had two chests side by side in the Givers' Hearth.
   // A save that opened either (or has either item) has both, the gun's chest open
   (flags) => migrateGunChest(flags),
+  // 15: the quest steps that only sent you to somebody else, gone (issue #85): a save on one goes on to the step after
+  (flags) => migrateQuestStages(flags),
 ];
+
+/** The quest steps removed in v1.46 (issue #85), each to the step a save on it goes on to. */
+export const QUEST_STAGE_MOVES = {
+  'incal.light': { palace: 'look' },            // (Dov at the gate: someone you pass on the way up to the crown)
+  'edena.garden': { vey: 'inside' },            // (Vey by the vines: Mira says where the hatch is)
+  'perdide.crystal': { saba: 'sing', listen: 'splinter' },   // (Saba at the crystal: Wendel says what makes it sing)
+  'bazaar.nightmail': { find: 'mireille', stop: 'off' },     // (Ambrose aboard: Edda says where Solange rides; Solange pulls the cord)
+};
+/** Step 15 (pure, in place). */
+export function migrateQuestStages(flags) {
+  // (a save on the train that had still to ask for the stop: asked, as Solange's cord does now)
+  if (flags['quest.bazaar.nightmail'] === 'stop') flags['nightmail.stop'] = true;
+  for (const [id, moves] of Object.entries(QUEST_STAGE_MOVES)) {
+    const k = `quest.${id}`, to = moves[flags[k]];
+    if (to) flags[k] = to;
+  }
+  // the cab pass: Tobin's coin brought back to Lio was the last step; the pass is in hand now
+  if (flags['quest.incal.pass'] === 'back') {
+    flags['quest.incal.pass'] = 'done';
+    if (flags['item.fare'] > 0) flags['item.fare'] -= 1;
+    flags['item.cabpass'] = Math.max(1, +flags['item.cabpass'] || 0);
+  }
+  return flags;
+}
 
 /** Step 14 (pure, in place): the gun and its ember mode, one chest. */
 export function migrateGunChest(flags) {

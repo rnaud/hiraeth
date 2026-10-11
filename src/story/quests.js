@@ -282,18 +282,36 @@ export class Quests {
     if (!d || !this.isActive(id)) return false;
     const i = d.stages.findIndex((x) => x.id === s);
     if (i < 0) return false;
+    const to = this.aheadOf(d, i);
+    if (to < 0) return false;
+    return this.set(id, to + 1 < d.stages.length ? d.stages[to + 1].id : DONE);
+  }
+  /** The furthest stage after the `i`th of `d` whose goal is met (not behind a `gate` that isn't, the `i`th included), or −1. */
+  aheadOf(d, i) {
     let to = -1;
     for (let j = i; j < d.stages.length; j++) {
       const st = d.stages[j], ok = this.met(st);
       if (j > i && ok && st.ahead !== false) to = j;
       if (st.gate && !ok) break;   // (nothing past a gate whose own goal isn't met, the stage you are on included)
     }
-    if (to < 0) return false;
-    return this.set(id, to + 1 < d.stages.length ? d.stages[to + 1].id : DONE);
+    return to;
+  }
+  /**
+   * The opening quest whose conversation never came, its goal reached all the same (issue #85: the splinter fetched
+   * from the shrine before anyone told you of it, the crystal sung before you met Wendel): it starts past what is
+   * done, or ends. Its first stage alone (the opening talk's own flag) doesn't start it.
+   */
+  openAhead() {
+    const o = this.pendingOpener();
+    if (!o) return false;
+    const d = this.def(o.id), to = this.aheadOf(d, 0);
+    if (to < 1) return false;
+    return this.set(o.id, to + 1 < d.stages.length ? d.stages[to + 1].id : DONE);
   }
 
   /** Arrivals and flags: advance any stage whose condition is met. */
   update(player) {
+    this.openAhead();
     for (const d of this.defs.values()) {
       const st = this.current(d.id);
       if (!st) continue;

@@ -100,7 +100,7 @@ export function setupTrainStory(ctx) {
   const N = level?.nightMail;
   if (!N) return null;
   define(quests);
-  // boarded at the halt with the letter: the conductor is the one to ask
+  // boarded at the halt with the letter: Solange, on the last roof, is the one to find
   if (level.from === 'bazaar' && quests.stage(Q) === 'board') quests.advance(Q, 'board');
   const people = {};
   if (spawn) {

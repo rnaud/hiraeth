@@ -6,11 +6,13 @@
 // lamp there and sorts the night mail. Her grandmother Solange boarded the night Edda was born, "to see where the plain
 // ends", and never got off: a postcard comes back to the halt every year, never a word more. This year Edda has
 // written back, and she can't leave the lamp. Ring the bell, board, find Solange (up on the roofs of the long tail, by
-// the chalk mark she keeps: the train's trace, sightings-detours.js), give her the letter, ask Ambrose the conductor to
-// stop at the market's halt, step off, and bring Edda the answer.
+// the chalk mark she keeps: the train's trace, sightings-detours.js), give her the letter (she pulls the cord for the
+// market's halt herself), step off, and bring Edda the answer. Edda says where Solange rides, and Solange stops the
+// train: Ambrose the conductor is someone you meet aboard, not a stop of the quest (it was Edda → Ambrose → Solange →
+// Ambrose, one person sending you to the next, issue #85; src/save-migrate.js step 15 moves a save at 'find' or 'stop').
 //
 // Flags: nightmail.rang (the bell rung, the train called), nightmail.stop (Ambrose asked: the train brakes into the halt).
-// Items: letter (Edda's letter), reply (Solange's answer). Quest stages: edda, board, find, mireille, stop, off, home.
+// Items: letter (Edda's letter), reply (Solange's answer). Quest stages: edda, board, mireille, off, home.
 
 export const Q = 'bazaar.nightmail';
 export const ITEMS = { letter: 'Edda’s letter', reply: 'Solange’s answer' };
@@ -22,9 +24,7 @@ export const QUESTS = [
     stages: [
       { id: 'edda', text: 'Meet Edda at the night halt', label: 'Edda, at the night halt', talk: 'edda' },
       { id: 'board', text: 'Ring the bell and board the train', label: 'The halt’s bell', at: 'bell' },
-      { id: 'find', text: 'Ask the conductor for Solange', label: 'Ambrose, the conductor', talk: 'ambrose' },
-      { id: 'mireille', text: 'Give Solange the letter, up on the roofs', label: 'Solange, on the last carriage’s roof', bring: 'letter', to: 'mireille' },
-      { id: 'stop', text: 'Ask the conductor to stop at the market', label: 'Ambrose, the conductor', talk: 'ambrose' },
+      { id: 'mireille', text: 'Give Solange the letter, on the last roof', label: 'Solange, on the last carriage’s roof', bring: 'letter', to: 'mireille' },
       { id: 'off', text: 'Step off when the train halts', label: 'The platform', at: 'stepOff' },
       { id: 'home', text: 'Bring Edda her grandmother’s answer', label: 'Edda, at the night halt', bring: 'reply', to: 'edda' },
     ],
@@ -41,7 +41,7 @@ export const PEOPLE = {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { all: [{ quest: Q, stage: 'home' }, { has: 'reply' }] }, node: 'answer' },
-        { if: { quest: Q, stage: ['board', 'find', 'mireille', 'stop', 'off', 'home'] }, node: 'again' },
+        { if: { quest: Q, stage: ['board', 'mireille', 'off', 'home'] }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
@@ -76,8 +76,8 @@ export const PEOPLE = {
         },
         take: {
           say: ['~surprised~ You would? Then *ring the bell on the platform*: the train stops for the bell, it has to.',
-            '~neutral~ *Ask Ambrose the conductor* for her. He knows everyone aboard by the cup they drink from.',
-            '~happy~ And come back down at *the market’s halt*. Ambrose stops here if you ask him nicely.',
+            '~neutral~ She never sits inside. She rides *the roofs of the long tail*, at the very back, by a chalk mark.',
+            '~happy~ Bring me what she says. The train stops at *the market’s halt* when someone asks.',
             '~playful~ Your ship? The porters will have it up on the landing wagon before the bell stops ringing. The night train carries ships for nothing.'],
           do: [{ stage: [Q, 'board'] }, { give: 'letter' }],
           choices: [{ text: '~neutral~ I’ll ring the bell.', end: true }],
@@ -108,9 +108,7 @@ export const PEOPLE = {
     lines: ['~neutral~ Tickets? No. Nobody has a ticket. Welcome aboard.', '~happy~ Mind the porches at speed.', '~solemn~ Next stop: wherever someone asks.'],
     talk: {
       entry: [
-        { if: { quest: Q, stage: 'find' }, node: 'find' },
-        { if: { quest: Q, stage: 'mireille' }, node: 'where' },
-        { if: { quest: Q, stage: 'stop' }, node: 'stop' },
+        { if: { all: [{ quest: Q, stage: 'mireille' }, { has: 'letter' }] }, node: 'find' },
         { if: { quest: Q, stage: 'off' }, node: 'braking' },
         { node: 'hello' },
       ],
@@ -124,22 +122,10 @@ export const PEOPLE = {
           ],
         },
         find: {
-          say: ['~surprised~ Solange? Somebody’s come for Solange?',
+          say: ['~surprised~ A letter? For Solange? Somebody’s written to Solange?',
             '~neutral~ She doesn’t sit inside. Forty years, and she’s never once taken a seat. She rides *the roofs of the long tail*, at the very back.',
             '~playful~ Out past the landing wagon, *up the ladder on the porch*, and walk till the rails run out behind you. Hold on to your hat.'],
-          do: [{ advance: [Q, 'find'] }],
           choices: [{ text: '~neutral~ The roofs. Right.', end: true }],
-        },
-        where: {
-          say: ['~neutral~ *The very back*, on the roofs. You’ll see the chalk before you see her.'],
-          choices: [{ text: '~neutral~ Thanks.', end: true }],
-        },
-        stop: {
-          say: ['~curious~ She gave you something for the halt? Then the halt it is.',
-            '~shout~ (Ambrose leans out of the window and pulls a cord. Far ahead, the whistle answers.)',
-            '~neutral~ We’ll be braking in a minute. *Step down on the station side* once we stop: the platform’s on your right going forward.'],
-          do: [{ set: { 'nightmail.stop': true } }, { advance: [Q, 'stop'] }],
-          choices: [{ text: '~happy~ Thank you, Ambrose.', end: true }],
         },
         ringing: {
           say: ['~shout~ (Ambrose pulls the cord. Far ahead, the whistle answers.)', '~neutral~ The market’s halt, then. *Step down on the station side* when we stop.'],
@@ -161,7 +147,7 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { quest: Q, stage: 'mireille' }, node: 'hello' },
-        { if: { quest: Q, reached: 'stop' }, node: 'after' },
+        { if: { quest: Q, reached: 'off' }, node: 'after' },
         { node: 'stranger' },
       ],
       nodes: {
@@ -171,7 +157,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ The chalk mark?', goto: 'chalk' }, { text: '~neutral~ Goodnight.', end: true }],
         },
         hello: {
-          say: ['~curious~ A visitor, up here? Ambrose must have sent you. He thinks I’ll fall off one of these nights.',
+          say: ['~curious~ A visitor, up here? Nobody climbs up but me. Ambrose thinks I’ll fall off one of these nights.',
             '~neutral~ (You hold out the letter. She looks at the hand on the envelope for a long time before she takes it.)'],
           choices: [{ text: '~neutral~ It’s from Edda.', goto: 'letter' }],
         },
@@ -179,8 +165,9 @@ export const PEOPLE = {
           say: ['~whisper~ Edda. She was this big. She was an hour old.',
             '~sad~ (She reads it with her back to the wind, holding the page flat with both hands.)',
             '~sad~ Forty years of postcards. I never asked her anything, in case she didn’t answer.',
-            '~solemn~ (She writes on the back of the letter with the chalk, folds it, and gives it back to you.) Take her that. And tell Ambrose to stop at the market. Tell him I said so.'],
-          do: [{ take: 'letter' }, { give: 'reply' }, { advance: [Q, 'mireille'] }],
+            '~solemn~ (She writes on the back of the letter with the chalk, folds it, and gives it back to you.) Take her that.',
+            '~neutral~ (She reaches for the cord along the roof and pulls it twice. Far ahead, the whistle answers.) The market’s halt, in a minute. *Step down on the station side.*'],
+          do: [{ take: 'letter' }, { give: 'reply' }, { set: { 'nightmail.stop': true } }, { advance: [Q, 'mireille'] }],
           choices: [{ text: '~curious~ The mark you chalk up here?', goto: 'chalk' }, { text: '~neutral~ I’ll take it to her.', end: true }],
         },
         chalk: {
@@ -190,7 +177,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ Goodnight, Solange.', end: true }],
         },
         after: {
-          say: [{ if: { has: 'reply' }, text: '~neutral~ Go on, go on. Ambrose, then the halt. She’ll be waiting by the lamp. She always is, I expect.' },
+          say: [{ if: { has: 'reply' }, text: '~neutral~ Go on, go on. Down the ladder, and off at the halt. She’ll be waiting by the lamp. She always is, I expect.' },
             { if: { not: { has: 'reply' } }, text: '~happy~ Spring. I said spring. I’ll have to get off this thing and remember how stairs work.' }],
           choices: [{ text: '~neutral~ Goodnight.', end: true }],
         },

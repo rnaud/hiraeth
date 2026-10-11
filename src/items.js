@@ -277,7 +277,7 @@ export const ITEMS = {
   // ---- given by people, through a quest (quests.give: the same item.<id> flag), not found in a box
   cabpass: {
     name: 'Cab pass', kind: 'pass', quest: true,
-    text: "A stiff card stamped with the palace seal, a name punched into it more or less like yours. Lio, the City-Shaft’s dispatcher, wrote it.",
+    text: "A stiff card stamped with the palace seal, Tobin’s name crossed out and something more or less like yours written over it. Lio, the City-Shaft’s dispatcher, wrote it.",
     use: 'Cabs stop for you now: whistle when one passes with {key:call}, or get in one that waits, and tell it where to go. It drives itself.',
   },
   star: {

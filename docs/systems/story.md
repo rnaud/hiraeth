@@ -691,10 +691,18 @@ idea." "All quests should be solvable by just going to the end if you can."
 - **Every answer follows from what was just said** (#61): nobody asks "Who are the Givers?" before Nour has named
   them; the Speaker's "The swamp of lights?" is offered where he says it, not a node later; Ama's "Draws it up
   from where?" answers her "when Qanat's tree draws up its water". `tests/dialogue-playtest.test.js`.
-- **Elsewhere, flagged** (one person sending you to another, left as they are for now): the Signal Market's
-  Madame Sel → Kip (`bazaar.signal`); the City-Shaft's Nima → Ossa at the Upward Shrine → Dov (`incal.light`),
-  and Lio → Tobin → Lio for the cab pass (`incal.pass`); Viridel's Mira → Vey → Mira (`edena.garden`); Lorn's
-  Wendel → Saba (`perdide.crystal`); the Overnight Train's Edda → the conductor → Solange (`bazaar.nightmail`); filed as #85.
+- **Elsewhere, fixed** (#85, v1.46): the chains outside the desert, each first person now saying where the goal is,
+  the others people you meet on the way. The Signal Market: Sel says the cylinder is on the second skybridge (Kip has
+  it, and gives it to whoever asks, sent or not) and what tunes the antenna (no "Ferro will help"). The City-Shaft: Nima
+  says the splinter is in the Upward Shrine's bowl (Ossa keeps it and gives it); the palace gate is no step (Dov knows
+  the note and looks the other way); the cab pass is in Tobin's pocket, written on credit, and he hands it over as you
+  walk up (no coin carried back to Lio). Viridel: Mira says where the hatch is; no "ask Vey". Lorn: Wendel says what
+  makes the crystal sing (three quick splashes from the tank); Saba's two steps went, what she makes of the new phrase
+  is for whoever asks. The Overnight Train: Edda says Solange rides the last roof, and Solange pulls the cord for the
+  market's halt herself; Ambrose is no step. Removed steps: `src/save-migrate.js` step 15 (`QUEST_STAGE_MOVES`).
+  An opening quest whose talk never came starts past what is done, or ends (`Quests.openAhead`, run by `update`):
+  the splinter fetched from the shrine before you met Nima, the crystal sung before Wendel spoke of it.
+  `tests/quest-skip.test.js`.
 
 ## Places to stop on the way (the second story pass, October 2026)
 

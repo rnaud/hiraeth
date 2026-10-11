@@ -16,8 +16,8 @@
 //
 // Side errands: Pip's ration tin for his uncle Dov, the palace guard; the dead
 // taxi call-lamp at the bottom (shoot it) and Wren, the old cab that still stops;
-// a cab pass from Lio, the dispatcher on the rim (the cabs fly past anyone
-// without one: src/taxi.js), for the fare Tobin, the seller of views, owes him.
+// a cab pass, written by Lio, the dispatcher on the rim (the cabs fly past anyone
+// without one: src/taxi.js), and carried, unpaid for, by Tobin, the seller of views.
 // Clue: the splinter carries the glyph and hums the same note as the singing
 // crystals of the swamp of lights (Lorn).
 //
@@ -42,12 +42,14 @@ export const QUESTS = [
     id: Q, title: 'The Light Nobody Looks At', world: 'incal', main: true,
     outro: 'The Lodestar burns bright. For a moment, every level looked up.',
     stages: [
-      { id: 'nima', text: 'Find the sweeper on the high terrace', label: 'Nima, the sweeper', talk: 'nima' },
-      // (the way down on the wings, marked terrace by terrace: src/shaft-ways.js; talking to Ossa first skips it)
+      // (Nima says where the splinter is herself; Ossa keeps it at the shrine, and Dov at the palace gate is someone
+      //  you pass on the way up, no stop of the quest: one person sending you to the next was a finding, issue #85.
+      //  A save at the old 'palace' step goes on to 'look': src/save-migrate.js step 15)
+      { id: 'nima', text: 'Find the sweeper on the high terrace', label: 'Nima, the sweeper', flag: 'incal.nima.heard', at: 'nima' },
+      // (the way down on the wings, marked terrace by terrace: src/shaft-ways.js; the splinter in hand first skips it)
       { id: 'down', text: 'Go down the shaft by the red lamps', label: 'The lamplighters’ drops', goto: 'halfway', radius: 14, vertical: 6 },
-      { id: 'ossa', text: 'Ask at the Upward Shrine, at the bottom', label: 'Ossa, at the bottom of the shaft', talk: 'ossa' },
-      { id: 'palace', text: 'Carry the splinter up to the palace', label: 'The palace gate', talk: 'dov' },
-      { id: 'look', text: 'Look up at the Lodestar from the crown', label: 'Look up', flag: 'incal.lit', at: 'crown' },
+      { id: 'ossa', text: 'Bring the splinter from the Upward Shrine', label: 'The splinter, at the Upward Shrine', flag: 'incal.splinter.given', at: 'ossa', gate: true },
+      { id: 'look', text: 'Carry it to the palace crown and look up', label: 'Look up from the crown', flag: 'incal.lit', at: 'crown' },
       { id: 'tell', text: 'The Lodestar burns again. Go down and tell Nima', label: 'Nima, on the high terrace', talk: 'nima' },
     ],
   },
@@ -71,15 +73,15 @@ export const QUESTS = [
     ],
   },
   {
-    // the cabs fly past anyone without a pass (src/taxi.js): Lio writes one, for a fare paid in advance
+    // the cabs fly past anyone without a pass (src/taxi.js): Lio writes them, and his last one is in Tobin's pocket,
+    // written on credit and never paid for. Walk up to Tobin and he hands it over as you come, grumbling (src/story/incal.js;
+    // talking to him works too). It was Lio, Tobin's coin, then Lio again: one person sending you to the next and back,
+    // issue #85; a save at the old 'back' step has its pass (src/save-migrate.js step 15)
     id: 'incal.pass', title: 'A Pass for the Cabs', world: 'incal',
-    outro: 'A card with the palace seal and something like your name. The cabs stop for you now.',
+    outro: 'A card with the palace seal, Tobin’s name crossed out and something like yours over it. The cabs stop for you now.',
     stages: [
-      { id: 'lio', text: 'Ask Lio how to stop a cab', label: 'Lio, the dispatcher', talk: 'lio' },
-      // (walk up to Tobin and he pays as you come, grumbling: no conversation to sit through between Lio's two. The level
-      // design audit v1.15 read three talks in a row here: Nima told, Lio, Tobin. src/story/incal.js; talking to him works too)
-      { id: 'fare', text: 'Collect Lio’s fare from Tobin', label: 'Tobin, seller of views', goto: 'tobin', radius: 4.5, vertical: 4 },
-      { id: 'back', text: 'Bring Tobin’s coin back to Lio', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio', via: 'Tobin’s telescopes' },   // (via: the way his words send you, for the level design audit)
+      { id: 'lio', text: 'Find the cab dispatcher on the rim', label: 'Lio, the dispatcher', flag: 'incal.pass.heard', at: 'lio' },
+      { id: 'fare', text: 'Get the cab pass Tobin carries, along the rim', label: 'Tobin, seller of views', when: (q) => q.has('cabpass'), at: 'tobin' },
     ],
   },
   {
@@ -107,7 +109,7 @@ export const PEOPLE = {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { quest: Q, stage: 'tell' }, node: 'told' },
-        { if: { quest: Q, stage: ['palace', 'look'] }, node: 'carry' },
+        { if: { quest: Q, stage: 'look' }, node: 'carry' },
         { if: { quest: Q, stage: ['down', 'ossa'] }, node: 'again' },
         { node: 'hello' },
       ],
@@ -135,7 +137,7 @@ export const PEOPLE = {
             "~surprised~ The Lodestar answered. Then a splinter broke off and fell all the way to the bottom. I heard it singing long after I lost sight of it."],
           do: { set: { 'incal.rumour.light': true } },
           choices: [{ text: '~neutral~ Something drained my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
-            { text: '~neutral~ I have it. Ossa gave it to me.', if: { all: [{ has: 'splinter' }, { not: EARLY }] }, goto: 'carry' }],
+            { text: '~neutral~ I have it. It came from the shrine.', if: { all: [{ has: 'splinter' }, { not: EARLY }] }, goto: 'carry' }],
         },
         ship: {
           say: ["~playful~ Your ship too? Whatever passed us has left quite a repair bill.",
@@ -144,9 +146,8 @@ export const PEOPLE = {
         },
         where: {
           say: ["~playful~ The splinter reached the bottom. Everything does eventually. Rain, soup, hats. The lower city has an excellent collection of hats.",
-            "~neutral~ Go *below the smog to the bottom terrace*. Find *Ossa at the Upward Shrine*. She’ll know what landed.",
-            "~whisper~ Tell her Nima still sweeps. She’ll understand."],
-          do: { advance: [Q, 'nima'] },
+            "~neutral~ It’s *below the smog, on the bottom terrace*, in a bowl. They built *the Upward Shrine* round it. Bring it back up to the light."],
+          do: { set: { 'incal.nima.heard': true } },
           choices: [{ text: '~curious~ How do I get down?', goto: 'down' }, { text: '~neutral~ I’ll go down.', end: true }],
         },
         down: {
@@ -159,7 +160,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What is the light?', goto: 'what' }, { text: '~happy~ Goodbye, Nima.', end: true }],
         },
         again: {
-          say: ["~playful~ Find *Ossa at the Upward Shrine*, on *the bottom terrace across the shaft*. Below all that smog."],
+          say: ["~playful~ The splinter’s in *the Upward Shrine*, on *the bottom terrace across the shaft*. Below all that smog."],
           choices: [
             { text: '~neutral~ There’s a mark on the Lodestar’s lower facets.', goto: 'glyph', once: true },
             { text: '~neutral~ On my way.', end: true },
@@ -171,8 +172,8 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ Goodbye, Nima.', end: true }],
         },
         carry: {
-          say: [{ if: { has: 'splinter' }, text: "~surprised~ That’s the splinter? Look, it leans toward the light. *Take it to Dov, the palace guard.* There’s a person under all that uniform." },
-            { if: { not: { has: 'splinter' } }, text: "~neutral~ Go *to Dov at the palace landing*. Tell him what you’re carrying." }],
+          say: [{ if: { has: 'splinter' }, text: "~surprised~ That’s the splinter? Look, it leans toward the light. *Take it up to the palace crown*, right under the light." },
+            { if: { not: { has: 'splinter' } }, text: "~neutral~ *Up to the palace crown*, under the light. Look up at it." }],
           choices: [{ text: '~curious~ What happened, the night the sky rang?', if: { not: { flag: 'incal.rumour.light' } }, goto: 'rang' }, { text: '~neutral~ I will.', end: true }],
         },
         told: {
@@ -203,14 +204,14 @@ export const PEOPLE = {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
         { if: LOOKED, node: 'after' },
-        { if: { quest: Q, stage: ['palace', 'look'] }, node: 'later' },
+        { if: { quest: Q, stage: 'look' }, node: 'later' },
         { if: { quest: Q, stage: ['nima', 'down', 'ossa'] }, node: 'hello' },
         { node: 'hello' },
       ],
       nodes: {
         hello: {
-          say: [{ if: { quest: Q, stage: ['down', 'ossa'] }, text: "~happy~ Nima still sweeps? Good. Someone up there remembers us." },
-            { if: { not: { quest: Q, stage: ['down', 'ossa'] } }, text: "~angry~ Here to admire the poor? Careful where you stand. Some of the scenery has washing to do." },
+          say: [{ if: { flag: 'incal.nima.heard' }, text: "~happy~ Down from Nima’s terrace? Good. Someone up there remembers us." },
+            { if: { not: { flag: 'incal.nima.heard' } }, text: "~angry~ Here to admire the poor? Careful where you stand. Some of the scenery has washing to do." },
             "~neutral~ I’m Ossa. We built *the Upward Shrine* around the splinter that fell into Behla’s laundry. She hasn’t let us forget whose laundry."],
           choices: [
             { text: '~curious~ What came down?', goto: 'splinter' },
@@ -231,7 +232,7 @@ export const PEOPLE = {
           say: ["~whisper~ Look in the bowl: *a splinter of the Lodestar*. Put your ear close. It still sings.",
             "~neutral~ A trader from *the swamp of lights* brought a crystal here once. It sang the same note. I wrote it down so nobody could tell me I’d imagined it."],
           do: { set: { 'clue.incal.perdide': true } },
-          choices: [{ text: '~neutral~ The Lodestar is dimming. Nima thinks it’s because of this.', goto: 'why' }],
+          choices: [{ text: '~neutral~ The Lodestar above is dimming.', goto: 'why' }],
         },
         why: {
           say: ["~solemn~ A light nobody looks at goes out. We know that down here. We just can’t see through the smog to help it.",
@@ -239,14 +240,14 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ Then let me carry it back up.', goto: 'give' }],
         },
         give: {
-          say: ["~playful~ Take it *to the palace at the top*. The guards will object to your boots. Try showing them the miracle first.",
+          say: ["~playful~ Take it *to the palace crown, at the top*, and look up. The guards will object to your boots. Try showing them the miracle first.",
             "~solemn~ And tell them: *we are still down here, and we are still looking*. The light ought to hear it. So should the guards.",
             "~neutral~ To get back up, light the old taxi call-lamp at the terrace edge. One old cab used to answer it."],
-          do: [{ give: 'splinter' }, { set: { 'incal.splinter.given': true } }, { start: 'incal.wren' }, { stage: [Q, 'palace'] }, { track: Q }],
+          do: [{ give: 'splinter' }, { set: { 'incal.splinter.given': true } }, { start: 'incal.wren' }, { stage: [Q, 'look'] }, { track: Q }],
           choices: [{ text: '~solemn~ I’ll carry it up.', end: true }],
         },
         later: {
-          say: ["~happy~ Hear it? Louder already. *Take it up to the palace.* We’ll watch from here."],
+          say: ["~happy~ Hear it? Louder already. *Take it up to the palace crown.* We’ll watch from here."],
           choices: [{ text: '~neutral~ I’m going.', end: true }],
         },
         after: {
@@ -319,7 +320,7 @@ export const PEOPLE = {
     lines: ['~happy~ Halfway tea! Hot at the top, warm at the bottom.', '~tired~ Up or down? Everyone’s one or the other.', '~neutral~ Mind the cups. They’re my only ones.'],
     talk: {
       entry: [
-        { if: { all: [{ quest: Q, stage: 'palace' }, { has: 'splinter' }] }, node: 'carrying' },
+        { if: { all: [{ quest: Q, stage: 'look' }, { has: 'splinter' }] }, node: 'carrying' },
         { if: { quest: 'incal.mirror', stage: 'tell' }, node: 'turned' },
         { if: { quest: 'incal.mirror', done: true }, node: 'after' },
         { if: { quest: 'incal.mirror', active: true }, node: 'busy' },
@@ -395,7 +396,7 @@ export const PEOPLE = {
     lines: ['~angry~ Keep to the ring.', '~neutral~ Eyes on the visitors.', '~tired~ Palace rules.'],
     talk: {
       entry: [
-        { if: { all: [{ quest: Q, stage: 'palace' }, { has: 'splinter' }] }, node: 'splinter' },
+        { if: { all: [{ quest: Q, stage: 'look' }, { has: 'splinter' }, { not: { flag: 'incal.dov.allowed' } }] }, node: 'splinter' },
         { if: { all: [{ has: 'ration' }, { quest: 'incal.ration', active: true }] }, node: 'ration' },
         { if: LOOKED, node: 'lit' },
         { if: { flag: 'incal.dov.allowed' }, node: 'allowed' },
@@ -423,7 +424,7 @@ export const PEOPLE = {
           say: ["~surprised~ Wait. That note. I heard it through the floor of our flat when I was little.",
             "~solemn~ The splinter from Behla’s laundry. You brought it up from the bottom.",
             "~whisper~ Go *up the dome to the crown*, beneath the light. I’ll face the other way. Lots of visitors to inspect over there."],
-          do: [{ advance: [Q, 'palace'] }, { set: { 'incal.dov.allowed': true } }],
+          do: [{ set: { 'incal.dov.allowed': true } }],
           choices: [{ text: '~solemn~ Ossa says: we are still down here, and we are still looking.', goto: 'message' }, { text: '~neutral~ You’re from the bottom.', goto: 'caught' }, { text: '~happy~ Thank you, Dov.', end: true }],
         },
         message: {
@@ -527,8 +528,7 @@ export const RIM = {
     id: 'lio', name: 'Lio', title: 'cab dispatcher', color: '#62c3c9', head: 'hat', cape: 0, look: { head: 'peak', under: 'swept' },
     talk: {
       entry: [
-        { if: { all: [{ quest: 'incal.pass', stage: 'back' }, { has: 'fare' }] }, node: 'paid' },
-        { if: { quest: 'incal.pass', stage: ['fare', 'back'] }, node: 'waiting' },
+        { if: { all: [{ quest: 'incal.pass', active: true }, { flag: 'incal.pass.heard' }] }, node: 'waiting' },
         { node: 'hello' },
       ],
       nodes: {
@@ -539,21 +539,14 @@ export const RIM = {
           choices: [{ text: '~curious~ How do I get a pass?', if: { not: { has: 'cabpass' } }, goto: 'pass' }, { text: '~curious~ Why not below the smog?', goto: 'why' }, { text: '~curious~ Seen anything strange lately?', goto: 'strange' }],
         },
         pass: {
-          say: ["~neutral~ I write them. One fare, paid in advance, and a name. Any name. Most people pick their own.",
-            "~playful~ No coin? Then fetch me one I’m owed. *Tobin, who sells views along the rim*, took a cab on Tuesday and paid in compliments. *Collect his fare*, and the pass is yours."],
-          do: [(ctx) => { const q = ctx.quests; if (!q.isStarted('incal.pass')) q.start('incal.pass'); if (q.stage('incal.pass') === 'lio') q.advance('incal.pass', 'lio'); }],
-          choices: [{ text: '~happy~ I’ll collect it.', end: true }, { text: '~curious~ Why don’t the cabs stop below the smog?', goto: 'why' }],
+          say: ["~neutral~ I write them. One fare, paid in advance. My last blank went to *Tobin, who sells views along the rim*, on credit. He never paid, and he never rides.",
+            "~playful~ *Take it off him.* It’s yours. Cross his name out; the cabs can’t read."],
+          do: [{ start: 'incal.pass' }, { set: { 'incal.pass.heard': true } }],
+          choices: [{ text: '~happy~ I’ll get it.', end: true }, { text: '~curious~ Why don’t the cabs stop below the smog?', goto: 'why' }],
         },
         waiting: {
-          say: [{ if: { quest: 'incal.pass', stage: 'fare' }, text: "~neutral~ *Tobin, along the rim*, selling views of a hole. One fare. He’ll pretend he’s forgotten. He hasn’t." },
-            { if: { not: { quest: 'incal.pass', stage: 'fare' } }, text: "~curious~ Got Tobin’s coin? No? Then the cabs and I will go on ignoring you together." }],
+          say: ["~neutral~ *Tobin, along the rim*, selling views of a hole. My pass is in his pocket. He’ll pretend he’s forgotten. He hasn’t."],
           choices: [{ text: '~neutral~ On my way.', end: true }],
-        },
-        paid: {
-          say: ["~surprised~ Tobin paid? In a coin? And he says he tipped? I’ll frame it, next to the compliments.",
-            "~neutral~ (Lio stamps a card with the palace seal and punches a name into it, more or less yours.) *Your cab pass.* Whistle when a cab goes by, and it stops. Get in one that waits, and it goes."],
-          do: [{ take: 'fare' }, { give: 'cabpass' }, { advance: ['incal.pass', 'back'] }],
-          choices: [{ text: '~happy~ Thank you, Lio.', end: true }],
         },
         why: { say: ["~neutral~ No profitable fares down there. Wren still goes if someone *lights the old call-lamp*. Please don’t make me calculate whether kindness breaks even."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
         strange: { say: ["~scared~ When the sky rang, nine hundred compasses failed at once. You try routing nine hundred lost cabs, every horn in the shaft going at once. I still hear them in my sleep."], do: { set: { 'incal.rumour.light': true } }, choices: [{ text: '~neutral~ Goodbye.', end: true }] },
@@ -567,16 +560,16 @@ export const RIM = {
       '~neutral~ Nine levels. Eleven if you count the smog and the lake. The rich at the top, the poor at the bottom, and a light in the middle that nobody pays for, so nobody looks at it.',
       '~angry~ No looking without paying. That was a look. That’s one coin.',
       { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one, since you’re not buying: there’s a box on top of *the lone stone pillar*, round the rim from your ship. A good climb. A terrible view, of a box.' },
-      { after: LOOKED, if: { not: { quest: 'incal.pass', stage: 'fare' } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
+      { after: LOOKED, if: { not: { quest: 'incal.pass', active: true } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
       // (last: the list's places are the save's memory of what was said)
-      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Tobin counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio, round the outer rim past my telescopes.* Have a look on the house. Tell him I tipped."],
-        do: [{ give: 'fare' }, { advance: ['incal.pass', 'fare'] }] },
+      { after: { quest: 'incal.pass', active: true }, if: { not: { has: 'cabpass' } }, say: ["~angry~ The cabs snubbing you? Here. Lio’s pass. I was going to pay for it. Eventually. Possibly in views.", "~tired~ (Tobin hands over a card with the palace seal, slowly, as if it were the last view on the rim.) Cross my name out. Have a look through the telescopes, on the house."],
+        do: [{ give: 'cabpass' }] },
     ] },
   },
 };
 
-/** What Tobin says as he pays Lio's fare, when you walk up to him for it (src/story/incal.js). */
-export const TOBIN_PAYS = '~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.';
+/** What Tobin says as he hands over Lio's pass, when you walk up to him for it (src/story/incal.js). */
+export const TOBIN_PAYS = '~angry~ The cabs snubbing you? Here. Lio’s pass. I was going to pay for it. Eventually.';
 
 // The middle levels' cab stop (src/levels/content.js): Basile waits there with Fausta's baskets for a cab up, beside her
 // Basket-Shop (level design audit v1.15: since Perrine's stall moved onto the lamplighters' drops, the shop stood alone)

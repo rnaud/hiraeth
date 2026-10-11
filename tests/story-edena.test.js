@@ -101,8 +101,8 @@ test('the main quest: the fallen ship, the log, the flowers drawn aside, the sam
   step(2);
   assert.equal(quests.stage(Q), 'ship');
   at(quests.where(quests.current(Q))); step(2);
-  assert.equal(quests.stage(Q), 'vey');
-  talk(PEOPLE.vey, ['Mira said']);
+  assert.equal(quests.stage(Q), 'inside', 'at the ship: in through the hatch, no stop with Vey first (issue #85)');
+  talk(PEOPLE.vey, ['May I look inside']);
   step(2);
   assert.equal(quests.stage(Q), 'inside');
   // a shove at the flowers only closes them (and Vey notices)

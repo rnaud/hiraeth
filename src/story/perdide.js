@@ -343,8 +343,9 @@ export function setupPerdide(ctx) {
     else if (dC > 120) st.near = false;
     // rain: a real shower makes it sing while you are anywhere near
     if (raining() && dC < 400) sing(3, 'rain');
-    // the quest's song: once Saba has asked for rain, the first song she hears is a new phrase
-    if (singing() && st.k > 0.85 && quests.stage(Q) === 'sing' && dC < 140 && !game.flag('perdide.crystal.sung')) {
+    // the quest's song: the first song while the quest is on (or before Wendel spoke of it: that starts it, issue #85) is
+    // a new phrase (not once the world is done without it)
+    if (singing() && st.k > 0.85 && !quests.isEnded(Q) && !quests.reached(Q, 'splinter') && !game.flag('world.perdide.done') && dC < 140 && !game.flag('perdide.crystal.sung')) {
       game.set('perdide.crystal.sung', true);
       dropSplinter();
       toast('Under the song, a phrase you have heard before: three bright notes and a long arc. A splinter breaks from a spire and falls at its foot.');

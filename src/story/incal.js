@@ -29,7 +29,7 @@ import { quietOr } from '../hint-level.js';
 // down the lower terraces and the smog thins.
 //
 // The cabs don't stop for you at all without a cab pass (src/taxi.js): the first refusal starts
-// Lio's errand (incal.pass); Tobin's fare buys the pass. With it, they still don't stop in the
+// Lio's errand (incal.pass): his last pass is in Tobin's pocket. With it, they still don't stop in the
 // depths (below −200) until you have lit the call-lamp and met Wren, the old cab that still stops
 // there; after that, hailing down there brings Wren (it is free: it stops for anyone). Cabs drive
 // themselves: Wren speaks from the little screen on its dash when you get in (src/story/cab.js).
@@ -262,15 +262,19 @@ export function setupIncal(ctx) {
   Taxi.refusal = ({ how }) => PASS_REFUSAL[how] ?? PASS_REFUSAL.hail;
   Taxi.onRefuse = () => { if (!quests.isStarted('incal.pass')) quests.start('incal.pass'); };
   for (const id of ['lio', 'hask']) { const n = npcs.find((x) => x.def?.id === id); if (n) quests.locate(id, () => n.pos); }
-  // Tobin pays as you walk up to him (the 'fare' stage is a walk to him: 'tobin'), grumbling, without a conversation
+  // Tobin hands over Lio's pass as you walk up to him while the errand is on (Lio told you, or only a cab refused you),
+  // grumbling, without a conversation
   const tobin = npcs.find((x) => x.def?.id === 'hask');
   if (tobin) quests.locate('tobin', () => tobin.pos);
-  game.on('quest', ({ id, stage, prev }) => {
-    if (id !== 'incal.pass' || prev !== 'fare' || stage !== 'back' || quests.has('fare')) return;
-    quests.give('fare');
-    if (tobin) tobin.shout = { text: TOBIN_PAYS, until: (tobin.time ?? 0) + 4.5 };
-    toast('Tobin counts out one bent coin, slowly, as if it were the last view on the rim. Take it to Lio, he says, round the outer rim past his telescopes: a look through them is on the house.');
-  });
+  // (the same pass his listen line gives, in incal-data.js: that line is what src/debug-save.js reads for a debug save's gear)
+  const PASS = 'cabpass';
+  const tobinPays = (pp) => {
+    if (!tobin || !quests.isActive('incal.pass') || quests.has(PASS)) return;
+    if (flat(pp, tobin.pos) > 4.5 || Math.abs(pp.y - tobin.pos.y) > 4) return;
+    quests.give(PASS);
+    tobin.shout = { text: TOBIN_PAYS, until: (tobin.time ?? 0) + 4.5 };
+    toast('Tobin hands over a card with the palace seal, slowly, as if it were the last view on the rim. Lio’s pass, his name crossed out. The cabs stop for you now.');
+  };
 
   // the cabs don't stop in the depths; after Wren, hailing down there brings Wren
   const refuse = () => {
@@ -385,7 +389,6 @@ export function setupIncal(ctx) {
   };
   const arrive = () => {
     quests.take('splinter');
-    if (quests.stage(Q) === 'palace') quests.set(Q, 'look');   // straight past the guard: fine
     game.set('incal.lit', true);
     rig.flare = 1.4;
     sound.chime?.();
@@ -458,7 +461,7 @@ export function setupIncal(ctx) {
     }
 
     // look up at the light from the palace with the splinter: it goes home
-    if ((quests.stage(Q) === 'look' || quests.stage(Q) === 'palace') && quests.has('splinter') && !st.release && camera && onPalace(pp)) {
+    if (quests.stage(Q) === 'look' && quests.has('splinter') && !st.release && camera && onPalace(pp)) {
       camera.getWorldDirection(_d);
       const to = _v.copy(incalPos()).sub(camera.position).normalize();
       const up = _d.y > 0.4 || _d.dot(to) > 0.9;
@@ -468,6 +471,7 @@ export function setupIncal(ctx) {
     }
 
     updateHoist(dt, pp);
+    tobinPays(pp);
     halfway?.update(dt, t, pp);
     // the relay lamp catches the splinter's light as you carry it past (or the Lodestar's, once it burns)
     if (ways && !game.flag('incal.relay.lit') && ((quests.has('splinter') && pp.distanceTo(ways.relay.look) < RELAY_NEAR) || lit())) {

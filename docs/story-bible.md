@@ -260,9 +260,10 @@ written in).
 - **Quests**: deliver a ration from the lower levels to the palace guard (who
   is from the lower levels himself); find Wren, the old cab that still stops for
   the poor (cabs drive themselves; Wren speaks from the little screen on its
-  dash); carry a message up the shaft; earn a cab pass from Lio, the
-  dispatcher on the rim, by collecting the fare Tobin owes him (until then no
-  cab answers your whistle or lets you in; Wren, at its lamp, stops for anyone).
+  dash); carry a message up the shaft; get a cab pass: Lio, the dispatcher on
+  the rim, writes them, and his last one is in Tobin's pocket, written on credit
+  and never paid for (until then no cab answers your whistle or lets you in;
+  Wren, at its lamp, stops for anyone).
   You ride seated inside a cab and tell it where to go.
 - **Gift**: the Warden's harness (v1.38: the jets, firing in the City-Shaft only; the jets anywhere are a debug item), in the Warden's Well on the rim. The route brings the
   City-Shaft in its later half (the seventh world), so the jets come long after
@@ -512,17 +513,17 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **People**: **Edda**, who keeps the halt's lamp and sorts the night mail; **Solange**, her grandmother, who boarded
   the night Edda was born "to see where the plain ends" and never got off, and rides the roofs of the long tail by the
   chalk mark she keeps; **Ambrose**, the conductor, who knows everyone aboard by the cup they drink from.
-- **The quest** (`bazaar.nightmail`, "The Night Mail"; stages wren, board, find, agathe, stop, off, home):
+- **The quest** (`bazaar.nightmail`, "The Night Mail"; stages edda, board, mireille, off, home):
   1. Edda at the halt: forty years of postcards from Solange, one a year, never a question; this year Edda has written
-     back, and can't leave the lamp. She gives you the letter.
+     back, and can't leave the lamp. She gives you the letter, and says where Solange rides: the last roof.
   2. Ring the bell: the train stops for the bell, it has to. The screen fades and you are aboard on the station-side
      porch, the train pulling out of the halt (`?level=overnighttrain&from=bazaar`).
-  3. Ambrose on the porch: Solange never sits inside; she rides the roofs at the very back. Out past the landing wagon, up
-     the ladder, and walk the roofs of the long tail till the rails run out behind you, the plain racing past.
+  3. Out past the landing wagon, up the ladder, and walk the roofs of the long tail till the rails run out behind you,
+     the plain racing past (Ambrose on the porch says the same, if you ask him).
   4. Solange by the chalk mark: she reads the letter with her back to the wind and writes her answer on the back of it
      in chalk. (The mark was there the night she boarded, nearly gone; she drew it over so it wouldn't be, and doesn't
      know who drew it first. A train should have one thing nobody can explain.)
-  5. Back to Ambrose: he pulls the cord; a minute on, the brakes take hold and the train brakes into the market's halt.
+  5. She pulls the cord along the roof herself; a minute on, the brakes take hold and the train brakes into the market's halt.
   6. Step down on the station side once it has stopped (`?level=bazaar&from=overnighttrain`: on the halt's platform).
   7. Edda reads the answer under the lamp, twice: the plain doesn't end, and Solange will get off at the market's halt
      next spring, to see if the lamp is still lit. "It will be."

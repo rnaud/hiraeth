@@ -8,6 +8,23 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.46', date: '2026-10-11', items: [
+    // nobody sends you to somebody else (docs/systems/story.md "Straight to the end"; issue #85)
+    { text: 'In the Signal Market, Madame Sel tells you herself where the tower’s last recording is and how to tune the antenna, instead of sending you to find Kip and then Ferro. Kip hands the recording to anyone who asks for it.',
+      see: 'Talk to Madame Sel under the silent tower: she says the cylinder is on the second skybridge. Or skip her and ask Kip what is in his bag.' },
+    { text: 'In the City-Shaft, Nima says the fallen splinter lies in the Upward Shrine’s bowl, and from the shrine you carry it straight up to the palace crown: the guard at the gate is someone you pass, no longer a stop on the way.',
+      see: 'Talk to Nima on the high terrace, go down to the shrine for the splinter, then go up to the crown without talking to Dov.' },
+    { text: 'The City-Shaft’s cab pass is in Tobin’s pocket, written on credit: walk up to him and he hands it over. No more carrying his coin back to Lio.',
+      see: 'Get refused by a cab on the rim, then walk up to Tobin by his telescopes.' },
+    { text: 'In Viridel, Mira tells you where the fallen ship’s hatch is herself: you no longer have to find Vey and ask her before going in.',
+      see: 'Talk to Mira by her water clock, then walk south to the ship and in under the flower arch.' },
+    { text: 'In Lorn, Wendel tells you what makes the Great Crystal sing, and the song leads straight to the splinter. Saba still listens at its foot, for whoever wants to know what the new phrase means.',
+      see: 'Ask Wendel about the hum, then splash the crystal’s spires three times quickly without talking to Saba.' },
+    { text: 'On the Overnight Train, Edda tells you her grandmother rides the last roof, and Solange pulls the cord for the market’s halt herself: no more asking the conductor, twice.',
+      see: 'Take Edda’s letter, ring the bell, climb to the last roof and give it to Solange: the train brakes for the halt a minute later.' },
+    { text: 'A world’s main quest now counts what you did before anyone told you of it: fetch the splinter, sing the crystal or go into the fallen ship first, and the quest picks up from there.',
+      see: 'In the City-Shaft, go down to the Upward Shrine before talking to Nima: Ossa’s splinter starts the quest at its last climb.' },
+  ] },
   { v: '1.45', date: '2026-10-11', items: [
     // the author's desert playtest (issues #66, #68, #69, #71, #76)
     'Your backpack’s straps now run over the tops of your shoulders and down your chest to a brass buckle, instead of straight up into your collar beside your ears.',

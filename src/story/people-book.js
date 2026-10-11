@@ -429,7 +429,7 @@ export const BOOK = {
     ], ['At her tea stall where the lamplighters’ drops land, halfway down.']),
     P('lio', 'Lio', 'Dispatches the City-Shaft’s cabs', [
       'Lio dispatches nine hundred cabs, which stop for passes, not people, and never below the smog. When the sky rang, every compass in them failed at once.',
-      [done('incal.pass'), 'Lio wrote you a cab pass, paid with the fare Tobin owed.'],
+      [done('incal.pass'), 'Lio’s last cab pass was in Tobin’s pocket, never paid for. It is yours now.'],
     ], ['At the cab stand on the rim.']),
     P('hask', 'Tobin', 'Sells views along the rim', [
       'Tobin sells views of the abyss along the rim. Up is free, much to his regret.',
@@ -679,7 +679,7 @@ export const GIFTS = {
   ossa: [[f('incal.splinter.given'), 'She gave you the Lodestar splinter to carry up.']],
   dov: [[f('incal.dov.fed'), 'You gave him Pip’s ration tin.']],
   lio: [[done('incal.pass'), 'Lio wrote you a cab pass.']],
-  hask: [[past('incal.pass', 'back'), 'Tobin paid you the coin he owed Lio.']],
+  hask: [[done('incal.pass'), 'Tobin handed you the pass Lio wrote him on credit.']],
   ambroise: [[f('garage.signal.given'), 'He gave you the signal to carry round.']],
   lune: [[f('garage.signal.read'), 'You brought Lune the stamped signal.']],
   wen: [[done('buried.tooth'), 'You brought the year’s tooth sliver; Wen said to keep it.']],

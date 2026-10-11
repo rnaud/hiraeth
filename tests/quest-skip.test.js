@@ -91,3 +91,49 @@ test('the desert: the water let out and the tank filled before anyone sent you, 
   for (let i = 0; i < 3; i++) q3.update(null);
   assert.equal(q3.stage('desert.power'), 'box', 'the chest on the tree, for the tank');
 });
+
+test('an opening quest whose talk never came starts past what is done (issue #85): its goal reached is its goal reached', async () => {
+  const { game, quests } = world([
+    { id: 'meet', text: 'Hear Bob out', flag: 'bob.heard' },
+    { id: 'jar', text: 'Get the jar', flag: 'jar', gate: true },
+    { id: 'home', text: 'Come home', flag: 'home' },
+  ]);
+  quests.opensWith('q', 'bob');
+  game.set('bob.heard', true);
+  quests.update(null);
+  assert.equal(quests.isStarted('q'), false, 'its first step alone (the opening talk’s own flag) starts nothing');
+  game.set('home', true);
+  quests.update(null);
+  assert.equal(quests.isStarted('q'), false, 'nothing past a gate whose goal isn’t met');
+  game.set('jar', true);
+  quests.update(null);
+  assert.equal(quests.isDone('q'), true, 'the jar and home: done, Bob or no Bob');
+  // the worlds of issue #85: straight to the goal, nobody seen first
+  const worlds = [
+    ['incal-data.js', 'incal.light', { 'incal.splinter.given': true }, 'look'],
+    ['edena-data.js', 'edena.garden', { 'edena.cabin.seen': true }, 'log'],
+    ['perdide-data.js', 'perdide.crystal', { 'perdide.crystal.sung': true }, 'splinter'],
+    ['bazaar-data.js', 'bazaar.signal', { 'bazaar.kip.gave': true, 'bazaar.antenna.tuned': true }, 'play'],
+  ];
+  for (const [file, id, flags, want] of worlds) {
+    const { QUESTS: list } = await import(`../src/story/${file}`);
+    const g = new GameState(memory()), q = new Quests({ game: g });
+    for (const d of list) q.define(d);
+    q.opensWith(id, 'someone');
+    for (const [k, v] of Object.entries(flags)) g.set(k, v);
+    q.update(null);
+    assert.equal(q.stage(id), want, `${id}: straight to "${want}"`);
+  }
+});
+
+test('nobody sends you to somebody else (issue #85): no talk step to one person straight after one to another', async () => {
+  for (const file of ['bazaar-data.js', 'incal-data.js', 'edena-data.js', 'perdide-data.js', 'night-train-data.js']) {
+    const { QUESTS: list } = await import(`../src/story/${file}`);
+    for (const q of list) q.stages.forEach((s, i) => {
+      const prev = q.stages[i - 1];
+      assert.ok(!(s.talk && prev?.talk && prev.talk !== s.talk), `${q.id}: ${prev?.talk} → ${s.talk}`);
+    });
+  }
+  const { QUESTS: train } = await import('../src/story/night-train-data.js');
+  assert.ok(!train[0].stages.some((s) => s.talk === 'ambrose'), 'the conductor is someone you meet aboard, no step');
+});

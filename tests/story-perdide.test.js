@@ -143,7 +143,7 @@ test('the main quest: the crystal sings the song of the light that struck the sh
   step(2);
   assert.equal(quests.stage('perdide.crystal'), 'cross');
   at(W.places.sabaAt.clone().add(V(1.5, 0, 0))); step(2);
-  assert.equal(quests.stage('perdide.crystal'), 'saba');
+  assert.equal(quests.stage('perdide.crystal'), 'sing', 'at the crystal: no talk with Saba needed first (issue #85)');
   talk(PEOPLE.saba, ['Why does it sing?', 'Calling what?', 'I carry water', 'What’s carved', 'My ship has that mark']);
   step(2);
   assert.equal(quests.stage('perdide.crystal'), 'sing');
@@ -160,7 +160,7 @@ test('the main quest: the crystal sings the song of the light that struck the sh
   assert.ok(level.plants.filter((p) => !p.bed).every((p) => p.open < 0.5), 'every jaw in the swamp shuts');
   assert.equal(game.flag('perdide.crystal.sung'), true);
   step(2);
-  assert.equal(quests.stage('perdide.crystal'), 'listen');
+  assert.equal(quests.stage('perdide.crystal'), 'splinter', 'the splinter next; what Saba makes of the phrase is for whoever asks');
   // the clue: the song is the singing light's
   talk(PEOPLE.saba, ['I’ve heard it before', 'What should I do']);
   assert.equal(game.flag('perdide.clue.ship'), true);

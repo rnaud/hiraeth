@@ -2,6 +2,16 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.46 — 2026-10-11
+
+- A world’s main quest now counts what you did before anyone told you of it: fetch the splinter, sing the crystal or go into the fallen ship first, and the quest picks up from there.
+- On the Overnight Train, Edda tells you her grandmother rides the last roof, and Solange pulls the cord for the market’s halt herself: no more asking the conductor, twice.
+- In Lorn, Wendel tells you what makes the Great Crystal sing, and the song leads straight to the splinter. Saba still listens at its foot, for whoever wants to know what the new phrase means.
+- In Viridel, Mira tells you where the fallen ship’s hatch is herself: you no longer have to find Vey and ask her before going in.
+- The City-Shaft’s cab pass is in Tobin’s pocket, written on credit: walk up to him and he hands it over. No more carrying his coin back to Lio.
+- In the City-Shaft, Nima says the fallen splinter lies in the Upward Shrine’s bowl, and from the shrine you carry it straight up to the palace crown: the guard at the gate is someone you pass, no longer a stop on the way.
+- In the Signal Market, Madame Sel tells you herself where the tower’s last recording is and how to tune the antenna, instead of sending you to find Kip and then Ferro. Kip hands the recording to anyone who asks for it.
+
 ## v1.45 — 2026-10-11
 
 - What you find in a makers’ chest comes first: its card is a low strip along the bottom of the screen, the name large and what it is and does small beside each other, so the thing held up in the light is never behind the words, on a handheld’s screen too.

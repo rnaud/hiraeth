@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 14);
+  assert.equal(MIGRATED(), 15);
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -121,7 +121,7 @@ test('the Givers’ House remade (v1.44, step 13): every old save keeps the swor
   const both = run({ 'item.backpack': true, 'met.mireille': true, 'quest.bazaar.nightmail': 'done' });
   assert.equal(both['met.solange'], true, 'step 12: Solange met');
   assert.equal(both['item.sword'], true, 'step 13: the sword kept');
-  assert.equal(both['save.migrated'], 14);
+  assert.equal(both['save.migrated'], MIGRATED());
   // a save that had step 12 already gets only 13
   const after12 = { 'save.migrated': 12, 'item.backpack': true };
   migrateFlags(after12);
@@ -142,7 +142,7 @@ test('the gun and ember mode in one chest (issue #83, step 14): a save that open
   // neither: nothing given
   const none = run({ 'item.backpack': true, 'item.doublejump': true });
   assert.equal(none['item.gun'], undefined); assert.equal(none['item.fire'], undefined); assert.equal(none['box.desert.gun'], undefined);
-  assert.equal(none['save.migrated'], 14);
+  assert.equal(none['save.migrated'], MIGRATED());
 });
 
 test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness (since v1.42 its bellows)', () => {
@@ -265,4 +265,35 @@ test('the Overnight Train’s Mireille is Solange (v1.43), with an id of her own
   const kelp = { 'save.migrated': 11, 'met.mireille': true, 'quest.underwater.kelp': 'done' };
   migrateFlags(kelp);
   assert.equal(kelp['met.solange'], undefined, 'never on the train');
+});
+
+test('nobody sends you to somebody else (issue #85, step 15): a save on a step that went is on the step after', async () => {
+  const { QUESTS: INCAL } = await import('../src/story/incal-data.js');
+  const { QUESTS: EDENA } = await import('../src/story/edena-data.js');
+  const { QUESTS: PERDIDE } = await import('../src/story/perdide-data.js');
+  const { QUESTS: TRAIN } = await import('../src/story/night-train-data.js');
+  const run = (flags) => { const f = { 'save.migrated': 14, ...flags }; migrateFlags(f); return f; };
+  const stages = (list, id) => list.find((q) => q.id === id).stages.map((s) => s.id);
+  assert.equal(run({ 'quest.incal.light': 'palace' })['quest.incal.light'], 'look');
+  assert.equal(run({ 'quest.edena.garden': 'vey' })['quest.edena.garden'], 'inside');
+  assert.equal(run({ 'quest.perdide.crystal': 'saba' })['quest.perdide.crystal'], 'sing');
+  assert.equal(run({ 'quest.perdide.crystal': 'listen' })['quest.perdide.crystal'], 'splinter');
+  assert.equal(run({ 'quest.bazaar.nightmail': 'find' })['quest.bazaar.nightmail'], 'mireille');
+  const stop = run({ 'quest.bazaar.nightmail': 'stop', 'item.reply': 1 });
+  assert.equal(stop['quest.bazaar.nightmail'], 'off');
+  assert.equal(stop['nightmail.stop'], true, 'the stop asked for, as Solange’s cord does now');
+  // the cab pass: Tobin's coin on its way back to Lio is the pass in hand
+  const pass = run({ 'quest.incal.pass': 'back', 'item.fare': 1 });
+  assert.equal(pass['quest.incal.pass'], 'done');
+  assert.equal(pass['item.fare'], 0);
+  assert.equal(pass['item.cabpass'], 1);
+  // where they go is a stage the quest still has, and the steps that went are gone
+  for (const [list, id, gone, to] of [[INCAL, 'incal.light', 'palace', 'look'], [EDENA, 'edena.garden', 'vey', 'inside'],
+    [PERDIDE, 'perdide.crystal', 'saba', 'sing'], [PERDIDE, 'perdide.crystal', 'listen', 'splinter'],
+    [TRAIN, 'bazaar.nightmail', 'find', 'mireille'], [TRAIN, 'bazaar.nightmail', 'stop', 'off'], [INCAL, 'incal.pass', 'back', 'fare']]) {
+    assert.ok(!stages(list, id).includes(gone), `${id} has no ${gone}`);
+    assert.ok(stages(list, id).includes(to), `${id} has ${to}`);
+  }
+  // a save on a step that stays is left where it was
+  assert.equal(run({ 'quest.incal.light': 'ossa' })['quest.incal.light'], 'ossa');
 });

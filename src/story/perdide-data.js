@@ -30,11 +30,12 @@ export const QUESTS = [
     id: Q, title: 'The Great Crystal', world: 'perdide', main: true,
     outro: 'The splinter hums with your tank. The crystal sang a phrase like the one you heard the night the light passed your ship.',
     stages: [
-      { id: 'wendel', text: 'Ask Wendel, the egg-warden, about the hum', label: 'Wendel, the egg-warden', flag: 'perdide.wendel.heard', at: 'wendel' },
+      { id: 'wendel', text: 'Hear Wendel, the egg-warden, on the hum', label: 'Wendel, the egg-warden', flag: 'perdide.wendel.heard', at: 'wendel' },
       { id: 'cross', text: 'Cross south, then east, to the Great Crystal', label: 'The Great Crystal', goto: 'crystalFoot', radius: 30 },
-      { id: 'saba', text: 'Talk to Saba at the crystal’s foot', label: 'Saba, the Listener', flag: 'perdide.saba.heard', at: 'saba' },
+      // (Wendel says what makes it sing herself; Saba, the Listener at its foot, is someone you meet there, and what she
+      //  makes of the new phrase is for whoever asks: one person sending you to the next was a finding, issue #85. A save
+      //  at the old 'saba' goes on to 'sing', at 'listen' to 'splinter': src/save-migrate.js step 15)
       { id: 'sing', text: 'Make the crystal sing: rain, or your fluid', label: 'The Great Crystal', flag: 'perdide.crystal.sung', at: 'crystal' },
-      { id: 'listen', text: 'Ask Saba about the new phrase', label: 'Saba, the Listener', flag: 'perdide.clue.ship', at: 'saba' },
       { id: 'splinter', text: 'Pick up the splinter the song shook loose', label: 'The fallen splinter', flag: 'perdide.splinter.taken', at: 'splinter' },
       { id: 'cave', text: 'Carry the splinter to the western island’s cave', label: 'The heart of the crystal cave', flag: 'perdide.heart.rung', at: 'heart', home: 'Wendel’s egg-lamps' },   // (home: the way back the ring's page sends you, for the level design audit)
     ],
@@ -102,7 +103,7 @@ export const LANDING = [
           choices: [{ text: '~neutral~ I’ll try it.', end: true }, { text: '~curious~ And what hums in the east?', goto: 'hum' }],
         },
         hum: {
-          say: ["~neutral~ The Great Crystal is east, over the hill and through the ford. You can walk there. The water will reach your knees. It considers that polite.", "~solemn~ Rain makes it sing. Every jaw-plant shuts while it does. *Saba sits at its foot*. She thinks it fell from the sky."],
+          say: ["~neutral~ The Great Crystal is east, over the hill and through the ford. You can walk there. The water will reach your knees. It considers that polite.", "~solemn~ Rain makes it sing. No rain for days. *Your tank could stand in for it: three quick splashes on the spires.* Saba, who listens at its foot, says it fell from the sky."],
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [
             { text: '~curious~ Fell from where?', goto: 'fell' },
@@ -110,20 +111,20 @@ export const LANDING = [
           ],
         },
         value: {
-          say: ["~curious~ Value depends who you ask. I keep eggs. Corm loves teeth. Try *the Great Crystal, east through the ford*. Hard to overlook that one.", "~playful~ *Ask Saba beside it.* She’s spent forty years listening. Allow a little time for her reply."],
+          say: ["~curious~ Value depends who you ask. I keep eggs. Corm loves teeth. Try *the Great Crystal, east through the ford*. Hard to overlook that one.", "~playful~ Rain makes it sing. *Three quick splashes from your tank* might pass for rain."],
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }],
         },
-        fell: { say: ["~neutral~ Ask *Saba at the crystal*. I’m qualified in eggs, not enormous singing rocks."], choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }] },
+        fell: { say: ["~neutral~ That’s Saba’s idea. She has listened at its foot forty years. I’m qualified in eggs, not enormous singing rocks."], choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }] },
         glyph: {
           say: ["~neutral~ {glyph} *The Hush.* Three raindrops over a closed mouth. We put it on things we’d prefer the plants not to eat. Boots, eggs, small relatives.", "~solemn~ It’s carved beneath the Great Crystal too. The plants leave that alone. Mind you, it would be an ambitious meal.", "~sad~ Look for *the sky-egg on the mossy rise*: a blue star-chest covered in that mark. Plants won’t touch it. It won’t open for us."],
           do: { set: { 'perdide.glyph.heard': true } },
           choices: [{ text: '~happy~ Thank you, Wendel.', end: true }],
         },
         again: {
-          say: [{ if: { quest: Q, stage: ['cross', 'saba'] }, text: "~neutral~ *East over the hill, through the ford.* Follow the hum to the crystal." },
+          say: [{ if: { quest: Q, stage: 'cross' }, text: "~neutral~ *East over the hill, through the ford.* Follow the hum to the crystal." },
             { if: { quest: Q, stage: 'sing' }, text: "~playful~ Waiting for rain? Your backpack seems to be carrying a useful imitation." },
-            { if: { quest: Q, reached: 'listen' }, text: "~surprised~ The crystal sang! Every jaw shut at once. I could hear myself thinking. Novel experience." }],
+            { if: { quest: Q, reached: 'splinter' }, text: "~surprised~ The crystal sang! Every jaw shut at once. I could hear myself thinking. Novel experience." }],
           choices: [
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
             { text: '~happy~ See you, Wendel.', end: true },
@@ -245,9 +246,9 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { quest: Q, done: true }, node: 'after' },
+        { if: { all: [{ flag: 'perdide.crystal.sung' }, { not: { flag: 'perdide.clue.ship' } }] }, node: 'new' },
         { if: { quest: Q, reached: 'splinter' }, node: 'go' },
-        { if: { quest: Q, stage: 'listen' }, node: 'new' },
-        { if: { quest: Q, stage: 'sing' }, node: 'waiting' },
+        { if: { all: [{ flag: 'perdide.saba.heard' }, { not: { flag: 'perdide.crystal.sung' } }] }, node: 'waiting' },
         { node: 'hello' },
       ],
       nodes: {

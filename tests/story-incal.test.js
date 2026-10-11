@@ -134,7 +134,9 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   // the marker is on Nima
   assert.ok(quests.objective().position.distanceTo(W.people.nima.pos) < 0.01);
   talk(PEOPLE.nima, ['It looks dim', 'The night the sky rang', 'Where did the piece']);
+  step(2);
   assert.equal(quests.stage('incal.light'), 'down', 'down the lamplighters’ drops first');
+  assert.ok(!/Ossa/.test(PEOPLE.nima.talk.nodes.where.say.join(' ')), 'Nima says where the splinter is, not whom to ask (issue #85)');
   // (the way down: landing to landing; halfway, at Perrine's stall, the stage is done)
   at(level.shaft.ways.landings.find((l) => l.y === -24).at.clone()); step(2);
   assert.equal(quests.stage('incal.light'), 'ossa');
@@ -147,10 +149,10 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   assert.equal(taxi.mode, before, 'a cab won’t stop in the depths');
   assert.ok(toasts.some((t) => /flies on/.test(t)));
   // Ossa gives the splinter (and the clue: it hums like the swamp's crystal)
-  talk(PEOPLE.ossa, ['What came down', 'The Lodestar is dimming', 'Then let me carry']);
+  talk(PEOPLE.ossa, ['What came down', 'The Lodestar above is dimming', 'Then let me carry']);
   assert.ok(quests.has('splinter'));
   assert.equal(game.flag('clue.incal.perdide'), true);
-  assert.equal(quests.stage('incal.light'), 'palace');
+  assert.equal(quests.stage('incal.light'), 'look', 'up to the crown: no stop at the gate');
   assert.ok(quests.isActive('incal.wren'), 'Ossa mentions the call-lamp');
   step(3);
   // the splinter floats at your shoulder
@@ -162,9 +164,10 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   at(relay.look.clone().add(V(4, -2, 4))); step(2);
   assert.equal(game.flag('incal.relay.lit'), true);
   assert.ok(relay.light.w > 0 && toasts.some((t) => /relay lamp/.test(t)), 'it burns, and a line says so');
-  // up at the palace, Dov lets you by
+  // up at the palace, Dov knows the note, and looks the other way (someone you pass, not a step)
   at(P.palace.dov.clone().add(V(2, 0, 0)));
   talk(PEOPLE.dov, ['You’re from the bottom']);
+  assert.equal(game.flag('incal.dov.allowed'), true);
   assert.equal(quests.stage('incal.light'), 'look');
   // stand on the crown and look up: the splinter goes home and the light burns
   at(P.palace.crown.clone());
@@ -273,7 +276,7 @@ test('side quests: the call-lamp and Wren, Pip’s ration for Dov', async () => 
   clearInteractables();
 });
 
-test('the cabs ignore you without a pass: Lio writes one for the fare Tobin owes him', async () => {
+test('the cabs ignore you without a pass: Lio’s last one is in Tobin’s pocket', async () => {
   const { Taxi, CAB_PASS } = await import('../src/taxi.js');
   const { Player } = await import('../src/player.js');
   const { items, gearHtml } = await import('../src/items.js');
@@ -299,26 +302,20 @@ test('the cabs ignore you without a pass: Lio writes one for the fare Tobin owes
   assert.match(notes.at(-1) ?? '', /PASS HOLDERS ONLY/);
   // Wren stops for anyone
   assert.equal(W.cab.refuses(p), false);
-  // Lio, then Tobin's coin, then Lio again: the pass
+  // Lio says where his last pass is: in Tobin's pocket (no coin carried back to him: issue #85)
   talk(RIM.lio, ['How do I get a pass']);
+  step(2);
   assert.equal(quests.stage('incal.pass'), 'fare');
-  // walk up to Tobin and he pays as you come, grumbling (no conversation between Lio's two: level design audit v1.15)
+  // walk up to Tobin and he hands it over as you come, grumbling (no conversation: level design audit v1.15)
   const tobin = npcs.find((n) => n.def?.id === 'hask');
-  assert.equal(quests.current('incal.pass').goto, 'tobin');
   assert.ok(quests.where(quests.current('incal.pass')).distanceTo(tobin.pos) < 0.5, 'the marker on Tobin');
   at(tobin.pos.clone().add(V(2, 0, 1)));
   step(2);
-  assert.ok(quests.has('fare'), 'Tobin’s coin');
-  assert.equal(quests.stage('incal.pass'), 'back');
-  assert.match(tobin.shout?.text ?? '', /Lio sent you/, 'he says so as he pays');
-  // (talking to him after: no second coin)
+  assert.match(tobin.shout?.text ?? '', /Lio’s pass/, 'he says so as he hands it over');
+  // (talking to him after: no second pass)
   const h = new DialogueRunner(RIM.hask, { game, quests });
   while (!h.ended && h.advance());
-  assert.equal(game.flag('item.fare'), 1, 'one coin');
-  const r = new DialogueRunner(RIM.lio, { game, quests });
-  assert.equal(r.nodeId, 'paid');
-  while (!r.ended && r.advance());
-  assert.ok(!quests.has('fare'));
+  assert.equal(game.flag(`item.${CAB_PASS}`), 1, 'one pass');
   assert.ok(quests.has(CAB_PASS) && items.has(CAB_PASS), 'the cab pass, in hand');
   assert.equal(quests.isDone('incal.pass'), true);
   assert.match(gearHtml(items.owned()), /Cab pass/, 'listed in the gear');
