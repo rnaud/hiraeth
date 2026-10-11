@@ -381,3 +381,32 @@ on the Xbox"; Unity's numbers are `LocalState\unity.log` (`BridgeMetrics`), the 
   is the large piece of work the comparison points at; QuickJS makes the build run, not play.
 - Found on the way, in Puerts' IL2CPP glue with QuickJS: two engines at once, and `ScriptEnv.Tick`, crash the player
   (worked around: one engine, no Tick).
+
+### With V8's JIT (October 2026, build 1777)
+
+Puerts' V8 relinked for UWP (`scripts/unity-uwp-v8.ps1`, worked out in `rnaud/puerts-uwp`) runs in the sideloaded
+app with its JIT, no `codeGeneration` capability needed: the console allows `PAGE_EXECUTE_READWRITE` to a Dev Mode
+app. The same Unity build otherwise; Puerts' `Tick` on and the sound on an engine of its own, neither crashed.
+
+| | QuickJS (build 1751) | V8 JIT, cold | V8 JIT, relaunch |
+|---|---|---|---|
+| `Memento.start` (the JavaScript builds the world) | 172.8 s | **5.1 s** | 5.1 s |
+| First frame of the world | ~209 s | **37.8 s** | 34.5 s |
+| of which Unity's stall before the render | 24–26 s | 26.9 s | 24.1 s |
+| fps at the spawn | 2.7 | **40.8** (24.0 ms, p95 27) | 40.6 (24.2 ms) |
+| CPU main / render thread | 367 / 5.5 ms | 14.7 / 8.0 ms | 15.2 / 8.0 ms |
+| GPU | 7.3 ms | 8.3 ms | 8.3 ms |
+| the script a frame (its thread) / the main thread's wait on it | 360 / 360 ms | 15.7 / 1.6 ms | 15.6 / 1.7 ms |
+
+- **The script is no longer the wall**: the world builds 34× faster, a frame's script 23× faster, and it runs beside
+  Unity's frame (BridgeRunner hands frame N+1 to the script's thread as the main thread goes on with N: the wait is
+  1.7 ms). Against the web build on the same console (17–21 fps, a 140 s cold first frame), Unity with V8 draws the
+  desert at about twice the frame rate and shows it in a quarter of the time.
+- **Not yet 60 fps**: the 24 ms frame is longer than every thread's own time (main 15, the script 15.6, render 8, GPU
+  8.3 ms): something serialises them for ~9 ms a frame. The next build logs the main thread's phases and the present
+  wait to find it, and `-idle 20 -split` takes the script's 15.6 ms apart by system.
+- **The load is now Unity's**: 5 s of script, 25 s of the stall before the first render (the GPU Resident Drawer is the
+  first suspect: `-no-grd`).
+- Measured by itself (rnaud/puerts-uwp's bench, the same bundle against a stand-in of the C# host, no Unity): the world
+  build 6.0 s with the JIT, 63.8 s jitless, 172.5 s QuickJS; a frame's script 12.6 ms, 97 ms and 231 ms; Octane 2
+  48,100, 1,423 and 425.
