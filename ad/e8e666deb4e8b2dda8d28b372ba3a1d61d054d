@@ -1,0 +1,48 @@
+scripts/unity-uwp-docker.ps1
+  s_74ed6129120f6d::t_6eebda4fc97337 1-60
+scripts/unity-glue-key.mjs
+  s_9ca76055a220ed::t_e1f8ecefb1966c 1-57
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_ccba06f7690fef 394-410
+  s_9ca76055a220ed::t_efcfca73701e2e 411-413
+tests/unity-xbox.test.js
+  s_6536f4de62e0c5::t_b479511dae8dd8 43-103
+scripts/unity-ci-cache-prune.sh
+  s_74ed6129120f6d::t_eda47924d7b095 8-9,14-15,18-19
+.github/workflows/unity-xbox.yml
+  s_74ed6129120f6d::t_49fdb231d2938f 17-20,50-51,53,82-86,138-143,151,160-162,321-336,338,352-375,423,425
+scripts/unity-uwp-obj-times.ps1
+  s_9ca76055a220ed::t_2f0adc5670a882 1-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ade8e666deb4e8b2dda8d28b372ba3a1d61d054d",
+  "prompts": {},
+  "sessions": {
+    "s_6536f4de62e0c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4411cd923d5635cc",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_74ed6129120f6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12b36-7519-7462-9cc9-a30336c7a79d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
