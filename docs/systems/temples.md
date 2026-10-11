@@ -472,6 +472,15 @@ metres over the ledge (the Roost's two vents and one stone, taught a house early
 The marker (`logic.next`) now also points at a ball whose stop holds a door shut (`holdsShut`: a gate that wants it
 `not` there), so it no longer stops pointing at the Gulf's vent stone.
 
+The **Builders' Greenhouse** (`edena.js`, 3.78 after round 1, its curve 1) gets its late steps up: the Bud Passage's bud is
+in the shade until a ball turns the passage's louvre onto it (the bloom with the push, where it was the bloom alone), and
+past the Vine Gulf, west off its far side, the **Seed Vault** (`VAULT`): one louvre, one ball, two seeds at the foot of a
+wall of glass; the vine climbs it only from both seeds, so the ball brings the sun to one, then the other. The great key on
+the ledge at the top opens the door past the bud (`dB`) into the Glasshouse. Its Cold Frame's eyes and the Glass Stair's
+eye now come before their balls in `LOGIC`, so the marker points at an eye that can wake before the ball's other plate
+(it went back and forth between the plates; the playthrough now plays the Greenhouse and the Engine-House to their
+guardians, and reports a temple it walks eighty steps in without getting anywhere).
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

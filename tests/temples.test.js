@@ -27,7 +27,7 @@ import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY, FROM_FOUR } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
-import { SITE as SITE_EDENA, SUN } from '../src/temples/edena.js';
+import { SITE as SITE_EDENA, SUN, VAULT } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { BELLOWS_NEXT, upUsed, VANES } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
@@ -403,6 +403,15 @@ test('the Builders’ Greenhouse is a hub (issue #23): either wing alone gives i
   const noArena = solve(L, { items, forbid: ['arW'] });
   assert.ok(noArena.logic.isFound('kE') && !noArena.stuck.includes('stair'), 'the Cold Frame alone: its key, and the stair stays shut');
   assert.deepEqual(TEMPLES.edena.def.arenas.map((A) => A.el), ['arW']);
+  // (v1.49) past the bud at the top of the glass, the great key's door: the Seed Vault's, its two seeds grown in turn
+  const noVault = solve(L, { items, forbid: ['sdB'] });
+  assert.ok(noVault.stuck.includes('ante') && !noVault.stuck.includes('hall'), 'without the Seed Vault the Glasshouse stays shut');
+  const g = new GameState(null);
+  for (const [k, v] of Object.entries({ 'open.d1': true, 'open.d2': true, gadget: true, 'open.d3': true, 'open.vine1': true, 'lit.seed2': true, 'open.d4': true, checkpoint: 'gulfTop' })) g.set(`temple.edena.${k}`, v);
+  migrateTemples(g);
+  const E = new TempleLogic(L, { store: flagStore(g, 'edena'), has: (i) => [...items, 'bloom'].includes(i) });
+  E.update();
+  assert.ok(E.isOpen('dB') && E.keys('big') === 0, 'old saves past the bud find the great key in its door');
 });
 
 test('the Warden’s Well is a hub (issue #23): either wing alone gives its key, the balcony’s door takes both, solved either way round; old saves past it find it open', () => {
@@ -3050,7 +3059,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   own();
 });
 
-test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, the hub’s wings: the Shade House’s arena and the Cold Frame’s two eyes, each a small key for the Glass Stair’s door, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and its try in the chamber’s sun, the bud in the sun a room on, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
+test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, the hub’s wings: the Shade House’s arena and the Cold Frame’s two eyes, each a small key for the Glass Stair’s door, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and its try in the chamber’s sun, the bud in the shade a room on and the passage’s ball that turns its louvre, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, the Seed Vault’s two seeds and one ball for the great key, the great lock past the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('edena');
@@ -3187,7 +3196,16 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.ok(local().y < 18.5, `back on the floor before the bud (${where()})`);
   bud.hit('bloom');
   wait(2.6);
-  assert.equal(rt.logic.isOpen('d3'), true, 'bloomed, it opens');
+  assert.equal(rt.logic.isOpen('d3'), false, 'bloomed in the shade, it stirs and stays shut');
+  assert.ok(said(/in the shade/), 'and says why');
+  // the passage's ball onto its plate by the west wall: the louvre turns, and its beam swings onto the bud
+  assert.equal(roll('ballB', 'pB', 1), true, `the passage's ball onto its plate (${where()})`);
+  const passage = beams.find((b) => b.spots.some((s) => s.when?.drumOn?.[0] === 'ballB'));
+  for (let i = 0; i < 5 / DT && !beamOn(passage, passage.spots[0].pos); i++) frame();
+  assert.ok(beamOn(passage, passage.spots[0].pos), 'the beam swings onto the bud');
+  bud.hit('bloom');
+  wait(2.6);
+  assert.equal(rt.logic.isOpen('d3'), true, 'bloomed in the sun, it opens');
   // ---- the Vine Gulf: the seed at the lip is in the shade; the sun-ball turns the great louvre onto it
   assert.equal(walk(L(0, 18, 106.9)), true, `to the gulf's edge (${where()})`);
   const seed1 = rt.piece('seed1');
@@ -3222,12 +3240,43 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(rt.logic.drumOn('sb', 'pG'), true, 'rooted: it rolls no more');
   wait(3);
   assert.equal(rt.logic.isOpen('d4'), true, 'its vine climbs into the bud, and the bud opens');
+  // ---- the Seed Vault, west off the gulf's far side: two seeds at the glass's foot, one ball for the louvre's beam
+  const G0 = 103.9;
+  assert.equal(walk(L(-8, 18, G0 + VAULT.door)) && walk(L(-16, 18, G0 + VAULT.door)), true, `into the Seed Vault (${where()})`);
+  const sdA = rt.piece('sdA'), sdB = rt.piece('sdB'), kB = rt.piece('kB');
+  sdA.hit('bloom'); sdB.hit('bloom');
+  assert.ok(!rt.logic.isLit('sdA') && !rt.logic.isLit('sdB'), 'both in the shade: pale, and fold back');
+  assert.equal(roll('ballV', 'pV1', -1), true, `the ball onto the south plate (${where()})`);
+  const vaultBeam = beams.find((b) => b.spots.some((s) => s.when?.drumOn?.[0] === 'ballV'));
+  for (let i = 0; i < 5 / DT && !beamOn(vaultBeam, vaultBeam.spots[0].pos); i++) frame();
+  sdA.hit('bloom');
+  assert.equal(rt.logic.isLit('sdA'), true, 'the sun on the south seed: it grows');
+  wait(1);
+  assert.equal(kB.free() && rt.logic.isOpen('vineV'), false, 'one seed is not enough for the vine');
+  assert.equal(roll('ballV', 'pV2', 1), true, `the ball over to the north plate (${where()})`);
+  for (let i = 0; i < 5 / DT && !beamOn(vaultBeam, vaultBeam.spots[1].pos); i++) frame();
+  assert.equal(rt.logic.isLit('sdA'), true, 'grown in the sun, the south seed stays grown');
+  sdB.hit('bloom');
+  assert.equal(rt.logic.isLit('sdB'), true, 'and the north one grows');
+  wait(3);
+  assert.equal(rt.logic.isOpen('vineV'), true, 'from both, the vine climbs the glass');
+  assert.equal(walk(L(-25.6, 18, G0 + VAULT.z)), true, `to the glass's foot (${where()})`);
+  up = false;
+  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(-29, 27, G0 + VAULT.z))); if (P.onGround && local().y > 26.5) { up = true; break; } }
+  assert.ok(up, `up the vine (${where()})`);
+  assert.equal(walk(kB.pos, { tol: 1.2, max: 4 }), true, `to the great key (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kB'), true, 'the great key');
+  P.teleport(L(-22, 18.1, G0 + VAULT.z), V(0, 1, 0), V(0, 0, 1));   // (down off the ledge)
+  wait(0.5);
+  assert.equal(walk(L(-16, 18, G0 + VAULT.door)) && walk(L(-8, 18, G0 + VAULT.door)), true, `back into the gulf (${where()})`);
   assert.equal(walk(L(1.5, 18, 139.6), { tol: 0.8 }), true, `back to the glass's foot (${where()})`);
   up = false;
   for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, 145.2))); if (P.onGround && local().y > 26.5) { up = true; break; } }
   assert.ok(up, `up the vine (${where()})`);
   // ---- the Glasshouse: bloom the four dead beds, then the Gardener's back each time it kneels: in the sun
-  assert.equal(walk(L(0, 27, 154.2)), true, `into the glasshouse (${where()})`);
+  assert.equal(walk(L(0, 27, 154.2)), true, `through the great lock into the glasshouse (${where()})`);
+  assert.equal(rt.logic.keysIn('dB'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep', 'it wakes');

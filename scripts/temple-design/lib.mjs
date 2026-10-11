@@ -150,6 +150,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
   // the locks: every door and bridge, every link that asks for an item, and every key's (or coffer's) cage that waits on
   // something (its `when`: the step that earns the key, in the key's own room)
   const locks = [];
+  const gadgetRoom = Object.values(E).find((e) => e.type === 'gadget')?.room ?? null;
   const cages = Object.entries(E).filter(([, e]) => (e.type === 'key' || e.type === 'cache') && e.when && e.room).map(([id, e]) => ({ a: e.room, b: e.room, door: id, cage: true }));
   for (const l of [...links, ...cages]) {
     const lockEl = l.cage ? { type: 'door', opens: E[l.door].when, clue: E[l.door].clue, latch: true } : l.door ? E[l.door] : null;
@@ -221,7 +222,10 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
       sequence: ks.some((k) => E[k.id]?.after || E[k.id]?.order || Object.values(E).some((e) => e.after === k.id)) || [...stopsWanted.values()].some((p) => p.size >= 2),
       fetched: ks.filter((k) => k.how === 'key' && k.room !== l.a && k.room !== l.b).length,
       traversalHere: traversal[l.a] ?? [],
-      index: roomOrder.indexOf(l.b),
+      // (a lock whose keys want the gadget is met after the chest, wherever its room: the Lamp-House's great key, caged in
+      // its first hall and freed with the lantern on the way back)
+      index: mech.includes(`gadget:${logic.gadget}`) ? Math.max(roomOrder.indexOf(l.b), roomOrder.indexOf(gadgetRoom) + 0.5) : roomOrder.indexOf(l.b),
+      afterGadget: mech.includes(`gadget:${logic.gadget}`) || roomOrder.indexOf(l.a) >= roomOrder.indexOf(gadgetRoom),
     });
   }
   locks.sort((x, y) => x.index - y.index);
@@ -334,7 +338,9 @@ export function templeMetrics(g, { guardian = null } = {}) {
   // (not an arena's way out, a fight, nor a lock a key alone opens: the step was the key's cage)
   const fightOnly = (l) => l.keys.length > 0 && l.keys.every((k) => (k.mech ?? []).length && k.mech.every((m) => m === 'fight'));
   const keyOnly = (l) => l.keys.length > 0 && l.keys.every((k) => k.how === 'key');
-  const puzzles = g.locks.filter((l) => !l.arena && !l.bossDoor && l.type !== 'open' && !fightOnly(l) && !keyOnly(l));
+  // (a door that opens with another, the Lamp-House's back way's foot with its shutter: that door's step, not one of its own)
+  const linked = (l) => l.keys.length > 0 && l.keys.every((k) => k.how === 'open');
+  const puzzles = g.locks.filter((l) => !l.arena && !l.bossDoor && l.type !== 'open' && !fightOnly(l) && !keyOnly(l) && !linked(l));
   const E = g.elements;
   // the steps a player solves, in order, with how obvious each is
   const steps = puzzles.map((l) => {
@@ -344,7 +350,7 @@ export function templeMetrics(g, { guardian = null } = {}) {
     const o = obviousness(l, { decoys });
     const own = l.keys.filter((k) => k.how !== 'key');   // (a key carried in from its cage: that step's, not this one's)
     const complexity = baseOf(l.mechanics).length + Math.max(0, own.length - 1) * 0.5 + Math.max(0, ...own.map((k) => k.rooms)) + (l.sequence ? 0.5 : 0) + (l.mechanics.includes('volley') || l.mechanics.includes('timed') ? 0.5 : 0) + (l.mechanics.includes('reveal') ? 0.5 : 0) + 0.25 * l.traversalHere.filter((t) => t !== 'pit').length;
-    return { lock: l.id, from: l.a, to: l.b, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, metres: k.metres, rooms: k.rooms, visible: k.visible })), obvious: o.score, why: o.why, complexity: +complexity.toFixed(2), traversal: l.traversalHere, afterGadget: g.roomOrder.indexOf(l.a) >= g.roomOrder.indexOf(g.chestRoom) };
+    return { lock: l.id, from: l.a, to: l.b, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, metres: k.metres, rooms: k.rooms, visible: k.visible })), obvious: o.score, why: o.why, complexity: +complexity.toFixed(2), traversal: l.traversalHere, afterGadget: l.afterGadget ?? g.roomOrder.indexOf(l.a) >= g.roomOrder.indexOf(g.chestRoom) };
   });
   // teach, test, twist: every mechanic's first use, its second, and its first use in a combination (or in the fight)
   const mech = {};
@@ -413,6 +419,7 @@ export function skeleton(g) {
   for (const l of g.locks) {
     if (l.a === g.chestRoom && !s.includes('C')) s += 'C';
     if (l.arena || l.type === 'open') continue;
+    if (l.keys.length && l.keys.every((k) => k.how === 'open')) continue;   // (a door that opens with another: no step of its own)
     if (l.type === 'cage' && l.mechanics.length && l.mechanics.every((m) => m === 'fight')) continue;   // (an arena's prize: its way out is the A)
     if (l.a === g.chestRoom && !s.includes('C')) s += 'C';
     if (l.bossDoor) { s += 'K'; continue; }

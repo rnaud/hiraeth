@@ -1910,6 +1910,8 @@ export class Bud {
     if (mode === 'bloom') {
       if (this.bloom && this.rt.logic.light(this.bloom)) { this.rt.sound?.chime?.(); this.rt.onLit?.(this.bloom); this.rt.notice?.(this.o.opened ?? 'The bud swells, and splits, and its petals fold back against the wall like a hand opening.', `bud.${this.id}`); }
       else if (!this.bloom && this.o.dry) { this.curl = 0.4; this.rt.notice?.(this.o.dry, `bud.dry.${this.id}`); }
+      // (a bud whose bloom wants the sun, `when`: in the shade it stirs and stays shut, the Greenhouse's Bud Passage)
+      else if (this.bloom && this.rt.logic.el(this.bloom)?.when && !this.rt.logic.check(this.rt.logic.el(this.bloom).when)) { this.curl = 0.4; this.rt.notice?.(this.o.shade ?? 'The bud stirs, and stays shut. It is in the shade.', `bud.shade.${this.id}`); }
       return true;
     }
     if (mode === 'fire') { this.curl = 1.5; this.rt.notice?.(this.o.burnt ?? 'The petals curl away from the ember and close tighter.', 'bud.fire'); return true; }

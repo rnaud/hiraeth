@@ -610,7 +610,8 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
   W.at(T.arrival.pos.clone()); W.step(3);
   if (!game.flag(`temple.${T.id}.entered`)) issue('temple', `in through the door of ${T.def.name}, but it never counted as entered`);
   const reached = () => (until === 'gadget' ? L.gadget : L.resolved);
-  for (let n = 0; n < 80 && !reached(); n++) {
+  let n = 0;
+  for (; n < 80 && !reached(); n++) {
     let id = L.next();
     // (in the arena with its guardian awake, its door held shut behind him: the arena's own work, a moon in its cradle,
     // is done from inside, so the guardian is what is left)
@@ -669,6 +670,8 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
     T.applyDoors(); W.step(4);
     await sleep(5);
   }
+  // (the marker going round and round, a ball rolled between its plates and nothing woken: v1.49, the Cold Frame's)
+  if (n >= 80 && !reached()) issue('soft-lock', `${T.def.name}: eighty steps, and ${until === 'gadget' ? 'the chest' : 'the guardian'} not reached (the last: ${log.slice(-4).join(' / ')})`);
   return log;
 }
 

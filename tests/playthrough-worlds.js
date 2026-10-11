@@ -374,7 +374,8 @@ export const ROUTE = [
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell'] },
   { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps'] },
-  { id: 'edena', play: ['edena.garden'] },
+  // (v1.49: and the Builders' Greenhouse to its guardian, both its hub's wings and the Seed Vault past the gulf: issue #23)
+  { id: 'edena', play: ['edena.garden', { temple: 'done', id: 'edena' }] },
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, Fabre's word down to the Whale Gallery, then the Whale-House)
   // (v1.48: Bastien at the lock opens the city's own quest; the window over the deep, then in at the Whale-House's door)
   { id: 'underwater', play: [{ act: 'meetBastien', at: 'bastien', label: 'Bastien, at the lock' }, { act: 'meetMireille', at: 'mireille', label: 'Mireille, in the kelp garden' }, 'underwater.kelp', { act: 'meetFabre', at: 'fabre', label: 'Fabre, in the Crown' }, 'underwater.lamps', 'underwater.note', { temple: 'done', id: 'underwater' }] },

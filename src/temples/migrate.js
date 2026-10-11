@@ -51,11 +51,13 @@ export const LAYOUTS = {
     ],
   },
   // v1.48: the Builders' Greenhouse round its Potting Hall. Past the Glass Stair's door: its two small keys in it, the
-  // Shade House won, the Cold Frame's eyes awake
+  // Shade House won, the Cold Frame's eyes awake. v1.49: the Seed Vault off the Vine Gulf's far side; past the bud at the
+  // top of the glass: the great key in the door beyond it, the vault's seeds grown
   edena: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['open.d1', 'lit.s2', 'open.d2', 'gadget', 'lit.bud1', 'open.d3', 'lit.seed1', 'boss'], set: { 'unlocked.d1': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.sC1': true, 'lit.sC2': true } },
+      { if: ['open.d4', 'boss'], set: { 'unlocked.dB': 1, 'found.kB': true, 'lit.sdA': true, 'lit.sdB': true } },
     ],
   },
   // v1.48: the Warden's Well round its Climb. Past the door at the balcony's end (or with the bellows): its two small keys
