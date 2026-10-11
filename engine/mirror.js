@@ -42,7 +42,7 @@
 // keeps one must copy it.
 import { inkSpec } from './ink-spec.js';
 import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
-import { updateSceneMatrices } from './scene-matrices.js';
+import { updateSceneMatrices, sceneList } from './scene-matrices.js';
 
 
 /**
@@ -215,11 +215,35 @@ export class SceneMirror {
     if (this.listMatrices) updateSceneMatrices(scene); else scene.updateMatrixWorld();
     camera?.updateMatrixWorld();
     P.matrices += now() - t; t = now();
-    let n = 0, drawn = 0, tb = 0;
+    let drawn = 0;
+    this._moved = 0; this._tb = 0;
     const B = this.backend, perSkeleton = !!B.skeleton, filter = this.filter, liveMats = !!B.materialLive;
-    // (an explicit stack, not a recursive closure: ~3 000 objects a frame in the desert)
-    const stack = this._stack; stack.length = 0; stack.push(scene);
     let visited = 0;
+    // the scene's flat list (engine/scene-matrices.js, the matrices' own, depth first as the walk below goes), walked
+    // down instead of the scene: what each object is (drawable, a bone carrying nothing) kept beside it, a hidden one's
+    // subtree stepped over; the same objects in the same order, with fewer reads off the objects themselves
+    const L = this.listMatrices && !filter && !this.freeze ? sceneList(scene) : null;
+    if (L) {
+      if (this._wl !== L || this._wlBuilt !== L.built) {
+        this._wl = L; this._wlBuilt = L.built;
+        const W = this._wlKind = new Uint8Array(L.n);
+        for (let i = 0; i < L.n; i++) {
+          const o = L.objs[i];
+          W[i] = (o.isMesh || o.isPoints || o.isLine || o.isSprite ? 1 : 0) | (o.isBone && !boneCarries(o) ? 2 : 0);
+        }
+      }
+      const { objs, end, WE } = L, W = this._wlKind;
+      for (let i = 0, N = L.n; i < N; i++) {
+        const o = objs[i];
+        visited++;
+        if (!o.visible) { i = end[i] - 1; continue; }
+        const w = W[i];
+        if (w & 1) { drawn++; this._see(o, WE[i], f, B, perSkeleton, liveMats, scene, camera); }
+        if (w & 2) i = end[i] - 1;
+      }
+    }
+    // (an explicit stack, not a recursive closure: ~3 000 objects a frame in the desert)
+    const stack = this._stack; stack.length = 0; if (!L) stack.push(scene);
     while (stack.length) {
       const o = stack.pop();
       visited++;
@@ -232,107 +256,13 @@ export class SceneMirror {
         if (liveMats) { const M = fz.mats; for (let i = 0; i < M.length; i++) this._live(M[i], f); }
         continue;
       }
-      if (o.isMesh || o.isPoints || o.isLine || o.isSprite) {
-        let node = o.__mirror;
-        if (!node || node.owner !== this || node.dead) node = this.nodes.get(this._create(o));
-        const id = node.id;
-        node.seen = f;
-        drawn++;
-        // a drawable that has not changed for half a second (no move, geometry, shape key or material value, no render
-        // hook, not skinned or instanced): its geometry, materials and keys looked at every 4th frame (staggered by its
-        // id), its matrix every frame. ~3 000 objects are walked a frame and most stand still: each look touches a few
-        // objects more, which on the Xbox's memory costs more than the arithmetic
-        const look = !this.quietWalk || node.hook !== false || f - node.changedAt <= QUIET_AFTER || f - (node.matMovedAt ?? -1e9) <= QUIET_AFTER || ((f + id) & 3) === 0;
-        // a geometry swapped or rewritten (cloth, a trail, a morph baked): sent again, and each node drawing it told
-        const geo = o.geometry;
-        if (look && geo && (geo !== node.geo || node.gv !== attrVersion(geo, f))) {
-          this._full = false;
-          const gid = this._geometry(geo);
-          // (told only when it is another geometry or was sent whole again: moved points alone need nothing)
-          if (node.geo && (geo !== node.geo || this._full)) B.geometryOf?.(id, gid);
-          node.geo = geo; node.gv = this.geoms.get(geo).version; node.changedAt = f;
-        }
-        // an object's own render hook (the crowd's tiers set their count in it; a face binds its keys): called as the
-        // renderer would before drawing it, in the main pass (no override material)
-        if (look) node.hook = Object.prototype.hasOwnProperty.call(o, 'onBeforeRender') || !!o.isSkinnedMesh || !!o.isInstancedMesh || node.kind === 'instgeo';
-        if (look && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
-        if (!node.shown) { node.shown = true; node.changedAt = f; B.visible?.(id, true); }
-        if (look && liveMats) {
-          const M = o.material;
-          let moved = -1e9;
-          if (Array.isArray(M)) { for (const m of M) { this._live(m, f); moved = Math.max(moved, m.__mirrorMovedAt ?? -1e9); } } else if (M) { this._live(M, f); moved = M.__mirrorMovedAt ?? -1e9; }
-          node.matMovedAt = moved;
-        }
-        // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
-        const KW = look ? o.userData.keyWeights : null;
-        if (KW && B.keyWeights) {
-          const S = node.keys ??= new Float32Array(KW.length).fill(NaN);
-          let moved = false;
-          for (let i = 0; i < KW.length; i++) if (S[i] !== Math.fround(KW[i])) { S[i] = KW[i]; moved = true; }
-          if (moved) { B.keyWeights(id, S); node.changedAt = f; }
-        }
-        const e = o.matrixWorld.elements, m = node.matrix;
-        // (compared as the floats they are sent as: a double that floats can't hold is no move)
-        let k = 0;
-        while (k < 16 && m[k] === Math.fround(e[k])) k++;
-        if (k < 16) {
-          for (k = 0; k < 16; k++) m[k] = e[k];
-          node.changedAt = f;
-          if (n >= this._ids.length) this._grow();
-          this._ids[n] = id; this._mats.set(m, n * 16); n++;
-        }
-        if (o.isInstancedMesh) {
-          // (and the per-instance attributes, as the crowd's figures carry their pose in: aAnim, aReact…)
-          const ia = node.instAttrs ??= instancedAttributes(geo);
-          let v = o.instanceMatrix.version + (o.instanceColor?.version ?? 0) * 1e6 + o.count * 1e12;
-          for (const k in ia) v += geo.attributes[k].version * 1e3;
-          if (v !== node.instVersion) {
-            node.instVersion = v;
-            let attrs = null;
-            for (const k in ia) (attrs ??= {})[k] = { array: geo.attributes[k].array, itemSize: geo.attributes[k].itemSize };
-            B.instances?.(id, o.count, o.instanceMatrix.array, o.instanceColor?.array ?? null, attrs, this.time);
-          }
-        }
-        if (node.kind === 'instgeo') {
-          // instances with no matrices (the grass): their attributes when they move (only the range rewritten), the count
-          const ia = node.instAttrs ??= instancedAttributes(geo);
-          let v = geo.instanceCount * 1e12;
-          for (const k in ia) v += geo.attributes[k].version * 1e3;
-          if (v !== node.instVersion) {
-            const first = node.instVersion === -1;
-            node.instVersion = v;
-            const attrs = {};
-            node.sentAttr ??= {};
-            for (const k in ia) {
-              const a = geo.attributes[k];
-              if (!first && node.sentAttr[k] === a.version) continue;
-              node.sentAttr[k] = a.version;
-              const r = a.updateRanges?.length ? a.updateRanges.reduce((m, x) => [Math.min(m[0], x.start), Math.max(m[1], x.start + x.count)], [Infinity, -Infinity]) : null;
-              attrs[k] = { array: a.array, itemSize: a.itemSize, version: a.version, range: !first && r ? [r[0], r[1] - r[0]] : null };
-            }
-            B.instances?.(id, geo.instanceCount, null, null, attrs, this.time);
-          }
-          B.drawState?.(id, o);
-        }
-        if (o.isSkinnedMesh && o.skeleton) {
-          // (timed only when profiling: in Puerts the clock is a call into C#, ~5 µs each)
-          const t0 = this.profiling ? now() : 0;
-          const sk = o.skeleton;
-          if (perSkeleton && o.bindMode !== 'detached') {
-            // once a frame a skeleton, however many meshes it moves (a person's body, eyes, brows, hair)
-            if (sk.__mirrorFrame !== f) { sk.__mirrorFrame = f; skeletonUpdate(sk, f); B.skeleton(this._skeletonId(sk), sk.boneMatrices, sk.bones.length); }
-          } else {
-            if (sk.__mirrorFrame !== f) { sk.__mirrorFrame = f; skeletonUpdate(sk, f); }   // boneMatrices = bone world × inverse bind (three's own)
-            B.bones?.(id, sk.boneMatrices, sk.bones.length, o.bindMatrix.elements, o.bindMatrixInverse.elements);
-          }
-          if (this.profiling) tb += now() - t0;
-        }
-      }
+      if (o.isMesh || o.isPoints || o.isLine || o.isSprite) { drawn++; this._see(o, o.matrixWorld.elements, f, B, perSkeleton, liveMats, scene, camera); }
       // (a skeleton's bones are walked only down to what hangs on them: a prop in a hand, a hat)
       if (o.isBone && !boneCarries(o)) continue;
       const ch = o.children;
       for (let i = ch.length - 1; i >= 0; i--) stack.push(ch[i]);
     }
+    const n = this._moved, tb = this._tb;
     P.walk += now() - t - tb; P.bones += tb; t = now();
     if (n) B.transforms?.(this._ids, this._mats, n);
     // what was not reached: hidden, and in time forgotten
@@ -353,6 +283,107 @@ export class SceneMirror {
     B.frame?.({ frame: f, stats: this.stats });
     P.frame += now() - t; P.frames++;
     return this.stats;
+  }
+
+  /**
+   * One drawable reached by the walk this frame: made if new, shown, its geometry, hooks, materials' live values, shape
+   * keys, world matrix (e: its elements), instances and bones told the backend as they change.
+   */
+  _see(o, e, f, B, perSkeleton, liveMats, scene, camera) {
+    let node = o.__mirror;
+    if (!node || node.owner !== this || node.dead) node = this.nodes.get(this._create(o));
+    const id = node.id;
+    node.seen = f;
+    // a drawable that has not changed for half a second (no move, geometry, shape key or material value, no render
+    // hook, not skinned or instanced): its geometry, materials and keys looked at every 4th frame (staggered by its
+    // id), its matrix every frame. ~3 000 objects are walked a frame and most stand still: each look touches a few
+    // objects more, which on the Xbox's memory costs more than the arithmetic
+    const look = !this.quietWalk || node.hook !== false || f - node.changedAt <= QUIET_AFTER || f - (node.matMovedAt ?? -1e9) <= QUIET_AFTER || ((f + id) & 3) === 0;
+    // a geometry swapped or rewritten (cloth, a trail, a morph baked): sent again, and each node drawing it told
+    const geo = o.geometry;
+    if (look && geo && (geo !== node.geo || node.gv !== attrVersion(geo, f))) {
+      this._full = false;
+      const gid = this._geometry(geo);
+      // (told only when it is another geometry or was sent whole again: moved points alone need nothing)
+      if (node.geo && (geo !== node.geo || this._full)) B.geometryOf?.(id, gid);
+      node.geo = geo; node.gv = this.geoms.get(geo).version; node.changedAt = f;
+    }
+    // an object's own render hook (the crowd's tiers set their count in it; a face binds its keys): called as the
+    // renderer would before drawing it, in the main pass (no override material)
+    if (look) node.hook = Object.prototype.hasOwnProperty.call(o, 'onBeforeRender') || node.kind === 'skinned' || node.kind === 'instanced' || node.kind === 'instgeo';
+    if (look && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
+    if (!node.shown) { node.shown = true; node.changedAt = f; B.visible?.(id, true); }
+    if (look && liveMats) {
+      const M = o.material;
+      let moved = -1e9;
+      if (Array.isArray(M)) { for (const m of M) { this._live(m, f); moved = Math.max(moved, m.__mirrorMovedAt ?? -1e9); } } else if (M) { this._live(M, f); moved = M.__mirrorMovedAt ?? -1e9; }
+      node.matMovedAt = moved;
+    }
+    // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
+    const KW = look ? o.userData.keyWeights : null;
+    if (KW && B.keyWeights) {
+      const S = node.keys ??= new Float32Array(KW.length).fill(NaN);
+      let moved = false;
+      for (let i = 0; i < KW.length; i++) if (S[i] !== Math.fround(KW[i])) { S[i] = KW[i]; moved = true; }
+      if (moved) { B.keyWeights(id, S); node.changedAt = f; }
+    }
+    const m = node.matrix;
+    // (compared as the floats they are sent as: a double that floats can't hold is no move)
+    let k = 0;
+    while (k < 16 && m[k] === Math.fround(e[k])) k++;
+    if (k < 16) {
+      for (k = 0; k < 16; k++) m[k] = e[k];
+      node.changedAt = f;
+      const n = this._moved++;
+      if (n >= this._ids.length) this._grow();
+      this._ids[n] = id; this._mats.set(m, n * 16);
+    }
+    if (node.kind === 'instanced') {
+      // (and the per-instance attributes, as the crowd's figures carry their pose in: aAnim, aReact…)
+      const ia = node.instAttrs ??= instancedAttributes(geo);
+      let v = o.instanceMatrix.version + (o.instanceColor?.version ?? 0) * 1e6 + o.count * 1e12;
+      for (const k in ia) v += geo.attributes[k].version * 1e3;
+      if (v !== node.instVersion) {
+        node.instVersion = v;
+        let attrs = null;
+        for (const k in ia) (attrs ??= {})[k] = { array: geo.attributes[k].array, itemSize: geo.attributes[k].itemSize };
+        B.instances?.(id, o.count, o.instanceMatrix.array, o.instanceColor?.array ?? null, attrs, this.time);
+      }
+    }
+    if (node.kind === 'instgeo') {
+      // instances with no matrices (the grass): their attributes when they move (only the range rewritten), the count
+      const ia = node.instAttrs ??= instancedAttributes(geo);
+      let v = geo.instanceCount * 1e12;
+      for (const k in ia) v += geo.attributes[k].version * 1e3;
+      if (v !== node.instVersion) {
+        const first = node.instVersion === -1;
+        node.instVersion = v;
+        const attrs = {};
+        node.sentAttr ??= {};
+        for (const k in ia) {
+          const a = geo.attributes[k];
+          if (!first && node.sentAttr[k] === a.version) continue;
+          node.sentAttr[k] = a.version;
+          const r = a.updateRanges?.length ? a.updateRanges.reduce((m, x) => [Math.min(m[0], x.start), Math.max(m[1], x.start + x.count)], [Infinity, -Infinity]) : null;
+          attrs[k] = { array: a.array, itemSize: a.itemSize, version: a.version, range: !first && r ? [r[0], r[1] - r[0]] : null };
+        }
+        B.instances?.(id, geo.instanceCount, null, null, attrs, this.time);
+      }
+      B.drawState?.(id, o);
+    }
+    if (node.kind === 'skinned' && o.skeleton) {
+      // (timed only when profiling: in Puerts the clock is a call into C#, ~5 µs each)
+      const t0 = this.profiling ? performance.now() : 0;
+      const sk = o.skeleton;
+      if (perSkeleton && o.bindMode !== 'detached') {
+        // once a frame a skeleton, however many meshes it moves (a person's body, eyes, brows, hair)
+        if (sk.__mirrorFrame !== f) { sk.__mirrorFrame = f; skeletonUpdate(sk, f); B.skeleton(this._skeletonId(sk), sk.boneMatrices, sk.bones.length); }
+      } else {
+        if (sk.__mirrorFrame !== f) { sk.__mirrorFrame = f; skeletonUpdate(sk, f); }   // boneMatrices = bone world × inverse bind (three's own)
+        B.bones?.(id, sk.boneMatrices, sk.bones.length, o.bindMatrix.elements, o.bindMatrixInverse.elements);
+      }
+      if (this.profiling) this._tb += performance.now() - t0;
+    }
   }
 
   /** The time the mirror spent (ms a frame, averaged since the last call): the matrices, the walk, the bones, the rest, the backend's frame. */

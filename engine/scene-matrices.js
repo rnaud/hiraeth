@@ -35,7 +35,7 @@ const _old = new Float64Array(16);
 
 class SceneList {
   constructor(scene) {
-    this.scene = scene; this.epoch = -1; this.n = 0;
+    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0;
     this.objs = []; this.parent = new Int32Array(0); this.end = new Int32Array(0); this.own = new Uint8Array(0);
     this.P = []; this.Q = []; this.S = []; this.K = []; this.M = []; this.ME = []; this.WE = []; this.changed = new Uint8Array(0);
   }
@@ -52,6 +52,7 @@ class SceneList {
     };
     walk(this.scene, -1);
     const n = this.n = objs.length;
+    this.built++;
     this.objs = objs;
     this.parent = Int32Array.from(parent); this.end = Int32Array.from(end);
     this.own = new Uint8Array(n); this.changed = new Uint8Array(n);
@@ -139,6 +140,16 @@ function mul(te, ae, be) {
   te[7] = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
   te[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
   te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+}
+
+/**
+ * The scene's list as it stands this frame (after updateSceneMatrices), or null when an edit since made it stale: its
+ * objects depth first (objs, n), each subtree's end, each world matrix's elements (WE), how often it was made (built).
+ * The mirror walks it instead of the scene (engine/mirror.js sync).
+ */
+export function sceneList(scene) {
+  const L = scene.__sceneList;
+  return L && L.epoch === epoch ? L : null;
 }
 
 /** The scene's matrices this frame (its list kept on it). */

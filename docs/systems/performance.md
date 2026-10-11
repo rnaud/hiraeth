@@ -1992,3 +1992,8 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   2.8 / 3.6 (drawn every 2nd frame: ~6.5 ms on those), the prepass 3.1 / 2.4 / 3.4, the far map 0.3-0.4, glow and FXAA
   0.2 each. Casters under 2 texels left out of the near map (`-shadow-min 2`, as the Xbox): −0.5 ms; the web's levels
   of detail in the bridge (lod.js, 225 000 triangles fewer in the City-Shaft): −0.1 to −0.4 ms, not kept.
+- **The mirror walks the scene's list** (engine/mirror.js sync with `listMatrices`; engine/scene-matrices.js
+  `sceneList`): the same depth-first order as its walk down the scene, what each object is (a drawable, a bone with
+  nothing on it) kept beside it, a hidden object's subtree stepped over; a drawable's work is the same method either
+  way (`_see`, its kind read off its node, not the object). The same calls to the backend in the same order
+  (tests/mirror-list.test.js). The mirror 6.3 → 5.7 ms in the City-Shaft, 6.1 → 5.4 at the desert's spawn.
