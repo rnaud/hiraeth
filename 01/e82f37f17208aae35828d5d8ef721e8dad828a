@@ -1,0 +1,71 @@
+changelog.md
+  s_9ca76055a220ed::t_5f918b2b74f74a 7-14
+docs/design/shield-prompts.md
+  s_9ca76055a220ed::t_2c2693c576cff7 1-46
+docs/story-bible.md
+  s_9ca76055a220ed::t_73311283ff05f5 615-616,636-641
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_84896cb4776d0c 17,21-27
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_9c6cf66777aacf 421-422,425-433,436,438-456,469-506
+docs/systems/progression.md
+  s_9ca76055a220ed::t_3323c9bbf69d4c 48-60
+src/ambush.js
+  s_9ca76055a220ed::t_3bd788463ff75e 8,11,23,28-30,45-49,57-58
+src/boxes/placements.js
+  s_9ca76055a220ed::t_8d7a91667b0d10 283-289
+src/changelog-media.js
+  s_9ca76055a220ed::t_9e533faae774b7 554-559,610-624
+src/changelog.js
+  s_9ca76055a220ed::t_471d031dc50fd3 19-36
+src/main.js
+  s_9ca76055a220ed::t_f93456d9f7114a 2219-2220
+src/minigames/kit/flow.js
+  s_9ca76055a220ed::t_eaa2e631bf1c56 72-73,75,80-81
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_df3a424b0e5a75 149,156,178-180,191,241,287,369
+src/minigames/pirates-rules.js
+  s_9ca76055a220ed::t_99ee3a107950a5 13,17-21,25-29,33,35-36,40-53,67-71,74-88,90-91,93-94,108,110-112,150-155,157-158,161,163-164,168-173,177,184-189,231,244-250,252-257,266,325,344-345,471-473,484-486,549,582,628-630,633,643,648
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_7ee6df43203995 25,35-40,375-381,397,435-436,449,458,464-467,476-477,491-494,504,506-507,509-512,514,630,632-633,696,701-702,704,740,742-744,746-747
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_33d2a99c4a9ab4 12,477-479,481-483
+src/ship/exhaust.js
+  s_9ca76055a220ed::t_065de3d93d0db1 37-41,49,89-102
+src/ship/ship.js
+  s_9ca76055a220ed::t_ffa611dc27539d 202-204,722
+src/story/calls.js
+  s_9ca76055a220ed::t_132a5751c3144a 69-70,126-127,129-133,190-192,538,541,588-590,598
+tests/ambush.test.js
+  s_9ca76055a220ed::t_4bc7ec2a6c6a01 2,7,22,39,43-44,51-55,76-80
+tests/boxes.test.js
+  s_9ca76055a220ed::t_29e04458422df1 115-128
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_da0cba56ff363e 395,399
+tests/cutscenes.test.js
+  s_9ca76055a220ed::t_3c91b26f2f9d80 63,86-112
+tests/pirates.test.js
+  s_9ca76055a220ed::t_4fa27ef4467ae9 6,29,31,38,43,47-48,171-174,184-254
+tests/relay.test.js
+  s_9ca76055a220ed::t_0670e64e93ae77 101
+tests/shard-timings.json
+  s_9ca76055a220ed::t_5c65a55cd94a33 2-7,9-18,20-23,25-35,37-43,45-49,51-55,58-62,64-66,68-69,73-75,77,79,82-117,120-133,135-156,158-178,180-181,183-267,269-279,281-284,286-293,295-301,303-308,310-320,322-329,331-382,384-389,391-413,416-436,438
+tests/ship.test.js
+  s_9ca76055a220ed::t_61b514d34e06c9 313,558-570
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "01e82f37f17208aae35828d5d8ef721e8dad828a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
