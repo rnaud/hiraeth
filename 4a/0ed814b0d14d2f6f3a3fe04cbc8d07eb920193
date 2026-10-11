@@ -1,0 +1,39 @@
+.claude/skills/camera-qc/SKILL.md
+  s_9ca76055a220ed::t_7eaa713c99512d 25,53,72
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_0e37d908602177 77-81,100-101,163-167,250
+changelog.md
+  s_9ca76055a220ed::t_382179f70938ab 7
+docs/systems/foes.md
+  s_9ca76055a220ed::t_08fc8d41d7006a 660-667
+scripts/camera-qc/lib.mjs
+  s_9ca76055a220ed::t_e2de9bd3e62a1e 28-30,47-52,115,122,144,150,170,174
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_e93f24ac50c70f 56-63
+src/changelog-media.js
+  s_9ca76055a220ed::t_556745c3eada9b 599-602
+src/changelog.js
+  s_9ca76055a220ed::t_91735db3c7c23e 61-67
+src/foes.js
+  s_9ca76055a220ed::t_4f5d0ccb023b2c 123-143
+src/main.js
+  s_9ca76055a220ed::t_62ec3b4f72e9b6 104,931,2130,2138-2154
+tests/lock-aim.test.js
+  s_9ca76055a220ed::t_1b528160c6563a 12,53-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4a0ed814b0d14d2f6f3a3fe04cbc8d07eb920193",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
