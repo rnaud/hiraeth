@@ -1,0 +1,33 @@
+.claude/skills/dialogue-review/extract.mjs
+  s_9ca76055a220ed::t_34ecaf2b160965 91-96
+changelog.md
+  s_9ca76055a220ed::t_67115757b06aac 7
+src/changelog.js
+  s_9ca76055a220ed::t_8887640690a0d9 74-76
+src/temples/bazaar-data.js
+  s_9ca76055a220ed::t_5bf131a0c7ddac 30
+src/temples/buried-data.js
+  s_9ca76055a220ed::t_5cbcd0fa0e4f06 17
+src/temples/perdide-data.js
+  s_9ca76055a220ed::t_0c6ab317fb12ad 29
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_5c943ec57bf1a4 31
+tests/loose-ends.test.js
+  s_9ca76055a220ed::t_80d39810842d0e 43-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed86b1763412bde9292316ba8684fbbe6048ff03",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
