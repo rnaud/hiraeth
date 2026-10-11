@@ -91,6 +91,8 @@ namespace Memento
         public Cascade[] All => new[] { fine, near, far };
         int version = -1, frameNo;
         public static bool On = true;
+        /// <summary>The smallest caster drawn, in the cascade's texels (its bounding radius; the web's 0.75).</summary>
+        public static float minCasterTexels = 0.75f;
 
         void Configure()
         {
@@ -207,7 +209,7 @@ namespace Memento
                 c.fresh = true;
                 var plan = pool[w]; plan.cascade = c; plan.draws.Clear(); plan.flora.Clear(); plan.extra.Clear();
                 planes[5] = new Plane(-fwd, Vector3.Dot(fwd, cp) + reach);   // (the far plane at the cascade's reach)
-                float minR = c.Texel * 0.75f, texel = c.Texel;
+                float minR = c.Texel * minCasterTexels, texel = c.Texel;
                 bool isFar = c == far;
                 // the static world, each unit at its view's level (the far map: no finer than a texel)
                 foreach (var u in detail.units)

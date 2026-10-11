@@ -250,6 +250,12 @@ namespace Memento.Bridge
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
+            // (the shadow maps' cost on the main thread, tried apart: the near map redrawn every N frames, no fine map, casters
+            // under T texels left out)
+            if (BridgeArgs.Arg("-shadow-near-every") is string ne && int.TryParse(ne, out int nev)) Quality.nearEvery = Mathf.Max(1, nev);
+            if (BridgeArgs.Arg("-shadow-far-every") is string fe && int.TryParse(fe, out int fev)) Quality.farEvery = Mathf.Max(1, fev);
+            if (BridgeArgs.Flag("-no-fine-shadows")) Quality.fineSize = 0;
+            if (BridgeArgs.Arg("-shadow-min") is string sm && float.TryParse(sm, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float smv)) MementoShadows.minCasterTexels = smv;
             // (-warm: every shader's variants made now, timed: is the load's first-render stall the shaders being made?)
             if (BridgeArgs.Flag("-warm"))
             {
@@ -261,7 +267,7 @@ namespace Memento.Bridge
                 Debug.Log($"Memento bridge: Shader.WarmupAllShaders took {tw.ElapsedMilliseconds} ms");
             }
             Debug.Log($"Memento bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}; " +
-                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, shadows {(MementoShadows.On ? "on" : "off")}");
+                      $"queued frames {QualitySettings.maxQueuedFrames}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, shadows {(MementoShadows.On ? $"on (fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {MementoShadows.minCasterTexels} texels)" : "off")}");
         }
         /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
         public static string ResidentDrawerState()

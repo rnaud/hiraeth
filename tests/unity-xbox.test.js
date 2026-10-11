@@ -127,6 +127,8 @@ test('the PlayerLoop timed step by step, a slow frame named by its steps; -no-hu
   assert.match(runner, /Flag\("-no-hud"\)/);
   assert.match(runner, /QualitySettings\.maxQueuedFrames = nq/);
   assert.match(runner, /Flag\("-no-shadows"\)\) MementoShadows\.On = false/);
+  assert.match(runner, /Arg\("-shadow-near-every"\)/);
+  assert.match(runner, /Arg\("-shadow-min"\)/);
   assert.match(runner, /Flag\("-warm"\)[\s\S]*Shader\.WarmupAllShaders\(\)/);
   assert.match(metrics, /frames ≤17\.5 ms/, 'the frames against the refresh');
 });
