@@ -67,6 +67,8 @@ export const CHANGELOG = [
     'Capes and cloaks hang behind the people who wear them: Nour’s cloak no longer swings out in front of her and stays there when she walks up to talk to you, and nobody’s cape blows forward over their front when they stand with the wind at their back.',
     // the conversation panel (docs/systems/conversations.md "The panel never moves while you read")
     'In conversations the words stay where they are while you read them: the panel is its full size from the first letter, and the answers come up in the room kept for them instead of pushing the words up the screen.',
+    // the drone's find (docs/systems/ui.md "What it says")
+    'The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.',
     // <<< the author’s desert playthrough
   ] },
   { v: '1.43', date: '2026-10-10', items: [

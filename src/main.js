@@ -12,7 +12,7 @@ import { installAppShell, markBooted } from './native-app.js';
 import { startThemeDownload } from './music-store.js';
 import { SOUNDTRACKS, THEME_FILES } from './soundtracks.js';
 import { ObservatoryQuest } from './observatory.js';
-import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
+import { Scout, nextObjective, findText, roughDistance, HINT, FIND } from './scout.js';
 import { guardianHint, openHint, Struggle } from './temples/hints.js';
 import { hintsFor, quietOr } from './hint-level.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick } from './hud.js';
@@ -692,6 +692,7 @@ if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range
 // the scout finds the objective (Q, R3 with no foe in reach, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
 // (src/story/quests.js QuestMarker.reveal)
+// (`text` a string, or a function asked every frame: the find's line with its distance as it is now)
 const scoutSaid = { text: '', until: 0, kind: '' };
 const scoutSays = (text, secs, kind = '') => { scoutSaid.text = text; scoutSaid.kind = kind; scoutSaid.until = performance.now() + secs * 1000; };
 // what the find is for: the quest's overall goal (src/story/quest-goals.js), the observatory's, the world's story
@@ -704,9 +705,19 @@ const findGoal = (target) => {
   if (id === 'ship') return 'On to the next world';
   return '';
 };
+/** The find's line, worked out when the cue asks: the goal over the step, how far it is from you now (and how far up or down). */
+const _fl = new THREE.Vector3();
+const findLine = (found) => () => {
+  const t = scout.target?.id === found.id ? scout.target : found;   // (someone walking about: where they are now)
+  const rise = _fl.subVectors(t.position, player.pos).dot(player.frame.up);
+  return findSummary({ goal: findGoal(t), step: findText({ ...t, rise }, player.pos.distanceTo(t.position)) });
+};
 const scout = new Scout({ scene, player, physics, sound,
   getTarget: () => nextObjective({ player, expedition, story, ship: level.ship, level, quest: () => storyRt.objective() }),
-  onFind: (target, d) => { scoutSays(findSummary({ goal: findGoal(target), step: findText(target, d) }), 6, 'quest'); storyRt.marker.reveal(); },
+  // the find's line comes up the moment you ask (it waited for the drone to get there: ~1 s, issue #65), its distance
+  // as it is every frame after, walking toward it or away; the flare and the marker when the drone is there
+  onPing: (target) => scoutSays(findLine(target), FIND.say + FIND.seek, 'quest'),
+  onFind: (target) => { scoutSays(findLine(target), FIND.say, 'quest'); storyRt.marker.reveal(); },
   onShrug: () => scoutSays(guardianHint(level.temple) ? '◇ …' : 'Nothing to find here', 2.5),   // (in a fight, no hint open yet: it only watches with you)
   // in a guardian's fight the ping is a hint: the lens on the weak point, the line on the cue (src/temples/hints.js);
   // the hint level lets its lines out (subtle: none at first, then one by one as the struggle goes on: openHint)
@@ -1354,7 +1365,7 @@ function updateHud() {
   // (inside a shop: its name as you step in; back out, the street's name is not news)
   const place = quiet || ship.playing || ship.inside ? '' : placeName.update(indoors?.label ?? atmo?.name, now, { quiet: !indoors && placeName.wasIndoors });
   placeName.wasIndoors = !!indoors;
-  const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
+  const found = !quiet && now < scoutSaid.until ? (typeof scoutSaid.text === 'function' ? scoutSaid.text() : scoutSaid.text) : '';   // (what the scout found, a moment)
   let teach = '';
   if (firstSteps) {
     if (player._jumped) firstSteps.jumped();

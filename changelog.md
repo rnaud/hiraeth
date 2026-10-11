@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.44 — 2026-10-11
 
+- The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.
 - In conversations the words stay where they are while you read them: the panel is its full size from the first letter, and the answers come up in the room kept for them instead of pushing the words up the screen.
 - Capes and cloaks hang behind the people who wear them: Nour’s cloak no longer swings out in front of her and stays there when she walks up to talk to you, and nobody’s cape blows forward over their front when they stand with the wind at their back.
 - Doorframes, sills, roof edges and wall ends in every temple no longer flicker and stripe where two surfaces lay in the same plane. The Givers’ House has none left, and the other temples have far fewer.

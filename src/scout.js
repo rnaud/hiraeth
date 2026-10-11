@@ -31,6 +31,7 @@ export const FIND = {
   seek: 4,        // s at most to get there
   point: 2.6,     // s hovering, facing it
   max: 9,         // s from the ping to heading home, whatever happens
+  say: 6,         // s the find's line stays on the cue once the drone is there (it is up from the ping: onPing)
   shrug: 1.0,     // s: the little wobble on the dock
 };
 /** A hint in a guardian's fight: from just over your shoulder, the lens on the weak point for a while. */
@@ -196,7 +197,7 @@ export function viaPortal(start, target, portals) {
 /**
  * The scout: a small folding drone on your pack. ping() sends it to find the objective
  * (FIND): it hops off its dock, flies a little way towards it (or right over it), hovers
- * and faces it, drops a flare on the spot and calls onFind(target, metres)
+ * and faces it, drops a flare on the spot and calls onFind(target, metres) (onPing(target) at the ping: what it is off to find)
  * (main.js: a toast with the name and the distance), then comes home and docks. With
  * nothing to find it shrugs on the dock and calls onShrug().
  * getHint() (main.js: the temple's guardian in a fight, src/temples/boss.js guardianHint) returns
@@ -205,8 +206,8 @@ export function viaPortal(start, target, portals) {
  * Phases: docked → launch → seek → point → return → docked (and shrug, from the dock).
  */
 export class Scout {
-  constructor({ scene, player, physics, getTarget, getHint = () => null, sound, onFind = () => {}, onShrug = () => {}, onHint = () => {} }) {
-    Object.assign(this, { player, physics, getTarget, getHint, sound, onFind, onShrug, onHint });
+  constructor({ scene, player, physics, getTarget, getHint = () => null, sound, onPing = () => {}, onFind = () => {}, onShrug = () => {}, onHint = () => {} }) {
+    Object.assign(this, { player, physics, getTarget, getHint, sound, onPing, onFind, onShrug, onHint });
     this.hintAsked = new Map();   // hint id -> how many times asked (the next ping says it more plainly)
     this.phase = 'docked'; this.age = 0; this.elapsed = 0;
     this.vel = new THREE.Vector3(); this.stuck = 0; this.over = 0; this.fade = null;
@@ -268,7 +269,9 @@ export class Scout {
     else if (this.phase === 'launch') { /* already on its way out */ }
     else if (this.settleT == null || this.settleT < DOCKING.settle * 0.5) { this.phase = 'seek'; this.settleT = null; this.object.scale.setScalar(1); }
     else this.relaunch = true;   // nearly home: it lands, then hops straight back out
-    this.sound?.drone?.('go'); return true;
+    this.sound?.drone?.('go');
+    if (!target.hint) this.onPing(target);   // (what it is off to find, said at once: main.js puts it on the cue)
+    return true;
   }
   /** The hint's line for this ping (each ping on the same id a plainer one), as a target to point at. */
   hintTarget(hint) {

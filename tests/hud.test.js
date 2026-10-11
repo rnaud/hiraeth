@@ -168,7 +168,10 @@ test('R3 sends the scout on foot and riding when there is no foe to lock on to; 
   assert.match(main, /const had = foes\.lock;\s*if \(!foes\.cycleLock\(\) && !had && !minigame\) scout\.ping\(\);/, 'R3: nothing to lock on to, the scout');
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
-  assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(findSummary\(\{ goal: findGoal\(target\), step: findText\(target, d\) \}\), 6, 'quest'\); storyRt\.marker\.reveal\(\); \}/);
+  // (said at the ping, issue #65: not when the drone gets there; and its distance as it is every frame: findLine)
+  assert.match(main, /onPing: \(target\) => scoutSays\(findLine\(target\), FIND\.say \+ FIND\.seek, 'quest'\)/);
+  assert.match(main, /onFind: \(target\) => \{ scoutSays\(findLine\(target\), FIND\.say, 'quest'\); storyRt\.marker\.reveal\(\); \}/);
+  assert.match(main, /return findSummary\(\{ goal: findGoal\(t\), step: findText\(\{ \.\.\.t, rise \}, player\.pos\.distanceTo\(t\.position\)\) \}\);/);
   assert.match(main, /onShrug: \(\) => scoutSays\(guardianHint\(level\.temple\) \? '◇ …' : 'Nothing to find here', 2\.5\)/, 'in a fight with no hint open yet, it only watches');
 });
 
@@ -228,7 +231,7 @@ test('the scout\'s find says the current quest as its overall goal over its next
   assert.equal(say(), 'Wake your ship with the fire of Qanat’s great tree\n◆ The dry well');
   assert.doesNotMatch(say(), /Qanat\n|Walk to Qanat/, 'the step done is gone');
   const main = src('src/main.js');
-  assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(findSummary\(\{ goal: findGoal\(target\), step: findText\(target, d\) \}\), 6, 'quest'\)/);
+  assert.match(main, /findSummary\(\{ goal: findGoal\(t\), step: findText\(/);
 });
 
 test('the Start menu opens the game menu on its Items and Quests, has a Controls page, and H opens Controls', async () => {

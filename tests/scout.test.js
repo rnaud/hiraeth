@@ -369,3 +369,18 @@ test('a flare far below you rises past your feet, so it is seen from up there to
   f.drop(v(0,0,0),v(0,1,0),0); assert.equal(f.height,FLARE.height);
   f.drop(v(0,30,0),v(0,1,0),-30); assert.equal(f.height,FLARE.height,'above you: as tall as ever');
 });
+
+// "The drone's destination hint should appear immediately, not after 1 s" (issue #65): onPing at the ping itself,
+// with what it is off to find (main.js puts its line on the cue at once, its distance worked out every frame)
+test('the ping says what the drone is off to find at once (onPing), the flare only when it is there', () => {
+  const dock=new THREE.Object3D(); dock.position.set(0,2,0);
+  const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
+  const pings=[], finds=[];
+  const scout=new Scout({scene:new THREE.Scene(),player,physics:{rayDistance:()=>Infinity},getTarget:()=>({id:'quest',label:'The skull',position:v(80)}),onPing:(t)=>pings.push(t.label),onFind:(t)=>finds.push(t.label)});
+  scout.ping();
+  assert.deepEqual(pings,['The skull'],'said with the ping, before a frame has run');
+  assert.deepEqual(finds,[],'the flare waits for the drone');
+  for(let i=0;i<60*6;i++) scout.update(1/60);
+  assert.deepEqual(finds,['The skull']);
+  assert.equal(pings.length,1);
+});

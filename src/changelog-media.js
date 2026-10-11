@@ -625,6 +625,11 @@ export const CHANGELOG_MEDIA = {
         { where: 'from the first letters of her second page to her answers under it', before: 96, after: 0 },
       ], source: 'the top of the panel’s words (getBoundingClientRect) as Nour’s “It opened!” lines are typed and answered, the same talk for both (before: the old layout, the unseen words and the kept room taken out)' },
     ], see: 'Talk to anyone with answers: the panel comes up at its full size and the words don’t move while they are typed; when they are done the answers fade in under them, in place.' },
+    { match: 'The drone says where it is off to the moment you send it', numbers: [
+      { title: 'Sending the drone to Qanat from the ship (390 m)', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720', rows: [
+        { where: 'from the press to the line on the screen', before: 1.85, after: 0.15 },
+      ], source: 'the cue’s words read every 150 ms after scout.ping() in a new game, the main quest just given (before: the old call, at the drone’s arrival)' },
+    ], see: 'Press Q (R3 on a pad, the ping on touch): the line comes up at once; walk toward the place and watch its distance fall (it said 390 m all the way before; now 350 m after 40 m).' },
     // <<< the author’s desert playthrough
   ],
   '1.43': [

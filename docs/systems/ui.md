@@ -330,7 +330,12 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
 - **What it says** (since the game menu, October 2026): the cue gives the quest's overall goal on a
   small line over "◆ the next step · how far" (`findSummary` in `src/hud.js`, `findGoal` in main.js:
   the quest's goal from `src/story/quest-goals.js`, the observatory's, the world's story title), for
-  6 s, then fades; nothing about steps already done.
+  6 s, then fades; nothing about steps already done. **It is up the moment you ask** (October 2026,
+  issue #65: it waited ~1.8 s for the drone to get there): `Scout.ping` calls `onPing(target)` at once
+  and main.js puts the line on the cue then (`FIND.say + FIND.seek` s; `onFind` gives it `FIND.say` more
+  when the drone is there, with the flare and the marker). The line is a function the cue asks every
+  frame (`findLine`), so **its distance is how far it is now**, walking toward it or away (someone who
+  walks about: where they are now, the scout's own target).
 - **What it finds** (`nextObjective`): the tracked quest's objective (or the main quest's, or the
   first active one: `Quests.objective`), routed through doorways; while the observatory expedition
   is under way its steps first; then the world's story goal (its beacon); once the story is told,
