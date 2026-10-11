@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_1d741e86db8559 7
+docs/story-bible.md
+  s_9ca76055a220ed::t_be5e4c5f2bff0b 765-768
+src/changelog.js
+  s_9ca76055a220ed::t_c6dc45a9bec5e1 23-24
+src/story/ending.js
+  s_9ca76055a220ed::t_c869505e4d16b9 162,166,169,320,323
+tests/finale.test.js
+  s_9ca76055a220ed::t_15f594dd23c64f 93-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7359cb0e0e753f87e0e92b52baa26707d38ec883",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
