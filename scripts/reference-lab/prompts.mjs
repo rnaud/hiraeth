@@ -69,10 +69,15 @@ export function promptDocs(root) {
 
 /**
  * The suggested target folder for an entry of a document: the document's own `Target folder: \`references/…/<id>/\``
- * line when it has one, else the enemy archetypes' folder, else references/<id>/.
+ * line when it has one, else the enemy archetypes' folder, else references/<id>/. A document covering several
+ * folders (docs/design/level-explorations-prompts.md) puts a Target folder line in each section: an entry takes the
+ * last one above its heading (with or without `<id>` in it), else the document's first.
  */
 export function targetFor(doc, id, text = '') {
-  const own = String(text).match(/^Target folder: `(references\/[^`]*<id>[^`]*)`/m)?.[1];
+  const t = String(text), line = /^Target folder: `(references\/[^`]*)`/gm;
+  const at = t.search(new RegExp(`^#{2,4}\\s.*\\(\`${id.replace(/[-]/g, '\\-')}\`\\)\\s*$`, 'm'));
+  const above = at > 0 ? [...t.slice(0, at).matchAll(line)].pop()?.[1] : null;
+  const own = above ?? t.match(/^Target folder: `(references\/[^`]*<id>[^`]*)`/m)?.[1];
   if (own) return own.replace('<id>', id);
   return /enemy-roster/.test(doc) ? `references/enemy-archetypes/${id}/` : `references/${id}/`;
 }

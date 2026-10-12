@@ -101,6 +101,11 @@ test('a prompt document can name its own target folder', async () => {
   assert.equal(targetFor('docs/design/desert-places-prompts.md', 'skull', 'x\nTarget folder: `references/levels/The Desert/places/<id>/`\n'), 'references/levels/The Desert/places/skull/');
   assert.equal(targetFor('docs/design/enemy-roster-prompts.md', 'crab'), 'references/enemy-archetypes/crab/');
   assert.equal(targetFor('docs/x-prompts.md', 'a'), 'references/a/');
+  // one Target folder line a section: an entry takes the last one above its heading
+  const many = '# X\n\n## A world\n\nTarget folder: `references/levels/A/explorations/waves/`\n\n### 1. One (`a-one`)\n\n```\np\n```\n\n'
+    + '## B world\n\nTarget folder: `references/levels/B/explorations/<id>/`\n\n### 2. Two (`b-two`)\n\n```\np\n```\n';
+  assert.equal(targetFor('docs/design/level-explorations-prompts.md', 'a-one', many), 'references/levels/A/explorations/waves/');
+  assert.equal(targetFor('docs/design/level-explorations-prompts.md', 'b-two', many), 'references/levels/B/explorations/b-two/');
 });
 
 test('the real enemy roster prompts parse: 21 archetypes, each with a main sheet', () => {

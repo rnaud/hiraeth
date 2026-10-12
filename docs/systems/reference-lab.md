@@ -64,7 +64,10 @@ other four are a click away).
 1. **Prompt:** free text, or one from the list: every entry of the prompt documents (`docs/**/*prompts*.md`,
    e.g. each archetype's main sheet and alternate skin) and every prompt recorded in the references' manifests
    (`references/**/*.json`, e.g. the title covers). Choosing an archetype fills its aspect ratio and target
-   folder (`references/enemy-archetypes/<id>/`). Midjourney's flags are turned into words: `--ar` becomes the
+   folder (`references/enemy-archetypes/<id>/`). A document names its own with a ``Target folder:
+   `references/…/<id>/` `` line; one covering several folders puts one in each section, and an entry takes the
+   last one above it, with or without `<id>` (`targetFor`; e.g. `docs/design/level-explorations-prompts.md`, two
+   prompts to each direction's folder). Midjourney's flags are turned into words: `--ar` becomes the
    aspect ratio, `--no a b` a closing "Avoid: a, b."
 2. **Style references:** thumbnails of every picture under `references/`, filtered by folder or by words in
    the path; click to add or remove. The first one is shown beside the results for comparison (or choose
