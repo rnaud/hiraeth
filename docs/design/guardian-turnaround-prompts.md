@@ -1,0 +1,257 @@
+# Guardian turnarounds: reference prompts for Tripo
+
+2026-10-12, issue [#199](https://github.com/rnaud/hiraeth/issues/199): "use Tripo3d to generate proper 3d versions of
+our guardians … maybe we need better front/side/etc. references then pass that to Tripo3d". The author: "yes you can
+start with references for all of them". These are those references: one turnaround model sheet for each of the
+fourteen temple guardians, the same body four times in one row (front, front three-quarter, side, back) at one scale,
+in its neutral rest pose, for cutting into Tripo's multiview inputs once the author has picked them.
+
+The design sheets and arena pictures from 2026-10-10 ([guardian-prompts.md](guardian-prompts.md), picked into
+`references/guardians/<id>/sheet-N.jpg`) show each body in its signature pose with a scale figure and a silhouette;
+they are not what an image-to-3D service wants. A turnaround here differs from them in five ways, the lessons of the
+Cistern-Keeper and Elder pilots (`docs/systems/characters.md`, "Generated guardian pilot: Cistern-Keeper" and "Elder
+generated guardian review"; `.agents/skills/hiraeth-ai-characters/references/non-humanoids.md`):
+
+- **One neutral rest pose in every view,** the same in all four: no wind-up, no signature pose. Limbs, fins and wings
+  are parted from the body with clear gaps so each can be traced; mouths and jaws nearly closed with the seam
+  readable. The head looks straight ahead along the body (the Elder's generated mesh kept its turned head).
+- **The limb count said and repeated** ("exactly six legs, three on each side"): merged or missing legs are the
+  structural defect the pilots met first.
+- **No traveller, no silhouette, no scenery, no floor shadow,** so a view can be cut out cleanly.
+- **Even shadowless light and flat colour,** with little hatching, so the textures carry no painted lighting (Tripo's
+  Remove Lighting is no proof of clean albedo).
+- **One row, one scale, one ground line, camera at mid-body height,** so the views agree in proportion.
+
+The bodies are the ones in the game (`src/temples/guardians.js`, `guardian-anchor.js`, `guardian-founder.js`,
+`guardian-listener.js`) and in the picked design sheets; the three guardians that joined the route in v1.40 (the
+Listener, the Last Founder, the Anchor-Warden) have no picked sheet yet, so theirs follow the code alone. The
+Cistern-Keeper's pilot has one approved view (`references/guardians/cistern-keeper/reference-v3-1.png`, a front
+three-quarter) and the Elder's one (`references/guardians/elder/reference-v1-4.png`), not turnarounds: both are here
+too, their prompts following those approved views.
+
+Plain text prompts for the reference lab (`reference-lab.html`, `scripts/gen-reference.mjs --from
+docs/design/guardian-turnaround-prompts.md#<id>`), Gemini and OpenAI, two candidates each; the author picks in Pick
+mode, and a pick goes to the guardian's folder below, beside its design sheets. No Tripo run before a pick is
+approved for it (the needs-author issue [#253](https://github.com/rnaud/hiraeth/issues/253), "Pick: guardian turnarounds for Tripo").
+
+Target folder: `references/guardians/<id>/turnaround/`
+
+| Id | World | Temple | Guardian | Body | Its fight's idea |
+|---|---|---|---|---|---|
+| `keeper` | the Desert | the Rose House | the Keeper of the cistern | a bone-shelled beast on six long legs, ringed heron neck, soft muzzle | a burning tar ball rolled down a spoke to it |
+| `warden` | the City-Shaft | the Warden's Well | the warden | a tall three-legged steel-blue machine, ring of three vents, lamp-eye, crown hatch | hovering over a turning vane to lift its hatch |
+| `elder` | Vael | the Aerie | the Elder | the oldest great bird, feathers gone to stone, heron legs | the wind sent up beside her, ridden with her |
+| `cloud-mother` | Vael (the sky stones) | the Founders' Belfry | the Cloud-Mother | a pale sky-whale with sail fins and a fringe of cloud | a stone that fell up, rung down where she dives |
+| `mother-snapper` | Lorn | the Hush-House | the Mother Snapper | a house-sized rooted snapping plant, bead neck, crystal crown | three crystal pendulums stilled low to high |
+| `lampless` | Lorn (the Deep Wood) | the Lamp-House | the Lampless | a great pale moth with glyph eye-spots | a lit pool, and you standing back |
+| `gardener` | Viridel | the Builders' Greenhouse | the Gardener | a moss giant on root legs, a white stone face | bloomed only in the sunbeam |
+| `foreman` | the Glass Dunes (the Sealed Hangar's) | the Clock-House | the Clockwork Foreman | a brass drum with a clock-face chest, two hammers | six lamps hit in step, counted round from four |
+| `tooth-warden` | the Buried Machine | the Engine-House | the Tooth-Warden | a rust-iron machine on four legs, four vents, a toothed collar | a ball rolled into the great gear's teeth |
+| `echo` | the Garden of Spheres | the Footprint | the Echo | a glowing core in three glass rings, a long veil | the walker's print, seen through the lens |
+| `first-sign` | the Signal Market | the Undertower | the First Sign | a mast on three legs with a listening dish for a head | its word played through the wall dishes |
+| `listener` | the Underwater City | the Whale-House | the Listener | a coral body under a whorled ivory shell, a vast conch ear | the whale-horn sounded at its open ear, then through the hall's dishes |
+| `last-founder` | the Moon Foundry | the Casting-House | the Last Founder | an iron founder on a four-wheeled carriage, crucible chest, ladle and tongs | its molten heart splashed when its doors open; a whole moon in its cradle |
+| `anchor-warden` | the City Floating in Space | the Mooring-House | the Anchor-Warden | a great brass capstan gliding on an iron skirt, four bars, two anchors | its anchor pulled home with the tether when its drum stalls |
+
+---
+
+## The Desert
+
+### 1. The Keeper of the cistern, the Rose House (`keeper`)
+
+Organic, calmed with a hand on its brow. Six legs stepping in two tripods (`keeperModel`: six hip/knee/hoof chains, a
+five-ring neck, head and jaw). Shell `#efe2c6` over plates `#e2c9a2`, rose belly `#d9978a`, tan skin `#d8bf9a`, dark
+hooves `#4a3a42`, turquoise glyph glow `#70e7df`. Follows the approved pilot view (tall slender legs about half its
+height, backward horns, ringed neck) with the jaw nearly closed.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Keeper of the cistern, a great pale gentle beast of the makers. The same creature drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A high rounded oval shell of long overlapping ivory bone plates over a dusty rose segmented belly, the makers' glyph of three turquoise dots over an arc that bows upward like a little hill, never a smile, on each flank of the shell; EXACTLY SIX tall slender legs, three on each side in front, middle and rear pairs, each a straight thigh and a long thin shin with a forward-bending knee and a small dark cloven hoof, the legs about half the beast's standing height with high clearance under the belly; a long upright curved neck of five rings alternating ivory armour plate and warm tan skin; a small head with a long soft muzzle, a distinct lower jaw with a narrow closed mouth seam, small dark eyes, a flat brow plate with two short dark horns swept backward; a short curled segmented tail. About four and a half metres tall at the back and eleven metres from muzzle to tail. Neutral rest pose, identical in every view: standing square, all six hooves flat on the ground and individually readable with clear gaps between every leg, neck upright and relaxed, head looking straight ahead along the body, mouth nearly closed, tail relaxed. Every view agrees exactly: the same proportions, the same six legs, the same plates, glyphs and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, ivory bone, dusty rose belly, warm tan skin, dark hooves, turquoise glyph glow, lavender accents, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller rider scale-figure silhouette scenery architecture ground-plane pedestal floor-shadow perspective text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The City-Shaft
+
+### 2. The warden, the Warden's Well (`warden`)
+
+A machine, stopped when it breaks. Three jointed legs, a drum with a ring of three hinged vent covers, one lamp-eye,
+a crown hatch it vents through (`sentinelModel()`). Steel blue `#9fb2c6` and `#8aa0b8`, dark navy `#34405e`, brass
+`#e2b552`, golden lamp `#f6c84e`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the warden, a tall old guardian machine of the makers, broken and still at its post. The same machine drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A tall drum body of pale steel-blue riveted plates banded in dark navy on EXACTLY THREE long jointed legs spaced evenly round it, each with a round hip joint, a knee bending outward and a flat round foot; round its waist a ring of three hinged vent covers, closed, over round furnace mouths; a narrower drum above and a domed head with one big round golden lamp-eye on the front; on its crown a round vent under a closed hatch hinged at one side; brass trim and rivets, the makers' glyph of three dots over an arc that bows upward like a little hill, never a smile, engraved on its chest. About nine metres tall. Neutral rest pose, identical in every view: standing upright on all three legs with clear gaps between them, vent covers shut, crown hatch shut, lamp-eye facing straight ahead. Every view agrees exactly: the same proportions, the same three legs and three vents, the same plates and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, pale steel blue, dark navy, cream, brass, golden lamp glow, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery architecture ground-plane pedestal floor-shadow perspective smoke glow-column text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## Vael
+
+### 3. The Elder, the Aerie (`elder`)
+
+Organic, calmed with a hand on her neck. Two heron legs with planted three-toed feet, a curved neck, a long beak,
+two stone-feather wings on shoulder hinges (`elderModel`). Stone `#efe6d2`, feathers `#e2d6bf`, rose-mauve tips
+`#b98f9a`, ochre beak `#d8a24a`, teal glyph lines `#7cc1c4`. Follows the approved pilot view (rounded body, wings
+folded and separate from the body's outline, grounded feet) with the head straight.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Elder, the oldest of the great birds, so old her feathers have turned to stone. The same bird drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A heavy rounded body of bone-white stone feathers, each feather a carved slab, on EXACTLY TWO long thin legs like a heron's with the backward-bending ankle halfway down and long splayed three-toed feet; a long gently curved neck; a long straight beak of warm ochre, closed; small dark eyes under a heavy brow; two broad wings of overlapping stone feathers with rose-mauve tips, folded neatly against her sides with their outline clearly readable, faint teal glyph lines along the wings. About seven metres tall standing. Neutral rest pose, identical in every view: standing upright on both legs, feet flat and apart, wings folded, neck raised in a calm curve, head held straight and looking directly ahead along the body, beak closed, short tail of stone feathers level. Every view agrees exactly: the same proportions, the same two legs and two wings, the same feathers and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, bone white stone, ochre beak, rose-mauve feather tips, teal glyph lines, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller rider scale-figure silhouette scenery architecture ground-plane pedestal floor-shadow perspective turned-head text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+### 4. The Cloud-Mother, the Founders' Belfry (`cloud-mother`)
+
+Organic, calmed with a hand on her brow. A floating whale: body, two pairs of sail fins, a tail fluke, a long mouth
+and a fringe of cloud puffs along the spine (`whaleModel`). Skin `#d8d4e6`, cream belly `#f3ead8`, fins `#c4bedb`,
+dark eyes `#4a4a5e`, cloud `#fbf7ee`, turquoise glyph spots `#70e7df`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Cloud-Mother, a great pale sky-whale that rose with the floating stones and has not come down. The same creature drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, floating level at the same height in every view, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A long soft body of pale lavender-grey skin over a cream belly, small dark gentle eyes far forward, a long closed mouth line; EXACTLY FOUR long soft fins like sails, two pairs on the flanks, spread out sideways and slightly down and clearly apart from the body, a broad horizontal tail fluke; a fringe of small white cumulus puffs along her spine like a cloud she carries; faint turquoise glyph spots of three dots over an arc that bows upward like a little hill, never a smile, along her flanks. About thirteen metres long and five tall. Neutral rest pose, identical in every view: floating level and calm, body straight, fins spread at rest, tail fluke level, mouth closed. Every view agrees exactly: the same proportions, the same four fins, the same markings and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, pale lavender grey, cream belly, cloud white, turquoise glyph glow, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery sky clouds-background architecture ground-plane pedestal floor-shadow perspective text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## Lorn
+
+### 5. The Mother Snapper, the Hush-House (`mother-snapper`)
+
+Organic, calmed with a hand on her head. Rooted: a bulb in a ring of flat leaves, a bead-chain neck (a FABRIK chain
+in the game), a two-jawed head with a crystal crown (`snapperModel`). Stalk `#3f6a52`/`#4c7d5c`, leaves
+`#5a8f5e`/`#47784f`, head `#c94f6a`, lips `#ee93a2`, inside `#93304a`, teeth `#f3ead8`, crystal glow `#a99be0`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Mother Snapper, the oldest carnivorous plant of the swamp, as big as a house and rooted to the floor. The same plant drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A fat green bulb sitting in a ring of broad lobed leaves lying flat around it; out of the bulb a long flexible neck made of a chain of green beads, each bead a joint; a great head of two hinged jaws like a flytrap, rose red outside with pale pink lips and deep crimson inside, each rim ringed with cream teeth; a crown of violet crystal shards growing from the top of the head, faintly glowing. About six metres tall. Neutral rest pose, identical in every view: neck raised in one gentle upright S-curve, head level and facing straight ahead, jaws slightly parted so the upper jaw, lower jaw and teeth are separately readable, leaves flat and evenly spread. Every view agrees exactly: the same proportions, the same bead count, the same leaves, crystals and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, moss and leaf greens, rose red, pink, crimson, cream teeth, violet crystal glow, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery water swamp architecture ground-plane pedestal floor-shadow perspective text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+### 6. The Lampless, the Lamp-House (`lampless`)
+
+Organic, calmed with a hand on its back. A hovering moth: furred body, two feathered antennae, four wings, six thin
+legs tucked under (`mothModel`). Fur `#e9dff2`, fore wings `#d6c8e6`, hind wings `#b9a6d4`, navy eyes `#2f3560`,
+gold glyph eye-spots `#f6c84e`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Lampless, a great pale moth that drank the light of a lighthouse of the makers. The same moth drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, hovering at the same height in every view, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A thick soft furred body of lavender white, upright, a furred collar round a small head with two large dark navy compound eyes and a short curled tongue; two long feathered antennae; EXACTLY FOUR broad wings, the fore pair pale lavender and the hind pair deeper violet, each wing with one round eye-spot shaped as the makers' glyph of three dots over an arc that bows upward like a little hill, never a smile, glowing warm gold; EXACTLY SIX thin jointed legs tucked under the body. A body three and a half metres tall, a wingspan of about ten metres. Neutral rest pose, identical in every view: hovering level, all four wings spread out flat to the sides at rest, clearly separate from each other and from the body, antennae up, legs tucked, head facing straight ahead. Every view agrees exactly: the same proportions, the same four wings and their eye-spots, the same colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, lavender white fur, pale violet wings, warm gold eye-spots, deep navy eyes, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller lantern scale-figure silhouette scenery architecture ground-plane pedestal floor-shadow perspective text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## Viridel
+
+### 7. The Gardener, the Builders' Greenhouse (`gardener`)
+
+Organic, calmed with a hand on its brow. A moss mound on four short root legs, two long arms with root claws, a white
+stone face (`gardenerModel`). Moss `#5f9a52`/`#4f8a5a`/`#7fb86a`, bark `#8a5a3c`, bare earth `#9a7448`, white stone
+`#f7f4ec`, glow `#7fcfa8`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Gardener, the moss giant the white builders left to keep their greenhouse, gone wild and bare. The same giant drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A great hunched mound of thick moss in three greens on EXACTLY FOUR short legs of gnarled root; EXACTLY TWO long arms of root and moss, each ending in a spread of root claws; set into the front of the mound a calm face of clean white builders' stone, smooth, two deep eye hollows and a carved glyph of three dots over an arc that bows upward like a little hill, never a smile, on its brow; brown bare patches on its back where nothing grows, a few small leaf-green shoots and petal-pink flowers coming up over them. About seven metres tall and nine wide. Neutral rest pose, identical in every view: standing on all four root legs, the two arms hanging down at its sides held a little away from the body with a clear gap, claws open just above the ground, face looking straight ahead. Every view agrees exactly: the same proportions, the same four legs and two arms, the same bare patches and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, moss greens, bark brown, bare earth brown, white stone, leaf green, petal pink, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery greenhouse architecture ground-plane pedestal floor-shadow perspective kneeling text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The Glass Dunes
+
+### 8. The Clockwork Foreman, the Clock-House (`foreman`)
+
+A machine, stopped when it breaks. A brass drum on four stout legs, a clock-face chest under a hinged glass, six
+lamps for numerals, two hammer arms, a crown bell (`foremanModel`). Brass `#d8a24a`/`#b8862f`, teal `#62c3c9`, navy
+`#34405e`, cream enamel `#f3ead8`, glass `#cfe9e0`, amber lamps `#f2c54b`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Clockwork Foreman, the makers' machine that kept the time of everything that turns, wound wrong. The same machine drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A squat round drum of polished brass on EXACTLY FOUR short stout legs with flat feet; its whole chest a great clock face of cream enamel under a closed glass cover hinged at the top, two teal hands, and round the face six round amber lamps in place of numerals, no numbers or letters anywhere; EXACTLY TWO thick jointed arms each ending in a heavy brass hammer; on its crown a little brass bell on a post; teal trim, rivets, a dark navy underside, the makers' glyph of three dots over an arc that bows upward like a little hill, never a smile, stamped on its back. About eight and a half metres tall. Neutral rest pose, identical in every view: standing square on all four legs, both arms hanging at its sides held a little away from the drum with a clear gap, hammer heads down near the ground, glass closed, lamps unlit. Every view agrees exactly: the same proportions, the same four legs and two arms, the same face and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, brass, cream enamel, teal accents, amber lamps, dark navy, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery architecture ground-plane pedestal floor-shadow perspective numerals text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The Buried Machine
+
+### 9. The Tooth-Warden, the Engine-House (`tooth-warden`)
+
+A machine, stopped when it breaks. The warden's body in rust iron: four legs, four vents, a toothed collar, a
+lamp-eye, no crown hatch (`sentinelModel({ vents: 4, legs: 4, guarded: false })`). Rust red `#c4553a`/`#8e3a2b`,
+blue-grey `#33485a`, brass `#e2b552`, golden lamp `#f6c84e`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Tooth-Warden, the makers' machine that minds a buried engine and has been jamming it. The same machine drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A tall drum body of riveted rust-red iron plates banded in blue-grey on EXACTLY FOUR long jointed legs spaced evenly round it, each with a round hip joint, a knee bending outward and a heavy round foot; round its waist four round furnace vents spaced evenly, each behind a closed hinged iron cover; a toothed collar like a gear's rim round its middle; a narrower drum above and a domed head with one big round golden lamp-eye on the front; brass rivets and pipes, a few scorch marks, the makers' glyph of three dots over an arc that bows upward like a little hill, never a smile, engraved on its chest. About nine metres tall. Neutral rest pose, identical in every view: standing upright on all four legs with clear gaps between them, every vent cover shut, lamp-eye facing straight ahead. Every view agrees exactly: the same proportions, the same four legs and four vents, the same gear teeth and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, rust red iron, blue-grey bands, brass, golden lamp glow, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery engine gears-background architecture ground-plane pedestal floor-shadow perspective text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The Garden of Spheres
+
+### 10. The Echo, the Footprint (`echo`)
+
+Organic (a being of sound), calmed by holding out a hand. A floating core in three tilted glass rings over a long veil
+of hanging panels (`echoModel`). Core `#fbf3d8`, rings `#d6e6ee`, veil `#e9dff2`, aqua glow `#a8e6ee`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Echo, a being of sound left behind by a giant walker that set the garden's spheres down and went on. The same being drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, floating at the same height in every view, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile, and a back view. A round glowing core of warm cream light about three metres across; EXACTLY THREE thin rings of pale blue glass round it like an armillary sphere, each tilted at its own fixed angle, the same angles in every view; under it a long soft veil of hanging translucent lavender panels like a jellyfish's skirt, hanging straight down; faint glyph marks of three dots over an arc that bows upward like a little hill, never a smile, etched round each ring. About five metres tall from the top ring to the veil's hem. Neutral rest pose, identical in every view: floating still and upright, rings apart and evenly spaced round the core, veil hanging straight and calm. Every view agrees exactly: the same proportions, the same three rings at the same tilts, the same veil panels and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, warm cream core glow, pale blue glass, lavender veil, pale aqua glow, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery spheres architecture ground-plane pedestal floor-shadow perspective lens text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The Signal Market
+
+### 11. The First Sign, the Undertower (`first-sign`)
+
+A machine, stopped when it breaks. A mast on three splayed legs, a listening dish on a brass yoke for a head, lamps
+round its rim, a horn at its focus (`signModel`). Teal grey `#88b4b5`/`#6f9a9b`, dark slate `#3a535b`, brass
+`#c99758`, cream dish `#f5dfab`, pale yellow lamps `#fff0bd`.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the First Sign, the oldest broadcasting machine of the makers, made to say one line into the dark and stuck on one word of it. The same machine drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A tall slender mast of teal-grey plates on EXACTLY THREE long jointed legs splayed like a tripod, each with a knee and a flat foot; a few thick old cables hanging from its foot; for a head a great round listening dish of cream enamel on a brass yoke, a ring of small pale yellow lamps round the dish's rim, a brass horn at its focus pointing back into the dish; dark slate joints, brass rivets, the makers' glyph of three dots over an arc that bows upward like a little hill, never a smile, engraved on the back of the dish. About twelve metres tall. Neutral rest pose, identical in every view: standing upright on all three legs with clear gaps between them, the dish upright and facing straight ahead, lamps unlit. Every view agrees exactly: the same proportions, the same three legs, the same dish, lamps and colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, teal grey, dark slate, brass, cream dish, pale yellow lamps, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery market tower architecture ground-plane pedestal floor-shadow perspective text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The Underwater City
+
+### 12. The Listener, the Whale-House (`listener`)
+
+Organic, calmed with a hand on its shell. Built to hear the whales and answer them; since the singing light passed it
+answers only the light's note. A soft coral foot and mantle, a whorled ivory shell leaning back, a vast conch ear in
+front with four hinged lips, two long fins, small teal eyes round the ear's rim (`listenerModel`, no picked sheet
+yet). Ivory `#efe2c8`, coral `#e0806a`, flesh `#f0b8a0`, deep teal inside the ear `#2f5f6a` with a blue glow
+`#6f8fd8`, teal eyes `#5fc4bd`, brass rim `#c9973f`. About ten metres tall.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Listener, the makers' old shell-creature at the bottom of a sunken house, built to hear the whales from far off and answer them. The same creature drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all resting on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A wide soft foot of pale peach flesh like a snail's, rippled at its edge and ringed with coral, spread on the ground; rising out of it a soft upright mantle of peach and coral; on its back a great whorled spiral shell of ivory chambers banded in coral, its spire rising high and leaning back, like a conch; out of its front a vast flared ear like a conch's mouth facing forward, ivory outside, deep teal inside with a soft blue glow deep in it, its rim ringed in brass, EXACTLY FOUR soft fleshy lips hinged round the rim, a row of five small teal eyes along the ear's upper rim; EXACTLY TWO long coral fins with ivory tips, one on each side of the mantle. About ten metres tall to the tip of the spire. Neutral rest pose, identical in every view: resting calm and upright, the four lips half open round the ear, the fins held out to the sides and a little down with a clear gap from the body, the ear facing straight ahead. Every view agrees exactly: the same proportions, the same spiral, the same four lips and two fins, the same colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, ivory shell, coral bands, pale peach flesh, deep teal and soft blue in the ear, brass rim, teal eyes, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery water bubbles fish whales architecture ground-plane pedestal floor-shadow perspective tentacles text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The Moon Foundry
+
+### 13. The Last Founder, the Casting-House (`last-founder`)
+
+A machine, stopped when it breaks. The founders' casting machine, casting moons that crack since the night the
+singing light passed; a whole one in its cradle makes it stop to look. A cast-iron figure on a four-wheeled carriage:
+a crucible chest whose two doors open on its molten heart, a ladle for its left arm, founders' tongs for its right, a
+hooded head with one slit of an eye, a short chimney on its back, two small cracked moons hung at its belt
+(`founderModel`, no picked sheet yet). Iron `#45403f`/`#5b524c`, rust bands `#b5653a`, ochre rivets `#d39a4a`, ivory
+moons `#efe6d2`, ember eye and heart `#f08a3c`. About eight and a half metres tall.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Last Founder, the founders' old casting machine at the bottom of a foundry on the moon, which has been casting moons that crack, one after another. The same machine drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all standing on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view in profile facing left, and a back view. A heavy figure of dark cast iron on a low iron carriage with EXACTLY FOUR iron wheels, two on each side; above it a round crucible for a chest, lipped like a pot, banded with two rust-red bands studded with ochre rivets, its front closed by two hinged iron doors; two great round iron shoulders; EXACTLY TWO long iron arms: the left ending in a long founders' ladle with a deep round bowl, the right ending in a pair of long founders' tongs, two straight jaws on a pin; a hooded iron helmet of a head with one narrow glowing ember-orange slit for an eye; a short iron chimney rising from its back, its mouth ringed in rust; two small cracked ivory moons hung at its belt. About eight and a half metres tall. Neutral rest pose, identical in every view: upright on its carriage, chest doors shut, both arms hanging at its sides a little away from the body with a clear gap, the ladle bowl and the tongs low near the wheels, head facing straight ahead. Every view agrees exactly: the same proportions, the same four wheels, the ladle always in its left hand and the tongs in its right, the same colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, dark cast iron, rust red bands, ochre rivets, ivory moons, ember orange slit eye, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery foundry fire sparks smoke molten-pour architecture ground-plane pedestal floor-shadow perspective legs text lettering labels numbers arrows watermark photorealism 3d-render
+```
+
+## The City Floating in Space
+
+### 14. The Anchor-Warden, the Mooring-House (`anchor-warden`)
+
+A machine, stopped when it breaks (it locks). The moorers' great capstan, which walks on nothing: it glides on its
+iron skirt. The night the singing light passed, the note ran down its cables and it began letting them out, a hand's
+width a night. A brass drum wound with cable, a teal domed crown with one starlight eye under a cream hood, four
+capstan bars through its head, an anchor hanging from two of them, a pawl lamp on its front (`anchorModel`, no picked
+sheet yet). Brass `#d2a648`/`#b08433`, iron `#3d3f4c`, teal crown `#4f9a98`, cream hood `#efe7da`, brown cable
+`#6a5844`, starlight eye `#7fe3ec`, pawl lamp `#ffd27a`. About eight metres tall, its bars eleven metres across.
+
+**Main: turnaround.**
+
+```
+Character turnaround model sheet for a science fiction exploration game, made for building a 3D model: the Anchor-Warden, the moorers' great capstan machine that once hauled floating islands home, which walks on nothing and glides on its iron skirt. The same machine drawn four times side by side in one row at exactly the same scale and height on plain warm cream paper, evenly spaced with clear gaps so no view touches another, every view whole and uncropped, all resting on one shared ground line, camera at mid-body height with no perspective tilt: from left to right a front view, a front three-quarter view, a side view, and a back view. A wide flared skirt of dark iron at its base, no legs and no wheels; above it a tall round drum of polished brass wound with six turns of thick brown mooring cable; above the drum a heavy iron ring and a low domed crown of teal, a short iron post and a small brass cap on its top; on the front, under a little cream hood, one oval eye glowing pale starlight cyan, and lower down at the cable's height a small square iron housing with a round warm yellow pawl lamp; EXACTLY FOUR long straight brass capstan bars pushed through the head ring at right angles, level, sticking far out to the front, back, left and right like a cross, each with a brass cap on its end; from the ends of two opposite bars, the front bar and the back bar, a short cable with a dark iron ship's anchor hanging down, ring, shank, stock and two curved flukes. About eight metres tall, the bars eleven metres across. Neutral rest pose, identical in every view: upright and still, bars level, both anchors hanging straight down. Every view agrees exactly: the same proportions, the same four bars, the same two anchors on opposite bars, the same colours. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, very little hatching, luminous flat pastel gouache colours, polished brass, dark iron, teal crown, cream hood, brown cable, pale cyan starlight eye, warm yellow lamp, soft even shadowless light, no cast shadows, restrained cream paper grain, clean readable volumes --ar 16:9 --no people human traveller scale-figure silhouette scenery stars space islands architecture ground-plane pedestal floor-shadow perspective legs wheels text lettering labels numbers arrows watermark photorealism 3d-render
+```
