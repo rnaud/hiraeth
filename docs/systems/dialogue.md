@@ -89,6 +89,21 @@ letters.
   shows the page whole, a brief fade its only trace; until issue #147 the words came in
   their script and turned into yours a moment after they were said).
 
+## Openers, exits and remembered answers (the dialogue review v1.57, issue #202)
+
+What the review measured and the rewrite fixed, kept fixed by `tests/dialogue-voices.test.js`:
+- **Nobody opens on their own name.** The panel shows it (and no longer a subtitle, issue #208), so a first
+  line starts in the middle of what they are doing ("Mind the roots; I've just swept them."), not "Hessa.
+  Keeper of the tree." The desert's drummer keeps his ("Teo. Drummer."); things you look at name themselves.
+- **No bare goodbye.** The traveller's last answer replies to the page before it, or is a gesture
+  ("(laugh with her)", "(look up at the tower)"); B / Esc already closes a talk. Where the page before is
+  one of two conditional pages, the exit fits both, or there are two exits with the same conditions.
+- **Remembered answers**: a choice that sets a flag (`do: { set: { 'desert.marrow.warned': true } }`) and a
+  page that reads it later (`{ if: { flag: 'spheres.cael.said', is: 'short' }, text }`): Marrow, the Speaker
+  (Ilo's three answers), Cael, Nima, Madame Sel, Hask, Mother Ysolde, Bastien, Hedda, Rosa and Halden, beside the older ones (Ilo, Dov,
+  Hollin, Esk, Tansy; the people book reads Ilo's too, `src/story/people-book.js`).
+- **Each people's own night**, as the voice guide lists them; the Garden's drifters call it the pulling night.
+
 ## The worlds' scripts
 `src/story/scripts.js` writes a line in the speaker's script. The tongues page shows each
 word in it as it is said, turning into English a moment later (`revealHtml` in

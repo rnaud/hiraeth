@@ -29,23 +29,23 @@ export const PEOPLE = {
         count: {
           say: ['~surprised~ You counted from the pillar? Thirty-two, then. Nobody gets it right from the floor. (She writes it in.)'],
           do: { set: { 'moonfoundry.ilse.counted': true } },
-          choices: [{ text: '~neutral~ And the house?', goto: 'again' }, { text: '~neutral~ Goodbye, Petra.', end: true }],
+          choices: [{ text: '~neutral~ And the house?', goto: 'again' }, { text: '~playful~ Write it in ink.', end: true }],
         },
         hello: {
-          say: ['~neutral~ Petra. I keep the founders’ ledger. Somebody has to, and the founders left a long time ago.',
+          say: ['~neutral~ (She looks up from a ledger the size of a door.) The founders’. Somebody has to keep it, and they left a long time ago.',
             '~solemn~ That’s *the Casting-House*. The first moons were poured in there. Every page of the ledger starts at its door.',
             '~sad~ The night the singing went over, every hung moon in the hangar turned on its hook to watch it go. And since then, at night, the house pours by itself. The floor shakes.'],
           do: { set: { 'met.ilse': true } },
           choices: [
             { text: '~neutral~ I’ll go in and look.', do: { start: 'temple.moonfoundry' }, goto: 'go' },
             { text: '~curious~ It pours by itself?', goto: 'pours' },
-            { text: '~neutral~ Goodbye, Petra.', end: true },
+            { text: '~neutral~ Let it pour, for now.', end: true },
           ],
         },
         pours: {
           say: ['~whisper~ Something at the bottom still works the crucible. The ledger calls it *the Last Founder*: built to cast when the founders were tired.',
             '~sad~ It casts a moon, the moon cracks, it casts another. You can hear the cracked ones roll, under the floor.'],
-          choices: [{ text: '~neutral~ I’ll go in and look.', do: { start: 'temple.moonfoundry' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go in and look.', do: { start: 'temple.moonfoundry' }, goto: 'go' }, { text: '~solemn~ I’ll listen for them tonight.', end: true }],
         },
         go: {
           say: ['~neutral~ *The door under the chimney.* It isn’t locked. The founders never locked anything; they just made it heavy.',
@@ -54,7 +54,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ *The door under the chimney.* Mind the heavy moons.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.moonfoundry', started: false }, do: { start: 'temple.moonfoundry' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.moonfoundry', started: false }, do: { start: 'temple.moonfoundry' }, end: true }, { text: '~neutral~ Heavy moons. Right.', end: true }],
         },
         inside: {
           say: ['~surprised~ You’ve been in! Is the crucible still warm?', '~curious~ And the Last Founder? Did you see it?'],
@@ -76,7 +76,7 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What’s on the ledger’s first page?', goto: 'first' },
             { text: '~happy~ Can I see the ledger?', goto: 'ledger' },
-            { text: '~neutral~ Goodbye, Petra.', end: true },
+            { text: '~happy~ One moon, whole. Good.', end: true },
           ],
         },
         // (the route's way on: the Garden of Spheres, src/story/spheres-data.js)
@@ -88,7 +88,7 @@ export const PEOPLE = {
         },
         ledger: {
           say: ['~playful~ (She turns it round: columns of moons and weights, and in the margins, little drawings of hands holding tongs.) Founders’ handwriting. Terrible. I love it.'],
-          choices: [{ text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~playful~ Terrible. I love it too.', end: true }],
         },
       },
     },

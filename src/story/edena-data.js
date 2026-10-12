@@ -167,7 +167,7 @@ export const PEOPLE = {
           ],
           choices: [
             { text: '~curious~ Where did Odile and Talo go?', goto: 'went' },
-            { text: '~happy~ See you, Mira.', end: true },
+            { text: '~neutral~ I’ll go gently.', end: true },
           ],
         },
         clockDone: {
@@ -175,7 +175,7 @@ export const PEOPLE = {
           do: { set: { 'edena.mira.clock': true } },
           choices: [{ text: '~happy~ It suits it.', end: true }],
         },
-        clock: { say: ["~playful~ It tells us when to water. The bowl fills, tips, and rings the bell. Or it did, until its gear went missing. We’ve learned to be punctual approximately."], choices: [{ text: '~happy~ See you, Mira.', end: true }] },
+        clock: { say: ["~playful~ It tells us when to water. The bowl fills, tips, and rings the bell. Or it did, until its gear went missing. We’ve learned to be punctual approximately."], choices: [{ text: '~playful~ I’ll keep an eye out for a gear.', end: true }] },
         tell: {
           say: ["~solemn~ You saw the mark under the flowers. Tell me."],
           choices: [
@@ -223,21 +223,21 @@ export const PEOPLE = {
         },
         floodMine: { say: ["~solemn~ You opened an old gate because Esk needed water. Neither of you knew it would break. Sit down. Have some tea."], choices: [{ text: '~sad~ Thank you, Sol.', end: true }] },
         hello: {
-          say: ["~curious~ Odile? Talo? No, sorry. Wrong traveller. They left in the little saucer. You’d know if you were them. I expect.", "~playful~ Sol. I followed them everywhere as a boy. Talo let me hold the tools. Odile let me help Talo up when his inventions disagreed with him."],
+          say: ["~curious~ Odile? Talo? No, sorry. Wrong traveller. They left in the little saucer. You’d know if you were them. I expect.", "~playful~ I followed them everywhere as a boy. Talo let me hold the tools. Odile let me help Talo up when his inventions disagreed with him."],
           choices: [
             { text: '~curious~ Are they coming back?', goto: 'back' },
             { text: '~curious~ What does the garden believe?', goto: 'believe' },
           ],
         },
-        back: { say: ["~happy~ They said they’d return for tea. A promise involving refreshments ought to count for something. I’m still here, anyway."], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
+        back: { say: ["~happy~ They said they’d return for tea. A promise involving refreshments ought to count for something. I’m still here, anyway."], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~happy~ Save them a cup.', end: true }] },
         believe: { say: ["~playful~ We let fallen things stay fallen. Leaves, seeds, ships. The garden finds a use for them. Vey believes that without exceptions. I have questions about fruit."], choices: [{ text: '~curious~ Have you seen anything strange lately?', goto: 'strange' }] },
         strange: {
           say: ["~whisper~ The light passed again that night. High overhead, singing. Every flower turned to follow it. In the dark. I couldn’t call that ordinary gardening.", "~playful~ Talo called it the Singer. Never fondly. More like a neighbour who’d put a hole in his roof."],
           do: { set: { 'edena.rumour.light': true } },
-          choices: [{ text: '~neutral~ It brought my ship down too.', goto: 'struck' }, { text: '~neutral~ Goodbye, Sol.', end: true }],
+          choices: [{ text: '~neutral~ It brought my ship down too.', goto: 'struck' }, { text: '~playful~ A hole in his roof. I know the feeling.', end: true }],
         },
-        struck: { say: ["~curious~ You too? Then there’s something to ask Talo, if he returns. I hope he does."], choices: [{ text: '~neutral~ Goodbye, Sol.', end: true }] },
-        again: { say: ['~tired~ Any sign of them? No. Tea keeps.'], choices: [{ text: '~curious~ Tell me about the light again.', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
+        struck: { say: ["~curious~ You too? Then there’s something to ask Talo, if he returns. I hope he does."], choices: [{ text: '~solemn~ So do I.', end: true }] },
+        again: { say: ['~tired~ Any sign of them? No. Tea keeps.'], choices: [{ text: '~curious~ Tell me about the light again.', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~playful~ Pour me one, then.', end: true }] },
         after: { say: ["~sad~ You know why they went now. I knew they’d leave, and I still hope they’ll come back. It’s a tiring arrangement."], choices: [{ text: '~playful~ Keep the kettle on.', end: true }] },
       },
     },
@@ -257,7 +257,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~surprised~ Oh! You’re speaking to me. Usually people ask a question about the pyramids and walk off before the interesting part.", "~happy~ Oro. The pyramids *grow from seeds*. The androids didn’t build the originals. I grow them too. My first is knee-high. An excellent century’s work."],
+          say: ["~surprised~ Oh! You’re speaking to me. Usually people ask a question about the pyramids and walk off before the interesting part.", "~happy~ The pyramids *grow from seeds*. The androids didn’t build the originals. I grow them too. My first is knee-high. An excellent century’s work."],
           choices: [
             { text: '~surprised~ Pyramids grow from seeds?', goto: 'seeds' },
             { text: '~curious~ Who were the androids?', goto: 'androids' },
@@ -297,7 +297,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~happy~ I’m Rue. I’ve climbed every tree here except *the tallest*. I prefer to introduce myself before admitting that.", "~sad~ It’s *north-west*. I can reach the second canopy, but the crown is too high. Those thin branches won’t hold me."],
+          say: ["~happy~ Every tree here, I’ve climbed. Every one except *the tallest*. I like to say the first part slowly.", "~sad~ It’s *north-west*. I can reach the second canopy, but the crown is too high. Those thin branches won’t hold me."],
           choices: [
             { text: '~curious~ What’s on the crown?', goto: 'what' },
             { text: '~playful~ I can jump quite high.', goto: 'jump' },
@@ -336,7 +336,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~angry~ Stop there. Gently. You’re standing on a root.', "~tired~ Vey. I’ve tended this wreck’s vines for forty years. There was still paint when I started."],
+          say: ['~angry~ Stop there. Gently. You’re standing on a root.', "~tired~ These vines and I go back forty years. There was still paint on the wreck when I started."],
           choices: [
             { text: '~neutral~ May I look inside?', goto: 'ask' },
             { text: '~curious~ Why let the garden take it?', goto: 'why' },
@@ -388,7 +388,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~tired~ Mind the tea bushes. They’re thirsty. I’m cross. Best not to test which is worse.", "~neutral~ Esk. These are my tea terraces. The builders made the steps; my family planted the bushes. That top row goes back to my grandmother’s grandmother."],
+          say: ["~tired~ Mind the tea bushes. They’re thirsty. I’m cross. Best not to test which is worse.", "~neutral~ These are my terraces. The builders made the steps; my family planted the bushes. That top row goes back to my grandmother’s grandmother."],
           choices: [
             { text: '~curious~ Why are they thirsty?', goto: 'dry' },
             { text: '~playful~ All the garden’s tea comes from here?', goto: 'teaAll' },

@@ -46,10 +46,10 @@ test('the change since the one before: overall, and each item since the last tim
   assert.equal(theme('level-design').prev.id, 'level-design-v1.49'); assert.equal(theme('level-design').delta, 0.16);   // (level-design-v1.53: 4.51, v1.49: 4.35, both over twelve)
   assert.equal(theme('temple-design').delta, 0.07);   // (temple-design-v1.53: 4.28, v1.49: 4.21, both over fourteen)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.53: 4.0, game-v1.49: 3.9)
-  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.48'); assert.equal(theme('dialogue').delta, 0.18);   // (dialogue-v1.53: 3.68 over eleven, v1.48: 3.50 over twelve)
+  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.53'); assert.equal(theme('dialogue').delta, 0.64);   // (dialogue-v1.57: 4.32 over eleven, v1.53: 3.68 over eleven; issue #202)
   const lore = group('dialogue', 'Areas').rows.find((r) => r.label === 'Lore load');
-  assert.deepEqual([lore.value, lore.from], [4, 3], 'an area compared with the review before');
-  assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53 left localisation unscored (out of scope)');
+  assert.deepEqual([lore.value, lore.from], [4.5, 4], 'an area compared with the review before');
+  assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53 and v1.57 left localisation unscored (out of scope)');
   assert.equal(theme('visual').prev.id, 'visual-v1.4', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
   for (const t of themes) for (let i = 1; i < t.history.length; i++) {
     const h = t.history[i], before = t.history.slice(0, i).reverse().find((x) => x.overall != null);
@@ -163,7 +163,7 @@ test('the cards: score, change, items, the link to the full audit, History behin
   }
   assert.match(themeCard(theme('combat')), /▲ \+0\.01 <small>since v1\.22/);
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
-  assert.match(themeCard(theme('dialogue')), /▲ \+0\.18 <small>since v1\.48/);
+  assert.match(themeCard(theme('dialogue')), /▲ \+0\.64 <small>since v1\.53/);
   assert.doesNotMatch(themeCard(theme('dialogue')), /the first dialogue audit/);
   assert.match(themeCard(theme('perf')), /2\/4/);
   assert.doesNotMatch(themeCard(theme('combat'), { open: true }), /class="history"[^>]* hidden/);

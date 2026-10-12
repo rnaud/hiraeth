@@ -88,7 +88,7 @@ export const PEOPLE = {
         hello: {
           say: ['~playful~ Mind the cables, love. Nobody else does.',
             "~playful~ You noticed the quiet tower. Good. The noodle signs usually win that contest.",
-            "~neutral~ Sel. I ran this tower for forty years. It received voices from space and played them to the square."],
+            "~neutral~ I ran this tower for forty years. It received voices from space and played them to the square."],
           choices: [
             { text: '~curious~ Why did it go quiet?', goto: 'quiet' },
             { text: '~curious~ Voices from where?', goto: 'where' },
@@ -130,9 +130,9 @@ export const PEOPLE = {
         told: {
           say: ['~tired~ …', "~whisper~ You recognised that voice. I saw. We can talk here, away from the crowd."],
           choices: [
-            { text: '~sad~ It was my father.', goto: 'father' },
-            { text: '~sad~ It wasn’t my name.', goto: 'name' },
-            { text: '~neutral~ (say nothing)', goto: 'still' },
+            { text: '~sad~ It was my father.', do: { set: { 'bazaar.sel.said': 'father' } }, goto: 'father' },
+            { text: '~sad~ It wasn’t my name.', do: { set: { 'bazaar.sel.said': 'name' } }, goto: 'name' },
+            { text: '~neutral~ (say nothing)', do: { set: { 'bazaar.sel.said': 'nothing' } }, goto: 'still' },
           ],
         },
         father: {
@@ -159,7 +159,7 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ Thank you, Sel.', end: true }],
         },
         after: {
-          say: ["~happy~ The tower’s back. Messages, noodle adverts, messages. Life requires both, apparently."],
+          say: ["~happy~ The tower’s back. Messages, noodle adverts, messages. Life requires both, apparently.", { if: { flag: 'bazaar.sel.said', is: 'nothing' }, text: '~solemn~ You said nothing, that night, when I asked. Forty years of other people’s words, and that was the clearest answer I’ve had.' }, { if: { flag: 'bazaar.sel.said', is: 'father' }, text: '~solemn~ Your father, you said, that night. I play the cylinder again sometimes, late. It still sounds like somebody’s father.' }],
           choices: [
             // once he knows who Ilen was (the mother's recording, calls.ilen.told), and once he has found her
             // (finale.met): Sel had offered two readings, and hears which it was (October 2026)
@@ -197,7 +197,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~scared~ You’re looking at my bag. I haven’t stolen anything. I’m late. There’s a professional distinction.", "~happy~ Kip. Fastest courier on the bridges. Currently resting the evidence."],
+          say: ["~scared~ You’re looking at my bag. I haven’t stolen anything. I’m late. There’s a professional distinction.", "~happy~ Fastest courier on the bridges. Currently resting the evidence."],
           choices: [{ text: '~curious~ What’s in the bag?', goto: 'recording' }, { text: '~curious~ What do you run?', goto: 'run' }],
         },
         run: { say: ["~playful~ Letters, bills, threats. Fish orders, mostly. People pay in fruit. I could retire if retirement accepted pears."], choices: [{ text: '~curious~ And what’s in the bag?', goto: 'recording' }] },
@@ -230,7 +230,7 @@ export const PEOPLE = {
       entry: [{ if: { flag: 'bazaar.antenna.tuned' }, node: 'tuned' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~angry~ Don’t touch that. Live wire. That one too. You may touch the floor.", "~tired~ Ferro. Antenna rigger. Been trying to tune it since the singing light passed. I’ve developed several new complaints about ladders."],
+          say: ["~angry~ Don’t touch that. Live wire. That one too. You may touch the floor.", "~tired~ I rig the antenna. I’ve been trying to tune it since the singing light passed. I’ve developed several new complaints about ladders."],
           choices: [{ text: '~curious~ What’s wrong with it?', goto: 'wrong' }, { text: '~curious~ Did you see the singing light?', goto: 'light', once: true }],
         },
         wrong: {
@@ -270,7 +270,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ Mind the paint. In this market, something is always newly improved and still wet.", "~tired~ Brush. A thousand signs to repaint. Finishing is a superstition I gave up years ago."],
+          say: ["~playful~ Mind the paint. In this market, something is always newly improved and still wet.", "~tired~ A thousand signs to repaint. Finishing is a superstition I gave up years ago."],
           choices: [{ text: '~curious~ Which is the oldest sign?', goto: 'oldest' }, { text: '~curious~ What’s the mark on the old shop?', goto: 'glyph', once: true }],
         },
         glyph: {
@@ -307,7 +307,7 @@ export const STREET = {
     id: 'doss', name: 'Doss', title: 'who welcomes everyone', color: '#dca273', head: 'wrap', look: { body: 'badge' },
     talk: { listen: [
         "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
-        { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the end of the avenue. It went silent the night every sign showed the mark. *Madame Sel* sits at its foot, waiting for somebody to care.' },
+        { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the avenue’s end. Silent since the night every sign showed the mark. *Madame Sel* sits at its foot, waiting.' },
         { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* by Sel: the market climbs the towers from there, gallery over gallery. Or the parked cab, or that pack on your back.' },
         '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
         '~curious~ The first thing anybody ever sold here was an answer. Then somebody sold the question, and we never looked back.',
@@ -323,12 +323,12 @@ export const STREET = {
         choices: [{ text: '~curious~ What colour?', goto: 'colour' }, { text: '~curious~ Any other rumours?', goto: 'rumours' }],
       },
       colour: { say: ["~playful~ Like a bruise fading. Surprisingly popular. Sold the lot by morning, with a complimentary story."], do: { set: { 'bazaar.rumour.light': true } },
-        choices: [{ text: '~curious~ All of them? Not one left, for my tank?', if: { all: [{ flag: 'item.backpack' }, { not: { flag: LANTERN_FLAG } }] }, goto: 'tank' }, { text: '~neutral~ Goodbye.', end: true }] },
+        choices: [{ text: '~curious~ All of them? Not one left, for my tank?', if: { all: [{ flag: 'item.backpack' }, { not: { flag: LANTERN_FLAG } }] }, goto: 'tank' }, { text: '~playful~ A bruise-coloured sun. I’d have bought one.', end: true }] },
       // the market's colour band for the tank (src/story/bazaar.js pours it in when the flag is set)
       tank: { say: ["~whisper~ Kept one under the stall. I’m allowed to be a collector occasionally."], next: 'pour' },
       pour: { say: ["~playful~ (He pours its light into your tank.) There. A little sun for the road. No returns on sunshine."], do: { set: { [LANTERN_FLAG]: true } },
         choices: [{ text: '~happy~ Thank you, Oyo.', end: true }] },
-      rumours: { say: ["~playful~ They say the quiet ones read minds. They say the tower tells the truth. They say the noodle man is three people in a coat. I only trust the noodles."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+      rumours: { say: ["~playful~ They say the quiet ones read minds. They say the tower tells the truth. They say the noodle man is three people in a coat. I only trust the noodles."], choices: [{ text: '~playful~ Noodles it is.', end: true }] },
     } },
   },
   teb: {
@@ -518,7 +518,7 @@ export const CROWD_TALK = {
     { name: 'An old trader', title: 'in Signal Square', talk: { listen: [
       "~solemn~ That mark filled every sign when the sky sang. Grandmother says it was here before the market. Before there was anything to advertise.",
       '~solemn~ Every sign in this market lies a little. The silent tower was the only one that ever told the truth.',
-      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway*, where the paving turns to great old stones. Hobb sits by it with his ear to the paving. Whatever he hears, it’s one word.' },
+      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway* in the great old stones. Hobb sits by it, ear to the paving, hearing one word.' },
       '~angry~ In my day a sign was a sign. Now they sing, they dance, they follow you home.',
     ] } },
   ],

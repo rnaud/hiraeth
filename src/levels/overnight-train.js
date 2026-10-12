@@ -106,7 +106,7 @@ export const TRAIN_CONTENT = {
     { ...LISTENER_PEOPLE.saba, at: [car('dining').xc + 3.3, -0.95], y: FLOOR, radius: 1.6, world: 'perdide', lang: 'perdide',
       lines: ['~whisper~ Shh. Listen. Ta-dum, ta-dum. Then the long one.', '~curious~ The rails have a phrase. It repeats every twenty-six metres.'],
       talk: { listen: [
-        '~neutral~ At home I listen to a crystal. Here I listen to the rails. They know fewer phrases, and they repeat them.',
+        '~neutral~ The rails know fewer phrases than my crystal, and they repeat them. I listen anyway.',
         '~curious~ Two short, two short, and a long breath where the carriages meet. I have written it down forty times.',
         '~whisper~ When the train slows for a station the phrase stretches out, like someone falling asleep.',
         '~happy~ The cook says the soup tastes better at speed. I think he is right.',

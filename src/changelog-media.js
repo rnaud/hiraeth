@@ -736,6 +736,15 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'spacecity', hour: 8.5, fov: 60, eye: [108, 25, -131], target: [89, 15, -147], player: [89.6, 16.5, -142.4] },
         reference: { sheet: 'references/levels/The City Floating in Space/environment/explorations/drifting-bridges/sheet-1.jpg', caption: 'The author’s pick: winding the island back (references/levels/The City Floating in Space/environment/explorations/drifting-bridges)' } },
     ], see: 'Up the stack to the capstan quarter: the broken bridge leaves for the Moorings beside Bram and the capstan. Press A / × at the capstan and watch the span come in.' },
+    // (the dialogue rewrite, issue #202: words, so a note on where to hear them)
+    { match: 'People across every world now start talking in the middle', see: 'Talk to Hessa by the tree in Qanat (she starts on her sweeping), Hask on his bench in the Buried Machine, or any shopkeeper: nobody opens by giving their name. In Lorn, talk to Sedge by the landing and Teasel by the cave island: two reed-cutters, two voices.', numbers: [
+      { title: 'The dialogue review (1-5)', unit: '', better: 'higher', device: 'docs/audits/dialogue-v1.57.md, the same eleven areas as v1.53 (localisation out of scope)', rows: [
+        { where: 'distinct voices', before: 3, after: 4 }, { where: 'the traveller’s voice', before: 3, after: 4.5 }, { where: 'choices', before: 3, after: 4.5 }, { where: 'the mean of the eleven', before: 3.68, after: 4.32 },
+      ], source: 'the dialogue-review skill, read whole, 12 October 2026' },
+    ] },
+    { match: 'When a conversation ends, your last answer now replies', see: 'Finish talking to anyone in Qanat’s camp: the last answer replies to their last line (to Ama, “I’ll mind the jar.”). In Vael, Lark’s last answers are gestures. After a makers’ house, talk to its neighbour (Fisk at the Engine-House’s door, Tessa on the Footprint’s rim): the traveller says what he saw.' },
+    { match: 'More of your answers are remembered', see: 'In the desert, tell Marrow “Stay away from my ship.”, then talk to him again by it. In the Garden of Spheres, walk Cael’s avenue and tell him it was short; talk to him again afterwards.' },
+    { match: 'Shorter overheard lines in the desert', see: 'Listen to Tobin on the City-Shaft’s rim, Yara in her sunshade on the ride to the Hearth, or the old trader in the Signal Market: shorter lines. Hollin in Lorn’s Deep Wood now says “the night the pools went dark”.' },
     // (the conversation box, issues #208 and #211)
     { match: 'The conversation box is simpler again', shots: [
       { name: 'talk-name-desktop', title: 'Desktop, 1280 × 720', caption: 'Marrow by the ship in the desert, his answers up: before, his name in capitals in a slanted black caption box over the panel’s edge, “salvager and liar” beside it; after, his name in plain ink on the paper’s first line, upright, nothing beside it, and the first answer already underlined', from: TALK57 },

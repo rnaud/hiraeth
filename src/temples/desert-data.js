@@ -25,7 +25,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~curious~ Sabri. Well-digger. Currently specialising in holes that disappoint people.",
+          say: ["~curious~ Another dry one. I dig wells; lately I mostly dig holes that disappoint people.",
             "~solemn~ Our fields once took water from *the rose-stone house in the eastern dunes*. That great round drum of a building. You can still trace the channels back to its door.",
             "~sad~ Then the flow stopped. Sand buried the fields. Nobody enters the house now. You can hear something crying inside."],
           do: { set: { 'met.sabri': true } },
@@ -45,7 +45,7 @@ export const PEOPLE = {
         },
         frightened: {
           say: ["~curious~ Something that big can be frightened?", "~tired~ Yes. Of course it can. Grandmother left a lamp for it at night. Said it hated the dark."],
-          choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'temple.desert' }, goto: 'go' }, { text: '~neutral~ Goodbye, Sabri.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'temple.desert' }, goto: 'go' }, { text: '~solemn~ A lamp. I’ll take a light in.', end: true }],
         },
         go: {
           say: ["~happy~ Go *east of Qanat into the high dunes*. Look for the rose-stone drum. *Its door faces the city.*", "~whisper~ Bring fluid. Look for the Givers’ fire inside; the Keeper may need light as well as water.",
@@ -56,10 +56,10 @@ export const PEOPLE = {
         },
         again: {
           say: ["~curious~ *East of the city, among the high dunes.* Enter on the side facing Qanat."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.desert', started: false }, do: { start: 'temple.desert' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.desert', started: false }, do: { start: 'temple.desert' }, end: true }, { text: '~playful~ Not today. The dunes are high.', end: true }],
         },
         inside: {
-          say: ["~surprised~ You went inside? What’s down there?", "~curious~ Did you find the Keeper?"],
+          say: ["~surprised~ You went in? Deeper than my wells, I’d bet.", "~curious~ Did you find the Keeper?"],
           choices: [
             { text: "~solemn~ Something very large is breathing in the dark.", goto: 'breathes' },
             { text: '~neutral~ I’m going back.', end: true },
@@ -71,11 +71,11 @@ export const PEOPLE = {
             "~solemn~ They say the Keeper’s asleep beside its spout, legs in the water. No more crying.",
             "~playful~ Tomorrow I dig a well with water in it. May need to learn the second half of my job."],
           choices: [
-            { text: '~solemn~ It was afraid of the dark. And thirsty.', goto: 'thirsty' },
+            { text: '~solemn~ It was crying in the dark. Then it drank, a long time.', goto: 'thirsty' },
             { text: '~happy~ Dig a good one, Sabri.', end: true },
           ],
         },
-        thirsty: { say: ["~sad~ Thirsty and frightened. Just like us. We could have helped each other years ago.", "~happy~ You went in. Thank you for that."], choices: [{ text: '~happy~ Goodbye, Sabri.', end: true }] },
+        thirsty: { say: ["~sad~ Thirsty, in the dark, all those years. Grandmother’s one lamp a night. She knew.", "~happy~ You went in. Thank you for that."], choices: [{ text: '~happy~ It deserves a lamp, Sabri.', end: true }] },
       },
     },
   },

@@ -60,7 +60,7 @@ export const PEOPLE = {
             '~tired~ Hear that hum in the glass? One note, all over the city, since the night the whales went quiet. It’s the wrong note. The whales won’t come near it.'],
           choices: [
             { text: '~curious~ Where does it come from?', goto: 'where' },
-            { text: '~playful~ One well a day is enough.', end: true },
+            { text: '~playful~ One well a day is enough.', do: { set: { 'underwater.bastien.wells': true } }, end: true },
           ],
         },
         where: {
@@ -71,8 +71,8 @@ export const PEOPLE = {
         },
         again: { say: ['~neutral~ A helmet off the rack, out by the lock, bell to bell. The Gallery’s at the bottom of the canyon street.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
-          say: ['~happy~ They’re back. One came right up to the lock this morning and looked in at your ship. I think it approved.'],
-          choices: [{ text: '~neutral~ Goodbye, Bastien.', end: true }],
+          say: ['~happy~ They’re back. One came right up to the lock this morning and looked in at your ship. I think it approved.', { if: { flag: 'underwater.bastien.wells' }, text: '~playful~ One well a day, you said. You went down three: my lock, the canyon and the Whale-House.' }],
+          choices: [{ text: '~playful~ It has good taste.', if: { not: { flag: 'underwater.bastien.wells' } }, end: true }, { text: '~playful~ Three wells. I may have overdone it.', if: { flag: 'underwater.bastien.wells' }, end: true }],
         },
       },
     },
@@ -145,7 +145,7 @@ export const PEOPLE = {
           do: { set: { 'underwater.fabre.thanked': true } },
           choices: [{ text: '~neutral~ She says it hates the cold.', goto: 'cold' }],
         },
-        cold: { say: ['~playful~ Then we’ll get on.'], choices: [{ text: '~curious~ What are the lamps for?', goto: 'lamps' }, { text: '~neutral~ Goodbye, Fabre.', end: true }] },
+        cold: { say: ['~playful~ Then we’ll get on.'], choices: [{ text: '~curious~ What are the lamps for?', goto: 'lamps' }, { text: '~playful~ You’ll get on.', end: true }] },
         lamps: {
           say: ['~solemn~ I’ve lit the Crown’s lamps every dusk since the whales went away. For them, so they can find the city again.'],
           do: { set: { 'underwater.fabre.lamps': true } },
@@ -154,7 +154,7 @@ export const PEOPLE = {
         after: {
           say: [{ if: { not: { flag: 'temple.underwater.done' } }, text: '~neutral~ Six lamps, every dusk. When they come back, the top of the city will be lit.' },
             { if: { flag: 'temple.underwater.done' }, text: '~happy~ A whale came right up to the Crown at dusk. It looked at the lamps, and then at me, and then it sang. I didn’t know what to do, so I waved.' }],
-          choices: [{ text: '~neutral~ Goodbye, Fabre.', end: true }],
+          choices: [{ text: '~happy~ Keep them lit.', end: true }],
         },
       },
     },
@@ -194,7 +194,7 @@ export const PEOPLE = {
           say: ['~curious~ Fabre lights the Crown’s lamps every dusk, for them? All these months?',
             '~solemn~ Then when they come back, they’ll find the top of the city lit. A fine thing for a whale to see.'],
           do: { set: { 'underwater.maelle.lamps': true } },
-          choices: [{ text: '~curious~ And the Whale-House?', goto: 'again' }, { text: '~neutral~ Goodbye, Maelle.', end: true }],
+          choices: [{ text: '~curious~ And the Whale-House?', goto: 'again' }, { text: '~neutral~ I’ll tell him you said so.', end: true }],
         },
         // (the route's way on: the City-Shaft, the light that went up a well)
         after: {
@@ -204,7 +204,7 @@ export const PEOPLE = {
           do: { set: { 'clue.underwater.incal': true } },
           choices: [
             { text: '~curious~ A city down a well?', goto: 'well' },
-            { text: '~neutral~ Goodbye, Maelle.', end: true },
+            { text: '~whisper~ (listen to it with her)', end: true },
           ],
         },
         well: { say: ['~playful~ Whales don’t give directions. They give songs. But that one sounded like falling a long way, and landing somewhere bright.'], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },

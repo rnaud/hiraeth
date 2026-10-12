@@ -376,7 +376,7 @@ test('the middle levels: Perrine’s halfway stall, its mirror washed and turned
   const fwd = V(0, 0, 1).applyQuaternion(H.face.getWorldQuaternion(new THREE.Quaternion()));
   const inward = V(-H.frame.position.x, 0, -H.frame.position.z).normalize();
   assert.ok(fwd.y > 0.3 && V(fwd.x, 0, fwd.z).normalize().dot(inward) > 0.9, `the glass looks up and in, at the Lodestar (${fwd.toArray().map((v) => v.toFixed(2))})`);
-  talk(PEOPLE.perrine, ['Goodbye, Perrine.']);
+  talk(PEOPLE.perrine, ['Save me the warm half.']);
   assert.equal(game.flag('incal.perrine.turned'), true, 'Perrine has her word on it when you pass');
   // with the Lodestar lit, Ossa sees the coin of light at the bottom
   game.set('incal.lit', true);

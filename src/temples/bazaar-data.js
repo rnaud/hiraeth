@@ -26,18 +26,18 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ["~whisper~ (A man has his ear against the paving at the tower’s foot. One raised finger asks you to wait.) Nearly. Listen.",
-            "~solemn~ *Somebody.* There it is again. I’m Hobb. I listen to this stone. Everyone else here is trying to be louder than the next stall.",
+            "~solemn~ *Somebody.* There it is again. I listen to this stone. Everyone else here is trying to be louder than the next stall.",
             "~curious~ Below us is *the Undertower*, older than the market. They say it once spoke a whole sentence. Since the night every sign showed the mark, it can only repeat that first word."],
           do: { set: { 'met.pell': true } },
           choices: [
             { text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' },
             { text: '~curious~ What was the whole line?', goto: 'line' },
-            { text: '~neutral~ Goodbye, Hobb.', end: true },
+            { text: '~whisper~ (listen at the paving with him)', end: true },
           ],
         },
         line: {
           say: ["~sad~ Sel’s tower tells people *somebody out there is talking to you*. Perhaps it learned that message from whatever is underneath.", "~whisper~ Perhaps it’s been trying to finish the sentence all this time."],
-          choices: [{ text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' }, { text: '~solemn~ Then let it try a while longer.', end: true }],
         },
         go: {
           say: ["~neutral~ Go round the back to the doorway in the old stones. Unlocked. Few people here explore where there’s nothing for sale.",
@@ -46,7 +46,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~whisper~ (Hobb points to the rear doorway, keeping his ear on the stone.)"],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.bazaar', started: false }, do: { start: 'temple.bazaar' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.bazaar', started: false }, do: { start: 'temple.bazaar' }, end: true }, { text: '~whisper~ (leave him listening)', end: true }],
         },
         inside: {
           say: ['~surprised~ You went down! Is it loud, down there?', '~curious~ And the doors? Do they open for anybody?'],
@@ -61,13 +61,13 @@ export const PEOPLE = {
             "~happy~ Then the whole sentence came out: *Somebody out there is talking to you.* The market stopped to hear it. Even the noodle men.",
             "~solemn~ It will speak once each night now. I can listen standing up. My ear will appreciate the promotion."],
           choices: [
-            { text: '~solemn~ It was stuck. I gave it its words back.', goto: 'words' },
+            { text: '~solemn~ I played its own notes back to it.', goto: 'words' },
             { text: '~happy~ Somebody out there is talking to you, Hobb.', goto: 'you' },
-            { text: '~neutral~ Goodbye, Hobb.', end: true },
+            { text: '~playful~ Listen standing up, then.', end: true },
           ],
         },
-        words: { say: ["~solemn~ At last it finished what it meant to say. I’m glad someone helped it."], choices: [{ text: '~neutral~ Goodbye, Hobb.', end: true }] },
-        you: { say: ["~happy~ (Hobb laughs.) Yes. You’re talking to me. I’m listening."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        words: { say: ["~solemn~ At last it finished what it meant to say. I’m glad someone helped it."], choices: [{ text: '~happy~ Once a night, now.', end: true }] },
+        you: { say: ["~happy~ (Hobb laughs.) Yes. You’re talking to me. I’m listening."], choices: [{ text: '~happy~ (listen with him)', end: true }] },
       },
     },
   },

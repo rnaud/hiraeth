@@ -27,19 +27,19 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~neutral~ Wim. Clock-winder. Hold still while I count… No. That one’s wrong too. I wind every clock in both camps each morning.",
+          say: ["~neutral~ Hold still while I count… No. That one’s wrong too. I wind every clock in both camps each morning.",
             "~solemn~ That’s *the Clock-House*. It stood here before the sand turned to glass, the old ones say. Or the glass came round it. Nobody agrees.",
             "~sad~ Its works set the pace for these dunes. They jolted when the singing light passed. Every clock in the camps stopped. Something underneath has been winding tighter ever since."],
           do: { set: { 'met.wim': true } },
           choices: [
             { text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' },
             { text: '~curious~ Winding itself up?', goto: 'winding' },
-            { text: '~neutral~ Goodbye, Wim.', end: true },
+            { text: '~playful~ I’ll let you count.', end: true },
           ],
         },
         winding: {
           say: ["~whisper~ Put your ear to the drum at night. Springs straining. A clock wound past its patience.", "~solemn~ The kiln-keepers call it *the Foreman*. They say it’s always right. They said that before it began doing this."],
-          choices: [{ text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' }, { text: '~solemn~ Past its patience. I know the feeling.', end: true }],
         },
         go: {
           say: ["~neutral~ *The door under the clock.* Unlocked. Nobody here locks anything. The glass keeps what it wants.",
@@ -48,10 +48,10 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *Through the door under the clock.* Follow the ticking."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.garage', started: false }, do: { start: 'temple.garage' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.garage', started: false }, do: { start: 'temple.garage' }, end: true }, { text: '~playful~ In a minute. Whichever minute it is.', end: true }],
         },
         inside: {
-          say: ['~surprised~ You went in! Is it all clocks, inside?', '~curious~ And the Foreman? Is it as tall as they say?'],
+          say: ['~surprised~ Back already? I make that eleven minutes. Or forty. Is it all clocks in there?', '~curious~ And the Foreman? Is it as tall as they say?'],
           choices: [
             { text: "~solemn~ It needs six numbers lit together.", goto: 'six' },
             { text: '~neutral~ I’m going back.', end: true },
@@ -67,7 +67,7 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What does the Foreman keep time for?', goto: 'wheel' },
             { text: '~happy~ What time is it, Wim?', goto: 'time' },
-            { text: '~neutral~ Goodbye, Wim.', end: true },
+            { text: '~happy~ Wind them gently.', end: true },
           ],
         },
         // (the route's way on: the Buried Machine's great wheel, src/story/buried-data.js)
@@ -76,7 +76,7 @@ export const PEOPLE = {
             "~curious~ If you ever find it, tell it the dunes keep time again. Wheels like to know."],
           choices: [{ text: '~neutral~ I’ll tell it.', end: true }],
         },
-        time: { say: ["~happy~ (Wim laughs at the clock.) The correct time. I’d forgotten that was an option."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        time: { say: ["~happy~ (Wim laughs at the clock.) The correct time. I’d forgotten that was an option."], choices: [{ text: '~playful~ Write it down, quick.', end: true }] },
       },
     },
   },

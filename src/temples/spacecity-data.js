@@ -27,20 +27,20 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Joss. I moor. When an island wanders off, I pull it home. Lately they all wander.',
+          say: ['~neutral~ When an island wanders off, I pull it home. That’s mooring. Lately they all wander.',
             '~solemn~ That’s *the Mooring-House*. The great capstan inside holds every cable in the city. The islands were tied to it before anyone lived on them.',
             '~sad~ The night the cables sang, the light’s note ran down every one of them at once. Since then the islands drift apart a hand’s width a night, and the bridges creak.'],
           do: { set: { 'met.joss': true } },
           choices: [
             { text: '~neutral~ I’ll go in and look.', do: { start: 'temple.spacecity' }, goto: 'go' },
             { text: '~curious~ What is letting them drift?', goto: 'warden' },
-            { text: '~neutral~ Goodbye, Joss.', end: true },
+            { text: '~playful~ I’ll keep to one island for now.', end: true },
           ],
         },
         warden: {
           say: ['~whisper~ Something at the top of the house turns the capstan back. Slowly. At night you can hear the cable paying out.',
             '~neutral~ The old moorers called it *the Anchor-Warden*. It was built to hold on. Now it lets go.'],
-          choices: [{ text: '~neutral~ I’ll go in and look.', do: { start: 'temple.spacecity' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go in and look.', do: { start: 'temple.spacecity' }, goto: 'go' }, { text: '~solemn~ Built to hold on. I’ll remember that.', end: true }],
         },
         go: {
           say: ['~neutral~ *The door faces the bridge.* It isn’t locked. Nothing here is locked, except the islands. They used to be.',
@@ -49,7 +49,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ *The door that faces the bridge.* Mind the floors inside. Some of them stop short, and there is nothing under them for a long way.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spacecity', started: false }, do: { start: 'temple.spacecity' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spacecity', started: false }, do: { start: 'temple.spacecity' }, end: true }, { text: '~neutral~ I’ll mind the floors.', end: true }],
         },
         inside: {
           say: ['~surprised~ You came back out! Did the floors hold?', '~curious~ And the capstan? Still turning the wrong way?'],
@@ -72,7 +72,7 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What is on the cables?', goto: 'broadcast' },
             { text: '~happy~ Will they hold now?', goto: 'hold' },
-            { text: '~neutral~ Goodbye, Joss.', end: true },
+            { text: '~happy~ The Lamp Rock, then.', end: true },
           ],
         },
         // (the route's way on: the Signal Market, its silent tower, src/story/bazaar-data.js)
@@ -81,7 +81,7 @@ export const PEOPLE = {
             '~curious~ And one tower among them that says nothing. You can hear the gap where it should be. Somebody ought to go and ask it why.'],
           choices: [{ text: '~neutral~ I’ll find that market.', end: true }],
         },
-        hold: { say: ['~happy~ (Joss pats the nearest cable like a patient horse.) They’ll hold. I’ll still measure every morning. A moorer who trusts a cable soon has fewer islands.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        hold: { say: ['~happy~ (Joss pats the nearest cable like a patient horse.) They’ll hold. I’ll still measure every morning. A moorer who trusts a cable soon has fewer islands.'], choices: [{ text: '~playful~ Measure twice, then.', end: true }] },
       },
     },
   },

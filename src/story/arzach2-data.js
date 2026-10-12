@@ -95,7 +95,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ A visitor on a bird! The last rider walked down the aqueduct and never wrote. I hope the bird gave you better references.", "~sad~ I’m Ysolde. I write to my sister every winter. Thirty letters. None sent. They’re in a box under my bed, in order."],
+          say: ["~playful~ A visitor on a bird! The last rider walked down the aqueduct and never wrote. I hope the bird gave you better references.", "~sad~ I write to my sister every winter. Thirty letters. None sent. They’re in a box under my bed, in order."],
           choices: [
             { text: '~curious~ Why not?', goto: 'why' },
             { text: '~curious~ Where is your sister?', goto: 'where' },
@@ -114,9 +114,9 @@ export const PEOPLE = {
         answered: { say: [
           { if: { flag: 'arzach2.lamp.answered' }, text: "~happy~ Her tower lamp lit up! I answered the old way: three long flashes, one short. My hands still knew it." },
           { if: { flag: 'arzach2.lamp.answered' }, text: "~playful~ I flashed back. No need to tell me what my letter said. I was there for the writing." },
-          { if: { not: { flag: 'arzach2.lamp.answered' } }, text: "~happy~ What did she say? No, wait. She waved with both arms tonight. Let me keep that for a moment." }], choices: [{ text: '~happy~ She laughed.', goto: 'laughed' }, { text: '~happy~ (smile)', end: true }] },
-        laughed: { say: ["~happy~ She laughed? Good. Next winter I’ll deliver the letter myself. You may remind me I said that."], choices: [{ text: '~neutral~ Goodbye, Mother.', end: true }] },
-        after: { say: ["~happy~ I’ve started another letter. *Come for supper.* Three words, and I mean every one.", { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ She said she’d come when the bell rang. It rang. I’ve laid two places at supper. Then took one away. Then put it back." }], choices: [{ text: '~happy~ She’ll come.', end: true }] },
+          { if: { not: { flag: 'arzach2.lamp.answered' } }, text: "~happy~ What did she say? No, wait. She waved with both arms tonight. Let me keep that for a moment." }], choices: [{ text: '~happy~ She laughed.', do: { set: { 'arzach2.ysolde.laughed': true } }, goto: 'laughed' }, { text: '~happy~ (smile)', do: { set: { 'arzach2.ysolde.smiled': true } }, end: true }] },
+        laughed: { say: ["~happy~ She laughed? Good. Next winter I’ll deliver the letter myself. You may remind me I said that."], choices: [{ text: '~playful~ I’ll remind you.', end: true }] },
+        after: { say: ["~happy~ I’ve started another letter. *Come for supper.* Three words, and I mean every one.", { if: { all: [{ flag: 'arzach2.ysolde.smiled' }, { not: { flag: 'arzach2.ysolde.laughed' } }] }, text: '~happy~ You only smiled, when I asked what she said. I’ve decided that was a whole letter.' }, { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ She said she’d come when the bell rang. It rang. I’ve laid two places at supper. Then took one away. Then put it back." }], choices: [{ text: '~happy~ She’ll come.', end: true }] },
       },
     },
   },
@@ -165,7 +165,7 @@ export const LOCALS = [
       entry: [{ if: { flag: 'arzach2.bell.rung' }, node: 'after' }, { if: { flag: 'arzach2.aube.heard' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~playful~ Did you come out of the cloud? No? From above it? Good. I like to know which direction to worry about.", "~scared~ I’m Aube. I keep this hermitage and watch the cloud. It has crept higher since I was young. I mark it every spring, on the same stalk."],
+          say: ["~playful~ Did you come out of the cloud? No? From above it? Good. I like to know which direction to worry about.", "~scared~ I keep this hermitage and watch the cloud. It has crept higher since I was young. I mark it every spring, on the same stalk."],
           choices: [
             { text: '~curious~ Why is it higher?', goto: 'why' },
             { text: '~curious~ What are the floating stones?', goto: 'stones' },
@@ -237,7 +237,7 @@ export const LOCALS = [
       entry: [{ if: { has: 'letter' }, node: 'letter' }, { if: { quest: 'arzach2.letter', stage: 'lamp' }, node: 'lamp' }, { if: { quest: 'arzach2.letter', started: true }, node: 'after' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~surprised~ Someone out on the aqueduct! I walk out this far every day from the tower on the plain, as far as the island. Then I walk back.", "~playful~ I’m Ondine. Thirty years studying how old that tower is. All I’ve established is that we’re both older now."],
+          say: ["~surprised~ Someone out on the aqueduct! I walk out this far every day from the tower on the plain, as far as the island. Then I walk back.", "~playful~ That tower and I have been studying each other for thirty years. All I’ve established is that we’re both older now."],
           choices: [
             { text: '~curious~ What’s so special about the tower?', goto: 'tower' },
             { text: '~curious~ Why stop here?', goto: 'island' },
@@ -265,7 +265,7 @@ export const LOCALS = [
           { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~playful~ *Push the lamp’s tiller sideways*, aim its mirror at *the carved bell*, then *light it*. She’ll be watching from the monastery wall." }],
           choices: [{ text: '~neutral~ All right.', end: true }] },
         after: { say: [{ if: { flag: 'arzach2.lamp.answered' }, text: "~happy~ Her window answered the moment you lit ours. I saw it from here. All these years, and she was watching too." }, { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ I heard the bell! That means supper. I’ll set out at first light, and I won’t stop at the tower." }, { if: { not: { flag: 'arzach2.bell.rung' } }, text: "~playful~ I said I’d come when the bell rings. Now I find myself rather hoping it will." }],
-          choices: [{ text: '~neutral~ Goodbye, Ondine.', end: true }] },
+          choices: [{ text: '~playful~ I’ll ask Calix to ring it loud.', if: { not: { flag: 'arzach2.bell.rung' } }, end: true }, { text: '~happy~ Go and eat your supper.', if: { flag: 'arzach2.bell.rung' }, end: true }] },
       },
     },
   },

@@ -80,7 +80,7 @@ export function thrumTalk(flags = {}, { here = null, has, items = sharedItems, o
       say: [
         '~surprised~ (A thin man in a patched coat comes at a run, goggles on his brow, a brass box ticking in his hand.) Don’t drop it!',
         '~happy~ A fragment of the singing light. I’ve been on the lookout for these since the night the light went over.',
-        '~curious~ Orrin Thrum. I study light. Where it passed it shed splinters of its song, and they hide where nobody goes.',
+        '~curious~ I study light: Orrin Thrum, at your service, or at the light’s. Where it passed, it shed splinters of its song, and they hide where nobody goes.',
         '~neutral~ Find more and I’ll work them into your gear. Five, and I’ll have something.',
       ],
       choices: [

@@ -153,6 +153,8 @@ Add the file to the `docs/audits/` line of `docs/README.md`.
 - keep the tone tags, so `tests/tone.test.js` still passes;
 - keep the answer cap, so `tests/dialogue-choices.test.js` still passes;
 - keep the listen rules, so `tests/listen.test.js` still passes;
+- keep the openers and exits fixed (no first line on the speaker's own name, no bare goodbye), so
+  `tests/dialogue-voices.test.js` still passes;
 - change no ids, conditions or effects;
 - add a changelog line for players (CLAUDE.md), in plain words, e.g. "Rewrote the Glass Dunes'
   conversations: shorter, and each witness tells the light their own way".

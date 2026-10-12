@@ -26,20 +26,20 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Anselme. I keep the Whale-House’s door. I dived, once. Now I sit.',
+          say: ['~neutral~ Mind the step: this is the Whale-House’s door, and I keep it. I dived, once. Now I sit.',
             '~solemn~ The makers built that house to talk to the whales. Shell and glass, and horns out into the sea. The whales came right up to it.',
             '~sad~ Since the night the whales went quiet, something in there sings the light’s note back at them. Every time they come near, it sends them off.'],
           do: { set: { 'met.anselme': true } },
           choices: [
             { text: '~neutral~ I’ll go in and stop it.', do: { start: 'temple.underwater' }, goto: 'go' },
             { text: '~curious~ Something in there?', goto: 'who' },
-            { text: '~neutral~ Goodbye, Anselme.', end: true },
+            { text: '~neutral~ Sit easy. I’ll think on it.', end: true },
           ],
         },
         who: {
           say: ['~whisper~ The makers called it *the Listener*. A great old shell with an ear like a doorway. It answered the whales for them.',
             '~sad~ Now it only answers the light.'],
-          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.underwater' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.underwater' }, goto: 'go' }, { text: '~solemn~ The light’s had it long enough.', end: true }],
         },
         go: {
           say: ['~neutral~ *The door at the end of the tube.* It opens for anyone who walks up to it. It always did.',
@@ -48,7 +48,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ *The door at the end of the tube.* Listen for the deep note in there.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.underwater', started: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.underwater', started: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~neutral~ Keep the door, Anselme.', end: true }],
         },
         inside: {
           say: ['~surprised~ You’ve been in. Does it still smell of brass and salt?', '~curious~ And the Listener? Did it hear you?'],
@@ -69,7 +69,7 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What did the whales do, that night?', goto: 'night' },
             { text: '~happy~ Will you go out to them?', goto: 'out' },
-            { text: '~neutral~ Goodbye, Anselme.', end: true },
+            { text: '~happy~ They sound glad.', end: true },
           ],
         },
         night: {
@@ -79,7 +79,7 @@ export const PEOPLE = {
         },
         out: {
           say: ['~playful~ (He laughs.) At my age? I’ll sit by the door and let them come to me. They always did.'],
-          choices: [{ text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~playful~ Save me a seat by it.', end: true }],
         },
       },
     },

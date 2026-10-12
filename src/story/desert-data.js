@@ -251,7 +251,7 @@ export const PEOPLE = {
           say: [{ if: { has: 'water' }, text: "~happy~ Jar’s full? Good. Keep it for the Drinking." }, { if: { not: { has: 'water' } }, text: "~neutral~ Still dry, that jar? *The giant’s skull is beyond the back gate*, if you’re looking for the way underground." }],
           choices: [
             { text: '~curious~ Have you seen anything strange lately?', goto: 'rumour', once: true },
-            { text: '~happy~ See you, Ama.', end: true },
+            { text: '~playful~ I’ll mind the jar.', end: true },
           ],
         },
         rumour: { say: ["~playful~ Strange lately? A person fell out of the sky in a ball and asked me for fuel. Fairly full week.", "~playful~ Oum saw the singing light the night before you came down. She notices things the rest of us hurry past."], choices: [{ text: '~curious~ Where is Oum?', goto: 'oum' }, { text: '~neutral~ Thanks.', end: true }] },
@@ -271,8 +271,8 @@ export const PEOPLE = {
           say: ["~happy~ It burns! Every colour! I had my doubts when you dropped out of the sky in a dead ball, but you’ve made a fine recovery.", "~solemn~ The camps are carrying our share of the Drinking down to your ship. Don’t argue. *Go and meet us there.*"],
           choices: [{ text: '~neutral~ It was a stone from the Givers’ Hearth.', goto: 'stone' }, { text: '~neutral~ I will.', end: true }],
         },
-        stone: { say: ["~surprised~ Marrow’s bike got you there? Don’t praise it where he can hear. He’ll start charging for the breeze."], choices: [{ text: '~happy~ Goodbye, Ama.', end: true }] },
-        rib: { say: ["~solemn~ The drain was clogged? All these years, and the giant is still coming apart beneath us. I’ll tell the Speaker."], choices: [{ text: '~neutral~ Goodbye, Ama.', end: true }] },
+        stone: { say: ["~surprised~ Marrow’s bike got you there? Don’t praise it where he can hear. He’ll start charging for the breeze."], choices: [{ text: '~playful~ I’ll praise it quietly.', end: true }] },
+        rib: { say: ["~solemn~ The drain was clogged? All these years, and the giant is still coming apart beneath us. I’ll tell the Speaker."], choices: [{ text: '~neutral~ He’ll want it in a verse.', end: true }] },
         after: {
           say: ["~playful~ They’ll sing about you all the way home. You’ll be twelve feet tall by the second oasis. Don’t take it personally."],
           choices: [{ text: '~happy~ Keep the fires going, Ama.', end: true }],
@@ -413,7 +413,7 @@ export const PEOPLE = {
           say: ['~solemn~ Walk with me a little. Speaking is easier when our feet agree on a pace.', "~sad~ We circle the city until the tree drinks. It is a way to wait together. This year, we have had much practice."],
           choices: [
             { text: '~curious~ Until it drinks? Why hasn’t it?', goto: 'old' },
-            { text: '~neutral~ Walk on, Speaker.', end: true },
+            { text: '~neutral~ I won’t slow you.', end: true },
           ],
         },
         old: {
@@ -438,7 +438,7 @@ export const PEOPLE = {
             { text: '~neutral~ Tell me the line about the giant’s mouth again.', goto: 'way' },
             { text: '~curious~ Have you seen an old woman who fell behind?', if: { quest: 'desert.oum', done: false }, goto: 'oum' },
             { text: '~curious~ Have you heard of a masked head in the sand?', if: { all: [{ quest: 'desert.oum', done: true }, { quest: 'desert.mask', started: false }] }, goto: 'mask' },
-            { text: '~neutral~ Walk on, Speaker.', end: true },
+            { text: '~playful~ I’ll take the route, not the verse.', end: true },
           ],
         },
         oum: { say: ["~neutral~ Oum fell behind *in the western dunes*. Walk her back, if you can. The Drinking should include everyone who made the journey."], do: { start: 'desert.oum' }, choices: [{ text: '~curious~ And a masked head in the sand?', if: { quest: 'desert.mask', started: false }, goto: 'mask' }, { text: '~neutral~ I’ll find her.', end: true }] },
@@ -457,7 +457,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ It wasn’t the tree. The drain was blocked.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],
         },
         rib: { say: ["~solemn~ Blocked. So we walked our circles above a repair nobody made. I will remember that."], choices: [{ text: '~playful~ Put it in the verse.', end: true }] },
-        after: { say: ["~solemn~ When they ask what you found here, tell them about the people as well as the fuel. We did, after all, fill your ship.", { if: { flag: 'desert.ilo.told', is: 'monster' }, text: '~playful~ Ilo reports a monster under the city that sniffs visitors. I have added it to the verses. Provisionally.' }], choices: [{ text: '~solemn~ I’ll remember.', end: true }] },
+        after: { say: ["~solemn~ When they ask what you found here, they will mean the fuel. We did, after all, fill your ship.", { if: { flag: 'desert.ilo.told', is: 'monster' }, text: '~playful~ Ilo reports a monster under the city that sniffs visitors. I have added it to the verses. Provisionally.' }, { if: { flag: 'desert.ilo.told', is: 'true' }, text: '~playful~ Ilo has drawn the giant on the side of my tent, with the water inside it. Very large. The tent, mainly.' }, { if: { flag: 'desert.ilo.told', is: 'secret' }, text: '~playful~ Ilo tells me she knows a secret about the giant, and that she will be older very soon. I believe both.' }], choices: [{ text: '~solemn~ I’ll remember.', end: true }] },
       },
     },
   },
@@ -569,7 +569,7 @@ export const PEOPLE = {
           say: ["~playful~ Past the back gate, through the giant’s mouth. I’d come along, but I’m eighty, and the giant has teeth."],
           choices: [
             { text: '~curious~ The Givers, again?', goto: 'givers' },
-            { text: '~neutral~ Goodbye, Nour.', end: true },
+            { text: '~playful~ I’ll mind the teeth for both of us.', end: true },
           ],
         },
         // the water is up, the roots drink, and the tree is cold: the spark-stone (she calls you over for it). She says
@@ -587,13 +587,13 @@ export const PEOPLE = {
         bring: { say: ["~solemn~ Set it in the wet roots. And bring all your fingers back. Legends are careless about fingers."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
         sparkAgain: {
           say: ["~neutral~ The bike under the tarp in the red-rag hollow, then south-east to the Hearth. The stone goes in the roots."],
-          choices: [{ text: '~neutral~ Goodbye, Nour.', end: true }],
+          choices: [{ text: '~playful~ And all my fingers back.', end: true }],
         },
         stone: {
           say: ["~surprised~ The spark-stone. Warm. Real. My grandmother would have wanted to hold it.", "~solemn~ Set it in the tree’s roots. Go on. I’ve spent enough of my life keeping things in boxes."],
           choices: [{ text: '~neutral~ (go to the roots)', end: true }],
         },
-        drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough.", "~solemn~ You gave us back our light, child, and asked for nothing. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it."], choices: [{ text: '~happy~ Goodbye, Nour.', end: true }] },
+        drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough.", "~solemn~ You gave us back our light, child, and asked for nothing. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it."], choices: [{ text: '~happy~ Then I’ll go and let them.', end: true }] },
         after: {
           say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."],
           choices: [
@@ -620,7 +620,7 @@ export const PEOPLE = {
       entry: [{ if: { flag: 'desert.tree.lit' }, node: 'burning' }, { if: { flag: 'desert.channel.open' }, node: 'full' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~tired~ Hessa. Keeper of the tree. Usually the water rises through these roots and feeds its fire. This year I’m keeping dust.", "~solemn~ The old keepers tended the water’s way. Useful history, if someone remembers the maintenance."],
+          say: ["~tired~ Mind the roots; I’ve just swept them. Usually the water rises through them and feeds the tree’s fire. This year I’m keeping dust.", "~solemn~ The old keepers tended the water’s way. Useful history, if someone remembers the maintenance."],
           choices: [
             { text: '~curious~ Where does the water come from?', goto: 'from' },
             { text: '~curious~ What’s the mark on the dais?', goto: 'glyph' },
@@ -667,16 +667,16 @@ export const PEOPLE = {
         },
         fire: {
           say: ["~neutral~ Power? Your ship isn’t broken, sky-person. It’s empty, drained to the last drop. Nothing out here holds that much. Nothing but *Qanat*: when its great tree burns, every lamp in the city burns on its water.",
-            "~whisper~ It went cold the night the light went over. And burning or cold, Qanat doesn’t hand its fire to strangers.",
+            "~whisper~ It went cold the night the light passed. And burning or cold, Qanat doesn’t hand its fire to strangers.",
             "~playful~ *The city is over the dunes that way*, past the pilgrims’ camps. Up its great tree there’s *a chest that’s been humming* since the light went over. Old Nour’s sat under it sixty years, waiting for someone. Go and be someone."],
           choices: [{ text: '~neutral~ Qanat, the tree, the chest. Thanks.', end: true }, { text: '~curious~ And the mark?', goto: 'mean' }],
         },
         hello: {
-          say: ["~playful~ Sky-person, back again. Your ship is exactly where you left it. I checked. Twice. Purely for your peace of mind.", "~whisper~ That mark on your hull still hasn’t cooled. Three dots and an arc. {glyph} Sand doesn’t do that."],
+          say: [{ if: { not: { flag: 'desert.marrow.warned' } }, text: '~playful~ Sky-person, back again. Your ship is exactly where you left it. I checked. Twice. Purely for your peace of mind.' }, { if: { flag: 'desert.marrow.warned' }, text: '~playful~ Sky-person. I haven’t been near your ship. I’ve been near it at a respectful distance, which is a different thing.' }, "~whisper~ That mark on your hull still hasn’t cooled. Three dots and an arc. {glyph} Sand doesn’t do that."],
           choices: [
             { text: '~curious~ What does it mean?', goto: 'mean' },
             { text: '~curious~ Got anything faster than walking?', if: { all: [{ quest: 'desert.bike', started: false }, { not: { flag: 'desert.bike.found' } }] }, goto: 'bike' },
-            { text: '~angry~ Stay away from my ship.', end: true },
+            { text: '~angry~ Stay away from my ship.', do: { set: { 'desert.marrow.warned': true } }, end: true },
           ],
         },
         // the crashed hull in the south: his old camp, picked clean years ago (the slate: THINGS.slate)
@@ -722,7 +722,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ (look toward the back gate)', end: true }],
         },
         full: { say: ["~solemn~ Coloured water climbs the roots. The tree drinks steadily.", "~sad~ The crown stays dark. Water alone won’t light it."], choices: [{ text: '~neutral~ (watch it)', end: true }] },
-        burning: { say: ["~solemn~ Cool flame runs up the roots into the crown. The bark is still cool to touch."], choices: [{ text: '~neutral~ (watch it)', end: true }] },
+        burning: { say: ["~solemn~ Cold fire runs up the roots into the crown. The bark stays cold to the touch."], choices: [{ text: '~neutral~ (watch it)', end: true }] },
       },
     },
   },
@@ -937,7 +937,7 @@ export const THINGS = {
   ruinTower: {
     id: 'ruinTower', name: 'A windcatcher', title: 'out of the sand', color: '#d9c3a0', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~curious~ A windcatcher’s tower, the dune slid off it. Its slots still catch the wind and breathe cool air down into the sand."],
+      say: ["~curious~ A windcatcher’s tower, the dune slid off it. Its slots still catch the wind and breathe cold air down into the sand."],
       do: { set: { 'desert.ruin.tower': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
@@ -965,7 +965,7 @@ export const THINGS = {
     id: 'qanatWell', name: 'An old qanat well', title: 'on the line to Qanat', color: '#d9c3a0', voice: 0.6,
     talk: { nodes: { look: {
       say: [
-        { if: { flag: 'desert.well.watched' }, text: "~happy~ Cool air breathes up the shaft. Down there the water is running, fast, toward the tree." },
+        { if: { flag: 'desert.well.watched' }, text: "~happy~ Cold air breathes up the shaft. Down there the water is running, fast, toward the tree." },
         { if: { all: [{ not: { flag: 'desert.well.watched' } }, { not: { flag: 'desert.wells.heard', is: 2 } }, { not: { flag: 'desert.wells.heard', is: 3 } }] }, text: "~curious~ You put your ear to the stone. Far down, very faint: water, moving." },
         { if: { all: [{ not: { flag: 'desert.well.watched' } }, { flag: 'desert.wells.heard', is: 2 }] }, text: "~curious~ Nearer than at the last well: water running under the sand, toward the city." },
         { if: { all: [{ not: { flag: 'desert.well.watched' } }, { flag: 'desert.wells.heard', is: 3 }] }, text: "~solemn~ Close under you now. The old channel runs from well to well down to Qanat, and something holds the water back." },
@@ -978,7 +978,7 @@ export const THINGS = {
     id: 'fieldStone', name: 'The Givers’ field-stone', title: 'on the dunes below their House', color: '#cdb38f', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~curious~ A carved stone stands to your shoulder in the sand. On its face a channel runs down from a little round cistern, three rows of shoots beside it.",
-        { if: { not: { flag: 'temple.desert.done' } }, text: "~sad~ The boundary of a field, with no field. The sand is the same on both sides of it." },
+        { if: { not: { flag: 'temple.desert.done' } }, text: "~sad~ The edge of a field, with no field. The sand is the same on both sides of it." },
         { if: { flag: 'temple.desert.done' }, text: "~happy~ Beside it the sand is dark and wet, and young green stands in rows. The stone has its field again." }],
       do: { set: { 'desert.fieldstone.seen': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
@@ -989,7 +989,7 @@ export const THINGS = {
     id: 'rideTusks', name: 'The tusk gate', title: 'where the red rocks begin', color: '#e6d8b8', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~solemn~ Two tusks, each longer than a house, stand in rings of red stones either side of the way. Their tips cross high overhead. Somebody stood them there on purpose.",
-        "~curious~ In their shade, on a low wall, a clay jar sealed with a flat stone. The Givers’ eye is painted on its side. It is still cool to the touch.",
+        "~curious~ In their shade, on a low wall, a clay jar sealed with a flat stone. The Givers’ eye is painted on its side. It is still cold to the touch.",
         "~neutral~ Beside it a small cairn, a strip of red cloth tied round the top stone. Riders leave something here, it seems, on the way in.",
         { if: { flag: 'desert.stone.taken' }, text: "~happy~ The spark-stone warms in your pack as you pass under. The gate is the right way round now: you are going home." }],
       do: { set: { 'desert.ride.tusks': true } },
@@ -1096,7 +1096,7 @@ export const CROWD_TALK = {
       "~neutral~ Walk with us. We circle Qanat until the tree drinks and burns again. Company makes the waiting easier.",
       ['~solemn~ A tree can’t see, but it can hear feet.', '~solemn~ Seven times round for every year it has drunk. We lost count long ago.'],
       '~angry~ You’re in my step. Walk or get out of the way, sky-stranger.',
-      { if: { not: TEMPLE }, say: '~curious~ See the rose stone humped in the dunes *east of the walls*? A house for water, my mother called it. Its door looks at Qanat, as if it’s waiting to be let in.' },
+      { if: { not: TEMPLE }, say: '~curious~ See the rose stone humped in the dunes *east of the walls*? A house for water, my mother called it. Its door faces Qanat, waiting.' },
       { after: RISEN, if: { not: LIT }, say: '~surprised~ The roots drink and we still walk. The tree hasn’t burned. A circuit isn’t over until it’s over.' },
       { after: DONE, say: '~happy~ The drinking came! Eleven days I walked for it, and I’d walk eleven more.' },
     ] } },
@@ -1109,7 +1109,7 @@ export const CROWD_TALK = {
     ] } },
     { name: 'A tired walker', title: 'in the procession', talk: { listen: [
       '~tired~ Eleven days across the dunes, a cold tree at the end of them, and now round and round. My feet have opinions.',
-      ['~happy~ At the drinking the fire goes cool and every colour, and everyone drinks a mouthful from the same jar.', '~happy~ Then we sing until the jar is empty and the morning comes.'],
+      ['~happy~ At the drinking the fire burns cold and every colour, and everyone drinks a mouthful from the same jar.', '~happy~ Then we sing until the jar is empty and the morning comes.'],
       '~tired~ No, I don’t want to hear about your ship. I want to hear about a chair.',
       '~whisper~ Mind the cactus by the road, the sand candelabra. It looks friendly. It isn’t.',
       { after: DONE, say: '~happy~ My feet have stopped complaining. They’re too busy dancing.' },
@@ -1133,7 +1133,7 @@ export const CROWD_TALK = {
     ] } },
     { name: 'A trader', title: 'resting', talk: { listen: [
       ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. It sang one long note, like a salt cart’s axle begging for grease.', '~whisper~ It didn’t come down. It dipped low behind the dunes, as if it was looking for something, and climbed away again.'],
-      { if: { not: { flag: 'desert.bike.found' } }, say: '~whisper~ Marrow hides what he finds. There’s a hollow *between your ball and the camps*, with *a red rag on a pole*. Lift the tarp and see. Don’t pay him for the looking.' },
+      { if: { not: { flag: 'desert.bike.found' } }, say: '~whisper~ Marrow hides what he finds: a hollow *between your ball and the camps*, *a red rag on a pole*. Lift the tarp. Don’t pay him for looking.' },
       '~playful~ I sell salt to people who walk past the salt flats to get here. Business is a kind of faith.',
       '~curious~ East of the camps there’s a ring of old ledges with glass on top. *The Sleeping Observatory*. People sketch it. Nobody knows what it watched.',
       { after: DONE, say: '~happy~ Business is good. Happy people buy salt. I don’t know why. I don’t ask.' },
@@ -1152,7 +1152,7 @@ export const CROWD_TALK = {
       '~neutral~ Mind the steps up to the tree. They’re older than the walls, and they know it.',
       { if: { not: RISEN }, say: '~whisper~ The tree’s thickest roots all run toward *the back gate*. Hessa says it means nothing. Hessa sweeps them every day, so she’d know.' },
       // (only once the tree's own box is found: nobody tells of the makers' boxes before the first)
-      { if: [{ flag: 'box.desert.backpack' }, { not: { flag: 'box.desert.star' } }], say: '~playful~ There’s another of those blue boxes on a roof *just inside the gate*, I swear, with a pale star on top. Climb the house wall, if your knees are younger than mine.' },
+      { if: [{ flag: 'box.desert.backpack' }, { not: { flag: 'box.desert.star' } }], say: '~playful~ Another of those blue boxes, on a roof *just inside the gate*, a pale star on top. Climb the wall, if your knees are younger than mine.' },
       '~tired~ Stand there if you like. I’ve been standing here three days. It isn’t interesting.',
       { after: DONE, say: '~happy~ The Speaker called us in! First time in my life I’ve been glad to stop waiting.' },
     ] } },

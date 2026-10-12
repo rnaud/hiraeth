@@ -81,7 +81,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ You look busy. A difficult habit to keep here. I’m Linnet. I listen to the spheres.", "~solemn~ Each sphere holds the last sound it heard before it fell from the sky. Most people walk past. I like to hear where they’ve been."],
+          say: ["~playful~ You look busy. A difficult habit to keep here. I keep a slower one: I listen to the spheres.", "~solemn~ Each sphere holds the last sound it heard before it fell from the sky. Most people walk past. I like to hear where they’ve been."],
           choices: [
             { text: '~curious~ How do you hear it?', goto: 'how' },
             { text: '~curious~ What sounds do they remember?', goto: 'what' },
@@ -122,7 +122,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ The lake gives us a second garden. Upside down, but very little maintenance.", "~whisper~ I’m Nell. I watch the reflections. Everything down there comes twice as large, a sphere and its double. Except one bright thing, which isn’t a reflection at all."],
+          say: ["~playful~ The lake gives us a second garden. Upside down, but very little maintenance.", "~whisper~ I watch the reflections. Everything down there comes twice as large, a sphere and its double. Except one bright thing, which isn’t a reflection at all."],
           choices: [{ text: '~curious~ Except what?', goto: 'except' }, { text: '~curious~ Twice as large?', goto: 'twice' }],
         },
         twice: { say: ["~happy~ The shore sphere touches its reflection at the waterline. As a child I thought that was how spheres hatched. I still rather like the idea."], choices: [{ text: '~curious~ Except one thing, you said?', goto: 'except' }] },
@@ -152,7 +152,7 @@ export const PEOPLE = {
       ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy.', '~playful~ Nobody believes me until they do it.'],
       ['~whisper~ Ever looked under a sphere? Where it touches the ground there’s a mark pressed in, like where a foot came down. {glyph}', '~playful~ The Footprint. Every sphere has one, underneath, where nobody looks. Except me.'],
       { if: { not: { flag: 'box.spheres.shell' } }, say: '~playful~ There’s a blue box with a star on top *up on the grove’s umbrella tree*. A left-behind. Ume says they’re presents. Ume says everything is a present.' },
-      '~curious~ Something walked through the sky putting spheres down, the way you’d put down cups. Some say it was the great one on the horizon, and that one day it will come back for them.',
+      '~curious~ Something walked through the sky putting spheres down, the way you’d put down cups. Some say it will come back for them.',
       '~neutral~ Splash a sphere and it rings. The big ones ring low, the little ones high. I played a whole song on the grove once. Badly.',
       '~tired~ Can’t talk. Climbing. (He is standing on the ground.)',
       { after: { flag: 'temple.spheres.done' }, say: '~surprised~ The Footprint is full of still water now, and every sphere wears a ring of light. I climbed one to check. It’s warm.' },
@@ -173,7 +173,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~solemn~ Take *the avenue from the arch to the plaza*. Walk slowly. Watch the flowers as you pass.", "~neutral~ Cael. I walk this road every day. A runner gets there sooner. I see more on the way. We’ve agreed to stop arguing about who wins."],
+          say: ["~solemn~ Take *the avenue from the arch to the plaza*. Walk slowly. Watch the flowers as you pass.", "~neutral~ This road and I meet every day. A runner gets there sooner. I see more on the way. We’ve agreed to stop arguing about who wins."],
           choices: [
             { text: '~curious~ How long is it?', goto: 'long' },
             { text: '~curious~ What happens if you walk it slowly?', goto: 'slowly' },
@@ -189,11 +189,11 @@ export const PEOPLE = {
         walked: {
           say: ["~happy~ Every bell opened behind you. That’s the whole avenue saying hello.", "~curious~ Every bell, all the way. How long was it, would you say?"],
           do: { set: { 'spheres.cael.walked': true } },
-          choices: [{ text: '~tired~ It was long.', goto: 'longer' }, { text: '~playful~ It was short.', goto: 'shorter' }],
+          choices: [{ text: '~tired~ It was long.', do: { set: { 'spheres.cael.said': 'long' } }, goto: 'longer' }, { text: '~playful~ It was short.', do: { set: { 'spheres.cael.said': 'short' } }, goto: 'shorter' }],
         },
-        longer: { say: ['~happy~ Good. Long is the right answer, for a first time.'], choices: [{ text: '~neutral~ Goodbye, Cael.', end: true }] },
-        shorter: { say: ["~surprised~ Short? Then you weren’t counting the steps. That’s the trick. I may have a rival."], choices: [{ text: '~neutral~ Goodbye, Cael.', end: true }] },
-        after: { say: ['~happy~ Slowly. It is that kind of road. You know now.'], choices: [{ text: '~neutral~ I know.', end: true }] },
+        longer: { say: ['~happy~ Good. Long is the right answer, for a first time.'], choices: [{ text: '~happy~ Long, and worth it.', end: true }] },
+        shorter: { say: ["~surprised~ Short? Then you weren’t counting the steps. That’s the trick. I may have a rival."], choices: [{ text: '~playful~ Rival accepted.', end: true }] },
+        after: { say: [{ if: { not: { flag: 'spheres.cael.said', is: 'short' } }, text: '~happy~ Slowly. It is that kind of road. You know now.' }, { if: { flag: 'spheres.cael.said', is: 'short' }, text: '~playful~ Still short, is it? I count your steps now, rival. You were quicker today, and you saw less.' }], choices: [{ text: '~neutral~ I know.', end: true }] },
       },
     },
   },
@@ -212,7 +212,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~happy~ I’m Ume. This pole hums when the great sphere is on the horizon. I look after it. It requires very little dusting and a great deal of listening.", "~tired~ Linnet sends listeners here with sounds from the smaller spheres. Have you heard them yourself? Descriptions won’t do."],
+          say: ["~happy~ This pole hums when the great sphere is on the horizon. I look after it. It requires very little dusting and a great deal of listening.", "~tired~ Linnet sends listeners here with sounds from the smaller spheres. Have you heard them yourself? Descriptions won’t do."],
           choices: [
             { text: '~curious~ Why does the pole hum?', goto: 'why' },
             { text: '~curious~ Have you heard anything strange?', goto: 'strange' },
@@ -220,7 +220,7 @@ export const PEOPLE = {
         },
         why: { say: ["~neutral~ The pole answers the great sphere. Like two bowls vibrating together. When the sphere sets, the pole usually falls quiet."], choices: [{ text: '~curious~ Usually?', goto: 'strange' }] },
         strange: {
-          say: ["~whisper~ The night the light passed, it hummed after dark. A singing light crossed above us, matching its note. The old listeners called such a thing *an Answerer*.", "~scared~ It turned directly over this plaza. As though it had heard a reply. Then it flew on. I still catch myself looking up at night."],
+          say: ["~whisper~ One night it hummed after dark. A singing light crossed above us, matching its note. The old listeners called such a thing *an Answerer*.", "~scared~ It turned directly over this plaza. As though it had heard a reply. Then it flew on. I still catch myself looking up at night."],
           do: { set: { 'spheres.rumour.light': true } },
           choices: [{ text: '~neutral~ It drained my ship.', goto: 'struck' }, { text: '~neutral~ I’ll bring the pole three sounds.', end: true }],
         },

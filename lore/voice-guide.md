@@ -88,6 +88,12 @@ utterances: “Gone,” “Her track,” “Blow.” Give her clear gestures. Ot
 can use a few concrete words. Silence is communication, not a puzzle about
 what the writer meant.
 
+Start a person in the middle of what they are doing; the panel already shows their name, so a first line
+is never "Name. I verb." End a talk on something the traveller would say to that line, or on a gesture,
+never a bare "Goodbye, X." (the dialogue review v1.57). When he tells a guide what happened inside a
+makers' house, he reports what he saw ("It was crying in the dark. Then it drank."), not what the guardian
+needed.
+
 ## Recordings and home
 
 The recordings never answer the current traveller. They contain old domestic

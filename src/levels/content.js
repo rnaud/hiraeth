@@ -195,7 +195,7 @@ export const CONTENT = {
     npcs: [
       { at: [30, 12], palette: pal('#d8a24a', { cloth: '#5a4a3a' }), lines: ["~tired~ Wind’s erased my tracks. Again.", "~solemn~ Old walls under every dune."],
         id: 'ysa', name: 'Rima', title: 'dune walker', color: '#d8a24a', talk: { listen: [
-          "~tired~ Rima. Dune walker. The wind erases my tracks every night. I try not to take it as criticism.",
+          "~tired~ The wind erases my tracks every night. I try not to take it as criticism.",
           { if: { not: { flag: 'item.backpack' } }, say: '~neutral~ Qanat is *north-east, past the low dunes*. Look for the great dark tree over the walls; the pilgrims are camped at its gate.' },
           "~solemn~ There are buried cities under these dunes. Qanat stayed above the sand. The old people say its tree’s roots hold it together.",
           '~playful~ Lost? Good. Walking only works if you get a little lost.',
@@ -206,10 +206,10 @@ export const CONTENT = {
         entry: [{ if: { quest: 'desert.mask', done: true }, node: 'washed' }, { node: 'hello' }],
         nodes: {
           washed: { say: ["~surprised~ You cleaned its eyes? Both of them? I’ve walked past that face for twenty years and only ever counted its teeth.", "~whisper~ Did it look at you? Don’t answer. I’ll sleep better guessing."], choices: [
-            { text: '~curious~ What sleeps under the city?', goto: 'giant' }, { text: '~neutral~ Bye, Pell.', end: true }] },
-          hello: { say: ["~playful~ Pell. I counted the great ribcage south of here. Forty ribs. The giant beneath Qanat is harder; people object when you count under their kitchens."], choices: [
+            { text: '~curious~ What sleeps under the city?', goto: 'giant' }, { text: '~playful~ It blinked.', end: true }] },
+          hello: { say: ["~playful~ Forty ribs, the great ribcage south of here. I counted them. The giant beneath Qanat is harder; people object when you count under their kitchens."], choices: [
             { text: '~surprised~ There’s a giant under the city?', goto: 'giant' }, { text: '~curious~ What sleeps in the south?', goto: 'mask' }] },
-          giant: { say: ["~solemn~ Its head sticks out beyond Qanat’s back gate. The city stands above its body. An entire neighbourhood on somebody’s chest."], choices: [{ text: '~curious~ And the south?', goto: 'mask' }, { text: '~neutral~ Bye.', end: true }] },
+          giant: { say: ["~solemn~ Its head sticks out beyond Qanat’s back gate. The city stands above its body. An entire neighbourhood on somebody’s chest."], choices: [{ text: '~curious~ And the south?', goto: 'mask' }, { text: '~playful~ I’ll step lightly in Qanat.', end: true }] },
           mask: { say: ["~whisper~ Find *the sleeping mask south, past the ribs*. Face toward the sky. I wouldn’t assume it can’t notice you."], do: { start: 'desert.mask' }, choices: [{ text: '~neutral~ I’ll look at it.', end: true }] },
         } } },
       { at: [110, -150], palette: pal('#8a6fb8', { face: '#e6d3b8' }), lines: ["~curious~ Seen a riderless bike? Mine has gone exploring.", "~tired~ It had a red seat. It probably still thinks it has a red seat.", "~playful~ If you meet a bike with opinions, tell it I’ve forgiven it."], shy: true,
@@ -218,7 +218,7 @@ export const CONTENT = {
           // Marrow", one person sending you to another, the author's playthrough, issue #63)
           entry: [{ if: { not: { flag: 'desert.bike.found' } }, node: 'walk' }, { node: 'hello' }],
           nodes: {
-          walk: { say: ["~curious~ I’m Rook. Looking for my bike. It leaves without consulting me. You’re walking too, I see.", "~whisper~ Marrow hid a bike under a tarp, *in the hollow with the red rag on a pole*, between here and the camps. Not mine; I checked."],
+          walk: { say: ["~curious~ Looking for my bike. It leaves without consulting me. You’re walking too, I see.", "~whisper~ Marrow hid a bike under a tarp, *in the hollow with the red rag on a pole*, between here and the camps. Not mine; I checked."],
             do: (ctx) => { if (!ctx.quests?.isStarted('desert.bike') && ctx.quests?.def('desert.bike')) ctx.quests.start('desert.bike'); },
             choices: [{ text: '~happy~ I’ll have a look. Good luck, Rook.', end: true }] },
           hello: { say: ["~playful~ Your bike comes when called. Mine seems to consider that a suggestion. Seen it anywhere?"], choices: [{ text: '~playful~ What does yours think?', goto: 'op' }, { text: '~happy~ Good luck, Rook.', end: true }] },
@@ -242,16 +242,16 @@ export const CONTENT = {
         ] } },
       { at: [-18, 18], radius: 2, palette: pal('#697a98'), lines: ['~neutral~ A sleeping observatory stands east of camp.', '~playful~ Hold still. No, you moved. Never mind, you’re a smudge now.'],
         id: 'traveller', name: 'Naji', title: 'who sketches the observatory', color: '#697a98', talk: { nodes: {
-          hello: { say: ["~sad~ Naji. I draw. East of camp: an observatory with a brass ring on top. I’ve drawn it a hundred times, always asleep. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
+          hello: { say: ["~sad~ Asleep again, in every one. East of camp, the observatory with a brass ring on top: I’ve drawn it a hundred times. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~playful~ Asleep is easier to draw.', end: true }] },
           how: { say: ["~playful~ Climb the six ledges and turn all three lenses toward its centre. Tell me what happens. My knees have retired from ledges."], choices: [{ text: '~happy~ I will.', end: true }] },
         } } },
       // out on the ride to the Givers' Hearth, a third of the way: the only shade between the camps and the red rocks
       // (src/desert-sites.js ridePlaces; her sunshade is drawn in src/desert-hearth.js `ride`)
       { at: [RIDE_SHADE.x + 0.6, RIDE_SHADE.z + 0.4], radius: 1.2, palette: pal('#e2b552', { cloth: '#f3ead8', hat: '#c8483a' }), lines: ['~tired~ Shade. Mine. Share it.', '~neutral~ The wind’s from the flats. Salt on everything.'],
         id: 'yara', name: 'Yara', title: 'who carries salt', color: '#e2b552', talk: { listen: [
-          '~neutral~ I haul salt from the flats to Qanat on that sledge. This is the only shade between the camps and the red rocks. Sit, if you like.',
-          '~curious~ Going out to the Hearth? Keep its chimney ahead. Halfway there’s a sand-skiff on its side, mast still up. Somebody sailed this far once. After that, only the red rocks.',
-          '~solemn~ Coming home, take the marked stones. They run from the Hearth’s door all the way back to Qanat: the fire-bearers walked the fire home along them. You can’t miss them, and they don’t drift.',
+          '~neutral~ Salt, from the flats to Qanat, on that sledge. This is the only shade between the camps and the red rocks. Sit.',
+          '~curious~ Going to the Hearth? Keep its chimney ahead. Halfway, a sand-skiff lies on its side, mast still up. After that, only the red rocks.',
+          '~solemn~ Coming home, take the marked stones from the Hearth’s door back to Qanat. The fire-bearers walked the fire home along them. They don’t drift.',
           { after: { flag: 'world.desert.done' }, say: '~happy~ I saw the tree’s smoke from the flats this morning. First time in my life. The salt felt lighter all the way.' },
         ] } },
     ],

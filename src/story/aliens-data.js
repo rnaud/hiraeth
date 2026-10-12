@@ -24,7 +24,7 @@ export const ALIENS = {
         { if: { quest: SPHERES, stage: 'aube' }, say: ['~solemn~ You found the umbrella trees. Good. They are almost as old as I am.', '~neutral~ The spheres are Linnet’s. She listens to them all day, in the grove, and talks faster than I do.'] },
         { if: { quest: SPHERES, stage: 'listen' }, say: '~whisper~ The spheres that remember hum under your feet. *Splash them* with your bright water, then keep still while they play.' },
         '~solemn~ We came down with the spheres, my mother said. They fell; we floated. We still argue about who was luckier.',
-        '~solemn~ The night the light passed, every thread I have pointed the same way, like grass in a river. Then it turned, and they all fell slack.',
+        '~solemn~ On the pulling night, every thread I have pointed the same way, like grass in a river. Then it turned, and they all fell slack.',
         '~tired~ Four hundred summers, and the plaza has never once been quite swept.',
         { after: { quest: SPHERES, done: true }, say: '~happy~ The great sphere answered. I felt it in my threads before I heard it. Thank you for the noise.' },
       ] },
@@ -89,7 +89,7 @@ export const ALIENS = {
         { if: { quest: 'arzach.hand', active: true }, say: '~neutral~ (It taps the ground with its feet: the lowest note, a higher one, the highest. It looks at the stone hand.) Small. Tall.' },
         '~solemn~ (It holds one foot on a stone, very still, as if listening through it.) Hums.',
         '~tired~ (It does not look down. A long leg steps around you.)',
-        '~solemn~ (Its lantern dims, then flares three times, slowly.) Light. Went over. Turned. We looked up.',
+        '~solemn~ (Its lantern sweeps slowly across the sky, turns sharply, and goes dark. Then it tips straight up, and stays there.) Looked.',
       ] },
     },
     {

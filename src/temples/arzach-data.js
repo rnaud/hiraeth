@@ -32,12 +32,12 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ I’ll go up to her.', do: { start: 'temple.arzach' }, goto: 'go' },
             { text: '~curious~ Stopped flying?', goto: 'stopped' },
-            { text: '~neutral~ Goodbye.', end: true },
+            { text: '~neutral~ (leave her to sweep)', end: true },
           ],
         },
         stopped: {
           say: ["~solemn~ Since the singing light. (She looks up.) Frightened.", "~whisper~ Others left. She stayed inside."],
-          choices: [{ text: '~neutral~ I’ll go up to her.', do: { start: 'temple.arzach' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go up to her.', do: { start: 'temple.arzach' }, goto: 'go' }, { text: '~solemn~ (look up at the stone wings)', end: true }],
         },
         go: {
           say: ["~neutral~ (Three strokes of the broom clear a path to the entrance. Lark gestures: *go in*.)", '~whisper~ Wind, inside. Wait for it.'],
@@ -45,12 +45,12 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ (She nods at the door, and goes on sweeping.)'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach', started: false }, do: { start: 'temple.arzach' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach', started: false }, do: { start: 'temple.arzach' }, end: true }, { text: '~neutral~ (nod, and let her sweep)', end: true }],
         },
         inside: {
           say: ['~curious~ (She stops sweeping.) Her?'],
           choices: [
-            { text: '~solemn~ She is afraid to fly alone.', goto: 'alone' },
+            { text: '~solemn~ She won’t fly. Not on her own.', goto: 'alone' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
@@ -61,10 +61,10 @@ export const PEOPLE = {
             "~solemn~ (Lark leans the broom against the wall.) Wings sweep better."],
           choices: [
             { text: '~happy~ She flew with me.', goto: 'flew' },
-            { text: '~neutral~ Goodbye, Lark.', end: true },
+            { text: '~happy~ (pick up the broom, and sweep one step)', end: true },
           ],
         },
-        flew: { say: ['~happy~ (She nods, and nods, and laughs without a sound.)'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        flew: { say: ['~happy~ (She nods, and nods, and laughs without a sound.)'], choices: [{ text: '~happy~ (laugh with her)', end: true }] },
       },
     },
   },

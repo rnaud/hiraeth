@@ -79,7 +79,7 @@ export const LANDING = [
       ],
       nodes: {
         hello: {
-          say: ["~playful~ Dry landing. Sensible. Most sky visitors introduce themselves to the deep water first.", '~happy~ I’m Wendel. I keep the eggs warm and the plants hungry.'],
+          say: ["~playful~ Dry landing. Sensible. Most sky visitors introduce themselves to the deep water first.", '~happy~ The eggs warm and the plants hungry: that’s my work.'],
           choices: [
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
             { text: '~curious~ Why keep the plants hungry?', goto: 'plants' },
@@ -127,7 +127,7 @@ export const LANDING = [
             { if: { quest: Q, reached: 'splinter' }, text: "~surprised~ The crystal sang! Every jaw shut at once. I could hear myself thinking. Novel experience." }],
           choices: [
             { text: '~curious~ Tell me about the eggs.', goto: 'eggs' },
-            { text: '~happy~ See you, Wendel.', end: true },
+            { text: '~neutral~ The eggs need you more than I do.', end: true },
           ],
         },
         patient: {
@@ -136,7 +136,7 @@ export const LANDING = [
             { keepsake: { id: 'perdide.word', level: 'perdide', name: 'Wendel’s saying', kind: 'word', text: '“The patient are never eaten.” Wendel says it works on more than plants.' } }],
           choices: [{ text: '~solemn~ I’ll remember it.', end: true }, { text: '~playful~ Corm won’t be pleased.', goto: 'corm' }],
         },
-        corm: { say: ["~playful~ Corm will feed them extra now. He hates losing a debate to someone standing still."], choices: [{ text: '~neutral~ Goodbye, Wendel.', end: true }] },
+        corm: { say: ["~playful~ Corm will feed them extra now. He hates losing a debate to someone standing still."], choices: [{ text: '~playful~ Let him. I’m still standing.', end: true }] },
         after: {
           say: ["~solemn~ You have a piece of the crystal. Listen: it’s still singing. A good deal lighter than taking the whole thing.", '~playful~ Keep it out of the rain. Or don’t, and let it sing.'],
           choices: [
@@ -155,7 +155,7 @@ export const LANDING = [
       entry: [{ if: { flag: 'met.sedge' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ['~neutral~ Mm. Mind the reeds, they cut.', "~playful~ Sedge. I cut reeds. They cut back. We keep the arrangement civil."],
+          say: ['~neutral~ Mm. Mind the reeds, they cut.', "~playful~ I cut them back. They take it personally. We keep the arrangement civil."],
           choices: [
             { text: '~curious~ What’s out in the water?', goto: 'water' },
             { text: '~curious~ You look like you’ve seen something.', goto: 'light' },
@@ -167,7 +167,7 @@ export const LANDING = [
             { text: '~curious~ How do I get across the water?', goto: 'water' },
             { text: '~curious~ The light you saw…', goto: 'light', if: { flag: 'perdide.rumour.light' } },
             { text: '~curious~ You look like you’ve seen something.', goto: 'light', if: { not: { flag: 'perdide.rumour.light' } } },
-            { text: '~neutral~ Bye, Sedge.', end: true },
+            { text: '~playful~ Sharp as ever.', end: true },
           ],
         },
         water: {
@@ -184,7 +184,7 @@ export const LANDING = [
           choices: [{ text: '~solemn~ I think something like it drained my ship.', goto: 'ship' }, { text: '~happy~ I believe you.', goto: 'believe' }],
         },
         ship: { say: ['~solemn~ Then it didn’t climb far enough.', "~neutral~ The Great Crystal sang back to it. *East, through the ford.* Go and hear it."], choices: [{ text: '~neutral~ I will.', end: true }] },
-        believe: { say: ['~playful~ Mm. That makes two of us. The reeds still have their doubts.'], choices: [{ text: '~neutral~ Bye, Sedge.', end: true }] },
+        believe: { say: ['~playful~ Mm. That makes two of us. The reeds still have their doubts.'], choices: [{ text: '~playful~ They’ll come round.', end: true }] },
       },
     },
   },
@@ -211,7 +211,7 @@ export const LANDING = [
           say: ["~playful~ Wendel calls them crystal sparks. Corm says plant breath. Ysse says stop asking. That’s the least useful theory.", '~curious~ I think they’re going home. Everything goes home at dusk.'],
           choices: [{ text: '~happy~ Let’s find out. I’ll follow them.', goto: 'go' }, { text: '~curious~ How did you get over here?', goto: 'here' }],
         },
-        here: { say: ["~tired~ Ysse brings me in her boat. I help in the cave by not touching things. I’m extremely experienced now."], choices: [{ text: '~neutral~ I’ll follow your fireflies.', goto: 'go' }, { text: '~neutral~ Bye, Ivo.', end: true }] },
+        here: { say: ["~tired~ Ysse brings me in her boat. I help in the cave by not touching things. I’m extremely experienced now."], choices: [{ text: '~neutral~ I’ll follow your fireflies.', goto: 'go' }, { text: '~playful~ Very experienced.', end: true }] },
         go: {
           say: ["~happy~ Follow them now, while they’re crossing. *Whistle for the skiff* to cross the water and stay close. They wait if you fall behind."],
           do: { start: 'perdide.fireflies' },
@@ -231,7 +231,7 @@ export const LANDING = [
           do: [{ set: { 'perdide.ivo.told': true } }, { give: 'jar' }],
           choices: [{ text: '~happy~ Thank you, Ivo.', end: true }],
         },
-        after: { say: ["~playful~ Wendel sat in the mud when I told him. Says he meant to. Learning must be very slippery."], choices: [{ text: '~neutral~ Bye, Ivo.', end: true }] },
+        after: { say: ["~playful~ Wendel sat in the mud when I told him. Says he meant to. Learning must be very slippery."], choices: [{ text: '~playful~ I’m sure he did.', end: true }] },
       },
     },
   },
@@ -253,7 +253,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~whisper~ Sit down. The crystal’s speaking, and your boots are interrupting.", "~solemn~ Saba. Forty years listening. Two hundred and twelve phrases. Now you arrive, and it hums louder. Explain yourself, if you can."],
+          say: ["~whisper~ Sit down. The crystal’s speaking, and your boots are interrupting.", "~solemn~ Two hundred and twelve phrases it has given me, in forty years of listening. Now you arrive, and it hums louder. Explain yourself, if you can."],
           choices: [
             { text: '~surprised~ It hums louder because of me?', goto: 'you' },
             { text: '~curious~ Why does it sing?', goto: 'why' },
@@ -356,7 +356,7 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ Wendel says not to feed them.', goto: 'wendel' },
             { text: '~curious~ What do you think the Great Crystal is?', goto: 'crystal' },
-            { text: '~neutral~ Bye, Corm.', end: true },
+            { text: '~playful~ Admirable. From here.', end: true },
           ],
         },
         wendel: {
@@ -364,12 +364,12 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ Maybe later.', end: true }, { text: '~neutral~ I think I’ll try Wendel’s way.', goto: 'try' }],
         },
         try: { say: ["~playful~ You’ll stand still until they like you? Fine. I’ll be over here, being interesting."], choices: [{ text: '~playful~ We’ll see.', end: true }] },
-        feed: { say: ["~playful~ Fish heads, reed pith, slow moths. Once a boot. It wasn’t occupied. I checked."], choices: [{ text: '~neutral~ Wendel says not to feed them.', goto: 'wendel' }, { text: '~neutral~ Bye, Corm.', end: true }] },
+        feed: { say: ["~playful~ Fish heads, reed pith, slow moths. Once a boot. It wasn’t occupied. I checked."], choices: [{ text: '~neutral~ Wendel says not to feed them.', goto: 'wendel' }, { text: '~playful~ Was it a good boot?', end: true }] },
         crystal: {
           say: ["~curious~ The crystal? A sky-tooth. My plants close their mouths when it sings.", '~playful~ Professional respect. One set of teeth to another.'],
-          choices: [{ text: '~curious~ Have you ever seen it sing?', goto: 'seen' }, { text: '~neutral~ Bye, Corm.', end: true }],
+          choices: [{ text: '~curious~ Have you ever seen it sing?', goto: 'seen' }, { text: '~playful~ I’ll mind both sets.', end: true }],
         },
-        seen: { say: ["~playful~ They shut every rain. And once that dry night when Sedge saw the singing light. Even I found that peculiar."], choices: [{ text: '~neutral~ Bye, Corm.', end: true }] },
+        seen: { say: ["~playful~ They shut every rain. And once that dry night when Sedge saw the singing light. Even I found that peculiar."], choices: [{ text: '~playful~ Even you.', end: true }] },
         during: {
           say: ["~angry~ Ah. Wendel’s method. Being terribly dull in front of a plant.", "~playful~ One splash and they’d be delighted. You could at least wave."],
           choices: [{ text: '~neutral~ (say nothing, and stand still)', end: true }],
@@ -395,7 +395,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~angry~ Mind your head. And your feet. And your elbows.', "~neutral~ I’m Ysse. I clean the cave crystals. Dust muffles their sound. Visitors generally add dust."],
+          say: ['~angry~ Mind your head. And your feet. And your elbows.', "~neutral~ I clean the cave crystals. Dust muffles their sound. Visitors generally add dust."],
           choices: [
             { text: '~curious~ Their sound?', goto: 'hear' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far' },
@@ -406,7 +406,7 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ What’s the hollow in the middle?', goto: 'hollow' },
             { text: '~curious~ Is there anywhere else like this?', goto: 'far' },
-            { text: '~neutral~ Bye, Ysse.', end: true },
+            { text: '~playful~ Boots off. Understood.', end: true },
           ],
         },
         hear: {
@@ -415,7 +415,7 @@ export const PEOPLE = {
         },
         hollow: {
           say: ["~sad~ The heart is the empty ring in the middle. My mother said it was waiting for something. I keep it clean in case she was right."],
-          choices: [{ text: '~curious~ Is there anywhere else like this?', goto: 'far' }, { text: '~neutral~ Bye, Ysse.', end: true }],
+          choices: [{ text: '~curious~ Is there anywhere else like this?', goto: 'far' }, { text: '~solemn~ Keep it clean, then.', end: true }],
         },
         far: {
           say: ["~sad~ Across the swamp, in *the deep wood*, people keep pools lit for missing travellers.", "~solemn~ A small sky-boat fell there, half into a pool. No crystal that time."],
@@ -434,7 +434,7 @@ export const PEOPLE = {
             { text: '~curious~ Is there anywhere else like this?', goto: 'far', if: { not: { flag: 'clue.perdide.perdide2' } } },
           ],
         },
-        value: { say: ["~tired~ Something of value. Well, listen before you decide what it’s worth."], choices: [{ text: '~neutral~ Goodbye, Ysse.', end: true }] },
+        value: { say: ["~tired~ Something of value. Well, listen before you decide what it’s worth."], choices: [{ text: '~solemn~ I’m listening.', end: true }] },
       },
     },
   },

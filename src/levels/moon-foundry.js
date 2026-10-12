@@ -154,7 +154,7 @@ export const MOONFOUNDRY_CONTENT = {
     { ...SPHERES_PEOPLE.ivo, at: [BOWL.x + 4, BOWL.z + 3], y: G + 0.05, radius: 1.5, world: 'spheres', lang: 'spheres',
       lines: ['~curious~ Our spheres grow. These were built. I can’t decide which is stranger.', '~happy~ You can see the whole floor from up here.'],
       talk: { listen: [
-        '~curious~ At home I climb the white hill. Here I climb gantries. The gantries mind less.',
+        '~curious~ Gantries! They mind being climbed less than the white hill does.',
         '~playful~ They planted a garden in half a moon. At home we would call that a very good idea that took too long.',
         '~neutral~ Follow the walkway north and it goes straight into the broken one. There’s a whole street in there.',
         { after: 'clue.moonfoundry.spheres', say: '~surprised~ The first moons went to a garden and fell short? Our spheres? I’ve been climbing somebody’s sky all my life.' },

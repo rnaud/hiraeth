@@ -48,7 +48,7 @@ export const PEOPLE = {
         hello: {
           say: ['~neutral~ Night mail. Mind the lamp, it’s older than the market.',
             '~curious~ You came down the spur on purpose? Nobody does. The halt’s for the train, and the train’s for nobody.',
-            '~neutral~ Edda. I keep the lamp and I sort what comes in for the Overnight Train. It has no address, you see. We’re its post office.'],
+            '~neutral~ I keep the lamp, and I sort what comes in for the Overnight Train. It has no address, you see. We’re its post office.'],
           choices: [
             { text: '~curious~ Mail for a train?', goto: 'mail' },
             { text: '~curious~ Who rides it?', goto: 'who' },
@@ -114,7 +114,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Ambrose. I conduct. Mostly I pour tea and count the sleepers in the long tail.',
+          say: ['~neutral~ Tickets? Nobody has one; I conduct anyway. Mostly I pour tea and count the sleepers in the long tail.',
             '~curious~ Nobody gets on, and nobody gets off. Except you, apparently. Want a stop? I can ring ahead.'],
           choices: [
             { text: '~neutral~ Stop at the market’s halt.', do: [{ set: { 'nightmail.stop': true } }], goto: 'ringing' },

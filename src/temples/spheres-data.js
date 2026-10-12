@@ -24,19 +24,19 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~curious~ Tessa. I walk this rim every day. Most visitors think it’s an unfinished wall. I point out the toes. Politely, the first time.",
+          say: ["~curious~ Toes. Most visitors think this rim is an unfinished wall, so I point them out. Politely, the first time. I’m round it every day.",
             "~solemn~ *The Footprint.* They say a sky-walker set the spheres down and stepped here. *The round heel has a door.*",
             "~whisper~ Something below keeps singing one note. Too loudly. As though it’s waiting for a reply that never comes."],
           do: { set: { 'met.tessa': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.spheres' }, goto: 'go' },
             { text: '~curious~ What sings down there?', goto: 'sings' },
-            { text: '~neutral~ Goodbye, Tessa.', end: true },
+            { text: '~playful~ I’ll walk a lap and think.', end: true },
           ],
         },
         sings: {
           say: ["~solemn~ Ume saw the Answerer turn over the plaza. I wonder if it left an echo here when it passed.", "~sad~ I can’t prove that. But it sounds lonely. Loud things sometimes are."],
-          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.spheres' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.spheres' }, goto: 'go' }, { text: '~solemn~ Lonely and loud. I’ll listen from here.', end: true }],
         },
         go: {
           say: ["~neutral~ Enter the door in the heel, on the grove side.", "~curious~ There’s supposed to be a lens inside that reveals hidden marks. Look closely if you find it. A wall isn’t always just a wall."],
@@ -44,12 +44,12 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ The door is in the heel, on the grove side.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spheres', started: false }, do: { start: 'temple.spheres' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spheres', started: false }, do: { start: 'temple.spheres' }, end: true }, { text: '~playful~ After one more lap.', end: true }],
         },
         inside: {
           say: ["~surprised~ You went below? How far down does it go?", '~curious~ And the singing?'],
           choices: [
-            { text: '~solemn~ It is lost. It wants an answer.', goto: 'answer' },
+            { text: '~solemn~ It sings one note and waits. Nothing answers.', goto: 'answer' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
@@ -59,11 +59,11 @@ export const PEOPLE = {
             "~happy~ Light circles the spheres’ feet. They hum together at dusk. Linnet cried. I walked another lap to hear it twice.",
             "~solemn~ No more single note. Whatever’s underneath has joined the others."],
           choices: [
-            { text: '~solemn~ It only needed answering.', goto: 'needed' },
+            { text: '~solemn~ I answered it, note for note.', goto: 'needed' },
             { text: '~happy~ Walk the rim for me, Tessa.', end: true },
           ],
         },
-        needed: { say: ["~happy~ Now it hears an answer every evening. I’ve changed my walking time so I can too."], choices: [{ text: '~neutral~ Goodbye, Tessa.', end: true }] },
+        needed: { say: ["~happy~ Now it hears an answer every evening. I’ve changed my walking time so I can too."], choices: [{ text: '~happy~ I’ll walk it with you, one evening.', end: true }] },
       },
     },
   },

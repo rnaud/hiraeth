@@ -31,7 +31,7 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' },
             { text: '~curious~ What cries up there?', goto: 'cries' },
-            { text: '~neutral~ Goodbye, Agathe.', end: true },
+            { text: '~playful~ I’ll let Aube finish complaining first.', end: true },
           ],
         },
         cries: {
@@ -45,12 +45,12 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *Across this bridge, through the gallery door.*"],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach2', started: false }, do: { start: 'temple.arzach2' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach2', started: false }, do: { start: 'temple.arzach2' }, end: true }, { text: '~neutral~ After I’ve looked at the edge a while.', end: true }],
         },
         inside: {
-          say: ['~surprised~ You went in! Did the bells ring?', '~curious~ And her? Did you see her?'],
+          say: ['~surprised~ You crossed, and came back. Good. Not everyone’s sense of the edge is reliable. Did the bells ring?', '~curious~ And her? Did you see her?'],
           choices: [
-            { text: '~solemn~ She’s frightened, and stuck up there.', goto: 'stuck' },
+            { text: '~solemn~ She’s up among the stones, crying. She can’t get down.', goto: 'stuck' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
@@ -58,13 +58,13 @@ export const PEOPLE = {
         after: {
           say: ["~surprised~ The loose stones are settling! One landed on the kitchen roof. Calix laughed out loud. I haven’t heard him laugh in years.",
             "~happy~ The Cloud-Mother came out this morning. Swam away across the sky. Some cloud followed her, just as the old stories said.",
-            '~solemn~ I think the founders would have liked you.'],
+            '~solemn~ I’ll ring the bridge bell tonight. It has been a long time.'],
           choices: [
-            { text: '~solemn~ She only needed a note to answer.', goto: 'note' },
+            { text: '~solemn~ She heard a bell, and came down to it.', goto: 'note' },
             { text: '~happy~ Keep the bridge, Agathe.', end: true },
           ],
         },
-        note: { say: ["~solemn~ A familiar sound helped her find her way. I understand that. I’ve missed the bells too.", '~happy~ Now somebody has rung one.'], choices: [{ text: '~neutral~ Goodbye, Agathe.', end: true }] },
+        note: { say: ["~solemn~ A familiar sound helped her find her way. I understand that. I’ve missed the bells too.", '~happy~ Now somebody has rung one.'], choices: [{ text: '~happy~ Ring them for the crossing, then.', end: true }] },
       },
     },
   },

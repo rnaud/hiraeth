@@ -123,11 +123,11 @@ export const PEOPLE = {
           ],
           choices: [
             { text: '~curious~ What’s the mark on your door?', goto: 'mark', once: true },
-            { text: '~happy~ See you, Wen.', end: true },
+            { text: '~happy~ I’ll be back for the turn.', end: true },
           ],
         },
         mark: { say: ["~solemn~ {glyph} *The Maker’s Thumb.* It’s on the buried pipes and plates. We paint it on our doors, hoping the machine will recognise its neighbours.", "~neutral~ It’s on the old *blue star-chests* too. We call them thumb-boxes. There’s one *on the chimney ring*. It has never opened for us."], choices: [{ text: '~curious~ Does it work?', goto: 'works' }] },
-        works: { say: ["~playful~ Has the machine knocked at the wrong house? Not once. Strong evidence."], choices: [{ text: '~happy~ See you, Wen.', end: true }] },
+        works: { say: ["~playful~ Has the machine knocked at the wrong house? Not once. Strong evidence."], choices: [{ text: '~playful~ I’ll paint one on my ship.', end: true }] },
         lit: {
           say: ["~surprised~ I felt the Wick catch! Go *stand in front of the wheel* and watch. Nobody should miss their first turn."],
           choices: [{ text: '~neutral~ I’m going.', end: true }],
@@ -168,7 +168,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~tired~ Mm. The sky-child.', "~solemn~ Hask. I tend *the Wick in the oculus*. Fifty-two years lighting it. Fifty-two turns of the wheel. I used to find that comforting."],
+          say: ['~tired~ Mm. The sky-child.', "~solemn~ I light *the Wick in the oculus*. Fifty-two turns of the wheel, I’ve lit it. I used to find that comforting."],
           choices: [
             { text: '~curious~ Why not this year?', goto: 'why' },
             { text: '~curious~ What is the oculus?', goto: 'oculus' },
@@ -197,14 +197,14 @@ export const PEOPLE = {
         thumb: {
           say: ["~solemn~ {glyph} The Maker’s Thumb. They say its builder pressed three fingers into soft iron and drew an arc. Every gauge carries it.", "~curious~ Wen says your ship has that mark. Was your ship built by the same hands?"],
           do: { set: { 'clue.buried.mark': true } },
-          choices: [{ text: '~neutral~ No. Something hit it.', goto: 'hit' }, { text: '~neutral~ I don’t know.', goto: 'hit' }],
+          choices: [{ text: '~neutral~ No. Something hit it.', do: { set: { 'buried.hask.said': 'hit' } }, goto: 'hit' }, { text: '~neutral~ I don’t know.', do: { set: { 'buried.hask.said': 'unsure' } }, goto: 'hit' }],
         },
-        hit: { say: ["~tired~ Wen says it’s burned on, where the light brushed you. Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
+        hit: { say: [{ if: { flag: 'buried.hask.said', is: 'unsure' }, text: '~tired~ Nor do I. Wen says it’s burned on, where the light brushed you.' }, { if: { not: { flag: 'buried.hask.said', is: 'unsure' } }, text: '~tired~ Hit it, yes. Wen says it’s burned on, where the light brushed you.' }, "~tired~ Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
         felt: {
           say: [{ if: { flag: 'buried.wheel.turned' }, text: "~happy~ It turned. I felt the bench shake. My fifty-third year. And the sky stayed empty." }, { if: { not: { flag: 'buried.wheel.turned' } }, text: "~happy~ The Wick is burning. Go *stand before the wheel*. You’ve earned a view of what you helped wake." }],
-          choices: [{ text: '~curious~ Did the light come back?', goto: 'back' }, { text: '~neutral~ Goodbye, Hask.', end: true }],
+          choices: [{ text: '~curious~ Did the light come back?', goto: 'back' }, { text: '~happy~ I’ll go and watch it.', if: { not: { flag: 'buried.wheel.turned' } }, end: true }, { text: '~happy~ Fifty-three, then.', if: { flag: 'buried.wheel.turned' }, end: true }],
         },
-        back: { say: ["~playful~ No light came back. Just sky. I might manage the walk myself next year. Might."], choices: [{ text: '~neutral~ Goodbye, Hask.', end: true }] },
+        back: { say: ["~playful~ No light came back. Just sky. I might manage the walk myself next year. Might."], choices: [{ text: '~happy~ I’ll walk it with you.', end: true }] },
         after: { say: ["~solemn~ Wen’s worked it out, she says. No last tooth on a wheel, only the one that keeps it going. Suits me. That one wants a trimmed wick.", "~playful~ It hasn’t stopped since. I’ll go down next Tooth Day anyway and trim it. Bring a seat. We can provide sand."], choices: [{ text: '~happy~ I’d like that.', end: true }] },
       },
     },
@@ -223,7 +223,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~surprised~ Mind my chimneys! Oh, hello. Dun. I keep the domes breathing. Someone has to remember the practical end of a festival.", "~neutral~ When the wheel turns, air rises through the pipes. I unlock every chimney to let it out. Unfortunately, my key is currently sightseeing."],
+          say: ["~surprised~ Mind my chimneys! Oh. You’re not soot. I keep the domes breathing. Someone has to remember the practical end of a festival.", "~neutral~ When the wheel turns, air rises through the pipes. I unlock every chimney to let it out. Unfortunately, my key is currently sightseeing."],
           choices: [{ text: '~curious~ Sightseeing where?', goto: 'up' }, { text: '~curious~ What happens if they cough?', goto: 'cough' }],
         },
         cough: { say: ["~playful~ Closed chimneys mean soot in the beds, soot in the soup, soot in Wen’s hair. I can tolerate the first two complaints."], choices: [{ text: '~curious~ Where’s your key?', goto: 'up' }] },
@@ -258,7 +258,7 @@ export const PEOPLE = {
     talk: { listen: [
       { if: { not: { flag: 'world.buried.done' } }, say: ["~curious~ Are you a person? You arrived in a ball. I’m Jot. Nine teeth old. For now.", '~scared~ If the wheel turns today I’ll be ten teeth. Wen says it might not. If it doesn’t, I’ll be nine forever.'] },
       '~whisper~ Ten-teeth-olds are allowed down the ramp. The canyon walls are pipes, not stone: put your ear on them and you can hear the machine thinking.',
-      '~happy~ That’s the Other Half, up there. When the wheel turns, it rocks. Last year a whole tower swung like a bell, and nobody heard it, because it’s too high to hear.',
+      '~happy~ That’s the Other Half, up there. When the wheel turns, it rocks. Last year a whole tower swung like a bell. Too high for anyone to hear.',
       { if: { not: { quest: 'buried.key', done: true } }, say: '~whisper~ Dun’s key is stuck up on *the floating derrick*, everyone knows, but he says it isn’t. The crane only turns one way. Like me.' },
       '~angry~ Go away, I’m counting. Now I have to start again. One…',
       { if: { not: { flag: 'box.buried.resin' } }, say: '~playful~ There’s a box with a star on it up on *the smoking chimney stack*, north-east. On the ring round it. I’m not allowed to climb it. You are, probably.' },
@@ -280,7 +280,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~whisper~ Listen here. The pipes are warm. Every Tooth Day, the pressure rises from below.", "~solemn~ Ket. I listen to the machine. It’s usually a quiet neighbour. Today it has something to report."],
+          say: ["~whisper~ Listen here. The pipes are warm. Every Tooth Day, the pressure rises from below.", "~solemn~ I listen to the machine the way you’d listen to a neighbour through a wall. Usually it’s quiet. Today it has something to report."],
           choices: [
             { text: '~curious~ What do they say?', goto: 'say' },
             { text: '~curious~ Where does the canyon lead?', goto: 'lead' },
@@ -327,7 +327,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~surprised~ A visitor! Tull. I keep the warm window company. Unpaid appointment. It’s better company than most.", "~whisper~ Go in and look *at the window on the balcony*. It’s always warm. I think someone, or something, is still working behind it."],
+          say: ["~surprised~ A visitor! I keep the warm window company. Unpaid appointment. It’s better company than most.", "~whisper~ Go in and look *at the window on the balcony*. It’s always warm. I think someone, or something, is still working behind it."],
           choices: [
             { text: '~curious~ What’s behind the window?', goto: 'behind' },
             { text: '~curious~ Has anyone else come down here?', goto: 'helmet' },
@@ -347,7 +347,7 @@ export const PEOPLE = {
           choices: [
             { text: '~curious~ Tell me about the window.', if: { quest: 'buried.window', started: false }, goto: 'behind' },
             { text: '~curious~ The clock-winder?', if: { all: [{ not: { flag: 'clue.buried.garage' } }, { quest: 'buried.window', started: true }] }, goto: 'helmet' },
-            { text: '~happy~ Bye, Tull.', end: true },
+            { text: '~playful~ Say hello to it for me.', end: true },
           ],
         },
         after: { say: ["~whisper~ Warm, isn’t it? Please don’t tell everyone. They’ll start knocking. It’s a window, not a reception desk."], choices: [{ text: '~whisper~ Your secret is safe.', end: true }] },

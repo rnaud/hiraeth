@@ -24,19 +24,19 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~curious~ Teasel. Reed-cutter. I work round the cave island, except beside that dome. Prefer my reeds without screaming in the background.",
+          say: ["~curious~ I cut round the cave island, all of it but beside that dome. I prefer my reeds without screaming in the background.",
             "~solemn~ *The Hush-House.* The makers taught jaw-plants to settle there, Wendel says. Their mark is the Hush, the one we paint on our doors.",
             "~whisper~ Something inside woke on the dry night, when the singing light went over. It’s been snapping ever since. You can hear the jaws through stone."],
           do: { set: { 'met.teasel': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide' }, goto: 'go' },
             { text: '~curious~ What is snapping?', goto: 'what' },
-            { text: '~neutral~ Goodbye, Teasel.', end: true },
+            { text: '~playful~ The quiet side of the island for me, then.', end: true },
           ],
         },
         what: {
           say: ["~solemn~ Grandmother called her *the Mother*, the first snapper. The makers raised her to guard their house. Our plants came from her seeds.", "~sad~ She may be frightened. Or hungry. I’d prefer not to settle that question with a leg."],
-          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide' }, goto: 'go' }, { text: '~playful~ Not with a leg, then.', end: true }],
         },
         go: {
           say: ["~neutral~ Use *the east door facing the channel*. Listen to the crystals inside; each has a different note.", "~whisper~ Wendel recommends patience. I recommend patience at a sensible distance."],
@@ -44,12 +44,12 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *East door, channel side.* Listen as you go."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide', started: false }, do: { start: 'temple.perdide' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide', started: false }, do: { start: 'temple.perdide' }, end: true }, { text: '~neutral~ At a sensible distance, for now.', end: true }],
         },
         inside: {
           say: ["~surprised~ You went in? Is the Mother still snapping?"],
           choices: [
-            { text: "~solemn~ She’s frightened. Everything around her moves too fast.", goto: 'still' },
+            { text: "~solemn~ She snaps at anything that moves. Me most of all.", goto: 'still' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
@@ -59,11 +59,11 @@ export const PEOPLE = {
             "~happy~ Every jaw-plant has flowers around its roots now. Wendel laughed out loud, and every jaw on the bed turned to look at him.",
             "~solemn~ The Mother’s sleeping. You can hear slow breathing through the stone."],
           choices: [
-            { text: '~solemn~ She only wanted it quiet.', goto: 'quiet' },
+            { text: '~solemn~ She’s asleep. It’s quiet in there now.', goto: 'quiet' },
             { text: '~happy~ Good reeds this year, Teasel.', end: true },
           ],
         },
-        quiet: { say: ["~happy~ I thought the Hush was a warning. Perhaps it was meant to soothe. I like it better on my door now."], choices: [{ text: '~neutral~ Goodbye, Teasel.', end: true }] },
+        quiet: { say: ["~happy~ I thought the Hush was a warning. Perhaps it was meant to soothe. I like it better on my door now."], choices: [{ text: '~happy~ It suits your door.', end: true }] },
       },
     },
   },

@@ -24,19 +24,19 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~curious~ Tamsy. I count all forty-one pool lamps each night and write them down. Hollin calls it thorough. I call it knowing which ones went out.",
+          say: ["~curious~ Forty-one pool lamps, every night, and each one written down. Hollin calls it thorough. I call it knowing which ones went out.",
             "~solemn~ That tower in the water is *the Lamp-House*. Grandfather said its light once reached the whole wood. Nobody living has seen it burn.",
             "~whisper~ When three pools went dark, something pale flew out of the tower and back in. A moth as big as a skiff. I checked that measurement twice."],
           do: { set: { 'met.tamsy': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide2' }, goto: 'go' },
             { text: '~curious~ A moth?', goto: 'moth' },
-            { text: '~neutral~ Goodbye, Tamsy.', end: true },
+            { text: '~playful~ I’ll let you count.', end: true },
           ],
         },
         moth: {
           say: ["~solemn~ It seems to feed on light. Perhaps it drained the tower lamp long ago, and the pools that night. It’s still up there.", "~sad~ Imagine being hungry for the thing that helps you see. I keep thinking about that."],
-          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide2' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide2' }, goto: 'go' }, { text: '~solemn~ Then it’s been hungry a long time.', end: true }],
         },
         go: {
           say: ["~neutral~ Take the causeway beside the root cave, at the lit path’s end. Step from stone to stone.", "~whisper~ Bring a light into the tower. If you haven’t one, look for a gift the makers left inside."],
@@ -44,12 +44,12 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *The causeway starts by the root cave.* It leads to the Lamp-House."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide2', started: false }, do: { start: 'temple.perdide2' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide2', started: false }, do: { start: 'temple.perdide2' }, end: true }, { text: '~neutral~ Not tonight. Count me out.', end: true }],
         },
         inside: {
           say: ["~surprised~ You reached it? Did you see the moth?"],
           choices: [
-            { text: '~solemn~ It’s hungry for light, and frightened.', goto: 'hungry' },
+            { text: '~solemn~ It came at my light, then fled from it.', goto: 'hungry' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
@@ -59,11 +59,11 @@ export const PEOPLE = {
             "~happy~ The moth rests on the lamp, all gold. Hollin says put down forty-two lights now. Happiest correction I’ve made.",
             '~solemn~ Forty-two. I wrote it down.'],
           choices: [
-            { text: '~solemn~ It only needed a little light.', goto: 'light' },
+            { text: '~solemn~ It took the light a little at a time.', goto: 'light' },
             { text: '~happy~ Keep counting, Tamsy.', end: true },
           ],
         },
-        light: { say: ['~happy~ Everyone does. That is why we keep the pools.'], choices: [{ text: "~solemn~ Then I’m glad someone keeps them.", end: true }] },
+        light: { say: ['~happy~ A little at a time. Like counting. It’s the only way I know to do anything.'], choices: [{ text: '~happy~ Forty-two, then.', end: true }] },
       },
     },
   },

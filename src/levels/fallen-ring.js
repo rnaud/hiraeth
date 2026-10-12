@@ -95,7 +95,7 @@ export const RING_CONTENT = {
     { ...EDENA_PEOPLE.oro, at: [TUBE.B[0] - 14, TUBE.B[1] + 1], radius: 1.5, kind: 'm', world: 'edena', lang: 'edena',
       lines: ['~curious~ Pyramids grow slowly. This fell quickly. Both took a long time.', '~happy~ Look, they planted a garden in its street.'],
       talk: { listen: [
-        '~neutral~ At home the pyramids grow. I came to see a thing that was built, for once, and then fell down.',
+        '~neutral~ Mine grow from seeds. I came to see a thing that was built, for once, and then fell down.',
         '~curious~ It was a street, this. Up was the middle of the ring. Now up is the sky, and the lamps hang sideways.',
         '~playful~ The folk here grow beans along the old floor. Very straight rows. The ring was good at straight.',
         { after: 'met.oro', say: '~solemn~ Something that big falls, and the grass just goes on. I find that a comfort.' },

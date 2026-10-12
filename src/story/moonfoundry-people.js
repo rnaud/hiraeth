@@ -65,7 +65,7 @@ export const PEOPLE = {
             '~curious~ It came down the runnel at dawn, glowing, and settled in my mould like it lived there. Nobody here poured it. Nobody here was awake.'],
           choices: [
             { text: '~curious~ Then who poured it?', goto: 'who' },
-            { text: '~playful~ I’ll let it settle in first.', end: true },
+            { text: '~playful~ I’ll let it settle in first.', do: { set: { 'moonfoundry.hedda.settle': true } }, end: true },
           ],
         },
         who: {
@@ -76,7 +76,7 @@ export const PEOPLE = {
         },
         again: { say: ['~neutral~ The signal box on the old hoist, past the moon in the claws. Look at the moons.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
-          say: ['~happy~ No moon came down the rails this morning. My mould’s empty, and I don’t know what to do with my hands.'],
+          say: ['~happy~ No moon came down the rails this morning. My mould’s empty, and I don’t know what to do with my hands.', { if: { flag: 'moonfoundry.hedda.settle' }, text: '~playful~ You said let it settle. It settled so well it went home.' }],
           choices: [{ text: '~playful~ Pour something nobody ordered.', end: true }],
         },
       },
@@ -107,7 +107,7 @@ export const PEOPLE = {
         after: {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~happy~ He sent a pot of soup back with a boy. That’s Bertil for thank you.' },
             { if: { flag: 'temple.moonfoundry.done' }, text: '~surprised~ The floor doesn’t shake at night any more. I slept straight through. I’d forgotten what that was like.' }],
-          choices: [{ text: '~neutral~ Goodbye, Liesel.', end: true }],
+          choices: [{ text: '~happy~ That’s a good thank-you.', if: { not: { flag: 'temple.moonfoundry.done' } }, end: true }, { text: '~happy~ Sleep well tonight too.', if: { flag: 'temple.moonfoundry.done' }, end: true }],
         },
       },
     },
@@ -131,13 +131,13 @@ export const PEOPLE = {
             '~curious~ She drew it in soot on the floor: {glyph}. *So they’ll know me,* she said.',
             '~solemn~ I didn’t ask who they were. I poured it twice to get the arc right.'],
           do: { set: { 'sight.moonfoundry.bertil': true } },
-          choices: [{ text: '~curious~ Where did she go?', goto: 'where' }, { text: '~neutral~ Goodbye, Bertil.', end: true }],
+          choices: [{ text: '~curious~ Where did she go?', goto: 'where' }, { text: '~neutral~ It’s a good arc.', end: true }],
         },
-        where: { say: ['~neutral~ Up. Same as everyone who lands on the apron. She looked back at the moons the whole way out to her ship.'], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
+        where: { say: ['~neutral~ Up. Same as everyone who lands on the apron. She looked back at the moons the whole way out to her ship.'], choices: [{ text: '~solemn~ I’d have looked back too.', end: true }] },
         again: {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~whisper~ At night the old Casting-House pours by itself. I hear the moulds crack from here. Petra says it’s the founders’ machine, still at it.' },
             { if: { flag: 'temple.moonfoundry.done' }, text: '~happy~ Quiet, the Casting-House, at last. My furnace sounds lonely without it. I’ve started talking to it more.' }],
-          choices: [{ text: '~neutral~ Goodbye, Bertil.', end: true }],
+          choices: [{ text: '~neutral~ I’ll listen for it.', end: true }],
         },
         hook: {
           say: ['~surprised~ My ladle, hanging straight! (He gives it a push and watches it swing.)',
@@ -174,7 +174,7 @@ export const VISITORS = {
             { text: '~curious~ Who were they for?', goto: 'who' },
           ],
         },
-        who: { say: ['~solemn~ Nobody knows. Somebody’s sky, somewhere, waiting for them. Petra at the Casting-House says the ledger knows. She won’t say what it says.'], choices: [{ text: '~neutral~ I’ll count them for you.', do: { start: 'moonfoundry.count' }, goto: 'go' }, { text: '~neutral~ Goodbye, Wen.', end: true }] },
+        who: { say: ['~solemn~ Nobody knows. Somebody’s sky, somewhere, waiting for them. Petra at the Casting-House says the ledger knows. She won’t say what it says.'], choices: [{ text: '~neutral~ I’ll count them for you.', do: { start: 'moonfoundry.count' }, goto: 'go' }, { text: '~playful~ Petra keeps a good secret.', end: true }] },
         go: { say: ['~happy~ *The lookout on the pillar, under the moon on top.* Up the street in this moon and over its crown; the cranes do the rest. Count slowly.'], choices: [{ text: '~neutral~ Slowly.', end: true }] },
         waiting: { say: ['~curious~ The lookout on the pillar, under its moon. Up through this one, then the cranes. I’ll wait.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         counted: {
@@ -186,7 +186,7 @@ export const VISITORS = {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~whisper~ At night the hung ones turn on their hooks, all toward the same place. Like they’re looking for where they should go.' },
             { if: { flag: 'temple.moonfoundry.done' }, text: '~happy~ Thirty-two, and the last one’s on its hook now, finished. I counted it twice to be polite.' }],
           do: { set: { 'moonfoundry.rumour.light': true } },
-          choices: [{ text: '~neutral~ Goodbye, Wen.', end: true }],
+          choices: [{ text: '~neutral~ Count them slowly.', end: true }],
         },
       },
     },

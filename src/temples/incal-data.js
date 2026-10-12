@@ -26,7 +26,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~neutral~ Vell. Rim lamplighter. Mind the wick. Everyone appreciates a light until they have to stop leaning on it.",
+          say: ["~neutral~ Mind the wick. I light the rim’s lamps. Everyone appreciates a light until they have to stop leaning on it.",
             "~curious~ That’s *the makers’ tower*. It used to send a wind up the shaft at night, clearing the smog. The palace calls it a folly. Easy from above the smog.",
             "~whisper~ The wind stopped when the sky rang. Now something paces upstairs. Listen. I’ll try something unusual and stop talking."],
           do: { set: { 'met.vell': true } },
@@ -46,7 +46,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ Enter on the side facing your ship, then climb the tower."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.incal', started: false }, do: { start: 'temple.incal' }, end: true }, { text: '~neutral~ Goodbye.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.incal', started: false }, do: { start: 'temple.incal' }, end: true }, { text: '~playful~ Not yet. Wanting to is the hard part.', end: true }],
         },
         inside: {
           say: ['~surprised~ You went in. Is it as tall inside as it looks?', '~curious~ And the warden?'],
@@ -61,11 +61,11 @@ export const PEOPLE = {
             "~happy~ There’s *an updraft beside the Upward Shrine*. People ride it to the rim. Come look at the parapet. Everyone’s looking at the sky.",
             "~solemn~ The pacing has stopped. It’s quieter here. I’m surprised to find I miss it."],
           choices: [
-            { text: '~solemn~ It was stuck. I stopped it.', goto: 'stopped' },
+            { text: '~solemn~ Its eye was red to the end. It’s still now.', goto: 'stopped' },
             { text: '~happy~ Light a lamp for it, Vell.', end: true },
           ],
         },
-        stopped: { say: ["~sad~ I know. It couldn’t carry on like that. Still, it worked for us longer than anyone remembers.", "~neutral~ I’ll keep its doorway lit. That much I can do."], choices: [{ text: '~neutral~ Goodbye, Vell.', end: true }] },
+        stopped: { say: ["~sad~ I know. It couldn’t carry on like that. Still, it worked for us longer than anyone remembers.", "~neutral~ I’ll keep its doorway lit. That much I can do."], choices: [{ text: '~solemn~ (look up at the tower)', end: true }] },
       },
     },
   },

@@ -46,7 +46,7 @@ export const LOCALS = {
             '~curious~ Ask anyone the time here and they’ll give you a different one. Every clock in the dunes stopped the night the light passed, each at its own minute.'],
           choices: [
             { text: '~curious~ Which one stopped first?', goto: 'first' },
-            { text: '~playful~ I’ll find out the time myself.', end: true },
+            { text: '~playful~ I’ll find out the time myself.', do: { set: { 'glassdunes.halden.himself': true } }, end: true },
           ],
         },
         first: {
@@ -57,7 +57,7 @@ export const LOCALS = {
         },
         again: { say: ['~neutral~ The glass mound by the warm flow, along the float-posts. Read the Clock-House’s face from the top.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
-          say: ['~happy~ I asked three people the time this morning. Same answer, three times. I didn’t know what to do with myself.'],
+          say: ['~happy~ I asked three people the time this morning. Same answer, three times. I didn’t know what to do with myself.', { if: { flag: 'glassdunes.halden.himself' }, text: '~playful~ You said you’d find out the time yourself. You found it for all of us.' }],
           choices: [{ text: '~playful~ Ask a fourth.', end: true }],
         },
       },
