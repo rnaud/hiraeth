@@ -7,7 +7,7 @@
 #journal.gamemenu {
   position: fixed; inset: 0; z-index: 8500; display: none; color: #2b211f; font: var(--type-s)/1.45 var(--face);
   --ink: #2b211f; --paper: #fbf4e2; --paper2: #f3e7cc; --gold: #f2c54b; --red: #c8483a; --teal: #277e86; --green: #2f7a55;
-  --slot: clamp(40px, min(10.6vh, 6.2vw), 88px);
+  --slot: clamp(40px, min(9.6vh, 5.6vw), 80px);   /* (eleven a row since v1.52: src/game-menu.js GEAR_COLS) */
   background: #e8d9b5 radial-gradient(ellipse 80% 70% at 50% 45%, #f1e5c6 0%, #e8d9b5 62%, #d9c69b 100%);
   user-select: none; -webkit-user-select: none;
 }
@@ -217,7 +217,7 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 @media (max-width: 720px) {
   #journal .gm-items, #journal .gm-quests { grid-template-columns: minmax(0, 1fr); }
   #journal .gm-preview { display: none; }
-  #journal.gamemenu { --slot: clamp(30px, 9.4vw, 60px); }
+  #journal.gamemenu { --slot: clamp(30px, min(8.5vw, 9vh), 54px); }
   #journal .gm-worlds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #journal .gm-tabs { padding: 0 44px 0 0; justify-content: flex-start; flex-wrap: wrap; }
   #journal .gm-side .nm { display: none; }

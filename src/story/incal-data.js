@@ -86,6 +86,17 @@ export const QUESTS = [
     ],
   },
   {
+    // the light that goes down (issue #169: src/shaft-mirrors.js, src/story/light-down.js): the great mirror on the rim
+    // throws the sun down the bell quarter's mirrors; three were knocked round. Turn their cranks till the beam reaches
+    // the bottom terrace, and stand in it (the makers' chest there opens in the sun: src/boxes/placements.js)
+    id: 'incal.beam', title: 'The Light That Goes Down', world: 'incal',
+    outro: 'The sun reaches the bottom terrace again, mirror by mirror. Someone has hung their washing in it.',
+    stages: [
+      { id: 'turn', text: 'Turn the dark mirrors back into the sun’s beam', label: 'The mirror the light stops at', flag: 'incal.beam.lit', at: 'beam', via: 'the sun’s beam' },
+      { id: 'square', text: 'Follow the light down to the bottom terrace', label: 'The lit square', goto: 'beamEnd', radius: 7, vertical: 4 },
+    ],
+  },
+  {
     // (Wren is the cab itself: cabs drive themselves; it speaks from the little screen on its dash, src/story/cab.js)
     id: 'incal.wren', title: 'The Cab That Stops', world: 'incal',
     outro: 'One cab still stops at the bottom. Now you know its name.',

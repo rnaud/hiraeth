@@ -8,6 +8,7 @@ import { glyphGeometry, textGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN, TOBIN_PAYS } from './incal-data.js';
 import { setupHalfway, halfwayTerrace } from './halfway.js';
 import { setupIncalMoments } from './incal-moments.js';
+import { setupLightDown } from './light-down.js';
 import { quietOr } from '../hint-level.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
@@ -70,6 +71,8 @@ export function setupIncal(ctx) {
   const midT = halfwayTerrace(S.terraces, S.LEVELS?.[3]);   // (the sector where the lamplighters' drops land halfway down)
   const halfway = setupHalfway(ctx, { terrace: midT, ground: (x, z) => { const g = physics.groundAt(x, midT.y + 2, z, 6); return Number.isFinite(g) ? g : midT.y; }, onGround });
   if (halfway?.perrine) people.perrine = halfway.perrine;
+  // the light that goes down: the mirrors' cranks, the beam's errand (src/story/light-down.js, src/shaft-mirrors.js)
+  const lightDown = setupLightDown(ctx, { mirrors: S.mirrors });
 
   // ---------------------------------------------------------------- the splinter
   // in the shrine's bowl until Ossa gives it; then it floats at your shoulder, humming,
@@ -417,6 +420,8 @@ export function setupIncal(ctx) {
   // ---------------------------------------------------------------- music: the shrine's hum
   sound.setBands?.([
     { id: 'shrine', pos: P.shrine, radius: 70, parts: ['chant', 'bell'], mode: lit() ? 'feast' : 'play', vol: 0.6, duck: 0.4 },
+    // (issue #169) the bell quarter's bells, rung by the updraft: the nearest one's, a sound to walk toward
+    ...(S.quarters?.bells.length ? [{ id: 'bells', pos: () => S.quarters.nearestBell(player.pos)?.at ?? null, radius: 90, parts: ['bell'], mode: 'play', vol: 0.45, duck: 0.15 }] : []),
   ]);
 
   // ---------------------------------------------------------------- per frame
@@ -473,6 +478,7 @@ export function setupIncal(ctx) {
     updateHoist(dt, pp);
     tobinPays(pp);
     halfway?.update(dt, t, pp);
+    lightDown?.update(dt);
     // the relay lamp catches the splinter's light as you carry it past (or the Lodestar's, once it burns)
     if (ways && !game.flag('incal.relay.lit') && ((quests.has('splinter') && pp.distanceTo(ways.relay.look) < RELAY_NEAR) || lit())) {
       game.set('incal.relay.lit', true);
@@ -494,7 +500,7 @@ export function setupIncal(ctx) {
   const _c = new THREE.Color();
 
   return {
-    people, update, state: st, cab, frameCamera, halfway, film,
+    people, update, state: st, cab, frameCamera, halfway, film, lightDown,
     giveBack, lightLamp, hoist: { state: ho, rig: H, knockPin, turnHoist, takeTin, pinOut, swungIn },
     /** E on a crowd person: a short conversation, by where they live (and whether the light is back). */
     crowdTalk(p) {

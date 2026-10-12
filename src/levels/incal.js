@@ -20,8 +20,10 @@ import { greebles } from './greeble-kit.js';
 import { batchParts } from '../part-batch.js';
 import { DROPS, DROP_RING, buildShaftWays } from '../shaft-ways.js';
 import { HALFWAY } from '../story/halfway.js';
-import { ShaftPillars } from '../shaft-pillars.js';
+import { ShaftPillars, PILLARS } from '../shaft-pillars.js';
 import { Veils } from '../veil.js';
+import { buildShaftQuarters, balconySpots, balconyGap, quarterAt } from '../shaft-quarters.js';
+import { buildShaftMirrors, mirrorRailGaps, BEAM_END, MIRRORS } from '../shaft-mirrors.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft: a city stacked down a 600 m pit.
@@ -147,6 +149,8 @@ export function* buildIncal(scene) {
   let skip = false;            // a house in one of the story's clearings: built (same random draws) but not kept
   const clearZones = [];
   const clearEnds = [];   // { y, a, w }: no house within w m of a terrace's end at angle a (the red stair's landing, STAIR)
+  const beamZones = [];   // the lit square and the mirrors' gangways (src/shaft-mirrors.js): no house, stall or washing line on them
+  const nearBeam = (x, y, z, pad = 0) => beamZones.some((c) => Math.abs(c.y - y) < 1 && Math.hypot(c.x - x, c.z - z) < c.r + pad);
   const fromEnd = (x, z, a) => (((Math.atan2(z, x) - a) % TAU + TAU + Math.PI) % TAU - Math.PI) * Math.hypot(x, z);
   const nearClear = (x, y, z) => clearZones.some((c) => Math.abs(c.y - y) < 1 && Math.hypot(c.x - x, c.z - z) < c.r)
     || clearEnds.some((c) => Math.abs(c.y - y) < 1 && Math.abs(fromEnd(x, z, c.a) - c.w / 2) < c.w / 2 + 2);
@@ -312,6 +316,10 @@ export function* buildIncal(scene) {
       if (s === 0 && li === 0) clearEnds.push({ y, a: a0, w: STAIR.lane });
       if (s === 0 && li === LEVELS.length - 1) clearZones.push({ x: Math.cos(SHRINE_A) * (r0 + 8), y, z: Math.sin(SHRINE_A) * (r0 + 8), r: 12.5 });
       if (s === 0 && li === 3) { const sa = (a0 + a1) / 2 + SHOP.da; clearZones.push({ x: Math.cos(sa) * (r0 + SHOP.inset + 2.5), y, z: Math.sin(sa) * (r0 + SHOP.inset + 2.5), r: 8 }); }   // (Fausta's shop)
+      // (the lit square at the foot of the mirrors' chain, src/shaft-mirrors.js: no house on it, nor on a mirror's gangway)
+      if (y === BEAM_END.y && ((BEAM_END.a - a0) % TAU + TAU) % TAU <= span) beamZones.push({ x: Math.cos(BEAM_END.a) * (r0 + BEAM_END.inset), y, z: Math.sin(BEAM_END.a) * (r0 + BEAM_END.inset), r: 11 });
+      for (const m of MIRRORS) if (!m.great && m.y === y && ((m.a - a0) % TAU + TAU) % TAU <= span) beamZones.push({ x: Math.cos(m.a) * (r0 + 4), y, z: Math.sin(m.a) * (r0 + 4), r: 6 });
+      clearZones.push(...beamZones.filter((c) => c.y === y));
       // (the lamplighters' landings, src/shaft-ways.js DROPS, and Perrine's stall beside the middle one, src/story/halfway.js)
       const da = DROPS[y], inThis = (q) => ((q - a0) % TAU + TAU) % TAU <= span;
       if (da !== undefined && inThis(da)) {
@@ -365,16 +373,29 @@ export function* buildIncal(scene) {
           { width: 2 + rng() * 3, height: 5 + rng() * 9, color: pick(depth < 0.45 ? PASTELS : RUST) }));
       }
 
-      // railing along the inner edge, with openings
+      // railing along the inner edge, with openings (and a gap where a mirror's gangway or a market balcony joins it:
+      // src/shaft-mirrors.js, src/shaft-quarters.js; worked out from the sector alone, the same draws as before)
       const steps = Math.ceil(span * 6);
+      const sector = { y, r0, a0, a1 }, gaps = [...mirrorRailGaps(sector), ...balconySpots(sector).map((b) => ({ a: b.a, half: balconyGap(r0) }))];
+      /** [b0, b1] less the gaps in it: the pieces of railing to build. */
+      const pieces = (b0, b1) => {
+        let list = [[b0, b1]];
+        for (const g of gaps) for (const c of [b0 + ((g.a - b0) % TAU + TAU) % TAU, b0 + ((g.a - b0) % TAU + TAU) % TAU - TAU]) {
+          const lo = c - g.half, hi = c + g.half;
+          list = list.flatMap(([p, q]) => (hi <= p || lo >= q ? [[p, q]] : [[p, lo], [hi, q]].filter(([u, v]) => (v - u) * r0 > 0.4)));
+        }
+        return list;
+      };
       for (let k = 0; k < steps; k++) {
         if (rng() < 0.3) continue;
         const b0 = a0 + (k / steps) * span, b1 = b0 + span / steps * 0.85;
         // (drawn with the plating's iron under the terrace, the same material: no draws of their own. A mesh a
         //  segment was some 160 draws in a view across the shaft, twice with the shadows; one an eighth of the
         //  ring 64 once the sectors went round it, docs/systems/performance.md)
-        const g = sectorGeometry(r0, r0 + 0.6, b0, b1, 1.2).translate(0, y + 1.2, 0);
-        bucket('iron', ironMat).push(g.setIndex([...Array(g.attributes.position.count).keys()]));
+        for (const [p, q] of pieces(b0, b1)) {
+          const g = sectorGeometry(r0, r0 + 0.6, p, q, 1.2).translate(0, y + 1.2, 0);
+          bucket('iron', ironMat).push(g.setIndex([...Array(g.attributes.position.count).keys()]));
+        }
       }
 
       // buildings on the terrace, below the next terrace up
@@ -663,7 +684,8 @@ export function* buildIncal(scene) {
         if (rng() < 0.45) continue;
         const ang = t.a0 + (k + 0.5) / (span * 6) * span, rad = t.r0 + 10;
         const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad, rot = -ang;
-        stallSpots.push([x, t.y, z]);
+        skip = nearBeam(x, t.y, z, 2);   // (built with the same draws, not kept)
+        if (!skip) stallSpots.push([x, t.y, z]);
         bucket('wood', wood).push(placed(mergeGeometries([
           new THREE.BoxGeometry(3, 1, 1.6).translate(0, 0.5, 0),
           ...[[-1.4, -0.7], [1.4, -0.7], [-1.4, 0.7], [1.4, 0.7]].map(([a, b]) => new THREE.CylinderGeometry(0.05, 0.05, 2.6, 4).translate(a, 1.3, b)),
@@ -672,6 +694,7 @@ export function* buildIncal(scene) {
         bucket('awn' + ci, cloth[ci]).push(placed(new THREE.CylinderGeometry(0.01, 2.2, 0.7, 4, 1, true).rotateY(Math.PI / 4).scale(1, 1, 0.7).translate(0, 2.9, 0), x, t.y, z, rot));
         // goods on the counter
         for (let q = 0; q < 4; q++) bucket('roof' + (q % 4), roofMat(q % 4)).push(new THREE.SphereGeometry(0.18 + rng() * 0.1, 6, 4).translate(x + (rng() - 0.5) * 2, t.y + 1.15, z + (rng() - 0.5) * 0.8));
+        skip = false;
       }
       // laundry lines strung across the promenade, between the edge and the houses
       for (let k = 0; k < span * 5; k++) {
@@ -680,12 +703,14 @@ export function* buildIncal(scene) {
         const pa = new THREE.Vector3(Math.cos(ang) * (t.r0 + 1.5), h, Math.sin(ang) * (t.r0 + 1.5));
         const pb = new THREE.Vector3(Math.cos(ang + 0.012) * (t.r0 + 13), h + 1, Math.sin(ang + 0.012) * (t.r0 + 13));
         const mid = pa.clone().lerp(pb, 0.5); mid.y -= 0.6;
+        skip = nearBeam(pa.x, t.y, pa.z, 1) || nearBeam(pb.x, t.y, pb.z, 1) || nearBeam(mid.x, t.y, mid.z, 1);
         bucket('line', line).push(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(pa, mid, pb), 8, 0.03, 4));
         for (let q = 1; q < 6; q++) {
           const u = q / 6, p = new THREE.Vector3().lerpVectors(pa, pb, u); p.y -= Math.sin(Math.PI * u) * 0.6;
           const ci = Math.floor(rng() * AWN.length), w = 0.5 + rng() * 0.5, hh = 0.6 + rng() * 0.6;
           bucket('awn' + ci, cloth[ci]).push(new THREE.PlaneGeometry(w, hh).translate(0, -hh / 2, 0).rotateY(-ang).translate(p.x, p.y, p.z));
         }
+        skip = false;
       }
     }
     curGroup = 'misc'; curY = TOP;
@@ -1013,6 +1038,39 @@ export function* buildIncal(scene) {
     for (const t of trees) for (const c of [...ways.clear, ...stall]) if (Math.abs(t[1] - c.y) < 1 && Math.hypot(t[0] - c.x, t[2] - c.z) < c.r) t[3] = 0;
   }
 
+  // ---------------------------------------------------------- the light that goes down, and the rim's quarters (issue #169)
+  // (src/shaft-mirrors.js: the great mirror on the rim and the chain down the bell quarter to the lit square;
+  //  src/shaft-quarters.js: the hanging gardens, the cab-wrights' cliff, the bell quarter, the balcony market)
+  const veils = new Veils();   // (their see-through bodies, laid over the finished picture: main.js; the air pillars' and the beams')
+  const mirrors = buildShaftMirrors(scene, { terraces, shape: { R, TOP, BOTTOM, terraces, bridges, viaducts, SPIRE_R, SPIRE_RING, LEVELS }, veils });
+  const quarters = (() => {
+    const C = (p, r) => ({ x: p.x, y: p.y, z: p.z, r });
+    const at = (a, r, y, rr) => ({ x: Math.cos(a) * r, y, z: Math.sin(a) * r, rr });
+    const mid = terraces.find((t) => t.y === LEVELS[3] && ((HALFWAY.a - t.a0) % TAU + TAU) % TAU <= t.a1 - t.a0);
+    const clear = [
+      ...ways.clear, ...ways.landings.map((L) => C(L.edge, 7)), ...mirrors.clear,
+      ...bridges.map((b) => ({ ...at(b.phi, b.r0, b.y), r: 8 })),
+      // (a viaduct's deck lies on the terrace from its edge to near the wall, 16 m wide: a row of clearings along it)
+      ...viaducts.flatMap((v) => [-v.a, Math.PI - v.a].flatMap((a) => [195, 210, 225, 240].map((r) => ({ ...at(a, r, v.y - 4), r: 11 })))),
+      ...['nima', 'ossa', 'pip', 'wren'].map((k) => C(places[k], 5)), C(places.shrine, 12), C(places.lamp, 5), C(places.cab, 8), C(places.hoist, 9),
+      ...(places.stair ? [C(places.stair.foot, 10)] : []),
+      ...shaftCabStops(places, terraces).map((c) => C(c.at, 9)),
+      ...(mid ? [{ ...at(HALFWAY.a, mid.r0 + HALFWAY.r, mid.y), r: 9 }] : []),
+      // (the air pillars rise clear of everything: tests/shaft-pillars.test.js)
+      ...PILLARS.flatMap((c) => LEVELS.map((y) => ({ ...at(c.a, c.r, y), r: c.w + 9 }))),
+      // (and nothing parked on the wall behind a wall pillar's way off onto its terraces: a glide off it lands on the terrace)
+      ...PILLARS.filter((c) => c.r > 150).flatMap((c) => LEVELS.map((y) => ({ ...at(c.a, R, y), r: 34 }))),
+    ];
+    return buildShaftQuarters(scene, { terraces, R, clear });
+  })();
+  for (const l of quarters.lod) lod.push(l);
+  quarters.root.traverse((o) => { if (o.isMesh) small.push(o); });   // (small props: left out of the far shadow cascade)
+  // no tree on a mirror's gangway, on the lit square, nor where a balcony joins the promenade
+  {
+    const keep = [...mirrors.clear, ...quarters.balconies.map((b) => ({ x: Math.cos(b.a) * (b.r0 + 3), y: b.y, z: Math.sin(b.a) * (b.r0 + 3), r: 5 }))];
+    for (const t of trees) for (const c of keep) if (Math.abs(t[1] - c.y) < 1 && Math.hypot(t[0] - c.x, t[2] - c.z) < c.r) t[3] = 0;
+  }
+
   // trees on the rim around the spawn
   yield;
   for (let k = 0; k < 160; k++) {
@@ -1113,6 +1171,7 @@ export function* buildIncal(scene) {
         ['shelf', -3.6, -4.0, 0], ['rug', 0, 1.6, 0, '#8a5a3c', '#d8a24a'], ['pot', -4.2, 3.4]],
     });
     roomLights.push(...room.lights);
+    if (!roomLights.includes(mirrors.lights[0])) roomLights.push(...mirrors.lights);   // (the stray beam's coin and the lit square)
     // a terracotta roof on top, like the town below
     const roof = new THREE.Mesh(new THREE.ConeGeometry(8.2, 3.2, 4).rotateY(Math.PI / 4).scale(1.05, 1, 0.95), makeMaterial({ color: ROOFS[Math.floor(rng() * 4)], flat: true, pattern: 'tiles' }));
     roof.position.set(R + 44, TOP + 4.6 + 1.6 + 0.3, vz);
@@ -1144,7 +1203,6 @@ export function* buildIncal(scene) {
   yield;
   // the air pillars (src/shaft-pillars.js): the shaft's rising air, gathered into columns the wings ride straight up
   yield;
-  const veils = new Veils();   // (their see-through bodies, laid over the finished picture: main.js)
   const pillars = new ShaftPillars(scene, { veils });
 
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
@@ -1165,6 +1223,7 @@ export function* buildIncal(scene) {
     floraAvoid: shop.avoid((x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
       || Math.hypot(x - Math.cos(PILLAR.a) * PILLAR.r, z - Math.sin(PILLAR.a) * PILLAR.r) < 10 + r
       || Math.hypot(x - Math.cos(STAIR.top) * (R + 6), z - Math.sin(STAIR.top) * (R + 6)) < 8 + r   // (the red stair's gate)
+      || Math.hypot(x - mirrors.places[0].deck.x, z - mirrors.places[0].deck.z) < 6 + r   // (the great mirror)
       || ways.rim.some(([px, , pz]) => Math.hypot(x - px, z - pz) < 1.5 + r)   // (the lamplighters' rim posts)
       || trees.some((t) => t[3] > 0 && Math.abs(t[1] - TOP) < 1 && Math.hypot(t[0] - x, t[2] - z) < 2.2 + r)),
     ground: { heightAt: () => -Infinity }, // everything walkable is real geometry
@@ -1177,7 +1236,7 @@ export function* buildIncal(scene) {
     // the rising air the wings ride (the trials' course check: src/trials/check.js)
     columns: pillars.pillars.map((c) => ({ x: c.x, z: c.z, r: c.w, foot: c.foot, top: c.top })),
     // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Lodestar
-    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways, pillars },
+    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways, pillars, mirrors, quarters },
     // the Lodestar hangs over the open shaft, seen from every terrace that looks up (the story is about looking up), but
     // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
     beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
@@ -1190,9 +1249,14 @@ export function* buildIncal(scene) {
     { name: 'Tobin’s telescopes', points: ways.scopes.line, auto: false },
     // (v1.50, issue #132: and with Lio's pass from Tobin, the ride home by cab past the cab rank, the way his card sends you)
     // (ridden: a cab flies itself at up to 38 m/s, src/taxi.js ROUTE; about 20 with the hail, getting in and out)
-    { name: 'the cab home', points: ways.rank.ride, auto: false, ride: 20 }],
+    { name: 'the cab home', points: ways.rank.ride, auto: false, ride: 20 },
+    // (issue #169: the sun's beam, from the great mirror on the rim across the shaft and down the bell quarter's mirrors
+    //  to the lit square, the way the light-down errand's words send you)
+    { name: 'the sun’s beam', points: mirrors.line, auto: false }],
     // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pads and relay lamp, Tobin's view pad
-    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, { name: 'the cab rank', at: ways.rank.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : [])],
+    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, { name: 'the cab rank', at: ways.rank.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : []),
+      // (issue #169: each quarter's own sight by the walk, and the great mirror on the rim)
+      ...quarters.sights.map(({ name, at }) => ({ name, at })), { name: 'the great mirror', at: mirrors.places[0].deck.clone() }],
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)
@@ -1233,7 +1297,8 @@ export function* buildIncal(scene) {
       // once the Lodestar burns bright again (its story), its light reaches further down: less smog, warmer
       const lit = incalRig.k;
       const tint = [1.0 - 0.08 * d + 0.05 * d * lit, 0.92 + 0.06 * d, 0.95 - 0.12 * d - 0.02 * d * lit];
-      const name = !inside ? 'The rim' : d < 0.3 ? 'Upper levels' : d < 0.65 ? 'Middle levels' : 'The depths';
+      // (issue #169: inside, the quarter round the shaft you are in, so the walk round says where you are)
+      const name = !inside ? 'The rim' : quarterAt(Math.atan2(z, x)).name;
       return { tint, fog: 1.6 + d * 1.6 * (1 - 0.35 * lit), name };
     },
     life: {
@@ -1311,6 +1376,9 @@ export function* buildIncal(scene) {
         groups.push({ at: V(x, TOP, z), n: size() });
       }
       for (const z of [-34, 34]) walks.push({ path: [V(R + 6, TOP, z), V(R + 36, TOP, z)], n: 2, pair: 0.6 });
+      // (issue #169) shoppers on the market's balconies, a few at a time, and people on the lit square at the chain's foot
+      quarters.balconies.forEach((b, i) => { if (i % 3 === 0) groups.push({ at: b.at.clone().setY(b.y), n: 2 }); });
+      if (mirrors.end) groups.push({ at: mirrors.end.at.clone().addScaledVector(V(-Math.cos(BEAM_END.a), 0, -Math.sin(BEAM_END.a)), 5), n: 3 });
       walks.push({ path: [V(R + 9, TOP, -60), V(R + 9, TOP, 60)], n: 4, pair: 0.5 });
       // who they are depends on how far down they live: the rim and the upper terraces call the
       // Lodestar a tourist story, the depths pray to it (src/story/incal-data.js; the story talks to them by zone)
@@ -1329,6 +1397,8 @@ export function* buildIncal(scene) {
       waveBanners(banners, t, ctx?.camera);   // (the ones in view, within 160 m)
       steam.update(dt);
       pillars.update(dt, t, ctx ?? {});
+      quarters.update(dt, t, ctx?.camera);
+      mirrors.update(dt, t);
     },
     constrainCamera(pos) {
       if (pos.y > TOP - 0.5) return;

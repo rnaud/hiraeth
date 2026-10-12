@@ -90,6 +90,14 @@ export const PLACEMENTS = {
     { id: 'incal.temple.jetpack', item: 'wardenbellows', temple: 'incal',   // (its id from when it held the jets: the saves' flag)
       site: templeSite('incal'),
       note: 'Inside the makers’ tower on the rim, in the round chamber over the climbing well.' },
+    // (issue #169) the light that goes down: on the little square at the foot of the mirrors' chain on the bottom terrace,
+    // 50 m round from the Upward Shrine, on a low rise with a smooth slope all round (issue #162: no steps). It sits shut
+    // and cold in the shade until the mirrors throw the sun down onto it (src/shaft-mirrors.js, src/story/light-down.js:
+    // the errand leads there, so no quest of its own: `story`)
+    { id: 'incal.sunglass', item: 'sunglass', site: (level) => level.shaft?.mirrors?.end?.chest ?? null, story: true,
+      ready: (g) => !!g.flag('incal.beam.lit'),
+      sealed: 'The makers’ chest sits shut and cold in the shade. It wants the sun on it.',
+      note: 'On the bottom terrace, on a low rise in the little square at the foot of the mirrors, a short walk round from the Upward Shrine. It opens once the mirrors throw the sun down onto it.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
     { id: 'incal.bridge', item: 'bridge', site: courtSite('incal'), beacon: 160, gadget: true,
       hint: 'At the makers’ court beyond the rim',

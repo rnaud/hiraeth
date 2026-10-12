@@ -547,6 +547,16 @@ function spliceModel() {
   g.rotation.z = 0.25;
   return g;
 }
+function sunglassModel() {
+  // a round pocket mirror in a brass rim, a short handle, the glass catching the light
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.012, 6, 28), flatM('#d8a24a')));
+  g.add(new THREE.Mesh(new THREE.CircleGeometry(0.072, 28), flatM('#fff4d2', { glow: 0.6 })));
+  g.add(new THREE.Mesh(new THREE.CircleGeometry(0.074, 28).rotateY(Math.PI).translate(0, 0, -0.004), flatM('#b5862f')));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.014, 0.09, 8).translate(0, -0.12, 0), flatM('#8a5a3c')));
+  g.rotation.set(-0.3, 0.5, 0.15);
+  return g;
+}
 function capModel() {
   // the divers' close knitted cap, teal, a brass ring over one ear
   const g = new THREE.Group();
@@ -578,7 +588,7 @@ const MODELS = {
   bloom: bloomModel, echo: echoModel, level: levelModel,
   soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
   tongs: tongsModel, tether: tetherModel, horn: hornModel, pearl: pearlModel, bellows: bellowsModel, starthread: starthreadModel,
-  divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel, floatbead: floatbeadModel, keeper: keeperModel, splice: spliceModel,
+  divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel, floatbead: floatbeadModel, keeper: keeperModel, splice: spliceModel, sunglass: sunglassModel,
 };
 
 /** An item's model from elsewhere (the gadgets bring their own: src/gadgets/registry.js). */

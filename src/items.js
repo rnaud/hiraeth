@@ -185,6 +185,12 @@ export const ITEMS = {
     name: 'Moorer’s splice', kind: 'charm',
     text: 'A splice of the moorers’ cable, its strands still humming. The grappling hook reels you in a third faster.',
   },
+  // (issue #169) the City-Shaft's light that goes down: in the makers' chest the mirrors' sun reaches on the bottom terrace
+  // (src/boxes/placements.js incal.sunglass), a little more for the bridge pen, the shaft's gadget (src/trials/upgrades.js CHARM_TUNES)
+  sunglass: {
+    name: 'Lamplighter’s glass', kind: 'charm',
+    text: 'A palm-sized mirror of the lamplighters’, still warm from the sun. Bridges drawn with the bridge pen stand half as long again before they fade.',
+  },
   // ---- won in the worlds' mastery trials (src/trials/: the first finish of each), upgrades to the gadgets
   dunefins: {
     name: 'Dune fins', kind: 'upgrade', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',

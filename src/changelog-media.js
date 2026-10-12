@@ -650,6 +650,9 @@ const SAVE_POOL51 = { flags: { ...SAVE_DESERT.flags, 'desert.channel.open': true
 const PT51 = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720), Vite on port 5493, at the commit before the change and at the change (before its rebase), 11 October; cwebp -q 72';
 // (v1.52: the machine breathes, issue #168: this branch's own Vite and the tree before the change)
 const BREATH52 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5347) and the same tree before the change, 11 October; cwebp -q 72';
+// (v1.52: the City-Shaft's quarters and the light that goes down, issue #169: design-qc/capture.mjs, the before from the tree before the change)
+const SHAFT52 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 960 × 540) against this branch’s own Vite (port 5463) and a copy of the tree before the change, 11 October; cwebp -q 72';
+const DECK52 = 'the Steam Deck’s run on the Mac (scripts/bench/deck-mac.mjs + deck-worlds.mjs --slow 3 --size 1280x800, the Deck preset, the CPU slowed ×3), the City-Shaft’s five bench views, before and after the change, 11 October; draws over all passes and triangles a frame are exact, the frame times only a guide (the Mac shared, load 19–60)';
 export const CHANGELOG_MEDIA = {
   '1.52': [
     { match: 'The Unity preview on the Xbox now waits for your TV', numbers: [
@@ -681,6 +684,27 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'buried', fov: 62, eye: [-1, 17.6, -350.5], target: [-12, -10, -275], player: [-3, 14.8, -353] } },
     ], see: 'Through the first oval wall, the three pistons stand by the east wall on your left. Wait for the first to come down, step on, and step across each time two meet; the third lifts you to the gangway. Wait at the gear door until it turns open (every half minute), then follow the ramp up to the top of the second oval wall and read the log.' },
     { match: 'With Reduce motion on, the canyon’s great pistons', see: 'Turn on Reduce motion in the settings and go down into the canyon: the steam hangs still at the vents, the great pistons and the gears stop, and the gear door stands open. The keepers’ three pistons still move.' },
+    { match: 'The City-Shaft’s ring of terraces is split into four quarters', shots: [
+      { name: 'shaft-gardens', title: 'The hanging gardens', caption: 'The gardens from across the pit: before, the same blue-grey terraces as everywhere; after, vines down the terraces’ edges, ivy in sheets up the wall, and the great mirror’s beam crossing the shaft', from: SHAFT52 },
+    ], numbers: [
+      { title: 'Draws a frame', unit: 'draws', better: 'lower', device: 'Steam Deck preset on the Mac', rows: [{ where: 'the rim', before: 445, after: 463 }, { where: 'the crowd', before: 351, after: 347 }, { where: 'the crowd, 2', before: 353, after: 364 }, { where: 'the wide view', before: 490, after: 507 }, { where: 'the walk', before: 396, after: 412 }], source: DECK52 },
+      { title: 'Triangles a frame', unit: 'M', better: 'lower', device: 'Steam Deck preset on the Mac', rows: [{ where: 'the rim', before: 3.45, after: 3.57 }, { where: 'the crowd', before: 2.43, after: 2.22 }, { where: 'the crowd, 2', before: 2.60, after: 2.66 }, { where: 'the wide view', before: 3.41, after: 3.53 }, { where: 'the walk', before: 3.30, after: 3.40 }], source: DECK52 },
+    ] },
+    { match: 'In the cab-wrights’ cliff the wall turns pink', shots: [
+      { name: 'shaft-cliff', title: 'Under the cliff', caption: 'On the middle terrace: before, the plain wall; after, the pink cliff with cabs parked in its holes, and the ochre cranes along the edge', from: SHAFT52 },
+    ] },
+    { match: 'In the bell quarter, round the Upward Shrine', shots: [
+      { name: 'shaft-bells', title: 'A bell by the shrine', caption: 'On the bottom terrace: before, the bare railing; after, a bronze bell out over the void on its red beam, the red banners down the wall behind', from: SHAFT52 },
+    ], see: 'Go down to the Upward Shrine with the sound on: the bells’ chime grows as you walk toward the nearest of them.' },
+    { match: 'In the balcony market, under the rim by your ship', shots: [
+      { name: 'shaft-market', title: 'A balcony', caption: 'On a terrace in the market: before, the railing; after, a balcony out over the void under a striped awning, bunting between the posts, the wall rose', from: SHAFT52 },
+    ] },
+    { match: 'A great brass mirror on the City-Shaft’s rim', shots: [
+      { name: 'shaft-beam-rim', title: 'From the rim', caption: 'On the rim by the great mirror: before, the shaft; after, its beam going across and down toward the bell quarter’s mirrors', from: SHAFT52 },
+    ], see: 'From the red stair’s gate walk on round the rim to the great mirror; follow its beam across to the first mirror down, walk out onto the deck and press A / × at the crank.' },
+    { match: 'When the last mirror throws the light onto the little square', shots: [
+      { name: 'shaft-beam-depths', title: 'Up the chain', caption: 'From the little square on the bottom terrace, looking up: before, the terraces overhead; after, the chain of mirrors lit, the beam coming down from one to the next', from: SHAFT52 },
+    ] },
   ],
   '1.51': [
     { match: 'The opening in your ship has music of its own', see: 'Start a new game with the sound on (or open ?level=desert&prologue=1): in the ship, its own quiet music while you wake and walk to the cockpit, nothing under your father’s message; the desert’s ney and oud come in as you walk down the ramp.' },

@@ -38,6 +38,7 @@ export const CHARM_TUNES = {
   floatbead: [BUBBLE, 'maxRise', 10.5],
   keeper: [MAG, 'pull', 24],
   splice: [HOOK, 'pull', 34],
+  sunglass: [PEN, 'life', PEN.life * 1.5],   // (issue #169: the City-Shaft's mirrors' chest)
 };
 const CHARM_BASE = Object.fromEntries(Object.entries(CHARM_TUNES).map(([id, [t, k]]) => [id, t[k]]));
 // (the bubble you float in yourself lasts longer too)

@@ -439,6 +439,42 @@ inked down both sides, a pale wash, put away within 32 m so its rim never fills 
 ride says how to steer out (`incal.pillar.ridden`, src/story/incal.js). The main quest's `palace` and `look` stages and
 Nima's and Dov's lines point at them.
 
+## The City-Shaft's quarters (v1.52, issue #169, `src/shaft-quarters.js`)
+
+The author's pick "rim-quarters" (references/levels/The City-Shaft/environment/explorations/rim-quarters/): the ring cut
+into four quarters by angle (`QUARTERS`), each with a shape, a colour and a life of its own, seen from across the pit
+and on the promenade. `level.atmo().name` inside the shaft is the quarter's name, so the place name changes as you go round.
+- **The hanging gardens** (0.2–1.75 rad: Nima's corner, the first drops): vines down the slabs' faces, shrubs over
+  their lips, falls of water off the edges, ragged sheets of ivy on the wall.
+- **The cab-wrights' cliff** (1.75–2.85: Perrine, the middle drops): a pink wall over the houses, cabs parked nose out
+  in rows of holes in it, ochre cranes on the edges.
+- **The bell quarter** (2.85–4.3: the Upward Shrine, the mirrors' chain): bronze bells on red beams out over the void
+  under green roofs (one instanced mesh; those near the camera swing), prayer ribbons, red banners down the wall; a
+  sound band (`bells`, src/story/incal.js) plays at the nearest bell.
+- **The balcony market** (4.3–0.2: under the rim by the ship and the cab rank): walkable balconies over the void on
+  struts and cables under striped awnings, bunting between them, the wall rose; a few shoppers on them (`crowdSpots`).
+
+Every material keeps its colour in shade (`shadeFlat: 0`), and the kinds differ in colour only, so the static batches
+draw each kind at once (Deck preset, CPU ×3: +11–18 draws and +0.06–0.12 M triangles at the bench views). The props
+are merged per quarter, level and material and drop out 330 m above or below; the town's numbers are not touched (an rng
+of its own). The balconies' spots come from a sector alone (`balconySpots`), so the railing is built with a gap at each
+(and at each mirror's gangway: `mirrorRailGaps`); `tests/shaft-quarters.test.js` checks they are walked onto.
+
+## The light that goes down (v1.52, issue #169, `src/shaft-mirrors.js`, `src/story/light-down.js`)
+
+The author's pick "light-down": a great mirror on the rim (0.95 rad, past the red stair) throws the sun across the
+shaft to four mirrors down the bell quarter (`MIRRORS`: 92, −86, −150, −218 m), each on a round brass deck out over
+the void, reached by a gangway from the promenade; the last throws it onto a little square on the bottom terrace
+(`BEAM_END`, 50 m round from the Upward Shrine). Three were knocked round (`start`): the light stops at the first and
+`chainOf` throws it along the turned notch (`traceBeam`: the wall, the slabs and houses, the spire, its rings and
+bridges, the viaducts and their arches), a coin of light that wanders as the loose frame creaks. A crank on each deck
+(A / ×) turns it a notch of eight (`incal.beam.<id>`); at notch 0 its beam lands on the next. When the light reaches
+the square (`incal.beam.lit`), stalls and washing appear in it and the makers' chest there, on the chests' mound
+(src/boxes/mound.js), opens: the Lamplighter's glass (`sunglass`, a charm: the bridge pen's planks stand 18 s, not 12).
+The errand `incal.beam` starts near a mirror; the scout finds the mirror the light stops at, then the square, and
+standing in it ends it. The beams are a wash each (src/veil.js LightShaft) and a thin core, faded by night. The audit
+reads the chain as a line (`the sun’s beam`, followed where the errand names it). `tests/shaft-mirrors.test.js`.
+
 ## Vael's ways home (level design audit v1.15)
 
 Both walks back were the way you came (`src/vael-ways.js`, no rng):
