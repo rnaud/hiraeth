@@ -29,6 +29,8 @@ Like the rest it only writes the G-buffer; post.js prints it:
   drawn from both sides).
 - `waterPrint: true` (the Garden's mirrored shore) is a flat printed shape lying on
   the water: its own colour with the ripples, no depth, not swimmable.
+- `crystalRoots: true` (Lorn's water): the Crystal's veins under the surface, from the map `src/lorn-veins.js` bakes
+  (WATER_VEINS, `waterVeins`; worlds.md, "Lorn: one route…"); `WaterLook.glow` makes them self-lit.
 - **Contact foam** (below): little waves lapping round whatever stands in the water, from the scene's
   depth behind it.
 - The handheld's low detail (`uWaterLite`, main.js `applyDetail`) keeps one scale

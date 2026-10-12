@@ -2330,6 +2330,9 @@ ${SHADOW_GLSL}
     #endif
     float patInk = 0.0;
     float emit = 0.0;   // lit windows at night (facade)
+    #ifdef WATER
+      emit = wl.glow;   // (what glows in the water: Lorn's veins, water-shader.js)
+    #endif
     #ifdef NIGHT_PAINT
       emit = vNight.a * uNight;   // (and glows, as far as it says, after dark)
     #endif

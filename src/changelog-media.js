@@ -719,6 +719,9 @@ const ANTE_CAM = (id) => `const rt = window.temples?.${id}, K = rt.kit, V = THRE
   rig.yaw = player.heading + Math.PI; rig.pitch = rig.pitch0; rig._lastP = null;`;
 const SH59 = 'headless Chrome (muted) on the Mac’s GPU, the Handheld preset at the Retroid’s 730 × 410 CSS px at 2× (render scale 0.75), hour 10, clear, the clock held; origin/main’s build (27d67022) and this change’s, the same camera for both (12 October); cwebp -q 72';
 const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5641) and origin/main’s tree before it (8821ba59, port 5643), ?game=pirates&to=edena, the run flown ahead to the same second by the game’s pilot for both (12 October); cwebp -q 72';
+// (v1.59: Lorn's veins, Viridel's water stair and the Garden's lake polished against their sheets, issues #188-#190: a
+// scratch copy of scripts/design-qc/capture.mjs, the before this branch's own tree before the change)
+const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5681), the before the same tree before the polish (27d67022), the same pinned cameras as v1.55 and v1.56, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.59': [
     { match: 'The Cistern-Keeper has an experimental animation preview', tags: ['characters', 'desert'], shots: [
@@ -787,6 +790,18 @@ export const CHANGELOG_MEDIA = {
         { where: 'desert spawn', before: 3.95, after: 4.13 }, { where: 'dunes', before: 2.15, after: 2.2 }, { where: 'camps', before: 3.92, after: 4.01 },
       ], source: 'node scripts/bench/passes.mjs --toggles fxaa,smaa (synced frame time, median of 7 in turns); the lighter far lines cost nothing measurable. The Retroid: about 3× the Mac, 0.2–0.5 ms (estimated)' },
     ], see: 'On a handheld (or the Handheld preset), stand in the Signal Market’s street and turn slowly, looking down it: the far facades hold still.' },
+    { match: 'Lorn’s crystal roots now lie under the water', shots: [
+      { name: 'lorn-veins', title: 'Riding the lit vein', caption: 'On the skiff by the keepers’ light, following the stakes south: before, flat violet strips with a teal zigzag laid on the water; after, crystal under the surface, faceted violet and teal, its heart lit, running on to the root gate', from: POLISH59,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-52, 2.6, -318], target: [-40, 1.5, -372], player: [-52, 0.5, -318] },
+        reference: { sheet: 'references/levels/Lorn/environment/explorations/crystal-roots/sheet-1.jpg', caption: 'The author’s pick: riding the lit vein (references/levels/Lorn/environment/explorations/crystal-roots)' } },
+      { name: 'lorn-veins-island', title: 'From the Crystal’s island', caption: 'From the Great Crystal’s island looking south-west: before, the strips with their hard edges; after, the roots under the water, the lit vein glowing, twigs thinning off it', from: POLISH59,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [100, 14, -172], target: [-40, 0, -300], player: [100, 2.5, -168] } },
+    ], numbers: [
+      { title: 'The veins, drawn', unit: '', better: 'lower', device: 'the built world, as the tests build it', rows: [
+        { where: 'meshes', before: 7, after: 1 },
+        { where: 'triangles', before: 11232, after: 270 },
+      ], source: 'the veins drawn by Lorn’s water from a map baked once (1024² with mipmaps); the one mesh left is the ringing groves' },
+    ], see: 'Ride the skiff south from the Hush-House along the keepers’ stakes at dusk: the lit vein runs beside you under the water, light flowing along it toward the Great Crystal.' },
   ],
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [

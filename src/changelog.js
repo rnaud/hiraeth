@@ -26,6 +26,8 @@ export const CHANGELOG = [
     // distant shimmer (src/post.js INK_FAR, src/pipeline.js createSmaa, src/perf.js handheld `aa`; docs/systems/rendering.md
     // "Far lines that would alias"; issue #225, from #218)
     'On handhelds and phones, far-off towns, facades and forests no longer shimmer as you look round: lines on detail too small to draw at that distance are inked lighter, and the picture’s edges are smoothed more sharply.',
+    // three of the explorations polished against their sheets (issues #188, #189, #190; docs/systems/worlds.md)
+    'Lorn’s crystal roots now lie under the water instead of painted on it: soft-edged veins of violet and teal crystal seen through the surface, tapering into thinner twigs, fainter the deeper they run, with light flowing along them toward the Great Crystal.',
   ] },
   { v: '1.58', date: '2026-10-12', items: [
     // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)

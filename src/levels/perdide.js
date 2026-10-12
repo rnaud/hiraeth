@@ -247,8 +247,8 @@ export function* buildPerdide(scene) {
   yield;
   {
     const water = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000, 1, 1).rotateX(-Math.PI / 2),
-      makeMaterial({ color: '#3f8f95', color2: '#4fa3a3', mode: MODE_WATER }));
-    water.position.y = WATER;
+      makeMaterial({ color: '#3f8f95', color2: '#4fa3a3', mode: MODE_WATER, crystalRoots: true }));   // (the Crystal's roots under it: lorn-veins.js)
+    water.position.y = WATER; water.name = 'Lorn’s water';
     water.userData.noCollide = true;
     scene.add(water);
   }
@@ -645,7 +645,7 @@ export function* buildPerdide(scene) {
   // beside the stakes), the crossing ending in the drowned wood (its trunks out of the open water, the root gates over the
   // stakes, the clearings off the path), and the keepers' village 70 m up over the second dark pool. Built last, as the rest.
   yield;
-  const veins = buildCrystalVeins(scene, terrain, { great: GREAT });
+  const veins = buildCrystalVeins(scene, terrain, { great: GREAT, water: scene.getObjectByName('Lorn’s water') });
   const flood = buildFloodedWood(scene, terrain, { veils: W.veils, trunks: W.trunks });
   const canopy = buildKeepersCanopy(scene, terrain, { veils: W.veils });
   Object.assign(level, { veins, flood, canopy });

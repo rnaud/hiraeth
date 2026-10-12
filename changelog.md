@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.59 — 2026-10-12
 
+- Lorn’s crystal roots now lie under the water instead of painted on it: soft-edged veins of violet and teal crystal seen through the surface, tapering into thinner twigs, fainter the deeper they run, with light flowing along them toward the Great Crystal.
 - On handhelds and phones, far-off towns, facades and forests no longer shimmer as you look round: lines on detail too small to draw at that distance are inked lighter, and the picture’s edges are smoothed more sharply.
 - The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.
 - Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.
