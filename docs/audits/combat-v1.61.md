@@ -15,7 +15,7 @@ and its climb aboard (#234, `CLIMB`), roomier antechambers before every guardian
 
 ## Setup
 
-- **Build:** this branch on main e7c21f7d, with the two fixes below (4d6680cc the lock camera, 01ac4b2a the hop).
+- **Build:** this branch on main e7c21f7d (rebased since onto 428be9f2), with the two fixes below (15ac91a8 the lock camera, 5435cdcd the hop).
   Headless Chrome, muted, ANGLE Metal, the Arena at 1280 × 720, Enemies "normal".
 - **Kinds:** `arena.mjs --watch 24 --version 1.61`: each of the 22 kinds watched 24 s against a still traveller, then
   every move's blows through `Foes.hurt`. Four kinds (the sky ray, the lamp tripod, the crucible cart, the bell walker)
@@ -86,7 +86,7 @@ antechamber run, 23 % of the guardian hall's once he backs to its wall (issue #2
 
 ![guardian-lock: backed to the First Sign's hall wall, the traveller under the frame](combat-v1.61/camera-guardian-lock.webp)
 
-**The hop with a foe at his feet** (fixed, 01ac4b2a): `dodge.mjs` found the ring centipede's ring never opened a
+**The hop with a foe at his feet** (fixed, 5435cdcd): `dodge.mjs` found the ring centipede's ring never opened a
 flurry. Its head curls round him 1.2 m off, where the lock camera stops turning after it (`LOCK_NEAR`, v1.49), so
 "back" on the stick was back on the screen and, against the line to the head, not away: a plain jump. Hops now read
 the stick against the camera's look there (`hopAxis`).
@@ -234,7 +234,7 @@ still arrows, the stunned stars); 1 and 6 still want a pad.
 
 ## The measures
 
-Three faults in the review's own scripts, fixed (55524d6b), so the next review's numbers are comparable:
+Three faults in the review's own scripts, fixed (176309b8), so the next review's numbers are comparable:
 
 - `dodge.mjs`, `defend.mjs`, `arena.mjs` start each kind from the Arena's spawn (the hops had walked the traveller to the
   wall: 29 of 35 → 35 of 35).

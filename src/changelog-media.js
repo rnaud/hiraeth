@@ -743,7 +743,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'Locked on with a foe right at your feet, a ring centipede curled round you', numbers: [
       { title: 'The combat review’s perfect dodge check (dodge.mjs: the back flip inside each foe’s dodge window)', unit: 'foes that dodged into a flurry', better: 'higher', device: 'headless Chrome (muted), the Arena, .claude/skills/combat-review/dodge.mjs',
         rows: [{ where: 'the ring centipede (its ring)', before: 0, after: 1 }],
-        source: 'dodge.mjs against the tree before (4d6680cc) and this branch, 12 October: before, the press read as a plain jump (the foe 1.2 m off, the camera not turned after it)' }],
+        source: 'dodge.mjs against the tree before (15ac91a8) and this branch, 12 October: before, the press read as a plain jump (the foe 1.2 m off, the camera not turned after it)' }],
       see: 'In the Arena, lock on to a ring centipede and, as it curls round you, hold back and jump just before the ring closes.' },
     { match: 'Locked on, the camera no longer whips round when you walk past the foe', numbers: [
       { title: 'The camera QC’s arena-lock (locked on to an ink blot: circling it, stepping in and back): the camera’s roughness, its kinks’ root mean square (green under 1.5)', unit: 'cm', better: 'lower', device: 'headless Chrome (muted), Medium, the Arena, .claude/skills/camera-qc/run.mjs (seed 1)',
