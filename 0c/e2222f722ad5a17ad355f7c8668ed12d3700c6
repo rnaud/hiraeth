@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_e40bf9db71a4d0 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_f8cc65213caa66 404,407-408,423-429
+src/desert-dunes.js
+  s_9ca76055a220ed::t_f611ba188d08c8 7,27-30,44,50,211-286,291,298-299
+src/desert-sites.js
+  s_9ca76055a220ed::t_f68a17a9e24b4d 125,145-151
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_5defd1fe004933 125-128
+tests/desert-dunes.test.js
+  s_9ca76055a220ed::t_687c10a79a5ddf 81,100-148
+tests/desert-giants.test.js
+  s_9ca76055a220ed::t_c2eeeccd605b04 90-96
+src/changelog-media.js
+  s_10c0265b0b488c::t_2f6fea382ee707 659-661,689-696
+src/changelog.js
+  s_10c0265b0b488c::t_dda043ab50091c 27-28
+src/desert-giants.js
+  s_10c0265b0b488c::t_2ef9ffc8b19732 17,24-25,178,203-212
+src/story/desert-data.js
+  s_10c0265b0b488c::t_9c48bbdec45355 887,889,915-924
+src/story/desert-dunes.js
+  s_10c0265b0b488c::t_ef25027f4fac34 30-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0ce2222f722ad5a17ad355f7c8668ed12d3700c6",
+  "prompts": {},
+  "sessions": {
+    "s_10c0265b0b488c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af76eb9e687c02c83",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
