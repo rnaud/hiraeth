@@ -1,4 +1,4 @@
-// The Unity port's ship (unity/Memento/Assets/Memento/Runtime/ShipScene.cs, ShipTravel.cs) places the traveller and its
+// The Unity port's ship (unity/Hiraeth/Assets/Hiraeth/Runtime/ShipScene.cs, ShipTravel.cs) places the traveller and its
 // cameras by the points the export writes from the web ship's interior (scripts/unity-export/export-world.mjs shipOut):
 // every point the C# asks for by name is one the interior has, and the port's own test expects the bells there are.
 import test from 'node:test';
@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { buildShipModel } from '../src/ship/model.js';
 import { THRUSTERS } from '../src/ship/exhaust.js';
 
-const read = (p) => readFileSync(new URL(`../unity/Memento/Assets/Memento/${p}`, import.meta.url), 'utf8');
+const read = (p) => readFileSync(new URL(`../unity/Hiraeth/Assets/Hiraeth/${p}`, import.meta.url), 'utf8');
 const scene = read('Runtime/ShipScene.cs') + read('Runtime/ShipTravel.cs');
 const tests = read('Editor/Tests/WorldsTests.cs');
 const points = buildShipModel().interior.points;

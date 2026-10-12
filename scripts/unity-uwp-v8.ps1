@@ -21,9 +21,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 if (-not $Cache) { $Cache = Join-Path $root ".local-tools/puerts-uwp-v8/$Version" }
-$packages = Join-Path $root 'unity/Memento/Packages'
+$packages = Join-Path $root 'unity/Hiraeth/Packages'
 $v8pkg = Join-Path $packages 'com.tencent.puerts.v8'
-if (-not (Test-Path $v8pkg)) { throw 'no com.tencent.puerts.v8 in unity/Memento/Packages: PUERTS_BACKENDS="Quickjs V8" scripts/unity-js-setup.sh first' }
+if (-not (Test-Path $v8pkg)) { throw 'no com.tencent.puerts.v8 in unity/Hiraeth/Packages: PUERTS_BACKENDS="Quickjs V8" scripts/unity-js-setup.sh first' }
 $name = if ($Jitless) { 'PapiV8Jitless.dll' } else { 'PapiV8.dll' }
 $dll = Join-Path $Cache $name
 

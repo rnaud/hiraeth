@@ -1,6 +1,6 @@
 // Run an engine bundle (scripts/engine-bundle.mjs) in a bare V8 context, as an engine's VM would
 // hold it: only console and the timers, no Node, no page. The tests use it (tests/engine-*.test.js);
-// by hand:  node engine/vm-run.mjs godot/js/memento-spike.js
+// by hand:  node engine/vm-run.mjs godot/js/hiraeth-spike.js
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -23,7 +23,7 @@ export function loadBundle(file, host = {}, globals = {}) {
   vm.createContext(ctx);
   // (the bytes in the context's own ArrayBuffer: three checks `instanceof ArrayBuffer`)
   const readFile = (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
-  ctx.__MEMENTO_HOST__ = { engine: 'node-vm', readFile, ...host };
+  ctx.__HIRAETH_HOST__ = { engine: 'node-vm', readFile, ...host };
   const module = { exports: {} };
   // (the context's built-ins handed to the bundle as locals, the same objects: a free name in a context made from an
   // object is looked up through its interceptor on every read, which made a world's build 15-20 times slower than
@@ -35,7 +35,7 @@ export function loadBundle(file, host = {}, globals = {}) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { exports } = loadBundle(process.argv[2] ?? 'godot/js/memento-spike.js');
+  const { exports } = loadBundle(process.argv[2] ?? 'godot/js/hiraeth-spike.js');
   const counts = {};
   const backend = { create(id, d) { counts[d.kind] = (counts[d.kind] ?? 0) + 1; }, transforms(ids, m, n) { counts.moved = n; } };
   const r = exports.buildSpike({ backend });

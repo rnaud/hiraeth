@@ -11,4 +11,4 @@ NAME=$1; shift
 mkdir -p "$ROOT/output/engine-bridge"
 (cd "$ROOT" && node scripts/engine-bundle.mjs unity) >/dev/null
 LOG="$ROOT/output/engine-bridge/unity-$NAME.log" "$ROOT/scripts/unity-export/unity-batch.sh" BridgeBatch.Run -limit ${LIMIT:-400} "$@" >/dev/null || true
-grep -h "\[unity\]\|\[bench\]\|\[game\]\|C# Exception\|error CS\|Memento bridge:" "$ROOT/output/engine-bridge/unity-$NAME.log" | grep -v "the bundle loaded" | cut -c1-${WIDTH:-400} | head -${TAIL:-30}
+grep -h "\[unity\]\|\[bench\]\|\[game\]\|C# Exception\|error CS\|Hiraeth bridge:" "$ROOT/output/engine-bridge/unity-$NAME.log" | grep -v "the bundle loaded" | cut -c1-${WIDTH:-400} | head -${TAIL:-30}

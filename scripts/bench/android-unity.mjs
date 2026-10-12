@@ -1,7 +1,7 @@
 // The Unity side of the benchmark on the handheld: the APK's benchmark mode (Bench.cs) launched with
 // its arguments in the intent's "unity" extra, the GPU's busy share and clock sampled meanwhile (kgsl)
 // and attributed to each recording by the player's own "rec start / rec end" log lines, the results
-// pulled. android-run.sh installs the APK first. Only ever touches com.rnaud.memento.unity.
+// pulled. android-run.sh installs the APK first. Only ever touches com.rnaud.hiraeth.unity.
 //   node scripts/bench/android-unity.mjs --preset handheld --out result.json [--secs 10] [--only spawn,camps]
 import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync, readFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
@@ -9,8 +9,8 @@ import { resolve, dirname } from 'node:path';
 import { options, sleep } from './lib.mjs';
 import { ADB, sh, thermal } from '../handheld-perf/lib.mjs';
 
-export const PKG = 'com.rnaud.memento.unity';
-if (PKG === 'com.rnaud.moebius') throw new Error('never the web app');
+export const PKG = 'com.rnaud.hiraeth.unity';
+if (PKG === 'com.rnaud.hiraeth') throw new Error('never the web app');
 const opt = options();
 const preset = opt.preset ?? 'handheld';
 const out = resolve(opt.out ?? `android-unity-${preset}.json`);
@@ -35,7 +35,7 @@ let gb = ''; gpu.stdout.on('data', (d) => { gb += d; const ls = gb.split('\n'); 
 sh('logcat -c');
 const cat = spawn(ADB[0], [...ADB.slice(1), 'logcat', '-v', 'brief', 'Unity:I', '*:S']);
 const log = []; let cb = '';
-cat.stdout.on('data', (d) => { cb += d; const ls = cb.split('\n'); cb = ls.pop(); for (const l of ls) { if (/Memento:/.test(l)) log.push(l.slice(0, 300)); if (/bench rec start/.test(l)) marks.push(['start', Date.now()]); if (/bench rec end/.test(l)) marks.push(['end', Date.now()]); if (/Memento: bench /.test(l)) console.log('  ' + l.replace(/^.*?Memento:/, 'Memento:').slice(0, 160)); } });
+cat.stdout.on('data', (d) => { cb += d; const ls = cb.split('\n'); cb = ls.pop(); for (const l of ls) { if (/Hiraeth:/.test(l)) log.push(l.slice(0, 300)); if (/bench rec start/.test(l)) marks.push(['start', Date.now()]); if (/bench rec end/.test(l)) marks.push(['end', Date.now()]); if (/Hiraeth: bench /.test(l)) console.log('  ' + l.replace(/^.*?Hiraeth:/, 'Hiraeth:').slice(0, 160)); } });
 
 const t0 = Date.now();
 sh(`am start -W -n ${comp} -e unity '${args.join(' ')}'`);

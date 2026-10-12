@@ -3,9 +3,9 @@ name: Unity release (testers)
 # The Unity side of the engine bridge (docs/systems/engine-bridge.md: the web game's own JavaScript run in
 # Puerts' V8 inside Unity, drawn by the C# port's ink look) built for testing on the devices, next to the
 # players' builds (docs/systems/unity.md, "Building in GitHub Actions"):
-# - android: the testers' APK (BridgeBuild.AndroidRelease): com.rnaud.memento.unity, "Hiraeth (Unity)", IL2CPP
-#   ARM64, signed with the web app's release key, so it installs next to the app com.rnaud.moebius and each
-#   build over the last; published to the GitHub release unity-android (memento-unity.apk, replaced each run);
+# - android: the testers' APK (BridgeBuild.AndroidRelease): com.rnaud.hiraeth.unity, "Hiraeth (Unity)", IL2CPP
+#   ARM64, signed with the web app's release key, so it installs next to the app com.rnaud.hiraeth and each
+#   build over the last; published to the GitHub release unity-android (hiraeth-unity.apk, replaced each run);
 # - linux: the bridge's Linux player (BridgeBuild.Linux: x86_64, IL2CPP, Vulkan) for the Steam Deck, to unity-linux.
 # Both releases are prereleases, never the latest: the app's updater and the players read the vX.Y releases.
 # Unity is licensed by GameCI (unity-builder v6, which activates a Personal seat from UNITY_EMAIL and
@@ -45,8 +45,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  UNITY_VERSION: 6000.6.4f1   # (unity/Memento/ProjectSettings/ProjectVersion.txt: GameCI reads the version from there)
-  PROJECT: unity/Memento
+  UNITY_VERSION: 6000.6.4f1   # (unity/Hiraeth/ProjectSettings/ProjectVersion.txt: GameCI reads the version from there)
+  PROJECT: unity/Hiraeth
 
 jobs:
   # the secrets first, in seconds, before the build; and whether a nightly run has anything new to build
@@ -136,7 +136,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: unity-library-android-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**') }}
+          key: unity-library-android-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Hiraeth/Assets/**', 'unity/Hiraeth/ProjectSettings/**', 'unity/Hiraeth/Packages/manifest.json', '!unity/Hiraeth/Assets/StreamingAssets/**', '!unity/Hiraeth/Assets/Gen/**') }}
           restore-keys: |
             unity-library-android-
 
@@ -149,7 +149,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: unity-gradle-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/Assets/Plugins/Android/**') }}
+          key: unity-gradle-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Hiraeth/Packages/manifest.json', 'unity/Hiraeth/Assets/Plugins/Android/**') }}
           restore-keys: unity-gradle-
 
       # Puerts' IL2CPP glue (Assets/Gen) depends on the project's C# (the bridges for its public signatures, its
@@ -162,7 +162,7 @@ jobs:
           path: |
             ${{ env.PROJECT }}/Assets/Gen
             ${{ env.PROJECT }}/Assets/Gen.meta
-          key: puerts-glue-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
+          key: puerts-glue-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Hiraeth/Assets/**/*.cs', 'unity/Hiraeth/Assets/**/*.asmdef', 'unity/Hiraeth/Packages/manifest.json', '!unity/Hiraeth/Assets/Gen/**') }}
 
       - name: Version
         id: meta
@@ -195,7 +195,7 @@ jobs:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Il2cpp
           versioning: None
           allowDirtyBuild: true
 
@@ -211,7 +211,7 @@ jobs:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Il2cpp
           versioning: None
           allowDirtyBuild: true
 
@@ -228,7 +228,7 @@ jobs:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.AndroidRelease
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.AndroidRelease
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
           androidVersionCode: ${{ steps.meta.outputs.build }}
@@ -236,7 +236,7 @@ jobs:
           androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           androidKeyaliasName: moebius
           androidKeyaliasPass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          customParameters: -out Builds/unity-android/memento-unity.apk
+          customParameters: -out Builds/unity-android/hiraeth-unity.apk
           allowDirtyBuild: true
 
       - name: The testers' APK (IL2CPP ARM64) (again)
@@ -252,7 +252,7 @@ jobs:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.AndroidRelease
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.AndroidRelease
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
           androidVersionCode: ${{ steps.meta.outputs.build }}
@@ -260,7 +260,7 @@ jobs:
           androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           androidKeyaliasName: moebius
           androidKeyaliasPass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          customParameters: -out Builds/unity-android/memento-unity.apk
+          customParameters: -out Builds/unity-android/hiraeth-unity.apk
           allowDirtyBuild: true
 
       - name: Forget the key
@@ -316,15 +316,15 @@ jobs:
       # (kept with the run too: a week, in case the release can't be written)
       - uses: actions/upload-artifact@v5
         with:
-          name: memento-unity-apk
-          path: ${{ env.PROJECT }}/Builds/unity-android/memento-unity.apk
+          name: hiraeth-unity-apk
+          path: ${{ env.PROJECT }}/Builds/unity-android/hiraeth-unity.apk
           retention-days: 7
 
       - name: Publish to the release unity-android
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.sha }}
-        run: scripts/unity-publish.sh android "$PROJECT/Builds/unity-android/memento-unity.apk" "GitHub Actions (run ${{ github.run_number }})"
+        run: scripts/unity-publish.sh android "$PROJECT/Builds/unity-android/hiraeth-unity.apk" "GitHub Actions (run ${{ github.run_number }})"
 
   linux:
     # (after the APK, not beside it: one Personal seat held at a time; also when the APK failed)
@@ -366,7 +366,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: unity-library-linux-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**') }}
+          key: unity-library-linux-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Hiraeth/Assets/**', 'unity/Hiraeth/ProjectSettings/**', 'unity/Hiraeth/Packages/manifest.json', '!unity/Hiraeth/Assets/StreamingAssets/**', '!unity/Hiraeth/Assets/Gen/**') }}
           restore-keys: |
             unity-library-linux-
 
@@ -379,7 +379,7 @@ jobs:
           path: |
             ${{ env.PROJECT }}/Assets/Gen
             ${{ env.PROJECT }}/Assets/Gen.meta
-          key: puerts-glue-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
+          key: puerts-glue-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Hiraeth/Assets/**/*.cs', 'unity/Hiraeth/Assets/**/*.asmdef', 'unity/Hiraeth/Packages/manifest.json', '!unity/Hiraeth/Assets/Gen/**') }}
 
       - name: The editor image
         run: scripts/unity-ci-docker.sh wait
@@ -398,7 +398,7 @@ jobs:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Il2cpp
           versioning: None
           allowDirtyBuild: true
 
@@ -414,7 +414,7 @@ jobs:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Il2cpp
           versioning: None
           allowDirtyBuild: true
 
@@ -440,9 +440,9 @@ jobs:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Linux
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Linux
           versioning: None
-          customParameters: -out Builds/bridge-linux/memento-js.x86_64
+          customParameters: -out Builds/bridge-linux/hiraeth-js.x86_64
           allowDirtyBuild: true
 
       # (from run 38151565992 on, every start on the Library a built run had saved was killed at once, exit 137, in
@@ -464,9 +464,9 @@ jobs:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Linux
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Linux
           versioning: None
-          customParameters: -out Builds/bridge-linux/memento-js.x86_64
+          customParameters: -out Builds/bridge-linux/hiraeth-js.x86_64
           allowDirtyBuild: true
 
       - name: Unity Library (under which key)
@@ -500,6 +500,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.sha }}
         run: |
-          tar czf "$RUNNER_TEMP/memento-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
-          ls -l "$RUNNER_TEMP/memento-unity-linux.tar.gz"
-          scripts/unity-publish.sh linux "$RUNNER_TEMP/memento-unity-linux.tar.gz" "GitHub Actions (run ${{ github.run_number }})"
+          tar czf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
+          ls -l "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz"
+          scripts/unity-publish.sh linux "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" "GitHub Actions (run ${{ github.run_number }})"

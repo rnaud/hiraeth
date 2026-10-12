@@ -1,0 +1,16 @@
+{
+    "name": "Hiraeth.Bridge.Puerts",
+    "rootNamespace": "Hiraeth.Bridge",
+    "references": ["com.tencent.puerts.core"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": ["HIRAETH_PUERTS"],
+    "versionDefines": [
+        { "name": "com.tencent.puerts.core", "expression": "0.0.1", "define": "HIRAETH_PUERTS" }
+    ],
+    "noEngineReferences": false
+}

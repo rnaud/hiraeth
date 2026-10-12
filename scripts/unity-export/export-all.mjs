@@ -3,7 +3,7 @@
 //
 //   node scripts/unity-export/export-all.mjs [--clean] [ids…]
 //
-// Writes unity/Memento/Assets/StreamingAssets/<id>/ for every world of src/levels/index.js
+// Writes unity/Hiraeth/Assets/StreamingAssets/<id>/ for every world of src/levels/index.js
 // on the route and home (or the ids given), and the shared store StreamingAssets/shared/
 // (--clean starts it afresh). Everything it writes is git-ignored (about 4 GB in all).
 import { spawnSync } from 'node:child_process';
@@ -17,7 +17,7 @@ const clean = args.includes('--clean');
 const { LEVELS } = await import('../../src/levels/index.js');
 const ids = args.filter((a) => !a.startsWith('--'));
 const worlds = ids.length ? ids : LEVELS.filter((l) => !l.dev && l.id !== 'atelier').map((l) => l.id);
-if (clean) rmSync(resolve(here, '../../unity/Memento/Assets/StreamingAssets/shared'), { recursive: true, force: true });
+if (clean) rmSync(resolve(here, '../../unity/Hiraeth/Assets/StreamingAssets/shared'), { recursive: true, force: true });
 const t0 = Date.now();
 const failed = [];
 for (const id of worlds) {

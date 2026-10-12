@@ -29,7 +29,7 @@ function csFiles(dir, out = []) {
   return out;
 }
 
-/** The glue's inputs, as text (what is hashed): `project` is the Unity project (unity/Memento). */
+/** The glue's inputs, as text (what is hashed): `project` is the Unity project (unity/Hiraeth). */
 export function glueInputs(project, self = readFileSync(fileURLToPath(import.meta.url), 'utf8')) {
   const assets = join(project, 'Assets');
   const parts = ['key script\n' + self.replace(/\r\n/g, '\n')];
@@ -53,5 +53,5 @@ export function glueInputs(project, self = readFileSync(fileURLToPath(import.met
 export const glueKey = (project, self) => createHash('sha256').update(glueInputs(project, self)).digest('hex');
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  process.stdout.write(glueKey(join(ROOT, 'unity', 'Memento')) + '\n');
+  process.stdout.write(glueKey(join(ROOT, 'unity', 'Hiraeth')) + '\n');
 }

@@ -284,7 +284,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const weather = optional('weather', () => new Weather(content.weather));
   const shelter = optional('shelter', () => new Shelter(physics));
   // the wind (wind.js): its direction and gusts for the traveller, the plants and the grass, and its wisps of blown sand
-  // (on the page a screen overlay of their own; here a mesh in the mirrored scene, on the port's Memento/Wisp)
+  // (on the page a screen overlay of their own; here a mesh in the mirrored scene, on the port's Hiraeth/Wisp)
   const wind = optional('the wind', () => new WindStreaks());
   if (wind) {
     wind.uniforms.uInk.value = new THREE.Color('#2b211f');

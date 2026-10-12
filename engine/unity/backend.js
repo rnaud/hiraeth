@@ -1,7 +1,7 @@
 // The Unity side of the scene mirror (engine/mirror.js), in Puerts' V8. Puerts calls C# by
 // reflection, slower a call than GodotJS, so the ops are batched: geometry and materials go once
 // each (an ArrayBuffer, a JSON string), and everything a frame changes goes in one command buffer
-// (pack.js CommandWriter) handed to C# once a frame (unity/Memento/Assets/MementoJS: BridgeHost,
+// (pack.js CommandWriter) handed to C# once a frame (unity/Hiraeth/Assets/HiraethJS: BridgeHost,
 // BridgeRenderer). The frame is mirrored in x on the way (pack.js), as the port's exporter does.
 import { unityGeometry, CommandWriter, OP, mirrorMatrix, crowdInstances, puffInstances } from './pack.js';
 import { portMaterial } from './port-format.js';
@@ -12,7 +12,7 @@ import { packCapeDesc, writeCapePacket } from '../cape-job.js';
 const tally = (self, op, before) => { self._opWords[op] = (self._opWords[op] ?? 0) + self.w.n - before; };
 
 export class UnityBackend {
-  /** @param host  the C# side: CS.Memento.Bridge.BridgeHost (or a stand-in in the tests) */
+  /** @param host  the C# side: CS.Hiraeth.Bridge.BridgeHost (or a stand-in in the tests) */
   constructor(host) {
     this.host = host;
     // (the mirror's quiet walk: the still drawables looked at in full every 4th frame, engine/mirror.js QUIET_AFTER)
@@ -65,7 +65,7 @@ export class UnityBackend {
 
   create(id, d) {
     const specs = d.mids.map((m) => this.specs.get(m));
-    // (the wind's wisps: their alpha per vertex, as the port's Memento/Wisp reads it from the vertex colour)
+    // (the wind's wisps: their alpha per vertex, as the port's Hiraeth/Wisp reads it from the vertex colour)
     const colors = specs.some((s) => s?.vertexColors) || d.mids.some((m) => this.ports.get(m) === 'wisp');
     const crowd = d.kind === 'instanced' && specs.some((s) => s?.defines?.CROWD);
     const figure = !crowd && specs.some((s) => (s?.u?.uMode === 4 || s?.u?.uFigure > 0 || s?.u?.uMode === 6 || s?.defines?.FACE_PART));
@@ -84,7 +84,7 @@ export class UnityBackend {
       return;
     }
     if (d.kind === 'instgeo' && specs.some((s) => s?.defines?.GRASS)) {
-      // the grass blades (flora-grass.js): the port's Surface MEMENTO_GRASS, its tufts placed from aGrass, aGrass2 (op 12)
+      // the grass blades (flora-grass.js): the port's Surface HIRAETH_GRASS, its tufts placed from aGrass, aGrass2 (op 12)
       (this.grass ??= new Map()).set(id, { view: '' });
       this.nodes ??= new Map();
       this.nodes.set(id, { gid: d.gid, colors: false, bind: false, kind: 'grass' });
@@ -353,7 +353,7 @@ export class UnityBackend {
     this.stats.hostMs += performance.now() - t0;   // (the call: Puerts' marshalling and the C# apply)
   }
 
-  /** The frame's local lights ([x, y, z, reach], three's space), when they changed: op 11, mirrored (MementoLook's own list). */
+  /** The frame's local lights ([x, y, z, reach], three's space), when they changed: op 11, mirrored (HiraethLook's own list). */
   lights(list) {
     const key = list.map((l) => l.map((v) => Math.fround(v)).join(',')).join(';');
     if (key === this._lights) return;

@@ -25,14 +25,14 @@ const shots = typeof opt.shots === 'string' ? resolve(opt.shots) : null; let sho
 if (shots) mkdirSync(shots, { recursive: true });
 page.on('console', (m) => {
   const t = m.text();
-  // (the player prints its results in numbered pieces: "MEMENTO_BENCH_JSON 3/12 …")
-  const pm = t.match(/^MEMENTO_BENCH_JSON (\d+)\/(\d+) /);
+  // (the player prints its results in numbered pieces: "HIRAETH_BENCH_JSON 3/12 …")
+  const pm = t.match(/^HIRAETH_BENCH_JSON (\d+)\/(\d+) /);
   if (pm) {
     pieces[+pm[1] - 1] = t.slice(pm[0].length).replace(/\n$/, "");   // (the player ends each log line with a newline)
     if (pieces.filter((x) => x !== undefined).length === +pm[2]) { try { json = JSON.parse(pieces.join('')); } catch (e) { logs.push('bad results: ' + e.message); json = { error: 'unreadable results' }; } }
   }
-  else if (/Memento:|error|exception/i.test(t)) logs.push(t.slice(0, 200));
-  if (shots && t.includes('Memento: bench rec end')) page.screenshot({ path: resolve(shots, `unity-webgl-${preset}-${++shotN}.png`) }).catch(() => {});
+  else if (/Hiraeth:|error|exception/i.test(t)) logs.push(t.slice(0, 200));
+  if (shots && t.includes('Hiraeth: bench rec end')) page.screenshot({ path: resolve(shots, `unity-webgl-${preset}-${++shotN}.png`) }).catch(() => {});
 });
 page.on('pageerror', (e) => logs.push('pageerror ' + String(e).slice(0, 200)));
 await page.goto('about:blank');
@@ -69,7 +69,7 @@ const starts = page_?.marks.filter((x) => x[0] === 'start') ?? [], ends = page_?
   const fs = stats(f);
   Object.assign(v, { page: { frame: fs, cpu: stats(c), fps: +(f.length / (f.reduce((a, b) => a + b, 0) / 1000)).toFixed(1), hitches: fs ? hitches(f, fs.median) : null } });
 });
-const build = resolve(ROOT, 'unity/Memento/Builds/WebGL');
+const build = resolve(ROOT, 'unity/Hiraeth/Builds/WebGL');
 Object.assign(json, {
   engine: 'unity-webgl', side: 'unity-webgl', gl, canvas: page_?.canvas, wallSecs: wall,
   load: { ...json.load, wall },

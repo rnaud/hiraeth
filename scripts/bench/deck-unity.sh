@@ -3,21 +3,21 @@
 # copied to the Deck (BridgeBuild.Linux, or the unity-linux release's tar.gz unpacked), run in gamescope's headless
 # backend at 1280 × 800 (X11 as in Gaming Mode, nothing on the screen), muted, in a profile of its own, at the bench's
 # views; its bench JSON, its metrics log and its pictures fetched back to this Mac.
-#   scripts/bench/deck-unity.sh put <dir with memento-js.x86_64 | .tar.gz> <name>      copy a player over
+#   scripts/bench/deck-unity.sh put <dir with hiraeth-js.x86_64 | .tar.gz> <name>      copy a player over
 #   scripts/bench/deck-unity.sh run <name> <level> <views.json> <out dir here> [player args…]
 #   scripts/bench/deck-unity.sh busy | stop | ls | rm <name>   (busy: what bench, if any, runs there now)
 # REFRESH: gamescope's refresh rate (default 90, the OLED's Gaming Mode; 60 for the 60 Hz rows). (Or -hz N first among the player's arguments.) The player's own
 # arguments follow (-bench 6 -split -metrics are always passed; -vsync 1, -no-grd, -shadow-lists, … for the levers).
 # The player's data (persistentDataPath: prewarm.txt, unity.log, Player.log) goes to
-# ~/.local/share/moebius-bench-unity/config (XDG_CONFIG_HOME), never the player's own game or saves. Only our own unit
-# (memento-unity-bench) is started and stopped.
+# ~/.local/share/hiraeth-bench-unity/config (XDG_CONFIG_HOME), never the player's own game or saves. Only our own unit
+# (hiraeth-unity-bench) is started and stopped.
 DECK=${DECK:-deck@steamdeck.local}
-BASE=.local/share/moebius-bench-games
-PROF=.local/share/moebius-bench-unity
-# One bench at a time: a run refuses to start while either bench's unit (this one's, or deck-run.sh's memento-bench)
+BASE=.local/share/hiraeth-bench-games
+PROF=.local/share/hiraeth-bench-unity
+# One bench at a time: a run refuses to start while either bench's unit (this one's, or deck-run.sh's hiraeth-bench)
 # is active, or a bench player or headless gamescope is still up (two agents' runs once collided and both measured wrong).
-BUSY='for u in memento-unity-bench memento-bench; do systemctl --user is-active -q $u && echo -n "$u "; done
-  pgrep -f "memento-js[.]x86_64|gamescope --backend[ ]headless" >/dev/null && echo -n "a bench player"; true'
+BUSY='for u in hiraeth-unity-bench hiraeth-bench; do systemctl --user is-active -q $u && echo -n "$u "; done
+  pgrep -f "hiraeth-js[.]x86_64|gamescope --backend[ ]headless" >/dev/null && echo -n "a bench player"; true'
 ENVS='export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus'
 case "$1" in
   put)
@@ -36,18 +36,18 @@ case "$1" in
     ssh -o BatchMode=yes "$DECK" "$ENVS
       rm -rf $PROF/out && mkdir -p $PROF/out $PROF/config
       cd ~/$BASE/$name
-      systemd-run --user --unit=memento-unity-bench --collect -p RuntimeMaxSec=1200 --working-directory=\$HOME/$BASE/$name \
+      systemd-run --user --unit=hiraeth-unity-bench --collect -p RuntimeMaxSec=1200 --working-directory=\$HOME/$BASE/$name \
         gamescope --backend headless -W 1280 -H 800 -w 1280 -h 800 -r ${REFRESH:-90} -- \
-        env XDG_CONFIG_HOME=\$HOME/$PROF/config PWD=\$HOME/$PROF ${PLAYER_ENV:-} ./memento-js.x86_64 -screen-fullscreen 1 -screen-width 1280 -screen-height 800 \
+        env XDG_CONFIG_HOME=\$HOME/$PROF/config PWD=\$HOME/$PROF ${PLAYER_ENV:-} ./hiraeth-js.x86_64 -screen-fullscreen 1 -screen-width 1280 -screen-height 800 \
           -logFile \$HOME/$PROF/out/player.log -mute -metrics -level $level -views \$HOME/$PROF/views.json -bench 6 -split -limit 900 -out \$HOME/$PROF/out $*
-      for i in \$(seq 1 300); do systemctl --user is-active -q memento-unity-bench || break; sleep 3; done
-      systemctl --user stop memento-unity-bench 2>/dev/null; true"
+      for i in \$(seq 1 300); do systemctl --user is-active -q hiraeth-unity-bench || break; sleep 3; done
+      systemctl --user stop hiraeth-unity-bench 2>/dev/null; true"
     mkdir -p "$out"
     scp -q "$DECK:$PROF/out/*" "$out/" 2>/dev/null
     ssh -o BatchMode=yes "$DECK" "cat \"$PROF/config/unity3d/rnaud/Hiraeth JS/unity.log\"" > "$out/unity.log" 2>/dev/null
     ls "$out" ;;
   busy) b=$(ssh -o BatchMode=yes "$DECK" "$ENVS; $BUSY"); echo "${b:-idle}" ;;
-  stop) ssh -o BatchMode=yes "$DECK" "$ENVS; systemctl --user stop memento-unity-bench 2>/dev/null; true"; echo stopped ;;
+  stop) ssh -o BatchMode=yes "$DECK" "$ENVS; systemctl --user stop hiraeth-unity-bench 2>/dev/null; true"; echo stopped ;;
   ls) ssh -o BatchMode=yes "$DECK" "du -sh $BASE/* 2>/dev/null" ;;
   rm) ssh -o BatchMode=yes "$DECK" "rm -rf $BASE/$2" ;;
   *) echo "usage: $0 put <dir|tar.gz> <name> | run <name> <level> <views.json> <out> [args] | busy | stop | ls | rm <name>"; exit 1 ;;

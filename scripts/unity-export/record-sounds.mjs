@@ -4,17 +4,17 @@
 // the page…) and each world's score (WORLDS=desert,incal… to choose). Each one is rendered by the game's own
 // Sound class into an OfflineAudioContext (window.AudioContext swapped for it), so the clips are
 // exactly what the browser plays. The continuous layers (wind, the cloak, the engine) and the
-// voices are synthesised live in Unity (Assets/Memento/Runtime/Sounds.cs, Voice.cs).
+// voices are synthesised live in Unity (Assets/Hiraeth/Runtime/Sounds.cs, Voice.cs).
 //
 //   npx vite --port 5238 --strictPort &
 //   PLAYWRIGHT=/path/to/playwright-core/index.mjs node scripts/unity-export/record-sounds.mjs [outDir]
 //
-// outDir defaults to unity/Memento/Assets/StreamingAssets/sound (git-ignored). URL: the dev server.
+// outDir defaults to unity/Hiraeth/Assets/StreamingAssets/sound (git-ignored). URL: the dev server.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
-const OUT = resolve(process.argv[2] ?? resolve(here, '../../unity/Memento/Assets/StreamingAssets/sound'));
+const OUT = resolve(process.argv[2] ?? resolve(here, '../../unity/Hiraeth/Assets/StreamingAssets/sound'));
 const URL = process.env.URL ?? 'http://localhost:5238';
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright-core');
 mkdirSync(OUT, { recursive: true });

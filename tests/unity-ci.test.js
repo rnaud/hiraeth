@@ -7,8 +7,8 @@ import { UNITY_RELEASES, unityBuildOf, unityNotes } from '../scripts/release-inf
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const workflow = read('.github/workflows/unity-android.yml');
-const build = read('unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs');
-const settings = read('unity/Memento/ProjectSettings/ProjectSettings.asset');
+const build = read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs');
+const settings = read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset');
 
 test('the workflow runs on pushes that touch the Unity side, nightly when the game moved, and by hand', () => {
   assert.match(workflow, /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths:/m);
@@ -37,7 +37,7 @@ test('the workflow caches what makes a warm build short', () => {
   // Unity imports and compiles (never the game's JavaScript in StreamingAssets, nor the generated Assets/Gen),
   // restored from the newest, saved only when its key moved, the older entry then deleted
   for (const p of ['android', 'linux']) {
-    const libraryHash = "hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**')";
+    const libraryHash = "hashFiles('unity/Hiraeth/Assets/**', 'unity/Hiraeth/ProjectSettings/**', 'unity/Hiraeth/Packages/manifest.json', '!unity/Hiraeth/Assets/StreamingAssets/**', '!unity/Hiraeth/Assets/Gen/**')";
     assert.ok(workflow.includes(`key: unity-library-${p}-\${{ env.UNITY_VERSION }}-puerts-3.0.3-\${{ ${libraryHash} }}\n          restore-keys: |\n            unity-library-${p}-\n`), p);
     assert.ok(workflow.includes(`run: scripts/unity-ci-cache-prune.sh unity-library-${p}- "$KEY"`), p);
   }
@@ -56,7 +56,7 @@ test('the workflow caches what makes a warm build short', () => {
   assert.match(workflow, /run: scripts\/unity-ci-cache-prune\.sh unity-gradle- "\$KEY"/);
   // Puerts' glue made again only when the committed C# changes (never Assets/Gen, the glue itself): its editor
   // run skipped on a hit
-  assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs', [^\n]*'!unity\/Memento\/Assets\/Gen\/\*\*'\) \}\}/);
+  assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\('unity\/Hiraeth\/Assets\/\*\*\/\*\.cs', [^\n]*'!unity\/Hiraeth\/Assets\/Gen\/\*\*'\) \}\}/);
   assert.match(workflow, /id: gluebuild\n {8}if: steps\.glue\.outputs\.cache-hit != 'true'\n[^\n]*\n {8}uses: game-ci\/unity-builder@v6/);
   // (in both jobs: the Linux player is IL2CPP too)
   assert.equal((workflow.match(/key: puerts-glue-3\.0\.3-/g) || []).length, 2);
@@ -76,7 +76,7 @@ test('the workflow caches what makes a warm build short', () => {
 });
 
 test('the workflow builds with GameCI on the local editor\'s Unity, licensed by the Unity account', () => {
-  const version = /m_EditorVersion: (\S+)/.exec(read('unity/Memento/ProjectSettings/ProjectVersion.txt'))[1];
+  const version = /m_EditorVersion: (\S+)/.exec(read('unity/Hiraeth/ProjectSettings/ProjectVersion.txt'))[1];
   assert.match(workflow, new RegExp(`UNITY_VERSION: ${version.replace(/\./g, '\\.')}`));
   assert.match(workflow, /uses: game-ci\/unity-builder@v6/);
   // every GameCI step gets the account's sign-in (a Personal seat), never a licence file
@@ -104,12 +104,12 @@ test('the workflow prepares the bridge as the local players do, then builds the 
   assert.match(workflow, /scripts\/unity-js-setup\.sh/);
   assert.match(workflow, /node scripts\/engine-bundle\.mjs unity/);
   assert.match(workflow, /path: \$\{\{ env\.PROJECT \}\}\/Library/);
-  assert.match(workflow, /buildMethod: Memento\.EditorTools\.BridgeBuild\.Il2cpp/);
+  assert.match(workflow, /buildMethod: Hiraeth\.EditorTools\.BridgeBuild\.Il2cpp/);
   // (GameCI v6 fails a run whose log lacks "Build succeeded!": the entries say it on success)
-  assert.match(build, /if \(ok\) Debug\.Log\("Memento: Build succeeded!"\);/);
+  assert.match(build, /if \(ok\) Debug\.Log\("Hiraeth: Build succeeded!"\);/);
   assert.match(build, /public static void Il2cpp\(\) => Exit\(GenerateGlue\(\)\);/);
   assert.match(build, /Exit\(s\.result == BuildResult\.Succeeded\);/);
-  assert.match(workflow, /buildMethod: Memento\.EditorTools\.BridgeBuild\.AndroidRelease/);
+  assert.match(workflow, /buildMethod: Hiraeth\.EditorTools\.BridgeBuild\.AndroidRelease/);
   assert.match(workflow, /targetPlatform: Android/);
   assert.match(workflow, /androidVersionCode: \$\{\{ steps\.meta\.outputs\.build \}\}/);
   assert.match(workflow, /node scripts\/release-info\.mjs version/);
@@ -121,7 +121,7 @@ test('the workflow prepares the bridge as the local players do, then builds the 
   const local = read('scripts/unity-android-release.sh');
   assert.match(local, /BridgeBuild\.AndroidRelease -buildVersion "\$VERSION" -androidVersionCode "\$BUILD"/);
   for (const text of [workflow, local]) assert.doesNotMatch(text, /(customParameters:|AndroidRelease).* -version /);
-  assert.match(workflow, /buildMethod: Memento\.EditorTools\.BridgeBuild\.Linux/);
+  assert.match(workflow, /buildMethod: Hiraeth\.EditorTools\.BridgeBuild\.Linux/);
   assert.match(workflow, /targetPlatform: StandaloneLinux64/);
   assert.match(workflow, /scripts\/unity-publish\.sh linux/);
 });
@@ -137,9 +137,9 @@ test('the releases are prereleases, never the latest, their file replaced each b
 
 test('the testers\' APK has its own identity: installed next to the web app, never over it', () => {
   const c = (name) => new RegExp(`const string ${name} = "([^"]+)"`).exec(build)[1];
-  assert.equal(c('ReleasePackage'), 'com.rnaud.memento.unity');
+  assert.equal(c('ReleasePackage'), 'com.rnaud.hiraeth.unity');
   assert.equal(c('ReleasePackage'), UNITY_RELEASES.android.package);
-  assert.notEqual(c('ReleasePackage'), 'com.rnaud.moebius');
+  assert.notEqual(c('ReleasePackage'), 'com.rnaud.hiraeth');
   assert.notEqual(c('ReleasePackage'), c('Package'));   // (nor the bench's debug-signed bridge player)
   assert.equal(c('ReleaseName'), 'Hiraeth (Unity)');
   assert.equal(c('ReleaseAlias'), 'moebius');
@@ -162,17 +162,17 @@ test('the testers\' APK has its own identity: installed next to the web app, nev
 });
 
 test('the project carries the identity, and reads the pads through the Input System', () => {
-  assert.match(settings, /applicationIdentifier:\n {4}Android: com\.rnaud\.memento\.unity\n/);
+  assert.match(settings, /applicationIdentifier:\n {4}Android: com\.rnaud\.hiraeth\.unity\n/);
   assert.match(settings, /activeInputHandler: 1\n/);   // (the Input System only: BridgeHost reads Gamepad.current)
-  assert.match(read('unity/Memento/Packages/manifest.json'), /"com\.unity\.inputsystem"/);
+  assert.match(read('unity/Hiraeth/Packages/manifest.json'), /"com\.unity\.inputsystem"/);
 });
 
 test('the notes say which commit and web version a build came from', () => {
   const n = unityNotes({ platform: 'android', sha: '0123456789abcdef0123', subject: 'a change', version: '0.80', build: 812, by: 'GitHub Actions', date: '2026-10-07' });
   assert.match(n, /`0123456789ab` \(a change\), web version v0\.80, build 812, by GitHub Actions on 2026-10-07/);
-  assert.match(n, /`com\.rnaud\.memento\.unity`/);
-  assert.match(n, /`com\.rnaud\.moebius`/);
-  assert.match(unityNotes({ platform: 'linux', sha: 'abc' }), /memento-unity-linux\.tar\.gz/);
+  assert.match(n, /`com\.rnaud\.hiraeth\.unity`/);
+  assert.match(n, /`com\.rnaud\.hiraeth`/);
+  assert.match(unityNotes({ platform: 'linux', sha: 'abc' }), /hiraeth-unity-linux\.tar\.gz/);
   assert.throws(() => unityNotes({ platform: 'ios' }));
 });
 

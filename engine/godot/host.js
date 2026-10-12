@@ -10,7 +10,7 @@ const PUBLIC = (() => {
   return godot.ProjectSettings.globalize_path('res://') + '../public/';
 })();
 
-const SAVE = 'user://memento-storage.json';
+const SAVE = 'user://hiraeth-storage.json';
 let saved = null;
 const storage = () => {
   if (saved) return saved;
@@ -23,7 +23,7 @@ const flush = () => { const f = godot.FileAccess.open(SAVE, godot.FileAccess.Mod
 /** The Gamepad-shaped pads (engine/godot/input.js fills it each frame). */
 export const pads = [];
 
-globalThis.__MEMENTO_HOST__ = {
+globalThis.__HIRAETH_HOST__ = {
   engine: 'godot',
   now: () => godot.Time.get_ticks_usec() / 1000,
   readFile(path) {

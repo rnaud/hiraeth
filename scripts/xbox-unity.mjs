@@ -2,7 +2,7 @@
 // build on the Xbox").
 //
 //   node scripts/xbox-unity.mjs install <dir>   → installs the .msix in <dir> with every .appx beside it (the unpacked
-//                                                 memento-unity-xbox.zip of the unity-xbox prerelease), waits till done
+//                                                 hiraeth-unity-xbox.zip of the unity-xbox prerelease), waits till done
 //   node scripts/xbox-unity.mjs launch          → starts the installed rnaud.HiraethUnity
 //   node scripts/xbox-unity.mjs stop            → stops it
 //   node scripts/xbox-unity.mjs uninstall       → removes rnaud.HiraethUnity (only that package: never rnaud.Hiraeth)
@@ -51,10 +51,10 @@ const b64 = (s) => Buffer.from(s).toString('base64');
 if (cmd === 'packages') {
   for (const p of await installed()) console.log(`${p.PackageFullName}  ${p.Name}  (${p.PackageRelativeId})`);
 } else if (cmd === 'install') {
-  if (!a1) throw new Error('install <dir>: the unpacked memento-unity-xbox.zip');
+  if (!a1) throw new Error('install <dir>: the unpacked hiraeth-unity-xbox.zip');
   const files = readdirSync(a1);
-  const msix = files.find((f) => /\.(msix|appx)$/i.test(f) && /^memento-unity-xbox/i.test(f));
-  if (!msix) throw new Error(`no memento-unity-xbox.msix in ${a1}`);
+  const msix = files.find((f) => /\.(msix|appx)$/i.test(f) && /^hiraeth-unity-xbox/i.test(f));
+  if (!msix) throw new Error(`no hiraeth-unity-xbox.msix in ${a1}`);
   const form = new FormData();
   form.append(msix, new Blob([readFileSync(join(a1, msix))]), msix);
   for (const f of files.filter((f) => /\.appx$/i.test(f) && f !== msix)) form.append(f, new Blob([readFileSync(join(a1, f))]), basename(f));

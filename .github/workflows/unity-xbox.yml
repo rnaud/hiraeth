@@ -13,7 +13,7 @@ name: Unity release (Xbox, Developer Mode)
 #   references copied in). The runner's msbuild builds and packages it (Master, x64, sideload), signtool signs it with
 #   the WebView2 app's certificate (XBOX_PFX_BASE64, as xbox.yml), its identity rnaud.HiraethUnity so it installs
 #   next to rnaud.Hiraeth.
-# - Published to the prerelease unity-xbox (never the latest): memento-unity-xbox.zip (the .msix, its .cer and the
+# - Published to the prerelease unity-xbox (never the latest): hiraeth-unity-xbox.zip (the .msix, its .cer and the
 #   dependency .appx files), from main only. The run keeps the same files as an artifact for a week.
 # - Cached (docs/systems/xbox.md, "The workflow's caches"): Puerts and its UWP natives, Unity's Library, the glue (on
 #   what it is made from), IL2CPP's objects for msbuild (on the C++ Unity wrote, restored from the newest); the
@@ -54,8 +54,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  UNITY_VERSION: 6000.6.4f1   # (unity/Memento/ProjectSettings/ProjectVersion.txt)
-  PROJECT: unity/Memento
+  UNITY_VERSION: 6000.6.4f1   # (unity/Hiraeth/ProjectSettings/ProjectVersion.txt)
+  PROJECT: unity/Hiraeth
   GFX: ${{ inputs.graphics_api || 'Direct3D12' }}
   DEV: ${{ inputs.development && '-development' || '' }}
   MSCONFIG: ${{ inputs.development && 'Release' || 'Master' }}   # (a push builds Direct3D12; by hand, either: BridgeBuild.Xbox -graphicsApi)
@@ -131,7 +131,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: unity-library-xbox-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**') }}
+          key: unity-library-xbox-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Hiraeth/Assets/**', 'unity/Hiraeth/ProjectSettings/**', 'unity/Hiraeth/Packages/manifest.json', '!unity/Hiraeth/Assets/StreamingAssets/**', '!unity/Hiraeth/Assets/Gen/**') }}
           restore-keys: |
             unity-library-xbox-
 
@@ -174,7 +174,7 @@ jobs:
           targetPlatform: WSAPlayer
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Il2cpp
           versioning: None
           allowDirtyBuild: true
 
@@ -190,7 +190,7 @@ jobs:
           targetPlatform: WSAPlayer
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Il2cpp
           versioning: None
           allowDirtyBuild: true
 
@@ -207,7 +207,7 @@ jobs:
           targetPlatform: WSAPlayer
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Xbox
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Xbox
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
           customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }} ${{ env.DEV }}
@@ -226,7 +226,7 @@ jobs:
           targetPlatform: WSAPlayer
           unityVersion: ${{ env.UNITY_VERSION }}
           projectPath: ${{ env.PROJECT }}
-          buildMethod: Memento.EditorTools.BridgeBuild.Xbox
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Xbox
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
           customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }} ${{ env.DEV }}
@@ -295,7 +295,7 @@ jobs:
           $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($pfx, $password)
           Write-Host "Certificate: $($cert.Subject), thumbprint $($cert.Thumbprint)"
           New-Item -ItemType Directory -Force out\unity-xbox | Out-Null
-          [IO.File]::WriteAllBytes((Resolve-Path out\unity-xbox).Path + '\memento-unity-xbox.cer', $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+          [IO.File]::WriteAllBytes((Resolve-Path out\unity-xbox).Path + '\hiraeth-unity-xbox.cer', $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
           "pfx=$pfx" >> $env:GITHUB_OUTPUT
           "publisher=$($cert.Subject)" >> $env:GITHUB_OUTPUT
 
@@ -327,7 +327,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Builds/unity-xbox/build/obj
-          key: il2cpp-obj-xbox-${{ env.UNITY_VERSION }}-${{ env.MSCONFIG }}-${{ hashFiles('unity/Memento/Builds/unity-xbox/Il2CppOutputProject/Source/**', 'unity/Memento/Builds/unity-xbox/*/*.vcxproj', 'unity/Memento/Builds/unity-xbox/*.props', 'unity/Memento/Builds/unity-xbox/HiraethUnity/*.cpp', 'unity/Memento/Builds/unity-xbox/HiraethUnity/*.h') }}
+          key: il2cpp-obj-xbox-${{ env.UNITY_VERSION }}-${{ env.MSCONFIG }}-${{ hashFiles('unity/Hiraeth/Builds/unity-xbox/Il2CppOutputProject/Source/**', 'unity/Hiraeth/Builds/unity-xbox/*/*.vcxproj', 'unity/Hiraeth/Builds/unity-xbox/*.props', 'unity/Hiraeth/Builds/unity-xbox/HiraethUnity/*.cpp', 'unity/Hiraeth/Builds/unity-xbox/HiraethUnity/*.h') }}
           restore-keys: |
             il2cpp-obj-xbox-${{ env.UNITY_VERSION }}-${{ env.MSCONFIG }}-
 
@@ -387,13 +387,13 @@ jobs:
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = [IO.Compression.ZipFile]::OpenRead($msix.FullName)
           $names = $zip.Entries | ForEach-Object { $_.FullName }; $zip.Dispose()
-          foreach ($n in 'PuertsCore.dll', 'PapiV8.dll', 'PapiQuickjs.dll', 'GameAssembly.dll', 'Data/StreamingAssets/memento-js/memento.cjs') {
+          foreach ($n in 'PuertsCore.dll', 'PapiV8.dll', 'PapiQuickjs.dll', 'GameAssembly.dll', 'Data/StreamingAssets/hiraeth-js/hiraeth.cjs') {
             if (-not ($names | Where-Object { $_ -eq $n -or $_.EndsWith('/' + $n) })) { throw "the package has no $n" }
           }
-          Copy-Item $msix.FullName ("out\unity-xbox\memento-unity-xbox" + $msix.Extension)
+          Copy-Item $msix.FullName ("out\unity-xbox\hiraeth-unity-xbox" + $msix.Extension)
           Get-ChildItem ($msix.Directory.FullName + '\Dependencies\x64') -Filter *.appx -ErrorAction SilentlyContinue | Copy-Item -Destination out\unity-xbox
-          Compress-Archive -Path out\unity-xbox\* -DestinationPath out\memento-unity-xbox.zip -Force
-          Get-ChildItem out\unity-xbox, out\memento-unity-xbox.zip | Format-Table Name, Length
+          Compress-Archive -Path out\unity-xbox\* -DestinationPath out\hiraeth-unity-xbox.zip -Force
+          Get-ChildItem out\unity-xbox, out\hiraeth-unity-xbox.zip | Format-Table Name, Length
 
       - name: Forget the key
         if: always()
@@ -402,7 +402,7 @@ jobs:
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: memento-unity-xbox${{ env.GFX == 'Direct3D11' && '-d3d11' || '' }}${{ env.DEV != '' && '-dev' || '' }}
+          name: hiraeth-unity-xbox${{ env.GFX == 'Direct3D11' && '-d3d11' || '' }}${{ env.DEV != '' && '-dev' || '' }}
           path: |
             out/unity-xbox/
             out/msbuild.binlog
@@ -413,7 +413,7 @@ jobs:
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: memento-unity-xbox-symbols
+          name: hiraeth-unity-xbox-symbols
           path: |
             ${{ env.PROJECT }}/Builds/unity-xbox/**/GameAssembly.pdb
             ${{ env.PROJECT }}/Builds/unity-xbox/**/GameAssembly.dll
@@ -427,4 +427,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.sha }}
-        run: scripts/unity-publish.sh xbox out/memento-unity-xbox.zip "GitHub Actions (run ${{ github.run_number }})"
+        run: scripts/unity-publish.sh xbox out/hiraeth-unity-xbox.zip "GitHub Actions (run ${{ github.run_number }})"

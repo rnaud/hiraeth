@@ -14,12 +14,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const ENTRIES = {
-  spike: { input: 'engine/godot/spike.js', out: ['godot/js/memento-spike.js'] },
-  godot: { input: 'engine/godot/game.js', out: ['godot/js/memento.js'] },
+  spike: { input: 'engine/godot/spike.js', out: ['godot/js/hiraeth-spike.js'] },
+  godot: { input: 'engine/godot/game.js', out: ['godot/js/hiraeth.js'] },
   // (into StreamingAssets, which is not committed, like the port's exports)
-  unity: { input: 'engine/unity/game.js', out: ['unity/Memento/Assets/StreamingAssets/memento-js/memento.cjs'] },
+  unity: { input: 'engine/unity/game.js', out: ['unity/Hiraeth/Assets/StreamingAssets/hiraeth-js/hiraeth.cjs'] },
   // the sound's renderer on Unity's audio thread (engine/unity/audio-worker.js: the Web Audio shim alone)
-  'unity-audio': { input: 'engine/unity/audio-worker.js', out: ['unity/Memento/Assets/StreamingAssets/memento-js/audio.cjs'] },
+  'unity-audio': { input: 'engine/unity/audio-worker.js', out: ['unity/Hiraeth/Assets/StreamingAssets/hiraeth-js/audio.cjs'] },
 };
 /** What goes with an entry made from the command line (the Unity player needs its sound's renderer too). */
 const WITH = { unity: ['unity-audio'] };
@@ -40,7 +40,7 @@ export function lowerUnicodeClasses(code) {
   return code.replace(/\\p\{(L|N)\}/g, (m, k) => UNICODE_CLASSES[k]);
 }
 const noIcu = () => ({
-  name: 'memento-no-icu',
+  name: 'hiraeth-no-icu',
   transform(code, id) { if (!id.includes('node_modules') && code.includes('\\p{')) return { code: lowerUnicodeClasses(code), map: null }; return null; },
 });
 
@@ -52,7 +52,7 @@ export async function bundle(name, override = {}) {
     external: ['godot', 'godot-jsb', 'csharp', 'puerts'],
     platform: 'neutral',
     // (vite's import.meta.env, and the module URLs the reference sheets resolve their pictures from)
-    transform: { define: { 'import.meta.env.BASE_URL': '"./"', 'import.meta.env.DEV': 'false', 'import.meta.env.PROD': 'true', 'import.meta.env.MODE': '"engine"', 'import.meta.url': '"engine://memento/src/module.js"' } },
+    transform: { define: { 'import.meta.env.BASE_URL': '"./"', 'import.meta.env.DEV': 'false', 'import.meta.env.PROD': 'true', 'import.meta.env.MODE': '"engine"', 'import.meta.url': '"engine://hiraeth/src/module.js"' } },
     plugins: [noIcu()],
     logLevel: 'warn',
   });

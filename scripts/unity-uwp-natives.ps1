@@ -15,9 +15,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 if (-not $Cache) { $Cache = Join-Path $root ".local-tools/puerts-uwp/$Version" }
-$packages = Join-Path $root 'unity/Memento/Packages'
+$packages = Join-Path $root 'unity/Hiraeth/Packages'
 foreach ($p in 'com.tencent.puerts.core', 'com.tencent.puerts.quickjs') {
-  if (-not (Test-Path (Join-Path $packages $p))) { throw "no $p in unity/Memento/Packages: PUERTS_BACKENDS=Quickjs scripts/unity-js-setup.sh first" }
+  if (-not (Test-Path (Join-Path $packages $p))) { throw "no $p in unity/Hiraeth/Packages: PUERTS_BACKENDS=Quickjs scripts/unity-js-setup.sh first" }
 }
 
 $core = Join-Path $Cache 'PuertsCore.dll'

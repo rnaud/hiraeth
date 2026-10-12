@@ -290,11 +290,11 @@ export function installPlatform(host = {}) {
   def('innerHeight', host.height ?? 720);
   def('document', new StubDocument());
   def('navigator', {
-    userAgent: `Memento engine (${host.engine ?? 'unknown'})`, platform: host.engine ?? 'engine', language: 'en', languages: ['en'], maxTouchPoints: 0, hardwareConcurrency: 4,
+    userAgent: `Hiraeth engine (${host.engine ?? 'unknown'})`, platform: host.engine ?? 'engine', language: 'en', languages: ['en'], maxTouchPoints: 0, hardwareConcurrency: 4,
     getGamepads: () => (host.pads ? host.pads() : []), vibrate: () => false, clipboard: { writeText: () => Promise.resolve() },
     gpu: undefined, userAgentData: undefined,
   });
-  def('location', { href: 'engine://memento/', origin: 'engine://memento', protocol: 'engine:', host: 'memento', hostname: 'memento', pathname: '/', search: host.search ?? '', hash: '', reload() {}, assign() {}, replace() {} });
+  def('location', { href: 'engine://hiraeth/', origin: 'engine://hiraeth', protocol: 'engine:', host: 'hiraeth', hostname: 'hiraeth', pathname: '/', search: host.search ?? '', hash: '', reload() {}, assign() {}, replace() {} });
   def('history', { replaceState() {}, pushState() {}, back() {} });
   def('screen', { width: 1280, height: 720, orientation: { type: 'landscape-primary', lock: () => Promise.reject(new Error('no')) } });
   def('matchMedia', (q) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));

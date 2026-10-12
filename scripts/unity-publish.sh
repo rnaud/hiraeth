@@ -1,8 +1,8 @@
 #!/bin/sh
 # Publish a Unity testers' build to its GitHub release (docs/systems/unity.md, "Building in GitHub Actions"):
-#   scripts/unity-publish.sh android path/to/build.apk [by]     → release unity-android, asset memento-unity.apk
-#   scripts/unity-publish.sh linux path/to/build.tar.gz [by]    → release unity-linux, asset memento-unity-linux.tar.gz
-#   scripts/unity-publish.sh xbox path/to/build.zip [by]        → release unity-xbox, asset memento-unity-xbox.zip (.github/workflows/unity-xbox.yml)
+#   scripts/unity-publish.sh android path/to/build.apk [by]     → release unity-android, asset hiraeth-unity.apk
+#   scripts/unity-publish.sh linux path/to/build.tar.gz [by]    → release unity-linux, asset hiraeth-unity-linux.tar.gz
+#   scripts/unity-publish.sh xbox path/to/build.zip [by]        → release unity-xbox, asset hiraeth-unity-xbox.zip (.github/workflows/unity-xbox.yml)
 # The release is a prerelease and never the latest (the app's updater and the players read the vX.Y ones), its
 # tag moves to the commit built, its file is replaced, its notes say what it was built from (release-info.mjs
 # unity-notes). SHA the commit built (default HEAD; it has to be on GitHub); gh signed in (GH_TOKEN in CI).

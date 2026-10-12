@@ -2,10 +2,10 @@
 
 The desert in Unity (a proof of concept) and the web-against-Unity benchmark. (The other way to
 Unity, the web game's own JavaScript run in Unity by Puerts and drawn through this port's look:
-docs/systems/engine-bridge.md, `unity/Memento/Assets/MementoJS/`.)
+docs/systems/engine-bridge.md, `unity/Hiraeth/Assets/HiraethJS/`.)
 
 ## The desert in Unity (a proof of concept)
-`unity/Memento` is a Unity 6 (URP) port of the desert, built from this game rather than
+`unity/Hiraeth` is a Unity 6 (URP) port of the desert, built from this game rather than
 beside it (the details, how to run it and what is missing: `unity/README.md`).
 - **Export** (`scripts/unity-export/export-desert.mjs`): the desert is built headlessly as
   `main.js` builds it (the level, the ship, the story's people, the boxes, the bike, the
@@ -39,14 +39,14 @@ as a macOS player, and the port's WebGL (WebGPU) build. Results and the reading 
   Metal, checked), no vsync or frame-rate limit; requestAnimationFrame is wrapped to time each
   frame, its JavaScript and (EXT_disjoint_timer_query) its GPU commands; the camera pinned through
   `updateMatrixWorld`, the HUD hidden; nothing in `src/` changes. **The Unity side**: the players'
-  benchmark mode (`unity/Memento/Assets/Memento/Runtime/Bench.cs`).
+  benchmark mode (`unity/Hiraeth/Assets/Hiraeth/Runtime/Bench.cs`).
 - **Fair conditions**: the same pixels (device scale 1; High at render scale 1.0, Handheld at 0.75
   without dynamic resolution, URP the same), the presets mapped (the table in the report), the
   quiet-machine gate before and during every run (no Unity editor or job, no other automated
   browser or build, low load, AC power), runs alternating over three rounds, the paths again at
   60 Hz for the stutter.
 - `mac-run.sh` runs it all and rewrites the report; `android-run.sh` does the handheld (the APK
-  `com.rnaud.memento.unity` and the game in the device's Chrome, never the app `com.rnaud.moebius`).
+  `com.rnaud.hiraeth.unity` and the game in the device's Chrome, never the app `com.rnaud.hiraeth`).
 
 ## Building in GitHub Actions (the testers' builds)
 
@@ -57,15 +57,15 @@ every night at 03:17 UTC when the game (`src/`, `public/`, …) moved since the 
 and by hand (Actions ▸ Unity release (testers) ▸ Run workflow, or `gh workflow run unity-android.yml`).
 The game's own pushes come every 20–40 minutes, faster than a cold build: one run at a time, never
 cancelled once started; GitHub keeps only the newest waiting run and cancels those between.
-- **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.memento.unity`, named "Hiraeth
+- **Android** (`BridgeBuild.AndroidRelease`): package `com.rnaud.hiraeth.unity`, named "Hiraeth
   (Unity)", the game's icon (`public/icons/icon-512.png`), landscape, immersive, sound on (paused when
   left), the pads through the Input System; IL2CPP ARM64, Vulkan then GLES3; versionName the newest
   version in `src/changelog.js`, versionCode the commit count (`release-info.mjs build`); signed with the
-  web app's release key (alias `moebius`), so it installs **next to** the app `com.rnaud.moebius`, never
-  over it, and every build installs over the last. Published as `memento-unity.apk` on the release
+  web app's release key (alias `moebius`), so it installs **next to** the app `com.rnaud.hiraeth`, never
+  over it, and every build installs over the last. Published as `hiraeth-unity.apk` on the release
   [`unity-android`](https://github.com/rnaud/hiraeth/releases/tag/unity-android).
 - **Linux** (`BridgeBuild.Linux`, the Steam Deck's: x86_64, IL2CPP, Vulkan), after the APK, as
-  `memento-unity-linux.tar.gz` on the release `unity-linux`. IL2CPP since October 2026: the Mono player never
+  `hiraeth-unity-linux.tar.gz` on the release `unity-linux`. IL2CPP since October 2026: the Mono player never
   ran (Puerts' start threw `csType.GetNestedTypes is not a function`). Its build wants Unity's Linux sysroot,
   a package the job adds to the manifest for that build only (`com.unity.toolchain.linux-x86_64`); on a Mac,
   `com.unity.toolchain.macos-arm64-linux` and `com.unity.sysroot.linux-x86_64` (not committed). Its retry
@@ -132,11 +132,11 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   `.local-tools/android-signing/`, here or in the main checkout; it checks the APK is signed with the
   release certificate, then uploads to `unity-android`; `NO_UPLOAD=1` builds only, `CLEAN=1` deletes
   `Library/Bee` after). The commit has to be pushed first: the notes and the tag name it.
-- The bench's own Android players stay apart and debug-signed: the bridge's `com.rnaud.memento.bridge`
+- The bench's own Android players stay apart and debug-signed: the bridge's `com.rnaud.hiraeth.bridge`
   (`BridgeBuild.Android`) and the C# port's `BenchBuild.Android`, which also uses
-  `com.rnaud.memento.unity`. Android refuses an APK signed by another key over an installed one: to put
+  `com.rnaud.hiraeth.unity`. Android refuses an APK signed by another key over an installed one: to put
   the C# port's bench APK on a device that has the testers' APK (or the other way round), uninstall
-  `com.rnaud.memento.unity` first (that deletes its saves, never the web app's).
+  `com.rnaud.hiraeth.unity` first (that deletes its saves, never the web app's).
 
 ### The Unity licence (the author, once)
 

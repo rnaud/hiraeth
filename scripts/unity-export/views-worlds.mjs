@@ -9,7 +9,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const SA = resolve(here, '../../unity/Memento/Assets/StreamingAssets');
+const SA = resolve(here, '../../unity/Hiraeth/Assets/StreamingAssets');
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar', 'home'];
 const web = (v) => [-v[0], v[1], v[2]];
 const add = (a, b, k = 1) => a.map((x, i) => x + b[i] * k);

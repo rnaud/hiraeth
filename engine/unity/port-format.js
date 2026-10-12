@@ -1,4 +1,4 @@
-// The C# port's own formats (unity/Memento: WorldLoader.MakeMaterial, MementoLook.Load), made from
+// The C# port's own formats (unity/Hiraeth: WorldLoader.MakeMaterial, HiraethLook.Load), made from
 // the bridge's data, so the bridge draws through the port's materials and look unchanged:
 //   portMaterial(spec)  a material as scripts/unity-export/export-world.mjs materialOf writes it
 //   portLook(look)      the look as the exporter writes world.json "look", for this one moment
@@ -11,19 +11,19 @@ const mx = (v) => (Array.isArray(v) ? [-v[0], v[1], v[2]].map(r5) : null);
 /** export-world.mjs materialOf, from an ink spec (engine/ink-spec.js) instead of the material. */
 export function portMaterial(spec, id = 0) {
   const u = spec.u ?? {};
-  // the dust motes (life.js Motes: points with a size, a colour and a glow) → the port's Memento/Mote, on quads
+  // the dust motes (life.js Motes: points with a size, a colour and a glow) → the port's Hiraeth/Mote, on quads
   if (spec.type === 'shader' && Array.isArray(u.uColor) && typeof u.uSize === 'number' && typeof u.uGlow === 'number') {
     return { id, name: spec.name ?? '', port: 'mote', color: u.uColor.map(r5), ink: (Array.isArray(u.uInk) ? u.uInk : [0.169, 0.129, 0.122]).map(r5), glow: r5(u.uGlow), size: r5(u.uSize), side: 2, plain: 1 };
   }
-  // the footprints (life.js Footprints: a decal multiplied into the albedo) → the port's Memento/Print
+  // the footprints (life.js Footprints: a decal multiplied into the albedo) → the port's Hiraeth/Print
   if (spec.type === 'shader' && typeof u.uDepth === 'number' && spec.transparent && !spec.depthWrite) {
     return { id, name: spec.name ?? '', port: 'print', depth: r5(u.uDepth), side: 2, plain: 1 };
   }
-  // the wind's wisps (wind.js WindStreaks: ribbons of ink with an alpha per vertex, tested against the G-buffer) → Memento/Wisp
+  // the wind's wisps (wind.js WindStreaks: ribbons of ink with an alpha per vertex, tested against the G-buffer) → Hiraeth/Wisp
   if (spec.type === 'shader' && 'uRes' in u && 'uInk' in u && spec.transparent && !('uMode' in u) && !('uColor' in u)) {
     return { id, name: spec.name ?? '', port: 'wisp', side: 2, plain: 1 };
   }
-  // another of the game's shaders that the port has its own of: the fire's (story/flames.js → Memento/Flame)
+  // another of the game's shaders that the port has its own of: the fire's (story/flames.js → Hiraeth/Flame)
   if (spec.type === 'shader' && Array.isArray(u.uPal) && u.uPal.length >= 15) {
     return { id, name: spec.name ?? '', port: 'flame', pal: u.uPal.slice(0, 15).map(r5), seed: typeof u.uSeed === 'number' ? u.uSeed : 0, k: typeof u.uK === 'number' ? u.uK : 1, side: 2, plain: 1 };
   }
@@ -85,7 +85,7 @@ export function portMaterial(spec, id = 0) {
 }
 
 /**
- * world.json "look" for this moment (MementoLook.Load: one row of the hour table, the one now),
+ * world.json "look" for this moment (HiraethLook.Load: one row of the hour table, the one now),
  * from the bridge's look (engine/game.js lookParams with full: the preset's and shared numbers).
  */
 export function portLook(L) {
@@ -95,7 +95,7 @@ export function portLook(L) {
     light: mx(L.uSunDir), sunDisc: mx(L.uSunDisc ?? L.uSunDir), moonDisc: mx(L.uMoonDisc ?? [0, -1, 0]),
     flatten: r5(L.uFlatten ?? 0), night: r5(L.uNight ?? 0), moonVis: r5(L.uMoonVis ?? 0),
   };
-  // (no clock in it: MementoLook keeps Unity's own, and a look that changed every frame was parsed every frame)
+  // (no clock in it: HiraethLook keeps Unity's own, and a look that changed every frame was parsed every frame)
   const shared = { ...L.shared }; delete shared.uTime;
   // the weather (main.js: post.js uRain, uRainNear, uStorm): the port's Ambient.cs globals
   const weather = { rain: r5(L.post?.uRain ?? 0), rainNear: r5(L.post?.uRainNear ?? 0), storm: r5(L.post?.uStorm ?? 0) };

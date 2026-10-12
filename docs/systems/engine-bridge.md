@@ -1,6 +1,6 @@
 # The engine bridge: the game's JavaScript inside Godot and Unity
 
-The C# port (`unity/Memento`, docs/systems/unity.md) re-implements the game. The bridge goes the
+The C# port (`unity/Hiraeth`, docs/systems/unity.md) re-implements the game. The bridge goes the
 other way: the game's own modules run in the engine's JavaScript VM (GodotJS's V8 in Godot, Puerts'
 V8 in Unity), build and move their three.js scene as they do on the web, and the engine only draws
 it. One game, drawn by three renderers, never out of step.
@@ -66,13 +66,13 @@ never goes vertex by vertex through the binding: an `ArrayBuffer` reaches Godot 
 `Transform3D` per moved node.
 
 `godot/` is the project: `main.tscn` with one script, `main.js`, which `require`s the bundle
-(`godot/js/memento*.js`, built, git-ignored) and forwards `_ready`, `_process` and `_input`.
+(`godot/js/hiraeth*.js`, built, git-ignored) and forwards `_ready`, `_process` and `_input`.
 `godot/shaders/ink_post.gdshader` is the ink composite on a full-screen quad.
 
 ### Unity (Puerts)
 
-The same bundle under Puerts' V8, inside the C# port's project (`unity/Memento`) but apart from it:
-`Assets/MementoJS/` (its scene `BridgeDesert.unity`, plain C# in the project's assembly, no
+The same bundle under Puerts' V8, inside the C# port's project (`unity/Hiraeth`) but apart from it:
+`Assets/HiraethJS/` (its scene `BridgeDesert.unity`, plain C# in the project's assembly, no
 compile-time reference to Puerts: `JsRuntime.cs` finds it by reflection, so the port builds and
 runs as before without it). Puerts calls C# by reflection, slower a call than GodotJS, so the JS
 backend (`engine/unity/backend.js`) batches: a geometry once (one ArrayBuffer, `pack.js
@@ -84,8 +84,8 @@ X · M · X, the winding), so the port's shaders see what they always see.
 
 What it reuses from the port: its **materials** (`WorldLoader.MakeMaterial`, now static so the
 bridge calls it), its **Surface shader, G-buffer and ink composite** (the URP renderer feature),
-its **look** (`MementoLook.Load`, fed each frame the game's own preset and palette in world.json's
-format: `port-format.js portLook`), its **shadows** (`MementoShadows`, the mirrored meshes as its
+its **look** (`HiraethLook.Load`, fed each frame the game's own preset and palette in world.json's
+format: `port-format.js portLook`), its **shadows** (`HiraethShadows`, the mirrored meshes as its
 casters). Skinned bodies are Unity `SkinnedMeshRenderer`s whose bone transforms the frame's
 buffer sets (each bone's matrix folded with three's bind matrices: `skin.js`); instanced meshes are
 drawn on the GPU by the port's `InstMats` (below). Input: the Input System's keys as
@@ -104,7 +104,7 @@ bundle, before the game's modules load (some touch the page as they load), and r
 | `document`, elements, `innerHTML`, `classList` | the HUD and menus: main.js (57 uses), ui.js, hud.js, quest.js, changelog.js, dev-menu.js, story/ (dialogue, calls, moment, index, the worlds' data), ship/ (cinema, starmap, homecoming), boxes/ (card, effects), temples/runtime.js, npc.js, crowd.js, aliens/alien.js | **shim now** (elements that take every call and draw nothing; `getElementById` keeps one element per id); **bridge later**: a HUD layer (below) |
 | `window` events (`keydown`, `keyup`, `mousemove`, `blur`, `beforeunload`) | main.js, player.js (`CameraRig`), ui.js, fluid-tool.js, native-pad.js | **bridge**: the engine dispatches `keydown` / `keyup` with the web's `KeyboardEvent.code` names to the same listeners (`page.dispatch`) |
 | `navigator.getGamepads` | controller.js (injectable `pads`), native-pad.js, ship/starmap.js | **bridge**: Gamepad-shaped objects from the engine's joypads (`host.pads()`), standard mapping |
-| `localStorage` | save-slots.js, quest.js, changelog.js, audio.js, native-app.js, motion-match.js | **bridge**: the host's storage (Godot: `user://memento-storage.json`; Unity: PlayerPrefs) |
+| `localStorage` | save-slots.js, quest.js, changelog.js, audio.js, native-app.js, motion-match.js | **bridge**: the host's storage (Godot: `user://hiraeth-storage.json`; Unity: PlayerPrefs) |
 | `fetch`, `GLTFLoader` | the characters (`anim/*.glb`), MakeHuman bodies, motion data | **bridge**: `host.readFile(path)` reads `public/` (the repository's, or packed with the game) |
 | WebAudio (`AudioContext`, oscillators, filters) | audio.js (89 uses), score*.js, ship/sfx.js, story/arzach2.js | **shim**: `engine/webaudio.js` renders the game's own graph to PCM the engine plays (below, "Sound") |
 | `performance.now`, `requestAnimationFrame` | 21 modules / main.js's loop, title.js | **shim**: the host's clock; the engine's frame runs the callbacks (`page.tick`) |
@@ -199,7 +199,7 @@ desert, the spike's camera:
 ## Running it
 
 ```sh
-node scripts/engine-bundle.mjs                 # the bundles (godot/js/memento.js, memento-spike.js)
+node scripts/engine-bundle.mjs                 # the bundles (godot/js/hiraeth.js, hiraeth-spike.js)
 godot/run.sh                                   # play the desert in Godot (WASD, Shift, Space; the right mouse button turns the camera; pads)
 godot/run.sh --views=$PWD/scripts/bench/viewpoints.json --out=$PWD/output/engine-bridge/godot   # a PNG a viewpoint
 godot/run.sh --bench=6 --views=… --out=…       # frame times a viewpoint, uncapped: <out>/godot-bench.json
@@ -224,8 +224,8 @@ host.
 The Unity side, once:
 
 ```sh
-scripts/unity-js-setup.sh                      # Puerts 3.0.3 (core + V8) into unity/Memento/Packages/ (not committed)
-node scripts/engine-bundle.mjs unity           # the bundle into unity/Memento/Assets/StreamingAssets/memento-js/
+scripts/unity-js-setup.sh                      # Puerts 3.0.3 (core + V8) into unity/Hiraeth/Packages/ (not committed)
+node scripts/engine-bundle.mjs unity           # the bundle into unity/Hiraeth/Assets/StreamingAssets/hiraeth-js/
 scripts/unity-export/unity-batch.sh BridgeBatch.Run -views scripts/bench/viewpoints.json -out $PWD/output/engine-bridge/unity [-bench 6] [-walk 4]
 ```
 
@@ -427,7 +427,7 @@ What changed:
 - **Cloth as points** (mirror `vertices(gid, positions, normals, n)`): when only a geometry's
   positions and normals moved (the same count, the same triangles), they go alone in the frame's
   buffer (op 8) and the C# side updates its meshes in place.
-- **The look without the clock** (MementoLook keeps Unity's own), read every 4th frame.
+- **The look without the clock** (HiraethLook keeps Unity's own), read every 4th frame.
 - **The walk**: an explicit stack, the mirror's node kept on the object, the attribute lists cached
   on the geometry (looked at again every 32 frames; a new index is a new shape at once).
 
@@ -468,7 +468,7 @@ In Unity `BridgeAudio.cs` holds a ring of float stereo, played by Unity's audio 
 `OnAudioFilterRead` on a clip-less AudioSource; each frame the script renders what keeps the ring
 0.12 s ahead (`host.AudioQueued`, `host.Audio(pcm)`). In batch runs, and with `-mute` on a player's
 command line, nothing reaches Unity's audio: the ring is drained on the main thread at the output rate
-and its level logged (`Memento bridge: sound {…, "rms": …}`; the desert's start: 0.01–0.04, 1–2
+and its level logged (`Hiraeth bridge: sound {…, "rms": …}`; the desert's start: 0.01–0.04, 1–2
 underruns at the load). Its cost in the VM: 0.2–0.6 ms a frame in the macOS player (the music, the
 wind, the camps' voices), once the automation a parameter has had folds into one event as it passes (the
 game sets its targets every frame: unfolded, thousands piled up and the cost grew to 3 ms). The timers the sound's scheduler wants (`setInterval`) are
@@ -478,13 +478,13 @@ game sets its targets every frame: unfolded, thousands piled up and the cost gre
 
 | the web's | Unity through the bridge |
 |---|---|
-| instanced meshes (the flora's sets, the wildlife's parts, the flocks, the props) | the port's `InstMats` (Surface.shader `MEMENTO_INSTMAT`, its shadows in the cascades): the instances' matrices a GPU buffer, each node its own copy of the material (the buffer is bound on it); a mesh without vertex colours gets white ones (the shader multiplies the instance's tint by them); several groups: baked into one mesh as before. The C# apply went from ~3 ms to 0.2–0.5 at the desert's views once the birds, the motes and the wildlife moved every frame |
-| the crowd's GPU figures (crowd-shader.js) | the port's crowd figures (FarCrowd's `MEMENTO_CROWD`), posed in the shader from the same instance data (op 9) |
-| the motes (life.js `Points`, drawn by the page from a scene of their own) | added to the mirrored scene; quads turned to the camera each frame, sized as the web's `gl_PointSize`, on the port's `Memento/Mote` |
-| the footprints (a decal multiplied into the albedo) | the port's `Puffs` with its `Memento/Print` (op 10: place, turn, size, fade) |
-| the fire (story/flames.js) | `Memento/Flame`, its five colours, seed and heat |
+| instanced meshes (the flora's sets, the wildlife's parts, the flocks, the props) | the port's `InstMats` (Surface.shader `HIRAETH_INSTMAT`, its shadows in the cascades): the instances' matrices a GPU buffer, each node its own copy of the material (the buffer is bound on it); a mesh without vertex colours gets white ones (the shader multiplies the instance's tint by them); several groups: baked into one mesh as before. The C# apply went from ~3 ms to 0.2–0.5 at the desert's views once the birds, the motes and the wildlife moved every frame |
+| the crowd's GPU figures (crowd-shader.js) | the port's crowd figures (FarCrowd's `HIRAETH_CROWD`), posed in the shader from the same instance data (op 9) |
+| the motes (life.js `Points`, drawn by the page from a scene of their own) | added to the mirrored scene; quads turned to the camera each frame, sized as the web's `gl_PointSize`, on the port's `Hiraeth/Mote` |
+| the footprints (a decal multiplied into the albedo) | the port's `Puffs` with its `Hiraeth/Print` (op 10: place, turn, size, fade) |
+| the fire (story/flames.js) | `Hiraeth/Flame`, its five colours, seed and heat |
 | the weather (post.js uRain, uRainNear, uStorm) | the port's globals, as Ambient.cs sets them |
-| local lights (main.js updateLights: lamps, fires, eggs, pools, doors; the jet's flame) | the 8 nearest the traveller each frame they change (op 11), into MementoLook's list |
+| local lights (main.js updateLights: lamps, fires, eggs, pools, doors; the jet's flame) | the 8 nearest the traveller each frame they change (op 11), into HiraethLook's list |
 | shadows (main.js draws every caster double-sided: `shadowOverride`) | casters `TwoSided` |
 
 The cave's rounded walls were none of the geometry (the same mesh, the same checksum), the haze, the
@@ -520,7 +520,7 @@ What the side-by-sides above still showed, closed:
   that is now post.js's main (each surface's shade: its lift, hue or flat print; spot blacks; cast shadows
   lifted or printed as ink masses, `uInkShadow`; lines by material, `uLineStep`; the face's warm shade;
   banked sand's soft line; haze in layers and fog by height; the lines' noise on the view's direction, from
-  the same 128² texels: `MementoLook.LineNoise`; no paper grain or vignette). The materials carry the new
+  the same 128² texels: `HiraethLook.LineNoise`; no paper grain or vignette). The materials carry the new
   options through `port-format.js` (`weather`, `detail`, `patch`, `plates`, `windows`, `drift`, `shade`,
   `spotStep`, `lineStep`) and the look its vectors (`LOOK_VECTORS`: `uSpot`, `uInkShadow`, the haze's). Not
   ported: hatching that follows the form (`S_FORM`: its per-vertex axis isn't uploaded), the makers' boxes'
@@ -530,12 +530,12 @@ What the side-by-sides above still showed, closed:
 - **Grass**: `engine/mirror.js` kind `instgeo`, a plain mesh on an `InstancedBufferGeometry` with a count of its
   own (flora-grass.js `Grass`): `create` says its capacity and attributes, `instances(id, count, null, null,
   attrs)` sends them when their versions move, only the range rewritten (`updateRanges`), `drawState(id, o)`
-  each frame. In Unity (ops 12, 13) the port's `MEMENTO_GRASS` places the tufts, now with grass-shader.js's
+  each frame. In Unity (ops 12, 13) the port's `HIRAETH_GRASS` places the tufts, now with grass-shader.js's
   own fades (thinning by rank, the blend into the ground's tones, the far layer growing in, a few pen-lined
   tufts). `buildGrass` and `grass.update(camera)` are back in engine/game.js, on the bench's preset (High).
 - **Wind**: the web's own (`WindStreaks`: the traveller's push, the plants' and blades' `uWind`, sent with the
   look), and its wisps, which on the page are an overlay of their own, as a mesh in the mirrored scene on the
-  port's `Memento/Wisp`; their points and alpha go each frame as cloth's do (op 8, `aAlpha`).
+  port's `Hiraeth/Wisp`; their points and alpha go each frame as cloth's do (op 8, `aAlpha`).
 - **The answering flowers**: the bridge paused the answering plants (and the animals) at a fixed view, which
   main.js doesn't; and a material's colour and glow changed after it was sent never reached Unity, so a
   waking flower opened but stayed its quiet green. The mirror now sends them live (`materialLive`, op 15,
@@ -622,19 +622,19 @@ same flat arrays tripo-cloth-sim.js steps) before the Retroid's run.
 ## Players (Unity + Puerts, next stage 4)
 
 `BridgeBuild.cs` builds the bridge's scene alone with the bundle and the characters it loads
-(public/anim/*.glb into StreamingAssets/memento-js/public), the bridge's own package name
-(`com.rnaud.memento.bridge`):
+(public/anim/*.glb into StreamingAssets/hiraeth-js/public), the bridge's own package name
+(`com.rnaud.hiraeth.bridge`):
 
 ```sh
 node scripts/engine-bundle.mjs unity                              # the bundle first: a build takes StreamingAssets as they are
 scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp            # once: Puerts' IL2CPP glue into Assets/Gen (not committed)
-scripts/unity-export/unity-batch.sh BridgeBuild.Mac               # IL2CPP ARM64: Builds/bridge-macOS/Memento JS.app
+scripts/unity-export/unity-batch.sh BridgeBuild.Mac               # IL2CPP ARM64: Builds/bridge-macOS/Hiraeth JS.app
 scripts/unity-export/unity-batch.sh BridgeBuild.Linux             # the Steam Deck's: Linux x86_64, IL2CPP, Vulkan: Builds/bridge-linux/ (docs/systems/unity.md: the sysroot)
-scripts/unity-export/unity-batch.sh BridgeBuild.Android           # IL2CPP ARM64, Vulkan then GLES3, debug key: Builds/bridge-android/memento-js.apk
+scripts/unity-export/unity-batch.sh BridgeBuild.Android           # IL2CPP ARM64, Vulkan then GLES3, debug key: Builds/bridge-android/hiraeth-js.apk
 scripts/unity-js-player.sh bench -views scripts/bench/viewpoints.json -bench 6 -split -out output/engine-bridge/player-mac
 ```
 
-The testers' APK (`BridgeBuild.AndroidRelease`: `com.rnaud.memento.unity`, "Hiraeth (Unity)", the release
+The testers' APK (`BridgeBuild.AndroidRelease`: `com.rnaud.hiraeth.unity`, "Hiraeth (Unity)", the release
 key, sound on) and the Linux player are built by GitHub Actions and published to the releases
 `unity-android` and `unity-linux`; `scripts/unity-android-release.sh` builds and publishes the APK from the
 Mac (docs/systems/unity.md, "Building in GitHub Actions").
@@ -685,9 +685,9 @@ built again from the same tree (`scripts/unity-export/unity-batch.sh BridgeBuild
 Not installed anywhere. On a device they are one command each:
 
 ```sh
-scripts/bench/android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split   # the Retroid: installs com.rnaud.memento.bridge only, muted
-# the Deck: copy unity/Memento/Builds/bridge-linux/ over, then
-./memento-js.x86_64 -mute -screen-width 1280 -screen-height 800 -level desert -views viewpoints.json -bench 8 -split -out out
+scripts/bench/android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split   # the Retroid: installs com.rnaud.hiraeth.bridge only, muted
+# the Deck: copy unity/Hiraeth/Builds/bridge-linux/ over, then
+./hiraeth-js.x86_64 -mute -screen-width 1280 -screen-height 800 -level desert -views viewpoints.json -bench 8 -split -out out
 ```
 
 (`android-bridge.sh` pushes the views to the app's own folder, starts it with the plan as Unity's `-e unity`
@@ -728,7 +728,7 @@ on the main thread. Three changes:
   the two, not their sum; the picture is one frame behind the script (as the web's is behind its GPU).
   V8 takes its stack limit from the thread that makes the isolate, so the JsEnv is made on the script's thread
   (64 MB of stack); Puerts reads its own scripts from Resources as it starts, which only the main thread may,
-  so a loader hands those reads over (`Assets/MementoJS/Puerts/MainThreadLoader.cs`, an assembly that compiles
+  so a loader hands those reads over (`Assets/HiraethJS/Puerts/MainThreadLoader.cs`, an assembly that compiles
   only where Puerts is installed, found by name). On macOS a plain thread ran on the efficiency cores, the
   script ten times slower: it asks for the main thread's class (`pthread_set_qos_class_self_np`,
   USER_INTERACTIVE). `-js-main` (or `"jsMain": true`) runs the script in Update as before. The bench's split
@@ -752,7 +752,7 @@ on the main thread. Three changes:
   a frame however many drawables share it.
 - **The composite's passes compiled in only where a look asks for them**, as post.js's `inkFeatures`: the
   spot blacks, the haze (layers and height fog), the cast and the ink shadows are Composite.shader keywords
-  (`MEMENTO_INK_SPOT`, `_HAZE`, `_CAST`, `_SHADOW`) that MementoLook sets from the look's own values.
+  (`HIRAETH_INK_SPOT`, `_HAZE`, `_CAST`, `_SHADOW`) that HiraethLook sets from the look's own values.
 - **The G-buffer's normal and distance in half floats**, as the web's (pipeline.js createGBuffer; it was full
   floats): every tap of the composite's edges, pockets and creases reads it.
 
@@ -784,12 +784,12 @@ Next for speed: the sound's synthesis off the script's thread, and the mirror's 
 - **Per-vertex material values** (materials.js `S_VMAT`, src/vertex-material.js: the City-Shaft's towers, merged
   into a draw each with their own colours, band size, grid, flatness, object-space point and normal, place and
   turn). The geometry carries them (unityGeometry flag 128: aMatC1–3, aMatS, aObjP, aObjN, aObjM), BridgeRenderer
-  puts them in uv1–uv6, and Surface.shader's `MEMENTO_VMAT` variant reads them: its vertex stage takes the object
+  puts them in uv1–uv6, and Surface.shader's `HIRAETH_VMAT` variant reads them: its vertex stage takes the object
   frame from them (the camera in each object's own frame, as the web's), and its fragment stage redirects
   `_Color`, `_Color2`, `_Color3`, `_StrataSize`, `_Grid` and `_Flat` to the vertex's values (statics set at its
   start), so every use below reads them unchanged.
 - **The cliffs' cracks** (`uCracks`, materials.js faceCracks: the desert's canyon walls and violet cliffs, the
-  references' strata): ported as `faceCracks` in MementoCommon.hlsl, the material's `_Cracks`.
+  references' strata): ported as `faceCracks` in HiraethCommon.hlsl, the material's `_Cracks`.
 - From main since: **the half-tone kept off faces inside another's cast shadow** (materials.js castBeyond: one
   tap of the middle shadow map 16 m toward the sun; Surface.shader the same on `_MShadowMap1`, built walls only)
   and **the dust band on the sand banked against a weathered wall** (post.js: drift pixels whose probe up the
@@ -866,7 +866,7 @@ the most of it.
   events, starts and stops, types, buffers and waves once) and, a frame at a time, the blocks to render after
   them, exactly the ones it rendered before (the ring kept AUDIO_AHEAD ahead); a Float64Array of tokens
   (BridgeHost.AudioBatch). A second V8, on Unity's side on a thread of its own with only the shim in it
-  (StreamingAssets/memento-js/audio.cjs, `engine-bundle.mjs unity-audio`), makes the same graph from them
+  (StreamingAssets/hiraeth-js/audio.cjs, `engine-bundle.mjs unity-audio`), makes the same graph from them
   (`AudioReplay`: the same classes) and renders those blocks into the ring Unity plays; the sources that ended go
   back for their onended. The recorded side keeps no graph of its own (only the replay drops what has ended from
   what it fed: kept here as well, nothing could be collected), holds a source with an onended until it ends, and
@@ -906,7 +906,7 @@ again with all of it (macOS 183 MB, the Android APK 76 MB, Linux 150 MB), ready 
 
 ## On the Retroid (2026-10-07)
 
-The bridge's APK (`com.rnaud.memento.bridge`, its own package beside the web game's `com.rnaud.moebius`; built
+The bridge's APK (`com.rnaud.hiraeth.bridge`, its own package beside the web game's `com.rnaud.hiraeth`; built
 at 81f0311, 76 MB) on the Retroid Pocket Nova, `scripts/bench/android-bridge.sh desert -views
 scripts/bench/viewpoints.json -bench 8 -split`: it started 2.1 s after launch, the bundle (7.2 MB) loaded in
 0.2 s, the desert ready 3.5 s later (GeckoView's load of the same world: 9.4 s), with **the script and the
@@ -929,7 +929,7 @@ the dunes 60, 11.7; the spawn 59, 13.6).
 ## On the Retroid, the first run (2026-10-11)
 
 The bridge's APK built from 1606a596 (`BridgeBuild.Android`: IL2CPP ARM64, Vulkan then GLES3), installed as
-`com.rnaud.memento.bridge`, and run with `android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8
+`com.rnaud.hiraeth.bridge`, and run with `android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8
 -split -metrics` (the on-screen readout on).
 
 **The sound.** The first try read its plan with `-mute`, but Android listed its audio stream as playing. `-mute`

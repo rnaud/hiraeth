@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import { publicPath } from './platform.js';
 
-const host = globalThis.__MEMENTO_HOST__ ?? {};
+const host = globalThis.__HIRAETH_HOST__ ?? {};
 export const page = installPlatform(host);
 
 // as the game (main.js): colours are authored as display values, not converted to linear

@@ -5,7 +5,7 @@
 // (BridgeHost.AudioRendered), and says which sources ended (BridgeHost.AudioEnded: their onended, there).
 import { AudioReplay } from '../webaudio.js';
 
-const H = globalThis.CS?.Memento?.Bridge?.BridgeHost;
+const H = globalThis.CS?.Hiraeth?.Bridge?.BridgeHost;
 const boxed = !!H?.BoxBuffers?.();
 const toHost = boxed ? (b) => ({ b }) : (b) => b;
 let R = null, batches = 0;

@@ -1,6 +1,6 @@
 // The Unity side of the benchmark on the Mac: the standalone player (BenchBuild.Mac) in its benchmark
 // mode (Runtime/Bench.cs): vSync off, no frame cap, FrameTimingManager and ProfilerRecorder.
-//   node scripts/bench/unity-bench.mjs --preset high --res 1280x720 --out result.json [--app Memento.app]
+//   node scripts/bench/unity-bench.mjs --preset high --res 1280x720 --out result.json [--app Hiraeth.app]
 //        [--secs 10] [--warmup 3] [--only spawn,camps] [--label run1]
 // Adds what the player can't see itself: the process's memory (macOS footprint, sampled), the wall
 // clock from launch to the desert's first frame, the build's size.
@@ -10,14 +10,14 @@ import { resolve, dirname } from 'node:path';
 import { ROOT, VIEWPOINTS, memorySampler, sizeOf, sleep } from './lib.mjs';
 
 const opt = Object.fromEntries(process.argv.slice(2).join(' ').split(/\s*--/).filter(Boolean).map((s) => { const [k, ...v] = s.split(/\s+/); return [k, v.join(' ') || true]; }));
-const app = resolve(opt.app ?? resolve(ROOT, 'unity/Memento/Builds/macOS-bench/Memento.app'));
+const app = resolve(opt.app ?? resolve(ROOT, 'unity/Hiraeth/Builds/macOS-bench/Hiraeth.app'));
 const preset = opt.preset ?? 'high';
 const [w, h] = (opt.res ?? '1280x720').split('x').map(Number);
 const out = resolve(opt.out ?? `unity-${preset}-${w}x${h}.json`);
 mkdirSync(dirname(out), { recursive: true });
 const raw = out.replace(/\.json$/, '.player.json'), logFile = out.replace(/\.json$/, '.log');
 rmSync(raw, { force: true });
-const bin = resolve(app, 'Contents/MacOS/Memento');
+const bin = resolve(app, 'Contents/MacOS/Hiraeth');
 if (!existsSync(bin)) { console.error(`no player at ${bin}: scripts/unity-export/unity-batch.sh BenchBuild.Mac`); process.exit(1); }
 
 const args = ['-bench', VIEWPOINTS, '-benchOut', raw, '-benchPreset', preset, '-benchRes', `${w}x${h}`, '-benchLabel', String(opt.label ?? ''),

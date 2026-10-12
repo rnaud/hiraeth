@@ -1,6 +1,6 @@
 # Hiraeth in Unity: every world, by ship
 
-`unity/Memento` is a Unity 6 (6000.6, URP 17) port of the web game, built from the web game
+`unity/Hiraeth` is a Unity 6 (6000.6, URP 17) port of the web game, built from the web game
 itself: a Node script builds each world headlessly exactly as the game does at load and exports
 it; Unity reads the export and draws it through the same G-buffer and ink composite as
 `src/materials.js` and `src/post.js`, ported to HLSL. It plays from the ship's prologue through
@@ -64,7 +64,7 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
    node scripts/unity-export/export-world.mjs incal    # or one world
    ```
 
-   This writes `unity/Memento/Assets/StreamingAssets/<world>/` (world.json, world.bin, story.json)
+   This writes `unity/Hiraeth/Assets/StreamingAssets/<world>/` (world.json, world.bin, story.json)
    for each world, the shared store `StreamingAssets/shared/` (what every world shares: the
    traveller, the people's bodies and clips, the ship, the boxes) and copies the characters
    (`public/anim/*.glb`) to `StreamingAssets/anim/`: about 1.8 GB in all, none of it committed.
@@ -77,11 +77,11 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
    npx vite --port 5238 --strictPort &
    PLAYWRIGHT=/path/to/playwright-core/index.mjs node scripts/unity-export/record-sounds.mjs
    ```
-2. Open `unity/Memento` in Unity 6000.6 (Hub: Add project from disk). The first
+2. Open `unity/Hiraeth` in Unity 6000.6 (Hub: Add project from disk). The first
    import resolves the packages (URP, Input System, glTFast, MCP for Unity).
 3. Once, or after pulling: menu **Hiraeth → Set up project** (URP settings, the
    ink renderer feature, the scenes). Already done in the committed project.
-4. Open `Assets/Memento/Scenes/Title.unity` (or `Desert.unity`) and press Play.
+4. Open `Assets/Hiraeth/Scenes/Title.unity` (or `Desert.unity`) and press Play.
    Loading the export takes a few seconds; another world, about one.
 
 ### Controls (as in the web game)
@@ -110,8 +110,8 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
 ### From the command line
 
 `scripts/unity-export/unity-batch.sh <Method> [args]` runs one of the entry
-points in `Assets/Memento/Editor/Batch.cs` in batch mode (with graphics, so
-cameras render on Metal) and prints the log's errors and `Memento:` lines:
+points in `Assets/Hiraeth/Editor/Batch.cs` in batch mode (with graphics, so
+cameras render on Metal) and prints the log's errors and `Hiraeth:` lines:
 
 ```sh
 scripts/unity-export/unity-batch.sh Setup                 # project settings, renderer feature, scenes
@@ -125,11 +125,11 @@ scripts/unity-export/unity-batch.sh Probe                  # collision checks at
 scripts/unity-export/unity-batch.sh UiKit -out /tmp/kit    # the UI kit alone (shapes, text, spacing) on a canvas
 ```
 
-Unity's EditMode tests (`Assets/Memento/Editor/Tests`, the story run by the C#
+Unity's EditMode tests (`Assets/Hiraeth/Editor/Tests`, the story run by the C#
 ports of the quest and dialogue systems):
 
 ```sh
-Unity -batchmode -projectPath unity/Memento -runTests -testPlatform EditMode -testResults /tmp/results.xml
+Unity -batchmode -projectPath unity/Hiraeth -runTests -testPlatform EditMode -testResults /tmp/results.xml
 ```
 
 `Play` enters play mode and lets `BatchDriver` drive the pad: the title
@@ -219,15 +219,15 @@ the star chart's layout, the planets and the region names against the web's.
   playwright-core and a dev server), `unity-batch.sh Shots` the Unity side.
   The pairs are in `docs/` here.
 
-### The look (`Assets/Memento/Shaders`, `Assets/Memento/Rendering`)
+### The look (`Assets/Hiraeth/Shaders`, `Assets/Hiraeth/Rendering`)
 
-- `MementoFeature` is a URP renderer feature (RenderGraph). After URP's main
-  light shadows it draws every `LightMode = MementoGBuffer` pass into three
+- `HiraethFeature` is a URP renderer feature (RenderGraph). After URP's main
+  light shadows it draws every `LightMode = HiraethGBuffer` pass into three
   targets, as `src/pipeline.js`: albedo + light term (half-lambert × cast
   shadow, clamped under the toon threshold), world normal + linear view depth,
   hatching / stipple + drawn detail + flags (glow, hero, figure). Then one
   full-screen pass inks the page into the camera target.
-- `Surface.shader` + `MementoCommon.hlsl` port `materials.js`: sand patches and
+- `Surface.shader` + `HiraethCommon.hlsl` port `materials.js`: sand patches and
   regions (`biome.js`), strata bands with their far-distance average, façades
   with windows and shutters, roof tiles, leaves, rock cracks, fissures, glyphs
   and grids, sand blobs, ground ink by distance (`ground-ink.js`: ripples, wind
@@ -235,7 +235,7 @@ the star chart's layout, the planets and the region names against the web's.
   the surface-anchored power-of-two hatching (single, cross, form-following
   rings and height contours) and stipple, plant sway in the wind and away from
   the traveller, the printed outfit zones of the people. The sun's shadows are
-  the web's own three cascades (`MementoShadows`, below), sampled as
+  the web's own three cascades (`HiraethShadows`, below), sampled as
   `materials.js` getShadow does.
 - `Composite.shader` ports `post.js`: ink lines from the Laplacian of 1/z,
   normal creases, albedo and shadow edges, with the wobble, pen pressure,
@@ -251,7 +251,7 @@ the star chart's layout, the planets and the region names against the web's.
   brows following the mood), eyeballs with their gaze, cloth creases, the
   bubble helmet's glass (discarded where it would hide the face), the tank's
   lava lamp (bands of fluid, a charge each) and the box scene's dissolve.
-  `Crowd.hlsl` (keyword `MEMENTO_CROWD`) ports `crowd-shader.js`: the far
+  `Crowd.hlsl` (keyword `HIRAETH_CROWD`) ports `crowd-shader.js`: the far
   figures posed and dressed in the vertex shader from their packed look.
   `Hologram.shader` is the parents' bust in the ship (scanlines, flicker,
   colour).
@@ -261,8 +261,8 @@ the star chart's layout, the planets and the region names against the web's.
   pass has its own property block. Then comes **FXAA** (`FXAA.shader`).
   Shadows use URP's low soft-shadow filter, the closest to the web's.
 - **Instanced draws** (`Graphics.RenderMeshPrimitives`, drawn in the G-buffer
-  pass): smoke puffs (`MEMENTO_PUFFS`: the column, the camp fires' smoke,
-  dust), the far crowd, the wildlife's parts (`MEMENTO_INSTMAT`); `Wisp`,
+  pass): smoke puffs (`HIRAETH_PUFFS`: the column, the camp fires' smoke,
+  dust), the far crowd, the wildlife's parts (`HIRAETH_INSTMAT`); `Wisp`,
   `Mote` and `Print` draw the blown sand, dust motes and footprints.
 - The composite also has the cinema globals (fade, eyelids, letterbox, the
   alarm red), the sandstorm's tint and a glow debug view (`debug 9`).
@@ -297,7 +297,7 @@ lod.js's error-by-distance with its hysteresis):
   preset's `propFar` (`cullFar`), the small single meshes (under 3 m, not self-lit)
   whose size on screen is under `propPx` (`SmallCuller`).
 - **The flora** (`flora.js`): one set per species, every plant an instance
-  (`MEMENTO_FLORA` in `Surface.shader`: placed, swayed and lit as the merged chunks
+  (`HIRAETH_FLORA` in `Surface.shader`: placed, swayed and lit as the merged chunks
   were), filed by 32 m cell. Each frame each species draws its cells in view within
   its distance × `floraFar`, and those just behind for their shadows; past the
   distance where the far copy (`farLevel`) is within `lodPx`, in that copy. One draw
@@ -310,7 +310,7 @@ lod.js's error-by-distance with its hysteresis):
   frame), past the distance where its 10 cm detail is under `lodPx` the far figure
   simplified to that, nobody past `crowdFar`; no shadows (the web's crowd figures
   cast them within 35 m, where the port draws full bodies, which cast).
-- **The sun's shadows** (`MementoShadows`, in place of URP's: the sun light's own
+- **The sun's shadows** (`HiraethShadows`, in place of URP's: the sun light's own
   shadows are off): `shadows.js`'s three cascades round the traveller, fine (±12 m,
   2048²), near (±220 m, 4096²) and far (±1150 m, 2048²), each of a fixed size moved
   in whole texels and depth steps, the light quantised to 0.25°. They are redrawn
@@ -343,13 +343,13 @@ lod.js's error-by-distance with its hysteresis):
   full`) draws everything at full detail with nothing culled: the reference the
   levels are checked against.
 
-### The play (`Assets/Memento/Runtime`)
+### The play (`Assets/Hiraeth/Runtime`)
 
 - `Game` / `Play`: the desert scene's bootstrap (world, look, sun, camera, the
   traveller at the ship's ramp, the HUD, the crowd, the story, the bike),
   the use prompt, B / ○ to use, the push, the portals.
 - `WorldLoader`: reads the export, builds meshes, materials and colliders.
-- `MementoLook`: the time of day and the preset as shader globals; turns the sun.
+- `HiraethLook`: the time of day and the preset as shader globals; turns the sun.
 - `Player` (`player.js`): walk 3.8, run 7.2, jump 13 under gravity 32, step
   0.6 m; climbing (push into a steep wall; up / down / sideways, stamina) and
   mantling over the top; health, the fall rules (tumble from 26 m/s, fatal from
@@ -641,8 +641,8 @@ Per world (what plays in the port; what of the web's own scripts is still missin
 ## A standalone build
 
 ```sh
-scripts/unity-export/unity-batch.sh BuildMac -out /tmp/Memento.app     # (default unity/Memento/Builds/macOS/Memento.app, git-ignored)
-/tmp/Memento.app/Contents/MacOS/Memento -smoke /tmp/smoke -logFile /tmp/smoke/player.log
+scripts/unity-export/unity-batch.sh BuildMac -out /tmp/Hiraeth.app     # (default unity/Hiraeth/Builds/macOS/Hiraeth.app, git-ignored)
+/tmp/Hiraeth.app/Contents/MacOS/Hiraeth -smoke /tmp/smoke -logFile /tmp/smoke/player.log
 ```
 
 `Batch.BuildMac` puts the shaders the game finds by name into the always-included
@@ -665,13 +665,13 @@ writes the player's back buffer itself (`_TargetFlip`).
 ### The Android build and the WebGL build (`Editor/BenchBuild.cs`)
 
 ```sh
-scripts/unity-export/unity-batch.sh BenchBuild.Android   # Builds/Android/memento-unity.apk (about 150 MB; the desert alone, -allWorlds for every world)
+scripts/unity-export/unity-batch.sh BenchBuild.Android   # Builds/Android/hiraeth-unity.apk (about 150 MB; the desert alone, -allWorlds for every world)
 scripts/unity-export/unity-batch.sh BenchBuild.WebGL     # Builds/WebGL (WebGPU), served by scripts/bench/serve.mjs
-scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Memento.app: IL2CPP, ARM64, frame timing on (-mono: Mono; -development: the profiler markers)
+scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Hiraeth.app: IL2CPP, ARM64, frame timing on (-mono: Mono; -development: the profiler markers)
 ```
 
-- **Android**: package `com.rnaud.memento.unity` ("Hiraeth (Unity)"), never the
-  web app's `com.rnaud.moebius`, so both install side by side; debug-signed,
+- **Android**: package `com.rnaud.hiraeth.unity` ("Hiraeth (Unity)"), never the
+  web app's `com.rnaud.hiraeth`, so both install side by side; debug-signed,
   IL2CPP ARM64, Vulkan first with GLES3 behind it (the instanced crowd, puffs and
   wildlife read structured buffers in the vertex shader, which many GLES drivers
   do not allow), landscape, engine code not stripped (the game adds components no
@@ -703,7 +703,7 @@ scripts/unity-export/unity-batch.sh BenchBuild.Mac       # Builds/macOS-bench/Me
 ### The benchmark mode (`Runtime/Bench.cs`)
 
 With `-bench` on the command line (the Mac player), in the intent's `unity` extra
-(Android: `am start -n com.rnaud.memento.unity/com.unity3d.player.UnityPlayerGameActivity
+(Android: `am start -n com.rnaud.hiraeth.unity/com.unity3d.player.UnityPlayerGameActivity
 -e unity '-bench -benchPreset handheld'`) or `?bench` in the page's address
 (WebGL), the player starts a new game past the prologue, hides its canvases, fixes
 the hour and the weather, turns vSync off (`-benchVsync`: on) and visits the

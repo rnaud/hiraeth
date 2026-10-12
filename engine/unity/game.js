@@ -1,6 +1,6 @@
 // The game, Unity side (docs/systems/engine-bridge.md): engine/game.js in Puerts' V8, the scene
 // mirrored to Unity objects drawn by the C# port's own ink look (its URP renderer feature, its
-// Surface shader and materials, MementoLook), the keys and pads from Unity's Input System.
+// Surface shader and materials, HiraethLook), the keys and pads from Unity's Input System.
 // BridgeRunner.cs loads this bundle and calls start(args) once and frame(dt) every frame; a batch
 // run (BridgeBatch.cs, scripts/unity-export/unity-batch.sh BridgeBatch.Run) passes its plan in args.
 import { pads, host, toHost } from './host.js';

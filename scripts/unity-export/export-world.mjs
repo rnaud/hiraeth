@@ -1,10 +1,10 @@
-// Export one of the web game's worlds for the Unity port (unity/Memento).
+// Export one of the web game's worlds for the Unity port (unity/Hiraeth).
 //
 //   node scripts/unity-export/export-world.mjs <levelId> [outDir]       (export-all.mjs: every world)
 //
 // Builds the world headlessly exactly as the game does at load (build-world.mjs: the level, its
 // water, the ship, the crowd, the story's people, the makers' boxes, the mount, the flora), then
-// writes into outDir (default unity/Memento/Assets/StreamingAssets/<levelId>):
+// writes into outDir (default unity/Hiraeth/Assets/StreamingAssets/<levelId>):
 //
 //   world.bin   every static surface, merged by material and by 256 m tile, in Unity's frame
 //               (x mirrored, winding flipped); the collision mesh; the terrain heightfield (a world
@@ -36,7 +36,7 @@ import { createHash } from 'node:crypto';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const levelId = process.argv[2] ?? 'desert';
-const STREAMING = resolve(here, '../../unity/Memento/Assets/StreamingAssets');
+const STREAMING = resolve(here, '../../unity/Hiraeth/Assets/StreamingAssets');
 const OUT = resolve(process.argv[3] ?? resolve(STREAMING, levelId));
 const SHARED = resolve(OUT, '../shared');
 const TILE = 256;
