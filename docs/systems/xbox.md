@@ -388,7 +388,8 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   D3D11), 1440p (the console scales it to the TV), Unity's references copied in. Direct3D 12 against 11 at the 1440p
   desert spawn, October 2026: present's wait 0.5 ms against 9.4, the render thread 2 ms against 5; `-graphicsApi
   Direct3D11` (the workflow's `graphics_api`) builds the D3D11 A/B, an artifact `memento-unity-xbox-d3d11`, never
-  published. Identity `rnaud.HiraethUnity`, shown as *Hiraeth
+  published. Synced (`QualitySettings.vSyncCount` 1 on WSA, `-vsync 0` off): a UWP app presents at 60 there, the TV at 120
+  Hz too, so 59.5 fps with 97 % of frames on time (72.6 torn, unsynced; `-vsync 2` is 30). Identity `rnaud.HiraethUnity`, shown as *Hiraeth
   (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it plays the desert from the spawn.
 - **The workflow** (`.github/workflows/unity-xbox.yml`, windows-2022; on a push touching the Unity side and by hand):
   Puerts' V8 (relinked, `scripts/unity-uwp-v8.ps1`, cached) and QuickJS with their UWP DLLs, the bundle, GameCI's

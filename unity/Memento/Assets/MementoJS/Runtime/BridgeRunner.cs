@@ -282,6 +282,11 @@ namespace Memento.Bridge
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-vsync N: presented on every Nth refresh, a test once the frames fit)
             if (BridgeArgs.Arg("-vsync") is string vs && int.TryParse(vs, out int nv)) QualitySettings.vSyncCount = nv;
+#if UNITY_WSA && !UNITY_EDITOR
+            // the Xbox at a steady 60 by default (a UWP app presents at 60 there, the TV at 120 Hz too: vsync 1 is every frame on
+            // time but 2-3 %, against 72 fps torn without; -vsync 0 for the numbers)
+            else QualitySettings.vSyncCount = 1;
+#endif
             // (-no-bloom, -no-fxaa: the ink look's glow and its smoothing off, tests of the GPU's frame)
             if (BridgeArgs.Flag("-no-bloom")) Memento.Rendering.MementoFeature.Settings.bloom = false;
             if (BridgeArgs.Flag("-no-fxaa")) Memento.Rendering.MementoFeature.Settings.fxaa = false;

@@ -649,6 +649,15 @@ const XBOX51 = 'the Xbox Series X’s Unity player (BridgeRunner -views, LocalSt
 const SAVE_POOL51 = { flags: { ...SAVE_DESERT.flags, 'desert.channel.open': true, 'desert.pool.tinted': true, 'desert.cave.seen': true, 'quest.desert.power': 'door', 'desert.moment.flow': true, 'desert.moment.fill': true, 'items.v': 2, 'save.migrated': 19 }, keepsakes: [] };
 const PT51 = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720), Vite on port 5493, at the commit before the change and at the change (before its rebase), 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.52': [
+    { match: 'The Unity preview on the Xbox now waits for your TV', numbers: [
+      { title: 'The Unity preview on the Xbox, the Desert at the ship', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p to a 4K 120 Hz TV', rows: [
+        { where: 'frames a second (before: torn, unsynced)', before: 72.6, after: 59.5 },
+        { where: 'frames within 17.5 ms, %', before: 98, after: 97 },
+        { where: 'the longest frame, ms', before: 39, after: 33 },
+      ], source: 'scripts/xbox-unity.mjs, 150 s at the spawn, the last 5 s window, 12 October, build 1937: before -vsync 0, after -vsync 1' },
+    ], see: 'On an Xbox in Developer Mode, start Hiraeth (Unity) and turn on the spot: the picture no longer tears; the corner readout holds near 60.' },
+  ],
   '1.51': [
     { match: 'The opening in your ship has music of its own', see: 'Start a new game with the sound on (or open ?level=desert&prologue=1): in the ship, its own quiet music while you wake and walk to the cockpit, nothing under your father’s message; the desert’s ney and oud come in as you walk down the ramp.' },
     { match: 'No wild creatures roam Qanat’s streets and square', see: 'Walk round Qanat’s square and its streets: no lizards, crabs or jerboas (three used to wander round the tree). Outside the walls, by the camps, they are where they were.' },

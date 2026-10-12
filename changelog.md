@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.52 — 2026-10-12
+
+- The Unity preview on the Xbox now waits for your TV before each picture: a steady 60 frames a second, with nearly every frame on time and no tearing across the screen as you turn.
+
 ## v1.51 — 2026-10-11
 
 - The Unity preview on the Xbox draws at 1440p, which the console scales to your TV, on Direct3D 12: about 73 frames a second at the Desert’s ship, where it ran at 51, with nearly every frame on time.

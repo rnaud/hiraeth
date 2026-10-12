@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.52', date: '2026-10-12', items: [
+    // the Unity preview on the Xbox at a steady 60 (docs/systems/xbox.md "The Unity build on the Xbox")
+    'The Unity preview on the Xbox now waits for your TV before each picture: a steady 60 frames a second, with nearly every frame on time and no tearing across the screen as you turn.',
+  ] },
   { v: '1.51', date: '2026-10-11', items: [
     // the type split (docs/systems/ui.md "Type"; issue #128)
     'All the words on the screen are in the game’s own lettering now: the hints at the bottom, the notices at the top, the cards for what you find, the minigames and trials, the settings and the conversations no longer use a typewriter face, and the names and titles share one bold heading face. The words also grow with the screen, so they read as easily on a big TV or a 1440p monitor as on the Steam Deck or a handheld.',
