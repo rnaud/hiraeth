@@ -658,6 +658,18 @@ const DECK52 = 'the Steam Deck’s run on the Mac (scripts/bench/deck-mac.mjs + 
 const INK53 = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headless Chrome, muted, the game’s and the shaders’ clocks held) against this branch’s own Vite (port 5743) and the same tree with src/flora.js and src/materials.js before the change, 12 October; crops scaled up; cwebp -q 75';
 // (v1.53: the Desert's picked explorations, issue #167: this branch's own Vite and origin/main before it, by hand; the same views)
 const EXPLORE52 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463) and origin/main before the change (25e4cfca, git archive), the same pinned cameras, 11 October; cwebp -q 72';
+// (v1.53: the temples to explore, round 3, issue #23; the Hush-House at the origin [-100, 1700, 300])
+const C53_HUSH = { commit: 'a364adc6', before: '4056d2ee' };   // (the house's two commits: the before is the tree before both)
+const HH = (x, y, z) => [-100 + x, 1700 + y, 300 + z];   // (the Hush-House's own metres, in Lorn)
+const C53_MOOR = { commit: '454994a4' };
+const MH = (x, y, z) => [-130 + x, 1500 + y, -120 + z];   // (the Mooring-House's own metres)
+const C53_CLOCK = { commit: '41309137' };
+const CK = (x, y, z) => [-300 + x, 1800 + y, -420 + z];   // (the Clock-House's own metres, in the Glass Dunes)
+const C53_THREE = { commit: '0a5fa31b' };
+const WH = (x, y, z) => [x, 1600 + y, -150 + z];   // (the Whale-House's own metres)
+const FD = (x, y, z) => [-50 + x, 1600 + y, -180 + z];   // (the Casting-House's own metres)
+const FP = (x, y, z) => [-120 + x, 2000 + y, -260 + z];   // (the Footprint's own metres)
+const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.k3': true, 'temple.garage.lit.c1': true, 'temple.garage.lit.c2': true, 'temple.garage.lit.c3': true, 'temple.garage.open.dC': true } };
 export const CHANGELOG_MEDIA = {
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [
@@ -713,6 +725,48 @@ export const CHANGELOG_MEDIA = {
         { where: '1920 × 1080', before: 40.0, after: 26.5 }, { where: '1920 × 1080 at DPR 2', before: 40.2, after: 26.7 }, { where: 'Handheld', before: 34.3, after: 23.3 }, { where: 'Handheld at 0.5', before: 40.9, after: 27.9 }, { where: 'Steam Deck', before: 41.8, after: 28.2 }, { where: 'a phone', before: 31.5, after: 22.1 },
       ], source: 'node .claude/skills/ink-lines/capture.mjs (veg-far), the flowers’ mask from the albedo with and without them; 5 m off (veg-near) 6.5 → 6.1 %, 0.15 % of the picture changed' },
     ] },
+    { match: 'In the Hush-House’s Snapping Passage, two more mouths', shots: [
+      { name: 'hush-passage', title: 'The Snapping Passage', caption: 'In from the chest’s chamber: before, the gate of jaws alone; after, a mouth in each wall beside it, each crowned with a crystal, the gate’s the biggest', ...C53_HUSH,
+        view: { level: 'perdide', save: SAVE47, hour: 12, fov: 85, eye: HH(0, 12.4, 91.6), target: HH(0, 10.6, 103), player: HH(0.4, 9.05, 91.2) } },
+    ], see: 'In the Hush-House, past the stilling mode’s chest: the Snapping Passage.' },
+    { match: 'West off the Hush-House’s Pendulum Gallery', shots: [
+      { name: 'hush-balcony', title: 'The Choir', caption: 'Looking up at the Choir’s north end from its floor: before, its bare wall over the door; after, the balcony, the great key caged on it by the parapet, behind a wall across it', ...C53_HUSH,
+        view: { level: 'perdide', save: SAVE47, hour: 12, fov: 65, eye: HH(4, 1.8, 17), target: HH(-5, 10, 40), player: HH(4.5, 0.05, 16.5) } },
+      { name: 'hush-ledge', title: 'The Bog Well', caption: 'From the root-wall’s top, looking back south-west round the well: before, its bare wall over the water; after, the ledge round it at 9 m behind a little door of one keyhole, and the way south through the wall', ...C53_HUSH,
+        view: { level: 'perdide', save: SAVE47, hour: 12, fov: 75, eye: HH(-2, 11.6, 64.5), target: HH(-7.5, 9.2, 50), player: HH(-1.6, 9.05, 65) } },
+      { name: 'hush-mouth', title: 'On the balcony', caption: 'The wall across the balcony, the snapper’s mouth on the ball’s groove, and the great key’s cage beyond it', ...C53_HUSH, only: 'after',
+        view: { level: 'perdide', save: SAVE47, hour: 12, fov: 70, eye: HH(7.5, 11.6, 39), target: HH(-6, 9.8, 41.5), player: HH(8, 9.05, 39.5) } },
+      { name: 'hush-nursery', title: 'The Nursery', caption: 'In from the gallery’s far landing: old seed-beds in rings of stone, the small key caged at the far end; its door shuts behind you while the seedlings stand', ...C53_HUSH, only: 'after',
+        view: { level: 'perdide', save: SAVE48_ARMED, hour: 12, fov: 75, eye: HH(-16.6, 12.6, 132.5), target: HH(-29, 10, 134.5), player: HH(-17.2, 9.05, 133) } },
+    ], see: 'In the Hush-House, west off the Pendulum Gallery’s far landing into the Nursery; then back on top of the Bog Well’s root-wall, round the ledge onto the Choir’s balcony.' },
+    { match: 'In the Mooring-House, the Rope Store', shots: [
+      { name: 'moor-gallery', title: 'The Moorers’ Gallery', caption: 'The Gallery looking south: before, its wall; after, the doorway into the Rope Store', ...C53_MOOR,
+        view: { level: 'spacecity', save: SAVE47, hour: 12, fov: 70, eye: MH(-33, 14, 24.2), target: MH(-38, 13, 16), player: MH(-32.5, 11.05, 24.5) } },
+      { name: 'moor-store', title: 'The Rope Store', caption: 'In from the Gallery: drums of the moorers’ spare cable, the small key caged at the far end; its door shuts behind you while the keepers stand', ...C53_MOOR, only: 'after',
+        view: { level: 'spacecity', save: SAVE48_ARMED, hour: 12, fov: 75, eye: MH(-37, 14.4, 17.6), target: MH(-38.5, 11.5, 5), player: MH(-36.5, 11.05, 17.2) } },
+      { name: 'moor-perch', title: 'The Capstan Hall’s balcony', caption: 'Looking up from the hall’s floor to the balcony inside the moorers’ gate: after, the great key’s cage on it and the ball out along its cable-rail round the wall', ...C53_MOOR,
+        view: { level: 'spacecity', save: SAVE47, hour: 12, fov: 70, eye: MH(5, 1.7, 36), target: MH(-11, 11, 27), player: MH(5.5, 0.05, 36.5) } },
+    ], see: 'In the Mooring-House, south off the Moorers’ Gallery into the Rope Store; then through the moorers’ gate onto the Capstan Hall’s balcony.' },
+    { match: 'In the Clock-House, the Clockmaker’s Cupboard', shots: [
+      { name: 'clock-cupboard', title: 'The Clockmaker’s Cupboard', caption: 'Its door off the Escapement’s far landing: before, the little clock’s three eyes open; after, lidded, until the mainspring is wound', ...C53_CLOCK,
+        view: { level: 'glassdunes', save: SAVE47, hour: 12, fov: 60, eye: CK(-4, 3.2, 46.5), target: CK(-11, 6.4, 44), player: CK(-3.5, 0.05, 47) } },
+      { name: 'clock-key', title: 'Inside the cupboard', caption: 'The cupboard open, its clock running again: the coffer, and the great key beside it', ...C53_CLOCK, only: 'after',
+        view: { level: 'glassdunes', save: SAVE_CUPBOARD, hour: 12, fov: 70, eye: CK(-14.4, 3.4, 44), target: CK(-22, 0.8, 44.4), player: CK(-14, 0.05, 44.4) } },
+    ], see: 'In the Clock-House, off the Escapement’s far landing: the cupboard; and past the chest, in the Mainspring Room off the gallery.' },
+    { match: 'Three more houses have a room that shuts behind you', shots: [
+      { name: 'whale-storedoor', title: 'The Whale-House’s Sounding Hall', caption: 'Looking south from the hall: before, its wall east of the way in; after, the doorway into the Horn Store', ...C53_THREE,
+        view: { level: 'underwater', save: SAVE47, hour: 12, fov: 70, eye: WH(12.5, 3, 20), target: WH(13.8, 2.2, 10), player: WH(12, 0.05, 20.5) } },
+      { name: 'whale-store', title: 'The Horn Store', caption: 'Spare horns on their racks and shells stacked in the corners, the small key caged at the far end', ...C53_THREE, only: 'after',
+        view: { level: 'underwater', save: SAVE48_ARMED, hour: 12, fov: 75, eye: WH(13.8, 3.4, 12.6), target: WH(13.8, 1, 2), player: WH(14.2, 0.05, 13) } },
+      { name: 'foundry-sanddoor', title: 'The Casting-House’s Mould Room', caption: 'Looking south across the Mould Room: before, its wall; after, the doorway into the Sand Room', ...C53_THREE,
+        view: { level: 'moonfoundry', save: SAVE47, hour: 12, fov: 70, eye: FD(-25, 3, 30), target: FD(-27, 2.2, 17), player: FD(-24.5, 0.05, 30.5) } },
+      { name: 'foundry-sand', title: 'The Sand Room', caption: 'The founders’ bins of moulding sand, the small key caged at the far end: you carry it to the Founders’ Door', ...C53_THREE, only: 'after',
+        view: { level: 'moonfoundry', save: SAVE48_ARMED, hour: 12, fov: 75, eye: FD(-27, 3.4, 16.6), target: FD(-27, 1, 6), player: FD(-26.6, 0.05, 17) } },
+      { name: 'footprint-lodgedoor', title: 'The Footprint’s Keepers’ Gallery', caption: 'Along the gallery: before, its wall; after, the doorway west into the Keepers’ Lodge', ...C53_THREE,
+        view: { level: 'spheres', save: SAVE47, hour: 12, fov: 70, eye: FP(-13, 2.8, 89), target: FP(-17, 2.2, 95.5), player: FP(-12.8, 0.05, 88.5) } },
+      { name: 'footprint-lodge', title: 'The Keepers’ Lodge', caption: 'Stone benches along its walls, the small key caged in the middle', ...C53_THREE, only: 'after',
+        view: { level: 'spheres', save: SAVE48_ARMED, hour: 12, fov: 75, eye: FP(-17.2, 3.4, 95.5), target: FP(-28, 1, 95.5), player: FP(-16.9, 0.05, 96) } },
+    ], see: 'In the Whale-House, off the Sounding Hall’s south wall; in the Casting-House, off the Mould Room’s south wall; in the Footprint, off the Keepers’ Gallery.' },
   ],
   '1.52': [
     { match: 'The Unity preview on the Xbox now waits for your TV', numbers: [
