@@ -1,0 +1,37 @@
+scripts/level-design/path.mjs
+  s_9ca76055a220ed::t_4c461ff10d6721 1-80,98-122
+scripts/fragment-spots.mjs
+  s_9ca76055a220ed::t_f0f605bc79bd66 4-8,10-16,18-19,22,28-29,31-38,42,46-53,66,69,72,75-76,78-79,89-93,96-102,104-110,112,115-116,121,129-134
+tests/fragments-route.test.js
+  s_9ca76055a220ed::t_7ae00dcf5d9806 1-62
+tests/fragments-reach.js
+  s_9ca76055a220ed::t_80c43335a7bf32 11-14,64-66,97-112,127-149
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_4d977f96756198 27-29,81-82
+src/fragments-data.js
+  s_9ca76055a220ed::t_e8680a186e15ad 13-17,37,39-40,48,50-51,58-59,62,66,68,70-72,96,107,109-111,117,128,130-131,134-135,138,143
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_905aa24bf092de 20,468-470,477
+changelog.md
+  s_9ca76055a220ed::t_48440ba582df9a 25
+src/changelog-media.js
+  s_9ca76055a220ed::t_5316d8949c6912 731,752-756
+src/changelog.js
+  s_9ca76055a220ed::t_cb094dc2d1ac67 19-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "92e0192f39629828088c071203adf0ce5538d0fa",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
