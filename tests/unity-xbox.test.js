@@ -79,10 +79,10 @@ test('the Xbox build\'s caches: the glue on what it is made from, IL2CPP\'s obje
 
 test('the glue\'s key moves with Puerts\' configuration and GenerateGlue, not with the rest of the C#', async () => {
   const { glueKey } = await import('../scripts/unity-glue-key.mjs');
-  const { mkdtempSync, mkdirSync, writeFileSync } = await import('node:fs');
+  const { mkdirSync, writeFileSync } = await import('node:fs');
   const { join } = await import('node:path');
-  const { tmpdir } = await import('node:os');
-  const dir = mkdtempSync(join(tmpdir(), 'glue-key-'));
+  const { tempDir } = await import('../scripts/temp-dirs.mjs');
+  const dir = tempDir('glue-key-');
   mkdirSync(join(dir, 'Assets', 'HiraethJS', 'Editor'), { recursive: true });
   mkdirSync(join(dir, 'Assets', 'Gen'), { recursive: true });
   mkdirSync(join(dir, 'Packages'));
@@ -271,4 +271,32 @@ test('the Xbox at 1440p by default; the views and pictures of a plan in LocalSta
   assert.match(runner, /else Screen\.SetResolution\(2560, 1440, FullScreenMode\.FullScreenWindow\)/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /root \?\?= Application\.persistentDataPath/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /cullTest == "off"/);
+});
+
+test('the Xbox\'s shadow maps draw only what each cascade holds, and V8 takes its flags (issue #113)', () => {
+  const shadows = read('unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethShadows.cs');
+  const inst = read('unity/Hiraeth/Assets/Hiraeth/Runtime/Wildlife.cs');
+  const pieces = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeShadowChunks.cs');
+  const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
+  const renderer = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs');
+  // the renderer lists culled by the view swept away from the sun too: ten planes at most, the far one at the cascade's reach
+  assert.match(shadows, /if \(SweepCull\)/);
+  assert.match(shadows, /q\.distance \+= Mathf\.Max\(0, -len \* Vector3\.Dot\(q\.normal, L\)\)/);
+  assert.match(shadows, /plan\.reach\);/);
+  assert.match(shadows, /p\.cullingMask = ~0u;/);
+  assert.match(shadows, /InstMats\.CullAll\(c, IndexOf\(c\)\)/);
+  // round the traveller (the brush's feet, mirrored back), as the web places them
+  assert.match(runner, /GetGlobalVector\("_Brush"\); return b == Vector4\.zero \? \(Vector3\?\)null : new Vector3\(-b\.x, b\.y, b\.z\);/);
+  // the instanced casters by instance, by their reach round their place; the whole set when the bounds are not known
+  assert.match(inst, /rad\[i\] = meshR \* s \+ 0\.01f;/);
+  assert.match(inst, /if \(!casts \|\| drawnAt != Time\.frameCount \|\| count <= 0 \|\| !boundsOk\) return;/);
+  // the big meshes' pieces: their layout byte for byte, a layer the camera leaves out, every cascade; points moved: whole again
+  assert.match(pieces, /m\.SetVertexBufferParams\(n, attrs\);/);
+  assert.match(pieces, /public static float Cell = 128,/);
+  assert.match(runner, /cam\.cullingMask &= ~\(1 << BridgeShadowChunks\.Layer\)/);
+  assert.match(shadows, /if \(r\.gameObject\.layer == PieceLayer\) rad = float\.PositiveInfinity;/);
+  assert.match(renderer, /if \(chunked\.Count > 0\) Unchunk\(md\);/);
+  // V8's flags through the relinked DLL's own export, before the first engine
+  assert.match(read('scripts/unity-uwp-v8-stubs.cpp'), /HiraethV8Flags\(const char\* flags\) \{ if \(flags\) v8::V8::SetFlagsFromString\(flags\); \}/);
+  assert.match(runner, /void Boot\(byte\[\] code\)\s*\{\s*V8Flags\(\);/);
 });

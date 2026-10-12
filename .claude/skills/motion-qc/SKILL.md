@@ -21,22 +21,31 @@ Three ways of moving him are compared (`--ways`):
 ## 1. Run it
 
 ```sh
-export PATH="/Users/anf/Library/Application Support/Zed/node/node-v24.11.0-darwin-arm64/bin:$PATH"
 node scripts/motion-qc/run.mjs <scratch>/motion [--ways moves,mm] [--only stairs,pivot]    # node, ~40 s
 node .claude/skills/motion-qc/run.mjs <scratch>/motion-world [--worlds desert,bazaar] [--ways moves,mm] [--cpu 4]   # browser, ~1 min a run
+node scripts/motion-qc/diff.mjs <before>/motion.json <after>/motion.json [--way moves]   # two node runs side by side
 ```
+
+Node 22.12 or newer on PATH (the global `WebSocket` and Vite's floor; CI uses 24; Zed's bundled node works).
 
 - **Node** (`scripts/motion-qc/run.mjs`): the real Player, Animator, feet and matcher on the gait harness's course (flat
   ground, a 12° ramp, 18 cm stairs: src/gait-course.js), the game's coral-shirt traveller. Seconds a scenario: the
   loop to try a fix in. Writes `motion.json`, `motion.md` and `<scenario>.<way>.svg` (the worst frames drawn from the
-  side and from above, the feet's trails, held feet filled). Exits 1 if a `moves` run is red.
+  side and from above, the feet's trails, held feet filled; drawn by `scripts/motion-qc/sheet.mjs`, `sheetSVG`: the
+  pose from the body's right with ghosts of the frames ±4 and ±8 either side, the ground, the balls' trails over
+  ±0.25 s from above, captioned). Exits 1 if a `moves` run is red.
 - **Browser** (the skill's `run.mjs`): the same hands in the real game, one world after another (the desert's open
   sand, the Signal Market's street, the Arena's floor), each way on a fresh boot. PORT (default 5363; **never
-  5173**, the author's own server), CDP (default 5364); `VITE_CACHE=<checkout>/.vite-cache` in a worktree whose
+  5173**, the author's own server); Chrome picks its own debugging port (port 0, read from the profile's
+  `DevToolsActivePort`); `VITE_CACHE=<checkout>/.vite-cache` in a worktree whose
   node_modules is a link. One muted headless Chrome (`--mute-audio`, the game's volumes at 0) and one Vite server,
   both closed at the end. `--cpu 4` throttles Chrome's CPU fourfold for the cost columns (a handheld's main thread,
   roughly). Writes `motion-world.json`, `motion-world.md`, `<scenario>.<way>.png` (pictures of the game at the worst
   frames, captioned) and `<scenario>.<way>.json` (the samples).
+- **Diff** (`scripts/motion-qc/diff.mjs`): two node runs' `motion.json`, before → after, as a markdown table per
+  scenario and way (`--way moves` keeps one way): the verdict, slide p95 and max, held, pops and jolts a minute, the
+  worst jolt and the worst boundary; then a summary line (red runs, limits failed, the means). The table the docs and
+  the changelog's numbers take.
 
 ## 2. The scenarios (`scripts/motion-qc/scenarios.mjs`)
 
@@ -90,16 +99,12 @@ reads as a flick; a joint 3 cm off its own smooth path in one frame is visible o
   their own phase.
 - Look at the contact sheet before believing a number: a skim mistaken for a step, a stair edge under a ball.
 
-## 5. Where it stands (October 2026)
+## 5. Where it stands
 
-docs/systems/animation.md, "The motion QC", has both tables. The default way is green on the 90° turn, the jog's veer,
-the curve and standing (one of fifteen before the QC's fixes), and red on the sprint (pops at every step, fewer since
-issue #57: 14 → 10 a minute), the stairs, the pivots (crossed feet 17 → 6 % since #57) and the starts and stops at a run
-(the worst stop's step 29 → 15 cm). Matching is red
-everywhere but standing: its captured starts, stops and turns are slower than the game's controller, so it slides
-about half again as far as the default. The browser runs are noisier than node's (the frame time varies); compare a
-world with itself, before and after, on the same machine. The City-Shaft was tried as a world and left out: from its
-landing every way the script runs into a railing or a house within the sprint, and he climbs it.
+docs/systems/animation.md, "The motion QC", holds the results: the node tables before and after each round of fixes
+(the default way and matching), the game's numbers per world, what the matcher costs and what is left red. Read it
+there, not here. The browser runs are noisier than node's (the frame time varies): compare a world with itself, before
+and after, on the same machine.
 
-When you change the motion: run node before and after (`diff.mjs`), put the tables in the docs, and the before/after
+When you change the motion: run node before and after (`diff.mjs`), put the table in that section, and the before/after
 numbers in the changelog's media (docs/systems/changelog.md).

@@ -13,6 +13,7 @@ import { join } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
+import { tempPath } from '../scripts/temp-dirs.mjs';
 
 const WORLDS = JSON.parse(readFileSync(new URL('../scripts/bench/viewpoints-worlds.json', import.meta.url), 'utf8')).worlds;
 const DESERT = JSON.parse(readFileSync(new URL('../scripts/bench/viewpoints.json', import.meta.url), 'utf8')).views;
@@ -37,7 +38,7 @@ function game(file, walks) {
 let file = null;
 async function lockstep(args, frames) {
   if (!file) {
-    file = join(tmpdir(), `hiraeth-pose-walks-${process.pid}.js`);
+    file = tempPath(join(tmpdir(), `hiraeth-pose-walks-${process.pid}.js`));
     await bundle('unity', { out: [file] });
     writeFileSync(file, readFileSync(file, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;'));
   }

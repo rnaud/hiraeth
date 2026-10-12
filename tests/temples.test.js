@@ -1524,7 +1524,7 @@ test('the Founders’ Belfry on foot: the west store’s arena and the east stor
   wait(2.2);
   assert.equal(rt.logic.isOpen('d4'), true, 'the far bell door');
   // ---- the Cloud-Mother's hall
-  assert.equal(walk(L(0, 16, 146.2)), true, `into her hall (${where()})`);
+  assert.equal(walk(L(0, 16, 150.2)), true, `into her hall (${where()})`);
   const G = rt.guardian;
   wait(0.4);
   assert.notEqual(G.state, 'sleep', 'she wakes');
@@ -1546,7 +1546,7 @@ test('the Founders’ Belfry on foot: the west store’s arena and the east stor
       assert.ok(lay, `she dives onto it and lies there, crying (${n})`);
       landed++;
     }
-    P.teleport(G.model.pos.clone().setY(L(0, 16, 0).y).add(V(G.model.pos.x > L(0, 16, 164).x ? -6 : 6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    P.teleport(G.model.pos.clone().setY(L(0, 16, 0).y).add(V(G.model.pos.x > L(0, 16, 168).x ? -6 : 6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
     ring();
   }
   assert.ok(landed > 0, 'a stone brought down under her at least once');
@@ -1722,7 +1722,7 @@ test('the Footprint on foot: the sphere set down on the walker’s print and you
   assert.equal(rt.logic.keysIn('d4'), 1, 'the Lodge’s key in it');
   assert.equal(rt.logic.isOpen('d4'), true, 'the far door opens');
   // ---- the Echo's Hall: answer each note; through the lens the one that answers wears the walker's print
-  assert.equal(walk(L(0, 0, 140)), true, `into the hall (${where()})`);
+  assert.equal(walk(L(0, 0, 144)), true, `into the hall (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
@@ -1929,7 +1929,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   assert.equal(walk(L(0, 7, 129.2)), true, `over the bridge (${where()})`);
   assert.ok(P.pos.y > L(0, 6, 0).y, 'over it, not in the furnace');
   // ---- the Tooth-Warden: four vents in a breath; then on its gear
-  assert.equal(walk(L(0, 7, 143.2)), true, `into the hall (${where()})`);
+  assert.equal(walk(L(0, 7, 147.2)), true, `into the hall (${where()})`);
   const G = rt.guardian, bG = rt.piece('bG');
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
@@ -2544,7 +2544,7 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   assert.ok(o1, 'orbs');
   assert.equal(walk(L(16.4, 9, WZ)) && walk(L(8, 9, WZ)) && walk(L(0, 9, 131.2)), true, `back out onto the far side (${where()})`);
   // ---- the Lamp-Room: stand still by the Lampless while it searches
-  assert.equal(walk(L(0, 9, 136.2)) && walk(L(0, 9, 145.2)), true, `through the great lock into the lamp-room (${where()})`);
+  assert.equal(walk(L(0, 9, 136.2)) && walk(L(0, 9, 149.2)), true, `through the great lock into the lamp-room (${where()})`);
   assert.equal(rt.logic.keysIn('d4'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);
@@ -2563,7 +2563,7 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it hangs low, searching (${n})`);
     const before = G.meter;
-    if (G.phaseIndex >= 2) P.teleport(lure.at.clone().setY(L(0, 9, 0).y).add(V(lure.at.x > L(0, 9, 148).x ? -9 : 9, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    if (G.phaseIndex >= 2) P.teleport(lure.at.clone().setY(L(0, 9, 0).y).add(V(lure.at.x > L(0, 9, 152).x ? -9 : 9, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
     else P.teleport(G.model.pos.clone().setY(L(0, 9, 0).y).add(V(4, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
     for (let i = 0; i < 8 / DT && G.meter === before && G.state === 'open'; i++) frame();
     assert.ok(G.meter > before || G.state !== 'open', `it drank (${n}: ${G.meter.toFixed(2)})`);
@@ -2807,7 +2807,7 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   assert.equal(walk(L(9.9, 9, 107.2)) && walk(L(9.9, 9, 129.2)) && walk(L(0, 9, 133.2)), true, `over the keeper's ledge (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > 8, 'on the far landing');
   // ---- the Mother's Hall: still her when she lies spent; later, mid-strike
-  assert.equal(walk(L(0, 9, 145.2)) && walk(L(0, 9, 147.2)), true, `through the great lock into the hall (${where()})`);
+  assert.equal(walk(L(0, 9, 149.2)) && walk(L(0, 9, 151.2)), true, `through the great lock into the hall (${where()})`);
   assert.equal(rt.logic.keysIn('d3'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);
@@ -3377,7 +3377,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   wait(2.5);
   assert.equal(rt.logic.isOpen('d4'), true, 'the great key turns');
   // ---- the Foreman's Workshop: when its face opens, all six numerals in one breath
-  assert.equal(walk(L(0, 9, 149.2)), true, `into the workshop (${where()})`);
+  assert.equal(walk(L(0, 9, 153.2)), true, `into the workshop (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep', 'it wakes');
@@ -3629,7 +3629,7 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, 145.2))); if (P.onGround && local().y > 26.5) { up = true; break; } }
   assert.ok(up, `up the vine (${where()})`);
   // ---- the Glasshouse: bloom the four dead beds, then the Gardener's back each time it kneels: in the sun
-  assert.equal(walk(L(0, 27, 154.2)), true, `through the great lock into the glasshouse (${where()})`);
+  assert.equal(walk(L(0, 27, 158.2)), true, `through the great lock into the glasshouse (${where()})`);
   assert.equal(rt.logic.keysIn('dB'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);
@@ -3995,7 +3995,7 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
   assert.equal(walk(L(-17.6, 12, CZ)) && walk(L(-8, 12, CZ)) && walk(L(0, 12, G0 + 31)), true, `back out to the far door (${where()})`);
   // ---- the First Sign: when it lowers its dish to listen, play its word back into it; it moves on to the next
-  assert.equal(walk(L(0, 12, G0 + 44)), true, `through the great lock into the hall (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 48)), true, `through the great lock into the hall (${where()})`);
   assert.equal(rt.logic.keysIn('d4'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);

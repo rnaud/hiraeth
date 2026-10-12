@@ -26,6 +26,8 @@ export const RAG = {
   still: 0.55,       // m/s: slower than this everywhere counts as lying still
   stillFor: 0.35,    // s of that before it is settled
   air: 0.2,          // s without touching anything: it is falling (a landing after that is a landing: Ragdoll.landing)
+  wall: 0.5,         // ground steeper than this (its normal's share of up: 60°) is a wall: pushed out sideways, never up it
+
 };
 
 // [name, bone, radius (m), mass]
@@ -62,6 +64,24 @@ export function trunkFrame(hipL, hipR, pelvis, chest, out = new THREE.Quaternion
   return out.setFromRotationMatrix(_m.makeBasis(_X, _Y, _Z));
 }
 
+const _gn = new THREE.Vector3(), _gr = new THREE.Vector3();
+/**
+ * The ground's normal at `p` (a point on it), into out (facing up): physics.groundNormal on level
+ * worlds, the face a ray down meets under any other up, else up itself (a test double, no slope).
+ */
+export function groundNormalAt(physics, p, up, step, out) {
+  if (up.y > 0.999 && physics.groundNormal) {
+    const r = physics.groundNormal(p.x, p.y + step, p.z, out);
+    if (r && r !== out) out.copy(r);
+  } else if (physics.rayHit) {
+    const hit = physics.rayHit(_gr.copy(p).addScaledVector(up, step), _gn.copy(up).negate(), step + 0.5);
+    out.copy(hit ? hit.normal : up);
+  } else out.copy(up);
+  if (!(out.lengthSq() > 0.5)) out.copy(up);
+  if (out.dot(up) < 0) out.negate();
+  return out;
+}
+
 export class Ragdoll {
   constructor() {
     this.x = Array.from({ length: N }, () => new THREE.Vector3());
@@ -69,6 +89,10 @@ export class Ragdoll {
     this.prev = Array.from({ length: N }, () => new THREE.Vector3());
     this.floor = new Float64Array(N);      // the ground level under each (along up) this sub-step
     this.contact = new Uint8Array(N);
+    this.gp = Array.from({ length: N }, () => new THREE.Vector3());    // the ground's point under each this sub-step
+    this.nrm = Array.from({ length: N }, () => new THREE.Vector3(0, 1, 0));   // ... and its normal
+    this.out = Array.from({ length: N }, () => new THREE.Vector3(0, 1, 0));   // ... and the way out of it (the normal, or level off a wall)
+    this.cor = Array.from({ length: N }, () => new THREE.Vector3());   // the ground's and walls' push this sub-step (not speed)
     this.w = JOINTS.map(([, , , m]) => 1 / m);
     this.r = JOINTS.map(([, , r]) => r);
     this.links = [];                       // [i, j, length, stiffness]
@@ -129,11 +153,20 @@ export class Ragdoll {
   /** The speed (m/s) of a landing after a fall, once (0 if it has not just landed). */
   takeLanding() { const v = this.landing; this.landing = 0; return v; }
 
-  /** One frame of simulation. `physics`: heightAbove(pos, up, step), optional pushCapsule. */
+  /**
+   * One frame of simulation. `physics`: heightAbove(pos, up, step); optional groundNormal(x, fromY, z,
+   * out) (+y up) or rayHit (any up) for the ground's slope, and pushCapsule for walls.
+   *
+   * The ground is a plane under each particle (its point and normal, found once a sub-step), and a
+   * particle in it is pushed out along the normal. What the ground and the walls push is not speed:
+   * the velocity is the particle's own motion (the links' pulls in it) less those pushes, with what
+   * goes into the ground or the wall taken away. It used to push straight up and keep the push as
+   * speed, so a body knocked into a cliff slid up its face with the speed it had (#214).
+   */
   step(dt, physics, up) {
     if (!(dt > 0)) return;
     const n = Math.min(6, Math.ceil(dt / RAG.sub)), h = dt / n;
-    const x = this.x, v = this.v, prev = this.prev, w = this.w;
+    const x = this.x, v = this.v, prev = this.prev, w = this.w, cor = this.cor, nrm = this.nrm, gp = this.gp, out = this.out;
     let touched = false;
     for (let s = 0; s < n; s++) {
       const drag = Math.exp(-RAG.drag * h);
@@ -141,10 +174,21 @@ export class Ragdoll {
         v[i].addScaledVector(up, -RAG.gravity * h).multiplyScalar(drag);
         prev[i].copy(x[i]);
         x[i].addScaledVector(v[i], h);
+        cor[i].set(0, 0, 0);
         // the ground under it: a ray from where it was (so nothing overhead counts as ground)
         const drop = Math.max(0, _a.subVectors(prev[i], x[i]).dot(up));
-        const hgt = physics.heightAbove(x[i], up, drop + this.r[i] + 0.05);
-        this.floor[i] = Number.isFinite(hgt) ? x[i].dot(up) - hgt : -Infinity;
+        const step = drop + this.r[i] + 0.05;
+        const hgt = physics.heightAbove(x[i], up, step);
+        const ok = Number.isFinite(hgt);
+        this.floor[i] = ok ? x[i].dot(up) - hgt : -Infinity;
+        gp[i].copy(x[i]).addScaledVector(up, ok ? -hgt : 0);
+        // its slope, where it is close enough to touch it this sub-step
+        if (ok && hgt < this.r[i] + 0.3) groundNormalAt(physics, gp[i], up, step + Math.max(0, hgt), nrm[i]);
+        else nrm[i].copy(up);
+        // (a wall-steep face pushes out level: along its normal the push would lift the body up it)
+        const ny = nrm[i].dot(up);
+        if (ny < RAG.wall) { out[i].copy(nrm[i]).addScaledVector(up, -ny); if (out[i].lengthSq() > 1e-8) out[i].normalize(); else out[i].copy(up); }
+        else out[i].copy(nrm[i]);
         this.contact[i] = 0;
       }
       for (let it = 0; it < RAG.iters; it++) {
@@ -157,8 +201,15 @@ export class Ragdoll {
         }
         this.limits(up);
         for (let i = 0; i < N; i++) {
-          const pen = this.floor[i] + this.r[i] - x[i].dot(up);
-          if (pen > 0) { x[i].addScaledVector(up, pen); this.contact[i] = 1; }
+          if (this.floor[i] === -Infinity) continue;
+          // out of the ground's plane, along its normal
+          // out of the ground's plane (its normal through the point under it), the way out: along the normal, or level
+          // off a wall, as far as it takes to clear the plane
+          const pen = this.r[i] - _a.subVectors(x[i], gp[i]).dot(nrm[i]);
+          if (pen > 0) {
+            const s = pen / Math.max(0.2, out[i].dot(nrm[i]));
+            x[i].addScaledVector(out[i], s); cor[i].addScaledVector(out[i], s); this.contact[i] = 1;
+          }
         }
       }
       // walls: the trunk as a capsule, pelvis to head (once a frame, on the last sub-step)
@@ -172,23 +223,27 @@ export class Ragdoll {
           const p = _p.copy(x[J.pelvis]);
           const push = physics.pushCapsule(p, r, -r, len + r, _push, axis);
           if (push && push.lengthSq() > 1e-8) {
-            for (let i = 0; i < N; i++) x[i].add(push);
+            for (let i = 0; i < N; i++) { x[i].add(push); cor[i].add(push); }
             pushed = _c.copy(push).normalize();
-            if (pushed.dot(up) > 0.5) for (const i of TRUNK) this.contact[i] = 1;   // lifted off a floor: that is lying on it
+            if (pushed.dot(up) > 0.5) for (const i of TRUNK) { this.contact[i] = 1; nrm[i].copy(pushed); out[i].copy(pushed); }   // lifted off a floor: that is lying on it
           }
         }
       }
       let fastest = 0;
       for (let i = 0; i < N; i++) {
-        const vi = v[i].subVectors(x[i], prev[i]).divideScalar(h);
-        if (pushed) { const out = vi.dot(pushed); if (out > 0) vi.addScaledVector(pushed, -out * 0.8); }
+        // its own motion, not the ground's or the wall's push
+        const vi = v[i].subVectors(x[i], prev[i]).sub(cor[i]).divideScalar(h);
+        if (pushed) { const into = vi.dot(pushed); if (into < 0) vi.addScaledVector(pushed, -into); }
         if (this.contact[i]) {
-          // friction: sliding dies away, and a slow slide stops (it holds on a slope up to ~20°)
-          const vn = vi.dot(up);
-          const vt = _d.copy(vi).addScaledVector(up, -vn), st = vt.length();
+          const G = out[i], vn = vi.dot(G);
+          // into the ground: stopped (a hard landing gives a little back)
+          if (vn < 0) vi.addScaledVector(G, -vn * (vn < -2 ? 1 + RAG.bounce : 1));
+          // friction along the ground: sliding dies away, and a slow slide stops (it holds on a slope up to ~20°)
+          const vo = vi.dot(G);
+          const vt = _d.copy(vi).addScaledVector(G, -vo), st = vt.length();
           const lose = Math.max(st * (1 - Math.exp(-RAG.slide * h)), RAG.grip * h);
           vt.multiplyScalar(st > lose ? (st - lose) / st : 0);
-          vi.copy(vt).addScaledVector(up, Math.max(vn, 0) * (vn > 2 ? RAG.bounce : 1));
+          vi.copy(vt).addScaledVector(G, vo);
         }
         fastest = Math.max(fastest, vi.lengthSq());
         if (this.contact[i]) touched = true;

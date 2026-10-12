@@ -8,6 +8,57 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.59', date: '2026-10-12', items: [
+    // the chime pirates reworked from the author's notes (src/minigames/pirates.js, pirates-rules.js; docs/systems/minigames.md
+    // "Pirates between worlds"; issue #206)
+    'The chime pirates count points now: each pirate you shoot down adds to your score, and when you win on the way to a new world the results turn your points into chimes, one chime for every 20 points, about as many as before.',
+    'Losing a pip of hull to the chime pirates is hard to miss: the screen’s edges flare red, the view shakes, your ship sparks and blinks, a row of pips shows under it with the lost one bursting, the pip in the corner pops, and you hear the crunch.',
+    'The chime pirates’ two aiming boxes are one sight: a ring with a small diamond further down the same line your shots fly. The ring tightens and turns coral when a pirate is in line, and flashes a mark when your shots hit.',
+    'The first time you meet the chime pirates, pushing the stick up dives, as in a plane, and the start card no longer offers to swap it. Once you have beaten them, the card lets you choose.',
+    'The pirates’ captain flies a gunship built for space instead of a sailing ship: gull wings with a brass turret on each tip, glowing engines, a skull and crossbones on its prow, and its bridge behind armour shutters.',
+    // roomier rooms and a steadier camera in them (src/temples/kit.js ANTE, src/ship/hull.js, interior.js, src/player.js
+    // ROOM_FIT; docs/systems/movement-and-camera.md "Small rooms"; issue #195)
+    'The rooms before each temple’s guardian are much bigger: wider, deeper and higher, so the camera has room behind you there instead of pressing into your back. The Mooring-House’s way to the Capstan Floor is wider and taller too.',
+    'Your ship is roomier inside: wider rooms, a higher ceiling, wider doorways, a longer cockpit and back room, a deeper bunk alcove and a bigger hold, where Orrin keeps his jar by the crates. The hull outside grew to fit.',
+    'In small rooms the camera settles: turning round, it keeps one steady distance instead of pushing in at every wall and back out at every gap, and it no longer creeps in and out by a few centimetres.',
+    'Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.',
+    { text: 'The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.' },
+    // distant shimmer (src/post.js INK_FAR, src/pipeline.js createSmaa, src/perf.js handheld `aa`; docs/systems/rendering.md
+    // "Far lines that would alias"; issue #225, from #218)
+    'On handhelds and phones, far-off towns, facades and forests no longer shimmer as you look round: lines on detail too small to draw at that distance are inked lighter, and the picture’s edges are smoothed more sharply.',
+    // three of the explorations polished against their sheets (issues #188, #189, #190; docs/systems/worlds.md)
+    'Lorn’s crystal roots now lie under the water instead of painted on it: soft-edged veins of violet and teal crystal seen through the surface, tapering into thinner twigs, fainter the deeper they run, with light flowing along them toward the Great Crystal.',
+    'Viridel’s water stair looks like a gardeners’ stair now, not a fortress: warm white stone in big blocks with rounded lips, terraces that step in and out, water spilling over the edges, ferns hanging down the walls and cypresses on the terraces.',
+    'The Garden’s lake shows its lost town wherever you stand: domes, towers and stepped pyramids reflected all round the water, shimmering, seen from the stepping stones and from both shores.',
+    // the Xbox's Unity preview at the City-Shaft's rim (unity/Hiraeth HiraethShadows CullFor, InstMats, BridgeShadowChunks,
+    // BridgeRunner -v8; docs/systems/performance.md "The City-Shaft's rim on the Xbox"; issue #113)
+    'The Unity preview on the Xbox holds close to 60 frames a second at the City-Shaft’s rim, where it ran at about 45: the sun’s shadows are only drawn for what can cast them into your view, and the script runs a little faster. The picture is the same.',
+  ] },
+  { v: '1.58', date: '2026-10-12', items: [
+    // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)
+    'A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.',
+    // the mantle in two (src/player.js MANTLE; docs/systems/movement.md; issue #215)
+    'Climbing onto a ledge now goes the way a body does it: hands on the edge, hauled up, a knee onto the top, then up on your feet and a step in. Push on as you get up and you are up sooner.',
+    // the Aerie's hall: the lee of anything solid (src/temples/pieces.js Gust lee; docs/systems/temples.md; issue #216)
+    'In the Aerie’s Hall of Winds anything solid between you and the wind now shelters you: a screen, the far wall, the stone. The pale streaks stop in its lee, so you can see where the wind can’t reach.',
+    'The glyph stone by each temple’s door and in its rooms holds your place: walk up to it and its glyph flares, and after a fall you come back to it. The first one you wake says so.',
+    // the needle walker plants itself first (src/wildlife/species.js needlePose; docs/systems/procedural-animation.md; issue #209)
+    'Vael’s needle walkers no longer turn into a needle in mid-air: one walks on a few steps, sets its tail’s tip down on the ground, and only then stands up on it, on a slope too.',
+    // the galactic map's scanner starts by the ship and must be swept first (src/story/signature-search.js scanStart,
+    // searchArmed; src/ship/starmap.js; issue #204)
+    'Opening the galactic map no longer finds a planet by itself: the scanner starts by the ship, clear of every uncharted region, and nothing locks until you have swept it a little, with the stick, the keys, the mouse or a finger.',
+    // the Start menu's sidebar and its page (src/menu-pad.js sideStep, src/controller.js menuNavigate; issue #210)
+    'In the Start menu, right now goes from the sidebar into the page it shows and left comes back; up and down go round the sidebar (from Resume up to Quit to title) and round the page. Dropdowns there open with A / × first, sliders still slide, and B / ○ steps back to the sidebar before it closes. The arrow keys move the same way.',
+    // the game menu reworked (src/game-menu.js, src/game-menu.css; docs/systems/ui.md "The game menu"; issues #213, #212)
+    'The game menu (View / Select) opens on your Quests now. Its items are large tiles with their names under them: press A / × on one to see it full screen, its picture large and what it is and does beside it, never over it, and use it from there (take a gun mode, take a gadget in hand, switch the fragment finder on or off). Left and right show the one before and after, B / ○ goes back.',
+    'The strip at the bottom of the game menu only names what you have picked and says what A / × does: the words are in the full view now. Keepsakes, sketches, sightings and finished quests open full screen with A / × too.',
+    'The Worlds page lists one world a row, so up and down go between them. A / × on one shows what you have found there and what is still to find: the story, each relic by name (a ? for the ones still hidden), the makers’ boxes, the fragments once you have found one, and the people you met.',
+    // the map of the world you are in (src/world-map.js, the game menu's Map; docs/systems/ui.md "The Map"; issue #205)
+    'A map of the world you are in, in the game menu right after Quests (one RB / R1 from where it opens) and in the Start menu: the ground drawn from above in ink and paper, with you and the way you face, your ship, the way on, the makers’ temples, the people you have met and the boxes you have opened. Pick one in the legend beside it to ring it on the map, and press A / × to zoom in on it.',
+    // the debug saves in the title's Saves screen (src/title.js debugSavesHtml, src/debug-save.js; docs/systems/dev-tools.md
+    // "The debug save"; issue #203)
+    'For playtesting, the Saves screen has a debug section: start at any world of the route in a new save, with everything in the worlds before it done and held, their quests, items, gadgets, keepsakes, trials’ rewards, fragments and Orrin’s upgrades. It goes into its own debug save, or into one of your saves if you choose one (asked first if it holds a save).',
+  ] },
   { v: '1.57', date: '2026-10-12', items: [
     // the Moon Foundry's picked explorations, one way through the world (src/foundry-street.js, src/foundry-cranes.js,
     // src/foundry-pour.js; docs/systems/worlds.md "The Moon Foundry: inside the moons, the cranes and the night pour"; issue #193)

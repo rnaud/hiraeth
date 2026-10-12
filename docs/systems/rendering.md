@@ -145,7 +145,7 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - a "pen pressure" noise swells and thins each line along its length.
 - **Supersampled antialiasing:**
   - the whole pipeline can render at 1.5× or 2×; the final colour passes
-    through FXAA and is scaled to the display;
+    through FXAA (SMAA on the Handheld preset: "Far lines that would alias") and is scaled to the display;
   - stroke sizes follow, so the lines just get cleaner;
   - the default is 1× on Retina screens, which are already dense.
 - **Hatching that follows form:** on slopes the strokes become height
@@ -760,6 +760,26 @@ the after-run is [visual-v1.21](../audits/visual-v1.21.md).
   (its enclosure 0.25-0.4 on Handheld's 4 taps), which takes the spot black in any shade, the ship's too (with every
   tap on him counted open it stays: not a person's tap). `tests/scout.test.js`.
 
+## How the visual probes' limits were set (`.claude/skills/visual-audit/probes.mjs`; October 2026)
+
+Each probe's limit was set on the bug it is for, the build before the fix against the one after (an archive of the
+old commit passed as `--root`, the same spots); the skill keeps the limits, this is where they came from.
+
+- **Ghost** (bug 1, the pale person-shaped shadows; fixed in 620c4384, `occlusionShare`): the pale region beside him
+  in mask 9 or 10 was 0.11 of his size on the Qanat tree's stairs at Handheld before and 0.003 after; the Givers'
+  Hearth 703 px before, 0 after. Hence 5 % of him or 300 px for the pale region, 30 % for the dark halo.
+- **Orbit** (bug 2, the dark masses that changed shape as the camera moved; fixed in c58cbcaa, taps anchored to the
+  surface): the frame-to-frame step's 95th percentile on the stairs 0.60 before, 0.20-0.23 after; the Hearth 0.54 /
+  0.25 before, 0.03-0.24 after. Hence 0.3. The swing narrows in a small room (`orbitScale`) because a full swing there
+  changed the camera's distance and the whole view, and flagged that, not the masks (visual-v1.4).
+- **Seams** (bug 3, the lit seam round the caves' floors; fixed in c58cbcaa): the Hearth's foot rays found 6 of 24
+  directions open before, 0 after; its sky-white line in the light term was 62-149 px before. Hence a run of 60 px
+  flagged, 30-60 px kept as a picture. The 0.3 m ray is there for furniture on legs (a bench in the Sealed Hangar, a
+  world since dismissed): the metre-high ray meets it, the foot ray passes under, and that is not a gap.
+- **Enemies off** (visual-v1.21 finding 6): a foe in the Undertower knocked the traveller out during the orbits, and
+  a traveller down stays where he fell, so a Signal Market shop was read with the shadow maps 3 km below. The probes
+  now run with foes off, get him up before each move and skip a probe he is not standing at.
+
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 
 (Since v0.89 the walls' grime streaks and chips are gone, replaced by sparse hairline cracks: materials.md,
@@ -1010,6 +1030,65 @@ ship flickered 62 pixels in 10 000 a frame on Handheld (the busiest world measur
   it stayed over 0.35; at 2.5 with the full ink the frame's ink went over 9 %, the lighter lines bring it back to
   8.7-9.2 %. The far islands (detail under 0.5, in the haze) keep theirs as drawn (`steady`).
 
+## Far lines that would alias (post.js 1c `INK_FAR`; SMAA on Handheld; issue #225, October 2026)
+
+"On my Retroid Pocket Nova I see a lot of aliasing far in the distance, or shimmering" (#218). Measured with the motion
+check at the Retroid's own frame (`record.mjs --preset handheld --res 730x410@2`: 730 × 410 CSS px at 2×, render scale
+0.75, so 1095 × 615 render pixels) and its new **`--far 60`**: the flicker counted again over the pixels more than 60 m
+off alone (a mask read once a path from debug view 4). The far parts flickered 2-4× as much as the frame: the desert's
+camp town 110 m off 88 per 10 000 in a slow pan, the Signal Market's facades down the street 201 in a slow turn (the
+whole frame 86, the most of any view measured on Handheld). Toggled in the page: **the ink lines were three quarters
+of it** (all lines off: 202 → 51 in the Market, 90 → 32 in the desert); the hatching nothing (it already fades to its
+tone under 4 → 2.2 px, `HATCH_AA`, and a stroke under a pixel wide keeps its coverage, the ±0.6 px ramp); FXAA off
+*lowered* the count a little (90 → 72: it spreads a pixel's flip over its neighbours, it doesn't stop it).
+
+**Why the lines**: a line is never under a render pixel wide (a kernel under one is drawn one wide: `max(w, 1.0)`), and
+the G-buffer is point-sampled. Far off, where the worlds' finest drawn detail (a window's frame, a strut, a step: about
+`INK_FAR.detail`, 0.25 m) is a pixel or two across, every edge of it gets a full-black line one pixel wide, a lattice
+that the pixel centres hit differently each frame: whole pixels flipping from paper to black and back. The thin bars'
+rule (`src/thin.js`: never thinner than 1.5 px) can't apply to a line, which is already a pixel; what is left is
+contrast.
+
+- **The rule (1c)**: on inked pixels (not the traveller's), the detail's size on screen at the line's nearest surface,
+  `detail × P11 / 2 × render height / depth` render px; as it goes from `px` 3 to 1.2 the line fades to `interior`
+  (0.35) of its ink, or `silhouette` (0.6) where it is a depth edge. Drawn lighter, a far line keeps its place and its
+  shape but no longer flips a pixel from paper to black; it reads as distance, as the haze's lines do. By the size
+  on screen, so it is a frame's own: on the Retroid lines start fading at ~50 m and reach their floor at ~120 m; at
+  1080p Medium 86 → 215 m; on High at Retina size 270 → 670 m (the haze has most of that by then). No taps, a few
+  multiply-adds; before the fog and the haze (they take their share of what is left). `inkFarKeep` mirrors it.
+- **SMAA on Handheld** (`QUALITY_PRESETS.handheld.aa = 'smaa'`, `pipeline.js createSmaa`): three's `SMAAPass` (its
+  edges and weights at the render size, 8-bit targets), its blend drawn straight to the canvas, sampling the
+  linear-filtered frame, so it scales as it blends (no extra pass). It follows the edges it finds instead of
+  softening every contrast: sharper ink than FXAA, and less flicker at the Retroid's frame (FXAA → SMAA, far: the
+  desert 42 → 38 pan, 47 → 37 turn; the Market 31 → 27, 79 → 75; Lorn II 14 → 12). **The Deck keeps FXAA**: at its
+  own 1280 × 800, a render pixel a CSS pixel, SMAA flickered more (the desert's far pan 50 → 78; FXAA's blur hides
+  the flips there). Every other preset keeps FXAA (`aaOf`).
+- **Results** (Handheld, 730 × 410 at 2×; flicker per 10 000 px over 60 m off, before → after; the whole frame in
+  brackets):
+
+| World | pan | turn |
+|---|---|---|
+| Desert (the camp town) | 87.8 → 38.0 (22.8 → 10.7) | 61.3 → 38.7 (22.3 → 12.5) |
+| Signal Market | 43.2 → 26.6 (20.1 → 15.3) | 201.4 → 74.7 (86.3 → 39.0) |
+| Lorn II | 27.6 → 12.1 (30.0 → 18.5) | 47.6 → 19.1 (23.1 → 12.6) |
+| Sealed Hangar | 36.5 → 19.3 (21.3 → 12.8) | 36.5 → 19.4 (22.6 → 13.4) |
+
+  What is left is the geometry itself under the pixels (lines off, the Market's turn still flickers 37 far off).
+- **Cost** (M4 Pro, headless Chrome, Handheld at 1460 × 820 at 0.75, the Retroid's render size; `passes.mjs
+  --toggles fxaa,smaa`, synced frame time, median of 7 in turns): SMAA over FXAA +0.18 ms at the desert's spawn, +0.05
+  on the dunes, +0.09 at the camps; 1c within the noise (builds timed in turns: ±0.4 ms either way). The Retroid not
+  measured (no device this round): at the ~3× the Mac measured for the machines (performance.md, round 5), 0.2-0.5 ms.
+- **The look**: near, nothing changes (on the Retroid the fade starts 50 m off); far towns and facades are
+  drawn in lighter lines, the haze's own direction. Pictures in the changelog (v1.59).
+- **Unity** (not changed here; its own ink shader, `Composite.shader`, and URP): the same rule is a multiply on the
+  composite's line value, `ink *= 1 - (1 - smoothstep(1.2, 3, 0.25 · P11 / 2 · _ScreenHeight / nearDepth)) · (1 -
+  lerp(0.35, 0.6, silhouette))` after its line kernels, before the fog; and on the handhelds (the Android build, the
+  Deck measured first) URP's SMAA (the camera's Anti-aliasing: SMAA, quality Medium) in place of FXAA, on the
+  final colour after the composite, the render scale as the web's.
+- `tests/distant-shimmer.test.js`: the fade's ends and floor, by size on screen (the Retroid fades at 150 m, Retina
+  doesn't), 1c's place in the shader and no taps; SMAA on Handheld only (Auto on a handheld too), FXAA elsewhere;
+  main.js's last pass by the preset.
+
 ## Half-transparent surfaces (materials.js `S_VEIL`, `src/veil.js`; October 2026)
 
 Lorn II's sheets draw the giant mushrooms as pale glass: the trunks behind show through the caps and the stalks
@@ -1160,6 +1239,7 @@ buildings' merged meshes against each other), the Buried Machine's two layers of
 Foundry's cells' solid surfaces against their drawn ones, Qanat's walls (25 m² on two of its houses), the cave of the
 giant's heart's floor and the keepers' stair, the Givers' Hearth's floor. The Warden's Well's 47 are nearly all on its
 tower's foot and crown outside, in the shaft.
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.

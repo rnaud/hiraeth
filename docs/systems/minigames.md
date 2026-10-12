@@ -418,38 +418,51 @@ chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?ga
 
 - **The rail** (`railPoint(s, u, v)`): the ship flies at `FLY.speed` (42 m/s) along a long gentle wander down -z
   (slopes under 0.3: `railX`, `railY`); it moves only across it, `u` right and `v` up within a 13 × 7.5 m box,
-  steered as a plane is (the stick forward dives, as in Star Fox 64 and on the jets; the start card's **Stick forward**
-  choice, `options.pitch`, makes it climb, and says which it is). Everything that flies with
+  steered as a plane is (pushing up dives, as in Star Fox 64 and on the jets, and the controls on the card say so:
+  `pirateControls(pitch)`). The start card's **Push up to: Dive / Climb** choice (`options.pitch`) is offered only once
+  the pirates have been beaten anywhere (the save's `minigame.pirates.beaten`; v1.59, issue #206: "don't let me switch
+  controls at first"): the kit's option `when(state)` (`kit/flow.js optionOffered`) hides it until then, and its value is
+  the default, whatever was kept. Everything that flies with
   the ship (the pirates, their shots, the bolts) is kept relative to it (`ds` ahead); the rocks, the mines and the
   repair rings hang still in space at an absolute `s`. Pure: `runStep(S, input, dt)` returns the step's events
   (`shot`, `kill`, `hurt`, `deflect`, `blast`, `lock`, `say`, `part`, `checkpoint`, `win`, `dead`, …), which the game draws.
 - **The run** (`SCRIPT`, about a minute and a half: 30 % shorter since v1.45, issue #88, the pilot's 138 s down to
   96): skiffs in a sweeping line and in a V, raiders that overtake from under the ship and hold ahead, firing, a hauler
-  laying mines, two teal repair rings, then the captain's galleon at 70 s (102 before) (`BOSS`): two brass gun pods
+  laying mines, two teal repair rings, then the captain's gunship at 70 s (102 before) (`BOSS`): two brass wingtip turrets
   (bursts of aimed shots), and once both are down the armoured bridge opens (rings of slow shots, skiffs from its
   hold). Left alone for `BOSS.stay` (52 s) it breaks off, and the run ends all the same without its bounty: a run
   always ends. Cut to get there: a line of skiffs, the second hauler and a vee; the belts drawn in with the script;
-  the galleon's parts 30 % lighter (32, 32 and 78). Rock belts (`BELTS`, `courseRocks(seedOf(destination))`): one
+  the captain's parts 30 % lighter (32, 32 and 78). Rock belts (`BELTS`, `courseRocks(seedOf(destination))`): one
   layout per destination, never a wall (the test checks every 60 m leaves most of the box open).
 - **The ship**: six pips of hull (the runner's lives); a rock, a shot, a ram or a mine costs one, then 1.1 s
-  untouchable (it blinks). A tap of A / × (Space, the touch ✺) fires the twin bolts; RT / R2 held streams them,
-  slower; **held**, the shot charges (0.7 s) and locks the pirate nearest the reticle (`findLock`, the coral LOCK
-  brackets): let go and the gold shot homes in and bursts (9 m: everything in it, their shots too; a bonus for each
+  untouchable (it blinks). **A pip lost is unmistakable** (v1.59, issue #206; `HURT`): the screen's edges flare red
+  under an ink band (0.7 s), the camera shakes (0.45 s), the ship sparks and blinks quicker at first, a row of pips
+  shows under the ship for 2.2 s with the lost one bursting out of its place (always, faintly, at two or fewer), the
+  corner's pip pops (`.mg-lives i.lost`), and a crunch sounds over the runner's hurt (`snd.hull`). A tap of A / × (Space, the touch ✺) fires the twin bolts; RT / R2 held streams them,
+  slower; **held**, the shot charges (0.7 s, an arc filling round the ring) and locks the pirate nearest the reticle
+  (`findLock`, the coral LOCK brackets): let go and the gold shot homes in and bursts (9 m: everything in it, their shots too; a bonus for each
   kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶): one quick whole turn
   (0.45 s, eased out so it snaps), a short shove aside, shots turned away while it spins. Scores: `POINTS`; a pip
   left at the end is worth 50.
-- **Chimes for what is shot down** (v1.45, issue #88: "make me win chimes when I destroy enemy ships"): `CHIMES_OF`,
-  a skiff 1, a raider 3, a hauler 5, a gun pod 6, the bridge 15 (about 79 in a run, against a guardian's purse of 40);
-  mines, rocks and ships rammed give none. Each kill on the way to a world pops its chimes in teal instead of its
-  points; the run counts them (`S.chimes`), the results say "Chimes won", and main.js's `onResult` banks them into the
-  wallet (`resources.addChimes(n, { source: 'pirates' })`) once, as the trip is marked won (a Retry after the win
-  flies it again for the score alone). The Arcade's game only scores.
+- **The reticle** (v1.59, issue #206: "the two boxes are confusing"): one line of fire, `aimAt` (where the bolts
+  will be), drawn as a broken ink ring 26 m down it and a small diamond 80 m down it (`RETICLE`). When the line runs
+  through a pirate or a live part of the captain (`aimTarget`: within its body and 0.6 m) the ring tightens and goes
+  coral, its four ticks closing in; a bolt that tells (the rules' `hit` event, or a kill) strikes a mark across it
+  (`HIT_MARK`, gold for a kill) with a dry tick. Until v1.59 it was two squares, 22 and 55 m down the same line.
+- **Points, then chimes** (v1.59, issue #206: "don't show '+3 chimes', just have points and at the end they convert into
+  chimes"): the run counts points only (`POINTS`, `S.score`: the corner's box, "+10" over each kill); won on the way to
+  a world, the results' tally (`tallyHtml`, counted up by `tally()` with a chime heard each tenth) turns them into
+  chimes at **one chime for every 20 points** (`CHIME_RATE`, `chimesFor(score)`), and main.js's `onResult` banks them
+  into the wallet (`resources.addChimes(n, { source: 'pirates' })`) once, as the trip is marked won (a Retry after the
+  win flies it again for the score alone). 20 keeps the economy: the pilot's runs score 1,580–1,670, 79–83 chimes,
+  where the chimes per ship (`CHIMES_OF`, v1.45: a skiff 1, a raider 3, a hauler 5, a gun pod 6, the bridge 15) gave 79.
+  A lost run keeps its points at the last checkpoint (`S.scoreAt`, `newRun({ score })`). The Arcade's game only scores.
 - **No skip; lost, from the checkpoint** (v1.45, issue #88: "I shouldn't be able to skip it"): on the way to a world
   the runner's links are `mandatory` (`transitLinks`): no Quit on any card, Esc backs out of nothing, the results'
   one button after a loss is **Retry from the checkpoint** (`kit/flow.js resultActions`). The script has two
   checkpoints (`CHECKPOINTS`: 33 s, after the first ring; 66 s, just before the captain): a lost run starts again from
   the last one passed (`newRun({ from })`: the waves before it gone by, the hull full, a moment untouchable, the
-  chimes won before it kept), and each loss makes the next run kinder (`MERCY`: the pirates fire 18 % less a loss,
+  points won before it kept), and each loss makes the next run kinder (`MERCY`: the pirates fire 18 % less a loss,
   down to 45 %; a pip more hull a loss, up to two); from the third loss on the hull holds at its last pip, so the ship
   always comes through (the captain breaks off in the end if nothing else): every fight on the way can be won. The
   setting that turned the pirates off on their own ("Pirates on the first flight to a new world") went with the skip;
@@ -459,7 +472,11 @@ chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?ga
 - **Drawn cheaply, no new shader**: the family ship's own model (`buildShipModel`, a quarter size, its rooms
   hidden); every pirate, rock, bolt, shot, spark and mote of dust is one of a few instanced meshes of the game's one
   material, coloured per instance (as the puffs and the dots are: the instancing variant every world compiles); the
-  galleon a few plain meshes; the sky the City Floating in Space's look (its stars and nebula, `INK_SPACE`, the
+  captain's gunship (`buildGunship`, v1.59, issue #206: a galleon under solar sails before; "the boss should be a space
+  ship, not a floating pirate ship") 13 plain meshes, one material a part (a hull with a grappling jaw and a skull and
+  crossbones on its face, gull wings to the turrets, two nacelles with glowing intakes and an engine astern, oxblood
+  armour, gun ports, coral chevrons and a pennant, the bridge's lens behind shutters on a tower), tipped 0.16 rad toward
+  the ship so its back reads, drawn to be read from in front; the sky the City Floating in Space's look (its stars and nebula, `INK_SPACE`, the
   destination's planet ahead in its galactic-map colour), so the ink pass's parts are the ones that world compiles.
   Measured (headless Chrome on the Mac, High, 1280 × 720): **1.5 ms of CPU and 7.5 ms of GPU a frame, ~50 draw
   calls, ~55k triangles**, in the waves and against the captain alike (the City Floating in Space's start: 6.7 / 9.2
@@ -476,8 +493,9 @@ chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?ga
   a win's main button **Fly on to <world>** (`links.win`).
 - Tests: `tests/pirates.test.js` (the rail, the rocks, the pilot `botInput` winning at 120, 60, 30 and 20 fps in under
   three quarters of the old run's time, an idle ship lost, the charge's lock and burst, the roll, the rings, the
-  captain breaking off, the controls and the pitch choice, the feel against Star Fox below, the chimes, the
-  checkpoints and the mercy), `tests/ambush.test.js` (which trips, the pages, the cards' buttons with no skip however
+  captain breaking off, the controls and the pitch choice (not offered until beaten), the feel against Star Fox below,
+  the points and the tally, a pip lost (the flash, the shake, the pips, the sound), the reticle's tightening and hit
+  mark, the gunship, the checkpoints and the mercy; a session is run on a recording host in node), `tests/ambush.test.js` (which trips, the pages, the cards' buttons with no skip however
   often it is lost, the lines' tones, the wiring and the chimes banked); the playthrough wins each ambush on the way
   (`tests/playthrough-agent.js shipTurn`) and checks that every first flight to a new world is ambushed and none home.
   `minigame.session.forward(t)` flies the run ahead by the pilot (the screenshots); `globalThis.__piratesBot = true`

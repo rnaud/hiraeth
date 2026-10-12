@@ -20,7 +20,8 @@
 //                                  evaluate an expression in the page at every screenshot: <out>/<id>/probe.json
 // PORT (default 5308) is Vite's; Chrome picks its own debugging port. Writes <out>/report.json and report.md.
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -230,10 +231,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function chrome({ size = [1280, 720], mobile = false } = {}) {
   const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-  const profile = mkdtempSync(join(tmpdir(), 'hiraeth-cineqc-chrome-'));
-  const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--remote-debugging-port=0', `--user-data-dir=${profile}`,
+  const profile = tempDir('hiraeth-cineqc-chrome-');
+  const proc = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--remote-debugging-port=0', `--user-data-dir=${profile}`,
     '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check', '--disable-gpu-shader-disk-cache', '--disk-cache-size=1',
-    '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', `--window-size=${size[0]},${size[1]}`, 'about:blank'], { stdio: 'ignore' });
+    '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', `--window-size=${size[0]},${size[1]}`, 'about:blank'], { stdio: 'ignore' }));
   // (port 0: Chrome picks a free one and writes it in the profile, so a stray Chrome on a fixed port is never driven by mistake)
   let tabs;
   for (let i = 0; i < 80 && !tabs; i++) {

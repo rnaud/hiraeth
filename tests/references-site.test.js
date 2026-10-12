@@ -3,7 +3,8 @@
 // index, and none of it in the over-the-air zip, the APK, the Deck or the Xbox packages.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -19,7 +20,7 @@ const picture = (w, h, r = 120) => sharp({ create: { width: w, height: h, channe
 
 /** A small checkout: references/ with a few pictures (one twice), a record, the lab's candidates. */
 async function fixture() {
-  const root = mkdtempSync(join(tmpdir(), 'refsite-'));
+  const root = tempDir('refsite-');
   const put = (p, data) => { mkdirSync(join(root, 'references', p, '..'), { recursive: true }); writeFileSync(join(root, 'references', p), data); };
   put('levels/The Desert/environment/IMG_1.JPG', await picture(2400, 1600));
   put('levels/The Desert/environment/prompt.txt', 'A desert with bones');
@@ -121,7 +122,7 @@ test('the site alone: the zip, the APK, the Deck and the Xbox packages leave ref
     assert.ok(siteOnly(f) && leftOff(f) && leftOutOfPackage(f), f);
   }
   for (const f of ['references.html', 'assets/references-abc.js', 'assets/reference-sheets-abc.js']) assert.ok(!siteOnly(f) && !leftOff(f), f);
-  const dir = mkdtempSync(join(tmpdir(), 'refsite-pack-')), dist = join(dir, 'dist');
+  const dir = tempDir('refsite-pack-'), dist = join(dir, 'dist');
   const put = (p, s = 'x') => { mkdirSync(join(dist, p, '..'), { recursive: true }); writeFileSync(join(dist, p), s); };
   try {
     put('index.html', '<!doctype html>'); put('references.html', '<!doctype html>'); put('assets/main.js');

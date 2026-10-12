@@ -8,6 +8,8 @@
 //   [--save 1]                     the frames as WebM clips (half size, and a 1:1 crop of the hottest part: --crop x,y,w,h)
 //   [--frames N] [--tag t] [--hour 10] [--js file] (run in the page after setup) [--keepframes 3,4] [--heatcrop x,y,w,h]
 //   [--zoomfrom 30 --zoomto 2]     the zoom path's distances
+//   [--far 60]                     also the flicker of what is over 60 m off alone (farFlicker: per 10 000 of those pixels;
+//                                  the mask read once a path from debug view 4, the depth)
 // Measures (per frame, per 10 000 px): flicker, a pixel that went one way by over 20 levels and came straight back
 // (with the world frozen and the camera moving a third of a pixel a frame, nothing should); jolt, its second
 // difference over 64; on the zoom and swing paths, the residual against the last frame warped to match (a straight
@@ -62,6 +64,15 @@ const TOG = {
   allfog: [`window.__pu ??= {}; window.__pu.hl ??= post.uniforms.uHazeLayers.value; window.__pu.hf ??= post.uniforms.uHeightFog.value; window.__pu.fm ??= post.uniforms.uFogDensity.value; post.uniforms.uHazeLayers.value = [300, 2, 0, 0]; post.uniforms.uHeightFog.value = [0, 20, 0, 0]; post.uniforms.uFogDensity.value = 0`,
     `post.uniforms.uHazeLayers.value = window.__pu.hl; post.uniforms.uHeightFog.value = window.__pu.hf; post.uniforms.uFogDensity.value = window.__pu.fm`],
   shadows: ['window.__ev ??= { n: preset().nearEvery, f: preset().farEvery, fine: cascades.fine.enabled }; preset().nearEvery = preset().farEvery = 1e9; cascades.fine.enabled = false', 'preset().nearEvery = window.__ev.n; preset().farEvery = window.__ev.f; cascades.fine.enabled = window.__ev.fine'],
+  // every ink line off (silhouettes, creases, colour and shadow edges): the lines' share of the flicker
+  lines: [`window.__pl ??= ['uDepthThresh', 'uNormalThresh', 'uAlbedoEdges', 'uShadowEdges'].map((k) => post.uniforms[k].value); post.uniforms.uDepthThresh.value = 1e6; post.uniforms.uNormalThresh.value = 1e6; post.uniforms.uAlbedoEdges.value = 0; post.uniforms.uShadowEdges.value = 0`,
+    `['uDepthThresh', 'uNormalThresh', 'uAlbedoEdges', 'uShadowEdges'].forEach((k, i) => { post.uniforms[k].value = window.__pl[i]; })`],
+  // the last pass's antialiasing off (the blit only scales the frame): found as the full-screen pass drawn to the canvas
+  aa: [`window.__aaOff = true; if (!window.__aaHook) { window.__aaHook = 1; const r = renderer.render.bind(renderer); renderer.render = (s, c) => { if (renderer.getRenderTarget() === null && s.children.length === 1 && s.children[0].material?.uniforms?.tDiffuse) { const m = s.children[0].material; m.__fs ??= m.fragmentShader; const want = window.__aaOff ? 'uniform sampler2D tDiffuse; varying vec2 vUv; void main() { gl_FragColor = texture2D(tDiffuse, vUv); }' : m.__fs; if (m.fragmentShader !== want) { m.fragmentShader = want; m.needsUpdate = true; } } return r(s, c); }; }`,
+    'window.__aaOff = false'],
+  // the last pass's antialiasing swapped (preset aa, pipeline.js): FXAA or SMAA
+  fxaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'fxaa'; resize()", 'preset().aa = window.__aa0; resize()'],
+  smaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'smaa'; resize()", 'preset().aa = window.__aa0; resize()'],
   motes: ['window.__mv = [wind.scene.visible]; wind.scene.visible = false', 'wind.scene.visible = window.__mv[0]'],
 };
 
@@ -266,14 +277,22 @@ await page.evaluate(() => {
   const gl = window.renderer.getContext();
   const M = window.__meas = {
     w: 0, h: 0, buf: null, y: [], heat: null, bw: 0, bh: 0,
-    begin() { const c = gl.canvas; this.w = gl.drawingBufferWidth; this.h = gl.drawingBufferHeight; this.buf = new Uint8Array(this.w * this.h * 4); this.y = []; this.bw = Math.ceil(this.w / 2); this.bh = Math.ceil(this.h / 2); this.heat = new Float32Array(this.bw * this.bh); this.n = 0; },
+    begin() { const c = gl.canvas; this.w = gl.drawingBufferWidth; this.h = gl.drawingBufferHeight; this.buf = new Uint8Array(this.w * this.h * 4); this.y = []; this.bw = Math.ceil(this.w / 2); this.bh = Math.ceil(this.h / 2); this.heat = new Float32Array(this.bw * this.bh); this.n = 0; this.far = null; this.farN = 0; },
+    // the far mask (--far): this frame is debug view 4 (pow(depth / 3000, 0.4), the sky white): pixels over m metres off
+    farMask(m) {
+      const { w, h, buf } = this; gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      const lo = Math.pow(m / 3000, 0.4) * 255, F = this.far = new Uint8Array(w * h); let n = 0;
+      for (let i = 0, j = 0; i < F.length; i++, j += 4) if (buf[j] > lo && buf[j] < 254) { F[i] = 1; n++; }
+      this.farN = n; return n / (w * h);
+    },
     grab() {
       const { w, h, buf } = this;
       gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
       const Y = new Uint8Array(w * h);
       for (let i = 0, j = 0; i < Y.length; i++, j += 4) Y[i] = (buf[j] * 54 + buf[j + 1] * 183 + buf[j + 2] * 19) >> 8;
       this.y.push(Y); if (this.y.length > 3) this.y.shift();
-      const r = { d1: 0, flick: 0, jolt: 0 };
+      const r = { d1: 0, flick: 0, jolt: 0, farFlick: 0 };
+      const F = this.far; let ff = 0;
       if (this.y.length >= 2) {
         const [a, b, c] = this.y.length === 3 ? this.y : [null, ...this.y];
         let s1 = 0, fl = 0, jo = 0; const T = 20;
@@ -284,12 +303,12 @@ await page.evaluate(() => {
             s1 += d < 0 ? -d : d;
             if (a) {
               const e = b[i] - a[i];
-              if ((d > T && e < -T) || (d < -T && e > T)) { fl++; this.heat[brow + (x >> 1)]++; }
+              if ((d > T && e < -T) || (d < -T && e > T)) { fl++; this.heat[brow + (x >> 1)]++; if (F && F[i]) ff++; }
               const j = d - e; if (j > 64 || j < -64) jo++;
             }
           }
         }
-        r.d1 = s1 / (w * h); let sm = 0; for (let i = 0; i < c.length; i += 97) sm += c[i]; r.mean = sm / (c.length / 97); r.flick = fl / (w * h); r.jolt = jo / (w * h);
+        r.d1 = s1 / (w * h); let sm = 0; for (let i = 0; i < c.length; i += 97) sm += c[i]; r.mean = sm / (c.length / 97); r.flick = fl / (w * h); r.jolt = jo / (w * h); r.farFlick = this.farN ? ff / this.farN : 0;
       }
       this.n++;
       return r;
@@ -389,6 +408,10 @@ const runPath = async (name, def, label, { keep }) => {
   // two frames at the start to settle (shadow maps, the noise bake, zones)
   const p0 = def.at(0, n);
   for (let k = 0; k < 6; k++) await page.evaluate(({ e, t, fov, dt }) => { window.__setCam(e, t, fov); window.__vt.step(dt); }, { e: p0.eye, t: p0.target, fov, dt: k < 3 ? 1 / 30 : dt });
+  let farShare = 0;
+  if (A.far) {
+    farShare = await page.evaluate(({ m, dt }) => { window.params.debug = 4; let s = 0; for (let k = 0; k < 12 && !s; k++) { for (let j = 0; j < 3; j++) window.__vt.step(dt); s = window.__meas.farMask(m); } window.params.debug = 0; window.__vt.step(dt); window.__vt.step(dt); return s; }, { m: +A.far, dt });
+  }
   const rows = [], full = [], crops = [];
   for (let i = 0; i < n; i++) {
     const p = def.at(i, n);
@@ -402,12 +425,12 @@ const runPath = async (name, def, label, { keep }) => {
     // (over 2.5 m of the wall each way: no parallax from what stands before or beside it)
     if (def.swing && i > 0) Object.assign(r, await page.evaluate(([a, f]) => window.__meas.rotRes(a, f), [def.swing * (A.sign ? +A.sign : -1), 1 / radPerPx]));
     if (def.zoom && i > 0) Object.assign(r, await page.evaluate(([k, hs]) => window.__meas.zoomRes(k, hs), [def.at(i - 1, n).dist / p.dist, (2.5 / (radPerPx * p.dist))]));
-    rows.push({ mean: +(r.mean ?? 0).toFixed(1), res: +(r.res ?? 0).toFixed(3), big: +((r.big ?? 0) * 1e4).toFixed(2), d1: +r.d1.toFixed(3), flick: +(r.flick * 1e4).toFixed(2), jolt: +(r.jolt * 1e4).toFixed(2) });
+    rows.push({ mean: +(r.mean ?? 0).toFixed(1), res: +(r.res ?? 0).toFixed(3), big: +((r.big ?? 0) * 1e4).toFixed(2), d1: +r.d1.toFixed(3), flick: +(r.flick * 1e4).toFixed(2), farFlick: +((r.farFlick ?? 0) * 1e4).toFixed(2), jolt: +(r.jolt * 1e4).toFixed(2) });
   }
   const heat = await page.evaluate((hc) => window.__meas.heatImage(0.5, 960, 600, hc), A.heatcrop ? A.heatcrop.split(',').map(Number) : null);
   const sk = n <= 3 ? 1 : 2, sum = (k) => rows.slice(sk).reduce((a, r) => a + r[k], 0) / Math.max(1, rows.length - sk);
   const pk = (k) => Math.max(...rows.slice(sk).map((r) => r[k]));
-  return { name, label, n, res: +sum('res').toFixed(3), resPeak: pk('res'), big: +sum('big').toFixed(2), bigPeak: pk('big'), d1: +sum('d1').toFixed(3), flick: +sum('flick').toFixed(2), flickPeak: pk('flick'), jolt: +sum('jolt').toFixed(2), joltPeak: pk('jolt'), rows, heat, full, crops };
+  return { name, label, n, res: +sum('res').toFixed(3), resPeak: pk('res'), big: +sum('big').toFixed(2), bigPeak: pk('big'), d1: +sum('d1').toFixed(3), flick: +sum('flick').toFixed(2), farFlick: +sum('farFlick').toFixed(2), farShare: +farShare.toFixed(3), flickPeak: pk('flick'), jolt: +sum('jolt').toFixed(2), joltPeak: pk('jolt'), rows, heat, full, crops };
 };
 
 // pops: at poses along the path, the same instant drawn twice, the second turned by a tenth of a pixel: an
@@ -457,8 +480,8 @@ for (const name of paths) {
   const r = await runPath(name, def, 'base', { keep: null });
   writeFileSync(`${file}-heat.jpg`, Buffer.from(r.heat.url.split(',')[1], 'base64'));
   if (def.zoom || def.swing) console.log(`${name.padEnd(8)} base     residual ${r.res} (peak ${r.resPeak})  over 32: ${r.big} /1e4 (peak ${r.bigPeak})\n  series ${r.rows.map((x) => x.big).join(' ')}`);
-  console.log(`${name.padEnd(8)} base     flicker ${String(r.flick).padStart(7)} /1e4 px (peak ${r.flickPeak})  jolt ${String(r.jolt).padStart(7)} (peak ${r.joltPeak})  change ${r.d1}  hottest crop ${r.heat.crop}`);
-  const entry = { base: { res: r.res, big: r.big, flick: r.flick, flickPeak: r.flickPeak, jolt: r.jolt, joltPeak: r.joltPeak, d1: r.d1, rows: r.rows, crop: r.heat.crop }, toggles: {} };
+  console.log(`${name.padEnd(8)} base     flicker ${String(r.flick).padStart(7)} /1e4 px (peak ${r.flickPeak})${A.far ? `  far (${(r.farShare * 100).toFixed(0)} % of the frame) ${r.farFlick}` : ''}  jolt ${String(r.jolt).padStart(7)} (peak ${r.joltPeak})  change ${r.d1}  hottest crop ${r.heat.crop}`);
+  const entry = { base: { res: r.res, big: r.big, flick: r.flick, farFlick: r.farFlick, farShare: r.farShare, flickPeak: r.flickPeak, jolt: r.jolt, joltPeak: r.joltPeak, d1: r.d1, rows: r.rows, crop: r.heat.crop }, toggles: {} };
   if (save) {
     const crop = A.crop ? A.crop.split(',').map(Number) : [...r.heat.crop, 960, 600];
     const s = await runPath(name, def, 'save', { keep: { crop } });
@@ -472,13 +495,13 @@ for (const name of paths) {
   }
   for (const tg of (['pan', 'orbitslow'].includes(name) || A.alltoggles ? toggles : [])) {
     const [off, on] = TOG[tg] ?? [tg, ''];
-    await page.evaluate(off + '; 1');
+    await page.evaluate(off + '; 1'); await page.waitForTimeout(500);   // (a pass made by the toggle loads its textures: SMAA's)
     const t = await runPath(name, def, tg, { keep: null });
     if (on) await page.evaluate(on + '; 1');
     writeFileSync(`${file}-heat-no-${tg}.jpg`, Buffer.from(t.heat.url.split(',')[1], 'base64'));
     if (def.zoom || def.swing) console.log(`${name.padEnd(8)} -${tg.padEnd(8)} residual ${t.res} (peak ${t.resPeak})  over 32: ${t.big} (peak ${t.bigPeak})\n  series ${t.rows.map((x) => x.big).join(' ')}`);
-    console.log(`${name.padEnd(8)} -${tg.padEnd(8)} flicker ${String(t.flick).padStart(7)} (peak ${t.flickPeak})  jolt ${String(t.jolt).padStart(7)} (peak ${t.joltPeak})  change ${t.d1}`);
-    entry.toggles[tg] = { res: t.res, big: t.big, flick: t.flick, flickPeak: t.flickPeak, jolt: t.jolt, joltPeak: t.joltPeak, d1: t.d1 };
+    console.log(`${name.padEnd(8)} -${tg.padEnd(8)} flicker ${String(t.flick).padStart(7)} (peak ${t.flickPeak})${A.far ? `  far ${t.farFlick}` : ''}  jolt ${String(t.jolt).padStart(7)} (peak ${t.joltPeak})  change ${t.d1}`);
+    entry.toggles[tg] = { res: t.res, big: t.big, flick: t.flick, farFlick: t.farFlick, flickPeak: t.flickPeak, jolt: t.jolt, joltPeak: t.joltPeak, d1: t.d1 };
   }
   results.paths[name] = entry;
 }

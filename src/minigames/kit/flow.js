@@ -38,6 +38,8 @@ export function quitHref(from) {
 //   { id, label, min, max, step, default, unit, hint }                    a stepper, − value + (a timing offset)
 // Kept in the save's flags, minigame.<id>.opt.<option>; ctx.option(id) reads them. With def.bestBy (an
 // option's id), each of its values keeps a best of its own (minigame.<id>.<value>.best).
+// `when(state)`: offered only once it is true (the pirates' stick pitch, after they are first beaten: issue #206);
+// until then the card does not show it and its value is its default, whatever was kept.
 
 export const optionKey = (gameId, optId) => `minigame.${gameId}.opt.${optId}`;
 
@@ -45,11 +47,15 @@ export const optionKey = (gameId, optId) => `minigame.${gameId}.opt.${optId}`;
 export function optionValue(def, state, optId) {
   const o = (def?.options ?? []).find((q) => q.id === optId);
   if (!o) return undefined;
+  if (!optionOffered(o, state)) return o.default ?? o.choices?.[0]?.[0] ?? 0;
   const kept = state?.flag?.(optionKey(def.id, optId));
   if (o.choices) return o.choices.some(([v]) => v === kept) ? kept : o.default ?? o.choices[0]?.[0];
   const v = Number.isFinite(kept) ? kept : o.default ?? 0;
   return Math.max(o.min ?? -Infinity, Math.min(o.max ?? Infinity, v));
 }
+
+/** Is the option on the start card yet (its `when`)? */
+export const optionOffered = (o, state) => !o?.when || !!o.when(state);
 
 /** A stepper's value moved by n steps, held inside its range. */
 export function stepOption(o, v, n) {

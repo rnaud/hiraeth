@@ -16,37 +16,37 @@ import { surfacePoly, surfaceRibbon, blob, arcStroke } from './geo.js';
 // built as a grid of panels round their openings (the door, the windows, the portholes).
 
 export const DECK = 0;              // the deck (ship-local y)
-export const CEIL = DECK + 2.35;    // the ceiling: 2.35 m clear, over the traveller's 2.2 m capsule
+export const CEIL = DECK + 2.9;     // the ceiling: 2.9 m clear (2.35 until issue #195: the close camera fought it), over the traveller's 2.2 m capsule
 export const LIFT = 2.6;            // the deck's height over the ground when parked on its legs
-export const HALF_W = 3.6;          // the side walls' plane (|x|) over the main body
-export const WALL_IN = 3.2;         // the rooms' walls (|x|): 0.4 m of hull
-export const NOSE_Z = -10, STERN_Z = 12.2;
+export const HALF_W = 4.2;          // the side walls' plane (|x|) over the main body (3.6 until issue #195)
+export const WALL_IN = 3.8;         // the rooms' walls (|x|): 0.4 m of hull
+export const NOSE_Z = -10.8, STERN_Z = 15.2;   // (-10, 12.2 until issue #195)
 export const LENGTH = STERN_Z - NOSE_Z;
 /** The footprint's middle along the ship (ship-local z): the hatch is a little forward of it. */
 export const CENTRE_Z = (NOSE_Z + STERN_Z) / 2;
 /** The hull's reach from the ship's origin (m, horizontally): what keeps clear of it must be further. */
-export const R = 12.6;
+export const R = 15.6;
 export const BELLY = -1.6;          // the belly (ship-local y)
-export const ROOF = 3.85;           // the roof (1.5 m of structure over the ceiling: the reference's tall, chunky hull)
+export const ROOF = 4.4;            // the roof (1.5 m of structure over the ceiling: the reference's tall, chunky hull)
 export const HATCH_A = -Math.PI / 2;   // the hatch faces local -x (a heading: polar(r, HATCH_A, y) is r metres out through it)
-export const HATCH = { z0: -0.65, z1: 0.65, y0: DECK, y1: DECK + 2.25 };
+export const HATCH = { z0: -0.8, z1: 0.8, y0: DECK, y1: DECK + 2.6 };
 /** The ramp's hinge: its distance from the centre line, out through the hatch. */
 export const HINGE_R = HALF_W + 0.05;
 /** Where the lavender starts (ship-local z) and where the cream stern section begins. */
-export const LAV_Z = 2.3, LAV_END = 10.6;
+export const LAV_Z = 2.9, LAV_END = 13.6;
 export const STRIPE = { y0: 1.25, y1: 1.55 };
 /** The main body's shoulder: the top of its flat side walls. */
-export const SHOULDER = 3.05;
+export const SHOULDER = 3.6;
 /** The four legs (ship-local x, z of their hips' line). */
-export const LEGS = [{ x: -2.75, z: -4.8 }, { x: 2.75, z: -4.8 }, { x: -2.6, z: 8.6 }, { x: 2.6, z: 8.6 }];
+export const LEGS = [{ x: -3.2, z: -5.6 }, { x: 3.2, z: -5.6 }, { x: -3.05, z: 11.0 }, { x: 3.05, z: 11.0 }];
 /** Where a leg's foot stands (x, z): out from its hip. */
-export const footOf = (l) => ({ x: Math.sign(l.x) * 3.55, z: l.z });
+export const footOf = (l) => ({ x: Math.sign(l.x) * (HALF_W - 0.05), z: l.z });
 /** The lift jets' mouths under the belly (ship-local). */
-export const BELLS = [[-1.0, -3.6], [1.0, -3.6], [-1.0, 6.4], [1.0, 6.4]].map(([x, z]) => new THREE.Vector3(x, BELLY - 0.5, z));
+export const BELLS = [[-1.2, -4.2], [1.2, -4.2], [-1.2, 8.0], [1.2, 8.0]].map(([x, z]) => new THREE.Vector3(x, BELLY - 0.5, z));
 /** The scorch on the port flank, forward of the hatch: its centre on the wall (the wall's normal is -x). */
 export const SCAR = { x: -HALF_W, y: 0.95, z: -3.75 };
 /** The cockpit's windshield: its sill and head (ship-local), for what must not cover it. */
-export const WINDOW = { z0: -9.3, z1: -7.3, y0: 1.55, y1: 3.6 };
+export const WINDOW = { z0: -10.1, z1: -8.1, y0: 1.55, y1: 4.15 };
 
 /**
  * The side openings of the main body: [{ side (-1 port, 1 starboard), z0, z1, y0, y1, kind }]; portholes are round
@@ -54,27 +54,27 @@ export const WINDOW = { z0: -9.3, z1: -7.3, y0: 1.55, y1: 3.6 };
  */
 export const OPENINGS = [
   { kind: 'door', side: -1, ...HATCH },
-  { kind: 'slot', side: -1, z0: 1.05, z1: 1.35, y0: 0.55, y1: 2.55 },
+  { kind: 'slot', side: -1, z0: 1.25, z1: 1.55, y0: 0.55, y1: 2.8 },
   { kind: 'window', side: 1, z0: -3.7, z1: -2.3, y0: 1.2, y1: 1.95 },
-  { kind: 'port', side: -1, z: 4.65, y: 1.5, r: 0.3 },
-  { kind: 'port', side: 1, z: 4.65, y: 1.5, r: 0.3 },
+  { kind: 'port', side: -1, z: 5.25, y: 1.5, r: 0.3 },
+  { kind: 'port', side: 1, z: 5.25, y: 1.5, r: 0.3 },
 ].map((o) => (o.kind === 'port' ? { ...o, z0: o.z - o.r - 0.1, z1: o.z + o.r + 0.1, y0: o.y - o.r - 0.1, y1: o.y + o.r + 0.1 } : o));
 
 // The loft: at each station the seven points of the starboard side from the belly up (x, y), mirrored
 // for port: belly, lower chamfer, chine, stripe bottom, stripe top, shoulder, roof edge.
-const MAIN = [[1.8, -1.6], [3.25, -0.95], [3.6, 0], [3.6, 1.25], [3.6, 1.55], [3.6, 3.05], [2.9, 3.85]];
+const MAIN = [[2.2, -1.6], [3.85, -0.95], [4.2, 0], [4.2, 1.25], [4.2, 1.55], [4.2, 3.6], [3.4, 4.4]];
 export const STATIONS = [
-  { z: NOSE_Z, v: [[0.8, -0.05], [1.1, 0.12], [1.35, 0.45], [1.4, 0.95], [1.4, 1.22], [1.25, 1.28], [0.95, 1.32]] },
-  { z: -9.3, v: [[1.15, -0.65], [1.9, -0.32], [2.35, 0.2], [2.4, 1.05], [2.4, 1.35], [2.25, 1.45], [1.75, 1.55]] },
-  { z: -7.3, v: [[1.7, -1.48], [3.1, -0.88], [3.45, 0], [3.48, 1.25], [3.48, 1.55], [3.45, 2.95], [2.85, 3.68]] },
-  { z: -6.1, v: MAIN },
+  { z: NOSE_Z, v: [[0.92, -0.05], [1.27, 0.12], [1.55, 0.45], [1.61, 0.95], [1.61, 1.22], [1.44, 1.28], [1.09, 1.32]] },
+  { z: -10.1, v: [[1.32, -0.65], [2.2, -0.32], [2.7, 0.2], [2.76, 1.05], [2.76, 1.35], [2.6, 1.45], [2.0, 1.55]] },
+  { z: -8.1, v: [[2.1, -1.48], [3.7, -0.88], [4.05, 0], [4.08, 1.25], [4.08, 1.55], [4.05, 3.5], [3.35, 4.23]] },
+  { z: -6.9, v: MAIN },
   { z: LAV_Z, v: MAIN },
-  { z: 7.9, v: MAIN },
-  { z: LAV_END, v: [[1.5, -1.25], [2.95, -0.7], [3.3, 0.1], [3.3, 1.25], [3.3, 1.55], [3.3, 2.9], [2.65, 3.6]] },
-  { z: STERN_Z, v: [[1.2, -0.75], [2.4, -0.4], [2.75, 0.2], [2.75, 1.25], [2.75, 1.55], [2.7, 2.75], [2.2, 3.25]] },
+  { z: 10.2, v: MAIN },
+  { z: LAV_END, v: [[1.9, -1.25], [3.55, -0.7], [3.9, 0.1], [3.9, 1.25], [3.9, 1.55], [3.9, 3.45], [3.15, 4.15]] },
+  { z: STERN_Z, v: [[1.5, -0.75], [2.85, -0.4], [3.25, 0.2], [3.25, 1.25], [3.25, 1.55], [3.2, 3.25], [2.6, 3.75]] },
 ];
 /** The main body (constant section, flat side walls) runs between these stations' z. */
-export const BODY = { z0: -6.1, z1: 7.9 };
+export const BODY = { z0: -6.9, z1: 10.2 };
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const Y = V(0, 1, 0);
@@ -123,7 +123,7 @@ export function undersideAt(x, z) {
 export function reachAt(a, y) {
   const yy = THREE.MathUtils.clamp(y, BELLY + 0.05, ROOF - 0.1), dx = Math.sin(a), dz = Math.cos(a);
   const inside = (t) => { const z = CENTRE_Z + dz * t; return Math.abs(dx * t) < halfWidthAt(z, yy); };
-  let lo = 0, hi = 14;
+  let lo = 0, hi = 17;
   if (!inside(0)) return 0;
   for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2; if (inside(m)) lo = m; else hi = m; }
   return lo;
@@ -195,7 +195,7 @@ const sideOf = (e) => (e <= 5 ? 1 : e >= 7 && e <= 12 ? -1 : 0);
 /** The side panels' colour at z: cream forward, lavender aft, cream again at the stern. */
 const sideKey = (z, y) => (z > LAV_Z && z < LAV_END ? 'lav' : y >= STRIPE.y0 && y <= STRIPE.y1 && z < LAV_Z ? 'stripe' : 'hull');
 const BAND_KEY = ['skirtDark', 'skirt', null, null, null, null, 'hull', 'belly'];
-const MID_Y = { 2: 0.6, 3: 1.4, 4: 2.2, 5: 3.4 };
+const MID_Y = { 2: 0.6, 3: 1.4, 4: 2.5, 5: 4.0 };
 
 /**
  * Build the exterior into `batch` (materials: hull, lav, stripe, skirt, skirtDark, belly, glass, dark, trim, teal, seam,
@@ -217,7 +217,7 @@ export function buildHull(batch, o = {}) {
       if (body && b >= 2 && b <= 4) continue;                       // (the flat walls, below)
       const P = [A[e], A[(e + 1) % 14], B[(e + 1) % 14], B[e]];
       const mid = P.reduce((s, p) => s.add(p), V(0, 0, 0)).multiplyScalar(0.25);
-      const hint = mid.clone().sub(V(0, 1.0, THREE.MathUtils.clamp(mid.z, -6, 8)));
+      const hint = mid.clone().sub(V(0, 1.0, THREE.MathUtils.clamp(mid.z, -6.8, 10.2)));
       // the windshield: two big panes either side of the centre frame on the front slope
       if (b === 6 && i === 1) {
         for (const s of [1, -1]) {
@@ -261,7 +261,7 @@ export function buildHull(batch, o = {}) {
   // ---- the pods: two slender pods raked up and back off the stern's top corners, on short pylons
   const dir = V(0, Math.sin(THREE.MathUtils.degToRad(50)), Math.cos(THREE.MathUtils.degToRad(50)));
   for (const s of [-1, 1]) {
-    const root = V(s * 2.3, ROOF - 0.05, 8.7);
+    const root = V(s * 2.75, ROOF - 0.05, 11.1);
     const base = root.clone().add(V(s * 0.15, 0.35, 0.2));
     batch.add('trim', strut(root, base, 0.28, 0.24, 6));                                   // the pylon
     const pod = new THREE.CylinderGeometry(0.13, 0.42, 4.4, 6, 1);
@@ -280,19 +280,19 @@ export function buildHull(batch, o = {}) {
   }
 
   // ---- the roof: a mast with a bent whip, a small dish, a hatch, vents and a light
-  batch.add('dark', strut(V(0.9, ROOF, 3.4), V(0.9, ROOF + 2.1, 3.4), 0.07, 0.035));
-  batch.add('dark', strut(V(0.9, ROOF + 1.5, 3.4), V(1.6, ROOF + 1.9, 3.6), 0.025));
-  batch.add('glowRed', new THREE.SphereGeometry(0.1, 8, 6).translate(0.9, ROOF + 2.15, 3.4));
+  batch.add('dark', strut(V(1.05, ROOF, 4.0), V(1.05, ROOF + 2.1, 4.0), 0.07, 0.035));
+  batch.add('dark', strut(V(1.05, ROOF + 1.5, 4.0), V(1.75, ROOF + 1.9, 4.2), 0.025));
+  batch.add('glowRed', new THREE.SphereGeometry(0.1, 8, 6).translate(1.05, ROOF + 2.15, 4.0));
   {
     const dish = new THREE.SphereGeometry(0.55, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2.6);
-    dish.rotateX(Math.PI * 0.7).translate(-1.2, ROOF + 0.75, 5.6);
+    dish.rotateX(Math.PI * 0.7).translate(-1.4, ROOF + 0.75, 6.6);
     batch.add('teal', dish);
-    batch.add('dark', strut(V(-1.2, ROOF, 5.6), V(-1.2, ROOF + 0.55, 5.55), 0.06));
+    batch.add('dark', strut(V(-1.4, ROOF, 6.6), V(-1.4, ROOF + 0.55, 6.55), 0.06));
   }
   batch.add('trim', new THREE.BoxGeometry(1.1, 0.12, 1.1).translate(0, ROOF + 0.06, -1.6));     // the roof hatch
   batch.add('dark', new THREE.BoxGeometry(0.5, 0.05, 0.5).translate(0, ROOF + 0.14, -1.6));
-  for (const z of [-4.4, -3.9, 0.9, 1.4]) batch.add('dark', new THREE.BoxGeometry(1.6, 0.08, 0.16).translate(z < 0 ? -1.1 : 1.1, ROOF + 0.04, z));
-  for (let k = 0; k < 3; k++) batch.add('glowTeal', new THREE.SphereGeometry(0.08, 8, 6).translate(-1.9 + k * 0.25, ROOF + 0.08, 9.6));
+  for (const z of [-5.0, -4.5, 1.1, 1.6]) batch.add('dark', new THREE.BoxGeometry(1.8, 0.08, 0.16).translate(z < 0 ? -1.3 : 1.3, ROOF + 0.04, z));
+  for (let k = 0; k < 3; k++) batch.add('glowTeal', new THREE.SphereGeometry(0.08, 8, 6).translate(-2.2 + k * 0.25, ROOF + 0.08, 12.1));
 
   // ---- under the belly: the four lift jets (bells), a keel strake
   for (const b of BELLS) {
@@ -300,7 +300,7 @@ export function buildHull(batch, o = {}) {
     batch.add('dark', new THREE.CylinderGeometry(0.62, 0.62, 0.06, 12).translate(b.x, BELLY - 0.02, b.z));
     batch.add('thrust', new THREE.CircleGeometry(0.4, 12).rotateX(Math.PI / 2).translate(b.x, b.y + 0.1, b.z));
   }
-  batch.add('dark', new THREE.BoxGeometry(0.4, 0.2, 9).translate(0, BELLY - 0.08, 1.4));
+  batch.add('dark', new THREE.BoxGeometry(0.4, 0.2, 10.6).translate(0, BELLY - 0.08, 1.7));
 
   // ---- the scar: a scorched halo, three dots over an arc (the glyph), soot streaks, on the port flank
   {
@@ -323,19 +323,19 @@ export function buildHull(batch, o = {}) {
   for (const l of LEGS) {
     const s = Math.sign(l.x);
     if (legs === 'up') {
-      batch.add('dark', new THREE.BoxGeometry(0.6, 0.35, 1.0).translate(s * 2.7, undersideAt(s * 2.7, l.z), l.z));   // stowed: the housings
+      batch.add('dark', new THREE.BoxGeometry(0.6, 0.35, 1.0).translate(s * 3.15, undersideAt(s * 3.15, l.z), l.z));   // stowed: the housings
       continue;
     }
     const f = footOf(l);
     const fy = o.footY ? o.footY(l) : -LIFT;
-    const uy = undersideAt(s * 2.85, l.z);   // (the hip on the lower chamfer)
-    const hip = V(s * 2.85, uy - 0.05, l.z), knee = V(s * 3.45, uy - 0.6, l.z - 0.35 * Math.sign(l.z - 2));
+    const uy = undersideAt(s * 3.3, l.z);   // (the hip on the lower chamfer)
+    const hip = V(s * 3.3, uy - 0.05, l.z), knee = V(s * 3.95, uy - 0.6, l.z - 0.35 * Math.sign(l.z - 2));
     const foot = V(f.x, fy + 0.32, f.z);
-    batch.add('trim', new THREE.BoxGeometry(0.7, 0.45, 0.9).translate(s * 2.75, uy, l.z));   // the hip housing
+    batch.add('trim', new THREE.BoxGeometry(0.7, 0.45, 0.9).translate(s * 3.2, uy, l.z));   // the hip housing
     batch.add('dark', strut(hip, knee, 0.2, 0.18));
     batch.add('dark', new THREE.SphereGeometry(0.24, 10, 8).translate(knee.x, knee.y, knee.z));
     batch.add('dark', strut(knee, foot, 0.15, 0.13));
-    batch.add('trim', strut(V(s * 2.6, uy - 0.1, l.z), knee.clone().lerp(foot, 0.45), 0.07));      // the piston
+    batch.add('trim', strut(V(s * 3.05, uy - 0.1, l.z), knee.clone().lerp(foot, 0.45), 0.07));      // the piston
     batch.add('dark', new THREE.CylinderGeometry(0.5, 0.6, 0.22, 12).translate(foot.x, fy + 0.11, foot.z));
     feet.push(new THREE.Vector3(foot.x, fy, foot.z));
   }
@@ -445,11 +445,11 @@ function seams(Q) {
   };
   const hline = (side, y, z0, z1) => { const x = side * (HALF_W + lift); q.quad(V(x, y - w, z0), V(x, y - w, z1), V(x, y + w, z1), V(x, y + w, z0), V(side, 0, 0)); };
   for (const side of [-1, 1]) {
-    for (const z of [-4.6, -2.0, 2.3, 3.6, 4.95, 6.3]) vline(side, z, 0.02, SHOULDER - 0.02);
-    for (const z of [-5.3, -1.0, 1.8]) vline(side, z, 0.02, STRIPE.y0 - 0.02);
+    for (const z of [-5.2, -2.0, 2.9, 4.4, 6.1, 7.8]) vline(side, z, 0.02, SHOULDER - 0.02);
+    for (const z of [-6.0, -1.1, 2.0]) vline(side, z, 0.02, STRIPE.y0 - 0.02);
     hline(side, 0.03, BODY.z0, BODY.z1);
     hline(side, SHOULDER - 0.03, BODY.z0, BODY.z1);
-    hline(side, 2.3, LAV_Z, BODY.z1);
+    hline(side, 2.6, LAV_Z, BODY.z1);
   }
 }
 /** The ship's frame of reference, named, for the docs and tests. */
@@ -467,7 +467,7 @@ export function doorGeometry() {
 }
 
 /** The ramp: a plank with rails and treads, hinge at the origin, running out along +x, top at y = 0. */
-export function rampGeometry(L, W = 1.25) {
+export function rampGeometry(L, W = 1.55) {
   const plank = new THREE.BoxGeometry(L, 0.16, W).translate(L / 2, -0.08, 0);
   const rails = [];
   for (const s of [-1, 1]) {

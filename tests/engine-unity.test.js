@@ -16,6 +16,7 @@ import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { capePacketWords } from '../engine/cape-job.js';
 import { AudioReplay } from '../engine/webaudio.js';
+import { tempPath } from '../scripts/temp-dirs.mjs';
 
 THREE.ColorManagement.enabled = false;
 const X = new THREE.Matrix4().makeScale(-1, 1, 1);
@@ -199,7 +200,7 @@ test('the motes and the footprints go to the port\'s own shaders; a print\'s pla
 });
 
 test('the Unity bundle in a bare V8 context, against a stand-in of the C# host', async () => {
-  const file = join(tmpdir(), `hiraeth-engine-unity-${process.pid}.js`);
+  const file = tempPath(join(tmpdir(), `hiraeth-engine-unity-${process.pid}.js`));
   await bundle('unity', { out: [file] });
   const calls = { Geometry: 0, Material: 0, Create: 0, Frame: 0, Look: 0, bytes: 0 };
   let lastFrame = null, look = null, screenJson = null;

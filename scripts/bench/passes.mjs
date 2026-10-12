@@ -4,10 +4,12 @@
 // refreshes averaged in), then A/B toggles timed the same way (the whole frame, synced by a readPixels).
 //   npx vite build && node scripts/bench/serve.mjs --port 6851 &
 //   node scripts/bench/passes.mjs --url http://localhost:6851/ --preset handheld --only cave,dunes
-//        [--res 1280x720] [--frames 48] [--reps 3] [--scale 2.5] [--eval snippet.js] [--toggles base,noFar,noNear,...] [--wet 1] [--shots dir] [--out file.json]
+//        [--headless 1] [--res 1280x720] [--frames 48] [--reps 3] [--scale 2.5] [--eval snippet.js] [--toggles base,noFar,noNear,...] [--wet 1] [--shots dir] [--out file.json]
 // --wet 1: the cave's pool full and its stream running (as after the channel is cleared).
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { tempPath } from '../temp-dirs.mjs';
 import { options, viewpoints, sleep } from './lib.mjs';
 import { launch, glInfo } from './browser.mjs';
 import { SCALE, prepareStorage, conditions } from './web-page.mjs';
@@ -54,10 +56,13 @@ const TOGGLES = {
   noPool: ['level.qanat.cave.pool.visible = level.qanat.cave.stream.visible = false', 'level.qanat.cave.pool.visible = level.qanat.cave.stream.visible = true'],
   noWaterPass: ['window.__ro = waters.renderOver; waters.renderOver = () => {}', 'waters.renderOver = window.__ro'],
   scale05: ['quality.renderScale = 0.5; resize()', 'quality.renderScale = window.__scale; resize()'],
+  // the last pass's antialiasing (preset aa, pipeline.js): FXAA in the blit, or SMAA in its place
+  fxaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'fxaa'; resize()", 'preset().aa = window.__aa0; resize()'],
+  smaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'smaa'; resize()", 'preset().aa = window.__aa0; resize()'],
 };
 
-const profile = resolve(`/tmp/.chrome-passes-${process.pid}`);
-const { ctx, page } = await launch({ w, h, profile });
+const profile = tempPath(resolve(join(tmpdir(), `.chrome-passes-${process.pid}`)));   // (in TMPDIR, removed at exit)
+const { ctx, page } = await launch({ w, h, profile, headless: opt.headless === '1' });   // (--headless 1: no window on the screen; the GPU checked below)
 const ev = (fn, arg) => page.evaluate(fn, arg);
 page.on('pageerror', (e) => console.error('page error:', String(e).slice(0, 200)));
 await page.goto(BASE + 'manifest.webmanifest');

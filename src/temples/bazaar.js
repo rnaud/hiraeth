@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus } from './kit.js';
+import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Platform, Bridge, EchoStone, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
 import { signModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
@@ -438,11 +438,9 @@ function layout(rt) {
 
   // ---- the corridor and the First Sign's Hall (floor 12)
   const H0 = G0 + 37.2;
-  K.slab(-3.2, H0 - 0.6, 3.2, H0 + 3.4, 12, 0.8);
-  K.wall(-3.2, H0 + 0.2, -3.2, H0 + 3.4, 12, 7, { t: 0.8 }); K.wall(3.2, H0 + 3.4, 3.2, H0 + 0.2, 12, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.6, 0, 19.4, H0 + 1.6));
-  add(Mark, { room: 'ante', at: [2.2, 12, H0 + 1.6], yaw: -Math.PI / 2 });
-  const HR = 20, CW = H0 + 3.2 + HR + 1.4;
+  const AE = K.vestibule(H0, 12);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, 12, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  const HR = 20, CW = AE + 1.2 + HR;
   K.rotunda({ x: 0, z: CW, y: 12, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU + 0.4; dish(Math.sin(a) * (HR - 0.6), 26, CW + Math.cos(a) * (HR - 0.6), 2.8, a + Math.PI, 0.35); }
   for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU + 0.2; cable([Math.sin(a) * 4, 12.2, CW + Math.cos(a) * 4], [Math.sin(a) * (HR - 0.5), 12.2, CW + Math.cos(a) * (HR - 0.5)], 0.25); }

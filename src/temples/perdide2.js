@@ -3,7 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { LightShaft } from '../veil.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus } from './kit.js';
+import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, LightEar, Bridge, Ball, Plate, Mark, Pit, Key } from './pieces.js';
 import { mothModel } from './guardians.js';
 import { offsetOf } from '../levels/names.js';
@@ -393,11 +393,9 @@ function layout(rt) {
 
   // ---- the corridor, and the Lamp-Room (floor 9): a round hall, the great lamp dark in its cradle overhead
   const H0 = G0 + 35;
-  K.slab(-3.2, H0 - 0.6, 3.2, H0 + 3.4, 9, 0.8);
-  K.wall(-3.2, H0 + 0.2, -3.2, H0 + 3.4, 9, 7, { t: 0.8 }); K.wall(3.2, H0 + 3.4, 3.2, H0 + 0.2, 9, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.6, 0, 16.4, H0 + 1.6));
-  add(Mark, { room: 'ante', at: [2.2, 9, H0 + 1.6], yaw: -Math.PI / 2 });
-  const HR = 19, CL = H0 + 3.2 + HR + 1.4;
+  const AE = K.vestibule(H0, 9);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, 9, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  const HR = 19, CL = AE + 1.2 + HR;
   K.rotunda({ x: 0, z: CL, y: 9, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0 });
   // the lamp's cradle: a ring of brass on chains, a great glass lamp in it, dark until the end
   K.add(M.trim, T(annulus(4.2, 5, 0.4, 40), [0, 9 + 20, CL]));

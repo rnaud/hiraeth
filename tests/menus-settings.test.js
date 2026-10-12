@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { ORDER, SIDE, WIP, CHARTED_SIDE, isWip } from '../src/levels/names.js';
 import { mapEntries } from '../src/ship/starmap.js';
-import { padDirection, padConfirm, padCancel, padOpen, padReset, padStep, opensOnly } from '../src/menu-pad.js';
+import { padDirection, padConfirm, padCancel, padOpen, padReset, padStep, opensOnly, sideStep } from '../src/menu-pad.js';
 import { devMode } from '../src/dev-gate.js';
 
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
@@ -144,12 +144,37 @@ test('sliders step within their range', () => {
 test('the menus hand A, B and the held direction to menu-pad', () => {
   const main = src('src/main.js'), title = src('src/title.js'), ui = src('src/ui.js'), ctl = src('src/controller.js');
   assert.match(ctl, /this\.navigate\(y \? 0 : x, y, direction !== this\.direction\)/, 'a fresh push is told apart from a repeat');
-  assert.match(ctl, /if \(padDirection\(root\.contains\(current\) \? current : null, x, y, fresh\)\) return;/);
+  assert.match(ctl, /if \(!closedSelect && padDirection\(root\.contains\(current\) \? current : null, x, y, fresh\)\) return;/);
   assert.match(main, /menuNavigate\(root, x, y, fresh\)/);
   assert.match(main, /if \(!padConfirm\(el\)\) el\.click\(\);/);
   assert.match(title, /menuNavigate\(navRoot\(\), x, y, fresh\)/);
   assert.match(title, /if \(!padConfirm\(el\)\) el\.click\(\);/);
   assert.match(ui, /if \(padCancel\(\)\) return;/, 'B closes an open dropdown before the menu');
+});
+
+test('the Start menu: right goes from the sidebar into its page, left back, up and down wrap round each (issue #210)', () => {
+  const side = 9, page = 30;
+  // on the sidebar: up from the first is the last, down from the last the first; never into the page
+  assert.deepEqual(sideStep({ side, page, at: { in: 'side', i: 0 } }, 0, -1), { in: 'side', to: 8 });
+  assert.deepEqual(sideStep({ side, page, at: { in: 'side', i: 8 } }, 0, 1), { in: 'side', to: 0 });
+  assert.deepEqual(sideStep({ side, page, at: { in: 'side', i: 3 } }, 0, 1), { in: 'side', to: 4 });
+  // right: into the page, its first control, or where you left it
+  assert.deepEqual(sideStep({ side, page, at: { in: 'side', i: 3 } }, 1, 0), { in: 'page', to: 0 });
+  assert.deepEqual(sideStep({ side, page, at: { in: 'side', i: 3 }, back: 7 }, 1, 0), { in: 'page', to: 7 });
+  assert.equal(sideStep({ side, page, at: { in: 'side', i: 3 } }, -1, 0), null, 'left on the sidebar: nothing further left');
+  // in the page: up / down round its controls, left back to the sidebar's entry for the page shown
+  assert.deepEqual(sideStep({ side, page, at: { in: 'page', i: 29 } }, 0, 1), { in: 'page', to: 0 });
+  assert.deepEqual(sideStep({ side, page, at: { in: 'page', i: 0 } }, 0, -1), { in: 'page', to: 29 });
+  assert.deepEqual(sideStep({ side, page, at: { in: 'page', i: 5 }, home: 3 }, -1, 0), { in: 'side', to: 3 });
+  assert.equal(sideStep({ side, page, at: { in: 'page', i: 5 } }, 1, 0), null);
+  // nothing focused yet: the sidebar's entry for the page
+  assert.deepEqual(sideStep({ side, page, at: { in: null, i: -1 }, home: 3 }, 0, 1), { in: 'side', to: 3 });
+  // the source: menuNavigate uses it for a menu with a sidebar, B goes back to the sidebar with a pad, the arrows work too
+  const ctl = src('src/controller.js'), ui = src('src/ui.js');
+  assert.match(ctl, /root\.querySelector\?\.\('\.menu-nav'\)/);
+  assert.match(ctl, /sideStep\(/);
+  assert.match(ui, /f\.closest\?\.\('\.panel'\)/, 'B in the page: the sidebar first, with a pad');
+  assert.match(ui, /menuNavigate\(this\.el, dir\[0\], dir\[1\], !e\.repeat\)/, 'the arrow keys in the Start menu');
 });
 
 // ------------------------------------------------------------------ the debug entries

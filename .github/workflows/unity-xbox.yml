@@ -14,7 +14,8 @@ name: Unity release (Xbox, Developer Mode)
 #   the WebView2 app's certificate (XBOX_PFX_BASE64, as xbox.yml), its identity rnaud.HiraethUnity so it installs
 #   next to rnaud.Hiraeth.
 # - Published to the prerelease unity-xbox (never the latest): hiraeth-unity-xbox.zip (the .msix, its .cer and the
-#   dependency .appx files), from main only. The run keeps the same files as an artifact for a week.
+#   dependency .appx files), from main only, and the same zip onto the newest version's release (vX.Y) beside the
+#   APK, labelled with its commit (scripts/unity-publish.sh). The run keeps the same files as an artifact for a week.
 # - Cached (docs/systems/xbox.md, "The workflow's caches"): Puerts and its UWP natives, Unity's Library, the glue (on
 #   what it is made from), IL2CPP's objects for msbuild (on the C++ Unity wrote, restored from the newest); the
 #   editor image is pulled in the background from the job's start.

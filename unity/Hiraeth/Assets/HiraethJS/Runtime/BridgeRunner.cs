@@ -77,6 +77,7 @@ namespace Hiraeth.Bridge
             cam.tag = "MainCamera";
             cam.gameObject.AddComponent<AudioListener>();   // (where the sound is heard: BridgeAudio, muted in batch runs)
             cam.nearClipPlane = 0.1f; cam.farClipPlane = 6000f; cam.fieldOfView = 55;
+            if (BridgeShadowChunks.On) cam.cullingMask &= ~(1 << BridgeShadowChunks.Layer);   // (the shadow maps' pieces of big meshes: theirs alone)
             HiraethShadows.MainCamera = cam;   // (its shadow maps on their schedule: near every Quality.nearEvery frames, far every farEvery)
             RenderPipelineManager.beginCameraRendering += CullShadows;
             // (-no-srp-batcher: the SRP Batcher off, an A/B for the Surface shader's material buffer)
@@ -114,7 +115,19 @@ namespace Hiraeth.Bridge
             try
             {
                 var file = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "hiraeth.cjs");
-                code = StreamingFile.Read(file);
+                // (-bundle <file>: another bundle, a test of a change to the script alone without a new build: on the Xbox
+                // LocalState's (`ls.mjs put`), elsewhere the working directory's; the packaged one when it is not there)
+                if (BridgeArgs.Arg("-bundle") is string alt)
+                {
+#if UNITY_WSA && !UNITY_EDITOR
+                    var other = Path.IsPathRooted(alt) ? alt : Path.Combine(Application.persistentDataPath, alt);
+#else
+                    var other = Path.GetFullPath(alt);
+#endif
+                    if (File.Exists(other)) file = other;
+                    Debug.Log($"Hiraeth bridge: -bundle {alt}: {(file == other ? "read" : "not there, the packaged one")}");
+                }
+                code = file.Contains("://") ? StreamingFile.Read(file) : File.Exists(file) ? File.ReadAllBytes(file) : null;
                 if (code == null) throw new FileNotFoundException($"no bundle: node scripts/engine-bundle.mjs unity ({file})");
                 Debug.Log($"Hiraeth bridge: started {Time.realtimeSinceStartup * 1000:0} ms after launch; the bundle {code.Length / 1e6:0.0} MB");
             }
@@ -151,8 +164,34 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The bundle loaded and started (on the thread that runs it).</summary>
+#if UNITY_WSA && !UNITY_EDITOR
+        // (the Xbox's PapiV8.dll, relinked by scripts/unity-uwp-v8.ps1 with these two of its own: scripts/unity-uwp-v8-stubs.cpp)
+        [System.Runtime.InteropServices.DllImport("PapiV8")] static extern void HiraethV8Flags([System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPStr)] string flags);
+        [System.Runtime.InteropServices.DllImport("PapiV8")] static extern IntPtr HiraethV8Version();
+#endif
+        const string DefaultV8Flags = "--min-semi-space-size=16 --max-semi-space-size=64 --max-inlined-bytecode-size-cumulative=2000 --invocation-count-for-turbofan=500";
+        /// <summary>-v8 "&lt;flags&gt;": V8's own flags, set before the first engine is made (the Xbox's PapiV8 only); V8's version logged.</summary>
+        static void V8Flags()
+        {
+#if UNITY_WSA && !UNITY_EDITOR
+            if (JsRuntime.Backend != "V8") return;
+            try
+            {
+                var version = System.Runtime.InteropServices.Marshal.PtrToStringAnsi(HiraethV8Version());
+                // (by default a young generation of 16-64 MB, fewer scavenges of the frame's garbage, and TurboFan inlining more and
+                // sooner: the script ~1 ms a frame less at the City-Shaft's views, issue #113; -v8 none for Puerts' own)
+                var flags = BridgeArgs.Arg("-v8", DefaultV8Flags);
+                if (flags == "none") flags = null;
+                if (!string.IsNullOrWhiteSpace(flags)) HiraethV8Flags(flags);
+                Debug.Log($"Hiraeth bridge: V8 {version}, flags {(string.IsNullOrWhiteSpace(flags) ? "as Puerts sets them" : flags)}");
+            }
+            catch (Exception e) { Debug.Log("Hiraeth bridge: V8's flags: " + e.Message); }
+#endif
+        }
+
         void Boot(byte[] code)
         {
+            V8Flags();
             // (-jsinspect <port>: V8's inspector, for a profile of the script: scratchpad's cdp tools, Chrome's DevTools)
             int port = BridgeArgs.Arg("-jsinspect") is string ps && int.TryParse(ps, out int pp) ? pp : -1;
             js = thread != null ? new JsRuntime(BridgeHost.OnMainThread, port) : new JsRuntime();
@@ -310,6 +349,25 @@ namespace Hiraeth.Bridge
 #else
             HiraethShadows.UseRendererLists = BridgeArgs.Flag("-shadow-lists");
 #endif
+            // the renderer lists' casters culled by the camera's view swept away from the sun too (HiraethShadows.SweepCull: what
+            // the draws' path and the web's shadow culler leave out); -no-shadow-sweep off
+            HiraethShadows.SweepCull = !BridgeArgs.Flag("-no-shadow-sweep");
+            // with renderer lists, the instanced casters culled instance by instance (InstMats.CullInstances) and the big still
+            // meshes cast by pieces (BridgeShadowChunks, on a layer of their own the camera leaves out); -no-shadow-instances,
+            // -no-shadow-chunks off
+            InstMats.CullInstances = !BridgeArgs.Flag("-no-shadow-instances");
+            BridgeShadowChunks.On = HiraethShadows.UseRendererLists && !BridgeArgs.Flag("-no-shadow-chunks");
+            if (BridgeArgs.Arg("-shadow-chunk-cell") is string cc && float.TryParse(cc, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ccv)) BridgeShadowChunks.Cell = Mathf.Max(4, ccv);
+            if (BridgeShadowChunks.On) HiraethShadows.PieceLayer = BridgeShadowChunks.Layer;   // (the camera leaves them out: Start)
+            HiraethShadows.Census = BridgeArgs.Flag("-shadow-census");
+            // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
+            // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before
+#if UNITY_WSA && !UNITY_EDITOR
+            bool aroundTraveller = !BridgeArgs.Flag("-shadow-camera");
+#else
+            bool aroundTraveller = BridgeArgs.Flag("-shadow-traveller");
+#endif
+            if (aroundTraveller) HiraethShadows.Traveller = () => { var b = Shader.GetGlobalVector("_Brush"); return b == Vector4.zero ? (Vector3?)null : new Vector3(-b.x, b.y, b.z); };
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             BridgeRenderer.fullLayout = BridgeArgs.Flag("-full-layout");
             BridgeRenderer.zTestAlways = BridgeArgs.Flag("-ztest-always");
@@ -359,7 +417,7 @@ namespace Hiraeth.Bridge
                 Debug.Log($"Hiraeth bridge: Shader.WarmupAllShaders took {tw.ElapsedMilliseconds} ms");
             }
             Debug.Log($"Hiraeth bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}; " +
-                      $"queued frames {QualitySettings.maxQueuedFrames}, vsync {QualitySettings.vSyncCount}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, SRP Batcher {(GraphicsSettings.useScriptableRenderPipelineBatching ? "on" : "off")}, shadows {(HiraethShadows.On ? $"on ({(HiraethShadows.UseRendererLists ? "renderer lists" : "draws")}, fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {HiraethShadows.minCasterTexels} texels, far from {Mathf.Max(HiraethShadows.minCasterTexels, HiraethShadows.minFarCasterTexels)})" : "off")}");
+                      $"queued frames {QualitySettings.maxQueuedFrames}, vsync {QualitySettings.vSyncCount}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, SRP Batcher {(GraphicsSettings.useScriptableRenderPipelineBatching ? "on" : "off")}, shadows {(HiraethShadows.On ? $"on ({(HiraethShadows.UseRendererLists ? "renderer lists" : "draws")}, fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {HiraethShadows.minCasterTexels} texels, far from {Mathf.Max(HiraethShadows.minCasterTexels, HiraethShadows.minFarCasterTexels)}, {(HiraethShadows.UseRendererLists && HiraethShadows.SweepCull ? "swept by the view" : "the window alone")}, round the {(HiraethShadows.Traveller != null ? "traveller" : "camera")})" : "off")}");
         }
         /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
         public static string ResidentDrawerState()

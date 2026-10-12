@@ -4,7 +4,7 @@
 // how far each world you know has come, its boxes too (Worlds).
 //
 //   menuSources({ items, mode, quests, charge, keepsakes, journal, levels, known, current, boxes, errands, icon, titles, game })
-//     → { items(), quests(), sketches(), worlds() }
+//     → { items(), quests(), map(), sketches(), worlds(), people() }
 
 import { ITEMS } from './items.js';
 import { CHARGE, chargeStep } from './story/charge.js';
@@ -27,7 +27,7 @@ export function itemsData({ owned = [], mode = null, modes = [], gadget = null, 
     const d = ITEMS[id], m = MODE_OF[id];
     // (a gadget, src/gadgets/: in hand, or taken in hand from here)
     // (a thing you switch on and off from here: the fragment finder, `toggle`; in use while on)
-    if (d.toggle) return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: !!toggles[id], usable: true };
+    if (d.toggle) return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: !!toggles[id], usable: true, toggle: true };
     if (d.kind === 'gadget') return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: id === gadget, usable: gadgets.includes(id) && id !== gadget };
     return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: choice && !!m && m === mode, usable: choice && !!m && modes.includes(m) && m !== mode };
   });
@@ -87,13 +87,15 @@ export function sketchesData({ data = {}, levels = [], known = () => true, sight
 }
 
 /** Worlds: the worlds you know, in the route's order (`order`), with what is done in each. */
-export function worldsData({ data = {}, levels = [], order = [], known = () => true, current = null, boxes = {}, done = () => false, fragments = null } = {}) {
+export function worldsData({ data = {}, levels = [], order = [], known = () => true, current = null, boxes = {}, done = () => false, fragments = null, people = () => [] } = {}) {
   const byId = Object.fromEntries(levels.map((L) => [L.id, L]));
   const ids = [...order.filter((id) => byId[id] && known(id)), ...(current && byId[current] && !order.includes(current) && !byId[current].hidden ? [current] : [])];
   const list = ids.map((id, i) => {
     const L = byId[id], b = boxes[id];
     return { id, n: i + 1, title: L.title, thumb: `thumbs/${id}.jpg`, current: id === current, told: !!(data.stories?.[id] || done(id)),
       relics: [Object.keys(data.relics?.[id] ?? {}).length, (L.relicNames ?? []).length], boxes: b?.total ? [b.found, b.total] : null, blurb: L.blurb ?? '',
+      // (its full view, issue #213: the relics by name once found, a ? for the rest; the people met there)
+      relicList: (L.relicNames ?? []).map((name, k) => ({ name, found: !!data.relics?.[id]?.[k] })), people: people(id) ?? [],
       // (the fragments of the singing light found here and how many are left, once the first is found: src/fragments.js)
       fragments: fragments?.found && fragments.worlds?.[id]?.total ? [fragments.worlds[id].found, fragments.worlds[id].total] : null };
   });
@@ -133,6 +135,11 @@ export function menuSources(o) {
     quests: () => questsData({ quests: o.quests, charge: o.charge?.(), errands: o.journal?.data?.errands, defs: o.errandDefs ?? [], titles }),
     sketches: () => sketchesData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], known: o.known ?? (() => true),
       sightings: o.game ? sightingsData({ game: o.game, known: o.known ?? (() => true), titles }) : null }),
-    worlds: () => worldsData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], order: o.order ?? [], known: o.known ?? (() => true), current: o.current, boxes: o.boxes?.() ?? {}, done: o.done ?? (() => false), fragments: o.fragments?.() ?? null }),
+    worlds: () => {
+      const met = Object.fromEntries(metPeople(o.game?.data?.flags ?? {}).map((g) => [g.world, g.people.map((p) => p.name)]));
+      return worldsData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], order: o.order ?? [], known: o.known ?? (() => true), current: o.current, boxes: o.boxes?.() ?? {}, done: o.done ?? (() => false), fragments: o.fragments?.() ?? null, people: (id) => met[id] ?? [] });
+    },
+    // (the world you are in, from above: main.js draws it, src/world-map.js)
+    map: (arg) => o.map?.(arg) ?? null,
   };
 }

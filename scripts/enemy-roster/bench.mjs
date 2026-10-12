@@ -9,7 +9,8 @@
 // deleted after); without it, this checkout. One Vite (PORT, default 5480; never 5173), one Chrome (CDP: PORT + 1).
 // Headless timings are for comparing a before with an after on one machine, not absolute numbers.
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { rmSync, symlinkSync } from 'node:fs';
+import { tempDir } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,7 +31,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let dir = ROOT, work = null;
 if (arg('commit')) {
-  work = mkdtempSync(join(tmpdir(), 'hiraeth-bench-'));
+  work = tempDir('hiraeth-bench-');
   dir = join(work, 'tree');
   execFileSync('sh', ['-c', `mkdir -p "${dir}" && git archive ${arg('commit')} | tar -x -C "${dir}"`], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], maxBuffer: 1 << 30 });
   symlinkSync(join(ROOT, 'node_modules'), join(dir, 'node_modules'));

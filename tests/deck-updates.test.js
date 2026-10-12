@@ -3,7 +3,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { deckInfo, deckUpdates, plan, RESTART_EXIT } from '../desktop/deck-updates.mjs';
@@ -82,7 +83,7 @@ function fakeDeck(root, answers) {
 }
 
 test('the panel\'s calls run deck.py: check, download with progress, restart through deck.py', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'deck-updates-'));
+  const root = tempDir('deck-updates-');
   let next = local;
   const deck = fakeDeck(root, {
     '--status': () => ({ code: 0, out: JSON.stringify(status({ ...next })) }),

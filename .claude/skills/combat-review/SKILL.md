@@ -1,6 +1,6 @@
 ---
 name: combat-review
-description: Rate how good Hiraeth's combat is and how interesting each enemy is — telegraphs, counterplay, use of space and the kit, threat against fairness, identity, how foes combine; the moves (combo, charged cut, air cut, riposte, dash cut, guard and parry, gun modes), feedback, the difficulty curve across worlds and the lock-on camera — by driving the Arena headless and reading the tuning, and write docs/audits/combat-v<version>.md with scores and recommendations. Use when reviewing combat feel, a foe's design, a new enemy, or before a release.
+description: Rate how good Hiraeth's combat is and how interesting each enemy is — telegraphs, counterplay, use of space and the kit, threat against fairness, identity, how foes combine; the moves (combo, charged cut, air cut, riposte, dash cut, guard and parry, gun modes), feedback, the difficulty curve across worlds and the lock-on camera — by driving the Arena headless and reading the tuning, and write docs/audits/combat-v<version>.md with scores and recommendations. Use when reviewing combat feel, a foe's design, a new enemy, or before a release. Telegraph timing and fairness are judged here; poses and motion in procedural-animation; building an enemy in enemy-rework.
 ---
 
 # The combat review
@@ -28,75 +28,43 @@ no game code (it calls `foes.setPractice`, `foes.hurt` and reads state, nothing 
 
 ## 1. Drive the Arena
 
-```sh
-node .claude/skills/combat-review/arena.mjs <scratch>/combat [--kinds blot,crab] [--watch 24] [--version 1.4]
-```
+Three scripts beside this file, each one Vite server and one muted headless Chrome, closed at the end (PORT and CDP
+env vars; never 5173). Results so far and why each measure exists: docs/systems/foes.md, "The combat review's measures".
 
-PORT (default 5333) and CDP (Chrome's debugging port, default 5391). For each kind, in the Arena (`?level=arena`):
-- **watch**: it is called in (`foes.setPractice`), locked on, and fights a scripted player standing still (his health
-  topped up, every hurt counted) for `--watch` s: the **wind-ups as seen** (its state `wind`, per attack: median s), the
-  **attacks a minute**, the **health a minute** a still player loses (a threat measure: 1.0 is a full fresh bar a
-  minute; hurts are in hearts since v1.5, divided by the traveller's hearts);
-- **time to kill** with each move (`scripts/combat-review/lib.mjs movesFrom`, from the game's own tuning): the light
-  combo (1, 1, 2 over three swings), the full charged cut, the air cut, the riposte (on a stunned foe; its time adds one
-  of the foe's attack cycles to wait for the parry), the dash cut (its cooldown), and the gun's shot, ember and push
-  (tank charges, cooldown and refill). Each blow goes through `Foes.hurt` with the move's damage and source, so armour,
-  shells, weak points and immunities answer as in play; ∞ means that move can't kill it alone;
-- **a contact sheet**: each kind at the height of its wind-up, tiled 4 across (`telegraphs.png` / `.webp`) in the order
-  of the table.
+| script | purpose | key flags | writes |
+|---|---|---|---|
+| `arena.mjs <out>` | every kind watched against a still player, times to kill, the contact sheet, the guardians drawn | `--kinds a,b` `--watch 24` `--group role\|world` `--version 1.4` `--guardians no` `--drive 8` `--live-cap 40`; PORT 5333, CDP 5391 | `combat.json`, `combat.md` (the scored tables), `telegraphs.png`, `guardians.png` (and `.webp` when `cwebp` is there) |
+| `arena.mjs <out> --packs route\|desert,arzach --ttk <kinds run>/combat.json` | the difficulty curve: each world's packs, world by world | `--pack-count 4` `--pack-watch 20` `--pack-look still\|lock` `--pack-clear` `--clear-cap 90` `--clear-dodge` `--dodge-watch 30` | `packs.json`, `curve.md` |
+| `arena.mjs <out> --rescore <run>/combat.json [--moves-now]` | the scores and tables again from a run's numbers, no browser (after the rubric changed) | `--moves-now`: the times to kill re-timed with the moves as `lib.mjs movesFrom` times them now (the run's own tuning kept) | `combat.json`, `combat.md` in `<out>` |
+| `dodge.mjs <out>` | the perfect dodge, foe by foe: does a hop inside the window start a flurry? | `--kinds` `--guardians no` `--side` `--wait 9`; PORT 5335, CDP 5393 | `dodge.json` (and a summary line) |
+| `defend.mjs <out>` | guard, parry and evade at set leads, attack by attack | `--kinds` `--per 45` `--group role\|world` `--guard 0.5,0.3,…` `--evade 0.35,0.25,…`; PORT 5337, CDP 5395 | `defend.json`, `defend.md` |
 
-- **a puppeteer and its host** (any kind with `puppeteer`, the marionette): called in with its escort, the s until its
-  strings drop on a creature, the driven host watched (`--drive 8` s: its wind-ups, attacks and harm a minute), the strings
-  then cut as a hit on the rope does (`Foes.cutStrings`), and the s until it strings again; **to free it** is that wait
-  and the first blow of a move that cuts a rope (the air cut, an ember), beside the time to kill it (combat-v1.18 rec. 4);
-- **a roller** (any attack with `rolls`): its share of the watch spent rolled up, and the gun's modes and the combo dealt
-  **live**, one blow every cycle while it fights (`--live-cap 40` s), so the blows its shell glances off count; the
-  times to kill above are dealt on it at rest.
-
-It writes `combat.json`, `combat.md` (the scored tables) and the contact sheet. `--group role|world` splits the foes'
-table by role or by the first world that fields each kind: with a large roster, run it in batches (`--kinds`) and group.
-
-**The difficulty curve, world by world** (`--packs route` or `--packs desert,arzach`, with `--ttk <a kinds run's
-combat.json>`; `--pack-count 4`, `--pack-watch 20`): each world's packs (src/foe-worlds.js `packOf`, packs 1.. of a visit,
-seeded so two runs field the same draws), each kind in the world's skin and the world's turns (`foes.stage`: three
-strikers at once late on), set round the still player and watched: the pack's **hearts a minute** and **attacks a
-minute**; its **time to kill** (the sum of its members' best moves from the kinds run); the **hearts on arrival** (the
-start and every earlier shop's heart containers: src/shop.js, `heartsOnArrival`); and its **cost**, the hearts it takes
-from a traveller who trades blows with it standing still (hearts a minute × the time to kill), as a share of those
-hearts. Two strikers at a time cap a pack's pressure, so a bigger pack shows in the time and the cost more than in the
-hearts a minute. It writes `packs.json` and `curve.md`.
-
-The still traveller under-reads a big pack (combat-v1.22): looking one way, the members off the screen wait while another
-strikes. Two ways past it: **`--pack-look lock`**, the lock-on camera turning to each striker as a player would (the
-foe whose blow comes soonest, else the nearest: `foes.lock` turns the camera), and **`--pack-clear`** (with `--ttk`),
-the same pack placed again and cleared by a scripted traveller: he locks on the nearest, walks to it at a run and deals
-its best move from the kinds run (the riposte left out; from behind where the kinds run had to flank it) at that move's
-cadence while the pack fights back, `--clear-cap 90` s at most. The curve then has **cleared in (s)**, the **hearts to
-clear** it and their share of the hearts on arrival (the clear share): the cost measured, not multiplied. He never
-misses and never guards, so it is a floor (October 2026, two packs each: the Signal Market's packs cleared in 3-7 s for
-none of his hearts where the still traveller's cost said 5 hearts; locked on, the Garden's attacks a minute 28-68 → 56-76). With **`--clear-dodge`** the
-same pack is cleared again by a traveller who also hops back at every blow due inside the perfect dodge's window (the
-game's own keys, so main.js decides each flurry and its length: `clearDodge` has the hops, the flurries and the s spent in
-them), and **`--dodge-watch 30`** adds 30 s of only that, no cut, the pack never thinned: how often and how long the
-flurries chain (combat-v1.47's question; `src/flurry.js` `CHAIN` since v1.48). Guardians are scored from their tuning
-(telegraphs, attacks, openings, phases); play their temples for the rest (`?level=<world>` and the temple's door, or the
-dev menu's temple jump).
-
-**The perfect dodge, foe by foe** (`node .claude/skills/combat-review/dodge.mjs <scratch>/dodge [--kinds …] [--guardians no] [--side]`;
-PORT 5335, CDP 5393): each archetype and each guardian in turn, locked on, a still player; when a blow is due inside the
-window (src/flurry.js `dodgeLead`) the keyboard presses back (or D: `--side`) and jump, and the page reads whether the hop
-went off and the flurry began. Every foe should dodge into a flurry; a timeout means it never struck within `--wait` s.
-
-**Guard, parry and evade, attack by attack** (`node .claude/skills/combat-review/defend.mjs <scratch>/defend [--kinds …]
-[--per 45] [--group role|world] [--guard 0.5,0.3,0.2,0.12,0.06] [--evade 0.35,0.25,0.15,0.08,0.03]`; PORT 5337, CDP 5395):
-each kind in turn, locked on, a still player whose health and fluid are kept up. Each time one of its blows comes
-(src/flurry.js `foeThreat`), one try at a set lead before it lands: the guard raised (Ctrl, held until the blow is done)
-or the evade (Alt, tapped); every lead once for each of its attacks, within `--per` s a kind. What came of it is read
-from the player's own hooks (`Player.guard`: 'perfect' a parry, true a block; `Player.dodge`; `Player.hurt`). `defend.md`
-has a row a kind's attack: its wind-up, what a parry does to it, each lead's outcome (P, B, E, H, · it missed anyway),
-the furthest lead the guard holds from, where the parry's window lies and the evade's (against `GUARD.perfect` and
-`EVADE.iframes`), grouped by role or by world. An attack whose parry window is missing, or whose evade never takes,
-is a finding; an attack the guard can't hold from 0.3 s is one too.
+Method notes:
+- **Watch** (`arena.mjs`): each kind called in (`foes.setPractice`), locked on, against a still player whose health is
+  topped up and every hurt counted: the wind-ups as seen (state `wind`, median s per attack), attacks a minute, health
+  a minute (1.0 is a full bar a minute, in hearts over the traveller's hearts).
+- **Time to kill** per move (`scripts/combat-review/lib.mjs movesFrom`, from the game's tuning): the light combo, the
+  charged cut, the air cut, the riposte (plus one attack cycle to wait for the parry), the dash cut, the gun's shot,
+  ember and push. Each blow goes through `Foes.hurt`, so armour, shells, weak points and immunities answer as in play;
+  ∞ means that move can't kill it alone.
+- **Puppeteers** (any kind with `puppeteer`): the s until its strings drop on a host, the host driven (`--drive`), the
+  strings cut (`Foes.cutStrings`), the s until it strings again; to free is that wait plus a rope-cutting blow.
+  **Rollers** (any attack with `rolls`): the share spent rolled up, and the gun and the combo dealt live (`--live-cap`).
+- **Packs** (`src/foe-worlds.js` `packOf`, seeded): each world's skin and turns (`foes.stage`); hearts and attacks a
+  minute, the time to kill (from `--ttk`), the hearts on arrival (`heartsOnArrival`), the cost (hearts a minute × the time
+  to kill, a share of those hearts). The still player under-reads a big pack: `--pack-look lock` turns the camera to
+  each striker, `--pack-clear` has a scripted traveller lock on, run in and deal each member's best move (a floor: he
+  never misses or guards), `--clear-dodge` hops back at every blow inside the dodge window, `--dodge-watch` adds seconds
+  of only that (how flurries chain).
+- **Dodge** (`dodge.mjs`): when a blow is due inside `src/flurry.js` `dodgeLead`, back (or D: `--side`) and jump; every
+  foe should dodge into a flurry; a timeout means it never struck within `--wait` s.
+- **Defend** (`defend.mjs`): at each blow (`src/flurry.js` `foeThreat`), one try at a set lead: guard (Ctrl, held) or
+  evade (Alt, tapped), read from `Player.guard` ('perfect' a parry, true a block), `Player.dodge`, `Player.hurt`. A row
+  per attack: P, B, E, H, · (missed anyway), the furthest lead the guard holds from, the parry's and evade's windows
+  (against `GUARD.perfect`, `EVADE.iframes`). A missing parry window, an evade that never takes, or a guard that can't
+  hold from 0.3 s is a finding.
+- **Guardians** are scored from their tuning (telegraphs, attacks, openings, phases); play their temples for the rest
+  (`?level=<world>` and the temple's door, or the dev menu's temple jump).
 
 ## 2. The rubric, per foe (1-5 each)
 
@@ -133,7 +101,8 @@ in an Arena ring, phase by phase, at 85 % of the phase's first move (`--guardian
   hp, threat and telegraph by world, and the `--packs` run's cost share; does it rise, teach one idea at a time, and peak
   at the end (the Signal Market)?
 - **Camera and lock-on**: `LOCK` (reach, lose), the flick to switch (`FLICK`), the reticle, the camera during a lock and
-  with several foes; play it with a pad.
+  with several foes; play it with a pad. Here lock-on is judged as a combat tool; the lock-on camera's motion (pops,
+  spins, the foe hidden behind him) is camera-qc's (its `arena-lock` scenarios).
 
 ## 4. Write `docs/audits/combat-v<version>.md`
 
@@ -148,17 +117,16 @@ date: YYYY-MM-DD
 -->
 ```
 
-Keep the score tables as Markdown tables with one row per foe kind or guardian and the 1-5 scores in their own columns (a
-"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
-page draws them as bars and compares them with the last report's by the row's name and the column's header,
-so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+Keep the score tables with one row per foe kind or guardian. How the page reads them (columns, marks, comparing with
+the last report): docs/systems/ui.md, "The audits page", "Score tables, for the skills that write reports".
+`node --test tests/audits-page.test.js` checks the block.
 
 - **The setup:** commit, the date, how long each kind was watched, what was played by hand.
 - **The scores:** the foes' table and the guardians' (from `combat.md`, with the scores you changed marked and why), the
   combat-as-a-whole table, and the contact sheet (`docs/audits/combat-v<version>/telegraphs.webp`, under 1 MB).
 - **The best and the weakest foes**, and why.
 - **Recommendations**, most valuable first: each a change to a foe or a system with the evidence (a score, a number).
-  Put them in `TODO.md` as items, not fixes.
+  Open them as GitHub issues (TODO.md's tracker), not fixes.
 - **Against the last report**: what moved.
 
 Add it to the `docs/audits/` line of `docs/README.md`. Documentation only: no changelog line, no tuning changes unless

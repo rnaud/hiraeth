@@ -12,14 +12,18 @@ numbers say where to look; the contact sheet shows it.
 
 Read first: docs/systems/movement-and-camera.md ("The follow camera", "The camera QC and what it fixed").
 
+Lock-on: this skill covers the lock-on camera's motion (the `arena-lock` scenarios: pops, spins, the foe hidden behind
+the traveller); lock-on as a combat tool (reach, switching, whether it helps a fight) is combat-review's.
+
 ## 1. Run it
 
 ```sh
-export PATH="/Users/anf/Library/Application Support/Zed/node/node-v24.11.0-darwin-arm64/bin:$PATH"
-node .claude/skills/camera-qc/run.mjs <scratch>/camera [--only train-walk,desert-shop] [--worlds overnighttrain] [--preset medium]
+node .claude/skills/camera-qc/run.mjs <scratch>/camera [--only train-walk,desert-shop] [--worlds overnighttrain] [--preset medium] [--seed 1]
 ```
 
-PORT (default 5361; **never 5173**, the author's own server) and CDP (default 5362); VITE_CACHE a dependency cache inside the
+Node 22.12 or newer on PATH (the global `WebSocket` and Vite's floor; CI uses 24; Zed's bundled node works).
+PORT (default 5361; **never 5173**, the author's own server); Chrome picks its own debugging port (port 0, read from
+the profile's `DevToolsActivePort`). `--seed` (default 1) seeds the `wander` turns, so a run repeats. VITE_CACHE a dependency cache inside the
 checkout when the temporary one can't resolve the packages (a worktree whose node_modules is a link). One muted headless Chrome
 (`--mute-audio`, the game's volumes at 0) and one Vite server with its own dependency cache, both closed at the end;
 worlds one after another with a rest between. A full run (13 scenarios, 5 worlds) takes about 8 minutes.

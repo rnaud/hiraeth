@@ -240,6 +240,22 @@ export const HAZE = { edge: 0.18, lineFade: 0.85 };
  * the least a kernel under a render pixel keeps (drawn a pixel wide, it carries its coverage).
  */
 export const INK_SIZE = { step: [0.04, 0.1], onSliver: 0.3, farSide: 0.45, frame: [900, 0.6], minAlpha: 0.7, alphaAt: 1.6 };
+/**
+ * Lines on detail under a pixel (post.js 1c; docs/systems/rendering.md "Far lines that would alias", issue #225). Every
+ * line is at least a render pixel wide (a kernel under one is drawn one wide), so far off, where the worlds' finest
+ * drawn detail (`detail` m: a window's frame, a strut, a step) is a pixel or two on screen, the lines of it are a
+ * lattice of one-pixel steps that the pixels sample differently each frame: the far facades and the far town crawled
+ * as the camera panned. As that detail goes from px[0] to px[1] render pixels across, a line fades to `interior`
+ * (creases, colour and shadow edges) or `silhouette` (a depth edge) of its ink: drawn lighter, it keeps its place
+ * and its shape but no longer flips a pixel from paper to black. By the size on screen, so it reaches High's far
+ * distances only (a pixel there is a third of the handheld's).
+ */
+export const INK_FAR = { detail: 0.25, px: [3, 1.2], interior: 0.35, silhouette: 0.6 };
+/** How much ink a line keeps where the worlds' finest detail is `px` render pixels across (mirrors the GLSL 1c), its silhouette share `sil`. */
+export function inkFarKeep(px, sil = 0) {
+  const t = Math.min(1, Math.max(0, (INK_FAR.px[0] - px) / (INK_FAR.px[0] - INK_FAR.px[1]))), k = t * t * (3 - 2 * t);
+  return 1 - k * (1 - (INK_FAR.interior + (INK_FAR.silhouette - INK_FAR.interior) * sil));
+}
 /** How much a line keeps of its width on a frame `cssHeight` CSS px tall (mirrors the GLSL frameK). */
 export const inkFrame = (cssHeight) => Math.min(1, Math.max(INK_SIZE.frame[1], cssHeight / INK_SIZE.frame[0]));
 /** The layers' veil at a distance d (mirrors the GLSL hazeAt): 1 - (1 - a)^(layers passed, stepped). */
@@ -1278,6 +1294,15 @@ const fragmentShader = /* glsl */ `
         vec2 back = smoothstep(vec2(${INK_SIZE.step[0].toFixed(3)}), vec2(${INK_SIZE.step[1].toFixed(3)}), (mix(vec2(1e7), vec2(da, db), step(1e-6, vec2(da, db))) - nearD) / max(nearD, 1e-3));
         ink *= mix(1.0, ${INK_SIZE.farSide.toFixed(2)}, max(back.x, 0.5 * back.y));
       }
+    }
+
+    // ---- 1c. lines on detail under a pixel (INK_FAR; rendering.md "Far lines that would alias"): where the worlds'
+    // finest drawn detail is a pixel or two across, its lines are drawn lighter (silhouettes less so), so they no longer
+    // flip pixels from paper to black as the camera moves
+    if (ink > 0.02 && hero < 0.5) {
+      float detailPx = ${INK_FAR.detail.toFixed(3)} * uProj11 * 0.5 * uRes.y / max(nearD, 1e-3);
+      float sil = smoothstep(0.0, 0.25, eS.x - max(max(eI.y, eI.z * 0.85), eI.w * 0.8));
+      ink *= 1.0 - (1.0 - smoothstep(${INK_FAR.px[1].toFixed(2)}, ${INK_FAR.px[0].toFixed(2)}, detailPx)) * (1.0 - mix(${INK_FAR.interior.toFixed(3)}, ${INK_FAR.silhouette.toFixed(3)}, sil));
     }
 
     // People far away: a pen line of fixed width turned small figures into black shapes

@@ -315,7 +315,8 @@ function layout(rt) {
     if (i < 2) for (const x of [-7.2, 7.2]) feather(M.trim, x, 0, z + 4.5, 7, 0, 0);
   }
   // (the hall's wind comes up through the vent in its mouth, by the well: it blows while no stone sits in it)
-  add(Gust, { min: [-8, -1, 13], max: [8, 12, 51.6], dir: [0, 0, -1], shelters, calm: 3.2, blow: 2.2, warn: 0.8, push: 7.5, when: { not: { drumOn: ['ballW', 'pH'] } } });
+  // (lee: behind a screen or any wall the wind can't reach you, and its streaks stop there: issue #216)
+  add(Gust, { min: [-8, -1, 13], max: [8, 12, 51.6], dir: [0, 0, -1], shelters, lee: 3.5, floor: 0, streaks: 64, calm: 3.2, blow: 2.2, warn: 0.8, push: 7.5, when: { not: { drumOn: ['ballW', 'pH'] } } });
   // the stone, too heavy for the gusts: up its groove the length of the hall into the vent's socket in the corridor's
   // mouth (pH), a push at a time in the calms. Seated, it stops the hall's wind, and the wind rises in the well instead
   K.add(M.dark, box(1.0, 0.04, 53.4 - 15, 0, 0.02, (53.4 + 15) / 2));

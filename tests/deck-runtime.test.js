@@ -2,7 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runtimeKey, split, partName, runtimeJson, liveRuntime, writeRuntime, KEY_FILES, PART } from '../scripts/deck-runtime.mjs';
@@ -56,7 +57,7 @@ test('the live runtime is published again while its key holds, checked against i
   assert.equal(await liveRuntime(SITE, 'other', { fetch: site(), ...quiet }), null, 'other code: package a new one');
   assert.equal(await liveRuntime(SITE, 'same', { fetch: site({ sha256: '0'.repeat(64) }), ...quiet }), null);
   assert.equal(await liveRuntime(SITE, 'same', { fetch: async () => { throw new Error('offline'); }, ...quiet }), null);
-  const dist = mkdtempSync(join(tmpdir(), 'deck-runtime-'));
+  const dist = tempDir('deck-runtime-');
   mkdirSync(join(dist, 'updates'));
   await writeRuntime(dist, live.manifest, live.parts);
   assert.equal(readFileSync(join(dist, 'updates/steam-deck-795001.tar.gz.001'), 'utf8'), data.subarray(12).toString());

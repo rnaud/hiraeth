@@ -87,21 +87,32 @@ const quad = (u0, u1, y, s0, s1) => {
   g.computeVertexNormals();
   return g;
 };
-/** An upright quad across u at s, from y0 up to y1 (a fall down a wall's face, drawn only). */
-const fall = (u0, u1, y0, y1, s) => {
-  const a = fromStair(u0, y0, s), b = fromStair(u1, y0, s), c = fromStair(u0, y1, s), d = fromStair(u1, y1, s);
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute([...a.toArray(), ...b.toArray(), ...c.toArray(), ...b.toArray(), ...d.toArray(), ...c.toArray()], 3));
-  g.computeVertexNormals();
-  return g;
-};
 /** The beds' flowers, from the foot up (mint, pink, peach, lavender, round again: the sheets'). */
 export const BED_FLOWERS = ['#9fe0c4', '#f2a7b8', '#f6c7a0', '#b5a7e6', '#9fe0c4', '#f2a7b8', '#f6c7a0', '#b5a7e6'];
+/** Each bed a little wider or narrower than STAIR.w (m), so the terraces step in and out like the sheet's, not one block. */
+export const BED_WIDTHS = [0, 2.4, -1.6, 3.2, 0.8, -2.4, 1.6, -0.8];
+/** The rounded lip along each wall's top and side (m: its radius, how far under the bed's top its axis runs). */
+export const LIP = { r: 0.42, drop: 0.22 };
+/** A rod in the stair's frame from (u0, s0) to (u1, s1) at height y, radius r (a lip: along u or along s). */
+const rod = (u0, s0, u1, s1, y, r) => {
+  const L = Math.hypot(u1 - u0, s1 - s0), g = new THREE.CylinderGeometry(r, r, L, 12, 1);
+  g.rotateZ(Math.PI / 2).rotateY(-Math.atan2(s1 - s0, u1 - u0));
+  return g.translate((u0 + u1) / 2, y, (s0 + s1) / 2).applyMatrix4(FRAME);
+};
+/** An upright sheet across u at s from y0 up to y1, its uv in metres (x across, y up: a fall, waterfall-shader.js). */
+const sheet = (u0, u1, y0, y1, s) => {
+  const w = Math.abs(u1 - u0), h = y1 - y0, g = new THREE.PlaneGeometry(w, h, 1, 1);   // (facing up the stair: drawn from both sides)
+  const uv = g.attributes.uv, pp = g.attributes.position;
+  for (let i = 0; i < pp.count; i++) uv.setXY(i, pp.getX(i) + w / 2, pp.getY(i) + h / 2);
+  return g.translate((u0 + u1) / 2, (y0 + y1) / 2, s).applyMatrix4(FRAME);
+};
+/** A hash of a number, 0..1 (no rng: what stands round the stair stays where it was). */
+const hash1 = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 
 export function buildWaterStair(scene, terrain, L) {
   const { beds: N, bed: D, fw, w, ch, from, land, gated } = STAIR, H = (x, z) => terrain.heightAt(x, z);
   const top = (k) => bedTop(L, k), c2 = ch / 2, K = 0.5, KH = 0.45;
-  const white = [], soil = [], kerb = [], stones = [], posts = [], cascade = [];
+  const white = [], soil = [], kerb = [], lipList = [], stones = [], posts = [], cascade = [];
   // the lowest the ground comes round a rectangle (u, s), less a margin: where a box goes down to
   const floorUnder = (u0, u1, s0, s1) => {
     let lo = Infinity;
@@ -118,22 +129,22 @@ export function buildWaterStair(scene, terrain, L) {
   // ---- the beds: the white body down into the hill, soil either side of the channel, kerbs, the stepping stones
   const beds = [];
   for (let k = 0; k < N; k++) {
-    const S0 = k * D, S1 = S0 + D, y = top(k), up = flights[k], down = flights[k - 1];
-    white.push(box(-w / 2, w / 2, floorUnder(-w / 2, w / 2, S0, S1), y - 0.25, S0, S1));
-    const rects = [[-w / 2 + 0.25, -c2, S0 + 0.25, S1], [c2, w / 2 - 0.25, S0 + 0.25, S1]];
+    const S0 = k * D, S1 = S0 + D, y = top(k), up = flights[k], down = flights[k - 1], wk = w + BED_WIDTHS[k];
+    white.push(box(-wk / 2, wk / 2, floorUnder(-wk / 2, wk / 2, S0, S1), y - 0.25, S0, S1));
+    const rects = [[-wk / 2 + 0.25, -c2, S0 + 0.25, S1], [c2, wk / 2 - 0.25, S0 + 0.25, S1]];
     for (const [u0, u1, s0, s1] of rects) soil.push(box(u0, u1, y - 0.25, y, s0, s1));
     // the channel's kerbs down the middle (the water: below)
     kerb.push(box(-c2 - 0.3, -c2, y, y + 0.35, S0 + 0.25, S1), box(c2, c2 + 0.3, y, y + 0.35, S0 + 0.25, S1));
     // the sides; the front, with a gap where you come up onto it (off the meadow, or off the last flight's landing)
     const kb = (u0, u1, s0, s1) => { if (Math.abs(u1 - u0) > 0.05) kerb.push(box(u0, u1, y, y + KH, s0, s1)); };
-    kb(-w / 2, -w / 2 + K, S0, S1); kb(w / 2 - K, w / 2, S0, S1);
+    kb(-wk / 2, -wk / 2 + K, S0, S1); kb(wk / 2 - K, wk / 2, S0, S1);
     // (over a gated flight, a wall 3 m over the bed instead of the kerb, so the gate is the only way off its top step)
     const gap = down ? [Math.min(down.a, down.e), Math.max(down.a, down.e)] : [-4.2, -1.6];
-    const spans = [[-w / 2 + K, -c2 - 0.3], [c2 + 0.3, w / 2 - K]].flatMap(([u0, u1]) => (gap[1] <= u0 || gap[0] >= u1 ? [[u0, u1]] : [[u0, Math.max(u0, gap[0])], [Math.min(u1, gap[1]), u1]]));
+    const spans = [[-wk / 2 + K, -c2 - 0.3], [c2 + 0.3, wk / 2 - K]].flatMap(([u0, u1]) => (gap[1] <= u0 || gap[0] >= u1 ? [[u0, u1]] : [[u0, Math.max(u0, gap[0])], [Math.min(u1, gap[1]), u1]]));
     for (const [u0, u1] of spans) kb(u0, u1, S0, S0 + K);
     if (down?.gate) white.push(box(down.a, down.b + down.d * (0.2 - 0.45), y - 0.25, y + 3.0, S0, S0 + 0.25));   // (up to the gate's back post)
     else if (down) kb(down.a, down.b, S0, S0 + K);
-    if (k === N - 1) { const ex = [Math.min(down.b, down.e) - 0.5, Math.max(down.b, down.e) + 0.5]; for (const [u0, u1] of [[-w / 2 + K, -c2 - 0.3], [c2 + 0.3, w / 2 - K]]) { if (ex[1] <= u0 || ex[0] >= u1) kb(u0, u1, S1 - K, S1); else { kb(u0, Math.max(u0, ex[0]), S1 - K, S1); kb(Math.min(u1, ex[1]), u1, S1 - K, S1); } } }
+    if (k === N - 1) { const ex = [Math.min(down.b, down.e) - 0.5, Math.max(down.b, down.e) + 0.5]; for (const [u0, u1] of [[-wk / 2 + K, -c2 - 0.3], [c2 + 0.3, wk / 2 - K]]) { if (ex[1] <= u0 || ex[0] >= u1) kb(u0, u1, S1 - K, S1); else { kb(u0, Math.max(u0, ex[0]), S1 - K, S1); kb(Math.min(u1, ex[1]), u1, S1 - K, S1); } } }
     // the stepping stones: from where you come onto it, across (over the channel on a slab) to the next flight's foot
     const inU = down ? (down.b + down.e) / 2 + down.d * 0.3 : (gap[0] + gap[1]) / 2;
     const toU = up ? up.d * (from - 0.95) : inU;
@@ -147,10 +158,17 @@ export function buildWaterStair(scene, terrain, L) {
     // (the slab over the channel where the stones cross it, as high as its kerbs)
     let bridge = null;
     if (up && Math.sign(inU) !== Math.sign(toU)) { const s = S1 - fw - 1.6; kerb.push(box(-c2 - 0.9, c2 + 0.9, y + 0.35, y + 0.5, s - 0.7, s + 0.7)); bridge = fromStair(0, y + 0.5, s); }
-    beds.push({ k, y, S0, S1, rects, stones: st.map((p) => fromStair(p.u, y + 0.2, p.s)), stoneUs: st, bridge, flowers: BED_FLOWERS[k] });
+    // the wall's rounded lip over the bed below, and along its sides (solid: a climber takes hold of it), not over the
+    // flight up it nor where you step up onto the foot bed, nor over the channel's fall
+    const skip = down ? [Math.min(down.a, down.e) - 0.7, Math.max(down.a, down.e) + 0.7] : [gap[0] - 0.6, gap[1] + 0.6];
+    const lips = [[-wk / 2, -c2 - 0.35], [c2 + 0.35, wk / 2]].flatMap(([u0, u1]) => (skip[1] <= u0 || skip[0] >= u1 ? [[u0, u1]] : [[u0, Math.max(u0, skip[0])], [Math.min(u1, skip[1]), u1]])).filter(([u0, u1]) => u1 - u0 > 0.8);
+    for (const [u0, u1] of lips) lipList.push(rod(u0, S0 + 0.08, u1, S0 + 0.08, y - LIP.drop, LIP.r));
+    for (const d of [-1, 1]) lipList.push(rod(d * (wk / 2 - 0.08), S0 + 0.08, d * (wk / 2 - 0.08), S1, y - LIP.drop, LIP.r * 0.9));
+    beds.push({ k, y, S0, S1, w: wk, lips, rects, stones: st.map((p) => fromStair(p.u, y + 0.2, p.s)), stoneUs: st, bridge, flowers: BED_FLOWERS[k] });
   }
   // ---- the paved terrace at the top, behind the last bed (the ground held under the beds dips there: it covers it)
-  white.push(box(-w / 2, w / 2, floorUnder(-w / 2, w / 2, D * N, D * N + 12), top(N - 1) - 0.25, D * N, D * N + 12));
+  const wTop = w + BED_WIDTHS[N - 1];
+  white.push(box(-wTop / 2, wTop / 2, floorUnder(-wTop / 2, wTop / 2, D * N, D * N + 12), top(N - 1) - 0.25, D * N, D * N + 12));
   // ---- the flights' steps against their walls, each landing at the top, onto the bed above
   for (const f of flights) {
     const { d, S, y0, n, r, dl, a, e } = f;
@@ -193,21 +211,70 @@ export function buildWaterStair(scene, terrain, L) {
     gates.push({ k: gates.length, flight: f, bed: f.k, board, at, wheel, spin, stand: fromStair(b - d * 0.6, y1, S - fw / 2), open: false, lift: 0, collider: null });
   }
   const mk = (list, mat, name) => { const m = new THREE.Mesh(mergeGeometries(list.map(prep)), mat); m.name = name; scene.add(m); return m; };
-  mk(white, makeMaterial({ color: '#f3efe4', flat: true, grid: 3 }), 'The water stair');
-  mk(kerb, makeMaterial({ color: '#fbf9f3', flat: true }), 'The water stair’s kerbs');
-  mk(soil, makeMaterial({ color: '#8a6a48', flat: true }), 'The water stair’s beds');
-  mk(stones, makeMaterial({ color: '#e7e1d2', flat: true }), 'The water stair’s stepping stones');
-  mk(posts, makeMaterial({ color: '#f3efe4', flat: true, grid: 1.5 }), 'The water stair’s sluice-gates');
+  // (a warm white stone in big uneven blocks, its shade lifted: the sheet's, not a grey grid)
+  mk(white, makeMaterial({ color: '#efe3c9', flat: true, plates: 3.6, shade: 0.35, line: 0.85 }), 'The water stair');
+  mk(kerb, makeMaterial({ color: '#f7eedb', flat: true, shade: 0.4, line: 0.75 }), 'The water stair’s kerbs');
+  mk(lipList, makeMaterial({ color: '#f7eedb', shade: 0.4, line: 0.75 }), 'The water stair’s lips');   // (rounded: smooth shading)
+  mk(soil, makeMaterial({ color: '#7d8a52', flat: true }), 'The water stair’s beds');
+  mk(stones, makeMaterial({ color: '#ece2cd', flat: true, shade: 0.35, line: 0.8 }), 'The water stair’s stepping stones');
+  mk(posts, makeMaterial({ color: '#efe3c9', flat: true, plates: 1.4, shade: 0.35, line: 0.85 }), 'The water stair’s sluice-gates');
 
   // ---- the water: the channel down the middle, falling over each wall (always running); each gated bed's flood
   const waterMat = makeMaterial({ color: '#7fc4d0', color2: '#9ad3d9', mode: MODE_WATER });
+  // (the falls drawn as falling sheets, waterfall-shader.js: streaming bands, pen streaks, a glassy lip, a little mist)
+  const fallMat = makeMaterial({ color: '#86cbd4', color2: '#d6efee', color3: '#4f97a3', fall: { speed: 2.4, column: 0.32, gaps: 0.12, mist: 0.7, ink: 0.85, lip: 0.45, height: L.rise + 0.15, seed: 3 }, spot: 0, line: 0.6, lineTint: 0.6 });
+  const falls = [];
   for (const b of beds) {
     cascade.push(quad(-c2, c2, b.y - 0.1, b.S0, b.S1));
-    if (b.k > 0) cascade.push(fall(-c2 + 0.2, c2 - 0.2, beds[b.k - 1].y - 0.1, b.y - 0.1, b.S0 - 0.03));
+    if (b.k > 0) falls.push(sheet(-c2 + 0.2, c2 - 0.2, beds[b.k - 1].y - 0.1, b.y + 0.05, b.S0 - 0.03));
   }
   const run = new THREE.Mesh(mergeGeometries(cascade), waterMat);
   run.name = 'The water stair’s channel'; run.userData.noCollide = true; run.userData.water = true;
   scene.add(run);
+  const fallMesh = (g, name) => { const m = new THREE.Mesh(g, fallMat); m.name = name; m.userData.noCollide = true; m.userData.floats = true; m.userData.castShadow = false; scene.add(m); return m; };
+  // the beds' own water sheeting over their lips here and there onto the bed below (a gated bed's once it floods), and
+  // the planting spilling over them: ferns hanging down the wall, a bush on the kerb
+  const spillAt = new Map(), drapes = [], bushes = [];
+  for (const b of beds) {
+    if (!b.k) continue;
+    const spots = [];
+    b.lips.forEach(([u0, u1], i) => {
+      const L0 = u1 - u0;
+      if (L0 > 5 && spots.length < 2 && hash1(b.k * 7 + i) < 0.75) { const c = u0 + L0 * (0.3 + 0.4 * hash1(b.k * 13 + i)), hw = Math.min(1.3, L0 * 0.18); spots.push([c - hw, c + hw]); }
+    });
+    if (spots.length) spillAt.set(b.k, spots.map(([u0, u1]) => sheet(u0, u1, beds[b.k - 1].y - 0.05, b.y + 0.1, b.S0 - LIP.r + 0.02)));
+    // (the ferns and bushes between the spills)
+    for (const [u0, u1] of b.lips) for (let u = u0 + 0.5, j = 0; u < u1 - 0.4; u += 0.8, j++) {
+      const h = hash1(b.k * 31 + u * 3.7);
+      if (h < 0.22 || spots.some(([a, c]) => u > a - 0.5 && u < c + 0.5)) continue;
+      const len = 0.9 + 1.6 * hash1(u * 9.1 + b.k);
+      for (let i = 0; i < 6; i++) {
+        const du = (i - 2.5) * 0.13, top = fromStair(u + du, b.y - 0.05, b.S0 - LIP.r - 0.03), foot = fromStair(u + du * 1.5, b.y - len * (0.45 + 0.55 * hash1(i * 3.3 + u)), b.S0 - LIP.r - 0.2);
+        const side = E_U.clone().multiplyScalar(0.065);
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute([...top.clone().sub(side).toArray(), ...top.clone().add(side).toArray(), ...foot.toArray()], 3));
+        drapes.push(g);
+      }
+      if (h > 0.55) bushes.push(new THREE.IcosahedronGeometry(0.42 + 0.25 * h, 1).scale(1.25, 0.8, 1).translate(0, 0, 0).applyMatrix4(new THREE.Matrix4().setPosition(fromStair(u, b.y + 0.62, b.S0 + 0.25))));
+    }
+  }
+  // (and a cypress at the back corner of every other bed, the sheet's dark flames over the white)
+  const cypresses = [];
+  for (const b of beds) if (b.k % 2 === 1 || b.k === N - 1) for (const d of [-1, 1]) {
+    if (hash1(b.k * 5 + d) < 0.3) continue;
+    const h = 6 + 4 * hash1(b.k * 17 + d), at = fromStair(d * (b.w / 2 - 1.4), b.y + 0.4, b.S1 - 1.6);
+    cypresses.push(new THREE.LatheGeometry([[0.01, 0], [0.75, 0.6], [1.0, h * 0.32], [0.8, h * 0.72], [0.01, h]].map(([r, y]) => new THREE.Vector2(r, y)), 9).translate(at.x, at.y, at.z));
+  }
+  // (the beds the channel waters spill always: drawn with the channel's falls; a gated bed's, a mesh of its own)
+  const wet = (k) => !gated.includes(k);
+  fallMesh(mergeGeometries([...falls, ...[...spillAt].filter(([k]) => wet(k)).flatMap(([, g]) => g)]), 'The water stair’s falls');
+  const spills = beds.map((b) => (spillAt.has(b.k) && !wet(b.k) ? fallMesh(mergeGeometries(spillAt.get(b.k)), `The water stair’s bed ${b.k + 1}, spilling over`) : null));
+  for (const [list, mat, name] of [[drapes, makeMaterial({ color: '#6a9a57', flat: true, side: THREE.DoubleSide, line: 0.6, lineTint: 0.7 }), 'The water stair’s ferns'], [bushes, makeMaterial({ color: '#7fae62', flat: true, line: 0.7, lineTint: 0.67 }), 'The water stair’s bushes'], [cypresses, makeMaterial({ color: '#4f6b3a', pattern: 'leaves', line: 0.7, lineTint: 0.67 }), 'The water stair’s cypresses']]) {
+    if (!list.length) continue;
+    const m = new THREE.Mesh(mergeGeometries(list.map(prep)), mat);
+    m.name = name; m.userData.noCollide = true; m.userData.flora = true;
+    scene.add(m);
+  }
   const floods = gates.map((G) => {
     const b = beds[G.bed];
     const m = new THREE.Mesh(mergeGeometries(b.rects.map(([u0, u1, s0, s1]) => quad(u0, u1, 0, s0, s1))), waterMat);
@@ -220,9 +287,8 @@ export function buildWaterStair(scene, terrain, L) {
   // (and the gate's water down the wall beside its landing, while it is open)
   const pours = gates.map((G) => {
     const f = G.flight, u0 = f.e + f.d * 0.3, u1 = f.e + f.d * 1.9;
-    const m = new THREE.Mesh(fall(Math.min(u0, u1), Math.max(u0, u1), f.y0 + 0.1, f.y1 + 0.05, f.S - 0.03), waterMat);
-    m.name = `The water stair’s sluice ${G.k + 1}, pouring`; m.userData.noCollide = true; m.userData.water = true; m.visible = false;
-    scene.add(m);
+    const m = fallMesh(sheet(Math.min(u0, u1), Math.max(u0, u1), f.y0 + 0.1, f.y1 + 0.05, f.S - 0.03), `The water stair’s sluice ${G.k + 1}, pouring`);
+    m.visible = false;
     return m;
   });
   // ---- the flowers: buds in every bed; a gated bed's open when it floods, from where its water comes in; the others in flower
@@ -261,6 +327,8 @@ export function buildWaterStair(scene, terrain, L) {
   const apply = () => {
     for (const G of gates) { G.board.position.y = G.at.y + 3.3 * ease(G.lift); pours[G.k].visible = G.lift > 0.3; }
     for (const G of gates) { const b = beds[G.bed], f = flood[G.k]; floods[G.k].visible = f > 0.02; floods[G.k].position.y = b.y - 0.2 + 0.5 * f; }   // (to 0.3 m over the soil: the stones 0.1 m under)
+    // (a bed spills over its lip once it holds water: the ungated ones always, a gated one once it has flooded)
+    beds.forEach((b, k) => { if (spills[k]) { const G = gates.find((g) => g.bed === k); spills[k].visible = !G || flood[G.k] > 0.6; } });
     for (const B of blooms) { B.fm.count = Math.round(B.n * B.k); B.bm.count = B.n - Math.round(B.n * Math.min(1, B.k * 1.2)); }
   };
   const setOpen = (k, on, instant = false) => {

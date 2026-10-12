@@ -9,6 +9,8 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { auditContact, formatContact, drawnSurfaces } from '../src/contact-audit.js';
+import { StaticBatches } from '../src/static-batch.js';
+import { makeMaterial } from '../src/materials.js';
 import { standGround } from '../src/carriers.js';
 import { StepLag } from '../src/locomotion.js';
 import { builtWorld, quiet } from './built-worlds.js';
@@ -72,6 +74,29 @@ test('the drawn surfaces name the mesh each hit came from', () => {
     const hit = d.bvh.raycastFirst(new THREE.Ray(V(i * 3, 5, 0.1), V(0, -1, 0)), THREE.DoubleSide);
     assert.equal(d.owner(hit.faceIndex), `box ${i}`);
   }
+});
+
+test('the audit reads a world whose still meshes are drawn by batches as it reads it unbatched (#219)', () => {
+  // (the game batches its still meshes, src/static-batch.js; the batch's own buffer, untransformed and with spare room
+  // that is no whole number of triangles, once left the drawn tops with no sample at all)
+  const scene = new THREE.Scene();
+  const a = makeMaterial({ color: '#aa3322', key: 'test.contact.batch.a' }), b = makeMaterial({ color: '#2233aa', key: 'test.contact.batch.b' });
+  const add = (geo, mat, at, free = false) => { const m = new THREE.Mesh(geo, mat); m.position.set(...at); if (free) m.userData.noCollide = true; scene.add(m); return m; };
+  add(new THREE.BoxGeometry(120, 1, 120), a, [0, -0.5, 0]);
+  for (let i = 0; i < 6; i++) {
+    add(new THREE.BoxGeometry(5, 1 + i * 0.3, 4).toNonIndexed(), b, [-30 + i * 10, (1 + i * 0.3) / 2, 10]);
+    add(new THREE.BoxGeometry(4, 1.2, 4), a, [-30 + i * 10, 0.6, -15]);
+    add(new THREE.BoxGeometry(5.2, 0.3, 4.2).toNonIndexed(), b, [-30 + i * 10, 1.25 + i * 0.3, 10], true);   // (a trim, 0.15 m over its ledge)
+  }
+  const physics = new Physics(scene);
+  const before = auditContact({ physics, scene, cell: 1 });
+  assert.ok(before.checked.walk > 100 && before.counts['walks through'] > 0, formatContact(before));
+  const S = new StaticBatches(scene);
+  assert.ok(S.view.length >= 2, `batches: ${S.view.length}`);
+  const after = auditContact({ physics, scene, cell: 1 });
+  assert.deepEqual(after.checked, before.checked, formatContact(after));
+  assert.deepEqual(after.counts, before.counts, formatContact(after));
+  assert.ok(!after.groups.some((g) => /^still/.test(g.name)), 'no hit is named after a batch');
 });
 
 test('the feet find a moving floor: its top under them, level, and not when it is the one you ride', () => {
@@ -139,7 +164,9 @@ const KNOWN = {
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
   // (perdide: v1.54, walk 7 -> 22, the drawn tops sampled afresh once the keepers' stakes ran round the Hush-House, issue #179:
   // the same seams in the Hush-House's and the Lamp-House's rooms far overhead, none by the stakes)
-  perdide: { sink: 3, hover: 0, inside: 4, walk: 22 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
+  // (v1.59: sink 3 -> 8, the samples moved again once the crystal's veins went under the water (issue #188): 7 on the tree
+  // before it, 16 after, all in the Lamp-House's and the Hush-House's rooms overhead and one on the keepers' light)
+  perdide: { sink: 8, hover: 0, inside: 4, walk: 22 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
   // (v1.48: the passages under the towers by Signal Square and the Undertower's wings both moved the samples; nearly all
   // the market's drawn-only strip along its south avenue and the night halt's thin sleepers)
   // (v1.49: the Choir off the Undertower's gallery moved them again: 4 → 17 feet sink, all but one 0.12 m on the night

@@ -46,7 +46,7 @@ import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
 import { padIndex } from '../native-pad.js';
 import { glyph } from '../pad-glyphs.js';
-import { isCharted, searchStep, cues, regionFor, lockRadius, signatureNotes, SEARCH, SEARCH_LABEL, SEARCH_LEGEND, SEARCH_LEGEND_SHORT } from '../story/signature-search.js';
+import { isCharted, searchStep, scanStart, searchArmed, cues, regionFor, lockRadius, signatureNotes, SEARCH, SEARCH_LABEL, SEARCH_LEGEND, SEARCH_LEGEND_SHORT } from '../story/signature-search.js';
 import { rumblePlay } from '../rumble.js';
 
 /**
@@ -355,8 +355,13 @@ export class StarMap {
     const follow = (e) => {
       if (!this.searching() || this.asking) return;
       if (e.pointerType !== 'mouse' && !(e.buttons & 1) && e.type !== 'pointerdown') return;
-      const r = field.getBoundingClientRect();
-      this.scan = [e.clientX - r.left, e.clientY - r.top];
+      const r = field.getBoundingClientRect(), to = [e.clientX - r.left, e.clientY - r.top];
+      // (the first move after opening only says where the mouse is: a pointer resting over a hidden world when the map
+      // opened is no sweep, issue #204; from then on its moves count toward arming the lock)
+      if (this._pointerAt) this._moved = (this._moved ?? 0) + Math.hypot(to[0] - this._pointerAt[0], to[1] - this._pointerAt[1]);
+      else if (e.type === 'pointermove') { this._pointerAt = to; return; }
+      this._pointerAt = to;
+      this.scan = to;
       this.drawScanner();
     };
     field.addEventListener('pointermove', follow);
@@ -451,7 +456,11 @@ export class StarMap {
         svg += `<circle class="uncharted" cx="${cx}" cy="${cy}" r="${g.r}"/><text class="uncharted-tag" x="${cx}" y="${cy - g.r - 6 < HEADER ? cy + g.r + 14 : cy - g.r - 6}" text-anchor="middle">UNCHARTED</text>`;
       }
     }
-    if (!this.scan || this.scan[0] > W || this.scan[1] > H) this.scan = [W / 2, HEADER + (H - HEADER) / 2];
+    // (the scanner starts by the ship's own world, never over a hidden one: issue #204)
+    if (!this.scan || this.scan[0] > W || this.scan[1] > H) {
+      const here = this.entries.find((e) => e.current), at = here ? pos(here) : null;
+      this.scan = scanStart({ targets: this.targets, box: [20, HEADER, W - 20, H - 20], diag, disc: L.box.disc, prefer: at ? [at] : [] });
+    }
     this.drawScanner();
     // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js); the
     // silent tower once it is the goal, NEXT over it
@@ -529,6 +538,8 @@ export class StarMap {
     this.el.classList.toggle('open', on);
     this._held.clear();
     this.search.lock = {};
+    // (each opening: the scanner back by the ship, unarmed until it is swept; the mouse's place not known yet)
+    this.scan = null; this._moved = 0; this._pointerAt = null;
     if (on) {
       this.render();
       this.place();
@@ -560,14 +571,16 @@ export class StarMap {
     }
     if (mx || my) {
       const v = SEARCH.speed * diag * dt, n = Math.max(1, Math.hypot(mx, my));
+      const was = this.scan;
       this.scan = [Math.min(W, Math.max(0, this.scan[0] + (mx / n) * v)), Math.min(H, Math.max(0, this.scan[1] + (my / n) * v))];
+      this._moved = (this._moved ?? 0) + Math.hypot(this.scan[0] - was[0], this.scan[1] - was[1]);
       // the scanner over a charted world picks it (the stick works as a cursor; A then travels)
       for (const b of this.el.querySelectorAll('button.world')) {
         const d = b.querySelector('.disc').getBoundingClientRect(), f = field.getBoundingClientRect();
         if (Math.hypot(this.scan[0] - (d.left + d.width / 2 - f.left), this.scan[1] - (d.top + d.height / 2 - f.top)) < d.width / 2 && this.sel !== +b.dataset.i) this.select(+b.dataset.i);
       }
     }
-    const r = searchStep(this.search, { at: this.scan, targets: this.targets, dt, diag, disc: this.layout?.box?.disc ?? 0 });
+    const r = searchStep(this.search, { at: this.scan, targets: this.targets, dt, diag, disc: this.layout?.box?.disc ?? 0, armed: searchArmed(this._moved ?? 0, diag) });
     const c = cues(r.strength);
     this._cue = c; this._lock = r.lock;
     this.drawScanner(c, r.lock);

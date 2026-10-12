@@ -12,7 +12,8 @@
 // picture; with --save all also the ink, the albedo pair and the nudged ink). Then:
 //   node .claude/skills/ink-lines/report.mjs <out-dir>/report.json [--before <dir>/report.json] [--out docs/audits/ink-lines-v<version>.md]
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -79,10 +80,10 @@ const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.con
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
-const profile = mkdtempSync(join(tmpdir(), 'inklines-chrome-'));
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
+const profile = tempDir('inklines-chrome-');
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
   `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--window-size=1920,1080',
-  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-gpu-shader-disk-cache', 'about:blank'], { stdio: 'ignore' });
+  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-gpu-shader-disk-cache', 'about:blank'], { stdio: 'ignore' }));
 const finish = async () => { try { ws?.close(); } catch { /* gone */ } proc.kill('SIGTERM'); await sleep(1200); rmSync(profile, { recursive: true, force: true }); await server.close(); };
 process.on('SIGINT', async () => { await finish(); process.exit(130); });
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
@@ -248,7 +249,7 @@ function camExpr(name, sc) {
 async function boot(world) {
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(300);
   await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: '${world === 'arena' ? 'on' : 'off'}' }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, soundV: 1, enemies: '${world === 'arena' ? 'normal' : 'off'}' }));
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   await send('Page.navigate', { url: `${BASE}?level=${WORLD_URL[world]}` });

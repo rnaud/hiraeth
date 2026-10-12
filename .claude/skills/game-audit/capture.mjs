@@ -12,7 +12,8 @@
 //   eval   a script run in the page before the shot (its value is printed)
 //   then   steps after the first shot, each run, waited for and shot as <name>-<i>
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,9 +34,13 @@ await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
 
 // (muted twice over: Chrome's own switch, and the game's mute and volumes before it loads)
-const profile = mkdtempSync(join(tmpdir(), 'game-audit-chrome-'));
-const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
-  '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });
+const profile = tempDir('game-audit-chrome-');
+const proc = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
+  '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
+// (never leave a Vite server behind on a shared machine: on an error, a throw or ^C; ownProcess takes Chrome and its profile)
+const bail = (e) => { if (e instanceof Error) console.error(e); server.close().finally(() => process.exit(1)); setTimeout(() => process.exit(1), 2000).unref(); };
+process.on('uncaughtException', bail); process.on('unhandledRejection', bail);
+process.on('SIGINT', bail); process.on('SIGTERM', bail);
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
 if (!tabs) throw new Error('Chrome did not start');
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);

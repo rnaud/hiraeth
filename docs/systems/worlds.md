@@ -1223,6 +1223,12 @@ of the android garden's ornaments gave way to the nursery, its draws still taken
   `init`) and a wheel on the post. Turning it (`edena.sluice.<n>`) lifts the board, the water pours down the wall beside
   the landing, and the bed below floods 0.3 m (its stones 0.1 m under) and opens in flower from where the water comes in;
   the ungated beds are in flower already. A traveller who climbs can go up the walls; the gates are the gardeners' way.
+  Polished against the sheet (v1.59): each bed a little wider or narrower than the last (`BED_WIDTHS`), so the
+  terraces step in and out; a rounded lip along every wall's top and side (`LIP`, solid; not over a flight, the
+  channel or the step up onto the foot bed); a warm white stone in big uneven blocks with its shade lifted (`plates`,
+  no grid); the falls drawn as falling water (`fall`: the channel's, a sluice's pour, and the beds' own water sheeting
+  over their lips here and there, a gated bed's once it has flooded); ferns hanging down the walls, bushes on the
+  kerbs and cypresses at the back corners (drawn only, flora). No rng: hashes of the bed and the place.
 Tested in `tests/viridel-explorations.test.js` (the way, the beds over the ground, the stair walked up and down by a
 traveller who cannot climb and stopped by a shut gate, a wheel turned, the wrecks, the crater seen from the crown, the
 nursery's ages and the old one's stair walked, sight lines, the contact audit on the new pieces and their collision
@@ -1383,9 +1389,17 @@ tests pick them by index); the story's side in `src/story/spheres-explorations.j
 - **What the lake remembers** (`causewayStones`, `LANDING`). 24 round white stones from Nell's shore to the far shore's
   landing (where the little block west of the temple stood), each overlapping the next by a hand's width (a gap is a step
   into the water, and the lake puts you back on the shore), 0.75 m over the water, the middle one wider. In the water a
-  garden that is not on the shore: domes, towers and stepped pyramids on the shore's grass between the far shore's
-  pyramid, temple and sphere and round both ends of the lake, drawn only in the reflection (the reflection's key
-  `memory`, warmer than the shore's, kept to the water's far half: tall things reflect right up to your feet). Once the
+  garden that is not on the shore: a white town all round the lake (both shores and both ends, Nell's shore and the
+  stones' way left open), domes on drums with lanterns, towers with galleries, spires and onion tops, stepped pyramids
+  with a stair and a temple on top, houses, a quay along the water, a waterfront row along the far shore in front of
+  what stands there, and cypresses, drawn only in the reflection (keys `memory` and `memoryTree`, warmer than the
+  shore's). Since v1.59 the whole lake's reflection is drawn from wherever the eye is (`makeMaterial({ mirror })`,
+  materials.js MIRROR: each vertex mirrored in the water's plane and laid on it along the line of sight, each image
+  lifted toward the eye by a share of its distance, more the nearer the mirrored point, so where two overlap the nearer
+  covers the other; the geometry is the thing itself with its winding flipped, lit as the thing is, its shade a little
+  lighter; kept inside the lake's ellipse and broken by thin drifting gaps across the line of sight, the shimmer). Until
+  then it was projected for one eye on the south shore: from the stones or the far shore it was a jumble of strips. One
+  mesh a colour (7, was 33). Once the
   pearl's bell has been heard, the spheres hang in the reflected sky round the middle stone (`the lake’s moons`: pale
   discs with lit crescents, over every layer of the reflection; one line the first time, `MOONS_CUE`). On the middle
   stone, `look into the lake` (`THINGS.lake`).
@@ -2497,9 +2511,16 @@ last in `src/levels/perdide.js` with dice of its own; where they stand is `src/l
 Deep Wood's scatter reads it and leaves its own trunks and giant mushrooms out of their room, its dice thrown all the
 same, so the rest of the wood grows where it always did). Shapes shared by the three: `src/lorn-kit.js` (a ramp wound
 round a trunk, a deck ring with a gap for a stair, a walkway along points, quads wound to a normal).
-- **The roots of the crystal** (`src/lorn-veins.js`). Veins of violet crystal with a teal zigzag core, drawn on the
-  water (0.05 m over its sheet, only where it is open water), branching from the Great Crystal across the basin, twigs
-  off each; the light runs along them toward it in three bands (`update`). `LIT_VEIN` runs from the Crystal over the open
+- **The roots of the crystal** (`src/lorn-veins.js`). Veins of violet crystal under the water, branching from the Great
+  Crystal across the basin, twigs off each and twigs off those, each tapering to a point. Since v1.59 (the polish
+  against the sheet) they are drawn by Lorn's water itself (`crystalRoots: true` on its material, the WATER_VEINS
+  block of `src/water-shader.js`, `waterVeins`) from a map baked over the basin (`VEIN_MAP`: 1024² bytes with
+  mipmaps, ~0.6 m a texel; r how much vein, softly to its edge and highest along its heart, g/b the sine and cosine of
+  the run from the Crystal, a how deep it lies), only where the water is open: crackled soft edges that wobble as the
+  water moves over them, faceted in violet, lavender and teal cells with fine ink between, a lit heart and a teal halo,
+  fainter the deeper (further out, and the twigs) and a little toward grazing angles, self-lit (`WaterLook.glow`);
+  bands of light run along them in to the Crystal (40 m apart) and the network breathes. No ribbons on the water any
+  more (7 meshes and 11 k triangles gone; the groves are the group's one mesh). `LIT_VEIN` runs from the Crystal over the open
   water to the keepers' stakes and on beside them into the drowned wood to Hollin's island (a line, `the lit vein`, auto:
   false). Where veins meet, **the ringing groves**: crystal spikes out of the water (solid), brightening while you are
   within 18 m. The veins are drawn only.

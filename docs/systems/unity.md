@@ -73,7 +73,9 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   On the Deck: `scripts/bench/deck-unity.sh` (docs/systems/performance.md, "The Steam Deck, round 6").
 - Both releases are prereleases and never "latest" (the app's updater and the players read the
   `vX.Y` releases); each build replaces its file, moves the tag to its commit and rewrites the notes
-  (which commit, which web version: `release-info.mjs unity-notes`). `scripts/unity-publish.sh` does it.
+  (which commit, which web version: `release-info.mjs unity-notes`). `scripts/unity-publish.sh` does it,
+  and then puts the same file on the newest version's release (`vX.Y`) beside the APK, labelled with its
+  commit (android.md, "The Unity builds on a version's release").
   The two releases were made once by hand: Actions' token was refused creating one (403 "Resource not
   accessible by integration", on a commit that adds a workflow), and it may be refused moving the tag
   over such commits (a warning; the notes still name the commit). Each run also keeps its APK as an

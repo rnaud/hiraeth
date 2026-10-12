@@ -119,6 +119,18 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 #title .slot .del:hover, #title .slot .del:focus { background: #c8483a; color: #fff6dc; }
 #title .slot .del.spacer { visibility: hidden; border: 2.5px solid transparent; }
 
+/* the author's debug saves under the slots (src/title.js debugSavesHtml, issue #203): a world of the route a row, on
+   dashed red paper so nobody takes it for a save of their own */
+#title .debug-saves { margin-top: clamp(6px, 1.6vh, 16px); padding: clamp(8px, 1.6vh, 14px) clamp(8px, 1.4vw, 14px); border: 2.5px dashed #c8483a; background: repeating-linear-gradient(135deg, rgba(200, 72, 58, 0.05) 0 10px, transparent 10px 20px); }
+#title .debug-saves .dhead { display: flex; align-items: center; gap: 10px; }
+#title .debug-saves h3 { margin: 0; font-size: calc(clamp(13px, 2.3vh, 19px) * var(--ts, 1)); letter-spacing: 0.12em; text-transform: uppercase; }
+#title .debug-saves .dtag { padding: 0 8px; font-style: normal; font-size: calc(clamp(9px, 1.4vh, 11px) * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.14em; text-transform: uppercase; color: #fff6dc; background: #c8483a; border: 1.5px solid #2b211f; border-radius: 6px; }
+#title .debug-saves .why { margin: 4px 0 8px; font-size: calc(clamp(11px, 1.7vh, 14px) * var(--ts, 1)); opacity: 0.8; }
+#title .debug-saves .dinto { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; margin-bottom: 8px; font-size: calc(clamp(11px, 1.8vh, 15px) * var(--ts, 1)); font-weight: bold; }
+#title .debug-saves .dworlds { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: clamp(6px, 1.2vh, 12px); }
+#title .debug-saves .dworld { width: 100%; display: flex; gap: 10px; align-items: center; padding: 4px 10px 4px 4px; }
+#title .debug-saves .dworld .thumb { width: clamp(48px, min(10vh, 12vw), 96px); }
+
 /* "Delete Save 2?" */
 #title .confirm { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; background: rgba(43, 33, 31, 0.55); }
 #title .confirm[hidden] { display: none; }

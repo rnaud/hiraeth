@@ -13,7 +13,7 @@ import { hintsFor } from './hint-level.js';
 //    Picking one up sketches the moment into your journal.
 //  - Journal: every relic and story page found, the errands and the observatory,
 //    kept in localStorage (per save slot: src/save-slots.js); J, View / Select
-//    open it as the game menu (src/game-menu.js: Items, Quests, Sketchbook, Worlds).
+//    open it as the game menu (src/game-menu.js: Quests, Map, Items, Worlds, People, Sketchbook).
 //  - A story with `manual: true` (the desert's) has no beacon and doesn't
 //    finish on arrival: its quest calls story.complete() (src/story/).
 
@@ -52,7 +52,7 @@ export class Journal {
   markSeen(level) { this.data.seen[level] = 1; this.save(); }
 
   /**
-   * Open (on a panel: 'items', 'quests', 'sketches', 'worlds'; else where it was left) or close the
+   * Open (on a panel: 'items', 'quests', 'map', 'sketches', 'worlds'; else the Quests) or close the
    * game menu (src/game-menu.js), which since October 2026 shows what the sketchbook did.
    */
   toggle(on = !this.open, panel = null) {

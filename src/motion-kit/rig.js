@@ -133,6 +133,7 @@ export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, len
 /**
  * A jointedLeg sized by a body plan: the thigh and shin are the plan's shares (knee.lenA, knee.lenB) of the
  * distance from the hip (in the group's frame, through any scaled or nested parents) to the foot's rest, and the
+ * Explicit measured lenA/lenB/lenC override those proportions for imported anatomy. The
  * pole follows the plan's rule (knees out and up, hocks back…) unless given.
  */
 export function planLeg(plan, o) {
@@ -140,7 +141,7 @@ export function planLeg(plan, o) {
   const hip = new THREE.Vector3(o.hip.x, o.hip.y, o.hip.z).applyMatrix4(m);
   const r = o.radius ?? 0.05, ankle = o.ankle ?? (o.pad === 'point' ? r * 0.6 : o.pad === 'disc' ? r * 0.9 : r * 0.8);
   const d = hip.distanceTo(new THREE.Vector3(o.foot.x, ankle, o.foot.z));
-  const lenA = d * plan.knee.lenA, lenB = d * plan.knee.lenB, lenC = d * (plan.knee.lenC ?? 0), L = lenA + lenB + lenC;
+  const lenA = o.lenA ?? d * plan.knee.lenA, lenB = o.lenB ?? d * plan.knee.lenB, lenC = o.lenC ?? d * (plan.knee.lenC ?? 0), L = lenA + lenB + lenC;
   const a = plan.air ? (o.foot.z >= 0 ? plan.air.front : plan.air.hind) : null;
   return jointedLeg({ ...o, ankle, lenA, lenB, lenC, pole: o.pole ?? poleFor(plan.knee.pole, o.foot), air: o.air ?? (a ? { x: 0, y: a.y * L, z: a.z * L } : null) });
 }

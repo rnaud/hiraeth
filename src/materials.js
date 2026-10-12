@@ -511,6 +511,9 @@ const vertexShader = /* glsl */ `
   in vec2 aFold;          // cloth: (across, down) 0..1; (0,0) on everything else
   out vec2 vFold;
   uniform float uVertexColors;   // the material's vertexColors (1: the geometry's colour attribute is read)
+  #ifdef MIRROR
+    uniform vec4 uMirror;   // makeMaterial({ mirror }): the water's height, how far toward the eye the nearest image is lifted (a share of its distance), over what distance that falls to none
+  #endif
   #ifdef USE_BATCHING
     // a still mesh drawn by a batch of its material (src/static-batch.js): its world matrix from the batch's texture,
     // by the id its vertices carry, used as an instance's (modelMatrix * it = its own matrixWorld, as before)
@@ -784,6 +787,23 @@ const vertexShader = /* glsl */ `
     #endif
 
     vec4 world = modelMatrix * pos;
+    #ifdef MIRROR
+    {
+      // a reflection in still water, from wherever the eye is (the Garden's mirror lake): the point mirrored in the
+      // water's plane, then laid on the plane where the eye's ray to that image crosses it, so it is drawn where the
+      // image is seen and hidden by whatever stands on the water in front. Each image is lifted toward the eye by a
+      // share of its distance, more the nearer the mirrored point: where two overlap, the nearer covers the other.
+      // (Its winding is flipped by the one who builds it: mirroring turns it inside out.) Eye under the water: none.
+      vec3 C = cameraPosition;
+      float wy = uMirror.x, h = C.y - wy;
+      vec3 m = vec3(world.x, min(2.0 * wy - world.y, wy - 0.01), world.z);
+      if (h > 0.02) {
+        vec3 p = C + (m - C) * (h / (C.y - m.y));
+        float k = uMirror.y * clamp(1.0 - length(m - C) / uMirror.z, 0.0, 1.0);
+        world.xyz = C + (p - C) * (1.0 - k);
+      } else world.xyz = C - vec3(0.0, 1e4, 0.0);
+    }
+    #endif
     vWorldPos = world.xyz;
     vWorldRel = world.xyz - cameraPosition;
     vNormal = normalize(mat3(modelMatrix) * nrm);
@@ -2330,6 +2350,9 @@ ${SHADOW_GLSL}
     #endif
     float patInk = 0.0;
     float emit = 0.0;   // lit windows at night (facade)
+    #ifdef WATER
+      emit = wl.glow;   // (what glows in the water: Lorn's veins, water-shader.js)
+    #endif
     #ifdef NIGHT_PAINT
       emit = vNight.a * uNight;   // (and glows, as far as it says, after dark)
     #endif
@@ -2903,6 +2926,9 @@ const cache = new Map();
  *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
  * @param {number}  [o.veil]    see-through but for its rim: discarded where |n·v| is over it (compiles S_VEIL); the body
  *                              is a wash laid over the finished picture by src/veil.js (Lorn II's mushrooms, VEIL there)
+ * @param {object}  [o.mirror]  { y, lake: [x, z, rx, rz], lift, over, shimmer }: drawn as its reflection in still water at
+ *                              height y, seen from wherever the eye is (compiles MIRROR; with mode MODE_WATER, waterPrint).
+ *                              The geometry is the thing itself, its winding flipped; kept inside the lake's ellipse
  * @param {boolean} [o.nightPaint] compile the NIGHT_PAINT block: the geometry's aNight attribute (vec4: rgb its colour by
  *                              night, a how far it glows then) takes over from its colour as uNight comes up (the Signal Market)
  */
@@ -3032,6 +3058,14 @@ export function makeMaterial(o) {
     if (o.fluid === 'blade') bladeMaterial(mat);   // the sword's living blade (blade-shader.js)
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
+  if (o.mirror) {
+    // a reflection in still water seen from wherever the eye is (the vertex shader's MIRROR; with mode MODE_WATER and
+    // waterPrint: its colour and the water's ripples, kept inside o.mirror.lake and broken by a shimmer: water-shader.js)
+    const R = o.mirror;
+    mat.defines = { ...mat.defines, MIRROR: 1 };
+    mat.uniforms.uMirror = { value: new THREE.Vector4(R.y, R.lift ?? 0.003, R.over ?? 500, R.shimmer ?? 1) };
+    mat.uniforms.uMirrorLake = { value: new THREE.Vector4(...(R.lake ?? [0, 0, 1e5, 1e5])) };
+  }
   if (o.fall) fallMaterial(mat, o);   // a falling sheet of water (waterfall-shader.js)
   if (o.duneGlass) duneGlassMaterial(mat, o);   // the Glass Dunes' glass (dune-glass-shader.js)
   if (o.dunePool) dunePoolMaterial(mat, o);   // the sand that takes its light

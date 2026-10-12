@@ -1,6 +1,6 @@
 ---
 name: temple-design-qc
-description: Judge the design of Hiraeth's temples (the makers' dungeons) against dungeon and puzzle design practice (lock-and-key structure, the dungeon item and its reuse, teach-test-twist, steps that combine two verbs, how far and how hidden each clue is from its lock, backtracking and changing state, the guardian as the final exam, difficulty curve, how alike the temples are), measured from each temple's logic and layout, and write docs/audits/temple-design-v<version>.md with scores, plans, pictures and a ranked list of concrete edits per temple. Use when asked whether the temples or their puzzles are too simple, too obvious, too alike, or before designing or reworking a temple.
+description: Judge the design of Hiraeth's temples (the makers' dungeons) against dungeon and puzzle design practice (lock-and-key structure, the dungeon item and its reuse, teach-test-twist, steps that combine two verbs, how far and how hidden each clue is from its lock, backtracking and changing state, the guardian as the final exam, difficulty curve, how alike the temples are), measured from each temple's logic and layout, and write docs/audits/temple-design-v<version>.md with scores, plans, pictures and a ranked list of concrete edits per temple. Temple interiors only: the world outside, round the temple's door, is level-design-qc's. Use when asked whether the temples or their puzzles are too simple, too obvious, too alike, or before designing or reworking a temple.
 ---
 
 # The temple design audit
@@ -13,9 +13,9 @@ report is `docs/audits/temple-design-v<version>.md`, compared with the last.
 Read first: `docs/systems/temples.md` (the kit, the pieces, the logic), `docs/game-brief.md` (gentle, never
 punishing: harder must not mean fiddlier or deadlier), `docs/fun-and-story-review.md` (problem 5: the temple
 kit stays in the temples), the temple's own file (`src/temples/<world>.js`: its "Inside" comment, `LOGIC`,
-`layout`, the guardian), the last `docs/audits/temple-design-v*.md`, and `TODO.md` ("Temple design (audit)",
-and "Combat telegraphs": a separate batch replaces the guardians' ground-drawn telegraphs with body telegraphs
-and enriches their fights; this audit points at it, it doesn't redo it).
+`layout`, the guardian), the last `docs/audits/temple-design-v*.md`, and `TODO.md` ("Temple design (audit)").
+The guardians' telegraphs and how rich their fights are belong to the combat-review skill: this audit points
+at it, it doesn't redo it.
 
 ## 1. The principles, distilled
 
@@ -67,7 +67,7 @@ and enriches their fights; this audit points at it, it doesn't redo it).
    then twisted, under pressure; clear tells, simpler mechanics than the puzzles, ending as the inevitable
    result (a fight drags past ~10 minutes). (A common reading of Zelda, supported by Miyamoto's "and also in
    boss fights"; no Aonuma quote calls it an exam.) Source: [The Level Design Book, "Pacing"](https://book.leveldesignbook.com/process/preproduction/pacing).
-   The guardians' telegraphs and fight richness are the "Combat telegraphs" batch in `TODO.md`.
+   The guardians' telegraphs and fight richness are judged by the combat-review skill.
 
 ## 2. The rubric
 
@@ -94,12 +94,13 @@ a warning (obscure), not a goal.
 
 ## 3. How to measure
 
+Node 22.12 or newer on PATH (CI uses 24; Zed's bundled node works).
+
 ```sh
-export PATH="/Users/anf/Library/Application Support/Zed/node/node-v24.11.0-darwin-arm64/bin:$PATH"
 node scripts/temple-design/audit.mjs <scratch>/temple [--temples desert,incal]
 ```
 
-Node only, a second for all eleven, read-only: each temple's rooms are built as the game builds them
+Node only, a second for all fourteen, read-only: each temple's rooms are built as the game builds them
 (`TempleRuntime` with its `layout`, no world round it), and every piece the layout places is recorded (its
 class and options). From `LOGIC` and the pieces (`scripts/temple-design/lib.mjs`, `tests/temple-design.test.js`):
 the **puzzle graph** (rooms placed at their marks and pieces; every door and bridge, every link that needs an
@@ -152,7 +153,7 @@ change to `LOGIC` and `layout`:
 - **A catch, then the revelation** (non-obvious): the obvious move fails for a visible reason (the ball rolls
   back off a tilted plate; the bell bridge falls again when you step off) and the second verb fixes it.
 - **The guardian asks for the twist** (guardian exam): the phase uses the gadget the way the twist room did,
-  plus one older verb; its tells on the body (TODO "Combat telegraphs").
+  plus one older verb; its tells on the body (the combat-review skill judges them).
 - **Break the shared skeleton** (identity): no two temples open with "push the ball, ride the disc"; give each
   its own first room from its world's idea.
 
@@ -168,7 +169,7 @@ Start the report with its score block, right under the title (an HTML comment Gi
 ```
 <!-- audit-scores
 overall: the average of the temples' means / 5
-label: the average of the eleven temples' means
+label: the average of the fourteen temples' means
 date: YYYY-MM-DD
 -->
 ```
@@ -186,7 +187,9 @@ so keep both the same from one report to the next. `node --test tests/audits-pag
 - **The ranked edits:** per temple, worst first: what, where (`LOGIC` ids, room), why, expected change.
 - **Against the last report.**
 
-Pictures in `docs/audits/temple-design-v<version>/`, WebP, only those that show a problem, under 3 MB in all.
+Pictures in `docs/audits/temple-design-v<version>/`, WebP, only those that show a problem, under 3 MB in all;
+or, when the batch's changelog lines already carry before/after pictures of the rooms (`changelog-media/<version>/`,
+`src/changelog-media.js`), a "The pictures" section naming them instead (as v1.53 did).
 Add the report to the `docs/audits/` line of `docs/README.md`. Documentation only: no changelog line.
 
 ## 6. Tell the user

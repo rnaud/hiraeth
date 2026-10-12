@@ -35,6 +35,8 @@ export const SEARCH = {
   speed: 0.5,      // the scanner's speed on the stick / keys (diagonals per second at full tilt)
   region: 0.16,    // the uncharted region drawn round a hidden world (its radius) …
   offset: 0.45,    // … its centre off the world's spot by up to this much of that radius
+  arm: 0.05,       // the scanner must be swept this far (of the diagonal) after the map opens before a lock can build
+  clear: 2.5,      // and it starts at least this many lock radii from every hidden world (issue #204)
 };
 
 /** Is this world on the chart without a search? `index`: its place in ORDER. */
@@ -76,8 +78,10 @@ export const lockRadius = (diag, disc = 0, S = SEARCH) => Math.max(S.lockMin, S.
  * `targets`: [{ id, x, y }]. Returns { strength, nearest, lock, found } (found: the id resolved this
  * step, or null). `diag`: the field's diagonal, `disc`: a planet's disc (px).
  */
-export function searchStep(state, { at, targets = [], dt = 0, diag = 1000, disc = 0 }, S = SEARCH) {
+export function searchStep(state, { at, targets = [], dt = 0, diag = 1000, disc = 0, armed = true }, S = SEARCH) {
   state.lock ??= {};
+  // (not swept yet since the map opened: the cues answer, but nothing is held, so nothing resolves by itself: issue #204)
+  if (!armed) dt = 0;
   let strength = 0, nearest = null, found = null, lock = 0;
   const r = lockRadius(diag, disc, S);
   for (const t of targets) {
@@ -91,6 +95,25 @@ export function searchStep(state, { at, targets = [], dt = 0, diag = 1000, disc 
   }
   return { strength, nearest, lock, found };
 }
+
+/**
+ * Where the scanner starts when the map opens (issue #204: "it auto found the first planet because of where the
+ * cursor was"): the first of `prefer` (the ship's own world, say) and the field's middle, then a ring of spots round
+ * it, that lies at least SEARCH.clear lock radii from every hidden world; else the one farthest from them all.
+ * `box`: [left, top, right, bottom] the scanner may be in (px).
+ */
+export function scanStart({ targets = [], box = [0, 0, 800, 600], diag = 1000, disc = 0, prefer = [] } = {}, S = SEARCH) {
+  const [l, t, r, b] = box, mid = [(l + r) / 2, (t + b) / 2];
+  const inBox = (p) => [Math.min(r, Math.max(l, p[0])), Math.min(b, Math.max(t, p[1]))];
+  const ring = Array.from({ length: 8 }, (_, k) => [mid[0] + Math.cos((k / 8) * Math.PI * 2) * (r - l) * 0.32, mid[1] + Math.sin((k / 8) * Math.PI * 2) * (b - t) * 0.32]);
+  const spots = [...prefer.filter(Boolean), mid, ...ring].map(inBox);
+  const far = S.clear * lockRadius(diag, disc, S);
+  const gap = (p) => Math.min(Infinity, ...targets.map((x) => Math.hypot(p[0] - x.x, p[1] - x.y)));
+  return spots.find((p) => gap(p) >= far) ?? spots.reduce((a, p) => (gap(p) > gap(a) ? p : a), spots[0]);
+}
+
+/** Has the scanner been swept far enough since the map opened for a lock to build (`moved` px)? */
+export const searchArmed = (moved, diag, S = SEARCH) => moved >= S.arm * diag;
 
 /**
  * What the cues do at a strength (0..1): the scanner's warmth (0 cool violet .. 1 gold), the beat

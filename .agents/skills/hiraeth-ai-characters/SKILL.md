@@ -13,7 +13,11 @@ For procedural people, enemies, or a roster-wide quality pass, read [procedural-
 
 Read [pipeline-and-failures.md](references/pipeline-and-failures.md) when generating, fitting or repairing a character. Read [repo-map.md](references/repo-map.md) for the existing tools and validation commands. Do not duplicate those implementations into the skill.
 
+For creatures and temple guardians, read [non-humanoids.md](references/non-humanoids.md). Choose the animation family first; do not fit a six-legged creature or floating guardian to the MakeHuman skeleton. Apply finger and cloth checks only when that anatomy or garment exists.
+
 ## Decide the asset contract before generating
+
+- Inspect existing project artwork before writing a new reference prompt. Record which images supply character identity, world palette and drawing style; code-built placeholders define motion constraints, not necessarily the intended art direction. When continuity is requested, actually attach the appropriate identity/style inputs in the selected service and verify their roles in the UI. Naming an artist in text is not reuse of the project's references. Respect any user-requested reference approval gate before starting 3D generation.
 
 - Choose one canonical face, proportions, outfit and accessory set from the supplied references. Variant sheets can disagree. Resolve meaningful conflicts; don't silently mix different faces or backpacks. A prior character's no-backpack choice is not a permanent rule for new characters.
 - Use the user's chosen service. For hosted services, inspect current capabilities, input requirements, output formats and costs before spending credits; generation interfaces change. Existing credits do not authorize unlimited retries or a new purchase. Preserve project/job identifiers and untouched exports.

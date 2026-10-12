@@ -24,7 +24,8 @@
 // after a build, then --url). Chrome: $CHROME, or the usual install path. Sound: --mute-audio, and the
 // game's own volumes at 0. Exits 1 if a check fails; screenshots go to --out.
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { tempDir, ownProcess } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -43,9 +44,9 @@ if (!URL_) {
   URL_ = `http://127.0.0.1:${PORT}/`;
   for (let i = 0; i < 120; i++) { try { if ((await fetch(URL_)).ok) break; } catch { /* not yet */ } await sleep(500); }
 }
-const profile = mkdtempSync(join(tmpdir(), 'hiraeth-chrome-'));
-const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--window-size=1280,720',
-  '--no-first-run', '--no-default-browser-check', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-unsafe-swiftshader', 'about:blank'], { stdio: 'ignore' });
+const profile = tempDir('hiraeth-chrome-');
+const chrome = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--window-size=1280,720',
+  '--no-first-run', '--no-default-browser-check', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-unsafe-swiftshader', 'about:blank'], { stdio: 'ignore' }));
 
 let ws, id = 0;
 const waits = new Map();

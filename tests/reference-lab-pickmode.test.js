@@ -3,7 +3,8 @@
 // back, a pick changed (the first sheet taken back), none of them, the progress count; the drawing and the layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -70,7 +71,7 @@ const pic = (n) => Buffer.from([0xff, 0xd8, 0xff, 0xe0, n, n, n, 0xff, 0xd9]);
 function stubRepo() {
   const base = process.env.PICKMODE_TMP ?? tmpdir();
   mkdirSync(base, { recursive: true });
-  const root = mkdtempSync(join(base, 'pickmode-'));
+  const root = tempDir('pickmode-', base);
   mkdirSync(join(root, 'docs/design'), { recursive: true });
   mkdirSync(join(root, 'references'), { recursive: true });
   writeFileSync(join(root, 'docs/design/level-explorations-prompts.md'), WORLDS);

@@ -39,7 +39,8 @@ node .claude/skills/game-audit/capture.mjs <scratchpad>/audit-shots
 ```
 
 The script captures the default plan: a first-time player's title, a new game idling for about 70 s,
-settings, six worlds, Home, the finale and the Arena. Add a plan file for anything new since the last
+settings, the twelve route worlds in their order (`ORDER`, `src/levels/names.js`; no WIP detours), Home,
+the Lantern (the finale) and the Arena. Add a plan file for anything new since the last
 audit. Read every picture, and read `report.json` for page errors and boot times.
 
 **Rules for any run:** always muted (the script uses `--mute-audio` and the game's own mute), never
@@ -71,10 +72,9 @@ date: YYYY-MM-DD
 -->
 ```
 
-Keep the score tables as Markdown tables with one row per theme (keep the earlier version's column beside this one's, `v0.97 | v1.0`) and the 1-5 scores in their own columns (a
-"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
-page draws them as bars and compares them with the last report's by the row's name and the column's header,
-so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+One row per theme in the score tables, with the earlier version's column beside this one's (`v0.97 | v1.0`).
+The rules for the tables: docs/systems/ui.md "The audits page", bullet "Score tables, for the skills that
+write reports".
 
 Use the same shape as the earlier audits:
 

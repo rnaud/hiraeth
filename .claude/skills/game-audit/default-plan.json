@@ -54,32 +54,67 @@
     "wait": 7000
   },
   {
-    "name": "12-city-shaft",
+    "name": "12-lorn",
+    "q": "?level=perdide",
+    "wait": 7000
+  },
+  {
+    "name": "13-viridel",
+    "q": "?level=edena",
+    "wait": 7000
+  },
+  {
+    "name": "14-underwater-city",
+    "q": "?level=underwater",
+    "wait": 7000
+  },
+  {
+    "name": "15-city-shaft",
     "q": "?level=incal",
     "wait": 7000
   },
   {
-    "name": "13-signal-market",
+    "name": "16-glass-dunes",
+    "q": "?level=glassdunes",
+    "wait": 7000
+  },
+  {
+    "name": "17-buried-machine",
+    "q": "?level=buried",
+    "wait": 7000
+  },
+  {
+    "name": "18-moon-foundry",
+    "q": "?level=moonfoundry",
+    "wait": 7000
+  },
+  {
+    "name": "19-garden-of-spheres",
+    "q": "?level=spheres",
+    "wait": 7000
+  },
+  {
+    "name": "20-space-city",
+    "q": "?level=spacecity",
+    "wait": 7000
+  },
+  {
+    "name": "21-signal-market",
     "q": "?level=bazaar",
     "wait": 7000
   },
   {
-    "name": "14-white-mangrove",
-    "q": "?level=mangrove",
-    "wait": 7000
-  },
-  {
-    "name": "15-home",
+    "name": "30-home",
     "q": "?level=home",
     "wait": 7000
   },
   {
-    "name": "16-lantern",
+    "name": "31-lantern",
     "q": "?level=lantern",
     "wait": 7000
   },
   {
-    "name": "20-arena",
+    "name": "40-arena",
     "q": "?level=arena",
     "wait": 7000
   }

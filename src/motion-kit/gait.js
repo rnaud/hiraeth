@@ -8,6 +8,10 @@ import * as THREE from 'three';
 // diagonal pairs on four, one at a time on three. One ground ray per step (at its landing spot, as it lifts),
 // and a touchdown event for each landing (dust, a sound, a rumble).
 //
+// The optional independent gait uses one-foot groups: stagger starts by 140 ms,
+// allow at most two non-neighbouring feet in flight (four supports on a six-legged rig).
+// It uses the same urgency, bracing, terrain sampling and planted-foot storage.
+//
 // Pure logic over THREE.Vector3 (no scene graph): tested in node (tests/motion-kit.test.js). The mind never
 // asks the planner anything; it only follows f.pos and f.heading (src/motion-kit/rig.js).
 
@@ -22,7 +26,7 @@ export function seeded(seed) {
 
 /**
  * Sort a body's feet into sides and rows, and give the gait groups and each foot's neighbours.
- * homes: the feet's rest spots in the body's frame ({x, z}; +z ahead). gait: 'alternate' (the default for 2, 4,
+ * homes: the feet's rest spots in the body's frame ({x, z}; +z ahead). gait: 'independent' (one foot per decision, at most two non-neighbours airborne), 'alternate' (the default for 2, 4,
  * 6 and 8 legs: diagonal pairs, a tripod, alternating tetrapods), 'wave' (one leg at a time, round the body: the
  * default for 3 or an odd count) or 'lateral' (one at a time, hind then fore on each side: a slow four-legged walk).
  * Returns { groups: [[leg…]…], group: [g per leg], neighbours: [[leg…] per leg], left, right }.
@@ -97,6 +101,7 @@ export class GaitPlanner {
       planted: true, t: 0, dur: 0.2, lift: height, stood: 0, drift: 0,
     }));
     this.lastGroup = -1;
+    this.sinceLift = Infinity;
     this.events = [];
     this.rays = 0;   // (ground rays made: one per step)
     this.ready = false;
@@ -174,13 +179,15 @@ export class GaitPlanner {
     this.heading = heading;
     const speed = Math.hypot(vel.x, vel.z);
     const feet = this.feet;
+    this.sinceLift += dt;
+    const independent = this.gait === 'independent';
     let swinging = -1;
     // 1. the feet in the air move along their arcs, and land
     for (let i = 0; i < feet.length; i++) {
       const f = feet[i];
       if (f.planted) { f.stood += dt; continue; }
       f.t += dt / f.dur;
-      if (f.t < 0.6) {   // (early in the swing the landing follows the body: a turn or a change of pace)
+      if (f.t < 0.6 && this.arc !== 'flowing') {   // (early in the swing the landing follows the body: a turn or a change of pace)
         const y = f.to.y;
         this.landing(f, root, heading, vel, turn, f.dur * (1 - f.t), _t);
         f.to.set(_t.x, y, _t.z);
@@ -200,13 +207,15 @@ export class GaitPlanner {
     const moving = speed > 0.08 || Math.abs(turn) > 0.3;
     const threshold = moving ? this.drift : this.drift * 0.35;   // (stopped: a settling step brings a foot home)
     const dur = this.locked ? this.stepTime[0] : this.swingTime(speed);   // (a brace is quick: done well before the pose holds)
-    if (swinging >= 0) return ev;
-    // 3. the most urgent group lifts, when every foot is down (a foot past `reach` is the most urgent of all)
+    if (!independent && swinging >= 0) return ev;
+    if (independent && (feet.filter(f => !f.planted).length >= 2 || this.sinceLift < 0.14)) return ev;
+    // 3. the most urgent eligible group lifts; independent feet retain neighbouring supports.
     let best = -1, bestU = 0, second = -1, secondU = 0;
     for (let g = 0; g < this.groups.length; g++) {
       let u = 0;
       for (const i of this.groups[g]) {
         const f = feet[i];
+        if (independent && (!f.planted || this.neighbours[i].some(j => !feet[j].planted))) continue;
         if (this.locked && !this.pending?.has(i)) continue;
         let fu = f.drift / threshold;
         if (this.locked) fu = Math.max(fu, 1);
@@ -232,6 +241,7 @@ export class GaitPlanner {
       if (f.drift >= min || f.stood > this.maxStance) this.lift(i, root, heading, vel, turn, swing, ground);
     }
     this.lastGroup = best;
+    this.sinceLift = 0;
     return ev;
   }
 
@@ -250,7 +260,12 @@ export class GaitPlanner {
 
   /** A foot's place along its step at t (0..1). */
   arcAt(f, t, out) {
-    if (this.arc === 'machine') {
+    if (this.arc === 'flowing') {
+      // Zero take-off/landing velocity; a fixed predicted landing avoids a mid-step target kink.
+      out.lerpVectors(f.from, f.to, smoother(t, 0, 1));
+      out.y += f.lift * Math.sin(Math.PI * t) ** 2;
+      return out;
+    } else if (this.arc === 'machine') {
       // three straight moves: lift, translate, drop (hard stops)
       const top = Math.max(f.from.y, f.to.y) + f.lift;
       if (t < 0.28) { const u = t / 0.28; out.set(f.from.x, THREE.MathUtils.lerp(f.from.y, top, u), f.from.z); }

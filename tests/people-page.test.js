@@ -174,7 +174,7 @@ test('the errands\' and keepsakes\' people are the ones the content names', () =
 });
 
 test('the page in the menu: People is the fifth panel; A / × opens a person, B / ○ goes back, ← → steps along', () => {
-  assert.equal(PANELS.at(-1).id, 'people');
+  assert.equal(PANELS[4].id, 'people');
   assert.equal(ACT.open, 'open');
   const flags = { 'met.ama': true, 'met.nour': true, 'met.dov': true, 'incal.dov.allowed': true };
   const game = { data: { flags }, keepsakes: () => [] };
@@ -196,7 +196,7 @@ test('the page in the menu: People is the fifth panel; A / × opens a person, B 
   assert.equal(m.back(), false, 'on the cards, B / ○ closes the menu');
   // turning away and back: the cards
   m.confirm(); assert.equal(m.person, 'dov');
-  m.turn(1); assert.equal(m.panel, 'items'); m.turn(-1);
+  m.turn(1); assert.equal(m.panel, 'sketches'); m.turn(-1);
   assert.equal(m.person, null);
   // the wiring
   const main = src('src/main.js');

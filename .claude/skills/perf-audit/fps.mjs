@@ -11,12 +11,14 @@
 // with the whole roster (every archetype, its home skin) standing in front of the camera.
 //
 //   node .claude/skills/perf-audit/fps.mjs [--preset high|handheld|deck|low] [--worlds desert,incal,arena] [--secs 6]
-//        [--warmup 2] [--res 1280x720] [--extras 0] [--root <a checkout with its dist/ built>] [--out file.json]
+//        [--warmup 2] [--res 1280x720] [--extras 0] [--wip 1] [--root <a checkout with its dist/ built>] [--out file.json]
 //        PORT (default 5492; Chrome's is PORT + 1)
 // --root measures another build (an older commit's `git archive` with its own dist/) with this checkout's views,
-// for an A/B in one session.
+// for an A/B in one session. The default worlds leave out the ones still being made (WIP, src/levels/names.js):
+// --wip 1 measures them too, or name them in --worlds.
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,22 +35,28 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const VW = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;
 const VD = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints.json'), 'utf8')).views;
-const route = await import(join(ROOT, 'src/levels/names.js')), ids = [...(route.ORDER ?? []), ...(route.SIDE ?? []), 'home', 'lantern', 'arena'];
+const route = await import(join(ROOT, 'src/levels/names.js')), WIP = arg('wip', '0') === '1' ? [] : route.WIP ?? [];
+const ids = [...(route.ORDER ?? []), ...(route.SIDE ?? []), 'home', 'lantern', 'arena'].filter((id) => !WIP.includes(id));
 const WORLDS = (arg('worlds') ?? [...new Set(ids)].join(',')).split(',').filter(Boolean);
 const viewsOf = (id) => (id === 'desert' ? VD : VW[id]?.views ?? []).filter((v) => v.eye && v.target).slice(0, 4);
 // the Arena's pack: every archetype of the roster (src/enemies/archetypes.js), each in its home skin
-const ROSTER = ['crab', 'skitter', 'centipede', 'toad', 'lizard', 'heron', 'roller', 'rootknot', 'jelly', 'moth', 'ray', 'worm', 'tripod', 'cart', 'bell', 'drone', 'brute', 'blot', 'shade', 'hound', 'marionette'];
+const { BUILT: ROSTER } = await import(join(ROOT, 'src/enemies/archetypes.js'));
 
 const { preview } = await import(join(SERVE, 'node_modules/vite/dist/node/index.js'));
 const server = await preview({ root: SERVE, configFile: join(SERVE, 'vite.config.js'), logLevel: 'error', preview: { port: PORT, strictPort: true, host: '127.0.0.1' } });
 const BASE = `http://127.0.0.1:${PORT}/`;
 
-const profile = mkdtempSync(join(tmpdir(), 'perf-audit-chrome-'));
+const profile = tempDir('perf-audit-chrome-');
 // (no back-forward cache: each world's page let go when the next loads, so the heap is that world's, not the run's)
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
   `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-frame-rate-limit',
-  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-precise-memory-info', '--disable-features=BackForwardCache', '--no-first-run', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
+  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-precise-memory-info', '--disable-features=BackForwardCache', '--no-first-run', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' }));
+// (never leave a server behind on a shared machine: on an error, a throw or ^C; ownProcess takes Chrome and its profile)
+const bail = (e) => { if (e instanceof Error) console.error(e); server.httpServer.close(() => process.exit(1)); setTimeout(() => process.exit(1), 2000).unref(); };
+process.on('uncaughtException', bail); process.on('unhandledRejection', bail);
+process.on('SIGINT', bail); process.on('SIGTERM', bail);
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
+if (!tabs) throw new Error(`Chrome did not start (no debugging port ${CDP}: set PORT to a free one, or CHROME to its path)`);
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));
 let id = 0; const waits = new Map(), errors = [];

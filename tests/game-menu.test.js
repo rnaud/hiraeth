@@ -1,15 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PANELS, MenuState, moveCursor, GameMenu, itemsPanel, questsPanel, sketchesPanel, worldsPanel, menuPrompts, GEAR_COLS, CARRY_COL, ENDED } from '../src/game-menu.js';
+import { PANELS, DEFAULT_PANEL, MenuState, moveCursor, GameMenu, itemsPanel, questsPanel, sketchesPanel, worldsPanel, mapPanel, fullHtml, itemUse, worldFacts, menuPrompts, GEAR_COLS, CARRY_COL, ENDED } from '../src/game-menu.js';
 import { itemsData, questsData, sketchesData, worldsData, chargeCard, menuSources } from '../src/game-menu-data.js';
 import { Quests } from '../src/story/quests.js';
 import { questGoal, QUEST_GOALS } from '../src/story/quest-goals.js';
 import { Controller } from '../src/controller.js';
 import { ITEMS } from '../src/items.js';
 
-// The game menu (src/game-menu.js) that took the sketchbook's place: four panels turned with the
-// shoulder buttons, a cursor over each panel's grid, A / × to use or look, B / ○ to close.
+// The game menu (src/game-menu.js) that took the sketchbook's place: six panels turned with the
+// shoulder buttons, a cursor over each panel's grid, A / × to open a thing full screen (and use it there),
+// to track a quest or zoom the map, B / ○ to go back or close (issue #213).
 
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 const row = (n, from = 0) => Array.from({ length: n }, (_, i) => ({ col: from + i }));
@@ -27,16 +28,17 @@ function questsWorld() {
   return { q, flags };
 }
 
-test('the panels: Items, Quests, Sketchbook, Worlds, People, side by side; the shoulder buttons turn them round', () => {
-  assert.deepEqual(PANELS.map((p) => p.name), ['Items', 'Quests', 'Sketchbook', 'Worlds', 'People']);
+test('the panels: Quests first (the menu opens there, issue #213), the Map beside it, then Items, Worlds, People, Sketchbook; the shoulder buttons turn them round', () => {
+  assert.deepEqual(PANELS.map((p) => p.name), ['Quests', 'Map', 'Items', 'Worlds', 'People', 'Sketchbook']);
+  assert.equal(DEFAULT_PANEL, 'quests');
   const s = new MenuState();
-  assert.equal(s.panel.id, 'items');
-  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['People', 'Quests'], 'the neighbours named at the sides');
-  s.turn(1); assert.equal(s.panel.id, 'quests');
+  assert.equal(s.panel.id, 'quests');
+  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['Sketchbook', 'Map'], 'the neighbours named at the sides');
+  s.turn(1); assert.equal(s.panel.id, 'map');
   s.turn(1); s.turn(1); assert.equal(s.panel.id, 'worlds');
   s.turn(1); assert.equal(s.panel.id, 'people');
-  s.turn(1); assert.equal(s.panel.id, 'items', 'round again');
-  s.turn(-1); assert.equal(s.panel.id, 'people');
+  s.turn(1); s.turn(1); assert.equal(s.panel.id, 'quests', 'round again');
+  s.turn(-1); assert.equal(s.panel.id, 'sketches');
   s.show('sketches'); assert.equal(s.panel.id, 'sketches');
   // each panel keeps its own cursor
   s.at.sketches = { r: 1, c: 2 }; s.turn(1); s.turn(-1);
@@ -59,13 +61,13 @@ test('the cursor: along a row, off its end onto the side tab, once more turns th
   assert.deepEqual(moveCursor([], { r: 0, c: 0 }, 1, 0), { edge: 1, r: 0 });
   const s = new MenuState();
   assert.equal(s.move(rows, 1, 0), 'move');
-  s.at.items = { r: 0, c: 3 };
-  s.move(rows, 1, 0); assert.ok(s.cursor().edge, 'on the tab');
+  s.at.quests = { r: 0, c: 3 };
+  s.move(rows, 1, 0); assert.ok(s.cursor().edge, 'on the tab: right at the last column goes somewhere');
   assert.equal(s.cell(rows), null);
-  assert.equal(s.move(rows, 1, 0), 'turn'); assert.equal(s.panel.id, 'quests');
+  assert.equal(s.move(rows, 1, 0), 'turn'); assert.equal(s.panel.id, 'map');
 });
 
-test('the menu without a page: open on a panel, move, turn with the shoulders, A / × tracks a quest or takes a gun mode', () => {
+test('the menu without a page: open on a panel, move, turn with the shoulders; A / × opens an item full screen, takes its gun mode there, tracks a quest', () => {
   const { q } = questsWorld();
   q.start('desert.power'); q.start('desert.drum');
   const used = [], tracked = [];
@@ -81,10 +83,22 @@ test('the menu without a page: open on a panel, move, turn with the shoulders, A
   m.navigate(1, 0); m.navigate(1, 0);
   assert.equal(m.state.cell(m.rows).id, 'stun');
   m.confirm();
-  assert.deepEqual(used, ['stun'], 'A / × on a gun mode takes it');
-  assert.equal(m.rows[0][2].act, null, 'in use now: nothing more to do');
-  // RB / R1: the Quests panel (the father's charge first, then the quests under way)
-  m.turn(1);
+  assert.deepEqual(used, [], 'A / × on an item opens it full screen, nothing used yet');
+  assert.equal(m.full?.id, 'stun', 'open full screen');
+  assert.equal(m.fullCell().full.use, 'Use this mode', 'its action said there');
+  m.confirm();
+  assert.deepEqual(used, ['stun'], 'A / × in the full view takes the gun mode');
+  assert.equal(m.full?.id, 'stun', 'and it stays open');
+  assert.equal(m.fullCell().full.use, null, 'in use now: nothing more to do');
+  assert.equal(m.fullCell().full.inUse, true);
+  m.navigate(-1, 0); assert.equal(m.full.id, 'jetpack', '← the one before');
+  assert.equal(m.state.cell(m.rows).id, 'jetpack', 'the cursor follows');
+  m.navigate(1, 0);
+  assert.equal(m.back(), true, 'B / ○: back to the grid');
+  assert.equal(m.full, null);
+  assert.equal(m.state.cell(m.rows).id, 'stun', 'on the one just shown');
+  // LB / L1 twice: the Quests panel (the father's charge first, then the quests under way)
+  m.turn(-1); m.turn(-1);
   assert.equal(m.panel, 'quests');
   assert.equal(m.state.cell(m.rows).id, 'desert.drum', 'it opens on the quest you are on');
   m.state.at.quests = { r: 0, c: 0 };
@@ -96,22 +110,28 @@ test('the menu without a page: open on a panel, move, turn with the shoulders, A
   assert.equal(q.tracked(), 'desert.power');
   assert.equal(m.rows[1][0].id, 'desert.power', 'the one you are on comes first');
   assert.equal(m.state.cell(m.rows).id, 'desert.power', 'and the cursor goes with it');
-  // LB / L1 back to Items; past the row's start, the Worlds tab
-  m.turn(-1); assert.equal(m.panel, 'items');
-  m.state.at.items = { r: 0, c: 0 }; m.navigate(-1, 0);
+  // past the row's start, the Sketchbook's tab; A / × on it turns there
+  m.state.at.quests = { r: 0, c: 0 }; m.navigate(-1, 0);
   assert.equal(m.state.cursor().edge, -1);
-  m.confirm(); assert.equal(m.panel, 'people', 'A / × on a side tab turns to it');
+  m.confirm(); assert.equal(m.panel, 'sketches', 'A / × on a side tab turns to it');
+  // opened again with no panel asked (View / Select, J): the Quests (issue #213)
+  m.open(); assert.equal(m.panel, 'quests');
+  m.show('items'); m.open(); assert.equal(m.panel, 'quests', 'whatever was left showing');
+  m.open('items'); assert.equal(m.panel, 'items', 'the Start menu\'s Items: its own');
 });
 
 test('the keyboard in the menu: Q / E and [ ] turn the panels, the arrows and WASD move, Enter uses', () => {
   const m = new GameMenu(null, { sources: { items: () => itemsData({ owned: ['backpack', 'jetpack'] }) } });
   m.open('items');
   const key = (code, o = {}) => m.key({ code, ...o });
-  assert.equal(key('KeyE'), true); assert.equal(m.panel, 'quests');
+  assert.equal(key('KeyE'), true); assert.equal(m.panel, 'worlds');
   key('KeyQ'); assert.equal(m.panel, 'items');
   key('BracketRight'); key('BracketLeft'); assert.equal(m.panel, 'items');
   key('ArrowRight'); assert.equal(m.state.cell(m.rows).id, 'jetpack');
   key('KeyA'); assert.equal(m.state.cell(m.rows).id, 'backpack');
+  key('Enter'); assert.equal(m.full?.id, 'backpack', 'Enter opens it full screen');
+  key('ArrowRight'); assert.equal(m.full?.id, 'jetpack', '→ the next one');
+  assert.equal(key('Backspace'), true); assert.equal(m.full, null, 'Backspace (or Esc) back');
   assert.equal(key('KeyZ'), false, 'not the menu\'s');
   const quest = src('src/quest.js');
   assert.match(quest, /else if \(e\.code === 'Escape' && this\.open\) \{ e\.stopImmediatePropagation\(\); if \(!this\.menu\.back\(\)\) this\.toggle\(false\); \}/, 'Esc closes it (a person\'s page first)');
@@ -219,7 +239,9 @@ test('the Sketchbook and Worlds panels: every world you know, its story page and
   const sk = sketchesData({ data, levels, known: (id) => id !== 'incal' });
   assert.deepEqual(sk.worlds.map((w) => w.id), ['desert'], 'only worlds you know, and not the hidden one');
   const { rows } = sketchesPanel(sk);
-  assert.deepEqual(rows[0].map((x) => x.act), ['look', 'look', null, 'look'], 'drawn ones can be held up');
+  assert.deepEqual(rows[0].map((x) => x.act), ['look', 'look', 'look', 'look'], 'each opens full screen (a relic not found: a ? and where to look)');
+  assert.match(rows[0][0].full.pic, /<img src=/, 'a drawn page: its picture large');
+  assert.match(rows[0][2].full.pic, /<i>\?<\/i>/, 'one not found: a ?');
   assert.equal(rows[0][2].name, 'Not found yet', 'a relic not found keeps its name to itself');
   assert.deepEqual(rows.slice(1).map((r) => r[0].sub), ['The Sleeping Observatory', 'Errands']);
   const w = worldsData({ data, levels, order: ['desert', 'incal'], current: 'incal', boxes: { desert: { found: 1, total: 2 } }, known: () => true });
@@ -267,4 +289,72 @@ test('a story told in an older save, before pages were drawn, reads as told in t
   const story = sketchesPanel(sk).rows.flat().find((c) => c.kind === 'story');
   assert.match(story.sub, /the story, told/);
   assert.match(story.desc, /older save/);
+});
+
+// ------------------------------------------------------------------ issue #213: large items, A / × full screen, the Quests first
+
+test('the items are large tiles with their names; the strip says the name only, the words are in the full view, beside the picture, never over it', () => {
+  const d = itemsData({ owned: ['backpack', 'stun'], mode: 'shoot', modes: ['shoot', 'stun'] });
+  const { html, rows } = itemsPanel(d);
+  assert.match(html, /<div class="gm-items" data-grid-nav>/, 'as many tiles a row as fit, the cursor moving by where they are');
+  assert.match(html, /<span class="nm">Stilling mode<\/span>/, 'each tile named under its picture');
+  assert.doesNotMatch(html, /gm-preview/, 'no picture beside the grid any more');
+  const stun = rows[0].find((x) => x.id === 'stun');
+  assert.equal(stun.act, 'look');
+  const full = fullHtml(stun, { prev: 'Magic-fluid backpack', next: null });
+  // (the picture and the words are two cells of the full view's grid: .fpic and .ftext, side by side or one over the other)
+  const pic = full.indexOf('class="fpic"'), text = full.indexOf('class="ftext"');
+  assert.ok(pic > 0 && text > pic, 'the picture, then the words beside it');
+  assert.doesNotMatch(full.slice(pic, text), /<p>|Stilling mode/, 'no words over the picture');
+  assert.match(full.slice(text), /<h2>Stilling mode<\/h2>/);
+  assert.match(full, /data-full-use>.*Use this mode/, 'its action, on A / ×');
+  assert.match(full, /data-full-step="-1">.*Magic-fluid backpack/, '← the one before');
+  // the game menu's strip: the name and what it is, no paragraph of words
+  const gm = src('src/game-menu.js');
+  assert.match(gm, /<footer class="gm-info"><div class="gm-what"><b class="gm-name"><\/b><span class="gm-sub"><\/span><\/div>/);
+  assert.doesNotMatch(gm, /gm-desc/);
+  assert.doesNotMatch(src('src/game-menu.css'), /gm-preview|gm-desc/);
+});
+
+test('the fragment finder switches on and off from its full view; a gadget is taken in hand there', () => {
+  assert.equal(itemUse({ usable: true, toggle: true, inUse: true }), 'Switch it off');
+  assert.equal(itemUse({ usable: true, toggle: true, inUse: false }), 'Switch it on');
+  assert.equal(itemUse({ usable: true, kind: 'gadget' }), 'Take it in hand');
+  assert.equal(itemUse({ usable: false, kind: 'gadget' }), null);
+  let on = true;
+  const used = [];
+  const m = new GameMenu(null, { sources: menuSources({ items: { owned: () => ['finder'] }, toggles: () => ({ finder: on }), journal: { data: {} }, levels: [], order: [] }),
+    onUse: (id) => { used.push(id); on = !on; } });
+  m.open('items');
+  assert.equal(m.state.cell(m.rows).id, 'finder');
+  m.confirm();
+  assert.equal(m.fullCell().full.use, 'Switch it off');
+  m.confirm();
+  assert.deepEqual(used, ['finder']);
+  assert.equal(m.fullCell().full.use, 'Switch it on', 'drawn again, switched off');
+  m.confirm();
+  assert.equal(m.fullCell().full.use, 'Switch it off');
+});
+
+test('the worlds one a row: up and down go between them, A / × shows what you have found there and what is still to find', () => {
+  const levels = ['desert', 'arzach', 'perdide'].map((id, i) => ({ id, title: ['The Desert', 'Vael', 'Lorn'][i], relicNames: ['Cup', 'Bell', 'Horn'], blurb: `${id}.` }));
+  const flags = { 'met.ama': true, 'met.nour': true };
+  const m = new GameMenu(null, { sources: menuSources({ items: { owned: () => [] }, game: { data: { flags }, keepsakes: () => [] }, journal: { data: { relics: { desert: { 0: { img: 'a' }, 2: { img: 'b' } } }, stories: { desert: { t: 1 } } } },
+    levels, order: ['desert', 'arzach', 'perdide'], current: 'arzach', boxes: () => ({ desert: { found: 1, total: 2 } }) }) });
+  m.open('worlds');
+  assert.deepEqual(m.rows.map((r) => r.length), [1, 1, 1], 'one a row');
+  m.navigate(0, 1); assert.equal(m.state.cell(m.rows).id, 'arzach', 'down: the next world');
+  m.navigate(0, 1); m.navigate(0, 1); assert.equal(m.state.cell(m.rows).id, 'desert', 'and round');
+  m.navigate(0, -1); assert.equal(m.state.cell(m.rows).id, 'perdide', 'up from the first: the last');
+  m.navigate(0, 1);
+  m.confirm();
+  assert.equal(m.full?.id, 'desert');
+  const f = m.fullCell().full;
+  assert.match(f.facts, /The story is told/);
+  assert.match(f.facts, /Relics: 2 of 3/); assert.match(f.facts, /Cup · \? · Horn/, 'the relics found by name, a ? for the one still to find');
+  assert.match(f.facts, /Makers’ boxes: 1 of 2/);
+  assert.match(f.facts, /People met: 2/); assert.match(f.facts, /Ama/);
+  m.navigate(1, 0); assert.equal(m.full.id, 'arzach', '→ the next world');
+  assert.match(m.fullCell().full.facts, /not told yet/);
+  assert.deepEqual(worldFacts({ told: false, relics: [0, 0] }).map((x) => x.text), ['The story is not told yet']);
 });

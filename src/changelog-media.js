@@ -703,7 +703,170 @@ const UC_REF = 'references/levels/The Underwater City/environment/explorations/'
 const SC57 = 'scripts/changelog-shots.mjs’s shoot in headless Chrome (muted, High, 1280 × 720, the morning 8.5) against this branch’s own Vite (port 5581), the before with src/levels/space-city.js, space-city-kit.js and the city’s story as on origin/main (64023d42), the same pinned cameras, 12 October; cwebp -q 70 -resize 960';
 const DB57 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 5601), the HUD hidden, the same save and the same ride from the bike’s spot for both; the before with the one line that installs the fix (src/matrix-cache.js) taken out, as on origin/main (0ad6ff68); 12 October; cwebp -q 72';
 const DP57 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 5601), the HUD hidden, the camera pinned at the same spots for both; the before with src/desert-vistas.js as on origin/main (0ad6ff68); 12 October; cwebp -q 72';
+// (v1.58: the movement and animation fixes, issues #214, #215, #216, #209: by hand, frame strips of each from the side)
+const MV58 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5631), the HUD hidden, the camera pinned at the same spot for both; the before with the changed files as on origin/main (0ad6ff68), 12 October; frames laid side by side in the page, cwebp -q 72';
+// (v1.58: the game menu and the map, issues #213 and #205: by hand, the before the tree as on origin/main (be75fda2)
+// served by this branch's Vite before the change, the same debug save in the Underwater City and the desert)
+const MENU58 = 'headless Chrome (muted, Low, 1280 × 720 and 730 × 410) against this branch’s own Vite (port 5621), the debug save for the Underwater City and the desert by the ship, before the change and after, 12 October; cwebp -q 72';
+// (v1.59: the chime pirates reworked, issue #206; a scratch shooter against this branch's own Vite and origin/main's tree)
+/** Issue #195's roomier rooms: the commit and main before it (scripts/changelog-shots.mjs on port 5651). */
+const ROOMS59C = { commit: '27fe72cd', before: '27d67022' };
+const ROOMS59 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against the commit and main before it: the traveller teleported to the middle of the antechamber (by its glyph stone), facing the guardian’s hall, the game’s camera put behind him and left to settle 4 s, the foes cleared';
+/** The traveller in the middle of a temple's antechamber (its glyph stone's z), facing the guardian's hall, the camera behind him. */
+const ANTE_CAM = (id) => `const rt = window.temples?.${id}, K = rt.kit, V = THREE.Vector3, m = rt.marks.find((k) => k.room === 'ante'), l = K.local(m.pos);
+  for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
+  player.teleport(K.world(0.3, l.y + 0.05, l.z), new V(0, 1, 0), new V(0, 0, 1)); player.heading = K.heading(0);
+  rig.yaw = player.heading + Math.PI; rig.pitch = rig.pitch0; rig._lastP = null;`;
+const SH59 = 'headless Chrome (muted) on the Mac’s GPU, the Handheld preset at the Retroid’s 730 × 410 CSS px at 2× (render scale 0.75), hour 10, clear, the clock held; origin/main’s build (27d67022) and this change’s, the same camera for both (12 October); cwebp -q 72';
+const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5641) and origin/main’s tree before it (8821ba59, port 5643), ?game=pirates&to=edena, the run flown ahead to the same second by the game’s pilot for both (12 October); cwebp -q 72';
+// (v1.59: Lorn's veins, Viridel's water stair and the Garden's lake polished against their sheets, issues #188-#190: a
+// scratch copy of scripts/design-qc/capture.mjs, the before this branch's own tree before the change)
+const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5681), the before the same tree before the polish (27d67022), the same pinned cameras as v1.55 and v1.56, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.59': [
+    { match: 'The Unity preview on the Xbox holds close to 60 frames a second at the City-Shaft', numbers: [
+      { title: 'The Unity preview on the Xbox at the City-Shaft’s rim', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1), muted', rows: [
+        { where: 'the rim, from the spawn: frames a second', before: 44.5, after: 57.4 },
+        { where: 'the rim: frames at 33 ms, %', before: 38.2, after: 4.7 },
+        { where: 'the rim: the GPU’s ms a frame', before: 15.8, after: 13.8 },
+        { where: 'the rim: the script’s ms a frame', before: 15.3, after: 14.4 },
+        { where: 'the wide view down the shaft: the GPU’s ms', before: 19.2, after: 17.2 },
+        { where: 'the crowd view: the GPU’s ms', before: 15.5, after: 12.5 },
+        { where: 'the crowd view: the script’s ms', before: 18.7, after: 17.1 },
+        { where: 'the Desert’s spawn: frames a second', before: 59.5, after: 59.6 },
+      ], source: 'scripts/xbox-unity.mjs, build 2027; the rim and the Desert the mean of the last 30 s of a 170 s run, the views -bench 6; before: the same build with -no-shadow-sweep -shadow-camera -no-shadow-instances -no-shadow-chunks -v8 none (the Desert’s before: build 1973); 12 October' },
+    ], see: 'On the Xbox, start the Unity preview in the City-Shaft and watch the readout at the top left at the rim: about 57 frames a second where it showed 45.' },
+    { match: 'The Cistern-Keeper has an experimental animation preview', tags: ['characters', 'desert'], shots: [
+      { name: 'keeper-procedural-walk', title: 'Walking pilot', size: [531, 550],
+        caption: 'Animation pilot, before and after refinement: synchronized tripods and an open resting mouth become staggered supported footfalls and a closed mouth. The live temple guardian is unchanged.',
+        from: 'Keeper review, three-quarter view at 2.4 s: initial procedural pilot versus the refined pilot; captured in Codex, matching canvas crop.',
+        reference: { sheet: 'references/guardians/cistern-keeper/reference-v3-1.png', caption: 'Approved Midjourney Keeper reference used for the Tripo mesh.' } },
+      { name: 'keeper-closed-jaw', title: 'Closed jaw', only: 'after', size: [531, 577],
+        caption: 'The fitted jaw closes beneath the muzzle at rest; feeding and attack poses can still open it.',
+        from: 'Keeper review, Jaw closed at 3 s, Head close-up; captured in Codex.' },
+    ], see: 'On the development server, open /tools/keeper-review.html. Choose Walk, Turn, Stamp, Sweep or Encounter controller and press Play. For a fixed pose, enter seconds and press Go. Compare Jaw closed and Jaw open with Head close-up. This is the isolated animation pilot, not yet a replacement in the temple.' },
+    { match: 'The chime pirates count points now', shots: [
+      { name: 'pirates-points', title: 'A kill', caption: 'A skiff shot down ten seconds in: before, “+1 chime” over it; after, “+10”, the points in the corner counting', from: PI59 },
+      { name: 'pirates-results', title: 'The results', caption: 'The run won on the way to a world: before, “Chimes won: 79” among the lines; after, the points and the chimes they make, counted up, 20 points a chime', from: PI59 },
+    ], see: 'Fly to a world you have never visited: the pirates attack on the way. Shoot them down and watch the points; win, and the results turn them into chimes.' },
+    { match: 'Losing a pip of hull to the chime pirates', shots: [
+      { name: 'pirates-hit', caption: 'A pirate shot hitting the ship: before, a thin coral line round the screen; after, the edges flare red, the pips under the ship with the lost one bursting, the corner’s pip popping', from: PI59 },
+    ], see: 'In the chime pirates, let a pirate shot or a rock hit you.' },
+    { match: 'The chime pirates’ two aiming boxes are one sight', shots: [
+      { name: 'pirates-reticle', caption: 'Twelve seconds in, D held 0.4 s: before, two squares; after, the ring and the diamond on the line of fire', from: PI59 },
+    ], see: 'In the chime pirates, steer so a pirate sits in the ring: it tightens and turns coral; fire, and a mark flashes on each hit.' },
+    { match: 'The first time you meet the chime pirates, pushing the stick up dives', shots: [
+      { name: 'pirates-card', caption: 'The start card on the way to a new world: before, “Stick forward: Dives / Climbs” to choose; after, no choice, the controls saying W or ↑ dives (with a pad: push up to dive)', from: PI59 },
+    ], see: 'Start the chime pirates on a new save: the card has no pitch choice and pushing up dives. Beat them once and the card offers “Push up to: Dive / Climb”.' },
+    { match: 'The pirates’ captain flies a gunship built for space', shots: [
+      { name: 'pirates-boss', title: 'The captain', caption: 'The captain coming in at 78 s: before, the galleon under its solar sails; after, the gunship, its turrets on the wingtips, the skull on its prow, the engines’ intakes glowing', from: PI59 },
+      { name: 'pirates-bossnear', title: 'The bridge open', only: 'after', caption: 'Its turrets down, close in under it: the shutters open over the teal bridge, rings of slow shots coming', from: PI59 },
+    ], see: 'Fly the chime pirates to the end: the captain’s gunship comes in at about 70 seconds.' },
+    { match: 'The rooms before each temple’s guardian are much bigger', shots: [
+      { name: 'ante-engine', title: 'The Engine-House', caption: 'The game’s own camera behind the traveller in the middle of the antechamber before the Tooth-Warden’s hall, facing the hall: before, the passage 4 m deep, the door at his back, the camera pressed in over his head; after, the vestibule 7.4 m deep, 8 m across and 8.5 m high, the camera at its 1.9 m', from: ROOMS59, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'buried', wait: 4500, setup: ANTE_CAM('buried') } },
+      { name: 'ante-undertower', title: 'The Undertower', caption: 'The same in the Undertower, before the First Sign’s hall: the passage grown into a room the camera can stand back in', from: ROOMS59, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'bazaar', wait: 4500, setup: ANTE_CAM('bazaar') } },
+    ], numbers: [{ title: 'The close camera’s shortest arms in the room (a tenth of the time shorter than this)', unit: 'm', better: 'higher', device: 'node: the real camera rig through the real collision, a full turn by hand and four walks out and back from the room’s glyph stone',
+      rows: [{ where: 'the eight antechambers (worst)', before: 0.55, after: 1.6 }, { where: 'the eight antechambers (best)', before: 0.88, after: 1.7 }, { where: 'the Mooring-House’s ante', before: 0.53, after: 1.82 }, { where: 'the Rose House’s Dry Channel (its stone)', before: 0.31, after: 1.49 }, { where: 'the Rose House’s Sword Chamber (its stone)', before: 0.45, after: 1.99 }],
+      source: 'the issue #195 probe (docs/systems/movement-and-camera.md, “Small rooms”): cramped rooms 30 → 18 of 137' }],
+      see: 'In any temple, open the way to its guardian and stand in the room before the guardian’s hall: turn the camera all the way round. It stays back over your shoulder instead of pressing against your back.' },
+    { match: 'Your ship is roomier inside', shots: [
+      { name: 'ship-room-aft', title: 'The main room', caption: 'From the back of the main room toward the cockpit, the camera at the same spot: before, 6.4 m across under a 2.35 m ceiling; after, 7.6 m across under 2.9 m, the cockpit 0.8 m further on, the furniture as it was', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.3, 1.75, 2.3], [0, 1.1, -8], 78) } },
+      { name: 'ship-room-cockpit', title: 'The cockpit', caption: 'Into the cockpit from the holo table: before, the seats close under the windshield; after, a longer, higher cockpit, the frame 3.8 m wide', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.2, 1.8, -4.8], [0, 1.2, -9.5]) } },
+      { name: 'ship-room-alcove', title: 'The bunk', caption: 'Across to the bunk’s alcove: before, its hood at 2.05 m; after, deeper, its hood at 2.35 m, the ceiling over it at 2.9', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([-1.8, 1.65, -0.6], [3.2, 1.0, -3.6]) } },
+      { name: 'ship-room-back', title: 'The back room', caption: 'Into the back room toward the hold: before, 4.2 m deep, the hold’s doorway 1.6 m wide; after, 4.8 m deep, the doorway 2.1 m, the hold 5 m deep beyond it', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([-0.4, 1.7, 2.9], [0.6, 1.0, 10], 74) } },
+    ], numbers: [{ title: 'The close camera’s shortest arms aboard (a tenth of the time shorter than this)', unit: 'm', better: 'higher', device: 'node: the real camera rig through the real collision, a full turn by hand and four walks out and back',
+      rows: [{ where: 'by the holo table', before: 0.48, after: 1.23 }, { where: 'the main room’s aft end', before: 0.7, after: 1.12 }, { where: 'the hold', before: 0.97, after: 1.76 }, { where: 'the cockpit', before: 0.59, after: 0.64 }, { where: 'by the hatch', before: 0.78, after: 0.83 }],
+      source: 'the issue #195 probe (docs/systems/movement-and-camera.md, “Small rooms”)' }],
+      see: 'Walk through the ship from the cockpit to the hold: the rooms are wider and the ceiling higher, and the camera stays further back as you turn round.' },
+    { match: 'In small rooms the camera settles', numbers: [{ title: 'The close camera in a 4.2 × 5 m cabin: a turn by hand, walks to each wall and back, another turn', unit: 'm', better: 'lower', device: 'node: the real camera rig (tests/room-size.test.js)',
+      rows: [{ where: 'the arm’s in and out, summed over the walk', before: 3.66, after: 0.74 }, { where: 'flips in and out within a third of a second (frames)', before: 8, after: 0 }], source: 'scratch run of the test’s scenario against the commit before and after' }],
+      see: 'In the ship’s hold or a small room, turn the camera round slowly: it stays at one distance, it doesn’t push in and pull back at each wall.' },
+    { match: 'Two of the Rose House’s glyph stones', see: 'In the Rose House, fall into the Dry Channel’s sand: you come back on the near ledge with room behind you. Wake the Sword Chamber’s stone and fall: you face the dais.' },
+    { match: 'On handhelds and phones, far-off towns, facades and forests no longer shimmer', shots: [
+      { name: 'far-ink-town', title: 'The far town', caption: 'The desert’s camp town 110 m off, the Handheld preset at the Retroid’s 730 × 410 at 2×: before, its walls and domes in black one-pixel lines; after, the same lines lighter, the near dune’s as it was', from: SH59 },
+      { name: 'far-ink-market', title: 'The Signal Market', caption: 'The Market’s street from the traveller’s spawn, the same size and preset: the near people, stalls and the ship as they were; the facades down the street drawn in lighter lines', from: SH59 },
+    ], numbers: [
+      { title: 'Shimmer: pixels that flicker in a slow pan or turn, far off (over 60 m)', unit: 'per 10 000', better: 'lower', device: 'the Mac (M4 Pro), headless Chrome, the Handheld preset at the Retroid’s 730 × 410 at 2× (scale 0.75)', rows: [
+        { where: 'desert, pan', before: 87.8, after: 38.0 }, { where: 'desert, turn', before: 61.3, after: 38.7 },
+        { where: 'Signal Market, pan', before: 43.2, after: 26.6 }, { where: 'Signal Market, turn', before: 201.4, after: 74.7 },
+        { where: 'Lorn II, pan', before: 27.6, after: 12.1 }, { where: 'Lorn II, turn', before: 47.6, after: 19.1 },
+        { where: 'Sealed Hangar, pan', before: 36.5, after: 19.3 }, { where: 'Sealed Hangar, turn', before: 36.5, after: 19.4 },
+      ], source: 'node scripts/motion-check/record.mjs --preset handheld --res 730x410@2 --paths pan,turn --far 60 (the world frozen, the camera a third of a pixel a frame); the whole frame: desert 22.8 → 10.7, the Market’s turn 86.3 → 39.0' },
+      { title: 'The smoothing’s cost (SMAA in place of FXAA)', unit: 'ms a frame', better: 'lower', device: 'the Mac (M4 Pro), headless Chrome, Handheld at 1460 × 820, scale 0.75 (the Retroid’s render size)', rows: [
+        { where: 'desert spawn', before: 3.95, after: 4.13 }, { where: 'dunes', before: 2.15, after: 2.2 }, { where: 'camps', before: 3.92, after: 4.01 },
+      ], source: 'node scripts/bench/passes.mjs --toggles fxaa,smaa (synced frame time, median of 7 in turns); the lighter far lines cost nothing measurable. The Retroid: about 3× the Mac, 0.2–0.5 ms (estimated)' },
+    ], see: 'On a handheld (or the Handheld preset), stand in the Signal Market’s street and turn slowly, looking down it: the far facades hold still.' },
+    { match: 'Lorn’s crystal roots now lie under the water', shots: [
+      { name: 'lorn-veins', title: 'Riding the lit vein', caption: 'On the skiff by the keepers’ light, following the stakes south: before, flat violet strips with a teal zigzag laid on the water; after, crystal under the surface, faceted violet and teal, its heart lit, running on to the root gate', from: POLISH59,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-52, 2.6, -318], target: [-40, 1.5, -372], player: [-52, 0.5, -318] },
+        reference: { sheet: 'references/levels/Lorn/environment/explorations/crystal-roots/sheet-1.jpg', caption: 'The author’s pick: riding the lit vein (references/levels/Lorn/environment/explorations/crystal-roots)' } },
+      { name: 'lorn-veins-island', title: 'From the Crystal’s island', caption: 'From the Great Crystal’s island looking south-west: before, the strips with their hard edges; after, the roots under the water, the lit vein glowing, twigs thinning off it', from: POLISH59,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [100, 14, -172], target: [-40, 0, -300], player: [100, 2.5, -168] } },
+    ], numbers: [
+      { title: 'The veins, drawn', unit: '', better: 'lower', device: 'the built world, as the tests build it', rows: [
+        { where: 'meshes', before: 7, after: 1 },
+        { where: 'triangles', before: 11232, after: 270 },
+      ], source: 'the veins drawn by Lorn’s water from a map baked once (1024² with mipmaps); the one mesh left is the ringing groves' },
+    ], see: 'Ride the skiff south from the Hush-House along the keepers’ stakes at dusk: the lit vein runs beside you under the water, light flowing along it toward the Great Crystal.' },
+    { match: 'Viridel’s water stair looks like a gardeners’ stair now', shots: [
+      { name: 'viridel-stair', title: 'The water stair', caption: 'From in front of its foot: before, grey-white boxes in a grid; after, warm blocks with rounded lips, water falling over them, ferns hanging down the walls, cypresses up the terraces', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [70.9, 3, 181.3], target: [99.8, 26.1, 277.2], player: [71.9, -2.3, 182.3] },
+        reference: { sheet: 'references/levels/Viridel/environment/explorations/water-stair/sheet-1.jpg', caption: 'The author’s pick: the water stair (references/levels/Viridel/environment/explorations/water-stair)' } },
+      { name: 'viridel-beds', title: 'The terraces from the side', caption: 'From over the stair’s west side: before, a block of walls the same width; after, terraces stepping in and out, their lips rounded, water spilling, bushes on the kerbs', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [53.8, 20.8, 230.6], target: [92.9, 0.8, 248] } },
+      { name: 'viridel-gate', title: 'A sluice-gate', caption: 'At the foot of a gated flight: before, a flat strip of water on the grid wall; after, the channel falling as water, ferns and bushes over the lips', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [91.1, -2.9, 218.6], target: [78.2, -0.2, 227.8], player: [91.1, -5, 218.6] } },
+    ], see: 'From the fallen ship follow the white channel north to the foot of the stair and climb it bed by bed; turn a sluice-gate’s wheel and watch the bed below spill over its lip once it has flooded.' },
+    { match: 'The Garden’s lake shows its lost town wherever you stand', shots: [
+      { name: 'garden-lake', title: 'From Nell’s shore', caption: 'Across the lake from the south shore: before, flat strips and a few pale shapes; after, the far shore and the lost town in the water, domes, towers and a waterfront, shimmering', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 60, eye: [183, 2.2, -57], target: [172, -1, -150], player: [179.5, -0.4, -62] },
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/lake-memory/sheet-2.jpg', caption: 'The author’s pick: the lake that shows another garden (references/levels/The Garden of Spheres/environment/explorations/lake-memory)' } },
+      { name: 'garden-lake-north', title: 'From the far shore', caption: 'From the stones’ landing looking back south: before, the bare mirror; after, the town that was on the near shore, upside down in the water', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 60, eye: [160, 2, -184], target: [190, -1, -90], player: [157, -0.3, -181] } },
+      { name: 'garden-lake-moons', title: 'From the stones', caption: 'On the middle stone once the pearl has rung: before, strips that only lined up from Nell’s shore; after, the far shore’s pyramid, temple and sphere reflected as they stand, the town’s waterfront in front of them', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [167.5, 5.2, -110], target: [171, -1, -133], player: [170.6, 0, -121.5], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'spheres.heard.bell': true, 'spheres.lake.moons': true } } } },
+    ], see: 'Walk the lake path to Nell on the south shore and look across the water, then cross on the stones and look back from the far shore.' },
+  ],
+  '1.58': [
+    { match: 'A knockdown now follows the ground', shots: [
+      { name: 'ragdoll-cliff', caption: 'Knocked over at 9 m/s toward a terrain cliff in Vael, at 0.15, 0.4, 0.7, 1.1, 1.7 and 3 s: before, the body shoots up the face (20 m by 3 s); after, it stops at the foot and lies there', from: MV58 },
+    ], see: 'In Vael, stand at the foot of a steep cliff and take a hard fall or a big hit toward it: you tumble and lie at its foot.' },
+    { match: 'Climbing onto a ledge now goes', shots: [
+      { name: 'mantle-knee', caption: 'Climbing onto a 1.9 m ledge, from the side, at 0, 15, 30, 45, 60, 75, 90 and 100 % of the climb: before, up to the feet in the air over the lip and a step in standing; after, hauled up, a knee on the top, then standing', from: MV58 },
+    ] },
+    { match: 'In the Aerie’s Hall of Winds anything solid', shots: [
+      { name: 'aerie-lee', caption: 'A gust down the Hall of Winds, the traveller put 3 m behind a screen: before, shoved down the hall (4.5 m in 1.2 s), streaks through the screen’s lee; after, he stands in the lee, and no streaks there', from: MV58 },
+    ], see: 'In the Aerie’s Hall of Winds, stand a few steps behind a screen (or by the far wall, off the doorway) while a gust blows: it does not move you, and the streaks pass beside you.' },
+    { match: 'The glyph stone by each temple’s door', see: 'In any temple, walk up to the glyph stone by the entrance: its glyph flares and stays lit, and the first time a line says what it is. Fall into a pit and you come back to it.' },
+    { match: 'Vael’s needle walkers no longer turn', shots: [
+      { name: 'needle-plant', caption: 'A needle walker scared on a slope, at 0.4, 1.1, 1.5, 2, 2.6 and 4.5 s: before, a needle at once, its tip off the ground; after, a few steps, the tail’s tip set down, then up on it', from: MV58 },
+    ] },
+    { match: 'Opening the galactic map no longer finds a planet by itself', see: 'With a world still to find on the galactic map, open it at the holo table and leave the stick and the mouse alone: the scanner sits by the ship’s planet and the meter may warm, but nothing is charted until you sweep it over the uncharted region and hold it there.' },
+    { match: 'In the Start menu, right now goes from the sidebar', see: 'Press Menu (or Esc) and push right: the focus goes from Resume into the settings page; left comes back to Settings. Up from Resume is Quit to title. In the page, a dropdown opens with A / ×, and B / ○ brings you back to the sidebar.' },
+    { match: 'The game menu (View / Select) opens on your Quests now', shots: [
+      { name: 'select-items', title: 'Items, 1280 × 720', caption: 'The Items page: before, twelve small slots a row and the picked one large beside them, its words in the strip at the bottom; after, the gear as large tiles with their names, the strip naming the picked one and what A / × does', from: MENU58 },
+      { name: 'select-handheld', title: 'Items on a handheld, 730 × 410', caption: 'The same page at a Retroid’s size: before, the picked item drawn over the grid and the strip’s words over the sheet’s foot; after, the tiles alone', from: MENU58 },
+      { name: 'select-full', title: 'Full screen', only: 'after', caption: 'A / × on the backpack: its picture large on the left, its name, kind and words on the right, Back and the next item under it', from: MENU58 },
+      { name: 'select-full-handheld', title: 'Full screen on a handheld', only: 'after', caption: 'The same at 730 × 410: the words beside the picture, not over it', from: MENU58 },
+    ], see: 'Press View / Select: the menu opens on Quests. Turn to Items with RB / R1, pick the Stilling mode and press A / ×: it opens full screen; A / × again takes the mode, ← → go along the items, B / ○ back.' },
+    { match: 'The strip at the bottom of the game menu only names', see: 'In the game menu, move over the items, the keepsakes or the Sketchbook: the strip says only the name and the kind; press A / × to read the rest full screen.' },
+    { match: 'The Worlds page lists one world a row', shots: [
+      { name: 'select-world', title: 'A world full screen', only: 'after', caption: 'Vael from the Worlds page: its picture, its words, and what is done there: the story told, the relics still to find (a ? each), the makers’ boxes, the nine people met', from: MENU58 },
+    ], see: 'In the game menu turn to Worlds, go down the list, and press A / × on a world you have been to.' },
+    { match: 'A map of the world you are in', shots: [
+      { name: 'map-desert', title: 'The Desert', only: 'after', caption: 'The Map page in the desert by the ship: the dunes, mesas and pools from above in ink, contour lines, the traveller’s red arrow, the way on, the Rose House and the people met at the camp; the legend beside it says how far and which way', from: MENU58 },
+      { name: 'map-underwater', title: 'The Underwater City', only: 'after', caption: 'The Underwater City from above: its domes and their tubes, the Whale-House to the north, the traveller at the lock by the ship', from: MENU58 },
+    ], see: 'Press View / Select, then RB / R1 (or Map in the Start menu). Move down the legend: each mark is ringed on the map; A / × zooms in on it, A / × or B / ○ again shows the whole world.' },
+    { match: 'For playtesting, the Saves screen has a debug section', shots: [
+      { name: 'debug-saves', title: 'The Saves screen', only: 'after', caption: 'Under the three saves, on dashed red paper: Debug: start at a world, Into: the debug save, and the route’s worlds, each with how many worlds before it are done', from: MENU58 },
+    ], see: 'On the title, open Saves and go down past the three saves: choose Into to pick the save it goes into, then a world. In the Glass Dunes’ debug save you have four hearts, the fragment finder and Orrin aboard the ship.' },
+  ],
   '1.57': [
     { match: 'The darker dust band along the foot of weathered walls', see: 'In Qanat, stand with your back to a weathered house, close to it, the camera behind you: the grey band along its foot runs on behind your legs, with no pale outline of you in it.' },
     { match: 'The deepest darks stay in real pockets now', shots: [

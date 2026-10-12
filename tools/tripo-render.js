@@ -7,7 +7,7 @@ import { Cascade, shadowDirection } from '../src/shadows.js';
 import { makeReviewInkMaterial } from '../src/characters/tripo-material.js';
 export { makeReviewInkMaterial };
 
-export function createReviewInk(renderer,scene,meshes,{garment,grid,helper}){
+export function createReviewInk(renderer,scene,meshes,{garment,grid,helper,focus}){
  const post=createPost(),U=post.uniforms,gbuffer=createGBuffer(),compose=createComposeTarget(),blit=createBlit(compose.texture);
  // The game disables colour management and uses printed RGB shader colours.
  // This preview retains normal Three.js colour management for its standard view.
@@ -32,6 +32,7 @@ export function createReviewInk(renderer,scene,meshes,{garment,grid,helper}){
   const background=scene.background,gridVisible=grid.visible,helperVisible=helper.visible,autoClear=renderer.autoClear;
   try{
    renderer.autoClear=false;scene.background=null;grid.visible=false;helper.visible=false;
+   if(focus){origin.copy(focus());center.copy(origin);center.y+=1;}
    scene.updateMatrixWorld(true);camera.updateMatrixWorld();
    scene.overrideMaterial=shadow;cascades[0].aim(dir);cascades[0].place(center);cascades[0].render(renderer,scene);scene.overrideMaterial=null;
    for(const m of materials)m.mesh.material=m.ink;

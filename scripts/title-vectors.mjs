@@ -90,7 +90,7 @@ export async function trace(c, shot) {
 }
 
 const c = await chrome();
-const previews = process.env.PREVIEWS ?? (args.includes('--preview') ? mkdtempSync(join(tmpdir(), 'title-vectors-')) : null);
+const previews = process.env.PREVIEWS ?? (args.includes('--preview') ? mkdtempSync(join(tmpdir(), 'title-vectors-')) : null);   // (temp-dirs: an output, kept for you to look at)
 if (previews) mkdirSync(previews, { recursive: true });
 try {
   mkdirSync(OUT, { recursive: true });

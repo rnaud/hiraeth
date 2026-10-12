@@ -2,6 +2,39 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.59 — 2026-10-12
+
+- The Unity preview on the Xbox holds close to 60 frames a second at the City-Shaft’s rim, where it ran at about 45: the sun’s shadows are only drawn for what can cast them into your view, and the script runs a little faster. The picture is the same.
+- The Garden’s lake shows its lost town wherever you stand: domes, towers and stepped pyramids reflected all round the water, shimmering, seen from the stepping stones and from both shores.
+- Viridel’s water stair looks like a gardeners’ stair now, not a fortress: warm white stone in big blocks with rounded lips, terraces that step in and out, water spilling over the edges, ferns hanging down the walls and cypresses on the terraces.
+- Lorn’s crystal roots now lie under the water instead of painted on it: soft-edged veins of violet and teal crystal seen through the surface, tapering into thinner twigs, fainter the deeper they run, with light flowing along them toward the Great Crystal.
+- On handhelds and phones, far-off towns, facades and forests no longer shimmer as you look round: lines on detail too small to draw at that distance are inked lighter, and the picture’s edges are smoothed more sharply.
+- The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.
+- Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.
+- In small rooms the camera settles: turning round, it keeps one steady distance instead of pushing in at every wall and back out at every gap, and it no longer creeps in and out by a few centimetres.
+- Your ship is roomier inside: wider rooms, a higher ceiling, wider doorways, a longer cockpit and back room, a deeper bunk alcove and a bigger hold, where Orrin keeps his jar by the crates. The hull outside grew to fit.
+- The rooms before each temple’s guardian are much bigger: wider, deeper and higher, so the camera has room behind you there instead of pressing into your back. The Mooring-House’s way to the Capstan Floor is wider and taller too.
+- The pirates’ captain flies a gunship built for space instead of a sailing ship: gull wings with a brass turret on each tip, glowing engines, a skull and crossbones on its prow, and its bridge behind armour shutters.
+- The first time you meet the chime pirates, pushing the stick up dives, as in a plane, and the start card no longer offers to swap it. Once you have beaten them, the card lets you choose.
+- The chime pirates’ two aiming boxes are one sight: a ring with a small diamond further down the same line your shots fly. The ring tightens and turns coral when a pirate is in line, and flashes a mark when your shots hit.
+- Losing a pip of hull to the chime pirates is hard to miss: the screen’s edges flare red, the view shakes, your ship sparks and blinks, a row of pips shows under it with the lost one bursting, the pip in the corner pops, and you hear the crunch.
+- The chime pirates count points now: each pirate you shoot down adds to your score, and when you win on the way to a new world the results turn your points into chimes, one chime for every 20 points, about as many as before.
+
+## v1.58 — 2026-10-12
+
+- For playtesting, the Saves screen has a debug section: start at any world of the route in a new save, with everything in the worlds before it done and held, their quests, items, gadgets, keepsakes, trials’ rewards, fragments and Orrin’s upgrades. It goes into its own debug save, or into one of your saves if you choose one (asked first if it holds a save).
+- A map of the world you are in, in the game menu right after Quests (one RB / R1 from where it opens) and in the Start menu: the ground drawn from above in ink and paper, with you and the way you face, your ship, the way on, the makers’ temples, the people you have met and the boxes you have opened. Pick one in the legend beside it to ring it on the map, and press A / × to zoom in on it.
+- The Worlds page lists one world a row, so up and down go between them. A / × on one shows what you have found there and what is still to find: the story, each relic by name (a ? for the ones still hidden), the makers’ boxes, the fragments once you have found one, and the people you met.
+- The strip at the bottom of the game menu only names what you have picked and says what A / × does: the words are in the full view now. Keepsakes, sketches, sightings and finished quests open full screen with A / × too.
+- The game menu (View / Select) opens on your Quests now. Its items are large tiles with their names under them: press A / × on one to see it full screen, its picture large and what it is and does beside it, never over it, and use it from there (take a gun mode, take a gadget in hand, switch the fragment finder on or off). Left and right show the one before and after, B / ○ goes back.
+- In the Start menu, right now goes from the sidebar into the page it shows and left comes back; up and down go round the sidebar (from Resume up to Quit to title) and round the page. Dropdowns there open with A / × first, sliders still slide, and B / ○ steps back to the sidebar before it closes. The arrow keys move the same way.
+- Opening the galactic map no longer finds a planet by itself: the scanner starts by the ship, clear of every uncharted region, and nothing locks until you have swept it a little, with the stick, the keys, the mouse or a finger.
+- Vael’s needle walkers no longer turn into a needle in mid-air: one walks on a few steps, sets its tail’s tip down on the ground, and only then stands up on it, on a slope too.
+- The glyph stone by each temple’s door and in its rooms holds your place: walk up to it and its glyph flares, and after a fall you come back to it. The first one you wake says so.
+- In the Aerie’s Hall of Winds anything solid between you and the wind now shelters you: a screen, the far wall, the stone. The pale streaks stop in its lee, so you can see where the wind can’t reach.
+- Climbing onto a ledge now goes the way a body does it: hands on the edge, hauled up, a knee onto the top, then up on your feet and a step in. Push on as you get up and you are up sooner.
+- A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.
+
 ## v1.57 — 2026-10-12
 
 - The deepest darks stay in real pockets now, under balconies and eaves, between ribs, in alleys: the near-black band along the foot of every wall, every stair and the bones in the giant’s cave is gone, and with it the blotches that slid and jumped about there as the camera moved, and the dark copy of you that appeared on the ground beside a wall’s end.

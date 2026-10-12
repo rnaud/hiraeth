@@ -2,7 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { inflateRawSync } from 'node:zlib';
@@ -35,7 +36,7 @@ function unzip(buf) {
 }
 
 function site() {
-  const dist = mkdtempSync(join(tmpdir(), 'hiraeth-site-'));
+  const dist = tempDir('hiraeth-site-');
   mkdirSync(join(dist, 'assets'));
   mkdirSync(join(dist, UPDATES));
   writeFileSync(join(dist, 'index.html'), '<!doctype html><title>Hiraeth</title>');

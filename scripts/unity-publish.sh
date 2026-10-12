@@ -5,7 +5,8 @@
 #   scripts/unity-publish.sh xbox path/to/build.zip [by]        → release unity-xbox, asset hiraeth-unity-xbox.zip (.github/workflows/unity-xbox.yml)
 # The release is a prerelease and never the latest (the app's updater and the players read the vX.Y ones), its
 # tag moves to the commit built, its file is replaced, its notes say what it was built from (release-info.mjs
-# unity-notes). SHA the commit built (default HEAD; it has to be on GitHub); gh signed in (GH_TOKEN in CI).
+# unity-notes). Then the same file onto the newest version's release (vX.Y), labelled with its commit (below).
+# SHA the commit built (default HEAD; it has to be on GitHub); gh signed in (GH_TOKEN in CI).
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
@@ -38,3 +39,30 @@ else
   retry gh release create "$TAG" "$TMP/$NAME" -R "$REPO" --target "$SHA" --title "$TITLE" --notes-file "$TMP/notes.md" --prerelease --latest=false > /dev/null
 fi
 echo "https://github.com/$REPO/releases/tag/$TAG ($NAME, $(du -h "$FILE" | cut -f1 | tr -d ' '), $(git rev-parse --short=12 "$SHA"))"
+
+# The same file onto the newest version's release too (vX.Y, the players' page; docs/systems/android.md, "The Unity
+# builds on a version's release"), replacing the one there, labelled with what it is and the commit built: the notes'
+# Unity section is redone from the labels (release-info.mjs unity-body), as the Android release keeps it (notes).
+# The prerelease above stays what the Deck's installer and the Xbox helper read. A failure here is a warning: the
+# testers' build is out. VERSION_TAG=<tag> picks the release (a test one); NO_VERSION_RELEASE=1 skips this.
+[ "${NO_VERSION_RELEASE:-}" = 1 ] && exit 0
+version_release() {
+  if [ -n "${VERSION_TAG:-}" ]; then VTAG=$VERSION_TAG
+  else
+    retry gh release list -R "$REPO" --exclude-drafts --exclude-pre-releases --limit 50 --json tagName --jq '.[].tagName' > "$TMP/tags" || return 1
+    VTAG=$(xargs node scripts/release-info.mjs newest-version < "$TMP/tags") || return 1
+  fi
+  SIZE=$(wc -c < "$FILE" | tr -d ' ')
+  MAX=$(node --input-type=module -e "import { MAX_RELEASE_ASSET as M } from './scripts/release-info.mjs'; console.log(M)")
+  if [ "$SIZE" -gt "$MAX" ]; then echo "::warning::$NAME is $SIZE bytes, over GitHub's 2 GiB per file: on $TAG only, not on $VTAG"; return 0; fi
+  LABEL=$(node scripts/release-info.mjs unity-label "$PLATFORM" "$SHA") || return 1
+  # (on the Windows runner Git Bash turns a /tmp/… argument into a Windows path for gh.exe, but not one with a
+  # #label after it, which gh then can't open: give it the Windows path itself)
+  ASSET="$TMP/$NAME"; command -v cygpath > /dev/null 2>&1 && ASSET=$(cygpath -w "$ASSET")
+  retry gh release upload "$VTAG" "$ASSET#$LABEL" -R "$REPO" --clobber || return 1
+  retry gh release view "$VTAG" -R "$REPO" --json body,assets > "$TMP/release.json" || return 1
+  node scripts/release-info.mjs unity-body "$TMP/release.json" > "$TMP/version-notes.md" || return 1
+  retry gh release edit "$VTAG" -R "$REPO" --notes-file "$TMP/version-notes.md" > /dev/null || return 1
+  echo "https://github.com/$REPO/releases/tag/$VTAG ($NAME as \"$LABEL\")"
+}
+version_release || echo "::warning::$NAME is on $TAG but could not be put on the newest version's release${VTAG:+ $VTAG}"

@@ -27,3 +27,10 @@ STUB(BOOL, SymGetLineFromAddr64, (HANDLE, DWORD64, DWORD*, void*), { return 0; }
 STUB(DWORD, timeGetTime, (void), { return (DWORD)GetTickCount64(); })
 STUB(unsigned, timeBeginPeriod, (unsigned), { return 0; })
 STUB(unsigned, timeEndPeriod, (unsigned), { return 0; })
+
+// V8's flags from the Unity bridge (BridgeRunner's -v8 "<flags>", LocalState\args.txt on the console), set before Puerts
+// makes its first engine (its GlobalPrepare initialises V8; flags are frozen after that), and V8's version for the log.
+// Puerts' API takes no flags; these two are this DLL's own exports.
+#include <v8.h>
+extern "C" __declspec(dllexport) void HiraethV8Flags(const char* flags) { if (flags) v8::V8::SetFlagsFromString(flags); }
+extern "C" __declspec(dllexport) const char* HiraethV8Version(void) { return v8::V8::GetVersion(); }

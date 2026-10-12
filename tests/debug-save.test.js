@@ -176,9 +176,9 @@ test('every magical water that colours the tank is a band, and the code grants i
     for (const m of src.matchAll(/quests\.give\('([^']+)'\)/g)) if (ITEMS[m[1]]) gives.push(`${rel}: ${m[1]}`);
   }
   assert.deepEqual([...new Set(sites)].sort(), TANK_BANDS.map((b) => `story/${b.world}.js`).sort(), 'a new tank band: add it to TANK_BANDS');
-  // (main.js and the dev menu: the ?items= and dev switches; the boxes: PLACEMENTS; the trials: their rewards, won
-  // only by finishing an optional run, so a debug save leaves them unwon, as a player who went straight on would; the
-  // scientist's upgrades for the fragments of the singing light likewise: optional finds, left unfound as the relics are)
+  // (main.js and the dev menu: the ?items= and dev switches; the boxes: PLACEMENTS; the trials: their rewards, held in
+  // a debug save since v1.58 (TRIALS); the scientist's upgrades for the fragments of the singing light: fitted as the
+  // fragments of the worlds before reach them, since v1.58, issue #203)
   assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'main.js', 'story/scientist-data.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
   assert.deepEqual(gives, [], 'gear given in code by a quest: cover it in src/debug-save.js');
 });
@@ -213,4 +213,90 @@ test('seeding writes the debug slot only, makes it the active one, and the game 
   assert.equal(store.latest(), 2);
   // off the route: nothing written
   assert.equal(seedDebugSave('lab', { store }), null);
+});
+
+// ---- issue #203: the debug saves in the title's Saves screen; everything in the worlds before held
+
+test('the worlds before are complete: their trials run and rewarded, their fragments found, Orrin met and his upgrades fitted where they fit', async () => {
+  const { FRAGMENTS, fragKey, fragmentCounts } = await import('../src/fragments-data.js');
+  const { FRAGMENT_ITEMS } = await import('../src/items.js');
+  const { TRIALS } = await import('../src/trials/data.js');
+  for (const [i, id] of ORDER.entries()) {
+    const { flags } = progressBefore(id);
+    const before = ORDER.slice(0, i), after = ORDER.slice(i);
+    for (const w of before) for (const [k] of (FRAGMENTS[w] ?? []).entries()) assert.equal(flags[fragKey(w, k)], true, `${id}: ${w}'s fragment ${k}`);
+    for (const w of after) for (const [k] of (FRAGMENTS[w] ?? []).entries()) assert.equal(flags[fragKey(w, k)], undefined, `${id}: ${w}'s fragment ${k} still to find`);
+    const found = fragmentCounts(flags).found;
+    assert.equal(!!flags['frag.met'], found > 0, `${id}: Orrin met once there is a fragment`);
+    for (const u of FRAGMENT_ITEMS) {
+      const need = ITEMS[u.id].needs, fits = u.at <= found && (!need || !!flags[`item.${need}`]);
+      assert.equal(!!flags[`item.${u.id}`], fits, `${id}: ${u.id} (${u.at}) ${fits ? 'fitted' : 'not yet'} at ${found}`);
+    }
+    for (const w of before) for (const part of partsOf(w)) {
+      const T = TRIALS[part];
+      if (!T) continue;
+      assert.equal(flags[`trial.${T.world ?? part}.done`], true, `${id}: ${part}'s trial run`);
+      if (ITEMS[T.reward] && !ITEMS[T.reward].retired) assert.equal(flags[`item.${T.reward}`], true, `${id}: ${T.reward} held`);
+    }
+    for (const w of after) for (const part of partsOf(w)) assert.equal(flags[`trial.${part}.done`], undefined);
+  }
+  // halfway along the route: the heart, the finder and the edge at least
+  const mid = progressBefore('glassdunes').flags;
+  for (const u of ['lightheart', 'finder', 'lightedge']) assert.equal(mid[`item.${u}`], true, u);
+});
+
+test('each world\'s debug save is a valid save: the game reads it, every item is one the game knows, nothing debug-only', () => {
+  for (const id of ORDER) {
+    const store = new SlotStore(mem({ 'hiraeth.slots.v': '1' }));
+    const p = seedDebugSave(id, { store });
+    const state = new GameState(store.view(DEBUG_SLOT));
+    assert.equal(state.flag('prologue.done'), true, id);
+    assert.equal(state.flag('ship.level'), id);
+    for (const k of Object.keys(p.flags).filter((f) => f.startsWith('item.'))) {
+      const it = ITEMS[k.slice(5)];
+      assert.ok(it, `${id}: ${k} is an item`);
+      assert.ok(!it.debug && !it.retired, `${id}: ${k} is no debug or retired item`);
+    }
+    for (const k of state.keepsakes()) assert.ok(k.id && k.name, `${id}: keepsake ${k.id}`);
+    assert.doesNotThrow(() => JSON.parse(store.view(DEBUG_SLOT).getItem('hiraeth.journal.v1')));
+  }
+});
+
+test('into one of the player\'s slots only when chosen: that slot alone is written and played, the debug slot left as it was', async () => {
+  const { debugSlot, debugSaveHref, DEBUG_PARAM, SLOT_PARAM } = await import('../src/debug-save.js');
+  assert.equal(debugSlot(2), 2); assert.equal(debugSlot('3'), 3);
+  for (const v of [null, undefined, 0, 4, 'x', 'debug']) assert.equal(debugSlot(v), DEBUG_SLOT, String(v));
+  assert.equal(debugSaveHref('buried'), '?level=buried&debugsave=1');
+  assert.equal(debugSaveHref('buried', 2), '?level=buried&debugsave=1&debugslot=2');
+  assert.deepEqual([DEBUG_PARAM, SLOT_PARAM], ['debugsave', 'debugslot']);
+  const st = mem({ 'hiraeth.slots.v': '1', [slotKey('hiraeth.game.v1', 1)]: JSON.stringify({ flags: { mine: true }, keepsakes: [] }),
+    [slotKey('hiraeth.game.v1', DEBUG_SLOT)]: JSON.stringify({ flags: { old: true }, keepsakes: [] }) });
+  const store = new SlotStore(st);
+  const keep = new Map([...st.m].filter(([k]) => !k.includes('.s2.') && k !== 'hiraeth.slot'));
+  seedDebugSave('incal', { store, slot: 2 });
+  assert.equal(store.active, 2);
+  assert.equal(new GameState(store.view(2)).flag('world.edena.done'), true);
+  for (const [k, v] of keep) assert.equal(st.getItem(k), v, `${k} untouched`);
+  // (boot passes the slot from the link, then drops it)
+  const boot = fs.readFileSync(path.join(SRC, 'boot.js'), 'utf8');
+  assert.match(boot, /seedDebugSave\(q\.get\('level'\), \{ state: game, slot: q\.get\(SLOT_PARAM\) \}\)/);
+  assert.match(boot, /q\.delete\(DEBUG_PARAM\); q\.delete\(SLOT_PARAM\);/);
+});
+
+test('the Saves screen\'s debug saves: every world of the route, marked debug, the debug slot unless one is chosen, asked before one is replaced', async () => {
+  globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget();   // (ui.js reads them at import)
+  const { debugSavesHtml, nextDebugInto } = await import('../src/title.js');
+  const html = debugSavesHtml();
+  assert.match(html, /Debug: start at a world/); assert.match(html, /class="dtag">debug</);
+  assert.match(html, /Into: the debug save \(your saves untouched\)/);
+  const worlds = [...html.matchAll(/data-debug-world="([a-z0-9]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(worlds, ORDER, 'every world, in the route\'s order');
+  assert.match(html, /a new journey/); assert.match(html, /1 world done before it/); assert.match(html, new RegExp(`${ORDER.length - 1} worlds done before it`));
+  assert.match(debugSavesHtml(2), /Into: Save 2/);
+  assert.deepEqual([nextDebugInto(DEBUG_SLOT), nextDebugInto(1), nextDebugInto(SLOT_COUNT)], [1, 2, DEBUG_SLOT], 'the debug slot, then each of the player\'s, round again');
+  const title = fs.readFileSync(path.join(SRC, 'title.js'), 'utf8');
+  assert.match(title, /devMode\(\{ settings \}\) \? `<li class="debug-saves">/, 'the author\'s only (src/dev-gate.js)');
+  assert.match(title, /if \(slot !== DEBUG_SLOT && !asked && !store\.summary\(slot\)\.empty\) \{ askDebug\(id, slot\); return; \}/, 'a slot holding a save: asked first');
+  assert.match(title, /if \(!store\.holding\) store\.holdWrites\(\);/, 'the game behind the title writes nothing into the slot it was loading');
+  assert.match(title, /debugSaveHref\(id, slot\)/);
 });

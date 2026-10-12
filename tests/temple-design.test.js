@@ -224,10 +224,10 @@ test('every real temple builds a graph its measures can read (no layout needed)'
 // temple solved and every door counted shut for its sight lines (the three v1.40 temples' tongs, horn and tether among them).
 test('the audit carries in the gadgets the route has given by then, and every temple it plays is solved', async () => {
   const { spawnSync } = await import('node:child_process');
-  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs');
-  const { tmpdir } = await import('node:os');
+  const { readFileSync, rmSync } = await import('node:fs');
   const { join } = await import('node:path');
-  const out = mkdtempSync(join(tmpdir(), 'temple-audit-'));
+  const { tempDir } = await import('../scripts/temp-dirs.mjs');
+  const out = tempDir('temple-audit-');
   try {
     const r = spawnSync(process.execPath, ['scripts/temple-design/audit.mjs', out, '--temples', 'moonfoundry,spacecity,bazaar'], { encoding: 'utf8', timeout: 120000 });
     assert.equal(r.status, 0, r.stderr.slice(-400));

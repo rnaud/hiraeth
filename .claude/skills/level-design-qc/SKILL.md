@@ -1,6 +1,6 @@
 ---
 name: level-design-qc
-description: Judge how Hiraeth's worlds are laid out, world by world, against level design practice (landmarks and wayfinding without UI, density of interest, loops and dead ends, the walk back, optional content's pull, verticality, pacing, onboarding at the landing), measured from the game's own data, and write docs/audits/level-design-v<version>.md with scores, maps, pictures and a ranked list of concrete edits per world. Use when asked whether the worlds are well organised or interesting, about level or world design, empty stretches, getting lost, backtracking, points of interest, or before reworking a world.
+description: Judge how Hiraeth's worlds are laid out, world by world, against level design practice (landmarks and wayfinding without UI, density of interest, loops and dead ends, the walk back, optional content's pull, verticality, pacing, onboarding at the landing), measured from the game's own data, and write docs/audits/level-design-v<version>.md with scores, maps, pictures and a ranked list of concrete edits per world. The world outside only: temple interiors are temple-design-qc's. Use when asked whether the worlds are well organised or interesting, about level or world design, empty stretches, getting lost, backtracking, points of interest, or before reworking a world.
 ---
 
 # The level design audit
@@ -11,7 +11,7 @@ and ends as an edit: what to move, add or cut, where, and what it should do to t
 `docs/audits/level-design-v<version>.md`, compared with the last.
 
 Read first: `docs/game-brief.md` (the calm, gentle tone: we want curiosity, not a theme park),
-`docs/world-principles.md` (the world notices you), `docs/fun-and-story-review.md` (problems 5 and 6:
+`docs/world-principles.md` (the world notices you), `docs/fun-and-story-review.md` (problem 6, pacing:
 empty travel and walking back), `docs/systems/worlds.md` for the world in question, the last
 `docs/audits/level-design-v*.md`, and the "Level design (audit)" section of `TODO.md`.
 
@@ -98,14 +98,19 @@ and move a score by one where the numbers miss something, *writing why beside it
 | **Pacing** | one kind of stop, long runs of it, a 20-minute path | 2-3 kinds, runs of 3 | varied, no runs over 2, a 10-minute path | `pacing`, `path` |
 | **Onboarding** | first goal far, nothing near the landing, no heading | one of the three | first goal within 60 m, 2+ places near, a landmark in sight | `spawn`, `landmarks.fromSpawn` |
 
+Before the nine, the scores table gives each world's **Travel** (not scored): how its critical path is crossed,
+`travel.by` and the mounts had partway (foot, bike, skiff, wings, bird, jets, cab). It sets the speed the
+seconds above are timed at, so a score reads against it.
+
 Two judged by eye, not scored by the script (write a line on each): **environmental storytelling** (does the
 layout tell what happened here?) and **the reveal** (does a long leg show its goal whole the whole way, or does
 the terrain hide and reveal it?).
 
 ## 3. How to measure
 
+Node 22.12 or newer on PATH (CI uses 24; Zed's bundled node works).
+
 ```sh
-export PATH="/Users/anf/Library/Application Support/Zed/node/node-v24.11.0-darwin-arm64/bin:$PATH"
 node scripts/level-design/audit.mjs <scratch>/level [--worlds desert,arzach] [--cell 6]
 ```
 
@@ -118,45 +123,19 @@ quests stage by stage (`tests/playthrough-worlds.js` `ROUTE`; the temple's door 
 to the ship; through portals where that is shorter (the Hangar's gravity zones, the desert's caves:
 `viaPortals`). The **landmarks**: a height grid of the collision seen from above, blobs standing 25 m over
 their surroundings (`landmarksFrom`). **Sight**: a ray through the collision and over the terrain (grass and
-foliage you walk through don't block it). Since v1.9 it also reads three hints a level or quest may give:
-a level's **`sights`** (`[{ name, at }]`: things to stop for that are neither people nor quests, a bowl to fill,
-a wreck: counted as optional places), its **`beacons`** (`[{ name, top, height }]`: tall see-through markers
-the collision doesn't make tall, a smoke column, a chimney past the map's edge: aimed at as landmarks), and a
-quest stage's **`ends`** (a locator: where a stage whose marker moves on is done, "ask Marrow, then find his
-bike in the hollow"). And a leg over 200 m between two stops on the ground is **draped** over the ground under
-it (up to 70 m down), so a ride across a basin is measured down in the basin, not in the air over it. Since v1.15 it
-also reads a level's **`lines`** (`[{ name, points, auto }]`: leading lines on the ground, a row of marked stones, a dry
-channel, cairns, the red stair): a leg is **guided** by one that starts within 60 m of it and ends by its goal (or where
-the goal comes into sight), and a leg a line runs along from beside its start (30 m) to beside its goal (30 m) is
-**walked along it** (`followLines`: the stop gets the line's points as `via`, so the path, the gaps and the walks back
-follow the line). A quest stage whose words send you along one names it (`via: 'the marked stones'`) and is walked
-along it from farther off; a line marked `auto: false` is followed only where a stage names it (a way home lit for
-the way home). The **loner** rule scales with the travel speed: 18 s from anything (150 m running, 366 m on the bike,
-`lonelyFor`). Since v1.17 a portal marked `oneWay` (a hatch that only lifts from below) is not assumed to be walked
-back, and a route step `{ act, at, label }` (`tests/playthrough-worlds.js` `ROUTE`) is a stop where `at` stands (a talk
-if it is a person: Vael's route starts by meeting Oïa beside the landing, who opens the main quest). Since v1.20 a stage may name
-the line its words send you **home** along (`home: 'the lantern stones'`: the walk back to the ship after the last stage
-that names one follows it, as a named `via` does), and where its person **stands** by the time you get there (`stands:
-'hollinEnd'`, a locator: Hollin walks down to the root cave while you are at the saucer; without it the audit measures
-him where he stood at the start). Since v1.46 a goal looked at **steeply** (more than 40° up or down, `steepness`) is
-seen as it would be: far overhead, when the ray stops on what carries it, within max(15 m, a tenth of the leg) of it (the
-balcony under Vael's window, the City-Shaft palace's legs under its crown): `goal overhead`; far below, past the floor at
-your feet (12 m stepped through, the crow's nest's own deck): `goal below`. And every eye steps out of what it stands
-inside within 0.8 m of it: a line's points are its markers, so the walk along it passed through each post or cairn and
-saw nothing (the Glass Dunes' float-posts: 35 % of the path saw a landmark, 88 % since); since v1.55 within 1.5 m (the
-City-Shaft crown's marker stands on the axis of the palace's needle, 1.2 m round: from there it saw nothing at all; no
-other world's numbers moved). Since v1.49 a merged world
-(`src/levels/names.js` `PARTS`: Vael carries the sky stones, Lorn the Deep Wood) is read with its parts: their quests'
-places, their trials, courts and temples' doors, and a route step `{ temple: 'done', id }` goes in at that part's temple
-(`templeFor`; before, Vael's Belfry was measured at the Aerie's door, 1.1 km off). The pure logic is
-`scripts/level-design/lib.mjs` (`tests/level-design.test.js`). Since v1.50 a line may be **ridden** (`ride`: m/s, the
-City-Shaft's cab home): its length is weighed at that speed against the walk; and a temple whose last way out, past its
-guardian, comes out somewhere else (the arena exit's `to`: the Whale-House's keepers' hatch) is gone on from there, the hop
-to it not walked. Since v1.53 (#174) a level may give its mount's fast **`lane`** (`(x, z)` → `{ k, river }`: the desert's sand
-rivers), and the path's stretches in one are timed at the bike's speed with the lane's gain (`laneRuns`, `metrics.lanes`);
-and every room behind a doorway on the map that is built off it (the city under the Glass Dunes' sand, 2.6 km up) is reported
-with where you land, its way out, the walk across and where that leaves you (`offMapRooms`, `metrics.rooms`). Its places stay
-off the map: the door stands for the room.
+foliage you walk through don't block it). The pure logic is `scripts/level-design/lib.mjs`
+(`tests/level-design.test.js`).
+
+The hints a level or quest can give the audit (how each came in: docs/systems/dev-tools.md, "How the level
+design measure grew"):
+- a level's **`sights`** (`[{ name, at }]`): things to stop for that are neither people nor quests; optional places.
+- its **`beacons`** (`[{ name, top, height }]`): tall see-through markers the collision doesn't make tall; landmarks.
+- its **`lines`** (`[{ name, points, auto, ride }]`): leading lines on the ground; they guide legs, and legs are
+  walked (or `ride`: ridden at that speed) along them. `auto: false`: followed only where a stage names it.
+- its mount's **`lane`** (`(x, z)` → `{ k, river }`): stretches timed at the mount's speed with the lane's gain.
+- a quest stage's **`ends`** (where a stage whose marker moves on is done), **`via`** (the line its words send you
+  along), **`home`** (the line back to the ship) and **`stands`** (where its person is by the time you arrive).
+- a portal's **`oneWay`** (never walked back); a route step `{ act, at, label }` (a stop where `at` stands).
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`
 (relief from above, +z up: the path dark, the four longest empty stretches red, places on the route blue,
@@ -223,7 +202,7 @@ Start the report with its score block, right under the title (an HTML comment Gi
 ```
 <!-- audit-scores
 overall: the average of the worlds' means / 5
-label: the average of the eleven route worlds' means
+label: the average of the twelve route worlds' means
 date: YYYY-MM-DD
 -->
 ```
@@ -234,7 +213,7 @@ page draws them as bars and compares them with the last report's by the row's na
 so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
 
 - **The setup:** the commit, the date, what ran (node audit, capture), what was not checked.
-- **The scores:** a table, one row per world, the nine criteria and the mean; the moves you made by eye, with
+- **The scores:** a table, one row per world, its travel, the nine criteria and the mean; the moves you made by eye, with
   the reason.
 - **Per world:** the map (WebP, `cwebp -q 70`, ~640 px) and one or two pictures of its worst problem, the
   three worst findings with their numbers, the two judged criteria.

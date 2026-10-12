@@ -382,7 +382,7 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   applied N a frame at most). The 5 s `frames:` lines add the main thread's phases (the scripts' part with the ops it
   applied, URP's part before its first context, its contexts, after them) FrameTimingManager's present wait,
   and the PlayerLoop's longest steps (`BridgeLoopTimer`: a mark before each engine step; a frame over a second is
-  logged with its own). `-no-hud` (no uGUI HUD) and `-queued N` (`QualitySettings.maxQueuedFrames`) are tests too.
+  logged with its own). `-no-hud` (no uGUI HUD) and `-queued N` (`QualitySettings.maxQueuedFrames`) are tests too. `-bundle <file>` runs a bundle put in LocalState instead of the packaged one (a change to the script alone measured without a build); `-v8 "<flags>"` sets V8's own flags (the relinked PapiV8's `HiraethV8Flags`; the Xbox's defaults and `-v8 none`: performance.md, "The City-Shaft's rim on the Xbox"); `-shadow-census` logs each cascade's casters; `-no-shadow-sweep`, `-shadow-camera`, `-no-shadow-instances`, `-no-shadow-chunks`, `-shadow-chunk-cell M` turn the shadow maps' culling back step by step.
 - **The build** (`BridgeBuild.Xbox`): the bridge's scene as a UWP D3D solution, IL2CPP x64, **Direct3D 12** at the
   console's feature level 11.0 (a D3D12 device filter that allows it: Unity 6's default ones want 12.2 and fell back to
   D3D11), 1440p (the console scales it to the TV), Unity's references copied in. Direct3D 12 against 11 at the 1440p

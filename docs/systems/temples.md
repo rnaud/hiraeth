@@ -214,6 +214,16 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   stone is out of the throat on the high balcony (`tail`: `not` on `drumOn`, a state that changes back), and the
   column beside the perch once the perch's stone is out of its own (`rise`). The Roost's two vents share one stone
   (`ROOST`).
+- **The lee, and the marks read** (issue #216, the author: "If I'm behind a wall I shouldn't get pushed by the wind
+  in the Aerie. Also not sure what the device at the entrance with the maker's sign is."). The Hall of Winds' shelter
+  boxes were narrower than its screens and only 2 m deep, and behind the far wall there were none: 3 m behind a
+  screen a gust shoved you 4.5 m. A `Gust` with `lee` (m, the hall's 3.5) now also asks whether anything solid stands
+  that close upwind of you, at your chest (one ray against the wind, `Gust.lee`; the foes' working asks it too): a
+  screen, a wall, the stone. Its streaks show it: half of them low at a body's height (`floor`, `streaks` 64), and a
+  streak whose leading end is in a lee (its lane sampled every 0.5 m once, `leeLanes`) is not drawn. The "device"
+  was a `Mark`, the checkpoint glyph stone every temple has: it lit silently. Now its glyph flares as it wakes, and
+  the first one of a save says what it is (`MARK.line`, once: the `temple.markTold` flag). Tests:
+  `tests/aerie-lee.test.js`.
 - **The tower breathes through its vanes** (the Warden's Well, from the v1.19 audit; the tower was built to keep the
   shaft breathing, and the breath turned its machines). A `Vane` is one of the makers' bellows, in a floor (facing
   up) or on a wall (`wall`, `yaw`): its element (type `vane`, logic.js: held like a held bell, lit only while it
@@ -560,6 +570,22 @@ chest (`moonfoundry.js` `SAND`; its key carried from the first rooms to the last
 founders' moon hot in its cradle); the **Footprint**'s Keepers' Lodge, west off the Keepers' Gallery (`spheres.js`
 `LODGE`; the Hall of the Unseen's far door `d4` takes it with its eye and the sphere on the walker's print). Each wing's
 side that meets its hall is that hall's own wall (`omit`), so no two walls lie face on face (tests/zfight.test.js).
+
+## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
+
+The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake
+every time we are in a cramped space." A probe walked the traveller and the close camera through every room (each
+checkpoint stone's room, a full turn by hand and four walks out and back; the numbers in
+docs/systems/movement-and-camera.md, "Small rooms"). The halls were roomy; the cramped ones were the **antechambers**,
+the short passage between the last hall's door and the guardian's round hall: 5.6 m across, 4 m deep, 7 m high, the camera
+pulled in to under 0.8 m behind the head in a tenth of every turn. In the eight houses that build it the same way
+(the Belfry, the Footprint, the Engine-House, the Lamp-House, the Hush-House, the Clock-House, the Greenhouse, the
+Undertower) it is now one piece of the kit, `K.vestibule(z0, y)`: `ANTE` 8.8 m across, 7.4 m deep, 8.5 m high, its walls
+run on into the round hall's wall; the guardian's hall stands 4 m further on (its centre `end + 1.2 + r`, everything in it
+placed from that), its doorways as they were. The Mooring-House's ante (a corridor) is 8.8 m wide and 7.6 m high. The
+puzzles' rooms are unchanged (no jump, timing, wind, ball or checkpoint distance moved); the halls' marks for the
+antechamber stand in its middle. `tests/room-size.test.js` holds the vestibule's size; the on-foot walks in
+`tests/temples.test.js` walk into the guardians' halls 4 m further on.
 
 ## Each house its own look (v1.31)
 

@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -68,7 +69,7 @@ test('the game\'s updates come from its site; the APK still from GitHub releases
 });
 
 test('web.json: version, build number, the zip\'s sha256, its URL, size, notes and the native level it needs', () => {
-  const zip = join(mkdtempSync(join(tmpdir(), 'hiraeth-ota-')), 'web-14.zip');
+  const zip = join(tempDir('hiraeth-ota-'), 'web-14.zip');
   writeFileSync(zip, 'not really a zip');
   const sha = createHash('sha256').update('not really a zip').digest('hex');
   const url = 'https://example.com/o/r/releases/download/v0.37/web-14.zip';
@@ -165,10 +166,10 @@ test('the workflow publishes the APK and its manifest, never half', () => {
   // the repository is private: the game's updates come from the site only, no web zip on GitHub (docs/cloudflare.md)
   assert.doesNotMatch(yml, /TRANSITION|web-\$BUILD\.zip|web\.json|web-zips/);
   assert.match(yml, /release-info\.mjs latest-json/);
-  const apkUp = yml.indexOf('"$APK" --clobber'), jsonUp = yml.indexOf('"$RUNNER_TEMP/latest.json" --clobber');
+  const apkUp = yml.indexOf('"$APK#$LABEL" --clobber'), jsonUp = yml.indexOf('"$RUNNER_TEMP/latest.json" --clobber');
   assert.ok(apkUp > 0 && apkUp < jsonUp, 'the APK goes up before the manifest that points at it');
   // a new release is made with every file at once (gh keeps it a draft until they are up)
-  assert.match(yml, /gh release create "\$TAG" "\$APK" "\$RUNNER_TEMP\/latest\.json"/);
+  assert.match(yml, /gh release create "\$TAG" "\$APK#\$LABEL" "\$RUNNER_TEMP\/latest\.json"/);
   // a run publishing is never cancelled (that left the newest release without its manifest)
   // (the group is android-release for a run that builds; tests/pre-commit.test.js evaluates it)
   assert.match(yml, /concurrency:\s*\n\s*group: [^\n]*'android-release'[^\n]*\n\s*cancel-in-progress: false/);

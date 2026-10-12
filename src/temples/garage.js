@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus } from './kit.js';
+import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Mark, Pit, Key, Coffer } from './pieces.js';
 import { foremanModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
@@ -488,11 +488,9 @@ function layout(rt) {
 
   // ---- the corridor and the Foreman's Workshop (floor 9)
   const H0 = F0 + 35;
-  K.slab(-3.2, H0 - 0.6, 3.2, H0 + 3.4, 9, 0.8);
-  K.wall(-3.2, H0 + 0.2, -3.2, H0 + 3.4, 9, 7, { t: 0.8 }); K.wall(3.2, H0 + 3.4, 3.2, H0 + 0.2, 9, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.6, 0, 16.4, H0 + 1.6));
-  add(Mark, { room: 'ante', at: [2.2, 9, H0 + 1.6], yaw: -Math.PI / 2 });
-  const HR = 20, CW = H0 + 3.2 + HR + 1.4;
+  const AE = K.vestibule(H0, 9);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, 9, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  const HR = 20, CW = AE + 1.2 + HR;
   K.rotunda({ x: 0, z: CW, y: 9, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
   // a great dial inlaid in the floor, a gear's teeth round it, a pendulum's rod down from the oculus
   K.both(cream, T(annulus(8.2, 9.2, 0.25, 64), [0, 9.25, CW]));

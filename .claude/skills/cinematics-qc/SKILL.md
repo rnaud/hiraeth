@@ -9,7 +9,9 @@ Every cinematic is judged twice: **technical** (does it play cleanly, framed, hi
 back to the player at a sensible spot) and **interest** (is it worth watching: a purpose, the right
 length, varied shots, a beat). The numbers from the script only say where to look: **look at every
 captured frame yourself.** Results go in `docs/systems/cinematics-qc.md` (one table, compared with
-the last pass) and, for creative rework, `TODO.md` under "Cinematics (QC pass)".
+the last pass; its baseline is the v1.6 pass of 2026-10-09, 91 cinematics then) and
+`docs/systems/cinematics-qc-notes.json` (the verdicts); creative rework goes in a GitHub issue
+(TODO.md's tracker: https://github.com/rnaud/hiraeth/issues), and what was fixed into DONE.md.
 
 Read first:
 - `docs/systems/cinematics.md`: the moments (`src/story/moment.js`, `film.js`, the rules: 8–10 s,
@@ -49,7 +51,11 @@ node scripts/cinematics-qc.mjs --group "World moments" --skip                   
 node scripts/cinematics-qc.mjs --group "World moments" --size 844x390 --mobile     # phone landscape
 node scripts/cinematics-qc.mjs --only incal.lodestar --probe "window.camera.position.toArray()"   # ask the page
 node scripts/cinematics-qc.mjs --only box.desert.star --query boxPlan=high        # a box under another camera plan
+node scripts/cinematics-qc.mjs --group Recordings --quality medium --rest 5        # another preset; a longer rest
 ```
+
+`--quality` (default `high`) is the graphics preset the page boots with (`hiraeth.settings.v1`'s `quality`);
+use another only when the check is about a preset, and say so in the report.
 
 `--probe "<js>"` evaluates an expression in the page at every screenshot and writes what it returned
 to `<out>/<id>/probe.json` (by the frame's label): where a thing is on screen (`v.clone().project(camera)`),
@@ -72,8 +78,9 @@ opened (run it as its own pass: a skipped cinematic has no frames to judge). Box
 dismissed automatically. Per cinematic: `<out>/<id>/sheet.jpg` (all kept frames in one labelled
 picture: look at this first), the WebPs, and `samples.json` (every frame's camera and findings,
 `t` from its start: find which panel a finding is in). Output: `<out>/report.json` (everything)
-and `<out>/report.md` (the table). A full pass (~90 entries) takes over an hour, the 14 recordings
-alone ~15 minutes; run it in the background and look at sheets as they land.
+and `<out>/report.md` (the table). A full pass (106 entries in October 2026: Items 45, Travel 22,
+Recordings 17, World moments 16, Story 5, Trailer 1) takes well over an hour, the recordings alone
+~15–20 minutes; run it in the background and look at sheets as they land.
 
 What "playing" means: the ship's director (`ship.playing`), a moment (`storyRt.moments.playing`),
 a world's own scene (`storyRt.world.busy()`: home's quiet scenes) or a box (`boxes.busy()`). A
@@ -130,16 +137,19 @@ One point each, by watching (the frames, then the review page for the timing):
   `src/ship/cinema.js` `hud()` or `index.html`'s `body.cine-on` rules, toasts with `cinema.held`,
   skip wiring, volumes in the swell). Re-run the affected ids and compare frames.
 - Fix straightforward interest problems: trim dead time, rebalance panel lengths, add a cut or a
-  push-in. **Don't invent story**: bigger creative rework goes in `TODO.md` under
-  "Cinematics (QC pass)".
+  push-in. **Don't invent story**: bigger creative rework goes in a GitHub issue (TODO.md, line 3:
+  the tracker), not into TODO.md itself.
 - Update the score block under the report's title (`<!-- audit-scores … -->`, read by the audits page,
   `audits.html`): `overall:` the mean of the tech and interest means after the fixes, `label:` those two means
   and how many cinematics, `version:` the pass's version, `date:`. Keep the table's `Tech /5` and
   `Interest /5` columns as they are (the page reads them, and the review page's verdicts by the row's id).
 - Record the pass in `docs/systems/cinematics-qc.md`: one row per cinematic: technical /5, interest
-  /5, problems, what was fixed. Optionally mirror the verdicts into the review page's notes (it
-  stores them per browser in `localStorage['hiraeth.cinematics.qc.v1']`: `{ [id]: { verdict:
-  'Pass' | 'Needs work', text, updated } }`; Export / import as JSON).
+  /5, problems, what was fixed.
+- Write the verdicts into `docs/systems/cinematics-qc-notes.json` (committed: `{ exported, notes: { [id]:
+  { verdict: 'Pass' | 'Needs work', text, updated } } }`). The audits page reads it for the verdicts'
+  counts (`scripts/audits-data.mjs`, `cinematicVerdicts` in `src/audits-page/parse.js`;
+  `tests/audits-page.test.js` checks the counts); the review page imports it (Import, merged by
+  `updated`: `mergeNotes`), and keeps its own per browser in `localStorage['hiraeth.cinematics.qc.v1']`.
 - Visible fixes get a changelog line with before/after frames (CLAUDE.md, docs/systems/changelog.md):
   the script's frames of the same id before and after the fix make the pair.
 - Tests for each fix (`tests/moment.test.js`, `tests/moments-<world>.test.js`, `tests/box-*.test.js`),
@@ -152,4 +162,4 @@ One point each, by watching (the frames, then the review page for the timing):
 |---|---|---|---|---|
 | arzach.bird · Vael, the bird | 4 | 4 | lens through the cliff in A (47 frames) | A pulled out of the rock |
 ```
-Then: headline findings (what's systematically wrong), the fixes, and the TODO items added.
+Then: headline findings (what's systematically wrong), the fixes, and the issues opened.

@@ -8,7 +8,8 @@
 //        [--preset high] [--interiors 1] [--max-interiors 6] [--res 1280x720]     PORT (default 5494; Chrome's PORT + 1)
 // Writes <out-dir>/<world>/<view>@<hour>.png and <out-dir>/report.json (the numbers of every picture, flagged).
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +21,7 @@ const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir
 const HOURS = arg('hours', '7,12,18.5,22').split(',').map(Number), PRESET = arg('preset', 'high'), [W, H] = arg('res', '1280x720').split('x').map(Number);
 const INTERIORS = arg('interiors', '1') !== '0', MAXI = +arg('max-interiors', 6);
 const PORT = Number(process.env.PORT ?? 5494), CDP = PORT + 1;
-if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
+if (PORT === 5173 || CDP === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const names = await import(join(ROOT, 'src/levels/names.js'));
 const WORLDS = (arg('worlds') ?? [...new Set([...names.ORDER, ...names.SIDE, 'home', 'lantern'])].join(',')).split(',').filter(Boolean);
@@ -33,9 +34,9 @@ const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.con
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
-const profile = mkdtempSync(join(tmpdir(), 'visual-audit-chrome-'));
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
-  `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1', 'about:blank'], { stdio: 'ignore' });
+const profile = tempDir('visual-audit-chrome-');
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
+  `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1', 'about:blank'], { stdio: 'ignore' }));
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));
@@ -77,7 +78,7 @@ for (const world of WORLDS) {
   mkdirSync(join(OUT, world), { recursive: true });
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
   await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, enemies: 'off' }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, soundV: 1, enemies: 'off' }));
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   await send('Page.navigate', { url: `${BASE}?level=${world}` });

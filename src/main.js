@@ -27,7 +27,7 @@ import { FirstSteps } from './first-steps.js';
 import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW } from './scout-hint.js';
 import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
-import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
+import { createGBuffer, createComposeTarget, createBlit, createSmaa, aaOf, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, markHero, keepHero, setEnvGround } from './materials.js';
 import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
@@ -141,6 +141,7 @@ import { HumCue } from './story/hum.js';
 import { ShopPanel } from './shop-panel.js';
 import { rumblePlay, setRumbleSettings } from './rumble.js';
 import { interiorAt } from './interior-kit.js';
+import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from './world-map.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -254,6 +255,7 @@ let preset = resolveQuality(settings.quality, { handheld, deck, xbox: isXboxApp,
 const quality = { renderScale: preset.scale };
 const composeRT = createComposeTarget();
 const blit = createBlit(composeRT.texture);
+let smaa = null;   // (the handheld's antialiasing in place of the blit's FXAA: preset.aa, pipeline.js createSmaa)
 
 const overlays = { motes: null, trail: null };   // sprite overlays sized with the render targets
 
@@ -268,6 +270,7 @@ function resize() {
   bloom.setSize(rw, rh);
   composeRT.setSize(rw, rh);
   blit.material.uniforms.resolution.value.set(1 / rw, 1 / rh);
+  if (aaOf(preset) === 'smaa') (smaa ??= createSmaa()).setSize(rw, rh);
   post.uniforms.uRes.value.set(rw, rh);
   post.uniforms.uPixelRatio.value = pr;
   sharedUniforms.uPixelRatio.value = pr;
@@ -906,11 +909,58 @@ Object.assign(journal.menu, {
       parts: partsOf(l.id).slice(1).map((p) => ({ id: p, storyTitle: CONTENT[p]?.story?.title })) })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }),
-    icon: (id) => itemIcons.get(id) }),
+    icon: (id) => itemIcons.get(id), map: (o) => mapSource(o) }),
   onTrack: (id) => storyRt.quests.choose(id),
   // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
   onUse: (id) => { if (id === 'finder') { game.set('frag.finder.off', !game.flag('frag.finder.off')); return; } const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
 });
+// The Map panel (issue #205): the world you are in from above (src/world-map.js), its ground sampled straight down
+// a few ms a frame while the menu is open (pausedFrame), drawn once and kept; the marks read now each time it opens
+const mapAt = (p) => {
+  // (inside a shop's or a temple's room, built far from the ground: at its door on the map)
+  const room = interiorAt(p);
+  if (room?.door?.at) return room.door.at;
+  for (const t of level.temples ?? []) {
+    const a = t.arrival?.pos, d = t.outside?.door?.at;
+    if (a && d && Math.abs(a.y - d.y) > 300 && Math.abs(p.y - a.y) < 300) return d;
+  }
+  return p;
+};
+const mapTemples = () => (level.temples ?? []).filter((t) => t.outside?.door?.at).map((t) => ({ id: t.id, name: t.def?.name, x: t.outside.door.at.x, z: t.outside.door.at.z, y: t.outside.door.at.y }));
+let mapWhole = null;
+const worldMap = new WorldMap({
+  sample: (x, z) => {
+    const h = physics.groundAt(x, mapWhole.top, z, MAP.drop);
+    const w = Number.isFinite(h) ? waters.surfaceAt(x, z, h, 1) : null;
+    return { h, water: w && !w.body?.sea && w.y > h + 0.15 ? w.y : null };
+  },
+});
+worldMap.onReady = () => { if (journal.open) journal.menu.mapReady(); };
+function mapSource({ zoom = null } = {}) {
+  // the whole map's square, once a world: round where you land, the ship, the temples, the people and every box
+  // (opened or not: they frame it, they are never drawn until opened)
+  if (!mapWhole) {
+    const pts = [level.spawn, level.ship?.pos, ...mapTemples(), ...npcs.map((n) => n.pos && mapAt(n.pos)), ...(boxes.list ?? []).map((b) => mapAt(b.pos)), mapAt(player.pos)].filter(Boolean);
+    const b = mapBounds(pts, { limit: level.limit ?? Infinity });
+    mapWhole = { bounds: b, top: Math.max(...pts.map((p) => p.y ?? 0).filter(Number.isFinite)) + MAP.up };
+  }
+  const you = mapAt(player.pos), dir = player.frame.dir(player.heading, new THREE.Vector3());
+  const goal = nextObjective({ player, expedition, story, ship: level.ship, level: { navigationPortals: [] }, quest: () => storyRt.objective() });
+  const raw = {
+    you: { x: you.x, z: you.z, dx: dir.x, dz: dir.z },
+    ship: level.ship?.pos && levelId !== 'home' ? mapAt(level.ship.pos) : null,
+    goal: goal?.position ? { ...mapAt(goal.position), label: goal.label } : null,
+    temples: mapTemples(),
+    people: npcs.filter((n) => n.def?.id && n.pos && game.flag(`met.${n.def.id}`)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, ...mapAt(n.pos) })),
+    boxes: (boxes.list ?? []).filter((b) => b.opened()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, ...mapAt(b.pos) })),
+  };
+  const whole = mapWhole.bounds, focus = zoom && mapMarks({ ...raw, bounds: whole }).find((m) => m.id === zoom);
+  const bounds = focus ? zoomBounds(whole, { x: whole.x0 + focus.u * whole.w, z: whole.z0 + focus.v * whole.h }) : whole;
+  const view = worldMap.view(bounds, focus ? MAP.zoomCells : MAP.cells);
+  const frag = fragments.counts(), here = frag.worlds?.[levelId];
+  return { world: LEVELS.find((l) => l.id === levelId)?.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: view.canvas, progress: view.progress, zoom: focus ? zoom : null,
+    scale: scaleBar(bounds.w), note: frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : '' };
+}
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', () => sound.musicCue('moment', { delay: 1 }));   // (the recorded theme comes back: src/music-moments.js)
 game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });
@@ -1882,7 +1932,8 @@ function renderFrame() {
 
   // 5. smooth edges and scale the completed frame to the display
   renderer.setRenderTarget(null);
-  renderer.render(blit.scene, post.camera);
+  if (smaa && aaOf(preset) === 'smaa') smaa.render(renderer, composeRT);
+  else renderer.render(blit.scene, post.camera);
   for (const o of frameHidden) o.visible = true;
   framePin.end();
   frameStats.calls += renderer.info.render.calls; frameStats.tris += renderer.info.render.triangles; frameStats.n++;
@@ -2294,6 +2345,7 @@ function frame(ts) {
 function pausedFrame() {
   tapped.clear();
   if (journal.open) itemIcons.pump();
+  if (journal.open && journal.menu.panel === 'map') { const gm = physics.groundMover, gk = physics.groundKind; worldMap.pump(); physics.groundMover = gm; physics.groundKind = gk; }   // (the map's rays: src/world-map.js)
   if (journal.open) pumpPortraits();
   wasBusy = true;
   sound.update(CALM);

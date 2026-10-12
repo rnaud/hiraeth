@@ -69,6 +69,15 @@ and screen behavior. Performance on a physical iPhone still needs confirmation.
   stand at 64 m, 3 m thick), so no lizard, crab or jerboa is put in its streets or square (three were, 12–29 m from
   the tree, round the city's people) and none wanders in from the camps. The flocks wheeling high over it stay.
   `tests/desert-playtest.test.js`.
+- **The needle walker plants itself first** (issue #209, the author: "looks odd, like it's floating in air"). Vael's
+  needle walker used to rise straight into the air and turn upright there, its tail's tip off the ground, a needle by
+  0.4 s. Its surprise is in stages now (`NEEDLE`, `needlePose` in `src/wildlife/species.js`): it walks a few steps on
+  away from the fright (`trick.walk`: `Creature.update` steps it, the legs walking, then stands it on the ground where
+  it stopped), plants itself (the legs splay and stay on the ground, the body sinks a little and tips its tail down
+  about its middle until the tip touches the ground, found under it once, three times over as the tip comes in, so on
+  a slope it reaches further down or less), and only then stands up on that tip, turning upright about it and
+  stretching into the needle, the legs folding in. It comes back down the same way. `tests/needle-walker.test.js`:
+  every one in Vael, on slopes too, keeps the tip on the ground while planted and standing, and stands upright.
 - **The tool** (`src/blaster.js`): a hitscan paralyze ray (40 m, energy gauge)
   and a ballistic foam dart that follows the level's gravity. Anything can
   register in `src/targets.js` (`registerTarget`) to be hit; levels can add

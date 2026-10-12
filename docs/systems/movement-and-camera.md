@@ -160,6 +160,54 @@ their own: in the open the ground behind a jump or a dune cuts the arm by 3–4 
 bisection, snapped in where close in it eases), and the shop's are the look point's small kinks above. The C# port's
 rig (unity/) does not have the eased shove yet.
 
+## Small rooms: room to stand back, and a camera that settles (v1.59, issue #195; `ROOM_FIT`, `roomFit`, `ARM_OUT_GAP`)
+
+The author: "Most of the temple rooms are too small and so is the ship and it's interior. I want rooms to feel bigger so
+the camera doesn't move and shake every time we are in a cramped space." Both sides were fixed: the rooms (the temples'
+antechambers, docs/systems/temples.md "Room for the camera"; the ship, docs/systems/ship.md "Grown for the camera") and
+the close camera in them.
+
+**The probe** (a scratch script beside the camera QC's node walk, `scripts/camera-qc/sim.mjs`): every temple's every
+checkpoint stone and seven spots aboard the ship; at each, the room measured (16 chest-height rays: the narrowest and widest
+width across, the ceiling), then the real `CameraRig` through the real collision for a full turn by hand (60°/s, 6 s) and
+four walks out and back (stopping 2.6 m short of a wall, never through something the body would bump). Per room: the
+shortest arms (p10), the pull-in (the arm it wants less the arm it got, p90), the roughness, pops and clipping. A room is
+cramped when the arm is under 1 m a tenth of the time, or it pops, clips or is rough (over 2 cm). 30 of 137 were, 18 after:
+
+| room | across (m) | ceiling (m) | arm p10 (m) | pull-in p90 (m) |
+|---|---|---|---|---|
+| the eight antechambers (Belfry, Footprint, Engine-House, Lamp-House, Hush-House, Clock-House, Greenhouse, Undertower) | 5.1 → 7.6 | 7.0 → 8.5 | 0.55–0.88 → 1.60–1.70 | 1.09–1.54 → 0.27–1.15 |
+| the Mooring-House's ante | 5.0 → 7.6 | 6.4 → 7.6 | 0.53 → 1.82 | 1.37 → 0.08 |
+| the Rose House's Dry Channel and Sword Chamber (their stones moved off the wall) | | | 0.31, 0.45 → 1.49, 1.99 | 1.72, 1.45 → 0.72, 0.23 |
+| the ship: by the holo table, the main room's aft end, the hold | 3.8–4.8 → 4.0–5.5 | 2.3 → 2.9 | 0.48–0.97 → 1.12–1.76 | 0.93–1.42 → 0.14–0.78 |
+| the ship: the cockpit, by the hatch, by the bunk | 3.1–5.0 → 3.9–5.7 | 2.3–2.4 → 2.7–2.9 | 0.46–0.78 → 0.42–0.83 | 1.12–1.44 → 1.06–1.24 |
+
+Still under the line: the ship's cockpit, hatch and bunk spots and a few temple stones that stand by a wall in rooms 10 m
+and more across (the Footprint's pool, the Lamp-House's roots, the Hush-House's well, the Greenhouse's vault and landing,
+the Undertower's well): a full turn with your back a metre from a wall brings any camera in. The pops left are the open
+framing's in great open halls (the Aerie's well and gulf, the Greenhouse's stair, the Mooring-House's moorings), where the
+ray-cut open arm snaps as it always has (the camera QC's desert-open), and a column's top 1 x 2 m in the Aerie.
+
+**The camera in a small room**:
+
+- **Fitted to the room** (`roomFit`, `ROOM_FIT`): from the same probes the tight framing uses (eight chest-height rays every
+  0.12 s), a room shut in every way within 9.5 m (its widest width across under `small`; aboard the ship, `indoor`, any
+  room) gets a close arm no longer than its third nearest wall less 0.6 m, at least 1.1 m. Its goal moves only by more than
+  0.18 m (it never flips between two lengths) and the arm eases to it (`rate` 1.4/s): turning round in a cabin the camera
+  stays at one distance instead of pumping in at every wall and out at every gap. By one wall of a big hall nothing
+  changes (the hall is wide), nor in a corridor (its length is the room behind him: the train's shoulder view stays).
+- **Lets out only for a real gain** (`ARM_OUT_GAP` 0.12 m) and after a longer pause close in (`ARM_HOLD_TIGHT` 0.5 s; 0.7
+  showed the traveller out of frame in the sleeping car's corridor): an arm cut by a wall no longer creeps back out by a
+  few centimetres and in again.
+- **The short arm's tip** (`SHORT_TILT`) is judged by the room behind him at the untipped pitch, not by the arm the tip
+  left: tipped over the head, the camera could meet whatever hangs over a room's edge, the arm stayed short, so the tip
+  stayed.
+
+In a 4.2 x 5 m cabin (a turn by hand, walks to each wall and back, another turn: `tests/room-size.test.js`) the arm's
+in and out summed over the walk went from 3.7 m to 0.7 m, its reversals from 0.17/s to 0, its flips in and out within a
+third of a second from 8 to 0. The camera QC's train walks in node are as they were (train-walk, train-sleeper,
+train-dining-turns and train-roof green; the free walk and the run red in node before and after, as noted above).
+
 ## The jets fly like a plane (v0.89, `src/player.js`: `JET`, `startJets`, `flyJets`, `jetSteer`, `jetStep`)
 
 The author, after the Superman jets: "R2 should make me go high fast. Joystick should be for
@@ -285,3 +333,18 @@ and inks it. The colour is darkened by `JUMP_SHADOW.dark` too, so it still reads
 already in shade. `jumpShadowRadius(h)` grows the patch in just off the ground, shrinks it
 with height and removes it by `JUMP_SHADOW.far` (40 m). Standing, the real shadow does the
 job. The mesh stays out of the shadow passes (`level.noShadow`).
+
+## Ragdolls follow the ground's slope (`src/ragdoll.js` `Ragdoll.step`, `groundNormalAt`, `RAG.wall`; issue #214)
+
+The author: "Ragdoll should follow physics. Right now it can ragdoll up a cliff?" It could: each particle was
+pushed straight up out of the ground and kept that push as speed, and kept its speed along the ground, so a body
+knocked into a terrain cliff slid up its face (20 m in 3 s from a 9 m/s knockdown in Vael). Now the ground under each
+particle is a plane, the point under it and the ground's normal there (`physics.groundNormal` on level worlds, the
+face a ray meets under any other up; found once a sub-step, only near the ground), and a particle in it is pushed out
+of the plane: along the normal, or level off a face steeper than 60° (`RAG.wall`), never up it. What the ground and
+the walls push is not speed: the velocity is the particle's own motion less those pushes, with what goes into the
+ground or the wall taken away (a hard landing gives `RAG.bounce` back) and friction along the ground. The trunk's
+capsule against walls works the same way (it used to keep a fifth of its push as speed). Tests:
+`tests/ragdoll-cliff.test.js` (a ragdoll knocked into 50°, 72° and sheer faces at 3-9 m/s, with the heightfield's
+blended normal too, ends no higher than it started, never climbs the face, settles; one into a wall stays this side
+of it), `tests/ragdoll.test.js`.

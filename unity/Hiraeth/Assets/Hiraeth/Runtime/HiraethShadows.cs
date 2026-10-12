@@ -32,6 +32,9 @@ namespace Hiraeth
             public float Texel => extent * 2 / Mathf.Max(size, 1);
             public Vector4 Params => new(enabled ? biasTexels * Texel / depth : 0, offsetTexels * Texel, Texel, enabled ? 1 : 0);
             public Vector3 ls;  // the window's centre, light space (snapped)
+            /// <summary>The planes this cascade's casters were culled with this frame (CullFor, renderer lists only; cullN 0:
+            /// none), for what is drawn beside its list (the instanced parts, InstMats).</summary>
+            public readonly Plane[] cullPlanes = new Plane[10]; public int cullN;
             public float l, r, b, t, n, f;
 
             /// <summary>shadows.js aim: looking along the (quantised) light from the sun's side; true if it turned.</summary>
@@ -98,10 +101,29 @@ namespace Hiraeth
         /// rendering layers; the units and flora as before.
         /// </summary>
         public static bool UseRendererLists;
+        /// <summary>
+        /// With renderer lists, each cascade's casters also culled by the camera's view swept away from the sun (as Sees does
+        /// for the draws' path and the web's ShadowCuller.hide): the camera's six planes, its far one at the cascade's reach,
+        /// each moved out by how far a caster's shadow can fall across it (up to the cascade's depth, or down to the lowest
+        /// ground from the highest caster). Nothing whose shadow can land in the view is left out. -no-shadow-sweep off.
+        /// </summary>
+        public static bool SweepCull = true;
+        /// <summary>Where the traveller stands (Unity's space), for a camera with no port Game (the Unity bridge: its _Brush),
+        /// so the cascades are placed round him as the web places them (main.js shadowPass: c.place(player.pos)); null: the camera.</summary>
+        public static System.Func<Vector3?> Traveller;
+        /// <summary>-shadow-census: each cascade's casters (how many, their vertices, the largest) logged every 5 s.</summary>
+        public static bool Census;
+        /// <summary>The GameObject layer of the shadow maps' pieces of big meshes (the bridge's BridgeShadowChunks; -1 none): off
+        /// the camera's culling mask, in every cascade's culling.</summary>
+        public static int PieceLayer = -1;
+        float censusAt;
+        float casterTop = float.NegativeInfinity;
         public const uint CasterLayer = 1u << 24;
         /// <summary>The casters big enough for each cascade (fine, near, far: two texels of it and up, as the draws' path had
         /// it per caster), set at the movers' scan; each cascade's list draws its own.</summary>
         public static readonly uint[] CascadeLayer = { 1u << 25, 1u << 26, 1u << 27 };
+        /// <summary>The cascade's index: 0 fine, 1 near, 2 far (-1 none of these).</summary>
+        public static int IndexOf(Cascade c) => c == Instance.fine ? 0 : c == Instance.near ? 1 : c == Instance.far ? 2 : -1;
         public static uint LayerOf(Cascade c) => c == Instance.fine ? CascadeLayer[0] : c == Instance.near ? CascadeLayer[1] : CascadeLayer[2];
         int preparedFrame = -1; Camera preparedFor;
         /// <summary>A main camera that is not the port's Game's (the Unity bridge's): it keeps the cascades' schedule.</summary>
@@ -139,7 +161,7 @@ namespace Hiraeth
         public struct Draw { public Mesh mesh; public Material mat; public int pass; public Renderer renderer; public int sub; }
         public class Plan
         {
-            public Cascade cascade; public readonly List<Draw> draws = new(); public readonly List<WorldDetail.FloraSet> flora = new();
+            public Cascade cascade; public float reach; public readonly List<Draw> draws = new(); public readonly List<WorldDetail.FloraSet> flora = new();
             /// <summary>The movers culled for this cascade by the engine (UseRendererLists): drawn as one list, on the SRP Batcher's path.</summary>
             public CullingResults culled; public bool hasCull;
             public readonly List<System.Action<RasterCommandBuffer, Cascade>> extra = new();
@@ -198,6 +220,7 @@ namespace Hiraeth
             bool main = ((game && cam == game.cam) || (MainCamera && cam == MainCamera)) && Application.isPlaying;
             if (!main) turned = true;
             var center = main && game && game.player ? game.player.transform.position : cam.transform.position;   // (the bridge: no port Game, round its camera)
+            if (main && !game && Traveller?.Invoke() is Vector3 tp) center = tp;   // (or round the traveller, where the bridge knows him)
             float camToPlayer = Vector3.Distance(cam.transform.position, center);
             var want = new List<(Cascade c, float reach)>();
             if (fine.enabled) want.Add((fine, camToPlayer + fine.extent * 1.8f));
@@ -211,6 +234,7 @@ namespace Hiraeth
             {
                 scanAt = Time.realtimeSinceStartup; scannedFor = detail;
                 movers.Clear();
+                casterTop = float.NegativeInfinity;
                 var statics = new HashSet<Renderer>();
                 foreach (var u in detail.units) if (u.mr) statics.Add(u.mr);
                 foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
@@ -219,12 +243,15 @@ namespace Hiraeth
                         var mats = r.sharedMaterials; var pass = new int[mats.Length];
                         for (int k = 0; k < mats.Length; k++) pass[k] = mats[k] ? ShadowPassOf(mats[k]) : -1;
                         movers.Add(new Mover { r = r, skinned = r is SkinnedMeshRenderer, mats = mats, pass = pass });
+                        casterTop = Mathf.Max(casterTop, r.bounds.max.y + (r is SkinnedMeshRenderer ? 1 : 0));
                         if (UseRendererLists && (r.renderingLayerMask & CasterLayer) != 0)
                         {
                             // (the cascades this caster is big enough for, by its bounds now: the scan is every 2 s)
                             bool sk = r is SkinnedMeshRenderer;
                             float rad = r.bounds.extents.magnitude * (sk ? 1.4f : 1) + (sk ? 0.3f : 0);
                             uint m = r.renderingLayerMask & ~(CascadeLayer[0] | CascadeLayer[1] | CascadeLayer[2]);
+                            // (a piece of a big mesh, BridgeShadowChunks: in every cascade, as the whole mesh it was cut from)
+                            if (r.gameObject.layer == PieceLayer) rad = float.PositiveInfinity;
                             if (rad >= Mathf.Max(fine.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[0];
                             if (rad >= Mathf.Max(near.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[1];
                             if (rad >= Mathf.Max(far.Texel * Mathf.Max(minCasterTexels, minFarCasterTexels), 0.07f)) m |= CascadeLayer[2];
@@ -252,7 +279,7 @@ namespace Hiraeth
                 var (c, reach) = want[w];
                 c.Place(center);
                 c.fresh = true;
-                var plan = pool[w]; plan.cascade = c; plan.draws.Clear(); plan.flora.Clear(); plan.extra.Clear();
+                var plan = pool[w]; plan.cascade = c; plan.reach = reach; plan.draws.Clear(); plan.flora.Clear(); plan.extra.Clear();
                 planes[5] = new Plane(-fwd, Vector3.Dot(fwd, cp) + reach);   // (the far plane at the cascade's reach)
                 bool isFar = c == far;
                 float minR = c.Texel * (isFar ? Mathf.Max(minCasterTexels, minFarCasterTexels) : minCasterTexels), texel = c.Texel;
@@ -318,25 +345,80 @@ namespace Hiraeth
             preparedFrame = -1;
             var list = Prepare(cam, detail);
             preparedFrame = Time.frameCount; preparedFor = cam;
+            bool census = Census && Time.realtimeSinceStartup > censusAt;
+            if (census) censusAt = Time.realtimeSinceStartup + 5;
             foreach (var plan in list)
             {
                 plan.hasCull = false;
-                if (!cam.TryGetCullingParameters(false, out var p)) continue;
                 var c = plan.cascade;
+                c.cullN = 0;
+                if (!cam.TryGetCullingParameters(false, out var p)) continue;
                 var vp = c.proj * c.view;
                 var planes = GeometryUtility.CalculateFrustumPlanes(vp);
                 // (the near plane pushed back towards the sun: anything between it and the window casts, as Holds has it)
                 planes[4].distance += 10000;
-                p.cullingPlaneCount = 6;
-                for (int k = 0; k < 6; k++) p.SetCullingPlane(k, planes[k]);
+                int n = 0;
+                if (SweepCull)
+                {
+                    // the window's four sides (its near plane, 10 km back, and its far one left out: ten planes at most), then
+                    // the camera's view swept away from the sun (Sees, with the longest sweep any caster has: from the highest
+                    // caster down to the lowest ground, at most the cascade's depth)
+                    for (int k = 0; k < 4; k++) c.cullPlanes[n++] = planes[k];
+                    var L = lightDir;
+                    float len = c.depth;
+                    if (L.y > 0.05f && detail.Floor < float.PositiveInfinity) len = Mathf.Min(len, Mathf.Max(0, Mathf.Max(casterTop, InstMats.Top) + 1 - detail.Floor) / L.y);
+                    var view = GeometryUtility.CalculateFrustumPlanes(cam);
+                    var fwd = cam.transform.forward;
+                    view[5] = new Plane(-fwd, Vector3.Dot(fwd, cam.transform.position) + plan.reach);   // (the far plane at the cascade's reach)
+                    for (int k = 0; k < 6; k++)
+                    {
+                        var q = view[k];
+                        q.distance += Mathf.Max(0, -len * Vector3.Dot(q.normal, L)) + 0.5f;
+                        c.cullPlanes[n++] = q;
+                    }
+                }
+                else for (int k = 0; k < 6; k++) c.cullPlanes[n++] = planes[k];
+                c.cullN = n;
+                p.cullingPlaneCount = n;
+                for (int k = 0; k < n; k++) p.SetCullingPlane(k, c.cullPlanes[k]);
                 p.cullingMatrix = vp;
+                p.cullingMask = ~0u;   // (every layer: the shadow maps' pieces too, which the camera's mask leaves out)
                 p.isOrthographic = true;
                 p.cullingOptions = CullingOptions.None;
                 p.shadowDistance = 0;
                 p.maximumVisibleLights = 0;
                 plan.culled = ctx.Cull(ref p);
                 plan.hasCull = true;
+                InstMats.CullAll(c, IndexOf(c));   // (the instanced casters, instance by instance, by the same planes)
+                if (census) LogCensus(plan, planes);
             }
+        }
+
+        /// <summary>-shadow-census: what this cascade's list holds (its casters, AABB against its planes as the engine tests
+        /// them) against what the window's box alone holds: how many, their vertices, the largest by vertices.</summary>
+        void LogCensus(Plan plan, Plane[] box)
+        {
+            var c = plan.cascade; uint layer = LayerOf(c);
+            var top = new List<(int v, string name)>();
+            int nBox = 0, nIn = 0; long vBox = 0, vIn = 0;
+            var ours = new Plane[c.cullN]; System.Array.Copy(c.cullPlanes, ours, c.cullN);
+            foreach (var mv in movers)
+            {
+                var r = mv.r;
+                if (!r || !r.enabled || !r.gameObject.activeInHierarchy || (r.renderingLayerMask & layer) == 0) continue;
+                var mesh = r is SkinnedMeshRenderer sk ? sk.sharedMesh : r.GetComponent<MeshFilter>()?.sharedMesh;
+                int v = mesh ? mesh.vertexCount : 0;
+                var b = r.bounds;
+                if (!GeometryUtility.TestPlanesAABB(box, b)) continue;
+                nBox++; vBox += v;
+                if (!GeometryUtility.TestPlanesAABB(ours, b)) continue;
+                nIn++; vIn += v;
+                top.Add((v, $"{r.gameObject.name}/{(mesh ? mesh.name : "-")} r{b.extents.magnitude:0}"));
+            }
+            top.Sort((a, b) => b.v.CompareTo(a.v));
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < Mathf.Min(8, top.Count); i++) sb.Append(i > 0 ? ", " : "").Append(top[i].name).Append(' ').Append(top[i].v);
+            Debug.Log($"Hiraeth shadows: census {c.name} (reach {plan.reach:0} m): box {nBox} casters {vBox / 1000}k vertices; drawn {nIn} casters {vIn / 1000}k vertices; instanced {InstMats.CensusLine(c)}; largest {sb}");
         }
 
         static readonly Dictionary<Material, int> passes = new();
