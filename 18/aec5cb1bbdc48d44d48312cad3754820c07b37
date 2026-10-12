@@ -1,0 +1,21 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_37ce3dea760894 59,139-141
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_a8d5616aeb7df4 496,546-567
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "18aec5cb1bbdc48d44d48312cad3754820c07b37",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
