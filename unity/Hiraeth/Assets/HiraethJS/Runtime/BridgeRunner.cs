@@ -169,6 +169,7 @@ namespace Hiraeth.Bridge
         [System.Runtime.InteropServices.DllImport("PapiV8")] static extern void HiraethV8Flags([System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPStr)] string flags);
         [System.Runtime.InteropServices.DllImport("PapiV8")] static extern IntPtr HiraethV8Version();
 #endif
+        const string DefaultV8Flags = "--min-semi-space-size=16 --max-semi-space-size=64 --max-inlined-bytecode-size-cumulative=2000 --invocation-count-for-turbofan=500";
         /// <summary>-v8 "&lt;flags&gt;": V8's own flags, set before the first engine is made (the Xbox's PapiV8 only); V8's version logged.</summary>
         static void V8Flags()
         {
@@ -177,7 +178,10 @@ namespace Hiraeth.Bridge
             try
             {
                 var version = System.Runtime.InteropServices.Marshal.PtrToStringAnsi(HiraethV8Version());
-                var flags = BridgeArgs.Arg("-v8");
+                // (by default a young generation of 16-64 MB, fewer scavenges of the frame's garbage, and TurboFan inlining more and
+                // sooner: the script ~1 ms a frame less at the City-Shaft's views, issue #113; -v8 none for Puerts' own)
+                var flags = BridgeArgs.Arg("-v8", DefaultV8Flags);
+                if (flags == "none") flags = null;
                 if (!string.IsNullOrWhiteSpace(flags)) HiraethV8Flags(flags);
                 Debug.Log($"Hiraeth bridge: V8 {version}, flags {(string.IsNullOrWhiteSpace(flags) ? "as Puerts sets them" : flags)}");
             }
@@ -270,12 +274,12 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The main thread: the script's frame waited for, what it hands over applied as it comes. False: it failed or timed out.</summary>
-        bool Await()
+        bool Await(bool deferLast = false)
         {
             while (true)
             {
                 BridgeHost.RunOps();
-                if (done) { BridgeHost.RunOps(); return !threadFailed; }
+                if (done) { if (!deferLast) BridgeHost.RunOps(); return !threadFailed; }
                 BridgeHost.Wake.WaitOne(250);
                 if (Time.realtimeSinceStartup > limitAt) return false;
             }
@@ -355,8 +359,6 @@ namespace Hiraeth.Bridge
             BridgeShadowChunks.On = HiraethShadows.UseRendererLists && !BridgeArgs.Flag("-no-shadow-chunks");
             if (BridgeArgs.Arg("-shadow-chunk-cell") is string cc && float.TryParse(cc, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ccv)) BridgeShadowChunks.Cell = Mathf.Max(4, ccv);
             if (BridgeShadowChunks.On) HiraethShadows.PieceLayer = BridgeShadowChunks.Layer;   // (the camera leaves them out: Start)
-            BridgeShadowChunks.View = BridgeShadowChunks.On && BridgeArgs.Flag("-view-pieces");
-            if (BridgeShadowChunks.View) HiraethShadows.ViewPieceLayer = BridgeShadowChunks.ViewLayer;
             HiraethShadows.Census = BridgeArgs.Flag("-shadow-census");
             // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
             // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before
@@ -460,7 +462,7 @@ namespace Hiraeth.Bridge
                 // the frame the script played while Unity drew the last, and the next one let go
                 var t0 = Time.realtimeSinceStartupAsDouble;
                 bool ok;
-                try { ok = Await(); }
+                try { ok = Await(deferLast); }
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); return; }
                 double wait = (Time.realtimeSinceStartupAsDouble - t0) * 1000;
                 waitMs += wait; waitMsTotal += wait;
@@ -472,10 +474,15 @@ namespace Hiraeth.Bridge
                     else { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); }
                     return;
                 }
+                // (the frame's last ops, its command buffer among them, taken now and applied once the next frame is let go:
+                // the script plays it meanwhile instead of waiting on them; -apply-first as before)
+                var last = deferLast ? BridgeHost.TakeOps() : null;
                 BridgeHost.Snapshot();
                 nextDt = Time.unscaledDeltaTime;
                 done = false;
                 go.Set();
+                try { BridgeHost.RunTaken(last); }
+                catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); }
                 return;
             }
             try
@@ -501,6 +508,7 @@ namespace Hiraeth.Bridge
             gc0 = gc;
         }
         bool booted;
+        static readonly bool deferLast = !BridgeArgs.Flag("-apply-first");
         static bool bootBlocking => BridgeArgs.Flag("-boot-blocking");
         /// <summary>The main thread's time waiting on the script (ms, summed; BridgeHost.WaitMs reads and clears it).</summary>
         public double waitMs;

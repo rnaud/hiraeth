@@ -115,7 +115,7 @@ namespace Hiraeth
         public static bool Census;
         /// <summary>The GameObject layer of the shadow maps' pieces of big meshes (the bridge's BridgeShadowChunks; -1 none): off
         /// the camera's culling mask, in every cascade's culling.</summary>
-        public static int PieceLayer = -1, ViewPieceLayer = -1;
+        public static int PieceLayer = -1;
         float censusAt;
         float casterTop = float.NegativeInfinity;
         public const uint CasterLayer = 1u << 24;
@@ -251,7 +251,7 @@ namespace Hiraeth
                             float rad = r.bounds.extents.magnitude * (sk ? 1.4f : 1) + (sk ? 0.3f : 0);
                             uint m = r.renderingLayerMask & ~(CascadeLayer[0] | CascadeLayer[1] | CascadeLayer[2]);
                             // (a piece of a big mesh, BridgeShadowChunks: in every cascade, as the whole mesh it was cut from)
-                            if (r.gameObject.layer == PieceLayer || r.gameObject.layer == ViewPieceLayer) rad = float.PositiveInfinity;
+                            if (r.gameObject.layer == PieceLayer) rad = float.PositiveInfinity;
                             if (rad >= Mathf.Max(fine.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[0];
                             if (rad >= Mathf.Max(near.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[1];
                             if (rad >= Mathf.Max(far.Texel * Mathf.Max(minCasterTexels, minFarCasterTexels), 0.07f)) m |= CascadeLayer[2];
