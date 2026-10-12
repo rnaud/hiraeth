@@ -26,7 +26,7 @@
 // printed letter with Nintendo labels (Android, the Retroid: 0 is A on the right)
 // is moved to positions first (faces().byLabel, see native-pad.js padFaces).
 import { controlPrefs, currentPadMap, capturingPad, padCaptured, IDENTITY } from './remap.js';
-import { padDirection, gridStep } from './menu-pad.js';
+import { padDirection, padOpen, gridStep, sideStep } from './menu-pad.js';
 
 export const SOUTH = 0, EAST = 1, WEST = 2, NORTH = 3;
 const LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11, UP = 12, DOWN = 13, LEFT = 14, RIGHT = 15;
@@ -248,12 +248,32 @@ export function mergeControls(keyboard, gamepad) {
  * Left / right change a slider or a dropdown, up / down move, and an open dropdown goes through its choices
  * (src/menu-pad.js: never the push that landed on a control, the language only once opened with A).
  */
+const FOCUSABLE = 'button, a[href], input, select, [data-nav]';
+const focusables = (el) => [...el.querySelectorAll(FOCUSABLE)].filter(e => !e.disabled && e.getClientRects().length);
+/** (the page's control last left for the sidebar, so right goes back to it: issue #210) */
+const leftFrom = new WeakMap();
+
 export function menuNavigate(root, x, y, fresh = true) {
   // (and anything marked data-nav: the quests in the menu's quest log, chosen to track one)
-  const elements = [...root.querySelectorAll('button, a[href], input, select, [data-nav]')].filter(e => !e.disabled && e.getClientRects().length);
+  const elements = focusables(root);
   if (!elements.length) return;
   const current = document.activeElement;
-  if (padDirection(root.contains(current) ? current : null, x, y, fresh)) return;
+  // a sidebar and its page (the Start menu, the title's Settings): left / right between them, up / down round each
+  // (src/menu-pad.js sideStep). There a dropdown changes only once opened with A / × (left / right on it, closed, go
+  // back to the sidebar: issue #210); a slider keeps left / right for its value
+  const nav = root.querySelector?.('.menu-nav'), panel = nav && root.querySelector('.panel:not([hidden])');
+  const closedSelect = !!nav && !!x && current?.tagName === 'SELECT' && padOpen() !== current;
+  if (!closedSelect && padDirection(root.contains(current) ? current : null, x, y, fresh)) return;
+  if (nav && panel) {
+    const side = focusables(nav), page = focusables(panel);
+    const where = side.includes(current) ? { in: 'side', i: side.indexOf(current) } : page.includes(current) ? { in: 'page', i: page.indexOf(current) } : { in: null, i: -1 };
+    const go = sideStep({ side: side.length, page: page.length, at: where, home: side.findIndex((e) => e.classList.contains('on')), back: page.indexOf(leftFrom.get(panel)) }, x, y);
+    if (!go) return;
+    if (where.in === 'page' && go.in === 'side') leftFrom.set(panel, current);
+    const next = (go.in === 'side' ? side : page)[go.to];
+    next?.focus({ preventScroll: true }); next?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    return;
+  }
   const index = elements.indexOf(current);
   // a grid (data-grid-nav on the menu or round it: the worlds list, the items page): to the card that is that way
   const grid = !!root.closest?.('[data-grid-nav]');

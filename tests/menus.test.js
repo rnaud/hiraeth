@@ -87,9 +87,10 @@ test('no keyboard-only "J to close" on a controller: every panel says how to clo
   const { holdToSkip } = await import('../src/ship/cinema.js');
   assert.match(holdToSkip('pad'), /^hold (B \/ ○|A \/ ×) to skip$/); assert.equal(holdToSkip('keys'), 'hold ESC to skip');
   // B / ○ closes the Start menu from any page (Quests, Controls), not back to Settings first
-  const ui = src('ui.js'), at = ui.indexOf('  back() {'), back = ui.slice(at, at + 260);
+  // (with a pad, from inside a page to the sidebar first, issue #210; then closed, whatever page it shows)
+  const ui = src('ui.js'), at = ui.indexOf('  back() {'), back = ui.slice(at, ui.indexOf('\n  }', at));
   assert.doesNotMatch(back, /this\.page\('settings'\)/);
-  assert.match(back, /else this\.toggle\(false\)/);
+  assert.match(back, /\n    this\.toggle\(false\);$/);
   // the controller's back closes the panel on top first: the sketchbook over a conversation or a moment
   const main = src('main.js'), close = main.slice(main.indexOf('const closeControllerMenu'), main.indexOf('const controller = new Controller'));
   assert.ok(close.indexOf('journal.open') < close.indexOf('storyRt.dialogue.open') && close.indexOf('journal.open') < close.indexOf('moments.playing'), 'the sketchbook before what is under it');

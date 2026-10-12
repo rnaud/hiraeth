@@ -21,6 +21,8 @@ export const CHANGELOG = [
     // the galactic map's scanner starts by the ship and must be swept first (src/story/signature-search.js scanStart,
     // searchArmed; src/ship/starmap.js; issue #204)
     'Opening the galactic map no longer finds a planet by itself: the scanner starts by the ship, clear of every uncharted region, and nothing locks until you have swept it a little, with the stick, the keys, the mouse or a finger.',
+    // the Start menu's sidebar and its page (src/menu-pad.js sideStep, src/controller.js menuNavigate; issue #210)
+    'In the Start menu, right now goes from the sidebar into the page it shows and left comes back; up and down go round the sidebar (from Resume up to Quit to title) and round the page. Dropdowns there open with A / × first, sliders still slide, and B / ○ steps back to the sidebar before it closes. The arrow keys move the same way.',
   ] },
   { v: '1.57', date: '2026-10-12', items: [
     // the Moon Foundry's picked explorations, one way through the world (src/foundry-street.js, src/foundry-cranes.js,

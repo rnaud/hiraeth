@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.58 — 2026-10-12
 
+- In the Start menu, right now goes from the sidebar into the page it shows and left comes back; up and down go round the sidebar (from Resume up to Quit to title) and round the page. Dropdowns there open with A / × first, sliders still slide, and B / ○ steps back to the sidebar before it closes. The arrow keys move the same way.
 - Opening the galactic map no longer finds a planet by itself: the scanner starts by the ship, clear of every uncharted region, and nothing locks until you have swept it a little, with the stick, the keys, the mouse or a finger.
 - Vael’s needle walkers no longer turn into a needle in mid-air: one walks on a few steps, sets its tail’s tip down on the ground, and only then stands up on it, on a slope too.
 - The glyph stone by each temple’s door and in its rooms holds your place: walk up to it and its glyph flares, and after a fall you come back to it. The first one you wake says so.

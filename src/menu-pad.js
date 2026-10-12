@@ -139,3 +139,29 @@ export function gridStep(rects, index, x, y) {
   if (far < 0 || edge(cur) <= farEdge + 4) return index;   // (one row: nowhere to wrap to)
   return far;
 }
+
+// ---- a sidebar and its page (the Start menu, the title's Settings: src/ui.js SettingsMenu's .side and .panel).
+// Issue #210: "Moving left and right on the menu does nothing? I would expect it to go from the sidebar to the right
+// panel. Also up and down on the menu sidebar should wrap around." Up / down on the sidebar go round its entries only
+// (the last to the first); right goes into the page shown (where you were in it last, else its first control); in the
+// page up / down go round its controls, left (on a control left doesn't change: a button, a checkbox) back to the
+// sidebar's entry for that page. Sliders and dropdowns keep left / right for their value (padDirection, above).
+
+/**
+ * Where a direction goes in a menu made of a sidebar and a page: { in: 'side' | 'page', to } (an index into that list)
+ * or null (stay). `side`, `page`: how many controls each has; `at`: { in: 'side' | 'page' | null, i }; `home`: the
+ * sidebar entry of the page shown (its index, or -1); `back`: the page's control last left for the sidebar (or -1).
+ */
+export function sideStep({ side = 0, page = 0, at = { in: null, i: -1 }, home = -1, back = -1 } = {}, x = 0, y = 0) {
+  const wrap = (i, d, n) => (i + d + n) % n;
+  if (at.in === 'page' && page) {
+    if (y) return { in: 'page', to: at.i < 0 ? 0 : wrap(at.i, Math.sign(y), page) };
+    if (x < 0 && side) return { in: 'side', to: home >= 0 ? home : 0 };
+    return null;
+  }
+  if (!side) return page ? { in: 'page', to: 0 } : null;
+  if (at.in !== 'side' || at.i < 0) return { in: 'side', to: home >= 0 ? home : 0 };
+  if (y) return { in: 'side', to: wrap(at.i, Math.sign(y), side) };
+  if (x > 0 && page) return { in: 'page', to: back >= 0 && back < page ? back : 0 };
+  return null;
+}

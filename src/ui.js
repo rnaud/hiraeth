@@ -11,6 +11,7 @@ import { setControlPrefs, controlPrefs, keyFor, keyLabel, verbKey, keyConflicts,
 import { setMotion } from './feel.js';
 import { touchScale, touchLayout, stickLayout } from './touch-layout.js';
 import { padCancel } from './menu-pad.js';
+import { menuNavigate } from './controller.js';
 import { glyph } from './pad-glyphs.js';
 import { onXbox, qualityChoices } from './xbox.js';
 import { rumbleSupported, rumblePlay } from './rumble.js';
@@ -196,6 +197,9 @@ export function rebindHtml(kind, prefs = controlPrefs()) {
  * Its words are the language's (src/i18n.js): it draws itself again when the language changes.
  */
 export const MENU_PAGES = ['settings', 'controls'];
+/** The arrows and W A S D in the Start menu (as the D-pad: menuNavigate). */
+const MENU_ARROWS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
+
 export class SettingsMenu {
   constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
@@ -272,6 +276,16 @@ export class SettingsMenu {
           if (this.open) this.back();
           else if (!isBusy()) this.toggle(true);
         }
+      });
+      // the arrows, open: as the pad's D-pad, the sidebar and its page (issue #210; menuNavigate). A slider or a dropdown
+      // with the focus keeps its own left / right (the browser's), as on the title
+      window.addEventListener('keydown', (e) => {
+        const dir = this.open && !this.stopRebind && MENU_ARROWS[e.code];
+        if (!dir || e.altKey || e.ctrlKey || e.metaKey) return;
+        const t = e.target, adjusting = t && (t.type === 'range' || t.tagName === 'SELECT');
+        if (adjusting && (dir[0] || e.code.startsWith('Key'))) return;
+        e.preventDefault();
+        menuNavigate(this.el, dir[0], dir[1], !e.repeat);
       });
       document.getElementById('gear')?.addEventListener('click', () => this.toggle());
     }
@@ -403,8 +417,15 @@ export class SettingsMenu {
   back() {
     const ask = this.el.querySelector('.ask');
     if (padCancel()) return;   // (an open dropdown first: its old choice back, src/menu-pad.js)
-    if (ask && !ask.hidden) this.askReset(false);
-    else this.toggle(false);
+    if (ask && !ask.hidden) { this.askReset(false); return; }
+    // with a pad, B / ○ in the page goes back to the sidebar first (its entry for the page), then closes (issue #210);
+    // the keyboard's Esc and the mouse still close at once
+    const f = typeof document !== 'undefined' ? document.activeElement : null, pad = typeof document !== 'undefined' && document.body?.classList.contains('controller');
+    if (pad && f && f.closest?.('.panel') && this.el.contains(f)) {
+      (this.el.querySelector('.menu-nav .on') ?? this.el.querySelector('.menu-nav button'))?.focus({ preventScroll: true });
+      return;
+    }
+    this.toggle(false);
   }
   /** Open (on a page: 'settings' unless asked) or close. */
   toggle(on = !this.open, page = 'settings') {

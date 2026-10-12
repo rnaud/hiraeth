@@ -172,6 +172,15 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   opened: playtest 2026-10-08, holding → from the menu's last button stepped onto it (the first setting)
   and the same push, repeating, turned every menu French. Nothing reads the device's language: English
   unless chosen. `tests/menus-settings.test.js`.
+- **The sidebar and its page** (issue #210, v1.58: "moving left and right on the menu does nothing? I would expect
+  it to go from the sidebar to the right panel; up and down on the sidebar should wrap around"). The Start menu and
+  the title's Settings are a sidebar (`.menu-nav`) and the page it shows (`.panel`): `menuNavigate` steps them by
+  `sideStep` (src/menu-pad.js). ↑ ↓ on the sidebar go round its entries only (Resume above Quit to title), → goes
+  into the page (where you left it, else its first control), ↑ ↓ there go round the page's controls, ← goes back to
+  the sidebar's entry for that page. In these menus a dropdown changes only once opened with A / × (← → on it closed
+  move between the sidebar and the page); a slider keeps ← → for its value. B / ○ with a pad goes from the page
+  back to the sidebar first, then closes; Esc and the mouse close at once. The arrow keys and W A S D move the same
+  way in the game's Start menu (they did nothing before).
 - **The title's lettering** (`src/title-logo.js`): HIRAETH after the masthead of the waterfall-city
   cover (`references/Title Screen/H1-waterfall-city.jpg`): monumental ivory block capitals, a fine ink
   line, a muted vermilion shadow offset down and to the right. Drawn, not set in a font: each letter is a
