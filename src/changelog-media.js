@@ -689,6 +689,7 @@ const VI55_GATES = 'scripts/design-qc/capture.mjs in headless Chrome (muted, Hig
 const SAVE_LIT55 = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'incal.lit': true, 'quest.incal.light': 'done', 'item.glider': 1 }, keepsakes: [] };
 // (v1.56: Lorn's route through its explorations, issue #188: by hand, the before the same tree with the level's files as
 // on origin/main, db9d6e99)
+const SM56 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5541), the before with src/levels/bazaar.js and the story’s files as on origin/main (cd616963), the same pinned cameras, 12 October; cwebp -q 72';
 const LORN56 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5521), Lorn’s evening (18.4), the before with src/levels/perdide.js and perdide2.js as on origin/main (db9d6e99), the same pinned cameras, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.56': [
@@ -729,6 +730,40 @@ export const CHANGELOG_MEDIA = {
         { where: 'verticality', before: 3, after: 5 }, { where: 'the mean', before: 4.56, after: 4.78 },
       ], source: 'places span 42 → 126 m of height, 7 → 15 % of them raised (the decks, the bridge over the path, the cap square, the lookout); the other eight scores as they were (issue #188)' },
     ], see: 'Walk the lit path to the second dark pool: the coral lamp hangs high over it. Take the boardwalk to the stair by the path, climb to the decks and cross to the winch’s jetty: press A / × at the drum to let the lamp down. The tallest trunk’s stair goes on up to the lookout.' },
+    // (the Signal Market's explorations, issue #191: by hand, this branch's own Vite and the tree before it, the same pinned cameras)
+    { match: 'In the Signal Market the market climbs the towers now', shots: [
+      { name: 'market-air', title: 'The stair by Sel', caption: 'From the avenue by the landing, where Madame Sel waits: before, the stalls under the tower faces; after, the lantern stair up between two stalls to the lantern sellers’ gallery, the sign painters’ stair beyond it climbing over the street', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [-6, 3.2, 76], target: [-30, 10, 36], player: [-6, 0, 74] },
+        reference: { sheet: 'references/levels/The Signal Market/environment/explorations/market-in-the-air/sheet-2.jpg', caption: 'The author’s pick: the market in the air (references/levels/The Signal Market/environment/explorations/market-in-the-air)' } },
+      { name: 'market-basket', title: 'The basket', caption: 'Over the end of the antenna sellers’ gallery, 44 m up: before, the canyon’s air; after, the gallery and the basket waiting on its cable to the silent tower’s cream balcony', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [-22, 49, -196], target: [-18, 42, -224] } },
+      { name: 'market-air-high', title: 'The antenna sellers', only: 'after', caption: 'On the antenna sellers’ gallery, looking toward the silent tower over Kip’s skybridge', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [-29.2, 45.9, -124], target: [-14, 40, -232], player: [-29.5, 44, -122.5] } },
+    ], numbers: [
+      { title: 'The level design audit, the Signal Market', unit: '', better: 'higher', device: 'node scripts/level-design/audit.mjs --worlds bazaar (1-5)', rows: [
+        { where: 'verticality', before: 4, after: 5 }, { where: 'the mean', before: 4.67, after: 4.78 },
+      ], source: 'places span 61 → 82 m of height (the old street under the avenue to the crow’s nest), 17 → 27 % of them raised; the climbs to Kip and to the balcony walked along the galleries, the way home along the old market and the lanes; the other eight scores as they were (issue #191)' },
+    ], see: 'Talk to Madame Sel by the landing, then take the stair up between the two stalls behind her. Follow the galleries past Kip on the second skybridge and up to the antenna sellers; at the gallery’s end step into the basket and stand still.' },
+    { match: 'Under the Signal Market’s avenue lies the old market', shots: [
+      { name: 'market-old-stair', title: 'The stair down', caption: 'Signal Square in front of the silent tower: before, the open paving; after, the stair down to the old market behind its balustrade', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [7, 3.6, -233], target: [0, -3, -202], player: [7, 0, -234] },
+        reference: { sheet: 'references/levels/The Signal Market/environment/explorations/old-market/sheet-2.jpg', caption: 'The author’s pick: the old market below (references/levels/The Signal Market/environment/explorations/old-market)' } },
+      { name: 'market-old', title: 'The street under the street', only: 'after', caption: 'At the stair’s foot looking north: the old stalls under their arches, the lamps, the round grille’s light on the floor and the grilles’ stripes on to the crossing sign', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [2.5, -4.2, -196], target: [-1, -4.8, -140], player: [2.5, -6, -195] } },
+      { name: 'market-old-first', title: 'The first stall', only: 'after', caption: 'At the crossing: the first stall’s lamps under the painted sign, a grille’s stripes across the floor', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [2, -4.3, -125], target: [-11, -4.6, -116], player: [2, -6, -124] } },
+      { name: 'market-old-up', title: 'Through the grille', only: 'after', caption: 'Looking up through the round grille at the avenue and the towers', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 70, eye: [1.2, -4.4, -185.5], target: [0, 4, -191], player: [1.2, -6, -184.5] } },
+    ], see: 'In Signal Square, go down the stair in front of the silent tower and walk north under the grilles to the crossing sign; the first stall is on your left.' },
+    { match: 'From the old market a passage and a stair come up behind the east towers', shots: [
+      { name: 'market-lanes', title: 'Into the lanes', caption: 'At the head of the stair up from the old market, behind the east towers: before, an empty alley; after, the screen lanes walled with stacked screens, each its own picture', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [58, 1.7, -105], target: [82, 1.6, -98], player: [57, 0, -105] },
+        reference: { sheet: 'references/levels/The Signal Market/environment/explorations/screen-lanes/sheet-1.jpg', caption: 'The author’s pick: the screen lanes (references/levels/The Signal Market/environment/explorations/screen-lanes)' } },
+      { name: 'market-lanes-back', title: 'The back street', caption: 'Up the back street behind the east towers: before, open paving between bare walls; after, a lane of screens under awnings and lamps', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [86, 1.7, -36], target: [87, 1.6, -10], player: [86, 0, -37] } },
+      { name: 'market-lanes-court', title: 'The screen-mender', only: 'after', caption: 'In the little court off the lanes: the mender at his bench, a set opened up in front of him', from: SM56,
+        view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [92, 1.8, -44], target: [81.5, 1, -47], player: [93, 0, -43] } },
+    ], see: 'From the old market’s crossing take the passage east and the stair up; follow the white picture along the screens. Come back after the silent tower has spoken: every screen shows the same face.' },
   ],
   '1.55': [
     { match: 'Fragments of the singing light are hidden in every world', shots: [

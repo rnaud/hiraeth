@@ -76,7 +76,7 @@ export const CONTENT = {
     },
     // the market's own people; the story's (Sel, Kip, Ferro, Brush, Ummu) are in src/story/bazaar-data.js
     npcs: [
-      {at:[12,105],radius:2,palette:pal('#dca273'),lines:["~happy~ Welcome! The broadcast tower is straight ahead.","~neutral~ Use the tower’s blue ledges, your jets, or the parked cab."],...BAZAAR_STREET.doss},
+      {at:[12,105],radius:2,palette:pal('#dca273'),lines:["~happy~ Welcome! The broadcast tower is straight ahead.","~neutral~ Take the stalls’ stairs up the towers, your jets, or the parked cab."],...BAZAAR_STREET.doss},
       {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:["~shout~ Portable sunshine! Comes with a handle!","~whisper~ A lantern seed’s lying across the street. Go have a look."],...BAZAAR_STREET.oyo},
       {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:["~neutral~ The old transmitter is on the cream balcony.","~neutral~ A taxi will get you above the bridges."],...BAZAAR_STREET.teb},
       // (Wynn, the last listener, under the dishes halfway up the listeners' lane: src/market-ways.js)

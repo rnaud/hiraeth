@@ -95,6 +95,15 @@ export function setupBazaar(ctx) {
     distance: (p) => (p.pos.y < 3 ? flat(p.pos, underSign) : Infinity), use: () => dialogue.start(THINGS.oldSign, null, underSign, P.oldSign) });
   const ummuAt = P.ummu.clone().add(V(0, 1.2, 0));
   thing(THINGS.ummu, ummuAt, { range: 3, prompt: 'listen to Ummu' });
+  // the explorations' things to look at (issue #191), and the screen lanes, which all show one face once the tower speaks
+  const X = level.market;
+  if (X) {
+    thing(THINGS.firststall, X.old.places.firstStall.clone().add(V(0, 1, 0)), { range: 3.2, prompt: 'look at the first stall' });
+    thing(THINGS.mender, X.lanes.places.mender.clone().add(V(0, 1, 0)), { range: 3, prompt: 'watch the screen-mender' });
+    thing(THINGS.mast, X.air.places.nest.clone().add(V(0, 1, 0)), { range: 2.6, prompt: 'look out from the crow’s nest' });
+    X.lanes.setOnAir(onAir());
+    game.on('flag:bazaar.broadcast.on', (v) => X.lanes.setOnAir(!!v));
+  }
   if (quests.has('bowl') || quests.isDone('bazaar.bowl')) G.bowl.visible = false;
 
   // Ummu speaks through its screen

@@ -11,6 +11,11 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildListenersLane } from '../market-ways.js';
+import { buildMarketInTheAir, AIR } from '../market-air.js';
+import { buildOldMarket, HOLES as OLD_HOLES, STAIRWELL, OLD } from '../market-old.js';
+const OLD_FLOOR = OLD.floor;
+import { buildScreenLanes, alongLanes } from '../market-lanes.js';
+import { rectMinus } from '../market-kit.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
 import { Puffs } from '../life.js';
@@ -89,7 +94,8 @@ export function* buildBazaar(scene) {
   function sphere(x,y,z,rx,ry,rz,material) { add(new THREE.SphereGeometry(1,10,7).scale(rx,ry,rz).translate(x,y,z),material,false); }
   function local(geo, x, y, z, yaw, material, solid = false) { add(geo.rotateY(yaw).translate(x,y,z),material,solid); }
 
-  box(0,-1, -130,1500,2,1500,paving);
+  // (the avenue's paving, cut where the old market lies under it: src/market-old.js lays its own deck over that)
+  for (const [x0,x1,z0,z1] of rectMinus([-750,750,-880,620],OLD_HOLES)) box((x0+x1)/2,-1,(z0+z1)/2,x1-x0,2,z1-z0,paving);
   // Broad sidewalks leave a continuous 32 m central walking route.
   yield;
   for (const side of [-1,1]) box(side*27,.15,-130,16,.3,600,mat('#d5c7a8',{grid:3,...LT}));
@@ -254,16 +260,20 @@ export function* buildBazaar(scene) {
   // Continuous solid bridge decks, rails and suspension service cables.
   for(const {z,y} of BRIDGES) {
     box(0,y-.5,z,86,1,7,teal);
+    // (Kip's: its rails open where the sign painters' gallery comes out on it and the antenna stair leaves it, src/market-air.js)
+    const gap=z===-90?[AIR.x0-.1,AIR.x1+.1]:null;
     for(const dz of [-3.4,3.4]) {
-      box(0,y+1.25,z+dz,86,.16,.16,brass,false);
-      for(let x=-42;x<=42;x+=3) box(x,y+.6,z+dz,.12,1.2,.12,ink,false);
+      if(gap){ box((-43+gap[0])/2,y+1.25,z+dz,gap[0]+43,.16,.16,brass,false); box((gap[1]+43)/2,y+1.25,z+dz,43-gap[1],.16,.16,brass,false); }
+      else box(0,y+1.25,z+dz,86,.16,.16,brass,false);
+      for(let x=-42;x<=42;x+=3) if(!gap||x<gap[0]||x>gap[1]) box(x,y+.6,z+dz,.12,1.2,.12,ink,false);
       tube([[-44,y-1,z+dz],[-20,y-5,z+dz],[20,y-5,z+dz],[44,y-1,z+dz]],.13,ink);
     }
     for(let x=-40;x<=40;x+=8) box(x,y-1.3,z,1.1,1.5,7.5,ink,false);
   }
   for(let i=0;i<9;i++) {
     const z=85-i*57,y=12+(i%3)*5;
-    tube([[-39,y+4,z],[-13,y,z+4],[16,y-1,z+5],[39,y+6,z+8]],.075,ink);
+    // (the one over the sign painters' gallery is tied to its rail, not to the tower behind it: src/market-air.js)
+    tube([i===2?[AIR.x1,26.1,z]:[-39,y+4,z],[-13,y,z+4],[16,y-1,z+5],[39,y+6,z+8]],.075,ink);
   }
 
   // Broadcast stack at the avenue's end: six reachable resting platforms.
@@ -387,6 +397,25 @@ export function* buildBazaar(scene) {
 
   // the night halt past the landing at the south end (the night mail: src/levels/night-halt.js, src/story/night-train.js)
   const nightHalt = buildNightHalt({ box, tube, sphere, M: { ink, brass, cream, glow, dark, plank: mat('#7a5446', LT), stone: mat('#c9b9a2', { grid: 4, weathered: 0.5, ...LT }) } });
+  // the market's explorations (issue #191, docs/systems/worlds.md "The Signal Market's explorations"): the market in the air
+  // up the west towers to Kip's bridge and over to the cream balcony, the old market under the avenue and the screen lanes
+  // behind the east towers, the way home from the square
+  yield;
+  const XM = {
+    ink, brass, cream, dark, glow, lilac, paving, shop, teal,
+    painted: mat('#ffffff', { vertexColors: true, ...PRINT }), wood: mat('#a07a58', LT), lamp: mat('#ffd59a', { glow: 0.8 }),
+    stone: mat('#e9d8b6', { grid: 4, weathered: 0.6, ...PRINT }), flag: mat('#c9b9a2', { grid: 2.5, weathered: 0.5, ...LT }),
+    recess: mat('#6f8f98', PRINT), glass: mat('#cfe8dc', { glow: 0.45 }),
+    casing: mat('#33454c', { metal: 'painted' }), screens: mat('#ffffff', { vertexColors: true, glow: 0.6 }), pictureLit: mat('#fff8e4', { glow: 0.95 }),
+    cloth: ['#f0a083', '#88b4b5', '#e4bd83', '#b9a9c5', '#c8483a', '#5fb7ad'].map((c) => mat(c, PRINT)),
+    overalls: mat('#efe6cf', PRINT), skin: mat('#e8c6a8', PRINT),
+  };
+  // (the ground is the street's paving, but where the old market lies under it: its floor, so you can go down)
+  const oldGround=(x,z)=>OLD_HOLES.some(([x0,x1,z0,z1])=>x>x0&&x<x1&&z>z0&&z<z1)?OLD_FLOOR-.5:0;
+  const air = buildMarketInTheAir(scene, XM);
+  const old = buildOldMarket(scene, XM);
+  const lanes = buildScreenLanes(scene, XM);
+  for (const at of [...old.lamps, ...lanes.lamps]) flammables.push({ at, kind: 'lantern', r: .5, top: .4 });
   for(const {geos,material,solid} of buckets.values()) {
     const mesh=new THREE.Mesh(mergeGeometries(geos),material);
     mesh.userData.noCollide=!solid; mesh.userData.tiled=true;
@@ -417,13 +446,19 @@ export function* buildBazaar(scene) {
     shops: [cureStall],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the night halt (src/story/night-train.js), and stepping down there off the Overnight Train (main.js level.arrivals)
     nightHalt, arrivals: { overnighttrain: nightHalt.arrival },
-    id:'bazaar', floraAvoid:cureStall.avoid((x,z,r)=>Math.abs(x)<17+r||z>98-r),   // the flora keeps to the pavements (src/flora.js)
-    // what the level design audit reads (scripts/level-design/audit.mjs): the listeners' lane, followed home where Sel
-    // sends you along it, and the radio-mender's table on it, to look at
-    lines:[{ name:'the listeners’ lane', points:lane.points, auto:false }], sights:[{ name:'the radio-mender’s table', at:lane.stall }],
+    // the flora keeps to the pavements (src/flora.js), and out of the screen lanes and the old market's stair in the alley
+    id:'bazaar', floraAvoid:cureStall.avoid((x,z,r)=>Math.abs(x)<17+r||z>98-r||alongLanes(x,z,lanes.segs).off<4+r||(x>38-r&&x<58+r&&z>-110-r&&z<-100+r)),
+    // what the level design audit reads (scripts/level-design/audit.mjs): the listeners' lane (the old way home, still
+    // there), the market in the air (the way up to Kip and over to the balcony, the quest's two climbs name it) and the way
+    // home Sel sends you now, down through the old market and out through the screen lanes; the places to stop on them
+    lines:[{ name:'the listeners’ lane', points:lane.points, auto:false }, { name:'the market in the air', points:air.line, auto:false },
+      { name:'the old market and the screen lanes', points:[...old.line, ...lanes.line.slice(1)], auto:false }],
+    sights:[{ name:'the radio-mender’s table', at:lane.stall }, ...air.sights, ...old.sights, ...lanes.sights],
+    // (issue #191: the explorations, for the story and the tests)
+    market:{ air, old, lanes },
     // (fifth round: the silent tower's aerial over its roof, the market's weenie, seen down the avenue over the stalls)
     beacons:[{ name:'the silent tower’s aerial', top:[11, 59, -238], height:16 }],
-    reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
+    reactiveScreens, signal, ground:{heightAt:oldGround}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:MARKET_LOOK},
     // (the night: a black-indigo sky, the towers dark masses, the screens lit; market-night-kit.js)
@@ -442,7 +477,8 @@ export function* buildBazaar(scene) {
       const r=mulberry32(4711),V=(x,y,z)=>new THREE.Vector3(x,y,z);
       const groups=[],walks=[],edges=[],size=()=>2+Math.floor(r()**1.2*4);
       const LANES=[-12,-4.5,4.5,12];
-      for(const x of LANES) walks.push({path:[V(x,0,118),V(x,0,-212)],n:10,pair:.45});
+      // (the middle two end short of the old market's stair down out of the square: src/market-old.js STAIRWELL)
+      for(const x of LANES) walks.push({path:[V(x,0,118),V(x,0,Math.abs(x)<STAIRWELL.x+2?-196:-212)],n:10,pair:.45});
       walks.push({path:[V(-15.6,0,-226),V(15.6,0,-226),V(15.6,0,-286),V(-15.6,0,-286)],loop:true,n:9,pair:.5});
       for(const s of [-1,1]) walks.push({path:[V(s*20.8,.3,110),V(s*20.8,.3,-330)],n:6,pair:.25,keepRight:.35,lateral:.75});
       for(const {z,y} of BRIDGES) walks.push({path:[V(-31,y,z),V(31,y,z)],n:3,pair:.5,keepRight:.9,lateral:.9});
@@ -452,6 +488,7 @@ export function* buildBazaar(scene) {
       for(let i=0;i<70;i++) {
         const x=(r()-.5)*31,z=-200-r()*130;
         if(Math.abs(x)<14.5&&z<-236&&z>-274) continue;   // the tower
+        if(Math.abs(x)<STAIRWELL.x+1.5&&z<STAIRWELL.z1+1.5&&z>STAIRWELL.z0-1.5) continue;   // the stair down to the old market
         groups.push({at:V(x,0,z),n:size()});
       }
       for(let z=112;z>-330;z-=6+r()*8) for(const s of [-1,1]) {
@@ -464,6 +501,11 @@ export function* buildBazaar(scene) {
         const s=r()<.5?1:-1;
         edges.push({at:V(x,y,z+s*2.82),heading:s>0?0:Math.PI,pose:'rail',rail:.5});   // the rails are drawn only (no collision)
       }
+      // (none on the stair down to the old market: the circles there are dropped, their numbers drawn all the same)
+      const inWell=(p)=>Math.abs(p.x)<STAIRWELL.x+1.2&&p.z<STAIRWELL.z1+1.5&&p.z>STAIRWELL.z0-1.5;
+      for(let i=groups.length-1;i>=0;i--) if(inWell(groups[i].at)) groups.splice(i,1);
+      // up the galleries, down in the old market and in the screen lanes (issue #191: their own numbers, none of r's)
+      for(const C of [air.crowd,old.crowd,lanes.crowd]){ walks.push(...C.walks); groups.push(...(C.groups??[])); edges.push(...(C.edges??[])); }
       // who they are depends on where they are: the avenue's market, the square under the silent
       // tower, the skybridges (src/story/bazaar-data.js; the story talks to them by zone)
       const zoneOf=(p)=>p.y>8?'bridge':p.z<-200?'square':'market';
@@ -489,11 +531,13 @@ export function* buildBazaar(scene) {
       // One parked cab, waiting at the market's stop, makes vertical exploration available immediately.
       vehicles[0].pos.copy(CAB_STOPS[0].at); vehicles[0].heading=CAB_STOPS[0].heading; vehicles[0].mode='parked';vehicles[0].parkY=CAB_STOPS[0].at.y;vehicles[0].idle=0;
       vehicles[0].update(0,null,0);
+      air.init(physics);   // (the basket over the square: a moving collider)
     },
     dynamic:()=>vehicles,
     cabStops:CAB_STOPS, cabRoutes:CAB_ROUTES,
     update(dt,t,ctx){
       Taxi.playerPos=ctx?.player?.pos;
+      air.update(dt,t,ctx?.player); lanes.update(dt,t,ctx?.player);
       // after dark: the steam, the lanterns' pools (none by day: the shader looks at no light at all then)
       const k=sharedUniforms.uNight.value;
       sharedUniforms.uLampsOn.value=k;

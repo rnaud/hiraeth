@@ -632,7 +632,9 @@ the post's top.
   ("Follow the oil pipe out"), and it guides the oculus → the wheel, 351 m that saw nothing.
 - **The Signal Market** (`src/market-ways.js`): **the listeners' lane**, the back lane behind the west towers by the
   alleys behind Signal Square and by the lantern market, its old dishes all turned to the silent tower, the
-  radio-mender's table halfway; Sel sends you home that way (`home` on `sel2`).
+  radio-mender's table halfway; Sel sent you home that way (`home` on `sel2`) until v1.56, when the way home became the
+  old market and the screen lanes ("The Signal Market's explorations" below); the lane is still there, Wynn under its
+  dishes.
 - **The audit** reads two more stage fields: `home` (the line the last stage that names one sends you home along: the
   walk back to the ship follows it) and `stands` (where a stage's person will be by the time you get there).
   `tests/contact-audit.test.js` checks that every `via` and `home` names a line its world declares.
@@ -1290,6 +1292,71 @@ Tested in `tests/vael-explorations.test.js`: the road walked from its head to th
 balcony where it was, the foot lost along the road and found at the pit; the ears' whisper; the rings, the hour stones and
 the riders' hours (bearings, the light, the swing, the lamps, the story's turns); every leap of the stones and the risers'
 lift; the contact audit over all three; the collision budget.
+
+## The Signal Market's explorations (v1.56, issue #191)
+
+The author picked all three exploration directions for the Signal Market (`docs/design/level-explorations-2-prompts.md`,
+the sheets in `references/levels/The Signal Market/environment/explorations/`), woven into one way through the world: up
+through the market in the air from beside Madame Sel to Kip and over to the silent tower's cream balcony, and home from
+the square down through the old market under the avenue and out through the screen lanes to the ship. No rng of the
+street's: the towers, stalls and crowd keep their numbers (the crowd's new spots are added after its own draws; the circles
+that fell on the stair down are dropped after theirs). Built in `buildBazaar` (src/levels/bazaar.js), from the street's own
+materials, with a little kit (`src/market-kit.js`: pieces merged a material a mesh, solid as drawn, drawn only, or
+`floats` for cables and aerials overhead).
+- **The market in the air** (`src/market-air.js`, `AIR`, `STAIRS`, `GALLERIES`, `BASKET`, `MAST`). Galleries 4 m wide
+  over the west stalls (x -31.5 to -27.5: clear of the tower faces' tubes and ledges), on iron legs in the gaps between
+  the stalls, railed both sides (a solid bar, the posts drawn): the lantern sellers' at 10 m, the sign painters' at 25 m
+  (it comes out on Kip's skybridge, whose rails open there), the antenna sellers' at 44 m. Three straight stairs of
+  0.37 m steps between them: the lantern stair up from the gap between two stalls by Sel, one over Pashka's, one up from
+  Kip's bridge. Each gallery has three stalls of its trade (lanterns hung from the awnings; painted boards on easels and
+  pots of paint; dishes and aerials). From the antenna gallery's end **the basket** (`BASKET`: a round wooden basket on a
+  cable, 27 m over the square to beside the balcony): a moving collider (`physics.addMover` in the level's `init`, its
+  floor and rim only) that goes over once you have stood in it 0.8 s, goes home empty after 5 s, and comes when you wait
+  at the end it is not at. **The antenna sellers' mast** (`MAST`) stands in the alley mouth behind their gallery: a teal
+  shaft from the street to a railed deck at 60 m (the third street of the sheet), a mast over it to a crow's nest at
+  76 m, aerials and a dish on top; climbed from the gallery, its rail open to the mast's face (16 m a climb). The leading
+  line `the market in the air` (auto: false) is named by the quest's two climbs (`via` on `kip` and `tune`).
+- **The old market** (`src/market-old.js`, `OLD`, `STAIRWELL`, `GRILLES`, `ROUND`, `TUNNEL`, `ALLEY_STAIR`, `HOLES`). A
+  street 24 m wide and 114 m long a storey (6 m) under the avenue, from Signal Square to the second skybridge. The
+  avenue's paving is laid round it (`HOLES`, `rectMinus`) and its own deck over it; the level's ground (`heightAt`) is
+  the old floor's under the holes, the street's everywhere else. Five strips of brass lattice and a great round grille
+  in the paving: the bars drawn, a sheet of collision at the paving's top under them, invisible (the only floor not
+  drawn: the contact audit's "unseen floor", on purpose), so the crowd walks over them and the light falls through in
+  stripes. A stair down out of the square in front of the silent tower (balustraded under a metre: the avenue stays open
+  at walking height), stone pillars and painted arches along the walls, a stall in each bay (counter, crowded shelves,
+  awning, heaps of pots, crates, globes and brass lamps on stands, two lamps hung from the deck), the oldest crossing
+  sign (a long painted board) over the crossing at the north end, and there **the first stall** (glass lamps on its
+  counter and hung from its awning, its keeper one of the quiet ones; `THINGS.firststall`). From the crossing a passage
+  east under the pavement and a stair up into the alley between the east towers. People walk and stand down there.
+- **The screen lanes** (`src/market-lanes.js`, `LANES`, `LANE`, `BRANCHES`). From the alley stair's head east, up the
+  back street behind the east towers and west through another alley to the avenue by the lantern market: lanes 4.4 m
+  wide walled with columns of stacked screens (each column a solid box, 1.6-3.9 m; each screen a lit plate with its own
+  picture: a test card, a planet, a head, a glyph; a hash of its place, no rng), awnings, cables and paper lamps over
+  them, four dead ends (one the screen-mender's court, `THINGS.mender`; one ending at the biggest set in the lanes).
+  **The picture**: a white screen with the market's mark, moved each frame to a screen 11 m ahead of you along the lanes
+  (`alongLanes`), toward the old market and the square before the tower speaks, toward the ship after it
+  (`setOnAir`, from the story's `bazaar.broadcast.on`); once it has spoken every screen in the lanes shows the same
+  lilac face (a second mesh of faces, swapped in). The way home Sel sends you: `the old market and the screen lanes`
+  (`home` on `sel2`), from the Undertower's door round the tower, down the stair, along the old street, the passage and
+  the lanes to the ship.
+- **Words**: Sel sends you up the stalls' stairs to Kip and home under the avenue; Doss says the stalls' stairs climb the
+  towers; three looks of two lines (the first stall, the mender, the crow's nest), each with its line before and after
+  the broadcast.
+- **The audit** (`scripts/level-design/audit.mjs --worlds bazaar`): 4.67 → 4.78. Verticality 4 → 5 (places span 61 →
+  82 m, the old street's floor to the crow's nest; 17 → 27 % raised); every long leg guided (83 → 100 %); places 23 → 31;
+  the critical path 948 → 1043 m (the climbs along the galleries, home through the old market and the lanes), the
+  longest empty stretch 89.5 → 64 m; landmarks 4 (the old street underground and the lanes between walls see fewer of the
+  towers: 65 → 61 % of the path), optional 4 (5 of 24 optional places pull from 30-150 m).
+- **Cost**: collision ~56 k → ~75 k triangles (the market in the air ~3.5 k, the old market ~10.8 k, the lanes ~5.5 k;
+  `tests/bazaar.test.js` budget 78 k); drawn, about 90 k more triangles (the lanes' after-the-broadcast faces among them, hidden till then) in some 40 meshes, culled by their bounds.
+
+Tested in `tests/market-explorations.test.js`: the climbs named and along the line, walked up by a traveller who cannot
+climb from beside Sel to the basket's end, kept on by the rails; the basket's ride, its going home and its coming when
+called; the mast's deck and nest; the way home walked from in front of the tower down the stair, the old street, the
+passage, up into the lanes and out to the ship, the avenue and the grilles solid over the old street; sight lines (the
+galleries from Sel, the basket from the square, the balcony up through the stairwell); the lanes walled, the picture's
+way before and after the broadcast, the face on every screen; the looks; the fragments where they were; the contact audit
+on the new pieces and their collision budget.
 
 ## The Glass Dunes: a detour off the route (October 2026)
 

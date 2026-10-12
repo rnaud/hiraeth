@@ -44,10 +44,11 @@ export const QUESTS = [
       //  it, sent or not: one person sending you to the next was a finding, issue #85)
       // (issue #44: she meets the ship by the landing, then goes back to her crate under the tower: src/story/bazaar.js)
       { id: 'sel', text: 'Find who kept the silent tower', label: 'Madame Sel, by the landing', flag: 'bazaar.sel.heard', at: 'sel' },
-      { id: 'kip', text: 'Get the cylinder back, on the second skybridge', label: 'The cylinder, on the second skybridge', flag: 'bazaar.kip.gave', at: 'kip', gate: true },
-      { id: 'tune', text: 'Light the antenna’s three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna' },
+      // (issue #191: both climbs go up through the market in the air, its stairs and galleries up the west towers' faces)
+      { id: 'kip', text: 'Get the cylinder back, on the second skybridge', label: 'The cylinder, on the second skybridge', flag: 'bazaar.kip.gave', at: 'kip', gate: true, via: 'the market in the air' },
+      { id: 'tune', text: 'Light the antenna’s three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna', via: 'the market in the air' },
       { id: 'play', text: 'Play the recording at the balcony console', label: 'The console', flag: 'bazaar.broadcast.on', at: 'console' },
-      { id: 'sel2', text: 'Go back down under the silent tower', label: 'Madame Sel, under the silent tower', talk: 'sel', stands: 'selSeat', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
+      { id: 'sel2', text: 'Go back down under the silent tower', label: 'Madame Sel, under the silent tower', talk: 'sel', stands: 'selSeat', home: 'the old market and the screen lanes' },   // (home: the way back she sends you, for the level design audit; issue #191)
     ],
   },
   {
@@ -111,7 +112,7 @@ export const PEOPLE = {
         },
         self: { say: ["~tired~ Forty years climbing those ledges have collected their fee from my knees. I need someone else to go up."], choices: [{ text: '~curious~ Where is it now?', goto: 'kip' }] },
         kip: {
-          say: ["~neutral~ *On the second skybridge*, in Kip’s bag. Fastest courier in the market, when travelling in the correct direction.",
+          say: ["~neutral~ *On the second skybridge*, in Kip’s bag. Take the stalls’ stairs behind me: the galleries go all the way to it.",
             "~playful~ Play it at *the console on the cream balcony*. Tune the antenna first: *three bulbs over the dish, lit at once*.",
             "~neutral~ I’ll be on my crate under the tower, listening. Off you go, love."],
           do: { set: { 'bazaar.sel.heard': true } },
@@ -153,7 +154,7 @@ export const PEOPLE = {
         home: {
           say: ["~solemn~ Thirty years crossing the dark, and it still found someone from the same house. I’ve never seen one do that.",
             "~solemn~ (Across the square, the signs stop advertising. For once they share a message.)",
-            "~neutral~ Go home the quiet way, love: west down the alley behind me, then up the back lane. The old dishes there have been turned to this tower for thirty years. Let them hear it with you."],
+            "~neutral~ Go home under the avenue, love: down the old steps to the first street, then out through the screen lanes. Every screen in them is showing the same face tonight."],
           do: { advance: [Q, 'sel2'] },
           choices: [{ text: '~happy~ Thank you, Sel.', end: true }],
         },
@@ -307,7 +308,7 @@ export const STREET = {
     talk: { listen: [
         "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
         { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the end of the avenue. It went silent the night every sign showed the mark. *Madame Sel* sits at its foot, waiting for somebody to care.' },
-        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The blue ledges up its front*, or the parked cab right here, or that pack on your back. The skybridges are for walking; mind the gaps.' },
+        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* by Sel: the market climbs the towers from there, gallery over gallery. Or the parked cab, or that pack on your back.' },
         '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
         '~curious~ The first thing anybody ever sold here was an answer. Then somebody sold the question, and we never looked back.',
         { after: ON_AIR, say: '~happy~ The tower spoke! I’ve been welcoming people all morning, and they keep welcoming me back.' },
@@ -378,6 +379,34 @@ export const THINGS = {
         awake: { say: ["~solemn~ The plate lights up. Beneath {glyph}, four words: WE HEARD YOU."], choices: [{ text: '~neutral~ (read it again)', end: true }] },
       },
     },
+  },
+  // (issue #191: the market's explorations, things to look at on the way: src/market-old.js, src/market-lanes.js, src/market-air.js)
+  firststall: {
+    id: 'firststall', name: 'The first stall', title: 'in the old market under the avenue', color: '#ffd59a', voice: 0.5,
+    talk: { nodes: { look: {
+      say: ["~solemn~ The market’s first counter, under the avenue. Its old board still says *ANSWERS, ONE EACH*.",
+        { if: { not: ON_AIR }, text: '~whisper~ The quiet one behind it lifts a lamp and points it up, at the tower. That is all it has today.' },
+        { if: ON_AIR, text: '~happy~ The quiet one behind it lifts a lamp and hums the tower’s line. Today’s answer.' }],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  mender: {
+    id: 'mender', name: 'The screen-mender', title: 'in the screen lanes', color: '#efe6cf', voice: 0.7,
+    talk: { nodes: { look: {
+      say: ["~playful~ The mender has a set open on his bench, its insides out. He doesn’t look up.",
+        { if: { not: ON_AIR }, text: '~neutral~ Every screen in these lanes went through his hands once. Now they pass one picture along, and he can’t say why.' },
+        { if: ON_AIR, text: '~surprised~ Every screen in the lanes shows the same face now. He keeps mending anyway.' }],
+      choices: [{ text: '~neutral~ (leave him to it)', end: true }],
+    } } },
+  },
+  mast: {
+    id: 'mast', name: 'The antenna sellers’ mast', title: 'its crow’s nest', color: '#88b4b5', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~happy~ The whole market below: the galleries down the towers, the basket’s cable over the square.",
+        { if: { not: ON_AIR }, text: '~solemn~ Across the square the silent tower stands level with you, its screens under their covers.' },
+        { if: ON_AIR, text: '~happy~ Across the square the silent tower stands level with you, every screen awake.' }],
+      choices: [{ text: '~neutral~ (look a while)', end: true }],
+    } } },
   },
   crates: {
     id: 'crates', name: 'The fallen crates', title: 'in the alley mouth', color: '#c99758', voice: 0.6,
