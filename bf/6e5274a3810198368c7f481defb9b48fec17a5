@@ -1,0 +1,27 @@
+.claude/skills/game-audit/capture.mjs
+  s_9ca76055a220ed::t_e41c894f246cf3 6-7,31,33
+.claude/skills/game-audit/default-plan.json
+  s_9ca76055a220ed::t_dfb93a5fd6dce6 41
+docs/README.md
+  s_9ca76055a220ed::t_6e14be75c5edb0 26
+docs/audits/game-v1.59.md
+  s_9ca76055a220ed::t_3fd5b17d8df2f2 1-343
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_ac192f02fa8b0c 27,48,72-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bf6e5274a3810198368c7f481defb9b48fec17a5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
