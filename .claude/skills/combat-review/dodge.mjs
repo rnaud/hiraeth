@@ -85,7 +85,7 @@ const rested = async () => { const gap = 5000 - (Date.now() - lastFlurry); if (g
 const kinds = arg('kinds') ? arg('kinds').split(',') : await ev(`(async () => { const { ARCHETYPES } = await import('/src/enemies/archetypes.js'); return [...new Set(Object.values(ARCHETYPES).map((A) => A.kind))]; })()`);
 for (const kind of kinds) {
   await rested();
-  await ev(`(() => { __feel.resetFeel?.(); if (player.dead || player.down) player.restart(); foes.lock = null; foes.setPractice(${JSON.stringify(kind)}); return true; })()`);
+  await ev(`(() => { __feel.resetFeel?.(); if (player.dead || player.down) player.restart(); if (level.spawn) player.teleport(level.spawn.clone().add(new THREE.Vector3(0, 0.1, 0)), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)); foes.lock = null; foes.setPractice(${JSON.stringify(kind)}); return true; })()`);   // (each kind from the Arena's spawn: hop after hop backs the traveller 7.5 m at a time to the wall, where the foes stood idle, combat-v1.61)
   await sleep(500);
   const r = await ev(`__dodgeTry(${WAIT}, '${KEY}', () => { const fs = foes.list.filter((f) => f.alive && f.dead === undefined && f.kind === ${JSON.stringify(kind)}); for (const f of fs) { const T = __fl.foeThreat(f, player, foes.env.slow?.() ?? 1); if (T) return T; } return null; })`).catch((e) => ({ error: String(e).slice(0, 120) }));
   if (r.hop) lastFlurry = Date.now();

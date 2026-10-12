@@ -117,7 +117,7 @@ const results = [];
 for (const kind of KINDS) {
   const D = setup.defs[kind];
   const harmful = (D.attacks ?? [D.attack]).filter((a) => a && !a.ward && !a.mend && !a.possess && (a.damage > 0 || a.knock || a.grab || a.tether || a.blind || a.slip || a.blur || a.shove || a.wave)).map((a) => a.id ?? 'strike');
-  await ev(`(() => { if (player.dead || player.down) player.restart(); foes.lock = null; foes.setPractice(${JSON.stringify(kind)}); const e = foes.list.find((x) => x.kind === ${JSON.stringify(kind)})?.def.escort; if (e) foes.spawnKind(e, { n: 1, dist: 7 }); return true; })()`);
+  await ev(`(() => { if (player.dead || player.down) player.restart(); if (level.spawn) player.teleport(level.spawn.clone().add(new THREE.Vector3(0, 0.1, 0)), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)); foes.lock = null; foes.setPractice(${JSON.stringify(kind)}); const e = foes.list.find((x) => x.kind === ${JSON.stringify(kind)})?.def.escort; if (e) foes.spawnKind(e, { n: 1, dist: 7 }); return true; })()`);
   await sleep(500);
   const tried = Object.fromEntries(harmful.map((a) => [a, []])), t0 = Date.now();
   // (the page asks which try comes next for the attack it sees: the first of the plan not yet made for it)

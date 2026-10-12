@@ -221,11 +221,13 @@ console.log(`${KINDS.length} kinds, ${guardians.length} guardians, ${MOVES.lengt
 
 const shots = [];
 const results = [];
-for (const kind of KINDS) {
+const retried = new Set();
+for (let ki = 0; ki < KINDS.length; ki++) {
+  const kind = KINDS[ki];
   // ---- watch it fight a still player: a group kind as its group (the practice calls in its `group`: a skitter flock of
   // eight, three moths), every member watched, and a support with what it supports (def.escort: the jelly and a blot,
   // as the Arena's aloneWave); the wind-ups and the attacks a minute are its own kind's, the harm all of it
-  await ev(`(() => { if (player.dead || player.down) player.restart(); foes.setPractice(${JSON.stringify(kind)}); const e = foes.list.find((x) => x.kind === ${JSON.stringify(kind)})?.def.escort; if (e) foes.spawnKind(e, { n: 1, dist: 7 }); window.__dmg.length = 0; player.health = 1; return true; })()`);
+  await ev(`(() => { if (player.dead || player.down) player.restart(); if (level.spawn) player.teleport(level.spawn.clone().add(new THREE.Vector3(0, 0.1, 0)), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)); foes.setPractice(${JSON.stringify(kind)}); const e = foes.list.find((x) => x.kind === ${JSON.stringify(kind)})?.def.escort; if (e) foes.spawnKind(e, { n: 1, dist: 7 }); window.__dmg.length = 0; player.health = 1; return true; })()`);
   await sleep(600);
   const t0 = Date.now(), samples = [];
   let shot = null;
@@ -271,6 +273,13 @@ for (const kind of KINDS) {
     }
   }
   const span = samples.length ? (samples.at(-1).t - samples[0].t) / 60000 : 1;   // (attacks a minute: the whole group's)
+  // (a kind that never wound up the whole watch, standing off past 6 m: once in a full run four kinds in a row stood idle
+  // and attacked at once when watched alone, combat-v1.61; watched again once, after a rest with the Arena emptied)
+  if (!winds.length && !retried.has(kind) && samples.length && Math.min(...samples.map((x) => x.d)) > 6) {
+    retried.add(kind); console.log(`${kind.padEnd(10)} no attack in ${WATCH} s: watched again`);
+    await ev(`(() => { foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x)); return true; })()`); await sleep(3000);
+    ki--; continue;
+  }
   // ---- time to kill with each move (a fresh one each time, struck from in front)
   const ttk = {};
   for (const m of MOVES) {
@@ -282,7 +291,7 @@ for (const kind of KINDS) {
         hits++;
         // from in front; if six blows in a row do nothing (a shell, a shadow), from behind, as a player would flank it
         if (from === 'front' && landed === 0 && wasted >= 6) from = 'behind';
-        const dir = from === 'front' ? f.pos.clone().sub(player.pos).setY(0).normalize() : new THREE.Vector3(Math.sin(f.heading ?? 0), 0, Math.cos(f.heading ?? 0));
+        const dir = from === 'front' ? new THREE.Vector3(-Math.sin(f.heading ?? 0), 0, -Math.cos(f.heading ?? 0)) : new THREE.Vector3(Math.sin(f.heading ?? 0), 0, Math.cos(f.heading ?? 0));   // (into its face, whichever way it stands: a crab just called in may not face the player yet, combat-v1.61)
         ${m.stunned ? 'f.stunned = Math.max(f.stunned ?? 0, 1);' : ''}
         if (f.def.clapper) f.open = Math.max(f.open ?? 0, 1);   // (a clapper-only foe: struck in its opening, as a player waits for it)
         const hp = f.hp, r = foes.hurt(f, ${JSON.stringify(m.mode)}, dir, { damage: ${m.hits ? `[${m.hits}][i % ${m.hits.length}]` : m.damage}, source: ${JSON.stringify(m.source)}, breaks: ${!!m.breaks}, air: ${m.source === 'air'}${m.hits ? `, combo: i % ${m.hits.length}` : ''} });   // (as the blade sends them: the air cut's air, the swing's place in the combo)
