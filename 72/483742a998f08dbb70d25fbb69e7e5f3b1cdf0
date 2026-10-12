@@ -1,0 +1,25 @@
+docs/design/shield-prompts.md
+  s_9ca76055a220ed::t_b9bf59ac057fe2 47-75
+"references/Core Objects/Fluid Shield/guard-poses/manifest.json"
+  s_9ca76055a220ed::t_b0a0da38e721e9 1-23
+"references/Core Objects/Fluid Shield/shield-turnaround/manifest.json"
+  s_9ca76055a220ed::t_396cbb1220347a 1-23
+references/REFERENCE-SELECTION.txt
+  s_9ca76055a220ed::t_03ed7b8e2dd94c 31-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "72483742a998f08dbb70d25fbb69e7e5f3b1cdf0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
