@@ -2,7 +2,7 @@
 // each function shown the case it is for, on small made-up worlds.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines, steepness, templeFor } from '../scripts/level-design/lib.mjs';
+import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, floorAt, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines, steepness, templeFor } from '../scripts/level-design/lib.mjs';
 
 const P = (name, x, z, o = {}) => ({ name, kind: o.kind ?? 'person', pos: [x, o.y ?? 0, z], ...o });
 const S = (label, x, z, kind = 'go', y = 0) => ({ label, kind, pos: [x, y, z] });
@@ -119,6 +119,24 @@ test('height and pacing', () => {
   assert.deepEqual([v.range, v.raised, v.climb], [20, 1, 20]);
   const p = pacing([S('ship', 0, 0, 'ship'), S('x', 1, 1, 'talk'), S('y', 2, 2, 'talk'), S('z', 3, 3, 'talk'), S('w', 4, 4, 'go')]);
   assert.deepEqual(p.longest, { kind: 'talk', n: 3 });
+});
+
+test('raised is measured from the ground a place rises from, not the deck it stands on (#138)', () => {
+  // a 4 m-wide tower 44 m tall at (300, 0) on flat ground, and a broad hill 30 m high around (0, 0)
+  const hill = (x, z) => Math.max(0, 30 - Math.hypot(x, z) * 0.2);
+  const ground = (x, z) => (Math.abs(x - 300) < 2 && Math.abs(z) < 2 ? 44 : hill(x, z));
+  const nest = P('the crow’s nest', 300, 0, { y: 44 }), top = P('the hilltop', 0, 0, { y: 30 });
+  // the tower's top is the "ground" there, but its foot is 2 m off: raised, with or without a terrain
+  assert.equal(floorAt(300, 0, ground), 0);
+  assert.equal(vertical([nest], [], ground).raised, 1);
+  assert.equal(vertical([nest], [], ground, { terrain: hill }).raised, 1);
+  // a hilltop is the terrain itself: high, but not raised over anything (its height counts in the range)
+  assert.equal(vertical([top], [], ground, { terrain: hill }).raised, 0);
+  assert.equal(vertical([top], [], ground).raised, 0);
+  // a deck wider than the reach still counts over the terrain under it
+  const wide = (x, z) => (Math.abs(x - 100) < 30 ? 81 : 0);
+  assert.equal(vertical([P('the gallery', 100, 0, { y: 81 })], [], wide).raised, 0);
+  assert.equal(vertical([P('the gallery', 100, 0, { y: 81 })], [], wide, { terrain: () => 0 }).raised, 1);
 });
 
 test('the rubric: a world with long empty walks and blind legs scores low there, and every criterion is 1-5', () => {

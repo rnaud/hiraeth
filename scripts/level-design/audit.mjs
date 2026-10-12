@@ -215,7 +215,7 @@ for (const id of worlds) {
     landmarks: { count: landmarks.length, fromSpawn, seenShare: seen.length ? +(seen.filter((n) => n > 0).length / seen.length).toFixed(2) : 0, meanSeen: seen.length ? +(seen.reduce((a, b) => a + b, 0) / seen.length).toFixed(1) : 0 },
     guidance: L.legGuidance(path, landmarks, los, { lines }),
     lines: lines.map((l) => ({ name: l.name, metres: Math.round(L.polyLength(l.points)) })),
-    vertical: L.vertical(places.filter((p) => L.flat(p.pos, spawn) < 1500 && p.pos[1] < 900), samples.filter((q) => L.flat(q.pos, spawn) < 1500 && q.pos[1] < 900), ground),   // (interiors far overhead or away: left out)
+    vertical: L.vertical(places.filter((p) => L.flat(p.pos, spawn) < 1500 && p.pos[1] < 900), samples.filter((q) => L.flat(q.pos, spawn) < 1500 && q.pos[1] < 900), ground, { terrain: base }),   // (interiors far overhead or away: left out)
     pacing: L.pacing(path),
     spawn: { firstGoal: path[1] ? Math.round(L.dist(path[0].pos, path[1].pos)) : 0, near: places.filter((p) => p.kind !== 'ship' && L.dist(p.pos, spawn) < 80).length },
   };

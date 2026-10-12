@@ -55,6 +55,36 @@ This round rechecks v1.23's findings. It also measures what the v1.49 game audit
 
 The audit reads every one of them as "0 % raised" (#138). 32 % raised is the 15 % criterion met, so verticality goes from 3 to 4. No other world moves: the City Floating in Space has 2 of 18 places standing high (the crow's nest and the starthread box), the Garden 3 of 23, both under 15 %.
 
+### v1.52 recount: "raised" over the ground a place rises from (#138)
+
+The audit now measures a place's height over the terrain under it, or over the lowest ground within 10 m (a ring of probes at 5 and 10 m), whichever is lower (`floorAt` in `scripts/level-design/lib.mjs`; `tests/level-design.test.js` has a tower top and a hilltop). Before, it measured over the top of whatever the place stood on, so a place on a tower stood 0 m up. Both counts are from the same v1.52 build (`4056d2ee`), the twelve route worlds. The worlds have changed since the table above, so the means here are not that table's.
+
+| World | Places | Height range | Raised, before → after | Climb on the path | Verticality | Mean |
+|---|---|---|---|---|---|---|
+| The Desert | 53 | 58 m | 0 → 1 (0 → 2 %) | 266 m | 3 → 3 | 4 → 4 |
+| Vael | 49 | 277 m | 6 → 29 (12 → 59 %) | 468 m | 4 → 5 | 4.67 → 4.78 |
+| Lorn | 45 | 42 m | 0 → 3 (0 → 7 %) | 100 m | 3 → 3 | 4.56 → 4.56 |
+| Viridel | 30 | 125 m | 0 → 2 (0 → 7 %) | 44 m | 3 → 3 | 4.56 → 4.56 |
+| The Underwater City | 20 | 80 m | 0 → 3 (0 → 15 %) | 19 m | 3 → 4 | 4.56 → 4.67 |
+| The City-Shaft | 38 | 645 m | 0 → 15 (0 → 39 %) | 874 m | 4 → 5 | 4.44 → 4.56 |
+| The Glass Dunes | 30 | 96 m | 0 → 5 (0 → 17 %) | 4 m | 3 → 4 | 4.67 → 4.78 |
+| The Buried Machine | 31 | 81 m | 1 → 5 (3 → 16 %) | 65 m | 4 → 5 | 4.33 → 4.44 |
+| The Moon Foundry | 23 | 81 m | 0 → 7 (0 → 30 %) | 32 m | 3 → 4 | 4.44 → 4.56 |
+| The Garden of Spheres | 24 | 83 m | 0 → 3 (0 → 13 %) | 13 m | 3 → 3 | 4.44 → 4.44 |
+| The City Floating in Space | 19 | 48 m | 0 → 2 (0 → 11 %) | 65 m | 3 → 3 | 4.56 → 4.56 |
+| The Signal Market | 23 | 61 m | 1 → 4 (4 → 17 %) | 63 m | 3 → 4 | 4.56 → 4.67 |
+
+- **Average of the twelve means: 4.48 → 4.55.** Seven worlds' verticality goes up a point; nothing goes down.
+- **The four high places now count:**
+  - the breaker's cairn, 93 m;
+  - the hoist's gallery, 81 m;
+  - the belvedere, 80 m;
+  - the crow's nest, 44 m.
+- **The Moon Foundry reads 4 by measure.** Its 7 places are the ones counted by eye above (13–81 m), 30 %, so the ✎ is no longer needed.
+- **Vael and the City-Shaft count the most.** Vael's monastery, rope-way knots and cairns stand 150–250 m over the floor under the stones. The City-Shaft's terraces and pads stand 250–700 m over the shaft's bottom. Both are high places by design.
+- **Under 15 % and still 3:** the Garden (3 of 24: the belvedere, Emrys, the box), the City Floating in Space (2 of 19), Lorn, Viridel and the Desert. Each has its height in one or two places, not along the path.
+- The audit's report lists the raised places of each world with their height (`vertical.high` in `report.json`).
+
 **Average across the twelve worlds: 4.35 / 5** (v1.23: 4.38 across eleven).
 
 Against v1.23, by world:

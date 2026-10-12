@@ -17,7 +17,7 @@
 //   landmarksFrom(grid, opts)             the tall shapes in a height grid (towers, spires, mesas)
 //   visibleCount(points, landmarks, los)  how many landmarks each point sees
 //   legGuidance(stops, landmarks, los)    does each leg's start see where it goes (or a landmark by it)?
-//   vertical(pois, samples, ground)       height range, raised places, the climb along the path
+//   vertical(pois, samples, ground, o)    height range, raised places (over the terrain or the lowest ground within 10 m), the climb along the path
 //   pacing(stops)                         the kinds of stop along the path, and the longest run of one kind
 //   templeFor(temples, id, fallback)      the temple a route step goes in at: a merged world carries its parts' (Vael the Belfry)
 //   scoreWorld(m)                         the rubric's criteria, 1-5 each
@@ -328,14 +328,40 @@ export function legGuidance(stops, landmarks, los, { by = 80, eye = 1.7, lines =
 /** Looked at steeply: 1 up, -1 down (more than `angle` degrees from level), 0 otherwise; a goal far overhead or below. */
 export const steepness = (a, b, { angle = 40 } = {}) => (Math.atan2(Math.abs(b[1] - a[1]), flat(a, b)) > (angle * Math.PI) / 180 ? Math.sign(b[1] - a[1]) : 0);
 
-/** Height: the places' range, how many stand raised (over `raised` m above the ground under them), and the climb along the path. */
-export function vertical(pois, samples, ground = null, { raised = 8 } = {}) {
+/** The ground a place rises from: the terrain under it, or the lowest ground within `reach` m (a ring of probes at half
+ * and full reach), whichever is lower. `ground(x, z)` is the top of whatever stands there, so a place on a tower is 0 m
+ * over it; the tower's foot, or the terrain, is not. Null when nothing around is ground. */
+export function floorAt(x, z, ground, { terrain = null, reach = 10 } = {}) {
+  const ok = (v) => Number.isFinite(v) && v > -2000;
+  let lo = Infinity;
+  const t = terrain ? terrain(x, z) : NaN;
+  if (ok(t)) lo = t;
+  if (ground) {
+    const g = ground(x, z);
+    if (ok(g)) lo = Math.min(lo, g);
+    for (const r of [reach / 2, reach]) for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2, v = ground(x + Math.cos(a) * r, z + Math.sin(a) * r);
+      if (ok(v)) lo = Math.min(lo, v);
+    }
+  }
+  return Number.isFinite(lo) ? lo : null;
+}
+
+/** Height: the places' range, how many stand raised (over `raised` m above the ground they rise from, floorAt: the terrain
+ * or the lowest ground within `reach` m, not the deck they stand on), and the climb along the path. */
+export function vertical(pois, samples, ground = null, { raised = 8, terrain = null, reach = 10 } = {}) {
   const ys = pois.map((p) => p.pos[1]);
-  const up = pois.filter((p) => ground && Number.isFinite(ground(p.pos[0], p.pos[2])) && p.pos[1] - ground(p.pos[0], p.pos[2]) > raised).length;
+  const high = [];
+  for (const p of pois) {
+    const f = floorAt(p.pos[0], p.pos[2], ground, { terrain, reach });
+    if (f !== null && p.pos[1] - f > raised) high.push({ name: p.names?.[0] ?? p.name, over: Math.round(p.pos[1] - f) });
+  }
+  high.sort((a, b) => b.over - a.over);
+  const up = high.length;
   let climb = 0;
   for (let i = 1; i < samples.length; i++) climb += Math.max(0, samples[i].pos[1] - samples[i - 1].pos[1]);
   const range = ys.length ? Math.max(...ys) - Math.min(...ys) : 0;
-  return { range: Math.round(range), raised: up, raisedShare: pois.length ? +(up / pois.length).toFixed(2) : 0, climb: Math.round(climb) };
+  return { range: Math.round(range), raised: up, raisedShare: pois.length ? +(up / pois.length).toFixed(2) : 0, climb: Math.round(climb), high };
 }
 
 /** The kinds of stop along the path (talk, go, flag, temple, ship) and the longest run of one kind. */

@@ -78,7 +78,8 @@ Each one is a check you can make on a map or from a spot, with where it comes fr
    ["How Miyamoto built World 1-1"](https://www.gamedeveloper.com/design/how-miyamoto-built-i-super-mario-bros-i-legendary-world-1-1).
 9. **Verticality and silhouettes.** Height gives prospect (seeing where to go) and refuge; readable
    silhouettes against the sky make landmarks; a world that is all one level reads flat. *Check:* the places'
-   span of height, the share standing raised, the climb along the path. Source: Totten (above).
+   span of height, the share standing raised (over 8 m above the terrain or the lowest ground within 10 m, not the
+   deck it stands on: a tower top counts, a hilltop doesn't), the climb along the path. Source: Totten (above).
 
 ## 2. The rubric
 
