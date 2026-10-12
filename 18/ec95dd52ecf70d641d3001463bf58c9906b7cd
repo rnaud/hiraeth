@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_383af2398758c4 15
+docs/systems/story.md
+  s_9ca76055a220ed::t_ecdeae5e80ea69 494-499
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_4104735050bc95 579,663-671
+src/changelog-media.js
+  s_9ca76055a220ed::t_174d16a9bd712f 646-647,650-659
+src/changelog.js
+  s_9ca76055a220ed::t_ed7c4565045a4d 20
+src/desert-city.js
+  s_9ca76055a220ed::t_a77132ab2c5d80 357,1305-1309,1313-1335
+src/save-migrate.js
+  s_9ca76055a220ed::t_c968d560c36860 71,219-221,223-229
+src/story/desert-data.js
+  s_9ca76055a220ed::t_362b3a704d8823 5-6,16-17,44,92,94,258,271,374,445,452,454,633,755-756,758,760-761
+src/story/desert-moments.js
+  s_9ca76055a220ed::t_1d5e057fb88f32 9-10,12,18,100
+src/story/desert.js
+  s_9ca76055a220ed::t_50db893129db81 36,47,62,69,78,335,367,380,384-385,387,389-393,524-525,905-907,909-910,981
+tests/desert-cave-walk-in.test.js
+  s_9ca76055a220ed::t_29d985c65ec18d 41-43
+tests/desert-cave.test.js
+  s_9ca76055a220ed::t_689778c6b293e4 60,62,65
+tests/desert-playtest.test.js
+  s_9ca76055a220ed::t_07c3acaa2cbb80 75-100
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_ccb0be6df7a5a2 465,492,498-499,501-509,512-513
+tests/moment.test.js
+  s_9ca76055a220ed::t_72cdaa4c4308fc 216,220,222-223
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_7569fc26b585f9 90,335-343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "18ec95dd52ecf70d641d3001463bf58c9906b7cd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
