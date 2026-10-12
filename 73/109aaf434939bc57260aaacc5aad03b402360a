@@ -1,0 +1,38 @@
+changelog.md
+  s_e08dff325032f1::t_6886578ccc2be5 7-8
+docs/systems/rendering.md
+  s_e08dff325032f1::t_3970bcb2887a9c 607-666
+scripts/shadow-qc/probes.js
+  s_e08dff325032f1::t_c34ea9823f397b 32-36
+src/changelog-media.js
+  s_e08dff325032f1::t_04382d17badfed 708-715
+src/changelog.js
+  s_e08dff325032f1::t_c3eacc8ce6b4a2 36-39
+src/post.js
+  s_e08dff325032f1::t_109d418e67e16f 102,105-106,133-171,173-174,192-199,201-205,713,720-722,749,1451-1459,1461
+tests/occlusion-taps.test.js
+  s_e08dff325032f1::t_0cacf0fedb5a99 8,70,82,132,281,286-287,289-290,292-293,296,301,306,309-311,314,316-317,321-385,388,399-409,418,447-449,451,460-462,464,466-467,469,471-472,508-513,518-555
+tests/shadow-qc.test.js
+  s_e08dff325032f1::t_889dc6501fe63c 123-138
+unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader
+  s_e08dff325032f1::t_693d4ff47ff055 216-217,225,246,249-252,291-292,294-297,718-720,722
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "73109aaf434939bc57260aaacc5aad03b402360a",
+  "prompts": {},
+  "sessions": {
+    "s_e08dff325032f1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "90a48bc5-1914-40f1-9c4e-0adcb3c5529b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
