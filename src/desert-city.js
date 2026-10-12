@@ -875,15 +875,19 @@ export function buildDesertCity(scene, terrain) {
 
   // ================================================================ the fallen giant
   const G = STORY.giant;
-  const gy = terrain.baseAt(G.x, G.z, 16);
+  // (its feet: the sand at its mouth, which is where you walk in: the skull faces up the slope to the city since issue
+  // #154, so the lowest sand round it, as it was taken until then, would sink the mouth under the dune)
+  const gy = terrain.heightAt(G.x + Math.sin(G.yaw) * 15.6, G.z + Math.cos(G.yaw) * 15.6);
   const giant = new Kit(root, 'Fallen giant', V(G.x, gy, G.z), G.yaw);
   {
     // After the author's pick (references/levels/The Desert/places/skull/sheet-1.jpg): a temple-sized skull, half sunk,
-    // tipped forward as if the giant fell face first; two deep round sockets ringed in the pilgrims' turquoise and ochre
+    // lying with its face up the slope to the city's back gate; two deep round sockets ringed in the pilgrims' turquoise and ochre
     // with ribbons hanging under them, a row of great upper teeth over the mouth, and the mouth a dark tunnel at the
     // sand's level, steps going down to a cool glow. The portal stays at z = 15.6 (the tongue in front of it is the
     // lower jaw, sloping into the dune), the route to it a person wide (tests/skull-entrance.test.js).
-    const TILT = 0.12, ROLL = 0.04, SIZE = 1.25, PIVOT = V(0, 0, 14);   // face first: about the mouth's front, the crown forward; temple-sized
+    // (tipped back about the mouth's front, its face lifted to the city up the slope: issue #154 turned it to face the back
+    // gate; it was tipped forward 0.12, face first, while it lay facing down the slope to the dunes, which buried its crown)
+    const TILT = -0.12, ROLL = 0.04, SIZE = 1.25, PIVOT = V(0, 0, 14);   // temple-sized
     const SK = new THREE.Matrix4().makeTranslation(PIVOT.x, PIVOT.y, PIVOT.z)
       .multiply(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(TILT, 0, ROLL)))
       .multiply(new THREE.Matrix4().makeScale(SIZE, SIZE, SIZE))
@@ -1015,16 +1019,17 @@ export function buildDesertCity(scene, terrain) {
     jaw.moveTo(-3.3, -13.8); jaw.lineTo(3.3, -13.8); jaw.quadraticCurveTo(5.2, -17, 4.4, -20.4);
     jaw.quadraticCurveTo(0, -23.2, -4.4, -20.4); jaw.quadraticCurveTo(-5.2, -17, -3.3, -13.8);
     const jawGeo = new THREE.ExtrudeGeometry(jaw, { depth: 0.22, bevelEnabled: true, bevelSize: 0.18, bevelThickness: 0.08, bevelSegments: 2, curveSegments: 12 }).rotateX(-Math.PI / 2).translate(0, -0.23, 0);
+    // (out past the teeth it follows the sand, down or up the slope to the mouth: tongueY)
+    const ground = (x, z) => { const w = giant.world(x, 0, z); return terrain.heightAt(w.x, w.z) - gy; };
+    const tongueY = (z) => 0.07 + (z > 15 ? ground(0, z) - ground(0, 15) : 0);
     const jawPos = jawGeo.attributes.position;
-    for (let i = 0; i < jawPos.count; i++) jawPos.setY(i, jawPos.getY(i) - Math.max(0, jawPos.getZ(i) - 15) * 0.19);
+    for (let i = 0; i < jawPos.count; i++) jawPos.setY(i, jawPos.getY(i) + tongueY(jawPos.getZ(i)) - 0.07);
     jawGeo.computeVertexNormals();
     giant.solid(jawGeo);
-    const tongueY = (z) => 0.07 - Math.max(0, z - 15) * 0.19;
     for (let k = 0; k < 6; k++) {
       const z0 = 14.6 + k * 1.15, z1 = z0 + 1.15, w = 6.2 + k * 0.5, top = tongueY(z0) + 0.04;
       giant.add(M.stone, new THREE.BoxGeometry(w, 0.7, z1 - z0 + 0.02).translate(Math.sin(k * 2.3) * 0.15, top - 0.35, (z0 + z1) / 2));
     }
-    const ground = (x, z) => { const w = giant.world(x, 0, z); return terrain.heightAt(w.x, w.z) - gy; };
     for (const [x, z, h, r] of [[-4.1, 19.6, 1.3, 0.55], [-5.3, 18.2, 1.8, 0.62], [-6.4, 16.6, 1.2, 0.58], [4.2, 19.8, 1.6, 0.55], [5.4, 18.3, 1.2, 0.62], [6.5, 16.5, 1.7, 0.58]]) {
       const g0 = Math.min(ground(x, z), 0.1);
       giant.both(M.bone, new THREE.CapsuleGeometry(r, h, 3, 8).scale(1, 1, 0.75).rotateZ(x * 0.03).translate(x, g0 + h / 2 - 0.3, z));
@@ -1045,14 +1050,15 @@ export function buildDesertCity(scene, terrain) {
       const k1 = wr.clone().addScaledVector(d, 2.5).add(V(0, 0.4, 0)), k2 = wr.clone().addScaledVector(d, 5.2).add(V(0, -0.6, 0));
       giant.both(M.bone, taper([wr, k1, k2], 0.55, 0.32, 6, 6));
     }
-    // the pilgrims' cairns: from the back gate round the skull's side to its mouth, one every ~10 m, either side of the
-    // way (2.6 m off it: they never stand in it), and a few more gathered before the mouth
+    // the pilgrims' cairns: from the back gate straight out to the skull's mouth (it faces the gate: issue #154; they
+    // went round its side while it looked away), one every ~8 m, either side of the way (2.6 m off it: they never
+    // stand in it), and a few more gathered before the mouth
     const gate = giant.local(out.city.backGate);
-    const way = [V(gate.x, 0, gate.z), V(-22, 0, -8), V(-18, 0, 24), V(0, 0, 26)];
+    const way = [V(gate.x, 0, gate.z), V(0, 0, 26)];
     const cairns = [];
     for (let i = 0; i < way.length - 1; i++) {
       const a = way[i], b = way[i + 1], L = a.distanceTo(b), dir = b.clone().sub(a).normalize(), side = V(-dir.z, 0, dir.x);
-      for (let d = i === 0 ? 14 : 5, n = 0; d < L - 3; d += 10, n++) cairns.push(a.clone().addScaledVector(dir, d).addScaledVector(side, (n % 2 ? 1 : -1) * 2.6));
+      for (let d = i === 0 ? 14 : 5, n = 0; d < L - 3; d += 8, n++) cairns.push(a.clone().addScaledVector(dir, d).addScaledVector(side, (n % 2 ? 1 : -1) * 2.6));
     }
     cairns.push(V(-5.6, 0, 29), V(5.8, 0, 28), V(-8.4, 0, 33.5), V(8.8, 0, 33), V(-3.9, 0, 37), V(4.4, 0, 38));
     const crng = mulberry32(5150);

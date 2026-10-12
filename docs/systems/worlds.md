@@ -646,6 +646,20 @@ Rebuilt after `references/levels/The Desert/places/skull/sheet-1.jpg` and `skull
   landing into the cave on every heading, walking and running, then all round the floor and the passage. It fails
   wherever the Player is stopped with nothing drawn ahead.
 
+## The skull turned to face the city (issue #154)
+
+"The big skull should be facing the other way so it's better visible from the city coming out." It looked out to
+the dunes, so from the back gate you saw the back of its head first and walked round it to its mouth. It faces the
+gate now (`STORY.giant.yaw`, `src/desert-sites.js`): out of the gate you look down the slope at its sockets, teeth and
+mouth, and the pilgrims' cairns run straight out to it (`way`: the gate, then the mouth). Since it lies with its face up
+the slope it is set on the sand at its mouth (`gy`: it was the lowest sand round it, which was its mouth's when it faced
+down the slope) and tipped back 0.12 rad about the mouth's front instead of forward (its crown would have hung over the
+sand behind it), and the lower jaw out past the teeth follows the sand (`tongueY`) up to the mouth. Every hook keeps its
+local place (`giant.door` and its portal, the passage up's heading, the breath over the brow), so the portal still
+leads down and you come back up facing the gate. `tests/desert-playtest.test.js`, `tests/skull-entrance.test.js`
+(the way in measured over the sand), `tests/skull-cave-reference.test.js` and `tests/desert-story.test.js` (the walk
+out of the back gate, straight to the mouth).
+
 ## Qanat's burning tree and the giant ribcage, after the picked references (v1.39)
 Rebuilt after `references/levels/The Desert/places/qanat-tree/sheet-1.jpg` and `ribcage/sheet-1.jpg` (prompts in
 `docs/design/desert-places-prompts.md`). Every hook the story uses kept: `city.ledge` (box, foot, shoulder, dais, bench,

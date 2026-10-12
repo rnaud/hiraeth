@@ -28,7 +28,9 @@ export const POLE_LINE = [[-885, 165], [-1010, 430]];
 export const STORY = {
   city: { x: 230, z: 400, r: 66, yaw: Math.atan2(-230, -400) },
   camps: { x: 168, z: 292, r: 40 },
-  giant: { x: 318, z: 530, r: 30, yaw: Math.atan2(88, 130) },     // the skull outside the back gate, its face to the dunes (the body lies under the city)
+  // the skull outside the back gate, its face to the gate: you come out of the city to its sockets, teeth and mouth
+  // (issue #154: it looked out to the dunes, and from the gate you saw the back of its head first); the body lies on under the sand
+  giant: { x: 318, z: 530, r: 30, yaw: Math.atan2(-88, -130) },
   cave: { x: -1250, y: 1000, z: 1250 },                             // the interior's origin (far overhead)
   pilgrim: { x: 8, z: 218 },                                        // the old pilgrim who fell behind: on a dune west of the way in, in sight of it (v1.9: she sat 300 m out, a trip there and back with nothing else on it)
   drum: { x: 156.65, z: -187.6 },                                   // Teo's drum, blown under the old ribcage and jammed against the inside of a rib's foot (src/story/desert-errands.js)

@@ -12,8 +12,10 @@ const skull = scene.getObjectByName('Fallen giant');
 const solid = skull.children.filter(m => m.isMesh && !m.userData.noCollide);
 
 test('the skull has a person-wide unobstructed route from the lower jaw to its existing portal', () => {
+  // (heights over the sand: since issue #154 the skull faces up the slope to the city, and the way in comes down it)
+  const sand = (z) => { const p = giant.local(0, 0, z); return terrain.heightAt(p.x, p.z) - giant.door.y + 0.05; };
   for (const x of [-0.7, 0, 0.7]) for (const y of [0.7, 1.5, 2.2]) {
-    const a = giant.local(x, y, 23), b = giant.local(x, y, 15.5);
+    const a = giant.local(x, y + sand(23), 23), b = giant.local(x, y + Math.max(0, sand(15.5)), 15.5);
     const ray = new THREE.Raycaster(a, b.clone().sub(a).normalize(), 0, a.distanceTo(b));
     assert.equal(ray.intersectObjects(solid, false).length, 0, `mouth route x=${x}, y=${y}`);
   }

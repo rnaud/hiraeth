@@ -56,3 +56,19 @@ test('#155: nothing to press in front of the skull: no prompt at its mouth', () 
   });
   assert.deepEqual(near.map((e) => e.id), [], 'no interactable within 9 m of the skull\'s mouth');
 });
+
+test('#154: the skull faces the back gate: you come out of the city to its face and its mouth, in plain sight', () => {
+  const G = Q.giant, gate = Q.city.backGate;
+  const fwd = V(Math.sin(G.yaw), 0, Math.cos(G.yaw)), toGate = gate.clone().sub(G.door).setY(0).normalize();
+  assert.ok(fwd.dot(toGate) > 0.95, `its face turned to the gate (${fwd.dot(toGate).toFixed(3)})`);
+  assert.ok(flat(G.door, gate) < flat(G.skull, gate), 'the mouth nearer the gate than the crown');
+  // from just outside the gate, at eye height, nothing between you and the mouth
+  const eye = gate.clone().addScaledVector(toGate, -4); eye.y = terrain.heightAt(eye.x, eye.z) + 1.6;
+  const mouth = G.door.clone().add(V(0, 1.6, 0)), dir = mouth.clone().sub(eye), d = dir.length();
+  assert.ok(physics.rayDistance(eye, dir.normalize(), d) > d - 2.5, 'the mouth in sight from the gate');
+  // the way down and back up still meet at the mouth; you come up facing the city
+  const down = level.portals.find((p) => p.label === 'giant’s mouth'), up = level.portals.find((p) => p.label === 'passage up');
+  assert.ok(down.at.distanceTo(G.door) < 2 && up.to.distanceTo(G.door) < 5);
+  const out = V(Math.sin(up.heading), 0, Math.cos(up.heading));
+  assert.ok(out.dot(toGate) > 0.9, 'out of the passage facing the gate');
+});

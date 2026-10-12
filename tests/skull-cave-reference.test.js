@@ -22,11 +22,11 @@ const BOTH = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
 const solids = (name) => scene.getObjectByName(name).children.filter((m) => m.isMesh && !m.userData.noCollide).map((m) => Object.assign(new THREE.Mesh(m.geometry, BOTH), { matrixWorld: m.matrixWorld }));
 const down = (meshes, x, y, z, far = 12) => new THREE.Raycaster(V(x, y, z), V(0, -1, 0), 0, far).intersectObjects(meshes, false)[0];
 
-test('the cairns mark the way from the back gate round the skull to its mouth, beside it, never in it', () => {
+test('the cairns mark the way from the back gate out to the skull\'s mouth, beside it, never in it', () => {
   const G = Q.giant, c = G.cairns;
   assert.ok(c.length >= 12, `${c.length} cairns`);
-  // the walk the story test takes (tests/desert-story.test.js): the back gate, round the skull's side, to the mouth
-  const way = [Q.city.backGate, G.local(-22, 0, -8), G.local(-18, 0, 24), G.local(0, 0, 24), G.door];
+  // the walk the story test takes (tests/desert-story.test.js): the back gate, straight out to the mouth (it faces the gate: issue #154)
+  const way = [Q.city.backGate, G.local(0, 0, 26), G.local(0, 0, 22), G.door];
   const off = (p) => {
     let best = Infinity;
     for (let i = 0; i < way.length - 1; i++) {
