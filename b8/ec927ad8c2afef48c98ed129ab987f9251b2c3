@@ -1,0 +1,111 @@
+.claude/skills/dialogue-review/SKILL.md
+  s_9ca76055a220ed::t_c2cb793344b8e6 156-157
+changelog.md
+  s_9ca76055a220ed::t_ee00c15ce651e0 9-12
+docs/README.md
+  s_9ca76055a220ed::t_4aedda8f1bb793 26
+docs/audits/dialogue-v1.57.md
+  s_9ca76055a220ed::t_276564cd33bf46 1-234
+docs/systems/dialogue.md
+  s_9ca76055a220ed::t_db874cc00227dd 92-106
+lore/voice-guide.md
+  s_9ca76055a220ed::t_7d3f1e1f0d7de3 91-96
+src/changelog-media.js
+  s_9ca76055a220ed::t_9746abec5733b6 739-747
+src/changelog.js
+  s_9ca76055a220ed::t_bbebe7dcac2c21 22-26
+src/levels/content.js
+  s_9ca76055a220ed::t_3a17076ddf0940 198,209-210,212,221,245,252-254
+src/levels/fallen-ring.js
+  s_9ca76055a220ed::t_3a05b55b65e632 98
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_78411fc51677ae 157
+src/levels/overnight-train.js
+  s_9ca76055a220ed::t_afe6b68f405da3 109
+src/story/aliens-data.js
+  s_9ca76055a220ed::t_7be93df3e2a3bb 27,92
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_ec6c5f45cc0232 153
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_afd62aa75b0803 98,117-119,168,240,268
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_2121b428e85068 91,133-135,162,200,233,273,310,326,331,521
+src/story/buried-data.js
+  s_9ca76055a220ed::t_9aee87198c4d53 126,130,171,200,202,205,207,226,261,283,330,350
+src/story/desert-data.js
+  s_9ca76055a220ed::t_a93d8041ca3516 254,274-275,416,441,460,572,590,596,623,670,675,679,725,940,968,981,992,1099,1112,1136,1155
+src/story/edena-data.js
+  s_9ca76055a220ed::t_7f4818b402233b 170,178,226,232,237,239-240,260,300,339,391
+src/story/glassdunes-people.js
+  s_9ca76055a220ed::t_65d5bdcd7e7823 49,60
+src/story/incal-data.js
+  s_9ca76055a220ed::t_c42d0ec16b7dc2 136,176,188,199-200,204,230,320,350,392,425,433,437,515,517,535,601-602,610,612,615,630,831
+src/story/moonfoundry-people.js
+  s_9ca76055a220ed::t_865e72b5c0defa 68,79,110,134,136,140,177,189
+src/story/night-train-data.js
+  s_9ca76055a220ed::t_7fc4a2fbdbb499 51,117
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_487f80972e683a 82,130,139,158,170,187,214,234,256,359,367,370,372,398,409,418,437
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_6604b2d6b8e057 108,126,159,171,173,188,207,213,220,247,258,267,302,352
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_e5f81593ed6323 83
+src/story/shop-data.js
+  s_9ca76055a220ed::t_0e8af7ef50ccc1 48,78,92,106,120,134,148,161,188,191,202,216,242,255,268
+src/story/spacecity-people.js
+  s_9ca76055a220ed::t_997c12c49c7e0c 63,81,104,120,148,159,184,186,190
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_e97d440bde44f0 84,125,155,176,192,194-196,215,223
+src/story/underwater-people.js
+  s_9ca76055a220ed::t_4405cd940495be 63,74-75,148,157,197,207
+src/temples/arzach-data.js
+  s_9ca76055a220ed::t_fa83118aaeeaaf 35,40,48,53,64,67
+src/temples/arzach2-data.js
+  s_9ca76055a220ed::t_286b116e63b2b7 34,48,51,53,61,63,67
+src/temples/bazaar-data.js
+  s_9ca76055a220ed::t_5b3d021aaf3557 29,35,40,49,64,66,69-70
+src/temples/buried-data.js
+  s_9ca76055a220ed::t_86177bf0258ff2 27,34,39,47,50,63,67
+src/temples/desert-data.js
+  s_9ca76055a220ed::t_fd5fc9dd43a435 28,48,59,62,74,78
+src/temples/edena-data.js
+  s_9ca76055a220ed::t_307a4e8c887a6d 28,35,40,48,51,64,66,69-70
+src/temples/garage-data.js
+  s_9ca76055a220ed::t_4a3ca97061bb4a 30,37,42,51,54,70,79
+src/temples/incal-data.js
+  s_9ca76055a220ed::t_4ead056677f24b 29,49,64,68
+src/temples/moonfoundry-data.js
+  s_9ca76055a220ed::t_8fa1b26d2cfe7e 32,35,42,48,57,79,91
+src/temples/perdide-data.js
+  s_9ca76055a220ed::t_b80791a7fe54ef 27,34,39,47,52,62,66
+src/temples/perdide2-data.js
+  s_9ca76055a220ed::t_7a40e9f67c7f5a 27,34,39,47,52,62,66
+src/temples/spacecity-data.js
+  s_9ca76055a220ed::t_6eb34acf0eaf1f 30,37,43,52,75,84
+src/temples/spheres-data.js
+  s_9ca76055a220ed::t_b9daa4d37e2489 27,34,39,47,52,62,66
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_54dfc451dafa16 29,36,42,51,72,82
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_8eb2af30aa7ff4 49,51-52,166
+tests/dialogue-voices.test.js
+  s_9ca76055a220ed::t_01bd117bda8a53 1-81
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_80d12a160a061d 379
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b8ec927ad8c2afef48c98ed129ab987f9251b2c3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
