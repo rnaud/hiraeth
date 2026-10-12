@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_d4a516712a6262 5-8
+docs/systems/audio.md
+  s_9ca76055a220ed::t_54547db90b6e4c 379-396
+src/audio.js
+  s_9ca76055a220ed::t_d1cf0c4d0ece3a 19,179-185,936,943,1831,1837,1973-2022,2026,2028,2030-2033,2052,2054-2055,2065,2068-2070,2073,2079,2085,2091,2098,2244-2245
+src/changelog-media.js
+  s_9ca76055a220ed::t_df96ee07623a26 676-678
+src/changelog.js
+  s_9ca76055a220ed::t_5491f43f464f5f 11-14
+src/foes.js
+  s_9ca76055a220ed::t_46173d50022ff2 2183,2185,2189-2190,2192,2366,2503,2649,2670,2694,2789,2824
+tests/foe-voices.test.js
+  s_9ca76055a220ed::t_8de989d1e4fb80 168-258
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "610c4f4a5be590c416d89bef2bace4e4ffb7be65",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
