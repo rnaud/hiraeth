@@ -553,6 +553,14 @@ a `Switch`'s `unmet` says why, a `Bank`'s `woke` says what it started), and the 
 its coffer. The way back down is the Pendulum Hall's: over the climb's ledge, down its stair. A state the whole house
 reads, and a loop back to the first half.
 
+An arena in the three houses that had none, each its small key for a later door that keeps its own condition: the
+**Whale-House**'s Horn Store, off the Sounding Hall's south wall, a wing of the hub (`underwater.js` `STORE`; the Song
+Passage's door `d4` takes the key, a room past the chest, with its horn's note); the **Casting-House**'s Sand Room, south off the Mould Room before the
+chest (`moonfoundry.js` `SAND`; its key carried from the first rooms to the last door, the Founders' Door `dF`, with the
+founders' moon hot in its cradle); the **Footprint**'s Keepers' Lodge, west off the Keepers' Gallery (`spheres.js`
+`LODGE`; the Hall of the Unseen's far door `d4` takes it with its eye and the sphere on the walker's print). Each wing's
+side that meets its hall is that hall's own wall (`omit`), so no two walls lie face on face (tests/zfight.test.js).
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

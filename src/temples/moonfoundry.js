@@ -3,7 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Brazier, Flame, Platform, Bridge, Hammer, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Switch, Brazier, Flame, Platform, Bridge, Hammer, Mark, Pit, Key } from './pieces.js';
 import { founderModel } from './guardian-founder.js';
 import { chestMound } from '../boxes/mound.js';
 
@@ -29,6 +29,10 @@ import { chestMound } from '../boxes/mound.js';
 //   the Mould Room        the stone moon from the Pouring Floor rolled into the great mould wakes the seam-eye over it
 //                         (lidded until a moon fills the mould): the door north to the Crucible Stair. On a shelf up a
 //                         stair a second stone moon waits by the hoist's counterweight pan
+//   the Sand Room         (v1.53, issue #23: south off the Mould Room, an arena) the founders' moulding sand in bins;
+//                         its door shuts behind you while its keepers stand. Won, the small key's cage sinks: the
+//                         Founders' Door takes it at the end, with the founders' moon hot in its cradle (a key carried
+//                         from the first rooms to the last door)
 //   the Crucible Stair    the hoist up to the chest: it runs only while its pan in the Mould Room holds a weight (stand
 //                         in it yourself and it rises without you; the stone moon stands in for you)
 //   the Tong Chamber      the makers' chest: the FOUNDERS' TONGS (src/items.js 'tongs'). A try by the dais: an iron moon
@@ -85,17 +89,26 @@ export const PALETTE = {
 
 // the rooms' places (local metres): the hub's centre, the chest's chamber, the arena's centre
 const FZ = 28, FR = 14, TZ = 66.9, CW = 108.7, HR = 20;
+/** (v1.53) The Sand Room, south off the Mould Room (an arena): its north side the Mould Room's south wall. */
+export const SAND = { x: -27, z: 11.8, w: 12, d: 12, zone: { min: [-33, -1, 5.8], max: [-21, 9, 17.8] } };
+/** The Sand Room's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arS', room: 'sand', zone: SAND.zone, doors: ['dR'], extra: 2,
+  shut: 'The door grinds shut behind you. Out of the sand bins, something heavy climbs.',
+  won: 'The last of them falls still in the sand. The key’s cage sinks, and the door lets go.',
+}];
 
 export const LOGIC = {
   id: 'moonfoundry', entry: 'threshold', gadget: 'tongs',
   rooms: {
     threshold: { checkpoint: true }, floor: { checkpoint: true }, moulds: { checkpoint: true }, stair: { checkpoint: true }, tongs: { checkpoint: true },
-    furnace: { checkpoint: true }, furnaceFar: {}, scales: { checkpoint: true }, ante: { checkpoint: true }, hall: { boss: true }, out: {},
+    furnace: { checkpoint: true }, furnaceFar: {}, scales: { checkpoint: true }, sand: { checkpoint: true }, ante: { checkpoint: true }, hall: { boss: true }, out: {},
   },
   links: [
     { a: 'threshold', b: 'floor' },
     { a: 'floor', b: 'moulds' },
     { a: 'moulds', b: 'stair', door: 'dM' },        // the seam-eye over the great mould
+    { a: 'moulds', b: 'sand', door: 'dR' },         // the Sand Room, south off the Mould Room (v1.53): an arena, the small key
     { a: 'stair', b: 'tongs', door: 'hoist' },      // the hoist, while its pan in the Mould Room holds a weight
     { a: 'tongs', b: 'furnace', door: 'dP' },       // the Pincer Passage's door, a room on from the chest (one room with it)
     { a: 'furnace', b: 'furnaceFar', door: 'brH' }, // the bridge over the molten channel: the hot moon in the hooded mould
@@ -141,7 +154,11 @@ export const LOGIC = {
     mG: { type: 'drum', room: 'floor', plate: 'pG', plateAt: 1, start: 0, needs: ['tongs'] },
     pG: { type: 'plate', room: 'floor' },
     bG: { type: 'brazier', room: 'floor', when: { drumOn: ['mG', 'pG'] } },
-    dF: { type: 'door', opens: { lit: 'bG' }, latch: true },
+    dF: { type: 'door', lock: 'small', opens: { lit: 'bG' }, latch: true },   // (and since v1.53 the Sand Room's small key)
+    // the Sand Room: its keepers beaten, the small key's cage sinks (v1.53)
+    arS: { type: 'arena', room: 'sand' },
+    kS: { type: 'key', kind: 'small', room: 'sand', when: { lit: 'arS' } },
+    dR: { type: 'door', opens: null },
     dA: { type: 'door', opens: null },                                          // the arena's door: shut while the founder fights
     // the casting cradle in the arena: an iron moon in it, and the founder stops to look (its last phase wants it)
     mA: { type: 'drum', room: 'hall', plate: 'pA', plateAt: 1, start: 0, needs: ['tongs'] },
@@ -199,6 +216,24 @@ function cradle(K, mat, x, y, z, r, n = 5) {
     const a = (i / n) * TAU + 0.3;
     K.add(mat, T(new THREE.BoxGeometry(0.28, 1.5, 0.4), [x + Math.sin(a) * (r + 0.2), y + 0.75, z + Math.cos(a) * (r + 0.2)], [0, a, Math.sin(a) * 0.25]));
   }
+}
+
+/**
+ * (v1.53, issue #23) The Sand Room, south off the Mould Room: an arena among the founders' bins of moulding sand; won,
+ * the small key's cage sinks (for the Founders' Door, at the end).
+ */
+function sandRoom(rt, K, M, { iron }) {
+  const add = (P, o) => rt.add(P, o);
+  const S = SAND, z1 = S.z + S.d / 2;
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: 9, roof: true, omit: ['n'] });   // (its north wall the Mould Room's, the doorway in it)
+  add(Door, { id: 'dR', at: [S.x, 0, z1 + 0.6], w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  const sand = { paint: new THREE.Color('#b98b5a'), smooth: false, side: THREE.FrontSide };
+  for (const [x, z] of [[-4, -3.6], [4, -3.6], [-4.2, 2.2], [4.2, 2.2]]) {
+    K.both(iron, box(2.6, 1.0, 2.0, S.x + x, 0.5, S.z + z));
+    K.add(sand, T(new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.15, 0.45, 0.85), [S.x + x, 1.0, S.z + z]));
+  }
+  add(Key, { id: 'kS', at: [S.x, 0, S.z - S.d / 2 + 1.6], yaw: 0 });
+  add(Mark, { room: 'sand', at: [S.x, 0, S.z + 3.2], yaw: Math.PI });
 }
 
 // ------------------------------------------------------------------ inside
@@ -264,7 +299,7 @@ function layout(rt) {
 
   // ---- the Mould Room (x -38..-16): the great mould and its seam-eye; the shelf with the hoist's pan
   const MX = -27;
-  K.hall({ x: MX, z: FZ, w: 22, d: 18, y: 0, h: 14, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', w: 5, h: 6.4 }, { side: 'n', at: 6, w: 5, h: 6.4 }] });
+  K.hall({ x: MX, z: FZ, w: 22, d: 18, y: 0, h: 14, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', w: 5, h: 6.4 }, { side: 'n', at: 6, w: 5, h: 6.4 }, { side: 's', at: SAND.x - MX, w: 5, h: 6.4 }] });   // (and south into the Sand Room, v1.53)
   add(Plate, { id: 'pM', at: [MX, 0, FZ], r: 1.2 });
   K.add(M.dark, T(annulus(1.7, 2.6, 0.06, 32), [MX, 0.05, FZ]));
   K.add(ember, T(annulus(2.6, 2.75, 0.04, 32), [MX, 0.06, FZ]));   // (the mould's seam)
@@ -421,13 +456,15 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, 0, CW), r: HR, y: K.world(0, 0, 0).y };
 
+  // (the wing last: its mark after the others, so the machines' ids by mark stay as they were)
+  sandRoom(rt, K, M, { iron });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(-41, -4, -3), V(44, 34, CW + HR + 12)),
     gadget: { at: W(SX, 9.62, TZ).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 0.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 12], [0, 8, FZ, 20], [MX, 7, FZ, 16], [SX, 10, 46, 16], [SX, 14, TZ, 16], [-3.7, 13, TZ, 12], [8, 14, TZ, 20], [28, 14, TZ, 18], [18, 4, TZ, 14],
+    lights: [[0, 6, 6, 12], [0, 8, FZ, 20], [MX, 7, FZ, 16], [SAND.x, 6, SAND.z, 11], [SX, 10, 46, 16], [SX, 14, TZ, 16], [-3.7, 13, TZ, 12], [8, 14, TZ, 20], [28, 14, TZ, 18], [18, 4, TZ, 14],
       [WX, 10, WZ, 24], [0, 4, 65, 18], [0, 12, CW, 30]],
     guardian: { def: { ...LAST_FOUNDER, onHit: founderHit, openFor: founderOpenFor }, model, arena },
   };
@@ -565,7 +602,7 @@ function change(scene, level, rt) {
 
 export const MOONFOUNDRY_TEMPLE = {
   id: 'moonfoundry', levelId: 'moonfoundry', name: 'The Casting-House', doorLabel: 'door of the Casting-House',
-  gadget: 'tongs', gadgetBox: 'moonfoundry.temple.tongs', arenaDoor: 'dA',
+  gadget: 'tongs', gadgetBox: 'moonfoundry.temple.tongs', arenaDoor: 'dA', arenas: ARENAS,
   origin: [-50, 1600, -180], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

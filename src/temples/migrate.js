@@ -130,6 +130,13 @@ export const LAYOUTS = {
       { if: ['open.gN', 'boss'], set: { 'unlocked.d6': 1, 'found.kB': true, 'drum.bK': 0.167 } },   // (spacecity.js PERCH.plateAt: tests/temples.test.js checks)
     ],
   },
+  // v1.53: an arena in three houses that had none, each its small key for a later door (with its own condition). Past
+  // that door: its key in it, the arena won. The Whale-House's Horn Store (off the Sounding Hall's south wall) and the
+  // Song Passage's door (past the chest: past the tank, its key in it); the Casting-House's Sand Room (south off the Mould Room) and the Founders' Door; the Footprint's
+  // Keepers' Lodge (west off the Keepers' Gallery) and the Hall of the Unseen's far door
+  underwater: { v: 2, steps: [{ if: ['lit.e5', 'open.dK', 'open.dL', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arH': true } }] },
+  moonfoundry: { v: 2, steps: [{ if: ['open.dF', 'boss'], set: { 'unlocked.dF': 1, 'found.kS': true, 'lit.arS': true } }] },
+  spheres: { v: 2, steps: [{ if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arL': true } }] },
   // v1.49: the Founders' Belfry's west store an arena. Past the Hall of Stones' door: its small key in it, the store won
   arzach2: {
     v: 2,

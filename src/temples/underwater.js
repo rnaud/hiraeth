@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Platform, Glass, EchoEar, Dish, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Switch, Platform, Glass, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
 import { listenerModel } from './guardian-listener.js';
 
 // The Underwater City's temple: the Whale-House, the makers' sounding-house of shell and glass on the sea floor north
@@ -41,6 +41,10 @@ import { listenerModel } from './guardian-listener.js';
 //                         behind the keepers' door: its eye opens the door onto the hall (the shortcut back), and the
 //                         landing's dish, woken by a ball on its footstone, carries the horn's note to its twin high over
 //                         the Listener's Door, where the ear hears it (the key decoupled from its lock)
+//   the Horn Store        (v1.53, issue #23: off the Sounding Hall's south wall, a wing of the hub, an arena) where the
+//                         makers kept their spare horns, shells stacked to the roof; its door shuts behind you while its
+//                         keepers stand. Won, the small key's cage sinks: the Song Passage's door takes it, a room past
+//                         the chest, with its horn's note
 //   the Throat            down from the Listener's Door, a long stair under the house
 //   the Listener's Hall   the guardian (organic: its meter is calm). When it stops and spreads its great ear, sound the
 //                         horn close by. From its second phase it shuts its ear to anything near it, and only the hall's
@@ -98,7 +102,7 @@ export const LOGIC = {
   id: 'underwater', entry: 'threshold', gadget: 'horn',
   rooms: {
     threshold: { checkpoint: true }, hall: { checkpoint: true }, pools: { checkpoint: true }, shells: { checkpoint: true }, horn: { checkpoint: true },
-    tank: { checkpoint: true }, gallery: { checkpoint: true }, ante: { checkpoint: true }, arena: { boss: true }, out: {},
+    tank: { checkpoint: true }, gallery: { checkpoint: true }, store: { checkpoint: true }, ante: { checkpoint: true }, arena: { boss: true }, out: {},
   },
   links: [
     { a: 'threshold', b: 'hall' },
@@ -108,6 +112,7 @@ export const LOGIC = {
     { a: 'horn', b: 'tank', door: 'd4' },         // the Song Passage's door, held while its horn rings (a room on from the chest)
     { a: 'hall', b: 'gallery', door: 'dK' },      // the keepers' door: the shortcut back, opened from the landing
     { a: 'tank', b: 'gallery', door: 'rungs' },   // the glass climbed while the shelf's ear rings
+    { a: 'hall', b: 'store', door: 'dS' },        // the Horn Store, off the hall's south wall (v1.53): an arena, the small key
     { a: 'hall', b: 'ante', door: 'dL' },         // the Listener's Door: its ear hears only the landing's dish
     { a: 'ante', b: 'arena', door: 'dA' },
     { a: 'arena', b: 'out', door: 'd5' },
@@ -133,7 +138,7 @@ export const LOGIC = {
     eT: { type: 'switch', room: 'horn', needs: ['horn'] },
     // the Song Passage: the door held while its horn rings; the ball whose groove runs under it, to the tank's dish
     e4: { type: 'switch', room: 'horn', needs: ['horn'], hold: HOLD.door },
-    d4: { type: 'door', opens: { lit: 'e4' } },
+    d4: { type: 'door', lock: 'small', opens: { lit: 'e4' } },     // (and since v1.53 the Horn Store's small key)
     b5: { type: 'drum', room: 'tank', plate: 'p5', plateAt: 1, start: 0 },
     p5: { type: 'plate', room: 'tank' },
     // the Tank Hall: the shelf's ear, through the dish (awake with the ball on its footstone), held: the glass's rungs
@@ -146,6 +151,10 @@ export const LOGIC = {
     pL: { type: 'plate', room: 'gallery' },
     eL: { type: 'switch', room: 'gallery', needs: ['horn'], when: { drumOn: ['bL', 'pL'] } },
     dL: { type: 'door', opens: { lit: 'eL' }, latch: true },
+    // the Horn Store: its keepers beaten, the small key's cage sinks (v1.53)
+    arH: { type: 'arena', room: 'store' },
+    kS: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arH' } },
+    dS: { type: 'door', opens: null },
     dA: { type: 'door', opens: null },                                   // the arena's door: shut while the Listener fights
     // the Listener's Hall: a ball on a dish's footstone (its last phase wants one there)
     bW: { type: 'drum', room: 'arena', plate: 'pW', plateAt: 1, start: 0 },
@@ -156,6 +165,16 @@ export const LOGIC = {
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
+
+/** (v1.53) The Horn Store, off the Sounding Hall's south wall east of the porch (an arena): its north side the hall's wall. */
+export const STORE = { x: 13.8, z: 7.4, w: 10, d: 12, zone: { min: [8.8, -1, 1.4], max: [18.8, 9, 13.4] } };
+
+/** The Horn Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arH', room: 'store', zone: STORE.zone, doors: ['dS'], extra: 2,
+  shut: 'The door grinds shut behind you. Among the stacked shells, something stirs and sings.',
+  won: 'The last of them falls quiet among the shells. The key’s cage sinks, and the door lets go.',
+}];
 
 export const LISTENER = {
   kind: 'organic', name: 'the Listener', final: 'touch', touch: 'lay a hand on its shell', speed: 1.4, wakeTime: 3.2,
@@ -186,6 +205,26 @@ function listenerHit(g, part, mode) {
   if (mode === 'push') { g.rt.notice('The shove only rocks it. It isn’t a thing to push: it is one to sing to.', 'ls.push'); return true; }
   g.rt.notice('The water runs off its shell. It is listening for a note.', 'ls.fluid');
   return true;
+}
+
+/**
+ * (v1.53, issue #23) The Horn Store, off the Sounding Hall's south wall: an arena among the makers' spare horns and their
+ * shells; won, the small key's cage sinks (for the Song Passage's door, past the chest, with its horn's note).
+ */
+function store(rt, K, M, { brass, whorl }) {
+  const SH = 0;
+  const add = (P, o) => rt.add(P, o);
+  const S = STORE;
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: SH, h: 9, roof: true, omit: ['n'] });   // (its north wall the hall's, the doorway in it)
+  add(Door, { id: 'dS', at: [S.x, SH, 14], w: 3.2, h: 5 });   // (open: it shuts behind you while they stand)
+  // spare horns on racks along the walls, shells stacked in the corners
+  for (const z of [S.z - 3.2, S.z + 1.6]) {
+    K.both(brass, box(0.3, 2.6, 0.3, S.x + S.w / 2 - 1.2, SH + 1.3, z));
+    K.add(brass, T(lathe([[0.12, 0], [0.25, 0.6], [0.6, 1.1], [1.1, 1.4], [1.15, 1.45]], 14).rotateZ(-Math.PI / 2), [S.x + S.w / 2 - 1.6, SH + 2.6, z]));
+  }
+  for (const [x, z] of [[-3.6, -4.2], [-3.8, 3.4]]) whorl(S.x + x, SH, S.z + z, 0.9, true, 6);
+  add(Key, { id: 'kS', at: [S.x, SH, S.z - S.d / 2 + 1.6], yaw: 0 });
+  add(Mark, { room: 'store', at: [S.x - 0.5, SH, S.z + 2.6], yaw: Math.PI });
 }
 
 // ------------------------------------------------------------------ inside
@@ -234,7 +273,7 @@ function layout(rt) {
 
   // ---- the Sounding Hall (x -18..18, z 14..46): the hub
   K.hall({ x: 0, z: HZ, w: 36, d: 32, y: 0, h: 20, roof: true, doors: [
-    { side: 's', w: 6, h: 7 }, { side: 'w', w: 5, h: 6.4 }, { side: 'e', w: 5, h: 6.4 },
+    { side: 's', w: 6, h: 7 }, { side: 'w', w: 5, h: 6.4 }, { side: 'e', w: 5, h: 6.4 }, { side: 's', at: STORE.x, w: 3.2, h: 5 },   // (and the Horn Store's, v1.53)
     { side: 'n', at: HCX, w: 5, h: 6.4 }, { side: 'n', at: 0, w: 5, h: 6.4 }, { side: 'n', at: 13, w: 5, h: 6.4 },
   ] });
   // the great shell hung from the roof (drawn), on brass chains; a whale's spiral inlaid in the floor under it
@@ -408,6 +447,8 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, AY, AZ), r: AR, y: K.world(0, AY, 0).y };
 
+  // (the wing last: its mark after the others, so the machines' ids by mark stay as they were)
+  store(rt, K, M, { brass, whorl });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
@@ -415,7 +456,7 @@ function layout(rt) {
     gadget: { at: W(HCX, PT, HCZ).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, AY + 0.5, E1 - 0.4), r: 1.5, to: V(KEEPERS_HATCH.x, 0.1, KEEPERS_HATCH.z), heading: KEEPERS_HATCH.heading }],
     lights: [[0, 6, 6, 12], [0, 12, HZ, 26], [0, 4, 40, 14], [-32, 7, HZ, 16], [32, 8, HZ, 16], [HCX, 8, HCZ, 14], [HCX, 5, 71, 10], [-18, 10, TZ, 22], [-1, 13, TZ, 14],
-      [12.8, 14, 88, 16], [13, 6, 60, 14], [0, -4, 64, 14], [0, AY + 4, 82, 12], [0, AY + 7, AZ, 28]],
+      [12.8, 14, 88, 16], [STORE.x, 5, STORE.z, 11], [13, 6, 60, 14], [0, -4, 64, 14], [0, AY + 4, 82, 12], [0, AY + 7, AZ, 28]],
     guardian: { def: { ...LISTENER, onHit: listenerHit }, model, arena },
   };
 }
@@ -527,7 +568,7 @@ function change(scene, level, rt) {
 
 export const UNDERWATER_TEMPLE = {
   id: 'underwater', levelId: 'underwater', name: 'The Whale-House', doorLabel: 'door of the Whale-House',
-  gadget: 'horn', gadgetBox: 'underwater.temple.horn', arenaDoor: 'dA',
+  gadget: 'horn', arenas: ARENAS, gadgetBox: 'underwater.temple.horn', arenaDoor: 'dA',
   origin: [0, 1600, -150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

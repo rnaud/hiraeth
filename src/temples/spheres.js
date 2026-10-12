@@ -4,7 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, printGeometry } from './pieces.js';
+import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, Key, printGeometry } from './pieces.js';
 import { echoModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 
@@ -35,6 +35,9 @@ import { chestMound } from '../boxes/mound.js';
 //                          eye only the lens shows high on the near wall, across the chasm: both open the far door
 //   the Keepers' Gallery   from the far landing back round to the Lens Chamber: a door plain wall from the chest's
 //                          side, opened by an eye on its far side only the lens shows (the shortcut)
+//   the Keepers' Lodge     (v1.53, issue #23: west off the Keepers' Gallery, an arena) where the walker's keepers rested;
+//                          its door shuts behind you while they stand. Won, the small key's cage sinks: the far door
+//                          takes it, with the eye and the sphere on the walker's print
 //   the Echo's Hall        the guardian (a being of sound: you calm it). It sings, and one of the three
 //                          resonant spheres round the hall glows with the note: splash that one. Through the lens
 //                          the sphere that answers wears the walker's print (taught in its second phase); in its last
@@ -72,7 +75,7 @@ export const LOGIC = {
   id: 'spheres', entry: 'threshold', gadget: 'lens',
   // (the Lens Chamber and the Hall of the Unseen's near ledge are one room: the passage between them is open, and
   // nothing past the chest's room opens without the lens)
-  rooms: { threshold: { checkpoint: true }, spheres: { checkpoint: true }, pool: { checkpoint: true }, lens: { checkpoint: true }, unseenFar: {}, gallery: {}, hall: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, spheres: { checkpoint: true }, pool: { checkpoint: true }, lens: { checkpoint: true }, unseenFar: {}, gallery: {}, lodge: { checkpoint: true }, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'spheres' },
     { a: 'spheres', b: 'pool', door: 'd1' },
@@ -80,6 +83,7 @@ export const LOGIC = {
     { a: 'lens', b: 'unseenFar', door: 'br1' },
     { a: 'unseenFar', b: 'gallery' },                // the far landing's west door, into the keepers' gallery
     { a: 'lens', b: 'gallery', door: 'sc' },          // the gallery's door into the Lens Chamber: opened from its far side
+    { a: 'gallery', b: 'lodge', door: 'dR' },        // the Keepers' Lodge, west off the gallery (v1.53): an arena, the small key
     { a: 'unseenFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
   ],
@@ -109,9 +113,13 @@ export const LOGIC = {
     p4: { type: 'plate', room: 'unseenFar' },
     pf2: { type: 'plate', room: 'unseenFar' },
     ball4: { type: 'drum', room: 'unseenFar', stops: { pf1: 0.3, p4: 0.62, pf2: 0.9 }, start: 0 },
-    d4: { type: 'door', opens: { all: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }] }, latch: true },
+    d4: { type: 'door', lock: 'small', opens: { all: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }] }, latch: true },   // (and since v1.53 the Lodge's small key)
     ssc: { type: 'switch', room: 'gallery', needs: ['lens'] },          // the gallery's eye by the door, its far side
     sc: { type: 'door', opens: { lit: 'ssc' }, latch: true },
+    // the Keepers' Lodge: its keepers beaten, the small key's cage sinks (v1.53)
+    arL: { type: 'arena', room: 'lodge' },
+    kS: { type: 'key', kind: 'small', room: 'lodge', when: { lit: 'arL' } },
+    dR: { type: 'door', opens: null },
     echo: { type: 'boss', room: 'hall', needs: ['gun', 'lens'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
@@ -231,6 +239,14 @@ export const STONES = (() => {
 // the keepers' gallery: where it meets the hall's west door (z, by the far landing) and where it starts (z, by the
 // Lens Chamber's west door)
 const GALLERY_Z = 129, GALLERY_S = 84.4;
+/** (v1.53) The Keepers' Lodge, west off the Keepers' Gallery (an arena): its east side the gallery's west wall. */
+export const LODGE = { x: -22.8, z: 95.5, w: 14, d: 12, zone: { min: [-29.8, -1, 89.5], max: [-15.8, 9, 101.5] } };   // (clear of the hill tree's canopy in the meadow far below: tests/spheres.test.js)
+/** The Lodge's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arL', room: 'lodge', zone: LODGE.zone, doors: ['dR'], extra: 2,
+  shut: 'The door grinds shut behind you. In the dark of the lodge, the keepers wake.',
+  won: 'The last of them goes still. The key’s cage sinks, and the door lets go.',
+}];
 function echoHit(g, part, mode) {
   if (mode === 'push') { g.add(-0.05, 'push'); g.rt.notice('The shove scatters its rings. It sings louder, frightened.', 'echo.push'); return true; }
   g.rt.notice('The fluid passes through its light. It wants an answer, not water.', 'echo.fluid');
@@ -343,7 +359,7 @@ function layout(rt) {
   const GX0 = -15.4, GX1 = -12.2;
   K.slab(GX0, GALLERY_S, GX1, GALLERY_Z + 2.4, 0, 0.8);
   K.slab(GX1 - 0.1, GALLERY_Z - 2.2, -10.9, GALLERY_Z + 2.2, 0, 0.8);    // (the step through the hall's west door)
-  K.wall(GX0, GALLERY_S, GX0, GALLERY_Z + 2.4, 0, 6.5, { t: 0.8 });
+  K.wall(GX0, GALLERY_S, GX0, GALLERY_Z + 2.4, 0, 6.5, { t: 0.8, holes: [{ at: LODGE.z - GALLERY_S, w: 4, h: 6 }] });   // (the Lodge's doorway, v1.53)
   K.wall(GX0, GALLERY_Z + 2.4, GX1, GALLERY_Z + 2.4, 0, 6.5, { t: 0.8 });
   K.wall(GX0, GALLERY_S, -10.2, GALLERY_S, 0, 6.5, { t: 0.8 });
   K.wall(GX1 + 0.4, C3 + 2.2, GX1 + 0.4, U0 - 0.6, 0, 6.5, { t: 0.8 });
@@ -385,15 +401,32 @@ function layout(rt) {
   const arena = { center: K.world(0, 0, CH), r: HR, y: K.world(0, 0, 0).y };
   rt.resonators = res;
 
+  // (the wing last: its mark after the others, so the machines' ids by mark stay as they were)
+  lodge(rt, K, M, { GX0 });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -14, -3), V(24, 40, CH + HR + 12)),
+    bounds: new THREE.Box3(V(-32, -14, -3), V(24, 40, CH + HR + 12)),
     gadget: { at: W(0, 0.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 0.5, CH + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [0, 6, 59, 20], [0, 8, C3, 16], [0, 8, U0 + 10, 20], [0, 8, U0 + 28, 18], [0, 10, CH, 30]],
+    lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [0, 6, 59, 20], [0, 8, C3, 16], [0, 8, U0 + 10, 20], [0, 8, U0 + 28, 18], [LODGE.x, 5, LODGE.z, 11], [0, 10, CH, 30]],
     guardian: { def: { ...ECHO, onHit: echoHit, onStrike: () => {} }, model, arena },
   };
+}
+
+/**
+ * (v1.53, issue #23) The Keepers' Lodge, west off the Keepers' Gallery: an arena where the walker's keepers rested, their
+ * stone benches round the walls; won, the small key's cage sinks (for the Hall of the Unseen's far door).
+ */
+function lodge(rt, K, M, { GX0 }) {
+  const add = (P, o) => rt.add(P, o);
+  const Lg = LODGE;
+  K.hall({ x: Lg.x, z: Lg.z, w: Lg.w, d: Lg.d, y: 0, h: 8, roof: true, omit: ['e'] });   // (its east wall the gallery's, the doorway in it)
+  add(Door, { id: 'dR', at: [GX0, 0, Lg.z], yaw: Math.PI / 2, w: 4, h: 6 });   // (open: it shuts behind you while they stand)
+  for (const z of [Lg.z - Lg.d / 2 + 0.9, Lg.z + Lg.d / 2 - 0.9]) K.both(M.stone, box(8, 0.6, 1.0, Lg.x - 1, 0.3, z));   // (benches)
+  for (const s of [-1, 1]) K.both(M.stone, new THREE.SphereGeometry(0.7, 14, 8).translate(Lg.x - 5.5, 0.7, Lg.z + s * 3.6));
+  add(Key, { id: 'kS', at: [Lg.x - 1.2, 0, Lg.z], yaw: Math.PI / 2 });   // (in the middle: the meadow lies far below the lodge's walls)
+  add(Mark, { room: 'lodge', at: [Lg.x + 3.4, 0, Lg.z - 2.2], yaw: -Math.PI / 2 });
 }
 
 // ------------------------------------------------------------------ outside: the Footprint in the meadow
@@ -525,7 +558,7 @@ function change(scene, level, rt) {
 
 export const SPHERES_TEMPLE = {
   id: 'spheres', levelId: 'spheres', name: 'The Footprint', doorLabel: 'door in the Footprint’s heel',
-  gadget: 'lens', gadgetBox: 'spheres.temple.lens', arenaDoor: 'd4',
+  gadget: 'lens', gadgetBox: 'spheres.temple.lens', arenaDoor: 'd4', arenas: ARENAS,
   origin: [-120, 2000, -260], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
