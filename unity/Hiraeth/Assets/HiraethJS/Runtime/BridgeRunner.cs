@@ -493,6 +493,7 @@ namespace Hiraeth.Bridge
                 go.Set();
                 try { BridgeHost.RunTaken(last); }
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); }
+                GcStep();
                 return;
             }
             try
@@ -541,6 +542,28 @@ namespace Hiraeth.Bridge
             if (Mathf.Abs(next - s) < 0.001f) return;
             urp.renderScale = next; dynAt = Time.realtimeSinceStartup;
             Debug.Log($"Hiraeth bridge: render scale {s:0.00} -> {next:0.00} (the GPU {g:0.0} ms)");
+        }
+        /// <summary>
+        /// The managed heap's collections, tests (issue #113: a stall of 30-60 ms every ~3 s at the City-Shaft, whose
+        /// period follows how much the frame allocates, the script's command buffer copied into a new byte[] each frame
+        /// among it): -gc-slice MS, the incremental collector's slice; -gc-step MS, the collector driven by hand, MS of it a
+        /// frame once the script is let go (GarbageCollector.GCMode Manual; a full collection past 1.5 GB as a guard).
+        /// </summary>
+        static readonly float gcStepMs = BridgeArgs.Arg("-gc-step") is string gs && float.TryParse(gs, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float gsv) ? gsv : 0;
+        static bool gcSet;
+        static void GcStep()
+        {
+            if (!gcSet)
+            {
+                gcSet = true;
+                if (BridgeArgs.Arg("-gc-slice") is string sl && float.TryParse(sl, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float slv))
+                    UnityEngine.Scripting.GarbageCollector.incrementalTimeSliceNanoseconds = (ulong)(slv * 1e6);
+                if (gcStepMs > 0) UnityEngine.Scripting.GarbageCollector.GCMode = UnityEngine.Scripting.GarbageCollector.Mode.Manual;
+                Debug.Log($"Hiraeth bridge: the managed GC {UnityEngine.Scripting.GarbageCollector.GCMode}, incremental {UnityEngine.Scripting.GarbageCollector.isIncremental}, slice {UnityEngine.Scripting.GarbageCollector.incrementalTimeSliceNanoseconds / 1e6:0.0} ms{(gcStepMs > 0 ? $", {gcStepMs} ms a frame by hand" : "")}");
+            }
+            if (gcStepMs <= 0) return;
+            if (GC.GetTotalMemory(false) > 1500L << 20) GC.Collect();
+            else UnityEngine.Scripting.GarbageCollector.CollectIncremental((ulong)(gcStepMs * 1e6));
         }
         bool booted;
         static readonly bool deferLast = BridgeArgs.Flag("-ops-after");

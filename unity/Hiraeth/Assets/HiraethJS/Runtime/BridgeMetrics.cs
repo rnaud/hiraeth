@@ -56,7 +56,7 @@ namespace Hiraeth.Bridge
         // the load
         float firstNode = -1, settled = -1, lastGrowth; int lastNodes;
         static readonly float SlowMs = BridgeArgs.Arg("-slow-ms") is string sl && float.TryParse(sl, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float slv) ? slv : float.PositiveInfinity;
-        double warmSum, warmMax, nativeSum, nativeMax, lastWait; int warmFrames, warmSlow, nativeSlow, lateScript, lateOther;
+        double warmSum, warmMax, nativeSum, nativeMax, lastWait; int warmFrames, warmSlow, nativeSlow, lateScript, lateOther, gcSeen;
         public static float scriptEnvAt = -1, bundleAt = -1;
         // (seconds since launch from any thread: Unity's own clock may be read on the main thread only)
         static long baseTicks; static float baseAt;
@@ -136,8 +136,9 @@ namespace Hiraeth.Bridge
             if (dt > 1000 && steps.Length > 0) Write($"slow frame {dt:0} ms, its steps: {steps}; its ops made: {(made.Length > 0 ? made : "nothing")}");
             // (-slow-ms N: every frame from N ms on said once settled, with its steps, the script's wait and the frame timing: what
             // the frames that miss a refresh were doing; issue #113)
-            else if (settled >= 0 && dt >= SlowMs && dt <= 1000)
-                Write($"late frame {dt:0.0} ms: the wait on the script {frameWait:0.0}; steps {steps}" + (timedNow ? $"; cpu main {timing[0].cpuMainThreadFrameTime:0.0} render {timing[0].cpuRenderThreadFrameTime:0.0} gpu {timing[0].gpuFrameTime:0.0} present wait {timing[0].cpuMainThreadPresentWaitTime:0.0}" : ""));
+            int gcNow = GC.CollectionCount(0), gcs = gcNow - gcSeen; gcSeen = gcNow;
+            if (dt <= 1000 && settled >= 0 && dt >= SlowMs)
+                Write($"late frame {dt:0.0} ms: the wait on the script {frameWait:0.0}; managed GCs {gcs}, heap {GC.GetTotalMemory(false) >> 20} MB; steps {steps}" + (timedNow ? $"; cpu main {timing[0].cpuMainThreadFrameTime:0.0} render {timing[0].cpuRenderThreadFrameTime:0.0} gpu {timing[0].gpuFrameTime:0.0} present wait {timing[0].cpuMainThreadPresentWaitTime:0.0}" : ""));
             else if (made.Length > 0 && BridgeHost.opsCap > 0 && settled < 0) Write($"load: a frame of {dt:0} ms made {made}");
             // the load's stages
             if (firstNode < 0 && nodes > 0)
