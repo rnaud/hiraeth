@@ -364,6 +364,11 @@ namespace Hiraeth.Bridge
             // (BridgeCloth: the same numbers); -no-job-kick, -cloth-single as before
             BridgeCloth.NoKick = BridgeArgs.Flag("-no-job-kick");
             BridgeCloth.Single = BridgeArgs.Flag("-cloth-single");
+            // (-job-workers N: Unity's job workers, a test: the script's thread shares the console's eight cores with the main
+            // and render threads, the sound's and Unity's workers (seven by default))
+            int workers0 = Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount;
+            if (BridgeArgs.Arg("-job-workers") is string jw && int.TryParse(jw, out int jwn)) Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount = Mathf.Clamp(jwn, 1, Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount);
+            Debug.Log($"Hiraeth bridge: job workers {Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount} (of {workers0} by default, {SystemInfo.processorCount} processors)");
             // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
             // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before
 #if UNITY_WSA && !UNITY_EDITOR
