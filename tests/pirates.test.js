@@ -2,13 +2,15 @@
 // run played by the pilot at any frame rate, the charged shot's lock and burst, the roll, the repair rings, the
 // captain breaking off, the controls; the game's definition and its shapes.
 import test from 'node:test';
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FLY, BOSS, SCRIPT, KINDS, POINTS, CHIME_RATE, chimesFor, CHECKPOINTS, MERCY, BELTS, railX, railY, railPoint, courseRocks, seedOf, newRun, runStep, botInput, pirateInput, findLock, aimAt, aimTarget } from '../src/minigames/pirates-rules.js';
-import pirates, { pirateShapes, rocksFor, LOOK_SIZE, buildGunship, GUNSHIP_COLORS, tallyHtml, pirateControls, BEATEN, HURT } from '../src/minigames/pirates.js';
+import pirates, { piratePitch, pirateShapes, rocksFor, LOOK_SIZE, buildGunship, GUNSHIP_COLORS, tallyHtml, pirateControls, BEATEN, HURT } from '../src/minigames/pirates.js';
 import { checkGame } from '../src/minigames/index.js';
 import { optionValue, optionOffered } from '../src/minigames/kit/flow.js';
 import { WorldLabels } from '../src/minigames/kit/labels.js';
+import { setMotion } from '../src/feel.js';
 
 const play = (S, input, dt, until = 400) => { const ev = []; while (!S.done && S.t < until) ev.push(...runStep(S, typeof input === 'function' ? input(S) : input, dt)); return ev; };
 
@@ -219,14 +221,14 @@ test('the feel, as Star Fox: weight on the stick, a soft edge, a hard bank, the 
 // ------------------------------------------------------------------ issue #206: points then chimes, the hit, the reticle, the controls, the gunship
 /** The arena, built once (as the page does), and a session on it with a recording host. */
 let arena = null;
-function session({ flags = {}, to = null, sound = null } = {}) {
+function session({ flags = {}, to = null, sound = null, settings = {} } = {}) {
   if (!arena) { const scene = new THREE.Scene(); const gen = pirates.build(scene); let r; while (!(r = gen.next()).done); arena = { scene, level: r.value }; }
   const { scene, level } = arena;
   level.pirates.to = to; level.pirates.resume = null;
   const calls = [], kept = { ...flags };
   const state = { data: { flags: kept }, flag: (k) => kept[k], set: (k, v) => { kept[k] = v; } };
   const ctx = {
-    camera: new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 5000), level, scene, player: { object: {} }, sound, state, settings: {},
+    camera: new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 5000), level, scene, player: { object: {} }, sound, state, settings,
     sfx: { hurt: () => calls.push('sfx.hurt'), whoosh() {}, checkpoint() {} },
     setLives: (n) => calls.push(`lives ${n}`), setScore() {}, setFov() {}, flash: (t) => calls.push(`flash ${t}`), kick: () => calls.push('kick'),
     finish: (r) => calls.push({ finish: r }), speed() {}, option: (id) => optionValue(pirates, state, id),
@@ -413,4 +415,43 @@ test('the game: a complete definition, its controls in Xbox / PlayStation form, 
       assert.ok(p.geo.attributes.normal && p.geo.attributes.uv, `${kind}: normals and uvs (one program for all)`);
     }
   }
+});
+
+test('the first flight follows the jets setting; Reduce motion or Camera shake at 0: a hit neither shakes the view nor flares the edge (issue #230)', () => {
+  // the pitch: the game's own setting until the card offers it, then the card's choice (the setting again until one is made)
+  assert.equal(piratePitch({ settings: { invertFlight: true }, state: { flag: () => undefined } }), 'climb', 'forward climbs on the jets: so here too');
+  assert.equal(piratePitch({ settings: { invertFlight: false }, state: { flag: (k) => ({ 'minigame.pirates.opt.pitch': 'climb' })[k] } }), 'dive', 'a choice kept from before waits for the card');
+  assert.equal(piratePitch({ settings: { invertFlight: true }, state: { flag: (k) => ({ [BEATEN]: true })[k] } }), 'climb', 'offered, none chosen yet: the setting');
+  assert.equal(piratePitch({ settings: { invertFlight: true }, state: { flag: (k) => ({ [BEATEN]: true, 'minigame.pirates.opt.pitch': 'dive' })[k] } }), 'dive', 'the card\'s choice');
+  {
+    const { S, step } = session({ settings: { invertFlight: true } });
+    S.script = []; S.rocks = [];
+    const v0 = S.ship.v;
+    step(30, { y: 1 });
+    assert.ok(S.ship.v > v0 + 2, 'pushed up with the jets set to climb: it climbs, the first time too');
+    assert.match(pirates.controls.pad[0][1], /push up to climb/, 'and the card says so');
+  }
+  // a hit with the motion turned down: the pips still show, nothing shakes or flares
+  const hit = () => {
+    const { sess, S, step } = session();
+    S.script = []; S.rocks = [];
+    S.shots.push({ ds: 5, u: S.ship.u, v: S.ship.v, vds: -50, vu: 0, vv: 0, life: 2, r: 0.9 });
+    for (let i = 0; i < 12 && S.ship.hull === FLY.hull; i++) step();
+    assert.equal(S.ship.hull, FLY.hull - 1);
+    return sess.feedback;
+  };
+  try {
+    for (const m of [{ reduce: true, shake: 1 }, { reduce: false, shake: 0 }]) {
+      setMotion(m);
+      const F = hit();
+      assert.equal(F.shake, 0, `no shake: ${JSON.stringify(m)}`);
+      assert.equal(F.redT, 0, `no flare: ${JSON.stringify(m)}`);
+      assert.ok(F.pipT > 0 && F.lostT > 0, 'the pips still tell');
+    }
+    setMotion({ reduce: false, shake: 1 });
+    const F = hit();
+    assert.ok(F.shake > 0 && F.redT > 0, 'the motion on: both, as before');
+  } finally { setMotion({ reduce: false, shake: 1 }); session(); }
+  // the shake's size follows the slider
+  assert.match(fs.readFileSync(new URL('../src/minigames/pirates.js', import.meta.url), 'utf8'), /const k = run\.shake \* run\.shake \* HURT\.amp \* shakeScale\(\);/);
 });

@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.60 — 2026-10-12
 
+- With Reduce motion on, or Camera shake at 0, a hit from the chime pirates no longer shakes the view or flashes the screen’s edges red; the hull’s pips under your ship still show it. The shake also follows the Camera shake slider.
+- Your first fight with the chime pirates follows your jets setting: if pushing forward climbs on the jets, pushing up climbs there too.
+- The chime pirates come for your hull now, not your chimes: since beating them pays chimes, the ship says their wrecks are worth chimes when they break off.
 - The Saves screen shows your three saves and one small closed “Debug” row under them: the list of every world opens only when you choose it, and moving down the saves no longer runs on into it.
 - In the Builders’ Greenhouse the Seed Vault is off the Shade House now: win the Shade House and a door in its north wall opens on the vault’s two seeds and its glass, long before you have bloom mode. Come back with it for the great key, and at the top of the vine a keepers’ door lets you out onto the Glass Stair’s root-wall, by the disc.
 - In the Lamp-House the Wick Room is off the Hall of Dark Pools now, open and dark when you first come in. The Kennel’s small key goes into the grille over the great key, and the grille lifts once both niches burn, so you bring the lantern back down for it. A stair and a keepers’ door take you back out onto the Root Stair’s root-wall. The Lamp Passage’s door needs only its lamp.

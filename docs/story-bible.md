@@ -580,11 +580,12 @@ of the light, only the needle. Afterwards, in the Salt Harbour, Hesper takes the
 The dark between the worlds is not empty. Since the night the sky rang, chimes have been the one coin every
 world takes, and a ship that lands on many worlds carries them: so the pirates wait on the lanes. The first time
 the family ship flies to a world it has never been to, a crew of them comes after it from behind (the ship's voice:
-"Ships closing from behind. Pirates! They are after your chimes!"): rust-red skiffs, teal raiders, a hauler with a
+"Ships closing from behind. Pirates! They want our hull."): rust-red skiffs, teal raiders, a hauler with a
 grab claw laying mines, and their captain's gunship (a galleon under solar sails until v1.59), who hails on an open channel ("Heave to,
-little ship! Every chime aboard, and we part friends."). Beaten, they break off; left too long, the gunship goes
-off into the dark ("The dark is wide, and we are patient."). They take nothing either way: the fight is the flight,
-and the ship lands where it was going. Later flights to a world already known are quiet. Never on the way home, nor
+little ship! Your hull for scrap, and we part friends."). Beaten, they break off, and their wrecks are worth chimes
+(since v1.59 a win pays them, so nobody speaks of guarding the chimes aboard: issue #230); left too long, the
+gunship goes off into the dark ("The dark is wide, and we are patient."). They take nothing either way: the fight
+is the flight, and the ship lands where it was going. Later flights to a world already known are quiet. Never on the way home, nor
 to the Lantern.
 
 ## The detours' traces (built: src/story/sightings-detours.js, each world's content)

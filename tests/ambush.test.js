@@ -45,7 +45,7 @@ test('on the fight\'s page: no skip on any card, however often it is lost; Retry
   assert.deepEqual(L.win, { label: 'Fly on to The City-Shaft', href: '?level=incal&via=ship' });
   assert.equal(L.intro.kicker, 'On the way to The City-Shaft');
   assert.equal(L.intro.lead.name, 'The ship');
-  assert.match(L.intro.lead.text, /They are after your chimes!/);
+  assert.match(L.intro.lead.text, /They want our hull\./);
   const acts = (r, fails) => resultActions(r, L, fails).map((b) => `${b.main ? '*' : ''}${b.label}`);
   assert.deepEqual(acts({ failed: false }, 0), ['*Fly on to The City-Shaft', 'Retry']);
   for (const fails of [1, 2, 5, 20]) assert.deepEqual(acts({ failed: true }, fails), ['*Retry from the checkpoint'], `${fails} lost`);
@@ -58,14 +58,17 @@ test('on the fight\'s page: no skip on any card, however often it is lost; Retry
   assert.deepEqual(resultActions({}, { quit: { label: 'Back to the Arcade' }, extra: [{ id: 'next', label: 'Next game', sub: 'Ski' }] }).map((b) => b.label), ['Retry', 'Next game', 'Back to the Arcade']);
 });
 
-test('every line said on the way carries a tone; the ship says the pirates are after the chimes', () => {
+test('every line said on the way carries a tone; the pirates come for the hull, and their wrecks pay the chimes a win banks (issue #230)', () => {
   for (const [id, line] of Object.entries(AMBUSH_LINES)) {
     const p = parseLine(line);
     assert.ok(p.explicit && TONES.includes(p.tone), `${id}: a tone`);
     assert.ok(SPEAKERS[line.who], `${id}: a speaker`);
   }
   assert.equal(AMBUSH_LINES.start.who, 'ship');
-  assert.match(AMBUSH_LINES.start.text, /They are after your chimes!/);
+  assert.match(AMBUSH_LINES.start.text, /They want our hull\./);
+  // (a win pays chimes since v1.59: nothing said may have them guarding the chimes aboard)
+  for (const [id, line] of Object.entries(AMBUSH_LINES)) assert.doesNotMatch(line.text, /your chimes|chimes are safe|every chime/i, id);
+  assert.match(AMBUSH_LINES.won.text, /worth chimes/);
 });
 
 test('the wiring: the ship asks main.js where a take-off goes; the fight\'s page marks the trip; the setting', () => {

@@ -16,6 +16,9 @@ export const CHANGELOG = [
     'In the Builders’ Greenhouse the Seed Vault is off the Shade House now: win the Shade House and a door in its north wall opens on the vault’s two seeds and its glass, long before you have bloom mode. Come back with it for the great key, and at the top of the vine a keepers’ door lets you out onto the Glass Stair’s root-wall, by the disc.',
     // loose ends from the v1.59 game audit (docs/audits/game-v1.59.md; issues #227, #230, #231, #232, #235)
     'The Saves screen shows your three saves and one small closed “Debug” row under them: the list of every world opens only when you choose it, and moving down the saves no longer runs on into it.',
+    'The chime pirates come for your hull now, not your chimes: since beating them pays chimes, the ship says their wrecks are worth chimes when they break off.',
+    'Your first fight with the chime pirates follows your jets setting: if pushing forward climbs on the jets, pushing up climbs there too.',
+    'With Reduce motion on, or Camera shake at 0, a hit from the chime pirates no longer shakes the view or flashes the screen’s edges red; the hull’s pips under your ship still show it. The shake also follows the Camera shake slider.',
   ] },
   { v: '1.59', date: '2026-10-12', items: [
     // the chime pirates reworked from the author's notes (src/minigames/pirates.js, pirates-rules.js; docs/systems/minigames.md

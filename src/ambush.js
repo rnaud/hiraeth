@@ -66,13 +66,13 @@ export function transitLinks(query, titles = {}) {
  * scenes, src/ship/cinematics.js) and the pirates' captain on an open channel.
  */
 export const AMBUSH_LINES = {
-  start: { who: 'ship', text: 'Ships closing from behind. Pirates! They are after your chimes!', tone: 'scared' },
+  start: { who: 'ship', text: 'Ships closing from behind. Pirates! They want our hull.', tone: 'scared' },
   hauler: { who: 'ship', text: 'A hauler, laying mines. Shoot them before they reach us.', tone: 'neutral' },
-  captain: { who: 'captain', text: 'Heave to, little ship! Every chime aboard, and we part friends.', tone: 'playful' },
+  captain: { who: 'captain', text: 'Heave to, little ship! Your hull for scrap, and we part friends.', tone: 'playful' },
   open: { who: 'ship', text: 'Her guns are down. The bridge is open!', tone: 'surprised' },
   low: { who: 'ship', text: 'Hull failing. Roll away from their fire!', tone: 'scared' },
-  won: { who: 'ship', text: 'They are breaking off. Your chimes are safe. Resuming course.', tone: 'happy' },
-  fled: { who: 'captain', text: 'Keep your chimes, then! The dark is wide, and we are patient.', tone: 'angry' },
+  won: { who: 'ship', text: 'They are breaking off. Their wrecks are worth chimes. Resuming course.', tone: 'happy' },
+  fled: { who: 'captain', text: 'Keep your hull, then! The dark is wide, and we are patient.', tone: 'angry' },
   lost: { who: 'ship', text: 'Hull breached. Falling back to try again.', tone: 'sad' },
 };
 /** The name shown over a line. */

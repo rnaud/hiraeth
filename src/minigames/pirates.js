@@ -22,6 +22,8 @@ import { Puffs } from '../ship/fx.js';
 import { PLANETS } from '../ship/planets.js';
 import { SPACE_LOOK, SPACE_DAY } from '../levels/space-city-kit.js';
 import { stripTone } from '../story/tone.js';
+import { shakeScale } from '../feel.js';
+import { optionKey } from './kit/flow.js';
 import { AMBUSH_LINES, SPEAKERS, ambushCount } from '../ambush.js';
 import { FLY, BOSS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget } from './pirates-rules.js';
 
@@ -438,8 +440,8 @@ function start(ctx) {
   const again = L.resume ?? null;
   L.resume = null;
   const S = newRun({ seed: L.seed, heat, gentle: ctx.settings?.enemies === 'gentle', from: again?.from ?? 0, fails: again?.fails ?? 0, score: again?.score ?? 0 });
-  // (push up to dive, always the first time: the choice is offered only once the pirates are beaten, issue #206)
-  const climb = (ctx.option?.('pitch') ?? 'dive') === 'climb';
+  // (the stick's pitch: the game's own jets setting until the pirates are beaten, then the card's choice, issue #230)
+  const climb = piratePitch(ctx) === 'climb';
   pitchShown = climb ? 'climb' : 'dive';
   const transit = !!L.to;   // (on the way to a world: the chimes are won; the Arcade's game only scores)
   const root = typeof document !== 'undefined' ? document.getElementById('minigame') ?? document.body : null;   // (none in the tests)
@@ -509,7 +511,9 @@ function start(ctx) {
           // (issue #206: "when I lose a health point it's not very visible": the edge flashes, the view shakes, the ship
           // sparks and blinks, the pips show under it with the lost one bursting, the corner's pip pops; a crunch)
           sfx.hurt(); snd.hull(); ctx.kick(0.8);
-          run.redT = HURT.flash; run.shake = HURT.shake; run.pipT = HURT.pips; run.lostI = e.hull; run.lostT = HURT.lost;
+          // (no shake and no flare under Reduce motion or with Camera shake at 0, issue #230: the pips still tell)
+          if (shakeScale() > 0) { run.redT = HURT.flash; run.shake = HURT.shake; }
+          run.pipT = HURT.pips; run.lostI = e.hull; run.lostT = HURT.lost;
           run.hurtN++;
           const at = world(0, S.ship.u, S.ship.v, V());
           spark(at, 10, '#ff8a5c'); spark(at, 6, '#fff1c8');
@@ -593,7 +597,7 @@ function start(ctx) {
     const kl = snap ? 1 : 1 - Math.exp(-F.rate * 1.5 * dt);
     run.cam.lu += (P.vu * F.lead - run.cam.lu) * kl; run.cam.lv += (P.vv * F.lead - run.cam.lv) * kl;
     railPoint(S.s - F.back, run.cam.u, run.cam.v + F.up, camera.position);
-    if (run.shake > 0) { const k = run.shake * run.shake * HURT.amp; camera.position.x += (Math.random() * 2 - 1) * k; camera.position.y += (Math.random() * 2 - 1) * k; }
+    if (run.shake > 0) { const k = run.shake * run.shake * HURT.amp * shakeScale(); camera.position.x += (Math.random() * 2 - 1) * k; camera.position.y += (Math.random() * 2 - 1) * k; }
     railPoint(S.s + F.look, run.cam.u + (P.u - run.cam.u) * 0.6 + run.cam.lu, run.cam.v + (P.v - run.cam.v) * 0.6 + 0.4 + run.cam.lv, _look);
     _d.subVectors(_look, camera.position).normalize();
     camera.up.set(0, 1, 0).applyAxisAngle(_d, run.cam.roll);
@@ -901,7 +905,19 @@ export const RETICLE = { near: 26, far: 80, r: 11, tight: 7.5 };
 export const TALLY = { secs: 1.6 };
 /** The save's flag once the pirates have been beaten anywhere: from then on the start card offers the stick's pitch. */
 export const BEATEN = 'minigame.pirates.beaten';
-let pitchShown = 'dive';
+let pitchShown = 'dive', ownPitch = 'dive';
+
+/**
+ * The stick's pitch for this run (issue #230): until the pirates are beaten the card offers no choice, and the game's
+ * own jets setting decides (Settings' invertFlight: on, forward climbs); once offered, the card's choice, and until
+ * one is made, the jets setting again.
+ */
+export function piratePitch(ctx) {
+  const own = ownPitch = ctx.settings?.invertFlight ? 'climb' : 'dive';
+  if (!ctx.state?.flag?.(BEATEN)) return own;
+  const kept = ctx.state.flag(optionKey('pirates', 'pitch'));
+  return kept === 'climb' || kept === 'dive' ? kept : own;
+}
 
 /** The results' tally block (on the way to a world): the points, the rate, the chimes they make (counted up by tally()). */
 export function tallyHtml(score) {
@@ -922,12 +938,13 @@ export function pirateControls(pitch = 'dive') {
 export default {
   id: 'pirates', order: 11,
   name: 'Chime pirates',
-  blurb: 'Between worlds, pirates come after the family ship for the chimes aboard. Fly through the dark and fight them off.',
+  blurb: 'Between worlds, pirates come after the family ship. Fly through the dark and fight them off; their wrecks are worth chimes.',
   rules: 'Shoot the pirates down; your shots go where the nose points, so steer to aim. Roll to turn their fire aside; hold fire to charge a shot that locks on and bursts. Rocks and shots cost hull, teal rings patch it. Beat their captain’s gunship at the end. On the way to a world, your points become chimes.',
   get controls() { return pirateControls(pitchShown); },
   // (the stick's pitch: push up to dive, as a plane's, as in Star Fox 64 and on the jets; the card offers the other way
   // only once the pirates have been beaten: issue #206, "don't let me switch controls at first")
-  options: [{ id: 'pitch', label: 'Push up to', choices: [['dive', 'Dive'], ['climb', 'Climb']], default: 'dive', when: (state) => !!state?.flag?.(BEATEN) }],
+  // (its default: the game's jets setting, as the run read it: piratePitch)
+  options: [{ id: 'pitch', label: 'Push up to', choices: [['dive', 'Dive'], ['climb', 'Climb']], get default() { return ownPitch; }, when: (state) => !!state?.flag?.(BEATEN) }],
   touchButtons: ['fire', 'evade'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true },

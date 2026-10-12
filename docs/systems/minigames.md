@@ -413,16 +413,16 @@ avenue, a skybridge from right under it, the old sign, a cab in flight, a shop s
 ## Pirates between worlds (`pirates.js`, the rules in `pirates-rules.js`, the trip in `src/ambush.js`)
 
 **Chime pirates** (v1.43), a rail shooter in space, is the flight between the take-off and the landing the first time
-the ship goes to a world never visited: pirates are after the chimes aboard (the ship's voice: "They are after your
-chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?game=pirates`).
+the ship goes to a world never visited: pirates come for the ship (its voice: "They want our hull."; their wrecks are worth chimes, issue #230). It is also an ordinary game (Debug → Games, the Arcade's sign: `?game=pirates`).
 
 - **The rail** (`railPoint(s, u, v)`): the ship flies at `FLY.speed` (42 m/s) along a long gentle wander down -z
   (slopes under 0.3: `railX`, `railY`); it moves only across it, `u` right and `v` up within a 13 × 7.5 m box,
   steered as a plane is (pushing up dives, as in Star Fox 64 and on the jets, and the controls on the card say so:
   `pirateControls(pitch)`). The start card's **Push up to: Dive / Climb** choice (`options.pitch`) is offered only once
   the pirates have been beaten anywhere (the save's `minigame.pirates.beaten`; v1.59, issue #206: "don't let me switch
-  controls at first"): the kit's option `when(state)` (`kit/flow.js optionOffered`) hides it until then, and its value is
-  the default, whatever was kept. Everything that flies with
+  controls at first"): the kit's option `when(state)` (`kit/flow.js optionOffered`) hides it until then. Until then the
+  game's own jets setting decides (`piratePitch(ctx)`, v1.60, issue #230: Settings' `invertFlight` on, push up climbs,
+  whatever was kept), and once offered it is the card's default until a choice is made. Everything that flies with
   the ship (the pirates, their shots, the bolts) is kept relative to it (`ds` ahead); the rocks, the mines and the
   repair rings hang still in space at an absolute `s`. Pure: `runStep(S, input, dt)` returns the step's events
   (`shot`, `kill`, `hurt`, `deflect`, `blast`, `lock`, `say`, `part`, `checkpoint`, `win`, `dead`, …), which the game draws.
@@ -438,7 +438,9 @@ chimes!"). It is also an ordinary game (Debug → Games, the Arcade's sign: `?ga
   untouchable (it blinks). **A pip lost is unmistakable** (v1.59, issue #206; `HURT`): the screen's edges flare red
   under an ink band (0.7 s), the camera shakes (0.45 s), the ship sparks and blinks quicker at first, a row of pips
   shows under the ship for 2.2 s with the lost one bursting out of its place (always, faintly, at two or fewer), the
-  corner's pip pops (`.mg-lives i.lost`), and a crunch sounds over the runner's hurt (`snd.hull`). A tap of A / × (Space, the touch ✺) fires the twin bolts; RT / R2 held streams them,
+  corner's pip pops (`.mg-lives i.lost`), and a crunch sounds over the runner's hurt (`snd.hull`). Under Reduce motion,
+  or with Camera shake at 0, there is no shake and no flare (`shakeScale()`, src/feel.js; the shake's size follows the
+  slider; v1.60, issue #230): the pips, the blink and the crunch tell it. A tap of A / × (Space, the touch ✺) fires the twin bolts; RT / R2 held streams them,
   slower; **held**, the shot charges (0.7 s, an arc filling round the ring) and locks the pirate nearest the reticle
   (`findLock`, the coral LOCK brackets): let go and the gold shot homes in and bursts (9 m: everything in it, their shots too; a bonus for each
   kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶): one quick whole turn
