@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_64eacfc608c50a 7
+docs/systems/hints.md
+  s_9ca76055a220ed::t_84e154cf16f67f 39-48
+src/changelog-media.js
+  s_9ca76055a220ed::t_5debf6ca2f8974 651-654
+src/changelog.js
+  s_9ca76055a220ed::t_722df59e715b95 16-17
+src/i18n/en.js
+  s_9ca76055a220ed::t_f534973bc6b430 457
+src/i18n/fr.js
+  s_9ca76055a220ed::t_53b730769e9103 454
+src/main.js
+  s_9ca76055a220ed::t_aaa79ba28c6423 27,799-804,1033,1512-1516,1635
+src/scout-hint.js
+  s_9ca76055a220ed::t_8e62cc9ae9705e 1-48
+tests/hud.test.js
+  s_9ca76055a220ed::t_de9ae586eadade 192-194
+tests/scout-hint.test.js
+  s_9ca76055a220ed::t_2f83a8e10f4b4e 1-85
+tests/shard-timings.json
+  s_9ca76055a220ed::t_a254dd8e3748d8 2-7,9-17,19-20,22-39,41-56,59-76,78-81,83-84,86-89,91-101,103-106,108-109,111-147,150,153-155,157-176,178-197,199-273,275-279,281,283,285-288,290-291,293-295,297-300,302-307,309-314,316-322,324-331,333-345,347-351,353-355,357-358,360-361,363,365-366,368-380,382-414,416-420,423-424,426-427,429-430,432-441,443-445,448-450,452-453,457-458,460-465,467-472,474-480,483
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fa3917ad6441b25d5c35204c47c0192999009cdf",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
