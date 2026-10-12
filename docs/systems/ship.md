@@ -63,7 +63,7 @@ the port side). The bow is at -z, as the old cockpit was.
 | Cockpit | -9.8 .. -6.9 | 4.9 m at the nose wall, 7.6 m at the frame | the dash under the windshield (a scope and two screens in its middle), two seats side by side, the overhead panel between them, the father's cap and a child's drawing |
 | Main room (the picked layout) | -6.9 .. 3.15 | 7.6 m | the holo table in the middle (-0.1, -3.1) in the crook of the curved console, the console's tail running aft with the voicemail button, the projector and the little screen on its end; port: the galley forward of the hatch (an L round the frame's corner, stove and kettle, sink, tool board, cupboards), coats and packs on hooks aft of the hatch; starboard: a chest of drawers by the frame, the bunk in its arched alcove under the window, kit on hooks, the lockers; two skylights, pipes along the ceiling |
 | Back room | 3.15 .. 7.95 | 7.6 m | a sofa under the port porthole, a small table with three mismatched seats, a desk and a chest of drawers, clothes on hooks, books under straps, photographs |
-| Hold (storage) | 7.95 .. 12.95 | 7.0 m | lockers both walls, crates strapped down (Orrin Thrum stands by them, `src/story/scientist.js` ABOARD), a tool board, spare parts, the engine room's hatch in the aft wall (shut) |
+| Hold (storage) | 7.95 .. 12.95 | 7.0 m | lockers both walls, crates strapped down (Anselm Thrum stands by them, `src/story/scientist.js` ABOARD), a tool board, spare parts, the engine room's hatch in the aft wall (shut) |
 | Engine bay | 12.95 .. 15.2 | (closed) | no rooms: machinery behind the aft wall, the pods' roots |
 
 Doorways: the cockpit frame at z -6.9 is open 3.8 m wide (the cockpit is part of the main room, as

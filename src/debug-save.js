@@ -27,7 +27,7 @@
 //    carried on (ERRANDS, src/levels/content.js: delivered when their world is before this one, still
 //    carried when it is this one or later);
 //  - its trial (src/trials/data.js TRIALS, by part): run, and its reward held (an upgrade to a gadget);
-//  - its fragments of the singing light, every one (src/fragments-data.js), so Orrin Thrum is met and on the ship, and
+//  - its fragments of the singing light, every one (src/fragments-data.js), so Anselm Thrum is met and on the ship, and
 //    each of his upgrades the count reaches is fitted where its gear is held (FRAGMENT_ITEMS, `needs`: src/items.js).
 // tests/debug-save.test.js reads the story code for the grants that are not data (an onDone's game.set,
 // addKeepsake, a tank band, an item granted) and fails when one is not covered here.
@@ -223,7 +223,7 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
     keep(endKeepsake(data, flags));
   }
   if (before.length) { flags['ship.launched'] = true; flags['signature.told'] = true; }
-  // the fragments of the singing light of every world before, found; Orrin Thrum met (he is on the ship from the first)
+  // the fragments of the singing light of every world before, found; Anselm Thrum met (he is on the ship from the first)
   // and each upgrade the count reaches fitted, where its gear is held (src/story/scientist-data.js thrumTalk's offers)
   for (const w of before) (FRAGMENTS[w] ?? []).forEach((_, i) => { flags[fragKey(w, i)] = true; });
   const found = fragmentCounts(flags).found;

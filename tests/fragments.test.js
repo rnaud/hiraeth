@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import fs from 'node:fs';
+import { readFileSync } from 'node:fs';
 await import('./register-gadgets.js');
 const { FRAGMENTS, FRAGMENT_TOTAL, FRAGMENTS_PER_WORLD, fragmentCounts, fragKey } = await import('../src/fragments-data.js');
 const { createFragments, MILESTONES, FRAGMENT, finderInterval, finderPitch } = await import('../src/fragments.js');
@@ -15,7 +16,7 @@ const { ITEMS, FRAGMENT_ITEMS, items } = await import('../src/items.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { Quests } = await import('../src/story/quests.js');
 const { GameState, game: sharedGame } = await import('../src/game-state.js');
-const { migrateFlags, migrateFragments196, MIGRATED } = await import('../src/save-migrate.js');
+const { migrateFlags, migrateFragments196, migrateFragments228, FRAGMENTS_MOVED_228, MIGRATED } = await import('../src/save-migrate.js');
 const { parseLine } = await import('../src/story/tone.js');
 const { ORDER } = await import('../src/levels/names.js');
 const { Resources, MAGIC_COST, HEARTS } = await import('../src/resources.js');
@@ -150,13 +151,14 @@ test('the finder: beeps from 60 m, faster and higher as a fragment comes closer;
   assert.equal(itemsData({ owned: ['finder'], toggles: { finder: false } }).gear[0].inUse, false);
 });
 
-test('Orrin Thrum: met at the first fragment, a few words, then aboard; his count and an offer at each milestone', () => {
+test('Anselm Thrum: met at the first fragment, a few words, then aboard; his count and an offer at each milestone', () => {
   // the meeting
   const ctx = fresh(found(1));
   const person = thrumPerson({ flags: () => ctx.game.data.flags, has: ctx.items.has, here: 'desert', items: ctx.items });
   const m = talk(person, ctx, ['Come aboard']);
   assert.match(m.said, /on the lookout for these/, 'he has been on the lookout for them');
-  assert.match(m.said, /Orrin Thrum/);
+  assert.doesNotMatch(m.said, /Orrin|at your service/, 'no name and trade announced (v1.60, #229): the panel names him');
+  assert.match(m.said, /splinters of its song/);
   assert.match(m.said, /On your ship/);
   assert.equal(ctx.game.flag('frag.met'), true);
   assert.ok(m.said.split(/(?<=[.!?)])\s+/).length <= 12, 'terse');
@@ -228,8 +230,8 @@ test('the menu: each world you know with how many are left, and the count all to
 });
 
 test('the save: an old save starts at zero, the scientist still to meet (the fragments’ step)', () => {
-  // (the last step: an old save is one step short of it)
-  const old = { 'save.migrated': MIGRATED() - 1, 'frag.met': true, 'frag.desert.0': true, 'world.desert.done': true };
+  // (a save from before the fragments' step, 22)
+  const old = { 'save.migrated': 21, 'frag.met': true, 'frag.desert.0': true, 'world.desert.done': true };
   migrateFlags(old);
   assert.equal(old['frag.met'], undefined);
   assert.equal(fragmentCounts(old).found, 0);
@@ -244,10 +246,48 @@ test('the save: an old save starts at zero, the scientist still to meet (the fra
   assert.equal(again.flag('frag.met'), true);
 });
 
-test('the people book: Orrin Thrum, his story growing with each upgrade', () => {
+test('the save: the fragments re-placed in v1.60 keep a save’s count, its found ones off the moved slots (step 23)', () => {
+  // the table is the data's: every slot marked as moved there, and no other
+  const src = readFileSync(new URL('../src/fragments-data.js', import.meta.url), 'utf8');
+  const marked = {};
+  for (const id of ORDER) {
+    const block = src.match(new RegExp(`\\n  ${id}: \\[[^\\n]*\\n((?:    .*\\n)+?)  \\],`))?.[1] ?? '';
+    const rows = block.split('\n').filter((l) => /^\s+\[[-\d.]+, [-\d.]+, [-\d.]+\],/.test(l));
+    assert.equal(rows.length, FRAGMENTS_PER_WORLD, `${id}: its rows read`);
+    const moved = rows.flatMap((l, i) => (l.includes('(v1.60, #228)') ? [i] : []));
+    if (moved.length) marked[id] = moved;
+  }
+  assert.deepEqual(marked, FRAGMENTS_MOVED_228);
+  // Lorn: slots 2 and 4 moved and found, 6 found and kept; they go to 0 and 1, the count stays three
+  const old = { 'save.migrated': MIGRATED() - 1, 'frag.met': true, 'frag.perdide.2': true, 'frag.perdide.4': true, 'frag.perdide.6': true, 'met.odile': true, 'talks.odile': 2 };
+  migrateFlags(old);
+  assert.equal(fragmentCounts(old).worlds.perdide.found, 3);
+  assert.deepEqual(Object.keys(old).filter((k) => k.startsWith('frag.perdide.')).sort(), ['frag.perdide.0', 'frag.perdide.1', 'frag.perdide.6']);
+  assert.equal(old['frag.met'], true);
+  assert.equal(old['met.tilde'], true); assert.equal(old['talks.tilde'], 2); assert.equal(old['met.odile'], undefined);
+  // a world found all but the moved: they stay where they are (nowhere free), the count the same
+  const full = Object.fromEntries([0, 1, 2, 3, 4, 5, 6, 7].map((i) => [`frag.underwater.${i}`, true]));
+  migrateFragments228(full);
+  assert.equal(fragmentCounts(full).worlds.underwater.found, 8);
+});
+
+test('the Lantern: Ilen knows the fragments for her song, one line by how many you found (none, some, every one)', async () => {
+  const { PEOPLE } = await import('../src/story/lantern-data.js');
+  const lines = (n) => {
+    const ctx = fresh(found(n));
+    return talk(PEOPLE.ilen, ctx, ['Ilen?', 'Your brother', 'They died', 'No. Mum kept']).said;
+  };
+  const none = lines(0), some = lines(12), all = lines(FRAGMENT_TOTAL);
+  assert.match(none, /Nobody stops for them\./); assert.doesNotMatch(none, /in your hold|whole again/);
+  assert.match(some, /I can hear them from here, in your hold\./); assert.doesNotMatch(some, /Nobody stops|whole again/);
+  assert.match(all, /Then it’s whole again\./); assert.doesNotMatch(all, /Nobody stops|in your hold/);
+  assert.match(all, /It was mine\. My answer\./, 'right after she owns up to the light');
+});
+
+test('the people book: Anselm Thrum, his story growing with each upgrade', () => {
   const p = PERSON.get('thrum');
   assert.ok(p, 'in the book');
-  assert.equal(p.name, 'Orrin Thrum');
+  assert.equal(p.name, 'Anselm Thrum');
 });
 
 test('aboard the real ship: he stands on the deck of the hold, inside its rooms, and you walk to him from the hatch', async () => {

@@ -459,7 +459,7 @@ export const EN = {
   'title.undone': 'This can\'t be undone.',
   'title.dbg.head': 'Debug: start at a world',
   'title.dbg.tag': 'debug',
-  'title.dbg.why': 'A new save at the world’s landing, with everything in the worlds before it done and held: their quests, items, gadgets, keepsakes, fragments and Orrin’s upgrades.',
+  'title.dbg.why': 'A new save at the world’s landing, with everything in the worlds before it done and held: their quests, items, gadgets, keepsakes, fragments and Anselm’s upgrades.',
   'title.dbg.into': 'Into: {slot}',
   'title.dbg.intoDebug': 'the debug save (your saves untouched)',
   'title.dbg.fresh': 'a new journey',

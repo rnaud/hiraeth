@@ -558,6 +558,26 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
   A save on the train wakes on the train, still running; the train never waits at a station unless someone asks.
 - **Keepsake**: none; the quest's outro (Solange's answer pinned under the halt's lamp).
 
+## The fragments of the singing light (built: src/fragments.js, src/story/scientist-data.js; docs/systems/fragments.md)
+
+- **What they are**: splinters of the light's song. Ilen's answer sang so hard on its way, world to world, looking for the
+  voice that had called her, that it shed bits of itself wherever it passed: eight in each world on the route, 96 in all.
+  Each is a small pale splinter that glows and still sings faintly, three soft notes in the light's beat of threes (the
+  signature). Always "the fragments of the singing light", never a clue: Lorn's Great Crystal sings the same because a
+  makers' light fell there long ago (the Singer's fallen piece), and the Lodestar's splinter is the makers' own; those
+  two point at what passed the ship, these are what it left behind.
+- **Why they hide**: nobody sent the light anywhere, so nothing it shed lies on the way anyone sends you. They settled
+  where its song rang longest: up on ledges and high places, in nooks behind things, at the ends of side paths, in each
+  world's out-of-the-way country (v1.60, #228: the canopy decks, the stack's upper tiers, the far café over the canyon).
+- **Anselm Thrum** (renamed from Orrin in v1.60, #229: the Orrins are the father's neighbours): a thin man in a patched
+  pale coat, goggles on his brow, a brass box that ticks near a splinter. He studies light and has followed the song since
+  the night it went over, without knowing what it is. The first fragment you take brings him at a run; he comes aboard,
+  lives in the hold among the crates, keeps what you bring in a jar, and at each milestone works them into your gear (a
+  heart, the finder, the blade, the tank, the wings, the boots, the guard). He never learns what the light was.
+- **At the Lantern**: the answer is Ilen's. When she owns up to the light she knows its splinters for her own song, one
+  line by how many you picked up: none ("Nobody stops for them"), some ("I can hear them from here, in your hold"), every
+  one ("Then it's whole again"). (src/story/lantern-data.js `SPLINTERS`.)
+
 ## The fellow traveller: Tansy (built: src/story/fellow-data.js; docs/systems/story.md)
 
 One person travels too. **Tansy**, about nineteen, from the Salt Harbour: the harbour book's old line in home

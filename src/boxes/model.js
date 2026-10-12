@@ -582,7 +582,7 @@ function ribbonModel() {
   return g;
 }
 
-// the fragments of the singing light (issue #196, src/fragments.js): a pale splinter; the finder, Orrin's brass box with one
+// the fragments of the singing light (issue #196, src/fragments.js): a pale splinter; the finder, Anselm's brass box with one
 // inside its little window; and the scientist's upgrades, the gear they are fitted to with a splinter pinned on (src/items.js `light`)
 function fragmentModel(s = 1) {
   const g = new THREE.Group();

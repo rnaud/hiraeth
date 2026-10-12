@@ -17,8 +17,11 @@ export const CHANGELOG = [
   ] },
   { v: '1.60', date: '2026-10-12', items: [
     // the fragments of the singing light re-placed over the new country, off the route (src/fragments-data.js,
-    // scripts/fragment-spots.mjs, tests/fragments-route.test.js; docs/systems/fragments.md; issue #228)
+    // scripts/fragment-spots.mjs, tests/fragments-route.test.js; docs/systems/fragments.md; issue #228), and woven into
+    // the story (src/story/scientist-data.js, lantern-data.js; docs/story-bible.md; issue #229)
     'Fragments of the singing light now hide in the places the newest explorations built: on a deck of Lorn’s keepers’ canopy 70 m up and on the egg isle in the drowned wood, at the top of the Floating city’s stack, across the Underwater City’s canyon bridge and out on the seabed, up the broken moon’s stair street, on Viridel’s old pyramid and the round ship’s hill, at the far end of Kip’s skybridge. None lies on the way anyone sends you any more. The fragments you have already found still count.',
+    'The scientist who keeps the fragments in your hold is Anselm Thrum now, and the woman who minds the great cable’s clamp under the Floating city’s Towers is Tilde: their old names belonged to other people in the story. Anselm no longer introduces himself when you meet; he is too busy chasing the fragment.',
+    'At the end of the journey someone knows the fragments for what they are, and says so, whether you found none, some or every one.',
     // the temples to explore, round 4: the last three great keys out of the rooms off the last halls, each with a loop
     // back (src/temples/bazaar.js CHOIR, perdide2.js WICK, edena.js VAULT; docs/systems/temples.md "Round 4"; issue #23)
     'In the Undertower the Choir and its great key have moved beside the Shell Chamber, over the Cable Store. Its door, and a keepers’ gate high on the Cable Well’s wall, open when a horn back on the first hall’s far landing, at the end of the gate’s cable, hears the middle note. Inside, the near horn wants the high note, and only the Cable Well’s stone below the gate sings it.',

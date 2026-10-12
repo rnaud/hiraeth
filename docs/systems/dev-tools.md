@@ -166,7 +166,7 @@ while you are in it. Picking another world starts the debug save again from scra
   they set), the errands delivered or still carried (`ERRANDS`);
 - since v1.58 (issue #203: "unlocked everything in all the previous levels"): its trial run and its reward held
   (`TRIALS`, `src/trials/data.js`; a retired reward left out), and its fragments of the singing light found
-  (`FRAGMENTS`): Orrin Thrum met (`frag.met`, `met.thrum`: he is aboard) and each of his upgrades the count
+  (`FRAGMENTS`): Anselm Thrum met (`frag.met`, `met.thrum`: he is aboard) and each of his upgrades the count
   reaches fitted where its gear is held (`FRAGMENT_ITEMS`, `needs`): before the Glass Dunes, 48 fragments, the
   heart, the finder, the edge and the light chamber.
 

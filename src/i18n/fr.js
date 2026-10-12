@@ -456,7 +456,7 @@ export const FR = {
   'title.undone': 'C\'est irréversible.',
   'title.dbg.head': 'Debug : commencer à un monde',
   'title.dbg.tag': 'debug',
-  'title.dbg.why': 'Une nouvelle sauvegarde à l’arrivée du monde, tout ce qui précède fait et gardé : quêtes, objets, gadgets, souvenirs, fragments et améliorations d’Orrin.',
+  'title.dbg.why': 'Une nouvelle sauvegarde à l’arrivée du monde, tout ce qui précède fait et gardé : quêtes, objets, gadgets, souvenirs, fragments et améliorations d’Anselm.',
   'title.dbg.into': 'Dans : {slot}',
   'title.dbg.intoDebug': 'la sauvegarde de debug (les vôtres intactes)',
   'title.dbg.fresh': 'un nouveau voyage',

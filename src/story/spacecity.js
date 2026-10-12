@@ -26,7 +26,7 @@ export function setupSpaceCity(ctx) {
   for (const q of QUESTS) quests?.define?.(q);
   // the city's own main quest doesn't just appear: it starts when you talk to Rosa on the Pier (src/story/quests.js opensWith)
   if (quests?.opensWith && !quests.isStarted?.('spacecity.drift')) quests.opensWith('spacecity.drift', 'rosa');
-  for (const n of npcs) if (['tamar', 'sel', 'kip', 'nima', 'rosa', 'bram', 'odile'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  for (const n of npcs) if (['tamar', 'sel', 'kip', 'nima', 'rosa', 'bram', 'tilde'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
   // the great cable under the Towers where it leaves for the Moorings (at its clamp, on the catwalk under the deck): a hand on
   // it, and it pulls north
   const cab = level?.cableAnchor;

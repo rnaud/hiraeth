@@ -37,10 +37,14 @@ for (const dir of ['story', 'temples']) {
 for (const [id, c] of Object.entries(CONTENT)) people(c.npcs, `content.${id}`, ALL);
 
 const text = (p) => parseLine(typeof p === 'object' && p ? (p.text ?? '') : p ?? '').text;
-const firstPage = (talk) => {
-  const first = talk.nodes[talk.entry?.at?.(-1)?.node] ?? Object.values(talk.nodes)[0];
-  return [first?.say].flat().map(text).filter(Boolean);
+// (every way a talk opens: its entries' nodes, the ones behind a condition too, a first meeting's, v1.60 #229; or its first node)
+const firstPages = (talk) => {
+  const firsts = (talk.entry ?? []).map((e) => talk.nodes[e?.node]).filter(Boolean);
+  return (firsts.length ? firsts : [Object.values(talk.nodes)[0]]).map((n) => [n?.say].flat().map(text).filter(Boolean));
 };
+// a name and a trade announced in the first lines: "I study light: Orrin Thrum, at your service" (the scientist's, until v1.60)
+// (a name dropped in mid-moment, "Sit down. I’m Ama.", is how the v1.57 rewrite opens; a trade and a name announced is not)
+const introduces = (line, name) => [name, name.split(' ')[0]].some((n) => new RegExp(`\\b(I study|I am a|I’m a|I'm a) [^.!?]*: ${n}\\b|${n}, at your service`).test(line));
 
 // the desert's own drummer keeps his (the review: "Teo. Drummer. Currently providing only the first half of the
 // service." earns it); the Hangar's quartermaster went with his world (src/shop.js: dismissed, not counted)
@@ -52,10 +56,15 @@ test('nobody opens a conversation on their own name (the panel shows it)', () =>
   for (const [where, p] of ALL) {
     if (!p.name || OWN_NAME_KEPT.has(p.name) || /^(The|A|An) /.test(p.name)) continue;   // (things you look at name themselves)
     const name = p.name.replace(/^(Madame|Mother|Sister|Brother|Aunt) /, '');
-    for (const page of firstPage(p.talk)) {
-      n++;
-      const opening = page.replace(/^\([^)]*\)\s*/, '');
-      if (new RegExp(`^(I’m |I'm )?${name}[.,]`).test(opening)) bad.push(`${where} (${p.name}): ${page.slice(0, 60)}`);
+    for (const pages of firstPages(p.talk)) {
+      for (const page of pages.slice(0, 1)) {
+        n++;
+        const opening = page.replace(/^\([^)]*\)\s*/, '');
+        if (new RegExp(`^(I’m |I'm )?${name}[.,]`).test(opening)) bad.push(`${where} (${p.name}): ${page.slice(0, 60)}`);
+      }
+      // (nor introduces themselves in the lines after: the scientist's "I study light: Orrin Thrum, at your service", v1.60)
+      const own = pages.slice(0, 3).find((l) => introduces(l, name));
+      if (own) bad.push(`${where} (${p.name}) introduces themselves: ${own.slice(0, 60)}`);
     }
   }
   assert.ok(n > 100, `${n} first pages read`);

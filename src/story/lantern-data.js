@@ -32,8 +32,13 @@
 // Flags: finale.met, finale.hollin (she has asked him to tell Hollin), lantern.moment.arrive,
 // lantern.song.told (the whistle taught), lantern.lamp.<0-2> (a lamp answered), lantern.answered (all three: Ilen comes out), lantern.moment.answered,
 // world.lantern.done. Keepsake: lantern.person (Ilen herself: she walks to the stone, NOT_SET_DOWN).
+//
+// The fragments of the singing light (v1.60, issue #229; docs/story-bible.md, "The fragments of the singing light"):
+// splinters of her own song, shed on its way. She knows them when she owns up to the light: one line, by how many you
+// picked up (none, some, every one: src/fragments-data.js fragmentCounts over the save's frag.<world>.<i>).
 
 import { FAMILY } from '../characters/family.js';
+import { fragmentCounts } from '../fragments-data.js';
 
 const Q = 'lantern.ilen';
 export const QUEST_ID = Q;
@@ -56,6 +61,13 @@ export const QUESTS = [
 ];
 
 const told = { flag: 'calls.ilen.told' };
+// how many fragments of the singing light he picked up on the way: none, some, or every one
+const fragsFound = (ctx) => fragmentCounts(ctx?.game?.data?.flags ?? {}).found;
+export const SPLINTERS = {
+  none: (ctx) => fragsFound(ctx) === 0,
+  some: (ctx) => fragsFound(ctx) > 0 && fragsFound(ctx) < fragmentCounts().total,
+  all: (ctx) => fragsFound(ctx) >= fragmentCounts().total,
+};
 // what he tells her he brought: each once (`finale.told.<what>`, set by its node), in either of the two nodes that ask
 const untold = (k, extra) => ({ all: [{ not: { flag: `finale.told.${k}` } }, ...(extra ? [extra] : [])] });
 // (three answers at most to a page: the token first, then the rest)
@@ -142,6 +154,9 @@ export const PEOPLE = {
           say: [
             '~solemn~ (She looks past you, at the scorch along the hull. She looks at it a long time.) A light did that. A singing one.',
             '~sad~ It was mine. My answer. I’m sorry.',
+            { text: '~whisper~ It sheds as it sings, you know. Splinters of the song, all along the way. Nobody stops for them.', if: SPLINTERS.none },
+            { text: '~whisper~ You picked up after it. I can hear them from here, in your hold. Bits of my song.', if: SPLINTERS.some },
+            { text: '~surprised~ Every splinter it shed? (She listens toward the ship.) Then it’s whole again. First time since it left me.', if: SPLINTERS.all },
           ],
           choices: [{ text: '~curious~ Your answer?', goto: 'answer' }, { text: '~angry~ It drained my ship. I came down in a desert.', goto: 'sorry' }],
         },

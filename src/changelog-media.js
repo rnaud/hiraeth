@@ -754,6 +754,8 @@ export const CHANGELOG_MEDIA = {
       { name: 'fragments-stack', title: 'The Floating city’s stack', caption: 'The top of the stack, 79 m over the Towers’ deck: a fragment on its last landing', from: FRAG60 },
       { name: 'fragments-canyon', title: 'The Underwater City’s canyon', caption: 'The white bridge over the canyon, on the way to the far wall’s café', from: FRAG60 },
     ], see: 'Each world’s new places, off the way you are sent: Lorn’s canopy and the egg isle, the Floating city’s stack, the Underwater City’s canyon and seabed, the broken moon’s street, Viridel’s old pyramid, Kip’s skybridge. The finder (ten fragments) leads you to them.' },
+    { match: 'The scientist who keeps the fragments in your hold is Anselm Thrum now', see: 'Take your first fragment: he comes at a run and starts in the middle of it (“Don’t drop it!”). The People page names him Anselm Thrum; Tilde is at the cable clamp under the Floating city’s Towers.' },
+    { match: 'At the end of the journey someone knows the fragments', see: 'At the Lantern, when the talk comes to the light that drained your ship: one line about its splinters, different for none, some and all 96.' },
     { match: 'In the Undertower the Choir and its great key have moved', shots: [
       { name: 'under-well', title: 'The Cable Well', caption: 'Looking up its west wall from the floor: before, the bare wall over the way west; after, the walk round the wall at the landing’s height, the Choir’s keepers’ gate in it, and the gate’s cable down the wall', ...C60,
         view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(2, 1.7, 53), target: UT(-9, 12, 63), player: UT(3.5, 0.05, 51.7) } },

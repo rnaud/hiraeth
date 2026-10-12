@@ -5,7 +5,7 @@ import { items as sharedItems, ITEMS } from '../items.js';
 import { fragmentCounts } from '../fragments-data.js';
 import { THRUM, thrumPerson } from './scientist-data.js';
 
-// The scientist (src/story/scientist-data.js: Orrin Thrum; docs/systems/fragments.md). src/story/index.js sets him
+// The scientist (src/story/scientist-data.js: Anselm Thrum; docs/systems/fragments.md). src/story/index.js sets him
 // up in every world:
 //
 //   setupScientist({ levelId, scene, physics, level, ship, npcs, lib, humans, game, items, talkable, dialogue, player, toast })

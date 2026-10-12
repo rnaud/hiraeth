@@ -1,4 +1,5 @@
-// The scientist as data: Orrin Thrum, who studies light (docs/systems/fragments.md, issue #196).
+// The scientist as data: Anselm Thrum, who studies light (docs/systems/fragments.md, issue #196; named Orrin until v1.60,
+// #229: the father's neighbours are the Orrins). His story: docs/story-bible.md, "The fragments of the singing light".
 //
 // He has been on the lookout for the fragments of the singing light since the night the light went over: where it passed it
 // shed splinters of its song, and they hid where nobody goes. The first one the traveller picks up, he is there (he
@@ -35,7 +36,7 @@ export const GREETING_LINES = ['~curious~ Any more out there?', '~happy~ The hol
 const OFFER_GREETING = ['~happy~ There you are! I’ve something for you.', '~playful~ Come here, come here. It’s ready.'];
 
 export const THRUM = {
-  id: 'thrum', name: 'Orrin Thrum', title: 'who studies the singing light', color: '#8fc7d8', voice: 0.95, kind: 'm', scale: 1.0,
+  id: 'thrum', name: 'Anselm Thrum', title: 'who studies the singing light', color: '#8fc7d8', voice: 0.95, kind: 'm', scale: 1.0,
   tier: 'quest',   // (src/costumes.js PROMINENCE: he keeps all his colours)
   // a patched pale coat with too many pockets, goggles pushed up on his brow, a tool belt; grey curls
   palette: { cloak: '#e8e2d0', lining: '#3d5a80', cloth: '#c98b4a', legs: '#3a3448', hair: '#d6d2c8', skin: '#d9a982' },
@@ -78,9 +79,10 @@ export function thrumTalk(flags = {}, { here = null, has, items = sharedItems, o
     // ---------------------------------------------------------------- the first fragment
     meet: {
       say: [
+        // (v1.60, #229: he opens in the middle of the chase, not on his name and trade; the panel names him)
         '~surprised~ (A thin man in a patched coat comes at a run, goggles on his brow, a brass box ticking in his hand.) Don’t drop it!',
         '~happy~ A fragment of the singing light. I’ve been on the lookout for these since the night the light went over.',
-        '~curious~ I study light: Orrin Thrum, at your service, or at the light’s. Where it passed, it shed splinters of its song, and they hide where nobody goes.',
+        '~curious~ Where it passed, it shed splinters of its song. They hide where nobody goes.',
         '~neutral~ Find more and I’ll work them into your gear. Five, and I’ll have something.',
       ],
       choices: [
@@ -117,6 +119,8 @@ export function thrumTalk(flags = {}, { here = null, has, items = sharedItems, o
   return { entry, nodes };
 }
 
+/** His first meeting, named: for the dialogue-voices test (nobody opens on their own name). */
+export const THRUM_MEETING = { name: THRUM.name, talk: thrumTalk({}, { has: () => false }) };
 /** His talk as it reads with an offer waiting (five found in the desert): for the tone and dialogue tests. */
 export const THRUM_TALK = thrumTalk({ 'frag.met': true, ...Object.fromEntries([0, 1, 2, 3, 4].map((i) => [`frag.desert.${i}`, true])) }, { here: 'desert', has: () => false });
 

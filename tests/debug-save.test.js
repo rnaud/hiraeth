@@ -217,7 +217,7 @@ test('seeding writes the debug slot only, makes it the active one, and the game 
 
 // ---- issue #203: the debug saves in the title's Saves screen; everything in the worlds before held
 
-test('the worlds before are complete: their trials run and rewarded, their fragments found, Orrin met and his upgrades fitted where they fit', async () => {
+test('the worlds before are complete: their trials run and rewarded, their fragments found, Anselm met and his upgrades fitted where they fit', async () => {
   const { FRAGMENTS, fragKey, fragmentCounts } = await import('../src/fragments-data.js');
   const { FRAGMENT_ITEMS } = await import('../src/items.js');
   const { TRIALS } = await import('../src/trials/data.js');
@@ -227,7 +227,7 @@ test('the worlds before are complete: their trials run and rewarded, their fragm
     for (const w of before) for (const [k] of (FRAGMENTS[w] ?? []).entries()) assert.equal(flags[fragKey(w, k)], true, `${id}: ${w}'s fragment ${k}`);
     for (const w of after) for (const [k] of (FRAGMENTS[w] ?? []).entries()) assert.equal(flags[fragKey(w, k)], undefined, `${id}: ${w}'s fragment ${k} still to find`);
     const found = fragmentCounts(flags).found;
-    assert.equal(!!flags['frag.met'], found > 0, `${id}: Orrin met once there is a fragment`);
+    assert.equal(!!flags['frag.met'], found > 0, `${id}: Anselm met once there is a fragment`);
     for (const u of FRAGMENT_ITEMS) {
       const need = ITEMS[u.id].needs, fits = u.at <= found && (!need || !!flags[`item.${need}`]);
       assert.equal(!!flags[`item.${u.id}`], fits, `${id}: ${u.id} (${u.at}) ${fits ? 'fitted' : 'not yet'} at ${found}`);

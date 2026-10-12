@@ -118,9 +118,9 @@ export const SPACECITY_CONTENT = {
     // (Ines: the light's trace from the world's detour days, and her word on Sel's notes: src/story/spacecity-people.js)
     { ...SC_PEOPLE.tamar, at: [I0.towers.x - 6, I0.towers.z + 10], y: 6, radius: 3, lang: 'spacecity' },
     { at: [I0.garden.x + 4, I0.garden.z - 6], y: -4, radius: 3, lang: 'spacecity', lines: ['~tired~ Every tree here was carried over a bridge in a pot. Every one.', '~happy~ Sit under the dark ones. They grow toward the planet, not the sun.'] },
-    // (v1.57, issue #194: the moorers on the ways, src/levels/space-city-ways.js: Odile at the great cable's clamp under the
+    // (v1.57, issue #194: the moorers on the ways, src/levels/space-city-ways.js: Tilde at the great cable's clamp under the
     // Towers, Bram at the capstan on the stack)
-    { id: 'odile', name: 'Odile', title: 'who minds the anchor', color: '#5a8a8c', kind: 'f', at: [ANCHOR.x + 4.2, ANCHOR.z + 0.7], y: ANCHOR.y, radius: 2, lang: 'spacecity',
+    { id: 'tilde', name: 'Tilde', title: 'who minds the anchor', color: '#5a8a8c', kind: 'f', at: [ANCHOR.x + 4.2, ANCHOR.z + 0.7], y: ANCHOR.y, radius: 2, lang: 'spacecity',
       lines: ['~neutral~ The clamp hums all night. I sleep over it. You get used to it.', '~whisper~ Look down through the grating. Stars that way too.'] },
     { id: 'bram', name: 'Bram', title: 'who works the capstan', color: '#c47a6a', kind: 'm', at: [CAPSTAN.x - Math.cos(DRIFT.angle + 0.55) * 2.4, CAPSTAN.z - Math.sin(DRIFT.angle + 0.55) * 2.4], y: TIERS.s2.y, radius: 2, lang: 'spacecity',
       lines: ['~tired~ The span drifts out a little every night. Every morning we wind it home.', '~playful~ Lean on a spoke. It goes easier with two.'] },

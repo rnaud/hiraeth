@@ -182,7 +182,7 @@ export const BOOK = {
     ], ['In his shop by Qanat’s main gate, behind the counter.']),
     // the scientist (src/story/scientist-data.js): met at the first fragment of the singing light, wherever it is found, and
     // aboard the ship from then on; listed where the ship came down
-    P('thrum', 'Orrin Thrum', 'Studies the singing light; lives in your ship’s hold', [
+    P('thrum', 'Anselm Thrum', 'Studies the singing light; lives in your ship’s hold', [
       'A thin man in a patched coat, goggles on his brow, who has been on the lookout for the fragments of the singing light since the night the light went over. He came at a run when you picked up your first.',
       [f('item.lightheart'), 'For five fragments he stitched one into your coat over your heart: one more heart, for good.'],
       [f('item.finder'), 'For ten he gave you his finder, a brass box that beeps as a fragment comes near.'],

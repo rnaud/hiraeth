@@ -2247,7 +2247,7 @@ were). The Moorings bridge went; `the stack bridge` (`STACK_BRIDGE`) leaves the 
   round an iron mast out over the void, down 8 m to a catwalk hung under the deck among its machinery (the deck's
   hanging tanks, pipes, cables and lamps are kept out of the catwalks' and stairs' room: `corridors`, `inCorridor`). On it
   the great cable's bronze clamp: the main quest's hand on the cables is here now (`level.cableAnchor`; THINGS.cables'
-  words follow it), Odile minds it. Workshops hung on the machinery with lit round windows, gardens hung upside down,
+  words follow it), Tilde minds it. Workshops hung on the machinery with lit round windows, gardens hung upside down,
   lamps pointing down at the stars. A walkway runs out along under the great cable, over the void, to the stack's foot.
 - **The stacked quarters** (`STACK`, `TIERS`, `STAIRS`). Seven round islands one over another between the Towers and the
   Moorings, centred at (84, -128): the underhouses at -8 m (its roots of machinery and a lamp chain hung far down into the
