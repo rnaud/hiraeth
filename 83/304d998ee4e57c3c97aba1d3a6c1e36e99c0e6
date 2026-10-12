@@ -1,0 +1,87 @@
+"references/Core Objects/Fluid Shield/guard/manifest.json"
+  s_9ca76055a220ed::t_f039f50e510ac1 1-22
+"references/Core Objects/Fluid Shield/shield/manifest.json"
+  s_9ca76055a220ed::t_27ce13c58ee0f9 1-22
+references/levels/Lorn/environment/flora-fauna/manifest.json
+  s_9ca76055a220ed::t_132114ae16a666 1-22
+"references/levels/The Buried Machine/environment/explorations/hanging-city/manifest.json"
+  s_9ca76055a220ed::t_73b0b27223c172 1-39
+"references/levels/The Buried Machine/environment/explorations/machine-breathes/manifest.json"
+  s_9ca76055a220ed::t_c0b3d7e0ccc077 1-39
+"references/levels/The Buried Machine/environment/explorations/tooth-calendar/manifest.json"
+  s_9ca76055a220ed::t_74fbf93ab4838c 1-39
+"references/levels/The Buried Machine/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_f25e4f113f17e5 1-22
+"references/levels/The City Floating in Space/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_004fe5af81b6e4 1-22
+"references/levels/The City-Shaft/environment/explorations/across-the-void/manifest.json"
+  s_9ca76055a220ed::t_80889e4df93a01 1-39
+"references/levels/The City-Shaft/environment/explorations/light-down/manifest.json"
+  s_9ca76055a220ed::t_2552955984a1ef 1-39
+"references/levels/The City-Shaft/environment/explorations/rim-quarters/manifest.json"
+  s_9ca76055a220ed::t_e4c063d7860be3 1-39
+"references/levels/The City-Shaft/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_268c038d5cfb9f 1-22
+"references/levels/The Desert/environment/explorations/giants-road/manifest.json"
+  s_9ca76055a220ed::t_9ef150a26e6300 1-39
+"references/levels/The Desert/environment/explorations/walking-dunes/manifest.json"
+  s_9ca76055a220ed::t_6a09f9f3135206 1-39
+"references/levels/The Desert/environment/explorations/water-memory/manifest.json"
+  s_9ca76055a220ed::t_68ee609d868baa 1-39
+"references/levels/The Desert/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_1c2ef22eebe4c9 1-22
+"references/levels/The Garden of Spheres/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_a348b4ba9c3b9d 1-22
+"references/levels/The Glass Dunes/environment/explorations/singing-ridges/manifest.json"
+  s_9ca76055a220ed::t_58b964c1cf0736 1-40
+"references/levels/The Glass Dunes/environment/explorations/sunken-city/manifest.json"
+  s_9ca76055a220ed::t_006ca49c39da8e 1-39
+"references/levels/The Glass Dunes/environment/explorations/trapped-time/manifest.json"
+  s_9ca76055a220ed::t_f79b99e16c2300 1-39
+"references/levels/The Glass Dunes/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_20dfe6e15d7a0f 1-22
+"references/levels/The Moon Foundry/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_0ab061ed59b88f 1-22
+"references/levels/The Signal Market/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_c419dd4a68ba43 1-22
+"references/levels/The Station in the Sun/characters/lineup/manifest.json"
+  s_9ca76055a220ed::t_d4964dad2dd8b8 1-22
+"references/levels/The Station in the Sun/environment/arrival/manifest.json"
+  s_9ca76055a220ed::t_4bccc2582b96f0 1-22
+"references/levels/The Station in the Sun/environment/establishing/manifest.json"
+  s_9ca76055a220ed::t_c1bb054797e382 1-23
+"references/levels/The Station in the Sun/environment/flare-docks/manifest.json"
+  s_9ca76055a220ed::t_d1ba0f5a27483b 1-23
+"references/levels/The Station in the Sun/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_e274f8fbb6be14 1-22
+"references/levels/The Station in the Sun/environment/listening-hall/manifest.json"
+  s_9ca76055a220ed::t_8ba0416095d108 1-22
+"references/levels/The Station in the Sun/environment/quarters/manifest.json"
+  s_9ca76055a220ed::t_df23d656d84e4f 1-22
+"references/levels/The Station in the Sun/environment/shade-gardens/manifest.json"
+  s_9ca76055a220ed::t_5180321e905cb0 1-22
+"references/levels/The Station in the Sun/environment/temple/manifest.json"
+  s_9ca76055a220ed::t_ad3c93bcfb0761 1-23
+"references/levels/The Underwater City/environment/flora-fauna/manifest.json"
+  s_9ca76055a220ed::t_6a7d8322d848d4 1-22
+references/levels/Vael/environment/flora-fauna/manifest.json
+  s_9ca76055a220ed::t_e4f83cb3772fd4 1-22
+references/levels/Viridel/environment/flora-fauna/manifest.json
+  s_9ca76055a220ed::t_bcb997399904a2 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "83304d998ee4e57c3c97aba1d3a6c1e36e99c0e6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
