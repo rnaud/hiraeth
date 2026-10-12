@@ -44,6 +44,16 @@ export function missingCore(world, has) {
 }
 
 /**
+ * The main quest's last step in a world with core gadgets (issue #232: the desert's main quest ended, then the ship
+ * refused to leave without the blade and the guard): met once nothing is missing, so the quest never reads as done
+ * while the ship would refuse. `ahead: false` (having them early doesn't skip the steps before it), `pass: true` (had
+ * already when the quest reaches it: passed over, never shown; src/story/quests.js landing).
+ */
+export function coreStage(world, stage) {
+  return { ...stage, when: (q) => !missingCore(world, (id) => q.has(id)).length, ahead: false, pass: true };
+}
+
+/**
  * Leaving `world` for `to`: null if the ship may go, else { missing, quest, line }: the ship's one line on what is still
  * to find (the first missing gadget's place, and everything missing there) and the quest that leads there. Going nowhere
  * (`to` the world itself) is never stopped.

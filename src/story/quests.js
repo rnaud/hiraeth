@@ -39,7 +39,7 @@ import { hintsFor } from '../hint-level.js';
 // on past it at once, and the steps before it are passed over (skipAhead). A stage with `gate: true` is never
 // passed over unless its own goal is met (the desert's water must be up before its fire's steps can carry the quest
 // on); one with `ahead: false` doesn't pull the quest forward (its flag can be set out of order: a hoverbike found
-// on a side errand). A quest with `background: true` (it
+// on a side errand); one with `pass: true` is passed over on reaching it if its goal is met (landing). A quest with `background: true` (it
 // starts on its own: the makers' boxes) is only tracked when nothing else is, or when chosen.
 // One with `arrival: true` (a temple's, started on arrival) gives the scout to the world's opening
 // conversation while that waits (opensWith, below).
@@ -116,7 +116,16 @@ export class Quests {
     if (!d || s === undefined || s === DONE) return false;
     if (from && s !== from) return false;
     const i = d.stages.findIndex((x) => x.id === s);
-    return this.set(id, i + 1 < d.stages.length ? d.stages[i + 1].id : DONE);
+    return this.set(id, this.landing(d, i + 1));
+  }
+  /**
+   * The stage the quest lands on moving to the `j`th of `d`: a `pass: true` stage whose goal is met already is passed
+   * over (never shown, not even for a frame), so the step after it, or the end. (The gadgets the ship waits for, last
+   * in the desert's and Vael's main quests: issue #232.)
+   */
+  landing(d, j) {
+    while (j < d.stages.length && d.stages[j].pass && this.met(d.stages[j])) j++;
+    return j < d.stages.length ? d.stages[j].id : DONE;
   }
 
   complete(id) { return this.set(id, DONE); }
@@ -284,7 +293,7 @@ export class Quests {
     if (i < 0) return false;
     const to = this.aheadOf(d, i);
     if (to < 0) return false;
-    return this.set(id, to + 1 < d.stages.length ? d.stages[to + 1].id : DONE);
+    return this.set(id, this.landing(d, to + 1));
   }
   /** The furthest stage after the `i`th of `d` whose goal is met (not behind a `gate` that isn't, the `i`th included), or −1. */
   aheadOf(d, i) {
@@ -306,7 +315,7 @@ export class Quests {
     if (!o) return false;
     const d = this.def(o.id), to = this.aheadOf(d, 0);
     if (to < 1) return false;
-    return this.set(o.id, to + 1 < d.stages.length ? d.stages[to + 1].id : DONE);
+    return this.set(o.id, this.landing(d, to + 1));
   }
 
   /** Arrivals and flags: advance any stage whose condition is met. */

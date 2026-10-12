@@ -36,6 +36,8 @@
 // Conversations: see src/story/dialogue.js for the format. Quests: see
 // src/story/quests.js. Flags (game-state.js): desert.* below.
 
+import { coreStage } from './leave-gate.js';
+
 const Q = 'desert.power';
 // for the listen-only talks of the people outside the quests (src/story/dialogue.js pickListen)
 const LIT = { flag: 'desert.tree.lit' }, RISEN = { flag: 'desert.channel.open' }, DONE = { flag: 'world.desert.done' };
@@ -120,6 +122,9 @@ export const QUESTS = [
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
       // (home by the pilgrims' road, the second way: its cairns lit from the gate down to the ship once the tree burns, src/desert-road.js)
       { id: 'ship', text: 'Meet Qanat at your ship', label: 'Your ship, and Qanat’s gift', flag: 'desert.ship.fed', at: 'ship', via: 'the pilgrims’ road' },
+      // the ship won't leave without the Givers' blade and guard (src/story/leave-gate.js, issue #217): the quest's own
+      // last step while they're missing, passed over when they're had (issue #232); the ship wakes when it's fed (desert.js)
+      coreStage('desert', { id: 'gear', text: 'Take the blade and guard from the Rose House', label: 'The Givers’ blade and guard', at: 'temple.desert.door' }),
     ],
   },
   {

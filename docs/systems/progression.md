@@ -97,6 +97,18 @@ touched, and if one comes back unarmed, the house is there. The debug saves (src
 worlds before theirs, so they leave as before. The play-through (tests/playthrough-agent.js `shipTurn`) reports a world
 it could not leave. Tests: `tests/leave-gate.test.js`.
 
+**The main quest carries the gate** (v1.60, issue #232). The desert's main quest used to end at "Meet Qanat at your
+ship", and only the console said the blade and the guard were still wanted. Its last step is now
+`coreStage('desert', …)` (src/story/leave-gate.js): "Take the blade and guard from the Rose House" (the marker on the
+Rose House's door), met once `missingCore` is empty. It is `ahead: false` (having them early skips nothing before it)
+and `pass: true` (src/story/quests.js `landing`: had already when the quest reaches it, it is passed over, never shown),
+so a run that took them first sees the quest end at the ship as before. The ship wakes when Qanat has fed it
+("The ship hums awake."; src/story/desert.js `wake`), the quest ends (and the galaxy opens, `world.desert.done`) when
+nothing is missing: a done main quest always means the ship can go, and the gate's line stays for whoever tries the
+console first. Vael's main quest ends the same way on "Take the fluid wings from the Aerie" (the tower's wind wants
+them, so a run never sees it). No save moves: the stages before are as they were; a save whose quest ended without the
+blade before v1.60 keeps it ended, the gate still refusing and starting the Rose House's quest.
+
 ## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
 
 From the author: "We shouldn't get the triple jump automatically, it should be a double jump, have a flip animation

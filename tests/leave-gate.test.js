@@ -7,6 +7,10 @@ import { PLACEMENTS } from '../src/boxes/placements.js';
 import { ITEMS } from '../src/items.js';
 import { parseLine } from '../src/story/tone.js';
 import { progressBefore } from '../src/debug-save.js';
+import { GameState } from '../src/game-state.js';
+import { Quests } from '../src/story/quests.js';
+import { QUESTS as DESERT_QUESTS } from '../src/story/desert-data.js';
+import { QUESTS as VAEL_QUESTS } from '../src/story/arzach-data.js';
 
 // Issue #217: "I shouldn't be able to leave the desert without getting all the core gadgets from that level. I was able
 // to leave without a sword and shield right now." The ship (src/ship/ship.js travel) asks src/story/leave-gate.js.
@@ -72,4 +76,61 @@ test('the ship asks before it takes off, and the play-through checks it between 
   assert.match(ship, /game\.emit\('travel:refused', \{ to, missing: no\.missing, quest: no\.quest \}\)/);
   // and the line parses as a tagged one (tests/tone.test.js's rule for every line)
   assert.ok(parseLine(`~neutral~ ${leaveRefusal('desert', 'arzach', owning()).line.text}`).explicit);
+});
+
+// Issue #232: the desert's main quest ended ("Meet Qanat at your ship"), then the ship refused to leave without the blade
+// and the guard: what held him was in no step. Now the quest's last step names them while they are missing.
+const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
+const mainQuest = (quests, id) => { const game = new GameState(memory()), q = new Quests({ game }); for (const d of quests) q.define(d); return { game, q, d: q.def(id) }; };
+const hasAll = (game) => (id) => !!game.flag(`item.${id}`);
+
+test('the desert: reaching the ship first, the main quest\'s last step is the blade and the guard, and it ends only with them (issue #232)', () => {
+  const { game, q, d } = mainQuest(DESERT_QUESTS, 'desert.power');
+  const last = d.stages.at(-1);
+  assert.equal(last.id, 'gear'); assert.match(last.text, /blade and guard from the Rose House/);
+  assert.equal(last.at, 'temple.desert.door');
+  for (const i of DESERT_MAIN) game.set(`item.${i}`, 1);
+  q.start('desert.power', 'ship');
+  game.set('desert.ship.fed', true);
+  q.update(null);
+  assert.equal(q.stage('desert.power'), 'gear', 'the ship fed, the quest still open: its step names what the ship waits for');
+  assert.equal(q.isDone('desert.power'), false);
+  assert.ok(leaveRefusal('desert', 'arzach', hasAll(game)), 'and the ship would refuse: the quest says so first');
+  game.set('item.sword', 1); q.update(null);
+  assert.equal(q.stage('desert.power'), 'gear', 'the blade alone: not yet');
+  game.set('item.shield', 1); q.update(null);
+  assert.equal(q.isDone('desert.power'), true, 'both: the quest ends');
+  assert.equal(leaveRefusal('desert', 'arzach', hasAll(game)), null, 'and the ship goes: a done quest always means it can fly');
+});
+
+test('the desert: the blade and guard had first, the step is never shown and never pulls the quest past Qanat\'s gift (issue #232)', () => {
+  const { game, q } = mainQuest(DESERT_QUESTS, 'desert.power');
+  const seen = [];
+  q.onChange(({ stage }) => seen.push(stage));
+  for (const i of [...DESERT_MAIN, 'sword', 'shield']) game.set(`item.${i}`, 1);
+  q.start('desert.power', 'light');
+  q.update(null);
+  assert.equal(q.stage('desert.power'), 'light', 'having them early skips nothing before them');
+  game.set('desert.tree.lit', true); q.update(null);
+  assert.equal(q.stage('desert.power'), 'ship');
+  game.set('desert.ship.fed', true); q.update(null);
+  assert.equal(q.isDone('desert.power'), true);
+  assert.ok(!seen.includes('gear'), `passed over without a frame on it: ${seen.join(' → ')}`);
+  // (the ship wakes when it is fed: src/story/desert.js; the quest's end says the galaxy is open)
+  const desert = readFileSync(new URL('../src/story/desert.js', import.meta.url), 'utf8');
+  assert.match(desert, /game\.on\('flag:desert\.ship\.fed', \(v\) => \{ if \(v && missingCore\('desert', \(id\) => quests\.has\(id\)\)\.length\) wake\(false\); \}\);/);
+});
+
+test('Vael: the main quest\'s last step is the fluid wings while they are missing; passed over when had (issue #232)', () => {
+  const { game, q, d } = mainQuest(VAEL_QUESTS, 'arzach.bird');
+  assert.equal(d.stages.at(-1).id, 'wings'); assert.match(d.stages.at(-1).text, /fluid wings from the Aerie/);
+  q.start('arzach.bird', 'promise');
+  game.set('arzach.bird.promise', true); q.update(null);
+  assert.equal(q.stage('arzach.bird'), 'wings');
+  game.set('item.glider', 1); q.update(null);
+  assert.equal(q.isDone('arzach.bird'), true);
+  const had = mainQuest(VAEL_QUESTS, 'arzach.bird');
+  had.game.set('item.glider', 1); had.q.start('arzach.bird', 'promise');
+  had.game.set('arzach.bird.promise', true); had.q.update(null);
+  assert.equal(had.q.isDone('arzach.bird'), true, 'with the wings: done at once');
 });

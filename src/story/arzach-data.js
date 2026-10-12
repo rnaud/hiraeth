@@ -27,6 +27,8 @@
 // come in any world with sky). Items: whistle (the rider's flute: its id from when it was a
 // whistle), feather (up to three).
 
+import { coreStage } from './leave-gate.js';
+
 const Q = 'arzach.bird';
 
 export const ITEMS = { whistle: 'the rider’s bone flute', feather: 'a long white feather' };
@@ -54,6 +56,9 @@ export const QUESTS = [
       { id: 'window', text: 'Climb the steps to the tower’s window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
       { id: 'call', text: 'Play the rider’s flute', label: 'The rider’s flute', flag: 'arzach.bird.called', at: 'window' },
       { id: 'promise', text: 'Wait for her answer over the haze', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
+      // the ship won't leave Vael without the fluid wings (src/story/leave-gate.js): the quest's last step while they're
+      // missing (the tower's wind wants them, so a run has them by now and never sees it: issue #232)
+      coreStage('arzach', { id: 'wings', text: 'Take the fluid wings from the Aerie', label: 'The Aerie', at: 'temple.arzach.door' }),
     ],
   },
   {

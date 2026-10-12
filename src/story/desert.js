@@ -22,6 +22,7 @@ import { setupWater } from './desert-water.js';
 import { bystanderSpot } from '../ship/landing.js';
 import { setupRepay } from './desert-repay.js';
 import { quietOr } from '../hint-level.js';
+import { missingCore } from './leave-gate.js';
 import { t as tr } from '../i18n.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
@@ -555,11 +556,18 @@ export function setupDesert(ctx) {
     game.set('desert.dregs.spent', true);
     setTimeout(() => toast('The makers’ last swallow, gone in one splash. The tank is dry glass now.'), 900);
   });
-  quests.def('desert.power').onDone = () => {
+  // the ship wakes when Qanat has fed it; the quest ends once nothing the ship waits for is missing (its last step, the
+  // Givers' blade and guard: src/story/leave-gate.js coreStage, issue #232), so a done quest always means it can fly
+  const wake = (open) => {
+    if (game.flag('ship.powered')) return;
     game.set('ship.powered', true);
+    toast(open ? 'The ship hums awake. The galaxy is open.' : 'The ship hums awake.');
+  };
+  game.on('flag:desert.ship.fed', (v) => { if (v && missingCore('desert', (id) => quests.has(id)).length) wake(false); });
+  quests.def('desert.power').onDone = () => {
+    wake(true);
     game.set('world.desert.done', true);
     game.addKeepsake({ id: 'desert.knowing', level: 'desert', name: 'What the giants left', kind: 'knowing', text: 'The giants carried the water. The tree drinks what they left.' });
-    toast('The ship hums awake. The galaxy is open.');
     setTimeout(() => story.complete?.(), 1200);
   };
 

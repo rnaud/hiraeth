@@ -21,6 +21,7 @@ export const CHANGELOG = [
     'With Reduce motion on, or Camera shake at 0, a hit from the chime pirates no longer shakes the view or flashes the screen’s edges red; the hull’s pips under your ship still show it. The shake also follows the Camera shake slider.',
     'Sounds that come from a place follow the Effects slider, not the Music one: the makers’ hum near a chest, a fragment’s faint song and the Garden’s spheres go quiet with Effects at 0 and keep playing with Music at 0. The pole’s tune in the Garden stays with the music.',
     'The fragment finder no longer beeps while you talk to someone or have a menu open.',
+    'The Desert’s main quest no longer ends while your ship still won’t leave: if you reach the ship before the Rose House, the ship wakes and the quest’s last step asks you to take the blade and guard from the Rose House. Vael’s main quest ends the same way on the fluid wings.',
   ] },
   { v: '1.59', date: '2026-10-12', items: [
     // the chime pirates reworked from the author's notes (src/minigames/pirates.js, pirates-rules.js; docs/systems/minigames.md
