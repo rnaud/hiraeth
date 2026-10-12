@@ -1,0 +1,45 @@
+changelog.md
+  s_9ca76055a220ed::t_a27f88d97f90e7 7
+docs/systems/story.md
+  s_9ca76055a220ed::t_c9ad401097ad10 827-836
+src/changelog.js
+  s_9ca76055a220ed::t_9b115d796c1280 29-31
+src/save-migrate.js
+  s_9ca76055a220ed::t_d3121d89c625d0 75-76,233-237,239-245
+src/story/desert-data.js
+  s_9ca76055a220ed::t_1a6c2e2e80d45d 137,140-142,355-356,374,378-381
+src/story/desert.js
+  s_9ca76055a220ed::t_aaf7c7b4adb7f6 277-280,290,298-303
+src/story/incal-data.js
+  s_9ca76055a220ed::t_33fb20b0d84f44 25,31-32,54-55,125-126,206
+src/story/incal.js
+  s_9ca76055a220ed::t_ebed1fbd8f2d10 419-420,425-431,445
+src/story/people-book.js
+  s_9ca76055a220ed::t_f8caacbb12e623 139,408-409
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_ac1e0e6c7b2ba4 15,750-751,757-766,768-770
+tests/moments-incal.test.js
+  s_9ca76055a220ed::t_fd560dc7515fbe 92
+tests/quest-steps.test.js
+  s_9ca76055a220ed::t_60e1a946a9b30a 128
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_7fe10b67fc6b1e 90,377-394
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_c0d1a7f5239c53 181-184,192-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5080e5c17189c65250f7ed95af0ad91ee80511cf",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
