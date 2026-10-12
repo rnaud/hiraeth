@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.58', date: '2026-10-12', items: [
+    // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)
+    'A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.',
+  ] },
   { v: '1.57', date: '2026-10-12', items: [
     // the Moon Foundry's picked explorations, one way through the world (src/foundry-street.js, src/foundry-cranes.js,
     // src/foundry-pour.js; docs/systems/worlds.md "The Moon Foundry: inside the moons, the cranes and the night pour"; issue #193)

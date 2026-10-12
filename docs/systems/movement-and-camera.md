@@ -285,3 +285,18 @@ and inks it. The colour is darkened by `JUMP_SHADOW.dark` too, so it still reads
 already in shade. `jumpShadowRadius(h)` grows the patch in just off the ground, shrinks it
 with height and removes it by `JUMP_SHADOW.far` (40 m). Standing, the real shadow does the
 job. The mesh stays out of the shadow passes (`level.noShadow`).
+
+## Ragdolls follow the ground's slope (`src/ragdoll.js` `Ragdoll.step`, `groundNormalAt`, `RAG.wall`; issue #214)
+
+The author: "Ragdoll should follow physics. Right now it can ragdoll up a cliff?" It could: each particle was
+pushed straight up out of the ground and kept that push as speed, and kept its speed along the ground, so a body
+knocked into a terrain cliff slid up its face (20 m in 3 s from a 9 m/s knockdown in Vael). Now the ground under each
+particle is a plane, the point under it and the ground's normal there (`physics.groundNormal` on level worlds, the
+face a ray meets under any other up; found once a sub-step, only near the ground), and a particle in it is pushed out
+of the plane: along the normal, or level off a face steeper than 60° (`RAG.wall`), never up it. What the ground and
+the walls push is not speed: the velocity is the particle's own motion less those pushes, with what goes into the
+ground or the wall taken away (a hard landing gives `RAG.bounce` back) and friction along the ground. The trunk's
+capsule against walls works the same way (it used to keep a fifth of its push as speed). Tests:
+`tests/ragdoll-cliff.test.js` (a ragdoll knocked into 50°, 72° and sheer faces at 3-9 m/s, with the heightfield's
+blended normal too, ends no higher than it started, never climbs the face, settles; one into a wall stays this side
+of it), `tests/ragdoll.test.js`.

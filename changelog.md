@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.58 — 2026-10-12
+
+- A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.
+
 ## v1.57 — 2026-10-12
 
 - Your ship won’t leave the desert now until you have the Givers’ blade and guard from the Rose House: it says where they are, and the Rose House goes into your quests if it wasn’t there. Vael waits the same way for the fluid wings from the Aerie.
