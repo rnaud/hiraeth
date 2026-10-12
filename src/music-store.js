@@ -1,6 +1,7 @@
 // The recorded themes on a device (docs/systems/audio.md, "The themes on a device"). The APK and the Steam Deck
-// package carry only the title's (ON_DEVICE_THEMES: the first thing a launch plays; the first world, the desert, plays
-// its own procedural score since issue #207); the over-the-air zip carries no others either (scripts/web-update.mjs onDemand). From the first open
+// package carry only the desert's and the title's (ON_DEVICE_THEMES: the first world plays its theme offline from the
+// very first session; the title's is the first thing a launch plays); the over-the-air zip carries no others either
+// (scripts/web-update.mjs onDemand). From the first open
 // of the app, a bundled game (src/levels/reference-sheets.js bundledGame) fetches every other theme it hasn't
 // got from the site, in the background, one at a time, and keeps them for good (themeDownloader):
 //   - kept in IndexedDB (THEME_DB), one Blob per file name. The music never changes, so the file name is the
@@ -16,8 +17,8 @@
 // asks for that one first). The site and the dev server only ever read their own files.
 import { bundledGame, SHEET_SITE } from './levels/reference-sheets.js';
 
-/** The recordings the devices carry: the title's, the singing light's cue. The packaging reads this too. */
-export const ON_DEVICE_THEMES = ['singing-light.mp3', 'title.mp3'];   // (and the singing light's cue, heard in the prologue: src/soundtracks.js CUES; and the title's music, the first thing a launch plays: TITLE_THEME)
+/** The recordings the devices carry: the desert's (the first world), the singing light's cue, the title's. The packaging reads this too. */
+export const ON_DEVICE_THEMES = ['desert-bayati.mp3', 'singing-light.mp3', 'title.mp3'];   // (and the singing light's cue, heard in the prologue: src/soundtracks.js CUES; and the title's music, the first thing a launch plays: TITLE_THEME)
 export const THEME_DB = 'hiraeth-music', THEME_STORE = 'themes', THEME_DB_VERSION = 1;
 
 /** The key a theme is kept under: its file name (they never change; a new recording gets a new name). */

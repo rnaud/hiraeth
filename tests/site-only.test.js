@@ -34,15 +34,16 @@ test('stripSiteOnly takes them out of a built dist/ and leaves the rest', async 
   } finally { rmSync(d, { recursive: true, force: true }); }
 });
 
-test('the recorded world themes are all fetched on demand (the desert, the first world, plays its own score: issue #207)', () => {
-  assert.deepEqual(ON_DEVICE_THEMES, ['singing-light.mp3', 'title.mp3']);
+test('the recorded themes are fetched on demand, all but the desert\'s (the first world, offline from the first session)', () => {
+  assert.deepEqual(ON_DEVICE_THEMES, ['desert-bayati.mp3', 'singing-light.mp3', 'title.mp3']);
   assert.ok(!fetchedOnDemand('music/singing-light.mp3') && !leftOff('music/singing-light.mp3'), 'the singing light\'s cue rides in the package: the prologue plays it on a first launch');
   assert.ok(!fetchedOnDemand('music/title.mp3') && !leftOff('music/title.mp3'), 'the title\'s music rides in the package: it is the first thing a launch plays');
-  assert.equal(SOUNDTRACKS.desert, undefined, 'no recording: the desert\'s procedural score carries it');
+  assert.equal(SOUNDTRACKS.desert, 'desert-bayati.mp3');
+  assert.ok(!fetchedOnDemand('music/desert-bayati.mp3') && !leftOff('music/desert-bayati.mp3'), 'the desert\'s theme rides in the package (issue #207: its new recording)');
   for (const file of new Set(Object.values(SOUNDTRACKS))) {
     const rel = `music/${file}`;
-    assert.equal(fetchedOnDemand(rel), true, rel);
-    assert.equal(leftOff(rel), true, rel);
+    assert.equal(fetchedOnDemand(rel), file !== 'desert-bayati.mp3', rel);
+    assert.equal(leftOff(rel), file !== 'desert-bayati.mp3', rel);
     assert.ok(!siteOnly(rel), `${rel}: a device does need it (once), it is not the site's alone`);
   }
   for (const f of ['music/manifest.json', 'sfx/step-1.mp3', 'music', 'assets/music-abc.js']) assert.ok(!leftOff(f), f);

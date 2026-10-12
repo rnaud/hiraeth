@@ -179,7 +179,8 @@ on the desert's tonic, so stepping out into its bayati (a near neighbour of dori
 phase)` (`src/ship/cinematics.js`) runs it: `ship` from the first black through the walk to the cockpit (the desert's
 moments held back: `Sound.holdTheme`, its procedural score swapped: `Sound.setScore`, which starts a score from its first section), `quiet` from the
 father's message on (no score under his words and the singing light's theme; the power goes), `desert` as you step
-out onto the sand (the world's score in full, as on arriving: the moments' `arrival`), and on a skip.
+out onto the sand (the desert's recording comes in as on arriving: the moments' `arrival`; the score in full if the
+recording has not decoded), and on a skip.
 A theme that finishes loading while held waits silent (`startTrack`). `tests/prologue-music.test.js`.
 
 ### The desert's music (issue #207, October 2026)
@@ -189,8 +190,8 @@ ambient, mysterious rather than aggressive; a melange of old-school oud music an
 is still a world of space exploration. What played before: on arriving, indoors and at moments, a Suno recording
 (`desert.mp3`, D hijaz, ney, oud, reed drone and a frame drum all through it, mastered loud and dense); between
 moments the procedural score's light layers (a sawtooth reed drone, triangle pads, a bright saw-and-triangle oud
-pluck). The recording is retired (Suno is blocked, #27, so there is no new one to put in its slot); the desert's own
-score (`SCORES.desert`, "The Tree That Drinks") is rewritten and carries everything:
+pluck). That recording is retired; the desert's own score (`SCORES.desert`, "The Tree That Drinks") is rewritten, and a
+new recording made to match it (below) has its slot back:
 
 - **D bayati, 56 a minute, in 8** (`MODES.bayati`: the second a quarter tone flat, 1.5 semitones; the scale and the
   father's theme take fractional semitones as they are). The quarter tone is only in the motif, a sigh on its way
@@ -213,7 +214,8 @@ score (`SCORES.desert`, "The Tree That Drinks") is rewritten and carries everyth
   (`engine/webaudio.js`) renders it the same. The oud, the ondes and the grains send into it.
 - **No frame drum.** Walking brings a slow pulse (`heart`: a soft sine thump from 66 to 44 Hz; `dust`: a grain of
   sand ticking at 5 kHz), two beats and two ticks every 8.6 s; standing, indoors and between moments, none.
-- **Its own moments** (`moments: true` on the score): with no recording, `Sound.musicMomentsUpdate` runs the same
+- **Its own moments** (`moments: true` on the score): with no recording decoded (yet, or on a bridge that can't),
+  `Sound.musicMomentsUpdate` runs the same
   `MusicMoments` and sets `scoreMoment`: the score in full for the arrival (150 s), indoors and after a moment;
   between them only its light layers (`lightScore`: drone, pad, sparse plucks, the shimmer, the echo). Held back
   (the ship's prologue) or Settings > Music: Always, in full. `Sound.setScore` starts a score from its first section,
@@ -221,6 +223,25 @@ score (`SCORES.desert`, "The Tree That Drinks") is rewritten and carries everyth
 - **The camps' drum circle** keeps its D hijaz tune (`src/minigames/drums.js` plays it in hijaz on the desert's
   root): the villagers' song is theirs. Bako's solo is unchanged.
 - **Level**: about -28 dB RMS in full (the old score -27, the recording balanced to -27), -33 between moments.
+- **Its recording** (the same slot as before: `SOUNDTRACKS.desert` = `desert-bayati.mp3`, "Descent into D Bayati",
+  2:45). Made in Suno by the author on 2026-10-12 from a prompt matched to this score (D bayati, 56 BPM, solo oud with
+  fretless slides, warm analog pads, a D/A drone, wind, a granular shimmer, tape echoes; no drums, no build); the
+  prompt is in `public/music/manifest.json`. A new name rather than `desert.mp3`: a kept copy and the caches key on
+  the file name. What plays when, as for every world (`src/music-moments.js`): the recording for the arrival's first
+  150 s, indoors (and 20 s after), and for a while after a moment; between them the score's light layers (drone, pad,
+  sparse oud plucks, the shimmer, the echo), the recording fading out over 10 s over them and in over 3 s (the score
+  stops scheduling as it comes in, its notes ring out). Music: Always keeps the recording on. In the prologue nothing
+  changes: the ship's score while you wake, nothing under the father's message, the recording as you step out.
+  On a device it rides in the package (`ON_DEVICE_THEMES`), 3.8 MB.
+  Measured (offline, BS.1770 on the Mac; the old `desert.mp3` and the others for scale): -16.3 LUFS integrated as
+  delivered (old desert -15.1, title -16.1, incal -16.2, home -10), a loudness range of 4 LU (short-term -18.8 to
+  -14.3: a gentle swell from 0:00 to 1:50, no build); after the game's balancing (-9.2 dB) -25.4 LUFS, the others
+  -24.3 to -25.3. No drum kit, no frame drum, no hand percussion: 7 sharp high-band hits a minute (the old recording
+  120); what pulses is low and soft, a muffled thump under the oud from about 1:00, densest 1:50-2:30, like the
+  score's own `heart`. Key: D throughout (the tonic 30% of the pitch energy, the bass 38%), D F G A B♭ C with the
+  second mostly at E♭ and partly a real quarter-flat E (about 140-160 cents), E natural rare: bayati with a kurdi
+  lean, in tune with the score (+4 cents). The loop: it fades to near silence over its last 5 s and the drone swells
+  back in, so the joined loop (`prepareSoundtrack`'s 2 s overlap) breathes rather than cuts. Issue #207.
 - **Cost** (the same 3-minute walk rendered offline in headless Chrome, before → after): oscillators 123 → 49 a
   minute, filters 94 → 38, buffer sources 49 → 45 (the oud's notes are buffer sources now), the offline render
   11-17% of real time → 9-12% (a loaded Mac: noisy), the scheduler 0.04-0.09 → 0.10-0.15 ms a second of music; and no 154 s recording decoded (59 MB of samples in memory, its balancing on the main thread).
@@ -252,8 +273,8 @@ A level that carries you on a train says so with `level.rails(pos)` → `{ speed
 
 ## Recorded soundtracks (v0.94)
 
-`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/` (on a device only the title's is
-local; the desert has none since issue #207, below; the others are downloaded once: "The themes on a device" below).
+`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/` (on a device only the desert's and the title's are
+local; the others are downloaded once: "The themes on a device" below).
 `manifest.json` records each Suno source and musical direction. Only the current
 world loads after audio starts. Decode/download failures retain the procedural
 score, including on engine bridges without an audio decoder. The title has its
@@ -295,9 +316,9 @@ near-silence at the start (whole MP3 frames dropped, its Xing/LAME header fixed,
 
 ## The themes on a device (October 2026)
 
-The APK and the Steam Deck package carry no recorded world theme (`ON_DEVICE_THEMES`, `src/music-store.js`): the
-first world, the desert, plays its own procedural score (issue #207), so it has its music offline from the very first
-session. They carry the title's music (above) and the singing light's cue. The 24 world themes
+The APK and the Steam Deck package carry one recorded world theme, the desert's (`desert-bayati.mp3`,
+`ON_DEVICE_THEMES`, `src/music-store.js`): the first world has its music offline from the very first session. They
+carry the title's music too (above) and the singing light's cue. The other 24 world themes
 (96 MB) stay on the site (`scripts/site-only.mjs` `leftOff`, the over-the-air zip too; the web build is
 unchanged, it reads its own `music/`).
 

@@ -77,8 +77,9 @@ export const SCORES = {
   // of space exploration"). A modelled oud, sparse, ringing into a slow echo, over a soft analog pad and a low drone
   // with the wind singing in it; a granular shimmer of the oud's ringing now and then; the father's theme on an
   // ondes-like sine. No frame drum: walking brings a slow soft pulse at most. D bayati (its quarter-flat second used
-  // sparingly, in the motif), slow. With no recording of its own, its own moments (`moments`: the full score on
-  // arriving, indoors and at a moment, its light layers between: src/music-moments.js).
+  // sparingly, in the motif), slow. Its recording ("Descent into D Bayati", made to match it) plays the moments; the
+  // score's light layers carry the quiet between. Until the recording has decoded, or where it can't, its own moments
+  // (`moments`: the full score on arriving, indoors and at a moment, its light layers between: src/music-moments.js).
   desert: {
     title: 'The Tree That Drinks', root: 146.83, mode: 'bayati', level: 1.25, tempo: 56, meter: 8, bars: 2, chordBars: 2,
     prog: [0, 5, 0, 3], drone: [[0, -1], [4, -1]],

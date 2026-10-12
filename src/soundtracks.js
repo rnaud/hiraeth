@@ -1,5 +1,5 @@
-// Downloaded Suno originals; provenance is recorded in public/music/manifest.json. On a device only the title's is in the
-// bundle (the desert, the first world, plays its own procedural score: issue #207); the others are downloaded from the site in the background and kept (src/music-store.js).
+// Downloaded Suno originals; provenance is recorded in public/music/manifest.json. On a device only the desert's (and the title's)
+// is in the bundle; the others are downloaded from the site in the background and kept (src/music-store.js).
 import { bundledGame } from './levels/reference-sheets.js';
 import { keepTheme, pageThemeStore, startThemeDownload, themeSources } from './music-store.js';
 import { runSteps, runStepsAsync } from './load-steps.js';
@@ -26,7 +26,7 @@ export const SOUNDTRACKS = {
   buried: 'buried.mp3',
   edena: 'edena.mp3',
   spheres: 'spheres.mp3',
-  // (the desert has none since issue #207: its own procedural score, src/score.js SCORES.desert, carries its moments)
+  desert: 'desert-bayati.mp3',   // (issue #207: "Descent into D Bayati", made to sit with its new score; the old desert.mp3 retired)
   incal: 'incal.mp3',
   arzach: 'arzach.mp3',
   arzach2: 'arzach2.mp3',

@@ -32,20 +32,37 @@ test('registered soundtracks are packaged audio files', () => {
 });
 
 // The named worlds exclude development fixtures such as the Lab and Arena.
-test('every playable world but the desert has exactly one packaged soundtrack and source record', async () => {
+test('every playable world has exactly one packaged soundtrack and source record', async () => {
   const { TITLES } = await import('../src/levels/names.js');
   const { readFileSync } = await import('node:fs');
   const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
-  // (the desert's recording was retired in issue #207: its own procedural score, with its own moments, carries it)
-  const worlds = Object.keys(TITLES).filter((id) => id !== 'desert').sort();
-  assert.equal(SOUNDTRACKS.desert, undefined);
+  const worlds = Object.keys(TITLES).sort();
   assert.deepEqual(Object.keys(SOUNDTRACKS).sort(), worlds);
   assert.deepEqual(manifest.tracks.map(t => t.level).sort(), worlds);
   for (const track of manifest.tracks) {
     assert.equal(track.file, SOUNDTRACKS[track.level]);
-    assert.match(track.source, /^https:\/\/suno\.com\/song\/[a-f0-9-]{36}$/);
+    // a Suno song link; or, made by the author without one (the desert's, issue #207), the date and the prompt
+    if (track.source === null) assert.ok(/^\d{4}-\d{2}-\d{2}$/.test(track.created) && track.prompt.length > 100 && track.note, track.level);
+    else assert.match(track.source, /^https:\/\/suno\.com\/song\/[a-f0-9-]{36}$/);
     assert.ok(track.direction.length > 20);
   }
+});
+
+test('the desert\'s recording (issue #207): its own new name, its prompt recorded, carried by the devices', async () => {
+  const { readFileSync } = await import('node:fs');
+  const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
+  // (a new recording gets a new name: the kept copies and the caches key on it; the old D hijaz desert.mp3 is retired)
+  assert.equal(SOUNDTRACKS.desert, 'desert-bayati.mp3');
+  assert.ok(!Object.values(SOUNDTRACKS).includes('desert.mp3'));
+  const t = manifest.tracks.find((x) => x.level === 'desert');
+  assert.equal(t.title, 'Descent into D Bayati');
+  assert.equal(t.created, '2026-10-12');
+  assert.match(t.prompt, /D Bayati maqam[\s\S]*No drums, no percussion loops[\s\S]*Exclude: drums, darbuka, frame drum/);
+  assert.match(t.note, /Suno/);
+  const size = statSync(new URL('../public/music/desert-bayati.mp3', import.meta.url)).size;
+  assert.ok(size > 2e6 && size < 6e6, `${size} bytes`);
+  const { ON_DEVICE_THEMES } = await import('../src/music-store.js');
+  assert.ok(ON_DEVICE_THEMES.includes('desert-bayati.mp3'), 'the first world\'s theme, offline from the first session');
 });
 
 test('an unavailable download keeps the procedural score active', async () => {

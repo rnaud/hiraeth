@@ -2,8 +2,10 @@
 // "more ambient, mysterious rather than aggressive; a melange of old-school oud music and modern electronic music,
 // since it's still a world of space exploration." The desert's score (src/score.js SCORES.desert) is a modelled oud
 // (src/score-voices.js luteString), sparse, into a slow echo, over a soft analog pad and a low drone with the wind in
-// it, a granular shimmer, the father's theme on an ondes-like sine; no frame drum. Its Suno recording is retired: the
-// score carries its own moments (in full on arriving, indoors and at a moment, its light layers between).
+// it, a granular shimmer, the father's theme on an ondes-like sine; no frame drum. Its old Suno recording (D hijaz, a
+// frame drum) is retired; a new one made to match the score ("Descent into D Bayati", desert-bayati.mp3) plays the
+// moments (arriving, indoors, a moment), the score's light layers between. Until it has decoded, or where it can't,
+// the score carries its own moments.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installAudio } from '../engine/webaudio.js';
@@ -137,7 +139,9 @@ function bare() {
   s.voice = { lead: s.S.pal.lead, pluck: s.S.pal.pluck, melody: s.S.motif, ambience: 'none' };
   s.act = { ...CALM_ACT };
   s.ctx = { currentTime: 0 };
-  s.moments = new MusicMoments({ now: 0 });
+  // (the quiet's own return, after one of returnAfter [300, 480] s drawn when the first quiet starts, pinned to its
+  // longest: drawn at random it could fall inside a test's later stretch and bring the theme back by itself)
+  s.moments = new MusicMoments({ now: 0, rand: () => 1 });
   s.V = {}; s._echo = {}; s._luteReady = true;
   s.beat = 0; s.nextBeat = 0;
   s.played = [];
@@ -153,8 +157,57 @@ function layersAt(s, t, secs = 40, indoor = 0) {
   return new Set(s.played);
 }
 
-test('the layers switch by state: in full on arriving, indoors and at a moment; its light layers between', () => {
-  assert.equal(SOUNDTRACKS.desert, undefined, 'no recording: the score carries its own moments');
+/** The bare Sound with the desert's recording decoded (src/soundtracks.js startTrack, as on arriving): its gain's ramps logged. */
+function withRecording(s) {
+  s.ramps = [];
+  const g = { value: 1, cancelScheduledValues() {}, setValueAtTime(v) { this.value = v; }, linearRampToValueAtTime(v, t) { s.ramps.push([+(t - s.ctx.currentTime).toFixed(3), v]); this.value = v; } };
+  s.trackBuffer = {}; s.trackGain = { gain: g };
+  s.ctx.createBufferSource = () => ({ connect() {}, start() {}, stop() {}, disconnect() {} });
+  s.recordedTrack = { stop() {}, disconnect() {} }; s.trackOn = true;
+  return s;
+}
+
+test('the desert\'s recording (issue #207): on arriving, indoors and at a moment; the score\'s light layers between; crossfaded', () => {
+  assert.equal(SOUNDTRACKS.desert, 'desert-bayati.mp3', 'its new recording, "Descent into D Bayati"');
+  const s = withRecording(bare());
+  // arriving: the recording, and no procedural note on top of it
+  assert.equal(layersAt(s, 0, 40).size, 0, 'arriving: the recording alone');
+  assert.equal(s.trackOn, true);
+  // the arrival's 150 s over: the recording fades out over 10 s and the score's light layers come in under it
+  const between = layersAt(s, MUSIC_MOMENTS.arrival + 1, 120);
+  assert.equal(s.trackOn, false);
+  assert.deepEqual(s.ramps.at(-1), [MUSIC_MOMENTS.fadeOut, 0], 'faded out, not cut');
+  for (const l of ['lead', 'father', 'bass', 'perc']) assert.ok(!between.has(l), `between the moments, no ${l}`);
+  assert.ok(between.has('drone') && between.has('pad'), 'the drone and the pad carry the quiet');
+  s.act.move = 1;   // walking between moments: still only the light layers
+  assert.ok(!layersAt(s, MUSIC_MOMENTS.arrival + 200, 60).has('perc'));
+  s.act.move = 0;
+  // indoors: the recording again, faded in over 3 s from where the gain is; the score stops
+  assert.equal(layersAt(s, MUSIC_MOMENTS.arrival + 300, 10, 1).size, 0, 'indoors: the recording alone');
+  assert.equal(s.trackOn, true);
+  assert.deepEqual(s.ramps.at(-1), [MUSIC_MOMENTS.fadeIn, 1], 'faded in');
+  // out again, the tail of the interior, then the quiet; a moment brings the recording back
+  layersAt(s, s.ctx.currentTime + 1, MUSIC_MOMENTS.indoorTail + 15);
+  assert.equal(s.trackOn, false);
+  // a long quiet: it comes back by itself, returnAfter's longest (480 s, rand pinned) after the first quiet began
+  const back = MUSIC_MOMENTS.arrival + 1 + MUSIC_MOMENTS.returnAfter[1];   // (the quiet first seen at arrival + 1)
+  layersAt(s, s.ctx.currentTime + 1, back - 1 - (s.ctx.currentTime + 1));
+  assert.equal(s.trackOn, false, 'not before its time');
+  layersAt(s, back, 2);
+  assert.equal(s.trackOn, true, 'back by itself after a long quiet');
+  layersAt(s, s.ctx.currentTime + 1, MUSIC_MOMENTS.back + 15);
+  assert.equal(s.trackOn, false);
+  s.moments.cue('moment', s.ctx.currentTime + 1);
+  layersAt(s, s.ctx.currentTime + 1, 1);
+  assert.equal(s.trackOn, true, 'a moment brings it back');
+  clearTimeout(s._trackStop);
+  // Settings > Music: Always
+  const a = withRecording(bare()); a.moments.setMode('always');
+  assert.equal(layersAt(a, 1000, 5).size, 0);
+  assert.equal(a.trackOn, true);
+});
+
+test('until its recording has decoded (or where it can\'t), the score keeps its own moments: in full on arriving, indoors and at a moment', () => {
   const s = bare();
   const arrive = layersAt(s, 0, 40);
   assert.equal(s.scoreMoment, true);
@@ -163,32 +216,45 @@ test('the layers switch by state: in full on arriving, indoors and at a moment; 
   assert.equal(s.scoreMoment, false);
   for (const l of ['lead', 'father', 'bass', 'perc']) assert.ok(!between.has(l), `between the moments, no ${l}`);
   assert.ok(between.has('drone') && between.has('pad'), 'the drone and the pad carry the quiet');
-  s.act.move = 1;   // walking between moments: still only the light layers (the oud's plucks, no pulse)
-  assert.ok(!layersAt(s, MUSIC_MOMENTS.arrival + 200, 60).has('perc'));
-  s.act.move = 0;
   layersAt(s, MUSIC_MOMENTS.arrival + 300, 5, 1);
   assert.equal(s.scoreMoment, true, 'indoors: in full');
   s.moments.cue('moment', s.ctx.currentTime + 1);
   layersAt(s, s.ctx.currentTime + 1, 1);
   assert.equal(s.scoreMoment, true, 'a moment brings it back');
-  // Settings > Music: Always
   const a = bare(); a.moments.setMode('always');
   layersAt(a, 1000, 5);
   assert.equal(a.scoreMoment, true);
 });
 
-test('the prologue: the ship\'s own score, nothing under the father\'s message, the desert\'s in full as you step out', () => {
-  const s = bare();
+test('the prologue: the ship\'s own score, nothing under the father\'s message, the desert\'s recording as you step out', () => {
+  const s = withRecording(bare());
   prologueMusic(s, 'ship');
   const ship = layersAt(s, 0, 30);
   assert.equal(s.scoreId, 'ship');
   assert.ok(ship.has('drone'), 'the ship\'s score');
+  assert.equal(s.trackOn, false, 'the desert\'s recording held back in the ship');
   prologueMusic(s, 'quiet');
   assert.equal(layersAt(s, 30, MUSIC_MOMENTS.arrival).size, 0, 'nothing under the father\'s message');
+  assert.equal(s.trackOn, false, 'not the recording either');
   prologueMusic(s, 'desert');
   assert.equal(s.scoreId, 'desert');
-  assert.equal(s.beat, 0, 'from its first section');
   const out = layersAt(s, s.ctx.currentTime, 20);   // (past the world's first 150 s: the step out is its arrival)
-  assert.equal(s.scoreMoment, true);
-  assert.ok(out.has('drone') && out.has('lead'), 'the drone and the oud\'s motif at once');
+  assert.equal(s.trackOn, true, 'the desert\'s recording as you step out');
+  assert.deepEqual(s.ramps.at(-1), [MUSIC_MOMENTS.fadeIn, 1]);
+  assert.equal(out.size, 0, 'and no score on top of it');
+  // and the arrival's 150 s from the step out, then the quiet
+  layersAt(s, s.ctx.currentTime, MUSIC_MOMENTS.arrival - 25);
+  assert.equal(s.trackOn, true);
+  layersAt(s, s.ctx.currentTime, 10);
+  assert.equal(s.trackOn, false);
+  clearTimeout(s._trackStop);
+  // with no recording decoded: the score in full from its first section
+  const b = bare();
+  prologueMusic(b, 'ship'); layersAt(b, 0, 5);
+  prologueMusic(b, 'quiet'); layersAt(b, 5, 160);
+  prologueMusic(b, 'desert');
+  assert.equal(b.beat, 0, 'from its first section');
+  const o2 = layersAt(b, b.ctx.currentTime, 20);
+  assert.equal(b.scoreMoment, true);
+  assert.ok(o2.has('drone') && o2.has('lead'), 'the drone and the oud\'s motif at once');
 });

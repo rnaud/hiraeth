@@ -785,6 +785,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'Fixed: starting the Desert from a debug save or the worlds list', shots: [
       { name: 'desert-start', caption: 'The Desert started from the worlds list, a save past the prologue: before, under the ship’s ramp, the camera 0.8 m from his head looking at the ramp’s planks (he could not walk); after, at the foot of the ramp, the camera behind him and Qanat ahead', from: SPAWN254 },
     ], see: 'On the title screen open Saves, then Debug, and choose the Desert: you stand at the foot of the ship’s ramp facing the city and can walk off at once.' },
+    { match: 'The Desert has a recorded theme again', see: 'Step out of the ship onto the sand (or travel to the Desert): the drone swells in and the oud starts its falling phrase. Stand about for two and a half minutes and it thins and fades into the score’s quiet drone and pad; step into a house and it comes back. Settings > Music: Always keeps it playing.' },
   ],
   '1.61': [
     { match: 'The Desert has new music, slower, quieter and more mysterious', numbers: [{ title: 'The Desert’s score, a 3-minute walk rendered offline (nodes made a minute)', unit: '/min', better: 'lower', device: 'Mac, headless Chrome, muted, an OfflineAudioContext at 48 kHz (the score in full, walking 2 of the 3 minutes)',

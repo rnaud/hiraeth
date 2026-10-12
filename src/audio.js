@@ -421,8 +421,7 @@ export class Sound {
   /**
    * Hold the world's recorded theme back (on), and the procedural score plays in full instead; released, the
    * theme comes in as on arriving (`arrive`: the moments' arrival, src/music-moments.js). The prologue holds the
-   * desert's moments while you are in the ship, until you step out onto the sand (issue #149; the desert's score
-   * has no recording since issue #207, and plays in full from the step out, as on arriving).
+   * desert's theme while you are in the ship, until you step out onto the sand (issue #149).
    */
   holdTheme(on, { arrive = true } = {}) {
     const was = !!this.themeHeld;
@@ -433,8 +432,9 @@ export class Sound {
   /** Per frame: fade the recording in or out as src/music-moments.js says; a theme stopped after its fade starts again from its opening. */
   musicMomentsUpdate(indoor = 0) {
     const M = this.moments, ctx = this.ctx;
-    // a score with moments of its own and no recording (the desert's, issue #207): the moments say whether it plays
-    // in full (scoreMoment) or only its light layers (schedule); held back (the ship), the score in full
+    // a score with moments of its own and no recording (yet) (the desert's, issue #207: until its recording has decoded,
+    // or for good where it can't): the moments say whether it plays in full (scoreMoment) or only its light layers
+    // (schedule); held back (the ship), the score in full
     if (M && ctx && !this.trackBuffer && this.S?.moments) { const { on } = M.update(ctx.currentTime, { indoor }); this.scoreMoment = on || !!this.themeHeld; return; }
     if (!M || !ctx || !this.trackBuffer || !this.trackGain) return;
     let { on } = M.update(ctx.currentTime, { indoor });
@@ -696,7 +696,7 @@ export class Sound {
       this.chord = chordAt(this.S, this.beat);
       // the recorded theme playing: no procedural score; resting between moments (src/music-moments.js): its light layers
       // (the theme held back, the prologue's ship: its score in full; the score off: nothing). A score with moments of its
-      // own and no recording (the desert's): in full for a moment, its light layers between (musicMomentsUpdate)
+      // own and no recording loaded (the desert's): in full for a moment, its light layers between (musicMomentsUpdate)
       if (!(this.recordedTrack && this.trackOn) && !this.scoreOff) {
         const events = scoreBeat(this.scoreId, this.beat, this.act);
         const light = this.trackBuffer ? !this.themeHeld : !!this.S.moments && this.scoreMoment === false;

@@ -30,6 +30,9 @@ export const CHANGELOG = [
     'Locked on, the camera no longer whips round when you walk past the foe: it turns after it smoothly and stops on it. A small foe chasing you as you back away now stays clear of your back instead of hiding behind it.',
     // a hop with the foe at his feet read against the camera's look (src/jump.js hopAxis; docs/systems/foes.md; issue #236)
     'Locked on with a foe right at your feet, a ring centipede curled round you, stick back and jump is the back flip again instead of a plain jump, so the perfect dodge works against it.',
+    // the desert's recording back in its slot, a new one made to match its new score (public/music/desert-bayati.mp3,
+    // src/soundtracks.js, public/music/manifest.json; docs/systems/audio.md "The desert's music"; issue #207)
+    'The Desert has a recorded theme again, a new one made to go with its new music: a slow oud with long, sliding notes over warm synthesizer pads, a low drone and the wind, and no drums. It plays as you step out of the ship and through your first minutes on the sand, indoors and at the big moments; in between, the quieter layers of the Desert’s own music carry on, and the two fade into each other.',
   ] },
   { v: '1.61', date: '2026-10-12', items: [
     // two blind legs guided and places off the way (src/levels/space-city-ways.js STAIR_LAMP, space-city-detours.js,
