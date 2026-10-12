@@ -2203,7 +2203,7 @@ function frame(ts) {
   updateHud();
   if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
   updateHealth(dt);
-  level.update(dt, t, { player, rig, camera, passage, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
+  level.update(dt, t, { player, rig, camera, passage, hour: sky.hour, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);

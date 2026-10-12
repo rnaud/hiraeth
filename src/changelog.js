@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.57', date: '2026-10-12', items: [
+    // the Moon Foundry's picked explorations, one way through the world (src/foundry-street.js, src/foundry-cranes.js,
+    // src/foundry-pour.js; docs/systems/worlds.md "The Moon Foundry: inside the moons, the cranes and the night pour"; issue #193)
+    'In the Moon Foundry the broken moon’s courtyard is only the start: a stair street climbs its inner curve, landing by landing, a little house with an orange door on each, pots and washing lines, round crater windows in the shell looking down over the whole floor. From its top a hanging bridge leads to a spiral stair under the crown, and up through a round hatch onto a deck on the moon’s crown, 62 m up.',
+    'The Moon Foundry’s cranes still work: two travelling cranes carry moons up and down the hall on their own timetable, cabs lit, shadows sliding over the floor, and at dusk both take their moons to the Casting-House. From the broken moon’s crown a high walk leads to the old hoist’s signal box, levers and a moon dial and a stove; from its door a small moon on chains carries you down to the lookout on the pillar. Pull the lever, or the bell-cord at the lookout, to call it. Hedda now sends you to the signal box to look at the moons.',
+    'The Moon Foundry’s floor has runnels now, cut into the slabs and all leading back to the Casting-House: dry lanes you can walk down into by day, with steps here and there, and after dark full of glowing molten metal that lights the floor round it. At night cross them by the iron footbridges and the plates over the aisle; step down into one and it burns. One ends at Hedda’s mould, one at Bertil’s furnace, one at a cracked mould by the bowl garden.',
+  ] },
   { v: '1.56', date: '2026-10-12', items: [
     // Lorn's route through the author's three picks (src/lorn-veins.js, src/lorn-flood.js, src/lorn-canopy.js,
     // docs/systems/worlds.md "Lorn: one route through the roots, the drowned wood and the keepers' canopy"; issue #188)

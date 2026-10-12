@@ -2049,6 +2049,49 @@ moons: the moons were never finished and nobody came for them; the workers live 
   night); the houses can't be entered; the floor has no grass or bushes where the third picture has them; the far moons
   are plain spheres; no wildlife of its own beyond a flock.
 
+## The Moon Foundry: inside the moons, the cranes and the night pour (issue #193; v1.57)
+
+The author picked all three of the Foundry's level explorations (#170: `references/levels/The Moon Foundry/environment/
+explorations/`, docs/design/level-explorations-2-prompts.md), woven into one way through it. The route
+(tests/playthrough-worlds.js) goes Hedda, Liesel, the crane, Wen on the gantry, then **up through the broken moon** to its
+crown (`climbMoon`, the quests' `moonCrown`), the count at the lookout (by the high walk and the carrier), the main
+quest's look at the moons **from the signal box** (its `hoist` stage, `hoistDeck` now the box: 53.85 m, radius 6), the
+Casting-House, home by the casting rails.
+
+- **Inside the moons** (`src/foundry-street.js`, in the broken moon's frame): `streetPlan(ri, fy)` lays a stair street up the
+  shell's inner curve from the courtyard's floor round the back (azimuth 1.2 → 5.2, nine flights of 0.22 m steps, a
+  landing between each, 5 m in from the wall, `streetRho`), a little house wall-side on each landing long enough (orange
+  door, pots, washing lines across the flights), the courtyard's own houses kept off its foot (`courtyard({ avoid })`). From
+  the top landing (44 m) a hanging bridge goes in to a spiral stair hung round a newel under the crown (two turns, its last
+  third open overhead for headroom) that comes up through **a round hatch** (4.2 m) onto **the crown's deck** (62.6 m),
+  railed but where the high walk leaves. Six **crater windows** (3 m) beside the flights and high on the back:
+  `snapHoles` centres each on a shell triangle's middle and `cutHoles` pulls the vertices inside out to the rim (the
+  coarse shell keeps its smooth normals), a collar through the shell. The inside is paler than the other moons'.
+- **The cranes still work** (`src/foundry-cranes.js`): **the signal box** on the old hoist's second deck (the deck made a
+  floor 10 × 10 m round its top stage; the cabin north of it with six levers, the moon dial, a stove; the balcony left
+  open where the rungs come up); **the high walk** (a railed truss walkway hung from the roof) from the crown's deck down to
+  its west door; **the moon-carrier**: a small moon on chains with a railed deck on its crown, a moving collider
+  (`addMover`, its holder kept out of the bake) that docks flush at the box's east door and at the end of a jetty off the
+  pillar moon's lookout platform, 23 m lower: `rideStep` waits 14 s at each dock and rides 1.8 m/s; `rideCall` from the lever
+  (`moonfoundry.lever`) or the jetty's bell-pull (`moonfoundry.bell`, src/story/moonfoundry-route.js) calls it, or sends
+  it off at once when it is there. Two **travelling cranes** (drawn only, casting their moons' shadows) between runway
+  beams on the pillar columns: `craneTarget(c, t, hour)` steps through four stops (70 s each) by day and from 17:24 to 05:36
+  (`atHouseHour`) holds each at the end of its run nearest the Casting-House. The level's update has the hour now
+  (main.js passes `hour: sky.hour`). An old woman works the levers.
+- **The night pour** (`src/foundry-pour.js`): three runnels (`RUNNELS`) cut 1 m into the slabs along their grid, from the
+  Casting-House out to Bertil's furnace, to Hedda's mould on the forecourt (a spout over its rim; the slabs now reach
+  z 82) and to a cracked mould by the bowl garden. The floor walked is `floorHeight` (`level.ground`: the slabs at 0, the
+  runnels' beds at -1; the drawn terrain sunk 1.6 m under the slabs, `sunkUnder`), the slabs drawn round them
+  (`slabRects`), their walls solid; steps down into them in five places, two flush plates over the aisle, six arched
+  footbridges. By day dry lanes; by night (`pourK` of the sky's `uNight`) a brimming sheet of three hot tones whose bands
+  march out from the house, a light every 26 m; in a runnel by night it burns (a `fire` hazard) and throws you out. Each
+  runnel is a leading line back to the house (`toHouse`).
+- Audit: 4.78 → 4.89 (verticality 4 → 5: 32 → 86 m climbed). Collision 193 k → 206 k triangles (the cap 200 k → 210 k),
+  meshes 238 → 255. `tests/moonfoundry-explorations.test.js`: the route and its lines, the street and the spiral walked
+  up and down, the windows open with the floor beyond, the high walk walked into the box, the moons in sight from it, the
+  timetables, the carrier carrying a traveller to the jetty, the lever and the bell, the runnels (clear beds, steps down
+  and out, walls a step can't climb, the bridges, the hazard by night only).
+
 ## The Underside (`underside`, off the route, October 2026)
 
 An immense shelf of pale limestone jutting east from a mountain far out over a sea of cloud, and a town hung from its

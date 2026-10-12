@@ -679,6 +679,7 @@ const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (sc
 // (v1.55: Vael's picked explorations, issue #187)
 const VAEL187 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5481), the before with the worlds’ files as on origin/main (19e17c8b, git archive), the same pinned cameras and saves, 12 October; cwebp -q 72';
 const LD54 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5471), the before with the worlds’ files as on origin/main (30c8329d), the same pinned cameras, 12 October; cwebp -q 72';
+const MF57 = 'probe.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5571), the before the tree as it was on main (b55c239b, a worktree on port 5572), the same pinned cameras, 12 October; cwebp -q 70 -resize 960';
 // (v1.56: the Garden of Spheres' picked explorations, issue #190: by hand, the disk too tight for changelog-shots.mjs's
 // extraction; the before is the same tree with the world's file as on origin/main, src/levels/spheres.js)
 const GARDEN190 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5531), the before the same tree with src/levels/spheres.js as on origin/main (461a4c24), the same pinned cameras, 12 October; cwebp -q 72';
@@ -699,6 +700,20 @@ const UC56 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s
 const UC_HELMET = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'underwater.helmet': true }, keepsakes: [] };
 const UC_REF = 'references/levels/The Underwater City/environment/explorations/';
 export const CHANGELOG_MEDIA = {
+  '1.57': [
+    { match: 'In the Moon Foundry the broken moon’s courtyard is only the start', shots: [
+      { name: 'foundry-street', title: 'The street on the inner curve', caption: 'Inside the broken moon, looking up its back wall: before, the bare shell over the courtyard’s houses; after, the stair street climbing round it, a house on each landing, washing over the flights', from: MF57 },
+      { name: 'foundry-crown', title: 'The crown', caption: 'The broken moon from over the floor: after, the deck on its crown over the hatch, and the high walk down to the old hoist’s signal box', from: MF57 },
+    ], see: 'From Wen on the gantry, cross the threshold into the broken moon and take the steps up its inner wall on the right; at the top cross the hanging bridge and climb the spiral to the crown.' },
+    { match: 'The Moon Foundry’s cranes still work', shots: [
+      { name: 'foundry-box', title: 'The signal box', caption: 'The old hoist’s second deck: before, a bare deck; after, the signal box round it, the high walk coming in from the broken moon’s crown', from: MF57 },
+      { name: 'foundry-carrier', title: 'The moon-carrier', caption: 'The small moon on chains, halfway between the signal box and the lookout on the pillar', only: 'after', from: MF57 },
+    ], see: 'In the signal box, pull the lever; step onto the moon’s deck when it docks and ride it down to the lookout. Watch the cranes at dusk: both carry their moons to the Casting-House.' },
+    { match: 'The Moon Foundry’s floor has runnels now', shots: [
+      { name: 'foundry-runnel-night', title: 'A runnel at night', caption: 'The east bay at 22:00: before, the bare floor; after, the long runnel full of molten metal, a footbridge over it, running on to the Casting-House', from: MF57 },
+      { name: 'foundry-floor-night', title: 'From the hoist at night', caption: 'From the old hoist’s gallery after dark: the runnels drawn across the floor in lines of fire', only: 'after', from: MF57 },
+    ], see: 'Wait for night in the Moon Foundry and climb the old hoist: the runnels light up and all lead to the Casting-House.' },
+  ],
   '1.56': [
     // (the Underwater City's explorations, issue #192)
     { match: 'In the Underwater City you can go outside now', shots: [

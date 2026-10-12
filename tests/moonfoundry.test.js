@@ -203,7 +203,8 @@ test('solid as drawn: the pillars, the moons, the furnace; drawn only overhead; 
   scene.traverse((o) => { if (o.isMesh && o.visible) { if (T && under(o)) temple++; else meshes++; } });
   assert.ok(meshes < 260, `meshes ${meshes}`);
   assert.ok(temple < 180, `the temple's meshes ${temple}`);
-  assert.ok(physics.triangles < 200000, `collision triangles ${physics.triangles}`);
+  // (v1.57, issue #193: the street in the broken moon, the signal box and the night pour's runnels: 193 k → 206 k)
+  assert.ok(physics.triangles < 210000, `collision triangles ${physics.triangles}`);
   // the furnace drones by its mouth; the pour's bands march down it
   assert.ok(level.hum(V(FURNACE.x - 8, 1, FURNACE.z)) > 0.5 && level.hum(V(0, 1, 60)) === 0);
   const stream = scene.getObjectByName('the pour'), C = stream.geometry.attributes.color;

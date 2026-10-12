@@ -24,7 +24,7 @@ export const QUESTS = [
     outro: 'Every hung moon on the floor faces the Casting-House. Whatever pours at night pours in there.',
     stages: [
       { id: 'hedda', text: 'Hear Hedda out by her mould', label: 'Hedda, on the apron', flag: 'moonfoundry.hedda.heard', at: 'hedda' },
-      { id: 'hoist', text: 'Climb the old hoist to its first deck', label: 'The old hoist’s first deck', goto: 'hoistDeck', radius: 4.5, vertical: 3, at: 'hoistDeck' },
+      { id: 'hoist', text: 'Look at the moons from the signal box', label: 'The signal box on the old hoist', goto: 'hoistDeck', radius: 6, vertical: 3, at: 'hoistDeck' },
       { id: 'house', text: 'Go in at the Casting-House’s door', label: 'The Casting-House’s door', flag: 'temple.moonfoundry.entered', at: 'temple.moonfoundry.door' },
     ],
   },
@@ -62,7 +62,7 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ['~neutral~ Bell-tower moons, garden moons: I pour the small ones. This one, though. I didn’t pour this one.',
-            '~curious~ It came down the rails at dawn, glowing, and settled in my mould like it lived there. Nobody here poured it. Nobody here was awake.'],
+            '~curious~ It came down the runnel at dawn, glowing, and settled in my mould like it lived there. Nobody here poured it. Nobody here was awake.'],
           choices: [
             { text: '~curious~ Then who poured it?', goto: 'who' },
             { text: '~playful~ I’ll let it settle in first.', end: true },
@@ -70,11 +70,11 @@ export const PEOPLE = {
         },
         who: {
           say: ['~solemn~ The night the singing went over, every hung moon on the floor turned on its hook. They’ve faced the same way since.',
-            '~neutral~ *Climb the old hoist*, the iron tower past the moon in the claws, to its first deck, and look at them. Whatever they face pours at night.'],
+            '~neutral~ Look at them from *the signal box on the old hoist*, the iron tower past the moon in the claws. Whatever they face pours at night.'],
           do: { set: { 'moonfoundry.hedda.heard': true } },
           choices: [{ text: '~neutral~ I’ll climb it.', end: true }],
         },
-        again: { say: ['~neutral~ The old hoist, the iron tower past the moon in the claws. Its first deck. Look at the moons.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        again: { say: ['~neutral~ The signal box on the old hoist, past the moon in the claws. Look at the moons.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ No moon came down the rails this morning. My mould’s empty, and I don’t know what to do with my hands.'],
           choices: [{ text: '~playful~ Pour something nobody ordered.', end: true }],
@@ -168,15 +168,15 @@ export const VISITORS = {
       nodes: {
         hello: {
           say: ['~happy~ At home I count the great wheel’s teeth. Here I count moons, on holiday. Thirty-one, not counting the far ones.',
-            '~curious~ Only I can’t see behind the cradle from this walkway, and my knees won’t do ladders. Somebody should count from the pillar. The one with the moon on top.'],
+            '~curious~ Only I can’t see behind the cradle from this walkway, and my knees won’t do the street. Somebody should count from the pillar. The one with the moon on top.'],
           choices: [
             { text: '~neutral~ I’ll climb up and count.', do: { start: 'moonfoundry.count' }, goto: 'go' },
             { text: '~curious~ Who were they for?', goto: 'who' },
           ],
         },
         who: { say: ['~solemn~ Nobody knows. Somebody’s sky, somewhere, waiting for them. Petra at the Casting-House says the ledger knows. She won’t say what it says.'], choices: [{ text: '~neutral~ I’ll count them for you.', do: { start: 'moonfoundry.count' }, goto: 'go' }, { text: '~neutral~ Goodbye, Wen.', end: true }] },
-        go: { say: ['~happy~ *The pillar east of the floor, under the moon on top.* Rungs up its side, a lookout at the top. Count slowly. Moons hate being rushed.'], choices: [{ text: '~neutral~ Slowly.', end: true }] },
-        waiting: { say: ['~curious~ The pillar east of the floor, the lookout under its moon. I’ll wait. I’m good at waiting.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        go: { say: ['~happy~ *The lookout on the pillar, under the moon on top.* Up the street in this moon and over its crown; the cranes do the rest. Count slowly.'], choices: [{ text: '~neutral~ Slowly.', end: true }] },
+        waiting: { say: ['~curious~ The lookout on the pillar, under its moon. Up through this one, then the cranes. I’ll wait.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         counted: {
           say: ['~surprised~ Thirty-two, from the top? Then I’ve been one short all week. (She starts again from one.)'],
           do: { set: { 'moonfoundry.wen.counted': true } },

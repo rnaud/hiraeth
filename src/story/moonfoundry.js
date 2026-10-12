@@ -11,6 +11,7 @@
 import * as THREE from 'three';
 import { KEEPSAKE, QUESTS, LINES_AFTER } from './moonfoundry-people.js';
 import { setupMoonFoundryMoments } from './moonfoundry-moments.js';
+import { setupMoonFoundryRoute } from './moonfoundry-route.js';
 
 /** How near the pillar's lookout (m, across; and up or down) the moons are counted from. */
 export const LOOKOUT_RADIUS = 9, LOOKOUT_UP = 5;
@@ -26,12 +27,18 @@ export function setupMoonFoundry(ctx) {
   // the foundry's own main quest doesn't just appear: it starts when you talk to Hedda on the apron (src/story/quests.js opensWith)
   if (quests?.opensWith && !quests.isStarted?.('moonfoundry.moons')) quests.opensWith('moonfoundry.moons', 'hedda');
   for (const n of npcs) if (['ottilie', 'bertil', 'wen', 'dun', 'ivo', 'hedda'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
-  // the old hoist's first deck (src/levels/moon-foundry.js HOIST): from it the hung moons, all turned one way
-  const Ho = level?.hoist;
-  if (Ho && quests?.locate) { const at = new THREE.Vector3(Ho.x, Ho.stages[0][1], Ho.z); quests.locate('hoistDeck', () => at); }
+  // the old hoist's signal box, on its second deck (v1.57, issue #193: src/foundry-cranes.js; its first deck until then):
+  // from it the hung moons, all turned one way
+  const Ho = level?.hoist, SB = level?.signalBox;
+  if ((SB || Ho) && quests?.locate) { const at = SB ? SB.at.clone() : new THREE.Vector3(Ho.x, Ho.stages[0][1], Ho.z); quests.locate('hoistDeck', () => at); }
   const offHoist = game.on?.('quest', (e) => {
-    if (e?.id === 'moonfoundry.moons' && e.prev === 'hoist') toast('From the hoist’s deck every hung moon on the floor faces one way: east, at the Casting-House.');
+    if (e?.id === 'moonfoundry.moons' && e.prev === 'hoist') toast('From the signal box every hung moon on the floor faces one way: east, at the Casting-House.');
   }) ?? null;
+  // the deck on the broken moon's crown, the street's end (src/foundry-street.js), where the high walk leaves
+  const crown = level?.street?.crown;
+  if (crown && quests?.locate) quests.locate('moonCrown', () => crown);
+  // the signal box's lever and the lookout's bell-pull call the moon-carrier (src/story/moonfoundry-route.js)
+  const route = setupMoonFoundryRoute(ctx);
   // the lookout on the pillar under the moon on its pillar (src/levels/moon-foundry.js PMOON: its platform at 0.78 of it)
   const L = level?.lookout;
   const lookoutAt = L ? new THREE.Vector3(L.x, L.y, L.z) : null;
@@ -73,6 +80,6 @@ export function setupMoonFoundry(ctx) {
       if (rt.inside?.(player.pos) || player.pos.distanceTo(rt.outside.door.at) > FILM_NEAR) return;
       film.moon({ said: 'Over the floor the hung moons turn on their hooks, slowly, all toward the Casting-House.' });
     },
-    dispose() { off?.(); offHoist?.(); offHook?.(); if (closing) clearTimeout(closing); },
+    dispose() { off?.(); offHoist?.(); offHook?.(); route?.dispose(); if (closing) clearTimeout(closing); },
   };
 }

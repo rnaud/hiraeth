@@ -17,6 +17,10 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { SITE as CASTING_HOUSE } from '../temples/moonfoundry.js';
+import { buildNightPour, floorHeight, slabRects, sunkUnder, runnelAt, RECTS as RUNNEL_RECTS, RUNNELS, SLAB, SUNK, CRACKED } from '../foundry-pour.js';
+const RUNNEL_NAMES = RUNNELS.map((r) => r.name);
+import { streetPlan, cutHoles, snapHoles, buildStreet, HATCH } from '../foundry-street.js';
+import { buildSignalBox, buildCranes, BOX, RIDE } from '../foundry-cranes.js';
 
 // ---------------------------------------------------------------------------
 // The Moon Foundry (?level=moonfoundry): an abandoned monumental workshop where miniature moons were made, after its
@@ -83,6 +87,9 @@ export const MF_SHOP = { x: -28, z: 14, heading: Math.atan2(0 - -28, 120 - 14) }
 const noise = createNoise2D(91101), noiseB = createNoise2D(91102);
 /** The ground: the hangar's floor level, the apron, the plain outside rolling gently up into low hills far off. */
 export function height(x, z) {
+  // (v1.57, issue #193: under the slabs, well in from their edge, the drawn ground sinks out of sight: the night pour's
+  //  runnels are cut 1 m into the floor, and the floor you walk is the slabs' (floorHeight, src/foundry-pour.js))
+  if (sunkUnder(x, z)) return -SUNK.depth;
   const out = Math.max(HALL.x0 - 30 - x, x - HALL.x1 - 30, HALL.z0 - 30 - z, z - (SHIP.z + 60), 0);
   let h = smoothstep(0, 120, out) * (fbm(noise, x * 0.006, z * 0.006, 3) * 2.5 + 1.2);
   const e = Math.hypot(x, (z + 120) * 0.9);
@@ -164,6 +171,9 @@ export const MOONFOUNDRY_CONTENT = {
     // (v1.46, issue #102: on the apron, by the little moon cooling in its mould; last, as the errands name people by place)
     // (v1.48, issue #101: Hedda, whose mould the moon nobody poured came down to: the foundry's main quest is hers)
     { ...MF_PEOPLE.hedda, at: [APRON.mould[0] + 5.6, APRON.mould[1] + 2.2], radius: 1, lang: 'moonfoundry', palette: pal('#d9a07c', { cloth: '#efe4cc' }) },
+    // (v1.57, issue #193: the old woman who works the cranes, in the signal box on the hoist: src/foundry-cranes.js; after
+    //  Hedda, the errands name people by their place in this list)
+    { at: [57.4, -182.0], y: 53.9, radius: 0.8, lang: 'moonfoundry', palette: pal('#7f93a3', { cloth: '#e8d2a8' }), lines: ['~neutral~ Six levers. Five do nothing now. The middle one calls the carrier.', '~playful~ The cranes keep their own hours. I only pull when they ask.', '~whisper~ At dusk they all take their moons to the Casting-House. Nobody tells them to.'] },
   ],
 };
 
@@ -185,7 +195,10 @@ export function* buildMoonFoundry(scene) {
     material: { color: T.floor, color2: T.floor2, color3: T.floor3, mode: MODE_TERRAIN, hatch: 0.15 },
   });
   scene.add(terrain.mesh);
-  const H = (x, z) => terrain.heightAt(x, z);
+  // the ground walked on: the slabs level, the runnels cut in them (the drawn terrain sunk under the slabs: height above)
+  const ground = Object.create(terrain), under = floorHeight((x, z) => terrain.heightAt(x, z));
+  ground.heightAt = under;
+  const H = (x, z) => ground.heightAt(x, z);
   const root = new THREE.Group();
   root.name = 'The Moon Foundry';
   scene.add(root);
@@ -196,7 +209,7 @@ export function* buildMoonFoundry(scene) {
     const k = `${Math.floor(x / CELL)},${Math.floor(z / CELL)}`;
     if (!kits.has(k)) {
       const group = new THREE.Group(); group.name = `cell ${k}`; root.add(group);
-      kits.set(k, { kit: new RoomKit({ group, ground: terrain, centre: new THREE.Vector3(), seed: 91100 + kits.size }), vm: new Map() });
+      kits.set(k, { kit: new RoomKit({ group, ground, centre: new THREE.Vector3(), seed: 91100 + kits.size }), vm: new Map() });
     }
     return kits.get(k);
   };
@@ -273,10 +286,12 @@ export function* buildMoonFoundry(scene) {
 
   // ---------------------------------------------------------------- the floor: slabs drawn over the hangar's level ground, the aisle's lines, the rails
   yield;
-  for (let x = HALL.x0; x < HALL.x1; x += CELL / 2) for (let z = HALL.z0; z < HALL.z1 + 20; z += CELL / 2) {
-    const w = Math.min(CELL / 2, HALL.x1 - x), d = Math.min(CELL / 2, HALL.z1 + 20 - z);
-    kitAt(x + w / 2, z + d / 2).kit.add(M.floor, new THREE.PlaneGeometry(w, d, 2, 2).rotateX(-Math.PI / 2).translate(x + w / 2, 0.025, z + d / 2), LOOSE_NS);
+  // (v1.57: out to SLAB.z1, the forecourt round Hedda's mould paved too; the night pour's runnels left out of them)
+  for (let x = SLAB.x0; x < SLAB.x1; x += CELL / 2) for (let z = SLAB.z0; z < SLAB.z1; z += CELL / 2) {
+    const w = Math.min(CELL / 2, SLAB.x1 - x), d = Math.min(CELL / 2, SLAB.z1 - z);
+    for (const [a0, a1, b0, b1] of slabRects(x, x + w, z, z + d)) kitAt((a0 + a1) / 2, (b0 + b1) / 2).kit.add(M.floor, new THREE.PlaneGeometry(a1 - a0, b1 - b0, 1, 1).rotateX(-Math.PI / 2).translate((a0 + a1) / 2, 0.025, (b0 + b1) / 2), LOOSE_NS);
   }
+  const nearRunnel = (x, z, r) => RUNNEL_RECTS.some((q) => x > q.x0 - r && x < q.x1 + r && z > q.z0 - r && z < q.z1 + r);
   // the aisle's painted edges, and rails in the floor running north from the mouth
   for (const x of [-11, 11]) kitAt(x, 0).kit.add(M.line, new THREE.PlaneGeometry(0.35, MOUTH + 120).rotateX(-Math.PI / 2).translate(x, 0.04, MOUTH - (MOUTH + 120) / 2), LOOSE_NS);
   for (const [x, z0, z1] of [[-30, MOUTH + 30, -150], [-27.6, MOUTH + 30, -150], [36, MOUTH + 30, -60], [38.4, MOUTH + 30, -60], [-60, -100, -280], [-57.6, -100, -280]]) {
@@ -295,7 +310,7 @@ export function* buildMoonFoundry(scene) {
   const stations = [HUNG, CRADLE, { x: COURT.x, z: COURT.z, R: COURT.R + 8 }, { x: BOWL.x, z: BOWL.z, R: BOWL.R + 6 }, { x: PMOON.x, z: PMOON.z, R: 14 }, { x: FURNACE.x, z: FURNACE.z, R: 16 }, { x: QUARTER.x, z: QUARTER.z, R: QUARTER.r }, HUNG2, { x: CASTING_HOUSE.x, z: CASTING_HOUSE.z, R: 16 }];   // (the Casting-House: src/temples/moonfoundry.js)
   const pillars = [];
   for (const x of [-150, -100, -50, 50, 100, 150]) for (const z of [30, -50, -128, -206, -280]) {
-    if (stations.some((s) => Math.hypot(s.x - x, s.z - z) < (s.R ?? 10) + 8) || (Math.abs(x) < 30 && z > -150) || nearWay(WAYS.main, x, z) < 8 || nearWay(WAYS.branch, x, z) < 8) continue;
+    if (stations.some((s) => Math.hypot(s.x - x, s.z - z) < (s.R ?? 10) + 8) || (Math.abs(x) < 30 && z > -150) || nearWay(WAYS.main, x, z) < 8 || nearWay(WAYS.branch, x, z) < 8 || nearRunnel(x, z, 4.5)) continue;
     pillars.push([x, z]);
   }
   for (const [i, [x, z]] of pillars.entries()) {
@@ -324,8 +339,14 @@ export function* buildMoonFoundry(scene) {
   yield;
   const C = COURT, cdir = COURT_DIR.clone(), thick = C.thick;
   const CM = moon({ R: C.R, seg: 72, craters: 70, seed: 51, cut: { dir: cdir, angle: C.angle, ragged: 0.2, thick, sill: 0.7 } });
-  put(C.x, C.z, moveParts(CM, (g) => g.translate(C.x, C.yc, C.z)));
-  const CY = courtyard({ R: C.R, thick, hole: CM.hole, toward: cdir, houses: 9, trees: 8, seed: 52, lit: 0.55, detail: 0.9 });
+  // (v1.57, issue #193: inside the moons: the street up its inner curve, its crater windows and the hatch at its crown,
+  //  src/foundry-street.js; the holes cut before it is laid)
+  const SP = streetPlan(C.R - thick, COURT_Y - C.yc);
+  cutHoles([...CM.shell, ...CM.inner, ...CM.crater], [...snapHoles(SP.windows, CM.shell[0]), SP.hatch], C.R);
+  // (its inside paler than the other moons': the town on its inner curve is lit through its windows, as the sheets)
+  put(C.x, C.z, moveParts(CM, (g) => g.translate(C.x, C.yc, C.z)), { inner: mat({ color: '#d8ccb4', shade: 0.22, hatch: 0.5, side: DS }) });
+  const low = SP.line.filter((q) => q[1] < SP.fy + 14);
+  const CY = courtyard({ R: C.R, thick, hole: CM.hole, toward: cdir, houses: 9, trees: 8, seed: 52, lit: 0.55, detail: 0.9, avoid: (x, z, r) => low.some((q) => Math.hypot(q[0] - x, q[2] - z) < r + 2.8) });
   put(C.x, C.z, moveParts(CY, (g) => g.translate(C.x, C.yc, C.z)));
   for (const w of CY.windows.slice(0, 6)) lamp(C.x + w[0], C.yc + w[1], C.z + w[2], 4);
   const courtY = C.yc + CY.fy;
@@ -336,6 +357,15 @@ export function* buildMoonFoundry(scene) {
   const court = { lip: V(C.x + hor.x * (C.R + 0.6), courtY, C.z + hor.z * (C.R + 0.6)), side: hor };
   put(C.x, C.z, { plank: [beam(lip.clone().add(V(0, -0.15, 0)), court.lip.clone().add(hor.clone().multiplyScalar(1.2)).add(V(0, -0.15, 0)), 3.2, 0.3)] });
   if (G - courtY > 0.05 || courtY - G > 0.05) console.warn?.(`moon foundry: the courtyard floor is at ${courtY.toFixed(2)}, the gantry at ${G}`);
+  // the street on the inner curve, its houses and windows; the spiral up to the crown's deck
+  const ST = buildStreet(SP, { R: C.R, thick, seed: 53, walkAz: Math.atan2(BOX.x0 - 1.2 - C.x, BOX.door.west - C.z) });
+  const toWorld = (g) => g.translate(C.x, C.yc, C.z);
+  put(C.x, C.z, moveParts(ST.parts, toWorld), { tones: { floor: 'wall3', edge: 'edge' } });
+  put(C.x, C.z, moveParts(ST.loose, toWorld), { solid: false });
+  for (const l of ST.lamps) lamp(C.x + l[0], C.yc + l[1], C.z + l[2], l[3]);
+  lamp(C.x, C.yc + SP.crown.y + 2.5, C.z, 7);
+  const street = { line: SP.line.map(([x, y, z]) => V(C.x + x, C.yc + y, C.z + z)), crown: V(C.x, C.yc + SP.crown.y, C.z), plan: SP,
+    houses: ST.houses.map((h) => ({ ...h, local: h.at, at: h.at.clone().add(V(C.x, C.yc, C.z)), top: h.top + C.yc })) };
 
   // ---------------------------------------------------------------- the bowl in its cradle, its garden deck at the gantry's height
   yield;
@@ -400,6 +430,24 @@ export function* buildMoonFoundry(scene) {
     put(x, z, { rust: iron, plank: decks, rail: rails }, { tones: { rust: 'rust2' } });
     lamp(x, HOIST.stages.at(-1)[1] + 2.5, z, 8);
   }
+  // (v1.57, issue #193: the cranes still work: the signal box on the hoist's second deck, the moon-carrier's runway and the
+  //  lookout's jetty, the cranes' runways; their moving parts below, src/foundry-cranes.js)
+  const box = buildSignalBox(put);
+  lamp(53.5, BOX.y + 2.6, -179.8, 7);
+  lamp(box.stove.x, BOX.y + 0.8, box.stove.z, 3);
+  // the high walk: from the broken moon's crown, over its shoulder and down to the signal box's west door
+  const walk = (() => {
+    const door = V(BOX.x0 - 1.2, BOX.y, BOX.door.west), dir = V(door.x - COURT.x, 0, door.z - COURT.z).normalize();
+    const from = V(COURT.x, C.yc + SP.crown.y, COURT.z).addScaledVector(dir, HATCH.deck - 0.4);
+    const pts = [from.toArray(), door.toArray(), [BOX.x0 + 0.3, BOX.y, BOX.door.west]];
+    const GQ = gantry(pts.map((q) => [...q]), { w: 1.8, truss: 0.9, legs: false, detail: 0.8 });
+    put((from.x + door.x) / 2, (from.z + door.z) / 2, GQ);
+    // hung from the roof by rods every 9 m
+    const hang = [];
+    for (let k = 1; k < 5; k++) { const q = from.clone().lerp(door, k / 5); for (const e of [-1, 1]) { const o = q.clone().add(V(-dir.z * e * 0.85, 1.05, dir.x * e * 0.85)); hang.push(bar(o, V(o.x, HALL.roof - 3.6, o.z), 0.035, 0.035, 3)); } }
+    put(door.x, door.z, { strut: hang }, { solid: false, shadow: false });
+    return { from, door, points: pts.map((q) => V(...q)) };
+  })();
 
   // ---------------------------------------------------------------- the last furnace: its drum, the glowing mouth, the ladle's pour into a mould
   yield;
@@ -494,7 +542,7 @@ export function* buildMoonFoundry(scene) {
   }
   for (let i = 0; i < 26; i++) {
     const x = R(HALL.x0 + 10, HALL.x1 - 10), z = R(HALL.z0 + 10, MOUTH - 5);
-    if (Math.abs(x) < 16 || stations.some((s) => Math.hypot(s.x - x, s.z - z) < (s.R ?? 10) + 4) || pillars.some(([px, pz]) => Math.hypot(px - x, pz - z) < 6)) continue;
+    if (Math.abs(x) < 16 || stations.some((s) => Math.hypot(s.x - x, s.z - z) < (s.R ?? 10) + 4) || pillars.some(([px, pz]) => Math.hypot(px - x, pz - z) < 6) || nearRunnel(x, z, 9)) continue;
     if (i % 3 === 0) {
       // a spare plate of shell: a piece of a moon lying on the floor, its curve up
       // (a fragment of a dome, convex side up: its rim on the floor)
@@ -528,6 +576,11 @@ export function* buildMoonFoundry(scene) {
       put(x, z, { rust: [tub], dark: [...wheels, ...slag] }, { tones: { rust: 'rust3' } });
     }
   }
+
+  // ---------------------------------------------------------------- the night pour: the runnels in the floor (src/foundry-pour.js)
+  yield;
+  const night = buildNightPour({ put, scene, noShadow, lights, T, V });
+  const RUNNELS_BY_AT = (p) => RUNNEL_NAMES[runnelAt(p.x, p.z)] ?? 'a runnel';
 
   // ---------------------------------------------------------------- the casting rails: the way home from the Casting-House
   // (level design audit v1.53, issue #180: the walk home from its door went back across the floor the way you came, 277 m
@@ -607,17 +660,24 @@ export function* buildMoonFoundry(scene) {
   }
   yield;
 
+  // the cranes' moving parts: the moon-carrier (a moving collider: init) and the two travelling cranes (src/foundry-cranes.js)
+  const cranes = buildCranes(scene, T, noShadow);
   const spawn = new THREE.Vector3(0, H(0, SHIP.z - 26) + 0.05, SHIP.z - 26);   // (clear of the ship's hull and ramp, the camera too)
   // the furnace's drone: strongest at its mouth, gone across the floor
   const humAt = (p) => 0.75 * smoothstep(34, 4, Math.hypot(p.x - F.x, p.z - F.z));
   // where a person stands: on the courtyard's floor, the bowl's deck, or the ground
   const placeAt = (p) => {
+    if (p.x > BOX.x0 - 0.5 && p.x < BOX.x1 + 0.5 && p.z > BOX.z0 - 0.5 && p.z < BOX.z1 + 0.5 && Math.abs(p.y - BOX.y) < 4) return 'The signal box';
+    if (Math.hypot(p.x - COURT.x, p.z - COURT.z) < COURT.R + 2 && p.y > COURT.yc + COURT.R - 4) return 'The broken moon’s crown';
+    if (Math.hypot(p.x - COURT.x, p.z - COURT.z) < COURT.R && p.y > G + 2.5) return 'The street in the broken moon';
     if (Math.hypot(p.x - COURT.x, p.z - COURT.z) < COURT.R) return 'The courtyard in the broken moon';
+    if (p.y > G + 20) return 'The high walk';
     if (Math.hypot(p.x - BOWL.x, p.z - BOWL.z) < BOWL.R && p.y > G - 2) return 'The bowl garden';
     if (p.y > G - 2) return 'The gantry';
     if (Math.hypot(p.x - F.x, p.z - F.z) < 22) return 'The last furnace';
     if (Math.hypot(p.x - QUARTER.x, p.z - QUARTER.z) < QUARTER.r + 6) return 'The workers’ quarter';
     if (p.z > MOUTH) return 'The apron';
+    if (p.y < -0.3 && runnelAt(p.x, p.z) >= 0) return 'The runnels';
     return 'The Moon Foundry';
   };
   // the pour: its bands march down the stream (three hot tones, printed, not a light), slower by night it is all that glows
@@ -647,7 +707,11 @@ export function* buildMoonFoundry(scene) {
     // the jib crane over the last furnace's mould, the ladle on its hook (Liesel's mended ladle-hook is hung on it:
     // src/story/moonfoundry.js; its mast as the furnace's section above draws it)
     crane: { x: FURNACE.x - 17, y: 0, z: FURNACE.z - 2 },
-    hoist: HOIST,   // (its first deck: the foundry's main quest looks at the hung moons from it, src/story/moonfoundry.js)
+    hoist: HOIST,
+    // (v1.57, issue #193: the signal box on the hoist's second deck: the foundry's main quest looks at the hung moons from
+    //  it, src/story/moonfoundry.js; its levers call the moon-carrier, src/story/moonfoundry-route.js)
+    signalBox: { ...BOX, at: V(53.3, BOX.y, -177.4), ...box },
+    street, walk, cranes, night,
     // the floor's leading lines (the level design audit's `lines`): the aisle's painted edges and lamps north from the
     // mouth, the rails in the floor from the furnace to the gantry's stair, and the gantry's railed way to the broken moon
     lines: [
@@ -656,6 +720,12 @@ export function* buildMoonFoundry(scene) {
       // (v1.54, issue #180: the casting rails, the way home from the Casting-House's door: north up the east bay, out of the
       //  mouth and across the apron to the ship; followed where the route's last stop names it, tests/playthrough-worlds.js)
       { name: 'the casting rails', points: [[CASTING_HOUSE.x - 6, 0, CASTING_RAILS.z0 - 6], [CASTING_RAILS.x, 0, CASTING_RAILS.z0], [CASTING_RAILS.x, 0, CASTING_RAILS.z1 - 6], [SHIP.x + 24, 0, SHIP.z - 22]], auto: false },
+      // (v1.57, issue #193: inside the moons: from Wen on the gantry over the lip, up the street on the broken moon's inner
+      //  curve and its spiral to the crown; the high walk down to the signal box and the moon-carrier on to the lookout)
+      { name: 'the street in the broken moon', points: [[WAYS.main[2][0], G, WAYS.main[2][2]], [lip.x, G, lip.z], ...street.line.map((q) => q.toArray()).filter((_, i, a) => i % 3 === 0 || i === a.length - 1)] },
+      { name: 'the high walk and the moon-carrier', points: [street.crown.toArray(), walk.from.toArray(), walk.door.toArray(), [RIDE.a[0], RIDE.yA, RIDE.a[1]], [RIDE.b[0], RIDE.yB, RIDE.b[1]], box.jetty.from.toArray(), [PMOON.x, PMOON.h * 0.78, PMOON.z]] },
+      // (and the night pour's runnels, each from its mould back to the Casting-House: src/foundry-pour.js)
+      ...night.lines,
     ],
     hung: { x: HUNG.x, y: HUNG.y, z: HUNG.z },
     sights: [
@@ -667,8 +737,17 @@ export function* buildMoonFoundry(scene) {
       // (v1.54, issue #180: on the casting rails)
       { name: 'the test moon on the casting rails', at: [CASTING_RAILS.x, 0, CASTING_RAILS.test.z] },
       { name: 'the cart of cracked moons', at: [CASTING_RAILS.x, 0, CASTING_RAILS.cracked.z] },
+      // (v1.57, issue #193: the street's top landing, the crown's deck, the signal box; the cranes' moons (where they rest
+      //  by day, high overhead), the cracked mould at the west runnel's end, an arched footbridge on the way in)
+      { name: 'the street’s top landing', at: street.line[SP.flights.length * 4].toArray() },
+      { name: 'the broken moon’s crown', at: street.crown.toArray() },
+      { name: 'the signal box', at: [53.3, BOX.y, -177.4] },
+      { name: 'the cracked mould', at: [CRACKED.x + CRACKED.r + 2, 0, CRACKED.z] },
+      // (the night pour's crossings, where you cross the runnels after dark: src/foundry-pour.js BRIDGES)
+      ...night.bridges.filter((b) => b.kind === 'arch').map((b) => ({ name: `the footbridge over ${RUNNELS_BY_AT(b.at)}`, at: b.at.toArray() })),
+      { name: 'the steps down into the long runnel', at: [40, -1, 54] },
     ],
-    ground: terrain,
+    ground,
     collision: { strategy: 'SAH' },
     spawn,
     spawnHeading: Math.PI,
@@ -706,20 +785,27 @@ export function* buildMoonFoundry(scene) {
       for (const x of [-6, 6]) walks.push({ path: [VV(x, 0, MOUTH + 20), VV(x, 0, -140)], n: 6, pair: 0.4 });
       walks.push({ path: ways.main.map((p) => VV(p[0], G, p[2])).slice(0, 3), n: 4, pair: 0.3 });
       walks.push({ path: Array.from({ length: 13 }, (_, i) => { const a = (i / 12) * Math.PI * 2; return VV(QUARTER.x + Math.cos(a) * 12, 0, QUARTER.z + Math.sin(a) * 12); }), n: 4, pair: 0.4, loop: true });
-      walks.push({ path: [VV(-20, 0, 20), VV(-60, 0, -10), VV(-70, 0, -90), VV(-40, 0, -130)], n: 4, pair: 0.3 });
-      walks.push({ path: [VV(24, 0, 30), VV(48, 0, 0), VV(36, 0, -50), VV(30, 0, -130)], n: 4, pair: 0.3 });
+      // (kept off the runnels but where a plate or a footbridge crosses them: src/foundry-pour.js)
+      walks.push({ path: [VV(-20, 0, 20), VV(-60, 0, -10), VV(-70, 0, -90), VV(-44, 0, -98)], n: 4, pair: 0.3 });
+      walks.push({ path: [VV(24, 0, 30), VV(48, 0, 0), VV(36, 0, -50), VV(32, 0, -98)], n: 4, pair: 0.3 });
       for (let i = 0; i < 3; i++) groups.push({ at: VV(QUARTER.x + (r() - 0.5) * 14, 0, QUARTER.z + (r() - 0.5) * 14), n: size() });
       groups.push({ at: VV(FURNACE.x - 14, 0, FURNACE.z + 3), n: 3 });
       groups.push({ at: VV(COURT.x + hor.x * 4 - 3, courtY, COURT.z + hor.z * 4), n: 2 });
       groups.push({ at: VV(CRADLE.x - 22, 0, CRADLE.z + 2), n: 2 });
+      // (on the street in the broken moon, by its houses' doors)
+      for (const H of street.houses.filter((_, i) => i % 2 === 1)) { const q = H.local, k = 1 - (H.d / 2 + 1.1) / Math.hypot(q.x, q.z); groups.push({ at: VV(C.x + q.x * k, H.at.y, C.z + q.z * k), n: 2 }); }
       for (let z = -20; z > -90; z -= 22) if (r() < 0.6) edges.push({ at: VV(STAIR.x - 1.5, G, z), heading: -Math.PI / 2, pose: 'rail' });
       for (const sp of [...groups, ...walks, ...edges]) sp.lines = this.crowdLines;
       return { groups, walks, edges, avoid: [], farMax: 220, costume: 'moonfoundry', palette: { cloaks: ['#d98c58', '#e8d2a8', '#9cc9b4', '#c9703e', '#7f93a3'] },
         clear: [{ x: spawn.x, z: spawn.z, r: 6 }, { x: SHIP.x, z: SHIP.z, r: 22 }] };
     },
-    update(dt, t) {
+    /** The moon-carrier as a moving collider (src/main.js, after the collision is baked). */
+    init(physics) { cranes.init(physics); },
+    update(dt, t, ctx = {}) {
       for (const Cc of kits.values()) for (const m of Cc.kit.movers) m(t);
       updatePour(t);
+      cranes.update(dt, t, ctx.hour ?? 10.5);
+      night.update(t, ctx.player);
     },
   });
 }

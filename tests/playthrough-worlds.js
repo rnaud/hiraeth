@@ -325,7 +325,7 @@ const inAt = (id) => (W, { issue }) => {
 };
 Object.assign(WAYS, {
   // (the Moon Foundry's old hoist: its first deck 26.8 m up, climbed; the glass mound by the Glass Dunes' warm flow, 9 m)
-  'moonfoundry.moons:hoist': { needs: [], how: 'up the old hoist’s first stage' },
+  'moonfoundry.moons:hoist': { needs: [], how: 'up the old hoist to its signal box (or over the broken moon and along the high walk)' },
   'glassdunes.minute:mound': { needs: [], how: 'up the glass mound' },
 });
 Object.assign(SOLVERS, {
@@ -336,9 +336,9 @@ Object.assign(SOLVERS, {
   // the hoist's deck and the mound's top: climbed (the agent stands where the climb comes out)
   'moonfoundry.moons:hoist': (W, { issue }) => {
     const at = A.objectiveAt(W, 'hoistDeck');
-    if (!at) return issue('no-thing', 'no hoist deck');
+    if (!at) return issue('no-thing', 'no signal box');
     const s = A.standNear(W, at, { radius: 4, up: 2 });
-    if (!s) return issue('no-ground', 'nowhere to stand on the hoist’s deck');
+    if (!s) return issue('no-ground', 'nowhere to stand in the signal box');
     W.at(s); W.step(3);
     // (and back down its rungs to the floor: the way on is on foot)
     const down = A.standNear(W, V(at.x, 0, at.z + 9), { radius: 6, up: 2 });
@@ -359,6 +359,15 @@ Object.assign(ACTIONS, {
   meetMireille: meet('mireille', 'underwater.kelp'),
   meetWen: meet('wen', 'moonfoundry.count'),
   meetOttilie: meet('ottilie', 'moonfoundry.hook'),
+  // (v1.57, #193: from Wen's gantry over the broken moon's lip, up the street on its inner curve and its spiral to the deck
+  //  on its crown, where the high walk leaves for the signal box: the agent stands on the deck)
+  climbMoon: (W, issue) => {
+    const at = W.quests.resolve('moonCrown');
+    if (!at) return issue('no-thing', 'no deck on the broken moon’s crown');
+    const s = A.standNear(W, at, { radius: 3, up: 2 });
+    if (!s) return issue('no-ground', 'nowhere to stand on the broken moon’s crown');
+    W.at(s); W.step(2);
+  },
   // (the desert: Sabri in the camps sends you to the Rose House once Qanat has fed your ship)
   askSabri: meet('sabri', 'temple.desert'),
   meetSel: meet('sel', 'spacecity.notes'),
@@ -392,7 +401,7 @@ export const ROUTE = [
   { id: 'buried', play: ['buried.tooth', { temple: 'done', id: 'buried', home: 'the flue vents' }] },   // (v1.50, #132: Fisk sends you home by the flue vents)
   // (v1.40: the foundry: Liesel's hook hung on the last furnace's crane, Wen's count at the pillar's lookout (#137), then the Casting-House)
   // (v1.48: Hedda on the apron opens the foundry's own quest: the hung moons from the old hoist, then in at the Casting-House)
-  { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Liesel, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry', home: 'the casting rails' }] },   // (v1.54, #180: home by the casting rails)
+  { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Liesel, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, { act: 'climbMoon', at: 'moonCrown', label: 'the broken moon’s crown' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry', home: 'the casting rails' }] },   // (v1.54, #180: home by the casting rails; v1.57, #193: up through the broken moon to its crown)
   { id: 'spheres', play: ['spheres.listen', { temple: 'done', id: 'spheres', home: 'the white hill path' }] },   // (v1.53: and the Footprint to its guardian, the Keepers' Lodge off its gallery: issue #23; v1.54, #178: out by the keepers' stone, home by the white hill's path)
   // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for the Towers' cables (#137), then
   // the Mooring-House north of the Towers)

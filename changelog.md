@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.57 — 2026-10-12
+
+- The Moon Foundry’s floor has runnels now, cut into the slabs and all leading back to the Casting-House: dry lanes you can walk down into by day, with steps here and there, and after dark full of glowing molten metal that lights the floor round it. At night cross them by the iron footbridges and the plates over the aisle; step down into one and it burns. One ends at Hedda’s mould, one at Bertil’s furnace, one at a cracked mould by the bowl garden.
+- The Moon Foundry’s cranes still work: two travelling cranes carry moons up and down the hall on their own timetable, cabs lit, shadows sliding over the floor, and at dusk both take their moons to the Casting-House. From the broken moon’s crown a high walk leads to the old hoist’s signal box, levers and a moon dial and a stove; from its door a small moon on chains carries you down to the lookout on the pillar. Pull the lever, or the bell-cord at the lookout, to call it. Hedda now sends you to the signal box to look at the moons.
+- In the Moon Foundry the broken moon’s courtyard is only the start: a stair street climbs its inner curve, landing by landing, a little house with an orange door on each, pots and washing lines, round crater windows in the shell looking down over the whole floor. From its top a hanging bridge leads to a spiral stair under the crown, and up through a round hatch onto a deck on the moon’s crown, 62 m up.
+
 ## v1.56 — 2026-10-12
 
 - The city was built to sing to the whales, and now you can see it is out of tune: brass horns open from the domes, organ pipes crown the Plaza and the Avenue, and in the Gallery, the Plaza and the Crown a great pipe rises out through the glass, the rings in the water from its horn crossing and breaking. Turn each pipe’s stop wheel and it plays in tune; tune all three on your way to the Whale-House. Bastien now sends you out by the lock, and Brune’s cutting is an errand of its own.

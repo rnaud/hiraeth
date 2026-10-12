@@ -250,7 +250,7 @@ export function lipFloor(ri, dir, angle) {
  * draw them), houses on it toward the back (up to four floors where the shell's curve leaves room), a terrace on the
  * back wall with a house or two on it and its stair, mint trees between. { ...roles, windows, floorR, fy, terrace }.
  */
-export function courtyard({ R, thick = 0.6, fy, hole = null, houses = 6, trees = 6, seed = 1, lit = 0.5, detail = 1, toward = V(0, 0, 1), terrace = true } = {}) {
+export function courtyard({ R, thick = 0.6, fy, hole = null, houses = 6, trees = 6, seed = 1, lit = 0.5, detail = 1, toward = V(0, 0, 1), terrace = true, avoid = null } = {}) {
   const out = roles(), rng = mulberry32(Math.floor(seed * 2207) + 9), ri = R - thick;
   if (fy === undefined) fy = lipFloor(ri, hole?.dir ?? toward, hole?.angle ?? 0.8);
   const fr = Math.sqrt(Math.max(1, ri * ri - fy * fy));
@@ -282,7 +282,8 @@ export function courtyard({ R, thick = 0.6, fy, hole = null, houses = 6, trees =
   }
   for (let i = 0; i < houses; i++) {
     const w = 3.4 + rng() * 3, d = 3 + rng() * 2.2, p = place(fr * 0.15, fr - Math.max(w, d) * 0.7, 2.8);
-    if (!p) continue;
+    // (avoid(x, z, r): kept off, the street up the inner curve where it leaves the floor: src/foundry-street.js)
+    if (!p || avoid?.(p[0], p[1], Math.max(w, d) * 0.6)) continue;
     // its upper floors stay under the shell's curve
     const floors = Math.max(1, Math.min(4, Math.floor((room(p[0], p[1], Math.max(w, d) * 0.6) - fy - 1.2) / 3)));
     const yaw = Math.atan2(-p[0], -p[1]) + (rng() - 0.5) * 0.5;
@@ -299,7 +300,7 @@ export function courtyard({ R, thick = 0.6, fy, hole = null, houses = 6, trees =
   }
   for (let i = 0; i < trees; i++) {
     const p = place(fr * 0.1, fr - 1.5, 4.8, 0.8);
-    if (!p) continue;
+    if (!p || avoid?.(p[0], p[1], 1.5)) continue;
     const s = 1.2 + rng() * 1.6;
     gather(out, tree(p[0], fy, p[1], s, seed * 7 + i, detail));
     spots.push([p[0], p[1], s * 0.6]);
