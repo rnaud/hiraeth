@@ -209,6 +209,8 @@ export function* buildDesert(scene) {
       // (issue #167: the old qanat wells, from the giant's hand to Qanat)
       { name: 'the qanat wells', points: water.line },
     ],
+    // (the level design audit: the sand rivers the bike rides fast, src/desert-dunes.js lane; it counts the path ridden in them)
+    lane: dunes.lane,
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter, the wares on it; main.js: the shop panel)
     ground: terrain,
     // the landing: at the foot of the ship's ramp, facing Qanat (src/ship/sites.js SITE_OVERRIDES.desert; issue #71)

@@ -2,7 +2,7 @@
 // each function shown the case it is for, on small made-up worlds.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, floorAt, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines, steepness, templeFor } from '../scripts/level-design/lib.mjs';
+import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, floorAt, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines, steepness, templeFor, laneRuns, offMapRooms, ROOM_Y } from '../scripts/level-design/lib.mjs';
 
 const P = (name, x, z, o = {}) => ({ name, kind: o.kind ?? 'person', pos: [x, o.y ?? 0, z], ...o });
 const S = (label, x, z, kind = 'go', y = 0) => ({ label, kind, pos: [x, y, z] });
@@ -235,4 +235,31 @@ test('a merged world\'s route step goes in at its part\'s temple, not the world\
   assert.equal(templeFor([belfry, aerie], undefined, aerie), aerie, 'a step with no id: the world\'s own');
   assert.equal(templeFor([aerie], 'garage', aerie), aerie, 'an id the world does not carry: its own');
   assert.equal(templeFor([], 'arzach2'), null);
+});
+
+test('a fast lane on the path: the metres ridden in it, per lane, and their share (v1.53, #174: the desert’s sand rivers)', () => {
+  const samples = samplePath([S('a', 0, 0), S('b', 300, 0)], 10);
+  const river = (x, z) => (x > 100 && x < 200 && Math.abs(z) < 6 ? { k: 1, river: 'the sand river' } : x >= 200 && x < 220 ? { k: 0.1, river: 'the sand river' } : null);
+  const r = laneRuns(samples, river);
+  assert.equal(r.metres, 90, 'the 100 m in the river (its edges sampled every 10 m), not its faint fringe');
+  assert.deepEqual(r.lanes, [{ name: 'the sand river', metres: 90 }]);
+  assert.equal(r.share, 0.3);
+  assert.equal(laneRuns(samples, () => null).metres, 0);
+});
+
+test('a room off the map behind a door: where you land, the way back out, the walk across it (v1.53, #174: the city under the sand)', () => {
+  const off = (p) => p[1] > ROOM_Y;
+  const portals = [
+    { at: [88, -3, 84], to: [625, 2600, -590], label: 'the sinkhole' },
+    { at: [620, 2614, -617], to: [76, 1, 84], label: 'the way up' },
+    { at: [0, 0, 50], to: [5, 0, 400], label: 'a hop on the map' },
+  ];
+  const [room, ...rest] = offMapRooms(portals, off);
+  assert.equal(rest.length, 0, 'a hop between two places on the map is not a room');
+  assert.equal(room.door, 'the sinkhole');
+  assert.equal(room.out, 'the way up');
+  assert.equal(room.walk, 31, 'from where you land to the way up, in a straight line');
+  assert.equal(room.rise, 14, 'up the ramp of sand to the way out');
+  assert.equal(room.outFromDoor, 12, 'it lets you out by the door you went in at');
+  assert.equal(offMapRooms(portals.slice(0, 1), off)[0].out, null, 'no way back out: said so');
 });

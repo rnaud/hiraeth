@@ -197,6 +197,17 @@ for (const id of worlds) {
       samples[k].t = k ? samples[k - 1].t + (samples[k].at - samples[k - 1].at) / v : 0;
     }
   }
+  // (v1.53, #174: a fast lane the mount rides, the desert's sand rivers (the level's `lane`, src/desert-dunes.js): the
+  // stretches in one are timed at the bike's speed with the lane's gain (src/bike.js LANE), the rest at its own)
+  const lane = typeof level.lane === 'function' ? level.lane : null;
+  const mountBy = id === 'arzach' ? null : /bike/i.test(level.mountName ?? '') ? 'bike' : null;
+  if (lane && mountBy === 'bike' && !later) {
+    const { LANE } = await import(join(ROOT, 'src/bike.js'));
+    for (let k = 0; k < samples.length; k++) {
+      const l = lane(samples[k].pos[0], samples[k].pos[2]), v = L.TRAVEL.bike * (1 + (l ? LANE.speed * l.k : 0));
+      samples[k].t = k ? samples[k - 1].t + (samples[k].at - samples[k - 1].at) / v : 0;
+    }
+  }
   const metres = L.pathLength(path);
   const gaps = L.interestGaps(samples, places.filter((p) => p.kind !== 'ship' || true), 40);
   const seen = L.visibleCount(samples.filter((_, i) => i % 3 === 0).map((s) => s.pos), landmarks, los);
@@ -217,6 +228,9 @@ for (const id of worlds) {
     lines: lines.map((l) => ({ name: l.name, metres: Math.round(L.polyLength(l.points)) })),
     vertical: L.vertical(places.filter((p) => L.flat(p.pos, spawn) < 1500 && p.pos[1] < 900), samples.filter((q) => L.flat(q.pos, spawn) < 1500 && q.pos[1] < 900), ground, { terrain: base }),   // (interiors far overhead or away: left out)
     pacing: L.pacing(path),
+    // (the path ridden in a fast lane, and the rooms behind a door off the map: the city under the Glass Dunes' sand)
+    ...(lane ? { lanes: L.laneRuns(samples, lane) } : {}),
+    rooms: L.offMapRooms(oneWay, (p) => p[1] > L.ROOM_Y || L.flat(p, spawn) > 1500).filter((r) => !inTemple(r.at)),
     spawn: { firstGoal: path[1] ? Math.round(L.dist(path[0].pos, path[1].pos)) : 0, near: places.filter((p) => p.kind !== 'ship' && L.dist(p.pos, spawn) < 80).length },
   };
   const scores = L.scoreWorld(m);

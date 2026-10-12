@@ -43,7 +43,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
   assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
-  assert.equal(theme('level-design').prev.id, 'level-design-v1.23'); assert.equal(theme('level-design').delta, -0.03);   // (level-design-v1.49: 4.35 over twelve, v1.23: 4.38 over eleven)
+  assert.equal(theme('level-design').prev.id, 'level-design-v1.49'); assert.equal(theme('level-design').delta, 0.16);   // (level-design-v1.53: 4.51, v1.49: 4.35, both over twelve)
   assert.equal(theme('temple-design').delta, 0.07);   // (temple-design-v1.53: 4.28, v1.49: 4.21, both over fourteen)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.53: 4.0, game-v1.49: 3.9)
   assert.equal(theme('dialogue').prev.id, 'dialogue-v1.48'); assert.equal(theme('dialogue').delta, 0.18);   // (dialogue-v1.53: 3.68 over eleven, v1.48: 3.50 over twelve)
@@ -57,9 +57,9 @@ test('the change since the one before: overall, and each item since the last tim
   }
 
   const desert = group('level-design', 'Worlds').rows.find((r) => r.label === 'The Desert');
-  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4, 4, '1.23', 0]);
+  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4.11, 4, '1.49', 0.11]);   // (v1.53: the giants' road and the walking dunes, #174)
   const viridel = group('level-design', 'Worlds').rows.find((r) => r.label === 'Viridel');
-  assert.deepEqual([viridel.value, viridel.from, viridel.delta], [4, 4.56, -0.56], 'a world compared by its row\'s name (v1.49: the Greenhouse on the route)');
+  assert.deepEqual([viridel.value, viridel.from, viridel.delta], [4.56, 4, 0.56], 'a world compared by its row\'s name (v1.50: the Greenhouse seen and a way home, #131)');
   // combat v1.47 judged the whole roster again: each is compared with the last report that judged it (v1.22; the makers'
   // machine, unjudged since v1.6, with v1.6's; the three new guardians with nothing)
   const arche = group('combat', 'Archetypes').rows;

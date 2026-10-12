@@ -43,6 +43,11 @@ test('the chain: the great mirror on the rim and four on the bell quarter’s te
   assert.equal(knocked.length, 3, 'three of them knocked round');
 });
 
+test('the level design audit counts every mirror’s deck as a place to stop (issue #174)', () => {
+  const sights = (typeof level.sights === 'function' ? level.sights() : level.sights) ?? [];
+  for (const m of places) assert.ok(sights.some((s) => s.at.distanceTo(m.deck) < 0.5), `${m.id}’s deck is a sight`);
+});
+
 test('every true line of the chain is clear of the city: the spire, its rings and bridges, the viaducts, the terraces', () => {
   const pts = [...places.map((m) => m.glass), end.target];
   for (let i = 0; i < pts.length - 1; i++) assert.ok(clearBetween(pts[i], pts[i + 1], shape), `${places[i].id} → ${places[i + 1]?.id ?? 'the square'} is blocked`);

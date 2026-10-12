@@ -150,7 +150,11 @@ places, their trials, courts and temples' doors, and a route step `{ temple: 'do
 `scripts/level-design/lib.mjs` (`tests/level-design.test.js`). Since v1.50 a line may be **ridden** (`ride`: m/s, the
 City-Shaft's cab home): its length is weighed at that speed against the walk; and a temple whose last way out, past its
 guardian, comes out somewhere else (the arena exit's `to`: the Whale-House's keepers' hatch) is gone on from there, the hop
-to it not walked.
+to it not walked. Since v1.53 (#174) a level may give its mount's fast **`lane`** (`(x, z)` → `{ k, river }`: the desert's sand
+rivers), and the path's stretches in one are timed at the bike's speed with the lane's gain (`laneRuns`, `metrics.lanes`);
+and every room behind a doorway on the map that is built off it (the city under the Glass Dunes' sand, 2.6 km up) is reported
+with where you land, its way out, the walk across and where that leaves you (`offMapRooms`, `metrics.rooms`). Its places stay
+off the map: the door stands for the room.
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`
 (relief from above, +z up: the path dark, the four longest empty stretches red, places on the route blue,

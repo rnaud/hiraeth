@@ -1255,8 +1255,10 @@ export function* buildIncal(scene) {
     { name: 'the sun’s beam', points: mirrors.line, auto: false }],
     // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pads and relay lamp, Tobin's view pad
     sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, { name: 'the cab rank', at: ways.rank.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : []),
-      // (issue #169: each quarter's own sight by the walk, and the great mirror on the rim)
-      ...quarters.sights.map(({ name, at }) => ({ name, at })), { name: 'the great mirror', at: mirrors.places[0].deck.clone() }],
+      // (issue #169: each quarter's own sight by the walk, and the great mirror on the rim; issue #174: and the four mirror
+      //  decks down the bell quarter, each out over the void at its own height, a place to stand and turn its crank)
+      ...quarters.sights.map(({ name, at }) => ({ name, at })), { name: 'the great mirror', at: mirrors.places[0].deck.clone() },
+      ...mirrors.places.filter((m) => m.turnable).map((m) => ({ name: `the ${m.id} mirror’s deck`, at: m.deck.clone() }))],
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)

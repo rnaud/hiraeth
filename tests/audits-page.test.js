@@ -77,6 +77,18 @@ test('the score tables are read from the real reports: criteria, totals, "before
   assert.deepEqual(t53.rows.find((r) => r.label === 'Lore load').scores[t53.primary], { value: 4, before: 3 });
   assert.ok(Math.abs(tableMean(t53) - d53.overall) < 0.01, 'the block\'s overall is the eleven areas\' mean');
 
+  // the level design audit v1.53 (#174): the same twelve rows and nine criteria as v1.49, so the page compares them by name
+  const l53 = byId('level-design-v1.53'), lt = l53.scoreTables[0];
+  assert.equal(lt.rows.length, 12);
+  assert.equal(lt.criteria.length, 9);
+  assert.equal(lt.rows.find((r) => r.label === 'The Garden of Spheres').scores[lt.primary].value, 4);
+  assert.ok(Math.abs(tableMean(lt) - l53.overall) < 0.01, 'the block\'s overall is the twelve worlds\' mean');
+  assert.equal(index.find((e) => e.id === 'level-design-v1.53').prev, 'level-design-v1.49');
+  const lc = compareAudits(byId('level-design-v1.49'), l53);
+  const desert = lc.rows.find((r) => r.label === 'The Desert' && r.table === lt.title);
+  assert.deepEqual([desert.from, desert.to, desert.delta], [4, 4.11, 0.11], 'matched with v1.49\'s row by name');
+  assert.deepEqual(desert.criteria.find((c) => c.name === 'Spacing'), { name: 'Spacing', from: 4, to: 5 }, 'and its criteria by header');
+
   const cine = byId('cinematics-v1.6');
   const ct = cine.scoreTables.find((x) => x.rows.length > 80);
   assert.ok(ct, 'the cinematics table');

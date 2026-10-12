@@ -17,6 +17,8 @@
 //   landmarksFrom(grid, opts)             the tall shapes in a height grid (towers, spires, mesas)
 //   visibleCount(points, landmarks, los)  how many landmarks each point sees
 //   legGuidance(stops, landmarks, los)    does each leg's start see where it goes (or a landmark by it)?
+//   laneRuns(samples, lane)               the path ridden in a fast lane (the desert's sand rivers)
+//   offMapRooms(portals, offMap)          the rooms behind a door, built off the map (the city under the sand)
 //   vertical(pois, samples, ground, o)    height range, raised places (over the terrain or the lowest ground within 10 m), the climb along the path
 //   pacing(stops)                         the kinds of stop along the path, and the longest run of one kind
 //   templeFor(temples, id, fallback)      the temple a route step goes in at: a merged world carries its parts' (Vael the Belfry)
@@ -200,6 +202,42 @@ export function interestGaps(samples, pois, r = 40) {
   return { gaps: gaps.filter((g) => g.metres > 0).sort((a, b) => b[key] - a[key]), longest, emptyShare: total ? +(empty / total).toFixed(2) : 0, ...(timed ? { timed } : {}) };
 }
 const gap = (a, b) => ({ from: a.pos.map(Math.round), to: b.pos.map(Math.round), at: a.at, metres: +(b.at - a.at).toFixed(1), seconds: +(Number.isFinite(a.t) && Number.isFinite(b.t) ? b.t - a.t : (b.at - a.at) / RUN).toFixed(1) });
+/**
+ * The stretches of the path ridden in a fast lane (a sand river the bike runs faster down: `lane(x, z)` → { k: how far in,
+ * 0..1, river } or null, the level's `lane`): the metres in one (k over `min`), per lane, and their share of the path.
+ */
+export function laneRuns(samples, lane, { min = 0.3 } = {}) {
+  const by = new Map();
+  let metres = 0;
+  for (let i = 1; i < samples.length; i++) {
+    const s = samples[i], l = lane?.(s.pos[0], s.pos[2]);
+    if (!l || l.k < min) continue;
+    const d = s.at - samples[i - 1].at;
+    metres += d; by.set(l.river ?? 'a lane', (by.get(l.river ?? 'a lane') ?? 0) + d);
+  }
+  const total = samples.length ? samples[samples.length - 1].at : 0;
+  return { metres: Math.round(metres), share: total ? +(metres / total).toFixed(2) : 0, lanes: [...by].map(([name, m]) => ({ name, metres: Math.round(m) })) };
+}
+
+/**
+ * The rooms off the map (built far overhead or far off, `offMap(p)`: the city under the Glass Dunes' sand, a shop's room),
+ * each reached by a doorway on the map (portals: { at, to, label }): its door, where you arrive, the way back out (the
+ * doorway inside it nearest where you arrive, within `reach` m, whose far end is on the map), the walk across it from
+ * where you arrive to that way out, and how far from the door the way out leaves you. The audit's places and path stay
+ * on the map; this says what is behind a door.
+ */
+export function offMapRooms(portals, offMap, { reach = 150 } = {}) {
+  const rooms = [];
+  for (const p of portals) {
+    if (!p.at || !p.to || offMap(p.at) || !offMap(p.to)) continue;
+    const out = portals.filter((q) => q.at && q.to && offMap(q.at) && !offMap(q.to) && dist(q.at, p.to) < reach)
+      .sort((a, b) => dist(a.at, p.to) - dist(b.at, p.to))[0];
+    rooms.push({ door: p.label ?? 'a way in', at: p.at.map(Math.round), landing: p.to.map(Math.round),
+      ...(out ? { out: out.label ?? 'a way out', walk: Math.round(dist(p.to, out.at)), outFromDoor: Math.round(flat(out.to, p.at)), rise: Math.round(out.at[1] - p.to[1]) } : { out: null }) });
+  }
+  return rooms;
+}
+
 /** How fast a world is crossed, m/s: on foot (running), or on its mount once you have it (the bike, the bird, the skiff). */
 export const TRAVEL = { foot: RUN, bike: 20, bird: 18, skiff: 12 };
 
