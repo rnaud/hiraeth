@@ -1,0 +1,59 @@
+changelog.md
+  s_9ca76055a220ed::t_44dde2ed1fd6a8 7
+engine/game.js
+  s_9ca76055a220ed::t_b6e3d38112270d 64,598-600
+src/animator.js
+  s_9ca76055a220ed::t_5396a0eaee955a 2,868-877,887,903,915,917,919-920
+src/changelog-media.js
+  s_9ca76055a220ed::t_7682153354af20 673-674,722-730
+src/changelog.js
+  s_9ca76055a220ed::t_4ccec1aaffa6c8 36-37
+src/characters/tripo-walk.js
+  s_9ca76055a220ed::t_5d260d8e81bea2 2,9-11
+src/crowd.js
+  s_9ca76055a220ed::t_310a04963ef154 450,856-857
+src/humanoid.js
+  s_9ca76055a220ed::t_f01cc17683e07f 6,1359-1362,1378-1380,1387-1388,1392,1399,1402,1405
+src/matrix-cache.js
+  s_9ca76055a220ed::t_db65e39d5c7bdf 88-131
+src/motion-kit/view.js
+  s_9ca76055a220ed::t_dcf068428fd6a8 4-6,22-28
+src/npc.js
+  s_9ca76055a220ed::t_d53428e1610fbe 22,651-652,757-758
+src/player.js
+  s_9ca76055a220ed::t_26d8f2cf42f416 18,798,2547-2549
+src/shaft-pillars.js
+  s_9ca76055a220ed::t_dc944ba6c2d084 5,124-128,135,211
+src/story/flames.js
+  s_9ca76055a220ed::t_df7d2fcf72d89e 5,17,177-184,193-197
+src/trail.js
+  s_9ca76055a220ed::t_14af8b21e70e70 37,132-135
+src/world-read.js
+  s_9ca76055a220ed::t_a30b1f7f23c204 10-15
+tests/flames-view.test.js
+  s_9ca76055a220ed::t_8a21681fd2a070 1-48
+tests/matrix-cache.test.js
+  s_9ca76055a220ed::t_70640c6b75252c 94-126
+tests/pose-walks.test.js
+  s_9ca76055a220ed::t_8c6af162f9f0f3 1-78
+tests/shaft-pillars.test.js
+  s_9ca76055a220ed::t_61f12442c2981b 203-227
+tests/trail.test.js
+  s_9ca76055a220ed::t_778d2bc0e9e983 47-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4af906a199cb2bff3402d22d7746e45c58731238",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
