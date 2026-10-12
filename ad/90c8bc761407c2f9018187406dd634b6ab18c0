@@ -1,0 +1,37 @@
+docs/systems/android.md
+  s_9ca76055a220ed::t_61421a656c65c7 42-69
+.github/workflows/unity-xbox.yml
+  s_9ca76055a220ed::t_173edd171b05e1 17-18
+tests/android-ota.test.js
+  s_9ca76055a220ed::t_a2241cd1dd00bc 168,171
+tests/unity-version-release.test.js
+  s_9ca76055a220ed::t_3fbc384048e11e 1-153
+docs/systems/unity.md
+  s_9ca76055a220ed::t_baaeefe4f873b5 76-78
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_be6f600c61dc80 11-12
+scripts/unity-publish.sh
+  s_9ca76055a220ed::t_d49380e8daa05f 8-9,42-65
+.github/workflows/android.yml
+  s_9ca76055a220ed::t_b83bcf4d388ae0 10-11,148,154,156,158-160,165
+README.md
+  s_9ca76055a220ed::t_07694ba8524240 73-74
+scripts/release-info.mjs
+  s_9ca76055a220ed::t_50fe1c64e76654 11-14,139-141,144-219,256-264,273,277-278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ad90c8bc761407c2f9018187406dd634b6ab18c0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
