@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_92489967b2633f 7
+docs/systems/temples.md
+  s_9ca76055a220ed::t_4bef8fdc0d1a78 549-555
+src/changelog.js
+  s_9ca76055a220ed::t_d3770fd9651256 16
+src/temples/garage.js
+  s_9ca76055a220ed::t_8463c91169f740 33-36,148,156-159,161,346-347,366-369
+src/temples/pieces.js
+  s_9ca76055a220ed::t_aada937f1d7b14 961-962,1039
+tests/temples.test.js
+  s_9ca76055a220ed::t_209aa3b01087cf 204,213,215-216,220-224,383-389,3068,3108-3109,3111-3113,3263-3286,3291-3294
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4130913797b4f53c79a225aa13e7b734a160496c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
