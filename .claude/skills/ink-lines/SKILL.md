@@ -79,7 +79,11 @@ and without the object (its mask, without its shadow), and debug 14 again with t
   pixel) its **density**. And the **darkest** eye pixel against the cheek (0 black: the "black eyes" of a small face).
   Under a 12 px face the eye is a pixel or less and its share is a pixel's rounding: there the darkest pixel decides.
 - **Shimmer** (`shimmer`): debug 14 a half render pixel apart: the mean change over the ink (a line that slides changes
-  a little, one at the edge of its threshold comes and goes) and the share of ink pixels that pop.
+  a little, one at the edge of its threshold comes and goes) and the share of ink pixels that pop. The nudge is half a
+  render pixel at the distance the camera looks at, so a thing nearer slides more (a pole 10 m off in front of a town
+  180 m off: ~9 px): that is parallax, not shimmer. The shimmer is read over the pixels that slide under ~0.75 px
+  (`steadyMask`, from debug 4's depth, the far side of a near outline left out too); the whole frame's is kept as
+  `shimmerFrame` (v1.34's reading: the far town's 0.45 / 12 % was the pole, the sign and the traveller sliding).
 - **Frame ink**: the share of the whole frame that is ink (a busy view at low resolution goes grey with lines).
 
 ## 3. The rubric (`RUBRIC`, `grade`)

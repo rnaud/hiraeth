@@ -97,7 +97,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   const areas = group('dialogue', 'Areas').rows;
   assert.equal(areas.length, 12); assert.ok(near(avg(areas.map((r) => r.value)), theme('dialogue').latest.overall));
   const scenes = group('ink-lines', 'Scenes').rows;
-  assert.equal(scenes.length, 13);
+  assert.equal(scenes.length, 16, 'v1.53: the 13 of v1.34 and the three worlds that joined in v1.40');
   assert.ok(near(avg(scenes.map((r) => r.value)), theme('ink-lines').latest.overall), 'each scene the mean of its resolutions');
   const worldsCine = group('cinematics', 'By world').rows;
   assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 91, 'the 91 cinematics, by world');

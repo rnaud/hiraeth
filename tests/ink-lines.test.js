@@ -3,7 +3,7 @@
 // against popping ones.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { strokeWidth, inkShare, darkShare, eyeMarks, shimmer, objectMask, extent, grade, check } from '../scripts/ink-lines/lib.mjs';
+import { strokeWidth, inkShare, darkShare, eyeMarks, shimmer, steadyMask, depthOf, DEBUG_DEPTH, objectMask, extent, grade, check } from '../scripts/ink-lines/lib.mjs';
 
 const W = 80, H = 60;
 const field = (f) => { const a = new Float32Array(W * H); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) a[y * W + x] = f(x, y); return a; };
@@ -51,6 +51,25 @@ test('shimmer: lines that slide a little change less than lines that pop', () =>
   assert.ok(s.change < p.change, `${s.change} ${p.change}`);
   assert.equal(s.pops, 0);
   assert.ok(p.pops > 0.6);
+});
+
+test('the shimmer is read over what slides under a pixel, not the parallax of things nearer than the view (#38)', () => {
+  // the view looks at 180 m; a pole 10 m off stands at x 30-33, the town behind it at 180 m, the sky past it
+  const depth = field((x, y) => (x >= 30 && x < 34 ? 10 : y < 10 ? DEBUG_DEPTH : 180));
+  const m = steadyMask(depth, W, H, 180, { reach: 2 });
+  assert.equal(m[20 * W + 60], 1, 'the town');
+  assert.equal(m[5 * W + 60], 1, 'the sky (the far side of a far outline)');
+  assert.equal(m[20 * W + 31], 0, 'the pole');
+  assert.equal(m[20 * W + 35], 0, 'beside the pole: its outline on the far side');
+  // the pole's outline slid 6 px between the two pictures: whole-frame shimmer pops, the steady part doesn't
+  const a = field((x, y) => (x === 29 || (y === 40 && x > 50 && x < 70) ? 1 : 0)), b = field((x, y) => (x === 35 || (y === 40 && x > 50 && x < 70) ? 1 : 0));
+  const all = shimmer(a, b), steady = shimmer(a, b, m);
+  assert.ok(all.pops > 0.5, JSON.stringify(all));
+  assert.equal(steady.pops, 0);
+  assert.equal(steady.change, 0);
+  // debug 4's grey back to metres
+  const img = { pixels: new Uint8Array([255, 255, 255, 0, 0, 0]), channels: 3, width: 2, height: 1 };
+  assert.deepEqual([...depthOf(img)], [DEBUG_DEPTH, 0]);
 });
 
 test('grade: the rubric passes thin lines on a small plant and fails a black one', () => {

@@ -654,7 +654,19 @@ const BREATH52 = 'headless Chrome (muted, High, 1280 × 720) against this branch
 // (v1.52: the City-Shaft's quarters and the light that goes down, issue #169: design-qc/capture.mjs, the before from the tree before the change)
 const SHAFT52 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 960 × 540) against this branch’s own Vite (port 5463) and a copy of the tree before the change, 11 October; cwebp -q 72';
 const DECK52 = 'the Steam Deck’s run on the Mac (scripts/bench/deck-mac.mjs + deck-worlds.mjs --slow 3 --size 1280x800, the Deck preset, the CPU slowed ×3), the City-Shaft’s five bench views, before and after the change, 11 October; draws over all passes and triangles a frame are exact, the frame times only a guide (the Mac shared, load 19–60)';
+// (v1.53: the meadow's flowers from afar, issue #38: the ink-lines audit, this branch's own Vite, the tree before the change)
+const INK53 = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headless Chrome, muted, the game’s and the shaders’ clocks held) against this branch’s own Vite (port 5743) and the same tree with src/flora.js and src/materials.js before the change, 12 October; crops scaled up; cwebp -q 75';
 export const CHANGELOG_MEDIA = {
+  '1.53': [
+    { match: 'Viridel’s meadow flowers seen from afar', shots: [
+      { name: 'ink-flowers-far', caption: 'Viridel’s meadow 55 m off at 1920 × 1080, cropped ×2: before, the tulips and clover in heavy black outlines; after, a thinner outline in a dark shade of their own green and pink (the flowers 40 → 27 % ink, 12 → 6 % near-black)', from: INK53 },
+      { name: 'ink-flowers-handheld', caption: 'The same flowers on the Handheld preset (960 × 540), cropped ×3 (34 → 23 % ink)', from: INK53 },
+    ], numbers: [
+      { title: 'Viridel’s flowers 55 m off: how much of them is ink', unit: '%', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU (the ink-lines audit; the far cap is 30 %)', rows: [
+        { where: '1920 × 1080', before: 40.0, after: 26.5 }, { where: '1920 × 1080 at DPR 2', before: 40.2, after: 26.7 }, { where: 'Handheld', before: 34.3, after: 23.3 }, { where: 'Handheld at 0.5', before: 40.9, after: 27.9 }, { where: 'Steam Deck', before: 41.8, after: 28.2 }, { where: 'a phone', before: 31.5, after: 22.1 },
+      ], source: 'node .claude/skills/ink-lines/capture.mjs (veg-far), the flowers’ mask from the albedo with and without them; 5 m off (veg-near) 6.5 → 6.1 %, 0.15 % of the picture changed' },
+    ] },
+  ],
   '1.52': [
     { match: 'The Unity preview on the Xbox now waits for your TV', numbers: [
       { title: 'The Unity preview on the Xbox, the Desert at the ship', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p to a 4K 120 Hz TV', rows: [

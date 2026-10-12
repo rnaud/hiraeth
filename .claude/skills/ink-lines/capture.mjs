@@ -314,11 +314,16 @@ for (const world of WORLDS) {
             const k = Math.max(1, Math.min(8, Math.round(160 / (2 * r)))); writeFileSync(join(OUT, rk, `${name}-face.png`), await L.encodePNG(L.crop(fin, [cx - r, cy - r * 0.9, cx + r, cy + r * 1.1], k))); }
           if (e) { m.facePx = +e.facePx.toFixed(1); m.eyes = L.eyeMarks(fin, e.eyes, { face: e.facePx }); m.eyeBox = e.eyes.map((x) => ({ x: +x.x.toFixed(1), y: +x.y.toFixed(1), w: +x.w.toFixed(2), h: +x.h.toFixed(2) })); }
         }
-        // the shimmer: the ink with the camera half a render pixel over
+        // the shimmer: the ink with the camera half a render pixel over (at the distance it looks at), read over what
+        // slides under a pixel: things nearer than that slide whole pixels (parallax; lib.mjs steadyMask). The whole
+        // frame's is kept beside it (shimmerFrame)
+        await debugView(4); const depth = L.depthOf(await grab()), lookAt = await ev('window.__cam.eye.distanceTo(window.__cam.t)');
         await ev('(window.__nudge(0.5), true)'); await debugView(14);
         const ink2 = L.inkOf(await grab());
         await ev('(window.__nudge(-0.5), true)'); await debugView(0);
-        m.shimmer = L.shimmer(ink, ink2, null);
+        m.shimmer = L.shimmer(ink, ink2, L.steadyMask(depth, W, H, lookAt, { reach: Math.max(3, Math.round(3 * r.dpr)) }));
+        m.shimmerFrame = L.shimmer(ink, ink2, null);
+        m.lookAt = +lookAt.toFixed(1);
         row.metrics = m;
         row.size = [W, H];
       } catch (err) { row.error = String(err).slice(0, 300); }
@@ -326,7 +331,7 @@ for (const world of WORLDS) {
       const M = row.metrics ?? {};
       console.log(`${rk.padEnd(13)} ${name.padEnd(14)} ${row.error ? `ERROR ${row.error}` : `frame ink ${(M.frameInk * 100).toFixed(1)}% w${M.frameWidth?.median}` +
         (M.object ? ` · object ${M.object.h}px ink ${((M.inkShare ?? 0) * 100).toFixed(1)}% dark ${((M.darkShare ?? 0) * 100).toFixed(1)}% w${M.width?.median ?? '-'}/${M.width?.p90 ?? '-'}` : '') +
-        (M.eyes ? ` · face ${M.facePx}px eyes ${M.eyes.map((x) => x.density).join('/')}` : '') + ` · shimmer ${M.shimmer?.change}/${M.shimmer?.pops}`}`);
+        (M.eyes ? ` · face ${M.facePx}px eyes ${M.eyes.map((x) => x.density).join('/')}` : '') + ` · shimmer ${M.shimmer?.change}/${M.shimmer?.pops} (frame ${M.shimmerFrame?.change}/${M.shimmerFrame?.pops})`}`);
     }
   }
 }

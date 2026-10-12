@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.53 — 2026-10-12
+
+- Viridel’s meadow flowers seen from afar are drawn in a thin outline in a dark shade of their own colour, so a clump of tulips 50 m off reads as pink and yellow flowers, not a dark blot. Up close they keep their black ink.
+
 ## v1.52 — 2026-10-12
 
 - Three clear windows in the Glass Dunes’ sand look down on a city of domes, towers and lit streets below, its light rising off the glass; you can walk out onto them. By the Clock-House a sinkhole leads down into the city itself, under a ceiling of glass and drifted sand where the light falls in shafts, your own footprints overhead, and the Clock-House the top of its tallest tower. The ramp of sand that fell in with you takes you back up.

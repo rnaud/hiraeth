@@ -8,7 +8,8 @@
 //   inkShare       how much of an object (its mask grown by the line's reach) is ink
 //   darkShare      how much of it is near-black in the final picture (lines, spot blacks, black eyes: what reads as ink)
 //   eyeMarks       the traveller's eyes: how much darker than his cheek each eye's box is, against the eye's own size
-//   shimmer        the same view a half pixel apart: how much the lines change (pops and crawl at low resolution)
+//   shimmer        the same view a half pixel apart: how much the lines change (pops and crawl at low resolution),
+//                  read over what slides under a pixel (steadyMask: not the parallax of things nearer than the view)
 //   grade          the rubric: each check passed, borderline or failed, and a score out of 5 a picture
 
 import { dilate, blobs } from '../visual-probes/lib.mjs';
@@ -143,6 +144,29 @@ export function shimmer(a, b, mask = null) {
     if (Math.min(a[p], b[p]) < 0.15 && hi > 0.65) pops++;
   }
   return { change: s ? +(d / s).toFixed(3) : 0, pops: n ? +(pops / n).toFixed(3) : 0, n };
+}
+
+/** Debug 4's depth (post.js: grey pow(depth / 3000, 0.4); the sky white) back to metres a pixel. */
+export const DEBUG_DEPTH = 3000;
+export function depthOf(img) {
+  const n = img.width * img.height, out = new Float32Array(n);
+  for (let j = 0, i = 0; j < n; j++, i += img.channels) out[j] = DEBUG_DEPTH * Math.pow(img.pixels[i] / 255, 1 / 0.4);
+  return out;
+}
+
+/**
+ * What the shimmer is read over (#38): the nudge moves the camera sideways half a render pixel at the distance it looks
+ * at (`d`, m), so a thing at depth z slides 0.5 × d / z px. One nearer than d × nudge / slide slides over `slide` px:
+ * its lines move whole pixels, which is parallax, not shimmer (the far town's view read 0.45 of its ink changing, all
+ * but 0.28 of it the pole, the sign and the traveller in front sliding ~9 px). 1 where this pixel and everything within
+ * `reach` px stand at least that far (so the far side of a near thing's outline is left out too).
+ */
+export function steadyMask(depth, w, h, d, { nudge = 0.5, slide = 0.75, reach = 3 } = {}) {
+  const near = (d * nudge) / slide, ok = new Uint8Array(w * h);
+  for (let p = 0; p < ok.length; p++) ok[p] = depth[p] >= near ? 1 : 0;
+  const bad = dilate(ok.map((v) => 1 - v), w, h, reach);
+  for (let p = 0; p < ok.length; p++) ok[p] = bad[p] ? 0 : 1;
+  return ok;
 }
 
 /**

@@ -39,9 +39,33 @@ test("materials say their line: the world's ink unless they say; glass and folia
   assert.equal(makeMaterial({ color: '#abcdef' }).uniforms.uLineStep.value, 0);
 });
 
+test('a lighter line from afar (lineFar, #38): the step from afar and its distances; up close the world’s ink', () => {
+  const m = makeMaterial({ color: '#fedcba', vertexColors: true, lineFar: { line: 0.45, lineTint: 0.67, from: 25, to: 40 } });
+  assert.equal(m.defines.LINE_FAR, 1);
+  assert.equal(m.uniforms.uLineStep.value, 0, 'up close: the world’s ink');
+  assert.deepEqual(m.uniforms.uLineFar.value.toArray(), [2 + 4 * 2, 25, 40]);
+  assert.equal(makeMaterial({ color: '#fedcba' }).defines?.LINE_FAR, undefined, 'only a material that says so compiles it');
+  const surf = readFileSync(new URL('../src/materials.js', import.meta.url), 'utf8');
+  // (a whole instance turns over at once, at its own distance between the two: a flat varying from the vertex shader)
+  assert.match(surf, /flat out float vLineFar;/);
+  assert.match(surf, /flat in float vLineFar;/);
+  assert.match(surf, /vLineFar = step\(mix\(uLineFar\.y, uLineFar\.z, lfK\), distance\(lfAt, cameraPosition\)\);/);
+  assert.match(surf, /if \(vLineFar > 0\.5\) lineStepHere = uLineFar\.x;/);
+});
+
+test('the meadow’s small flowers take the far line, its large plants and other worlds’ flora don’t (flora.js FAR_LINE)', async () => {
+  const { FAR_LINE } = await import('../src/flora.js');
+  assert.deepEqual(FAR_LINE.worlds, ['edena']);
+  assert.ok(FAR_LINE.from >= 20 && FAR_LINE.to > FAR_LINE.from, 'not at play distance (the 5 and 18 m views keep their ink)');
+  assert.ok(lineStep(FAR_LINE) > 0, 'lighter than the world’s ink');
+  const src = readFileSync(new URL('../src/flora.js', import.meta.url), 'utf8');
+  assert.match(src, /farLine && !sp\.large \? \{ lineFar:/);
+});
+
 test('every reader of the light term takes the line step off it', () => {
   const surf = readFileSync(new URL('../src/materials.js', import.meta.url), 'utf8');
-  assert.match(surf, /float packedL = clamp\(L, 0\.0, 1\.0\) \+ 2\.0 \* uLineStep;/);
+  assert.match(surf, /float lineStepHere = uLineStep;/);
+  assert.match(surf, /float packedL = clamp\(L, 0\.0, 1\.0\) \+ 2\.0 \* lineStepHere;/);
   assert.match(surf, /gAlbedoLight = vec4\(albedo, uLineWhite > 0\.5 \? -1\.0 - packedL : packedL\)/, '(a white line in the sign bit: tests/shade-flame.test.js)');
   const post = readFileSync(new URL('../src/post.js', import.meta.url), 'utf8');
   // the composite: the centre's light and the four shadow-edge taps

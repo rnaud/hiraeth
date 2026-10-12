@@ -28,6 +28,12 @@ import { kitTrialsFor } from './trials/kit-data.js';
 
 export const FLORA_CELL = 32;
 const SMALL = 1.45;
+/**
+ * The meadow's flowers from afar (#38, docs/audits/ink-lines-v1.34.md): past 25-40 m (each plant at its own distance)
+ * a small plant of these worlds is drawn in a lighter line in a dark shade of its own colour, as the `leaves` foliage,
+ * so a far clump reads as flowers, not a black blot. Up close they keep the world's ink. (materials.js lineFar)
+ */
+export const FAR_LINE = { worlds: ['edena'], line: 0.45, lineTint: 0.67, from: 25, to: 40 };
 
 /** How far a plant of this height (m) is drawn (m), at floraFar = 1. */
 export const farFor = (h, large) => (large ? 420 : h < 0.45 ? 60 : h < 1.3 ? 95 : h < 2.6 ? 150 : 230);
@@ -206,12 +212,14 @@ const DOWN = new THREE.Vector3(0, -1, 0), UP = new THREE.Vector3(0, 1, 0);
 const _o = new THREE.Vector3(), _d = new THREE.Vector3();
 
 /** The world's species, built once: geometry, nominal height (its top), material. */
-function prepare(list) {
+function prepare(list, world) {
+  const farLine = FAR_LINE.worlds.includes(world);
   return list.map((sp) => {
     const geo = sp.build();
     geo.computeBoundingBox();
     const h = geo.boundingBox.max.y;
-    const mat = makeMaterial({ color: '#ffffff', vertexColors: true, ...(sp.glow ? { glow: sp.glow } : {}), ...(sp.sway ? { sway: sp.sway / (h * h), swayH: h, swayLarge: !!sp.large } : {}) });
+    const mat = makeMaterial({ color: '#ffffff', vertexColors: true, ...(sp.glow ? { glow: sp.glow } : {}), ...(sp.sway ? { sway: sp.sway / (h * h), swayH: h, swayLarge: !!sp.large } : {}),
+      ...(farLine && !sp.large ? { lineFar: { line: FAR_LINE.line, lineTint: FAR_LINE.lineTint, from: FAR_LINE.from, to: FAR_LINE.to } } : {}) });
     // the small ones are drawn a size up: Moebius' meadows are bold, and a 30 cm flower is lost under the ink
     const k = sp.large ? 1 : SMALL;
     return { ...sp, size: sp.size.map((v) => v * k), spacing: sp.spacing * k, spread: sp.spread * (sp.large ? 1 : 1.2), geo, h, mat };
@@ -235,7 +243,7 @@ export function* buildFloraSteps({ scene, level, levelId, physics, keep = [], de
   const t0 = performance.now();
   const species = [], plants = [], why = {};
   for (const part of parts) {
-    const own = prepare(SPECIES[part.world]);
+    const own = prepare(SPECIES[part.world], part.world);
     species.push(...own);
     yield;
     plants.push(...growPart({ part, species: own, level, physics, keep, density, why }));

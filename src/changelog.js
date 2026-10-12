@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.53', date: '2026-10-12', items: [
+    // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)
+    'Viridel’s meadow flowers seen from afar are drawn in a thin outline in a dark shade of their own colour, so a clump of tulips 50 m off reads as pink and yellow flowers, not a dark blot. Up close they keep their black ink.',
+  ] },
   { v: '1.52', date: '2026-10-12', items: [
     // the Unity preview on the Xbox at a steady 60 (docs/systems/xbox.md "The Unity build on the Xbox")
     'The Unity preview on the Xbox now waits for your TV before each picture: a steady 60 frames a second, with nearly every frame on time and no tearing across the screen as you turn.',

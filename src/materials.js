@@ -500,6 +500,10 @@ const vertexShader = /* glsl */ `
   out vec3 vNormal;
   out vec3 vInstColor;
   out float vViewDepth;
+  #ifdef LINE_FAR
+    uniform vec3 uLineFar;   // its line from afar (makeMaterial({ lineFar })): the step, and the distances it turns over between
+    flat out float vLineFar;
+  #endif
   out vec3 vObjPos;
   out vec3 vObjNormal;
   out vec3 vObjRel;
@@ -792,6 +796,18 @@ const vertexShader = /* glsl */ `
     #endif
     vec4 mv = viewMatrix * world;
     vViewDepth = -mv.z;
+    #ifdef LINE_FAR
+    {
+      // the far line, a whole instance at a time (a plant never half one, half the other), each at its own distance
+      // between uLineFar.y and .z (a hash of where it stands), so a meadow turns over plant by plant, not in a ring
+      vec3 lfAt = modelMatrix[3].xyz;
+      #ifdef USE_INSTANCING
+        lfAt = (modelMatrix * vec4(instanceMatrix[3].xyz, 1.0)).xyz;
+      #endif
+      float lfK = fract(sin(dot(floor(lfAt.xz * 4.0), vec2(12.9898, 78.233))) * 43758.5453);
+      vLineFar = step(mix(uLineFar.y, uLineFar.z, lfK), distance(lfAt, cameraPosition));
+    }
+    #endif
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -944,6 +960,10 @@ const fragmentShader = /* glsl */ `
   uniform float uSpotStep;  // its spot-black amount's step (SPOT: 0 the world's)
   uniform float uLineStep;  // its line's weight and colour (LINE: 0 the world's ink), packed over the light term
   uniform float uLineWhite; // 1: its lines are drawn white (the shade's inverted ink): RT0.a stored as −(1 + packed)
+  #ifdef LINE_FAR
+    uniform vec3 uLineFar;  // its line from afar: the step (as uLineStep), and the distances it turns over between (m)
+    flat in float vLineFar; // 1: this instance is past its distance
+  #endif
   uniform vec4 uShade;      // the material's shade: lift, hue (-1: the world's), hatch amount, strata strokes (SHADE, shadeOf)
   uniform float uHalftone;
   uniform float uBounce;
@@ -2512,7 +2532,11 @@ ${SHADOW_GLSL}
     #ifdef FLUID
       if (uFluidA.w > 4.5 && uFluidA.w < 5.5) L = 1.0;   // (the shade: flat black, no shade side, so no shadow-edge line across it)
     #endif
-    float packedL = clamp(L, 0.0, 1.0) + 2.0 * uLineStep;
+    float lineStepHere = uLineStep;
+    #ifdef LINE_FAR
+      if (vLineFar > 0.5) lineStepHere = uLineFar.x;   // (makeMaterial({ lineFar }): a lighter line from afar)
+    #endif
+    float packedL = clamp(L, 0.0, 1.0) + 2.0 * lineStepHere;
     gAlbedoLight = vec4(albedo, uLineWhite > 0.5 ? -1.0 - packedL : packedL);   // (a white line: the sign bit, post.js 1b)
     gNormalDepth = vec4(n, vViewDepth);
     #ifdef WATER
@@ -2821,6 +2845,8 @@ const cache = new Map();
  * @param {number}  [o.spot]    0..1: how much of the world's spot blacks it takes (SPOT; default the world's)
  * @param {number}  [o.line]    its ink line's weight (LINE: 1 the world's ink … 0.25 a hairline; glass 0.45, leaves 0.7)
  * @param {number}  [o.lineTint] 0..1: its line drawn in a dark shade of its own colour instead of the ink (glass 0.7, leaves 0.67)
+ * @param {object}  [o.lineFar] { line, lineTint, from, to }: its line from afar, an instance at a time past its own
+ *                              distance between from and to (m; the meadow's flowers, flora.js FAR_LINE; LINE_FAR)
  * @param {boolean} [o.lineWhite] its lines drawn white instead (inverted ink: the shade, src/shade.js; RT0.a's sign bit, post.js 1b)
  * @param {number}  [o.hatch]   how many hatch strokes its shade gets (1 all, 0 none: a flat tone)
  * @param {number}  [o.strataHatch] strata rock: runs of strokes along its beds in the light (0..1)
@@ -3030,6 +3056,13 @@ export function makeMaterial(o) {
     const [c, k] = Array.isArray(o.lampTint) ? o.lampTint : [o.lampTint, 0.85];
     mat.defines = { ...mat.defines, LAMP_TINT: 1 };
     mat.uniforms.uLampTint = { value: new THREE.Vector4(...new THREE.Color(c).toArray(), k) };
+  }
+  if (o.lineFar) {
+    // a lighter line from afar (the meadow's flowers, flora.js FAR_LINE): { line, lineTint, from, to }, the step packed
+    // instead of uLineStep by an instance standing past its own distance between `from` and `to` (m)
+    const f = o.lineFar;
+    mat.defines = { ...mat.defines, LINE_FAR: 1 };
+    mat.uniforms.uLineFar = { value: new THREE.Vector3(lineStep({ line: f.line, lineTint: f.lineTint }), f.from ?? 30, f.to ?? f.from ?? 30) };
   }
   if (o.dissolve) {
     mat.defines = { ...mat.defines, DISSOLVE: 1 };

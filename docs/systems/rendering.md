@@ -316,6 +316,12 @@ soft shapes read as hard.
   0.7, 0.45, 0.25 a hairline: `LINE.weights`), `lineTint` 0..1 (the ink → a dark shade of its own
   colour, in four steps). Glass defaults to 0.45 / 0.7, the `leaves` pattern to 0.7 / 0.67.
   Packed over the light term (RT0.a, above).
+- **A line from afar** (`makeMaterial({ lineFar: { line, lineTint, from, to } })`, the `LINE_FAR` define): an
+  instance standing past its own distance between `from` and `to` (m; a hash of where it stands, so a field turns
+  over plant by plant, never in a ring round the camera) packs that step instead of its own. The vertex shader decides
+  it once an instance (a flat varying: a plant is never half one line, half the other). Viridel's small flowers
+  (`flora.js FAR_LINE`: 0.45 / 0.67 past 25-40 m) are drawn in the world's ink close up and in a thin line of their
+  own colour far off, where their outlines were a third of what they drew (#38).
 - **Whose line it is**: a depth edge's line straddles both surfaces. The signed Laplacian of 1/z
   that already finds it (`inkLines`, its `near.z`) is over 0 on the far side (the sky round a cloud,
   the wall behind a reed): there the line belongs to the nearest surface in the kernel (`near.xy`),
@@ -904,6 +910,12 @@ share of the picture than at 1080p. Three rules, all in the composite, none touc
 
 The people far away keep their own redraw (block 1, `figHit`), the traveller his own outline (`heroInk`), the grass
 its soft ink. Debug view 14 shows the lines as drawn. Measured before → after and the cost: the audit.
+
+What 1a left on the far flowers (34-41 % ink at 55 m, the rubric's far cap 30 %) is taken by their line from afar
+(`lineFar`, "Lines by material" above): 40 → 27 % at 1080p (`docs/audits/ink-lines-v1.53.md`). The far town's
+"shimmer" (0.45 of the frame's ink changing a half pixel over) was the audit's own reading: the nudge moves the camera
+half a pixel at the distance it looks at, so the pole, the sign and the traveller 10 m off slid ~9 px. Read over what
+slides under a pixel (`steadyMask`), the town changes 0.19 of its ink with 2 % pops, under the rubric's 0.35 / 12 %.
 
 ## Thin bars at any distance (materials.js `S_THIN`, `src/thin.js`, October 2026)
 
