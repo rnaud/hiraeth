@@ -108,6 +108,7 @@ import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes, lockViewAngle, lockTurn } from './foes.js';
+import { hopAxis } from './jump.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
@@ -1071,7 +1072,8 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
 const flurryFx = new FlurryFx();
 let flurryAgainAt = 0, flurryChain = null;
 const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
-const LOCK_NEAR = [1.2, 2.8];   // m: the locked foe this near (flat), the lock camera turns after it less, not at all under the first
+const LOCK_NEAR = [1.2, 2.8];
+const _hopView = new THREE.Vector3();   // m: the locked foe this near (flat), the lock camera turns after it less, not at all under the first
 function startFlurry() {
   const now = performance.now() / 1000;
   if (flurryLeft() > 0 || now < flurryAgainAt) return;
@@ -2291,6 +2293,12 @@ function frame(ts) {
   // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
   player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
   if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
+  // (a hop read against the camera's look with the foe at his feet, where the camera stops turning after it: src/jump.js hopAxis)
+  if (player.lockOn) {
+    camera.getWorldDirection(_hopView);
+    const a = hopAxis(player.lockOn.dir, _hopView.setY(0).normalize(), Math.hypot(foes.lock.pos.x - player.pos.x, foes.lock.pos.z - player.pos.z), LOCK_NEAR);
+    (player.lockOn.hop ??= new THREE.Vector3()).set(a.x, 0, a.z);
+  }
   if (!foes.lock) { lockView.foe = null; lockView.angle = 0; }
   if (!foes.lock || busy() || photo.on) lockView.vel = 0;
   if (foes.lock && !busy() && !photo.on) {

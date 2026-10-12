@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { FLIP, BACK_FLIP, SIDE_HOP, HOP, flipAngle, flipPose, hopKind } from '../src/jump.js';
+import { FLIP, BACK_FLIP, SIDE_HOP, HOP, flipAngle, flipPose, hopKind, hopAxis } from '../src/jump.js';
 import { DODGE, FLURRY, CHAIN, nextFlurry, dodgeLead, landsIn, foeThreat, guardianThreat, perfectAgainst, harmful } from '../src/flurry.js';
 import { feelDt, selfDt, flurry, endFlurry, flurryLeft, flurryK, resetFeel, hitStop } from '../src/feel.js';
 import { Foes, FOES, GuardianLock } from '../src/foes.js';
@@ -305,4 +305,17 @@ test('flurries back to back are rationed: one is whole, a chain grows shorter an
   const rest = nextFlurry(seen.at(-1), seen.at(-1).endsAt + CHAIN.within + 0.5);
   assert.equal(rest.n, 0); assert.equal(rest.time, FLURRY.time);
   assert.ok(CHAIN.within > Math.max(...CHAIN.again), 'the chain outlasts its own longest wait');
+});
+
+test('a hop with the foe at his feet is read against the camera\'s look (hopAxis, issue #236)', () => {
+  const near = [1.2, 2.8], toFoe = { x: 1, z: 0 }, view = { x: 0, z: -1 };
+  assert.deepEqual(hopAxis(toFoe, view, 6, near), { x: 1, z: 0 }, 'further off: the line to the foe');
+  const a = hopAxis(toFoe, view, 1, near);
+  assert.ok(Math.abs(a.x) < 1e-9 && Math.abs(a.z + 1) < 1e-9, 'at his feet: the camera\'s look');
+  const m = hopAxis(toFoe, view, 2, near);
+  assert.ok(Math.abs(Math.hypot(m.x, m.z) - 1) < 1e-9 && m.x > 0 && m.z < 0, 'between: a blend, unit length');
+  // a ring centipede's head curled round beside him, the camera looking ahead: stick back (toward the camera) is the back flip
+  const ax = hopAxis({ x: 0, z: 1 }, view, 1.2, near), back = { x: 0, z: 1 };
+  assert.equal(hopKind(back.x * ax.x + back.z * ax.z, back.x * -ax.z + back.z * ax.x), 'back');
+  assert.deepEqual(hopAxis({ x: 0, z: 1 }, { x: 0, z: -1 }, 2, near).z !== undefined, true, 'opposite ways: still a unit way');
 });

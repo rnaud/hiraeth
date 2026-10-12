@@ -227,6 +227,17 @@ export const HOP = {
  * Which hop a jump is, locked on (pure: tests): `along` and `aside` the stick's way along the line to the foe (+ toward it)
  * and across it (+ his right). 'back' | 'left' | 'right', or null (no lock, the stick barely tilted, or toward the foe: a jump).
  */
+/**
+ * The way a hop is read against, locked on (issue #236, the combat review v1.61): the line to the foe, but with the foe
+ * at his feet the lock camera stops turning after it (main.js LOCK_NEAR), so "back" on the stick is back on the screen
+ * and not away from the foe: a ring centipede curled round him read the back flip as a plain jump. So from `near[1]` m in
+ * to `near[0]` the line gives way to the camera's own look (`view`, flat). Flat unit vectors as { x, z } (pure: tests).
+ */
+export function hopAxis(toFoe, view, d, near) {
+  const k = THREE.MathUtils.smoothstep(d, near[0], near[1]);
+  const x = toFoe.x * k + view.x * (1 - k), z = toFoe.z * k + view.z * (1 - k), L = Math.hypot(x, z);
+  return L > 1e-3 ? { x: x / L, z: z / L } : { x: view.x, z: view.z };
+}
 export function hopKind(along, aside, locked = true, H = HOP) {
   if (!locked || Math.hypot(along, aside) < H.stick) return null;
   const a = Math.abs(Math.atan2(aside, along));   // (0 straight at the foe, π straight away)

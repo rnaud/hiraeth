@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.62 — 2026-10-12
 
+- Locked on with a foe right at your feet, a ring centipede curled round you, stick back and jump is the back flip again instead of a plain jump, so the perfect dodge works against it.
 - Locked on, the camera no longer whips round when you walk past the foe: it turns after it smoothly and stops on it. A small foe chasing you as you back away now stays clear of your back instead of hiding behind it.
 - Fixed: starting the Desert from a debug save or the worlds list put you under your ship’s ramp, boxed in with the camera pressed over your head and unable to walk. You start at the foot of the ramp now, facing Qanat, the camera behind you.
 - The Unity preview on the Xbox stutters far less at the City-Shaft’s rim: about one frame in thirty-five misses the screen’s refresh there, where one in eleven did. The traveller’s overshirt is worked out by several cores at once, the city’s banners no longer rebuild their whole shape every frame, and the people behind the camera and whatever is hidden cost the console less.

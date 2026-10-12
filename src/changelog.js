@@ -28,6 +28,8 @@ export const CHANGELOG = [
     // the lock camera's turn eased and a small foe kept clear near in (src/foes.js LOCK_TURN, lockTurn, LOCK_VIEW;
     // docs/systems/movement-and-camera.md, the lock camera; issue #236)
     'Locked on, the camera no longer whips round when you walk past the foe: it turns after it smoothly and stops on it. A small foe chasing you as you back away now stays clear of your back instead of hiding behind it.',
+    // a hop with the foe at his feet read against the camera's look (src/jump.js hopAxis; docs/systems/foes.md; issue #236)
+    'Locked on with a foe right at your feet, a ring centipede curled round you, stick back and jump is the back flip again instead of a plain jump, so the perfect dodge works against it.',
   ] },
   { v: '1.61', date: '2026-10-12', items: [
     // two blind legs guided and places off the way (src/levels/space-city-ways.js STAIR_LAMP, space-city-detours.js,

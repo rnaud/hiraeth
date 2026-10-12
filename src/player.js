@@ -700,7 +700,7 @@ export class Player {
    * flurry, src/flurry.js). Sets the velocity's along-up `vu` and its flat part `tv` (returned: { vu }). No double jump in it.
    */
   hop(kind, tv, U) {
-    const H = kind === 'back' ? HOP.back : HOP.side, D = this.lockOn.dir;
+    const H = kind === 'back' ? HOP.back : HOP.side, D = this.lockOn.hop ?? this.lockOn.dir;
     const right = _g6.crossVectors(D, U).normalize();
     tv.copy(kind === 'back' ? _g5.copy(D).negate() : right.multiplyScalar(kind === 'right' ? 1 : -1)).multiplyScalar(H.out);
     this._hop = { kind, at: this.time, s: 0, spec: kind === 'back' ? H.spec : { ...H.spec, side: kind === 'right' ? 1 : -1 }, iframes: H.iframes };
@@ -1453,7 +1453,7 @@ export class Player {
       let jumped = false;
       // locked on, the stick back or to a side: the back flip, the side hop (hop: src/jump.js HOP), instead of the jump
       const hk = input.Space && this.onGround && !this._jumpHeld && this.lockOn && this.time >= this._hopReady && !this.down
-        ? hopKind(move.dot(this.lockOn.dir) * stickScale, move.dot(_g6.crossVectors(this.lockOn.dir, U).normalize()) * stickScale) : null;
+        ? hopKind(move.dot(this.lockOn.hop ?? this.lockOn.dir) * stickScale, move.dot(_g6.crossVectors(this.lockOn.hop ?? this.lockOn.dir, U).normalize()) * stickScale) : null;
       if (hk) {
         vu = this.hop(hk, tv, U);
         this.onGround = false;

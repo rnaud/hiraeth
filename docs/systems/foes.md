@@ -665,6 +665,11 @@ The count is said every 5 ink.
   A foe whose chest stands over `tall` (1.5–2.6 m: the brute, the bell, a jelly, a ray in the air, a guardian) needs
   none. The camera QC's `arena-lock` and `arena-lock-lizard` measure it (`foe hidden`: the frames where his body covers
   half the foe's screen box).
+- **A hop with the foe at his feet** (issue #236, `hopAxis` in src/jump.js): the back flip and the side hop are read
+  from the stick against the line to the foe, but within `LOCK_NEAR` (1.2–2.8 m) the lock camera stops turning after
+  it, so "back" on the stick was back on the screen and not away from the foe: against a ring centipede curled round
+  him the press read as a plain jump and the perfect dodge never opened (dodge.mjs: 33 of 35 at v1.61). There the line
+  gives way to the camera's look (`player.lockOn.hop`), blended as the camera's turn is.
 - **The lock's turn** (issue #236, `LOCK_TURN`, `lockTurn`): the camera turns after the line with its speed eased (at
   most 9 rad/s more a second, 3.2 rad/s at most, braking to stop on it), so the line flipping as you walk past a foe no
   longer starts and stops the view at once (docs/systems/movement-and-camera.md, "The lock camera's turn, eased").
