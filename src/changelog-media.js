@@ -676,6 +676,8 @@ const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.
 // (v1.53: the game's update, issue #111: the Unity bundle in Node, two builds interleaved a frame each in one process)
 const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (scratch bench: the two builds in one process, a frame of each in turn, each on the script thread’s CPU clock, the bench’s own split of engine/game.js), both ways round and averaged, 12 October, the Mac’s load 35–90';
 // (v1.54: the ways to and from three temples, issues #178-#180)
+// (v1.55: Vael's picked explorations, issue #187)
+const VAEL187 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5481), the before with the worlds’ files as on origin/main (19e17c8b, git archive), the same pinned cameras and saves, 12 October; cwebp -q 72';
 const LD54 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5471), the before with the worlds’ files as on origin/main (30c8329d), the same pinned cameras, 12 October; cwebp -q 72';
 const FR55 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5491), in Viridel with a fresh save past the prologue, 12 October; cwebp -q 72';
 // (v1.55: Lio's dispatch mast, issue #201: by hand, the disk too full for changelog-shots.mjs's extraction; the before is
@@ -707,6 +709,37 @@ export const CHANGELOG_MEDIA = {
       { name: 'shaft-liomast-near', title: 'Gliding in', caption: 'Gliding in over the rim toward Lio: after, his mast over the plain behind the rim’s grove, the ring turning round his booth and a cab docked under each arm', from: MAST55,
         view: { level: 'incal', hour: 10, fov: 60, eye: [250, 236, 62], target: [352, 232, 38], player: [256, 233, 60], save: SAVE_LIT55 } },
     ], see: 'In the City-Shaft, light the Lodestar from the palace’s crown, then walk to the crown’s edge on your ship’s side: the teal-topped mast over the rim is Lio’s. Glide down to it: Lio stands at its foot.' },
+    { match: 'In Vael the walk from the white house to the lone tower now goes down the riders’ old road', shots: [
+      { name: 'vael-road', title: 'The road’s head', caption: 'Beside the riders’ shrine, looking toward the lone tower: before, the open plain to its foot; after, the riders’ road going down into the plain between its walls, the tower beyond', from: VAEL187,
+        reference: { sheet: 'references/levels/Vael/environment/explorations/silent-canyons/sheet-2.jpg', caption: 'The author’s pick: the roads under the plain, from the reference lab' },
+        view: { level: 'arzach', hour: 10, fov: 60, eye: [-76, 57.5, -1352], target: [20, 32, -1440], player: [-72, 53.5, -1356] } },
+      { name: 'vael-cleft', only: 'after', title: 'Down in the cleft', caption: 'On the road’s bed near its end: the sheer red walls, two stone ears, the streamers overhead, and the lone tower rising out of the pit beyond', from: VAEL187,
+        reference: { sheet: 'references/levels/Vael/environment/explorations/silent-canyons/sheet-1.jpg', caption: 'The author’s pick: the stone ear, from the reference lab' },
+        view: { level: 'arzach', hour: 10, fov: 62, eye: [2.5, 32.3, -1446], target: [62, 72, -1492], player: [4.5, 30.3, -1448.5] } },
+    ], numbers: [
+      { title: 'The level design audit, Vael', unit: '', better: 'higher', device: 'node scripts/level-design/audit.mjs --worlds arzach', rows: [
+        { where: 'places', before: 49, after: 60 }, { where: 'optional places 30–150 m off the path', before: 15, after: 20 }, { where: 'landmarks', before: 37, after: 53 },
+        { where: 'long legs guided (%)', before: 90, after: 100 }, { where: 'the mean (1–5)', before: 4.78, after: 4.78 },
+      ], source: 'the longest empty stretch 526 → 479 m (the flight from the tower’s window now passes over the broken edge); the climb’s stage names the riders’ way; density stays 4, the flights to and from Sister Aube over the cloud (issue #187)' },
+    ], see: 'Take the wings from the white house and walk toward the lone tower: past the bones and the riders’ shrine, the worn steps go down into the riders’ road. Press A / × at a stone ear to whisper into it. The road ends at the tower’s foot, in the pit, by the wind.' },
+    { match: 'The needles round Vael’s lone tower now stand in three rings', shots: [
+      { name: 'vael-sundial', title: 'The sundial', caption: 'From high over the riders’ shrine, toward the lone tower, with the wings: before, needles scattered at random; after, three rings of needles round the tower on a level plain, the pit at its foot, its long shadow lying back toward the white house', from: VAEL187,
+        reference: { sheet: 'references/levels/Vael/environment/explorations/sundial-plain/sheet-2.jpg', caption: 'The author’s pick: the clock of needles, from the reference lab' },
+        view: { level: 'arzach', hour: 10, fov: 55, eye: [-170, 290, -1270], target: [70, 30, -1500], player: [-80, 53, -1340], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.glider': true } } } },
+      { name: 'vael-shadow', title: 'The shadow from the white house', caption: 'Just out of the Aerie, toward the lone tower, with the wings: after, the tower’s long shadow across the plain, lying the way to go', from: VAEL187,
+        view: { level: 'arzach', hour: 10, fov: 55, eye: [-352, 61, -1128], target: [70, 60, -1500], player: [-356, 55.5, -1124], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.glider': true } } } },
+      { name: 'vael-hour-stone', only: 'after', title: 'An hour stone', caption: 'Once the bird has answered: the hour stone toward the riders’ gate in the tower’s shadow, its lamp lit in the needle’s foot behind it', from: VAEL187,
+        reference: { sheet: 'references/levels/Vael/environment/explorations/sundial-plain/sheet-1.jpg', caption: 'The author’s pick: the hour stone, from the reference lab' },
+        view: { level: 'arzach', hour: 10, fov: 58, eye: [44.5, 54.6, -1353], target: [38.5, 53, -1336], player: [47, 52.5, -1356], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.glider': true, 'arzach.bird.promise': true, 'bird.promise': true } } } },
+    ], see: 'Pick up the wings in the white house and step out: the tower’s shadow swings round to lie across the plain toward you. Play the flute on the tower’s sill: once the bird has answered, the shadow swings to the riders’ gate, and the hour stone it falls on lights its lamp.' },
+    { match: 'Past the riders’ gate the plain is breaking up at its edge', shots: [
+      { name: 'vael-edge', title: 'The broken edge', caption: 'East of the riders’ gate, toward the cliff: before, the plain’s edge and the cloud; after, slabs tipped out of the sand and the stones of the plain stepping out over the cloud', from: VAEL187,
+        reference: { sheet: 'references/levels/Vael/environment/explorations/falling-up/sheet-1.jpg', caption: 'The author’s pick: the stone that carries you, from the reference lab' },
+        view: { level: 'arzach', hour: 10, fov: 62, eye: [-2, 30.5, -985], target: [-24, 45, -850], player: [0, 27, -990], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.glider': true, 'arzach.bird.promise': true, 'bird.promise': true } } } },
+      { name: 'vael-edge-back', title: 'From the highest stone', caption: 'Over the cloud, looking back at the plain: before, the cloud and the cliff; after, the highest stone with its rider’s ring and leaning needle, the stones stepping back down to the plain, the tower’s shadow lying toward the gate', from: VAEL187,
+        reference: { sheet: 'references/levels/Vael/environment/explorations/falling-up/sheet-2.jpg', caption: 'The author’s pick: the edge that rises, from the reference lab' },
+        view: { level: 'arzach', hour: 10, fov: 60, eye: [-70, 95, -735], target: [0, 30, -960], player: [-35, 68, -764], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.glider': true, 'arzach.bird.promise': true, 'bird.promise': true } } } },
+    ], see: 'Walk from the riders’ gate east to the cliff and jump onto the first stone. Jump twice and open your wings from stone to stone; on a stone you cannot reach the next from, stand still and it lifts you.' },
   ],
   '1.54': [
     { match: 'Your father is a bust again', see: 'Play a window recording on the ship (the log at the projector, from the seventh world on): he shows as the bust, as in his calls.' },

@@ -8,6 +8,7 @@ import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, KNUCKLE_LINES, KN
 import { riddleState, strikeKnuckle, nextKnuckle, glinting, dots, knuckleRadius } from './knuckle-riddle.js';
 import { stripTone } from './tone.js';
 import { setupArzachMoments } from './arzach-moments.js';
+import { setupVaelExplorations } from './arzach-explorations.js';
 import { shiftAt } from '../levels/names.js';
 import { batchParts } from '../part-batch.js';
 import { rideColumn } from '../updraft.js';
@@ -197,6 +198,9 @@ export function setupArzach(ctx) {
     thing(THINGS.bones, A.plain.bones.stand, { range: 5, prompt: 'look at the bones', look: A.plain.bones.look });
     thing(THINGS.shrine, A.plain.shrine.stand, { range: 3.4, prompt: 'look at the shrine', look: A.plain.shrine.look });
   }
+
+  // the explorations: the ears, the hour stones, the broken edge (src/story/arzach-explorations.js, issue #187)
+  const explorations = setupVaelExplorations(ctx);
 
   // ---------------------------------------------------------------- the rider's flute, on the sill
   // a little bone flute with a white feather tied to it by a worn cord, lying on the sill by the window
@@ -597,6 +601,8 @@ export function setupArzach(ctx) {
     }
     // the wind up the tower
     updateWind(dt, t);
+    // the riders' road, the sundial's hour and the stones that rise (issue #187)
+    explorations?.update(dt, t);
     // flying home from the tower, the roost comes up on the bird's line: named once, while there is time to land on it
     if (A.roost && !told.has('roost') && !game.flag('arzach.roost.seen') && shown()) {
       const R = A.roost.top, pp = player.pos;
@@ -604,5 +610,5 @@ export function setupArzach(ctx) {
     }
   };
 
-  return { people, update, hand, bow, call, feathers, knuckles, ringHand, cry, flute, takeFlute, wind, shown, film };
+  return { people, update, hand, bow, call, feathers, knuckles, ringHand, cry, flute, takeFlute, wind, shown, film, explorations };
 }

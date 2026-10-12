@@ -1189,6 +1189,60 @@ wayfinding 4 → 5 (64 → 90 % of the long legs guided): Vael 4.44 → 4.67 (`s
   monastery's roofs.
 Tested in `tests/vael-plain-sights.test.js`.
 
+## Vael's explorations (v1.55, issue #187)
+
+The author's three picked directions (`references/levels/Vael/environment/explorations/`, prompts in
+`docs/design/level-explorations-2-prompts.md`) woven into one way through Vael rather than three places: down the riders'
+road from the Aerie to the lone tower, its shadow as the way on, and out past the riders' gate up the stones that fell up.
+
+- **The silent canyons: the riders' road** (`src/vael-canyon.js`, `ROAD_POINTS`, `CLEFT`). A sunken road from beside the
+  riders' shrine to the tower's foot, cut into the ground before the terrain is made (`ridersCut`, in
+  `src/levels/arzach.js` `height`): the bed is level across within `BED + WR` of its line, and the round pit at the end
+  (30 m, 24 m deep) likewise. The walls are meshes, drawn and collided as one: a sheer face of red rock at the bed's edge,
+  banded in ledges, from under the bed up to the plain, and from its lip a cap in the ground's own look laid on the plain as
+  it was (`uncut`) out past where the terrain's coarse triangles (10.8 m) climb back up to it, so the grid never shows in
+  them. Worn steps go down the first 70 m, the walls growing as it sinks; it winds, so the tower's foot is lost behind
+  the bends and found again rising out of the pit (tested). Three great ears in the cleft's walls (`EARS`, `THINGS.ear`:
+  `whisper into the ear` sends rings of white running on down the road to the tower, `echo`), five niches with seated
+  figures, four cords of faded pennants overhead. The tower itself is as it stood on the plain (`plainBaseAt`: its old
+  footing, read as the terrain read it), a foot of the same stone under it down to the pit's floor; the wind's column
+  starts on the pit's floor. The colossus beside the road keeps its old ground the same way. The scatter of the plain
+  is left out of the road (`inRoad`, its draws kept). The caption down in it reads "Vael · the riders' road".
+- **The plain is a sundial** (`src/vael-sundial.js`, `RINGS`, `DIAL_FACE` in `src/levels/arzach.js`). The plain round the
+  tower is laid level out to 176 m (the old ravines filled, eased back by 212 m; left as it was round Senn's spire, whose
+  cap holds the hush-cloth's box), and the riders' needles stand on it in three rings (64, 110, 165 m), dotted rings of
+  little marker stones between, the scattered spires, hoodoos and boulders cleared off it. Each needle of the outer ring is
+  an hour: an hour stone before it (a groove toward the tower, a rider's mark) and a niche in its foot with a lamp, lit
+  while the tower's shadow lies on it. **The riders' hour** (`riderHour`): Vael's light comes from where the story puts
+  the sun (the level's `lightAt`; the clock's own sun before the wings, the moon's at night): once the wings are yours
+  the tower's shadow lies toward the Aerie's door, the way you came (27° up, so it reaches some 600 m); once the bird
+  has answered, toward the riders' gate; once the bell has rung, home toward the landing. When the hour turns the sun
+  swings round over 30 s (`SWING`, smooth, every shadow with it) and one line says so (`SWING_CUE`); it waits while you
+  are in a temple overhead. Three hour stones stand on those bearings (the white house's by the road's head, the gate's,
+  the landing's at Senn's spire), sights with a look (`THINGS.hourstone`). The outer ring's needles are beacons for the
+  audit (thin: its height grid misses them; from the road they show over its walls).
+- **Where the stones fall up** (`src/vael-edge.js`, `CRACKS`, `TILTED`, `CHAIN`, `RISERS`, `TABLES`). East of the riders'
+  gate the plain comes apart toward the cliff: dark cracks widening to the lip, six slabs tipped up out of the sand (the
+  last a metre over it at the lip), then ten stones of the plain out over the cloud, each 3.2 m (`GAP`) from the last, a
+  running leap with a second jump and the wings, rising from 26 to 68 m: peach tops, broken red undersides with roots of
+  rock trailing, a needle on two, the highest (13 m) with a leaning needle, a little arch and an iron ring with a frayed
+  rider's rope (`THINGS.highstone`: looking back at the plain and the hole it is leaving). **Three stones rise** while you
+  stand on them (`RISE`: 0.8 m/s, 9–10 m, up to a leap below the next; left, they wait 6 s and sink back): moving
+  colliders (`physics.addMover` in the level's `init`) that carry you, the next stone out of reach without the wait;
+  one line the first time (`RISE_CUE`). Loose pebbles drift up off the rims. Two whole tables of the plain hang off the
+  edge further west, on the bird's way home. The first slab is a sight with a look (`THINGS.broken`). Everything here is
+  collided as drawn (the stones are not marked `floats`, so the contact audit checks them).
+- **The audit** (`scripts/level-design/audit.mjs --worlds arzach`): 4.78 → 4.78. The climb's stage names the riders' way
+  (`via`, the line from the Aerie's door past the bones and the shrine and down the road to the wind), the longest empty
+  stretch 526 → 479 m (the flight from the window now passes over the broken edge), places 49 → 60, optional places
+  pulling 15 → 20, landmarks 37 → 53 (the needles), every long leg guided (90 → 100 %); density stays 4 (the flights to
+  and from Sister Aube over the cloud), pacing 4.
+
+Tested in `tests/vael-explorations.test.js`: the road walked from its head to the wind, its walls sheer and tall, the tower's
+balcony where it was, the foot lost along the road and found at the pit; the ears' whisper; the rings, the hour stones and
+the riders' hours (bearings, the light, the swing, the lamps, the story's turns); every leap of the stones and the risers'
+lift; the contact audit over all three; the collision budget.
+
 ## The Glass Dunes: a detour off the route (October 2026)
 
 `?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates

@@ -49,7 +49,8 @@ export const QUESTS = [
     stages: [
       // (from the Aerie, the bird's old tracks lead down to her: the way back that is not the standing stones' way up, src/vael-ways.js)
       { id: 'watcher', text: 'Sit with the watcher on the plain', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia', via: 'the bird’s tracks' },
-      { id: 'tower', text: 'Ride the wind up the lone tower', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind' },
+      // (from the white house the riders' way: past the bones and the shrine, down the riders' road to the tower's pit, src/vael-canyon.js)
+      { id: 'tower', text: 'Ride the wind up the lone tower', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind', via: 'the riders’ way' },
       { id: 'window', text: 'Climb the steps to the tower’s window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
       { id: 'call', text: 'Play the rider’s flute', label: 'The rider’s flute', flag: 'arzach.bird.called', at: 'window' },
       { id: 'promise', text: 'Wait for her answer over the haze', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
@@ -285,6 +286,49 @@ export const THINGS = {
         "~solemn~ In the niche stands a cup of water, still full. The sand round the step has been swept."],
       do: { set: { 'arzach.shrine.seen': true } },
       choices: [{ text: '~solemn~ (leave the cup as it is)', end: true }],
+    } } },
+  },
+  // the explorations (issue #187, src/story/arzach-explorations.js): the riders' road, the sundial, the broken edge
+  ear: {
+    id: 'ear', name: 'A stone ear', title: 'in the wall of the riders’ road', color: '#f4efe2', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~whisper~ You lean into the great ear and say a word, softly. It runs on ahead of you down the road, round the bend, toward the tower.",
+        "~neutral~ The riders spoke only in whispers here. On the lip lies a little offering of green pebbles.",
+        { if: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] }, text: "~happy~ (Far off, down the road, something large answers with one soft note.)" },
+        { if: { not: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] } }, text: "~solemn~ (Nothing answers. The whisper goes on alone.)" }],
+      do: { set: { 'arzach.ear.heard': true } },
+      choices: [{ text: '~neutral~ (follow it)', end: true }],
+    } } },
+  },
+  hourstone: {
+    id: 'hourstone', name: 'An hour stone', title: 'on the sundial round the tower', color: '#f1e9d8', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A low round stone, a groove cut across it toward the tower, a rider’s mark beside it. {glyph}",
+        "~curious~ Every needle of the ring has one. The riders set them where the tower’s shadow falls, one for each hour.",
+        { if: { flag: 'arzach.hour.here' }, text: "~solemn~ The tower’s shadow lies across it now. In the needle behind, a little lamp burns." },
+        { if: { not: { flag: 'arzach.hour.here' } }, text: "~sad~ The lamp in the needle behind it is cold. Not its hour." }],
+      do: { set: { 'arzach.hourstone.seen': true } },
+      choices: [{ text: '~neutral~ (follow the shadow)', end: true }],
+    } } },
+  },
+  broken: {
+    id: 'broken', name: 'A broken slab', title: 'where the plain comes apart', color: '#eda584', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ The plain is cracked here. A slab of it has tipped up out of the ground, sand still running off its edge.",
+        "~surprised~ Further on, toward the cliff, the slabs come loose altogether and hang over the cloud, higher and higher."],
+      do: { set: { 'arzach.broken.seen': true } },
+      choices: [{ text: '~neutral~ (go on toward the edge)', end: true }],
+    } } },
+  },
+  highstone: {
+    id: 'highstone', name: 'The highest stone', title: 'over the cloud', color: '#eda584', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~surprised~ From up here the whole plain lies behind you, and the ragged hole it is leaving at its edge.",
+        "~neutral~ An iron ring is set in the stone, a frayed rider’s rope still tied to it, hanging down toward the cloud.",
+        { if: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] }, text: "~happy~ Past here there is only sky. Call, and she will come." },
+        { if: { not: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] } }, text: "~sad~ Past here there is only sky. The rider went on from here." }],
+      do: { set: { 'arzach.highstone.seen': true } },
+      choices: [{ text: '~solemn~ (look back at the plain)', end: true }],
     } } },
   },
   palm: {

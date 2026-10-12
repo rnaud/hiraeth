@@ -15,6 +15,9 @@ import { SmokeColumn } from '../story/flames.js';
 import { buildSkyStones, skyStonesHeight, SKY_STONES, SKY_STONES_GROUND } from './arzach2.js';
 import { offsetOf } from './names.js';
 import { FLORA_WORLDS } from '../flora.js';
+import { ridersCut, inRoad, buildRidersRoad, CLEFT } from '../vael-canyon.js';
+import { buildSundial, RINGS } from '../vael-sundial.js';
+import { buildFallingUp } from '../vael-edge.js';
 
 // ---------------------------------------------------------------------------
 // Vael: a silent, bone-white world of needle spires,
@@ -49,14 +52,57 @@ export function vaelGround(x, z) {
 }
 /** How much of Vael's ground lies over the sky stones' plain at a distance r from its landing (all of it within 600 m). */
 const vaelWeight = (r) => smoothstep(820, 600, r);
+const TOWER_AT = { x: 260 + OX, z: -420 + OZ };
+/** The sundial round the lone tower (src/vael-sundial.js): the rings' reach, where the plain's scattered shapes give way to it. */
+const SUNDIAL_R = RINGS[RINGS.length - 1].R + 25;
+/**
+ * The sundial's face (issue #187): the plain round the tower laid level (the old ravines filled) out to R0, eased back
+ * into the plain as it lay by R1, at the tower's own height; left as it was round Senn's spire (its cap holds the
+ * hush-cloth's box, where it always was).
+ */
+export const DIAL_FACE = { R0: 176, R1: 212, y: 52.4, senn: [170 + OX, -282 + OZ], keep: [14, 40] };
+/** Vael's plain as it lay before the explorations (world coordinates): where the tower's top is measured from. */
+const rawGround = (x, z) => vaelGround(x - OX, z - OZ) + OY;
+/** Vael's plain with the sundial's face levelled, before the riders' road is cut into it (world coordinates). */
+const uncut = (x, z) => {
+  const g = rawGround(x, z), r = Math.hypot(x - TOWER_AT.x, z - TOWER_AT.z);
+  if (r >= DIAL_FACE.R1) return g;
+  const w = smoothstep(DIAL_FACE.R1, DIAL_FACE.R0, r) * smoothstep(DIAL_FACE.keep[0], DIAL_FACE.keep[1], Math.hypot(x - DIAL_FACE.senn[0], z - DIAL_FACE.senn[1]));
+  return THREE.MathUtils.lerp(g, DIAL_FACE.y + fbm(noiseB, x * 0.012, z * 0.012, 2) * 1.1, w);
+};
+/**
+ * The lowest of Vael's old ground (rawGround) under a footprint of radius r, read as the terrain's own triangles read it
+ * (world.js Terrain heightAt and baseAt, its 5200 m in 480 steps): where the lone tower stood before the pit was cut.
+ */
+function plainBaseAt(x, z, r, size = 5200, seg = 480) {
+  const step = size / seg, half = size / 2, at = (px, pz) => {
+    const fx = (px + half) / step, fz = (pz + half) / step, ix = Math.floor(fx), iz = Math.floor(fz), tx = fx - ix, tz = fz - iz;
+    const g = (i, k) => rawGround(-half + i * step, -half + k * step);
+    const h00 = g(ix, iz), h10 = g(ix + 1, iz), h01 = g(ix, iz + 1), h11 = g(ix + 1, iz + 1);
+    return tx + tz <= 1 ? h00 + (h10 - h00) * tx + (h01 - h00) * tz : h11 + (h01 - h11) * (1 - tx) + (h10 - h11) * (1 - tz);
+  };
+  let m = at(x, z);
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; m = Math.min(m, at(x + Math.cos(a) * r, z + Math.sin(a) * r)); }
+  return m;
+}
 /** The world's ground: the sky stones' (the cloud's floor, their plain), Vael's round its landing. */
 export const height = skyStonesHeight((x, z) => {
-  const lx = x - OX, lz = z - OZ, w = vaelWeight(Math.hypot(lx, lz));
-  return w > 0 ? { h: vaelGround(lx, lz) + OY, w } : null;
+  const w = vaelWeight(Math.hypot(x - OX, z - OZ));
+  // (the sundial's face levelled, and the riders' road and the pit at the tower's foot cut into it: src/vael-canyon.js)
+  return w > 0 ? { h: ridersCut(x, z, uncut(x, z)), w } : null;
 });
+/** The broken edge east of the riders' gate (src/vael-edge.js): the cracks and the tipped slabs, kept clear of the scatter. */
+const inEdgeField = (x, z, r = 0) => x > -95 - r && x < 65 + r && z > -1080 - r && z < -940 + r;
+/**
+ * Where the plain's scattered shapes are left out (their draws from the rng kept, so the rest stand where they always
+ * stood): in the riders' road, round the tower where the riders set their own rings, and on the broken edge.
+ */
+const cleared = (x, z, r = 0) => inRoad(x, z, r) || Math.hypot(x - TOWER_AT.x, z - TOWER_AT.z) < SUNDIAL_R + r || inEdgeField(x, z, r);
 /** Over the cloud (or its cliff), where Vael's plain has nothing of its own: (x, z) in the world. */
 const overCloud = (x, z) => z > SKY_STONES.plainEdge(x) - 45 || Math.hypot(x - SKY_STONES.AQ2.b[0], z - SKY_STONES.AQ2.b[1]) < 45;
 
+/** The two spires with the shed feathers on their caps (Vael's own coordinates: src/story/arzach.js FEATHER_SPIRES). */
+const FEATHER_SPIRES = [[170, -282], [414, -543]];
 /** The standing stones up the slope from the landing toward the Aerie: [x, z, height]. */
 const STANDING_STONES = [[-24, 5, 4.2], [-42, 3, 5.4], [-60, 1, 4.6], [-78, -1, 6.0]];
 
@@ -100,8 +146,10 @@ function* buildVaelPlain(scene, terrain) {
     yield;
     const lx = (rng() * 2 - 1) * 1300, lz = (rng() * 2 - 1) * 1300;
     if (Math.hypot(lx, lz) < 140) continue; // keep the start clear
-    const x = lx + OX, z = lz + OZ, keep = !overCloud(x, z);
+    const x = lx + OX, z = lz + OZ;
     const r = 6 + rng() * 16, h = 60 + rng() * rng() * 260;
+    // (the two spires with the shed feathers stay where they always stood, the hush-cloth's on the sundial's outer ring)
+    const keep = !overCloud(x, z) && (FEATHER_SPIRES.some(([fx, fz]) => Math.hypot(lx - fx, lz - fz) < 3) || !cleared(x, z, r));
     const g = new THREE.CylinderGeometry(r * (0.15 + rng() * 0.25), r, h, 9, 12);
     g.translate(0, h / 2, 0);
     jitter(g, 0.22, 0.03, rng() * 100);
@@ -177,18 +225,21 @@ function* buildVaelPlain(scene, terrain) {
   yield;
   {
     const x = 260 + OX, z = -420 + OZ, base = terrain.baseAt(x, z, 14);
-    const H = 240;
-    const shaft = new THREE.CylinderGeometry(6, 13, H, 12, 16);
-    shaft.translate(0, H / 2, 0);
+    // (it rises out of the pit at the riders' road's end now, src/vael-canyon.js CLEFT: the tower itself exactly as it
+    // stood on the plain, on its old footing, and under it its foot, the same stone, on down to the pit's floor)
+    const old = plainBaseAt(x, z, 14), H0 = 240, H = H0 + Math.max(0, old - base);
+    const shaft = new THREE.CylinderGeometry(6, 13, H0, 12, 16);
+    shaft.translate(0, H0 / 2, 0);
     jitter(shaft, 0.06, 0.05, 3);
     const room = new THREE.SphereGeometry(16, 16, 12);
     room.scale(1, 0.75, 1);
-    room.translate(0, H + 8, 0);
-    const balcony = new THREE.CylinderGeometry(20, 20, 1.5, 24).translate(0, H - 3, 0);
-    const spike = new THREE.ConeGeometry(2, 30, 6).translate(0, H + 34, 0);
-    const tower = new THREE.Mesh(mergeGeometries([shaft, room, balcony, spike].map((p) => p.index ? p.toNonIndexed() : p)),
+    room.translate(0, H0 + 8, 0);
+    const balcony = new THREE.CylinderGeometry(20, 20, 1.5, 24).translate(0, H0 - 3, 0);
+    const spike = new THREE.ConeGeometry(2, 30, 6).translate(0, H0 + 34, 0);
+    const foot = new THREE.CylinderGeometry(13.05, 13.6, H - H0 + 0.6, 12, 2).translate(0, -(H - H0) / 2 + 0.3, 0);
+    const tower = new THREE.Mesh(mergeGeometries([shaft, room, balcony, spike, foot].map((p) => p.index ? p.toNonIndexed() : p)),
       makeMaterial({ color: '#f6f0e2', color2: '#e9d9bd', color3: '#d8a24a', mode: MODE_STRATA, strataSize: 12, flat: true }));
-    tower.position.set(x, base - 2, z);
+    tower.position.set(x, base - 2 + (H - H0), z);
     scene.add(tower);
     // a single window: an arched opening in a deep stone frame (jambs, an arch, a keystone), the room's
     // shadowed back wall set in behind it, so it reads as a way in and not as a flat dark panel
@@ -253,7 +304,7 @@ function* buildVaelPlain(scene, terrain) {
     face.rotation.y = -0.6;
     grp.add(head, face);
     const x = 170 + OX, z = -260 + OZ;
-    grp.position.set(x, terrain.baseAt(x, z, 40) - 6, z);
+    grp.position.set(x, plainBaseAt(x, z, 40) - 6, z);   // (on the plain as it lay before the riders’ road was cut beside it)
     grp.rotation.y = 0.7;
     scene.add(grp);
     grp.updateMatrixWorld(true);
@@ -299,6 +350,11 @@ function* buildVaelPlain(scene, terrain) {
     handInfo.normal = new THREE.Vector3(0, 0, 1).applyQuaternion(hand.quaternion);
     colossus.head = grp.localToWorld(new THREE.Vector3(-46, 12, 0));
     colossus.face = grp.localToWorld(new THREE.Vector3(-50, 14, 7));
+    // (its body as capsules in the world, [a, b, r]: what the sundial's rings keep clear of, src/vael-sundial.js)
+    colossus.capsules = grp.children.map((m) => {
+      const p = m.geometry.parameters, half = (p.length ?? 0) / 2;
+      return [m.localToWorld(new THREE.Vector3(0, half, 0)), m.localToWorld(new THREE.Vector3(0, -half, 0)), p.radius ?? 15];
+    });
   }
 
   // ---------------------------------------------------------- menhirs and pebbles
@@ -314,7 +370,7 @@ function* buildVaelPlain(scene, terrain) {
     const m = new THREE.Mesh(g, makeMaterial({ color: '#f1e9d8', flat: true, grid: 2.2 }));
     m.position.set(x, terrain.baseAt(x, z, 2) - 1, z);
     m.rotation.set((rng() - 0.5) * 0.3, rng() * 6, (rng() - 0.5) * 0.3);
-    if (overCloud(x, z)) continue;
+    if (overCloud(x, z) || cleared(x, z, 2)) continue;
     scene.add(m);
     menhirs.push({ x, z, y: m.position.y, h });
   }
@@ -329,7 +385,7 @@ function* buildVaelPlain(scene, terrain) {
       dummy.scale.set(s, s * 0.6, s);
       dummy.updateMatrix();
       const c = pick(['#efe4cf', '#e2d4b8', '#d8c7a6']);
-      if (!overCloud(x, z)) kept.push([dummy.matrix.clone(), c]);
+      if (!overCloud(x, z) && !inRoad(x, z, s)) kept.push([dummy.matrix.clone(), c]);
     }
     const rocks = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), makeMaterial({ color: '#ffffff', flat: true, pattern: 'cracks' }), kept.length);
     kept.forEach(([mx, c], i) => { rocks.setMatrixAt(i, mx); rocks.setColorAt(i, color.set(c)); });
@@ -354,7 +410,7 @@ function* buildVaelPlain(scene, terrain) {
       const m = new THREE.Mesh(g, makeMaterial({ color: p[0], color2: p[1], color3: p[2], mode: MODE_STRATA, strataSize: 2 + rng() * 2.5, flat: true }));
       m.position.set(x, terrain.baseAt(x, z, 5 * s) - 1.5, z);
       m.rotation.set(lean, rng() * 6, lean * 0.5);
-      if (!overCloud(x, z)) scene.add(m);
+      if (!overCloud(x, z) && !cleared(x, z, 9 * s)) scene.add(m);
     }
     for (let i = 0; i < 12; i++) {   // a boulder balanced on a needle
       const a = rng() * Math.PI * 2, r = 180 + rng() * 800;
@@ -365,7 +421,7 @@ function* buildVaelPlain(scene, terrain) {
       const m = new THREE.Mesh(mergeGeometries([ped, stone].map((g) => (g.index ? g.toNonIndexed() : g))), bone(3));
       m.position.set(x, terrain.baseAt(x, z, 4 * s) - 1, z);
       m.rotation.y = rng() * 6;
-      if (!overCloud(x, z)) scene.add(m);
+      if (!overCloud(x, z) && !cleared(x, z, 6 * s)) scene.add(m);
     }
   }
 
@@ -488,10 +544,61 @@ function finishVael(scene, terrain, S, V) {
   level.arzach2.belfryLamp = lamp;
   level.beacons = [...level.beacons, { name: 'Aube’s smoke', top: smokeTop.toArray(), height: smokeTop.y - AUBE_SMOKE.at[1] }, ...(lamp ? [{ name: 'the founders’ lamp', top: lamp.top.toArray(), height: lamp.height }] : [])];
   level.sights = [...level.sights, { name: 'the great bird’s bones', at: sights.bones.at }, { name: 'the riders’ shrine', at: sights.shrine.at }];
+  // the author's three picked explorations (issue #187, docs/systems/worlds.md "Vael's explorations"), one way through the
+  // world: from beside the riders' shrine the riders' road goes down into the plain and on in a cleft to the lone tower,
+  // which rises out of a pit at its end (src/vael-canyon.js); round the tower the riders' needles stand in rings, a
+  // sundial, the tower its gnomon, its shadow laid by the riders' hour across the plain as the way on (src/vael-sundial.js);
+  // and past the riders' gate the plain breaks up and falls upward, a step of stones out over the cloud (src/vael-edge.js).
+  // (built last, as the crossings)
+  const road = buildRidersRoad(scene, terrain, { uncut });
+  const door = templeOf(level, 'arzach')?.outside?.door?.at ?? spawn;
+  const caps = colossus.capsules ?? [];
+  const offBody = (x, z, m) => caps.every(([a, b, r]) => {
+    const dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz, t = L2 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2)) : 0;
+    return Math.hypot(x - a.x - dx * t, z - a.z - dz * t) > r + m;
+  });
+  const sennSpire = spires.find((sp) => Math.hypot(sp.x - (FEATHER_SPIRES[0][0] + OX), sp.z - (FEATHER_SPIRES[0][1] + OZ)) < 3);
+  const dial = buildSundial(scene, terrain, {
+    x: towerInfo.x, z: towerInfo.z, targets: { aerie: [door.x, door.z], gate: [gate.at.x, gate.at.z], home: [spawn.x, spawn.z] },
+    keep: (x, z, r) => offBody(x, z, r + 2) && (!sennSpire || Math.hypot(x - sennSpire.x, z - sennSpire.z) > sennSpire.r + r + 3),
+    senn: sennSpire ? [sennSpire.x, sennSpire.z, sennSpire.r] : null, plain: uncut(towerInfo.x, towerInfo.z),
+  });
+  const edge = buildFallingUp(scene, terrain);
+  Object.assign(level.arzach, { road, sundial: dial, edge });
+  level.lights.push(...dial.lights);
+  // the riders' sun: Vael's light comes from where the riders' hour puts it (the clock's own until the wings are yours;
+  // at night the moon's, untouched), so every shadow, the tower's longest of all, lies the way the hour says
+  const clockSun = new THREE.Vector3();
+  level.lightAt = (p, dir) => {
+    if (dir.y <= 0.05) return;
+    dial.sun.clock = clockSun.copy(dir);
+    const d = dial.sun.dir(new THREE.Vector3());
+    if (d) dir.copy(d);
+  };
+  level.init = (physics) => edge.init(physics);
+  const floraAvoid = level.floraAvoid;
+  level.floraAvoid = (x, z, r = 0) => floraAvoid(x, z, r) || inRoad(x, z, r) || dial.hours.some((h) => Math.hypot(h.at.x - x, h.at.z - z) < 3 + r);
+  // (the caption down in the road, under the plain)
+  const atmo = level.atmo;
+  level.atmo = (x, z, y = Infinity) => (inRoad(x, z) && y < uncut(x, z) - 4 ? { ...atmo(x, z), name: 'Vael · the riders’ road' } : atmo(x, z));
+  // for the audit: the riders' way from the white house to the tower (past the bones and the shrine, down the road, to
+  // the wind at the pit's floor), named by the climb's stage; what to stop for on it
+  const wind = new THREE.Vector3(towerInfo.x + Math.sin(-0.35) * 27, CLEFT.floor, towerInfo.z + Math.cos(-0.35) * 27);
+  // (and the outer ring's needles: tall and thin, so the audit's height grid never sees them; down in the road they show
+  // over its walls)
+  level.beacons = [...level.beacons, ...dial.needles.filter((n) => n.k === 2).map((n, i) => ({ name: `a needle of the sundial’s outer ring (${i + 1})`, top: [n.x, n.tip, n.z], height: n.h }))];
+  level.lines = [...level.lines, { name: 'the riders’ way', points: [[door.x, door.y, door.z], sights.bones.stand.toArray(), sights.shrine.stand.toArray(), road.head.toArray(), ...road.line, wind.toArray()], auto: false }];
+  level.sights = [...level.sights,
+    ...road.ears.map((e, i) => ({ name: `a stone ear in the riders’ road (${i + 1})`, at: e.stand })),
+    ...['aerie', 'gate', 'home'].filter((k) => dial.named[k]).map((k) => ({ name: `the hour stone toward ${{ aerie: 'the white house', gate: 'the riders’ gate', home: 'the landing' }[k]}`, at: dial.named[k].at })),
+    { name: 'the first broken slab', at: edge.broken.at }, { name: 'the highest stone', at: edge.high.at },
+    ...edge.risers.map((q, i) => ({ name: i ? `a stone that rises (${i + 1})` : 'the stone that rises', at: new THREE.Vector3(q.x, q.rest, q.z) })),
+    ...edge.tables.map((tb, i) => ({ name: `a table of the plain over the cloud (${i + 1})`, at: tb.at }))];
   const update = level.update;
   let smokeDt = 0;
   level.update = function (dt, t, ctx) {
     update.call(this, dt, t, ctx); gate.wave(t); riders.update(t); ropeWay.update(t); sights.wave(t);
+    road.update(dt); edge.update(dt, t, ctx?.player);
     // (Aube's smoke: moved at 40 Hz at most, and only within two kilometres)
     smokeDt += dt;
     const cam = ctx?.camera?.position;
