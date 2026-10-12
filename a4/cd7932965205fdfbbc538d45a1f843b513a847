@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_55af9a25e94a41 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_7b60afade0ece1 1226-1231
+src/changelog-media.js
+  s_9ca76055a220ed::t_d9ab7185731467 747-755
+src/changelog.js
+  s_9ca76055a220ed::t_3bf20b9cc2b1c9 21
+src/viridel-stair.js
+  s_9ca76055a220ed::t_c4ae461be84e79 92-110,115,132-134,140,143,147,161-167,170-171,214-220,224-226,229,234-277,290-291,330-331
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a4cd7932965205fdfbbc538d45a1f843b513a847",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_cfe9b49bcaa316 7
+docs/systems/water.md
+  s_9ca76055a220ed::t_c26993c0c71431 31-35
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_05fa68c986ae43 1392-1402
+src/changelog-media.js
+  s_9ca76055a220ed::t_7fb0c772ef9d98 799-807
+src/changelog.js
+  s_9ca76055a220ed::t_e1ab449426d331 29
+src/levels/spheres-explorations.js
+  s_9ca76055a220ed::t_2bd0d1d240a72a 328-334,336-340,342-403
+src/levels/spheres.js
+  s_9ca76055a220ed::t_cc13eae87b71ee 39,994-996,1001,1003-1016
+src/materials.js
+  s_9ca76055a220ed::t_d8e16995551404 514-516,790-806,2929-2931,3061-3068
+src/water-shader.js
+  s_9ca76055a220ed::t_332dc057841cf0 133-136,330-346
+tests/spheres-explorations.test.js
+  s_9ca76055a220ed::t_de706c16e3541b 97-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7de3ecf022436b21f365aaafa43516c59288a755",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

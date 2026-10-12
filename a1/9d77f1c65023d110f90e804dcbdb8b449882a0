@@ -1,0 +1,41 @@
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_6c61c5d9d217b9 148,953-1011
+src/pipeline.js
+  s_9ca76055a220ed::t_db321c9a74c407 3,12,50-71
+src/main.js
+  s_9ca76055a220ed::t_0481703392b7cf 30,258,273,1935-1936
+scripts/bench/passes.mjs
+  s_9ca76055a220ed::t_30dfb58687f60f 7,11-12,59-61,64-65
+src/perf.js
+  s_9ca76055a220ed::t_65a7422fa11148 391-392,406
+changelog.md
+  s_9ca76055a220ed::t_f8d8a33f07b3f4 7
+src/changelog.js
+  s_9ca76055a220ed::t_f272d4e612742a 25-27
+src/post.js
+  s_9ca76055a220ed::t_c7405c162fd7f4 191-206,1243-1251
+docs/systems/performance.md
+  s_9ca76055a220ed::t_09535d426c9e8e 12-13
+src/changelog-media.js
+  s_9ca76055a220ed::t_6c55b672d9c63e 720,767-780
+tests/distant-shimmer.test.js
+  s_9ca76055a220ed::t_c013974bf46242 1-63
+scripts/motion-check/record.mjs
+  s_9ca76055a220ed::t_f622b28a9be0fd 11-12,67-75,280-287,294-295,306,311,411-414,428,433,483-484,498,503-504
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a19d77f1c65023d110f90e804dcbdb8b449882a0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
