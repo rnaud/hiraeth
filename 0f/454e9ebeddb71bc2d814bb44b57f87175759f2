@@ -1,0 +1,23 @@
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_1290af942d8e72 275-302
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_97e08c090dc94c 277,282,465
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeShadowChunks.cs
+  s_9ca76055a220ed::t_38db6cbce8ab6d 13,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0f454e9ebeddb71bc2d814bb44b57f87175759f2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+engine/unity/game.js
+  s_9ca76055a220ed::t_b93a46fff1a8db 238,246
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeCloth.cs
+  s_9ca76055a220ed::t_9f465d2fa97bed 17-23,34,36,38-39,60-77,92-110,119,138,142-219,230,236,247-250
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeCape.cs
+  s_eaa6e1245ead41::t_d66ec75451fb08 68-69
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_eaa6e1245ead41::t_19f416680c97ac 363-366
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f82597097de047d86a74b5d82d6cc51df337ee32",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_eaa6e1245ead41": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a571a4f759c1afa58",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_6ef961011bf060 7
+docs/systems/performance.md
+  s_9ca76055a220ed::t_0ef1115122d8a4 2121-2176
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_75b10cf92846d3 385
+src/changelog-media.js
+  s_9ca76055a220ed::t_c81221bac4f9eb 727-738
+src/changelog.js
+  s_9ca76055a220ed::t_eedfd830f54cf3 33-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "18fe8fa6756e82d04940bd1ac4870c224d2bbb04",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
