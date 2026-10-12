@@ -1,0 +1,29 @@
+src/changelog-media.js
+  s_9ca76055a220ed::t_10702a58e53508 705,711-714
+src/desert-vistas.js
+  s_9ca76055a220ed::t_1d18a7295c1a38 5-13,16-17,21-68,97-98,100-101
+src/changelog.js
+  s_9ca76055a220ed::t_2018b9cf06cd77 32-33
+tests/desert-vistas.test.js
+  s_9ca76055a220ed::t_014386139592d2 4,9-26
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_2dd2ce97f61fa1 447-456
+changelog.md
+  s_9ca76055a220ed::t_8464b596673e62 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ee9c00b0f07c2374364d3d059c5209c454466557",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
