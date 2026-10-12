@@ -1,0 +1,256 @@
+.agents/skills/hiraeth-ai-characters/SKILL.md
+  s_d7d7c129887503::t_4b7ee70edd81d4 16-17,20-21
+.agents/skills/hiraeth-ai-characters/references/non-humanoids.md
+  s_d7d7c129887503::t_7a61b7e3405b0e 1-104
+.claude/skills/camera-qc/run.mjs
+  s_d7d7c129887503::t_8d30397320b3a3 14-15,35,43,45
+.claude/skills/combat-review/arena.mjs
+  s_d7d7c129887503::t_aadc1b093dc82f 22-23,103-104,106
+.claude/skills/combat-review/defend.mjs
+  s_d7d7c129887503::t_183b42508825b7 17-18,33,37,39
+.claude/skills/combat-review/dodge.mjs
+  s_d7d7c129887503::t_8c84df78bf458e 14-15,31-32,34
+.claude/skills/game-audit/capture.mjs
+  s_d7d7c129887503::t_18959d5fa13969 15-16,37-40
+.claude/skills/ink-lines/capture.mjs
+  s_d7d7c129887503::t_d7ca6d39599648 15-16,83-84,86
+.claude/skills/ink-lines/cost.mjs
+  s_d7d7c129887503::t_61e8270c1f0df6 8-9,38-39,41
+.claude/skills/motion-qc/run.mjs
+  s_d7d7c129887503::t_952b17c60f8b10 16-17,38,45,47
+.claude/skills/perf-audit/fps.mjs
+  s_d7d7c129887503::t_b2c607c7a61b5a 20-21,49,51,53-54
+.claude/skills/shadow-qc/run.mjs
+  s_d7d7c129887503::t_7a6753a7136d24 15-16,36,42,44
+.claude/skills/visual-audit/probes.mjs
+  s_d7d7c129887503::t_b379973945a290 22-23,71-73
+.claude/skills/visual-audit/views.mjs
+  s_d7d7c129887503::t_5c519bd619c9c9 11-12,37-39
+changelog.md
+  s_d7d7c129887503::t_9c0cce9923251d 7-12
+docs/README.md
+  s_d7d7c129887503::t_6ca0844bd197b9 84
+docs/systems/characters.md
+  s_d7d7c129887503::t_71b21bc36d462e 533-677
+docs/systems/dev-tools.md
+  s_d7d7c129887503::t_7c83eb4855acc6 291-303
+docs/systems/movement-and-camera.md
+  s_d7d7c129887503::t_8a72b165985b12 163-210
+docs/systems/movement.md
+  s_d7d7c129887503::t_7ba70f28b0b750 58-66
+docs/systems/performance.md
+  s_d7d7c129887503::t_bc34266eb367d1 12-13
+docs/systems/rendering.md
+  s_d7d7c129887503::t_fe3459ca79ebcf 148,973-1031
+docs/systems/ship.md
+  s_d7d7c129887503::t_2fe6a15ae1ab81 41-44,46,50,63-70,73-84,109-111,113,115,117,153,156-158
+docs/systems/temples.md
+  s_d7d7c129887503::t_c00fbae287b6ed 574-589
+prompts/cistern-keeper-reference-v2.txt
+  s_d7d7c129887503::t_b38d57d4c2f9e1 1-8
+prompts/cistern-keeper-reference-v3.txt
+  s_d7d7c129887503::t_ed017ece887f37 1-5
+prompts/cistern-keeper-reference.txt
+  s_d7d7c129887503::t_a7ab1d601accf7 1
+public/guardians/keeper-v1/rig.json
+  s_d7d7c129887503::t_543104c4737a3d 1-37
+references/guardians/cistern-keeper/provenance.json
+  s_d7d7c129887503::t_87db2f92123fb3 1-200
+scripts/bench/browser.mjs
+  s_d7d7c129887503::t_2933cc3618c597 12,24
+scripts/bench/deck-mac.mjs
+  s_d7d7c129887503::t_b0a8a9fe00be81 9-10,22-23,26
+scripts/bench/mac-spawn.mjs
+  s_d7d7c129887503::t_d13bd2a82e2238 14-15,32-33,36
+scripts/bench/passes.mjs
+  s_d7d7c129887503::t_c49d2b91ccad65 7,11-12,59-61,64-65
+scripts/bench/web-load.mjs
+  s_d7d7c129887503::t_567cb357a0e9d6 15-16,31-32,35
+scripts/changelog-shots.mjs
+  s_d7d7c129887503::t_da8cabd3cc61d8 15-16,74-75,77,280-281
+scripts/character-quality-shots.mjs
+  s_d7d7c129887503::t_2942f657d19314 2-3,13-14,16
+scripts/cinematics-qc.mjs
+  s_d7d7c129887503::t_0866e2501705a7 23-24,234-235,237
+scripts/design-qc/capture.mjs
+  s_d7d7c129887503::t_35d787e5981509 13-14,33-35
+scripts/enemy-quality-shots.mjs
+  s_d7d7c129887503::t_e31e3e6cfb5d6b 2-3,13-14,16
+scripts/enemy-roster/bench.mjs
+  s_d7d7c129887503::t_c70d569e3f6027 12-13,34
+scripts/enemy-roster/compare.mjs
+  s_d7d7c129887503::t_ddfcae5c3587a2 17-18,59-60
+scripts/enemy-roster/skins.mjs
+  s_d7d7c129887503::t_2db52fdf6b2278 10-11,29-30
+scripts/item-pictures.mjs
+  s_d7d7c129887503::t_39d743a28ff24e 10-11,23
+scripts/load-breakdown.mjs
+  s_d7d7c129887503::t_e7dcd12ffbfbf3 42-43,206-207,209
+scripts/load-smoke.mjs
+  s_d7d7c129887503::t_6ed338e1bd28a1 22-23,90-91,93
+scripts/motion-audit/lod-page.mjs
+  s_d7d7c129887503::t_0dfaaae01ba775 13-14,31-32,34
+scripts/motion-audit/shimmer.mjs
+  s_d7d7c129887503::t_59433062b7ec0e 10-11,28-29,31
+scripts/motion-audit/strips.mjs
+  s_d7d7c129887503::t_5e79e16ea1f310 12-13,30-31
+scripts/motion-check/record.mjs
+  s_d7d7c129887503::t_c12c514eb93eec 11-12,67-75,280-287,294-295,306,311,411-414,428,433,483-484,498,503-504
+scripts/playthrough-browser.mjs
+  s_d7d7c129887503::t_b5af66ccd8fd54 27-28,47-49
+scripts/portrait-check.mjs
+  s_d7d7c129887503::t_2801d002e1f947 18-19,33-34,37
+scripts/sfx-build.mjs
+  s_d7d7c129887503::t_07798248673bb0 16-17,105
+scripts/temp-dirs.mjs
+  s_d7d7c129887503::t_8785342551a10f 1-100
+scripts/title-shots.mjs
+  s_d7d7c129887503::t_9e3c95268b9c27 38
+scripts/title-vectors.mjs
+  s_d7d7c129887503::t_711d30dc356e5d 93
+scripts/tripo/rig-keeper.mjs
+  s_d7d7c129887503::t_60e334a08e6e97 1-26
+scripts/world-thumbs.mjs
+  s_d7d7c129887503::t_47d85599fb004a 10-11,40
+src/changelog-media.js
+  s_d7d7c129887503::t_f1330475c66bb0 712-720,724-732,750-789
+src/changelog.js
+  s_d7d7c129887503::t_19ded13a894bf7 19-28
+src/characters/keeper-creature.js
+  s_d7d7c129887503::t_d3780ab111c8e4 1-65
+src/characters/keeper-fit.js
+  s_d7d7c129887503::t_9a7c1fa074ed68 1-58
+src/contact-audit.js
+  s_d7d7c129887503::t_f7c1e83032f0e1 70,77-80,169,252,256
+src/main.js
+  s_d7d7c129887503::t_e5de23e2574b0d 30,258,273,1935-1936
+src/motion-kit/gait.js
+  s_d7d7c129887503::t_004c921ecbf32e 11-14,29,104,182-183,190,210-212,218,244,263-268
+src/motion-kit/rig.js
+  s_d7d7c129887503::t_412509f6a15f73 136,144
+src/perf.js
+  s_d7d7c129887503::t_2e3d85806ac9f4 391-392,406
+src/pipeline.js
+  s_d7d7c129887503::t_9df2da30b8db18 3,12,50-71
+src/player.js
+  s_d7d7c129887503::t_83ce26c0c84d2a 2734-2742,2822-2838,2870-2871,3010,3042-3046,3171-3173,3286-3295,3457-3459
+src/post.js
+  s_d7d7c129887503::t_92736056f1bcc3 191-206,1243-1251
+src/ship/cinematics.js
+  s_d7d7c129887503::t_aebc9802a7fc7a 455,471
+src/ship/homecoming.js
+  s_d7d7c129887503::t_b717f4494d3927 543
+src/ship/hull.js
+  s_d7d7c129887503::t_9951515d092e46 19,21-23,28,30,32,36,39,41,43,45,49,57,59-60,65,67-70,72-74,77,126,198,220,264,283-285,288,290,294-295,303,326,331-332,334,338,448-449,452,470
+src/ship/interior.js
+  s_d7d7c129887503::t_b037e113be7267 10-11,16,18-20,27-31,33,35,39,41,62,129,151-156,328,341,346,350,356,457-458,508-509,526,537-538,589,597,600,617-618,627,637,639-640,653-654,656,682,685-686,688,697,709,714-716,725-727,730-731
+src/ship/model.js
+  s_d7d7c129887503::t_c5b4ff7758f8fc 122
+src/ship/ship.js
+  s_d7d7c129887503::t_6ac737e059d1c8 55
+src/story/scientist.js
+  s_d7d7c129887503::t_762719051802ff 22
+src/temples/arzach2.js
+  s_d7d7c129887503::t_b5972e6584a292 4,428-430
+src/temples/bazaar.js
+  s_d7d7c129887503::t_65b5d390c23070 4,441-443
+src/temples/buried.js
+  s_d7d7c129887503::t_e6244a20276ca3 6,516-518
+src/temples/desert.js
+  s_d7d7c129887503::t_e7c239161aa885 319,339
+src/temples/edena.js
+  s_d7d7c129887503::t_a18f0aa982a37d 5,489-492
+src/temples/garage.js
+  s_d7d7c129887503::t_a69708b335980e 5,491-493
+src/temples/kit.js
+  s_d7d7c129887503::t_dcf80dee4431a4 33-38,507-517
+src/temples/perdide.js
+  s_d7d7c129887503::t_b7376df97cadbe 5,436-438
+src/temples/perdide2.js
+  s_d7d7c129887503::t_d92f120d6bcef2 6,396-398
+src/temples/spacecity.js
+  s_d7d7c129887503::t_4ef23d9f027226 460-461
+src/temples/spheres.js
+  s_d7d7c129887503::t_696eeef95e3252 6,384-386
+tests/android-ota.test.js
+  s_d7d7c129887503::t_84c533b1606b23 5-6,72
+tests/changelog-media.test.js
+  s_d7d7c129887503::t_68e54f0902e754 6-7,81
+tests/contact-audit.test.js
+  s_d7d7c129887503::t_7c5c647e0d7565 12-13,79-101
+tests/deck-runtime.test.js
+  s_d7d7c129887503::t_e736625a157315 5-6,60
+tests/deck-updates.test.js
+  s_d7d7c129887503::t_e036bd48904fad 6-7,86
+tests/distant-shimmer.test.js
+  s_d7d7c129887503::t_6125efcbcee8fc 1-63
+tests/engine-bridge.test.js
+  s_d7d7c129887503::t_3bc5fe7961f30e 21,374,393,472,488
+tests/engine-unity.test.js
+  s_d7d7c129887503::t_229dce1b5f9662 19,203
+tests/keeper-creature.test.js
+  s_d7d7c129887503::t_7d7eb927417182 1-124
+tests/level-design-glass.test.js
+  s_d7d7c129887503::t_0077caa367d328 7-8,13
+tests/pose-exact.test.js
+  s_d7d7c129887503::t_e1b0412dd8c8cd 14,35,47
+tests/pose-walks.test.js
+  s_d7d7c129887503::t_f44ea61845937c 16,41
+tests/reference-lab-3d.test.js
+  s_d7d7c129887503::t_d0ba3d10a11538 7-8,30
+tests/reference-lab-pickmode.test.js
+  s_d7d7c129887503::t_ba28e24f6682e2 6-7,74
+tests/reference-lab.test.js
+  s_d7d7c129887503::t_b1f4ba95f4d9c5 7-8,33,123,504
+tests/references-page.test.js
+  s_d7d7c129887503::t_2876a4dfbc31f0 5-6,20
+tests/references-site.test.js
+  s_d7d7c129887503::t_6e8360adedabd8 6-7,23,125
+tests/release-workflows.test.js
+  s_d7d7c129887503::t_4662aed17af3f9 7-8,66,80,90
+tests/room-size.test.js
+  s_d7d7c129887503::t_a11868e69565c6 1-134
+tests/site-only.test.js
+  s_d7d7c129887503::t_5d3afd506baed1 5-6,23
+tests/temp-dirs.test.js
+  s_d7d7c129887503::t_9a5b30e20d3b2f 1-109
+tests/temple-design.test.js
+  s_d7d7c129887503::t_f74ff56a8b6528 227,229-230
+tests/temples.test.js
+  s_d7d7c129887503::t_2f8c5087e8ef03 1527,1549,1725,1932,2547,2566,2810,3380,3632,3998
+tests/unity-version-release.test.js
+  s_d7d7c129887503::t_0d15f869df2e3f 7-8,62,103
+tests/unity-xbox.test.js
+  s_d7d7c129887503::t_f6a8a133493463 82,84-85
+tests/web-update.test.js
+  s_d7d7c129887503::t_f4a764db16e29b 5-6,39
+tests/xbox.test.js
+  s_d7d7c129887503::t_9b3ec5bc3e8c68 7-8,202,263
+tools/keeper-review.html
+  s_d7d7c129887503::t_d5cb3ecd837565 1
+tools/keeper-review.js
+  s_d7d7c129887503::t_977c95c47c925f 1-47
+tools/tripo-render.js
+  s_d7d7c129887503::t_d4d4f44fa6d5f6 10,35
+unity/Hiraeth/Assets/Hiraeth/Runtime/ShipScene.cs
+  s_d7d7c129887503::t_eb56b218123c92 35,422,434
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ff23d426baf80c465db1655b334dfefd8f19eec0",
+  "prompts": {},
+  "sessions": {
+    "s_d7d7c129887503": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d08f2167-bc91-47dc-ae77-ffb57645eaef",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
