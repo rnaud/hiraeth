@@ -702,11 +702,16 @@ const TALK57 = 'headless Chrome (muted, 12 October) against this branch’s own 
 const UC_REF = 'references/levels/The Underwater City/environment/explorations/';
 const SC57 = 'scripts/changelog-shots.mjs’s shoot in headless Chrome (muted, High, 1280 × 720, the morning 8.5) against this branch’s own Vite (port 5581), the before with src/levels/space-city.js, space-city-kit.js and the city’s story as on origin/main (64023d42), the same pinned cameras, 12 October; cwebp -q 70 -resize 960';
 const DB57 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 5601), the HUD hidden, the same save and the same ride from the bike’s spot for both; the before with the one line that installs the fix (src/matrix-cache.js) taken out, as on origin/main (0ad6ff68); 12 October; cwebp -q 72';
+const DP57 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 5601), the HUD hidden, the camera pinned at the same spots for both; the before with src/desert-vistas.js as on origin/main (0ad6ff68); 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.57': [
     { match: 'The hoverbike shows under you again', shots: [
       { name: 'bike-ride', caption: 'Riding off from where the bike was found, 1.8 s on the throttle: before, the rider alone over the sand, the bike left behind where he got on; after, the bike under him', from: DB57 },
     ], see: 'In the desert, get on the hoverbike and ride off: it stays under you.' },
+    { match: 'The pond under the desert’s lavender cliffs', shots: [
+      { name: 'desert-pond', title: 'From the dunes', caption: 'The mineral pond from 8 m up on its east side: before, a pale-edged sheet laid on the crust; after, the water down in its cut, ringed by wet and damp sand and pale salt stones', from: DP57 },
+      { name: 'desert-pond-shore', title: 'From the shore', caption: 'Standing on the east shore: before, the sheet’s smooth edge at the crust’s own level; after, the waterline down the bank, the shore’s sand and stones round it', from: DP57 },
+    ], see: 'In the desert, go to the pond under the lavender cliffs, where the fishing sign stands, and walk round it.' },
     { match: 'In the Moon Foundry the broken moon’s courtyard is only the start', shots: [
       { name: 'foundry-street', title: 'The street on the inner curve', caption: 'Inside the broken moon, looking up its back wall: before, the bare shell over the courtyard’s houses; after, the stair street climbing round it, a house on each landing, washing over the flights', from: MF57 },
       { name: 'foundry-crown', title: 'The crown', caption: 'The broken moon from over the floor: after, the deck on its crown over the hatch, and the high walk down to the old hoist’s signal box', from: MF57 },

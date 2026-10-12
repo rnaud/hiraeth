@@ -444,6 +444,17 @@ home, where the level design audit found nothing at mid-distance (1 of 37 option
   pulling (30–150 m off the path) 1 → 10; the longest empty stretch 406 → 377 m; landmarks seen from 85 % of the path
   as before (the hand a `beacon`).
 
+**The mineral basin seated in the crust** (v1.57, issue #200: "the water pond in the desert is floating above the
+desert"). The pond under the lavender cliffs (`src/desert-vistas.js` `BASIN`) sank 1.8 m over a long shallow bank, its
+water 0.55 m deep and its sheet's edge level with the crust: from anywhere but overhead, an ellipse laid on the sand.
+`BASIN_CUT` makes it a cut: a bank (0.44 → 0.82 of its radii; its top no sharper than a dune's crest, which throws
+the bike: `tests/dunes.test.js`) down to a bed 2.2 m below, the water 1.3 m under the crust round it (0.9 m deep at the
+middle: still waded), the sheet's edge inside the bank under the ground. `BASIN_RIM`
+lays the shore on the bank: wet sand from the waterline, damp sand to the top, ragged edges, and a lip of pale salt
+stones along the top, scattered as the plain's pebbles are (instanced, walked through: a solid row of them changed the
+desert's collision enough to unsettle a fragment's footing 900 m away, `tests/contact-audit.test.js`). The contact
+audit (`window.contactAudit()`, `?batch=0`) finds nothing off within 90 m of it. `tests/desert-vistas.test.js`, and `tests/dunes.test.js` for the bank.
+
 ## Vael's layout, from the level design audit (v1.9)
 
 - **The plain** between the landing and the lone tower (445 m with nothing on it): Senn (`src/levels/content.js`) listens

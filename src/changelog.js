@@ -29,6 +29,8 @@ export const CHANGELOG = [
     'When someone has finished talking, the first answer is already picked, with a keyboard, a mouse or a touch screen as with a pad: press A / × (or E, Enter) to say it, or move to another. It stays picked when one answer leads straight to more.',
     // the hoverbike drawn where it is while ridden (src/matrix-cache.js updateWorldMatrixCached; issue #184)
     'The hoverbike shows under you again while you ride it: it had stayed behind where you got on, so you seemed to ride on nothing.',
+    // the mineral basin seated in the crust (src/desert-vistas.js BASIN_CUT, BASIN_RIM; issue #200)
+    'The pond under the desert’s lavender cliffs now lies down in the ground instead of on it: its water sits below the crust round it, along a shore of wet and damp sand with a lip of pale salt stones, and you can still wade across it.',
   ] },
   { v: '1.56', date: '2026-10-12', items: [
     // Lorn's route through the author's three picks (src/lorn-veins.js, src/lorn-flood.js, src/lorn-canopy.js,
