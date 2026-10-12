@@ -15,6 +15,7 @@ import { Veils } from './veil.js';
 import { items } from './items.js';
 // (the Givers' Hearth's cut: it clips a triangle to the opening, not by its centre; issue #6)
 import { cut as clip } from './desert-hearth.js';
+import { chestMound } from './boxes/mound.js';
 
 // The desert's story places (references/levels/The Desert/environment/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
@@ -59,7 +60,7 @@ export const CAVE_LEDGES = { stair: HATCH.stair.y * (HATCH.stair.fallen + 1) / 8
  */
 export const SHRINE = (() => {
   const x = -20.9, z = -1.6, face = Math.atan2(-x, -z);
-  return { x, z, face, in: 3.25, out: 3.75, h: 5.2, door: { w: 2.3, h: 3.3, t: 0.34 }, r: 1.5, top: 0.6 };
+  return { x, z, face, in: 3.25, out: 3.75, h: 5.2, door: { w: 2.3, h: 3.3, t: 0.34 }, r: 1.25, foot: 2.85, top: 0.6 };
 })();
 /**
  * Build the shrine into a kit (cave-local, the cave's frame: its yaw 0): the round wall with its doorway toward the pool, a
@@ -85,7 +86,7 @@ function buildShrine(sk, { stone, bone, glyph }) {
   sk.both(bone, new THREE.BoxGeometry(S.door.w + 1.0, 0.5, th + 0.36).rotateY(S.face).translate(door.x, S.door.h + 0.25, door.z));
   sk.add(glyph, glyphGeometry(0.75).rotateY(S.face).translate(door.x + f.x * 0.2, S.door.h + 1.15, door.z + f.z * 0.2));
   // the dais: the chest's (src/boxes/placements.js desert.lift)
-  sk.both(stone, new THREE.CylinderGeometry(S.r, S.r + 0.25, S.top, 24).translate(S.x, S.top / 2, S.z));
+  sk.both(stone, ...chestMound(S.x, 0, S.z, { h: S.top, top: S.r, foot: S.foot, seg: 28 }));   // (a ramped mound: issue #162)
   // the door: in the doorway, flush with the wall's middle; a jade lens at its heart, dull until the tank is full
   const doorAt = at(0, mid);
   const group = new THREE.Group();
@@ -619,7 +620,8 @@ export function buildDesertCity(scene, terrain) {
     const LEDGE = { phi: -0.6 };
     // the lower, middle and upper step's radius and top, the flagstones' ring (issue #160: three steps of 0.3 m, the top
     // at 0.9 m, so it reads from the avenue's end 27 m off; it was two of 0.22 m, the top at 0.46 m)
-    const DAIS = { r: 2.3, r1: 1.8, r2: 1.3, h1: 0.3, h2: 0.6, h: 0.9, ring: 3.3 };
+    // (issue #162: a ramped mound, its foot r, its top r2; it was three steps of 0.3, r 2.3 / 1.8 / 1.3)
+    const DAIS = { r: 4.4, r2: 1.6, h: 0.9, ring: 5.4 };
     // tree-local helpers: a point at angle a (local angle: 0 toward the main gate), r out from the axis, y over the square
     const onTree = (a, r, y) => V(TREE.x + Math.sin(a) * r, top + y, TREE.z + Math.cos(a) * r);
     // the buttress roots: tall fins flowing out of the trunk and down over the square, each ending in a low tail you
@@ -722,7 +724,7 @@ export function buildDesertCity(scene, terrain) {
     const lToCity = (x, y, z) => V(x, y, z).applyMatrix4(lM);
     // the bark's reach at a dais-frame point (the flare, the twist and the knots): metres clear of it
     const reach = (x, z, y) => { const p = lToCity(x, 0, z); return Math.hypot(p.x - TREE.x, p.z - TREE.z) - barkR(Math.atan2(p.z - TREE.z, p.x - TREE.x), y); };
-    const { r: DR, r1: DR1, r2: DR2, h1: DH1, h2: DH2, h: DH, ring: RING } = DAIS;
+    const { r: DR, r2: DR2, h: DH, ring: RING } = DAIS;
     // its centre: as near the trunk as leaves a stride of square between the bark and the lower step
     let sC = 6;
     for (; sC < 12; sC += 0.05) {
@@ -740,24 +742,25 @@ export function buildDesertCity(scene, terrain) {
       }
       city.add(M.gold, lg(new THREE.RingGeometry(RING, RING + 0.09, 56).rotateX(-Math.PI / 2).translate(0, 0.009, sC)));   // its gold edge (flush: the feet stand where it is drawn)
     }
-    // ---- the dais: three round steps of white stone, the gold band round the top, the makers' ring on it
-    // (it collides as its three steps: 0.3 m each, walked up; as many sides as it is drawn with, so feet stand on its edge)
-    city.add(M.daisStone, lg(lathe([[DR, -0.05], [DR, DH1], [DR1, DH1 + 0.01], [DR1, DH2], [DR2, DH2 + 0.01], [DR2, DH], [0.01, DH]], 40).translate(0, 0, sC)));
-    city.solid(lg(new THREE.CylinderGeometry(DR, DR, DH1 + 0.05, 40).translate(0, (DH1 - 0.05) / 2, sC)));
-    city.solid(lg(new THREE.CylinderGeometry(DR1, DR1, DH2, 40).translate(0, DH2 / 2, sC)));
-    city.solid(lg(new THREE.CylinderGeometry(DR2, DR2, DH, 40).translate(0, DH / 2, sC)));
-    city.add(M.gold, lg(new THREE.CylinderGeometry(DR2 + 0.02, DR2 + 0.02, 0.07, 40, 1, true).translate(0, DH - 0.06, sC)));
-    for (const [r, y] of [[DR, DH1], [DR1, DH2]]) city.add(M.gold, lg(new THREE.TorusGeometry(r - 0.04, 0.03, 3, 56).rotateX(Math.PI / 2).translate(0, y + 0.005, sC)));
+    // ---- the dais: a round mound of white stone, its side one gentle ramp up from the paving to its flat top (issue #162:
+    // "an elevated surface but with a smooth incline, not steps, so it's easy to get on without janky animations"), a gold
+    // band round the top's edge and the makers' ring on it; it collides as drawn (src/boxes/mound.js)
+    { const [drawn, solid] = chestMound(0, 0, sC, { h: DH, top: DR2, foot: DR, seg: 48 }); city.add(M.daisStone, lg(drawn)); city.solid(lg(solid)); }
+    city.add(M.gold, lg(new THREE.TorusGeometry(DR2 + 0.05, 0.04, 3, 56).rotateX(Math.PI / 2).translate(0, DH - 0.01, sC)));
+    city.add(M.gold, lg(new THREE.TorusGeometry(DR - 0.06, 0.035, 3, 64).rotateX(Math.PI / 2).translate(0, 0.02, sC)));   // (round its foot)
     city.add(M.glyph, lg(new THREE.TorusGeometry(DR2 - 0.28, 0.035, 3, 48).rotateX(Math.PI / 2).translate(0, DH + 0.012, sC)));
     // it faces the way you come to it: down the square to the avenue's end (fa: that way, from the dais frame's +z);
-    // the makers' mark on the lower step's riser, on that side
+    // the makers' mark laid in the flagstones at its foot, on that side
     const dc = lToCity(0, 0, sC), face = Math.atan2(0 - dc.x, 31 - dc.z), fa = face - phi;
-    city.add(M.glyph, lg(glyphGeometry(0.16).translate(0, DH1 / 2, DR + 0.012).rotateY(fa).translate(0, 0, sC)));
+    city.add(M.glyph, lg(glyphGeometry(0.3).rotateX(-Math.PI / 2).translate(0, 0.03, DR + 0.55).rotateY(fa).translate(0, 0, sC)));
     // a soft light over it, for the dusk and the night (the chest's own jade glows in its seams)
     { const p = city.world(...lToCity(0, DH + 2.4, sC).toArray()); lights.push(new THREE.Vector4(p.x, p.y, p.z, 7)); }
     // a stone bench out in the square, off to the left of the dais as you come up the avenue, facing the chest (issue #160:
     // it stood just behind it, under the low arm, 3 m off, in every close view of the chest; now 7 m off, out of them)
-    const BENCH = { x: -9.2, z: 11.4 }, footC = lToCity(0, 0, sC), benchYaw = Math.atan2(footC.x - BENCH.x, footC.z - BENCH.z);
+    // (7.5 m off the dais's centre, the way it stood from the old stepped dais: the mound, issue #162, is wider and stands
+    // further out from the trunk)
+    const footC = lToCity(0, 0, sC), B0 = { x: -9.2, z: 11.4 }, bd = Math.hypot(B0.x - footC.x, B0.z - footC.z);
+    const BENCH = { x: footC.x + (B0.x - footC.x) * 7.5 / bd, z: footC.z + (B0.z - footC.z) * 7.5 / bd }, benchYaw = Math.atan2(footC.x - BENCH.x, footC.z - BENCH.z);
     city.both(M.stone, T(new THREE.BoxGeometry(1.5, 0.42, 0.5), [BENCH.x, 0.21 + top, BENCH.z], [0, benchYaw, 0]));
     city.add(M.cloth[1], T(new THREE.BoxGeometry(1.2, 0.04, 0.44), [BENCH.x, 0.44 + top, BENCH.z], [0, benchYaw, 0]));
     // pilgrims' lanterns on posts round the tree's foot, and cloths hung from the low arm
@@ -779,7 +782,7 @@ export function buildDesertCity(scene, terrain) {
       at: (x, y, z) => toWorld(x, y, sC + z),
       foot: toWorld(Math.sin(fa) * (RING + 0.8), 0, sC + Math.cos(fa) * (RING + 0.8)),   // on the square in front of the dais, the way you come to it
       face: DR,                               // the lower step's edge, metres in front of the chest
-      dais: { y: toWorld(0, DH, sC).y, r: DR, r1: DR1, r2: DR2, step: DH1, step2: DH2, ring: RING, center: toWorld(0, 0, sC) },
+      dais: { y: toWorld(0, DH, sC).y, r: DR, r2: DR2, ring: RING, center: toWorld(0, 0, sC), slope: DH / (DR - DR2) },
       bench: { at: city.world(BENCH.x, top + 0.42, BENCH.z), heading: city.heading(benchYaw) },
     };
 

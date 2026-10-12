@@ -114,17 +114,20 @@ test('Nour’s bench stands out of the chest’s close view, facing it, a clear 
 
 test('the makers’ chest sits on its round white dais at the tree’s foot, in a clearing of flagstones (issue #140)', () => {
   const L = C.shrine;
-  // (issue #160: taller, so it reads from the avenue 27 m off: three steps of 0.3 m, the top at 0.9 m)
-  assert.ok(Math.abs(L.box.y - L.dais.y) < 0.01 && L.dais.y - top > 0.8 && L.dais.y - top < 1.0, `on the dais, three steps over the square (${(L.dais.y - top).toFixed(2)} m)`);
+  // (issue #160: taller, so it reads from the avenue 27 m off, the top at 0.9 m; issue #162: a ramped mound, no steps)
+  assert.ok(Math.abs(L.box.y - L.dais.y) < 0.01 && L.dais.y - top > 0.8 && L.dais.y - top < 1.0, `on the dais, 0.9 m over the square (${(L.dais.y - top).toFixed(2)} m)`);
   const g = physics.groundAt(L.box.x, L.box.y + 0.5, L.box.z, 2);
   assert.ok(Math.abs(g - L.box.y) < 0.02, 'the dais holds it');
-  // three steps, each walked up (no climb): the lower and the middle step's tops, a third and two thirds of the way
+  // walked up from the square on a smooth incline: from its foot to its top, every 10 cm, the ground rises evenly, no step
   const c = L.dais.center, toFoot = V(L.foot.x - c.x, 0, L.foot.z - c.z).normalize();
-  for (const [r, h, name] of [[(L.dais.r + L.dais.r1) / 2, L.dais.step, 'lower'], [(L.dais.r1 + L.dais.r2) / 2, L.dais.step2, 'middle']]) {
+  let prev = top;
+  for (let r = L.dais.r + 0.3; r >= 0; r -= 0.1) {
     const s = physics.groundAt(c.x + toFoot.x * r, top + 1.5, c.z + toFoot.z * r, 2);
-    assert.ok(Math.abs(s - top - h) < 0.03, `the ${name} step (${(s - top).toFixed(2)} m)`);
+    assert.ok(s - prev < 0.06, `no step at ${r.toFixed(1)} m from its centre (${(s - prev).toFixed(3)} m)`);
+    prev = s;
   }
-  assert.ok(L.dais.step < 0.4 && L.dais.step2 - L.dais.step < 0.4 && L.dais.y - top - L.dais.step2 < 0.4, 'each a stair’s step');
+  assert.ok(Math.abs(prev - L.dais.y) < 0.03, 'and up to its top');
+  assert.ok(L.dais.slope < 0.4, `a gentle slope (${L.dais.slope.toFixed(2)})`);
   // the plank shelf, its pier and its climbing root are gone: nothing up the trunk over the dais
   for (const y of [3.2, 5, 7.2]) assert.equal(physics.rayDistance(V(L.box.x, top + y, L.box.z), V(0, 1, 0), 0.5), Infinity, `nothing ${y} m over it`);
   const mats = new Set(); scene.getObjectByName('Old city of Qanat').traverse((m) => { if (m.isMesh) mats.add(m.material); });

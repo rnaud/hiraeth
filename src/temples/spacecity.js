@@ -5,6 +5,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, paint } from './kit.js';
 import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit } from './pieces.js';
 import { anchorModel, anchorGeometry } from './guardian-anchor.js';
+import { chestMound } from '../boxes/mound.js';
 
 // The City Floating in Space's temple: the Mooring-House, the makers' round house on the Moorings, an island of its
 // own north of the Towers, a rising bridge to it. The islands of the city are moored to each other by the moorers'
@@ -285,7 +286,7 @@ function layout(rt) {
   corridor(0, C1 + R1 + 0.4, 0, 47.4, 0);
   const C3 = 57;
   K.rotunda({ x: 0, z: C3, y: 0, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 0, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 0.31, C3));
+  K.both(M.trim, ...chestMound(0, 0, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   for (const s of [-1, 1]) for (let i = 0; i < 4; i++) K.add(cableM, T(new THREE.TorusGeometry(0.9 - (i % 2) * 0.15, 0.13, 4, 18), [s * 8.7, 1.6 + i * 0.32, C3 - 3], [0, Math.PI / 2, 0]));
   add(Switch, { id: 't0', at: [9.2, 2.6, C3 + 3], yaw: -Math.PI / 2, size: 0.8, pull: true });
   rt.loftLamp = { at: [5.5, 7.5, C3 + 3] };

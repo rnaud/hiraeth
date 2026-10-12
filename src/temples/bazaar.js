@@ -4,6 +4,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Platform, Bridge, EchoStone, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
 import { signModel } from './guardians.js';
+import { chestMound } from '../boxes/mound.js';
 
 // The Signal Market's temple: the Undertower, the foundations of the silent
 // tower, "here before the market". The makers built the first sign of all
@@ -366,7 +367,7 @@ function layout(rt) {
   add(Door, { id: 'dK', at: [0, 12, C2 + 11.3], w: 5, h: 6.4 });   // (two keyholes: logic `lock`, a small key from each wing)
   const C3 = C2 + 22.6;
   K.rotunda({ x: 0, z: C3, y: 12, r: 9.5, h: 14, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 12, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 12.31, C3));
+  K.both(M.trim, ...chestMound(0, 12, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   add(EchoStone, { note: 'low', at: [-5.6, 12, C3 + 3.2], yaw: Math.PI * 0.6, h: 2.6 });
   add(Mark, { room: 'shell', at: [6, 12, C3 - 5], yaw: -Math.PI * 0.75 });
 

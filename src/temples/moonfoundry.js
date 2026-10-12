@@ -5,6 +5,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Brazier, Flame, Platform, Bridge, Hammer, Mark, Pit } from './pieces.js';
 import { founderModel } from './guardian-founder.js';
+import { chestMound } from '../boxes/mound.js';
 
 // The Moon Foundry's temple: the Casting-House, a round casting tower of the founders standing under the hangar's roof
 // on its east side, between the moon in its cradle's claws and the moon on its pillar, its chimney going up to the
@@ -302,7 +303,7 @@ function layout(rt) {
   K.wall(SX - 3.2, 54.6, SX - 3.2, 56.6, 9, 6.4, { t: 0.8 }); K.wall(SX + 3.2, 56.6, SX + 3.2, 54.6, 9, 6.4, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, SX, 15.8, 55.6));
   K.rotunda({ x: SX, z: TZ, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(SX, 9, TZ), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(SX, 9.31, TZ));
+  K.both(M.trim, ...chestMound(SX, 9, TZ));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // racks of tongs on the walls (drawn)
   for (const a of [-0.9, -2.2, 2.6]) { const x = SX + Math.sin(a) * 9.3, z = TZ + Math.cos(a) * 9.3; for (const s of [-1, 1]) K.add(iron, T(new THREE.BoxGeometry(0.12, 2.4, 0.12), [x, 11.6, z], [0, a, s * 0.12])); }
   groove([SX - 6.5, 9, TZ - 3.5], [SX - 6.5, 9, TZ + 3.5]);

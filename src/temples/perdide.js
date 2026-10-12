@@ -5,6 +5,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, Jaw, Swing, Platform, Plate, Mark, Pit } from './pieces.js';
 import { snapperModel } from './guardians.js';
+import { chestMound } from '../boxes/mound.js';
 
 // Lorn's temple: the Hush-House, a great low dome of violet stone on the cave
 // island, crystals of the swamp's groves growing up through it, its door
@@ -262,8 +263,7 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C3, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5.4, h: 6.6 }], oculus: 0.3 });
   // the dais, solid as drawn: its two steps as cylinders (one cylinder stood over its lower step; the lathe
   // alone gave no top a ray from above could land on, so the chest sank into the dais: the QC pass)
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3), new THREE.CylinderGeometry(2.5, 2.5, 0.62, 28).translate(0, 9.31, C3));
-  K.solid(new THREE.CylinderGeometry(3, 3, 0.3, 28).translate(0, 9.15, C3));
+  K.both(M.trim, ...chestMound(0, 9, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   add(Mark, { room: 'stilling', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
   spike(-6.5, 9, C3 + 3, 4.5, 0.7, 0.25); spike(6.2, 9, C3 + 4, 3.2, 0.6, -0.2, 2);
 

@@ -7,6 +7,7 @@ import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, LightEar, Bridge, Ball, Plate, Mark, Pit, Key } from './pieces.js';
 import { mothModel } from './guardians.js';
 import { offsetOf } from '../levels/names.js';
+import { chestMound } from '../boxes/mound.js';
 
 // Lorn II's temple: the Lamp-House, a dark tower of the makers standing in the
 // shallow water east of the root cave, a causeway of flat stones out to it from
@@ -354,8 +355,7 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C3, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0 });
   // the dais, solid as drawn: its two steps as cylinders (one cylinder stood over its lower step; the lathe
   // alone gave no top a ray from above could land on, so the chest sank into the dais: the QC pass)
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3), new THREE.CylinderGeometry(2.5, 2.5, 0.62, 28).translate(0, 9.31, C3));
-  K.solid(new THREE.CylinderGeometry(3, 3, 0.3, 28).translate(0, 9.15, C3));
+  K.both(M.trim, ...chestMound(0, 9, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   add(LightEar, { id: 'l0', at: [-5.4, 9, C3 + 3.4], reach: 3.6 });   // (a try: it wakes to the lantern, and nothing waits on it)
   add(Mark, { room: 'lantern', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
 

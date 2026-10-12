@@ -173,6 +173,30 @@ chest has its 3 m clear and faces the door and the pool. `src/save-migrate.js` s
 the lift valve and sends a save waiting at the chest back to the door. `tests/desert-playtest.test.js`,
 `tests/desert-cave-exit.test.js`, `tests/desert-story.test.js`.
 
+## The mound (issue #162)
+
+"For the first backpack chest on the desert I want it to be on an elevated surface but with a smooth incline, not steps,
+so it's easy to get on without janky animations. Make that the default for all the major chests across the world."
+Every major chest stands on a mound (`src/boxes/mound.js`): a low round plinth whose side is one straight ramp from the
+floor to its flat top, its top edge rounded a little, walked up from any side with no step to climb. `chestMound(x, y, z,
+{ h, top, foot })` gives a kit's `both` its drawn lathe and its solid frustum (the feet stand where the stone is drawn).
+
+| Chest | Height | Top r | Foot r | Slope |
+|---|---|---|---|---|
+| the desert's first, under Qanat's tree (`DAIS`) | 0.9 | 1.6 | 4.4 | 0.32 |
+| the thirteen temples' chests (`MOUND`) | 0.62 | 1.4 | 3.3 | 0.33 |
+| the Givers' guard, the Givers' House's second chest | 0.3 | 1.3 | 2.1 | 0.38 |
+| the Givers' gun, off the Hearth's hall | 0.5 | 1.5 | 2.85 | 0.37 |
+| the lift valve's, in the makers' shrine | 0.6 | 1.25 | 2.85 | 0.38 |
+
+The chests stand as high as they did (every gadget site is where it was). Under Qanat's tree the wider mound stands
+further out from the trunk (its centre is found the same way, a stride of square clear of the bark), its ring of
+flagstones out to 5.4 m, the makers' mark laid in the flagstones in front, a gold ring round its top and its foot; Nour's
+bench keeps 7.5 m off it. Not on one: the Whale-House's chest on the Horn Chamber's shell pulpit, 3 m up, which its riding
+disc is there to reach (the room's puzzle), and the small makers' chests in the open (gifts left about the worlds, not the
+major ones). `tests/boxes.test.js` walks up to each major chest from 4.6 m in front of it: no step over 6 cm, no slope over
+0.4; `tests/qanat-tree-ribcage-reference.test.js` the desert's from the square.
+
 ## What comes with an item: the gun's two modes in one chest
 
 An item may name what comes with it (`with` in `src/items.js` ITEMS, carried through a gadget's def by

@@ -668,6 +668,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'shrine-door', title: 'The door', caption: 'In front of the shrine’s door with a full tank: before, the bare cave floor; after, the white door, its jade lens and lines glowing, the makers’ mark over it', from: PT51, commit: '784816ca',
         view: { level: 'desert', save: SAVE_POOL51, hour: 10, fov: 55, eye: [-1263.8, 1002.4, 1249.8], target: [-1268.6, 1001.6, 1248.6], player: [-1264.3, 1000.2, 1249.6], heading: 4.6 } },
     ], see: 'In the cave under the giant’s skull, clear the drain and wade into the pool: the makers’ shrine west of the pool lights its door. Press A / × at it; inside, the chest with the lift valve.' },
+    { match: 'The great chests now stand on low round mounds', see: 'Walk up to the first chest under Qanat’s tree, or to the chest in any temple’s heart: you walk straight up its mound, no step-up.' },
     { match: 'No button prompt comes up in front of the giant’s skull', see: 'Walk up to the giant’s mouth: no prompt shows; walk on in.' },
     { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
       { title: 'Frames a second, the Unity preview', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, the Linux player (Vulkan), the Deck preset, 1280 × 800, 90 Hz uncapped', rows: [

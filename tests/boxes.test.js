@@ -150,7 +150,7 @@ test('the desert backpack box is a temple chest on the makers’ dais at the bur
   // at the tree's foot, left of the trunk from the avenue, in the middle of the city
   assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
   const dt = Math.hypot(at.pos.x - C.treeBase.x, at.pos.z - C.treeBase.z);
-  assert.ok(dt > 7 && dt < 11, `at the tree’s foot (${dt.toFixed(1)} m from its axis)`);
+  assert.ok(dt > 7 && dt < 13.5, `at the tree’s foot (${dt.toFixed(1)} m from its axis; the mound of issue #162 stands wider)`);
   const dr = Math.hypot(at.pos.x - C.roots.x, at.pos.z - C.roots.z);
   assert.ok(dr > 3.5 && dr < 12, `beside the roots the water climbs (${dr.toFixed(1)} m)`);
   // open sky over it (the light, the beacon, room for the opening scene) and somewhere to stand in front
@@ -165,7 +165,7 @@ test('the desert backpack box is a temple chest on the makers’ dais at the bur
   const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw));
   const out = at.pos.clone().sub(C.treeBase).setY(0).normalize();
   assert.ok(F.dot(out) > 0.5, 'it faces out from the trunk');
-  assert.ok(physics.rayDistance(V(at.pos.x, C.top + 1, at.pos.z), out.clone().negate(), 6) < 6, 'the bark behind it');
+  assert.ok(physics.rayDistance(V(at.pos.x, C.top + 1, at.pos.z), out.clone().negate(), 8) < 8, 'the bark behind it (past the mound’s foot: issue #162)');
   const toAvenue = C.plinthStair.clone().sub(at.pos).setY(0).normalize();
   assert.ok(F.dot(toAvenue) > 0.95, 'it faces the way you come up the avenue');
   // in sight all the way up the avenue: from the gate, the avenue's end and the square before the trunk
@@ -598,4 +598,38 @@ test('box openings vary: a few camera plans, one per box, the first box as it wa
   const sc2 = new BoxScene({ box: { id: 'x', pos: V(), yaw: 0, parts: { mats: {} }, scene: null }, def: ITEMS.lens, item: 'lens', player: null, physics: p2, onGrant() {}, onEnd() {} });
   assert.equal(sc2.clearPlan('side'), 'shoulder', 'side blocked by the wall: back to the first');
   assert.equal(sc2.clearPlan('shoulder'), 'shoulder');
+});
+
+test('the major chests stand on a ramped mound: walked up to from in front, the ground rises smoothly, no step (issue #162)', async () => {
+  const { MOUND_MAX_SLOPE } = await import('../src/boxes/mound.js');
+  // (the Whale-House's chest stands on the Horn Chamber's shell pulpit, 3 m up: its riding disc is the room's puzzle)
+  const PUZZLE = new Set(['underwater.temple.horn']);
+  const major = (p) => (p.temple || p.story || p.chest === 'temple') && !p.find && !PUZZLE.has(p.id);
+  const seen = [];
+  for (const [id, list] of Object.entries(PLACEMENTS)) {
+    const { level, physics } = world(partOf(id));
+    for (const raw of list) {
+      const p = shiftPlacement(id, raw);
+      if (!major(p)) continue;
+      const at = resolvePlacement(p, { physics, level });
+      if (!at) continue;
+      const F = V(Math.sin(at.yaw), 0, Math.cos(at.yaw));
+      // from 4.6 m in front of it to under its front edge, every 10 cm
+      let prev = null, rise = 0;
+      const gs = [];
+      for (let d = 4.6; d >= 0.7; d -= 0.1) {
+        const q = at.pos.clone().addScaledVector(F, d), g = physics.groundAt(q.x, at.pos.y + 1.2, q.z, 4);
+        if (prev !== null) assert.ok(g - prev < 0.06, `${p.id}: a step of ${(g - prev).toFixed(2)} m ${d.toFixed(1)} m in front of it`);
+        gs.push(g); prev = g;
+      }
+      // (its slope over half a metre at a time: a 10 cm sample at its foot meets the paving's lip)
+      for (let i = 5; i < gs.length; i++) rise = Math.max(rise, (gs[i] - gs[i - 5]) / 0.5);
+      assert.ok(rise <= MOUND_MAX_SLOPE + 0.05, `${p.id}: its slope ${rise.toFixed(2)}`);
+      // (up onto its flat top, raised over the floor: the chest itself may have a collider once a scene has built it)
+      assert.ok(Math.abs(prev - gs.at(-4)) < 0.02 && prev - gs[0] > 0.25, `${p.id}: onto the mound's flat top, ${(prev - gs[0]).toFixed(2)} m over the floor`);
+      seen.push(p.id);
+    }
+  }
+  for (const id of ['desert.backpack', 'desert.lift', 'desert.gun', 'desert.temple.sword', 'buried.temple.cell', 'bazaar.temple.echo']) assert.ok(seen.includes(id), `${id} checked`);
+  assert.ok(seen.length >= 14, `${seen.length} chests`);
 });

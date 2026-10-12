@@ -8,6 +8,7 @@ import { TempleKit, T, box, lathe, annulus, Z_GAP } from './kit.js';
 import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Gust, Switch, Plate } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { keeperModel } from './guardians.js';
+import { chestMound } from '../boxes/mound.js';
 
 // The desert's temple: the Rose House, the great drum of rose stone the
 // people of Qanat call the house of the Givers, half sunk in the dunes east
@@ -325,8 +326,8 @@ function layout(rt) {
   const C3 = [0, 7, 106];
   K.rotunda({ x: C3[0], z: C3[2], y: 7, r: 10, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6.6 }], oculus: 0.32 });
   // the dais under the oculus, and the chest on it (the box system builds the chest: src/boxes/)
-  K.both(M.trim, lathe([[3.2, 0], [3.2, 0.3], [2.6, 0.32], [2.6, 0.62], [0.01, 0.62]], 28).translate(0, 7, 106), new THREE.CylinderGeometry(2.9, 3.2, 0.62, 20).translate(0, 7.31, 106));
-  K.add(M.glyph, T(new THREE.TorusGeometry(2.9, 0.06, 4, 48), [0, 7.33, 106], [Math.PI / 2, 0, 0]));
+  K.both(M.trim, ...chestMound(0, 7, 106));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  K.add(M.glyph, T(new THREE.TorusGeometry(1.2, 0.05, 4, 48), [0, 7.635, 106], [Math.PI / 2, 0, 0]));   // (the ring on the mound's top)
   // its two doors, held while its machines stand (the encounter: onUpdate)
   add(Door, { id: 'dc', at: [0, 7, 95.3], w: 5, h: 6, lamps: [{ pressed: 'pp' }] });
   add(Door, { id: 'dk', at: [0, 7, 116.7], w: 5, h: 6.6, lamps: [{ item: 'sword' }] });
@@ -357,7 +358,7 @@ function layout(rt) {
   add(Door, { id: 'd3', at: [0, 7, 158.1], w: 5, h: 6, lamps: [{ lit: 'e10' }, { lit: 'b4' }] });
   add(Brazier, { id: 'b4', at: [6.2, 7, WING_GROOVE], scale: 1.1, hood: { ball: 'ball4', yaw: Math.PI / 2 } });
   // the Givers' guard: a second chest on a low plinth by the far landing's west wall (src/boxes/placements.js)
-  K.both(M.trim, new THREE.CylinderGeometry(1.5, 1.7, 0.3, 18).translate(-9, 7.15, 150));
+  K.both(M.trim, ...chestMound(-9, 7, 150, { h: 0.3, top: 1.3, foot: 2.1, seg: 24 }));   // (the guard's: a low ramped mound, issue #162)
   add(Mark, { room: 'fires', at: [-8, 7, 123.5], yaw: 0 });
 
   // ---- the Hall of Winds (x 14..40, z 121..158, floor 7): the Givers' old water channels in its floor, the bellows'

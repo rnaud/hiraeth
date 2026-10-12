@@ -4,6 +4,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Platform, Bridge, BellEar, Switch, Mark, Pit, Key } from './pieces.js';
 import { whaleModel } from './guardians.js';
+import { chestMound } from '../boxes/mound.js';
 
 // Vael II's temple: the Founders' Belfry, a tower of bone-white stone that
 // rises straight out of the cloud beside the starting plateau, a bridge from
@@ -377,7 +378,7 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 23, C2 + 11.4));
   const C3 = C2 + 22.4;   // 78.8
   K.rotunda({ x: 0, z: C3, y: 16, r: 10, h: 15, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 16, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 16.31, C3));
+  K.both(M.trim, ...chestMound(0, 16, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // a bell hangs in the oculus, without a clapper: the whistle rings it, and three stones that fell up come down
   // round the dais while it sounds (a try: nothing is locked by it)
   const bell = lathe([[0.02, 0], [1.4, 0.1], [1.5, 0.8], [1.05, 2.4], [0.85, 3.4], [0.02, 3.6]], 24);

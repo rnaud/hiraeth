@@ -6,6 +6,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Hammer, Mark, Pit, Key } from './pieces.js';
 import { sentinelModel } from './guardians.js';
+import { chestMound } from '../boxes/mound.js';
 
 // The Buried Machine's temple: the Engine-House, a drum of rust-red iron as
 // tall as the oculus, standing out of the dunes west of the domes, pipe
@@ -445,7 +446,7 @@ function layout(rt) {
   const C3 = 75.2;
   // (the house's hub since v1.48: a way west into the Boiler Room and east into the Governor Room)
   K.rotunda({ x: 0, z: C3, y: 7, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 7, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 7.31, C3));
+  K.both(M.trim, ...chestMound(0, 7, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   K.add(band, T(annulus(9.32, 9.5, 0.6, 48), [0, 13.2, C3]));
   // four still eyes, two either side of each shutter (west and east): four in one breath wake them, and the shutters
   // roll up (v1.48: before, a try that opened nothing)

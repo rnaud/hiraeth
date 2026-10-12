@@ -7,6 +7,7 @@ import { Door, Ball, Plate, Gust, Updraft, Platform, Mark, Pit, Key, Coffer } fr
 import { elderModel } from './guardians.js';
 import { items } from '../items.js';
 import { shiftAt } from '../levels/names.js';
+import { chestMound } from '../boxes/mound.js';
 
 // Vael's temple: the Aerie, a great white house of the makers on the plain
 // west of the landing, two drums of bone-white stone and a crown of stone
@@ -360,7 +361,7 @@ function layout(rt) {
   K.both(M.wall, box(3.6, 0.8, 7.2, WR + 2.5, 22.8, C2));
   const C3x = WR + 4 + 8.6;
   K.rotunda({ x: C3x, z: C2, y: 16, r: 8.6, h: 12, gaps: [{ a: -Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(C3x, 16, C2), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(C3x, 16.31, C2));
+  K.both(M.trim, ...chestMound(C3x, 16, C2));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   for (const s of [-1, 1]) for (let i = 0; i < 3; i++) feather(M.wall, C3x - 2 + i * 2.2, 16, C2 + s * (5.6 - i * 0.4), 6 + i, Math.PI / 2 + s * 0.4, s * 0.25);
   add(Mark, { room: 'wings', at: [C3x + 4, 16, C2 - 5], yaw: -Math.PI * 0.75 });
 

@@ -9,6 +9,7 @@ import { items } from '../items.js';
 import { t as tr } from '../i18n.js';
 import { EN } from '../i18n/en.js';
 import { registerTarget } from '../targets.js';
+import { chestMound } from '../boxes/mound.js';
 
 // The City-Shaft's temple: the Warden's Well, the makers' tower on the rim,
 // round from the ship. Nobody in the city goes in: the rim calls it a folly,
@@ -391,7 +392,7 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 17.9, C2 + 11.4));
   const C3 = C2 + 22.8;   // 81.4
   K.rotunda({ x: 0, z: C3, y: 11, r: 10, h: 22, gaps: [{ a: Math.PI, w: 5, h: 6 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 11, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 11.31, C3));
+  K.both(M.trim, ...chestMound(0, 11, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   K.add(M.glyph, T(new THREE.TorusGeometry(2.75, 0.06, 4, 48), [0, 11.33, C3], [Math.PI / 2, 0, 0]));
   // the light falls down the oculus: a ring of glyphs round it on the floor
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.add(M.glyph, T(glyphGeometry(0.9, 0.04).rotateX(-Math.PI / 2), [Math.sin(a) * 5.2, 11.03, C3 + Math.cos(a) * 5.2], [0, a + Math.PI, 0])); }

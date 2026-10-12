@@ -6,6 +6,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, printGeometry } from './pieces.js';
 import { echoModel } from './guardians.js';
+import { chestMound } from '../boxes/mound.js';
 
 // The Garden of Spheres' temple: the Footprint, the one Emrys speaks of. North
 // of the umbrella grove the meadow carries an enormous three-toed print, its
@@ -305,8 +306,7 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C3, y: 0, r: 9, h: 14, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 4.2, h: 6.2 }], oculus: 0.35 });
   // the dais, solid as drawn: its two steps as cylinders (the lathe alone gave no top a ray from above
   // could land on, so the chest stood on the floor, sunk into the dais to its lid: the QC pass)
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 0, C3), new THREE.CylinderGeometry(2.5, 2.5, 0.62, 28).translate(0, 0.31, C3));
-  K.solid(new THREE.CylinderGeometry(3, 3, 0.3, 28).translate(0, 0.15, C3));
+  K.both(M.trim, ...chestMound(0, 0, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // the lens shows the walker's print on the east wall over a stone carrying the same, and its prints from the dais
   // to the way on (the clue of the stones over the chasm, a room on: no lock here)
   add(Mural, { id: 'mural', at: [8.9, 3.6, C3], yaw: -Math.PI / 2, prints: [[0.9, C3 + 4.2, 0.15], [-0.7, C3 + 5.8, -0.1], [0.8, C3 + 7.4, 0.1]] });

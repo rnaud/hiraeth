@@ -4,6 +4,7 @@ import { makeMaterial, MODE_STRATA } from './materials.js';
 import { glyphGeometry } from './story/sign-text.js';
 import { STORY, hearthStones, wayPlaces, WAY, ridePlaces } from './desert-sites.js';
 import { taper } from './desert-city.js';
+import { chestMound } from './boxes/mound.js';
 
 // The Givers' Hearth: where the Givers kept their fire, and the keepers put the
 // spark-stone back after they lit Qanat's tree with it (src/story/desert.js has
@@ -157,7 +158,7 @@ export const HEARTH = {
  * the chest exciting and important by putting it in its own room"): its centre (interior local x, z), its radius, the
  * passage's half-width and height, the dais.
  */
-export const CHAMBER = { x: 30, z: -2, r: 6.5, door: 2.1, doorH: 4.4, dais: { r: 1.5, h: 0.5 } };
+export const CHAMBER = { x: 30, z: -2, r: 6.5, door: 2.1, doorH: 4.4, dais: { r: 1.5, h: 0.5, foot: 2.85 } };
 /** The hall's dome is open where the passage to the Givers' room leaves it (east, x > 12). */
 export const sideDoor = (x, y, z) => x > 12 && Math.abs(z - CHAMBER.z) < CHAMBER.door + 0.2 && y < CHAMBER.doorH + 0.2;
 /** The Givers' room's dome, roughened (at the origin: the build moves it to CHAMBER). */
@@ -473,8 +474,8 @@ export function buildDesertHearth(scene, terrain) {
     cave.both(M.carved, box(1.2, 1.0, pw * 2 + 2.2, p0 + 0.2, C.doorH + 0.6 + 0.5, pz));
     cave.add(M.glyph, glyphGeometry(1.1).rotateY(-Math.PI / 2).translate(p0 - 0.42, C.doorH + 1.1, pz));
     // the dais and the ring of marks round it, the Givers' mark on the wall behind
-    cave.both(M.carved, new THREE.CylinderGeometry(C.dais.r, C.dais.r + 0.25, C.dais.h, 16).translate(C.x, C.dais.h / 2, pz));
-    cave.both(M.carved, new THREE.CylinderGeometry(C.dais.r + 0.9, C.dais.r + 1.1, C.dais.h / 2, 16).translate(C.x, C.dais.h / 4, pz));   // (its step)
+    // (a ramped mound, no step: issue #162, src/boxes/mound.js)
+    cave.both(M.carved, ...chestMound(C.x, 0, pz, { h: C.dais.h, top: C.dais.r, foot: C.dais.foot, seg: 28 }));
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2;
       cave.add(M.marks, glyphGeometry(0.6, 0.04).rotateX(-Math.PI / 2).rotateY(-a).translate(C.x + Math.cos(a) * (C.dais.r + 2.1), 0.03, pz + Math.sin(a) * (C.dais.r + 2.1)));
