@@ -100,7 +100,7 @@ it could not leave. Tests: `tests/leave-gate.test.js`.
 **The main quest carries the gate** (v1.60, issue #232). The desert's main quest used to end at "Meet Qanat at your
 ship", and only the console said the blade and the guard were still wanted. Its last step is now
 `coreStage('desert', …)` (src/story/leave-gate.js): "Take the blade and guard from the Rose House" (the marker on the
-Rose House's door), met once `missingCore` is empty. It is `ahead: false` (having them early skips nothing before it)
+Rose House's door), met once nothing off the main quest's own line is missing (`missingCore` holds no gadget with a `quest`). It is `ahead: false` (having them early skips nothing before it)
 and `pass: true` (src/story/quests.js `landing`: had already when the quest reaches it, it is passed over, never shown),
 so a run that took them first sees the quest end at the ship as before. The ship wakes when Qanat has fed it
 ("The ship hums awake."; src/story/desert.js `wake`), the quest ends (and the galaxy opens, `world.desert.done`) when

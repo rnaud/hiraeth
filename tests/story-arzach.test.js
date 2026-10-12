@@ -232,6 +232,11 @@ test('the main quest: Oïa, the wind up the tower, the flute on the sill, her ca
   step(30 * 30, 1 / 30);
   assert.ok(bird.pos.distanceTo(A.tower.balcony) < 12, `she landed on the balcony: ${bird.pos.distanceTo(A.tower.balcony).toFixed(1)} m`);
   assert.equal(game.flag('arzach.bird.promise'), true, 'she bowed');
+  // (up the tower here without the wings: the ship won't leave Vael without them, so the quest's last step says so, issue #232)
+  assert.equal(quests.stage('arzach.bird'), 'wings');
+  assert.match(quests.current('arzach.bird').text, /fluid wings from the Aerie/);
+  game.set('item.glider', 1);
+  step(2);
   assert.equal(quests.isDone('arzach.bird'), true);
   assert.equal(game.flag('world.arzach.done'), true);
   assert.equal(game.flag('bird.promise'), true);

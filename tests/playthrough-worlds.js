@@ -53,6 +53,14 @@ Object.assign(SOLVERS, {
   // back to the ship (its hatch says so: src/ship/ship.js emits ship:enter), where Qanat waits with its gift:
   // one by one they pour what they brought into it (src/story/desert-repay.js), and the ship wakes
   'desert.power:ship': (W) => { W.at(W.level.ship.pos); game.emit('ship:enter', { level: 'desert' }); W.step(30 * 26); },
+  // the main quest's last step while the blade and the guard are missing (issue #232): Sabri in the camps points to the
+  // Rose House, played to its guardian (the blade and the guard in its chests); the quest ends with them
+  'desert.power:gear': async (W, { issue }) => {
+    if (!W.quests.isStarted('temple.desert')) ACTIONS.askSabri(W, issue);
+    const { nextSpot } = await import('../src/temples/index.js');
+    await A.templeTo(W, 'done', issue, { nextSpot, id: 'desert' });
+    W.step(2);
+  },
 });
 Object.assign(CHECKS, {
   // the spark-stone goes into the pack, and nothing floats about him
@@ -396,7 +404,8 @@ export const ROUTE = [
   // (the Rose House after the main quest: it asks for nothing the Hearth gives, and its blade and guard are the
   // traveller's before he leaves; tests/temples.test.js plays it on foot with nothing in hand)
   // (Sabri in the camps sends you east to the Rose House: the way there is not the way home past its field-stone)
-  { id: 'desert', play: ['desert.power', { act: 'askSabri', at: 'sabri', label: 'Sabri, in the camps' }, { temple: 'done', id: 'desert' }] },
+  // (the main quest's last step is the Rose House's blade and guard, issue #232: its solver asks Sabri and plays the house)
+  { id: 'desert', play: ['desert.power'] },
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell', { temple: 'done', id: 'arzach2' }] },   // (v1.49: and the Founders' Belfry to its guardian, its west store an arena)

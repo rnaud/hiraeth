@@ -670,8 +670,13 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   step(30 * 26, 1 / 30, { people: true });
   const hull = rt.world.repay.state.spots[0].pour;
   assert.ok(R.party.every((g) => g.n.pos.distanceTo(hull) < 30), 'all of them down at the ship');
+  // (the ship wakes; the Rose House not yet visited, the quest's last step is its blade and guard: issue #232)
+  assert.equal(game.flag('ship.powered'), true, 'fed: the ship wakes');
+  assert.equal(quests.stage('desert.power'), 'gear', 'the ship waits for the blade and the guard, and the quest says so');
+  assert.equal(game.flag('world.desert.done'), undefined);
+  game.set('item.sword', 1); game.set('item.shield', 1);
+  step(2);
   assert.equal(quests.isDone('desert.power'), true);
-  assert.equal(game.flag('ship.powered'), true);
   assert.equal(game.flag('world.desert.done'), true);
   assert.ok(game.keepsakes().some((k) => k.id === 'desert.knowing'), 'the keepsake: what the giants left');
   assert.equal(talk(PEOPLE.nour, []).nodeId, 'after');

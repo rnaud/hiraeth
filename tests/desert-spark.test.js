@@ -76,7 +76,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
   assert.equal(g.flag('desert.tree.lit'), undefined);
   // the stages still exist (old ids) and the errand's are in order between the well and the ship
   const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
-  assert.deepEqual(ids.slice(ids.indexOf('fill')), ['fill', ...SPARK_STAGES, 'ship']);
+  assert.deepEqual(ids.slice(ids.indexOf('fill')), ['fill', ...SPARK_STAGES, 'ship', 'gear'], '(the blade and the guard last while missing: issue #232)');
   // once only
   assert.equal(migrateDesertQuest(g), null);
   // a v1 save gets both migrations: the moved stages, and the tree
@@ -88,7 +88,8 @@ test('saves from before the rework: a tree that already drank keeps burning, and
 
 test('an old save at the jar: the tree already burns; wading fills the jar and the quest goes straight to the ship', () => {
   const D = desert({ 'prologue.done': true, 'items.v': 1, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 2,
-    'quest.desert.power': 'fill', 'desert.channel.open': true, 'item.jar': 1, 'desert.jar.given': true, 'desert.elder.heard': true });
+    'quest.desert.power': 'fill', 'desert.channel.open': true, 'item.jar': 1, 'desert.jar.given': true, 'desert.elder.heard': true,
+    'item.sword': 1, 'item.shield': 1 });   // (an old save keeps the blade and the guard: src/save-migrate.js migrateGivers)
   const { Q, step, quests, player } = D;
   step(2);
   assert.equal(game.flag('desert.tree.lit'), true);
