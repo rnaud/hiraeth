@@ -1,0 +1,23 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: an ancient temple at the very bottom of a station inside a sun, a great dark sphere of smooth indigo stone hanging below the station on three long chains, its one great round window like an eye turned straight down into the blinding white-gold surface of the sun; a narrow stair of white stone winds down to it around the chains between slow arches of rose and saffron plasma; inside the round window rows of empty glass lamps hang in rings, a few of them lit with a soft jade-green light; the glyph of three dots over an upward arc is carved large above the door; a long white veil of woven shade-cloth hangs from the sphere and ripples in the heat. A small cloaked human traveller with a round jade glass fluid backpack walks down the stair for scale, tiny against the sphere. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blinding white-gold, saffron, apricot and rose-magenta plasma, deep indigo and violet shadows, a touch of jade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#temple",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-04-20-8f40",
+      "candidate": "openai/1",
+      "sha256": "8195e2f02fcb122f8eb5c8bff7e2f5a913a1b61ffa4b3f67bfa810bf82d5673d",
+      "bytes": 262450,
+      "costUSD": 0.041,
+      "why": "the dark sphere on chains with its stair and eye, the strongest temple silhouette"
+    }
+  ]
+}

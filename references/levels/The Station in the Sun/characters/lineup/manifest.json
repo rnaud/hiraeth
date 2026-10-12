@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design lineup for a science fiction exploration game: seven keepers of a station inside a sun, standing in a row at the same scale on a plain cream background, full body, each clearly different: an old head listener in long white and gold wrapped robes with a tall brass ear-trumpet and a smoked glass visor pushed up on her brow; a young louvre turner with a long hand crank over his shoulder, sleeves tied back, arms tanned dark; a flare docker in a heavy white heat-proof suit and round smoked glass helmet, carrying a glowing jar of liquid light on a chain; a shade gardener in layered pale teal and white wraps with a wide parasol hat and a basket of shadow ferns; a child with a little shade-fan on a pole held over her head; a tall masked keeper of the temple in an indigo veil with the glyph of three dots over an upward arc embroidered in gold; a lamp-maker with an apron of tools and a rack of empty glass lamps on his back. The small cloaked human traveller with a round jade glass fluid backpack stands at the end of the row for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white-gold, saffron and apricot, cool teal, warm brass, deep indigo and violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#characters",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-04-24-5ad4",
+      "candidate": "openai/1",
+      "sha256": "50646e082138d0a609a696e069b84b61d475b1336e773ba2e6a79eea0122178d",
+      "bytes": 226756,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: the flare docks of a station inside a sun, long thin piers of white metal reaching out from the station into the open corona. A great solar flare curls up from the sun's surface below like a slow rose and saffron wave, and at the end of each pier a tall mirror-dish on a crane tilts to catch its light; workers in heat-proof white and gold suits with smoked glass helmets lower glowing jars on chains into the flare's edge and draw them up full of liquid light, then stack the shining jars on little carts that run back along the piers on rails; long shade sails on masts cast moving strips of indigo shadow over the decks; everything shimmers in the heat. A small cloaked human traveller with a round jade glass fluid backpack stands on a pier under a shade sail, tiny against the flare. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blinding white-gold, saffron, apricot and rose-magenta plasma, deep indigo and violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#flare-docks",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-03-48-f111",
+      "candidate": "openai/1",
+      "sha256": "04f996097a6ebe09c87490a39b526b84eda41391c5f8dd4bca95b23dcec69935",
+      "bytes": 279209,
+      "costUSD": 0.041,
+      "why": "the piers into the flare, jars and cranes, the heat as landscape"
+    }
+  ]
+}

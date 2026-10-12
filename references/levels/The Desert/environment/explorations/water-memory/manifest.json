@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level on the edge of a white salt pan in an orange desert, a round old well shaft of carved stone with a little windcatcher tower over it, ropes and a clay jar at its lip, pilgrims' cloths tied to it; behind, the salt pan shimmers and a mirage hangs over it showing a lake that is not there, with reeds and a small sailing boat; a line of other wells runs away toward the horizon. An old woman in layered robes sits on the well's rim listening, and a small cloaked human traveller with a round jade glass fluid backpack kneels with his ear to the stone, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, warm ochre and apricot sand, salt white, pale turquoise mirage, pale sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#de-water-memory-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-15-38-22e3",
+      "candidate": "openai/1",
+      "sha256": "f549c66efe07e100fe9cbf4e2d7c93228e8ed565fb1eede2d074eda09ff3defb",
+      "bytes": 243091,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of an orange desert at midday, seen from a high dune: a dry riverbed winds across it with pale banks and old boats lying stranded on their sides, a white salt pan shimmers with a mirage that shows the same place long ago as a blue lake with reeds and sails; a long line of round stone well shafts, each with a small windcatcher tower, runs straight across the dunes toward a far city of white domes round a tall burning tree; a hamlet has been built inside an old dry cistern, its arches and stairs going down. A small cloaked human traveller with a round jade glass fluid backpack stands beside a hoverbike in the foreground, tiny against the view. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, warm ochre and apricot sand, salt white, pale turquoise mirage, pale sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#de-water-memory-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-15-11-703b",
+      "candidate": "openai/1",
+      "sha256": "b2427babbcff9decb75ed3faa47f01286522569e64251a933d8bc1c49053a336",
+      "bytes": 241088,
+      "costUSD": 0.041
+    }
+  ]
+}

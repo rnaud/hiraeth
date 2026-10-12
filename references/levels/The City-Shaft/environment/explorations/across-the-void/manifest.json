@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on the back of an old tower that has fallen and lies wedged across a vast vertical city shaft, its windows now facing the sky, a narrow market street of stalls and striped awnings built along it, a cook stall steaming, lanterns on strings, a child looking over the edge; on both sides the drop falls away hundreds of metres to a turquoise lake in haze, and the stacked pink and cream terraces of the city rise on the shaft's walls ahead and behind; a cable car glides past below. A small cloaked human traveller with a round jade glass fluid backpack walks down the market street for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pink and cream walls, terracotta, striped awnings, turquoise depths, sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#cs-across-the-void-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-19-37-4ba7",
+      "candidate": "openai/1",
+      "sha256": "c006b09e753b6c1a51a82957feb7fcfcb11e8db7ebf53fd083dd6e9950df1ef5",
+      "bytes": 329043,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view across an enormous vertical shaft lined with a stacked city of pink and cream terraces, seen from a high terrace at the rim: rope bridges and sagging cable walks cross the void from the terraces to a tall central spire with rings; a whole fallen tower lies wedged across the shaft from wall to wall, with a long market of awnings built along its back; cable cars and wicker basket ferries hang from lines strung from rim to rim, prayer flags and washing lines between them; little flying cabs on their circular lanes; far below a turquoise acid lake glows in haze, high above a blue sky. A small cloaked human traveller with a round jade glass fluid backpack stands at the rim's railing in the foreground, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pink and cream walls, terracotta, turquoise depths, sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#cs-across-the-void-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-19-04-0879",
+      "candidate": "openai/1",
+      "sha256": "16ff381cd6cc03c187858769689a4cbd8f22cc2a8f737ae9961f52ba8101ab38",
+      "bytes": 326721,
+      "costUSD": 0.041
+    }
+  ]
+}

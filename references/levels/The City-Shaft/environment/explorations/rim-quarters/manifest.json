@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view across an enormous vertical shaft lined with a stacked city, seen from a terrace on one side, the far wall clearly divided into different quarters: on the left hanging gardens spilling green vines and trees over the terraces' edges with waterfalls; in the middle a sheer cliff where little flying cabs are parked in holes in the wall like birds in a cliff, with workshops, cranes and ladders; on the right a quarter of great bronze bells hung out over the void on long wooden beams under small pagoda roofs; below them a market of balconies built out on stilts and cables; a tall spire with rings in the middle of the shaft, a turquoise acid lake glowing far below. A small cloaked human traveller with a round jade glass fluid backpack leans on a railing in the foreground, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pink and cream walls, garden greens, bronze, turquoise depths, sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#cs-rim-quarters-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-20-09-ace7",
+      "candidate": "openai/1",
+      "sha256": "f3406aa09127337c2c538777198abbbe127cde1301c6d57943b1ec04c5cefe7a",
+      "bytes": 346957,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level on a narrow terrace of a vast vertical city shaft, the bell quarter: great bronze bells hang out over the void from long wooden beams under small tiled roofs, their ropes tied off on the railing, prayer ribbons streaming in the updraft, a bell keeper in long robes polishing one; the terrace street is lined with pink and cream houses with round doors, steps going up and down; across the shaft the far wall's hanging gardens and the cliff of parked flying cabs. A small cloaked human traveller with a round jade glass fluid backpack reaches up to a bell's rope, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pink and cream walls, bronze, garden greens, turquoise depths, sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#cs-rim-quarters-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-20-39-30fa",
+      "candidate": "openai/1",
+      "sha256": "9448d112d4e099625c4777dc709028d483d2a1b9029f3aaf8946d6ed0732d222",
+      "bytes": 316974,
+      "costUSD": 0.041
+    }
+  ]
+}

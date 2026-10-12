@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a vast abandoned workshop where small moons were cast, under a great roof on rust pillars, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a vine climbing a rusty pillar with small round pale fruit like little moons; a moss growing in the cracks between floor slabs; a pale fungus shaped like a crescent; a warm-loving fern that grows by a cooling furnace; a plant with cratered cream seed pods; an orange rail beetle, one running along a rail like a cart; a cream moon mouse, one curled up into a little moon rolling away. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust, warm orange, cream moons and cool slate grey, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#moon-foundry",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-20-55-dde0",
+      "candidate": "openai/1",
+      "sha256": "4e188b4c89e78239523fa4f80b4f27f8111203e5be687679d53d62d689b47763",
+      "bytes": 302970,
+      "costUSD": 0.041
+    }
+  ]
+}

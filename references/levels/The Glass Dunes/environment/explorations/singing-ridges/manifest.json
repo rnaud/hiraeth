@@ -1,0 +1,40 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: up on the crest of a high ridge of green glass, close up, a wind organ built by glassworkers: a cluster of tall glass pipes of different heights fused into the crest, each with a sliding brass stop and a little cloth flag, a lever wheel to open and close them, glass chimes swinging on a pole beside it, sand streaming from the pipes' mouths in the wind. Beyond, far below, the amber valley and the other ridges with their own organs, a camp of awnings small at their feet. An old glassworker in goggles and a long scarf holds her ear to a pipe. A small cloaked human traveller with a round jade glass fluid backpack turns a stop, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, emerald, mint and lime glass, warm amber sand, brass, peach and grey-teal sky, deep teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#gd-singing-ridges-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-11-53-25c0",
+      "candidate": "openai/1",
+      "sha256": "0aee1cef70b86e403a018d8e3fec7446121cc80c74c54af44144757a93476ced",
+      "bytes": 265851,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a basin of amber sand between long ridges of translucent green glass, seen from the sand at the valley's mouth on a windy afternoon. The glassworkers have made the dunes into instruments: rows of tall glass organ pipes rise along the ridge crests like coral, long fluted channels run down the glass slopes, tall poles carry clusters of hanging glass chimes, and a great horn of green glass opens on the highest crest like a flower; ribbons and thin streams of sand blow off the pipes' mouths, showing the wind. Rope ladders and ramps of sand climb to the crests, and a small camp of fabric awnings sits at a ridge's foot. A small cloaked human traveller with a round jade glass fluid backpack walks the sand path in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, emerald, mint and lime glass, warm amber sand, peach and grey-teal sky, deep teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#gd-singing-ridges-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-11-27-5376",
+      "candidate": "openai/1",
+      "sha256": "5a2b3175904968ba60eabbc2edec3962e32972d27e7f349539004c8a01d45bcc",
+      "bytes": 271818,
+      "costUSD": 0.041,
+      "why": "p"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a city of glass domes on the sea floor, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: tall ribbons of glow-kelp with softly luminous fronds, grown in troughs; a tower of round sea pods stacked like a coral column; pink and coral fan corals; small sea anemones; a coral-red kelp crab, one backed into a coffee cup on a café table; a pale aqua glass snail, one gone as clear as glass with its eyes drawn in; a small shoal of round teal fish; a broad pale manta ray; a gentle whale seen small in the distance, singing. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep sea teal, aqua, coral pink and pale glowing green, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#underwater",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-20-22-cf4f",
+      "candidate": "openai/1",
+      "sha256": "daa06112c92c6fbf0c45718f14cca715099735d2ea22af5cfee23f47b471b4a6",
+      "bytes": 271718,
+      "costUSD": 0.041
+    }
+  ]
+}

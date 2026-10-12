@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: terraced gardens inside a station within a sun, growing behind enormous heat screens. Tall woven screens and slatted lattices of white ceramic stand in rows between the terraces, and the blinding sunlight beyond them comes through in thin bright bands, so each terrace is striped light and cool shadow; the plants grow only in the shadow stripes, pale teal and violet ferns and tall fleshy stalks leaning away from the light, round pools of still water in the shade with mist rising off them; gardeners in white and gold wraps turn the slats by hand with long cranks to move the shadows over the beds; beyond the last screen the white-gold surface of the sun and a slow arch of rose plasma in heat shimmer. A small cloaked human traveller with a round jade glass fluid backpack walks a narrow shaded path between the beds for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blinding white-gold and saffron light, cool teal and violet shade, rose-magenta plasma, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#shade-gardens",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-03-46-fac8",
+      "candidate": "openai/1",
+      "sha256": "9d1698ee3da8a00f5e8587fec14e50834515efae777d601493279b4495d5628e",
+      "bytes": 347403,
+      "costUSD": 0.041
+    }
+  ]
+}

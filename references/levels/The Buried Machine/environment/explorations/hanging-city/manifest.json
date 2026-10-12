@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on the floor of a canyon whose walls are an ancient machine of rust-red cylinders, hatches and blue-grey pipes, a thick cable hangs straight down from the sky into a great rusted clamp, and an old lift basket of riveted iron and wicker hangs from it a step above the sand, with a lever, a lamp and a small bell; looking up along the cable it climbs to an upside-down city hanging far overhead in a sage green sky, other cables and dangling platforms beside it; rust flakes drift down. A dome keeper in a patched coat holds the basket's door open, and a small cloaked human traveller with a round jade glass fluid backpack steps in, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale cream sand, sage sky, blue-grey pipes, rust red and teal, warm lamp glow, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#bm-hanging-city-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-16-37-77b2",
+      "candidate": "openai/1",
+      "sha256": "5cf58fe0e5720f6d5ce525c5bab8c8c4aef97e6d5b41f6faa756eeddce0f3df0",
+      "bytes": 308122,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of pale cream dunes under a sage green sky, a long trench cut into them whose walls are an ancient machine of blue-grey pipes and rust-red cylinders; far overhead, a whole city hangs upside down in the sky, its towers pointing down like stalactites, and from it hundreds of cables, chains and thin lift shafts hang all the way down to the ground, some anchored into the machine walls with great rusted clamps, some swinging free with gondola baskets and platforms on them, rust flakes drifting down under them like slow snow; small domed huts and a colossal half-buried cog wheel on the dunes. A small cloaked human traveller with a round jade glass fluid backpack stands on a dune in the foreground, tiny against the view. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale cream sand, sage sky, blue-grey pipes, rust red and teal, peach glow, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#bm-hanging-city-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-16-05-b1a3",
+      "candidate": "openai/1",
+      "sha256": "9c013abedcd873508941f3e1cca5c9cad300f0cabd76991dc622f4103cc61435",
+      "bytes": 301624,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a vast ancient station hanging inside the corona of a sun, seen from a small round spaceship on its approach. The surface of the sun fills the lower half of the frame, a blinding white-gold sea of granulated light; enormous looping solar prominences rise from it like arches and cliffs of glowing rose and saffron plasma; heat shimmer bends every distant line. In the middle hangs the station: a great ring of tilted louvres and white shades around a dark cool hollow heart, slung on long cables from three tall needle spires, each spire marked with three dots over an upward arc; its shadow side is deep indigo with tiny lit windows, its sunward side a lattice of mirrors and screens throwing stripes of light. A small round spaceship in the foreground, tiny against it all. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blinding white-gold, saffron, apricot and rose-magenta plasma, deep indigo and violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-03-06-0cb7",
+      "candidate": "openai/1",
+      "sha256": "6d38c8087696159c22e3d082d6da3b3b5dcda2a6dc7663b946ae34652fec76e0",
+      "bytes": 250345,
+      "costUSD": 0.041,
+      "why": "the station hung in a roaring corona, the three spires and the ring, the scale the world needs"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: arriving at a station inside a sun, on a round landing platform on its shadow side. A small round spaceship has just set down on the platform, its hull glowing at the edges; a great curved wall of tall white louvres stands behind it, half open, and through the gaps the blinding white-gold sunlight falls across the platform in sharp diagonal stripes, so the floor is banded light and deep indigo shadow; beyond the platform's rim a wall of slow rose and saffron plasma flares rises in heat shimmer. Two shade-keepers in long white and gold wrapped robes and smoked glass visors come to meet the ship, holding tall shade-fans on long poles over their heads. A small cloaked human traveller with a round jade glass fluid backpack steps down the ship's ramp, careful to stay in a stripe of shadow. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blinding white-gold, saffron, apricot and rose-magenta plasma, deep indigo and violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#arrival",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-03-44-4ce5",
+      "candidate": "openai/1",
+      "sha256": "d3b02a073eb1b1b392b259125612455713eb51269d9900cb56df5b685197a846",
+      "bytes": 260640,
+      "costUSD": 0.041
+    }
+  ]
+}

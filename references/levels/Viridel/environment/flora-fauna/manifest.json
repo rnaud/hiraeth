@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a soft garden world that keeps what falls, giant umbrella trees and still ponds, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a giant parasol leaf on a slim stem; a tall bulb tower, a round allium head on a long stalk; tulip cups; pom-pom clover; a mat of tiny daisies; a ribbon lily with long curling leaves; a white pyramid tortoise, one with its shell unfolded into a little temple; a pink bloom mimic, one blossomed into a big flower holding still; a pale aqua pond skipper, one skipping across a pond like a thrown stone. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, mint, pink, aqua, peach, lavender and soft yellow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#viridel",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-19-49-ebc0",
+      "candidate": "openai/1",
+      "sha256": "35f5cdd2293f3407ba766260d2600c4874948b9b87b0e42d550aa69ce589c4c9",
+      "bytes": 258962,
+      "costUSD": 0.041
+    }
+  ]
+}

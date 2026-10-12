@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at street level in an old city buried under a desert of green glass, the sky replaced by a vast ceiling of translucent glass with sand drifted over most of it, so the light falls through the clear patches in long shafts of mint and lime onto the streets. Round houses and arcades of pale stone and green glass, a dry fountain, a tall clock tower whose top disappears through the ceiling, little piles of sand that have trickled down onto the steps, glowing glass floats left on a doorstep; through a clear patch overhead, far up, the soles of a passing glassworker's boots. A small cloaked human traveller with a round jade glass fluid backpack walks down the empty street for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, emerald, mint and lime light, pale stone, warm amber sand, deep teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#gd-sunken-city-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-12-48-28f2",
+      "candidate": "openai/1",
+      "sha256": "a8bcf99154d5850ca914e73711184fd61f1445414066af62e6c94902637677c4",
+      "bytes": 269797,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a valley of amber sand between walls of translucent green glass, seen from a low glass mound. In the valley floor the wind has swept the sand off great patches of clear green glass, like frozen ponds, and through them you look straight down into a city buried below: domes, round towers, lit streets and bridges, a square with a clock tower, all glowing faintly emerald under the sand. The tops of the city's tallest towers break through the sand as smooth glass spires and domes. Sand pours in thin streams over the edges of a broken window into the depths. A small cloaked human traveller with a round jade glass fluid backpack kneels at the edge of the nearest window, looking down, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, emerald, mint and lime glass, warm amber sand, peach and grey-teal sky, deep teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#gd-sunken-city-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-12-20-5c14",
+      "candidate": "openai/1",
+      "sha256": "8bab519f5f21a08aaefd6ab0357a1e9e0c848e989d600cfbe1dbea505e256627",
+      "bytes": 269354,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a desert of rose and ochre dunes and salt flats, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a tall bell totem plant, a stack of rounded rose bells on a thick stem; a spiny sand candelabra cactus with upturned arms; a slender sun-lamp stalk with a glowing pale yellow bulb at its tip; a squat ribbed barrel plant; a flat white salt star rosette on the ground; a long swaying dune whip grass; a puff lizard in sandy ochre, one shown balloon-swollen and floating off; a rust-red dune crab, one dug into the sand with only its eyes up; a cream dune jerboa with huge ears, one vaulting on its tail and parachuting down on its ears. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose, teal, ochre and cream, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#desert",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-19-00-f84a",
+      "candidate": "openai/1",
+      "sha256": "4c86df9ccee2d5032a1c87288b50efba10d5b1918a13267738504e17886c5958",
+      "bytes": 235430,
+      "costUSD": 0.041
+    }
+  ]
+}

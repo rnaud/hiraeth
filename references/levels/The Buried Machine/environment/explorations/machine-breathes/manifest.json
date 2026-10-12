@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level on the sandy floor of a canyon whose wall is a living ancient machine, a giant round piston slides slowly out of the rust-red wall, its polished top making a step up to a narrow gangway above with a pressure gauge and a hanging oil can; beside it a round vent breathes a puff of white steam, and an oval door in a wall of gears is turning half open, a warm peach light inside; oil drips and pools on the sand. A small cloaked human traveller with a round jade glass fluid backpack waits, ready to jump onto the piston, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale cream sand, blue-grey pipes, rust red and teal, amber oil, white steam, peach glow, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#bm-machine-breathes-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-17-37-6090",
+      "candidate": "openai/1",
+      "sha256": "4cbc37f5ec7a8b837c29889ee879e6885a0ddc2559f6f559aafd54c707dd3495",
+      "bytes": 315899,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide view down a long canyon whose walls are a vast ancient machine, seen from a high gangway at the canyon's rim: great pistons as big as houses slide out of the rust-red walls, steam breathes from round vents in slow white puffs, a wall of giant gears turns to open an oval door, a thin waterfall of dark amber oil falls from a broken blue-grey pipe into a shining pool on the sand floor; narrow maintenance gangways with railings, ladders and pressure gauges run along both walls at mid-height, little figures of dome keepers on them with oil cans; at the far end a teal drum open to the sky with a glowing peach porthole. A small cloaked human traveller with a round jade glass fluid backpack walks the gangway in the foreground, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale cream sand, sage sky, blue-grey pipes, rust red and teal, amber oil, white steam, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#bm-machine-breathes-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-17-06-fa29",
+      "candidate": "openai/1",
+      "sha256": "b138159cc38e06844473eeb75e57fb5be7f516dd44d7d119f9452b4fb819bf0f",
+      "bytes": 342742,
+      "costUSD": 0.041
+    }
+  ]
+}

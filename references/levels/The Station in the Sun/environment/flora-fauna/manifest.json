@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a station inside a sun, life that feeds on light, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a large slow moth with wings of thin gold foil that drinks light and glows from within; a drifting jellyfish-like creature of pale rose plasma trailing glowing threads; a shade-lizard with a mirrored back that reflects the light away and lies in strips of shadow; a flock of tiny bright birds like sparks; a tall plant with leaves like folded parasols that close in the light and open in the shade; a vine of clear glass beads that fill with light by day and shine at night; pale teal ferns that grow only in shadow; a round grazing creature with a coat of white bristles like a sunshade, cropping moss under a louvre. A small cloaked human traveller with a round jade glass fluid backpack stands among them for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white-gold, saffron, apricot and rose-magenta, cool teal shade, deep indigo and violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#flora-fauna",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-04-22-d4a9",
+      "candidate": "openai/1",
+      "sha256": "03ebdb95436038a1304c6adab18584bddc2c0c5d2289138103a9e70650e02d2f",
+      "bytes": 306774,
+      "costUSD": 0.041
+    }
+  ]
+}

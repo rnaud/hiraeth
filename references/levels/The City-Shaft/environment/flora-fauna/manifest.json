@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of the dry rim and terraces of a city stacked down a great pit, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a large lantern agave with a glowing flower spike; a fan palm; terracotta bellflowers; a blue globe thistle; a low rosemary cushion; a yellow taxi snail with a shell like a little cab, one with two jets lit on its shell flying off; a pink terrace gecko, one dashing into a crack while its dropped tail wriggles behind. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, terracotta, steel blue and olive, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#city-shaft",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-20-22-d9a4",
+      "candidate": "openai/1",
+      "sha256": "fe82bc31f711d980e01d99d529b85ac758a416f7e570f95f75904dce6699b449",
+      "bytes": 274176,
+      "costUSD": 0.041
+    }
+  ]
+}

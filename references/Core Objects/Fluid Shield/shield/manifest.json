@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object design reference sheet for a science fiction exploration game: a wearable fluid shield drawn five times side by side at the same scale on a plain cream background, showing it open in stages: folded, a small brass disc 7 centimetres across on a leather bracer strap, its six curved petals closed like a shut flower round a hub; opening, the six brass petals spinning out round the hub; open from the front, the petals spread with a thin brass ring round them and beyond them a translucent blob of swirling jade-green and turquoise fluid about 70 centimetres across, its edge rippling in soft lobes, never quite round, a bright pale lemon wavy rim, ink strokes swirling round the hub; open from the side, the fluid a thin rippling sheet on a short folding brass arm off the bracer; and cracked, the fluid flickering with jagged pale cracks. Small brass rivets, worn leather strap, a faint green glow from the fluid. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass and leather, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube, hand, arm, person.",
+      "from": "docs/design/shield-prompts.md#shield",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-03-34-12-da5d",
+      "candidate": "openai/1",
+      "sha256": "bac61ebe488a0565f5fdac43d3db55925997b3a4118072080e07d81dd185c1fd",
+      "bytes": 162984,
+      "costUSD": 0.041
+    }
+  ]
+}

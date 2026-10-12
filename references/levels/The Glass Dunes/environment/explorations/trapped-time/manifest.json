@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level beside the foot of a towering wall of translucent green glass, the low evening sun shining through it. Inside the glass, a metre beyond the surface and perfectly still, a glassworker in a long apron is frozen mid-reach toward a glowing float falling from her hands, her scarf held in the air, a little dust and sand suspended round her like stars; further in, fainter, the shapes of a pack animal and a stopped clock face. Bands of mint and lime light fall through the glass onto the amber sand, and the glass's thin edge glows. A small cloaked human traveller with a round jade glass fluid backpack stands with one hand flat on the glass, looking in, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, emerald, mint and lime glass, warm amber sand, peach light, deep teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#gd-trapped-time-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-11-00-0f86",
+      "candidate": "openai/1",
+      "sha256": "861344c6bc4c85f22c0eba431b1b9cceb5af89f63ac92dc4088c7e73413ab246",
+      "bytes": 214126,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a valley of amber sand walled by huge frozen waves of translucent green glass, seen from a high glass ridge at late afternoon. The glass is clear enough to see deep into it: inside the waves, caught mid-moment and lit by the low sun shining through, a caravan of cloaked carriers frozen mid-step with their loads, a flock of long-tailed birds held mid-wingbeat, a curl of sandstorm dust suspended like smoke in the glass, a tall broken clock tumbling; the biggest wave at the far end breaks over a hollow with a small camp of fabric awnings at its foot. Luminous mint and lime light pools on the sand below each wall. A small cloaked human traveller with a round jade glass fluid backpack stands on the ridge in the foreground, tiny against the view. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, emerald, mint and lime glass, warm amber sand, peach and grey-teal sky, deep teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#gd-trapped-time-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-10-31-eaf8",
+      "candidate": "openai/1",
+      "sha256": "c22778ad622378aec99180799a5e38d7a4c962060759ff4b8364189f36d0b0d9",
+      "bytes": 284595,
+      "costUSD": 0.041
+    }
+  ]
+}

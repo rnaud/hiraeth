@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: close at ground level in an orange desert, a colossal fallen giant's arm lies across a dry riverbed like a bridge, its pale weathered bone and stone skin cracked and patched with sand, the giant's great hand open on the far bank with its fingers sunk in a dune; pilgrims have tied strips of red and white cloth along it and set a small shrine with a carved verse stone and a brazier on its elbow; the dry wash below is lined with salt stains and old water marks. A small cloaked human traveller with a round jade glass fluid backpack rides a low hoverbike up the slope of the arm, sand spraying, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, warm ochre and apricot sand, bone white, red cloth, pale sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#de-giants-road-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-13-48-c6e3",
+      "candidate": "openai/1",
+      "sha256": "2e4eabefa11f52292266238c44e45b06abf5139343254b0bdb21471458b7d061",
+      "bytes": 265330,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of an orange desert of dunes, seen from a high dune at morning, where a procession of colossal giants fell one after another on a long journey: their pale bones and great stone-like bodies lie in a line that winds away to the horizon, each one half-sunk in the sand, a skull here, a ribcage there, a great hand rising out of a dune like a ruin, a long arm lying across a dry riverbed like a bridge, a curled spine climbing a slope like a stair; little pilgrims' shrines with cloth banners and small fires sit in their shade, and far off a city of white domes round a tall burning tree sends up a smoke column. A small cloaked human traveller with a round jade glass fluid backpack stands beside a hoverbike on the dune in the foreground, tiny against the view. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, warm ochre and apricot sand, bone white, pale sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#de-giants-road-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-13-18-cf92",
+      "candidate": "openai/1",
+      "sha256": "765594fd88e67740aee5a5a8258757ebcc2ae1d7599d03a901e5a029dcf17451",
+      "bytes": 229444,
+      "costUSD": 0.041
+    }
+  ]
+}

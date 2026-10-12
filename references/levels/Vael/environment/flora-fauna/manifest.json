@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a silent world of bone-white needles and pale stone plains, with floating sky stones on its southern side, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a tall spiral horn plant twisting like a bone shell; a pod lantern, a thin stem bending under a glowing hanging pod; a branching bone coral; a tuft of lavender quills; a flat stone mallow like pale plates on the ground; a tall pagoda reed with tiered discs; a round sky bladder plant swollen like a balloon; a peach kite flower with taut triangular petals; a white cloud puffball; a coral fan; a peach rosette; a bone kite creature, one unfolded into a paper kite riding the wind; a stiff-legged needle walker, one standing up straight as a tiny needle spire; a pale cairn crab carrying stacked pebbles, one toppled into a pile of stones; a soft cream cloud ray, one puffed into a little cloud drifting away. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone, pale stone, peach, lavender, coral, cloud white and a touch of teal, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#vael",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-19-49-6278",
+      "candidate": "openai/1",
+      "sha256": "69ef4360f5faaaecd44af9f10130f5d2aa691b1669ea214f0fb7fc12d0cf0a0c",
+      "bytes": 227334,
+      "costUSD": 0.041
+    }
+  ]
+}

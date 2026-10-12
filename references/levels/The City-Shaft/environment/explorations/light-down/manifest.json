@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view down into an enormous vertical shaft lined with a stacked city of pink and cream terraces, seen from the rim in the morning: great round mirrors and brass lenses on swivelling frames stand on the terraces' edges all the way down, and a beam of warm sunlight zigzags from mirror to mirror down into the depths, lighting a patch of terrace far below where a market has opened in the light; some mirrors are cracked or turned away, leaving their levels dim and blue; a tall spire with rings in the middle of the shaft and a faint star-like light turning above it; a turquoise lake far below. A small cloaked human traveller with a round jade glass fluid backpack stands beside the first great mirror in the foreground, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pink and cream walls, warm golden sunbeam, brass, turquoise depths, sky blue, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#cs-light-down-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-21-10-435a",
+      "candidate": "openai/1",
+      "sha256": "8f00c32f9ab21d2812a9042344ad6fe7929b65e82e80af88dbd8d0548813a4a9",
+      "bytes": 308479,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on a dim lower terrace deep in a vast vertical city shaft, a great round mirror on a brass swivel frame with a crank wheel stands at the terrace edge, half turned; the traveller cranks it and a beam of warm sunlight from far above catches it and is thrown across onto the opposite wall, lighting up a row of washing lines, window boxes and people coming out of their doors to stand in it; the rest of the terrace is in cool blue shade with little lamps; far above, the bright rim of the shaft and other mirrors. A small cloaked human traveller with a round jade glass fluid backpack works the crank, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pink and cream walls, warm golden sunbeam, brass, cool blue shade, turquoise depths, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#cs-light-down-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-21-40-1e9c",
+      "candidate": "openai/1",
+      "sha256": "83ee6e900f6b9a7559d5db8a33505db428ffb2422cea4bb079cfd28e6d6c644a",
+      "bytes": 219964,
+      "costUSD": 0.041
+    }
+  ]
+}

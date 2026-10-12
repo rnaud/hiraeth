@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of pale cream dunes under a sage green sky, a colossal rusted cog wheel sunk to its axle in the sand, its great teeth rising out of the dunes in a curve like a stair, each tooth carved and painted with pictures of a year (a birth, a flood, a dimming city, a festival of lanterns), small figures climbing the teeth and tying ribbons; round sinkholes in the dunes beside it show more giant gears turning below in a warm amber light; a village of domed huts at its foot, and far overhead an upside-down city hangs in the sky. A small cloaked human traveller with a round jade glass fluid backpack walks along the top of the teeth in the foreground, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale cream sand, sage sky, rust red and blue-grey iron, teal, warm amber glow, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#bm-tooth-calendar-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-18-06-7b83",
+      "candidate": "openai/1",
+      "sha256": "764ae6035cff85d09f3a0e748e4c5e3274db8fa61e5d0ff778cca34df929116b",
+      "bytes": 265184,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: inside a vast dim hall under desert dunes, giant rusted gear wheels turning slowly at different heights, shafts of pale light falling through round sinkholes in the sand ceiling far above, sand trickling down in thin streams; one enormous hollow gear tooth has been made into a little home with a round door, a lamp, a hanging plant and a ladder, its outside painted with a calendar of small pictures; an old dome keeper sits at its door with a pot of oil. A small cloaked human traveller with a round jade glass fluid backpack crosses a narrow iron catwalk between the gears, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust red and blue-grey iron, teal, warm amber and peach lamp glow, pale cream light, violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-prompts.md#bm-tooth-calendar-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-18-36-a321",
+      "candidate": "openai/1",
+      "sha256": "7115d2734f5554ab87a3ebe31adf245c3050b3944d6cd5b67429069ca9001aa0",
+      "bytes": 271583,
+      "costUSD": 0.041
+    }
+  ]
+}

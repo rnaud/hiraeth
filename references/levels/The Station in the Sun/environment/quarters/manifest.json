@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: the keepers' quarters on the shadow side of a station inside a sun, a steep street of small round houses stacked into the curve of the station's hull, every window covered with carved shutters, louvres and woven blinds, so the fierce light outside only gets in as thin patterned stripes and dots on the walls and floors; inside an open doorway a family eats at a low table in a dappled pattern of light, a jar of liquid sunlight hanging from the ceiling as their lamp; washing of white cloth on lines between the houses; awnings and parasols everywhere; keepers in white and gold wraps rest in deep shade on cushions, fanning themselves; at the top of the street a gap in the hull shows the blinding white-gold sun and a far arch of rose plasma in heat shimmer. A small cloaked human traveller with a round jade glass fluid backpack walks up the street for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white-gold and saffron light, apricot walls, deep indigo and violet shadows, cool teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#quarters",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-04-18-0f84",
+      "candidate": "openai/1",
+      "sha256": "bd19520af4e2505c7e42f6632eb112b4880f60f7c18ba0aa57b8ef100d747683",
+      "bytes": 338593,
+      "costUSD": 0.041
+    }
+  ]
+}

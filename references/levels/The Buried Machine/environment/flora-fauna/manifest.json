@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of pale dunes and a canyon over a great buried machine, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a tall chimney stalk plant like a smoking pipe; a large round ash gourd; a cluster of rust tube worms; a teal blade leaf plant; small ash bulbs on the ground; a rust pipe beetle, one rolled into an armoured ball bouncing off; a teal spring worm, one stretched like a slinky flipping end over end. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale sand, rust, teal and ash grey, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#buried-machine",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-20-55-f53d",
+      "candidate": "openai/1",
+      "sha256": "aafe3e5603c1eda0fd71d52e16dd40098137787fcc850b1fc5810fa32cf21047",
+      "bytes": 232849,
+      "costUSD": 0.041
+    }
+  ]
+}

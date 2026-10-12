@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a long market street of a thousand broadcasts and signs, plants growing in enamel pots along the pavements, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a strap palm in a big enamel pot; a street lamp flower with a glowing bloom like a streetlight; a pipe blossom growing out of an old pipe; a tin star plant with metallic star-shaped leaves; a gutter puff growing in a drain; a kerb creeper; a teal sign bug, one popping up a little glowing sign as it trundles off; a lilac-grey ticket finch, one bursting into a flurry of paper tickets. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, enamel coral, teal, mustard, lilac and cream, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#signal-market",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-21-29-009b",
+      "candidate": "openai/1",
+      "sha256": "02ada5927a8a311f2e174d5db7f3d0ee2f6ffde080ac7894dcf72e9f44e0880c",
+      "bytes": 253512,
+      "costUSD": 0.041
+    }
+  ]
+}

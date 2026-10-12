@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a city of adobe houses on islands floating in the dark of space, every tree carried over a bridge in a pot, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a small round-crowned tree in a clay pot; a trailing vine that hangs off a parapet into the void; potted flowers in coral and cream; a plant that grows along a hanging cable; a moss on the underside of an island; a salmon cable finch, one hanging upside down from a cable as it flutters back up; a golden lamp bug, one lit up like a little lamp. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, salmon and coral, warm lamp gold, dark teal and night violet, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#space-city",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-21-29-7541",
+      "candidate": "openai/1",
+      "sha256": "5f6efed938025b79cf8ece50b7e1508de491ae65fdf1cee8e2f7572134ff4de3",
+      "bytes": 239140,
+      "costUSD": 0.041
+    }
+  ]
+}

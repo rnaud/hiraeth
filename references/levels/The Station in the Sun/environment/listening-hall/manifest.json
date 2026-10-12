@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: the great listening hall at the cool, dark core of a station inside a sun. A vast round hall of deep indigo shadow, its dome pierced by one narrow shaft through which a single beam of white-gold sunlight falls onto a huge round lens of pale gold glass in the middle of the floor; the lens throws slow rings of light across the hall that pulse in threes; around it, rows of tall curved listening horns and taut strings stretched floor to ceiling hum and glow faintly; keepers in white and gold robes sit on low stools along the rings with their ears to small brass trumpets, one writing the pulse down as dots on a long scroll; the glyph of three dots over an upward arc is inlaid in the floor around the lens. A small cloaked human traveller with a round jade glass fluid backpack stands at the edge of the light for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white-gold and saffron light, deep indigo and violet shadows, warm brass, a little cool teal, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/sun-station-prompts.md#listening-hall",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-03-50-43c1",
+      "candidate": "openai/1",
+      "sha256": "49b9bb2364f69a19a059efb1136517764de70a44d8571316873289833a58b8ca",
+      "bytes": 260343,
+      "costUSD": 0.041
+    }
+  ]
+}

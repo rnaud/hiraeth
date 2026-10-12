@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character action reference sheet for a science fiction exploration game: a slim young adult traveller with messy short black curly hair, a coral overshirt, a tan neckerchief, cream trousers and small suede boots, a round glass backpack of glowing jade-green fluid between his shoulder blades, crouched slightly with his weight forward, raising a shield of living fluid on his left forearm to protect himself, a short blade of green light in his right hand held back, drawn in four full-body views side by side at the same scale on a plain cream background: front view, three-quarter front view, side view, and three-quarter back view. The shield: a small brass disc on the back of his left hand, from which six curved brass petals have spun open round a hub with a thin brass ring round them, and beyond them a translucent blob of swirling jade and turquoise fluid about 70 centimetres across, its edge rippling and never quite round, a bright pale lemon wavy rim, held on a short brass arm in front of the middle of his chest. His fist stays behind the fluid with clear air between them, his face visible through the translucent green, eyes alert. No hose or cable from the backpack to the hand. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral and cream clothes, jade green glow, brass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube.",
+      "from": "docs/design/shield-prompts.md#guard",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-03-33-44-2ea4",
+      "candidate": "openai/1",
+      "sha256": "4cf8c6b7cd701a9ae54baf4bbba2b46296cf5d8ce9469f653fafe413a99639bf",
+      "bytes": 183177,
+      "costUSD": 0.041
+    }
+  ]
+}

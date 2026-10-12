@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a green garden bowl round a lake, scattered with great fallen spheres, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a tall orb lily with a round glowing head; a bead tree hung with round beads; lake rushes standing in water; small saffron cups; a string of pearls ground plant; pale bells; a pearl-white sphere mimic, one curled into a perfect sphere half sunk in the grass; a dark blue lake strider, one with its legs telescoped into tall stilts striding away. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, lime, dark green, cream, orange and pale blue, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#spheres",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-20-55-1500",
+      "candidate": "openai/1",
+      "sha256": "430b5d634525fc70aa2f49207e3763793d7e1a64361d9e6b10993abb4968f7cf",
+      "bytes": 213479,
+      "costUSD": 0.041
+    }
+  ]
+}

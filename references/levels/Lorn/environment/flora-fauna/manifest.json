@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a twilight swamp that hums and the deep wood north of it, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a tall stilt fungus on thin legs, its cap faintly glowing; a cluster of organ pipe plants standing in water; an eye bulb, a stalk ending in a glowing round eye; a swamp fan; spore puffs on the ground; a glowing lantern pod tree; a candelabra plant; coral fingers; a velvet trumpet flower; shelf bracket fungi; a feather plume; a lilac eye-moth with eye spots on its wings, one splitting into three little moths that scatter; a violet spore shell, one popped open into a spray of glowing spores; a coral lantern fish leaping from one pool to another; a pale lantern grub, one gone dark leaving only two blinking eyes. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet, swamp green, teal and lime glows, peach-orange, dark teal and lilac, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#lorn",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-19-49-ee92",
+      "candidate": "openai/1",
+      "sha256": "546aaf27ecb19978caaa78f64fe654d1dffc87736b42c5229655cc88cf33ba15",
+      "bytes": 310900,
+      "costUSD": 0.041
+    }
+  ]
+}

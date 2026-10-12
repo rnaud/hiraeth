@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-11",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature and plant design sheet for a science fiction exploration game: the flora and fauna of a basin of amber sand walled by frozen waves of fused green glass, drawn like a naturalist's plate on a plain cream background, each one small and clearly separated: a hardy succulent with translucent green glassy leaves; a tuft of amber sand grass; a lichen that grows in the cracks of glass; a tall plant like a blown-glass bottle catching the light; a small creeping vine with bead-like fruit; a cream cog mouse with a little cog on its back, one whirling away like a spinning top; a mint-green glass hopper, one diving into a wall of glass and popping out of another. A small cloaked human traveller with a round jade glass fluid backpack stands at one side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, amber sand, lime, mint, emerald and teal glass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/flora-fauna-prompts.md#glass-dunes",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-11",
+      "batch": "2026-10-11-09-20-22-cb15",
+      "candidate": "openai/1",
+      "sha256": "4af62b85b05b8922f6b30298749e8e3dfd78680aa0fe94b85874b8d68c500a75",
+      "bytes": 259588,
+      "costUSD": 0.041
+    }
+  ]
+}
