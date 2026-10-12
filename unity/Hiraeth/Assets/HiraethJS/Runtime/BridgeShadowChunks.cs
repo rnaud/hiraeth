@@ -10,7 +10,7 @@ namespace Hiraeth.Bridge
     /// meshes ~360 m across of ~100 000 vertices each, so every cascade that touches one drew all of it: the fine map's 24 m
     /// window round the traveller took three of them whole, ~0.3 million vertices, for the few triangles that fall in it.
     /// A mesh this big (bounds' radius MinRadius m and up, MinVertices and up, plain: not skinned, no shape keys) is cut, by
-    /// the cell of each triangle's centre (Cell m), into pieces that keep its vertex layout byte for byte and its submeshes
+    /// the cell of each triangle's centre (Cell m), into pieces (128 m: smaller ones cost the main thread's culling more than the GPU saved) that keep its vertex layout byte for byte and its submeshes
     /// (empty where a piece has none of one), each a renderer under the node drawing only into the shadow maps (Layer: off
     /// the camera's culling mask, so the G-buffer still draws the mesh whole; its own renderer out of the casters' rendering
     /// layer), culled by each cascade's planes as any caster. The same triangles reach each map where they can matter: the
@@ -21,7 +21,7 @@ namespace Hiraeth.Bridge
         /// <summary>On with renderer lists (the Xbox), -no-shadow-chunks off.</summary>
         public static bool On;
         public const int Layer = 30;
-        public static float Cell = 48, MinRadius = 40;
+        public static float Cell = 128, MinRadius = 40;
         public static int MinVertices = 4000;
         static readonly Dictionary<Mesh, Mesh[]> cache = new();
         public static int meshesCut, piecesMade;
