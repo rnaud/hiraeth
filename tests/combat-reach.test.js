@@ -12,10 +12,20 @@ import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { reachRig, swingAt } from '../scripts/combat-reach.mjs';
+import { seeded } from '../src/motion-kit/gait.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 const BUILT = Object.entries(ARCHETYPES).filter(([, A]) => A.status === 'built');
+// The poses are drawn from Math.random (a sky ray's wingbeat starts at a random phase) and the wall clock (the kit's
+// `now`: a hound's sway); left to them, a ray caught wings-up had no body at its span's middle. A fixed seed and a
+// clock that runs with the frames make each pose the same every run.
+let clock = 0;
+function pinned(fn, seed = 1) {
+  const random = Math.random, now = performance.now;
+  Math.random = seeded(seed); clock = 1000; performance.now = () => clock;
+  try { return fn(); } finally { Math.random = random; performance.now = now; }
+}
 
 test('a segment against a box: through it, past it, along an edge, from inside', () => {
   const lo = v(-1, -1, -1), hi = v(1, 1, 1);
@@ -25,7 +35,7 @@ test('a segment against a box: through it, past it, along an edge, from inside',
   assert.equal(segmentBox(v(0, 0, 0), v(0.2, 0, 0), lo, hi), 0, 'starts inside');
 });
 
-test('the body the blade meets: each archetype\'s drawn parts, not its smoke, threads or ripples; hidden parts left out', () => {
+test('the body the blade meets: each archetype\'s drawn parts, not its smoke, threads or ripples; hidden parts left out', () => pinned(() => {
   clearTargets();
   const P = { pos: v(0, 0, 40), vel: v(), heading: 0, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() {} };
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game: new GameState(null) });
@@ -33,7 +43,7 @@ test('the body the blade meets: each archetype\'s drawn parts, not its smoke, th
   for (const k of ['shell', 'leg', 'wing', 'bell', 'cloak']) assert.ok(!NON_BODY.test(k), k);
   for (const [id, A] of BUILT) {
     const f = foes.add(A.kind, v(0, 0, 0));
-    for (let i = 0; i < 10; i++) foes.look(f, 1 / 60);
+    for (let i = 0; i < 10; i++) { clock += 1000 / 60; foes.look(f, 1 / 60); }
     f.model.group.updateMatrixWorld(true);
     const parts = bodyParts(f.model), S = bodySpan(f.model);
     assert.ok(parts.length >= 3, `${id}: ${parts.length} parts`);
@@ -52,7 +62,7 @@ test('the body the blade meets: each archetype\'s drawn parts, not its smoke, th
   }
   // a cracked crab's dome (hidden) is not hit where only it was
   foes.dispose(); clearTargets();
-});
+}));
 
 test('the soft aim: a low body gets a lower arc, a high one a raised one, within limits; one in the arc\'s way none', () => {
   const sh = 1.25;
