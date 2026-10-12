@@ -1,0 +1,87 @@
+changelog.md
+  s_9ca76055a220ed::t_7d1882743f27a3 5-12
+docs/README.md
+  s_9ca76055a220ed::t_8d982a1768c704 67
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_f801d2982ba7e2 1-24,26-77
+scripts/fragment-spots.mjs
+  s_9ca76055a220ed::t_296e59c104128d 1-84
+src/boxes/effects.js
+  s_9ca76055a220ed::t_97190e254ee9e6 45-50,254
+src/boxes/model.js
+  s_9ca76055a220ed::t_9ec18eb47e46e8 585-607,609,633
+src/changelog-media.js
+  s_9ca76055a220ed::t_ce70fa3f2ace38 680,682-700
+src/changelog.js
+  s_9ca76055a220ed::t_f03c61e2059cff 11-19
+src/debug-save.js
+  s_9ca76055a220ed::t_3bd36b3564ea9d 30-31
+src/fluid-blade.js
+  s_9ca76055a220ed::t_7ca09e45d1df5e 29,880
+src/fragments-data.js
+  s_9ca76055a220ed::t_e064c14079861a 1-159
+src/fragments.js
+  s_9ca76055a220ed::t_04a194dbd118f0 1-135
+src/game-menu-data.js
+  s_9ca76055a220ed::t_f6f9ede41b8024 23,29-30,90,93,96-98,100-102,132,136
+src/game-menu.css
+  s_9ca76055a220ed::t_0fae6b40aa0510 10,200-201,222
+src/game-menu.js
+  s_9ca76055a220ed::t_546524dbab06a3 38-40,269-272
+src/i18n/en.js
+  s_9ca76055a220ed::t_8d30e53711c37b 416-418
+src/i18n/fr.js
+  s_9ca76055a220ed::t_33aba82a87a233 414-416
+src/items.js
+  s_9ca76055a220ed::t_dd4e7f47c3ed64 3,267-298,301-303
+src/main.js
+  s_9ca76055a220ed::t_5bce5540b5daa4 106,854-860,905,909,1298,2170,2536,2544,2550
+src/menus.css
+  s_9ca76055a220ed::t_21ecb5c17f79dc 171
+src/player.js
+  s_9ca76055a220ed::t_521b3b3cae4675 1478
+src/resources.js
+  s_9ca76055a220ed::t_6113128b86a56c 56-58,134-138
+src/save-migrate.js
+  s_9ca76055a220ed::t_76c564fd3f3cf0 78,80,242,252-255
+src/story/index.js
+  s_9ca76055a220ed::t_8f89b4f44971e1 46,267-268,363,376
+src/story/people-book.js
+  s_9ca76055a220ed::t_ea6321c3b186b4 183-194
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_68f432656e5d54 1-132
+src/story/scientist.js
+  s_9ca76055a220ed::t_6446a95a6a57a4 1-142
+src/trials/upgrades.js
+  s_9ca76055a220ed::t_201df2741b97ef 12-13,49-59,70
+tests/boxes.test.js
+  s_9ca76055a220ed::t_ad4232bf24ea82 86
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_4e71bf7ca7eed2 16-18,422-451
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_88df3ec44e8ca7 180-182
+tests/fragments-reach.js
+  s_9ca76055a220ed::t_79dd37619de90b 1-104
+tests/fragments.test.js
+  s_9ca76055a220ed::t_352a86a4218948 1-325
+tests/people-page.test.js
+  s_9ca76055a220ed::t_e35387d021d9a3 18,39-40,44
+src/audio.js
+  s_9ca76055a220ed::t_89054ae1e5d7bf 1823-1844
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "92efdbe3ead464f312da32b9b8b600c3469c2f1e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
