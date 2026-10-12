@@ -730,6 +730,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'window-father-walk', only: 'after', caption: 'The same recording, 22 s in: walking across the lens to the window, mid-stride, the coat swung back off his knee', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs --only call.trace, 12 October)' },
     ], see: 'After the first homecoming, play the ship’s log waiting at the cockpit’s voicemail (or Debug → Cinematics → Recording trace): the father walks to the window over the projector. Every recording after it that plays further into the window recording shows him the same way.' },
     { match: 'The Unity previews on the Xbox and the Steam Deck spend less time on each frame', numbers: [
+      { title: 'The Unity preview on the Xbox: the script’s milliseconds a frame', unit: 'ms', better: 'lower', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1)', rows: [
+        { where: 'the Desert at the spawn', before: 12.2, after: 11.4 },
+        { where: 'the Desert at the spawn: frames at 33 ms, %', before: 1.5, after: 0.5 },
+        { where: 'the City-Shaft, the rim (before the crowd’s change)', before: 15.7, after: 15.9 },
+      ], source: 'scripts/xbox-unity.mjs, the last 30 s of a 170 s run, 12 October: build 1937 (before) against 1969 (the rigs, the fires, the pillars, the trail)' },
       { title: 'The game’s update a frame, before the Unity mirror (ms)', unit: 'ms', better: 'lower', device: 'Mac M4 Pro, Node 24 (V8 as in the Unity players), the Unity bundle', rows: [
         { where: 'the Desert at the spawn', before: 2.85, after: 2.36 },
         { where: 'the Desert’s camps', before: 4.22, after: 3.69 },
@@ -737,7 +742,16 @@ export const CHANGELOG_MEDIA = {
         { where: 'the City-Shaft, the crowd', before: 5.10, after: 4.91 },
         { where: 'the Signal Market, the crowd', before: 3.63, after: 3.23 },
       ], source: UPDATE53 },
-    ], see: 'On the Xbox, the Unity preview’s readout at the top left shows the script’s milliseconds a frame: lower at the Desert’s spawn than before.' },
+      { title: 'The web build on the Steam Deck’s preset, the CPU slowed ×3: the systems’ milliseconds a frame', unit: 'ms', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU at 1280 × 800, the Deck preset', rows: [
+        { where: 'the Desert’s spawn: the story (its fires)', before: 1.22, after: 0.78 },
+        { where: 'the Desert’s spawn: the traveller', before: 1.78, after: 1.58 },
+        { where: 'the City-Shaft’s rim: the crowd', before: 1.50, after: 0.86 },
+        { where: 'the City-Shaft’s crowd: the crowd', before: 1.44, after: 0.70 },
+        { where: 'the City-Shaft’s crowd: the traveller', before: 1.93, after: 1.70 },
+        { where: 'the Signal Market’s crowd: the crowd', before: 0.97, after: 0.50 },
+        { where: 'the Signal Market’s crowd: the traveller', before: 1.90, after: 1.53 },
+      ], source: 'scripts/bench/deck-mac.mjs + deck-worlds.mjs --slow 3 --quality deck --modes fixed --profile 1, the build before (00aab528) and after served side by side, alternated twice, the mean of the two; 12 October, the Mac’s load 23–88 (the frame’s whole JS, three’s drawing most of it, moves with the load)' },
+    ], see: 'On the Xbox, the Unity preview’s readout at the top left shows the script’s milliseconds a frame: about 11.4 at the Desert’s spawn, where it was 12.2.' },
     { match: 'Viridel’s meadow flowers seen from afar', shots: [
       { name: 'ink-flowers-far', caption: 'Viridel’s meadow 55 m off at 1920 × 1080, cropped ×2: before, the tulips and clover in heavy black outlines; after, a thinner outline in a dark shade of their own green and pink (the flowers 40 → 27 % ink, 12 → 6 % near-black)', from: INK53 },
       { name: 'ink-flowers-handheld', caption: 'The same flowers on the Handheld preset (960 × 540), cropped ×3 (34 → 23 % ink)', from: INK53 },

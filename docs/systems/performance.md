@@ -2030,3 +2030,50 @@ the near map's still casters between the frames the window does not move. On the
 walked from their roots several times a frame (posing, cloth, hands: ~2 ms in the crowd view) are the largest part
 left. V8's tiers are as Puerts builds them (13.6, Sparkplug and Maglev on; its API takes no flags) and its garbage
 collector is under 1 % of the script's thread.
+
+## The game's update on the Unity targets (issue #111, October 2026)
+
+With the mirror cut (round 7), the game's own update (engine/game.js `frame`, before `mirror.sync`) was the longest part
+of the script on both Unity targets: ~12.5 ms at the Xbox's desert spawn, ~15 ms in the Deck's City-Shaft crowd. The
+same JS runs in Node: the Unity bundle in a bare V8 context against a stand-in host (as tests/engine-unity.test.js), at
+the bench's views, `--cpu-prof`, gives the update's profile without a device; two bundles in one process, a frame of
+each in turn on the script thread's CPU clock (`process.threadCpuUsage`), compare a change with the Mac's load at 40-90.
+
+**Where it went** (City-Shaft crowd, Mac, self time of the update): the crowd 21 %, the rigs' walks (matrix-cache.js)
+19 %, three's maths 19 % (most of it called by the posing), the level 7 %; at the desert's spawn the story's fires
+(story/flames.js, the temples' pilot flames and bowls) 12 % and the wind's wisps 6 %.
+
+**Kept:**
+- **The rigs walked once** (src/matrix-cache.js `updateChain(o, top)`: the way from a walk's first object down to what a
+  read needs, made as `top.updateMatrixWorld(true)` would make it; where a world matrix changed, the children off the
+  way are flagged, so the next walk makes them). The traveller's standing pose (`standUnder`, his 363 objects walked to
+  read his feet), his scarf, his arms' walk styling, his wrists, Animator.apply (each joint's subtree walked after it
+  turned: the legs three times, the arms four; now each joint's parents for its read and the rig walked once at the
+  end), the pelvis's parent's subtree in Humanoid.update (300 bones multiplied for nothing), and the people's walks
+  right after Humanoid.update. The City-Shaft's crowd 6 040 objects visited a frame → 3 520. `__POSE_WALKS__` walks as
+  before; tests/pose-walks.test.js: every world matrix and every frame's command stream to Unity bit for bit.
+- **Fires and air pillars out of view held** (Flames.update, ShaftPillars.lay; src/motion-kit/view.js `sphereInView`):
+  tongues out of the camera's last view (a margin round their sway) are left as they are and moved the frame they are
+  seen, as the clock puts them; a pillar out of view lays no pieces. engine/game.js now sets the view after the mirror's
+  frame, as main.js does after drawing (so the motion kit's view tiers run on Unity too). Desert spawn: the story's part
+  0.48 → 0.15 ms on the Mac.
+- **The crowd in one shape** (src/crowd.js): every field the update sets on a person later is in the literal that makes
+  them, so the update's reads of 1 500 people are a shape's, not megamorphic over dozens; and past 120 m, not drawn,
+  nothing about them minding the traveller, a person's head, talk and turn towards him are left as they were (where they
+  stand, walk and face: the same arithmetic, tests/crowd.test.js). The crowd 0.97 → 0.54 ms (Mac).
+- The drone's trail, docked, written once (src/trail.js); the crowd's going-home share kept on each person.
+- Tried and left out: the far crowd moved every 24th frame out of view (4 % of the crowd: the cost was not its maths).
+
+**Measured.** The Xbox (Series X, Direct3D 12, 1440p, `-vsync 1`, the last 30 s of a 170 s run; build 1937, origin/main
+before, against build 1969 = 4af906a1, the rigs, fires, pillars and trail; the crowd's change not in it):
+
+| view | script ms | frames at 33 ms | fps |
+|---|---|---|---|
+| desert spawn | 12.2 → **11.4** | 1-2 % → 0-1 % | 59.5 → 59.6 |
+| City-Shaft rim | 15.7 → 15.9 | 36 % → 40 % | 44.6 → 44.5 |
+
+The City-Shaft's script is the crowd and the people there (the rigs' change is small there: its time is not the walks'
+visits but their megamorphic reads); the crowd's change (above) is after build 1969. The web build on the Deck's
+preset (headless Chrome, CPU ×3, the build before and after side by side, twice): the crowd 1.50 → 0.86 ms at the
+City-Shaft's rim, 1.44 → 0.70 in its crowd, 0.97 → 0.50 in the Market's; the story at the desert's spawn 1.22 → 0.78;
+the traveller 1.8-1.9 → 1.5-1.7.
