@@ -66,8 +66,8 @@ other four are a click away).
    (`references/**/*.json`, e.g. the title covers). Choosing an archetype fills its aspect ratio and target
    folder (`references/enemy-archetypes/<id>/`). A document names its own with a ``Target folder:
    `references/…/<id>/` `` line; one covering several folders puts one in each section, and an entry takes the
-   last one above it, with or without `<id>` (`targetFor`; e.g. `docs/design/level-explorations-prompts.md`, two
-   prompts to each direction's folder). Midjourney's flags are turned into words: `--ar` becomes the
+   last one above it, with or without `<id>` (`targetFor`; e.g. `docs/design/level-explorations-prompts.md` and
+   `level-explorations-2-prompts.md`, two prompts to each direction's folder). Midjourney's flags are turned into words: `--ar` becomes the
    aspect ratio, `--no a b` a closing "Avoid: a, b."
 2. **Style references:** thumbnails of every picture under `references/`, filtered by folder or by words in
    the path; click to add or remove. The first one is shown beside the results for comparison (or choose
