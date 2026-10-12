@@ -452,7 +452,7 @@ export class PrologueDirector {
         const nearAt = 2.9, cut = 2.55;
         if (t < cut) {
           const k = smooth(t / cut);
-          s.shot({ pos: this.W(V(0.55, DECK + 1.95, -5.9 - 0.3 * k)), look: this.W(V(-2.6 - 2 * k, DECK + 1.75, -22)), fov: 56 });
+          s.shot({ pos: this.W(V(0.55, DECK + 1.95, -6.7 - 0.3 * k)), look: this.W(V(-2.6 - 2 * k, DECK + 1.75, -22.8)), fov: 56 });
         } else {
           const k = smooth((t - cut) / (this.passDur - cut));
           s.shot({ pos: this.W(V(-34, DECK + 2 + 2 * k, 3 + 4 * k)), look: this.W(V(-3 - 5 * k, DECK + 1.2, -6 + 9 * k)), fov: 56 });
@@ -468,7 +468,7 @@ export class PrologueDirector {
       case 'drain': {
         // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit
         const k = smooth(seg(t, 1.6, 4.8));
-        s.shot({ pos: this.W(V(1.0, DECK + 1.8, -5.5)), look: this.W(V(-0.3, DECK + 1.9 - k * 0.7, -12)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
+        s.shot({ pos: this.W(V(1.1, DECK + 1.8, -6.3)), look: this.W(V(-0.3, DECK + 1.9 - k * 0.7, -12.8)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
         if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
         if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
         if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Not enough to hold orbit. Taking us down.' }); }

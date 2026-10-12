@@ -30,6 +30,12 @@ const UP = V(0, 1, 0);
  * front and they stripe as the camera moves (scripts/zfight, tests/zfight.test.js; docs/systems/rendering.md).
  */
 export const Z_GAP = 0.02;
+/**
+ * The antechamber before a guardian's round hall (issue #195: it was a 4 x 5.6 m passage 7 m high, and the close camera
+ * fought its walls at every turn): a vestibule `2 half` wide, `len` deep, `h` high, from the door in the hall before it
+ * (z0) to the round hall's wall (the hall's centre is then `end + 1.2 + r`, as before). `TempleKit.vestibule`.
+ */
+export const ANTE = { half: 4.4, len: 7.4, h: 8.5 };
 const PROXY = new THREE.MeshBasicMaterial({ color: '#ff00ff' });
 const _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _e = new THREE.Euler();
 
@@ -497,6 +503,17 @@ export class TempleKit {
       if (roof) this.both(this.M.wall, box(L, 0.8, 2 * s + t, (u0 + u1) / 2, y + h + 0.42, c));   // (its underside 2 cm over the doorways' lintels: no face shared with their frames)
     }
     return this;
+  }
+  /**
+   * The antechamber (ANTE) along +z from the door's wall at z0, floor at y: its floor, walls and roof, the walls run on
+   * into the round hall's wall. Returns the z where the round hall's wall begins (its centre is that + 1.2 + its r).
+   */
+  vestibule(z0, y, { x = 0 } = {}) {
+    const { half, len, h } = ANTE, end = z0 + len;
+    this.slab(x - half - 0.4, z0 - 0.6, x + half + 0.4, end + 0.6, y, 0.8);
+    this.wall(x - half, z0 + 0.2, x - half, end + 0.6, y, h, { t: 0.8 }); this.wall(x + half, end + 0.6, x + half, z0 + 0.2, y, h, { t: 0.8 });
+    this.both(this.M.wall, box(2 * half + 0.8, 0.8, len + 0.8, x, y + h + 0.4, (z0 - 0.2 + end + 0.6) / 2));
+    return end;
   }
   /** Straight stairs from a (the bottom's middle) to b (the top's middle), w wide, steps no taller than `rise`. */
   stairs(a, b, w, { rise = 0.32, mat = this.M.floor, sides = true } = {}) {

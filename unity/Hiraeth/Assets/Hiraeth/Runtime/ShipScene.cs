@@ -32,7 +32,7 @@ namespace Hiraeth
         Vector3 T, N, touch, S0, S1, hinge, rampFoot, outDir;
         float R = 13, DECK = -9, HATCH_A, siteHeading;
         // the angular hull's extents (export ship.hull: src/ship/hull.js LENGTH, HALF_W, CENTRE_Z, BELLY)
-        float hullLength = 22.2f, halfWidth = 3.6f, centreZ = 1.1f, belly = -1.6f;
+        float hullLength = 26.0f, halfWidth = 4.2f, centreZ = 2.2f, belly = -1.6f;
         public Hologram holo;
         // the cinema
         public float fade, lids, bars, red; float fadeTarget, fadeSpeed = 99; float shakeK;
@@ -419,7 +419,7 @@ namespace Hiraeth
                         // planet, the light brushing past its hull (the web's cameras, mirrored)
                         const float nearAt = 2.9f, cut = 2.55f;
                         float passDur = Dur("pass", 5.4f);
-                        if (t < cut) { float k = Smooth(t / cut); Shot(Ws(new Vector3(-0.55f, DECK + 1.95f, -5.9f - 0.3f * k)), Ws(new Vector3(2.6f + 2 * k, DECK + 1.75f, -22)), 56); }
+                        if (t < cut) { float k = Smooth(t / cut); Shot(Ws(new Vector3(-0.55f, DECK + 1.95f, -6.7f - 0.3f * k)), Ws(new Vector3(2.6f + 2 * k, DECK + 1.75f, -22.8f)), 56); }
                         else { float k = Smooth((t - cut) / Mathf.Max(0.1f, passDur - cut)); Shot(Ws(new Vector3(34, DECK + 2 + 2 * k, 3 + 4 * k)), Ws(new Vector3(3 + 5 * k, DECK + 1.2f, -6 + 9 * k)), 56); }
                         LightFrame(nearAt - t);
                         if (t < nearAt + 0.4f) holo.Tear(0.25f * Smooth(t / nearAt));
@@ -431,7 +431,7 @@ namespace Hiraeth
                     {
                         // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit (from his right)
                         float k = Smooth(Seg(t, 1.6f, 4.8f));
-                        Shot(Ws(new Vector3(-1.0f, DECK + 1.8f, -5.5f)), Ws(new Vector3(0.3f, DECK + 1.9f - k * 0.7f, -12)), 58, k * 0.12f + Mathf.Sin(t * 1.3f) * 0.02f);
+                        Shot(Ws(new Vector3(-1.1f, DECK + 1.8f, -6.3f)), Ws(new Vector3(0.3f, DECK + 1.9f - k * 0.7f, -12.8f)), 58, k * 0.12f + Mathf.Sin(t * 1.3f) * 0.02f);
                         if (t > 1.3f && once.Add("reserve")) { if (holoSpace) holoSpace.state = "emergency"; Fade(0.25f, 0.8f); red = 0.18f; }
                         if (t > 2.4f && once.Add("orbit")) Say("ship", "~neutral~ Not enough to hold orbit. Taking us down.");
                         if (space) space.transform.rotation = spaceRot * Quaternion.Euler(0.76f * k * Mathf.Rad2Deg, 0, 0);

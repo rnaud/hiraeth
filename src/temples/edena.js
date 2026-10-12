@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus } from './kit.js';
+import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Platform, Bridge, Seed, Bud, Glass, Sunbeam, Mark, Pit, Key } from './pieces.js';
 import { gardenerModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
@@ -486,12 +486,10 @@ function layout(rt) {
 
   // ---- the corridor and the Glasshouse (floor 27): four dead beds round the walls
   const H0 = G0 + 44;
-  K.slab(-3.2, H0 - 0.6, 3.2, H0 + 3.4, 27, 0.8);
-  K.wall(-3.2, H0 + 0.2, -3.2, H0 + 3.4, 27, 7, { t: 0.8 }); K.wall(3.2, H0 + 3.4, 3.2, H0 + 0.2, 27, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.6, 0, 34.4, H0 + 1.6));
-  add(Mark, { room: 'ante', at: [2.2, 27, H0 + 1.6], yaw: -Math.PI / 2 });
-  add(Door, { id: 'dB', at: [0, 27, H0 + 3.0], w: 5, h: 6.4 });   // the great key's door (v1.49): its lock plate is its logic's
-  const HR = 20, CW = H0 + 3.2 + HR + 1.4;
+  const AE = K.vestibule(H0, 27);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, 27, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  add(Door, { id: 'dB', at: [0, 27, AE - 0.4], w: 5, h: 6.4 });   // the great key's door (v1.49): its lock plate is its logic's
+  const HR = 20, CW = AE + 1.2 + HR;
   K.rotunda({ x: 0, z: CW, y: 27, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.55 });
   for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU + 0.26; pane(Math.sin(a) * (HR - 0.05), 41, CW + Math.cos(a) * (HR - 0.05), 6, 8, a + Math.PI); }
   K.add({ paint: new THREE.Color('#9a7448'), smooth: false, side: THREE.FrontSide }, T(annulus(4, 7, 0.06, 48), [0, 27.06, CW]));   // bare earth where it stood

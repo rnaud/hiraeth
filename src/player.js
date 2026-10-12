@@ -2731,6 +2731,15 @@ const SHOVE_LAG = 0.08;            // m: …never more than this short of it
 const SHORT_ARM = 1.05;            // m: an arm cut shorter than this close in tips the camera down over the head…
 const SHORT_TILT = 0.7;            // rad: …by up to this much
 const ARM_HOLD_CUT = 0.45;         // m: only a cut this big is held (holdSpot): less comes in on the spring
+// A small room (issue #195, "the camera moves and shakes every time we are in a cramped space"): close in, the arm is
+// fitted to the room (ROOM_FIT, roomFit): in a room shut in every way within `small` (its widest width across under it;
+// aboard the ship, `indoor`, any room), no longer than the `third` nearest wall less `margin`, at least `min`. Its goal moves only by more than `step` (hysteresis: it never flips between
+// two lengths) and the arm eases to it over a second or so (`rate`), so turning round in a cabin the camera stays at
+// one steady distance instead of pumping in at every wall and out at every gap. Close in, the arm lets out again only
+// once it has `ARM_OUT_GAP` more room than it has (small gains are left: in, out, in by a few cm was the shake).
+export const ROOM_FIT = { small: 9.5, third: 2, margin: 0.6, min: 1.1, step: 0.18, rate: 1.4, far: 4.5 };
+const ARM_OUT_GAP = 0.12;          // m
+const ARM_HOLD_TIGHT = 0.5;        // s: close in, the hold before the arm lets out (ARM_HOLD in the open)
 const AIR_FOLLOW = 3.5;            // 1/s: close in, how fast the view rises with a jump (on the ground: 14)…
 const AIR_LAG = 0.8;               // m: …never more than this below him
 const LOOK_R = 0.3;                // m: the room the look point keeps off walls close in
@@ -2810,6 +2819,23 @@ export function roofness({ ceil = Infinity, up = [] }) {
   return smoothstep(0.5, 1, hits) * (1 - smoothstep(ENCLOSED.ceil * 0.6, ENCLOSED.ceil, ceil));
 }
 
+/**
+ * The arm a small room allows close in (m; ROOM_FIT.far where the room is not small): from the probes' ring (chest-height
+ * rays round him, ring[i] and ring[i + N/2] opposite). A room is small when even its widest width across is under `small`
+ * (or always `indoor`: the ship's rooms); there the arm is the `third` nearest wall less `margin`, the room the camera has
+ * behind him most ways he turns. By one wall of a big hall nothing changes (the hall is wide), nor in a corridor (its
+ * length is the room behind him: the shoulder view of the train's corridors stays as it was).
+ */
+export function roomFit(ring = [], indoor = false) {
+  const half = ring.length >> 1, w = [];
+  for (let i = 0; i < half; i++) w.push(Math.min(60, ring[i]) + Math.min(60, ring[i + half]));
+  if (w.length < 2) return ROOM_FIT.far;
+  w.sort((a, b) => a - b);
+  if (!indoor && w[w.length - 1] >= ROOM_FIT.small) return ROOM_FIT.far;   // (aboard the ship and in the houses always: a room, however long)
+  const d = ring.map((x) => Math.min(60, x)).sort((a, b) => a - b);
+  return Math.min(ROOM_FIT.far, d[ROOM_FIT.third] - ROOM_FIT.margin);
+}
+
 export class CameraRig {
   constructor(camera, dom, physics) {
     this.camera = camera;
@@ -2841,6 +2867,8 @@ export class CameraRig {
     this.tightK = 0;         // eased: what the arm uses
     this.hallRaw = 0;        // how much of a hall the last probe saw (hallness)
     this.hallK = 0;          // eased
+    this.roomFit = ROOM_FIT.far;   // close in, the arm the room round him allows most ways (ROOM_FIT), with hysteresis
+    this.roomK = ROOM_FIT.far;     // eased: what the close arm uses
     this.roofRaw = 0;        // how much of a roof the last probe saw overhead (roofness): the open framing stands higher there
     this.roofK = 0;          // eased
     this._probeT = 0;
@@ -2979,6 +3007,7 @@ export class CameraRig {
     }
     this.hallRaw = hallness({ ceil, ring: this._ring });
     this.roofRaw = roofness({ ceil, up: this._up });
+    this.roomRaw = roomFit(this._ring, this.indoor);
     return tightness({ ceil, ring: this._ring, up: this._up });
   }
 
@@ -3010,6 +3039,11 @@ export class CameraRig {
         if ((this._lowT += step) > 1.0) { this.tightGoal = raw; this._lowT = 0; }
       } else this._lowT = 0;
     }
+    // (the room-fitted arm's goal: moved only by a real change, ROOM_FIT.step; at once on a jump)
+    const fit = this._riding ? ROOM_FIT.far : Math.min(ROOM_FIT.far, this.roomRaw ?? ROOM_FIT.far);
+    if (jumped || Math.abs(fit - this.roomFit) > ROOM_FIT.step) this.roomFit = fit;
+    if (jumped) this.roomK = this.roomFit;
+    else this.roomK += (this.roomFit - this.roomK) * (1 - Math.exp(-ROOM_FIT.rate * dt));
     if (jumped) { this.tightK = this.tightGoal; this.hallK = this.hallRaw; this.roofK = this.roofRaw; }
     else {
       this.hallK += (this.hallRaw - this.hallK) * (1 - Math.exp(-0.8 * dt));
@@ -3134,7 +3168,9 @@ export class CameraRig {
   armLength(tk = this.tightK, ak = this.aimK ?? 0) {
     const open = this.dist + this._distBoost;
     // the close arm follows the wheel too (zoomed out a little further, in a little nearer)
-    const close = THREE.MathUtils.clamp(THREE.MathUtils.lerp(TIGHT_DIST, HALL_DIST, this.hallK) * this.dist / OPEN_DIST, 1.5, 4.5);
+    let close = THREE.MathUtils.clamp(THREE.MathUtils.lerp(TIGHT_DIST, HALL_DIST, this.hallK) * this.dist / OPEN_DIST, 1.5, 4.5);
+    // (in a small room, no longer than the room allows most ways round: ROOM_FIT, issue #195)
+    close = Math.min(close, Math.max(ROOM_FIT.min, this.roomK));
     // aiming: over the right shoulder, a little nearer close in
     return THREE.MathUtils.lerp(THREE.MathUtils.lerp(open, Math.min(open, close), tk), THREE.MathUtils.lerp(AIM_DIST[0], AIM_DIST[1], tk), ak);
   }
@@ -3247,7 +3283,16 @@ export class CameraRig {
     this._wasIndoor = this.indoor;
     // close in with the arm cut very short (turning round in a narrow corridor, a corner), the camera tips down over
     // the head, eased, so the traveller stays in the frame rather than his shoulders filling it (the camera QC's "out")
-    const tiltGoal = k > 0.5 && ak < 0.5 ? THREE.MathUtils.clamp((SHORT_ARM - this._curDist) / (SHORT_ARM - 0.45), 0, 1) : 0;
+    // (judged by the room behind him at the untipped pitch, not by the arm the tip left: tipped down over the head the
+    // camera met whatever hangs over the room's edge, the arm stayed short, so the tip stayed, and walking away it stuck
+    // at 0.15 m with the view spinning; issue #195, the Warden's Well's Climb)
+    let armBase = this._curDist;
+    if (k > 0.5 && ak < 0.5 && (this._tilt ?? 0) > 0.02 && this.physics.sweepSphere && U.y > 0.999 && this._look.lengthSq() > 0) {
+      const p0 = Math.min(this.pitch, PITCH_DOWN), c0 = Math.cos(p0);
+      _hs.copy(Rt).multiplyScalar(Math.sin(this.yaw) * c0).addScaledVector(U, Math.sin(p0)).addScaledVector(Fw, Math.cos(this.yaw) * c0);
+      armBase = Math.max(armBase, this.physics.sweepSphere(this._look, _hs, SHORT_ARM + 0.3, this._sweepR ?? LENS_R) - 0.1);
+    }
+    const tiltGoal = k > 0.5 && ak < 0.5 ? THREE.MathUtils.clamp((SHORT_ARM - armBase) / (SHORT_ARM - 0.45), 0, 1) : 0;
     this._tilt = (this._tilt ?? 0) + (tiltGoal - (this._tilt ?? 0)) * (1 - Math.exp(-5 * dt));
     // under a roof, in the open framing (not close in, not aiming), Sable's higher, steeper view indoors (ROOF_TILT)
     this._roofPitch = this.roofK * (1 - k) * (1 - ak) * (1 - this.downK) * ROOF_TILT;
@@ -3409,9 +3454,9 @@ export class CameraRig {
           next = lo; this._armV = Math.min(this._armV, 0);
         }
         this._curDist = next;
-        this._holdT = ARM_HOLD;
-      } else { this._curDist = soft; this._armV = 0; this._holdT = ARM_HOLD; }
-    } else if ((this._holdT = (this._holdT ?? 0) - dt) <= 0) {
+        this._holdT = k > 0.5 ? ARM_HOLD_TIGHT : ARM_HOLD;
+      } else { this._curDist = soft; this._armV = 0; this._holdT = k > 0.5 ? ARM_HOLD_TIGHT : ARM_HOLD; }
+    } else if ((this._holdT = (this._holdT ?? 0) - dt) <= 0 && !(k > 0.5 && !this._armV && allowed - this._curDist < ARM_OUT_GAP)) {
       const next = spring(ARM_OUT, allowed);
       if (next >= allowed || this._armV < 0) { this._curDist = Math.min(next, allowed); if (next >= allowed) this._armV = 0; }
       else this._curDist = next;

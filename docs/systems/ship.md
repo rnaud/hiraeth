@@ -38,16 +38,16 @@ Read off the picture, in the order you notice it:
 
 - **The traveller**: 1.82 m (eyes at 1.70 m, `FACE` in `src/humanoid.js`). His collision capsule
   (`src/player.js` `CAPSULE`) is 0.45 m in radius and 2.2 m tall; he steps up 0.6 m.
-- **Ceiling**: 2.35 m clear over the deck (the brief's ~2.3 m, with room for the capsule).
-- **Doors**: 2.25 m high (over the capsule); the hatch 1.3 m wide, the doorways between rooms
-  1.6 m wide: the camera's tight over-the-shoulder arm (`CameraRig.indoor`) passes through
-  behind him without the lens touching a jamb.
+- **Ceiling**: 2.9 m clear over the deck (2.35 m until issue #195, below: "the ship and its interior are too small").
+- **Doors**: the hatch 1.6 x 2.6 m, the doorways between rooms 2.1 m wide and 2.6 m high (1.3, 1.6 and 2.25-2.28 m
+  before): the camera's tight over-the-shoulder arm (`CameraRig.indoor`) passes through behind him without the lens
+  touching a jamb.
 - **Walkways**: at least 1.3 m between furniture fronts in the main room (the capsule is 0.9 m across):
-  1.4 m between the galley and the curved console, 1.3 m between the holo table and the bunk's alcove,
+  1.7 m between the galley and the curved console, 2.1 m between the holo table and the bunk's alcove,
   2 m between the console's tail and the lockers; the holo table is used from its open (starboard) half,
   inside its use radius `TABLE_R` 1.6 m.
 - **Furniture**: counter tops 0.92 m deep 0.65 m; the console 0.95 m high, 0.4 m deep; the bunk
-  0.98 x 2.15 m, its mattress 0.56 m up, 1.5 m of headroom sitting up under the alcove's 2.05 m hood;
+  1.1 x 2.5 m, its mattress 0.56 m up, 1.8 m of headroom sitting up under the alcove's 2.35 m hood;
   seats 0.45 m; the dash
   0.95 m high, 0.75 m deep. Low furniture gets an invisible block 1.1 m tall (`BLOCK_H`) over its
   footprint so walking the deck never lifts you onto it (as on the old deck).
@@ -60,15 +60,27 @@ the port side). The bow is at -z, as the old cockpit was.
 
 | Room | z from .. to | Clear width | What is in it |
 |---|---|---|---|
-| Cockpit | -9.0 .. -6.1 | 4.3 m at the nose wall, 6.4 m at the frame | the dash under the windshield (a scope and two screens in its middle), two seats side by side, the overhead panel between them, the father's cap and a child's drawing |
-| Main room (the picked layout) | -6.1 .. 2.55 | 6.4 m | the holo table in the middle (0.2, -3.1) in the crook of the curved console, the console's tail running aft with the voicemail button, the projector and the little screen on its end; port: the galley forward of the hatch (an L round the frame's corner, stove and kettle, sink, tool board, cupboards), coats and packs on hooks aft of the hatch; starboard: a chest of drawers by the frame, the bunk in its arched alcove under the window, kit on hooks, the lockers; two skylights, pipes along the ceiling |
-| Back room | 2.55 .. 6.75 | 6.4 m | a sofa under the port porthole, a small table with three mismatched seats, a desk and a chest of drawers, clothes on hooks, books under straps, photographs |
-| Hold (storage) | 6.75 .. 9.95 | 6.0 m | lockers both walls, crates strapped down, a tool board, spare parts, the engine room's hatch in the aft wall (shut) |
-| Engine bay | 9.95 .. 12.2 | (closed) | no rooms: machinery behind the aft wall, the pods' roots |
+| Cockpit | -9.8 .. -6.9 | 4.9 m at the nose wall, 7.6 m at the frame | the dash under the windshield (a scope and two screens in its middle), two seats side by side, the overhead panel between them, the father's cap and a child's drawing |
+| Main room (the picked layout) | -6.9 .. 3.15 | 7.6 m | the holo table in the middle (-0.1, -3.1) in the crook of the curved console, the console's tail running aft with the voicemail button, the projector and the little screen on its end; port: the galley forward of the hatch (an L round the frame's corner, stove and kettle, sink, tool board, cupboards), coats and packs on hooks aft of the hatch; starboard: a chest of drawers by the frame, the bunk in its arched alcove under the window, kit on hooks, the lockers; two skylights, pipes along the ceiling |
+| Back room | 3.15 .. 7.95 | 7.6 m | a sofa under the port porthole, a small table with three mismatched seats, a desk and a chest of drawers, clothes on hooks, books under straps, photographs |
+| Hold (storage) | 7.95 .. 12.95 | 7.0 m | lockers both walls, crates strapped down (Orrin Thrum stands by them, `src/story/scientist.js` ABOARD), a tool board, spare parts, the engine room's hatch in the aft wall (shut) |
+| Engine bay | 12.95 .. 15.2 | (closed) | no rooms: machinery behind the aft wall, the pods' roots |
 
-Doorways: the cockpit frame at z -6.1 is open 3.2 m wide (the cockpit is part of the main room, as
-in the Main Interior reference and the picked sheet); the back room and the hold open through 1.6 m doorways
+Doorways: the cockpit frame at z -6.9 is open 3.8 m wide (the cockpit is part of the main room, as
+in the Main Interior reference and the picked sheet); the back room and the hold open through 2.1 m doorways
 on the centre line.
+
+**Grown for the camera (issue #195).** The author: "Most of the temple rooms are too small and so is the ship and its
+interior. I want rooms to feel bigger so the camera doesn't move and shake every time we are in a cramped space." The
+rooms are 1.2 m wider (6.4 → 7.6 m), the ceiling 0.55 m higher (2.35 → 2.9 m), the cockpit and the main room 0.8 m
+longer at the bow, the back room 0.6 m and the hold 1.8 m longer; the bunk's alcove deeper and higher (1.2 m, hood
+2.35 m). The furniture keeps its size: the blocks along a wall moved with it (`at(dz, fn)` in `buildInterior` moves
+what a block adds; the galley, the chest of drawers, the sofa, the desk, the small table and the hold's crates), and
+the hull grew round the rooms (25.2 → 26.0 m long with the hold, 8.4 m wide, 6.0 m tall). Every interaction point,
+the cinematics' points (`cockpitFrame`, `wakeSit`, `tableShot`…) and the export's points follow from the interior; the
+cockpit shots written in ship metres (cinematics.js, homecoming.js and the C# `ShipScene.cs`) moved 0.8 m forward with
+the cockpit. The probe (the close camera turning round in each room): docs/systems/movement-and-camera.md, "Small
+rooms". `tests/room-size.test.js` holds the sizes.
 
 ### The picked layout (`references/The Travellers Ship/Interior - Lab/sheet-1.jpg`)
 
@@ -94,15 +106,15 @@ and the small table moved into the back room (once the sleeping cabin), with the
 
 | | |
 |---|---|
-| Length | 22.2 m (nose z -10.0, stern z +12.2): the rooms need 18.95 m, the nose 1 m, the engine bay 2.25 m |
-| Width | 7.2 m over the side walls (rooms 6.4 m + 0.4 m walls); the bow narrows to 2.8 m at the nose |
-| Height | 5.45 m hull (belly 1.6 m under the deck, roof 3.85 m over it): 1.5 m of structure over the ceiling. First drawn 4.6 m tall; compared with the reference from its own three-quarter view it read long and flat, so the roof and the belly were taken out, the rooms unchanged |
+| Length | 26.0 m (nose z -10.8, stern z +15.2; 22.2 m until issue #195): the rooms need 22.75 m, the nose 1 m, the engine bay 2.25 m |
+| Width | 8.4 m over the side walls (rooms 7.6 m + 0.4 m walls); the bow narrows to 3.2 m at the nose |
+| Height | 6.0 m hull (belly 1.6 m under the deck, roof 4.4 m over it): 1.5 m of structure over the ceiling. First drawn 4.6 m tall; compared with the reference from its own three-quarter view it read long and flat, so the roof and the belly were taken out, the rooms unchanged |
 | Deck over the ground | 2.6 m parked (`LIFT`): the belly 1.0 m off the ground on the legs |
-| Hatch | port side, 1.3 x 2.25 m, sill on the deck; the door pops out and slides aft along the hull |
+| Hatch | port side, 1.6 x 2.6 m, sill on the deck; the door pops out and slides forward along the hull |
 | Ramp | from the sill to the ground at 27 deg at most: about 5 m, telescoping (the existing ramp), treads drawn on it |
-| Legs | four short splayed struts with pads, at z -4.8 and +8.6, feet 3.55 m out from the centre line |
+| Legs | four short splayed struts with pads, at z -5.6 and +11.0, feet 4.15 m out from the centre line |
 | Pods | two, on short pylons at the roof's aft corners, 4.4 m long, raked 50 deg up and back |
-| Footprint | 22.2 x 7.6 m with the legs; nothing of it is more than 12.6 m (`R`) from the ship's origin |
+| Footprint | 26.0 x 8.8 m with the legs; nothing of it is more than 15.6 m (`R`) from the ship's origin |
 
 The old ball needed a 16 m radius (13 m hull, legs to 16 m), so every world's landing spot, which
 was found for the ball, has room for the new hull (`tests/contact-audit.test.js` checks each one).
@@ -138,12 +150,12 @@ of the loft. The bow and the stern are the same seven points at fewer stations, 
   `reachAt(a, y)` (how far the side is from the middle of the plan along a heading: the crash site's sand
   heaps hug it), `inRooms(l)` (in `interior.js`: whether a ship-local point is aboard; `Ship.isInside`).
 - **The door** is a panel just outside the wall: it pops out 14 cm, then slides 1.5 m forward along the
-  hull (`Ship.setDoor`, `doorPhases`). **The ramp** is the old telescoping one (`poseRamp`), 1.25 m wide
+  hull (`Ship.setDoor`, `doorPhases`; the hatch's width and a quarter metre). **The ramp** is the old telescoping one (`poseRamp`), 1.55 m wide
   with treads and rails, mirrored to run out through the port hatch (`ramp.userData.axis`).
 - **The rooms** (`buildInterior`): the floor is one flat plane, an invisible slab under the drawn boards;
-  the cockpit's floor narrows with the bow. The rooms' walls are flat panels at x = ±3.2 round the same
-  openings; the cockpit's skin is an inner loft under the windshield. Partitions: the cockpit frame (3.2 m
-  open, the bulkhead over it follows the cockpit's roof), the back room's and the hold's doorways (1.6 x 2.28 m),
+  the cockpit's floor narrows with the bow. The rooms' walls are flat panels at x = ±3.8 round the same
+  openings; the cockpit's skin is an inner loft under the windshield. Partitions: the cockpit frame (3.8 m
+  open, the bulkhead over it follows the cockpit's roof), the back room's and the hold's doorways (2.1 x 2.6 m),
   the hold's aft wall with the engine room's shut hatch. Low furniture gets an invisible block `BLOCK_H` tall.
   The small things are one vertex-coloured mesh (`Paint`); everything else is merged by material (`Batch`).
   The atmosphere is the three interior references: cream enamel, faded teal fittings, coral textiles and a

@@ -16,6 +16,12 @@ export const CHANGELOG = [
     'The chime pirates’ two aiming boxes are one sight: a ring with a small diamond further down the same line your shots fly. The ring tightens and turns coral when a pirate is in line, and flashes a mark when your shots hit.',
     'The first time you meet the chime pirates, pushing the stick up dives, as in a plane, and the start card no longer offers to swap it. Once you have beaten them, the card lets you choose.',
     'The pirates’ captain flies a gunship built for space instead of a sailing ship: gull wings with a brass turret on each tip, glowing engines, a skull and crossbones on its prow, and its bridge behind armour shutters.',
+    // roomier rooms and a steadier camera in them (src/temples/kit.js ANTE, src/ship/hull.js, interior.js, src/player.js
+    // ROOM_FIT; docs/systems/movement-and-camera.md "Small rooms"; issue #195)
+    'The rooms before each temple’s guardian are much bigger: wider, deeper and higher, so the camera has room behind you there instead of pressing into your back. The Mooring-House’s way to the Capstan Floor is wider and taller too.',
+    'Your ship is roomier inside: wider rooms, a higher ceiling, wider doorways, a longer cockpit and back room, a deeper bunk alcove and a bigger hold, where Orrin keeps his jar by the crates. The hull outside grew to fit.',
+    'In small rooms the camera settles: turning round, it keeps one steady distance instead of pushing in at every wall and back out at every gap, and it no longer creeps in and out by a few centimetres.',
+    'Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.',
   ] },
   { v: '1.58', date: '2026-10-12', items: [
     // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)

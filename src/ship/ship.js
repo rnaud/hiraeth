@@ -52,7 +52,7 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 const Y = new THREE.Vector3(0, 1, 0);
 const SPACE_Y = 2600;
 const DOOR_POP = 0.14;       // m the door comes out of its frame before it slides
-const DOOR_TRAVEL = 1.5;     // m forward along the hull: clear of the opening
+const DOOR_TRAVEL = HATCH.z1 - HATCH.z0 + 0.25;   // m forward along the hull: clear of the opening (1.5 for the 1.3 m hatch)
 const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
 /** The door's motion for k 0 (shut) .. 1 (open): it pops out (0 .. 0.25), then slides up (0.2 .. 1), easing. */
 export function doorPhases(k) { return { pop: ease(k / 0.25), slide: ease((k - 0.2) / 0.8) }; }

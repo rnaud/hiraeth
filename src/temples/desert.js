@@ -316,7 +316,7 @@ function layout(rt) {
   for (let i = 0; i < 3; i++) K.add(M.trim, box(5, 0.25, 0.4, 0, 1.8 + i * 1.8, 83.78));
   K.frieze([-12.9, 56], [-12.9, 88], 10, 'e', 6);
   K.frieze([12.9, 56], [12.9, 88], 10, 'w', 6);
-  add(Mark, { room: 'channel', at: [-6.5, 0, 53.8], yaw: Math.PI / 2 });
+  add(Mark, { room: 'channel', at: [-6.5, 0, 55.2], yaw: Math.PI / 2 });   // (off the wall: the camera has room behind you when you come back here, issue #195)
 
   // ---- the corridor and the Sword Chamber (a rotunda, floor at 7)
   // (from inside the Dry Channel's wall: its ends not drawn in that wall's face)
@@ -336,7 +336,7 @@ function layout(rt) {
   groove(1.6, 110, 1.6, 124.6, 7);
   add(Flame, { at: [1.6, 7, CHEST_BALL.flame], r: 0.6 });
   add(Ball, { id: 'ball3', a: [1.6, 7.04, 110], b: [1.6, 7.04, 124.6], r: 0.85, friction: CHEST_BALL.friction, shove: true, blade: true, thorns: { id: 'bw0', at: CHEST_THORNS, stopped: 'The cold ball stops against the thorns.' }, tar: { ...TAR, burns: CHEST_BALL.burns, out: 'The tar ball’s flame gutters and goes out on the way. Hands are too slow for it.' } });
-  add(Mark, { room: 'chest', at: [6.5, 7, 99.5], yaw: -Math.PI * 0.75 });
+  add(Mark, { room: 'chest', at: [6.5, 7, 99.5], yaw: -Math.PI * 0.25 });   // (its spot toward the dais, not the wall: issue #195)
 
   // ---- the corridor's thorns, and the Hall of Fires (z 120..158): a chasm, a bridge that rises
   K.slab(-3.2, 117, 3.2, 120.6, 7, 0.8);
