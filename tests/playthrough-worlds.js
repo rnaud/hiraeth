@@ -170,6 +170,9 @@ Object.assign(WAYS, {
     check: (W) => (ridePillar(W, 'spire', palaceLanding(W)) ? null : 'the spire’s air pillar does not set him on the palace landing') },
   'incal.light:look': { needs: ['glider'], how: 'up the crown’s air pillar, and down onto the crown',
     check: (W) => (ridePillar(W, 'crown', W.level.shaft.places.palace.crown) ? null : 'the crown’s air pillar does not set him on the dome’s crown') },
+  // (issue #183: the light lit is the main quest done on the crown; the next stop, Lio's cab stand on the rim, is a glide
+  // down off the palace, as the way down to Nima was)
+  'incal.pass:lio': { needs: ['glider'], how: 'gliding down off the palace to the rim' },
 });
 Object.assign(SOLVERS, {
   // stand on the palace's crown and look up at the Lodestar

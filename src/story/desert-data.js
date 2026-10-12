@@ -134,10 +134,12 @@ export const QUESTS = [
   },
   {
     id: 'desert.ilo', title: 'Ilo Wants to See', world: 'desert',
-    outro: 'Ilo will tell it better than it happened.',
+    outro: 'Ilo waits at the mouth, watching for its teeth to move.',
     stages: [
       { id: 'lead', text: 'Take Ilo to the giant’s skull', label: 'The giant’s skull', flag: 'desert.ilo.atSkull', at: 'skull' },
-      { id: 'below', text: 'Go down, then tell Ilo what you saw', label: 'Ilo, at the skull', talk: 'ilo', at: 'ilo', secret: true },
+      // (down into the giant's chest is the end, issue #183: Ilo asks what was there when you pass her, no step of it; been
+      //  down already, it ends as you bring her to the skull. The id is the old step's: src/save-migrate.js step 21)
+      { id: 'below', text: 'Go down through the giant’s mouth', label: 'The giant’s mouth', flag: 'desert.cave.seen', at: 'caveIn' },
     ],
   },
   {
@@ -350,8 +352,9 @@ export const PEOPLE = {
     lines: ["~curious~ Were the clouds soft?", "~sad~ They won’t let me past the back gate alone.", "~playful~ Bet I can get there first!"],
     talk: {
       entry: [
+        // (the chest seen, the errand done there: what you saw, asked once when you pass her)
+        { if: { all: [{ quest: 'desert.ilo', done: true }, { not: { flag: 'desert.ilo.told' } }] }, node: 'tell' },
         { if: { quest: 'desert.ilo', done: true }, node: 'after' },
-        { if: { all: [{ quest: 'desert.ilo', stage: 'below' }, { flag: 'desert.cave.seen' }] }, node: 'tell' },
         { if: { quest: 'desert.ilo', stage: 'below' }, node: 'go' },
         { if: { quest: 'desert.ilo', stage: 'lead' }, node: 'come' },
         { node: 'hello' },
@@ -368,14 +371,14 @@ export const PEOPLE = {
         parents: { say: ["~angry~ Mum won’t stop walking until the tree drinks. Trees are extremely slow at making arrangements."], choices: [{ text: '~neutral~ All right. Come with me.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' }, { text: '~sad~ Sorry, Ilo.', end: true }] },
         yes: { say: ["~happy~ Yes! I’ll be quiet. Starting in a minute. Come on!"], choices: [{ text: '~neutral~ (go)', end: true }] },
         come: { say: ["~happy~ Through the city, past the tree, out the back gate! I’m following. Look how responsibly I’m following!"], choices: [{ text: '~neutral~ (go)', end: true }] },
-        go: { say: ["~playful~ I’ll wait here by the mouth. Someone has to watch for teeth moving. Go down, then tell me what’s there!"], choices: [{ text: '~neutral~ I’ll be back.', end: true }] },
+        go: { say: ["~playful~ I’ll wait here by the mouth. Someone has to watch for teeth moving. Go on down!"], choices: [{ text: '~neutral~ I’ll be back.', end: true }] },
         tell: {
           say: ["~curious~ You’re back! Tell me everything. Start with the biggest thing."],
           choices: [
-            { text: "~solemn~ A pool of coloured water inside the giant’s chest. The tree’s roots drink from it.", if: { flag: 'desert.channel.open' }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
-            { text: "~solemn~ A dry pool, its drain packed with rubble. The tree’s roots hang over it.", if: { not: { flag: 'desert.channel.open' } }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
-            { text: '~playful~ A sleeping monster. It sniffed me.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'monster' } }], goto: 'monster' },
-            { text: '~whisper~ It’s a secret. You’ll see it yourself when you’re older.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'secret' } }], goto: 'secret' },
+            { text: "~solemn~ A pool of coloured water inside the giant’s chest. The tree’s roots drink from it.", if: { flag: 'desert.channel.open' }, do: { set: { 'desert.ilo.told': 'true' } }, goto: 'truth' },
+            { text: "~solemn~ A dry pool, its drain packed with rubble. The tree’s roots hang over it.", if: { not: { flag: 'desert.channel.open' } }, do: { set: { 'desert.ilo.told': 'true' } }, goto: 'truth' },
+            { text: '~playful~ A sleeping monster. It sniffed me.', do: { set: { 'desert.ilo.told': 'monster' } }, goto: 'monster' },
+            { text: '~whisper~ It’s a secret. You’ll see it yourself when you’re older.', do: { set: { 'desert.ilo.told': 'secret' } }, goto: 'secret' },
           ],
         },
         truth: { say: ["~surprised~ The giant carries the water INSIDE it! I need something to draw on. Something enormous."], choices: [{ text: '~happy~ (smile)', end: true }] },

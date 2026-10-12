@@ -125,8 +125,7 @@ const ENDS_WITH_SOMEONE = {
   'bazaar.signal': 'the broadcast heard with Madame Sel under her tower: the world’s last scene, not a report',
   'lantern.ilen': 'Ilen on the lantern’s step: the meeting the whole game walks to',
   'incal.wren': 'the cab is the goal: getting in and listening is its talk',
-  'incal.light': 'the Lodestar’s word to Nima: not among the v1.53 audit’s ten, left to the author',
-  'desert.ilo': 'what you saw below, to Ilo at the skull: not among the v1.53 audit’s ten, left to the author',
+  // (Nima's and Ilo's went too, issue #183: the light lit and the giant's chest seen are their quests done)
 };
 test('no quest ends on a talk: the goal reached is the quest done (issue #172)', async () => {
   const bad = [], kept = [];

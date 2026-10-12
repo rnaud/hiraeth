@@ -89,7 +89,7 @@ test('the light given back: filmed once, the climb, the flare, the wall, his fac
   assert.ok(S.incal.k < 0.97 && S.incal.k > 0.5, `while the light is still rising (${S.incal.k.toFixed(2)})`);
   assert.ok(toasts.some((t) => /The Lodestar flares/.test(t)), 'and its toast, after');
   assert.ok(!ship.log.some(([k, v]) => k === 'say' && v), 'no line for him');
-  assert.equal(rt.quests.stage(Q), 'tell');
+  assert.equal(rt.quests.stage(Q), 'done', 'the light burning is the quest done (issue #183)');
   // the panels
   const shots = ship.shots.slice(n0), at = (s) => shots[Math.round((s - t0) * 30)];
   const A = at(1.6);

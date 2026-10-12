@@ -5,7 +5,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Taxi } from '../taxi.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { glyphGeometry, textGeometry } from './sign-text.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN, TOBIN_PAYS } from './incal-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN, TOBIN_PAYS, KEEPSAKE } from './incal-data.js';
 import { setupHalfway, halfwayTerrace } from './halfway.js';
 import { setupIncalMoments } from './incal-moments.js';
 import { setupLightDown } from './light-down.js';
@@ -415,13 +415,21 @@ export function setupIncal(ctx) {
     told('The Lodestar flares. Light pours down the shaft, level after level, all the way to the bottom.');
   };
   const film = setupIncalMoments(ctx, { st, rig, splinter, incalPos, land, told, P, S });
-  // sending messages home: once it burns, the HUD objective is to tell Nima (quest stage 'tell')
-
   // ---------------------------------------------------------------- the main quest's end
+  // (the light burning is the end, issue #183: no step back down to Nima. The keepsake, her look up once a day, is given
+  // here, at the world's end (the ending reads one from every world); her own word on it waits with her: she calls out
+  // as you come by, once, and says it when you talk: incal-data.js `told`)
   quests.def(Q).onDone = () => {
     game.set('world.incal.done', true);
-    game.addKeepsake({ id: 'incal.word', level: 'incal', name: 'Look up once a day', kind: 'word', text: '“Look up once a day. Wherever you are, whatever is up there.” Nima, who sweeps the high terrace.' });
+    game.addKeepsake?.(KEEPSAKE);
     setTimeout(() => story.complete?.(), 1200);
+  };
+  const nimaCalls = () => {
+    const n = people.nima;
+    if (st.nimaCalled || !n || !quests.isDone(Q) || game.flag('incal.nima.told') || n.pos.distanceToSquared(player.pos) > 14 * 14) return;
+    st.nimaCalled = true;
+    n.shout = { text: '~shout~ My steps turned gold!', until: n.time + 3 };
+    n.waveOnce?.('incal.nima.told');
   };
   quests.locate('palaceGate', () => P.palace.gate);
 
@@ -436,6 +444,7 @@ export function setupIncal(ctx) {
   const look = V(0, 0, 0);
   const update = (dt, t, { camera }) => {
     const pp = player.pos;
+    nimaCalls();
     // the light: eases toward its state; a flare fades
     st.k += ((lit() ? 1 : 0) - st.k) * (1 - Math.exp(-dt / 2.2));
     rig.k = st.k;

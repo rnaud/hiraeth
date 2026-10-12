@@ -178,7 +178,10 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   assert.equal(game.flag('incal.lit'), true);
   assert.equal(S.nimaLight.lit, true, 'and a shaft of it falls on Nima’s steps (issue #182)');
   assert.ok(!quests.has('splinter'));
-  assert.equal(quests.stage('incal.light'), 'tell');
+  // the light burning is the quest done and the world's end (issue #183: no step back down to tell Nima)
+  assert.equal(quests.isDone('incal.light'), true);
+  assert.equal(game.flag('world.incal.done'), true);
+  assert.ok(game.keepsakes().some((x) => x.id === 'incal.word'), 'its keepsake given there, the world’s end');
   step(200, 1 / 20);
   assert.ok(S.incal.k > 0.9, `the Lodestar brightens (${S.incal.k.toFixed(2)})`);
   // the city looks up: heads turned to the light, the lines changed
@@ -186,10 +189,13 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   assert.ok(looking > crowd.people.length * 0.9, `${looking} of ${crowd.people.length} look up`);
   const low = crowd.people.find((p) => p.spot?.id === 'lower');
   assert.ok(LINES.lit.lower.includes(low.lines[0]));
-  // Nima: the keepsake, a word
-  talk(PEOPLE.nima, ['I gave it back']);
-  assert.equal(quests.isDone('incal.light'), true);
-  assert.equal(game.flag('world.incal.done'), true);
+  // Nima calls out as you come by, and has her word for you, the keepsake, once
+  const nima = W.people.nima;
+  at(nima.pos.clone().add(V(6, 0, 0))); step(2);
+  assert.match(nima.shout?.text ?? '', /gold/, 'she calls out as you pass');
+  talk(PEOPLE.nima, ['I gave it back', 'I will']);
+  assert.equal(game.flag('incal.nima.told'), true);
+  assert.equal(new DialogueRunner(PEOPLE.nima, { game, quests }).nodeId, 'after', 'said once');
   const k = game.keepsakes().find((x) => x.id === 'incal.word');
   assert.ok(k && k.kind === 'word' && /Look up once a day/.test(k.name));
 });

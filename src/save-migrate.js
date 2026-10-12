@@ -72,6 +72,8 @@
 // The lift valve's chest behind the makers' shrine's door (issue #156): open for a save that had it, step 19.
 // The last steps that sent you back to tell someone after the goal (issue #172, v1.54): each of those ten quests is done
 // at its goal, and the person has their word when you pass: step 20 (QUEST_STAGE_MOVES_172).
+// And the last two (issue #183, v1.54): the Lodestar lit is the City-Shaft's main quest done (Nima's word waits with
+// her), the giant's chest seen Ilo's errand: step 21 (QUEST_STAGE_MOVES_183).
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -228,7 +230,19 @@ const STEPS = [
   // 20: the ten "Tell X" steps after the goal, gone (issue #172, v1.54): a save on one is done (the two main quests go
   // back to their goal's step, its flag already set, so the world's end runs as you arrive); what was said is not said again
   (flags) => migrateTells172(flags),
+  // 21: the last two report-backs, gone (issue #183, v1.54): the City-Shaft's main quest ends at the light, Ilo's at the
+  // giant's chest; a save sent back down to Nima goes back to the light's step (its flag set: the world's end runs as you
+  // arrive), and one that heard her already keeps her word said. Ilo's step keeps its id: a save on it with the chest seen
+  // is done as it loads
+  (flags) => migrateTells183(flags),
 ];
+/** The quest steps removed in v1.54 (issue #183): step 21. */
+export const QUEST_STAGE_MOVES_183 = { 'incal.light': { tell: 'look' } };
+/** Step 21 (pure, in place). */
+export function migrateTells183(flags) {
+  if (flags['quest.incal.light'] === 'done') flags['incal.nima.told'] = true;
+  return migrateQuestStages(flags, QUEST_STAGE_MOVES_183);
+}
 /** The quest steps removed in v1.54 (issue #172): step 20. */
 export const QUEST_STAGE_MOVES_172 = {
   'edena.garden': { tell: 'scar' },          // (Mira: the scorch seen is the end; back to it, so the end runs on arrival)

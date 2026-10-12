@@ -136,7 +136,7 @@ export const BOOK = {
     ]),
     P('ilo', 'Ilo', 'A child of the camps, too curious', [
       'A pilgrim child with more questions than anyone. Ilo knew a secret way inside the giant, through its mouth beyond the back gate.',
-      [past('desert.ilo', 'below'), 'Ilo came with you to the giant’s mouth and waited there while you went down.'],
+      [done('desert.ilo'), 'Ilo came with you to the giant’s mouth and waited there while you went down.'],
       [f('desert.ilo.told', 'monster'), 'You told Ilo a monster lives down there. Nobody believes it yet.'],
       [f('desert.ilo.told', 'secret'), 'You kept what is down there a secret, until Ilo is older.'],
       [f('desert.ilo.told', 'true'), 'You told Ilo the truth: the giant carries the well inside it.'],
@@ -405,7 +405,8 @@ export const BOOK = {
     P('nima', 'Nima', 'Sweeps the high terrace', [
       'Nima has swept the high terrace’s steps for forty years, and before she starts she looks up at the Lodestar. It dimmed a little every year as people stopped looking up.',
       [f('incal.rumour.light'), 'The night the sky rang, a light flew low across the shaft singing one high note. The Lodestar answered, and a splinter broke off and fell to the bottom.'],
-      [done('incal.light'), 'The Lodestar burns again and her steps turned gold. She gave you her words: look up once a day.'],
+      [done('incal.light'), 'The Lodestar burns again, and its light fell on her steps.'],
+      [f('incal.nima.told'), 'Her steps turned gold. She gave you her words: look up once a day.'],
     ], ['On the high terrace, down the red stair from the rim.']),
     P('ossa', 'Ossa', 'Keeper of the Upward Shrine', [
       'Ossa keeps the Upward Shrine at the bottom of the shaft, built round the splinter that fell into Behla’s laundry. The bottom prays with its eyes shut; the smog stings.',

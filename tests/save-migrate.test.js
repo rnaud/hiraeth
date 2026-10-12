@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 20);
+  assert.equal(MIGRATED(), 21);
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -373,4 +373,22 @@ test('the ten “Tell X” steps after the goal (issue #172, step 20): a save on
   assert.equal(done['incal.perrine.turned'], undefined, 'not done yet: nothing said');
   assert.equal(done['quest.incal.mirror'], 'turn');
   for (const id of Object.keys(QUEST_STAGE_MOVES_172)) if (id !== 'perdide2.lamps') assert.ok(SAID_172[id], id);
+});
+
+test('the last two report-backs (issue #183, step 21): a save sent down to Nima is back at the light, her word kept if heard', async () => {
+  const { migrateTells183 } = await import('../src/save-migrate.js');
+  const { QUESTS: INCAL } = await import('../src/story/incal-data.js');
+  const { QUESTS: DESERT } = await import('../src/story/desert-data.js');
+  // (the main quest's last step is the light's: the save goes back to it, its flag set, so the world's end runs as it loads)
+  const on = migrateTells183({ 'quest.incal.light': 'tell', 'incal.lit': true });
+  assert.equal(on['quest.incal.light'], 'look');
+  assert.equal(INCAL.find((q) => q.id === 'incal.light').stages.at(-1).id, 'look');
+  assert.equal(on['incal.nima.told'], undefined, 'Nima still has her word and her keepsake for you');
+  // done under the old steps: she said it
+  assert.equal(migrateTells183({ 'quest.incal.light': 'done' })['incal.nima.told'], true);
+  // Ilo's errand keeps its last step's id, now the giant's chest seen: a save on it is done as it loads
+  const ilo = DESERT.find((q) => q.id === 'desert.ilo').stages.at(-1);
+  assert.equal(ilo.id, 'below');
+  assert.equal(ilo.flag, 'desert.cave.seen');
+  assert.equal(migrateTells183({ 'quest.desert.ilo': 'below' })['quest.desert.ilo'], 'below');
 });

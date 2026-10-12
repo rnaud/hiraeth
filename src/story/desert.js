@@ -274,6 +274,10 @@ export function setupDesert(ctx) {
 
   // ---------------------------------------------------------------- following
   const iloFollow = V(0, 0, 0);
+  // (the giant's chest seen is Ilo's errand done, issue #183; she waits at the mouth to hear what was down there while you
+  // are below or near, and goes home to the camps once you are off elsewhere: she asks you there)
+  const iloWaits = () => quests.isDone('desert.ilo') && !game.flag('desert.ilo.told') && (player.pos.y > 600 || flat(player.pos, Q.giant.door) < 120);
+  let iloCalled = false;
   const updateFollowers = (dt) => {
     // Ilo: at your heels on the way to the skull, then waiting on its lip
     const I = people.ilo;
@@ -283,13 +287,19 @@ export function setupDesert(ctx) {
       iloFollow.copy(player.pos).addScaledVector(d, -1.6).add(V(d.z * 0.9, 0, -d.x * 0.9));
       I.follow = () => (player.pos.y > 600 ? null : { pos: iloFollow, speed: Math.min(Math.hypot(player.vel.x, player.vel.z), 3.5), near: 1.0, max: 6 });
       if (flat(player.pos, Q.giant.door) < 9 && flat(I.pos, Q.giant.door) < 12) game.set('desert.ilo.atSkull', true);
-    } else if (iloQ === 'below') {
+    } else if (iloQ === 'below' || iloWaits()) {
       const wait = Q.giant.door.clone().add(V(Math.sin(Q.giant.yaw) * 4 + Math.cos(Q.giant.yaw) * 2.5, 0, Math.cos(Q.giant.yaw) * 4 - Math.sin(Q.giant.yaw) * 2.5));
       I.follow = () => ({ pos: wait, speed: 1.5, near: 0.8, max: 3, face: Q.giant.yaw + Math.PI });
     } else {
       I.follow = null;
       // back home between the tents once you've gone (no long walk through the walls)
       if (flat(I.pos, iloRoute[0]) > 30 && flat(I.pos, player.pos) > 50) I.pos.copy(iloRoute[0]);
+    }
+    // (her word not heard yet: she calls out as you come by, at the mouth or in the camps, once; issue #183)
+    if (!iloCalled && quests.isDone('desert.ilo') && !game.flag('desert.ilo.told') && player.pos.y < 600 && flat(player.pos, I.pos) < 12) {
+      iloCalled = true;
+      I.shout = { text: '~shout~ You’re back! What’s down there?', until: I.time + 3 };
+      I.waveOnce?.('desert.ilo.told');
     }
     // Oum: slow, and she sits down if you run off
     if (game.flag('desert.oum.following') && !game.flag('desert.oum.home')) {

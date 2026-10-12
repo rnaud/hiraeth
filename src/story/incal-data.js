@@ -22,12 +22,14 @@
 // crystals of the swamp of lights (Lorn).
 //
 // Flags (game-state.js): incal.rumour.light, incal.splinter.given, incal.dov.allowed,
-// incal.lit (the Lodestar burns bright again), incal.lamp.lit, incal.wren.met,
+// incal.lit (the Lodestar burns bright again), incal.nima.told (her word on it said), incal.lamp.lit, incal.wren.met,
 // incal.dov.fed, incal.hoist.pin, incal.hoist.in (the goods hoist, swung in); clue.incal.perdide. Items: splinter, ration,
 // fare (Tobin's coin), cabpass (the cab pass: src/items.js lists it in the gear).
 
 const Q = 'incal.light';
 
+/** Nima's word, the City-Shaft's keepsake: given as the light burns, the world's end (issue #183), and again by her talk (once). */
+export const KEEPSAKE = { id: 'incal.word', level: 'incal', name: 'Look up once a day', kind: 'word', text: '“Look up once a day. Wherever you are, whatever is up there.” Nima, who sweeps the high terrace.' };
 export const ITEMS = { splinter: 'the Lodestar splinter', ration: 'Pip’s ration tin', fare: 'Tobin’s bent coin', cabpass: 'a cab pass' };
 
 /** What a cab says in the City-Shaft when you have no pass yet (src/taxi.js Taxi.refusal). */
@@ -49,8 +51,9 @@ export const QUESTS = [
       // (the way down on the wings, marked terrace by terrace: src/shaft-ways.js; the splinter in hand first skips it)
       { id: 'down', text: 'Go down the shaft by the red lamps', label: 'The lamplighters’ drops', goto: 'halfway', radius: 14, vertical: 6 },
       { id: 'ossa', text: 'Bring the splinter from the Upward Shrine', label: 'The splinter, at the Upward Shrine', flag: 'incal.splinter.given', at: 'ossa', gate: true },
+      // (the light burning is the end, issue #183, its keepsake given there: Nima has her word on it when you pass; a save at the
+      //  old 'tell' goes back to 'look', its flag set, so the world's end runs as you arrive: src/save-migrate.js step 21)
       { id: 'look', text: 'Carry it to the palace crown and look up', label: 'Look up from the crown', flag: 'incal.lit', at: 'crown' },
-      { id: 'tell', text: 'The Lodestar burns again. Go down and tell Nima', label: 'Nima, on the high terrace', talk: 'nima' },
     ],
   },
   {
@@ -119,8 +122,9 @@ export const PEOPLE = {
     lines: ['~playful~ The rich live up here. Me, I just sweep.', '~neutral~ Mind the dust.', '~happy~ Look up once in a while. It’s free.'],
     talk: {
       entry: [
+        // (the light lit, the quest done there: her word on it when you pass, once)
+        { if: { all: [{ quest: Q, done: true }, { not: { flag: 'incal.nima.told' } }] }, node: 'told' },
         { if: { quest: Q, done: true }, node: 'after' },
-        { if: { quest: Q, stage: 'tell' }, node: 'told' },
         { if: { quest: Q, stage: 'look' }, node: 'carry' },
         { if: { quest: Q, stage: ['down', 'ossa'] }, node: 'again' },
         { node: 'hello' },
@@ -199,8 +203,7 @@ export const PEOPLE = {
         keep: {
           say: ["~solemn~ So the light needed someone to look at it. I’ve been doing that forty years. Nice to know I wasn’t entirely wasting my mornings.",
             "~solemn~ Here’s something to take with you: *look up once a day*. Wherever you are, whatever is up there. Give the sky a chance to surprise you."],
-          do: [{ advance: [Q, 'tell'] },
-            { keepsake: { id: 'incal.word', level: 'incal', name: 'Look up once a day', kind: 'word', text: '“Look up once a day. Wherever you are, whatever is up there.” Nima, who sweeps the high terrace.' } }],
+          do: [{ set: { 'incal.nima.told': true } }, { keepsake: KEEPSAKE }],
           choices: [{ text: '~solemn~ I will, Nima.', end: true }],
         },
         after: { say: ["~playful~ Looked up today? Don’t just nod. You’ve got a neck. Use it."], choices: [{ text: '~neutral~ (look up)', end: true }] },

@@ -824,6 +824,16 @@ idea." "All quests should be solvable by just going to the end if you can."
   so the world's end runs as it loads. `tests/quest-steps.test.js`: no quest in any world ends on a talk, but for a
   short list kept with their reasons (Ume's gate, the terraces' failing, the worlds' last scenes with Calix, Sel and
   Ilen, the cab, and Nima's and Ilo's, left to the author).
+- **And Nima's and Ilo's** (#183, v1.54): the City-Shaft's main quest ends at the crown as the Lodestar burns (`look`,
+  `incal.lit`: the world's end runs there); its keepsake (*look up once a day*, `KEEPSAKE` in `incal-data.js`) is
+  given there, as the ending reads one from every world; Nima's own word on it waits with her: she calls out as you come within 14 m (a shout and a wave, once) and
+  says it when you talk (`incal.nima.told`). The Lodestar's light on her steps shows where she is from the crown
+  (docs/systems/worlds.md, "Abel and Nima's light"). Ilo's errand ends at the giant's chest (`below`, now
+  `desert.cave.seen`; been down already, it ends as you bring her to the skull): she waits at the mouth while you are
+  below or near it, then goes home to the camps; she calls out as you pass and asks what was down there
+  (`desert.ilo.told`: true, monster or secret, as before). `src/save-migrate.js` step 21 (`QUEST_STAGE_MOVES_183`): a
+  save sent back down to Nima goes back to `look`, its flag set; one that had heard her keeps her word said.
+  `tests/quest-steps.test.js` keeps neither on its list.
 
 ## Places to stop on the way (the second story pass, October 2026)
 

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.54 — 2026-10-12
 
+- Two more quests end where you do the thing: in the City-Shaft, lighting the Lodestar from the palace’s crown finishes the city, and Nima calls out to you when you pass her terrace, wanting to hear what you did up there; in the Desert, going down into the giant’s chest finishes Ilo’s errand, and she shouts as you come by, wanting to hear what was down there.
 - In the City-Shaft, Abel rings the bell quarter’s bells on the terrace by the first mirror the sun stops at, and has a word about why it throws the light at his wall. Once the Lodestar burns again, a shaft of its light falls on Nima’s steps on the high terrace, gold, so from the palace’s crown you can see where she is.
 - In the Desert, a ledge now winds up the lavender mesa where sand pours over the ride out, from the sand to a lookout beside the fall’s lip, 40 m up: walk it or ride the hoverbike up it, and look out over the ride and the giants down the dry wash. The giant’s arm has its verse stone up on its crown, over the middle of the wash, where you ride across high over the riverbed.
 - In the Moon Foundry, rails run from beside the Casting-House’s door up the hangar’s east side and out onto the apron, with a stone test moon on a cart and a cart of cracked moons on the way: a walk back to your ship you haven’t taken yet.

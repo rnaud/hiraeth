@@ -12,7 +12,7 @@ const { Crowd } = await import('../src/crowd.js');
 const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
-const { PEOPLE, THINGS, LINES, ITEMS } = await import('../src/story/desert-data.js');
+const { PEOPLE, THINGS, LINES, ITEMS, QUESTS } = await import('../src/story/desert-data.js');
 const { COOL_FIRE } = await import('../src/story/flames.js');
 const { STORY } = await import('../src/desert-sites.js');
 const INTERACT = await import('../src/interact.js');
@@ -747,15 +747,27 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   talk(PEOPLE.teo, []);
   assert.equal(quests.isDone('desert.drum'), true);
   assert.ok(game.keepsakes().some((k) => k.kind === 'song'));
-  // Ilo follows you to the skull and waits there; you tell her what you saw
+  // Ilo follows you to the skull and waits there; the giant's chest seen is her errand done (issue #183: no step back to
+  // tell her), and she calls out as you pass and asks what was down there
   talk(PEOPLE.ilo, ['Come with me']);
   assert.equal(quests.stage('desert.ilo'), 'lead');
   const ilo = rt.world.people.ilo;
   at(Q.giant.door.clone()); ilo.pos.copy(Q.giant.door).add(V(2, 0, 0));
   step(3);
-  assert.equal(quests.stage('desert.ilo'), 'below');
+  if (!game.flag('desert.cave.seen')) {
+    assert.equal(quests.stage('desert.ilo'), 'below', 'down through the mouth next');
+    game.set('desert.cave.seen', true); step(2);
+  }
+  assert.equal(quests.isDone('desert.ilo'), true, 'done at the giant’s chest (been down already: done as you bring her)');
+  assert.ok(!QUESTS.find((q) => q.id === 'desert.ilo').stages.some((s) => s.talk || s.at === 'ilo'), 'no step is a talk with her');
+  step(30);
+  assert.ok(Math.hypot(ilo.pos.x - Q.giant.door.x, ilo.pos.z - Q.giant.door.z) < 9, 'she waits by the mouth to hear');
+  at(ilo.pos.clone().add(V(4, 0, 0))); step(2);
+  assert.match(ilo.shout?.text ?? '', /back/, 'and calls out as you come by');
   talk(PEOPLE.ilo, ['A pool']);
-  assert.equal(quests.isDone('desert.ilo'), true);
+  assert.equal(game.flag('desert.ilo.told'), 'true');
+  talk(PEOPLE.ilo, []);   // (and after that, her word on it)
+  assert.ok(quests.isDone('desert.ilo'));
   // Oum walks with you, slowly, to the fire
   const oum = rt.world.people.oum;
   at(oum.pos.clone().add(V(1.5, 0, 0)));
