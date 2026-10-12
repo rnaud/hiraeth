@@ -1,0 +1,37 @@
+src/changelog-media.js
+  s_9ca76055a220ed::t_3d16a914857b4a 675-676,688-701
+src/changelog.js
+  s_9ca76055a220ed::t_cd7c6ea038df22 27-28
+tests/spheres.test.js
+  s_9ca76055a220ed::t_a6d57de93698e6 99-101
+src/levels/spheres.js
+  s_9ca76055a220ed::t_5c567b6f75e4ea 15-16,660-661,989,1044-1094,1129,1131-1138,1143-1147,1157-1158
+src/temples/spheres.js
+  s_9ca76055a220ed::t_48707d413c6540 45,55-62,420-421
+tests/level-design-ways-home.test.js
+  s_9ca76055a220ed::t_3d62cbbc283e68 1-79
+DONE.md
+  s_9ca76055a220ed::t_3fc09fee933844 2802-2810
+changelog.md
+  s_9ca76055a220ed::t_28c0e2333c5db1 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_7d2774809adda5 2052-2067
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_c090630ca3c723 391
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f4b0299fa99f8dfb95ea9b2e3c24eca40faf0de9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

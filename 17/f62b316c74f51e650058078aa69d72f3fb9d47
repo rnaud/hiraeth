@@ -1,0 +1,34 @@
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_83202364f812f2 2023,2067-2072
+src/lorn-crossing.js
+  s_9ca76055a220ed::t_af114ab6197cea 23-24,152-155,157-159,161-164,166,169-171
+src/changelog.js
+  s_9ca76055a220ed::t_cd7c6ea038df22 29
+src/changelog-media.js
+  s_9ca76055a220ed::t_3d16a914857b4a 702-705
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_18c9a487ad3eef 136-138
+tests/level-design-ways-home.test.js
+  s_9ca76055a220ed::t_3d62cbbc283e68 11,81-97
+  s_9ca76055a220ed::t_bc7ff0991e40b5 98-99
+DONE.md
+  s_9ca76055a220ed::t_d716cf70af9277 2811-2815
+changelog.md
+  s_9ca76055a220ed::t_7aadc3ec880ab9 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "17f62b316c74f51e650058078aa69d72f3fb9d47",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
