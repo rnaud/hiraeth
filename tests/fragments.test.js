@@ -5,6 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import fs from 'node:fs';
 await import('./register-gadgets.js');
 const { FRAGMENTS, FRAGMENT_TOTAL, FRAGMENTS_PER_WORLD, fragmentCounts, fragKey } = await import('../src/fragments-data.js');
 const { createFragments, MILESTONES, FRAGMENT, finderInterval, finderPitch } = await import('../src/fragments.js');
@@ -137,6 +138,10 @@ test('the finder: beeps from 60 m, faster and higher as a fragment comes closer;
   its.grant('finder');
   const far = count(40), near = count(3);
   assert.ok(far >= 1 && near > far * 3, `beeps in 5 s: ${far} from 40 m, ${near} from 3 m`);
+  // (quiet in a conversation or a menu: main.js passes busy(), issue #231)
+  beeps.length = 0; for (let k = 0; k < 50; k++) F.update(0.1, k * 0.1, { quiet: true });
+  assert.equal(beeps.length, 0, 'no beeps while someone talks or a menu is up');
+  assert.match(fs.readFileSync(new URL('../src/main.js', import.meta.url), 'utf8'), /fragments\.update\(dt, t, \{ quiet: busy\(\) \}\)/);
   game.set('frag.finder.off', true);
   assert.equal(count(3), 0, 'switched off');
   // the items page: it is a thing you switch, in use while on

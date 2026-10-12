@@ -2221,7 +2221,8 @@ function frame(ts) {
     if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
-  if (!minigameDef && !ship.playing) fragments.update(dt, t);   // (src/fragments.js: their song, the finder, a fragment walked into)
+  // (src/fragments.js: their song, the finder, a fragment walked into; the finder quiet in a conversation or a menu, issue #231)
+  if (!minigameDef && !ship.playing) fragments.update(dt, t, { quiet: busy() });
   if (!minigameDef) story.update(dt, t, camera);   // (a game's page tells no story: its host's goal is not reached by standing in the game)
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }

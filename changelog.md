@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.60 — 2026-10-12
 
+- The fragment finder no longer beeps while you talk to someone or have a menu open.
+- Sounds that come from a place follow the Effects slider, not the Music one: the makers’ hum near a chest, a fragment’s faint song and the Garden’s spheres go quiet with Effects at 0 and keep playing with Music at 0. The pole’s tune in the Garden stays with the music.
 - With Reduce motion on, or Camera shake at 0, a hit from the chime pirates no longer shakes the view or flashes the screen’s edges red; the hull’s pips under your ship still show it. The shake also follows the Camera shake slider.
 - Your first fight with the chime pirates follows your jets setting: if pushing forward climbs on the jets, pushing up climbs there too.
 - The chime pirates come for your hull now, not your chimes: since beating them pays chimes, the ship says their wrecks are worth chimes when they break off.

@@ -21,6 +21,16 @@ Everything reaches the reverb through a bus too: the buses' own sends, the bands
 (`lightTheme`) and the makers' hum (`_humOut`). Before, those two went into the reverb straight, so with the
 effects at 0 they were still heard (about -32 dB).
 
+**Placed sounds** (`spot(pos, { bus })`, one sound at a place, panned by `listen`; v1.60, issue #231) go on the bus
+their slider names. Before, `spot` scaled them all by the music's volume, so the makers' hum (placed) and a
+fragment's song played with Effects at 0, and Music at 0 silenced the fragments' cue. Now `bus: 'fx'` (the default)
+goes into `fx`, its room through `fxRoom`: the makers' hum at a place (`_humOut`), a fragment's song
+(`fragmentSong`), a sphere's note when the fluid strikes it (`orbNote`) and the three spheres' remembered sounds
+(`remembered`). `bus: 'music'` (the music's volume, into the world and the reverb, not the ducked music bus) is the
+Garden's sphere song alone (`spheresSong`, the pole's tune, the score's moment). The finder's beep was on `fx`
+already; it is quiet while a conversation or a menu is up (`fragments.update(dt, t, { quiet: busy() })`).
+Test: `tests/sound-mix.test.js`.
+
 That is what the Steam Deck played (issue #112): the Deck bench of early October (`scripts/bench/web-page.mjs`
 writes `music: 0, effects: 0, voices: 0`) ran in the player's own Electron profile before `deck-run.sh` gave it
 one of its own (10 October), and left those settings in the player's game: silent but for the singing light in

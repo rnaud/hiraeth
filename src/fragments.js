@@ -104,7 +104,8 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
   return {
     list, nearest, take, finderOn,
     counts: () => fragmentCounts(game.data?.flags ?? {}),
-    update(dt, t) {
+    /** `quiet`: a conversation or a menu is up (main.js busy()): no finder's beep then (issue #231). */
+    update(dt, t, { quiet = false } = {}) {
       clock += dt;
       const p = player?.pos;
       for (const f of list) {
@@ -122,7 +123,7 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
         if (d < FRAGMENT.sing && clock - f.sungAt > FRAGMENT.singEvery) { f.sungAt = clock; sound?.fragmentSong?.(f.pos, 1 - d / FRAGMENT.sing); }
       }
       // the finder: a beep, faster as the nearest comes closer
-      if (finderOn() && p && !player.hidden) {
+      if (finderOn() && p && !player.hidden && !quiet) {
         const n = nearest(p), every = n ? finderInterval(n.d) : null;
         if (every != null && clock - beepAt >= every) { beepAt = clock; sound?.finderBeep?.(finderPitch(n.d)); }
       }

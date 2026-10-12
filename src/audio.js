@@ -68,6 +68,7 @@ export const MENU_SCORE = {
 };
 export const MENU_HUSH = 0.16;     // the world's sound under a menu (× its usual level)
 const MENU_LEVEL = 0.9;            // the menu bus against the music volume setting
+const SPOT_FX = 0.5;               // a placed sound into the effects bus (1.6 ×): 0.8, as loud as on the music's default (spot)
 
 /** The menu music's frequency for a scale degree (octave: up or down from D3). */
 export function menuFreq(degree, octave = 0, S = MENU_SCORE) {
@@ -1037,15 +1038,26 @@ export class Sound {
     const rx = Math.cos(e.yaw), rz = -Math.sin(e.yaw);
     return { gain: Math.max(0, 1 - d / reach) ** 1.5, pan: Math.max(-0.85, Math.min(0.85, (dx * rx + dz * rz) / Math.max(d, 1) * 0.9)) };
   }
-  /** A little bus for one sound at a place: panned, into the world and a good deal of its room. */
-  spot(pos, { vol = 1, reach = 140, room = 0.6, until = 12 } = {}) {
+  /**
+   * A little bus for one sound at a place: panned, with a good deal of its room, on the bus its slider names (issue
+   * #231; they all followed the Music slider before, so the hum and a fragment's song played with Effects at 0):
+   *   'fx' (the default): into the effects bus, its room through fxRoom, so Effects at 0 (or the mute) silences both.
+   *     The makers' hum when it has a place, a fragment's faint song, a sphere's note when the fluid strikes it and the
+   *     three spheres' remembered sounds: sounds things make where they are, the cues that lead to them.
+   *   'music': the music's volume, straight into the world and the reverb (not the music bus: its ducking under speech
+   *     and the swells are the score's own). The Garden's sphere song alone: the tune the pole plays, the score's moment.
+   */
+  spot(pos, { vol = 1, reach = 140, room = 0.6, until = 12, bus = 'fx' } = {}) {
     const ctx = this.ctx, { gain, pan } = this.placeAt(pos, reach);
     if (gain * vol < 0.004) return null;
     const g = ctx.createGain();
-    g.gain.value = gain * vol * this.musicVol;
+    const fx = bus !== 'music';
+    // (the effects bus is 1.6 × the effects volume: SPOT_FX keeps a placed sound as loud as it was at the default volumes)
+    g.gain.value = gain * vol * (fx ? SPOT_FX : this.musicVol);
+    const into = fx ? this.fx : this.world;
     const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-    if (p) { p.pan.value = pan; g.connect(p).connect(this.world); } else g.connect(this.world);
-    const send = ctx.createGain(); send.gain.value = room; g.connect(send).connect(this.reverb);
+    if (p) { p.pan.value = pan; g.connect(p).connect(into); } else g.connect(into);
+    const send = ctx.createGain(); send.gain.value = fx ? room * 1.6 : room; g.connect(send).connect(fx ? this.fxRoom : this.reverb);
     setTimeout(() => { try { g.disconnect(); send.disconnect(); p?.disconnect(); } catch { /* gone */ } }, until * 1000);
     return g;
   }
@@ -1110,7 +1122,7 @@ export class Sound {
    */
   spheresSong(pos, { ney = false } = {}) {
     if (!this.ctx) return 0;
-    const e = 0.3, t = this.ctx.currentTime + 0.1, out = this.spot(pos, { vol: 1.1, reach: 220, until: 14 });
+    const e = 0.3, t = this.ctx.currentTime + 0.1, out = this.spot(pos, { vol: 1.1, reach: 220, until: 14, bus: 'music' });
     if (!out) return 0;
     const tune = SPHERES_SONG;
     let at = 0;

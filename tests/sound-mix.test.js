@@ -3,6 +3,7 @@
 // welling up and the mount's whistle sit in the mix instead of over it. The levels are rendered with the
 // game's own Sound on engine/webaudio.js (the JS Web Audio), peak RMS over 100 ms windows, in dBFS.
 import test from 'node:test';
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics, groundKind } from '../src/physics.js';
@@ -124,4 +125,31 @@ test('with music, effects and voices at 0 nothing is heard: the singing light\'s
   const on = sung(1), off = sung(0);
   assert.ok(on > -45, `heard at the default volumes: ${on.toFixed(1)} dB`);
   assert.ok(off < -90, `silent at 0: ${off.toFixed(1)} dB`);
+});
+
+test('placed sounds follow the slider they belong to: the hum, a fragment\'s song and the spheres\' notes the Effects, the sphere song the Music (issue #231)', () => {
+  // (spot() scaled everything placed by the music's volume: the makers' hum and the fragments' song played with Effects at 0)
+  const at = new THREE.Vector3(3, 0, 0);
+  const placed = (music, fx, play) => seeded(() => {
+    const s = fresh('edena');
+    s.setVolumes(music, fx);
+    s.listen(new THREE.Vector3(0, 0, 0), 0);
+    s.ctx.render(48000 * 2);   // (the volumes glide there)
+    play(s);
+    return dB(peakRms(s.ctx.render(48000 * 5)));
+  });
+  const hum = (s) => s.makersHum({ vol: 1, pos: at }), song = (s) => s.fragmentSong(at, 1), orb = (s) => s.orbNote(0, at), sphere = (s) => s.spheresSong(at);
+  // (over the world's own bed, which is on the effects: each measured against the same render with nothing placed)
+  const over = (music, fx, play) => placed(music, fx, play) - placed(music, fx, () => {});
+  for (const [name, play] of [['the placed hum', hum], ['a fragment\'s song', song], ['a sphere struck', orb]]) {
+    const on = over(0.8, 1, play), noMusic = over(0, 1, play), noFx = placed(0.8, 0, play);
+    assert.ok(on > 6, `${name} heard over the bed at the default volumes: +${on.toFixed(1)} dB`);
+    assert.ok(Math.abs(noMusic - on) < 1.5, `${name} as loud with Music at 0: +${noMusic.toFixed(1)} against +${on.toFixed(1)} dB`);
+    assert.ok(noFx < -90, `${name} silent with Effects at 0 (Music on): ${noFx.toFixed(1)} dB`);
+  }
+  // the pole's tune is the score's: the Music's (with the Effects at 0, nothing else heard)
+  assert.ok(over(0.8, 0, sphere) > 20, 'the sphere song heard with Effects at 0');
+  const tune = placed(0, 1, sphere) - placed(0, 1, () => {});
+  assert.ok(tune < 1, `the sphere song gone with Music at 0: +${tune.toFixed(1)} dB over the bed`);
+  assert.match(fs.readFileSync(new URL('../src/audio.js', import.meta.url), 'utf8'), /spheresSong[\s\S]{0,400}bus: 'music'/);
 });
