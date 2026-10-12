@@ -1,0 +1,29 @@
+src/crowd.js
+  s_9ca76055a220ed::t_b6751b29aafa5b 451-454,487,501,764-765,873-874,909,939-945,952-954,1031,1061-1064,1081-1086,1094,1099
+tests/crowd.test.js
+  s_74b55faeb09b4b::t_04524759f6f1ea 174-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4f1b161a9ada612e8422f497f75d5b99aeadcce9",
+  "prompts": {},
+  "sessions": {
+    "s_74b55faeb09b4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a40b201ea0fbed3d5",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
