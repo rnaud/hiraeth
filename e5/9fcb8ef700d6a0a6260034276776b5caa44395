@@ -1,0 +1,60 @@
+.agents/skills/hiraeth-ai-characters/SKILL.md
+  s_972174feb57bbc::t_bd10df61455f9e 16-17,20-21
+.agents/skills/hiraeth-ai-characters/references/non-humanoids.md
+  s_972174feb57bbc::t_af1d186d484dd9 1-104
+changelog.md
+  s_972174feb57bbc::t_0c3adb14f35b81 7
+docs/systems/characters.md
+  s_972174feb57bbc::t_0b17b8704ce72b 533-677
+prompts/cistern-keeper-reference-v2.txt
+  s_972174feb57bbc::t_4f192784995d6d 1-8
+prompts/cistern-keeper-reference-v3.txt
+  s_972174feb57bbc::t_644ff135e16b2a 1-5
+prompts/cistern-keeper-reference.txt
+  s_972174feb57bbc::t_25ea3304503b4e 1
+public/guardians/keeper-v1/rig.json
+  s_972174feb57bbc::t_3ad39ee253e8c0 1-37
+references/guardians/cistern-keeper/provenance.json
+  s_972174feb57bbc::t_876b76ec64604c 1-200
+scripts/tripo/rig-keeper.mjs
+  s_972174feb57bbc::t_17eb7e20cd2d75 1-26
+src/changelog-media.js
+  s_972174feb57bbc::t_20f1e9450f60a8 723-731
+src/changelog.js
+  s_972174feb57bbc::t_3e0d39c4f09cb6 25
+src/characters/keeper-creature.js
+  s_972174feb57bbc::t_aa3147b2876998 1-65
+src/characters/keeper-fit.js
+  s_972174feb57bbc::t_5ac2f504e57a40 1-58
+src/motion-kit/gait.js
+  s_972174feb57bbc::t_7186212e1142fb 11-14,29,104,182-183,190,210-212,218,244,263-268
+src/motion-kit/rig.js
+  s_972174feb57bbc::t_2969018c02e326 136,144
+tests/keeper-creature.test.js
+  s_972174feb57bbc::t_bf4d23ff96dddd 1-124
+tools/keeper-review.html
+  s_972174feb57bbc::t_8b1b43ab91b0f3 1
+tools/keeper-review.js
+  s_972174feb57bbc::t_fae0559632a46b 1-47
+tools/tripo-render.js
+  s_972174feb57bbc::t_2d2e80d827197b 10,35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e59fcb8ef700d6a0a6260034276776b5caa44395",
+  "prompts": {},
+  "sessions": {
+    "s_972174feb57bbc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130aa-d20e-7633-9556-f28303d59bce",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
