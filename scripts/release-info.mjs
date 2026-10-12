@@ -8,6 +8,10 @@
 //   node scripts/release-info.mjs web-json <build> <web.zip> <zip url> → web.json, read by WebBundles.java
 //   node scripts/release-info.mjs web-zips <asset names…>              → the web zips a release can delete (staleWebZips)
 //   node scripts/release-info.mjs unity-notes <android|linux|xbox> [sha] [by] → the Unity testers' release notes (unityNotes)
+//   node scripts/release-info.mjs notes [release.json]                 → … with the Unity section (unitySection) from `gh release view --json assets`
+//   node scripts/release-info.mjs newest-version <tags…>               → the newest vX.Y among the tags (newestVersionTag)
+//   node scripts/release-info.mjs unity-label <android|linux|xbox> <sha> → a Unity build's label on a version's release (unityLabel)
+//   node scripts/release-info.mjs unity-body <release.json>            → that release's notes with their Unity section redone (withUnitySection)
 // The Cloudflare deploy writes its own web.json (scripts/web-update.mjs, from webJson below).
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -132,10 +136,86 @@ export function xboxDecision(manifest, { xbox, current, bad = [] }) {
 
 /** The Unity testers' builds (docs/systems/unity.md, "Building in GitHub Actions"): their releases, files and package. */
 export const UNITY_RELEASES = {
-  android: { tag: 'unity-android', file: 'hiraeth-unity.apk', package: 'com.rnaud.hiraeth.unity' },
-  linux: { tag: 'unity-linux', file: 'hiraeth-unity-linux.tar.gz' },
-  xbox: { tag: 'unity-xbox', file: 'hiraeth-unity-xbox.zip', package: 'rnaud.HiraethUnity' },
+  android: { tag: 'unity-android', file: 'hiraeth-unity.apk', package: 'com.rnaud.hiraeth.unity', title: 'Hiraeth (Unity) for Android' },
+  linux: { tag: 'unity-linux', file: 'hiraeth-unity-linux.tar.gz', title: 'Hiraeth (Unity) for Linux / Steam Deck' },
+  xbox: { tag: 'unity-xbox', file: 'hiraeth-unity-xbox.zip', package: 'rnaud.HiraethUnity', title: 'Hiraeth (Unity) for Xbox (Developer Mode)' },
 };
+
+/** GitHub's limit on one release asset (2 GiB): a bigger Unity build would stay on its prerelease alone. */
+export const MAX_RELEASE_ASSET = 2 * 1024 ** 3;
+
+/** The newest version's tag (vX.Y, compared number by number) among release tags; unity-*, xbox and the like ignored. */
+export function newestVersionTag(tags) {
+  const parse = (t) => (/^v\d+(\.\d+)*$/.test(t) ? t.slice(1).split('.').map(Number) : null);
+  const newer = (a, b) => {
+    for (let i = 0; i < Math.max(a.length, b.length); i++) if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) > (b[i] ?? 0);
+    return false;
+  };
+  let best;
+  for (const t of tags) {
+    const v = parse(t);
+    if (v && (!best || newer(v, best.v))) best = { t, v };
+  }
+  return best?.t;
+}
+
+/**
+ * A Unity build's label on a version's release (docs/systems/android.md, "The Unity builds on a version's release"):
+ * what it is and the commit built. GitHub shows the label in place of the file's name, and the notes' Unity section is
+ * read back from it (unityBuilds): the commit travels with the file, so a rewrite of the notes can't lose it.
+ */
+export function unityLabel(platform, sha) {
+  const r = UNITY_RELEASES[platform];
+  if (!r) throw new Error(`unknown platform: ${platform}`);
+  if (!/^[0-9a-f]{7,40}$/.test(sha ?? '')) throw new Error(`not a commit: ${sha}`);
+  return `${r.title}, testers' build (commit ${sha.slice(0, 12)})`;
+}
+
+/** The Unity builds on a release, from its assets ([{ name, label }]): { platform: { file, sha } } (sha from the label, if any). */
+export function unityBuilds(assets = []) {
+  const out = {};
+  for (const [platform, r] of Object.entries(UNITY_RELEASES)) {
+    const a = (assets ?? []).find((x) => x?.name === r.file);
+    if (a) out[platform] = { file: r.file, sha: /\(commit ([0-9a-f]{7,40})\)/.exec(a.label ?? '')?.[1] };
+  }
+  return out;
+}
+
+export const UNITY_SECTION_START = '<!-- unity builds -->';
+export const UNITY_SECTION_END = '<!-- /unity builds -->';
+
+/**
+ * The release notes' Unity section: each Unity build on this release and the commit it came from, or, for one not
+ * built since the release was made, where the newest is (its prerelease). The Unity builds finish later than the
+ * release and may come from an earlier commit than its APK.
+ */
+export function unitySection(assets = [], repo = 'rnaud/hiraeth') {
+  const builds = unityBuilds(assets);
+  const lines = Object.entries(UNITY_RELEASES).map(([platform, r]) => {
+    const b = builds[platform];
+    if (!b) return `- ${r.title}: not built since this release was made; the newest is on [${r.tag}](https://github.com/${repo}/releases/tag/${r.tag}).`;
+    const from = b.sha ? `built from commit [${b.sha}](https://github.com/${repo}/commit/${b.sha})` : 'from an unrecorded commit';
+    return `- ${r.title}: \`${r.file}\` below, ${from}.`;
+  });
+  return [
+    UNITY_SECTION_START,
+    `**The Unity port**, for testers (not the game players install): the same game run inside Unity. Each build is added here when it finishes, so it may come from an earlier commit than the APK.`,
+    '',
+    ...lines,
+    UNITY_SECTION_END,
+  ].join('\n');
+}
+
+/** A release's notes with their Unity section replaced (or added at the end), from the release's assets. */
+export function withUnitySection(body = '', assets = [], repo = undefined) {
+  const section = unitySection(assets, repo);
+  const start = body.indexOf(UNITY_SECTION_START), end = body.indexOf(UNITY_SECTION_END);
+  if (start >= 0 && end > start) return body.slice(0, start) + section + body.slice(end + UNITY_SECTION_END.length);
+  return `${body.replace(/\s+$/, '')}\n\n${section}\n`;
+}
+
+/** `gh release view --json body,assets` saved to a file (none: {}). */
+const readRelease = (file) => (file ? JSON.parse(readFileSync(file, 'utf8')) : {});
 
 /**
  * The notes of a Unity testers' release (unity-android, unity-linux): what it is, how to install it, and which
@@ -173,6 +253,15 @@ function main(what = 'version', ...args) {
   else if (what === 'latest-json') console.log(JSON.stringify(latestJson({ build: +args[0], version: latest.v, apk: args[1] })));
   else if (what === 'web-json') console.log(JSON.stringify(webJson({ build: +args[0], version: latest.v, file: args[1], zip: args[2] })));
   else if (what === 'web-zips') console.log(staleWebZips(args).join('\n'));
+  else if (what === 'newest-version') {
+    const tag = newestVersionTag(args);
+    if (!tag) throw new Error('no vX.Y tag among the releases');
+    console.log(tag);
+  } else if (what === 'unity-label') console.log(unityLabel(args[0], args[1]));
+  else if (what === 'unity-body') {
+    const r = readRelease(args[0]);
+    process.stdout.write(withUnitySection(r.body ?? '', r.assets, process.env.GITHUB_REPOSITORY || undefined));
+  }
   else if (what === 'unity-notes') {
     const git = (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8' }).trim();
     const sha = args[1] || git('rev-parse', 'HEAD');
@@ -181,10 +270,12 @@ function main(what = 'version', ...args) {
     console.log(unityNotes({ platform: args[0], sha, subject: git('log', '-1', '--format=%s', sha), ...at, by: args[2] }));
   }
   else if (what === 'notes') {
-    console.log(`Hiraeth v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);
+    console.log(`Hiraeth v${latest.v} (${latest.date}) for Android. Download \`hiraeth-v${latest.v}.apk\` below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);
     console.log(newestFirst(latest).map((i) => `- ${lineText(i)}`).join('\n'));
     console.log(`\nBefore and after pictures of what changed: https://hiraeth.alexandria-rnaud.workers.dev/changelog.html#v${latest.v}`);
     console.log('\nThe game runs fully offline. Built from the web version that is also playable at https://hiraeth.alexandria-rnaud.workers.dev/.');
+    // (the Unity builds the release holds, from their labels: kept by every push that rewrites these notes)
+    console.log(`\n${unitySection(readRelease(args[0]).assets, process.env.GITHUB_REPOSITORY || undefined)}`);
   } else throw new Error(`unknown: ${what}`);
 }
 

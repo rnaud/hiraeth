@@ -8,6 +8,8 @@ name: Unity release (testers)
 #   build over the last; published to the GitHub release unity-android (hiraeth-unity.apk, replaced each run);
 # - linux: the bridge's Linux player (BridgeBuild.Linux: x86_64, IL2CPP, Vulkan) for the Steam Deck, to unity-linux.
 # Both releases are prereleases, never the latest: the app's updater and the players read the vX.Y releases.
+# Each build also goes onto the newest version's release (vX.Y) beside the APK, labelled with the commit built
+# (scripts/unity-publish.sh): the prereleases stay what the Deck's installer reads.
 # Unity is licensed by GameCI (unity-builder v6, which activates a Personal seat from UNITY_EMAIL and
 # UNITY_PASSWORD and returns it after); without those secrets the first job fails at once and says so.
 # The same APK can be built and published from a Mac with scripts/unity-android-release.sh.

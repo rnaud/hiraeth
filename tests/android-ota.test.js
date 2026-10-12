@@ -165,10 +165,10 @@ test('the workflow publishes the APK and its manifest, never half', () => {
   // the repository is private: the game's updates come from the site only, no web zip on GitHub (docs/cloudflare.md)
   assert.doesNotMatch(yml, /TRANSITION|web-\$BUILD\.zip|web\.json|web-zips/);
   assert.match(yml, /release-info\.mjs latest-json/);
-  const apkUp = yml.indexOf('"$APK" --clobber'), jsonUp = yml.indexOf('"$RUNNER_TEMP/latest.json" --clobber');
+  const apkUp = yml.indexOf('"$APK#$LABEL" --clobber'), jsonUp = yml.indexOf('"$RUNNER_TEMP/latest.json" --clobber');
   assert.ok(apkUp > 0 && apkUp < jsonUp, 'the APK goes up before the manifest that points at it');
   // a new release is made with every file at once (gh keeps it a draft until they are up)
-  assert.match(yml, /gh release create "\$TAG" "\$APK" "\$RUNNER_TEMP\/latest\.json"/);
+  assert.match(yml, /gh release create "\$TAG" "\$APK#\$LABEL" "\$RUNNER_TEMP\/latest\.json"/);
   // a run publishing is never cancelled (that left the newest release without its manifest)
   // (the group is android-release for a run that builds; tests/pre-commit.test.js evaluates it)
   assert.match(yml, /concurrency:\s*\n\s*group: [^\n]*'android-release'[^\n]*\n\s*cancel-in-progress: false/);
