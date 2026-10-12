@@ -9,7 +9,8 @@ ratio: on a 3× phone that meant just one rendered pixel per CSS pixel. Ink
 edges were then drawn from a nearest-filtered G-buffer without final
 antialiasing. Mobile Auto now starts at 1×, uses a 0.75× floor and targets
 roughly 30 fps. All quality levels composite at their own resolution and use
-FXAA on the final colour before scaling to the display. Sky dots are spaced
+FXAA on the final colour before scaling to the display (the Handheld preset SMAA: docs/systems/rendering.md, "Far
+lines that would alias"; +0.05-0.18 ms on the Mac at the Retroid's render size). Sky dots are spaced
 farther apart and fade at low pixel density. High remains available in
 Settings for a fixed full-resolution image on HiDPI phones.
 

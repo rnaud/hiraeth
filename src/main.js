@@ -27,7 +27,7 @@ import { FirstSteps } from './first-steps.js';
 import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW } from './scout-hint.js';
 import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
-import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
+import { createGBuffer, createComposeTarget, createBlit, createSmaa, aaOf, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, markHero, keepHero, setEnvGround } from './materials.js';
 import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
@@ -255,6 +255,7 @@ let preset = resolveQuality(settings.quality, { handheld, deck, xbox: isXboxApp,
 const quality = { renderScale: preset.scale };
 const composeRT = createComposeTarget();
 const blit = createBlit(composeRT.texture);
+let smaa = null;   // (the handheld's antialiasing in place of the blit's FXAA: preset.aa, pipeline.js createSmaa)
 
 const overlays = { motes: null, trail: null };   // sprite overlays sized with the render targets
 
@@ -269,6 +270,7 @@ function resize() {
   bloom.setSize(rw, rh);
   composeRT.setSize(rw, rh);
   blit.material.uniforms.resolution.value.set(1 / rw, 1 / rh);
+  if (aaOf(preset) === 'smaa') (smaa ??= createSmaa()).setSize(rw, rh);
   post.uniforms.uRes.value.set(rw, rh);
   post.uniforms.uPixelRatio.value = pr;
   sharedUniforms.uPixelRatio.value = pr;
@@ -1930,7 +1932,8 @@ function renderFrame() {
 
   // 5. smooth edges and scale the completed frame to the display
   renderer.setRenderTarget(null);
-  renderer.render(blit.scene, post.camera);
+  if (smaa && aaOf(preset) === 'smaa') smaa.render(renderer, composeRT);
+  else renderer.render(blit.scene, post.camera);
   for (const o of frameHidden) o.visible = true;
   framePin.end();
   frameStats.calls += renderer.info.render.calls; frameStats.tris += renderer.info.render.triangles; frameStats.n++;

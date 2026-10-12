@@ -717,6 +717,7 @@ const ANTE_CAM = (id) => `const rt = window.temples?.${id}, K = rt.kit, V = THRE
   for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   player.teleport(K.world(0.3, l.y + 0.05, l.z), new V(0, 1, 0), new V(0, 0, 1)); player.heading = K.heading(0);
   rig.yaw = player.heading + Math.PI; rig.pitch = rig.pitch0; rig._lastP = null;`;
+const SH59 = 'headless Chrome (muted) on the Mac’s GPU, the Handheld preset at the Retroid’s 730 × 410 CSS px at 2× (render scale 0.75), hour 10, clear, the clock held; origin/main’s build (27d67022) and this change’s, the same camera for both (12 October); cwebp -q 72';
 const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5641) and origin/main’s tree before it (8821ba59, port 5643), ?game=pirates&to=edena, the run flown ahead to the same second by the game’s pilot for both (12 October); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.59': [
@@ -772,6 +773,20 @@ export const CHANGELOG_MEDIA = {
       rows: [{ where: 'the arm’s in and out, summed over the walk', before: 3.66, after: 0.74 }, { where: 'flips in and out within a third of a second (frames)', before: 8, after: 0 }], source: 'scratch run of the test’s scenario against the commit before and after' }],
       see: 'In the ship’s hold or a small room, turn the camera round slowly: it stays at one distance, it doesn’t push in and pull back at each wall.' },
     { match: 'Two of the Rose House’s glyph stones', see: 'In the Rose House, fall into the Dry Channel’s sand: you come back on the near ledge with room behind you. Wake the Sword Chamber’s stone and fall: you face the dais.' },
+    { match: 'On handhelds and phones, far-off towns, facades and forests no longer shimmer', shots: [
+      { name: 'far-ink-town', title: 'The far town', caption: 'The desert’s camp town 110 m off, the Handheld preset at the Retroid’s 730 × 410 at 2×: before, its walls and domes in black one-pixel lines; after, the same lines lighter, the near dune’s as it was', from: SH59 },
+      { name: 'far-ink-market', title: 'The Signal Market', caption: 'The Market’s street from the traveller’s spawn, the same size and preset: the near people, stalls and the ship as they were; the facades down the street drawn in lighter lines', from: SH59 },
+    ], numbers: [
+      { title: 'Shimmer: pixels that flicker in a slow pan or turn, far off (over 60 m)', unit: 'per 10 000', better: 'lower', device: 'the Mac (M4 Pro), headless Chrome, the Handheld preset at the Retroid’s 730 × 410 at 2× (scale 0.75)', rows: [
+        { where: 'desert, pan', before: 87.8, after: 38.0 }, { where: 'desert, turn', before: 61.3, after: 38.7 },
+        { where: 'Signal Market, pan', before: 43.2, after: 26.6 }, { where: 'Signal Market, turn', before: 201.4, after: 74.7 },
+        { where: 'Lorn II, pan', before: 27.6, after: 12.1 }, { where: 'Lorn II, turn', before: 47.6, after: 19.1 },
+        { where: 'Sealed Hangar, pan', before: 36.5, after: 19.3 }, { where: 'Sealed Hangar, turn', before: 36.5, after: 19.4 },
+      ], source: 'node scripts/motion-check/record.mjs --preset handheld --res 730x410@2 --paths pan,turn --far 60 (the world frozen, the camera a third of a pixel a frame); the whole frame: desert 22.8 → 10.7, the Market’s turn 86.3 → 39.0' },
+      { title: 'The smoothing’s cost (SMAA in place of FXAA)', unit: 'ms a frame', better: 'lower', device: 'the Mac (M4 Pro), headless Chrome, Handheld at 1460 × 820, scale 0.75 (the Retroid’s render size)', rows: [
+        { where: 'desert spawn', before: 3.95, after: 4.13 }, { where: 'dunes', before: 2.15, after: 2.2 }, { where: 'camps', before: 3.92, after: 4.01 },
+      ], source: 'node scripts/bench/passes.mjs --toggles fxaa,smaa (synced frame time, median of 7 in turns); the lighter far lines cost nothing measurable. The Retroid: about 3× the Mac, 0.2–0.5 ms (estimated)' },
+    ], see: 'On a handheld (or the Handheld preset), stand in the Signal Market’s street and turn slowly, looking down it: the far facades hold still.' },
   ],
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [
