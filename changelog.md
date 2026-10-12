@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.54 — 2026-10-12
 
+- In the Moon Foundry, rails run from beside the Casting-House’s door up the hangar’s east side and out onto the apron, with a stone test moon on a cart and a cart of cracked moons on the way: a walk back to your ship you haven’t taken yet.
 - In Lorn the keepers’ stakes now come out of the crystal cave and round the Hush-House to a stake beside its steps, then run on down the channel to Hollin, so the way from the house to the lamp-keeper is marked.
 - In the Garden of Spheres a pale path now leads from behind your ship to the Footprint, past a little Footprint pressed in the grass and a tall white stone. Once the Echo is calm, the Footprint lets you out through a round stone at the foot of the white hill, and the hill’s path takes you home another way.
 - Hiraeth now carries its own name inside too, so this update starts afresh: saves and settings begin again everywhere. On Android it is a new app: install it when the old app offers the update (or from the release page), then uninstall the old one, which gets no more updates. On the Steam Deck, run the install command again. The game’s site has moved to hiraeth.alexandria-rnaud.workers.dev.

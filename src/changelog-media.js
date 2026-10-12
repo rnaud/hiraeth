@@ -703,6 +703,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'lorn-steps', title: 'From the Hush-House’s steps', caption: 'Out of the Hush-House’s door, looking down the channel: before, open water; after, a keepers’ stake beside the steps and the stakes going on down the channel toward Hollin', from: LD54,
         view: { level: 'perdide', hour: 10, fov: 60, eye: [-106, 4.2, 113], target: [-104, 1.5, 62], player: [-109, 2.2, 108] } },
     ], see: 'Come out of the Hush-House’s door: a coral-topped stake stands by the steps, and the row runs south down the channel to Hollin’s island.' },
+    { match: 'In the Moon Foundry, rails run from beside the Casting-House’s door', shots: [
+      { name: 'foundry-rails', title: 'The casting rails', caption: 'Just out of the Casting-House’s door, looking north: before, the bare floor; after, the casting rails running up the east bay, the test moon on its cart far up them', from: LD54,
+        view: { level: 'moonfoundry', hour: 10, fov: 60, eye: [120, 3.2, -142], target: [125, 2, -40], player: [120, 0, -143] } },
+      { name: 'foundry-test', title: 'The test moon', caption: 'Halfway up the east bay: after, a stone test moon on its flat cart on the rails, between the roof’s pillars', from: LD54,
+        view: { level: 'moonfoundry', hour: 10, fov: 60, eye: [120.5, 3.2, -82], target: [125.2, 2, -64], player: [120.5, 0, -83] } },
+      { name: 'foundry-cracked', title: 'The cracked moons', caption: 'By the hangar’s mouth: after, a tub cart heaped with cracked little moons on the rails, the apron beyond', from: LD54,
+        view: { level: 'moonfoundry', hour: 10, fov: 60, eye: [119, 3, 18], target: [126, 1.6, 40], player: [119, 0, 17] } },
+    ], see: 'Stop the Last Founder and step out of the Casting-House: follow the rails north from beside its door, out of the hangar’s mouth, and across the apron to your ship.' },
   ],
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [

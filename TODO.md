@@ -31,8 +31,6 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 From docs/audits/level-design-v1.53.md (twelve route worlds, 4.51, the four worlds' explorations measured), worst first:
 
-- [ ] [#180](https://github.com/rnaud/hiraeth/issues/180) **The Moon Foundry: the walk home from the Casting-House** (277 m) passes nothing new.
-  A way out elsewhere, or home past the quarter: loops 4 → 5, 4.56 → 4.67.
 - [ ] [#181](https://github.com/rnaud/hiraeth/issues/181) **The Desert is still flat**: 1 of 64 places raised. A stop on the giant's arm over the
   wash, a lookout on a sandfall mesa: verticality 3 → 4, 4.11 → 4.22.
 - [ ] [#182](https://github.com/rnaud/hiraeth/issues/182) **The City-Shaft: the light-down's first mirror is a loner** (164 m from anything), and

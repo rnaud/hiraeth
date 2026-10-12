@@ -69,6 +69,11 @@ export const HOIST = { x: 53, z: -175, stages: [[5, 26.8], [3.8, 53.6], [2.6, 80
  * carts of slag on it ([x, z0, z1]: between its rails), the floor's rails run out of the mouth to `rails` (z).
  */
 export const APRON = { mould: [-15, 72], siding: [13, 66, 90], carts: [72, 81], rails: 106 };
+/**
+ * The casting rails (v1.54, issue #180): x between its two rails, from beside the Casting-House's door (z0) north up the
+ * hangar's east bay and out of the mouth onto the apron (z1); the test cast's flat cart and the cart of cracked moons on them.
+ */
+export const CASTING_RAILS = { x: 125.2, z0: -146, z1: 104, test: { z: -64 }, cracked: { z: 34 } };
 export const FURNACE = { x: 70, z: -14, r: 6.5, h: 9 };
 export const QUARTER = { x: -102, z: -46, r: 26 };
 export const LIMIT = 330;
@@ -524,6 +529,37 @@ export function* buildMoonFoundry(scene) {
     }
   }
 
+  // ---------------------------------------------------------------- the casting rails: the way home from the Casting-House
+  // (level design audit v1.53, issue #180: the walk home from its door went back across the floor the way you came, 277 m
+  // past nothing new.) The rails the house's casts went out on: from beside its door north up the hangar's east bay,
+  // between the pillars, out of the mouth onto the apron. On them a test cast, a stone moon on its flat cart where it was
+  // left, and nearer the mouth a tub cart heaped with cracked little moons, the Last Founder's, wheeled out of the way.
+  yield;
+  {
+    const R = CASTING_RAILS, x0 = R.x - 1.2, x1 = R.x + 1.2;
+    for (const x of [x0, x1]) for (let z = R.z1; z > R.z0; z -= 60) {
+      const L = Math.min(60, z - R.z0);
+      kitAt(x, z - L / 2).kit.add(M.steel, new THREE.BoxGeometry(0.14, 0.08, L).translate(x, 0.04, z - L / 2), LOOSE_NS);
+    }
+    const wheels = (z) => [-1.1, 1.1].flatMap((dz) => [x0, x1].map((x) => new THREE.CylinderGeometry(0.34, 0.34, 0.16, 10).rotateZ(Math.PI / 2).translate(x, 0.34, z + dz)));
+    // the test cast: a stone moon in a ring on a flat cart
+    {
+      const { z } = R.test, x = R.x, r = 2.3;
+      const bed = new THREE.BoxGeometry(3.0, 0.32, 3.4).translate(x, 0.78, z), ring = new THREE.TorusGeometry(1.5, 0.16, 6, 20).rotateX(Math.PI / 2).translate(x, 1.02, z);
+      put(x, z, { rust: [bed], rust2: [ring], dark: wheels(z) }, { tones: { rust: 'rust3' } });
+      put(x, z, moveParts(moon({ R: r, seg: 28, craters: 7, seed: 77, detail: 0.8 }), (g) => g.translate(x, 0.94 + Math.sqrt(r * r - 1.5 * 1.5), z)), { tones: { shell: 'ivory2' } });
+    }
+    // the cracked moons, broken open, heaped in a tub cart
+    {
+      const { z } = R.cracked, x = R.x;
+      put(x, z, { rust: [new THREE.BoxGeometry(2.6, 1.2, 2.2).translate(x, 1.1, z)], dark: wheels(z) }, { tones: { rust: 'rust3' } });
+      for (const [k, dx, dz, dy, r] of [[0, -0.6, -0.4, 2.0, 0.85], [1, 0.55, 0.3, 2.05, 0.8], [2, 0, 0.1, 2.75, 0.7]]) {
+        const dir = new THREE.Vector3(Math.sin(k * 2.3 + 0.4), 0.6, Math.cos(k * 2.3 + 0.4));
+        put(x, z, moveParts(moon({ R: r, seg: 20, craters: 3, seed: 81 + k, cut: { dir, angle: 0.95 }, detail: 0.8 }), (g) => g.translate(x + dx, dy, z + dz)), { tones: { shell: 'ivory2' } });
+      }
+    }
+  }
+
   // ---------------------------------------------------------------- beyond the hangar: moons far off on their cradles and cranes (drawn only)
   yield;
   const far = [];
@@ -617,6 +653,9 @@ export function* buildMoonFoundry(scene) {
     lines: [
       { name: 'the aisle’s lamps', points: [[0, 0, MOUTH + 20], [0, 0, -40], [0, 0, -140]] },
       { name: 'the rails and the gantry', points: [[FURNACE.x - 14, 0, FURNACE.z + 10], [STAIR.x + 6, 0, STAIR.z0 + 6], [STAIR.x, G, WAYS.top], ...WAYS.main.slice(1)] },
+      // (v1.54, issue #180: the casting rails, the way home from the Casting-House's door: north up the east bay, out of the
+      //  mouth and across the apron to the ship; followed where the route's last stop names it, tests/playthrough-worlds.js)
+      { name: 'the casting rails', points: [[CASTING_HOUSE.x - 6, 0, CASTING_RAILS.z0 - 6], [CASTING_RAILS.x, 0, CASTING_RAILS.z0], [CASTING_RAILS.x, 0, CASTING_RAILS.z1 - 6], [SHIP.x + 24, 0, SHIP.z - 22]], auto: false },
     ],
     hung: { x: HUNG.x, y: HUNG.y, z: HUNG.z },
     sights: [
@@ -625,6 +664,9 @@ export function* buildMoonFoundry(scene) {
       { name: 'the courtyard in the broken moon', at: [COURT.x, COURT_Y, COURT.z] },
       // (v1.46: the hoist tower's gallery under the roof, 80 m up, every moon on the floor below it)
       { name: 'the hoist tower’s gallery', at: [HOIST.x, HOIST.stages.at(-1)[1] + 0.25, HOIST.z] },
+      // (v1.54, issue #180: on the casting rails)
+      { name: 'the test moon on the casting rails', at: [CASTING_RAILS.x, 0, CASTING_RAILS.test.z] },
+      { name: 'the cart of cracked moons', at: [CASTING_RAILS.x, 0, CASTING_RAILS.cracked.z] },
     ],
     ground: terrain,
     collision: { strategy: 'SAH' },

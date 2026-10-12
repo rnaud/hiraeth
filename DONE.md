@@ -2813,3 +2813,7 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   (2026-10-12, v1.54: the keepers' stakes run round the Hush-House to a stake beside its steps and on down the channel;
   the door → Hollin leg walked along them. Wayfinding 4 → 5, Lorn 4.44 → 4.56; the cave → door leg still reads blind, the
   audit's straight line through the cave's wall. Fixes #179.)
+- [x] [#180](https://github.com/rnaud/hiraeth/issues/180) **The Moon Foundry: the walk home from the Casting-House** (277 m) passes nothing new.
+  A way out elsewhere, or home past the quarter: loops 4 → 5, 4.56 → 4.67.
+  (2026-10-12, v1.54: the casting rails home from the Casting-House's door, up the east bay and out onto the apron, past
+  a test moon and a cart of cracked moons. Loops 4 → 5, the Moon Foundry 4.56 → 4.78. Fixes #180.)

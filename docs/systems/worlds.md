@@ -2070,6 +2070,12 @@ empty. Each fix is checked from the spots it is there for, and its way home agai
   to the open water and on as before. The door → Hollin leg is walked along them; wayfinding 4 → 5, Lorn 4.44 → 4.56.
   (The cave's heart → the door, 61 m, still reads blind: the audit's straight line runs through the cave's wall, and the
   walk out by the mouth along the stakes is 2.5 times it.)
+- **The Moon Foundry, home from the Casting-House** (`CASTING_RAILS`, src/levels/moon-foundry.js): the walk home went back
+  across the floor the way you came. **The casting rails** run from beside the door north up the hangar's east bay,
+  between the pillars, out of the mouth onto the apron; on them **a test moon** on its flat cart and, nearer the mouth,
+  **a cart of cracked moons** (both solid as drawn). The route's last step names them as its `home` (`the casting
+  rails`, 382 m against 277, two places new on it). The moons' film at the door is untouched. Loops 4 → 5: the Moon
+  Foundry 4.56 → 4.78.
 
 ## The Buried Machine breathes (issue #168; v1.51)
 

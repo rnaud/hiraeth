@@ -9,6 +9,7 @@ await import('./register-gadgets.js');
 const A = await import('./playthrough-agent.js');
 const { KEEPERS_STONE } = await import('../src/temples/spheres.js');
 const { STEPS_STAKE } = await import('../src/lorn-crossing.js');
+const { CASTING_RAILS, MOUTH } = await import('../src/levels/moon-foundry.js');
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -95,5 +96,37 @@ test('Lorn (issue #179): a keepers’ stake stands beside the Hush-House’s ste
     assert.ok(Math.min(...line.map((p) => flat(p, door))) < 30 && Math.min(...line.map((p) => flat(p, hollin))) < 30, 'the stakes run from beside the door to beside Hollin');
     // the stakes on from the steps keep to the water down the channel, clear of the island's moss and the house
     for (const p of S.slice(i + 1, i + 6)) assert.ok(L.ground.heightAt(p.x, p.z) < 0.5, `stake at (${p.x.toFixed(0)}, ${p.z.toFixed(0)}) stands in the water`);
+  } finally { W.dispose(); }
+});
+
+test('the Moon Foundry (issue #180): the casting rails run from beside the Casting-House’s door out of the mouth, past the test moon and the cart of cracked moons, home another way than the way in', () => {
+  globalThis.location = { search: '?level=moonfoundry' };
+  const W = A.loadWorld('moonfoundry');
+  try {
+    const L = W.level, D = L.temple.outside.door, door = D.at, ship = V(L.spawn.x, 0, L.spawn.z);
+    const step = door.clone().add(V(Math.sin(D.heading) * 4, 0, Math.cos(D.heading) * 4));   // (just out of the door)
+    const R = CASTING_RAILS, home = lineOf(L, 'the casting rails');
+    assert.ok(home && home.auto === false, 'the audit reads the casting rails as a way home');
+    assert.ok(flat(vec(home.points[0]), door) < 15 && flat(vec(home.points.at(-1)), ship) < 40, 'from beside the door to beside the ship');
+    assert.ok(R.z1 > MOUTH + 30, 'out of the mouth onto the apron');
+    // each in sight from the one before: the test moon from the door, the cart of cracked moons from the test moon, the
+    // ship from the cracked moons
+    const eye = (x, z) => V(x, W.physics.groundAt(x, 20, z, 40) + EYE, z);
+    const test = sightOf(L, /test moon/).at, cracked = sightOf(L, /cracked moons/).at;
+    assert.equal(blocker(W, V(step.x, EYE, step.z), V(test[0], 3.5, test[2])), null, 'the test moon from the Casting-House’s door');
+    assert.equal(blocker(W, eye(test[0] - 2.5, test[2] + 4), V(cracked[0], 2.6, cracked[2])), null, 'the cracked moons from the test moon');
+    assert.equal(blocker(W, eye(cracked[0] - 2.5, cracked[2] + 4), V(ship.x, 4, L.spawn.z + 20)), null, 'the ship from the cracked moons');
+    // nothing in the way of the walk beside the rails, but the two carts on them
+    for (const p of along([[R.x - 2.6, R.z0], [R.x - 2.6, R.z1]], 2)) {
+      const g = W.physics.groundAt(p.x, 3, p.z, 5);
+      assert.ok(g < 0.6, `the walk beside the rails is clear at z ${p.z.toFixed(0)} (${g.toFixed(2)} m)`);
+    }
+    // the way in: the route's stops, the landing to the door (tests/playthrough-worlds.js ROUTE)
+    const wayIn = [ship, ...['hedda', 'ottilie', 'crane', 'wen', 'lookout', 'hoistDeck'].map((n) => A.objectiveAt(W, n)), door];
+    assert.ok(wayIn.every(Boolean), 'the route’s stops resolve');
+    const s = shared(home.points, wayIn, ship);
+    assert.ok(s < 0.15, `${(s * 100).toFixed(0)} % of the way home runs along the way in`);
+    const inPts = along(wayIn);
+    for (const p of [test, cracked].map(vec)) assert.ok(Math.min(...inPts.map((q) => flat(p, q))) > 35, 'a place the way in doesn’t pass');
   } finally { W.dispose(); }
 });
