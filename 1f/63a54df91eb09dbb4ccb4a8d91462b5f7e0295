@@ -1,0 +1,137 @@
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_2022ca29a10045 14-15,35,43,45
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_9b5473b57db8e1 22-23,103-104,106
+.claude/skills/combat-review/defend.mjs
+  s_9ca76055a220ed::t_3cb142d5ea3538 17-18,33,37,39
+.claude/skills/combat-review/dodge.mjs
+  s_9ca76055a220ed::t_4e1ab53d85ed41 14-15,31-32,34
+.claude/skills/game-audit/capture.mjs
+  s_9ca76055a220ed::t_58d96474f731a8 15-16,37-39
+.claude/skills/ink-lines/capture.mjs
+  s_9ca76055a220ed::t_f42153d6db43ac 15-16,83-84,86
+.claude/skills/ink-lines/cost.mjs
+  s_9ca76055a220ed::t_917190123be90a 8-9,38-39,41
+.claude/skills/motion-qc/run.mjs
+  s_9ca76055a220ed::t_a1c3e71f76c95a 16-17,38,45,47
+.claude/skills/perf-audit/fps.mjs
+  s_9ca76055a220ed::t_567abe35b571c3 19-20,47,49,51
+.claude/skills/shadow-qc/run.mjs
+  s_9ca76055a220ed::t_b571ac993e23f7 15-16,36,42,44
+.claude/skills/visual-audit/probes.mjs
+  s_9ca76055a220ed::t_95c6e9e3dc4119 22-23,70-72
+.claude/skills/visual-audit/views.mjs
+  s_9ca76055a220ed::t_4449fe554c3eca 11-12,37-39
+docs/README.md
+  s_9ca76055a220ed::t_779505b131ba2b 84
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_0a2e5a03ec2ee8 243-255
+scripts/bench/browser.mjs
+  s_9ca76055a220ed::t_b89c27f164e256 12,24
+scripts/bench/deck-mac.mjs
+  s_9ca76055a220ed::t_2fe0bc5cdad09c 9-10,22-23,26
+scripts/bench/mac-spawn.mjs
+  s_9ca76055a220ed::t_251f4b30539a63 14-15,32-33,36
+scripts/bench/web-load.mjs
+  s_9ca76055a220ed::t_4b86c616704ee6 15-16,31-32,35
+scripts/changelog-shots.mjs
+  s_9ca76055a220ed::t_e33c8df20500d2 15-16,74-75,77,280-281
+scripts/character-quality-shots.mjs
+  s_9ca76055a220ed::t_8c92cc43f2c1e0 2-3,13-14,16
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_bf80f0f6d00ee7 23-24,234-235,237
+scripts/design-qc/capture.mjs
+  s_9ca76055a220ed::t_e999c1d7fbe690 13-14,33-35
+scripts/enemy-quality-shots.mjs
+  s_9ca76055a220ed::t_b63e9883c74d6b 2-3,13-14,16
+scripts/enemy-roster/bench.mjs
+  s_9ca76055a220ed::t_ec2ecfabbe1652 12-13,34
+scripts/enemy-roster/compare.mjs
+  s_9ca76055a220ed::t_766f612b91a075 17-18,59-60
+scripts/enemy-roster/skins.mjs
+  s_9ca76055a220ed::t_4ad9520cd8b0a3 10-11,29-30
+scripts/item-pictures.mjs
+  s_9ca76055a220ed::t_eb588f1d09d565 10-11,23
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_a949393a80b65c 42-43,206-207,209
+scripts/load-smoke.mjs
+  s_9ca76055a220ed::t_5e3fd68fe4455b 22-23,90-91,93
+scripts/motion-audit/lod-page.mjs
+  s_9ca76055a220ed::t_07e6fc1f844adf 13-14,31-32,34
+scripts/motion-audit/shimmer.mjs
+  s_9ca76055a220ed::t_58b186fbce8f37 10-11,28-29,31
+scripts/motion-audit/strips.mjs
+  s_9ca76055a220ed::t_ab9d815383768c 12-13,30-31
+scripts/playthrough-browser.mjs
+  s_9ca76055a220ed::t_eb439d9924f491 27-28,47-49
+scripts/portrait-check.mjs
+  s_9ca76055a220ed::t_0c40950e9a3663 18-19,33-34,37
+scripts/sfx-build.mjs
+  s_9ca76055a220ed::t_19c7b9db83fb36 16-17,105
+scripts/temp-dirs.mjs
+  s_9ca76055a220ed::t_e0c5b4c1b98350 1-100
+scripts/title-shots.mjs
+  s_9ca76055a220ed::t_3a4f5c2a6ec5ba 38
+scripts/title-vectors.mjs
+  s_9ca76055a220ed::t_0c0c14c350a007 93
+scripts/world-thumbs.mjs
+  s_9ca76055a220ed::t_2e469f280365bc 10-11,40
+tests/android-ota.test.js
+  s_9ca76055a220ed::t_037ba05d6cd5ac 5-6,72
+tests/changelog-media.test.js
+  s_9ca76055a220ed::t_5c6f41b71214b8 6-7,81
+tests/deck-runtime.test.js
+  s_9ca76055a220ed::t_7c849973bc37a6 5-6,60
+tests/deck-updates.test.js
+  s_9ca76055a220ed::t_b9d919a2e16170 6-7,86
+tests/engine-bridge.test.js
+  s_9ca76055a220ed::t_5bec95e37de3e5 21,374,393,472,488
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_62c88ea4f01a52 19,203
+tests/level-design-glass.test.js
+  s_9ca76055a220ed::t_fb2e6a3f64960e 7-8,13
+tests/pose-exact.test.js
+  s_9ca76055a220ed::t_35d4c428a22fbf 14,35,47
+tests/pose-walks.test.js
+  s_9ca76055a220ed::t_dd83e73cf507ad 16,41
+tests/reference-lab-3d.test.js
+  s_9ca76055a220ed::t_7f1309dd065c73 7-8,30
+tests/reference-lab-pickmode.test.js
+  s_9ca76055a220ed::t_1e702ccac21a8c 6-7,74
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_3c2fa99f75d68d 7-8,33,123,504
+tests/references-page.test.js
+  s_9ca76055a220ed::t_cc8cf2793c18dd 5-6,20
+tests/references-site.test.js
+  s_9ca76055a220ed::t_2b5e2eb2446298 6-7,23,125
+tests/release-workflows.test.js
+  s_9ca76055a220ed::t_8d1780a4360f4c 7-8,66,80,90
+tests/site-only.test.js
+  s_9ca76055a220ed::t_7e461bdcbb25ac 5-6,23
+tests/temp-dirs.test.js
+  s_9ca76055a220ed::t_4084ad8ab918d9 1-109
+tests/temple-design.test.js
+  s_9ca76055a220ed::t_d7ea7cc5abf75b 227,229-230
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_6ae28ccb66f7f4 82,84-85
+tests/web-update.test.js
+  s_9ca76055a220ed::t_b6604127510cff 5-6,39
+tests/xbox.test.js
+  s_9ca76055a220ed::t_a0026183043306 7-8,202,263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1f63a54df91eb09dbb4ccb4a8d91462b5f7e0295",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
