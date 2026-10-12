@@ -62,7 +62,7 @@ async function measure(c, preset, cpu) {
   await c.ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1');
     localStorage.setItem('hiraeth.s1.game.v1', ${JSON.stringify(SAVE)});
     localStorage.setItem('hiraeth.s1.meta.v1', JSON.stringify({ playtime: 600, lastPlayed: Date.now() }));
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 })); true`);
   await c.send('Emulation.setCPUThrottlingRate', { rate: cpu });
   if (NET) { await c.send('Network.enable'); await c.send('Network.emulateNetworkConditions', { offline: false, ...NET }); }
   await c.send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?shot=${SHOT}${QUERY ? `&${QUERY}` : ''}` });

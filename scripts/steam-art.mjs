@@ -72,7 +72,7 @@ async function capture(shots) {
         localStorage.clear();
         localStorage.setItem('hiraeth.muted', '1');
         localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'items.v': 2 }, keepsakes: [] }));
-        localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', showFps: false, music: 0, effects: 0, voices: 0 }));
+        localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));
       });
       await page.goto(`${BASE}?level=references&view=${encodeURIComponent(shot.view)}`, { waitUntil: 'load' });   // (a number or a view's id: the level opens on its world)
       await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player && window.level?.held, null, { timeout: 300000, polling: 200 });

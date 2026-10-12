@@ -164,7 +164,7 @@ async function runWorld(page, world, mode) {
   page.errors = []; page.warnings = [];
   await page.eval((q) => {
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, deckV: 1, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, deckV: 1, music: 0, effects: 0, voices: 0, soundV: 1 }));
     return true;
   }, quality);
   const t0 = Date.now();

@@ -9,7 +9,7 @@ export const SCALE = { high: 1, handheld: 0.75 };
 export const prepareStorage = (ev, quality) => ev((quality) => {
   localStorage.clear();
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));
   return true;
 }, quality);
 

@@ -108,7 +108,7 @@ async function chrome() {
 const storage = (v) => `localStorage.clear();
   localStorage.setItem('hiraeth.muted', '1');
   localStorage.setItem('hiraeth.game.v1', JSON.stringify(${JSON.stringify(v.save ?? { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })}));
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${v.quality}', showFps: false, music: 0, effects: 0, voices: 0, ...${JSON.stringify(v.settings ?? {})} }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${v.quality}', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1, ...${JSON.stringify(v.settings ?? {})} }));
   ${v.storage ?? ''}`;
 
 /** In the page once the world is up: the hour, the weather, a fixed resolution, the HUD hidden, the camera pinned. */

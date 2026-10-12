@@ -10,6 +10,8 @@
 //   [--zoomfrom 30 --zoomto 2]     the zoom path's distances
 //   [--far 60]                     also the flicker of what is over 60 m off alone (farFlicker: per 10 000 of those pixels;
 //                                  the mask read once a path from debug view 4, the depth)
+//   [--gecko <dist dir>]           on the handheld over adb instead: the GeckoView test app at the device's own screen
+//                                  (--res ignored), that build served from this Mac (scripts/bench/gecko-load.mjs)
 // Measures (per frame, per 10 000 px): flicker, a pixel that went one way by over 20 levels and came straight back
 // (with the world frozen and the camera moving a third of a pixel a frame, nothing should); jolt, its second
 // difference over 64; on the zoom and swing paths, the residual against the last frame warped to match (a straight
@@ -21,9 +23,9 @@ import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { tmpdir, homedir } from 'node:os';
 import { PLAYWRIGHT, CHROME } from '../bench/browser.mjs';
-const { chromium } = await import(PLAYWRIGHT);
 
 const A = Object.fromEntries(process.argv.slice(2).reduce((a, x, i, all) => (x.startsWith('--') ? [...a, [x.slice(2), all[i + 1] && !all[i + 1].startsWith('--') ? all[i + 1] : '1']] : a), []));
+const { chromium } = A.gecko ? {} : await import(PLAYWRIGHT);   // (not needed on the handheld: --gecko)
 const FFMPEG = process.env.FFMPEG ?? `${homedir()}/Library/Caches/ms-playwright/ffmpeg-1011/ffmpeg-mac`;
 const port = +(A.port ?? 6121), level = A.level ?? 'bazaar', build = A.build ?? 'main', preset = A.preset ?? 'high';
 const out = A.out ?? `${tmpdir()}/hiraeth-motion`;
@@ -73,25 +75,52 @@ const TOG = {
   // the last pass's antialiasing swapped (preset aa, pipeline.js): FXAA or SMAA
   fxaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'fxaa'; resize()", 'preset().aa = window.__aa0; resize()'],
   smaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'smaa'; resize()", 'preset().aa = window.__aa0; resize()'],
+  // the far lines' fade off (post.js 1c, INK_FAR: the composite's program again without it)
+  inkFar: ["window.__pm ??= post.scene.children.find((o) => o.material?.fragmentShader?.includes('1c. lines'))?.material; window.__pfs ??= window.__pm.fragmentShader; window.__pm.fragmentShader = window.__pfs.replace(/if \\(ink > 0\\.02 && hero < 0\\.5\\) \\{(\\s*float detailPx)/, 'if (false) {$1'); window.__pm.needsUpdate = true",
+    'window.__pm.fragmentShader = window.__pfs; window.__pm.needsUpdate = true'],
   motes: ['window.__mv = [wind.scene.visible]; wind.scene.visible = false', 'wind.scene.visible = window.__mv[0]'],
 };
 
-const browser = await chromium.launch({ executablePath: CHROME, headless: true,
-  args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio', '--no-first-run', '--autoplay-policy=no-user-gesture-required',
-    '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });
-const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: DPR });
-const page = await ctx.newPage();
+// --gecko <dist dir>: on the handheld instead (adb), in the GeckoView test app at the device's own screen, the build in
+// <dir> served from this Mac (scripts/bench/gecko-load.mjs; only the test app is started and stopped)
+const GECKO = A.gecko ? (await import('../bench/gecko-load.mjs')) : null;
+const gserver = GECKO ? await GECKO.geckoServer(A.gecko) : null;
+let browser, page;
+if (GECKO) {
+  await gserver.ensure();
+  const gp = await gserver.open('session');   // (the app just started: its blank page)
+  const { GeckoPage } = await import('../bench/gecko-bridge.mjs');
+  const P = new GeckoPage(gserver.bridge);
+  page = {
+    evaluate: (fn, arg) => P.eval(fn, arg),
+    goto: async (url) => { if (/manifest\.webmanifest$/.test(url)) return; const seen = gserver.bridge.seen; await gp.send('Page.navigate', { url }); await gserver.bridge.waitPage(url.replace(/[?#].*$/, ''), seen); },
+    waitForFunction: (fn, _a, { timeout = 300000, polling = 200 } = {}) => P.waitFor(`!!(${fn})()`, timeout, polling),
+    waitForTimeout: (ms) => new Promise((r) => setTimeout(r, ms)),
+    addInitScript: async (src) => { gserver.bridge.init = src; },
+    on: () => {},
+  };
+  browser = { close: async () => gserver.close() };
+  for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => { gserver.close(); process.exit(130); });
+} else {
+  browser = await chromium.launch({ executablePath: CHROME, headless: true,
+    args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio', '--no-first-run', '--autoplay-policy=no-user-gesture-required',
+      '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: DPR });
+  page = await ctx.newPage();
+}
 const errs = [];
 page.on('pageerror', (e) => { errs.push(String(e).slice(0, 300)); console.log('pageerror', String(e).slice(0, 300)); });
 page.on('console', (m) => { if (m.type() === 'error' && /Shader|WebGLProgram|GL_INVALID|THREE/.test(m.text())) console.log('console', m.text().slice(0, 600)); });
 await page.addInitScript(CLOCK);
-const base = `http://localhost:${port}/${build}/`;
+const base = GECKO ? gserver.base : `http://localhost:${port}/${build}/`;
 await page.goto(base + 'manifest.webmanifest');
-await page.evaluate((q) => {
+await page.evaluate(([q, fps]) => {
   localStorage.clear();
+  localStorage.setItem('hiraeth.muted', '1');
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0, volume: 0 }));
-}, preset);
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: fps, hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1, volume: 0 }));
+  return true;
+}, [preset, !!GECKO]);   // (on the handheld the frame readout on: it is the page's, never in the frames read back)
 const t0 = Date.now();
 await page.goto(base + `?level=${level}` + (A.q ? '&' + A.q : ''), { waitUntil: 'load' });
 await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 200 });
@@ -136,6 +165,10 @@ const setup = await page.evaluate(({ hour, noPlace }) => {
   return { eye: camera.position.toArray(), dir: d.toArray(), fov: camera.fov, player: window.player.pos.toArray(), fb: [c.width, c.height], scale: window.quality.renderScale, sky: window.sky.hour };
 }, { hour: A.hour !== undefined ? +A.hour : null, noPlace: !!A.noplace });
 console.log('setup', JSON.stringify(setup));
+if (GECKO) {   // (the handheld's speaker: silent, checked; its frame readout left showing)
+  const s = await page.evaluate(() => { document.getElementById('fps')?.style.setProperty('visibility', 'visible', 'important'); return [window.sound?.musicVol, window.sound?.fxVol, window.sound?.voiceVol]; });
+  if (s.some((v) => v > 0)) { await browser.close(); throw new Error(`the game's sound is not at 0 (${s})`); }
+}
 if (A.js) console.log('js:', await page.evaluate(readFileSync(A.js, 'utf8')));
 
 // targets: built walls (pen detail, wear, patches) and form-hatched parts, found by rays from the spawn

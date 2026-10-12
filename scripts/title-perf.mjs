@@ -65,7 +65,7 @@ async function measure(c, preset) {
   await c.send('Emulation.setCPUThrottlingRate', { rate: CPU });
   await c.send('Page.navigate', { url: `http://127.0.0.1:${PORT}/manifest.webmanifest` }); await sleep(300);
   await c.ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1');
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 })); true`);
   const probe = await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE });
   const t0 = Date.now();
   await c.send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?shot=${SHOT}` });

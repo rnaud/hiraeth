@@ -45,7 +45,7 @@ try {
   await c.send('Page.navigate', { url: `${base}manifest.webmanifest` }); await sleep(300);
   await c.ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1');
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${QUALITY}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${QUALITY}', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 })); true`);
   await c.send('Page.navigate', { url: `${base}?level=${arg('level', 'arena')}` });
   for (let i = 0; i < 400; i++) { try { if (await c.ev('!!window.__hiraethBooted && !!window.foes && !!window.player')) break; } catch { /* loading */ } await sleep(250); }
   await sleep(3000);

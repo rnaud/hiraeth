@@ -42,7 +42,7 @@ console.log(glName, preset, `cpu ×${cpuRate}`);
 
 if (opt.pen) {
   // the loading screen up, then the main thread held for 500 ms: two screenshots inside it should differ
-  await page.evaluate(() => { localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', music: 0, effects: 0, voices: 0 })); });
+  await page.evaluate(() => { localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', music: 0, effects: 0, voices: 0, soundV: 1 })); });
   await page.goto(BASE + '?level=home');
   await page.waitForFunction(() => window.__hiraethBooted, null, { timeout: 300000 });
   await sleep(1500);
@@ -81,7 +81,7 @@ for (const world of WORLDS) {
   await page.evaluate((q) => {
     localStorage.clear();
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.launched': true }, keepsakes: [] }));
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));
   }, preset);
   // (once without timing: the modules and assets cached, as on a jump between worlds)
   if (!opt.cold) { await page.goto(BASE + `?level=${world}`); await page.waitForFunction(() => window.__hiraethBooted, null, { timeout: 600000, polling: 250 }); }

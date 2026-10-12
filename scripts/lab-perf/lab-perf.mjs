@@ -131,7 +131,7 @@ if (/SwiftShader|llvmpipe|Software/i.test(gl)) { console.error('software renderi
 await ev((quality) => {
   localStorage.clear();
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));
 }, preset);
 await page.goto(BASE + '?level=lab', { waitUntil: 'load' });
 await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });

@@ -61,3 +61,26 @@ test('the quiet gate reports what it saw', () => {
   assert.equal(q.quiet, q.reasons.length === 0);
   assert.equal(q.load.length, 3);
 });
+
+// (2026-10-12, the Retroid: every harness saved music, effects and voices at 0, which migrateSettings reads as the old
+// Deck bench's footprint and puts back to the defaults (src/ui.js soundV), so the games they drove were heard)
+test('every harness that silences the game says so for good (soundV: 1 beside the zeroed volumes)', async () => {
+  const { readdirSync, statSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const root = new URL('../scripts/', import.meta.url).pathname;
+  const walk = (d) => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? (['results', 'node_modules', 'gecko-app'].includes(f) ? [] : walk(p)) : [p]; });
+  const bad = [];
+  for (const f of walk(root).filter((p) => /\.m?js$/.test(p))) {
+    readFileSync(f, 'utf8').split('\n').forEach((l, i) => { if (/\bvoices: 0\b/.test(l) && /\bmusic: 0\b/.test(l) && !/soundV: 1/.test(l)) bad.push(`${f.slice(root.length)}:${i + 1}`); });
+  }
+  assert.deepEqual(bad, []);
+});
+
+test('the handheld harness never reaches the player\'s app or the system settings (scripts/bench/gecko-load.mjs)', async () => {
+  const { adb, GPKG } = await import('../scripts/bench/gecko-load.mjs');
+  assert.equal(GPKG, 'com.rnaud.hiraeth.gecko');
+  for (const args of [['shell', 'am', 'force-stop', 'com.rnaud.hiraeth'], ['shell', 'pm', 'clear', 'com.rnaud.hiraeth'], ['install', '-r', 'x.apk', 'com.rnaud.moebius'],
+    ['shell', 'settings', 'put', 'system', 'x', '1'], ['shell', 'setprop', 'a', 'b'], ['uninstall', GPKG], ['shell', 'pm', 'clear', 'com.android.chrome']]) {
+    assert.throws(() => adb(args), /refusing/, args.join(' '));
+  }
+});

@@ -129,7 +129,7 @@ const EXTRA = `(() => {
 const prepare = (ev) => ev((q) => {
   localStorage.clear();
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1 }));
   localStorage.setItem('hiraeth.muted', '1');
   return true;
 }, QUALITY);
@@ -228,6 +228,9 @@ const TOG = {
   noSpot: ['window.__sp ??= post.uniforms.uSpot.value; post.uniforms.uSpot.value = [0, 3, 0.3, 0.2]', 'post.uniforms.uSpot.value = window.__sp'],
   scale05: ['window.__sc ??= quality.renderScale; quality.renderScale = window.__sc * 0.5; resize()', 'quality.renderScale = window.__sc; resize()'],
   noStatics: ['window.statics && (window.statics.enabled = false)', 'window.statics && (window.statics.enabled = true)'],   // (src/static-batch.js: every still mesh drawing itself)
+  // the last pass's antialiasing (preset aa, pipeline.js aaOf): FXAA or SMAA in place of the preset's own (#225)
+  fxaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'fxaa'; resize()", 'preset().aa = window.__aa0; resize()'],
+  smaa: ["window.__aa0 ??= preset().aa ?? null; preset().aa = 'smaa'; resize()", 'preset().aa = window.__aa0; resize()'],
   noWear: ['window.__we ??= (() => { const l = []; scene.traverse((o) => { for (const m of [].concat(o.material ?? [])) if (m.uniforms?.uWeather?.value > 0) l.push([m, m.uniforms.uWeather.value]); }); return l; })(); for (const [m] of window.__we) m.uniforms.uWeather.value = 0', 'for (const [m, v] of window.__we) m.uniforms.uWeather.value = v'],
 };
 const timeSync = (ev, n) => ev((n) => {

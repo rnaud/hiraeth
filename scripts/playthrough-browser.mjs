@@ -86,7 +86,7 @@ const OLD_SAVE = {
   ],
 };
 const OLD_JOURNAL = { relics: {}, stories: { desert: { t: 1 }, incal: { t: 2 } }, seen: { desert: 1, incal: 1 } };
-const QUIET = `localStorage.setItem('hiraeth.muted', '1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: 'low' }));`;
+const QUIET = `localStorage.setItem('hiraeth.muted', '1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, soundV: 1, quality: 'low' }));`;
 
 const fresh = async (setup) => {
   await send('Page.navigate', { url: `${URL_}?blank` }); await sleep(300);

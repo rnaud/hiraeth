@@ -36,6 +36,9 @@
 //                        lacks, through the portal's file API: docs/systems/performance.md "Where a load goes"); every
 //                        shader salted with a #define of its own (a first launch: the GPU process's cache can't answer),
 //                        the console's own preset. The game must be running.
+//     [--gecko cold,warm,session] [--apk] [--cool °C]   on the handheld over adb instead, in the GeckoView test app
+//                        (scripts/bench/gecko-load.mjs: cold its data cleared, warm relaunched, session loaded again in
+//                        the same app; --apk the game bundled in it as it ships); memory is the app's processes' PSS
 // PORT (default 5471) is the server's, CDP its + 1. Never the author's dev server.
 import { execFileSync, spawn } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -247,28 +250,33 @@ export async function chrome() {
   return { send, ev, errors, close, processes };
 }
 
-const storage = (preset) => `localStorage.clear();
+const storage = (preset, fps = false) => `localStorage.clear();
   localStorage.setItem('hiraeth.muted', '1');
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ ${preset ? `quality: '${preset}', ` : ''}showFps: false, music: 0, effects: 0, voices: 0 }));`;
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ ${preset ? `quality: '${preset}', ` : ''}showFps: ${fps}, hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1 }));`;
 
-/** One world's load, in a fresh Chrome. */
-export async function measure(world, { base, preset = PRESET, slow = SLOW, dump = false, xbox = false } = {}) {
-  const c = xbox ? await xboxPage() : await chrome();
+/** One world's load, in a fresh Chrome (or `page`: a page of the same shape, the handheld's, scripts/bench/gecko-load.mjs). */
+export async function measure(world, { base, preset = PRESET, slow = SLOW, dump = false, xbox = false, page: given = null } = {}) {
+  const c = given ?? (xbox ? await xboxPage() : await chrome());
+  const gecko = !!c.gecko;
   try {
     await c.send('Page.enable');
     const page = base;   // (or a page of its own: a build put beside the console's, perf-new.html)
     const root = page.replace(/[^/]*$/, '');
     await c.send('Page.navigate', { url: `${root}manifest.webmanifest` }); await sleep(xbox ? 1500 : 300);
-    await c.ev(`${storage(xbox ? null : preset)}; true`);
+    await c.ev(`${storage(xbox ? null : preset, gecko)}; true`);   // (on the handheld the frame readout on, as every measure there)
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE(slow, xbox && !WARM && (arg('salt') ?? true)) });
     if (!xbox && arg('cpu')) await c.send('Emulation.setCPUThrottlingRate', { rate: Number(arg('cpu')) });   // (the handheld recipe: the main thread slowed n times)
     const t0 = Date.now();
     await c.send('Page.navigate', { url: `${page}?level=${world}${arg('query') ? `&${arg('query')}` : ''}` });
     let up = false;
-    while (!up && Date.now() - t0 < LIMIT) { try { up = await c.ev('!!window.__hiraethBooted'); } catch { /* loading */ } if (!up) await sleep(250); }
+    while (!up && Date.now() - t0 < LIMIT) { try { up = await c.ev('!!window.__hiraethBooted', 10000); } catch { /* loading */ } if (!up) await sleep(250); }
     if (!up) throw new Error(`${world}: no first frame in ${LIMIT / 1000} s (${c.errors.slice(-1)[0] ?? 'no error'})`);
     const wall = Date.now() - t0;
+    if (gecko) {   // (the handheld's speaker: the game must be silent)
+      const s = await c.ev('[window.sound?.musicVol, window.sound?.fxVol, window.sound?.voiceVol]');
+      if (s.some((v) => v > 0)) throw new Error(`${world}: the game's sound is not at 0 (${s})`);
+    }
     await sleep(500 + Number(arg('after', 0)) * 1000);
     const gpu = GPU && !xbox ? await c.ev(`(async () => {
       if (window.sky) { sky.hour = 10; sky.speed = 0; window.updateSky?.(); }
@@ -357,13 +365,26 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const XBOX = arg('xbox');
-  const server = XBOX ? null : await serveDist();
-  const base = XBOX ? (/\.html$/.test(XBOX) ? XBOX : XBOX.replace(/\/?$/, '/')) : `http://127.0.0.1:${PORT}/`;
+  // --gecko cold,warm,session: on the handheld over adb, in the GeckoView test app (scripts/bench/gecko-load.mjs), each
+  // world loaded each way in turn (cold: the test app's data cleared; warm: relaunched; session: loaded again in the
+  // same app); --apk: the game bundled in the test app, as it ships, else served from the Mac; --cool °C (48)
+  const GECKO = arg('gecko') ? arg('gecko').split(',') : null;
+  const G = GECKO ? await import('./bench/gecko-load.mjs') : null;
+  const gecko = GECKO ? await G.geckoServer(DIST, { apk: args.includes('--apk') }) : null;
+  const server = XBOX || GECKO ? null : await serveDist();
+  const base = XBOX ? (/\.html$/.test(XBOX) ? XBOX : XBOX.replace(/\/?$/, '/')) : GECKO ? gecko.base : `http://127.0.0.1:${PORT}/`;
+  if (GECKO) for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => { gecko.close(); process.exit(130); });
   const all = [];
   try {
-    for (const w of WORLDS) {
+    for (const w of WORLDS) for (const how of GECKO ?? [null]) {
       const runs = [];
-      for (let i = 0; i < RUNS; i++) runs.push(await measure(w, { base, dump: !!DUMP && i === 0, xbox: !!XBOX }));
+      for (let i = 0; i < RUNS; i++) {
+        if (how) await gecko.ensure();
+        const cool = how ? await G.coolDown(`${w} ${how}`, Number(arg('cool', 48))) : null;
+        const page = how ? await gecko.open(how) : null;
+        runs.push({ ...(await measure(w, { base, dump: !!DUMP && i === 0, xbox: !!XBOX, page })), ...(how ? { how, cool, after: G.temps() } : {}) });
+        if (how) await gecko.rest();   // (the game off the screen while the next one waits to cool)
+      }
       const r = runs[0];
       if (RUNS > 1) {
         r.wall = median(runs.map((x) => x.wall)); r.firstFrame = median(runs.map((x) => x.firstFrame));
@@ -371,13 +392,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         for (const k of Object.keys(r.gl)) r.gl[k] = median(runs.map((x) => x.gl[k]));
         for (const k of Object.keys(r.phases)) r.phases[k] = median(runs.map((x) => x.phases[k]));
         r.firstPlayable = median(runs.map((x) => x.firstPlayable ?? Infinity));
-        for (const k of ['heapMB', 'geometryMB', 'textureMB', 'rendererMB', 'gpuMB']) r.memory[k] = median(runs.map((x) => x.memory[k]));
+        for (const k of ['heapMB', 'geometryMB', 'textureMB', 'rendererMB', 'gpuMB', 'tabMB', 'parentMB', 'totalMB']) r.memory[k] = median(runs.map((x) => x.memory[k]));
         if (r.traverse) for (const k of ['p50', 'p95', 'p99', 'max', 'over50', 'over100']) r.traverse[k] = median(runs.map((x) => x.traverse[k]));
       }
       if (DUMP) { mkdirSync(DUMP, { recursive: true }); writeFileSync(join(DUMP, `${w}.json`), JSON.stringify(r.list)); if (r.view) writeFileSync(join(DUMP, `${w}.view.json`), JSON.stringify(r.view.idx)); if (r.keys) writeFileSync(join(DUMP, `${w}.keys.json`), JSON.stringify(r.keys, null, 1)); }
-      console.log(`${w} (${XBOX ? 'xbox' : PRESET}${arg('cpu') ? `, CPU ×${arg('cpu')}` : ''}${arg('query') ? `, ${arg('query')}` : ''}${SLOW ? `, slow ${SLOW.base}+${SLOW.perKb}/kB ×${SLOW.par}` : ''}): first frame ${r.firstFrame} ms`);
+      console.log(`${w}${r.how ? ` ${r.how}` : ''} (${XBOX ? 'xbox' : GECKO ? `gecko${args.includes('--apk') ? ' apk' : ''} ${PRESET}` : PRESET}${arg('cpu') ? `, CPU ×${arg('cpu')}` : ''}${arg('query') ? `, ${arg('query')}` : ''}${SLOW ? `, slow ${SLOW.base}+${SLOW.perKb}/kB ×${SLOW.par}` : ''}): first frame ${r.firstFrame} ms`);
       console.log(`  phases  ${Object.entries(r.phases).map(([k, v]) => `${k} ${v}`).join(' · ')} · first playable ${r.firstPlayable ?? '-'}`);
-      console.log(`  memory  heap ${r.memory.heapMB} MB · geometry ${r.memory.geometryMB} MB (${r.memory.geometries}) · textures ${r.memory.textureMB} MB (${r.memory.textures})${r.memory.gpuMB ? ` · processes: renderer ${r.memory.rendererMB} MB, GPU ${r.memory.gpuMB} MB` : ''}`);
+      console.log(`  memory  heap ${r.memory.heapMB} MB · geometry ${r.memory.geometryMB} MB (${r.memory.geometries}) · textures ${r.memory.textureMB} MB (${r.memory.textures})${r.memory.tabMB ? ` · PSS: tab ${r.memory.tabMB} MB, GPU ${r.memory.gpuMB} MB, parent ${r.memory.parentMB} MB (${r.memory.totalMB})` : r.memory.gpuMB ? ` · processes: renderer ${r.memory.rendererMB} MB, GPU ${r.memory.gpuMB} MB` : ''}`);
       const st = (x) => [x?.lod && `levels of detail: ${x.lod.meshes} meshes, ${x.lod.built} built (${x.lod.packMs} ms packing), ${x.lod.pending} waiting`, x?.deferred && `distant detail: ${x.deferred.done} done (${x.deferred.ms} ms, ${x.deferred.forced} forced), ${x.deferred.pending} left`,
         x?.late && `late collision: ${x.late.made} pieces made (${x.late.ms} ms, ${x.late.forced} by a query), ${x.late.pending} left, ${x.late.triangles} triangles in ${x.late.parts} parts`].filter(Boolean).join(' · ');
       console.log(`  boot    ${st(r.atBoot)}`);
@@ -393,7 +414,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       delete r.list;
       all.push(r);
     }
-  } finally { server?.close(); }
+  } finally { server?.close(); gecko?.close(); }
   if (OUT) writeFileSync(OUT, JSON.stringify(all, null, 1));
   process.exit(0);   // (the console's DevTools socket would keep it running)
 }

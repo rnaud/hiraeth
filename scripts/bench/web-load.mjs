@@ -42,7 +42,7 @@ const ev = async (e) => {
   return r.result.value;
 };
 const until = async (e, secs = 300) => { for (let t = 0; t < secs * 4; t++) { try { if (await ev(e)) return true; } catch { /* between loads */ } await sleep(250); } throw new Error(`timed out: ${e}`); };
-const QUIET = (preset) => `localStorage.setItem('hiraeth.muted','1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: '${preset}' }));`;
+const QUIET = (preset) => `localStorage.setItem('hiraeth.muted','1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, soundV: 1, quality: '${preset}' }));`;
 
 const rows = [];
 try {

@@ -124,7 +124,7 @@ await send('Page.enable'); await send('Runtime.enable');
 const STORAGE = `localStorage.clear(); sessionStorage.clear();
   localStorage.setItem('hiraeth.muted', '1');
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'low', showFps: false, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'low', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));
   true`;
 
 /** One world under one broken driver: { ok, ms, lines }. */

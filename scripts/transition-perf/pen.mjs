@@ -52,7 +52,7 @@ for (const w of WORLDS) {
   await page.evaluate(() => {
     localStorage.clear();
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'handheld', hudV: 1, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'handheld', hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1 }));
   });
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuRate });
   const shots = [];

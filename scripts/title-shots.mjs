@@ -41,7 +41,7 @@ const tryCam = process.env.CAM ? JSON.parse(process.env.CAM) : null;
 const tryCams = process.env.CAMS ? JSON.parse(process.env.CAMS) : null;
 
 const storage = `localStorage.clear(); localStorage.setItem('hiraeth.muted', '1');
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${process.env.QUALITY ?? (flag('stills') ? 'high' : 'medium')}', showFps: false, music: 0, effects: 0, voices: 0 }));`;
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${process.env.QUALITY ?? (flag('stills') ? 'high' : 'medium')}', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));`;
 
 /** Open the title on `id` at w × h; resolves once its world is on the screen (or it gave up). */
 async function open(c, id, [w, h], { dpr = 1, mobile = false } = {}) {

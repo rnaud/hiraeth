@@ -52,7 +52,7 @@ await pg.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, 
 
 await pg.send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
 await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
-  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, showFps: true }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, soundV: 1, showFps: true }));
   localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
 const t0 = Date.now();
 await pg.send('Page.navigate', { url: `${BASE}?level=desert&fps=1` });

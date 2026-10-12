@@ -238,7 +238,7 @@ for (const [world, list] of Object.entries(WORLDS)) {
   await ev((q) => {
     localStorage.clear();
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.launched': true, 'ship.powered': true }, keepsakes: [] }));
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));
   }, preset).catch(() => {});
   const t0 = Date.now();
   await page.goto(BASE + `?level=${world}`, { waitUntil: 'load' });

@@ -84,7 +84,7 @@ try {
   for (const preset of PRESETS) for (const slow of SLOW) {
     await send('Emulation.setCPUThrottlingRate', { rate: 1 });
     await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/manifest.webmanifest` }); await sleep(300);
-    await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1'); localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
+    await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1'); localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 })); true`);
     await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?level=arena` });
     let up = false;
     for (let t = 0; t < 600 && !up; t++) { try { up = await ev('!!window.__hiraethBooted && !!window.player && !!window.renderer'); } catch { /* loading */ } if (!up) await sleep(250); }

@@ -2174,3 +2174,97 @@ on the console, not compute-bound: the same bundle runs ~10× faster on the Mac'
 speed, and a pointer chase costs 196 ns a hop against the Mac's 110; its time is spread over the people's rigs, the
 traveller, the crowd and the mirror's walk of ~3 600 objects. Next: the overshirt's job split over workers (IJobParallelFor
 for its vertices), fewer objects visited a frame by the mirror and the scene list, and a lighter G-buffer vertex stage.
+
+## The Retroid, round 6: the real buttons, cold and warm loads, the distant shimmer (2026-10-12, issues #50, #16, #225)
+
+The Retroid Pocket Nova in the GeckoView test app (`com.rnaud.hiraeth.gecko`, built from e7c21f7d, the game bundled in
+it as it ships unless said), Handheld preset, the frame readout on, the game's sound at 0 (checked). The player's app
+was never installed over, cleared, stopped or started; it was open in front the whole time and went behind the test app
+while it ran. The device sat at 52–70 °C GPU through the runs (the cool-down to 52 °C often timed out at six minutes).
+
+**The harnesses' sound.** Every harness saved music, effects and voices at 0 without `soundV: 1`, which
+`migrateSettings` (src/ui.js, #112) reads as the old Deck bench's footprint and puts back to the defaults: the games
+the harnesses drove played at 0.8 / 1 / 0.8 (`android-pad.mjs` caught it: "sound not at 0"). All 28 scripts now save
+`soundV: 1` with the zeroed volumes; `tests/bench.test.js` fails on any that doesn't.
+
+**The real buttons (#50).** `android-pad.mjs --real 1` writes each control into the handheld's own controller node
+(`sendevent` on `/dev/input/event7`, "Retroid Pocket Controller", vendor 2022 product 3001: the shell user is in the
+input group), so a press goes kernel → the system's key layout (`Generic.kl`, the only one it has) → the activity as a
+hardware press does, under the controller's real name; each write first checks the test app holds the focus. Run in
+the Arena (the desert's `?level=` spawn boxes the traveller in under a roof, the camera 0.7 m over his head: no walk;
+not a GeckoView matter, the same in Chrome on the Mac):
+- Through PadBridge (the shipped app's GamepadBridge, the same code): **every control reaches its Standard Gamepad
+  index**: the four faces, L1/R1, L2/R2 as buttons and as the analog brake/gas axes, L3/R3, the d-pad as the hat (up
+  too: round 5's missing up was the injected "Virtual" device's), both sticks (−1 / +1 on their axes), Start (the menu
+  opens) and Select (it closes). The left stick walks the traveller 4.5 m in 1.2 s; BTN_EAST (Android's BUTTON_B) jumps
+  2.5 m: the name-based guess (`padFaces`: "Retroid…" → Nintendo letters, by label) holds for the real device name.
+- Through Gecko's own Gamepad API (`--gecko 1`: no PadBridge), the same: id "Retroid Pocket Controller", mapping
+  "standard", every index as above; only the very first input is lost (Gecko shows a pad from its first event on).
+- The node also has BTN_DPAD_UP…RIGHT keys, which `Generic.kl` doesn't map: no app gets them, so a d-pad sending them
+  would be dead in every app; the Retroid's must use the hat. Not changed in the bridge: nothing to fix.
+- Still for hands: which code each physical button sends (the firmware's own choice; `getevent -l` and one press of
+  each settles it). The upgrade over the installed app is not tried: the only installed app is the player's.
+
+**Cold and warm loads (#16).** `load-breakdown.mjs --gecko cold,warm,session --apk` (new, `scripts/bench/gecko-load.mjs`:
+cold = the test app's data cleared, a first install; warm = stopped and started again; session = the same app, the page
+loaded again), the same phases as on the Mac, `--traverse 20`. ms; memory is PSS (tab · GPU process · parent):
+
+| World | load | modules | world | collision | characters | shaders | GPU warm-up | first frame s | first playable s | memory MB | traversal p50 / p95 / p99 / worst ms, > 50 / > 100 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Desert | cold | 424 | 3686 | 247 | 923 | 8421 | 750 | 15.4 | 16.7 | 1058 · 432 · 183 | 17.7 / 32.1 / 40.6 / 57, 2 / 0 |
+| | warm | 414 | 3714 | 263 | 1005 | 8008 | 755 | 15.2 | 15.9 | 1055 · 439 · 207 | 17.6 / 30.0 / 36.5 / 42, 0 / 0 |
+| | session | 401 | 3644 | 277 | 1045 | 7838 | 753 | 14.9 | 16.0 | 1118 · 529 · 204 | 17.8 / 29.8 / 34.2 / 64, 2 / 0 |
+| City-Shaft | cold | 428 | 4505 | 902 | 1455 | 9422 | 860 | 18.3 | 19.1 | 1296 · 505 · 189 | 25.0 / 34.6 / 50.1 / 903, 8 / 1 |
+| | warm | 402 | 4511 | 903 | 1515 | 8947 | 851 | 17.9 | 18.8 | 1360 · 575 · 206 | 23.6 / 30.8 / 48.4 / 899, 7 / 2 |
+| | session | 438 | 4383 | 887 | 1423 | 8894 | 848 | 17.6 | 18.2 | 1455 · 592 · 206 | 23.6 / 29.2 / 40.4 / 919, 6 / 3 |
+| Vael | cold | 411 | 5404 | 349 | 985 | 8144 | 694 | 16.9 | 17.6 | 1360 · 559 · 186 | 19.9 / 28.8 / 38.0 / 186, 3 / 1 |
+| | warm | 417 | 5364 | 343 | 1001 | 7575 | 690 | 16.3 | 17.0 | 1313 · 570 · 205 | 20.7 / 28.4 / 37.8 / 178, 2 / 1 |
+| | session | 383 | 5240 | 369 | 931 | 7180 | 679 | 15.6 | 16.3 | 1479 · 651 · 206 | 20.2 / 27.8 / 37.2 / 144, 2 / 1 |
+| City Floating in Space | cold | 409 | 2079 | 518 | 1344 | 7736 | 609 | 13.3 | 13.6 | 938 · 432 · 214 | 17.0 / 22.6 / 32.7 / 59, 2 / 0 |
+| | warm | 424 | 2092 | 478 | 1360 | 6742 | 758 | 12.4 | 12.7 | 954 · 426 · 205 | 17.0 / 23.0 / 35.4 / 97, 3 / 0 |
+| | session | 391 | 2026 | 460 | 1244 | 6990 | 658 | 12.4 | 12.5 | 923 · 457 · 201 | 16.9 / 22.0 / 31.8 / 143, 2 / 1 |
+
+(Assets 39–48 ms everywhere, the rest 200–600, ready → first frame 310–390.)
+
+- **Cold is warm on the handheld**: a first install loads 0.2–0.9 s slower than a relaunch, all of it in the shaders.
+  The driver keeps no useful cache for Gecko's GPU process: the compile calls get cheaper (the desert 5.3 → 4.5 s,
+  the City-Shaft 7.0 → 0.7) but the surfaces' step, which waits each program out (the GPU pacer), is 6–9.4 s every
+  time. **Shaders are half of every load** (6.7–9.4 s of 12.4–18.3), then world creation (2–5.4 s); a second world in
+  the same sitting gains nothing either.
+- **The first playable frame** comes 0.1–1.3 s after the first (the desert's and the City-Shaft's first frames after
+  the world shows are the distant detail and the levels of detail catching up).
+- **Memory**: 1.6–2.3 GB across the three processes after a load, the tab 0.9–1.5 GB. Loaded again in the same app it
+  is up to 250 MB more (the old page's not yet collected; the floating city none).
+- **Traversal at 40 m/s**: p95 22–35 ms, p99 32–50; the City-Shaft has a 0.9 s stall in every run (the Mac has its
+  0.3–0.5 s one too, "The load by kind of work": the same place, worth finding), Vael 0.15–0.19 s.
+- **The Mac at the same preset** (headless Chrome, Handheld, 1280 × 720, cold profile; the machine at a load of 20–40
+  from other agents, so only the shape is worth reading): the desert 14.0 s (modules 3.1, world 3.2, shaders 3.6), the
+  City-Shaft 7.2 (world 2.1, shaders 1.1), Vael 8.2 (world 2.6, shaders 1.3, GPU warm-up 2.2); traversal p95 14.2 /
+  18.3 / 11.5 ms. Against it the Retroid's world creation is 1.2–2.1× the Mac's and its shaders 2.3–8.7×. (The floating
+  city's Mac run is left out: at a load of 100+ its first frame took 105 s; on the Retroid it is the quickest world.)
+
+**The distant shimmer on the device (#225).** `motion-check/record.mjs --gecko dist` (new: the motion check in the
+test app at the device's own 1280 × 960, the clock stepped, every frame read back) in the desert, Handheld (scale
+0.65), `--far 60`; flicker per 10 000 px, what is over 60 m off alone in brackets:
+
+| path | as shipped (SMAA, far lines faded) | FXAA instead | far lines' fade off |
+|---|---|---|---|
+| pan across Qanat's wall, 145 m | 15.1 (far 33.1) | 15.9 (33.2) | 26.0 (64.9) |
+| slow turn looking far | 1.5 (far 13.9) | 3.7 (33.7) | 1.6 (25.3) |
+
+So on the device the far lines' fade halves the far shimmer on both paths, and SMAA over FXAA takes the turn's far
+flicker from 33.7 to 13.9 (the pan the same). (The motion check's "no AA" toggle swaps only the FXAA blit, so with
+SMAA it measures nothing: left out.)
+
+**SMAA's cost on the device** (`android-worlds.mjs --toggles base,fxaa`: each renderFrame of a synced loop, at 0.75,
+FXAA in place of the preset's SMAA between two base runs, the median of four rounds): SMAA is the cheaper one here.
+FXAA costs 0.65–2.2 ms more a frame in the desert (7 views, base 14.9–19.4 ms), 1.0–3.5 ms in the City-Shaft (5 views,
+22.4–35.3) and 0.1–2.4 ms in the Signal Market (5 views, 16.8–24.6): FXAA reads every canvas pixel at the screen's
+size, SMAA works at the render size and scales as it blends. Live with SMAA at a held 0.75: the desert 49.5–60 fps,
+the City-Shaft 35–49, the Signal Market 55–60 (the device hot, 61–70 °C).
+
+To repeat: `npx vite build && scripts/bench/gecko-apk.sh`, `adb install` the test app, then
+`node scripts/bench/android-pad.mjs --serve dist --real 1 [--gecko 1]`,
+`node scripts/load-breakdown.mjs --gecko cold,warm,session --apk --preset handheld --worlds desert,incal,arzach,spacecity --traverse 20`,
+`node scripts/motion-check/record.mjs --gecko "$PWD/dist" --level desert --preset handheld --paths pan,turn --far 60 --toggles fxaa,inkFar --alltoggles 1`,
+`node scripts/bench/android-worlds.mjs --serve dist --apk 1 --worlds desert,incal,bazaar --toggles base,fxaa`.

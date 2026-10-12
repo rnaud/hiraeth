@@ -61,7 +61,7 @@ for (const w of WORLDS) {
   await page.eval(() => {
     localStorage.clear();
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'handheld', showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'handheld', showFps: true, hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1 }));
     return true;
   });
   const rec = spawn(ADB[0], [...ADB.slice(1), 'shell', 'screenrecord', '--bit-rate', '12M', '--time-limit', '120', ON_DEVICE]);

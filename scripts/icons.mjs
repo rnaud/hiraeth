@@ -126,7 +126,7 @@ async function capture({ view = ICON.view, zoom = ICON.zoom, lift = ICON.lift, b
       localStorage.clear();
       localStorage.setItem('hiraeth.muted', '1');
       localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'items.v': 2 }, keepsakes: [] }));
-      localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', showFps: false, music: 0, effects: 0, voices: 0 }));
+      localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', showFps: false, music: 0, effects: 0, voices: 0, soundV: 1 }));
     });
     // (the views are numbered from 1 in the address, or named by their id: the level opens on that view's world)
     await page.goto(`${BASE}?level=references&view=${encodeURIComponent(view)}`, { waitUntil: 'load' });
