@@ -9,6 +9,8 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { auditContact, formatContact, drawnSurfaces } from '../src/contact-audit.js';
+import { StaticBatches } from '../src/static-batch.js';
+import { makeMaterial } from '../src/materials.js';
 import { standGround } from '../src/carriers.js';
 import { StepLag } from '../src/locomotion.js';
 import { builtWorld, quiet } from './built-worlds.js';
@@ -72,6 +74,29 @@ test('the drawn surfaces name the mesh each hit came from', () => {
     const hit = d.bvh.raycastFirst(new THREE.Ray(V(i * 3, 5, 0.1), V(0, -1, 0)), THREE.DoubleSide);
     assert.equal(d.owner(hit.faceIndex), `box ${i}`);
   }
+});
+
+test('the audit reads a world whose still meshes are drawn by batches as it reads it unbatched (#219)', () => {
+  // (the game batches its still meshes, src/static-batch.js; the batch's own buffer, untransformed and with spare room
+  // that is no whole number of triangles, once left the drawn tops with no sample at all)
+  const scene = new THREE.Scene();
+  const a = makeMaterial({ color: '#aa3322', key: 'test.contact.batch.a' }), b = makeMaterial({ color: '#2233aa', key: 'test.contact.batch.b' });
+  const add = (geo, mat, at, free = false) => { const m = new THREE.Mesh(geo, mat); m.position.set(...at); if (free) m.userData.noCollide = true; scene.add(m); return m; };
+  add(new THREE.BoxGeometry(120, 1, 120), a, [0, -0.5, 0]);
+  for (let i = 0; i < 6; i++) {
+    add(new THREE.BoxGeometry(5, 1 + i * 0.3, 4).toNonIndexed(), b, [-30 + i * 10, (1 + i * 0.3) / 2, 10]);
+    add(new THREE.BoxGeometry(4, 1.2, 4), a, [-30 + i * 10, 0.6, -15]);
+    add(new THREE.BoxGeometry(5.2, 0.3, 4.2).toNonIndexed(), b, [-30 + i * 10, 1.25 + i * 0.3, 10], true);   // (a trim, 0.15 m over its ledge)
+  }
+  const physics = new Physics(scene);
+  const before = auditContact({ physics, scene, cell: 1 });
+  assert.ok(before.checked.walk > 100 && before.counts['walks through'] > 0, formatContact(before));
+  const S = new StaticBatches(scene);
+  assert.ok(S.view.length >= 2, `batches: ${S.view.length}`);
+  const after = auditContact({ physics, scene, cell: 1 });
+  assert.deepEqual(after.checked, before.checked, formatContact(after));
+  assert.deepEqual(after.counts, before.counts, formatContact(after));
+  assert.ok(!after.groups.some((g) => /^still/.test(g.name)), 'no hit is named after a batch');
 });
 
 test('the feet find a moving floor: its top under them, level, and not when it is the one you ride', () => {
