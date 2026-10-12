@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
+import { tempPath } from '../scripts/temp-dirs.mjs';
 
 const VIEWS = JSON.parse(readFileSync(new URL('../scripts/bench/viewpoints.json', import.meta.url), 'utf8')).views;
 
@@ -31,7 +32,7 @@ function game(file, exact) {
 }
 
 test('the people posed as before: every bone\'s world matrix the same, frame after frame', { timeout: 600000 }, async () => {
-  const file = join(tmpdir(), `hiraeth-pose-${process.pid}.js`);
+  const file = tempPath(join(tmpdir(), `hiraeth-pose-${process.pid}.js`));
   await bundle('unity', { out: [file] });
   const src = readFileSync(file, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;');
   const { writeFileSync } = await import('node:fs');
@@ -43,7 +44,7 @@ test('the people posed as before: every bone\'s world matrix the same, frame aft
     const args = JSON.stringify({ level: 'desert', views, settle: 1, talk: 'any', walk: 2, sound: false });
     // (POSE_REF: another bundle for the reference side, the game as it was: a one-off check against older code)
     let ref = file;
-    if (process.env.POSE_REF) { ref = join(tmpdir(), `hiraeth-pose-ref-${process.pid}.js`); writeFileSync(ref, readFileSync(process.env.POSE_REF, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;')); }
+    if (process.env.POSE_REF) { ref = tempPath(join(tmpdir(), `hiraeth-pose-ref-${process.pid}.js`)); writeFileSync(ref, readFileSync(process.env.POSE_REF, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;')); }
     const A = game(ref, true), B = game(file, false);
     A.exports.start(args); B.exports.start(args);
     for (let i = 0; i < 4000 && !(A.ctx.__G && B.ctx.__G); i++) { await new Promise((r) => setImmediate(r)); A.step(1 / 60); B.step(1 / 60); }

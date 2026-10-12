@@ -4,7 +4,8 @@
 // workflow agree with the page and the scripts (the Windows build itself only runs on GitHub).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { onXbox, xboxApi, tvSafe, installXbox, backFallback, xboxCall, xboxShell, jitProbe, jitVerdict, xboxReadout, qualityChoices, forwardLogs, LOG_MAX, XBOX_HOST, XBOX_UA } from '../src/xbox.js';
@@ -198,7 +199,7 @@ test('web.json names the Xbox app it needs (minXbox, from WebBundles.cs XboxApi)
   const api = xboxApiOf();
   assert.ok(Number.isInteger(api) && api >= 1);
   assert.equal(xboxApiOf('public const int XboxApi = 7;'), 7);
-  const dir = mkdtempSync(join(tmpdir(), 'xbox-')), zip = join(dir, 'w.zip');
+  const dir = tempDir('xbox-'), zip = join(dir, 'w.zip');
   writeFileSync(zip, 'zip');
   assert.equal(webJson({ build: 9, version: '1', zip: 'u', file: zip, native: 4, xbox: 2, notes: [] }).minXbox, 2);
   assert.equal('minXbox' in webJson({ build: 9, version: '1', zip: 'u', file: zip, native: 4, notes: [] }), false);
@@ -259,7 +260,7 @@ test('the C# app agrees with the page and the feed', () => {
 });
 
 test('staging the game: dist/ without the site\'s own files, the themes on demand or the update feed, and a bundle.json', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'xbox-stage-')), dist = join(dir, 'dist'), dest = join(dir, 'game');
+  const dir = tempDir('xbox-stage-'), dist = join(dir, 'dist'), dest = join(dir, 'game');
   const put = (p, s = 'x') => { mkdirSync(join(dist, p, '..'), { recursive: true }); writeFileSync(join(dist, p), s); };
   put('index.html', '<!doctype html>'); put('assets/main-abc.js'); put('music/desert.mp3'); put('music/lorn.mp3');
   put('updates/web.json'); put('changelog-media/a.png'); put('_headers'); put('assets/IMG_3774-abc.jpg');

@@ -2,7 +2,8 @@
 // docs/systems/references.md "The references page").
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { KINDS, LAB, LOOSE, ancestors, buildTree, classify, filterEntries, flatIds, formatHash, parseHash, worldsOf } from '../src/references-page/model.js';
@@ -16,7 +17,7 @@ const JPEG = Buffer.from('ffd8ffe000104a46494600010100000100010000ffd9', 'hex');
 
 /** A small references/ folder with each kind of record. */
 function fakeRepo() {
-  const root = mkdtempSync(join(tmpdir(), 'refpage-'));
+  const root = tempDir('refpage-');
   const put = (p, data = JPEG) => { mkdirSync(join(root, 'references', p, '..'), { recursive: true }); writeFileSync(join(root, 'references', p), data); };
   put('levels/The Desert/environment/IMG_1.JPG');
   put('levels/The Desert/environment/source.txt', 'Midjourney reference set\nhttps://www.midjourney.com/jobs/abc\nFour variations; downloaded 2026-10-07.');

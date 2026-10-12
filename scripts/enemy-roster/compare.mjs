@@ -14,7 +14,8 @@
 // Which skin each sheet is: the archetype's `art` (src/enemies/archetypes.js: { main, alt } worlds).
 // One Vite (PORT, default 5364; never 5173) and one headless muted Chrome (CDP, default 5414), closed at the end.
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { tempDir, ownProcess } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,8 +56,8 @@ if (!list.length) throw new Error('no archetype with its sheets set (art: { main
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
 const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: join(tmpdir(), 'hiraeth-roster-compare'), server: { host: '127.0.0.1', port: PORT, strictPort: true, hmr: false }, logLevel: 'error' });
 await server.listen();
-const profile = mkdtempSync(join(tmpdir(), 'hiraeth-compare-chrome-'));
-const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--disable-gpu-shader-disk-cache', '--disk-cache-size=1', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });
+const profile = tempDir('hiraeth-compare-chrome-');
+const proc = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--disable-gpu-shader-disk-cache', '--disk-cache-size=1', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
 let ws;
 try {
   let tabs;

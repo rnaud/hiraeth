@@ -7,7 +7,8 @@
 //
 // One Vite (PORT) and one headless Chrome, muted (CDP: PORT + 1), both closed at the end.
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { rmSync } from 'node:fs';
+import { tempDir, ownProcess } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,10 +25,10 @@ const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/in
 const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: join(tmpdir(), 'hiraeth-shimmer'), logLevel: 'error', clearScreen: false,
   server: { port: PORT, strictPort: true, host: '127.0.0.1', fs: { strict: false }, hmr: false, watch: null } });
 await server.listen();
-const profile = mkdtempSync(join(tmpdir(), 'hiraeth-shimmer-chrome-'));
-const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
+const profile = tempDir('hiraeth-shimmer-chrome-');
+const proc = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
   '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check', '--disable-gpu-shader-disk-cache', '--disk-cache-size=1',
-  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });
+  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
 
 // one foe walking past: the clock taken over, each frame stepped and read back, the flicker counted in a box round it
 const RUN = (kind, stepped) => `(async () => {

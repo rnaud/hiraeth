@@ -240,3 +240,16 @@ obviousness score per step). Both score a rubric and plan camera views; `scripts
 them in one muted headless Chrome (PORT 5344, never 5173). Pure logic: `scripts/*/lib.mjs`, tested in
 `tests/level-design.test.js` and `tests/temple-design.test.js`. Reports: `docs/audits/level-design-v*.md`,
 `docs/audits/temple-design-v*.md`.
+
+## Temporary profiles (issue #220)
+
+Every test and script that makes a temp dir or starts a browser with a profile goes through `scripts/temp-dirs.mjs`:
+`tempDir(prefix)` instead of `mkdtempSync`, `ownProcess(spawn(CHROME, …))` for the browser, `tempPath(path)` for a
+temp file of its own naming (Playwright's `launchPersistentContext` profiles: `scripts/bench/browser.mjs`). At exit,
+however the run ends (an error, a timeout, `process.exit`, SIGINT / SIGTERM / SIGHUP; only SIGKILL escapes), the
+browser and its helpers are killed and the directory removed: headless Chrome profiles are 300–800 MB each, and the
+ones failed and stopped runs left filled 17 GB of TMPDIR in a day. `tests/temp-dirs.test.js` ends a run every way
+(with a real headless Chrome where one is installed) and checks nothing is left, and fails on any `mkdtempSync`,
+unowned `--user-data-dir` browser or pid-named temp file outside the helper (an output kept on purpose says
+`temp-dirs: an output` on its line). Scratch scripts of your own: import the helper too.
+

@@ -16,7 +16,8 @@
 // --root measures another build (an older commit's `git archive` with its own dist/) with this checkout's views,
 // for an A/B in one session.
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,11 +44,11 @@ const { preview } = await import(join(SERVE, 'node_modules/vite/dist/node/index.
 const server = await preview({ root: SERVE, configFile: join(SERVE, 'vite.config.js'), logLevel: 'error', preview: { port: PORT, strictPort: true, host: '127.0.0.1' } });
 const BASE = `http://127.0.0.1:${PORT}/`;
 
-const profile = mkdtempSync(join(tmpdir(), 'perf-audit-chrome-'));
+const profile = tempDir('perf-audit-chrome-');
 // (no back-forward cache: each world's page let go when the next loads, so the heap is that world's, not the run's)
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
   `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-frame-rate-limit',
-  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-precise-memory-info', '--disable-features=BackForwardCache', '--no-first-run', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
+  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-precise-memory-info', '--disable-features=BackForwardCache', '--no-first-run', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' }));
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));

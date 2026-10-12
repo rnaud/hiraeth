@@ -2,7 +2,8 @@
 // zip skips them (scripts/web-update.mjs), and the APK and the Deck package strip them (scripts/site-only.mjs).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { siteOnly, fetchedOnDemand, leftOff, stripSiteOnly } from '../scripts/site-only.mjs';
@@ -19,7 +20,7 @@ test('the reference sheets and the changelog pictures are site-only; the game is
 });
 
 test('stripSiteOnly takes them out of a built dist/ and leaves the rest', async () => {
-  const d = mkdtempSync(join(tmpdir(), 'site-only-'));
+  const d = tempDir('site-only-');
   try {
     mkdirSync(join(d, 'assets')); mkdirSync(join(d, 'changelog-media/1.0'), { recursive: true }); mkdirSync(join(d, 'music'));
     writeFileSync(join(d, 'assets/IMG_3801-C_OsWSdk.JPG'), Buffer.alloc(1000));

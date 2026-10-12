@@ -18,6 +18,7 @@ import { godotKeyCode, standardPad, STANDARD_FROM_GODOT } from '../engine/keys.j
 import { skinMatrices } from '../engine/skin.js';
 import { lookGlobals, GLOBALS, shaderGlobalsIni } from '../engine/ink-params.js';
 import { loadBundle } from '../engine/vm-run.mjs';
+import { tempPath } from '../scripts/temp-dirs.mjs';
 
 // as the game (main.js): colours are display values, not converted to linear
 THREE.ColorManagement.enabled = false;
@@ -370,7 +371,7 @@ test('godot layouts: winding swapped, instances as 3×4 rows, packed arrays as v
 });
 
 test('a bundle of the game runs in a bare V8 context: a world built and mirrored', async () => {
-  const file = join(tmpdir(), `hiraeth-engine-spike-${process.pid}.js`);
+  const file = tempPath(join(tmpdir(), `hiraeth-engine-spike-${process.pid}.js`));
   await bundle('spike', { input: 'engine/spike.js', out: [file] });
   const { exports, ctx } = loadBundle(file);
   assert.equal(ctx.process, undefined, 'no Node');
@@ -389,7 +390,7 @@ test('a bundle of the game runs in a bare V8 context: a world built and mirrored
 let platformFile = null;
 async function platformBundle() {
   if (platformFile) return platformFile;
-  platformFile = join(tmpdir(), `hiraeth-engine-boot-${process.pid}.js`);
+  platformFile = tempPath(join(tmpdir(), `hiraeth-engine-boot-${process.pid}.js`));
   await bundle('spike', { input: 'engine/boot.js', out: [platformFile] });
   return platformFile;
 }
@@ -468,7 +469,7 @@ test('the bundle lowers Unicode property escapes (GodotJS\'s V8 has no ICU): the
 });
 
 test('a graphics preset in the engines\' game (the Unity bridge\'s -quality deck): its look and its detail, as main.js applies them', async () => {
-  const file = join(tmpdir(), `hiraeth-engine-quality-${process.pid}.js`);
+  const file = tempPath(join(tmpdir(), `hiraeth-engine-quality-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const warn = console.warn, info = console.info; console.warn = console.info = () => {};
   try {
@@ -484,7 +485,7 @@ test('a graphics preset in the engines\' game (the Unity bridge\'s -quality deck
 });
 
 test('the game in a bare V8 context: a world with its people, the traveller walks on the keys, the camera follows', async () => {
-  const file = join(tmpdir(), `hiraeth-engine-game-${process.pid}.js`);
+  const file = tempPath(join(tmpdir(), `hiraeth-engine-game-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const { exports } = loadBundle(file);
   const R = recorder();

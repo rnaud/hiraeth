@@ -7,7 +7,8 @@
 //   node scripts/item-pictures.mjs bell,echo  those only
 // PORT (default 5430) is Vite's, PORT+1 Chrome's debugging port.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync, statSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync, statSync } from 'node:fs';
+import { tempDir } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +20,7 @@ const PORT = Number(process.env.PORT ?? 5430);
 export const PICTURE = { size: 256, quality: 80, dir: 'public/item-pictures' };
 const only = process.argv[2]?.split(',');
 const ids = Object.keys(ITEMS).filter((id) => !only || only.includes(id));
-const work = mkdtempSync(join(tmpdir(), 'hiraeth-items-'));
+const work = tempDir('hiraeth-items-');
 mkdirSync(join(ROOT, PICTURE.dir), { recursive: true });
 const server = await serve(ROOT);
 const c = await chrome();

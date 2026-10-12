@@ -79,10 +79,10 @@ test('the Xbox build\'s caches: the glue on what it is made from, IL2CPP\'s obje
 
 test('the glue\'s key moves with Puerts\' configuration and GenerateGlue, not with the rest of the C#', async () => {
   const { glueKey } = await import('../scripts/unity-glue-key.mjs');
-  const { mkdtempSync, mkdirSync, writeFileSync } = await import('node:fs');
+  const { mkdirSync, writeFileSync } = await import('node:fs');
   const { join } = await import('node:path');
-  const { tmpdir } = await import('node:os');
-  const dir = mkdtempSync(join(tmpdir(), 'glue-key-'));
+  const { tempDir } = await import('../scripts/temp-dirs.mjs');
+  const dir = tempDir('glue-key-');
   mkdirSync(join(dir, 'Assets', 'HiraethJS', 'Editor'), { recursive: true });
   mkdirSync(join(dir, 'Assets', 'Gen'), { recursive: true });
   mkdirSync(join(dir, 'Packages'));

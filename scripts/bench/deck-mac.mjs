@@ -6,7 +6,8 @@
 // the Mac is far quicker than the Deck's), so its numbers say what the CPU side costs, not the Deck's GPU ms.
 // PORT (default 5431). Never 5173 (the author's dev server).
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
+import { tempDir, ownProcess } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,11 +19,11 @@ const DIST = resolve(process.env.DIST ?? join(ROOT, 'dist'));   // (DIST: anothe
 if (!existsSync(join(DIST, 'index.html'))) throw new Error(`no ${DIST}/index.html: run npx vite build first`);
 const { preview } = await import('vite');
 const server = await preview({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', preview: { port: PORT, strictPort: true, host: '127.0.0.1' }, build: { outDir: DIST } });
-const profile = mkdtempSync(join(tmpdir(), 'deck-mac-chrome-'));
-const chrome = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio',
+const profile = tempDir('deck-mac-chrome-');
+const chrome = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio',
   `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
   '--force-device-scale-factor=1', '--window-size=1280,800', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
-  '--no-first-run', `http://127.0.0.1:${PORT}/manifest.webmanifest`], { stdio: 'ignore' });
+  '--no-first-run', `http://127.0.0.1:${PORT}/manifest.webmanifest`], { stdio: 'ignore' }));
 const stop = () => { try { chrome.kill('SIGKILL'); } catch { /* gone */ } server.httpServer.close(); rmSync(profile, { recursive: true, force: true }); process.exit(0); };
 process.on('SIGINT', stop); process.on('SIGTERM', stop);
 chrome.on('exit', stop);

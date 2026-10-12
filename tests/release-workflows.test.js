@@ -4,7 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync, chmodSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, chmodSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,7 +63,7 @@ function fake(dir, failures, stderr) {
 const runRetry = (cmd) => spawnSync('sh', ['-c', `. "${join(root, 'scripts/retry.sh')}"; retry ${cmd}`], { env: { ...process.env, RETRY_DELAYS: '0 0 0' }, encoding: 'utf8' });
 
 test('retry: a transient error is tried again, up to four attempts', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'retry-'));
+  const dir = tempDir('retry-');
   let f = fake(dir, 2, 'HTTP 403: Resource not accessible by integration');
   let r = runRetry(f.bin);
   assert.equal(r.status, 0, r.stderr);
@@ -76,7 +77,7 @@ test('retry: a transient error is tried again, up to four attempts', () => {
 });
 
 test('retry: an error that waiting will not fix stops at once', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'retry-'));
+  const dir = tempDir('retry-');
   for (const code of [400, 401, 404, 422]) {
     const f = fake(dir, 9, `HTTP ${code}: nope`);
     const r = runRetry(f.bin);
@@ -86,7 +87,7 @@ test('retry: an error that waiting will not fix stops at once', () => {
 });
 
 test('commit-status maps the job status and never fails the job', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'status-'));
+  const dir = tempDir('status-');
   const log = join(dir, 'calls');
   // a gh that records its arguments (and fails, for the last case)
   writeFileSync(join(dir, 'gh'), `#!/bin/sh\necho "$@" >> "${log}"\n[ -z "$GH_FAIL" ]\n`);

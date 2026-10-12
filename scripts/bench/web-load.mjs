@@ -12,7 +12,8 @@
 // (geometries and textures live on the GPU) and its programs, the people and crowd it holds, and the
 // median frame time of a ten-second uncapped sample at the spawn (no vsync, no frame-rate limit).
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { tempDir, ownProcess } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 
@@ -27,11 +28,11 @@ const CHROME = process.env.CHROME ?? ['/Applications/Google Chrome.app/Contents/
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[s.length >> 1] : 0; };
 
-const profile = mkdtempSync(join(tmpdir(), 'hiraeth-load-'));
-const chrome = spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
+const profile = tempDir('hiraeth-load-');
+const chrome = ownProcess(spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
   '--enable-precise-memory-info', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
   '--mute-audio', '--disable-gpu-vsync', '--disable-frame-rate-limit', `--window-size=${W},${H}`, '--force-device-scale-factor=1', '--no-first-run',
-  '--no-default-browser-check', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
+  '--no-default-browser-check', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' }));
 
 let ws, id = 0; const waits = new Map();
 const send = (m, p = {}) => new Promise((res, rej) => { const i = ++id; waits.set(i, [res, rej]); ws.send(JSON.stringify({ id: i, method: m, params: p })); });

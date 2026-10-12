@@ -11,7 +11,8 @@
 // Exits 1 if a scenario is red. No game code changed: it drives `window.input` (the stick, Shift, Space, Tab) and
 // `rig.look` as a player's hands would, and reads.
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +32,7 @@ const plan = SCENARIOS.filter((s) => (!only || only.includes(s.name)) && (!world
 if (!plan.length) throw new Error('no scenario matches');
 
 // ---------------------------------------------------------------- the server and the browser (one each, closed at the end)
-const profile = mkdtempSync(join(tmpdir(), 'camera-qc-chrome-'));
+const profile = tempDir('camera-qc-chrome-');
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
 // (its own dependency cache: in a worktree node_modules is the main checkout's, and its .vite the author's server's)
 // (VITE_CACHE: a cache folder of your own inside the checkout, when the temporary one can't resolve the dependencies: a worktree whose node_modules is a link)
@@ -39,9 +40,9 @@ const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.con
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
   `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1',
-  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 'about:blank'], { stdio: 'ignore' });
+  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 'about:blank'], { stdio: 'ignore' }));
 const done = async () => { try { proc.kill('SIGKILL'); } catch {} try { await server.close(); } catch {} try { rmSync(profile, { recursive: true, force: true }); } catch {} };
 process.on('exit', () => { try { proc.kill('SIGKILL'); } catch {} });   // (never leave a Chrome behind on a shared machine)
 process.on('uncaughtException', async (e) => { console.error(e); await done(); process.exit(1); });

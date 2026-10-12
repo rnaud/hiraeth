@@ -10,7 +10,8 @@
 //   a link to the main checkout's, give one inside the worktree, .vite-cache/qc, or its deps cannot find three)
 // Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json.
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -29,9 +30,9 @@ const only = arg('worlds')?.split(',');
 const svgs = (arg('svgs') ?? '').split(',').filter(Boolean).flatMap((d) => readdirSync(resolve(d)).filter((f) => f.endsWith('.svg')).map((f) => join(resolve(d), f)));
 
 // ---- one Chrome (muted, the real GPU), its debugging port of its own choosing
-const profile = mkdtempSync(join(tmpdir(), 'design-qc-chrome-'));
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
-  '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--allow-file-access-from-files', `--window-size=${W},${H}`, '--force-device-scale-factor=1', 'about:blank'], { stdio: 'ignore' });
+const profile = tempDir('design-qc-chrome-');
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
+  '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--allow-file-access-from-files', `--window-size=${W},${H}`, '--force-device-scale-factor=1', 'about:blank'], { stdio: 'ignore' }));
 let server = null;
 const done = async () => { try { ws?.close(); } catch { /* closed */ } proc.kill('SIGTERM'); await sleep(800); rmSync(profile, { recursive: true, force: true }); if (server) await server.close(); };
 process.on('SIGINT', async () => { await done(); process.exit(130); });
