@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_774ab7b2f9c124 7-9
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_62150844e6ea07 2216-2254
+src/changelog-media.js
+  s_9ca76055a220ed::t_d5abdd5ba30655 691,695,697-698,700-706,708-709,711,713-715,717-718,720,722,724,726-731
+src/levels/perdide.js
+  s_9ca76055a220ed::t_24241907994669 17-19,602-603,643-661
+src/levels/perdide2.js
+  s_9ca76055a220ed::t_69a192fdb2e861 18,123-124,247-250,300-301,328,340,347,377,388,884
+src/lorn-canopy.js
+  s_9ca76055a220ed::t_9eb8c0a8629e59 1-364
+src/lorn-flood.js
+  s_9ca76055a220ed::t_31d8def948f2d3 1-257
+src/lorn-kit.js
+  s_9ca76055a220ed::t_31b2eec9a6836c 1-132
+src/lorn-veins.js
+  s_9ca76055a220ed::t_7491671d719c2f 1-152
+src/lorn-wood-data.js
+  s_9ca76055a220ed::t_b0fd5322e27eae 1-61
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_622e7f4b503096 288-289
+src/story/perdide2.js
+  s_9ca76055a220ed::t_eef695fb6bebcc 35-36,126,134-135,159-173,556
+tests/lorn-route.test.js
+  s_9ca76055a220ed::t_695f93dacc0c3b 1-219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6f692e9e6ed838a3f01cb74bb8293c826d04015b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a1d145beccf5e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad8650eda81e204c9",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
