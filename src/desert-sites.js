@@ -141,6 +141,22 @@ export const SANDFALLS = [
   { mesa: [605, 194], toward: [640, 60], w: 18, seed: 3 },   // over the dry wash, the giant's arm below it
   { mesa: [791, -197], toward: [800, -100], w: 18, seed: 7 }, // over the ride out, just past the skiff's anchor
 ];
+/**
+ * The memory of water (issue #167, references/levels/The Desert/environment/explorations/water-memory/;
+ * src/desert-water.js):
+ *   SALT_PAN  where the dry wash ends, east of the camps: a level white pan the procession's circuit crosses, a
+ *             mirage of the old lake over it (boats, reeds) that sinks away as you come near; when the tree drinks
+ *             it floods, a shallow mirror the procession walks through
+ *   WELLS     a line of old qanat wells from the giant's hand to Qanat, a shaft and a windcatcher each, to listen at
+ *   BOATS     two boats stranded on the dry wash's banks: [metres along DRY_WASH, side (+ its right bank)]
+ */
+export const SALT_PAN = { x: 295, z: 195, r: 48, fade: 60 };
+export const WELLS = (() => {
+  const a = GIANTS.hand, b = STORY.city, L = Math.hypot(b.x - a.x, b.z - a.z), out = [];
+  for (const d of [26, 70, 114, 158, 202]) out.push([a.x + (b.x - a.x) * d / L, a.z + (b.z - a.z) * d / L]);
+  return out;
+})();
+export const BOATS = [[300, 8.5, 0.5], [610, -9, 2.2]];
 /** The procession's circuit as a smooth closed curve: [x, z] every `step` metres. */
 export function processionLoop(step = 3) {
   const curve = new CatmullRomCurve3(PROCESSION.map(([x, z]) => new Vector3(x, 0, z)), true, 'centripetal');

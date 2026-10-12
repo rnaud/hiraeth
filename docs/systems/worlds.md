@@ -406,11 +406,11 @@ home, where the level design audit found nothing at mid-distance (1 of 37 option
   Each has a pilgrims' shrine (a verse stone with its number in notches, a brazier burning, a pole of cloths; the arm's
   on its elbow): `read the verse` opens `THINGS.verse1`–`verse4`, read outward from Qanat, the giants' road told back to
   where they came from; the fourth points on to the swamp of lights (`clue.desert.perdide`). The four are `sights`.
-  About 13k triangles and 13 meshes in all. `tests/desert-giants.test.js`.
+  About 13k triangles and 10 meshes in all (the four braziers one). `tests/desert-giants.test.js`.
 - **The walking dunes** (`src/desert-dunes.js`, `src/story/desert-dunes.js`; `SAND_RIVER`, `RUINS`, `DUNE_VISITS`,
   `SANDFALLS` in `src/desert-sites.js`). Two sand rivers: one cut as a shallow channel (1.2 m, `SAND_RUN` in
   `desertHeight`) out of Marrow's hollow along the south side of the ride to the salt-carrier's shade, one down the dry
-  wash's bed (the giant's arm arches high enough to ride under it); each a ribbon of paler sand with streaks, drawn
+  wash's bed (the giant's arm arches high enough to ride under it); each a ribbon of paler sand (no streaks: a draw saved), drawn
   only. The bike rides them fast (`Hoverbike` `lane`, the level's `mount`; `LANE` in `src/bike.js`): its top speed with
   the flow ×1.4 and a 6 m/s current. Four ruins (a doorway and its stair down, a windcatcher's tower, a caravan, an
   arcade) 30–150 m off the ride, each under a dune (the tower's tip showing) or with its dune walked off downwind
@@ -419,7 +419,21 @@ home, where the level design audit found nothing at mid-distance (1 of 37 option
   same two. The dunes are meshes in the sand drifts' own material, collided as drawn; the open ruins are `sights` with a
   look (`THINGS.ruin*`). Two sandfalls pour off mesas `src/world.js` scattered (found by raycasting the mesa at build:
   the curtain hangs clear of every ledge above it), in the waterfalls' own shader (`fall`) in sand's tones, a cone of
-  sand at the foot. About 9k triangles, 10 meshes. `tests/desert-dunes.test.js`.
+  sand at the foot. About 8k triangles, 9 meshes. `tests/desert-dunes.test.js`.
+- **The memory of water** (`src/desert-water.js`, `src/story/desert-water.js`; `SALT_PAN`, `WELLS`, `BOATS` in
+  `src/desert-sites.js`). The dry wash keeps pale tide lines along its banks and two boats stranded on them. It ends
+  east of the camps in a salt pan (`PAN` in `desertHeight`, `src/desert-ground.js` `pan`: level at the mean of its
+  rim, faded back over 60 m), a white crust drawn a hair over it, the procession's circuit across it. Over it a mirage
+  of the old lake (pale water, reeds, three sails; drawn only, `water: false`) stands from 210 m off and sinks into the
+  pan by 95 m (`MIRAGE`, the level's `update`). Five qanat wells, a shaft and a windcatcher each, run from the giant's
+  hand to Qanat (a `line` for the audit): `listen at the well` opens `THINGS.qanatWell`, the water nearer at the first,
+  second and third well heard (`desert.wells.heard`), running once the tree has drunk. **When the tree drinks**
+  (`desert.well.watched`, the roots watched: issue #161) the pan floods over 30 s (`FLOOD`): a MODE_WATER disc the water
+  system finds once it shows (`waterMoves`: you wade it, the bike skims it), the mirage gone, water in the wells, one
+  line (`FLOOD_CUE`); a save past it finds it full. About 4k triangles. `tests/desert-water.test.js`.
+- **The audit** (`scripts/level-design/audit.mjs`, the Desert): mean 4 → 4.11 (spacing 4 → 5); optional places 38 → 49,
+  pulling (30–150 m off the path) 1 → 10; the longest empty stretch 406 → 377 m; landmarks seen from 85 % of the path
+  as before (the hand a `beacon`).
 
 ## Vael's layout, from the level design audit (v1.9)
 

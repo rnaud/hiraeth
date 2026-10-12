@@ -20,6 +20,30 @@ export function cutDepth(s, { bed, bank, depth }) {
   return depth - slope * u + slope * u * u / (2 * bank);
 }
 
+/**
+ * A level pan: the ground inside `r` brought to one level, faded back to the dunes over `fade` m (a smoothstep:
+ * its bend 6·Δ / fade², gentle at 60 m). The level is the mean of the ground round its rim (`base`, asked the first
+ * time), so the rim is as low as it can be.  →  { level(), height(x, z, h), x, z, r }
+ */
+export function pan({ x, z, r, fade }, base) {
+  let L = null;
+  const level = () => {
+    if (L != null) return L;
+    let sum = 0;
+    for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, d = r + fade * 0.4; sum += base(x + Math.cos(a) * d, z + Math.sin(a) * d); }
+    return (L = sum / 24);
+  };
+  return {
+    x, z, r, level,
+    height(px, pz, h) {
+      const d = Math.hypot(px - x, pz - z);
+      if (d >= r + fade) return h;
+      const k = smoothstep(r, r + fade, d);
+      return level() + (h - level()) * k;
+    },
+  };
+}
+
 export function channel(points, o) {
   const opt = { fade: 60, step: 4, ...o };
   const curve = new CatmullRomCurve3(points.map(([x, z]) => new Vector3(x, 0, z)), false, 'centripetal');

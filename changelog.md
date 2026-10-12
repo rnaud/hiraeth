@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.53 — 2026-10-12
 
+- When the tree drinks, the water comes back to the desert: the salt pan past the camps fills into a shallow mirror lake the procession walks through, and water glints in the old wells.
+- Old boats lie stranded on their sides in the dry wash, its banks pale with the river’s old tide lines.
+- A line of old qanat wells runs from the giant’s hand toward Qanat, each with a little windcatcher. Listen at one: the water under the sand sounds nearer at every well.
+- Where the dry wash ends, east of the camps, lies a white salt pan. From afar a mirage hangs over it, the old lake with its reeds and sails; come closer and it sinks away into the salt.
 - Sand pours off two of the mesas in slow golden falls, one over the dry wash and one right over the ride out.
 - The dunes walk. Out along the ride a dune has slid off an old stone doorway with a stair going down into the dark, and another off a buried caravan. Come back to the desert another time and the wind has moved them: other ruins stand clear, a windcatcher’s tower, three old arches.
 - Rivers of running sand wind between the dunes: one out of Marrow’s hollow along the ride toward the salt-carrier’s shade, one down the dry wash past the giants and under the giant’s arm, home toward Qanat. On the hoverbike they are fast lanes: ride with the sand and it carries you faster.

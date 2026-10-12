@@ -660,6 +660,22 @@ const INK53 = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headle
 const EXPLORE52 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463) and origin/main before the change (25e4cfca, git archive), the same pinned cameras, 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.53': [
+    { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [
+      { name: 'water-mirage2', title: 'The mirage', caption: 'From the dunes north-east of it, about 180 m off: after, the salt pan with the mirage of the old lake over it, sails on it, and the line of qanat wells in front', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 45, eye: [452, 34.02, 292], target: [295, 20.84, 195], player: [455, 31.91, 295] } },
+    ], see: 'Walk east from the camps, or look down from the dunes on the way to the Rose House: the pan shines white with a lake over it. Walk toward it and the lake sinks into the salt.' },
+    { match: 'A line of old qanat wells runs from the giant’s hand', shots: [
+      { name: 'water-wells', title: 'The wells', caption: 'From the first well by the giant’s hand, toward Qanat: after, the line of round well shafts with their windcatchers running away to the city', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 50, eye: [431, 30.57, 216], target: [289, 3.25, 339], player: [434, 29.14, 213] } },
+    ], see: 'Walk to a well and press A / × to listen at it; listen at a second and a third: the water sounds nearer each time. Once the tree has drunk, it runs.' },
+    { match: 'Old boats lie stranded on their sides in the dry wash', shots: [
+      { name: 'water-boat', title: 'A boat', caption: 'In the dry wash below the giant’s hand: after, an old boat on its side on the bank, the tide lines along it, the sand river down the bed', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [575, 14.37, 60], target: [540, 9.58, 102], player: [578, 12.23, 56] } },
+    ] },
+    { match: 'When the tree drinks, the water comes back to the desert', shots: [
+      { name: 'water-flood', title: 'The salt pan flooded', caption: 'The salt pan from its west shore: before, white and dry; after the roots have drunk, a shallow lake over the whole pan', from: `${EXPLORE52}; both from this branch, the after with desert.well.watched set`,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [238, 18.15, 170], target: [300, 15.34, 198], player: [234, 15.39, 168], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'desert.well.watched': true, 'desert.channel.open': true, 'quest.desert.power': 'spark' }, keepsakes: [] } } },
+    ], see: 'Clear the drain in the giant’s chest and watch the tree drink at its roots: a line says the salt pan past the camps is filling. Walk out to it: it fills over half a minute, and you wade through it.' },
     { match: 'Rivers of running sand wind between the dunes', shots: [
       { name: 'dunes-river', title: 'Out of the hollow', caption: 'South of the ride out of Marrow’s hollow: after, a river of pale running sand curving away between the dunes toward the salt-carrier’s shade (the boulder that stood in it gone)', from: EXPLORE52,
         view: { level: 'desert', hour: 10, fov: 60, eye: [205, 14.44, 88], target: [340, 6.3, -45], player: [202, 12.69, 92] } },

@@ -76,7 +76,7 @@ export function buildGiantsRoad(scene, terrain) {
   const clothCream = makeMaterial({ color: '#f3ead8', flat: true, side: THREE.DoubleSide });
   const flameMat = makeMaterial({ color: '#ffd27a', glow: 1, flat: true, key: 'desert.road.flame' });
   const shrineParts = { stone: [], clay: [], wood: [], red: [], cream: [] };
-  const clear = [], shrines = [], giants = {};
+  const clear = [], shrines = [], giants = {}, flames = [];
   const flat = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); if (!g.attributes.normal) g.computeVertexNormals(); return g; };
 
   /** One giant's bone: a mesh of its own in the ribcage's material (coloured per vertex), collided as drawn. */
@@ -111,17 +111,15 @@ export function buildGiantsRoad(scene, terrain) {
     const b = p(-0.95, 0, 0.25);
     shrineParts.clay.push(new THREE.LatheGeometry([[0.05, 0], [0.32, 0.04], [0.38, 0.2], [0.33, 0.27]].map(([r, y]) => new THREE.Vector2(r, y)), 9).translate(b.x, b.y + 0.62, b.z));
     for (let k = 0; k < 3; k++) { const a = k / 3 * Math.PI * 2; shrineParts.wood.push(new THREE.CylinderGeometry(0.03, 0.04, 0.68, 4).rotateZ(0.18).rotateY(a).translate(b.x + Math.sin(a) * 0.16, b.y + 0.32, b.z + Math.cos(a) * 0.16)); }
-    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.62, 6).translate(0, 0.31, 0), flameMat);
-    flame.position.set(b.x, b.y + 0.82, b.z); flame.userData.noCollide = true; flame.name = 'Shrine brazier';
-    staticFlame(flame, [V(0, 0.1, 0)], { r: 0.2, h: 0.6 });
-    group.add(flame);
+    // (its flame: one mesh for the four braziers, below)
+    flames.push(V(b.x, b.y + 0.82, b.z));
     // the pole of cloths, behind the stone
     if (pole) {
       const q = p(0.9, 0, -0.55);
       shrineParts.wood.push(new THREE.CylinderGeometry(0.05, 0.07, 3.6, 5).translate(q.x, q.y + 1.8, q.z));
       for (let k = 0; k < 4; k++) strip(V(q.x, q.y + 3.45 - k * 0.12, q.z), face + k * 1.4, 1.4 - k * 0.15, k % 2 === 0);
     }
-    const s = { n, at: at.clone(), look: p(0, 0.95, 0.25), stand: p(0, 0, 1.5), flame };
+    const s = { n, at: at.clone(), look: p(0, 0.95, 0.25), stand: p(0, 0, 1.5), flame: null };
     shrines.push(s);
     clear.push({ x: at.x, z: at.z, r: 2.6 });
     return s;
@@ -273,6 +271,14 @@ export function buildGiantsRoad(scene, terrain) {
     for (const lx of [-RX, -RX / 2, 0, RX / 2, RX]) { const p = F.w(lx, 0, 0); clear.push({ x: p.x, z: p.z, r: 4 }); }
   }
 
+  // the braziers' flames, burning (one mesh: src/story/flames.js staticFlame reads each as a fire)
+  {
+    const o = flames[0], m = new THREE.Mesh(mergeGeometries(flames.map((p) => new THREE.ConeGeometry(0.2, 0.62, 6).translate(p.x - o.x, p.y - o.y + 0.31, p.z - o.z))), flameMat);
+    m.position.copy(o); m.userData.noCollide = true; m.name = 'The shrines’ braziers';
+    staticFlame(m, flames.map((p) => V(p.x - o.x, p.y - o.y + 0.1, p.z - o.z)), { r: 0.2, h: 0.6 });
+    group.add(m);
+    shrines.forEach((s) => { s.flame = m; });
+  }
   // the shrines' stone, clay, wood and cloth: a mesh each for the four (small, drawn and culled together)
   for (const [k, mat, collide] of [['stone', stoneMat, true], ['clay', clayMat, false], ['wood', wood, false], ['red', clothRed, false], ['cream', clothCream, false]]) {
     if (!shrineParts[k].length) continue;

@@ -20,6 +20,7 @@ import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone } from '../desert-
 import { buildDesertHearth } from '../desert-hearth.js';
 import { buildGiantsRoad } from '../desert-giants.js';
 import { buildWalkingDunes } from '../desert-dunes.js';
+import { buildWaterMemory } from '../desert-water.js';
 import { game } from '../game-state.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK, DESERT_CLOUD_SHADOWS } from '../desert-sites.js';
@@ -130,7 +131,11 @@ export function* buildDesert(scene) {
   // two each visit: src/story/desert-dunes.js counts them), the sandfalls off two mesas
   const dunes = buildWalkingDunes(scene, terrain, { visit: game.flag('desert.dunes.visit') ?? 0 });
   clearInstances(scene, dunes.clear, dunes.group);
-  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || strips.avoid(x, z, r) || fieldStone.avoid(x, z, r) || giants.avoid(x, z, r) || dunes.avoid(x, z, r) || avoidWorld(x, z, r);
+  // the memory of water (src/desert-water.js; issue #167): the wash's tide lines and stranded boats, the salt pan and its
+  // mirage (it floods when the tree drinks: src/story/desert-water.js), the line of qanat wells to listen at
+  const water = buildWaterMemory(scene, terrain);
+  clearInstances(scene, water.clear, water.group);
+  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || strips.avoid(x, z, r) || fieldStone.avoid(x, z, r) || giants.avoid(x, z, r) || dunes.avoid(x, z, r) || water.avoid(x, z, r) || avoidWorld(x, z, r);
   // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
   // the Canyon run under the lavender cliffs by the rope bridge
   for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
@@ -161,6 +166,7 @@ export function* buildDesert(scene) {
     fieldStone,
     giants,
     dunes,
+    water,
     vistas,
     landmarks,
     maskRooms,
@@ -173,6 +179,8 @@ export function* buildDesert(scene) {
       ...giants.sights,
       // (the ruins the dunes have walked off, this visit; the sandfalls' feet)
       ...dunes.sights, ...dunes.falls.map((f, i) => ({ name: `a sandfall off the mesa (${i + 1})`, at: f.at })),
+      // (the salt pan, a stranded boat, the first of the qanat wells)
+      ...water.sights,
     ],
     // tall things seen over the dunes that the collision doesn't make tall (the audit aims at them as at landmarks): the camps'
     // smoke while the tree is cold, then the tree's own column; the Hearth's chimney, out past the audit's map
@@ -198,6 +206,8 @@ export function* buildDesert(scene) {
       ...(level.dryChannel ? [{ name: 'the Givers’ dry channel', points: level.dryChannel }] : []),
       // (the way home: its lamps are lit once the tree burns, and the last stage sends you down it; not the way in)
       { name: 'the pilgrims’ road', points: road.points, auto: false },
+      // (issue #167: the old qanat wells, from the giant's hand to Qanat)
+      { name: 'the qanat wells', points: water.line },
     ],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter, the wares on it; main.js: the shop panel)
     ground: terrain,
@@ -237,7 +247,7 @@ export function* buildDesert(scene) {
     killY: -Infinity,
     atmo: (x, z) => biomeAtmosphere(x, z),
     update(dt, t, o = {}) {
-      if (o.camera) { qanat.update(dt, t, o); hearth.update(dt, t, o); }
+      if (o.camera) { qanat.update(dt, t, o); hearth.update(dt, t, o); water.update(dt, t, o); }
       waveBanners(banners, t, o.camera);   // (the ones in view, within 160 m)
       for (const f of floaters) {
         f.obj.position.y = f.baseY + Math.sin(t * 0.4 + f.phase) * f.amp;

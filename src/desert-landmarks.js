@@ -6,8 +6,8 @@ import { SandDrifts } from './sand-drifts.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from './noise.js';
 import { heightFn } from './world.js';
 import { basinHeight } from './desert-vistas.js';
-import { SITES, POLE_LINE, STORY, DRY_WASH, SAND_RIVER } from './desert-sites.js';
-import { channel } from './desert-ground.js';
+import { SITES, POLE_LINE, STORY, DRY_WASH, SAND_RIVER, SALT_PAN } from './desert-sites.js';
+import { channel, pan } from './desert-ground.js';
 
 // The structures of the desert reference pages (references/levels/The Desert/environment/IMG_3772-3775),
 // built as destinations across the three regions:
@@ -96,9 +96,11 @@ export const WASH = channel(DRY_WASH.points, DRY_WASH);
 export const SAND_RUN = channel(SAND_RIVER.points, SAND_RIVER);
 /** The ground before the channels: dunes, the mineral basin, level landmark floors, drifts and the salt lagoons. */
 const groundHeight = (x, z) => lagoonHeight(x, z, drifts(x, z, flatten(x, z, basinHeight(x, z, heightFn))));
-/** The desert's full height field: dunes, the mineral basin, level landmark floors, drifts, the salt lagoons, the dry wash and the sand river. */
+/** The salt pan where the dry wash ends, east of the camps (src/desert-sites.js SALT_PAN, src/desert-water.js). */
+export const PAN = pan(SALT_PAN, (x, z) => SAND_RUN.height(x, z, WASH.height(x, z, groundHeight(x, z))));
+/** The desert's full height field: dunes, the mineral basin, level landmark floors, drifts, the salt lagoons, the dry wash, the sand river and the salt pan. */
 export function desertHeight(x, z) {
-  return SAND_RUN.height(x, z, WASH.height(x, z, groundHeight(x, z)));
+  return PAN.height(x, z, SAND_RUN.height(x, z, WASH.height(x, z, groundHeight(x, z))));
 }
 
 // ------------------------------------------------------------------ helpers

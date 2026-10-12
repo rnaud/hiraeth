@@ -12,8 +12,8 @@ import { WASH, SAND_RUN } from './desert-landmarks.js';
 //
 //   the sand rivers  running sand in two shallow channels (src/desert-ground.js): one out of Marrow's hollow along the
 //                    south side of the ride to the salt-carrier's shade, one down the dry wash's bed from the giant's
-//                    jaw home past the spine, under the arm and past the hand. A ribbon of paler sand on the bed with
-//                    streaks along it; the bike rides it fast (`lane`: src/bike.js, a higher top speed with the flow
+//                    jaw home past the spine, under the arm and past the hand. A ribbon of paler sand on the bed;
+//                    the bike rides it fast (`lane`: src/bike.js, a higher top speed with the flow
 //                    and a current carrying it), a fast lane out and one home.
 //   the ruins        four old things out on the dunes (a doorway and its stair down, a windcatcher's tower, a caravan's
 //                    carts, an arcade's three arches), each under a dune or with its dune walked off it downwind. Which
@@ -38,11 +38,10 @@ export function buildWalkingDunes(scene, terrain, { visit = 0 } = {}) {
   const H = (x, z) => terrain.heightAt(x, z);
   const group = new THREE.Group(); group.name = 'The walking dunes';
   const clear = [];
-  const parts = { river: [], streak: [], stone: [], stone2: [], dark: [], wood: [], cloth: [], dune: [] };
+  const parts = { river: [], stone: [], stone2: [], dark: [], wood: [], cloth: [], dune: [] };
   const mats = {
-    // (the running sand paler than the dunes, its streaks the dunes' shade)
+    // (the running sand paler than the dunes: its ripples are the ground's own ink; no streaks of their own, a draw saved)
     river: (() => { const m = makeMaterial({ color: '#f7e0b2', flat: true }); m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; return m; })(),
-    streak: (() => { const m = makeMaterial({ color: '#cf8f58', flat: true }); m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -4; return m; })(),
     stone: makeMaterial({ color: '#cdb38f', color2: '#bfa27c', flat: true }),
     stone2: makeMaterial({ color: '#d9c3a0', flat: true }),
     dark: makeMaterial({ color: '#3b3340', flat: true }),
@@ -51,7 +50,7 @@ export function buildWalkingDunes(scene, terrain, { visit = 0 } = {}) {
     dune: driftMaterial(makeMaterial, terrain.materialOptions),
   };
 
-  // ---------------------------------------------------------------- the sand rivers: a ribbon on the bed, streaks along it
+  // ---------------------------------------------------------------- the sand rivers: a ribbon of paler sand on the bed
   const rivers = [{ name: 'the sand river out of the hollow', ch: SAND_RUN, flow: 1 }, { name: 'the sand river down the dry wash', ch: WASH, flow: 1 }];
   for (const R of rivers) {
     const P = R.ch.points, half = R.ch.opt.bed - 0.4, across = 6;   // (on the level bed only, a hair over it: you walk on it)
@@ -68,23 +67,6 @@ export function buildWalkingDunes(scene, terrain, { visit = 0 } = {}) {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
     parts.river.push(g);
-    // streaks of moving sand along it: three wavering lanes, broken into long dashes
-    for (const [lane, ph] of [[-0.45, 0], [0.05, 1.7], [0.5, 3.1]]) {
-      for (let i = 1; i < P.length - 2; i++) {
-        if (Math.sin(i * 0.9 + ph * 2.3) < -0.15) continue;   // (gaps between dashes)
-        const pts = [i, i + 1].map((k) => {
-          const a = P[Math.max(0, k - 1)], b = P[Math.min(P.length - 1, k + 1)], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), nx = -dz / L, nz = dx / L;
-          const along = k / (P.length - 1) * R.ch.length, w = half * Math.min(1, R.ch.fadeAt(along) * 1.6), s = (lane + 0.08 * Math.sin(k * 0.37 + ph)) * w;
-          return [P[k][0] + nx * s, P[k][1] + nz * s, nx, nz];
-        });
-        const sw = 0.3;
-        const quad = [pts[0][0] - pts[0][2] * sw, pts[0][1] - pts[0][3] * sw, pts[0][0] + pts[0][2] * sw, pts[0][1] + pts[0][3] * sw, pts[1][0] - pts[1][2] * sw, pts[1][1] - pts[1][3] * sw, pts[1][0] + pts[1][2] * sw, pts[1][1] + pts[1][3] * sw];
-        const q = new THREE.BufferGeometry(), P3 = [];
-        for (let k = 0; k < 4; k++) P3.push(quad[k * 2], H(quad[k * 2], quad[k * 2 + 1]) + 0.035, quad[k * 2 + 1]);
-        q.setAttribute('position', new THREE.Float32BufferAttribute(P3, 3)); q.setIndex([0, 2, 1, 1, 2, 3]); q.computeVertexNormals();
-        parts.streak.push(q.toNonIndexed());
-      }
-    }
     for (let i = 0; i < P.length; i += 3) clear.push({ x: P[i][0], z: P[i][1], r: R.ch.opt.bed + 1 });
   }
   /** The bike in a sand river: { k: how far in (0..1), fx, fz: the way it runs } or null. */
@@ -226,7 +208,7 @@ export function buildWalkingDunes(scene, terrain, { visit = 0 } = {}) {
     if (!list.length) continue;
     const m = new THREE.Mesh(mergeGeometries(list.map(flatGeo)), mats[k]);
     m.name = `The walking dunes (${k})`;
-    if (k === 'river' || k === 'streak' || k === 'cloth' || k === 'dark') m.userData.noCollide = true;
+    if (k === 'river' || k === 'cloth' || k === 'dark') m.userData.noCollide = true;
     m.receiveShadow = true;
     group.add(m);
   }

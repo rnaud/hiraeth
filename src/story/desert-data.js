@@ -946,6 +946,20 @@ export const THINGS = {
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
+  // the old qanat wells from the giant's hand to Qanat (src/desert-water.js, src/story/desert-water.js; issue #167): the
+  // water sounds nearer at every well you listen at (desert.wells.heard, up to 3), and runs once the tree has drunk
+  qanatWell: {
+    id: 'qanatWell', name: 'An old qanat well', title: 'on the line to Qanat', color: '#d9c3a0', voice: 0.6,
+    talk: { nodes: { look: {
+      say: [
+        { if: { flag: 'desert.well.watched' }, text: "~happy~ Cool air breathes up the shaft. Down there the water is running, fast, toward the tree." },
+        { if: { all: [{ not: { flag: 'desert.well.watched' } }, { not: { flag: 'desert.wells.heard', is: 2 } }, { not: { flag: 'desert.wells.heard', is: 3 } }] }, text: "~curious~ You put your ear to the stone. Far down, very faint: water, moving." },
+        { if: { all: [{ not: { flag: 'desert.well.watched' } }, { flag: 'desert.wells.heard', is: 2 }] }, text: "~curious~ Nearer than at the last well: water running under the sand, toward the city." },
+        { if: { all: [{ not: { flag: 'desert.well.watched' } }, { flag: 'desert.wells.heard', is: 3 }] }, text: "~solemn~ Close under you now. The old channel runs from well to well down to Qanat, and something holds the water back." },
+      ],
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
   // the Givers' field-stone on the dunes below their House, on the way home from it (src/desert-road.js FIELD_STONE)
   fieldStone: {
     id: 'fieldStone', name: 'The Givers’ field-stone', title: 'on the dunes below their House', color: '#cdb38f', voice: 0.6,
