@@ -17,7 +17,7 @@ import { builtWorld, quiet } from './built-worlds.js';
 import { Player } from '../src/player.js';
 import { MERGED, ORDER } from '../src/levels/names.js';
 import { FRAGMENTS, FRAGMENTS_PER_WORLD } from '../src/fragments-data.js';
-import { flood, spotWhyNot, standWhyNot } from './fragments-reach.js';
+import { flood, reachCell, seaWhyNot, spotWhyNot, standWhyNot } from './fragments-reach.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const mesh = (scene, geo, { at = [0, 0, 0], free = false, hidden = false, name = '' } = {}) => {
@@ -465,15 +465,16 @@ test('every fragment of the singing light stands on drawn, solid ground the walk
       const hit = drawn?.bvh?.raycastFirst(new THREE.Ray(V(p.x, p.y + 1.2, p.z), V(0, -1, 0)), THREE.DoubleSide);
       const top = Math.max(hit ? p.y + 1.2 - hit.distance : -Infinity, level.ground?.heightAt?.(p.x, p.z) ?? -Infinity);
       if (!(Math.abs(top - p.y) < 0.35)) failed.push(`${id} ${i}: the ground drawn under it is ${Number.isFinite(top) ? (top - p.y).toFixed(2) + ' m off' : 'missing'}`);
-      // (the Underwater City: he is never out in the water, so a fragment has the glass of a hall over it)
-      if (level.sea && physics.rayDistance(V(p.x, p.y + 0.3, p.z), V(0, 1, 0), 400) === Infinity) failed.push(`${id} ${i}: out in the sea, not under the glass`);
+      // (the Underwater City: under the glass of a hall, or out on the seabed near air, where the helmet takes you: v1.60, #228)
+      const sea = seaWhyNot({ physics, level }, p);
+      if (sea) failed.push(`${id} ${i}: ${sea}`);
       for (let k = i + 1; k < at.length; k++) if (p.distanceTo(at[k]) < 15) failed.push(`${id} ${i} and ${k}: ${p.distanceTo(at[k]).toFixed(1)} m apart`);
     });
     // the real traveller, set down over each, stands there, close enough to take it (src/fragments.js FRAGMENT.take)
     at.forEach((p, i) => { const why = standWhyNot({ physics, level }, p, Player); if (why) failed.push(`${id} ${i}: ${why}`); });
     // (what the player opens on the way stands open for the walker: the floating city's drifted span reeled home, v1.57)
     level.openWays?.(physics, true);
-    const { reached } = flood({ physics, level }, [level.spawn, ...Object.values(level.partSpawns ?? {})], { targets: at });
+    const { reached } = flood({ physics, level }, [level.spawn, ...Object.values(level.partSpawns ?? {})], { targets: at, cell: reachCell(id) });
     level.openWays?.(physics, false);
     reached.forEach((ok, i) => { if (!ok) failed.push(`${id} ${i} (${at[i].toArray().map((v) => v.toFixed(1))}): the walker doesn’t reach it from the spawn`); });
   }

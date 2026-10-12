@@ -728,6 +728,7 @@ const C60 = { commit: 'd3c9ded8', before: '18fe8fa6' };   // (shot at 48924c8a, 
 const SAVE60_LANTERN = { ...SAVE47, flags: { ...SAVE47.flags, 'item.lantern': true } };   // (the Lamp-House is dark: the lantern charm glows in it)
 // (v1.60: the v1.59 game audit's loose ends, issues #227, #230: a scratch shooter against this branch's own Vite and origin/main's tree)
 const AUDIT60 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5721) and origin/main’s tree before it (5a20c90f, port 5723), a fresh profile for the Saves screen; 12 October; cwebp -q 72';
+const FRAG60 = 'headless Chrome (scripts/design-qc/capture.mjs), High, 1280 × 720, the camera pinned over the spot; before: the same view with that fragment found (a save holding its flag), after: a new save';
 export const CHANGELOG_MEDIA = {
   '1.61': [
     { match: 'In the City Floating in Space a tall lamp-mast now marks', shots: [
@@ -748,6 +749,11 @@ export const CHANGELOG_MEDIA = {
     ], see: 'In the Garden of Spheres: east of the landing by the yellow sphere; the white monolith south-east of the cracked moon; the arcade in the android wood west of the avenue; the white stone north of the landing. Press A / × at each.' },
   ],
   '1.60': [
+    { match: 'Fragments of the singing light now hide in the places the newest explorations built', shots: [
+      { name: 'fragments-canopy', title: 'Lorn’s keepers’ canopy', caption: 'A deck of the lamp-keepers’ village, 70 m up in the Deep Wood: a fragment where there was none', from: FRAG60 },
+      { name: 'fragments-stack', title: 'The Floating city’s stack', caption: 'The top of the stack, 79 m over the Towers’ deck: a fragment on its last landing', from: FRAG60 },
+      { name: 'fragments-canyon', title: 'The Underwater City’s canyon', caption: 'The white bridge over the canyon, on the way to the far wall’s café', from: FRAG60 },
+    ], see: 'Each world’s new places, off the way you are sent: Lorn’s canopy and the egg isle, the Floating city’s stack, the Underwater City’s canyon and seabed, the broken moon’s street, Viridel’s old pyramid, Kip’s skybridge. The finder (ten fragments) leads you to them.' },
     { match: 'In the Undertower the Choir and its great key have moved', shots: [
       { name: 'under-well', title: 'The Cable Well', caption: 'Looking up its west wall from the floor: before, the bare wall over the way west; after, the walk round the wall at the landing’s height, the Choir’s keepers’ gate in it, and the gate’s cable down the wall', ...C60,
         view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(2, 1.7, 53), target: UT(-9, 12, 63), player: UT(3.5, 0.05, 51.7) } },

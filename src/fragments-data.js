@@ -10,6 +10,11 @@
 // drop under them, walls round them, height, and distance from the people, the chests and the relics), then looked
 // at one by one; tests/fragments.test.js checks each still stands on solid ground with room over it and that the
 // walker reaches it from the world's spawn (a double jump high at most, falls that don't hurt, Lorn's water swum).
+//
+// v1.60 (issue #228): 28 re-picked over the rebuilt worlds' new country and off the route (the level design audit's
+// critical path: tests/fragments-route.test.js, 25 m at least), each in the slot it replaced, marked "(v1.60, #228)"
+// with its place. A save's found flags on those slots move to unmoved ones still to find (src/save-migrate.js step 23,
+// FRAGMENTS_MOVED_228, which must list exactly the marked slots).
 
 import { ORDER, TITLES } from './levels/names.js';
 
@@ -29,10 +34,10 @@ export const FRAGMENTS = {
   ],
   arzach: [   // (v1.55, issue #187: picked afresh, scripts/fragment-spots.mjs, once the riders' road, the sundial and the broken edge were in)
     [210.0, 25.58, -334.0],
-    [-12.0, 23.14, -940.0],
+    [-4.0, 26.00, -940.0],   // (v1.60, #228) a slab tipped up at the plain’s broken edge
     [212.0, 40.00, -686.0],
-    [-112.0, 40.30, -4.0],
-    [-120.0, 43.93, -1318.0],
+    [56.0, 45.95, -1312.0],   // (v1.60, #228) in a crack by the sundial’s outer ring
+    [-24.0, 22.92, -1018.0],   // (v1.60, #228) under a tipped slab past the riders’ gate
     [-800.0, 46.87, -1038.0],
     [-444.0, 39.86, -922.0],
     [314.0, 39.62, -1224.0],
@@ -40,31 +45,31 @@ export const FRAGMENTS = {
   perdide: [
     [-698.0, 39.48, -448.0],
     [676.0, 29.64, -554.0],
-    [152.0, 0.77, -918.0],
+    [-24.0, 70.00, -748.0],   // (v1.60, #228) the keepers’ canopy: a deck 70 m up
     [-518.0, 0.01, -706.0],
-    [-412.0, 5.76, -154.0],
-    [338.0, -0.67, -432.0],
+    [-84.0, 0.56, -700.0],   // (v1.60, #228) on the egg isle’s heap, in the drowned wood
+    [34.0, 32.70, -754.0],   // (v1.60, #228) halfway up the keepers’ stair
     [-134.0, -0.17, -998.0],
     [-638.0, 0.18, 238.0],
   ],
   edena: [
     [32.0, 1.60, -542.0],
     [-618.0, 23.18, 210.0],
-    [22.0, -6.66, -196.0],
-    [-178.0, 20.26, 102.0],
+    [14.0, 35.79, 240.0],   // (v1.60, #228) on the old pyramid’s terraces, 36 m up
+    [150.0, -15.60, -80.0],   // (v1.60, #228) on the round ship’s hill
     [624.0, 19.56, 282.0],
     [538.0, -9.56, -438.0],
-    [188.0, 9.22, 136.0],
+    [8.0, -7.26, -134.0],   // (v1.60, #228) on the builders’ machine’s flank
     [-616.0, 5.77, -254.0],
   ],
   underwater: [
-    [96.0, -15.96, -128.0],
+    [186.2, -7.20, -54.9],   // (v1.60, #228) the far café’s terrace, over the canyon
     [-32.0, 0.08, 138.0],
-    [-96.0, 0.00, -86.0],
+    [136.2, -0.60, 27.1],   // (v1.60, #228) out on the seabed, at a pod tower’s foot
     [28.0, 3.44, -12.0],
-    [-80.0, 0.08, 18.0],
-    [38.0, 0.08, -112.0],
-    [112.0, -15.96, -88.0],
+    [138.2, -26.25, -68.9],   // (v1.60, #228) a pod tower’s ring down the canyon’s wall
+    [48.2, -0.97, -168.9],   // (v1.60, #228) out on the seabed, by a tower’s round door
+    [146.2, -7.20, -50.9],   // (v1.60, #228) on the white bridge over the canyon
     [-38.0, 0.08, -112.0],
   ],
   incal: [
@@ -88,7 +93,7 @@ export const FRAGMENTS = {
     [0.0, 47.78, -302.0],
   ],
   buried: [
-    [18.0, -16.23, -302.0],
+    [-46.0, -2.34, -272.0],   // (v1.60, #228) a ledge by the machine’s great pipes
     [220.0, 15.34, -70.0],
     [-126.0, 11.78, 448.0],
     [-170.0, 14.90, -588.0],
@@ -99,17 +104,17 @@ export const FRAGMENTS = {
   ],
   moonfoundry: [
     [10.0, 13.06, -208.0],
-    [14.0, 13.06, -26.0],
+    [-23.0, 37.12, -197.0],   // (v1.60, #228) a landing of the broken moon’s stair street, 37 m up
     [-60.0, 13.06, -128.0],
-    [-20.0, 13.06, -194.0],
-    [14.0, 13.06, -88.0],
-    [18.0, 13.06, -178.0],
+    [-31.0, 13.06, -128.0],   // (v1.60, #228) a gantry over the floor
+    [-8.0, 30.25, -216.0],   // (v1.60, #228) behind a house on the stair street, 30 m up
+    [-153.0, 0.00, 33.0],   // (v1.60, #228) tucked behind a wall on the floor
     [154.0, 0.00, -280.0],
     [-150.0, 0.00, -284.0],
   ],
   spheres: [
     [-192.0, 27.69, -160.0],
-    [-184.0, 7.40, -488.0],
+    [78.0, -2.65, -244.0],   // (v1.60, #228) down in the cracked sphere’s crater
     [-286.0, 2.37, 270.0],
     // (v1.56, issue #190: these two picked afresh by scripts/fragment-spots.mjs spheres once the explorations were built;
     //  the old ones, on an umbrella's flaring roots by the plaza and under one far west, were left too close to a ledge)
@@ -120,22 +125,22 @@ export const FRAGMENTS = {
     [270.0, -0.02, 70.0],
   ],
   spacecity: [
-    [118.0, 6.00, -70.0],
+    [79.0, 78.73, -119.0],   // (v1.60, #228) the stack’s top, 79 m up
     [-92.0, -0.00, 42.0],
-    [-20.0, -0.00, -176.0],
-    [114.0, 14.00, -192.0],
+    [75.0, 50.00, -121.0],   // (v1.60, #228) on the stack’s stair, 50 m up
+    [-105.0, -4.00, -76.0],   // (v1.60, #228) by the Garden’s overlook
     [-36.0, -0.00, -52.0],
     [34.0, -0.00, -96.0],
-    [84.0, 14.00, -156.0],
-    [86.0, 3.00, -4.0],
+    [-20.0, 0.00, -156.0],   // (v1.60, #228) the Balcony’s far end
+    [-76.0, -4.00, -48.0],   // (v1.60, #228) the Garden island’s rim
   ],
   bazaar: [
-    [-34.0, 8.32, -270.0],
-    [-38.0, 8.32, 42.0],
+    [34.0, 25.00, -90.0],   // (v1.60, #228) the far end of Kip’s skybridge, 25 m up
+    [38.0, 8.32, -142.0],   // (v1.60, #228) a ledge 8 m up over Signal Square
     [162.0, 0.00, -498.0],
     [212.0, 0.00, 152.0],
     [-132.0, 0.00, -498.0],
-    [156.0, 0.00, -112.0],
+    [128.0, 0.00, 8.0],   // (v1.60, #228) past the screen lanes’ biggest set
     [4.0, 0.00, -446.0],
     [-218.0, 0.00, -60.0],
   ],

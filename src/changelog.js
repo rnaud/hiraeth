@@ -16,6 +16,9 @@ export const CHANGELOG = [
     'The Garden of Spheres has four new things to find out in the meadow: a cairn at the head of the yellow sphere’s furrow, a ring of small stones round the white monolith past the cracked moon, a fallen column before the empty arcade in the android wood, and a lantern left lit at the white stone north of the landing.',
   ] },
   { v: '1.60', date: '2026-10-12', items: [
+    // the fragments of the singing light re-placed over the new country, off the route (src/fragments-data.js,
+    // scripts/fragment-spots.mjs, tests/fragments-route.test.js; docs/systems/fragments.md; issue #228)
+    'Fragments of the singing light now hide in the places the newest explorations built: on a deck of Lorn’s keepers’ canopy 70 m up and on the egg isle in the drowned wood, at the top of the Floating city’s stack, across the Underwater City’s canyon bridge and out on the seabed, up the broken moon’s stair street, on Viridel’s old pyramid and the round ship’s hill, at the far end of Kip’s skybridge. None lies on the way anyone sends you any more. The fragments you have already found still count.',
     // the temples to explore, round 4: the last three great keys out of the rooms off the last halls, each with a loop
     // back (src/temples/bazaar.js CHOIR, perdide2.js WICK, edena.js VAULT; docs/systems/temples.md "Round 4"; issue #23)
     'In the Undertower the Choir and its great key have moved beside the Shell Chamber, over the Cable Store. Its door, and a keepers’ gate high on the Cable Well’s wall, open when a horn back on the first hall’s far landing, at the end of the gate’s cable, hears the middle note. Inside, the near horn wants the high note, and only the Cable Well’s stone below the gate sings it.',
