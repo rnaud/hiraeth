@@ -16,6 +16,14 @@
 // reparented object is the walk's case. An object with an updateMatrixWorld of its own (a camera, the part batches,
 // a positional sound) is called as the walk would and its subtree left to it.
 // tests/scene-matrices.test.js: every matrix the same as the walk's, through moves, flags, reparenting and hooks.
+//
+// skipHidden (the Unity bridge's mirror, issue #113: ~40 % of the City-Shaft's list, 1 750 of 4 330 objects, is under
+// something hidden): a hidden object's subtree is stepped over, its matrices left as they were, unless something in it
+// has an updateMatrixWorld of its own (a positional sound, a camera: called as ever). Nothing draws them; what reads
+// them through three (getWorldPosition, updateWorldMatrix: src/matrix-cache.js updateChain) still gets them made as the
+// walk would, since a hidden object whose parent's world matrix changed is flagged (matrixWorldNeedsUpdate), and so is
+// made again by the first walk, read or frame that reaches it, the frame it is shown among them. Only a direct read of a
+// hidden object's .matrixWorld sees it as it was when it was hidden (or last read).
 import * as THREE from 'three';
 import { updateMatrixWorldCached, updateInWalk } from '../src/matrix-cache.js';
 
@@ -36,7 +44,7 @@ const _old = new Float64Array(16);
 class SceneList {
   constructor(scene) {
     this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0;
-    this.objs = []; this.parent = new Int32Array(0); this.end = new Int32Array(0); this.own = new Uint8Array(0);
+    this.objs = []; this.parent = new Int32Array(0); this.end = new Int32Array(0); this.own = new Uint8Array(0); this.owns = new Int32Array(1);
     this.P = []; this.Q = []; this.S = []; this.K = []; this.M = []; this.ME = []; this.WE = []; this.changed = new Uint8Array(0);
   }
 
@@ -65,20 +73,30 @@ class SceneList {
       M[i] = o.matrix; ME[i] = o.matrix.elements; WE[i] = o.matrixWorld.elements;
       this.own[i] = o.updateMatrixWorld !== updateMatrixWorldCached ? 1 : 0;
     }
+    // (how many own walks before each index: a subtree has one when the count moves across it)
+    const owns = this.owns = new Int32Array(n + 1);
+    for (let i = 0; i < n; i++) owns[i + 1] = owns[i] + this.own[i];
   }
 
   /** One frame's matrices. @return whether it ran from the list (false: the walk, the list made again after it) */
-  update() {
+  update(skipHidden = false) {
     if (this.epoch !== epoch) {
       this.scene.updateMatrixWorld();
       this.epoch = epoch;
       this.build();
       return false;
     }
-    const { objs, parent, end, own, P, Q, S, K, M, ME, WE, changed } = this;
+    const { objs, parent, end, own, owns, P, Q, S, K, M, ME, WE, changed } = this;
     for (let i = 0, n = this.n; i < n; i++) {
       const o = objs[i], pi = parent[i];
       const force = pi >= 0 && changed[pi] === 1;
+      if (skipHidden && o.visible === false && owns[end[i]] === owns[i]) {
+        // (hidden, no own walk in it: stepped over; flagged if its parent moved, so whatever reaches it next makes it)
+        if (force) o.matrixWorldNeedsUpdate = true;
+        changed[i] = 0;
+        i = end[i] - 1;
+        continue;
+      }
       if (own[i] === 1) {
         // (its own updateMatrixWorld, as the walk calls it, and its subtree with it; its children judged changed)
         updateInWalk(o, force);
@@ -152,9 +170,9 @@ export function sceneList(scene) {
   return L && L.epoch === epoch ? L : null;
 }
 
-/** The scene's matrices this frame (its list kept on it). */
-export function updateSceneMatrices(scene) {
+/** The scene's matrices this frame (its list kept on it); skipHidden: hidden subtrees stepped over (above). */
+export function updateSceneMatrices(scene, skipHidden = false) {
   if (!installed) { scene.updateMatrixWorld(); return false; }   // (no edits counted: a list could not know it is stale)
   const L = scene.__sceneList ??= new SceneList(scene);
-  return L.update();
+  return L.update(skipHidden);
 }

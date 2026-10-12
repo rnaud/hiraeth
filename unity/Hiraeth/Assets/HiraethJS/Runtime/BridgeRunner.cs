@@ -274,12 +274,12 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The main thread: the script's frame waited for, what it hands over applied as it comes. False: it failed or timed out.</summary>
-        bool Await()
+        bool Await(bool deferLast = false)
         {
             while (true)
             {
                 BridgeHost.RunOps();
-                if (done) { BridgeHost.RunOps(); return !threadFailed; }
+                if (done) { if (!deferLast) BridgeHost.RunOps(); return !threadFailed; }
                 BridgeHost.Wake.WaitOne(250);
                 if (Time.realtimeSinceStartup > limitAt) return false;
             }
@@ -466,7 +466,7 @@ namespace Hiraeth.Bridge
                 // the frame the script played while Unity drew the last, and the next one let go
                 var t0 = Time.realtimeSinceStartupAsDouble;
                 bool ok;
-                try { ok = Await(); }
+                try { ok = Await(deferLast); }
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); return; }
                 double wait = (Time.realtimeSinceStartupAsDouble - t0) * 1000;
                 waitMs += wait; waitMsTotal += wait;
@@ -478,10 +478,15 @@ namespace Hiraeth.Bridge
                     else { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); }
                     return;
                 }
+                // (-ops-after: the frame's last ops, its command buffer among them, taken now and applied once the next frame
+                // is let go, the script playing it meanwhile instead of waiting on them; issue #113)
+                var last = deferLast ? BridgeHost.TakeOps() : null;
                 BridgeHost.Snapshot();
                 nextDt = Time.unscaledDeltaTime;
                 done = false;
                 go.Set();
+                try { BridgeHost.RunTaken(last); }
+                catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); }
                 return;
             }
             try
@@ -507,6 +512,7 @@ namespace Hiraeth.Bridge
             gc0 = gc;
         }
         bool booted;
+        static readonly bool deferLast = BridgeArgs.Flag("-ops-after");
         static bool bootBlocking => BridgeArgs.Flag("-boot-blocking");
         /// <summary>The main thread's time waiting on the script (ms, summed; BridgeHost.WaitMs reads and clears it).</summary>
         public double waitMs;

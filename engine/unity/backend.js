@@ -19,11 +19,18 @@ export class UnityBackend {
     this.quietWalk = true;
     // (the scene's matrices from a flat list of it, engine/scene-matrices.js: the walk's reads were megamorphic ones)
     this.listMatrices = true;
+    // (a still drawable's world matrix not compared again each frame: engine/mirror.js stillMatrices, the same ops)
+    this.stillMatrices = true;
+    // (hidden subtrees' matrices left until they are shown or read: engine/scene-matrices.js skipHidden)
+    this.skipHidden = true;
+    // (a person past 30 m out of the view moved a quarter of the frames, as past 110 m: engine/game.js, src/npc.js offView)
+    this.peopleLod = true;
     // (an IL2CPP player takes buffers boxed, { b }: BridgeHost.BoxBuffers)
     this.toHost = host.BoxBuffers?.() ? (b) => ({ b }) : (b) => b;
     this.geoms = new Map();    // gid → the mirror's geometry (uploaded per variant when a node needs it)
     this.sent = new Set();     // the variants sent: `${gid}:${colours}:${bind}`
     this.sentGids = new Set(); // (and the geometries they come from)
+    this.sentOf = new Map();   // gid → its variants sent (a rewrite forgets them without a look through every one sent)
     this.specs = new Map();    // mid → spec
     this.ports = new Map();    // mid → the port's own shader for it, if any ('mote', 'print', 'flame')
     this.w = new CommandWriter();
@@ -37,7 +44,8 @@ export class UnityBackend {
     if (geo) (this.gidOf ??= new WeakMap()).set(geo, gid);
     if (geo?.userData?.faceKeys?.texture) (this.keysOf ??= new Map()).set(gid, geo.userData.faceKeys); else this.keysOf?.delete(gid);   // (the overshirt's frame names its garment's: clothOffload)
     // (a geometry rewritten: its variants go again when next drawn)
-    for (const k of [...this.sent]) if (k.startsWith(`${gid}:`)) { this.sent.delete(k); this._resend = true; }
+    const was = this.sentOf.get(gid);
+    if (was?.size) { for (const k of was) this.sent.delete(k); was.clear(); this._resend = true; }
   }
 
   _variant(gid, colors, bind, rig = false, form = false, vmat = false) {
@@ -51,6 +59,9 @@ export class UnityBackend {
       const fk = this.keysOf?.get(gid);
       if (fk && this.host.FaceKeys) { const kb = faceKeyDeltas(fk, g.attributes.position.array.length / 3); if (kb) this.host.FaceKeys(key, this.toHost(kb)); }
       this.sent.add(key); this.sentGids.add(gid);
+      let of = this.sentOf.get(gid);
+      if (!of) this.sentOf.set(gid, of = new Set());
+      of.add(key);
       this.stats.geometries++; this.stats.bytes += buf.byteLength;
     }
     return key;

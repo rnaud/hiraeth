@@ -90,6 +90,34 @@ namespace Hiraeth.Bridge
             finally { list.Clear(); opsMsTotal += (Stopwatch.GetTimestamp() - t0) * 1000.0 / Stopwatch.Frequency; }
             return n;
         }
+        /// <summary>
+        /// The ops handed over so far, taken out of the queue to be run after the script's next frame is let go (BridgeRunner
+        /// -ops-after: the frame's last ops, its command buffer among them, ~1.2-1.5 ms on the Xbox, applied while the script
+        /// plays the next frame instead of before it); null with -ops-cap (its own order) or none. What the script hands over
+        /// from then on waits for the next RunOps, as before.
+        /// </summary>
+        public static List<Action> TakeOps()
+        {
+            if (opsCap > 0) return null;
+            lock (gate)
+            {
+                if (ops.Count == 0 && asks.Count == 0) return null;
+                var list = ops; ops = taken.Count > 0 ? taken.Pop() : new List<Action>();
+                if (asks.Count > 0) { list.InsertRange(0, asks); asks.Clear(); }   // (questions first, as RunOps runs them)
+                return list;
+            }
+        }
+        static readonly Stack<List<Action>> taken = new();
+        /// <summary>Run what TakeOps took (the main thread), in order.</summary>
+        public static int RunTaken(List<Action> list)
+        {
+            if (list == null) return 0;
+            long t0 = Stopwatch.GetTimestamp();
+            int n = list.Count;
+            try { foreach (var a in list) a(); }
+            finally { list.Clear(); lock (gate) taken.Push(list); opsMsTotal += (Stopwatch.GetTimestamp() - t0) * 1000.0 / Stopwatch.Frequency; }
+            return n;
+        }
         /// <summary>Ops still held back by -ops-cap.</summary>
         public static int Held => held.Count;
         /// <summary>The main thread, at a frame's start: what the script reads this frame (keys, pads, the mouse, the frame times).</summary>

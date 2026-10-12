@@ -454,8 +454,10 @@ export class NPC {
       this.object.quaternion.setFromAxisAngle(Y, this.heading);
     }
     if (camD0 > 260) { this.talking = false; return; }
-    if (camD0 > 110) { this._skip = ((this._skip ?? 0) + 1) % 4; this._acc = (this._acc ?? 0) + dt; if (this._skip) return; dt = this._acc; this._acc = 0; }
-    else this._acc = 0;
+    // (offView: set by a game loop that knows the view, the Unity bridge's (engine/game.js), never on the web: past 30 m and
+    // out of it, the same quarter rate; back in view, the time it missed is taken at once)
+    if (camD0 > 110 || (this.offView === true && camD0 > 30)) { this._skip = ((this._skip ?? 0) + 1) % 4; this._acc = (this._acc ?? 0) + dt; if (this._skip) return; dt = this._acc; this._acc = 0; }
+    else { if (this.offView !== undefined && this._acc) dt += this._acc; this._acc = 0; }
     this.time += dt;
     // knocked over: the ragdoll, then getting up
     if (this.down) {

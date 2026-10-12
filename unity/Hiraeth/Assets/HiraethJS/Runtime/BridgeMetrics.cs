@@ -55,7 +55,7 @@ namespace Hiraeth.Bridge
         string readout = "";
         // the load
         float firstNode = -1, settled = -1, lastGrowth; int lastNodes;
-        double warmSum, warmMax, nativeSum, nativeMax, lastWait; int warmFrames, warmSlow, nativeSlow;
+        double warmSum, warmMax, nativeSum, nativeMax, lastWait; int warmFrames, warmSlow, nativeSlow, lateScript, lateOther;
         public static float scriptEnvAt = -1, bundleAt = -1;
         // (seconds since launch from any thread: Unity's own clock may be read on the main thread only)
         static long baseTicks; static float baseAt;
@@ -165,6 +165,8 @@ namespace Hiraeth.Bridge
             }
             // the frame's numbers, from settled on (and before, so the readout shows something)
             frames.Add(dt);
+            // (a frame of two refreshes or more: was it the main thread waiting on the script (over 3 ms of its Update), or the rest?)
+            if (dt >= 25) { if (frameWait > 3) lateScript++; else lateOther++; }
             if (timedNow)
             { cpuMain += timing[0].cpuMainThreadFrameTime; cpuRender += timing[0].cpuRenderThreadFrameTime; gpu += timing[0].gpuFrameTime; cpuAll += timing[0].cpuFrameTime; presentWait += timing[0].cpuMainThreadPresentWaitTime; timed++; }
             if (now - windowStart >= 5 && frames.Count > 0)
@@ -172,7 +174,8 @@ namespace Hiraeth.Bridge
                 // (how the frames fall against the TV's refresh: whole vblanks say the present waits for one)
                 int v1 = 0, v2 = 0, v3 = 0;
                 foreach (var x in frames) { if (x < 17.5f) v1++; else if (x < 34f) v2++; else v3++; }
-                string vblanks = $" · frames ≤17.5 ms {100 * v1 / frames.Count}%, ≤34 {100 * v2 / frames.Count}%, more {100 * v3 / frames.Count}%";
+                string vblanks = $" · frames ≤17.5 ms {100 * v1 / frames.Count}%, ≤34 {100 * v2 / frames.Count}%, more {100 * v3 / frames.Count}% (late on the script {lateScript}, on the rest {lateOther})";
+                lateScript = lateOther = 0;
                 frames.Sort();
                 float span = now - (float)windowStart;
                 double fps = frames.Count / span;

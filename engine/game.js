@@ -61,7 +61,7 @@ import { plainValue } from './ink-spec.js';
 import { Sound } from '../src/audio.js';
 import { createBoxes } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
-import { setView } from '../src/motion-kit/view.js';
+import { setView, inView } from '../src/motion-kit/view.js';
 
 export { page };
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
@@ -388,7 +388,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const noShadow = new Set();
   for (const r of [...(level.noShadow ?? []), ...(player.gear?.noShadow ?? [])]) r?.traverse?.((o) => noShadow.add(o));
   const castsShadow = (o) => !noShadow.has(o) && !selfLitSkips(o);
-  const mirror = new SceneMirror(backend, { castsShadow, quietWalk: !!backend.quietWalk, listMatrices: !!backend.listMatrices });
+  const mirror = new SceneMirror(backend, { castsShadow, quietWalk: !!backend.quietWalk, listMatrices: !!backend.listMatrices, stillMatrices: !!backend.stillMatrices, skipHidden: !!backend.skipHidden });
   // a conversation's portrait (src/story/index.js portrait, main.js captureView with keep): the engine draws the kept
   // objects alone against the backdrop, from eye toward look; the panel shows it by the name returned
   let portraits = 0;
@@ -511,7 +511,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       sharedUniforms.uTime.value = simT;
       crowd?.update(dt, simT, player, camera);
       lap?.('crowd');
-      for (const n of npcs) n.update(dt, player, camera);
+      // (the backend's peopleLod, the Unity bridge's: a person past 30 m out of the last frame's view, with room round them
+      // for their shadow and the camera's turn, is moved a quarter of the frames as past 110 m, src/npc.js offView)
+      const lod = !!backend?.peopleLod;
+      for (const n of npcs) {
+        if (lod && !n.pooled) n.offView = !inView(n.pos, 3 * (n.object?.scale?.y ?? 1) + 6);
+        n.update(dt, player, camera);
+      }
       lap?.('people');
       // E goes to the nearest person or thing first (story/index.js, interact.js), as main.js does
       const ePressed = !!ctl.KeyE && !eWasDown && !pinned; eWasDown = !!ctl.KeyE;

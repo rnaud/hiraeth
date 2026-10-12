@@ -43,6 +43,7 @@
 import { inkSpec } from './ink-spec.js';
 import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
 import { updateSceneMatrices, sceneList } from './scene-matrices.js';
+import { WORLD_STAMP } from '../src/matrix-cache.js';
 
 
 /**
@@ -66,8 +67,11 @@ export class SceneMirror {
    * @param o.freeze  still subtrees taken whole, not walked (mirror-freeze.js; off: in Puerts its watches cost the game more than they saved)
    * @param o.quietWalk  drawables unchanged for QUIET_AFTER frames looked at in full every 4th frame only (the Unity backend's)
    * @param o.listMatrices  the scene's matrices from a flat list of it (engine/scene-matrices.js), not a walk down it
+   * @param o.stillMatrices  with listMatrices: a drawable's world matrix compared with the one last sent only when it may
+   *   have changed (the list made it anew, or a walk outside it did: src/matrix-cache.js WORLD_STAMP), and every 8th frame
+   * @param o.skipHidden  with listMatrices: hidden subtrees' matrices left until they are shown or read (scene-matrices.js)
    */
-  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false, quietWalk = false, listMatrices = false } = {}) {
+  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false, quietWalk = false, listMatrices = false, stillMatrices = false, skipHidden = false } = {}) {
     this.backend = backend;
     this.castsShadow = castsShadow;   // (o) → false: left out of the sun's shadow (the game's caster rules: shadows.js)
     this.forgetAfter = forgetAfter;
@@ -88,6 +92,9 @@ export class SceneMirror {
     this.profiling = false;
     this.freeze = freeze && !filter;
     this.listMatrices = listMatrices;
+    this.stillMatrices = stillMatrices && listMatrices;
+    this.skipHidden = skipHidden && listMatrices;
+    if (this.stillMatrices) WORLD_STAMP.on = true;
     this.quietWalk = quietWalk;   // (a filter may change its mind about what is inside: walked each frame)
     this._frozen = []; this._frozenDirty = false; this._checkAt = 0;
     this.time = 0;            // the game's clock (sharedUniforms.uTime), set before sync: handed to instances()   // (the bones' share timed apart: costs a clock read a skinned mesh)
@@ -191,7 +198,7 @@ export class SceneMirror {
     this.ids.set(o, id);
     const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh && isInstGeo(o.geometry) ? 'instgeo' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
     const mats = Array.isArray(o.material) ? o.material : [o.material];
-    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, instVersion: -1, kind, geo: null, gv: -1, changedAt: this.frameNo, frozen: null, owner: this, dead: false, hook: undefined, matMovedAt: -1e9 };
+    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, mw: -1, instVersion: -1, kind, geo: null, gv: -1, changedAt: this.frameNo, frozen: null, owner: this, dead: false, hook: undefined, matMovedAt: -1e9 };
     o.__mirror = node;   // (the walk finds it on the object: no map lookups a frame)
     this.nodes.set(id, node);
     this.stats.nodes++;
@@ -212,7 +219,9 @@ export class SceneMirror {
     const f = ++this.frameNo;
     const P = this.prof, now = () => performance.now();
     let t = now();
-    if (this.listMatrices) updateSceneMatrices(scene); else scene.updateMatrixWorld();
+    // (the stamp the walks outside the list put on what they change from now on: src/matrix-cache.js WORLD_STAMP)
+    const stamp = ++WORLD_STAMP.n;
+    const fromList = this.listMatrices ? updateSceneMatrices(scene, this.skipHidden) : (scene.updateMatrixWorld(), false);
     camera?.updateMatrixWorld();
     P.matrices += now() - t; t = now();
     let drawn = 0;
@@ -233,12 +242,16 @@ export class SceneMirror {
         }
       }
       const { objs, end, WE } = L, W = this._wlKind;
+      // (still: the list ran this frame, so its `changed` says which world matrices it changed; a drawable it did not
+      // change, that no walk outside it changed since the last frame (its node's stamp older than the last frame's) and
+      // whose matrix was sent or compared last frame has the matrix it had: no need to compare its 16 numbers again)
+      const ch = this.stillMatrices && fromList === true ? L.changed : null, old = stamp - 1;
       for (let i = 0, N = L.n; i < N; i++) {
         const o = objs[i];
         visited++;
         if (!o.visible) { i = end[i] - 1; continue; }
         const w = W[i];
-        if (w & 1) { drawn++; this._see(o, WE[i], f, B, perSkeleton, liveMats, scene, camera); }
+        if (w & 1) { drawn++; this._see(o, WE[i], f, B, perSkeleton, liveMats, scene, camera, ch !== null && ch[i] === 0 ? old : 0); }
         if (w & 2) i = end[i] - 1;
       }
     }
@@ -266,13 +279,14 @@ export class SceneMirror {
     P.walk += now() - t - tb; P.bones += tb; t = now();
     if (n) B.transforms?.(this._ids, this._mats, n);
     // what was not reached: hidden, and in time forgotten
-    for (const [id, node] of this.nodes) {
-      if (node.seen === f) continue;
+    // (forEach, not for-of: a destructured entry is an array a node, ~2 000 of them a frame)
+    this.nodes.forEach((node, id) => {
+      if (node.seen === f) return;
       const fz = node.frozen;
-      if (fz && fz.seen === f && !fz.dead) continue;   // (in a frozen subtree the walk took whole)
+      if (fz && fz.seen === f && !fz.dead) return;   // (in a frozen subtree the walk took whole)
       if (node.shown) { node.shown = false; B.visible?.(id, false); }
       if (f - node.seen > this.forgetAfter && !inScene(node.object, scene)) { B.remove?.(id); node.dead = true; this.nodes.delete(id); this.ids.delete(node.object); if (node.object.__mirror === node) node.object.__mirror = null; this.stats.nodes--; }
-    }
+    });
     if (this.freeze) this._still(scene, f);
     if (camera) {
       this._cam.set(camera.matrixWorld.elements);
@@ -289,10 +303,13 @@ export class SceneMirror {
    * One drawable reached by the walk this frame: made if new, shown, its geometry, hooks, materials' live values, shape
    * keys, world matrix (e: its elements), instances and bones told the backend as they change.
    */
-  _see(o, e, f, B, perSkeleton, liveMats, scene, camera) {
+  _see(o, e, f, B, perSkeleton, liveMats, scene, camera, still = 0) {
     let node = o.__mirror;
     if (!node || node.owner !== this || node.dead) node = this.nodes.get(this._create(o));
     const id = node.id;
+    // (its world matrix as last sent, without comparing: sent or compared last frame, unchanged by the list (still > 0),
+    // no walk's stamp since the last frame's began, its matrices its own; every 8th frame compared anyway)
+    const same = still > 0 && node.seen === f - 1 && node.mw < still && ((f + id) & 7) !== 0 && o.matrixAutoUpdate === true && o.matrixWorldAutoUpdate === true;
     node.seen = f;
     // a drawable that has not changed for half a second (no move, geometry, shape key or material value, no render
     // hook, not skinned or instanced): its geometry, materials and keys looked at every 4th frame (staggered by its
@@ -329,8 +346,8 @@ export class SceneMirror {
     }
     const m = node.matrix;
     // (compared as the floats they are sent as: a double that floats can't hold is no move)
-    let k = 0;
-    while (k < 16 && m[k] === Math.fround(e[k])) k++;
+    let k = 16;
+    if (!same) { k = 0; while (k < 16 && m[k] === Math.fround(e[k])) k++; }
     if (k < 16) {
       for (k = 0; k < 16; k++) m[k] = e[k];
       node.changedAt = f;

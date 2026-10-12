@@ -71,3 +71,43 @@ test('a frame after an edit runs the walk and lists the scene again', () => {
   assert.equal(updateSceneMatrices(scene), false);
   assert.equal(updateSceneMatrices(scene), true);
 });
+
+/** The matrices of what is shown (every ancestor visible), in the scene's order. */
+const shownMatrices = (scene) => {
+  const out = [];
+  const walk = (o) => { if (!o.visible) return; out.push(...o.matrixWorld.elements); for (const c of o.children) walk(c); };
+  walk(scene);
+  return out;
+};
+
+test('skipHidden: what is shown has the walk\'s matrices, a hidden thing read through three gets the walk\'s, and its own walks still run', () => {
+  const A = world(11), B = world(11);
+  // (hidden subtrees with depth, one holding an own updateMatrixWorld, shown and hidden again as the frames go)
+  const hide = [1, 4, 7, 10, 25];
+  let stale = 0;
+  for (let f = 1; f <= 48; f++) {
+    step(A, f); step(B, f);
+    for (const w of [A, B]) {
+      for (let k = 0; k < hide.length; k++) w.all[hide[k]].visible = ((f >> 2) + k) % 3 !== 0;
+      if (f % 5 === 0) w.all[0].position.z += 0.5;   // (a parent moving while what is under it is hidden)
+    }
+    updateSceneMatrices(A.scene, true);
+    B.scene.updateMatrixWorld();
+    assert.deepEqual(shownMatrices(A.scene), shownMatrices(B.scene), `frame ${f}`);
+    assert.equal(A.hooked.ticks, B.hooked.ticks, `frame ${f}: an own updateMatrixWorld called as often`);
+    // a hidden one's place, read as the game reads it
+    for (const k of hide) {
+      const a = A.all[k].children[0] ?? A.all[k], b = B.all[k].children[0] ?? B.all[k];
+      if (a.parent?.visible === false || !A.all[k].visible) {
+        if (a.matrixWorld.elements.some((x, i) => x !== b.matrixWorld.elements[i])) stale++;   // (left as it was: skipped)
+        const pa = a.getWorldPosition(new THREE.Vector3()), pb = b.getWorldPosition(new THREE.Vector3());
+        assert.deepEqual(pa.toArray(), pb.toArray(), `frame ${f}: hidden ${k} read`);
+      }
+    }
+  }
+  assert.ok(stale > 5, `hidden subtrees stepped over (${stale} reads found a matrix left as it was)`);
+  // (and once all is shown again, every matrix is the walk's)
+  for (const w of [A, B]) for (const k of hide) w.all[k].visible = true;
+  updateSceneMatrices(A.scene, true); B.scene.updateMatrixWorld();
+  assert.deepEqual(matrices(A.scene), matrices(B.scene), 'all shown');
+});

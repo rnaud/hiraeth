@@ -35,6 +35,13 @@ export function updateMatrixCached() {
   }
 }
 
+/**
+ * For the Unity bridge's mirror (engine/mirror.js stillMatrices; off on the web, where nothing reads it): each world
+ * matrix the walks here change outside the mirror's own pass is stamped on its drawable's mirror node (`__mirror.mw`,
+ * the stamp's `n` then), so the mirror knows which of the still ones it need not compare again.
+ */
+export const WORLD_STAMP = { on: false, n: 0 };
+
 // how deep in a walk: 0 is a walk's entry, which is forced below the root
 let walking = 0;
 // inside a walk asked to be forced (updateMatrixWorld(true), or entered below the root): every object whose own
@@ -75,6 +82,7 @@ export function updateMatrixWorldCached(force) {
         if (this.parent === null) this.matrixWorld.copy(this.matrix);
         else this.matrixWorld.multiplyMatrices(this.parent.matrixWorld, this.matrix);
         if (!changed) for (let i = 0; i < 16; i++) if (_old[i] !== w[i]) { changed = true; break; }
+        if (changed && WORLD_STAMP.on) { const nd = this.__mirror; if (nd) nd.mw = WORLD_STAMP.n; }
       } else changed = true;   // (its owner keeps its world matrix: the children are judged against whatever it is now)
       this.matrixWorldNeedsUpdate = false;
     }
@@ -124,6 +132,7 @@ function chainStep(o, first) {
     if (o.parent === null) o.matrixWorld.copy(o.matrix);
     else o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
     if (!changed) for (let i = 0; i < 16; i++) if (_was[i] !== w[i]) { changed = true; break; }
+    if (changed && WORLD_STAMP.on) { const nd = o.__mirror; if (nd) nd.mw = WORLD_STAMP.n; }
   } else changed = true;
   o.matrixWorldNeedsUpdate = false;
   if (changed) { const c = o.children; for (let i = 0, l = c.length; i < l; i++) c[i].matrixWorldNeedsUpdate = true; }

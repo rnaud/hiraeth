@@ -114,7 +114,10 @@ namespace Hiraeth.Bridge
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);
-            if (Flag("-tour")) args["tour"] = true;            return JsonText(args);
+            if (Flag("-tour")) args["tour"] = true;
+            // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)
+            if (Arg("-js-off") != null) args["off"] = Arg("-js-off");
+            return JsonText(args);
         }
 
         /// <summary>A little JSON writer (numbers, strings, lists, dictionaries).</summary>

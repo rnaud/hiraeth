@@ -136,14 +136,22 @@ export function puffInstances(mats, count, attrs, out = new Float32Array(count *
  * frame and the yaw (−the heading: the mirror), anim, react, look0, look1, dress, body from crowd.js's
  * per-instance attributes, scale (x) from the matrix.
  */
+const CROWD_ATTRS = ['aAnim', 'aReact', 'aLook0', 'aLook1', 'aDress', 'aBody'];
+const BODY_REST = [0, 1, 1, 0];   // (aBody when the geometry has none)
+const _crowdA = new Array(CROWD_ATTRS.length);
 export function crowdInstances(mats, count, attrs, out = new Float32Array(count * 32)) {
-  const K = ['aAnim', 'aReact', 'aLook0', 'aLook1', 'aDress', 'aBody'];
+  // (the attributes looked up once, not a closure and a literal a person: ~35 kB of garbage a frame in the City-Shaft)
+  for (let j = 0; j < CROWD_ATTRS.length; j++) _crowdA[j] = attrs?.[CROWD_ATTRS[j]] ?? null;
   for (let i = 0; i < count; i++) {
     const e = i * 16, o = i * 32;
     const s = Math.hypot(mats[e + 4], mats[e + 5], mats[e + 6]) || 1;
     const heading = Math.atan2(mats[e + 8], mats[e + 10]);
     out[o] = -mats[e + 12]; out[o + 1] = mats[e + 13]; out[o + 2] = mats[e + 14]; out[o + 3] = -heading;
-    K.forEach((k, j) => { const a = attrs?.[k]; for (let c = 0; c < 4; c++) out[o + 4 + j * 4 + c] = a ? a.array[i * a.itemSize + c] : (k === 'aBody' ? [0, 1, 1, 0][c] : 0); });
+    for (let j = 0; j < CROWD_ATTRS.length; j++) {
+      const a = _crowdA[j], at = o + 4 + j * 4;
+      if (a) { const A = a.array, b = i * a.itemSize; for (let c = 0; c < 4; c++) out[at + c] = A[b + c]; }
+      else for (let c = 0; c < 4; c++) out[at + c] = j === 5 ? BODY_REST[c] : 0;
+    }
     out[o + 28] = s; out[o + 29] = 0; out[o + 30] = 0; out[o + 31] = 0;
   }
   return out;
