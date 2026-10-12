@@ -15,7 +15,7 @@ namespace Hiraeth.Bridge
     /// </summary>
     public class BridgeRenderer : MonoBehaviour
     {
-        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; }
+        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; public bool unchunked; }
         class Node
         {
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
@@ -24,6 +24,7 @@ namespace Hiraeth.Bridge
             public MeshData src; public float moteSize; public Vector3[] qv;   // (points: camera-facing quads from src's points, each frame)
             public Puffs puffs;                                                 // (the footprints: the port's Print decal, instanced)
             public InstMats im; public Matrix4x4[] raw = new Matrix4x4[0]; public Color[] rawCol = new Color[0]; public int rawN; public bool imDirty;   // (instanced: on the GPU, the port's HIRAETH_INSTMAT)
+            public List<GameObject> chunks; public MeshData chunkSrc;   // (a big still mesh's pieces for the shadow maps: BridgeShadowChunks)
         }
 
         public Camera cam;
@@ -546,9 +547,31 @@ namespace Hiraeth.Bridge
                 // (and in the rendering layer the shadow maps' renderer lists draw: HiraethShadows.UseRendererLists)
                 n.r.renderingLayerMask = n.shadow ? n.r.renderingLayerMask | HiraethShadows.CasterLayer : n.r.renderingLayerMask & ~HiraethShadows.CasterLayer;
                 Occluder(n, md);
+                Chunk(n, md);
                 if (n.r is MeshRenderer && n.mf && n.mf.sharedMesh) BridgePrewarm.Note(n.mf.sharedMesh, mats, mt => specs.TryGetValue(mt, out var j) ? j : null);
             }
             nodes[id] = n;
+        }
+
+        readonly List<Node> chunked = new();
+        /// <summary>A big still mesh cast into the shadow maps by its pieces (BridgeShadowChunks), when it is one.</summary>
+        void Chunk(Node n, MeshData md)
+        {
+            if (n.chunks != null) { BridgeShadowChunks.Detach(n.chunks, n.r); n.chunks = null; n.chunkSrc = null; chunked.Remove(n); }
+            if (!BridgeShadowChunks.On || n.kind != "mesh" || !n.shadow || !(n.r is MeshRenderer) || md == null || md.bones >= 0 || md.keys > 0 || md.unchunked || !BridgeShadowChunks.Wants(md.mesh)) return;
+            n.chunks = BridgeShadowChunks.Attach(n.go, n.r, md.mesh); n.chunkSrc = md; chunked.Add(n);
+        }
+        /// <summary>A mesh's points moved in place: its pieces would be stale, so every node drawing it casts it whole again.</summary>
+        void Unchunk(MeshData md)
+        {
+            if (md.unchunked) return;
+            md.unchunked = true;
+            for (int i = chunked.Count - 1; i >= 0; i--)
+            {
+                var n = chunked[i];
+                if (n.chunkSrc != md) continue;
+                BridgeShadowChunks.Detach(n.chunks, n.r); n.chunks = null; n.chunkSrc = null; chunked.RemoveAt(i);
+            }
         }
 
         /// <summary>A plain mesh big enough to hide much (its bounds' radius, HiraethFeature.Settings.prepassMinRadius) is in
@@ -582,6 +605,7 @@ namespace Hiraeth.Bridge
             if (n.smr) { if (md.bones != n.bones.Length) { var bp = new Matrix4x4[n.bones.Length]; for (int i = 0; i < bp.Length; i++) bp[i] = Matrix4x4.identity; md.mesh.bindposes = bp; md.bones = bp.Length; } n.smr.sharedMesh = md.mesh; }
             else if (n.mf && n.kind != "instanced") n.mf.sharedMesh = md.mesh;
             Occluder(n, md);
+            Chunk(n, md);
         }
 
         // ------------------------------------------------------------------ the frame
@@ -678,6 +702,8 @@ namespace Hiraeth.Bridge
                             foreach (var md in list)
                             {
                                 if (!md.mesh || md.pos.Length != n) continue;
+                                if (chunked.Count > 0) Unchunk(md);
+                                else md.unchunked = true;
                                 for (int i = 0; i < n; i++) md.pos[i] = new Vector3(ff[po + i * 3], ff[po + i * 3 + 1], ff[po + i * 3 + 2]);
                                 md.mesh.SetVertices(md.pos);
                                 if (hasN && md.nrm != null) { for (int i = 0; i < n; i++) md.nrm[i] = new Vector3(ff[no + i * 3], ff[no + i * 3 + 1], ff[no + i * 3 + 2]); md.mesh.SetNormals(md.nrm); }
@@ -812,7 +838,7 @@ namespace Hiraeth.Bridge
                     {
                         int id = (int)fu[o++];
                         if (grass.Remove(id, out var gl)) { gl.buf?.Release(); if (gl.mat) Destroy(gl.mat); }
-                        if (nodes.TryGetValue(id, out var nd)) { if (nd.inst) Destroy(nd.inst); nd.puffs?.Release(); nd.im?.Release(); if (instMaterials.Remove(id, out var im0) && im0) Destroy(im0); Destroy(nd.go); nodes.Remove(id); }
+                        if (nodes.TryGetValue(id, out var nd)) { if (nd.chunks != null) chunked.Remove(nd); if (nd.inst) Destroy(nd.inst); nd.puffs?.Release(); nd.im?.Release(); if (instMaterials.Remove(id, out var im0) && im0) Destroy(im0); Destroy(nd.go); nodes.Remove(id); }
                         break;
                     }
                     case 11:   // the local lights: x, y, z, reach (Unity's space)

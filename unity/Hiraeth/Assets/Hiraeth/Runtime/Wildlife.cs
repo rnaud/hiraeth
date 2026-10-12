@@ -19,13 +19,73 @@ namespace Hiraeth
             {
                 if (!casts || drawnAt != Time.frameCount || count <= 0 || shadowPass < 0 || buf == null) return;
                 // (the cascade's planes where its casters were culled by them (renderer lists): the whole set left out when
-                // its bounds miss them, as the web's shadow pass culls an InstancedMesh by its bounds)
-                if (c.cullN > 0 && boundsOk && !Inside(c, bounds)) { said++; return; }
+                // its bounds miss them, as the web's shadow pass culls an InstancedMesh by its bounds; or only the instances
+                // inside them, CullFor's)
+                int ci = HiraethShadows.IndexOf(c);
+                if (c.cullN > 0 && ci >= 0 && culledAt[ci] == Time.frameCount)
+                {
+                    int k = subN[ci];
+                    if (k == 0) { said++; return; }
+                    if (k > 0) { drew++; cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, k, subMpb[ci]); return; }
+                }
+                else if (c.cullN > 0 && boundsOk && !Inside(c, bounds)) { said++; return; }
                 drew++;
                 cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, count, null);
             };
             HiraethShadows.Instanced.Add(caster);
             all.Add(this);
+        }
+        // each cascade's instances inside its planes this frame (CullFor): -1 every one, 0 none, k the first k of sub[ci]
+        readonly int[] subN = new int[3], culledAt = { -1, -1, -1 };
+        readonly Inst[][] sub = new Inst[3][];
+        readonly GraphicsBuffer[] subBuf = new GraphicsBuffer[3];
+        readonly MaterialPropertyBlock[] subMpb = new MaterialPropertyBlock[3];
+        float[] rad = new float[0];
+        static readonly int IdMats = Shader.PropertyToID("_Mats");
+        /// <summary>With renderer lists, each instanced caster's instances that a cascade's planes hold, gathered for it
+        /// (HiraethShadows.CullFor, once its planes are set): what lies outside casts nothing the view shows, as for the
+        /// renderers the engine culls. -no-shadow-instances: the whole set, or none, by its bounds.</summary>
+        public static bool CullInstances = true;
+        public static void CullAll(HiraethShadows.Cascade c, int ci)
+        {
+            if (!CullInstances || c.cullN == 0 || ci < 0) return;
+            foreach (var x in all) x.Cull(c, ci);
+        }
+        void Cull(HiraethShadows.Cascade c, int ci)
+        {
+            culledAt[ci] = Time.frameCount;
+            subN[ci] = -1;
+            if (!casts || drawnAt != Time.frameCount || count <= 0 || !boundsOk) return;   // (unknown bounds: every one)
+            if (!Inside(c, bounds)) { subN[ci] = 0; return; }
+            if (count < 16 || rad.Length < count || Holds(c, bounds)) return;
+            var s = sub[ci];
+            if (s == null || s.Length < count) s = sub[ci] = new Inst[data.Length];
+            int k = 0;
+            var P = c.cullPlanes; int np = c.cullN;
+            for (int i = 0; i < count; i++)
+            {
+                ref var d = ref data[i];
+                float x = d.r0.w, y = d.r1.w, z = d.r2.w, r = -rad[i];
+                bool keep = true;
+                for (int j = 0; j < np; j++) { var n = P[j].normal; if (n.x * x + n.y * y + n.z * z + P[j].distance < r) { keep = false; break; } }
+                if (keep) s[k++] = d;
+            }
+            subN[ci] = k;
+            if (k == 0 || k == count) { subN[ci] = k == 0 ? 0 : -1; return; }
+            var b = subBuf[ci];
+            if (b == null || b.count < s.Length) { b?.Release(); b = subBuf[ci] = new GraphicsBuffer(GraphicsBuffer.Target.Structured, s.Length, Marshal.SizeOf<Inst>()); (subMpb[ci] ??= new MaterialPropertyBlock()).SetBuffer(IdMats, b); }
+            b.SetData(s, 0, 0, k);
+        }
+        /// <summary>The whole box inside every plane (nothing to cull one by one).</summary>
+        static bool Holds(HiraethShadows.Cascade c, Bounds b)
+        {
+            for (int k = 0; k < c.cullN; k++)
+            {
+                var p = c.cullPlanes[k]; var n = p.normal;
+                var near = new Vector3(n.x >= 0 ? b.min.x : b.max.x, n.y >= 0 ? b.min.y : b.max.y, n.z >= 0 ? b.min.z : b.max.z);
+                if (Vector3.Dot(n, near) + p.distance < 0) return false;
+            }
+            return true;
         }
         readonly int shadowPass; readonly System.Action<RasterCommandBuffer, HiraethShadows.Cascade> caster; int drawnAt = -1; bool casts;
         // the instances' bounds (their places, padded by the mesh's reach times their largest scale), made again on each Set from 0
@@ -49,7 +109,16 @@ namespace Hiraeth
         public static string CensusLine(HiraethShadows.Cascade c)
         {
             int sets = 0, drawn = 0, left = 0; long v = 0;
-            foreach (var x in all) { if (x.count <= 0) continue; sets++; drawn += x.drew; left += x.said; if (x.boundsOk && (c.cullN == 0 || Inside(c, x.bounds))) v += (long)x.count * (x.mesh ? x.mesh.vertexCount : 0); x.drew = x.said = 0; }
+            int ci = HiraethShadows.IndexOf(c);
+            foreach (var x in all)
+            {
+                if (x.count <= 0) continue;
+                sets++; drawn += x.drew; left += x.said; x.drew = x.said = 0;
+                int k;
+                if (ci >= 0 && x.culledAt[ci] == Time.frameCount) k = x.subN[ci];
+                else k = !x.boundsOk || c.cullN == 0 || Inside(c, x.bounds) ? -1 : 0;
+                v += (long)(k < 0 ? x.count : k) * (x.mesh ? x.mesh.vertexCount : 0);
+            }
             return $"{sets} sets ({drawn} draws, {left} left out since the last), {v / 1000}k vertices in {c.name}";
         }
         public void Set(int i, Matrix4x4 M, Color c)
@@ -57,6 +126,8 @@ namespace Hiraeth
             data[i] = new Inst { r0 = M.GetRow(0), r1 = M.GetRow(1), r2 = M.GetRow(2), col = c }; if (i >= count) count = i + 1;
             var p = new Vector3(M.m03, M.m13, M.m23);
             float s = Mathf.Max(new Vector3(M.m00, M.m10, M.m20).magnitude, Mathf.Max(new Vector3(M.m01, M.m11, M.m21).magnitude, new Vector3(M.m02, M.m12, M.m22).magnitude));
+            if (rad.Length < data.Length) System.Array.Resize(ref rad, data.Length);
+            rad[i] = meshR * s + 0.01f;   // (the instance's reach round its place: the mesh's, at its largest scale)
             if (i == 0) { lo = hi = p; maxScale = s; growing = true; partial = false; }
             else if (growing) { lo = Vector3.Min(lo, p); hi = Vector3.Max(hi, p); maxScale = Mathf.Max(maxScale, s); }
             else partial = true;   // (some instances set again, not from the first: the bounds unknown till the next whole set)
@@ -83,7 +154,7 @@ namespace Hiraeth
             // (its shadow: drawn in the sun's cascades this frame, HiraethShadows)
             drawnAt = Time.frameCount; casts = shadows != ShadowCastingMode.Off;
         }
-        public void Release() { buf?.Release(); buf = null; HiraethShadows.Instanced.Remove(caster); all.Remove(this); }
+        public void Release() { buf?.Release(); buf = null; for (int i = 0; i < 3; i++) { subBuf[i]?.Release(); subBuf[i] = null; } HiraethShadows.Instanced.Remove(caster); all.Remove(this); }
     }
 
     /// <summary>

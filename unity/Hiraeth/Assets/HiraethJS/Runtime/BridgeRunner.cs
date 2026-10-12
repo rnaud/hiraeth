@@ -77,6 +77,7 @@ namespace Hiraeth.Bridge
             cam.tag = "MainCamera";
             cam.gameObject.AddComponent<AudioListener>();   // (where the sound is heard: BridgeAudio, muted in batch runs)
             cam.nearClipPlane = 0.1f; cam.farClipPlane = 6000f; cam.fieldOfView = 55;
+            if (BridgeShadowChunks.On) cam.cullingMask &= ~(1 << BridgeShadowChunks.Layer);   // (the shadow maps' pieces of big meshes: theirs alone)
             HiraethShadows.MainCamera = cam;   // (its shadow maps on their schedule: near every Quality.nearEvery frames, far every farEvery)
             RenderPipelineManager.beginCameraRendering += CullShadows;
             // (-no-srp-batcher: the SRP Batcher off, an A/B for the Surface shader's material buffer)
@@ -325,6 +326,13 @@ namespace Hiraeth.Bridge
             // the renderer lists' casters culled by the camera's view swept away from the sun too (HiraethShadows.SweepCull: what
             // the draws' path and the web's shadow culler leave out); -no-shadow-sweep off
             HiraethShadows.SweepCull = !BridgeArgs.Flag("-no-shadow-sweep");
+            // with renderer lists, the instanced casters culled instance by instance (InstMats.CullInstances) and the big still
+            // meshes cast by pieces (BridgeShadowChunks, on a layer of their own the camera leaves out); -no-shadow-instances,
+            // -no-shadow-chunks off
+            InstMats.CullInstances = !BridgeArgs.Flag("-no-shadow-instances");
+            BridgeShadowChunks.On = HiraethShadows.UseRendererLists && !BridgeArgs.Flag("-no-shadow-chunks");
+            if (BridgeArgs.Arg("-shadow-chunk-cell") is string cc && float.TryParse(cc, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ccv)) BridgeShadowChunks.Cell = Mathf.Max(4, ccv);
+            if (BridgeShadowChunks.On) HiraethShadows.PieceLayer = BridgeShadowChunks.Layer;   // (the camera leaves them out: Start)
             HiraethShadows.Census = BridgeArgs.Flag("-shadow-census");
             // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
             // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before

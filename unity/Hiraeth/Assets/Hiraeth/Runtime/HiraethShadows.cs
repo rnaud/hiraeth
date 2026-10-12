@@ -113,12 +113,17 @@ namespace Hiraeth
         public static System.Func<Vector3?> Traveller;
         /// <summary>-shadow-census: each cascade's casters (how many, their vertices, the largest) logged every 5 s.</summary>
         public static bool Census;
+        /// <summary>The GameObject layer of the shadow maps' pieces of big meshes (the bridge's BridgeShadowChunks; -1 none): off
+        /// the camera's culling mask, in every cascade's culling.</summary>
+        public static int PieceLayer = -1;
         float censusAt;
         float casterTop = float.NegativeInfinity;
         public const uint CasterLayer = 1u << 24;
         /// <summary>The casters big enough for each cascade (fine, near, far: two texels of it and up, as the draws' path had
         /// it per caster), set at the movers' scan; each cascade's list draws its own.</summary>
         public static readonly uint[] CascadeLayer = { 1u << 25, 1u << 26, 1u << 27 };
+        /// <summary>The cascade's index: 0 fine, 1 near, 2 far (-1 none of these).</summary>
+        public static int IndexOf(Cascade c) => c == Instance.fine ? 0 : c == Instance.near ? 1 : c == Instance.far ? 2 : -1;
         public static uint LayerOf(Cascade c) => c == Instance.fine ? CascadeLayer[0] : c == Instance.near ? CascadeLayer[1] : CascadeLayer[2];
         int preparedFrame = -1; Camera preparedFor;
         /// <summary>A main camera that is not the port's Game's (the Unity bridge's): it keeps the cascades' schedule.</summary>
@@ -245,6 +250,8 @@ namespace Hiraeth
                             bool sk = r is SkinnedMeshRenderer;
                             float rad = r.bounds.extents.magnitude * (sk ? 1.4f : 1) + (sk ? 0.3f : 0);
                             uint m = r.renderingLayerMask & ~(CascadeLayer[0] | CascadeLayer[1] | CascadeLayer[2]);
+                            // (a piece of a big mesh, BridgeShadowChunks: in every cascade, as the whole mesh it was cut from)
+                            if (r.gameObject.layer == PieceLayer) rad = float.PositiveInfinity;
                             if (rad >= Mathf.Max(fine.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[0];
                             if (rad >= Mathf.Max(near.Texel * minCasterTexels, 0.07f)) m |= CascadeLayer[1];
                             if (rad >= Mathf.Max(far.Texel * Mathf.Max(minCasterTexels, minFarCasterTexels), 0.07f)) m |= CascadeLayer[2];
@@ -375,12 +382,14 @@ namespace Hiraeth
                 p.cullingPlaneCount = n;
                 for (int k = 0; k < n; k++) p.SetCullingPlane(k, c.cullPlanes[k]);
                 p.cullingMatrix = vp;
+                p.cullingMask = ~0u;   // (every layer: the shadow maps' pieces too, which the camera's mask leaves out)
                 p.isOrthographic = true;
                 p.cullingOptions = CullingOptions.None;
                 p.shadowDistance = 0;
                 p.maximumVisibleLights = 0;
                 plan.culled = ctx.Cull(ref p);
                 plan.hasCull = true;
+                InstMats.CullAll(c, IndexOf(c));   // (the instanced casters, instance by instance, by the same planes)
                 if (census) LogCensus(plan, planes);
             }
         }
