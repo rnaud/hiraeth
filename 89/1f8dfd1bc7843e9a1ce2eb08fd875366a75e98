@@ -1,0 +1,21 @@
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_5f62b79a86a937 49
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_e9d21927b29947 100,102,104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "891f8dfd1bc7843e9a1ce2eb08fd875366a75e98",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
