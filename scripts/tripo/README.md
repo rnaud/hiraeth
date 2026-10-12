@@ -4,7 +4,55 @@ The accepted no-backpack v1 is now the default playable traveller. This director
 keeps the reproducible generation and review workflow for further iteration.
 Source Tripo model: https://studio.tripo3d.ai/workspace/generate/734ea223-13c2-4406-a081-ef34a5612b5d
 
-## Accepted Tripo head replacement (8 October 2026)
+## Accepted portrait head-v3 (12 October 2026; integrated)
+
+The user selected Midjourney turnaround option 3 from job
+`45195791-bc77-4833-8cb3-ee565eb6da5e`. Its profiles/back and the original hearted
+portrait (`0e2c1f43-d155-46f9-99c7-9b17585bd585`, index 0) were cropped into four
+aligned 1024² images. The exact inputs and mechanical crop recipe are in
+`data/characters/traveller-v1/head-v3/reference/`; no face pixels were redrawn.
+
+Tripo job `3bdf5bce-cf91-4737-9dc9-be8b06c813c0` used the fixed four-view UI,
+H3.1, Ultra Mesh, 50k triangle target, 4K texture, Remove Lighting on, PBR and
+Generate in Parts off. It used 50 credits (2,825 → 2,775). `head-v3/model.glb`
+is the untouched 3.62 MB export: 49,583 triangles, 32,852 vertices, one material,
+one 4K JPEG, no skeleton or morphs. `inventory.json` records the source budget
+and hash; do not ship this full-resolution source by default.
+
+Open `/tools/tripo-head-v3-review.html` on the task's local Vite server (5198).
+Compare unlit, clay, opposing neutral lights and game ink with the original
+portrait and selected profiles. This page creates no audio. The old procedural
+face overlay is absent. Eyes/brows/fringe are closer, but hair ink was mostly
+lost, nose/mouth ink weakened, jaw/profile still differ, and game compositing
+overdraws the remaining painted contours. The fixed chin ink patch also needs
+review before texture acceptance. See `docs/systems/characters.md` for findings.
+That page preserves the untouched source for comparison. The user accepted the
+mesh and requested cleanup, integration and the reference's hair highlights.
+
+Run `node scripts/tripo/prepare-portrait-head.mjs` to rebuild the shipped GLB,
+sampled colours and R8 hair mask in `public/characters/traveller-v1/head-v3/`.
+Positions, triangles and UVs are unchanged; skin normals are smoothed and the
+base colour atlas is 2048². The 1024² grey-stroke mask is projected from the four
+approved reference crops. GLB: 2,325,756 bytes; colour plus hair mask: 22.67 MiB
+decoded including mipmaps (source colour alone: 85.33 MiB). No extra draw call.
+
+`src/characters/portrait-head.js` fits the accepted skull uniformly, extends the
+neck under the scarf, binds to Head/neck_01 and adds six measured runtime face
+morphs. It retains the painted eyes/brows, suppresses fixed chin hatching and
+routes nose/lip strokes through the real ink channel. The old procedural face
+overlay is not applied. Humanoid/TalkFace drive expressions; the mouth is a drawn
+opening rather than a cavity. These runtime operations are not baked into the GLB.
+
+The shared traveller loader serves game, studio and motion review. Open
+`studio.html?view=bust&blink=false&gaze=fixed&yaw=0&bg=flat&paused=true&wind=0`.
+Face view provides close inspection; turn through both profiles and the back.
+Run `node --test tests/portrait-head.test.js tests/traveller-v1.test.js tests/traveller-lod.test.js`
+and `npx vite build --configLoader runner`. The changelog contains bust, Lula and
+hair-mask before/after views. Native VMs skip browser-decoded masks and use sampled
+vertex colours; matching their separate shaders remains future work. Device GPU
+timings are unverified. The accepted shape is closer, not a pixel-exact match.
+
+## Previous Tripo head-v2 replacement (8 October 2026)
 
 The user rejected the code-sculpted eye shape as still too slanted and requested
 Tripo image-to-3D again. The new, separate head is Tripo H3.1 job
@@ -285,3 +333,11 @@ articulated leg folding with takeoff/landing contact transitions. Further full-c
 motion and deformation work is required. Existing numerical tests establish
 limited invariants, not natural motion or visual readiness. Track repairs and
 full temple acceptance in [GitHub issue #237](https://github.com/rnaud/hiraeth/issues/237).
+
+## Traveller ink study (#198)
+
+Rebuild the authored shirt/scarf mask with `node scripts/tripo/bake-cloth-ink.mjs`.
+Its measured surface paths are in `data/characters/traveller-v1/ink/cloth-strokes.json`;
+the original model/colour texture are unchanged. Runtime loads one shared R8 mask
+for the body and GPU overshirt. See `docs/systems/characters.md`, “Traveller face and
+cloth ink study”, for the approved references, budget, captures and remaining limits.

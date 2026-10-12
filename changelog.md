@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.62 — 2026-10-12
 
+- The traveller has a new face and tousled hair that follow his portrait more closely, with continuous brows and grey strokes through the dark locks. Fine ink describes his shirt collar, cuffs and folds and the layers of his scarf, following the fabric as he moves.
 - The Sketchbook page is gone from the game menu, which is Quests, Map, Items, Worlds and People now. Each world’s relics are still listed on the Worlds page, and delivered errands under People.
 - The Worlds page can take you back: open a world you have been to and press A / × on Travel here, and your ship flies you to its landing. If the ship won’t leave yet (the Desert without the blade and guard, Vael without the wings), it says why there.
 - Once you have met Anselm he is in your ship’s hold in every world, even if you walked off before his last words. While the ship flies in or takes off he stays out of sight inside it, instead of standing in the air where the hold had been.

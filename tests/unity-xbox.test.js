@@ -259,9 +259,9 @@ test('the shadow maps\' movers culled per cascade by the engine and drawn as ren
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /HiraethShadows\.CasterLayer/);
 });
 
-test('the Unity players carry every character file the bundle reads (the traveller\'s head-v2 too), and the shadow lists keep each cascade\'s smallest caster', () => {
+test('the Unity players carry every character file the bundle reads (the traveller\'s head-v3 too), and the shadow lists keep each cascade\'s smallest caster', () => {
   const build = read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs');
-  assert.match(build, /"characters\/traveller-v1\/head-v2", new\[\] \{ "model\.glb", "colors\.json" \}/);
+  assert.match(build, /"characters\/traveller-v1\/head-v3", new\[\] \{ "model\.glb", "colors\.json", "hair-ink\.png" \}/);
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs'), /renderingLayerMask = HiraethShadows\.LayerOf\(plan\.cascade\)/);
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethShadows.cs'), /CascadeLayer\[2\]/);
 });

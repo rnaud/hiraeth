@@ -1,0 +1,32 @@
+{
+  "bytes": 3617184,
+  "sha256": "95be78e8d4afe631935397cd9d8a59b5e688f1f57fb7ce1aea56a8b78f7e16f3",
+  "triangles": 49583,
+  "vertices": 32852,
+  "drawCalls": 1,
+  "materials": [
+    {
+      "name": "tripo_material_d28e51d1-9b64-4506-8f0b-bc0f5cf4100e",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0.5
+      }
+    }
+  ],
+  "images": [
+    {
+      "index": 0,
+      "mimeType": "image/jpeg",
+      "width": 4096,
+      "height": 4096,
+      "bytes": 1969198
+    }
+  ],
+  "skins": 0,
+  "animations": 0,
+  "morphTargets": 0,
+  "decodedTextureMiB": 85.33333333333333
+}

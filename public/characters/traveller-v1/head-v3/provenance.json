@@ -1,0 +1,22 @@
+{
+  "source": "data/characters/traveller-v1/head-v3/model.glb",
+  "sourceBytes": 3617184,
+  "shippedBytes": 2325756,
+  "triangles": 49583,
+  "vertices": 32852,
+  "drawCalls": 1,
+  "textureSize": 2048,
+  "baseColorMiB": 21.333333333333332,
+  "hairMaskSize": 1024,
+  "hairMaskMiB": 1.3333333333333333,
+  "hairVertices": 22874,
+  "positionsUnchanged": true,
+  "uvsUnchanged": true,
+  "normalSmoothingPasses": 3,
+  "referenceProjection": {
+    "scale": 833,
+    "centreX": 512,
+    "crownY": 80,
+    "sourceCrown": 0.979
+  }
+}

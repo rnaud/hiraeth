@@ -2,6 +2,38 @@
 
 How faces are drawn, how they talk and emote, eyes, hairstyles.
 
+## Current traveller: portrait head and hair ink (v1.62, issue #198)
+
+`portrait-head.js` fits the accepted head-v3 to the existing Head/neck_01 skeleton.
+It preserves its native painted eyes and continuous eyebrows. The older
+`head-ink.js` eye/brow overlay below applies only to head-v2; head-v3 reuses its
+expression state helper, not its drawing. Its own measured eyelid, mouth and chin
+landmarks define six runtime morphs and their normal deltas. A full blink closes
+the original eye surface and draws a closed lid; gaze shifts the painted iris
+inside the eye without moving skin. Speech deforms only the lower face and draws
+a small dark opening. There is no anatomical mouth interior.
+
+`scripts/tripo/prepare-portrait-head.mjs` preserves source geometry and UVs,
+smooths skin normals, downsamples the colour atlas to 2048² and projects grey
+hair strokes from the four approved reference crops into `head-v3/hair-ink.png`.
+A connected hair attribute keeps those strokes off brows, skin and clothing.
+The 1024² R8 mask adds one texture sample and 1.33 MiB including mipmaps, without
+another draw. In the face shader the mask blends near-black hair into muted grey
+lock accents; it is attached drawing, not a specular light. `uPortraitHairAmount`
+can switch it off for a matched comparison. The existing world light still shades
+the geometry, and mipmaps filter fine strokes at dialogue and gameplay distance.
+
+Nose/lip marks feed the shared ink detail channel once; generic head hatching and
+the fixed under-chin patch are suppressed. The runtime fit extends only the neck
+under the scarf and leaves the visible jaw on the skull side of the weight blend.
+The source GLB stays untouched; fitting, weights, expressions and shader changes
+are runtime operations, not an exported rig. See the character-system notes for
+asset budgets, reference provenance and remaining likeness/device limitations.
+Native engine VMs skip the browser-decoded masks and retain their sampled-colour
+fallback; their separate shaders do not yet reproduce these new ink treatments.
+`tests/portrait-head.test.js` checks source preservation, neutral binding, jaw
+rigidity, blink closure, unaffected speech regions and idle/talk/idle recovery.
+
 ## Shader face (v0.28)
 `src/face.js` draws sparse eyes, brows, nostril marks and a mouth in the head's
 rest coordinates. The sculpted head supplies the silhouette; old fixed ink meshes
@@ -303,7 +335,7 @@ alike.
   seated; Ferro), at 1280×720 and at 1920×1080 with the Handheld preset: happy, sad, angry, scared,
   surprised, solemn and the smirk each read at the close shot's size.
 
-## His face redrawn the Moebius way (v1.25)
+## Previous head-v2: his face redrawn the Moebius way (v1.25)
 
 The playable traveller wears the generated Tripo head (docs/systems/characters.md, "Tripo head
 replacement"), whose face came painted the way a 3D render paints one. Beside the sheets

@@ -1,0 +1,66 @@
+{
+  "notes": "Mechanical crops and uniform scaling only. Original portrait supplies front; approved option 3 supplies other angles. UI left means nose points left in image; both profile orientation conventions retained in names.",
+  "recipes": [
+    {
+      "name": "front",
+      "file": "canonical-portrait.png",
+      "box": {
+        "left": 380,
+        "top": 20,
+        "width": 420,
+        "height": 465
+      },
+      "crown": 24,
+      "chin": 415,
+      "centre": 210,
+      "mask": "M0 0H420V410H279L271 465H149L141 410H0Z"
+    },
+    {
+      "name": "left",
+      "file": "turnaround-option-3.png",
+      "box": {
+        "left": 535,
+        "top": 8,
+        "width": 420,
+        "height": 421
+      },
+      "crown": 17,
+      "chin": 365,
+      "centre": 210
+    },
+    {
+      "name": "right",
+      "file": "turnaround-option-3.png",
+      "box": {
+        "left": 530,
+        "top": 520,
+        "width": 420,
+        "height": 418
+      },
+      "crown": 15,
+      "chin": 359,
+      "centre": 210
+    },
+    {
+      "name": "back",
+      "file": "turnaround-option-3.png",
+      "box": {
+        "left": 45,
+        "top": 520,
+        "width": 430,
+        "height": 413
+      },
+      "crown": 15,
+      "chin": 359,
+      "centre": 213
+    }
+  ],
+  "normalization": {
+    "size": 1024,
+    "crownY": 80,
+    "chinY": 780,
+    "centreX": 512,
+    "background": "#fcf2df",
+    "transform": "uniform scale = 700 / (chin - crown); left = round(512 - centre * scale); top = round(80 - crown * scale)"
+  }
+}

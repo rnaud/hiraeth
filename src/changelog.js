@@ -18,6 +18,7 @@ export const CHANGELOG = [
     // docs/systems/ui.md; issue #213)
     'The Worlds page can take you back: open a world you have been to and press A / × on Travel here, and your ship flies you to its landing. If the ship won’t leave yet (the Desert without the blade and guard, Vael without the wings), it says why there.',
     'The Sketchbook page is gone from the game menu, which is Quests, Map, Items, Worlds and People now. Each world’s relics are still listed on the Worlds page, and delivered errands under People.',
+    'The traveller has a new face and tousled hair that follow his portrait more closely, with continuous brows and grey strokes through the dark locks. Fine ink describes his shirt collar, cuffs and folds and the layers of his scarf, following the fabric as he moves.',
   ] },
   { v: '1.61', date: '2026-10-12', items: [
     // two blind legs guided and places off the way (src/levels/space-city-ways.js STAIR_LAMP, space-city-detours.js,

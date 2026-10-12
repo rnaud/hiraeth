@@ -57,16 +57,16 @@ export async function travellerV1() {
 }
 
 // his approved Tripo head, as the game wears it (src/characters/tripo-head.js), without its textures
-let headV2 = null;
+let portraitHead = null;
 export async function tripoHead() {
-  headV2 ??= (async () => {
-    const g = await readFile(new URL('../public/characters/traveller-v1/head-v2/model.glb', import.meta.url)), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
+  portraitHead ??= (async () => {
+    const g = await readFile(new URL('../public/characters/traveller-v1/head-v3/model.glb', import.meta.url)), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
     json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
     delete json.images; delete json.textures; delete json.materials;
     for (const m of json.meshes) for (const pr of m.primitives) delete pr.material;
     return new GLTFLoader().parseAsync(JSON.stringify(json), '');
   })();
-  return headV2;
+  return portraitHead;
 }
 
 // the course, the measures and the runs live in src/gait-course.js (the Motion page uses them too)
@@ -77,7 +77,7 @@ export { course, measure, timeToFace, CAM_PLUS_Z };
  * or off (the loops, the game's default); o.moves: the starts, stops and turns over the loops
  * (src/loco-moves.js; the game's default) or not; o.body: 'v1' the game's coral-shirt traveller
  * (src/characters/traveller-v1.js), else the people's plain body; o.head: with it, his approved Tripo head
- * (public/characters/traveller-v1/head-v2, the game's) instead of the body's own.
+ * (public/characters/traveller-v1/head-v3, the game's) instead of the body's own.
  */
 export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matching = false, moves = false, body = 'plain', head = false } = {}) {
   const { lib, human } = await loadAssets();

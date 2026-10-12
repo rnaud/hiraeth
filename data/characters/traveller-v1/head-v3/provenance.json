@@ -1,0 +1,111 @@
+{
+  "date": "2026-10-12",
+  "status": "accepted-mesh-integrated-with-runtime-face-and-hair-ink",
+  "issue": "https://github.com/rnaud/hiraeth/issues/198",
+  "canonical": {
+    "job": "0e2c1f43-d155-46f9-99c7-9b17585bd585",
+    "index": 0,
+    "file": "reference/canonical-portrait.png",
+    "role": "original hearted portrait, front identity"
+  },
+  "turnaround": {
+    "job": "45195791-bc77-4833-8cb3-ee565eb6da5e",
+    "index": 2,
+    "file": "reference/turnaround-option-3.png",
+    "selection": "user selected option 3 and hearted it",
+    "role": "left, right and back inputs; inferred depth"
+  },
+  "tripo": {
+    "job": "3bdf5bce-cf91-4737-9dc9-be8b06c813c0",
+    "model": "H3.1",
+    "mode": "fixed Front/Left/Right/Back",
+    "ultraMesh": true,
+    "targetTriangles": 50000,
+    "textureSize": 4096,
+    "removeLighting": true,
+    "pbr": false,
+    "generateInParts": false,
+    "credits": 50,
+    "balanceBefore": 2825,
+    "balanceAfter": 2775
+  },
+  "inputs": {
+    "front": {
+      "file": "reference/front.png",
+      "sha256": "ca0a7ecbe03b22b4d81fa198bec470e38ea5b0587181688aa9487318fb0245de"
+    },
+    "left": {
+      "file": "reference/left.png",
+      "sha256": "b9e2c6f27016d5f47c353b6fbf2fbb4dcd2153fdad23b8ef0c1b9015f8300ee4"
+    },
+    "right": {
+      "file": "reference/right.png",
+      "sha256": "d87ff13118aa1121a72f920dd743d9d8010aa99164558ce40d28870a13438a67"
+    },
+    "back": {
+      "file": "reference/back.png",
+      "sha256": "0088ebdbe204933ca56437ea355bbf9d02bae3008cbc8648c228d5a2c3a27033"
+    }
+  },
+  "limitations": [
+    "Generated side/back views are interpretations, not ground-truth 3D measurements.",
+    "Accepted nose profile, jaw angles and some locks still differ from the canonical portrait.",
+    "Fitting, skinning and facial morphs are constructed at runtime; the GLBs remain unrigged.",
+    "The mouth is a shaded surface opening, not an anatomical cavity.",
+    "Native engine VMs load the new mesh with sampled vertex colours; their separate shaders do not yet reproduce the browser hair/cloth ink. Device GPU performance is unmeasured."
+  ],
+  "export": {
+    "file": "model.glb",
+    "sha256": "95be78e8d4afe631935397cd9d8a59b5e688f1f57fb7ce1aea56a8b78f7e16f3",
+    "inventory": "inventory.json"
+  },
+  "review": {
+    "viewer": "/tools/tripo-head-v3-review.html",
+    "views": [
+      "front",
+      "left",
+      "right",
+      "back",
+      "three-quarter"
+    ],
+    "modes": [
+      "unlit",
+      "clay",
+      "neutral light left",
+      "neutral light right",
+      "game ink"
+    ],
+    "findings": [
+      "Eyes, continuous brows and principal fringe match much more closely than the previous head.",
+      "Nose/profile, chin/jaw and some hair locks still differ.",
+      "Most broad directional skin shading removed; fixed chin ink patch remains.",
+      "Hair interior drawing lost; nose and mouth ink weakened.",
+      "Game ink adds noisy extra contours to painted facial lines."
+    ],
+    "next": "Integrated cleanup is available in Character Studio and the game; source viewer intentionally preserves the untouched export."
+  },
+  "integration": {
+    "authorization": "User: keep the mesh, work off that base to clean it up and wire it; restore the source hair highlights in the face shader.",
+    "prepare": "node scripts/tripo/prepare-portrait-head.mjs",
+    "runtime": "src/characters/portrait-head.js",
+    "shipped": "public/characters/traveller-v1/head-v3/",
+    "viewer": "/studio.html?view=bust&blink=false&gaze=fixed&yaw=0&bg=flat&paused=true&wind=0",
+    "sourceGeometryPreserved": true,
+    "hairReferenceMask": "reference/front.png, left.png, right.png, back.png",
+    "budget": "See shipped provenance.json; 2K colour plus 1K R8 hair mask, 22.67 MiB decoded with mipmaps.",
+    "validation": {
+      "focusedRigTests": "42 pass",
+      "nativeBootAndFallback": "35 pass",
+      "browser": "No errors in close-up expressions, multiview, idle/talk/idle, walk/jog/run/sit and Lula dialogue",
+      "audio": "Muted at startup; master/music/effects/voice verified at zero",
+      "build": "npx vite build --configLoader runner passed",
+      "animationAndReferenceRerun": "8 pass, including pose-exact, both pose-walks scenes and reference-site fixtures",
+      "changelog": "12 pass",
+      "fullRegressionRun": {
+        "passed": 3761,
+        "failed": 6,
+        "resolution": "Five native boot/pose failures (including a terminated stale worker) were resolved by skipping browser-only image masks in engine VMs; the affected files passed on rerun. One reference-site image fixture failed with unsupported format and passed unchanged on rerun."
+      }
+    }
+  }
+}

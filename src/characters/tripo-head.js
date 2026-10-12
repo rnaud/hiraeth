@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { cleanExpression } from '../expression.js';
 import { HEAD_INK_GLSL, headInkState, headSide } from './head-ink.js';
+import { makePortraitHead, wearPortraitHeadFace } from './portrait-head.js';
 
 // The approved H3.1 export is kept intact. This uniform fit puts its neck inside
 // the scarf; the skull/hair silhouette is unchanged, and the face is drawn over its paint (head-ink.js).
@@ -30,6 +31,7 @@ export function removeOriginalHead(mesh) {
 
 /** Bind a separate generated head to exactly the body's fitted rest skeleton. */
 export function makeTripoHead(asset, body) {
+  if (asset.scene.userData.travellerHead === 'v3') return makePortraitHead(asset, body);
   const sources = []; asset.scene.traverse(o => { if (o.isMesh) sources.push(o); });
   if (sources.length !== 1) throw new Error('Tripo head v2 expects its single original mesh');
   const source = sources[0], g = source.geometry.clone(), original = g.attributes.position.clone();
@@ -99,7 +101,8 @@ export function makeTripoHead(asset, body) {
 
 const SRGB_LINE = 'albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));';
 /** Existing expression/blink/speech interface, now driving the new mesh's shape keys. */
-export function wearTripoHeadFace(mesh) {
+export function wearTripoHeadFace(mesh, hairInk = null) {
+  if (mesh.userData.portraitHead) return wearPortraitHeadFace(mesh, hairInk);
   const mat = mesh.material;
   if (!mat.fragmentShader.includes(SRGB_LINE)) throw new Error('Head face needs the game ink material');
   mat.uniforms.uHeadSpeech = { value: new T.Vector4() };

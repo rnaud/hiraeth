@@ -72,7 +72,7 @@ const glb = (f) => {
   return new GLTFLoader().parseAsync(JSON.stringify(json), '');
 };
 const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-const asset = { gltf: await glb(dir + 'model.glb'), head: await glb(dir + 'head-v2/model.glb'), data, report: JSON.parse(readFileSync(dir + 'rig.json')), colors: JSON.parse(readFileSync(dir + 'colors.json')) };
+const asset = { gltf: await glb(dir + 'model.glb'), head: await glb(dir + 'head-v3/model.glb'), data, report: JSON.parse(readFileSync(dir + 'rig.json')), colors: JSON.parse(readFileSync(dir + 'colors.json')) };
 await MeshoptSimplifier.ready;
 
 test('his levels: coarser index lists over the same vertices, drawn by the draw range', async () => {
@@ -80,7 +80,7 @@ test('his levels: coarser index lists over the same vertices, drawn by the draw 
   const before = new Map([c.mesh, c.head, c.cloth.garment].map((m) => [m, { index: m.geometry.index, attrs: { ...m.geometry.attributes }, morph: m.geometry.morphAttributes.position }]));
   const lod = await buildTravellerLod(c, { simplifier: MeshoptSimplifier });
   assert.ok(lod instanceof TravellerLod);
-  assert.deepEqual(lod.entries.map((e) => e.mesh.name).sort(), ['TravellerOvershirt', 'TravellerTripoHeadV2', 'TravellerV1']);
+  assert.deepEqual(lod.entries.map((e) => e.mesh.name).sort(), ['TravellerOvershirt', 'TravellerPortraitHead', 'TravellerV1']);
   for (const e of lod.entries) assert.equal(e.mesh.geometry.index, before.get(e.mesh).index, 'nothing changes until a frame picks a level');
   const pxPerRad = 810 / (2 * Math.tan(T.MathUtils.degToRad(55) / 2));
   // up close (the conversation's shots) always full

@@ -173,3 +173,17 @@ test('his drawn face: the gaze moves only the iris, the nose line follows the ca
  assert.ok(side(right.clone().add(fwd).normalize())>0.5,'three-quarter from his left');
  assert.ok(side(right.clone().negate().add(fwd).normalize())<-0.5,'three-quarter from his right');
 });
+
+test('cloth ink shares one UV mask on the original body and moving shirt, never the head or repairs',async()=>{
+ const clothInk=new T.DataTexture(new Uint8Array([255]),1,1,T.RedFormat),asset=await loadHead(),char=buildCharacter();
+ const c=createTravellerV1(char,{gltf,data,report,colors,head:asset,clothInk},{gpu:true});
+ for(const part of [c.mesh,c.cloth.garment]){
+  assert.equal(part.material.uniforms.uTravellerClothInk.value,clothInk,'shared data texture');
+  assert.ok(part.geometry.attributes.uv && part.geometry.attributes.travellerSkin,'the original UV and skin boundary survive separation');
+  assert.match(part.material.fragmentShader,/float detail = clothInk/,'ink goes into drawn detail, avoiding duplicate colour-edge outlines');
+ }
+ for(const part of [c.head,c.cloth.underlayer,c.cloth.innerShirt])assert.equal(part.material.uniforms.uTravellerClothInk,undefined,'unrelated UV layouts never sample the atlas');
+ const uv=c.cloth.garment.geometry.attributes.uv.array.slice();
+ c.updateCloth(1/60);c.humanoid.b.Head.rotateY(.5);char.root.updateMatrixWorld(true);c.updateCloth(1/60);
+ assert.deepEqual(c.cloth.garment.geometry.attributes.uv.array,uv,'the cage moves the fabric without sliding its ink');
+});

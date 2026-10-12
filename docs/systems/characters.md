@@ -1156,3 +1156,95 @@ articulated leg folding with takeoff/landing contact transitions. Further full-c
 motion and deformation work is required. Existing numerical tests establish
 limited invariants, not natural motion or visual readiness. Track repairs and
 full temple acceptance in [GitHub issue #237](https://github.com/rnaud/hiraeth/issues/237).
+
+### Traveller portrait head and cloth ink (issue #198, 12 October 2026)
+
+The user accepted the generated head-v3 mesh and requested cleanup and integration,
+including the grey hair highlights from the source. The canonical face is
+[the hearted portrait](https://www.midjourney.com/jobs/0e2c1f43-d155-46f9-99c7-9b17585bd585?index=0).
+[Lula dialogue 1](https://www.midjourney.com/jobs/87383b2b-3d65-440c-9f69-16e6d50142b7?index=0)
+guides the clothing lines. The first local face-ink pass on head-v2 was rejected:
+its eyebrows read as two strokes and its proportions remained too far from the
+portrait. That face overlay is not used on the new head.
+
+A Midjourney edit used the exact portrait as its sole reference, job
+`45195791-bc77-4833-8cb3-ee565eb6da5e`. The user selected and hearted option 3
+(index 2). The portrait supplies Tripo's front input; the selected turnaround
+supplies left, right and back. These generated unseen views are interpretations.
+Mechanical crops remove clothing and align crowns/chins without redrawing faces.
+References, exact inputs, crop recipe and provenance remain under
+`data/characters/traveller-v1/head-v3/`. The three approved original Midjourney
+images (portrait, turnaround option 3 and Lula dialogue), prompts and job links
+are also archived for browsing and future iteration in
+`references/main character/Portrait study - 2026-10-12/`.
+
+Tripo H3.1 job `3bdf5bce-cf91-4737-9dc9-be8b06c813c0` used fixed four-view slots,
+Ultra Mesh, 50k target, 4K texture, Remove Lighting on, PBR and Generate Parts off.
+One generation used 50 credits (2,825 → 2,775). The untouched source GLB is
+3,617,184 bytes, 49,583 triangles, 32,852 vertices, one primitive/material and one
+4096² JPEG, without rig, animations or morphs. Its SHA-256 and inventory are beside
+it. `/tools/tripo-head-v3-review.html` still displays this source with unlit, clay,
+opposing neutral lights and game ink, beside each reference. It creates no audio.
+The source had lost most grey hair strokes, weakened nose/lip lines and retained
+fixed chin hatching; world ink added duplicate painted contours.
+
+`node scripts/tripo/prepare-portrait-head.mjs` makes the shipped derivative.
+Positions, indices and UVs remain byte-identical; only skin normals are smoothed.
+The atlas is reduced to 2048², sampled colours regenerated for native VMs, and a
+connected hair attribute added. Grey strokes in the four approved drawings are
+projected into a 1024² R8 UV mask, blended by view direction and padded across UV
+island borders. The shipped GLB is 2,325,756 bytes; atlas plus hair mask use an
+estimated 22.67 MiB decoded with mipmaps, versus the source atlas's 85.33 MiB.
+Triangle count is retained for this close-view hero head; no extra draw call.
+
+`portrait-head.js` fits the skull uniformly to the traveller and extends/flares
+only the low neck below the visible jaw to meet the scarf. Skinning uses the
+existing Head/neck_01 skeleton. The visible jaw remains rigid with the skull,
+including combined pitch/yaw. Measured head-v3 eyelid, lip and chin landmarks
+bound its six runtime face morphs and normal deltas. Speech leaves nose, throat,
+hair and clothing still; gaze shifts native eye paint without moving skin. Blinks
+close the original eye opening. Humanoid and TalkFace retain their shared contract.
+The preserved and shipped GLBs remain unrigged: fitting, weights, morphs and
+shader behavior are constructed at runtime. The mouth opening is drawn ink, not
+an anatomical cavity.
+
+The face shader preserves the generated eyes and continuous brows, reduces skin
+colour variation, removes fixed under-chin hatching and writes nose/lip contours
+to the existing detail channel once. Generic head hatching is disabled. The hair
+mask blends near-black locks into muted grey strokes; these stay fixed to the
+surface under motion, while world light still shades its volume. It adds one R8
+sample and 1.33 MiB including mipmaps. `uPortraitHairAmount` supports a matched
+on/off review. The shared loader wires this head into game, studio and motion
+review; Unity's asset packaging includes the new GLB, colours and masks.
+
+`data/characters/traveller-v1/ink/cloth-strokes.json` holds 20 measured surface
+paths for collar, opening, sleeves, cuffs and scarf. They were traced on paused
+studio views and raycast onto the actual rest triangles, not inferred from every
+crease. `node scripts/tripo/bake-cloth-ink.mjs` bakes their surface distance into
+unchanged UVs, including both sides of seams. `traveller-cloth-ink.js` loads the
+2048² R8 mask (39 KiB shipped, 5.33 MiB with mipmaps). Body and moving overshirt
+share it: one sample, no new geometry, draw calls or CPU deformation. Skin and
+reverse lining are excluded. It writes the existing detail channel; mipmaps and
+projected-size coverage keep distant marks from crawling.
+
+The changelog has bust and Lula before/after pairs, plus a same-pose hair-mask
+on/off pair. Before is the original face/cloth ink; after is the integrated head
+and cloth mask. Bust settings and dialogue setup match across separate boots;
+small conversation pose differences remain. Review uses the real G-buffer, world
+light, ink composite and antialiasing. Startup and all audio buses were muted.
+Numerical tests cover preserved source shape, neutral bind away from origin,
+blink closure, unaffected speech regions, hero material cloning, TalkFace return
+to idle and visible jaw/skull edge lengths through combined head rotations.
+Final game-material captures also cover neutral/open/closed eyes and front,
+three-quarter, profile and rear views. The shared studio played idle → talk → idle,
+walking, jogging, running and sitting through several phases without browser
+errors; the real Lula conversation was captured with all four audio buses at zero.
+
+The accepted mesh is closer to the selected portrait, not an exact reconstruction:
+nose profile, lower-face angles and some large hair locks still differ. The mask
+recreates reference linework on the accepted locks rather than changing their
+geometry. Native engine VMs skip the browser-decoded ink masks and retain sampled
+vertex colours; their separate shaders do not yet reproduce the new ink treatment.
+Bare-VM game boot passes with this fallback. Device-specific GPU performance
+remains unmeasured. Reproduction commands and historical head-v2 notes are in
+`scripts/tripo/README.md`; the current face contract is in `faces.md`.

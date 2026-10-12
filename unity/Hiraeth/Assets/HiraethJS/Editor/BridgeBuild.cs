@@ -46,8 +46,8 @@ namespace Hiraeth.EditorTools
             Directory.CreateDirectory(dst);
             foreach (var f in Directory.GetFiles(src).Where(f => f.EndsWith(".glb"))) File.Copy(f, Path.Combine(dst, Path.GetFileName(f)), true);
             // the people's MakeHuman body (anim/mh/body.bin) and the coral-shirt traveller (characters/traveller-v1, and his
-            // head, head-v2: without it every Unity build drew the old one)
-            foreach (var (from, files) in new[] { ("anim/mh", new[] { "body.bin" }), ("characters/traveller-v1", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v2", new[] { "model.glb", "colors.json" }) })
+            // head, head-v3: without it every Unity build drew the old one)
+            foreach (var (from, files) in new[] { ("anim/mh", new[] { "body.bin" }), ("characters/traveller-v1", new[] { "model.glb", "rig.json", "colors.json", "cloth-ink.png" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png" }) })
             {
                 var d = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", from);
                 Directory.CreateDirectory(d);

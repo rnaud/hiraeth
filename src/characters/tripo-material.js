@@ -2,7 +2,7 @@ import * as T from 'three';
 import { makeMaterial, sharedUniforms as SU } from '../materials.js';
 // Adapt the imported linear-space textures/colours to the game's printed-colour
 // G-buffer. Keep the preview's repair and lining treatments in both render modes.
-export function makeReviewInkMaterial(mesh, { lining = false } = {}) {
+export function makeReviewInkMaterial(mesh, { lining = false, clothInk = null } = {}) {
  const original=mesh.material;
  const mat=makeMaterial({color:original.color,map:original.map,vertexColors:original.vertexColors,side:original.side,figure:true,line:mesh.userData.inkLine,lineTint:mesh.userData.inkTint}).clone();
  Object.assign(mat.uniforms,SU);
@@ -16,5 +16,25 @@ export function makeReviewInkMaterial(mesh, { lining = false } = {}) {
  ${repair?`albedo=mix(albedo,vec3(${fabric.toArray().join(',')}),vRepair);`:''}
  ${lining?`if (!gl_FrontFacing) albedo=vec3(${inside.toArray().join(',')});`:''}
  albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));`);
+ if(clothInk){
+  mat.uniforms.uTravellerClothInk={value:clothInk};
+  mat.uniforms.uTravellerClothInkAmount={value:1};
+  mat.vertexShader=mat.vertexShader.replace('out vec2 vTextureUV;', 'out vec2 vTextureUV;\nin float travellerSkin; out float vClothSurface;')
+   .replace('vTextureUV = uv;', 'vTextureUV = uv; vClothSurface = 1.0 - travellerSkin;');
+  mat.fragmentShader=mat.fragmentShader.replace('void main()',`uniform sampler2D uTravellerClothInk;
+ uniform float uTravellerClothInkAmount;
+ in float vClothSurface;
+ void main()`).replace('albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));',`albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));
+ // Authored seams and folds ride the original UVs, including the simulated hem.
+ // Reject skin and the plain reverse lining at the garment's boundary.
+ float clothInk=texture(uTravellerClothInk,vTextureUV).r*uTravellerClothInkAmount
+   *vClothSurface*(gl_FrontFacing?1.0:0.0);
+ float clothPx=max(length(dFdx(vBind)),length(dFdy(vBind)));
+ // Lift subpixel coverage at two-shot distance, then fade before distant marks crawl.
+ clothInk*=mix(1.0,2.2,smoothstep(0.002,0.008,clothPx))*(1.0-smoothstep(0.012,0.025,clothPx));
+ clothInk=min(clothInk,1.4);
+ // The detail channel avoids drawing a second outline around each texture stroke.
+ `).replace('float detail = 0.0;', 'float detail = clothInk * 1.05;');
+ }
  return mat;
 }

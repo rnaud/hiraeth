@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-12",
+  "issue": "https://github.com/rnaud/hiraeth/issues/198",
+  "service": "Midjourney V8",
+  "images": [
+    {
+      "file": "canonical-portrait.png",
+      "job": "0e2c1f43-d155-46f9-99c7-9b17585bd585",
+      "index": 0,
+      "url": "https://www.midjourney.com/jobs/0e2c1f43-d155-46f9-99c7-9b17585bd585?index=0",
+      "approved": true,
+      "selection": "Hearted in Midjourney; checked 2026-10-12",
+      "role": "Canonical face and hair identity",
+      "sha256": "a5c7fadf55c7d4c9710f067a55292d6c45a8facd44dd179e8a3e2245cba0e632",
+      "prompt": "Use the first attached image as the current game appearance and the second as the established character identity and drawing reference. Reinterpret the supplied Hiraeth game bust as a Moebius science-fiction bande dessin\u00e9e character portrait. Preserve this young adult man's identity, warm tan skin, black loose wavy hair, coral overshirt and cream neck scarf. Preserve the front-facing bust composition. Explore a longer, quieter face, restrained almond eyes, fine asymmetrical brows, a clearly drawn nose bridge and small economical mouth, delicate ear and cheek contours. Confident thin pen outlines and a few meaningful interior strokes; luminous flat warm colour, one restrained lavender shadow family, very sparse hatching. Sensitive, curious expression. Plain cream background. A plausible art target for the existing game character.",
+      "parametersShown": "--ar 4:3 --no text watermark collage photorealism",
+      "editReferencesShown": [
+        "https://s.mj.run/oITU1AwPx2A",
+        "https://s.mj.run/A4MfXCP4iXY"
+      ]
+    },
+    {
+      "file": "lula-dialogue.png",
+      "job": "87383b2b-3d65-440c-9f69-16e6d50142b7",
+      "index": 0,
+      "url": "https://www.midjourney.com/jobs/87383b2b-3d65-440c-9f69-16e6d50142b7?index=0",
+      "approved": true,
+      "selection": "Hearted in Midjourney; checked 2026-10-12",
+      "role": "Clothing lines and dialogue art direction",
+      "sha256": "bc0179732485290e22ce3605b05b02e882eea34e849abb7e94a19ed8fbe0fec6",
+      "prompt": "Reinterpret this exact Hiraeth desert conversation screenshot as a Moebius bande dessin\u00e9e game art-direction paintover. Keep the coral-shirt traveller on the left and the mustard-robed veiled speaker on the right, with the same desert architecture and secondary figures. Maintain the lower dialogue panel, circular speaker portrait and generous readable space for dialogue; leave the panel blank for real game text. More specific expressive silhouettes, fine controlled ink contours, broad quiet colour fields, pale ochre sand, airy blue sky, rose and lavender distant rocks. Replace dense procedural hatching with sparse intentional pen accents. Clear foreground/middle-distance/background hierarchy, human intimacy and strange monumental scale.",
+      "parametersShown": "--ar 16:9 --no watermark photorealism",
+      "editReferencesShown": [
+        "https://s.mj.run/Wpcr9HfgfdI"
+      ]
+    },
+    {
+      "file": "turnaround-option-3.png",
+      "job": "45195791-bc77-4833-8cb3-ee565eb6da5e",
+      "index": 2,
+      "url": "https://www.midjourney.com/jobs/45195791-bc77-4833-8cb3-ee565eb6da5e?index=2",
+      "approved": true,
+      "selection": "Hearted in Midjourney; checked 2026-10-12",
+      "role": "Approved option 3; inferred left, right and back geometry",
+      "sha256": "1063d3fe9cbdda5519d1254f0800290b6a93f5908148700d348e6416cd10669b",
+      "prompt": "Create a precise four-view HEAD turnaround of this exact young man, using the attached portrait as the canonical identity, not a redesign. One square sheet with four separate equal panels in a strict 2 by 2 grid: TOP LEFT exact straight FRONT view; TOP RIGHT strict LEFT profile with the nose pointing left on the page; BOTTOM LEFT exact BACK view; BOTTOM RIGHT strict RIGHT profile with the nose pointing right. Same head, expression, hair and proportions in every panel. Head and a short bare neck only, cut at the base of the neck, no shoulders, clothing or scarf. Preserve the reference face very closely: long tapered lower face, narrow chin, original eye spacing and open almond eyes, long straight nose, small quiet closed mouth, one continuous natural eyebrow above each eye, warm tan skin, black loose wavy hair with exactly the same fringe, hairline and large curl masses. The front face must look like the attached person. Profiles must agree with the front in forehead, eye level, nose length, mouth level, jaw and ear placement. All four heads the same scale with crown, eye line, chin and neck base aligned within their panels; eye-height orthographic-like cameras, no tilt or perspective exaggeration. Even diffuse neutral illumination, flat base colours, delicate intentional ink contours, minimal broad shading, no cast shadows, no highlights baked into skin. Plain uniform warm ivory background, generous gaps and margins, clean isolated silhouettes. No labels, text, accessories, pedestal, expression changes or alternate designs.",
+      "parametersShown": "",
+      "editReferencesShown": [
+        "https://s.mj.run/aErhqjOB8lM"
+      ]
+    }
+  ],
+  "unselectedStudy": {
+    "job": "6f919f32-e887-4098-bdd2-298290bde2ee",
+    "url": "https://www.midjourney.com/jobs/6f919f32-e887-4098-bdd2-298290bde2ee?index=0",
+    "status": "No options hearted; job and prompt retained for later review, images not archived as approved references",
+    "prompt": "Moebius bande dessin\u00e9e paintover of the supplied Hiraeth gameplay screenshot. Preserve the camera, coral-shirt traveller with teal pack in the foreground, robed pilgrims, winding approach to the walled oasis and extraordinary luminous tree. Keep the scene recognisably the same playable place. Explore clearer value separation and warm-cool colour grouping: luminous ochre foreground, restrained coral architecture, powder-blue sky, pale lavender distant mesas and small turquoise accents. Confident delicate contour lines, fewer repeated texture strokes, large quiet areas, selective fine detail at the destination. Dreamlike inhabited science-fiction desert, grounded readable forms.",
+    "parametersShown": "--ar 16:9 --no text watermark photorealism",
+    "editReferencesShown": [
+      "https://s.mj.run/Gw_GUjJ_qa0"
+    ]
+  }
+}

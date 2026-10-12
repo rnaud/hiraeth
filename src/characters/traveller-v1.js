@@ -13,6 +13,7 @@ import { wearTripoFace } from './tripo-face.js';
 import { cleanExpression } from '../expression.js';
 import { TRAVELLER } from '../traveller.js';
 import { runSteps } from '../load-steps.js';
+import { loadClothInk } from './traveller-cloth-ink.js';
 
 /** The fluid flask's place on his back (the chest anchor's frame; fluid-tool.js TANK.at is the rucksack's). */
 export const TRAVELLER_V1_TANK_AT = [0, 0.4, -0.1886];   // (v1.38: the round backpack, its slim canvas plate on his back where v1.37's sphere had its plate's back)
@@ -24,18 +25,20 @@ export async function loadTravellerV1(base) {
     if (!response.ok) throw new Error(`Traveller ${name}: HTTP ${response.status}`);
     return response.json();
   };
-  const [gltf, data, report, colors, head, headColors] = await Promise.all([
+  const [gltf, data, report, colors, head, headColors, clothInk, hairInk] = await Promise.all([
     new GLTFLoader().loadAsync(folder + 'model.glb'), loadBody(base), json('rig.json'), json('colors.json'),
-    new GLTFLoader().loadAsync(folder + 'head-v2/model.glb'), json('head-v2/colors.json'),
+    new GLTFLoader().loadAsync(folder + 'head-v3/model.glb'), json('head-v3/colors.json'),
+    loadClothInk(folder + 'cloth-ink.png'),
+    loadClothInk(folder + 'head-v3/hair-ink.png'),
   ]);
-  return { gltf, data, report, colors, head, headColors };
+  return { gltf, data, report, colors, head, headColors, clothInk, hairInk };
 }
 
 // Build in the same origin/rest frame as the fitted export and review. Gameplay
 // can spawn at any position and orientation (including a sphere's far side).
 export function createTravellerV1(char, assets, o = {}) { return runSteps(createTravellerV1Steps(char, assets, o)); }
 /** createTravellerV1 in steps (src/load-steps.js runStepsAsync: the title builds him while its menu answers). */
-export function* createTravellerV1Steps(char, { gltf, data, report, colors, head: headAsset }, { gpu } = {}) {
+export function* createTravellerV1Steps(char, { gltf, data, report, colors, head: headAsset, clothInk, hairInk }, { gpu } = {}) {
   const skins = [];
   gltf.scene.traverse(o => { if (o.isSkinnedMesh) skins.push(o); });
   if (skins.length !== 1 || colors.length !== skins[0].geometry.attributes.position.count)
@@ -74,12 +77,13 @@ export function* createTravellerV1Steps(char, { gltf, data, report, colors, head
     yield;
     for (const part of [mesh, cloth.garment, cloth.underlayer, cloth.innerShirt, head].filter(Boolean)) {
       const standard = part.material;
-      part.material = makeReviewInkMaterial(part, { lining: part === cloth.garment });
+      part.material = makeReviewInkMaterial(part, { lining: part === cloth.garment,
+        clothInk: part === mesh || part === cloth.garment ? clothInk : null });
       standard.dispose();
     }
     // The replacement keeps its generated face and moves its own shape keys.
     // Original-body tools retain the old painted-face adapter.
-    humanoid.drawnFace = head ? wearTripoHeadFace(head) : wearTripoFace(mesh);
+    humanoid.drawnFace = head ? wearTripoHeadFace(head, hairInk) : wearTripoFace(mesh);
     humanoid.restExpression = cleanExpression(TRAVELLER.rest);
     humanoid.setExpression(humanoid.restExpression);
     cloth.gpuMaterial(cloth.garment.material);   // (the game: skinned and moved by the cage on the GPU, tripo-cloth.js)
