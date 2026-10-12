@@ -360,6 +360,10 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-shadow-chunk-cell") is string cc && float.TryParse(cc, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ccv)) BridgeShadowChunks.Cell = Mathf.Max(4, ccv);
             if (BridgeShadowChunks.On) HiraethShadows.PieceLayer = BridgeShadowChunks.Layer;   // (the camera leaves them out: Start)
             HiraethShadows.Census = BridgeArgs.Flag("-shadow-census");
+            // the overshirt's and the capes' jobs started as they are scheduled, the overshirt's split over the workers
+            // (BridgeCloth: the same numbers); -no-job-kick, -cloth-single as before
+            BridgeCloth.NoKick = BridgeArgs.Flag("-no-job-kick");
+            BridgeCloth.Single = BridgeArgs.Flag("-cloth-single");
             // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
             // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before
 #if UNITY_WSA && !UNITY_EDITOR

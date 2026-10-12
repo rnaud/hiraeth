@@ -65,6 +65,8 @@ namespace Hiraeth.Bridge
             }
             ints[0] = steps; ints[1] = iters; ints[2] = nc; ints[3] = (int)flags;
             job = new Steps { cols = cols, rows = rows, cons = cons, seatedK = seatedK, seatRest = seatRest, side = side, back = back, idx = idx, P = P, Q = Q, nrm = nrm, pins = pins, caps = caps, mc = mc, field = field, K = K, scal = scal, ints = ints }.Schedule();
+            // (started now, not at the next flush: the main thread's Complete in LateUpdate, which would run it itself; BridgeCloth)
+            if (!BridgeCloth.NoKick) JobHandle.ScheduleBatchedJobs();
             running = true;
             return o - start;
         }
