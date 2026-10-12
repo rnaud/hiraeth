@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.57 — 2026-10-12
 
+- When someone has finished talking, the first answer is already picked, with a keyboard, a mouse or a touch screen as with a pad: press A / × (or E, Enter) to say it, or move to another. It stays picked when one answer leads straight to more.
+- The conversation box is simpler again: the speaker’s name is written plainly in ink on the paper, upright, with no black caption box behind it and no description beside it.
 - The islands’ drift shows on the bridges now: the Moorings bridge is gone, and the bridge from the stack to the Moorings is broken, its middle span drifted out of line on its cable. Turn the moorers’ capstan beside it (A / ×) and the span swings home and the bridge is whole. Past it an old bridge hangs in two halves, and a lamp chain hangs from the stack’s roots far down into the void.
 - Between the Towers and the Moorings now stands the stack: seven small islands one over another, from under the Towers’ deck to 80 m over it, houses round every one and more built down their sides, stairs winding round the outside from each to the next. The way to the Mooring-House goes up it, the way home down its other side and over the patched stack bridge, and its top, with its lamp, is the city’s other high place.
 - In the City Floating in Space the cables are felt where they are anchored now, under the Towers: a stair winds down off the Towers’ north edge to a catwalk hung under the deck among the machinery, workshops with lit round windows, gardens hanging upside down into the dark and lamps pointing down at the stars. Odile minds the great cable’s bronze clamp there, and a walkway runs out along the cable over the void to the stack.

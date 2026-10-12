@@ -37,7 +37,7 @@ After the author compared it with Sable's: the words bigger, shown whole, and th
 - **The type from the screen's height**: everything in `#dialogue` (index.html) is in em of `--dlg`,
   `clamp(17px, 2.9vh, 46px)` times the text size: 21 px at 720, 23 at the Deck's 800, 31 at 1080, 42 at
   1440 (15 and 19 px before), never under 17 px (the Retroid's 410 CSS px). The panel is 46 em wide, about
-  64 letters a line; the portrait, the name tag (1.2 em), the answers (0.95 em) and the page-turn mark
+  64 letters a line; the portrait, the name (1.05 em), the answers (0.95 em) and the page-turn mark
   scale with it. A phone held upright takes it from the width (`clamp(15px, 4.5vw, 22px)`). A screen
   480 px tall or less sets the lines a little closer and the panel lower.
 - **Never off the screen**: the box grows with the page rather than the type shrinking, but a page and
@@ -53,6 +53,13 @@ After the author compared it with Sable's: the words bigger, shown whole, and th
 - **Answers without boxes**: their words on the paper in a softer ink, the red mark beside each; the
   one under the pad, the mouse or a finger in full ink with a red ink line under its words. Nothing
   moves when one is picked. `tests/dialogue-legibility.test.js`.
+- **The name, plain** (issue #208): the speaker's name in bold ink capitals on the paper's first line,
+  beside the portrait (`.dlg-tag`, 1.05 em): no black caption box, nothing slanted, and no subtitle (a
+  person's `title` is no longer shown, nor sent to an engine's panel; `BridgeHud.cs` draws it the same).
+- **The first answer by default** (issue #211): when the answers come up, the first is focused whatever
+  is in hand (it was only with a pad, and lost when one node's answers led straight to the next's), so
+  E, Enter or A / × says it; the mouse over another moves the focus there, so the underlined answer is
+  always the one a press picks.
 
 ## Answers: the mark in its own column
 

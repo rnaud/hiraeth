@@ -229,7 +229,7 @@
       }
       #dialogue.open { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
       #dialogue .dlg-panel {
-        position: relative; background: #fffaf0; border: 2.5px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; padding: 1.65em 1.3em 0.85em 6.3em; min-height: 5.2em;
+        position: relative; background: #fffaf0; border: 2.5px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; padding: 1.95em 1.3em 0.85em 6.3em; min-height: 5.2em;
         background-image: repeating-linear-gradient(0deg, transparent 0 1.7em, rgba(43, 33, 31, 0.05) 1.7em calc(1.7em + 1px)); cursor: pointer;
       }
       /* the portrait at the panel's top-left corner, over its edge */
@@ -242,15 +242,10 @@
       #dialogue .dlg-chip img[hidden] { display: none; }
       #dialogue .dlg-chip img:not([hidden]) + span { display: none; }
       #dialogue .dlg-chip span { font-size: 2.1em; font-weight: bold; color: #fffaf0; text-shadow: 2px 2px 0 #2b211f; }
-      /* who is speaking: a caption box across the panel's top edge, beside the portrait */
-      #dialogue .dlg-tag {
-        position: absolute; left: 5.9em; top: 0; transform: translateY(-60%) rotate(-1deg); max-width: calc(100% - 7em); box-sizing: border-box;
-        display: flex; align-items: baseline; gap: 0.7em; padding: 0.28em 0.85em 0.32em; background: #2b211f; color: #fffaf0; box-shadow: 3px 3px 0 #c8483a;
-        white-space: nowrap; overflow: hidden;
-      }
-      #dialogue .dlg-name { letter-spacing: 0.14em; text-transform: uppercase; font-size: 1.2em; line-height: 1.15; }
-      #dialogue .dlg-title { font-size: 0.78em; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; }
-      #dialogue .dlg-title:empty { display: none; }
+      /* who is speaking: their name in plain ink on the paper's first line, beside the portrait (issue #208: no black
+         caption box, nothing slanted, no subtitle under or after it) */
+      #dialogue .dlg-tag { position: absolute; left: 6.3em; right: 1.3em; top: 0.4em; color: #2b211f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #dialogue .dlg-name { font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; font-size: 1.05em; line-height: 1.3; }
       #dialogue .dlg-text { margin: 0.2em 0 0.45em; min-height: 2.9em; display: grid; }
       /* the node's longest page laid out unseen under the one shown: the panel keeps its size as the pages turn (issue #60) */
       #dialogue .dlg-text > .dlg-ghost, #dialogue .dlg-text > .dlg-live { grid-area: 1 / 1; }
@@ -310,7 +305,8 @@
       /* a short screen (the Retroid's 410, a phone on its side): the lines a little closer, the panel lower */
       @media (max-height: 480px) {
         #dialogue { line-height: 1.36; bottom: calc(10px + var(--safe-bottom)); }
-        #dialogue .dlg-panel { padding-top: 1.45em; padding-bottom: 0.6em; }
+        #dialogue .dlg-panel { padding-top: 1.75em; padding-bottom: 0.6em; }
+        #dialogue .dlg-tag { top: 0.3em; }
         #dialogue .dlg-choices button { line-height: 1.36; padding: 0.08em 0; }
         #dialogue .dlg-key { height: 1.36em; }
       }
@@ -320,9 +316,7 @@
         #dialogue .dlg-panel { padding: 2.2em 0.75em 0.75em 0.75em; }
         #dialogue .dlg-chip { width: 3.5em; height: 3.5em; }
         #dialogue .dlg-who { top: -1.8em; left: 0.6em; }
-        #dialogue .dlg-tag { left: 4.6em; max-width: calc(100% - 5.2em); flex-direction: column; align-items: flex-start; gap: 0; white-space: normal; padding: 0.25em 0.6em 0.3em; }
-        #dialogue .dlg-name { font-size: 1.1em; }
-        #dialogue .dlg-title { font-size: 0.72em; }
+        #dialogue .dlg-tag { left: 4.6em; right: 0.75em; top: 0.55em; }
       }
       /* the prompt over whoever (or whatever) the use button would use: a round button badge and the action */
       #prompt {

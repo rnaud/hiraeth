@@ -99,7 +99,7 @@ test('the page\'s type: about 3 % of the screen\'s height on every screen, never
   // a phone upright: from its width, never under 15 px
   assert.match(HTML, /@media \(max-width: 600px\)\s*\{\s*#dialogue\s*\{\s*--dlg:\s*calc\(clamp\(15px,\s*[\d.]+vw/);
   // the name and the answers in em of it (they scale with it)
-  assert.match(rule('#dialogue .dlg-name'), /font-size:\s*1\.2em/);
+  assert.match(rule('#dialogue .dlg-name'), /font-size:\s*1(\.\d+)?em/);
   assert.match(rule('#dialogue .dlg-choices button'), /font-size:\s*0\.9\d?em/);
 });
 
@@ -123,4 +123,40 @@ test('the Unity bridge\'s panel: the same sizes (a 720-tall canvas), answers wit
   assert.ok(body / 720 >= 0.028, `${body} px of 720`);
   assert.match(HUD, /Ui\.Panel\(dlgPanel\.rt, "choice" \+ i, Color\.clear, Ui\.Ink, 0\)/);
   assert.ok(!/SetShadow\(hi/.test(HUD), 'no lifted box on the picked answer');
+});
+
+test('the name is plain ink on the paper: no black caption box, nothing slanted, no subtitle (issue #208)', () => {
+  const tag = rule('#dialogue .dlg-tag'), name = rule('#dialogue .dlg-name');
+  assert.ok(!/background|box-shadow|rotate|skew/.test(tag + name), `${tag} ${name}`);
+  assert.match(tag, /color:\s*#2b211f/);
+  assert.ok(!/font-style:\s*italic/.test(name));
+  assert.ok(!/dlg-title/.test(HTML), 'no subtitle rule left in the style');
+  const { d, ui } = talk({ ...ALIEN, title: 'Keeper of the well' });
+  assert.equal(ui.part('.dlg-name').textContent, 'Tester');
+  assert.ok(!/dlg-title/.test(ui.root.innerHTML), 'no subtitle element in the panel');
+  assert.equal(d.publish() ?? true, true);
+  d.close();
+  // the Unity bridge's panel draws the same: no ink fill behind the name, no title shown
+  assert.match(HUD, /dlgTag = Ui\.Panel\(dlg, "tag", Color\.clear, Ui\.Ink, 0\)/);
+  assert.match(HUD, /Show\(dlgTitle, false\)/);
+});
+
+test('once they are done talking, the first answer is the default: focused, with or without a pad (issue #211)', () => {
+  const { d, ui } = talk({ ...ALIEN, talk: { nodes: {
+    a: { say: ['~neutral~ First page.', '~neutral~ Then a question?'], choices: [{ text: '~curious~ Go on.', goto: 'b' }, { text: '~neutral~ No.', end: true }] },
+    b: { say: ['~neutral~ Straight on.'], choices: [{ text: '~curious~ And?', end: true }, { text: '~neutral~ Enough.', end: true }] },
+  } } });
+  const box = ui.part('.dlg-choices'), focused = [];
+  const buttons = () => [...box.innerHTML.matchAll(/data-i="(\d+)"/g)].map((m) => ({ i: +m[1], dataset: { i: m[1] }, focus() { focused.push(this.i); } }));
+  box.querySelectorAll = () => buttons();
+  box.querySelector = (s) => (s === 'button' ? buttons()[0] ?? null : null);
+  d.render();
+  assert.deepEqual(focused, [], 'nothing focused while they are still talking');
+  d.next();
+  assert.deepEqual(focused, [0], 'the first answer focused as the answers come');
+  d.choose(d.runner.choices()[0].index);
+  assert.deepEqual(focused, [0, 0], 'and again when one node\'s answers lead straight to the next\'s');
+  d.render();
+  assert.equal(focused.length, 2, 'a redraw does not take the focus back from where it was moved');
+  d.close();
 });

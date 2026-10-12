@@ -330,16 +330,21 @@ export class Dialogue {
     this._m = new THREE.Matrix4();
     if (this.el) {
       setWordMeasure(panelMeasure(this.el));   // (a script's words as wide as their English in the panel's face)
-      // the speaker's name in a caption tab along the panel's top edge, their portrait at its corner;
-      // no button hints and no translator tag (a foreign page fades in once as it comes: .dlg-text.heard)
+      // the speaker's name in plain ink on the paper's first line, their portrait at its corner (issue #208: no
+      // caption box, no subtitle); no button hints and no translator tag (a foreign page fades in once: .dlg-text.heard)
       this.el.innerHTML = `<div class="dlg-panel"><div class="dlg-who"><div class="dlg-chip"><img alt=""><span></span></div></div>
-        <div class="dlg-tag"><b class="dlg-name"></b><i class="dlg-title"></i></div>
+        <div class="dlg-tag"><b class="dlg-name"></b></div>
         <p class="dlg-text"></p><div class="dlg-choices"></div><i class="dlg-more" aria-hidden="true"></i><span class="dlg-next" aria-hidden="true"></span></div>`;
       this.q = (s) => this.el.querySelector(s);
       this.el.addEventListener('click', (e) => {
         const b = e.target.closest('.dlg-choices:not(.waiting) button[data-i]');
         if (b) this.choose(+b.dataset.i);
         else if (e.target.closest('.dlg-panel')) this.next();
+      });
+      // the mouse on an answer moves the cue there (one underlined answer, the one Enter / E would pick)
+      this.el.addEventListener('pointerover', (e) => {
+        const b = e.target.closest?.('.dlg-choices:not(.waiting) button[data-i]');
+        if (b && e.pointerType === 'mouse') b.focus({ preventScroll: true });
       });
       page.on('keydown', (e) => {
         if (!this.open || e.repeat) return;
@@ -423,7 +428,6 @@ export class Dialogue {
     if (!this.el || this._chip === key) return;
     this._chip = key;
     this.q('.dlg-name').textContent = who.name;
-    this.q('.dlg-title').textContent = who.title ?? '';
     const chip = this.q('.dlg-chip');
     chip.style.background = who.color ?? '#d8a24a';
     chip.classList.toggle('you', you);
@@ -509,11 +513,14 @@ export class Dialogue {
     const box = this.q('.dlg-choices');
     const html = ahead.map((c, k) => choiceHtml(c, k)).join('');
     box.classList.toggle('waiting', waiting);
-    if (box.dataset.html !== html) { box.innerHTML = html; box.dataset.html = html; laid = true; }
-    if (box.dataset.shown !== String(choices.length > 0)) {
+    const fresh = box.dataset.html !== html;
+    if (fresh) { box.innerHTML = html; box.dataset.html = html; laid = true; }
+    if (fresh || box.dataset.shown !== String(choices.length > 0)) {
       box.dataset.shown = String(choices.length > 0);
       for (const b of box.querySelectorAll('button')) b.tabIndex = choices.length ? 0 : -1;
-      if (choices.length && page.hasBodyClass('controller')) box.querySelector('button')?.focus();
+      // once they are done talking, the first answer is the one a press would pick (issue #211): focused, whatever is
+      // in hand (it was only with a pad, and lost when one node's answers led straight to the next's)
+      if (choices.length) box.querySelector('button')?.focus?.({ preventScroll: true });
     }
     // a small mark at the panel's corner when the next press turns the page
     this.el.classList.toggle('more', !choices.length);
@@ -552,7 +559,7 @@ export class Dialogue {
     const p = you ? TRAVELLER_TAG : this.person, shot = you ? this.youShot(this.nowTone) : this.shot;
     const text = full;
     screen.set('dialogue', {
-      name: p.name, title: p.title ?? '', color: p.color ?? '#d8a24a', speaker: you ? 'player' : r.speaker ?? 'npc',
+      name: p.name, title: '', color: p.color ?? '#d8a24a', speaker: you ? 'player' : r.speaker ?? 'npc',
       portrait: (typeof shot === 'string' ? shot : shot?.src) ?? null, backdrop: (typeof shot === 'object' && shot?.background) || null,
       text, shown: n, done, more: done && !choices.length,
       choices: choices.map((c) => ({ text: c.text, tone: c.tone ?? null, index: c.index })),

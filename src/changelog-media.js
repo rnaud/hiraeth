@@ -698,6 +698,7 @@ const LORN56 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1
 // (v1.56: the Underwater City's explorations, issue #192: by hand, this branch's own Vite and the tree before it, the same pinned cameras)
 const UC56 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5561), the before the tree as on origin/main (34a70288, extracted), the same pinned cameras and saves, hour 10, 12 October; cwebp -q 72';
 const UC_HELMET = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'underwater.helmet': true }, keepsakes: [] };
+const TALK57 = 'headless Chrome (muted, 12 October) against this branch’s own dev server, before and after the change, the desert by the ship, the traveller beside Marrow; cwebp -q 72';
 const UC_REF = 'references/levels/The Underwater City/environment/explorations/';
 const SC57 = 'scripts/changelog-shots.mjs’s shoot in headless Chrome (muted, High, 1280 × 720, the morning 8.5) against this branch’s own Vite (port 5581), the before with src/levels/space-city.js, space-city-kit.js and the city’s story as on origin/main (64023d42), the same pinned cameras, 12 October; cwebp -q 70 -resize 960';
 export const CHANGELOG_MEDIA = {
@@ -735,6 +736,12 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'spacecity', hour: 8.5, fov: 60, eye: [108, 25, -131], target: [89, 15, -147], player: [89.6, 16.5, -142.4] },
         reference: { sheet: 'references/levels/The City Floating in Space/environment/explorations/drifting-bridges/sheet-1.jpg', caption: 'The author’s pick: winding the island back (references/levels/The City Floating in Space/environment/explorations/drifting-bridges)' } },
     ], see: 'Up the stack to the capstan quarter: the broken bridge leaves for the Moorings beside Bram and the capstan. Press A / × at the capstan and watch the span come in.' },
+    // (the conversation box, issues #208 and #211)
+    { match: 'The conversation box is simpler again', shots: [
+      { name: 'talk-name-desktop', title: 'Desktop, 1280 × 720', caption: 'Marrow by the ship in the desert, his answers up: before, his name in capitals in a slanted black caption box over the panel’s edge, “salvager and liar” beside it; after, his name in plain ink on the paper’s first line, upright, nothing beside it, and the first answer already underlined', from: TALK57 },
+      { name: 'talk-name-phone', title: 'A phone held upright, 390 × 844', caption: 'The same page on a phone: before, the black caption box with the description under the name; after, the name alone in ink beside the portrait', from: TALK57 },
+    ], see: 'Talk to anyone: the name over the words is plain ink on the paper, with no box and no description.' },
+    { match: 'When someone has finished talking, the first answer', see: 'Talk to Marrow by the ship in the desert with the keyboard and mouse: when his answers come up, the first is underlined; press E or Enter and he answers it. Moving the mouse over another moves the underline with it.' },
   ],
   '1.56': [
     // (the Underwater City's explorations, issue #192)

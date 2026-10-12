@@ -62,7 +62,7 @@ test('the cue line and the conversation set their state as they draw', () => {
   assert.ok(d.start(bob));
   d.update(0.05);
   const s = screen.state.dialogue;
-  assert.equal(s.name, 'Bob'); assert.equal(s.title, 'the potter');
+  assert.equal(s.name, 'Bob'); assert.equal(s.title, '', 'no subtitle under the name (issue #208)');
   assert.equal(s.text, 'Hello there, traveller.');
   // (the page whole at once, its answers with it, while the voice is still saying it: issue #147)
   assert.ok(s.shown === s.text.length && s.done, 'all of it shown');

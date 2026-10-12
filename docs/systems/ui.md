@@ -117,8 +117,8 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   `<b class="key">E</b>`, a small ink circle (a pill for "X / □"); `badgeLine()` badges the
   button at the start of each " · " part of a status line. The badge holds the plain
   button name, so `native-pad.js` still renames it in place.
-- **Conversations** (`src/story/dialogue.js`): the speaker's name sits in a caption box
-  across the panel's top edge next to the portrait, larger on a 1080p screen; no hint
+- **Conversations** (`src/story/dialogue.js`): the speaker's name is plain ink on the
+  paper's first line next to the portrait, with no box and no subtitle (issue #208); no hint
   line, no translator tag (the words still in their script at the caret remain), and a small pointer
   when a press turns the page. While talking, the status box, floating prompt, button bar
   and gear are hidden.

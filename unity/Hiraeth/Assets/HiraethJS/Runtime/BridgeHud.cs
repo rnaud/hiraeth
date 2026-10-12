@@ -30,7 +30,7 @@ namespace Hiraeth.Bridge
         readonly List<(Ui.Box box, Label num, Label text, Image line)> dlgChoices = new();
         /// <summary>The panel's type in canvas px (the canvas is 720 tall: index.html #dialogue's --dlg, 2.9 % of the
         /// screen's height, issue #147), and the sizes the rest of the panel takes from it (in em, as the page's).</summary>
-        const int Body = 21, AnswerSize = 20, NameSize = 25, TitleSize = 16, LetterSize = 44;
+        const int Body = 21, AnswerSize = 20, NameSize = 22, TitleSize = 16, LetterSize = 44;
         const float Em = Body, ChipD = 4.6f * Em;
         static readonly Color Muted = Ui.Hex("#5e4b45");
 
@@ -109,8 +109,9 @@ namespace Hiraeth.Bridge
             Ui.Place(chipLetter.rectTransform, 0, 0, ChipD, ChipD);
             var ls = chipLetter.gameObject.AddComponent<Shadow>(); ls.effectColor = Ui.Ink; ls.effectDistance = new Vector2(2, -2);
             chip.localRotation = Quaternion.Euler(0, 0, 3);
-            dlgTag = Ui.Panel(dlg, "tag", Ui.Ink, Ui.Ink, 0, 3, 3, 0, Ui.Red);
-            dlgName = Ui.Label(dlgTag.rt, "name", mono, NameSize, Ui.Paper, TextAnchor.LowerLeft); Ui.Space(dlgName, 0.14f);
+            // (the name in plain ink on the paper's first line, issue #208: no caption box, no subtitle)
+            dlgTag = Ui.Panel(dlg, "tag", Color.clear, Ui.Ink, 0);
+            dlgName = Ui.Label(dlgTag.rt, "name", mono, NameSize, Ui.Ink, TextAnchor.LowerLeft, FontStyle.Bold); Ui.Space(dlgName, 0.08f);
             dlgTitle = Ui.Label(dlgTag.rt, "title", mono, TitleSize, Ui.Hex("#fffaf0", 0.85f), TextAnchor.LowerLeft, FontStyle.Italic);
         }
 
@@ -221,7 +222,7 @@ namespace Hiraeth.Bridge
             var choices = d.L("choices") ?? new List<object>();
             // (the page whole at once, issue #147: the bundle sends it all, shown = its length; the panel 46 em wide)
             float pw = Mathf.Min(46 * Em, W - 32);
-            float padL = 6.3f * Em, padR = 1.3f * Em, padT = 1.65f * Em, padB = 0.85f * Em, cw = pw - padL - padR;
+            float padL = 6.3f * Em, padR = 1.3f * Em, padT = 1.95f * Em, padB = 0.85f * Em, cw = pw - padL - padR;
             var body = Ui.Rich(shown) + (done ? "" : "<color=#2b211f99>▍</color>");
             Ui.Set(dlgText, body, cw);
             float textH = Mathf.Max(Body * 2.9f, Ui.Measure(dlgText, Ui.Rich(text), cw).y);
@@ -255,7 +256,7 @@ namespace Hiraeth.Bridge
             Show(dlgMore, d.Get("more") is bool m && m);
             dlgMore.rectTransform.anchoredPosition = new Vector2(-1.4f * Em, 0.7f * Em + 3 * (0.5f - 0.5f * Mathf.Cos(Time.unscaledTime * Mathf.PI * 2)));
             Ui.Place(chip, 0.8f * Em, -2.1f * Em, ChipD, ChipD);
-            var name = d.S("name") ?? ""; var title = d.S("title") ?? "";
+            var name = d.S("name") ?? "";
             // their portrait when the engine drew one (engine:portrait:n), on its backdrop; else their initial on their colour
             RenderTexture photo = null;
             var ps = d.S("portrait") ?? "";
@@ -267,12 +268,10 @@ namespace Hiraeth.Bridge
             Show(chipLetter, !photo);
             chipLetter.text = name.Length > 0 ? name.Substring(0, 1) : "?";
             var ns = Ui.Set(dlgName, Ui.Upper(name));
-            var tt = Ui.Set(dlgTitle, title);
-            Show(dlgTitle, title.Length > 0);
-            float tw = Mathf.Min(pw - 7 * Em, 18 + ns.x + (title.Length == 0 ? 0 : 15 + tt.x) + 18), th = 42;
-            Ui.Place(dlgName.rectTransform, 18, 6, ns.x, 30);
-            Ui.Place(dlgTitle.rectTransform, 18 + ns.x + 15, 11, Mathf.Max(0, tw - ns.x - 51), 23);
-            Ui.Place(dlgTag.rt, 5.9f * Em, -th * 0.6f, tw, th);
+            Show(dlgTitle, false);
+            float tw = Mathf.Min(pw - padL - padR, ns.x), th = 30;
+            Ui.Place(dlgName.rectTransform, 0, 0, tw, th);
+            Ui.Place(dlgTag.rt, padL, 0.4f * Em, tw, th);
         }
     }
 }
