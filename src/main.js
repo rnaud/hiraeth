@@ -107,7 +107,7 @@ import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
-import { Foes, lockViewAngle } from './foes.js';
+import { Foes, lockViewAngle, lockTurn } from './foes.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
@@ -1070,7 +1070,7 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
 // just before a blow lands, a perfect dodge: the flurry, the world slowed round you a few seconds (src/flurry.js)
 const flurryFx = new FlurryFx();
 let flurryAgainAt = 0, flurryChain = null;
-const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
+const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
 const LOCK_NEAR = [1.2, 2.8];   // m: the locked foe this near (flat), the lock camera turns after it less, not at all under the first
 function startFlurry() {
   const now = performance.now() / 1000;
@@ -2292,6 +2292,7 @@ function frame(ts) {
   player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
   if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
   if (!foes.lock) { lockView.foe = null; lockView.angle = 0; }
+  if (!foes.lock || busy() || photo.on) lockView.vel = 0;
   if (foes.lock && !busy() && !photo.on) {
     const f = foes.lock, F = player.frame;
     // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
@@ -2319,7 +2320,10 @@ function frame(ts) {
     // (a foe right at his feet, stepped into: the line to it swings about wildly, so the camera turns after it less the
     // nearer it is, and not at all within LOCK_NEAR[0]; v1.49, the closer camera showed it: the camera QC's arena-lock)
     const near = aim ? 1 : THREE.MathUtils.smoothstep(Math.hypot(dx, dz), LOCK_NEAR[0], LOCK_NEAR[1]);
-    rig.yaw += da * (1 - Math.exp(-(aim ? LOCK_AIM.rate : 6 * near) * realDt));
+    // (its turn's speed eased too, src/foes.js LOCK_TURN, issue #236: the line flipping as he walks past a foe no longer
+    // starts and stops the camera at once)
+    if (aim) { rig.yaw += da * (1 - Math.exp(-LOCK_AIM.rate * realDt)); lockView.vel = 0; }
+    else { lockView.vel = lockTurn(da, lockView.vel, 6 * near, realDt); rig.yaw += lockView.vel * realDt; }
     if (aim) rig.pitch += (aim.pitch - rig.pitch) * (1 - Math.exp(-LOCK_AIM.rate * realDt));
   }
   // levels with zones (the Hangar) switch ink style as you cross between them

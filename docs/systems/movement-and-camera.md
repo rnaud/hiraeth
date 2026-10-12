@@ -72,6 +72,29 @@ steeper; on the bike well back and lower, the rider small. Measured in the runni
   (arena-lock 4.3 % before, 3.6 % now; the lizard 0 %). Stepping into a locked foe (within `LOCK_NEAR`, 1.2–2.8 m,
   main.js) the camera turns after it less, and not at all within 1.2 m: the line to a foe at your feet swings about,
   and the closer camera showed it (arena-lock's jumps; it is green now, red on roughness before).
+- **The lock camera's turn, eased** (issue #236, from the v1.59 game audit: arena-lock red on roughness 1.79 cm, the
+  blot hidden 7.5 %). Two causes, both in the lock, none in #195's or #234's close camera (the Arena is open: its arm is
+  4.8 m throughout). Walking into a blot and past it, the line to it flips behind him in a third of a second and the
+  camera eased straight at the line (6/s), so its turn started and stopped at once: up to 17 cm a frame at the 4.8 m
+  arm. Now the turn's speed is eased (`LOCK_TURN`, `lockTurn` in src/foes.js: it changes by at most 9 rad/s a second,
+  is at most 3.2 rad/s and brakes to stop on the line; circling, it trails the line by the same 1/6 s as before). And a
+  blot chasing him 2.5–3 m off as he backs away stood behind his body: the swing off the line (`LOCK_VIEW`) was capped
+  at 0.5 rad and faded out from 3 m, where clearing it takes about 0.65. Now `max` 0.7 and `near` 1.2–2.6 m (the
+  camera QC judges the foe hidden from 2.5 m). The full camera QC (Medium), before → after:
+
+  | scenario | roughness (cm) | foe hidden | jumps |
+  |---|---|---|---|
+  | arena-lock | 1.62 → 1.24 (red → green) | 6.0 → 1.4 % | 0 → 1 |
+  | arena-lock-lizard | 0.53 → 0.30 | 0 → 0 % | 1 → 0 |
+  | ante-lock (new) | 1.54 → 1.29 | 9.9 → 3.4 % | 2 → 1 |
+  | guardian-lock (new) | 0.48 → 0.35 | 1.0 → 0 % | 0 → 0 |
+
+  Every other scenario as before (the train, the market's street and the City-Shaft's pillar green; desert-open and
+  desert-shop red as before). The two new scenarios lock on in the Undertower (the Signal Market's temple): an ink blot
+  held still in the middle of its antechamber, and the First Sign awake in its hall, its blows held. Both stay red on
+  **out** (the traveller off the screen 45 % and 23 % of the time): locked on with his back to a wall, the lock holds the
+  yaw (the stick's sideways push switches the lock instead of turning the camera), so the arm is crushed to 0.1–0.4 m
+  behind him and the short arm's tip leaves him out of the frame. That is the next lock camera work (its issue).
 - The camera QC (browser, Medium) after the change: the train, the Signal Market, the City-Shaft's pillar and the two
   locks green, the open framing 30–33 % wherever it is judged; train-run 2 one-frame spins at a sleeping car's door at a
   run (the node walk finds the same door spots before and after: 11 events before, 9 now); desert-open and desert-shop

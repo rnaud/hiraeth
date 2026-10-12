@@ -661,10 +661,13 @@ The count is said every 5 ink.
   the line from the traveller to the foe, the camera set a blot, a lizard or a toad 6-9 m off right behind his back, its
   tell hidden. Now the camera swings round him off that line, on the side it was already on when the lock began, by the
   least angle that sets the foe's centre clear of his body on the screen (his half-width `body` 0.42 m at the arm's
-  length, the foe's radius, `margin`), at most `max` 0.5 rad, eased at 3/s: about 21° at 6 m, 17° at 9 m, 14° at 14 m.
+  length, the foe's radius, `margin`), at most `max` 0.7 rad (0.5 until issue #236: a blot 2.5–3 m off needs 0.65), eased at 4/s: about 21° at 6 m, 17° at 9 m, 14° at 14 m.
   A foe whose chest stands over `tall` (1.5–2.6 m: the brute, the bell, a jelly, a ray in the air, a guardian) needs
   none. The camera QC's `arena-lock` and `arena-lock-lizard` measure it (`foe hidden`: the frames where his body covers
   half the foe's screen box).
+- **The lock's turn** (issue #236, `LOCK_TURN`, `lockTurn`): the camera turns after the line with its speed eased (at
+  most 9 rad/s more a second, 3.2 rad/s at most, braking to stop on it), so the line flipping as you walk past a foe no
+  longer starts and stops the view at once (docs/systems/movement-and-camera.md, "The lock camera's turn, eased").
 - **Aiming locked on** (v1.41, the author: "gun aim stays on the locked target when aiming with L2 while locked on";
   `src/fluid-tool.js` `LOCK_AIM`, `lockAim`): aiming (the tool's `k` and `camK` up), main.js turns the rig's yaw *and*
   pitch so the camera, from where it stands over the shoulder, looks at the foe's chest (at `LOCK_AIM.rate` 14/s); before,

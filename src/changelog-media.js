@@ -740,6 +740,14 @@ const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this bra
 const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by Marrow) against this branch’s own Vite (port 5791): a conversation open, each picture the game’s own view of the one speaking from in front; before: ?gestures=0 (the talking idle alone), 6 moments of a line; after: a moment of each of six gestures (a wave, surprise, yelling, sad, thinking, thanks); 12 October; sharp webp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.62': [
+    { match: 'Locked on, the camera no longer whips round when you walk past the foe', numbers: [
+      { title: 'The camera QC’s arena-lock (locked on to an ink blot: circling it, stepping in and back): the camera’s roughness, its kinks’ root mean square (green under 1.5)', unit: 'cm', better: 'lower', device: 'headless Chrome (muted), Medium, the Arena, .claude/skills/camera-qc/run.mjs (seed 1)',
+        rows: [{ where: 'the whole run', before: 1.62, after: 1.24 }, { where: 'walking into the blot and past it', before: 3.58, after: 2.09 }],
+        source: 'the full camera QC against the tree before (e7c21f7d) and this branch, 12 October; the walk past it from the samples’ third segment (scripts/camera-qc/lib.mjs steps)' },
+      { title: 'The same run: the locked blot hidden behind the traveller (his body over half its box on the screen)', unit: '% of the locked frames', better: 'lower', device: 'headless Chrome (muted), Medium, the Arena, .claude/skills/camera-qc/run.mjs (seed 1)',
+        rows: [{ where: 'arena-lock', before: 6.0, after: 1.4 }],
+        source: 'the full camera QC against the tree before (e7c21f7d) and this branch, 12 October (the v1.59 game audit measured 7.5)' }],
+      see: 'In the Arena, lock on to an ink blot (R3 / Tab) and walk straight past it, then back away as it follows you.' },
     { match: 'The traveller has a new face and tousled hair', shots: [
       { name: 'traveller-ink-bust', title: 'The traveller’s face and scarf', caption: 'The original head beside the accepted portrait head, with grey hair strokes and fine collar and scarf lines.', from: 'Issue #198: muted headless Chrome, High, 1280 × 720. Before: e7c21f7d’s face shader and no cloth mask. After: integrated head-v3 and cloth ink. Matched studio bust settings, fixed gaze, no blink, paused idle and zero wind; separate boots.' },
       { name: 'traveller-ink-lula', title: 'Talking with Lula', caption: 'The new head and shirt lines in the Desert’s conversation view.', from: 'Issue #198: muted headless Chrome, High, 1280 × 720, 10:00 and clear weather. Before: original head and clothing ink. After: head-v3 and new cloth lines. Same Lula conversation setup in separate boots, with the game’s own dialogue camera pinned after settling; small pose differences remain.' },

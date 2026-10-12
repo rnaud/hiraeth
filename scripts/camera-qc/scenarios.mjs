@@ -47,6 +47,30 @@ export const SCENARIOS = [
     segs: [{ for: 24, path: 'shop', steer: 100 }, { for: 3, turn: 100 }] },
   { name: 'bazaar-streets', world: 'bazaar', about: 'the Signal Market’s streets from the landing: wandering between the stalls with the camera after the way',
     segs: [{ for: 30, wander: true, heading: Math.PI, steer: 90 }] },
+  // ---------------------------------------------------------------- locked on in a temple (issue #236): the Signal Market's
+  // temple, its antechamber (ANTE, 8.8 x 7.4 m, issue #195: the close arm fitted to the room) and the First Sign's Hall
+  // (a guardian 20 m across, tall: no swing off the line). The hall's axis from the ante's stone: src/temples/bazaar.js.
+  { name: 'ante-lock', world: 'bazaar', about: 'in the Signal Market temple’s antechamber, locked on to an ink blot in its middle: half round it at a walk each way, a step in and back between the walls',
+    setup: `const rt = (level.temples ?? []).find((t) => t.guardian && t.marks.some((m) => m.room === 'ante')); if (rt) {
+      const V = THREE.Vector3, K = rt.kit, o = K.world(0, 0, 0), ax = K.world(0, 0, 1).sub(o).normalize(), sx = K.world(1, 0, 0).sub(o).normalize();
+      const m = rt.marks.find((q) => q.room === 'ante'), mid = m.pos.clone().addScaledVector(sx, -(${4.4 - 1}));   // (the room's middle: its stone is half - 1 off it)
+      foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x)); foes.waveRest = 1e9; player.health = 1;
+      window.__cqHeal ??= setInterval(() => { if (window.player) player.health = 1; }, 200);
+      player.teleport(mid.clone().addScaledVector(ax, -2.6).add(new V(0, 0.1, 0)), new V(0, 1, 0), ax.clone());
+      rig.yaw = Math.atan2(-ax.x, -ax.z);
+      const f = foes.add('blot', mid.clone()); f.update = () => []; f.state = 'chase'; }`, settle: 3,
+    // (the blot held still in the room's middle, as the lizard: a bite's knock-down is not the camera's to judge)
+    segs: [{ for: 1, lock: true }, { for: 3, stick: [0.6, 0] }, { for: 1, stick: [0, 0.5] }, { for: 1, stick: [0, -0.5] }, { for: 4, stick: [-0.6, 0] }] },
+  { name: 'guardian-lock', world: 'bazaar', about: 'in the First Sign’s Hall, locked on to the guardian awake: circling it each way, stepping back and in',
+    setup: `const rt = (level.temples ?? []).find((t) => t.guardian && t.marks.some((m) => m.room === 'ante')); if (rt) {
+      const V = THREE.Vector3, G = rt.guardian, A = G.arena, K = rt.kit, o = K.world(0, 0, 0), ax = K.world(0, 0, 1).sub(o).normalize();
+      foes.list.slice().forEach((x) => foes.remove(x)); player.health = 1;
+      window.__cqHeal ??= setInterval(() => { if (window.player) player.health = 1; }, 200);
+      player.teleport(A.center.clone().addScaledVector(ax, -(A.r - 5)).setY(A.y + 0.1), new V(0, 1, 0), ax.clone());
+      rig.yaw = Math.atan2(-ax.x, -ax.z);
+      // (awake and turning to face him, its blows held: a knock-down is not the camera's to judge)
+      if (G.state === 'sleep') G.wake(); G.enter('fight'); G.fight = (dt) => { G.face(dt, player.pos, 1); return 0; }; }`, settle: 4,
+    segs: [{ for: 1, lock: true }, { for: 8, stick: [1, 0] }, { for: 2, stick: [0, -1] }, { for: 8, stick: [-1, 0.2], run: true }, { for: 2, stick: [0, 1] }] },
   // ---------------------------------------------------------------- rising air (src/updraft.js): the City-Shaft's halfway air pillar
   { name: 'incal-pillar', world: 'incal', about: 'riding the City-Shaft’s halfway air pillar on the wings: straight up past the terraces, the camera turned while rising, then steered out of it',
     flags: { 'item.backpack': true, 'item.glider': true }, at: [-53.3, -60, 179.2], yaw: 5.0, settle: 2,

@@ -9,7 +9,7 @@ import { GameState } from '../src/game-state.js';
 import { items } from '../src/items.js';
 import { clearTargets } from '../src/targets.js';
 import { traveller, course } from './gait-sim.js';
-import { LOCK_VIEW, lockViewAngle } from '../src/foes.js';
+import { LOCK_VIEW, lockViewAngle, LOCK_TURN, lockTurn } from '../src/foes.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const F = { up: v(0, 1, 0), fwd: v(0, 0, 1), right: v(-1, 0, 0) };
@@ -64,4 +64,25 @@ test('the lock camera swings a small foe out from behind the traveller (combat-v
   assert.equal(lockViewAngle(6, 5, 1.2, 3), 0);
   assert.equal(lockViewAngle(0, 5), 0);
   assert.equal(lockViewAngle(1.2, 5, 0.6, 0.55), 0, 'in the cut\'s reach: none (they overlap from anywhere behind him)');
+});
+
+test('the lock camera\'s turn eases its speed and stops on the line (issue #236)', () => {
+  // the line flips half round (walking past a foe): the speed rises by at most acc a second, never past max, and the
+  // camera comes to rest on the line without passing it
+  const dt = 1 / 60;
+  let yaw = 0, vel = 0, peak = 0, past = 0, kink = 0;
+  for (let i = 0; i < 300; i++) {
+    const v2 = lockTurn(Math.PI - yaw, vel, 6, dt);
+    kink = Math.max(kink, Math.abs(v2 - vel) / dt); vel = v2; yaw += vel * dt;
+    peak = Math.max(peak, Math.abs(vel)); past = Math.max(past, yaw - Math.PI);
+  }
+  assert.ok(kink <= LOCK_TURN.acc + 1e-6, `its speed changes ${kink.toFixed(1)} rad/s a second`);
+  assert.ok(peak <= LOCK_TURN.max + 1e-6, `at most ${peak.toFixed(2)} rad/s`);
+  assert.ok(past < 0.05, `passes the line by ${past.toFixed(3)} rad`);
+  assert.ok(Math.abs(Math.PI - yaw) < 0.01 && Math.abs(vel) < 0.05, 'settles on it');
+  // circling a foe, the line turning steadily: it trails it by about what the old ease did (1 / 6 s of the turn)
+  yaw = 0; vel = 0; let line = 0;
+  for (let i = 0; i < 300; i++) { line += 1.2 * dt; vel = lockTurn(line - yaw, vel, 6, dt); yaw += vel * dt; }
+  assert.ok(Math.abs((line - yaw) - 1.2 / 6) < 0.035, `trails by ${(line - yaw).toFixed(3)} rad`);
+  assert.equal(lockTurn(1, 0.5, 6, 0), 0.5, 'no time, no change');
 });

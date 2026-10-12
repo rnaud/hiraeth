@@ -129,7 +129,7 @@ export const LOCK = { reach: 18, lose: 26 };
  * nor one in the cut's reach (under `near`): there the two overlap from any camera behind him, and the swing would only
  * churn the view as it dodges round him.
  */
-export const LOCK_VIEW = { body: 0.42, margin: 0.06, max: 0.5, tall: [1.5, 2.6], near: [1.5, 3] };
+export const LOCK_VIEW = { body: 0.42, margin: 0.06, max: 0.7, tall: [1.5, 2.6], near: [1.2, 2.6] };
 /** The angle (rad, ≥ 0) the lock camera swings off the line, for a foe `d` m away, `r` its radius, `h` its chest's height (pure: tests). */
 export function lockViewAngle(d, arm, r = 0.6, h = 1, V = LOCK_VIEW) {
   if (!(d > 0.1) || !(arm > 0.1)) return 0;
@@ -140,6 +140,21 @@ export function lockViewAngle(d, arm, r = 0.6, h = 1, V = LOCK_VIEW) {
   const k = (t * arm) / (d * Math.sqrt(1 + t * t));
   const theta = k >= 1 ? V.max : need + Math.asin(k);
   return Math.min(V.max, theta) * small;
+}
+/**
+ * The lock camera's turn after the line (issue #236): it eased straight at the line (6/s), so when the line swung fast
+ * (walking past a foe, the line flips behind him in a third of a second) the camera's turn started and stopped at once,
+ * a kink of up to 17 cm a frame at the 4.8 m arm (the camera QC's arena-lock red on roughness). Now the turn's speed
+ * changes by at most `acc` rad/s a second, is at most `max` rad/s, and brakes in time to stop on the line.
+ */
+export const LOCK_TURN = { acc: 9, max: 3.2 };
+/** The lock camera's yaw speed (rad/s) after a frame: `da` the turn left to the line, `vel` the speed now, `rate` /s the ease (pure: tests). */
+export function lockTurn(da, vel, rate, dt, T = LOCK_TURN) {
+  if (!(dt > 0)) return vel;
+  const cap = Math.min(T.max, Math.sqrt(2 * T.acc * Math.abs(da)));   // (the speed it can still stop from by the line)
+  const want = Math.max(-cap, Math.min(cap, da * rate));
+  const dv = Math.max(-T.acc * dt, Math.min(T.acc * dt, want - vel));
+  return vel + dv;
 }
 /**
  * Switching the lock with a flick (v0.97): while locked, the look's sideways motion (the right stick, the mouse, a

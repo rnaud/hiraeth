@@ -26,7 +26,7 @@ PORT (default 5361; **never 5173**, the author's own server); Chrome picks its o
 the profile's `DevToolsActivePort`). `--seed` (default 1) seeds the `wander` turns, so a run repeats. VITE_CACHE a dependency cache inside the
 checkout when the temporary one can't resolve the packages (a worktree whose node_modules is a link). One muted headless Chrome
 (`--mute-audio`, the game's volumes at 0) and one Vite server with its own dependency cache, both closed at the end;
-worlds one after another with a rest between. A full run (13 scenarios, 5 worlds) takes about 8 minutes.
+worlds one after another with a rest between. A full run (15 scenarios, 5 worlds) takes about 8 minutes.
 
 It writes `camera.json` (every scenario's measures, events and verdict), `camera.md` (the table), `<scenario>.png` (the
 worst frames, captioned with what happened and how much: the arm's change, the move off the camera's path, the look
@@ -55,6 +55,8 @@ the real player's physics, frame times and crowd differ.
 | desert-open | desert | running across the sand: turns, jumps, a fast spin of the camera |
 | desert-shop | desert | inside Qanat's shop: wandering against its walls and counter |
 | bazaar-streets | bazaar | wandering the market's street with the camera after the way |
+| ante-lock | bazaar | in the Undertower's antechamber (8.8 × 7.4 m), locked on to an ink blot held in its middle: half round it each way, a step in and back |
+| guardian-lock | bazaar | in the First Sign's Hall, locked on to the guardian awake (its blows held): circling it, backing to the wall, running round it |
 | arena-lock | arena | locked on to an ink blot: circling, stepping in and back |
 | arena-lock-lizard | arena | locked on to a horn lizard: standing, stepping back, circling it |
 | incal-pillar | incal | riding the City-Shaft's halfway air pillar on the wings (`hold`: jump held): straight up past the terraces, the camera turned while rising, then steered out |
