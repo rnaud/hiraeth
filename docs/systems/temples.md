@@ -214,6 +214,16 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   stone is out of the throat on the high balcony (`tail`: `not` on `drumOn`, a state that changes back), and the
   column beside the perch once the perch's stone is out of its own (`rise`). The Roost's two vents share one stone
   (`ROOST`).
+- **The lee, and the marks read** (issue #216, the author: "If I'm behind a wall I shouldn't get pushed by the wind
+  in the Aerie. Also not sure what the device at the entrance with the maker's sign is."). The Hall of Winds' shelter
+  boxes were narrower than its screens and only 2 m deep, and behind the far wall there were none: 3 m behind a
+  screen a gust shoved you 4.5 m. A `Gust` with `lee` (m, the hall's 3.5) now also asks whether anything solid stands
+  that close upwind of you, at your chest (one ray against the wind, `Gust.lee`; the foes' working asks it too): a
+  screen, a wall, the stone. Its streaks show it: half of them low at a body's height (`floor`, `streaks` 64), and a
+  streak whose leading end is in a lee (its lane sampled every 0.5 m once, `leeLanes`) is not drawn. The "device"
+  was a `Mark`, the checkpoint glyph stone every temple has: it lit silently. Now its glyph flares as it wakes, and
+  the first one of a save says what it is (`MARK.line`, once: the `temple.markTold` flag). Tests:
+  `tests/aerie-lee.test.js`.
 - **The tower breathes through its vanes** (the Warden's Well, from the v1.19 audit; the tower was built to keep the
   shaft breathing, and the breath turned its machines). A `Vane` is one of the makers' bellows, in a floor (facing
   up) or on a wall (`wall`, `yaw`): its element (type `vane`, logic.js: held like a held bell, lit only while it

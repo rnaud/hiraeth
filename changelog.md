@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.58 — 2026-10-12
 
+- The glyph stone by each temple’s door and in its rooms holds your place: walk up to it and its glyph flares, and after a fall you come back to it. The first one you wake says so.
+- In the Aerie’s Hall of Winds anything solid between you and the wind now shelters you: a screen, the far wall, the stone. The pale streaks stop in its lee, so you can see where the wind can’t reach.
 - Climbing onto a ledge now goes the way a body does it: hands on the edge, hauled up, a knee onto the top, then up on your feet and a step in. Push on as you get up and you are up sooner.
 - A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.
 

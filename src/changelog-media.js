@@ -713,6 +713,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'Climbing onto a ledge now goes', shots: [
       { name: 'mantle-knee', caption: 'Climbing onto a 1.9 m ledge, from the side, at 0, 15, 30, 45, 60, 75, 90 and 100 % of the climb: before, up to the feet in the air over the lip and a step in standing; after, hauled up, a knee on the top, then standing', from: MV58 },
     ] },
+    { match: 'In the Aerie’s Hall of Winds anything solid', shots: [
+      { name: 'aerie-lee', caption: 'A gust down the Hall of Winds, the traveller put 3 m behind a screen: before, shoved down the hall (4.5 m in 1.2 s), streaks through the screen’s lee; after, he stands in the lee, and no streaks there', from: MV58 },
+    ], see: 'In the Aerie’s Hall of Winds, stand a few steps behind a screen (or by the far wall, off the doorway) while a gust blows: it does not move you, and the streaks pass beside you.' },
+    { match: 'The glyph stone by each temple’s door', see: 'In any temple, walk up to the glyph stone by the entrance: its glyph flares and stays lit, and the first time a line says what it is. Fall into a pit and you come back to it.' },
   ],
   '1.57': [
     { match: 'The hoverbike shows under you again', shots: [

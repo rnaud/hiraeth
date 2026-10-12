@@ -1407,8 +1407,13 @@ export class Updraft {
  * when (a condition: it blows only while that holds, the Aerie's vents), carry (m/s: with the wings open it carries you
  * along `dir` instead of shoving you back, a tailwind: push by default), carried (said the first time it does), guard
  * (the Rose House: the shield raised into the wind breaks it, and you walk on into it at `guardPace` m/s), guarded
- * (said the first time) }
+ * (said the first time), streaks (how many: 36), lee (m: anything solid this close upwind of you, at your chest, keeps the wind off: a wall, a
+ * screen, the stone; and the streaks stop in its lee, so you can see where it does. Issue #216, the Aerie's hall: the
+ * shelter boxes were narrower and shallower than the screens' shadow, and behind the far wall there were none) }
  */
+const _gl = new THREE.Vector3(), _gd = new THREE.Vector3();
+/** Gust.lee: the height (m) of a body's chest over its feet, for the ray upwind. */
+export const LEE = { chest: 1.1 };
 export class Gust {
   constructor(rt, o) {
     this.rt = rt; this.o = o;
@@ -1429,10 +1434,12 @@ export class Gust {
     this.root = new THREE.Group();
     this.root.position.copy(K.world(0, 0, 0)); this.root.rotation.y = K.yaw;
     rt.root.add(this.root);
-    for (let i = 0; i < 36; i++) {
+    for (let i = 0; i < (o.streaks ?? 36); i++) {
       const m = new THREE.Mesh(g, this.mat);
       this.root.add(m);
-      this.streaks.push({ m, x: this.box.min.x + rnd() * size.x, y: this.box.min.y + 0.4 + rnd() * Math.min(size.y, 8), u: rnd(), v: 0.8 + rnd() * 0.6 });
+      // (with a lee, half of them low, at a body's height over the floor, where the lee is read)
+      const y = o.lee && i % 2 ? (o.floor ?? 0) + 0.3 + rnd() * 1.9 : this.box.min.y + 0.4 + rnd() * Math.min(size.y, 8);
+      this.streaks.push({ m, x: this.box.min.x + rnd() * size.x, y, u: rnd(), v: 0.8 + rnd() * 0.6 });
     }
     noCollide(this.root);
     this.size = size;
@@ -1440,8 +1447,34 @@ export class Gust {
     this.working = { kind: 'gust', dir: this.dirW, push: this.push,
       contains: (p) => this.box.containsPoint(rt.kit.local(p)),
       blowing: () => this.state === 1,
-      sheltered: (p) => this.sheltered(rt.kit.local(p)) || screened(p, this.dirW) };
+      sheltered: (p) => this.sheltered(rt.kit.local(p)) || screened(p, this.dirW) || this.lee(p) };
     this.offWorking = registerWorking(this.working);
+  }
+  /** Is something solid within o.lee m upwind of a body standing at p (world), at its chest? (false without a lee) */
+  lee(p, chest = LEE.chest) {
+    const ph = this.rt.physics, reach = this.o.lee;
+    if (!reach || !ph?.rayDistance) return false;
+    return ph.rayDistance(_gl.copy(p).addScaledVector(UP, chest), _gd.copy(this.dirW).negate(), reach) < reach;
+  }
+  /**
+   * The streaks' lee, once (the walls are still): for each streak's lane, which stretches of it lie in the lee (at its own
+   * height), sampled every `step` m along the hall; a streak there is not drawn, so the lee shows. Null without a lee.
+   */
+  leeLanes(step = 0.5) {
+    if (this._lanes !== undefined) return this._lanes;
+    if (!this.o.lee || !this.rt.physics?.rayDistance) return null;
+    const alongX = Math.abs(this.dirL.x) > Math.abs(this.dirL.z), lo = alongX ? this.box.min.x : this.box.min.z, hi = alongX ? this.box.max.x : this.box.max.z;
+    const K = this.rt.kit, n = Math.max(1, Math.ceil((hi - lo) / step));
+    this._lanes = this.streaks.map((s) => {
+      const across = alongX ? this.box.min.z + ((s.x - this.box.min.x) / Math.max(1e-3, this.size.x)) * this.size.z : s.x;
+      const lane = new Uint8Array(n + 1);
+      for (let i = 0; i <= n; i++) {
+        const w = lo + (i / n) * (hi - lo);
+        lane[i] = this.lee(alongX ? K.world(w, s.y, across) : K.world(across, s.y, w), 0) ? 1 : 0;
+      }
+      return { lane, lo, hi, n };
+    });
+    return this._lanes;
   }
   dispose() { this.offWorking?.(); }
   /** Does it blow at all now (its `when` holds)? */
@@ -1463,18 +1496,20 @@ export class Gust {
     // the streaks: along the hall, from its far end to its near (a hall along x: across it, its width in z)
     const alongX = Math.abs(this.dirL.x) > Math.abs(this.dirL.z), len = alongX ? this.size.x : this.size.z;
     const d = alongX ? this.dirL.x : this.dirL.z, lo = alongX ? this.box.min.x : this.box.min.z, hi = alongX ? this.box.max.x : this.box.max.z;
-    for (const s of this.streaks) {
+    const P = this.rt.player, lanes = st > 0 && P && this.box.containsPoint(this.rt.kit.local(P.pos)) ? this.leeLanes() : this._lanes;
+    this.streaks.forEach((s, i) => {
       s.u = (s.u + dt * (st === 1 ? 0.9 : 0.3) * s.v) % 1;
       const w = d < 0 ? hi - s.u * len : lo + s.u * len;
       if (alongX) { s.m.position.set(w, s.y, this.box.min.z + ((s.x - this.box.min.x) / Math.max(1e-3, this.size.x)) * this.size.z); s.m.rotation.y = Math.PI / 2; }
       else s.m.position.set(s.x, s.y, w);
-      s.m.visible = st > 0 && !(st === 0.5 && s.v > 1.1);
-    }
+      // (in a wall's lee it stops: the streak's leading end there)
+      const L = lanes?.[i], calm = L ? L.lane[Math.round(((w + d * 1.6 - L.lo) / (L.hi - L.lo)) * L.n)] === 1 : false;
+      s.m.visible = st > 0 && !(st === 0.5 && s.v > 1.1) && !calm;
+    });
     this.mat.uniforms.uGlow.value = st === 1 ? 0.6 : 0.35;
-    const P = this.rt.player;
     if (!P || P.dead || st < 1) return;
     const l = this.rt.kit.local(P.pos);
-    if (!this.box.containsPoint(l) || this.sheltered(l) || screened(P.pos, this.dirW)) return;   // (or behind a wall drawn in ink: src/wind-screens.js)
+    if (!this.box.containsPoint(l) || this.sheltered(l) || screened(P.pos, this.dirW) || this.lee(P.pos)) return;   // (or behind a wall drawn in ink: src/wind-screens.js; or in a wall's lee)
     // the shield raised into it (o.guard, the Rose House): it breaks the wind, and you walk on into it, slowly
     if (this.o.guard && P.guarding?.() && this.facing(P.guardDir?.())) {
       const into = P.vel.x * -this.dirW.x + P.vel.z * -this.dirW.z, pace = this.o.guardPace ?? 2.2;
@@ -2527,6 +2562,8 @@ export class Coffer {
   dispose() { this.off?.(); }
 }
 
+/** A mark's waking: its glyph flares for `flare` s; the first mark of all says what it is (once a save: the `told` flag). */
+export const MARK = { flare: 0.9, told: 'temple.markTold', line: 'The glyph stone wakes: it holds your place. Fall, and you come back to it.' };
 export class Mark {
   /** A checkpoint: a glyph stone. o: { room, at, yaw } */
   constructor(rt, o) {
@@ -2554,9 +2591,16 @@ export class Mark {
   }
   update(dt, t) {
     const p = this.rt.player;
-    if (p && p.onGround && p.pos.distanceTo(this.pos) < 4 && this.rt.checkpoint?.room !== this.room && this.inReach(p)) this.rt.setCheckpoint(this);
+    if (p && p.onGround && p.pos.distanceTo(this.pos) < 4 && this.rt.checkpoint?.room !== this.room && this.inReach(p)) {
+      this.rt.setCheckpoint(this);
+      // (it wakes with a flare of its glyph, and the first one says what it is: issue #216, a stone nobody could read)
+      this.flare = 1;
+      const G = this.rt.game;
+      if (G && !G.flag?.(MARK.told)) { G.set?.(MARK.told, true); this.rt.notice?.(MARK.line); }
+    }
+    this.flare = Math.max(0, (this.flare ?? 0) - dt / MARK.flare);
     const on = this.rt.checkpoint === this;
-    this.glow.uniforms.uGlow.value = on ? 0.75 + 0.2 * Math.sin(t * 2) : 0.12;
+    this.glow.uniforms.uGlow.value = (on ? 0.75 + 0.2 * Math.sin(t * 2) : 0.12) + 1.2 * this.flare * this.flare;
   }
 }
 
