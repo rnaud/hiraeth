@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.53 — 2026-10-12
 
+- On the window recording your father is no longer a bust: the ship’s log shows him whole, small over the projector in his long coat, walking across to the window, standing there looking up and out while he speaks, and walking back, his coat swinging with his stride.
 - When the tree drinks, the water comes back to the desert: the salt pan past the camps fills into a shallow mirror lake the procession walks through, and water glints in the old wells.
 - Old boats lie stranded on their sides in the dry wash, its banks pale with the river’s old tide lines.
 - A line of old qanat wells runs from the giant’s hand toward Qanat, each with a little windcatcher. Listen at one: the water under the sand sounds nearer at every well.

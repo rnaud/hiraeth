@@ -6,6 +6,7 @@ import { namedLook } from '../costumes.js';
 import { FAMILY, FAMILY_LOOKS } from '../characters/family.js';
 import { MODE_OUTFIT, MODE_EYE } from '../materials.js';
 import { loadFatherV1, createFatherV1, applyFatherGaze, FATHER_FACE } from '../characters/father-v1.js';
+import { loadFatherFull, createFatherFull } from '../characters/father-full.js';
 
 // The recordings' hologram (src/story/calls.js): the parents, as they were when
 // they made them, projected as busts over the lens of the projector on the dash
@@ -28,9 +29,14 @@ import { loadFatherV1, createFatherV1, applyFatherGaze, FATHER_FACE } from '../c
 // still hide it; then lays it over the frame, slightly translucent, with a soft
 // bloom of its own colours.
 //
+// The window recording (src/story/calls.js WINDOW, issue #26) is the ship's log of him, not a message: the father
+// whole, small on the lens, walking to the window in his long coat (src/characters/father-full.js), standing there
+// looking up and out while he speaks, walking back (FatherPace).
+//
 //   const holo = new Hologram({ lib, humans });       // lib: loadAnimationLibrary(), humans: [m, f] templates
 //   holo.show({ parent: model.group, at, scale, who: 'both', face: () => travellerHead, lens: 0.16 })
-//                                                     // who: 'father' | 'mother' | 'both' | 'three'
+//                                                     // who: 'father' | 'mother' | 'both' | 'three' | 'window'
+//   holo.prepare('window')                            // load the whole father ahead (show falls back to the bust)
 //   holo.speak('father')                              // who is talking (null: nobody)
 //   holo.glitch(1)                                    // tear it up (the power going)
 //   holo.hide()                                       // folds away over HOLO_FOLD seconds
@@ -45,6 +51,12 @@ export const HOLO_RISE = 0.9, HOLO_FOLD = 0.7;
  * `bottom`, and stands `lift` (picture units) above the lens. `head`: the top of the head, with hair.
  */
 export const BUST = { m: { bottom: 1.16, top: 1.33, head: 1.9 }, f: { bottom: 1.13, top: 1.29, head: 1.86 }, lift: 0.05 };
+/**
+ * The whole father on the window recording: his size on the picture (his face about where the busts' are), and
+ * his walk across the lens (picture units: from, to the window; his own pace in m/s; the seconds he stands at each
+ * end; how far he turns from the traveller at the window, and looks up; how fast he turns, rad/s).
+ */
+export const WINDOW_WALK = { scale: 0.33, from: [-0.14, 0.03], to: [0.14, -0.03], speed: 0.7, stand: [2.6, 6], away: 1.15, up: -0.26, turn: 3 };
 
 /** The layer drawn after the composite: its scene and the uniforms main.js keeps up to date. */
 export const HOLO = {
@@ -452,6 +464,7 @@ export function mouthOpen(t, talking) {
 export function holoLayout(who) {
   if (who === 'three') return [{ id: 'father', x: -0.36, y: BUST.lift, yaw: 0.12 }, { id: 'child', x: 0.02, y: BUST.lift + 0.06, z: 0.16, yaw: 0 }, { id: 'mother', x: 0.36, y: BUST.lift, yaw: -0.12 }];
   if (who === 'both') return [{ id: 'father', x: -0.27, y: BUST.lift, yaw: 0.12 }, { id: 'mother', x: 0.27, y: BUST.lift, yaw: -0.12 }];
+  if (who === 'window') return [{ id: 'fatherFull', x: WINDOW_WALK.from[0], y: 0, z: WINDOW_WALK.from[1], yaw: 0, scale: WINDOW_WALK.scale, full: true }];
   return [{ id: who === 'mother' ? 'mother' : 'father', x: 0, y: BUST.lift, yaw: 0 }];
 }
 
@@ -467,6 +480,7 @@ const familyBust = (id) => {
 };
 export const PEOPLE = {
   father: familyBust('father'),
+  fatherFull: { ...familyBust('father'), full: true },
   mother: familyBust('mother'),
   child: { kind: 'm', scale: 0.56, skin: '#e6bf9e', hair: '#8a5638',
     palette: { cloak: '#4f8fa8', cloth: '#f2c54b', legs: '#34405e', hair: '#8a5638', skin: '#e6bf9e', accent: '#4f8fa8' },
@@ -475,11 +489,57 @@ export const PEOPLE = {
 
 // a small smoothed random walk (glances, sways)
 const wave = (t, s) => Math.sin(t * 1.13 + s) * 0.6 + Math.sin(t * 0.71 + s * 2.1) * 0.4;
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4(), _vel = new THREE.Vector3();
+
+/**
+ * The father's walk on the window recording (pure: no three.js objects). He stands at `from` a moment, turns and walks
+ * to `to`, the window, turns from the traveller and looks up and out, stands there, walks back, and so on.
+ * update(dt, toTraveller) with the yaw that would face the traveller there → { x, z, yaw (the body's), speed (m/s,
+ * his own), look: null | { yaw, pitch } (the head's, on the body), at: 'from' | 'to' | null (walking) }.
+ */
+export class FatherPace {
+  constructor(o = WINDOW_WALK) {
+    this.o = o;
+    this.x = o.from[0]; this.z = o.from[1];
+    this.yaw = null;
+    this.leg = 1;            // where he goes next: 1 the window, 0 back
+    this.state = 'stand';
+    this.t = o.stand[0] * 0.4;   // (he sets off soon after the picture rises)
+  }
+
+  update(dt, toTraveller = 0) {
+    const o = this.o, goal = this.leg ? o.to : o.from;
+    const dx = goal[0] - this.x, dz = goal[1] - this.z, dist = Math.hypot(dx, dz);
+    const heading = Math.atan2(dx, dz);
+    if (this.yaw === null) this.yaw = toTraveller;
+    const turnTo = (want) => {
+      let d = want - this.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+      this.yaw += Math.sign(d) * Math.min(Math.abs(d), o.turn * dt);
+      return Math.abs(d);
+    };
+    let speed = 0, look = null;
+    if (this.state === 'stand') {
+      const atWindow = !this.leg;   // (he has just come to the window: the next leg is back)
+      turnTo(atWindow ? toTraveller + o.away : toTraveller);
+      if (atWindow) look = { yaw: 0, pitch: o.up };
+      if ((this.t -= dt) <= 0) this.state = 'turn';
+    } else if (this.state === 'turn') {
+      if (turnTo(heading) < 0.3) this.state = 'walk';
+    } else {
+      turnTo(heading);
+      const step = Math.min(dist, o.speed * o.scale * dt);
+      speed = o.speed;
+      look = { yaw: 0, pitch: 0.06 };
+      if (dist > 1e-6) { this.x += dx / dist * step; this.z += dz / dist * step; }
+      if (dist - step < 1e-4) { this.state = 'stand'; this.t = o.stand[this.leg]; this.leg = 1 - this.leg; speed = 0; }
+    }
+    return { x: this.x, z: this.z, yaw: this.yaw, speed, look, at: this.state === 'walk' ? null : this.leg ? 'from' : 'to' };
+  }
+}
 
 /** One person on the hologram: a dressed body drawn in light, played by the mocap library, cut to a bust. */
 export class HoloFigure {
-  constructor(id, { lib, humans, fatherAsset = null }) {
+  constructor(id, { lib, humans, fatherAsset = null, fullAsset = null }) {
     const P = PEOPLE[id];
     this.id = id;
     this.kind = P.kind;
@@ -489,7 +549,11 @@ export class HoloFigure {
     // (their own look wherever they appear: the family's, src/characters/family.js; the child's seeded)
     const look = namedLook({ world: 'home', id: P.family ? id : `holo-${id}`, palette: P.palette, look: P.look, kind: P.kind });
     // (on MakeHuman bodies, their age's body: an elder's, as the people of their age, src/makehuman/people.js)
-    if (id === 'father' && fatherAsset) {
+    if (id === 'fatherFull') {
+      // (whole and walking: issue #26)
+      this.humanoid = createFatherFull(this.char, fullAsset);
+      this.pace = new FatherPace();
+    } else if (id === 'father' && fatherAsset) {
       this.humanoid = createFatherV1(this.char, fatherAsset);
     } else {
       let human = humans[P.kind === 'm' ? 0 : 1];
@@ -505,7 +569,8 @@ export class HoloFigure {
     if (this.animator) this.animator.phase = Math.random();
     const B = BUST[P.kind];
     this.u = figureUniforms(Math.random() * 10);
-    this.u.uCut.value.set(B.bottom, B.top);
+    if (P.full) this.u.uCut.value.set(-1, -0.5);   // (all of him: nothing falls apart into grains)
+    else this.u.uCut.value.set(B.bottom, B.top);
     const model = this.humanoid.model;
     const mats = new Map();
     this.char.root.traverse((o) => {
@@ -553,13 +618,17 @@ export class HoloFigure {
    * Pose for this frame. `face`: the traveller's head (world), whom they speak to; `other`: the
    * other one on the picture who is talking (world), if any.
    */
-  update(dt, { talking = false, face = null, other = null } = {}) {
+  update(dt, { talking = false, face = null, other = null, toTraveller = 0 } = {}) {
     this.t += dt;
     const c = this.char, a = this.animator, t = this.t;
     const generatedFather = !!this.humanoid.body.userData.father;
+    // the window recording's walk: where he is on the lens, which way he faces, how fast he goes
+    const step = this.pace ? (this.walk = this.pace.update(dt, toTraveller)) : null;
+    if (step) { this.object.position.x = step.x; this.object.position.z = step.z; this.object.rotation.set(0, step.yaw, 0); }
+    const speed = step?.speed ?? 0;
     if (a) {
       const N = a.lib.native;
-      a.update(dt, { speed: 0, onGround: true, mode: talking ? 'talk' : 'ground', walkAt: N.walk * 1.3, jogAt: N.jog, sprintAt: N.sprint * 1.2, strideScale: 1.05 });
+      a.update(dt, { speed, onGround: true, mode: talking && !speed ? 'talk' : 'ground', walkAt: N.walk * 1.3, jogAt: N.jog, sprintAt: N.sprint * 1.2, strideScale: 1.05 });
       a.apply(c.root, { legScale: 1.04 });
     }
     // where the head turns: to the traveller; to the other one now and then while they talk; a glance aside
@@ -583,6 +652,8 @@ export class HoloFigure {
       pitch = -Math.atan2(_v.y, Math.hypot(_v.x, _v.z));
     }
     if (G.until > 0 && G.target === 'aside') { yaw += G.yaw; pitch += G.pitch; }
+    // (walking he looks where he goes; at the window, up and out at the light)
+    if (step?.look) { yaw = step.look.yaw; pitch = step.look.pitch; }
     yaw = THREE.MathUtils.clamp(yaw, -0.7, 0.7);
     pitch = THREE.MathUtils.clamp(pitch, -0.3, 0.35);
     const k = 1 - Math.exp(-dt * 5);
@@ -611,6 +682,8 @@ export class HoloFigure {
     if (generatedFather) {
       applyFatherGaze(this.humanoid,this.look.yaw,this.look.pitch);
     }
+    // the coat swings with his stride (and trails a little as he goes)
+    this.humanoid.coat?.update(dt, { velocity: speed ? _vel.set(0, 0, speed) : null });
     this.u.uTalk.value = mouthOpen(this.t, talking);
     if (this.humanoid.body.userData.father) {
       const mesh=this.humanoid.body;
@@ -667,9 +740,16 @@ export class Hologram {
     for (const o of [this.beam, this.ring, this.motes]) { o.frustumCulled = false; o.renderOrder = 2; this.beamGroup.add(o); }
   }
 
+  /** Load what `who` needs ahead of show(): the whole father for the window recording (2.7 MB, only then). */
+  prepare(who) {
+    if (who !== 'window' || this.fullReady) return this.fullReady ?? null;
+    return this.fullReady = loadFatherFull(import.meta.env?.BASE_URL ?? '/').then((asset) => { this.fullAsset = asset; return asset; })
+      .catch((e) => { console.warn('Father full figure unavailable; the window recording shows his bust.', e); this.fullReady = null; return null; });
+  }
+
   figure(id) {
     if (!this.figures[id]) {
-      try { this.figures[id] = new HoloFigure(id, { lib: this.lib, humans: this.humans, fatherAsset:this.fatherAsset }); } catch (e) { console.warn('hologram figure failed', e); return null; }
+      try { this.figures[id] = new HoloFigure(id, { lib: this.lib, humans: this.humans, fatherAsset:this.fatherAsset, fullAsset: this.fullAsset }); } catch (e) { console.warn('hologram figure failed', e); return null; }
       this.root.add(this.figures[id].object);
     }
     return this.figures[id];
@@ -687,6 +767,8 @@ export class Hologram {
     this.local.compose(at.clone(), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw), new THREE.Vector3(scale, scale, scale));
     this.scale = scale;
     this.face = face;
+    // (the window recording before the whole father has loaded: his bust, as every other)
+    if (who === 'window' && !this.fullAsset) { this.prepare(who); who = 'father'; }
     this.layout = holoLayout(who);
     this.who = who;
     for (const f of Object.values(this.figures)) f.object.visible = false;
@@ -697,9 +779,17 @@ export class Hologram {
       const P = PEOPLE[L.id], B = BUST[P.kind];
       f.object.visible = true;
       // the bust's bottom edge just over the lens
-      f.object.position.set(L.x, L.y - B.bottom * P.scale, L.z ?? 0);
+      if (L.full) {
+        // the whole of him on the lens, small (his feet on it), walking from where he starts
+        f.object.scale.setScalar(P.scale * L.scale);
+        f.object.position.set(L.x, L.y, L.z ?? 0);
+        f.pace = new FatherPace();
+        this.top = Math.max(this.top, L.y + B.head * P.scale * L.scale);
+      } else {
+        f.object.position.set(L.x, L.y - B.bottom * P.scale, L.z ?? 0);
+        this.top = Math.max(this.top, L.y + (B.head - B.bottom) * P.scale);
+      }
       f.object.rotation.set(0, L.yaw, 0);
-      this.top = Math.max(this.top, L.y + (B.head - B.bottom) * P.scale);
     }
     // the beam fits the lens and reaches into the bottom of the busts
     const b = lens / 0.42 / scale;
@@ -744,7 +834,8 @@ export class Hologram {
       const f = this.figures[L.id];
       if (!f) continue;
       const yaw = Math.atan2(p.x - f.object.position.x, p.z - f.object.position.z);
-      f.object.rotation.set(0, yaw, 0);
+      f.toTraveller = yaw;
+      if (!f.pace) f.object.rotation.set(0, yaw, 0);   // (the walking father turns himself: FatherPace)
     }
   }
 
@@ -769,8 +860,8 @@ export class Hologram {
     for (const L of this.layout ?? []) {
       const f = this.figures[L.id];
       if (!f) continue;
-      const talking = this.speaker === L.id;
-      f.update(dt, { talking, face, other: talking ? null : other });
+      const talking = this.speaker === L.id || (L.id === 'fatherFull' && this.speaker === 'father');   // (the lines are his)
+      f.update(dt, { talking, face, other: talking ? null : other, toTraveller: f.toTraveller ?? 0 });
       f.u.uAlpha.value = e;
       f.u.uGlitch.value = g;
       f.u.uSpan.value.set(y0, top);

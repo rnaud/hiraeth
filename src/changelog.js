@@ -22,6 +22,8 @@ export const CHANGELOG = [
     'A line of old qanat wells runs from the giant’s hand toward Qanat, each with a little windcatcher. Listen at one: the water under the sand sounds nearer at every well.',
     'Old boats lie stranded on their sides in the dry wash, its banks pale with the river’s old tide lines.',
     'When the tree drinks, the water comes back to the desert: the salt pan past the camps fills into a shallow mirror lake the procession walks through, and water glints in the old wells.',
+    // the father whole and walking (src/characters/father-full.js, docs/systems/characters.md "The father in full"; issue #26)
+    'On the window recording your father is no longer a bust: the ship’s log shows him whole, small over the projector in his long coat, walking across to the window, standing there looking up and out while he speaks, and walking back, his coat swinging with his stride.',
   ] },
   { v: '1.52', date: '2026-10-12', items: [
     // the Unity preview on the Xbox at a steady 60 (docs/systems/xbox.md "The Unity build on the Xbox")

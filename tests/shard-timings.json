@@ -129,6 +129,7 @@
  "tests/face-ink.test.js": 2.1,
  "tests/fallenring.test.js": 2.2,
  "tests/family.test.js": 2.4,
+ "tests/father-full.test.js": 5.2,
  "tests/father-v1.test.js": 7.8,
  "tests/feel.test.js": 1,
  "tests/fellow.test.js": 21.2,

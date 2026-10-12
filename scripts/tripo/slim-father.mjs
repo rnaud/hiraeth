@@ -1,10 +1,17 @@
 // A recording-specific derivative. Keep the full generated source and rebuildable
 // rig; remove only geometry below the projection, preserving face/hand topology.
+// --full: the whole figure (issue #26: the window recording, walking; src/characters/father-full.js), the same
+// rig and geometry uncut, only the texture resized.
+//   node scripts/tripo/rig-baseline.mjs data/characters/father-v1/source.glb <tmp>/full-before.glb --father
+//   node scripts/tripo/slim-father.mjs <tmp>/full-before.glb public/characters/father-v1/model.glb
+//   node scripts/tripo/slim-father.mjs <tmp>/full-before.glb public/characters/father-v1/full.glb --full
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readGlb, writeGlb, slimGlb, makeResize } from './slim-traveller.mjs';
 export const FATHER_BUDGET = { cutY: .90, texture: 2048, maxBytes: 2_000_000, maxTriangles: 26000 };
+/** The whole figure's (--full): every triangle of the source. */
+export const FATHER_FULL_BUDGET = { texture: 2048, maxBytes: 3_200_000, maxTriangles: 50000 };
 const TYPES={5126:Float32Array,5125:Uint32Array,5123:Uint16Array,5121:Uint8Array};
 const SIZE={SCALAR:1,VEC2:2,VEC3:3,VEC4:4,MAT4:16};
 export function trimFather(buf) {
@@ -37,11 +44,19 @@ export function trimFather(buf) {
   return {bytes:writeGlb(g,Buffer.concat(chunks)),triangles:kept.length/3,vertices:used.length,sourceVertices:pos.length/3,sourceTriangles:indices.length/3};
 }
 export async function slimFather(input){const trim=trimFather(input);const bytes=await slimGlb(trim.bytes,await makeResize({maxTexture:FATHER_BUDGET.texture}));return {...trim,bytes};}
+/** The whole figure: nothing trimmed, the texture resized. */
+export async function slimFatherFull(input){
+  const {json:g}=readGlb(input),p=g.meshes[0].primitives[0];
+  const bytes=await slimGlb(input,await makeResize({maxTexture:FATHER_FULL_BUDGET.texture}));
+  const triangles=g.accessors[p.indices].count/3,vertices=g.accessors[p.attributes.POSITION].count;
+  return {bytes,triangles,vertices,sourceVertices:vertices,sourceTriangles:triangles};
+}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  const [input,output]=process.argv.slice(2);if(!input||!output)throw Error('Usage: slim-father.mjs full-rig.glb output.glb');
-  const before=readFileSync(input),result=await slimFather(before);
-  if(result.bytes.length>FATHER_BUDGET.maxBytes||result.triangles>FATHER_BUDGET.maxTriangles)throw Error('Father asset exceeds budget');
+  const full=process.argv.includes('--full'),[input,output]=process.argv.slice(2).filter(a=>a!=='--full');if(!input||!output)throw Error('Usage: slim-father.mjs full-rig.glb output.glb [--full]');
+  const before=readFileSync(input),result=await (full?slimFatherFull:slimFather)(before),B=full?FATHER_FULL_BUDGET:FATHER_BUDGET;
+  if(result.bytes.length>B.maxBytes||result.triangles>B.maxTriangles)throw Error('Father asset exceeds budget');
   writeFileSync(output,result.bytes);
+  if(full){console.log({triangles:result.triangles,vertices:result.vertices,bytes:result.bytes.length});process.exit(0);}
   const {bytes,...counts}=result;delete counts.bytes;
   const report={...counts,beforeBytes:before.length,afterBytes:bytes.length,textureSize:FATHER_BUDGET.texture,textureGpuBytesWithMipmaps:Math.round(2048*2048*4*4/3)};
   writeFileSync('data/characters/father-v1/optimization.json',JSON.stringify(report,null,2)+'\n');console.log(report);

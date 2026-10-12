@@ -701,6 +701,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'giants-arm', title: 'The arm', caption: 'Beside the dry wash, about halfway out to the Hearth: after, the giant’s arm lying across it, its shoulder sunk in the near bank, the cloths tied round it, its hand open on the far bank', from: EXPLORE52,
         view: { level: 'desert', hour: 10, fov: 60, eye: [702, 20.14, 2], target: [650, 21.53, 46], player: [705, 17.36, 0] } },
     ], see: 'Ride to the giant’s arm, line up with its shoulder where it comes out of the sand and hold RT / R2: up over the elbow and across the wash to its hand.' },
+    { match: 'On the window recording your father is no longer a bust', shots: [
+      { name: 'window-father', caption: 'The window recording on the ship’s log, 31 s in (“I stood at the window till it went”): before, his bust over the projector; after, the whole of him by the window, his coat to below the knee', from: 'headless Chrome against this branch’s own dev server and the commit before (scripts/cinematics-qc.mjs --only call.trace, 12 October)' },
+      { name: 'window-father-walk', only: 'after', caption: 'The same recording, 22 s in: walking across the lens to the window, mid-stride, the coat swung back off his knee', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs --only call.trace, 12 October)' },
+    ], see: 'After the first homecoming, play the ship’s log waiting at the cockpit’s voicemail (or Debug → Cinematics → Recording trace): the father walks to the window over the projector. Every recording after it that plays further into the window recording shows him the same way.' },
     { match: 'Viridel’s meadow flowers seen from afar', shots: [
       { name: 'ink-flowers-far', caption: 'Viridel’s meadow 55 m off at 1920 × 1080, cropped ×2: before, the tulips and clover in heavy black outlines; after, a thinner outline in a dark shade of their own green and pink (the flowers 40 → 27 % ink, 12 → 6 % near-black)', from: INK53 },
       { name: 'ink-flowers-handheld', caption: 'The same flowers on the Handheld preset (960 × 540), cropped ×3 (34 → 23 % ink)', from: INK53 },

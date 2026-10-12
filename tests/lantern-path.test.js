@@ -82,7 +82,7 @@ test('the window recording: after the first homecoming, each world’s recording
     assert.ok(lines.every((l) => l.tone), `${w}: every line carries a tone`);
     assert.ok(!lines.some((l) => l.who === 'mother'), `${w}: his recording alone (no question from her over it)`);
     assert.equal(recordingLabel(n, ctx), 'LOGGED 3 YEARS AGO');
-    assert.equal(onHologram(n, ctx), 'father');
+    assert.equal(onHologram(n, ctx), 'window');
     // it ends pointing on: the tower until the market is heard, then the light's trace
     const last = lines[lines.length - 1];
     assert.match(last.text, w === 'bazaar' ? /trace/ : /silent tower/, `${w}: ${last.text}`);
