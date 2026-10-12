@@ -538,7 +538,9 @@ namespace Memento.Bridge
             // (-look: the frame's look as the shaders have it, at each shot)
             if (Array.IndexOf(probe, "-look") >= 0)
                 Debug.Log($"Memento bridge: look at {Path.GetFileName(path)}: sky {Shader.GetGlobalVector("_SkyTop")} {Shader.GetGlobalVector("_SkyHorizon")} night {Shader.GetGlobalFloat("_Night")} ink {Shader.GetGlobalVector("_Ink")} toon {Shader.GetGlobalFloat("_Toon")} fog {Shader.GetGlobalFloat("_FogDensity")}x{Shader.GetGlobalFloat("_FogMul")} sun {Shader.GetGlobalVector("_SunDir")} wind {Shader.GetGlobalVector("_Wind")} bloom {Shader.GetGlobalFloat("_Bloom")} cam {cam.transform.position} {cam.transform.forward} near {cam.nearClipPlane} far {cam.farClipPlane} reversed z {SystemInfo.usesReversedZBuffer} uv at top {SystemInfo.graphicsUVStartsAtTop}");
+            // (a player's own screen, as it draws: the Deck's 1280 × 800; the editor's batch runs 1280 × 720, as the web's side-by-sides)
             int w = 1280, h = 720;
+            if (!Application.isEditor && Screen.width > 0 && Screen.height > 0) { w = Screen.width; h = Screen.height; }
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
