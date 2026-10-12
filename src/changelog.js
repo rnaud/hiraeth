@@ -16,6 +16,9 @@ export const CHANGELOG = [
     // the last "Tell X" steps after the goal (src/save-migrate.js step 20; issue #172)
     { text: 'Ten more errands end where you do the thing, without sending you back to tell someone: Viridel’s scorch under the flowers, Esk’s cutting, the tallest tree’s crown, the market’s oldest sign, Ket’s three gauges, the halfway mirror, the snapping bed, Ivo’s fireflies, the boat that answered across Lorn’s water, and Cael’s slow avenue. Whoever asked still has their word when you pass: Mira still tells you where Odile and Talo went, Wendel gives you his saying, Ivo his jar of fireflies, and Hollin asks you to come back.',
       see: 'In Viridel, water the flowers on the fallen ship’s flank and look at the scorch: the quest ends there, with Mira’s words as the keepsake. Walk back to Mira afterwards and she asks what you saw. In Lorn’s deep wood the quest ends at the half-sunk boat; Hollin waits in the root cave.' },
+    // four word slips and two buttons named in prose (issue #173)
+    { text: 'A few words put right: arriving in the Buried Machine says the Wick is unlit beyond the canyon’s oval doors instead of who to ask; your father’s window recording no longer mentions a well that is gone; a choked runnel on Viridel’s tea terraces says in one line to clear the top one first; the doorway the dune let go of no longer promises a stair into the dark; and in the City-Shaft the air pillars and the splinter’s pull name your own buttons.',
+      see: 'Arrive in the Buried Machine: the opening words end “beyond the canyon’s two oval doors.” In the City-Shaft, ride an air pillar for the first time: the hint names your stick or keys.' },
   ] },
   { v: '1.53', date: '2026-10-12', items: [
     // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)

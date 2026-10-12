@@ -475,6 +475,8 @@ export const EN = {
   'teach.bubbleSelf': 'Floating: steer with {key:move}, press {key:gadget} again (or {key:jump}) to pop it.',
   'teach.bellowsNext': 'The bellows breathe on your back, and the plinth under the chest breathes with them: a draught rises straight up through the open ceiling. Jump into it and open your wings ({key:thrust}): it carries you up. In rising air your wings hold you still enough to aim.',
   'teach.lanternWhistle': 'The light is singing to a lamp on the shore. Whistle back beside it: {key:whistle}.',
+  'teach.pillarOut': 'Steer out of it with {key:move}.',
+  'teach.lookUp': 'Look up at the light with {key:look}.',
   'teach.padScheme': 'The controller layout changed: LT / L2 aims and RT / R2 uses the gadget in hand (the fluid gun is one of them), D-pad → its next mode, Y / △ sounds the whistle, and A / × held in the air fires the jets. Menu, then Controls, lists them all.',
   'teach.padSchemeShort': 'The controller layout changed. Menu, then Controls, lists every button.',
 };

@@ -334,7 +334,7 @@ export function setupTerraces(ctx) {
         if (r.k !== cleared()) {
           r.shiver = 1;
           mud.burst(r.at, { n: 4, rise: 0.8, size: 0.35, spread: 0.6, life: 1.4, gravity: 3 });
-          toast('The clod shifts, and slumps back: the runnel above is still choked, so there is nothing to carry the silt away. Top terrace first.');
+          toast('The runnel above is choked: clear the top terrace first.');
           return true;
         }
         // straight to the runnels, before Esk (issue #118): the errand starts, or goes on, from the clod you shift

@@ -10,6 +10,7 @@ import { setupHalfway, halfwayTerrace } from './halfway.js';
 import { setupIncalMoments } from './incal-moments.js';
 import { setupLightDown } from './light-down.js';
 import { quietOr } from '../hint-level.js';
+import { t as tr } from '../i18n.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
 //
@@ -303,7 +304,7 @@ export function setupIncal(ctx) {
   if (S.pillars) S.pillars.onRide = () => {
     if (game.flag('incal.pillar.ridden')) return;
     game.set('incal.pillar.ridden', true);
-    toast('The pillar of rising air fills your wings and carries you straight up. Push the left stick to drift out of it.');
+    toast(`The pillar of rising air fills your wings and carries you straight up. ${tr('teach.pillarOut')}`);
   };
 
   // ---------------------------------------------------------------- the light, given back
@@ -472,7 +473,7 @@ export function setupIncal(ctx) {
       const up = _d.y > 0.4 || _d.dot(to) > 0.9;
       st.lookT = up ? st.lookT + dt : Math.max(0, st.lookT - dt * 2);
       if (st.lookT > 1.0) giveBack(camera);
-      if (!st.hinted && quests.stage(Q) === 'look') { st.hinted = true; toast(quietOr('The splinter tugs upward.', 'The splinter tugs upward. Look up at the light (move the camera up).')); }
+      if (!st.hinted && quests.stage(Q) === 'look') { st.hinted = true; toast(quietOr('The splinter tugs upward.', `The splinter tugs upward. ${tr('teach.lookUp')}`)); }
     }
 
     updateHoist(dt, pp);

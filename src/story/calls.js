@@ -190,7 +190,7 @@ const REEL_ANY = { word: 'home', find: '~neutral~ The house is quiet without you
  * loosely, the way the reel does, and points on; none explains. (He spoke softly, not to wake her.)
  */
 export const WINDOW = {
-  desert: '~whisper~ It’s low over the dry well now. It doesn’t stop. It never stops anywhere.',
+  desert: '~whisper~ It’s low over the great tree now. It doesn’t stop. It never stops anywhere.',
   arzach: '~whisper~ No sound from it tonight. Just the light, going on out.',
   perdide: '~whisper~ Rain on the glass, and it’s still there past the rain. Further out than before.',
   edena: '~whisper~ Over the garden wall, and away. The roses turned to watch it go.',

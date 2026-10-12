@@ -472,6 +472,8 @@ export const FR = {
   'teach.bubbleSelf': 'Vous flottez : dirigez avec {key:move}, appuyez de nouveau sur {key:gadget} (ou {key:jump}) pour la crever.',
   'teach.bellowsNext': 'Le soufflet respire sur votre dos, et le socle sous le coffre respire avec lui : un courant d\'air monte tout droit par le plafond ouvert. Sautez dedans et ouvrez vos ailes ({key:thrust}) : il vous porte vers le haut. Dans l\'air qui monte, vos ailes vous tiennent assez immobile pour viser.',
   'teach.lanternWhistle': 'La lumière chante pour une lampe sur le rivage. Sifflez en retour à côté d\'elle : {key:whistle}.',
+  'teach.pillarOut': 'Sortez-en en vous dirigeant avec {key:move}.',
+  'teach.lookUp': 'Levez les yeux vers la lumière avec {key:look}.',
   'teach.padScheme': 'La disposition de la manette a changé : LT / L2 vise et RT / R2 utilise le gadget en main (le pistolet à fluide en est un), D-pad → son mode suivant, Y / △ fait sonner le sifflet, et A / × maintenu en l\'air allume les réacteurs. Menu, puis Commandes, les liste tous.',
   'teach.padSchemeShort': 'La disposition de la manette a changé. Menu, puis Commandes, liste chaque bouton.',
 };

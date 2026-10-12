@@ -915,7 +915,7 @@ export const THINGS = {
   ruinStair: {
     id: 'ruinStair', name: 'A doorway in the sand', title: 'that a dune let go of', color: '#cdb38f', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~curious~ A stone doorway the dune has let go of. Its stair goes down into the dark, sand still running off the steps.",
+      say: ["~curious~ A stone doorway the dune has let go of. Its steps go down a little way and stop in packed sand.",
         "~neutral~ The next wind will cover it again."],
       do: { set: { 'desert.ruin.stair': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
