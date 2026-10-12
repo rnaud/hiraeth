@@ -9,8 +9,6 @@ globalThis.document ??= { createElement: el, body: el(), getElementById: () => n
 
 const { SIGHTINGS, THREADS, seen, sightingsOf, recordSightings, sightingsData, sightingFlag } = await import('../src/story/sightings.js');
 const { Dialogue } = await import('../src/story/dialogue.js');
-const { sketchesPanel, SIGHT_COLS } = await import('../src/game-menu.js');
-const { sketchesData } = await import('../src/game-menu-data.js');
 const { ORDER, SIDE, SUB, ROUTE_PARTS, partOf } = await import('../src/levels/names.js');
 const { parseLine } = await import('../src/story/tone.js');
 
@@ -106,7 +104,8 @@ test('an old save: what it already holds is written down quietly', async () => {
   assert.deepEqual(toasts, []);
 });
 
-test('the Sightings page: a block a thread, a ? for each still to find, the world named once you know it', async () => {
+// (the Sketchbook's page that showed them went in v1.62, issue #213: the save still writes them down, for the Lantern's answers)
+test('the Sightings: a thread each, a ? for each still to find, the world named once you know it', async () => {
   const { game } = await freshGame();
   game.set(sightingFlag('desert.oum'), true);
   const titles = { desert: 'The Desert', arzach: 'Vael' };
@@ -119,23 +118,10 @@ test('the Sightings page: a block a thread, a ? for each still to find, the worl
   const senn = light.entries.find((e) => e.id === 'arzach.senn');
   assert.deepEqual([senn.found, senn.line, senn.world], [false, '?', 'Vael'], 'not met: a ?, its world known');
   assert.equal(light.entries.find((e) => e.id === 'bazaar.ferro').world, '', 'a world not known yet stays unnamed');
-  // the panel: the notes in a grid of SIGHT_COLS, as the cursor moves, then the worlds' rows
-  const sk = sketchesData({ data: { stories: {} }, levels: [{ id: 'desert', title: 'The Desert', relicNames: ['r'] }], sightings: data });
-  const { html, rows } = sketchesPanel(sk);
-  const notes = rows.filter((r) => r[0].kind === 'sighting');
-  assert.equal(notes.flat().length, data.reduce((n, t) => n + t.of, 0), 'a cell for every sighting');
-  assert.ok(notes.every((r) => r.length <= SIGHT_COLS && r.every((c, i) => c.col === i)));
-  assert.equal(rows.at(-1)[0].kind, 'story', 'the worlds after');
-  assert.equal(notes[0][0].name, light.entries[0].line);
-  assert.match(notes[0][0].sub, /The Desert · Oum/);
-  assert.match(html, /class="sightings"/);
-  assert.match(html, /<i>\?<\/i>/);
-  // no sightings given (an old caller): the sketchbook as it was
-  assert.ok(!sketchesPanel({ worlds: sk.worlds }).html.includes('sightings'));
 });
 
 // (issue #98: the threads never closed after the Lantern, and the detours' traces sat in worlds nobody can reach)
-test('after the Lantern every thread shows its answer, in Ilen’s words, on the page', async () => {
+test('after the Lantern every thread has its answer, in Ilen’s words', async () => {
   const { game } = await freshGame();
   const before = sightingsData({ game });
   assert.ok(before.every((t) => t.answer === null), 'open questions until then');
@@ -143,9 +129,6 @@ test('after the Lantern every thread shows its answer, in Ilen’s words, on the
   game.set('finale.met', true);
   const after = sightingsData({ game });
   assert.ok(after.every((t) => t.answer?.line === THREADS.find((x) => x.id === t.id).answer && t.answer.who === 'Ilen'));
-  const { html, rows } = sketchesPanel(sketchesData({ data: { stories: {} }, levels: [], sightings: after }));
-  assert.equal((html.match(/class="answer"/g) ?? []).length, THREADS.length, 'each block its answer');
-  assert.match(rows.flat().find((c) => c.kind === 'sighting').desc, /^Ilen: /, 'a note’s strip says the answer, not the question');
 });
 
 test('the page counts only traces that can be met: none in a world still being made (all seven side worlds)', async () => {

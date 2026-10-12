@@ -183,14 +183,14 @@ export const BOOK = {
     // the scientist (src/story/scientist-data.js): met at the first fragment of the singing light, wherever it is found, and
     // aboard the ship from then on; listed where the ship came down
     P('thrum', 'Anselm Thrum', 'Studies the singing light; lives in your ship’s hold', [
-      'A thin man in a patched coat, goggles on his brow, who has been on the lookout for the fragments of the singing light since the night the light went over. He came at a run when you picked up your first.',
-      [f('item.lightheart'), 'For five fragments he stitched one into your coat over your heart: one more heart, for good.'],
-      [f('item.finder'), 'For ten he gave you his finder, a brass box that beeps as a fragment comes near.'],
-      [f('item.lightedge'), 'For fifteen he tempered your blade with them.'],
-      [f('item.lightcell'), 'For twenty-five he made your tank a chamber of them.'],
-      [f('item.lightwing'), 'For fifty he threaded light through your wings.'],
-      [f('item.lightstep'), 'For seventy-five he set them in your boot heels.'],
-      [f('item.lightguard'), 'For the last of them he ringed your guard.'],
+      'A thin man in a patched coat, goggles on his brow, who has been on the lookout for the fragments of the singing light since the night the light went over. He came at a run when you picked up your first, and he works them into your gear, for a price in fragments.',
+      [f('item.lightheart'), 'For five fragments he stitched light into your coat over your heart: one more heart, for good.'],
+      [f('item.finder'), 'For three he sold you his finder, a brass box that beeps as a fragment comes near.'],
+      [f('item.lightedge'), 'For seven he tempered your blade with them.'],
+      [f('item.lightcell'), 'For ten he made your tank a chamber of them.'],
+      [f('item.lightwing'), 'For eighteen he threaded light through your wings.'],
+      [f('item.lightstep'), 'For twenty-three he set them in your boot heels.'],
+      [f('item.lightguard'), 'For thirty he ringed your guard.'],
     ], ['In your ship’s hold, by the crates, with his jar of fragments.']),
   ],
   arzach: [

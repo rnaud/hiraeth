@@ -1,14 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PANELS, DEFAULT_PANEL, MenuState, moveCursor, GameMenu, itemsPanel, questsPanel, sketchesPanel, worldsPanel, mapPanel, fullHtml, itemUse, worldFacts, menuPrompts, GEAR_COLS, CARRY_COL, ENDED } from '../src/game-menu.js';
-import { itemsData, questsData, sketchesData, worldsData, chargeCard, menuSources } from '../src/game-menu-data.js';
+import { PANELS, DEFAULT_PANEL, MenuState, moveCursor, GameMenu, itemsPanel, questsPanel, worldsPanel, mapPanel, fullHtml, itemUse, worldFacts, menuPrompts, GEAR_COLS, CARRY_COL, ENDED } from '../src/game-menu.js';
+import { itemsData, questsData, worldsData, chargeCard, menuSources } from '../src/game-menu-data.js';
 import { Quests } from '../src/story/quests.js';
 import { questGoal, QUEST_GOALS } from '../src/story/quest-goals.js';
 import { Controller } from '../src/controller.js';
 import { ITEMS } from '../src/items.js';
 
-// The game menu (src/game-menu.js) that took the sketchbook's place: six panels turned with the
+// The game menu (src/game-menu.js) that took the sketchbook's place: five panels (the Sketchbook's went in v1.62) turned with the
 // shoulder buttons, a cursor over each panel's grid, A / × to open a thing full screen (and use it there),
 // to track a quest or zoom the map, B / ○ to go back or close (issue #213).
 
@@ -28,20 +28,21 @@ function questsWorld() {
   return { q, flags };
 }
 
-test('the panels: Quests first (the menu opens there, issue #213), the Map beside it, then Items, Worlds, People, Sketchbook; the shoulder buttons turn them round', () => {
-  assert.deepEqual(PANELS.map((p) => p.name), ['Quests', 'Map', 'Items', 'Worlds', 'People', 'Sketchbook']);
+test('the panels: Quests first (the menu opens there, issue #213), the Map beside it, then Items, Worlds, People (no Sketchbook since v1.62); the shoulder buttons turn them round', () => {
+  assert.deepEqual(PANELS.map((p) => p.name), ['Quests', 'Map', 'Items', 'Worlds', 'People']);
+  assert.ok(!PANELS.some((p) => p.id === 'sketches'), 'the Sketchbook is gone (issue #213)');
   assert.equal(DEFAULT_PANEL, 'quests');
   const s = new MenuState();
   assert.equal(s.panel.id, 'quests');
-  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['Sketchbook', 'Map'], 'the neighbours named at the sides');
+  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['People', 'Map'], 'the neighbours named at the sides');
   s.turn(1); assert.equal(s.panel.id, 'map');
   s.turn(1); s.turn(1); assert.equal(s.panel.id, 'worlds');
   s.turn(1); assert.equal(s.panel.id, 'people');
-  s.turn(1); s.turn(1); assert.equal(s.panel.id, 'quests', 'round again');
-  s.turn(-1); assert.equal(s.panel.id, 'sketches');
-  s.show('sketches'); assert.equal(s.panel.id, 'sketches');
+  s.turn(1); assert.equal(s.panel.id, 'quests', 'round again');
+  s.turn(-1); assert.equal(s.panel.id, 'people');
+  s.show('sketches'); assert.equal(s.panel.id, 'people', 'an old caller asking for the Sketchbook: nothing changes');
   // each panel keeps its own cursor
-  s.at.sketches = { r: 1, c: 2 }; s.turn(1); s.turn(-1);
+  s.at.people = { r: 1, c: 2 }; s.turn(1); s.turn(-1);
   assert.deepEqual(s.cursor(), { r: 1, c: 2 });
 });
 
@@ -110,10 +111,10 @@ test('the menu without a page: open on a panel, move, turn with the shoulders; A
   assert.equal(q.tracked(), 'desert.power');
   assert.equal(m.rows[1][0].id, 'desert.power', 'the one you are on comes first');
   assert.equal(m.state.cell(m.rows).id, 'desert.power', 'and the cursor goes with it');
-  // past the row's start, the Sketchbook's tab; A / × on it turns there
+  // past the row's start, the People's tab; A / × on it turns there
   m.state.at.quests = { r: 0, c: 0 }; m.navigate(-1, 0);
   assert.equal(m.state.cursor().edge, -1);
-  m.confirm(); assert.equal(m.panel, 'sketches', 'A / × on a side tab turns to it');
+  m.confirm(); assert.equal(m.panel, 'people', 'A / × on a side tab turns to it');
   // opened again with no panel asked (View / Select, J): the Quests (issue #213)
   m.open(); assert.equal(m.panel, 'quests');
   m.show('items'); m.open(); assert.equal(m.panel, 'quests', 'whatever was left showing');
@@ -233,17 +234,9 @@ test('the Items panel: a slot for every item to find (the empty ones unnamed), t
   assert.equal(m.rows[0].find((x) => x.id === 'jetpack').it.icon, 'data:x');
 });
 
-test('the Sketchbook and Worlds panels: every world you know, its story page and relics, the errands and the observatory; the boxes counted', () => {
+test('the Worlds panel: every world you know, its story and relics; the boxes counted', () => {
   const data = { relics: { desert: { 0: { img: 'a' }, 2: { img: 'b' } } }, stories: { desert: { img: 'p' } }, observatory: { started: true, img: 'o' }, errands: { e: { item: 'a gear', toTitle: 'Viridel', done: true, img: 'g' } } };
   const levels = [{ id: 'desert', title: 'The Desert', relicNames: ['r0', 'r1', 'r2'], storyTitle: 'The Tree That Drinks', blurb: 'Dunes.' }, { id: 'incal', title: 'The City-Shaft', relicNames: ['s0'] }, { id: 'atelier', title: 'The Atelier', hidden: true, relicNames: [] }];
-  const sk = sketchesData({ data, levels, known: (id) => id !== 'incal' });
-  assert.deepEqual(sk.worlds.map((w) => w.id), ['desert'], 'only worlds you know, and not the hidden one');
-  const { rows } = sketchesPanel(sk);
-  assert.deepEqual(rows[0].map((x) => x.act), ['look', 'look', 'look', 'look'], 'each opens full screen (a relic not found: a ? and where to look)');
-  assert.match(rows[0][0].full.pic, /<img src=/, 'a drawn page: its picture large');
-  assert.match(rows[0][2].full.pic, /<i>\?<\/i>/, 'one not found: a ?');
-  assert.equal(rows[0][2].name, 'Not found yet', 'a relic not found keeps its name to itself');
-  assert.deepEqual(rows.slice(1).map((r) => r[0].sub), ['The Sleeping Observatory', 'Errands']);
   const w = worldsData({ data, levels, order: ['desert', 'incal'], current: 'incal', boxes: { desert: { found: 1, total: 2 } }, known: () => true });
   assert.deepEqual(w.map((x) => [x.id, x.told, x.relics, x.boxes, x.current]), [['desert', true, [2, 3], [1, 2], false], ['incal', false, [0, 1], null, true]]);
   const wp = worldsPanel(w);
@@ -253,7 +246,7 @@ test('the Sketchbook and Worlds panels: every world you know, its story page and
   assert.equal(chargeCard(null), null, 'no charge before the father has said it');
 });
 
-test('nothing the sketchbook held is lost: the menu reads the gear, the charge, the quests, the sketches, the errands, the observatory and the boxes', () => {
+test('nothing the sketchbook held is lost: the menu reads the gear, the charge, the quests, the errands and the boxes (the journal keeps the sketches)', () => {
   const main = src('src/main.js');
   const wire = main.slice(main.indexOf('Object.assign(journal.menu, {'), main.indexOf("onTrack: (id) => storyRt.quests.choose(id),\n  // an item"));
   for (const part of ['items,', 'quests: storyRt.quests', 'charge,', 'keepsakes: () => game.keepsakes()', 'journal,', 'boxes: () => boxes.counts()', 'errandDefs: ERRANDS', 'icon: (id) => itemIcons.get(id)'])
@@ -280,15 +273,6 @@ test('the Quests panel names what you finished in other worlds, whose quests are
   assert.ok(d.done.some((x) => x.id === 'incal.light'), 'the City-Shaft’s too');
   assert.match(questsPanel(d).html, /class="ended"[^>]*><i>✓<\/i>The Tree That Drinks/);
   assert.doesNotMatch(questsPanel(d).html, /None yet/);
-});
-
-test('a story told in an older save, before pages were drawn, reads as told in the Sketchbook', () => {
-  const sk = sketchesData({ data: { stories: { desert: { t: 1 } } }, levels: [{ id: 'desert', title: 'The Desert', relicNames: [] }] });
-  assert.equal(sk.worlds[0].story.told, true);
-  assert.equal(sk.worlds[0].story.img, null);
-  const story = sketchesPanel(sk).rows.flat().find((c) => c.kind === 'story');
-  assert.match(story.sub, /the story, told/);
-  assert.match(story.desc, /older save/);
 });
 
 // ------------------------------------------------------------------ issue #213: large items, A / × full screen, the Quests first

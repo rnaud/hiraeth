@@ -35,6 +35,14 @@
 #shop .ware.soldout .ware-pic, #shop .ware.full .ware-pic { opacity: 0.45; filter: grayscale(0.6); }
 #shop .ware.soldout .ware-flag { background: #2b211f; color: #f7ecd2; transform: rotate(-4deg); }
 #shop .shop-wares[inert] { opacity: 0.5; }
+/* Anselm's upgrades for fragments (src/fragment-shop.js): the items page's own pictures, a fragment until drawn;
+   one fitted or wanting its gear first greyed like a sold-out ware, its line saying why */
+#shop .shop-sheet.fragments .shop-wares { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#shop .ware-pic .ware-img { display: block; height: 72px; width: auto; }
+#shop .ware-pic .frag-pic { display: block; height: 58px; width: auto; filter: drop-shadow(2px 2px 0 rgba(43, 33, 31, 0.85)); }
+#shop .ware.owned, #shop .ware.needs { background: #efe3c8; }
+#shop .ware.owned .ware-pic, #shop .ware.needs .ware-pic { opacity: 0.5; filter: grayscale(0.6); }
+#shop .ware.owned .ware-flag { background: #2b211f; color: #f7ecd2; transform: rotate(-4deg); }
 #shop .shop-ask { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%) rotate(0.6deg); width: min(420px, 90%); padding: 12px 16px; text-align: center;
   background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; }
 #shop .shop-ask p { margin: 0 0 10px; font-weight: 700; }
@@ -52,6 +60,8 @@
   #shop .shop-line { margin-top: 4px; padding: 4px 9px; }
   #shop .ware { padding: 7px 7px 6px; gap: 2px; }
   #shop .ware-pic svg { height: 36px; }
+  #shop .ware-pic .ware-img { height: 42px; }
+  #shop .ware-pic .frag-pic { height: 36px; }
   #shop .ware-effect { font-size: 0.86em; }
   #shop .shop-ask { bottom: 10px; padding: 8px 12px; }
 }
@@ -60,7 +70,7 @@
   #shop .shop-head { flex-wrap: wrap; }
   #shop .shop-keeper { flex-basis: 100%; order: 3; }
   #shop .shop-wallet { margin-right: auto; }
-  #shop .shop-wares { grid-template-columns: 1fr; gap: 9px; }
+  #shop .shop-wares, #shop .shop-sheet.fragments .shop-wares { grid-template-columns: 1fr; gap: 9px; }
   #shop .ware { grid-template-columns: auto 1fr; grid-template-rows: auto auto auto auto; justify-items: start; text-align: left; column-gap: 12px; }
   #shop .ware-pic { grid-row: 1 / span 4; align-self: center; width: 52px; display: flex; justify-content: center; }
   #shop .ware-foot { justify-content: flex-start; }

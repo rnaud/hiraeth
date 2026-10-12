@@ -1,15 +1,14 @@
 // What fills the game menu's panels (src/game-menu.js), read off the save each time a panel is drawn.
-// Everything the sketchbook held is here: the gear and what you carry (Items), the father's charge and
-// the quests (Quests), the sightings, the story pages, relics, errands and the observatory's sketch (Sketchbook), and
-// how far each world you know has come, its boxes too (Worlds).
+// The gear and what you carry (Items), the father's charge and the quests (Quests), how far each world you know has
+// come, its relics, boxes and fragments too, and the way there (Worlds), the people met (People). (The Sketchbook's
+// page, the sightings and the sketches, went in v1.62, issue #213: the journal still keeps them, src/quest.js.)
 //
-//   menuSources({ items, mode, quests, charge, keepsakes, journal, levels, known, current, boxes, errands, icon, titles, game })
-//     → { items(), quests(), map(), sketches(), worlds(), people() }
+//   menuSources({ items, mode, quests, charge, keepsakes, journal, levels, known, current, boxes, errands, icon, titles, game, travel })
+//     → { items(), quests(), map(), worlds(), people() }
 
 import { ITEMS } from './items.js';
 import { CHARGE, chargeStep } from './story/charge.js';
 import { ALL_QUESTS } from './story/all-quests.js';
-import { sightingsData } from './story/sightings.js';
 import { metPeople, personStory, personNow, interactions, PERSON } from './story/people-book.js';
 import { backdropFor } from './story/portrait-bg.js';
 import { TITLES } from './levels/names.js';
@@ -65,29 +64,10 @@ export function questsData({ quests = null, charge = null, errands = {}, defs = 
 }
 
 /**
- * Sketchbook: the Sightings page (`sightings`: src/story/sightings.js sightingsData, or null), a row for
- * each world you know (`levels` [{ id, title, hidden, relicNames, storyTitle, parts: [{ id, storyTitle }] }], `known(id)`), then the
- * observatory's sketch and the errands' (journal.data).
+ * Worlds: the worlds you know, in the route's order (`order`), with what is done in each. `travel(id)`: the ship can
+ * take you there from the Worlds page (a world you have been to, not this one: main.js, v1.62, issue #213).
  */
-export function sketchesData({ data = {}, levels = [], known = () => true, sightings = null } = {}) {
-  const worlds = levels.filter((L) => (!L.hidden || data.completed) && known(L.id)).map((L) => {
-    const relics = (L.relicNames ?? []).map((name, i) => ({ name, img: data.relics?.[L.id]?.[i]?.img ?? null }));
-    const st = data.stories?.[L.id];
-    // (a merged world's later parts keep their own pages: Vael II's bell, Lorn II's lamps, `parts`)
-    const more = (L.parts ?? []).map((p) => { const ps = data.stories?.[p.id]; return { id: p.id, title: p.storyTitle ?? p.id, img: ps?.img || null, told: !!ps }; });
-    return { id: L.id, title: L.title, story: { title: L.storyTitle ?? L.title, img: st?.img || null, told: !!st }, ...(more.length ? { more } : {}), relics, found: relics.filter((r) => r.img).length, of: relics.length };
-  });
-  const extra = [];
-  const obs = data.observatory;
-  if (obs?.started) extra.push({ id: 'observatory', title: 'The Sleeping Observatory', wide: true, tiles: [{ name: obs.done ? 'The stars remember' : 'The sleeping observatory', img: obs.img || null,
-    caption: obs.done ? (obs.fragments ?? []).join(' ') || 'The roof unfolded, and the observatory drew its stars.' : 'East of camp: climb the six ledges, turn the lenses toward the centre.' }] });
-  const errs = Object.entries(data.errands ?? {});
-  if (errs.length) extra.push({ id: 'errands', title: 'Errands', count: `${errs.filter(([, e]) => e.done).length}/${errs.length}`, tiles: errs.map(([, e]) => ({ name: `${cap(e.item)}${e.done ? ', delivered' : ''}`, img: e.done ? e.img || null : null, caption: e.done ? `Delivered to ${e.toTitle}.` : `Still to carry to ${e.toTitle}.` })) });
-  return { sightings, worlds, extra };
-}
-
-/** Worlds: the worlds you know, in the route's order (`order`), with what is done in each. */
-export function worldsData({ data = {}, levels = [], order = [], known = () => true, current = null, boxes = {}, done = () => false, fragments = null, people = () => [] } = {}) {
+export function worldsData({ data = {}, levels = [], order = [], known = () => true, current = null, boxes = {}, done = () => false, fragments = null, people = () => [], travel = () => false } = {}) {
   const byId = Object.fromEntries(levels.map((L) => [L.id, L]));
   const ids = [...order.filter((id) => byId[id] && known(id)), ...(current && byId[current] && !order.includes(current) && !byId[current].hidden ? [current] : [])];
   const list = ids.map((id, i) => {
@@ -96,6 +76,7 @@ export function worldsData({ data = {}, levels = [], order = [], known = () => t
       relics: [Object.keys(data.relics?.[id] ?? {}).length, (L.relicNames ?? []).length], boxes: b?.total ? [b.found, b.total] : null, blurb: L.blurb ?? '',
       // (its full view, issue #213: the relics by name once found, a ? for the rest; the people met there)
       relicList: (L.relicNames ?? []).map((name, k) => ({ name, found: !!data.relics?.[id]?.[k] })), people: people(id) ?? [],
+      travel: id !== current && !!travel(id),
       // (the fragments of the singing light found here and how many are left, once the first is found: src/fragments.js)
       fragments: fragments?.found && fragments.worlds?.[id]?.total ? [fragments.worlds[id].found, fragments.worlds[id].total] : null };
   });
@@ -133,11 +114,9 @@ export function menuSources(o) {
     people: (open = null) => peopleData({ flags: o.game?.data?.flags ?? {}, errands: o.journal?.data?.errands ?? {}, keepsakes: o.game?.keepsakes?.() ?? [], titles, portrait: o.portrait ?? (() => null), open }),
     items: () => itemsData({ owned: o.items.owned(), ...(o.mode?.() ?? {}), carried: o.quests?.carried?.() ?? [], keepsakes: o.keepsakes?.() ?? [], icon: o.icon, titles, chimes: o.wallet?.() ?? null, toggles: o.toggles?.() ?? {} }),
     quests: () => questsData({ quests: o.quests, charge: o.charge?.(), errands: o.journal?.data?.errands, defs: o.errandDefs ?? [], titles }),
-    sketches: () => sketchesData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], known: o.known ?? (() => true),
-      sightings: o.game ? sightingsData({ game: o.game, known: o.known ?? (() => true), titles }) : null }),
     worlds: () => {
       const met = Object.fromEntries(metPeople(o.game?.data?.flags ?? {}).map((g) => [g.world, g.people.map((p) => p.name)]));
-      return worldsData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], order: o.order ?? [], known: o.known ?? (() => true), current: o.current, boxes: o.boxes?.() ?? {}, done: o.done ?? (() => false), fragments: o.fragments?.() ?? null, people: (id) => met[id] ?? [] });
+      return worldsData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], order: o.order ?? [], known: o.known ?? (() => true), current: o.current, boxes: o.boxes?.() ?? {}, done: o.done ?? (() => false), fragments: o.fragments?.() ?? null, people: (id) => met[id] ?? [], travel: o.travel ?? (() => false) });
     },
     // (the world you are in, from above: main.js draws it, src/world-map.js)
     map: (arg) => o.map?.(arg) ?? null,

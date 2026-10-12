@@ -731,7 +731,25 @@ const AUDIT60 = 'headless Chrome (muted, Low, 1280 × 720) against this branch�
 const FRAG60 = 'headless Chrome (scripts/design-qc/capture.mjs), High, 1280 × 720, the camera pinned over the spot; before: the same view with that fragment found (a save holding its flag), after: a new save';
 // (v1.61, issue #234: the game's own camera aboard, a scratch shooter against this branch's own Vite and origin/main's tree before it)
 const SHIP234 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5751) and the tree before it (3a194522): the traveller placed at the spot, the camera turned there by hand and held for 3 s, the game’s own camera; 12 October; cwebp -q 72';
+// (v1.62, issues #185 and #213: a scratch shooter against this branch's own Vite and the tree before it, e7c21f7d)
+const SHOP185 = 'headless Chrome (muted, Medium, 1280 × 720, 10:00) against this branch’s own Vite (port 5771) and the tree before it (e7c21f7d), in Viridel with a debug save of the worlds before (24 fragments found), the traveller in the hold facing Anselm; 12 October; cwebp -q 72';
+const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch’s own Vite (port 5771) and the tree before it (e7c21f7d), a debug save of the worlds before, the game menu opened by the console; 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.62': [
+    { match: 'Anselm Thrum sells his upgrades now', shots: [
+      { name: 'thrum-shop', caption: 'Talking to Anselm in the hold with 24 fragments found and the finder, the heart and the edge had: before, his count and an offer at the next milestone; after, his shop, the fragments you hold as the wallet, his seven upgrades priced in fragments', from: SHOP185 },
+    ], see: 'Aboard your ship, talk to Anselm in the hold and choose “Show me what you have”. Pick an upgrade with A / ×, then Buy. The Start menu shows how many fragments you have to spend.' },
+    { match: 'A save with upgrades Anselm fitted at the old counts', see: 'Load a save from before: the upgrades it had are still on the Items page, and Anselm’s shop shows the fragments it found less their prices (10 found with the heart and the finder: 2 to spend).' },
+    { match: 'Once you have met Anselm he is in your ship’s hold in every world', see: 'Meet Anselm, then fly anywhere: he is in the hold by the starboard crate on every arrival. Watching the ship land from outside, nobody floats in the air over the landing.' },
+    { match: 'The Worlds page can take you back', shots: [
+      { name: 'worlds-travel', title: 'The list', caption: 'The game menu’s Worlds page in Viridel, the worlds before visited: after, a Travel here tag on each one you can fly to', from: TRAVEL213 },
+      { name: 'worlds-travel-full', title: 'A world opened', caption: 'The Desert opened from the Worlds page: after, A / × Travel here under what you found there', from: TRAVEL213 },
+      { name: 'worlds-travel-refused', title: 'The Desert’s gate', caption: 'In the Desert without the blade and guard, Vael opened: after, Travel here and the ship’s line why not under it', from: TRAVEL213, only: 'after' },
+    ], see: 'Open the game menu (View / Select), turn to Worlds, open a world you have been to and press A / × on Travel here.' },
+    { match: 'The Sketchbook page is gone from the game menu', shots: [
+      { name: 'menu-no-sketchbook', caption: 'The game menu, asked for the Sketchbook: before, its page and six tabs; after, five tabs, Quests, Map, Items, Worlds and People', from: TRAVEL213 },
+    ] },
+  ],
   '1.61': [
     { match: 'Aboard your ship the camera keeps its distance in the tight spots', shots: [
       { name: 'ship-tight-bunk', title: 'By the bunk', caption: 'Beside the bunk’s alcove facing into the room, the camera turned toward the alcove: before, 0.41 m behind him, his hair and pack filling the frame; after, a step further out, the camera up over his shoulder looking down at the room, the console and the holo table', from: SHIP234 },

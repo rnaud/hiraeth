@@ -35,6 +35,8 @@ import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { partsOf } from './levels/names.js';
+import { fastTravel } from './fast-travel.js';
+import { fragmentPurse } from './fragment-shop.js';
 import { Player, CameraRig, jetCameraPitch, WIDE } from './player.js';
 import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
@@ -754,9 +756,11 @@ story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over 
 const shopPanel = new ShopPanel({ game, resources, sound,
   onBought: ({ ware }) => { if (ware === 'heart') { player.setMaxHearts(resources.maxHearts); player.restore(player.maxHearts); } hpShown = 3; },
   onClose: () => { document.body.classList.remove('shopping'); },
-  covered: () => menu.open || journal.open || changelog.open || restartOpen });
+  covered: () => menu.open || journal.open || changelog.open || restartOpen,
+  icon: (id) => itemIcons.get(id) });   // (Anselm's upgrades: the items page's own pictures, src/item-icons.js)
 game.on('shop:open', ({ shop } = {}) => {
-  const e = storyRt.shops?.byId(shop);
+  // (Anselm Thrum's, aboard: his upgrades for fragments of the singing light, src/fragment-shop.js, issue #185)
+  const e = shop === 'thrum' ? storyRt.scientist?.shopEntry() ?? null : storyRt.shops?.byId(shop);
   // (after the conversation that asked for it has closed)
   if (e) setTimeout(() => { if (!shopPanel.isOpen && !storyRt.dialogue.open) { document.body.classList.add('shopping'); shopPanel.open(e); } }, 60);
 });
@@ -858,12 +862,16 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
 // ---- the fragments of the singing light (src/fragments.js): hidden out of the way, they sing faintly near; walk into one.
-// The first brings the scientist (src/story/scientist.js, game 'fragment'), who fits upgrades aboard at the milestones
+// The first brings the scientist (src/story/scientist.js, game 'fragment'), who sells upgrades aboard for them (src/fragment-shop.js)
 const fragments = createFragments({ levelId, scene, physics, level, player, sound, game, items, toast: (t) => showToast(t), lights: levelLights });
 // (his light-stitched heart: one more for good, and the hearts filled, as a heart container does)
 items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); hpShown = 3; } });
-// (in the Start menu, under where you are: the fragments all told and how many are left in this world, once one is found)
-const fragmentsLine = () => { const c = fragments.counts(), w = c.worlds[levelId]; return c.found ? `<span class="frag">✧ ${c.found} of ${c.total} fragments of the singing light${w ? ` · ${w.left ? `${w.left} left here` : 'none left here'}` : ''}</span>` : ''; };
+// (in the Start menu, under where you are: the fragments all told, how many you hold to spend with Anselm once he is met
+// (src/fragment-shop.js), and how many are left in this world, once one is found)
+const fragmentsLine = () => {
+  const c = fragments.counts(), w = c.worlds[levelId], held = game.flag('frag.met') ? fragmentPurse(game.data.flags, (id) => items.has(id)).held : null;
+  return c.found ? `<span class="frag">✧ ${c.found} of ${c.total} fragments of the singing light${held != null ? ` · ${held} to spend` : ''}${w ? ` · ${w.left ? `${w.left} left here` : 'none left here'}` : ''}</span>` : '';
+};
 await slice();
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
 const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
@@ -875,7 +883,7 @@ let gadgets = null;   // (src/gadgets/: made after the foes, below)
 const itemIcons = new ItemIcons({ scene, build: buildItemModel,
   capture: (...a) => { const h = sky.hour; sky.hour = 10.5; updateSky(); try { return captureView(...a); } finally { sky.hour = h; updateSky(); } },
   place: () => ({ at: player.pos.clone().addScaledVector(player.frame.up, 140), up: player.frame.up.clone() }),
-  onReady: (id, url) => journal.menu.iconReady(id, url) });
+  onReady: (id, url) => { journal.menu.iconReady(id, url); shopPanel.iconReady(); } });
 // the People page's portraits (src/portrait-cache.js): each conversation's portrait of the person, kept small;
 // and how many times you have talked to each (talks.<id>: the page's "between you")
 const portraits = new PortraitCache();
@@ -909,10 +917,21 @@ Object.assign(journal.menu, {
       parts: partsOf(l.id).slice(1).map((p) => ({ id: p, storyTitle: CONTENT[p]?.story?.title })) })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }),
-    icon: (id) => itemIcons.get(id), map: (o) => mapSource(o) }),
+    icon: (id) => itemIcons.get(id), map: (o) => mapSource(o),
+    // (the Worlds page's "Travel here": a world you have been to, with the ship powered: src/fast-travel.js, issue #213)
+    travel: (id) => fastTravel.can({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => game.flag(k) }) }),
   onTrack: (id) => storyRt.quests.choose(id),
   // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
   onUse: (id) => { if (id === 'finder') { game.set('frag.finder.off', !game.flag('frag.finder.off')); return; } const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
+  // "Travel here" (the Worlds page): the galactic map's own way (src/ship/ship.js travel: the take-off, the arrival at
+  // its landing, the saves), or the gate's line why not (the desert's blade and guard, Vael's wings: issue #217)
+  onTravel: (id) => {
+    const no = fastTravel.refusal({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => game.flag(k) });
+    if (no) { if (no.missing) game.emit('travel:refused', { to: id, missing: no.missing, quest: no.quest }); return no.text; }
+    journal.toggle(false);
+    ship.travel(id);
+    return null;
+  },
 });
 // The Map panel (issue #205): the world you are in from above (src/world-map.js), its ground sampled straight down
 // a few ms a frame while the menu is open (pausedFrame), drawn once and kept; the marks read now each time it opens
@@ -2223,6 +2242,7 @@ function frame(ts) {
   relics.update(dt, t, player);
   // (src/fragments.js: their song, the finder, a fragment walked into; the finder quiet in a conversation or a menu, issue #231)
   if (!minigameDef && !ship.playing) fragments.update(dt, t, { quiet: busy() });
+  if (shopPanel.isOpen && shopPanel.fragments) itemIcons.pump();   // (Anselm's cards: his upgrades' pictures, one a frame)
   if (!minigameDef) story.update(dt, t, camera);   // (a game's page tells no story: its host's goal is not reached by standing in the game)
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }

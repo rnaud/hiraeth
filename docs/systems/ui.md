@@ -132,7 +132,7 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
 - **Story pages wait for the talk to end** (`Story.showPage` in `src/quest.js`): a world's
   closing page, which comes a moment after the last line, used to open over the
   conversation and stay up while A turned the pages under it. It is now drawn and kept in
-  the sketchbook (the game menu's Sketchbook panel) at once, and opens when the conversation
+  the journal at once (the game menu's Sketchbook panel showed it until v1.62), and opens when the conversation
   closes (`story.waitFor`); a controller press goes to whatever is on top (`menuRoot`).
 
 ## The title screen, five saves and the pause menus
@@ -404,7 +404,7 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
   Esc on a page goes back to the settings, then out. The title's settings have Controls too.
 
-## The game menu: Quests, Map, Items, Worlds, People, Sketchbook (October 2026)
+## The game menu: Quests, Map, Items, Worlds, People (October 2026; the Sketchbook's page went in v1.62)
 
 The author's call: the sketchbook becomes a game menu after Ocarina of Time's pause screen, with
 distinct panels and clear controller navigation, an Items panel and a Quests panel, in the game's own
@@ -420,14 +420,33 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
 - **Panels** (`PANELS`), side by side in a ring, in this order since v1.58: **Quests**, **Map** (below),
   **Items** (the gear as large tiles, each with its name under its picture, as many a row as fit, the cursor
   moving by where they are drawn, `data-grid-nav`; a tile for every item there is, the empty ones dashed and
-  unnamed; under them what you carry for the quests and the father's keepsakes), **Worlds**, **People**,
-  **Sketchbook**. **Quests** (the father's charge, then each
+  unnamed; under them what you carry for the quests and the father's keepsakes), **Worlds**, **People**.
+  **Quests** (the father's charge, then each
   quest under way, the tracked one first: its title, its goal, "Next" and its step, nothing more;
   pending errands; on the right "Done", a short list of finished and failed titles, `ENDED` of each,
-  "and n more"), **Sketchbook** (first the Sightings, below; then a row per world you know: its story
-  page, its relics, a ? until found; then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
+  "and n more"), **Worlds** (the worlds you know in the route's order,
   one a row since v1.58 so ↑ ↓ go between them (issue #213: "the worlds tab I can't go up and down"): their
-  picture from `thumbs/`, ✓ story, relics and makers' boxes found, the blurb, "you are here").
+  picture from `thumbs/`, ✓ story, relics and makers' boxes found, the blurb, "you are here"; *Travel here* on
+  the ones you can fly to, below).
+- **The Sketchbook's page is gone** (v1.62, issue #213: "The sketchbook is confusing about its purpose. I don't
+  know why it's there at all."): `PANELS` has five, the tab and its side-tab neighbour with it; `sketchesPanel`,
+  `sketchesData` and their styles went. Nothing a save holds is lost or changed: the journal (src/quest.js) still
+  keeps the story pages, the relics' and errands' sketches and the observatory's, and the Sightings are still
+  written down (`sight.*`, src/story/sightings.js: the Lantern answers them). Where they show now: each world's
+  relics by name (a ? for the rest) and its story in the Worlds full view, the errands under Quests (pending) and
+  People (delivered: the toast says "… to see it under People"), the story page as it opens. An old caller asking
+  for the `sketches` panel lands where it was (`MenuState.show` ignores an unknown id). The controls' words say
+  "items, quests, worlds" (src/bindings.js, the `ctl.*` strings).
+- **Fast travel from the Worlds page** (v1.62, issue #213: "I want fast travel from the worlds page to the world's
+  landing only"; `src/fast-travel.js`, `tests/fast-travel.test.js`): a world you have been to (`journal.seen`),
+  not the one you are in (a merged world's parts are that world), with the ship powered, has a gold *Travel here*
+  tag on its row; in its full view A / × *Travel here* closes the menu and sends the ship there by the galactic
+  map's own way (`ship.travel`: the take-off from where it is parked, then the arrival at that world's landing as
+  on any arrival, `?level=<id>&via=ship`; the saves as they are; a first flight's pirates never, since it has been
+  visited). The leave gates hold (src/story/leave-gate.js, issue #217): leaving the desert without the blade and
+  the guard, or Vael without the wings, the ship's own line shows under the button ("Not yet. The Givers' blade and
+  the Givers' guard are still in the Rose House.", `.fnote`) and the quest that leads there starts if it hadn't
+  (`travel:refused`). Nowhere else: the worlds you have not reached are still found on the holo table's map.
 - **Look**: the panel's name in the Start menu's comic lettering among five tabs at the top (four until v1.5); the sheet
   of ruled paper between two side tabs naming the neighbours (their LB / RB glyphs inside them, Q / E with
   the keys; the ✕ carries B / Esc: v1.2, below); the cursor a gold cell in a pulsing red ring; the strip
@@ -455,7 +474,8 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   issue #196; `onUse`). On a narrow or upright screen the picture goes over the words, never under them.
   ← → (or ◀ ▶) the one before and after in the panel, the cursor following; ↑ ↓ scroll the words; B / ○
   back to the panel, on the one shown. Each cell says what it shows in `full` ({ pic, sub, text, facts, use }).
-- **The Sightings** (`src/story/sightings.js`, after Outer Wilds' ship log): the open threads the
+- **The Sightings** (`src/story/sightings.js`, after Outer Wilds' ship log; *their page went with the Sketchbook's in
+  v1.62: the save still writes them down*): the open threads the
   player wonders about, at the top of the Sketchbook. Four blocks, one a thread (`THREADS`): *the
   singing light*, *the makers' sign* (three dots over an arc), *the father's signal*, *someone came this
   way before*; each with its count. A trace met is a note on its own paper: a short line in plain words
@@ -867,5 +887,14 @@ once the conversation has closed. A paper sheet over the room, the room dimmed b
   its side, 812 × 375) the same row, smaller; under 560 px wide (a phone held upright, 375 × 812) one card a row,
   the picture beside the words, the wallet and ✕ on top.
 - While it is open the game is busy (`busy()`): nothing else takes the input, and the potion button is off.
+- **Anselm Thrum's shop** (v1.62, issue #185: his upgrades for fragments of the singing light, docs/systems/
+  fragments.md): the same panel, opened by his "Show me what you have" aboard (`shop:open` { shop: 'thrum' }, the
+  entry from `storyRt.scientist.shopEntry()`, `kind: 'fragments'`). The wallet is the fragments you hold (a pale
+  splinter, `FRAGMENT_SVG`, not the chime), the prices are in fragments, the cards are his seven upgrades
+  (`upgradeWare`: the name from src/items.js, a line of what it does, `thrum.<id>`; the picture the items page's own
+  render once drawn, `itemIcons.pump` while it is open, a fragment until then); one already had says *Fitted*, one
+  whose gear you lack *Needs the blade first* (the tank, the wings, the guard), one too dear *Not enough fragments*,
+  and choosing it makes him say so (`THRUM_SHOP_LINES`, src/story/scientist-data.js). The question: "Light chamber:
+  buy it for 10 fragments?"; bought, the light's rise (`sound.fragmentTaken`), no bell and no coins.
 
 Tests: `tests/shop.test.js` (the markup, the states, the question, the keeper's reactions, the wiring).

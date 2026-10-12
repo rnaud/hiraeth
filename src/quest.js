@@ -13,7 +13,7 @@ import { hintsFor } from './hint-level.js';
 //    Picking one up sketches the moment into your journal.
 //  - Journal: every relic and story page found, the errands and the observatory,
 //    kept in localStorage (per save slot: src/save-slots.js); J, View / Select
-//    open it as the game menu (src/game-menu.js: Quests, Map, Items, Worlds, People, Sketchbook).
+//    open it as the game menu (src/game-menu.js: Quests, Map, Items, Worlds, People; the Sketchbook's page went in v1.62).
 //  - A story with `manual: true` (the desert's) has no beacon and doesn't
 //    finish on arrival: its quest calls story.complete() (src/story/).
 
@@ -52,7 +52,7 @@ export class Journal {
   markSeen(level) { this.data.seen[level] = 1; this.save(); }
 
   /**
-   * Open (on a panel: 'items', 'quests', 'map', 'sketches', 'worlds'; else the Quests) or close the
+   * Open (on a panel: 'items', 'quests', 'map', 'worlds', 'people'; else the Quests) or close the
    * game menu (src/game-menu.js), which since October 2026 shows what the sketchbook did.
    */
   toggle(on = !this.open, panel = null) {
@@ -359,7 +359,7 @@ export class Errands {
           img = this.capture(new THREE.Vector3(P.x + Math.sin(h) * 3, P.y + 1.8, P.z + Math.cos(h) * 3), P.clone().add(new THREE.Vector3(0, 1.4, 0)), 240, 180);
         } catch { /* no sketch */ }
         this.journal.setErrand(d.id, { ...st, done: true, img });
-        this.say(hintsFor('tip') ? `Delivered ${d.item} · ${errandMenuKey()} to see it in the Sketchbook` : `Delivered ${d.item}`);   // (where to look: hints full)
+        this.say(hintsFor('tip') ? `Delivered ${d.item} · ${errandMenuKey()} to see it under People` : `Delivered ${d.item}`);   // (where to look: hints full)
         this.sound?.chime?.();
       } else npc.lines = w.base;
     }

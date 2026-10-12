@@ -5,6 +5,7 @@ import { SHOP_LINES } from './story/shop-data.js';
 import { stripTone, parseLine } from './story/tone.js';
 import { planLine, voiceOf } from './story/voice.js';
 import { chimeIcon } from './chime-icon.js';
+import { ITEMS } from './items.js';
 
 // The shop panel (docs/systems/ui.md, "The shop"): opened by talking to a keeper ("Show me what you have") or
 // at their counter (src/story/shops.js: game.emit('shop:open', { shop })). A paper sheet over the room: the
@@ -22,11 +23,37 @@ import { chimeIcon } from './chime-icon.js';
 //   panel.isOpen · panel.root (what a controller press goes to) · panel.back() · panel.close()
 //
 // shopHtml(view) and warePicture(kind) are pure: the tests read them.
+//
+// Anselm Thrum's shop aboard the ship (v1.62, issue #185: src/fragment-shop.js) is the same panel with an entry of
+// `kind: 'fragments'`: the wallet is the fragments of the singing light you hold, the prices are in fragments, and the
+// wares are his upgrades (their names from src/items.js, their pictures the items page's own when drawn: `icon`); one
+// already fitted says so, one whose gear you don't have yet says what it needs, in one line.
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /** The chimes' crystal, small, for prices and the wallet (as the HUD's: index.html #health .chimes; src/chime-icon.js). */
 export const CHIME_SVG = chimeIcon('chime-ico');
+/** A fragment of the singing light, small (Anselm's prices and the fragments you hold): a pale splinter, inked. */
+export const FRAGMENT_SVG = '<svg class="chime-ico frag-ico" viewBox="0 0 20 32" aria-hidden="true"><path d="M10 1.5 16.5 14 10 30.5 3.5 14Z" fill="#dff7ff" stroke="#2b211f" stroke-width="2" stroke-linejoin="round"/><path d="M10 1.5V30.5M3.5 14H16.5" fill="none" stroke="#7fb8c9" stroke-width="1.2"/></svg>';
+/** A ware of Anselm's with no picture drawn yet: a fragment, large. */
+const FRAGMENT_PIC = FRAGMENT_SVG.replace('class="chime-ico frag-ico"', 'class="frag-pic"');
+
+/** What the money of a shop is: the chimes (every keeper's), or the fragments you hold (Anselm's). */
+export function shopMoney(kind = 'chimes') {
+  if (kind === 'fragments') return { cls: 'fragments', icon: FRAGMENT_SVG, title: t('shop.fragHeld'), ask: (w) => t('shop.askFrag', { what: w.name ?? w.id, n: w.price }) };
+  return { icon: CHIME_SVG, title: t('hud.chimes'), ask: (w) => t('shop.ask', { what: t(`shop.${w.id}.a`), n: w.price }) };
+}
+
+/**
+ * One of Anselm's wares as a card shows it (src/fragment-shop.js thrumWares): its name, what it does, its picture
+ * (`icon(id)`: the items page's, or null), and its state in one line: fitted, what it needs first, or too dear.
+ */
+export function upgradeWare(w, icon = () => null) {
+  const url = icon(w.id);
+  return { ...w, name: ITEMS[w.id]?.name ?? w.id, effect: t(`thrum.${w.id}`), note: '',
+    pic: url ? `<img class="ware-img" src="${esc(url)}" alt="">` : FRAGMENT_PIC,
+    flag: w.state === 'owned' ? t('shop.fitted') : w.state === 'needs' ? t(`shop.needs.${w.needs}`) : w.state === 'short' ? t('shop.fragShort') : '' };
+}
 
 /** A ware's picture: an inked drawing in the HUD's own style (the flask, a heart, a magic cell). */
 export function warePicture(kind) {
@@ -44,39 +71,42 @@ export function stockText(w) {
   return { left, have };
 }
 /** The word on a card that can't be bought now (sold out, too dear, a full pack), or ''. */
-export const stateText = (state) => (state === 'soldout' ? t('shop.soldOut') : state === 'short' ? t('shop.short') : state === 'full' ? t('shop.full') : '');
+export const stateText = (state) => (state === 'soldout' ? t('shop.soldOut') : state === 'short' ? t('shop.short') : state === 'full' ? t('shop.full') : state === 'owned' ? t('shop.fitted') : '');
 
 /**
  * The panel's markup. view: { keeper: { name, title }, line (what they say now), wallet, wares (Shop.view()),
- * ask (a ware's id while its yes / no shows, or null) }.
+ * ask (a ware's id while its yes / no shows, or null), money (shopMoney: the chimes unless given) }. A ware may
+ * carry its own words and picture (`name`, `effect`, `note`, `pic`, `flag`: Anselm's, upgradeWare).
  */
-export function shopHtml({ keeper = {}, line = '', wallet = 0, wares = [], ask = null } = {}) {
+export function shopHtml({ keeper = {}, line = '', wallet = 0, wares = [], ask = null, money = null } = {}) {
+  const m = money ?? shopMoney();
   const cards = wares.map((w) => {
-    const { left, have } = stockText(w), flag = stateText(w.state);
+    const { left, have } = w.note === undefined ? stockText(w) : {}, flag = w.flag ?? stateText(w.state);
+    const stock = w.note === undefined ? `${esc(left)} · ${esc(have)}` : esc(w.note);
     return `<button type="button" class="ware ${w.state}" data-ware="${esc(w.id)}" data-state="${w.state}"${w.state === 'ok' ? '' : ' aria-disabled="true"'}>
-      <span class="ware-pic">${warePicture(w.kind)}</span>
-      <span class="ware-name">${esc(t(`shop.${w.id}.name`))}</span>
-      <span class="ware-effect">${esc(t(`shop.${w.id}.effect`))}</span>
-      <span class="ware-stock">${esc(left)} · ${esc(have)}</span>
-      <span class="ware-foot">${w.state === 'soldout' ? '' : `<span class="ware-price">${CHIME_SVG}<b>${w.price}</b></span>`}${flag ? `<span class="ware-flag">${esc(flag)}</span>` : ''}${glyph('ok', { focus: true })}</span>
+      <span class="ware-pic">${w.pic ?? warePicture(w.kind)}</span>
+      <span class="ware-name">${esc(w.name ?? t(`shop.${w.id}.name`))}</span>
+      <span class="ware-effect">${esc(w.effect ?? t(`shop.${w.id}.effect`))}</span>
+      ${stock ? `<span class="ware-stock">${stock}</span>` : ''}
+      <span class="ware-foot">${w.state === 'soldout' || w.state === 'owned' ? '' : `<span class="ware-price">${m.icon}<b>${w.price}</b></span>`}${flag ? `<span class="ware-flag">${esc(flag)}</span>` : ''}${glyph('ok', { focus: true })}</span>
     </button>`;
   }).join('');
   const asked = ask ? wares.find((w) => w.id === ask) : null;
-  return `<div class="shop-sheet">
+  return `<div class="shop-sheet${m.cls ? ` ${m.cls}` : ''}">
     <header class="shop-head">
       <div class="shop-keeper"><b>${esc(keeper.name ?? '')}</b><i>${esc(keeper.title ?? '')}</i><p class="shop-line">${esc(stripTone(line))}</p></div>
-      <div class="shop-wallet" title="${esc(t('hud.chimes'))}">${CHIME_SVG}<b>${wallet}</b></div>
+      <div class="shop-wallet" title="${esc(m.title)}">${m.icon}<b>${wallet}</b></div>
       <button type="button" class="shop-close" data-a="close" aria-label="${esc(t('shop.leave'))}">${glyph('back')}<span>✕</span></button>
     </header>
     <div class="shop-wares" data-grid-nav${asked ? ' inert' : ''}>${cards}</div>
-    ${asked ? `<div class="shop-ask" role="alertdialog"><p>${esc(t('shop.ask', { what: t(`shop.${asked.id}.a`), n: asked.price }))}</p>
+    ${asked ? `<div class="shop-ask" role="alertdialog"><p>${esc(m.ask(asked))}</p>
       <div class="shop-ask-row"><button type="button" class="yes" data-a="yes">${glyph('ok')}<span>${esc(t('shop.yes'))}</span></button><button type="button" class="no" data-a="no">${glyph('back')}<span>${esc(t('shop.no'))}</span></button></div></div>` : ''}
   </div>`;
 }
 
-/** The next of a keeper's lines for `what` (in turn: never the same twice running). */
-export function keeperLine(keeper, what, turn = new Map()) {
-  const list = SHOP_LINES[keeper]?.[what] ?? [];
+/** The next of a keeper's lines for `what` (in turn: never the same twice running). `lines`: theirs (Anselm's: src/story/scientist-data.js). */
+export function keeperLine(keeper, what, turn = new Map(), lines = SHOP_LINES[keeper]) {
+  const list = lines?.[what] ?? [];
   if (!list.length) return '';
   const k = `${keeper}.${what}`, i = turn.get(k) ?? 0;
   turn.set(k, i + 1);
@@ -93,8 +123,8 @@ export class ShopPanel {
    * @param o.onClose   () after it closes
    * @param o.covered   () => true while another menu is open over it (the Start menu, the game menu): the keys are theirs
    */
-  constructor({ el = null, game, resources, sound = null, onBought = () => {}, onClose = () => {}, covered = () => false, doc = globalThis.document } = {}) {
-    Object.assign(this, { game, resources, sound, onBought, onClose, covered, doc });
+  constructor({ el = null, game, resources, sound = null, onBought = () => {}, onClose = () => {}, covered = () => false, icon = () => null, doc = globalThis.document } = {}) {
+    Object.assign(this, { game, resources, sound, onBought, onClose, covered, icon, doc });
     this.el = el ?? doc?.getElementById?.('shop') ?? null;
     if (!this.el && doc?.createElement) {
       this.el = doc.createElement('div');
@@ -120,7 +150,7 @@ export class ShopPanel {
     this.el.classList.add('open');
     this.el.setAttribute('aria-label', entry.shop?.label ?? 'Shop');
     if (this.doc?.pointerLockElement) this.doc.exitPointerLock?.();
-    this.sound?.shopBell?.();
+    if (!this.fragments) this.sound?.shopBell?.();   // (Anselm's hold has no bell)
     this.render(true);
     return true;
   }
@@ -132,7 +162,7 @@ export class ShopPanel {
     this.el.innerHTML = '';
     this.doc?.activeElement?.blur?.();
     // the keeper's goodbye, over their head
-    const bye = keeperLine(e.keeper?.id, 'bye', this.turn);
+    const bye = keeperLine(e.keeper?.id, 'bye', this.turn, e.lines);
     if (bye && e.npc) e.npc.shout = { text: bye, until: (e.npc.time ?? 0) + 3 };
     this.onClose();
   }
@@ -146,7 +176,7 @@ export class ShopPanel {
   /** The keeper says something (shown over the wares, in their voice). */
   say(what) {
     const id = this.entry?.keeper?.id;
-    const line = keeperLine(id, what, this.turn);
+    const line = keeperLine(id, what, this.turn, this.entry?.lines);
     if (!line) return;
     this.line = line;
     try {
@@ -155,10 +185,15 @@ export class ShopPanel {
       this.sound?.speak?.(plan, { channel: 'choice' });
     } catch { /* (no voice: the words still show) */ }
   }
+  /** Anselm's (src/fragment-shop.js): the fragments you hold are the money. */
+  get fragments() { return this.entry?.kind === 'fragments'; }
   view() {
-    const e = this.entry;
-    return { keeper: { name: e.keeper?.name, title: e.keeper?.title }, line: this.line, wallet: this.resources.chimes, wares: e.logic.view(), ask: this.ask };
+    const e = this.entry, frag = this.fragments;
+    const wares = frag ? e.logic.view().map((w) => upgradeWare(w, this.icon)) : e.logic.view();
+    return { keeper: { name: e.keeper?.name, title: e.keeper?.title }, line: this.line, wallet: frag ? e.logic.held : this.resources.chimes, wares, ask: this.ask, money: shopMoney(frag ? 'fragments' : 'chimes') };
   }
+  /** An item's picture is drawn (src/item-icons.js): on Anselm's cards, if his shop is open. */
+  iconReady() { if (this.isOpen && this.fragments) this.render(); }
   render(first = false) {
     if (!this.entry || !this.el) return;
     const focused = this.doc?.activeElement?.dataset?.ware ?? null;
@@ -188,7 +223,7 @@ export class ShopPanel {
     this.ask = null;
     if (!id) return null;
     const r = this.entry.logic.buy(id);
-    if (r.ok) { this.say(id); this.sound?.purchase?.(r.price); this.onBought(r); }
+    if (r.ok) { this.say(id); if (this.fragments) this.sound?.fragmentTaken?.(); else this.sound?.purchase?.(r.price); this.onBought(r); }
     else this.say(r.state === 'soldout' ? 'soldOut' : r.state);
     this.render();
     this.focus(`[data-ware="${id}"]`);

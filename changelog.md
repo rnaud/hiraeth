@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.62 — 2026-10-12
+
+- The Sketchbook page is gone from the game menu, which is Quests, Map, Items, Worlds and People now. Each world’s relics are still listed on the Worlds page, and delivered errands under People.
+- The Worlds page can take you back: open a world you have been to and press A / × on Travel here, and your ship flies you to its landing. If the ship won’t leave yet (the Desert without the blade and guard, Vael without the wings), it says why there.
+- Once you have met Anselm he is in your ship’s hold in every world, even if you walked off before his last words. While the ship flies in or takes off he stays out of sight inside it, instead of standing in the air where the hold had been.
+- A save with upgrades Anselm fitted at the old counts keeps them, and holds the fragments it found less their prices.
+- Anselm Thrum sells his upgrades now: talk to him in your ship’s hold and choose from his seven, each for a price in fragments of the singing light, from 3 for the finder to 30 for the guard. The fragments you hold go down as you buy; the Worlds page still counts every one you found, and the Start menu says how many you have to spend. One for gear you don’t have yet says what it needs.
+
 ## v1.61 — 2026-10-12
 
 - Aboard your ship the camera keeps its distance in the tight spots: in the cockpit, by the hatch and beside your bunk it rises over your shoulder and looks down into the room as you turn, instead of pressing into your back. When you wake you stand a step out from the bunk, with the room and the cockpit ahead of you.

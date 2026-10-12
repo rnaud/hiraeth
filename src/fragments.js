@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { game as sharedGame } from './game-state.js';
-import { items as sharedItems, FRAGMENT_ITEMS } from './items.js';
+import { items as sharedItems } from './items.js';
 import { FRAGMENTS, fragKey, fragmentCounts } from './fragments-data.js';
 import { TITLES } from './levels/names.js';
 
 // The fragments of the singing light (docs/systems/fragments.md, issue #196): small splinters of the light's song
 // hidden in every world on the route (src/fragments-data.js), out of the way. Each floats a little over its spot,
 // glows, and sings faintly when you are near (three soft notes of the light's theme, from where it is); walk into
-// one and it is yours. The first brings the scientist (src/story/scientist.js); from then on he lives on the ship
-// and counts them, and at each milestone (MILESTONES) he has an upgrade for your gear. At ten he gives you the
-// finder (item `finder`): it beeps faster as a fragment comes closer, within FRAGMENT.finder.range.
+// one and it is yours. The first brings the scientist (src/story/scientist.js); from then on he lives on the ship,
+// counts them and sells his upgrades for them (src/fragment-shop.js: what you hold is what you found less what you
+// spent). The cheapest is the finder (item `finder`): it beeps faster as a fragment comes closer, within FRAGMENT.finder.range.
 //
 //   createFragments({ levelId, scene, physics, level, player, sound, game, items, toast, lights })
 //     → { list, update(dt, t), counts(), nearest(), take(i), finderOn(), dispose() }
@@ -27,9 +27,6 @@ export const FRAGMENT = {
   singEvery: 3.4,  // s between its three notes
   finder: { range: 60, slow: 1.8, fast: 0.14 },   // the finder: beeps from `range` m, every `slow` s there, every `fast` s on top of it
 };
-
-/** The counts where the scientist has something for you (the last: every fragment there is). */
-export const MILESTONES = FRAGMENT_ITEMS.map((u) => u.at);   // (5, 10, 15, 25, 50, 75, then all of them: src/items.js `fragments`)
 
 export { fragKey, fragmentCounts };
 

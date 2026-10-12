@@ -1,6 +1,6 @@
 // The game menu (View / Select, J, the touch ❏; the Start menu's Items, Quests and Map): since October
 // 2026 it takes the sketchbook's place. After the pause screen of Ocarina of Time, drawn in the
-// game's own ink and paper: six panels side by side, turned with the shoulder buttons (LB / L1,
+// game's own ink and paper: five panels side by side, turned with the shoulder buttons (LB / L1,
 // RB / R1; Q / E or [ ] on a keyboard; the tabs and the side arrows with a mouse or a finger), the
 // neighbours' names at the sheet's sides; inside a panel a cursor moves over a grid of cells with the
 // stick, the D-pad or the arrows; the cell's name and what it is in the strip at the bottom, with the
@@ -21,14 +21,17 @@
 //   Items       the gear (the makers' items, each drawn by the game's own pipeline: src/item-icons.js),
 //               what you carry for the quests, the keepsakes for the father's charge
 //   Worlds      the worlds you know, in the route's order, one a row: A / × shows what you have found there
-//               and what is still to find
+//               and what is still to find; there A / × travels to a world you have been to (its landing, by the
+//               ship: v1.62, issue #213, `onTravel`)
 //   People      everyone you have talked to, a card each grouped by world (their portrait, name, role); A / ×
 //               opens one: what you know of them, where they are now, what passed between you; B / ○ back
 //               to the cards (src/story/people-book.js). The cards' grid moves by where the cards are on the
 //               screen (gridStep, src/menu-pad.js: data-grid-nav), so it is right at any width; the items too.
-//   Sketchbook  the Sightings (every trace of the singing light, the makers' sign and the father's signal
-//               met so far, a ? for each still to find), every world's story page and relics, the errands'
-//               and the observatory's sketches
+//
+// The Sketchbook panel (the Sightings, the story pages, the relics' and errands' sketches) went in v1.62 (issue #213:
+// "the sketchbook is confusing about its purpose, I don't know why it's there at all"). The journal still keeps what
+// it showed (src/quest.js: a save loses nothing); the Worlds' full view names each world's relics, the Quests the
+// errands.
 //
 // What fills the panels comes from `sources` (src/game-menu-data.js, wired in main.js). The cursor and
 // the panels are plain state (MenuState, moveCursor) so tests can drive them without a page.
@@ -40,7 +43,7 @@ import { t, onLanguage } from './i18n.js';
 import { chimeIcon } from './chime-icon.js';
 
 // (the names in the language now: src/i18n.js; the menu opens on the first, Quests: issue #213)
-export const PANELS = ['quests', 'map', 'items', 'worlds', 'people', 'sketches'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
+export const PANELS = ['quests', 'map', 'items', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
 /** The panel the menu opens on (View / Select, J, the touch ❏): the quests (issue #213). */
 export const DEFAULT_PANEL = 'quests';
 /** The people's cards: this many a row (as the cursor counts them without a page; on one, where they are drawn). */
@@ -48,8 +51,6 @@ export const PEOPLE_COLS = 4;
 /** The gear's cells: this many a row in the cursor's count (on a page the tiles are as many a row as fit, and the
  *  cursor moves by where they are drawn: data-grid-nav). Twelve since v1.55. */
 export const GEAR_COLS = 12;
-/** The Sightings' notes: this many a row. */
-export const SIGHT_COLS = 5;
 /** The worlds: one a row since v1.58 (issue #213: "the worlds tab I can't go up and down"). */
 export const WORLD_COLS = 1;
 
@@ -228,66 +229,6 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
   return { html, rows, start: tracked >= 0 ? { r: tracked, c: 0 } : null };
 }
 
-/** A sketch's full view: its picture, or a ? until it is drawn. */
-const sketchFull = (x, text) => ({ pic: x.img ? `<div class="big sketch"><img src="${esc(x.img)}" alt=""></div>` : '<div class="big mark"><i>?</i></div>', sub: x.sub, text });
-
-/**
- * Sketchbook: { sightings: [{ id, name, ask, answer: { line, who } | null, found, of, entries: [{ id, line, who, world, found }] }] | null,
- * worlds: [{ id, title, story: { title, img }, relics: [{ name, img }], found, of }],
- * extra: [{ id, title, tiles: [{ name, img, caption }] }] } (the observatory, the errands).
- * First the Sightings (src/story/sightings.js): a block a thread, its notes SIGHT_COLS a row, the ones met
- * as a short line with the world and who said it, the rest a ? (with the world's name once you know it).
- * Then one row a world: its story page (drawn when told), then its relics (a ? until found). A / × on any:
- * its full view (the sketch large, what it is beside it).
- */
-export function sketchesPanel({ sightings = null, worlds = [], extra = [] } = {}) {
-  const rows = [];
-  const tile = (x, r, c, wide = false) => `<button class="tile${wide ? ' wide' : ''}${x.img ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(x.name || t('gm.notFound'))}">${x.img ? `<img src="${esc(x.img)}" alt="">` : `<i>${wide ? '…' : '?'}</i>`}</button>`;
-  const sections = [];
-  // the Sightings: a thread a block, its notes SIGHT_COLS a row (a row of the grid is a row of the cursor's)
-  if (sightings?.length) {
-    const found = sightings.reduce((n, th) => n + th.found, 0), of = sightings.reduce((n, th) => n + th.of, 0);
-    const blocks = sightings.map((th) => {
-      const notes = [], base = rows.length;
-      th.entries.forEach((e, i) => {
-        const r = base + Math.floor(i / SIGHT_COLS), c = i % SIGHT_COLS;
-        const sub = e.found ? [th.name, e.world, e.who].filter(Boolean).join(' · ') : `${th.name} · ${e.world || 'somewhere further on'}`;
-        const desc = th.answer ? `${th.answer.who}: “${th.answer.line}”` : e.found ? th.ask : `A trace still to find${e.world ? ` in ${e.world}` : ''}. ${th.ask}`;
-        (rows[r] ??= []).push({ col: c, kind: 'sighting', id: e.id, name: e.found ? e.line : 'Not found yet', sub, desc, act: 'look',
-          full: { title: th.name, pic: `<div class="big note t-${esc(th.id)}">${e.found ? `<q>${esc(e.line)}</q>` : '<i>?</i>'}</div>`, sub, text: desc } });
-        notes.push(`<button class="note${e.found ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(e.found ? e.line : 'not found yet')}">${e.found
-          ? `<q>${esc(e.line)}</q><small>${esc([e.world, e.who].filter(Boolean).join(' · '))}</small>`
-          : `<i>?</i>${e.world ? `<small>${esc(e.world)}</small>` : ''}`}</button>`);
-      });
-      // (answered at the Lantern: the thread's answer under its name, in Ilen's words)
-      const answer = th.answer ? `<p class="answer"><q>“${esc(th.answer.line)}”</q><small>${esc(th.answer.who)}</small></p>` : '';
-      // (`t-<id>`: a bare `glyph` class is the pad glyphs' own, src/pad-glyphs.js, and laid the makers' sign's block out as one)
-      return `<div class="thread t-${esc(th.id)}${th.answer ? ' answered' : ''}"><h3>${esc(th.name)} <span>${th.found}/${th.of}</span></h3>${answer}<div class="notes" style="--cols:${SIGHT_COLS}">${notes.join('')}</div></div>`;
-    });
-    sections.push(`<section class="sightings"><h2>Sightings <span>${found}/${of}</span></h2>${blocks.join('')}</section>`);
-  }
-  const cell = (x) => ({ ...x, act: 'look', full: sketchFull(x, x.desc) });
-  for (const w of worlds) {
-    const r = rows.length, cells = [];
-    cells.push(cell({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: t(w.story?.img || w.story?.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(w.story?.img ? 'gm.storyDrawn' : w.story?.told ? 'gm.storyOld' : 'gm.storyLater'), img: w.story?.img ?? null }));
-    // (a merged world's later parts' own pages, after its first: Vael II's bell, Lorn II's lamps)
-    (w.more ?? []).forEach((m, k) => cells.push(cell({ col: 1 + k, kind: 'story', id: `${m.id}.story`, name: m.title, sub: t(m.img || m.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(m.img ? 'gm.storyDrawn' : m.told ? 'gm.storyOld' : 'gm.storyLater'), img: m.img ?? null })));
-    const off = 1 + (w.more?.length ?? 0);
-    (w.relics ?? []).forEach((x, i) => cells.push(cell({ col: off + i, kind: 'relic', id: `${w.id}.${i}`, name: x.img ? x.name : t('gm.notFoundYet'), sub: t('gm.relicOf', { world: w.title, i: i + 1, n: w.relics.length }), desc: t(x.img ? 'gm.relicFound' : 'gm.relicHint'), img: x.img ?? null })));
-    rows.push(cells);
-    sections.push(`<section class="world"><h2>${esc(w.title)} <span>${w.found ?? 0}/${w.of ?? (w.relics ?? []).length}</span></h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, x.kind === 'story')).join('')}</div></section>`);
-  }
-  for (const e of extra) {
-    const r = rows.length;
-    const cells = e.tiles.map((x, i) => cell({ col: i, kind: 'sketch', id: `${e.id}.${i}`, name: x.name, sub: e.title, desc: x.caption ?? '', img: x.img ?? null }));
-    if (!cells.length) continue;
-    rows.push(cells);
-    sections.push(`<section class="world extra"><h2>${esc(e.title)}${e.count ? ` <span>${esc(e.count)}</span>` : ''}</h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, !!e.wide)).join('')}</div></section>`);
-  }
-  const html = `<div class="gm-sketches">${sections.join('') || `<p class="none">${t('gm.nothingDrawn')}</p>`}</div>`;
-  return { html, rows };
-}
-
 /** A world's facts, in a line each: the story, the relics, the boxes, the fragments (once the first is found), the people. */
 export function worldFacts(w) {
   const facts = [];
@@ -302,21 +243,22 @@ export function worldFacts(w) {
 const factsHtml = (facts) => `<ul class="ffacts">${facts.map((f) => `<li class="${f.on ? 'on' : ''}"><i>${f.on ? '✓' : '…'}</i><span>${esc(f.text)}${f.list?.length ? `<small>${f.list.map(esc).join(' · ')}</small>` : ''}</span></li>`).join('')}</ul>`;
 
 /**
- * Worlds: [{ id, title, thumb, current, told, relics: [n, of], boxes: [n, of] | null, blurb, n, relicList, people }] in the
- * route's order: the worlds you know of, one a row (↑ ↓ go between them), their picture and what is done there.
- * A / × on one: its full view, what you have found there and what is still to find.
+ * Worlds: [{ id, title, thumb, current, told, relics: [n, of], boxes: [n, of] | null, blurb, n, relicList, people, travel }]
+ * in the route's order: the worlds you know of, one a row (↑ ↓ go between them), their picture and what is done there.
+ * A / × on one: its full view, what you have found there and what is still to find; in it A / × "Travel here" on a
+ * world you have been to that you are not in (`travel`: v1.62, issue #213), to its landing.
  */
 export function worldsPanel(list = []) {
   const rows = [];
   list.forEach((w, i) => {
     const sub = [w.current ? t('gm.here') : '', t(w.told ? 'gm.told' : 'gm.notTold')].filter(Boolean).join(' · ');
-    rows.push([{ col: 0, kind: 'world', id: w.id, name: w.title, sub, desc: w.blurb ?? '', act: 'look',
-      full: { pic: `<div class="big world">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</div>`,
+    rows.push([{ col: 0, kind: 'world', id: w.id, name: w.title, sub, desc: w.blurb ?? '', act: 'look', use: !!w.travel,
+      full: { use: w.travel ? t('gm.travel') : null, pic: `<div class="big world">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</div>`,
         sub, text: w.blurb ?? '', facts: factsHtml(worldFacts(w)) } }]);
   });
   const card = (w, i) => `<button class="wcard${w.current ? ' here' : ''}${w.told ? ' told' : ''}" ${cellAttrs(i, 0)}>
       <span class="pic">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</span>
-      <span class="wtext"><span class="wname">${esc(w.title)}</span>
+      <span class="wtext"><span class="wname">${esc(w.title)}${w.travel ? `<em class="wtravel">${t('gm.travel')}</em>` : ''}</span>
       <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag" title="${esc(t('gm.fragments', { n: w.fragments[0], m: w.fragments[1] }))}">${w.fragments[0] >= w.fragments[1] ? t('gm.fragAll', { n: w.fragments[1] }) : t('gm.fragLeft', { n: w.fragments[1] - w.fragments[0] })}</span>` : ''}</span>
       <span class="wblurb">${esc(w.blurb ?? '')}</span></span></button>`;
   // (the fragments of the singing light, all told, once the first is found: worldsData's `fragmentsAll`)
@@ -412,10 +354,10 @@ export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, 
   return { html, rows, canvas };
 }
 
-const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, sketches: sketchesPanel, worlds: worldsPanel, people: peoplePanel };
+const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
 
 /** The verb A / × does on a cell ('' if nothing). */
-export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
+export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole', 'travel'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
 
 /**
  * What the confirm button does on the picked cell, in the info strip: its glyph (a pad's printed A, the
@@ -433,7 +375,7 @@ export function menuPrompts(act = null, kind = inputKind()) {
  * right (under it on a narrow screen: never over it), its facts and its action (A / ×); a Back button (B / ○) and
  * the ones before and after (← →). `cell`: a panel's cell with `full` { pic, sub, text, facts, use, inUse }.
  */
-export function fullHtml(cell, { prev = null, next = null } = {}) {
+export function fullHtml(cell, { prev = null, next = null, note = null } = {}) {
   const f = cell.full ?? {};
   return `<div class="gm-full-in" data-full="${esc(cell.id)}" data-kind="${esc(cell.kind)}">
     <button class="fback">${glyph('back', { key: 'Esc' })}<span>${t('gm.back')}</span></button>
@@ -444,6 +386,7 @@ export function fullHtml(cell, { prev = null, next = null } = {}) {
       ${f.text ? `<p>${keyText(esc(f.text), { html: true, teach: true })}</p>` : ''}
       ${f.facts ?? ''}
       ${f.use ? `<button class="fuse" data-full-use>${glyph('ok')}<span>${esc(f.use)}</span></button>` : ''}
+      ${note ? `<p class="fnote" role="status">${esc(note)}</p>` : ''}
     </div>
     <nav class="fstep">${prev ? `<button data-full-step="-1"><span class="arrow">◀</span>${esc(prev)}</button>` : '<span></span>'}${prev || next ? glyph('dpad', { key: '← →' }) : ''}${next ? `<button data-full-step="1">${esc(next)}<span class="arrow">▶</span></button>` : '<span></span>'}</nav>
   </div>`;
@@ -454,12 +397,14 @@ export function fullHtml(cell, { prev = null, next = null } = {}) {
 export class GameMenu {
   /**
    * @param el      the menu's root (index.html #journal)
-   * @param o.sources { items(), quests(), map({ zoom }), sketches(), worlds(), people(open) } → each panel's data (src/game-menu-data.js)
+   * @param o.sources { items(), quests(), map({ zoom }), worlds(), people(open) } → each panel's data (src/game-menu-data.js)
    * @param o.onTrack (id) a quest chosen (the scout finds it) · o.onUse (id) an item used (a gun mode, a gadget, a switch)
+   * @param o.onTravel (id) "Travel here" on a world: null if the ship goes, else the line why not (shown in the full view)
    * @param o.onClose () the ✕, B / ○ or Esc (Journal.toggle(false))
    */
-  constructor(el, { sources = {}, onTrack = null, onUse = null, onClose = null } = {}) {
-    Object.assign(this, { el, sources, onTrack, onUse, onClose });
+  constructor(el, { sources = {}, onTrack = null, onUse = null, onTravel = null, onClose = null } = {}) {
+    Object.assign(this, { el, sources, onTrack, onUse, onTravel, onClose });
+    this.note = null;       // a line in the full view (a fast travel refused: why)
     this.state = new MenuState();
     this.rows = [];
     this.full = null;       // the thing open full screen: { panel, kind, id } (null: the panel)
@@ -641,6 +586,7 @@ export class GameMenu {
   /** Open a cell full screen (A / × on it). */
   openFull(cell) {
     if (!cell?.full) return;
+    this.note = null;
     this.full = { panel: this.panel, kind: cell.kind, id: cell.id };
     this.drawFull();
     this.paint(false);
@@ -651,6 +597,7 @@ export class GameMenu {
     const list = this.fullCells(), i = list.findIndex((x) => x.kind === this.full?.kind && x.id === this.full?.id);
     const to = list[i + Math.sign(d)];
     if (i < 0 || !to) return;
+    this.note = null;
     this.full = { panel: this.panel, kind: to.kind, id: to.id };
     this.cursorOn(to);
     this.drawFull();
@@ -674,7 +621,7 @@ export class GameMenu {
     this.el?.classList.toggle('full', !!cell);
     if (!cell) { this.fullEl.innerHTML = ''; return; }
     const list = this.fullCells(), i = list.indexOf(cell);
-    this.fullEl.innerHTML = fullHtml(cell, { prev: list[i - 1]?.name ?? null, next: list[i + 1]?.name ?? null });
+    this.fullEl.innerHTML = fullHtml(cell, { prev: list[i - 1]?.name ?? null, next: list[i + 1]?.name ?? null, note: this.note });
   }
 
   /** Open a person's page (the People panel), the cards' cursor kept for coming back. */
@@ -707,7 +654,7 @@ export class GameMenu {
   back() {
     if (this.full) {
       const cell = this.fullCell();
-      this.full = null;
+      this.full = null; this.note = null;
       if (cell) this.cursorOn(cell);
       this.drawFull();
       this.paint();
@@ -746,7 +693,10 @@ export class GameMenu {
   confirm() {
     if (this.full) {
       const cell = this.fullCell();
-      if (cell?.use && cell.full?.use) { this.onUse?.(cell.id); this.render(); }
+      if (!cell?.use || !cell.full?.use) return;
+      // a world: the ship takes you there (the menu closes), or the line why not, under the button
+      if (cell.kind === 'world') { const no = this.onTravel?.(cell.id) ?? null; if (no) { this.note = no; this.drawFull(); } return; }
+      this.onUse?.(cell.id); this.render();
       return;
     }
     const at = this.state.cursor();

@@ -8,6 +8,17 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.62', date: '2026-10-12', items: [
+    // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;
+    // docs/systems/fragments.md "His shop"; issue #185), and is aboard in every world once met (tests/thrum-aboard.test.js)
+    'Anselm Thrum sells his upgrades now: talk to him in your ship’s hold and choose from his seven, each for a price in fragments of the singing light, from 3 for the finder to 30 for the guard. The fragments you hold go down as you buy; the Worlds page still counts every one you found, and the Start menu says how many you have to spend. One for gear you don’t have yet says what it needs.',
+    'A save with upgrades Anselm fitted at the old counts keeps them, and holds the fragments it found less their prices.',
+    'Once you have met Anselm he is in your ship’s hold in every world, even if you walked off before his last words. While the ship flies in or takes off he stays out of sight inside it, instead of standing in the air where the hold had been.',
+    // the game menu's Worlds page takes you back, and the Sketchbook's page is gone (src/fast-travel.js, src/game-menu.js;
+    // docs/systems/ui.md; issue #213)
+    'The Worlds page can take you back: open a world you have been to and press A / × on Travel here, and your ship flies you to its landing. If the ship won’t leave yet (the Desert without the blade and guard, Vael without the wings), it says why there.',
+    'The Sketchbook page is gone from the game menu, which is Quests, Map, Items, Worlds and People now. Each world’s relics are still listed on the Worlds page, and delivered errands under People.',
+  ] },
   { v: '1.61', date: '2026-10-12', items: [
     // two blind legs guided and places off the way (src/levels/space-city-ways.js STAIR_LAMP, space-city-detours.js,
     // spheres-detours.js; docs/systems/worlds.md "Two blind legs guided, and places off the way"; issue #233)

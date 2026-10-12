@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { pendingCall, callLines, recordingLabel, onHologram, PART_CALLS, REEL, CALL_COUNT } from '../src/story/calls.js';
 import { peopleOf, WORLD_DATA } from '../src/story/ending.js';
-import { sketchesData } from '../src/game-menu-data.js';
 import { ORDER, SUB, PARTS } from '../src/levels/names.js';
 import { parseLine } from '../src/story/tone.js';
 
@@ -49,14 +48,10 @@ test('every reel word is asked for somewhere: the route’s worlds, the second s
   for (const id of Object.keys(REEL)) assert.ok(asked.has(id), `${id}: its word (${REEL[id].word}) is never asked`);
 });
 
-test('a second story closes its own page: the part’s page in the sketchbook, after its world’s', () => {
+test('a second story closes its own page: the part’s page kept in the journal, after its world’s', () => {
   // (src/story/index.js partPage → src/quest.js Story.completePart)
   assert.match(src('src/story/index.js'), /story\.completePart\?\.\(part, CONTENT\[part\]\?\.story\)/);
   assert.match(src('src/quest.js'), /completePart\(part, def\) \{/);
-  const levels = [{ id: 'arzach', title: 'Vael', relicNames: ['a', 'b'], storyTitle: 'THE BIRD', parts: [{ id: 'arzach2', storyTitle: 'THE BELL UNDER THE CLOUD' }] }];
-  const sk = sketchesData({ data: { stories: { arzach2: { img: 'x.jpg', t: 1 } } }, levels });
-  assert.deepEqual(sk.worlds[0].more, [{ id: 'arzach2', title: 'THE BELL UNDER THE CLOUD', img: 'x.jpg', told: true }]);
-  assert.equal(sk.worlds[0].story.told, false, 'the world’s own page is the first part’s');
   for (const [w, parts] of Object.entries(PARTS)) assert.ok(parts.length > 1 && src('src/main.js').includes('parts: partsOf(l.id).slice(1)'), `${w}: its parts' pages listed`);
 });
 

@@ -572,7 +572,7 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **Anselm Thrum** (renamed from Orrin in v1.61, #229: the Orrins are the father's neighbours): a thin man in a patched
   pale coat, goggles on his brow, a brass box that ticks near a splinter. He studies light and has followed the song since
   the night it went over, without knowing what it is. The first fragment you take brings him at a run; he comes aboard,
-  lives in the hold among the crates, keeps what you bring in a jar, and at each milestone works them into your gear (a
+  lives in the hold among the crates, keeps what you bring in a jar, and works them into your gear for a price in fragments (a
   heart, the finder, the blade, the tank, the wings, the boots, the guard). He never learns what the light was.
 - **At the Lantern**: the answer is Ilen's. When she owns up to the light she knows its splinters for her own song, one
   line by how many you picked up: none ("Nobody stops for them"), some ("I can hear them from here, in your hold"), every

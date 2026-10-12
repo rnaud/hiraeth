@@ -166,9 +166,9 @@ while you are in it. Picking another world starts the debug save again from scra
   they set), the errands delivered or still carried (`ERRANDS`);
 - since v1.58 (issue #203: "unlocked everything in all the previous levels"): its trial run and its reward held
   (`TRIALS`, `src/trials/data.js`; a retired reward left out), and its fragments of the singing light found
-  (`FRAGMENTS`): Anselm Thrum met (`frag.met`, `met.thrum`: he is aboard) and each of his upgrades the count
-  reaches fitted where its gear is held (`FRAGMENT_ITEMS`, `needs`): before the Glass Dunes, 48 fragments, the
-  heart, the finder, the edge and the light chamber.
+  (`FRAGMENTS`): Anselm Thrum met (`frag.met`, `met.thrum`: he is aboard) and his upgrades bought, the cheapest first
+  while the fragments last, where its gear is held (`FRAGMENT_ITEMS`, `needs`; src/fragment-shop.js): before the Glass Dunes,
+  48 fragments, the finder, the heart, the edge, the light chamber and the wings, 5 still to spend.
 
 The chosen world, and every one after it, is untouched: it opens at its start (no saved position), its
 quests, boxes and temple waiting. Left out: relics and the sketchbook's pictures (drawn as you find them) and

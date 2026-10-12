@@ -1,21 +1,26 @@
 import * as THREE from 'three';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { makeMaterial } from '../materials.js';
-import { items as sharedItems, ITEMS } from '../items.js';
+import { items as sharedItems } from '../items.js';
 import { fragmentCounts } from '../fragments-data.js';
-import { THRUM, thrumPerson } from './scientist-data.js';
+import { FragmentShop } from '../fragment-shop.js';
+import { THRUM, THRUM_SHOP_LINES, thrumPerson } from './scientist-data.js';
 
 // The scientist (src/story/scientist-data.js: Anselm Thrum; docs/systems/fragments.md). src/story/index.js sets him
 // up in every world:
 //
 //   setupScientist({ levelId, scene, physics, level, ship, npcs, lib, humans, game, items, talkable, dialogue, player, toast })
-//     → { def, aboard, field, meet(), update(dt), jar }
+//     → { def, aboard, field, meet(), update(dt), jar, shop, shopEntry() }
 //
-// Once met (`frag.met`) he lives aboard the ship, in the hold by the crates (ABOARD, ship-local), and talks there:
-// his count, and an upgrade whenever a milestone is reached. Before that he is nowhere; the first fragment you pick
-// up (game 'fragment', src/fragments.js) brings him: he comes up beside you (meetSpot) and the talk opens at once.
-// That one stays where he met you until you are far off or aboard, then is gone (he is in the hold by then).
-// On the crate beside him, a jar of what you have brought him, a splinter for each (up to JAR_MAX), glowing.
+// Once met (`frag.met`) he lives aboard the ship, in the hold by the crates (ABOARD, ship-local), in every world, and
+// talks there: his count, and his shop (v1.62, issue #185: his upgrades for fragments, src/fragment-shop.js; main.js
+// opens shopEntry() in the shop panel on game 'shop:open' { shop: 'thrum' }). Before that he is nowhere; the first
+// fragment you pick up (game 'fragment', src/fragments.js) brings him: he comes up beside you (meetSpot) and the talk
+// opens at once. Once that talk has opened he is met, however it ends (`frag.met`: B out of it too). The one who met
+// you stays where he met you until you are far off or aboard, then is gone (he is in the hold by then). While the ship
+// flies (an arrival's landing, a take-off: its hull off where it is parked) he is out of sight in the shut hull, and
+// back in his place once it is down. On the crate beside him, a jar of what you have brought him, a splinter for each
+// (up to JAR_MAX), glowing.
 
 const UP = new THREE.Vector3(0, 1, 0);
 /** His place aboard (ship-local, src/ship/interior.js: the hold, in front of the starboard crate, facing the doorway). */
@@ -69,14 +74,10 @@ function buildJar() {
   return { group: g, show(n) { bits.forEach((b, i) => { b.visible = i < n; }); } };
 }
 
-export function setupScientist({ levelId, scene, physics, level, ship = null, npcs = [], lib = null, humans = null, game, items = sharedItems, talkable, dialogue = null, player = null, toast = () => {}, onFit = null }) {
+export function setupScientist({ levelId, scene, physics, level, ship = null, npcs = [], lib = null, humans = null, game, items = sharedItems, talkable, dialogue = null, player = null }) {
   if (!game) return null;
   const flags = () => game.data?.flags ?? {};
-  const fitted = (id) => {
-    toast(`${ITEMS[id]?.name ?? id}: fitted`);
-    onFit?.(id);
-  };
-  const def = thrumPerson({ flags, has: (id) => items.has(id), here: levelId, items, onFit: fitted });
+  const def = thrumPerson({ flags, has: (id) => items.has(id), here: levelId });
   const make = (at, heading) => {
     const npc = new NPC(scene, physics, {
       route: [at.clone()], palette: def.palette, lines: def.lines, lib, human: humans ? humans[0] : null, kind: def.kind,
@@ -95,7 +96,9 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
     npc.show?.(false);
     npc.object.visible = false;
   };
-  const rt = { def, aboard: null, field: null, jar: null, pending: false };
+  const rt = { def, aboard: null, field: null, jar: null, pending: false, meeting: false, shop: new FragmentShop({ game, items }) };
+  /** His shop, for the shop panel (src/shop-panel.js open: kind 'fragments'). */
+  rt.shopEntry = () => ({ kind: 'fragments', shop: { id: 'thrum', label: THRUM.name }, logic: rt.shop, keeper: THRUM, lines: THRUM_SHOP_LINES, npc: rt.aboard ?? rt.field });
 
   // aboard, by the crates (with the ship parked here)
   const board = () => {
@@ -122,12 +125,28 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
       ?? { at: player.pos.clone().add(new THREE.Vector3(-Math.sin(player.heading ?? 0) * 2.5, 0, -Math.cos(player.heading ?? 0) * 2.5)), heading: player.heading ?? 0 };
     rt.field = make(spot.at, spot.heading);
     rt.pending = false;
-    dialogue?.start(def, rt.field);
+    rt.meeting = dialogue?.start(def, rt.field) !== false;
     return true;
+  };
+
+  /** The ship off where it is parked (flying in, taking off): its hull shut, him out of sight in it. */
+  const flying = () => {
+    const g = ship?.parked?.group, rest = ship?.restPos;
+    return !!(g && rest && g.position.distanceToSquared(rest) > 0.01);
   };
 
   rt.update = () => {
     if (rt.pending && !dialogue?.open && !ship?.playing) rt.meet();
+    // (the meeting's talk opened: he is met however it ended, so he is aboard from now on, in every world)
+    if (rt.meeting && !dialogue?.open) { rt.meeting = false; if (!game.flag('frag.met')) game.set('frag.met', true); }
+    if (rt.aboard) {
+      const away = flying();
+      if (away !== !!rt.aboard.away) {
+        rt.aboard.away = away;
+        // (down again: back on his spot by the crate, facing the doorway)
+        if (!away) { rt.aboard.pos.copy(ship.world(ship.parked, new THREE.Vector3(...ABOARD.at))); rt.aboard.heading = ship.worldHeading(ship.parked, ABOARD.heading); }
+      }
+    }
     if (rt.field) {
       if (game.flag('frag.met')) board();
       const far = player && rt.field.pos.distanceTo(player.pos) > FIELD_GONE;

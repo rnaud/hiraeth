@@ -9,8 +9,10 @@ import fs from 'node:fs';
 import { readFileSync } from 'node:fs';
 await import('./register-gadgets.js');
 const { FRAGMENTS, FRAGMENT_TOTAL, FRAGMENTS_PER_WORLD, fragmentCounts, fragKey } = await import('../src/fragments-data.js');
-const { createFragments, MILESTONES, FRAGMENT, finderInterval, finderPitch } = await import('../src/fragments.js');
-const { THRUM, THRUM_TALK, OFFER_LINES, thrumTalk, thrumPerson, pendingOffer, nextMilestone, tallyLines } = await import('../src/story/scientist-data.js');
+const { createFragments, FRAGMENT, finderInterval, finderPitch } = await import('../src/fragments.js');
+const { THRUM, THRUM_TALK, THRUM_SHOP_LINES, thrumPerson, tallyLines } = await import('../src/story/scientist-data.js');
+const { PRICES, FragmentShop, fragmentPurse, thrumWares, affordable } = await import('../src/fragment-shop.js');
+const { shopHtml, upgradeWare, shopMoney, ShopPanel } = await import('../src/shop-panel.js');
 const { setupScientist, meetSpot, ABOARD, JAR_MAX } = await import('../src/story/scientist.js');
 const { ITEMS, FRAGMENT_ITEMS, items } = await import('../src/items.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
@@ -62,7 +64,7 @@ function talk(person, ctx, answers = []) {
   return { r, said: said.join(' ') };
 }
 
-test('the data: eight in each world on the route, ninety-six all told; the milestones 5, 10, 15, 25, 50, 75 and all', () => {
+test('the data: eight in each world on the route, ninety-six all told; his seven upgrades priced 3 to 30, ninety-six all told', () => {
   assert.deepEqual(Object.keys(FRAGMENTS).sort(), [...ORDER].sort(), 'every route world, and only those');
   for (const id of ORDER) {
     assert.equal(FRAGMENTS[id].length, FRAGMENTS_PER_WORLD, id);
@@ -70,12 +72,18 @@ test('the data: eight in each world on the route, ninety-six all told; the miles
   }
   assert.equal(FRAGMENT_TOTAL, ORDER.length * FRAGMENTS_PER_WORLD);
   assert.equal(FRAGMENT_TOTAL, 96);
-  assert.deepEqual(MILESTONES, [5, 10, 15, 25, 50, 75, 96]);
-  assert.deepEqual(FRAGMENT_ITEMS.map((u) => u.id), ['lightheart', 'finder', 'lightedge', 'lightcell', 'lightwing', 'lightstep', 'lightguard']);
-  assert.equal(ITEMS.finder.fragments, 10, 'the finder at ten');
+  // (v1.62, issue #185: a shop; the cheapest first, as the milestones came: 5, 10, 15, 25, 50, 75, 96)
+  assert.deepEqual(FRAGMENT_ITEMS.map((u) => [u.id, u.price]), [['finder', 3], ['lightheart', 5], ['lightedge', 7], ['lightcell', 10], ['lightwing', 18], ['lightstep', 23], ['lightguard', 30]]);
+  assert.equal(Object.values(PRICES).reduce((a, b) => a + b, 0), FRAGMENT_TOTAL, 'every upgrade for every fragment there is');
+  // bought the cheapest first, as soon as you could: the n-th upgrade never later than the n-th milestone was
+  const OLD = [5, 10, 15, 25, 50, 75, 96];
+  let paid = 0;
+  FRAGMENT_ITEMS.forEach((u, n) => { paid += u.price; assert.ok(paid <= OLD[n], `${u.id}: the ${n + 1}th bought by ${paid} found, the ${n + 1}th milestone was ${OLD[n]}`); });
+  assert.equal(Math.max(...Object.values(PRICES)), PRICES.lightguard, 'the guard the dearest');
   for (const { id } of FRAGMENT_ITEMS) {
-    assert.ok(OFFER_LINES[id], `${id}: his line as he fits it`);
-    assert.ok(parseLine(OFFER_LINES[id]).explicit, `${id}: toned`);
+    assert.ok(THRUM_SHOP_LINES[id]?.length, `${id}: his line as he fits it`);
+    for (const l of THRUM_SHOP_LINES[id]) assert.ok(parseLine(l).explicit, `${id}: toned`);
+    assert.match(ITEMS[id].where, /sells it aboard your ship, for [a-z-]+ fragments/, `${id}: where says his price`);
     assert.ok(buildItemModel(id).children.length >= 2, `${id}: a model of its own for the items page`);
   }
 });
@@ -151,47 +159,130 @@ test('the finder: beeps from 60 m, faster and higher as a fragment comes closer;
   assert.equal(itemsData({ owned: ['finder'], toggles: { finder: false } }).gear[0].inUse, false);
 });
 
-test('Anselm Thrum: met at the first fragment, a few words, then aboard; his count and an offer at each milestone', () => {
+test('Anselm Thrum: met at the first fragment, a few words, then aboard; his count, what you hold, and his shop', () => {
   // the meeting
   const ctx = fresh(found(1));
-  const person = thrumPerson({ flags: () => ctx.game.data.flags, has: ctx.items.has, here: 'desert', items: ctx.items });
+  const person = thrumPerson({ flags: () => ctx.game.data.flags, has: ctx.items.has, here: 'desert' });
   const m = talk(person, ctx, ['Come aboard']);
   assert.match(m.said, /on the lookout for these/, 'he has been on the lookout for them');
   assert.doesNotMatch(m.said, /Orrin|at your service/, 'no name and trade announced (v1.61, #229): the panel names him');
   assert.match(m.said, /splinters of its song/);
+  assert.match(m.said, /at a price/);
   assert.match(m.said, /On your ship/);
   assert.equal(ctx.game.flag('frag.met'), true);
   assert.ok(m.said.split(/(?<=[.!?)])\s+/).length <= 12, 'terse');
-  // aboard, with one: his count, and how far to the next
-  const c1 = talk(person, ctx);
-  assert.match(c1.said, /One of 96\. Four more and I’ll have something for you\./);
+  // aboard, with one: his count and what you hold; one answer opens his shop
+  const c1 = talk(person, ctx, ['Where do they hide']);
+  assert.match(c1.said, /One of 96\. One to spend\./);
   assert.match(c1.said, /Seven still hide here, in the Desert\./);
-  assert.equal(person.fresh(), false, 'no balloon: nothing waiting');
-  // five: the light-stitched heart
-  Object.assign(ctx.game.data.flags, found(5));
-  assert.equal(pendingOffer(ctx.game.data.flags, ctx.items.has), 'lightheart');
-  assert.equal(person.fresh(), true, 'his balloon: something for you');
-  const o = talk(person, ctx, ['Fit it']);
-  assert.match(o.said, /One more heart/);
-  assert.equal(ctx.items.has('lightheart'), true);
-  assert.equal(pendingOffer(ctx.game.data.flags, ctx.items.has), null);
-  // fifteen at once: the finder, then the edge (one a talk); "not now" keeps it
-  Object.assign(ctx.game.data.flags, found(15));
-  assert.equal(pendingOffer(ctx.game.data.flags, ctx.items.has), 'finder');
-  talk(person, ctx, ['Not now']);
-  assert.equal(ctx.items.has('finder'), false);
-  talk(person, ctx, ['Fit it']);
-  assert.equal(ctx.items.has('finder'), true);
-  // the edge needs the blade: without it, nothing waits
-  assert.equal(pendingOffer(ctx.game.data.flags, ctx.items.has), null);
-  ctx.items.grant('sword');
-  assert.equal(pendingOffer(ctx.game.data.flags, ctx.items.has), 'lightedge');
-  assert.equal(nextMilestone(15), 25);
-  assert.equal(nextMilestone(96), null);
-  assert.match(tallyLines(found(96)).join(' '), /That’s every one there is/);
-  // every line he says, toned (the meeting, the count, the offers)
-  const all = [...Object.values(THRUM_TALK.nodes).flatMap((n) => [n.say].flat()), ...Object.values(THRUM_TALK.nodes).flatMap((n) => (n.choices ?? []).map((c) => c.text)), ...THRUM.lines];
+  assert.match(c1.said, /Up high\. Behind things\./);
+  assert.equal(person.fresh(), false, 'no balloon: nothing you can buy yet');
+  const opened = [];
+  ctx.game.on('shop:open', (e) => opened.push(e.shop));
+  talk(person, ctx, ['Show me what you have']);
+  assert.deepEqual(opened, ['thrum'], 'his shop opens (main.js: the shop panel)');
+  // three: the finder can be had, his balloon says so
+  Object.assign(ctx.game.data.flags, found(3));
+  assert.equal(affordable(ctx.game.data.flags, ctx.items.has), 'finder');
+  assert.equal(person.fresh(), true, 'his balloon: enough for something');
+  assert.match(tallyLines(found(96), null, () => false).join(' '), /every one there is/);
+  // every line he says, toned (the meeting, the count, the shop)
+  const all = [...Object.values(THRUM_TALK.nodes).flatMap((n) => [n.say].flat()), ...Object.values(THRUM_TALK.nodes).flatMap((n) => (n.choices ?? []).map((c) => c.text)), ...THRUM.lines, ...Object.values(THRUM_SHOP_LINES).flat()];
   for (const l of all) assert.ok(parseLine(l).explicit, `toned: ${l}`);
+  for (const k of ['open', 'short', 'needs', 'owned', 'bye']) assert.ok(THRUM_SHOP_LINES[k]?.length, `his shop's ${k} line`);
+});
+
+test('his shop: fragments are a currency; what you hold goes down as you buy, the found total never does', () => {
+  const ctx = fresh({ 'frag.met': true, ...found(12) });
+  const shop = new FragmentShop({ game: ctx.game, items: ctx.items });
+  const flags = ctx.game.data.flags;
+  assert.deepEqual(fragmentPurse(flags, ctx.items.has), { found: 12, total: 96, spent: 0, held: 12 });
+  const state = () => Object.fromEntries(shop.view().map((w) => [w.id, w.state]));
+  assert.deepEqual(state(), { finder: 'ok', lightheart: 'ok', lightedge: 'needs', lightcell: 'needs', lightwing: 'needs', lightstep: 'short', lightguard: 'needs' },
+    'the blade, the tank, the wings and the guard not had yet: those wait for their gear');
+  // the finder, then the heart: 12 → 9 → 4
+  const bought = [];
+  ctx.game.on('thrum:bought', (e) => bought.push(e));
+  assert.deepEqual(shop.buy('finder'), { ok: true, state: 'ok', price: 3, ware: 'finder' });
+  assert.equal(shop.held, 9);
+  assert.equal(ctx.items.has('finder'), true);
+  assert.equal(shop.buy('finder').state, 'owned', 'not twice');
+  assert.equal(shop.buy('lightheart').ok, true);
+  assert.equal(shop.held, 4);
+  assert.deepEqual(bought.map((e) => [e.ware, e.price]), [['finder', 3], ['lightheart', 5]]);
+  // the found total stays: the Worlds page, the Start menu, the Lantern read it
+  assert.equal(fragmentCounts(flags).found, 12);
+  // the blade had: the edge can be bought, but 4 is short of 7
+  ctx.items.grant('sword');
+  assert.equal(state().lightedge, 'short');
+  assert.equal(shop.buy('lightedge').state, 'short');
+  assert.equal(ctx.items.has('lightedge'), false);
+  Object.assign(flags, found(15));
+  assert.equal(shop.held, 7);
+  assert.equal(shop.buy('lightedge').ok, true);
+  assert.equal(shop.held, 0);
+  // one whose gear you don't have: never sold, and says why in one line
+  assert.equal(shop.buy('lightwing').state, 'needs');
+  assert.equal(upgradeWare(shop.view().find((w) => w.id === 'lightwing')).flag, 'Needs the wings first');
+  assert.equal(upgradeWare(shop.view().find((w) => w.id === 'finder')).flag, 'Fitted');
+  // the panel: the fragments you hold as the wallet, the prices in fragments, his upgrades by name
+  const html = shopHtml({ keeper: THRUM, line: THRUM_SHOP_LINES.open[0], wallet: shop.held, wares: shop.view().map((w) => upgradeWare(w)), money: shopMoney('fragments') });
+  assert.match(html, /frag-ico/, 'a fragment, not a chime');
+  assert.doesNotMatch(html, /class="chime-ico"/);
+  assert.match(html, /Light-veined wings/);
+  assert.match(html, /Needs the wings first/);
+  assert.equal((html.match(/data-state="owned"/g) ?? []).length, 3);
+  assert.equal(shopMoney('fragments').ask({ name: 'Light chamber', price: 10 }), 'Light chamber: buy it for 10 fragments?');
+});
+
+test('his shop in the shop panel: A / × asks, A / × again buys, his lines in his voice, the held count on the wallet', () => {
+  const ctx = fresh({ 'frag.met': true, ...found(8) });
+  const shop = new FragmentShop({ game: ctx.game, items: ctx.items });
+  const html = [];
+  const el = { setAttribute() {}, classList: { add() {}, remove() {} }, addEventListener() {}, querySelector: () => null, set innerHTML(v) { html.push(v); }, get innerHTML() { return html.at(-1) ?? ''; } };
+  const sounds = [];
+  const panel = new ShopPanel({ el, game: ctx.game, resources: { chimes: 999 }, sound: { fragmentTaken: () => sounds.push('light'), purchase: () => sounds.push('coins'), shopBell: () => sounds.push('bell') }, doc: {} });
+  const npc = { time: 0 };
+  panel.open({ kind: 'fragments', shop: { id: 'thrum', label: THRUM.name }, logic: shop, keeper: THRUM, lines: THRUM_SHOP_LINES, npc });
+  assert.ok(THRUM_SHOP_LINES.open.includes(panel.line), 'his greeting');
+  assert.match(html.at(-1), /shop-wallet[^>]*>[^]*?frag-ico[^]*?<b>8<\/b>/, 'the wallet: the eight you hold');
+  assert.ok(!sounds.includes('bell'), 'no shop bell in the hold');
+  panel.pick('lightstep');
+  assert.ok(THRUM_SHOP_LINES.short.includes(panel.line), 'too dear: he says so');
+  panel.pick('lightcell');
+  assert.ok(THRUM_SHOP_LINES.needs.includes(panel.line), 'no tank yet: he says so');
+  panel.pick('lightheart');
+  assert.equal(panel.ask, 'lightheart');
+  assert.match(html.at(-1), /Light-stitched heart: buy it for 5 fragments\?/);
+  const r = panel.buy();
+  assert.equal(r.ok, true);
+  assert.ok(THRUM_SHOP_LINES.lightheart.includes(panel.line), 'his line as he fits it');
+  assert.deepEqual(sounds, ['light'], 'the light’s rise, no coins');
+  assert.match(html.at(-1), /shop-wallet[^>]*>[^]*?<b>3<\/b>/, 'three left to spend');
+  panel.close();
+  assert.ok(THRUM_SHOP_LINES.bye.includes(npc.shout.text), 'his goodbye over his head');
+  // main.js: his shop opens on game 'shop:open' { shop: 'thrum' }, his entry from the scientist
+  const main = fs.readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /shop === 'thrum' \? storyRt\.scientist\?\.shopEntry\(\)/);
+});
+
+test('an old save with his milestone upgrades keeps them; what it holds is what it found less their prices, never below none', () => {
+  // (no save step: what you hold is worked out from what you found and what you have, src/fragment-shop.js)
+  const at = (n, ids) => fragmentPurse({ ...found(n), ...Object.fromEntries(ids.map((id) => [`item.${id}`, true])) });
+  assert.deepEqual(at(5, ['lightheart']), { found: 5, total: 96, spent: 5, held: 0 });
+  assert.equal(at(10, ['lightheart', 'finder']).held, 2);
+  assert.equal(at(15, ['lightheart', 'finder', 'lightedge']).held, 0);
+  assert.equal(at(50, ['lightheart', 'finder', 'lightedge', 'lightcell', 'lightwing']).held, 7);
+  assert.equal(at(75, ['lightheart', 'finder', 'lightedge', 'lightcell', 'lightwing', 'lightstep']).held, 9);
+  assert.equal(at(96, FRAGMENT_ITEMS.map((u) => u.id)).held, 0);
+  // a save given one some other way (the dev menu) never holds less than none
+  assert.equal(at(2, ['lightguard']).held, 0);
+  // and it loads with them still had, through the save's migrations
+  const old = { 'save.migrated': MIGRATED(), ...found(10), 'item.lightheart': true, 'item.finder': true, 'frag.met': true };
+  migrateFlags(old);
+  assert.equal(old['item.lightheart'], true); assert.equal(old['item.finder'], true);
+  assert.equal(fragmentPurse(old).held, 2);
+  assert.deepEqual(thrumWares(old).filter((w) => w.state === 'owned').map((w) => w.id), ['finder', 'lightheart']);
 });
 
 test('the upgrades change real numbers: hearts 3 → 4, the blade ×1.5, the bar +1, the wings, the boots, the guard 1 → 0.5', () => {
@@ -284,10 +375,13 @@ test('the Lantern: Ilen knows the fragments for her song, one line by how many y
   assert.match(all, /It was mine\. My answer\./, 'right after she owns up to the light');
 });
 
-test('the people book: Anselm Thrum, his story growing with each upgrade', () => {
+test('the people book: Anselm Thrum, his story growing with each upgrade, at its price', () => {
   const p = PERSON.get('thrum');
   assert.ok(p, 'in the book');
   assert.equal(p.name, 'Anselm Thrum');
+  const src = fs.readFileSync(new URL('../src/story/people-book.js', import.meta.url), 'utf8');
+  for (const [id, words] of [['lightheart', 'five'], ['finder', 'three'], ['lightedge', 'seven'], ['lightcell', 'ten'], ['lightwing', 'eighteen'], ['lightstep', 'twenty-three'], ['lightguard', 'thirty']])
+    assert.ok(src.includes(`[f('item.${id}'), 'For ${words} `), `${id}: for ${words}`);
 });
 
 test('aboard the real ship: he stands on the deck of the hold, inside its rooms, and you walk to him from the hatch', async () => {

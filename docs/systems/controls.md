@@ -234,7 +234,7 @@ already matched, and gives every button one job per context (`src/bindings.js`, 
 | D-pad ↑ | **choose a gadget (held: the wheel), or the bell while none is owned** | | | | **the bell** | | navigate | |
 | D-pad ↓ | photo mode | | | | photo mode | | navigate | leave |
 | D-pad ← → | gun mode | | | | | | navigate | |
-| View | the sketchbook | | | | the sketchbook | | close | |
+| View | the game menu | | | | the game menu | | close | |
 | Menu | the Start menu | | | | the Start menu | | close | leave |
 
 Keyboard: **B** chose the gadget *and* guarded (the runtime took it from the guard once a gadget was
@@ -277,7 +277,7 @@ Conflicts and oddities:
 | D-pad ↓ | **call the mount, hail a taxi** (the Arena, the Arcade, the References: their list) | | | | | | navigate | |
 | D-pad ← | **drink a healing potion** (v1.11; View + D-pad ↓ before) | | | | | | navigate | |
 | D-pad → | **the gadget in hand's next mode** (the gun's; round again after the last; ← took the one before until v1.11) | | | | | | navigate | |
-| View (on release) | the sketchbook | | | | the sketchbook | | close | **leave** |
+| View (on release) | the game menu | | | | the game menu | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
 | View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
 | L3 + R3 | debug: the world debug menu (F2; v1.33: the hitbox overlay, F4, is inside it) | | | | the world debug menu | | closes it | |

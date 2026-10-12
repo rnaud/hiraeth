@@ -179,7 +179,7 @@ test('every magical water that colours the tank is a band, and the code grants i
   // (main.js and the dev menu: the ?items= and dev switches; the boxes: PLACEMENTS; the trials: their rewards, held in
   // a debug save since v1.58 (TRIALS); the scientist's upgrades for the fragments of the singing light: fitted as the
   // fragments of the worlds before reach them, since v1.58, issue #203)
-  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'main.js', 'story/scientist-data.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
+  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'fragment-shop.js', 'main.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
   assert.deepEqual(gives, [], 'gear given in code by a quest: cover it in src/debug-save.js');
 });
 
@@ -228,9 +228,12 @@ test('the worlds before are complete: their trials run and rewarded, their fragm
     for (const w of after) for (const [k] of (FRAGMENTS[w] ?? []).entries()) assert.equal(flags[fragKey(w, k)], undefined, `${id}: ${w}'s fragment ${k} still to find`);
     const found = fragmentCounts(flags).found;
     assert.equal(!!flags['frag.met'], found > 0, `${id}: Anselm met once there is a fragment`);
+    // (bought from Anselm, the cheapest first, while the fragments last and where its gear is held: src/fragment-shop.js)
+    let held = found;
     for (const u of FRAGMENT_ITEMS) {
-      const need = ITEMS[u.id].needs, fits = u.at <= found && (!need || !!flags[`item.${need}`]);
-      assert.equal(!!flags[`item.${u.id}`], fits, `${id}: ${u.id} (${u.at}) ${fits ? 'fitted' : 'not yet'} at ${found}`);
+      const need = ITEMS[u.id].needs, fits = u.price <= held && (!need || !!flags[`item.${need}`]);
+      if (fits) held -= u.price;
+      assert.equal(!!flags[`item.${u.id}`], fits, `${id}: ${u.id} (${u.price}) ${fits ? 'bought' : 'not yet'} at ${found}`);
     }
     for (const w of before) for (const part of partsOf(w)) {
       const T = TRIALS[part];
