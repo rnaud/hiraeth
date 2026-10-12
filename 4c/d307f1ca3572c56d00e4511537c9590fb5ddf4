@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_10639745f29d10 7-9
+docs/story-bible.md
+  s_9ca76055a220ed::t_db662a971ddb24 583,585-588
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_9852369ba58aec 416,423-425,441-443
+src/ambush.js
+  s_9ca76055a220ed::t_71a0bed9abb936 69,71,74-75
+src/changelog.js
+  s_9ca76055a220ed::t_f7ca3cc7312627 14-16
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_0cc0a81cbbdf31 25-26,443-444,514-516,600,908-920,941,946-947
+tests/ambush.test.js
+  s_9ca76055a220ed::t_a87a42fe27d545 48,61,68-71
+tests/pirates.test.js
+  s_9ca76055a220ed::t_f27c155fa10c42 5,9,13,224,231,419-457
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4cd307f1ca3572c56d00e4511537c9590fb5ddf4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
