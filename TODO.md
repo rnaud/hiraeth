@@ -27,15 +27,6 @@ existing loading/performance worktrees rather than starting another competing sh
 Never delete a temple or a character: a dismissed world moves whole to a dismissed-levels folder
 (`src/levels/dismissed/`), out of the route and the Debug menu's worlds, so its pieces can be reused elsewhere.
 
-## Level design (audit)
-
-From docs/audits/level-design-v1.53.md (twelve route worlds, 4.51, the four worlds' explorations measured), worst first:
-
-- [ ] [#181](https://github.com/rnaud/hiraeth/issues/181) **The Desert is still flat**: 1 of 64 places raised. A stop on the giant's arm over the
-  wash, a lookout on a sandfall mesa: verticality 3 → 4, 4.11 → 4.22.
-- [ ] [#182](https://github.com/rnaud/hiraeth/issues/182) **The City-Shaft: the light-down's first mirror is a loner** (164 m from anything), and
-  the crown → Nima (287 m) is still blind. No score change by the numbers.
-
 ## Temples
 
 - [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) **Redo the temples with less linear paths** (2026-10-10): several rooms with puzzles of different complexity,

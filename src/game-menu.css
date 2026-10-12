@@ -78,10 +78,10 @@ body:not(.touch) #journal .gm-close { display: inline-flex; align-items: center;
 #journal [data-at].at { position: relative; z-index: 1; outline: 3px solid var(--red); outline-offset: 3px; animation: gm-pulse 1.1s ease-in-out infinite; }
 @keyframes gm-pulse { 50% { outline-offset: 6px; outline-color: #e5896d; } }
 @media (prefers-reduced-motion: reduce) {
-  #journal [data-at].at, #journal .gm-side.at, #journal.gamemenu.open, #journal .gm-full, #journal .slot.at .pic, #journal .mk.sel::after, #journal .mk.mk-goal::before { animation: none; }
+  #journal [data-at].at, #journal .gm-side.at, #journal.gamemenu.open, #journal .gm-full, #journal .slot.at .pic, #journal .mk.sel::after, #journal .mk.mk-goal::before, #journal .gm-mapimg .pen { animation: none; }
 }
 /* (the "Reduce motion" setting: src/ui.js) */
-html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.at, html.reduce-motion #journal.gamemenu.open, html.reduce-motion #journal .gm-full, html.reduce-motion #journal .slot.at .pic, html.reduce-motion #journal .mk.sel::after, html.reduce-motion #journal .mk.mk-goal::before { animation: none; }
+html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.at, html.reduce-motion #journal.gamemenu.open, html.reduce-motion #journal .gm-full, html.reduce-motion #journal .slot.at .pic, html.reduce-motion #journal .mk.sel::after, html.reduce-motion #journal .mk.mk-goal::before, html.reduce-motion #journal .gm-mapimg .pen { animation: none; }
 
 /* Items: the gear as large tiles with their names (as many a row as fit: the cursor moves by where they are,
    data-grid-nav), what you carry under them; A / × opens one full screen (.gm-full, below) */

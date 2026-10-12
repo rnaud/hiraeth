@@ -926,7 +926,6 @@ export const THINGS = {
     talk: { nodes: { look: {
       say: ["~curious~ The whole ride lies below: the red strips back to the hollow, the Hearth’s chimney far ahead.",
         "~solemn~ Down the dry wash, the giants lie one after another, the way they fell."],
-      do: { set: { 'desert.lookout.seen': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -935,7 +934,6 @@ export const THINGS = {
     talk: { nodes: { look: {
       say: ["~curious~ A stone doorway the dune has let go of. Its steps go down a little way and stop in packed sand.",
         "~neutral~ The next wind will cover it again."],
-      do: { set: { 'desert.ruin.stair': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -943,7 +941,6 @@ export const THINGS = {
     id: 'ruinTower', name: 'A windcatcher', title: 'out of the sand', color: '#d9c3a0', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~curious~ A windcatcher’s tower, the dune slid off it. Its slots still catch the wind and breathe cold air down into the sand."],
-      do: { set: { 'desert.ruin.tower': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -952,7 +949,6 @@ export const THINGS = {
     talk: { nodes: { look: {
       say: ["~curious~ Three carts, their canvas still on the hoops, where a caravan stopped and the sand came over it.",
         "~sad~ Nobody came back for them."],
-      do: { set: { 'desert.ruin.caravan': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -960,7 +956,6 @@ export const THINGS = {
     id: 'ruinArcade', name: 'Three old arches', title: 'out of the sand', color: '#cdb38f', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~curious~ Three arches of an old wall, the dune walked off them. A street ran through here once, under the sand."],
-      do: { set: { 'desert.ruin.arcade': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

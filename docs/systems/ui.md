@@ -37,7 +37,9 @@ each choice to what uses it:
 - **Reduce motion** (`html.reduce-motion`, src/feel.js `setMotion`): no hit-stop, no slow motion,
   no camera kick (the foes', the blade's, the gadgets', the minigames'), no shake in the ship's
   scenes (`shakeScale`), a still title view (title-world `still`: one frame), and the CSS animations that the
-  `prefers-reduced-motion` queries already stopped. Not chosen yet (`null`), it follows
+  `prefers-reduced-motion` queries already stopped (the game menu's every animated rule, the map's loading pen
+  among them: `tests/reduce-motion-css.test.js`, issue #235), and the chime pirates' hit with no shake and no
+  flare (`shakeScale`, issue #230). Not chosen yet (`null`), it follows
   `prefers-reduced-motion`. The camera has no walking bob to turn off. *Camera shake* scales the
   kicks when motion is not reduced.
 - **Hold or toggle** for run and guard (src/remap.js `RUN_MODES`, `GUARD_MODES`): the controller

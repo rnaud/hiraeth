@@ -56,7 +56,7 @@ export const EDENA_CONTENT = {
   // visit and closes when you have looked under the flowers and told Mira
   story: {
     title: 'THE GARDEN GROWS OVER',
-    intro: 'An old ship lies beneath the flowers in the south meadow. The gardeners protect the wreck. Ask before exploring it.',
+    intro: 'An old ship lies beneath the flowers in the south meadow. The gardeners let the garden have it.',
     outro: 'The wreck bears the same scar as your ship. Odile and Talo survived, then left in their saucer to follow the Singer toward the deep wood.',
     label: 'the fallen ship', goal: [40, 'ground', -210], radius: 28, manual: true,
   },

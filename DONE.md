@@ -2817,3 +2817,11 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   A way out elsewhere, or home past the quarter: loops 4 → 5, 4.56 → 4.67.
   (2026-10-12, v1.54: the casting rails home from the Casting-House's door, up the east bay and out onto the apron, past
   a test moon and a cart of cracked moons. Loops 4 → 5, the Moon Foundry 4.56 → 4.78. Fixes #180.)
+- [x] [#181](https://github.com/rnaud/hiraeth/issues/181) **The Desert is still flat**: 1 of 64 places raised. A stop on the giant's arm over the
+  wash, a lookout on a sandfall mesa: verticality 3 → 4, 4.11 → 4.22.
+  (Issue closed 2026-10-12, v1.54, cc128515: a ledge up the sandfall mesa to the pilgrims' lookout, the arm's verse on its
+  crown over the wash; moved here from TODO.md by the v1.59 game audit's loose ends, issue #235.)
+- [x] [#182](https://github.com/rnaud/hiraeth/issues/182) **The City-Shaft: the light-down's first mirror is a loner** (164 m from anything), and
+  the crown → Nima (287 m) is still blind.
+  (Issue closed 2026-10-12, v1.54, dddb6159: Abel by the light's first mirror, the Lodestar's light on Nima's steps; moved
+  here from TODO.md by issue #235.)
