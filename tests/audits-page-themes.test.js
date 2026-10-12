@@ -46,9 +46,10 @@ test('the change since the one before: overall, and each item since the last tim
   assert.equal(theme('level-design').prev.id, 'level-design-v1.23'); assert.equal(theme('level-design').delta, -0.03);   // (level-design-v1.49: 4.35 over twelve, v1.23: 4.38 over eleven)
   assert.equal(theme('temple-design').delta, 0.18);   // (temple-design-v1.49: 4.21, v1.48: 4.03, both over fourteen)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.49: 3.9, game-v1.46: 3.8)
-  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.0'); assert.equal(theme('dialogue').delta, 0.08);   // (dialogue-v1.48: 3.50, v1.0: 3.42)
-  const loc = group('dialogue', 'Areas').rows.find((r) => r.label === 'Localisation');
-  assert.deepEqual([loc.value, loc.from], [3, 2], 'an area compared with the review before');
+  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.48'); assert.equal(theme('dialogue').delta, 0.18);   // (dialogue-v1.53: 3.68 over eleven, v1.48: 3.50 over twelve)
+  const lore = group('dialogue', 'Areas').rows.find((r) => r.label === 'Lore load');
+  assert.deepEqual([lore.value, lore.from], [4, 3], 'an area compared with the review before');
+  assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53 left localisation unscored (out of scope)');
   assert.equal(theme('visual').prev.id, 'visual-v1.4', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
   for (const t of themes) for (let i = 1; i < t.history.length; i++) {
     const h = t.history[i], before = t.history.slice(0, i).reverse().find((x) => x.overall != null);
@@ -95,7 +96,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.ok(temples.some((r) => r.alt === 'arzach2'), 'the temple\'s id is its alternative key');
   assert.equal(group('game', 'Themes').rows.length, 12);
   const areas = group('dialogue', 'Areas').rows;
-  assert.equal(areas.length, 12); assert.ok(near(avg(areas.map((r) => r.value)), theme('dialogue').latest.overall));
+  assert.equal(areas.length, 11); assert.ok(near(avg(areas.map((r) => r.value)), theme('dialogue').latest.overall));
   const scenes = group('ink-lines', 'Scenes').rows;
   assert.equal(scenes.length, 16, 'v1.53: the 13 of v1.34 and the three worlds that joined in v1.40');
   assert.ok(near(avg(scenes.map((r) => r.value)), theme('ink-lines').latest.overall), 'each scene the mean of its resolutions');
@@ -161,7 +162,7 @@ test('the cards: score, change, items, the link to the full audit, History behin
   }
   assert.match(themeCard(theme('combat')), /▲ \+0\.01 <small>since v1\.22/);
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
-  assert.match(themeCard(theme('dialogue')), /▲ \+0\.08 <small>since v1\.0/);
+  assert.match(themeCard(theme('dialogue')), /▲ \+0\.18 <small>since v1\.48/);
   assert.doesNotMatch(themeCard(theme('dialogue')), /the first dialogue audit/);
   assert.match(themeCard(theme('perf')), /2\/4/);
   assert.doesNotMatch(themeCard(theme('combat'), { open: true }), /class="history"[^>]* hidden/);

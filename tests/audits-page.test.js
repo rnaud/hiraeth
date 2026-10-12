@@ -68,6 +68,14 @@ test('the score tables are read from the real reports: criteria, totals, "before
   const dialogue = byId('dialogue-v1.0').scoreTables[0];
   assert.equal(dialogue.rows.length, 12);
   assert.equal(dialogue.header[dialogue.primary], 'Score');
+  // the third review leaves localisation unscored (out of scope): its row stays, with no score, and the block's
+  // overall is the mean of the other eleven
+  const d53 = byId('dialogue-v1.53');
+  const t53 = d53.scoreTables[0];
+  assert.equal(t53.rows.length, 12);
+  assert.ok(t53.rows.find((r) => r.label === 'Localisation').scores[t53.primary] == null, 'localisation: not reviewed');
+  assert.deepEqual(t53.rows.find((r) => r.label === 'Lore load').scores[t53.primary], { value: 4, before: 3 });
+  assert.ok(Math.abs(tableMean(t53) - d53.overall) < 0.01, 'the block\'s overall is the eleven areas\' mean');
 
   const cine = byId('cinematics-v1.6');
   const ct = cine.scoreTables.find((x) => x.rows.length > 80);
