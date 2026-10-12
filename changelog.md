@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.57 — 2026-10-12
 
+- The hoverbike shows under you again while you ride it: it had stayed behind where you got on, so you seemed to ride on nothing.
 - When someone has finished talking, the first answer is already picked, with a keyboard, a mouse or a touch screen as with a pad: press A / × (or E, Enter) to say it, or move to another. It stays picked when one answer leads straight to more.
 - The conversation box is simpler again: the speaker’s name is written plainly in ink on the paper, upright, with no black caption box behind it and no description beside it.
 - Shorter overheard lines in the desert, the City-Shaft, the Signal Market and the Garden, and every people names the night the light went over in its own words again.

@@ -27,6 +27,8 @@ export const CHANGELOG = [
     // the conversation box simpler again (index.html #dialogue .dlg-tag, src/story/dialogue.js; issues #208, #211)
     'The conversation box is simpler again: the speaker’s name is written plainly in ink on the paper, upright, with no black caption box behind it and no description beside it.',
     'When someone has finished talking, the first answer is already picked, with a keyboard, a mouse or a touch screen as with a pad: press A / × (or E, Enter) to say it, or move to another. It stays picked when one answer leads straight to more.',
+    // the hoverbike drawn where it is while ridden (src/matrix-cache.js updateWorldMatrixCached; issue #184)
+    'The hoverbike shows under you again while you ride it: it had stayed behind where you got on, so you seemed to ride on nothing.',
   ] },
   { v: '1.56', date: '2026-10-12', items: [
     // Lorn's route through the author's three picks (src/lorn-veins.js, src/lorn-flood.js, src/lorn-canopy.js,

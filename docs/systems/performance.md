@@ -1758,6 +1758,12 @@ counts each pass's draws (`draws.gbuffer`, `draws.shadow`). The Mac was shared w
   (`matrixAutoUpdate` false) are still multiplied in a forced walk. The matrices are the same as three's
   (`tests/matrix-cache.test.js`, `tests/pose-exact-web.test.js`). It saves the multiplies, ~9 900 → ~8 000 a frame in
   the City-Shaft, but not the visits: the rig's bones really move between its walks.
+  **Three's `updateWorldMatrix` goes through the cache too** (v1.57, issue #184). Three's own (what `getWorldPosition`,
+  `getWorldQuaternion`, `attach` and `lookAt` call) multiplies the object's parents again without flagging their other
+  children, so the next walk found those parents unchanged and left the children where the parent had been: the tank's
+  socket, read while the hoverbike was ridden, left every mesh of the bike at the spot it was boarded. The cache's
+  `updateWorldMatrixCached` makes the way down with `updateChain` (the children off the way flagged where a matrix
+  changed), so the web game and the Unity bridge (which installs the same cache) keep them. `tests/bike-visible.test.js`.
 
 **Tried and left out.** The City-Shaft's trees in quarters instead of eighths: draws 521 → 473 at the start and 613 → 551
 at the wide view, but 2.2 → 2.5 M triangles at the crowd, and the near map's triangles were why the eighths were made.

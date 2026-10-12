@@ -129,6 +129,22 @@ function chainStep(o, first) {
   if (changed) { const c = o.children; for (let i = 0, l = c.length; i < l; i++) c[i].matrixWorldNeedsUpdate = true; }
 }
 
+/**
+ * Object3D.updateWorldMatrix made the cache's way (installMatrixCache() puts it on the prototype). three's own is what
+ * getWorldPosition, getWorldQuaternion, attach and lookAt call (updateWorldMatrix(true, false)): it multiplies the
+ * object's parents' world matrices again without a word to their other children, so the next walk, finding those
+ * parents' world matrices already what it makes them, did not force the children, and they kept the matrices of where
+ * the parent was. Issue #184: the hoverbike's socket read while it was ridden moved its body and left every mesh on it
+ * at the spot it was boarded, out of sight behind the rider. Here the way down is updateChain's (the children off the
+ * way flagged where a world matrix changed), the object itself made as three makes it, its children flagged if its own
+ * changed, and updateChildren walks them as three does.
+ */
+export function updateWorldMatrixCached(updateParents, updateChildren) {
+  if (updateParents === true && this.parent !== null) updateChain(this.parent);
+  chainStep(this, true);
+  if (updateChildren === true) { const c = this.children; for (let i = 0, l = c.length; i < l; i++) c[i].updateWorldMatrix(false, true); }
+}
+
 /** An object's own updateMatrixWorld called as a walk would call it, from inside one (engine/scene-matrices.js's list). */
 export function updateInWalk(o, force) {
   walking++;
@@ -141,5 +157,6 @@ export function installMatrixCache(proto = THREE.Object3D.prototype) {
   if (installed && proto === THREE.Object3D.prototype) return;
   proto.updateMatrixWorld = updateMatrixWorldCached;
   proto.updateMatrix = updateMatrixCached;
+  proto.updateWorldMatrix = updateWorldMatrixCached;   // (issue #184: three's flags no sibling of what it makes)
   if (proto === THREE.Object3D.prototype) installed = true;
 }
