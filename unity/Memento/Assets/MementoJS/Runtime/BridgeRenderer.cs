@@ -207,7 +207,7 @@ namespace Memento.Bridge
             }
             var top = System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(sets, kv => kv.Value), 6);
             return (uniformLayout ? $"(uniform layouts: +{uniformBytes / 1048576.0:0.0} MB of vertices) " : "") + $"{n} renderer materials, {sets.Count} shader variants (shader and keywords), {layouts.Count} vertex layouts, {states.Count} material states, {pairs.Count} (layout, state) pairs; the commonest variants: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"))
-                   + (lean ? "; on the full variant for: " + string.Join(", ", System.Linq.Enumerable.Select(leanWhy, kv => $"{kv.Key} {kv.Value}")) : "");
+                   + (lean ? "; the lean variants, and the full one's reasons: " + string.Join(", ", System.Linq.Enumerable.Select(leanWhy, kv => $"{kv.Key} {kv.Value}")) : "");
         }
         static readonly List<string> madeNames = new();
         static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
@@ -396,8 +396,8 @@ namespace Memento.Bridge
         /// glow, fluid tones and the LiveVectors). On by default on the Linux player (the Deck), -lean elsewhere, -no-lean off.
         /// </summary>
         public static bool lean =
-#if UNITY_STANDALONE_LINUX && !UNITY_EDITOR
-            true;
+#if (UNITY_STANDALONE_LINUX || UNITY_WSA) && !UNITY_EDITOR
+            true;   // (the Deck's Linux player: its GPU's time; the Xbox: its picture, which the full variant leaves half out)
 #else
             false;
 #endif
@@ -405,10 +405,12 @@ namespace Memento.Bridge
         {
             if (!lean || !m || m.shader == null || !m.shader.name.StartsWith("Memento/Surface") || !m.HasProperty("_Mode")) return;
             int mode = (int)(m.GetFloat("_Mode") + 0.5f);
-            string why = mode == 1 ? "terrain" : mode == 3 ? "water" : F(m, "_Glass") > 0 ? "glass" : V(m, "_Dissolve").x > 0 ? "dissolve"
+            // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
+            string why = F(m, "_Glass") > 0 ? "glass" : V(m, "_Dissolve").x > 0 ? "dissolve"
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
                 : F(m, "_Scrub") > 0 ? "scrub" : null;
-            if (why == null) m.EnableKeyword("MEMENTO_LEAN");
+            string kw = why != null ? null : mode == 1 ? "MEMENTO_LEAN_TERRAIN" : mode == 3 ? "MEMENTO_LEAN_WATER" : "MEMENTO_LEAN";
+            if (kw != null) { m.EnableKeyword(kw); leanWhy.TryGetValue(kw, out int k); leanWhy[kw] = k + 1; }
             else { leanWhy.TryGetValue(why, out int c); leanWhy[why] = c + 1; }
         }
         static readonly Dictionary<string, int> leanWhy = new();

@@ -250,11 +250,25 @@ Shader "Memento/Surface"
       // drops them). The full pass is ~25 000 instructions and 168 VGPRs on the Deck's RADV (6 waves a SIMD), the lean
       // one about half and 128 (8): the City-Shaft's GPU 3-4 ms quicker, the same picture (docs/systems/performance.md,
       // "The Steam Deck, round 6")
-      #pragma multi_compile_local _ MEMENTO_LEAN
-      #if defined(MEMENTO_LEAN)
+      // MEMENTO_LEAN_TERRAIN and MEMENTO_LEAN_WATER: the lean variant with the ground's path (or the water's) kept, for the
+      // terrain and banked sand (or the water) that use none of the other rare paths. On the Xbox (D3D11 and D3D12 alike) the
+      // full variant leaves out most of what it draws, whichever of its paths a pixel takes (the sand round the camera, the
+      // people, the domes: docs/systems/xbox.md, "The see-through picture"), the lean ones draw it all.
+      #pragma multi_compile_local _ MEMENTO_LEAN MEMENTO_LEAN_TERRAIN MEMENTO_LEAN_WATER
+      #if defined(MEMENTO_LEAN) || defined(MEMENTO_LEAN_TERRAIN) || defined(MEMENTO_LEAN_WATER)
         #define LEANK false
       #else
         #define LEANK true
+      #endif
+      #if defined(MEMENTO_LEAN) || defined(MEMENTO_LEAN_WATER)
+        #define TERRAINK false
+      #else
+        #define TERRAINK true
+      #endif
+      #if defined(MEMENTO_LEAN) || defined(MEMENTO_LEAN_TERRAIN)
+        #define WATERK false
+      #else
+        #define WATERK true
       #endif
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
@@ -840,7 +854,7 @@ Shader "Memento/Surface"
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
         }
         float waterInk = 0.0, waterLit = 0.0;
-        UNITY_BRANCH if (LEANK && mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
+        UNITY_BRANCH if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
           albedo = outfitAlbedo(i.bind, _Color.rgb, _Color2.rgb, _Color3.rgb);
         } else if (mode == MODE_EYE) {
@@ -984,7 +998,7 @@ Shader "Memento/Surface"
         if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
         if (_Glyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
         float2 gp = i.worldPos.xz;
-        UNITY_BRANCH if (LEANK && mode == MODE_TERRAIN) {
+        UNITY_BRANCH if (TERRAINK && mode == MODE_TERRAIN) {
           float gm = max(length(ddx(gp)), length(ddy(gp)));
           float2 q1 = crackCoord(gp, 5.5), q2 = crackCoord(gp + 31.0, 1.6);
           float4 j1 = float4(ddx(q1), ddy(q1)), j2 = float4(ddx(q2), ddy(q2));

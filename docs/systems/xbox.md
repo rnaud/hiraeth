@@ -700,6 +700,29 @@ any more. 30 steady (33 ms) is within reach of a few more of these; 60 would nee
 every object and material each frame (uniform buffers for the 43 shared uniforms, retained draw lists for what doesn't
 move), or the Unity bridge (41 fps at the same spawn, "The Unity build on the Xbox").
 
+## The see-through picture (October 2026)
+
+The Unity build drew the Xbox's world half missing: the sand round the camera gone to the sky, the people and Qanat's
+domes reduced to their outlines, on D3D11 and D3D12 alike (the Deck's Vulkan and the editor's Metal drew it whole).
+Pairs against the web at the desert's spawn and camps, the ship and the City-Shaft's rim, and each test's picture, are
+in the V8 agent's notes; the tests stay in the player (BridgeRunner, LocalState\args.txt):
+
+- **Not** the culling (`-cull off|flip`), the glass or dissolve discards (`-surface-debug 4`: none discards, and the GPU
+  reads every material value right), the fragment's arithmetic (`-surface-debug 9`: plain values on its first line), the
+  vertex stage (`-surface-debug 10`: the position from the object's transform alone), the vertex attributes (`-full-layout`:
+  every mesh with every one), the depth test (`-ztest-always`), the depth's clear (`-gclear-depth 0` draws nothing: Unity
+  turns the 1 for the reversed depth; `-1`), the water's pass (`-no-water-contact`), the SRP Batcher or the GPU Resident
+  Drawer. The debug view 11 (`-debug-view 11`) shows the missing pixels as the G-buffer's clear: never drawn. One draw,
+  the 4 km terrain, drew its far part and not its near one.
+- **The variant**: Surface's G-buffer pass in its full variant (~12 900 instructions, 33 temporaries in DXBC; 280
+  branches) draws half of it; its lean variant (MEMENTO_LEAN, ~8 400, 26) draws it all (`-lean`: the people, the domes,
+  the bus right, only the ground, which was never lean, still cut). The two have the same signatures; the rare paths
+  lean drops are ones those materials never take. So the Xbox runs the lean variants by default (BridgeRenderer.lean,
+  as the Deck), with two more: MEMENTO_LEAN_TERRAIN (the ground's path kept, ~9 900) and MEMENTO_LEAN_WATER (~9 500), for
+  the terrain, the banked sand and the water when they take no other rare path. Only a glass, a fluid, the drawn face,
+  veins, a makers' box or scrub still draw on the full variant. The compiled code: `ShaderUtil.OpenCompiledShader`
+  (internal) with the D3D platform writes every variant's disassembly to `Temp/Compiled-Memento-Surface.shader`.
+
 ## Unknowns (to check on the console)
 
 - WebView2 on the console passes the pad to the Gamepad API (seen, runtime 150); whether it also sends it as keys or

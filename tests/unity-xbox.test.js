@@ -234,6 +234,16 @@ test('every value of the Surface shader\'s UnityPerMaterial but its arrays is in
   for (const n of names) assert.ok(props.has(n), `${n} is not in Properties`);
 });
 
+test('the Xbox draws the Surface shader\'s lean variants (the full one leaves half the picture out there): the ground\'s and the water\'s own', () => {
+  const sh = read('unity/Memento/Assets/Memento/Shaders/Surface.shader');
+  assert.match(sh, /#pragma multi_compile_local _ MEMENTO_LEAN MEMENTO_LEAN_TERRAIN MEMENTO_LEAN_WATER/);
+  assert.match(sh, /UNITY_BRANCH if \(TERRAINK && mode == MODE_TERRAIN\)/);
+  assert.match(sh, /UNITY_BRANCH if \(WATERK && mode == MODE_WATER/);
+  const r = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs');
+  assert.match(r, /#if \(UNITY_STANDALONE_LINUX \|\| UNITY_WSA\) && !UNITY_EDITOR\s+true;/);
+  assert.match(r, /mode == 1 \? "MEMENTO_LEAN_TERRAIN" : mode == 3 \? "MEMENTO_LEAN_WATER" : "MEMENTO_LEAN"/);
+});
+
 test('the shadow maps\' movers culled per cascade by the engine and drawn as renderer lists on the Xbox (the SRP Batcher\'s path)', () => {
   const sh = read('unity/Memento/Assets/Memento/Runtime/MementoShadows.cs');
   assert.match(sh, /public void CullFor\(ScriptableRenderContext ctx, Camera cam, WorldDetail detail\)/);
