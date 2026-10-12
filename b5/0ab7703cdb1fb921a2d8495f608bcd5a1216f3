@@ -1,0 +1,89 @@
+changelog.md
+  s_9ca76055a220ed::t_220e9b9d8811df 7
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_06ab3f2f14f1fc 66,72-75
+docs/systems/gadgets.md
+  s_9ca76055a220ed::t_477524032af52e 118
+docs/systems/items.md
+  s_9ca76055a220ed::t_f960826b132e40 21-22
+src/boxes/card.js
+  s_9ca76055a220ed::t_44c3fa335bff0e 4-6,31-33,35,41,65,77-78,87
+src/changelog-media.js
+  s_9ca76055a220ed::t_2999c53c47a6c1 680-683
+src/changelog.js
+  s_9ca76055a220ed::t_2c823d3e4ffcb1 25-26
+src/gadgets/bomb.js
+  s_9ca76055a220ed::t_10122488f7bffd 67
+src/gadgets/boomerang.js
+  s_9ca76055a220ed::t_25e24bb37f7e43 141
+src/gadgets/bridge.js
+  s_9ca76055a220ed::t_51d69df014f80e 255
+src/gadgets/bubble.js
+  s_9ca76055a220ed::t_93ea761d569702 152
+src/gadgets/fan.js
+  s_9ca76055a220ed::t_d9af5602d80064 158
+src/gadgets/gun.js
+  s_9ca76055a220ed::t_0f06c124313583 61
+src/gadgets/hook.js
+  s_9ca76055a220ed::t_a276e2ad702461 90
+src/gadgets/lens.js
+  s_9ca76055a220ed::t_720fc519d1231c 125
+src/gadgets/magnet.js
+  s_9ca76055a220ed::t_bacf5a0d1897ba 175
+src/gadgets/recall.js
+  s_9ca76055a220ed::t_e38a52827a3a26 148
+src/gadgets/registry.js
+  s_9ca76055a220ed::t_c2ee68c7e36f8b 14,34,57
+src/gadgets/springs.js
+  s_9ca76055a220ed::t_3a215408b5a230 169
+src/game-menu-data.js
+  s_9ca76055a220ed::t_51afa5c7e007b1 29-30
+src/game-menu.js
+  s_9ca76055a220ed::t_a8a595989399e6 138
+src/items-page/main.js
+  s_9ca76055a220ed::t_b7b5c1fb8d91f5 81-82
+src/items-page/view.js
+  s_9ca76055a220ed::t_2c1025e1de1be2 27,29
+src/items.js
+  s_9ca76055a220ed::t_e29b8b7a0636c5 15,27-28,35,39,43,47,53,61,67,71,75,79,83,88,93,98,103,107,111,115,119,123,127,131,135,139,143,147,151,155,159,164,168,172,178,182,186,191,195,199,203,207,211,215,219,223,227,231,236,241,245,249,254,258,312
+src/trials/index.js
+  s_9ca76055a220ed::t_b5215c3937fdac 293,295
+tests/box-card.test.js
+  s_9ca76055a220ed::t_73541380c51c82 25-28
+tests/bubble-fan.test.js
+  s_9ca76055a220ed::t_edcc96c70245c9 51
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_d22aedb05e9d6a 55
+tests/item-cards.test.js
+  s_9ca76055a220ed::t_aac75fcc7c4fd2 1-46
+tests/item-star.test.js
+  s_9ca76055a220ed::t_0515713f7a469c 38
+tests/key-placeholder.test.js
+  s_9ca76055a220ed::t_6c8be21db605a9 132,144,157
+tests/lens-springs.test.js
+  s_9ca76055a220ed::t_dc48033d7b3c7d 52
+tests/literal-keys.test.js
+  s_9ca76055a220ed::t_d37bccc1351edc 18,27
+tests/magnet.test.js
+  s_9ca76055a220ed::t_04b183b39dfc69 46
+tests/recall-bridge.test.js
+  s_9ca76055a220ed::t_da60b7fe5eb4bb 50
+tests/shard-timings.json
+  s_9ca76055a220ed::t_67e696854db9a2 5,11-12,16,19-20,22,31-32,35,46,50-51,55-56,60-61,63-65,69-71,78-80,83-84,86-87,89,91-92,103,108,110,113,115-116,121-123,131,133-134,136-137,139-140,145-148,151-154,157,159,161,163,165,169,172-181,183-188,192,194,196-198,200-201,203-208,210,212,214-216,220,222-226,232,239-242,246,249-250,252,257,259-263,265-273,275,278-285,287-290,292,296-297,302,304-305,307-308,311-312,314-317,319,321,323-324,327,329-334,337,339-342,344-345,347-351,354-357,359-360,362-363,365-366,370-371,374,378-382,385-386,393-394,396-397,400-403,405,407-409,411-415,418,421-426,428-429,431,433,435,438,445,449-450,452-453,455,456-457,458-459,461-465,467,470-472,474-476,478
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b50ab7703cdb1fb921a2d8495f608bcd5a1216f3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
