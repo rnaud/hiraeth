@@ -30,6 +30,9 @@ export const CHANGELOG = [
     'Lorn’s crystal roots now lie under the water instead of painted on it: soft-edged veins of violet and teal crystal seen through the surface, tapering into thinner twigs, fainter the deeper they run, with light flowing along them toward the Great Crystal.',
     'Viridel’s water stair looks like a gardeners’ stair now, not a fortress: warm white stone in big blocks with rounded lips, terraces that step in and out, water spilling over the edges, ferns hanging down the walls and cypresses on the terraces.',
     'The Garden’s lake shows its lost town wherever you stand: domes, towers and stepped pyramids reflected all round the water, shimmering, seen from the stepping stones and from both shores.',
+    // the Xbox's Unity preview at the City-Shaft's rim (unity/Hiraeth HiraethShadows CullFor, InstMats, BridgeShadowChunks,
+    // BridgeRunner -v8; docs/systems/performance.md "The City-Shaft's rim on the Xbox"; issue #113)
+    'The Unity preview on the Xbox holds close to 60 frames a second at the City-Shaft’s rim, where it ran at about 45: the sun’s shadows are only drawn for what can cast them into your view, and the script runs a little faster. The picture is the same.',
   ] },
   { v: '1.58', date: '2026-10-12', items: [
     // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)

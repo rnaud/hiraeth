@@ -2118,3 +2118,59 @@ more: at 60 Hz with vsync a frame misses as soon as either the GPU or the script
 at the edge. The GPU is 15.8-19.5 ms there (the desert's 10.5-12.5); the script 14.5-18 ms (the crowd view over the
 budget). The GPU is the first to cut: 3 ms at the wide view (the shaft's geometry and shadows, ~1 550 drawn), or a
 render scale under 1 there; then the script's crowd and rigs at the crowd view.
+
+### The City-Shaft's rim on the Xbox: the shadow maps culled, V8's flags (issue #113, 2026-10-12)
+
+Build 2027 (the branch `xbox-rim60`), the same rig as build 1973 (Series X, Direct3D 12, 1440p, `-vsync 1`, muted, the
+last 30 s of a 170 s run; the views `-bench 6`). "Before" is the same build with every change turned off by its flag
+(`-no-shadow-sweep -shadow-camera -no-shadow-instances -no-shadow-chunks -v8 none`), so both include origin/main's script
+as it stood (the rim's script 15.3 ms before against build 1981's 14.5: the hoverbike's matrix-cache change, 5a0395e2, and
+the newer content).
+
+| | fps | frames at 33 ms | GPU ms | script ms | cpu main ms |
+|---|---|---|---|---|---|
+| City-Shaft rim (spawn) | 44.5 → **57.4** | 38.2 % → **4.7 %** | 15.8 → 13.8 | 15.3 → 14.4 | 13.0 → 12.9 |
+| desert spawn | 59.5 (1973) → 59.6 | 0.5 % → 1 % | 12.5 → 11.6 | 11.4 → 10.7 | 8.8 → 8.8 |
+
+| view (`-bench 6`) | GPU ms | script ms | frame ms |
+|---|---|---|---|
+| City-Shaft start | 17.1 → 14.4 | 16.4 → 15.6 | 19.5 → 17.9 |
+| City-Shaft crowd | 15.5 → 12.5 | 18.7 → 17.1 | 20.6 → 18.8 |
+| City-Shaft wide | 19.2 → 17.2 | 15.6 → 14.3 | 17.9 → 17.5 |
+
+**Where the rim's GPU went** (a development build's `-split`, before): the G-buffer 4.9-9.7 ms, the composite 3.1-4.2,
+the near shadow map 2.8, the fine one 2.0, glow 0.6, far 0.35. Render scale 0.5 left the shadow maps as they were: their
+vertices, not their texels. `-shadow-census` (new: each cascade's casters, their vertices, the largest) showed why: the
+fine map's 24 m window drew ~1.5 million vertices, the City-Shaft's merged rings (~360 m across, ~100 000 vertices each)
+whole and the instanced parts (188 sets, the cabs' parts, the flora, the pillars' pieces) whole, in every cascade.
+
+**Kept** (the Xbox's renderer-list path only: `HiraethShadows.UseRendererLists`; the Deck's draws' path is untouched):
+- **Each cascade's list culled by the view swept away from the sun** (`HiraethShadows.SweepCull`, as `Sees` does for the
+  draws' path and the web's ShadowCuller): the window's four sides and the camera's six planes, its far one at the
+  cascade's reach, each moved out by how far a shadow can fall across it (the cascade's depth, or from the highest caster
+  down to the lowest ground): ten planes. GPU −2.1 / −2.6 / −1.5 ms (start, crowd, wide). With it the cascades are placed
+  round the traveller (the brush op's `_Brush`), as the web places them, not round the camera (`-shadow-camera` as before).
+- **The instanced casters culled instance by instance** (`InstMats.CullAll`, each instance's place and reach against the
+  same planes, the set's bounds first) and **the big still meshes cast by pieces** (`BridgeShadowChunks`: a mesh of 40 m
+  radius and 4 000 vertices and up cut by 128 m cells, its vertex layout byte for byte, on layer 30, which the camera's
+  culling mask leaves out, in every cascade): the fine map 1.5 M → 0.5 M vertices; GPU another −0.9 to −1.6 ms. 48 m cells
+  saved a little more GPU but the rim fell to 46.6 fps (the main thread's culling of ~500 more renderers); 128 m: 57.5.
+- **V8's flags** (`-v8 "<flags>"`, through two exports added to the relinked `PapiV8.dll`, `scripts/unity-uwp-v8-stubs.cpp`,
+  set before Puerts makes its first engine; `-v8 none` for Puerts' own): `--min-semi-space-size=16
+  --max-semi-space-size=64 --max-inlined-bytecode-size-cumulative=2000 --invocation-count-for-turbofan=500` by default,
+  the script −0.8 to −1.3 ms at the views (two alternated rounds).
+
+**Measured and left out**: the depth prepass (`-prepass`: the same GPU on the Xbox), the pieces drawn by the camera too
+(more draws than the vertices saved), `--no-concurrent-recompilation` (no change: V8's JIT tiers up normally on the console,
+a microbenchmark bundle (`-bundle`, new: a bundle from LocalState) ran a matrix product at 63 ns as on the Mac), the frame's
+last ops applied after the next script frame is let go (45.1 against 46.2 fps), the composed-from numbers of the scene list
+in one array (−0.05 ms). `-no-shadows` gives 58.4 fps (and URP's own shadow pass appears: `HiraethShadows.On` false leaves the
+sun's shadows on).
+
+**What is left for 60.** The rim is 57.4 with 4.7 % of frames at 33 ms: the script at 14.4 ms (16-18 at the crowd view)
+and the main thread at 12.9 ms (of which ~2 ms waiting on the script and ~3 ms on the overshirt's Burst job in LateUpdate,
+`clothWait`) are now what misses a refresh; the wide view's GPU is 17.2 ms (its G-buffer ~9.7). The script is memory-bound
+on the console, not compute-bound: the same bundle runs ~10× faster on the Mac's caches while a compute kernel runs the same
+speed, and a pointer chase costs 196 ns a hop against the Mac's 110; its time is spread over the people's rigs, the
+traveller, the crowd and the mirror's walk of ~3 600 objects. Next: the overshirt's job split over workers (IJobParallelFor
+for its vertices), fewer objects visited a frame by the mirror and the scene list, and a lighter G-buffer vertex stage.

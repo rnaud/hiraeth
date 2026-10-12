@@ -724,6 +724,18 @@ const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s
 const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5681), the before the same tree before the polish (27d67022), the same pinned cameras as v1.55 and v1.56, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.59': [
+    { match: 'The Unity preview on the Xbox holds close to 60 frames a second at the City-Shaft', numbers: [
+      { title: 'The Unity preview on the Xbox at the City-Shaft’s rim', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1), muted', rows: [
+        { where: 'the rim, from the spawn: frames a second', before: 44.5, after: 57.4 },
+        { where: 'the rim: frames at 33 ms, %', before: 38.2, after: 4.7 },
+        { where: 'the rim: the GPU’s ms a frame', before: 15.8, after: 13.8 },
+        { where: 'the rim: the script’s ms a frame', before: 15.3, after: 14.4 },
+        { where: 'the wide view down the shaft: the GPU’s ms', before: 19.2, after: 17.2 },
+        { where: 'the crowd view: the GPU’s ms', before: 15.5, after: 12.5 },
+        { where: 'the crowd view: the script’s ms', before: 18.7, after: 17.1 },
+        { where: 'the Desert’s spawn: frames a second', before: 59.5, after: 59.6 },
+      ], source: 'scripts/xbox-unity.mjs, build 2027; the rim and the Desert the mean of the last 30 s of a 170 s run, the views -bench 6; before: the same build with -no-shadow-sweep -shadow-camera -no-shadow-instances -no-shadow-chunks -v8 none (the Desert’s before: build 1973); 12 October' },
+    ], see: 'On the Xbox, start the Unity preview in the City-Shaft and watch the readout at the top left at the rim: about 57 frames a second where it showed 45.' },
     { match: 'The Cistern-Keeper has an experimental animation preview', tags: ['characters', 'desert'], shots: [
       { name: 'keeper-procedural-walk', title: 'Walking pilot', size: [531, 550],
         caption: 'Animation pilot, before and after refinement: synchronized tripods and an open resting mouth become staggered supported footfalls and a closed mouth. The live temple guardian is unchanged.',
