@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_fa7824a2588ea5 7
+docs/systems/temples.md
+  s_9ca76055a220ed::t_c2309b55a93522 556-563
+src/changelog.js
+  s_9ca76055a220ed::t_8d4aa0a42240b3 17
+src/temples/migrate.js
+  s_9ca76055a220ed::t_3d6fdb5772b69c 133-139
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_ee1ce9469df274 6,32-35,92-99,105,111,157-161,221-238,302,459-460,467,605
+src/temples/spheres.js
+  s_9ca76055a220ed::t_d32ae4c285dec2 7,38-40,78,86,116,119-122,242-249,362,404-405,409,412,417-431,561
+src/temples/underwater.js
+  s_9ca76055a220ed::t_0b9d46cc494068 5,44-47,105,115,141,154-157,169-178,210-229,276,450-451,459,571
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_5abec1564de651 391
+tests/temples.test.js
+  s_9ca76055a220ed::t_126f1eef91c539 42-44,633-658,1574,1694,1698-1710,1721-1723,1986,2037-2049,2112-2115,2175,2212-2225,2269-2271
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a5fa31b0831a0efe1d79d8ec1ff359754d89f5a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
