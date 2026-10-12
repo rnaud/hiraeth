@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_e0074492cdb39e 5-8
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_01b98a02c1375d 391-392
+src/changelog-media.js
+  s_9ca76055a220ed::t_16cbaab57feb1d 652-660
+src/changelog.js
+  s_9ca76055a220ed::t_ad91908d9bb56c 11-14
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_5507154d1c9c4a 285-289
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7a2bb07e11a272603f14346323309753da5aeb8a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
