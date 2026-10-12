@@ -12,6 +12,9 @@ import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { LOCALS } from '../story/glassdunes-people.js';
 import { buildFloatPosts, buildWaveCairn, buildCairnWay, WAVE_CAIRN, BREAKER_CAIRN } from '../glass-dunes-ways.js';
+import { buildFrozenScenes, frozenTraces } from '../glass-dunes-frozen.js';
+import { buildSandCity, cutSand, windowGlass, inCity } from '../glass-dunes-city.js';
+import { Veils } from '../veil.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes (?level=glassdunes; docs/systems/worlds.md "The Glass Dunes"): on the route since
@@ -55,8 +58,12 @@ export const GLASS_WORLD_LOOK = { uCumulus: 0, uClouds: 0, uHaze: [0.96, 0.9, 0.
 const n1 = createNoise2D(5101), n2 = createNoise2D(5102);
 const ramp = (x, z, [cx, cz, rx, rz, h]) => h * Math.exp(-(((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2));
 
-/** The ground: low ridged dunes, ramps of sand against the walls, a flat for the ship, sand piled at the ring. */
-export function glassHeight(x, z) {
+/**
+ * The ground: low ridged dunes, ramps of sand against the walls, a flat for the ship, sand piled at the ring; the
+ * windows in the sand cut down into the city under it, and the sinkhole's funnel (src/glass-dunes-city.js cutSand).
+ */
+export function glassHeight(x, z) { return cutSand(x, z, sandHeight(x, z), sandHeight); }
+function sandHeight(x, z) {
   const r = Math.hypot(x, z);
   let h = 1.6 * (1 - Math.abs(n1(x * 0.012, z * 0.02))) + 2.2 * n2(x * 0.004, z * 0.004);
   h += ramp(x, z, GLASS_CAMPS.west.ramp) + ramp(x, z, GLASS_CAMPS.north.ramp);
@@ -154,6 +161,15 @@ export function* buildGlassDunes(scene) {
   const crest = crestOf('wave', WAVE_CAIRN, 33);
   // (and the breaking wave's, at its highest: walked up its long back from its east foot; v1.46, issue #19)
   const breakerCrest = crestOf('breaker', BREAKER_CAIRN, 90);
+  // (a ridge's face as drawn, met by a ray: where the stopped minutes sit in the glass, src/glass-dunes-frozen.js)
+  const faceMeshes = new Map();
+  const faceOf = (name, from, dir) => {
+    const r = ridges.find((q) => q.name === name);
+    if (!r) return null;
+    if (!faceMeshes.has(name)) faceMeshes.set(name, new THREE.Mesh(r.ridge.geo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })));
+    const hit = new THREE.Raycaster(from, dir, 0, 200).intersectObject(faceMeshes.get(name))[0];
+    return hit ? { point: hit.point, normal: hit.face.normal.clone() } : null;
+  };
   yield;
   for (const [i, path] of GLASS_FLOWS.entries()) {
     const flow = glassRidge({ H: (x, z) => terrain.heightAt(x, z), seed: 80 + i, path, height: 0.5, depth: 4, depthVary: 0.8, profile: 'flow', folds: { width: 30, amp: 0.6, lean: 0, crest: 0 }, sink: 0.4, ends: 6, thin: 0.9 });
@@ -161,6 +177,8 @@ export function* buildGlassDunes(scene) {
   }
   // the passages' vaults (through the cliff of the giants, through the frozen wave)
   for (const r of ridges) for (const q of r.ridge.passages) glass.add(M.glass, glassPassage(q), { shadow: true, solid: true });
+  // the collars of glass round the windows in the sand (src/glass-dunes-city.js)
+  windowGlass(glass, M, terrain);
   glass.finish();
   yield;
   // the light come through the glass, pooled on the sand at the walls' feet (dune-glass-shader.js)
@@ -182,8 +200,18 @@ export function* buildGlassDunes(scene) {
   if (drifts) scene.add(drifts);
   sand.raise(terrain);
   yield;
+  // the see-through glass's bodies, laid over the finished picture (src/veil.js: main.js draws them after the ink pass)
+  const veils = new Veils();
+  // time trapped in the glass: the stopped minutes held in the walls, and the last inside the breaking wave (issue #166)
+  const frozenKit = new RoomKit({ group, ground: terrain, centre: new THREE.Vector3(), seed: 5166 });
+  const frozen = buildFrozenScenes(scene, frozenKit, M, { ground: terrain, veils, faceOf });
+  frozenKit.finish();
+  yield;
+  // the windows in the sand, the sinkhole by the Clock-House and the city under it (issue #166)
+  const city = buildSandCity(scene, M, { ground: terrain, veils });
+  yield;
   // the arches' and the camps' glow at night
-  const lights = [...kit.lights];
+  const lights = [...kit.lights, ...city.lights];
   for (const [x, z, yaw, w, h] of GLASS_ARCHES) lights.push(new THREE.Vector4(x + Math.sin(yaw) * 2, terrain.heightAt(x, z) + h * 0.4, z + Math.cos(yaw) * 2, Math.max(5, w * 0.8)));
   // (the passages glow at both mouths at night)
   for (const r of ridges) for (const q of r.ridge.passages) for (const s of [0, q.d]) lights.push(new THREE.Vector4(q.x + q.nx * s, q.y + q.h * 0.4, q.z + q.nz * s, q.w * 1.2));
@@ -206,9 +234,13 @@ export function* buildGlassDunes(scene) {
   // the Clock-House east of the valley, and its rooms far overhead (src/temples/garage.js); its court north of it
   const level = {
     id: 'glassdunes',
-    portals: [...shop.portals],
+    portals: [...shop.portals, ...city.portals],
     shops: [shop],
-    floraAvoid: shop.avoid(),
+    floraAvoid: shop.avoid(city.avoid),
+    veils,
+    frozen,
+    sandCity: city,
+    inCity,
     ground: terrain,
     ridges,
     camps,
@@ -257,9 +289,12 @@ export function* buildGlassDunes(scene) {
       { name: 'the breaker’s cairn', at: breaker.at },
       // (v1.50: on the way up to it, issue #134)
       ...up.sights,
+      // (issue #166: the stopped minutes in the glass, read from where you stand; the windows in the sand, the sinkhole)
+      ...frozen.scenes.map((f) => ({ name: f.label, at: f.stand.clone().setY(f.stand.y + 0.5) })),
+      ...city.sights,
     ],
     cairnWay: up,
-    update(dt, t, ctx) { cairn.wave(t ?? 0); breaker.wave(t ?? 0); up.update(dt, t, ctx); },
+    update(dt, t, ctx) { cairn.wave(t ?? 0); breaker.wave(t ?? 0); up.update(dt, t, ctx); frozen.update(ctx?.camera); },
   };
   return attachTemple('garage', scene, level);
 }
@@ -322,5 +357,7 @@ export const GLASS_CONTENT = {
         '~solemn~ (Fused into the sand from above, as though something hot had come down low and pressed it there: three dots over an arc, {glyph}, in a skin of new glass.)',
         '~whisper~ (It is clearer than the old glass of the dunes, and newer. The camp takes its sand from everywhere else: round the mark the drifts lie untouched, the way you leave a grave, or a gift.)',
       ], do: { set: { 'sight.glassdunes.mark': true } } } } } },
-  }],
+  },
+  // (issue #166: the stopped minutes held in the glass, each read where it stands: src/glass-dunes-frozen.js)
+  ...frozenTraces()],
 };

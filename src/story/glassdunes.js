@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 import { KEEPSAKE, QUESTS } from './glassdunes-people.js';
 import { setupGlassDunesMoments } from './glassdunes-moments.js';
+import { CHAMBER } from '../glass-dunes-frozen.js';
 
 /** How near the Clock-House's door (m) the traveller stands, outside, when its clock is filmed. */
 export const FILM_NEAR = 45;
@@ -49,6 +50,19 @@ export function setupGlassDunes(ctx) {
     people: {},
     film,
     update() {
+      // (issue #166) the city under the sand, the first time you come down into it; the chamber inside the breaking
+      // wave, the first time you stand in it: reaching it is reading it (src/glass-dunes-city.js, src/glass-dunes-frozen.js)
+      if (player?.pos) {
+        if (!game.flag('glassdunes.city.seen') && level?.inCity?.(player.pos)) {
+          game.set('glassdunes.city.seen', true);
+          toast('Under the sand, a city. Its tallest tower holds up the Clock-House.');
+        }
+        const m = !game.flag('glassdunes.moment.reached') && level?.frozen?.scenes?.find((f) => f.id === 'moment');
+        if (m && Math.hypot(player.pos.x - m.at.x, player.pos.z - m.at.z) < CHAMBER.inner[0] - 0.8 && Math.abs(player.pos.y - m.at.y) < 4) {
+          game.set('glassdunes.moment.reached', true);
+          toast('Inside the wave: the minute the light passed, held still.');
+        }
+      }
       // the clock, filmed once: out of the house after the Foreman keeps time, near its door
       if (!rt?.outside || !player?.pos || !game.flag('temple.garage.done') || game.flag('glassdunes.moment.clock')) return;
       if (rt.inside?.(player.pos) || player.pos.distanceTo(rt.outside.door.at) > FILM_NEAR) return;

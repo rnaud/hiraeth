@@ -966,6 +966,8 @@ surface is drawn in two parts:
   2.64 → 2.74 ms; draw calls 728 → 737 a frame (one per wash mesh in view, 12 in all). The wash alone 0.10 ms.
 - `tests/veil.test.js`: the define and the fallback, one wash per mesh sharing its geometry, bound to the ink pass's
   uniforms, drawn only while its mesh shows.
+- A level may turn a wash off for a while (`wash.userData.off`: the Glass Dunes' lenses beyond 170 m, worlds.md "Time in
+  the glass"); its mesh's rim is still drawn.
 
 ## Shafts of light (`src/veil.js` `LightShaft`; v1.49, issue #116)
 

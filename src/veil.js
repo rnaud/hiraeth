@@ -129,7 +129,8 @@ export class Veils {
   render(renderer, camera, target) {
     if (!this.bound || !this.list.length) return;
     let any = false;
-    for (const w of this.list) { w.visible = shown(w.userData.of); any ||= w.visible; }
+    // (userData.off: a wash its level has turned off for now, the Glass Dunes' lenses far from the eye)
+    for (const w of this.list) { w.visible = !w.userData.off && shown(w.userData.of); any ||= w.visible; }
     if (!any) return;
     this.uniforms.uRes.value.set(target?.width ?? 1, target?.height ?? 1);
     renderer.setRenderTarget(target);

@@ -640,6 +640,7 @@ const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) i
 // (v1.51: the type split, issue #128: this branch's own Vite and the same tree before the change, the HUD shown)
 const TYPE51 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5467, changelog-shots.mjs’s serve) and the same tree before the change, 11 October; cwebp -q 72';
 // (v1.51: Plumb, issue #152: this branch's own Vite; the look's before is the same moment with Reduce motion on, the drone at rest on the pack as it always was)
+const GD166 = 'headless Chrome (muted, High, 1280 × 720, 16:30, clear) against this branch’s own built game and the build before it (vite preview on port 5641, never 5173), the Glass Dunes on the player’s path, 11 October; cwebp -q 72';
 const PLUMB51 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463, changelog-shots.mjs’s serve and chrome), the Desert before the first chest, 11 October; cwebp -q 72';
 // (v1.51: the button glyphs follow the screen, issue #150; the R3 hint, #151; the one-line cards, #165: this branch's own Vite, the tree before the change)
 const PROMPT51 = 'headless Chrome (muted, Medium, a pad in hand) against this branch’s own Vite (port 5480) and the same tree before the change, 11 October; at the Steam Deck’s 1280 × 800 and at 1280 × 720; cwebp -q 72';
@@ -705,6 +706,30 @@ export const CHANGELOG_MEDIA = {
     { match: 'When the last mirror throws the light onto the little square', shots: [
       { name: 'shaft-beam-depths', title: 'Up the chain', caption: 'From the little square on the bottom terrace, looking up: before, the terraces overhead; after, the chain of mirrors lit, the beam coming down from one to the next', from: SHAFT52 },
     ] },
+    { match: 'In the Glass Dunes the glass is clear where it is thin', shots: [
+      { name: 'gd166-tooth', title: 'The tooth', caption: 'Between the warm-flow mound and the Clock-House: before, open sand; after, a shard of clear glass holding a glassworker reaching for a falling float, a saddled great bird and a cart’s clock with its dial, all held still in the glass’s pale tones', from: GD166 },
+      { name: 'gd166-flock', title: 'The frozen wave', caption: 'Below the float-posts at the frozen wave’s foot: before, the wave’s plain face; after, a lens of clear glass with birds of the flocks held mid-wingbeat and a clock among them', from: GD166 },
+      { name: 'gd166-carriers', title: 'The billows', caption: 'At the billows’ foot east of the Clock-House: before, the glass wall; after, five carriers mid-step inside it, in the dunes’ own headcloths and hats, with staves and baskets', from: GD166 },
+    ], see: 'Walk from the glass mound by the warm flow toward the Clock-House: the shard stands beside the way. Stand in front of any of the scenes and press A / × to read its stopped minute.' },
+    { match: 'Inside the breaking wave over the north camp', shots: [
+      { name: 'gd166-moment', title: 'Under the breaking wave', caption: 'West of the north camp, under the wave’s lip: before, empty sand; after, the chamber of clear glass, its people and its streak of light inside', from: GD166 },
+      { name: 'gd166-inside', only: 'after', title: 'Inside it', caption: 'Standing in the chamber: the figures round you in the glass, looking up, the streak of light overhead', from: GD166 },
+    ], see: 'From the north camp walk west under the breaking wave’s lip: the chamber’s cleft faces the camp.' },
+    { match: 'Three clear windows in the Glass Dunes’ sand', shots: [
+      { name: 'gd166-window', title: 'A window in the sand', caption: 'Looking down through the big window by the frozen wave: before, sand; after, the square below with its clock tower, domes and lit windows', from: GD166 },
+      { name: 'gd166-landing', title: 'From the landing', caption: 'Off the ship: the first window up the valley, its light rising off the glass', from: GD166 },
+      { name: 'gd166-sinkhole', title: 'The sinkhole', caption: 'On the way to the Clock-House’s door: before, flat sand; after, the sinkhole with broken glass round its lip', from: GD166 },
+      { name: 'gd166-city', only: 'after', title: 'The city', caption: 'Landed in the city: the round tower under the Clock-House ahead, its clock stopped at seven to, shafts of light from the ceiling', from: GD166 },
+      { name: 'gd166-city-up', only: 'after', title: 'Overhead', caption: 'Looking up from the streets: the glass ceiling, the drifted sand on it, and footprints crossing a clear patch', from: GD166 },
+    ], numbers: [
+      { title: 'The Glass Dunes, Deck preset', unit: 'ms', better: 'lower', device: 'M4 Pro Mac standing in for the Deck: headless Chrome, ANGLE Metal, 1280 × 800, the Deck preset, CPU slowed ×3 (scripts/bench/deck-mac.mjs, deck-worlds.mjs)', rows: [
+        { where: 'GPU, the start', before: 4.24, after: 4.4 },
+        { where: 'GPU, the valley to the frozen wave', before: 7.17, after: 7.67 },
+        { where: 'GPU, the sinkhole view', before: 8.03, after: 8.3 },
+        { where: 'GPU, inside the city', before: null, after: 5.51 },
+        { where: 'draw calls, the valley to the frozen wave', before: 281, after: 329 },
+      ], source: 'scripts/bench/deck-worlds.mjs --slow 3 --quality deck, the build before and after, back to back, 11 October; the draw calls from the final build (its people and creatures the game’s own), its GPU times within the noise of a busy machine' },
+    ], see: 'Walk up the valley from the ship: the first window is a short way north. To go down, walk into the sinkhole south-west of the Clock-House’s door; to come back, walk up the ramp of sand under the hole.' },
   ],
   '1.51': [
     { match: 'The opening in your ship has music of its own', see: 'Start a new game with the sound on (or open ?level=desert&prologue=1): in the ship, its own quiet music while you wake and walk to the cockpit, nothing under your father’s message; the desert’s ney and oud come in as you walk down the ramp.' },

@@ -1165,11 +1165,71 @@ Tested in `tests/vael-plain-sights.test.js`.
   darker), the four views, the detour on the map and off the route, the build (the cliff solid, a mound stood on
   where drawn, the ship's flat), the contact audit (1 climbs inside, 2 walk through: the drawn-only rims that took
   5 climbs are passages now), the passages (open through, glass beside, a roof over), the hollow.
-- **Left / next**: the glass is still opaque (no parallax of the silhouettes inside it, no sight through a
-  thin lip); the passages' insides are plain mint (no drawn strata, no silhouettes in their walls), their
+- **Left / next**: the walls' glass is still opaque (no parallax of the silhouettes inside it, no sight through a
+  thin lip; the stopped minutes in their clear lenses since v1.52, below); the passages' insides are plain mint (no drawn strata, no silhouettes in their walls), their
   entrances darker than the old lit panels at dusk; the breaking wave reads as a great hood from the valley
   (the plate's tall arch is the References view's, seen from its side); no sounds of its own (the kilns, the
   glass ringing in the wind), no music of its own.
+
+## Time in the glass, the city under the sand (the Glass Dunes, v1.52, issue #166)
+
+The author's two picks from the level explorations (`docs/design/level-explorations-prompts.md`, the Glass Dunes;
+sheets in `references/levels/The Glass Dunes/environment/explorations/trapped-time/` and `.../sunken-city/`).
+
+- **The stopped minutes** (`src/glass-dunes-frozen.js`, `FROZEN_SCENES`): five scenes held in clear glass, each with a
+  clock stopped at its own minute (the clocks' story told by the land; the last is the Clock-House's own, seven to).
+  The **tooth**, a shard of glass between the warm-flow mound and the Clock-House (a glassworker reaching for a falling
+  float, a pack beast, a cart's clock: sheet 1); the **flock** in the frozen wave below the float-posts; the
+  **carriers** in the billows across from the Clock-House; the **dust** in the cliffs of the giants by the west camp;
+  the **moment**, a chamber of two glass shells on the breaking wave's hollow floor, entered through a cleft turned to
+  the north camp, its people looking up and the light's streak frozen overhead. A wall scene's lens is found on the
+  ridge as drawn (`faceOf` in glass-dunes.js: rays at five heights, the most outward hit), the half of an ellipsoid
+  standing out of the face. The figures are the game's own (`src/glass-dunes-figures.js`): the crowd's people
+  (`frozenPerson`: `figureGeometry` in the desert costume, posed on the CPU with the crowd shader's joints, angles and
+  order, `FROZEN_POSES` stride, carry, reach, look up, arms up, shield, point; their headwear, robe, cape, staff or
+  basket picked per figure), the flocks' birds (`frozenFlockBird`) and Vael's great bird as the carriers' beast
+  (`frozenGreatBird`, `buildBird` baked mid-step), all static, coloured through the glass (`GHOST_ZONES`: each
+  clothing zone a pale mint or cream) and inked; a clock (`clockParts`) has its case or rim, a dial with twelve ticks
+  (the quarters longer), a hub and tapered hands. They are drawn larger than life in the walls (`SCENE_SCALE` 1.9, the
+  tooth 1.5, the chamber 1).
+- **Clear glass is the veils' way** (rendering.md "Half-transparent surfaces"): each lens its own mesh, its rim in the
+  G-buffer (`veil` 0.4) and its body a mint wash over the picture (0.26 a layer; the tooth 0.36, the chamber 0.2). The
+  lenses cast no shadow. A wash is drawn only within `WASH_NEAR` (170 m) of the eye (`userData.off`, read by
+  `Veils.render`): further off a lens reads by its inked rim alone, the cheap fallback the handhelds see.
+- **Reading them**: each is one of the world's traces (`frozenTraces()` in `GLASS_CONTENT.traces`: "look at the
+  carriers in the glass", one toned line, `sight.glassdunes.frozen.<id>`), at the scene's `read` spot (tests check
+  it against where the build puts the lens). Standing in the chamber sets `glassdunes.moment.reached` and says one
+  line (src/story/glassdunes.js). They are the level's `sights` too.
+- **The windows in the sand** (`src/glass-dunes-city.js`, `SAND_WINDOWS`): three, by the landing, by the warm flow and
+  by the frozen wave (the big one, 9 m). `cutSand` (in `glassHeight`) lays the sand level round each (`APRON`) and cuts
+  a well 13–16 m deep under it; a collar of the dunes' glass (`windowGlass`, in the glass batch) covers the
+  heightfield's ragged edge; the pane is an invisible collider you walk on and a pale lit wash (layer 31, `LightShaft`'s
+  way), with a glowing thread round its edge and a soft column of the city's light rising off it (so the landing's
+  window reads from the ship).
+  Below, a glimpse of the city (`wellParts`): a well of house fronts turned inward with lit windows, domes, towers, a
+  stair, a square with its clock tower; no shadow from any of it (the sun reaches the bottom). Plants keep off them
+  (`floraAvoid`).
+- **The sinkhole** (`SINKHOLE`, 30 m from the Clock-House, beside the way from the mound to its door): a funnel of the
+  ground, broken glass round its lip, sand pouring in (washes), a dark throat. Its throat is a portal into **the
+  city** (`CITY`), a room built off the map as every room is (2600 m up, its local x and z the basin's own from the
+  sinkhole, so its round tower stands under the Clock-House): pale stone streets, round houses with green glass domes,
+  an arcade, a dry fountain, floats on a doorstep, walls of house fronts with sand banked against them, a ceiling of
+  glowing glass (no shadow) with sand drifted on it (the patches cast the shadows the light falls between) and shafts
+  of light from its clear patches; on the clear glass over the landing, footprints. The way back is the ramp of sand
+  under the hole (a solid wedge, ~31°): its top is the portal out onto the sinkhole's lip. Coming down the first time
+  says one line (`glassdunes.city.seen`).
+- **Cost** (M4 Pro standing in for the Deck: `scripts/bench/deck-mac.mjs`, `deck-worlds.mjs --slow 3 --quality deck`,
+  before and after back to back): GPU at the start 4.24 → 4.40 ms, the valley to the frozen wave (bench view `frozen`)
+  7.17 → 7.67, the sinkhole view 8.03 → 8.30; draws +20–37 in the valley's views; inside the city 5.5 ms and 81 draws
+  (bench view `city`). Main-thread time within the run's noise. With the real people and creatures (a second pass,
+  the machine busy: load 50–70, so the times are noise) the draws are 402 at the start and 329 in the valley view.
+- **Tests** (`tests/glass-dunes-166.test.js`): every scene found its wall and is read where its trace says, its line
+  toned and terse; the near three are seen from the critical path and the far two from their camps; the chamber is
+  walked into through its cleft; each window's glass holds you and is walked onto; the sinkhole is walked down into,
+  lands you on the city's streets, and the ramp is walked up to the way out, which puts you on the lip clear of the
+  throat; the tower stands under the Clock-House; the city is walled in.
+- **Left**: the windows don't open and close with the wind; the city's people are absent (nobody lives there now) and
+  it has no sound of its own; the traveller's lamp does not light the scenes at night (the figures glow a little).
 
 ## The City Behind the Waterfall (`waterfall`, off the route, October 2026)
 
