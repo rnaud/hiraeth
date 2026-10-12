@@ -1,0 +1,69 @@
+src/story/spacecity.js
+  s_9ca76055a220ed::t_57449464d31da3 29
+tests/dialogue-voices.test.js
+  s_9ca76055a220ed::t_6caf3828495b64 40-43,45-47,59-67
+tests/fragments.test.js
+  s_9ca76055a220ed::t_4dca221e1e2767 8,18,149,155-156,228-229,244-282,285
+tests/spacecity-ways.test.js
+  s_9ca76055a220ed::t_b20767148b829f 65
+src/i18n/en.js
+  s_9ca76055a220ed::t_5bff63fa935e05 462
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_6df1dea315052d 169
+src/boxes/model.js
+  s_9ca76055a220ed::t_53283523034575 585
+src/debug-save.js
+  s_9ca76055a220ed::t_b68cbf50c670ee 30,226
+src/story/scientist.js
+  s_9ca76055a220ed::t_972b1602cc2962 8
+src/story/lantern-data.js
+  s_9ca76055a220ed::t_4976a88d3be65c 35-38,41,64-70,157-159
+src/changelog.js
+  s_9ca76055a220ed::t_e6fc27eb068fd0 13-14,16-17
+docs/systems/ship.md
+  s_9ca76055a220ed::t_904b48310a906e 66
+docs/README.md
+  s_9ca76055a220ed::t_4cdda8da7945c7 67
+docs/story-bible.md
+  s_9ca76055a220ed::t_91869bef4c0adf 561-580
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_c57cf12a0cb997 1-2,39,82,85,122-123
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_bcf0329b1c0855 2250
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_d1a2861188d1db 220,230
+src/i18n/fr.js
+  s_9ca76055a220ed::t_afd2a6aeb1e90f 459
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_9bb3b42c1baa7c 1,5-6,19-52,60-63,66,73-75,102-107,113,122-128
+tests/people-names.test.js
+  s_9ca76055a220ed::t_bd9f4f4f880dcf 1-41
+src/items.js
+  s_9ca76055a220ed::t_989b6cf660709b 268,272,276-277,280,284,288,292,296
+src/changelog-media.js
+  s_9ca76055a220ed::t_690d092658e6d8 736-737
+changelog.md
+  s_9ca76055a220ed::t_4726753fc89d7f 10-11
+src/levels/space-city.js
+  s_9ca76055a220ed::t_890a08575fd740 120,122
+src/save-migrate.js
+  s_9ca76055a220ed::t_c4b25b7a8f29c1 80-83,247-248,250-270
+src/story/people-book.js
+  s_9ca76055a220ed::t_bfa547686f4949 185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "67648114a6b916200b53519772538a256751ae32",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
