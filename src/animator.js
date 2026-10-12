@@ -685,6 +685,8 @@ export class Animator {
     this.layMove(size);
     this.mixer.update(0);
     if (this.move?.legs === false) this.overlayMove(this.move);
+    // a conversation's gestures (src/talk-gesture.js): above the legs, standing about on foot
+    if (this.talkGesture) this.layTalk(dt, s);
     if (this.upperReq) { this.overlayMove(this.upperReq); this.headW = Math.max(this.headW, this.upperReq.w); this.upperReq = null; }
     this.match(dt, s, landing, size);
     this.blendCombat(dt);
@@ -724,15 +726,41 @@ export class Animator {
     }
   }
 
-  /** A move on the body above the legs (play's legs: false), over the blend the mixer made: each bone turned toward the clip's by its weight. */
+  /**
+   * This frame's conversation gestures (src/talk-gesture.js TalkGesture, driven by talkGestures.drive): each
+   * of its layers laid over the body above the legs, the head turning with it. Only on foot and standing
+   * about (not walking, in the air, climbing, riding, nor under a move of the whole body: a kneel, a
+   * get-up); anything else lets them go. The layer is dropped once it is over and no longer driven.
+   */
+  layTalk(dt, s) {
+    const G = this.talkGesture, info = this.talkDriven ? this.talkInfo : null;
+    this.talkDriven = false;
+    const free = s.onGround && !(s.speed > 0.6) && (s.mode === 'ground' || s.mode === 'talk' || s.mode == null) && !(this.move && this.move.legs !== false);
+    const list = G.update(dt, free ? info : null, this);
+    this.talkW = 0;   // (this frame's most: a seated body's arms come off its lap by it, NPC.posture)
+    for (const g of list) {
+      const clip = this.moveClip(g.name);
+      if (!clip || !(g.w > 0.001)) continue;
+      this.overlayMove(Object.assign(this._talkM ??= {}, { clip, t: g.t, w: g.w, spine: g.spine }));
+      this.headW = Math.max(this.headW, g.w);
+      this.talkW = Math.max(this.talkW, g.w);
+    }
+    if (!info && G.idle) { this.talkGesture = null; this.talkW = 0; }
+  }
+
+  /**
+   * A move on the body above the legs (play's legs: false), over the blend the mixer made: each bone turned
+   * toward the clip's by its weight. `M.spine` false: the arms and the head only (seated: the back stays on the seat).
+   */
   overlayMove(M) {
     if (!M) return;
     const ud = M.clip.userData ?? (M.clip.userData = {});
-    ud.upper ??= M.clip.tracks.flatMap((t) => {
+    const key = M.spine === false ? 'arms' : 'upper', skip = M.spine === false ? /^(thigh|calf|foot|ball)_|^pelvis$|^spine_/ : /^(thigh|calf|foot|ball)_|^pelvis$/;
+    ud[key] ??= M.clip.tracks.flatMap((t) => {
       const dot = t.name.lastIndexOf('.'), bone = t.name.slice(0, dot), prop = t.name.slice(dot + 1);
-      return /^(thigh|calf|foot|ball)_|^pelvis$/.test(bone) ? [] : [{ prop, bone, ip: t.createInterpolant() }];
+      return skip.test(bone) ? [] : [{ prop, bone, ip: t.createInterpolant() }];
     });
-    for (const u of ud.upper) {
+    for (const u of ud[key]) {
       const b = (u.b ??= new Map()).get(this) ?? (u.b.set(this, this.bone(u.bone)), u.b.get(this));
       if (!b) continue;
       const v = u.ip.evaluate(M.t);

@@ -910,6 +910,79 @@ The author, about to leave: "people around my ship are moving too much". Round t
 
 Tests: `tests/ship-calm.test.js`.
 
+## Gestures while people talk (issue #197, v1.61)
+
+"During dialogs characters can be more emotive and take poses depending on the conversation." As someone says a
+line, their body above the hips takes a gesture in the line's tone, from Mixamo's captured conversation clips.
+
+- **The clips** (`public/anim/gestures.glb`, 224 KB, gzip 88 KB; loaded with the moves after the game starts,
+  `loadMotionLibrary`): 29 Mixamo clips on the Y Bot rig, the author's downloads of 12 October 2026 (Acknowledging,
+  Angry Gesture, Annoyed Head Shake, Arm Gesture, Disappointed, Excited, Sad Idle ×2, Shaking Head No, Standing
+  Arguing (its first 10 s of 20.8), Surprised, Talking ×4, Thankful, Thinking, Waving, Yelling) and ten from the
+  *Gestures Pack Basic* (being cocky, dismissing gesture, happy hand gesture, hard and lengthy head nods, head nod
+  yes, look away gesture, relieved sigh, sarcastic head nod, thoughtful head shake; its acknowledging, angry
+  gesture and two head shakes are the singles again, its weight shift an idle: left out). Table:
+  `scripts/mocap/gesture-clips.json`; built by `node scripts/mocap/build-gestures.mjs --from <folder of the FBX>`
+  (the pack read from `data/mocap/packs/gestures-basic.zip`, kept as the other packs are; the singles are not kept).
+- **Retargeting**: as every captured clip (`scripts/mocap/fbx.js`, `retarget.js`: Mixamo's bones mapped onto the
+  UAL skeleton the Animator plays, so one clip serves every body: the traveller, the people's MakeHuman and
+  Quaternius bodies, the Tripo-fitted ones), standing (the root held at its mean), the head's own turn kept.
+  Only the body above the hips is stored (spine, neck, head, arms, hands: 11 tracks): a gesture's own steps and
+  bounces (Excited hops, Arguing steps about) would slide the planted feet. The hips' turn is folded into the
+  spine's first joint, its twist about the vertical held within 23° (`TWIST`), so a bow or a lean from the hips
+  still shows. Loops (the four Talkings, the Sad Idles, Thinking) have their last 0.4 s bent onto their first
+  frame (they ended within 1° of it already). **Keyframe reduction**: each track keeps only the frames a slerp
+  between its kept neighbours misses by over 0.57° (Douglas–Peucker; 26 % of the frames), each reduced channel
+  with times of its own, in two views every channel shares (`scripts/mocap/glb.js` `keys`; a view each made the
+  JSON half the file): 376 KB with every frame, 224 KB reduced.
+- **The layer** (`src/talk-gesture.js`): `talkGestures.drive(animator, { speaking, tone, key, text, listening,
+  seated })` from the conversation (`src/story/index.js`, beside the talking faces; `Dialogue.faces()` gives each
+  page's `key` and `text`), stepped by the Animator itself (`Animator.layTalk`, after the mixer, before a petting
+  or a flinch) and laid on by `overlayMove` above the legs, the head turning with it (`headW`, within `HEAD_TURN`).
+  A new page picks a clip for its tone, never the clip that body played last; a one-shot plays to its end (one
+  over 5 s from somewhere in it, 4.5 s at most) and a line still being said carries on with a talking loop; a loop
+  lasts the line and 0.8 s more; each change crossfades (two layers at most, in over 0.3 s, out over 0.45). The
+  one listening nods at 40 % of the other's lines (Acknowledging, Head Nod Yes or the lengthy nod, 0.5–1.2 s in,
+  at 0.8). Only on foot and standing about: walking, the air, climbing, riding or a whole-body move (a kneel, a
+  get-up) let it go. Seated: the arms and the head only (the back stays on the seat), at 0.75, the seated pose's
+  arms lifted off the lap by the gesture's weight (`NPC.posture`). A whisper at 0.6; Excited at 0.8 (its fists in
+  front of the belly came close to the slimmest body). `?gestures=0` switches it off, to compare.
+- **The tone map** (`TONE_GESTURES`; every tone of `src/story/tone.js` has two clips at least):
+
+  | Tone | Clips |
+  |---|---|
+  | neutral | Talking ×4, Arm Gesture |
+  | happy | Happy Hand Gesture, Thankful, Excited |
+  | playful | Being Cocky, Excited, Sarcastic Head Nod, Happy Hand Gesture |
+  | sad | Sad Idle ×2, Disappointed |
+  | tired | Relieved Sigh, Sad Idle, Disappointed |
+  | solemn | Thinking, Thoughtful Head Shake, Lengthy Head Nod |
+  | angry | Angry Gesture, Standing Arguing, Dismissing Gesture, Yelling |
+  | shout | Yelling, Angry Gesture, Standing Arguing |
+  | scared | Surprised, Look Away Gesture |
+  | surprised | Surprised, Excited |
+  | curious | Thinking, Arm Gesture, Talking |
+  | whisper | Talking, Head Nod Yes |
+
+  The words pick over the tone (`INTENTS`, read off the line's start): no, never, I can't, don't… → Shaking Head
+  No or Annoyed Head Shake (angry: Annoyed Head Shake, Dismissing Gesture); hello, welcome, farewell, goodbye… →
+  Waving; yes, of course, very well, all right… → Acknowledging, Head Nod Yes, Hard Head Nod; "thank you"
+  anywhere → Thankful.
+- **What it costs**: the layer's own time (`Animator.layTalk`) for three people in a conversation, one speaking and
+  two listening: 0.014 ms a frame in Node; in headless Chrome on the Mac at the Handheld preset with the CPU slowed
+  4× (the machine under heavy load) 0.13 ms; the people's whole update 1.06–1.10 ms without against 1.08–1.26
+  with (noise). **The engine bridge** (Unity on the Xbox, Godot) loads no captured motion (`engine/game.js` never
+  calls `loadMotionLibrary`: no moves or walks there either), so `drive()` returns at its first check and nothing
+  is stepped: the Xbox's script time is untouched. Loading `anim/gestures.glb` there would bring it, at the cost
+  above.
+- **Checked** in the running game (headless Chrome, the Desert, Marrow and the traveller, each clip held at six
+  moments: no broken limbs, the feet where they stood, the hands in front of the body; Disappointed turns the
+  head away and down, as captured). Tests: `tests/talk-gesture.test.js` (every tone mapped, every clip in the file
+  and looping as listed, the words' picks, never twice in a row, a conversation's crossfades and nods, the clips on
+  the traveller, MakeHuman and Quaternius bodies: the feet within 1 cm of standing still, the hands off the
+  trunk's line, the face within 95° of the chest; seated; let go walking; nothing without the clips; the cost).
+- **Provenance and terms**: docs/motion-data.md ("Mixamo").
+
 ## The family (October 2026, v1.7)
 
 The traveller's family wears one canonical look each, from the user's selected single-view designs in

@@ -8,6 +8,7 @@ see docs/credits.md). On top of it come motion-captured takes from two sources, 
 |---|---|---|---|
 | `public/anim/walks.glb` | 12 walking cycles of CMU subjects: the people's own walks | 81 KB | always (after the game starts, not waited for) |
 | `public/anim/moves.glb` | the traveller's own moves: 25 Mixamo clips (get-ups, jumps, a stumble, idles, turns, a kneel, the petting, the fluid blade's three swings, its guard and block, a flinch) | 523 KB | always (after the game starts, not waited for) |
+| `public/anim/gestures.glb` | the conversation gestures: 29 Mixamo clips above the hips, keyframe-reduced (issue #197; docs/systems/characters.md, "Gestures while people talk") | 224 KB | always (after the game starts, not waited for) |
 | `public/anim/locomotion.glb` | the motion-matching database: 75 CMU clips and 33 Mixamo ones (267 s; mirrored at load) | 1.39 MB | only with motion matching switched on (dev menu, `?mm=1`) and in the character studio |
 
 The raw downloads live in `data/mocap/raw/` and `data/mocap/mixamo/`, which git ignores;
@@ -85,6 +86,14 @@ machine).
   around, kneeling inspection, petting an animal) is converted into `locomotion.glb` (the starts,
   stops and turns, and the breathing idle) and `moves.glb` (the rest); the raw FBX files stay in
   `data/mocap/mixamo/`, and `node scripts/mocap/build-library.mjs` converts them with the rest.
+- **The conversation gestures** (issue #197): the author's downloads of 12 October 2026, Y Bot rig, FBX: 19
+  singles (Acknowledging, Angry Gesture, Annoyed Head Shake, Arm Gesture, Disappointed, Excited, Sad Idle ×2,
+  Shaking Head No, Standing Arguing, Surprised, Talking ×4, Thankful, Thinking, Waving, Yelling; kept on the
+  author's machine only, `.local-tools/mixamo/`, as single downloads are) and the *Gestures Pack Basic* (kept as
+  downloaded, `data/mocap/packs/gestures-basic.zip`, as the other packs; ten of its 15 clips used).
+  `scripts/mocap/gesture-clips.json` names each shipped clip's download, and each clip in `gestures.glb` says it
+  again (`extras.source`); `node scripts/mocap/build-gestures.mjs --from <folder>` converts them. What ships is
+  only the converted, retargeted upper-body tracks inside the game's own file, under the terms below.
 - **Terms, as Adobe's Mixamo FAQ states them** (https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html):
   characters and animations downloaded from Mixamo are royalty free for personal, commercial and
   non-profit projects (games, films, …), and may be used in a project you sell; what is not

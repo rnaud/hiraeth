@@ -2,13 +2,15 @@
 // the clips animate, so three's GLTFLoader binds the tracks by name onto the library's skeleton)
 // and one animation per clip. Rotations are stored as normalised 16-bit integers (core glTF:
 // GLTFLoader dequantises them), positions and times as floats; every clip shares one time
-// accessor's buffer (frame i at i / fps). Per-clip tags go in the animation's `extras` (three
-// puts them in clip.userData).
+// accessor's buffer (frame i at i / fps), unless a channel keeps only some of its frames (`keys`:
+// keyframe reduction, scripts/mocap/build-gestures.mjs), which then has times of its own. Per-clip
+// tags go in the animation's `extras` (three puts them in clip.userData).
 const FLOAT = 5126, SHORT = 5122;
 
 /**
  * @param nodes [{ name, parent (index or -1), translation, rotation }]
- * @param clips [{ name, fps, n, extras, channels: [{ node (index), path: 'rotation'|'translation', data: Float32Array }] }]
+ * @param clips [{ name, fps, n, extras, channels: [{ node (index), path: 'rotation'|'translation', data: Float32Array, keys? }] }]
+ *   (`keys`: the frame indices kept, in order, first and last among them; `data` still holds every frame)
  */
 export function writeGLB({ nodes, clips, extras = {} }) {
   const chunks = [];
@@ -33,27 +35,46 @@ export function writeGLB({ nodes, clips, extras = {} }) {
     if (!timeAcc.has(n)) { accessors.push({ bufferView: timeView, componentType: FLOAT, count: n, type: 'SCALAR', min: [0], max: [(n - 1) / fps] }); timeAcc.set(n, accessors.length - 1); }
     return timeAcc.get(n);
   };
+  const pool = { t: [], q: [], tAcc: [], qAcc: [] };
   const animations = clips.map((c) => {
     const samplers = [], channels = [];
     const input = timeAccessor(c.n);
     for (const ch of c.channels) {
-      let acc;
-      if (ch.path === 'rotation') {
-        const q = new Int16Array(c.n * 4);
-        for (let i = 0; i < c.n * 4; i++) q[i] = Math.round(Math.max(-1, Math.min(1, ch.data[i])) * 32767);
-        accessors.push({ bufferView: pushView(q), componentType: SHORT, normalized: true, count: c.n, type: 'VEC4' });
+      let acc, inp = input;
+      // (a reduced channel: its own times, the kept frames' values, in two views every reduced channel shares:
+      // a view each made the file's JSON half its size)
+      const keys = ch.keys ?? null, m = keys ? keys.length : c.n, at = (i) => (keys ? keys[i] : i);
+      if (keys) {
+        const at0 = pool.t.length;
+        for (const k of keys) pool.t.push(k / fps);
+        accessors.push({ bufferView: -1, byteOffset: at0 * 4, componentType: FLOAT, count: m, type: 'SCALAR', min: [+Math.fround(keys[0] / fps).toFixed(6)], max: [+Math.fround(keys[m - 1] / fps).toFixed(6)] });
+        pool.tAcc.push(accessors.length - 1);
+        inp = accessors.length - 1;
+      }
+      if (ch.path === 'rotation' && keys) {
+        const at0 = pool.q.length;
+        for (let i = 0; i < m; i++) for (let j = 0; j < 4; j++) pool.q.push(Math.round(Math.max(-1, Math.min(1, ch.data[at(i) * 4 + j])) * 32767));
+        accessors.push({ bufferView: -2, byteOffset: at0 * 2, componentType: SHORT, normalized: true, count: m, type: 'VEC4' });
+        pool.qAcc.push(accessors.length - 1);
+      } else if (ch.path === 'rotation') {
+        const q = new Int16Array(m * 4);
+        for (let i = 0; i < m; i++) for (let j = 0; j < 4; j++) q[i * 4 + j] = Math.round(Math.max(-1, Math.min(1, ch.data[at(i) * 4 + j])) * 32767);
+        accessors.push({ bufferView: pushView(q), componentType: SHORT, normalized: true, count: m, type: 'VEC4' });
       } else {
-        const v = Float32Array.from(ch.data.subarray(0, c.n * 3));
-        const min = [0, 1, 2].map((d) => { let m = Infinity; for (let i = 0; i < c.n; i++) m = Math.min(m, v[i * 3 + d]); return m; });
-        const max = [0, 1, 2].map((d) => { let m = -Infinity; for (let i = 0; i < c.n; i++) m = Math.max(m, v[i * 3 + d]); return m; });
-        accessors.push({ bufferView: pushView(v), componentType: FLOAT, count: c.n, type: 'VEC3', min, max });
+        const v = new Float32Array(m * 3);
+        for (let i = 0; i < m; i++) for (let j = 0; j < 3; j++) v[i * 3 + j] = ch.data[at(i) * 3 + j];
+        const min = [0, 1, 2].map((d) => { let x = Infinity; for (let i = 0; i < m; i++) x = Math.min(x, v[i * 3 + d]); return x; });
+        const max = [0, 1, 2].map((d) => { let x = -Infinity; for (let i = 0; i < m; i++) x = Math.max(x, v[i * 3 + d]); return x; });
+        accessors.push({ bufferView: pushView(v), componentType: FLOAT, count: m, type: 'VEC3', min, max });
       }
       acc = accessors.length - 1;
-      samplers.push({ input, output: acc, interpolation: 'LINEAR' });
+      samplers.push({ input: inp, output: acc, interpolation: 'LINEAR' });
       channels.push({ sampler: samplers.length - 1, target: { node: ch.node, path: ch.path } });
     }
     return { name: c.name, samplers, channels, extras: c.extras };
   });
+  if (pool.t.length) { const v = pushView(Float32Array.from(pool.t)); for (const a of pool.tAcc) accessors[a].bufferView = v; }
+  if (pool.q.length) { const v = pushView(Int16Array.from(pool.q)); for (const a of pool.qAcc) accessors[a].bufferView = v; }
   const gnodes = nodes.map((n) => {
     const o = { name: n.name };
     if (n.translation) o.translation = n.translation;
@@ -101,7 +122,7 @@ export function readGLB(bytes) {
   const b0 = 20 + jsonLen, bin = u8.subarray(b0 + 8, b0 + 8 + dv.getUint32(b0, true));
   const view = (acc) => {
     const a = json.accessors[acc], v = json.bufferViews[a.bufferView], size = { SCALAR: 1, VEC3: 3, VEC4: 4 }[a.type];
-    const at = bin.byteOffset + v.byteOffset, len = a.count * size;
+    const at = bin.byteOffset + v.byteOffset + (a.byteOffset ?? 0), len = a.count * size;
     if (a.componentType === SHORT) { const s = new Int16Array(bin.buffer.slice(at, at + len * 2)); return Float32Array.from(s, (x) => Math.max(-1, x / 32767)); }
     return new Float32Array(bin.buffer.slice(at, at + len * 4));
   };
@@ -110,8 +131,23 @@ export function readGLB(bytes) {
   const nodes = json.nodes.map((n, i) => ({ name: n.name, parent: parent.get(i) ?? -1, translation: n.translation, rotation: n.rotation }));
   const fps = json.extras?.fps ?? 30;
   const clips = (json.animations ?? []).map((a) => {
-    const n = json.accessors[a.samplers[0].input].count;
-    return { name: a.name, fps, n, extras: a.extras, channels: a.channels.map((ch) => ({ node: ch.target.node, path: ch.target.path, data: view(a.samplers[ch.sampler].output) })) };
+    // (a reduced channel has times of its own: expanded back to every frame, lerped between its keys)
+    const n = Math.max(...a.samplers.map((s) => Math.round(json.accessors[s.input].max[0] * fps) + 1));
+    const full = (sm, size) => {
+      const out = view(sm.output), acc = json.accessors[sm.input];
+      if (acc.count === n) return out;
+      const ts = view(sm.input), v = new Float32Array(n * size);
+      for (let i = 0, k = 0; i < n; i++) {
+        const t = i / fps;
+        while (k < acc.count - 2 && ts[k + 1] <= t) k++;
+        const u = acc.count > 1 ? Math.min(1, Math.max(0, (t - ts[k]) / (ts[k + 1] - ts[k]))) : 0, k1 = Math.min(k + 1, acc.count - 1);
+        let len = 0;
+        for (let j = 0; j < size; j++) { v[i * size + j] = out[k * size + j] * (1 - u) + out[k1 * size + j] * u; len += v[i * size + j] ** 2; }
+        if (size === 4) for (let j = 0; j < 4; j++) v[i * 4 + j] /= Math.sqrt(len) || 1;
+      }
+      return v;
+    };
+    return { name: a.name, fps, n, extras: a.extras, channels: a.channels.map((ch) => ({ node: ch.target.node, path: ch.target.path, data: full(a.samplers[ch.sampler], ch.target.path === 'rotation' ? 4 : 3) })) };
   });
   return { nodes, clips, extras: json.extras ?? {} };
 }

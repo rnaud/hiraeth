@@ -22,12 +22,13 @@ const parse = async (name) => {
 let assets = null;
 export async function loadAssets() {
   // (the clip library with the captured motion attached, lib.motion: the people's walks, public/anim/walks.glb,
-  // and the matching database, public/anim/locomotion.glb)
-  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb'), parse('walks.glb'), parse('locomotion.glb'), parse('moves.glb')]).then(([ual, m, f, walks, loco, moves]) => {
+  // the matching database, public/anim/locomotion.glb, the moves and the conversation gestures)
+  assets ??= Promise.all([parse('ual.glb'), parse('human_m.glb'), parse('human_f.glb'), parse('walks.glb'), parse('locomotion.glb'), parse('moves.glb'), parse('gestures.glb')]).then(([ual, m, f, walks, loco, moves, gestures]) => {
     const lib = libraryFrom(ual);
     attachMotion(lib, walks);
     attachMotion(lib, loco);
     attachMotion(lib, moves);
+    attachMotion(lib, gestures);   // (the conversation gestures: src/talk-gesture.js)
     return { lib, human: { m: prepareHuman(m.scene, 'm'), f: prepareHuman(f.scene, 'f') } };
   });
   return assets;

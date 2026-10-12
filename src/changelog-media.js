@@ -734,6 +734,8 @@ const SHIP234 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this 
 // (v1.62, issues #185 and #213: a scratch shooter against this branch's own Vite and the tree before it, e7c21f7d)
 const SHOP185 = 'headless Chrome (muted, Medium, 1280 × 720, 10:00) against this branch’s own Vite (port 5771) and the tree before it (e7c21f7d), in Viridel with a debug save of the worlds before (24 fragments found), the traveller in the hold facing Anselm; 12 October; cwebp -q 72';
 const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch’s own Vite (port 5771) and the tree before it (e7c21f7d), a debug save of the worlds before, the game menu opened by the console; 12 October; cwebp -q 72';
+// (v1.61, issue #197: a scratch shooter against this branch's own Vite, ?gestures=0 for before; the game's own captureView)
+const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by Marrow) against this branch’s own Vite (port 5791): a conversation open, each picture the game’s own view of the one speaking from in front; before: ?gestures=0 (the talking idle alone), 6 moments of a line; after: a moment of each of six gestures (a wave, surprise, yelling, sad, thinking, thanks); 12 October; sharp webp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.62': [
     { match: 'Anselm Thrum sells his upgrades now', shots: [
@@ -755,6 +757,14 @@ export const CHANGELOG_MEDIA = {
       rows: [{ where: 'oscillators', before: 123, after: 49 }, { where: 'filters', before: 94, after: 38 }, { where: 'buffer sources (the oud’s notes now)', before: 49, after: 45 }],
       source: 'the issue #207 renders (docs/systems/audio.md, “The desert’s music”), origin/main e7c21f7d against this branch' }],
       see: 'Step out of the ship onto the sand, or travel to the Desert: the oud’s phrase comes in at once over the drone and the pad. Walk a while for the slow pulse; stand about for three minutes and the score thins to its quiet layers; step into a house and it plays in full again.' },
+    { match: 'People talk with their whole upper body now', shots: [
+      { name: 'talk-gestures-person', title: 'Someone you talk to', caption: 'Marrow saying a line: before, the talking idle, the arms at the sides; after, a moment of six lines in six tones: hello (a wave), surprised, shouting, sad, curious (thinking), thanks (a hand on the heart)', from: TALK197 },
+      { name: 'talk-gestures-traveller', title: 'The traveller', caption: 'The traveller saying his own lines: before, standing still; after, the same six gestures on him', from: TALK197 },
+    ], numbers: [{ title: 'The gesture layer’s own time a frame, three people in a conversation (one speaking, two listening)', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, Handheld preset, CPU slowed 4×, the machine under heavy load; and Node', rows: [
+      { where: 'in the game (Handheld, CPU ×4)', before: 0, after: 0.13 },
+      { where: 'Node (tests/talk-gesture.test.js)', before: 0, after: 0.014 },
+    ], source: 'Animator.layTalk timed over 20 s of a conversation, ?gestures=0 against on, two runs each (the people’s whole update 1.06–1.10 ms against 1.08–1.26: within the noise); the Xbox and the other engine builds load no captured motion, so the layer never runs there' }],
+      see: 'Talk to anyone: watch their arms and head as each line comes, and yours when the traveller answers. A line that starts with no, hello, yes or thanks gets its own gesture.' },
     { match: 'Aboard your ship the camera keeps its distance in the tight spots', shots: [
       { name: 'ship-tight-bunk', title: 'By the bunk', caption: 'Beside the bunk’s alcove facing into the room, the camera turned toward the alcove: before, 0.41 m behind him, his hair and pack filling the frame; after, a step further out, the camera up over his shoulder looking down at the room, the console and the holo table', from: SHIP234 },
       { name: 'ship-tight-cockpit', title: 'The cockpit', caption: 'Between the cockpit’s seats, the camera turned to the side over a seat: before, 0.77 m behind him, his back filling the frame; after, up over the seat looking down the dash, the galley beyond', from: SHIP234 },

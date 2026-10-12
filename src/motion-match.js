@@ -101,12 +101,13 @@ const loading = {};
 /**
  * Load the captured motion and attach it to the clip library (lib.motion): the people's walks
  * (public/anim/walks.glb) and the traveller's own moves (public/anim/moves.glb: the get-ups, the
- * jumps, the idles, the kneel and the petting), small: always; with `matching`, the matching
+ * jumps, the idles, the kneel and the petting) and the conversation gestures (public/anim/gestures.glb:
+ * src/talk-gesture.js), small: always; with `matching`, the matching
  * database (public/anim/locomotion.glb, ~1.4 MB: only when motion matching is on, or in the
  * character studio). Each file is fetched once; resolves to lib.motion.
  */
 export function loadMotionLibrary(lib, { base = '', matching = false } = {}) {
-  const files = ['anim/walks.glb', 'anim/moves.glb', ...(matching ? ['anim/locomotion.glb'] : [])];
+  const files = ['anim/walks.glb', 'anim/moves.glb', 'anim/gestures.glb', ...(matching ? ['anim/locomotion.glb'] : [])];
   return Promise.all(files.map((f) => (loading[base + f] ??= new GLTFLoader().loadAsync(base + f).then((g) => attachMotion(lib, g)).catch((e) => { console.warn(`${f} failed to load`, e); return null; }))))
     .then(() => lib.motion ?? null);
 }

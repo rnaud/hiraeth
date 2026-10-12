@@ -15,6 +15,7 @@ import { glyphGeometry } from './sign-text.js';
 import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { talkFaces } from '../talk-face.js';
+import { talkGestures } from '../talk-gesture.js';
 import { makeMaterial } from '../materials.js';
 import { expressionFor } from '../expression.js';
 import { viaPortal } from '../scout.js';
@@ -393,6 +394,10 @@ export function createStory(o) {
       if (dialogue.open && talking?.npc?.humanoid && talking.npc.object.visible) talkFaces.drive(talking.npc.humanoid, F.npc);
       else if (dialogue.open && talking?.npc?.express) talking.npc.express(F.npc);   // (no face: the tone as a glow and a gesture, src/aliens/)
       if (player.humanoid && (dialogue.open || F.player.speaking)) talkFaces.drive(player.humanoid, F.player);
+      // and their bodies (src/talk-gesture.js): the one speaking gestures in the line's tone, the one listening nods now and then
+      const N = talking?.npc;
+      if (N?.animator) talkGestures.drive(N.animator, dialogue.open && N.object?.visible !== false ? { ...F.npc, listening: F.player.speaking, seated: !!N.seat } : null);
+      if (player.animator) talkGestures.drive(player.animator, dialogue.open ? { ...F.player, listening: F.npc.speaking, seated: false } : null);
       // and the traveller's eyes on their face
       // (a moment says where he looks and turns: src/story/moment.js m.eyes, m.face)
       const M = moments.playing ? moments.current : null;

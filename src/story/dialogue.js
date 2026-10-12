@@ -617,7 +617,7 @@ export class Dialogue {
 
   /**
    * Who says what now, for their faces (src/talk-face.js): the person's line while it is revealed, the
-   * traveller's own pages. { npc: { speaking, tone, mouth }, player: { … } }
+   * traveller's own pages. { npc: { speaking, tone, mouth, key, text }, player: { … } }
    */
   faces() {
     const r = this.runner, revealing = this.open && this.revealed < (r?.text.length ?? 0);
@@ -625,7 +625,8 @@ export class Dialogue {
     const side = (who) => {
       const lines = this.open && r?.speaker === who && revealing;
       // (a line with no voice to follow, the mouth moves by itself: null)
-      const f = { speaking: !!lines, tone: r?.tone ?? 'neutral', mouth: lines && !voiced ? null : this.mouth(who) };
+      // (`key`, `text`: the page being said, for the gestures that go with it: src/talk-gesture.js)
+      const f = { speaking: !!lines, tone: r?.tone ?? 'neutral', mouth: lines && !voiced ? null : this.mouth(who), key: r ? `${r.nodeId}:${r.page}` : null, text: r?.text ?? '' };
       // (the traveller taking in a strong line, the camera on him: the look he wears, src/story/coverage.js REACTS)
       if (who === 'player' && !f.speaking && this.open && this.cover.reaction) f.look = this.cover.reaction.look;
       return f;

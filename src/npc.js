@@ -806,6 +806,9 @@ export class NPC {
       const hip = pose === 3 ? 1.5 : 1.8;
       c.body.position.set(0, 0, 0);
       c.body.rotation.set(0, 0, 0);
+      // (talking, a gesture lifts the arms off the lap by its weight: src/talk-gesture.js, the arms as the Animator posed them)
+      const gw = this.animator?.talkGesture ? this.animator.talkW ?? 0 : 0;
+      const held = gw > 0.001 ? [...c.arms, ...c.elbows].map((j) => j.quaternion.clone()) : null;
       for (let i = 0; i < 2; i++) {
         c.legs[i].rotation.set(-hip, 0, 0);
         c.knees[i].rotation.set(hip + (i ? -kick : kick), 0, 0);
@@ -813,6 +816,7 @@ export class NPC {
         c.arms[i].rotation.set(pose === 3 ? -0.25 : -0.65, 0, (i ? 1 : -1) * 0.2);
         c.elbows[i].rotation.set(pose === 3 ? -0.35 : -0.9, 0, 0);
       }
+      if (held) [...c.arms, ...c.elbows].forEach((j, k) => j.quaternion.slerp(held[k], gw));
       c.torso.rotation.x += pose === 3 ? 0.12 : 0.22;
     } else if (pose === 6) {
       c.body.rotation.x -= 0.06;

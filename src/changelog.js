@@ -37,6 +37,9 @@ export const CHANGELOG = [
     // the desert's music reworked: ambient, an oud over electronics, no frame drum; its recording retired (src/score.js
     // SCORES.desert, src/score-voices.js lute; docs/systems/audio.md "The desert's music"; issue #207)
     'The Desert has new music, slower, quieter and more mysterious than before: a lone oud plays a few notes at a time and lets them ring into a long echo, over soft synthesizer pads, a low drone with the wind singing in it and, now and then, a shimmer of high notes. There are no drums any more: walking brings only a slow, soft pulse. The whole score plays as you arrive, indoors and at the big moments, and only its quiet layers in between.',
+    // gestures while people talk, from Mixamo's captured conversation clips by each line's tone (src/talk-gesture.js,
+    // public/anim/gestures.glb, scripts/mocap/build-gestures.mjs; docs/systems/characters.md "Gestures while people talk"; issue #197)
+    'People talk with their whole upper body now. As someone says a line they move with it: a wave for hello or goodbye, a shake of the head at a no, a nod for a yes, a hand on the heart for thanks, arms thrown up in surprise, a fist when angry, a hung head when sad, a hand at the chin when curious, and their hands talking along the rest of the time. The traveller does it too when he speaks, and whoever is listening nods now and then.',
   ] },
   { v: '1.60', date: '2026-10-12', items: [
     // the temples to explore, round 4: the last three great keys out of the rooms off the last halls, each with a loop
