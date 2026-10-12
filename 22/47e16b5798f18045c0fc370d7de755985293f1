@@ -1,0 +1,75 @@
+changelog.md
+  s_9ca76055a220ed::t_ce472f672f71b9 5-8
+docs/systems/story.md
+  s_9ca76055a220ed::t_9109f394b29f7e 814-826,842-843
+src/changelog.js
+  s_9ca76055a220ed::t_e5998c701c2854 11-15
+src/save-migrate.js
+  s_9ca76055a220ed::t_b8dda74cc43428 73-74,228-230,232-255
+src/story/aliens-data.js
+  s_9ca76055a220ed::t_bfee7659eb84f7 139
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_c1f14819f2610a 55-56,265,294
+src/story/bazaar.js
+  s_9ca76055a220ed::t_04df042cbafe43 213-214
+src/story/buried-data.js
+  s_9ca76055a220ed::t_ada791aaf68265 59-60,276,303,309
+src/story/buried.js
+  s_9ca76055a220ed::t_7cb4754be6e977 150-152,165
+src/story/edena-data.js
+  s_9ca76055a220ed::t_c0dbe9729a6102 34-35,39,55-56,88,105,119-123,195,293,308,313-314,377,480,529-530
+src/story/edena.js
+  s_9ca76055a220ed::t_0f447b0fc8f96e 7,89-90,173-175
+src/story/halfway.js
+  s_9ca76055a220ed::t_2083cca5288311 25,134-136,143,160
+src/story/incal-data.js
+  s_9ca76055a220ed::t_ee42a1d864f6ca 71,268,336-338,381,388
+src/story/people-book.js
+  s_9ca76055a220ed::t_3d2bad33073f0a 270,279,292-293,340,617,693
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_e88fe875f2ae6c 48,56,75,135,197,218,231,341
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_61f356c9905cf5 19-22,46,55,61-64,100,155-156
+src/story/perdide2.js
+  s_9ca76055a220ed::t_8c8270b87e23a2 8,78,452-453
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_cda9074ef22fd6 61,167,189
+tests/quest-steps.test.js
+  s_9ca76055a220ed::t_6113cac022cd7d 115-148
+tests/route-ilen.test.js
+  s_9ca76055a220ed::t_8d3dd05ac28bf1 67,73,75,81
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_835baa0ed862ae 90,354-376
+tests/story-bazaar.test.js
+  s_9ca76055a220ed::t_a6e4aa43d8f401 184,186
+tests/story-buried.test.js
+  s_9ca76055a220ed::t_86eaefc65690c7 230,232,311,313-314
+tests/story-edena.test.js
+  s_9ca76055a220ed::t_7035192915bf7e 135,139-143,146,182,184-186,188,190-191,193-194
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_51e587589c01f1 366,372
+tests/story-perdide.test.js
+  s_9ca76055a220ed::t_3f5a1992cf669f 133,135-136,209-210,212
+tests/story-perdide2.test.js
+  s_9ca76055a220ed::t_c1eb7b0ca5b4d4 181-185
+tests/story-spheres.test.js
+  s_9ca76055a220ed::t_2ee67dff10f4a2 182-183,185
+tests/story-terraces.test.js
+  s_9ca76055a220ed::t_c45e54dcbf0123 189,191-192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2247e16b5798f18045c0fc370d7de755985293f1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
