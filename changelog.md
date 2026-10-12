@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.54 — 2026-10-12
+
+- A foe’s warning as it winds up a strike, and its cry when you cut it, now come from where it is: from the left or the right, softer farther off but never too faint to hear across a fight, a little duller from behind you, and a warning from a foe you can’t see a touch louder, so you can turn to meet it.
+
 ## v1.53 — 2026-10-12
 
 - The Unity previews on the Xbox and the Steam Deck spend less time on each frame: the traveller and the people are posed without working their whole bodies out several times over, fires and the City-Shaft’s air pillars behind the camera wait until you look at them, and the drone’s trail stops redrawing itself while docked. Nothing looks or moves differently.

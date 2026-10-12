@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.54', date: '2026-10-12', items: [
+    // foes heard from where they are (src/audio.js foeEar / foeSpot, docs/systems/audio.md "Placed in space"; issue #176)
+    'A foe’s warning as it winds up a strike, and its cry when you cut it, now come from where it is: from the left or the right, softer farther off but never too faint to hear across a fight, a little duller from behind you, and a warning from a foe you can’t see a touch louder, so you can turn to meet it.',
+  ] },
   { v: '1.53', date: '2026-10-12', items: [
     // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)
     'Viridel’s meadow flowers seen from afar are drawn in a thin outline in a dark shade of their own colour, so a clump of tulips 50 m off reads as pink and yellow flowers, not a dark blot. Up close they keep their black ink.',

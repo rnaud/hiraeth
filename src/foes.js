@@ -2180,16 +2180,16 @@ export class Foes {
     if (mode === 'fire' && f.def.flock) for (const x of this.list) if (x !== f && x.kind === f.kind && x.alive && !x.riding && x.pos.distanceTo(f.pos) < 6) x.scatter = 1.4 + this.rng() * 0.6;
     const r = f.hit(mode, dir, info);
     if (!r) return false;
-    if (r === 'choked') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
+    if (r === 'choked') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
     if (r === 'glance') { this.sound?.foeGlance?.(); this.sparks(f, f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
-    if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
+    if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
     if (f.shedNow) this.shedTail(f);
     // (the dash cut through its back, double: a gold ring runs out round it, as the riposte's does)
     if (f.backstab) { f.backstab = false; this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: 1.4, life: 0.35, color: '#ffd27a', thick: 1 }); }
-    if (r === 'flushed') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
-    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound); this.react(f, mode, dir, info, point, true); this.defeat(f); return true; }
+    if (r === 'flushed') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
+    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.react(f, mode, dir, info, point, true); this.defeat(f); return true; }
     if (f.shrugged) { this.react(f, mode, dir, info, point); this.armour(f, dir); return true; }
-    if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound);
+    if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
     if (mode !== 'stun' && mode !== 'bloom' && mode !== 'push') this.react(f, mode, dir, info, point);
     return true;
   }
@@ -2363,7 +2363,7 @@ export class Foes {
       if (f.def.flock) f.mates = this.list.filter((x) => x !== f && x.kind === f.kind && x.alive && x.dead === undefined && !x.riding && x.pos.distanceTo(f.pos) < PILE.near).length;
       const ev = inTemple ? f.update(dt, P, this.env) : [];
       for (const e of ev) {
-        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow());   // (rising over its whole wind-up)
+        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow(), () => f.chest);   // (rising over its whole wind-up)
         if (e === 'warn' && f.atk?.pile) this.pile(f);   // (its flock climbs onto it)
         if (e === 'notice') { this.meet(f); this.alarm(f); }
         if (e?.type === 'ward' || e?.type === 'mend') { this.support(f, e); continue; }
@@ -2500,7 +2500,7 @@ export class Foes {
       const perfect = guarded === 'perfect';
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
       if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
-      f.staggered(perfect); this.sound?.foeHurt?.(f.kind, f.def.sound);
+      f.staggered(perfect); this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
       if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried') && hintsFor('tip')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
       // what a guard does to some attacks: a crab's spin is turned onto its back; a harpoon's or a root's line is
       // cut (the drone, the root knot dazed)
@@ -2646,7 +2646,7 @@ export class Foes {
     if (!T.ward) return;
     this.sparks(T, T._ward ?? T.chest);
     T.unward();
-    this.sound?.foeWarn?.(T.def.sound ?? T.kind, 0.15);
+    this.sound?.foeWarn?.(T.def.sound ?? T.kind, 0.15, () => T.chest);
   }
 
   /**
@@ -2667,7 +2667,7 @@ export class Foes {
       enabled: () => T.possessed?.by === f && f.alive && f.dead === undefined,
       onHit: (mode) => { if (mode !== 'blade' && mode !== 'fire') return false; this.cutStrings(T); return true; } }));
     this.animKit(f, 0, {}).spray(T.chest, [f.model.tones?.[2] ?? INK, '#000000'], 10, 1.5, -1);
-    this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.2);
+    this.sound?.foeWarn?.(f.def.sound ?? f.kind, 0.2, () => f.chest);
   }
   /** The strings on T cut (the blade, the boomerang, an ember): it drops free and goes back to its calm; a note, once. */
   cutStrings(T) {
@@ -2691,7 +2691,7 @@ export class Foes {
     this.ringOut(f, W, f.pos.clone(), 0.8);
     this.animKit(f, 0, {}).spray(f.chest, f.model.tones ?? ['#f3e8dc', '#ffffff'], 30, 6, 9);
     worldSnd.thud(this.sound, 0.8); kick(0.3);
-    this.sound?.foeHurt?.(f.kind, f.def.sound);
+    this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
     this.burst(f);
   }
 
@@ -2786,7 +2786,7 @@ export class Foes {
       q.t -= dt;
       if (q.t > 0 || q.n <= 0) continue;
       q.n--; q.t = q.a.wave.every ?? 0.7;
-      if (q.f.alive && q.f.dead === undefined) { this.ringOut(q.f, q.a.wave, q.at, q.a.radius); this.sound?.foeWarn?.(q.f.def.sound ?? q.f.kind, 0.15); }
+      if (q.f.alive && q.f.dead === undefined) { this.ringOut(q.f, q.a.wave, q.at, q.a.radius); this.sound?.foeWarn?.(q.f.def.sound ?? q.f.kind, 0.15, () => q.f.chest); }
     }
     if (this.waveQueue) this.waveQueue = this.waveQueue.filter((q) => q.n > 0);
     for (const s of this.shocks ?? []) {
@@ -2821,7 +2821,7 @@ export class Foes {
       // (an evade's i-frames carry you over it unburnt; standing in it after, it burns)
       if (this.burnCool === 0 && ground && !P.dead && !P.down && Math.hypot(P.pos.x - p.pos.x, P.pos.z - p.pos.z) < p.r && Math.abs(P.pos.y - p.pos.y) < 0.8 && !P.dodge?.(p.pos, 'burn', this.gentle)) {
         this.burnCool = SLAG.burn; this.harm(this.harmOf(DAMAGE.graze)); P.vel?.addScaledVector(_up, 2.5); P.flinch?.();
-        this.sound?.foeHurt?.('blot');
+        this.sound?.foeHurt?.('blot', null, p.pos);
       }
       if (p.life <= 0) p.mesh.removeFromParent();
     }

@@ -165,3 +165,94 @@ test('a shot that does nothing says so: a glance (spark and tick), no harm, no f
   foes.hurt(d, 'shoot', v(0, 0, 1), { source: 'shoot' });
   assert.deepEqual(sounds, ['glance']);
 });
+
+// ---- in space (src/audio.js foeEar / foeSpot, issue #176): a wind-up and a hurt from where the foe is
+import { FOE_EAR } from '../src/audio.js';
+/** A box with an ear: the camera at the origin looking along -z (yaw 0: its right is +x). */
+function earBox(yaw = 0) { const B = box(); B.S._ear = { x: 0, y: 0, z: 0, yaw }; return B; }
+const stereo = (ctx, secs) => { const st = ctx.render(Math.round(secs * RATE)), L = [], R = []; for (let i = 0; i < st.length; i += 2) { L.push(st[i]); R.push(st[i + 1]); } return { L, R }; };
+const seeded = (f) => { const rnd = Math.random; let s = 7; Math.random = () => ((s = (s * 16807) % 2147483647) / 2147483647); try { return f(); } finally { Math.random = rnd; } };
+
+test('a foe\'s sound falls with distance, to a floor a wind-up never goes under (heard across a fight)', () => {
+  const { S } = earBox();
+  const g = (z, warn) => S.foeEar(v(0, 0, -z), { warn }).gain;
+  assert.equal(g(3, true), 1, 'full near');
+  let last = 2;
+  for (const d of [4, 8, 15, 25, 35, 40]) { const x = g(d, true); assert.ok(x < last + 1e-9, `${d} m: no louder than nearer (${x})`); last = x; }
+  assert.ok(g(20, true) < 0.8 && g(20, true) > 0.5, `20 m: softer, plainly there (${g(20, true)})`);
+  assert.ok(Math.abs(g(200, true) - FOE_EAR.floor) < 1e-9, 'far off: the floor, no lower');
+  assert.ok(Math.abs(g(200, false) - FOE_EAR.hurtFloor) < 1e-9, 'a hurt\'s floor, lower');
+});
+
+test('left and right from the camera, turned with it; behind: duller, and a wind-up out of view a touch louder, never under the floor', () => {
+  const { S } = earBox();
+  assert.ok(S.foeEar(v(8, 0, -2)).pan > 0.5, 'to the right');
+  assert.ok(S.foeEar(v(-8, 0, -2)).pan < -0.5, 'to the left');
+  assert.ok(Math.abs(S.foeEar(v(0, 0, -8)).pan) < 1e-9, 'straight ahead: the middle');
+  S._ear.yaw = Math.PI / 2;   // (turned a quarter left, to look along -x: what was ahead, -z, is now on the right)
+  assert.ok(S.foeEar(v(0, 0, -8)).pan > 0.5, 'turned: ahead is now on the right');
+  assert.ok(Math.abs(S.foeEar(v(-8, 0, 0)).pan) < 1e-9 && !S.foeEar(v(-8, 0, 0), { warn: true }).unseen, 'and -x ahead');
+  S._ear.yaw = 0;
+  const front = S.foeEar(v(0, 0, -10), { warn: true }), back = S.foeEar(v(0, 0, 10), { warn: true });
+  assert.ok(!front.unseen && back.unseen);
+  assert.ok(back.cutoff < front.cutoff * 0.5 && back.cutoff >= 2600, `behind: duller, the tick still through (${back.cutoff} Hz)`);
+  assert.ok(back.gain > front.gain && back.gain <= front.gain * FOE_EAR.unseen + 1e-9, 'out of view: gently louder');
+  for (const z of [10, 30, 60, 300]) assert.ok(S.foeEar(v(0, 0, z), { warn: true }).gain >= FOE_EAR.floor, `behind at ${z} m: at least the floor`);
+  assert.ok(S.foeEar(v(0, 0, 10)).gain === S.foeEar(v(0, 0, -10)).gain, 'a hurt out of view: no boost (you see what you cut)');
+});
+
+test('rendered: a wind-up on the right is heard on the right, a far one softer, one with no place as before (the middle)', () => {
+  const lr = (pos) => { const { S, ctx } = earBox(); seeded(() => S.foeWarn('blot', 0.6, pos)); const { L, R } = stereo(ctx, 0.8); return { l: rms(L), r: rms(R) }; };
+  const right = lr(v(6, 0, -1)), mid = lr(null), far = lr(v(0, 0, -40)), near = lr(v(0, 0, -4));
+  assert.ok(right.r > right.l * 3, `right: ${right.r} vs ${right.l}`);
+  assert.ok(Math.abs(mid.l - mid.r) < mid.l * 0.05, 'no place: centred');
+  assert.ok(far.l < near.l * 0.6 && far.l > near.l * FOE_EAR.floor * 0.8, `far: softer, not gone (${far.l} / ${near.l})`);
+  const hurt = (pos) => { const { S, ctx } = earBox(); seeded(() => S.foeHurt('crab', null, pos)); const { L, R } = stereo(ctx, 0.6); return { l: rms(L), r: rms(R) }; };
+  const h = hurt(v(-6, 0, -1));
+  assert.ok(h.l > h.r * 3, `a hurt on the left: ${h.l} vs ${h.r}`);
+});
+
+test('the panner follows the foe: it walks round from the right to the left during its wind-up, the pan goes with it; done, the bus lets go', () => {
+  const { S, ctx } = earBox();
+  const at = v(6, 0, -1);
+  S.foeWarn('machine', 1.2, () => at);
+  const spot = S._foeSpots[0];
+  assert.ok(spot.p.pan.value > 0.5, 'starts on the right');
+  ctx.render(at0(0.1));
+  at.set(-6, 0, -1); S.listen(v(0, 0, 0), 0);
+  ctx.render(at0(0.4));
+  assert.ok(spot.p.pan.value < -0.5, `then on the left (${spot.p.pan.value})`);
+  const was = spot.g.gain.value;
+  at.set(-30, 0, -1); S.listen(v(0, 0, 0), 0);
+  ctx.render(at0(0.3));
+  assert.ok(spot.g.gain.value < was * 0.8, `and softer as it backs off (${spot.g.gain.value} from ${was})`);
+  ctx.render(at0(1.2)); S.listen(v(0, 0, 0), 0);
+  assert.equal(S._foeSpots.length, 0, 'over: gone');
+});
+const at0 = (secs) => Math.round(secs * RATE);
+
+test('placed sounds still go through the effects bus: its volume (and the mute, on the master after it) rules them', () => {
+  const { S, ctx } = earBox();
+  S.fx.gain.value = 0;
+  seeded(() => { S.foeWarn('blot', 0.6, v(0, 0, 10)); S.foeHurt('blot', null, v(4, 0, 0)); });
+  const { L, R } = stereo(ctx, 0.8);
+  assert.equal(peak(L) + peak(R), 0, 'the effects at zero: silent');
+});
+
+test('the foes give their sounds a place: a wind-up and a cut each pass the foe\'s chest', () => {
+  clearTargets();
+  const calls = [], P = { pos: v(0, 0, 0), vel: v(), heading: 0, onGround: true, ride: null, down: null, dead: false, health: 1, opts: {}, hurt() {}, knockDown() { return true; }, guard: () => null, dodge: () => false };
+  const sound = { foeHurt: (k, s, pos) => calls.push({ e: 'hurt', pos }), foeWarn: (k, d, pos) => calls.push({ e: 'warn', pos }), foeBurst() {}, foeGlance() {}, foeArmour() {}, whoosh() {}, combat() {} };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null }, player: P, sound,
+    settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+  foes.waveRest = 1e9;
+  const f = foes.add('blot', v(0, 0, 3));
+  for (let i = 0; i < 1200 && !calls.some((c) => c.e === 'warn'); i++) foes.update(1 / 60);
+  foes.hurt(f, 'blade', v(0, 0, 1), { damage: 1 });
+  for (const e of ['warn', 'hurt']) {
+    const c = calls.find((x) => x.e === e);
+    assert.ok(c, `a ${e}: ${calls.map((x) => x.e).join()}`);
+    const p = typeof c.pos === 'function' ? c.pos() : c.pos;
+    assert.ok(p && p.distanceTo(f.chest) < 1e-6, `the ${e} at the foe's chest`);
+  }
+});

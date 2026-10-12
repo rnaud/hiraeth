@@ -673,6 +673,9 @@ const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.
 // (v1.53: the game's update, issue #111: the Unity bundle in Node, two builds interleaved a frame each in one process)
 const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (scratch bench: the two builds in one process, a frame of each in turn, each on the script thread’s CPU clock, the bench’s own split of engine/game.js), both ways round and averaged, 12 October, the Mac’s load 35–90';
 export const CHANGELOG_MEDIA = {
+  '1.54': [
+    { match: 'A foe’s warning as it winds up a strike', see: 'Wear headphones and fight two or three foes in the Arena: let one get round behind you and listen as it winds up. Its rising gurgle or whine comes from the side it is on, duller and a little louder when it is out of sight; turn toward it and it moves to the middle and brightens. Cut a foe on your left and its cry is on the left.' },
+  ],
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [
       { name: 'water-mirage2', title: 'The mirage', caption: 'From the dunes north-east of it, about 180 m off: after, the salt pan with the mirage of the old lake over it, sails on it, and the line of qanat wells in front', from: EXPLORE52,

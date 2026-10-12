@@ -16,7 +16,7 @@ import { playVoice, playColour, hit } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
-import { voiceOf, GLANCE } from './foe-voices.js';
+import { voiceOf, voiceLength, GLANCE } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
 import { lightThemeNotes, lightBeat } from './story/light-theme.js';
@@ -176,6 +176,13 @@ export function renderSyllable(ctx, dest, s, t, noise) {
  * A struck glass's partials ([ratio to the fundamental, level, how long it rings as a share of the ting]): the chimes'
  * crystal (Sound.crystalTing). Inharmonic like a wine glass's, the fundamental's twin 0.6 % sharp (it beats, a shimmer).
  */
+/**
+ * A foe's warning and hurt in space (Sound.foeEar): full within `near` m, falling to `floor` (a wind-up) or `hurtFloor`
+ * (a hurt) at `far` m and staying there; a wind-up out of view (forward·direction under `view`) × `unseen`; a lowpass
+ * from `open` Hz in front to `behind` Hz straight behind (the wind-up's tick, 1.9-2.6 kHz, passes it).
+ */
+export const FOE_EAR = { near: 6, far: 40, floor: 0.4, hurtFloor: 0.2, view: 0.55, unseen: 1.25, open: 16000, behind: 5000 };
+
 export const CRYSTAL_PARTIALS = [[1, 1, 1], [1.006, 0.55, 0.9], [2.32, 0.42, 0.62], [4.25, 0.2, 0.4], [6.63, 0.1, 0.25]];
 
 export class Sound {
@@ -926,14 +933,14 @@ export class Sound {
   }
 
   // ------------------------------------------------------------------ effects
-  burst(t, { dur = 0.08, type = 'lowpass', freq = 700, q = 0.7, vol = 0.2, rate = 1 } = {}) {
+  burst(t, { dur = 0.08, type = 'lowpass', freq = 700, q = 0.7, vol = 0.2, rate = 1, out = this.fx } = {}) {
     const ctx = this.ctx;
     const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.playbackRate.value = rate;
     const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
     // (its level from the start: a gain is 1 until its first event, and a source starting between
     // two samples sounds one sample early, a click at full level)
     const g = ctx.createGain(); g.gain.value = vol;
-    src.connect(f).connect(g).connect(this.fx);
+    src.connect(f).connect(g).connect(out);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
     src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
   }
@@ -1821,13 +1828,13 @@ export class Sound {
 
   // ------------------------------------------------------------------ the traveller's tool
   /** A pitched blip that slides from f0 to f1 (the tool's voice). */
-  sweep(t, f0, f1, dur, vol, type = 'sine') {
+  sweep(t, f0, f1, dur, vol, type = 'sine', out = this.fx) {
     const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
     o.type = type;
     o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     g.gain.value = 0;   // (silent from the start: a gain is 1 until its first event, a click on a renderer that starts the source a block early)
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
-    o.connect(g).connect(this.fx);
+    o.connect(g).connect(out);
     o.start(t); o.stop(t + dur + 0.02);
   }
 
@@ -1964,15 +1971,66 @@ export class Sound {
   }
 
   /**
+   * Where a foe's sound at `pos` sits for the listener (the camera, from listen): { gain, pan -1..1, cutoff Hz, unseen }.
+   * Full within FOE_EAR.near, down to its floor at FOE_EAR.far and no lower (a wind-up is a warning: always heard in a
+   * fight); panned by where it is; muffled a little when behind (stereo can't say behind, a duller sound can); a
+   * wind-up out of view a touch louder (FOE_EAR.unseen), as the eye can't carry it.
+   */
+  foeEar(pos, { warn = false } = {}) {
+    const e = this._ear, p = typeof pos === 'function' ? pos() : pos;
+    if (!e || !p) return { gain: 1, pan: 0, cutoff: FOE_EAR.open, unseen: false };
+    const dx = p.x - e.x, dz = p.z - e.z, d = Math.hypot(dx, dz, (p.y - e.y) * 0.5), r = Math.max(d, 1);
+    const side = (dx * Math.cos(e.yaw) - dz * Math.sin(e.yaw)) / r;      // (the camera's right: +x turned by yaw)
+    const front = (-dx * Math.sin(e.yaw) - dz * Math.cos(e.yaw)) / r;    // (its forward: -z turned by yaw)
+    const k = Math.max(0, Math.min(1, (d - FOE_EAR.near) / (FOE_EAR.far - FOE_EAR.near)));
+    const floor = warn ? FOE_EAR.floor : FOE_EAR.hurtFloor;
+    const unseen = d > 1.5 && front < FOE_EAR.view;
+    const gain = (1 - (1 - floor) * k) * (warn && unseen ? FOE_EAR.unseen : 1);
+    const behind = Math.max(0, -front) * Math.min(1, d / 3);              // (close by, a foe is all round you)
+    return { gain, pan: Math.max(-0.85, Math.min(0.85, side * 0.9)), cutoff: FOE_EAR.open + (FOE_EAR.behind - FOE_EAR.open) * behind, unseen };
+  }
+
+  /**
+   * A foe's sound's own little bus at `pos` (a live Vector3 such as the foe's chest, or a function): a gain, a gentle
+   * lowpass, a stereo panner, into the effects bus (so the effects volume and the mute still rule it). listen() moves
+   * it with the foe for `until` s. Nothing to place it by (no listener yet, no pos): the effects bus, as before.
+   */
+  foeSpot(pos, { warn = false, until = 1.5 } = {}) {
+    if (!pos || !this._ear) return this.fx;
+    const ctx = this.ctx, at = this.foeEar(pos, { warn });
+    const g = ctx.createGain(); g.gain.value = at.gain;
+    const flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = at.cutoff; flt.Q.value = 0.5;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    g.connect(flt);
+    if (p) { p.pan.value = at.pan; flt.connect(p).connect(this.fx); } else flt.connect(this.fx);
+    (this._foeSpots ??= []).push({ pos, warn, g, flt, p, until: ctx.currentTime + until });
+    return g;
+  }
+
+  /** Per frame (from listen): each foe sound still sounding follows its foe; the ones done let go. */
+  moveFoeSpots(t) {
+    if (!this._foeSpots?.length) return;
+    this._foeSpots = this._foeSpots.filter((S) => {
+      if (S.until <= t) { try { S.g.disconnect(); S.flt.disconnect(); S.p?.disconnect(); } catch { /* gone */ } return false; }
+      const at = this.foeEar(S.pos, { warn: S.warn });
+      S.g.gain.setTargetAtTime(at.gain, t, 0.05);
+      S.flt.frequency.setTargetAtTime(at.cutoff, t, 0.05);
+      S.p?.pan.setTargetAtTime(at.pan, t, 0.05);
+      return true;
+    });
+  }
+
+  /**
    * A foe (src/foes.js) winds up a strike: a sound that rises over exactly its wind-up (`dur` s: src/telegraph.js), an
    * ink blot's wet gurgle climbing, a machine's grinding whine; at the held stillness before the strike, a tick.
+   * At `pos` (the foe's chest), following it (foeSpot).
    */
-  foeWarn(kind = 'blot', dur = 0.8) {
+  foeWarn(kind = 'blot', dur = 0.8, pos = null) {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime, d = Math.max(0.3, dur);
-    if (kind === 'machine') { this.sweep(t, 120, 460, d, 0.07, 'sawtooth'); this.burst(t, { dur: d * 0.9, type: 'bandpass', freq: 500, q: 3, vol: 0.06, rate: 0.5 }); }
-    else { this.sweep(t, 110, 330, d, 0.07, 'triangle'); this.burst(t, { dur: d * 0.8, type: 'lowpass', freq: 420, q: 2, vol: 0.1, rate: 0.4 }); }
-    this.burst(t + d * 0.75, { dur: 0.03, type: 'highpass', freq: kind === 'machine' ? 2600 : 1900, q: 1.5, vol: 0.06 });
+    const t = this.ctx.currentTime, d = Math.max(0.3, dur), out = this.foeSpot(pos, { warn: true, until: d + 0.3 });
+    if (kind === 'machine') { this.sweep(t, 120, 460, d, 0.07, 'sawtooth', out); this.burst(t, { dur: d * 0.9, type: 'bandpass', freq: 500, q: 3, vol: 0.06, rate: 0.5, out }); }
+    else { this.sweep(t, 110, 330, d, 0.07, 'triangle', out); this.burst(t, { dur: d * 0.8, type: 'lowpass', freq: 420, q: 2, vol: 0.1, rate: 0.4, out }); }
+    this.burst(t + d * 0.75, { dur: 0.03, type: 'highpass', freq: kind === 'machine' ? 2600 : 1900, q: 1.5, vol: 0.06, out });
   }
 
   /**
@@ -1991,9 +2049,10 @@ export class Sound {
    * A foe takes a cut: its archetype's own voice (src/foe-voices.js: a shell's clack, glass ringing, a bellows wheezing,
    * brass, ink, cloth…), by its kind; a kind without one by its def's sound (the makers' machine's clang) or the ink's.
    */
-  foeHurt(kind = 'blot', sound = null) {
+  foeHurt(kind = 'blot', sound = null, pos = null) {
     if (!this.ctx) return;
-    this.foeVoice(voiceOf(kind, sound).hurt);
+    const v = voiceOf(kind, sound).hurt;
+    this.foeVoice(v, this.ctx.currentTime, this.foeSpot(pos, { until: voiceLength(v) + 0.3 }));
   }
 
   /** A blow that does nothing (a shot on armour, a cut off a shell or the bronze): a spark's bright tick over a dull thunk. */
@@ -2003,40 +2062,40 @@ export class Sound {
   }
 
   /** A foe voice's layers (src/foe-voices.js), synthesised from now: filtered noise, gliding tones, struck partials, ticks. */
-  foeVoice(layers, t0 = this.ctx.currentTime) {
+  foeVoice(layers, t0 = this.ctx.currentTime, out = this.fx) {
     for (const L of layers) {
       const t = t0 + (L.at ?? 0);
-      if (L.p === 'noise') this.noiseGlide(t, L);
-      else if (L.p === 'tone') this.sweep(t, L.f, L.f1 ?? L.f, L.dur, L.vol, L.wave);
-      else if (L.p === 'ring') this.struck(t, L.f, L.partials, L.dur, L.vol);
+      if (L.p === 'noise') this.noiseGlide(t, L, out);
+      else if (L.p === 'tone') this.sweep(t, L.f, L.f1 ?? L.f, L.dur, L.vol, L.wave, out);
+      else if (L.p === 'ring') this.struck(t, L.f, L.partials, L.dur, L.vol, out);
       else if (L.p === 'clicks') for (let i = 0; i < L.n; i++) {
         const k = L.n > 1 ? i / (L.n - 1) : 0, f = L.f1 ? L.f * (L.f1 / L.f) ** k : L.f;
-        this.burst(t + i * L.every, { dur: L.dur, type: 'bandpass', freq: f, q: L.q ?? 4, vol: L.vol, rate: L.rate ?? 1 });
+        this.burst(t + i * L.every, { dur: L.dur, type: 'bandpass', freq: f, q: L.q ?? 4, vol: L.vol, rate: L.rate ?? 1, out });
       }
     }
   }
 
   /** Filtered noise whose filter glides from f to f1 over dur (a wheeze, a whoosh, steam): burst() with a moving filter. */
-  noiseGlide(t, { type = 'lowpass', f = 700, f1 = null, q = 0.8, dur = 0.1, vol = 0.2, rate = 1 }) {
+  noiseGlide(t, { type = 'lowpass', f = 700, f1 = null, q = 0.8, dur = 0.1, vol = 0.2, rate = 1 }, out = this.fx) {
     const ctx = this.ctx;
     const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.playbackRate.value = rate;
     const flt = ctx.createBiquadFilter(); flt.type = type; flt.frequency.value = f; flt.Q.value = q;
     if (f1) { flt.frequency.setValueAtTime(f, t); flt.frequency.exponentialRampToValueAtTime(f1, t + dur); }
     const g = ctx.createGain(); g.gain.value = vol;
-    src.connect(flt).connect(g).connect(this.fx);
+    src.connect(flt).connect(g).connect(out);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
     src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
   }
 
   /** Struck partials (src/foe-voices.js GLASS, BRONZE, CLAY): one sine each at f × ratio, its level, dying over its share of dur. */
-  struck(t, f, partials, dur, vol) {
+  struck(t, f, partials, dur, vol, out = this.fx) {
     const ctx = this.ctx;
     for (const [k, v, d] of partials) {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine'; o.frequency.value = f * k;
       g.gain.value = 0.0001; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(1e-4, vol * v), t + 0.004);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur * d);
-      o.connect(g).connect(this.fx);
+      o.connect(g).connect(out);
       o.start(t); o.stop(t + dur * d + 0.02);
     }
   }
@@ -2182,7 +2241,8 @@ export class Sound {
   setBandMode(id, mode) { const b = this.band(id); if (b) b.mode = mode; }
   /** Per frame: levels and panning from the listener (the camera) and the player. */
   listen(pos, yaw) {
-    this._ear = { x: pos.x, y: pos.y, z: pos.z, yaw };   // (the singing spheres place their notes by it)
+    this._ear = { x: pos.x, y: pos.y, z: pos.z, yaw };   // (the singing spheres place their notes by it, and foes their sounds)
+    if (this.ctx) this.moveFoeSpots(this.ctx.currentTime);
     if (!this.ctx || !this.bands) return;
     const t = this.ctx.currentTime;
     let near = 0;

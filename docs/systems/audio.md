@@ -376,3 +376,21 @@ samples: `src/foe-voices.js` holds the data, `src/audio.js` plays it.
   families' character (the clack short, the bronze ringing on with the bell's partials, the roller's glass partials
   over a rumble, hisses brighter than thuds), every two hurts apart by loudness over time and brightness, and the
   glance.
+
+### Placed in space (v1.54, issue #176)
+
+A foe's wind-up (`foeWarn(kind, dur, pos)`) and its hurt (`foeHurt(kind, sound, pos)`) come from where it is: src/foes.js
+passes `() => f.chest`. `foeSpot(pos)` gives the sound its own small bus (a gain, a gentle lowpass, a stereo panner)
+into the effects bus, so the effects volume and the mute rule it as before; `listen()` (each frame, from the camera)
+moves it with the foe until the sound is over. `foeEar(pos)` is where it sits, by `FOE_EAR`:
+
+- full within 6 m, down to a **floor** at 40 m and no lower (0.4 for a wind-up, a warning across a fight; 0.2 for a hurt);
+- panned left/right from the camera (±0.85, as the singing spheres' `placeAt`);
+- **behind**: stereo can't say behind, so it is a little duller (lowpass 16 kHz in front to 5 kHz straight behind; the
+  wind-up's tick, 1.9-2.6 kHz, passes it), and a **wind-up out of view** is ×1.25 (the eye can't carry it);
+- no listener yet, or no position given: straight onto the effects bus, centred (the old sound).
+
+The Unity bridge plays it through the same Web Audio shim (engine/webaudio.js has the gain, biquad and stereo panner).
+Tests (`tests/foe-voices.test.js`, the last six): the fall with distance and the floors, left/right turning with the
+camera, behind duller and out of view louder but never under the floor, rendered left/right channels, the pan following
+a foe that walks round, the effects volume still ruling it, and the foes passing the chest.
