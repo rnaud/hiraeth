@@ -314,7 +314,7 @@ namespace Memento.Bridge
             if (BridgeArgs.Arg("-gclear-depth") is string gcd && float.TryParse(gcd, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float gcv)) Memento.Rendering.MementoFeature.Settings.gDepthClear = gcv;
             BridgeRenderer.cullTest = BridgeArgs.Arg("-cull");
             // (the Surface shader's lean variants for the materials that need none of its rare paths, or only the ground's or the
-            // water's: the Linux player's and the Xbox's (whose full variant draws half the picture), -lean elsewhere, -no-lean off)
+            // water's: the Linux player's and the Xbox's (their GPU's time), -lean elsewhere, -no-lean off)
             if (BridgeArgs.Flag("-lean")) BridgeRenderer.lean = true;
             if (BridgeArgs.Flag("-no-lean")) BridgeRenderer.lean = false;
             // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at

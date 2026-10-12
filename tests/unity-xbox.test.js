@@ -67,7 +67,10 @@ test('the Xbox build\'s caches: the glue on what it is made from, IL2CPP\'s obje
   assert.match(docker, /Start-Process pwsh [^\n]*-EncodedCommand/);
   // a run by hand never waits behind (nor is replaced by) a push; only main's builds are published
   assert.match(workflow, /group: unity-xbox-\$\{\{ github\.event_name == 'workflow_dispatch' && format\('dispatch-\{0\}', github\.run_id\) \|\| 'push' \}\}/);
-  assert.match(workflow, /if: github\.ref == 'refs\/heads\/main' && env\.GFX == 'Direct3D11' && env\.DEV == ''\n[^\n]*\n[^\n]*\n[^\n]*\n[^\n]*\n {8}run: scripts\/unity-publish\.sh xbox/);
+  assert.match(workflow, /if: github\.ref == 'refs\/heads\/main' && env\.GFX == 'Direct3D12' && env\.DEV == ''\n[^\n]*\n[^\n]*\n[^\n]*\n[^\n]*\n {8}run: scripts\/unity-publish\.sh xbox/);
+  // Direct3D12 is the Xbox's (65 fps at 1440p against 51): a push builds and publishes it, Direct3D11 is the A/B
+  assert.match(workflow, /GFX: \$\{\{ inputs\.graphics_api \|\| 'Direct3D12' \}\}/);
+  assert.match(read('unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs'), /Arg\("-graphicsApi"\) == "Direct3D11" \? GraphicsDeviceType\.Direct3D11 : GraphicsDeviceType\.Direct3D12/);
   // the prune keeps to the run's branch and to the entries older than the one it keeps
   const prune = read('scripts/unity-ci-cache-prune.sh');
   assert.match(prune, /\$\{GITHUB_REF:\+--ref "\$GITHUB_REF"\}/);
@@ -225,7 +228,7 @@ test('the Surface shader is the SRP Batcher\'s: every value a material sets in o
   for (const f of ['Figure.hlsl', 'Marks.hlsl', 'Crowd.hlsl', 'TripoFace.hlsl']) assert.match(read(`unity/Memento/Assets/Memento/Shaders/${f}`), /#ifndef MEMENTO_PER_MATERIAL/, f);
 });
 
-test('every value of the Surface shader\'s UnityPerMaterial but its arrays is in its Properties block (one left out was not reset per material on the Xbox: another material\'s glass on the sand)', () => {
+test('every value of the Surface shader\'s UnityPerMaterial but its arrays is in its Properties block (0 unless a material sets it, each material its own)', () => {
   const sh = read('unity/Memento/Assets/Memento/Shaders/Surface.shader');
   const props = new Set([...sh.slice(0, sh.indexOf('SubShader')).matchAll(/^\s*(_\w+) \(/gm)].map((m) => m[1]));
   const buf = sh.slice(sh.indexOf('CBUFFER_START(UnityPerMaterial)'), sh.indexOf('CBUFFER_END')).replace(/\/\/.*$/gm, '');

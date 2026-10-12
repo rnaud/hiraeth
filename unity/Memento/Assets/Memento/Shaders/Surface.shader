@@ -53,9 +53,8 @@ Shader "Memento/Surface"
     _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
     _BoxLight ("Box: the ray", Vector) = (1, 0.98, 0.92, 1)
-    // (every other value of UnityPerMaterial, 0 unless a material sets it: one left out of this block is the suspect for the
-    // Xbox's see-through picture on D3D11 and D3D12, a material that never set it drawing with another's (the helmet's glass
-    // on the sand and the people: gone but for their rims). The arrays (_Palette, _Limbs, _FluidTones) go by a value here.)
+    // (every other value of UnityPerMaterial, 0 unless a material sets it: each material its own, as the SRP Batcher wants
+    // them. The arrays (_Palette, _Limbs, _FluidTones) go by a value here.)
     _NoVertexColor ("NoVertexColor", Float) = 0
     _Bind ("Bind", Float) = 0
     _Cracks ("Cracks", Float) = 0
@@ -251,9 +250,8 @@ Shader "Memento/Surface"
       // one about half and 128 (8): the City-Shaft's GPU 3-4 ms quicker, the same picture (docs/systems/performance.md,
       // "The Steam Deck, round 6")
       // MEMENTO_LEAN_TERRAIN and MEMENTO_LEAN_WATER: the lean variant with the ground's path (or the water's) kept, for the
-      // terrain and banked sand (or the water) that use none of the other rare paths. On the Xbox (D3D11 and D3D12 alike) the
-      // full variant leaves out most of what it draws, whichever of its paths a pixel takes (the sand round the camera, the
-      // people, the domes: docs/systems/xbox.md, "The see-through picture"), the lean ones draw it all.
+      // terrain and banked sand (or the water) that use none of the other rare paths: the Xbox's GPU 13.1 ms at the 1440p
+      // spawn against 17.9 on the full variant (docs/systems/xbox.md, "The see-through picture").
       #pragma multi_compile_local _ MEMENTO_LEAN MEMENTO_LEAN_TERRAIN MEMENTO_LEAN_WATER
       #if defined(MEMENTO_LEAN) || defined(MEMENTO_LEAN_TERRAIN) || defined(MEMENTO_LEAN_WATER)
         #define LEANK false

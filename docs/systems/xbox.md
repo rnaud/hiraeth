@@ -383,8 +383,12 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   applied, URP's part before its first context, its contexts, after them) FrameTimingManager's present wait,
   and the PlayerLoop's longest steps (`BridgeLoopTimer`: a mark before each engine step; a frame over a second is
   logged with its own). `-no-hud` (no uGUI HUD) and `-queued N` (`QualitySettings.maxQueuedFrames`) are tests too.
-- **The build** (`BridgeBuild.Xbox`): the bridge's scene as a UWP D3D solution, IL2CPP x64, Direct3D 11 (what ANGLE
-  draws through on the console), Unity's references copied in. Identity `rnaud.HiraethUnity`, shown as *Hiraeth
+- **The build** (`BridgeBuild.Xbox`): the bridge's scene as a UWP D3D solution, IL2CPP x64, **Direct3D 12** at the
+  console's feature level 11.0 (a D3D12 device filter that allows it: Unity 6's default ones want 12.2 and fell back to
+  D3D11), 1440p (the console scales it to the TV), Unity's references copied in. Direct3D 12 against 11 at the 1440p
+  desert spawn, October 2026: present's wait 0.5 ms against 9.4, the render thread 2 ms against 5; `-graphicsApi
+  Direct3D11` (the workflow's `graphics_api`) builds the D3D11 A/B, an artifact `memento-unity-xbox-d3d11`, never
+  published. Identity `rnaud.HiraethUnity`, shown as *Hiraeth
   (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it plays the desert from the spawn.
 - **The workflow** (`.github/workflows/unity-xbox.yml`, windows-2022; on a push touching the Unity side and by hand):
   Puerts' V8 (relinked, `scripts/unity-uwp-v8.ps1`, cached) and QuickJS with their UWP DLLs, the bundle, GameCI's
@@ -703,25 +707,27 @@ move), or the Unity bridge (41 fps at the same spawn, "The Unity build on the Xb
 ## The see-through picture (October 2026)
 
 The Unity build drew the Xbox's world half missing: the sand round the camera gone to the sky, the people and Qanat's
-domes reduced to their outlines, on D3D11 and D3D12 alike (the Deck's Vulkan and the editor's Metal drew it whole).
-Pairs against the web at the desert's spawn and camps, the ship and the City-Shaft's rim, and each test's picture, are
-in the V8 agent's notes; the tests stay in the player (BridgeRunner, LocalState\args.txt):
+domes reduced to their outlines, the City-Shaft's rim open to the depths, on D3D11 and D3D12 alike (the Deck's Vulkan
+and the editor's Metal drew it whole). The tests stay in the player (BridgeRunner, LocalState\args.txt):
 
-- **Not** the culling (`-cull off|flip`), the glass or dissolve discards (`-surface-debug 4`: none discards, and the GPU
-  reads every material value right), the fragment's arithmetic (`-surface-debug 9`: plain values on its first line), the
-  vertex stage (`-surface-debug 10`: the position from the object's transform alone), the vertex attributes (`-full-layout`:
-  every mesh with every one), the depth test (`-ztest-always`), the depth's clear (`-gclear-depth 0` draws nothing: Unity
-  turns the 1 for the reversed depth; `-1`), the water's pass (`-no-water-contact`), the SRP Batcher or the GPU Resident
-  Drawer. The debug view 11 (`-debug-view 11`) shows the missing pixels as the G-buffer's clear: never drawn. One draw,
-  the 4 km terrain, drew its far part and not its near one.
-- **The variant**: Surface's G-buffer pass in its full variant (~12 900 instructions, 33 temporaries in DXBC; 280
-  branches) draws half of it; its lean variant (MEMENTO_LEAN, ~8 400, 26) draws it all (`-lean`: the people, the domes,
-  the bus right, only the ground, which was never lean, still cut). The two have the same signatures; the rare paths
-  lean drops are ones those materials never take. So the Xbox runs the lean variants by default (BridgeRenderer.lean,
-  as the Deck), with two more: MEMENTO_LEAN_TERRAIN (the ground's path kept, ~9 900) and MEMENTO_LEAN_WATER (~9 500), for
-  the terrain, the banked sand and the water when they take no other rare path. Only a glass, a fluid, the drawn face,
-  veins, a makers' box or scrub still draw on the full variant. The compiled code: `ShaderUtil.OpenCompiledShader`
-  (internal) with the D3D platform writes every variant's disassembly to `Temp/Compiled-Memento-Surface.shader`.
+- Ruled out, one by one: the culling (`-cull off|flip`), the glass and dissolve discards (`-surface-debug 4`: none
+  discards, and the GPU reads every material value right), the fragment's arithmetic (`-surface-debug 9`: plain values
+  on its first line), the vertex stage (`-surface-debug 10`: the position from the object's transform alone), the vertex
+  attributes (`-full-layout`: every mesh with every one), the depth test (`-ztest-always`), the depth's clear
+  (`-gclear-depth 0` draws nothing: Unity turns the 1 for the reversed depth; `-1`), the water's pass
+  (`-no-water-contact`), the SRP Batcher, the GPU Resident Drawer. The composite's debug views (`-debug-view` 2-5, 10:
+  NaNs, 11: what the G-buffer holds where it sees sky) all showed the missing pixels as the G-buffer's clear.
+- **Gone with the Deck's composite change** (f807057b: its pockets' taps read where they are used instead of into arrays
+  kept across the pass, 168 → 96 VGPRs on RADV): the next build (c7e905b2, 1.51.1929) draws all four views as the web
+  does, the full variant (`-no-lean`) as well as the lean ones. Every test above went through the composite (its debug
+  views too), which is why each one looked like "never drawn". Not proven by an A/B of the old composite; nothing else in
+  that range changes what D3D draws.
+- **The lean variants stay the Xbox's** (BridgeRenderer.lean on WSA, as on the Deck; MEMENTO_LEAN_TERRAIN and
+  MEMENTO_LEAN_WATER keep the ground's and the water's paths, ~9 900 and ~9 500 instructions against the full one's
+  ~12 900 in DXBC): the GPU 13.1 ms a frame at the 1440p spawn against 17.9 on the full variant (D3D11, 50.9 against
+  44.9 fps). Only a glass, a fluid, the drawn face, veins, a makers' box or scrub draw on the full variant.
+- The compiled code: `ShaderUtil.OpenCompiledShader` (internal; mode 3, the D3D platform's mask, every variant) writes
+  each variant's disassembly to `Temp/Compiled-Memento-Surface.shader` from a batch editor.
 
 ## Unknowns (to check on the console)
 

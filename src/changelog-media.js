@@ -643,6 +643,8 @@ const TYPE51 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’
 const PLUMB51 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463, changelog-shots.mjs’s serve and chrome), the Desert before the first chest, 11 October; cwebp -q 72';
 // (v1.51: the button glyphs follow the screen, issue #150; the R3 hint, #151; the one-line cards, #165: this branch's own Vite, the tree before the change)
 const PROMPT51 = 'headless Chrome (muted, Medium, a pad in hand) against this branch’s own Vite (port 5480) and the same tree before the change, 11 October; at the Steam Deck’s 1280 × 800 and at 1280 × 720; cwebp -q 72';
+// (v1.51: the Unity preview on the Xbox: the player's own pictures at the web bench's cameras, -views in LocalState, 1280 × 720)
+const XBOX51 = 'the Xbox Series X’s Unity player (BridgeRunner -views, LocalState), the web bench’s cameras, 11 October: before build 1893 (Direct3D 11), after build 1929 (Direct3D 11; Direct3D 12’s build 1933 the same); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.51': [
     { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
@@ -681,6 +683,22 @@ export const CHANGELOG_MEDIA = {
       { name: 'item-card-deck', title: 'Steam Deck', caption: 'The fluid gun’s card at 1280 × 800, a pad in hand: before, two columns under WHAT IT IS and WHAT IT DOES, five lines; after, one description in two lines, LT, RT and D-pad → inline. (The before is from before the buttons grew too.)', from: PROMPT51 },
       { name: 'item-card-720', title: '720p', caption: 'The same at 1280 × 720', from: PROMPT51 },
     ], see: 'Open any makers’ chest, or look at an item in the game menu’s Items: one short description each.' },
+    { match: 'On the Xbox, the Unity preview (Hiraeth (Unity), in Developer Mode) draws the whole world now', shots: [
+      { name: 'xbox-unity-camps', title: 'The camps', caption: 'The Desert’s camps, from the bench’s camera: before, the sand near you, the people and Qanat’s domes gone to the sky but for their outlines; after, all of it', from: XBOX51 },
+      { name: 'xbox-unity-spawn', title: 'The ship', caption: 'By the ship: before, the sand round you and the ship itself missing; after, as the web game draws it', from: XBOX51 },
+      { name: 'xbox-unity-rim', title: 'The City-Shaft', caption: 'The City-Shaft’s rim: before, the floor and the people see-through to the depths; after, the terrace and its crowd', from: XBOX51 },
+    ], see: 'On an Xbox in Developer Mode, start Hiraeth (Unity) from Dev Home: the Desert opens at the ship.' },
+    { match: 'The Unity preview on the Xbox draws at 1440p', numbers: [
+      { title: 'Frames a second, the Unity preview on the Xbox', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, the app as a Game, 1440p to a 4K 120 Hz TV, no vsync', rows: [
+        { where: 'the Desert, at the ship', before: 50.9, after: 73.2 },
+      ], source: 'scripts/xbox-unity.mjs, 150 s at the spawn, the last 5 s window, 11 October: before Direct3D 11 (build 1929), after Direct3D 12 (build 1933, two runs: 72.0 and 74.4), the whole world drawn in both' },
+      { title: 'Frames within 17.5 ms', unit: '%', better: 'higher', device: 'the same', rows: [
+        { where: 'the Desert, at the ship', before: 33, after: 97 },
+      ], source: 'the same runs' },
+      { title: 'The main thread’s wait on the present', unit: 'ms', better: 'lower', device: 'the same', rows: [
+        { where: 'the Desert, at the ship', before: 10.0, after: 2.0 },
+      ], source: 'the same runs (FrameTimingManager)' },
+    ], see: 'On an Xbox in Developer Mode, start Hiraeth (Unity): the corner readout shows Direct3D12 and the frame rate.' },
     { match: 'All the words on the screen are in the game’s own lettering now', shots: [
       { name: 'type-notice', title: 'A notice and the hint', caption: 'Off the ship in the Desert: the quest’s notice at the top and the chest’s hint at the bottom, before in the typewriter face, after in the game’s and larger', from: TYPE51 },
       { name: 'type-card', title: 'A find', caption: 'The card for the Givers’ blade: the name in the heading face, what it is and does in the game’s', from: TYPE51 },

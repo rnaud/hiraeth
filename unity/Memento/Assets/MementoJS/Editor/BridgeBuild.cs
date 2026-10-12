@@ -209,8 +209,9 @@ namespace Memento.EditorTools
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.WindowsStoreApps, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.WindowsStoreApps, Il2CppCompilerConfiguration.Release);
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.WSAPlayer, false);
-            // (-graphicsApi Direct3D12: the A/B, unity-xbox.yml's graphics_api; Direct3D11, what ANGLE draws through there, by default)
-            var api = Arg("-graphicsApi") == "Direct3D12" ? GraphicsDeviceType.Direct3D12 : GraphicsDeviceType.Direct3D11;
+            // (Direct3D12 by default, at the console's feature level 11.0: 65 fps at the 1440p spawn against Direct3D11's 51, the
+            // present's wait 0.5 ms against 9.4; -graphicsApi Direct3D11, the A/B, unity-xbox.yml's graphics_api)
+            var api = Arg("-graphicsApi") == "Direct3D11" ? GraphicsDeviceType.Direct3D11 : GraphicsDeviceType.Direct3D12;
             PlayerSettings.SetGraphicsAPIs(BuildTarget.WSAPlayer, new[] { api });
             if (api == GraphicsDeviceType.Direct3D12) AllowD3D12AtFeatureLevel11();
             var icon = IconTexture("icon-512.png", ReleaseIcon);

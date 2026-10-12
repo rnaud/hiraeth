@@ -24,6 +24,9 @@ export const CHANGELOG = [
     'After your first conversation, a line at the bottom of the screen tells you which button sends your scout to show where your next quest is (R3 on a controller, Q on the keyboard). It says it once, and not at all if you have already found it yourself.',
     // one description for each thing you find (docs/systems/boxes.md "The card"; issue #165)
     'The card for something you find no longer splits it into “What it is” and “What it does”: each item and gadget has one short description, a line or two, that says both, with the buttons to use it right in the sentence. The same words are in your gear and on the items page.',
+    // the Unity preview on the Xbox (docs/systems/xbox.md "The see-through picture", "The Unity build on the Xbox")
+    'On the Xbox, the Unity preview (Hiraeth (Unity), in Developer Mode) draws the whole world now: the sand around you, the people, your ship and Qanat’s domes were missing there, only their outlines left against the sky, and the City-Shaft’s rim looked through to the depths.',
+    'The Unity preview on the Xbox draws at 1440p, which the console scales to your TV, on Direct3D 12: about 73 frames a second at the Desert’s ship, where it ran at 51, with nearly every frame on time.',
   ] },
   { v: '1.50', date: '2026-10-11', items: [
     // Qanat's square (docs/systems/worlds.md "Qanat's square without the well and the stele"; issue #161)
