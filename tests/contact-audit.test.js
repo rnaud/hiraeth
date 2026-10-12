@@ -133,7 +133,9 @@ const KNOWN = {
   // other in the shutter's doorway; climbs inside 45 → 40)
   buried: { sink: 46, hover: 1, inside: 40, walk: 4 },
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
-  perdide: { sink: 3, hover: 0, inside: 4, walk: 7 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
+  // (perdide: v1.54, walk 7 -> 22, the drawn tops sampled afresh once the keepers' stakes ran round the Hush-House, issue #179:
+  // the same seams in the Hush-House's and the Lamp-House's rooms far overhead, none by the stakes)
+  perdide: { sink: 3, hover: 0, inside: 4, walk: 22 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
   // (v1.48: the passages under the towers by Signal Square and the Undertower's wings both moved the samples; nearly all
   // the market's drawn-only strip along its south avenue and the night halt's thin sleepers)
   // (v1.49: the Choir off the Undertower's gallery moved them again: 4 → 17 feet sink, all but one 0.12 m on the night

@@ -31,8 +31,6 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 From docs/audits/level-design-v1.53.md (twelve route worlds, 4.51, the four worlds' explorations measured), worst first:
 
-- [ ] [#179](https://github.com/rnaud/hiraeth/issues/179) **Lorn: the Hush-House's door is off the keepers' stakes**: the cave → the door (61 m)
-  and the door → Hollin (586 m) are blind. A first stake by its steps: wayfinding 4 → 5, Lorn 4.44 → 4.56.
 - [ ] [#180](https://github.com/rnaud/hiraeth/issues/180) **The Moon Foundry: the walk home from the Casting-House** (277 m) passes nothing new.
   A way out elsewhere, or home past the quarter: loops 4 → 5, 4.56 → 4.67.
 - [ ] [#181](https://github.com/rnaud/hiraeth/issues/181) **The Desert is still flat**: 1 of 64 places raised. A stop on the giant's arm over the

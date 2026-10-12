@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.54 — 2026-10-12
 
+- In Lorn the keepers’ stakes now come out of the crystal cave and round the Hush-House to a stake beside its steps, then run on down the channel to Hollin, so the way from the house to the lamp-keeper is marked.
 - In the Garden of Spheres a pale path now leads from behind your ship to the Footprint, past a little Footprint pressed in the grass and a tall white stone. Once the Echo is calm, the Footprint lets you out through a round stone at the foot of the white hill, and the hill’s path takes you home another way.
 - Hiraeth now carries its own name inside too, so this update starts afresh: saves and settings begin again everywhere. On Android it is a new app: install it when the old app offers the update (or from the release page), then uninstall the old one, which gets no more updates. On the Steam Deck, run the install command again. The game’s site has moved to hiraeth.alexandria-rnaud.workers.dev.
 - A few words put right: arriving in the Buried Machine says the Wick is unlit beyond the canyon’s oval doors instead of who to ask; your father’s window recording no longer mentions a well that is gone; a choked runnel on Viridel’s tea terraces says in one line to clear the top one first; the doorway the dune let go of no longer promises a stair into the dark; and in the City-Shaft the air pillars and the splinter’s pull name your own buttons.

@@ -8,6 +8,7 @@ import * as THREE from 'three';
 await import('./register-gadgets.js');
 const A = await import('./playthrough-agent.js');
 const { KEEPERS_STONE } = await import('../src/temples/spheres.js');
+const { STEPS_STAKE } = await import('../src/lorn-crossing.js');
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -75,5 +76,24 @@ test('the Garden of Spheres (issue #178): the heel path leads from the ship to t
     assert.ok(s < 0.25, `${(s * 100).toFixed(0)} % of the way home runs along the way in`);
     const foot = sightOf(L, /white hill’s foot/).at, inPts = along(wayIn.points);
     for (const p of [foot, V(KEEPERS_STONE.x, 0, KEEPERS_STONE.z)]) assert.ok(Math.min(...inPts.map((q) => flat(p, q))) > 35, 'a place the way in doesn’t pass');
+  } finally { W.dispose(); }
+});
+
+test('Lorn (issue #179): a keepers’ stake stands beside the Hush-House’s steps, seen from its door, and the stakes run on from it to Hollin', () => {
+  globalThis.location = { search: '?level=perdide' };
+  const W = A.loadWorld('perdide');
+  try {
+    const L = W.level, S = L.crossing.stakes.stakes, D = L.temples.find((t) => t.id === 'perdide').outside.door, door = D.at, hollin = A.objectiveAt(W, 'hollin');
+    const steps = door.clone().add(V(Math.sin(D.heading) * 3, 0, Math.cos(D.heading) * 3));   // (out of the porch, on its steps)
+    const i = S.findIndex((p) => flat(p, V(STEPS_STAKE.x, 0, STEPS_STAKE.z)) < 1);
+    assert.ok(i > 0, 'a stake stands at the steps');
+    assert.ok(flat(S[i], door) < 10 && flat(S[i], door) > 4, `${flat(S[i], door).toFixed(1)} m from the door, beside its steps, not on them`);
+    // from the door, its float in sight; and the line the stakes make carries the leg from the door to Hollin
+    // (the audit's walk along a line: one that runs from beside the leg's start to beside its goal, 30 m)
+    assert.equal(blocker(W, V(steps.x, steps.y + EYE, steps.z), V(S[i].x, S[i].y + 0.45, S[i].z)), null, 'the stake’s float from the door’s steps');
+    const line = lineOf(L, 'the keepers’ stakes').points.map(vec);
+    assert.ok(Math.min(...line.map((p) => flat(p, door))) < 30 && Math.min(...line.map((p) => flat(p, hollin))) < 30, 'the stakes run from beside the door to beside Hollin');
+    // the stakes on from the steps keep to the water down the channel, clear of the island's moss and the house
+    for (const p of S.slice(i + 1, i + 6)) assert.ok(L.ground.heightAt(p.x, p.z) < 0.5, `stake at (${p.x.toFixed(0)}, ${p.z.toFixed(0)}) stands in the water`);
   } finally { W.dispose(); }
 });

@@ -699,6 +699,10 @@ export const CHANGELOG_MEDIA = {
         { where: 'density', before: 2, after: 5 }, { where: 'loops', before: 3, after: 5 }, { where: 'wayfinding', before: 4, after: 5 }, { where: 'the mean', before: 4, after: 4.56 },
       ], source: 'the longest empty stretch 680 → 105 m; the walk home from the Footprint 336 m past nothing → 303 m from the keepers’ stone past two new places (issue #178)' },
     ], see: 'Stand behind your ship in the Garden of Spheres: the pale path leads off to the Footprint. Calm the Echo and take its way out: you come up by the white hill, and the path runs home east.' },
+    { match: 'In Lorn the keepers’ stakes now come out of the crystal cave', shots: [
+      { name: 'lorn-steps', title: 'From the Hush-House’s steps', caption: 'Out of the Hush-House’s door, looking down the channel: before, open water; after, a keepers’ stake beside the steps and the stakes going on down the channel toward Hollin', from: LD54,
+        view: { level: 'perdide', hour: 10, fov: 60, eye: [-106, 4.2, 113], target: [-104, 1.5, 62], player: [-109, 2.2, 108] } },
+    ], see: 'Come out of the Hush-House’s door: a coral-topped stake stands by the steps, and the row runs south down the channel to Hollin’s island.' },
   ],
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [

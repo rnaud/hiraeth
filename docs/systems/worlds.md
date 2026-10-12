@@ -2020,7 +2020,7 @@ spots it is there for, with the audit's own rays, in `tests/level-design-landmar
 - **Lorn, the crystal cave → Hollin** (631 m by skiff; `src/lorn-crossing.js` `KEEPERS_STAKES`): the keepers' stakes,
   their old boat-way up to the cave, a pole every 40 m with a coral float on top, from just inside the cave's south
   mouth (52 m from its heart, in sight of it) over the water, past the keepers' light's west side, to the shallows off
-  Hollin's island. A leading line (`the keepers' stakes`), drawn last with the rest of the crossing. The poles collide
+  Hollin's island (since v1.54 by the Hush-House's steps: below). A leading line (`the keepers' stakes`), drawn last with the rest of the crossing. The poles collide
   (the skiff bumps them), the floats are drawn only.
 - **Lorn, Wendel → the Great Crystal** (188 m): it was always in sight (the pink spire with its ring over the landing's
   grove), but the audit's height grid keeps the thirty most striking peaks and the Deep Wood's mushrooms are all taller,
@@ -2064,6 +2064,12 @@ empty. Each fix is checked from the spots it is there for, and its way home agai
   (`KEEPERS_STONE`, src/temples/spheres.js: the arena exit's `to`), a round white slab ringed in the door's sage with
   the walker's print on it, by the white hill's stair; the hill's path runs east from it to the grove (`the white hill
   path`, the route's `home`). Density 2 → 5, loops 3 → 5, wayfinding 4 → 5: the Garden 4 → 4.56.
+- **Lorn, the Hush-House's door** (`KEEPERS_STAKES`, src/lorn-crossing.js): the door stood 60 m off the keepers' stakes.
+  They run now out of the cave's south mouth round the house's south side on the island's moss to **a stake beside its
+  steps** (`STEPS_STAKE`: a way's point marked `true` has a stake just there), then down the channel east of the island
+  to the open water and on as before. The door → Hollin leg is walked along them; wayfinding 4 → 5, Lorn 4.44 → 4.56.
+  (The cave's heart → the door, 61 m, still reads blind: the audit's straight line runs through the cave's wall, and the
+  walk out by the mouth along the stakes is 2.5 times it.)
 
 ## The Buried Machine breathes (issue #168; v1.51)
 

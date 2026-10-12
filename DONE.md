@@ -2808,3 +2808,8 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   (2026-10-12, v1.54: the heel path from the ship to the Footprint past the little Footprint and the tall white stone, and
   the Footprint's last way out by the keepers' stone at the white hill, home by the hill's path. Density 2 → 5, loops 3 → 5,
   wayfinding 4 → 5: the Garden 4 → 4.56. docs/systems/worlds.md "The ways in and home past the temples"; Fixes #178.)
+- [x] [#179](https://github.com/rnaud/hiraeth/issues/179) **Lorn: the Hush-House's door is off the keepers' stakes**: the cave → the door (61 m)
+  and the door → Hollin (586 m) are blind. A first stake by its steps: wayfinding 4 → 5, Lorn 4.44 → 4.56.
+  (2026-10-12, v1.54: the keepers' stakes run round the Hush-House to a stake beside its steps and on down the channel;
+  the door → Hollin leg walked along them. Wayfinding 4 → 5, Lorn 4.44 → 4.56; the cave → door leg still reads blind, the
+  audit's straight line through the cave's wall. Fixes #179.)

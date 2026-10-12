@@ -20,7 +20,8 @@ import { makeMaterial } from './materials.js';
 //   the keepers' stakes  (level design audit v1.49, issue #135: from the crystal cave's heart to Hollin was 631 m with
 //                        nothing to steer by) the keepers' old boat-way up to the cave, when they came for its crystals:
 //                        tall poles every forty metres, each with a coral float lashed at its top, from the cave's south
-//                        mouth across the open water, past the keepers' light, to Hollin's island.
+//                        mouth round the Hush-House to its steps (v1.54, issue #179), down the channel and across the
+//                        open water, past the keepers' light, to Hollin's island.
 //
 //   buildKeepersLight(scene, terrain) → { at, top, lamp, height }
 //   buildFerryBell(scene, terrain)    → { at }
@@ -148,19 +149,26 @@ export function buildWaterWaySouth(scene, terrain) {
 
 /**
  * The keepers' stakes' way, [x, z]: from just inside the crystal cave's south mouth (src/levels/perdide.js CAVE: 52 m
- * down the tube from its heart) out over the water, past the keepers' light's west side, to the shallows off Hollin's
- * island.
+ * down the tube from its heart) out of the mouth and round the Hush-House's south side on the island's moss to a stake beside its steps
+ * (`true`: one stands just there; v1.54, issue #179: the door stood 60 m off the stakes, and the legs to it and on from
+ * it to Hollin were blind), then down the channel east of the island and over the water, past the keepers' light's west
+ * side, to the shallows off Hollin's island.
  */
-export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-215.2, 74], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 40 };
+/** Beside the Hush-House's steps (src/temples/perdide.js SITE: its door looks east, the steps down off its porch). */
+export const STEPS_STAKE = { x: -113.5, z: 100.5 };
+export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-215.2, 74], [-182, 66], [-145, 74], [-120, 89], [STEPS_STAKE.x, STEPS_STAKE.z, true], [-100, 64], [-112, 0], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 40 };
 
-/** Where the stakes stand along their way, [x, z]: one every `every` metres from its start, the last at its end. */
+/**
+ * Where the stakes stand along their way, [x, z]: one every `every` metres from its start, the last at its end, and one
+ * at every point of the way marked `true` (the spacing starts again from it).
+ */
 export function keepersStakeSpots({ way, every } = KEEPERS_STAKES) {
-  const out = [way[0]];
+  const out = [way[0].slice(0, 2)];
   let carry = 0;
   for (let i = 1; i < way.length; i++) {
-    const [ax, az] = way[i - 1], [bx, bz] = way[i], L = Math.hypot(bx - ax, bz - az);
-    for (let s = every - carry; s < L; s += every) out.push([ax + (bx - ax) * (s / L), az + (bz - az) * (s / L)]);
-    carry = (carry + L) % every;
+    const [ax, az] = way[i - 1], [bx, bz, pin] = way[i], L = Math.hypot(bx - ax, bz - az);
+    for (let s = every - carry; s < L - (pin ? every * 0.4 : 0); s += every) out.push([ax + (bx - ax) * (s / L), az + (bz - az) * (s / L)]);
+    if (pin) { out.push([bx, bz]); carry = 0; } else carry = (carry + L) % every;
   }
   const end = way.at(-1), last = out.at(-1);
   if (Math.hypot(end[0] - last[0], end[1] - last[1]) > every * 0.4) out.push(end); else out[out.length - 1] = end;
