@@ -1,0 +1,21 @@
+docs/audits/combat-v1.61.md
+  s_9ca76055a220ed::t_54049bee19a4ee 18,89,237
+src/changelog-media.js
+  s_9ca76055a220ed::t_2c0017b521898c 744
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de8a0c2a34c93229d22e218d9819dcdaebed7951",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
