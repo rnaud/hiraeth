@@ -1,0 +1,23 @@
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_2349fee1777ece 224-226,230,276-282,294
+.claude/skills/combat-review/defend.mjs
+  s_9ca76055a220ed::t_412005e2c7d45b 120
+.claude/skills/combat-review/dodge.mjs
+  s_9ca76055a220ed::t_8c4409cd04b663 88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a2b139d489e1a400e09b9ccdef3ced6f63ab1827",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
