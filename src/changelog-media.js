@@ -743,6 +743,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'traveller-ink-lula', title: 'Talking with Lula', caption: 'The new head and shirt lines in the Desert’s conversation view.', from: 'Issue #198: muted headless Chrome, High, 1280 × 720, 10:00 and clear weather. Before: original head and clothing ink. After: head-v3 and new cloth lines. Same Lula conversation setup in separate boots, with the game’s own dialogue camera pinned after settling; small pose differences remain.' },
       { name: 'traveller-hair-ink', title: 'Drawing through the hair', caption: 'The same new head and paused face view, with the grey hair strokes off and on.', from: 'Issue #198: muted headless Chrome, High, 1280 × 720. The same loaded mesh, pose, camera and lighting; only uPortraitHairAmount switches from 0 to 1. The mask projects the approved portrait and selected turnaround’s grey strokes into the head UVs.' },
     ], see: 'Open the Character studio’s Bust or Face view, or talk with Lula in the Desert. Turn the head to see the grey drawing follow the locks.' },
+    { match: 'The Unity preview on the Xbox stutters far less at the City-Shaft', numbers: [
+      { title: 'The Unity preview on the Xbox at the City-Shaft’s rim, round two', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1), muted', rows: [
+        { where: 'the rim, from the spawn: frames a second', before: 55.7, after: 58.7 },
+        { where: 'the rim: frames at 33 ms, %', before: 9.0, after: 2.9 },
+        { where: 'the rim: the script’s ms a frame', before: 14.9, after: 13.2 },
+        { where: 'the rim: the main thread’s ms a frame', before: 13.5, after: 10.0 },
+        { where: 'the start view: the frame’s median ms', before: 17.8, after: 16.7 },
+        { where: 'the start view: the main thread’s wait on the overshirt, ms', before: 3.0, after: 1.0 },
+        { where: 'the Desert’s spawn: frames a second', before: 59.4, after: 59.6 },
+      ], source: 'scripts/xbox-unity.mjs, build 2067 (v1.61); the rim and the Desert the mean of the last 30 s of a 170 s run (the rim two alternated rounds, averaged), the views -bench 6; before: the same build with -js-off still,hidden,people,shape -cloth-single -no-job-kick; 12 October' },
+    ], see: 'On the Xbox, start the Unity preview in the City-Shaft and watch the readout at the top left at the rim: about 59 frames a second, and the frames line in unity.log says how few were late.' },
     { match: 'Anselm Thrum sells his upgrades now', shots: [
       { name: 'thrum-shop', caption: 'Talking to Anselm in the hold with 24 fragments found and the finder, the heart and the edge had: before, his count and an offer at the next milestone; after, his shop, the fragments you hold as the wallet, his seven upgrades priced in fragments', from: SHOP185 },
     ], see: 'Aboard your ship, talk to Anselm in the hold and choose “Show me what you have”. Pick an upgrade with A / ×, then Buy. The Start menu shows how many fragments you have to spend.' },

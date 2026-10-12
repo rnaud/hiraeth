@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.62 — 2026-10-12
 
+- The Unity preview on the Xbox stutters far less at the City-Shaft’s rim: about one frame in thirty-five misses the screen’s refresh there, where one in eleven did. The traveller’s overshirt is worked out by several cores at once, the city’s banners no longer rebuild their whole shape every frame, and the people behind the camera and whatever is hidden cost the console less.
 - The traveller has a new face and tousled hair that follow his portrait more closely, with continuous brows and grey strokes through the dark locks. Fine ink describes his shirt collar, cuffs and folds and the layers of his scarf, following the fabric as he moves.
 - The Sketchbook page is gone from the game menu, which is Quests, Map, Items, Worlds and People now. Each world’s relics are still listed on the Worlds page, and delivered errands under People.
 - The Worlds page can take you back: open a world you have been to and press A / × on Travel here, and your ship flies you to its landing. If the ship won’t leave yet (the Desert without the blade and guard, Vael without the wings), it says why there.

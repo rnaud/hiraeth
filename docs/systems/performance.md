@@ -2175,6 +2175,80 @@ speed, and a pointer chase costs 196 ns a hop against the Mac's 110; its time is
 traveller, the crowd and the mirror's walk of ~3 600 objects. Next: the overshirt's job split over workers (IJobParallelFor
 for its vertices), fewer objects visited a frame by the mirror and the scene list, and a lighter G-buffer vertex stage.
 
+### The City-Shaft's rim on the Xbox, round two: the script's chain and the main thread (issue #113, 2026-10-12)
+
+Build 2067 (the branch `xbox-rim60b`, rebased on v1.61), the same rig as round one (Series X, Direct3D 12, 1440p,
+`-vsync 1`, muted, the mean of the last 30 s of a 170 s run; the views `-bench 6`), two alternated rounds at the rim.
+"Before" is the same build with `-js-off still,hidden,people,shape -cloth-single -no-job-kick`; the per-frame garbage
+cuts below have no switch, so they are in both (and v1.60-v1.61's content made the before slower than round one's after).
+
+| | fps | frames at 33 ms | GPU ms | script ms | cpu main ms |
+|---|---|---|---|---|---|
+| City-Shaft rim (spawn) | 55.9 / 55.4 → **58.7 / 58.7** | 8.5 / 9.5 % → **3.3 / 2.5 %** | 14.0 → 14.1 | 14.9 → 13.2 | 13.5 → 10.0 |
+| desert spawn | 59.4 → 59.6 | 1.0 % → 0.7 % | 11.2 → 11.2 | 10.8 → 10.7 | 8.8 → 7.8 |
+
+| view (`-bench 6`) | frame ms (median) | script ms | mirror ms | the main thread's wait on the overshirt, ms | GPU ms |
+|---|---|---|---|---|---|
+| City-Shaft start | 17.8 → **16.7** | 15.4 → 14.1 | 7.2 → 6.0 | 3.0 → 1.0 | 15.0 → 14.8 |
+| City-Shaft crowd | 19.0 → 18.1 | 17.4 → 16.6 | 6.8 → 6.2 | 2.7 → 1.4 | 13.3 → 13.4 |
+| City-Shaft wide | 17.5 → 17.2 | 14.1 → 13.0 | 7.3 → 6.0 | 3.2 → 1.7 | 17.8 → 17.7 |
+
+The frames line now says how many frames of two refreshes or more waited on the script and how many on the rest; at the
+rim, before: 7-17 a 5 s window late on the script, 6-21 on the rest; after: 0-5 and 2-7.
+
+**Kept** (the Unity bridge everywhere, so the Steam Deck's Linux player gets them too; the web's game is unchanged: the
+shared code's new paths are switched on only by the Unity backend):
+- **The overshirt's job in three, started at once** (`BridgeCloth`): a scheduled job waited for the next flush, which was
+  the main thread's own `Complete` in LateUpdate, so the main thread ran it itself (~3 ms). Now `JobHandle.ScheduleBatchedJobs`
+  starts it as the packet arrives, and after the cage's steps (one job: each constraint reads the last one's result) the
+  garment's 10 771 vertices and their normals run over the workers (each vertex writes its own, `outIx` checked one-to-one;
+  each normal sums its triangles' face normals in the triangles' order, as the single loop added them: the same numbers).
+  The capes' jobs are kicked off the same way. The main thread's wait on it 3.0 → 1.0-1.7 ms. Alone (build 2040) it gave
+  the main thread ~0.5 ms and cost the script about as much: the workers' burst slows the script's memory-bound thread.
+- **The mirror's still matrices** (engine/mirror.js `stillMatrices`): a drawable's world matrix is compared with the one last
+  sent only when the scene's list changed it this frame, a walk outside the list did (src/matrix-cache.js `WORLD_STAMP`, a
+  stamp on its mirror node, off on the web), or every 8th frame; objects whose matrices their owners write
+  (`matrixAutoUpdate` or `matrixWorldAutoUpdate` off) are compared as ever. The same calls to the backend
+  (tests/mirror-still.test.js); the walk −0.2 to −0.3 ms.
+- **Hidden subtrees stepped over** by the scene's list (engine/scene-matrices.js `skipHidden`): 1 750 of the City-Shaft's
+  4 330 objects are under something hidden. Their matrices are left as they were unless the subtree has an
+  `updateMatrixWorld` of its own (called as ever); a hidden object whose parent moved is flagged, so a read through three
+  (getWorldPosition, updateWorldMatrix) or the frame it is shown makes it as the walk would
+  (tests/scene-matrices.test.js). Only a direct read of a hidden object's `.matrixWorld` sees it as it was. With the still
+  matrices: the mirror −0.6 to −0.95 ms at the views, the script −0.8 to −1.0.
+- **People out of view moved a quarter of the frames** (src/npc.js `offView`, set by engine/game.js only): a person past
+  30 m outside the last frame's view (padded by 3 × their height + 6 m for their shadow and the camera's turn) is moved as
+  one past 110 m is, a quarter of the frames with the time summed, and takes the time missed at once on coming into view.
+  At the rim's spawn the five people between 30 and 110 m are all behind the camera; "people" 0.4 → 0.2 ms on the Mac's VM.
+- **The banners by their points again** (engine/mirror.js, the backend's `shapeAttrs`): the City-Shaft's merged banners
+  move their object frames (`aObjP`, `aObjN`) with their shape, which only a vertex-material variant draws, so every frame
+  they went whole (96 kB packed, a new Unity mesh made and the last destroyed). Now they go by `vertices()` unless a `:v`
+  variant was sent. Main −0.8 ms, script −0.4.
+- **The frame's garbage** (no switch; 767 → 550 kB a frame in the VM at the start view): the mirror's walk over its nodes
+  by `forEach` (a destructured entry was an array a node), a geometry's variants found by their gid (each rewrite copied
+  and searched every variant sent), the crowd's instances packed without a closure and a literal a person.
+
+**Measured and left out** (flags kept for tests): `-ops-after` (the frame's last ops applied after the next script frame
+is let go: 58.3 against 58.6 fps), `-job-workers 5` / `4` (main −0.5 ms, the same fps), V8's young generation 32-128 MB
+(script +0.9 ms, 54.8-56 fps) and 8-32 MB (script +0.8, 53-55 fps) against 16-64, `--single-threaded-gc` (a 190 ms pause
+every ~27 s), `--no-parallel-scavenge` (the same), `-gc-step 1` (the managed collector by hand: 52 fps), `-gc-slice 1`
+(the same), `-no-uniform-layout` (the GPU the same: the vertex fetch is not what the wide view waits on), `-render-scale 0.85`
+at the rim (the GPU 14.4 → 12.5 ms, the same fps: the rim's late frames are not the GPU's). New: `-dyn-res` (the render
+scale adapted to the GPU's frame, as the web's Xbox preset does, down to 0.75 = the web's 1080p; off: a choice of picture),
+`-slow-ms N` (each frame from N ms with its engine steps, the wait on the script, the managed collections and its timing).
+
+**What is left for 60.** The rim is 58.7 with ~3 % of frames at 33 ms. Most of what is left is **a stall every 2.9-3.4 s
+at the City-Shaft** (not in the Desert): one frame of 40-70 ms, the main thread in `WaitForLastPresentationAndUpdateTime`
+or `FinishFrameRendering` (the render thread, the GPU's present) and sometimes the script late with it. Its period follows
+how much a frame does (2.95 s, 3.2 s with the banners' fix, 3.4 s with the cabs held) but not V8's young generation (the
+same period at 16-64 and 32-128 MB, with and without parallel scavenges), the managed collector (`GCs 0` in most of them),
+the shadow maps (`-no-shadows`), the HUD or the local lights. The next step is a development build's profiler capture
+around one of them (Unity's frame debugger on the console: what the render thread waits on), and the 330 kB the script's
+command buffer is each frame (Puerts copies it into a new byte[] a frame: the air pillars' and the crowd's instances as
+16-float matrices are half of it). The wide view's GPU is 17.7 ms and pixel-bound (render scale 0.5: 17.6 → 9.2 ms;
+about 11 ms scales with the pixels, so a scale of 0.85 would bring it near 14.5): `-dyn-res` (not yet measured on the console) is there if the scale should adapt there as the web's does; the
+crowd view's script is 16.6 ms (its four near people are full rigs in view).
+
 ## The Retroid, round 6: the real buttons, cold and warm loads, the distant shimmer (2026-10-12, issues #50, #16, #225)
 
 The Retroid Pocket Nova in the GeckoView test app (`com.rnaud.hiraeth.gecko`, built from e7c21f7d, the game bundled in
