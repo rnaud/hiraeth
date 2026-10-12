@@ -1,0 +1,45 @@
+changelog.md
+  s_9ca76055a220ed::t_9cfae06a0c6e23 5-10
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_4ffe254e62f662 1984-1985,1988-2028
+scripts/fragment-spots.mjs
+  s_9ca76055a220ed::t_b413bfe3eaaeb0 39
+src/changelog-media.js
+  s_9ca76055a220ed::t_4fad3cc6267557 693,695-717
+src/changelog.js
+  s_9ca76055a220ed::t_406c603b6555af 11-17
+src/levels/space-city-kit.js
+  s_9ca76055a220ed::t_215ea8d896ab98 168-170,173,190,198-201,213-218,222-223,226,230,233-234,236,240-244,248-249
+src/levels/space-city-ways.js
+  s_9ca76055a220ed::t_ebad42c29e68f8 1-578
+src/levels/space-city.js
+  s_9ca76055a220ed::t_38157e5cfa4f5f 18,62-64,120-125,194-197,199,404-408,423,433-438,440,488-491,500-504,507-508,512-515
+src/story/spacecity-people.js
+  s_9ca76055a220ed::t_e42fc8895e78ee 26-27,36,115-116,152,157,188,208,220,227-228
+src/story/spacecity.js
+  s_9ca76055a220ed::t_b30f572b48d5ba 9-11,23,29-32,40-53,69
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_1ca4599109a035 447-448,450
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_cf07129fc082c3 290-293,370-382,415
+tests/spacecity-ways.test.js
+  s_9ca76055a220ed::t_df5fdd5c674e49 1-201
+tests/spacecity-world.test.js
+  s_9ca76055a220ed::t_8363c26d98c9ba 12,112-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c0551baa7a0c323b0d3962561e0598e359ac8592",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
