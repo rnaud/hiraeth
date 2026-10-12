@@ -171,3 +171,28 @@ test('the fluid tool: nearby people are targets; a glob splashes and startles, t
   assert.deepEqual(hits, ['shoot']);
   clearTargets();
 });
+
+test('the far people out of sight, simulated quiet, stand and walk exactly where they did; the drawn ones are untouched (issue #111)', () => {
+  const full = makeCrowd('incal'), quiet = makeCrowd('incal');
+  full.quietFar = false;
+  assert.equal(quiet.quietFar, true, 'on by default');
+  const cam = camAt(new THREE.Vector3(276, 204, -10.7), new THREE.Vector3(278.8, 201.2, -24.5));
+  const player = { pos: new THREE.Vector3(277.16, 200, -16.23), vel: new THREE.Vector3() };
+  let t = 0, quietOnes = 0;
+  const drawnAll = new Set(quiet.people.map((p, i) => i));   // (drawn every frame so far)
+  for (let f = 0; f < 1200; f++) {
+    t += 1 / 60;
+    if (f === 600) { cam.lookAt(cam.position.x - 10, 201, cam.position.z + 10); cam.updateMatrixWorld(); }   // (turned round: the quiet come into view)
+    if (f === 900) player.pos.set(250, 200, 30);   // (and the traveller walks off among others)
+    full.update(1 / 60, t, player, cam); quiet.update(1 / 60, t, player, cam);
+    for (let i = 0; i < full.people.length; i++) {
+      const a = full.people[i], b = quiet.people[i];
+      assert.ok(a.pos.equals(b.pos) && a.heading === b.heading && a.speed === b.speed && a.phase === b.phase, `frame ${f}: person ${i} where and how they go`);
+      if (!(b._vis || b.tier >= CROWD_TIER.mid || (b.tier === CROWD_TIER.far && b._farDrawn))) drawnAll.delete(i);
+      else if (drawnAll.has(i)) assert.ok(a.headYaw === b.headYaw && a.headPitch === b.headPitch && a.talk === b.talk, `frame ${f}: person ${i}, drawn all along, looks and talks as before`);
+    }
+    if (f === 300) quietOnes = quiet.people.filter((p, i) => p.headYaw !== full.people[i].headYaw || p.talk !== full.people[i].talk).length;
+  }
+  assert.ok(quietOnes > 300, `${quietOnes} people out of sight left quiet`);
+  assert.ok(drawnAll.size > 20, `${drawnAll.size} drawn all along`);
+});

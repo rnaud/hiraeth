@@ -448,6 +448,10 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
       lines: o.lines ?? spots.lines ?? GREET_LINES, lineIdx: Math.floor(R() * 20), shoutUntil: -1e9,
       role: o.role ?? null, spot: o.spot ?? null,
       goneAt: (id * 0.6180339887) % 1,   // (their share of the night's going home: Crowd.update, this.away)
+      // (and everything the crowd's update sets on them later, unset: one shape for all 1 500 of the City-Shaft's people,
+      // each read of them in the update a single shape's, not one of dozens, issue #111)
+      gone: undefined, stepDir: undefined, shoved: undefined, shoveT: undefined, shoveDir: undefined, shoveDist: undefined, gazeAt: undefined, gazeUntil: undefined,
+      faceA: undefined, asideA: undefined, asideTurn: undefined, perch: undefined, _acc: undefined, _dCam: undefined, _vis: undefined, _dist: undefined, _farDrawn: undefined, _pp: undefined,
     };
   };
   // the people and routes of a walk, in the lists' order (by id, by walk): the same lists whatever order they come in
@@ -480,7 +484,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
         for (let r = 0; r < rows && q < n; r++) for (let l = 0; l < lanes && q < n; l++, q++) {
           const slot = f1 * total - (r / Math.max(rows - 1, 1)) * (f1 - f0) * total + (R() - 0.5) * 0.5;
           const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, role: roles.shift() ?? null, spot: sp }, R, LR, id());
-          p.walk = { route, u: slot, slot, dir: 1, speed: route.column.speed, side: (l - (lanes - 1) / 2) * route.column.gap * 2 - route.keepRight, step: 0, pause: 0, avoid: 0, partner: null, slow: 1 };
+          p.walk = { route, u: slot, slot, dir: 1, speed: route.column.speed, side: (l - (lanes - 1) / 2) * route.column.gap * 2 - route.keepRight, step: 0, pause: 0, avoid: 0, partner: null, slow: 1, fx: undefined, fz: undefined, stepSide: undefined };
           placeWalker(p, 0);
           ps.push(p);
         }
@@ -494,7 +498,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
         const unit = [];
         for (let q = 0; q < (pair ? 2 : 1); q++) {
           const p = person({ pos: pts[0], heading: 0, pose: 'walk', lines: sp.lines, spot: sp }, R, LR, id());
-          p.walk = { route, u, dir, speed, side: pair ? (q ? 0.36 : -0.36) : 0, step: 0, pause: R() * 2, avoid: 0, partner: null, slow: 1 };
+          p.walk = { route, u, slot: undefined, dir, speed, side: pair ? (q ? 0.36 : -0.36) : 0, step: 0, pause: R() * 2, avoid: 0, partner: null, slow: 1, fx: undefined, fz: undefined, stepSide: undefined };
           unit.push(p);
         }
         if (pair) { unit[0].walk.partner = unit[1]; unit[1].walk.partner = unit[0]; }
@@ -757,6 +761,8 @@ export class Crowd {
     this.farDirty = true;
     // the share of the crowd gone home (0 … 1): a world's night thins its street (main.js sets it from level.crowdAway)
     this.away = 0;
+    // the far people out of sight simulated quiet (simulate; false: in full, as before)
+    this.quietFar = true;
     if (typeof document !== 'undefined') {
       this.balloon = document.createElement('div');
       this.balloon.className = 'balloon';
@@ -864,7 +870,8 @@ export class Crowd {
       let pdt = dt;
       if (dCam > 120) { p._acc = (p._acc ?? 0) + dt; if ((this.frame + p.id) % 6) { this.tierOf(p, dCam, midIn, midOut) && (anyTierChange = true); continue; } pdt = p._acc; }
       p._acc = 0;
-      this.simulate(p, pdt, t, pp, playerSpeed, dCam);
+      // (past 120 m and not drawn: quiet, below; the far tier's look says who is drawn, every 4th frame or as the camera turns)
+      this.simulate(p, pdt, t, pp, playerSpeed, dCam, this.quietFar && dCam > 120 && p._dCam !== undefined && (p.tier === TIER.off || (p.tier === TIER.far && p._farDrawn === false)));
       if (this.tierOf(p, dCam, midIn, midOut)) anyTierChange = true;
     }
 
@@ -899,7 +906,7 @@ export class Crowd {
       for (const p of this.people) {
         if (p.tier !== TIER.far) continue;
         _sphere.center.set(p.pos.x, p.pos.y + 0.9, p.pos.z); _sphere.radius = 2 + p._dCam * 0.15;   // ~8 deg of margin
-        if (!_frustum.intersectsSphere(_sphere)) continue;
+        if (!(p._farDrawn = _frustum.intersectsSphere(_sphere))) continue;
         p._dist = p._dCam > (p._dist ? D / 1.1 : D * 1.1);   // (a margin each way: nobody flickers between the two)
         if (p._dist) this.dist.write(md++, p, t); else this.far.write(m++, p, t);
       }
@@ -929,14 +936,22 @@ export class Crowd {
     return (prev === TIER.far) !== (p.tier === TIER.far);
   }
 
-  simulate(p, dt, t, pp, playerSpeed, dCam) {
+  /**
+   * One person's step. quiet (past 120 m, not drawn, and nothing about them that minds you: no greeting, no shove,
+   * no shout, nobody looking at you): where they stand, go and face is worked out as ever, the very same numbers; how
+   * they would turn to you, their head and their talk, none of it drawn, are left as they were, to ease on from there
+   * once they are seen (issue #111: most of the City-Shaft's 1 500, out of sight).
+   */
+  simulate(p, dt, t, pp, playerSpeed, dCam, quiet = false) {
     const stumbling = t < p.stumbleUntil;
     if (p.shoved) p.pos.sub(p.shoved);   // a shove is laid over the simulated place (see below)
     _v.subVectors(pp, p.pos); const dy = _v.y; _v.y = 0;
     const dPlayer = _v.length();
     const sameLevel = Math.abs(dy) < 2.5;
     const g = p.group;
-    const toYou = holdAim(p, 'faceA', _v, dPlayer);   // (held while you stand on them)
+    quiet = quiet && dPlayer > 30 && !stumbling && !p.shoved && p.shoveT === undefined && !(t < p.faceUntil) && !(t < p.shoutUntil)
+      && !(t < p.lookUntil) && !(g && t < g.lookUntil) && !(p.gazeAt && t < p.gazeUntil) && p.offset.lengthSq() <= 0.04;
+    const toYou = quiet ? 0 : holdAim(p, 'faceA', _v, dPlayer);   // (held while you stand on them)
     let lookAt = null, face = null;
     // greeting: the person you stop beside turns to you and says something
     const close = sameLevel && dPlayer < 2.6 && playerSpeed < 2.2 && !stumbling;
@@ -1013,7 +1028,7 @@ export class Crowd {
         _d.set(-pv.z * side, 0, pv.x * side).normalize();
         _w.normalize().lerp(_d, ASIDE.across).multiplyScalar(dh);
       }
-      const away = holdAim(p, 'asideA', _w, dh, 0.15, 0.6);
+      const away = quiet ? 0 : holdAim(p, 'asideA', _w, dh, 0.15, 0.6);   // (quiet: dh > room, never used)
       const was = len;
       if (sameLevel && dh < room && p.pose !== POSE.sit && p.pose !== POSE.kerb) {
         let ang = len < 0.02 ? away : Math.atan2(p.offset.x, p.offset.z);
@@ -1043,8 +1058,10 @@ export class Crowd {
       p.speed += ((raw > 0.12 ? raw : 0) - p.speed) * damp(8, dt);
       if (p.speed < 0.03) p.speed = 0;
       // half turned to you as they step aside (which side you're on: kept while you're nearly in front)
-      const rel = wrapA(toYou - p.homeHeading);
-      if (Math.abs(rel) > 0.25 || !p.asideTurn) p.asideTurn = Math.sign(rel) || 1;
+      if (!quiet) {   // (quiet: their offset under 0.2 m, the turn below never taken)
+        const rel = wrapA(toYou - p.homeHeading);
+        if (Math.abs(rel) > 0.25 || !p.asideTurn) p.asideTurn = Math.sign(rel) || 1;
+      }
       const hw = face ?? (p.offset.lengthSq() > 0.04 ? p.homeHeading + 0.5 * p.asideTurn : p.homeHeading);
       p.heading += wrapA(hw - p.heading) * damp(face !== null ? 6 : 2.5, dt);
     }
@@ -1061,10 +1078,12 @@ export class Crowd {
     p.phase = (p.phase + p.cadence * dt) % 1;
 
     // talk: the group's speaker, unless paused by the player or a startle
-    let talkT = 0;
-    if (g && g.speaker >= 0 && g.members[g.speaker] === p && t > g.pauseUntil && !stumbling) talkT = 1;
-    if (p.speaking) talkT = 0.8;
-    p.talk += (talkT - p.talk) * damp(3, dt);
+    if (!quiet) {
+      let talkT = 0;
+      if (g && g.speaker >= 0 && g.members[g.speaker] === p && t > g.pauseUntil && !stumbling) talkT = 1;
+      if (p.speaking) talkT = 0.8;
+      p.talk += (talkT - p.talk) * damp(3, dt);
+    }
     // head: at the player, the speaker, or the partner; idle drift is in the shader
     if (!lookAt && g && g.speaker >= 0 && g.members[g.speaker] !== p) lookAt = g.members[g.speaker].pos;
     let yaw = 0, pitch = 0;
@@ -1072,11 +1091,12 @@ export class Crowd {
       _w.subVectors(lookAt, p.pos);
       yaw = wrapA((lookAt === pp ? toYou : Math.atan2(_w.x, _w.z)) - p.heading);
       if (Math.abs(yaw) > 1.15 && !p.walk && p.pose === POSE.stand && !stumbling) p.heading += Math.sign(yaw) * (Math.abs(yaw) - 1.15) * damp(2, dt);
+      if (quiet) return;   // (the body's turn above kept: the head's, below, is not drawn)
       yaw = THREE.MathUtils.clamp(yaw, -1.15, 1.15);
       // eye to eye: the player's eyes are at ~1.5 m, everyone else's at their own height
       pitch = THREE.MathUtils.clamp(-Math.atan2(_w.y + (lookAt === pp ? -0.1 : 0), Math.hypot(_w.x, _w.z) + 0.3) * 0.6, -0.4, 0.4);
     }
-    if (!stumbling) {
+    if (!stumbling && !quiet) {
       p.headYaw += (yaw - p.headYaw) * damp(5, dt);
       p.headPitch += (pitch - p.headPitch) * damp(4, dt);
     }
