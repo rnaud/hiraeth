@@ -720,6 +720,15 @@ const ANTE_CAM = (id) => `const rt = window.temples?.${id}, K = rt.kit, V = THRE
 const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5641) and origin/main’s tree before it (8821ba59, port 5643), ?game=pirates&to=edena, the run flown ahead to the same second by the game’s pilot for both (12 October); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.59': [
+    { match: 'The Cistern-Keeper has an experimental animation preview', tags: ['characters', 'desert'], shots: [
+      { name: 'keeper-procedural-walk', title: 'Walking pilot', size: [531, 550],
+        caption: 'Animation pilot, before and after refinement: synchronized tripods and an open resting mouth become staggered supported footfalls and a closed mouth. The live temple guardian is unchanged.',
+        from: 'Keeper review, three-quarter view at 2.4 s: initial procedural pilot versus the refined pilot; captured in Codex, matching canvas crop.',
+        reference: { sheet: 'references/guardians/cistern-keeper/reference-v3-1.png', caption: 'Approved Midjourney Keeper reference used for the Tripo mesh.' } },
+      { name: 'keeper-closed-jaw', title: 'Closed jaw', only: 'after', size: [531, 577],
+        caption: 'The fitted jaw closes beneath the muzzle at rest; feeding and attack poses can still open it.',
+        from: 'Keeper review, Jaw closed at 3 s, Head close-up; captured in Codex.' },
+    ], see: 'On the development server, open /tools/keeper-review.html. Choose Walk, Turn, Stamp, Sweep or Encounter controller and press Play. For a fixed pose, enter seconds and press Go. Compare Jaw closed and Jaw open with Head close-up. This is the isolated animation pilot, not yet a replacement in the temple.' },
     { match: 'The chime pirates count points now', shots: [
       { name: 'pirates-points', title: 'A kill', caption: 'A skiff shot down ten seconds in: before, “+1 chime” over it; after, “+10”, the points in the corner counting', from: PI59 },
       { name: 'pirates-results', title: 'The results', caption: 'The run won on the way to a world: before, “Chimes won: 79” among the lines; after, the points and the chimes they make, counted up, 20 points a chime', from: PI59 },

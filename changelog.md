@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.59 — 2026-10-12
 
+- The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.
 - Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.
 - In small rooms the camera settles: turning round, it keeps one steady distance instead of pushing in at every wall and back out at every gap, and it no longer creeps in and out by a few centimetres.
 - Your ship is roomier inside: wider rooms, a higher ceiling, wider doorways, a longer cockpit and back room, a deeper bunk alcove and a bigger hold, where Orrin keeps his jar by the crates. The hull outside grew to fit.

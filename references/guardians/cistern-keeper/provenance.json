@@ -1,0 +1,200 @@
+{
+  "guardian": "Cistern-Keeper",
+  "status": "tripo-mesh-prototype-exported-auto-rig-rejected",
+  "date": "2026-10-12",
+  "reference": {
+    "file": "reference-v1.png",
+    "service": "Midjourney",
+    "job": "6c582ac0-5269-4b03-9bb3-a7904c035635",
+    "index": 0,
+    "url": "https://www.midjourney.com/jobs/6c582ac0-5269-4b03-9bb3-a7904c035635?index=0",
+    "submitted_prompt_file": "prompts/cistern-keeper-reference.txt",
+    "image_inputs": [],
+    "review": "User rejected: too far from previous references and insufficiently Moebius-like. Text alone did not preserve the project art direction."
+  },
+  "tripo_experiment": {
+    "job": "5b827de1-92db-4924-8cbe-715ca3baec01",
+    "url": "https://studio.tripo3d.ai/workspace/generate/5b827de1-92db-4924-8cbe-715ca3baec01",
+    "model": "H3.1 Best Quality",
+    "credits": 50,
+    "status": "submitted-before-reference-rejection-not-accepted"
+  },
+  "canonical_sources": {
+    "revision": "517265054349832f54c6812d797d74eebf37e91e",
+    "branch": "origin/main",
+    "files": [
+      "references/guardians/keeper/sheet-1.jpg",
+      "references/guardians/keeper/sheet-2.jpg",
+      "references/guardians/keeper/manifest.json"
+    ],
+    "local_review_cache": "output/character-tripo/guardian-reference-source/keeper/",
+    "note": "Dedicated boss references existed on origin/main but were missing from this older checkout. Environment and bird-rider sheets are not the requested identity sources."
+  },
+  "approval_gate": "Satisfied for v3 candidate 0 by explicit user approval. Other references still require approval before Tripo.",
+  "revisions": [
+    {
+      "version": 2,
+      "service": "Midjourney",
+      "job": "71991d46-99d9-4e11-bc25-c253929bd209",
+      "submitted_prompt_file": "prompts/cistern-keeper-reference-v2.txt",
+      "image_inputs": [
+        {
+          "source": "references/guardians/keeper/sheet-1.jpg",
+          "role": "image prompt",
+          "url": "https://s.mj.run/MIkHVpjj6A8"
+        },
+        {
+          "source": "references/guardians/keeper/sheet-2.jpg",
+          "role": "style reference",
+          "url": "https://s.mj.run/otqS1QgIsFE"
+        }
+      ],
+      "review": "Not recommended: stocky proportions and inconsistent limb counts."
+    },
+    {
+      "version": 3,
+      "service": "Midjourney",
+      "job": "2af1aa1c-37b7-4842-a7d7-986d2666e828",
+      "index": 0,
+      "url": "https://www.midjourney.com/jobs/2af1aa1c-37b7-4842-a7d7-986d2666e828?index=0",
+      "file": "reference-v3-1.png",
+      "submitted_prompt_file": "prompts/cistern-keeper-reference-v3.txt",
+      "image_inputs": [
+        {
+          "source": "references/guardians/keeper/sheet-1.jpg",
+          "role": "attached image; extract third standing creature",
+          "url": "https://s.mj.run/MIkHVpjj6A8"
+        }
+      ],
+      "review": "Proposed for user art approval: six distinct legs and feet, isolated full body, tall ringed neck, ivory shell and rose belly. Mouth is wider open than requested. Rig and reconstruction not tested.",
+      "user_approved": true,
+      "approval_note": "User approved candidate 0, then requested pulling latest code and moving to a worktree before continuing."
+    }
+  ],
+  "tripo_approved_reference_test": {
+    "job": "04b940f6-4bf4-4d3a-8fc2-46eb9b825670",
+    "url": "https://studio.tripo3d.ai/workspace/generate/04b940f6-4bf4-4d3a-8fc2-46eb9b825670",
+    "source_reference": "reference-v3-1.png",
+    "model": "H3.1 Best Quality",
+    "credits": 50,
+    "balance_before": 2945,
+    "balance_after": 2895,
+    "settings": {
+      "ultra_mesh_quality": true,
+      "ai_complete": false,
+      "texture": true,
+      "texture_size": "4K",
+      "remove_lighting": true,
+      "pbr": false,
+      "topology": "Triangle",
+      "target_polycount": 50000,
+      "generate_in_parts": false,
+      "privacy": "Sharing Only"
+    },
+    "status": "mesh-prototype-exported-auto-rig-rejected",
+    "export_verified": true,
+    "animation_verified": false,
+    "export_inventory": {
+      "bytes": 5376284,
+      "sha256": "b801d4409fbcacea085e7ad3ba60535eda7af703be95b95187b487ecd657dc58",
+      "meshes": 1,
+      "skins": 0,
+      "animations": 0,
+      "materials": 1,
+      "images": [
+        {
+          "name": "cistern-keeper-v3-source_basecolor.jpg",
+          "bufferView": 0,
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "primitives": [
+        {
+          "vertices": 26811,
+          "triangles": 47220,
+          "attributes": [
+            "POSITION",
+            "NORMAL",
+            "TEXCOORD_0"
+          ]
+        }
+      ]
+    },
+    "source_export": "output/character-tripo/keeper-v3/source.glb",
+    "rig_test": {
+      "type": "Other",
+      "credits": 20,
+      "balance_after": 2875,
+      "status": "rejected-after-glb-and-fbx-audits",
+      "glb": "27 skin joints, no clips; missing node rest transforms, all 26811 vertices effectively weighted to root bone_0; other weights negligible.",
+      "fbx": "53 bones, 29 without vertex influence; isolated bone_3 rotation visibly tears/stretches unrelated leg regions. No animation clips.",
+      "exports": [
+        "output/character-tripo/keeper-v3/tripo-rig.glb",
+        "output/character-tripo/keeper-v3/tripo-rig-fbx.zip"
+      ],
+      "audit_files": [
+        "output/character-tripo/keeper-v3/rig-audit.json",
+        "output/character-tripo/keeper-v3/fbx-rig-audit.json"
+      ],
+      "next_step": "Custom anatomy-specific rig and weights, preserving current GuardianLegs/neck/jaw/anchor contracts; no further blind auto-rig retries."
+    },
+    "baseline_tests": {
+      "command": "node --test tests/temples.test.js tests/motion-guardians.test.js tests/guardian-twists.test.js",
+      "passed": 80,
+      "note": "Existing procedural guardian checks only; not generated-mesh animation proof."
+    },
+    "review": {
+      "geometry": "Six legs and open lower jaw visually present; reviewed unlit, clay and game ink.",
+      "material": "Remove Lighting enabled; ink and dark creases remain in unlit texture. Lighting-neutral albedo not certified.",
+      "integration": "No live game replacement; generated-mesh animation is not accepted."
+    },
+    "walk_preset_test": {
+      "status": "failed-twice",
+      "task_ids": [
+        "df0c89e6-de6b-41c8-bdad-337826889062",
+        "e1ec2729-18cd-4408-ae37-6e8f639b8562"
+      ],
+      "service_error": "Invalid user input. Please check your image and params, and then try another one.",
+      "balance_before": 2875,
+      "balance_after": 2875,
+      "animation_produced": false
+    }
+  },
+  "custom_animation_pilot": {
+    "date": "2026-10-12",
+    "asset": "public/guardians/keeper-v1/model.glb",
+    "rig_report": "public/guardians/keeper-v1/rig.json",
+    "rebuild": "node scripts/tripo/rig-keeper.mjs",
+    "review": "/tools/keeper-review.html",
+    "animation": "Runtime GuardianLegs and GUARDIAN_PLANS.keeper; no baked clips",
+    "status": "Custom rig and isolated controller pilot; live temple not replaced",
+    "remaining": [
+      "full temple combat and fluid/final-touch acceptance",
+      "phase glow",
+      "lighting-neutral albedo",
+      "device performance and LOD"
+    ],
+    "validation": {
+      "rig_checks": 5,
+      "shared_motion_and_guardian_suite": "107 passed (includes the first 4 rig checks); added full-controller check passed separately",
+      "changelog_checks": 2,
+      "build": "npm run build passed",
+      "visual_evidence": [
+        "output/character-tripo/keeper-v3/keeper-procedural-walk.jpg",
+        "output/character-tripo/keeper-v3/keeper-stamp.jpg",
+        "output/character-tripo/keeper-v3/keeper-sweep.jpg",
+        "output/character-tripo/keeper-v3/keeper-walk-back-clay.jpg"
+      ]
+    },
+    "refinement": {
+      "gait": "Independent urgent footfalls, non-neighbour overlap, at least four supports; flowing arc",
+      "mouth": "Measured hinge and corrected lower-jaw weights; closed at rest",
+      "smoothness": "Damped body motion, eased sweep boundaries, review recovery interval, 60 Hz maximum simulation step, lower preview render overhead",
+      "validation": "67 rig/motion/guardian checks and 2 changelog checks passed; build passed",
+      "evidence": [
+        "output/character-tripo/keeper-v3/keeper-walk-refined.jpg",
+        "output/character-tripo/keeper-v3/keeper-jaw-closed-refined.jpg"
+      ]
+    }
+  }
+}

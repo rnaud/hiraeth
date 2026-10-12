@@ -22,6 +22,7 @@ export const CHANGELOG = [
     'Your ship is roomier inside: wider rooms, a higher ceiling, wider doorways, a longer cockpit and back room, a deeper bunk alcove and a bigger hold, where Orrin keeps his jar by the crates. The hull outside grew to fit.',
     'In small rooms the camera settles: turning round, it keeps one steady distance instead of pushing in at every wall and back out at every gap, and it no longer creeps in and out by a few centimetres.',
     'Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.',
+    { text: 'The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.' },
   ] },
   { v: '1.58', date: '2026-10-12', items: [
     // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)
