@@ -958,6 +958,8 @@ export class Switch {
       return true;
     }
     if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+    // (its `when` fails: what it waits on, `unmet`, the Clock-House's Cupboard, its clock stopped till the mainspring runs)
+    else if (!this.on && this.o.unmet && !this.rt.logic.check(this.rt.logic.el(this.id)?.when)) { this.flash = 0.6; this.rt.notice?.(this.o.unmet, `unmet.${this.id}`); }
     else if (!this.on && this.o.wrong) { this.flash = 0.6; this.rt.sound?.critter?.('blip', 0.5); this.rt.notice?.(this.o.wrong, `wrong.${this.id}`); }
     return true;
   }
@@ -1034,7 +1036,7 @@ export class Bank {
     this.rt.sound?.critter?.('blip', 0.8);
     if (this.eyes.every((x) => this.time - x.at <= this.window)) {
       const L = this.rt.logic;
-      if (L.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+      if (L.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); if (this.o.woke) this.rt.notice?.(this.o.woke, `bank.woke.${this.id}`); }
       else if (this.o.unmet && !L.check(L.el(this.id)?.when)) this.rt.notice?.(this.o.unmet, `bank.unmet.${this.id}`);
       else this.rt.notice?.(this.o.full ?? 'All four woke, and went dark again: the bank wants more than this tank can hold in one breath.', `bank.${this.id}`);
     }

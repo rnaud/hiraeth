@@ -201,7 +201,7 @@ test('the hub is solved with its wings in either order, each wing gives its key 
   assert.equal(solve(HUB, { withhold: ['fire'] }).done, false, 'and the great key wants the gadget');
 });
 
-test('the Clock-House is a hub (issue #23): either wing alone gives its key, the door over the climb takes both, the great key is the Mainspring Room’s, the cupboard is optional, solved either way round', () => {
+test('the Clock-House is a hub (issue #23): either wing alone gives its key, the door over the climb takes both, the great key is in the cupboard once the Mainspring Room has wound the house’s clocks again (round 3), solved either way round', () => {
   const L = TEMPLES.garage.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
   const noStrike = solve(L, { items, forbid: ['sS'] });
@@ -210,14 +210,18 @@ test('the Clock-House is a hub (issue #23): either wing alone gives its key, the
   assert.ok(noArena.logic.isFound('kE') && !noArena.stuck.includes('coil'), 'the Striking Room alone: its key, and the chest stays shut');
   assert.equal(L.elements.d2.keys, 2);
   const noMainspring = solve(L, { items, forbid: ['k3'] });
-  assert.ok(noMainspring.stuck.includes('galleryFar') && !noMainspring.stuck.includes('hall'), 'without the great key the Foreman’s door stays shut');
+  assert.ok(noMainspring.stuck.includes('galleryFar') && !noMainspring.stuck.includes('hall') && !noMainspring.stuck.includes('cupboard'), 'without the mainspring wound the cupboard stays shut, and so the Foreman’s door');
   const noCupboard = solve(L, { items, forbid: ['c1'] });
-  assert.equal(noCupboard.done, true, 'the cupboard and its coffer are optional');
-  // the wing nearest the hub first in the marker's order, never the optional cupboard
+  assert.ok(!noCupboard.done && !noCupboard.logic.isFound('kB'), 'the cupboard holds the great key (v1.53)');
+  // the cupboard's eyes stay lidded until the mainspring runs; the marker never points at them before
   const M = new TempleLogic(L, { has: (i) => items.includes(i) });
   for (const id of ['s1', 's2', 's3']) M.light(id);
   M.update();
-  assert.notEqual(M.next(), 'c1', 'the marker never points at the optional cupboard');
+  assert.notEqual(M.next(), 'c1', 'nor at the cupboard before its clock runs');
+  assert.equal(M.light('c1'), false, 'its clock stopped');
+  const C = new TempleLogic(L, { has: (i) => [...items, 'coil'].includes(i) });
+  C.moveDrum('ballM', 1); assert.equal(C.light('k3'), true);
+  assert.equal(C.light('c1'), true, 'the mainspring wound: four takes');
 });
 test('every built temple is solvable through its state machine, its gadget found mid-way and the key to the rest', () => {
   for (const id of BUILT) {
@@ -376,7 +380,13 @@ test('old saves in the Clock-House as it was (a chain of rooms) are brought roun
   assert.equal(mid.isOpen('d2'), true, 'the door over the climb stays open behind them');
   assert.ok(mid.isFound('kW') && mid.isFound('kE') && mid.isLit('arW'), 'the wings they never saw count as done');
   assert.equal(mid.keys('small'), 0, 'no stray keys');
-  assert.equal(mid.isOpen('d4'), false, 'the great key is still the Mainspring Room’s to find');
+  assert.equal(mid.isOpen('d4'), false, 'the great key is still to find');
+  // (v1.53: the great key moved from the Mainspring Room into the cupboard. A save that took it keeps it; one that wound
+  // the spring and not yet taken it finds the cupboard's clock running; one that opened the cupboard before finds it open)
+  for (const [flags, ok] of [[{ 'lit.k3': true, 'found.kB': true }, (B) => B.isFound('kB') && B.keys('big') === 1], [{ 'lit.k3': true }, (B) => B.canUse('c1')], [{ 'lit.c1': true, 'lit.c2': true, 'lit.c3': true }, (B) => B.isOpen('dC')]]) {
+    const B = logicOf(save({ 'open.d2': true, gadget: true, 'lit.k1': true, 'open.d3': true, checkpoint: 'gallery', ...flags }));
+    assert.ok(ok(B), JSON.stringify(flags));
+  }
   assert.equal(solve(TEMPLES.garage.def.logic, { items: ['backpack', 'gun', 'doublejump'] }).done, true);
   // the Foreman set right: everything open, as it was
   const done = logicOf(save({ 'open.d2': true, gadget: true, 'lit.k1': true, 'open.d3': true, 'lit.k2': true, 'open.br1': true, boss: 'done', done: true }));
@@ -3055,7 +3065,7 @@ test('the Hangar’s own portals still work, dismissed: its list kept, a copy in
   assert.ok(player.pos.distanceTo(po.to) < 0.01, 'through the portal to the upside-down');
 });
 
-test('the Clock-House on foot: the escapement’s three eyes in turn from its hand, the optional cupboard and its coffer, the hub: the counterweight, the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the quick coil, the passage’s six eyes a room on that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the great lock and the Mainspring Room’s great key, the Foreman’s six numerals, the clock keeps time', () => {
+test('the Clock-House on foot: the escapement’s three eyes in turn from its hand, the cupboard’s stopped clock, the hub: the counterweight, the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the quick coil, the passage’s six eyes a room on that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the great lock, the Mainspring Room winding the house’s clocks and the great key back in the cupboard, the Foreman’s six numerals, the clock keeps time', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('garage');
@@ -3095,26 +3105,12 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
   assert.equal(walk(L(0, 0, 43), { tol: 0.8 }), true, `off onto the far landing (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > -1, 'over the pit, not in it');
-  // ---- the Clockmaker's Cupboard (optional), off the far landing: its little clock has lost its hand, so its three
-  // eyes wake round from the house's hour: four, eight, twelve. Inside, a coffer of chimes
+  // ---- the Clockmaker's Cupboard, off the far landing: its little clock has stopped, its eyes lidded (v1.53: until
+  // the house's mainspring is wound, far up past the chest)
   assert.equal(rt.logic.isOpen('dC'), false, 'the cupboard is shut');
-  rt.piece('c3').hit('shoot'); rt.piece('c2').hit('shoot');
-  assert.equal(rt.logic.isLit('c3') || rt.logic.isLit('c2'), false, 'twelve or eight first: they only tick');
-  assert.ok(notes.some((s) => /lost its hand: count round from the house’s hour/.test(s)), 'and say how to count');
-  for (const id of ['c1', 'c2', 'c3']) rt.piece(id).hit('shoot');
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('dC'), true, 'four, eight, twelve');
-  const purses = [];
-  const offPurse = game.on('temple:cache', (e) => purses.push(e));
-  assert.equal(walk(L(-14, 0, 44)), true, `into the cupboard (${where()})`);
-  assert.equal(walk(L(-19.6, 0, 44), { tol: 0.5 }), true, `to the coffer (${where()})`);
-  const coffer = bestInteractable(P);
-  assert.equal(coffer?.entry.id, 'temple.garage.cache', 'the coffer offers itself');
-  coffer.entry.use(P);
-  assert.equal(purses.length, 1, 'its purse spills out');
-  assert.equal(rt.logic.isFound('cache'), true);
-  offPurse();
-  assert.equal(walk(L(-8, 0, 44)), true, `back out onto the landing (${where()})`);
+  rt.piece('c1').hit('shoot');
+  assert.equal(rt.logic.isLit('c1'), false, 'its clock stopped: four does not take');
+  assert.ok(notes.some((s) => /little clock has stopped/.test(s)), 'and it says why');
   assert.equal(walk(L(0, 0, 44)), true);
   // ---- the Winding Well, the hub: up the wall to a shut door with two keyholes; its counterweight is the ball left on
   // the escapement's landing
@@ -3264,11 +3260,38 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   wait(5.5);
   tankShots(frame, 6, (i) => k3.hit(i));
   assert.equal(rt.logic.isLit('k3'), true, 'six round the spring in one breath');
+  assert.ok(notes.some((s) => /a little clock begins to tick/.test(s)), 'and far below a little clock begins to tick');
+  // ---- back down to the Clockmaker's Cupboard (v1.53): out through the passage, over the climb's ledge, down the
+  // Pendulum Hall's stair, across the well to the far landing
+  assert.equal(walk(L(4, 9, 112), { tol: 0.8, dy: 1 }) && walk(L(0, 9, 110.7), { dy: 1 }) && walk(L(0, 9, 99), { dy: 1 }) && walk(L(0, 9, 79), { dy: 1 }) && walk(L(0, 9, 69.6), { tol: 0.5, dy: 1 }), true, `back past the chest to the door over the climb (${where()})`);
+  assert.equal(walk(L(-3, 9, 66), { dy: 1 }) && walk(L(-7.4, 9, 66), { dy: 1 }) && walk(L(-8.4, 9, 61.2), { dy: 1 }) && walk(L(-16, 9, 61.2), { dy: 1 }), true, `over the ledge into the Pendulum Hall's landing (${where()})`);
+  assert.equal(walk(L(-17.4, 9, 67), { dy: 1 }) && walk(L(-29.2, 0, 67), { dy: 1 }) && walk(L(-29.2, 0, 62.6)) && walk(L(-20, 0, 61.2)) && walk(L(-8, 0, 61.2)) && walk(L(-3, 0, 58)), true, `down its stair and into the well (${where()})`);
+  assert.equal(walk(L(0, 0, 50)) && walk(L(0, 0, 44)), true, `onto the far landing (${where()})`);
+  // its three eyes lift their lids now; they wake round from the house's hour: four, eight, twelve
+  rt.piece('c3').hit('shoot'); rt.piece('c2').hit('shoot');
+  assert.equal(rt.logic.isLit('c3') || rt.logic.isLit('c2'), false, 'twelve or eight first: they only tick');
+  assert.ok(notes.some((s) => /lost its hand: count round from the house’s hour/.test(s)), 'and say how to count');
+  for (const id of ['c1', 'c2', 'c3']) rt.piece(id).hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('dC'), true, 'four, eight, twelve');
+  const purses = [];
+  const offPurse = game.on('temple:cache', (e) => purses.push(e));
+  assert.equal(walk(L(-14, 0, 44)), true, `into the cupboard (${where()})`);
+  assert.equal(walk(L(-19.6, 0, 42.2), { tol: 0.5 }), true, `to the coffer (${where()})`);
+  const coffer = bestInteractable(P);
+  assert.equal(coffer?.entry.id, 'temple.garage.cache', 'the coffer offers itself');
+  coffer.entry.use(P);
+  assert.equal(purses.length, 1, 'its purse spills out');
+  assert.equal(rt.logic.isFound('cache'), true);
+  offPurse();
   const kB = rt.piece('kB');
-  wait(1.5);
   assert.equal(walk(kB.pos, { tol: 1.2, dy: 1 }), true, `to the great key (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isFound('kB'), true, 'the house’s great key');
+  // ---- and back up: the well, the climb, the passage, the gallery
+  assert.equal(walk(L(-8, 0, 44)) && walk(L(0, 0, 50)) && walk(L(-3, 0, 58)), true, `back into the well (${where()})`);
+  assert.ok(climb(), `up the wall (${where()})`);
+  assert.equal(walk(L(0, 9, 69.6), { tol: 0.5 }) && walk(L(0, 9, 79)) && walk(L(0, 9, 99)) && walk(L(0, 9, 110.7)), true, `up past the chest to the gallery (${where()})`);
   assert.equal(walk(L(4, 9, 112), { tol: 0.8, dy: 1 }), true, `back onto the landing (${where()})`);
   assert.equal(walk(L(0, 9, 113), { dy: 1 }) && walk(L(0, 9, 137.2), { dy: 1 }), true, `over the bridge again (${where()})`);
   assert.equal(walk(L(0, 9, 141.2), { tol: 0.5 }), true, `to the Foreman's door (${where()})`);

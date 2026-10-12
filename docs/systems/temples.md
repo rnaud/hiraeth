@@ -546,6 +546,13 @@ door (`d6`) takes the great key. A loop back to the first half, past the Balance
 now also prefers a ball's stop that brings a lock a key in hand fits within reach (the Balance's ball home, toward the
 great lock past the west door).
 
+The **Clock-House** (`garage.js`, 3.78; its curve 2, its hardest steps first): the Mainspring Room no longer holds the
+great key. Wound (its weight home, six eyes in a breath), the mainspring starts the house's little clocks again: the
+Clockmaker's Cupboard's three eyes, back off the Escapement's far landing, are lidded until it runs (`when: { lit: 'k3' }`;
+a `Switch`'s `unmet` says why, a `Bank`'s `woke` says what it started), and the great key is in the cupboard now, beside
+its coffer. The way back down is the Pendulum Hall's: over the climb's ledge, down its stair. A state the whole house
+reads, and a loop back to the first half.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

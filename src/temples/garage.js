@@ -30,8 +30,10 @@ import { chestMound } from '../boxes/mound.js';
 //   the Escapement       a pit crossed by a disc that swings over it like a clock's escapement, still until the
 //                        three eyes round the dial over the far door wake in turn: from the one its hand points
 //                        at, round the way a clock goes (out of turn an eye only ticks)
-//   the Cupboard         (optional, off the far landing) the Clockmaker's: the little clock over its door has lost its
-//                        hand, so its three eyes wake round from the house's hour (four, eight, twelve); a coffer
+//   the Cupboard         (off the far landing) the Clockmaker's: the little clock over its door has lost its hand,
+//                        so its three eyes wake round from the house's hour (four, eight, twelve); a coffer. (v1.53,
+//                        issue #23) Its clock has stopped, its eyes lidded, until the house's mainspring is wound
+//                        again, far up past the chest: then they wake, and the great key is in it (a loop back)
 //   the Winding Well     the hub. A wall to climb, the door at its top; the door wants two small keys and the
 //                        winding's counterweight home in its socket at the wall's foot, and the counterweight is a
 //                        stone ball still waiting on the Escapement's far landing, its groove running through into
@@ -143,7 +145,7 @@ export const LOGIC = {
     ballM: { type: 'drum', room: 'gallery', plate: 'pM', plateAt: 1, start: 0 },
     pM: { type: 'plate', room: 'mainspring' },
     k3: { type: 'switch', room: 'mainspring', needs: ['coil'], when: { drumOn: ['ballM', 'pM'] } },
-    kB: { type: 'key', kind: 'big', room: 'mainspring', when: { lit: 'k3' } },
+    // (v1.53: the great key is in the Clockmaker's Cupboard now, back in the first half: the mainspring wound starts its clock)
     k2: { type: 'switch', room: 'gallery', needs: ['coil'], order: true },   // six in one breath, in turn from four
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', lock: 'big' },                            // the great key; and shut while the Foreman fights
@@ -151,10 +153,12 @@ export const LOGIC = {
     d5: { type: 'door', opens: { resolved: true } },
     // the Clockmaker's Cupboard (optional, so last: the marker never points at it): the little clock over its door
     // woken round from four (four, eight, twelve)
-    c1: { type: 'switch', room: 'escFar' },
-    c2: { type: 'switch', room: 'escFar', after: 'c1' },
-    c3: { type: 'switch', room: 'escFar', after: 'c2' },
+    // (v1.53) its clock stopped, the eyes lidded, until the mainspring is wound: the great key inside
+    c1: { type: 'switch', room: 'escFar', when: { lit: 'k3' } },
+    c2: { type: 'switch', room: 'escFar', after: 'c1', when: { lit: 'k3' } },
+    c3: { type: 'switch', room: 'escFar', after: 'c2', when: { lit: 'k3' } },
     dC: { type: 'door', opens: { lit: 'c3' }, latch: true },
+    kB: { type: 'key', kind: 'big', room: 'cupboard' },
     cache: { type: 'cache', room: 'cupboard' },
   },
 };
@@ -339,8 +343,8 @@ function mainspring(rt, K, M, { F0, copper, brass }) {
   add(Bank, { id: 'k3', eyes: Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU; return { at: [X + 5.6, Y + 6 + Math.cos(a) * 4.1, Z + Math.sin(a) * 4.1], yaw: -Math.PI / 2 }; }), window: VOLLEY,
     unmet: 'The six eyes stay dull. The mainspring hangs slack: its weight isn’t home.',
     full: 'All six woke round the spring, and went dark again: two tanks in one breath, and this one fills too slowly.',
-    fade: 'They woke, and went dark again before the rest.' });
-  add(Key, { id: 'kB', at: [X + 1.5, Y, Z + 2.6], yaw: -Math.PI / 2, big: true });
+    fade: 'They woke, and went dark again before the rest.',
+    woke: 'The mainspring takes up with a groan, and through the house, far below, a little clock begins to tick.' });
   add(Mark, { room: 'mainspring', at: [X - 3.5, Y, Z + 2.8], yaw: Math.PI / 2 });
 }
 
@@ -359,8 +363,10 @@ function cupboard(rt, K, M, { dial }) {
   // face it, a clock's way round goes over the top toward -z)
   dial(-10.95, CUPBOARD.dialY, Z, 1.1, Math.PI / 2, null);
   const tick = 'It ticks once and goes still. This little clock has lost its hand: count round from the house’s hour.';
-  for (const [id, hr] of [['c1', 4], ['c2', 8], ['c3', 12]]) { const a = TAU * hr / 12; add(Switch, { id, at: [-10.85, CUPBOARD.dialY + Math.cos(a) * 1.9, Z - Math.sin(a) * 1.9], yaw: Math.PI / 2, size: 0.5, wrong: tick }); }
-  add(Coffer, { id: 'cache', at: [-21.2, Y, Z], yaw: Math.PI / 2 });
+  const stopped = 'Its lids stay shut. The little clock has stopped: whatever drives the house’s clocks hangs slack.';
+  for (const [id, hr] of [['c1', 4], ['c2', 8], ['c3', 12]]) { const a = TAU * hr / 12; add(Switch, { id, at: [-10.85, CUPBOARD.dialY + Math.cos(a) * 1.9, Z - Math.sin(a) * 1.9], yaw: Math.PI / 2, size: 0.5, wrong: tick, lids: true, unmet: stopped }); }
+  add(Coffer, { id: 'cache', at: [-21.2, Y, Z - 1.8], yaw: Math.PI / 2 });
+  add(Key, { id: 'kB', big: true, at: [-21.2, Y, Z + 1.8], yaw: Math.PI / 2 });   // (v1.53: the great key, here since the mainspring moved)
 }
 
 // ------------------------------------------------------------------ inside
