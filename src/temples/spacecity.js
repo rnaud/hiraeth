@@ -3,7 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, paint } from './kit.js';
-import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit, Key } from './pieces.js';
 import { anchorModel, anchorGeometry } from './guardian-anchor.js';
 import { chestMound } from '../boxes/mound.js';
 
@@ -38,8 +38,16 @@ import { chestMound } from '../boxes/mound.js';
 //                        OUT to the far cup, its weight tips the balance and the pan rides between the landings, up
 //                        to the Moorers' Gallery; pulled back HOME it frees the west door. Push, then pull
 //   the Moorers' Gallery the south landing: the ring that holds the west door's chain hangs on its wall, seen from
-//                        the door across the void, reached only here; and the moorers' gate, opened from this side by
-//                        the same ring, back to the Capstan Hall (a shortcut: a balcony and a cradle down)
+//                        the door across the void, reached only here; and the moorers' gate back to the Capstan Hall
+//                        (a balcony and a cradle down). (v1.53, issue #23) The gate takes a small key now (the ring
+//                        opened it before; its chain holds the great key's cage instead): the key is in
+//   the Rope Store       (v1.53, south off the Gallery, an arena) the moorers' spare cable on drums; its door shuts
+//                        behind you while its keepers stand. Won, the small key's cage sinks: for the moorers' gate
+//   the Capstan Hall's balcony (v1.53) inside the gate, high over the hub you began in: the great key's cage, and a
+//                        ball out along a cable-rail round the hall's wall over the floor eleven metres down. Pull it
+//                        home onto the cage's footstone (the Drift's lesson, back where the house began); with the
+//                        Gallery's ring pulled (the cage's chain runs up over the gate to it) the cage sinks, and the
+//                        Capstan Floor's door takes the great key
 //   the Capstan Floor    the guardian (a robot: its meter is damage): the Anchor-Warden. When it has thrown its
 //                        anchor and its drum stalls, pull the anchor home with the tether and it jams. In its second
 //                        phase it hooks them over the bollards; in its last it pays them out over the void, out of
@@ -85,12 +93,18 @@ export const BALANCE = { north: 6, south: 11, x: -30, a: 39.5, b: 29.0, home: 38
 export const DRIFT = { far: 6, z: 72, a: -7.6, b: -17.8, plate: -8.6, lip: -12.4 };
 /** The Capstan Floor: its middle, radius, floor. */
 export const FLOOR = { x: -74, z: 38, r: 19, y: 6 };
+/** (v1.53) The Rope Store, south off the Moorers' Gallery (an arena); the balcony's cable-rail round the Capstan Hall's
+ * wall (angles off the moorers' gate's, MOOR_A, at `r` from the hall's middle: the footstone's end and the far end). */
+export const STORE = { x: -38, z: 11.4, w: 12.4, d: 14.8, zone: { min: [-44.2, 10, 4], max: [-31.8, 20, 18.8] } };   // (its north side the Balance's south wall)
+export const PERCH = { r: 12.5, home: 0.14, far: 0.5, key: [-0.17, 12.6] };
+/** (the footstone 0.9 m in from the rail's home end: its stop along the groove) */
+PERCH.plateAt = +(0.9 / (2 * PERCH.r * Math.sin((PERCH.far - PERCH.home) / 2) + 0.9)).toFixed(3);
 
 export const LOGIC = {
   id: 'spacecity', entry: 'stage', gadget: 'tether',
   rooms: {
     stage: { checkpoint: true }, hall: { checkpoint: true }, winch: { checkpoint: true }, stair: { checkpoint: true }, loft: { checkpoint: true },
-    drift: { checkpoint: true }, driftFar: { checkpoint: true }, scale: { checkpoint: true }, moor: { checkpoint: true }, ante: {}, arena: { boss: true }, out: {},
+    drift: { checkpoint: true }, driftFar: { checkpoint: true }, scale: { checkpoint: true }, moor: { checkpoint: true }, store: { checkpoint: true }, perch: {}, ante: {}, arena: { boss: true }, out: {},
   },
   links: [
     { a: 'stage', b: 'hall' },
@@ -101,7 +115,9 @@ export const LOGIC = {
     { a: 'drift', b: 'driftFar', door: 'br2' },     // the gangway: the ball pulled home off its cable-rail
     { a: 'driftFar', b: 'scale' },                  // the Cable Walk
     { a: 'scale', b: 'moor', door: 'gW' },          // the balance's pan: the ball pushed out to the far cup
-    { a: 'moor', b: 'hall', oneWay: true },         // the moorers' gate and the cradle down, opened from the Gallery (sc)
+    { a: 'moor', b: 'store', door: 'dR' },          // the Rope Store, south off the Gallery (v1.53): an arena, the small key
+    { a: 'moor', b: 'perch', door: 'sc' },          // the moorers' gate (its small key, v1.53) to the Capstan Hall's balcony
+    { a: 'perch', b: 'hall', oneWay: true },        // and the cradle down
     { a: 'scale', b: 'ante', door: 'gN' },          // the west door: the ball pulled home, and the Gallery's ring
     { a: 'ante', b: 'arena', door: 'd6' },
     { a: 'arena', b: 'out', door: 'd7' },
@@ -123,19 +139,36 @@ export const LOGIC = {
     br2: { type: 'bridge', opens: { drumOn: ['ballD', 'pD'] }, latch: true },
     // the Gallery's ring first (logic.next goes in this order: once the pan has carried you up, the ring is the thing to
     // do there, before the ball is pulled home again)
-    r5: { type: 'switch', room: 'moor', needs: ['tether'] },       // the Gallery's ring: the west door's chain, and the gate home
-    sc: { type: 'door', opens: { lit: 'r5' }, latch: true },
+    r5: { type: 'switch', room: 'moor', needs: ['tether'] },       // the Gallery's ring: the west door's chain, and the great key's cage's (v1.53)
+    sc: { type: 'door', lock: 'small', latch: true },              // (v1.53: the Rope Store's small key; the ring was its)
     // the Balance: one ball, home on the north landing or out in the far cup over the void
     ballS: { type: 'drum', room: 'scale', plate: 'pHome', stops: { pHome: 0.143, pOut: 0.905 }, start: 0.143, needs: ['tether'] },
     pHome: { type: 'plate', room: 'scale' },
     pOut: { type: 'plate', room: 'scale' },
     gW: { type: 'bridge', opens: { drumOn: ['ballS', 'pOut'] } },  // (the balance's pan, a Platform: it rides while this holds)
     gN: { type: 'door', opens: { all: [{ drumOn: ['ballS', 'pHome'] }, { lit: 'r5' }] }, latch: true },
-    d6: { type: 'door', opens: null },                              // the Capstan Floor's door: shut while the Warden fights
+    d6: { type: 'door', lock: 'big' },                              // the Capstan Floor's door: the great key (v1.53); shut while the Warden fights
+    // the Rope Store: its keepers beaten, the small key's cage sinks (v1.53)
+    arR: { type: 'arena', room: 'store' },
+    kS: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arR' } },
+    dR: { type: 'door', opens: null },
+    // the Capstan Hall's balcony: the great key's cage, and a ball out along a cable-rail round the wall; pulled home
+    // onto the cage's footstone, the cage sinks
+    bK: { type: 'drum', room: 'perch', plate: 'pK', plateAt: PERCH.plateAt, start: 1, needs: ['tether'] },
+    pK: { type: 'plate', room: 'perch' },
+    // (and the cage's chain runs up over the gate to the Gallery's ring, with the west door's: pulled, it lets the cage go)
+    kB: { type: 'key', kind: 'big', room: 'perch', when: { all: [{ drumOn: ['bK', 'pK'] }, { lit: 'r5' }] } },
     warden: { type: 'boss', room: 'arena', needs: ['gun', 'tether'] },
     d7: { type: 'door', opens: { resolved: true } },
   },
 };
+
+/** The Rope Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arR', room: 'store', zone: STORE.zone, doors: ['dR'], extra: 2,
+  shut: 'The door grinds shut behind you. Among the drums of cable, something winds itself up.',
+  won: 'The last of them runs down among the drums. The key’s cage sinks, and the door lets go.',
+}];
 
 /** The fight's numbers: what one anchor pulled home is worth, phase by phase; how long it stays open; how far out over
  * the void it pays them in its last phase (m past the floor's rim) and how much one push on its bars winds in; how near
@@ -178,6 +211,46 @@ function wardenHit(g, part, mode) {
   if (mode === 'stun') return false;   // (the stilling lens stops a strike, as anywhere)
   rt.notice('The fluid runs off its brass. Pull the anchors home.', 'aw.fluid');
   return true;
+}
+
+/**
+ * (v1.53, issue #23) The Rope Store south off the Moorers' Gallery (an arena: drums of the moorers' spare cable), and on
+ * the Capstan Hall's balcony inside the moorers' gate the great key's cage and a ball out along a cable-rail round the
+ * hall's wall, pulled home onto its footstone.
+ */
+function wings(rt, K, M, { BS, rail, cable, iron, brass, cableM }) {
+  const add = (P, o) => rt.add(P, o);
+  // ---- the Rope Store
+  const S = STORE;
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: BS, h: 9, roof: true, omit: ['n'] });   // (its north wall the Balance's, the doorway in it)
+  add(Door, { id: 'dR', at: [S.x, BS, 19.4], w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  for (const [x, z] of [[-4.2, -3.4], [4.0, -3.0], [-4.6, 2.6], [4.4, 3.2]]) {
+    K.both(brass, T(new THREE.CylinderGeometry(0.95, 0.95, 2.6, 16), [S.x + x, BS + 1.4, S.z + z], [0, 0, Math.PI / 2]));
+    K.add(cableM, T(new THREE.CylinderGeometry(1.14, 1.14, 2.0, 16, 1, true), [S.x + x, BS + 1.4, S.z + z], [0, 0, Math.PI / 2]));   // (the cable wound on it, clear of the drum)
+    K.both(iron, box(0.3, 1.0, 1.6, S.x + x - 1.45, BS + 0.5, S.z + z), box(0.3, 1.0, 1.6, S.x + x + 1.45, BS + 0.5, S.z + z));
+  }
+  add(Key, { id: 'kS', at: [S.x, BS, S.z - S.d / 2 + 1.6], yaw: 0 });
+  add(Mark, { room: 'store', at: [S.x, BS, S.z + 3.8], yaw: Math.PI });
+
+  // ---- the balcony's cable-rail round the hall's wall, the ball out at its far end; the great key's cage
+  const P = PERCH, Y = BS;
+  const at = (da, r = P.r) => hallAt(MOOR_A + da, r);
+  const [hx, hz] = at(P.home), [fx, fz] = at(P.far);
+  const L = Math.hypot(fx - hx, fz - hz), ry = Math.atan2(fx - hx, fz - hz), cx = (hx + fx) / 2, cz = (hz + fz) / 2;
+  const rx = Math.cos(ry), rz = -Math.sin(ry);
+  // (the balcony a little wider on that side: the footstone's end of the rail stands on it)
+  const [wx, wz] = at(0.17, 12.2);
+  K.both(M.floor, box(3.2, 0.8, 4.6, wx, Y - 0.4, wz, MOOR_A + 0.17));
+  for (const sd of [-0.55, 0.55]) K.add(M.trim, box(0.12, 0.12, L + 1.2, cx + rx * sd, Y + 0.02, cz + rz * sd, ry));
+  K.add(iron, box(1.6, 1.8, 0.4, fx + Math.sin(ry) * 1.2, Y - 0.6, fz + Math.cos(ry) * 1.2, ry));   // (the stop post)
+  for (let k = 1; k < 4; k++) { const t = k / 4; K.add(iron, box(1.3, 0.5, 0.14, hx + (fx - hx) * t, Y - 0.25, hz + (fz - hz) * t, ry)); }
+  cable([fx, Y - 0.2, fz], [fx * 1.02, 21.5, fz * 1.02 + 0.6], 0, 0.06);   // (hung from the roof)
+  add(Ball, { id: 'bK', a: [hx - Math.sin(ry) * 0.9, Y + 0.04, hz - Math.cos(ry) * 0.9], b: [fx, Y + 0.04, fz], r: 1.0, friction: 1.0 });
+  add(Plate, { id: 'pK', at: [hx, Y, hz], r: 1.2 });
+  const [kx, kz] = at(P.key[0], P.key[1]);
+  add(Key, { id: 'kB', big: true, at: [kx, Y, kz], yaw: MOOR_A + Math.PI });
+  rail(at(0.2, 10.1), at(0.3, 10.1), Y, 1.0);
+  rail(at(0.3, 10.1), at(0.3, 11.6), Y, 1.0);   // (open where the cable-rail runs out)
 }
 
 // ------------------------------------------------------------------ inside
@@ -340,6 +413,7 @@ function layout(rt) {
   const BN = BALANCE.north, BS = BALANCE.south;
   K.hall({ x: -34, z: 31, w: 22, d: 22, y: -2, h: 26, floor: false, roof: false, doors: [
     { side: 'n', at: -4, w: 5, h: 6.4, y0: BN + 2 }, { side: 'w', at: 7, w: 5, h: 6.4, y0: BN + 2 }, { side: 'e', at: -8, w: 5, h: 6.4, y0: BS + 2 },
+    { side: 's', at: STORE.x + 34, w: 5, h: 6.4, y0: BS + 2 },   // (and south off the Gallery into the Rope Store, v1.53)
   ] });
   K.slab(-45, 35, -23, 43.2, BN, 2);
   K.slab(-45, 19.4, -23, 25, BS, 2);
@@ -379,7 +453,7 @@ function layout(rt) {
   corridor(...hallAt(MOOR_A, 14.4), ...hallAt(MOOR_A, 23.0), BS);
   {
     const [sx, sz] = hallAt(MOOR_A, 21.4);
-    add(Door, { id: 'sc', at: [sx, BS, sz], yaw: MOOR_A, w: 5.6, h: 6.4, lamps: [{ lit: 'r5' }] });
+    add(Door, { id: 'sc', at: [sx, BS, sz], yaw: MOOR_A, w: 5.6, h: 6.4 });   // (v1.53: its small key; the ring holds the cage's chain now)
   }
 
   // ---- the ante and the Capstan Floor: a round floor open to the void at four great windows, a bollard before each
@@ -421,6 +495,8 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI / 2);
   const arena = { center: K.world(CX, FY, CZ), r: HR, y: K.world(0, FY, 0).y };
 
+  // (the wings last: their marks after the others, so the machines' ids by mark stay as they were)
+  wings(rt, K, M, { BS, rail, cable, iron, brass, cableM });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
@@ -428,7 +504,7 @@ function layout(rt) {
     gadget: { at: W(0, 0.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(X0 - 9.4, FY + 0.5, CZ), r: 1.5 }],
     lights: [[0, 5, 6, 10], [0, 10, C1, 18], [WINCH[0], 6, WINCH[1], 12], [SHAFT[0], 12, SHAFT[1], 14], [0, 8, C3, 12], [0, 6, 78, 10],
-      [-12, 6, 78, 16], [-36, 10, 78, 16], [-38, 9, 54, 14], [-34, 12, 31, 18], [CX, FY + 8, CZ, 24]],
+      [-12, 6, 78, 16], [-36, 10, 78, 16], [-38, 9, 54, 14], [-34, 12, 31, 18], [STORE.x, BS + 4, STORE.z, 11], [CX, FY + 8, CZ, 24]],
     guardian: { def: { ...ANCHOR_WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }
@@ -551,7 +627,7 @@ function change(scene, level, rt) {
 
 export const SPACECITY_TEMPLE = {
   id: 'spacecity', levelId: 'spacecity', name: 'The Mooring-House', doorLabel: 'door of the Mooring-House',
-  gadget: 'tether', gadgetBox: 'spacecity.temple.tether', arenaDoor: 'd6',
+  gadget: 'tether', gadgetBox: 'spacecity.temple.tether', arenas: ARENAS, arenaDoor: 'd6',
   origin: [-130, 1500, -120], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

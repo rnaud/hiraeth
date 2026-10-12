@@ -351,7 +351,9 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
         }
         // (an eye that can be woken now first: it stays woken, and the ball can go on to its next place; then rooms, then doors)
         const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x)).length;
-        return usable * 1e6 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
+        // (and a lock a key in hand fits, brought within reach: the Mooring-House's great lock past the west door, v1.53)
+        const fits = lockIds.filter((x) => L.canUnlock(x) && L.lockReachable(x, rooms)).length;
+        return usable * 1e6 + fits * 1e5 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
       };
       // (and with you standing on a plate there: a ball set down in one place while you stand in another, the Footprint's)
       const plates = L.ofType('plate').filter((p) => reach.has(def.elements[p].room) && !L.pressed(p));

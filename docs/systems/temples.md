@@ -537,6 +537,15 @@ thaws, it warns, and the jaws snap shut again), so the ball has to go through be
 to walk through. The far door (`d3`) takes the great key. The great key is in the first half, reached by a loop back
 past the chest, not off the last hall.
 
+The **Mooring-House** (`spacecity.js`, 4.22; no arena, 78 % like the Warden's Well): south off the Moorers' Gallery the
+**Rope Store** (`STORE`) is an arena; won, its small key opens the moorers' gate (`sc`, a small lock now: the Gallery's
+ring opened it before). Inside the gate, on the Capstan Hall's balcony over the hub the house began in, the great key's
+cage and a ball out along a cable-rail round the hall's wall (`PERCH`): pulled home onto the cage's footstone (the
+Drift's lesson again), with the Gallery's ring pulled (its chain holds the cage too), the cage sinks; the Capstan Floor's
+door (`d6`) takes the great key. A loop back to the first half, past the Balance, not a room off the last hall. `solve`
+now also prefers a ball's stop that brings a lock a key in hand fits within reach (the Balance's ball home, toward the
+great lock past the west door).
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same
