@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_899e0acbdb3aa2 7
+docs/motion-data.md
+  s_9ca76055a220ed::t_28c61cc1091969 11,89-96
+docs/systems/characters.md
+  s_9ca76055a220ed::t_cabced3bae10f9 913-985
+scripts/mocap/build-gestures.mjs
+  s_9ca76055a220ed::t_bec08d1c93a30a 1-185
+scripts/mocap/gesture-clips.json
+  s_9ca76055a220ed::t_161c866d30de62 1-34
+scripts/mocap/glb.js
+  s_9ca76055a220ed::t_0513ef024e64c8 5-7,12-13,38,43-62,64-68,71,76-77,125,134-150
+src/animator.js
+  s_9ca76055a220ed::t_6c271d2226e0f6 688-689,729-754,758-759,761,763
+src/changelog-media.js
+  s_9ca76055a220ed::t_8e9d1cc3ca80d9 734-735,738-745
+src/changelog.js
+  s_9ca76055a220ed::t_5d934bad2d8e2a 26-28
+src/motion-match.js
+  s_9ca76055a220ed::t_0d9886337a8916 104-105,110
+src/npc.js
+  s_9ca76055a220ed::t_a1a4129f354206 809-811,819
+src/story/dialogue.js
+  s_9ca76055a220ed::t_e2d6c25aeb3ef4 620,628-629
+src/story/index.js
+  s_9ca76055a220ed::t_6a4ff7f5794003 18,397-400
+src/talk-gesture.js
+  s_9ca76055a220ed::t_2ec7dd52c31a9c 1-204
+tests/gait-sim.js
+  s_9ca76055a220ed::t_661ca196c0fff4 25-26,31
+tests/talk-gesture.test.js
+  s_9ca76055a220ed::t_f547335ebca031 1-279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc10e9ea187ae864a79b75c348479feb5fb5ba02",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
