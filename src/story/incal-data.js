@@ -585,7 +585,7 @@ export const RIM = {
         hello: {
           say: [{ if: { has: 'cabpass' }, text: "~playful~ Pass holder! Wave it about. The cabs adore paperwork." },
             { if: { not: { has: 'cabpass' } }, text: "~playful~ Mind the taxis. They stop for passes, not people. Palace rule. You haven’t got one; I can tell from here." },
-            "~neutral~ Nine hundred cabs. I dispatch every one. None stop below the smog. At least, that’s what my forms say."],
+            "~neutral~ Nine hundred cabs. I send every one from that mast behind me. None stop below the smog. At least, that’s what my forms say."],
           choices: [{ text: '~curious~ How do I get a pass?', if: { not: { has: 'cabpass' } }, goto: 'pass' }, { text: '~curious~ Why not below the smog?', goto: 'why' }, { text: '~curious~ Seen anything strange lately?', goto: 'strange' }],
         },
         pass: {

@@ -16,6 +16,8 @@ export const CHANGELOG = [
     'At 5, 10, 15, 25, 50, 75 and all 96 fragments, Orrin fits something to your gear: one more heart (four to start instead of three), a finder, a blade that cuts half as hard again, one more unit of magic, wings that glide a fifth faster and sink slower, boots that run longer and rest quicker, and a guard that blocks for half the magic.',
     'At ten fragments Orrin gives you his finder: it beeps when a fragment is within 60 m, faster and higher the closer you get. Switch it off or on from your items (A / × on it).',
     'The game menu’s Worlds page counts your fragments of the singing light: all told, and how many are left in each world you know. The Start menu says it too, under where you are: how many you have and how many are left in this world.',
+    // the glide from the palace's crown to Lio (src/shaft-ways.js dispatchMast; issue #201)
+    'In the City-Shaft, Lio’s dispatch mast now rises behind him on the rim: a tall cream mast banded in his teal, his booth at the top with a lit window band, two cabs docked at its arms and his call-lamp over it, so from the palace’s crown you can see where to glide to find him. He sends every cab in the city from it.',
   ] },
   { v: '1.54', date: '2026-10-12', items: [
     // the father's window recording back to the bust (reverts e7d5052e, the walking full body; the author's call)

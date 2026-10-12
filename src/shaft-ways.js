@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { cabModel } from './taxi.js';
 
 // The City-Shaft's ways down and up (level design audit v1.15: the drop from Nima to Ossa and the climb from Ossa to
 // the palace were 474 m and 564 m with nothing on them, and the walk back from the palace to Nima the way nobody marks).
@@ -18,6 +19,10 @@ import { makeMaterial } from './materials.js';
 //                            Three Who Look Up, dark until the splinter passes it (src/story/incal.js)
 //   Tobin's view pad         a floating pad halfway down from the palace to the high terrace, a coin telescope on it
 //                            pointed up at the Lodestar ("looking up remains free")
+//   Lio's dispatch mast      behind Lio on the outer rim, a tall mast in his teal, banded in cream, his dispatch booth at
+//                            the top with the call-lamp on its roof and two cabs docked at its arms: where the cabs are sent
+//                            from (issue #201: the glide down from the palace's crown to Lio was blind; the mast stands
+//                            over the crown's rim, seen from all of it)
 //   the rim posts            the lamplighters' round began on the rim: the same red posts from the Warden's Well's door
 //                            along the rim's edge to the red stair's gate, down which Nima's corner lies (level design
 //                            audit v1.15: the walk from the Well to Nima was blind, the stair's gate 200 m round the rim)
@@ -50,6 +55,12 @@ export const CAB_RANK = { a: 0.18, r: 162, y: 205 };
 /** Where Tobin sends you to wave one down: the rim's edge at the parapet, a little way round from him toward your ship (angle, radius: the shaft's lip is at 260 m; nearer him the red stair's top is under a cab's way out). */
 export const CAB_HAIL = { a: 0.3, r: 261.5 };
 export const RIM_TOP = 200;
+/**
+ * Lio's dispatch mast (issue #201): angle round the shaft (rad), radius (m) and height over the rim (m), behind where he
+ * stands (src/levels/content.js: [330, 40]). Tall enough to stand over the crown's floor from its middle, by the needle:
+ * from there the crown hides the rim up to ~265 m this far out (the level design audit's eye).
+ */
+export const DISPATCH = { a: 0.1, r: 360, h: 86 };
 export const RIM_POSTS = [[-0.19, 298], [-0.175, 280], [-0.15, 264], [-0.095, 264], [0.05, 264], [0.11, 264], [0.17, 264], [0.23, 264], [0.29, 264], [0.35, 264], [0.41, 264], [0.47, 264]];
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 /** The rim posts on the rim at height `top`: each { at (its foot), out (toward the shaft's middle) }. */
@@ -179,8 +190,9 @@ export function buildShaftWays(scene, { terraces, places }) {
     scene.add(g);
     return g.position.clone();
   });
+  const mast = dispatchMast(scene, lights);
   return {
-    landings, lights, locker,
+    landings, lights, locker, mast,
     /** The rim posts, [x, y, z] from the Well's door to the red stair's gate (the level's line goes on down the stair to Nima). */
     rim: rim.map(({ at: p }) => [p.x, p.y, p.z]),
     /** The drops as a line, [x, y, z] from Nima's corner down to the shrine (the level design audit follows it). */
@@ -194,6 +206,68 @@ export function buildShaftWays(scene, { terraces, places }) {
     /** Tobin's telescopes on the outer rim, and the way back past them from Tobin to Lio, [x, y, z]. */
     scopes: { at: scopes[1].clone().add(V(0, 1, 0)), line: [[304, RIM_TOP, 114], ...scopes.map((p) => [p.x, RIM_TOP, p.z]), [340, RIM_TOP, 45]] },
     /** No house or tree on a landing (the ring and the post), the level's clearing (houses still drawn, not kept). */
-    clear: [...landings.map((L) => ({ x: L.at.x, y: L.y, z: L.at.z, r: 6 })), ...rim.map(({ at: p }) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 })), ...scopes.map((p) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 }))],
+    clear: [...landings.map((L) => ({ x: L.at.x, y: L.y, z: L.at.z, r: 6 })), ...rim.map(({ at: p }) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 })), ...scopes.map((p) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 })), { x: mast.at.x, y: mast.at.y, z: mast.at.z, r: 6 }],
   };
+}
+
+/**
+ * Lio's dispatch mast (issue #201): two steps and a plinth, a tapered mast in his teal banded in cream, a gallery round
+ * its top, his booth on it (cream, a band of lit windows, a terracotta cap), a teal ring turning round the booth as the
+ * palace's turn round its needle (the palace licenses the cabs), and the call-lamp on a short pole over the cap. Two
+ * docking arms out from under the gallery toward the shaft, a cab parked under each. The steps, plinth, mast, gallery,
+ * booth, cap and arms collide as drawn (you can climb it and stand on the gallery); the windows, the rail, the ring, the
+ * lamp and the cabs don't. → { at (its foot), top (the lamp), height, gallery (y of its floor), lamp, ring, cabs }
+ */
+export function dispatchMast(scene, lights = []) {
+  const { a, r, h } = DISPATCH, at = V(Math.cos(a) * r, RIM_TOP, Math.sin(a) * r);
+  const cream = makeMaterial({ color: '#f3ead8', flat: true, grid: 3, key: 'incal.mast' });
+  const teal = makeMaterial({ color: '#4fb3bb', flat: true, grid: 3, key: 'incal.mast.teal' });
+  const roof = makeMaterial({ color: '#d0694a', flat: true, pattern: 'tiles', key: 'incal.mast.roof' });
+  const gy = h - 11;   // the gallery's floor
+  const B = 5;         // the booth's radius
+  const creamG = [
+    new THREE.CylinderGeometry(5.6, 5.8, 0.45, 8).translate(0, 0.225, 0),   // the steps
+    new THREE.CylinderGeometry(4.4, 4.6, 0.9, 8).translate(0, 0.9, 0),       // the plinth (top 1.35)
+    new THREE.CylinderGeometry(7.2, 5.8, 0.6, 16).translate(0, gy - 0.3, 0),   // the gallery
+    new THREE.CylinderGeometry(B, B, 4.6, 14).translate(0, gy + 2.3, 0),       // the booth
+    new THREE.CylinderGeometry(0.14, 0.2, 2.2, 6).translate(0, gy + 8.6, 0),   // the lamp's pole
+  ];
+  // the mast, and the cream bands up it (a hand's breadth proud of it)
+  const tealG = [new THREE.CylinderGeometry(1.7, 2.8, gy - 1.35, 10).translate(0, 1.35 + (gy - 1.35) / 2, 0)];
+  for (let k = 1; k <= 6; k++) { const y = 1.35 + (gy - 1.35) * (k / 7), rr = 2.8 - 1.1 * (k / 7) + 0.06; creamG.push(new THREE.CylinderGeometry(rr, rr + 0.03, 2.4, 10).translate(0, y, 0)); }
+  const roofG = new THREE.ConeGeometry(B + 1.2, 3.4, 14).translate(0, gy + 4.6 + 1.7, 0);
+  // the docking arms: out from under the gallery toward the shaft, either side
+  const ARMS = [Math.PI - 0.6, Math.PI + 0.6];   // (local: -x is toward the shaft once the mast is turned)
+  for (const yaw of ARMS) {
+    tealG.push(new THREE.BoxGeometry(8.4, 0.7, 0.7).translate(7 + 4.2, gy - 0.95, 0).rotateY(yaw));
+    tealG.push(new THREE.BoxGeometry(0.6, 1.8, 0.6).translate(15.2, gy - 2.0, 0).rotateY(yaw));   // (the clamp)
+  }
+  const body = new THREE.Mesh(mergeGeometries(creamG.map(flat0)), cream); body.name = 'Lio’s dispatch booth';
+  const mastM = new THREE.Mesh(mergeGeometries(tealG.map(flat0)), teal); mastM.name = 'Lio’s dispatch mast';
+  const cap = new THREE.Mesh(flat0(roofG), roof); cap.name = 'Lio’s dispatch booth’s roof';
+  const windows = new THREE.Mesh(new THREE.CylinderGeometry(B + 0.05, B + 0.05, 1.3, 14, 1, true).translate(0, gy + 2.6, 0), makeMaterial({ color: '#fff3c8', flat: true, glow: 0.55, key: 'incal.mast.windows' }));
+  const rail = new THREE.Mesh(new THREE.TorusGeometry(7.0, 0.07, 4, 40).rotateX(Math.PI / 2).translate(0, gy + 1.0, 0), makeMaterial({ color: '#c9d2dc', metal: 'chrome' }));
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(1.6, 14, 10).translate(0, h - 0.6, 0), makeMaterial({ color: '#8fe6ea', flat: true, glow: 1, key: 'incal.mast.lamp' }));
+  lamp.name = 'Lio’s call-lamp';
+  // the ring round the booth, turning (src/levels/incal.js turns it, as the palace's rings)
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(10.5, 0.55, 6, 48), makeMaterial({ color: '#62c3c9', key: 'incal.mast.ring' }));
+  ring.position.y = gy + 2.6; ring.rotation.x = Math.PI / 2 + 0.25;
+  const g = new THREE.Group();
+  g.add(body, mastM, cap, windows, rail, lamp, ring);
+  for (const m of [windows, rail, lamp, ring]) m.userData.noCollide = true;
+  // (turned so the arms reach toward the shaft: local -x points at the shaft's middle)
+  g.position.copy(at); g.rotation.y = -a;
+  g.name = 'Lio’s dispatch mast';
+  scene.add(g);
+  // a cab docked under each arm's clamp (one group: the level hides it from deep in the shaft)
+  const cabs = new THREE.Group(); cabs.name = 'Lio’s docked cabs'; g.add(cabs);
+  ARMS.forEach((yaw, i) => {
+    const cab = cabModel(i ? '#f2c54b' : '#62c3c9', 2.2);
+    cab.position.set(Math.cos(yaw) * 15.2, gy - 4.7, -Math.sin(yaw) * 15.2);
+    cab.rotation.y = yaw - Math.PI / 2;
+    cab.traverse((o) => { o.userData.noCollide = true; });
+    cabs.add(cab);
+  });
+  lights.push(new THREE.Vector4(at.x, RIM_TOP + h, at.z, 26));
+  return { at: at.clone(), top: V(at.x, RIM_TOP + h + 1.0, at.z), height: h, gallery: RIM_TOP + gy, lamp, ring, cabs };
 }

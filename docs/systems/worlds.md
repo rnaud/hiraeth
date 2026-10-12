@@ -540,6 +540,20 @@ light on Nima’s steps`, `auto: false`) from the light down to 70 m over her te
 the legs from her steps stay the red stair's). Crown → Nima: blind → leading line; no loner in the shaft; guided
 89 → 100 %. `tests/story-incal.test.js`.
 
+**Lio's dispatch mast** (v1.55, issue #201). Once lighting the Lodestar ends the city (#183), the route goes from the
+palace's crown to Lio on the outer rim, a glide of 374 m that saw neither him nor anything by him: from the crown's
+middle its own floor hides the rim (nothing under ~265 m that far out), and from its edge he is a speck among the rim's
+crowd. Behind him now, 21 m out from where he stands, rises his dispatch mast (`DISPATCH`, `dispatchMast` in
+`src/shaft-ways.js`): 86 m of tapered teal mast banded in cream, a gallery round its top, his cream booth on it with a band
+of lit windows and a terracotta cap, a teal ring turning round the booth as the palace's rings turn round its needle (the
+palace licenses the cabs), his call-lamp on a pole over it (glowing, a light at night), and two docking arms toward the
+shaft with a cab parked under each (a group the level hides from deep in the shaft). Steps, plinth, mast, gallery, booth,
+cap and arms collide as drawn: you can climb it and stand on the gallery. It is the level's second beacon (`beacons`,
+aimed at as a landmark). Lio says he sends every cab from it, and the people book finds him under it. The audit's
+eye now steps out of what it stands in within 1.5 m (it was 0.8: the crown's marker is on the needle's axis); no other
+world moved. Crown → Lio: blind → landmark by it; guided 88 → 100 %; landmarks from the landing 11 → 12, the path seeing
+one 92 → 94 %; the score stays 4.67. `tests/shaft-ways.test.js`.
+
 ## Vael's ways home (level design audit v1.15)
 
 Both walks back were the way you came (`src/vael-ways.js`, no rng):

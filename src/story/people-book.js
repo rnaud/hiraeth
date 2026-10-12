@@ -450,7 +450,7 @@ export const BOOK = {
     P('lio', 'Lio', 'Dispatches the City-Shaft’s cabs', [
       'Lio dispatches nine hundred cabs, which stop for passes, not people, and never below the smog. When the sky rang, every compass in them failed at once.',
       [done('incal.pass'), 'Lio’s last cab pass was in Tobin’s pocket, never paid for. It is yours now.'],
-    ], ['At the cab stand on the rim.']),
+    ], ['On the rim, under his teal dispatch mast.']),
     P('hask', 'Tobin', 'Sells views along the rim', [
       'Tobin sells views of the abyss along the rim. Up is free, much to his regret.',
     ], ['Along the City-Shaft’s rim.']),

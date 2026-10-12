@@ -678,6 +678,10 @@ const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (sc
 // (v1.54: the ways to and from three temples, issues #178-#180)
 const LD54 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5471), the before with the worlds’ files as on origin/main (30c8329d), the same pinned cameras, 12 October; cwebp -q 72';
 const FR55 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5491), in Viridel with a fresh save past the prologue, 12 October; cwebp -q 72';
+// (v1.55: Lio's dispatch mast, issue #201: by hand, the disk too full for changelog-shots.mjs's extraction; the before is
+// the same tree with the mast left out of the scene)
+const MAST55 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5501), the before the same tree with the mast left out of the scene, the same pinned cameras, the Lodestar lit, 12 October; cwebp -q 72';
+const SAVE_LIT55 = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'incal.lit': true, 'quest.incal.light': 'done', 'item.glider': 1 }, keepsakes: [] };
 export const CHANGELOG_MEDIA = {
   '1.55': [
     { match: 'Fragments of the singing light are hidden in every world', shots: [
@@ -697,6 +701,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'fragments-menu', title: 'The Worlds page', caption: 'The count over the cards, and on each world how many are left', only: 'after', from: FR55 },
       { name: 'fragments-start', title: 'The Start menu', caption: 'Under where you are: the fragments you have, and how many are left here', only: 'after', from: FR55 },
     ] },
+    { match: 'In the City-Shaft, Lio’s dispatch mast now rises behind him', shots: [
+      { name: 'shaft-liomast', title: 'From the crown', caption: 'From the edge of the palace’s crown, looking down to the rim where Lio stands: after, his dispatch mast rising over the rim behind him, teal booth and call-lamp at its top', from: MAST55,
+        view: { level: 'incal', hour: 10, fov: 30, eye: [2.6, 358.6, 0.3], target: [350, 228, 38], player: [5.3, 355.1, 0.6], save: SAVE_LIT55 } },
+      { name: 'shaft-liomast-near', title: 'Gliding in', caption: 'Gliding in over the rim toward Lio: after, his mast over the plain behind the rim’s grove, the ring turning round his booth and a cab docked under each arm', from: MAST55,
+        view: { level: 'incal', hour: 10, fov: 60, eye: [250, 236, 62], target: [352, 232, 38], player: [256, 233, 60], save: SAVE_LIT55 } },
+    ], see: 'In the City-Shaft, light the Lodestar from the palace’s crown, then walk to the crown’s edge on your ship’s side: the teal-topped mast over the rim is Lio’s. Glide down to it: Lio stands at its foot.' },
   ],
   '1.54': [
     { match: 'Your father is a bust again', see: 'Play a window recording on the ship (the log at the projector, from the seventh world on): he shows as the bust, as in his calls.' },

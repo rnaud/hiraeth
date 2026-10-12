@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 
 await import('./register-gadgets.js');
 const A = await import('./playthrough-agent.js');
-const { DROPS, dropLandings, CLIMB, rimPosts, RIM_POSTS } = await import('../src/shaft-ways.js');
+const { DROPS, dropLandings, CLIMB, rimPosts, RIM_POSTS, DISPATCH } = await import('../src/shaft-ways.js');
+const THREE = await import('three');
 const { HALFWAY } = await import('../src/story/halfway.js');
 
 const W = A.loadWorld('incal');
@@ -81,6 +82,30 @@ test('round 3: the rim posts lead from the Well’s door to the red stair; the u
   assert.ok(basile && basile.pos.distanceTo(shopDoor) < 15 && basile.pos.distanceTo(shopDoor) > 6, `Basile by the shop (${basile?.pos.distanceTo(shopDoor).toFixed(1)} m)`);
   const stop = level.cabStops.find((c) => Math.abs(c.step.y - basile.pos.y) < 2);
   assert.ok(stop && flat(stop.step, basile.pos) < 6, 'waiting at the cab stop');
+});
+
+test('issue #201: Lio’s dispatch mast stands behind him on the rim, solid, and stands over the crown’s floor', () => {
+  const m = ways.mast, lio = W.npcs.find((n) => n.def?.id === 'lio');
+  assert.ok(lio && flat(m.at, lio.pos) < 40 && flat(m.at, lio.pos) > 10, `behind Lio, clear of where he walks (${flat(m.at, lio.pos).toFixed(0)} m)`);
+  assert.ok(Math.hypot(m.at.x, m.at.z) > Math.hypot(lio.pos.x, lio.pos.z), 'farther from the shaft than he is');
+  assert.equal(m.height, DISPATCH.h);
+  // its steps and plinth on the rim's floor, its gallery a floor you can stand on, its mast a wall you bump into
+  const step = physics.groundAt(m.at.x + 5.1, S.TOP + 3, m.at.z, 6), plinth = physics.groundAt(m.at.x + 3.6, S.TOP + 3, m.at.z, 6);
+  assert.ok(Math.abs(step - (S.TOP + 0.45)) < 0.1 && Math.abs(plinth - (S.TOP + 1.35)) < 0.1, `steps ${step?.toFixed?.(2)}, plinth ${plinth?.toFixed?.(2)}`);
+  const gal = physics.groundAt(m.at.x + 6.2, m.gallery + 3, m.at.z, 6);
+  assert.ok(Math.abs(gal - m.gallery) < 0.1, `the gallery is a floor (${gal?.toFixed?.(2)})`);
+  const o = new THREE.Vector3(m.at.x + 8, S.TOP + 20, m.at.z), d = new THREE.Vector3(-1, 0, 0);
+  assert.ok(physics.rayDistance(o, d, 20) < 8, 'the mast is solid');
+  // in the level design audit's beacons, and its lamp over the crown's floor from beside the needle and from its rim
+  const b = level.beacons.find((x) => x.name === 'Lio’s dispatch mast');
+  assert.ok(b && Math.hypot(b.top[0] - m.top.x, b.top[2] - m.top.z) < 0.1);
+  const crown = P.palace.crown, aim = [m.top.x, m.top.y - 0.2 * m.height, m.top.z];
+  for (const k of [1.6, 6]) {
+    const dir = new THREE.Vector3(m.at.x, 0, m.at.z).normalize();
+    const e = new THREE.Vector3(dir.x * k, crown.y + 1.7, dir.z * k), to = new THREE.Vector3(...aim).sub(e);
+    const L = to.length();
+    assert.ok(physics.rayDistance(e, to.normalize(), L) > L - 3, `seen from ${k} m out on the crown`);
+  }
 });
 
 test.after(() => W.dispose());

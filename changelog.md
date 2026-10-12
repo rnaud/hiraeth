@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.55 — 2026-10-12
 
+- In the City-Shaft, Lio’s dispatch mast now rises behind him on the rim: a tall cream mast banded in his teal, his booth at the top with a lit window band, two cabs docked at its arms and his call-lamp over it, so from the palace’s crown you can see where to glide to find him. He sends every cab in the city from it.
 - The game menu’s Worlds page counts your fragments of the singing light: all told, and how many are left in each world you know. The Start menu says it too, under where you are: how many you have and how many are left in this world.
 - At ten fragments Orrin gives you his finder: it beeps when a fragment is within 60 m, faster and higher the closer you get. Switch it off or on from your items (A / × on it).
 - At 5, 10, 15, 25, 50, 75 and all 96 fragments, Orrin fits something to your gear: one more heart (four to start instead of three), a finder, a blade that cuts half as hard again, one more unit of magic, wings that glide a fifth faster and sink slower, boots that run longer and rest quicker, and a guard that blocks for half the magic.

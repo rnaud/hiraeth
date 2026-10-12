@@ -1032,6 +1032,9 @@ export function* buildIncal(scene) {
   // ---------------------------------------------------------- the lamplighters' drops, the climb's pad and relay lamp, Tobin's view pad
   // (src/shaft-ways.js: the way down on the wings, marked terrace by terrace; level design audit v1.15)
   const ways = buildShaftWays(scene, { terraces, places });
+  // (Lio's dispatch mast's ring turns round his booth as the palace's round its needle: issue #201)
+  // (and its docked cabs drop out from deep in the shaft, as the palace's small things do)
+  { const ring = ways.mast.ring; movers.push({ obj: ring, update: (t) => { ring.rotation.y = Math.sin(t * 0.35) * 0.3; ring.rotation.x = Math.PI / 2 + Math.cos(t * 0.35) * 0.3; } }); lod.push({ obj: ways.mast.cabs, y: ways.mast.gallery, far: 260 }); }
   {
     const mid = terraces.find((t) => t.y === LEVELS[3] && ((HALFWAY.a - t.a0) % TAU + TAU) % TAU <= t.a1 - t.a0);
     const stall = mid ? [{ x: Math.cos(HALFWAY.a) * (mid.r0 + HALFWAY.r), y: mid.y, z: Math.sin(HALFWAY.a) * (mid.r0 + HALFWAY.r), r: 6.5 }] : [];
@@ -1244,6 +1247,7 @@ export function* buildIncal(scene) {
       || Math.hypot(x - Math.cos(STAIR.top) * (R + 6), z - Math.sin(STAIR.top) * (R + 6)) < 8 + r   // (the red stair's gate)
       || Math.hypot(x - mirrors.places[0].deck.x, z - mirrors.places[0].deck.z) < 6 + r   // (the great mirror)
       || ways.rim.some(([px, , pz]) => Math.hypot(x - px, z - pz) < 1.5 + r)   // (the lamplighters' rim posts)
+      || Math.hypot(x - ways.mast.at.x, z - ways.mast.at.z) < 6 + r   // (Lio's dispatch mast)
       || trees.some((t) => t[3] > 0 && Math.abs(t[1] - TOP) < 1 && Math.hypot(t[0] - x, t[2] - z) < 2.2 + r)),
     ground: { heightAt: () => -Infinity }, // everything walkable is real geometry
     spawn,
@@ -1258,7 +1262,10 @@ export function* buildIncal(scene) {
     shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways, pillars, mirrors, quarters, nimaLight },
     // the Lodestar hangs over the open shaft, seen from every terrace that looks up (the story is about looking up), but
     // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
-    beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
+    beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 },
+      // (issue #201: and Lio's dispatch mast behind him on the outer rim, its call-lamp over the crown's floor from all of
+      //  it: the glide down from the crown to him. A thin mast the height grid's cells may miss: aimed at as a beacon)
+      { name: 'Lio’s dispatch mast', top: ways.mast.top.toArray(), height: ways.mast.height }],
     // what the eye follows (the audit walks a leg a line carries along it, and counts it as guiding): the red stair
     // (and the lamplighters' rim posts from the Well's door to the stair's gate, on down the stair to Nima: the walk the drone's first find takes)
     lines: () => [...(places.stair ? [{ name: 'the red stair', points: places.stair.path.map((p) => [p.x, p.y, p.z]) },
