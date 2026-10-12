@@ -1,0 +1,79 @@
+changelog.md
+  s_12fcf07ec14522::t_dd4879afea2260 7
+data/characters/traveller-v1/head-v3/inventory.json
+  s_12fcf07ec14522::t_3dbb8cc7bb4e70 1-32
+data/characters/traveller-v1/head-v3/provenance.json
+  s_12fcf07ec14522::t_5c0fb2d6189ef6 1-111
+data/characters/traveller-v1/head-v3/reference/crop-recipe.json
+  s_12fcf07ec14522::t_a2aa0a41564185 1-66
+data/characters/traveller-v1/ink/cloth-strokes.json
+  s_12fcf07ec14522::t_54878662a9a85e 1-22
+docs/systems/characters.md
+  s_12fcf07ec14522::t_f66d219610f52b 1159-1250
+docs/systems/faces.md
+  s_12fcf07ec14522::t_c55418b8b7cdb2 5-36,338
+public/characters/traveller-v1/head-v3/colors.json
+  s_12fcf07ec14522::t_583d1cb942a8e0 1
+public/characters/traveller-v1/head-v3/provenance.json
+  s_12fcf07ec14522::t_0cbf288db02be8 1-22
+"references/main character/Portrait study - 2026-10-12/README.md"
+  s_12fcf07ec14522::t_20c4845793ea33 1-23
+"references/main character/Portrait study - 2026-10-12/prompt.txt"
+  s_12fcf07ec14522::t_5cdd6ba8d415bd 1-14
+"references/main character/Portrait study - 2026-10-12/source.json"
+  s_12fcf07ec14522::t_091605c2ac6978 1-63
+scripts/tripo/README.md
+  s_12fcf07ec14522::t_aeff582ac26112 7-55,336-343
+scripts/tripo/bake-cloth-ink.mjs
+  s_12fcf07ec14522::t_cd52355bd81053 1-59
+scripts/tripo/prepare-portrait-head.mjs
+  s_12fcf07ec14522::t_b20da3d9c7de44 1-51
+src/changelog-media.js
+  s_12fcf07ec14522::t_48f3660287b7ce 741-745
+src/changelog.js
+  s_12fcf07ec14522::t_bc3e96e347571d 21
+src/characters/portrait-head.js
+  s_12fcf07ec14522::t_f2f2576b54f61b 1-119
+src/characters/traveller-cloth-ink.js
+  s_12fcf07ec14522::t_3e809874d87c4e 1-25
+src/characters/traveller-v1.js
+  s_12fcf07ec14522::t_4ad001e7f02c22 16,28,30-32,34,41,80-81,86
+src/characters/tripo-head.js
+  s_12fcf07ec14522::t_2feeace6f512d6 4,34,104-105
+src/characters/tripo-material.js
+  s_12fcf07ec14522::t_cc46214a8178e1 5,19-38
+tests/gait-sim.js
+  s_12fcf07ec14522::t_bd9cd4e9b814f0 60,62-63,69,80
+tests/portrait-head.test.js
+  s_12fcf07ec14522::t_11fc999eb44154 1-77
+tests/traveller-cloth-ink.test.js
+  s_12fcf07ec14522::t_2e82f40ff73d98 1-12
+tests/traveller-lod.test.js
+  s_12fcf07ec14522::t_ab9492ec289bf0 75,83
+tests/traveller-v1.test.js
+  s_12fcf07ec14522::t_d8c7d8b791e5aa 176-189
+tests/unity-xbox.test.js
+  s_12fcf07ec14522::t_26543429ab3a6b 262,264
+tools/tripo-head-review.js
+  s_12fcf07ec14522::t_640d9fd334a2e0 7-8,10,16,22-23,26,30-32,35-41,49-52
+tools/tripo-head-v3-review.html
+  s_12fcf07ec14522::t_950f113667b4c4 1-8
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_12fcf07ec14522::t_b1feaeeaaf25e1 49-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "428be9f29f0d12236b7c3b015121d0bc5b5389eb",
+  "prompts": {},
+  "sessions": {
+    "s_12fcf07ec14522": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13204-a6a5-7a60-a758-f6329c3060b5",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
