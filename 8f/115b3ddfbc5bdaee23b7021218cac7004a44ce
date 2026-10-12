@@ -1,0 +1,45 @@
+.claude/skills/ink-lines/SKILL.md
+  s_9ca76055a220ed::t_d46ab5223c2dc2 82-86
+.claude/skills/ink-lines/capture.mjs
+  s_9ca76055a220ed::t_5f6e3ff2c64e68 317-320,324-326,334
+changelog.md
+  s_9ca76055a220ed::t_49a5781257bd6f 5-8
+docs/README.md
+  s_9ca76055a220ed::t_94f018bfd85230 26
+docs/audits/ink-lines-v1.53.md
+  s_9ca76055a220ed::t_38f7691702ac4b 1-335
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_ba9447af3615d1 319-324,914-919
+scripts/ink-lines/lib.mjs
+  s_9ca76055a220ed::t_a6137bf305d314 11-12,149-171
+src/changelog-media.js
+  s_9ca76055a220ed::t_315df194d03c9a 657-658,660-669
+src/changelog.js
+  s_9ca76055a220ed::t_6e365ca2934b72 11-14
+src/flora.js
+  s_9ca76055a220ed::t_5c0246887fc7b3 31-36,215-216,221-222,246
+src/materials.js
+  s_9ca76055a220ed::t_a3162e901bfb16 503-506,799-810,963-966,2535-2539,2848-2849,3060-3066
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_7500c8899f30d8 100
+tests/ink-lines.test.js
+  s_9ca76055a220ed::t_207c25d4d4c147 6,56-74
+tests/ink-pass.test.js
+  s_9ca76055a220ed::t_fda5aefd32ebd2 42-64,67-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8f115b3ddfbc5bdaee23b7021218cac7004a44ce",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
