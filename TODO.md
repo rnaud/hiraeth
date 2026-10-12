@@ -1,6 +1,6 @@
 # TODO
 
-**The shared tracker is GitHub Issues** (https://github.com/rnaud/hiraeth/issues; the Notes page writes there too). Every open item below was ported on 2026-10-10 and links its issue; new work goes in an issue, and closing the issue closes the item: it moves to DONE.md, ticked, with how the issue closed (`tests/todo-done.test.js` fails while an open item here links an issue DONE.md lists as done). This file stays as the long-form context.
+**The shared tracker is GitHub Issues** (https://github.com/rnaud/hiraeth/issues; the Notes page writes there too). Every open item below was ported on 2026-10-10 and links its issue; new work goes in an issue, and closing the issue closes the item: it moves to DONE.md, ticked, with how the issue closed (`tests/todo-done.test.js` fails while an open item here links an issue DONE.md lists as done, or one closed on GitHub: `node scripts/closed-issues.mjs` refreshes the offline list it reads, `tests/closed-issues.json`, and names the stale items). This file stays as the long-form context.
 
 Open work only. Finished items move to DONE.md (with how they were done); the changelog
 (src/changelog.js) says when they reached players.
@@ -8,13 +8,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 Playtests are not listed here: the author plays all the time.
 
 # The author's list (2026-10-10), before the full game audit
-
-## Combat, controls and world feedback (2026-10-10)
-
-Author feedback; investigate reported artifacts and stutters rather than treating their causes as confirmed. (The
-combat and controls items were done in v1.41: DONE.md.)
-
-- [ ] [#9](https://github.com/rnaud/hiraeth/issues/9) **Run a flora and fauna reference pass across every world.** Follow the project's reference workflow.
 
 ## Loading follow-up: procedural worlds, no baking (2026-10-10)
 
@@ -50,20 +43,6 @@ From docs/audits/level-design-v1.53.md (twelve route worlds, 4.51, the four worl
 - [ ] [#182](https://github.com/rnaud/hiraeth/issues/182) **The City-Shaft: the light-down's first mirror is a loner** (164 m from anything), and
   the crown → Nima (287 m) is still blind. No score change by the numbers.
 
-From docs/audits/level-design-v1.49.md (twelve route worlds, 4.35), worst first by (gain × players) / cost:
-
-- [ ] [#137](https://github.com/rnaud/hiraeth/issues/137) **The new worlds' route quests still hand you from one person to another**
-  (the Moon Foundry's hook and count, the City Floating in Space's notes, the Underwater City's cutting and lamps): each
-  completes at its goal. Pacing 4 → 5 in the Moon Foundry.
-- [ ] [#136](https://github.com/rnaud/hiraeth/issues/136) **The Buried Machine's landmarks** (57 % of the path sees one) and its blind canyon and
-  Engine-House legs: landmarks 3 → 4, wayfinding 4 → 5.
-- [ ] [#134](https://github.com/rnaud/hiraeth/issues/134) **The belvedere and the breaker's cairn** don't pull (154 m and 368 m off the path): the
-  Garden's loner gone, the Glass Dunes' optional pull 3 → 4.
-- [ ] [#135](https://github.com/rnaud/hiraeth/issues/135) **Lorn's blind legs**: Wendel → the Great Crystal (188 m), the crystal cave → Hollin (631 m).
-  Wayfinding 4 → 5.
-- [ ] [#138](https://github.com/rnaud/hiraeth/issues/138) **The audit's "raised" measure** reads a place on a tower as 0 m up; measure it over the
-  terrain.
-
 ## Temples
 
 - [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) **Redo the temples with less linear paths** (2026-10-10): several rooms with puzzles of different complexity,
@@ -78,30 +57,12 @@ User-approved Midjourney originals and provenance are indexed in
 Use the selected single-view designs as the source of truth; derive further views from them
 rather than mixing the earlier inconsistent exploration sheets.
 
-- [ ] [#26](https://github.com/rnaud/hiraeth/issues/26) Extend the generated father beyond the recording bust for full-body walking and clothing motion; the procedural family is integrated (see DONE.md).
 # Singing light soundtrack follow-up
 
 - [ ] [#27](https://github.com/rnaud/hiraeth/issues/27) **Generate the singing light theme with Suno** using the brief in
   `docs/systems/audio.md` ("The singing light's theme") and install the selected recording
   in the existing `singing-light` cue slot. The synthesised motif, restaged opening,
   voicemail, Qanat repayment, signature search and rumble are implemented (DONE.md).
-
-# Playtest notes (2026-10-08)
-
-## Shadows and visuals
-
-- [ ] [#37](https://github.com/rnaud/hiraeth/issues/37) The Golden Dunes entrance looks stuck, though it works. (v1.9: one more candidate fixed, the doorway in the sand
-  before the masked head, south of the landing: its flat dark panel in a stone frame read as a shut door; it is a short
-  passage into the dark now, src/interiors.js doorwayPortals. Check whether that was the one.) (Unclear which entrance: no door or gate in
-  the golden dunes animates. Candidates looked at on 9 October: the Givers' House doorway (a flat dark
-  panel with two darker leaves, reads as a shut door; it is in the Rose Canyons though), the ship's ramp,
-  the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
-- [ ] [#38](https://github.com/rnaud/hiraeth/issues/38) **Ink lines, what the v1.33 audit left** (docs/audits/ink-lines-v1.33.md, `.claude/skills/ink-lines`): Edena's
-  flowers 55 m off are still 34-41 % ink (their heads' outlines; the rubric's far cap is 30 %): a lighter line in their
-  own colour for the meadow flowers (`line` / `lineTint`, as the `leaves` foliage) would take the rest but changes them
-  close up — for the author to say. The far town shimmers half a pixel over (Qanat at 150 m, 0.44 of its ink, 12-14 %
-  pops, before and after): check it in motion (scripts/motion-check, the zoom path) and look at the haze layers and
-  the wobble on thin far shapes.
 
 # Procedural animation (2026-10-09; phases 1–3 done: the kit is `src/motion-kit/`)
 

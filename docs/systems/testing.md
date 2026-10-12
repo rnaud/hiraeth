@@ -82,6 +82,13 @@ A bare V8 context (`engine/vm-run.mjs`, the engine bundles' tests) hands the bun
 locals: a free name in a context made from an object is looked up through its interceptor on every read, and
 that made a world's build 15-20 times slower there than in Node (`tests/pose-exact.test.js` took 75 s, now 15).
 
+## TODO.md against the closed issues (`tests/todo-done.test.js`)
+
+TODO.md is open work only: an item whose GitHub issue closed moves to DONE.md, ticked, with how it closed. The tests
+run offline, so the closed issues' numbers live in `tests/closed-issues.json`; `node scripts/closed-issues.mjs`
+rewrites it from `gh` and names any open TODO.md item that links one (`--check` only names them). Run it when issues
+close; the test then fails until those items move (issue #175).
+
 ## The load's smoke test (`scripts/load-smoke.mjs`)
 
 A guard for loads that hang (the Steam Deck's "mixing the inks…", 53ac1e80: fences the driver never

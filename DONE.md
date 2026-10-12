@@ -2764,3 +2764,38 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   riders' gate, the founders' lamp over the Belfry seen from Calix at his bell tower (docs/systems/worlds.md). Density
   3 → 4, wayfinding 4 → 5, Vael 4.44 → 4.67.
   (2026-10-11, v1.50: done; Fixes #133 in its commit.)
+
+## Closed on GitHub, moved from TODO.md by the v1.53 game audit (issue #175)
+
+- [x] [#9](https://github.com/rnaud/hiraeth/issues/9) **Run a flora and fauna reference pass across every world.** Follow the project's reference workflow.
+  (Issue closed 2026-10-12: the author's picks for every route world are committed in 83304d99, in
+  references/levels/<World>/environment/flora-fauna/; using them in the worlds is ongoing level work.)
+- [x] [#37](https://github.com/rnaud/hiraeth/issues/37) The Golden Dunes entrance looks stuck, though it works. (Candidates looked at: the
+  doorway in the sand before the masked head, fixed in v1.9 as a short passage into the dark, src/interiors.js
+  doorwayPortals; the Givers' House doorway, the ship's ramp, the giant's mouth, the region-name caption.)
+  (Issue closed 2026-10-11 on the author's answer: it was one of the two entrances already fixed, in v1.9 and v1.45.)
+- [x] [#38](https://github.com/rnaud/hiraeth/issues/38) **Ink lines, what the v1.33 audit left** (docs/audits/ink-lines-v1.33.md): Edena's
+  flowers 55 m off at 34-41 % ink (the far cap is 30 %), and the far town's half-pixel shimmer.
+  (Issue closed 2026-10-12, v1.53, 8f115b3d: Viridel's small flowers past 25-40 m drawn in a thin line in a dark shade of
+  their own colour, 40.0 -> 26.5 % ink at 55 m; the shimmer was parallax in the measure, now read over what slides under
+  a pixel, no renderer change. docs/audits/ink-lines-v1.53.md, 4.63 -> 4.72.)
+- [x] [#134](https://github.com/rnaud/hiraeth/issues/134) **The belvedere and the breaker's cairn** don't pull (154 m and 368 m off the path).
+  (Issue closed 2026-10-11, v1.50, 953aac34: a hill path, a sphere and a bell up to the Garden's belvedere; the kiln's
+  smoke and amber posts up to the Glass Dunes' cairn.)
+- [x] [#135](https://github.com/rnaud/hiraeth/issues/135) **Lorn's blind legs**: Wendel → the Great Crystal (188 m), the crystal cave → Hollin (631 m).
+  (Issue closed 2026-10-11, v1.50, eb0b2495: the keepers' stakes lead from the crystal cave to Hollin, and the Great
+  Crystal counts as the landmark it always was.)
+- [x] [#136](https://github.com/rnaud/hiraeth/issues/136) **The Buried Machine's landmarks** (57 % of the path sees one) and its blind canyon and
+  Engine-House legs.
+  (Issue closed 2026-10-11, v1.50, c8f99090: the canyon stack steams over the rust canyon, a rope runs down the ramp to
+  it, and Fisk's flag marks the Engine-House door.)
+- [x] [#137](https://github.com/rnaud/hiraeth/issues/137) **The new worlds' route quests still hand you from one person to another**
+  (the Moon Foundry's hook and count, the City Floating in Space's notes, the Underwater City's cutting and lamps).
+  (Issue closed 2026-10-11, v1.49, 7040f884: each errand ends where the thing is used; the people say their word when you
+  pass; save-migrate step 17.)
+- [x] [#138](https://github.com/rnaud/hiraeth/issues/138) **The audit's "raised" measure** read a place on a tower as 0 m up.
+  (Issue closed 2026-10-12, 29b04302: measured over the terrain under it or the lowest ground within 10 m; the v1.52
+  recount in docs/audits/level-design-v1.49.md.)
+- [x] [#26](https://github.com/rnaud/hiraeth/issues/26) Extend the generated father beyond the recording bust for full-body walking and clothing motion.
+  (Issue closed 2026-10-12, v1.53, e7d5052e: the ship's log shows him whole over the projector in his long coat, walking
+  to the window, standing there looking up while he speaks, walking back, the coat swinging with his stride.)
