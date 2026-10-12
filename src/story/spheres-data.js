@@ -241,6 +241,16 @@ export const PEOPLE = {
   },
 };
 
+/** The four places off the way out in the meadow (src/levels/spheres-detours.js; issue #233): one line each, looked at. */
+const detour = (id, name, title, color, line, prompt) => ({ id: `spheres.${id}`, name, title, color, voice: 0.6, prompt,
+  talk: { nodes: { look: { say: [line], choices: [{ text: '~neutral~ (step back)', end: true }] } } } });
+export const DETOURS = {
+  cairn: detour('cairn', 'A cairn', 'at the yellow sphere’s furrow', '#f3e3a0', '~curious~ (A cairn at the furrow’s head. Every stone in it carried from somewhere else.)', 'look at the cairn'),
+  names: detour('names', 'A ring of stones', 'round the white monolith', '#f1ece0', '~solemn~ (Names cut into each stone, very small. Every one faces the plaza.)', 'look at the ring of stones'),
+  arcade: detour('arcade', 'The empty arcade', 'in the android wood', '#f3efe2', '~whisper~ (Arches with no rooms behind them. The wood grew in where the floors were.)', 'look at the arcade'),
+  lantern: detour('lantern', 'A lantern', 'at the white stone', '#fff1c2', '~curious~ (A lantern at its foot, still lit. Nobody about.)', 'look at the lantern'),
+};
+
 export const THINGS = {
   // (v1.56, issue #190: the explorations, src/story/spheres-explorations.js)
   lake: {

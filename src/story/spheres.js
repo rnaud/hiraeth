@@ -4,7 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
-import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data.js';
+import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, DETOURS, orbDegree } from './spheres-data.js';
 import { setupSpheresMoments } from './spheres-moments.js';
 import { setupSpheresExplorations } from './spheres-explorations.js';
 import { hintsFor } from '../hint-level.js';
@@ -101,6 +101,13 @@ export function setupSpheres(ctx) {
   const rememberer = (o) => L.find((s) => s.o === o);
   // the explorations (issue #190): the lake's moons, the craters that carry sound, the cracked moon, the pillars' chord
   const ex = setupSpheresExplorations(ctx, { G, motes });
+  // the places off the way out in the meadow (src/levels/spheres-detours.js; issue #233): one line each
+  for (const d of level.detours ?? []) {
+    const def = DETOURS[d.id], s = d.stand;
+    if (def) registerInteractable({ id: def.id, priority: PRIORITY.use, range: 3, prompt: def.prompt, at: () => d.look,
+      distance: (p) => (Math.abs(p.pos.y - s.y) < 3 ? Math.hypot(p.pos.x - s.x, p.pos.z - s.z) : Infinity),
+      use: () => dialogue.start(def, null, s.clone(), d.look.clone()) });
+  }
   const voiceOf = (s) => Math.max(s.voice, ex?.boost(s.id) ?? 0);
   /** A sphere rings on its own (answering): its note, soft, and a few motes off its top. */
   const ring = (o, n = 3) => { const at = V(o.x, o.y + o.R, o.z); sound.orbNote?.(orbDegree(o.R), at, { size: Math.min(1, o.R / 46), soft: true }); motes.burst(at, { n, rise: 1.6, size: 0.26 + Math.min(o.R, 40) * 0.004, spread: 1, life: 2.4 }); };

@@ -136,15 +136,17 @@ export function lineFor(a, b, lines = [], { reach = { a: 30, b: 30 }, slack = 1.
  * within 80 m (or a third of the leg) of its goal; otherwise a line is followed only when it runs from beside the leg's
  * start (30 m) to beside its goal (30 m): players walk a line laid from here to there. A line marked `auto: false` is
  * followed only where a stage names it (a way home whose lamps are lit for the way home, not the way out). A line with
- * `ride` (m/s) is ridden (the City-Shaft's cab home): its length is weighed at that speed against the walk.
+ * `ride` (m/s) is ridden (the City-Shaft's cab home): its length is weighed at that speed against the walk. A leg
+ * marked `overVoid` (its straight line mostly over nothing, a floating city's gap between islands: audit.mjs) is no walk
+ * at all, and the line its stage names is followed however far round the bridges take it (`voidSlack` times the leg).
  */
-export function followLines(stops, lines = [], { reach = 30, slack = 1.6 } = {}) {
+export function followLines(stops, lines = [], { reach = 30, slack = 1.6, voidSlack = 2.5 } = {}) {
   return stops.map((s, i) => {
-    const { via, ...rest } = s;
+    const { via, overVoid, ...rest } = s;
     if (!i || s.jump || !lines.length) return rest;
     const a = stops[i - 1].pos, L = dist(a, s.pos);
     const named = typeof via === 'string' ? lines.filter((l) => l.name === via) : null;
-    const hit = named ? lineFor(a, s.pos, named, { reach: { a: Math.max(80, 0.1 * L), b: Math.max(80, 0.35 * L) }, slack })
+    const hit = named ? lineFor(a, s.pos, named, { reach: { a: Math.max(80, 0.1 * L), b: Math.max(80, 0.35 * L) }, slack: s.overVoid ? Math.max(slack, voidSlack) : slack })
       : lineFor(a, s.pos, lines.filter((l) => l.auto !== false), { reach: { a: reach, b: reach }, slack });
     return hit ? { ...rest, via: hit.points, line: hit.name } : rest;
   });

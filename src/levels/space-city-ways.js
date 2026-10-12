@@ -70,6 +70,8 @@ export const UNDER = {
   // the walkway out along the great cable to the stack's foot (the underhouses' port at `port`)
   port: 0.9,
 };
+/** The moorers' stair-lamp: the stair's iron mast carried on up over the Towers' deck, its lamp this high (v1.60, #233). */
+export const STAIR_LAMP = { x: UNDER.stair.x, y: UNDER.deck + 32, z: UNDER.stair.z };
 /** Where you lay a hand on the great cable (the main quest's `towerCables`): on the catwalk under its clamp, where the
  *  walkway leaves along it for the stack. */
 export const ANCHOR = { x: UNDER.platform.x0 + 2.4, y: UNDER.y, z: UNDER.platform.z };
@@ -238,6 +240,18 @@ export function buildCityWays(root, kitFor, { islands, physicsInit }) {
     rail(kit, M.rail, ring(st.ri + 0.12));
     // (the iron mast it winds round, its spokes out to the ramp's inner edge)
     kit.add(M.rail, new THREE.CylinderGeometry(0.45, 0.55, U.deck - U.y + 6, 10).translate(st.cx, (U.deck + U.y) / 2 - 1, st.cz), SOLID);
+    // (v1.60, issue #233: and on up over the Towers' edge, the moorers' stair-lamp: a lit head to the way down, seen from
+    // the Towers bridge and the Market as the Balcony's mast is; a yard across it with a lamp hung from each end)
+    {
+      const y0 = U.deck + 2, top = STAIR_LAMP.y, h = top - y0;
+      kit.add(M.rail, new THREE.CylinderGeometry(0.3, 0.48, h, 8).translate(st.cx, y0 + h / 2, st.cz), SOLID);
+      kit.add(M.iron, new THREE.BoxGeometry(4.2, 0.16, 0.16).translate(st.cx, top - 2.2, st.cz), NC);
+      for (const e of [-1, 1]) { kit.add(M.hang, new THREE.CylinderGeometry(0.02, 0.02, 1.0, 3).translate(st.cx + e * 2, top - 2.7, st.cz), NC); lantern(kit, M, st.cx + e * 2, top - 3.6, st.cz, { kind: 'globe', s: 1.4, light: false }); }
+      kit.add(M.iron, new THREE.CylinderGeometry(0.5, 0.5, 0.14, 10).translate(st.cx, top - 0.5, st.cz), NC);
+      kit.add(M.lamp, new THREE.SphereGeometry(0.75, 12, 8).scale(1, 1.2, 1).translate(st.cx, top + 0.25, st.cz), NC);
+      kit.add(M.iron, new THREE.ConeGeometry(0.6, 0.5, 8).translate(st.cx, top + 1.3, st.cz), NC);
+      kit.light(st.cx, top + 0.25, st.cz, 16);
+    }
     for (let k = 0; k <= 12; k++) { const a = st.a0 + (st.a1 - st.a0) * (k / 12), p = st.at(a), e = V(st.cx + Math.cos(a) * st.ri, p.y - 0.3, st.cz + Math.sin(a) * st.ri); kit.add(M.iron, bar(V(st.cx, p.y - 0.9, st.cz), e, 0.07, 4), NC); }
     // the pad from its top onto the deck, through the parapet's opening
     const top = st.at(st.a1), into = V(top.x, U.deck, -103.0);

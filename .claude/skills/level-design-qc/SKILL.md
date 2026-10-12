@@ -136,6 +136,10 @@ design measure grew"):
 - a quest stage's **`ends`** (where a stage whose marker moves on is done), **`via`** (the line its words send you
   along), **`home`** (the line back to the ship) and **`stands`** (where its person is by the time you arrive).
 - a portal's **`oneWay`** (never walked back); a route step `{ act, at, label }` (a stop where `at` stands).
+- its **`mouths`** (`[{ name, at, inside(p) }]`): a place left by its mouth (Lorn's crystal cave): a leg between inside
+  and outside goes by `at`, each half judged on its own, not in a straight line through the wall.
+- a leg whose straight line lies mostly over nothing (the City Floating in Space's void) is no walk: the line its stage
+  names is followed up to 2.5 times the leg (`overVoid`, lib.mjs `followLines`), not 1.6.
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`
 (relief from above, +z up: the path dark, the four longest empty stretches red, places on the route blue,

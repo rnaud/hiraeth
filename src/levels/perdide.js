@@ -33,6 +33,12 @@ import { buildKeepersCanopy } from '../lorn-canopy.js';
 const WATER = 0;
 const DEEP = -1.6;              // deeper than this is unsafe on foot (but swimmable: player.swimmable)
 export const CAVE = { x: -170, z: 140, len: 130, r: 12, rot: 0.6, y: 1.6 };
+/** Along the cave's tube from its heart (m, + toward its north mouth) and out from its axis, for a point (x, z). */
+export const caveCoords = (x, z) => { const dx = x - CAVE.x, dz = z - CAVE.z, s = Math.sin(CAVE.rot), c = Math.cos(CAVE.rot); return { along: dx * s + dz * c, out: Math.abs(dx * c - dz * s) }; };
+/** Under the cave's vault (inside its wall, between its mouths, under its roof). */
+export const inCave = (x, y, z) => { const q = caveCoords(x, z); return Math.abs(q.along) < CAVE.len / 2 && q.out < CAVE.r && y < CAVE.y + CAVE.r; };
+/** Just outside the cave's south mouth, where the keepers' stakes lead out (src/lorn-crossing.js KEEPERS_STAKES). */
+export const CAVE_MOUTH = (() => { const d = -CAVE.len / 2 - 3; return [CAVE.x + Math.sin(CAVE.rot) * d, CAVE.y, CAVE.z + Math.cos(CAVE.rot) * d]; })();
 // the story's places (src/story/perdide.js): the Great Crystal on its island east over the
 // ford, the snapping bed on the landing's north shore, the fireflies' isle in the channel
 // between the landing and the cave island
@@ -637,6 +643,9 @@ export function* buildPerdide(scene) {
   level.crossing.stakes = stakes;
   level.lines = [...level.lines, { name: 'the keepers’ stakes', points: stakes.points }];
   level.sights = [...level.sights, { name: 'the keepers’ stakes', at: stakes.sight }];
+  // (v1.60, issue #233: the cave is walked out of by its mouth, the stakes' end, not through its wall: the level design
+  // audit's `mouths`. Its north mouth is as far from the Hush-House's door, unmarked; the keepers' way is the south one)
+  level.mouths = [{ name: 'the crystal cave’s south mouth', at: CAVE_MOUTH, inside: (p) => inCave(p[0], p[1], p[2]) }];
   // (and the Great Crystal, aimed at by its own tip: the audit's height grid keeps the thirty most striking peaks, and the
   // Deep Wood's mushrooms are all taller, so the crystal over the landing's grove was measured as no landmark at all)
   level.beacons = [...level.beacons, { name: 'the Great Crystal', top: crystal.tip.toArray(), height: crystal.tip.y - crystal.pos.y }];

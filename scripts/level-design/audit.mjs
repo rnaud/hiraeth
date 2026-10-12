@@ -130,6 +130,23 @@ for (const id of worlds) {
     .map((l) => ({ name: l.name, auto: l.auto, ...(l.ride ? { ride: l.ride } : {}), points: (l.points ?? []).map((p) => (p.length === 2 ? onGround(p[0], p[1]) : arr(p))).filter(Boolean) }))
     .filter((l) => l.points.length > 1);
   if (mountedFrom != null) for (let k = mountedFrom; k < stops.length; k++) stops[k].by = later.by;
+  // (v1.60, issue #233: a place left by its mouth, Lorn's crystal cave, a tube 130 m long: a leg from inside it to outside
+  // (or back) is walked by the mouth, not in a straight line through its wall. The level's `mouths`: [{ name, at: [x, y, z]
+  // just outside it, inside(p) }]; a stop there, a waypoint as a portal's is, and the leg's two halves judged each)
+  const mouths = (typeof level.mouths === 'function' ? level.mouths() : level.mouths) ?? [];
+  for (let k = stops.length - 1; k > 0; k--) {
+    const a = stops[k - 1], b = stops[k], m = b.jump ? null : mouths.find((q) => q.inside(a.pos) !== q.inside(b.pos));
+    if (m) stops.splice(k, 0, { label: m.name, kind: 'portal', pos: arr(m.at), ...(b.by ? { by: b.by } : {}) });
+  }
+  // (and a leg whose straight line runs mostly over nothing, the City Floating in Space's void between its islands, is
+  // no walk: the line its stage names is followed however far round the bridges go, lib.mjs followLines `overVoid`)
+  const overVoid = (a, b) => {
+    const n = Math.max(2, Math.ceil(L.flat(a, b) / 5));
+    let none = 0;
+    for (let k = 1; k < n; k++) { const t = k / n, g = ground(a[0] + (b[0] - a[0]) * t, a[2] + (b[2] - a[2]) * t); if (!Number.isFinite(g) || g < Math.min(a[1], b[1]) - 60) none++; }
+    return none > (n - 1) / 2;
+  };
+  for (let k = 1; k < stops.length; k++) if (!stops[k].jump && stops[k].via && overVoid(stops[k - 1].pos, stops[k].pos)) stops[k].overVoid = true;
   const path = L.followLines(L.viaPortals(stops.filter((s, i) => i === 0 || L.dist(s.pos, stops[i - 1].pos) > 15 || i === stops.length - 1), portals), lines);
 
   // ---- the height grid (the collision's tops seen from above), for landmarks and the map

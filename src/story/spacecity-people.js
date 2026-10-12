@@ -235,4 +235,14 @@ export const THINGS = {
   },
 };
 
+/** The four places off the way (src/levels/space-city-detours.js; issue #233): one line each, looked at. */
+const detour = (id, name, title, color, line, prompt, leave = '~neutral~ (step back)') => ({ id: `spacecity.${id}`, name, title, color, voice: 0.6, prompt,
+  talk: { nodes: { look: { say: [line], choices: [{ text: leave, end: true }] } } } });
+export const DETOURS = {
+  telescope: detour('telescope', 'The telescope', 'at the Pier’s end', '#c08a44', '~curious~ (Through the brass eye: the far islands, a lamp on each, and nothing between them.)', 'look through the telescope'),
+  sapling: detour('sapling', 'A sapling in its pot', 'in the Garden', '#6e8a52', '~tired~ (Still in its carrying pot. The tag says: for the Balcony.)', 'look at the sapling'),
+  coil: detour('coil', 'A coil of old cable', 'on the high lanes', '#4f9a98', '~solemn~ (Old cable, its end frayed. The tag: the first one, the one that let go.)', 'look at the old cable'),
+  bench: detour('bench', 'The bench', 'on the washing tier', '#e89a7e', '~happy~ (A bench facing nothing but stars. Someone’s favourite seat.)', 'sit on the bench'),
+};
+
 export const LINES_AFTER = ['~happy~ The bridges don’t creak any more!', '~surprised~ Look at the cables, all lit.', '~solemn~ (she listens to the cables hum, one clear note)', '~playful~ No more drifting. Shame, I liked the exercise.'];

@@ -15,7 +15,8 @@ import {
   spaceMats, island, quarter, heap, bridge, railing, pipeStack, crownTree, lantern, resident, awning, laundry, poleCloth,
   SPACE_LOOK, SPACE_DAY, PLANET_TONE,
 } from './space-city-kit.js';
-import { buildCityWays, routeOf, STACK_BRIDGE, OPENINGS, ANCHOR, CAPSTAN, DRIFT, TIERS, corridors, inCorridor } from './space-city-ways.js';
+import { buildDetours } from './space-city-detours.js';
+import { buildCityWays, routeOf, STACK_BRIDGE, OPENINGS, ANCHOR, STAIR_LAMP, UNDER, CAPSTAN, DRIFT, TIERS, corridors, inCorridor } from './space-city-ways.js';
 
 // ---------------------------------------------------------------------------
 // The City Floating in Space (references/levels/The City Floating in Space/; its views in the References,
@@ -405,6 +406,8 @@ export function* buildSpaceCity(scene) {
   yield;
   const inits = [];
   const ways = buildCityWays(root, kitFor, { islands: decks, physicsInit: inits });
+  // (v1.60, issue #233: four places off the way, each a thing to look at: src/levels/space-city-detours.js)
+  const detours = buildDetours(decks, ways, ISLANDS);
 
   // ---------------------------------------------------------- finishing
   yield;
@@ -436,8 +439,10 @@ export function* buildSpaceCity(scene) {
     // the ways under, across and up (src/levels/space-city-ways.js): the drifted span the capstan reels home, the stack
     ways,
     drift: ways.drift,
+    detours: detours.detours,
     sights: [
       ...ways.sights,
+      ...detours.sights,
       { name: 'the Balcony’s railing over the void', at: [0, 0, I0.balcony.z - 16] },
       { name: 'the Garden’s overlook', at: [I0.garden.x - 14, I0.garden.y, I0.garden.z] },
       { name: 'the cables under the Towers', at: [I0.towers.x + 18, I0.towers.y, I0.towers.z] },
@@ -490,6 +495,8 @@ export function* buildSpaceCity(scene) {
       // (and from below, the lamp chain hung from the stack's roots into the void: hung, so its "foot", top − height, is
       // the underhouses' deck it hangs from, where the world's debug menu sets you down)
       { name: 'the lamp chain under the stack', top: [ways.chain.x, ways.chain.y, ways.chain.z], height: ways.chain.y - TIERS.s0.y },
+      // (v1.60, issue #233: the moorers' stair-lamp at the head of the way down off the Towers' north edge, on the stair's mast)
+      { name: 'the moorers’ stair-lamp', top: [STAIR_LAMP.x, STAIR_LAMP.y + 1, STAIR_LAMP.z], height: STAIR_LAMP.y + 1 - UNDER.y },
       { name: 'the Balcony’s lamp-mast', top: [MASTS.balcony[0], I0.balcony.y + BALCONY_MAST.h + 3, MASTS.balcony[1]], height: BALCONY_MAST.h + 3 },
       { name: 'the Market’s lamp-mast', top: [MASTS.market[0], I0.market.y + 35, MASTS.market[1]], height: 35 },
       { name: 'the Garden’s lamp-mast', top: [MASTS.garden[0], I0.garden.y + 31, MASTS.garden[1]], height: 31 },
@@ -501,7 +508,8 @@ export function* buildSpaceCity(scene) {
       { name: 'the Towers bridge', points: [[0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z]] },
       // (v1.57, issue #194: down the moorers' stair off the Towers' north edge to the anchor; out along the great cable to the
       // stack, up its stairs to the capstan quarter and over the broken bridge to the Moorings)
-      { name: 'down to the anchor', points: [[0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z], [100, 6, -99], ...wayPoints.down, [ANCHOR.x, ANCHOR.y, ANCHOR.z]] },
+      // (v1.60, issue #233: from the Balcony, where Madame Sel sends you on to the cables, back over the bridge to the Market)
+      { name: 'down to the anchor', points: [[0, 0, I0.balcony.z - 8], [0, 0, I0.balcony.z + 18.5], [0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z], [100, 6, -99], ...wayPoints.down, [ANCHOR.x, ANCHOR.y, ANCHOR.z]] },
       { name: 'up the stack', points: [[ANCHOR.x, ANCHOR.y, ANCHOR.z], ...wayPoints.up, [96, 14, I0.moorings.z + 8]] },
       { name: 'the Garden bridge', points: [[0, 0, I0.market.z], [I0.market.x - 36.5, 0, -66], [I0.garden.x + 19.5, -4, -62], [I0.garden.x, -4, I0.garden.z]] },
       // (v1.50, issue #132: home from the Mooring-House over the Lamp Rock to the Gate, the way Joss sends you)

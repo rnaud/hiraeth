@@ -2550,6 +2550,36 @@ the Crystal seen from the lookout, the winch's lamp seen from the pool and let d
 the lit vein by the stakes and the groves ringing, the drowned trunks closer and closer and off the courses, the skiff's
 way under the gates clear, the clearings by water).
 
+## Two blind legs guided, and places off the way (level design audit v1.59, issue #233; v1.60)
+
+The v1.59 audit left two blind legs on the route and two worlds whose optional places all lay on the way.
+- **The Floating City, Madame Sel → the cables under the Towers** (117 m). From the Balcony the stack stands right in
+  the line to the Towers' north edge (4 m off it), so nothing by the goal can be seen from there; the walk is back over
+  the bridge to the Market and over the Towers bridge, 1.9 times the straight line, which crosses the void. Two changes:
+  **the moorers' stair-lamp** (`STAIR_LAMP`, src/levels/space-city-ways.js): the iron mast the Towers' stair winds round
+  carried on up 32 m over the deck, a lamp on its head and a yard with two hung lamps, seen down the Towers' lane and from
+  the stack and the void (a beacon); and `down to the anchor`, the cables stage's `via`, starts on the Balcony now.
+  The audit follows a named line however far round the bridges go when the leg's straight line runs mostly over
+  nothing (`overVoid`, up to 2.5 times; elsewhere 1.6: the other ten worlds measure as before).
+- **Lorn, the crystal cave's heart → the Hush-House's door** (61 m). The measuring was wrong: the straight line runs
+  through the tube's wall, and the walk is out of the south mouth, where the keepers' stakes start, and round the shell
+  to the steps' stake (#179). The level's `mouths` (`CAVE_MOUTH`, `inCave`, src/levels/perdide.js) put a stop just
+  outside the mouth: heart → mouth (68 m, in sight down the tube), mouth → door (92 m, along the stakes). No landmark
+  was added: from the mouth the house is behind the cave's own shell, and nothing short of 70 m would show over it; the
+  stakes already lead. (The north mouth is as far from the door, unmarked.)
+- **Places off the way** (src/levels/space-city-detours.js, src/levels/spheres-detours.js; their lines `DETOURS` in
+  src/story/spacecity-people.js and spheres-data.js; a look each, `level.detours`, and a sight for the audit). In the
+  Floating City: a brass telescope at the Pier's end, a sapling in its carrying pot by the Garden's benches, a coil of
+  old cable on the stack's high lanes (50 m) and a bench on the washing tier (66 m) facing out past the stairs'
+  landings. In the Garden: a cairn at the head of the yellow sphere's furrow east of the landing, a ring of small stones
+  round the white monolith past the cracked moon, a fallen column drum before the empty arcade in the android wood, and
+  a lantern left lit at the white monolith north of the landing. All drawn after everything else with dice of their own.
+
+The audit: the Floating City's long legs guided 83 → 100 %, its pull 3 of 19 → 7 of 23 (16 → 30 %); Lorn's 89 →
+100 %; the Garden's pull 5 of 32 → 9 of 36 (16 → 25 %). The scores stay (optional 4: 5 wants 40 %). Tests:
+`tests/level-design-detours.test.js` (the void's slack, the cave walked out by its mouth, the stair-lamp clear of the
+great cable, every detour stood at on clear ground, walked to from the landing, with one toned line).
+
 ## The Buried Machine breathes (issue #168; v1.51)
 
 The author's pick of the level explorations (#164: `references/levels/The Buried Machine/environment/explorations/

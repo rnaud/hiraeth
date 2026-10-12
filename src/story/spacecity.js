@@ -11,7 +11,7 @@
 // is up the stack and over its broken bridge, whose drifted span the capstan reels home (src/levels/space-city-ways.js).
 
 import * as THREE from 'three';
-import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './spacecity-people.js';
+import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS, DETOURS } from './spacecity-people.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { setupSpaceCityMoments } from './spacecity-moments.js';
 
@@ -36,6 +36,13 @@ export function setupSpaceCity(ctx) {
     registerInteractable({ id: 'towerCables', priority: PRIORITY.use, range: 4.2, prompt: 'lay a hand on the cables', at: () => look,
       distance: (p) => (Math.abs(p.pos.y - at.y) < 3 ? Math.hypot(p.pos.x - at.x, p.pos.z - at.z) : Infinity),
       use: () => dialogue?.start?.(THINGS.cables, null, look) });
+  }
+  // the places off the way (src/levels/space-city-detours.js; issue #233): one line each
+  for (const d of level?.detours ?? []) {
+    const def = DETOURS[d.id], s = d.stand;
+    if (def) registerInteractable({ id: def.id, priority: PRIORITY.use, range: 2.6, prompt: def.prompt, at: () => d.look,
+      distance: (p) => (Math.abs(p.pos.y - s.y) < 2.5 ? Math.hypot(p.pos.x - s.x, p.pos.z - s.z) : Infinity),
+      use: () => dialogue?.start?.(def, null, s.clone(), d.look.clone()) });
   }
   // the capstan on the stack: A / × and the broken bridge's drifted span is reeled home (for good: the flag). Once the cables
   // are taut (the Mooring-House resolved) it stays home too.

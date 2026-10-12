@@ -15,6 +15,7 @@ import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, a
 import { SITE as FOOTPRINT, KEEPERS_STONE } from '../temples/spheres.js';
 import { printGeometry } from '../temples/pieces.js';
 import { furrowsAt, fallsGround, buildExplorations, inCrater, CRATERS, PILLARS, SPIRAL } from './spheres-explorations.js';
+import { buildDetours } from './spheres-detours.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -852,6 +853,8 @@ export function* buildSpheres(scene) {
   const open = (x, z) => !inCrater(x, z) && lakeE(x, z) > 1.1 && !onWay(x, z, 1);
   const EX = buildExplorations({ add, proxy, sphere, lake: LAYOUT.lake, M, H, terrain, reflect, orbs, W, scene, keep, open, makeMaterial, CRESCENT, WHITE_SHADE, MODE_WATER,
     levels: FALLS.levels, grass: terrain.mesh.material, shellInside: makeMaterial({ color: '#f1e8cc', glow: 0.45 }) });
+  // (v1.60, issue #233: four places off the way out in the meadow, each a thing to look at: src/levels/spheres-detours.js)
+  const DT = buildDetours({ add, proxy, M, H, makeMaterial });
   // the ways on: from the causeway's landing to the crater's stair; from its other stair to the first pillar's; and from
   // the last pillar's foot to the plaza's north mouth
   const CR = EX.craters.cracked, rimAt = (a, r) => [CR.x + Math.cos(a) * r, CR.z + Math.sin(a) * r];
@@ -1215,7 +1218,8 @@ export function* buildSpheres(scene) {
       { name: 'the cracked moon', at: new THREE.Vector3(EX.cracked.x + Math.cos(EX.cracked.face) * (EX.cracked.R + 1.5), EX.cracked.floor, EX.cracked.z + Math.sin(EX.cracked.face) * (EX.cracked.R + 1.5)) },
       { name: 'the founders’ mark', at: EX.cracked.mark.stand.clone() },
       { name: 'the terraces round the sphere west of the arch', at: new THREE.Vector3(...(() => { const C = EX.craters.chant, a = C.stairs[0]; return [C.x + Math.cos(a) * (C.rings[2] + 1), C.y0, C.z + Math.sin(a) * (C.rings[2] + 1)]; })()) },
-      ...EX.sights],
+      ...EX.sights, ...DT.sights],
+    detours: DT.detours,
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {
