@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -21,7 +21,7 @@ import org.json.JSONObject;
 // - rumble: one pulse on the pad's motors, { ms, strong, weak } (src/rumble.js, Rumbler; NATIVE_API 8);
 //   info's `rumble` says whether there is a pad that can shake.
 // check and download answer at once; the page follows with info and the
-// moebius:webupdate events.
+// hiraeth:webupdate events.
 final class AppShell {
     interface Reply {
         void ok(JSONObject value);

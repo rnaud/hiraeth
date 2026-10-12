@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.rnaud.moebius"
+    namespace = "com.rnaud.hiraeth"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.rnaud.moebius"
+        applicationId "com.rnaud.hiraeth"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // set by the release workflow: the run number, and the game's version from src/changelog.js

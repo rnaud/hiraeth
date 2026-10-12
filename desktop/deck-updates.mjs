@@ -1,6 +1,6 @@
 // The settings' Updates section on the Steam Deck: the same panel as the Android app's
 // (src/update-panel.js, src/updates.js), answered by the runtime instead of AppShellPlugin.
-// The page calls moebius://game/__app/<method> (src/native-app.js); desktop/main.mjs hands it here.
+// The page calls hiraeth://game/__app/<method> (src/native-app.js); desktop/main.mjs hands it here.
 //
 //   info      what runs, what the next launch would run, the last check, a download's progress,
 //             the update log: the same fields as Android's AppShell.info (platform 'deck')
@@ -27,7 +27,7 @@ const json = (text) => { try { return JSON.parse(text); } catch { return null; }
  * @param o.status    the last deck.py --status (or null): + checkedAt, game, runtimeFeed, gameError, offline
  * @param o.job       { kind: 'check' | 'download', running, error, plan, step, got }
  * @param o.desktop   this runtime's DESKTOP_API
- * @param o.restartedFor  the update a restart was for (MOEBIUS_RESTARTED_FOR): not offered again
+ * @param o.restartedFor  the update a restart was for (HIRAETH_RESTARTED_FOR): not offered again
  */
 export function deckInfo({ running, local, status, job = null, desktop, restartedFor = '', log = '' }) {
   local = local ?? { runtime: running.runtime, nextWeb: running.web, desktop };
@@ -85,7 +85,7 @@ export function plan(running, local, status, desktop) {
 export function deckUpdates({ root, deckPy, python = 'python3', running, desktop, run = spawn, now = () => Date.now(), env = process.env }) {
   const progressFile = path.join(root, '.update-progress.json');
   let status = null, local = null, localAt = 0, job = null;
-  const restartedFor = env.MOEBIUS_RESTARTED_FOR ?? '';
+  const restartedFor = env.HIRAETH_RESTARTED_FOR ?? '';
 
   const deck = (args, { stdout = 'pipe' } = {}) => new Promise((resolve) => {
     let out = '', err = '';

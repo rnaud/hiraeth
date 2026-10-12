@@ -1,4 +1,4 @@
-package com.rnaud.memento.gecko;
+package com.rnaud.hiraeth.gecko;
 
 import android.os.Handler;
 import android.os.Looper;

@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -69,7 +69,7 @@ public class UpdateRulesTest {
         assertEquals("https://x/web.json?t=5", UpdateRules.bust("https://x/web.json", 5));
         assertEquals("https://x/web.json?a=1&t=5", UpdateRules.bust("https://x/web.json?a=1", 5));
         assertEquals("https://github.com/rnaud/hiraeth/releases/tag/v0.56",
-            UpdateRules.pageFor("https://github.com/rnaud/hiraeth/releases/download/v0.56/moebius-v0.56.apk", "f"));
+            UpdateRules.pageFor("https://github.com/rnaud/hiraeth/releases/download/v0.56/hiraeth-v0.56.apk", "f"));
         assertEquals("f", UpdateRules.pageFor("https://example.com/a.apk", "f"));
         assertEquals("f", UpdateRules.pageFor(null, "f"));
     }
@@ -82,9 +82,9 @@ public class UpdateRulesTest {
         assertEquals("stage", UpdateRules.decide(545, WebBundles.WEB_MIN_NATIVE, 4, 117, false));   // an app from before, over its run-numbered build
         // the same commit's build as the APK's versionCode: nothing to take
         assertEquals("skip", UpdateRules.decide(541, WebBundles.WEB_MIN_NATIVE, WebBundles.NATIVE_API, 541, false));
-        assertTrue(WebBundles.MANIFEST.startsWith("https://memento.alexandria-rnaud.workers.dev/updates/"));
+        assertTrue(WebBundles.MANIFEST.startsWith("https://hiraeth.alexandria-rnaud.workers.dev/updates/"));
         // no release page on the site: the APK's page falls back to the releases (the author's)
-        assertEquals(WebBundles.RELEASES, UpdateRules.pageFor("https://memento.alexandria-rnaud.workers.dev/updates/web-545.zip", WebBundles.RELEASES));
+        assertEquals(WebBundles.RELEASES, UpdateRules.pageFor("https://hiraeth.alexandria-rnaud.workers.dev/updates/web-545.zip", WebBundles.RELEASES));
     }
 
     @Test

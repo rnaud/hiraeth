@@ -15,7 +15,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 
-const BUNDLES_JAVA = fileURLToPath(new URL('../android/app/src/main/java/com/rnaud/moebius/WebBundles.java', import.meta.url));
+const BUNDLES_JAVA = fileURLToPath(new URL('../android/app/src/main/java/com/rnaud/hiraeth/WebBundles.java', import.meta.url));
 const DESKTOP_MAIN = fileURLToPath(new URL('../desktop/main.mjs', import.meta.url));
 const XBOX_BUNDLES = fileURLToPath(new URL('../xbox/Hiraeth/WebBundles.cs', import.meta.url));
 const REPO = fileURLToPath(new URL('..', import.meta.url));
@@ -132,9 +132,9 @@ export function xboxDecision(manifest, { xbox, current, bad = [] }) {
 
 /** The Unity testers' builds (docs/systems/unity.md, "Building in GitHub Actions"): their releases, files and package. */
 export const UNITY_RELEASES = {
-  android: { tag: 'unity-android', file: 'memento-unity.apk', package: 'com.rnaud.memento.unity' },
-  linux: { tag: 'unity-linux', file: 'memento-unity-linux.tar.gz' },
-  xbox: { tag: 'unity-xbox', file: 'memento-unity-xbox.zip', package: 'rnaud.HiraethUnity' },
+  android: { tag: 'unity-android', file: 'hiraeth-unity.apk', package: 'com.rnaud.hiraeth.unity' },
+  linux: { tag: 'unity-linux', file: 'hiraeth-unity-linux.tar.gz' },
+  xbox: { tag: 'unity-xbox', file: 'hiraeth-unity-xbox.zip', package: 'rnaud.HiraethUnity' },
 };
 
 /**
@@ -146,16 +146,16 @@ export function unityNotes({ platform = 'android', sha, subject = '', version = 
   if (!r) throw new Error(`unknown platform: ${platform}`);
   const what = platform === 'android'
     ? `Hiraeth (Unity), for testing: the game's own JavaScript run inside Unity (the engine bridge) and drawn by Unity, on Android. `
-      + `Package \`${r.package}\`: it installs next to the Hiraeth app (\`com.rnaud.moebius\`) and never replaces it; each new build installs over the last (the same release key) and keeps its saves. `
+      + `Package \`${r.package}\`: it installs next to the Hiraeth app (\`com.rnaud.hiraeth\`) and never replaces it; each new build installs over the last (the same release key) and keeps its saves. `
       + `Download \`${r.file}\` below and open it on the device.`
     : platform === 'xbox'
       ? `Hiraeth (Unity), for measuring on an Xbox in Developer Mode: the engine bridge as a UWP app (IL2CPP x64, Direct3D 11, the game's JavaScript in Puerts' V8, relinked for UWP). `
         + `Package \`${r.package}\`: it installs next to the WebView2 app (\`rnaud.Hiraeth\`). `
         + `Download \`${r.file}\`, unpack it and add the \`.msix\` with its dependency \`.appx\` files in the Device Portal (docs/systems/xbox.md, "The Unity build on the Xbox"); its numbers are in LocalState\\unity.log.`
       : `Hiraeth (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, IL2CPP), for the Steam Deck. `
-        + `Download \`${r.file}\`, unpack it and run \`memento-js.x86_64\`.`;
+        + `Download \`${r.file}\`, unpack it and run \`hiraeth-js.x86_64\`.`;
   const from = `Built from commit ${sha ? `\`${sha.slice(0, 12)}\`` : '(unknown)'}${subject ? ` (${subject})` : ''}, web version v${version}${build ? `, build ${build}` : ''}, by ${by} on ${date}.`;
-  return `${what}\n\n${from}\n\nNot for players: the game itself is the Hiraeth app and https://memento.alexandria-rnaud.workers.dev/.`;
+  return `${what}\n\n${from}\n\nNot for players: the game itself is the Hiraeth app and https://hiraeth.alexandria-rnaud.workers.dev/.`;
 }
 
 /** A commit's web version (its newest changelog entry) and build number (its commit count, as gameBuild counts HEAD's). */
@@ -183,8 +183,8 @@ function main(what = 'version', ...args) {
   else if (what === 'notes') {
     console.log(`Hiraeth v${latest.v} (${latest.date}) for Android. Download the APK below and open it on the device to install; new versions install over the old one and keep your progress. Once installed, the app updates the game by itself when online, from the game's own site.\n`);
     console.log(newestFirst(latest).map((i) => `- ${lineText(i)}`).join('\n'));
-    console.log(`\nBefore and after pictures of what changed: https://memento.alexandria-rnaud.workers.dev/changelog.html#v${latest.v}`);
-    console.log('\nThe game runs fully offline. Built from the web version that is also playable at https://memento.alexandria-rnaud.workers.dev/.');
+    console.log(`\nBefore and after pictures of what changed: https://hiraeth.alexandria-rnaud.workers.dev/changelog.html#v${latest.v}`);
+    console.log('\nThe game runs fully offline. Built from the web version that is also playable at https://hiraeth.alexandria-rnaud.workers.dev/.');
   } else throw new Error(`unknown: ${what}`);
 }
 

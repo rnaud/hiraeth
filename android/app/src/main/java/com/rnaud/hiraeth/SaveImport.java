@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -23,17 +23,17 @@ import java.util.function.Consumer;
 // a hidden WebView opens a page of that same origin (served here, as Capacitor does, so nothing
 // leaves the device) that hands every key of its localStorage to the app; AssetServer then starts
 // the game's page with a script that writes them into GeckoView's storage (keys already there are
-// kept) and marks it done (moebius.imported.v1), and the page tells the app (content.js), which
+// kept) and marks it done (hiraeth.imported.v1), and the page tells the app (content.js), which
 // stops offering them. The WebView's storage itself is only read, never changed: the WebView
 // fallback (WebViewActivity) still finds the saves there.
 final class SaveImport {
-    static final String TAG = "MoebiusSaves";
+    static final String TAG = "HiraethSaves";
     static final String DONE = "savesImported";
-    static final String MARK = "moebius.imported.v1";
-    private static final String EXPORT_URL = "https://localhost/__memento-export.html";
+    static final String MARK = "hiraeth.imported.v1";
+    private static final String EXPORT_URL = "https://localhost/__hiraeth-export.html";
     private static final String EXPORT_PAGE = "<!doctype html><script>"
         + "const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k); }"
-        + "MementoExport.give(JSON.stringify(o));</script>";
+        + "HiraethExport.give(JSON.stringify(o));</script>";
 
     static boolean done(SharedPreferences prefs) { return prefs.getBoolean(DONE, false); }
 
@@ -68,7 +68,7 @@ final class SaveImport {
                 public void give(String json) {
                     try { once.accept(new JSONObject(json)); } catch (Exception e) { Log.w(TAG, "export", e); once.accept(null); }
                 }
-            }, "MementoExport");
+            }, "HiraethExport");
             w.setWebViewClient(new WebViewClient() {
                 @Override
                 public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
@@ -89,11 +89,11 @@ final class SaveImport {
     static String script(JSONObject saves) {
         String data = saves.toString().replace("<", "\\u003c");
         return "<script>(() => { try {"
-            + " if (localStorage.getItem('" + MARK + "')) { dispatchEvent(new CustomEvent('memento:imported', { detail: 'already' })); return; }"
+            + " if (localStorage.getItem('" + MARK + "')) { dispatchEvent(new CustomEvent('hiraeth:imported', { detail: 'already' })); return; }"
             + " const d = " + data + "; let n = 0;"
             + " for (const [k, v] of Object.entries(d)) if (localStorage.getItem(k) === null) { localStorage.setItem(k, v); n++; }"
             + " localStorage.setItem('" + MARK + "', String(Date.now()));"
-            + " dispatchEvent(new CustomEvent('memento:imported', { detail: String(n) }));"
+            + " dispatchEvent(new CustomEvent('hiraeth:imported', { detail: String(n) }));"
             + " } catch (e) { console.error('save import', e); } })();</script>";
     }
 }

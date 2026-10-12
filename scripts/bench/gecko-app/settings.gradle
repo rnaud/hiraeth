@@ -8,5 +8,5 @@ dependencyResolutionManagement {
         maven { url 'https://maven.mozilla.org/maven2/' }
     }
 }
-rootProject.name = 'memento-gecko'
+rootProject.name = 'hiraeth-gecko'
 include ':app'

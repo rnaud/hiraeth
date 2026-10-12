@@ -123,7 +123,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon assembleRelease
-          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/moebius-v${APP_VERSION_NAME}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/hiraeth-v${APP_VERSION_NAME}.apk"
 
       - name: The APK updater's manifest
         env:
@@ -133,7 +133,7 @@ jobs:
           # what the APK updater reads (android/.../Updater.java): this build's versionCode, its APK and native level.
           # (The game's own updates come from the game's site: cloudflare.yml, docs/cloudflare.md.)
           BASE="https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION"
-          node scripts/release-info.mjs latest-json "$BUILD" "$BASE/moebius-v$VERSION.apk" > "$RUNNER_TEMP/latest.json"
+          node scripts/release-info.mjs latest-json "$BUILD" "$BASE/hiraeth-v$VERSION.apk" > "$RUNNER_TEMP/latest.json"
           cat "$RUNNER_TEMP/latest.json"
 
       - name: Publish the release
@@ -142,7 +142,7 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           TAG="v$VERSION"
-          APK="$RUNNER_TEMP/moebius-v$VERSION.apk"
+          APK="$RUNNER_TEMP/hiraeth-v$VERSION.apk"
           # retried on a transient error (scripts/retry.sh): v1.35's release was refused once, 403, and never made.
           # The whole publish is retried, so a release an earlier attempt made is updated, not made twice.
           . scripts/retry.sh
@@ -162,8 +162,8 @@ jobs:
 
       - uses: actions/upload-artifact@v5
         with:
-          name: moebius-apk
-          path: ${{ runner.temp }}/moebius-v${{ steps.meta.outputs.version }}.apk
+          name: hiraeth-apk
+          path: ${{ runner.temp }}/hiraeth-v${{ steps.meta.outputs.version }}.apk
 
       - name: Commit status (the outcome)
         if: always()

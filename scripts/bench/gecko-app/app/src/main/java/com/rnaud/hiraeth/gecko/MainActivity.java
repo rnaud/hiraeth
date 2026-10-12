@@ -1,4 +1,4 @@
-package com.rnaud.memento.gecko;
+package com.rnaud.hiraeth.gecko;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -26,12 +26,12 @@ import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 
 // The game in GeckoView (Mozilla's engine, shipped inside the APK) instead of the system WebView: a
-// side-by-side test app (com.rnaud.moebius.gecko, "Memento (Gecko)") for measuring it on the handheld
+// side-by-side test app (com.rnaud.hiraeth.gecko, "Hiraeth (Gecko)") for measuring it on the handheld
 // (docs/benchmark-web-vs-unity.md, "On the Retroid: GeckoView"). What the WebView app does natively is
 // done here the Gecko way: the page's bridge (Capacitor.nativePromise, the gamepad, pause / resume) goes
 // through a built-in WebExtension's native port (assets/ext/), not addJavascriptInterface.
 //
-// Intent extras (adb shell am start -n com.rnaud.moebius.gecko/com.rnaud.memento.gecko.MainActivity --es url …):
+// Intent extras (adb shell am start -n com.rnaud.hiraeth.gecko/com.rnaud.hiraeth.gecko.MainActivity --es url …):
 //   url     the page: http://localhost:6253/ (the Mac, through adb reverse) by default; "bundled:/path"
 //           serves the game from the APK's assets on http://127.0.0.1:6281/ (AssetServer);
 //           resource://… loads as given
@@ -39,7 +39,7 @@ import java.nio.charset.StandardCharsets;
 //   pad     false: no PadBridge (Gecko's own Gamepad API sees the controls instead)
 //   precise false: Gecko's default timer precision (the bench turns its rounding off)
 public class MainActivity extends Activity {
-    private static final String TAG = "MementoGecko";
+    private static final String TAG = "HiraethGecko";
     static final int NATIVE_API = 1;
     private static GeckoRuntime runtime;
     private static AssetServer server;
@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
         hideSystemBars();
 
         final String start = url;
-        runtime.getWebExtensionController().ensureBuiltIn("resource://android/assets/ext/", "bridge@memento.rnaud").accept(ext -> {
+        runtime.getWebExtensionController().ensureBuiltIn("resource://android/assets/ext/", "bridge@hiraeth.rnaud").accept(ext -> {
             session.getWebExtensionController().setMessageDelegate(ext, new WebExtension.MessageDelegate() {
                 @Override
                 public void onConnect(WebExtension.Port p) {
@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
                         @Override public void onDisconnect(WebExtension.Port from) { if (port == from) port = null; }
                     });
                 }
-            }, "memento");
+            }, "hiraeth");
             session.loadUri(start);
         }, e -> { Log.e(TAG, "bridge extension", e); session.loadUri(start); });
     }
@@ -155,7 +155,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         if (pad != null) pad.reset();
-        event("moebius:pause");
+        event("hiraeth:pause");
         if (session != null) session.setActive(false);
         super.onPause();
     }
@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
         super.onResume();
         hideSystemBars();
         if (session != null) session.setActive(true);
-        event("moebius:resume");
+        event("hiraeth:resume");
     }
 
     @Override

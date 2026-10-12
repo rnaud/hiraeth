@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import android.content.res.AssetManager;
 import android.util.Log;
@@ -33,7 +33,7 @@ import java.util.Map;
 // Once, for the first launch in GeckoView, every index.html also starts with the saves copied from
 // the WebView (SaveImport: setImport) until the page says it has written them.
 final class AssetServer {
-    static final String TAG = "MoebiusServer";
+    static final String TAG = "HiraethServer";
     private static final Map<String, String> TYPES = new HashMap<>();
     static {
         String[][] t = { {"html", "text/html; charset=utf-8"}, {"js", "text/javascript"}, {"mjs", "text/javascript"}, {"css", "text/css"},
@@ -60,12 +60,12 @@ final class AssetServer {
             while (!socket.isClosed()) {
                 try {
                     Socket c = socket.accept();
-                    Thread w = new Thread(() -> serve(c), "moebius-asset");
+                    Thread w = new Thread(() -> serve(c), "hiraeth-asset");
                     w.setDaemon(true);
                     w.start();
                 } catch (IOException e) { if (!socket.isClosed()) Log.w(TAG, "accept", e); }
             }
-        }, "moebius-asset-server");
+        }, "hiraeth-asset-server");
         t.setDaemon(true);
         t.start();
     }

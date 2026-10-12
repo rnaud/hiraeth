@@ -3,8 +3,8 @@
 //     a virtual host mapping, so the saves (the page's storage, under that origin) stay across updates;
 //   - the page told it runs here before its scripts (window.__hiraethXbox, and "HiraethXbox/<api>" in the user
 //     agent: src/xbox.js), so it picks the Xbox prompts, preset and the TV's safe area;
-//   - the system's Back (the B button) kept from closing the app: the page gets moebius:back instead;
-//   - leaving the app (the guide, another app, standby) pauses the game's sound: moebius:pause / moebius:resume,
+//   - the system's Back (the B button) kept from closing the app: the page gets hiraeth:back instead;
+//   - leaving the app (the guide, another app, standby) pauses the game's sound: hiraeth:pause / hiraeth:resume,
 //     as Android sends them (src/audio-guard.js);
 //   - the settings' update section answered over web messages (src/xbox.js xboxCall: info, check, download, restart);
 //   - a downloaded build that doesn't boot in time goes back to the packaged one (the boot watch);
@@ -183,7 +183,7 @@ namespace Hiraeth
             info["tvSafe"] = JsonValue.CreateBooleanValue(true);
             info["memory"] = JsonValue.CreateNumberValue(MemoryManager.AppMemoryUsageLimit / 1048576);   // (MB: about 1024 as an App, 5000 as a Game)
             return "window.__hiraethXbox = " + info.Stringify() + ";"
-                + "if (window.__moebiusAway === undefined) window.__moebiusAway = false;"
+                + "if (window.__hiraethAway === undefined) window.__hiraethAway = false;"
                 // (the old Xbox WebView turned the pad into mouse and keys unless asked not to; harmless where unknown)
                 + "try { navigator.gamepadInputEmulation = 'gamepad'; } catch (e) {}";
         }
@@ -225,7 +225,7 @@ namespace Hiraeth
         {
             var timer = bootWatch;
             string booted = "false";
-            try { booted = await core.ExecuteScriptAsync("window.__moebiusBooted === true"); } catch { }
+            try { booted = await core.ExecuteScriptAsync("window.__hiraethBooted === true"); } catch { }
             if (timer != bootWatch) return;   // (a newer load started meanwhile)
             if (booted == "true")
             {
@@ -294,9 +294,9 @@ namespace Hiraeth
         void OnBack(object sender, BackRequestedEventArgs e)
         {
             // Handled: the system doesn't close or suspend the game. The page reads B itself (the Gamepad API);
-            // moebius:back is its fallback when no pad reaches it (src/xbox.js backFallback).
+            // hiraeth:back is its fallback when no pad reaches it (src/xbox.js backFallback).
             e.Handled = true;
-            if (core != null) { _ = core.ExecuteScriptAsync("window.dispatchEvent(new Event('moebius:back'))"); }
+            if (core != null) { _ = core.ExecuteScriptAsync("window.dispatchEvent(new Event('hiraeth:back'))"); }
         }
 
         // ------------------------------------------------------------------ away and back (App: EnteredBackground / LeavingBackground)
@@ -324,8 +324,8 @@ namespace Hiraeth
         Task Send(bool on)
         {
             var js = on
-                ? "window.__moebiusAway = true; window.dispatchEvent(new Event('moebius:pause'));"
-                : "window.__moebiusAway = false; window.dispatchEvent(new Event('moebius:resume'));";
+                ? "window.__hiraethAway = true; window.dispatchEvent(new Event('hiraeth:pause'));"
+                : "window.__hiraethAway = false; window.dispatchEvent(new Event('hiraeth:resume'));";
             return core.ExecuteScriptAsync(js).AsTask();
         }
 

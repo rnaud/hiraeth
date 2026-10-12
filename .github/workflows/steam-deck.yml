@@ -62,8 +62,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          digest=$(gh api repos/${{ github.repository }}/releases/tags/unity-linux --jq '.assets[] | select(.name == "memento-unity-linux.tar.gz") | .digest' || true)
-          case "$digest" in sha256:*) echo "unity-linux: $digest" ;; *) echo "::warning::no memento-unity-linux.tar.gz with a digest on the release unity-linux: the Deck's Unity preview won't install" ;; esac
+          digest=$(gh api repos/${{ github.repository }}/releases/tags/unity-linux --jq '.assets[] | select(.name == "hiraeth-unity-linux.tar.gz") | .digest' || true)
+          case "$digest" in sha256:*) echo "unity-linux: $digest" ;; *) echo "::warning::no hiraeth-unity-linux.tar.gz with a digest on the release unity-linux: the Deck's Unity preview won't install" ;; esac
 
       - name: Build the offline game and Linux runtime
         env:
@@ -86,16 +86,16 @@ jobs:
           sudo apt-get install -y xvfb libnss3 libatk-bridge2.0-0 libgtk-3-0 libgbm1 libasound2
           # The hosted runner cannot provide Chromium's normal user sandbox.
           # Only this CI invocation disables it; installed games keep it enabled.
-          MOEBIUS_SMOKE=1 timeout 150s xvfb-run -a output/steam-deck/moebius-linux-x64/moebius \
+          HIRAETH_SMOKE=1 timeout 150s xvfb-run -a output/steam-deck/hiraeth-linux-x64/hiraeth \
             --no-sandbox --use-angle=swiftshader --enable-unsafe-swiftshader
 
       - uses: actions/upload-artifact@v5
         with:
-          name: moebius-steam-deck
+          name: hiraeth-steam-deck
           path: |
             output/steam-deck/*.tar.gz
             output/steam-deck/steam-deck.json
-            output/steam-deck/install-moebius.py
+            output/steam-deck/install-hiraeth.py
 
       - name: Publish package, then advance the update feed
         env:
@@ -112,7 +112,7 @@ jobs:
               || gh release view steam-deck >/dev/null   # (made by an attempt that reported a failure: fine)
           fi
           retry gh release upload steam-deck output/steam-deck/*.tar.gz --clobber
-          retry gh release upload steam-deck output/steam-deck/install-moebius.py --clobber
+          retry gh release upload steam-deck output/steam-deck/install-hiraeth.py --clobber
           retry gh release upload steam-deck output/steam-deck/steam-deck.json --clobber
 
       - name: Commit status (the outcome)

@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -61,7 +61,7 @@ final class Updater {
                 // offline, rate-limited, no release yet or out of reach: play on (the settings can look again)
                 if (web != null) web.apkChecked(e);
             }
-        }, "moebius-update-check").start();
+        }, "hiraeth-update-check").start();
     }
 
     private long currentCode() throws Exception {
@@ -72,7 +72,7 @@ final class Updater {
     private void offer(String name, String apk) {
         if (activity.isFinishing()) return;
         new AlertDialog.Builder(activity)
-            .setTitle("Memento v" + name + " is available")
+            .setTitle("Hiraeth v" + name + " is available")
             .setMessage("Download and install it now? Your progress is kept.")
             .setPositiveButton("Update", (d, w) -> download(apk))
             .setNegativeButton("Later", null)
@@ -85,19 +85,19 @@ final class Updater {
             try {
                 File dir = new File(activity.getCacheDir(), "updates");
                 dir.mkdirs();
-                File file = new File(dir, "moebius-update.apk");
+                File file = new File(dir, "hiraeth-update.apk");
                 try (OutputStream out = new FileOutputStream(file)) { out.write(fetch(apk, 200 * 1024 * 1024)); }
                 ui.post(() -> install(file));
             } catch (Exception e) {
                 ui.post(() -> Toast.makeText(activity, "The update could not be downloaded.", Toast.LENGTH_LONG).show());
             }
-        }, "moebius-update-download").start();
+        }, "hiraeth-update-download").start();
     }
 
     private void install(File file) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.getPackageManager().canRequestPackageInstalls()) {
-            // first time: let Memento install updates, then come back and choose Update again
-            Toast.makeText(activity, "Allow Memento to install updates, then choose Update again.", Toast.LENGTH_LONG).show();
+            // first time: let Hiraeth install updates, then come back and choose Update again
+            Toast.makeText(activity, "Allow Hiraeth to install updates, then choose Update again.", Toast.LENGTH_LONG).show();
             activity.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + activity.getPackageName())));
             return;
         }
@@ -137,7 +137,7 @@ final class Updater {
             c.setUseCaches(false);
             c.setConnectTimeout(10000);
             c.setReadTimeout(30000);
-            c.setRequestProperty("User-Agent", "moebius-android");
+            c.setRequestProperty("User-Agent", "hiraeth-android");
             c.setRequestProperty("Cache-Control", "no-cache");
             c.setRequestProperty("Pragma", "no-cache");
             if (from > 0) c.setRequestProperty("Range", "bytes=" + from + "-");

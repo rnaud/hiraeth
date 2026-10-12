@@ -37,7 +37,7 @@ class SteamDeckTests(unittest.TestCase):
     def bundle(self, build, malicious=None, web=600, desktop=1):
         source = self.home / f'{build}.tar.gz'
         files = {
-            'moebius': b'#!/bin/sh\nexit 0\n',
+            'hiraeth': b'#!/bin/sh\nexit 0\n',
             'resources/app/deck.py': b'# updater',
             'resources/app/main.mjs': b'// game',
             'resources/app/game/index.html': b'<html>game</html>',
@@ -50,11 +50,11 @@ class SteamDeckTests(unittest.TestCase):
             for name, data in files.items():
                 item = tarfile.TarInfo(name)
                 item.size = len(data)
-                item.mode = 0o755 if name == 'moebius' else 0o644
+                item.mode = 0o755 if name == 'hiraeth' else 0o644
                 archive.addfile(item, io.BytesIO(data))
             if malicious:
                 archive.addfile(malicious, io.BytesIO(b'x' * malicious.size))
-        manifest = {'build': build, 'version': '0.34', 'url': deck.BASE_URL + f'moebius-steam-deck-{build}.tar.gz',
+        manifest = {'build': build, 'version': '0.34', 'url': deck.BASE_URL + f'hiraeth-steam-deck-{build}.tar.gz',
                     'sha256': hashlib.sha256(source.read_bytes()).hexdigest()}
         return manifest, lambda _manifest, target: shutil.copyfile(source, target)
 
@@ -107,7 +107,7 @@ class SteamDeckTests(unittest.TestCase):
         one, fetch = self.bundle(1001)
         self.assertTrue(deck.install_update(self.root, one, fetch))
         self.assertEqual(deck.installed_build(self.root), 1001)
-        self.assertTrue((self.root / 'current/moebius').stat().st_mode & 0o111)
+        self.assertTrue((self.root / 'current/hiraeth').stat().st_mode & 0o111)
         self.assertFalse(deck.install_update(self.root, one, fetch))
         two, fetch = self.bundle(2001)
         self.assertTrue(deck.install_update(self.root, two, fetch))
@@ -213,7 +213,7 @@ class ContentUpdateTests(unittest.TestCase):
         return manifest, lambda _manifest, target: shutil.copyfile(source, target)
 
     def test_the_site_is_the_feed(self):
-        self.assertEqual(deck.CONTENT_MANIFEST_URL, 'https://memento.alexandria-rnaud.workers.dev/updates/web.json')
+        self.assertEqual(deck.CONTENT_MANIFEST_URL, 'https://hiraeth.alexandria-rnaud.workers.dev/updates/web.json')
         self.assertTrue(deck.MANIFEST_URL.startswith('https://' + 'github.com/rnaud/hiraeth/releases/download/steam-deck/'),
                         'the runtime package stays on the release (by hand once the repository is private)')
 
@@ -225,8 +225,8 @@ class ContentUpdateTests(unittest.TestCase):
         self.assertEqual((game / 'index.html').read_text(), '<html>game 601</html>')
         self.assertEqual(json.loads((game / 'bundle.json').read_text())['build'], 601)
         self.assertEqual(deck.choose_content(self.root, self.current), game)
-        self.assertEqual(deck.game_env(game)['MOEBIUS_GAME'], str(game))
-        self.assertNotIn('MOEBIUS_GAME', deck.game_env(None))
+        self.assertEqual(deck.game_env(game)['HIRAETH_GAME'], str(game))
+        self.assertNotIn('HIRAETH_GAME', deck.game_env(None))
         self.assertFalse(deck.install_content(self.root, manifest, fetch), 'already here')
         self.assertFalse(list((self.root / 'web').glob('.download-*')))
 
@@ -321,7 +321,7 @@ class ContentUpdateTests(unittest.TestCase):
         seen = {}
 
         def run(command, env, ready, log):
-            seen['env'] = env.get('MOEBIUS_GAME')
+            seen['env'] = env.get('HIRAETH_GAME')
             with (self.root / 'web/601/.in-use').open('a') as lock:
                 with self.assertRaises(BlockingIOError):
                     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -335,12 +335,12 @@ class ContentUpdateTests(unittest.TestCase):
         runtime, _ = self.bundle(3001)
         folder = self.home / 'Downloads'
         folder.mkdir()
-        shutil.copyfile(self.home / '3001.tar.gz', folder / 'moebius-steam-deck-3001.tar.gz')
+        shutil.copyfile(self.home / '3001.tar.gz', folder / 'hiraeth-steam-deck-3001.tar.gz')
         (folder / 'steam-deck.json').write_text(json.dumps(runtime))
         manifest, copy = deck.local_package(folder)
         self.assertTrue(deck.install_update(self.root, manifest, copy))
         self.assertEqual(deck.installed_build(self.root), 3001)
-        (folder / 'moebius-steam-deck-3001.tar.gz').unlink()
+        (folder / 'hiraeth-steam-deck-3001.tar.gz').unlink()
         with self.assertRaises(ValueError):
             deck.local_package(folder)
 
@@ -450,15 +450,15 @@ class SettingsUpdateTests(unittest.TestCase):
         calls = []
 
         def run(command, env, ready, log):
-            calls.append(env['MOEBIUS_ROOT'])
-            self.assertEqual(env['MOEBIUS_PYTHON'], sys.executable)
+            calls.append(env['HIRAETH_ROOT'])
+            self.assertEqual(env['HIRAETH_PYTHON'], sys.executable)
             (self.root / '.restart').write_text('601\n')
             return 'restart', deck.RESTART_EXIT, True
         relaunched = []
         with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), patch.dict(os.environ, {}, clear=False):
-            os.environ.pop('MOEBIUS_RESTARTED_FOR', None)
+            os.environ.pop('HIRAETH_RESTARTED_FOR', None)
             deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append)
-            self.assertEqual(os.environ['MOEBIUS_RESTARTED_FOR'], '601')
+            self.assertEqual(os.environ['HIRAETH_RESTARTED_FOR'], '601')
         self.assertEqual(calls, [str(self.root)])
         self.assertEqual(relaunched[0][1:], [str((self.root / 'current').resolve() / 'resources/app/deck.py'), '--launch', '--x'])
         self.assertFalse((self.root / '.restart').exists())
@@ -485,7 +485,7 @@ class SteamArtTests(unittest.TestCase):
 
     def test_the_shortcuts_app_id_names_the_art(self):
         appid = deck.shortcut_appid(self.root)
-        self.assertEqual(appid, zlib.crc32((f'"{self.root / "launch"}"' + 'Moebius').encode()) | 0x80000000)
+        self.assertEqual(appid, zlib.crc32((f'"{self.root / "launch"}"' + 'Hiraeth').encode()) | 0x80000000)
         preview = deck.unity_appid(self.root)
         self.assertEqual(deck.shortcut_appids(self.config, self.root), [appid, preview])
         self.assertEqual(deck.install_art(self.root, [self.config], self.app), 10, 'the game\'s art for both shortcuts')
@@ -506,7 +506,7 @@ class SteamArtTests(unittest.TestCase):
         self.assertEqual((self.config / f'grid/{appid}_hero.png').read_bytes(), b'the player\'s own hero')
         self.assertEqual((self.config / f'grid/{appid}.png').read_bytes(), b'new art steam/wide.png')
 
-    def old_shortcut(self, name='Moebius', icon=''):
+    def old_shortcut(self, name='', icon=''):
         document = deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes())
         entry = deck.field(deck.field(document, 'shortcuts'), '0')
         deck.set_field(entry, 'AppName', name, lambda _old: True)
@@ -518,7 +518,7 @@ class SteamArtTests(unittest.TestCase):
         document = deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes())
         return deck.field(deck.field(document, 'shortcuts'), '0')
 
-    def test_the_old_moebius_shortcut_is_renamed_hiraeth_with_its_icon(self):
+    def test_a_nameless_shortcut_is_named_hiraeth_with_its_icon(self):
         self.old_shortcut()
         self.assertTrue(deck.shortcut_stale(self.config, self.root))
         self.assertTrue(deck.add_shortcut(self.config, self.root))
@@ -529,27 +529,27 @@ class SteamArtTests(unittest.TestCase):
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
 
-    def test_memento_shortcut_keeps_its_id_when_renamed(self):
-        self.old_shortcut(name='Memento', icon='/some/icon.png')
+    def test_a_named_shortcut_keeps_its_id_and_gets_an_icon(self):
+        self.old_shortcut(name='Hiraeth')
         original_id = deck.field(self.entry(), 'appid')
         self.assertTrue(deck.shortcut_stale(self.config, self.root))
         self.assertTrue(deck.add_shortcut(self.config, self.root))
         self.assertEqual(deck.field(self.entry(), 'AppName'), 'Hiraeth')
         self.assertEqual(deck.field(self.entry(), 'appid'), original_id)
-        self.assertEqual(deck.field(self.entry(), 'icon'), '/some/icon.png')
+        self.assertEqual(deck.field(self.entry(), 'icon'), str(self.root / 'icon.png'))
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
 
     def test_a_name_the_player_chose_is_kept(self):
-        self.old_shortcut(name='My Moebius game', icon='/some/icon.png')
+        self.old_shortcut(name='My game', icon='/some/icon.png')
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
-        self.assertEqual(deck.field(self.entry(), 'AppName'), 'My Moebius game')
+        self.assertEqual(deck.field(self.entry(), 'AppName'), 'My game')
 
     def test_the_update_renames_only_while_steam_is_closed(self):
         self.old_shortcut()
         with patch.object(deck, 'steam_running', return_value=True):
             deck.steam_entry(self.root, [self.config])
-        self.assertEqual(deck.field(self.entry(), 'AppName'), 'Moebius')
+        self.assertEqual(deck.field(self.entry(), 'AppName'), '')
         deck.steam_entry(self.root, [self.config])
         self.assertEqual(deck.field(self.entry(), 'AppName'), 'Hiraeth')
 
@@ -581,11 +581,11 @@ class LaunchTests(unittest.TestCase):
     def test_steam_overlay_is_kept_out_of_chromium(self):
         steam = '/home/deck/.local/share/Steam'
         base = {'LD_PRELOAD': f'{steam}/ubuntu12_32/gameoverlayrenderer.so:{steam}/ubuntu12_64/gameoverlayrenderer.so',
-                'HOME': '/home/deck', 'MOEBIUS_GPU': 'stale'}
+                'HOME': '/home/deck', 'HIRAETH_GPU': 'stale'}
         env = deck.game_env(None, 'vulkan', self.ready, base=base)
         self.assertNotIn('LD_PRELOAD', env)
-        self.assertEqual((env['MOEBIUS_GPU'], env['MOEBIUS_READY'], env['HOME']), ('vulkan', str(self.ready), '/home/deck'))
-        self.assertNotIn('MOEBIUS_GAME', env)
+        self.assertEqual((env['HIRAETH_GPU'], env['HIRAETH_READY'], env['HOME']), ('vulkan', str(self.ready), '/home/deck'))
+        self.assertNotIn('HIRAETH_GAME', env)
         self.assertEqual(deck.without_overlay(f'/opt/libfoo.so {steam}/ubuntu12_64/gameoverlayrenderer.so'), '/opt/libfoo.so')
 
     def test_gaming_mode_is_told_from_the_desktop(self):
@@ -620,7 +620,7 @@ class LaunchTests(unittest.TestCase):
         modes = []
 
         def run(command, env, ready, log):
-            modes.append(env['MOEBIUS_GPU'])
+            modes.append(env['HIRAETH_GPU'])
             return ('ended', -5, True)
         with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
             with self.assertRaises(SystemExit) as done:
@@ -661,8 +661,8 @@ class LaunchTests(unittest.TestCase):
         modes = []
 
         def run(command, env, ready, log):
-            modes.append(env['MOEBIUS_GPU'])
-            return ('retry', -11, False) if env['MOEBIUS_GPU'] == 'gl' else ('quit', 0, True)
+            modes.append(env['HIRAETH_GPU'])
+            return ('retry', -11, False) if env['HIRAETH_GPU'] == 'gl' else ('quit', 0, True)
         env = {key: value for key, value in os.environ.items() if key not in ('GAMESCOPE_WAYLAND_DISPLAY', 'XDG_CURRENT_DESKTOP')}
         with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), \
                 patch.dict(os.environ, {**env, 'XDG_CURRENT_DESKTOP': 'gamescope'}, clear=True):
@@ -721,7 +721,7 @@ class PreviewShortcutTests(unittest.TestCase):
         self.assertEqual(deck.field(preview[0], 'AppName'), 'Hiraeth (Unity preview)')
         self.assertEqual(deck.field(preview[0], 'icon'), str(self.root / 'icon.png'))
         # the game's id exactly as before; the preview's from its own launcher and name
-        self.assertEqual(deck.field(main[0], 'appid'), zlib.crc32((f'"{self.root / "launch"}"' + 'Moebius').encode()) | 0x80000000)
+        self.assertEqual(deck.field(main[0], 'appid'), zlib.crc32((f'"{self.root / "launch"}"' + 'Hiraeth').encode()) | 0x80000000)
         self.assertEqual(deck.field(preview[0], 'appid'),
                          zlib.crc32((f'"{self.root / "launch-unity"}"' + 'Hiraeth (Unity preview)').encode()) | 0x80000000)
         self.assertNotEqual(deck.shortcut_appid(self.root), deck.unity_appid(self.root))
@@ -779,10 +779,10 @@ class PreviewShortcutTests(unittest.TestCase):
         self.assertIn('/current/resources/app/deck.py', script)
         self.assertTrue(script.rstrip().endswith('--launch-unity "$@"'))
         self.assertTrue((self.root / 'launch').read_text().rstrip().endswith(' --launch "$@"'))
-        entry = (self.home / '.local/share/applications/moebius-unity.desktop').read_text()
+        entry = (self.home / '.local/share/applications/hiraeth-unity.desktop').read_text()
         self.assertIn('Name=Hiraeth (Unity preview)\n', entry)
         self.assertIn(f'Exec="{self.root / "launch-unity"}"', entry)
-        self.assertIn('Name=Hiraeth\n', (self.home / '.local/share/applications/moebius.desktop').read_text())
+        self.assertIn('Name=Hiraeth\n', (self.home / '.local/share/applications/hiraeth.desktop').read_text())
 
 
 class UnityPlayerTests(unittest.TestCase):
@@ -795,15 +795,15 @@ class UnityPlayerTests(unittest.TestCase):
         self.count = 0
 
     def player(self, top='bridge-linux', extra=(), files=None):
-        """A fake memento-unity-linux.tar.gz: its release JSON (the asset GitHub lists) and a downloader."""
+        """A fake hiraeth-unity-linux.tar.gz: its release JSON (the asset GitHub lists) and a downloader."""
         self.count += 1
         source = self.home / f'player-{self.count}.tar.gz'
         prefix = f'{top}/' if top else ''
         files = files or {
-            'memento-js.x86_64': (b'#!/bin/sh\n' + str(self.count).encode(), 0o644),   # (made executable on install)
+            'hiraeth-js.x86_64': (b'#!/bin/sh\n' + str(self.count).encode(), 0o644),   # (made executable on install)
             'UnityPlayer.so': (b'so', 0o755),
-            'memento-js_Data/data.unity3d': (b'data', 0o644),
-            'memento-js_BackUpThisFolder_ButDontShipItWithYourGame/huge.cpp': (b'x' * 100, 0o644),
+            'hiraeth-js_Data/data.unity3d': (b'data', 0o644),
+            'hiraeth-js_BackUpThisFolder_ButDontShipItWithYourGame/huge.cpp': (b'x' * 100, 0o644),
         }
         with tarfile.open(source, 'w:gz') as archive:
             for name, (data, mode) in files.items():
@@ -827,10 +827,10 @@ class UnityPlayerTests(unittest.TestCase):
     def test_the_release_json_names_the_player(self):
         release, _ = self.player()
         manifest = deck.unity_manifest(release)
-        self.assertEqual(manifest['url'], 'https://github.com/rnaud/hiraeth/releases/download/unity-linux/memento-unity-linux.tar.gz')
+        self.assertEqual(manifest['url'], 'https://github.com/rnaud/hiraeth/releases/download/unity-linux/hiraeth-unity-linux.tar.gz')
         self.assertEqual(manifest['sha256'], release['assets'][1]['digest'][7:])
         asset = release['assets'][1]
-        for bad in ({'browser_download_url': 'https://example.com/memento-unity-linux.tar.gz'}, {'digest': None},
+        for bad in ({'browser_download_url': 'https://example.com/hiraeth-unity-linux.tar.gz'}, {'digest': None},
                     {'digest': 'md5:abc'}, {'size': 0}, {'size': deck.MAX_ARCHIVE + 1}, {'name': 'other.tar.gz'}):
             with self.assertRaises(ValueError):
                 deck.unity_manifest({'assets': [{**asset, **bad}]})
@@ -853,8 +853,8 @@ class UnityPlayerTests(unittest.TestCase):
         self.assertTrue(changed)
         current = (self.root / 'unity/current').resolve()
         self.assertEqual(current.name, first['sha256'][:12])
-        self.assertTrue((current / 'memento-js.x86_64').stat().st_mode & 0o111, 'executable')
-        self.assertTrue((current / 'memento-js_Data/data.unity3d').is_file())
+        self.assertTrue((current / 'hiraeth-js.x86_64').stat().st_mode & 0o111, 'executable')
+        self.assertTrue((current / 'hiraeth-js_Data/data.unity3d').is_file())
         self.assertFalse(list(current.glob('*_BackUpThisFolder_ButDontShipItWithYourGame')), 'the build\'s leftovers stay out')
         self.assertEqual(deck.unity_installed(self.root)['sha256'], first['sha256'])
         self.assertFalse(deck.install_unity(self.root, first, lambda *_: self.fail('not downloaded again')))
@@ -872,7 +872,7 @@ class UnityPlayerTests(unittest.TestCase):
             fcntl.flock(pin, fcntl.LOCK_SH)
             self.install()
             self.install()
-            self.assertTrue((self.root / 'unity' / first['sha256'][:12] / 'memento-js.x86_64').is_file())
+            self.assertTrue((self.root / 'unity' / first['sha256'][:12] / 'hiraeth-js.x86_64').is_file())
         self.install()
         self.assertFalse((self.root / 'unity' / first['sha256'][:12]).exists())
 
@@ -946,7 +946,7 @@ class LaunchUnityTests(unittest.TestCase):
         self.assertEqual(seen['env']['TMPDIR'], str(self.root / 'unity-cache'))
         self.assertEqual(seen['env']['XDG_CONFIG_HOME'], str(self.root / 'unity-data'))
         self.assertTrue((self.root / 'unity-cache').is_dir() and (self.root / 'unity-data').is_dir())
-        self.assertEqual(seen['command'], [str(player / 'memento-js.x86_64'), '-screen-fullscreen', '1', '-screen-width', '1280',
+        self.assertEqual(seen['command'], [str(player / 'hiraeth-js.x86_64'), '-screen-fullscreen', '1', '-screen-width', '1280',
                                            '-screen-height', '800', '-logFile', str(self.root / 'unity-data/player.log'),
                                            '-level', 'desert'])
         self.assertNotIn('-mute', seen['command'])
@@ -955,7 +955,7 @@ class LaunchUnityTests(unittest.TestCase):
 
     def test_no_player_yet_installs_it_first(self):
         seen = self.launch(install=lambda root: self.install()[1])
-        self.assertTrue(seen['command'][0].endswith('/memento-js.x86_64'))
+        self.assertTrue(seen['command'][0].endswith('/hiraeth-js.x86_64'))
         self.assertIn('downloading', (self.root / 'unity-launch.log').read_text())
 
     def test_no_player_and_no_network_exits_with_a_line(self):

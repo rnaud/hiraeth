@@ -1,7 +1,7 @@
 # Cloudflare Workers deployment
 
-The browser game is served by an Cloudflare Worker named `memento`, at
-https://memento.alexandria-rnaud.workers.dev/. It publishes the Vite `dist/` build; a small Worker streams large update archives, while normal game files use static asset serving.
+The browser game is served by a Cloudflare Worker named `hiraeth`, at
+https://hiraeth.alexandria-rnaud.workers.dev/. It publishes the Vite `dist/` build; a small Worker streams large update archives, while normal game files use static asset serving.
 No database or Cloudflare Vite plugin is needed. The game, character
 studio, Motion page, models, and other assets ship together. Only `dist/` is uploaded,
 not the repository or its history.
@@ -53,6 +53,14 @@ changelog's pictures (`changelog-media/`, copied in after the content update), t
 `node scripts/references-site.mjs dist`, from `.cache/references-site/` kept by `actions/cache`;
 `docs/systems/references.md` "On the site"). `npm run check:deployment` fetches every file eight at a time.
 
+**The rename (issue #130, v1.54).** The Worker was named `memento` until v1.54
+(https://memento.alexandria-rnaud.workers.dev/). `wrangler deploy` makes the `hiraeth` Worker on its first run
+(its Durable Object and rate limits with it); the old one is left as it was and no longer updated, so the apps
+and Deck installs that read their updates from it keep their last build. The Notes page's secrets don't move
+with a Worker: they go up with the deploy from the repository's secrets (`HIRAETH_ISSUES_TOKEN`,
+`HIRAETH_NOTES_PASSWORD`, [notes.md](systems/notes.md)), or are set on the new Worker by hand. The old Worker
+can be deleted in the dashboard once nothing needs it.
+
 ## One-time account setup
 
 The private [Notes page](systems/notes.md) uses this same Worker for `/api/notes/*`, backed by GitHub
@@ -61,7 +69,7 @@ They are not needed to serve the game or its updates. Without them the notebook 
 Its screenshot drafts live in a SQLite Durable Object (`NotesDrafts`, binding `NOTES_DRAFTS` in `wrangler.jsonc`),
 created by `wrangler deploy` from the migration there; nothing to set up by hand.
 
-1. In Cloudflare, select the account that should own `memento`. Check that the
+1. In Cloudflare, select the account that should own `hiraeth`. Check that the
    name is not already used by another application in that account.
 2. Create an API token for GitHub Actions, scoped to that account, with
    **Account → Workers Scripts → Edit**. Cloudflare's **Edit Cloudflare Workers**
@@ -123,7 +131,7 @@ Actions secrets: keep Actions enabled and check the account's private-repository
 Actions minutes. Never put a GitHub token in a game client.
 
 What stays on GitHub releases, and is then only for the author (logged in): the APK
-(`latest.json` and `moebius-v<version>.apk`) and the Steam Deck runtime package
+(`latest.json` and `hiraeth-v<version>.apk`) and the Steam Deck runtime package
 (`steam-deck` release). Browser saves are per origin: the Cloudflare address does not
 inherit saves from `rnaud.github.io`, and GitHub Pages stops serving a private repository
 on a free plan.
@@ -131,7 +139,7 @@ on a free plan.
 ### Before the flip: what must have reached the devices
 
 1. **Merge and push this change.** `cloudflare.yml` publishes `/updates/web.json` (check
-   it: `curl https://memento.alexandria-rnaud.workers.dev/updates/web.json`). The Android
+   it: `curl https://hiraeth.alexandria-rnaud.workers.dev/updates/web.json`). The Android
    workflow publishes the NATIVE_API 5 APK (versionCode now the commit count, above 117)
    with `latest.json` `native: 5`, and still a GitHub `web.json` for older apps. The Steam
    Deck workflow publishes a runtime whose `deck.py` reads the site.
@@ -142,11 +150,11 @@ on a free plan.
    playing the game it has.
 3. **Every Steam Deck: launch the game twice.** The first launch downloads the new runtime
    in the background (from GitHub, by today's updater), the second runs it; from then on
-   `~/.local/share/moebius-deck/update.log` shows `game: …` lines and `web/<build>/`
+   `~/.local/share/hiraeth-deck/update.log` shows `game: …` lines and `web/<build>/`
    appears after the next push. A Deck that misses this keeps playing its game; it can be
    updated by hand later (`deck.py --from`, `docs/steam-deck.md`).
 4. **Browser players**: tell them the address changes to
-   https://memento.alexandria-rnaud.workers.dev/ and that browser saves don't move.
+   https://hiraeth.alexandria-rnaud.workers.dev/ and that browser saves don't move.
 
 ### After the flip: remove from the workflows
 

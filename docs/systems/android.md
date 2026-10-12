@@ -16,15 +16,20 @@ the game in its own engine, GeckoView, and in the system WebView only where that
   native level) and, for apps up to NATIVE_API 4 only, `web-<build>.zip` + `web.json`, all from
   `scripts/release-info.mjs`. Newer apps take the game's updates from the site (see "Game updates
   from the site"). Download
-  `moebius-v<version>.apk` from the repository's Releases page and open it on
+  `hiraeth-v<version>.apk` from the repository's Releases page and open it on
   the device to install. Allow installing from your browser or file manager
   the first time.
 - **Signing:** one fixed release key, so new builds install over old ones and
   keep your progress. The key is in the repository secrets
-  `ANDROID_KEYSTORE_BASE64` (a PKCS#12 keystore, alias `moebius`) and
+  `ANDROID_KEYSTORE_BASE64` (a PKCS#12 keystore, alias `moebius`, its original name: the key keeps it) and
   `ANDROID_KEYSTORE_PASSWORD`. A local backup is in `.local-tools/android-signing/`,
   which is git-ignored. Keep it: losing the key means the next APK has to
   replace the app with an uninstall, which deletes your saves.
+- **The app id** is `com.rnaud.hiraeth` since v1.54 (issue #130; up to v1.53 `com.rnaud.moebius`, its
+  updates from the old Worker). Another id is another app: the new one installs beside the old one (the same
+  key, so its own updates install over it), starts with a fresh save, and the old app gets no more game
+  updates. Its APK offer still works (`latest.json`'s `native` 9 is above its 8), so the old app offers the
+  new one; after installing it, uninstall the old app.
 - **The app** runs fullscreen and immersive in landscape, keeps the screen on,
   and plays sound without an extra tap. `versionName` is the game version and
   `versionCode` is the build number (`release-info.mjs build`: the commit count; up to 117 it was
@@ -65,7 +70,7 @@ land on the commit it built.
   - The new build is used from the next launch, or right away with *restart now*
     in the settings. The settings also show what's running (`web build 14 · app 12`).
   - Capacitor serves it at the same `https://localhost` origin, so saves are shared.
-  - A build that doesn't reach its first frame (`window.__moebiusBooted`) within
+  - A build that doesn't reach its first frame (`window.__hiraethBooted`) within
     30 s falls back to the game in the APK and is never tried again.
   - Old builds are deleted.
 - **APK updates** (`Updater.java`) are offered only when the native side changed,
@@ -80,7 +85,7 @@ land on the commit it built.
   controls, stops the sound and pauses the page. Coming back restores fullscreen
   and the sound. On a handheld the sound starts with the first controller input.
   (How it stays silent since NATIVE_API 7: "Silent while away" below.)
-- **Testing a debug build:** `adb shell am start -n com.rnaud.moebius/.MainActivity
+- **Testing a debug build:** `adb shell am start -n com.rnaud.hiraeth/.MainActivity
   --es webManifest <url>`. Debug builds otherwise skip over-the-air updates.
 
 ### Game updates from the site (NATIVE_API 5)
@@ -97,7 +102,7 @@ updates now come from the Cloudflare site that serves the web game:
   (workflows check out with `fetch-depth: 0`). The APK's versionCode (the build the app carries),
   the site's web bundle and the Deck package's game all get it from their commit, so an app
   compares a downloaded bundle with its own. It started above the last run-numbered APK (117).
-- **The app** (`WebBundles.MANIFEST`) reads `https://memento.alexandria-rnaud.workers.dev/updates/web.json`.
+- **The app** (`WebBundles.MANIFEST`) reads `https://hiraeth.alexandria-rnaud.workers.dev/updates/web.json`.
   `NATIVE_API` is 5; the web game still needs only 4 (`WEB_MIN_NATIVE`, the bundle's
   `minNative`), so apps from before keep their updates from GitHub until the repository is
   private, while `latest.json`'s `native` 5 offers them the new APK at launch.
@@ -127,15 +132,15 @@ does better still, but the app can't use it.
   in the WebView. The server serves the APK's `assets/public/` or a downloaded bundle
   (`WebBundles.Host.serve`), revalidated by ETags made of the build served.
 - **The bridge.** GeckoView has no `addJavascriptInterface` / `evaluateJavascript`: a built-in
-  WebExtension (`assets/memento-ext/`, a content script at `document_start` with a native port)
+  WebExtension (`assets/hiraeth-ext/`, a content script at `document_start` with a native port)
   gives the page `window.Capacitor` (`isNativePlatform`, `nativePromise` → `AppShell.java`, shared
   with `AppShellPlugin`), the controls (`GamepadBridge` → `window.__nativePad`), the app's events
-  (`moebius:pause` / `resume` / `webupdate`) and answers WebBundles' boot heartbeat. The page side
+  (`hiraeth:pause` / `resume` / `webupdate`) and answers WebBundles' boot heartbeat. The page side
   (`src/native-app.js`, `src/native-pad.js`) is unchanged.
 - **Saves, once** (`SaveImport`): on the first launch in GeckoView a hidden WebView opens a page of
   Capacitor's origin that hands its localStorage to the app, and the game's next page starts with a
   script that writes those keys into GeckoView's storage (keys already there are kept) and marks it
-  done (`moebius.imported.v1`). The WebView's storage is only read: the WebView fallback still has
+  done (`hiraeth.imported.v1`). The WebView's storage is only read: the WebView fallback still has
   the saves as they were.
 - **Gecko settings** (its config file, `writeConfig`): autoplay allowed (sound without a tap), no
   slow-script stop (`dom.max_script_run_time` 0, and `onSlowScript` → CONTINUE: GeckoView's default
@@ -158,9 +163,9 @@ running AudioContext is an "awake request", and `dom.suspend_inactive.enabled`, 
 Android, then leaves the page alone). So only the page could stop it, and it did so only in a world
 that had finished loading (`installAppShell`, near the end of `main.js`): the title screen's sound,
 a world still loading (12 s and more on the handheld) and the bell's own AudioContext in Vael II
-were never suspended. And the session was deactivated before `moebius:pause` was even sent.
+were never suspended. And the session was deactivated before `hiraeth:pause` was even sent.
 - **The page** (`src/audio-guard.js`, installed first in `src/boot.js` and by every `Sound`): one
-  guard per page. Away = `moebius:pause` until `moebius:resume` (`window.__moebiusAway` for a page
+  guard per page. Away = `hiraeth:pause` until `hiraeth:resume` (`window.__hiraethAway` for a page
   that starts while away), or the page hidden or frozen (in a browser too: a hidden tab is silent).
   It wraps the page's `AudioContext`, so every context is registered; going away suspends them all,
   `resume()` does nothing while away (it resumes on return instead), a context made while away is
@@ -170,10 +175,10 @@ were never suspended. And the session was deactivated before `moebius:pause` was
 - **GeckoView** (`MainActivity.goAway` / `comeBack`): `onPause`, `onStop` and the screen-off
   broadcast all go away, once. The tab is muted by the engine (`MediaSession.muteAudio`, with a
   media-session delegate set so GeckoView's media control runs: nothing is heard whatever the page
-  does), the page is sent `moebius:pause` with an id, and the session goes unfocused and inactive
+  does), the page is sent `hiraeth:pause` with an id, and the session goes unfocused and inactive
   when the content script answers (it answers right after the page's handlers ran) or after
   `PAUSE_WAIT_MS` (400 ms). `onResume`, or the screen coming on over a resumed app, undoes it.
-- **The WebView** (`WebViewActivity`): the same three triggers; `moebius:pause` first, then
+- **The WebView** (`WebViewActivity`): the same three triggers; `hiraeth:pause` first, then
   `onPause()` and `pauseTimers()` when the script has run; `resumeTimers()` on return; a page that
   loads while away is told again (`onPageLoaded`).
 - **Not used:** muting a stream with `AudioManager.adjustStreamVolume` changes the device's media
@@ -224,7 +229,7 @@ The update section (`src/update-panel.js`, its words in `src/updates.js`, the ap
   played (`onBeforeRestart`), and restarts at the title in the new build. Saves live in the
   page's storage at `https://localhost`, which every build shares; nothing in the update path
   touches it (`tests/android-ota.test.js`).
-- *Details* shows the app's update log (the last 40 steps, also in logcat as `MoebiusOTA`).
+- *Details* shows the app's update log (the last 40 steps, also in logcat as `HiraethOTA`).
 - Apps from before NATIVE_API 4 only get the old line and *Restart now*; new web builds need
   NATIVE_API 4, so those apps are offered the new APK first.
 - Tests: `tests/updates.test.js` (the states, versions, the title-screen switch),
@@ -264,7 +269,7 @@ open the game downloads every theme it hasn't got from the site, in the backgrou
 IndexedDB for good (`src/music-store.js`; how it works: `docs/systems/audio.md`, "The themes on a device").
 No Java change: the page does it all, through the loopback origin's own storage. The site sends
 `Access-Control-Allow-Origin: *` on `/music/*` (`public/_headers`, itself site-only), since the game's
-origin (127.0.0.1:41730, moebius://game) is another one; `scripts/check-deployment.mjs` checks it.
+origin (127.0.0.1:41730, hiraeth://game) is another one; `scripts/check-deployment.mjs` checks it.
 
 Installs from before kept every theme inside their bundle (the APK's assets, or a downloaded
 `filesDir/web/<build>/`), and `WebBundles.cleanup()` deletes the old bundle when the next one starts, so

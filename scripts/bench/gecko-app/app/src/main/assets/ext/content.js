@@ -4,19 +4,19 @@
 // WebView build has:
 //   - window.Capacitor: isNativePlatform() and nativePromise(plugin, method, args), answered by the app;
 //   - window.__nativePad(name, axes, buttons) called with the handheld's controls (PadBridge.java);
-//   - the moebius:pause / moebius:resume events when the app leaves and comes back.
+//   - the hiraeth:pause / hiraeth:resume events when the app leaves and comes back.
 const PAGE = `(() => {
   let n = 0; const wait = new Map();
-  window.addEventListener('memento:reply', (e) => {
+  window.addEventListener('hiraeth:reply', (e) => {
     const { id, ok, value } = JSON.parse(e.detail); const w = wait.get(id); if (!w) return;
     wait.delete(id); if (ok) w[0](value); else w[1](new Error(value));
   });
-  window.addEventListener('memento:pad', (e) => { const [id, axes, buttons] = JSON.parse(e.detail); window.__nativePad?.(id, axes, buttons); });
+  window.addEventListener('hiraeth:pad', (e) => { const [id, axes, buttons] = JSON.parse(e.detail); window.__nativePad?.(id, axes, buttons); });
   window.Capacitor = {
     isNativePlatform: () => true, getPlatform: () => 'android', engine: 'gecko',
     nativePromise: (plugin, method, args) => new Promise((res, rej) => {
       const id = ++n; wait.set(id, [res, rej]);
-      window.dispatchEvent(new CustomEvent('memento:call', { detail: JSON.stringify({ id, plugin, method, args: args ?? {} }) }));
+      window.dispatchEvent(new CustomEvent('hiraeth:call', { detail: JSON.stringify({ id, plugin, method, args: args ?? {} }) }));
     }),
   };
 })();`;
@@ -25,10 +25,10 @@ s.textContent = PAGE;
 (document.head ?? document.documentElement).appendChild(s);
 s.remove();
 
-const port = browser.runtime.connectNative('memento');
-window.addEventListener('memento:call', (e) => port.postMessage({ call: JSON.parse(e.detail) }));
+const port = browser.runtime.connectNative('hiraeth');
+window.addEventListener('hiraeth:call', (e) => port.postMessage({ call: JSON.parse(e.detail) }));
 port.onMessage.addListener((m) => {
-  if (m.pad) window.dispatchEvent(new CustomEvent('memento:pad', { detail: JSON.stringify([m.pad.id, m.pad.axes, m.pad.buttons]) }));
-  else if (m.reply) window.dispatchEvent(new CustomEvent('memento:reply', { detail: JSON.stringify(m.reply) }));
+  if (m.pad) window.dispatchEvent(new CustomEvent('hiraeth:pad', { detail: JSON.stringify([m.pad.id, m.pad.axes, m.pad.buttons]) }));
+  else if (m.reply) window.dispatchEvent(new CustomEvent('hiraeth:reply', { detail: JSON.stringify(m.reply) }));
   else if (m.event) window.dispatchEvent(new Event(m.event));
 });

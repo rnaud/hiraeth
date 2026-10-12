@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -42,11 +42,11 @@ import org.json.JSONObject;
 // APK; it looks for one at launch and each time the app comes back to the front);
 // APK updates for native changes come from GitHub releases (Updater); the game's
 // own updates from its site (WebBundles.MANIFEST).
-// Leaving the app (onPause, onStop, the screen turning off) tells the page first (moebius:pause:
+// Leaving the app (onPause, onStop, the screen turning off) tells the page first (hiraeth:pause:
 // its guard, src/audio-guard.js, suspends every sound), then, once the script has run or after
 // MainActivity.PAUSE_WAIT_MS, pauses the WebView and its timers; coming back restores it.
 public class WebViewActivity extends BridgeActivity {
-    private static final String TAG = "MoebiusWebView";
+    private static final String TAG = "HiraethWebView";
     private GamepadBridge pad;
     private static long renderGoneAt;
     WebBundles bundles;
@@ -92,7 +92,7 @@ public class WebViewActivity extends BridgeActivity {
                 if (dir != null) bridge.setServerBasePath(dir); else bridge.setServerAssetPath(Bridge.DEFAULT_WEB_ASSET_DIR);
             }
             @Override public void booted(java.util.function.Consumer<Boolean> answer) {
-                bridge.getWebView().evaluateJavascript("window.__moebiusBooted===true", (v) -> answer.accept("true".equals(v)));
+                bridge.getWebView().evaluateJavascript("window.__hiraethBooted===true", (v) -> answer.accept("true".equals(v)));
             }
             @Override public void event(String name, JSONObject detail) {
                 bridge.eval("window.dispatchEvent(new CustomEvent(" + JSONObject.quote(name) + ",{detail:" + detail + "}))", null);
@@ -122,8 +122,8 @@ public class WebViewActivity extends BridgeActivity {
         ContextCompat.registerReceiver(this, screen, f, ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
-    static final String PAUSE_JS = "window.__moebiusAway=true;window.dispatchEvent(new Event('moebius:pause'));true";
-    static final String RESUME_JS = "window.__moebiusAway=false;window.dispatchEvent(new Event('moebius:resume'));true";
+    static final String PAUSE_JS = "window.__hiraethAway=true;window.dispatchEvent(new Event('hiraeth:pause'));true";
+    static final String RESUME_JS = "window.__hiraethAway=false;window.dispatchEvent(new Event('hiraeth:resume'));true";
 
     /**
      * Home, the recents, the power button, sleep: let go of the controls, tell the page (its sound
@@ -141,7 +141,7 @@ public class WebViewActivity extends BridgeActivity {
         ui.postDelayed(deactivate, MainActivity.PAUSE_WAIT_MS);   // (a page that doesn't answer)
     }
 
-    /** the page has handled moebius:pause (or didn't in time): the WebView and its timers pause */
+    /** the page has handled hiraeth:pause (or didn't in time): the WebView and its timers pause */
     private void deactivateNow() {
         ui.removeCallbacks(deactivate);
         if (!pausing || !away || getBridge() == null) return;

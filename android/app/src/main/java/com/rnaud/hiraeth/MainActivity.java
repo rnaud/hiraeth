@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -56,9 +56,9 @@ import java.util.function.Consumer;
 // - The page: http://127.0.0.1:PORT/ from the app's loopback server (AssetServer: the game built
 //   into the APK, or a downloaded bundle, WebBundles), one fixed origin for the saves.
 // - The page's bridge: GeckoView has no addJavascriptInterface; a built-in WebExtension
-//   (assets/memento-ext/) holds a native port and gives the page window.Capacitor
+//   (assets/hiraeth-ext/) holds a native port and gives the page window.Capacitor
 //   (nativePromise → AppShell), the controls (GamepadBridge → window.__nativePad), the app's events
-//   (moebius:pause / resume / webupdate) and the boot heartbeat for WebBundles' watchdog.
+//   (hiraeth:pause / resume / webupdate) and the boot heartbeat for WebBundles' watchdog.
 // - The saves made in the WebView before are copied in once (SaveImport).
 // - Immersive, the screen kept awake, sound without a tap first (autoplay allowed), no slow-script
 //   stop (the WebView never stops a long script either), no pinch zoom.
@@ -66,19 +66,19 @@ import java.util.function.Consumer;
 // - Links elsewhere open in the system browser.
 // - Away (onPause, onStop, the screen turning off) the tab is muted by the engine itself
 //   (MediaSession.muteAudio: nothing is heard whatever the page does; Gecko keeps a page that plays
-//   Web Audio running in the background), the page is told (moebius:pause: its guard,
+//   Web Audio running in the background), the page is told (hiraeth:pause: its guard,
 //   src/audio-guard.js, suspends every sound) and, once it answers or after PAUSE_WAIT_MS, the
 //   session goes inactive and unfocused. onResume (or the screen back on over a resumed app) undoes it.
 // Where GeckoView can't run (not arm64, Android before 8, or GeckoView failed to start here before)
 // the WebView version takes over (WebViewActivity), with the saves it has.
 public class MainActivity extends Activity {
-    static final String TAG = "MoebiusGecko";
+    static final String TAG = "HiraethGecko";
     /** the game's origin in GeckoView: never change it (the saves are stored under it) */
     static final int PORT = 41730;
     static final String ORIGIN = "http://127.0.0.1:" + PORT;
-    static final String EXTENSION = "resource://android/assets/memento-ext/";
-    static final String EXTENSION_ID = "bridge@memento.rnaud";
-    /** how long the page has to answer moebius:pause before the session is deactivated anyway */
+    static final String EXTENSION = "resource://android/assets/hiraeth-ext/";
+    static final String EXTENSION_ID = "bridge@hiraeth.rnaud";
+    /** how long the page has to answer hiraeth:pause before the session is deactivated anyway */
     static final long PAUSE_WAIT_MS = 400;
 
     private static GeckoRuntime runtime;
@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false;
         boolean arm64 = false;
         for (String abi : Build.SUPPORTED_ABIS) if ("arm64-v8a".equals(abi)) arm64 = true;
-        return arm64 && !a.getSharedPreferences("moebius.engine", MODE_PRIVATE).getBoolean("geckoFailed", false);
+        return arm64 && !a.getSharedPreferences("hiraeth.engine", MODE_PRIVATE).getBoolean("geckoFailed", false);
     }
 
     private boolean debuggable() { return (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0; }
@@ -118,7 +118,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         Intent in = getIntent();
         if (!usable(this) || (in != null && in.getBooleanExtra("webview", false))) { toWebView(); return; }
-        prefs = getSharedPreferences("moebius.engine", MODE_PRIVATE);
+        prefs = getSharedPreferences("hiraeth.engine", MODE_PRIVATE);
 
         // what to serve (as the WebView: a pending bundle promoted, a bad one dropped)
         bundles = new WebBundles(this);
@@ -157,7 +157,7 @@ public class MainActivity extends Activity {
         } catch (Throwable t) {
             // GeckoView's libraries didn't load: never again on this device
             Log.e(TAG, "GeckoView didn't start", t);
-            getSharedPreferences("moebius.engine", MODE_PRIVATE).edit().putBoolean("geckoFailed", true).commit();
+            getSharedPreferences("hiraeth.engine", MODE_PRIVATE).edit().putBoolean("geckoFailed", true).commit();
             toWebView();
             return;
         }
@@ -240,9 +240,9 @@ public class MainActivity extends Activity {
                         @Override public void onPortMessage(Object message, WebExtension.Port from) { onPage(message, from); }
                         @Override public void onDisconnect(WebExtension.Port from) { if (port == from) port = null; }
                     });
-                    if (away) post(json("event", "moebius:pause"));   // a page that started while the app is away: silent too
+                    if (away) post(json("event", "hiraeth:pause"));   // a page that started while the app is away: silent too
                 }
-            }, "memento");
+            }, "hiraeth");
             extensionReady = true;
             maybeLoad();
         }, e -> { Log.e(TAG, "the bridge extension didn't install", e); extensionReady = true; maybeLoad(); });
@@ -369,12 +369,12 @@ public class MainActivity extends Activity {
         if (port != null) {
             int id = pauseAsk = ++nextAsk;
             asks.put(id, (ok) -> deactivateNow());
-            post(json("event", "moebius:pause", "id", id));
+            post(json("event", "hiraeth:pause", "id", id));
         }
         ui.postDelayed(deactivate, PAUSE_WAIT_MS);   // (a page that doesn't answer: busy, or not loaded yet)
     }
 
-    /** the page has handled moebius:pause (or didn't answer in time): the session goes inactive */
+    /** the page has handled hiraeth:pause (or didn't answer in time): the session goes inactive */
     private void deactivateNow() {
         ui.removeCallbacks(deactivate);
         if (pauseAsk != 0) { asks.remove(pauseAsk); pauseAsk = 0; }
@@ -395,7 +395,7 @@ public class MainActivity extends Activity {
         session.setActive(true);
         session.setFocused(true);
         if (media != null) media.muteAudio(false);
-        post(json("event", "moebius:resume"));
+        post(json("event", "hiraeth:resume"));
         bundles.onResume();
     }
 

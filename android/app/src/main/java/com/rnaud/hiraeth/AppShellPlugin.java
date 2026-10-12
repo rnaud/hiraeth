@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;

@@ -3,7 +3,7 @@
   "name": "Hiraeth bridge",
   "version": "1.0",
   "description": "The page's way to the app in GeckoView (MainActivity): Capacitor.nativePromise, the gamepad, pause and resume, the boot heartbeat, the save import",
-  "browser_specific_settings": { "gecko": { "id": "bridge@memento.rnaud" } },
+  "browser_specific_settings": { "gecko": { "id": "bridge@hiraeth.rnaud" } },
   "content_scripts": [
     { "matches": ["http://127.0.0.1/*", "http://localhost/*"], "js": ["content.js"], "run_at": "document_start", "all_frames": false }
   ],

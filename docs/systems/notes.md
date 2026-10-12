@@ -16,19 +16,23 @@ there are no automatic write retries. If delivery is uncertain, refresh the list
 
 ## Worker setup
 
-The existing `memento` Worker handles `/api/notes/*` before static assets. The API is fixed to
+The existing `hiraeth` Worker handles `/api/notes/*` before static assets. The API is fixed to
 `rnaud/hiraeth`; it cannot proxy arbitrary repositories. `worker/issues.js` uses GitHub's Issues API.
 
-Add two **Worker secrets**, not Vite variables, GitHub Actions variables, or source files:
+Add two **Worker secrets**, never Vite variables, GitHub Actions variables, or source files:
 
 - `HIRAETH_ISSUES_TOKEN`: a fine-grained GitHub token for **only rnaud/hiraeth**, with **Issues: read/write**.
   No contents-write or workflow permission is needed. Ensure Issues are enabled for the repository.
 - `HIRAETH_NOTES_PASSWORD`: a nonempty notebook password (a unique, strong password is recommended). Save it in
   your password manager. This is the password you enter on the Notes page, never the GitHub token.
 
-Use the Cloudflare dashboard → Workers & Pages → memento → Settings → Variables and Secrets → Secret,
-or the hidden prompts below from an authenticated terminal. Do not paste either value into a chat,
-commit it, or pass it as a command-line argument.
+The simplest way: add both as **repository secrets** too (Settings → Secrets and variables → Actions, the
+same names). Every deploy then uploads them with the Worker's version (`cloudflare.yml`: `wrangler deploy
+--secrets-file`, a file written from the environment and deleted after, never a command-line argument or the
+log), so a new Worker, or a rotated secret, is set by the next push. Without them the deploy warns and the
+Worker keeps the secrets it has. Or set them on the Worker itself: the Cloudflare dashboard → Workers & Pages →
+hiraeth → Settings → Variables and Secrets → Secret, or the hidden prompts below from an authenticated
+terminal. Do not paste either value into a chat, commit it, or pass it as a command-line argument.
 
 ```sh
 npx wrangler secret put HIRAETH_ISSUES_TOKEN
@@ -36,7 +40,7 @@ npx wrangler secret put HIRAETH_NOTES_PASSWORD
 ```
 
 Deploy through the existing Cloudflare workflow so the game's update archives are preserved (see
-`docs/cloudflare.md`). The notebook lives at https://memento.alexandria-rnaud.workers.dev/notes.
+`docs/cloudflare.md`). The notebook lives at https://hiraeth.alexandria-rnaud.workers.dev/notes.
 Copies on GitHub Pages or in a native bundle offer a link to that address, rather than trying to send
 credentials cross-origin. Local development uses `wrangler dev` on localhost with a git-ignored
 `.dev.vars` containing test credentials; Vite alone does not serve the API.

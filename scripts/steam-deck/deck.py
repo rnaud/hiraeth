@@ -5,7 +5,7 @@ Two kinds of update, both checked in the background at each launch:
 - the game itself (content): the same web bundle the Android app takes, from the
   game's site (CONTENT_MANIFEST_URL, published by the Cloudflare deploy). It is
   verified, unpacked to web/<build>/ and served by the runtime from the next launch
-  (desktop/main.mjs, MOEBIUS_GAME), unless it needs a newer runtime (minDesktop).
+  (desktop/main.mjs, HIRAETH_GAME), unless it needs a newer runtime (minDesktop).
 - the runtime (Electron, main.mjs, this updater, a packaged copy of the game): from the
   game's site too (RUNTIME_SITE_URL, in parts: scripts/deck-runtime.mjs), else the
   steam-deck GitHub release; a package downloaded by hand installs with --from (docs/steam-deck.md).
@@ -41,23 +41,23 @@ import zlib
 BASE_URL = 'https://github.com/rnaud/hiraeth/releases/download/steam-deck/'
 MANIFEST_URL = BASE_URL + 'steam-deck.json'
 # The game's content updates, next to the web game (scripts/web-update.mjs)
-CONTENT_URL = 'https://memento.alexandria-rnaud.workers.dev/updates/'
+CONTENT_URL = 'https://hiraeth.alexandria-rnaud.workers.dev/updates/'
 CONTENT_MANIFEST_URL = CONTENT_URL + 'web.json'
 # ... and the runtime there, in parts (scripts/deck-runtime.mjs)
 RUNTIME_SITE_URL = CONTENT_URL + 'steam-deck.json'
-ROOT = Path.home() / '.local/share/moebius-deck'
+ROOT = Path.home() / '.local/share/hiraeth-deck'
 MAX_ARCHIVE = 1024 * 1024 * 1024
 MAX_CONTENT = 300 * 1024 * 1024
 # The Unity preview's player: the asset of the unity-linux release, read from GitHub's API
 UNITY_RELEASE_URL = 'https://api.github.com/repos/rnaud/hiraeth/releases/tags/unity-linux'
-UNITY_ASSET = 'memento-unity-linux.tar.gz'
+UNITY_ASSET = 'hiraeth-unity-linux.tar.gz'
 UNITY_ASSET_URL = 'https://github.com/rnaud/hiraeth/releases/download/unity-linux/' + UNITY_ASSET
-UNITY_PLAYER = 'memento-js.x86_64'
+UNITY_PLAYER = 'hiraeth-js.x86_64'
 # (the build's own leftovers, not for shipping: never unpacked)
 UNITY_SKIP = ('_BackUpThisFolder_ButDontShipItWithYourGame', '_BurstDebugInformation_DoNotShip')
 # The two Steam shortcuts, each known by its launcher (its Exe): the game, and the Unity preview
 MAIN_NAME, UNITY_NAME = 'Hiraeth', 'Hiraeth (Unity preview)'
-OLD_NAMES = (None, '', 'Moebius', 'moebius', 'Memento', 'memento')
+OLD_NAMES = (None, '')   # (a shortcut without a name gets the game's)
 
 
 def atomic_write(path, data, mode=0o644):
@@ -175,8 +175,7 @@ def add_shortcut(config, root, preview=True):
         raise ValueError('Missing shortcuts map; Steam files unchanged')
     icon = str(root / 'icon.png')
     # Identity is the stable executable, not the display name. Keep user edits, but a shortcut
-    # still under the game's old names ('Moebius' or 'Memento') or without an
-    # icon gets the game's.
+    # without a name or an icon gets the game's.
     changed = False
     ours = our_entries(entries, shortcut_exe(root))
     for entry in ours:
@@ -198,7 +197,7 @@ def add_shortcut(config, root, preview=True):
     if steam_running() or (path.read_bytes() if path.exists() else None) != original:
         raise RuntimeError('Steam shortcuts changed during installation; please retry with Steam closed.')
     if original is not None:
-        backup = config / f'shortcuts.vdf.moebius-{time.time_ns()}.bak'
+        backup = config / f'shortcuts.vdf.hiraeth-{time.time_ns()}.bak'
         atomic_write(backup, original)
     atomic_write(path, encode_vdf(document))
     return True
@@ -241,7 +240,7 @@ def shortcut_stale(config, root, preview=True):
 
 
 def fetch_manifest(url):
-    request = urllib.request.Request(f'{url}?t={time.time_ns()}', headers={'User-Agent': 'Moebius-Updater', 'Cache-Control': 'no-cache'})
+    request = urllib.request.Request(f'{url}?t={time.time_ns()}', headers={'User-Agent': 'Hiraeth-Updater', 'Cache-Control': 'no-cache'})
     with urllib.request.urlopen(request, timeout=8) as response:
         data = response.read(65537)
     if len(data) > 65536:
@@ -279,7 +278,7 @@ def validate_manifest(manifest):
             raise ValueError('Unexpected release parts')
         if type(size) is not int or not 0 < size <= MAX_ARCHIVE:
             raise ValueError('Invalid release size')
-    elif manifest.get('url') != BASE_URL + f'moebius-steam-deck-{build}.tar.gz':
+    elif manifest.get('url') != BASE_URL + f'hiraeth-steam-deck-{build}.tar.gz':
         raise ValueError('Unexpected release URL')
     if not isinstance(manifest.get('version'), str):
         raise ValueError('Missing release version')
@@ -307,7 +306,7 @@ def download(manifest, destination, step='runtime', seconds=900):
     deadline = time.monotonic() + seconds
     with destination.open('wb') as output:
         for url in manifest.get('parts') or [manifest['url']]:
-            request = urllib.request.Request(url, headers={'User-Agent': 'Moebius-Updater'})
+            request = urllib.request.Request(url, headers={'User-Agent': 'Hiraeth-Updater'})
             with urllib.request.urlopen(request, timeout=30) as response:
                 while chunk := response.read(1024 * 1024):
                     size += len(chunk)
@@ -397,7 +396,7 @@ def install_update(root, manifest, downloader=download):
             content = staging / 'game'
             content.mkdir()
             extract(archive, content)
-            required = ['moebius', 'resources/app/deck.py', 'resources/app/main.mjs',
+            required = ['hiraeth', 'resources/app/deck.py', 'resources/app/main.mjs',
                         'resources/app/game/index.html', 'resources/app/game/icons/icon-512.png']
             if any(not (content / name).is_file() for name in required):
                 raise ValueError('Incomplete game bundle')
@@ -426,7 +425,7 @@ def install_update(root, manifest, downloader=download):
 
 def get_content_manifest():
     url = f'{CONTENT_MANIFEST_URL}?t={time.time_ns()}'   # past every cache
-    request = urllib.request.Request(url, headers={'User-Agent': 'Moebius-Updater', 'Cache-Control': 'no-cache'})
+    request = urllib.request.Request(url, headers={'User-Agent': 'Hiraeth-Updater', 'Cache-Control': 'no-cache'})
     with urllib.request.urlopen(request, timeout=8) as response:
         data = response.read(65537)
     if len(data) > 65536:
@@ -454,7 +453,7 @@ def validate_content_manifest(manifest):
 
 
 def download_content(manifest, destination):
-    request = urllib.request.Request(manifest['zip'], headers={'User-Agent': 'Moebius-Updater'})
+    request = urllib.request.Request(manifest['zip'], headers={'User-Agent': 'Hiraeth-Updater'})
     digest, size = hashlib.sha256(), 0
     deadline = time.monotonic() + 600
     with urllib.request.urlopen(request, timeout=30) as response, destination.open('wb') as output:
@@ -540,19 +539,19 @@ def without_overlay(preload):
 
 
 def game_env(game, gpu=None, ready=None, base=None):
-    """Electron's environment: MOEBIUS_GAME names the downloaded game to serve, MOEBIUS_GPU the way
-    to draw (GPU_MODES), MOEBIUS_READY the file it touches once its window is up (desktop/main.mjs)."""
+    """Electron's environment: HIRAETH_GAME names the downloaded game to serve, HIRAETH_GPU the way
+    to draw (GPU_MODES), HIRAETH_READY the file it touches once its window is up (desktop/main.mjs)."""
     env = {key: value for key, value in (os.environ if base is None else base).items()
-           if key not in ('MOEBIUS_GAME', 'MOEBIUS_GPU', 'MOEBIUS_READY', 'LD_PRELOAD')}
+           if key not in ('HIRAETH_GAME', 'HIRAETH_GPU', 'HIRAETH_READY', 'LD_PRELOAD')}
     preload = without_overlay((os.environ if base is None else base).get('LD_PRELOAD'))
     if preload:
         env['LD_PRELOAD'] = preload
     if game:
-        env['MOEBIUS_GAME'] = str(game)
+        env['HIRAETH_GAME'] = str(game)
     if gpu:
-        env['MOEBIUS_GPU'] = gpu
+        env['HIRAETH_GPU'] = gpu
     if ready:
-        env['MOEBIUS_READY'] = str(ready)
+        env['HIRAETH_READY'] = str(ready)
     return env
 
 
@@ -617,7 +616,7 @@ def install_content(root, manifest, downloader=download_content):
 def get_unity_manifest():
     """The unity-linux release's player, from GitHub's API: {url, size, sha256} (its asset's digest)."""
     request = urllib.request.Request(UNITY_RELEASE_URL, headers={
-        'User-Agent': 'Moebius-Updater', 'Accept': 'application/vnd.github+json'})
+        'User-Agent': 'Hiraeth-Updater', 'Accept': 'application/vnd.github+json'})
     with urllib.request.urlopen(request, timeout=10) as response:
         data = response.read(1024 * 1024 + 1)
     if len(data) > 1024 * 1024:
@@ -764,8 +763,8 @@ STEAM_ART = {'p.png': 'steam/portrait.png', '.png': 'steam/wide.png', '_hero.png
 
 def shortcut_appid(root):
     """The app id Steam gives our shortcut (add_shortcut writes it; Steam names its artwork after it),
-    from the old name: the id stays stable."""
-    return zlib.crc32((f'"{root / "launch"}"' + 'Moebius').encode()) | 0x80000000
+    from its launcher and the game's name: the id stays stable."""
+    return zlib.crc32((f'"{root / "launch"}"' + MAIN_NAME).encode()) | 0x80000000
 
 
 def unity_appid(root):
@@ -939,7 +938,7 @@ def local_package(directory):
     directory = Path(directory).expanduser()
     manifest = json.loads((directory / 'steam-deck.json').read_text())
     validate_manifest(manifest)
-    archive = directory / f"moebius-steam-deck-{manifest['build']}.tar.gz"
+    archive = directory / f"hiraeth-steam-deck-{manifest['build']}.tar.gz"
     if not archive.is_file():
         raise ValueError(f'{archive.name} is not next to steam-deck.json in {directory}')
     return manifest, lambda _manifest, target: shutil.copyfile(archive, target)
@@ -955,8 +954,8 @@ def write_launchers(root, home=None):
     """launch (the game's shortcut) and launch-unity (the Unity preview's), their icon and desktop entries."""
     applications = (home or Path.home()) / '.local/share/applications'
     deck = shlex.quote(str(root / 'current/resources/app/deck.py'))
-    for launcher, flag, name, entry in (('launch', '--launch', MAIN_NAME, 'moebius.desktop'),
-                                        ('launch-unity', '--launch-unity', UNITY_NAME, 'moebius-unity.desktop')):
+    for launcher, flag, name, entry in (('launch', '--launch', MAIN_NAME, 'hiraeth.desktop'),
+                                        ('launch-unity', '--launch-unity', UNITY_NAME, 'hiraeth-unity.desktop')):
         atomic_write(root / launcher, f'#!/bin/sh\nexec python3 {deck} {flag} "$@"\n'.encode(), 0o755)
         atomic_write(applications / entry, desktop_entry(name, root / launcher, root / 'icon.png'), 0o755)
     atomic_write(root / 'icon.png', (root / 'current/resources/app/game/icons/icon-512.png').read_bytes())
@@ -965,7 +964,7 @@ def write_launchers(root, home=None):
 # ---------------------------------------------------------------- launching
 
 # How Chromium draws, tried in turn while the game doesn't come up: the GPU as Electron picks it
-# (ANGLE on OpenGL), ANGLE on Vulkan, then software. desktop/main.mjs reads MOEBIUS_GPU.
+# (ANGLE on OpenGL), ANGLE on Vulkan, then software. desktop/main.mjs reads HIRAETH_GPU.
 GPU_MODES = ('gl', 'vulkan', 'software')
 RETRY_EXIT = 75      # desktop/main.mjs: its GPU process keeps crashing, try the next mode
 RESTART_EXIT = 76    # desktop/main.mjs: the settings' Restart now, into the update (launched again)
@@ -1086,7 +1085,7 @@ def start_updater(root, current):
     runner = shutil.which('systemd-run')
     if runner:
         try:
-            subprocess.run([runner, '--user', '--quiet', '--collect', f'--unit=memento-update-{time.time_ns()}',
+            subprocess.run([runner, '--user', '--quiet', '--collect', f'--unit=hiraeth-update-{time.time_ns()}',
                             '-p', f'StandardOutput=truncate:{log}', '-p', 'StandardError=inherit', '--', *command],
                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                            timeout=10, check=True)
@@ -1110,7 +1109,7 @@ def launch(root, arguments, run=run_game, relaunch=None):
     except OSError:
         wanted = ''
     # (the update the settings restarted for: if it isn't what runs next, they don't offer it again)
-    os.environ['MOEBIUS_RESTARTED_FOR'] = wanted or str(restart)
+    os.environ['HIRAETH_RESTARTED_FOR'] = wanted or str(restart)
     command = [sys.executable, str((root / 'current').resolve() / 'resources/app/deck.py'), '--launch', *arguments]
     (relaunch or (lambda argv: os.execv(argv[0], argv)))(command)
 
@@ -1121,7 +1120,7 @@ def launch_once(root, arguments, run=run_game):
     # Resolve before starting the updater. This process runs its immutable build;
     # the background update only affects the next launch. Saves live elsewhere.
     # Hold the short activation lock, never the potentially long download lock.
-    restarted = 'MOEBIUS_RESTARTED_FOR' in os.environ
+    restarted = 'HIRAETH_RESTARTED_FOR' in os.environ
     with (root / 'state.lock').open('a') as state:
         fcntl.flock(state, fcntl.LOCK_SH)
         current = (root / 'current').resolve(strict=True)
@@ -1150,8 +1149,8 @@ def launch_once(root, arguments, run=run_game):
             log(f'Starting ({mode}).')
             env = game_env(game, mode, ready)
             # the settings' Updates section (desktop/deck-updates.mjs) runs this updater on this install
-            env.update(MOEBIUS_ROOT=str(root), MOEBIUS_PYTHON=sys.executable)
-            how, code, shown = run([str(current / 'moebius'), *arguments], env, ready, log=log)
+            env.update(HIRAETH_ROOT=str(root), HIRAETH_PYTHON=sys.executable)
+            how, code, shown = run([str(current / 'hiraeth'), *arguments], env, ready, log=log)
             if how == 'restart':
                 log(f'Restarting into the update ({mode}).')
                 gpu_remember(root, key, mode)
@@ -1244,7 +1243,7 @@ def main():
     parser.add_argument('--status', action='store_true', help='print what is here and the newest on the feeds, as JSON')
     parser.add_argument('--status-local', action='store_true', help='print only what is here (no network), as JSON')
     parser.add_argument('--progress', metavar='FILE', help='with --update: follow the downloads in FILE')
-    parser.add_argument('--root', metavar='DIR', help='the install (default ~/.local/share/moebius-deck)')
+    parser.add_argument('--root', metavar='DIR', help='the install (default ~/.local/share/hiraeth-deck)')
     args, extra = parser.parse_known_args()
     root = Path(args.root).expanduser() if args.root else ROOT
     # (--status and --update on an explicit --root run anywhere: the settings' tests on a Mac)

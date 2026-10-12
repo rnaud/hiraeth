@@ -59,7 +59,7 @@ jobs:
           npm run build
           # this build's zip and web.json, and the previous build's zip from the live site
           # (a device that read the old web.json a moment ago can finish its download)
-          node scripts/web-update.mjs --live https://memento.alexandria-rnaud.workers.dev/
+          node scripts/web-update.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/
           cat dist/updates/web.json
       - name: The Steam Deck runtime on the site
         env:
@@ -69,7 +69,7 @@ jobs:
           # numbered as steam-deck.yml numbers this commit's (the GitHub release is private)
           export WEB_BUILD=$(node scripts/release-info.mjs build)
           export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))
-          node scripts/deck-runtime.mjs --live https://memento.alexandria-rnaud.workers.dev/
+          node scripts/deck-runtime.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/
           cat dist/updates/steam-deck.json
       - name: The changelog's pictures on the site
         run: |
@@ -94,19 +94,36 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           WRANGLER_SEND_METRICS: 'false'
+          # the Notes page's two Worker secrets (docs/systems/notes.md), uploaded with the deploy when set here
+          HIRAETH_ISSUES_TOKEN: ${{ secrets.HIRAETH_ISSUES_TOKEN }}
+          HIRAETH_NOTES_PASSWORD: ${{ secrets.HIRAETH_NOTES_PASSWORD }}
         run: |
           if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "::error::Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in repository Actions secrets. See docs/cloudflare.md."
             exit 1
           fi
+          # The Notes secrets go up with the version (--secrets-file: added to the Worker's, never deleting any), from
+          # a file only this job reads, written from the environment so they never reach a command line or the log.
+          # Without them the Worker keeps the secrets it has (none on a new Worker: the notebook stays closed).
+          SECRETS=()
+          if [ -n "$HIRAETH_ISSUES_TOKEN" ] && [ -n "$HIRAETH_NOTES_PASSWORD" ]; then
+            umask 077
+            node -e 'process.stdout.write(JSON.stringify({ HIRAETH_ISSUES_TOKEN: process.env.HIRAETH_ISSUES_TOKEN, HIRAETH_NOTES_PASSWORD: process.env.HIRAETH_NOTES_PASSWORD }))' > "$RUNNER_TEMP/worker-secrets.json"
+            SECRETS=(--secrets-file "$RUNNER_TEMP/worker-secrets.json")
+          else
+            echo "::warning::HIRAETH_ISSUES_TOKEN and HIRAETH_NOTES_PASSWORD are not both set in repository Actions secrets: the Worker keeps the Notes secrets it has (docs/systems/notes.md)."
+          fi
           # (a deploy replaces every asset: a second attempt after a transient failure is the same deploy)
           . scripts/retry.sh
-          retry npx wrangler deploy
+          status=0
+          retry npx wrangler deploy "${SECRETS[@]}" || status=$?
+          rm -f "$RUNNER_TEMP/worker-secrets.json"
+          exit $status
       - name: Verify the public deployment
         run: |
           # every built file, the content update included (new files can take a minute or two to reach every edge)
           for attempt in 1 2 3 4 5 6; do
-            if npm run check:deployment -- https://memento.alexandria-rnaud.workers.dev/; then
+            if npm run check:deployment -- https://hiraeth.alexandria-rnaud.workers.dev/; then
               exit 0
             fi
             if [ "$attempt" -lt 6 ]; then sleep 20; fi

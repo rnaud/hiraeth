@@ -1,4 +1,4 @@
-package com.rnaud.moebius;
+package com.rnaud.hiraeth;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -61,7 +61,7 @@ import java.util.zip.ZipInputStream;
 // either way, so localStorage (the saves) is the same for every bundle. Nothing
 // here touches the engine's storage.
 //
-// Safety: a bundle has to set window.__moebiusBooted (title.js, main.js) within
+// Safety: a bundle has to set window.__hiraethBooted (title.js, main.js) within
 // BOOT_TIMEOUT_MS of its first page starting, or the app goes back to the built-in
 // game and never tries that build again. A bundle that crashes the app before its
 // heartbeat twice in a row is dropped the same way. Once a build has booted it is
@@ -69,14 +69,14 @@ import java.util.zip.ZipInputStream;
 //
 // The state of the check (state, progress, the last manifest) is shared by the
 // process: an activity recreate() gets a new WebBundles and a running download
-// carries on. Every step is logged (logcat tag MoebiusOTA, and the last lines in the
+// carries on. Every step is logged (logcat tag HiraethOTA, and the last lines in the
 // settings' update details).
 final class WebBundles {
     /** The engine the page runs in: GeckoView (MainActivity) or the WebView (WebViewActivity). */
     interface Host {
         /** serve this bundle's directory from now on (null: the game built into the APK), and reload the page */
         void serve(String dir);
-        /** whether the page on screen has set window.__moebiusBooted (answered on the UI thread) */
+        /** whether the page on screen has set window.__hiraethBooted (answered on the UI thread) */
         void booted(java.util.function.Consumer<Boolean> answer);
         /** a DOM event for the page: window.dispatchEvent(new CustomEvent(name, { detail })) */
         void event(String name, JSONObject detail);
@@ -84,21 +84,21 @@ final class WebBundles {
 
     /** The native bridge's level. Bump it whenever the Java side changes in a way the web side relies on
      *  (GamepadBridge, AppShellPlugin, the events below): web bundles built after that need this APK. */
-    static final int NATIVE_API = 8;   // 8: rumble (AppShell 'rumble', info's rumble: Rumbler, the VIBRATE permission); 7: silent while away (the tab muted by GeckoView, the pause answered before the session deactivates, onStop and screen off too, the WebView's timers paused); 6: the game in GeckoView (MainActivity; the WebView where it can't run), AppShell.info's engine; 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
+    static final int NATIVE_API = 9;   // 9: the app is com.rnaud.hiraeth (issue #130: a new app beside com.rnaud.moebius, which this APK's offer in latest.json reaches; the page's events hiraeth:pause / resume / back / webupdate, window.__hiraethBooted); 8: rumble (AppShell 'rumble', info's rumble: Rumbler, the VIBRATE permission); 7: silent while away (the tab muted by GeckoView, the pause answered before the session deactivates, onStop and screen off too, the WebView's timers paused); 6: the game in GeckoView (MainActivity; the WebView where it can't run), AppShell.info's engine; 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
     /** The oldest bridge the web game needs (web.json's minNative, scripts/release-info.mjs). Raise it to NATIVE_API
      *  when the web side starts relying on a bridge change; a Java-only change (like 5) leaves it, so older apps keep
      *  taking the game's updates while the APK offer (latest.json's native) brings them the new app. */
     static final int WEB_MIN_NATIVE = 4;
 
     /** The game's updates: next to the web game on Cloudflare (cloudflare.yml, scripts/web-update.mjs). */
-    static final String MANIFEST = "https://memento.alexandria-rnaud.workers.dev/updates/web.json";
+    static final String MANIFEST = "https://hiraeth.alexandria-rnaud.workers.dev/updates/web.json";
     /** Where a new APK is (GitHub releases; the author's, by hand, once the repository is private). */
     static final String RELEASES = "https://github.com/rnaud/hiraeth/releases/latest";
     static final long BOOT_TIMEOUT_MS = 30000;   // (the full game boots in ~7-18 s on a software-GL emulator)
     private static final int MAX_TRIES = 2;
     private static final int ZIP_LIMIT = 300 * 1024 * 1024;
     private static final int LOG_LINES = 40;
-    static final String TAG = "MoebiusOTA";
+    static final String TAG = "HiraethOTA";
 
     // ---- the update check, shared by the process
     private static final Object LOCK = new Object();
@@ -129,7 +129,7 @@ final class WebBundles {
 
     WebBundles(Activity activity) {
         this.activity = activity;
-        this.prefs = activity.getSharedPreferences("moebius.web", Activity.MODE_PRIVATE);
+        this.prefs = activity.getSharedPreferences("hiraeth.web", Activity.MODE_PRIVATE);
         this.root = new File(activity.getFilesDir(), "web");
         int code = 0;
         try {
@@ -290,7 +290,7 @@ final class WebBundles {
         if (UpdateRules.dueOnResume(SystemClock.elapsedRealtime(), checkedAt, state)) checkAsync(true, why);
     }
 
-    // poll window.__moebiusBooted once a second, counting only while the app is in front,
+    // poll window.__hiraethBooted once a second, counting only while the app is in front,
     // until the build on screen has booted once (from then on it is trusted)
     private void tick(int forPage) {
         if (serving == 0 || booted || ticking || !resumed || host == null) return;
@@ -335,7 +335,7 @@ final class WebBundles {
             try { runCheck(auto, why); }
             catch (Throwable t) { error = describe(t); status("error", error); }
             finally { synchronized (LOCK) { working = false; } }
-        }, "moebius-web-check").start();
+        }, "hiraeth-web-check").start();
     }
 
     /** The settings' "Check for updates". @return false in a debug build (updates are off) */
@@ -361,7 +361,7 @@ final class WebBundles {
             try { runDownload(m, false, "settings"); }
             catch (Throwable t) { error = describe(t); status("error", error); }
             finally { synchronized (LOCK) { working = false; } }
-        }, "moebius-web-download").start();
+        }, "hiraeth-web-download").start();
         return true;
     }
 
@@ -506,7 +506,7 @@ final class WebBundles {
         if (w == null) return;
         JSONObject detail = new JSONObject();
         try { detail.put("check", state).put("got", got).put("total", total); } catch (JSONException ignored) { }
-        w.ui.post(() -> { if (w.host != null) w.host.event("moebius:webupdate", detail); });
+        w.ui.post(() -> { if (w.host != null) w.host.event("hiraeth:webupdate", detail); });
     }
 
     private void log(String line) {

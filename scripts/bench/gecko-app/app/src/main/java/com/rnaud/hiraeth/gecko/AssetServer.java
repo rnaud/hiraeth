@@ -1,4 +1,4 @@
-package com.rnaud.memento.gecko;
+package com.rnaud.hiraeth.gecko;
 
 import android.content.res.AssetManager;
 import android.util.Log;
@@ -22,7 +22,7 @@ import java.util.Map;
 // server. Loopback only; GET and HEAD; keep-alive. For the bench, `inject` puts a script tag first in
 // every HTML page's head.
 final class AssetServer {
-    private static final String TAG = "MementoAssets";
+    private static final String TAG = "HiraethAssets";
     private static final Map<String, String> TYPES = new HashMap<>();
     static {
         String[][] t = { {"html", "text/html"}, {"js", "text/javascript"}, {"mjs", "text/javascript"}, {"css", "text/css"}, {"json", "application/json"},

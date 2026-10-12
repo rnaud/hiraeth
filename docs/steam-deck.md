@@ -11,18 +11,18 @@ Steamworks or the Steam Store.
 In Desktop Mode, sign in to Steam at least once. Open Konsole and run:
 
 ```sh
-curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/hiraeth/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
+curl --fail --location --output /tmp/install-hiraeth.py https://github.com/rnaud/hiraeth/releases/download/steam-deck/install-hiraeth.py && python3 /tmp/install-hiraeth.py
 ```
 
 (The repository is private now: this download needs a GitHub login, see "Install by hand" below.)
 The installer downloads the latest package. When it asks, choose **Steam → Exit**
-and leave the installer open. It waits up to five minutes, then adds Moebius to
+and leave the installer open. It waits up to five minutes, then adds Hiraeth to
 each existing local Steam account. Reopen Steam or return to Gaming Mode and
-find **Moebius** under **Non-Steam**. Re-running the installer is safe.
+find **Hiraeth** under **Non-Steam**. Re-running the installer is safe.
 
-The stable shortcut points to `~/.local/share/moebius-deck/launch`. Existing
+The stable shortcut points to `~/.local/share/hiraeth-deck/launch`. Existing
 shortcuts and custom fields are preserved. Changed shortcut files get timestamped
-`shortcuts.vdf.moebius-*.bak` backups. Files with unsupported data are left alone.
+`shortcuts.vdf.hiraeth-*.bak` backups. Files with unsupported data are left alone.
 Steam must be closed because it rewrites its shortcuts from memory on exit.
 
 In Gaming Mode the game runs on X11 under gamescope; in Desktop Mode on Plasma's own Wayland
@@ -40,9 +40,9 @@ Steam starts `launch`, which execs `deck.py --launch`, which runs Electron and w
   either aborts or waits for ever with no window (Gaming Mode's black screen up to runtime
   184001). `game_env` drops it; gamescope draws Steam's overlay itself.
 - **A watched start.** Electron runs in its own process group. `desktop/main.mjs` touches
-  `MOEBIUS_READY` once its page has loaded; no window within 30 s counts as a hang.
+  `HIRAETH_READY` once its page has loaded; no window within 30 s counts as a hang.
 - **Fallbacks.** A hang, a crash, or two GPU-process crashes (`main.mjs` exits 75) start it again
-  the next way (`MOEBIUS_GPU`): `gl` (ANGLE on OpenGL, the default), `vulkan` (ANGLE on Vulkan;
+  the next way (`HIRAETH_GPU`): `gl` (ANGLE on OpenGL, the default), `vulkan` (ANGLE on Vulkan;
   fine on X11 under gamescope, fails on Plasma's Wayland), `software` (SwiftShader). The way that
   worked is remembered per runtime build and session kind (`gpu.json`); when none works the
   launcher exits 1 and Steam returns to its library. A crash or kill once the window has been up a
@@ -79,12 +79,12 @@ restarts (Steam → Exit, or a reboot to Gaming Mode). Artwork the player picks 
 file we didn't write, `steam-art.json` keeps what we did) is never replaced. Re-running the
 installer for an account that has the shortcut as it should be no longer waits for Steam to close.
 
-A shortcut still named `Moebius` or `Memento`, or without an icon, is renamed
+A shortcut without a name or an icon is named
 `Hiraeth` and given `icon.png` (`add_shortcut`, `shortcut_stale`), keeping its app id, playtime and
 the player's own name if they changed it. That edits `shortcuts.vdf`, so only while Steam is closed
 (Steam rewrites it from memory as it exits): at install, `--register-steam`, or a background update
 that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appid` from
-`shortcuts.vdf`, unsigned (2165417005 on the author's Deck; its 64-bit game id, in Steam's logs, is
+`shortcuts.vdf`, unsigned (2165417005 on the author’s Deck before the ids were renamed; its 64-bit game id, in Steam's logs, is
 `appid << 32 | 0x02000000`).
 
 ## The Unity preview (issue #146)
@@ -94,7 +94,7 @@ Vulkan; `docs/systems/unity.md`, measured in `docs/systems/performance.md`, "The
 6") beside the game. It is for testers: no menus, conversations or pages yet, its own saves. The web
 build stays the main shortcut, unchanged.
 
-- **Its own component, not in the package.** The player (`memento-unity-linux.tar.gz`, ~300 MB,
+- **Its own component, not in the package.** The player (`hiraeth-unity-linux.tar.gz`, ~300 MB,
   built by `unity-android.yml` at its own pace) would triple the runtime package. `deck.py` reads the
   `unity-linux` release from GitHub's API (`get_unity_manifest`: the asset's `size`, its URL and its
   `digest`, `sha256:…`) and, when the digest differs from the installed one (`install_unity`),
@@ -109,13 +109,13 @@ build stays the main shortcut, unchanged.
   exit code). The settings' Download (`--update --progress`) leaves it out. `--status-local` says
   which player is here (`unity`, its sha's first 12; the panel ignores it).
 - **Launch.** `launch-unity` (written by `write_launchers` next to `launch`, with
-  `~/.local/share/applications/moebius-unity.desktop`) runs `deck.py --launch-unity`: no player yet,
+  `~/.local/share/applications/hiraeth-unity.desktop`) runs `deck.py --launch-unity`: no player yet,
   it downloads one first (logged; none and no network: exit 1 and a line in `unity-launch.log`);
-  starts the background update; pins `unity/current` and execs `memento-js.x86_64 -screen-fullscreen
+  starts the background update; pins `unity/current` and execs `hiraeth-js.x86_64 -screen-fullscreen
   1 -screen-width 1280 -screen-height 800 -logFile unity-data/player.log`, sound on, with `TMPDIR` set
   to `unity-cache/` (Unity's Vulkan pipeline cache lives in `temporaryCachePath`, under `TMPDIR`,
   which SteamOS clears at boot) and `XDG_CONFIG_HOME` to `unity-data/` (its `persistentDataPath` and
-  PlayerPrefs; never `~/.config/moebius`).
+  PlayerPrefs; never `~/.config/hiraeth`).
 - **Steam.** Each shortcut is known by its own Exe (`launch`, `launch-unity`). The preview's appid is
   Steam's scheme from its own Exe and name (`unity_appid`); the game's stays as it was. It takes the
   game's icon and library artwork. Accounts that have the game's shortcut get the preview's at
@@ -130,11 +130,11 @@ Once the repository is private, its release files need a GitHub login. Download 
 package where `gh` is signed in (then copy the folder to the Deck, or run this on the Deck):
 
 ```sh
-D=~/Downloads/memento
-gh release download steam-deck -R rnaud/hiraeth -D $D -p steam-deck.json -p install-moebius.py --clobber
+D=~/Downloads/hiraeth
+gh release download steam-deck -R rnaud/hiraeth -D $D -p steam-deck.json -p install-hiraeth.py --clobber
 BUILD=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['build'])" $D/steam-deck.json)
-gh release download steam-deck -R rnaud/hiraeth -D $D -p "moebius-steam-deck-$BUILD.tar.gz" --clobber
-python3 $D/install-moebius.py --from $D
+gh release download steam-deck -R rnaud/hiraeth -D $D -p "hiraeth-steam-deck-$BUILD.tar.gz" --clobber
+python3 $D/install-hiraeth.py --from $D
 ```
 
 `--from` installs the package next to `steam-deck.json` (checked against its SHA-256),
@@ -147,11 +147,11 @@ Each launch starts a background update check, of two things separately (one fail
 holds back the other; see `update.log`):
 
 - **The game** (content): the same web bundle as the Android app's, from the game's site,
-  https://memento.alexandria-rnaud.workers.dev/updates/web.json (published by
+  https://hiraeth.alexandria-rnaud.workers.dev/updates/web.json (published by
   `cloudflare.yml`, see `docs/cloudflare.md`). A build newer than the one the runtime
   carries (`resources/app/content.json`) is downloaded, SHA-256 verified, unpacked to
   `web/<build>/` and used from the next launch: `deck.py --launch` pins it and passes it to
-  Electron (`MOEBIUS_GAME`), and `desktop/main.mjs` serves it at the same `moebius://game`
+  Electron (`HIRAETH_GAME`), and `desktop/main.mjs` serves it at the same `hiraeth://game`
   origin, so the saves are the same. A game that doesn't reach its first frame within 60 s
   (or crashes first) is marked `.failed`, the packaged game takes over, and that build is
   never taken again. A build that needs a newer runtime (`minDesktop` above the runtime's
@@ -171,8 +171,8 @@ holds back the other; see `update.log`):
 - **The music**: neither the runtime's packaged game nor a content update carries the recorded
   themes but the desert's (`scripts/site-only.mjs` `leftOff`; the key includes that file). The
   game downloads the others from the site in the background from the first launch, one at a
-  time, and keeps them in the `moebius://game` origin's IndexedDB, in the Electron profile
-  (`~/.config/moebius`, with the saves): a new runtime or content build never downloads them
+  time, and keeps them in the `hiraeth://game` origin's IndexedDB, in the Electron profile
+  (`~/.config/hiraeth`, with the saves): a new runtime or content build never downloads them
   again. Settings > Updates shows "Music: 18 of 25 downloaded" meanwhile. How it works:
   `docs/systems/audio.md`, "The themes on a device".
 
@@ -190,8 +190,8 @@ publisher and HTTPS.
 The same panel as the Android app's (`src/update-panel.js`, `src/updates.js`, controller-navigable,
 in the title's settings and the Start menu): what runs, Check for updates, what the new version
 brings, Download and restart with its progress bar, Restart now, Details (`update.log` and
-`launch.log`). The page reaches the runtime at `moebius://game/__app/<method>` (`src/native-app.js`
-picks that when the page is at `moebius:`; `desktop/main.mjs` answers `info`, `check`, `download`,
+`launch.log`). The page reaches the runtime at `hiraeth://game/__app/<method>` (`src/native-app.js`
+picks that when the page is at `hiraeth:`; `desktop/main.mjs` answers `info`, `check`, `download`,
 `restart`; anything else, or a runtime launched without deck.py, is a 404 and the section stays
 hidden). `desktop/deck-updates.mjs` turns deck.py into Android's `AppShell.info` fields
 (`platform: 'deck'`, `app` the runtime build, `web` the game running):
@@ -206,31 +206,31 @@ hidden). `desktop/deck-updates.mjs` turns deck.py into Android's `AppShell.info`
   every 5 s while the settings are open, so a background update that finished shows too).
 - **restart** writes `.restart` (the update it is for) and exits 76 (`RESTART_EXIT`): deck.py's
   launcher, still Steam's process, execs the current runtime's `deck.py --launch` again, which pins
-  the new runtime and game. `MOEBIUS_RESTARTED_FOR` keeps a restart that didn't bring that update
+  the new runtime and game. `HIRAETH_RESTARTED_FOR` keeps a restart that didn't bring that update
   from being offered again (no loop). The game opens at the title, the saves at the same origin.
   As on Android, a downloaded update also starts by itself the next time the title screen opens.
 
 Tested on a Mac with a fake install (`--status`, `--status-local` and `--update` run anywhere with
-an explicit `--root`, and `MOEBIUS_HIDDEN=1` keeps the window off the screen): check, available,
+an explicit `--root`, and `HIRAETH_HIDDEN=1` keeps the window off the screen): check, available,
 download, ready, restart (exit 76, `.restart`), then the downloaded game served with nothing ready.
 
 Runtimes from before content updates update themselves to one that has them (from GitHub,
 while the repository is public): launch the game twice before the repository goes private.
 `build.json` stays exactly `{build, version}`, as those updaters check.
 
-- Game files: `~/.local/share/moebius-deck/`
-- Save data and settings: `~/.config/moebius/` (separate from browser/Android saves)
-- Downloaded game updates: `~/.local/share/moebius-deck/web/<build>/`
-- Update and launch diagnostics: `~/.local/share/moebius-deck/update.log`, `launch.log`
-- The Unity preview: its player in `~/.local/share/moebius-deck/unity/`, its saves and logs in
+- Game files: `~/.local/share/hiraeth-deck/`
+- Save data and settings: `~/.config/hiraeth/` (separate from browser/Android saves)
+- Downloaded game updates: `~/.local/share/hiraeth-deck/web/<build>/`
+- Update and launch diagnostics: `~/.local/share/hiraeth-deck/update.log`, `launch.log`
+- The Unity preview: its player in `~/.local/share/hiraeth-deck/unity/`, its saves and logs in
   `unity-data/`, its pipeline cache in `unity-cache/`, `unity-launch.log`
-- Desktop launchers: `~/.local/share/applications/moebius.desktop`, `moebius-unity.desktop`
+- Desktop launchers: `~/.local/share/applications/hiraeth.desktop`, `hiraeth-unity.desktop`
 
 For a manual update or to retry Steam registration, rerun the installation command.
 For registration without downloading, run:
 
 ```sh
-python3 ~/.local/share/moebius-deck/current/resources/app/deck.py --register-steam
+python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --register-steam
 ```
 
 ## Build and release
@@ -261,12 +261,12 @@ physical Steam Deck; those still need a device check.
 
 ## Troubleshooting and removal
 
-If Moebius does not appear, exit Steam completely and retry registration. A Deck
+If Hiraeth does not appear, exit Steam completely and retry registration. A Deck
 with multiple Steam accounts gets one shortcut in each existing account.
 If an update fails, inspect `update.log`; the installed build keeps working.
 Do not add `--no-sandbox` to the installed shortcut. That flag is used only in CI.
 
 Remove the shortcut through Steam's **Manage → Remove non-Steam game from your
-library**. With the game closed, delete `~/.local/share/moebius-deck` and
-`~/.local/share/applications/moebius.desktop` (and `moebius-unity.desktop`) to uninstall. Keep
-`~/.config/moebius` to preserve progress.
+library**. With the game closed, delete `~/.local/share/hiraeth-deck` and
+`~/.local/share/applications/hiraeth.desktop` (and `hiraeth-unity.desktop`) to uninstall. Keep
+`~/.config/hiraeth` to preserve progress.

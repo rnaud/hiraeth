@@ -5,7 +5,7 @@
 //   - On launch and from the settings (src/update-panel.js), web.json is read; a newer build this app can run
 //     (minXbox <= XboxApi) is downloaded, checked against its sha256 and unpacked to LocalState\web\<build>\.
 //   - The next launch (or "Restart now") serves it at the same origin (MainPage.Host), so the saves stay.
-//   - A downloaded build that doesn't reach its first frame (window.__moebiusBooted) within BootTimeout falls
+//   - A downloaded build that doesn't reach its first frame (window.__hiraethBooted) within BootTimeout falls
 //     back to the packaged game and is never tried again (bad.txt). Once it has booted it is kept (good.txt).
 //   - Old builds are deleted once a newer one has booted.
 //
@@ -35,7 +35,7 @@ namespace Hiraeth
         /// keeps a bundle that needs a newer app off the older ones, which keep the game they have.
         /// </summary>
         public const int XboxApi = 1;
-        public const string Manifest = "https://memento.alexandria-rnaud.workers.dev/updates/web.json";
+        public const string Manifest = "https://hiraeth.alexandria-rnaud.workers.dev/updates/web.json";
         /// <summary>A downloaded build that doesn't reach its first frame in this long goes back to the packaged one.</summary>
         public static readonly TimeSpan BootTimeout = TimeSpan.FromSeconds(60);
 

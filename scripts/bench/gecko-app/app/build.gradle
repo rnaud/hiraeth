@@ -4,10 +4,10 @@ plugins { id 'com.android.application' }
 def geckoviewVersion = '157.0.20260924084938'
 
 android {
-    namespace = 'com.rnaud.memento.gecko'
+    namespace = 'com.rnaud.hiraeth.gecko'
     compileSdk = 37
     defaultConfig {
-        applicationId 'com.rnaud.moebius.gecko'
+        applicationId 'com.rnaud.hiraeth.gecko'
         minSdk 26
         targetSdk 36
         versionCode 1

@@ -26,16 +26,16 @@ await cp('desktop/deck-updates.mjs', `${output}/source/deck-updates.mjs`);   // 
 await cp('scripts/steam-deck/deck.py', `${output}/source/deck.py`);
 // Steam's library artwork for the shortcut (scripts/steam-art.mjs; deck.py puts it in Steam's grid/)
 await cp('desktop/steam', `${output}/source/steam`, { recursive: true });
-await writeFile(`${output}/source/package.json`, JSON.stringify({ name: 'moebius', version: `${VERSION}.0`, type: 'module', main: 'main.mjs' }));
+await writeFile(`${output}/source/package.json`, JSON.stringify({ name: 'hiraeth', version: `${VERSION}.0`, type: 'module', main: 'main.mjs' }));
 // (build.json stays exactly { build, version }: the updaters installed today check it so)
 await writeFile(`${output}/source/build.json`, JSON.stringify({ build, version: VERSION }));
 // what deck.py compares a downloaded game with: the packaged game's build and this runtime's level
 await writeFile(`${output}/source/content.json`, JSON.stringify({ web: webBuild, desktop: desktopApi() }));
 const [bundle] = await packager({
-  dir: `${output}/source`, out: output, name: 'moebius', platform: 'linux', arch: 'x64',
+  dir: `${output}/source`, out: output, name: 'hiraeth', platform: 'linux', arch: 'x64',
   electronVersion: '44.4.5', overwrite: true, asar: false,
 });
-const filename = `moebius-steam-deck-${build}.tar.gz`;
+const filename = `hiraeth-steam-deck-${build}.tar.gz`;
 execFileSync('tar', ['-czf', `${output}/${filename}`, '-C', bundle, '.']);
 const archive = await readFile(`${output}/${filename}`);
 const repo = process.env.GITHUB_REPOSITORY ?? 'rnaud/hiraeth';
@@ -43,5 +43,5 @@ await writeFile(`${output}/steam-deck.json`, JSON.stringify({
   build, version: VERSION, sha256: createHash('sha256').update(archive).digest('hex'),
   url: `https://github.com/${repo}/releases/download/steam-deck/${filename}`,
 }, null, 2) + '\n');
-await cp('scripts/steam-deck/deck.py', `${output}/install-moebius.py`);
+await cp('scripts/steam-deck/deck.py', `${output}/install-hiraeth.py`);
 console.log(`${output}/${filename}`);
