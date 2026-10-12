@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_0f43fc33904721 8
+docs/systems/living-world.md
+  s_9ca76055a220ed::t_0c66f92c0b673f 67-71
+src/changelog.js
+  s_9ca76055a220ed::t_14e42d006be158 17
+src/levels/desert.js
+  s_9ca76055a220ed::t_81e3c124f82223 35-36,134-137
+tests/desert-playtest.test.js
+  s_9ca76055a220ed::t_13b6df11b47b63 1-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e4936d6b78e871907d5090c78091ace59768f352",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
