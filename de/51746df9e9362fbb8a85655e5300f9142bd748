@@ -1,0 +1,45 @@
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_f9aee5656c921e 1192-1245
+src/story/arzach.js
+  s_9ca76055a220ed::t_5cea0bd935e7a6 11,202-204,604-605,613
+src/changelog-media.js
+  s_9ca76055a220ed::t_5389dfd352c7a3 679-680,712-742
+tests/vael-explorations.test.js
+  s_9ca76055a220ed::t_29ce79b30db1ec 1-279
+src/fragments-data.js
+  s_9ca76055a220ed::t_e064c14079861a 30-33,35-36,38
+src/vael-edge.js
+  s_9ca76055a220ed::t_07b3fffde179cd 1-227
+src/story/arzach-explorations.js
+  s_9ca76055a220ed::t_4a91d5de61dc49 1-47
+docs/README.md
+  s_9ca76055a220ed::t_2ba94acbafbd59 51
+src/levels/arzach.js
+  s_9ca76055a220ed::t_f4085eba89ba10 18-20,55-87,90-92,94-100,104-105,149,151-152,228-232,236-240,242,307,353-357,373,388,413,424,547-596,601
+src/changelog.js
+  s_9ca76055a220ed::t_33a803a3b93d81 21-24
+src/vael-canyon.js
+  s_9ca76055a220ed::t_7eaa56bae4d4cd 1-288
+src/vael-sundial.js
+  s_9ca76055a220ed::t_2f99baede19d18 1-185
+changelog.md
+  s_9ca76055a220ed::t_58eda5dfd1d7de 7-9
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_317bf51ed463ba 52-53,291-333
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de51746df9e9362fbb8a85655e5300f9142bd748",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
