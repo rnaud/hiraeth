@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_905a30df829498 5-10
+docs/systems/materials.md
+  s_9ca76055a220ed::t_243dc360db9f87 433-442
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_a8cc0f5cdaa6c1 1910-1950
+scripts/bench/viewpoints-worlds.json
+  s_9ca76055a220ed::t_eb00c7b2fc65d4 4267-4306
+src/breathe-shader.js
+  s_9ca76055a220ed::t_b1eaa730dbaafd 1-84
+src/buried-breath.js
+  s_9ca76055a220ed::t_24cf73cfe3b5d5 1-560
+src/changelog-media.js
+  s_9ca76055a220ed::t_b735028f2f6fbb 651-652,654-677
+src/changelog.js
+  s_9ca76055a220ed::t_27eb76c984d170 11-16
+src/levels/buried.js
+  s_9ca76055a220ed::t_ccbbfde3566793 15-16,130-142,257,489-490,506-507,513,536,553,1165,1168,1261-1274,1276
+src/main.js
+  s_9ca76055a220ed::t_5b87f05b6d6c48 112,1226
+src/materials.js
+  s_9ca76055a220ed::t_2845f9bbed1a33 13,585-587,637-639,2978-2982
+src/story/buried-data.js
+  s_9ca76055a220ed::t_70e30778ef32bf 399-409
+src/story/buried.js
+  s_9ca76055a220ed::t_22eec07366a331 124-125,395-396
+tests/buried-breath.test.js
+  s_9ca76055a220ed::t_eb17fefaedc6a3 1-161
+tests/shard-timings.json
+  s_9ca76055a220ed::t_037849d21fb29c 26,28,30,36,39,42,45,47,51-52,54-57,60-62,64-67,71,83-84,87,89,93,98,111,114-115,120,135-136,142,151-155,160,165,167,171,177-179,181,187-188,203,205-207,216,254,291,293-294,309,312,316,319,322,359,371,377,384,386,388,394,396,400,413,418,427,430-431,436-437,449-450,452,456,458,460-461,464-465,467-471,473-475,480-481,484
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "45cf2feb7920a2690173f9101fcdd3b704e14f07",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
