@@ -739,6 +739,21 @@ const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this bra
 // (v1.61, issue #197: a scratch shooter against this branch's own Vite, ?gestures=0 for before; the game's own captureView)
 const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by Marrow) against this branch’s own Vite (port 5791): a conversation open, each picture the game’s own view of the one speaking from in front; before: ?gestures=0 (the talking idle alone), 6 moments of a line; after: a moment of each of six gestures (a wave, surprise, yelling, sad, thinking, thanks); 12 October; sharp webp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.63': [
+    { match: 'On the Steam Deck the game runs faster at its full 1280 × 800', numbers: [
+      { title: 'The web build on the Steam Deck at its own 1280 × 800: frames a second', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, Desktop Mode, gamescope headless at 90 Hz uncapped, Steam Deck preset at render scale 1, muted, the bench’s own profile', rows: [
+        { where: 'the Desert’s start', before: 46.1, after: 51.9 },
+        { where: 'the pilgrims’ camps', before: 42.0, after: 46.3 },
+        { where: 'the City-Shaft’s rim', before: 46.8, after: 50.2 },
+      ], source: 'scripts/bench/deck-worlds.mjs --settle 1 --profile 1 on the Deck (docs/systems/performance.md, “The Steam Deck, round 8”), origin/main e7c21f7d against this change' },
+      { title: 'The main thread’s time a frame on the Steam Deck (the game’s JavaScript)', unit: 'ms', better: 'lower', device: 'Steam Deck OLED, Steam Deck preset, 1280 × 800, 90 Hz', rows: [
+        { where: 'the Desert’s start', before: 21.1, after: 18.8 },
+        { where: 'the pilgrims’ camps', before: 23.2, after: 20.9 },
+        { where: 'the City-Shaft’s rim', before: 20.9, after: 19.5 },
+      ], source: 'the same runs' }],
+      see: 'On the Steam Deck, turn on Settings › Show FPS and frame time and stand where the Desert starts or among the pilgrims’ camps.' },
+    { match: 'Fixed: a group of buildings and rocks far off could vanish for a frame', see: 'Arrive in the City-Shaft and look out over the rim while the far city fills in: no building blinks out for a frame. (On the Steam Deck the graphics driver used to report the lost draw, “glMultiDrawElementsANGLE: Insufficient buffer size”.)' },
+  ],
   '1.62': [
     { match: 'Locked on with a foe right at your feet, a ring centipede curled round you', numbers: [
       { title: 'The combat review’s perfect dodge check (dodge.mjs: the back flip inside each foe’s dodge window)', unit: 'foes that dodged into a flurry', better: 'higher', device: 'headless Chrome (muted), the Arena, .claude/skills/combat-review/dodge.mjs',

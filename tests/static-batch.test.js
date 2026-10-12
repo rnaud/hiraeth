@@ -105,16 +105,45 @@ test('a pass draws what would have drawn itself: shown, in the frustum; in front
   assert.equal(b._multiDrawCount, 0);
 });
 
-test('a level of detail swapped in is copied into the batch the first time it is drawn', () => {
+test('a level of detail swapped in is copied into the batch at the next frame\'s update, never during a pass (issue #111)', () => {
   const W = world();
   const S = new StaticBatches(W.scene, { keep: [W.mover] });
   const b = S.view[0], cam = camera();
-  const before = b._geometryInfo.length;
-  W.meshes[0].geometry = new THREE.BoxGeometry(1, 1, 1, 1, 1, 1).scale(1, 1, 1);
+  W.scene.updateMatrixWorld(true);
   b.onBeforeRender(null, W.scene, cam);
-  assert.equal(b._geometryInfo.length, before + 1);
+  const before = b._geometryInfo.length, drawn = b.drawn, geometry = b.geometry;
+  const it = b.items.find((x) => x.e.o === W.meshes[0]), was = it.cur;
+  W.meshes[0].geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
+  // (in the pass: three has taken the batch's geometry and uploaded it already; the mesh is drawn as it was)
   b.onBeforeRender(null, W.scene, cam);
+  assert.equal(b._geometryInfo.length, before, 'nothing copied in during the pass');
+  assert.equal(b.geometry, geometry, 'the batch\'s geometry the one three is drawing');
+  assert.equal(b.drawn, drawn, 'the mesh still drawn, its old level one frame more');
+  assert.equal(it.cur, was);
+  S.update();
+  assert.equal(b._geometryInfo.length, before + 1, 'copied in before the next frame\'s passes');
+  b.onBeforeRender(null, W.scene, cam);
+  assert.notEqual(it.cur, was, 'drawn in its new level');
+  S.update();
   assert.equal(b._geometryInfo.length, before + 1, 'once');
+});
+
+test('a level of detail that outgrows the batch\'s room grows it at the update, not in a pass (issue #111)', () => {
+  const W = world();
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  const b = S.view[0], cam = camera();
+  W.scene.updateMatrixWorld(true);
+  b.onBeforeRender(null, W.scene, cam);
+  const geometry = b.geometry;
+  W.meshes[0].geometry = new THREE.SphereGeometry(1, 64, 48);   // (far more than the room left)
+  b.onBeforeRender(null, W.scene, cam);
+  assert.equal(b.geometry, geometry, 'no new geometry in the pass');
+  S.update();
+  assert.notEqual(b.geometry, geometry, 'grown before the passes');
+  b.onBeforeRender(null, W.scene, cam);
+  const it = b.items.find((x) => x.e.o === W.meshes[0]);
+  assert.equal(it.cur, it.geo.get(W.meshes[0].geometry), 'drawn in the new level, copied into the grown batch');
+  assert.ok(it.cur >= 0);
 });
 
 test('a moved mesh is followed; a material changed beyond its colours sends its meshes back to drawing themselves', () => {

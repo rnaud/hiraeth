@@ -164,3 +164,21 @@ test('the bounds are kept between frames, and taken again for what moved (issue 
   w.pool.geometry.boundingSphere.center.set(0, -2000, 0);
   assert.ok(frame().includes(w.pool), 'its sphere moved: taken again');
 });
+
+test('a still sphere is judged against the room once, not every frame; the same hidden set (issue #111)', () => {
+  const w = world();
+  const cull = new InteriorCuller(w.scene, [door], { ground: () => 0 });
+  w.camera.position.set(0, 1002, 20);
+  const frame = () => { const h = cull.hide(w.camera); for (const o of h) o.visible = true; return h; };
+  const first = frame();
+  const box = THREE.Box3.prototype, plain = box.intersectsSphere;
+  let asked = 0;
+  box.intersectsSphere = function (s) { asked++; return plain.call(this, s); };
+  try {
+    for (let i = 0; i < 5; i++) assert.deepEqual(frame(), first, `frame ${i}`);
+    assert.equal(asked, 0, 'nothing moved: no sphere judged again');
+    w.walker.position.x += 1; w.scene.updateMatrixWorld();
+    assert.deepEqual(frame(), first);
+    assert.equal(asked, 1, 'the one that moved, judged again');
+  } finally { box.intersectsSphere = plain; }
+});

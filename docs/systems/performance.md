@@ -2373,3 +2373,85 @@ Measured with load-breakdown.mjs's traversal (`--worlds incal --preset handheld 
 
 The load is unchanged (Mac first frame 4.57 → 4.51 s; the Retroid's 18.0-18.3 → 17.6-17.9 s). What is left on the
 Retroid is 6-7 frames a run over 50 ms (the worst 75-90 ms), spread over the traversal.
+
+## The Steam Deck, round 8: the web build's main thread at native resolution (issue #111, 2026-10-12)
+
+**How it was measured.** The Steam Deck OLED in Desktop Mode (no game of the author's running), plugged in, the
+runtime the new installer put there (1982001, Electron 44, ANGLE on radeonsi GL), each build copied to
+`~/.local/share/hiraeth-bench-games/` and run by `deck-run.sh start headless <dir>` at `REFRESH=90` (the OLED's
+Gaming Mode rate), muted, in the bench's own profile; `deck-worlds.mjs --settle 1 --profile 1 --draws 1 --shots 1`:
+1280 × 800, the Steam Deck preset at scale 1 (it has no dynamic resolution: the scale read 1 in every view, every
+250 ms), 6 s a view after 2 s of warm-up. The builds: origin/main e7c21f7d (before) and the same tree with this
+round's changes (after), one sitting each. `steamdeck.local` stopped resolving from the Mac mid-run (`DECK=deck@<ip>`
+works), and the Deck suspends after about a quarter of an hour without input on mains (Plasma's default): a bench
+does not hold that off, so a run only lasts while someone has used the Deck recently. The Deck slept through most of
+the evening: the Signal Market, the Underwater City and the Floating city, the 60 Hz rows, the Unity player and the
+loading pen are still to take on it.
+
+**Where a frame went** (V8's profile of an unminified build on the Mac proxy, `deck-mac.mjs`, CPU ×3; self time a
+frame): `updateMatrixWorldCached` 5.7 ms at the City-Shaft's start and 6.9 at the desert's camps (the frame's walk of
+the scene, 5 500-6 800 objects, about 80 % of it: the rest is the rigs' own walks), three's `Skeleton.update` 1.4 +
+its `toArray` 2.9 at the camps (52 skeletons, 2 700 bones, each bone's `matrixWorld` a megamorphic load),
+`projectObject` 2.4-3.3, the draws' own work (`renderBufferDirect`, `setProgram`, `bindVertexArray`) 3-5, the still
+batches' checks 1.2, the room culler 0.6-1.
+
+**Kept:**
+- **Three's `Skeleton.update` from the bones' element arrays** (src/skeleton-update.js `installSkeletonUpdate`, main.js):
+  the Unity mirror's `skeletonUpdate` (round 7), moved to src/ and put on Skeleton's prototype for the web game: the
+  same products in the same order into the same Float32Array (three multiplies into a Matrix4 and copies it in: one
+  rounding to 32 bits either way), the arrays looked up again every 32 frames or when the bones change
+  (tests/skeleton-update.test.js, tests/engine-bridge.test.js: bit for bit). Every skeleton in the scene, Mac ×3:
+  5.1 → 0.4 ms at the desert's spawn, 3.1 → 0.2 in the City-Shaft, 4.4 → 0.3 in the Signal Market.
+- **The frame's matrices from the scene's list** (main.js renderFrame: engine/scene-matrices.js `updateSceneMatrices`,
+  the Unity mirror's, without `skipHidden`): the walk's matrices bit for bit (tests/scene-matrices.test.js), three
+  reads a frame off each object instead of a dozen. A frame with nothing moved, Mac ×3: 4.5 → 2.3 ms at the desert's
+  spawn, 3.7 → 2.1 in the City-Shaft, 3.2 → 1.7 in the Market. The web game edits the scene less than the Unity side
+  thought likely (no add, remove or attach in 300 frames at the desert's spawn or the City-Shaft's start), but a burst
+  of edits (things spawned frame after frame) would have made the list again every frame: it now waits until they
+  stop (`churn`, halved each frame; one edit after a calm stretch still makes it at once), the walk meanwhile.
+- **The room culler's verdict kept** (perf.js `InteriorCuller.hide`): a sphere that did not move is not judged against
+  the same room again (the City-Shaft's rim: ~3 000 renderables, most still).
+- **The still batches' matrices read off the entry** (static-batch.js `update`: the mesh's world matrix's elements kept
+  on its entry, not read through the mesh, whose shape is one of hundreds).
+- **A still batch never grows during a pass** (static-batch.js `geometryFor(it, later)`, `addLater`): on the Deck the
+  City-Shaft's load logged `GL_INVALID_OPERATION: glMultiDrawElementsANGLE: Insufficient buffer size`. A pass's batch
+  build runs in three's onBeforeRender, after three has taken the batch's geometry and uploaded its buffers: a level of
+  detail copied in then was drawn from buffers that did not hold it yet, and one that outgrew the room
+  (setGeometrySize: a new geometry, the old disposed) drew the new ranges from the old buffers, the batch lost for
+  that pass. Now a new level is copied in at the frame's update, before the passes, and the mesh draws its old level
+  that one frame (tests/static-batch.test.js).
+
+**Before → after on the Deck** (90 Hz; fps; frame ms median / p95 / p99; JS ms a frame (the animation-frame
+callbacks' median); GPU ms (timer queries' median); draws a frame, all passes):
+
+| view | before (e7c21f7d) | after |
+|---|---|---|
+| desert spawn | 46.1 · 22.2 / 22.4 / 33.4 · JS 21.1 · GPU 11.1 · 348 | **51.9** · 22.2 / 22.3 / 22.4 · JS 18.8 · GPU 11.2 · 345 |
+| desert camps | 42.0 · 22.2 / 33.4 / 33.4 · JS 23.2 · GPU 12.1 · 293 | **46.3** · 22.2 / 22.3 / 33.3 · JS 20.9 · GPU 12.0 · 289 |
+| City-Shaft rim (start) | 46.5-47.1 · 22.2 / 22.3 / 33.3 · JS 20.7-21.1 · GPU 17.8 · 394 | **50.2** · 22.2 / 22.3 / 22.4 · JS 19.5 · GPU 14.7 · 392 |
+| City-Shaft crowd | (round 5, an older build: 38.3 · JS 25.8) | **47.1** · 22.2 / 22.4 / 33.4 · JS 20.8 · GPU 13.8 · 303 |
+| City-Shaft wide | (round 5: 39.0 · JS 24.7) | **47.4** · 22.2 / 22.3 / 33.3 · JS 20.6 · GPU 19.0 · 434 |
+
+By system (the profile's wrappers, ms a frame, before → after): the G-buffer pass 7.0 → 6.5 at the spawn, 7.6 → 6.6 at
+the camps, 6.0 → 5.8 at the rim (the skeletons are updated in it); the shadow passes 1.8-2.0 → 1.4-1.5; the camps'
+people 2.3 → 2.0; what no wrapper names (the frame's matrices, the cullers, the batches' checks) 5.8 → 5.0, 6.3 → 5.1.
+The pictures are the same (`--shots`: before and after differ where people, cabs and motes moved, 4.7-5.2 % of the
+pixels by more than 24 levels; the Mac's own before and after 0.1-4.4 %), and so are the Deck's and the Mac's at one
+view (the Mac draws a few more distant details while its own settle runs; nothing else).
+
+**What keeps it from 60 at native.** The main thread: 19-21 ms of JS a frame in the desert and the City-Shaft against
+16.7, so at 90 Hz a frame still shows for two refreshes (22.2 ms) and now and then one (the fps over 45). The GPU has
+room in the desert (11-12 ms) but not at the City-Shaft's wide view (19 ms). What is left of the JS is three's own
+per-pass work (the scene's walk in each pass, the draws' uniforms and bindings: ~9 ms with the passes' sort), the
+people and the traveller (~3), the frame's matrices from the list (~1.5) and the rigs' walks (~1.5).
+
+**60 Hz against 90 Hz.** Not measured on this build (the Deck slept before its run). Round 5's 60 Hz rows (an older
+build, 24-28 ms of JS) came within 2 fps of its 90 Hz ones, every view's p95 33.4 ms at both. A frame longer than a
+refresh is shown for whole refreshes: at 90 Hz that is 22.2 ms (45 fps) with the quicker frames at 11.1, at 60 Hz 33.3
+ms. So while the main thread is over 16.7 ms, 90 Hz uncapped is the better rate; 60 Hz pays off once frames are under
+16.7, where 90 Hz would show 60 as 11.1 and 22.2 alternating. The preset stays uncapped (the author's call, #159).
+
+**The worlds rebuilt today** (the Underwater City, the City Floating in Space): their views picked
+(`deck-worlds.mjs --pick 1`, as android-worlds.mjs picks them: the boot camera, the two densest knots of people, a wide
+look; viewpoints-worlds.json) and measured on the Mac only so far: their JS a frame is 6-11 ms there at full speed, the
+desert's and the City-Shaft's 9-11, so they are no heavier than the City-Shaft on the main thread.

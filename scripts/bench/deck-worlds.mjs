@@ -3,7 +3,7 @@
 // (scripts/bench/deck-run.sh does both), then on the Mac:
 //   node scripts/bench/deck-worlds.mjs [--port 5310] [--worlds desert,incal,...] [--quality deck|high|handheld]
 //        [--scale 1] [--modes fixed,dynamic] [--secs 8] [--warmup 3] [--only spawn,qanat] [--profile 1] [--cpuprofile 1] [--raw dir]
-//        [--settle 1] [--draws 1] [--shots 1]
+//        [--settle 1] [--draws 1] [--shots 1] [--pick 1]
 // Per world: the world loaded (?level=, navigation to the first frame), then every view of the world
 // (viewpoints-worlds.json; the desert's are viewpoints.json's) placed, warmed up and recorded with the page
 // logic of the other runs (web-page.mjs): frame intervals, the screen refreshes missed, the JS time of
@@ -20,7 +20,7 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { options, viewpoints, sleep, ROOT, stats } from './lib.mjs';
 import { INSTRUMENT } from './browser.mjs';
-import { conditions, runAll } from './web-page.mjs';
+import { conditions, runAll, pickViews } from './web-page.mjs';
 
 const opt = options();
 const PORT = +(opt.port ?? 5310);
@@ -29,7 +29,8 @@ const PORT = +(opt.port ?? 5310);
 const ORIGIN = String(opt.origin ?? 'hiraeth://game/index.html');
 const SLOW = +(opt.slow ?? 1);
 const VP = viewpoints();
-const picked = JSON.parse(readFileSync(resolve(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8'));
+const VIEWS = resolve(ROOT, 'scripts/bench/viewpoints-worlds.json');
+const picked = JSON.parse(readFileSync(VIEWS, 'utf8'));
 const WORLDS = String(opt.worlds ?? 'desert,incal,bazaar,arzach,arzach2,garage,buried,edena,spheres,perdide,perdide2,home').split(',');
 const quality = String(opt.quality ?? 'deck');
 const modes = String(opt.modes ?? 'fixed').split(',');
@@ -181,8 +182,13 @@ async function runWorld(page, world, mode) {
     await page.waitFor('!window.deferred?.pending', 400000, 1000).catch(() => 0);
     console.log(`${label}: distant detail settled in ${((Date.now() - t) / 1000).toFixed(0)} s`);
   }
-  const W = world === 'desert' ? { views: VP.views, paths: VP.paths } : picked.worlds[world];
-  if (!W) throw new Error(`no views for ${world}`);
+  let W = world === 'desert' ? { views: VP.views, paths: VP.paths } : picked.worlds[world];
+  if (!W && opt.pick) {   // (--pick 1: a world with no views yet gets them as android-worlds.mjs picks them, from the boot camera)
+    W = picked.worlds[world] = await pickViews((fn, a) => page.eval(fn, a));
+    writeFileSync(VIEWS, JSON.stringify(picked, null, 1) + '\n');
+    console.log(`${world}: picked ${W.views.map((v) => v.name + (v.people ? ` (${v.people} people)` : '')).join(', ')}`);
+  }
+  if (!W) throw new Error(`no views for ${world}: --pick 1`);
   const dyn = mode === 'dynamic';
   if (dyn) await page.eval(() => { window.__dyn = window.preset().dynamic; return true; });
   const canvas = await conditions((fn, a) => page.eval(fn, a), { hour: VP.hour, weather: VP.weather, scale: fixedScale });

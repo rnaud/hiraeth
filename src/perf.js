@@ -299,8 +299,8 @@ export class InteriorCuller {
     const k = e[12] + e[13] * 3 + e[14] * 7 + e[0] * 11 + e[1] * 19 + e[2] * 23 + e[5] * 13 + e[8] * 29 + e[10] * 17 + src.radius * 31 + c.x * 37 + c.y * 41 + c.z * 43;
     let it = this.cache[i];
     if (it && it.src === src && it.k === k) return it.s;
-    if (!it) it = this.cache[i] = { src, k, s: new THREE.Sphere() };
-    it.src = src; it.k = k;
+    if (!it) it = this.cache[i] = { src, k, s: new THREE.Sphere(), box: null, inside: false };
+    it.src = src; it.k = k; it.box = null;   // (moved: its verdict against the room taken again, hide)
     return it.s.copy(src).applyMatrix4(o.matrixWorld);
   }
   /** The room's box: the static meshes near its door clear of the ground, then those near them, until none is added. */
@@ -358,7 +358,11 @@ export class InteriorCuller {
         if (o.count <= 512 || !o.boundingSphere || (this.frame & 15) === 0) o.computeBoundingSphere();
       }
       const s = this.boundsAt(i, o);
-      if (s && !keep.intersectsSphere(s)) { o.visible = false; out.push(o); }
+      if (!s) continue;
+      // (a sphere that did not move against the same room: the verdict it had; most of the ~3 000 never move)
+      const it = this.cache[i];
+      if (it.box !== box) { it.box = box; it.inside = keep.intersectsSphere(s); }
+      if (!it.inside) { o.visible = false; out.push(o); }
     }
     return out;
   }

@@ -43,7 +43,7 @@ const _old = new Float64Array(16);
 
 class SceneList {
   constructor(scene) {
-    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0;
+    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0; this.seen = -1; this.churn = 0;
     this.objs = []; this.parent = new Int32Array(0); this.end = new Int32Array(0); this.own = new Uint8Array(0); this.owns = new Int32Array(1);
     this.P = []; this.Q = []; this.S = []; this.K = []; this.M = []; this.ME = []; this.WE = []; this.changed = new Uint8Array(0);
   }
@@ -82,10 +82,14 @@ class SceneList {
   update(skipHidden = false) {
     if (this.epoch !== epoch) {
       this.scene.updateMatrixWorld();
-      this.epoch = epoch;
-      this.build();
+      // (edits frame after frame, a burst of things spawned: the walk alone until they stop, not the list made again
+      //  each frame; churn halves each frame, so an edit two frames after another still makes the list at once)
+      if (this.seen !== epoch) { this.seen = epoch; this.churn += 1; }
+      if (this.churn < 1.5) { this.epoch = epoch; this.build(); }
+      this.churn *= 0.5;
       return false;
     }
+    this.churn *= 0.5;
     const { objs, parent, end, own, owns, P, Q, S, K, M, ME, WE, changed } = this;
     for (let i = 0, n = this.n; i < n; i++) {
       const o = objs[i], pi = parent[i];

@@ -111,3 +111,21 @@ test('skipHidden: what is shown has the walk\'s matrices, a hidden thing read th
   updateSceneMatrices(A.scene, true); B.scene.updateMatrixWorld();
   assert.deepEqual(matrices(A.scene), matrices(B.scene), 'all shown');
 });
+
+test('edits frame after frame: the walk alone until they stop, then the list again, the same matrices', () => {
+  const A = world(5), B = world(5);
+  const built = () => A.scene.__sceneList?.built ?? 0;
+  updateSceneMatrices(A.scene); B.scene.updateMatrixWorld();
+  const b0 = built();
+  const ran = [];
+  for (let f = 0; f < 20; f++) {
+    // (a burst: something added to both every frame for ten frames)
+    if (f < 10) { A.scene.add(new THREE.Group()); B.scene.add(new THREE.Group()); }
+    for (const w of [A, B]) w.all[f % w.all.length].position.z += 0.25;
+    ran.push(updateSceneMatrices(A.scene));
+    B.scene.updateMatrixWorld();
+    assert.deepEqual(matrices(A.scene), matrices(B.scene), `frame ${f}`);
+  }
+  assert.ok(built() - b0 <= 3, `the list made ${built() - b0} times over ten frames of edits`);
+  assert.equal(ran[19], true, 'from the list again once the edits stopped');
+});

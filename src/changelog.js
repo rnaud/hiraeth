@@ -8,6 +8,16 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.63', date: '2026-10-12', items: [
+    // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the
+    // scene's list, the room culler's verdicts and the still batches' matrices kept (src/skeleton-update.js,
+    // engine/scene-matrices.js, src/perf.js, src/static-batch.js; docs/systems/performance.md "The Steam Deck, round 8";
+    // issue #111)
+    'On the Steam Deck the game runs faster at its full 1280 × 800: about 52 frames a second where the Desert starts (46 before), 46 at the pilgrims’ camps (42) and 50 at the City-Shaft’s rim (47), with the same picture. Each frame does less work for the people’s skeletons and for where everything in the world stands.',
+    // a still batch's new level of detail copied in before the frame's passes, not during one (src/static-batch.js
+    // geometryFor later, addLater; issue #111)
+    'Fixed: a group of buildings and rocks far off could vanish for a frame as their distant detail changed, most often in the City-Shaft just after arriving.',
+  ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;
     // docs/systems/fragments.md "His shop"; issue #185), and is aboard in every world once met (tests/thrum-aboard.test.js)

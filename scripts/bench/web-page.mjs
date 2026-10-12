@@ -123,3 +123,38 @@ export const gpuEstimate = (ev) => ev(() => {
   const info = window.renderer.info.memory;
   return { geometryMB: +((bytes + inst) / 1e6).toFixed(1), geometries: info.geometries, textures: info.textures, programs: window.renderer.info.programs?.length };
 });
+
+/** views of a world that has none yet: the boot camera, its two densest knots of people, a wide look, a walk */
+export const pickViews = (ev) => ev(() => {
+  const { THREE, camera, player } = window; const r = (a) => a.map((x) => +x.toFixed(2));
+  const d = new THREE.Vector3(); camera.getWorldDirection(d);
+  const start = { name: 'start', player: r(player.pos.toArray()), heading: +player.heading.toFixed(4), eye: r(camera.position.toArray()), target: r(camera.position.clone().addScaledVector(d, 10).toArray()), fov: camera.fov };
+  const pts = [];
+  for (const n of window.npcs) if (n.object?.visible !== false) pts.push(n.object.getWorldPosition(new THREE.Vector3()));
+  for (const p of window.crowd?.people ?? []) pts.push(p.pos.clone());
+  const near = (c, R) => pts.filter((p) => p.distanceTo(c) < R).length;
+  let best = null, best2 = null;
+  for (const p of pts) { const k = near(p, 25); if (!best || k > best.k) best = { c: p, k }; }
+  if (best) for (const p of pts) { if (p.distanceTo(best.c) < 60) continue; const k = near(p, 25); if (!best2 || k > best2.k) best2 = { c: p, k }; }
+  const views = [start];
+  const look = (name, b, dist, up) => {
+    const c = b.c, dir = new THREE.Vector3().subVectors(c, player.pos).setY(0); if (dir.lengthSq() < 1) dir.set(0, 0, 1); dir.normalize();
+    const eye = c.clone().addScaledVector(dir, -dist); eye.y = c.y + up;
+    views.push({ name, player: r(c.clone().addScaledVector(dir, -dist * 0.6).toArray()), heading: +Math.atan2(dir.x, dir.z).toFixed(4), eye: r(eye.toArray()), target: r([c.x, c.y + 1.2, c.z]), fov: 55, people: b.k });
+  };
+  if (best) look('crowd', best, 14, 4);
+  if (best2) look('crowd2', best2, 20, 10);
+  const cen = new THREE.Vector3(); for (const p of pts) cen.add(p); if (pts.length) cen.divideScalar(pts.length);
+  const eye = camera.position.clone(); eye.y += 25;
+  views.push({ name: 'wide', player: start.player, heading: start.heading, eye: r(eye.toArray()), target: r((pts.length ? cen : camera.position.clone().addScaledVector(d, 200)).toArray()), fov: 55 });
+  // a walk: 40 m on from the start along the traveller's heading, on the ground, the camera behind
+  const up = new THREE.Vector3(0, 1, 0), f = new THREE.Vector3(Math.sin(player.heading), 0, Math.cos(player.heading));
+  const points = [];
+  for (let i = 0; i <= 40; i++) {
+    const p = player.pos.clone().addScaledVector(f, i);
+    const y = window.physics.groundAt?.(p.x, p.y + 30, p.z, 80); if (Number.isFinite(y)) p.y = y + 1.2;
+    const e = p.clone().addScaledVector(f, -4.5).addScaledVector(up, 2.2), t = p.clone().addScaledVector(f, 6).addScaledVector(up, 0.6);
+    points.push({ p: r(p.toArray()), h: +player.heading.toFixed(4), eye: r(e.toArray()), target: r(t.toArray()) });
+  }
+  return { views, paths: [{ name: 'walk', note: '40 m on from the start, walking pace', speed: 4, secs: 10, step: 1, fov: 55, points }] };
+});

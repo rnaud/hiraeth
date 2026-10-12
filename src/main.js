@@ -4,6 +4,8 @@ import { updateHazards, registerHazard } from './hazards.js';
 import { fireHazard } from './story/flames.js';
 import * as THREE from 'three';
 import { installMatrixCache } from './matrix-cache.js';
+import { installSkeletonUpdate } from './skeleton-update.js';
+import { watchSceneEdits, updateSceneMatrices } from '../engine/scene-matrices.js';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { padConfirm } from './menu-pad.js';
@@ -151,6 +153,10 @@ installNativePad();
 watchLabels();
 // the scene's matrices recomposed only where something moved (src/matrix-cache.js)
 installMatrixCache();
+// (and the scene graph's edits counted, so the frame's matrices can run down a flat list of the scene: engine/scene-matrices.js)
+watchSceneEdits();
+// (and three's Skeleton.update from the bones' element arrays, the same numbers: src/skeleton-update.js)
+installSkeletonUpdate();
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -1864,9 +1870,11 @@ function renderFrame() {
   renderer.info.reset();
   framePin.begin();
   // the scene graph's matrices once per frame, not once per pass: renderer.render() walks the
-  // whole scene to update them every call, and a frame makes four or five calls (~1 ms of CPU)
+  // whole scene to update them every call, and a frame makes four or five calls (~1 ms of CPU). From a flat list of
+  // the scene (engine/scene-matrices.js, the Unity mirror's), the walk's matrices without its megamorphic reads of
+  // 5 000-7 000 objects (issue #111: the Steam Deck's main thread)
   scene.matrixWorldAutoUpdate = true;
-  scene.updateMatrixWorld();
+  updateSceneMatrices(scene);
   scene.matrixWorldAutoUpdate = false;
   statics?.update(renderer);   // (the batched still meshes that moved: static-batch.js)
   // hidden in every pass of this frame (then shown again): far pebbles and shrubs, props under

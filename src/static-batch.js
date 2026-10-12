@@ -236,11 +236,19 @@ class StillBatch extends THREE.BatchedMesh {
     this.drawn = 0;
   }
 
-  /** The batch's geometry id for the entry's current geometry (copied in the first time), or -1 (no room). */
-  geometryFor(it) {
+  /**
+   * The batch's geometry id for the entry's current geometry (copied in the first time), or -1 (no room). later: not
+   * copied now but at the frame's update (addLater), -2 meanwhile. A pass's build runs in three's onBeforeRender, after
+   * three has taken the batch's geometry and uploaded its buffers for the pass: a geometry copied in then was drawn from
+   * buffers that did not have it yet, and one that outgrew the room (setGeometrySize: a new geometry, the old one
+   * disposed) drew the new ranges from the old buffers (the Deck's GL: "glMultiDrawElementsANGLE: Insufficient buffer
+   * size", the batch lost for that pass; issue #111).
+   */
+  geometryFor(it, later = false) {
     const g = it.e.o.geometry;
     let gid = it.geo.get(g);
     if (gid !== undefined) return gid;
+    if (later) { (this.later ??= new Set()).add(it); return -2; }
     if (vertsOf(g) > this.unusedVertexCount || indicesOf(g) > this.unusedIndexCount) {
       // (the levels of detail outgrew the room left for them: half as much again, copied over: one upload)
       try { this.setGeometrySize(Math.ceil(this._maxVertexCount * 1.5) + vertsOf(g), Math.ceil(this._maxIndexCount * 1.5) + indicesOf(g)); } catch { return -1; }
@@ -262,7 +270,9 @@ class StillBatch extends THREE.BatchedMesh {
       // (the frustum first: most of a batch is off screen, and the visibility walks up the mesh's parents)
       if (e.sphereOf !== e.o.geometry) this.owner.place(e);
       if (!_frustum.intersectsSphere(e.sphere) || !this.want(e)) continue;
-      const gid = this.geometryFor(it);
+      let gid = this.geometryFor(it, true);
+      // (a new level of detail is copied in at the frame's update: the one it had, one frame more)
+      if (gid === -2) { gid = it.cur ?? it.geo.values().next().value; if (gid === undefined) continue; }
       if (gid < 0) { this.owner.release(e, 'room'); continue; }
       // (three's opaque order inside a material: by the depth of the object's origin on screen)
       if (sort) e.z = _v.setFromMatrixPosition(e.o.matrixWorld).applyMatrix4(_pm).z;
@@ -283,6 +293,14 @@ class StillBatch extends THREE.BatchedMesh {
     this._multiDrawCount = k;
     this._multiDrawBytesPerElement = bytes;
     this.drawn = n;
+  }
+
+  /** The geometries the passes asked for, copied in before the frame's passes (StaticBatches.update). */
+  addLater() {
+    const L = this.later;
+    if (!L || !L.size) return;
+    this.later = null;
+    for (const it of L) if (!it.e.out && this.geometryFor(it) < 0) this.owner.release(it.e, 'room');
   }
 
   // (three's per-instance culling, sorting and indirect texture: replaced by build())
@@ -409,7 +427,7 @@ export class StaticBatches {
       all.push(o);
     });
     this.tables = new Tables(all.length);
-    this.entries = all.map((o, id) => ({ o, id, mat: o.material, mask: o.layers.mask, mw: o.matrixWorld.clone(), moves: 0, out: false, view: null, sphere: new THREE.Sphere(), sphereOf: null, z: 0, lent: false }));
+    this.entries = all.map((o, id) => ({ o, id, mat: o.material, mask: o.layers.mask, mw: o.matrixWorld.clone(), we: o.matrixWorld.elements, moves: 0, out: false, view: null, sphere: new THREE.Sphere(), sphereOf: null, z: 0, lent: false }));
     const byObj = new Map(this.entries.map((e) => [e.o, e]));
     for (const e of this.entries) { this.tables.setMatrix(e.id, e.o.matrixWorld); this.tables.setValues(e.id, e.mat); this.place(e); }
     this.watches = new Map();   // material → Watch (what its batch copied)
@@ -489,12 +507,16 @@ export class StaticBatches {
   update(renderer = null) {
     if (!this.on) return;
     if (this.skipAgain > 0 && --this.skipAgain === 0) this.skip();
+    for (const b of this.view) b.addLater();
+    this.shadow?.addLater();
     const T = this.tables;
     for (const e of this.entries) {
       if (e.out) continue;
       const o = e.o;
       if (o.material !== e.mat) { this.release(e, 'material'); continue; }
-      const a = o.matrixWorld.elements, b = e.mw.elements;
+      // (the mesh's world matrix's elements kept on the entry: a read off the mesh, whose shape is one of hundreds, is a
+      //  megamorphic one in V8, and this runs over every still mesh a frame; three never replaces a matrix's array)
+      const a = e.we, b = e.mw.elements;
       let same = true;
       for (let k = 0; k < 16; k++) if (a[k] !== b[k]) { same = false; break; }
       if (same) continue;

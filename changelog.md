@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.63 — 2026-10-12
+
+- Fixed: a group of buildings and rocks far off could vanish for a frame as their distant detail changed, most often in the City-Shaft just after arriving.
+- On the Steam Deck the game runs faster at its full 1280 × 800: about 52 frames a second where the Desert starts (46 before), 46 at the pilgrims’ camps (42) and 50 at the City-Shaft’s rim (47), with the same picture. Each frame does less work for the people’s skeletons and for where everything in the world stands.
+
 ## v1.62 — 2026-10-12
 
 - The Desert has a recorded theme again, a new one made to go with its new music: a slow oud with long, sliding notes over warm synthesizer pads, a low drone and the wind, and no drums. It plays as you step out of the ship and through your first minutes on the sand, indoors and at the big moments; in between, the quieter layers of the Desert’s own music carry on, and the two fade into each other.
