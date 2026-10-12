@@ -2,7 +2,7 @@
 // time and full screen, in the prompt documents' order (a world's or an object's sheets together), a pick or a
 // "none of them" moving straight on to the next. Pure: the queue, its order, the session's moves and the drawing;
 // pickmode-ui.js puts it on the page, the dev server does the picks (the same pick as the grid's Pick button).
-import { candidateSrc, esc, fileSrc } from './view.js';
+import { baseRefs, candidateSrc, esc, fileSrc, refLabel } from './view.js';
 
 /** The default reasons, pre-filled in the "why" field (never required; typed over at will). */
 export const PICK_WHY = 'the best of the batch';
@@ -176,10 +176,22 @@ export function pickGridHtml(m, picked = null) {
 /** The header's words for an item: what is being picked, from where, into where. */
 export function pickHeadHtml(it, m = null) {
   if (!it) return '<div class="pm-world">All done</div><div class="pm-title">Every batch in the queue is picked or turned down.</div>';
-  const ref = m?.comparison ?? m?.refs?.[0];
   return `<div class="pm-world">${esc(it.world)}</div>
     <div class="pm-title">${esc(it.title)} <small>${esc(it.id)}</small></div>
     <div class="pm-line" title="${esc(it.prompt)}">${esc(it.line)}</div>
     <div class="pm-target">→ ${esc(it.target ?? '(no target folder: the form\'s is used)')}${it.state === 'picked' ? ` <b class="picked">picked: ${esc(it.picked)}</b>` : it.state === 'rejected' ? ' <b class="err">none of them</b>' : it.state === 'skipped' ? ' <i>(skipped before)</i>' : ''}</div>
-    ${ref ? `<img class="pm-ref" src="${esc(fileSrc(ref))}" alt="the reference" title="the reference: ${esc(ref)}">` : ''}`;
+    ${pickBaseHtml(m)}`;
+}
+
+/**
+ * The header's "Base" strip: the picture(s) the batch was made from (its refs), each a thumbnail a click enlarges
+ * (data-pm-base: its index); a batch made from text alone shows the picture it is compared with, if any, as before.
+ */
+export function pickBaseHtml(m) {
+  const base = baseRefs(m);
+  if (!base.length) {
+    const cmp = m?.comparison;
+    return cmp ? `<div class="pm-base"><span class="pm-base-word">compared with</span><img class="pm-ref" src="${esc(fileSrc(cmp))}" alt="the reference" title="compared with: ${esc(cmp)}"></div>` : '';
+  }
+  return `<div class="pm-base" title="The base: the picture${base.length > 1 ? 's' : ''} this batch was made from (a click, or R, enlarges)"><span class="pm-base-word">Base</span>${base.map((r, i) => `<button type="button" class="pm-basebtn" data-pm-base="${i}" title="Base ${i + 1} of ${base.length}: ${esc(r)}"><img class="pm-ref" src="${esc(fileSrc(r))}" alt="base ${i + 1}: ${esc(refLabel(r))}"><small>${esc(refLabel(r))}</small></button>`).join('')}</div>`;
 }

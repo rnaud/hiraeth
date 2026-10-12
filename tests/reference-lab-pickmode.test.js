@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { CANDIDATES_DIR, listBatches, pick, readBatch, reject, unpick } from '../scripts/reference-lab/batch.mjs';
 import { listPrompts, parsePromptDoc } from '../scripts/reference-lab/prompts.mjs';
 import { referenceLabMiddleware } from '../scripts/reference-lab/server.mjs';
-import { PickSession, REJECT_WHY, bestColumns, buildPickQueue, nextOpen, pickGridHtml, pickHeadHtml, pickProgress, progressText, worldOf } from '../src/reference-lab/pickmode.js';
+import { PickSession, REJECT_WHY, bestColumns, buildPickQueue, nextOpen, pickBaseHtml, pickGridHtml, pickHeadHtml, pickProgress, progressText, worldOf } from '../src/reference-lab/pickmode.js';
 
 const WORLDS = `# Level explorations: reference prompts
 
@@ -224,6 +224,17 @@ test('Pick mode\'s drawing: numbered candidates with a zoom corner, the header, 
   assert.match(h, /class="pm-cand on" data-pm-cand="openai\/1"/, 'the pick made here shows');
   const head = pickHeadHtml({ world: 'Vael', title: 'Vael · falling-up · The edge', id: 'va-x', line: 'Main: rising', target: 'references/levels/Vael/environment/x/', prompt: 'p', state: 'open' });
   for (const t of ['Vael', 'falling-up', 'Main: rising', 'references/levels/Vael/environment/x/']) assert.ok(head.includes(t), t);
+  // the base: every picture the batch was made from, a thumbnail each (a click enlarges it), named by folder and file
+  const it = { world: 'Temple guardians', title: 'The Elder', id: 'elder', line: 'From the reference', target: 'references/guardians/elder/turnaround/', prompt: 'p', state: 'open' };
+  const based = pickHeadHtml(it, { refs: ['references/guardians/elder/reference-v1-4.png', 'references/guardians/elder/sheet-1.jpg'], comparison: 'references/guardians/elder/reference-v1-4.png' });
+  assert.match(based, /class="pm-base"[^>]*>.*Base</s);
+  assert.equal((based.match(/data-pm-base="/g) ?? []).length, 2, 'both bases shown');
+  assert.match(based, /data-pm-base="1"[^>]*>.*src="\/references\/guardians\/elder\/sheet-1\.jpg"/s);
+  assert.match(based, /<small>elder\/reference-v1-4\.png<\/small>/);
+  assert.equal(pickBaseHtml({ refs: [], comparison: 'references/guardians/elder/sheet-2.jpg' }).includes('data-pm-base'), false, 'text alone: no base, only what it is compared with');
+  assert.match(pickBaseHtml({ refs: [], comparison: 'references/guardians/elder/sheet-2.jpg' }), /compared with/);
+  assert.equal(pickBaseHtml({ refs: [] }), '');
+  assert.equal(pickBaseHtml(null), '');
   assert.equal(bestColumns(2, '16:9', 1600, 800), 2, 'two wide pictures side by side');
   assert.equal(bestColumns(4, '16:9', 1600, 800), 2, 'four: two by two');
   assert.equal(bestColumns(3, '2:3', 1600, 800), 3, 'tall ones in a row');

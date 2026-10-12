@@ -131,7 +131,12 @@
   .pm-title small { font-weight: normal; color: var(--soft); }
   .pm-line { color: #8a5a3c; font-size: 13px; }
   .pm-target { color: var(--soft); font-size: 12px; }
-  .pm-ref { grid-column: 2; grid-row: 1 / span 4; height: 84px; max-width: 180px; object-fit: contain; border: 1.5px dashed var(--ink); background: #e8dcc0; }
+  .pm-base { grid-column: 2; grid-row: 1 / span 4; display: flex; align-items: flex-start; gap: 8px; }
+  .pm-base-word { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--soft); }
+  .pm-basebtn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; border: 0; background: none; cursor: zoom-in; font: inherit; }
+  .pm-basebtn small { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--soft); }
+  .pm-basebtn:hover .pm-ref, .pm-basebtn:focus .pm-ref { border-color: var(--red); border-style: solid; }
+  .pm-ref { display: block; height: 84px; max-width: 180px; object-fit: contain; border: 1.5px dashed var(--ink); background: #e8dcc0; }
   .pm-side { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 6px; min-width: 220px; }
   .pm-progress { font-size: 15px; font-weight: 700; white-space: nowrap; }
   .pm-bar-prog { width: 220px; height: 6px; border: 1.5px solid var(--ink); background: #fff; }

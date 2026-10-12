@@ -4,9 +4,10 @@
 //   a click on a picture, or its number (1-9)   pick it, and on to the next batch at once
 //   S or →  skip  ·  ←  back (to change a pick)  ·  X  none of them  ·  Z  the chosen one alone, full size
 //   Enter   pick the focused one  ·  Esc  close the zoom, else leave Pick mode (leaving full screen does too)
+//   R, or a click on a Base thumbnail in the header: the batch's base picture(s) enlarged (← → through them)
 //   a pad:  ← → choose, A pick, X none of them, Y zoom, LB back, RB skip, B close the zoom, then leave
 import { PICK_WHY, PickSession, bestColumns, buildPickQueue, pickGridHtml, pickHeadHtml, progressText, shownCandidates } from './pickmode.js';
-import { candidateSrc } from './view.js';
+import { baseRefs, candidateSrc, fileSrc } from './view.js';
 
 /**
  * o: { api(path, body) (the dev server), prompts() (the prompt documents), target() (the form's target folder, for a
@@ -17,7 +18,7 @@ export function installPickMode({ api, prompts, target = () => '', onClose = () 
   const $ = (s) => root.querySelector(s);
   const grid = $('.pm-grid'), why = $('#pm-why'), zoom = $('.pm-zoom');
   const details = new Map();   // batch → its candidates.json (fetched once, again after a move)
-  let session = null, shown = null, lastWorld = null, focusAt = 0, zoomAt = -1, busy = false, noteTimer = 0;
+  let session = null, shown = null, lastWorld = null, focusAt = 0, zoomAt = -1, baseAt = -1, busy = false, noteTimer = 0;
 
   const isOpen = () => root.classList.contains('open');
   const status = (text, bad = false) => { const s = $('.pm-status'); s.textContent = text; s.classList.toggle('bad', bad); };
@@ -120,13 +121,22 @@ export function installPickMode({ api, prompts, target = () => '', onClose = () 
   function openZoom(i) {
     const list = shownCandidates(shown);
     if (!list.length) return;
-    zoomAt = (i + list.length) % list.length;
+    zoomAt = (i + list.length) % list.length; baseAt = -1;
     const c = list[zoomAt], p = shown.providers?.[c.provider] ?? {};
     zoom.querySelector('img').src = candidateSrc(shown.batch, c.file);
     zoom.querySelector('.pm-zcap').textContent = `${zoomAt + 1} of ${list.length} · ${p.label ?? c.provider} #${c.id.split('/').pop()} · Enter or ${zoomAt + 1} picks it · ← → the others · Z or Esc closes`;
     zoom.classList.add('open'); zoom.setAttribute('aria-hidden', 'false');
   }
-  function closeZoom() { zoom.classList.remove('open'); zoom.setAttribute('aria-hidden', 'true'); zoomAt = -1; }
+  // the base picture(s) the batch was made from, enlarged the same way (nothing to pick there: Esc, Z or R closes)
+  function openBase(i) {
+    const list = baseRefs(shown);
+    if (!list.length) return;
+    zoomAt = -1; baseAt = (i + list.length) % list.length;
+    zoom.querySelector('img').src = fileSrc(list[baseAt]);
+    zoom.querySelector('.pm-zcap').textContent = `Base ${baseAt + 1} of ${list.length}: ${list[baseAt]} · the picture this batch was made from${list.length > 1 ? ' · ← → the other' : ''} · Esc closes`;
+    zoom.classList.add('open'); zoom.setAttribute('aria-hidden', 'false');
+  }
+  function closeZoom() { zoom.classList.remove('open'); zoom.setAttribute('aria-hidden', 'true'); zoomAt = -1; baseAt = -1; }
 
   async function open() {
     if (isOpen()) return;
@@ -160,6 +170,8 @@ export function installPickMode({ api, prompts, target = () => '', onClose = () 
   root.addEventListener('click', (e) => {
     const t = e.target;
     if (t.closest('.pm-zoom')) { closeZoom(); return; }
+    const bz = t.closest('[data-pm-base]');
+    if (bz) { openBase(+bz.dataset.pmBase); return; }
     const z = t.closest('[data-pm-zoom]');
     if (z) { openZoom(shownCandidates(shown).findIndex((c) => c.id === z.dataset.pmZoom)); return; }
     const c = t.closest('[data-pm-cand]');
@@ -178,6 +190,12 @@ export function installPickMode({ api, prompts, target = () => '', onClose = () 
       return;
     }
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (zoomOpen() && baseAt >= 0) {   // (a base enlarged: nothing to pick)
+      e.preventDefault();
+      if (k === 'Escape' || k === 'z' || k === 'r' || k === 'Enter') closeZoom();
+      else if (k === 'ArrowLeft' || k === 'ArrowRight') openBase(baseAt + (k === 'ArrowRight' ? 1 : -1));
+      return;
+    }
     if (zoomOpen()) {
       e.preventDefault();
       if (k === 'Escape' || k === 'z') closeZoom();
@@ -191,13 +209,15 @@ export function installPickMode({ api, prompts, target = () => '', onClose = () 
     else if (k === 'ArrowLeft') { e.preventDefault(); back(); }
     else if (k === 'x' || k === 'Delete') { e.preventDefault(); reject(); }
     else if (k === 'z') { e.preventDefault(); openZoom(focusAt); }
+    else if (k === 'r') { e.preventDefault(); openBase(0); }
     else if (k === 'Enter' && e.target.closest?.('.pm-cand')) { e.preventDefault(); pickAt(focusAt); }
     else if (k === 'Escape') { e.preventDefault(); close(); }
     else if (k === 'w') { e.preventDefault(); why.focus(); why.select(); }
   }
   /** A pad's move or button while Pick mode is open. */
   function pad(name, x = 0) {
-    if (name === 'navigate') { if (!x) return; if (zoomOpen()) openZoom(zoomAt + x); else focusCand(focusAt + x); return; }
+    if (name === 'navigate') { if (!x) return; if (zoomOpen()) (baseAt >= 0 ? openBase(baseAt + x) : openZoom(zoomAt + x)); else focusCand(focusAt + x); return; }
+    if (zoomOpen() && baseAt >= 0) { if (name === 'back' || name === 'y' || name === 'confirm') closeZoom(); return; }
     if (zoomOpen()) {
       if (name === 'confirm') { const i = zoomAt; closeZoom(); pickAt(i); }
       else if (name === 'back' || name === 'y') closeZoom();

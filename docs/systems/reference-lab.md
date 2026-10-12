@@ -73,7 +73,9 @@ other four are a click away).
    the path; click to add or remove. The first one is shown beside the results for comparison (or choose
    another). A provider takes as many as it can (OpenAI 16, Gemini 14, BFL 8, FLUX.2 [dev] 4, Recraft 1).
 3. **Providers, count, aspect ratio**, and a model per provider; **Generate** (G, or Menu on a pad).
-4. The reference pictures the batch was drawn from (if any) sit on their own above everything; below, every
+4. The **base** pictures the batch was drawn from (its references, if any; named by folder and file, "base
+   keeper/sheet-1.jpg", a click enlarges) sit on their own above everything (a batch from text alone shows the
+   picture it is "compared with" there instead); below, every
    provider's pictures together in one grid (each card naming its provider, with its time and cost), so the pick is one choice across all of them; a provider that failed says why (no-key, auth, credits, rate-limit, blocked, server…)
    and the others carry on. Click a picture (or Enter, A) to zoom; ← → (LB / RB) through them.
 5. **Pick** (P, X) asks why (optional) and copies the picture to the target folder; **Discard** (Del, Y)
@@ -126,13 +128,15 @@ allows at the batch's aspect ratio (`bestColumns`: the column count that gives e
 - **The header** says what is being picked: the world or object (the level its target folder is in, else the
   prompt document's title: "Enemy roster"), then world · direction · entry ("Vael · falling-up · The edge that
   rises", with its id), the prompt's bold line ("Main: the plain's edge breaking into stones…", else the prompt's
-  first sentence; the whole prompt on hover), the target folder, the reference it was drawn from, and the
+  first sentence; the whole prompt on hover), the target folder, the **Base** strip (every picture the batch was
+  made from, a thumbnail each named by folder and file; a click on one, or **R**, shows it full size, ← → through
+  them, Esc closes; a batch from text alone shows the picture it is compared with instead), and the
   progress ("12 of 48 to pick", with a bar). A small note says when the world changes ("Now: Lorn").
 - **Moves:** a click on a picture, or its number (1–9), picks it and the next batch comes at once. **S** or
   **→** skips (a skipped batch comes back once the others are done), **←** goes back to the batch shown before
   (to change its pick: a new pick there takes the first one back), **X** is none of them, **Z** (or a picture's
   ⤢ corner) shows the chosen one alone, full size (← → through the others, Enter or its number picks it),
-  **W** goes to the "why" field, **Esc** closes the zoom, then leaves (leaving full screen leaves Pick mode too).
+  **R** shows the base, **W** goes to the "why" field, **Esc** closes the zoom, then leaves (leaving full screen leaves Pick mode too).
   A pad: ← → choose, A picks, X none of them, Y zoom, LB back, RB skip, B closes the zoom, then leaves.
 - **Why:** pre-filled with "the best of the batch", typed over at will, never required; none of them takes
   "none of them fits" when the field is left as it was.
@@ -167,6 +171,12 @@ own dev server too and outlives the worktree (`REFERENCE_LAB_STORE=<dir>` moves 
 `.gitignore` (`*`) besides the root one. Everything is on disk: the page lists every batch on load, newest first,
 reopens the page it showed (`#page=N`), and picks and discards are written straight into `candidates.json`.
 The page reads the candidates' pictures through the dev server (`/__reference-lab/file/<batch>/<provider>/<n>.jpg`).
+
+`refs` is the batch's **base**: the repository paths of the pictures sent with the prompt (each provider's
+`refsUsed` says how many it took), kept by a retry with `--into` and copied into a pick's manifest entry. Running
+a prompt over a picked sheet ("the same creature as in the reference image, redrawn as a turnaround") is just
+`--refs <that sheet>`; e.g. the guardian turnarounds' `#<id>/v2` prompts
+([design/guardian-turnaround-prompts.md](../design/guardian-turnaround-prompts.md)).
 
 `candidates.json`: `{ batch, date, created, prompt, from, refs, ar, n, target, comparison, status, providers: {
 <id>: { status, label, model, ms, costUSD, count, kind?, error? } }, candidates: [{ id: '<provider>/<n>',

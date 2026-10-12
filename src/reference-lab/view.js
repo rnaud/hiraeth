@@ -9,6 +9,10 @@ export const fileSrc = (path) => `/${String(path).split('/').map(encodeURICompon
 
 /** A candidate's picture, through the dev server (the candidates are kept in the main checkout, not under its root). */
 export const candidateSrc = (batch, file) => `/__reference-lab/file/${encodeURIComponent(batch)}/${String(file).split('/').map(encodeURIComponent).join('/')}`;
+/** The base picture(s) a batch was made from: the references sent with its prompt (`--refs`), repository paths. */
+export const baseRefs = (m) => (Array.isArray(m?.refs) ? m.refs.filter(Boolean) : []);
+/** A reference's short name: its folder and file ("keeper/sheet-1.jpg"), so two guardians' sheet-1s tell apart. */
+export const refLabel = (path) => String(path).split('/').slice(-2).join('/');
 
 export const ASPECTS =['1:1', '3:2', '2:3', '4:3', '3:4', '16:9', '9:16', '21:9'];
 
@@ -81,9 +85,10 @@ export function candidateCard(batch, c, est = false, label = '') {
 export function batchHtml(m) {
   if (!m) return '<p class="empty">Generate a batch, or open one from the history.</p>';
   if (m.mode === '3d') return batch3dHtml(m);
-  // the reference the batch was drawn from (when there is one): on its own above everything else
-  const refs = m.refs?.length ? m.refs : (m.comparison ? [m.comparison] : []);
-  const cmp = refs.length ? `<div class="refrow">${refs.map((r) => `<figure class="cand cmp" tabindex="0" data-nav data-cmp="${esc(r)}"><img src="${esc(fileSrc(r))}" alt="the reference"><figcaption><b>reference</b> ${esc(r.split('/').pop())}</figcaption></figure>`).join('')}</div>` : '';
+  // the base picture(s) the batch was drawn from (its --refs), else the one it is compared with: on their own above everything else
+  const base = baseRefs(m), refs = base.length ? base : (m.comparison ? [m.comparison] : []);
+  const word = base.length ? 'base' : 'compared with';
+  const cmp = refs.length ? `<div class="refrow">${refs.map((r) => `<figure class="cand cmp" tabindex="0" data-nav data-cmp="${esc(r)}" title="${esc(r)}"><img src="${esc(fileSrc(r))}" alt="the ${word}"><figcaption><b>${word}</b> ${esc(refLabel(r))}</figcaption></figure>`).join('')}</div>` : '';
   const states = Object.entries(m.providers).map(([id, p]) => {
     const state = p.status === 'running' ? '<span class="spin">generating…</span>'
       : p.status === 'error' ? `<span class="err">${esc(p.kind)}: ${esc(p.error)}</span>`

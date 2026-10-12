@@ -319,6 +319,8 @@ test('a batch: every provider at once, one failing without stopping the others, 
   assert.deepEqual(m.candidates.map((c) => c.id), ['openai/1', 'openai/2']);
   assert.equal(m.target, 'references/enemy-archetypes/crab/');
   assert.equal(m.comparison, 'references/levels/The Desert/environment/rock.jpg');
+  assert.deepEqual(m.refs, ['references/levels/The Desert/environment/rock.jpg'], 'the base picture(s) recorded in the batch, as repository paths');
+  assert.equal(m.providers.openai.refsUsed, 1, 'and how many each provider was sent');
   const dir = join(root, CANDIDATES_DIR, 'b1');
   assert.deepEqual(readFileSync(join(dir, 'openai/1.jpg')), JPEG);
   const file = readFileSync(join(dir, 'candidates.json'), 'utf8');
@@ -403,6 +405,7 @@ test('one batch for one pick: a provider run again into the same batch, batches 
   // run again into m1: its own prompt and references, the openai pictures replaced, nothing doubled
   const again = await runBatch({ root, providers: ['openai'], batch: 'm1', keys, fetch: labFetch(), ...fast });
   assert.equal(again.prompt, 'a rock');
+  assert.deepEqual(again.refs, ['references/levels/The Desert/environment/rock.jpg'], 'a retry keeps the batch\'s base');
   assert.deepEqual(again.candidates.map((c) => c.id), ['openai/1', 'openai/2']);
   assert.throws(() => mergeBatches({ root, into: 'm1', from: ['m3'] }), /another prompt/);
   const m = mergeBatches({ root, into: 'm1', from: ['m2'] });
@@ -547,6 +550,8 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
   const h = batchHtml(m);
   assert.match(h, /src="\/references\/levels\/The%20Desert\/environment\/rock\.jpg"/, 'the reference');
   assert.ok(h.indexOf('class="refrow"') < h.indexOf('class="bhead"') && !/class="wall">[^]*rock\.jpg/.test(h), 'the reference on its own above everything, not in the grid');
+  assert.match(h, /<b>base<\/b> environment\/rock\.jpg/, 'named the base, with its folder');
+  assert.match(batchHtml({ ...m, refs: [] }), /<b>compared with<\/b>/, 'a batch from text alone: the picture it is compared with, not a base');
   assert.match(h, /src="\/__reference-lab\/file\/b1\/openai\/1\.jpg"/, 'through the dev server: the store is the main checkout');
   assert.match(h, /data-pick="openai\/1"/);
   assert.match(h, /12\.0 s/);
