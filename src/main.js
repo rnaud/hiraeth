@@ -741,6 +741,9 @@ const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crow
   ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
   cue: (text, secs) => scoutSays(text, secs),   // (a line under the view at once, not a toast in the queue: the desert's way calls out what is ahead)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
+// the ship won't leave without the world's core gadgets (src/story/leave-gate.js, issue #217): the quest that leads to
+// them starts, if it hadn't, so the quest log and the scout show the way
+game.on('travel:refused', ({ quest }) => { if (quest && !storyRt.quests.isStarted(quest)) storyRt.quests.start(quest); });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
 // the shops (src/shop.js, src/shop-panel.js, src/story/shops.js): talking to a keeper ("Show me what you have") or E at

@@ -43,9 +43,9 @@ nothing in his hands; the order in the desert is:
 | the fluid gun, with ember mode (`fire`) | the Givers' Hearth, the Givers' room off its hall (`desert.gun`; v1.45, issue #83) | its stone ball wants the push; nothing in the house needs it, before or after. Ember mode, the house's old key, comes with it (`with`, docs/systems/boxes.md): in v1.44 it had a chest of its own beside the gun's |
 
 The house is off the main quest's line (Sabri starts it), so the order is the player's: the house before the Hearth
-or after it, both work (the house never asks for the gun; the Hearth never asks for the blade). A traveller who
-leaves the desert without going in goes on unarmed: no foe comes for him (below), nothing after the desert asks for the
-blade (its switches are the house's own), and the blade and the guard wait in the house, the desert always on the map.
+or after it, both work (the house never asks for the gun; the Hearth never asks for the blade). Until v1.56 a
+traveller could leave the desert without going in and go on unarmed (no foe came for him); since v1.57 (issue #217) the
+ship waits for the blade and the guard (below, "Core gadgets: the ship waits for them").
 Until v1.44 they waited by the ship in the next world instead (`FALLBACKS`, slots 1 and 4), and the author landed in
 Vael beside two free chests (issue #91: "chests should always feel earned").
 
@@ -74,6 +74,28 @@ remade house), unless the Keeper was calmed (its doors open, its fires lit). A s
 the backpack (src/boxes/index.js's legacy rule doesn't count the two). Step 14 (`migrateGunChest`, v1.45) gives a save
 that opened either of the Hearth's two v1.44 chests, or has the gun or ember mode, both, the gun's chest open (the gun in
 hand if nothing else was). `tests/save-migrate.test.js`.
+
+## Core gadgets: the ship waits for them (v1.57, `src/story/leave-gate.js`)
+
+From the author (issue #217): "I shouldn't be able to leave the desert without getting all the core gadgets from that
+level. I was able to leave without a sword and shield right now." A world's core gadgets are what the worlds after it
+are built for; the ship's `travel` (src/ship/ship.js, after the power check) asks `leaveRefusal(world, to, has)` and,
+while one is missing, stays down: a beep and one line in the ship's voice naming what is still to find and where
+("Not yet. The Givers' blade and the Givers' guard are still in the Rose House."), `travel:refused` emitted, and the
+quest that leads there started if it wasn't (main.js: the Rose House's `temple.desert`, the Aerie's `temple.arzach`),
+so the quest log and the scout show the way. Nobody is handed off to anyone: the line says the place.
+
+| world | core gadgets | why |
+|---|---|---|
+| the desert | the backpack, the lift valve, the fluid gun; the Givers' blade and guard | the first three are the main quest's (the ship has no power before them); the blade and the guard, off its line in the Rose House, are what every foe and every temple's switches want |
+| Vael | the fluid wings (the Aerie) | Vael's own tower, the City-Shaft's air pillars, the trials that are flown |
+
+Every other world's temple gadget is the key to that temple's own rooms and its gifts in the open are extras: nothing
+past their world wants them, so those worlds are left whenever. Each core gadget's chest stands in its own world, so a
+save is never kept where it can't get them (it is standing in their world); saves already past the desert are not
+touched, and if one comes back unarmed, the house is there. The debug saves (src/debug-save.js) open every chest of the
+worlds before theirs, so they leave as before. The play-through (tests/playthrough-agent.js `shipTurn`) reports a world
+it could not leave. Tests: `tests/leave-gate.test.js`.
 
 ## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
 

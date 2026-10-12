@@ -685,6 +685,7 @@ const { consoleAction, mapEntries } = await import('../src/ship/starmap.js');
 const { homeOpen, HOME_ID, finaleOpen } = await import('../src/story/ending.js');
 const { TITLES } = await import('../src/levels/names.js');
 const { ambushDue, ambushKey } = await import('../src/ambush.js');
+const { leaveRefusal } = await import('../src/story/leave-gate.js');
 export { homeOpen, HOME_ID, pendingCall, completedWorlds };
 
 /**
@@ -705,6 +706,9 @@ export function shipTurn({ from, to, journal, issue }) {
     heard.push(n);
   }
   if (consoleAction({ at: 'table', powered: !!flag('ship.powered') }) !== 'map') issue('ship', `the holo table is locked (ship.powered ${flag('ship.powered')})`);
+  // the ship won't leave without the world's core gadgets (src/story/leave-gate.js, issue #217): the route has found them
+  const refused = from && leaveRefusal(from, to, (id) => items.has(id));
+  if (refused) issue('ship', `the ship won't leave ${from} for ${to}: ${refused.missing.join(', ')} not found ("${refused.line.text}")`);
   const map = mapEntries({ order: ORDER, levels: LEVELS, flag, journal: { storyDone: journal.storyDone, seen: (id) => journal.seen.has(id) }, current: from, home: () => homeOpen({ flag, completed: completed() }), finale: () => finaleOpen({ flag, completed: completed() }) });
   // a world the route opened but the map has not charted yet: the player finds it with the signature search
   // (src/story/signature-search.js), as a player would before choosing it

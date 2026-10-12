@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.57 — 2026-10-12
 
+- Your ship won’t leave the desert now until you have the Givers’ blade and guard from the Rose House: it says where they are, and the Rose House goes into your quests if it wasn’t there. Vael waits the same way for the fluid wings from the Aerie.
 - The pond under the desert’s lavender cliffs now lies down in the ground instead of on it: its water sits below the crust round it, along a shore of wet and damp sand with a lip of pale salt stones, and you can still wade across it.
 - The hoverbike shows under you again while you ride it: it had stayed behind where you got on, so you seemed to ride on nothing.
 - When someone has finished talking, the first answer is already picked, with a keyboard, a mouse or a touch screen as with a pad: press A / × (or E, Enter) to say it, or move to another. It stays picked when one answer leads straight to more.

@@ -18,6 +18,7 @@ import { homeOpen, HOME_ID, finaleOpen, towerDue } from '../story/ending.js';
 import { relaySignal, RELAY_TEXT } from '../story/relay.js';
 import { MAP_LINE } from '../story/signature.js';
 import { foundFlag, foundLine, SEARCH_LINE } from '../story/signature-search.js';
+import { leaveRefusal } from '../story/leave-gate.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
@@ -575,6 +576,9 @@ export class Ship {
 
   travel(to) {
     if (!game.flag('ship.powered')) return;
+    // not without the world's core gadgets (issue #217: the desert's blade and guard, Vael's wings; src/story/leave-gate.js)
+    const no = leaveRefusal(this.levelId, to, (id) => !!game.flag(`item.${id}`));
+    if (no) { sfx.beep(this.sound); this.cinema.say(no.line, { secs: 4.2 }); game.emit('travel:refused', { to, missing: no.missing, quest: no.quest }); return; }
     game.emit('travel', { to });
     game.set('ship.level', to);
     this.cinematic = new TakeoffDirector(this, {
