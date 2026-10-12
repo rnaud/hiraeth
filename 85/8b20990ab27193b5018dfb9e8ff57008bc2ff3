@@ -1,0 +1,19 @@
+tests/shard-timings.json
+  s_9ca76055a220ed::t_9853eda5b2a360 2-56,60-75,77,79-89,92-111,114-149,151-166,168-169,171-174,176-188,190-196,198-200,202-210,212-225,227-276,278-298,301,303,305-342,344-362,364-365,367-384,386-390,392-424,426,428-429,431,433,435-445,447-455,457-484,486-487
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "858b20990ab27193b5018dfb9e8ff57008bc2ff3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
