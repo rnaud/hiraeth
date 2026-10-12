@@ -1,0 +1,47 @@
+docs/systems/progression.md
+  s_9ca76055a220ed::t_ad112557b08b99 103
+src/story/leave-gate.js
+  s_9ca76055a220ed::t_8ec29141232124 48-52,55
+tests/desert-repay.test.js
+  s_3a673c031d2f2d::t_9c41d476650cb0 17-19
+tests/desert-spark.test.js
+  s_e520def4ce17a0::t_271b113a4c5bdd 79,91-92
+tests/desert-story.test.js
+  s_e520def4ce17a0::t_b5b5e4ea4b4dc8 673-678
+tests/playthrough-worlds.js
+  s_3a673c031d2f2d::t_8e83fb8589beef 56-63,407-408
+tests/story-arzach.test.js
+  s_3a673c031d2f2d::t_cbda21bf552e65 235-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "242b148d3b3630248404d18a40ea27e36b02cf5d",
+  "prompts": {},
+  "sessions": {
+    "s_3a673c031d2f2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4647886e070f3df9",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e520def4ce17a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac324b1b4fd0ee0e4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
