@@ -694,8 +694,38 @@ const SAVE_LIT55 = { flags: { 'prologue.done': true, 'item.backpack': true, 'ite
 // on origin/main, db9d6e99)
 const SM56 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5541), the before with src/levels/bazaar.js and the story’s files as on origin/main (cd616963), the same pinned cameras, 12 October; cwebp -q 72';
 const LORN56 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5521), Lorn’s evening (18.4), the before with src/levels/perdide.js and perdide2.js as on origin/main (db9d6e99), the same pinned cameras, 12 October; cwebp -q 72';
+// (v1.56: the Underwater City's explorations, issue #192: by hand, this branch's own Vite and the tree before it, the same pinned cameras)
+const UC56 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5561), the before the tree as on origin/main (34a70288, extracted), the same pinned cameras and saves, hour 10, 12 October; cwebp -q 72';
+const UC_HELMET = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'underwater.helmet': true }, keepsakes: [] };
+const UC_REF = 'references/levels/The Underwater City/environment/explorations/';
 export const CHANGELOG_MEDIA = {
   '1.56': [
+    // (the Underwater City's explorations, issue #192)
+    { match: 'In the Underwater City you can go outside now', shots: [
+      { name: 'uc-seabed', title: 'On the seabed', caption: 'Out of the divers’ lock, by the tower of pods: before, the bare sea floor; after, the lantern bollards on their chain leading on, an air bell, the tower’s round door at its foot, the traveller in his helmet', from: UC56,
+        view: { level: 'underwater', hour: 10, fov: 60, eye: [27, 3.2, 92], target: [60, 1, 30], player: [30.5, -0.6, 76], save: UC_HELMET },
+        reference: { sheet: UC_REF + 'seabed-walk/sheet-2.jpg', caption: 'The author’s pick: outside the domes (references/levels/The Underwater City/environment/explorations/seabed-walk)' } },
+      { name: 'uc-helmet', title: 'The helmet', only: 'after', caption: 'Just out of the lock: the brass helmet off the divers’ rack on his head', from: UC56,
+        view: { level: 'underwater', hour: 10, fov: 45, eye: [36.2, 2.0, 104.2], target: [34, 1.3, 101], player: [34, -0.6, 101], save: UC_HELMET } },
+    ], numbers: [
+      { title: 'The level design audit, the Underwater City', unit: '', better: 'higher', device: 'node scripts/level-design/audit.mjs --worlds underwater (1-5)', rows: [
+        { where: 'verticality', before: 4, after: 5 }, { where: 'onboarding', before: 4, after: 5 }, { where: 'pacing', before: 5, after: 4 }, { where: 'the mean', before: 4.67, after: 4.78 },
+      ], source: 'the first step the divers’ rack 15 m from the landing (Brune at 136 m before); 19 → 85 m climbed (the Crown’s pipe up the lift); places 20 → 34; pacing a run of four things to do (issue #192)' },
+    ], see: 'Talk to Bastien by the ship, take a helmet off the divers’ rack by the long tube’s door, and walk into the round brass door in the Dock’s glass on the north-east side. Outside, follow the lanterns; stand under an air bell’s glass hood to breathe again.' },
+    { match: 'The city goes down the drop now', shots: [
+      { name: 'uc-canyon', title: 'The canyon', caption: 'From the bridge, looking north down the canyon: before, a slope of sand; after, towers of lit pods down both walls, the Whale Gallery on its shelf, the cable car across', from: UC56,
+        view: { level: 'underwater', hour: 10, fov: 62, eye: [150, -2, -40], target: [140, -26, -125] },
+        reference: { sheet: UC_REF + 'canyon-street/sheet-2.jpg', caption: 'The author’s pick: the city down the drop (references/levels/The Underwater City/environment/explorations/canyon-street)' } },
+      { name: 'uc-street', title: 'The terraces', caption: 'From the fourth terrace looking back up the street: before, open water over the slope; after, the terraces stacked on their piers, lamps and stairs, pods lit in the bank, a whale overhead', from: UC56,
+        view: { level: 'underwater', hour: 10, fov: 64, eye: [104, -8.6, -64], target: [114, 0, -30] } },
+    ], see: 'Follow the air bells from the Dock to the edge of the canyon and go down the terraces. Cross the white bridge from the middle terrace to the far wall’s café; from the bottom terrace the cage goes down to the floor, and the Gallery’s lock takes you in.' },
+    { match: 'The city was built to sing to the whales', shots: [
+      { name: 'uc-pipe', title: 'The Plaza’s great pipe', caption: 'In the Plaza: before, the paving by the north door; after, the great brass pipe up through the glass, its stop wheel and bubble window, the pool beside it', from: UC56,
+        view: { level: 'underwater', hour: 10, fov: 55, eye: [1, 1.8, -120], target: [11, 5, -136] },
+        reference: { sheet: UC_REF + 'singing-city/sheet-1.jpg', caption: 'The author’s pick: tuning the hall’s pipe (references/levels/The Underwater City/environment/explorations/singing-city)' } },
+      { name: 'uc-roof', title: 'The instrument', caption: 'Over the Plaza: before, the plain dome; after, the organ pipes round the Breathing Tower, brass horns out of the domes, broken rings in the water', from: UC56,
+        view: { level: 'underwater', hour: 10, fov: 60, eye: [22, 36, -66], target: [0, 20, -108] } },
+    ], see: 'Listen at the window over the deep in the Whale Gallery, then press A / × at the stop wheel of the great pipe beside it, at the Plaza’s by its north door, and at the Crown’s up the lift. Watch the rings out of its horn go round and even.' },
     { match: 'In Lorn the Great Crystal’s roots now show under the swamp', shots: [
       { name: 'lorn-veins', title: 'Riding the lit vein', caption: 'On the skiff by the keepers’ light, following the stakes south: before, open water; after, the Crystal’s lit vein running on under the water beside the stakes, a twig branching off, the drowned wood’s first root gate ahead', from: LORN56,
         view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-52, 2.6, -318], target: [-40, 1.5, -372], player: [-52, 0.5, -318] },

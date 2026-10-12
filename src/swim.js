@@ -31,6 +31,9 @@ import { sparing, heartsOf } from './resources.js';
 //               its bed (SEA.walk), the jump kicks you off it swimming (SEA.kick), Space rises, letting go
 //               sinks you back down (SEA.sink) and you stand where you touch ground again; the pack gives
 //               air (no breath runs out down there); near its surface it is ordinary water
+//   a helmet's sea  (userData.sea.helmet: { air, sink }, the Underwater City's, issue #192) you walk its bed in a diver's
+//               helmet and heavy boots: never swimming, a fall sinks you slowly down to it (no faster than `sink` m/s, and
+//               nothing breaks), and the helmet's air runs down over `air` s, given back in an air pocket (a bell)
 //
 // No jets and no wings in the water: they come back once you are out of it
 // (a kick at the surface is enough). player.water is the world's water (water.js
@@ -106,11 +109,11 @@ export const wadeFactor = (w) => (w && w.over > SWIM.wade ? lerp(1, SWIM.wadeSlo
  * Out of air, every SWIM.every s a quarter heart, never the last one.
  * Returns 'gasp' on the frame the head comes up after being under, 'hurt' on a hurt.
  */
-export function breathe(P, dt, under) {
+export function breathe(P, dt, under, secs = SWIM.breath) {
   const was = P._underT ?? 0;
   if (under) {
     P._underT = was + dt;
-    P.breath = Math.max(0, (P.breath ?? 1) - dt / (SWIM.breath * (P.breathK ?? 1)));   // (the breathing reed: breathK 2)
+    P.breath = Math.max(0, (P.breath ?? 1) - dt / (secs * (P.breathK ?? 1)));   // (the breathing reed: breathK 2; a helmet's air: secs)
     if (P.breath > 0) { P._drownT = 0; return null; }
     P._drownT = (P._drownT ?? 0) + dt;
     if (P._drownT < SWIM.every) return null;
@@ -157,6 +160,15 @@ export function swimFrame(P, dt, input, camYaw, { f = 0, s = 0, run = false, sti
   P.inWater = w;
   if (!w || (P.swim && w.over < 0.3)) { if (P.swim) leaveSwim(P, 'gone'); breathe(P, dt, false); return false; }   // (out of it: teleported, carried off)
   const sea = deepSea(w);
+  const helmet = sea ? w.body.sea.helmet : null;
+  if (helmet) {
+    // a helmet's sea: its bed walked in heavy boots, never swum; you sink slowly; the helmet's air runs down
+    if (P.swim) leaveSwim(P, 'stand');
+    breathe(P, dt, true, helmet.air);
+    P.wadeSlow = SEA.walk;
+    if (!P.onGround && P.vel.y < -helmet.sink) P.vel.y = -helmet.sink;
+    return false;
+  }
   if (!P.swim && sea) {
     // a sea's bed: walk it; the jump kicks you off it (swimming); off a ledge you sink
     breathe(P, dt, false);

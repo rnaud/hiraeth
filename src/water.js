@@ -145,8 +145,9 @@ export class Waters {
   surfaceAt(x, z, y = 0, below = 80, look = false) {
     let inY = Infinity, inB = null, overY = -Infinity, overB = null;
     for (const b of this.bodies) {
-      // (a sea's surface may stand far overhead: the Underwater City's is 78 m up, over its Whale Gallery at -16)
-      if (b.top < y - below || b.box.min.y > y + (b.sea ? 120 : 60)) continue;
+      // (a sea's surface may stand far overhead: the Underwater City's is 78 m up, over its Whale Gallery at -16, and
+      // since #192 over its canyon's floor at -64: a sea's `reach`, how far under its surface it is water, 120 m unless said)
+      if (b.top < y - below || b.box.min.y > y + (b.sea ? b.sea.reach ?? 120 : 60)) continue;
       // (a sea's air pockets: a dome, a covered street; for the look, a sea seen through glass (`sea.glass`, the
       // Underwater City's halls since v1.40) keeps its water round the camera even in its pockets)
       if (b.sea?.air?.(x, y, z) && !(look && b.sea.glass)) continue;

@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './underwater-people.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { setupUnderwaterMoments } from './underwater-moments.js';
+import { setupUnderwaterWays } from './underwater-ways.js';
 
 /** How near the Whale-House's door (m) the traveller stands, outside, when the whales are filmed. */
 export const FILM_NEAR = 30;
@@ -20,6 +21,8 @@ export function setupUnderwater(ctx) {
   const rt = level?.temples?.find((t) => t.id === 'underwater') ?? (level?.temple?.id === 'underwater' ? level.temple : null);
   const film = setupUnderwaterMoments(ctx, { rt, level });
   for (const q of QUESTS) quests?.define?.(q);
+  // (issue #192: the helmet off the divers' rack and the locks, the halls' great pipes)
+  const ways = setupUnderwaterWays(ctx);
   // the city's own main quest doesn't just appear: it starts when you talk to Bastien at the lock (src/story/quests.js opensWith)
   if (quests?.opensWith && !quests.isStarted?.('underwater.note')) quests.opensWith('underwater.note', 'bastien');
   // where the errands point: the people by their content ids, the lift and the Crown
@@ -64,6 +67,7 @@ export function setupUnderwater(ctx) {
     people: {},
     film,
     update(dt) {
+      ways?.update?.(dt);
       const want = game.flag('temple.underwater.done') ? 1 : 0;
       if (near !== want) { near = Math.max(0, Math.min(1, near + Math.sign(want - near) * (dt ?? 1 / 60) / 8)); level?.whalesNear?.(near); }
       // the whales, filmed once: out of the house after its keeper is calmed, near its door
@@ -74,6 +78,6 @@ export function setupUnderwater(ctx) {
     },
     /** The whales in at the glass at once (the review page's staging: src/cinematics-page/runtime.js). */
     whalesIn() { near = 1; level?.whalesNear?.(1); },
-    dispose() { off?.(); offKelp?.(); if (closing) clearTimeout(closing); },
+    dispose() { off?.(); offKelp?.(); ways?.dispose?.(); if (closing) clearTimeout(closing); },
   };
 }

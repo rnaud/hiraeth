@@ -2268,7 +2268,10 @@ function frame(ts) {
   // the water: its rings and splashes, its bed maps; the camera kept off its surface
   waters.update(dt, t, { player, vehicles: player.vehicles, things: wildlife.creatures, globs: tool.globs, sky: U });
   waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
-  breathMeter.update(player.breath, !!player.swim && ((player.swim.under && !player.swim.sea) || player.breath < 0.999) && !busy());   // (deep in a sea the pack gives air: swim.js SEA)
+  // (deep in a sea the pack gives air: swim.js SEA; but a helmet's sea, the Underwater City's seabed, runs its air down and
+  // a bell gives it back: shown out there, and while it fills again)
+  const helmetSea = !!player.inWater?.body?.sea?.helmet || (!!level.sea?.userData?.sea?.helmet && player.breath < 0.999);
+  breathMeter.update(player.breath, ((!!player.swim && ((player.swim.under && !player.swim.sea) || player.breath < 0.999)) || helmetSea) && !busy());
 
   gpuTimer.begin();
   renderFrame();

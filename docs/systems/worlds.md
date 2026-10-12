@@ -1741,7 +1741,7 @@ and a drawing of Lou's (`src/levels/names.js` ORDER; why each sits where it does
 `whale` since v1.40). Until v1.40 the city stood in open water and you swam among its towers; the author's brief for the
 route was that the traveller is never outside swimming. Now every place you can stand is a dry hall under a great dome of
 the makers' glass, joined to the next by a sealed glass tube or the lift; the sea, the towers of pods, the kelp, the fish,
-the mantas and the whales are all on the other side of the glass.
+the mantas and the whales are all on the other side of the glass. (Since v1.56 you can go out too, in a diver's helmet, walking the bed: still never swimming. "The Underwater City's explorations", below.)
 
 - **The halls** (`DOMES`, floors at y 0 but the Gallery's at -16 and the Crown's at 64): the **Dock** (the ship on its
   floor, the moon pool railed, Bastien), the **Avenue** (the greatest dome, 46 m: Coralie's café and four more cafés as
@@ -1761,6 +1761,63 @@ the mantas and the whales are all on the other side of the glass.
 - **Whales**: two, out in the deep east of the Gallery (`whale`), their loops drawn in close to the glass once the
   Whale-House's keeper is calmed (`level.whalesNear`, eased by `src/story/underwater.js`).
 - **Cost**: ~0.3 M triangles, ~110 meshes before the temple; the domes and tubes are glass (cheap: most of it discarded).
+
+## The Underwater City's explorations (v1.56, issue #192)
+
+The author picked all three directions for the city (`docs/design/level-explorations-2-prompts.md`, the sheets in
+`references/levels/The Underwater City/environment/explorations/`), woven into one way through it rather than three
+places: out of the Dock in a helmet, bell to bell over the seabed to the lip of a canyon, down the canyon street to the
+Whale Gallery, then the halls' great pipes tuned on the way north to the Whale-House. Brune's cutting is an errand off the
+way now (the route no longer sends you to the garden first). The main quest's steps: Bastien, the helmet (`diversRack`),
+the bells (`goto` the street's head, `via` "the air bells"), the window (`via` "the canyon street"), the pipes
+(`underwater.city.tuned`, marked on the next pipe out of tune, `ends` at the Crown's), the house. The tubes still go
+everywhere: a player who walks to the window through them passes the bells' steps over.
+- **The walk on the seabed** (`src/underwater-seabed.js`). The divers' rack in the Dock gives a brass helmet (one on its
+  peg, hidden once taken; `underwater.helmet`); out there it is on his head (`humanoid.headAnchor`, its visor turned to his
+  face). **The locks** (`lock`): a brass drum out through a hall's glass, a round door at each end, two doorways each (the
+  lift's paper hand-over), the Dock's to the north-east and the Gallery's off the canyon street's bottom terrace; the way
+  out wants the helmet (the portal's `when`, a one-line `refuse`). **The helmet's sea** (`sea.helmet`, src/swim.js): its
+  bed walked in heavy boots at `SEA.walk`, never swum (the jump is a jump), a fall sinks you no faster than `HELMET.sink`
+  and breaks nothing, and its air runs down over `HELMET.air` s (the breath meter shows, main.js); out of air it hurts a
+  quarter heart at a time, never the last. **The air bells** (`BELLS`): brass posts with a glass hood at head height, an
+  air pocket round it (the sea's `air`), bubbles out of the top, a lamp; three on the walk, two on the canyon's floor, one
+  on the far wall's terrace; and the cafés down the street breathe too. Lantern bollards on a slung chain run beside the
+  way (`SEABED_WAY`), past the roots of a tower of pods and its round door, and a market cart sunk in the sand. **The whale
+  overhead**: a third whale on a long loop 32 m up over the lip and the end of the walk, always there, casting its shadow
+  (`whale` now takes an ellipse, `ez`, and when calmed comes in, rises and moves its loop: `come`, `rise`, `pull`).
+- **The canyon street** (`src/underwater-canyon.js`). The bed is cut before the terrain is made (`canyonBed`, from
+  `seabed`): east of the Plaza the plain is kept level beside a ramp (`STREET`), so its bank rises as the street goes
+  down; beyond it the canyon (`CANYON`: its floor 64 m down, its far wall 70 m off, its tail rising back north); the
+  Gallery on a shelf of rock at the street's foot (`GALLERY_SHELF`); the upper drop north of the street as it was. **The
+  terraces** (`TERRACES`): five decks a storey apart from the plain to the Gallery's floor, stairs turning back and forth
+  between them, a glass rail over the deep at their east ends, lamps getting fewer as it goes down (4, 3, 2, 1, 1), planters,
+  crates, benches, pods lit in the bank; café domes at the head and the foot. **The bridge**: a white arch from the middle
+  terrace across to **the far wall's terrace**, its café and a bell. **The pods down the drop**: towers of pods rising out
+  of the deep against both walls (their tops under the street's level), the middle of the canyon clear for the whales,
+  which since now swim long loops down there and come up to the Gallery's glass once calmed. **The cable car** across the
+  canyon to the north (drawn), and **the divers' cage** from the bottom terrace to the floor and back (two doorways), the
+  whale bones lying there. The city's sea reaches that far down (`sea.reach`, water.js: how far under its surface it is
+  water; 120 m unless said).
+- **The city that sings** (`src/underwater-song.js`, `src/story/underwater-ways.js`). **The great pipes** (`PIPES`): in the
+  Gallery, the Plaza and the Crown a brass pipe rises through the floor and out through the glass into a horn, a stop
+  wheel at its foot, a window of luminous water up its face with bubbles in it, a pool beside it (not in the Crown). Out
+  of tune (the wrong note): rings drawn in the water out of its horn, broken and wandering; bubbles rising out of time; the
+  pool standing in a crossed ripple. Turn its wheel (`underwater.pipe.<id>`): its rings go out round and even, the bubbles
+  rise in time, the pool's ripples run out from the middle, the horn sounds (`sound.tune`), one line; all three, and
+  `underwater.city.tuned` with "Only the north still hums the wrong note". **The horns and the organs**: brass horns out of
+  the Plaza's, the Avenue's, the Dock's and the Gallery's domes, organ pipes in a crown on the Plaza's and the Avenue's
+  roofs (`HORNS`, `ORGANS`). The pipes' horns are the audit's beacons.
+- **The audit** (`scripts/level-design/audit.mjs --worlds underwater`): 4.67 → 4.78. Verticality 4 → 5 (the Crown's pipe up
+  the lift: 19 → 85 m climbed, places span 128 m), onboarding 4 → 5 (the first step the rack, 15 m from the landing, not
+  Brune's garden at 136 m), pacing 5 → 4 (the stops are mostly things to do now: 4 kinds, a run of 4), optional 4 (27
+  optional places, 6 pulling: the bridge, the far café, the cage, the bones), the critical path 1049 → 884 m.
+
+Tested in `tests/underwater-explorations.test.js`: the helmet and the locks, the helmet's sea (the bed walked, no swimming,
+the air down and back at a bell, a fall from the bridge sunk to the floor unhurt), the bells' way walked and spaced within
+the helmet's air, the whale overhead over the lip and clear of every tower, the terraces and their stairs walked down to the
+Gallery's lock, the canyon's floor and the Gallery's shelf, the bridge walked across, the cage, the whales of the deep clear
+of the walls and up to the glass when calmed, the pipes tuned one by one, the quest's steps and lines, the contact audit on
+the new pieces and their collision budget.
 
 ### The Underwater City as a detour (October 2026: swum through; superseded by the sealed city above)
 

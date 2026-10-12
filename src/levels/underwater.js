@@ -9,6 +9,9 @@ import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { PEOPLE as UW_PEOPLE } from '../story/underwater-people.js';
 import { KEEPERS_HATCH } from '../temples/underwater.js';
+import { canyonBed, buildCanyonStreet, CAGE, TERRACES } from '../underwater-canyon.js';
+import { buildSeabedWalk, HELMET } from '../underwater-seabed.js';
+import { buildSingingCity } from '../underwater-song.js';
 import {
   UNDERWATER_LOOK, UNDERWATER_DAY, UNDERWATER_DUSK, UNDERWATER_NIGHT, SEA_DAY, UW_PAL, uwMats, seaSurface, tower, pod, podRing, glassColumns, cafeDome,
   lampPost, bush, kelp, rock, manta, fishSchool, farCity, bigDome, glassTube, whale,
@@ -36,6 +39,12 @@ import {
 //                    last tube runs from the Plaza to its door
 //   the kelp tube    from the divers' court's south door to the garden's north door, through the kelp outside, past the
 //                    sunken diving bell (v1.50, issue #132): the way home from the Whale-House's keepers' hatch
+//
+// The author's three picked explorations (issue #192), woven into one way through the city: out of the Dock by the
+// divers' lock in a helmet, bell to bell over the seabed (src/underwater-seabed.js), a whale passing overhead at the lip
+// of the canyon, down the canyon street's terraces to the Whale Gallery on its shelf (src/underwater-canyon.js), and the
+// halls' great pipes to tune on the way north to the Whale-House (src/underwater-song.js). Out of the glass you walk the
+// bed in the helmet (the sea's `helmet`: swim.js), never swimming; its air runs down and the bells give it back.
 //
 // The water is drawn as it was (water.js SEA_LOOK): the sea's surface far overhead, the flat banded haze, the shafts of
 // light, the caustics; `sea.glass` keeps that look on the view from inside the glass (water.js keepCamera), and every
@@ -90,8 +99,8 @@ const nS = createNoise2D(71011), nD = createNoise2D(71012);
 /** The sea floor: under the city a little under its halls' floors; the drop into the deep east of the Plaza; low dunes round. */
 export function seabed(x, z) {
   let h = -0.6 + fbm(nS, x * 0.02, z * 0.02, 2) * 0.3;
-  // the deep to the east: the floor falls away under the Whale Gallery
-  const east = smoothstep(46, 96, x) * smoothstep(-20, -60, z) * smoothstep(-200, -160, z);
+  // the deep to the east: the floor falls away under the Whale Gallery (north of the canyon street's plain since #192)
+  const east = smoothstep(46, 96, x) * smoothstep(-86, -100, z) * smoothstep(-200, -160, z);
   h -= east * 22;
   // the tube down to the Gallery runs in a cut under the slope (the bed kept a metre under its floor all the way)
   const g = TUBES_AT.gallery;
@@ -99,6 +108,10 @@ export function seabed(x, z) {
   // out of the city: dunes rising round it
   const out = Math.max(Math.hypot(x * 0.8, (z + 10) * 0.62) - 150, 0);
   h += smoothstep(0, 70, out) * (4 + fbm(nD, x * 0.012, z * 0.012, 3) * 5) + smoothstep(70, 220, out) * 22;
+  // (issue #192: the canyon street's ramp, the canyon down the drop and the Gallery's shelf: src/underwater-canyon.js)
+  h = canyonBed(x, z, h);
+  // (and the tube down to the Gallery kept in its cut through them)
+  if (x > g.x0 - 2 && x < g.x1 + 4 && Math.abs(z - g.z) < 9) h = Math.min(h, g.y0 + (g.y1 - g.y0) * Math.min(1, Math.max(0, (x - g.x0) / (g.x1 - g.x0))) - 1.4);
   return h;
 }
 
@@ -117,6 +130,10 @@ export function placeAt(p) {
   if (near(D.court)) return 'The divers’ court';
   if (near(D.plaza)) return 'The Plaza';
   if (near(D.avenue)) return 'The Avenue';
+  // (out of the glass, in the helmet: issue #192)
+  if (p.x > 88 && p.x < 125 && p.z < -22 && p.z > -86 && p.y > -19) return 'The canyon street';
+  if (p.x > 118 && p.x < 195 && p.z < -30 && p.y < -24) return 'The canyon';
+  if (p.x > 170 && p.x < 192 && p.z < -40 && p.z > -62) return 'The far wall';
   if (p.z < D.plaza.z - D.plaza.r + 4) return 'The tube to the Whale-House';
   return 'A glass tube';
 }
@@ -176,6 +193,10 @@ export const CROWD_LINES = [
   '~playful~ My grandfather went up to the surface once. He said it was very bright and very dry and he did not care for it.',
   '~tired~ Hall to hall all day, carrying the post.',
   '~solemn~ The whales used to sing right against the glass. Now you only hear them far off.',
+  // (issue #192: the seabed, the canyon street, the great pipes)
+  '~curious~ You went out by the bells, in one of those helmets? My uncle did that. Once.',
+  '~sad~ The great pipe in the Plaza used to play at noon. Now it only hums.',
+  '~playful~ The canyon street has the best soup in the city. It’s a long way down for it.',
   '~neutral~ The cafés are dry inside. Wipe your feet, though.',
 ];
 
@@ -420,22 +441,54 @@ export function* buildUnderwater(scene) {
   }
   yield;
 
+  // ---------------------------------------------------------------- the explorations (issue #192): the seabed, the canyon, the song
+  // (each in a group and a kit of its own, sharing the city's materials, lights and movers; their own dice)
+  const sub = (name) => {
+    const g = new THREE.Group(); g.name = name; scene.add(g);
+    const k = new RoomKit({ group: g, ground: terrain, centre: new THREE.Vector3(), seed: 1 });
+    k.mats = kit.mats; k.lights = kit.lights; k.movers = kit.movers; k.noShadow = kit.noShadow;
+    return k;
+  };
+  const kits = { canyon: sub('The canyon street'), seabed: sub('The walk on the seabed'), song: sub('The singing city') };
+  const canyon = buildCanyonStreet(kits.canyon, M, H);
+  const ways = buildSeabedWalk(kits.seabed, M, H, { halls, galleryFloor: TERRACES.at(-1).y, rack: DOCK_DRESSING.rack });
+  ways.bell(...[canyon.far.bell[0], canyon.far.bell[2]], canyon.far.bell[1]);   // (the far wall's terrace: a bell there too)
+  const song = buildSingingCity(kits.song, M, halls);
+  for (const k of Object.values(kits)) {
+    k.finish();
+    k.group.traverse((o) => { if (o.isMesh) { o.name ||= k.group.name; if (leavesOf(M).has(o.material)) o.userData.flora = true; } });
+  }
+  // the divers' cage: down from the bottom terrace to the canyon's floor and back (a doorway each way, as the lift is)
+  const cage = [
+    { at: new THREE.Vector3(CAGE.top[0], CAGE.top[1] + 0.6, CAGE.top[2]), r: 1.1, to: new THREE.Vector3(canyon.cage.foot[0] + 2.6, H(canyon.cage.foot[0] + 2.6, canyon.cage.foot[2]) + 0.1, canyon.cage.foot[2]), heading: Math.PI / 2, label: 'the divers’ cage down to the canyon’s floor' },
+    { at: new THREE.Vector3(canyon.cage.foot[0], canyon.cage.foot[1] + 0.6, canyon.cage.foot[2]), r: 1.1, to: new THREE.Vector3(CAGE.top[0] - 2.6, CAGE.top[1] + 0.1, CAGE.top[2]), heading: -Math.PI / 2, label: 'the divers’ cage up to the street' },
+  ];
+  // the air: the halls and the tubes, and out in the sea the bells, the cafés down the street, the locks' drums
+  const seaAir = (x, y, z) => air(x, y, z) || ways.air(x, y, z) || canyon.cafes.some((c) => c.air(x, y, z));
+  yield;
+
   // ---------------------------------------------------------------- the sea: its surface overhead; dry wherever you can go
-  const sea = seaSurface(kit, { y: SEA_Y, size: 1400, sea: { ...SEA_DAY, glass: true, shafts: { ...SEA_DAY.shafts }, caustics: { ...SEA_DAY.caustics } }, air });
+  // (out of the glass you walk its bed in a helmet off the divers' rack, its air running down: swim.js `helmet`)
+  const sea = seaSurface(kit, { y: SEA_Y, size: 1400, sea: { ...SEA_DAY, glass: true, helmet: { ...HELMET }, reach: 170, shafts: { ...SEA_DAY.shafts }, caustics: { ...SEA_DAY.caustics } }, air: seaAir });
   // life: mantas, schools of small fish, and the whales out in the deep (the Whale-House's change brings them to the glass)
   const near = { k: 0 };
   manta(kit, M, { at: [0, 34, 40], R: 70, w: 15, speed: 2.6, phase: 0.4, bank: 0.2 });
   manta(kit, M, { at: [40, 44, -60], R: 120, w: 19, speed: -3, phase: 2.2, bank: 0.15 });
   for (const [x, y, z, n, R] of [[28, 10, 92, 30, 6], [-30, 18, -30, 30, 5], [50, 12, -110, 36, 7], [-70, 8, 50, 26, 5], [-20, 6, 160, 24, 6]]) fishSchool(kit, M, { at: [x, y, z], n, R, seed: x * 7 + z });
+  // (since #192 the two of the deep swim down in the canyon, long loops along it; calmed, they come up to the Gallery's
+  // glass. A third passes overhead over the lip of the canyon and the end of the bells' walk, all the time: its shadow
+  // goes over you)
   const whales = [
-    whale(kit, M, { at: [150, -6, -108], R: 70, len: 24, speed: 2.2, phase: 0.3, near: () => near.k, come: 38, bob: 3 }),
-    whale(kit, M, { at: [150, 6, -60], R: 110, len: 18, speed: -2.6, phase: 2.0, near: () => near.k, come: 50, bob: 4 }),
+    whale(kit, M, { at: [153, -38, -120], R: 9, ez: 4.5, len: 22, speed: 2.2, phase: 0.3, near: () => near.k, come: 1, rise: 18, pull: [-6, 12], bob: 2 }),
+    whale(kit, M, { at: [154, -48, -150], R: 8, ez: 5.5, len: 18, speed: -2.6, phase: 2.0, near: () => near.k, come: 1, rise: 22, pull: [-5, 24], bob: 2 }),
   ];
+  const overhead = whale(kit, M, { at: [110, 32, -30], R: 28, ez: 2, len: 26, speed: 3, phase: 1.2, bob: 3, shadow: true });
+  overhead.name = 'The whale overhead';
   yield;
 
   kit.finish();
   // (the plants on the decks and the kelp are walked through: flora, as the contact audit counts them)
-  const leaves = new Set(M.leaf);
+  const leaves = leavesOf(M);
   group.traverse((o) => { if (o.isMesh && leaves.has(o.material)) o.userData.flora = true; });
   const noShadow = [...kit.noShadow, sea];
   yield;
@@ -461,6 +514,8 @@ export function* buildUnderwater(scene) {
   const portals = [
     { at: new THREE.Vector3(LIFT.foot[0], 0.6, LIFT.foot[2]), r: 1.3, to: new THREE.Vector3(LIFT.head[0], D.crown.y + 0.1, LIFT.head[2] + 3.4), heading: 0, label: 'the lift up to the Crown', toUp: up },
     { at: new THREE.Vector3(LIFT.head[0], D.crown.y + 0.6, LIFT.head[2]), r: 1.3, to: new THREE.Vector3(LIFT.foot[0], 0.1, LIFT.foot[2] + 3.4), heading: 0, label: 'the lift down to the Plaza', toUp: up },
+    // (issue #192: the locks out to the sea and back, and the divers' cage; the story says which want a helmet: src/story/underwater-ways.js)
+    ...ways.locks.dock.portals, ...ways.locks.gallery.portals, ...cage,
   ];
   const level = {
     id: 'underwater',
@@ -477,12 +532,14 @@ export function* buildUnderwater(scene) {
     portals: [...portals, ...shop.portals],
     shops: [shop],
     floraAvoid: shop.avoid(),
-    sea, halls, tubes, decks, cafes, air, whales, column: COLUMN, lift: LIFT,
+    sea, halls, tubes, decks, cafes, air: seaAir, whales, column: COLUMN, lift: LIFT,
+    // (issue #192: the seabed walk, the canyon street, the singing city; the whale overhead)
+    uw: { ways, canyon, song, overhead, cage },
     // the whales come to the glass once the Whale-House's keeper is calmed (src/temples/underwater.js change)
     whalesNear: (k) => { near.k = k; },
     // the great column over the Plaza and the towers of pods round the city, seen through the glass (the level design
     // audit's landmarks: the column's glass is see-through to the height grid; the Crown's bubble at its head)
-    beacons: [{ name: 'the Breathing Tower', top: [COLUMN.x, D.crown.y + D.crown.r * D.crown.sy, COLUMN.z], height: 8 }],
+    beacons: [{ name: 'the Breathing Tower', top: [COLUMN.x, D.crown.y + D.crown.r * D.crown.sy, COLUMN.z], height: 8 }, ...song.beacons],
     // the city's leading lines (the level design audit's `lines`; the audit sees through its glass since v1.43): the
     // sealed tubes, lamplit, hall to hall, and the street through the Avenue
     lines: [
@@ -492,6 +549,9 @@ export function* buildUnderwater(scene) {
       { name: 'the tube to the Whale-House', points: [[D.gallery.x, D.gallery.y, D.gallery.z], [D.gallery.x - D.gallery.r, D.gallery.y, D.gallery.z], [D.plaza.x + D.plaza.r, 0, D.plaza.z], [0, 0, D.plaza.z - D.plaza.r], [0, 0, WHALE_HOUSE.door + 2]] },
       { name: 'the city’s length, back to the Dock', points: [[0, 0, WHALE_HOUSE.door + 2], [0, 0, D.plaza.z - D.plaza.r], [0, 0, D.plaza.z + D.plaza.r], [0, 0, D.avenue.z - D.avenue.r], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [0, 0, SHIP_SITE.z - 12]] },
       // (v1.50, issue #132: home from the keepers' hatch, down the kelp tube to the garden and the west tube to the Avenue)
+      // (issue #192: out by the divers' lock, bell to bell over the seabed, down the canyon street, in by the Gallery's lock)
+      { name: 'the air bells', auto: false, points: [[DOCK_DRESSING.rack[0], 0, DOCK_DRESSING.rack[1] + 1.2], ...ways.line, canyon.line[0]] },
+      { name: 'the canyon street', auto: false, points: [...canyon.line, ways.locks.gallery.portals[1].at.toArray(), ways.locks.gallery.portals[1].to.toArray(), [D.gallery.x + D.gallery.r - 4, D.gallery.y, D.gallery.z]] },
       { name: 'the kelp tube', auto: false, points: [home.hatch, TUBES.kelp.a, TUBES.kelp.b, [D.garden.x + 16, 0, D.garden.z - 12], [D.garden.x + D.garden.r, 0, D.garden.z], [D.avenue.x - D.avenue.r, 0, D.avenue.z], [0, 0, D.avenue.z], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [0, 0, SHIP_SITE.z - 12]] },
     ],
     sights: [
@@ -500,8 +560,9 @@ export function* buildUnderwater(scene) {
       { name: 'the glow-kelp troughs', at: [D.garden.x - 2, 0, D.garden.z] },
       { name: 'the sunken diving bell', at: home.bell },
       { name: 'the keepers’ hatch', at: home.hatch },
+      ...ways.sights, ...canyon.sights,
     ],
-    atmo: (x, z, y) => ({ tint: [1, 1, 1], fog: 0.6, name: placeAt({ x, y: y ?? 0, z }) }),
+    atmo: (x, z, y) => { const n = placeAt({ x, y: y ?? 0, z }); return { tint: [1, 1, 1], fog: 0.6, name: n === 'A glass tube' && !seaAir(x, (y ?? 0) + 1, z) ? 'The seabed' : n }; },
     life: { motes: { count: 220, color: '#d8f2ee', size: 0.05, rise: 0.06, wind: [0.08, 0.03] } },
     crowdLines: CROWD_LINES,
     crowdSpots() {
@@ -523,12 +584,16 @@ export function* buildUnderwater(scene) {
     update(dt, t, ctx = {}) {
       for (const m of kit.movers) m(t, ctx.player?.pos ?? null);
       outCols.update(t, ctx.player?.pos ?? null);
+      ways.update(t); song.update(t, dt);
       seaByHour();
     },
   };
   return attachTemple('underwater', scene, level);
 }
 export const createUnderwater = stepped(buildUnderwater);
+
+/** The materials walked through as plants (the contact audit's flora). */
+const leavesOf = (M) => new Set(M.leaf);
 
 /** How far (x, z) is from a tube's line, on the ground. */
 function distToSeg(x, z, t) {

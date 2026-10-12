@@ -22,7 +22,13 @@ export const QUESTS = [
     outro: 'The wrong note runs out of the Whale-House, under the sea floor, into every pane of the city. You are inside it now.',
     stages: [
       { id: 'bastien', text: 'Hear Bastien out at the lock', label: 'Bastien, at the lock', flag: 'underwater.bastien.heard', at: 'bastien' },
-      { id: 'window', text: 'Listen at the window over the deep', label: 'The window over the deep', flag: 'underwater.window.heard', at: 'deepWindow', via: 'the tube down to the Whale Gallery' },
+      // (issue #192: out by the divers' lock in a helmet, bell to bell over the seabed and down the canyon street; the tubes
+      //  still go there too, and the window's flag passes this over)
+      { id: 'helmet', text: 'Take a helmet from the divers’ rack', label: 'The divers’ rack', flag: 'underwater.helmet', at: 'diversRack' },
+      { id: 'bells', text: 'Follow the air bells out to the canyon', label: 'The head of the canyon street', goto: 'canyonHead', radius: 9, vertical: 5, via: 'the air bells' },
+      { id: 'window', text: 'Listen at the window over the deep', label: 'The window over the deep', flag: 'underwater.window.heard', at: 'deepWindow', via: 'the canyon street' },
+      // (the halls' great pipes, in any order: the marker on the next one out of tune, the Gallery's, the Plaza's, the Crown's)
+      { id: 'pipes', text: 'Tune the halls’ three great pipes', label: 'The great pipes', flag: 'underwater.city.tuned', at: 'greatPipe', ends: 'crownPipe' },
       { id: 'house', text: 'Follow the note north to the Whale-House', label: 'The Whale-House’s door', flag: 'temple.underwater.entered', at: 'temple.underwater.door', via: 'the tube to the Whale-House' },
     ],
   },
@@ -59,11 +65,11 @@ export const PEOPLE = {
         },
         where: {
           say: ['~neutral~ Nobody’s found out. *Lay your ear on the window over the deep*, in the Whale Gallery: the glass is thinnest there. You’ll hear which way it runs.',
-            '~playful~ North up the long tube, through the Avenue to the Plaza, then east down the tube to the Gallery. Mind the cafés. They’ll feed you.'],
+            '~playful~ Quickest is outside. *Take a helmet off the divers’ rack* and go out by the lock. Bell to bell, then down the canyon street.'],
           do: { set: { 'underwater.bastien.heard': true } },
           choices: [{ text: '~neutral~ I’ll listen.', end: true }],
         },
-        again: { say: ['~neutral~ The window over the deep, in the Whale Gallery. Ear to the glass.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        again: { say: ['~neutral~ A helmet off the rack, out by the lock, bell to bell. The Gallery’s at the bottom of the canyon street.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ They’re back. One came right up to the lock this morning and looked in at your ship. I think it approved.'],
           choices: [{ text: '~neutral~ Goodbye, Bastien.', end: true }],
@@ -215,7 +221,7 @@ export const THINGS = {
       say: [
         '~whisper~ (You lay your ear on the cold glass. The hum fills your head: one note, thin and high, the light’s.)',
         '~solemn~ (Under it, far off in the dark, something long and low: the whales, keeping their distance.)',
-        '~curious~ (The note isn’t theirs. It comes up through the sea floor from the north, from the makers’ Whale-House at the end of the last tube.)',
+        '~curious~ (The note isn’t theirs. The city’s great pipes have caught it and play it out of tune, here and in the Plaza and the Crown. Under them all it comes from the north, from the makers’ Whale-House.)',
       ],
       do: { set: { 'underwater.window.heard': true } },
       choices: [{ text: '~neutral~ (lift your ear from the glass)', end: true }],
