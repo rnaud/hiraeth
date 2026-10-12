@@ -1,0 +1,27 @@
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_583189aa4815a9 703-725
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_216bfa5a2fad3c 236-245
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_9ca76055a220ed::t_828ce5d61be1ff 253-258,263-272,857,1001
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_8f0e846e39d5fc 210,399-400,408-409,412-413
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_917d738c7d1518 316-317
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0f4bbd39d13aa01ce318fbc35b6325463eecdfec",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
