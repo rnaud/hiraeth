@@ -21,7 +21,8 @@
 //
 // Imports nothing that loads the game state: the summaries come from the raw saves.
 
-import { slots, SLOT_COUNT, formatPlaytime, formatDate, progressLine } from './save-slots.js';
+import { slots, SLOT_COUNT, DEBUG_SLOT, debugSaveHref, formatPlaytime, formatDate, progressLine } from './save-slots.js';
+import { ORDER, TITLES } from './levels/names.js';
 import { Settings, SettingsMenu, isNativeApp, isDeckApp, isXboxApp, isTouch, reducedMotion } from './ui.js';
 import { t, onLanguage } from './i18n.js';
 import { Sound } from './audio.js';
@@ -133,6 +134,25 @@ function slotHtml(s) {
 }
 
 /**
+ * The Saves screen's debug saves (issue #203: "a debug saves option in the save menu that restarts the game at a
+ * specific level and has unlocked everything in all the previous levels"), the author's only (devMode): the slot it
+ * writes (`into`: the debug slot, the player's saves untouched, or one of them, asked first when it holds a save), then
+ * every world of the route, its picture and how many worlds before it are done. src/debug-save.js writes the save.
+ */
+export function debugSavesHtml(into = DEBUG_SLOT, order = ORDER) {
+  const slotName = into === DEBUG_SLOT ? t('title.dbg.intoDebug') : t('title.save', { n: into });
+  const world = (id, i) => `<li><button class="dworld" data-debug-world="${esc(id)}"><img class="thumb" src="thumbs/${esc(id)}.jpg" alt="" onerror="this.style.visibility='hidden'">
+      <span class="txt"><b>${i + 1}</b><span class="world">${esc(TITLES[id] ?? id)}</span><span class="prog">${i === 0 ? t('title.dbg.fresh') : i === 1 ? t('title.dbg.before1') : t('title.dbg.before', { n: i })}</span></span>${glyph('ok', { focus: true })}</button></li>`;
+  return `<div class="dhead"><h3>${t('title.dbg.head')}</h3><em class="dtag">${t('title.dbg.tag')}</em></div>
+    <p class="why">${t('title.dbg.why')}</p>
+    <button class="dinto" data-a="debug-into">${glyph('ok', { focus: true })}<span>${esc(t('title.dbg.into', { slot: slotName }))}</span></button>
+    <ol class="dworlds">${order.map(world).join('')}</ol>`;
+}
+
+/** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again. */
+export const nextDebugInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
+
+/**
  * Show the title screen; resolves with the chosen slot ({ slot, fresh, behind }) once the player
  * picks one (it is already the active slot then), after the title has faded out. `painted`: the screen
  * src/title-paint.js already put up (src/boot.js paints it first), else it is painted here. `behind`:
@@ -196,6 +216,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const savesEl = root.querySelector('.saves');
     const confirmEl = root.querySelector('.confirm');
     let screen = 'main', toDelete = null, done = false;
+    // (the debug saves: the slot they write, and the one waiting for "Replace Save n?")
+    let debugInto = DEBUG_SLOT, pendingDebug = null;
 
     const focusFirst = (el) => el.querySelector('button:not([disabled])')?.focus({ preventScroll: true });
     const renderMain = () => {
@@ -228,7 +250,31 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     };
     const onResize = () => { insets = null; relayout(); };
     win.addEventListener('resize', onResize);
-    const renderSaves = () => { root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join(''); };
+    const renderSaves = () => {
+      // (the author's debug saves under the player's, issue #203: src/dev-gate.js decides who sees them)
+      const debug = devMode({ settings }) ? `<li class="debug-saves">${debugSavesHtml(debugInto)}</li>` : '';
+      root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join('') + debug;
+    };
+    // a debug save at a world: into the debug slot at once; into one of the player's, asked first if it holds a save
+    const startDebug = (id, slot = debugInto, asked = false) => {
+      if (done || !ORDER.includes(id)) return;
+      if (slot !== DEBUG_SLOT && !asked && !store.summary(slot).empty) { askDebug(id, slot); return; }
+      done = true;
+      cleanup();
+      // (the game loading behind the title keeps its writes in memory until the page goes: its save on the way out must
+      // not land in the player's slot it was loading, issue #203: "without overwriting the player's own save slots")
+      if (!store.holding) store.holdWrites();
+      win.location.href = `${win.location.pathname}${debugSaveHref(id, slot)}`;
+    };
+    const askDebug = (id, slot) => {
+      const s = store.summary(slot);
+      pendingDebug = { id, slot }; toDelete = null;
+      confirmEl.querySelector('h3').textContent = t('title.dbg.replaceAsk', { n: slot });
+      confirmEl.querySelector('.what').textContent = t('title.dbg.replaceWhat', { was: [s.world, progressLine(s)].filter(Boolean).join(' · '), world: TITLES[id] ?? id });
+      confirmEl.querySelector('[data-a="delete"] [data-t="title.delete"]').textContent = t('title.dbg.replace');
+      confirmEl.hidden = false;
+      confirmEl.querySelector('[data-a="keep"]').focus({ preventScroll: true });
+    };
     const show = (name, focus) => {
       screen = name;
       for (const el of root.querySelectorAll('.screen')) el.hidden = el.dataset.screen !== name;
@@ -248,8 +294,9 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     };
     const closeConfirm = () => {
       confirmEl.hidden = true;
-      const back = root.querySelector(`[data-del="${toDelete}"]`);
-      toDelete = null;
+      const back = pendingDebug ? root.querySelector(`[data-debug-world="${pendingDebug.id}"]`) : root.querySelector(`[data-del="${toDelete}"]`);
+      toDelete = null; pendingDebug = null;
+      confirmEl.querySelector('[data-a="delete"] [data-t="title.delete"]').textContent = t('title.delete');
       if (back) back.focus({ preventScroll: true }); else focusFirst(savesEl);
     };
 
@@ -309,6 +356,12 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         const p = doc.fullscreenElement ? doc.exitFullscreen?.() : doc.documentElement.requestFullscreen?.();
         Promise.resolve(p).catch(() => {}).finally(() => setTimeout(() => { if (screen === 'main') show('main', '[data-a="fullscreen"]'); }, 150));
       } else if (a === 'keep') closeConfirm();
+      else if (a === 'delete' && pendingDebug) { const { id, slot } = pendingDebug; startDebug(id, slot, true); }
+      else if (a === 'debug-into') {
+        debugInto = nextDebugInto(debugInto);
+        renderSaves();
+        root.querySelector('[data-a="debug-into"]')?.focus({ preventScroll: true });
+      } else if (el?.dataset.debugWorld) startDebug(el.dataset.debugWorld);
       else if (a === 'delete') {
         const n = toDelete;
         store.remove(n);
@@ -331,7 +384,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
 
     // the save selector moves by rows (up / down) and between a save and its Delete (left / right)
     const savesNavigate = (x, y) => {
-      const rows = [savesEl.querySelector('[data-a="back"]'), ...savesEl.querySelectorAll('.slot')];
+      const rows = [savesEl.querySelector('[data-a="back"]'), ...savesEl.querySelectorAll('.slot, .debug-saves button')];
       const cur = doc.activeElement, i = rows.findIndex((r) => r === cur || r.contains(cur));
       if (y || i < 0) {
         const next = rows[i < 0 ? 1 : (i + (y || 1) + rows.length) % rows.length];

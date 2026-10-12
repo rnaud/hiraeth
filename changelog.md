@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.58 — 2026-10-12
 
+- For playtesting, the Saves screen has a debug section: start at any world of the route in a new save, with everything in the worlds before it done and held, their quests, items, gadgets, keepsakes, trials’ rewards, fragments and Orrin’s upgrades. It goes into its own debug save, or into one of your saves if you choose one (asked first if it holds a save).
 - A map of the world you are in, in the game menu right after Quests (one RB / R1 from where it opens) and in the Start menu: the ground drawn from above in ink and paper, with you and the way you face, your ship, the way on, the makers’ temples, the people you have met and the boxes you have opened. Pick one in the legend beside it to ring it on the map, and press A / × to zoom in on it.
 - The Worlds page lists one world a row, so up and down go between them. A / × on one shows what you have found there and what is still to find: the story, each relic by name (a ? for the ones still hidden), the makers’ boxes, the fragments once you have found one, and the people you met.
 - The strip at the bottom of the game menu only names what you have picked and says what A / × does: the words are in the full view now. Keepsakes, sketches, sightings and finished quests open full screen with A / × too.

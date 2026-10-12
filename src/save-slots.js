@@ -35,6 +35,19 @@ export const SLOT_COUNT = 3;
 export const SLOT_KEY = 'hiraeth.slot';
 /** The worlds list's own save (src/debug-save.js): not one of the title's slots. */
 export const DEBUG_SLOT = 'debug';
+/** The URL a debug save starts from (src/boot.js seeds it, src/debug-save.js): ?level=<id>&debugsave=1, and
+ *  &debugslot=<n> when it goes into one of the player's own slots (the title's Saves screen, issue #203). */
+export const DEBUG_PARAM = 'debugsave', DEBUG_SLOT_PARAM = 'debugslot';
+/** The slot a debug save may go into: one of the player's (1..SLOT_COUNT) when asked for, else the debug slot. */
+export function debugSlot(v, count = SLOT_COUNT) {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 1 && n <= count ? n : DEBUG_SLOT;
+}
+/** Where a debug save at `levelId` starts: the world, its debug save, the slot when it is one of the player's. */
+export function debugSaveHref(levelId, slot = DEBUG_SLOT) {
+  const n = debugSlot(slot);
+  return `?level=${levelId}&${DEBUG_PARAM}=1${n === DEBUG_SLOT ? '' : `&${DEBUG_SLOT_PARAM}=${n}`}`;
+}
 export const SLOTS_VERSION_KEY = 'hiraeth.slots.v';
 // the progress kept per slot (src/game-state.js, src/quest.js, src/ui.js SaveGame, src/reactive-world.js)
 export const PROGRESS_KEYS = ['hiraeth.game.v1', 'hiraeth.journal.v1', 'hiraeth.save.v1', 'hiraeth.encounters.v1'];

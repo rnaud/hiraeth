@@ -739,6 +739,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'map-desert', title: 'The Desert', only: 'after', caption: 'The Map page in the desert by the ship: the dunes, mesas and pools from above in ink, contour lines, the traveller’s red arrow, the way on, the Rose House and the people met at the camp; the legend beside it says how far and which way', from: MENU58 },
       { name: 'map-underwater', title: 'The Underwater City', only: 'after', caption: 'The Underwater City from above: its domes and their tubes, the Whale-House to the north, the traveller at the lock by the ship', from: MENU58 },
     ], see: 'Press View / Select, then RB / R1 (or Map in the Start menu). Move down the legend: each mark is ringed on the map; A / × zooms in on it, A / × or B / ○ again shows the whole world.' },
+    { match: 'For playtesting, the Saves screen has a debug section', shots: [
+      { name: 'debug-saves', title: 'The Saves screen', only: 'after', caption: 'Under the three saves, on dashed red paper: Debug: start at a world, Into: the debug save, and the route’s worlds, each with how many worlds before it are done', from: MENU58 },
+    ], see: 'On the title, open Saves and go down past the three saves: choose Into to pick the save it goes into, then a world. In the Glass Dunes’ debug save you have four hearts, the fragment finder and Orrin aboard the ship.' },
   ],
   '1.57': [
     { match: 'The hoverbike shows under you again', shots: [

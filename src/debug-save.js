@@ -1,4 +1,6 @@
-// The worlds list's debug save (Debug on the title and in the Start menu, src/world-picker.js).
+// The debug saves (Debug on the title and in the Start menu, src/world-picker.js; and the title's Saves screen,
+// "Debug: start at a world", src/title.js, issue #203: "a debug saves option in the save menu that restarts the game at
+// a specific level and has unlocked everything in all the previous levels").
 // A world on the route picked there opens in a save of its own, as if every world before it on
 // the route (ORDER, src/levels/names.js) had been played through, and the world itself not yet:
 //
@@ -23,14 +25,17 @@
 //  - the ship after it: the light's signature read on arrival (src/story/signature.js), the recordings
 //    waiting at the console played in turn (src/story/calls.js, what they set too), and the errands
 //    carried on (ERRANDS, src/levels/content.js: delivered when their world is before this one, still
-//    carried when it is this one or later).
+//    carried when it is this one or later);
+//  - its trial (src/trials/data.js TRIALS, by part): run, and its reward held (an upgrade to a gadget);
+//  - its fragments of the singing light, every one (src/fragments-data.js), so Orrin Thrum is met and on the ship, and
+//    each of his upgrades the count reaches is fitted where its gear is held (FRAGMENT_ITEMS, `needs`: src/items.js).
 // tests/debug-save.test.js reads the story code for the grants that are not data (an onDone's game.set,
 // addKeepsake, a tank band, an item granted) and fails when one is not covered here.
 //
-// Left out: relics and the sketchbook's pictures (drawn as you find them), the fragments of the singing light and the
-// scientist's upgrades for them (optional finds: src/fragments.js), conversations' once-only
-// answers (`said.*`). Off the route (the dev worlds, the side worlds, home) nothing changes: the
-// list opens them in the save being played.
+// Left out: relics and the sketchbook's pictures (drawn as you find them), conversations' once-only answers
+// (`said.*`). Off the route (the dev worlds, the side worlds, home) nothing changes: the list opens them in the
+// save being played. The worlds list writes the debug slot (DEBUG_SLOT); the title's Saves screen may write one of
+// the player's own slots instead, once asked (seedDebugSave's `slot`, ?debugslot=<n>: src/boot.js).
 
 import { ORDER, TITLES, partsOf } from './levels/names.js';
 import * as glassdunes from './story/glassdunes-people.js';
@@ -38,14 +43,16 @@ import * as underwater from './story/underwater-people.js';
 import * as moonfoundry from './story/moonfoundry-people.js';
 import * as spacecity from './story/spacecity-people.js';
 import { PLACEMENTS } from './boxes/placements.js';
-import { ITEMS } from './items.js';
+import { ITEMS, FRAGMENT_ITEMS } from './items.js';
+import { FRAGMENTS, fragKey, fragmentCounts } from './fragments-data.js';
+import { TRIALS } from './trials/data.js';
 import { MIGRATED } from './save-migrate.js';
 import { peopleOf } from './story/ending.js';
 import { GIVEN, CARD } from './story/charge.js';
 import { pendingCall, callLines, callContext, applyCall } from './story/calls.js';
 import { arrivalLine } from './story/signature.js';
 import { ERRANDS } from './levels/content.js';
-import { slots, DEBUG_SLOT } from './save-slots.js';
+import { slots, DEBUG_SLOT, debugSlot } from './save-slots.js';
 import * as desert from './story/desert-data.js';
 import * as arzach from './story/arzach-data.js';
 import * as arzach2 from './story/arzach2-data.js';
@@ -72,8 +79,10 @@ import * as tUnderwater from './temples/underwater-data.js';
 import * as tMoonfoundry from './temples/moonfoundry-data.js';
 import * as tSpacecity from './temples/spacecity-data.js';
 
-/** The URL parameter the worlds list adds (?level=<id>&debugsave=1): src/boot.js seeds the save, then drops it. */
-export const DEBUG_PARAM = 'debugsave';
+// The URL parameters the worlds list and the title's Saves screen add (?level=<id>&debugsave=1, and &debugslot=<n>
+// for one of the player's slots): src/boot.js seeds the save, then drops them (src/save-slots.js, so the title can
+// build the link without loading the story's data).
+export { DEBUG_PARAM, DEBUG_SLOT_PARAM as SLOT_PARAM, debugSlot, debugSaveHref } from './save-slots.js';
 
 /** Each route world's story data and its temple's words. */
 // (by part: the merged worlds' parts each have theirs; the Glass Dunes' story is its temple, the Clock-House, and
@@ -201,12 +210,31 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
       if (b.tone) { const tones = [...(flags['tool.tones'] ?? [])]; tones[c] = b.tone.toLowerCase(); flags['tool.tones'] = tones; }
       flags['tool.colours'] = c;
     }
+    // its trial run, its reward held (src/trials/: by its own part's id)
+    const T = TRIALS[w];
+    if (T) {
+      flags[`trial.${T.world ?? w}.done`] = true;
+      const r = ITEMS[T.reward];
+      if (r && !r.retired && !r.debug) flags[`item.${T.reward}`] = true;
+    }
     // the end of the main quest
     Object.assign(flags, WORLD_ENDS[w] ?? {});
     flags[`world.${w}.done`] = true;
     keep(endKeepsake(data, flags));
   }
   if (before.length) { flags['ship.launched'] = true; flags['signature.told'] = true; }
+  // the fragments of the singing light of every world before, found; Orrin Thrum met (he is on the ship from the first)
+  // and each upgrade the count reaches fitted, where its gear is held (src/story/scientist-data.js thrumTalk's offers)
+  for (const w of before) (FRAGMENTS[w] ?? []).forEach((_, i) => { flags[fragKey(w, i)] = true; });
+  const found = fragmentCounts(flags).found;
+  if (found) {
+    flags['frag.met'] = true;
+    flags['met.thrum'] = true;
+    for (const u of FRAGMENT_ITEMS) {
+      const need = ITEMS[u.id]?.needs;
+      if (u.at <= found && (!need || flags[`item.${need}`])) flags[`item.${u.id}`] = true;
+    }
+  }
   flags['ship.level'] = levelId;
   // the errands, carried from world to world (src/quest.js Errands): delivered, or still in the pack
   for (const e of ERRANDS) {
@@ -221,20 +249,23 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
 export const opensInDebugSave = (levelId, order = ORDER) => order.includes(levelId);
 
 /**
- * Start the debug save for `levelId` (src/boot.js, before the game's modules read the save): the debug slot
- * is cleared and written with progressBefore(levelId), and becomes the active slot for this page and the
- * pages after it (the ship's flights), until a save is chosen on the title. The player's own slots are
- * never written. `state` (the shared game state, if already loaded) reads the new save. Returns the progress, or null.
+ * Start the debug save for `levelId` (src/boot.js, before the game's modules read the save): the slot (the debug
+ * slot unless `slot` names one of the player's, chosen on the title's Saves screen) is cleared and written with
+ * progressBefore(levelId), and becomes the active slot for this page and the pages after it (the ship's flights),
+ * until a save is chosen on the title. No other slot is ever written. `state` (the shared game state, if already
+ * loaded) reads the new save. Returns the progress, or null.
  */
-export function seedDebugSave(levelId, { store = slots, state = null, now = Date.now() } = {}) {
+export function seedDebugSave(levelId, { store = slots, state = null, now = Date.now(), slot = DEBUG_SLOT } = {}) {
   const p = progressBefore(levelId, { now });
   if (!p) return null;
-  store.remove(DEBUG_SLOT);
-  store.setActive(DEBUG_SLOT);
-  const view = store.view(DEBUG_SLOT);
+  const n = debugSlot(slot);
+  store.remove(n);
+  store.setActive(n);
+  const view = store.view(n);
   view.setItem('hiraeth.game.v1', JSON.stringify({ flags: p.flags, keepsakes: p.keepsakes }));
   view.setItem('hiraeth.journal.v1', JSON.stringify(p.journal));
-  store.touch(DEBUG_SLOT, { now });
+  store.touch(n, { now });
   state?.reload?.();
   return p;
 }
+

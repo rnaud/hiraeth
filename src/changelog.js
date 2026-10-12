@@ -29,6 +29,9 @@ export const CHANGELOG = [
     'The Worlds page lists one world a row, so up and down go between them. A / × on one shows what you have found there and what is still to find: the story, each relic by name (a ? for the ones still hidden), the makers’ boxes, the fragments once you have found one, and the people you met.',
     // the map of the world you are in (src/world-map.js, the game menu's Map; docs/systems/ui.md "The Map"; issue #205)
     'A map of the world you are in, in the game menu right after Quests (one RB / R1 from where it opens) and in the Start menu: the ground drawn from above in ink and paper, with you and the way you face, your ship, the way on, the makers’ temples, the people you have met and the boxes you have opened. Pick one in the legend beside it to ring it on the map, and press A / × to zoom in on it.',
+    // the debug saves in the title's Saves screen (src/title.js debugSavesHtml, src/debug-save.js; docs/systems/dev-tools.md
+    // "The debug save"; issue #203)
+    'For playtesting, the Saves screen has a debug section: start at any world of the route in a new save, with everything in the worlds before it done and held, their quests, items, gadgets, keepsakes, trials’ rewards, fragments and Orrin’s upgrades. It goes into its own debug save, or into one of your saves if you choose one (asked first if it holds a save).',
   ] },
   { v: '1.57', date: '2026-10-12', items: [
     // the Moon Foundry's picked explorations, one way through the world (src/foundry-street.js, src/foundry-cranes.js,

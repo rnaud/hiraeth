@@ -50,9 +50,10 @@ const fromDebugMenu = new URLSearchParams(location.search).has('level')
   && (new URLSearchParams(location.search).has('debugsave') || cameFromDebug(document.referrer, location.search));
 if (new URLSearchParams(location.search).has('debugsave')) {
   const q = new URLSearchParams(location.search);
-  const [{ seedDebugSave, DEBUG_PARAM }, { game }] = await Promise.all([import('./debug-save.js'), import('./game-state.js')]);
-  seedDebugSave(q.get('level'), { state: game });
-  q.delete(DEBUG_PARAM);
+  const [{ seedDebugSave, DEBUG_PARAM, SLOT_PARAM }, { game }] = await Promise.all([import('./debug-save.js'), import('./game-state.js')]);
+  // (into the debug slot, or the player's slot chosen on the title's Saves screen: ?debugslot=<n>)
+  seedDebugSave(q.get('level'), { state: game, slot: q.get(SLOT_PARAM) });
+  q.delete(DEBUG_PARAM); q.delete(SLOT_PARAM);
   history.replaceState(null, '', `${location.pathname}?${q}`);
 }
 const worldsOnly = new URLSearchParams(location.search).get('worlds') === '1' && opensTitle(location.search);

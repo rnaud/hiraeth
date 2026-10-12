@@ -163,11 +163,28 @@ while you are in it. Picking another world starts the debug save again from scra
   amber, Oyo's lantern), the flags and the keepsake its main quest's end sets in code (`WORLD_ENDS`: the ship
   powered, the bird's promise; the keepsakes are exported from the data files), `world.<id>.done`, its story page;
 - the ship: the signature read on arrival, the recordings played at the console in turn (`calls.js`, with what
-  they set), the errands delivered or still carried (`ERRANDS`).
+  they set), the errands delivered or still carried (`ERRANDS`);
+- since v1.58 (issue #203: "unlocked everything in all the previous levels"): its trial run and its reward held
+  (`TRIALS`, `src/trials/data.js`; a retired reward left out), and its fragments of the singing light found
+  (`FRAGMENTS`): Orrin Thrum met (`frag.met`, `met.thrum`: he is aboard) and each of his upgrades the count
+  reaches fitted where its gear is held (`FRAGMENT_ITEMS`, `needs`): before the Glass Dunes, 48 fragments, the
+  heart, the finder, the edge and the light chamber.
 
 The chosen world, and every one after it, is untouched: it opens at its start (no saved position), its
 quests, boxes and temple waiting. Left out: relics and the sketchbook's pictures (drawn as you find them) and
-quest things carried in a pack. The desert's debug save is a new journey past the prologue. Off the route (the
+quest things carried in a pack.
+
+**From the title's Saves screen** (v1.58, issue #203: "a debug saves option in the save menu that restarts the
+game at a specific level"): under the three saves, on dashed red paper and tagged DEBUG, "Debug: start at a
+world" (`debugSavesHtml` in `src/title.js`; shown with the same gate as the Debug entries, `devMode`): **Into**
+(A / × or a click turns it: the debug save, the player's untouched; Save 1, 2, 3), then every world of the route
+with its picture and how many worlds before it are done. Choosing one goes to `debugSaveHref(id, slot)`
+(`src/save-slots.js`: `?level=<id>&debugsave=1`, and `&debugslot=<n>` for a player's slot), which `src/boot.js`
+seeds before the game reads a save (`seedDebugSave(id, { slot })`) and drops. A player's slot that holds a save
+is asked about first ("Replace Save 2?", the save it holds and the world: B keeps it); an empty one is written at
+once. Nothing else is written: the game loading behind the title keeps its writes in memory until the page goes
+(`holdWrites`), so its save on the way out never lands in the slot it was loading. The pad moves down the saves,
+Into and the worlds; the keyboard's arrows and Enter, the mouse and touch too. The desert's debug save is a new journey past the prologue. Off the route (the
 Lab and the other dev worlds, the side worlds, home) a card opens the world in the save being played, as
 before; so does `?level=<id>` typed by hand. `tests/debug-save.test.js` reads the story's code for the grants
 that are not data (an `onDone`'s `game.set`, `addKeepsake`, a tank band, an item granted or given in code) and
