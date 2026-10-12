@@ -1,0 +1,45 @@
+engine/game.js
+  s_9ca76055a220ed::t_324d9fa7b7267a 64,391,514-520
+engine/mirror.js
+  s_9ca76055a220ed::t_f5cdac9e0db7e2 46,70-72,74,95-97,201,222-224,245-248,254,282-284,286,289,306,310-312,349-350
+engine/scene-matrices.js
+  s_9ca76055a220ed::t_222e603066e47a 19-26,47,76-78,82,89,93-99,173-174,177
+engine/unity/backend.js
+  s_9ca76055a220ed::t_6521077721404e 22-27,33,47-48,62-64
+engine/unity/game.js
+  s_9ca76055a220ed::t_6486e77897cb06 40-45
+engine/unity/pack.js
+  s_9ca76055a220ed::t_8f1736f1e6be2c 139-141,143-144,150-154
+src/matrix-cache.js
+  s_9ca76055a220ed::t_61d85639853763 38-44,85,135
+src/npc.js
+  s_9ca76055a220ed::t_feb39db7b79e0e 457-460
+tests/mirror-still.test.js
+  s_9ca76055a220ed::t_557bfd80bf741f 1-115
+tests/scene-matrices.test.js
+  s_9ca76055a220ed::t_29b4823935d957 74-113
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_2d1fa2d8f0ed50 117-120
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_65a07c8cdb6cbc 93-120
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_900e6fb69f62e5 58,168-169,177-178
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_20bc8170f12437 277,282,469,481-483,488-489,515
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ad4ba6e8c81139bfee570c72495204d815866867",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
