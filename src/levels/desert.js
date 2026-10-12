@@ -32,6 +32,8 @@ import wingDrop from '../minigames/wingdrop.js';
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 /** The day's colours: the print's flat cerulean over cream sand; the shade a violet-blue, as the plates' cast shadows (October 2026: it was a blue-grey, #93a6cf, that greyed the sand). */
 /** Where the desert starts: the foot of the ship's ramp (8 m out of the hull's centre along the hatch's heading), facing Qanat. */
+/** No wild creatures within this of Qanat's centre (issue #153): its walls stand at 64 m and are 3 m thick. */
+export const QANAT_CLEAR = 68;
 export const LANDING = (() => { const s = SITE_OVERRIDES.desert; return { x: s.x + Math.sin(s.heading) * 8, z: s.z + Math.cos(s.heading) * 8, heading: s.heading }; })();
 export const DESERT_DAY = ['#92b6c5', '#d7dfd9', '#9b9bd2', '#fff9ee', '#fff6dc'];
 
@@ -129,6 +131,10 @@ export function* buildDesert(scene) {
     floraAvoid: avoidShop,
     // Qanat inside its walls is all streets, the paved square and houses: no flowers or plants there (src/paved.js)
     paved: pavedMask({ discs: [{ x: STORY.city.x, z: STORY.city.z, r: STORY.city.r }] }),
+    // nor wild creatures: the lizards, crabs and jerboas keep to the sand outside the walls (issue #153: "animals
+    // shouldn't be roaming in the city center"); none is put there, none wanders in (src/wildlife.js reads keepClear).
+    // The birds wheeling high over the city (life.flocks) stay: they are the sky's, not the streets'.
+    keepClear: (p) => Math.hypot(p.x - STORY.city.x, p.z - STORY.city.z) < QANAT_CLEAR,
     observatory,
     qanat,
     // a save left standing up the tree where the makers' shelf was (until v1.49, issue #140): down to the dais's foot

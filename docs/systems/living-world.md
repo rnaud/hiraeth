@@ -64,6 +64,11 @@ and screen behavior. Performance on a physical iPhone still needs confirmation.
   tumbles head over heels in a little hop over 0.45 s, sits dazed under stars until 1.9 s, then trots off a moment. No
   harm. Before, any creature anywhere in the swing's cone was only scared off. Tests: `tests/wildlife.test.js`,
   `tests/blade-attacks.test.js`.
+- **Out of Qanat** (issue #153, the author: "animals shouldn't be roaming in the city center"): the desert's level
+  keeps a disc of 68 m round the city's centre clear (`keepClear`, `QANAT_CLEAR` in `src/levels/desert.js`: the walls
+  stand at 64 m, 3 m thick), so no lizard, crab or jerboa is put in its streets or square (three were, 12–29 m from
+  the tree, round the city's people) and none wanders in from the camps. The flocks wheeling high over it stay.
+  `tests/desert-playtest.test.js`.
 - **The tool** (`src/blaster.js`): a hitscan paralyze ray (40 m, energy gauge)
   and a ballistic foam dart that follows the level's gravity. Anything can
   register in `src/targets.js` (`registerTarget`) to be hit; levels can add
