@@ -113,7 +113,9 @@ export function buildSeedRow(scene, terrain) {
   const flat0 = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position') g.deleteAttribute(k); g.computeVertexNormals(); return g; };
   for (let i = 0; i <= n; i++) {
     const p = ROW.getPointAt(i / n), t = ROW.getTangentAt(i / n), yaw = Math.atan2(t.x, t.z), y = H(p.x, p.z);
-    const f = new THREE.Matrix4().compose(V(p.x, y, p.z), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw), V(1, 1, 1));
+    // (laid along the slope: since v1.55 the row starts down the Greenhouse's hill, issue #189)
+    const pitch = Math.atan2(H(p.x + t.x * 2.8, p.z + t.z * 2.8) - H(p.x - t.x * 2.8, p.z - t.z * 2.8), 5.6);
+    const f = new THREE.Matrix4().compose(V(p.x, y, p.z), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw).multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), -pitch)), V(1, 1, 1));
     // a bed along the row: white kerbs round a strip of brown earth, sunk a little where the meadow slopes
     kerb.push(new THREE.BoxGeometry(2.6, 0.5, 5.6).translate(0, 0.05, 0).applyMatrix4(f));
     soil.push(new THREE.BoxGeometry(2.0, 0.5, 5.0).translate(0, 0.14, 0).applyMatrix4(f));
@@ -147,4 +149,73 @@ export function buildSeedRow(scene, terrain) {
   // (the way along it, for the level design audit: the row's own points, from the Greenhouse's beds to the landing)
   const points = SEED_ROW.map(([x, z]) => [x, H(x, z) + 0.3, z]);
   return { points, beds, drill: V(dx, dy + 2.4, dz), sight: V(dx, dy, dz), near: V(near.x, H(near.x, near.z), near.z) };
+}
+
+// Viridel's way up to the Greenhouse (issue #189: the walk there crossed the meadow you had come over, its longest empty
+// stretch 109 m). The Greenhouse water: the stair's overflow comes down from a basin at its foot as a channel of white
+// stone, south past the pyramid nursery, under a slab where it crosses Sorrel's seed row, through the fallen things and
+// into the furrow by Odile and Talo's ship, where it sinks into the grass. Walked the other way it is the way up: from
+// the ship past the fallen things and the nursery to the foot of the water stair (src/viridel-stair.js). Built as Mira's
+// runnel is.
+//
+//   buildGreenhouseWater(scene, terrain, { cover }) → { points, basin, slabs }
+//   greenhouseWaterDist(x, z)                       → m from the channel's middle
+
+/** The channel's line, [x, z]: from the basin at the water stair's foot, south past the nursery and the fallen things to the
+ * ship (beside the makers' glass climb, and through the vine walk's middle gap, 96 m east, clear of its decks). */
+export const GREENHOUSE_WATER = [[91.3, 202.2], [89, 186], [90, 150], [91, 112], [88, 80], [94, 32], [96, 1], [103, -30], [106, -58], [104, -100], [99, -138], [87, -167], [66, -186]];
+const GW = new THREE.CatmullRomCurve3(GREENHOUSE_WATER.map(([x, z]) => V(x, 0, z)), false, 'centripetal');
+const GW_PTS = GW.getSpacedPoints(240);
+export function greenhouseWaterDist(x, z) {
+  let best = Infinity;
+  for (let i = 0; i + 1 < GW_PTS.length; i++) {
+    const a = GW_PTS[i], b = GW_PTS[i + 1], ex = b.x - a.x, ez = b.z - a.z, L = ex * ex + ez * ez;
+    const t = Math.max(0, Math.min(1, ((x - a.x) * ex + (z - a.z) * ez) / L));
+    best = Math.min(best, Math.hypot(x - a.x - ex * t, z - a.z - ez * t));
+  }
+  return best;
+}
+
+/** `cover(x, z)`: where a slab goes over it instead (the seed row's beds it passes under). */
+export function buildGreenhouseWater(scene, terrain, { cover = () => false } = {}) {
+  const H = (x, z) => terrain.heightAt(x, z);
+  const n = Math.round(GW.getLength() / 1.5);
+  const pts = GW.getSpacedPoints(n);
+  const nrm = pts.map((_, i) => { const t = GW.getTangentAt(i / n); return V(-t.z, 0, t.x).normalize(); });
+  const curb = [], water = [], slabs = [];
+  const quad = (out, a, b, c, d) => out.push(...a, ...b, ...c, ...b, ...d, ...c);
+  const at = (p, nv, off, dy) => { const x = p.x + nv.x * off, z = p.z + nv.z * off; return [x, H(x, z) + dy, z]; };
+  for (let i = 0; i < n; i++) {
+    const p = pts[i], q = pts[i + 1], np = nrm[i], nq = nrm[i + 1];
+    if (cover(p.x, p.z) || cover(q.x, q.z)) { slabs.push(i); continue; }
+    for (const side of [-1, 1]) {
+      const i0 = side * 0.5, o0 = side * 0.85;
+      const [aI, aO, bI, bO] = [at(p, np, i0, 0.26), at(p, np, o0, 0.26), at(q, nq, i0, 0.26), at(q, nq, o0, 0.26)];
+      const [aIl, aOl, bIl, bOl] = [at(p, np, i0, -0.35), at(p, np, o0, -0.35), at(q, nq, i0, -0.35), at(q, nq, o0, -0.35)];
+      if (side > 0) { quad(curb, aI, bI, aO, bO); quad(curb, aIl, bIl, aI, bI); quad(curb, aO, bO, aOl, bOl); }
+      else { quad(curb, aO, bO, aI, bI); quad(curb, aI, bI, aIl, bIl); quad(curb, aOl, bOl, aO, bO); }
+    }
+    quad(water, at(p, np, 0.52, 0.06), at(q, nq, 0.52, 0.06), at(p, np, -0.52, 0.06), at(q, nq, -0.52, 0.06));
+  }
+  const flat = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position') g.deleteAttribute(k); g.computeVertexNormals(); return g; };
+  const parts = [];
+  // a slab over it where it passes under the seed row (a flat white stone, as high as its kerbs)
+  for (const i of slabs) {
+    const p = pts[i], t = GW.getTangentAt(i / n);
+    parts.push(new THREE.BoxGeometry(2.2, 0.3, 1.6).translate(0, 0.11, 0).applyMatrix4(new THREE.Matrix4().makeRotationY(Math.atan2(t.x, t.z)).setPosition(p.x, H(p.x, p.z), p.z)));
+  }
+  // the basin at the stair's foot it starts from: a round stone bowl, a wide rim to sit on
+  const [bx, bz] = GREENHOUSE_WATER[0], by = H(bx, bz);
+  parts.push(new THREE.CylinderGeometry(2.6, 2.3, 0.8, 18, 1, true).translate(bx, by + 0.1, bz), new THREE.RingGeometry(2.1, 2.65, 18).rotateX(-Math.PI / 2).translate(bx, by + 0.5, bz));
+  const geo = (list) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(list, 3)); g.computeVertexNormals(); return g; };
+  const curbs = new THREE.Mesh(mergeGeometries([geo(curb), ...parts.map(flat)]), makeMaterial({ color: '#efe9dc', flat: true }));
+  curbs.name = 'The Greenhouse water';
+  scene.add(curbs);   // (collides as drawn: you step over its kerbs, as the runnel's)
+  const wm = makeMaterial({ color: '#7fc4d0', color2: '#9ad3d9', mode: MODE_WATER });
+  const stream = new THREE.Mesh(geo(water), wm);
+  stream.userData.noCollide = true; stream.userData.water = true;
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(2.15, 18).rotateX(-Math.PI / 2).translate(bx, by + 0.3, bz), wm);
+  pool.userData.noCollide = true; pool.userData.water = true;
+  scene.add(stream, pool);
+  return { points: GREENHOUSE_WATER.map(([x, z]) => [x, H(x, z) + 0.3, z]), basin: V(bx, by, bz), slabs: slabs.length };
 }

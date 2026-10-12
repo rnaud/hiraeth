@@ -9,7 +9,10 @@ import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
-import { buildRunnel, runnelDist, buildSeedRow, seedRowDist, SEED_DRILL } from '../viridel-ways.js';
+import { buildRunnel, runnelDist, buildSeedRow, seedRowDist, SEED_DRILL, buildGreenhouseWater, greenhouseWaterDist } from '../viridel-ways.js';
+import { shapeHill, stairLevels, buildWaterStair } from '../viridel-stair.js';
+import { buildNursery } from '../viridel-nursery.js';
+import { buildWrecks } from '../viridel-wrecks.js';
 
 // ---------------------------------------------------------------------------
 // Viridel: a paradise planet with pale meadows,
@@ -27,14 +30,21 @@ function rolling(x, z) {
   return h * THREE.MathUtils.lerp(0.3, 1, smoothstep(30, 200, Math.hypot(x, z)));
 }
 const POND_LEVEL = rolling(-120, -160);
+/** The water stair's heights (src/viridel-stair.js), from the meadow's own. */
+export const STAIR_LEVELS = stairLevels(rolling);
+/** The valley's rim (issue #189): the walls round the meadow are a crater's, round, steep, a lip at the top. */
+export const CRATER = { r0: 1150, r1: 1500, h: 300 };
 function height(x, z) {
   let h = rolling(x, z);
   // a pond basin near the start, in a level stretch of meadow (so the water sits in a bowl, not on a slope)
   const pd = Math.hypot(x + 120, z + 160);
   h = THREE.MathUtils.lerp(h, POND_LEVEL, smoothstep(150, 100, pd));
   h -= smoothstep(90, 0, pd) * 10;
-  const edge = Math.max(Math.abs(x), Math.abs(z));
-  h += smoothstep(1300, 1950, edge) * (160 + fbm(noise, x * 0.004, z * 0.004, 3) * 120);
+  // the Greenhouse's hill and the water stair on its flank (src/viridel-stair.js)
+  h = shapeHill(h, x, z, STAIR_LEVELS);
+  // the crater's wall (the square rim of before v1.55, round now: the oldest fall of all)
+  const r = Math.hypot(x, z);
+  h += smoothstep(CRATER.r0, CRATER.r1, r) * (CRATER.h + fbm(noise, x * 0.004, z * 0.004, 3) * 100) - smoothstep(CRATER.r1 + 60, CRATER.r1 + 260, r) * 40;
   return h;
 }
 
@@ -481,6 +491,8 @@ export function* buildEdena(scene) {
       const row = Math.floor(i / 10), k = i % 10;
       const ca = (row / 7) * Math.PI * 2 + 0.4, cr = 120 + row * 45;
       const x = Math.cos(ca) * cr + (k - 4.5) * 9 * Math.sin(ca), z = Math.sin(ca) * cr - (k - 4.5) * 9 * Math.cos(ca);
+      // (the second row stood where the pyramid nursery is grown now, issue #189: its draws are still taken)
+      if (row === 1) { rng(); pick(accent); rng(); continue; }
       const base = terrain.baseAt(x, z, 2), ph = 1.5 + rng() * 2.5;
       add(white, new THREE.CylinderGeometry(1.1, 1.4, ph, 16).translate(x, base + ph / 2, z));
       const mat = pick(accent), top = base + ph, kind = rng();
@@ -607,6 +619,25 @@ export function* buildEdena(scene) {
   yield;
   const seedRow = buildSeedRow(scene, terrain);
 
+  // the three directions of issue #189, one way through the world (docs/systems/worlds.md "Viridel: the fallen things,
+  // the nursery and the water stair"): from the fallen ship past the fallen things, along the Greenhouse water past the
+  // pyramid nursery, and up the water stair to the Greenhouse on its hill. (What already stands is kept clear of: the
+  // things the meadow's scatter put on the ground, their boxes; nothing built here takes a draw of the level's rng.)
+  yield;
+  const standing = [];
+  scene.traverse((o) => {
+    if (!o.isMesh || o.userData.noCollide || o === terrain.mesh) return;
+    const b = new THREE.Box3().setFromObject(o);
+    if (b.max.x - b.min.x < 200 && b.max.z - b.min.z < 200) standing.push(b);
+  });
+  const blocked = (x, z, r) => standing.some((b) => x + r > b.min.x && x - r < b.max.x && z + r > b.min.z && z - r < b.max.z && b.min.y < terrain.heightAt(x, z) + 4);
+  const stair = buildWaterStair(scene, terrain, STAIR_LEVELS);
+  const wrecks = buildWrecks(scene, terrain, { blocked });
+  shipPortals.push(...wrecks.portals);
+  yield;
+  const nursery = buildNursery(scene, terrain, { blocked });
+  const water = buildGreenhouseWater(scene, terrain, { cover: (x, z) => seedRowDist(x, z) < 3.4 });
+
   // (the white builders' Greenhouse in the hollow north of the ruins: src/temples/edena.js)
   yield;
   const level = attachTemple('edena', scene, {
@@ -614,17 +645,24 @@ export function* buildEdena(scene) {
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the story's handles (src/story/edena.js): the crashed ship (hatch, cabin panel, the scorch
     // and the veil over it), the tallest tree and its lookout, the pond
-    edena: { crashed, tall, pond: { ...POND, y: pondY }, ruins: ruinSlabs, seedRow },
+    edena: { crashed, tall, pond: { ...POND, y: pondY }, ruins: ruinSlabs, seedRow, stair, nursery, wrecks, water },
     // no flora in the pond, round the crashed ship or at the foot of the tallest tree (src/flora.js)
     floraAvoid: shop.avoid((x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
       || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r) || runnelDist(x, z) < 1 + r
-      || seedRowDist(x, z) < 1.6 + r || Math.hypot(x - SEED_DRILL[0], z - SEED_DRILL[1]) < 4 + r),
+      || seedRowDist(x, z) < 1.6 + r || Math.hypot(x - SEED_DRILL[0], z - SEED_DRILL[1]) < 4 + r
+      || stair.covers(x, z, r) || nursery.avoid(x, z, r) || wrecks.avoid(x, z, r) || greenhouseWaterDist(x, z) < 1.2 + r),
     // what the level design audit reads (scripts/level-design/audit.mjs): the runnel, a leading line followed where the
     // main quest sends you back up it; the sluice-gate and the basin on it, to look at
     // (v1.50, issue #131: the long seed row, the way home from the Greenhouse Sorrel names; the seed-drill on it; and the
     // Greenhouse's glass spire, thin, so the audit's height grid never sees it)
-    lines: [{ name: 'Mira’s runnel', points: runnel.points, auto: false }, { name: 'the long seed row', points: seedRow.points, auto: false }],
-    sights: [{ name: 'the runnel’s sluice-gate', at: runnel.sluice }, { name: 'the runnel’s basin', at: runnel.basin }, { name: 'the builders’ seed-drill', at: seedRow.sight }],
+    // (v1.55, issue #189: the way up to the Greenhouse, from the fallen ship along the Greenhouse water and up the water
+    // stair, one line from the hill's top down to the ship; followed where it runs from beside a leg's start to its goal)
+    lines: [{ name: 'Mira’s runnel', points: runnel.points, auto: false }, { name: 'the long seed row', points: seedRow.points, auto: false },
+      { name: 'the Greenhouse water', points: [...[...stair.line].reverse(), ...water.points] }],
+    sights: [{ name: 'the runnel’s sluice-gate', at: runnel.sluice }, { name: 'the runnel’s basin', at: runnel.basin }, { name: 'the builders’ seed-drill', at: seedRow.sight },
+      ...wrecks.sights, ...nursery.sights, { name: 'the Greenhouse water’s basin', at: water.basin },
+      ...stair.gates.map((g, i) => ({ name: `the water stair’s ${['first', 'second', 'third'][i] ?? `${i + 1}th`} sluice-gate`, at: g.stand.clone() }))],
+    init(physics) { stair.init(physics); },
     beacons: () => { const s = level.temple?.outside?.spire; return s ? [{ name: 'the Greenhouse’s glass spire', top: s.top.toArray(), height: s.height }] : []; },
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
@@ -645,14 +683,14 @@ export function* buildEdena(scene) {
     },
     killY: -Infinity,
     portals: shipPortals,
-    get lights() { return [...(shipRoom ? shipRoom.lights : []), ...shop.lights]; },
+    get lights() { return [...(shipRoom ? shipRoom.lights : []), ...shop.lights, ...(wrecks.room?.lights ?? [])]; },
     atmo: () => ({ tint: [0.98, 1.0, 1.02], fog: 0.7, name: 'Viridel' }),
     life: {
       flocks: [{ count: 16, color: '#f2a7b5', size: 1.4, radius: 70, height: [12, 40], seed: 6 },
                { count: 12, color: '#62c3c9', size: 1.2, radius: 110, height: [20, 60], speed: -0.14, seed: 8 }],
       motes: { count: 200, color: '#fffbe8', size: 0.045, rise: 0.15, wind: [0.5, 0.2] },
     },
-    update(dt, t, ctx) { for (const m of movers) m(t, ctx?.player?.pos); },
+    update(dt, t, ctx) { for (const m of movers) m(t, ctx?.player?.pos); stair.update(dt); },
   });
   return level;
 }

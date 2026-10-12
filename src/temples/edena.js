@@ -58,7 +58,7 @@ import { chestMound } from '../boxes/mound.js';
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
-/** In the flat meadow hollow north of the white ruins; its door looks south, toward the ruins and the landing. */
+/** On its hill north of the white ruins (a hollow until v1.55: src/viridel-stair.js HILL); its door looks south, toward the ruins and the landing. */
 export const SITE = { x: 110, z: 320, r: 22, path: [150, 100] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 /** The glass spire on the dome's finial (issue #131): its mast and its lantern, m. */

@@ -7,6 +7,7 @@ import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, KEEPSAKE } from './edena-data.js';
 import { setupTerraces } from './terraces.js';
 import { setupWaterClock } from './water-clock.js';
+import { setupEdenaRoute } from './edena-route.js';
 import { setupEdenaMoments } from './edena-moments.js';
 import { quietOr } from '../hint-level.js';
 
@@ -165,6 +166,8 @@ export function setupEdena(ctx) {
   terraces.onFlood = () => film.terraces();
   // ---------------------------------------------------------------- Mira's water clock (Lorn II's errand ends here)
   const clock = setupWaterClock(ctx);
+  // ---------------------------------------------------------------- the way up: the water stair's gates, the round ship's cabin, the old pyramid's top
+  const route = setupEdenaRoute(ctx);
 
   // ---------------------------------------------------------------- the end of the main quest
   quests.def(Q).onDone = () => {
@@ -218,7 +221,8 @@ export function setupEdena(ctx) {
     pollen.update(dt);
     terraces.update(dt, t);
     clock.update(dt, t);
+    route?.update(dt, t);
   };
 
-  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces, clock, film };
+  return { people, update, state: st, seedAt, sproutAt, veilLook, terraces, clock, film, route };
 }

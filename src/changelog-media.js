@@ -683,6 +683,9 @@ const FR55 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s
 // (v1.55: Lio's dispatch mast, issue #201: by hand, the disk too full for changelog-shots.mjs's extraction; the before is
 // the same tree with the mast left out of the scene)
 const MAST55 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5501), the before the same tree with the mast left out of the scene, the same pinned cameras, the Lodestar lit, 12 October; cwebp -q 72';
+// (v1.55: Viridel's explorations, issue #189: by hand, this branch's own Vite and the tree before it, the same pinned cameras)
+const VI55 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5511), the before the tree as it was on origin/main (42da5258, git archive), the same pinned cameras, 12 October; cwebp -q 72';
+const VI55_GATES = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5511), the same pinned camera with a fresh save and with the save’s three sluice-gates open, 12 October; cwebp -q 72';
 const SAVE_LIT55 = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'incal.lit': true, 'quest.incal.light': 'done', 'item.glider': 1 }, keepsakes: [] };
 export const CHANGELOG_MEDIA = {
   '1.55': [
@@ -703,6 +706,28 @@ export const CHANGELOG_MEDIA = {
       { name: 'fragments-menu', title: 'The Worlds page', caption: 'The count over the cards, and on each world how many are left', only: 'after', from: FR55 },
       { name: 'fragments-start', title: 'The Start menu', caption: 'Under where you are: the fragments you have, and how many are left here', only: 'after', from: FR55 },
     ] },
+    { match: 'In Viridel, Odile and Talo’s ship is not the only thing the garden has kept', shots: [
+      { name: 'viridel-fallen', title: 'The fallen things', caption: 'From the walk north of the fallen ship: before, open meadow; after, the great dish lying face up full of rain, the round ship’s hill with its tree beyond, and the white channel of the Greenhouse water on the right', from: VI55,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [100, -9.6, -170], target: [138, -10, -105], player: [100, -12.5, -171] } },
+      { name: 'viridel-hatch', title: 'The door under the flowers', caption: 'On the round ship’s west flank: after, its round hatch ajar in the hill of flowers, the cabin’s lamp lit inside, the tree out of the hull above', from: VI55,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [116.2, -17.1, -75.5], target: [129.2, -16.4, -71.5], player: [118.2, -19.9, -75] } },
+      { name: 'viridel-crater', title: 'From the tallest tree', caption: 'Talo’s lookout on the crown, looking south-east: before, low hills on the far horizon; after, the crater’s wall closing the valley all round', from: VI55,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [-111, 104.6, 147], target: [789, 162.6, -753], player: [-111, 102.8, 147] } },
+    ], see: 'Walk on from the fallen ship along the white channel: the dish pond and the round ship’s hill are on your right. Go in at its hatch on the west flank and look round the cabin. Then climb the tallest tree to Talo’s lookout and look at the walls.' },
+    { match: 'Viridel’s pyramids are grown now, not scattered', shots: [
+      { name: 'viridel-nursery', title: 'The nursery from the walk', caption: 'Along the Greenhouse water by the seedling beds: before, open meadow and a white wall; after, the rows by age, sheds and houses, the three great ones with trees on their terraces', from: VI55,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [92, -0.1, 98], target: [40, 12, 200], player: [92, -3.1, 97] } },
+      { name: 'viridel-mark', title: 'From the old pyramid', caption: 'On the old one’s top, 44 m up: before, the air over the meadow and a row of ornaments; after, the arc of houses and the three great ones over it, the builders’ mark, drawn across the meadow', from: VI55,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [18, 43.5, 239], target: [46, -4, 150], player: [18, 41.3, 240] } },
+    ], see: 'Follow the white channel north past the seedling beds; at the rows’ end, by the foot of the water stair, climb the old pyramid’s steep stair and look out over the nursery.' },
+    { match: 'The Builders’ Greenhouse now stands on a hill', shots: [
+      { name: 'viridel-stair', title: 'The water stair', caption: 'From in front of its foot: before, the Greenhouse low in its hollow; after, on its hill up the stair of white terraces, the channel falling down the middle', from: VI55,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [70.9, 3, 181.3], target: [99.8, 26.1, 277.2], player: [71.9, -2.3, 182.3] } },
+      { name: 'viridel-gate', title: 'A sluice-gate', caption: 'On the second bed, at the foot of a gated flight: before, the board down across the way, the bed in bud; after, the wheel turned, the board up, the bed flooded over its stepping stones and in flower', from: VI55_GATES,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [91.1, -2.9, 218.6], target: [78.2, -0.2, 227.8], player: [91.1, -5, 218.6] } },
+      { name: 'viridel-beds', title: 'The terraces from the side', caption: 'From over the stair’s west side: before, the meadow under the hollow; after, the beds, the zigzag of flights, the gates’ posts and the flooded beds in flower', from: VI55,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [53.8, 20.8, 230.6], target: [92.9, 0.8, 248] } },
+    ], see: 'From the fallen ship follow the white channel north to the foot of the stair. Cross each bed on its stepping stones and climb the flight against the next wall; where a board stands across the top, turn the wheel on the post beside it, and look back down at the bed you crossed.' },
     { match: 'In the City-Shaft, Lio’s dispatch mast now rises behind him', shots: [
       { name: 'shaft-liomast', title: 'From the crown', caption: 'From the edge of the palace’s crown, looking down to the rim where Lio stands: after, his dispatch mast rising over the rim behind him, teal booth and call-lamp at its top', from: MAST55,
         view: { level: 'incal', hour: 10, fov: 30, eye: [2.6, 358.6, 0.3], target: [350, 228, 38], player: [5.3, 355.1, 0.6], save: SAVE_LIT55 } },

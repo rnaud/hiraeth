@@ -492,6 +492,29 @@ export const PEOPLE = {
 
 // The scenery you can look at: same panel, a different voice.
 export const THINGS = {
+  // (issue #189: the fallen things, the nursery; src/story/edena-route.js)
+  roundship: {
+    id: 'roundship', name: 'The round ship’s cabin', title: 'under the hill of flowers', color: '#62c3c9', voice: 0.8,
+    talk: { nodes: {
+      look: {
+        say: ["~solemn~ A round cabin, its lamp still lit. Two cups on the shelf. A child’s drawing of the ringed planet, pinned by the bunk.",
+          "~neutral~ Whoever fell here planted a tree in the roof, and stayed."],
+        do: { set: { 'edena.roundship.seen': true } },
+        choices: [{ text: '~solemn~ (leave it as it is)', end: true }],
+      },
+    } },
+  },
+  oldpyramid: {
+    id: 'oldpyramid', name: 'The old pyramid’s top', title: 'over the nursery', color: '#f3ead8', voice: 1.1,
+    talk: { nodes: {
+      look: {
+        say: ["~surprised~ From up here the nursery’s rows draw a mark across the meadow: three dots over an arc.",
+          "~solemn~ Beyond them the cliffs close all the way round. The whole garden lies in a crater."],
+        do: { set: { 'edena.nursery.seen': true } },
+        choices: [{ text: '~curious~ (look for a while)', end: true }],
+      },
+    } },
+  },
   log: {
     id: 'log', name: 'The ship’s log', title: 'at the cockpit panel', color: '#34405e', voice: 0.75,
     talk: { nodes: {
@@ -525,7 +548,7 @@ export const THINGS = {
     id: 'lookout', name: 'Talo’s lookout', title: 'on the tallest tree’s crown', color: '#b5a7e6', voice: 0.75,
     talk: { nodes: {
       note: {
-        say: ["~neutral~ A smooth bench faces east. Beside it, a folded note hangs below a carved mark: three dots over an arc.", "~solemn~ *The light came from the east. Odile says it won’t return. It turned once. It can turn again. If it does, I want to be looking. — T.*", "~sad~ From the crown you see the whole garden. Greener plants trace the furrow through the south meadow, where the ship tore the ground."],
+        say: ["~neutral~ A smooth bench faces east. Beside it, a folded note hangs below a carved mark: three dots over an arc.", "~solemn~ *The light came from the east. Odile says it won’t return. It turned once. It can turn again. If it does, I want to be looking. — T.*", "~sad~ From the crown you see the whole garden. Greener plants trace the furrow through the south meadow, where the ship tore the ground.", "~solemn~ All round, the cliffs close in a ring. The garden is a crater: the oldest thing that fell here."],
         // (read before Rue asked, it is her errand done all the same: issue #172)
         do: [{ set: { 'edena.lookout.read': true } }, (ctx) => { if (ctx.quests && !ctx.quests.isStarted('edena.tree')) ctx.quests.start('edena.tree'); }],
         choices: [{ text: '~curious~ (watch the east for a while)', end: true }],

@@ -6,7 +6,7 @@
 export const QUEST = {
   id: 'temple.edena', title: 'The Builders’ Greenhouse', world: 'edena',
   outro: 'The Gardener sleeps in flower, and the white ruins all over the garden are green again.',
-  find: 'Find the Greenhouse north of the white ruins',
+  find: 'Follow the water up to the Greenhouse',
   gadget: 'Find what the builders left in the Greenhouse',
   keeper: 'Go up to what moves at the top',
 };

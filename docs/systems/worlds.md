@@ -92,7 +92,9 @@ The reference pages for the four v0.30 worlds are in `references/`
 - **Viridel:**
   - flat colours and thin lines, light stipple only;
   - giant umbrella trees (climb the trunk and stand on the canopy), step
-    pyramids and white android ruins with glyphs.
+    pyramids and white android ruins with glyphs;
+  - since v1.55 the fallen things, the pyramid nursery and the water stair up to
+    the Greenhouse on its hill, inside a crater's wall (below, issue #189).
 - **Lorn:**
   - a twilight swamp with inked water;
   - crystal forests and egg clutches that glow;
@@ -1164,8 +1166,54 @@ hides all of it but the dome's cap (281 m), and the way home from its door was t
   south past the white ruins, Oro and his planted seed, then west to the landing; **the builders' seed-drill** (a sight,
   `SEED_DRILL`) stands beside it halfway down to the ruins, where it stopped. The beds are drawn only, the drill collides.
   Once the Gardener sleeps the world change brings every bed up green (`change`: `beds`). Sorrel's `after` names it; the
-  route's temple step carries it as `home` (375 m home, four places on it not passed on the way in).
+  route's temple step carries it as `home` (375 m home, four places on it not passed on the way in). Since v1.55 its
+  first beds run down the Greenhouse's hill, each laid along the slope.
 Tested in `tests/viridel-greenhouse-ways.test.js`.
+
+## Viridel: the fallen things, the nursery and the water stair (issue #189; v1.55)
+
+The author picked all three exploration directions for Viridel (`docs/design/level-explorations-2-prompts.md`, the sheets
+in `references/levels/Viridel/environment/explorations/`), woven into one way up to the Greenhouse: from the scorch on
+Odile and Talo's ship, past the fallen things, along the Greenhouse water past the pyramid nursery, up the water stair to
+the door. Level design audit (`scripts/level-design/audit.mjs --worlds edena`): landmarks 4 → 5 (98–100 % of the path sees
+one), optional pull 4 → 5 (16 of 36 optional places 30–150 m off the path), verticality 3 → 5 (17 % of the places
+raised, 69 m climbed), the longest empty stretch 109 → 28 m: Viridel 4.56 → 5. Nothing here draws on the level's rng;
+what the meadow's scatter already put on the ground is kept clear of (`blocked`, src/levels/edena.js; the second row
+of the android garden's ornaments gave way to the nursery, its draws still taken).
+- **The Greenhouse water** (`GREENHOUSE_WATER`, src/viridel-ways.js `buildGreenhouseWater`): a white channel built as
+  Mira's runnel, from a basin at the stair's foot south past the nursery (beside the makers' glass climb, through the
+  vine walk's middle gap), under a slab where it crosses the seed row, past the fallen things into the ship's furrow.
+  With the stair's way it is one leading line, `the Greenhouse water` (followed by itself: it runs from beside the
+  scorch to beside the door). The temple's hint is "Follow the water up to the Greenhouse".
+- **The fallen things** (src/viridel-wrecks.js, `WRECKS`): the round ship under a hill of flowers (a squashed dome that
+  collides as drawn, its cream-and-teal hull ring on the west flank, the round hatch ajar with the lamp lit inside, a
+  porthole further round, a tree out of the top with roots over it), its hatch a portal into a small cabin far overhead
+  (`ROUND_ROOM`; `THINGS.roundship`, src/story/edena-route.js); the great dish face up full of rain on its mount, its
+  feed horn on three struts (you wade into its bowl); the split meteor near the landing, two half-shells violet inside,
+  a garden and a little tree in the split; the builders' machine on its side, five tiers up its flank (1.95 m: a jump
+  each), fins down its high side, its arm in the grass. Each is a sight; the hatch a door.
+- **The crater** (`CRATER`, src/levels/edena.js `height`): the valley's wall, square until v1.55, is round, steeper and
+  higher (300 m from 1.15 to 1.5 km out), a lip falling away behind; Talo's note and the old pyramid's top say so.
+- **The pyramid nursery** (src/viridel-nursery.js, `NURSERY`, `AGES`): west of the walk from the seed row to the stair,
+  by age: three rows of kerbed seedling beds (knee-high pyramids, drawn only), a row of sprouts (one step), a row of
+  sheds (steps of 0.55 m: walked up), then the builders' mark: seven houses in vine scaffolds (1.25 m ledges) on an arc,
+  three great ones (1.9 m ledges, trees on their terraces) as its dots; at the rows' end the old one, 44 m, its steep
+  stair (0.45 m steps) out over the meadow up its south face. White androids tend them (drawn only). From its top the
+  rows draw the mark (`THINGS.oldpyramid`, a look out). Sights: the old one's top, the great ones' (raised), the beds.
+- **The water stair** (src/viridel-stair.js, `HILL`, `STAIR`): the Greenhouse's hollow is a hill now (`shapeHill`: 26 m,
+  flat within 42 m of its middle), and its south-west flank eight beds of white stone a wall's height (3.9 m) over the
+  last, the ground held under them (a cell and a half back down the stair, so no triangle of the heightfield shows
+  through), a paved terrace at the top. A channel falls down the middle from bed to bed; a flight of steps climbs each
+  wall, against it, turning left and right by turns, so the way zigzags across the beds on stepping stones (a slab over
+  the channel). Three flights (`gated`) end at a sluice-gate: a wall 3 m over the bed along the flight's top so the gate is
+  the only way off it, posts, a lintel, the board across the way (a moving collider, `physics.addMover`, in the level's
+  `init`) and a wheel on the post. Turning it (`edena.sluice.<n>`) lifts the board, the water pours down the wall beside
+  the landing, and the bed below floods 0.3 m (its stones 0.1 m under) and opens in flower from where the water comes in;
+  the ungated beds are in flower already. A traveller who climbs can go up the walls; the gates are the gardeners' way.
+Tested in `tests/viridel-explorations.test.js` (the way, the beds over the ground, the stair walked up and down by a
+traveller who cannot climb and stopped by a shut gate, a wheel turned, the wrecks, the crater seen from the crown, the
+nursery's ages and the old one's stair walked, sight lines, the contact audit on the new pieces and their collision
+budget, the channel clear of the makers' runs).
 
 ## Vael: the plain's sights, Aube's smoke and the founders' lamp (level design audit v1.49, issue #133; v1.50)
 
