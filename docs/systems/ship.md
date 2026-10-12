@@ -189,6 +189,12 @@ checks the door, the ramp and the jets, and `tests/contact-audit.test.js` lands 
   stilts); each foot finds the ground. `tests/contact-audit.test.js` builds it in every world and checks
   nothing of the world is inside the hull (roof to belly; on the desert crash, roof to the deck), open sky
   over it, the four feet on the ground and the legs not stretched, the ramp at 29° at most with nothing across it.
+- **A start it covers** (`Ship.clearSpawn`, issue #254): a level's spawn inside the ship, or with its hull
+  or ramp less than 3 m over it (`covers`, `SPAWN_HEADROOM`), moves to the foot of the ramp
+  (`arrivalSpot`), facing out, the camera behind. The desert's (8 m off the hatch) was under the ramp once
+  the hull grew to 26 m (#195): a direct `?level=desert` or a debug save started him boxed in.
+  `tests/route-spawn.test.js` builds every route world and checks its direct start and its arrival by
+  ship: out from under the ship, a walk of 5 m some way, the camera's arm out behind him.
 - **The desert crash**: the same site, dug in (the deck kept clear of the sand), its berm heaped against
   the hull's real outline, cream, coral and lavender plates along the furrow, one torn-off leg.
 - **The cinematics** (`src/ship/cinematics.js`, `homecoming.js`): the recordings' four angles are placed

@@ -51,6 +51,8 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 
 const Y = new THREE.Vector3(0, 1, 0);
 const SPACE_Y = 2600;
+/** The headroom a spawn needs under the ship (m over its feet, from 0.3 m up): the ramp's underside, the belly. */
+export const SPAWN_HEADROOM = 3;
 const DOOR_POP = 0.14;       // m the door comes out of its frame before it slides
 const DOOR_TRAVEL = HATCH.z1 - HATCH.z0 + 0.25;   // m forward along the hull: clear of the opening (1.5 for the 1.3 m hatch)
 const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
@@ -81,6 +83,7 @@ export class Ship {
     this.cinematic = null;
     this.powerState = game.flag('ship.powered') ? 'on' : 'emergency';
     this.place();
+    this.clearSpawn();
     if (prologue) this.buildSpaceCopy();
     this.cinema = new Cinema();
     this.warp = new Warp();
@@ -435,6 +438,27 @@ export class Ship {
   atRampFoot() {
     const p = this.player.pos;
     return Math.hypot(p.x - this.rampFoot.x, p.z - this.rampFoot.z) < 3.2 && Math.abs(p.y - this.rampFoot.y) < 3;
+  }
+
+  /**
+   * Under the ship or in it: a spawn the parked hull or its ramp covers (issue #254: the desert's, 8 m out of the
+   * hull's centre, was under the ramp once the ship grew to 26 m, #195: boxed in, the camera pressed over his head,
+   * no way to walk). Near the ship, with its hull or ramp overhead (or inside its rooms).
+   */
+  covers(p) {
+    if (Math.hypot(p.x - this.restPos.x, p.z - this.restPos.z) > R + 6) return false;
+    if (this.isInside(this.parked, p)) return true;
+    return this.physics.rayDistance(new THREE.Vector3(p.x, p.y + 0.3, p.z), Y, SPAWN_HEADROOM) < SPAWN_HEADROOM;
+  }
+
+  /** A level's spawn the ship covers goes to the foot of its ramp, facing out, the camera behind (issue #254). */
+  clearSpawn() {
+    const L = this.level;
+    if (!L.spawn || !this.covers(L.spawn)) return;
+    const a = this.arrivalSpot();
+    L.spawn.copy(a.pos);
+    L.spawnHeading = a.heading;
+    L.camYaw = a.heading + Math.PI;
   }
 
   /** Where you stand when you arrive by ship: the foot of the ramp, facing out. */

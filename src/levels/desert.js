@@ -35,7 +35,8 @@ import wingDrop from '../minigames/wingdrop.js';
 // The original open desert: dunes, mesas, regions, hoverbike and wind.
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 /** The day's colours: the print's flat cerulean over cream sand; the shade a violet-blue, as the plates' cast shadows (October 2026: it was a blue-grey, #93a6cf, that greyed the sand). */
-/** Where the desert starts: the foot of the ship's ramp (8 m out of the hull's centre along the hatch's heading), facing Qanat. */
+/** Where the desert starts: off the ship's hatch (8 m out of the hull's centre along the hatch's heading), facing Qanat; the ship
+ *  moves it on to the foot of its ramp, which covers that spot since the hull grew (src/ship/ship.js clearSpawn, issue #254). */
 /** No wild creatures within this of Qanat's centre (issue #153): its walls stand at 64 m and are 3 m thick. */
 export const QANAT_CLEAR = 68;
 export const LANDING = (() => { const s = SITE_OVERRIDES.desert; return { x: s.x + Math.sin(s.heading) * 8, z: s.z + Math.cos(s.heading) * 8, heading: s.heading }; })();

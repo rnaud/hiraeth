@@ -733,6 +733,8 @@ const FRAG60 = 'headless Chrome (scripts/design-qc/capture.mjs), High, 1280 × 7
 const SHIP234 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5751) and the tree before it (3a194522): the traveller placed at the spot, the camera turned there by hand and held for 3 s, the game’s own camera; 12 October; cwebp -q 72';
 // (v1.62, issues #185 and #213: a scratch shooter against this branch's own Vite and the tree before it, e7c21f7d)
 const SHOP185 = 'headless Chrome (muted, Medium, 1280 × 720, 10:00) against this branch’s own Vite (port 5771) and the tree before it (e7c21f7d), in Viridel with a debug save of the worlds before (24 fragments found), the traveller in the hold facing Anselm; 12 October; cwebp -q 72';
+// (v1.62, issue #254: a scratch shooter against this branch's own Vite (port 5811), the before origin/main's tree (03838e49))
+const SPAWN254 = 'headless Chrome (muted, Low, 800 × 450) against this branch’s own Vite (port 5811) and the tree before it (03838e49), ?level=desert with the prologue done and no saved place, 6 s after the world is up; 12 October; cwebp -q 72';
 const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch’s own Vite (port 5771) and the tree before it (e7c21f7d), a debug save of the worlds before, the game menu opened by the console; 12 October; cwebp -q 72';
 // (v1.61, issue #197: a scratch shooter against this branch's own Vite, ?gestures=0 for before; the game's own captureView)
 const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by Marrow) against this branch’s own Vite (port 5791): a conversation open, each picture the game’s own view of the one speaking from in front; before: ?gestures=0 (the talking idle alone), 6 moments of a line; after: a moment of each of six gestures (a wave, surprise, yelling, sad, thinking, thanks); 12 October; sharp webp -q 72';
@@ -767,6 +769,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Sketchbook page is gone from the game menu', shots: [
       { name: 'menu-no-sketchbook', caption: 'The game menu, asked for the Sketchbook: before, its page and six tabs; after, five tabs, Quests, Map, Items, Worlds and People', from: TRAVEL213 },
     ] },
+    { match: 'Fixed: starting the Desert from a debug save or the worlds list', shots: [
+      { name: 'desert-start', caption: 'The Desert started from the worlds list, a save past the prologue: before, under the ship’s ramp, the camera 0.8 m from his head looking at the ramp’s planks (he could not walk); after, at the foot of the ramp, the camera behind him and Qanat ahead', from: SPAWN254 },
+    ], see: 'On the title screen open Saves, then Debug, and choose the Desert: you stand at the foot of the ship’s ramp facing the city and can walk off at once.' },
   ],
   '1.61': [
     { match: 'The Desert has new music, slower, quieter and more mysterious', numbers: [{ title: 'The Desert’s score, a 3-minute walk rendered offline (nodes made a minute)', unit: '/min', better: 'lower', device: 'Mac, headless Chrome, muted, an OfflineAudioContext at 48 kHz (the score in full, walking 2 of the 3 minutes)',
