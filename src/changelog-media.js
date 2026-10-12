@@ -672,6 +672,8 @@ const FP = (x, y, z) => [-120 + x, 2000 + y, -260 + z];   // (the Footprint's ow
 const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.k3': true, 'temple.garage.lit.c1': true, 'temple.garage.lit.c2': true, 'temple.garage.lit.c3': true, 'temple.garage.open.dC': true } };
 // (v1.53: the game's update, issue #111: the Unity bundle in Node, two builds interleaved a frame each in one process)
 const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (scratch bench: the two builds in one process, a frame of each in turn, each on the script thread’s CPU clock, the bench’s own split of engine/game.js), both ways round and averaged, 12 October, the Mac’s load 35–90';
+// (v1.54: the ways to and from three temples, issues #178-#180)
+const LD54 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5471), the before with the worlds’ files as on origin/main (30c8329d), the same pinned cameras, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.54': [
     { match: 'Your father is a bust again', see: 'Play a window recording on the ship (the log at the projector, from the seventh world on): he shows as the bust, as in his calls.' },
@@ -683,6 +685,20 @@ export const CHANGELOG_MEDIA = {
       ], source: 'node .claude/skills/ink-lines/capture.mjs --scenes sc-bridges (read over what slides under a pixel); the frame’s ink 8.2 → 8.7 % at the Handheld’s floor, 8.9 → 9.2 % on a phone, as the pipes that used to drop out now stay' },
     ], see: 'On a handheld or phone, stand on the Pier by your ship and turn slowly toward the bridges: the pipes and cables hanging under the islands stay whole lines instead of flickering.' },
     { match: 'A foe’s warning as it winds up a strike', see: 'Wear headphones and fight two or three foes in the Arena: let one get round behind you and listen as it winds up. Its rising gurgle or whine comes from the side it is on, duller and a little louder when it is out of sight; turn toward it and it moves to the middle and brightens. Cut a foe on your left and its cry is on the left.' },
+    { match: 'In the Garden of Spheres a pale path now leads from behind your ship to the Footprint', shots: [
+      { name: 'garden-heel', title: 'The heel path', caption: 'Behind the ship, toward the Footprint: before, open grass; after, the pale heel path leading off north-west past the grove, the little Footprint’s sphere far down it', from: LD54,
+        view: { level: 'spheres', hour: 10, fov: 60, eye: [-6, 3.4, 20], target: [-86, 2, 80], player: [-6, 0, 20] } },
+      { name: 'garden-little', title: 'The little Footprint', caption: 'On the path, 120 m out: after, the little Footprint in the grass beside it, its toes pointing on, the tall white stone and the Footprint’s heel beyond', from: LD54,
+        view: { level: 'spheres', hour: 10, fov: 60, eye: [-68, 5, 66], target: [-110, 1, 104], player: [-68, 0, 66] } },
+      { name: 'garden-tall', title: 'The tall white stone', caption: 'Two-thirds of the way: after, the path running on past the tall white stone to the Footprint’s heel and its door', from: LD54,
+        view: { level: 'spheres', hour: 10, fov: 60, eye: [-128, 4, 126], target: [-215, 6, 210], player: [-128, 0, 126] } },
+      { name: 'garden-stone', title: 'The keepers’ stone', caption: 'At the white hill’s stair, where the Footprint’s last way out now comes up: after, the round keepers’ stone with the walker’s print, the sphere at the hill’s foot and the hill’s path home', from: LD54,
+        view: { level: 'spheres', hour: 10, fov: 60, eye: [-184, 3.6, -38], target: [-205, 1, -58], player: [-184, 0.3, -38] } },
+    ], numbers: [
+      { title: 'The level design audit, the Garden of Spheres', unit: '', better: 'higher', device: 'node scripts/level-design/audit.mjs --worlds spheres (1-5)', rows: [
+        { where: 'density', before: 2, after: 5 }, { where: 'loops', before: 3, after: 5 }, { where: 'wayfinding', before: 4, after: 5 }, { where: 'the mean', before: 4, after: 4.56 },
+      ], source: 'the longest empty stretch 680 → 105 m; the walk home from the Footprint 336 m past nothing → 303 m from the keepers’ stone past two new places (issue #178)' },
+    ], see: 'Stand behind your ship in the Garden of Spheres: the pale path leads off to the Footprint. Calm the Echo and take its way out: you come up by the white hill, and the path runs home east.' },
   ],
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [

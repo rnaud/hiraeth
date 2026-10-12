@@ -12,6 +12,8 @@ import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { pavedMask } from '../paved.js';
 import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
+import { SITE as FOOTPRINT, KEEPERS_STONE } from '../temples/spheres.js';
+import { printGeometry } from '../temples/pieces.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -655,7 +657,8 @@ export function* buildSpheres(scene) {
   path(WAY, 3.4);
   path(AVENUE, 6);
   path(LAKE_PATH, 2.6);
-  path([[-2, -30], [-60, -60], [-140, -55], [-215, -58], [Hl.x, Hl.z + Hl.r[0] + 12]], 2.8);
+  const HILL_WAY = [[-2, -30], [-60, -60], [-140, -55], [-215, -58], [Hl.x, Hl.z + Hl.r[0] + 12]];   // (the grove to the white hill's stair: since v1.54 the way home from the keepers' stone)
+  path(HILL_WAY, 2.8);
   path([[-24, -64], [MP.x, -110], [MP.x, MP.z + MP.half + 12]], 2.4);
   path([[-8, -395], [-60, -405], [-120, -420], [-170, -430]], 2.2);
   yield;
@@ -983,6 +986,7 @@ export function* buildSpheres(scene) {
   yield;
   const MEADOW_PATH = [[-2, -258], [-14, -232], [-22, -195], [-25, -150], [-36, -128], [MP.x, MP.z + MP.half + 12]];
   path(MEADOW_PATH, 2.4);
+  const MEADOW_LINE = [...AVENUE].reverse().concat(MEADOW_PATH, [[MP.x, -110], [-24, -64], [-2, -30], [0, 8]]);   // (Ume's way home: the audit's line)
   const CHALKED = { x: -40, z: -116, R: 2.6 };
   const chalkY = sphere(CHALKED.x, CHALKED.z, CHALKED.R, 0.45, { seg: 28 });   // (small: fewer facets, the collision budget)
   {
@@ -1037,6 +1041,57 @@ export function* buildSpheres(scene) {
     return m;
   })();
 
+  // ---------------------------------------------------------- the heel path and the keepers' stone
+  // (level design audit v1.53, issue #178: the route went on to the Footprint across 680 m with nothing near, and came
+  // home from its door the same 336 m, past nothing.) A pale path from the landing, behind the ship, north-west to the
+  // Footprint's porch, past a little Footprint pressed in the grass (its toes point the way, a small sphere in its heel:
+  // the shape you are going to, seen small first) and a tall white stone. And the way home is another: past the Echo,
+  // the hall's way out comes up through the keepers' stone by the white hill's stair (src/temples/spheres.js
+  // KEEPERS_STONE), and the hill's path runs east from it to the grove.
+  yield;
+  const FP = { x: FOOTPRINT.x + Math.sin(FOOTPRINT.heading) * 27, z: FOOTPRINT.z + Math.cos(FOOTPRINT.heading) * 27 };   // (the porch's front)
+  const HEEL_PATH = [[0, 8], [-10, 30], [-44, 62], [-92, 100], [-140, 140], [-188, 184], [FP.x, FP.z]];
+  path(HEEL_PATH, 2.4);
+  const toesDir = [Math.sin(FOOTPRINT.heading + Math.PI), Math.cos(FOOTPRINT.heading + Math.PI)];   // (away from the grove, as the big print's toes)
+  const LITTLE = { x: -86, z: 78, R: 2.2 };
+  const littleY = sphere(LITTLE.x, LITTLE.z, LITTLE.R, 0.5, { seg: 24 });
+  {
+    // its rim: low white stones round the heel and the three toes (as the Footprint's, src/temples/spheres.js exterior)
+    const [dx, dz] = toesDir, sx = dz, sz = -dx;
+    const at = (lx, lz) => [LITTLE.x + sx * lx + dx * lz, LITTLE.z + sz * lx + dz * lz];
+    const rim = [];
+    const outline = (pts) => {
+      for (let i = 0; i < pts.length; i++) {
+        const [ax, az] = at(...pts[i]), [bx, bz] = at(...pts[(i + 1) % pts.length]);
+        const L = Math.hypot(bx - ax, bz - az), mx = (ax + bx) / 2, mz = (az + bz) / 2;
+        rim.push(new THREE.BoxGeometry(0.45, 0.35, L + 0.12).rotateY(Math.atan2(bx - ax, bz - az)).translate(mx, H(mx, mz) + 0.1, mz));
+      }
+    };
+    outline(Array.from({ length: 20 }, (_, i) => { const a = (i / 20) * Math.PI * 2; return [Math.sin(a) * 3.6, Math.cos(a) * 3.2 - 0.4]; }));
+    for (const [a, len, w] of [[-0.55, 8.5, 1.4], [0, 10, 1.6], [0.55, 8.5, 1.4]]) {
+      const d = [Math.sin(a), Math.cos(a)], side = [d[1], -d[0]], base = [d[0] * 3.9, d[1] * 3.9 - 0.4], pts = [];
+      for (let i = 0; i <= 6; i++) { const k = i / 6, ww = w * (1 - k * 0.55); pts.push([base[0] + d[0] * len * k + side[0] * ww, base[1] + d[1] * len * k + side[1] * ww]); }
+      for (let i = 6; i >= 0; i--) { const k = i / 6, ww = w * (1 - k * 0.55); pts.push([base[0] + d[0] * len * k - side[0] * ww, base[1] + d[1] * len * k - side[1] * ww]); }
+      outline(pts);
+    }
+    for (const g of rim) add(M.white, g);   // (drawn only: a step you walk over)
+  }
+  const TALL = { x: -158, z: 166 };
+  monolith(TALL.x, TALL.z, 16, 3.4, 0.6);
+  // the keepers' stone: a round white slab flush with the grass, ringed in the Footprint's sage, the walker's print on it
+  // pointing back to the Footprint (drawn only: you come up onto it)
+  const KS = KEEPERS_STONE, ksY = H(KS.x, KS.z);
+  const onFloor = ([x, z]) => [x, H(x, z), z];
+  // (home from it: onto the hill's path beside it, east along it to the grove and the ship)
+  const HOME_WAY = [[KS.x, KS.z], [KS.x, -57], ...HILL_WAY.slice(0, 3).reverse(), [0, 8]];
+  {
+    const sage = makeMaterial({ color: '#8fb39c', flat: true });
+    const toFp = Math.atan2(FOOTPRINT.x - KS.x, FOOTPRINT.z - KS.z);
+    add(M.white, new THREE.CylinderGeometry(KS.r, KS.r + 0.1, 0.3, 28).translate(KS.x, ksY + 0.02, KS.z));
+    add(sage, new THREE.TorusGeometry(KS.r + 0.02, 0.08, 4, 28).rotateX(Math.PI / 2).translate(KS.x, ksY + 0.17, KS.z));
+    add(sage, printGeometry(3, 2.1).rotateY(toFp).translate(KS.x, ksY + 0.18, KS.z));
+  }
+
   // ---------------------------------------------------------- flush batches
   yield;
   for (const { mat, collide, list } of batches.values()) {
@@ -1071,14 +1126,25 @@ export function* buildSpheres(scene) {
     lines: [{ name: 'the white path and the avenue', points: [...LAKE_PATH].reverse().concat(WAY.slice(1), AVENUE.slice(1)) },
       // (fifth round: the meadow path home, from the plaza back up the avenue, through the arch, round the meadow pyramid and
       //  up the pyramid path to the grove; followed only where Ume sends you along it)
-      { name: 'the meadow path', points: [...AVENUE].reverse().concat(MEADOW_PATH, [[MP.x, -110], [-24, -64], [-2, -30], [0, 8]]), auto: false },
+      { name: 'the meadow path', points: MEADOW_LINE, auto: false },
       // (v1.50, issue #134: the hill path, from the meadow path's end to the white hill's stair)
-      { name: 'the hill path', points: HILL_PATH }],
+      { name: 'the hill path', points: HILL_PATH },
+      // (v1.54, issue #178: the heel path, from the landing to the Footprint's porch; walked on from Ume's way home, the
+      //  meadow path, from the plaza to the Footprint: the route's way in; and home from the keepers' stone by the white
+      //  hill's path, as the route's last way out names it, tests/playthrough-worlds.js ROUTE)
+      //  (on the ground: [x, y, z], not the canopies over them)
+      { name: 'the heel path', points: HEEL_PATH.map(onFloor) },
+      { name: 'the meadow path and the heel path', points: [[plaza.x, plaza.z + plaza.r], ...MEADOW_LINE, ...HEEL_PATH.slice(1)].map(onFloor) },
+      { name: 'the white hill path', points: HOME_WAY.map(onFloor), auto: false }],
     sights: [{ name: 'the chalked sphere', at: new THREE.Vector3(CHALKED.x, chalkY + CHALKED.R, CHALKED.z) }, { name: 'the answering spheres', at: new THREE.Vector3(0, H(0, -480) + 1, -480) },
       // (v1.46: the belvedere on the white hill's summit, the garden's highest place, 80 m up)
       { name: 'the belvedere on the white hill', at: belvedereTop },
       // (v1.50: the little sphere at the hill's foot, answered by the bell on the belvedere: issue #134)
-      { name: 'the sphere at the white hill’s foot', at: new THREE.Vector3(HILL_SPHERE.x, hillSphereY - HILL_SPHERE.R * 0.5 + 0.5, HILL_SPHERE.z + HILL_SPHERE.R + 1) }],
+      { name: 'the sphere at the white hill’s foot', at: new THREE.Vector3(HILL_SPHERE.x, hillSphereY - HILL_SPHERE.R * 0.5 + 0.5, HILL_SPHERE.z + HILL_SPHERE.R + 1) },
+      // (v1.54, issue #178: on the heel path, and the way out by the white hill)
+      { name: 'the little Footprint', at: new THREE.Vector3(LITTLE.x, H(LITTLE.x, LITTLE.z) + 1, LITTLE.z) },
+      { name: 'the tall white stone', at: new THREE.Vector3(TALL.x, H(TALL.x, TALL.z) + 1, TALL.z) },
+      { name: 'the keepers’ stone', at: new THREE.Vector3(KS.x, ksY + 0.3, KS.z) }],
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {
@@ -1088,6 +1154,8 @@ export function* buildSpheres(scene) {
       // (the white hill's: the little sphere at its foot and the bell on the belvedere, which answer each other)
       hill: { foot: orb(HILL_SPHERE.x, HILL_SPHERE.z), bell: orbs.find((o) => o.y === bellY && Math.hypot(o.x - BELL.x, o.z - BELL.z) < 0.1) },
       great: orb(0, -1320),
+      // (v1.54, issue #178: the heel path to the Footprint, what stands on it, and the keepers' stone it lets you out by)
+      heel: { path: HEEL_PATH, little: { ...LITTLE, y: littleY }, tall: { ...TALL, h: 16 }, stone: { ...KS, y: ksY }, home: HOME_WAY },
     },
     ground: terrain,
     spawn: new THREE.Vector3(0, H(0, 0), 0),

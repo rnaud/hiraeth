@@ -31,9 +31,6 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 From docs/audits/level-design-v1.53.md (twelve route worlds, 4.51, the four worlds' explorations measured), worst first:
 
-- [ ] [#178](https://github.com/rnaud/hiraeth/issues/178) **The Garden of Spheres: the Footprint on the route** crosses 680 m with
-  nothing near (83 s) from the humming pole, and the walk home from its door (336 m) is blind and empty. A line and a
-  place or two on the way, a way out nearer the ship: density 2 → 4, loops 3 → 5, the Garden 4 → 4.44 or more.
 - [ ] [#179](https://github.com/rnaud/hiraeth/issues/179) **Lorn: the Hush-House's door is off the keepers' stakes**: the cave → the door (61 m)
   and the door → Hollin (586 m) are blind. A first stake by its steps: wayfinding 4 → 5, Lorn 4.44 → 4.56.
 - [ ] [#180](https://github.com/rnaud/hiraeth/issues/180) **The Moon Foundry: the walk home from the Casting-House** (277 m) passes nothing new.

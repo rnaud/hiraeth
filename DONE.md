@@ -2799,3 +2799,12 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
 - [x] [#26](https://github.com/rnaud/hiraeth/issues/26) Extend the generated father beyond the recording bust for full-body walking and clothing motion.
   (Issue closed 2026-10-12, v1.53, e7d5052e: the ship's log shows him whole over the projector in his long coat, walking
   to the window, standing there looking up while he speaks, walking back, the coat swinging with his stride.)
+
+## Level design (audit): the v1.53 follow-ups (docs/audits/level-design-v1.53.md)
+
+- [x] [#178](https://github.com/rnaud/hiraeth/issues/178) **The Garden of Spheres: the Footprint on the route** crosses 680 m with
+  nothing near (83 s) from the humming pole, and the walk home from its door (336 m) is blind and empty. A line and a
+  place or two on the way, a way out nearer the ship: density 2 → 4, loops 3 → 5, the Garden 4 → 4.44 or more.
+  (2026-10-12, v1.54: the heel path from the ship to the Footprint past the little Footprint and the tall white stone, and
+  the Footprint's last way out by the keepers' stone at the white hill, home by the hill's path. Density 2 → 5, loops 3 → 5,
+  wayfinding 4 → 5: the Garden 4 → 4.56. docs/systems/worlds.md "The ways in and home past the temples"; Fixes #178.)

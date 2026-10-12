@@ -388,7 +388,7 @@ export const ROUTE = [
   // (v1.40: the foundry: Liesel's hook hung on the last furnace's crane, Wen's count at the pillar's lookout (#137), then the Casting-House)
   // (v1.48: Hedda on the apron opens the foundry's own quest: the hung moons from the old hoist, then in at the Casting-House)
   { id: 'moonfoundry', play: [{ act: 'meetHedda', at: 'hedda', label: 'Hedda, on the apron' }, { act: 'meetOttilie', at: 'ottilie', label: 'Liesel, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', 'moonfoundry.moons', { temple: 'done', id: 'moonfoundry' }] },
-  { id: 'spheres', play: ['spheres.listen', { temple: 'done', id: 'spheres' }] },   // (v1.53: and the Footprint to its guardian, the Keepers' Lodge off its gallery: issue #23)
+  { id: 'spheres', play: ['spheres.listen', { temple: 'done', id: 'spheres', home: 'the white hill path' }] },   // (v1.53: and the Footprint to its guardian, the Keepers' Lodge off its gallery: issue #23; v1.54, #178: out by the keepers' stone, home by the white hill's path)
   // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for the Towers' cables (#137), then
   // the Mooring-House north of the Towers)
   // (v1.48: Rosa on the Pier opens the city's own quest: the cables under the Towers, then in at the Mooring-House)

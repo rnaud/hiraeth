@@ -24,6 +24,8 @@ export const CHANGELOG = [
     // the game's old internal names gone: memento / moebius ids renamed hiraeth (issue #130)
     { text: 'Hiraeth now carries its own name inside too, so this update starts afresh: saves and settings begin again everywhere. On Android it is a new app: install it when the old app offers the update (or from the release page), then uninstall the old one, which gets no more updates. On the Steam Deck, run the install command again. The game’s site has moved to hiraeth.alexandria-rnaud.workers.dev.',
       see: 'On Android, open the old app: it offers the new one. Once it is installed, the new Hiraeth opens on a new game; uninstall the old one from its app info. On the web, open hiraeth.alexandria-rnaud.workers.dev: the title screen offers a new game.' },
+    // the ways to and from three temples (docs/systems/worlds.md "The ways in and home past the temples"; issues #178-#180)
+    'In the Garden of Spheres a pale path now leads from behind your ship to the Footprint, past a little Footprint pressed in the grass and a tall white stone. Once the Echo is calm, the Footprint lets you out through a round stone at the foot of the white hill, and the hill’s path takes you home another way.',
   ] },
   { v: '1.53', date: '2026-10-12', items: [
     // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)

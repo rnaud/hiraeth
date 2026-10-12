@@ -2049,6 +2049,22 @@ spots it is there for, with the audit's own rays, in `tests/level-design-landmar
   every 18 m up its back to the cairn (`the cairn's posts`); on the way, 30–150 m from the door, the carriers' float-sledge,
   their shade and the wind-glass (sights: optional pull 3 → 4). All drawn only.
 
+## The ways in and home past the temples (level design audit v1.53, issues #178-#180; v1.54)
+
+Since v1.53 the route goes on into three more temples, and the audit found the walks to and from their doors blind or
+empty. Each fix is checked from the spots it is there for, and its way home against its way in, in
+`tests/level-design-ways-home.test.js`.
+- **The Garden of Spheres, to the Footprint and home** (`src/levels/spheres.js` "the heel path and the keepers' stone"):
+  the route crossed 680 m with nothing near from the humming pole, and came home from the heel's door the same 336 m.
+  **The heel path**, a pale path (paved) from the landing, behind the ship, north-west to the Footprint's porch; on it
+  **the little Footprint** (the print's shape small, its rim low white stones, drawn only; its toes point to the big one,
+  a small sphere in its heel) and **the tall white stone** (a monolith, in sight from the little Footprint, the heel in
+  sight from it). The audit walks the route's way in along Ume's way home and on along it (`the meadow path and the heel
+  path`). Home is another way: the Footprint's last way out, past the Echo, comes up on **the keepers' stone**
+  (`KEEPERS_STONE`, src/temples/spheres.js: the arena exit's `to`), a round white slab ringed in the door's sage with
+  the walker's print on it, by the white hill's stair; the hill's path runs east from it to the grove (`the white hill
+  path`, the route's `home`). Density 2 → 5, loops 3 → 5, wayfinding 4 → 5: the Garden 4 → 4.56.
+
 ## The Buried Machine breathes (issue #168; v1.51)
 
 The author's pick of the level explorations (#164: `references/levels/The Buried Machine/environment/explorations/

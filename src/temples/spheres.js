@@ -42,6 +42,7 @@ import { chestMound } from '../boxes/mound.js';
 //                          resonant spheres round the hall glows with the note: splash that one. Through the lens
 //                          the sphere that answers wears the walker's print (taught in its second phase); in its last
 //                          all three glow at once, and only the print tells
+//   the way out            (v1.54, issue #178) past the Echo, up through the keepers' stone at the white hill's foot
 // After: the toes and the heel of the Footprint fill with still water, and every sphere in the garden
 // wears a ring of the glyph's light (the world change).
 
@@ -51,6 +52,14 @@ const TAU = Math.PI * 2;
 /** North of the grove, behind the spawn; the heel's door looks south, toward the umbrella grove. */
 export const SITE = { x: -250, z: 250, r: 26 };
 SITE.heading = Math.atan2(0 - SITE.x, 0 - SITE.z);
+/**
+ * The keepers' way out (v1.54, issue #178: the walk home from the heel's door was 336 m back the way you came, past
+ * nothing): once the Echo is calm, the hall's way out lets you up through the keepers' stone, a round white slab with
+ * the walker's print by the white hill's stair, where the hill's path runs home east to the grove
+ * (src/levels/spheres.js). `y`: the ground there; `heading`: toward the grove.
+ */
+export const KEEPERS_STONE = { x: -196, z: -50, y: 0.5, r: 1.7 };
+KEEPERS_STONE.heading = Math.atan2(0 - KEEPERS_STONE.x, -30 - KEEPERS_STONE.z);
 
 /**
  * The Footprint's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/footprint):
@@ -408,7 +417,8 @@ function layout(rt) {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(-32, -14, -3), V(24, 40, CH + HR + 12)),
     gadget: { at: W(0, 0.62, C3).toArray(), face: K.heading(Math.PI) },
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 0.5, CH + HR + 9.6), r: 1.5 }],
+    // (the last way out, past the Echo, comes up at the keepers' stone by the white hill: KEEPERS_STONE)
+    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 0.5, CH + HR + 9.6), r: 1.5, to: V(KEEPERS_STONE.x, KEEPERS_STONE.y + 0.05, KEEPERS_STONE.z), heading: KEEPERS_STONE.heading }],
     lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [0, 6, 59, 20], [0, 8, C3, 16], [0, 8, U0 + 10, 20], [0, 8, U0 + 28, 18], [LODGE.x, 5, LODGE.z, 11], [0, 10, CH, 30]],
     guardian: { def: { ...ECHO, onHit: echoHit, onStrike: () => {} }, model, arena },
   };
