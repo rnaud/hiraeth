@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_a2b965c942e0d9 7
+src/levels/incal.js
+  s_9ca76055a220ed::t_28d3c14ce8d19b 24,1068-1086,1258,1274-1277
+src/story/incal-data.js
+  s_9ca76055a220ed::t_0a092a4a7dab94 406-439
+src/story/incal.js
+  s_9ca76055a220ed::t_99afb5364383ba 70-75,356
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_aa0f0206ca3c76 173,179,382-402
+src/story/people-book.js
+  s_10c0265b0b488c::t_8c41e61357eb0c 433-436
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_377d04af49501b 531-542
+src/changelog-media.js
+  s_9ca76055a220ed::t_5fdd2834876555 696-701
+src/changelog.js
+  s_9ca76055a220ed::t_e24ca79076836f 27-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c186807ba5954d93b0743ffe39acc1b3431879a2",
+  "prompts": {},
+  "sessions": {
+    "s_10c0265b0b488c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af76eb9e687c02c83",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
