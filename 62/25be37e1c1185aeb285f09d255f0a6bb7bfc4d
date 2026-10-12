@@ -1,0 +1,87 @@
+changelog.md
+  s_9ca76055a220ed::t_3ecba8c1f6f2f6 5-12
+docs/story-bible.md
+  s_9ca76055a220ed::t_96bbae69cb2005 575
+docs/systems/controls.md
+  s_9ca76055a220ed::t_24aa75cb4601ba 237,280
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_9a7ed51c47c11d 169-171
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_5f62b79a86a937 1,64-67,77-79,81-95,98,100-108,110-113,115,117-124,139-140,144-150
+docs/systems/ui.md
+  s_9ca76055a220ed::t_6d12c175b68ad8 135,407,423-424,427,429-449,477-478,890-898
+src/bindings.js
+  s_9ca76055a220ed::t_f78d82904f0581 69,87,101
+src/changelog-media.js
+  s_9ca76055a220ed::t_9eb8a47ae1f3ef 734-736,738-752
+src/changelog.js
+  s_9ca76055a220ed::t_21d0db8c161ee8 11-21
+src/debug-save.js
+  s_9ca76055a220ed::t_d38e7b8be7dece 31-32,228,234,237
+src/fast-travel.js
+  s_9ca76055a220ed::t_7c3e3785cb0929 1-29
+src/fragment-shop.js
+  s_9ca76055a220ed::t_69d173eeef8bab 1-59
+src/fragments.js
+  s_9ca76055a220ed::t_ad5d9b740274f9 4,11-13
+src/game-menu-data.js
+  s_9ca76055a220ed::t_ebdaeff2258e63 2-4,6-7,67-68,70,79,119
+src/game-menu.css
+  s_9ca76055a220ed::t_d84fab1276e954 209,229
+src/game-menu.js
+  s_9ca76055a220ed::t_f1eeb1579971de 3,24-25,30-34,46,246-249,255-256,261,357,360,378,389,400,402,405-407,589,600,624,657,696-699
+src/i18n/en.js
+  s_9ca76055a220ed::t_b631c8e2fee103 136,188,231,233,270,324-339,385-386
+src/i18n/fr.js
+  s_9ca76055a220ed::t_c92b2b2a4feb4f 136,187,230,232,269,322-337,383-384
+src/items.js
+  s_9ca76055a220ed::t_93510d4fbb2d65 266-269,272-273,276,280,284,288,292,296-297,301-302
+src/main.js
+  s_9ca76055a220ed::t_e07d27df63b6b8 38-39,759-760,762-763,865,869-874,886,920-922,926-934,2245
+src/quest.js
+  s_9ca76055a220ed::t_7335f0bd757f5a 16,55,362
+src/shop-panel.css
+  s_9ca76055a220ed::t_68b28b7f0b2662 38-45,63-64,73
+src/shop-panel.js
+  s_9ca76055a220ed::t_a028eae0a27093 8,26-30,36-56,74,78-79,81-82,84-85,87-91,95,98,102,107-109,126-127,153,165,179,188-189,191-193,195-196,226
+src/story/index.js
+  s_9ca76055a220ed::t_30f693a8e3e2fa 268
+src/story/people-book.js
+  s_9ca76055a220ed::t_b957954fdcccef 186-193
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_e9d21927b29947 7-9,12,15,24-40,45,57-60,70-72,74,83,96,98,102-103,105-106,108-110,116,120,123-126
+src/story/scientist.js
+  s_9ca76055a220ed::t_86860acef6f79b 4,6-7,13,15-23,77,80,99-101,128,132-137,140-149
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_68924222b42fe8 182,231-232,234-236
+tests/fast-travel.test.js
+  s_9ca76055a220ed::t_23304f1177da5c 1-82
+tests/fragments.test.js
+  s_9ca76055a220ed::t_cba105206942be 12-15,67,75-82,84-86,162,165,170,174-176,178-207,209-215,217-285,378,382-384
+tests/game-menu.test.js
+  s_9ca76055a220ed::t_b052a7e161a3d2 4-5,11,31-33,37,41-43,45,114,117,237,249
+tests/merged-story.test.js
+  s_9ca76055a220ed::t_12509a48e8e370 51
+tests/people-page.test.js
+  s_9ca76055a220ed::t_a7fdb424139d22 199
+tests/sightings.test.js
+  s_9ca76055a220ed::t_9c265346bfd365 107-108,124
+tests/thrum-aboard.test.js
+  s_9ca76055a220ed::t_06899f2ce68bb8 1-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6225be37e1c1185aeb285f09d255f0a6bb7bfc4d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
