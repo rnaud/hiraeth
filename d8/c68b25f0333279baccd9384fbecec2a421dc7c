@@ -1,0 +1,65 @@
+references/levels/Lorn/environment/explorations/crystal-roots/manifest.json
+  s_9ca76055a220ed::t_ff29ea6478da4c 1-39
+references/levels/Lorn/environment/explorations/flooded-wood/manifest.json
+  s_9ca76055a220ed::t_f5c157c1d4f4e5 1-39
+references/levels/Lorn/environment/explorations/keepers-canopy/manifest.json
+  s_9ca76055a220ed::t_d47f172887c43f 1-39
+"references/levels/The City Floating in Space/environment/explorations/drifting-bridges/manifest.json"
+  s_9ca76055a220ed::t_d70abf3d8ae731 1-39
+"references/levels/The City Floating in Space/environment/explorations/stacked-quarters/manifest.json"
+  s_9ca76055a220ed::t_3f86e0ab811114 1-39
+"references/levels/The City Floating in Space/environment/explorations/under-the-islands/manifest.json"
+  s_9ca76055a220ed::t_561c5a3fba6031 1-39
+"references/levels/The Garden of Spheres/environment/explorations/lake-memory/manifest.json"
+  s_9ca76055a220ed::t_91506f3de7cd38 1-39
+"references/levels/The Garden of Spheres/environment/explorations/moon-falls/manifest.json"
+  s_9ca76055a220ed::t_088b60405093ef 1-39
+"references/levels/The Garden of Spheres/environment/explorations/pillar-forest/manifest.json"
+  s_9ca76055a220ed::t_f372bef5a4ff13 1-39
+"references/levels/The Moon Foundry/environment/explorations/inside-the-moons/manifest.json"
+  s_9ca76055a220ed::t_0a2575d0f1083c 1-39
+"references/levels/The Moon Foundry/environment/explorations/night-pour/manifest.json"
+  s_9ca76055a220ed::t_34adc7edba53db 1-39
+"references/levels/The Moon Foundry/environment/explorations/working-cranes/manifest.json"
+  s_9ca76055a220ed::t_edb512e1401814 1-39
+"references/levels/The Signal Market/environment/explorations/market-in-the-air/manifest.json"
+  s_9ca76055a220ed::t_80618b399ab80c 1-39
+"references/levels/The Signal Market/environment/explorations/old-market/manifest.json"
+  s_9ca76055a220ed::t_232177071da9da 1-39
+"references/levels/The Signal Market/environment/explorations/screen-lanes/manifest.json"
+  s_9ca76055a220ed::t_bbc907b48a0f99 1-39
+"references/levels/The Underwater City/environment/explorations/canyon-street/manifest.json"
+  s_9ca76055a220ed::t_311a9109c8d392 1-39
+"references/levels/The Underwater City/environment/explorations/seabed-walk/manifest.json"
+  s_9ca76055a220ed::t_deadead7516b63 1-39
+"references/levels/The Underwater City/environment/explorations/singing-city/manifest.json"
+  s_9ca76055a220ed::t_e26bfbad1adbed 1-39
+references/levels/Vael/environment/explorations/falling-up/manifest.json
+  s_9ca76055a220ed::t_e78def83a9e7f9 1-39
+references/levels/Vael/environment/explorations/silent-canyons/manifest.json
+  s_9ca76055a220ed::t_891f7b41a23572 1-39
+references/levels/Vael/environment/explorations/sundial-plain/manifest.json
+  s_9ca76055a220ed::t_72e64630fdb67a 1-39
+references/levels/Viridel/environment/explorations/fallen-things/manifest.json
+  s_9ca76055a220ed::t_17cb18c52ec5a5 1-39
+references/levels/Viridel/environment/explorations/pyramid-nursery/manifest.json
+  s_9ca76055a220ed::t_a4e224a3408c27 1-39
+references/levels/Viridel/environment/explorations/water-stair/manifest.json
+  s_9ca76055a220ed::t_37d9a711b02978 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d8c68b25f0333279baccd9384fbecec2a421dc7c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
