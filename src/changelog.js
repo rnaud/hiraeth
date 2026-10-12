@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.54', date: '2026-10-12', items: [
+    // the City Floating in Space's hanging pipes held steady (src/levels/space-city-kit.js HANG_PX, src/thin.js; issue #171)
+    'In the City Floating in Space, the pipes and cables hanging under the islands no longer flicker on small screens: on handhelds and phones they stay steady thin lines as you turn, instead of breaking into pixels that come and go.',
     // foes heard from where they are (src/audio.js foeEar / foeSpot, docs/systems/audio.md "Placed in space"; issue #176)
     'A foe’s warning as it winds up a strike, and its cry when you cut it, now come from where it is: from the left or the right, softer farther off but never too faint to hear across a fight, a little duller from behind you, and a warning from a foe you can’t see a touch louder, so you can turn to meet it.',
   ] },

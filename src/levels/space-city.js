@@ -3,6 +3,7 @@ import { mulberry32 } from '../noise.js';
 import { stepped } from '../load-steps.js';
 import { colourScript } from '../timeofday.js';
 import { RoomKit } from './lab-kit.js';
+import { thinPole } from '../thin.js';
 import { PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { PEOPLE as BAZAAR_PEOPLE } from '../story/bazaar-data.js';
 import { placeShop } from '../shop-world.js';
@@ -306,7 +307,7 @@ export function* buildSpaceCity(scene) {
     kit.add(M.wood, new THREE.BoxGeometry(0.25, 1.2, 0.25).translate(R.x + 2, R.y + 0.6, R.z + 8.6), SD);
     kit.add(M.wood, new THREE.BoxGeometry(0.25, 1.2, 0.25).translate(R.x + 4.2, R.y + 0.6, R.z + 8.6), SD);
     kit.add(M.iron, new THREE.CylinderGeometry(0.35, 0.35, 2.0, 12).rotateZ(Math.PI / 2).translate(R.x + 3.1, R.y + 1.0, R.z + 8.6), SD);
-    kit.add(M.cable, new THREE.CylinderGeometry(0.04, 0.04, 24, 4).translate(R.x + 3.1, R.y - 11, R.z + 10.4), NC);
+    kit.add(M.cable, thinPole(new THREE.CylinderGeometry(0.04, 0.04, 24, 4)).translate(R.x + 3.1, R.y - 11, R.z + 10.4), NC);   // (kept a least width: src/thin.js)
     // a bench facing the planet, for the lamp-trimmers
     kit.add(M.wood, new THREE.BoxGeometry(2.2, 0.12, 0.6).translate(R.x - 4, R.y + 0.48, R.z - 7.4), SD);
     for (const e of [-1, 1]) kit.add(M.wood, new THREE.BoxGeometry(0.14, 0.46, 0.5).translate(R.x - 4 + e * 0.9, R.y + 0.23, R.z - 7.4), SD);

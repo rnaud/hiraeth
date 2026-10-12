@@ -5,6 +5,7 @@ The same release notes shown in the game (press **N** or open settings).
 ## v1.54 — 2026-10-12
 
 - A foe’s warning as it winds up a strike, and its cry when you cut it, now come from where it is: from the left or the right, softer farther off but never too faint to hear across a fight, a little duller from behind you, and a warning from a foe you can’t see a touch louder, so you can turn to meet it.
+- In the City Floating in Space, the pipes and cables hanging under the islands no longer flicker on small screens: on handhelds and phones they stay steady thin lines as you turn, instead of breaking into pixels that come and go.
 
 ## v1.53 — 2026-10-12
 

@@ -943,6 +943,12 @@ ship flickered 62 pixels in 10 000 a frame on Handheld (the busiest world measur
 - **Cost**: a few multiply-adds a vertex of a thin material; nothing measurable at Handheld.
 - `tests/antennas.test.js`: the views' sheet projection; `tests/surface-spec.test.js` and `vertex-material.test.js`
   unchanged.
+- **The City Floating in Space** (issue #171): the thin pipes and the cables hung under its islands (space-city-kit.js
+  `island`, `HANG_PX` 2.5, the pipes' line 0.45, the cables' 0.7) and the moorers' winch cable. At the Handheld's 0.5
+  floor and on a phone the ink-lines audit's bridges view changed 0.46 / 0.42 with the camera half a pixel over (the
+  limit 0.35), nearly all of it these bars a pixel or two wide; after, 0.34 / 0.32 (1080p 0.34 → 0.25). Under 1.5 px
+  it stayed over 0.35; at 2.5 with the full ink the frame's ink went over 9 %, the lighter lines bring it back to
+  8.7-9.2 %. The far islands (detail under 0.5, in the haze) keep theirs as drawn (`steady`).
 
 ## Half-transparent surfaces (materials.js `S_VEIL`, `src/veil.js`; October 2026)
 

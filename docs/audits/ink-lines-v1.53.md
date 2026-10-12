@@ -91,8 +91,10 @@ shader it compiled before (`LINE_FAR` is a define). Nothing in the ink pass chan
 
 ## Left
 
-- The City Floating in Space's bridges on small frames (finding 3): 0.36-0.39 change at the Handheld's floor and on a
-  phone. A least width for its rails (`makeMaterial({ thin })`, as the Forest of Antennas' masts) is the likely fix.
+- ~~The City Floating in Space's bridges on small frames (finding 3)~~: fixed for #171. The change was the thin pipes
+  and cables hung under the islands seen past the bridges, not the parapets: they keep a least width now
+  (`HANG_PX`, docs/systems/rendering.md "Thin bars at any distance"). Measured again on the day's build (which read
+  higher than this audit's: 0.46 at the floor, 0.42 on a phone): 0.34 at the floor, 0.32 on a phone, 0.29 on Handheld.
 - The rubric's eye share on faces of 4-10 px is a pixel's rounding, as in v1.34: the darkest-pixel check carries them.
 
 <!-- ink-lines:measured -->

@@ -4,7 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { REFERENCE_WORLDS, loadWorld, worldIndex } from '../src/levels/reference-worlds.js';
-import { spaceMats, island, bridge, quarter, heap, railing, pipeStack, outline, inPoly, SPACE_LOOK, SPACE_DAY, SPACE_SKY } from '../src/levels/space-city-kit.js';
+import { spaceMats, island, bridge, quarter, heap, railing, pipeStack, outline, inPoly, SPACE_LOOK, SPACE_DAY, SPACE_SKY, HANG_PX } from '../src/levels/space-city-kit.js';
+import { THIN_ATTR } from '../src/thin.js';
 import { sheetAt, sheetDir } from '../src/levels/reference-spacecity.js';
 import { RoomKit } from '../src/levels/lab-kit.js';
 import { PRESETS } from '../src/post.js';
@@ -76,6 +77,29 @@ test('an island: its deck solid, a parapet open at its gaps, the machinery under
   // the outline: closed round its centre, inside it
   const pts = outline(20, 12, { cr: 4 });
   assert.ok(inPoly(pts, 0, 0) && inPoly(pts, 8, 3) && !inPoly(pts, 11, 0) && !inPoly(pts, 0, 7));
+});
+
+test('what hangs under an island keeps a least width (issue #171): its thin pipes and cables carry their axes; the far islands\' are drawn as they are', () => {
+  const near = kitOf(), M = spaceMats(near);
+  island(near, M, mulberry32(3), { w: 30, d: 24, deep: 20, cables: 10 });
+  for (const mat of [M.hang, M.cable]) {
+    assert.equal(mat.uniforms.uThinPx.value, HANG_PX, 'its least width');
+    const list = [...near.buckets.values()].filter((b) => b.mat === mat).flatMap((b) => b.list);
+    assert.ok(list.length >= 5, 'pipes and cables hung');
+    for (const g of list) {
+      const t = g.attributes[THIN_ATTR], P = g.attributes.position;
+      assert.ok(t, 'each a bar with its axis');
+      for (let i = 0; i < t.count; i++) {
+        assert.equal(t.getW(i), 1);
+        const r = Math.hypot(P.getX(i) - t.getX(i), P.getZ(i) - t.getZ(i));
+        assert.ok(r < 0.35, `its axis inside it, where it hangs (${r.toFixed(2)} m off)`);
+      }
+    }
+  }
+  assert.ok(HANG_PX >= 2 && HANG_PX <= 3, 'wide enough to stay put sliding under the pixels, not a heavy bar');
+  const far = kitOf(), F = spaceMats(far);
+  island(far, F, mulberry32(3), { w: 30, d: 24, deep: 20, cables: 10, detail: 0.35 });
+  assert.ok(![...far.buckets.values()].some((b) => b.mat === F.hang || b.mat === F.cable), 'far off, in the haze: as they were');
 });
 
 test('a bridge: its deck runs from end to end over the arch, its parapets along it', () => {

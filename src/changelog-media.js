@@ -674,6 +674,13 @@ const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.
 const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (scratch bench: the two builds in one process, a frame of each in turn, each on the script thread’s CPU clock, the bench’s own split of engine/game.js), both ways round and averaged, 12 October, the Mac’s load 35–90';
 export const CHANGELOG_MEDIA = {
   '1.54': [
+    { match: 'In the City Floating in Space, the pipes and cables hanging under the islands', shots: [
+      { name: 'space-hanging', title: 'Under the islands, on a handheld', caption: 'From the Pier, the island over the right of the bridge on the Handheld preset at its 0.5 floor (640 × 360), cropped ×3: before, the thin pipes and cables broken into dashes and missing pixels; after, each a steady line at least 2.5 pixels wide', from: 'headless Chrome against this branch’s own dev server and the commit before (the ink-lines audit’s sc-bridges view, 12 October)' },
+    ], numbers: [
+      { title: 'The bridges view: how much of the ink changes with the camera half a pixel over', unit: '', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU (the ink-lines audit; the rubric passes at 0.35)', rows: [
+        { where: '1920 × 1080', before: 0.336, after: 0.25 }, { where: 'Handheld', before: 0.392, after: 0.288 }, { where: 'Handheld at 0.5', before: 0.464, after: 0.341 }, { where: 'Steam Deck', before: 0.38, after: 0.265 }, { where: 'a phone', before: 0.419, after: 0.324 },
+      ], source: 'node .claude/skills/ink-lines/capture.mjs --scenes sc-bridges (read over what slides under a pixel); the frame’s ink 8.2 → 8.7 % at the Handheld’s floor, 8.9 → 9.2 % on a phone, as the pipes that used to drop out now stay' },
+    ], see: 'On a handheld or phone, stand on the Pier by your ship and turn slowly toward the bridges: the pipes and cables hanging under the islands stay whole lines instead of flickering.' },
     { match: 'A foe’s warning as it winds up a strike', see: 'Wear headphones and fight two or three foes in the Arena: let one get round behind you and listen as it winds up. Its rising gurgle or whine comes from the side it is on, duller and a little louder when it is out of sight; turn toward it and it moves to the middle and brightens. Cut a foe on your left and its cry is on the left.' },
   ],
   '1.53': [

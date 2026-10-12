@@ -4,6 +4,7 @@ import { put } from './lab-kit.js';
 import { layeredCrown } from './garden-kit.js';
 import { stick } from './salt-harbour-kit.js';
 import { greebles } from './greeble-kit.js';
+import { thinBar, thinTube, thinPole } from '../thin.js';
 import { house, antennaPole, roofClutter, awning, laundry, poleCloth, resident, lantern } from './eclipse-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -32,6 +33,9 @@ import { house, antennaPole, roofClutter, awning, laundry, poleCloth, resident, 
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 export const TAU = Math.PI * 2;
+/** The least width (px) the pipes and cables hung under the islands are drawn (src/thin.js; issue #171: under it, on a
+ *  small frame, their outlines came and went as they slid under the pixels). */
+export const HANG_PX = 2.5;
 const SOLID = { solid: true, shadow: true }, NC = { solid: false, shadow: false }, SH = { solid: false, shadow: true };
 
 // ------------------------------------------------------------------ the look
@@ -101,7 +105,9 @@ export function spaceMats(kit) {
     under: kit.mat({ color: T.under, shade: 0.2, hatch: 0.5, detail: 'built', detailDensity: 0.5 }),
     under2: kit.mat({ color: T.under2, flat: true, hatch: 0.4 }),
     pipe: kit.mat({ color: T.pipe, flat: true, hatch: 0.3 }),
-    cable: kit.mat({ color: T.cable, flat: true, thin: 1.2 }),
+    cable: kit.mat({ color: T.cable, flat: true, thin: HANG_PX, line: 0.7 }),
+    cableFar: kit.mat({ color: T.cable, flat: true }),
+    hang: kit.mat({ color: T.pipe, flat: true, hatch: 0.3, thin: HANG_PX, line: 0.45 }),   // (the thin pipes hung under an island)
     glowTeal: kit.mat({ color: T.glowTeal, glow: 1, flat: true, spot: 0 }),
     rail: kit.mat({ color: T.rail, flat: true, hatch: 0.3 }),
     crown: T.crown.map((c) => kit.mat({ color: c, pattern: 'leaves', hatch: 0.6, shade: 0.4, line: 0.6, lineTint: 0.5, spot: 0 })),
@@ -157,10 +163,11 @@ export function inPoly(pts, x, z) {
  * a slab `thick` m deep, a parapet `rim` m high round its edge (gaps: [[x, z, r]…] local, where it is open: the
  * bridges' landings, stairs), and under it the machinery `deep` m down: stepped masses of its outline shrinking,
  * tanks and pipes hung from them, cables dangling far into the void (cables: how many), lamps (lights). detail
- * (1 the views, under 1 the world) thins the hanging things. Returns { pts (local), y, x, z, yaw, inside(x, z, m) }
- * (inside: a world point m in from the edge).
+ * (1 the views, under 1 the world) thins the hanging things; steady (by default at detail 0.5 and over) keeps its thin
+ * pipes and cables HANG_PX wide however far (src/thin.js; the far islands, in the haze, are drawn as they are).
+ * Returns { pts (local), y, x, z, yaw, inside(x, z, m) } (inside: a world point m in from the edge).
  */
-export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, w = 30, d = 24, cr, wob = 0.8, thick = 3.2, rim = 0.95, gaps = [], deep = 18, cables = 14, lights = 4, detail = 1, deck = true, seed = 1 }) {
+export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, w = 30, d = 24, cr, wob = 0.8, thick = 3.2, rim = 0.95, gaps = [], deep = 18, cables = 14, lights = 4, detail = 1, deck = true, seed = 1, steady = detail >= 0.5 }) {
   pts ??= outline(w, d, { cr, wob, n: Math.max(24, Math.round((w + d) * 1.1 * Math.min(1, detail + 0.2))), seed });
   const c = Math.cos(yaw), s = Math.sin(yaw);
   const W = (lx, lz) => [x + c * lx + s * lz, z - s * lx + c * lz];   // local → world (x, z)
@@ -205,7 +212,8 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
   const nP = Math.round((6 + (w * d) / 90) * detail);
   for (let i = 0; i < nP; i++) {
     const [lx, lz] = inner(0.85), [wx, wz] = W(lx, lz), r = 0.1 + rng() * 0.2, h = 4 + rng() * deep * 0.9;
-    kit.add(M.pipe, put(new THREE.CylinderGeometry(r, r, h, 5), wx, bottom - h / 2, wz), NC);
+    const g = new THREE.CylinderGeometry(r, r, h, 5);
+    kit.add(steady ? M.hang : M.pipe, put(steady ? thinPole(g) : g, wx, bottom - h / 2, wz), NC);
     if (rng() < 0.5) kit.add(M.iron, put(new THREE.CylinderGeometry(r * 1.8, r * 1.8, 0.3, 6), wx, bottom - h + 0.15, wz), NC);
   }
   const nC = Math.round(cables * detail);
@@ -215,9 +223,11 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
       // a loop: a cable sagging between two points under the island
       const [mx, mz] = inner(0.95), [vx, vz] = W(mx, mz), sag = 4 + rng() * 10;
       const pts3 = Array.from({ length: 9 }, (_, k) => { const t = k / 8; return V(wx + (vx - wx) * t, bottom - 1 - Math.sin(Math.PI * t) * sag, wz + (vz - wz) * t); });
-      kit.add(M.cable, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts3), 8, 0.06, 3, false), NC);
+      const curve = new THREE.CatmullRomCurve3(pts3);
+      const g = new THREE.TubeGeometry(curve, 8, 0.06, 3, false);
+      kit.add(steady ? M.cable : M.cableFar, steady ? thinTube(g, curve, 8, 3) : g, NC);
       i++;
-    } else kit.add(M.cable, stick(V(wx, bottom - 0.5, wz), V(wx + (rng() - 0.5) * 0.6, bottom - len, wz + (rng() - 0.5) * 0.6), 0.04 + rng() * 0.04, 3), NC);
+    } else { const a = V(wx, bottom - 0.5, wz), b = V(wx + (rng() - 0.5) * 0.6, bottom - len, wz + (rng() - 0.5) * 0.6); const g = stick(a, b, 0.04 + rng() * 0.04, 3); kit.add(steady ? M.cable : M.cableFar, steady ? thinBar(g, a, b) : g, NC); }
   }
   // lamps under it: small teal and amber glows
   for (let i = 0; i < lights; i++) {
