@@ -1,0 +1,23 @@
+src/levels/desert.js
+  s_9ca76055a220ed::t_d410125c56d442 38-39
+src/ship/ship.js
+  s_9ca76055a220ed::t_c0b0e9ea449c40 54-55,86,443-463
+tests/route-spawn.test.js
+  s_9ca76055a220ed::t_46da17f0375263 1-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5675d6397f8ed7cf79e4851a8c3979488a4b2599",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
