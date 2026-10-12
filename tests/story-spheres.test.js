@@ -85,7 +85,9 @@ test('the listeners stand on walkable, dry ground; there is somewhere to stand b
 test('every great sphere is a note: splashed, it rings, bigger ones lower', () => {
   const orbs = allTargets().filter((t) => t.kind === 'orb');
   assert.ok(orbs.length >= 8, `${orbs.length} spheres you can play`);
-  const plain = orbs.filter((t) => !rt.world.listeners.some((s) => s.o === t.orb));
+  // (the spheres high on the pillars are the forest's own chord, their notes chosen by the walkways, not by their size:
+  // tests/spheres-explorations.test.js, issue #190)
+  const plain = orbs.filter((t) => !rt.world.listeners.some((s) => s.o === t.orb) && !G.explore.high.includes(t.orb));
   played.length = 0;
   for (const t of plain) t.onHit('shoot', t.position().clone());
   assert.equal(played.length, plain.length);

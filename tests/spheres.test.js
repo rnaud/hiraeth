@@ -97,8 +97,11 @@ test('static collision stays within budget', () => {
   // they are drawn, docs/systems/movement.md "Contact": 157 k → ~179 k, the BVH 49 → 61 ms to bake; since
   // its third pass the olives' trunks and the cypresses too: ~181 k → ~201 k, the bake +4 ms, queries unchanged;
   // the hill's sculpted pillows, the robot's 28 parts and the arcades, solid as drawn, +~21 k: docs/systems/references.md;
-  // v1.54, issue #178: the heel path's little sphere and tall white stone, +~1.3 k)
-  assert.ok(physics.triangles < 237000, `static collision budget: ${physics.triangles}`);
+  // v1.54, issue #178: the heel path's little sphere and tall white stone, +~1.3 k;
+  // v1.56, issue #190: the explorations, solid as drawn: the cracked moon's two shells, the craters' terraces and walls,
+  // the six pillars with their spheres, cups, walkways and two spiral stairs, the causeway's stones, the furrows' 60
+  // cypresses, +~25 k: tests/spheres-explorations.test.js)
+  assert.ok(physics.triangles < 263000, `static collision budget: ${physics.triangles}`);
 });
 
 test('the olives’ trunks and the cypresses collide as they are drawn, not as posts inside them', () => {

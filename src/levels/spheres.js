@@ -14,6 +14,7 @@ import { pavedMask } from '../paved.js';
 import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 import { SITE as FOOTPRINT, KEEPERS_STONE } from '../temples/spheres.js';
 import { printGeometry } from '../temples/pieces.js';
+import { furrowsAt, fallsGround, buildExplorations, inCrater, CRATERS, PILLARS, SPIRAL } from './spheres-explorations.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -55,10 +56,12 @@ function lakeE(x, z) {
   return Math.hypot((x - L.x) / L.rx, (z - L.z) / L.rz);
 }
 
-function height(x, z) {
+function baseHeight(x, z) {
   const r = Math.hypot(x, z);
   let h = fbm(noise, x * 0.0021, z * 0.0021, 4) * lerp(3, 13, smoothstep(180, 900, r));
   h += fbm(noiseB, x * 0.011, z * 0.011, 2) * 0.9;
+  // (issue #190: the furrows the fallen spheres ploughed, all pointing back to the great sphere: spheres-explorations.js)
+  h += furrowsAt(x, z);
   // calm, flat ground: the spawn grove, the path to the arch, the avenue and plaza
   let flat = smoothstep(70, 30, r);
   flat = Math.max(flat, smoothstep(48, 26, Math.abs(x)) * smoothstep(-40, -70, z) * smoothstep(-720, -680, z));
@@ -76,6 +79,9 @@ function height(x, z) {
   h += smoothstep(1350, 1950, edge) * (120 + fbm(noise, x * 0.004, z * 0.004, 3) * 90);
   return h;
 }
+/** The ground, with the two craters of ringed terraces cut into it (their meshes are the ground inside: spheres-explorations.js). */
+const FALLS = fallsGround(baseHeight);
+const height = FALLS.height;
 
 /**
  * The world's touches on the print preset (its reference sheets): thin even lines, little hatching,
@@ -485,8 +491,8 @@ export function* buildSpheres(scene) {
     sphere(Lk.x + 52, fz - 14, 20, 0.45, { reflectIt: true });
     const blocks = [
       [Lk.x - 10, fz - 4, 30, 9, 13], [Lk.x - 10, fz - 6, 20, 15, 9], [Lk.x - 10, fz - 7, 10, 20, 6],
-      [Lk.x + 18, fz - 2, 14, 7, 10], [Lk.x + 18, fz - 3, 8, 12, 7], [Lk.x - 34, fz + 1, 9, 6, 8],
-    ];
+      [Lk.x + 18, fz - 2, 14, 7, 10], [Lk.x + 18, fz - 3, 8, 12, 7],
+    ];   // (the little block west of the temple gave way to the causeway's landing, issue #190)
     for (const [x, z, w, h, d] of blocks) {
       const g = new THREE.BoxGeometry(w, h, d).translate(x, terrain.baseAt(x, z, w * 0.5) - 0.5 + h / 2, z);
       add(M.white, g, true);
@@ -636,12 +642,16 @@ export function* buildSpheres(scene) {
   sphere(380, -320, 36, 0.5);
   sphere(450, -440, 24, 0.15, { yellow: true });
   sphere(300, -450, 15, 1);
-  sphere(-120, -262, 18, 0.25);
+  // (issue #190: on the floor of its crater of ringed terraces, sunk as it was)
+  sphere(CRATERS.chant.x, CRATERS.chant.z, 18, 0, { y: FALLS.levels.chant - CRATERS.chant.drop * 3 + 18 * CRATERS.chant.sink });
   sphere(250, 60, 22, 0.05, { yellow: true });
   sphere(-330, 80, 30, 0.4);
   yield;
   for (const [x, z, h] of [[330, -260, 70], [345, -385, 88], [415, -350, 62], [470, -300, 75], [280, -360, 55], [400, -500, 80],
-    [120, -250, 60], [140, -265, 48], [-95, -230, 66], [250, -180, 40], [520, -400, 90], [-260, 40, 58]]) pillar(x, z, h, R(0.7, 1.1));
+    [120, -250, 60], [140, -265, 48], [-95, -230, 66], [250, -180, 40], [520, -400, 90], [-260, 40, 58]]) {
+    const r = R(0.7, 1.1);
+    if (!inCrater(x, z)) pillar(x, z, h, r);   // (two stood where the cracked moon's crater is now: their draw kept, issue #190)
+  }
   monolith(205, -300, 24, 4.2, 0.3);
   monolith(-60, -420, 18, 3.4, -0.4);
   monolith(60, 120, 20, 3.8, 1.1);
@@ -822,6 +832,45 @@ export function* buildSpheres(scene) {
     olives.push([x, z, R(1, 1.6)]);
   }
 
+  // ---------------------------------------------------------- the explorations (issue #190, spheres-explorations.js)
+  // The author's three picks, one way from the lake to the plaza: the causeway across the mirror lake and the garden it
+  // remembers; past its far shore the cracked moon in its crater, at the head of the furrow it ploughed (every great
+  // sphere lies at the end of its own, all pointing back to the great sphere), and the sphere west of the arch in a
+  // crater of its own; out of the crater, up the pillar forest and along its tops toward the plaza. Built after the
+  // meadow's scatter has drawn from the world's rng, so all of that stands where it stood; what it would put in the
+  // craters, on the stair's turns or under the pillars is left out where it is drawn (cleared).
+  yield;
+  const segDist = (x, z, [ax, az], [bx, bz]) => { const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, t = L2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2)) : 0; return Math.hypot(x - ax - dx * t, z - az - dz * t); };
+  const onWay = (x, z, pad = 0) => ways.some(({ points, w }) => points.some((p, i) => i && segDist(x, z, points[i - 1], p) < w / 2 + pad));
+  const nearPillars = (x, z, pad = 0) => PILLARS.some((p) => Math.hypot(x - p.x, z - p.z) < (p.i === 0 || p.i === PILLARS.length - 1 ? SPIRAL.r + SPIRAL.w : p.plat) + 1 + pad);
+  let newWays = [];
+  const onNew = (x, z, pad = 0) => newWays.some((points) => points.some((p, i) => i && segDist(x, z, points[i - 1], p) < 1.6 + pad));
+  /** Where the meadow's scatter is left out: in the craters, round the pillars and their stairs, on the new ways. */
+  const cleared = (x, z, pad = 0) => inCrater(x, z, pad) || nearPillars(x, z, pad) || onNew(x, z, pad);
+  const keep = (x, z, pad = 0) => !cleared(x, z, pad) && lakeE(x, z) > 1.12 && !onWay(x, z, pad) && !avoid.some(([ax, az, ar]) => Math.hypot(x - ax, z - az) < ar + pad)
+    && !olives.some(([ox, oz, os]) => Math.hypot(x - ox, z - oz) < 2.5 * os + pad) && !cypresses.some(([cx, cz]) => Math.hypot(x - cx, z - cz) < 2 + pad);
+  const open = (x, z) => !inCrater(x, z) && lakeE(x, z) > 1.1 && !onWay(x, z, 1);
+  const EX = buildExplorations({ add, proxy, sphere, lake: LAYOUT.lake, M, H, terrain, reflect, orbs, W, scene, keep, open, makeMaterial, CRESCENT, WHITE_SHADE, MODE_WATER,
+    levels: FALLS.levels, grass: terrain.mesh.material, shellInside: makeMaterial({ color: '#f1e8cc', glow: 0.45 }) });
+  // the ways on: from the causeway's landing to the crater's stair; from its other stair to the first pillar's; and from
+  // the last pillar's foot to the plaza's north mouth
+  const CR = EX.craters.cracked, rimAt = (a, r) => [CR.x + Math.cos(a) * r, CR.z + Math.sin(a) * r];
+  const STONES_WAY = [[EX.stones.at(-1).x, EX.stones.at(-1).z], [150, -196], rimAt(CR.stairs[0], CR.rings[3] + 6)];
+  path(STONES_WAY, 2.6);
+  path([LAKE_PATH.at(-1), [EX.stones[0].x, EX.stones[0].z + 2]], 2.6);   // (from Nell's shore to the first stone)
+  const upFoot = EX.spirals.up[0], downFoot = EX.spirals.down[0];
+  // (round the stair's outside, under its turns, to come onto its foot along its own line)
+  const P1 = PILLARS[0], back = EX.spirals.up[0].clone().sub(EX.spirals.up[1]).setY(0).normalize(), behind = EX.spirals.up[1].clone().addScaledVector(back, 10);
+  const PILLAR_WAY = [rimAt(CR.stairs[1], CR.rings[3] + 4), (() => {
+    const ar = Math.atan2(CR.z + Math.sin(CR.stairs[1]) * (CR.rings[3] + 4) - P1.z, CR.x + Math.cos(CR.stairs[1]) * (CR.rings[3] + 4) - P1.x), ab = Math.atan2(behind.z - P1.z, behind.x - P1.x);
+    const a = ar + Math.atan2(Math.sin(ab - ar), Math.cos(ab - ar)) / 2, r = SPIRAL.r + SPIRAL.w + 3;
+    return [P1.x + Math.cos(a) * r, P1.z + Math.sin(a) * r];
+  })(), [behind.x, behind.z], [upFoot.x, upFoot.z]];
+  path(PILLAR_WAY, 2.6);
+  const PLAZA_WAY = [[downFoot.x, downFoot.z], [26, -575], [3, -594]];
+  path(PLAZA_WAY, 2.6);
+  newWays = [STONES_WAY, PILLAR_WAY, PLAZA_WAY];
+
   // ---------------------------------------------------------- instanced flora
   yield;
   const dummy = new THREE.Object3D(), col = new THREE.Color();
@@ -868,14 +917,22 @@ export function* buildSpheres(scene) {
     instanced(g, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), shrubs.map((s) => ({
       x: s.x, y: s.y + s.s * 0.45 * (s.sy ?? 1), z: s.z, s: s.s, sy: s.s * (s.sy ?? 0.85), ry: rng() * 6,
       color: s.color ?? (s.dark ? pick(DARK) : pick(MID)),
-    })));
+    })).filter((it) => !cleared(it.x, it.z, it.s)));
     instanced(hedge(0, 3.4, 1.6, 1.9).hedge, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), hedges.map((h) => ({ ...h, color: pick(['#4f6f38', '#55763c', '#4a6a36']) })));
     instanced(new THREE.IcosahedronGeometry(0.2, 0), makeMaterial({ color: '#ffffff', glow: 0.3 }), fruit.map(([x, y, z]) => ({ x, y, z, s: 1, color: pick(['#e8872f', '#f0a040', '#e27428']) })));
   }
   // olive trees: reddish twisting trunks under round lumpy crowns
   yield;
   {
-    const items = olives.map(([x, z, s, dark]) => ({ x, y: H(x, z) - 0.2, z, s, ry: rng() * 6, dark }));
+    // (one that grew where a crater or a pillar's stair is now steps out of its way, its draws and its place in the list
+    // kept: issue #190)
+    const stepOut = (it) => {
+      for (const C of Object.values(CRATERS)) { const r = Math.hypot(it.x - C.x, it.z - C.z), need = C.rings[3] + 17; if (r < need) { const k = need / Math.max(r, 0.1); it.x = C.x + (it.x - C.x) * k; it.z = C.z + (it.z - C.z) * k; } }
+      for (const p of PILLARS) { const r = Math.hypot(it.x - p.x, it.z - p.z), need = (p.i === 0 || p.i === PILLARS.length - 1 ? SPIRAL.r + SPIRAL.w : p.plat) + 5; if (r < need) { const k = need / Math.max(r, 0.1); it.x = p.x + (it.x - p.x) * k; it.z = p.z + (it.z - p.z) * k; } }
+      it.y = H(it.x, it.z) - 0.2;
+      return it;
+    };
+    const items = olives.map(([x, z, s, dark]) => ({ x, y: H(x, z) - 0.2, z, s, ry: rng() * 6, dark })).map(stepOut);
     const trunk = mergeGeometries([
       new THREE.CylinderGeometry(0.22, 0.4, 3.4, 6).rotateZ(0.12).translate(0.1, 1.7, 0).toNonIndexed(),
       new THREE.CylinderGeometry(0.12, 0.2, 1.8, 5).rotateZ(-0.7).translate(0.7, 3.4, 0).toNonIndexed(),
@@ -903,9 +960,13 @@ export function* buildSpheres(scene) {
   {
     const g = new THREE.LatheGeometry([[0.01, 0], [0.9, 0.6], [1.5, 3], [1.55, 6], [1.1, 10], [0.5, 13], [0.01, 14.5]].map(([r, y]) => new THREE.Vector2(r, y)), 10);
     jitter(g, 0.14, 0.4, 7);
+    // (and the rows along the fallen spheres' furrows, drawn from their own rng: issue #190)
+    const own = mulberry32(19071), O = (a, b) => a + own() * (b - a);
     instanced(g, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), cypresses.map(([x, z, s]) => ({
       x, y: H(x, z) - 0.3, z, s, sx: s * R(0.85, 1.1), sz: s * R(0.85, 1.1), sy: s * R(0.9, 1.25), ry: rng() * 6, color: pick(['#4f6b3a', '#43603a', '#587542']),
-    })), { solid: true }).name = 'cypresses';   // (a dense flame of a tree: it collides as drawn, where a 0.9 m post 6 m tall stood inside it)
+    })).filter((it) => !cleared(it.x, it.z, 2)).concat(EX.cypresses.map(([x, z, s]) => ({
+      x, y: H(x, z) - 0.3, z, s, sx: s * O(0.85, 1.1), sz: s * O(0.85, 1.1), sy: s * O(1.0, 1.4), ry: own() * 6, color: ['#4f6b3a', '#43603a', '#587542'][Math.floor(own() * 3)],
+    }))), { solid: true }).name = 'cypresses';   // (a dense flame of a tree: it collides as drawn, where a 0.9 m post 6 m tall stood inside it)
   }
   // grass tufts
   yield;
@@ -926,7 +987,7 @@ export function* buildSpheres(scene) {
       if (lakeE(x, z) < 1.05 || Math.abs(x) < 4 && z < 0 && z > -600) continue;
       items.push({ x, y: H(x, z) - 0.05, z, s: R(0.35, 0.7), ry: rng() * 6, color: pick(['#a9c04f', '#b5c94f', '#9fb84a']) });
     }
-    instanced(g, makeMaterial({ color: '#ffffff', side: THREE.DoubleSide }), items);
+    instanced(g, makeMaterial({ color: '#ffffff', side: THREE.DoubleSide }), items.filter((it) => !cleared(it.x, it.z)));
   }
 
   // ==========================================================================
@@ -938,7 +999,8 @@ export function* buildSpheres(scene) {
   yield;
   {
     const V = new THREE.Vector3(LAYOUT.view.x, W + 1.8, LAYOUT.view.z);
-    const COLS = { white: ['#e4f0ec', '#d6ebe6'], sphere: ['#eef0d8', '#e2eadb'], tree: ['#5f8a74', '#587f6c'] };
+    // (memory: the garden before the fall, only in the water, issue #190: spheres-explorations.js)
+    const COLS = { white: ['#e4f0ec', '#d6ebe6'], sphere: ['#eef0d8', '#e2eadb'], tree: ['#5f8a74', '#587f6c'], memory: ['#f6edd3', '#efe4c6'] };   // (warmer than the shore's: a garden that isn't there)
     const order = reflect.map((r) => { r.geo.computeBoundingSphere(); return { ...r, d: r.geo.boundingSphere.center.distanceTo(V) }; })
       .sort((a, b) => b.d - a.d);
     const v = new THREE.Vector3();
@@ -958,6 +1020,7 @@ export function* buildSpheres(scene) {
         if (!ok) continue;
         const ex = (tri[0] + tri[3] + tri[6]) / 3, ez = (tri[2] + tri[5] + tri[8]) / 3;
         if (lakeE(ex, ez) > 1.15) continue;
+        if (r.key === 'memory' && (ez > Lk.z + Lk.rz * 0.2 || lakeE(ex, ez) > 1)) continue;   // (the garden that isn't there: in the water, not at your feet)
         // keep the winding facing up
         const ax = tri[3] - tri[0], az = tri[5] - tri[2], bx = tri[6] - tri[0], bz = tri[8] - tri[2];
         if (az * bx - ax * bz > 0) out.push(...tri); else out.push(tri[0], tri[1], tri[2], tri[6], tri[7], tri[8], tri[3], tri[4], tri[5]);
@@ -1084,6 +1147,23 @@ export function* buildSpheres(scene) {
   const onFloor = ([x, z]) => [x, H(x, z), z];
   // (home from it: onto the hill's path beside it, east along it to the grove and the ship)
   const HOME_WAY = [[KS.x, KS.z], [KS.x, -57], ...HILL_WAY.slice(0, 3).reverse(), [0, 8]];
+  // the way the explorations make (issue #190): from the pearl by the lake along the lake path to the south shore, over
+  // the causeway, to the cracked moon's crater, down its terraces, in through the crack and round the moon, up the other
+  // stair, up the first pillar's spiral, along the walkways over the tops, down the last one's spiral and on to the plaza
+  const HIGH_WAY = (() => {
+    const C = EX.craters.cracked, [rf, r1, r2, rr] = C.rings, lv = C.levels, at = (a, r, y) => [C.x + Math.cos(a) * r, y, C.z + Math.sin(a) * r];
+    const [a0, a1] = C.stairs, sweep = Math.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0));
+    const down = [at(a0, rr + 6, lv[3]), at(a0, r2 + 0.5, lv[3]), at(a0, r2 - 3.8, lv[2]), at(a0, r1 - 3.8, lv[1]), at(a0, rf - 3.8, lv[0])];
+    // (past the crack's threshold: in and out again is the moon's own, 30 m the audit's slack has no room for)
+    const inside = [at(C.face, C.R + 1.5, lv[0])];
+    const round = Array.from({ length: 6 }, (_, i) => at(a0 + (sweep * (i + 1)) / 7, rf - 3.5, lv[0]));
+    const up = [at(a1, rf - 3.8, lv[0]), at(a1, rf + 0.5, lv[1]), at(a1, r1 + 0.5, lv[2]), at(a1, r2 + 0.5, lv[3]), at(a1, rr + 4, lv[3]), ...PILLAR_WAY.slice(1, -1).map(onFloor)];
+    const every = (pts, n) => pts.filter((_, i) => i % n === 0 || i === pts.length - 1).map((p) => p.toArray());
+    return [[LAYOUT.pearl.x, H(LAYOUT.pearl.x, LAYOUT.pearl.z + LAYOUT.pearl.R + 4), LAYOUT.pearl.z + LAYOUT.pearl.R + 4], onFloor(LAKE_PATH[2]), onFloor([EX.stones[0].x - 3, EX.stones[0].z + 7]),
+      ...EX.stones.map((q) => [q.x, q.top, q.z]), onFloor(STONES_WAY[1]), ...down, ...inside, ...round, ...up,
+      ...every(EX.spirals.up, 4), ...EX.pillars.map((q) => [q.x, q.top, q.z]), ...every(EX.spirals.down.slice().reverse(), 4),
+      ...PLAZA_WAY.slice(1).map(onFloor), [plaza.x, plaza.ground, plaza.z + plaza.r - 4]];
+  })();
   {
     const sage = makeMaterial({ color: '#8fb39c', flat: true });
     const toFp = Math.atan2(FOOTPRINT.x - KS.x, FOOTPRINT.z - KS.z);
@@ -1105,7 +1185,8 @@ export function* buildSpheres(scene) {
   col3.name = 'collision proxies';
   scene.add(col3);
 
-  const unsafe = (p) => terrain.heightAt(p.x, p.z) < W - 1.1 && p.y < W + 0.4;
+  // (the lake's deep water; not the craters, whose ground under the terraces lies as low: issue #190)
+  const unsafe = (p) => lakeE(p.x, p.z) < 1.3 && terrain.heightAt(p.x, p.z) < W - 1.1 && p.y < W + 0.4;
 
   const orb = (x, z) => orbs.find((o) => Math.hypot(o.x - x, o.z - z) < 1);
   // Hale's Listening Stall (src/shop-world.js, src/shop-fronts.js 'pavilion'): a round white pavilion beside the
@@ -1120,7 +1201,7 @@ export function* buildSpheres(scene) {
     lights: [...shop.lights],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     paved: pavedMask({ discs: [{ x: plaza.x, z: plaza.z, r: plaza.r + 1 }], ways }),   // the white paths, the avenue and the plaza: no flowers on them (src/paved.js)
-    floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
+    floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1) || cleared(x, z, r)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
     // what the level design audit reads (scripts/level-design/audit.mjs): the white paths, leading lines: from the lake
     // (the spheres that remember) to the grove's path, through the sphere-arch and down the avenue to the plaza
     lines: [{ name: 'the white path and the avenue', points: [...LAKE_PATH].reverse().concat(WAY.slice(1), AVENUE.slice(1)) },
@@ -1135,7 +1216,12 @@ export function* buildSpheres(scene) {
       //  (on the ground: [x, y, z], not the canopies over them)
       { name: 'the heel path', points: HEEL_PATH.map(onFloor) },
       { name: 'the meadow path and the heel path', points: [[plaza.x, plaza.z + plaza.r], ...MEADOW_LINE, ...HEEL_PATH.slice(1)].map(onFloor) },
-      { name: 'the white hill path', points: HOME_WAY.map(onFloor), auto: false }],
+      { name: 'the white hill path', points: HOME_WAY.map(onFloor), auto: false },
+      // (v1.56, issue #190: over the lake's stones, through the cracked moon's crater and over the pillar forest's tops to
+      //  the plaza, the way the main quest's words send you now)
+      { name: 'the lake’s stones and the high walk', points: HIGH_WAY }],
+    // (v1.56, issue #190: the pillars of the forest, thin to the audit's height grid)
+    beacons: EX.beacons,
     sights: [{ name: 'the chalked sphere', at: new THREE.Vector3(CHALKED.x, chalkY + CHALKED.R, CHALKED.z) }, { name: 'the answering spheres', at: new THREE.Vector3(0, H(0, -480) + 1, -480) },
       // (v1.46: the belvedere on the white hill's summit, the garden's highest place, 80 m up)
       { name: 'the belvedere on the white hill', at: belvedereTop },
@@ -1144,7 +1230,14 @@ export function* buildSpheres(scene) {
       // (v1.54, issue #178: on the heel path, and the way out by the white hill)
       { name: 'the little Footprint', at: new THREE.Vector3(LITTLE.x, H(LITTLE.x, LITTLE.z) + 1, LITTLE.z) },
       { name: 'the tall white stone', at: new THREE.Vector3(TALL.x, H(TALL.x, TALL.z) + 1, TALL.z) },
-      { name: 'the keepers’ stone', at: new THREE.Vector3(KS.x, ksY + 0.3, KS.z) }],
+      { name: 'the keepers’ stone', at: new THREE.Vector3(KS.x, ksY + 0.3, KS.z) },
+      // (v1.56, issue #190: the explorations)
+      { name: 'the first stepping stone', at: new THREE.Vector3(EX.stones[0].x, EX.stones[0].top, EX.stones[0].z) },
+      { name: 'the middle of the lake’s stones', at: EX.lake.look.stand.clone() },
+      { name: 'the cracked moon', at: new THREE.Vector3(EX.cracked.x + Math.cos(EX.cracked.face) * (EX.cracked.R + 1.5), EX.cracked.floor, EX.cracked.z + Math.sin(EX.cracked.face) * (EX.cracked.R + 1.5)) },
+      { name: 'the founders’ mark', at: EX.cracked.mark.stand.clone() },
+      { name: 'the terraces round the sphere west of the arch', at: new THREE.Vector3(...(() => { const C = EX.craters.chant, a = C.stairs[0]; return [C.x + Math.cos(a) * (C.rings[2] + 1), C.y0, C.z + Math.sin(a) * (C.rings[2] + 1)]; })()) },
+      ...EX.sights],
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {
@@ -1156,6 +1249,8 @@ export function* buildSpheres(scene) {
       great: orb(0, -1320),
       // (v1.54, issue #178: the heel path to the Footprint, what stands on it, and the keepers' stone it lets you out by)
       heel: { path: HEEL_PATH, little: { ...LITTLE, y: littleY }, tall: { ...TALL, h: 16 }, stone: { ...KS, y: ksY }, home: HOME_WAY },
+      // (v1.56, issue #190: the explorations, src/story/spheres-explorations.js)
+      explore: { ...EX, belvedere: belvedereTop, way: HIGH_WAY, chant: orb(CRATERS.chant.x, CRATERS.chant.z), high: EX.pillars.map((q) => orb(q.sphere.x, q.sphere.z)), moon: orbs.find((o) => o.cracked) },
     },
     ground: terrain,
     spawn: new THREE.Vector3(0, H(0, 0), 0),
@@ -1182,7 +1277,8 @@ export function* buildSpheres(scene) {
       motes: { count: 180, color: '#fffbe8', size: 0.045, rise: 0.12, wind: [0.4, 0.15] },
       footprints: '#9fb04a',
     },
-    atmo: () => ({ tint: [1.0, 0.99, 1.0], fog: 0.55, name: 'Garden of Spheres' }),
+    // (up on the pillar forest's tops, its own name: issue #190)
+    atmo: (x, z, y = -Infinity) => ({ tint: [1.0, 0.99, 1.0], fog: 0.55, name: y > 18 && nearPillars(x, z, 40) && x > 20 ? 'Garden of Spheres · the pillar forest' : 'Garden of Spheres' }),
     update(dt, t) { streamer.rotation.y = -Math.PI / 2 + 0.25 + Math.sin((t ?? 0) * 0.8) * 0.2; streamer.rotation.x = Math.sin((t ?? 0) * 1.3) * 0.18; },
   });
 }

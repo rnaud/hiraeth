@@ -111,8 +111,10 @@ export const FRAGMENTS = {
     [-192.0, 27.69, -160.0],
     [-184.0, 7.40, -488.0],
     [-286.0, 2.37, 270.0],
-    [158.0, -1.59, -600.0],
-    [-554.0, -1.42, -290.0],
+    // (v1.56, issue #190: these two picked afresh by scripts/fragment-spots.mjs spheres once the explorations were built;
+    //  the old ones, on an umbrella's flaring roots by the plaza and under one far west, were left too close to a ledge)
+    [440.0, 1.48, -462.0],
+    [-494.0, -4.28, 34.0],
     [370.0, 2.93, -288.0],
     [592.0, 5.22, 72.0],
     [270.0, -0.02, 70.0],

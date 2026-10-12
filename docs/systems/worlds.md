@@ -1357,6 +1357,65 @@ passage, up into the lanes and out to the ship, the avenue and the grilles solid
 galleries from Sel, the basket from the square, the balcony up through the stairwell); the lanes walled, the picture's
 way before and after the broadcast, the face on every screen; the looks; the fragments where they were; the contact audit
 on the new pieces and their collision budget.
+## The Garden's explorations (v1.56, issue #190)
+
+The author's three picked directions for the Garden of Spheres (`references/levels/The Garden of Spheres/environment/explorations/`,
+prompts in `docs/design/level-explorations-2-prompts.md`) woven into one way from the lake to the plaza, the way the main
+quest's plaza stage names now (`via: 'the lake’s stones and the high walk'`; Linnet says it): from the pearl by the lake
+to Nell's shore, over the causeway, down into the cracked moon's crater and up out of it, up the first pillar, along the
+tops and down the last pillar to the plaza. The avenue is still there below (Cael's slow walk). Built in
+`src/levels/spheres-explorations.js` with the world's own batching kit, after the meadow's scatter has drawn from the
+world's rng (so all of that stands where it stood; what fell in the craters, on the stairs' turns or under the pillars is
+left out where it is drawn, and an olive that grew there steps out of the way, its place in the list kept: the olives'
+tests pick them by index); the story's side in `src/story/spheres-explorations.js`.
+
+- **What the lake remembers** (`causewayStones`, `LANDING`). 24 round white stones from Nell's shore to the far shore's
+  landing (where the little block west of the temple stood), each overlapping the next by a hand's width (a gap is a step
+  into the water, and the lake puts you back on the shore), 0.75 m over the water, the middle one wider. In the water a
+  garden that is not on the shore: domes, towers and stepped pyramids on the shore's grass between the far shore's
+  pyramid, temple and sphere and round both ends of the lake, drawn only in the reflection (the reflection's key
+  `memory`, warmer than the shore's, kept to the water's far half: tall things reflect right up to your feet). Once the
+  pearl's bell has been heard, the spheres hang in the reflected sky round the middle stone (`the lake’s moons`: pale
+  discs with lit crescents, over every layer of the reflection; one line the first time, `MOONS_CUE`). On the middle
+  stone, `look into the lake` (`THINGS.lake`).
+- **Where the moons fell** (`FURROWS`, `CRATERS`, `fallsGround`). Every great sphere lies at the end of the furrow it
+  ploughed, all pointing back to the great sphere on the horizon (`toGreat`): a trench cut into the ground before the
+  terrain is made (`furrowsAt`, in `baseHeight`; it starts past the sphere's own footing, so the sphere sits as it sat),
+  banks raised beside it, drawn too (`The furrows’ beds`, `The furrows’ banks`: paint, as the paths are) and lined with
+  cypresses (their own rng). One line the first time on the belvedere's deck (`FURROWS_CUE`). Two lie in craters of
+  ringed terraces: inside the rim the terrain is far under the terraces (`fallsGround`), and the floor, the two terraces
+  and the rim are meshes in the ground's own material, white coursed walls between them (`plates`), steps down each
+  wall on each stair's line, solid as drawn. **The cracked moon** past the lake's far shore (R 13, sunk a fifth): two
+  shells with a jagged crack toward the causeway's landing, taller than a house, its broken thickness drawn between them;
+  the room inside, the founders' crescent cast on its back wall (`THINGS.mark`), and its last sound from within when
+  you are inside (`remembered('foundry')` in `src/audio.js`, every 7 s; one line the first time, `MOON_CUE`). **The
+  sphere west of the arch** lies on the floor of its crater (its ring of light round its foot found on the floor now:
+  the physics' ground, not the terrain's): the crater carries its far voices, louder the lower you stand
+  (`boost`: heard faintly before it is splashed, fully after).
+- **The pillar forest** (`PILLARS`, `SPIRAL`). Six white pillars 30–55 m tall on the cracked moon's furrow's west bank,
+  44 m apart toward the plaza, the third the highest; on each top a sphere in a stone cup to one side of the way across,
+  narrow walkways with low kerbs from top to top, a spiral stair (grade 0.5) up round the first from beside the crater
+  and down round the last near the plaza, each ending a quarter turn past the walkway's own side so the turn under it
+  clears your head; seven broken pillars among them. **The chord**: splash a sphere up there and its note runs down the
+  walkways (a bead of light, 24 m/s) to the lower tops, each ringing as it arrives; from the highest all six ring, one
+  chord (flag `spheres.pillars.chord`, `CHORD_CUE`); the first time it stops short, one line says notes run down, never
+  up (`DOWNHILL_CUE`). The spheres up there are the forest's own notes (`deg`), not their size's. The place's name up
+  there: "Garden of Spheres · the pillar forest". The pillars' spheres are beacons for the audit.
+- **The audit** (`scripts/level-design/audit.mjs --worlds spheres`): 4.56 → 4.89: landmarks 4 → 5 (86 → 92 % of the
+  path sees one, 30 → 36), verticality 3 → 5 (11 → 26 % of the places raised), places 27 → 38; density 5 (the longest
+  empty stretch 105 m both), optional 4. (Its climb along the path reads 292 m: its samples between the line's points
+  over the crater and the stairs are laid on what is under them; the line itself climbs 64 m.)
+- **Fragments of the singing light**: two picked afresh (`node scripts/fragment-spots.mjs spheres`): the one on an
+  umbrella's flaring roots by the plaza and the one under the umbrella far west now stand by the yellow sphere in the
+  east and far out west.
+- The collision budget (tests/spheres.test.js) 237 k → 263 k: the two shells, the terraces and walls, the pillars with
+  their spheres, cups, walkways and stairs, the stones, the furrows' 60 cypresses.
+
+Tested in `tests/spheres-explorations.test.js`: the way walked by the real traveller in five legs, the stones touching
+and safe, the memory only in the water and the moons after the bell, the furrows toward the great sphere and seen from
+the belvedere, the terraces over the terrain and their stairs walked, the crater's sound by depth, the crack open and
+the room walked into with its sound, the pillars' tops, walkways and stairs' headroom, the chord, what sees the
+pillars, the contact audit over the new pieces, the heel path untouched.
 
 ## The Glass Dunes: a detour off the route (October 2026)
 

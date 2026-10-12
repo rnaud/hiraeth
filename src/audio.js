@@ -1092,6 +1092,14 @@ export class Sound {
     } else if (kind === 'drum') {
       const s = 0.21;
       [[0, 2], [2, 1], [3, 2], [5, 1], [6, 2], [8, 2], [10, 1], [11, 2]].forEach(([k, hit]) => (hit === 2 ? this.dum(t + k * s, 0.5, out) : this.tek(t + k * s, 0.22, out)));
+    } else if (kind === 'foundry') {
+      // (the Garden's cracked moon, issue #190: its last sound, heard from inside its shell: hammers far off on a shell
+      // like this one, ringing low, and the furnace's breath under them)
+      for (const [at, deg] of [[0, 0], [0.62, 0], [1.24, 2], [2.48, 0], [3.1, 0], [3.72, 3]]) {
+        this.instrument('bell', this.freq(deg, -1), t + at, 1.1, 0.13, out);
+        this.noiseHit(t + at, 0.05, 'bandpass', 1900, 0.07, out);
+      }
+      for (const at of [0, 1.6, 3.2]) this.noiseHit(t + at, 1.4, 'lowpass', 260, 0.05, out);
     }
   }
   /**

@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data.js';
 import { setupSpheresMoments } from './spheres-moments.js';
+import { setupSpheresExplorations } from './spheres-explorations.js';
 import { hintsFor } from '../hint-level.js';
 
 // The Garden of Spheres' story, alive (spheres-data.js has the words).
@@ -68,7 +69,9 @@ export function setupSpheres(ctx) {
     const o = G.listen[id];
     const centre = V(o.x, o.y, o.z);
     const rr = o.R + 3.5;
-    const footY = Math.max(...[0, 1, 2, 3].map((k) => H(o.x + Math.sin(k * 1.57) * rr, o.z + Math.cos(k * 1.57) * rr))) + 0.12;
+    // (the ground round its foot as you stand on it: since v1.56 the sphere west of the arch lies on a crater's floor, the
+    // terrain far under it, issue #190)
+    const footY = Math.max(...[0, 1, 2, 3].map((k) => { const x = o.x + Math.sin(k * 1.57) * rr, z = o.z + Math.cos(k * 1.57) * rr, g = physics.groundAt(x, o.y, z, o.R + 30); return Number.isFinite(g) ? g : H(x, z); })) + 0.12;
     const mat = ringMat('#fff3c4');
     const ring = new THREE.Mesh(new THREE.TorusGeometry(rr, 0.14, 4, 96).rotateX(Math.PI / 2), mat);
     ring.position.set(o.x, footY, o.z);
@@ -96,6 +99,9 @@ export function setupSpheres(ctx) {
   };
   // every great sphere is a note: shoot one and it rings (bigger, lower); the three that remember play their sound
   const rememberer = (o) => L.find((s) => s.o === o);
+  // the explorations (issue #190): the lake's moons, the craters that carry sound, the cracked moon, the pillars' chord
+  const ex = setupSpheresExplorations(ctx, { G, motes });
+  const voiceOf = (s) => Math.max(s.voice, ex?.boost(s.id) ?? 0);
   /** A sphere rings on its own (answering): its note, soft, and a few motes off its top. */
   const ring = (o, n = 3) => { const at = V(o.x, o.y + o.R, o.z); sound.orbNote?.(orbDegree(o.R), at, { size: Math.min(1, o.R / 46), soft: true }); motes.burst(at, { n, rise: 1.6, size: 0.26 + Math.min(o.R, 40) * 0.004, spread: 1, life: 2.4 }); };
   /** The belvedere's bell rung: the garden's spheres answer, the nearest first, out across the meadow to the avenue. */
@@ -112,6 +118,7 @@ export function setupSpheres(ctx) {
     const at = V(o.x, o.y, o.z), s = rememberer(o), soft = mode === 'push';
     motes.burst(point ?? at, { n: soft ? 2 : 5, rise: 1.6, size: 0.25 + Math.min(o.R, 40) * 0.006, spread: 1, life: 2.2 });
     if (!s) {
+      if (ex?.hit(o, soft)) return true;   // (a sphere high on the pillars: its note runs down the walkways)
       sound.orbNote?.(orbDegree(o.R), at, { size: Math.min(1, o.R / 46), soft });
       // the avenue's answering pair: the other one rings back across the road a moment later
       const pair = G.answering ?? [], other = pair.includes(o) ? pair.find((q) => q && q !== o) : null;
@@ -263,7 +270,7 @@ export function setupSpheres(ctx) {
 
   // ---------------------------------------------------------------- music: each sphere's sound, and the pole's hum
   sound.setBands?.([
-    ...L.map((s) => ({ id: `sphere.${s.id}`, pos: () => (s.voice > 0.01 ? s.centre : null), radius: s.o.R + 70, parts: [SOUNDS[s.id].part], mode: 'play', vol: s.voice, duck: 0.6 })),
+    ...L.map((s) => ({ id: `sphere.${s.id}`, pos: () => (voiceOf(s) > 0.01 ? s.centre : null), radius: s.o.R + 70, parts: [SOUNDS[s.id].part], mode: 'play', vol: s.voice, duck: 0.6 })),
     { id: 'pole', pos: V(Pz.x, Pz.ground + 4, Pz.z), radius: game.flag('spheres.chord.heard') ? 140 : 60, parts: game.flag('spheres.chord.heard') ? ['bell', 'chant', 'drum', ...(game.flag('spheres.pebble.placed') ? ['ney'] : [])] : ['chant'], mode: game.flag('spheres.chord.heard') ? 'near' : 'play', vol: game.flag('spheres.chord.heard') ? 0.8 : 0.35, duck: 0.4 },
   ]);
 
@@ -296,7 +303,7 @@ export function setupSpheres(ctx) {
       // its voice: loud when it has just remembered, then a quiet echo whenever you pass
       if (s.voiceT > 0) s.voiceT -= dt; else if (heard(s.id)) s.voice += (0.3 - s.voice) * Math.min(1, dt * 0.3);
       const b = sound.band?.(`sphere.${s.id}`);
-      if (b) b.vol = s.voice;
+      if (b) b.vol = voiceOf(s);   // (louder down a crater's terraces: src/story/spheres-explorations.js boost)
     }
 
     // the pole: splashed with the three sounds, it sings them back (poleHit, above); its crown glows as you come near
@@ -352,9 +359,10 @@ export function setupSpheres(ctx) {
     }
     if (st.bellsDirty) { bellMesh.instanceMatrix.needsUpdate = true; st.bellsDirty = false; }
 
+    ex?.update(dt, t);
     motes.update(dt);
     sparkle.update(dt);
   };
 
-  return { people, update, state: st, listeners: L, shore, glintAt, pole, bells, film, chord };
+  return { people, update, state: st, listeners: L, shore, glintAt, pole, bells, film, chord, explore: ex };
 }

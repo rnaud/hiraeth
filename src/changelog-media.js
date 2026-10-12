@@ -679,6 +679,9 @@ const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (sc
 // (v1.55: Vael's picked explorations, issue #187)
 const VAEL187 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5481), the before with the worlds’ files as on origin/main (19e17c8b, git archive), the same pinned cameras and saves, 12 October; cwebp -q 72';
 const LD54 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5471), the before with the worlds’ files as on origin/main (30c8329d), the same pinned cameras, 12 October; cwebp -q 72';
+// (v1.56: the Garden of Spheres' picked explorations, issue #190: by hand, the disk too tight for changelog-shots.mjs's
+// extraction; the before is the same tree with the world's file as on origin/main, src/levels/spheres.js)
+const GARDEN190 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5531), the before the same tree with src/levels/spheres.js as on origin/main (461a4c24), the same pinned cameras, 12 October; cwebp -q 72';
 const FR55 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5491), in Viridel with a fresh save past the prologue, 12 October; cwebp -q 72';
 // (v1.55: Lio's dispatch mast, issue #201: by hand, the disk too full for changelog-shots.mjs's extraction; the before is
 // the same tree with the mast left out of the scene)
@@ -764,6 +767,41 @@ export const CHANGELOG_MEDIA = {
       { name: 'market-lanes-court', title: 'The screen-mender', only: 'after', caption: 'In the little court off the lanes: the mender at his bench, a set opened up in front of him', from: SM56,
         view: { level: 'bazaar', hour: 11.5, fov: 60, eye: [92, 1.8, -44], target: [81.5, 1, -47], player: [93, 0, -43] } },
     ], see: 'From the old market’s crossing take the passage east and the stair up; follow the white picture along the screens. Come back after the silent tower has spoken: every screen shows the same face.' },
+    { match: 'In the Garden of Spheres a causeway of white stepping stones', shots: [
+      { name: 'garden-lake', title: 'The causeway', caption: 'From the lake’s south shore by Nell, across the water: before, the mirror lake; after, the stepping stones running out to the far shore, and in the water the domes and towers of a garden that is not on the shore', from: GARDEN190,
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/lake-memory/sheet-2.jpg', caption: 'The author’s pick: the lake that shows another garden, from the reference lab' },
+        view: { level: 'spheres', hour: 9, fov: 60, eye: [183, 2.2, -57], target: [172, -1, -150], player: [179.5, -0.4, -62] } },
+      { name: 'garden-lake-moons', only: 'after', title: 'The spheres in the lake’s sky', caption: 'On the middle stone once the pearl has rung: pale spheres with their crescents in the water round the stones, the far shore’s pyramid and temple beyond', from: GARDEN190,
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/lake-memory/sheet-1.jpg', caption: 'The author’s pick: reading the reflection, from the reference lab' },
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [167.5, 5.2, -110], target: [171, -1, -133], player: [170.6, 0, -121.5], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'spheres.heard.bell': true, 'spheres.lake.moons': true } } } },
+    ], see: 'Walk the lake path from the grove to Nell on the south shore and step onto the first stone. Splash the pearl by the lake first and, from the middle stone, the spheres show in the water; press A / × there to look into the lake.' },
+    { match: 'Every great sphere in the Garden now lies at the end of the long furrow', shots: [
+      { name: 'garden-furrows', title: 'From the belvedere', caption: 'From the belvedere’s deck, south over the garden: after, the furrows the spheres ploughed, lined with cypresses, the crater of terraces round the sphere west of the arch, and the pillars beyond', from: GARDEN190,
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/moon-falls/sheet-2.jpg', caption: 'The author’s pick: the furrows of the fallen moons, from the reference lab' },
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [-213, 85, -143], target: [-20, 0, -470], player: [-214.5, 82, -141.5] } },
+      { name: 'garden-crater', title: 'The cracked sphere’s crater', caption: 'From the way in off the causeway: before, the meadow; after, the crater’s rings of white walled terraces going down, the cracked sphere on its floor, the pillars rising behind', from: GARDEN190,
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [131, 3.2, -226], target: [100, -5, -272], player: [128, -0.17, -231] } },
+      { name: 'garden-cracked', only: 'after', title: 'Inside the crack', caption: 'On the crater’s floor at the crack: the shell broken open taller than a house, its pale room inside and the makers’ crescent on the far wall', from: GARDEN190,
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/moon-falls/sheet-1.jpg', caption: 'The author’s pick: inside the cracked moon, from the reference lab' },
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [109.5, -5.3, -257.5], target: [99, -2.5, -273], player: [108.2, -7.67, -259.5] } },
+      { name: 'garden-chant', title: 'The sphere west of the arch', caption: 'From the east: before, the sphere half sunk in the meadow; after, sitting on the floor of its own crater of terraces, a stair down the near side', from: GARDEN190,
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [-76, 3, -226], target: [-120, -4, -262], player: [-80, 0.68, -230] } },
+    ], see: 'Climb the belvedere on the white hill and look south. Cross the lake by its stones and follow the path to the crater: go down the stair and into the crack. At the sphere west of the arch, walk down its terraces after you have splashed it.' },
+    { match: 'From the cracked sphere’s crater the way to the plaza now climbs into a forest of tall white pillars', shots: [
+      { name: 'garden-pillars', title: 'The pillar forest', caption: 'From the meadow by the arch, looking south-east: before, cypresses and an umbrella tree; after, the tall white pillars with their spheres on top and the walkways between them', from: GARDEN190,
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/pillar-forest/sheet-2.jpg', caption: 'The author’s pick: spheres on white pillars, from the reference lab' },
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [36, 3, -330], target: [64, 30, -440], player: [35, 0, -334] } },
+      { name: 'garden-walk', only: 'after', title: 'Along the tops', caption: 'On the walkway from the first pillar to the second, 35 m up: the next sphere in its cup at the top, the garden far below', from: GARDEN190,
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/pillar-forest/sheet-1.jpg', caption: 'The author’s pick: the high sphere, from the reference lab' },
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [71.6, 36.8, -339], target: [64, 50, -410], player: [71.3, 35.2, -343] } },
+      { name: 'garden-forest', title: 'The way over the garden', caption: 'From the belvedere, south-east: after, the pillar forest standing along the cracked sphere’s furrow toward the plaza, the crater of terraces in front', from: GARDEN190,
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [-213, 85, -143], target: [80, 0, -400], player: [-214.5, 82, -141.5] } },
+    ], numbers: [
+      { title: 'The level design audit, the Garden of Spheres', unit: '', better: 'higher', device: 'node scripts/level-design/audit.mjs --worlds spheres', rows: [
+        { where: 'places', before: 27, after: 38 }, { where: 'landmarks', before: 30, after: 36 }, { where: 'path seeing a landmark (%)', before: 86, after: 92 },
+        { where: 'places raised over the ground (%)', before: 11, after: 26 }, { where: 'the mean (1–5)', before: 4.56, after: 4.89 },
+      ], source: 'landmarks 4 → 5, verticality 3 → 5; density 5 (the longest empty stretch 105 m both), optional places 4 → 4; the plaza stage now names the way over the lake’s stones and the pillars (issue #190)' },
+    ], see: 'From the cracked sphere’s crater take the stair up its far side to the first pillar and climb its spiral stair. On a top, splash the sphere in its cup with fluid; splash the one on the highest pillar to hear all six.' },
   ],
   '1.55': [
     { match: 'Fragments of the singing light are hidden in every world', shots: [

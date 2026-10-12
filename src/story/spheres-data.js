@@ -40,7 +40,9 @@ export const QUESTS = [
     stages: [
       { id: 'aube', text: 'Hear Linnet out in the umbrella grove', label: 'Linnet, the listener', flag: 'spheres.aube.heard', at: 'aube' },
       { id: 'listen', text: 'Splash the three spheres that remember', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
-      { id: 'plaza', text: 'Carry the sounds down the avenue to the plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza', via: 'the white path and the avenue' },   // (via: the way its words send you, for the level design audit)
+      // (via: the way its words send you, for the level design audit; since v1.56, issue #190, over the lake's stones and
+      //  the pillar forest, Linnet's words)
+      { id: 'plaza', text: 'Carry the sounds to the round plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza', via: 'the lake’s stones and the high walk' },
       { id: 'pole', text: 'Splash the humming pole, and listen', label: 'The humming pole', flag: 'spheres.chord.heard', at: 'pole' },
       { id: 'ume', text: 'Tell Ume, who keeps the pole, what you heard', label: 'Ume, on the plaza', talk: 'ume', at: 'ume', home: 'the meadow path' },   // (home: the way back she sends you, for the level design audit)
     ],
@@ -90,7 +92,7 @@ export const PEOPLE = {
           do: { set: { 'spheres.aube.heard': true } },
           choices: [{ text: '~curious~ And then?', goto: 'then' }, { text: '~neutral~ I’ll go and listen.', end: true }],
         },
-        then: { say: ["~neutral~ After hearing all three, follow *the avenue to the round plaza*. *Splash the pole* there, and it plays them together."], choices: [{ text: '~neutral~ I’ll go and listen.', end: true }] },
+        then: { say: ["~neutral~ Then go on to *the round plaza*: over *the lake’s stones* and *the pillars*. *Splash the pole* there, and it plays them together."], choices: [{ text: '~neutral~ I’ll go and listen.', end: true }] },
         what: { say: ["~playful~ A bell, voices, and a drum. We have no drums here. I’d like to know how one got into a stone."], choices: [{ text: '~curious~ How do I hear them?', goto: 'how' }, { text: '~curious~ Where did they come from?', goto: 'from' }] },
         from: { say: ["~curious~ Some think the huge sphere on the horizon dropped them like seeds. I only know they came from somewhere noisier than here."], choices: [{ text: '~curious~ How do I hear them?', goto: 'how' }] },
         again: {
@@ -102,7 +104,7 @@ export const PEOPLE = {
           ],
           choices: [{ text: '~whisper~ I’m listening.', end: true }],
         },
-        three: { say: ["~surprised~ All three? Follow the pale path through the arch to the plaza, and *splash the pole*. Take your time on the avenue."], do: { set: { 'spheres.aube.heard': true } }, choices: [{ text: '~neutral~ I will.', end: true }] },
+        three: { say: ["~surprised~ All three? On to the plaza, over the lake’s stones and the pillars, and *splash the pole*."], do: { set: { 'spheres.aube.heard': true } }, choices: [{ text: '~neutral~ I will.', end: true }] },
         after: { say: ["~happy~ I heard the chord from here. Three lonely sounds finally introduced to each other. Thank you."], choices: [{ text: '~happy~ They seemed glad of it.', end: true }] },
       },
     },
@@ -240,6 +242,25 @@ export const PEOPLE = {
 };
 
 export const THINGS = {
+  // (v1.56, issue #190: the explorations, src/story/spheres-explorations.js)
+  lake: {
+    id: 'lake.memory', name: 'The mirror lake', title: 'from the middle stone', color: '#dff1f2', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ In the water a white town stands on the far shore: domes, towers, a great stepped pyramid. On the shore itself, grass.",
+        { if: { flag: 'spheres.heard.bell' }, text: '~whisper~ And over it, the spheres hang in the sky like moons. The garden, before they fell.' },
+        { if: { not: { flag: 'spheres.heard.bell' } }, text: '~solemn~ Its sky is empty. Something is missing from it.' }],
+      do: { set: { 'spheres.lake.looked': true } },
+      choices: [{ text: '~whisper~ (look a while)', end: true }],
+    } } },
+  },
+  mark: {
+    id: 'founders.mark', name: 'The founders’ mark', title: 'inside the cracked moon', color: '#efe6c8', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ['~solemn~ A crescent, cast into the shell from the inside.', '~curious~ The founders’ mark. Someone made this moon, and sent it up.'],
+      do: { set: { 'spheres.mark.seen': true } },
+      choices: [{ text: '~neutral~ (step back out)', end: true }],
+    } } },
+  },
   pebble: {
     id: 'pebble', name: 'The mirrored pebble', title: 'at the pole’s foot', color: '#cfe6ea', voice: 0.6,
     talk: { nodes: { look: {
