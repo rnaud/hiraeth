@@ -1,0 +1,73 @@
+changelog.md
+  s_9ca76055a220ed::t_27f0782e95fd46 7
+docs/systems/story.md
+  s_9ca76055a220ed::t_a6466550ac2724 814-826,842-843
+src/save-migrate.js
+  s_9ca76055a220ed::t_f1bad872359444 73-74,228-230,232-255
+src/story/aliens-data.js
+  s_9ca76055a220ed::t_7557eefee84f18 139
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_322b25ca5f1b0f 55-56,265,294
+src/story/bazaar.js
+  s_9ca76055a220ed::t_8a5b1f7062f096 213-214
+src/story/buried-data.js
+  s_9ca76055a220ed::t_ff153a0ed14271 59-60,276,303,309
+src/story/buried.js
+  s_9ca76055a220ed::t_cb03c530998fe0 150-152,165
+src/story/edena-data.js
+  s_9ca76055a220ed::t_dc0e61a1472df9 34-35,39,55-56,88,105,119-123,195,293,308,313-314,377,480,529-530
+src/story/edena.js
+  s_9ca76055a220ed::t_5fa11157766097 7,89-90,173-175
+src/story/halfway.js
+  s_9ca76055a220ed::t_d468bd9566ec00 25,134-136,143,160
+src/story/incal-data.js
+  s_9ca76055a220ed::t_fdaf0e35e5e2be 71,268,336-338,381,388
+src/story/people-book.js
+  s_9ca76055a220ed::t_987ed55ac5c090 270,279,292-293,340,617,693
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_ecc5b6160abb0b 48,56,75,135,197,218,231,341
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_245b3cc556f5d6 19-22,46,55,61-64,100,155-156
+src/story/perdide2.js
+  s_9ca76055a220ed::t_f7863a0c74d818 8,78,452-453
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_5bbb43b6635502 61,167,189
+tests/quest-steps.test.js
+  s_9ca76055a220ed::t_a04dfa065b859e 115-148
+tests/route-ilen.test.js
+  s_9ca76055a220ed::t_35f6dec90c0b60 67,73,75,81
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_6e1ef63600bf81 90,354-376
+tests/story-bazaar.test.js
+  s_9ca76055a220ed::t_5af2ce8927b4b6 184,186
+tests/story-buried.test.js
+  s_9ca76055a220ed::t_7c89b1ec82bed7 230,232,311,313-314
+tests/story-edena.test.js
+  s_9ca76055a220ed::t_da7a797c973181 135,139-143,146,182,184-186,188,190-191,193-194
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_1563bcbb56ef23 366,372
+tests/story-perdide.test.js
+  s_9ca76055a220ed::t_0c47aac15b2c8e 133,135-136,209-210,212
+tests/story-perdide2.test.js
+  s_9ca76055a220ed::t_463ed6bc5b4e8f 181-185
+tests/story-spheres.test.js
+  s_9ca76055a220ed::t_1eb7f4e6583169 182-183,185
+tests/story-terraces.test.js
+  s_9ca76055a220ed::t_789d492ea6ea90 189,191-192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc1bd93d8be7b0b67d3606189f346091b545a35c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
