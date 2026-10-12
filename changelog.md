@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.58 — 2026-10-12
 
+- A map of the world you are in, in the game menu right after Quests (one RB / R1 from where it opens) and in the Start menu: the ground drawn from above in ink and paper, with you and the way you face, your ship, the way on, the makers’ temples, the people you have met and the boxes you have opened. Pick one in the legend beside it to ring it on the map, and press A / × to zoom in on it.
+- The Worlds page lists one world a row, so up and down go between them. A / × on one shows what you have found there and what is still to find: the story, each relic by name (a ? for the ones still hidden), the makers’ boxes, the fragments once you have found one, and the people you met.
+- The strip at the bottom of the game menu only names what you have picked and says what A / × does: the words are in the full view now. Keepsakes, sketches, sightings and finished quests open full screen with A / × too.
+- The game menu (View / Select) opens on your Quests now. Its items are large tiles with their names under them: press A / × on one to see it full screen, its picture large and what it is and does beside it, never over it, and use it from there (take a gun mode, take a gadget in hand, switch the fragment finder on or off). Left and right show the one before and after, B / ○ goes back.
 - In the Start menu, right now goes from the sidebar into the page it shows and left comes back; up and down go round the sidebar (from Resume up to Quit to title) and round the page. Dropdowns there open with A / × first, sliders still slide, and B / ○ steps back to the sidebar before it closes. The arrow keys move the same way.
 - Opening the galactic map no longer finds a planet by itself: the scanner starts by the ship, clear of every uncharted region, and nothing locks until you have swept it a little, with the stick, the keys, the mouse or a finger.
 - Vael’s needle walkers no longer turn into a needle in mid-air: one walks on a few steps, sets its tail’s tip down on the ground, and only then stands up on it, on a slope too.

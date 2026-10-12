@@ -705,6 +705,9 @@ const DB57 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against t
 const DP57 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 5601), the HUD hidden, the camera pinned at the same spots for both; the before with src/desert-vistas.js as on origin/main (0ad6ff68); 12 October; cwebp -q 72';
 // (v1.58: the movement and animation fixes, issues #214, #215, #216, #209: by hand, frame strips of each from the side)
 const MV58 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5631), the HUD hidden, the camera pinned at the same spot for both; the before with the changed files as on origin/main (0ad6ff68), 12 October; frames laid side by side in the page, cwebp -q 72';
+// (v1.58: the game menu and the map, issues #213 and #205: by hand, the before the tree as on origin/main (be75fda2)
+// served by this branch's Vite before the change, the same debug save in the Underwater City and the desert)
+const MENU58 = 'headless Chrome (muted, Low, 1280 × 720 and 730 × 410) against this branch’s own Vite (port 5621), the debug save for the Underwater City and the desert by the ship, before the change and after, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [
@@ -722,6 +725,20 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'Opening the galactic map no longer finds a planet by itself', see: 'With a world still to find on the galactic map, open it at the holo table and leave the stick and the mouse alone: the scanner sits by the ship’s planet and the meter may warm, but nothing is charted until you sweep it over the uncharted region and hold it there.' },
     { match: 'In the Start menu, right now goes from the sidebar', see: 'Press Menu (or Esc) and push right: the focus goes from Resume into the settings page; left comes back to Settings. Up from Resume is Quit to title. In the page, a dropdown opens with A / ×, and B / ○ brings you back to the sidebar.' },
+    { match: 'The game menu (View / Select) opens on your Quests now', shots: [
+      { name: 'select-items', title: 'Items, 1280 × 720', caption: 'The Items page: before, twelve small slots a row and the picked one large beside them, its words in the strip at the bottom; after, the gear as large tiles with their names, the strip naming the picked one and what A / × does', from: MENU58 },
+      { name: 'select-handheld', title: 'Items on a handheld, 730 × 410', caption: 'The same page at a Retroid’s size: before, the picked item drawn over the grid and the strip’s words over the sheet’s foot; after, the tiles alone', from: MENU58 },
+      { name: 'select-full', title: 'Full screen', only: 'after', caption: 'A / × on the backpack: its picture large on the left, its name, kind and words on the right, Back and the next item under it', from: MENU58 },
+      { name: 'select-full-handheld', title: 'Full screen on a handheld', only: 'after', caption: 'The same at 730 × 410: the words beside the picture, not over it', from: MENU58 },
+    ], see: 'Press View / Select: the menu opens on Quests. Turn to Items with RB / R1, pick the Stilling mode and press A / ×: it opens full screen; A / × again takes the mode, ← → go along the items, B / ○ back.' },
+    { match: 'The strip at the bottom of the game menu only names', see: 'In the game menu, move over the items, the keepsakes or the Sketchbook: the strip says only the name and the kind; press A / × to read the rest full screen.' },
+    { match: 'The Worlds page lists one world a row', shots: [
+      { name: 'select-world', title: 'A world full screen', only: 'after', caption: 'Vael from the Worlds page: its picture, its words, and what is done there: the story told, the relics still to find (a ? each), the makers’ boxes, the nine people met', from: MENU58 },
+    ], see: 'In the game menu turn to Worlds, go down the list, and press A / × on a world you have been to.' },
+    { match: 'A map of the world you are in', shots: [
+      { name: 'map-desert', title: 'The Desert', only: 'after', caption: 'The Map page in the desert by the ship: the dunes, mesas and pools from above in ink, contour lines, the traveller’s red arrow, the way on, the Rose House and the people met at the camp; the legend beside it says how far and which way', from: MENU58 },
+      { name: 'map-underwater', title: 'The Underwater City', only: 'after', caption: 'The Underwater City from above: its domes and their tubes, the Whale-House to the north, the traveller at the lock by the ship', from: MENU58 },
+    ], see: 'Press View / Select, then RB / R1 (or Map in the Start menu). Move down the legend: each mark is ringed on the map; A / × zooms in on it, A / × or B / ○ again shows the whole world.' },
   ],
   '1.57': [
     { match: 'The hoverbike shows under you again', shots: [

@@ -317,7 +317,7 @@ export class SettingsMenu {
           <div class="where"></div>
           <nav class="menu-nav">
             <button data-a="close" class="primary">${game ? t('menu.resume') : t('menu.back')}${glyph('back', { key: 'Esc' })}</button>
-            ${game ? `<button data-a="book" data-panel="items">${t('menu.items')}${F}</button><button data-a="book" data-panel="quests">${t('menu.quests')}${F}</button>` : ''}
+            ${game ? `<button data-a="book" data-panel="items">${t('menu.items')}${F}</button><button data-a="book" data-panel="quests">${t('menu.quests')}${F}</button><button data-a="book" data-panel="map">${t('menu.map')}${F}</button>` : ''}
             ${go('settings', t('menu.settings'))}
             ${go('controls', t('menu.controls'))}
             ${game ? `<button data-a="photo">${t('menu.photo')}${F}</button>

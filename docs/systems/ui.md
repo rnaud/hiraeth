@@ -402,7 +402,7 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
   Esc on a page goes back to the settings, then out. The title's settings have Controls too.
 
-## The game menu: Items, Quests, Sketchbook, Worlds, People (October 2026)
+## The game menu: Quests, Map, Items, Worlds, People, Sketchbook (October 2026)
 
 The author's call: the sketchbook becomes a game menu after Ocarina of Time's pause screen, with
 distinct panels and clear controller navigation, an Items panel and a Quests panel, in the game's own
@@ -410,33 +410,49 @@ look; and the current quest is only its overall goal and its next step. Code: `s
 panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from the save),
 `src/game-menu.css`, `src/item-icons.js`; tests: `tests/game-menu.test.js`.
 
-- **Opening it**: whatever opened the sketchbook — View / Select, J, the touch ❏ — and the Start
-  menu's Items and Quests (on that panel). It draws into `#journal`: `Journal.toggle(on, panel)` in
-  `src/quest.js` opens it; the journal still keeps the relics, story pages, errands and the
-  observatory. It pauses the game like the Start menu, and opens where you left it.
-- **Panels** (`PANELS`), side by side in a ring: **Items** (the gear's grid, a slot for every item
-  there is, the empty ones dashed and unnamed; under it what you carry for the quests and the
-  father's keepsakes; beside it the picked one large), **Quests** (the father's charge, then each
+- **Opening it**: whatever opened the sketchbook — View / Select, J, the touch ❏ — on the **Quests**
+  (`DEFAULT_PANEL`, v1.58, issue #213: "default menu should be the quest one"), and the Start menu's Items,
+  Quests and Map (on that panel). It draws into `#journal`: `Journal.toggle(on, panel)` in `src/quest.js`
+  opens it; the journal still keeps the relics, story pages, errands and the observatory. It pauses the
+  game like the Start menu; each panel keeps its cursor.
+- **Panels** (`PANELS`), side by side in a ring, in this order since v1.58: **Quests**, **Map** (below),
+  **Items** (the gear as large tiles, each with its name under its picture, as many a row as fit, the cursor
+  moving by where they are drawn, `data-grid-nav`; a tile for every item there is, the empty ones dashed and
+  unnamed; under them what you carry for the quests and the father's keepsakes), **Worlds**, **People**,
+  **Sketchbook**. **Quests** (the father's charge, then each
   quest under way, the tracked one first: its title, its goal, "Next" and its step, nothing more;
   pending errands; on the right "Done", a short list of finished and failed titles, `ENDED` of each,
   "and n more"), **Sketchbook** (first the Sightings, below; then a row per world you know: its story
   page, its relics, a ? until found; then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
-  their picture from `thumbs/`, ✓ story, relics and makers' boxes found, "you are here").
+  one a row since v1.58 so ↑ ↓ go between them (issue #213: "the worlds tab I can't go up and down"): their
+  picture from `thumbs/`, ✓ story, relics and makers' boxes found, the blurb, "you are here").
 - **Look**: the panel's name in the Start menu's comic lettering among five tabs at the top (four until v1.5); the sheet
   of ruled paper between two side tabs naming the neighbours (their LB / RB glyphs inside them, Q / E with
   the keys; the ✕ carries B / Esc: v1.2, below); the cursor a gold cell in a pulsing red ring; the strip
-  at the bottom: the picked thing's name, kind and words, and what the confirm button does here
-  (`menuPrompts`: its glyph and the verb, none on a touch screen). Sizes follow the viewport
+  at the bottom: the picked thing's name and kind on one line (its words are in its full view since v1.58:
+  they covered the item on a handheld), and what the confirm button does here (`menuPrompts`: its glyph and
+  the verb, none on a touch screen). Sizes follow the viewport
   (`vh` clamps): 1280 × 720 and the Retroid's 730 × 410 CSS px both fit; a long panel scrolls inside
   its sheet with the cursor.
 - **Controls**: LB / L1 and RB / R1 turn the panels (`Controller` sends `tabPrev` / `tabNext` in a
   menu); the stick or the D-pad moves the cursor (`moveCursor`: along a row; off its end onto the side
   tab, once more turns, as on the N64; up / down to the next row with that column, wrapping); A / ×
-  uses or looks: a gun mode's item takes that mode (`onUse` → `tool.setMode`), a quest becomes the
-  tracked one (`quests.choose`), a sketch is held up over the sheet (any move puts it back); B / ○
-  closes the whole menu from any panel. Keyboard: Q / E or [ ] turn, arrows or WASD move, Enter or
-  Space use, Esc or J close. Mouse: the tabs, the side tabs, a click picks, a click on the picked one
-  uses; hovering picks. Touch: a tap picks and says what it is, a second tap uses; the ✕ closes.
+  opens the thing picked full screen (an item, a keepsake, a sketch, a sighting, a world, a finished quest:
+  below), makes a quest the tracked one (`quests.choose`), opens a person's page, or zooms the map on a
+  mark; B / ○ goes back out of what it opened, then closes the whole menu from any panel. Keyboard: Q / E
+  or [ ] turn, arrows or WASD move, Enter or Space confirm, Esc or Backspace back, J closes. Mouse: the tabs,
+  the side tabs, a click picks, a click on the picked one confirms; hovering picks. Touch: a tap picks and
+  says what it is, a second tap confirms; the ✕ closes.
+- **The full view** (v1.58, issue #213: "I should be able to press A to see them bigger. The explanation
+  should only be present when the item is full screen, and not overlap on top of the item"): `fullHtml`, over
+  the sheet on its own paper: Back (B / Esc), the picture large on the left (the item's own render, the
+  sketch, the world's picture, the sighting's note; a ? for one not found), and on the right its name, kind,
+  "in use", its words, its facts (a world: the story, the relics by name, a ? for each still to find, the
+  makers' boxes, the fragments once the first is found, the people met there: `worldFacts`) and its action on
+  A / × (`itemUse`: an item's gun mode taken, a gadget taken in hand, the fragment finder switched on or off,
+  issue #196; `onUse`). On a narrow or upright screen the picture goes over the words, never under them.
+  ← → (or ◀ ▶) the one before and after in the panel, the cursor following; ↑ ↓ scroll the words; B / ○
+  back to the panel, on the one shown. Each cell says what it shows in `full` ({ pic, sub, text, facts, use }).
 - **The Sightings** (`src/story/sightings.js`, after Outer Wilds' ship log): the open threads the
   player wonders about, at the top of the Sketchbook. Four blocks, one a thread (`THREADS`): *the
   singing light*, *the makers' sign* (three dots over an arc), *the father's signal*, *someone came this
@@ -491,6 +507,41 @@ Code: `src/story/people-book.js` (the book and the rules), `peopleData` in `src/
   Someone met before v1.5 gets theirs at the next conversation, or while the page is open in their world
   (`pumpPortraits` in main.js, one a frame, people within 60 m); until then their initial on their world's
   colour.
+
+### The Map (v1.58, issue #205: "a proper map to the current level I can access from select button")
+
+The second panel, one RB / R1 (E) from the Quests where the menu opens, and an entry of its own in the Start
+menu: a panel of the game menu rather than a screen of its own, so it opens with View / Select (on Android the
+handheld's Select, through native-pad.js like every pad button), pauses the game and closes with B as the rest
+of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but for the canvas), `mapPanel` in
+`src/game-menu.js`, `mapSource` in `src/main.js`, the Map section of `src/game-menu.css`; tests:
+`tests/world-map.test.js`.
+
+- **The ground**: the world's collision sampled straight down on a grid (`HeightGrid`, `Physics.groundAt`:
+  the heightfield and every collider, so the city's domes, the temples' walls and the floating islands all
+  show; 180 × 180 rays for the whole map, 120 for a zoom), started `MAP.up` (70 m) over the highest of the
+  places that frame it, so a dome or a temple room far overhead is left out. The rays run `MAP.budget` (6 ms)
+  a frame while the Map shows (`pausedFrame` → `worldMap.pump`; the physics' ground mover is put back after),
+  and the map is drawn once into a canvas and kept for the page (`WorldMap`); until then "Drawing the map…"
+  and how far. The square shown (`mapBounds`) frames where you land, the ship, the temples' doors, the people
+  and every box (opened or not: they frame it, a closed one is never drawn), padded, 160 m to 1.6 km across,
+  inside the world's `limit`.
+- **The ink** (`drawTerrain`): five bands of ochre to pale by height, shaded from the north-west in four steps,
+  smoothed; contour lines (`contourStep`: 1, 2, 5, 10 … m, about twelve, every fifth darker); the pen's lines
+  traced round with marching squares: the steep places (a cliff, a wall, a dome's rim), the edge of the void
+  (where a ray finds nothing: dotted paper, the City Floating in Space) and of open water (teal, deeper
+  darker; a world's sea, the Underwater City's, is not open water); a double frame, N, a scale bar.
+- **The marks** (`mapMarks`, HTML over the canvas so they stay sharp): you (a red arrow turned the way you
+  face), the way on (the scout's objective, `nextObjective` without the doorways), your ship, the makers'
+  temples (at their doors), the people met here, the boxes opened. Something inside a temple's or a shop's
+  room (built far from the ground) is drawn at its door (`mapAt`). Never a fragment of the singing light, nor
+  a box still closed. The way on, the ship and the temples are named on the map unless another name is beside
+  them; the others when picked.
+- **The legend** beside it (under it on a narrow screen): a line a mark, how far and which way from you
+  ("the ship · 12 m south-east"); the cursor's mark ringed on the map. A / × zooms on it (a third of the
+  map's width round it, its own grid), again the whole map; B / ○ the whole map first, then closes. The
+  fragments found here are counted under it once the first is found (as the Worlds panel does).
+- Web only: the Unity bridge draws the HUD and the conversation (BridgeHud.cs), never the menus.
 
 ## The galactic map's signature search (v1.6)
 

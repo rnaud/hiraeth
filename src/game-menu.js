@@ -1,25 +1,34 @@
-// The game menu (View / Select, J, the touch ❏; the Start menu's Items and Quests): since October
+// The game menu (View / Select, J, the touch ❏; the Start menu's Items, Quests and Map): since October
 // 2026 it takes the sketchbook's place. After the pause screen of Ocarina of Time, drawn in the
-// game's own ink and paper: five panels side by side, turned with the shoulder buttons (LB / L1,
+// game's own ink and paper: six panels side by side, turned with the shoulder buttons (LB / L1,
 // RB / R1; Q / E or [ ] on a keyboard; the tabs and the side arrows with a mouse or a finger), the
 // neighbours' names at the sheet's sides; inside a panel a cursor moves over a grid of cells with the
 // stick, the D-pad or the arrows; the cell's name and what it is in the strip at the bottom, with the
-// buttons that do something here. A / × uses or looks (an item's gun mode, a quest tracked, a sketch
-// held up), B / ○ closes the menu from anywhere in it (there is nothing to go back to: the panels are
-// side by side). Moving off a row's end rests on the side tab first, as on the N64; once more turns.
+// button that does something here. Moving off a row's end rests on the side tab first, as on the N64;
+// once more turns. B / ○ closes the menu (out of a page it opened first).
 //
-//   Items       the gear (the makers' items, each drawn by the game's own pipeline: src/item-icons.js),
-//               what you carry for the quests, the keepsakes for the father's charge
+// Playtest 2026-10-12 (issue #213): "Items are too small. I should be able to press A to see them bigger. The
+// explanation should only be present when the item is full screen (and not overlap on top of the item). Default
+// menu should be the quest one." So the menu opens on Quests; the items are large tiles with their names; A / ×
+// on a thing opens it full screen (the full view: its picture large, its words beside it, or under it on a
+// narrow screen, never over it; its action there: a gun mode taken, the fragment finder switched, a gadget in
+// hand; ← → the one before and after; B / ○ back). The strip says only the name and what A / × does.
+//
 //   Quests      the father's charge and each quest under way: its overall goal and its next step only
 //               (src/story/quests.js summary), the one tracked first; the finished ones by title, a short list
-//   Sketchbook  the Sightings (every trace of the singing light, the makers' sign and the father's signal
-//               met so far, a ? for each still to find), every world's story page and relics, the errands'
-//               and the observatory's sketches
-//   Worlds      the worlds you know, in the route's order: their picture, story, relics and boxes
+//   Map         the world you are in, from above (src/world-map.js): you, the ship, the way on, the temples,
+//               the people met and the boxes opened; the legend beside it, A / × zooms on the one picked
+//   Items       the gear (the makers' items, each drawn by the game's own pipeline: src/item-icons.js),
+//               what you carry for the quests, the keepsakes for the father's charge
+//   Worlds      the worlds you know, in the route's order, one a row: A / × shows what you have found there
+//               and what is still to find
 //   People      everyone you have talked to, a card each grouped by world (their portrait, name, role); A / ×
 //               opens one: what you know of them, where they are now, what passed between you; B / ○ back
 //               to the cards (src/story/people-book.js). The cards' grid moves by where the cards are on the
-//               screen (gridStep, src/menu-pad.js: data-grid-nav), so it is right at any width.
+//               screen (gridStep, src/menu-pad.js: data-grid-nav), so it is right at any width; the items too.
+//   Sketchbook  the Sightings (every trace of the singing light, the makers' sign and the father's signal
+//               met so far, a ? for each still to find), every world's story page and relics, the errands'
+//               and the observatory's sketches
 //
 // What fills the panels comes from `sources` (src/game-menu-data.js, wired in main.js). The cursor and
 // the panels are plain state (MenuState, moveCursor) so tests can drive them without a page.
@@ -30,18 +39,19 @@ import { gridStep } from './menu-pad.js';
 import { t, onLanguage } from './i18n.js';
 import { chimeIcon } from './chime-icon.js';
 
-// (the names in the language now: src/i18n.js)
-export const PANELS = ['items', 'quests', 'sketches', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
+// (the names in the language now: src/i18n.js; the menu opens on the first, Quests: issue #213)
+export const PANELS = ['quests', 'map', 'items', 'worlds', 'people', 'sketches'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
+/** The panel the menu opens on (View / Select, J, the touch ❏): the quests (issue #213). */
+export const DEFAULT_PANEL = 'quests';
 /** The people's cards: this many a row (as the cursor counts them without a page; on one, where they are drawn). */
 export const PEOPLE_COLS = 4;
-/** The gear's grid: this many slots a row (ten since v1.40: the three new worlds' finds keep it to six rows; eleven
- *  since v1.52, the City-Shaft's Lamplighter's glass the sixty-first, the slots a little narrower to keep its width;
- *  twelve since v1.55, the scientist's seven for the fragments of the singing light, narrower again). */
+/** The gear's cells: this many a row in the cursor's count (on a page the tiles are as many a row as fit, and the
+ *  cursor moves by where they are drawn: data-grid-nav). Twelve since v1.55. */
 export const GEAR_COLS = 12;
 /** The Sightings' notes: this many a row. */
 export const SIGHT_COLS = 5;
-/** The worlds' cards: this many a row. */
-export const WORLD_COLS = 4;
+/** The worlds: one a row since v1.58 (issue #213: "the worlds tab I can't go up and down"). */
+export const WORLD_COLS = 1;
 
 const esc = escapeHtml;
 
@@ -89,7 +99,7 @@ export function moveCursor(rows, at = { r: 0, c: 0 }, dx = 0, dy = 0) {
   return { r, c };
 }
 
-/** Which panel shows and where the cursor is on each (kept while the game runs: the menu opens where you left it). */
+/** Which panel shows and where the cursor is on each (kept while the game runs). */
 export class MenuState {
   constructor(panels = PANELS) { this.panels = panels; this.i = 0; this.at = {}; }
   get panel() { return this.panels[this.i]; }
@@ -126,36 +136,48 @@ const icon = (it) => it.icon
 const KINDS = ['core', 'weapon', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic', 'quest', 'keepsake'];
 const KIND_NAME = Object.defineProperties({}, Object.fromEntries(KINDS.map((k) => [k, { get: () => t(`gm.kind.${k}`), enumerable: true }])));
 
+/** What A / × does to an item in its full view: a gun mode taken, a gadget in hand, a switch turned (null: nothing). */
+export function itemUse(it) {
+  if (!it?.usable) return null;
+  if (it.toggle) return it.inUse ? t('gm.full.off') : t('gm.full.on');
+  if (it.kind === 'gadget') return t('gm.full.equip');
+  return t('gm.full.mode');
+}
+
 /**
- * Items: { gear: [{ id, name, kind, text, use, icon, inUse, usable }], slots, pack: [{ id, name }], keepsakes: [{ id, name, text, world }],
+ * Items: { gear: [{ id, name, kind, text, icon, inUse, usable, toggle }], slots, pack: [{ id, name }], keepsakes: [{ id, name, text, world }],
  * chimes (the wallet, shown by the gear's heading; null: not shown) }.
- * The gear's grid (a slot for each item there is to find: the empty ones drawn but not named, so nothing
- * is given away but how many), under it what you carry for the quests and the keepsakes for the father's
- * charge, side by side; beside it all, the picked one large, as the N64's Equipment screen shows its hero.
- * Rows: the grid's, then a row a line of the pack (column 0) and of the keepsakes (column CARRY_COL).
+ * The gear as large tiles, each with its name under its picture (a slot for each item there is to find: the empty
+ * ones drawn but not named, so nothing is given away but how many), under it what you carry for the quests and the
+ * keepsakes for the father's charge, side by side. A / × on one: its full view (what it is, what it does, its use).
+ * Rows: the gear's (GEAR_COLS a row), then a row a line of the pack (column 0) and of the keepsakes (column CARRY_COL).
  */
 export const CARRY_COL = 4;
 export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], chimes = null } = {}) {
   const rows = [];
-  gear.forEach((it, i) => { (rows[Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub: KIND_NAME[it.kind] ?? '', desc: it.text ?? '', act: it.usable ? 'use' : null, it }); });
-  const packs = pack.map((it) => ({ kind: 'pack', id: it.id, name: it.name, sub: KIND_NAME.quest, desc: t('gm.carried'), act: null, it: { ...it, kind: 'quest' } }));
-  const keeps = keepsakes.map((it) => ({ kind: 'keepsake', id: it.id, name: it.name, sub: `${KIND_NAME.keepsake}${it.world ? ` · ${t('gm.fromWorld', { world: it.world })}` : ''}`, desc: it.text ?? '', act: null, it: { ...it, kind: 'keepsake' } }));
+  const full = (it, sub, text) => ({ pic: `<div class="big ${esc(it.kind ?? '')}">${icon(it)}</div>`, sub, text, inUse: !!it.inUse, use: itemUse(it) });
+  gear.forEach((it, i) => {
+    const sub = KIND_NAME[it.kind] ?? '';
+    (rows[Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub, desc: it.text ?? '', act: 'look', use: it.usable ? 'use' : null, it, full: full(it, sub, it.text ?? '') });
+  });
+  const packs = pack.map((it) => ({ kind: 'pack', id: it.id, name: it.name, sub: KIND_NAME.quest, desc: t('gm.carried'), act: 'look', it: { ...it, kind: 'quest' }, full: full({ ...it, kind: 'quest' }, KIND_NAME.quest, t('gm.carried')) }));
+  const keeps = keepsakes.map((it) => {
+    const sub = `${KIND_NAME.keepsake}${it.world ? ` · ${t('gm.fromWorld', { world: it.world })}` : ''}`;
+    return { kind: 'keepsake', id: it.id, name: it.name, sub, desc: it.text ?? '', act: 'look', it: { ...it, kind: 'keepsake' }, full: full({ ...it, kind: 'keepsake' }, sub, it.text ?? '') };
+  });
   const g = rows.length;
   for (let k = 0; k < Math.max(packs.length, keeps.length); k++) rows.push([...(packs[k] ? [{ ...packs[k], col: 0 }] : []), ...(keeps[k] ? [{ ...keeps[k], col: CARRY_COL }] : [])]);
   const where = (kind, id) => { for (let r = 0; r < rows.length; r++) { const c = rows[r].findIndex((x) => x.kind === kind && x.id === id); if (c >= 0) return cellAttrs(r, c); } return ''; };
-  const slot = (it) => `<button class="slot${it.inUse ? ' inuse' : ''}" ${where('item', it.id)} aria-label="${esc(it.name)}">${icon(it)}${it.inUse ? `<em>${t('gm.inUse')}</em>` : ''}</button>`;
-  const empties = Array.from({ length: Math.max(0, slots - gear.length) }, () => '<span class="slot empty" aria-hidden="true"></span>').join('');
+  const slot = (it) => `<button class="slot${it.inUse ? ' inuse' : ''}" ${where('item', it.id)} aria-label="${esc(it.name)}"><span class="pic">${icon(it)}${it.inUse ? `<em>${t('gm.inUse')}</em>` : ''}</span><span class="nm">${esc(it.name)}</span></button>`;
+  const empties = Array.from({ length: Math.max(0, slots - gear.length) }, () => '<span class="slot empty" aria-hidden="true"><span class="pic"></span></span>').join('');
   const line = (x) => `<button class="line ${x.kind}" ${where(x.kind, x.id)}>${icon(x.it)}<span>${esc(x.name)}</span></button>`;
-  const html = `<div class="gm-items">
-    <div class="gm-left">
+  const html = `<div class="gm-items" data-grid-nav>
       <section class="gm-gear"><h2>${t('gm.gear')} <span>${slots ? t('gm.gearCount', { n: gear.length, m: slots }) : gear.length}</span>${chimes !== null ? `<span class="gm-wallet" title="${esc(t('hud.chimes'))}">${chimeIcon('chime')}${t('gm.chimes', { n: chimes })}</span>` : ''}</h2>
-        <div class="grid" style="--cols:${GEAR_COLS}">${gear.map(slot).join('')}${empties}</div></section>
+        <div class="grid">${gear.map(slot).join('')}${empties}</div></section>
       <div class="gm-carry">
         <section><h2>${t('gm.pack')}</h2>${packs.map(line).join('') || `<p class="none">${t('gm.packNone')}</p>`}</section>
         <section><h2>${t('gm.keepsakes')} <span>${keeps.length}</span></h2>${keeps.map(line).join('') || `<p class="none">${t('gm.keepNone')}</p>`}</section>
-      </div>
-    </div>
-    <aside class="gm-preview" aria-hidden="true"></aside></div>`;
+      </div></div>`;
   return { html, rows, gearRows: g };
 }
 
@@ -163,7 +185,8 @@ export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], ch
  * Quests: { charge: { title, goal, step, worlds } | null, active: [{ id, title, goal, step, main, tracked }],
  * errands: [{ id, title, goal, step }], done: [{ id, title, outro }], failed: [...] }.
  * Each quest under way shows its overall goal and its next step, nothing else (no steps done, no history);
- * the finished and failed ones are a short list of titles beside them (ENDED of each).
+ * the finished and failed ones are a short list of titles beside them (ENDED of each); A / × on one of those
+ * opens how it ended.
  */
 export const ENDED = 6;
 export function questsPanel({ charge = null, active = [], errands = [], done = [], failed = [] } = {}) {
@@ -173,7 +196,10 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
   for (const q of active) main.push({ kind: 'quest', id: q.id, name: q.title, sub: q.tracked ? t('gm.tracked') : (q.main ? t('gm.mainQuest') : t('gm.errand')), desc: `${q.goal}.`, act: q.tracked ? null : 'track', q });
   for (const q of errands) main.push({ kind: 'errand', id: q.id, name: q.title, sub: t('gm.parcel'), desc: `${q.goal}.`, act: null, q });
   const ended = [...done.slice(0, ENDED).map((q) => ({ ...q, failed: false })), ...failed.slice(0, ENDED).map((q) => ({ ...q, failed: true }))];
-  const side = ended.map((q) => ({ kind: 'ended', id: q.id, name: q.title, sub: q.failed ? t('gm.failed') : t('gm.complete'), desc: q.outro ?? '', act: null, q }));
+  const side = ended.map((q) => {
+    const sub = q.failed ? t('gm.failed') : t('gm.complete');
+    return { kind: 'ended', id: q.id, name: q.title, sub, desc: q.outro ?? '', act: 'look', q, full: { pic: `<div class="big mark ${q.failed ? 'failed' : 'done'}"><i>${q.failed ? '·' : '✓'}</i></div>`, sub, text: q.outro ?? '' } };
+  });
   const n = Math.max(main.length, side.length);
   for (let r = 0; r < n; r++) {
     const row = [];
@@ -202,13 +228,17 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
   return { html, rows, start: tracked >= 0 ? { r: tracked, c: 0 } : null };
 }
 
+/** A sketch's full view: its picture, or a ? until it is drawn. */
+const sketchFull = (x, text) => ({ pic: x.img ? `<div class="big sketch"><img src="${esc(x.img)}" alt=""></div>` : '<div class="big mark"><i>?</i></div>', sub: x.sub, text });
+
 /**
  * Sketchbook: { sightings: [{ id, name, ask, answer: { line, who } | null, found, of, entries: [{ id, line, who, world, found }] }] | null,
  * worlds: [{ id, title, story: { title, img }, relics: [{ name, img }], found, of }],
  * extra: [{ id, title, tiles: [{ name, img, caption }] }] } (the observatory, the errands).
  * First the Sightings (src/story/sightings.js): a block a thread, its notes SIGHT_COLS a row, the ones met
  * as a short line with the world and who said it, the rest a ? (with the world's name once you know it).
- * Then one row a world: its story page (drawn when told), then its relics (a ? until found).
+ * Then one row a world: its story page (drawn when told), then its relics (a ? until found). A / × on any:
+ * its full view (the sketch large, what it is beside it).
  */
 export function sketchesPanel({ sightings = null, worlds = [], extra = [] } = {}) {
   const rows = [];
@@ -216,38 +246,40 @@ export function sketchesPanel({ sightings = null, worlds = [], extra = [] } = {}
   const sections = [];
   // the Sightings: a thread a block, its notes SIGHT_COLS a row (a row of the grid is a row of the cursor's)
   if (sightings?.length) {
-    const found = sightings.reduce((n, t) => n + t.found, 0), of = sightings.reduce((n, t) => n + t.of, 0);
-    const blocks = sightings.map((t) => {
+    const found = sightings.reduce((n, th) => n + th.found, 0), of = sightings.reduce((n, th) => n + th.of, 0);
+    const blocks = sightings.map((th) => {
       const notes = [], base = rows.length;
-      t.entries.forEach((e, i) => {
+      th.entries.forEach((e, i) => {
         const r = base + Math.floor(i / SIGHT_COLS), c = i % SIGHT_COLS;
-        (rows[r] ??= []).push({ col: c, kind: 'sighting', id: e.id, name: e.found ? e.line : 'Not found yet',
-          sub: e.found ? [t.name, e.world, e.who].filter(Boolean).join(' · ') : `${t.name} · ${e.world || 'somewhere further on'}`,
-          desc: t.answer ? `${t.answer.who}: “${t.answer.line}”` : e.found ? t.ask : `A trace still to find${e.world ? ` in ${e.world}` : ''}. ${t.ask}`, act: null });
+        const sub = e.found ? [th.name, e.world, e.who].filter(Boolean).join(' · ') : `${th.name} · ${e.world || 'somewhere further on'}`;
+        const desc = th.answer ? `${th.answer.who}: “${th.answer.line}”` : e.found ? th.ask : `A trace still to find${e.world ? ` in ${e.world}` : ''}. ${th.ask}`;
+        (rows[r] ??= []).push({ col: c, kind: 'sighting', id: e.id, name: e.found ? e.line : 'Not found yet', sub, desc, act: 'look',
+          full: { title: th.name, pic: `<div class="big note t-${esc(th.id)}">${e.found ? `<q>${esc(e.line)}</q>` : '<i>?</i>'}</div>`, sub, text: desc } });
         notes.push(`<button class="note${e.found ? '' : ' empty'}" ${cellAttrs(r, c)} aria-label="${esc(e.found ? e.line : 'not found yet')}">${e.found
           ? `<q>${esc(e.line)}</q><small>${esc([e.world, e.who].filter(Boolean).join(' · '))}</small>`
           : `<i>?</i>${e.world ? `<small>${esc(e.world)}</small>` : ''}`}</button>`);
       });
       // (answered at the Lantern: the thread's answer under its name, in Ilen's words)
-      const answer = t.answer ? `<p class="answer"><q>“${esc(t.answer.line)}”</q><small>${esc(t.answer.who)}</small></p>` : '';
+      const answer = th.answer ? `<p class="answer"><q>“${esc(th.answer.line)}”</q><small>${esc(th.answer.who)}</small></p>` : '';
       // (`t-<id>`: a bare `glyph` class is the pad glyphs' own, src/pad-glyphs.js, and laid the makers' sign's block out as one)
-      return `<div class="thread t-${esc(t.id)}${t.answer ? ' answered' : ''}"><h3>${esc(t.name)} <span>${t.found}/${t.of}</span></h3>${answer}<div class="notes" style="--cols:${SIGHT_COLS}">${notes.join('')}</div></div>`;
+      return `<div class="thread t-${esc(th.id)}${th.answer ? ' answered' : ''}"><h3>${esc(th.name)} <span>${th.found}/${th.of}</span></h3>${answer}<div class="notes" style="--cols:${SIGHT_COLS}">${notes.join('')}</div></div>`;
     });
     sections.push(`<section class="sightings"><h2>Sightings <span>${found}/${of}</span></h2>${blocks.join('')}</section>`);
   }
+  const cell = (x) => ({ ...x, act: 'look', full: sketchFull(x, x.desc) });
   for (const w of worlds) {
     const r = rows.length, cells = [];
-    cells.push({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: t(w.story?.img || w.story?.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(w.story?.img ? 'gm.storyDrawn' : w.story?.told ? 'gm.storyOld' : 'gm.storyLater'), act: w.story?.img ? 'look' : null, img: w.story?.img ?? null });
+    cells.push(cell({ col: 0, kind: 'story', id: `${w.id}.story`, name: w.story?.title || w.title, sub: t(w.story?.img || w.story?.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(w.story?.img ? 'gm.storyDrawn' : w.story?.told ? 'gm.storyOld' : 'gm.storyLater'), img: w.story?.img ?? null }));
     // (a merged world's later parts' own pages, after its first: Vael II's bell, Lorn II's lamps)
-    (w.more ?? []).forEach((m, k) => cells.push({ col: 1 + k, kind: 'story', id: `${m.id}.story`, name: m.title, sub: t(m.img || m.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(m.img ? 'gm.storyDrawn' : m.told ? 'gm.storyOld' : 'gm.storyLater'), act: m.img ? 'look' : null, img: m.img ?? null }));
+    (w.more ?? []).forEach((m, k) => cells.push(cell({ col: 1 + k, kind: 'story', id: `${m.id}.story`, name: m.title, sub: t(m.img || m.told ? 'gm.storyTold' : 'gm.storyNotTold', { world: w.title }), desc: t(m.img ? 'gm.storyDrawn' : m.told ? 'gm.storyOld' : 'gm.storyLater'), img: m.img ?? null })));
     const off = 1 + (w.more?.length ?? 0);
-    (w.relics ?? []).forEach((x, i) => cells.push({ col: off + i, kind: 'relic', id: `${w.id}.${i}`, name: x.img ? x.name : t('gm.notFoundYet'), sub: t('gm.relicOf', { world: w.title, i: i + 1, n: w.relics.length }), desc: t(x.img ? 'gm.relicFound' : 'gm.relicHint'), act: x.img ? 'look' : null, img: x.img ?? null }));
+    (w.relics ?? []).forEach((x, i) => cells.push(cell({ col: off + i, kind: 'relic', id: `${w.id}.${i}`, name: x.img ? x.name : t('gm.notFoundYet'), sub: t('gm.relicOf', { world: w.title, i: i + 1, n: w.relics.length }), desc: t(x.img ? 'gm.relicFound' : 'gm.relicHint'), img: x.img ?? null })));
     rows.push(cells);
     sections.push(`<section class="world"><h2>${esc(w.title)} <span>${w.found ?? 0}/${w.of ?? (w.relics ?? []).length}</span></h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, x.kind === 'story')).join('')}</div></section>`);
   }
   for (const e of extra) {
     const r = rows.length;
-    const cells = e.tiles.map((x, i) => ({ col: i, kind: 'sketch', id: `${e.id}.${i}`, name: x.name, sub: e.title, desc: x.caption ?? '', act: x.img ? 'look' : null, img: x.img ?? null }));
+    const cells = e.tiles.map((x, i) => cell({ col: i, kind: 'sketch', id: `${e.id}.${i}`, name: x.name, sub: e.title, desc: x.caption ?? '', img: x.img ?? null }));
     if (!cells.length) continue;
     rows.push(cells);
     sections.push(`<section class="world extra"><h2>${esc(e.title)}${e.count ? ` <span>${esc(e.count)}</span>` : ''}</h2><div class="row">${cells.map((x, c) => tile({ name: x.name, img: x.img }, r, c, !!e.wide)).join('')}</div></section>`);
@@ -256,20 +288,40 @@ export function sketchesPanel({ sightings = null, worlds = [], extra = [] } = {}
   return { html, rows };
 }
 
+/** A world's facts, in a line each: the story, the relics, the boxes, the fragments (once the first is found), the people. */
+export function worldFacts(w) {
+  const facts = [];
+  facts.push({ on: !!w.told, text: t(w.told ? 'gm.told' : 'gm.notTold') });
+  const [rn, rm] = w.relics ?? [0, 0];
+  if (rm) facts.push({ on: rn >= rm, text: t('gm.w.relics', { n: rn, m: rm }), list: (w.relicList ?? []).map((x) => (x.found ? x.name : '?')) });
+  if (w.boxes) facts.push({ on: w.boxes[0] >= w.boxes[1], text: t('gm.w.boxes', { n: w.boxes[0], m: w.boxes[1] }) });
+  if (w.fragments) facts.push({ on: w.fragments[0] >= w.fragments[1], text: t('gm.fragments', { n: w.fragments[0], m: w.fragments[1] }) });
+  if (w.people?.length) facts.push({ on: true, text: t('gm.w.people', { n: w.people.length }), list: w.people });
+  return facts;
+}
+const factsHtml = (facts) => `<ul class="ffacts">${facts.map((f) => `<li class="${f.on ? 'on' : ''}"><i>${f.on ? '✓' : '…'}</i><span>${esc(f.text)}${f.list?.length ? `<small>${f.list.map(esc).join(' · ')}</small>` : ''}</span></li>`).join('')}</ul>`;
+
 /**
- * Worlds: [{ id, title, thumb, current, told, relics: [n, of], boxes: [n, of] | null, blurb, n }] in the
- * route's order: the worlds you know of, their picture, and what is done there.
+ * Worlds: [{ id, title, thumb, current, told, relics: [n, of], boxes: [n, of] | null, blurb, n, relicList, people }] in the
+ * route's order: the worlds you know of, one a row (↑ ↓ go between them), their picture and what is done there.
+ * A / × on one: its full view, what you have found there and what is still to find.
  */
 export function worldsPanel(list = []) {
   const rows = [];
-  list.forEach((w, i) => { const r = Math.floor(i / WORLD_COLS); (rows[r] ??= []).push({ col: i % WORLD_COLS, kind: 'world', id: w.id, name: w.title, sub: [w.current ? t('gm.here') : '', t(w.told ? 'gm.told' : 'gm.notTold')].filter(Boolean).join(' · '), desc: w.blurb ?? '', act: null }); });
-  const card = (w, i) => `<button class="wcard${w.current ? ' here' : ''}${w.told ? ' told' : ''}" ${cellAttrs(Math.floor(i / WORLD_COLS), i % WORLD_COLS)}>
+  list.forEach((w, i) => {
+    const sub = [w.current ? t('gm.here') : '', t(w.told ? 'gm.told' : 'gm.notTold')].filter(Boolean).join(' · ');
+    rows.push([{ col: 0, kind: 'world', id: w.id, name: w.title, sub, desc: w.blurb ?? '', act: 'look',
+      full: { pic: `<div class="big world">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</div>`,
+        sub, text: w.blurb ?? '', facts: factsHtml(worldFacts(w)) } }]);
+  });
+  const card = (w, i) => `<button class="wcard${w.current ? ' here' : ''}${w.told ? ' told' : ''}" ${cellAttrs(i, 0)}>
       <span class="pic">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</span>
-      <span class="wname">${esc(w.title)}</span>
-      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag" title="${esc(t('gm.fragments', { n: w.fragments[0], m: w.fragments[1] }))}">${w.fragments[0] >= w.fragments[1] ? t('gm.fragAll', { n: w.fragments[1] }) : t('gm.fragLeft', { n: w.fragments[1] - w.fragments[0] })}</span>` : ''}</span></button>`;
+      <span class="wtext"><span class="wname">${esc(w.title)}</span>
+      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag" title="${esc(t('gm.fragments', { n: w.fragments[0], m: w.fragments[1] }))}">${w.fragments[0] >= w.fragments[1] ? t('gm.fragAll', { n: w.fragments[1] }) : t('gm.fragLeft', { n: w.fragments[1] - w.fragments[0] })}</span>` : ''}</span>
+      <span class="wblurb">${esc(w.blurb ?? '')}</span></span></button>`;
   // (the fragments of the singing light, all told, once the first is found: worldsData's `fragmentsAll`)
   const all = list.fragmentsAll?.found ? `<p class="gm-fragments">${t('gm.fragments', { n: list.fragmentsAll.found, m: list.fragmentsAll.total })}</p>` : '';
-  const html = `${all}<div class="gm-worlds" style="--cols:${WORLD_COLS}">${list.map(card).join('') || `<p class="none">${t('gm.noWorlds')}</p>`}</div>`;
+  const html = `${all}<div class="gm-worlds">${list.map(card).join('') || `<p class="none">${t('gm.noWorlds')}</p>`}</div>`;
   return { html, rows };
 }
 
@@ -321,10 +373,49 @@ export function peoplePanel({ groups = [], person = null } = {}) {
   return { html, rows };
 }
 
-const BUILDERS = { items: itemsPanel, quests: questsPanel, sketches: sketchesPanel, worlds: worldsPanel, people: peoplePanel };
+/** A mark's symbol on the map and in its legend. */
+const MARK_SYM = {
+  you: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0 -9 L7 7 L0 3.5 L-7 7 Z"/></svg>',
+  ship: '<svg viewBox="-12 -8 24 16" aria-hidden="true"><path d="M-11 1 C-6 -6 6 -6 11 1 C6 6 -6 6 -11 1 Z"/><path d="M-4 -4 L0 -7 L4 -4" fill="none"/></svg>',
+  goal: '<i>✦</i>', temple: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M-8 8 V-1 L0 -8 L8 -1 V8 Z"/><path d="M-3 8 V2 H3 V8" fill="none"/></svg>',
+  person: '<i>●</i>', box: '<i>▣</i>',
+};
+
+/**
+ * Map: { world, marks: [{ id, kind, name, sub, u, v, deg, on }] (src/world-map.js mapMarks), canvas (the drawn ground,
+ * or null while it is drawn), progress (0..1), zoom (the mark zoomed on, or null), scale: { frac, label }, note }.
+ * The map large, the marks over it (the traveller's arrow turned the way he faces), north up; beside it the legend,
+ * a line a mark, the cursor's one ringed on the map; A / × zooms on it (again: the whole map).
+ * Rows: one line of the legend a row.
+ */
+export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, zoom = null, scale = null, note = '' } = {}) {
+  const rows = marks.map((m, i) => [{ col: 0, kind: 'mark', id: m.id, name: m.name, sub: m.sub, desc: '', act: 'zoom', mark: m, r: i }]);
+  const pos = (m) => `left:${(m.u * 100).toFixed(2)}%;top:${(m.v * 100).toFixed(2)}%`;
+  // (the way on, the ship and the temples named on the map, unless another name is already beside them)
+  const named = new Set();
+  for (const m of marks) {
+    if (!m.on || !['goal', 'ship', 'temple'].includes(m.kind)) continue;
+    if (marks.some((o) => named.has(o.id) && Math.hypot(o.u - m.u, o.v - m.v) < 0.08)) continue;
+    named.add(m.id);
+  }
+  const markHtml = (m) => `<span class="mk mk-${m.kind}${named.has(m.id) ? ' named' : ''}" data-mark="${esc(m.id)}" style="${pos(m)}${m.deg !== undefined ? `;--deg:${m.deg.toFixed(1)}deg` : ''}">${MARK_SYM[m.kind] ?? ''}<b>${esc(m.name)}</b></span>`;
+  const lines = marks.map((m, i) => `<button class="mline mk-${m.kind}${m.on ? '' : ' off'}" ${cellAttrs(i, 0)} data-mark="${esc(m.id)}"><span class="sym">${MARK_SYM[m.kind] ?? ''}</span><span class="mtext"><b>${esc(m.name)}</b><small>${esc(m.sub ?? '')}</small></span></button>`).join('');
+  const html = `<div class="gm-map${zoom ? ' zoomed' : ''}">
+    <div class="gm-mapsheet">
+      <div class="gm-mapimg">${canvas ? '' : `<p class="drawing"><span class="pen" aria-hidden="true"></span>${t('gm.map.drawing')} ${Math.round(progress * 100)}%</p>`}</div>
+      <div class="gm-marks">${marks.filter((m) => m.on).map(markHtml).join('')}</div>
+      <span class="gm-north" aria-hidden="true">N</span>
+      ${scale ? `<span class="gm-scale" style="--w:${(scale.frac * 100).toFixed(1)}%"><i></i>${esc(scale.label)}</span>` : ''}
+    </div>
+    <aside class="gm-legend"><h2>${esc(world)}${zoom ? ` <span>${t('gm.map.zoomed')}</span>` : ''}</h2>${lines || `<p class="none">${t('gm.map.none')}</p>`}${note ? `<p class="gm-mapnote">${esc(note)}</p>` : ''}</aside>
+  </div>`;
+  return { html, rows, canvas };
+}
+
+const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, sketches: sketchesPanel, worlds: worldsPanel, people: peoplePanel };
 
 /** The verb A / × does on a cell ('' if nothing). */
-export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
+export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
 
 /**
  * What the confirm button does on the picked cell, in the info strip: its glyph (a pad's printed A, the
@@ -337,23 +428,45 @@ export function menuPrompts(act = null, kind = inputKind()) {
   return `<span class="gm-act">${glyph('ok')}${escapeHtml(act)}</span>`;
 }
 
+/**
+ * A thing's full view (A / × on it, issue #213): its picture large on the left, its name, kind and words on the
+ * right (under it on a narrow screen: never over it), its facts and its action (A / ×); a Back button (B / ○) and
+ * the ones before and after (← →). `cell`: a panel's cell with `full` { pic, sub, text, facts, use, inUse }.
+ */
+export function fullHtml(cell, { prev = null, next = null } = {}) {
+  const f = cell.full ?? {};
+  return `<div class="gm-full-in" data-full="${esc(cell.id)}" data-kind="${esc(cell.kind)}">
+    <button class="fback">${glyph('back', { key: 'Esc' })}<span>${t('gm.back')}</span></button>
+    <div class="fpic">${f.pic ?? ''}</div>
+    <div class="ftext">
+      <h2>${esc(f.title ?? cell.name)}</h2>
+      ${f.sub ? `<span class="fsub">${esc(f.sub)}</span>` : ''}${f.inUse ? `<em class="finuse">${t('gm.inUse')}</em>` : ''}
+      ${f.text ? `<p>${keyText(esc(f.text), { html: true, teach: true })}</p>` : ''}
+      ${f.facts ?? ''}
+      ${f.use ? `<button class="fuse" data-full-use>${glyph('ok')}<span>${esc(f.use)}</span></button>` : ''}
+    </div>
+    <nav class="fstep">${prev ? `<button data-full-step="-1"><span class="arrow">◀</span>${esc(prev)}</button>` : '<span></span>'}${prev || next ? glyph('dpad', { key: '← →' }) : ''}${next ? `<button data-full-step="1">${esc(next)}<span class="arrow">▶</span></button>` : '<span></span>'}</nav>
+  </div>`;
+}
+
 // ------------------------------------------------------------------ the menu on the page
 
 export class GameMenu {
   /**
    * @param el      the menu's root (index.html #journal)
-   * @param o.sources { items(), quests(), sketches(), worlds() } → each panel's data (src/game-menu-data.js)
-   * @param o.onTrack (id) a quest chosen (the scout finds it) · o.onUse (id) an item used (a gun mode)
+   * @param o.sources { items(), quests(), map({ zoom }), sketches(), worlds(), people(open) } → each panel's data (src/game-menu-data.js)
+   * @param o.onTrack (id) a quest chosen (the scout finds it) · o.onUse (id) an item used (a gun mode, a gadget, a switch)
    * @param o.onClose () the ✕, B / ○ or Esc (Journal.toggle(false))
    */
   constructor(el, { sources = {}, onTrack = null, onUse = null, onClose = null } = {}) {
     Object.assign(this, { el, sources, onTrack, onUse, onClose });
     this.state = new MenuState();
     this.rows = [];
-    this.looking = null;
+    this.full = null;       // the thing open full screen: { panel, kind, id } (null: the panel)
     this.person = null;     // the People panel: the person whose page is open (null: the cards)
     this.detail = null;     // (that page's data: its neighbours for ← →)
     this.gridAt = null;     // (the cards' cursor while a page is open)
+    this.mapZoom = null;    // the Map panel: the mark zoomed on (null: the whole map)
     if (!el) return;
     el.classList.add('gamemenu');
     el.innerHTML = `
@@ -362,29 +475,31 @@ export class GameMenu {
         <button class="gm-close close" aria-label="${t('gm.close')}">${glyph('back', { key: 'Esc' })}✕</button>
         <div class="gm-stage">
           <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span>${glyph('lb', { key: 'Q' })}<span class="nm"></span></button>
-          <div class="gm-sheet"><h1 class="gm-title"></h1><div class="gm-body"></div><div class="gm-look" hidden></div></div>
+          <div class="gm-sheet"><h1 class="gm-title"></h1><div class="gm-body"></div><div class="gm-full" hidden></div></div>
           <button class="gm-side next" data-go="1"><span class="arrow">▶</span>${glyph('rb', { key: 'E' })}<span class="nm"></span></button>
         </div>
-        <footer class="gm-info"><div class="gm-what"><b class="gm-name"></b><span class="gm-sub"></span><p class="gm-desc"></p></div><div class="gm-keys"></div></footer>
+        <footer class="gm-info"><div class="gm-what"><b class="gm-name"></b><span class="gm-sub"></span></div><div class="gm-keys"></div></footer>
       </div>`;
     this.body = el.querySelector('.gm-body');
+    this.fullEl = el.querySelector('.gm-full');
     // (a new language: the tabs' and the close button's words; the panels are drawn again as they open)
     onLanguage(() => {
       for (const b of el.querySelectorAll('.gm-tab')) b.textContent = PANELS.find((p) => p.id === b.dataset.panel)?.name ?? b.textContent;
       el.querySelector('.gm')?.setAttribute('aria-label', t('gm.label'));
       el.querySelector('.gm-close')?.setAttribute('aria-label', t('gm.close'));
     });
-    this.lookEl = el.querySelector('.gm-look');
     el.addEventListener('click', (e) => {
-      const t = e.target.closest?.('[data-at], [data-go], [data-panel], [data-step], .gm-close, .gm-look');
-      if (!t) return;
-      if (t.classList.contains('gm-close')) { this.onClose?.(); return; }
-      if (t.classList.contains('gm-look')) { this.look(false); return; }
-      if (t.dataset.go) { this.turn(+t.dataset.go); return; }
-      if (t.dataset.panel) { this.show(t.dataset.panel); return; }
-      if (t.dataset.step) { this.stepPerson(+t.dataset.step); return; }
-      if (t.classList.contains('pback')) { this.back(); return; }   // (a person's page: Back goes back at once)
-      const [r, c] = t.dataset.at.split(',').map(Number);
+      const tg = e.target.closest?.('[data-at], [data-go], [data-panel], [data-step], [data-full-step], [data-full-use], .fback, .gm-close');
+      if (!tg) return;
+      if (tg.classList.contains('gm-close')) { this.onClose?.(); return; }
+      if (tg.classList.contains('fback')) { this.back(); return; }
+      if (tg.dataset.fullStep) { this.stepFull(+tg.dataset.fullStep); return; }
+      if (tg.dataset.fullUse !== undefined) { this.confirm(); return; }
+      if (tg.dataset.go) { this.turn(+tg.dataset.go); return; }
+      if (tg.dataset.panel) { this.show(tg.dataset.panel); return; }
+      if (tg.dataset.step) { this.stepPerson(+tg.dataset.step); return; }
+      if (tg.classList.contains('pback')) { this.back(); return; }   // (a person's page: Back goes back at once)
+      const [r, c] = tg.dataset.at.split(',').map(Number);
       const at = this.state.cursor();
       // a tap (or click) picks a cell and says what it is; on the one picked, it does what A / × does
       if (!at.edge && at.r === r && at.c === c) this.confirm();
@@ -392,10 +507,10 @@ export class GameMenu {
     });
     // a mouse over a cell picks it (not a finger: that would act on the first tap)
     el.addEventListener('pointerover', (e) => {
-      if (e.pointerType !== 'mouse') return;
-      const t = e.target.closest?.('[data-at]');
-      if (!t) return;
-      const [r, c] = t.dataset.at.split(',').map(Number), at = this.state.cursor();
+      if (e.pointerType !== 'mouse' || this.full) return;
+      const tg = e.target.closest?.('[data-at]');
+      if (!tg) return;
+      const [r, c] = tg.dataset.at.split(',').map(Number), at = this.state.cursor();
       if (at.r !== r || at.c !== c || at.edge) this.select(r, c, false);
     });
   }
@@ -406,17 +521,20 @@ export class GameMenu {
   render() {
     const id = this.panel;
     let data = null;
-    // (the People panel: its source is asked for the open person's page too)
-    try { data = this.sources[id]?.(id === 'people' ? this.person : undefined) ?? null; } catch (e) { console.warn('game menu', id, e); }
+    // (the People panel: its source is asked for the open person's page too; the Map, for its zoom)
+    const arg = id === 'people' ? this.person : id === 'map' ? { zoom: this.mapZoom } : undefined;
+    try { data = this.sources[id]?.(arg) ?? null; } catch (e) { console.warn('game menu', id, e); }
     if (id === 'people' && this.person && !data?.person) { this.person = null; if (this.gridAt) this.state.at.people = this.gridAt; }
     this.detail = id === 'people' ? data?.person ?? null : null;
-    const { html, rows, start } = BUILDERS[id](data ?? undefined);
+    const { html, rows, start, canvas } = BUILDERS[id](data ?? undefined);
     this.rows = rows;
     // a panel opened for the first time: where it says to start (the Quests panel: the quest you are on)
     if (!this.state.at[id] && start) this.state.at[id] = { ...start };
     // the cursor stays inside what there is
     const at = this.state.cursor();
     if (!at.edge && rows.length) { at.r = Math.min(at.r, rows.length - 1); at.c = Math.min(at.c, rows[at.r].length - 1); }
+    // (a thing open full screen that is no longer there: back to the panel)
+    if (this.full && (this.full.panel !== id || !this.fullCell())) this.full = null;
     if (!this.el) return;
     this.el.dataset.panel = id;
     this.el.querySelector('.gm-title').textContent = this.state.panel.name;
@@ -425,46 +543,61 @@ export class GameMenu {
     this.el.querySelector('.gm-side.prev .nm').textContent = prev.name;
     this.el.querySelector('.gm-side.next .nm').textContent = next.name;
     this.body.innerHTML = html;
+    // (the map's ground: the canvas the world's map drew, src/world-map.js)
+    if (canvas && canvas.nodeType === 1) this.body.querySelector('.gm-mapimg')?.appendChild(canvas);
     this.body.scrollTop = 0;
-    this.look(false);
+    this.drawFull();
     this.paint();
   }
 
-  /** Mark the cursor's cell (or tab) and fill the info strip. */
+  /** Mark the cursor's cell (or tab) and fill the info strip: its name and what it is, and what A / × does. */
   paint(scroll = true) {
     if (!this.el) return;
     const at = this.state.cursor();
     for (const x of this.el.querySelectorAll('.at')) x.classList.remove('at');
-    for (const s of this.el.querySelectorAll('.gm-side')) s.classList.toggle('at', !!at.edge && +s.dataset.go === at.edge);
+    for (const s of this.el.querySelectorAll('.gm-side')) s.classList.toggle('at', !this.full && !!at.edge && +s.dataset.go === at.edge);
     const cell = this.state.cell(this.rows);
     const node = cell && this.body.querySelector(`[data-at="${at.r},${at.c}"]`);
-    if (node) { node.classList.add('at'); if (scroll) node.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); }
-    const name = this.el.querySelector('.gm-name'), sub = this.el.querySelector('.gm-sub'), desc = this.el.querySelector('.gm-desc');
-    if (at.edge) {
+    if (node) { node.classList.add('at'); if (scroll && !this.full) node.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); }
+    // (the map: the picked mark ringed)
+    for (const m of this.body.querySelectorAll('.mk')) m.classList.toggle('sel', m.dataset.mark === cell?.id);
+    const name = this.el.querySelector('.gm-name'), sub = this.el.querySelector('.gm-sub');
+    const shown = this.full ? this.fullCell() : cell;
+    if (at.edge && !this.full) {
       const to = this.state.neighbours()[at.edge > 0 ? 'next' : 'prev'];
-      name.textContent = to.name; sub.textContent = ''; desc.textContent = t('gm.toPanel', { name: to.name });
-    } else {
-      name.textContent = cell?.name ?? ''; sub.textContent = cell?.sub ?? ''; desc.textContent = keyText(cell?.desc ?? '', { teach: true });   // (a {key:verb}: the player's own key or button; the menu is .pad-raw, so it isn't renamed twice)
-    }
-    this.el.querySelector('.gm-keys').innerHTML = menuPrompts(at.edge ? ACT.turn : cell?.act ? ACT[cell.act] : null);
-    // Items: the picked one, large
-    const pv = this.body.querySelector('.gm-preview');
-    if (pv) pv.innerHTML = cell?.it ? `<div class="big ${esc(cell.it.kind ?? '')}">${icon(cell.it)}</div><b>${esc(cell.name)}</b><span>${esc(cell.sub)}</span>${cell.it.inUse ? `<em>${t('gm.inUse')}</em>` : ''}` : '';
+      name.textContent = to.name; sub.textContent = t('gm.toPanel', { name: to.name });
+    } else { name.textContent = shown?.name ?? ''; sub.textContent = shown?.sub ?? ''; }
+    this.el.querySelector('.gm-keys').innerHTML = menuPrompts(this.verb(cell, at));
+  }
+
+  /** The verb A / × does now (the strip). */
+  verb(cell = this.state.cell(this.rows), at = this.state.cursor()) {
+    if (this.full) return this.fullCell()?.full?.use ?? null;
+    if (at.edge) return ACT.turn;
+    if (!cell?.act) return null;
+    if (cell.act === 'zoom') return this.mapZoom === cell.id ? ACT.whole : ACT.zoom;
+    return ACT[cell.act];
   }
 
   open(panel = null) {
-    this.leavePerson(); if (panel) this.state.show(panel); this.render();
+    // (View / Select, J, the touch ❏: the Quests, issue #213; the Start menu's Items, Quests and Map their own)
+    this.leavePerson(); this.full = null; this.state.show(panel ?? DEFAULT_PANEL); this.render();
     // (drawn while the menu was still hidden: once it shows, the cursor's cell scrolled into view)
     if (this.el && typeof requestAnimationFrame === 'function') requestAnimationFrame(() => this.paint());
   }
-  close() { this.look(false); }
-  show(panel) { this.leavePerson(); this.state.show(panel); this.render(); }
-  turn(d) { this.leavePerson(); this.state.turn(d); this.render(); }
-  select(r, c, scroll = true) { this.state.at[this.panel] = { r, c }; this.look(false); this.paint(scroll); }
+  close() { this.full = null; this.drawFull(); }
+  show(panel) { this.leavePerson(); this.full = null; this.state.show(panel); this.render(); }
+  turn(d) { this.leavePerson(); this.full = null; this.state.turn(d); this.render(); }
+  select(r, c, scroll = true) { this.state.at[this.panel] = { r, c }; this.paint(scroll); }
 
   /** The stick, the D-pad, the arrows. */
   navigate(dx, dy) {
-    if (this.looking) { this.look(false); if (!dx && !dy) return; }
+    // a thing full screen: ← → the one before / after, ↑ ↓ read on down its words
+    if (this.full) {
+      if (dx) this.stepFull(Math.sign(dx));
+      else if (dy) { const tx = this.fullEl?.querySelector('.ftext'); if (tx) tx.scrollTop += Math.sign(dy) * Math.max(40, tx.clientHeight * 0.35); }
+      return;
+    }
     // a person's page: ← → the one before / after, ↑ ↓ read on down it
     if (this.panel === 'people' && this.person) {
       if (dx) this.stepPerson(Math.sign(dx));
@@ -477,9 +610,9 @@ export class GameMenu {
   }
 
   /**
-   * A grid that moves by where its cells are drawn (data-grid-nav: the People cards, as many a row as fit):
-   * the cell that way on the screen (gridStep, src/menu-pad.js); past a row's end the side tab, as moveCursor
-   * does. False without a page or such a grid (moveCursor then).
+   * A grid that moves by where its cells are drawn (data-grid-nav: the People cards, the items' tiles, as many a
+   * row as fit): the cell that way on the screen (gridStep, src/menu-pad.js); past a row's end the side tab, as
+   * moveCursor does. False without a page or such a grid (moveCursor then).
    */
   gridMove(dx, dy) {
     const root = this.el ? this.body.querySelector('[data-grid-nav]') : null;
@@ -496,6 +629,52 @@ export class GameMenu {
     const [r, c] = nodes[j].dataset.at.split(',').map(Number);
     this.select(r, c);
     return true;
+  }
+
+  // ---- the full view (issue #213)
+
+  /** The cells of this panel that open full screen, in reading order. */
+  fullCells() { return this.rows.flat().filter((x) => x.full); }
+  /** The cell open full screen now (null: none). */
+  fullCell() { return this.full ? this.fullCells().find((x) => x.kind === this.full.kind && x.id === this.full.id) ?? null : null; }
+
+  /** Open a cell full screen (A / × on it). */
+  openFull(cell) {
+    if (!cell?.full) return;
+    this.full = { panel: this.panel, kind: cell.kind, id: cell.id };
+    this.drawFull();
+    this.paint(false);
+  }
+
+  /** ← → in the full view: the one before or after (the cursor follows it). */
+  stepFull(d) {
+    const list = this.fullCells(), i = list.findIndex((x) => x.kind === this.full?.kind && x.id === this.full?.id);
+    const to = list[i + Math.sign(d)];
+    if (i < 0 || !to) return;
+    this.full = { panel: this.panel, kind: to.kind, id: to.id };
+    this.cursorOn(to);
+    this.drawFull();
+    this.paint(false);
+  }
+
+  /** The cursor on a cell of this panel. */
+  cursorOn(cell) {
+    for (let r = 0; r < this.rows.length; r++) {
+      const c = this.rows[r].findIndex((x) => x.kind === cell.kind && x.id === cell.id);
+      if (c >= 0) { this.state.at[this.panel] = { r, c }; return true; }
+    }
+    return false;
+  }
+
+  /** Draw (or hide) the full view over the sheet. */
+  drawFull() {
+    if (!this.fullEl) return;
+    const cell = this.fullCell();
+    this.fullEl.hidden = !cell;
+    this.el?.classList.toggle('full', !!cell);
+    if (!cell) { this.fullEl.innerHTML = ''; return; }
+    const list = this.fullCells(), i = list.indexOf(cell);
+    this.fullEl.innerHTML = fullHtml(cell, { prev: list[i - 1]?.name ?? null, next: list[i + 1]?.name ?? null });
   }
 
   /** Open a person's page (the People panel), the cards' cursor kept for coming back. */
@@ -524,9 +703,16 @@ export class GameMenu {
     this._backTo = id;
   }
 
-  /** B / ○, Esc: put a held-up sketch down, or close a person's page. True if it did (else the menu closes). */
+  /** B / ○, Esc: out of a full view, a person's page or a zoomed map. True if it did (else the menu closes). */
   back() {
-    if (this.looking) { this.look(false); return true; }
+    if (this.full) {
+      const cell = this.fullCell();
+      this.full = null;
+      if (cell) this.cursorOn(cell);
+      this.drawFull();
+      this.paint();
+      return true;
+    }
     if (this.panel === 'people' && this.person) {
       this.leavePerson();
       this.render();
@@ -536,6 +722,7 @@ export class GameMenu {
       if (r >= 0) this.select(r, this.rows[r].findIndex((x) => x.id === id));
       return true;
     }
+    if (this.panel === 'map' && this.mapZoom) { this.mapZoom = null; this.render(); return true; }
     return false;
   }
 
@@ -548,8 +735,20 @@ export class GameMenu {
     }
   }
 
-  /** A / ×, Enter: what the cell does (a quest tracked, a gun mode taken, a sketch held up), or the tab's turn. */
+  /** The world's map is drawn (src/world-map.js): the Map panel again, if it shows. */
+  mapReady() { if (this.panel === 'map') this.render(); }
+
+  /**
+   * A / ×, Enter: in a full view, its action (a gun mode taken, a switch turned, a gadget in hand); on a cell,
+   * what it does (a quest tracked, a thing opened full screen, a person's page, the map zoomed on a mark), or the
+   * tab's turn.
+   */
   confirm() {
+    if (this.full) {
+      const cell = this.fullCell();
+      if (cell?.use && cell.full?.use) { this.onUse?.(cell.id); this.render(); }
+      return;
+    }
     const at = this.state.cursor();
     if (at.edge) { this.turn(at.edge); return; }
     const cell = this.state.cell(this.rows);
@@ -560,26 +759,27 @@ export class GameMenu {
       const r = this.rows.findIndex((row) => row.some((x) => x.id === cell.id && x.kind === cell.kind));
       if (r >= 0) this.select(r, this.rows[r].findIndex((x) => x.id === cell.id));
     }
-    else if (cell.act === 'use') { this.onUse?.(cell.id); this.render(); }
+    else if (cell.act === 'look') this.openFull(cell);
     else if (cell.act === 'open') this.openPerson(cell.id);
     else if (cell.act === 'back') this.back();
-    else if (cell.act === 'look') this.look(this.looking === cell.id ? false : cell);
-  }
-
-  /** Hold a sketch up over the panel (any move, a press or a click puts it back). */
-  look(cell) {
-    this.looking = cell ? cell.id : null;
-    if (!this.lookEl) return;
-    this.lookEl.hidden = !cell;
-    if (cell) this.lookEl.innerHTML = `<figure><img src="${esc(cell.img)}" alt=""><figcaption><b>${esc(cell.name)}</b> ${esc(cell.sub)}</figcaption></figure>`;
-    else this.lookEl.innerHTML = '';
+    else if (cell.act === 'zoom') {
+      this.mapZoom = this.mapZoom === cell.id ? null : cell.id;
+      this.render();
+      // (the cursor stays on the mark zoomed on)
+      const r = this.rows.findIndex((row) => row[0]?.id === cell.id);
+      if (r >= 0) this.select(r, 0);
+    }
   }
 
   /** An item's picture is ready (src/item-icons.js): swap its mark for it, wherever it shows. */
   iconReady(id, url) {
     if (!url) return;
-    for (const row of this.rows) for (const x of row) if (x.kind === 'item' && x.id === id && x.it) x.it.icon = url;
+    for (const row of this.rows) for (const x of row) if (x.kind === 'item' && x.id === id && x.it) {
+      x.it.icon = url;
+      if (x.full) x.full.pic = `<div class="big ${esc(x.it.kind ?? '')}"><img class="ico" src="${esc(url)}" alt="" data-icon="${esc(id)}"></div>`;
+    }
     if (!this.el) return;
+    if (this.full?.id === id) this.drawFull();
     for (const m of this.el.querySelectorAll(`.ico.mark[data-icon="${CSS.escape?.(id) ?? id}"]`)) {
       const img = document.createElement('img');
       img.className = 'ico'; img.src = url; img.alt = ''; img.dataset.icon = id;
@@ -595,6 +795,7 @@ export class GameMenu {
     const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], KeyA: [-1, 0], KeyD: [1, 0], KeyW: [0, -1], KeyS: [0, 1] }[c];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     if (c === 'Enter' || c === 'Space') { this.confirm(); return true; }
+    if (c === 'Backspace') return this.back();
     return false;
   }
 }
