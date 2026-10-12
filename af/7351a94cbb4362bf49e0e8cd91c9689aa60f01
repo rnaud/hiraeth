@@ -1,0 +1,81 @@
+docs/README.md
+  s_9ca76055a220ed::t_0270e4a2fee14b 50
+docs/systems/performance.md
+  s_9ca76055a220ed::t_2afbb9346212a6 2177-2270
+scripts/bench/android-pad.mjs
+  s_9ca76055a220ed::t_f6abe7830529ba 7-16,36-72,84,90,94,110-152,167
+scripts/bench/android-worlds.mjs
+  s_9ca76055a220ed::t_fe8a4ca7fd820f 132,231-233
+scripts/bench/deck-pen.mjs
+  s_9ca76055a220ed::t_3a4f9595edb692 53
+scripts/bench/deck-worlds.mjs
+  s_9ca76055a220ed::t_2875d579aa25d0 167
+scripts/bench/gecko-load.mjs
+  s_9ca76055a220ed::t_aa4abe7c376d4f 1-117
+scripts/bench/mac-spawn.mjs
+  s_9ca76055a220ed::t_ed85b26a694874 55
+scripts/bench/web-load.mjs
+  s_9ca76055a220ed::t_7050593083ea4c 45
+scripts/bench/web-page.mjs
+  s_9ca76055a220ed::t_78af22e1529f5f 12
+scripts/changelog-shots.mjs
+  s_9ca76055a220ed::t_e6114f488df0b4 111
+scripts/design-qc/capture.mjs
+  s_9ca76055a220ed::t_7d8a1ce19655ad 81
+scripts/enemy-roster/bench.mjs
+  s_9ca76055a220ed::t_a882208a5d8f41 48
+scripts/handheld-perf/lib.mjs
+  s_9ca76055a220ed::t_e3fef725be800d 105
+scripts/icons.mjs
+  s_9ca76055a220ed::t_972c6780618cfb 129
+scripts/lab-perf/lab-perf.mjs
+  s_9ca76055a220ed::t_b9694037bcb1e1 134
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_46fc3dbd07b382 39-41,253,256,258-261,267,273,276-279,368-376,379,381-387,395,399,401,417
+scripts/load-smoke.mjs
+  s_9ca76055a220ed::t_5053f7de858f4f 127
+scripts/motion-audit/lod-page.mjs
+  s_9ca76055a220ed::t_ba35b96da17457 87
+scripts/motion-audit/shimmer.mjs
+  s_9ca76055a220ed::t_2e7af7acfce9fd 104
+scripts/motion-check/record.mjs
+  s_9ca76055a220ed::t_990a7c041f7093 13-14,28,78-80,84-110,115,117,119,121-123,168-171
+scripts/playthrough-browser.mjs
+  s_9ca76055a220ed::t_307652aa2db42e 89
+scripts/portrait-check.mjs
+  s_9ca76055a220ed::t_e90da899c3ad23 47
+scripts/steam-art.mjs
+  s_9ca76055a220ed::t_a9cbfd0ecb8ca6 75
+scripts/title-boot.mjs
+  s_9ca76055a220ed::t_33b1727a053395 65
+scripts/title-perf.mjs
+  s_9ca76055a220ed::t_e33e696e32a874 68
+scripts/title-shots.mjs
+  s_9ca76055a220ed::t_255d3f241552b0 44
+scripts/transition-perf/loading.mjs
+  s_9ca76055a220ed::t_05ff03d442ed66 45,84
+scripts/transition-perf/pen-android.mjs
+  s_9ca76055a220ed::t_f5adf4ad771eed 64
+scripts/transition-perf/pen.mjs
+  s_9ca76055a220ed::t_a7131b139e6f98 55
+scripts/transition-perf/transitions.mjs
+  s_9ca76055a220ed::t_53b6accec5f590 241
+tests/bench.test.js
+  s_9ca76055a220ed::t_cec344b24531d1 64-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af7351a94cbb4362bf49e0e8cd91c9689aa60f01",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
