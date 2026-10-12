@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level on a dark foundry floor at night, a small iron footbridge with a handrail arches over a narrow channel of glowing molten metal running in the floor slabs; the hot light glows up on the traveller and on a cracked ivory mould nearby, the floor slabs split and shaken, sparks drifting; the channel runs on ahead between rusty pillars toward a round casting tower glowing at its door; an old founder with a ladle-hook watches from a doorway. A small cloaked human traveller with a round jade glass fluid backpack crosses the footbridge, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, molten gold and orange, ivory, rust iron, slate grey and indigo shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#mf-night-pour-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-05-22-8cb6",
+      "candidate": "openai/1",
+      "sha256": "bc7c388793e4f08d11e732aeb423d47e8ee61392fdb4e2082cee43f133c651f2",
+      "bytes": 287663,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view from a high gantry over a vast dark foundry hangar at night: across its floor, channels cut in the slabs are filled with glowing molten metal, branching runnels of gold and orange light that all converge on a round cast-iron casting tower with a tall chimney, sparks and smoke rising; the light glows up on the undersides of huge ivory moons hanging in their cradles and from the girder roof, on rusty pillars and on small iron footbridges over the channels; a few lit windows of a workers' quarter; outside the open hall, an indigo sky with two pale moons. A small cloaked human traveller with a round jade glass fluid backpack stands at the gantry's rail in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, molten gold and orange, ivory moons, rust iron, slate grey and indigo shade, mint accents, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#mf-night-pour-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-04-52-331c",
+      "candidate": "openai/1",
+      "sha256": "c001038d50dbbf9fe9253384b42c42575fa1b0fa4663a6ef5104b021c70b9442",
+      "bytes": 290149,
+      "costUSD": 0.041
+    }
+  ]
+}

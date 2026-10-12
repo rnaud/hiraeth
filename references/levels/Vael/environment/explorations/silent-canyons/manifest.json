@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at the bottom of a narrow winding canyon of red-brown rock, a thin strip of aqua sky far overhead, a great ear carved into the canyon wall, its hollow taller than a person, smooth and pale inside, with a small offering of pebbles on its lip; worn steps lead on round the bend, a riders' faded streamer hangs from a peg, and ripple lines drawn faintly in the air show a whisper running away round the corner; the light is cool and the walls glow warm where the sun strikes high up. A small cloaked human traveller with a round jade glass fluid backpack leans into the ear, listening, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone-white stone, red-brown and rose canyon walls, aqua sky, grey-teal shade, pale lilac haze, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#va-silent-canyons-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-46-57-83ac",
+      "candidate": "openai/1",
+      "sha256": "b6037fb5d6259d4b184110114b6c232c2ccea2fc4c68c4e8b163d58ba8cadd81",
+      "bytes": 225785,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view from high over a pale peach desert plain cut by deep narrow winding canyons of red-brown rock, like cracks in dry clay, seen in the late afternoon; inside the canyons, far below the plain, an old road runs along the floors with carved stone steps, niches with little shrines, great carved stone ears in the walls and a few riders' streamers; the canyons all lead to a single tall slender stone tower that rises straight up out of the deepest cleft, a domed room and a spike at its top; bone-white needle spires stand on the plain above and their long shadows fall across the canyons. A small cloaked human traveller with a round jade glass fluid backpack walks the canyon road far below for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone-white stone, peach plain, red-brown canyon walls, aqua sky, grey-teal shade, pale lilac haze, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#va-silent-canyons-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-46-26-748c",
+      "candidate": "openai/1",
+      "sha256": "fd9504e82eac0de38bb5fcdf816140bd610485a8adc9e9357a118a9e2c1562bf",
+      "bytes": 267676,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level on a white stone terrace on a hillside, a small sluice gate of white stone and teal-painted wood with a wheel, just lifted; water pours out over a little lip onto the terrace below, spreading across the bed, and where it reaches, pink and mint flowers open in a wave; a row of stepping stones in the bed is going under; above, more terraces and channels climb toward a glass dome; a gardener with a hoe watches. A small cloaked human traveller with a round jade glass fluid backpack turns the sluice wheel, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, mint, pink, aqua, peach and lavender, fresh green grass, cream-white stone, teal paint, clear water, deep cerulean sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#vi-water-stair-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-52-40-8ab2",
+      "candidate": "openai/1",
+      "sha256": "d2742135ddd8fc3298125c83b78e42240196635c83788175d7f18da04421a39a",
+      "bytes": 332310,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a long gentle hillside built into terraces of white stone, from a pond at the bottom up to a round white house under a ribbed glass dome with a slender glass spire at the top; each terrace is a bed of a different flower, mint, pink, peach, lavender, some flooded and shining, some dry; thin white channels, sluice gates and little waterfalls run from terrace to terrace; umbrella trees and white step pyramids stand on the slope, gardeners in wide hats work the beds. A small cloaked human traveller with a round jade glass fluid backpack walks along a channel's kerb in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, mint, pink, aqua, peach and lavender, fresh green grass, cream-white stone with teal accents, clear water, deep cerulean sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#vi-water-stair-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-52-13-7f4a",
+      "candidate": "openai/1",
+      "sha256": "6226a67ce3d58c9b589df18e5ef8c33b0bf8f93115f3758c75c85b0c464ff8ff",
+      "bytes": 317411,
+      "costUSD": 0.041
+    }
+  ]
+}

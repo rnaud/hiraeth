@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on a round wooden platform high on a giant dark trunk in a deep wood, an old keepers' winch of wood and brass with a coil of cord, a glowing coral lamp being let down on the cord through a gap in the planks toward a dark pool far, far below on the forest floor; around the platform, a rope bridge leading off to a pale mushroom cap, hanging lamp-houses, moss on the rail, a few drifting spores. A small cloaked human traveller with a round jade glass fluid backpack turns the winch handle, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, dusty rose light, deep indigo trunks, pale translucent mushroom caps, teal moss, warm coral lamp glow, navy shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#lo-keepers-canopy-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-49-44-80f6",
+      "candidate": "openai/1",
+      "sha256": "cc4b784e4874a495e8cdbab627814ac5686f7b30ba79bac19ddc21b10b421c4d",
+      "bytes": 317274,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view inside an immense dark wood of cathedral trunks at dusk, looking across at mid-height: an old keepers' village hangs high among the trunks, round platforms ringing the trunks, rope bridges and plank walkways strung between them, little round lamp-houses hanging from branches, ladders, and the great pale half-transparent caps of giant mushrooms serving as squares with lanterns on them; far below, a teal stream and a path of lit pools glow on the forest floor; through a gap, a dusty rose sky. A small cloaked human traveller with a round jade glass fluid backpack crosses a rope bridge in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, dusty rose sky, deep indigo trunks, pale translucent mushroom caps, teal moss, warm lamp and coral glow, navy shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#lo-keepers-canopy-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-49-15-b68c",
+      "candidate": "openai/1",
+      "sha256": "da87611d9f988195483a286a35b8a40f844e040e184fba3dd20ec649cd661824",
+      "bytes": 297452,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at eye level in a narrow market lane walled on both sides with stacked old screens and monitors glowing in different colours, cables and awnings overhead; along the left wall the same calm face appears on one screen after another, leading round a bend, the screens behind it fading back to their own pictures; a mender with goggles works on an open set at a little stall, a quiet lavender figure watches from a doorway, steam and lantern light. A small cloaked human traveller with a round jade glass fluid backpack follows the face along the wall, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, near-black walls, saturated screen colours, violet, scarlet, cobalt, emerald, lemon and magenta, apricot lantern light, lilac, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sm-screen-lanes-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-57-15-2f9b",
+      "candidate": "openai/1",
+      "sha256": "23aeb625d4e3cbd9cf5389980dc8dab7ee752b6af4e6f9551cea4965051b09d5",
+      "bytes": 327998,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view from a low balcony over a warren of narrow winding market lanes between the feet of giant coral and teal towers at dusk; the lanes are walled with stacked second-hand screens and monitors of every size, up to the first floors, each glowing its own saturated colour, showing faces, planets and glyphs; striped awnings, hanging cables, steam from food stalls, menders at work under lamps, little courts where lanes meet; one image of a face is passed from screen to screen along a lane like a moving light; far away down a gap between the towers, a tall dark tower with covered screens. A small cloaked human traveller with a round jade glass fluid backpack walks into the nearest lane for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral, teal and cream towers, near-black lane walls, saturated screen colours, violet, scarlet, cobalt, lemon and magenta, apricot lantern light, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sm-screen-lanes-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-56-43-9908",
+      "candidate": "openai/1",
+      "sha256": "dc99e7fbea03d6560b9287509a46e96de098b3ceb02e1b9d54ebf2761e80b5b9",
+      "bytes": 329406,
+      "costUSD": 0.041
+    }
+  ]
+}

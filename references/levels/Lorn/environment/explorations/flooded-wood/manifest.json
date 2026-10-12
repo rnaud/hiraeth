@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: low on still dark water inside a drowned forest of giant trunks, a hover-skiff gliding out from under a low arch of roots into a round flooded clearing where a shaft of rose light falls from a gap in the canopy onto a small island of moss with a heap of pale glowing eggs and a little moss dome house; giant pale mushrooms on the trunks around, their reflections in the water, drifting spores lit in the shaft, the roots dripping. A small cloaked human traveller with a round jade glass fluid backpack ducks under the roots on the skiff, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, dusty rose and coral light, deep indigo trunks, pale translucent mushrooms, teal moss, glowing eggs, navy shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#lo-flooded-wood-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-50-45-1e8b",
+      "candidate": "openai/1",
+      "sha256": "0664aac5f1f13c2876d47bcdd3c805cff503281c286e6446c1b75b6ca804a3fb",
+      "bytes": 274490,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view from the open water of a twilight swamp toward the edge of an immense drowned forest: giant dark trunks rise straight out of the still water, scattered at first then closer together, their roots arching above the surface like bridges, the canopy closing overhead into a dark roof; the light changes from twilight blue over the open water to warm rose and coral under the trees; pale giant mushrooms grow on the trunks, glowing pools of light lie in flooded clearings deeper in, and a line of keepers' stakes with coral floats leads in among the trunks. A small cloaked human traveller with a round jade glass fluid backpack rides a small hover-skiff in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, twilight blue, dusty rose and coral, deep indigo trunks, pale translucent mushrooms, teal moss, navy shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#lo-flooded-wood-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-50-15-f7dc",
+      "candidate": "openai/1",
+      "sha256": "43c01808c0e86482fcb9f9f61c928d2547df2a6cd4e6c14b00fc7f4d02d15df1",
+      "bytes": 262296,
+      "costUSD": 0.041
+    }
+  ]
+}

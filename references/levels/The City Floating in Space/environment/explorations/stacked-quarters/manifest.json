@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on a narrow street of flat rooftops high in a stacked floating city in space, coral and peach adobe walls, a potted tree, washing on a line, a little stair going up into the doorway of the house above; overhead, the underside of the next island with its houses hanging down and a double arched bridge crossing to another stack; below the parapet, more rooftops, bridges and lamps going down into the dark, and stars beneath them; a child runs ahead, the great pale peach planet fills the sky. A small cloaked human traveller with a round jade glass fluid backpack walks the roof street, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, peach, salmon and coral walls, warm lamp gold, dark teal railings, black starry space, a great pale peach planet, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sc-stacked-quarters-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-08-14-f5a7",
+      "candidate": "openai/1",
+      "sha256": "d2cdc566d8fb0d3ca23561d94ce1c6a2bd68616e73f07265f5cea688a2a17937",
+      "bytes": 274670,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a towering stack of small floating islands in black starry space, one above another like a cliff a hundred metres high, each covered in cubic peach, salmon and coral adobe houses that grow down its sides and up toward the next; stairs, stacked double arches, ladders and narrow bridges link them at many different heights, lamps and lit windows everywhere, washing lines and potted trees on the roofs, teal pipes and machinery hanging beneath; a great pale peach planet behind the stack. A small cloaked human traveller with a round jade glass fluid backpack climbs a stair on the lowest island in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, peach, salmon and coral walls, warm lamp gold, dark teal railings and pipes, slate undersides, black starry space, a great pale peach planet, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sc-stacked-quarters-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-07-45-9db8",
+      "candidate": "openai/1",
+      "sha256": "23c6a1cf0f933c17cc8cda039e3dc3af2d16353cc4c717c02e0d94d2cb6ef59d",
+      "bytes": 314318,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on a narrow glass-walled café terrace on the side of an undersea canyon, a few small tables with lamps, a waiter carrying cups, potted glow-kelp, a stair going down past the next pods below; through the curved glass, the canyon falls away into dark blue water, the far wall's lit pods across the gap, a white arched bridge, and deep below, very faint, the shape of a whale; fish and bubbles drift. A small cloaked human traveller with a round jade glass fluid backpack leans on the rail looking down, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep teal and blue water, salmon and coral, warm amber café light, luminous turquoise, pale aqua glass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#uc-canyon-street-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-02-24-be03",
+      "candidate": "openai/1",
+      "sha256": "fe9519e94590dff0311f3bd12f1fffe8109a5b232396c3209d2ab931c04a6dcb",
+      "bytes": 257823,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view across an undersea canyon: on its far wall an underwater city goes down the drop in stacked tiers, salmon and coral pods on every storey with amber lit windows, glass terraces and café domes on ledges, stairs zigzagging down, a white arched bridge spanning the canyon, a small cable car between the walls; the lights get fewer and the water deeper blue toward the bottom, where a gallery dome sits by dark water; light shafts from far above. A small cloaked human traveller with a round jade glass fluid backpack stands on a glass terrace on the near wall in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep teal and blue water, salmon and coral pod towers, amber lit windows, luminous turquoise light, pale aqua glass, white stone bridge, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#uc-canyon-street-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-01-55-c3bb",
+      "candidate": "openai/1",
+      "sha256": "1000756b43745a15139d4fb74533fb9cc281fa47745d308fdd48e4515d7f5da8",
+      "bytes": 303858,
+      "costUSD": 0.041
+    }
+  ]
+}

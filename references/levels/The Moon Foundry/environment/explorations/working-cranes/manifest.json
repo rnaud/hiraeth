@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: inside a small iron signal box high at the top of a hoist tower under a foundry's girder roof, a row of tall brass and iron levers with painted tags, a dial with moon symbols, a stove and a mug; through the big windows, a rust-orange crane on the roof rails is carrying an ivory moon toward a waiting cradle far below, and gantries at different heights cross the hall; an old crane operator in overalls points. A small cloaked human traveller with a round jade glass fluid backpack pulls a lever, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory moons, rust and faded orange iron, brass, slate grey steel, warm stove light, pale blue-mint sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#mf-working-cranes-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-04-23-5f27",
+      "candidate": "openai/1",
+      "sha256": "2c1f110848d68fa1d602572c25d45b1e7347c31f02eb54d900e29c26dd6e5ddb",
+      "bytes": 309944,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view across a vast foundry hangar where the roof is alive with machinery: big rust-orange travelling cranes run along rails on the girder roof, slowly carrying huge ivory moons on chains across the hall, their long shadows sliding over the pale floor; gantries and catwalks at four different heights cross between the pillars, some swinging with the cranes, crane cabs with lit windows; a tall iron hoist tower with a gallery of levers under the roof; small figures on the floor look up. A small cloaked human traveller with a round jade glass fluid backpack stands on top of a moving moon in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory moons, rust and faded orange iron, slate grey steel, mint-green accents, pale blue-mint sky through the roof, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#mf-working-cranes-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-03-54-98f3",
+      "candidate": "openai/1",
+      "sha256": "2f31e305c006dfdfe9156b775e20a00e1e3a28ca08fded30e920c86d19255ff0",
+      "bytes": 328709,
+      "costUSD": 0.041
+    }
+  ]
+}

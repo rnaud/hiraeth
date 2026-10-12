@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: close up from a white stepping stone in a still mirror lake, looking down: in the water, the reflected shore shows a white hill with an arched doorway and a lit lantern, a sphere hanging over it in the reflected sky; on the real shore beyond, the same hill is only grass and pillowed white rock with no door; water lilies and small round leaves float near the stone, a pebble dropped sends rings through the reflection. A small cloaked human traveller with a round jade glass fluid backpack crouches on the stone gazing into the water, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, lime and yellow-green grass, deep green, white stone, pale ivory sphere, mirror water, pale blue sky, peach light, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#gs-lake-memory-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-56-18-8067",
+      "candidate": "openai/1",
+      "sha256": "5d72bfbae117285bd080b75730416e6de1b79b6a87979533b380207d31c7fa3b",
+      "bytes": 257006,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view across a still mirror lake in a green garden of umbrella trees and cypresses; on the real shore there are only meadows, a white hill and a few half-sunk pale spheres, but in the lake's reflection a different garden shows: white domed towns and step pyramids on the shore, small figures walking, and the spheres hanging in the reflected sky like moons; a causeway of white stepping stones crosses the lake just above the water. A small cloaked human traveller with a round jade glass fluid backpack stands on the first stepping stone looking down at the reflection, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, lime and yellow-green grass, deep green trees, white stone, butter-yellow and pale ivory spheres, mirror water, pale blue sky, peach horizon, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#gs-lake-memory-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-55-49-974a",
+      "candidate": "openai/1",
+      "sha256": "1f672f965ba7881905fc5046849e30174f1f140dca198b3d8826e8dfb3f85215",
+      "bytes": 257077,
+      "costUSD": 0.041
+    }
+  ]
+}

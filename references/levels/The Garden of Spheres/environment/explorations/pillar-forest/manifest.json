@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on the small round top of a tall white pillar, a huge pale sphere resting in a stone cup, a few drops of water running down its curve; faint drawn rings ring out from it and run along a narrow white walkway to the next pillar, where another sphere glows faintly in answer; below, far down, the lime meadow, cypresses and other pillars and spheres at different heights, the sky peach and pink. A small cloaked human traveller with a round jade glass fluid backpack stands beside the sphere with one hand raised, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, pale ivory and butter-yellow spheres, lime and yellow-green grass, deep green, peach and pink sky, pale blue shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#gs-pillar-forest-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-55-24-5399",
+      "candidate": "openai/1",
+      "sha256": "c63b754ddfda94cfb00b385321a70eb054e146e25c2b6412c8f293d33073058f",
+      "bytes": 221010,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a forest of very tall slender white pillars rising from a lime green meadow under a peach and pink sky, some of them carrying great pale and butter-yellow spheres balanced on their tops, others broken off; narrow white walkways and thin bridges link the pillars at different heights, and spiral stairs wind round some of the shafts; a few umbrella trees and cypresses at the pillars' feet, a white step pyramid half hidden among them, and far off a great yellow sphere setting on the horizon. A small cloaked human traveller with a round jade glass fluid backpack crosses a walkway high up in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, butter-yellow and pale ivory spheres, lime and yellow-green grass, deep green, peach and pink sky, pale blue shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#gs-pillar-forest-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-54-59-1091",
+      "candidate": "openai/1",
+      "sha256": "68e3b59520c6ba35834c6a7268b4635887c218d08aac373b704e5b4f715d49d7",
+      "bytes": 249254,
+      "costUSD": 0.041
+    }
+  ]
+}

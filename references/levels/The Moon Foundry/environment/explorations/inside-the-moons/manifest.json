@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: inside a huge hollow ivory moon, a narrow stair street climbs along the curved inner wall of the shell, lined with small houses with orange doors and window boxes, mint trees in pots, washing lines strung across; the street curves up and over until it hangs almost upside down overhead; round crater windows let shafts of pale daylight in; through one crater, far below, the foundry floor with rails and rusty pillars; a woman beats a rug on her step. A small cloaked human traveller with a round jade glass fluid backpack climbs the stair, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory shell, faded orange doors, rust iron, slate grey, mint-green plants, pale daylight, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#mf-inside-the-moons-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-03-22-e993",
+      "candidate": "openai/1",
+      "sha256": "89d263fe86892648c80c27b72107200f8825c904d8d4edb2ceaf0c1eda669412",
+      "bytes": 297733,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view across an immense abandoned foundry hangar under a girder roof, where enormous unfinished ivory moons hang from cranes and rest in rusty orange cradles; each moon is hollow and partly cut away or cracked open, showing a little town built on its inner curved wall, houses with lit windows, spiral stairs, mint-green garden terraces climbing toward the top, light falling through crater windows; narrow gantries and rope walkways link a crack in one moon to a hatch in the next high under the roof; the pale floor far below with rails and small figures. A small cloaked human traveller with a round jade glass fluid backpack crosses a gantry in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory moons, rust and faded orange iron, slate grey steel, mint-green gardens, warm window light, pale blue-mint sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#mf-inside-the-moons-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-02-52-0ee4",
+      "candidate": "openai/1",
+      "sha256": "d66a215e01e6b38afaeb598c7c270707597aafb943e16c5338393cc765cba69a",
+      "bytes": 325118,
+      "costUSD": 0.041
+    }
+  ]
+}

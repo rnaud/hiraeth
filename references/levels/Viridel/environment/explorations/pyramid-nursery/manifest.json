@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level in a garden bed of soft dark soil, a young white step pyramid the height of a person, its stone still fresh and slightly soft-edged, little green shoots on its steps; a slender white android gardener with a round head pours water on it from a long-spouted can, a shy young gardener in a wide hat kneels planting a small white seed-cone in the next empty bed; behind, rows of bigger pyramids with vine scaffolds and one wrapped in flowers. A small cloaked human traveller with a round jade glass fluid backpack climbs onto the young pyramid's first step, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream-white stone with teal accents, mint, pink, aqua, peach and lavender, fresh green grass, dark soil, deep cerulean sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#vi-pyramid-nursery-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-53-37-0b07",
+      "candidate": "openai/1",
+      "sha256": "6cb5c5a569d172b3a69b46107917737883a9ddacbdcaf024379fe93ee13e8415",
+      "bytes": 319174,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view over a bright meadow laid out as a nursery of white step pyramids in long garden rows: in the nearest beds tiny pyramids no higher than a knee sprout from the soil like seedlings, then rows of pyramids the size of sheds and houses wrapped in vine scaffolds, then great ones with trees and flowers growing on their terraces, and at the end of the rows one huge old pyramid; slender white android gardeners tend them with watering cans and pruning poles; umbrella trees shade the paths, a ringed planet in a deep blue sky. A small cloaked human traveller with a round jade glass fluid backpack walks between the rows in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream-white stone with teal accents, mint, pink, aqua, peach and lavender, fresh green grass, deep cerulean sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#vi-pyramid-nursery-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-53-07-c1f7",
+      "candidate": "openai/1",
+      "sha256": "2d791eef9cdc15601789fa91e4b2e147594eccc678edf7b3da3001f9983d68fb",
+      "bytes": 351777,
+      "costUSD": 0.041
+    }
+  ]
+}

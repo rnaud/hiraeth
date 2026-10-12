@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on a narrow gallery high on the face of a coral tower in a market city, a sign-painter's stall under a scalloped awning with brushes, pots and half-painted signs hanging from a rail, a goods lift's cage arriving beside it; across the canyon another gallery street with stalls and people, a skybridge crowded with shops, cables with baskets; far below, the main street with its crowd and tram lines; up the canyon, a tall dark tower with covered screens. A small cloaked human traveller with a round jade glass fluid backpack leans on the rail, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral, teal, cream, brass and lilac, aqua sky, blue-teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sm-market-in-the-air-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-58-20-e83c",
+      "candidate": "openai/1",
+      "sha256": "cfc8cd4d99cccd91750c3208c8dc3c294ccf229055a0c0f8563fe1e73e798a0e",
+      "bytes": 364507,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view up a deep canyon street between giant coral, teal and cream towers, where the market has climbed the towers: stalls with scalloped awnings crowd every balcony, shops hang beneath the skybridges, wooden stairs and goods lifts zigzag up the tower faces, cargo baskets travel on cables across the canyon, and a second busy street runs along a gallery at mid-height and a third higher up, each with crowds and painted billboards; flying cabs pass between them; at the end of the canyon a tall dark tower with covered screens. A small cloaked human traveller with a round jade glass fluid backpack rides a cargo basket across in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral, teal, cream, brass and lilac, aqua sky, blue-teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sm-market-in-the-air-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-57-48-a791",
+      "candidate": "openai/1",
+      "sha256": "e4959ad86d30f03e8a02f0150ebbfe2f9b07da218860caf582981d41a4455783",
+      "bytes": 349709,
+      "costUSD": 0.041
+    }
+  ]
+}

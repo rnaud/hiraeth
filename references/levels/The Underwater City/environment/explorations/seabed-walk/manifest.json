@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: close up on the sea floor beside a brass air bell on a post, a glass dome-shaped hood with a pocket of air and bubbles rising from it, a little lamp glowing; tall kelp sways around, a shoal of small fish turns, and a few metres on, the round brass lock door of a glass dome with warm café lights inside and people at tables looking out; beyond, salmon pod towers and a luminous column in the blue haze. A small cloaked human traveller with a round jade glass fluid backpack in a brass diving helmet puts their head into the bell's air, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep teal and blue water, salmon and coral, amber lit windows, luminous turquoise light, pale aqua glass, brass, sand, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#uc-seabed-walk-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-00-26-fb3b",
+      "candidate": "openai/1",
+      "sha256": "78c699df2411c17ef56869d6725cdfbbac89f372a38b570e1cd0201eeaa2b184",
+      "bytes": 325423,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view on the sea floor outside an underwater city of dry glass domes joined by tubes, salmon and coral towers of pods with amber lit windows rising around; between them on the sand, a path of brass air bells on posts glowing softly, kelp forests swaying, the roots of a pod tower with a small round door, a sunken cart; light falls in shafts from the far surface; overhead, very close, a huge whale glides over the city, its shadow passing across the domes. A small cloaked human traveller with a round jade glass fluid backpack walks the seabed in a brass diving helmet in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep teal and blue water, salmon and coral pod towers, amber lit windows, luminous turquoise light, pale aqua glass, brass, sand, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#uc-seabed-walk-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-59-57-91a6",
+      "candidate": "openai/1",
+      "sha256": "7c689fd63aea8f394bec26730f20d6e0124621df93d769be7abb297c0004b32d",
+      "bytes": 339351,
+      "costUSD": 0.041
+    }
+  ]
+}

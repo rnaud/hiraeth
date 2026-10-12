@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on the deck of a floating island in space, a great wooden and bronze capstan with long spokes, a thick cable winding round it and running taut across the void to a nearby island; between the two islands a broken stone bridge's two halves are nearly meeting, a gap of a stride left; an old moorer with a rope over her shoulder pushes a spoke beside the traveller, coral adobe houses and lamps around, stars below the parapet, the great pale planet behind. A small cloaked human traveller with a round jade glass fluid backpack leans on a capstan spoke, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, peach, salmon and coral walls, bronze and wood, warm lamp gold, dark teal railings, black starry space, a great pale peach planet, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sc-drifting-bridges-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-07-16-6040",
+      "candidate": "openai/1",
+      "sha256": "e56ae8a3fbc486995af78ffff4986e9e2326940009e1fd899e1f4012f02cd742",
+      "bytes": 283531,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a city of floating islands of peach and coral adobe houses in black starry space, the islands drifted apart to different heights; the bridges between them show it: a stone arched bridge broken in two with its halves hanging apart, a long patched plank bridge stretched and sagging, a swaying rope bridge, a small cable car crossing a wide gap, thick cables strung taut between the islands with big capstans on the decks; lamps along everything; a great pale peach planet low behind the city. A small cloaked human traveller with a round jade glass fluid backpack crosses the rope bridge in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, peach, salmon and coral walls, warm lamp gold, dark teal railings and pipes, slate undersides, black starry space, a great pale peach planet, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sc-drifting-bridges-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-06-48-befa",
+      "candidate": "openai/1",
+      "sha256": "c14c61567777e850a11244fb9cdd23ce6f4c7df1a75212d12d7a1e62d38e876f",
+      "bytes": 281633,
+      "costUSD": 0.041
+    }
+  ]
+}

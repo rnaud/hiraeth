@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level on a pale peach desert plain, a low round hour stone carved with a single rider's mark and a groove for the shadow, a bone-white needle spire standing behind it; the long straight shadow of a distant stone tower is just reaching the stone across the sand, and where it touches, a small niche in the needle's foot opens and a little lamp glows; the next needles of the ring stand in a curved row toward the horizon, the tower far off. A small cloaked human traveller with a round jade glass fluid backpack kneels by the stone watching the shadow arrive, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone-white stone, peach ground, aqua sky, grey-teal shade, long violet shadow, warm lamp glow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#va-sundial-plain-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-47-51-8586",
+      "candidate": "openai/1",
+      "sha256": "5140a7615148d4183379340814d4642d36287865f7942027713f9d8d0e543216",
+      "bytes": 181661,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view from high up of a vast pale peach desert plain in the late afternoon, where bone-white needle spires of different heights stand in great concentric rings around a single tall slender stone tower in the middle, like the hour marks of a sundial; the tower's very long shadow stretches across the plain and touches a low flat mounting stone on the outer ring, where a huge white bird with long wings sits waiting; small stone markers and riders' shrines lie in the shadows of the needles; a rose cliff and a sea of cloud on the far horizon with stones floating over it. A small cloaked human traveller with a round jade glass fluid backpack walks along the shadow for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone-white and cream stone, peach ground, rose cliffs, white cloud, aqua sky, grey-teal shade, long violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#va-sundial-plain-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-47-25-8151",
+      "candidate": "openai/1",
+      "sha256": "814f6cc7a97793563cfb83dcf77e97d8cd6e14767d0203810bb7038cdaa40041",
+      "bytes": 228818,
+      "costUSD": 0.041
+    }
+  ]
+}

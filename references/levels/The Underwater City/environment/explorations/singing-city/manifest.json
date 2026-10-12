@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: inside a dry glass dome under the sea, a great brass organ pipe rises through the floor and out through the glass into the water, with a big wheel stop at its foot; beside it a round pool shows standing ripples in a crossed pattern, and bubbles rise in the pipe's glass window; a woman in a café apron holds her ear, a lamp-lighter with a long pole looks on, café tables and a pod tower's amber windows beyond the glass, fish outside. A small cloaked human traveller with a round jade glass fluid backpack turns the stop wheel, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep teal water beyond glass, brass, salmon and coral, warm café light, luminous turquoise, pale aqua glass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#uc-singing-city-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-01-24-cccb",
+      "candidate": "openai/1",
+      "sha256": "c978a04e695f3325264fa6cdeaa6f74ab74e7553a52dddc6aba5135c49180331",
+      "bytes": 296384,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of an underwater city on the sea floor built like an instrument: glass domes and tubes with great curling brass horns opening from them out into the sea, rows of tall organ pipes rising from the domes' roofs, a central tower of rising bubbles glowing turquoise, salmon pod towers with amber windows around; faint concentric rings drawn in the water spread from the horns and from the bubble tower, some of them crossed and broken; far off in the blue, two whales turning toward the city. A small cloaked human traveller with a round jade glass fluid backpack stands on a dome's walkway in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep teal and blue water, brass horns, salmon and coral pod towers, amber lit windows, luminous turquoise light, pale aqua glass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#uc-singing-city-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-00-57-7f25",
+      "candidate": "openai/1",
+      "sha256": "168d32536d795fcb73748b3409a64b27abbc68e758bb3b7ce0062c636f6bae91",
+      "bytes": 316180,
+      "costUSD": 0.041
+    }
+  ]
+}

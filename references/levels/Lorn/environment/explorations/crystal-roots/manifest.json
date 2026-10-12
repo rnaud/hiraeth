@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: low over the dark water of a twilight swamp in the rain, a small hover-skiff glides along a glowing vein of teal and violet crystal that runs just under the surface, its light rippling up through the raindrops; ahead the vein splits round a little island of crystal spikes ringing softly, faint rings drawn in the air; on the bank, a clutch of pale glowing eggs and a coral carnivorous plant with its jaws closed, reeds, a keepers' stake with a coral glass float. A small cloaked human traveller with a round jade glass fluid backpack stands on the skiff looking down at the light, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, twilight blue, violet and coral, glowing teal and lilac crystal, muted olive moss, navy shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#lo-crystal-roots-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-48-45-9ca4",
+      "candidate": "openai/1",
+      "sha256": "c3ff4c0dba02181cb9cd7c3f09b93fe9ec056e144683dfe2d2a71d90d90e5ed7",
+      "bytes": 297971,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view over a twilight swamp of dark channels and low islands in gentle rain, seen from a high crystal outcrop; under the water's surface, glowing veins of violet and teal crystal branch across the whole swamp like the veins of a leaf, all converging on a huge many-pointed crystal that rises from an island in the middle, glowing from within; where veins break the surface they become groves of crystal spikes; reeds, fungus trees with violet stalks, coral carnivorous plants and pale glowing eggs line the banks; a hover-skiff glides along one lit vein. A small cloaked human traveller with a round jade glass fluid backpack stands on the outcrop in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, twilight blue, violet and coral, glowing teal and lilac crystal, muted olive moss, navy shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#lo-crystal-roots-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-48-17-20c5",
+      "candidate": "openai/1",
+      "sha256": "fe8457496efbad52645f688ee553b920803e2fac26c15233718b74a633f8c62f",
+      "bytes": 318669,
+      "costUSD": 0.041
+    }
+  ]
+}

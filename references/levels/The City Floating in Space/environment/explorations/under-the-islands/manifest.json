@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: on a narrow railed catwalk hung under a floating island in space, among dark machinery and teal pipes, a huge cable anchored to the rock with a great bronze clamp and a capstan, stretching away across the void to another island, faint drawn lines of vibration along it; a moorer in a padded coat checks the clamp with a lamp; below the grating of the catwalk, nothing but stars and the soft glow of a great pale planet. A small cloaked human traveller with a round jade glass fluid backpack lays a hand on the cable, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, slate rock, dark teal pipes and railings, bronze, warm lamp gold, black starry space, pale peach planet light, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sc-under-the-islands-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-06-20-6758",
+      "candidate": "openai/1",
+      "sha256": "86c81ff9660c428a16612cce3f8adb95952f434c5bb09e3d386a84d13f7c812c",
+      "bytes": 266246,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view from below a city of floating islands in black starry space: the islands' undersides are rough rock and dark machinery with teal pipes, and hung beneath them are catwalks, ladders, little workshops with lit round windows, upside-down hanging gardens trailing vines into the void, lamps pointing down; thick cables strung between the islands carry walkways along them; above, the edges of peach and coral adobe houses on the decks, and a great pale peach planet low behind; stars all round, below as well as above. A small cloaked human traveller with a round jade glass fluid backpack climbs down a ladder under an island in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, slate undersides, dark teal pipes and railings, cream, peach, salmon and coral walls, warm lamp gold, black starry space, a great pale peach planet, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sc-under-the-islands-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-01-05-52-3247",
+      "candidate": "openai/1",
+      "sha256": "04f388363f0fea5f388dbd3ea7f2505254faff1881ce8fcfe8f6a22b85129468",
+      "bytes": 268977,
+      "costUSD": 0.041
+    }
+  ]
+}

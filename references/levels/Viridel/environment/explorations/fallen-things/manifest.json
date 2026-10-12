@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level on the flank of a grassy hill covered in pink, mint and peach flowers, a round hatch of an old buried spaceship shows through the turf, its rim of cream metal and teal paint just visible among the roots of an umbrella tree that has grown out of the hull; the hatch is ajar and a soft light comes from inside; a gardener in a wide hat waters the flowers beside it with a long-spouted can, a porthole peeps out of the grass further along, bees and petals in the air. A small cloaked human traveller with a round jade glass fluid backpack kneels at the hatch, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, mint, pink, aqua, peach and lavender, fresh green grass, cream metal with teal paint, deep cerulean sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#vi-fallen-things-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-51-45-efc7",
+      "candidate": "openai/1",
+      "sha256": "5d776a132bfb2b6f0cc8f6eee59d1f574fd4fd3d04b07f9be6d043945dc63188",
+      "bytes": 343171,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view from the crown of a giant umbrella tree over a bright flowering meadow inside a vast ring of distant cliffs, like the rim of an ancient crater; the meadow's hills are all fallen things grown over by the garden: a round old spaceship half buried under a hill of pink and mint flowers with a tree growing out of its hatch, a great dish antenna lying in the grass filled with water like a pond, a split meteor with a garden inside, a builders' white machine lying on its side turned into terraces, a capsule nose-down in a furrow veiled in blossom; white step pyramids and umbrella trees between them, a ringed planet in a deep blue sky. A small cloaked human traveller with a round jade glass fluid backpack stands on the tree's crown in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, mint, pink, aqua, peach and lavender, fresh green grass, cream-white stone with teal accents, deep cerulean sky, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#vi-fallen-things-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-51-15-3b26",
+      "candidate": "openai/1",
+      "sha256": "e9b7a54e467168161c28b817e01d4c757dadf5470f712a782cf92b9c79fdcdca",
+      "bytes": 351419,
+      "costUSD": 0.041
+    }
+  ]
+}

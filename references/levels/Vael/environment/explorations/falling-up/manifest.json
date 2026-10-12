@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: close up on a floating slab of pale peach rock a few metres wide, rising slowly through the air past the broken edge of a desert plain; a small bone-white needle spire leans on the slab, dust and pebbles fall up from its rim, a frayed rider's rope hangs from an old iron ring set in the stone; below, the gap and the cracked edge of the plain, other slabs at different heights around, and far below, a sea of white cloud. A small cloaked human traveller with a round jade glass fluid backpack sits patiently on the slab with folded fabric wings, waiting, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone-white and cream stone, peach rock, rose cliffs, white cloud, aqua sky, grey-teal shade, pale lilac haze, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#va-falling-up-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-45-59-89c9",
+      "candidate": "openai/1",
+      "sha256": "c7cf937cd940d1cc412ab5ada0dbe27622b7eb0bb8731eb0f065f4d175358e55",
+      "bytes": 229140,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of the edge of a pale peach desert plain where the ground is coming apart and falling upward, seen from the plain at mid-morning. In the foreground the ground is cracked; further out great slabs of the plain tilt up out of it, then hang a few metres in the air, then float higher and higher over a sea of white cloud below a rose cliff, each slab still carrying its own bone-white needle spires, hoodoos and a little stone arch, roots and threads of red rock trailing beneath them, loose pebbles drifting up; far off, cliff-top monasteries and an island church float in the haze, and a great bird circles. A small cloaked human traveller with a round jade glass fluid backpack stands on the first tilted slab for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone-white and cream stone, peach ground, rose cliffs, white cloud, aqua sky, grey-teal shade, pale lilac haze, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#va-falling-up-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-45-21-96e2",
+      "candidate": "openai/1",
+      "sha256": "c9cf2ae21c0fc13a5f8e34beeb5c705163deff9cf68cc00783fe052cf10d445c",
+      "bytes": 232021,
+      "costUSD": 0.041
+    }
+  ]
+}

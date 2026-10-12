@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: at ground level in a sunken old market, looking up through a large brass grille in the ceiling at the busy avenue above, the soles of passers-by and the legs of a stall seen against the aqua sky, a cab gliding over; stripes of light fall onto an old stall below piled with lanterns and radio parts, where an elderly seller sits under a faded awning beside a little hand-lettered board; cables, pipes and older painted signs on the walls, an arch to a side lane. A small cloaked human traveller with a round jade glass fluid backpack stands in a stripe of light looking up, for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral, teal, cream, brass and lilac, aqua sky, warm stripes of daylight, blue-teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sm-old-market-ground",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-59-25-59a9",
+      "candidate": "openai/1",
+      "sha256": "53883390033facc87f5a13b639405f179e0485782b85b4c046e194a0671c0e15",
+      "bytes": 347049,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a wide establishing view of a sunken old market street two storeys below a great avenue of a market city, its ceiling the avenue's deck of brass gratings through which daylight falls in long stripes; the stalls down here are old and heaped high with goods, lamps, fruit, radio parts and bundles, under faded awnings; a huge old hand-painted sign hangs over a crossing, stairs climb to the light at the corners, arches lead off into side lanes, and at the far end the dark foot of a tall tower with a heavy door; people in long coats and quiet lavender figures. A small cloaked human traveller with a round jade glass fluid backpack walks down a stair in the foreground for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral, teal, cream, brass and lilac, warm stripes of daylight, blue-teal shade, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/level-explorations-2-prompts.md#sm-old-market-establishing",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-00-58-53-f825",
+      "candidate": "openai/1",
+      "sha256": "797574cf49e6f3984fa2745cadc1599c10dc855bf890920236852f234dd2d5d0",
+      "bytes": 288701,
+      "costUSD": 0.041
+    }
+  ]
+}
