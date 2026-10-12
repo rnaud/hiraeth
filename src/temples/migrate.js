@@ -53,11 +53,14 @@ export const LAYOUTS = {
   // v1.48: the Builders' Greenhouse round its Potting Hall. Past the Glass Stair's door: its two small keys in it, the
   // Shade House won, the Cold Frame's eyes awake. v1.49: the Seed Vault off the Vine Gulf's far side; past the bud at the
   // top of the glass: the great key in the door beyond it, the vault's seeds grown
+  // v1.60: the Seed Vault moved north off the Shade House (its door opens with the arena won), its keepers' door onto the
+  // Glass Stair's root-wall opening with its vine. With its great key already found, or past the bud: the vine up
   edena: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d1', 'lit.s2', 'open.d2', 'gadget', 'lit.bud1', 'open.d3', 'lit.seed1', 'boss'], set: { 'unlocked.d1': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.sC1': true, 'lit.sC2': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.dB': 1, 'found.kB': true, 'lit.sdA': true, 'lit.sdB': true } },
+      { if: ['found.kB', 'open.d4', 'boss'], set: { 'lit.sdA': true, 'lit.sdB': true, 'open.vineV': true, 'lit.arW': true } },
     ],
   },
   // v1.48: the Warden's Well round its Climb. Past the door at the balcony's end (or with the bellows): its two small keys
@@ -72,11 +75,15 @@ export const LAYOUTS = {
   // two small keys, the Cable Store won, the Tuning Room's horn answered
   // v1.49: the Choir off the Gallery of Voices' far side. Past its far door: the great key in it, the Choir's horns
   // answered (the passage's horn's new footstone stands behind a door already open)
+  // v1.60: the Choir moved over the Cable Store, behind a keepers' gate off the walk round the Cable Well (its horn on the
+  // first hall's far landing) and a door onto the Shell Chamber. With its great key already found, or past the far door:
+  // the gate's horn answered, so both stand open and the Choir is done
   bazaar: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['lit.eW', 'open.wdisc', 'gadget', 'lit.e0', 'open.d3', 'open.d4', 'boss'], set: { 'unlocked.dK': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.eT': true, 'drum.ballT': 1 } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.hA': true, 'lit.hB': true, 'drum.ballQ': 1 } },
+      { if: ['found.kB', 'open.d4', 'boss'], set: { 'lit.hG': true, 'lit.hA': true, 'lit.hB': true, 'drum.ballQ': 1 } },
     ],
   },
   // v1.48: the Engine-House round its Fourth Chamber, past the chest. Past the Crank Passage's door: its small key in it,
@@ -102,11 +109,15 @@ export const LAYOUTS = {
   // v1.49: the Lamp-House's Kennel off the Hall of Dark Pools and its Wick Room off the Dark Gallery's far side. Past the
   // Lamp Passage's door: its small key in it, the Kennel won; past the gallery's far door: the great key in it too
   // (before it, the Wick Room is a few steps off the far side)
+  // v1.60: the Wick Room moved off the Hall of Dark Pools, its grille a lock for the Kennel's small key (the Lamp Passage's
+  // door is its lamp alone again, so a key put there is back in hand); its keepers' door onto the Root Stair opens with the
+  // grille. With the great key already found, or past the far door: the Kennel's key in the grille
   perdide2: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['open.d2', 'lit.s4', 'drum.orb', 'lit.l2', 'open.d4', 'boss'], set: { 'unlocked.d2': 1, 'found.kS': true, 'lit.arK': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'open.cW': true } },
+      { if: ['found.kB', 'open.cW', 'open.d4', 'boss'], set: { 'unlocked.cW': 1, 'found.kS': true, 'lit.arK': true, 'open.cW': true } },
     ],
   },
   // v1.52: the Hush-House's Snapping Passage stills in the Choir's order (its two side mouths before the gate), the Nursery

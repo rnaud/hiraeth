@@ -571,6 +571,42 @@ founders' moon hot in its cradle); the **Footprint**'s Keepers' Lodge, west off 
 `LODGE`; the Hall of the Unseen's far door `d4` takes it with its eye and the sphere on the walker's print). Each wing's
 side that meets its hall is that hall's own wall (`omit`), so no two walls lie face on face (tests/zfight.test.js).
 
+Round 4 (issue #23, v1.60) takes the three houses that still kept their great key in a room off the last puzzle hall and
+had no loop (the Undertower, the Lamp-House, the Greenhouse; the v1.53 report's ranked edits 2 and 3). In each the great
+key's room moves back into the first half, seen (or shut) on the way in and worked with the gadget on the way back, and a
+keepers' door out of it closes a loop. Each in its own shape:
+
+The **Undertower** (`bazaar.js` `CHOIR`, `WALK`): the **Choir** stands over the Cable Store at 12, between the two hubs.
+Its keepers' gate opens off a walk round the Cable Well at 12 (one floor with the landing; the well's raised gap at
+`CHOIR.gap`, stacked over the way west), and its door onto the Shell Chamber's west gap goes with the gate (`dC`, `{ open:
+'dG' }`). The gate listens through a horn at the far end of its cable (`hG`, on the Hall of Dishes' far landing: the cable
+runs from it along the floor, into the well and up its wall to the gate), for the middle note played back. The singing
+ball across the pit sings it, and its dish brings the note over the landing; the gallery's middle egg is the other
+source. Inside, the far horn (`hA`) hears the low stone through the dish pair (the ball on the near dish's footstone) and
+the near one (`hB`) wants the high note: nothing in the Choir sings it, the Cable Well's high stone does, on the floor
+below the gate (the shell catches it from the walk). The Store's roof is shut now (the Choir's floor is over it). The
+Choir's elements come after the gallery's in `LOGIC`, so the marker sends you through the gallery first and back for the
+far door's key. The audit's clue for an echo ear is the nearest stone of its note: the singing ball 45 m away for the gate.
+
+The **Lamp-House** (`perdide2.js` `WICK`, `ROOT_WAY`): the **Wick Room** is east off the Hall of Dark Pools (beside the
+Kennel, north of it, past the hall's last column), open and dark on the way in. The Kennel's small key goes into its
+grille (`cW` `lock: 'small'`; the Lamp Passage's door `d2` is its lamp alone again), which lifts once both niches burn: the
+lantern comes back down for the great key. A stair up its north wall to a balcony at 9, and a keepers' door (`dU`, `{ open:
+'cW' }`) through the Root Stair's east wall onto a ledge of roots inside it (`ROOT_WAY.ledge`), on to the root-wall's top:
+the way back up to the chamber without the moss-stones and the climb.
+
+The **Builders' Greenhouse** (`edena.js` `VAULT`): the **Seed Vault** is north off the Shade House, beside the Glass Stair;
+its door (`dV`, `{ lit: 'arW' }`) is the arena's second way out, so it is seen, seeds in the shade, before the bloom. Its
+glass is on its east side now, the great key on the ledge at 9, and beside it a keepers' door (`dV2`, `{ open: 'vineV'
+}`) through the Glass Stair's west wall onto a ledge inside it (`VAULT.inner`) and the root-wall's top, by the sun-disc:
+the way back up to the landing.
+
+Old saves (`migrate.js LAYOUTS`: bazaar v4, perdide2 v3, edena v4): with the great key already found, or past the far door,
+the moved room counts as done and its doors stand open; a Lamp-House save whose Kennel key went into the passage's door
+has it back in hand for the grille. Each house's on-foot test in `tests/temples.test.js` walks the new route (the drops
+off the landings cost nothing: under `FALL.tumble`), and the logic tests check the loop's links and that the keepers'
+doors open only with the gadget.
+
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 
 The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake

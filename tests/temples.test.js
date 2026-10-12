@@ -37,7 +37,7 @@ import { HOLD as UNDERTOWER_HOLD, CHOIR } from '../src/temples/bazaar.js';
 const HOLD_HORN = UNDERTOWER_HOLD.horn;
 import { TempleKit } from '../src/temples/kit.js';
 import { GULF, STACK } from '../src/temples/arzach.js';
-import { KENNEL, WICK } from '../src/temples/perdide2.js';
+import { KENNEL, WICK, ROOT_WAY } from '../src/temples/perdide2.js';
 import { NURSERY, BALCONY } from '../src/temples/perdide.js';
 import { LODGE as FOOT_LODGE } from '../src/temples/spheres.js';
 import { SAND as FOUNDRY_SAND } from '../src/temples/moonfoundry.js';
@@ -427,6 +427,14 @@ test('the Builders’ Greenhouse is a hub (issue #23): either wing alone gives i
   const E = new TempleLogic(L, { store: flagStore(g, 'edena'), has: (i) => [...items, 'bloom'].includes(i) });
   E.update();
   assert.ok(E.isOpen('dB') && E.keys('big') === 0, 'old saves past the bud find the great key in its door');
+  assert.ok(E.isOpen('dV') && E.isOpen('vineV') && E.isOpen('dV2'), 'and the moved Seed Vault done, its doors open (v1.60)');
+  // (v1.60) the Seed Vault north off the Shade House, its door the arena's way out; its keepers' door from the top of its
+  // glass onto the Glass Stair's root-wall goes with the vine: a loop through the first hub
+  assert.deepEqual(L.elements.dV.opens, { lit: 'arW' }, 'the Shade House won, its north door opens');
+  assert.deepEqual(L.elements.dV2.opens, { open: 'vineV' }, 'the keepers’ door opens with the vine, never before the bloom');
+  assert.ok(L.links.some((l) => l.door === 'dV' && l.a === 'shade' && l.b === 'vault') && L.links.some((l) => l.door === 'dV2' && l.a === 'vaultTop' && l.b === 'stair'), 'the vault between the Shade House and the Glass Stair');
+  const noShade = solve(L, { items, forbid: ['arW'] });
+  assert.ok(!noShade.stuck.includes('vault'), 'without the Shade House won, the vault stays shut');
 });
 
 test('the Warden’s Well is a hub (issue #23): either wing alone gives its key, the balcony’s door takes both, solved either way round; old saves past it find it open', () => {
@@ -466,6 +474,21 @@ test('the Undertower is a hub (issue #23): either wing alone gives its key, the 
   const B2 = new TempleLogic(L, { store: flagStore(g2, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
   B2.update();
   assert.ok(B2.isOpen('d4') && B2.isOpen('d3') && B2.keys('big') === 0, 'old saves past the far door find it open, and the passage’s');
+  assert.ok(B2.isOpen('dG') && B2.isOpen('dC'), 'and the Choir’s gate and door (v1.60)');
+  // (v1.60) the Choir over the Cable Store: its gate's horn back on the first hall's far landing, its door onto the chamber
+  // going with the gate; without the gate's horn the Choir is never reached
+  const noGate = solve(L, { items, forbid: ['hG'] });
+  assert.ok(!noGate.stuck.includes('choir') && noGate.stuck.includes('galleryFar'), 'without the gate’s horn the Choir stays shut');
+  const room = (id) => L.elements[id].room;
+  assert.equal(room('hG'), 'dishesFar', 'the gate listens through a horn back in the first hall');
+  assert.ok(L.links.some((l) => l.door === 'dG' && l.a === 'landing' && l.b === 'choir') && L.links.some((l) => l.door === 'dC' && l.a === 'shell' && l.b === 'choir'), 'the Choir between the landing and the chamber: a loop');
+  // an old save that found the great key in the Choir off the far side (v1.49): the new Choir done, its gate open
+  const g3 = new GameState(null);
+  for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'lit.eD': true, 'open.disc': true, 'lit.eW': true, 'open.wdisc': true, gadget: true, 'lit.e0': true, 'open.d3': true, 'found.kB': true, 'lit.hA': true, 'lit.hB': true, checkpoint: 'galleryFar', layout: 3 })) g3.set(`temple.bazaar.${k}`, v);
+  migrateTemples(g3);
+  const B3 = new TempleLogic(L, { store: flagStore(g3, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
+  B3.update();
+  assert.ok(B3.isOpen('dG') && B3.isOpen('dC') && B3.keys('big') === 1, 'its key in hand, the moved Choir open behind it');
 });
 
 test('the Engine-House is a hub past its chest (issue #23): the chamber’s four eyes roll up both shutters; either wing alone gives its key, the small for the passage’s door, the great for the warden’s, solved either way round; old saves past the passage find it open', () => {
@@ -523,16 +546,22 @@ test('the Aerie is a stack (issue #23): the Moult off the well’s floor gives t
   }
 });
 
-test('the Lamp-House (issue #23): the Kennel off its first hall gives the small key, the Wick Room past the gallery the great key; its two orbs must burn at once; old saves past the gallery find it open', () => {
+test('the Lamp-House (issue #23): the Kennel off its first hall gives the small key for the Wick Room along the hall (v1.60), whose great key the gallery’s far door wants; its two orbs must burn at once, and its keepers’ door back up opens with them; old saves past the gallery find it open', () => {
   const L = TEMPLES.perdide2.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
   const noWick = solve(L, { items, forbid: ['lW2'] });
   assert.ok(noWick.logic.isFound('kS') && noWick.stuck.includes('galleryFar') && !noWick.stuck.includes('lamp'), 'without the Wick Room the lamp-room stays shut');
   const noArena = solve(L, { items, forbid: ['arK'] });
-  assert.ok(!noArena.stuck.includes('gallery'), 'without the Kennel the Lamp Passage’s door stays shut');
+  assert.ok(!noArena.stuck.includes('wickKey') && noArena.stuck.includes('galleryFar') && !noArena.stuck.includes('lamp'), 'without the Kennel the Wick Room’s grille stays shut, and the lamp-room with it');
+  // (v1.60) the Wick Room off the first hall, a loop: its door from the hall, its keepers' door up onto the root-wall's top
+  assert.ok(L.links.some((l) => !l.door && l.a === 'pools' && l.b === 'wick') && L.links.some((l) => l.door === 'dU' && l.a === 'wick' && l.b === 'lantern'), 'the Wick Room between the first hall and the chamber');
+  assert.equal(L.elements.cW.lock, 'small', 'its grille takes the Kennel’s small key');
+  assert.deepEqual(L.elements.dU.opens, { open: 'cW' }, 'its keepers’ door opens with the grille, never before the lantern');
+  assert.equal(L.elements.d2.lock, undefined, 'the Lamp Passage’s door is its lamp alone');
   assert.deepEqual(TEMPLES.perdide2.def.arenas.map((A) => A.el), ['arK']);
   // the grille: both lamps at once (each only while its orb glows), then up for good
   const W = new TempleLogic(L, { has: (i) => ['gun', 'lantern'].includes(i) });
+  W.store.set('found.kS', true); W.unlock('cW');   // (the Kennel's key in its keyhole, v1.60)
   W.moveDrum('oW1', 1); W.light('lW1'); W.update();
   assert.equal(W.isOpen('cW'), false, 'one lamp');
   W.quiet('lW1'); W.moveDrum('oW2', 1); W.light('lW2'); W.update();
@@ -547,8 +576,12 @@ test('the Lamp-House (issue #23): the Kennel off its first hall gives the small 
     migrateTemples(g);
     const B = new TempleLogic(L, { store: flagStore(g, 'perdide2'), has: (i) => [...items, 'lantern'].includes(i) });
     B.update();
-    assert.ok(B.isOpen('d2') && B.keys('small') === 0 && B.isLit('arK'), 'the Lamp Passage’s door stays open behind them');
+    assert.ok(B.isOpen('d2') && B.isLit('arK'), 'the Lamp Passage’s door stays open behind them');
     assert.equal(B.isOpen('d4'), past, past ? 'past the far door: open still' : 'on the gallery: the great key still in the Wick Room');
+    // (v1.60) the Kennel's key went into the passage's door then: on the gallery it is back in hand for the Wick Room's;
+    // past the far door, the Wick Room counts as done
+    assert.equal(B.keys('small'), past ? 0 : 1, past ? 'past the far door: no key left over' : 'the Kennel’s key in hand again, for the Wick Room’s grille');
+    if (past) assert.ok(B.isOpen('cW') && B.isOpen('dU'), 'and the Wick Room’s grille up, its keepers’ door open too');
   }
 });
 
@@ -2367,7 +2400,7 @@ test('the Whale-House on foot: its door sealing the last tube, the Horn Store’
 });
 
 // ------------------------------------------------------------------ on foot: Lorn II's Lamp-House, room by room
-test('the Lamp-House on foot: three dark pools (the third up the roots, out of sight), the Kennel’s arena off the hall, the moss-stones the orb’s lamp wakes over the dark pool and the root-wall, the lantern, its try by the dais, the passage’s lamp a room on and its small lock, the stones only its light shows, the pool-orb lit and rolled to the niche, the Wick Room’s two orbs burning at once for the great key, the Lampless fed, the lamp lit', () => {
+test('the Lamp-House on foot: three dark pools (the third up the roots, out of sight), the Kennel’s arena off the hall, the moss-stones the orb’s lamp wakes over the dark pool and the root-wall, the lantern, its try by the dais, the Wick Room off the first hall and the Kennel’s key in its grille, the passage’s lamp a room on, the stones only its light shows, the pool-orb lit and rolled to the niche, back down to the Wick Room: its two orbs burning at once for the great key, and up its stair through the keepers’ door onto the root-wall, the Lampless fed, the lamp lit', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('perdide2');
@@ -2423,6 +2456,24 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   wait(0.3);
   assert.equal(rt.logic.isFound('kS'), true, 'a small key');
   assert.equal(walk(L(13, 0, KENNEL.z)) && walk(L(4, 0, 38)) && walk(L(0, 0, 40)), true, `back into the hall (${where()})`);
+  // ---- (v1.60) the Wick Room, along the hall: dark niches and the great key behind a grille, the grille's keyhole the
+  // Kennel's key's
+  assert.equal(walk(L(7, 0, WICK.door + 2.2)) && walk(L(11, 0, WICK.door + 0.6), { tol: 0.8 }) && walk(L(17, 0, WICK.door)) && walk(L(19, 0, WICK.door + 3)), true, `into the Wick Room (${where()})`);
+  assert.ok(!rt.logic.isOpen('cW') && !rt.logic.isLit('lW1') && !rt.logic.isLit('lW2'), 'dark: the niches cold, the great key behind its grille');
+  assert.equal(walk(L(WICK.x + WICK.w / 2 - 1.2, 0, WICK.keyZ), { tol: 0.8 }), true, `up to the grille (${where()})`);
+  wait(2.5);
+  assert.equal(rt.logic.keysIn('cW'), 1, 'the Kennel’s small key goes into the grille');
+  assert.equal(rt.logic.isOpen('cW'), false, 'and it stays down: both niches must burn');
+  // up the stair on the north wall to the balcony: its keepers' door shut
+  const [sx0, sx1, sz] = WICK.stair;
+  assert.equal(walk(L(24, 0, 56)) && walk(L(sx0 - 0.6, 0, sz - 3.6)) && walk(L(sx0 - 0.4, 0, sz)) && walk(L(sx1 + 0.6, 9, sz), { max: 12 }) && walk(L(16.2, 9, ROOT_WAY.z)), true, `up the stair onto the balcony (${where()})`);
+  assert.equal(rt.logic.isOpen('dU'), false, 'the keepers’ door on the balcony is shut');
+  assert.equal(walk(L(10, 9, ROOT_WAY.z), { max: 4 }), false, 'and keeps you in');
+  // down off the balcony (no fall in the house hurts) and out the way you came
+  const hearts0 = P.hearts;
+  assert.equal(walk(L(21, 0, 56), { max: 8 }), true, `off the balcony's edge (${where()})`);
+  assert.equal(P.hearts, hearts0, 'the drop costs nothing');
+  assert.equal(walk(L(17, 0, WICK.door)) && walk(L(11, 0, WICK.door + 0.6)) && walk(L(7, 0, WICK.door + 2.2)) && walk(L(0, 0, 40)), true, `back into the hall (${where()})`);
   // ---- the Root Stair: the moss-stones lie sunk in the dark pool, waiting for the lamp in their socket; only light wakes it
   assert.equal(walk(L(-1, 0, 48.5)), true, `to the stair (${where()})`);
   assert.equal(rt.pieces.filter((p) => p.path).length, 0, 'no riding disc in the Lamp-House');
@@ -2477,7 +2528,7 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   wait(2.5);
   assert.equal(rt.logic.isLit('l1'), true, 'it wakes to the lantern');
   wait(2.2);
-  assert.equal(rt.logic.keysIn('d2'), 1, 'the Kennel’s small key in it');
+  assert.equal(rt.logic.el('d2').lock, undefined, 'since v1.60 its lamp alone: the Kennel’s key went into the Wick Room’s door');
   assert.equal(rt.logic.isOpen('d2'), true);
   // ---- the Dark Gallery: the moss-stones the lantern shows; the eye; the second lamp
   assert.equal(walk(L(0, 9, 106.2)), true, `to the chasm (${where()})`);
@@ -2507,24 +2558,30 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   assert.equal(rt.logic.isLit('l2'), true, 'glowing, it wakes the niche’s lamp');
   wait(2.2);
   assert.ok(rt.logic.check(rt.logic.el('d4').opens) && !rt.logic.isOpen('d4'), 'its lamps lit: and since v1.49 it wants the great key too');
-  // ---- the Wick Room, east off the far side: two niches, two orbs, one lantern; the grille wants both burning at once
-  const G0 = 103.9, WZ = G0 + WICK.z;
-  assert.equal(walk(L(8, 9, WZ)) && walk(L(16.4, 9, WZ)), true, `into the Wick Room (${where()})`);
+  // ---- (v1.60) the Wick Room is back in the first hall: down off the root-wall's top, over the moss-stones and into it
+  assert.equal(rt.logic.el(rt.logic.next()).room, 'wick', 'the marker sends you back to the Wick Room');
+  assert.equal(walk(L(0, 9, 106.2)) && walk(L(0, 9, 96)) && walk(L(0, 9, 80)) && walk(L(0, 9, 67)), true, `back to the root-wall's top (${where()})`);
+  const hearts1 = P.hearts;
+  assert.equal(walk(L(0, 0, 55), { max: 8 }), true, `down off the root-wall onto the moss-stones (${where()})`);
+  assert.equal(P.hearts, hearts1, 'the drop costs nothing');
+  assert.equal(walk(L(0, 0, 48.6)) && walk(L(0, 0, 40)) && walk(L(7, 0, WICK.door + 2.2)) && walk(L(11, 0, WICK.door + 0.6)) && walk(L(19, 0, WICK.door + 3)), true, `into the Wick Room (${where()})`);
+  // two niches, two orbs, one lantern; the grille wants both burning at once
   const lightAndRoll = (id, plate) => {
     const o = rt.piece(id);
-    assert.equal(walk(o.center.clone().setY(L(0, 9, 0).y).add(V(-1.6, 0, 0)), { tol: 0.6 }), true, `by ${id} (${where()})`);
+    assert.equal(walk(o.center.clone().setY(L(0, 0, 0).y).add(V(-1.6, 0, 0)), { tol: 0.6 }), true, `by ${id} (${where()})`);
     wait(2.4);
     assert.ok(o.charge > 0, `${id} caught the lantern’s light`);
-    for (let k = 0; k < 6 && !rt.logic.drumOn(id, plate); k++) { walk(o.center.clone().addScaledVector(o.dir, -(o.r + 1.3)).setY(L(0, 9, 0).y), { tol: 0.5, max: 4 }); o.hit('push', o.dir.clone(), { strength: 1 }); wait(2.4); }
+    for (let k = 0; k < 6 && !rt.logic.drumOn(id, plate); k++) { walk(o.center.clone().addScaledVector(o.dir, -(o.r + 1.3)).setY(L(0, 0, 0).y), { tol: 0.5, max: 4 }); o.hit('push', o.dir.clone(), { strength: 1 }); wait(2.4); }
     assert.equal(rt.logic.drumOn(id, plate), true, `${id} in its niche`);
     wait(0.6);
     return o;
   };
+  const away = L(17, 0, 57);
   const o1 = lightAndRoll('oW1', 'pW1');
   assert.equal(rt.logic.isLit('lW1'), true, 'the first niche burns');
   assert.equal(rt.logic.isOpen('cW'), false, 'one is not enough');
   // left to fade (away from it: by it, the lantern keeps it glowing): its lamp goes out with it
-  assert.equal(walk(L(17, 9, WZ)), true, `away from the orbs (${where()})`);
+  assert.equal(walk(away), true, `away from the orbs (${where()})`);
   for (let i = 0; i < 40 / DT && rt.logic.isLit('lW1'); i++) frame();
   assert.equal(rt.logic.isLit('lW1'), false, 'the orb’s glow gone, its niche dark again');
   assert.ok(notes.some((n) => /glow has gone out/.test(n)), 'and it says so');
@@ -2535,14 +2592,19 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   assert.ok(rt.logic.isLit('lW1') && rt.logic.isLit('lW2'), 'both niches burn');
   wait(2.2);
   assert.equal(rt.logic.isOpen('cW'), true, 'the grille lifts');
+  assert.equal(rt.logic.isOpen('dU'), true, 'and the keepers’ door on the balcony with it');
   assert.equal(walk(rt.piece('kB').pos, { tol: 1.2 }), true, `to the great key (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
-  assert.equal(walk(L(17, 9, WZ)), true, `away from the orbs (${where()})`);
+  assert.equal(walk(away), true, `away from the orbs (${where()})`);
   for (let i = 0; i < 30 / DT && rt.logic.isLit('lW1'); i++) frame();
   assert.ok(!rt.logic.isLit('lW1') && rt.logic.isOpen('cW'), 'and the grille stays up when they fade');
   assert.ok(o1, 'orbs');
-  assert.equal(walk(L(16.4, 9, WZ)) && walk(L(8, 9, WZ)) && walk(L(0, 9, 131.2)), true, `back out onto the far side (${where()})`);
+  // the way back up: the stair, the balcony, the keepers' door, the ledge of roots round the Root Stair to the root-wall's top
+  assert.equal(walk(L(sx0 - 0.6, 0, sz - 3.6)) && walk(L(sx0 - 0.4, 0, sz)) && walk(L(sx1 + 0.6, 9, sz), { max: 12 }) && walk(L(16.2, 9, ROOT_WAY.z)), true, `up onto the balcony (${where()})`);
+  assert.equal(walk(L(11.5, 9, ROOT_WAY.z)) && walk(L(8.6, 9, ROOT_WAY.z)) && walk(L(6, 9, 62)), true, `through the keepers' door and along the ledge to the root-wall's top (${where()})`);
+  assert.ok(Math.abs(rt.kit.local(P.pos).y - 9) < 0.6, 'up at the root-wall’s height');
+  assert.equal(walk(L(0, 9, 67)) && walk(L(0, 9, 80)) && walk(L(0, 9, 96)) && walk(L(0, 9, 106.2)) && walk(L(0, 9, 131.2)), true, `back up through the chamber and over the moss-stones to the far side (${where()})`);
   // ---- the Lamp-Room: stand still by the Lampless while it searches
   assert.equal(walk(L(0, 9, 136.2)) && walk(L(0, 9, 149.2)), true, `through the great lock into the lamp-room (${where()})`);
   assert.equal(rt.logic.keysIn('d4'), 1, 'the great key in it');
@@ -3413,7 +3475,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   own();
 });
 
-test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, the hub’s wings: the Shade House’s arena and the Cold Frame’s two eyes, each a small key for the Glass Stair’s door, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and its try in the chamber’s sun, the bud in the shade a room on and the passage’s ball that turns its louvre, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, the Seed Vault’s two seeds and one ball for the great key, the great lock past the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
+test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, the hub’s wings: the Shade House’s arena and the Cold Frame’s two eyes, each a small key for the Glass Stair’s door, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and its try in the chamber’s sun, the bud in the shade a room on and the passage’s ball that turns its louvre, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, back down to the Seed Vault off the Shade House: its two seeds and one ball for the great key, and out by its keepers’ door onto the Glass Stair’s root-wall, the great lock past the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('edena');
@@ -3477,6 +3539,16 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(walk(rt.piece('kW').pos, { tol: 1.2 }), true, `to the key (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isFound('kW'), true, 'a small key');
+  // ---- (v1.60) won, the Shade House's north door: the Seed Vault, beside the Glass Stair; its seeds in the shade, and
+  // nothing here grows without the bloom
+  assert.equal(rt.logic.isOpen('dV'), true, 'the arena won, its north door opens');
+  assert.equal(walk(L(-22, 0, 45)) && walk(L(-22, 0, 52.5)), true, `north into the Seed Vault (${where()})`);
+  { const kB = rt.piece('kB');
+    assert.ok(kB && Math.abs(rt.kit.local(kB.pos).y - VAULT.ledge) < 0.1, 'the great key up on the ledge');
+    rt.piece('sdA').hit('bloom');
+    assert.equal(rt.logic.isLit('sdA'), false, 'without bloom mode, a bloom glob is only fluid'); }
+  assert.equal(rt.logic.isOpen('dV2'), false, 'the keepers’ door up by the key is shut');
+  assert.equal(walk(L(-22, 0, 45)) && walk(L(-20, 0, 40)), true, `back into the Shade House (${where()})`);
   // ---- the Cold Frame, east: one louvre, one ball, two plates, an eye over each tray; the key wants both awake
   assert.equal(walk(L(-8, 0, 40)) && walk(L(8, 0, 40)), true, `back across the hub (${where()})`);
   assert.equal(walk(L(18, 0, 40)), true, `into the Cold Frame (${where()})`);
@@ -3594,9 +3666,16 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(rt.logic.drumOn('sb', 'pG'), true, 'rooted: it rolls no more');
   wait(3);
   assert.equal(rt.logic.isOpen('d4'), true, 'its vine climbs into the bud, and the bud opens');
-  // ---- the Seed Vault, west off the gulf's far side: two seeds at the glass's foot, one ball for the louvre's beam
+  // ---- (v1.60) the bud's far door wants the great key: back to the Seed Vault, off the Shade House, down the house
   const G0 = 103.9;
-  assert.equal(walk(L(-8, 18, G0 + VAULT.door)) && walk(L(-16, 18, G0 + VAULT.door)), true, `into the Seed Vault (${where()})`);
+  assert.equal(rt.logic.el(rt.logic.next()).room, 'vault', 'the marker sends you back to the Seed Vault');
+  assert.equal(walk(L(0, 18, G0 + 27.5)) && walk(L(0, 18, G0 + 4)) && walk(L(0, 18, 96)) && walk(L(0, 18, 76)) && walk(L(0, 18, 66.4), { tol: 0.6 }), true, `back over the vine to the landing (${where()})`);
+  const hearts0 = P.hearts;
+  assert.equal(walk(L(0, 9, 61), { max: 16, dy: 1 }), true, `down off the landing onto the root-wall (${where()})`);
+  assert.equal(walk(L(0, 0, 55), { max: 6 }), true, `and down to the floor (${where()})`);
+  assert.equal(P.hearts, hearts0, 'the drops cost nothing');
+  assert.equal(walk(L(0, 0, 47)) && walk(L(-8, 0, 40)) && walk(L(-20, 0, 40)) && walk(L(-22, 0, 45)) && walk(L(-22, 0, 52.5)), true, `through the hub and the Shade House into the Seed Vault (${where()})`);
+  // two seeds at the glass's foot, one ball for the louvre's beam
   const sdA = rt.piece('sdA'), sdB = rt.piece('sdB'), kB = rt.piece('kB');
   sdA.hit('bloom'); sdB.hit('bloom');
   assert.ok(!rt.logic.isLit('sdA') && !rt.logic.isLit('sdB'), 'both in the shade: pale, and fold back');
@@ -3614,16 +3693,22 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(rt.logic.isLit('sdB'), true, 'and the north one grows');
   wait(3);
   assert.equal(rt.logic.isOpen('vineV'), true, 'from both, the vine climbs the glass');
-  assert.equal(walk(L(-25.6, 18, G0 + VAULT.z)), true, `to the glass's foot (${where()})`);
+  assert.equal(rt.logic.isOpen('dV2'), true, 'and the keepers’ door up on the ledge opens with it');
+  const VX1 = VAULT.x + VAULT.w / 2;
+  assert.equal(walk(L(VX1 - 4.4, 0, VAULT.z)), true, `to the glass's foot (${where()})`);
   up = false;
-  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(-29, 27, G0 + VAULT.z))); if (P.onGround && local().y > 26.5) { up = true; break; } }
+  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(VX1 - 1, VAULT.ledge, VAULT.z))); if (P.onGround && local().y > VAULT.ledge - 0.5) { up = true; break; } }
   assert.ok(up, `up the vine (${where()})`);
   assert.equal(walk(kB.pos, { tol: 1.2, max: 4 }), true, `to the great key (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
-  P.teleport(L(-22, 18.1, G0 + VAULT.z), V(0, 1, 0), V(0, 0, 1));   // (down off the ledge)
-  wait(0.5);
-  assert.equal(walk(L(-16, 18, G0 + VAULT.door)) && walk(L(-8, 18, G0 + VAULT.door)), true, `back into the gulf (${where()})`);
+  // the way back up: through the keepers' door onto the Glass Stair's root-wall, and the disc
+  assert.equal(walk(L(VX1 - 1.4, VAULT.ledge, VAULT.z)) && walk(L(-11.6, VAULT.ledge, VAULT.z)) && walk(L(-8.6, VAULT.ledge, VAULT.z)) && walk(L(-5, VAULT.ledge, 62)), true, `through the keepers' door onto the root-wall (${where()})`);
+  assert.ok(Math.abs(local().y - VAULT.ledge) < 0.6, 'up at the root-wall’s height, by the disc');
+  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.8); i++) frame();
+  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the disc (${where()})`);
+  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  assert.equal(walk(L(0, 18, 66.8), { tol: 0.8 }) && walk(L(0, 18, 76)) && walk(L(0, 18, 96)) && walk(L(0, 18, G0 + 4)) && walk(L(0, 18, G0 + 30)), true, `back up through the chamber and over the vine (${where()})`);
   assert.equal(walk(L(1.5, 18, 139.6), { tol: 0.8 }), true, `back to the glass's foot (${where()})`);
   up = false;
   for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, 145.2))); if (P.onGround && local().y > 26.5) { up = true; break; } }
@@ -3740,7 +3825,7 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
   own();
 });
 
-test('the Undertower on foot: the singing ball and the dishes and the pillars over the cable pit, the hub’s wings: the Cable Store’s arena and the Tuning Room’s dish, each a small key for the Shell Chamber’s door, the well’s horn and the low stone, the echo shell, the chamber’s low stone carried a room on to the passage’s horn and the ball on its footstone, the held pillars, the middle note sent over through the dish, the way back, the Choir’s two horns for the great key, the great lock, the First Sign given its words back, the tower speaks once a night', () => {
+test('the Undertower on foot: the singing ball and the dishes and the pillars over the cable pit, the hub’s wings: the Cable Store’s arena and the Tuning Room’s dish, each a small key for the Shell Chamber’s door, the well’s horn and the low stone, the echo shell, the chamber’s low stone carried a room on to the passage’s horn and the ball on its footstone, the held pillars, the middle note sent over through the dish, the way back, the Choir’s gate high in the Cable Well opened by the horn at its cable’s end in the first hall, its two horns for the great key, the high note caught from the walk round the well, the great lock, the First Sign given its words back, the tower speaks once a night', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('bazaar');
@@ -3966,12 +4051,45 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(walk(L(0, 12, G0 + 31)), true, `off the far end (${where()})`);
   wait(0.3);
   assert.equal(bridge.open, false, 'and then they sink');
-  // ---- the Choir, west off the far side: the far horn hears the low stone through the dishes, the near one the high
-  // note played back; the great key caged between them
-  const CZ = G0 + CHOIR.door;
-  assert.equal(walk(L(-8, 12, CZ)) && walk(L(-17.6, 12, CZ)), true, `into the Choir (${where()})`);
-  const hA = ear('hA'), hB = ear('hB'), kB = rt.piece('kB');
-  const lowQ = stone('low', L(CHOIR.low[0], 12, G0 + CHOIR.low[1])), highQ = stone('high', L(CHOIR.high[0], 12, G0 + CHOIR.high[1]));
+  // ---- (v1.60) the great key is back in the Choir, over the Cable Store: its keepers' gate, high on the Cable Well's wall,
+  // listens through a horn at its cable's other end, on the Hall of Dishes' far landing, for the middle note
+  assert.equal(rt.logic.isOpen('d4'), false, 'the far door wants the great key');
+  assert.equal(walk(ear3.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `to the far horn (${where()})`);
+  farHigh.sing(); wait(0.3); shell.play(); wait(2.5);
+  assert.equal(walk(L(0, 12, G0 + 26.5)) && walk(L(0, 12, G0 + 5)), true, `back over the pillars (${where()})`);
+  assert.equal(walk(L(0, 12, A0 + 6)) && walk(L(0, 12, C3)) && walk(L(0, 12, 69.5)), true, `back through the chamber to the landing (${where()})`);
+  const gate = rt.piece('dG');
+  assert.equal(rt.logic.isOpen('dG'), false, 'the keepers’ gate off the walk round the well is shut');
+  // down off the landing, the ledge and the floor (no fall in the house hurts)
+  const hearts0 = P.hearts;
+  assert.equal(walk(L(-1, 0, C2 - 3), { max: 12 }), true, `down into the well (${where()})`);
+  assert.equal(P.hearts, hearts0, 'the drop costs nothing');
+  assert.equal(walk(L(0, 0, 50)) && walk(L(3.4, 0, 45.6)), true, `along the gate's cable to the first hall's far landing (${where()})`);
+  const hG = ear('hG');
+  assert.ok(hG.at.distanceTo(L(4.2, 2.4, 44.2)) < 1.5, 'the gate’s horn, at its cable’s end');
+  assert.equal(walk(hG.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `by the gate's horn (${where()})`);
+  assert.equal(shell.held.note, 'high');
+  shell.update(2); shell.play(); wait(0.3);
+  assert.equal(rt.logic.isLit('hG'), false, 'the high note: it listens for the middle one');
+  assert.ok(said(/listens for the middle one/), 'and says so');
+  // the singing ball across the pit sings it, and its dish brings the note over to the far landing
+  ball1.hit('shoot', DOWN); wait(1.4);
+  assert.equal(shell.held.note, 'mid', 'the far dish brings the ball’s note over: the shell catches it');
+  shell.update(2); shell.play(); wait(2.5);
+  assert.equal(rt.logic.isLit('hG'), true, 'the middle note, played back: the gate’s horn answers');
+  assert.ok(rt.logic.isOpen('dG') && rt.logic.isOpen('dC'), 'the gate opens, and the Choir’s door onto the chamber with it');
+  // back up the discs, along the walk round the well and through the gate
+  assert.equal(walk(L(0, 0, 50)) && walk(L(-3, 0, C2 - 3)), true, `back into the well (${where()})`);
+  ride(discA, L(-4, 6, C2 + 3.2), 'first disc');
+  ride(discB, L(1, 12, C2 + 8.4), 'second disc');
+  assert.equal(walk(L(-3, 12, 63.5)) && walk(L(-8.6, 12, 63.5)), true, `onto the walk round the well (${where()})`);
+  assert.ok(gate.open, 'the gate is down');
+  const CZ = CHOIR.z, hA = ear('hA'), hB = ear('hB'), kB = rt.piece('kB');
+  assert.equal(walk(L(-12, 12, CHOIR.gate)) && walk(L(-17, 12, CHOIR.gate)), true, `through the gate into the Choir (${where()})`);
+  // ---- the Choir: the far horn hears the low stone through the dishes; the near one wants the high note played back
+  const lowQ = stone('low', L(CHOIR.low[0], 12, CHOIR.low[1]));
+  assert.ok(lowQ.center.distanceTo(L(CHOIR.low[0], 12, CHOIR.low[1])) < 2, 'the Choir’s low stone');
+  assert.equal(stones.filter((s) => s.note === 'high' && s.center.distanceTo(L(CHOIR.x, 12, CZ)) < 16).length, 0, 'no high stone in the Choir');
   assert.equal(kB.free(), false, 'the great key caged');
   lowQ.sing(); wait(1.2);
   assert.equal(rt.logic.isLit('hA'), false, 'the low stone sung by a dark dish: the far horn hears nothing');
@@ -3982,10 +4100,12 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(walk(hB.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `to the near horn (${where()})`);
   shell.update(2); shell.play(); wait(0.3);
   assert.equal(rt.logic.isLit('hB'), false, 'the low note: the near horn wants the high one');
-  assert.equal(walk(highQ.center.clone().add(V(2.4, 0, -1)).setY(P.pos.y), { tol: 1.2 }), true, `to the high stone at the far end (${where()})`);
-  highQ.sing(); wait(0.3);
-  assert.equal(shell.held.note, 'high');
-  assert.equal(walk(hB.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back to the near horn (${where()})`);
+  assert.ok(said(/Nothing in the Choir sings it/), 'and nothing in the Choir sings it');
+  // out through the gate: the Cable Well's high stone, on the floor below, splashed from the walk
+  assert.equal(walk(L(-17, 12, CHOIR.gate)) && walk(L(-8.6, 12, 63.5)) && walk(L(-3, 12, 63.5)), true, `back out onto the walk (${where()})`);
+  highW.sing(); wait(0.3);
+  assert.equal(shell.held.note, 'high', 'the shell catches the high stone from the walk above it');
+  assert.equal(walk(L(-8.6, 12, 63.5)) && walk(L(-17, 12, CHOIR.gate)) && walk(hB.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back to the near horn (${where()})`);
   shell.update(2); shell.play(); wait(0.3);
   assert.equal(rt.logic.isLit('hB'), true, 'the high note, played back: it answers');
   wait(1.5);
@@ -3993,7 +4113,14 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(walk(kB.pos, { tol: 1.2 }), true, `to the great key (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
-  assert.equal(walk(L(-17.6, 12, CZ)) && walk(L(-8, 12, CZ)) && walk(L(0, 12, G0 + 31)), true, `back out to the far door (${where()})`);
+  assert.ok(hA.at.distanceTo(hB.at) > 15, 'the two horns at either end of the Choir');
+  // out by the Choir's door onto the chamber, and on through the gallery to the far door
+  assert.equal(walk(L(-15, 12, CHOIR.way)) && walk(L(-6, 12, CHOIR.way)), true, `through the Choir's door into the chamber (${where()})`);
+  assert.equal(walk(L(0, 12, A0 + 4)) && walk(L(0, 12, G0 + 3)), true, `back into the gallery (${where()})`);
+  high.sing(); wait(0.3);
+  walk(ear1.at.clone().setY(P.pos.y), { tol: 2.5 });
+  shell.update(2); shell.play(); wait(2.5);
+  assert.equal(walk(L(0, 12, G0 + 6.5)) && walk(L(0, 12, G0 + 31)), true, `over the pillars to the far door (${where()})`);
   // ---- the First Sign: when it lowers its dish to listen, play its word back into it; it moves on to the next
   assert.equal(walk(L(0, 12, G0 + 48)), true, `through the great lock into the hall (${where()})`);
   assert.equal(rt.logic.keysIn('d4'), 1, 'the great key in it');

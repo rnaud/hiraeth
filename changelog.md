@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.60 — 2026-10-12
+
+- In the Builders’ Greenhouse the Seed Vault is off the Shade House now: win the Shade House and a door in its north wall opens on the vault’s two seeds and its glass, long before you have bloom mode. Come back with it for the great key, and at the top of the vine a keepers’ door lets you out onto the Glass Stair’s root-wall, by the disc.
+- In the Lamp-House the Wick Room is off the Hall of Dark Pools now, open and dark when you first come in. The Kennel’s small key goes into the grille over the great key, and the grille lifts once both niches burn, so you bring the lantern back down for it. A stair and a keepers’ door take you back out onto the Root Stair’s root-wall. The Lamp Passage’s door needs only its lamp.
+- In the Undertower the Choir and its great key have moved beside the Shell Chamber, over the Cable Store. Its door, and a keepers’ gate high on the Cable Well’s wall, open when a horn back on the first hall’s far landing, at the end of the gate’s cable, hears the middle note. Inside, the near horn wants the high note, and only the Cable Well’s stone below the gate sings it.
+
 ## v1.59 — 2026-10-12
 
 - The deepest darks stay in real pockets now, under balconies and eaves, between ribs, in alleys: the near-black band along the foot of every wall, every stair and the bones in the giant’s cave is gone, and with it the blotches that slid and jumped about there as the camera moved, and the dark copy of you that appeared on the ground beside a wall’s end.
