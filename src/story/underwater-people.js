@@ -50,7 +50,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Bastien. I keep the lock. Your ship came down it like a stone down a well. A polite stone.',
+          say: ['~neutral~ Your ship came down my lock like a stone down a well. A polite stone, I’ll give it that.',
             '~tired~ Hear that hum in the glass? One note, all over the city, since the night the whales went quiet. It’s the wrong note. The whales won’t come near it.'],
           choices: [
             { text: '~curious~ Where does it come from?', goto: 'where' },
@@ -84,7 +84,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~happy~ Brune. I grow the glow-kelp. Every lamp in the city has a frond of mine in it somewhere.',
+          say: ['~happy~ Every lamp in this city has a frond of my glow-kelp in it somewhere. Look up, you’ll see.',
             '~curious~ You came down the lock, didn’t you? Then you’ve got young knees. Would you take something up the column for me?'],
           choices: [
             { text: '~neutral~ Up the column?', goto: 'column' },
@@ -105,7 +105,7 @@ export const PEOPLE = {
           say: ['~happy~ He sent word down the column: it glows. He says it’s the first green thing he’s owned since he was a boy.',
             { if: { not: { flag: 'temple.underwater.done' } }, text: '~sad~ The kelp leans toward the glass at night, the way it used to when the whales came by. It’s still waiting for them.' },
             { if: { flag: 'temple.underwater.done' }, text: '~surprised~ And the whales are back. The kelp leans all one way when they sing. Look at it.' }],
-          choices: [{ text: '~neutral~ Goodbye, Brune.', end: true }],
+          choices: [{ text: '~playful~ I kept it wet.', end: true }],
         },
       },
     },
@@ -125,7 +125,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Fabre. I keep the Crown’s lamps, at the top of the column. Up here you can almost touch the surface.',
+          say: ['~neutral~ Top of the column. The Crown’s lamps are mine to keep, and from here you can almost touch the surface.',
             '~curious~ You came from up there, didn’t you? Through it. What does it look like from the other side?'],
           choices: [
             { text: '~happy~ Bright. Very wide. Dry.', goto: 'sky' },
@@ -143,7 +143,7 @@ export const PEOPLE = {
         lamps: {
           say: ['~solemn~ I’ve lit the Crown’s lamps every dusk since the whales went away. For them, so they can find the city again.'],
           do: { set: { 'underwater.fabre.lamps': true } },
-          choices: [{ text: '~neutral~ Goodbye, Fabre.', end: true }],
+          choices: [{ text: '~solemn~ They’ll see them.', end: true }],
         },
         after: {
           say: [{ if: { not: { flag: 'temple.underwater.done' } }, text: '~neutral~ Six lamps, every dusk. When they come back, the top of the city will be lit.' },
@@ -168,7 +168,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~whisper~ Maelle. I listen to the whales. This gallery hangs over the deep: they used to come up out of it and sing against the glass.',
+          say: ['~whisper~ Quietly, please. This gallery hangs over the deep: they used to come up out of it and sing against the glass.',
             '~sad~ One night a light came down through the sea, singing one note. The whales sang it back, all of them at once. Then they went away, and they haven’t come back.',
             '~solemn~ And the glass has hummed that one note ever since, all over the city. You can feel it in your teeth.'],
           do: { set: { 'met.maelle': true, 'underwater.rumour.light': true } },
@@ -181,7 +181,7 @@ export const PEOPLE = {
         house: {
           say: ['~neutral~ *The Whale-House*, the makers’ old sounding-house on the sea floor north of the Plaza. *The last tube runs out to its door.* Old Anselme sits by it.',
             '~solemn~ Whatever listens in there has been singing the light’s note back to the whales for months. Go and ask it to stop.'],
-          choices: [{ text: '~neutral~ I’ll go.', if: { quest: 'temple.underwater', started: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~neutral~ I’ll go and look.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go.', if: { quest: 'temple.underwater', started: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~curious~ I’ll listen at its door first.', end: true }],
         },
         again: { say: ['~whisper~ North of the Plaza, down the last tube. The Whale-House. Listen at its door before you go in.'], choices: [{ text: '~neutral~ I’m going.', end: true }] },
         lamps: {

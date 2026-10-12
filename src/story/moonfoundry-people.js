@@ -61,7 +61,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Hedda. I pour the small moons. Bell-tower moons, garden moons. This one, though. I didn’t pour this one.',
+          say: ['~neutral~ Bell-tower moons, garden moons: I pour the small ones. This one, though. I didn’t pour this one.',
             '~curious~ It came down the rails at dawn, glowing, and settled in my mould like it lived there. Nobody here poured it. Nobody here was awake.'],
           choices: [
             { text: '~curious~ Then who poured it?', goto: 'who' },
@@ -77,7 +77,7 @@ export const PEOPLE = {
         again: { say: ['~neutral~ The old hoist, the iron tower past the moon in the claws. Its first deck. Look at the moons.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ No moon came down the rails this morning. My mould’s empty, and I don’t know what to do with my hands.'],
-          choices: [{ text: '~neutral~ Goodbye, Hedda.', end: true }],
+          choices: [{ text: '~playful~ Pour something nobody ordered.', end: true }],
         },
       },
     },
@@ -95,7 +95,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Liesel. I mend things. This one’s Bertil’s ladle-hook: the old crane bent it pouring a bell last winter.',
+          say: ['~neutral~ There. Mended. Bertil’s ladle-hook: the old crane bent it pouring a bell last winter.',
             '~curious~ He won’t come for it. Too busy keeping the furnace warm. Would you hang it on his crane?'],
           choices: [
             { text: '~happy~ I’ll hang it.', do: [{ start: 'moonfoundry.hook' }, { give: 'ladlehook' }], goto: 'go' },
@@ -145,7 +145,7 @@ export const PEOPLE = {
           do: { set: { 'moonfoundry.bertil.thanked': true } },
           choices: [{ text: '~playful~ She says it’s straighter than you.', goto: 'straighter' }],
         },
-        straighter: { say: ['~playful~ Everything is. I’ve been leaning toward this furnace for forty years.'], choices: [{ text: '~neutral~ Goodbye, Bertil.', end: true }] },
+        straighter: { say: ['~playful~ Everything is. I’ve been leaning toward this furnace for forty years.'], choices: [{ text: '~playful~ Don’t lean in too far.', end: true }] },
       },
     },
   },
@@ -180,7 +180,7 @@ export const VISITORS = {
         counted: {
           say: ['~surprised~ Thirty-two, from the top? Then I’ve been one short all week. (She starts again from one.)'],
           do: { set: { 'moonfoundry.wen.counted': true } },
-          choices: [{ text: '~neutral~ Goodbye, Wen.', end: true }],
+          choices: [{ text: '~playful~ Slowly, this time.', end: true }],
         },
         after: {
           say: [{ if: { not: { flag: 'temple.moonfoundry.done' } }, text: '~whisper~ At night the hung ones turn on their hooks, all toward the same place. Like they’re looking for where they should go.' },

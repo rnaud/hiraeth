@@ -192,11 +192,11 @@ const REEL_ANY = { word: 'home', find: '~neutral~ The house is quiet without you
 export const WINDOW = {
   desert: '~whisper~ It’s low over the dry well now. It doesn’t stop. It never stops anywhere.',
   arzach: '~whisper~ No sound from it tonight. Just the light, going on out.',
-  perdide: '~whisper~ Rain on the glass, and it’s still there past the rain. Further than last night.',
+  perdide: '~whisper~ Rain on the glass, and it’s still there past the rain. Further out than before.',
   edena: '~whisper~ Over the garden wall, and away. The roses turned to watch it go.',
   underwater: '~whisper~ I thought it went down into the sea. It came up again, further out.',
   incal: '~whisper~ Past the last of the port lamps now. I keep looking up.',
-  glassdunes: '~whisper~ Same hour every night, a little further each time. You could set the clocks by it.',
+  glassdunes: '~whisper~ A little further every time I look at the clock. You could set the clocks by it.',
   buried: '~whisper~ Slow tonight. As if it wanted someone to follow.',
   moonfoundry: '~whisper~ It goes out past the moons and keeps going.',
   spheres: '~whisper~ I know that note from somewhere. It’s going the way the old ships went.',

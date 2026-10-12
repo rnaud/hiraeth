@@ -268,3 +268,49 @@ Flags are the extractor's (judged, not counted as faults).
 6. **The temple guides' shape** (v1.48's finding 4): after the temple work lands. *Cost: medium.*
 7. **The process:** a check for "Name. I verb." as a first line, and for a phrase from the voice guide's list of the
    night's names said outside its world. *Cost: a few lines of the extractor.*
+
+## After the rewrites
+
+Asked for: the rewrites for every area scoring 3 or below (distinct voices, the traveller's voice, choices) were
+applied in the same branch, after the review above was committed, with the small fixes they touch. Text only: no page,
+answer, id, condition or effect added or removed; each line kept its speaker's sheet and a tone tag.
+
+| Area | Lines | What changed |
+|---|---|---|
+| Distinct voices: openers (finding 1) | 8 | Bastien, Brune, Fabre, Maelle, Hedda, Liesel, Rosa and Halden start mid-task, not on their name |
+| Distinct voices: the night, a hand's width (findings 3, 7) | 5 | Nour, Petra and Joss say their own world's night; Ines no longer measures the drift |
+| The traveller's voice: the drain (finding 2) | 6 | Five reports in his own words to each listener; the Speaker's reply without "debris" |
+| The traveller's voice and choices: exits (findings 4, 10) | 12 | Halden, Brune, Fabre, Hedda, Bertil, Wen, Rosa, Kip and Ines get a reply that follows the line before; three of the Speaker's five "Walk on, Speaker." become his own ("I'll find the fire.", "Put it in the verse.") |
+| Choices: Maelle (finding 5) | 1 | "I'll listen at its door first." instead of a second "I'll go" |
+| Continuity: the window, the Hangar (findings 6, 8) | 4 | The father's recording is one night; the lodestone and the brass level no longer come from the Hangar |
+| Small slips (finding 10) | 2 | Ennor's hand-off; the second verse read aloud |
+
+38 lines in 10 files: the Desert 12 (Ennor among them), the Underwater City 7, the City Floating in Space 7 (Joss's
+among them), the Moon Foundry 6 (Petra's among them), the Glass Dunes 2, the father's window 2, the finds 2. The two
+temple guides' lines are the only edits under `src/temples/`.
+
+**Not applied:**
+- the older worlds' "Name. I verb." openers (the desert's are its style; the rest can follow if the new ones read better);
+- the report-back steps (finding 9): quest work, not text;
+- the temple guides' shape, Sabri's maxim and "You went in!": the temples are being reworked;
+- the fourth verse's summary page and the 130-odd remaining plain goodbyes.
+
+**The scores, estimated.** An estimate by the same reader, not a second measured review: the next review should
+measure them. Each cell is this review's measured score, then the estimate.
+
+| Area | Estimate | Why |
+|---|---|---|
+| Brevity | 4 → 4 | unchanged in kind |
+| Subtext | 4 → 4 | one moral softened |
+| Distinct voices | 3 → 3.5 | the newest worlds no longer open alike; the older worlds' openers and the guides' shape stay |
+| The traveller's voice | 3 → 3.5 | his reports are his; ten exits answer what was said |
+| Choices | 3 → 3 | no new choices; one false binary gone |
+| Listen lines | 4 → 4 | Ennor's hand-off gone |
+| Tone | 4 → 4 | unchanged |
+| Mystery | 4 → 4 | the window holds to one night |
+| Aliens and the translator | 3.5 → 3.5 | unchanged |
+| Lore load | 4 → 4 | the Hangar's last two traces gone |
+| Quest clarity | 4 → 4 | the report-back steps remain |
+| Localisation | not reviewed | out of scope |
+
+Estimated mean of the eleven: **3.77** (measured: 3.68).

@@ -42,7 +42,7 @@ export const LOCALS = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Halden. I carry the floats from the kilns to the camps. Mind the discs: they’ll carry you too, if you let them.',
+          say: ['~neutral~ Floats, from the kilns to the camps: that’s my load. Mind the discs: they’ll carry you too, if you let them.',
             '~curious~ Ask anyone the time here and they’ll give you a different one. Every clock in the dunes stopped the night the light passed, each at its own minute.'],
           choices: [
             { text: '~curious~ Which one stopped first?', goto: 'first' },
@@ -58,7 +58,7 @@ export const LOCALS = {
         again: { say: ['~neutral~ The glass mound by the warm flow, along the float-posts. Read the Clock-House’s face from the top.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ I asked three people the time this morning. Same answer, three times. I didn’t know what to do with myself.'],
-          choices: [{ text: '~neutral~ Goodbye, Halden.', end: true }],
+          choices: [{ text: '~playful~ Ask a fourth.', end: true }],
         },
       },
     },

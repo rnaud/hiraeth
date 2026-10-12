@@ -29,7 +29,7 @@ export const PEOPLE = {
         hello: {
           say: ['~neutral~ Joss. I moor. When an island wanders off, I pull it home. Lately they all wander.',
             '~solemn~ That’s *the Mooring-House*. The great capstan inside holds every cable in the city. The islands were tied to it before anyone lived on them.',
-            '~sad~ The night the singing light went over, its note ran down every cable at once. Since then the islands drift apart a hand’s width a night, and the bridges creak.'],
+            '~sad~ The night the cables sang, the light’s note ran down every one of them at once. Since then the islands drift apart a hand’s width a night, and the bridges creak.'],
           do: { set: { 'met.joss': true } },
           choices: [
             { text: '~neutral~ I’ll go in and look.', do: { start: 'temple.spacecity' }, goto: 'go' },

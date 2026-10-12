@@ -156,7 +156,7 @@ export const ITEMS = {
   },
   level: {
     name: 'Brass level', kind: 'charm',
-    text: 'A brass spirit level with the Major’s initials. Where down has moved, as in the Hangar’s upside-down quarter, it shows how the floor lies.',
+    text: 'A brass spirit level, somebody’s initials scratched on its side. Where down has moved, it shows how the floor lies.',
   },
   // the three worlds that joined the route in v1.40: one gift each in the open (src/temples/index.js GADGETS)
   pearl: {
@@ -226,7 +226,7 @@ export const ITEMS = {
   },
   lodestone: {
     name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'glassdunes', where: 'The first finish of the Glass slalom, the Glass Dunes’ run on the wings.',
-    text: 'A darker lodestone from deep in the Hangar’s floor; spoons follow you about. The magnet glove reaches 26 m instead of 18.',
+    text: 'A darker lodestone dug from under the Glass Dunes’ kilns; spoons follow you about. The magnet glove reaches 26 m instead of 18.',
   },
   fourthpouch: {
     name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'spheres', where: 'The first finish of the Garden round, the Garden of Spheres’ run on foot.',

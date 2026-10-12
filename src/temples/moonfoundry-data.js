@@ -34,7 +34,7 @@ export const PEOPLE = {
         hello: {
           say: ['~neutral~ Petra. I keep the founders’ ledger. Somebody has to, and the founders left a long time ago.',
             '~solemn~ That’s *the Casting-House*. The first moons were poured in there. Every page of the ledger starts at its door.',
-            '~sad~ The night the singing light went over, every hung moon in the hangar turned on its hook to watch it go. And since then, at night, the house pours by itself. The floor shakes.'],
+            '~sad~ The night the singing went over, every hung moon in the hangar turned on its hook to watch it go. And since then, at night, the house pours by itself. The floor shakes.'],
           do: { set: { 'met.ilse': true } },
           choices: [
             { text: '~neutral~ I’ll go in and look.', do: { start: 'temple.moonfoundry' }, goto: 'go' },

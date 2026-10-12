@@ -74,7 +74,7 @@ const KIP = {
           do: { set: { 'spacecity.kip.thanked': true } },
           choices: [{ text: '~playful~ Eight to go.', goto: 'eight' }],
         },
-        eight: { say: ['~playful~ Eight to go! I’ll have this whole city lit by the time I leave. They’ll name a bridge after me. A short one.'], choices: [{ text: '~neutral~ Goodbye, Kip.', end: true }] },
+        eight: { say: ['~playful~ Eight to go! I’ll have this whole city lit by the time I leave. They’ll name a bridge after me. A short one.'], choices: [{ text: '~playful~ A short one suits you.', end: true }] },
         after: {
           say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~curious~ The bridges creak more every night. If the islands drift any further I’ll have to jump between them. I’d like that, actually.' },
             { if: { flag: 'temple.spacecity.done' }, text: '~happy~ The bridges stopped creaking! Now I can hear my own feet. I’m very loud. Who knew.' }],
@@ -141,7 +141,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Rosa. Every morning I chalk where each bridge sits on its island. Every morning it’s crept another hand’s width.',
+          say: ['~neutral~ (She chalks a line where the bridge meets the island.) Every morning I mark it. Every morning it’s crept another hand’s width.',
             '~tired~ The islands are drifting apart, since the night the cables sang. The bridges creak all night about it.'],
           choices: [
             { text: '~curious~ What pulls them apart?', goto: 'why' },
@@ -157,7 +157,7 @@ export const PEOPLE = {
         again: { say: ['~neutral~ The cables under the Towers, by the bridge to the Moorings. A hand on them.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ My chalk hasn’t moved in three mornings. I’m going to have to find something else to worry about.'],
-          choices: [{ text: '~neutral~ Goodbye, Rosa.', end: true }],
+          choices: [{ text: '~playful~ The bridges will think of something.', end: true }],
         },
       },
     },
@@ -183,9 +183,9 @@ export const PEOPLE = {
           do: { set: { 'sight.spacecity.tamar': true, 'spacecity.rumour.light': true } },
           choices: [{ text: '~curious~ And the cables since?', goto: 'since' }, { text: '~neutral~ Goodbye, Ines.', end: true }],
         },
-        since: { say: ['~sad~ They hum that note night and day. And the islands drift, a hand’s width a night. Joss at the Mooring-House says something in there is letting the cables out.'], choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }] },
+        since: { say: ['~sad~ They hum that note night and day, and the islands drift. Joss at the Mooring-House says something in there is letting the cables out.'], choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }] },
         again: {
-          say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~sad~ Feel that? The bridge creaks. Another hand’s width tonight. The Mooring-House is north of here, over the long bridge.' },
+          say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~sad~ Feel that? The bridge creaks. It never used to. The Mooring-House is north of here, over the long bridge.' },
             { if: { flag: 'temple.spacecity.done' }, text: '~happy~ Taut, all of them. My grandmother would have cried. I did, a bit. Don’t tell the Market.' }],
           choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }],
         },
@@ -193,7 +193,7 @@ export const PEOPLE = {
           say: ['~curious~ That was Sel’s paper on my cable? It kept her line, stroke for stroke.',
             '~solemn~ So the planet’s talking, and my cables have been listening all along. She isn’t going mad. We both are.'],
           do: { set: { 'spacecity.tamar.notes': true } },
-          choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }],
+          choices: [{ text: '~playful~ Good company, then.', end: true }],
         },
       },
     },

@@ -257,7 +257,7 @@ export const PEOPLE = {
         // the water is up, the tree drank, and it is still cold
         drank: {
           say: ["~surprised~ The roots are drinking! But the tree won’t burn. I tried a torch. It hissed at me. I’m accustomed to better manners from firewood."],
-          choices: [{ text: '~neutral~ Debris was clogging the drain.', goto: 'rib' }, { text: '~neutral~ I’ll find out why it won’t.', end: true }],
+          choices: [{ text: '~neutral~ Something was jammed in its drain, down there.', goto: 'rib' }, { text: '~neutral~ I’ll find out why it won’t.', end: true }],
         },
         lateJar: {
           say: ["~surprised~ The roots are drinking, and you did that without even a jar? Take *the drinking jar*, then. Fill it at *the giant’s pool*, past the back gate. Some for the Drinking."],
@@ -373,7 +373,7 @@ export const PEOPLE = {
           say: ["~curious~ You’re back! Tell me everything. Start with the biggest thing."],
           choices: [
             { text: "~solemn~ A pool of coloured water inside the giant’s chest. The tree’s roots drink from it.", if: { flag: 'desert.channel.open' }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
-            { text: "~solemn~ A dry pool. Debris clogs its drain. The tree’s roots hang above it.", if: { not: { flag: 'desert.channel.open' } }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
+            { text: "~solemn~ A dry pool, its drain packed with rubble. The tree’s roots hang over it.", if: { not: { flag: 'desert.channel.open' } }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
             { text: '~playful~ A sleeping monster. It sniffed me.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'monster' } }], goto: 'monster' },
             { text: '~whisper~ It’s a secret. You’ll see it yourself when you’re older.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'secret' } }], goto: 'secret' },
           ],
@@ -426,7 +426,7 @@ export const PEOPLE = {
           say: ["~solemn~ One old verse gives the route: *Where the giant’s eyes are marked, its mouth is a door.* I believe that means exactly what it says.", "~playful~ Find *the marked skull outside the back gate*. Carved stones hold its jaw open. *Go through the mouth* to reach the water below."],
           choices: [{ text: '~neutral~ I’ll go and look.', end: true }],
         },
-        well: { say: ["~neutral~ Up through its roots. The old keepers went down inside the giant to tend the way it comes."], choices: [{ text: '~curious~ Is there a way down?', goto: 'way' }, { text: '~neutral~ Walk on, Speaker.', end: true }] },
+        well: { say: ["~neutral~ Up through its roots. The old keepers went down inside the giant to tend the way it comes."], choices: [{ text: '~curious~ Is there a way down?', goto: 'way' }, { text: '~neutral~ I’ll let you walk.', end: true }] },
         swamp: { say: ["~curious~ Glowing water and singing plants, far beyond this desert. Farther than our feet can take us."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~curious~ And the water here, is there a way down to it?', goto: 'way' }, { text: '~neutral~ Some other day, then.', end: true }] },
         never: { say: ["~tired~ Then we must learn something new. Walking is a comfort, but the tree cannot drink footsteps."], choices: [{ text: '~curious~ Then how does the water reach it?', goto: 'well' }] },
         again: {
@@ -444,16 +444,16 @@ export const PEOPLE = {
         cold: {
           say: ["~solemn~ The roots drink but the fire is out. We have an old verse: *The fire must be carried.* You’ll need something to light the tree.",
             "~neutral~ The fire-bearers travelled *south-east into the red rocks*, leaving marked stones along the route, and came back with it."],
-          choices: [{ text: '~neutral~ Debris had clogged the water’s drain.', goto: 'rib' }, { text: '~neutral~ Walk on, Speaker.', end: true }],
+          choices: [{ text: '~neutral~ The drain down there was blocked. I cleared it.', goto: 'rib' }, { text: '~neutral~ I’ll find the fire.', end: true }],
         },
         carried: { say: ["~surprised~ The spark-stone. You found it. *Set it in the tree’s roots*. We’ll keep the procession moving until the tree burns."], choices: [{ text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~neutral~ Keep them walking.', end: true }] },
         // the bell on the fire-bearers' way (THINGS.wayBell)
         bell: { say: ["~surprised~ A bell, out on the fire-bearers’ way? Then the old accounts are true to the step. One of them came back with a quiet staff.", "~solemn~ Leave it there. It marks where somebody walked when walking was the only way."], do: { set: { 'desert.way.told': true } }, choices: [{ text: '~solemn~ I left it where it lay.', end: true }] },
         drinking: {
           say: ["~happy~ The tree burns! Listen to the drums. Nobody had to tell them when to begin.", "~solemn~ Under the giant, out to the red rocks, and back. The old route still works. I’ll need a new verse for your part."],
-          choices: [{ text: '~neutral~ Debris had clogged the water’s drain.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],
+          choices: [{ text: '~neutral~ It wasn’t the tree. The drain was blocked.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],
         },
-        rib: { say: ["~solemn~ Debris blocked the water. Then we were waiting above a repair that needed doing. I will remember that."], choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
+        rib: { say: ["~solemn~ Blocked. So we walked our circles above a repair nobody made. I will remember that."], choices: [{ text: '~playful~ Put it in the verse.', end: true }] },
         after: { say: ["~solemn~ When they ask what you found here, tell them about the people as well as the fuel. We did, after all, fill your ship.", { if: { flag: 'desert.ilo.told', is: 'monster' }, text: '~playful~ Ilo reports a monster under the city that sniffs visitors. I have added it to the verses. Provisionally.' }], choices: [{ text: '~solemn~ I’ll remember.', end: true }] },
       },
     },
@@ -531,7 +531,7 @@ export const PEOPLE = {
           ],
         },
         dark: {
-          say: ["~sad~ The night the singing light went over, its fire went out and its roots went dry. We’ve had dry years. Never a cold one."],
+          say: ["~sad~ The night the light passed, its fire went out and its roots went dry. We’ve had dry years. Never a cold one."],
           choices: [{ text: '~playful~ I came down the morning after.', goto: 'fell' }],
         },
         fell: { say: ["~playful~ Then step up on its stone and try it. If it bites, we’ll both have learned something."], choices: [{ text: '~neutral~ (try the chest)', end: true }] },
@@ -632,7 +632,7 @@ export const PEOPLE = {
         from: { say: ["~neutral~ The supply is *inside the giant*. Its head lies beyond the back gate. Old keepers used to *enter its mouth* and clear the water channel. Nobody’s done that in my lifetime."], choices: [{ text: '~surprised~ Through its mouth?', goto: 'mouth' }] },
         mouth: { say: ["~whisper~ Carved stones hold the jaw open. The children dare each other to touch the teeth. Please don’t add yourself to my list of worries."], choices: [{ text: '~playful~ I won’t.', end: true }] },
         glyph: { say: ["~neutral~ {glyph} We call it the Givers’ mark. Salt pilgrims call it the Eye That Fell. Children call it a bird. None of us knows who carved it first."], choices: [{ text: '~curious~ And what is on the stone under the tree?', goto: 'chest' }, { text: '~curious~ Where does the water come from?', goto: 'from' }] },
-        full: { say: ["~happy~ Water! Up the roots, every colour! Look at them drink. I’d forgotten how it could look.", "~sad~ But the tree is still cold. Grandmother keeps muttering about a spark."], choices: [{ text: '~neutral~ Debris had clogged the drain. I cleared it.', end: true }] },
+        full: { say: ["~happy~ Water! Up the roots, every colour! Look at them drink. I’d forgotten how it could look.", "~sad~ But the tree is still cold. Grandmother keeps muttering about a spark."], choices: [{ text: '~neutral~ Rubble, packed in the drain. It’s clear now.', end: true }] },
         burning: { say: ["~happy~ Fire from the roots to the crown! And it doesn’t burn the broom. I’m taking that as permission to put it down."], choices: [{ text: '~happy~ You’ve earned it, Hessa.', end: true }] },
       },
     },
@@ -886,7 +886,7 @@ export const THINGS = {
   verse2: {
     id: 'verse2', name: 'The second verse', title: 'on the giant’s elbow', color: '#cdb38f', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~curious~ Two notches on the stone on the elbow. Below, the dry wash runs under the arm.",
+      say: ["~curious~ Two notches, on the stone at the elbow. Below, the dry wash runs under the arm.",
         "~solemn~ *The one before it held the water up over the failing river, and went no further.*"],
       do: { set: { 'desert.giants.verse2': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],

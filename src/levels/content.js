@@ -227,7 +227,7 @@ export const CONTENT = {
       { at: [-120, 34], palette: pal('#e6875f'), lines: ['~neutral~ The salt flats are that way. Bring water.', '~solemn~ At night the moon throws shadows too.'],
         id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { listen: [
           ['~neutral~ The salt flats are west. Bring water. Bring two waters.', '~solemn~ At night the moon throws shadows too, and they don’t always point away from it.'],
-          '~playful~ Water? Ask the pilgrims at Qanat; they’ve waited eleven days for water themselves. The tree gets the first drink. It always has.',
+          '~playful~ Water? Not from me. The pilgrims at Qanat have waited eleven days for theirs. The tree gets the first drink. It always has.',
           '~angry~ I’m a guide, not a well. Go and be thirsty somewhere else.',
           '~neutral~ Lost in the dunes? Climb the tallest one and look for the tree. Everything here is measured from the tree.',
           { after: { flag: 'temple.desert.done' }, say: '~surprised~ Green, round Qanat. Twenty years I’ve walked people past those fields, and I never once saw them green.' },
