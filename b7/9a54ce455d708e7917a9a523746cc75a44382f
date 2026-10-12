@@ -1,0 +1,41 @@
+docs/design/level-explorations-prompts.md
+  s_9ca76055a220ed::t_4f32f0f170f05c 1-432
+"references/levels/The Buried Machine/environment/explorations/README.md"
+  s_9ca76055a220ed::t_9f96afd2386963 1-6
+"references/levels/The City-Shaft/environment/explorations/README.md"
+  s_9ca76055a220ed::t_d03eb44af9bea1 1-6
+"references/levels/The Desert/environment/explorations/README.md"
+  s_9ca76055a220ed::t_767913f49b22bf 1-6
+"references/levels/The Glass Dunes/environment/explorations/README.md"
+  s_9ca76055a220ed::t_0ed2055028ebe1 1-6
+scripts/reference-lab/prompts.mjs
+  s_9ca76055a220ed::t_e658ea981f5c07 72-74,77-80
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_208853b8fdfede 104-108
+docs/systems/reference-lab.md
+  s_34120c28fd9493::t_ac708f98dcd6b0 67-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b79a54ce455d708e7917a9a523746cc75a44382f",
+  "prompts": {},
+  "sessions": {
+    "s_34120c28fd9493": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6f341bde0751b5eb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
