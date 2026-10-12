@@ -149,5 +149,5 @@ test('the Unity workflows publish through the script, so every build lands on th
     assert.match(read(`.github/workflows/${file}`), new RegExp(`scripts/unity-publish\\.sh ${platform} `), file);
   }
   const publishSh = read('scripts/unity-publish.sh');
-  assert.match(publishSh, /retry gh release upload "\$VTAG" "\$TMP\/\$NAME#\$LABEL" -R "\$REPO" --clobber/);
+  assert.match(publishSh, /retry gh release upload "\$VTAG" "\$ASSET#\$LABEL" -R "\$REPO" --clobber/);
 });

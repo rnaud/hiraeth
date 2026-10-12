@@ -56,7 +56,10 @@ version_release() {
   MAX=$(node --input-type=module -e "import { MAX_RELEASE_ASSET as M } from './scripts/release-info.mjs'; console.log(M)")
   if [ "$SIZE" -gt "$MAX" ]; then echo "::warning::$NAME is $SIZE bytes, over GitHub's 2 GiB per file: on $TAG only, not on $VTAG"; return 0; fi
   LABEL=$(node scripts/release-info.mjs unity-label "$PLATFORM" "$SHA") || return 1
-  retry gh release upload "$VTAG" "$TMP/$NAME#$LABEL" -R "$REPO" --clobber || return 1
+  # (on the Windows runner Git Bash turns a /tmp/… argument into a Windows path for gh.exe, but not one with a
+  # #label after it, which gh then can't open: give it the Windows path itself)
+  ASSET="$TMP/$NAME"; command -v cygpath > /dev/null 2>&1 && ASSET=$(cygpath -w "$ASSET")
+  retry gh release upload "$VTAG" "$ASSET#$LABEL" -R "$REPO" --clobber || return 1
   retry gh release view "$VTAG" -R "$REPO" --json body,assets > "$TMP/release.json" || return 1
   node scripts/release-info.mjs unity-body "$TMP/release.json" > "$TMP/version-notes.md" || return 1
   retry gh release edit "$VTAG" -R "$REPO" --notes-file "$TMP/version-notes.md" > /dev/null || return 1
