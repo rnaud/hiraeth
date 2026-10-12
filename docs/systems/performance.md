@@ -1997,3 +1997,13 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   nothing on it) kept beside it, a hidden object's subtree stepped over; a drawable's work is the same method either
   way (`_see`, its kind read off its node, not the object). The same calls to the backend in the same order
   (tests/mirror-list.test.js). The mirror 6.3 → 5.7 ms in the City-Shaft, 6.1 → 5.4 at the desert's spawn.
+- **The prepass draws the occluders only** (BridgeRenderer `Occluder`: plain meshes of at least 1 m radius in
+  MementoFeature's `OccluderLayer`; `-prepass-min R`, 0 every opaque): most of the prepass's 3 ms was the small
+  meshes, which hide little. The prepass 3.0 / 2.4 / 3.4 → 1.5 / 0.7 / 1.8 ms, the G-buffer 0.2-1 ms more; the
+  City-Shaft 60.8 / 59.8 / 52.9 → 63.6 / 60.3 / 57.1 fps, the desert's spawn 69 → 75.
+- **The near shadow map's schedule.** Drawn every 2nd frame it costs ~5.5-6 ms on those frames (4096², the City-Shaft):
+  about 2.4 ms its casters' vertices and 3 its texels (2048²: 3.1-3.3 ms). Drawn every frame at 2048 (an even cost,
+  `-shadow-near-every 1 -shadow-near-size 2048`) the 60 Hz vsync run's p95 is no better (21-25 ms either way: the
+  frames' spread comes from the whole frame being close to 16.7 ms, not from the map's alternation), and the shadows'
+  texels are twice as big: not kept. Spread over two frames into a second map would give the same average with a frame
+  more of the traveller's shadow lagging him (his shadow is the near map's on the Deck's preset, no fine map).

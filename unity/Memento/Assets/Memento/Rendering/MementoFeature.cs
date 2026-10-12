@@ -72,6 +72,10 @@ namespace Memento.Rendering
             /// <summary>The opaques' depth drawn alone before the G-buffer (the Surface shader's MEMENTO_PREPASS), so the G-buffer
             /// pass shades each pixel once: the bridge's Linux player (BridgeRunner), docs/systems/performance.md "round 7".</summary>
             public static bool prepass;
+            /// <summary>The prepass draws only the renderers in OccluderLayer (meshes whose bounds' radius is at least this, m;
+            /// set by the bridge's BridgeRenderer): 0, every opaque.</summary>
+            public static float prepassMinRadius;
+            public const uint OccluderLayer = 1u << 28;
             public static bool waterContact = WaterContactAsked(System.Environment.GetCommandLineArgs(), UnityEngine.Application.isMobilePlatform);
             /// <summary>The foam's default: on unless a mobile player or -noWaterContact; -waterContact wins.</summary>
             public static bool WaterContactAsked(string[] args, bool mobile) =>
@@ -208,7 +212,9 @@ namespace Memento.Rendering
                 {
                     using var builder = rg.AddRasterRenderPass<PrepassData>("Memento depth prepass", out var pp, Sampler("Memento depth prepass"));
                     var draw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonOpaque);
-                    pp.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, draw, new FilteringSettings(RenderQueueRange.opaque)));
+                    var ppFilter = new FilteringSettings(RenderQueueRange.opaque);
+                    if (Settings.prepassMinRadius > 0) ppFilter.renderingLayerMask = Settings.OccluderLayer;   // (only the big ones: what hides much)
+                    pp.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, draw, ppFilter));
                     pp.view = cam.GetViewMatrix(); pp.proj = cam.GetProjectionMatrix();
                     builder.UseRendererList(pp.list);
                     builder.SetRenderAttachmentDepth(data.depth, AccessFlags.Write);

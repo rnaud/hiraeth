@@ -292,6 +292,10 @@ namespace Memento.Bridge
 #else
             Memento.Rendering.MementoFeature.Settings.prepass = BridgeArgs.Flag("-prepass");
 #endif
+            // the prepass draws only the plain meshes of at least 1 m radius (the occluders: the City-Shaft's prepass 3.0 -> 1.5 ms,
+            // the G-buffer's own a little more, the wide view 53 -> 58 fps); -prepass-min R another radius, 0 every opaque
+            Memento.Rendering.MementoFeature.Settings.prepassMinRadius = 1;
+            if (BridgeArgs.Arg("-prepass-min") is string pm && float.TryParse(pm, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float pmv)) Memento.Rendering.MementoFeature.Settings.prepassMinRadius = pmv;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) MementoShadows.On = false;
             // the shadow maps' movers culled by the engine per cascade and drawn as renderer lists (the SRP Batcher's path) on the
@@ -334,6 +338,7 @@ namespace Memento.Bridge
             // under T texels left out)
             if (BridgeArgs.Arg("-shadow-near-every") is string ne && int.TryParse(ne, out int nev)) Quality.nearEvery = Mathf.Max(1, nev);
             if (BridgeArgs.Arg("-shadow-far-every") is string fe && int.TryParse(fe, out int fev)) Quality.farEvery = Mathf.Max(1, fev);
+            if (BridgeArgs.Arg("-shadow-near-size") is string nz && int.TryParse(nz, out int nzv)) Quality.nearSize = Mathf.Clamp(nzv, 256, 8192);
             if (BridgeArgs.Flag("-no-fine-shadows")) Quality.fineSize = 0;
             if (BridgeArgs.Flag("-fine-shadows")) Quality.fineSize = 2048;
             if (BridgeArgs.Arg("-shadow-min-far") is string smf && float.TryParse(smf, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float smfv)) MementoShadows.minFarCasterTexels = smfv;

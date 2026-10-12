@@ -543,9 +543,21 @@ namespace Memento.Bridge
                 n.r.shadowCastingMode = n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off;   // (both faces, as the web's shadow pass draws every caster: main.js shadowOverride)
                 // (and in the rendering layer the shadow maps' renderer lists draw: MementoShadows.UseRendererLists)
                 n.r.renderingLayerMask = n.shadow ? n.r.renderingLayerMask | MementoShadows.CasterLayer : n.r.renderingLayerMask & ~MementoShadows.CasterLayer;
+                Occluder(n, md);
                 if (n.r is MeshRenderer && n.mf && n.mf.sharedMesh) BridgePrewarm.Note(n.mf.sharedMesh, mats, mt => specs.TryGetValue(mt, out var j) ? j : null);
             }
             nodes[id] = n;
+        }
+
+        /// <summary>A plain mesh big enough to hide much (its bounds' radius, MementoFeature.Settings.prepassMinRadius) is in
+        /// the occluders' rendering layer, the ones the depth prepass draws.</summary>
+        static void Occluder(Node n, MeshData md)
+        {
+            var R = Memento.Rendering.MementoFeature.Settings.prepassMinRadius;
+            if (R <= 0 || n.r == null) return;
+            bool big = n.kind == "mesh" && md != null && md.mesh && md.mesh.bounds.extents.magnitude >= R;
+            var L = Memento.Rendering.MementoFeature.Settings.OccluderLayer;
+            n.r.renderingLayerMask = big ? n.r.renderingLayerMask | L : n.r.renderingLayerMask & ~L;
         }
 
         /// <summary>The mesh with this node's bind matrix as every bone's bind pose (one per mesh and bind, shared).</summary>
@@ -567,6 +579,7 @@ namespace Memento.Bridge
             if (n.smr && n.bindKey != null) { n.smr.sharedMesh = Bound(key, md, n); return; }
             if (n.smr) { if (md.bones != n.bones.Length) { var bp = new Matrix4x4[n.bones.Length]; for (int i = 0; i < bp.Length; i++) bp[i] = Matrix4x4.identity; md.mesh.bindposes = bp; md.bones = bp.Length; } n.smr.sharedMesh = md.mesh; }
             else if (n.mf && n.kind != "instanced") n.mf.sharedMesh = md.mesh;
+            Occluder(n, md);
         }
 
         // ------------------------------------------------------------------ the frame
