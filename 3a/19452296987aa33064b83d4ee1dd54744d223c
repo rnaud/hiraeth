@@ -1,0 +1,33 @@
+docs/README.md
+  s_9ca76055a220ed::t_6e14be75c5edb0 26
+docs/audits/temple-design-v1.60.md
+  s_9ca76055a220ed::t_fb558d0d96e773 1-149
+docs/systems/temples.md
+  s_9ca76055a220ed::t_ca9917af0f6747 506,515,522
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_f2708ef431edff 19-21
+src/changelog-media.js
+  s_9ca76055a220ed::t_e432eb061d8754 725-727,729-756
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_9786e4e965a7f4 47
+tests/perdide2.test.js
+  s_9ca76055a220ed::t_e648d70b0eb8d1 91-93
+tests/temple-design.test.js
+  s_9ca76055a220ed::t_b403bffb3a38a7 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a19452296987aa33064b83d4ee1dd54744d223c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
