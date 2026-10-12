@@ -322,6 +322,18 @@ namespace Hiraeth.Bridge
 #else
             HiraethShadows.UseRendererLists = BridgeArgs.Flag("-shadow-lists");
 #endif
+            // the renderer lists' casters culled by the camera's view swept away from the sun too (HiraethShadows.SweepCull: what
+            // the draws' path and the web's shadow culler leave out); -no-shadow-sweep off
+            HiraethShadows.SweepCull = !BridgeArgs.Flag("-no-shadow-sweep");
+            HiraethShadows.Census = BridgeArgs.Flag("-shadow-census");
+            // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
+            // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before
+#if UNITY_WSA && !UNITY_EDITOR
+            bool aroundTraveller = !BridgeArgs.Flag("-shadow-camera");
+#else
+            bool aroundTraveller = BridgeArgs.Flag("-shadow-traveller");
+#endif
+            if (aroundTraveller) HiraethShadows.Traveller = () => { var b = Shader.GetGlobalVector("_Brush"); return b == Vector4.zero ? (Vector3?)null : new Vector3(-b.x, b.y, b.z); };
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             BridgeRenderer.fullLayout = BridgeArgs.Flag("-full-layout");
             BridgeRenderer.zTestAlways = BridgeArgs.Flag("-ztest-always");
@@ -371,7 +383,7 @@ namespace Hiraeth.Bridge
                 Debug.Log($"Hiraeth bridge: Shader.WarmupAllShaders took {tw.ElapsedMilliseconds} ms");
             }
             Debug.Log($"Hiraeth bridge: URP {(urp ? urp.name : "none")}, GPU Resident Drawer {(urp ? urp.gpuResidentDrawerMode.ToString() : "?")}; ops a frame {(BridgeHost.opsCap > 0 ? BridgeHost.opsCap.ToString() : "all")}; " +
-                      $"queued frames {QualitySettings.maxQueuedFrames}, vsync {QualitySettings.vSyncCount}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, SRP Batcher {(GraphicsSettings.useScriptableRenderPipelineBatching ? "on" : "off")}, shadows {(HiraethShadows.On ? $"on ({(HiraethShadows.UseRendererLists ? "renderer lists" : "draws")}, fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {HiraethShadows.minCasterTexels} texels, far from {Mathf.Max(HiraethShadows.minCasterTexels, HiraethShadows.minFarCasterTexels)})" : "off")}");
+                      $"queued frames {QualitySettings.maxQueuedFrames}, vsync {QualitySettings.vSyncCount}, rendering {SystemInfo.renderingThreadingMode}, display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz, HUD {(BridgeArgs.Flag("-no-hud") ? "off" : "on")}, SRP Batcher {(GraphicsSettings.useScriptableRenderPipelineBatching ? "on" : "off")}, shadows {(HiraethShadows.On ? $"on ({(HiraethShadows.UseRendererLists ? "renderer lists" : "draws")}, fine {Quality.fineSize}, near every {Quality.nearEvery}, far every {Quality.farEvery}, casters from {HiraethShadows.minCasterTexels} texels, far from {Mathf.Max(HiraethShadows.minCasterTexels, HiraethShadows.minFarCasterTexels)}, {(HiraethShadows.UseRendererLists && HiraethShadows.SweepCull ? "swept by the view" : "the window alone")}, round the {(HiraethShadows.Traveller != null ? "traveller" : "camera")})" : "off")}");
         }
         /// <summary>Whether the GPU Resident Drawer is running (internal to SRP core: by reflection, for the log).</summary>
         public static string ResidentDrawerState()

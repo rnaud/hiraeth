@@ -14,21 +14,76 @@ namespace Hiraeth
         {
             mesh = m; mat = material; data = new Inst[Mathf.Max(1, max)]; mat.EnableKeyword("HIRAETH_INSTMAT");
             shadowPass = mat.FindPass("ShadowCaster");
-            caster = (cmd, c) => { if (casts && drawnAt == Time.frameCount && count > 0 && shadowPass >= 0 && buf != null) cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, count, null); };
+            meshR = m ? m.bounds.extents.magnitude + m.bounds.center.magnitude : 0;
+            caster = (cmd, c) =>
+            {
+                if (!casts || drawnAt != Time.frameCount || count <= 0 || shadowPass < 0 || buf == null) return;
+                // (the cascade's planes where its casters were culled by them (renderer lists): the whole set left out when
+                // its bounds miss them, as the web's shadow pass culls an InstancedMesh by its bounds)
+                if (c.cullN > 0 && boundsOk && !Inside(c, bounds)) { said++; return; }
+                drew++;
+                cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, count, null);
+            };
             HiraethShadows.Instanced.Add(caster);
+            all.Add(this);
         }
         readonly int shadowPass; readonly System.Action<RasterCommandBuffer, HiraethShadows.Cascade> caster; int drawnAt = -1; bool casts;
-        public void Set(int i, Matrix4x4 M, Color c) { data[i] = new Inst { r0 = M.GetRow(0), r1 = M.GetRow(1), r2 = M.GetRow(2), col = c }; if (i >= count) count = i + 1; }
+        // the instances' bounds (their places, padded by the mesh's reach times their largest scale), made again on each Set from 0
+        readonly float meshR; Vector3 lo, hi; float maxScale; bool boundsOk; Bounds bounds;
+        int drew, said;
+        static readonly List<InstMats> all = new();
+        /// <summary>The highest any instanced caster reaches (for the shadow maps' sweep: HiraethShadows.CullFor).</summary>
+        public static float Top = float.NegativeInfinity;
+        static bool Inside(HiraethShadows.Cascade c, Bounds b)
+        {
+            for (int k = 0; k < c.cullN; k++)
+            {
+                var p = c.cullPlanes[k]; var n = p.normal;
+                // (the box's corner furthest along the normal: outside if even it is behind the plane)
+                var far = new Vector3(n.x >= 0 ? b.max.x : b.min.x, n.y >= 0 ? b.max.y : b.min.y, n.z >= 0 ? b.max.z : b.min.z);
+                if (Vector3.Dot(n, far) + p.distance < 0) return false;
+            }
+            return true;
+        }
+        /// <summary>-shadow-census: the instanced sets drawn into and left out of this cascade since the last call (all cascades).</summary>
+        public static string CensusLine(HiraethShadows.Cascade c)
+        {
+            int sets = 0, drawn = 0, left = 0; long v = 0;
+            foreach (var x in all) { if (x.count <= 0) continue; sets++; drawn += x.drew; left += x.said; if (x.boundsOk && (c.cullN == 0 || Inside(c, x.bounds))) v += (long)x.count * (x.mesh ? x.mesh.vertexCount : 0); x.drew = x.said = 0; }
+            return $"{sets} sets ({drawn} draws, {left} left out since the last), {v / 1000}k vertices in {c.name}";
+        }
+        public void Set(int i, Matrix4x4 M, Color c)
+        {
+            data[i] = new Inst { r0 = M.GetRow(0), r1 = M.GetRow(1), r2 = M.GetRow(2), col = c }; if (i >= count) count = i + 1;
+            var p = new Vector3(M.m03, M.m13, M.m23);
+            float s = Mathf.Max(new Vector3(M.m00, M.m10, M.m20).magnitude, Mathf.Max(new Vector3(M.m01, M.m11, M.m21).magnitude, new Vector3(M.m02, M.m12, M.m22).magnitude));
+            if (i == 0) { lo = hi = p; maxScale = s; growing = true; partial = false; }
+            else if (growing) { lo = Vector3.Min(lo, p); hi = Vector3.Max(hi, p); maxScale = Mathf.Max(maxScale, s); }
+            else partial = true;   // (some instances set again, not from the first: the bounds unknown till the next whole set)
+            boundsOk = false;   // (whole again at the next Draw, after the last instance is set)
+        }
+        bool growing, partial;
+        void FinishBounds()
+        {
+            if (boundsOk || (!growing && !partial)) return;
+            growing = false;
+            if (partial) return;   // (never culled meanwhile)
+            var pad = Vector3.one * (meshR * maxScale);
+            bounds = new Bounds((lo + hi) * 0.5f, hi - lo + 2 * pad);
+            boundsOk = true;
+            Top = Mathf.Max(Top, bounds.max.y);
+        }
         public void Draw(Bounds b, ShadowCastingMode shadows)
         {
             if (count <= 0) return;
+            FinishBounds();
             if (buf == null || buf.count < data.Length) { buf?.Release(); buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, data.Length, Marshal.SizeOf<Inst>()); mat.SetBuffer("_Mats", buf); }
             buf.SetData(data, 0, 0, count);
             Graphics.RenderMeshPrimitives(new RenderParams(mat) { worldBounds = b, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true }, mesh, 0, count);
             // (its shadow: drawn in the sun's cascades this frame, HiraethShadows)
             drawnAt = Time.frameCount; casts = shadows != ShadowCastingMode.Off;
         }
-        public void Release() { buf?.Release(); buf = null; HiraethShadows.Instanced.Remove(caster); }
+        public void Release() { buf?.Release(); buf = null; HiraethShadows.Instanced.Remove(caster); all.Remove(this); }
     }
 
     /// <summary>
