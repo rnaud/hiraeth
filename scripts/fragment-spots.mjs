@@ -36,6 +36,7 @@ for (const id of worlds) {
   const drawn = drawnSurfaces(builtWorld(id).scene, { exclude: [physics.base?.mesh] });
   // (stood on as drawn: the drawn surface or the terrain under it, as tests/contact-audit.test.js checks)
   const drawnAt = (x, y, z) => { const h = drawn?.bvh?.raycastFirst(new THREE.Ray(V(x, y + 1.2, z), V(0, -1, 0)), THREE.DoubleSide); return Math.abs(Math.max(h ? y + 1.2 - h.distance : -Infinity, level.ground?.heightAt?.(x, z) ?? -Infinity) - y) < 0.25; };
+  level.openWays?.(physics, true);   // (what the player opens on the way: the floating city's drifted span reeled home)
   const reached = flood({ physics, level }, [spawn, ...Object.values(level.partSpawns ?? {})], { radius: 700, max: 1500000 });
   const ys = reached.map((n) => n[1]).sort((a, b) => a - b), mid = ys[ys.length >> 1];
   const scored = [];

@@ -699,6 +699,7 @@ const LORN56 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1
 const UC56 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5561), the before the tree as on origin/main (34a70288, extracted), the same pinned cameras and saves, hour 10, 12 October; cwebp -q 72';
 const UC_HELMET = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'underwater.helmet': true }, keepsakes: [] };
 const UC_REF = 'references/levels/The Underwater City/environment/explorations/';
+const SC57 = 'scripts/changelog-shots.mjs’s shoot in headless Chrome (muted, High, 1280 × 720, the morning 8.5) against this branch’s own Vite (port 5581), the before with src/levels/space-city.js, space-city-kit.js and the city’s story as on origin/main (64023d42), the same pinned cameras, 12 October; cwebp -q 70 -resize 960';
 export const CHANGELOG_MEDIA = {
   '1.57': [
     { match: 'In the Moon Foundry the broken moon’s courtyard is only the start', shots: [
@@ -713,6 +714,27 @@ export const CHANGELOG_MEDIA = {
       { name: 'foundry-runnel-night', title: 'A runnel at night', caption: 'The east bay at 22:00: before, the bare floor; after, the long runnel full of molten metal, a footbridge over it, running on to the Casting-House', from: MF57 },
       { name: 'foundry-floor-night', title: 'From the hoist at night', caption: 'From the old hoist’s gallery after dark: the runnels drawn across the floor in lines of fire', only: 'after', from: MF57 },
     ], see: 'Wait for night in the Moon Foundry and climb the old hoist: the runnels light up and all lead to the Casting-House.' },
+    { match: 'In the City Floating in Space the cables are felt where they are anchored now', shots: [
+      { name: 'sc-under', title: 'Under the Towers', caption: 'On the catwalk under the Towers’ deck by the great cable’s clamp: before, nothing to stand on here, only the undersides; after, the catwalk among the machinery, the stack’s underhouses ahead with their lit windows, gardens and lamps hung beneath', from: SC57,
+        view: { level: 'spacecity', hour: 8.5, fov: 66, eye: [102.5, -0.4, -99.8], target: [86, -7, -124], player: [101, -2.1, -100.6] },
+        reference: { sheet: 'references/levels/The City Floating in Space/environment/explorations/under-the-islands/sheet-2.jpg', caption: 'The author’s pick: the city from below (references/levels/The City Floating in Space/environment/explorations/under-the-islands)' } },
+    ], numbers: [
+      { title: 'The level design audit, the City Floating in Space', unit: '', better: 'higher', device: 'node scripts/level-design/audit.mjs --worlds spacecity (1-5)', rows: [
+        { where: 'verticality', before: 3, after: 5 }, { where: 'the mean', before: 4.56, after: 4.78 },
+      ], source: 'places span 48 → 88 m of height, 11 → 21 % raised, 65 → 75 m climbed on the way; landmarks, pacing and the rest as they were (issue #194)' },
+    ], see: 'From the Towers walk to the north edge, by the stack bridge: an opening in the parapet leads onto a stair winding down under the deck. Follow the catwalk to the clamp and press A / × to lay a hand on the cable.' },
+    { match: 'Between the Towers and the Moorings now stands the stack', shots: [
+      { name: 'sc-stack-wide', title: 'The stack', caption: 'From the Market’s end of the Towers bridge: before, the Moorings bridge and the Mooring-House against the planet; after, the stack between them, tier over tier with its houses and the stairs winding round it', from: SC57,
+        view: { level: 'spacecity', hour: 8.5, fov: 58, eye: [40, 6, -60], target: [86, 34, -130], player: [36.5, 0.1, -73] },
+        reference: { sheet: 'references/levels/The City Floating in Space/environment/explorations/stacked-quarters/sheet-2.jpg', caption: 'The author’s pick: the cliff of islands (references/levels/The City Floating in Space/environment/explorations/stacked-quarters)' } },
+      { name: 'sc-roof', title: 'The roof street', only: 'after', caption: 'On the stack’s fourth tier: the next island’s underside overhead with its tanks, washing between the houses, the planet past them', from: SC57,
+        view: { level: 'spacecity', hour: 8.5, fov: 66, eye: [84.5, 36.3, -121.5], target: [86, 42, -140], player: [84.6, 34.1, -124] } },
+    ], see: 'From the anchor under the Towers take the walkway out to the stack’s lowest island and climb the stairs round its outside. Keep climbing past the capstan quarter to the top.' },
+    { match: 'The islands’ drift shows on the bridges now', shots: [
+      { name: 'sc-drift', title: 'The broken bridge', caption: 'From over the void east of the stack: before, the old Moorings bridge; after, the capstan on the stack’s third tier, the broken bridge’s two halves and its middle span hanging out of line on the capstan’s cable, the Mooring-House beyond', from: SC57,
+        view: { level: 'spacecity', hour: 8.5, fov: 60, eye: [108, 25, -131], target: [89, 15, -147], player: [89.6, 16.5, -142.4] },
+        reference: { sheet: 'references/levels/The City Floating in Space/environment/explorations/drifting-bridges/sheet-1.jpg', caption: 'The author’s pick: winding the island back (references/levels/The City Floating in Space/environment/explorations/drifting-bridges)' } },
+    ], see: 'Up the stack to the capstan quarter: the broken bridge leaves for the Moorings beside Bram and the capstan. Press A / × at the capstan and watch the span come in.' },
   ],
   '1.56': [
     // (the Underwater City's explorations, issue #192)

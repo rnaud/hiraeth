@@ -6,7 +6,9 @@
 // filmed (src/story/spacecity-moments.js). Joss's word after it is the way on: the planet's hum on the cables carries a
 // broadcast from a market of a thousand signs where one tower is silent (the Signal Market: clue.spacecity.bazaar). Two
 // errands of the city's own, each done where its goal is (issue #137): Madame Sel's notes laid on the cables under the
-// Towers (the cables' own talk, THINGS.cables), and one of Kip's lamps hung up the Balcony's mast.
+// Towers (the cables' own talk, THINGS.cables), and one of Kip's lamps hung up the Balcony's mast. Since v1.57 (issue #194)
+// the cables are felt at the great cable's clamp under the Towers, down the moorers' stair, and the way on to the Mooring-House
+// is up the stack and over its broken bridge, whose drifted span the capstan reels home (src/levels/space-city-ways.js).
 
 import * as THREE from 'three';
 import { KEEPSAKE, QUESTS, LINES_AFTER, THINGS } from './spacecity-people.js';
@@ -18,21 +20,36 @@ export const FILM_NEAR = 40;
 
 /** The world's story: { people, update, dispose, film } (src/story/index.js WORLDS). */
 export function setupSpaceCity(ctx) {
-  const { game, story, level, player, quests, dialogue, npcs = [], toast = () => {} } = ctx;
+  const { game, story, level, player, quests, dialogue, sound, npcs = [], toast = () => {} } = ctx;
   const rt = level?.temples?.find((t) => t.id === 'spacecity') ?? (level?.temple?.id === 'spacecity' ? level.temple : null);
   const film = setupSpaceCityMoments(ctx, { rt });
   for (const q of QUESTS) quests?.define?.(q);
   // the city's own main quest doesn't just appear: it starts when you talk to Rosa on the Pier (src/story/quests.js opensWith)
   if (quests?.opensWith && !quests.isStarted?.('spacecity.drift')) quests.opensWith('spacecity.drift', 'rosa');
-  for (const n of npcs) if (['tamar', 'sel', 'kip', 'nima', 'rosa'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
-  // the cables under the Towers where they leave for the Moorings (by the Moorings bridge's foot): a hand on them, and they pull north
-  const cab = level?.mooringsFoot;
+  for (const n of npcs) if (['tamar', 'sel', 'kip', 'nima', 'rosa', 'bram', 'odile'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // the great cable under the Towers where it leaves for the Moorings (at its clamp, on the catwalk under the deck): a hand on
+  // it, and it pulls north
+  const cab = level?.cableAnchor;
   if (cab) {
     const at = new THREE.Vector3(cab.x, cab.y, cab.z), look = at.clone().setY(at.y + 1.1);
     quests?.locate?.('towerCables', () => at);
     registerInteractable({ id: 'towerCables', priority: PRIORITY.use, range: 4.2, prompt: 'lay a hand on the cables', at: () => look,
       distance: (p) => (Math.abs(p.pos.y - at.y) < 3 ? Math.hypot(p.pos.x - at.x, p.pos.z - at.z) : Infinity),
       use: () => dialogue?.start?.(THINGS.cables, null, look) });
+  }
+  // the capstan on the stack: A / × and the broken bridge's drifted span is reeled home (for good: the flag). Once the cables
+  // are taut (the Mooring-House resolved) it stays home too.
+  const drift = level?.drift;
+  if (drift) {
+    if (game.flag('spacecity.drift.reeled') || game.flag('temple.spacecity.done')) drift.set(1);
+    const at = drift.drum.clone(), feet = at.clone().setY(at.y - 1.75);
+    quests?.locate?.('capstan', () => feet);
+    registerInteractable({ id: 'stackCapstan', priority: PRIORITY.use, range: 3.6, prompt: 'turn the capstan', at: () => at, enabled: () => !drift.reeled && !drift.moving,
+      distance: (p) => (Math.abs(p.pos.y - feet.y) < 2.5 ? Math.hypot(p.pos.x - feet.x, p.pos.z - feet.z) : Infinity),
+      use: () => {
+        if (!drift.reel(() => { game.set('spacecity.drift.reeled', true); toast('The span swings home on its cable. The bridge is whole.'); })) return;
+        sound?.chime?.();
+      } });
   }
   // the crow's nest on the Balcony's lamp-mast (src/levels/space-city.js level.mastTop): Kip's lamp is hung there
   const E = level?.mastTop;
@@ -49,6 +66,7 @@ export function setupSpaceCity(ctx) {
       if (game.addKeepsake?.(KEEPSAKE)) toast('Keepsake: what the cables are for. Not holding: listening.');
     }
     for (const n of npcs) if (!n.def?.talk && n.def?.lang === 'spacecity') { n.lines = [...LINES_AFTER]; n.lineIdx = 0; }
+    if (level?.drift && !level.drift.reeled && !level.drift.moving) level.drift.set(1);   // (the cables taut: the span home)
     closing ??= setTimeout(() => story?.complete?.(), 1500);
     closing?.unref?.();
   };

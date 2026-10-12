@@ -23,8 +23,8 @@ export const QUESTS = [
     outro: 'The cables run north to the Mooring-House, and something in there is paying them out. Rosa will want to know.',
     stages: [
       { id: 'rosa', text: 'Hear Rosa out on the Pier', label: 'Rosa, on the Pier', flag: 'spacecity.rosa.heard', at: 'rosa' },
-      { id: 'cables', text: 'Lay a hand on the cables under the Towers', label: 'The cables under the Towers', flag: 'spacecity.cables.felt', at: 'towerCables', via: 'the Towers bridge' },
-      { id: 'house', text: 'Go in at the Mooring-House’s door', label: 'The Mooring-House’s door', flag: 'temple.spacecity.entered', at: 'temple.spacecity.door', via: 'the Moorings bridge' },
+      { id: 'cables', text: 'Lay a hand on the cables under the Towers', label: 'The cables under the Towers', flag: 'spacecity.cables.felt', at: 'towerCables', via: 'down to the anchor' },
+      { id: 'house', text: 'Go in at the Mooring-House’s door', label: 'The Mooring-House’s door', flag: 'temple.spacecity.entered', at: 'temple.spacecity.door', via: 'up the stack' },
     ],
   },
   {
@@ -33,7 +33,7 @@ export const QUESTS = [
     // (laid where they are used, issue #137: Ines's step went, she says her word when you pass; a save at it goes on to
     //  `cables`, src/save-migrate.js QUEST_STAGE_MOVES_137; the cables' own talk lays them, THINGS.cables below)
     stages: [
-      { id: 'cables', text: 'Lay Sel’s notes on the cables under the Towers', label: 'The cables under the Towers', flag: 'spacecity.notes.laid', at: 'towerCables', via: 'the Towers bridge' },
+      { id: 'cables', text: 'Lay Sel’s notes on the cables under the Towers', label: 'The cables under the Towers', flag: 'spacecity.notes.laid', at: 'towerCables', via: 'down to the anchor' },
     ],
   },
   {
@@ -112,8 +112,8 @@ export const VISITORS = {
             { text: '~neutral~ Another time.', end: true },
           ],
         },
-        go: { say: ['~neutral~ *East from the Market, up the Towers bridge,* where the cables leave for the Moorings. Don’t whistle near them.'], choices: [{ text: '~neutral~ I won’t.', end: true }] },
-        waiting: { say: ['~neutral~ The cables under the Towers, east of the Market, up the narrow bridge.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        go: { say: ['~neutral~ *East over the Towers bridge, down the moorers’ stair* to where the great cable leaves for the Moorings. Don’t whistle near it.'], choices: [{ text: '~neutral~ I won’t.', end: true }] },
+        waiting: { say: ['~neutral~ The cables under the Towers. Down the moorers’ stair off their north edge.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~happy~ The same line, on the cables? So the planet’s talking, and the cables are listening. I’ll learn the language yet.' },
             { if: { flag: 'temple.spacecity.done' }, text: '~surprised~ Since the cables went taut the line comes clear. It’s a broadcast, love, from far off, and I know its voice. My market. And in the middle of it, my tower, saying nothing.' }],
@@ -149,12 +149,12 @@ export const PEOPLE = {
           ],
         },
         why: {
-          say: ['~neutral~ The cables, I think. They hum one note now, and they pull. *Lay a hand on the cables under the Towers*, by the bridge out to the Moorings. Feel which way.',
+          say: ['~neutral~ The cables, I think. They hum one note now, and they pull. *Lay a hand on the cables under the Towers*, down the moorers’ stair. Feel which way.',
             '~playful~ Over the Market Bridge, then the Towers bridge, east. Don’t lean on the parapet. It leans back.'],
           do: { set: { 'spacecity.rosa.heard': true } },
           choices: [{ text: '~neutral~ I’ll feel them.', end: true }],
         },
-        again: { say: ['~neutral~ The cables under the Towers, by the bridge to the Moorings. A hand on them.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        again: { say: ['~neutral~ The cables under the Towers, down the moorers’ stair. A hand on them.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ My chalk hasn’t moved in three mornings. I’m going to have to find something else to worry about.'],
           choices: [{ text: '~playful~ The bridges will think of something.', end: true }],
@@ -185,7 +185,7 @@ export const PEOPLE = {
         },
         since: { say: ['~sad~ They hum that note night and day, and the islands drift. Joss at the Mooring-House says something in there is letting the cables out.'], choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }] },
         again: {
-          say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~sad~ Feel that? The bridge creaks. It never used to. The Mooring-House is north of here, over the long bridge.' },
+          say: [{ if: { not: { flag: 'temple.spacecity.done' } }, text: '~sad~ Feel that? The bridge creaks. It never used to. The Mooring-House is north of here, up the stack.' },
             { if: { flag: 'temple.spacecity.done' }, text: '~happy~ Taut, all of them. My grandmother would have cried. I did, a bit. Don’t tell the Market.' }],
           choices: [{ text: '~neutral~ Goodbye, Ines.', end: true }],
         },
@@ -205,7 +205,7 @@ export const PEOPLE = {
 /** What there is to touch for the main quest (src/story/spacecity.js): the cables under the Towers. */
 export const THINGS = {
   cables: {
-    id: 'towerCables', name: 'The cables under the Towers', title: 'by the Moorings bridge', color: '#4f9a98', voice: 0.6,
+    id: 'towerCables', name: 'The cables under the Towers', title: 'at the great cable’s clamp', color: '#4f9a98', voice: 0.6,
     talk: {
       // (with Sel's notes in hand: laid along the cable, issue #137; that is the cables felt too, for the main quest)
       entry: [
@@ -217,15 +217,15 @@ export const THINGS = {
           say: [
             '~neutral~ (You lay Sel’s notes along the nearest cable. The paper shivers in its hum.)',
             '~curious~ (Her pencil line and the hum rise and fall together, stroke for stroke.)',
-            '~solemn~ (And the cable pulls: north, over the bridge, toward the Moorings.)',
+            '~solemn~ (And the cable pulls: north, up past the stack, toward the Moorings.)',
           ],
           do: { set: { 'spacecity.notes.laid': true, 'spacecity.cables.felt': true } },
           choices: [{ text: '~neutral~ (lift your hand from the cable)', end: true }],
         },
         touch: {
           say: [
-            '~neutral~ (You reach over the parapet and lay a hand on the nearest cable. It hums one note into your palm.)',
-            '~solemn~ (And it pulls. Not down into the dark: north, over the bridge, toward the Moorings. Something there is paying them out.)',
+            '~neutral~ (You lay a hand on the great cable where it leaves its clamp. It hums one note into your palm.)',
+            '~solemn~ (And it pulls. Not down into the dark: north, up past the stack, toward the Moorings. Something there is paying it out.)',
           ],
           do: { set: { 'spacecity.cables.felt': true } },
           choices: [{ text: '~neutral~ (take your hand away)', end: true }],

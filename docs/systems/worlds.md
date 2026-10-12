@@ -2207,10 +2207,50 @@ their undersides hung with dark machinery and cables dangling into the void; sta
   end to end and clear; the way from the ship along the lanes and over the bridges to the Balcony, the Towers and the
   Garden clear; the plaza open; a parapet round every island but at the bridges; the void below unsafe, the decks safe.
 - **Left to make it better**: the pictures' houses carry dense small detail (pipes, vents, signs, plants, washing by the
-  dozen) and their decks crowds; ours are clean rounded blocks. The pictures' houses also step down the islands' sides
-  below the decks, and their islands sit at many more heights with stairs between them; ours stand on six decks at
-  three heights. The houses can't be entered; nothing moves under the islands (a lift, a cable car would suit it); the
+  dozen) and their decks crowds; ours are clean rounded blocks. (Since v1.57 the stack, below, is the islands at many
+  heights with stairs between them, and the ways under the Towers the undersides you walk.) The houses can't be entered; nothing moves under the islands (a lift, a cable car would suit it); the
   far islands are only seen.
+
+## The City Floating in Space: under the islands, the drifting bridges, the stacked quarters (issue #194; v1.57)
+
+The author picked all three of the city's explorations (#170: `references/levels/The City Floating in Space/environment/
+explorations/`, docs/design/level-explorations-2-prompts.md); they are one way from the Towers to the Mooring-House, not
+three levels. Built last in `src/levels/space-city.js` by `src/levels/space-city-ways.js` (`buildCityWays`), with dice of
+its own: the islands keep their houses (`island()`'s new `clear`, `drop`, `tiers` and `bulb` leave the shared dice as they
+were). The Moorings bridge went; `the stack bridge` (`STACK_BRIDGE`) leaves the Towers' north edge where it did.
+- **Under the islands** (`UNDER`, `ANCHOR`). An opening in the Towers' north parapet (`OPENINGS`) onto a stair (25°) wound
+  round an iron mast out over the void, down 8 m to a catwalk hung under the deck among its machinery (the deck's
+  hanging tanks, pipes, cables and lamps are kept out of the catwalks' and stairs' room: `corridors`, `inCorridor`). On it
+  the great cable's bronze clamp: the main quest's hand on the cables is here now (`level.cableAnchor`; THINGS.cables'
+  words follow it), Odile minds it. Workshops hung on the machinery with lit round windows, gardens hung upside down,
+  lamps pointing down at the stars. A walkway runs out along under the great cable, over the void, to the stack's foot.
+- **The stacked quarters** (`STACK`, `TIERS`, `STAIRS`). Seven round islands one over another between the Towers and the
+  Moorings, centred at (84, -128): the underhouses at -8 m (its roots of machinery and a lamp chain hung far down into the
+  void, a beacon seen from the catwalks), the lower stack at 4 (the stack bridge's end), the capstan quarter at 18, then
+  34, 50, 66 and the top at 80 with its lamp-mast (the beacon `the stack’s lamp`). Houses round each (one storey, kept off
+  the lanes from each port in to the middle) and more hung down each tier's side, drawn only; each tier's machinery
+  shallow and nothing hung deeper than the roofs below allow. Between tiers a stair winds round the outside (`helix`
+  from `src/lorn-kit.js`, 3 m wide, ~25°, a flat landing at each end with a pad in through the parapet, rails both sides,
+  hangers up to the tier above). The way up: walkway → underhouses → `h01` → lower stack → `h12` → capstan quarter; the
+  way home is down the other side (`h21`) and over the stack bridge; the rest climbs on to the top, the city's second
+  high place (it and the crow's nest see each other). The great cable from the Mooring-House's roof to the Towers passes
+  east of the stack (tested).
+- **The drifting bridges** (`DRIFT`, `CAPSTAN`). From the capstan quarter the bridge to the Moorings is broken: its two
+  halves fixed, its middle span a little island of its own (its own group, a `physics.addMover` collider) drifted 7.5 m
+  out of line and 2 m down. The moorers' capstan beside the mouth (story: `stackCapstan`, "turn the capstan", A / ×)
+  reels it home over 6 s, the drum turning and its cable drawn shorter; the flag `spacecity.drift.reeled` keeps it home
+  (and once the Mooring-House is resolved). Bram works the capstan. The stack bridge is patched with planks; off the
+  capstan quarter's west side an old bridge hangs in two halves toward an islet that drifted away (`PARTED`).
+- **Leading lines**: `down to the anchor` (the cables stage's `via`), `up the stack` (the Mooring-House's), and `the Lamp
+  Rock bridges` home now starts down the stack. The play-through reels the capstan (`reelCapstan`, at Bram) before the
+  Mooring-House and checks the walk up the stack a metre at a time (its stairs are narrower than its 2 m grid). The
+  tests' walkers see the ways open (`level.openWays(physics, true)`: the span reeled), as a player opens them.
+
+The level design audit: the City Floating in Space 4.56 → 4.78 (verticality 3 → 5: places span 48 → 88 m, 11 → 21 %
+raised, 75 m climbed on the way; landmarks 9, 95 % of the path sees one; pacing 5). Tests: `tests/spacecity-ways.test.js`
+(the stair down and the stack's stairs walked by the real traveller, every line underfoot and clear, rails on every
+stair's edges, the walk from the Towers to the door only once the span is reeled, the capstan's reel and its save,
+sight lines, nothing drawn in the catwalks' room, the hung things' least width, the fragments off the ways).
 
 ## The Signal Market at night (`bazaar` after dark, October 2026)
 

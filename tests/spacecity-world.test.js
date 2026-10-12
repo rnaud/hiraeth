@@ -9,6 +9,7 @@ import { CONTENT, ORDER } from '../src/levels/content.js';
 import { SIDE } from '../src/levels/names.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { createSpaceCity, SPACECITY_CONTENT, ISLANDS, BRIDGES, LANES, SHIP_SITE, UNSAFE_Y, PLAZA, CROWD_LINES, PLANET } from '../src/levels/space-city.js';
+import { OPENINGS } from '../src/levels/space-city-ways.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 let world = null;
@@ -108,7 +109,9 @@ test('the edge: a parapet round every island but where a bridge lands; off it, t
       let lo = 0, hi = Math.max(I.w, I.d);
       for (let i = 0; i < 22; i++) { const m = (lo + hi) / 2; if (D.inside(I.x + Math.cos(a) * m, I.z + Math.sin(a) * m)) lo = m; else hi = m; }
       const p = V(I.x + Math.cos(a) * (lo - 0.25), I.y, I.z + Math.sin(a) * (lo - 0.25));
-      if (BRIDGES.some((B) => [B.a, B.b].some(([x, , z]) => Math.hypot(x - p.x, z - p.z) < B.w / 2 + 1.6))) { open++; continue; }
+      // (open where a bridge lands, and since v1.57 at the Towers' stair down and the Moorings' end of the broken bridge: OPENINGS)
+      if (BRIDGES.some((B) => [B.a, B.b].some(([x, , z]) => Math.hypot(x - p.x, z - p.z) < B.w / 2 + 1.6))
+        || (OPENINGS[k] ?? []).some(([gx, gz, gr]) => Math.hypot(I.x + gx - p.x, I.z + gz - p.z) < gr)) { open++; continue; }
       assert.ok(!clearAt(physics, p, I.y), `${k}: the edge is walled at angle ${a.toFixed(2)}`);
       walled++;
     }

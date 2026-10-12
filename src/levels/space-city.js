@@ -15,6 +15,7 @@ import {
   spaceMats, island, quarter, heap, bridge, railing, pipeStack, crownTree, lantern, resident, awning, laundry, poleCloth,
   SPACE_LOOK, SPACE_DAY, PLANET_TONE,
 } from './space-city-kit.js';
+import { buildCityWays, routeOf, STACK_BRIDGE, OPENINGS, ANCHOR, CAPSTAN, DRIFT, TIERS, corridors, inCorridor } from './space-city-ways.js';
 
 // ---------------------------------------------------------------------------
 // The City Floating in Space (references/levels/The City Floating in Space/; its views in the References,
@@ -58,7 +59,9 @@ export const BRIDGES = [
   { name: 'the Towers bridge', a: [I0.market.x + 36.5, 0, -74], b: [I0.towers.x - 21.5, 6, -80], w: 4.2 },
   { name: 'the Garden bridge', a: [I0.market.x - 36.5, 0, -66], b: [I0.garden.x + 19.5, -4, -62], w: 4.2 },
   { name: 'the Balcony bridge', a: [0, 0, I0.market.z - 30.5], b: [0, 0, I0.balcony.z + 18.5], w: 4.6 },
-  { name: 'the Moorings bridge', a: [98, 6, I0.towers.z - 19.5], b: [96, 14, I0.moorings.z + 20.5], w: 4.2 },
+  // (v1.57, issue #194: the Moorings bridge went; the way north is up the stack, src/levels/space-city-ways.js, and the
+  // stack bridge from where it left the Towers is the way home down it)
+  STACK_BRIDGE,
   { name: 'the Yard bridge', a: [I0.gate.x - 24.5, 0, 30], b: [I0.yard.x + 16.5, 0, 30], w: 4.2 },
   // (v1.50: the Lamp Rock's: off the Towers' south lane, and on from the rock to the Gate's east lane)
   { name: 'the Lamp Rock bridge', a: [98, 6, I0.towers.z + 19.5], b: [94, 3, I0.lamprock.z - 9.5], w: 4.2 },
@@ -114,6 +117,12 @@ export const SPACECITY_CONTENT = {
     // (Ines: the light's trace from the world's detour days, and her word on Sel's notes: src/story/spacecity-people.js)
     { ...SC_PEOPLE.tamar, at: [I0.towers.x - 6, I0.towers.z + 10], y: 6, radius: 3, lang: 'spacecity' },
     { at: [I0.garden.x + 4, I0.garden.z - 6], y: -4, radius: 3, lang: 'spacecity', lines: ['~tired~ Every tree here was carried over a bridge in a pot. Every one.', '~happy~ Sit under the dark ones. They grow toward the planet, not the sun.'] },
+    // (v1.57, issue #194: the moorers on the ways, src/levels/space-city-ways.js: Odile at the great cable's clamp under the
+    // Towers, Bram at the capstan on the stack)
+    { id: 'odile', name: 'Odile', title: 'who minds the anchor', color: '#5a8a8c', kind: 'f', at: [ANCHOR.x + 4.2, ANCHOR.z + 0.7], y: ANCHOR.y, radius: 2, lang: 'spacecity',
+      lines: ['~neutral~ The clamp hums all night. I sleep over it. You get used to it.', '~whisper~ Look down through the grating. Stars that way too.'] },
+    { id: 'bram', name: 'Bram', title: 'who works the capstan', color: '#c47a6a', kind: 'm', at: [CAPSTAN.x - Math.cos(DRIFT.angle + 0.55) * 2.4, CAPSTAN.z - Math.sin(DRIFT.angle + 0.55) * 2.4], y: TIERS.s2.y, radius: 2, lang: 'spacecity',
+      lines: ['~tired~ The span drifts out a little every night. Every morning we wind it home.', '~playful~ Lean on a spoke. It goes easier with two.'] },
   ],
 };
 
@@ -182,9 +191,12 @@ export function* buildSpaceCity(scene) {
   for (const [key, I] of Object.entries(ISLANDS)) {
     yield;
     const kit = kitFor(`the ${key}`, 71500 + kits.length * 13), M = spaceMats(kit);
-    const extra = key === 'balcony' ? [[0, -20, 17]] : [];   // (the balcony's north edge: its railing instead of the parapet)
+    // (the balcony's north edge: its railing instead of the parapet; the Towers' stair down, the Moorings' broken bridge: OPENINGS)
+    const extra = key === 'balcony' ? [[0, -20, 17]] : OPENINGS[key] ?? [];
+    // (under the Towers the catwalks' room is kept clear of what hangs there: the dice thrown all the same)
+    const room = key === 'towers' ? corridors() : null;
     // (the Moorings, added after the city was laid out, draw from their own dice: the islands before them keep theirs)
-    const D = island(kit, M, key === 'moorings' ? mulberry32(71950) : key === 'yard' ? mulberry32(71970) : key === 'lamprock' ? mulberry32(71990) : rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0 });
+    const D = island(kit, M, key === 'moorings' ? mulberry32(71950) : key === 'yard' ? mulberry32(71970) : key === 'lamprock' ? mulberry32(71990) : rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0, clear: room && ((x, y0, y1, z, r) => inCorridor(room, x, y0, y1, z, r)) });
     decks[key] = { ...D, kit, M };
     const L = LANES[key], clearOf = (x, z, m) => L.lanes.every((s) => segDist(x, z, s) > s[4] + m * 0.9) && L.circles.every(([cx, cz, r]) => Math.hypot(x - cx, z - cz) > r + m * 0.85);
     const nearestLane = (x, z) => {
@@ -389,6 +401,11 @@ export function* buildSpaceCity(scene) {
     mast(decks.garden.kit, decks.garden.M, MASTS.garden[0], I0.garden.y, MASTS.garden[1], { h: 28 });
   }
 
+  // ---------------------------------------------------------- the ways under, across and up (v1.57, issue #194)
+  yield;
+  const inits = [];
+  const ways = buildCityWays(root, kitFor, { islands: decks, physicsInit: inits });
+
   // ---------------------------------------------------------- finishing
   yield;
   for (const k of kits) {
@@ -403,6 +420,7 @@ export function* buildSpaceCity(scene) {
   yield;
 
   const spawn = new THREE.Vector3(SHIP_SITE.x + 4, I0.pier.y + 0.05, SHIP_SITE.z - 18);
+  const wayPoints = routeOf(ways);
   // Amaro's Oil-Lamp Shop on the Pier, west of the ship, its door to the way up to the bridge (src/shop-world.js 'adobe')
   const shop = placeShop(scene, { def: SHOPS.oillamp, at: new THREE.Vector3(SC_SHOP.x, I0.pier.y, SC_SHOP.z), heading: SC_SHOP.heading });
   lights.push(...shop.lights);
@@ -412,11 +430,14 @@ export function* buildSpaceCity(scene) {
     shops: [shop],
     floraAvoid: shop.avoid(),
     edgeHint: 'Past the last islands there is only the dark, and it turns you back.',
-    // the far end of the bridge out to the Moorings (Kip's lamp: src/story/spacecity-people.js)
-    // the cables where they leave the Towers for the Moorings, by the Moorings bridge's foot (the city's main quest: a hand on them)
-    mooringsFoot: { x: BRIDGES.find((b) => b.name === 'the Moorings bridge').a[0] + 2.6, y: I0.towers.y, z: BRIDGES.find((b) => b.name === 'the Moorings bridge').a[2] + 0.6 },
-    mooringsEnd: { x: BRIDGES.find((b) => b.name === 'the Moorings bridge').b[0], y: I0.moorings.y, z: BRIDGES.find((b) => b.name === 'the Moorings bridge').b[2] + 2 },
+    // the great cable where it leaves the Towers for the Moorings, at its clamp on the catwalk under the deck (the city's
+    // main quest: a hand on it; v1.57, issue #194: by the Moorings bridge's foot until then)
+    cableAnchor: { ...ANCHOR },
+    // the ways under, across and up (src/levels/space-city-ways.js): the drifted span the capstan reels home, the stack
+    ways,
+    drift: ways.drift,
     sights: [
+      ...ways.sights,
       { name: 'the Balcony’s railing over the void', at: [0, 0, I0.balcony.z - 16] },
       { name: 'the Garden’s overlook', at: [I0.garden.x - 14, I0.garden.y, I0.garden.z] },
       { name: 'the cables under the Towers', at: [I0.towers.x + 18, I0.towers.y, I0.towers.z] },
@@ -464,6 +485,11 @@ export function* buildSpaceCity(scene) {
     // the Mooring-House over the roofs, seen from across the city
     beacons: [
       { name: 'the Mooring-House', top: [I0.moorings.x, I0.moorings.y + 31, I0.moorings.z - 4], height: 5 },
+      // (the stack's lamp-mast on its top tier, 80 m over the Towers' north edge: v1.57)
+      { name: 'the stack’s lamp', top: [ways.top.lamp.x, ways.top.lamp.y, ways.top.lamp.z], height: ways.top.lamp.y - TIERS.s0.y },
+      // (and from below, the lamp chain hung from the stack's roots into the void: hung, so its "foot", top − height, is
+      // the underhouses' deck it hangs from, where the world's debug menu sets you down)
+      { name: 'the lamp chain under the stack', top: [ways.chain.x, ways.chain.y, ways.chain.z], height: ways.chain.y - TIERS.s0.y },
       { name: 'the Balcony’s lamp-mast', top: [MASTS.balcony[0], I0.balcony.y + BALCONY_MAST.h + 3, MASTS.balcony[1]], height: BALCONY_MAST.h + 3 },
       { name: 'the Market’s lamp-mast', top: [MASTS.market[0], I0.market.y + 35, MASTS.market[1]], height: 35 },
       { name: 'the Garden’s lamp-mast', top: [MASTS.garden[0], I0.garden.y + 31, MASTS.garden[1]], height: 31 },
@@ -472,14 +498,22 @@ export function* buildSpaceCity(scene) {
     // one way island to island
     lines: [
       { name: 'the bridges north', points: [[0, 0, I0.pier.z - 10], [0, 0, I0.gate.z], [0, 0.9, -15], [0, 0, I0.market.z], [0, 0, I0.balcony.z + 18.5], [0, 0, I0.balcony.z - 8]] },
-      { name: 'the Towers bridge and the Moorings bridge', points: [[0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z], [98, 6, I0.towers.z - 19.5], [96, 14, I0.moorings.z + 20.5], [96, 14, I0.moorings.z + 8]] },
+      { name: 'the Towers bridge', points: [[0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z]] },
+      // (v1.57, issue #194: down the moorers' stair off the Towers' north edge to the anchor; out along the great cable to the
+      // stack, up its stairs to the capstan quarter and over the broken bridge to the Moorings)
+      { name: 'down to the anchor', points: [[0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z], [100, 6, -99], ...wayPoints.down, [ANCHOR.x, ANCHOR.y, ANCHOR.z]] },
+      { name: 'up the stack', points: [[ANCHOR.x, ANCHOR.y, ANCHOR.z], ...wayPoints.up, [96, 14, I0.moorings.z + 8]] },
       { name: 'the Garden bridge', points: [[0, 0, I0.market.z], [I0.market.x - 36.5, 0, -66], [I0.garden.x + 19.5, -4, -62], [I0.garden.x, -4, I0.garden.z]] },
       // (v1.50, issue #132: home from the Mooring-House over the Lamp Rock to the Gate, the way Joss sends you)
-      { name: 'the Lamp Rock bridges', auto: false, points: [[96, 14, I0.moorings.z + 8], [96, 14, I0.moorings.z + 20.5], [98, 6, I0.towers.z - 19.5], [I0.towers.x, 6, I0.towers.z], [98, 6, I0.towers.z + 19.5], [94, 3, I0.lamprock.z - 9.5], [90, 3, I0.lamprock.z], [I0.lamprock.x - 10.5, 3, -10], [I0.gate.x + 24.5, 0, 30], [0, 0, 30], [0, 0, I0.gate.z + 24.5], [0, 0, I0.pier.z - 25.5], [0, 0, I0.pier.z - 10]] },
+      // (v1.57: down the stack's other side and over the stack bridge first)
+      { name: 'the Lamp Rock bridges', auto: false, points: [[96, 14, I0.moorings.z + 8], ...wayPoints.home, [I0.towers.x, 6, I0.towers.z], [98, 6, I0.towers.z + 19.5], [94, 3, I0.lamprock.z - 9.5], [90, 3, I0.lamprock.z], [I0.lamprock.x - 10.5, 3, -10], [I0.gate.x + 24.5, 0, 30], [0, 0, 30], [0, 0, I0.gate.z + 24.5], [0, 0, I0.pier.z - 25.5], [0, 0, I0.pier.z - 10]] },
     ],
     // the crow's nest on the Balcony's mast (Kip's lamp: src/story/spacecity-people.js)
     mastTop: mastTop && { x: mastTop[0], y: mastTop[1], z: mastTop[2] },
-    update() {},
+    init(physics) { for (const f of inits) f(physics); },
+    // (the tests' walkers: the ways as the player opens them, the broken bridge's span reeled home, or as they start)
+    openWays(physics, open = true) { ways.drift.set(open ? 1 : 0); physics?.syncMovers?.(0); },
+    update(dt) { ways.drift.update(dt); },
   };
   // the makers' Mooring-House on the Moorings (src/temples/spacecity.js): its door, its rooms far overhead, its quest
   return attachTemple('spacecity', scene, level);

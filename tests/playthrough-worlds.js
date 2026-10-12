@@ -287,6 +287,10 @@ Object.assign(WAYS, {
   'moonfoundry.count:climb': { needs: [], how: 'up the pillar’s rungs to the lookout' },
   // (the floating city's crow's nest is up the Balcony's lamp-mast, by its rungs)
   'spacecity.lamp:hang': { needs: [], how: 'up the lamp-mast’s rungs' },
+  // (v1.57, issue #194: the Mooring-House is up the stack and over its broken bridge, once the capstan has reeled the
+  // span home; its stairs wind narrow round the stack, so the walk is checked a metre at a time)
+  'spacecity.drift:house': { needs: [], how: 'up the stack and over its broken bridge',
+    check: (W) => { const T = W.level.temples?.find((t) => t.id === 'spacecity'); const w = T && A.walkTo(W, W.player.pos.clone(), T.outside.door.at, { cell: 1 }); return !T ? 'no Mooring-House' : w.ok ? '' : `no way on foot up the stack to the Mooring-House (the walk gets within ${w.closest.toFixed(0)} m)`; } },
 });
 Object.assign(SOLVERS, {
   // up the lift: through the doorway at the column's foot, out at its head in the Crown
@@ -372,6 +376,19 @@ Object.assign(ACTIONS, {
   askSabri: meet('sabri', 'temple.desert'),
   meetSel: meet('sel', 'spacecity.notes'),
   meetKip: meet('kip', 'spacecity.lamp'),
+  // (v1.57, issue #194: the capstan on the stack reels the broken bridge's drifted span home, the way on to the Mooring-House)
+  reelCapstan: (W, issue) => {
+    const d = W.level.drift, at = A.objectiveAt(W, 'capstan');
+    if (!d || !at) return issue('no-thing', 'no capstan on the stack');
+    const to = V(at.x, at.y, at.z).add(V(-at.x + 84, 0, -at.z - 128).setLength(2.4));
+    const s = A.standNear(W, to, { radius: 1.5, up: 2 });
+    if (!s) return issue('no-ground', 'nowhere to stand at the capstan');
+    W.at(s); W.step(2);
+    try { A.useHere(W, 'stackCapstan'); } catch (e) { return issue('soft-lock', e.message); }
+    W.step(30 * 7);
+    W.physics.syncMovers?.(0);
+    if (!d.reeled) issue('soft-lock', 'the capstan did not reel the span home');
+  },
 });
 
 // ------------------------------------------------------------------ the route
@@ -406,7 +423,7 @@ export const ROUTE = [
   // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for the Towers' cables (#137), then
   // the Mooring-House north of the Towers)
   // (v1.48: Rosa on the Pier opens the city's own quest: the cables under the Towers, then in at the Mooring-House)
-  { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', 'spacecity.drift', { temple: 'done', id: 'spacecity', home: 'the Lamp Rock bridges' }] },   // (v1.50, #132: Joss sends you home over the Lamp Rock)
+  { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', { act: 'reelCapstan', at: 'bram', label: 'Bram, at the capstan on the stack' }, 'spacecity.drift', { temple: 'done', id: 'spacecity', home: 'the Lamp Rock bridges' }] },   // (v1.50, #132: Joss sends you home over the Lamp Rock)
   // (v1.49: and the Undertower to its guardian, its hub's wings and the Choir past the gallery: issue #23)
   { id: 'bazaar', play: ['bazaar.signal', { temple: 'done', id: 'bazaar' }] },
 ];

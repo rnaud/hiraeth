@@ -165,9 +165,12 @@ export function inPoly(pts, x, z) {
  * tanks and pipes hung from them, cables dangling far into the void (cables: how many), lamps (lights). detail
  * (1 the views, under 1 the world) thins the hanging things; steady (by default at detail 0.5 and over) keeps its thin
  * pipes and cables HANG_PX wide however far (src/thin.js; the far islands, in the haze, are drawn as they are).
+ * tiers (how many stepped masses, by deep when null), bulb (the drum at the bottom), drop (nothing hung deeper than this
+ * under the slab) and clear(x, y0, y1, z, r) (true: leave out what would hang there, a catwalk's room) shape an island
+ * stacked over another or walked under (src/levels/space-city-ways.js); the dice are thrown the same either way.
  * Returns { pts (local), y, x, z, yaw, inside(x, z, m) } (inside: a world point m in from the edge).
  */
-export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, w = 30, d = 24, cr, wob = 0.8, thick = 3.2, rim = 0.95, gaps = [], deep = 18, cables = 14, lights = 4, detail = 1, deck = true, seed = 1, steady = detail >= 0.5 }) {
+export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, w = 30, d = 24, cr, wob = 0.8, thick = 3.2, rim = 0.95, gaps = [], deep = 18, cables = 14, lights = 4, detail = 1, deck = true, seed = 1, steady = detail >= 0.5, tiers: nTiers = null, bulb = true, drop = Infinity, clear = null }) {
   pts ??= outline(w, d, { cr, wob, n: Math.max(24, Math.round((w + d) * 1.1 * Math.min(1, detail + 0.2))), seed });
   const c = Math.cos(yaw), s = Math.sin(yaw);
   const W = (lx, lz) => [x + c * lx + s * lz, z - s * lx + c * lz];   // local → world (x, z)
@@ -184,7 +187,7 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
   }
   // ---- under it: the machinery, drawn only (nothing walks there)
   const bottom = y - thick;
-  const tiers = [[0.86, 2.4], [0.66, 3], [0.42, 3.6], [0.22, 4.2]].slice(0, deep > 22 ? 4 : deep > 12 ? 3 : 2);
+  const tiers = [[0.86, 2.4], [0.66, 3], [0.42, 3.6], [0.22, 4.2]].slice(0, nTiers ?? (deep > 22 ? 4 : deep > 12 ? 3 : 2));
   let yy = bottom;
   for (const [k, h] of tiers) {
     kit.add(M.under, place(extruded(pts, h, k).translate(0, yy - h, 0)), SH);   // (drawn only, as all that hangs under: you fall past it into the void and come back where you stood)
@@ -192,7 +195,10 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
   }
   // a bulb or drum at the very bottom
   const R0 = Math.min(w, d) * 0.12;
-  kit.add(M.under2, put(new THREE.CylinderGeometry(R0, R0 * 0.5, 3, 10), x, yy - 1.5, z), NC);
+  if (bulb) kit.add(M.under2, put(new THREE.CylinderGeometry(R0, R0 * 0.5, 3, 10), x, yy - 1.5, z), NC);
+  // (what hangs is kept off `clear(x, y, z, r)`, a catwalk's or a stair's room under the island, and no deeper than
+  // `drop` m under the slab, an island stacked over another: the dice are thrown all the same, so the rest stays put)
+  const off = (wx, y0, y1, wz, r) => clear?.(wx, y0, y1, wz, r) ?? false;
   // greebles under the slab (the pipes run along it, rods and drops hanging), and on the tiers' sides
   {
     const g = greebles(seed * 3 + 1), hw = w * 0.38, hd = d * 0.38;
@@ -204,34 +210,43 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
   const inner = (k) => { for (let t = 0; t < 30; t++) { const lx = (rng() - 0.5) * w * k, lz = (rng() - 0.5) * d * k; if (inPoly(pts, lx / 0.9, lz / 0.9)) return [lx, lz]; } return [0, 0]; };
   const nT = Math.round((4 + (w * d) / 120) * detail);
   for (let i = 0; i < nT; i++) {
-    const [lx, lz] = inner(0.75), [wx, wz] = W(lx, lz), r = 0.5 + rng() * 1.3, h = 2 + rng() * 7, top = bottom - 0.5 - rng() * 3;
-    kit.add(rng() < 0.5 ? M.under2 : M.pipe, put(new THREE.CylinderGeometry(r, r, h, 8), wx, top - h / 2, wz), NC);
-    kit.add(M.iron, put(new THREE.CylinderGeometry(r * 1.08, r * 1.08, 0.25, 8), wx, top - h * (0.2 + rng() * 0.5), wz), NC);
-    if (rng() < 0.6) kit.add(M.under2, put(new THREE.SphereGeometry(r, 8, 4, 0, TAU, Math.PI / 2, Math.PI / 2), wx, top - h, wz), NC);
+    const [lx, lz] = inner(0.75), [wx, wz] = W(lx, lz), r = 0.5 + rng() * 1.3, h0 = 2 + rng() * 7, top = bottom - 0.5 - rng() * 3, h = Math.min(h0, bottom - top + drop - r);
+    const mat = rng() < 0.5 ? M.under2 : M.pipe, band = top - h * (0.2 + rng() * 0.5), cap = rng() < 0.6;
+    if (h < 0.6 || off(wx, top - h - r, top, wz, r)) continue;
+    kit.add(mat, put(new THREE.CylinderGeometry(r, r, h, 8), wx, top - h / 2, wz), NC);
+    kit.add(M.iron, put(new THREE.CylinderGeometry(r * 1.08, r * 1.08, 0.25, 8), wx, band, wz), NC);
+    if (cap) kit.add(M.under2, put(new THREE.SphereGeometry(r, 8, 4, 0, TAU, Math.PI / 2, Math.PI / 2), wx, top - h, wz), NC);
   }
   const nP = Math.round((6 + (w * d) / 90) * detail);
   for (let i = 0; i < nP; i++) {
-    const [lx, lz] = inner(0.85), [wx, wz] = W(lx, lz), r = 0.1 + rng() * 0.2, h = 4 + rng() * deep * 0.9;
+    const [lx, lz] = inner(0.85), [wx, wz] = W(lx, lz), r = 0.1 + rng() * 0.2, h = Math.min(4 + rng() * deep * 0.9, drop), collar = rng() < 0.5;
+    if (off(wx, bottom - h, bottom, wz, r * 1.8)) continue;
     const g = new THREE.CylinderGeometry(r, r, h, 5);
     kit.add(steady ? M.hang : M.pipe, put(steady ? thinPole(g) : g, wx, bottom - h / 2, wz), NC);
-    if (rng() < 0.5) kit.add(M.iron, put(new THREE.CylinderGeometry(r * 1.8, r * 1.8, 0.3, 6), wx, bottom - h + 0.15, wz), NC);
+    if (collar) kit.add(M.iron, put(new THREE.CylinderGeometry(r * 1.8, r * 1.8, 0.3, 6), wx, bottom - h + 0.15, wz), NC);
   }
   const nC = Math.round(cables * detail);
   for (let i = 0; i < nC; i++) {
-    const [lx, lz] = inner(0.95), [wx, wz] = W(lx, lz), len = deep * (0.8 + rng() * 2.4);
+    const [lx, lz] = inner(0.95), [wx, wz] = W(lx, lz), len = Math.min(deep * (0.8 + rng() * 2.4), drop);
     if (rng() < 0.3 && i + 1 < nC) {
       // a loop: a cable sagging between two points under the island
-      const [mx, mz] = inner(0.95), [vx, vz] = W(mx, mz), sag = 4 + rng() * 10;
+      const [mx, mz] = inner(0.95), [vx, vz] = W(mx, mz), sag = Math.min(4 + rng() * 10, drop - 1);
+      i++;
       const pts3 = Array.from({ length: 9 }, (_, k) => { const t = k / 8; return V(wx + (vx - wx) * t, bottom - 1 - Math.sin(Math.PI * t) * sag, wz + (vz - wz) * t); });
+      if (clear && pts3.some((p, k) => k && [0.25, 0.5, 0.75, 1].some((u) => { const q = pts3[k - 1].clone().lerp(p, u); return off(q.x, q.y - 0.3, q.y + 0.3, q.z, 0.5); }))) continue;
       const curve = new THREE.CatmullRomCurve3(pts3);
       const g = new THREE.TubeGeometry(curve, 8, 0.06, 3, false);
       kit.add(steady ? M.cable : M.cableFar, steady ? thinTube(g, curve, 8, 3) : g, NC);
-      i++;
-    } else { const a = V(wx, bottom - 0.5, wz), b = V(wx + (rng() - 0.5) * 0.6, bottom - len, wz + (rng() - 0.5) * 0.6); const g = stick(a, b, 0.04 + rng() * 0.04, 3); kit.add(steady ? M.cable : M.cableFar, steady ? thinBar(g, a, b) : g, NC); }
+    } else {
+      const a = V(wx, bottom - 0.5, wz), b = V(wx + (rng() - 0.5) * 0.6, bottom - len, wz + (rng() - 0.5) * 0.6), r = 0.04 + rng() * 0.04;
+      if (off(wx, bottom - len, bottom, wz, 0.4)) continue;
+      const g = stick(a, b, r, 3); kit.add(steady ? M.cable : M.cableFar, steady ? thinBar(g, a, b) : g, NC);
+    }
   }
   // lamps under it: small teal and amber glows
   for (let i = 0; i < lights; i++) {
-    const [lx, lz] = inner(0.8), [wx, wz] = W(lx, lz), ly = bottom - 1 - rng() * deep * 0.5, teal = rng() < 0.6;
+    const [lx, lz] = inner(0.8), [wx, wz] = W(lx, lz), ly = bottom - 1 - Math.min(rng() * deep * 0.5, drop - 1.5), teal = rng() < 0.6;
+    if (off(wx, ly - 0.3, ly + 0.3, wz, 0.4)) continue;
     kit.add(teal ? M.glowTeal : M.lamp, new THREE.SphereGeometry(0.28, 8, 6).translate(wx, ly, wz), NC);
     kit.light(wx, ly, wz, 7);
   }

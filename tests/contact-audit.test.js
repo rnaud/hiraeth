@@ -444,7 +444,10 @@ test('every fragment of the singing light stands on drawn, solid ground the walk
     });
     // the real traveller, set down over each, stands there, close enough to take it (src/fragments.js FRAGMENT.take)
     at.forEach((p, i) => { const why = standWhyNot({ physics, level }, p, Player); if (why) failed.push(`${id} ${i}: ${why}`); });
+    // (what the player opens on the way stands open for the walker: the floating city's drifted span reeled home, v1.57)
+    level.openWays?.(physics, true);
     const { reached } = flood({ physics, level }, [level.spawn, ...Object.values(level.partSpawns ?? {})], { targets: at });
+    level.openWays?.(physics, false);
     reached.forEach((ok, i) => { if (!ok) failed.push(`${id} ${i} (${at[i].toArray().map((v) => v.toFixed(1))}): the walker doesn’t reach it from the spawn`); });
   }
   assert.deepEqual(failed, [], failed.join('\n'));
