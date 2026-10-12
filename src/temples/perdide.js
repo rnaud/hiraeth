@@ -94,7 +94,7 @@ export const PALETTE = {
  */
 export const NURSERY = { x: -23, z: 133.9, w: 14, d: 14, zone: { min: [-30, 8, 126.9], max: [-16, 18, 140.9] } };   // (z: the gallery's G0 + 30)
 export const LEDGE = { r0: 7.6, r1: 10.3, from: -1.15, to: -Math.PI - 0.16, door: -1.45, y: 9 };
-export const BALCONY = { z0: 37, y: 9, groove: 40.5, a: 9.5, b: -6.5, wall: -3, start: 0.6, hold: 10, key: [-9.4, 42] };
+export const BALCONY = { z0: 37, y: 9, groove: 40.5, a: 9.5, b: -6.5, wall: -3, start: 0.6, hold: 10, key: [-9.0, 38.7] };   // (the key by the parapet: seen from the Choir's floor)
 export const MOUTHS = [{ id: 'dj1', still: 'j1', side: 'w', z: 100, crown: 0.7 }, { id: 'dj2', still: 'j2', side: 'e', z: 93.4, crown: 1.2 }];
 
 export const LOGIC = {
