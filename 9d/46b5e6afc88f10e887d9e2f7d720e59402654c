@@ -1,0 +1,33 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_5fd8761a8f7100 2000-2009
+unity/Memento/Assets/Memento/Rendering/MementoFeature.cs
+  s_9ca76055a220ed::t_e37d0ca6e2d3ed 72-75,212-214
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_0e31e85cedba01 529,535-545,565
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_74ed6129120f6d::t_e31a511797ba01 295-298,335
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d46b5e6afc88f10e887d9e2f7d720e59402654c",
+  "prompts": {},
+  "sessions": {
+    "s_74ed6129120f6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a12b36-7519-7462-9cc9-a30336c7a79d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
