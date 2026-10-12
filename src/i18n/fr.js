@@ -458,7 +458,7 @@ export const FR = {
   'teach.scout': '{key:scout} montre où est votre prochaine quête',
   'teach.nudgeMove': 'Regardez autour de vous : déplacez-vous avec {move}, regardez avec {look}',
   'teach.nudgeConsole': 'Un message clignote sur la console près de la table holo, au milieu du vaisseau',
-  'teach.filled': 'L\'eau s\'engouffre et le réservoir vide se remplit : cyan, violet, et le corail du bassin du géant. Il fera marcher les vieilles machines maintenant. Près du bassin, quelque chose répond d\'un bourdonnement.',
+  'teach.filled': 'L\'eau s\'engouffre et le réservoir vide se remplit : cyan, violet, et le corail du bassin du géant. Il fera marcher les vieilles machines maintenant. Près du bassin, la porte des bâtisseurs répond d\'un bourdonnement.',
   'teach.filledGun': 'L\'eau s\'engouffre et le réservoir vide se remplit : cyan, violet, et le corail du bassin du géant. Le pistolet tire maintenant (visez avec {aim}, puis {fire}) et pousse (sa poussée avec {mode}).',
   'teach.shove': 'Passez le pistolet en poussée avec {key:mode}, puis visez et tirez.',
   'teach.foesShort': '{key:blade} frappe · {key:guard} pare · {key:evade} esquive.',

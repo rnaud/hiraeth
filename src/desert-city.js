@@ -50,6 +50,67 @@ export const HATCH = { z: -42, stair: { foot: -17.5, ledge: -25.6, door: -28.4, 
  * zone (level.noClimb, src/physics.js noClimbNear).
  */
 export const CAVE_LEDGES = { stair: HATCH.stair.y * (HATCH.stair.fallen + 1) / 8, landing: 4.2, rubble: 0.35 };
+/**
+ * The makers' shrine in the giant's chest (issue #156, the author: "a mini temple. Fill up the pool. Then you have energy
+ * in your backpack so you can open a fluid powered door. Then you have the chest and unlock the double jump"): cave-local
+ * centre (x, z), the chamber's inner and outer radius, its wall's height (out of a jump's reach from the floor: no way out
+ * of the cave over it before the double jump, issue #68), the door's width and height; the chest's dais at its centre
+ * (r, top), facing the door and the pool beyond it.
+ */
+export const SHRINE = (() => {
+  const x = -20.9, z = -1.6, face = Math.atan2(-x, -z);
+  return { x, z, face, in: 3.25, out: 3.75, h: 5.2, door: { w: 2.3, h: 3.3, t: 0.34 }, r: 1.5, top: 0.6 };
+})();
+/**
+ * Build the shrine into a kit (cave-local, the cave's frame: its yaw 0): the round wall with its doorway toward the pool, a
+ * bone coping, the makers' mark over the door, the chest's dais; and the door itself, a slab of white stone with a glass
+ * lens in it, as a group of its own (it moves: it sinks into the floor when it opens) that draws only: its collision is
+ * the story's (src/story/desert.js adds and takes away a box, `doorBox`). Returns the hooks.
+ */
+function buildShrine(sk, { stone, bone, glyph }) {
+  const S = SHRINE, f = V(Math.sin(S.face), 0, Math.cos(S.face)), side = V(f.z, 0, -f.x);
+  const at = (a, r, y = 0) => V(S.x + Math.sin(S.face + a) * r, y, S.z + Math.cos(S.face + a) * r);
+  const N = 36, half = Math.asin((S.door.w / 2) / S.in), mid = (S.in + S.out) / 2, th = S.out - S.in;
+  for (let k = 0; k < N; k++) {
+    const a = ((k + 0.5) / N) * Math.PI * 2 - Math.PI, w = 2 * S.out * Math.sin(Math.PI / N) + 0.05, c = at(a, mid);
+    const g = new THREE.BoxGeometry(w, S.h, th).rotateY(S.face + a).translate(c.x, S.h / 2, c.z);
+    if (Math.abs(a) < half) {   // the doorway: the wall over it only
+      sk.both(stone, new THREE.BoxGeometry(w, S.h - S.door.h, th).rotateY(S.face + a).translate(c.x, S.door.h + (S.h - S.door.h) / 2, c.z));
+    } else sk.both(stone, g);
+  }
+  // the coping: a ring of bone round the top, and the jambs and lintel framed in it
+  sk.add(bone, new THREE.TorusGeometry(mid, th * 0.62, 5, 40).rotateX(Math.PI / 2).translate(S.x, S.h + 0.05, S.z));
+  const door = at(0, S.out + 0.02);
+  for (const sg of [-1, 1]) sk.both(bone, new THREE.BoxGeometry(0.42, S.door.h + 0.3, th + 0.3).rotateY(S.face).translate(door.x + side.x * sg * (S.door.w / 2 + 0.21), (S.door.h + 0.3) / 2, door.z + side.z * sg * (S.door.w / 2 + 0.21)));
+  sk.both(bone, new THREE.BoxGeometry(S.door.w + 1.0, 0.5, th + 0.36).rotateY(S.face).translate(door.x, S.door.h + 0.25, door.z));
+  sk.add(glyph, glyphGeometry(0.75).rotateY(S.face).translate(door.x + f.x * 0.2, S.door.h + 1.15, door.z + f.z * 0.2));
+  // the dais: the chest's (src/boxes/placements.js desert.lift)
+  sk.both(stone, new THREE.CylinderGeometry(S.r, S.r + 0.25, S.top, 24).translate(S.x, S.top / 2, S.z));
+  // the door: in the doorway, flush with the wall's middle; a jade lens at its heart, dull until the tank is full
+  const doorAt = at(0, mid);
+  const group = new THREE.Group();
+  // (a kit's batches are drawn in world space under a group at the origin: the door is placed in the world too)
+  group.position.copy(sk.world(doorAt.x, doorAt.y, doorAt.z)); group.rotation.y = S.face; group.userData.dynamic = true;   // (it moves: never frozen as static)
+  const slabM = makeMaterial({ color: '#efe6d2', shade: 0.45, shadeHue: 0.6, hatch: 0.7 });
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(S.door.w, S.door.h, S.door.t).translate(0, S.door.h / 2, 0), slabM);
+  const ringM = makeMaterial({ color: '#c9974a', flat: true, metal: 'brass' });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.07, 6, 24).translate(0, 1.75, S.door.t / 2 + 0.02), ringM);
+  const dull = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 24).rotateX(Math.PI / 2).translate(0, 1.75, S.door.t / 2), makeMaterial({ color: '#7d9a92', flat: true }));
+  const lit = new THREE.Mesh(dull.geometry, makeMaterial({ color: '#7fe8c8', glow: 0.9, flat: true }));
+  // the glyph lines from the lens to the edges, lit with it
+  const lines = new THREE.Mesh(mergeGeometries([[0, 1, 1.2], [0, -1, 1.2], [1, 0, 0.6], [-1, 0, 0.6]].map(([dx, dy, len]) =>
+    new THREE.BoxGeometry(dx ? len : 0.07, dy ? len : 0.07, 0.03).translate(dx * (0.5 + len / 2), 1.75 + dy * (0.5 + len / 2), S.door.t / 2 + 0.01))), lit.material);
+  const dullLines = new THREE.Mesh(lines.geometry, dull.material);
+  lit.visible = false; lines.visible = false;
+  for (const m of [slab, ring, dull, lit, lines, dullLines]) { m.userData.noCollide = true; m.userData.dynamic = true; group.add(m); }
+  sk.group.add(group);
+  return {
+    group, lit, lines, dull, dullLines, closedY: group.position.y, depth: S.door.h + 0.1,
+    /** The door's world box when shut (the story's collider), its foot in front, where you stand to open it. */
+    box: { at: doorAt.clone(), size: V(S.door.w, S.door.h, S.door.t + 0.1), yaw: S.face },
+    front: at(0, S.out + 1.4), inside: at(0, S.in - 1.0),
+  };
+}
 const UP = V(0, 1, 0);
 /**
  * The way through the pilgrims' camps (camp-local: x across, z from the gate's side, -z, to the landing's, +z; v1.42,
@@ -1186,10 +1247,13 @@ export function buildDesertCity(scene, terrain) {
     // no shadow, nothing to bump into), brighter at the core where the two overlap. A fifth crack, by the keepers'
     // stair, lights the makers' chest on its dais (issue #81).
     const sun = makeMaterial({ color: '#fbe3b2', glow: 0.55, flat: true }), slant = V(0.28, -1, 0.18).normalize();
-    const CHEST = { z: HATCH.stair.foot + 1.5, r: 1.5, top: 0.6 };   // the dais by the pool's kerb at the stair's foot, facing the pool
+    // the makers' shrine (issue #156, "a mini temple"): a round chamber of the builders' stone on the floor west of the
+    // pool, open to the vault, its door toward the pool; the lift valve's chest on its dais inside, in the light of the
+    // fifth crack. It was a dais by the kerb at the keepers' stair's foot, in plain sight and shut until the tank was full.
+    const CHEST = SHRINE;
     {   // its crack: where the sun through it falls on the dais
-      let x = 0, z = CHEST.z, y = 0;
-      for (let i = 0; i < 8; i++) { y = H * Math.sqrt(Math.max(0, (ROOM + 1) ** 2 - x * x - z * z)) - CHEST.top; x = -(slant.x / -slant.y) * y; z = CHEST.z - (slant.z / -slant.y) * y; }
+      let x = CHEST.x, z = CHEST.z, y = 0;
+      for (let i = 0; i < 8; i++) { y = H * Math.sqrt(Math.max(0, (ROOM + 1) ** 2 - x * x - z * z)) - CHEST.top; x = CHEST.x - (slant.x / -slant.y) * y; z = CHEST.z - (slant.z / -slant.y) * y; }
       SKY.push({ x, z, r: 1.2, y: y + CHEST.top, chest: true });
     }
     const shaftHolder = new THREE.Group(); shaftHolder.name = 'The cave’s shafts of light (washes)';
@@ -1216,10 +1280,10 @@ export function buildDesertCity(scene, terrain) {
     const crng = mulberry32(4412);
     for (let k = 0; k < RIBS.length - 1; k++) for (const s of [-1, 1]) {
       const z = (RIBS[k] + RIBS[k + 1]) / 2, x = s * (Math.sqrt((ROOM + 1) ** 2 - z * z) - 2.2);
-      if ((s > 0 && Math.abs(z + 6.2) < 3) || Math.hypot(x + 17.5, z - 20.5) < 7.5) continue;   // (the channel's crack, the mural)
+      if ((s > 0 && Math.abs(z + 6.2) < 3) || Math.hypot(x + 17.5, z - 20.5) < 7.5 || Math.hypot(x - SHRINE.x, z - SHRINE.z) < SHRINE.out + 5) continue;   // (the channel's crack, the mural, the shrine)
       cave.add(M.caveFloor, new THREE.SphereGeometry(1, 9, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(3.2 + crng(), 0.5 + crng() * 0.5, 2.0).rotateY(Math.atan2(x, z)).translate(x, -0.05, z));
     }
-    for (const [x, z, r] of [[-15.5, 6, 1.1], [-19, -8.5, 1.5], [15.5, 17.5, 1.2], [-7, 22.5, 0.8], [9.5, 21.5, 0.9], [-21.5, 2.5, 0.7], [18, 2.5, 0.8], [-12, -19.5, 1.0], [12.5, -20, 1.3]]) {
+    for (const [x, z, r] of [[-15.5, 6, 1.1], [-19, -10.5, 1.5], [15.5, 17.5, 1.2], [-7, 22.5, 0.8], [9.5, 21.5, 0.9], [-17.5, 9.5, 0.7], [18, 2.5, 0.8], [-12, -19.5, 1.0], [12.5, -20, 1.3]]) {
       cave.both(rock, new THREE.DodecahedronGeometry(r, 0).scale(1.2, 0.75, 1).rotateY(x + z).translate(x, r * 0.45, z));
     }
     // a path of flagstones from the doorway to the pool's kerb
@@ -1351,6 +1415,8 @@ export function buildDesertCity(scene, terrain) {
     cave.group.add(shaftHolder);
     shaftHolder.updateMatrixWorld(true);
     for (const m of shaftHolder.children) veils.add(m, { color: '#fff1cf', glow: 1, alpha: m.userData.wash, near: 2.5 });
+    // the makers' shrine west of the pool, with the lift valve's chest inside (issue #156)
+    const shrine = buildShrine(cave, { stone: caveStone, bone: caveBone, glyph: M.glyph });
     cave.flush();
     {
       const S = HATCH.stair, n = 8, run = (S.foot - S.ledge) / n, sk = new Kit(late, 'The keepers’ stair', O, 0);
@@ -1368,7 +1434,6 @@ export function buildDesertCity(scene, terrain) {
       // the makers' chest's dais by the pool's kerb at the stair's foot, in the light of the fifth crack: a round step of the
       // builders' stone and nothing else on it or round it (issue #81: where the way in from the doorway, across the pool,
       // meets the way on, up the stair)
-      sk.both(caveStone, new THREE.CylinderGeometry(CHEST.r, CHEST.r + 0.25, CHEST.top, 24).translate(0, CHEST.top / 2, CHEST.z));
       sk.both(M.stone, new THREE.BoxGeometry(3.6, S.y, S.ledge - S.door + 1.4).translate(0, S.y / 2, (S.ledge + S.door - 1.4) / 2));   // the ledge, into the wall
       for (const s of [-1, 1]) sk.both(M.bone, new THREE.BoxGeometry(0.55, 3.2, 0.6).translate(s * 1.35, S.y + 1.6, S.door + 0.2));   // the jambs
       sk.both(M.bone, new THREE.BoxGeometry(3.3, 0.55, 0.7).translate(0, S.y + 3.45, S.door + 0.2));   // the lintel
@@ -1397,7 +1462,10 @@ export function buildDesertCity(scene, terrain) {
       // (the way in comes out on the passage's landing, facing the drop into the cave; the way up from its back)
       inside: cave.world(0, CAVE_LEDGES.landing + 0.05, ROOM + 6.2), exit: cave.world(0, CAVE_LEDGES.landing, ROOM + 9.3), group: cave.group, root,
       // the makers' chest on its dais, facing the pool (src/boxes/placements.js desert.lift; issue #81)
-      chest: { at: cave.world(0, CHEST.top + 0.5, CHEST.z), face: 0, dais: cave.world(0, CHEST.top, CHEST.z), r: CHEST.r },
+      chest: { at: cave.world(CHEST.x, CHEST.top + 0.5, CHEST.z), face: SHRINE.face, dais: cave.world(CHEST.x, CHEST.top, CHEST.z), r: CHEST.r },
+      // its shrine and the fluid-powered door that keeps it (src/story/desert.js opens it with a full tank: issue #156); its
+      // places in the world
+      shrine: shrine && { ...shrine, box: { ...shrine.box, at: cave.world(...shrine.box.at.toArray()) }, front: cave.world(...shrine.front.toArray()), inside: cave.world(...shrine.inside.toArray()) },
       // walls not to be climbed (issue #68): the whole room and its passage
       noClimb: (() => { const c = cave.world(0, 8, 0); return { x: c.x, y: c.y, z: c.z, r: 48 }; })(),
       shafts: shaftHolder,

@@ -22,8 +22,8 @@ import { PLACEMENTS } from '../boxes/placements.js';
 //         B  over his shoulder, close on the tank: the water climbs into the dry glass,
 //            slowly, in three colours, its glow on his back                            2.3–5.9
 //         C  beside him, the full tank glowing on his back, its lights coming on one by
-//            one: something beside the pool hums back, and he turns to it (the chest
-//            with the lift valve). Nothing is fired: he has nothing to fire it with yet
+//            one: something beside the pool hums back, and he turns to it (the makers'
+//            shrine's door, issue #156). Nothing is fired: he has nothing to fire it with yet
 //            (the gun is in the Givers' Hearth; it ended with a glob shot out over the
 //            pool until the author's playthrough, issue #70)                            5.9–8.7
 //         D  his face: a slight smirk, nothing said                                    8.7–11.2
@@ -158,9 +158,11 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
       return out.copy(player.pos).addScaledVector(UP, 1.3).addScaledVector(facing(_f), -0.25);
     };
     const chest = (out = V(0, 0, 0)) => out.copy(player.pos).addScaledVector(UP, 1.35);
-    // what hums back from beside the pool: the lift valve's chest (src/boxes/placements.js desert.lift), else ahead over the water
+    // what hums back from beside the pool: the makers' shrine's door, its lens lighting with the full tank (issue #156),
+    // else the lift valve's chest (src/boxes/placements.js desert.lift), else ahead over the water
     const lift = PLACEMENTS.desert?.find((x) => x.id === 'desert.lift')?.site?.(level);
-    const answer = lift ? V(lift.at[0], lift.at[1] + 0.6, lift.at[2]) : ahead.clone();
+    const door = cave.shrine?.box?.at;
+    const answer = door ? door.clone().add(V(0, 1.75, 0)) : lift ? V(lift.at[0], lift.at[1] + 0.6, lift.at[2]) : ahead.clone();
     const m = moments.play({
       id: 'desert.fill', flag: 'desert.moment.fill', dur: FILL.A + FILL.B + FILL.C + FILL.D,
       shots: [

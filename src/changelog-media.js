@@ -657,7 +657,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'skull-mouth', title: 'At the mouth', caption: 'A few steps from the mouth: before, the skull’s flank and crown; after, the mouth and its steps, at the foot of the slope from the city', from: PT51, commit: '8c6fc695',
         view: { level: 'desert', save: SAVE_DESERT, hour: 10, fov: 58, eye: [291.0, 2.5, 491.0], target: [314.0, 2.0, 525.0], player: [293.0, 0.5, 494.0], heading: 0.6 } },
     ], see: 'Out of Qanat’s back gate: the skull faces you down the slope; follow the cairns to its mouth.' },
-    { match: 'In the giant’s chest under Qanat, what blocks the water is plain to see now', see: 'Go down through the giant’s skull into the cave, walk to the dry stone channel and press A / × at the heap in it: “Something is clogging the drain. Remove it?” Yes, and the water runs.' },
+    { match: 'In the giant’s chest under Qanat, what blocks the water is plain to see now', shots: [
+      { name: 'drain-debris', title: 'The clogged drain', caption: 'The stone channel to the giant’s pool, from beside it: before, one long thigh bone lying in it, knuckled at both ends; after, a heap of debris, a broken piece of rib, rocks and packed sand, jammed in the drain', from: PT51, commit: 'fd8e0349',
+        view: { level: 'desert', save: SAVE_DESERT, hour: 10, fov: 55, eye: [-1233.5, 1003.0, 1250.5], target: [-1227.6, 1000.6, 1245.0], player: [-1231.0, 1000.2, 1249.0], heading: 2.4 } },
+    ], see: 'Go down through the giant’s skull into the cave, walk to the dry stone channel and press A / × at the heap in it: “Something is clogging the drain. Remove it?” Yes, and the water runs.' },
+    { match: 'The chest in the giant’s chest is no longer out in the open', see: 'In the cave under the giant’s skull, clear the drain and wade into the pool: the makers’ shrine west of the pool lights its door. Press A / × at it; inside, the chest with the lift valve.' },
     { match: 'No button prompt comes up in front of the giant’s skull', see: 'Walk up to the giant’s mouth: no prompt shows; walk on in.' },
     { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
       { title: 'Frames a second, the Unity preview', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, the Linux player (Vulkan), the Deck preset, 1280 × 800, 90 Hz uncapped', rows: [

@@ -119,8 +119,8 @@ ground it stands on: no rocks, rubble, roots, bones, crates or props piled besid
 It faces the way you come to it. Never "on the floor beside" something: a chest at a random spot reads as a dropped
 thing. And it is **there when it makes sense in the story**: one whose gift follows a step (the lift valve after the
 pool has filled your tank) waits, shut, dark and silent, until that step is done (`ready`, below). The lift valve's
-chest (v1.45) stands on its own round dais by the giant's pool, at the foot of the broken keepers' stair it lets you
-climb, under a fifth crack's shaft of light (`cave.chest`, src/desert-city.js); `tests/desert-cave-exit.test.js`
+chest (v1.45) stands on its own round dais in the makers' shrine by the giant's pool (since issue #156: below), under a
+fifth crack's shaft of light (`cave.chest`, src/desert-city.js); `tests/desert-cave-exit.test.js`
 checks that nothing stands near it, that it faces the pool and that the light falls on it.
 
 **Waiting for a step** (`ready`, `sealed`, src/boxes/placements.js): a placement's `ready(game, items)` keeps the box
@@ -156,6 +156,22 @@ steps of 0.22 m, its top at 0.46 m, and hardly showed over the paving from the a
 Nour's stone bench stood 3 m behind it under the low arm, in every close picture of the chest; it stands 7 m off now,
 out in the square to the left as you come up the avenue, facing the chest, clear of the avenue's sightline, with an
 open walk to where she waits at the dais's foot (`tests/qanat-tree-ribcage-reference.test.js`).
+
+## The makers' shrine in the giant's chest (issue #156)
+
+"In the skull cave the chest shouldn't be available until you filled up the pool. It's confusing to show the chest but
+you can't open it. We might turn this into a mini temple." The lift valve's chest no longer stands shut and silent on a
+dais in plain sight by the keepers' stair: it stands on its dais inside the makers' shrine (`SHRINE`, `buildShrine` in
+`src/desert-city.js`), a round chamber of the builders' stone on the cave's floor west of the pool, 5.2 m high (out of a
+jump's reach: no way out of the cave over it before the double jump, issue #68), open to the vault so the fifth crack's
+shaft still falls on the chest, its doorway toward the pool. The door is a slab of white stone with a glass lens and four
+lines at its heart, dull until your tank is full; then they glow (the fill's moment turns to them: "the makers' door by the
+pool hums back"), and E opens it: the lens drinks, the door sinks into the floor (`src/story/desert.js`, the flag
+`desert.door.open`; its collision is a box the story adds and takes away). The quest has a step for it ("Open the makers'
+door with your full tank") before "Open the chest in the makers' shrine"; the chest's `ready` is the door open. Inside, the
+chest has its 3 m clear and faces the door and the pool. `src/save-migrate.js` step 19 opens the door for a save that had
+the lift valve and sends a save waiting at the chest back to the door. `tests/desert-playtest.test.js`,
+`tests/desert-cave-exit.test.js`, `tests/desert-story.test.js`.
 
 ## What comes with an item: the gun's two modes in one chest
 

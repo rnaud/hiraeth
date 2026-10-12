@@ -16,6 +16,7 @@ export const CHANGELOG = [
       see: 'Start a new game (or open ?level=desert&prologue=1) with the sound on: in the ship you hear its own quiet music, not the desert’s ney and oud; they come in as the ramp comes down and you walk out.' },
     'No wild creatures roam Qanat’s streets and square any more: the lizards, crabs and jerboas keep to the sand outside the walls. The birds still wheel high over the city.',
     'The giant’s skull outside Qanat’s back gate has turned round: it faces the city now, so as you come out of the gate you see its painted eyes, its teeth and its mouth down the slope, and the pilgrims’ cairns lead you straight to it.',
+    'The chest in the giant’s chest is no longer out in the open, shut until you could open it: it waits inside a small makers’ shrine beside the pool. Fill your tank in the pool and the shrine’s door hums with it; open the door with your full tank and it sinks into the floor, and the chest with the lift valve is inside.',
     'No button prompt comes up in front of the giant’s skull any more: walk straight into its mouth.',
     'In the giant’s chest under Qanat, what blocks the water is plain to see now: a heap of debris, a broken piece of rib, rocks and packed sand, jammed in the drain. There is no lever or pole to find any more: look at the drain and it asks whether to remove it. Say yes and you drag it clear yourself, and the water runs.',
     // the Unity preview on the Steam Deck (docs/systems/performance.md "The Steam Deck, round 7"; issue #111)

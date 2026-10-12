@@ -48,7 +48,7 @@ export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living wate
  * (desert.quest.v < 3) whose tree was already burning (the channel open, or the ship fed) skips them
  * (src/story/desert.js migrateDesertQuest, and the skip in setupDesert).
  */
-export const SPARK_STAGES = ['valve', 'up', 'rise', 'spark', 'bike', 'hearth', 'gun', 'stone', 'light'];   // (valve and gun: v1.38's chests, the lift valve and the fluid gun)
+export const SPARK_STAGES = ['door', 'valve', 'up', 'rise', 'spark', 'bike', 'hearth', 'gun', 'stone', 'light'];   // (valve and gun: v1.38's chests, the lift valve and the fluid gun; door: the makers' shrine's, issue #156)
 
 /**
  * Saves from before the backpack's box moved into the city (the stages were
@@ -94,9 +94,11 @@ export const QUESTS = [
       { id: 'channel', text: 'Clear the clogged drain', label: 'The clogged drain', flag: 'desert.channel.open', at: 'rib', gate: true },
       // the first wade fills the tank (and tints it); Ama's jar, if you took it, fills too
       { id: 'fill', text: 'Wade in and fill your tank', label: 'The pool', flag: 'desert.pool.tinted', at: 'pool', gate: true },
-      // the progression rewrite (v1.38): beside the pool a makers' chest hums back at the full tank, the lift valve (the double
-      // jump, the backpack's first strength: src/boxes/placements.js desert.lift)
-      { id: 'valve', text: 'Open the chest beside the pool', label: 'The chest by the pool', flag: 'item.doublejump', at: 'box.desert.lift', ahead: false },
+      // the makers' shrine by the pool (issue #156): its door hums back at the full tank and opens with it (src/story/desert.js)
+      { id: 'door', text: 'Open the makers’ door with your full tank', label: 'The makers’ door', flag: 'desert.door.open', at: 'shrineDoor', gate: true },
+      // the progression rewrite (v1.38): inside, a makers' chest holds the lift valve (the double jump, the backpack's
+      // first strength: src/boxes/placements.js desert.lift)
+      { id: 'valve', text: 'Open the chest in the makers’ shrine', label: 'The chest in the shrine', flag: 'item.doublejump', at: 'box.desert.lift', ahead: false },
       // up the keepers' stair behind the pool, beside the root the water climbs, to the hatch in the back lane (src/desert-city.js
       // HATCH; level design audit, third round: the way out was the way down). Out by the skull instead, the roots' drinking skips it
       { id: 'up', text: 'Follow the water up the keepers’ stair', label: 'The keepers’ stair', goto: 'hatch', radius: 6, vertical: 4 },

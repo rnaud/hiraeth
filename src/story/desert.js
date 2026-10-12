@@ -464,6 +464,46 @@ export function setupDesert(ctx) {
 
   film = setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fillJar, FILLED });
 
+  // ---------------------------------------------------------------- the makers' shrine's door (issue #156)
+  // A round shrine west of the pool keeps the lift valve's chest (src/desert-city.js SHRINE): its door is a slab of white
+  // stone with a glass lens in it, dull until your tank is full; then it hums with your tank, and with E it drinks of it
+  // and sinks into the floor. Until it is open the chest is out of sight and out of reach (no unopenable chest in view).
+  const shrine = cave.shrine;
+  const doorOpen = () => !!game.flag('desert.door.open');
+  const tankFull = () => items.has('backpack') && !dry() && (!!game.flag('desert.pool.tinted') || open());
+  const doorSt = { k: doorOpen() ? 1 : 0, opening: false };
+  let doorHandle = null;
+  if (shrine && physics?.addCollider) {
+    const b = shrine.box, proxy = new THREE.Mesh(new THREE.BoxGeometry(b.size.x, b.size.y, b.size.z).translate(0, b.size.y / 2, 0));
+    proxy.position.copy(b.at); proxy.rotation.y = b.yaw;
+    if (!doorOpen()) doorHandle = physics.addCollider(proxy);
+  }
+  const layDoor = () => {
+    if (!shrine) return;
+    shrine.group.position.y = shrine.closedY - shrine.depth * THREE.MathUtils.smootherstep(doorSt.k, 0, 1);
+    shrine.group.visible = doorSt.k < 1;
+    const on = tankFull() && doorSt.k < 1;
+    shrine.lit.visible = shrine.lines.visible = on;
+    shrine.dull.visible = shrine.dullLines.visible = !on;
+  };
+  const openDoor = () => {
+    if (doorOpen()) return;
+    game.set('desert.door.open', true);
+    doorSt.opening = true;
+    if (doorHandle) { physics.removeCollider(doorHandle); doorHandle = null; }
+    sound.rumble?.(1.8, 0.3); sound.chime?.();
+    toast('The lens drinks from your tank, its lines light, and the door sinks into the floor.');
+  };
+  game.on('flag:desert.door.open', (v) => { if (v && doorSt.k < 1) { doorSt.opening = true; if (doorHandle) { physics.removeCollider(doorHandle); doorHandle = null; } } });
+  if (shrine) {
+    registerInteractable({ id: 'shrine.door', priority: PRIORITY.use, range: 3.2, at: () => shrine.box.at.clone().add(V(0, 1.75, 0)), enabled: () => !doorOpen(),
+      prompt: () => (tankFull() ? 'open the makers’ door' : 'look at the makers’ door'),
+      distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, shrine.front) : Infinity),
+      use: () => { if (tankFull()) openDoor(); else toast('A makers’ door, a dull glass lens at its heart. It wants a full tank.'); } });
+    layDoor();
+  }
+  st.door = doorSt;
+
   // ---------------------------------------------------------------- the ship
   const shipPos = () => {
     const s = level.ship?.pos ?? level.shipSite ?? level.spawn;
@@ -527,6 +567,7 @@ export function setupDesert(ctx) {
   quests.locate('bikeWay', () => (['find', 'wake'].includes(quests.stage('desert.bike')) || game.flag('desert.bike.uncovered') ? hollow.site.bike : people.marrow.pos));
   quests.locate('bikeHollow', () => hollow.site.bike);   // (where that stage is done: the stage's `ends`, for the level design audit)
   quests.locate('pool', () => cave.poolCenter);
+  if (shrine) quests.locate('shrineDoor', () => shrine.front);
   quests.locate('ship', shipPos);
   quests.locate('mask', () => V(-20, level.ground.heightAt(-20, -372), -372));
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
@@ -897,7 +938,12 @@ export function setupDesert(ctx) {
     city.light2.w = 14 + 44 * st.fire;
     updateLighting(dt);
 
-    // the channel: the rib rolls aside, the stream runs, the pool rises and brightens
+    // the shrine's door: its lens lit with a full tank; opened, it sinks into the floor
+    if (shrine) {
+      if (doorSt.opening) { doorSt.k = Math.min(1, doorSt.k + dt / 1.8); if (doorSt.k >= 1) doorSt.opening = false; }
+      layDoor();
+    }
+    // the channel: the debris is dragged aside, the stream runs, the pool rises and brightens
     if (st.boneT > 0 && st.boneT < 1) {
       st.boneT = Math.min(1, st.boneT + dt / 1.6);
       const k = THREE.MathUtils.smootherstep(st.boneT, 0, 1);

@@ -524,9 +524,21 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   assert.equal(W.dry(), false);
   assert.ok(toasts.some((t) => /empty tank fills/.test(t)), 'it says so');
   step(2);
-  // ---- the chest beside the pool (v1.38): the lift valve, the backpack's first strength (the double jump)
+  // ---- the makers' shrine (issue #156): its door hums back at the full tank, and opens with it
+  assert.equal(quests.stage('desert.power'), 'door');
+  const S = Q.cave.shrine;
+  assert.ok(quests.objective().position.distanceTo(S.front) < 0.01, 'the marker at the shrine\'s door');
+  at(S.front.clone()); facing(S.box.at);
+  const door = bestInteractable(player);
+  assert.equal(door?.entry.id, 'shrine.door');
+  assert.equal(promptOf(door), 'open the makers’ door');
+  door.entry.use(player);
+  assert.equal(game.flag('desert.door.open'), true, 'the full tank opens it');
+  step(70);
+  assert.equal(S.group.visible, false, 'sunk into the floor');
+  // ---- the chest inside (v1.38): the lift valve, the backpack's first strength (the double jump)
   assert.equal(quests.stage('desert.power'), 'valve');
-  assert.ok(quests.objective().label.includes('chest'), 'the marker leads to the chest by the pool');
+  assert.ok(quests.objective().label.includes('chest'), 'the marker leads to the chest in the shrine');
   items.grant('doublejump');   // (the box: tests/boxes.test.js opens them; tests/playthrough.test.js walks to this one)
   step(2);
   assert.equal(quests.stage('desert.power'), 'up');

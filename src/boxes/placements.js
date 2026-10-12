@@ -52,11 +52,13 @@ export const PLACEMENTS = {
     // quest leads down there to fill the tank (and the box hums once it is full), on the dry floor between the basin and
     // the cave's wall, facing the pool
     // (v1.45, issue #81: on its own dais by the pool's kerb at the keepers' stair's foot, in a shaft of light, nothing round
-    // it; issue #68: shut and silent until the pool has filled your tank, `ready`)
+    // it; issue #68: shut and silent until the pool has filled your tank, `ready`; issue #156: in the makers' shrine, a mini
+    // temple west of the pool, behind a door the full tank opens, so no shut chest stands in sight)
     { id: 'desert.lift', item: 'doublejump', site: (level) => level.qanat?.cave?.chest && { at: level.qanat.cave.chest.at.toArray(), face: level.qanat.cave.chest.face }, story: true,
-      ready: (g, it) => it.has('backpack') && (!!g.flag('desert.pool.tinted') || (!!g.flag('desert.channel.open') && !g.flag('tool.empty'))),
-      sealed: 'The makers’ chest sits shut and silent on its dais. Whatever it keeps wants a full tank: fill yours at the pool first.',
-      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), on a dais in a shaft of light by the pool, at the foot of the broken keepers’ stair. It opens once the pool has filled the tank.' },
+      // (behind the makers' shrine's door, which a full tank opens: issue #156; it waits shut until the door is open)
+      ready: (g, it) => it.has('backpack') && !!g.flag('desert.door.open'),
+      sealed: 'The makers’ chest sits shut and silent on its dais.',
+      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), in the makers’ shrine west of the pool, on a dais in a shaft of light. A full tank opens the shrine’s door.' },
     // the fluid gun (a gadget) in the Givers' Hearth, whose push rolls the stone ball (the main quest's spark-stone), with
     // its two modes, the push and ember (issue #83: one chest, not two side by side; ember mode had a chest of its own
     // here in v1.44, src/save-migrate.js step 14 merges them): on the dais of the Givers' room, a round room of its own

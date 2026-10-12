@@ -69,6 +69,7 @@
 // the thing is used (Wen's count at the lookout, Liesel's hook on the furnace's crane, Sel's notes on the cables, the
 // cutting in the Crown), and Fabre's word down to Maelle is no quest: step 17 (QUEST_STAGE_MOVES_137).
 // The giant's drain (issue #158): the keepers' pole and its lever went; a save holding the pole lets it go: step 18.
+// The lift valve's chest behind the makers' shrine's door (issue #156): open for a save that had it, step 19.
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -219,7 +220,16 @@ const STEPS = [
   // 18: the giant's drain (issue #158, v1.51): no lever; you pull the debris out yourself. A save holding the keepers'
   // pole puts it down (it is no item now), and the lever's heaves are forgotten: an unfinished drain is cleared by hand.
   (flags) => migrateDrain158(flags),
+  // 19: the makers' shrine (issue #156, v1.51): the lift valve's chest stands behind a door a full tank opens. A save that
+  // opened the chest (or has the double jump) finds the door open; one waiting at the chest goes back to the door.
+  (flags) => migrateShrine156(flags),
 ];
+/** Step 19 (pure, in place). */
+export function migrateShrine156(flags) {
+  if (flags['box.desert.lift'] || flags['item.doublejump']) flags['desert.door.open'] = true;
+  else if (flags['quest.desert.power'] === 'valve') flags['quest.desert.power'] = 'door';
+  return flags;
+}
 /** Step 18 (pure, in place). */
 export function migrateDrain158(flags) {
   delete flags['item.pole'];

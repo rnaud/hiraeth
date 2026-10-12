@@ -98,3 +98,35 @@ test('#158: no lever, no pole, no carved post: the drain asks whether to remove 
   assert.deepEqual(node.choices[0].do, { emit: ['desert:drain'] }, 'Yes clears it');
   assert.equal(node.choices[1].do, undefined, 'No leaves it');
 });
+
+test('#156: the lift valve\'s chest is in the makers\' shrine, out of sight and reach behind a door a full tank opens', async () => {
+  const { game } = await import('../src/game-state.js');
+  const { items } = await import('../src/items.js');
+  const cave = Q.cave, S = cave.shrine, chest = cave.chest.at;
+  assert.ok(S, 'the shrine is built');
+  const eye = (p) => p.clone().add(V(0, 1.6, 0));
+  const blocked = (from) => { const d = chest.clone().sub(from), L = d.length(); return physics.rayDistance(from, d.normalize(), L) < L - 0.6; };
+  // shut: from the kerb all round the pool, and from in front of the door, the chest can't be seen or reached
+  game.set('desert.door.open', undefined);
+  const around = [];
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) around.push(cave.local(Math.cos(a) * 14, 0, Math.sin(a) * 14));
+  for (const p of [...around, S.front]) assert.ok(blocked(eye(p)), `the chest hidden from ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`);
+  // the door's prompt follows the tank
+  const door = INTERACT.allInteractables().find((e) => e.id === 'shrine.door');
+  const prompt = () => (typeof door.prompt === 'function' ? door.prompt() : door.prompt);
+  items.grant('backpack'); game.set('tool.empty', true); game.set('desert.pool.tinted', undefined); game.set('desert.channel.open', undefined);
+  assert.equal(prompt(), 'look at the makers’ door', 'an empty tank: it only looks');
+  door.use();
+  assert.ok(!game.flag('desert.door.open') && /full tank/.test(toasts.at(-1)), 'and says it wants a full tank');
+  game.set('tool.empty', false); game.set('desert.pool.tinted', true); game.set('desert.channel.open', true);
+  assert.equal(prompt(), 'open the makers’ door');
+  door.use();
+  assert.equal(game.flag('desert.door.open'), true, 'the full tank opens it');
+  for (let i = 0; i < 80; i++) rt.update(1 / 30, i / 30, { camera: new THREE.PerspectiveCamera() });
+  assert.equal(S.group.visible, false, 'sunk into the floor');
+  assert.ok(!blocked(eye(S.front)), 'open: the chest in sight and reach from the doorway');
+  // the shrine's walls are out of a jump's reach, so it is no way out of the cave before the double jump (issue #68)
+  const top = physics.groundAt(S.box.at.x, S.box.at.y + 9, S.box.at.z, 12) - cave.origin.y;
+  assert.ok(top > 4.6, `the wall over the door stands ${top.toFixed(2)} m`);
+  game.reset();
+});

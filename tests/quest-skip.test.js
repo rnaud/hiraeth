@@ -75,7 +75,7 @@ test('the desert: the water let out and the tank filled before anyone sent you, 
   game.set('desert.channel.open', true);
   game.set('desert.pool.tinted', true);
   quests.update(null);
-  assert.equal(quests.stage('desert.power'), 'valve', 'the city, the chest, Nour and the way down passed over: the chest by the pool next');
+  assert.equal(quests.stage('desert.power'), 'door', 'the city, the chest, Nour and the way down passed over: the makers’ door by the pool next (issue #156)');
   // the fire's steps can't carry it past the water: a hoverbike found early is no reason to skip the rest
   const g2 = new GameState(memory()), q2 = new Quests({ game: g2 });
   for (const q of QUESTS) q2.define(q);

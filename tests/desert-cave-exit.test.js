@@ -82,7 +82,9 @@ test('the lift valve’s chest (#68): shut and silent until the pool has filled 
   game.set('desert.channel.open', true);
   assert.equal(box.ready(), false, 'shut while the pool rises and the tank is dry');
   game.set('desert.pool.tinted', true); game.set('tool.empty', false);
-  assert.equal(box.ready(), true, 'it hums back at the full tank');
+  assert.equal(box.ready(), false, 'with a full tank, shut behind the makers\' shrine\'s door (issue #156)');
+  game.set('desert.door.open', true);
+  assert.equal(box.ready(), true, 'the full tank opened the door: it hums back');
   game.reset();
 });
 

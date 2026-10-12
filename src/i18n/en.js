@@ -461,7 +461,7 @@ export const EN = {
   'teach.scout': '{key:scout} shows where your next quest is',
   'teach.nudgeMove': 'Look around: move with {move}, look with {look}',
   'teach.nudgeConsole': 'A message blinks on the console by the holo table, in the middle of the ship',
-  'teach.filled': 'The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. It will power the old machines now. Something beside the pool hums back.',
+  'teach.filled': 'The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. It will power the old machines now. The makers’ door by the pool hums back.',
   'teach.filledGun': 'The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now the gun shoots (aim with {aim}, then {fire}) and pushes (its push with {mode}).',
   'teach.shove': 'Switch the gun to push with {key:mode}, then aim and shoot.',
   'teach.foesShort': '{key:blade} cuts · {key:guard} guards · {key:evade} evades.',

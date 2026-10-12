@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 18);
+  assert.equal(MIGRATED(), 19);
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -340,4 +340,14 @@ test('the giant\'s drain (issue #158, step 18): the keepers\' pole is put down, 
   assert.equal(f['desert.lever'], undefined);
   assert.equal(f['desert.pole.tried'], undefined);
   assert.equal(f['desert.cave.seen'], true, 'the rest kept');
+});
+
+test('the makers\' shrine (issue #156, step 19): a save that had the lift valve finds its door open; one at the chest goes to the door', async () => {
+  const { migrateShrine156 } = await import('../src/save-migrate.js');
+  assert.equal(migrateShrine156({ 'box.desert.lift': true })['desert.door.open'], true);
+  assert.equal(migrateShrine156({ 'item.doublejump': true })['desert.door.open'], true);
+  const at = migrateShrine156({ 'quest.desert.power': 'valve', 'desert.pool.tinted': true });
+  assert.equal(at['quest.desert.power'], 'door');
+  assert.equal(at['desert.door.open'], undefined, 'shut: the full tank opens it');
+  assert.deepEqual(migrateShrine156({ 'quest.desert.power': 'fill' }), { 'quest.desert.power': 'fill' }, 'an earlier save follows the new order');
 });
