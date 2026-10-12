@@ -109,6 +109,17 @@ export const LAYOUTS = {
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'open.cW': true } },
     ],
   },
+  // v1.52: the Hush-House's Snapping Passage stills in the Choir's order (its two side mouths before the gate), the Nursery
+  // west off the gallery's far landing and the Choir's balcony along the ledge round the Bog Well. Past the gate of jaws
+  // (its stilling was `j1`): the side mouths stilled too; past the far door: its great key in it, the Nursery won, the
+  // ledge's door unlocked, the balcony's ball on its footstone (before it, the wings are a walk back)
+  perdide: {
+    v: 2,
+    steps: [
+      { if: ['open.d2', 'lit.j1', 'lit.w1', 'open.d3', 'open.ds', 'boss'], set: { 'lit.j2': true, 'lit.j3': true } },
+      { if: ['open.d3', 'boss'], set: { 'unlocked.d3': 1, 'found.kB': true, 'found.kS': true, 'unlocked.dL': 1, 'lit.arN': true, 'drum.oB': 1 } },
+    ],
+  },
   // v1.49: the Founders' Belfry's west store an arena. Past the Hall of Stones' door: its small key in it, the store won
   arzach2: {
     v: 2,

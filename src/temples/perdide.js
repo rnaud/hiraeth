@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Switch, Jaw, Swing, Platform, Plate, Mark, Pit } from './pieces.js';
+import { Door, Switch, Jaw, Swing, Platform, Plate, Ball, Mark, Pit, Key, Coffer } from './pieces.js';
 import { snapperModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 
@@ -23,19 +23,33 @@ import { chestMound } from '../boxes/mound.js';
 //                          (out of turn, a crystal rings flat and fades: logic.js `after`). The lowest note is
 //                          not in the Choir: it was sung at the door (the Threshold's crystal, a room back)
 //   the Bog Well           a riding disc that climbs over dark water, then a wall of roots to climb; the door
-//                          at its top wants the eye on the root-wall's face, seen from the disc (not from the top)
+//                          at its top wants the eye on the root-wall's face, seen from the disc (not from the top).
+//                          (v1.52, issue #23) Beside it on the root-wall's top, a little door of one keyhole on a
+//                          ledge that runs round the well's west wall, over the water, to a way south at 9 m
 //   the Stilling Chamber   the makers' chest: the STILLING MODE (src/items.js 'stun'). Its way on is open
 //   the Snapping Passage   a room on, crystals grown up through its floor: the door into the gallery is a gate of
 //                          jaws that snaps, and snaps: a stilling glob stills it, and it rests open (the stilling
-//                          mode's first lock, where failing costs a nip)
+//                          mode's first lock, where failing costs a nip). (v1.52) Two more mouths in its walls, and a
+//                          crystal grown through each one's crown, small, middling, the gate's the biggest: they still
+//                          only in the Choir's order, low to high, and the gate last (the one you shoot first rings
+//                          flat). The smallest mouth keeps a coffer
 //   the Pendulum Gallery   a narrow bridge over a chasm, three crystal pendulums swinging across it (still
 //                          them, one by one, to cross); the far door wants their notes, and a pendulum's note
 //                          only takes stilled in turn, low to high, smallest crystal first, as the Choir taught.
 //                          They hang out of that order, so the walk across stills them wrong: still them again,
 //                          in turn, from the far side (the gadget with the temple's first verb, the order).
 //                          Along the east wall a keeper's ledge runs back over the chasm to a shut gate by the
-//                          near landing: its footstone is behind the gate, so it opens only from the far side,
+//                          near landing: it opens once the Nursery is won (v1.52; a footstone behind it before),
 //                          and then the way back over is a walk, not the pendulums again (a shortcut)
+//   the Nursery            (v1.52, west off the far landing, an arena) where the Mother's seedlings were raised: its
+//                          door shuts behind you while they snap. Won, the small key's cage sinks: for the ledge's
+//                          door round the Bog Well, back past the chest (the keeper's ledge is the way back over)
+//   the Choir's balcony    (v1.52, along the ledge round the well and south through the Choir's north wall, 9 m over
+//                          the first crystals) the great key, seen from the Choir's floor at the start, caged behind a
+//                          wall across the balcony; a ball in a groove that runs through a snapper's mouth in it to the
+//                          cage's footstone. Shut, the mouth spits the ball back; stilled, it opens, but here the frost
+//                          thaws and it snaps shut again a few breaths on: still it, roll the ball through before it
+//                          wakes, and still it again to walk through yourself. The far door takes the great key
 //   the Mother's Hall      the guardian (organic: you calm her): the Mother Snapper, rooted in the middle of a
 //                          round hall. Her head lunges, sweeps, spits seed; spent after a lunge it lies on the
 //                          floor, agape: a stilling glob in her mouth calms her. Later, still her mid-strike.
@@ -71,17 +85,31 @@ export const PALETTE = {
   light: { shadow: '#51468a', light: '#f2dcea', sun: '#ffd0c8' },
 };
 
+/**
+ * (v1.52, issue #23) The Nursery, west off the Pendulum Gallery's far landing (an arena), and the way to the great key:
+ * the ledge round the Bog Well's west wall at 9 m (from the root-wall's top, by a door of one keyhole, `ledge.door` its
+ * angle, round to the south at `ledge.to`), then the Choir's balcony over its north end (z from `z0` to the wall), a wall
+ * across it at `wall` (x) with a snapper's mouth on the ball's groove (z `groove`); the ball rests at `start`, the jaws
+ * stilled stand open `hold` s. The Snapping Passage's two side mouths (`mouths`: the smallest first).
+ */
+export const NURSERY = { x: -23, z: 133.9, w: 14, d: 14, zone: { min: [-30, 8, 126.9], max: [-16, 18, 140.9] } };   // (z: the gallery's G0 + 30)
+export const LEDGE = { r0: 7.6, r1: 10.3, from: -1.15, to: -Math.PI - 0.16, door: -1.45, y: 9 };
+export const BALCONY = { z0: 37, y: 9, groove: 40.5, a: 9.5, b: -6.5, wall: -3, start: 0.6, hold: 10, key: [-9.4, 42] };
+export const MOUTHS = [{ id: 'dj1', still: 'j1', side: 'w', z: 100, crown: 0.7 }, { id: 'dj2', still: 'j2', side: 'e', z: 93.4, crown: 1.2 }];
+
 export const LOGIC = {
   id: 'perdide', entry: 'threshold', gadget: 'stun',
-  rooms: { threshold: { checkpoint: true }, choir: { checkpoint: true }, well: { checkpoint: true }, stilling: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: { checkpoint: true }, hall: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, choir: { checkpoint: true }, well: { checkpoint: true }, stilling: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: { checkpoint: true }, nursery: { checkpoint: true }, balcony: { checkpoint: true }, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'choir' },
     { a: 'choir', b: 'well', door: 'd1' },
     { a: 'well', b: 'stilling', door: 'dw' },
+    { a: 'well', b: 'balcony', door: 'dL' },             // the ledge round the well to the Choir's balcony (v1.52): the Nursery's small key
     { a: 'stilling', b: 'gallery', door: 'd2' },         // the Snapping Passage's jaws, a room on from the chest (one room with it)
     { a: 'gallery', b: 'galleryFar', needs: ['stun'] },   // the pendulums: still them to cross
+    { a: 'galleryFar', b: 'nursery', door: 'dN' },        // the Nursery, west off the far landing (v1.52): an arena, the small key
     { a: 'galleryFar', b: 'hall', door: 'd3' },
-    { a: 'galleryFar', b: 'gallery', door: 'ds' },        // the keeper's ledge back along the east wall: its gate opens from the far side
+    { a: 'galleryFar', b: 'gallery', door: 'ds' },        // the keeper's ledge back along the east wall: its gate opens once the Nursery is won
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
@@ -94,19 +122,43 @@ export const LOGIC = {
     sw: { type: 'switch', room: 'well' },                          // the eye on the root-wall's face
     dw: { type: 'door', opens: { lit: 'sw' }, latch: true },
     chest: { type: 'gadget', room: 'stilling', item: 'stun' },
-    j1: { type: 'switch', room: 'stilling', needs: ['stun'] },     // the passage's jaws stilled
-    d2: { type: 'door', opens: { lit: 'j1' }, latch: true },
+    // the passage's three mouths, stilled in the Choir's order (v1.52): the smallest crown, the middling, the gate's
+    j1: { type: 'switch', room: 'stilling', needs: ['stun'] },
+    j2: { type: 'switch', room: 'stilling', needs: ['stun'], after: 'j1' },
+    j3: { type: 'switch', room: 'stilling', needs: ['stun'], after: 'j2' },
+    dj1: { type: 'door', opens: { lit: 'j1' }, latch: true },      // (the side mouths: the smallest's keeps a coffer)
+    dj2: { type: 'door', opens: { lit: 'j2' }, latch: true },
+    d2: { type: 'door', opens: { all: [{ lit: 'j1' }, { lit: 'j2' }, { lit: 'j3' }] }, latch: true },
     // the pendulums' notes, stilled in turn: smallest crystal (lowest) first
     w1: { type: 'switch', room: 'gallery', needs: ['stun'] },
     w2: { type: 'switch', room: 'gallery', needs: ['stun'], after: 'w1' },
     w3: { type: 'switch', room: 'gallery', needs: ['stun'], after: 'w2' },
-    d3: { type: 'door', opens: { all: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] }, latch: true },
-    ps: { type: 'plate', room: 'galleryFar' },                     // the footstone behind the ledge's gate
-    ds: { type: 'door', opens: { pressed: 'ps' }, latch: true },
+    d3: { type: 'door', lock: 'big', opens: { all: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] }, latch: true },   // (and the great key, v1.52)
+    ds: { type: 'door', opens: { lit: 'arN' }, latch: true },      // (v1.52: it opens once the Nursery is won; its footstone was a step of nothing)
+    // the Nursery: its seedlings beaten, the small key's cage sinks
+    arN: { type: 'arena', room: 'nursery' },
+    kS: { type: 'key', kind: 'small', room: 'nursery', when: { lit: 'arN' } },
+    dN: { type: 'door', opens: null },
+    dL: { type: 'door', lock: 'small' },                           // the ledge's door, on the root-wall's top
+    // the Choir's balcony: a snapper's mouth across the ball's groove, stilled only a while (`hold`: the frost thaws);
+    // shut, it spits the ball back. The ball on the cage's footstone lets the great key out
+    jB: { type: 'switch', room: 'balcony', needs: ['stun'], hold: BALCONY.hold },
+    dJ: { type: 'door', opens: { lit: 'jB' } },
+    oB: { type: 'drum', room: 'balcony', plate: 'pB', plateAt: 1, start: BALCONY.start, needs: ['stun'], gap: 'dJ' },
+    pB: { type: 'plate', room: 'balcony' },
+    kB: { type: 'key', kind: 'big', room: 'balcony', when: { drumOn: ['oB', 'pB'] } },
     mother: { type: 'boss', room: 'hall', needs: ['gun', 'stun'] },
     d5: { type: 'door', opens: { resolved: true } },
+    cache: { type: 'cache', room: 'stilling' },                    // in the smallest mouth's niche
   },
 };
+
+/** The Nursery's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+export const ARENAS = [{
+  el: 'arN', room: 'nursery', zone: NURSERY.zone, doors: ['dN'], extra: 2,
+  shut: 'The door grinds shut behind you. Among the old seed-beds, something snaps awake.',
+  won: 'The last of them goes still among the beds. The key’s cage sinks, the door lets go, and out over the chasm the keeper’s gate grinds open.',
+}];
 
 export const MOTHER = {
   kind: 'organic', name: 'the Mother Snapper', final: 'touch', touch: 'lay a hand on her head',
@@ -196,6 +248,77 @@ export function motherCrystal(rt, sw) {
   if (G.state === 'open') { G.enter('fight'); G.cool = 2.2; }
 }
 
+const MOUTH_WRONG = 'Its crystal rings flat in the cold, and the jaws snap on. The makers sang from low to high: the smallest crystal first.';
+
+/**
+ * (v1.52, issue #23) The Snapping Passage's two side mouths (the gate's is in the layout), the Nursery west off the
+ * gallery's far landing, and the way to the great key: the ledge round the Bog Well's west wall from the root-wall's top
+ * (a door of one keyhole), south over the well's door and through the Choir's north wall onto its balcony.
+ */
+function wings(rt, K, M, { C2, A0, G0, spike, root }) {
+  const add = (P, o) => rt.add(P, o);
+  // ---- the side mouths, each in a niche of the passage's wall, a crystal through its crown (the smallest keeps a coffer)
+  for (const m of MOUTHS) {
+    const s = m.side === 'w' ? -1 : 1, x0 = s * 7.2, deep = m.id === 'dj1' ? 3.2 : 1.8, x1 = s * (7.2 + deep), xc = (x0 + x1) / 2;
+    K.slab(Math.min(s * 5.9, x1), m.z - 1.6, Math.max(s * 5.9, x1), m.z + 1.6, 9, 0.8);
+    K.both(M.wall, box(0.5, 3.8, 3.2, x1 + s * 0.25, 10.9, m.z), box(deep, 3.8, 0.5, xc, 10.9, m.z - 1.55), box(deep, 3.8, 0.5, xc, 10.9, m.z + 1.55), box(deep + 0.5, 0.6, 3.6, xc + s * 0.25, 13.1, m.z));
+    add(Jaw, { id: m.id, still: m.still, at: [s * 6.6, 9, m.z], yaw: Math.PI / 2, w: 2.6, h: 3.4, seed: m.id === 'dj1' ? 3 : 5, wrong: MOUTH_WRONG,
+      stilled: m.id === 'dj1' ? 'The smallest crystal rings true, low, and the little jaws stop dead, frosted, and ease open.' : 'The middling crystal rings true, a note higher, and its jaws stop dead, frosted, and ease open.' });
+    K.both(M.trim, box(0.7, 0.3, 0.9, s * 5.75, 12.75, m.z));
+    spike(s * 5.75, 12.9, m.z, m.crown, 0.18 + m.crown * 0.1, -s * 0.15, 0.6);
+    if (m.id === 'dj1') add(Coffer, { id: 'cache', at: [s * 9.4, 9, m.z], yaw: -s * Math.PI / 2 });
+    else { spike(s * 8.2, 9, m.z - 0.5, 1.6, 0.35, s * 0.2, 1); spike(s * 8.0, 9, m.z + 0.7, 1.1, 0.3, -s * 0.2, 2); }
+  }
+
+  // ---- the Nursery (an arena): old seed-beds in rings of stone, where the Mother's seedlings were raised
+  const N = NURSERY;
+  K.corridor([-11.6, N.z], [N.x + N.w / 2 + 0.6, N.z], 9, { w: 5, h: 6.4 });
+  K.hall({ x: N.x, z: N.z, w: N.w, d: N.d, y: 9, h: 10, roof: true, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });
+  add(Door, { id: 'dN', at: [-13.5, 9, N.z], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  for (const [bx, bz] of [[-3.4, -3.6], [3.2, -3.4], [-3.0, 3.8], [3.6, 3.2]]) {
+    K.both(M.trim, T(annulus(1.3, 1.7, 0.4, 20), [N.x + bx, 9.2, N.z + bz]));
+    K.add(M.dark, T(new THREE.CylinderGeometry(1.3, 1.3, 0.1, 20), [N.x + bx, 9.08, N.z + bz]));
+  }
+  spike(N.x - 5.2, 9, N.z + 5.4, 3.2, 0.6, 0.2, 1); spike(N.x + 5.4, 9, N.z - 5.6, 2.4, 0.5, -0.25, 2);
+  add(Key, { id: 'kS', at: [N.x - N.w / 2 + 1.6, 9, N.z], yaw: Math.PI / 2 });
+  add(Mark, { room: 'nursery', at: [N.x + 3.5, 9, N.z + 3], yaw: -Math.PI / 2 });
+
+  // ---- the ledge round the Bog Well's west wall at 9 m (the root-wall's top to the well's south side), its door
+  const Lg = LEDGE, rc = (Lg.r0 + Lg.r1) / 2, n = 8, da = (Lg.to - Lg.from) / n;
+  for (let i = 0; i < n; i++) {
+    const a = Lg.from + (i + 0.5) * da, len = 2 * Lg.r1 * Math.sin(Math.abs(da) / 2) + 0.3;
+    K.both(M.floor, T(box(len, 0.8, Lg.r1 - Lg.r0, 0, 0, 0), [Math.sin(a) * rc, Lg.y - 0.4, C2 + Math.cos(a) * rc], [0, a, 0]));
+    K.add(M.trim, T(box(len - 0.25, 0.3, 0.25, 0, 0, 0), [Math.sin(a) * (Lg.r0 + 0.12), Lg.y + 0.15, C2 + Math.cos(a) * (Lg.r0 + 0.12)], [0, a, 0]));   // (a lip on its inner edge, drawn)
+    if (i % 2) K.both(M.trim, T(box(0.5, 1.8, 0.8, 0, 0, 0), [Math.sin(a) * (Lg.r1 - 0.5), Lg.y - 1.7, C2 + Math.cos(a) * (Lg.r1 - 0.5)], [0, a, 0]));   // (corbels under it)
+  }
+  root([[-9.2, 14, C2 - 2], [-9.4, 11, C2 - 4], [-9.0, 9.4, C2 - 6.5]], 0.3);
+  const ad = Lg.door, dx = Math.sin(ad) * rc, dz = C2 + Math.cos(ad) * rc;
+  add(Door, { id: 'dL', at: [dx, Lg.y, dz], yaw: ad - Math.PI / 2, w: Lg.r1 - Lg.r0 + 0.2, h: 4.4 });
+  K.both(M.wall, T(box(0.6, 5.2, 0.6, 0, 0, 0), [Math.sin(ad) * (Lg.r0 - 0.4), Lg.y + 2.6, C2 + Math.cos(ad) * (Lg.r0 - 0.4)], [0, ad, 0]));   // (its post on the water's side)
+
+  // ---- the way south at 9 m: through the well's wall over its door and the Choir's north wall, onto the balcony
+  const B = BALCONY;
+  K.slab(-1.8, 44, 1.8, 47.6, B.y, 0.8);
+  for (const sx of [-1, 1]) K.both(M.wall, box(0.8, 4.6, 0.7, sx * 2.0, B.y + 2.3, 45.5));
+  K.both(M.wall, box(4.8, 0.8, 0.7, 0, B.y + 5.0, 45.5));
+  // the balcony over the Choir's north end, a parapet along its edge; a wall across it with a snapper's mouth on the
+  // ball's groove, the great key's cage beyond
+  K.slab(-12, B.z0, 12, 44, B.y, 0.8);
+  K.both(M.trim, box(24, 1.0, 0.4, 0, B.y + 0.5, B.z0 + 0.2));
+  for (const x of [-7.5, -2.5, 2.5, 7.5]) K.both(M.trim, box(0.6, 1.6, 0.9, x, B.y - 1.6, B.z0 + 0.5));   // (corbels under its edge)
+  K.wall(B.wall, B.z0 - 0.8, B.wall, 44, B.y, 5, { t: 0.8, holes: [{ at: B.groove - (B.z0 - 0.8), w: 2.8, h: 3.0 }] });
+  add(Jaw, { id: 'dJ', still: 'jB', at: [B.wall, B.y, B.groove], yaw: Math.PI / 2, w: 2.6, h: 2.8, seed: 7,
+    stilled: 'The jaws stop dead, frosted, and ease open. Here the frost does not hold long.',
+    thawing: 'The frost on the jaws is cracking.' });
+  K.add(M.dark, box(B.a - B.b + 1.2, 0.04, 1.0, (B.a + B.b) / 2, B.y + 0.02, B.groove));
+  for (const sd of [-1, 1]) K.add(M.trim, box(B.a - B.b + 1.2, 0.12, 0.25, (B.a + B.b) / 2, B.y + 0.06, B.groove + sd * 0.75));
+  add(Ball, { id: 'oB', a: [B.a, B.y + 0.04, B.groove], b: [B.b, B.y + 0.04, B.groove], r: 0.85, lock: true,
+    jaws: { id: 'dJ', at: (B.a - B.wall) / (B.a - B.b), spat: 'The jaws snap at the ball and spit it back down its groove.' } });
+  add(Plate, { id: 'pB', at: [B.b, B.y, B.groove], r: 1.0 });
+  add(Key, { id: 'kB', big: true, at: [B.key[0], B.y, B.key[1]], yaw: Math.PI / 2 });
+  add(Mark, { room: 'balcony', at: [8, B.y, 42.4], yaw: -Math.PI / 2 });
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -217,7 +340,7 @@ function layout(rt) {
   K.both(M.trim, T(annulus(1.5, 1.9, 0.2, 24), [4.4, 0.1, 6.5]));
 
   // ---- the Choir (z 12.6..44): three crystals, each its own height; splash them low to high (after the door's)
-  K.hall({ x: 0, z: 28.3, w: 24, d: 31.4, y: 0, h: 14, roof: 'oculus', columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }] });
+  K.hall({ x: 0, z: 28.3, w: 24, d: 31.4, y: 0, h: 14, roof: 'oculus', columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }, { side: 'n', w: 3.2, h: 4.6, y0: 9 }] });   // (and over the door, the way onto the balcony, v1.52)
   for (const [id, x, z, h] of [['c3', -6, 20, 4.4], ['c4', -6, 35, 5.6], ['c2', 6, 37, 3.1]])
     add(Switch, { id, at: [x, 0, z], crystal: h, size: 0.9, wrong });
   // where the fourth stood: an empty ring of stone
@@ -234,7 +357,7 @@ function layout(rt) {
   K.wall(-3.2, 44.6, -3.2, 46.6, 0, 6.4, { t: 0.8 }); K.wall(3.2, 46.6, 3.2, 44.6, 0, 6.4, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.8, 45.6));
   const C2 = 57.2;
-  K.rotunda({ x: 0, z: C2, y: -6, r: 10, h: 30, floor: false, gaps: [{ a: Math.PI, w: 5, h: 6.4, y0: 6 }, { a: 0, w: 5, h: 6, y0: 15 }], oculus: 0.3 });
+  K.rotunda({ x: 0, z: C2, y: -6, r: 10, h: 30, floor: false, gaps: [{ a: Math.PI, w: 5, h: 6.4, y0: 6 }, { a: 0, w: 5, h: 6, y0: 15 }, { a: Math.PI, w: 3.2, h: 4.6, y0: 15 }], oculus: 0.3 });   // (the ledge's way south, over the door: v1.52)
   K.both(M.floor, box(20, 6, 3, 0, -3, C2 - 8.6));            // the near landing (its top at 0)
   K.both(M.dark, T(new THREE.CylinderGeometry(10, 10, 1, 32), [0, -6.5, C2]));
   const bog = makeMaterial({ color: '#2f4a48', glow: 0.12, flat: true, key: 'temple.lorn.bog' });
@@ -270,14 +393,18 @@ function layout(rt) {
   // ---- the Snapping Passage (floor 9), a room on: the door into the gallery is a gate of jaws
   const A0 = C3 + 10.9;
   K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 9, 0.8);
-  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 9, h: 9, roof: true, omit: ['n'], doors: [{ side: 's', w: 5.4, h: 6.6 }] });
+  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 9, h: 9, roof: true, omit: ['n'], doors: [{ side: 's', w: 5.4, h: 6.6 }, ...MOUTHS.map((m) => ({ side: m.side, at: m.z - (A0 + 6), w: 2.6, h: 3.4 }))] });   // (and the two side mouths, v1.52)
   spike(-5, 9, A0 + 4, 3.6, 0.6, 0.2, 3); spike(5.1, 9, A0 + 8.5, 2.8, 0.5, -0.25, 4);
 
   // ---- the Pendulum Gallery (z 104..138): a narrow bridge over a chasm, three crystal pendulums across it
   const G0 = A0 + 12 + 1.2;
   K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 9, 0.8);
-  add(Jaw, { id: 'd2', still: 'j1', at: [0, 9, G0 - 0.7], w: 5.2, h: 6.4, seed: 1 });
-  K.hall({ x: 0, z: G0 + 17.2, w: 22, d: 34.4, y: -3, h: 28, floor: false, roof: true, doors: [{ side: 's', w: 5.4, h: 6.6, y0: 12 }, { side: 'n', w: 5.4, h: 6.6, y0: 12 }] });
+  add(Jaw, { id: 'd2', still: 'j3', at: [0, 9, G0 - 0.7], w: 5.2, h: 6.4, seed: 1, wrong: MOUTH_WRONG,
+    stilled: 'The gate’s great crystal rings true, last and highest, and the jaws stop dead, frosted, and ease open. They forget to close.' });
+  // (its crown, the biggest of the three: over the gate, on the passage's side)
+  K.both(M.trim, box(1.4, 0.3, 0.8, 0, 15.95, G0 - 1.5));
+  spike(0, 16.1, G0 - 1.5, 1.8, 0.45, 0, 0.4);
+  K.hall({ x: 0, z: G0 + 17.2, w: 22, d: 34.4, y: -3, h: 28, floor: false, roof: true, doors: [{ side: 's', w: 5.4, h: 6.6, y0: 12 }, { side: 'n', w: 5.4, h: 6.6, y0: 12 }, { side: 'w', at: NURSERY.z - (G0 + 17.2), w: 5, h: 6.4, y0: 12 }] });   // (and west into the Nursery, v1.52)
   K.slab(-11, G0, 11, G0 + 6, 9, 12);
   K.slab(-11, G0 + 26, 11, G0 + 34.4, 9, 12);
   K.both(M.floor, box(3, 1, 20.4, 0, 8.5, G0 + 16));        // the bridge
@@ -292,18 +419,18 @@ function layout(rt) {
     K.add(M.trim, box(22, 0.8, 1.2, 0, 21.6, z));            // the beam it hangs from
     add(Swing, { id, at: [0, 21, z], len: 10, amp: 0.95, period: 2.6 + i * 0.3, phase: i * 0.31, size, wrong: flat, heard: 'The stilled crystal’s note rings true, and a lamp wakes over the far door.' });
   }
-  // the keeper's ledge along the east wall, back from the far landing to a gate by the near one; the gate's
-  // footstone is behind it, on the ledge: it opens from the far side only, then stays open (a shortcut back)
+  // the keeper's ledge along the east wall, back from the far landing to a gate by the near one; the gate opens once
+  // the Nursery is won (v1.52), then stays open (a shortcut back, toward the ledge round the Bog Well)
   K.slab(8.8, G0 + 6, 11, G0 + 26, 9, 0.8);
   K.add(M.trim, box(0.25, 0.3, 20, 8.9, 9.05, G0 + 16));
   for (let i = 0; i < 4; i++) K.both(M.trim, box(0.5, 1.8, 0.5, 9.1, 7.3, G0 + 9 + i * 5.2));   // (corbels under it)
   K.both(M.wall, box(0.6, 5.2, 0.9, 8.5, 11.6, G0 + 6.6));       // the gate's post on the chasm side
-  add(Door, { id: 'ds', at: [10, 9, G0 + 6.6], w: 2.2, h: 4.4, lamps: [{ pressed: 'ps' }] });
-  add(Plate, { id: 'ps', at: [9.9, 9, G0 + 8.6], r: 0.9 });
+  add(Door, { id: 'ds', at: [10, 9, G0 + 6.6], w: 2.2, h: 4.4, lamps: [{ lit: 'arN' }] });
   add(Mark, { room: 'gallery', at: [-7, 9, G0 + 3], yaw: 0 });
   add(Mark, { room: 'galleryFar', at: [7, 9, G0 + 31], yaw: Math.PI });
   add(Door, { id: 'd3', at: [0, 9, G0 + 34.9], w: 5.2, h: 6.4, lamps: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] });
 
+  // (and west off the far landing, the Nursery's doorway, v1.52)
   // ---- the corridor, and the Mother's Hall (floor 9): a round hall, the Mother rooted in its middle
   const H0 = G0 + 35;
   K.slab(-3.2, H0 - 0.6, 3.2, H0 + 3.4, 9, 0.8);
@@ -339,13 +466,15 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, 9, CL), r: HR, y: K.world(0, 9, 0).y };
 
+  // (the wings last: their marks after the others, so the machines' ids by mark stay as they were)
+  wings(rt, K, M, { C2, A0, G0, spike, root });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -10, -3), V(24, 40, CL + HR + 12)),
+    bounds: new THREE.Box3(V(-32, -10, -3), V(24, 40, CL + HR + 12)),
     gadget: { at: W(0, 9.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 9.5, CL + HR + 9.6), r: 1.5 }],
-    lights: [[0, 5, 6, 10], [0, 6, 28, 14], [0, 4, C2, 11], [0, 13, C3, 10], [0, 14, G0 + 16, 13], [0, 15, CL, 18]],
+    lights: [[0, 5, 6, 10], [0, 6, 28, 14], [0, 4, C2, 11], [0, 13, C3, 10], [0, 14, G0 + 16, 13], [NURSERY.x, 13, NURSERY.z, 11], [0, 12.5, BALCONY.groove, 10], [0, 15, CL, 18]],
     guardian: { def: { ...MOTHER, onHit: motherHit }, model, arena },
   };
 }
@@ -471,7 +600,7 @@ function change(scene, level, rt) {
 
 export const PERDIDE_TEMPLE = {
   id: 'perdide', levelId: 'perdide', name: 'The Hush-House', doorLabel: 'door of the Hush-House',
-  gadget: 'stun', gadgetBox: 'perdide.temple.stun', arenaDoor: 'd3',
+  gadget: 'stun', gadgetBox: 'perdide.temple.stun', arenaDoor: 'd3', arenas: ARENAS,
   origin: [-100, 1700, 300], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

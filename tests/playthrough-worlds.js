@@ -372,7 +372,8 @@ export const ROUTE = [
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell', { temple: 'done', id: 'arzach2' }] },   // (v1.49: and the Founders' Belfry to its guardian, its west store an arena)
   // (v1.49: and the Lamp-House to its guardian, the Kennel off its first hall and the Wick Room past the gallery: issue #23)
-  { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps', { temple: 'done', id: 'perdide2' }] },
+  // (v1.52: and the Hush-House to its guardian, the Nursery off its far landing and the balcony round the Bog Well: issue #23)
+  { id: 'perdide', play: ['perdide.crystal', { temple: 'done', id: 'perdide' }, 'perdide2.lamps', { temple: 'done', id: 'perdide2' }] },
   // (v1.49: and the Builders' Greenhouse to its guardian, both its hub's wings and the Seed Vault past the gulf: issue #23)
   { id: 'edena', play: ['edena.garden', { temple: 'done', id: 'edena', home: 'the long seed row' }] },   // (v1.50, #131: Sorrel sends you home by the long seed row)
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, done there (#137), then the Whale-House)

@@ -31,7 +31,8 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 //   Switch   a carved eye on a wall: a splash of fluid wakes it for good (blade: struck with the sword, only that)
 //   Bank     four eyes that wake only together, inside a breath: it wants the fourth chamber
 //   LightEar a lamp that wakes when you stand by it with the lantern charm
-//   Jaw      a gate of snapping jaws: a stilling glob stills them, and they rest open for good
+//   Jaw      a gate of snapping jaws: a stilling glob stills them, and they rest open for good (in turn, `after`,
+//            or a while only: their element's `hold`, the frost thaws and they snap shut again)
 //   Swing    a crystal pendulum over a bridge: it knocks you off; a stilling glob stops it a while
 //   Updraft  a column of rising wind: it lifts the fluid wings, round and up, and lets you go at its top
 //   Gust     gusts down a hall that shove you back unless you wait them out behind a screen
@@ -351,6 +352,8 @@ export class Ball {
    * the bowl tips it back out (`back` m/s)),
    * thorns: { id, at } (dry thorns across the groove at t = at, a Bramble: the ball stops against them while they
    * stand; burning, it burns them as it reaches them and rolls on),
+   * jaws: { id, at, back, spat } (a mouth of jaws across the groove at t = at, a Jaw: shut, they spit the ball back at
+   * `back` m/s; stilled, it rolls through),
    * current: { pull, still, stirs, stilled } (a sphere floating in a pool that stirs, the Footprint's: the water draws it
    * back toward the groove's start at `pull` m/s² unless condition `still` holds (a plate stood on stills the pool);
    * at rest on its plate (a berth) it stays),
@@ -530,6 +533,13 @@ export class Ball {
         if (this.burn > 0) br.hit('fire');
         if (!br.burnt) { t = Th.at; this.v = 0; this.rt.sound?.critter?.('creak', 0.5); if (this.o.thorns.stopped) this.rt.notice?.(this.o.thorns.stopped, `${this.id}.thorns`); }
       }
+    }
+    // a mouth of jaws across the groove (a Jaw): shut, they snap at the ball as it comes and spit it back the way it
+    // came; stilled, it rolls through between them (the Hush-House's balcony, v1.52)
+    const Jw = this.o.jaws;
+    if (Jw && t > this.t && this.t <= Jw.at + 1e-4 && t >= Jw.at - 1e-4) {
+      const j = this.rt.piece(Jw.id);
+      if (j && !j.open) { t = Jw.at - 1e-3; this.v = -Math.max(Jw.back ?? 3.2, Math.abs(this.v) * 0.6); j.angry = 0.8; this.rt.sound?.critter?.('snap', 0.8); if (Jw.spat) this.rt.notice?.(Jw.spat, `${this.id}.spat`); }
     }
     // a groove over a bridge: the stones are up, so the ball stops at the lip; or they went from under it
     if (G && !L.isOpen(G.bridge)) {
@@ -1161,7 +1171,7 @@ export class Jaw {
     this.center = this.group.position.clone().addScaledVector(UP, h * 0.5);
     this.open = rt.logic.isOpen(o.id);
     this.k = this.open ? 1 : 0;   // 0 snapping, 1 wide open
-    this.frost = 0; this.snapT = (o.seed ?? 0) * 0.37; this.ang = 0; this.angry = 0;
+    this.frost = 0; this.snapT = (o.seed ?? 0) * 0.37; this.ang = 0; this.angry = 0; this.left = 0;
     this.off = registerTarget({ kind: 'jaws', radius: Math.max(w, h) * 0.45, accepts: ['stun'], position: () => this.center, enabled: () => !this.open, onHit: (mode) => this.hit(mode) });
     this.group.updateMatrixWorld(true);
     const inv = this.group.matrixWorld.clone().invert(), _l = V(), _o = V();
@@ -1182,7 +1192,17 @@ export class Jaw {
   hit(mode) {
     if (this.open) return false;
     if (mode === 'stun') {
-      if (this.rt.logic.light(this.still)) { this.frost = 1; this.rt.sound?.chime?.(); this.rt.onLit?.(this.still); this.rt.notice?.(this.o.stilled ?? 'The jaws stop dead, frosted, and ease open. They forget to close.', `stilled.${this.id}`); }
+      const L = this.rt.logic, e = L.el?.(this.still);
+      if (L.light(this.still)) {
+        this.frost = 1; this.rt.sound?.chime?.(); this.rt.onLit?.(this.still);
+        // (held: the frost thaws after `hold` s and they snap shut again, the Hush-House's balcony, v1.52)
+        if (e?.hold) { this.left = e.hold; this.warned = false; }
+        this.rt.notice?.(this.o.stilled ?? 'The jaws stop dead, frosted, and ease open. They forget to close.', `stilled.${this.id}`);
+      } else if (e?.after && !L.isLit(e.after)) {
+        // (out of turn: its crown's crystal rings flat and the jaws snap on, the Snapping Passage's three, v1.52)
+        this.angry = 0.8; this.rt.sound?.critter?.('blip', 0.5);
+        this.rt.notice?.(this.o.wrong ?? 'The cold rings flat on them, and they snap on.', `${this.id}.wrong`);
+      }
       return true;
     }
     if (mode === 'push') { this.angry = 0.6; return true; }
@@ -1206,12 +1226,19 @@ export class Jaw {
   update(dt) {
     this.angry = Math.max(0, this.angry - dt);
     this.frost = Math.max(0, this.frost - dt * 0.25);
+    if (this.left > 0) {
+      // held open a while: the frost thaws, they say so, and they snap shut again (logic.quiet: its door shuts)
+      this.left -= dt; this.frost = Math.max(this.frost, 0.6);
+      if (this.left < 2.5 && !this.warned) { this.warned = true; this.rt.rumble?.(0.6, 0.2); if (this.o.thawing) this.rt.notice?.(this.o.thawing, `${this.id}.thawing`); }
+      if (this.left <= 0) { this.left = 0; this.rt.logic.quiet(this.still); this.rt.sound?.critter?.('snap', 0.8); }
+    }
     if (this.open) this.k = Math.min(1, this.k + dt / 2.4);
+    else this.k = Math.max(0, this.k - dt * 3);   // (shut again: they close fast)
     // shut and half open, shut and half open (quicker when splashed): the opening slow, the snap fast
     this.snapT += dt * (this.angry ? 1.8 : 0.85);
     const ph = this.snapT % 1, snap = ph < 0.75 ? ease(ph / 0.75) : 1 - (ph - 0.75) / 0.25;
     const half = 0.12 + 0.38 * snap, k = ease(this.k);
-    this.ang = this.open ? half * (1 - k) + 1.45 * k : half;
+    this.ang = half * (1 - k) + 1.45 * k;
     for (const { g, side } of this.halves) g.rotation.y = side * this.ang;
     this.skin.uniforms.uColor.value.set('#c94f6a').lerp(_frost, Math.min(1, this.frost * 1.4));
   }

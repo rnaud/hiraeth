@@ -27,6 +27,9 @@ export const CHANGELOG = [
     // the dialogue review v1.53 (docs/audits/dialogue-v1.53.md): text only
     { text: 'Some conversations were rewritten. Under the sea, in the Moon Foundry, the City Floating in Space and the Glass Dunes, people start with what they are doing instead of their name and trade. In the desert you tell people about the blocked drain in your own words, and more talks end on a reply to what was just said. Your father’s recording at the window keeps to one night, and two finds from the Glass Dunes no longer come from a world you can’t reach.',
       see: 'In the Underwater City, talk to Bastien at the lock: “Your ship came down my lock like a stone down a well.” In Qanat, once the roots drink, tell Ama about the drain: “Something was jammed in its drain, down there.”' },
+    // the temples to explore, round 3 (docs/systems/temples.md "Round 3", docs/audits/temple-design-v1.53.md; issue #23)
+    'In the Hush-House’s Snapping Passage, two more mouths of jaws grow out of the walls beside the gate, each crowned with a crystal: small, middling, and the gate’s the biggest. They only still in the order the Choir taught, smallest first, so the gate you shoot first rings flat. The smallest mouth keeps a coffer.',
+    'West off the Hush-House’s Pendulum Gallery, the Nursery shuts behind you until its seedlings are beaten; winning it opens the keeper’s gate back over the chasm and gives a small key. It opens a little door on top of the Bog Well’s root-wall, where a ledge runs round the well and through the wall onto a balcony over the Choir. The great key waits there behind a wall, and a ball has to roll through a snapper’s mouth in it: still the mouth, but here the frost thaws and it snaps shut again a few breaths later. The door to the Mother now takes the great key.',
   ] },
   { v: '1.52', date: '2026-10-12', items: [
     // the Unity preview on the Xbox at a steady 60 (docs/systems/xbox.md "The Unity build on the Xbox")

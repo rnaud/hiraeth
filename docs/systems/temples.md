@@ -181,7 +181,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   hidden bridge is, but there for everyone).
 - **Shortcuts back** (v1.12): the Hush-House's Pendulum Gallery has a keeper's ledge along its east wall from the
   far landing to a gate by the near one, its footstone (`ps`) behind the gate: a second link between the two
-  landings (`ds`) that only the far side can open, so the walk back never means the pendulums again.
+  landings (`ds`) that only the far side can open, so the walk back never means the pendulums again. (v1.53: the gate
+  opens once the Nursery off the far landing is won, its footstone gone: "Round 3" below.)
 - **Notes that travel** (the Undertower, from the same audit; its idea: a note travels, the dishes carry
   it across a hall, the shell in your pocket, one note at a time). A `Dish` is a pair of the makers'
   receiving dishes: a `'note'` sung or an `'echo'` played within `reach` (4.5 m) of the near dish's mouth
@@ -518,6 +519,23 @@ and leaves out a door that opens with another (`{ open }`) as a step of its own.
 The **Founders' Belfry** (`arzach2.js`, 4.0, structure 4) had a hub of two stone stores already, a ball in each; its west
 store is an arena now (its archway `dSW` shuts behind you; won, the small key), so the Hall of Stones' door takes the key
 and the east ball's weight (`drumOn`, where it was the plate pressed: standing on it yourself no longer latches it).
+
+Round 3 (issue #23, v1.53) takes the houses round 2 left: the lowest (the Hush-House), the five with no arena, the shapes
+still most alike, and a great key that need not sit in a room off the last puzzle hall.
+
+The **Hush-House** (`perdide.js`, 3.67, the lowest; its middle cheap): the Snapping Passage has two more mouths of jaws in
+its walls (`MOUTHS`), each crowned with a crystal (small, middling, the gate's the biggest), and they still only in the
+Choir's order (`j1`..`j3`, `after`; a `Jaw` stilled out of turn rings flat and says so, `wrong`); the smallest keeps a
+coffer in its niche. West off the Pendulum Gallery's far landing, the **Nursery** (`NURSERY`) is an arena; won, its small
+key's cage sinks and the keeper's gate along the gallery's east wall opens (`ds`, `{ lit: 'arN' }`: its footstone was a
+step of nothing). The small key opens a door of one keyhole on top of the Bog Well's root-wall (`dL`), on a ledge round
+the well's west wall at 9 m (`LEDGE`) that goes south through the well's wall over its door and the Choir's north wall
+onto a **balcony** over the Choir's first crystals (`BALCONY`): the great key, seen from the Choir's floor at the start,
+behind a wall across it, and a ball in a groove that runs through a snapper's mouth in that wall to the cage's footstone.
+Shut, the mouth spits the ball back (`Ball` `jaws`); stilled, it opens, but its element has `hold` (`Jaw`: the frost
+thaws, it warns, and the jaws snap shut again), so the ball has to go through before it wakes, and it is stilled again
+to walk through. The far door (`d3`) takes the great key. The great key is in the first half, reached by a loop back
+past the chest, not off the last hall.
 
 ## Each house its own look (v1.31)
 
