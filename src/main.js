@@ -24,6 +24,7 @@ import { ChimeField, ChimeView, dropPolicy, connectDrops } from './chimes.js';
 import { screen } from './platform.js';
 import { inputKind, keyText } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
+import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW } from './scout-hint.js';
 import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
@@ -835,6 +836,12 @@ function updatePlumb(dt, Wx) {
   sound.drone?.('go');
 }
 // a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling): a nudge, hints full only
+// after the first conversation, once a save: the scout's button finds the next quest (src/scout-hint.js, issue #151;
+// apart from the drone's own lines: a ping of your own before it counts as learnt)
+// (on the cue at the bottom, for SCOUT_HINT_SHOW s of its own: the toasts at the top are the quest's just then)
+const scoutTeach = { left: 0, at: 0 };
+const scoutHint = installScoutHint({ game, show: () => { scoutTeach.left = SCOUT_HINT_SHOW; },
+  usable: () => !ship.inside && !ship.playing && !minigame && !minigameDef && game.flag('prologue.done') && !!scout.getTarget?.() });
 game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });   // (a nudge is the last of the notices: not over another, issue #78)
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
@@ -1063,7 +1070,7 @@ const input = new Proxy({}, { set(o, k, v) { if (v) tapped.add(k); o[k] = v; ret
 const latchedInput = () => { const o = { ...input }; for (const k of tapped) o[k] = true; tapped.clear(); return o; };
 window.addEventListener('keydown', (e) => {
   input[e.code] = true;
-  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on && !ship.playing) scout.ping();
+  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on && !ship.playing) { scoutHint.pinged(); scout.ping(); }
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
@@ -1543,6 +1550,11 @@ function updateHud() {
     teach = firstSteps.update(fdt, { active: open, moved: moved < 5 ? moved : 0 });   // (a teleport is no walk)
     if (quiet || ship.playing) teach = '';
   }
+  // the scout's button, once after the first conversation (src/scout-hint.js): its seconds count only while it shows
+  if (scoutTeach.left > 0) {
+    const sdt = scoutTeach.at ? Math.min(0.1, (now - scoutTeach.at) / 1000) : 0; scoutTeach.at = now;
+    if (!teach && !found && !text && !place && !quiet && !ship.playing) { teach = scoutHintLine(); scoutTeach.left -= sdt; }
+  }
   cue.set(found || text || place || teach, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
   // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
   placeToolGauge();
@@ -1661,7 +1673,7 @@ const controller = new Controller({
       // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js); with no foe in reach, the scout
       // finds the objective (Q; src/scout.js), as a scan does in other games
       const had = foes.lock;
-      if (!foes.cycleLock() && !had && !minigame) scout.ping();
+      if (!foes.cycleLock() && !had && !minigame) { scoutHint.pinged(); scout.ping(); }
       else if (foes.lock && !had && !game.flag('hint.hop.taught') && hintsFor('teach')) { game.set('hint.hop.taught', true); showToast(keyText(tr('hint.hop'), { teach: true })); }   // (locked on, a new verb: the hops, taught once)
     }
     if (name === 'l3' && level.jump) level.jump(-1);

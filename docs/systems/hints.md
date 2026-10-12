@@ -36,3 +36,13 @@ Settings saved before the setting (`hintsV` < 1) start on subtle once (`migrateS
 every hint and what was decided: `docs/design/hints-audit.md`. Tests: `tests/hint-level.test.js`, and
 the hint-level halves of `tests/first-run.test.js`, `tests/hud.test.js`, `tests/hints.test.js`,
 `tests/key-placeholder.test.js`, `tests/feel.test.js`, `tests/foes.test.js`, `tests/boxes.test.js`.
+
+## The scout's button, after the first conversation (issue #151, v1.51)
+
+`src/scout-hint.js`: the first time a conversation closes (`dialogue:end`) where the scout can go somewhere (off
+the ship, not in a minigame, the prologue done, `scout.getTarget()` something), the cue at the bottom says, 1.2 s
+later and for 6 s of its own (it waits behind a find, a prompt or a region's name), "{key:scout} shows where your
+next quest is": Q, R3 (the lock-on button with no foe near; printed RS on an Xbox pad, as native-pad.js names it)
+or ping. A `teach` line: subtle and full, never off. Said once a save (`teach.scout`, set when it is said); a ping
+of your own first (Q, R3) counts as learnt. It is the game's prompt, independent of the drone's own lines.
+`tests/scout-hint.test.js`.

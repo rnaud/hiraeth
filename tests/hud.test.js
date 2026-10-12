@@ -189,8 +189,9 @@ test('R3 sends the scout on foot and riding when there is no foe to lock on to; 
   ctx = 'photo'; c.update(0.016); tap(11); assert.equal(actions.length, 2, 'not in photo mode');
   tap(3); assert.equal(actions.length, 2, 'Y / △ is the whistle\'s: it never pings');
   const main = src('src/main.js');
-  assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) scout\.ping\(\)/);
-  assert.match(main, /const had = foes\.lock;\s*if \(!foes\.cycleLock\(\) && !had && !minigame\) scout\.ping\(\);/, 'R3: nothing to lock on to, the scout');
+  // (scoutHint.pinged(): a ping of your own counts the scout's button as learnt, src/scout-hint.js)
+  assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/);
+  assert.match(main, /const had = foes\.lock;\s*if \(!foes\.cycleLock\(\) && !had && !minigame\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/, 'R3: nothing to lock on to, the scout');
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
   // (said at the ping, issue #65: not when the drone gets there; and its distance as it is every frame: findLine)

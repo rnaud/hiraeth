@@ -673,6 +673,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'glyph-prompt-720', title: '720p', caption: 'The same at 1280 × 720: 32 px round', from: PROMPT51 },
       { name: 'glyph-turn-deck', title: 'Turning the page', caption: 'A conversation with a pad in hand: after, the A that turns the page sits on the panel’s bottom edge beside the red pointer', from: PROMPT51 },
     ], see: 'Play on a Steam Deck or a TV and walk up to someone: the button over them and in the menus is sized from the screen’s height (35 px round on the Deck, 64 at 1440p, 28 on a Retroid). The settings’ Text size makes them larger or smaller too.' },
+    { match: 'After your first conversation, a line at the bottom of the screen', shots: [
+      { name: 'scout-hint-deck', title: 'Steam Deck', caption: 'Just after talking to Marrow at 1280 × 800, a pad in hand: after, the line at the bottom names the stick press (RS, as an Xbox pad prints R3) that sends the scout to the next quest. (The before is from before the buttons grew too.)', from: PROMPT51 },
+      { name: 'scout-hint-720', title: '720p', caption: 'The same at 1280 × 720', from: PROMPT51 },
+    ], see: 'Start a new game and talk to Marrow by the ship: when the conversation closes, the line comes up once at the bottom. Press the button it names and the scout flies off toward your quest.' },
     { match: 'All the words on the screen are in the game’s own lettering now', shots: [
       { name: 'type-notice', title: 'A notice and the hint', caption: 'Off the ship in the Desert: the quest’s notice at the top and the chest’s hint at the bottom, before in the typewriter face, after in the game’s and larger', from: TYPE51 },
       { name: 'type-card', title: 'A find', caption: 'The card for the Givers’ blade: the name in the heading face, what it is and does in the game’s', from: TYPE51 },

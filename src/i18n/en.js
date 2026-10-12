@@ -458,6 +458,7 @@ export const EN = {
   'vk.touchFlask': 'the flask by your hearts',
   'teach.look': 'Look around with {input}',
   'teach.jump': 'Jump with {input}',
+  'teach.scout': '{key:scout} shows where your next quest is',
   'teach.nudgeMove': 'Look around: move with {move}, look with {look}',
   'teach.nudgeConsole': 'A message blinks on the console by the holo table, in the middle of the ship',
   'teach.filled': 'The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. It will power the old machines now. Something beside the pool hums back.',

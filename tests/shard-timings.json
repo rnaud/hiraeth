@@ -349,6 +349,7 @@
  "tests/save-migrate.test.js": 0.3,
  "tests/save-slots.test.js": 0.1,
  "tests/score.test.js": 0.2,
+ "tests/scout-hint.test.js": 0.2,
  "tests/scout.test.js": 0.5,
  "tests/screen-noise.test.js": 0.1,
  "tests/scripts.test.js": 0.6,

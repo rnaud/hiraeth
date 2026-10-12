@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.51 — 2026-10-11
 
+- After your first conversation, a line at the bottom of the screen tells you which button sends your scout to show where your next quest is (R3 on a controller, Q on the keyboard). It says it once, and not at all if you have already found it yourself.
 - The buttons the game shows you grow with the screen like the words beside them: the button over someone you can talk to, the hints at the bottom, the answers in a conversation and the buttons in the menus and on the cards for what you find are clearly larger on a Steam Deck, and larger still on a big screen. With a controller in hand, a conversation now shows the button that turns its page.
 - A new setting, Drone hints (on, fewer, off), says how often Plumb speaks up by itself. Fewer waits twice as long; turning the game’s Hints off quiets it too.
 - On your pack, Plumb hops when you find something, turns to look at a chest or someone you have not met yet close by, and shivers in a storm. With Reduce motion on it holds still.
