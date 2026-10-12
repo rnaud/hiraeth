@@ -687,7 +687,49 @@ const MAST55 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1
 const VI55 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5511), the before the tree as it was on origin/main (42da5258, git archive), the same pinned cameras, 12 October; cwebp -q 72';
 const VI55_GATES = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5511), the same pinned camera with a fresh save and with the save’s three sluice-gates open, 12 October; cwebp -q 72';
 const SAVE_LIT55 = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'incal.lit': true, 'quest.incal.light': 'done', 'item.glider': 1 }, keepsakes: [] };
+// (v1.56: Lorn's route through its explorations, issue #188: by hand, the before the same tree with the level's files as
+// on origin/main, db9d6e99)
+const LORN56 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5521), Lorn’s evening (18.4), the before with src/levels/perdide.js and perdide2.js as on origin/main (db9d6e99), the same pinned cameras, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.56': [
+    { match: 'In Lorn the Great Crystal’s roots now show under the swamp', shots: [
+      { name: 'lorn-veins', title: 'Riding the lit vein', caption: 'On the skiff by the keepers’ light, following the stakes south: before, open water; after, the Crystal’s lit vein running on under the water beside the stakes, a twig branching off, the drowned wood’s first root gate ahead', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-52, 2.6, -318], target: [-40, 1.5, -372], player: [-52, 0.5, -318] },
+        reference: { sheet: 'references/levels/Lorn/environment/explorations/crystal-roots/sheet-1.jpg', caption: 'The author’s pick: riding the lit vein (references/levels/Lorn/environment/explorations/crystal-roots)' } },
+      { name: 'lorn-veins-island', title: 'From the Crystal’s island', caption: 'From the Great Crystal’s island looking south-west over the crossing: after, its roots branching out across the water, the lit vein heading for the drowned wood', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [100, 14, -172], target: [-40, 0, -300], player: [100, 2.5, -168] } },
+    ], numbers: [
+      { title: 'The level design audit, Lorn: the longest empty stretch', unit: 'm', better: 'lower', device: 'node scripts/level-design/audit.mjs --worlds perdide', rows: [
+        { where: 'the longest empty stretch on the route', before: 221.8, after: 120 },
+      ], source: 'the ringing groves, the root gates, the drowned clearings and the canopy as places on and by the route (45 → 60); density stays 5 (issue #188)' },
+    ], see: 'Ride the skiff south from the Hush-House along the keepers’ stakes: past the keepers’ light, the lit vein runs beside you under the water. Where it meets the stakes, a cluster of crystal stands in the water just east of them: come by it and it brightens and rings.' },
+    { match: 'Lorn’s crossing now ends in a drowned forest', shots: [
+      { name: 'lorn-floodmouth', title: 'Where the water enters the wood', caption: 'Following the stakes south over the open water: before, the wood a wall far off; after, drowned trunks standing out of the water on their roots, fungi up their sides, the stakes leading in under the first root gate', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-75, 3, -268], target: [-48, 10, -360], player: [-75, 0.5, -268] },
+        reference: { sheet: 'references/levels/Lorn/environment/explorations/flooded-wood/sheet-2.jpg', caption: 'The author’s pick: where the water enters the wood (references/levels/Lorn/environment/explorations/flooded-wood)' } },
+      { name: 'lorn-eggs', title: 'The egg isle', caption: 'In the deep water west of the lit path: after, a shaft of rose light on a moss isle heaped with glowing eggs, a keeper’s little hut behind them', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-56, 3, -694], target: [-80, 2, -704], player: [-56, 0.5, -694] } },
+      { name: 'lorn-heron', title: 'The heron’s nest', caption: 'West of Hollin’s island: after, a broken drowned trunk in a shaft of light, the heron on her nest on its top', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-104, 4, -512], target: [-124, 6, -524], player: [-104, 0.5, -512] } },
+    ], see: 'Ride the skiff south from the keepers’ light along the stakes: the trunks close in, and you pass under two arches of roots to Hollin’s island. In the wood, take the skiff off the lit path into the deep water: west of the moss domes for the egg isle, west of Hollin’s island for the heron, east past the water-way for the drowned dome.' },
+    { match: 'Up in Lorn’s Deep Wood, over the second dark pool', shots: [
+      { name: 'lorn-canopy', title: 'From the lit path', caption: 'On the lit path by the second dark pool, looking up: before, bare trunks; after, the keepers’ decks round the trunks 70 m up, bridges between them, lamp-houses hanging under them', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 70, eye: [12, 2.5, -748], target: [0, 62, -780], player: [12, 0.6, -748] },
+        reference: { sheet: 'references/levels/Lorn/environment/explorations/keepers-canopy/sheet-2.jpg', caption: 'The author’s pick: the village in the trunks (references/levels/Lorn/environment/explorations/keepers-canopy)' } },
+      { name: 'lorn-stair', title: 'The stair', caption: 'From the path’s bank: after, the boardwalk out to the stair, winding up its trunk to the first deck', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 65, eye: [12, 2.6, -741], target: [28, 14, -750], player: [12, 0.6, -741] } },
+      { name: 'lorn-bridge', title: 'On a bridge', caption: 'On the bridge over the lit path, 70 m up: after, the huts’ deck ahead with its domed huts, the cap square on the right, lamp-houses hanging below', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 65, eye: [-2, 72.2, -779], target: [-33, 68, -784], player: [-2, 70.4, -779] } },
+      { name: 'lorn-winch', title: 'The winch', only: 'after', caption: 'On the winch trunk’s deck: the drum at the jetty’s root, the jetty out over the dark pool, the bridges on to the other decks', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 70, eye: [15.6, 71.9, -767.4], target: [3.3, 64, -770.5], player: [18.5, 70.1, -772] } },
+      { name: 'lorn-lookout', title: 'The lookout', only: 'after', caption: 'From the lookout 120 m up the tallest trunk: over the wood’s giant mushrooms and the trunks’ tops, the Great Crystal glowing far off in the swamp', from: LORN56,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-11.5, 121.8, -735.6], target: [120, 30, -150], player: [-11.5, 120.1, -736.4] } },
+    ], numbers: [
+      { title: 'The level design audit, Lorn', unit: '', better: 'higher', device: 'node scripts/level-design/audit.mjs --worlds perdide (1-5)', rows: [
+        { where: 'verticality', before: 3, after: 5 }, { where: 'the mean', before: 4.56, after: 4.78 },
+      ], source: 'places span 42 → 126 m of height, 7 → 15 % of them raised (the decks, the bridge over the path, the cap square, the lookout); the other eight scores as they were (issue #188)' },
+    ], see: 'Walk the lit path to the second dark pool: the coral lamp hangs high over it. Take the boardwalk to the stair by the path, climb to the decks and cross to the winch’s jetty: press A / × at the drum to let the lamp down. The tallest trunk’s stair goes on up to the lookout.' },
+  ],
   '1.55': [
     { match: 'Fragments of the singing light are hidden in every world', shots: [
       { name: 'fragment-ledge', title: 'A fragment on its ledge', caption: 'Viridel, along the ledge of a long grey wall at the meadow’s southern end: before, nothing there; after, a fragment of the singing light, its three motes and its glow on the stone', from: FR55 + ' (the same pinned camera, the fragments hidden for the before)' },

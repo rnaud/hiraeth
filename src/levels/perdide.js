@@ -14,6 +14,9 @@ import { buildCaveCrown, buildEggLamps, crownWindow, buildLookout } from '../lor
 import { buildKeepersLight, buildFerryBell, buildWaterWaySouth, buildKeepersStakes } from '../lorn-crossing.js';
 import { buildDeepWood, deepWoodHeight, deepWoodWeight, DEEP_WOOD_HAZE, DEEP_WOOD } from './perdide2.js';
 import { FLORA_WORLDS } from '../flora.js';
+import { buildCrystalVeins } from '../lorn-veins.js';
+import { buildFloodedWood, floodWeight } from '../lorn-flood.js';
+import { buildKeepersCanopy } from '../lorn-canopy.js';
 
 // ---------------------------------------------------------------------------
 // Lorn:
@@ -596,7 +599,8 @@ export function* buildPerdide(scene) {
       footprints: '#5f7a4f',
     },
     // the swamp of lights, and under the giant mushrooms the Deep Wood (its haze a step thicker)
-    atmo: (x, z) => { const w = deepWoodWeight(x, z); return { tint: [0.92 + 0.08 * w, 1.0 - 0.03 * w, 1.0 - 0.02 * w], fog: 1.5 + 0.2 * w, name: w > 0.5 ? 'Lorn · the Deep Wood' : 'Lorn' }; },
+    // (and in the drowned wood, the twilight blue going over to the wood's rose as the trunks close in: src/lorn-flood.js)
+    atmo: (x, z) => { const w = Math.max(deepWoodWeight(x, z), 0.75 * floodWeight(x, z)); return { tint: [0.92 + 0.08 * w, 1.0 - 0.03 * w, 1.0 - 0.02 * w], fog: 1.5 + 0.2 * w, name: w > 0.5 ? 'Lorn · the Deep Wood' : 'Lorn' }; },
     update(dt, t, ctx) {
       for (const m of movers) m(t);
       // carnivorous plants snap shut when the player comes close
@@ -636,6 +640,25 @@ export function* buildPerdide(scene) {
   // (and the Great Crystal, aimed at by its own tip: the audit's height grid keeps the thirty most striking peaks, and the
   // Deep Wood's mushrooms are all taller, so the crystal over the landing's grove was measured as no landmark at all)
   level.beacons = [...level.beacons, { name: 'the Great Crystal', top: crystal.tip.toArray(), height: crystal.tip.y - crystal.pos.y }];
+  // Lorn's route through its explorations (issue #188; docs/systems/worlds.md "Lorn: one route through the roots, the
+  // drowned wood and the keepers' canopy"): the Crystal's veins under the water from it across the crossing (the lit vein
+  // beside the stakes), the crossing ending in the drowned wood (its trunks out of the open water, the root gates over the
+  // stakes, the clearings off the path), and the keepers' village 70 m up over the second dark pool. Built last, as the rest.
+  yield;
+  const veins = buildCrystalVeins(scene, terrain, { great: GREAT });
+  const flood = buildFloodedWood(scene, terrain, { veils: W.veils, trunks: W.trunks });
+  const canopy = buildKeepersCanopy(scene, terrain, { veils: W.veils });
+  Object.assign(level, { veins, flood, canopy });
+  level.lights.push(...veins.lights, ...flood.lights, ...canopy.lights);
+  level.beacons = [...level.beacons, ...canopy.beacons];
+  level.lines = [...level.lines, { name: 'the lit vein', points: veins.lit, auto: false }];
+  level.sights = [...level.sights, ...veins.sights, ...flood.sights, ...canopy.sights];
+  const update = level.update;
+  level.update = function (dt, t, ctx) {
+    update.call(this, dt, t, ctx);
+    veins.update(dt, t, ctx?.player?.pos);
+    canopy.update(dt);
+  };
   return level;
 }
 export const createPerdide = stepped(buildPerdide);

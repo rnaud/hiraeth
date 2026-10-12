@@ -2212,6 +2212,46 @@ empty. Each fix is checked from the spots it is there for, and its way home agai
   rails`, 382 m against 277, two places new on it). The moons' film at the door is untouched. Loops 4 → 5: the Moon
   Foundry 4.56 → 4.78.
 
+## Lorn: one route through the roots, the drowned wood and the keepers' canopy (issue #188; v1.56)
+
+The author picked all three of Lorn's explorations (#170: `references/levels/Lorn/environment/explorations/`,
+docs/design/level-explorations-2-prompts.md); they are woven into the route rather than three levels. Each is built
+last in `src/levels/perdide.js` with dice of its own; where they stand is `src/lorn-wood-data.js` (no imports: the
+Deep Wood's scatter reads it and leaves its own trunks and giant mushrooms out of their room, its dice thrown all the
+same, so the rest of the wood grows where it always did). Shapes shared by the three: `src/lorn-kit.js` (a ramp wound
+round a trunk, a deck ring with a gap for a stair, a walkway along points, quads wound to a normal).
+- **The roots of the crystal** (`src/lorn-veins.js`). Veins of violet crystal with a teal zigzag core, drawn on the
+  water (0.05 m over its sheet, only where it is open water), branching from the Great Crystal across the basin, twigs
+  off each; the light runs along them toward it in three bands (`update`). `LIT_VEIN` runs from the Crystal over the open
+  water to the keepers' stakes and on beside them into the drowned wood to Hollin's island (a line, `the lit vein`, auto:
+  false). Where veins meet, **the ringing groves**: crystal spikes out of the water (solid), brightening while you are
+  within 18 m. The veins are drawn only.
+- **The flooded wood** (`src/lorn-flood.js`). The crossing ends in **drowned trunks** (the wood's look: trunks, flares, prop
+  roots arching into the water, pale trumpet fungi, all solid as drawn), in bands from the open water in (6, then 12,
+  then as many of 40 as will stand), clear of the stakes' channel, the water-way south, the lamp-boat, the ferry bell, the
+  keepers' light, Hollin's island, the makers' runs and both skiff races' gate lines (`raceLines`). **Two root gates**
+  (`GATES`) arch over the stakes' last open-water leg, trunk to trunk, 13–14 m up. **The clearings** (`CLEARINGS`), 50–140
+  m off the lit path in the wood's deep water (the skiff, or a swim), each in a shaft of rose light (`LightShaft`): the
+  egg isle (a moss mound heaped with eggs, a little hut), the heron's nest on a broken trunk, the drowned dome. The light
+  goes rose as the trunks close in (`floodWeight`, the level's `atmo`).
+- **The keepers' canopy** (`src/lorn-canopy.js`). Over the second dark pool: four great trunks of the keepers' own (r 5–6),
+  a deck round each 70 m up (`CANOPY.deck`), railed, on struts; rope bridges (a loop crossing over the lit path twice, and
+  on to **the cap square**, a giant Veil whose solid cap is level with the decks: its stalk and gills see-through as the
+  wood's); domed huts and hanging lamp-houses. **The stair** (`helix`, about 27°, walked, not climbed) winds up the first
+  trunk from a boardwalk off the path's bank; a second up the tallest to **the lookout**, 120 m up, its view to the Great
+  Crystal kept clear of the wood's trunks (`VIEW_LANE`). **The winch** on a jetty out over the pool: its interactable (in
+  `src/story/perdide2.js`) lets the keepers' lamp down on its cord; settling in the dark pool it lights it (the pool's
+  `light(P, { by: 'lamp' })`, flag `perdide2.pool.1.lamp`), as shooting it does. Robin at the pool says the keepers lit it
+  from up there. The decks, bridges, stairs, rails and ropes you would hold are solid; hangers, cords, ladders and lamps
+  drawn only.
+
+The level design audit: Lorn 4.56 → 4.78 (verticality 3 → 5: places span 42 → 126 m, 7 → 15 % raised; the longest empty
+stretch 222 → 120 m). (Its "climbed along the path" counts the canopy's bridges over the lit path as ground, 103 → 204 m:
+the path's samples are read from above.) Tests: `tests/lorn-route.test.js` (the stair, the bridges and the lookout walked,
+the Crystal seen from the lookout, the winch's lamp seen from the pool and let down, the wood kept out of the village,
+the lit vein by the stakes and the groves ringing, the drowned trunks closer and closer and off the courses, the skiff's
+way under the gates clear, the clearings by water).
+
 ## The Buried Machine breathes (issue #168; v1.51)
 
 The author's pick of the level explorations (#164: `references/levels/The Buried Machine/environment/explorations/

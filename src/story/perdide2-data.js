@@ -285,7 +285,8 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~angry~ I’ve poured buckets into this pool. Nothing! Hollin says it needs water that remembers light. I’d settle for water that remembers to work."],
+          say: ["~angry~ I’ve poured buckets into this pool. Nothing! Hollin says it needs water that remembers light. I’d settle for water that remembers to work.",
+            "~curious~ The old keepers lit it from up in the trunks. Their lamp still hangs up there."],
           choices: [
             { text: '~curious~ What happened to it?', goto: 'night' },
             { text: '~neutral~ Let me try.', end: true },

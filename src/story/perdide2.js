@@ -32,7 +32,8 @@ import { quietOr } from '../hint-level.js';
 // perdide2.hollin.told, perdide2.promise ('yes' | 'maybe'), perdide2.fen.told,
 // perdide2.rumour.light, perdide2.glyph.heard, clue.perdide2.edena,
 // perdide2.pim.lamp / perdide2.pim.door (Pim's moss lamp woken, her door pushed shut),
-// perdide2.fen.lamp / perdide2.skiff.home (Fen's landing lamp lit, the skiff in its berth).
+// perdide2.fen.lamp / perdide2.skiff.home (Fen's landing lamp lit, the skiff in its berth),
+// perdide2.pool.1.lamp (the keepers' lamp let down into the second pool from the canopy's winch).
 // Items: latch, lamp.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -122,7 +123,7 @@ export function setupPerdide2(ctx) {
     return P;
   });
   let film = { pools: () => false };
-  const light = (P) => {
+  const light = (P, { by = null } = {}) => {
     if (P.on) return false;
     P.on = true; P.flare = 1;
     P.dark.visible = false; P.live.visible = true;
@@ -130,7 +131,8 @@ export function setupPerdide2(ctx) {
     const n = lit() + 1;
     game.set('perdide2.pools.lit', n);
     sound.chime();
-    const said = n < 3 ? `The pool drinks your fluid and lights up in your colours. ${n} of 3.` : 'The third pool lights up. And across the water, something blinks back: three short, one long.';
+    const said = n < 3 ? (by === 'lamp' ? `The keepers’ lamp settles into the pool, and it lights. ${n} of 3.` : `The pool drinks your fluid and lights up in your colours. ${n} of 3.`)
+      : 'The third pool lights up. And across the water, something blinks back: three short, one long.';
     for (const p of Object.values(people)) if (p.pos.distanceTo(P.c) < 40) p.shout = { text: LINES.lit[Math.floor(Math.random() * LINES.lit.length)], until: p.time + 2.5 };
     // the third, filmed (src/story/perdide2-moments.js): the saucer answers on its beat and the toast comes at its end; else at once
     if (n >= 3 && film.pools(P, { answer, said })) return true;
@@ -153,6 +155,21 @@ export function setupPerdide2(ctx) {
       } });
     registerInteractable({ id: `darkPool${P.i}`, priority: PRIORITY.use, range: 3.6, prompt: 'look at the dark pool', at: () => P.c, enabled: () => !P.on,
       distance: (p) => (Math.abs(p.pos.y - P.c.y) < 3 ? flat(p.pos, P.c) : Infinity), use: () => dialogue.start(THINGS.pool, null, P.c) });
+  }
+  // the keepers' winch, 70 m up over the second pool (src/lorn-canopy.js, issue #188): let their lamp down on its cord and
+  // it settles into the pool and lights it, as the keepers lit the pools from the village; wound up again, it hangs there
+  const winch = level.canopy?.winch;
+  if (winch) {
+    const P = pools[1];
+    if (P.on && game.flag('perdide2.pool.1.lamp')) winch.set(true);
+    registerInteractable({ id: 'canopyWinch', priority: PRIORITY.use, range: 3.4, at: () => winch.drum, enabled: () => !winch.moving,
+      prompt: () => (winch.down ? 'wind up the lamp' : 'let down the lamp'),
+      distance: (p) => (Math.abs(p.pos.y - winch.at.y) < 3 ? flat(p.pos, winch.drum) : Infinity),
+      use: () => {
+        if (winch.down) { winch.raise(); game.set('perdide2.pool.1.lamp', false); return; }
+        sound.chime();
+        winch.lower(() => { game.set('perdide2.pool.1.lamp', true); if (!light(P, { by: 'lamp' })) toast('The keepers’ lamp settles into the lit pool.'); });
+      } });
   }
   const nearestDark = () => {
     let best = null, bd = Infinity;
@@ -536,5 +553,5 @@ export function setupPerdide2(ctx) {
   // the third pool's moment (src/story/perdide2-moments.js)
   film = setupPerdide2Moments(ctx, { saucerAt });
 
-  return { people, update, pools, light, film, state: st, pimDoor: pd, berth: bt, places: { saucerAt, latchAt, fenAt, wickAt, hollinEnd, pimLamp: pd.lampAt, pimDoorAt: pd.doorAt, fenLamp: bt.lampAt, berth: bt.at } };
+  return { people, update, pools, light, film, state: st, winch, pimDoor: pd, berth: bt, places: { saucerAt, latchAt, fenAt, wickAt, hollinEnd, pimLamp: pd.lampAt, pimDoorAt: pd.doorAt, fenLamp: bt.lampAt, berth: bt.at } };
 }

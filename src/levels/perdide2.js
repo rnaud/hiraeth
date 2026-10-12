@@ -15,6 +15,7 @@ import { buildWaterWay, buildKeepersStalks } from '../deep-wood-ways.js';
 import { Veils, VEIL } from '../veil.js';
 import { offsetOf } from './names.js';
 import { kitBare } from '../trials/kit-data.js';
+import { woodKeepOut } from '../lorn-wood-data.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -119,6 +120,8 @@ export const DARK_POOLS = [0.264, 0.699, 0.916].map((u) => {
 export const FEN = { dome: 4, x: 36 + OX, z: -300 + OZ };
 export const HOLLIN_END = { x: -14 + OX, z: -402 + OZ };
 export const PATH_POINTS = pathPts;
+/** The stream's line beside the path (it crosses it a few times: the fords). */
+export const STREAM_POINTS = streamPts;
 
 /** The wood's ground (in the world: its places moved by DEEP_WOOD; the noise is the world's, as Lorn's swamp's is). */
 export function deepWoodHeight(x, z) {
@@ -241,6 +244,10 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const H = (x, z) => terrain.heightAt(x, z);
   const inLorn = (x, z) => merged && deepWoodWeight(x, z) < 0.5;
+  // (in Lorn, the keepers' village and the drowned clearings, src/lorn-wood-data.js: the trunks and giants that would
+  // stand in them are left out, their dice thrown all the same, so the rest of the wood grows where it always did)
+  const keptOut = (x, z, r, o) => merged && woodKeepOut(x, z, r, o);
+  const trunkList = [];   // (every trunk drawn: { x, z, r, h }; Lorn's drowned wood keeps clear of them, src/lorn-flood.js)
   const lights = [];
   const dummy = new THREE.Object3D(), col = new THREE.Color();
   const proxies = [];   // coarse collision stand-ins for detailed scenery (invisible)
@@ -290,6 +297,8 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
       // denser near the path, so they frame it like a nave
       if (dp > 60 && rng() < 0.45) continue;
       const r = R(1.6, 4.2) * (dp > 80 ? 1.3 : 1), Ht = R(110, 170), g0 = H(x, z);
+      if (keptOut(x, z, r * 2.3, { shaft: r })) { rng(); rng(); n++; continue; }   // (its turn and its colour drawn, as below)
+      trunkList.push({ x, z, r, h: Ht });
       // (form: the trunk's strokes wrap round it, src/form.js)
       const trunk = formAxis(new THREE.CylinderGeometry(r * 0.82, r, Ht, 10, 4, true), 'wrap').translate(0, Ht / 2, 0);
       jitter(trunk, 0.1, 0.05, n);
@@ -316,7 +325,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   const STALK = ['#b9b3d9', '#a49cc8', '#c3bde2'];
   let lastShroom = null;
   const nestAt = [];   // the giants a nest could sit in: { pose, dp }
-  function shroom(x, z, s, { glow = false, sink = 0.6, tilt = 0.12, seed = 0, step = false } = {}) {
+  function shroom(x, z, s, { glow = false, sink = 0.6, tilt = 0.12, seed = 0, step = false, drop = false } = {}) {
     const g0 = H(x, z);
     const parts = shroomParts(s);
     const rx = R(-tilt, tilt), rz = R(-tilt, tilt), ry = rng() * 6;
@@ -328,12 +337,14 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
       g.rotateY(ry).rotateX(rx).rotateZ(rz).translate(x, g0 - sink, z);
       g.deleteAttribute('uv');
       const c = key === 'stalk' ? stalkColor : key === 'under' ? (glow ? '#b5abe0' : '#9890c0') : (glow ? '#ddd6f6' : pick(['#c9c1ea', '#bdb4e2', '#d2cbef']));
+      if (drop) continue;   // (left out of the keepers' village: its colours drawn all the same)
       const k = `${c}|${glow ? 1 : 0}|${step && key === 'top' ? 1 : 0}`;   // (a cap you climb onto: its top solid underfoot)
       (shroomGeo[key][k] ??= []).push(g.toNonIndexed());
       // collision: the drawn cap and stalk themselves (a ten-sided copy without the drawn one's waver sat up to a
       // metre inside it: feet sank into the stepping caps, src/contact-audit.js)
       proxies.push(g.toNonIndexed());
     }
+    if (drop) { lastShroom = { s: { dome: 1 }, glow: true }; return g0 - sink + parts.topY; }   // (never a nest's)
     if (glow) lights.push(new THREE.Vector4(x, g0 + parts.topY * 0.85, z, s.capR * 1.6));
     lastShroom = { x, z, y: g0 - sink, topY: parts.topY, rx, ry, rz, s, glow };
     return g0 - sink + parts.topY;
@@ -363,7 +374,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
       const big = rng() < 0.55;
       const Hh = big ? R(28, 58) : R(10, 24);
       const capR = Hh * R(0.32, 0.45), sr = capR * R(0.15, 0.2);
-      shroom(x, z, { H: Hh, capR, sr, dome: rng() < 0.5 ? R(0.08, 0.16) : R(0.3, 0.5) }, { glow: rng() < 0.35, seed: 30 + n });
+      shroom(x, z, { H: Hh, capR, sr, dome: rng() < 0.5 ? R(0.08, 0.16) : R(0.3, 0.5) }, { glow: rng() < 0.35, seed: 30 + n, drop: keptOut(x, z, capR, { tall: false }) });
       if (Hh > 18 && Hh < 34 && dp > 25 && dp < 80 && lastShroom.s.dome < 0.2 && !lastShroom.glow) nestAt.push(lastShroom);
       n++;
     }
@@ -374,7 +385,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
       const x = p.x + nn.x * off, z = p.z + nn.z * off;
       if (!clear(x, z, 6) || streamDist(x, z) < 6) continue;
       const Hh = R(16, 40), capR = Hh * R(0.32, 0.42);
-      shroom(x, z, { H: Hh, capR, sr: capR * 0.17, dome: rng() < 0.5 ? 0.12 : 0.4 }, { glow: rng() < 0.5, seed: 90 + i });
+      shroom(x, z, { H: Hh, capR, sr: capR * 0.17, dome: rng() < 0.5 ? 0.12 : 0.4 }, { glow: rng() < 0.5, seed: 90 + i, drop: keptOut(x, z, capR, { tall: false }) });
     }
     for (const key of ['stalk', 'under', 'top'])
       for (const [k, l] of Object.entries(shroomGeo[key])) {
@@ -870,6 +881,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
     lines: [{ name: 'the lit path', points: PATH_PTS }, { name: 'the water-way', points: waterWay.points, auto: false }],
     sights: [{ name: 'the water-gate', at: waterWay.gate }, { name: 'the lamp-raft', at: waterWay.raft }, { name: 'the keepers’ lamp', at: stalks.top.clone().add(new THREE.Vector3(0, 0.5, 0)) }],
     stalks,   // (the keepers' stalks: tests/level-design-round5.test.js climbs them)
+    trunks: trunkList,
     waterWay,
     ground: terrain,
     spawn: new THREE.Vector3(ISLAND.x, spawnY, ISLAND.z),

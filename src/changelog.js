@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.56', date: '2026-10-12', items: [
+    // Lorn's route through the author's three picks (src/lorn-veins.js, src/lorn-flood.js, src/lorn-canopy.js,
+    // docs/systems/worlds.md "Lorn: one route through the roots, the drowned wood and the keepers' canopy"; issue #188)
+    'In Lorn the Great Crystal’s roots now show under the swamp: veins of violet crystal with a teal light running along them toward it, branching across the water like the veins of a leaf. One runs beside the keepers’ stakes over the open water and on into the wood, and where veins meet, a cluster of crystal breaks the water and rings as you pass.',
+    'Lorn’s crossing now ends in a drowned forest: dark trunks rise out of the open water, a few at first and then closer and closer, on roots arching into it, pale trumpet fungi up their sides, and the stakes lead in under two great arches of roots. Off the lit path, the skiff finds three flooded clearings with light falling into them: a moss isle heaped with glowing eggs, a heron on her nest on a broken trunk, and a moss dome half under the water.',
+    'Up in Lorn’s Deep Wood, over the second dark pool, stands the lamp-keepers’ old village: a stair winds up a great trunk from the lit path to decks 70 m up, with domed huts, hanging lamp-houses and rope bridges over the path to a giant mushroom’s cap. From the winch on its jetty you can let the keepers’ lamp down into the dark pool to light it, and a second stair climbs the tallest trunk to a lookout where the Great Crystal glows far off over the wood.',
+  ] },
   { v: '1.55', date: '2026-10-12', items: [
     // the fragments of the singing light, the scientist and his upgrades (src/fragments.js, src/story/scientist.js,
     // docs/systems/fragments.md; issue #196)
