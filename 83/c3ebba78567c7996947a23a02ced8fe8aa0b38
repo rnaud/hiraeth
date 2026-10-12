@@ -1,0 +1,93 @@
+.claude/skills/camera-qc/SKILL.md
+  s_d7d7c129887503::t_6b454b91c09c9c 15-17,21,24-26
+.claude/skills/camera-qc/run.mjs
+  s_d7d7c129887503::t_9ded4728afa88a 6-7,14,23,43,48-50,64,70-72,124,205,242
+.claude/skills/cinematics-qc/SKILL.md
+  s_d7d7c129887503::t_130816e752cdd4 12-14,54,57-59,81-83,140-141,147-152,165
+.claude/skills/combat-review/SKILL.md
+  s_d7d7c129887503::t_48a53f602e8f0b 3,31-32,34-67,104-105,120-122,129
+.claude/skills/dialogue-review/SKILL.md
+  s_d7d7c129887503::t_c44c9c7deb7800 3,70
+.claude/skills/game-audit/SKILL.md
+  s_d7d7c129887503::t_e07e49ea76e451 42-43,75-77
+.claude/skills/game-audit/capture.mjs
+  s_972174feb57bbc::t_0eefbe25132e32 39-43
+.claude/skills/game-audit/default-plan.json
+  s_d7d7c129887503::t_67170cf6fd1186 57-72,77-78,82-103,107,112,117
+.claude/skills/ink-lines/SKILL.md
+  s_d7d7c129887503::t_c3c0adef95e04d 3,14-18,62-67,126,152-172
+.claude/skills/ink-lines/capture.mjs
+  s_d7d7c129887503::t_fda825f8c55d37 251
+.claude/skills/level-design-qc/SKILL.md
+  s_d7d7c129887503::t_f5f2d8a4f86a4e 3,14,101-104,111-112,126-138,205,216
+.claude/skills/motion-qc/SKILL.md
+  s_d7d7c129887503::t_5052e8332dfb7c 26,29-30,34-36,39-40,45-48,102,104-107,109
+.claude/skills/motion-qc/run.mjs
+  s_d7d7c129887503::t_8bbbb57c3ea0e5 8,16,25,45,50-52
+.claude/skills/perf-audit/SKILL.md
+  s_d7d7c129887503::t_c77c69ba8dbec6 32,49-50,101,106-110,114-115
+.claude/skills/perf-audit/fps.mjs
+  s_d7d7c129887503::t_b0b96dc42395bc 14,17-18,37-38,42,53-57,59
+.claude/skills/procedural-animation/SKILL.md
+  s_d7d7c129887503::t_e327bd622f5286 3,8-37,42-48,51-54,65-71,95-96
+.claude/skills/quest-qc/SKILL.md
+  s_d7d7c129887503::t_09d73885c89e84 3,54-55
+.claude/skills/shadow-qc/SKILL.md
+  s_d7d7c129887503::t_414449747cf622 3,24-25,30,104-107
+.claude/skills/shadow-qc/run.mjs
+  s_d7d7c129887503::t_83f36412425505 28,267
+.claude/skills/temple-design-qc/SKILL.md
+  s_d7d7c129887503::t_5ccf34618ceec0 3,16-18,70,97-98,103,156,172,190-192
+.claude/skills/visual-audit/SKILL.md
+  s_d7d7c129887503::t_cfa00b02e2eb70 3,20-21,48-52,57-62,76,84,90,97,113,118-120,132-154,164,166,210-212,222-226
+.claude/skills/visual-audit/probes.mjs
+  s_d7d7c129887503::t_7149e0defc7b3f 37,56-58,328
+.claude/skills/visual-audit/views.mjs
+  s_972174feb57bbc::t_901da3749b6a53 23,80
+.claude/skills/zfight-qc/SKILL.md
+  s_d7d7c129887503::t_4d719b16912473 3,26-29,36-37,53-55,65-66
+docs/systems/animation.md
+  s_d7d7c129887503::t_1c2f278eae1f6c 758-760
+docs/systems/cinematics-qc.md
+  s_d7d7c129887503::t_dc02236edf2f4f 16-19,24,233
+docs/systems/dev-tools.md
+  s_d7d7c129887503::t_ab4b8a27877be3 243-290
+docs/systems/foes.md
+  s_d7d7c129887503::t_faecbbf750a1c0 1423-1442
+docs/systems/procedural-animation.md
+  s_d7d7c129887503::t_196a28d09559f5 132,733-735,740
+docs/systems/rendering.md
+  s_d7d7c129887503::t_0aed5858c5d666 703-722,1123
+docs/systems/ui.md
+  s_972174feb57bbc::t_6d4977523b3c1c 769-775
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "83c3ebba78567c7996947a23a02ced8fe8aa0b38",
+  "prompts": {},
+  "sessions": {
+    "s_972174feb57bbc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130aa-d20e-7633-9556-f28303d59bce",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    },
+    "s_d7d7c129887503": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d08f2167-bc91-47dc-ae77-ffb57645eaef",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
