@@ -1,0 +1,31 @@
+src/wildlife/species.js
+  s_9ca76055a220ed::t_13b7c667e27586 246-300,312-313,316-317
+tests/needle-walker.test.js
+  s_9ca76055a220ed::t_fa40522c58b68c 1-60
+src/wildlife.js
+  s_9ca76055a220ed::t_ca5728d7c49970 472-478
+changelog.md
+  s_9ca76055a220ed::t_fe1ac91e2a9389 7
+docs/systems/living-world.md
+  s_9ca76055a220ed::t_ce9931867eb0de 72-80
+src/changelog-media.js
+  s_9ca76055a220ed::t_e59758f5913845 720-722
+src/changelog.js
+  s_9ca76055a220ed::t_e8124167216150 19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4e6faa4cc324cfe5cd12b0ceb18afc31ce9d0360",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

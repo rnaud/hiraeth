@@ -1,0 +1,38 @@
+src/player.js
+  s_9ca76055a220ed::t_e076588d3aec7e 173-181,1366-1367,1782-1787,1942-1953,1961-1969,1971-1972,1987,1989,1992-1994,1998-2005,2009-2014,2018-2019,2022
+  s_9ca76055a220ed::t_d4ded942d89605 172
+tests/mantle.test.js
+  s_c378a8238e8555::t_ec3830393255fa 1-59
+changelog.md
+  s_9ca76055a220ed::t_db9db4e98b0e2b 7
+docs/systems/movement.md
+  s_9ca76055a220ed::t_d03323c357bfea 442-454
+src/changelog-media.js
+  s_9ca76055a220ed::t_bf0ddd97e9a6d8 713-715
+src/changelog.js
+  s_9ca76055a220ed::t_f8ee3e8785593b 14-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4030c35c6d4ce0f68b3d036eee53364a14910c11",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c378a8238e8555": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-affa8295a5e4a5dd0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

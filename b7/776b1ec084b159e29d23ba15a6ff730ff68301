@@ -1,0 +1,53 @@
+tests/ragdoll-cliff.test.js
+  s_9ca76055a220ed::t_9472b80a631ef6 1-82
+tests/mantle.test.js
+  s_c378a8238e8555::t_ec3830393255fa 1-59
+src/temples/arzach.js
+  s_9ca76055a220ed::t_0a0a3094f64051 318-319
+src/ragdoll.js
+  s_9ca76055a220ed::t_6348b9b8bfddbc 67-84,92-95,156-165,169,177,180-191,204-212,226,228,234-236,238-243,246
+  s_9ca76055a220ed::t_39ac346e7a103a 29-30
+src/wildlife/species.js
+  s_9ca76055a220ed::t_13b7c667e27586 246-300,312-313,316-317
+src/temples/pieces.js
+  s_9ca76055a220ed::t_579861c57e3db6 1410-1412,1414-1416,1440-1442,1450,1453-1478,1499-1500,1505-1508,1512,2565-2566,2594-2601,2603
+  s_a3f2b476c02199::t_89f67a95d8ecf6 1437
+src/player.js
+  s_9ca76055a220ed::t_e076588d3aec7e 172-181,1366-1367,1782-1787,1942-1953,1961-1969,1971-1972,1987,1989,1992-1994,1998-2005,2009-2014,2018-2019,2022
+src/wildlife.js
+  s_9ca76055a220ed::t_ca5728d7c49970 472-478
+tests/needle-walker.test.js
+  s_9ca76055a220ed::t_fa40522c58b68c 1-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b7776b1ec084b159e29d23ba15a6ff730ff68301",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a3f2b476c02199": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a820fb8b1fec05c31",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c378a8238e8555": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-affa8295a5e4a5dd0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

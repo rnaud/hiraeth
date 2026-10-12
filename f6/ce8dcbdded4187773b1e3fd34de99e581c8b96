@@ -1,0 +1,30 @@
+tests/ragdoll-cliff.test.js
+  s_9ca76055a220ed::t_9472b80a631ef6 1-82
+src/ragdoll.js
+  s_9ca76055a220ed::t_39ac346e7a103a 29-30
+  s_9ca76055a220ed::t_6348b9b8bfddbc 67-84,92-95,156-165,169,177,180-191,204-212,226,228,234-236,238-243,246
+changelog.md
+  s_9ca76055a220ed::t_0869f64c9d564d 5-8
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_3184be2644bb10 288-302
+src/changelog-media.js
+  s_9ca76055a220ed::t_c6edf24791947e 706-707,709-713
+src/changelog.js
+  s_9ca76055a220ed::t_5393a68be51c29 11-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f6ce8dcbdded4187773b1e3fd34de99e581c8b96",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
