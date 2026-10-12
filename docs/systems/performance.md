@@ -2007,3 +2007,26 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   frames' spread comes from the whole frame being close to 16.7 ms, not from the map's alternation), and the shadows'
   texels are twice as big: not kept. Spread over two frames into a second map would give the same average with a frame
   more of the traveller's shadow lagging him (his shadow is the near map's on the Deck's preset, no fine map).
+
+**Where round 7 ends** (origin/main 0f4bbd39, with the Xbox's lean terrain and water variants; 90 Hz uncapped, then
+60 Hz with vsync: frames shown a second and p95 ms):
+
+| view | before (e3d0e207) | now, 90 Hz · script · GPU | now, 60 Hz vsync |
+|---|---|---|---|
+| desert spawn | 63.3 | **76.7** · 11.9 · 13.1 | 59.3 · 18.6 |
+| desert camps | 54.0 | **62.7** · 14.6 · 14.7 | 59.3 · 19.1 |
+| City-Shaft rim | 45.1 | **63.9** · 14.3 · 15.2 | 58.5 · 20.8 |
+| City-Shaft crowd | 45.6 | **60.1** · 15.1 · 16.6 | 58.2 · 20.0 |
+| City-Shaft wide | 41.3 | **56.4** · 13.9 · 18.6 | 55.0 · 23.2 |
+| Signal Market start / crowd / wide | 62.9 / 68.3 / 71.2 | **79.5 / 87.9 / 88.2** | 59.2-59.3 · 18.0-18.3 |
+
+The desert and the Market hold 60 at 60 Hz (about 1 refresh in 100 missed); the City-Shaft's rim and crowd are
+within a few frames of it, its wide view 5 short. **What is left** is the City-Shaft's geometry: at render scale 0.25
+(a development player's `-split`) the G-buffer still takes 4.4-5.3 ms and the near shadow map 3.4-3.9, so most of
+both is their vertices (the shaft's ~3.4 million triangles a frame, the G-buffer's vertex shader ~2 000 instructions
+in its heavier variants), not their pixels. The levers there: a lighter G-buffer vertex stage (what it works out per
+vertex for the ink's patterns), levels of detail that pay for their switching (lod.js gave 0.1-0.4 ms), and caching
+the near map's still casters between the frames the window does not move. On the script's side, the people's rigs
+walked from their roots several times a frame (posing, cloth, hands: ~2 ms in the crowd view) are the largest part
+left. V8's tiers are as Puerts builds them (13.6, Sparkplug and Maglev on; its API takes no flags) and its garbage
+collector is under 1 % of the script's thread.
