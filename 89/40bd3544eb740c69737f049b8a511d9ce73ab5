@@ -1,0 +1,41 @@
+"references/levels/The Buried Machine/environment/explorations/hanging-city/README.md"
+  s_9ca76055a220ed::t_2b8ac729b9607e 1-6
+"references/levels/The Buried Machine/environment/explorations/machine-breathes/README.md"
+  s_9ca76055a220ed::t_696de9550875e6 1-6
+"references/levels/The Buried Machine/environment/explorations/tooth-calendar/README.md"
+  s_9ca76055a220ed::t_c354af5a035694 1-6
+"references/levels/The City-Shaft/environment/explorations/across-the-void/README.md"
+  s_9ca76055a220ed::t_97f955820cbeac 1-6
+"references/levels/The City-Shaft/environment/explorations/light-down/README.md"
+  s_9ca76055a220ed::t_88cc1990bf18b7 1-6
+"references/levels/The City-Shaft/environment/explorations/rim-quarters/README.md"
+  s_9ca76055a220ed::t_7379c265ecf1fd 1-6
+"references/levels/The Desert/environment/explorations/giants-road/README.md"
+  s_9ca76055a220ed::t_35006b91e7b25e 1-6
+"references/levels/The Desert/environment/explorations/walking-dunes/README.md"
+  s_9ca76055a220ed::t_f7a2ef7f77abcd 1-6
+"references/levels/The Desert/environment/explorations/water-memory/README.md"
+  s_9ca76055a220ed::t_dbd75b38ec0551 1-6
+"references/levels/The Glass Dunes/environment/explorations/singing-ridges/README.md"
+  s_9ca76055a220ed::t_b4e3176c0f867d 1-6
+"references/levels/The Glass Dunes/environment/explorations/sunken-city/README.md"
+  s_9ca76055a220ed::t_0dcd969c364af1 1-5
+"references/levels/The Glass Dunes/environment/explorations/trapped-time/README.md"
+  s_9ca76055a220ed::t_9f4d6fcb52ac23 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8940bd3544eb740c69737f049b8a511d9ce73ab5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
