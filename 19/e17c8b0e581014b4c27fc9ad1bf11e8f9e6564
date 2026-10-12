@@ -1,0 +1,36 @@
+src/changelog.js
+  s_9ca76055a220ed::t_cd7c6ea038df22 30
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_b7a019c4e8ba3c 390
+tests/level-design-ways-home.test.js
+  s_9ca76055a220ed::t_3d62cbbc283e68 12,101-130
+  s_9ca76055a220ed::t_85953332e6ff36 131-132
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_f735b839ec73b1 72-76,532-562,656-658,667-669
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_83202364f812f2 2073-2078
+src/changelog-media.js
+  s_9ca76055a220ed::t_3d16a914857b4a 706-713
+DONE.md
+  s_9ca76055a220ed::t_523442c33af84f 2816-2819
+changelog.md
+  s_9ca76055a220ed::t_6aaa659a65b0cc 7
+tests/shard-timings.json
+  s_9ca76055a220ed::t_f19420349a9909 2-7,10-17,19-20,22-58,60-78,80-106,108-179,182-183,185,187-194,196-205,207-216,218-232,234-283,285-290,292-301,303-305,307-308,310,312-330,332-344,346-349,351,353-358,360-363,365-366,368-371,373-374,376-401,403-435,437-444,446-460,462-468,470-495,497-498
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "19e17c8b0e581014b4c27fc9ad1bf11e8f9e6564",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
