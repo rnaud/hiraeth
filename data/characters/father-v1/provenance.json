@@ -24,7 +24,7 @@
   "validation": {
     "unlitTexture": "Inspected front, quarter, side and back; crease ink remains, no broad directional shading apparent.",
     "oppositeLights": "Matte preview relit from left and right; surface shading changes.",
-    "rig": "Sloping chin/skull weights and fitted neck pivot; pinned runtime neck correction. Full-range combined yaw/pitch edge ratio 0.588–2.120; 36-second idle/talk/idle check, jaw rigidity, torso/scarf isolation, repeated poses, rest reset and translated/rotated spawns pass.",
+    "rig": "Sloping chin/skull weights and fitted neck pivot; pinned runtime neck correction. Full-range combined yaw/pitch edge ratio 0.588\u20132.120; 36-second idle/talk/idle check, jaw rigidity, torso/scarf isolation, repeated poses, rest reset and translated/rotated spawns pass.",
     "gameIntegration": "Replayed corrected, optimized father in muted ship recording. Browser displayed the father correctly; console also contained generic Chromium UnknownError messages without application stack traces.",
     "build": "vite build passed",
     "tests": "55 targeted father/ship/changelog/media/audio-guard/cinematics tests passed, including 12 father regressions; vite build passed.",
@@ -49,17 +49,8 @@
   },
   "limitations": [
     "Fused dressed mesh; no separate cloth or hidden body.",
+    "Lower body follows pelvis rigidly for stationary holographic recordings; walking is not supported.",
     "Face motion is stylized rather than a phoneme rig.",
-    "Runtime derivative is cropped below 0.90 m for holographic recordings. Source texture and geometric crease detail remain; no mobile FPS gain measured.",
-    "The bust (model.glb) keeps the lower body rigid on the pelvis; the full figure (full.glb) walks, its fused coat swung on runtime chains, the hidden ring under the hem stretching."
-  ],
-  "fullRuntime": {
-    "file": "public/characters/father-v1/full.glb",
-    "sha256": "0cedeed6877a79d3b7afd5f3c70eedfd0feb858cf6e991a7acfb01d6e3839f24",
-    "bytes": 2717644,
-    "triangles": 49118,
-    "vertices": 28773,
-    "textureSize": 2048,
-    "use": "The window recording (issue #26): the whole figure, walking; lower body weighted again and the coat on 12 two-bone chains at runtime (src/characters/father-full.js)"
-  }
+    "Runtime derivative is cropped below 0.90 m for holographic recordings. Source texture and geometric crease detail remain; no mobile FPS gain measured."
+  ]
 }

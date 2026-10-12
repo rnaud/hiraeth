@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.54', date: '2026-10-12', items: [
+    // the father's window recording back to the bust (reverts e7d5052e, the walking full body; the author's call)
+    'Your father is a bust again in the ship’s recordings, as he is in his calls: the walking, full-length figure at the window is gone.',
     // the City Floating in Space's hanging pipes held steady (src/levels/space-city-kit.js HANG_PX, src/thin.js; issue #171)
     'In the City Floating in Space, the pipes and cables hanging under the islands no longer flicker on small screens: on handhelds and phones they stay steady thin lines as you turn, instead of breaking into pixels that come and go.',
     // foes heard from where they are (src/audio.js foeEar / foeSpot, docs/systems/audio.md "Placed in space"; issue #176)

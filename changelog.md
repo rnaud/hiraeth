@@ -9,6 +9,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Ten more errands end where you do the thing, without sending you back to tell someone: Viridel’s scorch under the flowers, Esk’s cutting, the tallest tree’s crown, the market’s oldest sign, Ket’s three gauges, the halfway mirror, the snapping bed, Ivo’s fireflies, the boat that answered across Lorn’s water, and Cael’s slow avenue. Whoever asked still has their word when you pass: Mira still tells you where Odile and Talo went, Wendel gives you his saying, Ivo his jar of fireflies, and Hollin asks you to come back.
 - A foe’s warning as it winds up a strike, and its cry when you cut it, now come from where it is: from the left or the right, softer farther off but never too faint to hear across a fight, a little duller from behind you, and a warning from a foe you can’t see a touch louder, so you can turn to meet it.
 - In the City Floating in Space, the pipes and cables hanging under the islands no longer flicker on small screens: on handhelds and phones they stay steady thin lines as you turn, instead of breaking into pixels that come and go.
+- Your father is a bust again in the ship’s recordings, as he is in his calls: the walking, full-length figure at the window is gone.
 
 ## v1.53 — 2026-10-12
 

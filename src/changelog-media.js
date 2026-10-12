@@ -674,6 +674,7 @@ const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.
 const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (scratch bench: the two builds in one process, a frame of each in turn, each on the script thread’s CPU clock, the bench’s own split of engine/game.js), both ways round and averaged, 12 October, the Mac’s load 35–90';
 export const CHANGELOG_MEDIA = {
   '1.54': [
+    { match: 'Your father is a bust again', see: 'Play a window recording on the ship (the log at the projector, from the seventh world on): he shows as the bust, as in his calls.' },
     { match: 'In the City Floating in Space, the pipes and cables hanging under the islands', shots: [
       { name: 'space-hanging', title: 'Under the islands, on a handheld', caption: 'From the Pier, the island over the right of the bridge on the Handheld preset at its 0.5 floor (640 × 360), cropped ×3: before, the thin pipes and cables broken into dashes and missing pixels; after, each a steady line at least 2.5 pixels wide', from: 'headless Chrome against this branch’s own dev server and the commit before (the ink-lines audit’s sc-bridges view, 12 October)' },
     ], numbers: [

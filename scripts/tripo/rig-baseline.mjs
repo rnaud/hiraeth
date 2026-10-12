@@ -2,7 +2,6 @@
 // experiments; --father applies the measured stationary-recording asset fit.
 // This does not create a hidden body, cloth, or exported facial expressions.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { dirname } from 'node:path';
 import * as THREE from 'three';
 import { fitDonorToSurface } from '../../tools/tripo-fit.js';
 import { fitFatherToSurface, fatherBodyWeights } from '../../src/characters/father-fit.js';
@@ -88,7 +87,7 @@ g.buffers=[{byteLength:length}];
 let json=Buffer.from(JSON.stringify(g));json=Buffer.concat([json,Buffer.alloc((4-json.length%4)%4,32)]);
 let binary=Buffer.concat(chunks);binary=Buffer.concat([binary,Buffer.alloc((4-binary.length%4)%4)]);
 const header=Buffer.alloc(12),jh=Buffer.alloc(8),bh=Buffer.alloc(8);header.write('glTF');header.writeUInt32LE(2,4);header.writeUInt32LE(28+json.length+binary.length,8);jh.writeUInt32LE(json.length);jh.writeUInt32LE(0x4e4f534a,4);bh.writeUInt32LE(binary.length);bh.writeUInt32LE(0x004e4942,4);
-mkdirSync(dirname(output),{recursive:true});writeFileSync(output,Buffer.concat([header,jh,json,bh,binary]));
+mkdirSync(new URL('../../output/character-tripo/',import.meta.url),{recursive:true});writeFileSync(output,Buffer.concat([header,jh,json,bh,binary]));
 distances.sort((a,b)=>a-b);
 const report={input,output,params,fit,bones:skeleton.bones.length,scale:factor,vertices:distances.length,donorDistanceMetres:{median:distances[Math.floor(distances.length*.5)],p95:distances[Math.floor(distances.length*.95)],max:distances.at(-1)},limitations:[father?'Stationary recording fit; lower body follows pelvis rigidly. Not a walking NPC.':'Weight transfer is a prototype, not validated production rigging.','Original generated shape is preserved apart from uniform scaling.','Body and clothing remain fused unless the input was segmented.','No exported facial morphs or cloth simulation.']};
 writeFileSync(output+'.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

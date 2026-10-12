@@ -597,16 +597,11 @@ export function recordingLabel(n, ctx = {}) {
   return AGE[n]?.label ?? '';
 }
 
-/**
- * Who stands on the hologram for recording n: 'father' | 'mother' | 'both' | 'window' (ctx). The window recording is
- * his alone, and it is the ship's log of him, not a message: the father whole, walking to the window (issue #26,
- * src/ship/hologram.js), on the trace log that first finds it and every recording that plays further into it.
- */
+/** Who stands on the hologram for recording n: 'father' | 'mother' | 'both' (ctx: the window recording is his alone). */
 export function onHologram(n, ctx = null) {
   if (n === ILEN_CALL) return 'mother';
-  if (n === TRACE_CALL) return 'window';
-  if (n === 'prologue' || n === ILEN_AFTER_CALL || isPartCall(n)) return 'father';
-  if (ctx && typeof n === 'number' && n >= ENDING_WORLDS && windowDue(facts(ctx))) return 'window';
+  if (n === 'prologue' || n === ILEN_AFTER_CALL || n === TRACE_CALL || isPartCall(n)) return 'father';
+  if (ctx && typeof n === 'number' && n >= ENDING_WORLDS && windowDue(facts(ctx))) return 'father';
   return typeof n === 'number' && n < 3 ? 'father' : 'both';
 }
 

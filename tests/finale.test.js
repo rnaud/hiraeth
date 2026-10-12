@@ -71,7 +71,7 @@ test('after the first homecoming the ship\'s log waits: the light over the hill,
   assert.ok(lines.some((l) => l.who === 'father' && /window/.test(l.text)));
   const marked = callLines(TRACE_CALL, { flag: at({ ...f, 'world.bazaar.done': true }), completed: ['bazaar'] });
   assert.ok(marked.some((l) => /past the Signal Market/.test(l.text)), 'after it: past the market, charted');
-  assert.equal(onHologram(TRACE_CALL), 'window');
+  assert.equal(onHologram(TRACE_CALL), 'father');
   assert.match(recordingLabel(TRACE_CALL), /LOGGED/);
   assert.equal(pendingCall({ flag: at({ ...f, 'calls.trace': true }), completed: 0 }), null, 'once');
   assert.equal(pendingCall({ flag: at({ ...f, 'ending.final': true }), completed: 0 }), null, 'not after the true ending');

@@ -724,7 +724,6 @@ export class CallDirector extends Sequence {
     const tl = callTimeline(lines);
     const C = ship.cinema;
     const st = { span: recordingSpan(lines), who: who ?? onHologram(n), label };
-    ship.holo?.prepare?.(st.who);   // (the window recording's whole father, loaded while the ship's lines play)
     st.cuts = callCuts(tl, st.span);
     super(ship, [
       {

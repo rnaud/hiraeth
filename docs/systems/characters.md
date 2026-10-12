@@ -903,35 +903,3 @@ rest every frame and when switching the review to rest; translated/rotated spawn
 are covered. The exported GLB contains the fitted rig/weights; the correction,
 like the face keys, runs in `father-v1.js` in both game and review. The review now
 measures animation CPU time separately from render submission.
-
-### The father in full (October 2026, v1.53, issue #26)
-
-The window recording (`src/story/calls.js` WINDOW, `onHologram` → `'window'`: the trace log and every recording
-that plays further into it) is the ship's log of him, not a message, so it shows him whole: small on the lens
-(`WINDOW_WALK.scale` 0.33, his face about where the busts' are), walking across it to the window, standing there
-turned from the traveller and looking up while he speaks, and walking back (`FatherPace` in `src/ship/hologram.js`,
-pure). Every other recording keeps the bust.
-
-- **The asset:** `public/characters/father-v1/full.glb` (2.7 MB, 49,118 triangles, the 2K texture), the same rig as
-  the bust uncut: `node scripts/tripo/rig-baseline.mjs data/characters/father-v1/source.glb <tmp>/full-before.glb
-  --father`, then `node scripts/tripo/slim-father.mjs <tmp>/full-before.glb public/characters/father-v1/full.glb
-  --full` (the same first step remakes the bust's `model.glb` byte for byte). It loads only when a window recording
-  starts (`Hologram.prepare`, called by `CallDirector`); until it has, or if it fails, the recording shows his bust.
-- **Walking** (`src/characters/father-full.js`): the bust's rig holds everything below the waist on the pelvis. At
-  load, `rigFatherLowerBody` weights it again: under the coat's hem (~0.42 m) the trousers and boots go on the
-  thigh, calf, foot and ball bones by the nearest point of each leg's chain, half and half at a joint and eased
-  over 5 cm (`fatherLegWeights`; everything under 0.36 m is boot or shin, whatever its distance); the coat from
-  the waist band (0.86-0.95 m) down is the skirt's.
-- **The coat** is fused to the body and closes round the thighs, so it hangs on twelve chains of two bones each
-  added under the pelvis (`COAT`, pivots at 0.93 m, knees at 0.68 m, the hem end at 0.44 m, on the coat's outer
-  surface); a point blends the two chains either side of its direction round the coat's centre and the two bones
-  across the chain's knee (`coatWeights`). `CoatSkirt` swings them at 120 Hz: each chain's knee and hem pulled back
-  to where the pelvis carries them (stiffness 70, damping 5), trailing as he walks (drag 1.6), kept their length,
-  sharing 30 % of their swing with their neighbours (the coat doesn't part between chains) and pushed level off
-  the thigh and shin capsules, never closer than they hang at rest (the coat folds in between his legs). The
-  hidden ring under the hem that joins the coat to the trousers stretches as he strides; nothing else tears
-  (under 1 % of edges past three times their length over a walk).
-- **Tests:** `tests/father-full.test.js` (rigged: the coat chains under the pelvis, boots, shins and skirt on their
-  bones, the bind pose unchanged at any spawn; on the window recording he walks there and back, his feet a stride
-  apart, the coat swinging, no tearing; the coat hangs still standing and swings walking; his walk stays on the
-  lens). `tests/finale.test.js` and `tests/lantern-path.test.js` check the recordings ask for him.
