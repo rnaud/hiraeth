@@ -44,7 +44,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
   assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
   assert.equal(theme('level-design').prev.id, 'level-design-v1.23'); assert.equal(theme('level-design').delta, -0.03);   // (level-design-v1.49: 4.35 over twelve, v1.23: 4.38 over eleven)
-  assert.equal(theme('temple-design').delta, 0.18);   // (temple-design-v1.49: 4.21, v1.48: 4.03, both over fourteen)
+  assert.equal(theme('temple-design').delta, 0.07);   // (temple-design-v1.53: 4.28, v1.49: 4.21, both over fourteen)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.53: 4.0, game-v1.49: 3.9)
   assert.equal(theme('dialogue').prev.id, 'dialogue-v1.48'); assert.equal(theme('dialogue').delta, 0.18);   // (dialogue-v1.53: 3.68 over eleven, v1.48: 3.50 over twelve)
   const lore = group('dialogue', 'Areas').rows.find((r) => r.label === 'Lore load');

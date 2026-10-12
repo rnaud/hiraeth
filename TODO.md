@@ -110,18 +110,18 @@ round 1 (v1.48) reworked the Clock-House, the Greenhouse, the Undertower and the
 the Engine-House (a hub past its chest), the Aerie (a stack), the Lamp-House and the Belfry, and brought the Greenhouse's
 and the Undertower's curves back with a late room for the great key. Structure is 5 in all fourteen (mean 3.95 → 4.21). Left:
 
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) The Hush-House (3.67, the lowest): its middle steps are cheap (the
-  eye from the disc, the jaws, the ledge's gate, the pendulums' crossing); jaws stilled in the Choir's order, and a wing
-  with the great key past the gallery. (An arena off the Choir alone made it worse: tried and dropped.)
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) An arena in each house that has none: the Hush-House, the
-  Whale-House, the Casting-House, the Footprint, the Mooring-House (a wing of its hub, its key for a door that wants
-  another wing too).
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Identity 2 in the Belfry, the Clock-House, the Warden's Well, the
-  Mooring-House and the Undertower (the Warden's Well and the Mooring-House 78 % alike): another shape for one of them.
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) The Clock-House's curve (2): its hardest steps come first.
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Four houses now keep the great key in a room off their last puzzle
-  hall (the Clock-House, the Greenhouse, the Undertower, the Lamp-House): the next reworks should put it elsewhere.
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Play the new arenas by hand (the node tests use stand-in keepers).
+Round 3 (v1.53, docs/audits/temple-design-v1.53.md) gave the Hush-House its middle (3.67 → 4.22), an arena to every house,
+the Mooring-House and the Clock-House their own shapes, the Clock-House its curve, and put three great keys back in the
+first half (mean 4.19 → 4.28). Left:
+
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Play the new rooms by hand: the Hush-House's thawing jaws (10 s), the
+  Mooring-House's cable-rail under the tether, the Clock-House's stopped cupboard, and every arena with real keepers (the
+  node tests use stand-in keepers).
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Identity 2 in the Undertower (70 % like the Casting-House) and the
+  Lamp-House (67 % like the Whale-House): another shape for each.
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Three houses still keep the great key off their last puzzle hall
+  (the Greenhouse, the Undertower, the Lamp-House): a loop back to the first half, as the Hush-House, the Mooring-House and
+  the Clock-House now have.
 
 # Carried over
 
