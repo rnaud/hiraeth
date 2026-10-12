@@ -469,6 +469,13 @@ export class Creature {
       case 'trick': {
         this.k += dt / (this.trick.dur ?? 4);
         if (this.k >= 1) { this.finishTrick(); return; }
+        // (trick.walk: a few steps on, away from the fright, until k reaches it; then it stands where it got to)
+        const go = this.trick.walk;
+        if (go && this.k < go + 0.05) { this.speed = damp(this.speed, this.k < go ? walk * 1.4 : 0, 8, dt); this.step(dt); }
+        else if (go && !this.data.stood) {   // (and stands on the ground where it stopped, not where its last step left it)
+          this.data.stood = true; this.speed = 0;
+          if (this.world.surface(this.pos, this.up, _sb, 0.6 * Math.max(1, this.size), 1.2 * Math.max(1, this.size))) this.pos.copy(_sb);
+        }
         break;
       }
     }

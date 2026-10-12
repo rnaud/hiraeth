@@ -243,6 +243,61 @@ const boneKite = {
   },
 };
 
+/**
+ * The needle walker's surprise in stages (k of the trick, 0..1): it walks a few steps on (to `walk`: Creature.update),
+ * plants itself (`plant`: the legs splay and stay on the ground, the body sinks a little and tips its tail down until the
+ * tip touches the ground), stands up on that tip (`rise`: it turns upright about it, stretching `stretch` longer into a
+ * needle, the legs folding in along it), holds, and comes back down the same way (`down`). The tip stays where it touched
+ * the ground (the ground under it, found once: on a slope it reaches down or less far). Local units (× the creature's size).
+ */
+export const NEEDLE = { walk: 0.05, plant: [0.1, 0.16], rise: [0.19, 0.32], down: [0.84, 0.96], stretch: 1.3, sink: 0.025, lean: 1.5, tip: [0, 0.17, -0.44], mid: [0, 0.17, 0] };
+const _nq = new THREE.Quaternion(), _ne = new THREE.Euler(), _nv = new THREE.Vector3(), _ng = new THREE.Vector3(), _nm = new THREE.Vector3();
+/** p of a transform (rotation q, scale s) that puts its local point `at` on `to`: p = to − q·(s∘at). */
+const pivot = (out, to, q, s, at) => out.copy(to).sub(_nv.set(at[0] * s.x, at[1] * s.y, at[2] * s.z).applyQuaternion(q));
+export function needlePose(c, k, P, X) {
+  const N = NEEDLE;
+  const planted = sm(seg(k, ...N.plant)) * (1 - sm(seg(k, N.down[1], 1)));
+  const up = sm(seg(k, ...N.rise)) * (1 - sm(seg(k, ...N.down)));
+  if (planted <= 0) return;
+  const R = P.root, mid = N.mid, sink = N.sink * planted, len = -N.tip[2];
+  // how far it tips its tail down (about its middle) to set the tip on the ground where it stopped walking: the
+  // ground under the tip, along its up, in local units (twice: tipped, the tip comes in toward the middle)
+  if (c.data.reach === undefined) {
+    let reach = 0;
+    for (let i = 0; i < 3; i++) {
+      const t = c.toWorld(N.tip[0], 0, -len * Math.cos(reach), _nv);
+      const g = X.world?.surface?.(t, c.up, _ng, 1.2 * c.size, 1.5 * c.size);
+      const tipY = g ? THREE.MathUtils.clamp(_ng.sub(c.pos).dot(c.up) / c.size, -0.3, 0.3) : 0;
+      reach = Math.asin(THREE.MathUtils.clamp((mid[1] - N.sink - tipY) / len, -0.6, 0.95));
+    }
+    c.data.reach = reach;
+  }
+  const reach = c.data.reach;
+  const a0 = reach * planted;
+  R.r.set(-a0, 0, R.r.z * (1 - planted));
+  R.s.set(1, 1, 1);
+  const M = _nm.set(mid[0], mid[1] - sink, mid[2]);
+  pivot(R.p, M, _nq.setFromEuler(R.r), R.s, mid);
+  if (up > 0) {
+    // ... then upright about that tip, stretching into the needle (a slow sway as it stands)
+    const G = _ng.set(0, 0, 0); pivot(G, M, _nq, R.s, mid); G.add(_nv.set(...N.tip).applyQuaternion(_nq));
+    const a = reach + (N.lean - reach) * up + Math.sin(X.t * 0.8) * 0.02 * up;
+    R.r.set(-a, 0, 0);
+    R.s.set(1, 1, 1 + N.stretch * up);
+    pivot(R.p, G, _nq.setFromEuler(R.r), R.s, N.tip);
+  }
+  // the legs: planted, they stay on the ground (turned back against the body's tip), splayed and bent; standing, they
+  // fold in along the needle
+  const b = a0 * (1 - up);
+  for (const n of ['legsA', 'legsB']) {
+    const L = P[n];
+    L.s.set(1 + 0.12 * planted * (1 - up) - 0.85 * up, 1 - 0.5 * up, 1);
+    L.r.set(b, 0, 0);
+    pivot(L.p, _nv.set(mid[0], mid[1] + sink * (1 - up), mid[2]), _nq.setFromEuler(L.r), L.s, mid);
+  }
+  P.head.s.multiplyScalar(1 - 0.3 * up);
+}
+
 const needleWalker = {
   id: 'needleWalker', name: 'needle walker', main: BONE, size: 1.35, height: 0.18, radius: 0.3,
   gait: 'walk', speed: 0.7, cadence: 14, lift: 0.05, stride: 0.06, bob: 0.02, notice: 8, wary: 4,
@@ -254,18 +309,12 @@ const needleWalker = {
     ...insectLegs(0.025, 0.16, [0.12, 0, -0.12], 0.22, BONE, 0.01, 0.1),
   },
   idle(c, P, t) { P.root.r.z += Math.sin(t * 1.6 + c.seed) * 0.06; P.root.p.x += Math.sin(t * 1.6 + c.seed) * 0.01; },
+  // (issue #209: it used to rise straight into the air and turn upright there, the tail's tip off the ground; now it
+  // walks a few steps on, plants itself, the tail's tip set down on the ground, and only then stands up on it)
   trick: {
     name: 'stands up stiff as a tiny needle spire', dur: 9, end: 'recover', sound: 'creak', reach: 2,
-    pose(c, k, P, X) {
-      const up = back(seg(k, 0, 0.15)) * (1 - sm(seg(k, 0.85, 1)));
-      const st = 1 + 1.3 * up;
-      P.root.s.z *= st;
-      P.root.r.x = -1.5 * up + Math.sin(X.t * 0.8) * 0.02 * up;
-      P.root.p.y += (0.45 * st + 0.02) * up;
-      P.root.p.z += 0.17 * up;
-      for (const n of ['legsA', 'legsB']) { P[n].s.x = 1 - 0.85 * up; P[n].s.y = 1 - 0.5 * up; }
-      P.head.s.multiplyScalar(1 - 0.3 * up);
-    },
+    walk: NEEDLE.walk,
+    pose(c, k, P, X) { needlePose(c, k, P, X); },
   },
 };
 
