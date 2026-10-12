@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_5beb975276706c 12
+data/characters/father-v1/provenance.json
+  s_9ca76055a220ed::t_6790e6c1cf37c3 27,52,54-55
+scripts/tripo/rig-baseline.mjs
+  s_9ca76055a220ed::t_b46247ebe3852b 90
+scripts/tripo/slim-father.mjs
+  s_9ca76055a220ed::t_f7a2be9d51f6c8 41-43
+src/changelog-media.js
+  s_9ca76055a220ed::t_fb9fc580a86b73 677
+src/changelog.js
+  s_9ca76055a220ed::t_808cdc794e182f 12-13
+src/ship/hologram.js
+  s_9ca76055a220ed::t_11016365c8c22b 33,478,482,492,508,556,562,672,700,702,747,772-773
+src/story/calls.js
+  s_9ca76055a220ed::t_f9984f51ece328 600,603-604
+tests/finale.test.js
+  s_9ca76055a220ed::t_ecefdaa7bfeeb3 74
+tests/lantern-path.test.js
+  s_9ca76055a220ed::t_3783648d6e0a9f 85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9236fc83f1a2c86f88e59c980c946dd79b1f3b16",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
