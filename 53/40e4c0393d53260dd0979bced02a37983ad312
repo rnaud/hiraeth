@@ -1,0 +1,62 @@
+changelog.md
+  s_9ca76055a220ed::t_c5ffba3c092a85 7-9
+tests/viridel-explorations.test.js
+  s_9ca76055a220ed::t_415a4bd508f773 1-228
+src/temples/edena.js
+  s_9ca76055a220ed::t_1c95e914c05c3e 61
+docs/systems/worlds.md
+  s_1fd8d0e7b02dcf::t_8912cc896068d0 95
+  s_9ca76055a220ed::t_6f67c760aef839 1169-1170,1173-1217
+  s_9ca76055a220ed::t_37bdccdaf46747 96-97
+src/levels/edena.js
+  s_9ca76055a220ed::t_5801be6b91e7da 12-15,33-36,43-47,494-495,622-640,648,652-653,658-665,686,693
+src/story/edena.js
+  s_9ca76055a220ed::t_f6ae2972812a60 10,169-170,224,227
+src/viridel-nursery.js
+  s_9ca76055a220ed::t_1c7a067a62b2f3 1-184
+src/changelog-media.js
+  s_9ca76055a220ed::t_9bf04977ce6618 686-688,709-730
+src/viridel-wrecks.js
+  s_9ca76055a220ed::t_6d6cc6ee740c6a 1-253
+src/changelog.js
+  s_9ca76055a220ed::t_a3cc64acedc360 25-29
+src/temples/edena-data.js
+  s_9ca76055a220ed::t_1fd3fab6a145af 9
+references/levels/Viridel/environment/explorations/README.md
+  s_9ca76055a220ed::t_4a905712a03a47 7-9
+src/story/edena-route.js
+  s_9ca76055a220ed::t_c6468b156e886c 1-55
+src/story/edena-data.js
+  s_9ca76055a220ed::t_6315f67a0e5db3 495-517,551
+src/viridel-stair.js
+  s_9ca76055a220ed::t_51bda530a2509b 1-316
+src/viridel-ways.js
+  s_9ca76055a220ed::t_9a9adadf983ed8 116-118,153-221
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5340e4c0393d53260dd0979bced02a37983ad312",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
