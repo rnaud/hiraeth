@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_00e15d56fdea4f 7
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_d213ba529dbbe1 166-171,175-187
+src/boot.js
+  s_9ca76055a220ed::t_9ce6d4ae865b20 53-56
+src/changelog-media.js
+  s_9ca76055a220ed::t_7eba8dc90b45b9 742-744
+src/changelog.js
+  s_9ca76055a220ed::t_3f0c7e63b10338 32-34
+src/debug-save.js
+  s_9ca76055a220ed::t_10652da8c41344 1-3,28-31,35-38,46-48,55,82-85,213-219,226-237,252-256,258,261-264,267,271
+src/i18n/en.js
+  s_9ca76055a220ed::t_07be28dd7a5924 460-470
+src/i18n/fr.js
+  s_9ca76055a220ed::t_5611ddd71aa7b2 457-467
+src/menus.css
+  s_9ca76055a220ed::t_6e6f99826cee29 122-133
+src/save-slots.js
+  s_9ca76055a220ed::t_bcf4309ab56cb0 38-50
+src/title.js
+  s_9ca76055a220ed::t_664c86a4b80cf4 24-25,136-154,219-220,253-277,297-299,359-364,387
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_9af9ed4aeb72b5 179-181,217-302
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d89b262392a4bccfb6db8e8cb0be53722041a6d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
