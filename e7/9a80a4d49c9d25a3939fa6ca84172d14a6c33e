@@ -1,0 +1,109 @@
+.github/workflows/android.yml
+  s_9ca76055a220ed::t_cd41a021cb6c77 126,136,145,165-166
+.github/workflows/steam-deck.yml
+  s_9ca76055a220ed::t_e0d8d41b33f18f 65-66,89,94,98,115
+android/app/build.gradle
+  s_9ca76055a220ed::t_fc33b163f39d7d 4,7
+android/app/src/main/assets/hiraeth-ext/content.js
+  s_9ca76055a220ed::t_251911cfe780a7 3,8-9,11,15,19-20,23-24,31,40-42,44-45,48,51
+android/app/src/main/assets/hiraeth-ext/manifest.json
+  s_9ca76055a220ed::t_b13685dddf5499 6
+android/app/src/main/java/com/rnaud/hiraeth/AppShell.java
+  s_9ca76055a220ed::t_b87150d876b04f 1,24
+android/app/src/main/java/com/rnaud/hiraeth/AppShellPlugin.java
+  s_9ca76055a220ed::t_a4b472e822e79c 1
+android/app/src/main/java/com/rnaud/hiraeth/AssetServer.java
+  s_9ca76055a220ed::t_5a8e3a436c46b9 1,36,63,68
+android/app/src/main/java/com/rnaud/hiraeth/GamepadBridge.java
+  s_9ca76055a220ed::t_6b0e9ab95bcdfc 1
+android/app/src/main/java/com/rnaud/hiraeth/MainActivity.java
+  s_9ca76055a220ed::t_f05c1db1b2470d 1,59,61,69,75,79-81,110,121,160,243,245,372,377,398
+android/app/src/main/java/com/rnaud/hiraeth/Rumbler.java
+  s_9ca76055a220ed::t_a87a661624793b 1
+android/app/src/main/java/com/rnaud/hiraeth/SaveImport.java
+  s_9ca76055a220ed::t_2ad2e6244ef84e 1,26,30,32-33,36,71,92,96
+android/app/src/main/java/com/rnaud/hiraeth/UpdateRules.java
+  s_9ca76055a220ed::t_e607d02313168a 1
+android/app/src/main/java/com/rnaud/hiraeth/Updater.java
+  s_9ca76055a220ed::t_cafe51c513efba 1,64,75,88,94,99-100,140
+android/app/src/main/java/com/rnaud/hiraeth/WebBundles.java
+  s_9ca76055a220ed::t_4ce68165032f55 1,64,72,79,87,94,101,132,293,338,364,509
+android/app/src/main/java/com/rnaud/hiraeth/WebViewActivity.java
+  s_9ca76055a220ed::t_737d91cbbc24a7 1,45,49,95,125-126,144
+android/app/src/main/res/values/strings.xml
+  s_9ca76055a220ed::t_190ed0a7920c8f 5-6
+android/app/src/test/java/com/rnaud/hiraeth/UpdateRulesTest.java
+  s_9ca76055a220ed::t_eea9a7c7fd19c7 1,72,85,87
+desktop/deck-updates.mjs
+  s_9ca76055a220ed::t_29bb504171a831 3,30,88
+desktop/main.mjs
+  s_9ca76055a220ed::t_9eddc4f3743041 17-19,33,41,49,52,67,75-76,90,99-100,110,118,120,125,129,133,146,152,160,164,176-177,179
+desktop/package-lock.json
+  s_9ca76055a220ed::t_721547aa92019b 2,8
+desktop/package.json
+  s_9ca76055a220ed::t_94b6cc479744e5 2
+docs/cloudflare.md
+  s_9ca76055a220ed::t_bd63138058e684 3-4,56-63,72,134,142,153,157
+docs/steam-deck.md
+  s_9ca76055a220ed::t_0091ec2d6c2b73 14,19,21,23,25,43,45,82,87,97,112,114,118,133-134,136-137,150,154,174-175,193-194,209,214,221-225,227,233,264,270-272
+docs/systems/android.md
+  s_9ca76055a220ed::t_4587e1e8ffce5a 19,24,28-32,73,88,105,135,138,143,166,168,178,181,232,272
+docs/systems/notes.md
+  s_9ca76055a220ed::t_a430103c7e14be 19,22,29-35,43
+scripts/bench/gecko-app/app/build.gradle
+  s_9ca76055a220ed::t_4e2d79b72314b6 7,10
+scripts/bench/gecko-app/app/src/main/assets/ext/content.js
+  s_9ca76055a220ed::t_983cdf8d472e11 7,10,14,19,28-29,31-32
+scripts/bench/gecko-app/app/src/main/assets/ext/manifest.json
+  s_9ca76055a220ed::t_23cc4a53341d7a 6
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/hiraeth/gecko/AssetServer.java
+  s_9ca76055a220ed::t_191ef9bd2975a7 1,25
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/hiraeth/gecko/MainActivity.java
+  s_9ca76055a220ed::t_50e2fdfee040c7 1,29,34,42,100,110,158,168
+scripts/bench/gecko-app/app/src/main/java/com/rnaud/hiraeth/gecko/PadBridge.java
+  s_9ca76055a220ed::t_d09d2fa83fb2e9 1
+scripts/bench/gecko-app/settings.gradle
+  s_9ca76055a220ed::t_ec3dc2bf3a4587 11
+scripts/package-steam-deck.mjs
+  s_9ca76055a220ed::t_f96c7404b94d6b 29,35,38,46
+scripts/release-info.mjs
+  s_9ca76055a220ed::t_e9ff256967dc54 18,135-137,149,156,158,186-187
+scripts/steam-deck/deck.py
+  s_9ca76055a220ed::t_420c293e9764e9 8,44,48,53,55,60,178,200,243,281,309,399,428,456,542-543,545,550,552,554,619,766-767,941,957-958,967,1088,1112,1123,1152-1153,1246
+scripts/steam-deck/release-notes.md
+  s_9ca76055a220ed::t_697df0dfb3c3a6 6,14,18
+tests/test_steam_deck.py
+  s_9ca76055a220ed::t_e6f8c603d31e92 40,53,57,110,216,228-229,324,338,343,453-454,459,461,488,509,521,532-533,539,543,546,552,584,587-588,623,664-665,724,782,785,798,803,805-806,830,833,856-857,875,949,958
+wrangler.jsonc
+  s_9ca76055a220ed::t_319e3995123e6f 3
+xbox/Hiraeth/MainPage.xaml.cs
+  s_9ca76055a220ed::t_7a3e9844712d3d 6-7,186,228,297,299,327-328
+xbox/Hiraeth/WebBundles.cs
+  s_9ca76055a220ed::t_482f20b8198a03 8,38
+.github/workflows/cloudflare.yml
+  s_624a5201fad5b3::t_8722a10ed85327 62,72,97-99,105-115,118-121,126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e79a80a4d49c9d25a3939fa6ca84172d14a6c33e",
+  "prompts": {},
+  "sessions": {
+    "s_624a5201fad5b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a14e7d5cb201884b1",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,413 @@
+.agents/skills/hiraeth-ai-characters/SKILL.md
+  s_9ca76055a220ed::t_3e664212c10d23 2-3,6,10
+.agents/skills/hiraeth-ai-characters/agents/openai.yaml
+  s_9ca76055a220ed::t_efda1fefd2cb52 2,4
+.agents/skills/hiraeth-ai-characters/references/repo-map.md
+  s_9ca76055a220ed::t_36c9acc4502135 3
+.claude/launch.json
+  s_9ca76055a220ed::t_7b95cc270df57e 4
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_775c440b766c3a 229-231,234
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_8c994f51828eb2 121-123,128
+.claude/skills/combat-review/defend.mjs
+  s_9ca76055a220ed::t_2bf0650de5315d 51-53,55
+.claude/skills/combat-review/dodge.mjs
+  s_9ca76055a220ed::t_d935700aaf5be1 46-48,50
+.claude/skills/game-audit/capture.mjs
+  s_9ca76055a220ed::t_d388c56f6bba24 10,59-61,66
+.claude/skills/ink-lines/capture.mjs
+  s_9ca76055a220ed::t_3f72a911c1e99b 250-252,255
+.claude/skills/ink-lines/cost.mjs
+  s_9ca76055a220ed::t_cd05e3ae5ee0e5 52-53,55
+.claude/skills/motion-qc/run.mjs
+  s_9ca76055a220ed::t_b78c7188d516db 149-151,154
+.claude/skills/perf-audit/fps.mjs
+  s_9ca76055a220ed::t_4f71385e4816b9 100-102,107
+.claude/skills/shadow-qc/run.mjs
+  s_9ca76055a220ed::t_8f58e08215e524 266-268,271
+.claude/skills/visual-audit/probes.mjs
+  s_9ca76055a220ed::t_cbfb9c98cfd736 326-328,334
+.claude/skills/visual-audit/views.mjs
+  s_9ca76055a220ed::t_6cfd3b513b0062 79-81,84
+CLAUDE.md
+  s_9ca76055a220ed::t_63d289b588e128 3,55
+DONE.md
+  s_9ca76055a220ed::t_d83c1eacda5f4a 387,432,440,1094,1097,2124,2715
+README.md
+  s_9ca76055a220ed::t_cb813423515d0b 3-4,9,12,16,69
+capacitor.config.json
+  s_9ca76055a220ed::t_4f09e36fc6ed32 2
+changelog.md
+  s_9ca76055a220ed::t_11591bc2512d60 7
+docs/archive/retroid-measurements.md
+  s_9ca76055a220ed::t_dd408a9254b157 13,93-94
+docs/audits/game-v1.0.md
+  s_9ca76055a220ed::t_7cc883cd8e4bdc 246
+docs/audits/visual-v1.0.md
+  s_9ca76055a220ed::t_aba975cb5067f4 74-75
+docs/benchmark-web-vs-unity.md
+  s_9ca76055a220ed::t_568bc9fe1ac49f 30,70,80,82,190,201,393
+docs/makehuman.md
+  s_9ca76055a220ed::t_2deea274cd8161 194
+docs/systems/animation.md
+  s_9ca76055a220ed::t_040f1f30a85327 761
+docs/systems/audio.md
+  s_9ca76055a220ed::t_09db1558a70a1d 269
+docs/systems/changelog.md
+  s_9ca76055a220ed::t_4aee57df7e3868 133
+docs/systems/characters.md
+  s_9ca76055a220ed::t_960a8219c3e8a0 5,217,340,828
+docs/systems/controls.md
+  s_9ca76055a220ed::t_579c6f8219c7e8 327
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_0fd64e748939e6 33,149
+docs/systems/living-world.md
+  s_9ca76055a220ed::t_6a2ef546153bcf 37
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_576ab4387adbf6 277
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_302741aaa380af 81
+docs/systems/performance.md
+  s_9ca76055a220ed::t_0a29f5d3c37792 465,687,692,741,760,768,947,1554,1650,1786,1868,1907,1944,1968,1989,2001
+docs/systems/platforms.md
+  s_9ca76055a220ed::t_7678134108343f 9,11,16
+docs/systems/ui.md
+  s_9ca76055a220ed::t_1058d866351998 9,112,160,207,300-302,480,730
+docs/systems/water.md
+  s_9ca76055a220ed::t_636e8bf6b65b51 176-178,180
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_edc207f5989158 31-34,62,390,399,421,431,433,451,453,457,462,726-727,731
+godot/main.js
+  s_9ca76055a220ed::t_dd7bb7a1bae1a8 15
+midjourney-level-prompts.txt
+  s_9ca76055a220ed::t_de6ada8bd10ff2 1
+package-lock.json
+  s_9ca76055a220ed::t_c9ead4a07b3700 2,8
+package.json
+  s_9ca76055a220ed::t_5d18ad9bd8165e 2
+public/_headers
+  s_9ca76055a220ed::t_b6909e2604afac 2
+references/archive/world-enemies/ENEMIES.md
+  s_9ca76055a220ed::t_49ddfd700d7dd9 19
+scripts/bench/android-bridge.sh
+  s_9ca76055a220ed::t_992bbcbee7a2de 3,9-10,16-17,68
+scripts/bench/android-engines-summary.mjs
+  s_9ca76055a220ed::t_79d2523b1904db 40
+scripts/bench/android-engines.mjs
+  s_9ca76055a220ed::t_827cbae61e91f1 5,8,30-31,45-46,67,70,370,421,424
+scripts/bench/android-gecko-summary.mjs
+  s_9ca76055a220ed::t_d616a5e356d320 29
+scripts/bench/android-pad.mjs
+  s_9ca76055a220ed::t_f3c76eecdeeeb2 1,8,19,22,43-45,49
+scripts/bench/android-run.sh
+  s_9ca76055a220ed::t_222b37587195a9 10-11,19-21
+scripts/bench/android-summary.mjs
+  s_9ca76055a220ed::t_4b2d8a4d9bffc2 21
+scripts/bench/android-web.mjs
+  s_9ca76055a220ed::t_8d0293f8e45351 43-44
+scripts/bench/android-worlds-summary.mjs
+  s_9ca76055a220ed::t_9cee6861e25463 21
+scripts/bench/android-worlds.mjs
+  s_9ca76055a220ed::t_43108bd2408449 2,25,39,59,131-133,305-306
+scripts/bench/browser.mjs
+  s_9ca76055a220ed::t_a5a7732fa02ba9 49
+scripts/bench/deck-pen.mjs
+  s_9ca76055a220ed::t_5a38d3d062ce41 52-53,64,67
+scripts/bench/deck-run.sh
+  s_9ca76055a220ed::t_ae25ad5c703faa 7,10,12,23,26-28,31,34,37,43
+scripts/bench/deck-worlds.mjs
+  s_9ca76055a220ed::t_21f8c2da6ac24a 29,166-167,173
+scripts/bench/gecko-apk.sh
+  s_9ca76055a220ed::t_6e0fdbbb6f0d9b 3,6-7,16,29
+scripts/bench/lib.mjs
+  s_9ca76055a220ed::t_1da12b442f3e48 70,84,86
+scripts/bench/mac-run.sh
+  s_9ca76055a220ed::t_bcc1e72a60f98e 17,19-20
+scripts/bench/mac-spawn.mjs
+  s_9ca76055a220ed::t_fd9aa2d7bc75f3 53-55,58
+scripts/bench/passes.mjs
+  s_9ca76055a220ed::t_6b10b5e27d989d 69
+scripts/bench/report.mjs
+  s_9ca76055a220ed::t_649dc495718286 29,186
+scripts/bench/results/android-gecko.json
+  s_9ca76055a220ed::t_22f337c162e26f 2,108,114,251,383,389,7731,7737,7801,7875,7881,7955,7961,8041,8099,8105,8169,8243,8249,8329,8387,8393,8457,8531,8537,8617
+scripts/bench/results/android-webview-vs-chrome.json
+  s_9ca76055a220ed::t_0e2bb1cce71760 2,112,3785,3943,4069,4227,4353,4511,4719
+scripts/bench/results/android-worlds-round4.json
+  s_9ca76055a220ed::t_d70b5a8bc98649 2
+scripts/bench/results/android-worlds.json
+  s_9ca76055a220ed::t_ab8e857a9b9ba9 2
+scripts/bench/rooms.mjs
+  s_9ca76055a220ed::t_40d2cf77df7696 30
+scripts/bench/run-all.mjs
+  s_9ca76055a220ed::t_9fa380f867ae38 29,31,111
+scripts/bench/serve.mjs
+  s_9ca76055a220ed::t_1c6930e6738dd2 3-4,47
+scripts/bench/traveller.mjs
+  s_9ca76055a220ed::t_ebdd3810f757fc 62,65
+scripts/bench/viewpoints.json
+  s_9ca76055a220ed::t_04f71bd6bc38be 2
+scripts/bench/viewpoints.mjs
+  s_9ca76055a220ed::t_4ecab37a3bbc94 120
+scripts/bench/web-bench.mjs
+  s_9ca76055a220ed::t_84039379b428df 45,48
+scripts/bench/web-load.mjs
+  s_9ca76055a220ed::t_9309729364734c 30,44,68,78
+scripts/bench/web-page.mjs
+  s_9ca76055a220ed::t_59c5ba4a0ee2e2 11-12
+scripts/bench/webview-apk.sh
+  s_9ca76055a220ed::t_0ecce5c2673f15 4,8-9,19-20,22,33,36
+scripts/changelog-shots.mjs
+  s_9ca76055a220ed::t_eb8ab7a95b4304 73,108-110,152,279
+scripts/character-quality-shots.mjs
+  s_9ca76055a220ed::t_7e3ac7327c5f4d 12
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_14e909b03cca59 282,304
+scripts/deck-runtime.mjs
+  s_9ca76055a220ed::t_4ee6cd0f1b161d 101
+scripts/design-qc/capture.mjs
+  s_9ca76055a220ed::t_483a0dfef96cbd 79-81,83
+scripts/enemy-quality-shots.mjs
+  s_9ca76055a220ed::t_0689109845cee5 12
+scripts/enemy-roster/bench.mjs
+  s_9ca76055a220ed::t_b0205b1dd2cb32 45-47,49
+scripts/handheld-perf/bench.mjs
+  s_9ca76055a220ed::t_0a4b34b75639fa 29
+scripts/handheld-perf/lib.mjs
+  s_9ca76055a220ed::t_ba99a2daeba996 100,104,106
+scripts/handheld-perf/measure.mjs
+  s_9ca76055a220ed::t_99b10b15addc15 32-33
+scripts/icons.mjs
+  s_9ca76055a220ed::t_28f4b765f26d88 127-129,133
+scripts/item-pictures.mjs
+  s_9ca76055a220ed::t_42f592f1e2e31e 22
+scripts/lab-perf/lab-perf.mjs
+  s_9ca76055a220ed::t_13275c91624b29 133-134,137
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_9480d38ace42e7 250-252,268,328
+scripts/load-smoke.mjs
+  s_9ca76055a220ed::t_60e785f9c61170 124-126
+scripts/mocap/glb.js
+  s_9ca76055a220ed::t_fe65db5eac8da8 67
+scripts/motion-audit/lod-page.mjs
+  s_9ca76055a220ed::t_de60b8fd88e062 86,89
+scripts/motion-audit/shimmer.mjs
+  s_9ca76055a220ed::t_4ee840907b7f44 103,106
+scripts/motion-check/record.mjs
+  s_9ca76055a220ed::t_9309a1ac4c0af9 27,81-82,86
+scripts/motion-check/survey.sh
+  s_9ca76055a220ed::t_8d08aae606eed1 5
+scripts/playthrough-browser.mjs
+  s_9ca76055a220ed::t_2736c87bec2c6d 33,46,88,94,139,145
+scripts/portrait-check.mjs
+  s_9ca76055a220ed::t_fb022e1cfbbefb 25,32,46,61
+scripts/render-score.mjs
+  s_9ca76055a220ed::t_0d956ba18ffd64 47
+scripts/steam-art.mjs
+  s_9ca76055a220ed::t_367fd6a841b1cf 73-75,78
+scripts/title-boot.mjs
+  s_9ca76055a220ed::t_352283f8eebcab 62-65,80
+scripts/title-perf.mjs
+  s_9ca76055a220ed::t_31e06744601230 67-68
+scripts/title-shots.mjs
+  s_9ca76055a220ed::t_5fa91a42b3f527 43-44
+scripts/transition-perf/loading.mjs
+  s_9ca76055a220ed::t_6e8add4f3ec6dd 45,47,83-84,87,92,126
+scripts/transition-perf/pen-android.mjs
+  s_9ca76055a220ed::t_43bbb43dedbd17 2,9,24,30,34,63-64,78
+scripts/transition-perf/pen.mjs
+  s_9ca76055a220ed::t_67775f20417294 54-55,65
+scripts/transition-perf/transitions.mjs
+  s_9ca76055a220ed::t_9ffa3a3b5cab5c 240-241,245
+scripts/web-update.mjs
+  s_9ca76055a220ed::t_a760858048334a 25
+scripts/world-thumbs.mjs
+  s_9ca76055a220ed::t_c27c57cb38931d 39
+scripts/xbox-devtools.mjs
+  s_9ca76055a220ed::t_b33f71d0317a38 97
+scripts/xbox-package.mjs
+  s_9ca76055a220ed::t_c7503f67948281 90
+src/audio-guard.js
+  s_9ca76055a220ed::t_1b58b5e4d3bfa6 10,20,35,89-90
+src/audio.js
+  s_9ca76055a220ed::t_de8e0ddcbc0b40 195,635
+src/bindings.js
+  s_9ca76055a220ed::t_917688849e2aa0 126
+src/changelog-media.js
+  s_9ca76055a220ed::t_6763fcc4e01807 444
+src/changelog-page/main.js
+  s_9ca76055a220ed::t_3123f9fbf46c91 197
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_5ab6f02cc7580a 45
+src/debug-save.js
+  s_9ca76055a220ed::t_d0688da66af26d 234-235
+src/dev-gate.js
+  s_9ca76055a220ed::t_7931a431488fe6 5,10
+src/first-run.js
+  s_9ca76055a220ed::t_29b2068bcdc2b0 14
+src/game-state.js
+  s_9ca76055a220ed::t_6375282a10a142 71
+src/input-mode.js
+  s_9ca76055a220ed::t_c25443868bf151 9
+src/issue-draft.js
+  s_9ca76055a220ed::t_0d5172be7924c6 15
+src/levels/reference-sheets.js
+  s_9ca76055a220ed::t_863eb82b3c71bf 4,7,15
+src/loco-moves.js
+  s_9ca76055a220ed::t_1766907eeca454 23
+src/main.js
+  s_9ca76055a220ed::t_ef206c5e088ccc 2346
+src/makehuman/shape.js
+  s_9ca76055a220ed::t_febd64d1027672 131,143
+src/minigames/rings.js
+  s_9ca76055a220ed::t_53d5084bea1e5d 249
+src/motion-match.js
+  s_9ca76055a220ed::t_3f3cb81b81f82e 116
+src/music-store.js
+  s_9ca76055a220ed::t_46a96614ec7228 34,92
+src/native-app.js
+  s_9ca76055a220ed::t_042ab636522648 6,13,24,26,43,63-64,96,117,132
+src/native-pad.js
+  s_9ca76055a220ed::t_289715c3e440b6 65,123,135,137
+src/notes-page/main.js
+  s_9ca76055a220ed::t_12caafd1cd4b57 19
+src/perf.js
+  s_9ca76055a220ed::t_78841a17f5289a 523
+src/portrait-cache.js
+  s_9ca76055a220ed::t_12aacdb61673c4 13
+src/quest.js
+  s_9ca76055a220ed::t_dc20972a6c7a16 20
+src/reactive-world.js
+  s_9ca76055a220ed::t_7eb25cf3dc5673 222
+src/save-slots.js
+  s_9ca76055a220ed::t_f3194b0b1e186c 4,8,19,35,38,40,42,45,93,154-156
+src/story/arzach2.js
+  s_9ca76055a220ed::t_b26bf7a8a7cc16 49
+src/title-shots.js
+  s_9ca76055a220ed::t_62141ba3511da3 29
+src/title-world.js
+  s_9ca76055a220ed::t_be5e8905b47b97 134
+src/title.js
+  s_9ca76055a220ed::t_af87e282c75713 450,470
+src/ui.js
+  s_9ca76055a220ed::t_cfe71d56db1011 22-23,29-30
+src/update-panel.js
+  s_9ca76055a220ed::t_eb982f69f5de26 50
+src/world-picker.js
+  s_9ca76055a220ed::t_7ae4ab13e88b05 201
+src/xbox.js
+  s_9ca76055a220ed::t_0b92b29c8e015e 12,14,22,60
+tests/accessibility.test.js
+  s_9ca76055a220ed::t_ff59d130886880 236
+tests/android-bridge.test.js
+  s_9ca76055a220ed::t_434e93f52baacc 18,23,32-33,36
+tests/android-gecko.test.js
+  s_9ca76055a220ed::t_6b3a69009ca083 9,52,58-59,62,70-71,104,113,116,118,120-122,129
+tests/android-ota.test.js
+  s_9ca76055a220ed::t_47ea53b530e37f 12,56,67,71,90,214
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_be609e2d071f9d 221,231
+tests/audio-guard.test.js
+  s_9ca76055a220ed::t_37590a5e29a8ba 24,40,42,45,50,54,62,66,74,82,112,118,145
+tests/cape-job.test.js
+  s_9ca76055a220ed::t_219dfc5d072dda 95
+tests/changelog-media.test.js
+  s_9ca76055a220ed::t_b63481ce824220 137,139
+tests/cinematics-page.test.js
+  s_9ca76055a220ed::t_f457a2836d44b5 20-22,24
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_0110ad3ec89c83 188-191,196,200,207,209
+tests/deck-runtime.test.js
+  s_9ca76055a220ed::t_7e8643f33befed 27
+tests/deck-updates.test.js
+  s_9ca76055a220ed::t_366f8f94eba509 110,112,116
+tests/dialogue-legibility.test.js
+  s_9ca76055a220ed::t_33fa1b3c75e663 15
+tests/engine-bridge.test.js
+  s_9ca76055a220ed::t_92520505be1a55 41,43,48,373,392,471,487
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_0f3ab9771e1603 140,202,229,270
+tests/finale.test.js
+  s_9ca76055a220ed::t_dc1b125f5ee94c 207
+tests/first-run.test.js
+  s_9ca76055a220ed::t_242315c6e07c2f 26,33
+tests/hud.test.js
+  s_9ca76055a220ed::t_f7963a185efead 162
+tests/menus.test.js
+  s_9ca76055a220ed::t_6d312d5b84915d 65
+tests/music-store.test.js
+  s_9ca76055a220ed::t_cff5bc297833b1 16
+tests/native-app.test.js
+  s_9ca76055a220ed::t_f7b00c22a52e29 9-10,17,19,21-22,44,66,83,86
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_d94156ac24452d 127,243
+tests/platform.test.js
+  s_9ca76055a220ed::t_2badc5afa7f4de 28-31
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_62b215ffe1e772 73
+tests/pose-exact.test.js
+  s_9ca76055a220ed::t_48fe4b6bf647c6 28,34,46
+tests/pose-walks.test.js
+  s_9ca76055a220ed::t_def8e863d790d8 32,40
+tests/prompt-pairs.test.js
+  s_9ca76055a220ed::t_573b1425ccfb00 59,63,100,103
+tests/quality.test.js
+  s_9ca76055a220ed::t_2d837c0ab9961c 116
+tests/reference-paths.test.js
+  s_9ca76055a220ed::t_7b69d9b24b1e03 81
+tests/reference-sheets.test.js
+  s_9ca76055a220ed::t_135f8ba53f1a7d 23
+tests/references-site.test.js
+  s_9ca76055a220ed::t_4d6b89ea7a4f9f 92
+tests/route-ilen.test.js
+  s_9ca76055a220ed::t_78d09cf6359507 113
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_976e1ad2ddf61b 51,55
+tests/save-slots.test.js
+  s_9ca76055a220ed::t_34378c81d0f78a 12-17,21-22,33-34,36,38,74-75,104,107,111
+tests/title-paint.test.js
+  s_9ca76055a220ed::t_47d6f43be7d190 201,204-207,210,212,214-216
+tests/title-shots.test.js
+  s_9ca76055a220ed::t_d541a43066a21b 68-69
+tests/title-world.test.js
+  s_9ca76055a220ed::t_b64ecdcb34d011 44-46,48-49,51-57,62
+tests/updates.test.js
+  s_9ca76055a220ed::t_b3aacd059fd588 8
+tests/web-update.test.js
+  s_9ca76055a220ed::t_9be2a599ae85d2 38,75,113
+tests/xbox.test.js
+  s_9ca76055a220ed::t_8901116492e898 180,239,241
+tools/ink-bench.mjs
+  s_9ca76055a220ed::t_73b2181e9b5b94 26
+tools/ink-shots.mjs
+  s_9ca76055a220ed::t_10ec84f9ce540c 34
+vite.config.js
+  s_9ca76055a220ed::t_ce258b13347372 11
+src/changelog.js
+  s_624a5201fad5b3::t_b42aa085ac55a2 22-24,2674,2701
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30c8329d49257725aeb7a48851e19e0939addd05",
+  "prompts": {},
+  "sessions": {
+    "s_624a5201fad5b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a14e7d5cb201884b1",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
