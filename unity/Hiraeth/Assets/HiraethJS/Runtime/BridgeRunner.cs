@@ -114,7 +114,19 @@ namespace Hiraeth.Bridge
             try
             {
                 var file = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "hiraeth.cjs");
-                code = StreamingFile.Read(file);
+                // (-bundle <file>: another bundle, a test of a change to the script alone without a new build: on the Xbox
+                // LocalState's (`ls.mjs put`), elsewhere the working directory's; the packaged one when it is not there)
+                if (BridgeArgs.Arg("-bundle") is string alt)
+                {
+#if UNITY_WSA && !UNITY_EDITOR
+                    var other = Path.IsPathRooted(alt) ? alt : Path.Combine(Application.persistentDataPath, alt);
+#else
+                    var other = Path.GetFullPath(alt);
+#endif
+                    if (File.Exists(other)) file = other;
+                    Debug.Log($"Hiraeth bridge: -bundle {alt}: {(file == other ? "read" : "not there, the packaged one")}");
+                }
+                code = file.Contains("://") ? StreamingFile.Read(file) : File.Exists(file) ? File.ReadAllBytes(file) : null;
                 if (code == null) throw new FileNotFoundException($"no bundle: node scripts/engine-bundle.mjs unity ({file})");
                 Debug.Log($"Hiraeth bridge: started {Time.realtimeSinceStartup * 1000:0} ms after launch; the bundle {code.Length / 1e6:0.0} MB");
             }
