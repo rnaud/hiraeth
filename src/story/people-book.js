@@ -430,6 +430,10 @@ export const BOOK = {
       'Perrine pours halfway tea in the middle levels, where everyone passes and nobody stays. Her mother put up the mirror that threw a coin of the Lodestar’s light down to the bottom.',
       [done('incal.mirror'), 'The mirror faces up the shaft again.'],
     ], ['At her tea stall where the lamplighters’ drops land, halfway down.']),
+    P('abel', 'Abel', 'Rings the bell quarter’s bells', [
+      'Abel rings the bell quarter’s bells by hand when the rising air won’t. Since the night the sky rang, the mirror beside his terrace throws the sun at his wall instead of down to the bottom.',
+      [f('incal.beam.lit'), 'The light goes all the way down again. He rang every bell for it.'],
+    ], ['On the bell quarter’s upper terrace, by the first of the mirrors.']),
     P('lio', 'Lio', 'Dispatches the City-Shaft’s cabs', [
       'Lio dispatches nine hundred cabs, which stop for passes, not people, and never below the smog. When the sky rang, every compass in them failed at once.',
       [done('incal.pass'), 'Lio’s last cab pass was in Tobin’s pocket, never paid for. It is yours now.'],

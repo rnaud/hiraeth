@@ -21,7 +21,7 @@ import { batchParts } from '../part-batch.js';
 import { DROPS, DROP_RING, buildShaftWays } from '../shaft-ways.js';
 import { HALFWAY } from '../story/halfway.js';
 import { ShaftPillars, PILLARS } from '../shaft-pillars.js';
-import { Veils } from '../veil.js';
+import { Veils, LightShaft } from '../veil.js';
 import { buildShaftQuarters, balconySpots, balconyGap, quarterAt } from '../shaft-quarters.js';
 import { buildShaftMirrors, mirrorRailGaps, BEAM_END, MIRRORS } from '../shaft-mirrors.js';
 
@@ -1065,6 +1065,25 @@ export function* buildIncal(scene) {
   })();
   for (const l of quarters.lod) lod.push(l);
   quarters.root.traverse((o) => { if (o.isMesh) small.push(o); });   // (small props: left out of the far shadow cascade)
+  // the Lodestar's light on Nima's steps (issue #182: the way down from the palace's crown to her was blind). Once it burns
+  // again (the story's applyLit: `lit`), a shaft of it falls from the light onto her corner of the high terrace and lies
+  // there in a gold pool, seen from the crown and the palace's ring all the way down. The audit reads it as a leading line.
+  const nimaLight = (() => {
+    const top = incalRig.pos.clone(), foot = places.nima.clone();
+    const shaft = new LightShaft(veils, scene, { color: '#f2c54b', alpha: [0.1, 0.18], inner: 0.45, near: 6 });
+    shaft.set(top, 2.5, foot, 5.5);
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(5.5, 28).rotateX(-Math.PI / 2), makeMaterial({ color: '#f2c54b', flat: true, glow: 0.45, key: 'incal.nima.pool' }));
+    pool.material.polygonOffset = true; pool.material.polygonOffsetFactor = -1; pool.material.polygonOffsetUnits = -2;
+    pool.position.copy(foot).add(new THREE.Vector3(0, 0.05, 0));
+    pool.userData.noCollide = true; pool.castShadow = false; pool.name = 'The Lodestar’s light on Nima’s steps';
+    scene.add(pool);
+    const show = (v) => { shaft.visible = v; pool.visible = v; };
+    show(false);
+    // (the line the eye follows: from the light down to where her terrace is in plain sight, 70 m over it; from her steps
+    // on, the way is the red stair's, and the audit must not read this as leading away from her)
+    const k = 1 - 70 / top.distanceTo(foot);
+    return { top, foot, line: Array.from({ length: 13 }, (_, i) => top.clone().lerp(foot, (k * i) / 12).toArray()), get lit() { return pool.visible; }, set lit(v) { show(!!v); } };
+  })();
   // no tree on a mirror's gangway, on the lit square, nor where a balcony joins the promenade
   {
     const keep = [...mirrors.clear, ...quarters.balconies.map((b) => ({ x: Math.cos(b.a) * (b.r0 + 3), y: b.y, z: Math.sin(b.a) * (b.r0 + 3), r: 5 }))];
@@ -1236,7 +1255,7 @@ export function* buildIncal(scene) {
     // the rising air the wings ride (the trials' course check: src/trials/check.js)
     columns: pillars.pillars.map((c) => ({ x: c.x, z: c.z, r: c.w, foot: c.foot, top: c.top })),
     // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Lodestar
-    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways, pillars, mirrors, quarters },
+    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways, pillars, mirrors, quarters, nimaLight },
     // the Lodestar hangs over the open shaft, seen from every terrace that looks up (the story is about looking up), but
     // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
     beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
@@ -1252,7 +1271,10 @@ export function* buildIncal(scene) {
     { name: 'the cab home', points: ways.rank.ride, auto: false, ride: 20 },
     // (issue #169: the sun's beam, from the great mirror on the rim across the shaft and down the bell quarter's mirrors
     //  to the lit square, the way the light-down errand's words send you)
-    { name: 'the sun’s beam', points: mirrors.line, auto: false }],
+    { name: 'the sun’s beam', points: mirrors.line, auto: false },
+    // (issue #182: and once it burns again, the Lodestar's light falling on Nima's steps, seen from the crown: the way down
+    //  to her after the light, followed by eye, not walked along)
+    { name: 'the Lodestar’s light on Nima’s steps', points: nimaLight.line, auto: false }],
     // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pads and relay lamp, Tobin's view pad
     sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, { name: 'the cab rank', at: ways.rank.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : []),
       // (issue #169: each quarter's own sight by the walk, and the great mirror on the rim; issue #174: and the four mirror

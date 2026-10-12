@@ -722,6 +722,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'desert-armcrown', title: 'The arm’s verse', caption: 'From the dry wash’s bed under the giant’s arm: after, its verse stone, brazier and a little cairn up on its crown over the middle of the wash (before, on the elbow over the bank, out of sight)', from: QC54,
         view: { level: 'desert', hour: 10, fov: 60, eye: [676, 19.6, 22], target: [652, 27.5, 47], player: [679, 17.6, 19] } },
     ], see: 'Ride out from Marrow’s hollow toward the Givers’ Hearth: past the skiff’s anchor, the ledge starts on the sand at the mesa’s west foot. Hold RT / R2 up it, or walk, to the platform by the sandfall’s lip, and press A / × to look out. On the giant’s arm, the verse is read on its crown, halfway across.' },
+    { match: 'In the City-Shaft, Abel rings the bell quarter’s bells', shots: [
+      { name: 'shaft-nimalight', title: 'Nima’s steps', caption: 'From the palace’s ring under the crown, the Lodestar lit, looking down to the high terrace: after, a shaft of its light falling on Nima’s corner and lying there in a gold pool', from: QC54,
+        view: { level: 'incal', hour: 10, fov: 60, eye: [24, 334, 36], target: [112, 150, 166], player: [28, 321, 42], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'incal.lit': true, 'quest.incal.light': 'tell', 'item.glider': 1 }, keepsakes: [] } } },
+      { name: 'shaft-abelnear', only: 'after', title: 'Abel', caption: 'On the bell quarter’s upper terrace: Abel, in his green cap, by the gangway out to the first mirror the sun stops at (its deck on the left)', from: QC54,
+        view: { level: 'incal', hour: 10, fov: 50, eye: [-200.5, 95.2, -37.5], target: [-211.2, 93.2, -33.9], player: [-216, 92.5, -24] } },
+    ], see: 'In the City-Shaft, glide or ride down to the bell quarter’s upper terrace, under the red banners across the shaft from the ship: Abel is by the first mirror’s gangway. Light the Lodestar from the palace’s crown, then look down toward the red stair: the gold light lies on Nima’s steps.' },
   ],
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [

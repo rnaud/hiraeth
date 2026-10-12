@@ -170,11 +170,13 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   assert.equal(game.flag('incal.dov.allowed'), true);
   assert.equal(quests.stage('incal.light'), 'look');
   // stand on the crown and look up: the splinter goes home and the light burns
+  assert.equal(S.nimaLight.lit, false, 'no light on Nima’s steps yet');
   at(P.palace.crown.clone());
   step(45, 1 / 30, S.incal.pos);
   assert.ok(W.state.release || game.flag('incal.lit'), 'looking up sends the splinter home');
   step(150, 1 / 30, S.incal.pos);
   assert.equal(game.flag('incal.lit'), true);
+  assert.equal(S.nimaLight.lit, true, 'and a shaft of it falls on Nima’s steps (issue #182)');
   assert.ok(!quests.has('splinter'));
   assert.equal(quests.stage('incal.light'), 'tell');
   step(200, 1 / 20);
@@ -376,4 +378,25 @@ test('the middle levels: Perrine’s halfway stall, its mirror washed and turned
   const said = [];
   for (let i = 0; i < 6 && !r2.ended; i++) { said.push(r2.text); if (!r2.advance()) break; }
   if (quests.isDone('incal.light')) assert.match(said.join(' '), /coin of light has come back on Behla’s wall/);
+});
+
+// (issue #182) The light's first mirror stood 164 m from anything, and the way down from the crown to Nima was blind.
+test('Abel rings the bells by the first mirror the light stops at; the Lodestar’s light falls on Nima’s steps, seen from the crown', () => {
+  const up = S.mirrors.places.find((m) => m.id === 'upper'), abel = W.people.abel;
+  assert.ok(abel, 'Abel is there');
+  const d = abel.pos.distanceTo(up.deck);
+  assert.ok(d < 13, `beside its gangway, ${d.toFixed(1)} m from the deck: near enough that the errand starts as you talk to him`);
+  stand(abel.pos, 'Abel');
+  // a word on the mirror, no errand of his: the mirror's own starts as you come near it
+  const r = talk(PEOPLE.abel, ['Why at the wall', 'I’ll have a look']);
+  assert.ok(r.ended && !quests.def('incal.beam')?.stages.some((s) => s.at === 'abel' || s.talk === 'abel'));
+  at(abel.pos.clone()); step(2);
+  assert.ok(quests.isStarted('incal.beam'), 'standing with Abel is standing by the mirror: the light’s errand starts');
+  // the light on Nima's steps: from the Lodestar to her corner, a line the eye follows down from the crown
+  const L = S.nimaLight, line = level.lines().find((l) => l.name === 'the Lodestar’s light on Nima’s steps');
+  assert.ok(line && line.auto === false, 'a leading line, looked along, not walked');
+  assert.ok(L.foot.distanceTo(P.nima) < 1 && L.top.distanceTo(S.incal.pos) < 1, 'from the light to her corner');
+  const near = (q) => Math.min(...line.points.map((p) => q.distanceTo(V(...p))));
+  assert.ok(near(P.palace.crown) < 60, `it passes ${near(P.palace.crown).toFixed(0)} m from the crown`);
+  assert.ok(near(P.nima) < 75 && near(P.nima) > 60, 'and is followed down until her terrace is in plain sight (not from her steps: the red stair leads on from there)');
 });

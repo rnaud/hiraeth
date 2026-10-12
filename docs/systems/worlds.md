@@ -528,6 +528,18 @@ The errand `incal.beam` starts near a mirror; the scout finds the mirror the lig
 standing in it ends it. The beams are a wash each (src/veil.js LightShaft) and a thin core, faded by night. The audit
 reads the chain as a line (`the sun’s beam`, followed where the errand names it). `tests/shaft-mirrors.test.js`.
 
+**Abel and Nima's light** (v1.54, issue #182, the v1.53 audit). The upper mirror, where the light first stops, stood
+164 m from any other place, and nothing on the way brought you near it: Abel, who rings the bell quarter's bells by
+hand when the air won't, walks the promenade beside its gangway (`PEOPLE.abel`, spawned in `src/story/incal.js` 4–7 m
+round from it), close enough that talking to him starts the errand. He has no errand of his own: a word on why the
+mirror throws the sun at his wall, and one once the light is down. And the walk down from the palace's crown to Nima
+on the high terrace saw neither her nor a landmark by her (the palace's own dome and ring hide the terraces from the
+crown): once the Lodestar burns (`applyLit`), a shaft of its light (a LightShaft, gold) falls from it onto her corner
+and lies there in a gold pool (`shaft.nimaLight`, `src/levels/incal.js`). The audit reads it as a line (`the Lodestar’s
+light on Nima’s steps`, `auto: false`) from the light down to 70 m over her terrace, where it is in plain sight (so
+the legs from her steps stay the red stair's). Crown → Nima: blind → leading line; no loner in the shaft; guided
+89 → 100 %. `tests/story-incal.test.js`.
+
 ## Vael's ways home (level design audit v1.15)
 
 Both walks back were the way you came (`src/vael-ways.js`, no rng):

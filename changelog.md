@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.54 — 2026-10-12
 
+- In the City-Shaft, Abel rings the bell quarter’s bells on the terrace by the first mirror the sun stops at, and has a word about why it throws the light at his wall. Once the Lodestar burns again, a shaft of its light falls on Nima’s steps on the high terrace, gold, so from the palace’s crown you can see where she is.
 - In the Desert, a ledge now winds up the lavender mesa where sand pours over the ride out, from the sand to a lookout beside the fall’s lip, 40 m up: walk it or ride the hoverbike up it, and look out over the ride and the giants down the dry wash. The giant’s arm has its verse stone up on its crown, over the middle of the wash, where you ride across high over the riverbed.
 - In the Moon Foundry, rails run from beside the Casting-House’s door up the hangar’s east side and out onto the apron, with a stone test moon on a cart and a cart of cracked moons on the way: a walk back to your ship you haven’t taken yet.
 - In Lorn the keepers’ stakes now come out of the crystal cave and round the Hush-House to a stake beside its steps, then run on down the channel to Hollin, so the way from the house to the lamp-keeper is marked.

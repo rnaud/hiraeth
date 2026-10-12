@@ -30,6 +30,8 @@ export const CHANGELOG = [
     'In the Moon Foundry, rails run from beside the Casting-House’s door up the hangar’s east side and out onto the apron, with a stone test moon on a cart and a cart of cracked moons on the way: a walk back to your ship you haven’t taken yet.',
     // the desert raised (src/desert-dunes.js LOOKOUT, src/desert-giants.js; issue #181)
     'In the Desert, a ledge now winds up the lavender mesa where sand pours over the ride out, from the sand to a lookout beside the fall’s lip, 40 m up: walk it or ride the hoverbike up it, and look out over the ride and the giants down the dry wash. The giant’s arm has its verse stone up on its crown, over the middle of the wash, where you ride across high over the riverbed.',
+    // the City-Shaft's first mirror and the way down to Nima (src/story/incal.js, src/levels/incal.js nimaLight; issue #182)
+    'In the City-Shaft, Abel rings the bell quarter’s bells on the terrace by the first mirror the sun stops at, and has a word about why it throws the light at his wall. Once the Lodestar burns again, a shaft of its light falls on Nima’s steps on the high terrace, gold, so from the palace’s crown you can see where she is.',
   ] },
   { v: '1.53', date: '2026-10-12', items: [
     // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)

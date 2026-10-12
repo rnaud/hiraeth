@@ -403,6 +403,40 @@ export const PEOPLE = {
     },
   },
 
+  abel: {
+    // the bell quarter's upper terrace, by the gangway to the first mirror the light stops at (src/story/incal.js; issue #182:
+    // that mirror stood 164 m from anything): no errand of his, the mirror's own starts as you come near it
+    id: 'abel', name: 'Abel', title: 'who rings the bells', color: '#9c3b2e', voice: 0.8, kind: 'm',
+    palette: { cloak: '#9c3b2e', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#5f7a52', hair: '#8a7a6a' }, head: 'beanie', cape: 0.6, look: { prop: 'bell' },
+    lines: ['~happy~ The air rings them. I ring them when it won’t.', '~solemn~ Listen. That’s the low one.', '~neutral~ Mind the ropes.'],
+    talk: {
+      entry: [
+        { if: { flag: 'incal.beam.lit' }, node: 'after' },
+        { if: { flag: 'met.abel' }, node: 'again' },
+        { node: 'hello' },
+      ],
+      nodes: {
+        hello: {
+          say: ['~neutral~ The bells ring themselves when the air rises. I ring them when it doesn’t.',
+            '~sad~ That mirror on its deck sent the sun down to the bottom. Now it throws it at my wall.'],
+          choices: [{ text: '~curious~ Why at the wall?', goto: 'why' }, { text: '~neutral~ Goodbye.', end: true }],
+        },
+        why: {
+          say: ['~solemn~ The night the sky rang, the updraft knocked it round on its ring. The ones below it too. Its crank still turns.'],
+          choices: [{ text: '~neutral~ I’ll have a look.', end: true }],
+        },
+        again: {
+          say: ['~neutral~ The bottom’s been in the shade since the sky rang. The bells don’t mind. People do.'],
+          choices: [{ text: '~neutral~ Goodbye, Abel.', end: true }],
+        },
+        after: {
+          say: ['~happy~ The light goes all the way down again. I rang every bell for it. By hand: the air was busy.'],
+          choices: [{ text: '~happy~ Goodbye, Abel.', end: true }],
+        },
+      },
+    },
+  },
+
   dov: {
     id: 'dov', name: 'Dov', title: 'guard at the palace gate', color: '#f2c54b', voice: 0.85, kind: 'm', scale: 1.06,
     palette: { cloak: '#34405e', lining: '#f2c54b', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f2c54b', hair: '#2b211f' }, head: 'hat', cape: 1.3, look: { body: 'collar', prop: 'staff', mood: 'stern' },

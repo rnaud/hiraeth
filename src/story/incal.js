@@ -67,6 +67,12 @@ export function setupIncal(ctx) {
   people.ossa = spawn(PEOPLE.ossa, { route: [onGround(P.ossa)], heading: facing(P.ossa, P.shrine), speed: 0.4 });
   people.pip = spawn(PEOPLE.pip, { route: around(P.pip, 2.6, 5, 0.4), speed: 2.1 });
   people.dov = spawn(PEOPLE.dov, { route: [onGround(P.palace.dov), onGround(P.palace.dov.clone().add(V(0, 0, -5)))], speed: 0.5 });
+  // Abel, who rings the bell quarter's bells, beside the gangway to the first mirror the light stops at (issue #182)
+  const upper = S.mirrors?.places?.find((m) => m.id === 'upper');
+  if (upper) {
+    const by = (da, r) => V(Math.cos(upper.a + da / upper.r0) * (upper.r0 + r), upper.y, Math.sin(upper.a + da / upper.r0) * (upper.r0 + r));
+    people.abel = spawn(PEOPLE.abel, { route: [onGround(by(4.5, 2.6)), onGround(by(7, 3.4))], heading: facing(by(4.5, 2.6), upper.deck), speed: 0.35 });
+  }
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
   // the middle levels: Perrine's halfway stall and its mirror (src/story/halfway.js)
   const midT = halfwayTerrace(S.terraces, S.LEVELS?.[3]);   // (the sector where the lamplighters' drops land halfway down)
@@ -347,6 +353,7 @@ export function setupIncal(ctx) {
   })();
   const applyLit = (instant) => {
     lookUp.visible = true;
+    if (S.nimaLight) S.nimaLight.lit = true;   // (a shaft of it on Nima's steps, seen from the crown: issue #182)
     if (crowd) crowd.persist('lines', (p) => { const z = zoneOf(p); p.lines = LINES.lit[z] ?? p.lines; });   // (and the strollers worked out later)
     for (const l of lowerLights) l.v.copy(l.at);
     sound.setBandMode?.('shrine', 'feast');
