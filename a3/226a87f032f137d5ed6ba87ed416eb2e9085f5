@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_ac17d69fb3ed53 8
+docs/systems/audio.md
+  s_9ca76055a220ed::t_6f46f0541c6955 163-174
+src/audio.js
+  s_9ca76055a220ed::t_eb26bbf40d48e7 396-421,426-427,681-682,684
+src/changelog.js
+  s_9ca76055a220ed::t_ae81fd969e0c36 14-16
+src/score.js
+  s_9ca76055a220ed::t_075f82052243c9 268-281
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_4da1f261d638a3 207-218,269-271,286,353,649
+src/soundtracks.js
+  s_9ca76055a220ed::t_cdba19e5fe60c3 192-193
+tests/prologue-music.test.js
+  s_9ca76055a220ed::t_6e9ba733b833f1 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3226a87f032f137d5ed6ba87ed416eb2e9085f5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
