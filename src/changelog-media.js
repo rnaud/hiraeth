@@ -723,11 +723,30 @@ const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s
 // scratch copy of scripts/design-qc/capture.mjs, the before this branch's own tree before the change)
 const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5681), the before the same tree before the polish (27d67022), the same pinned cameras as v1.55 and v1.56, 12 October; cwebp -q 72';
 // (v1.60: the temples to explore, round 4, issue #23: scripts/changelog-shots.mjs, the commit and main before it)
+const C233 = { commit: 'd3b99868', before: '214d75c8' };   // (v1.61, issue #233: the stair-lamp and the detours; shot at 6fb405f7 and its parent 3a194522, before the rebase onto 214d75c8)
 const C60 = { commit: 'd3c9ded8', before: '18fe8fa6' };   // (shot at 48924c8a, the same tree before the rebase onto 5a20c90f)
 const SAVE60_LANTERN = { ...SAVE47, flags: { ...SAVE47.flags, 'item.lantern': true } };   // (the Lamp-House is dark: the lantern charm glows in it)
 // (v1.60: the v1.59 game audit's loose ends, issues #227, #230: a scratch shooter against this branch's own Vite and origin/main's tree)
 const AUDIT60 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5721) and origin/main’s tree before it (5a20c90f, port 5723), a fresh profile for the Saves screen; 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.61': [
+    { match: 'In the City Floating in Space a tall lamp-mast now marks', shots: [
+      { name: 'city-stair-lamp', caption: 'From the middle of the Towers looking down its lane to the north edge: after, the moorers’ stair-lamp over the head of the stair down to the great cable', ...C233,
+        view: { level: 'spacecity', hour: 10, fov: 60, eye: [98, 7.7, -86], target: [101, 22, -110.9], player: [98, 6, -86] } },
+    ], see: 'In the City Floating in Space, on the Towers: look north down the lane from the middle of the island.' },
+    { match: 'The City Floating in Space has four new things to find off the way', shots: [
+      { name: 'city-telescope', title: 'The Pier’s end', caption: 'Behind the ship at the Pier’s far rail: after, the brass telescope', ...C233,
+        view: { level: 'spacecity', hour: 10, fov: 60, eye: [0, 2.6, 138], target: [-5, 1.2, 145], player: [0, 0, 137] } },
+      { name: 'city-bench', title: 'The washing tier', caption: 'In the middle of the stack’s washing tier, 66 m up: after, the bench facing out past the stairs’ landings', ...C233,
+        view: { level: 'spacecity', hour: 10, fov: 60, eye: [88.5, 67.8, -131], target: [83.4, 66.4, -127.6], player: [88.5, 66, -131] } },
+    ], see: 'In the City Floating in Space: the Pier’s far rail behind the ship; the Garden’s benches; up the stack past the capstan quarter, the high lanes and the washing tier. Press A / × at each.' },
+    { match: 'The Garden of Spheres has four new things to find out in the meadow', shots: [
+      { name: 'garden-cairn', title: 'The yellow sphere’s furrow', caption: 'Beside the yellow sphere east of the landing, at the head of its furrow: after, the cairn', ...C233,
+        view: { level: 'spheres', hour: 10, fov: 60, eye: [250, 1.5, 38], target: [246, -1, 32], player: [250, 0, 38] } },
+      { name: 'garden-arcade', title: 'The android wood', caption: 'Before the empty arcade in the android wood: after, a fallen drum of one of its columns', ...C233,
+        view: { level: 'spheres', hour: 10, fov: 60, eye: [-109.9, 5.3, -446.6], target: [-115.9, 3.1, -452.6], player: [-109.9, 2.3, -446.6] } },
+    ], see: 'In the Garden of Spheres: east of the landing by the yellow sphere; the white monolith south-east of the cracked moon; the arcade in the android wood west of the avenue; the white stone north of the landing. Press A / × at each.' },
+  ],
   '1.60': [
     { match: 'In the Undertower the Choir and its great key have moved', shots: [
       { name: 'under-well', title: 'The Cable Well', caption: 'Looking up its west wall from the floor: before, the bare wall over the way west; after, the walk round the wall at the landing’s height, the Choir’s keepers’ gate in it, and the gate’s cable down the wall', ...C60,

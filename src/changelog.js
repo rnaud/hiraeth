@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.61', date: '2026-10-12', items: [
+    // two blind legs guided and places off the way (src/levels/space-city-ways.js STAIR_LAMP, space-city-detours.js,
+    // spheres-detours.js; docs/systems/worlds.md "Two blind legs guided, and places off the way"; issue #233)
+    'In the City Floating in Space a tall lamp-mast now marks the head of the moorers’ stair off the Towers’ north edge, the way down to the great cable: it shows down the Towers’ lane and from across the void.',
+    'The City Floating in Space has four new things to find off the way: a telescope at the Pier’s far rail, a sapling still in its carrying pot in the Garden, a coil of old cable up the stack on the high lanes, and a bench on the washing tier facing out at the stars.',
+    'The Garden of Spheres has four new things to find out in the meadow: a cairn at the head of the yellow sphere’s furrow, a ring of small stones round the white monolith past the cracked moon, a fallen column before the empty arcade in the android wood, and a lantern left lit at the white stone north of the landing.',
+  ] },
   { v: '1.60', date: '2026-10-12', items: [
     // the temples to explore, round 4: the last three great keys out of the rooms off the last halls, each with a loop
     // back (src/temples/bazaar.js CHOIR, perdide2.js WICK, edena.js VAULT; docs/systems/temples.md "Round 4"; issue #23)
