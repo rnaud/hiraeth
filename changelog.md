@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.58 — 2026-10-12
 
+- Climbing onto a ledge now goes the way a body does it: hands on the edge, hauled up, a knee onto the top, then up on your feet and a step in. Push on as you get up and you are up sooner.
 - A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.
 
 ## v1.57 — 2026-10-12

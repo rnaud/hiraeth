@@ -710,6 +710,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'A knockdown now follows the ground', shots: [
       { name: 'ragdoll-cliff', caption: 'Knocked over at 9 m/s toward a terrain cliff in Vael, at 0.15, 0.4, 0.7, 1.1, 1.7 and 3 s: before, the body shoots up the face (20 m by 3 s); after, it stops at the foot and lies there', from: MV58 },
     ], see: 'In Vael, stand at the foot of a steep cliff and take a hard fall or a big hit toward it: you tumble and lie at its foot.' },
+    { match: 'Climbing onto a ledge now goes', shots: [
+      { name: 'mantle-knee', caption: 'Climbing onto a 1.9 m ledge, from the side, at 0, 15, 30, 45, 60, 75, 90 and 100 % of the climb: before, up to the feet in the air over the lip and a step in standing; after, hauled up, a knee on the top, then standing', from: MV58 },
+    ] },
   ],
   '1.57': [
     { match: 'The hoverbike shows under you again', shots: [

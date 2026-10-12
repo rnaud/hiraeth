@@ -170,6 +170,16 @@ const GESTURES = {
   pet: { clip: 'petting_animal', from: 2.5, loop: 8, w: 0.85 },
 };
 /**
+ * Climbing onto a ledge (Player.updateMantle, issue #215), as a body does it: the pull (hands on the lip, hauled up the
+ * wall until the hips are `hip` m under it, by `pull` of the way), the knee (up onto the ledge with a knee on it, the
+ * feet `onto` m past the lip, `bump` m over on the way, by `knee`), a moment on the knee (to `hold`), then
+ * up off it standing and in to the top (to the end). It takes `base` s and `perM` s a metre of rise (a 2 m ledge ~1.1 s); pushing on
+ * while getting up off the knee hurries that part `hurry` times. It used to rise straight to its feet in the air over the lip and step in standing.
+ */
+export const MANTLE = { base: 0.78, perM: 0.16, pull: 0.36, knee: 0.55, hold: 0.62, hip: 0.95, onto: 0.25, bump: 0.08, hurry: 1.6 };
+/** How long a mantle up `rise` m takes (s). */
+export const mantleTime = (rise) => MANTLE.base + Math.max(0, rise) * MANTLE.perM;
+/**
  * The jets' pose for a flight at `speed` m/s along a nose `pitch` rad up: the body's lean (rad,
  * about the hips: 0 upright, π/2 flat out, more head first into a dive) and how far the arms
  * reach ahead and the legs trail (0 hovering .. 1 flying fast). Upright while slow; nose up
@@ -1353,7 +1363,8 @@ export class Player {
       if (B.k >= 1 || (input.Space && !this._jumpHeld)) this.unboarding = null;
     }
     if (this.mantle) {
-      this.updateMantle(dt);
+      // (pushing on as he gets up off the knee: up and in sooner)
+      this.updateMantle(dt * (this.mantle.t > MANTLE.hold && (f || s) ? MANTLE.hurry : 1));
       this.finishFrame(dt, 0);
       return;
     }
@@ -1768,7 +1779,12 @@ export class Player {
         this.character?.poseWrists(armRotations);
       }
       const U = this.frame.up;
-      if (this.mantle) { H.resetFeet(); H.reach(this.mantleTargets()); }
+      if (this.mantle) {
+        H.resetFeet();
+        // (no captured kneel: the procedural one, on the ledge, before the hands take the lip)
+        if (this._mantleKneel > 0) H.kneel(this._mantleKneel, { up: U, fwd: this.frame.dir(this.heading, _g1).clone(), ground: this.pos.dot(U), lean: 0.3 });
+        H.reach(this.mantleTargets());
+      }
       else if (this.climbing) { H.resetFeet(); H.reach(this.animator ? this.climbContacts(dt) : this.climbTargets()); }
       else if (posed) H.resetFeet();
       else if (this.onGround && this.animator && !this.onJets) {
@@ -1923,7 +1939,18 @@ export class Player {
       if (this.physics.rayDistance(_g5.copy(hit.point).addScaledVector(U, 0.05), U, 1.7) < 1.6) continue;
       if (hit.front === false || this.physics.rayHit(_g5.copy(hit.point).addScaledVector(U, 0.05), U, 4)?.front === false) continue;   // (inside a closed solid: met from within, or the way up leaves through its back)
       this.climbing = false;
-      this.mantle = { from: this.pos.clone(), to: hit.point.clone(), edge: this.pos.clone().addScaledVector(U, Math.max(rise, 0)).addScaledVector(into, 0.32), rise, t: 0, n: this.wallN.clone() };
+      // (how far in the lip is: the wall's face just under it, so the knee goes onto the top and not in the air over it)
+      const face = rise > 0.3 ? this.physics.rayHit(_g5.copy(this.pos).addScaledVector(U, rise - 0.15), into, 1.2) : null;
+      const lip = THREE.MathUtils.clamp(face ? face.distance : 0.32, 0.1, Math.max(0.1, d - 0.1));
+      // (and up standing a step in from the lip, not on it, where the top goes on that far at the same height)
+      let to = hit.point.clone();
+      const deep = lip + MANTLE.onto + 0.25;
+      if (d < deep) {
+        const far = this.physics.rayHit(_g5.copy(this.pos).addScaledVector(U, 2.7).addScaledVector(into, deep), _g6.copy(U).negate(), 3.4);
+        if (far && far.normal.dot(U) > 0.7 && Math.abs(_g4.subVectors(far.point, hit.point).dot(U)) < 0.2 && far.front !== false
+          && this.physics.rayDistance(_g5.copy(far.point).addScaledVector(U, 0.05), U, 1.7) >= 1.6) to = far.point.clone();
+      }
+      this.mantle = { from: this.pos.clone(), to, edge: this.pos.clone().addScaledVector(U, Math.max(rise, 0)).addScaledVector(into, lip), lip, rise, t: 0, n: this.wallN.clone() };
       this.vel.set(0, 0, 0);
       return true;
     }
@@ -1931,14 +1958,18 @@ export class Player {
   }
 
   updateMantle(dt) {
-    const M = this.mantle, U = this.frame.up;
-    M.t = Math.min(M.t + dt / (0.75 + Math.max(0, M.rise) * .12), 1);
-    const ease = (x) => x * x * x * (x * (x * 6 - 15) + 10);
-    // up first (hauling the body over the edge), then forward onto the top
-    const up = ease(Math.min(M.t / 0.6, 1)), fwd = ease(Math.max((M.t - 0.35) / 0.65, 0));
-    const lift = M.rise + 0.25 * Math.sin(Math.PI * Math.min(M.t / 0.85, 1));
-    this.pos.copy(M.from).addScaledVector(U, lift * up);
+    const M = this.mantle, U = this.frame.up, C = MANTLE;
+    M.t = Math.min(M.t + dt / mantleTime(M.rise), 1);
+    const t = M.t, ease = (x) => x * x * x * (x * (x * 6 - 15) + 10), seg = (a, b) => THREE.MathUtils.clamp((t - a) / (b - a), 0, 1);
+    // the pull: hauled up the wall until the hips are at the lip; the knee: up onto it, a knee on the ledge just past
+    // the lip (a little over it on the way); the stand: up off the knee and in, onto the top (#215: it used to rise
+    // straight to its feet in the air over the lip and step in standing)
+    const rise = Math.max(0, M.rise), low = Math.max(0, rise - C.hip);
+    const lift = low * ease(seg(0, C.pull)) + (rise - low) * ease(seg(C.pull, C.knee)) + C.bump * Math.sin(Math.PI * seg(C.pull, C.knee));
+    this.pos.copy(M.from).addScaledVector(U, lift);
     const horiz = _g4.subVectors(M.to, M.from).addScaledVector(U, -_g4.subVectors(M.to, M.from).dot(U));
+    const far = horiz.length(), kneeAt = far > 1e-4 ? Math.min(1, ((M.lip ?? 0.32) + C.onto) / far) : 1;
+    const fwd = kneeAt * ease(seg(C.pull + 0.55 * (C.knee - C.pull), C.knee)) + (1 - kneeAt) * ease(seg(C.hold, 1));
     this.pos.addScaledVector(horiz, fwd);
     this.phase += dt * 4;
     if (M.t >= 1) {
@@ -1953,28 +1984,42 @@ export class Player {
     const M = this.mantle, U = this.frame.up;
     const side = _g5.crossVectors(U, M.n).normalize();
     const hands = [M.edge.clone().addScaledVector(side, 0.22), M.edge.clone().addScaledVector(side, -0.22)];
-    // Release each grip into the clip before standing, avoiding a last-frame arm snap.
+    // Release each grip into the clip as the body stands up off the knee, avoiding a last-frame arm snap.
     if (this.humanoid) hands.forEach((target, i) => {
-      const t = THREE.MathUtils.smoothstep(M.t, i ? .66 : .54, i ? .94 : .84);
+      const t = THREE.MathUtils.smoothstep(M.t, i ? MANTLE.hold - 0.02 : MANTLE.hold - 0.08, i ? MANTLE.hold + 0.2 : MANTLE.hold + 0.12);
       target.lerp(this.humanoid.b[`hand_${i ? 'l' : 'r'}`].getWorldPosition(new THREE.Vector3()), t);
     });
-    // feet scrabble up the wall in the first half, then step onto the top
-    const k = Math.min(M.t / 0.6, 1);
-    const feet = M.t < 0.6 ? [0, 1].map((i) => M.from.clone().addScaledVector(U, M.rise * k * (i ? 0.7 : 0.4)).addScaledVector(M.n, -0.35)) : null;
+    // the feet scrabble up the wall under the body while it is hauled up; then a knee and a foot on the top (the kneel)
+    const k = Math.min(M.t / MANTLE.pull, 1), low = Math.max(0, M.rise - MANTLE.hip);
+    const feet = M.t < MANTLE.pull ? [0, 1].map((i) => M.from.clone().addScaledVector(U, low * k + (i ? 0.5 : 0.15)).addScaledVector(M.n, -0.35)) : null;
     return { hands, feet, wallN: M.n, up: U };
+  }
+
+  /** How far down on the knee the mantle is (0..1): up onto it over the knee, held, risen off it standing (MANTLE). */
+  get mantleKneel() {
+    const M = this.mantle, C = MANTLE;
+    if (!M) return 0;
+    const sm = THREE.MathUtils.smoothstep;
+    return sm(M.t, C.pull + 0.3 * (C.knee - C.pull), C.knee) * (1 - sm(M.t, C.hold, 1));
   }
 
   animateMantle(dt = 1 / 60) {
     const c = this.char, k = this.mantle.t;
     if (this.animator) {
-      // the ledge-climb clip times the limbs; our mantle moves the body, the hands hold the edge
-      this.animator.update(dt, { speed: 0, onGround: true, mode: 'ledge', ledgeT: k, walkAt: 1, jogAt: 2, sprintAt: 3, strideScale: 1 });
+      // the pull: the ledge-climb clip's hang and tuck times the limbs (our mantle moves the body, the hands hold the
+      // edge); then the knee: a kneel from motion capture over the standing pose (Mixamo's kneeling, as the kneel
+      // gesture's), eased out to standing as he gets up; without the capture, the procedural kneel (Humanoid.kneel)
+      const A = this.animator, kneel = this.mantleKneel, hauling = k < MANTLE.knee - 0.04;
+      this._mantleKneel = kneel > 0.001 && !A.play(GESTURES.kneel.clip, GESTURES.kneel.from + 0.4, kneel, { full: true, head: true, free: true }) ? kneel : 0;
+      A.update(dt, { speed: 0, onGround: true, mode: hauling ? 'ledge' : 'ground', ledgeT: 0.3 * Math.min(1, k / MANTLE.knee), walkAt: 1, jogAt: 2, sprintAt: 3, strideScale: 1 });
       this.object.position.copy(this.pos);
       this.frame.quaternion(this.heading, this.object.quaternion);
       this.animator.apply(this.object, {});
-      c.body.position.set(0, 0, 0);
+      // (hauled up, the mantle moves the body, not the clip's hips; on the knee they drop with the kneel's)
+      c.body.position.multiplyScalar(THREE.MathUtils.smoothstep(k, MANTLE.knee - 0.12, MANTLE.knee));
       return;
     }
+    this._mantleKneel = this.mantleKneel;
     c.body.position.set(0, 0, 0);
     c.body.rotation.set(0.35 * Math.sin(Math.PI * k), 0, 0);
     c.torso.rotation.set(0.2, 0, 0);

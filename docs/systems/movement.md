@@ -439,3 +439,16 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   on the edge right in front of you (`EdgeInk`, drawn with the wisps' material, depth-tested
   against the G-buffer), and the first lean of a session shows a line (`EDGE_HINTS`, per world,
   or the level's own `edgeHint`).
+
+## The mantle in two: a knee, then up (`MANTLE`, `Player.updateMantle`; issue #215)
+
+The author: "Climbing on a ledge is weird. It gets me all the way up to my feet? Vs just a knee and then I get up?"
+The mantle used to lift the body straight to the ledge's height plus a bump, standing, over the lip, then step it in.
+Now it goes as a body does it (`MANTLE`, fractions of the whole): the **pull** (to 0.36: hands on the lip, the ledge
+clip's hang and tuck, the feet scrabbling up the wall, hauled up until the hips are 0.95 m under the lip), the
+**knee** (to 0.55: up onto the ledge with a knee on it, the feet `onto` 0.25 m past the lip, which `tryMantle` finds
+with a ray at the wall's face under it), a moment **on the knee** (to 0.62), then **up** off it standing and a step
+in (the end: `to`, moved a step in from the lip where the top goes on at the same height). The kneel is Mixamo's
+kneeling (the kneel gesture's clip), weighted in and out by `mantleKneel` over the standing pose, the body following
+its hips; without the capture, `Humanoid.kneel`. It takes `0.78 + 0.16 s` a metre of rise (1 m 0.94 s, 1.9 m 1.08 s,
+2.6 m 1.2 s; it was 0.87-1.06 s), and pushing on while getting up hurries that part 1.6 times. `tests/mantle.test.js`.

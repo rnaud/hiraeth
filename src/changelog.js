@@ -11,6 +11,8 @@ export const CHANGELOG = [
   { v: '1.58', date: '2026-10-12', items: [
     // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)
     'A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.',
+    // the mantle in two (src/player.js MANTLE; docs/systems/movement.md; issue #215)
+    'Climbing onto a ledge now goes the way a body does it: hands on the edge, hauled up, a knee onto the top, then up on your feet and a step in. Push on as you get up and you are up sooner.',
   ] },
   { v: '1.57', date: '2026-10-12', items: [
     // the Moon Foundry's picked explorations, one way through the world (src/foundry-street.js, src/foundry-cranes.js,
