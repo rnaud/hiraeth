@@ -1,0 +1,27 @@
+.claude/skills/level-design-qc/SKILL.md
+  s_9ca76055a220ed::t_a183b041678d92 81-82
+docs/audits/level-design-v1.49.md
+  s_9ca76055a220ed::t_7d9a5d0eddf995 58-87
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_e741128a101faf 218
+scripts/level-design/lib.mjs
+  s_9ca76055a220ed::t_79bd8d4ea10b0b 20,331-352,354-360,364
+tests/level-design.test.js
+  s_9ca76055a220ed::t_4ce8f8b333b780 5,124-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "29b04302b2f1e986e1ee417239bcb50ff83fa5fd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
