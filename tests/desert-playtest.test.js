@@ -48,3 +48,11 @@ test('#153: no wild creature is put in Qanat or wanders into its streets and squ
   for (let i = 0; i < 60 * 90; i++) { t += 1 / 60; w.update(1 / 60, t, p, cam); if (i % 30 === 0) for (const c of w.list) nearest = Math.min(nearest, flat(c.pos, C)); }
   assert.ok(nearest >= QANAT_CLEAR - 1, `none came in over a minute and a half (nearest ${nearest.toFixed(1)} m)`);
 });
+
+test('#155: nothing to press in front of the skull: no prompt at its mouth', () => {
+  const near = INTERACT.allInteractables().filter((e) => {
+    const at = typeof e.at === 'function' ? e.at() : e.at;
+    return at && at.isVector3 && flat(at, Q.giant.door) < 9 && Math.abs(at.y - Q.giant.door.y) < 20;
+  });
+  assert.deepEqual(near.map((e) => e.id), [], 'no interactable within 9 m of the skull\'s mouth');
+});

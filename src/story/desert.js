@@ -320,8 +320,7 @@ export function setupDesert(ctx) {
   });
   // (asked from the square in front of them, city.rootsLook; he turns to the bark itself, not to the spot he was asked from)
   thing(THINGS.roots, city.rootsLook, { range: 3.4, prompt: 'look at the roots', look: city.roots });
-  const browAt = Q.giant.door.clone().add(V(Math.sin(Q.giant.yaw) * 3, 0, Math.cos(Q.giant.yaw) * 3));
-  thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
+  // (no look at the giant's brow before its mouth: the only prompt there was one more button that added nothing, issue #155)
   thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural', look: cave.local(-17.5, 3.2, 20.5) });
   // the little mask in the masked head's chamber (src/levels/desert.js maskRooms), and the salvager's slate at the crashed hull
   for (const r of level.maskRooms ?? []) thing(THINGS.smallMask, r.floor, { range: 3.4, prompt: 'look at the little mask', look: r.mask });

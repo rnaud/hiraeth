@@ -722,13 +722,8 @@ export const THINGS = {
       },
     },
   },
-  brow: {
-    id: 'brow', name: 'The giant’s brow', title: 'the fallen giant', color: '#f2ead6', voice: 0.6,
-    talk: { nodes: { look: {
-      say: ["~solemn~ A house-sized skull, with {glyph} glowing faintly between its eyes.", "~whisper~ Carved stones hold its mouth open. Cool air comes from the passage between the teeth."],
-      do: { set: { 'desert.brow.seen': true } }, choices: [{ text: '~neutral~ (go on)', end: true }],
-    } } },
-  },
+  // (the giant's brow had a look of its own in front of the skull's mouth, 'look up at the skull': gone, issue #155,
+  //  "no need for a button prompt in front of the skull, it doesn't add anything")
   mural: {
     id: 'mural', name: 'The mural', title: 'in the giant’s chest', color: '#e9dcc0', voice: 0.6,
     talk: { nodes: { look: {

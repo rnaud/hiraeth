@@ -15,6 +15,7 @@ export const CHANGELOG = [
     { text: 'The opening in your ship has music of its own: a low hum, soft glass and a felt piano while you wake and walk to the cockpit, quiet under your father’s message. The desert’s music starts when you step out onto the sand.',
       see: 'Start a new game (or open ?level=desert&prologue=1) with the sound on: in the ship you hear its own quiet music, not the desert’s ney and oud; they come in as the ramp comes down and you walk out.' },
     'No wild creatures roam Qanat’s streets and square any more: the lizards, crabs and jerboas keep to the sand outside the walls. The birds still wheel high over the city.',
+    'No button prompt comes up in front of the giant’s skull any more: walk straight into its mouth.',
     // the Unity preview on the Steam Deck (docs/systems/performance.md "The Steam Deck, round 7"; issue #111)
     'On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.',
     // Plumb, the drone's own mind (docs/systems/scout.md "Plumb's own mind"; issue #152)
