@@ -1,0 +1,31 @@
+unity/Hiraeth/Assets/Hiraeth/Runtime/Wildlife.cs
+  s_9ca76055a220ed::t_ee36c04677eb2a 17-26,28,31-75,79,86
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_b85e67310788d2 325-336,386
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethShadows.cs
+  s_90e75685d87ea0::t_3895a67fecfd57 35-37,104-117,159,218,232,241,275,341-342,347-348,353-376,384-407,409-412
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d432d5c89052813da49b982a8d113610ef70cb6e",
+  "prompts": {},
+  "sessions": {
+    "s_90e75685d87ea0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aec531ffbdaa88c8a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
