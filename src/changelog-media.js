@@ -720,6 +720,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'Vael’s needle walkers no longer turn', shots: [
       { name: 'needle-plant', caption: 'A needle walker scared on a slope, at 0.4, 1.1, 1.5, 2, 2.6 and 4.5 s: before, a needle at once, its tip off the ground; after, a few steps, the tail’s tip set down, then up on it', from: MV58 },
     ] },
+    { match: 'Opening the galactic map no longer finds a planet by itself', see: 'With a world still to find on the galactic map, open it at the holo table and leave the stick and the mouse alone: the scanner sits by the ship’s planet and the meter may warm, but nothing is charted until you sweep it over the uncharted region and hold it there.' },
   ],
   '1.57': [
     { match: 'The hoverbike shows under you again', shots: [

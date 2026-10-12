@@ -18,6 +18,9 @@ export const CHANGELOG = [
     'The glyph stone by each temple’s door and in its rooms holds your place: walk up to it and its glyph flares, and after a fall you come back to it. The first one you wake says so.',
     // the needle walker plants itself first (src/wildlife/species.js needlePose; docs/systems/procedural-animation.md; issue #209)
     'Vael’s needle walkers no longer turn into a needle in mid-air: one walks on a few steps, sets its tail’s tip down on the ground, and only then stands up on it, on a slope too.',
+    // the galactic map's scanner starts by the ship and must be swept first (src/story/signature-search.js scanStart,
+    // searchArmed; src/ship/starmap.js; issue #204)
+    'Opening the galactic map no longer finds a planet by itself: the scanner starts by the ship, clear of every uncharted region, and nothing locks until you have swept it a little, with the stick, the keys, the mouse or a finger.',
   ] },
   { v: '1.57', date: '2026-10-12', items: [
     // the Moon Foundry's picked explorations, one way through the world (src/foundry-street.js, src/foundry-cranes.js,

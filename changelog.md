@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.58 — 2026-10-12
 
+- Opening the galactic map no longer finds a planet by itself: the scanner starts by the ship, clear of every uncharted region, and nothing locks until you have swept it a little, with the stick, the keys, the mouse or a finger.
 - Vael’s needle walkers no longer turn into a needle in mid-air: one walks on a few steps, sets its tail’s tip down on the ground, and only then stands up on it, on a slope too.
 - The glyph stone by each temple’s door and in its rooms holds your place: walk up to it and its glyph flares, and after a fall you come back to it. The first one you wake says so.
 - In the Aerie’s Hall of Winds anything solid between you and the wind now shelters you: a screen, the far wall, the stone. The pale streaks stop in its lee, so you can see where the wind can’t reach.

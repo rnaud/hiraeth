@@ -1,7 +1,7 @@
 // The signature search on the galactic map (src/story/signature-search.js, src/ship/starmap.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cueStrength, searchStep, cues, lockRadius, routeChart, chartedWorlds, isCharted, foundFlag, regionFor, findableNote, signatureNotes, SEARCH, SEARCH_LINE, foundLine } from '../src/story/signature-search.js';
+import { cueStrength, searchStep, scanStart, searchArmed, cues, lockRadius, routeChart, chartedWorlds, isCharted, foundFlag, regionFor, findableNote, signatureNotes, SEARCH, SEARCH_LINE, foundLine } from '../src/story/signature-search.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { migrateFlags } from '../src/save-migrate.js';
 import { ORDER, WIP, CHARTED_SIDE } from '../src/levels/names.js';
@@ -125,4 +125,30 @@ test('the light’s notes: the theme when the sound has one, else three soft not
   let theme = null;
   signatureNotes({ lightTheme: (o) => { theme = o; }, tune: () => assert.fail('the theme first') }, 1);
   assert.ok(theme && theme.short && theme.vol > 0);
+});
+
+test('opening the map never finds a world by itself: the scanner starts clear of them and must be swept first (#204)', () => {
+  const diag = Math.hypot(1000, 600), box = [20, 60, 980, 580], r = lockRadius(diag, 58);
+  // a hidden world right in the middle of the field, where the scanner used to start (and where a locked pointer sits)
+  const targets = [{ id: 'spheres', x: 500, y: 320 }];
+  const at = scanStart({ targets, box, diag, disc: 58 });
+  assert.ok(Math.hypot(at[0] - 500, at[1] - 320) >= SEARCH.clear * r, `started ${at} clear of the hidden world`);
+  // the ship's own world preferred when it is clear of them
+  assert.deepEqual(scanStart({ targets, box, diag, disc: 58, prefer: [[120, 500]] }), [120, 500]);
+  // ... not when the hidden one lies beside it
+  const by = scanStart({ targets: [{ id: 'x', x: 130, y: 500 }], box, diag, disc: 58, prefer: [[120, 500]] });
+  assert.ok(Math.hypot(by[0] - 130, by[1] - 500) >= SEARCH.clear * r);
+  // held over a world without being swept since the map opened: the cues answer, nothing locks
+  const st = { lock: {} };
+  for (let k = 0; k < 60; k++) {
+    const step = searchStep(st, { at: [500, 320], targets, dt: 0.05, diag, disc: 58, armed: searchArmed(0, diag) });
+    assert.equal(step.found, null);
+    assert.ok(step.strength > 0.9, 'the scanner still warms over it');
+  }
+  // swept, it locks as before
+  assert.equal(searchArmed(SEARCH.arm * diag - 1, diag), false);
+  assert.equal(searchArmed(SEARCH.arm * diag, diag), true);
+  let found = null;
+  for (let k = 0; k < 20 && !found; k++) found = searchStep(st, { at: [500, 320], targets, dt: 0.05, diag, disc: 58, armed: true }).found;
+  assert.equal(found, 'spheres');
 });

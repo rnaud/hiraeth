@@ -503,6 +503,15 @@ a gold ring), the `found` rumble, the ship's line, and a second later the map is
 charted and chosen. The legend becomes SIGNATURE SEARCH (`SEARCH_LEGEND`, short form on small screens), the
 header counts the signatures to find, and the hint line says how to search on the device in hand.
 
+**Nothing found by itself** (issue #204, v1.58: "it auto found the first planet because of where the cursor
+was"). The scanner used to start in the middle of the field (and a pointer released from the game's lock sits
+there too), so a world hidden near the middle locked half a second after the map opened. Now each opening puts
+the scanner by the ship's own world (`scanStart`: that spot, else the middle, else a ring round it, the first at
+least `SEARCH.clear` = 2.5 lock radii from every hidden world, else the farthest), and the lock builds only once
+the scanner has been swept `SEARCH.arm` (5 % of the diagonal) since the map opened (`searchArmed`; the cues
+still answer before). The mouse's first move after opening only says where it is; its moves count from then on.
+Tests: `tests/signature-search.test.js`.
+
 ## Hearts, the magic bar and the potion (v1.5)
 
 Where the health bar was (top left, `#health` in index.html; `updateHealth` in main.js, `healthHud`,
