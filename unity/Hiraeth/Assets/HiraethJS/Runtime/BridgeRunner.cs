@@ -456,6 +456,7 @@ namespace Hiraeth.Bridge
             FrameTimingManager.CaptureFrameTimings();
             if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }
             gpuSplit?.Tick();
+            DynamicResolution();
             if (thread != null)
             {
                 // while the script builds the world (Hiraeth.start: seconds), Unity goes on drawing, the script's ops and
@@ -515,6 +516,31 @@ namespace Hiraeth.Bridge
                 Debug.Log($"Hiraeth bridge: hitch {dt:0.0} ms (usual {usual:0.0}): the wait {wait:0.0}, the rest {dt - wait:0.0}; GCs {gc - gc0}; cpu {timing[0].cpuFrameTime:0.0} main {timing[0].cpuMainThreadFrameTime:0.0} render {timing[0].cpuRenderThreadFrameTime:0.0} gpu {timing[0].gpuFrameTime:0.0}");
             }
             gc0 = gc;
+        }
+        /// <summary>
+        /// -dyn-res [min]: the render scale lowered in steps of 0.05 (to min, 0.75 by default: at 1440p the web's 1080p on
+        /// the console) while the GPU's frame, averaged over half a second, is over 15 ms, and raised again when the next
+        /// step up would still leave it under 14.3, at most a step every 1.5 s (URP makes its targets again at a change):
+        /// the web's Xbox preset adapts its scale the same way (src/perf.js `xbox` dynamic). Issue #113.
+        /// </summary>
+        static readonly bool dynOn = BridgeArgs.Flag("-dyn-res");
+        static readonly float dynMin = BridgeArgs.Arg("-dyn-res-min") is string dr && float.TryParse(dr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float drv) ? Mathf.Clamp(drv, 0.5f, 1f) : 0.75f;
+        double dynSum; int dynN; float dynAt;
+        void DynamicResolution()
+        {
+            if (!dynOn || !booted || gpuMs <= 0) return;
+            dynSum += gpuMs; dynN++;
+            if (dynN < 30) return;
+            double g = dynSum / dynN; dynSum = 0; dynN = 0;
+            if (Time.realtimeSinceStartup - dynAt < 1.5f) return;
+            var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            if (urp == null) return;
+            float s = urp.renderScale, next = s;
+            if (g > 15) next = Mathf.Max(dynMin, s - 0.05f);
+            else if (s < 1 && g * ((s + 0.05f) / s) * ((s + 0.05f) / s) < 14.3) next = Mathf.Min(1, s + 0.05f);
+            if (Mathf.Abs(next - s) < 0.001f) return;
+            urp.renderScale = next; dynAt = Time.realtimeSinceStartup;
+            Debug.Log($"Hiraeth bridge: render scale {s:0.00} -> {next:0.00} (the GPU {g:0.0} ms)");
         }
         bool booted;
         static readonly bool deferLast = BridgeArgs.Flag("-ops-after");
