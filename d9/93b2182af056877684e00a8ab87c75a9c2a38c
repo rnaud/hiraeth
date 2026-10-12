@@ -1,0 +1,17 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d993b2182af056877684e00a8ab87c75a9c2a38c",
+  "prompts": {},
+  "sessions": {
+    "s_213c7b13465d60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9713f70ca7714509",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
