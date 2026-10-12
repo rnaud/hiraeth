@@ -9,7 +9,7 @@ const UP = V(0, 1, 0);
 /** How high a step up may be: a plain jump, the lift valve's double jump (tests/playthrough-agent.js RISE). */
 export const RISE = { jump: 1.4, doublejump: 4.8 };
 /** The flood's cell (m), world by world: 1 m where the way up is a narrow stair a 2 m grid steps off (the floating city's
- * stack, the broken moon's street and spiral: v1.60, #228), else 2. */
+ * stack, the broken moon's street and spiral: v1.61, #228), else 2. */
 export const REACH_CELL = { spacecity: 1, moonfoundry: 1 };
 export const reachCell = (id) => REACH_CELL[id] ?? 2;
 
@@ -125,7 +125,7 @@ export function standWhyNot({ physics, level }, p, Player) {
   return null;
 }
 
-// The new country, world by world (v1.60, #228; scripts/fragment-spots.mjs scores it, tests/fragments-route.test.js counts it): the level's sights (`level.sights`) whose names are its explorations' pieces (v1.55–
+// The new country, world by world (v1.61, #228; scripts/fragment-spots.mjs scores it, tests/fragments-route.test.js counts it): the level's sights (`level.sights`) whose names are its explorations' pieces (v1.55–
 // v1.57), and how near one a spot must be to count as in it (m). The places built to be found.
 export const NEW_COUNTRY = {
   arzach: { r: 40, sights: /stone ear|hour stone|broken slab|highest stone|stone that rises|table of the plain|riders’ shrine|riders’ gate/ },

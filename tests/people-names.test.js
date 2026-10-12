@@ -35,7 +35,7 @@ test('one name, one person: in the people book and among every world’s people'
   const shared = [...ids].filter(([, m]) => m.size > 1).map(([k, m]) => `${k}: ${[...m].map(([id, w]) => `${id} (${w})`).join(', ')}`);
   assert.ok(ids.size > 100, `${ids.size} names`);
   assert.deepEqual(shared, []);
-  // the two renamed in v1.60: the scientist and the anchor-minder
+  // the two renamed in v1.61: the scientist and the anchor-minder
   assert.equal(EVERYONE.find((p) => p.id === 'thrum')?.name, 'Anselm Thrum');
   assert.equal(CONTENT.spacecity.npcs.find((n) => n.id === 'tilde')?.name, 'Tilde');
 });

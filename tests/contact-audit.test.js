@@ -465,7 +465,7 @@ test('every fragment of the singing light stands on drawn, solid ground the walk
       const hit = drawn?.bvh?.raycastFirst(new THREE.Ray(V(p.x, p.y + 1.2, p.z), V(0, -1, 0)), THREE.DoubleSide);
       const top = Math.max(hit ? p.y + 1.2 - hit.distance : -Infinity, level.ground?.heightAt?.(p.x, p.z) ?? -Infinity);
       if (!(Math.abs(top - p.y) < 0.35)) failed.push(`${id} ${i}: the ground drawn under it is ${Number.isFinite(top) ? (top - p.y).toFixed(2) + ' m off' : 'missing'}`);
-      // (the Underwater City: under the glass of a hall, or out on the seabed near air, where the helmet takes you: v1.60, #228)
+      // (the Underwater City: under the glass of a hall, or out on the seabed near air, where the helmet takes you: v1.61, #228)
       const sea = seaWhyNot({ physics, level }, p);
       if (sea) failed.push(`${id} ${i}: ${sea}`);
       for (let k = i + 1; k < at.length; k++) if (p.distanceTo(at[k]) < 15) failed.push(`${id} ${i} and ${k}: ${p.distanceTo(at[k]).toFixed(1)} m apart`);

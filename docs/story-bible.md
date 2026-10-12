@@ -568,8 +568,8 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
   two point at what passed the ship, these are what it left behind.
 - **Why they hide**: nobody sent the light anywhere, so nothing it shed lies on the way anyone sends you. They settled
   where its song rang longest: up on ledges and high places, in nooks behind things, at the ends of side paths, in each
-  world's out-of-the-way country (v1.60, #228: the canopy decks, the stack's upper tiers, the far café over the canyon).
-- **Anselm Thrum** (renamed from Orrin in v1.60, #229: the Orrins are the father's neighbours): a thin man in a patched
+  world's out-of-the-way country (v1.61, #228: the canopy decks, the stack's upper tiers, the far café over the canyon).
+- **Anselm Thrum** (renamed from Orrin in v1.61, #229: the Orrins are the father's neighbours): a thin man in a patched
   pale coat, goggles on his brow, a brass box that ticks near a splinter. He studies light and has followed the song since
   the night it went over, without knowing what it is. The first fragment you take brings him at a run; he comes aboard,
   lives in the hold among the crates, keeps what you bring in a jar, and at each milestone works them into your gear (a

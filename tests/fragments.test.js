@@ -157,7 +157,7 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   const person = thrumPerson({ flags: () => ctx.game.data.flags, has: ctx.items.has, here: 'desert', items: ctx.items });
   const m = talk(person, ctx, ['Come aboard']);
   assert.match(m.said, /on the lookout for these/, 'he has been on the lookout for them');
-  assert.doesNotMatch(m.said, /Orrin|at your service/, 'no name and trade announced (v1.60, #229): the panel names him');
+  assert.doesNotMatch(m.said, /Orrin|at your service/, 'no name and trade announced (v1.61, #229): the panel names him');
   assert.match(m.said, /splinters of its song/);
   assert.match(m.said, /On your ship/);
   assert.equal(ctx.game.flag('frag.met'), true);
@@ -246,7 +246,7 @@ test('the save: an old save starts at zero, the scientist still to meet (the fra
   assert.equal(again.flag('frag.met'), true);
 });
 
-test('the save: the fragments re-placed in v1.60 keep a save’s count, its found ones off the moved slots (step 23)', () => {
+test('the save: the fragments re-placed in v1.61 keep a save’s count, its found ones off the moved slots (step 23)', () => {
   // the table is the data's: every slot marked as moved there, and no other
   const src = readFileSync(new URL('../src/fragments-data.js', import.meta.url), 'utf8');
   const marked = {};
@@ -254,7 +254,7 @@ test('the save: the fragments re-placed in v1.60 keep a save’s count, its foun
     const block = src.match(new RegExp(`\\n  ${id}: \\[[^\\n]*\\n((?:    .*\\n)+?)  \\],`))?.[1] ?? '';
     const rows = block.split('\n').filter((l) => /^\s+\[[-\d.]+, [-\d.]+, [-\d.]+\],/.test(l));
     assert.equal(rows.length, FRAGMENTS_PER_WORLD, `${id}: its rows read`);
-    const moved = rows.flatMap((l, i) => (l.includes('(v1.60, #228)') ? [i] : []));
+    const moved = rows.flatMap((l, i) => (l.includes('(v1.61, #228)') ? [i] : []));
     if (moved.length) marked[id] = moved;
   }
   assert.deepEqual(marked, FRAGMENTS_MOVED_228);

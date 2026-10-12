@@ -1,4 +1,4 @@
-// The scientist as data: Anselm Thrum, who studies light (docs/systems/fragments.md, issue #196; named Orrin until v1.60,
+// The scientist as data: Anselm Thrum, who studies light (docs/systems/fragments.md, issue #196; named Orrin until v1.61,
 // #229: the father's neighbours are the Orrins). His story: docs/story-bible.md, "The fragments of the singing light".
 //
 // He has been on the lookout for the fragments of the singing light since the night the light went over: where it passed it
@@ -79,7 +79,7 @@ export function thrumTalk(flags = {}, { here = null, has, items = sharedItems, o
     // ---------------------------------------------------------------- the first fragment
     meet: {
       say: [
-        // (v1.60, #229: he opens in the middle of the chase, not on his name and trade; the panel names him)
+        // (v1.61, #229: he opens in the middle of the chase, not on his name and trade; the panel names him)
         '~surprised~ (A thin man in a patched coat comes at a run, goggles on his brow, a brass box ticking in his hand.) Don’t drop it!',
         '~happy~ A fragment of the singing light. I’ve been on the lookout for these since the night the light went over.',
         '~curious~ Where it passed, it shed splinters of its song. They hide where nobody goes.',

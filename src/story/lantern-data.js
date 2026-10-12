@@ -33,7 +33,7 @@
 // lantern.song.told (the whistle taught), lantern.lamp.<0-2> (a lamp answered), lantern.answered (all three: Ilen comes out), lantern.moment.answered,
 // world.lantern.done. Keepsake: lantern.person (Ilen herself: she walks to the stone, NOT_SET_DOWN).
 //
-// The fragments of the singing light (v1.60, issue #229; docs/story-bible.md, "The fragments of the singing light"):
+// The fragments of the singing light (v1.61, issue #229; docs/story-bible.md, "The fragments of the singing light"):
 // splinters of her own song, shed on its way. She knows them when she owns up to the light: one line, by how many you
 // picked up (none, some, every one: src/fragments-data.js fragmentCounts over the save's frag.<world>.<i>).
 

@@ -747,8 +747,6 @@ export const CHANGELOG_MEDIA = {
       { name: 'garden-arcade', title: 'The android wood', caption: 'Before the empty arcade in the android wood: after, a fallen drum of one of its columns', ...C233,
         view: { level: 'spheres', hour: 10, fov: 60, eye: [-109.9, 5.3, -446.6], target: [-115.9, 3.1, -452.6], player: [-109.9, 2.3, -446.6] } },
     ], see: 'In the Garden of Spheres: east of the landing by the yellow sphere; the white monolith south-east of the cracked moon; the arcade in the android wood west of the avenue; the white stone north of the landing. Press A / × at each.' },
-  ],
-  '1.60': [
     { match: 'Fragments of the singing light now hide in the places the newest explorations built', shots: [
       { name: 'fragments-canopy', title: 'Lorn’s keepers’ canopy', caption: 'A deck of the lamp-keepers’ village, 70 m up in the Deep Wood: a fragment where there was none', from: FRAG60 },
       { name: 'fragments-stack', title: 'The Floating city’s stack', caption: 'The top of the stack, 79 m over the Towers’ deck: a fragment on its last landing', from: FRAG60 },
@@ -756,6 +754,8 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Each world’s new places, off the way you are sent: Lorn’s canopy and the egg isle, the Floating city’s stack, the Underwater City’s canyon and seabed, the broken moon’s street, Viridel’s old pyramid, Kip’s skybridge. The finder (ten fragments) leads you to them.' },
     { match: 'The scientist who keeps the fragments in your hold is Anselm Thrum now', see: 'Take your first fragment: he comes at a run and starts in the middle of it (“Don’t drop it!”). The People page names him Anselm Thrum; Tilde is at the cable clamp under the Floating city’s Towers.' },
     { match: 'At the end of the journey someone knows the fragments', see: 'At the Lantern, when the talk comes to the light that drained your ship: one line about its splinters, different for none, some and all 96.' },
+  ],
+  '1.60': [
     { match: 'In the Undertower the Choir and its great key have moved', shots: [
       { name: 'under-well', title: 'The Cable Well', caption: 'Looking up its west wall from the floor: before, the bare wall over the way west; after, the walk round the wall at the landing’s height, the Choir’s keepers’ gate in it, and the gate’s cable down the wall', ...C60,
         view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(2, 1.7, 53), target: UT(-9, 12, 63), player: UT(3.5, 0.05, 51.7) } },

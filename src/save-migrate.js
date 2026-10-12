@@ -77,7 +77,7 @@
 //
 // The fragments of the singing light (issue #196, v1.55: src/fragments.js): a save from before has found none and has
 // not met the scientist; step 22 starts it at zero (any `frag.*` it carries, from a build in between, goes).
-// Re-placed over the rebuilt worlds' new country in v1.60 (issue #228): 28 of the 96 moved, each keeping its index. A
+// Re-placed over the rebuilt worlds' new country in v1.61 (issue #228): 29 of the 96 moved, each keeping its index. A
 // save keeps its count world by world; a found flag on a slot that moved goes to one that didn't and is still to find,
 // so the new places show (an old spot nobody reached is counted instead): step 23 (FRAGMENTS_MOVED_228). The
 // Floating city's anchor-minder is Tilde now ('tilde', she was 'odile': Viridel's Odile is Odile and Talo's; #229).
@@ -244,13 +244,13 @@ const STEPS = [
   (flags) => migrateTells183(flags),
   // 22: the fragments of the singing light (issue #196, v1.55): none found yet, the scientist still to meet
   (flags) => migrateFragments196(flags),
-  // 23: the fragments re-placed over the new country (issue #228, v1.60), and the anchor-minder renamed (issue #229)
+  // 23: the fragments re-placed over the new country (issue #228, v1.61), and the anchor-minder renamed (issue #229)
   (flags) => migrateFragments228(flags),
 ];
-/** The slots of src/fragments-data.js whose spots moved in v1.60 (issue #228), world by world: step 23. */
+/** The slots of src/fragments-data.js whose spots moved in v1.61 (issue #228), world by world: step 23. */
 export const FRAGMENTS_MOVED_228 = {
   arzach: [1, 3, 4], perdide: [2, 4, 5], edena: [2, 3, 6], underwater: [0, 2, 4, 5, 6], buried: [0],
-  moonfoundry: [1, 3, 4, 5], spheres: [1], spacecity: [0, 2, 3, 6, 7], bazaar: [0, 1, 5],
+  moonfoundry: [1, 3, 4, 5], spheres: [1], spacecity: [0, 2, 3, 5, 6, 7], bazaar: [0, 1, 5],
 };
 /** Step 23 (pure, in place): each world's count kept, its found flags off the moved slots where an unmoved one is free; 'odile' → 'tilde'. */
 export function migrateFragments228(flags, per = 8) {
