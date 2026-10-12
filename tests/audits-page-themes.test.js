@@ -34,15 +34,15 @@ test('one card per theme, each its latest report (versions compared as numbers: 
     assert.equal(+t.latest.version.split('.')[1] + 1000 * +t.latest.version.split('.')[0], top, `${t.kind}: the highest version`);
   }
   // a new report of a kind becomes its card at once
-  const fake = { ...reports.find((r) => r.id === 'combat-v1.47'), id: 'combat-v1.50', version: '1.50', overall: 4.6 };
+  const fake = { ...reports.find((r) => r.id === 'combat-v1.61'), id: 'combat-v1.70', version: '1.70', overall: 4.6 };
   const t2 = latestByTheme([...reports, fake]).find((t) => t.kind === 'combat');
-  assert.equal(t2.latest.id, 'combat-v1.50');
-  assert.equal(t2.prev.id, 'combat-v1.47');
-  assert.equal(t2.delta, 0.08);
+  assert.equal(t2.latest.id, 'combat-v1.70');
+  assert.equal(t2.prev.id, 'combat-v1.61');
+  assert.equal(t2.delta, 0.09);
 });
 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
-  assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
+  assert.equal(theme('combat').prev.id, 'combat-v1.47'); assert.equal(theme('combat').delta, -0.01);   // (combat-v1.61: 4.51, combat-v1.47: 4.52)
   assert.equal(theme('level-design').prev.id, 'level-design-v1.49'); assert.equal(theme('level-design').delta, 0.16);   // (level-design-v1.53: 4.51, v1.49: 4.35, both over twelve)
   assert.equal(theme('temple-design').prev.id, 'temple-design-v1.53'); assert.equal(theme('temple-design').delta, 0.01);   // (temple-design-v1.60: 4.29, v1.53: 4.28, both over fourteen)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.59: 4.1, game-v1.53: 4.0)
@@ -60,14 +60,15 @@ test('the change since the one before: overall, and each item since the last tim
   assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4.11, 4, '1.49', 0.11]);   // (v1.53: the giants' road and the walking dunes, #174)
   const viridel = group('level-design', 'Worlds').rows.find((r) => r.label === 'Viridel');
   assert.deepEqual([viridel.value, viridel.from, viridel.delta], [4.56, 4, 0.56], 'a world compared by its row\'s name (v1.50: the Greenhouse seen and a way home, #131)');
-  // combat v1.47 judged the whole roster again: each is compared with the last report that judged it (v1.22; the makers'
-  // machine, unjudged since v1.6, with v1.6's; the three new guardians with nothing)
+  // combat v1.61 judged the whole roster again: each is compared with the last report that judged it (v1.47, the same
+  // 22 kinds and 14 guardians); the antler hound's read 5 -> 4 is the one that moved
   const arche = group('combat', 'Archetypes').rows;
-  assert.equal(arche.find((r) => r.key === 'shellback crab').fromVersion, '1.22');
-  assert.equal(arche.find((r) => r.key === 'bellows toad').fromVersion, '1.22');
-  assert.equal(arche.find((r) => r.key === 'shade').fromVersion, '1.22');
+  assert.equal(arche.find((r) => r.key === 'shellback crab').fromVersion, '1.47');
+  assert.equal(arche.find((r) => r.key === 'bellows toad').delta, 0);
+  const hound = arche.find((r) => r.key === 'antler hound');
+  assert.deepEqual([hound.value, hound.fromVersion], [4.3, '1.47']); assert.ok(hound.delta < 0);
   const guardRows = group('combat', 'Guardians').rows;
-  assert.ok(guardRows.filter((r) => !/\(new\)/.test(r.label ?? r.key)).every((r) => r.fromVersion === '1.22'), 'the guardians were last scored at v1.22');
+  assert.ok(guardRows.every((r) => r.fromVersion === '1.47'), 'the guardians were last scored at v1.47');
   const themesGame = group('game', 'Themes').rows;
   assert.equal(themesGame.find((r) => /^Arc/.test(r.label)).delta, 0);   // (game-v1.59: arc and pacing 4 → 4)
   assert.equal(themesGame.find((r) => /^Exploration/.test(r.label)).delta, 1);   // (game-v1.59: exploration and wayfinding 4 → 5)
@@ -161,7 +162,7 @@ test('the cards: score, change, items, the link to the full audit, History behin
       for (const h of t.history) assert.ok(card.includes(`href="#/${h.id}"`), `${t.kind}: history opens ${h.id}`);
     }
   }
-  assert.match(themeCard(theme('combat')), /▲ \+0\.01 <small>since v1\.22/);
+  assert.match(themeCard(theme('combat')), /▼ −0\.01 <small>since v1\.47/);
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
   assert.match(themeCard(theme('dialogue')), /▲ \+0\.64 <small>since v1\.53/);
   assert.doesNotMatch(themeCard(theme('dialogue')), /the first dialogue audit/);

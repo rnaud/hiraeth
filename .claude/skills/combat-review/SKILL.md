@@ -40,6 +40,9 @@ env vars; never 5173). Results so far and why each measure exists: docs/systems/
 | `defend.mjs <out>` | guard, parry and evade at set leads, attack by attack | `--kinds` `--per 45` `--group role\|world` `--guard 0.5,0.3,…` `--evade 0.35,0.25,…`; PORT 5337, CDP 5395 | `defend.json`, `defend.md` |
 
 Method notes:
+- Every kind starts from the Arena's spawn (the hops walk the traveller to the wall otherwise, where foes stand idle),
+  and the time to kill strikes "from the front" into the foe's face; a kind that never winds up in its watch is watched
+  once more (combat-v1.61: four silent kinds in a row in one full run).
 - **Watch** (`arena.mjs`): each kind called in (`foes.setPractice`), locked on, against a still player whose health is
   topped up and every hurt counted: the wind-ups as seen (state `wind`, median s per attack), attacks a minute, health
   a minute (1.0 is a full bar a minute, in hearts over the traveller's hearts).

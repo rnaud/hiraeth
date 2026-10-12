@@ -1445,6 +1445,10 @@ and what it found.
   hearts where the still traveller's cost said 5 hearts; locked on, the Garden's attacks a minute went 28-68 → 56-76.
 - **How flurries chain** (combat-v1.47's question): `--clear-dodge` and `--dodge-watch 30`, a pack never thinned and
   only dodged; answered by `src/flurry.js` `CHAIN` (v1.48, "The back flip, the side hop and the flurry").
+- **Each kind from the spawn, struck into its face** (combat-v1.61): the dodge's hops had walked the traveller to the
+  Arena's wall, where later foes stood idle (29 of 35 -> 35 of 35 once every kind starts from the spawn, in all three
+  scripts); the time to kill's "front" was the line from the player, so a crab not yet turned took the combo on its
+  flank (now into its face); a kind that never winds up in the whole watch is watched once more.
 - **A small foe hidden behind the traveller** (combat-v1.47 rec. 3): measured by camera-qc's `foe hidden` on its
   `arena-lock` scenarios, fixed by `LOCK_VIEW` (v1.48, "Controls and the lock-on").
 
