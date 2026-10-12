@@ -729,8 +729,19 @@ const SAVE60_LANTERN = { ...SAVE47, flags: { ...SAVE47.flags, 'item.lantern': tr
 // (v1.60: the v1.59 game audit's loose ends, issues #227, #230: a scratch shooter against this branch's own Vite and origin/main's tree)
 const AUDIT60 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5721) and origin/main’s tree before it (5a20c90f, port 5723), a fresh profile for the Saves screen; 12 October; cwebp -q 72';
 const FRAG60 = 'headless Chrome (scripts/design-qc/capture.mjs), High, 1280 × 720, the camera pinned over the spot; before: the same view with that fragment found (a save holding its flag), after: a new save';
+// (v1.61, issue #234: the game's own camera aboard, a scratch shooter against this branch's own Vite and origin/main's tree before it)
+const SHIP234 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5751) and the tree before it (3a194522): the traveller placed at the spot, the camera turned there by hand and held for 3 s, the game’s own camera; 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.61': [
+    { match: 'Aboard your ship the camera keeps its distance in the tight spots', shots: [
+      { name: 'ship-tight-bunk', title: 'By the bunk', caption: 'Beside the bunk’s alcove facing into the room, the camera turned toward the alcove: before, 0.41 m behind him, his hair and pack filling the frame; after, a step further out, the camera up over his shoulder looking down at the room, the console and the holo table', from: SHIP234 },
+      { name: 'ship-tight-cockpit', title: 'The cockpit', caption: 'Between the cockpit’s seats, the camera turned to the side over a seat: before, 0.77 m behind him, his back filling the frame; after, up over the seat looking down the dash, the galley beyond', from: SHIP234 },
+      { name: 'ship-tight-hatch', title: 'By the hatch', caption: 'Just in from the hatch, the camera turned toward the wall beside it: before, 0.9 m in from the wall, the camera 1.7 m behind him; after, 1.4 m in, the camera 1.9 m back, the traveller smaller, the room and the alcove beyond', from: SHIP234 },
+      { name: 'ship-tight-prologue', title: 'Waking', caption: 'The prologue a moment after you stand up: before, the traveller in the right third of the frame against the alcove; after, a step out from it, in the middle of the frame with the room and the cockpit ahead', from: SHIP234 },
+    ], numbers: [{ title: 'The close camera’s shortest arms in the ship’s tight spots (a tenth of the time shorter than this)', unit: 'm', better: 'higher', device: 'node: the real camera rig through the built ship, a full turn by hand at 60°/s and four walks out and back (tests/room-size.test.js)',
+      rows: [{ where: 'the cockpit, between the seats', before: 0.76, after: 1.27 }, { where: 'by the hatch', before: 0.88, after: 1.14 }, { where: 'by the bunk', before: 0.67, after: 1.35 }],
+      source: 'the issue #234 probe (docs/systems/movement-and-camera.md, “Small rooms”), against the tree before (3a194522) and this branch' }],
+      see: 'Aboard your ship, stand between the cockpit’s seats, just inside the hatch or beside the bunk and turn the camera all the way round: it rises over your shoulder where a wall is close behind you and comes back down when the room opens.' },
     { match: 'In the City Floating in Space a tall lamp-mast now marks', shots: [
       { name: 'city-stair-lamp', caption: 'From the middle of the Towers looking down its lane to the north edge: after, the moorers’ stair-lamp over the head of the stair down to the great cable', ...C233,
         view: { level: 'spacecity', hour: 10, fov: 60, eye: [98, 7.7, -86], target: [101, 22, -110.9], player: [98, 6, -86] } },

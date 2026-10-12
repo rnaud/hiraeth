@@ -753,7 +753,7 @@ export function buildInterior(batch, group, o = {}) {
       wakeLook: V(ALCOVE.x - 0.4, H(1.75), ALCOVE.z0 + 0.7),   // (up at the alcove's arch and out, from the pillow)
       wakeSit: V(bedC.x - 0.1, H(1.25), bed.z1 - 0.55),         // sitting up on the bed, still inside the alcove
       wakeRoom: V(-0.6, H(1.4), TABLE.z - 0.4),                // where he looks sitting up: the holo table, the galley beyond
-      bunkStand: V(ALCOVE.x - 0.62, DECK, ALCOVE.z1 + 0.2),    // out of the alcove at the pillow's end
+      bunkStand: V(ALCOVE.x - 1.3, DECK, ALCOVE.z1 + 0.1),      // a step out from the alcove at the pillow's end (0.62 m out until issue #234: the camera had no room behind him)
       bunkStandHeading: PI,                                    // facing forward: the room, the table, the console's tail at the left
       cockpit: standPt.clone(),                                // (the voicemail: behind the console's tail, facing forward)
       cockpitHeading: PI,
@@ -761,7 +761,7 @@ export function buildInterior(batch, group, o = {}) {
       seat: V(0, 0.45, 0).applyMatrix4(seatMs[0]),
       table: V(TABLE.x, H(TABLE.planetY), TABLE.z),       // the holo table's planet (src/ship/holotable.js)
       tableFoot: tableC,
-      hatchIn: V(-(WALL_IN - 0.9), DECK, (HATCH.z0 + HATCH.z1) / 2),
+      hatchIn: V(-(WALL_IN - 1.4), DECK, (HATCH.z0 + HATCH.z1) / 2),   // (0.9 m in until issue #234: the camera had no room behind him)
       hatchHeading: HATCH_A,
       threshold: V(-(WALL_IN + HALF_W) / 2, DECK, (HATCH.z0 + HATCH.z1) / 2),   // in the doorway (stepping out)
       aboard: V(-1.4, DECK, 0.45),                        // a few steps in from the hatch (clear of the voicemail's reach)

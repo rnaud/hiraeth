@@ -2740,6 +2740,14 @@ const ARM_HOLD_CUT = 0.45;         // m: only a cut this big is held (holdSpot):
 export const ROOM_FIT = { small: 9.5, third: 2, margin: 0.6, min: 1.1, step: 0.18, rate: 1.4, far: 4.5 };
 const ARM_OUT_GAP = 0.12;          // m
 const ARM_HOLD_TIGHT = 0.5;        // s: close in, the hold before the arm lets out (ARM_HOLD in the open)
+// Aboard the ship, a metre from a wall (issue #234: the cockpit, by the hatch and by the bunk, the arm under a metre a
+// tenth of the time turning round): where the arm straight behind him would be short, the camera climbs instead, up
+// under the ceiling over his shoulder looking down into the room, never crushed against the wall behind him nor looking
+// into it. Of a few pitches over the one you hold (`steps`, rad, the steepest `max`), the least steep whose arm has
+// `arm` m of room (or all the arm wants, if less), else the one with the most; it climbs down again only once the lower
+// pitch has `down` m more (no flipping), eased at `rate`. Looked for where a turn by hand is going (`ahead` s on) and
+// every `every` s. The short arm's tip (SHORT_TILT) is for the rest of the world's tight spots; aboard this replaces it.
+export const CLIMB = { arm: 1.2, steps: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05], max: 1.2, down: 0.15, rate: 4, ahead: 0.6, every: 0.05 };
 const AIR_FOLLOW = 3.5;            // 1/s: close in, how fast the view rises with a jump (on the ground: 14)…
 const AIR_LAG = 0.8;               // m: …never more than this below him
 const LOOK_R = 0.3;                // m: the room the look point keeps off walls close in
@@ -3164,6 +3172,37 @@ export class CameraRig {
     return d;
   }
 
+  /**
+   * Aboard, how much steeper than the pitch you hold the camera stands (this._climb, rad, eased): the least of
+   * CLIMB.steps whose arm from the look point has CLIMB.arm m of room (or the whole arm `want`, if shorter), at the
+   * yaw and where a turn by hand is taking it; else the step with the most room. Down again only for CLIMB.down more.
+   */
+  climb(dt, on, want, turnRate, U = Y, Fw = _zAxis, Rt = _xAxis) {
+    this._climb ??= 0; this._climbGoal ??= 0; this._climbT = (this._climbT ?? 0) - dt;
+    if (!on) this._climbGoal = 0;
+    else if (this._climbT <= 0 || this._jumped) {
+      this._climbT = CLIMB.every;
+      const need = Math.min(want, CLIMB.arm), r = this._sweepR ?? LENS_R, P = this.physics;
+      const base = Math.min(this.pitch, CLIMB.max);
+      const room = (yaw, s) => {
+        const p = Math.min(base + s, CLIMB.max), c = Math.cos(p);
+        _hs.copy(Rt).multiplyScalar(Math.sin(yaw) * c).addScaledVector(U, Math.sin(p)).addScaledVector(Fw, Math.cos(yaw) * c);
+        return P.sweepSphere(this._look, _hs, need + CLIMB.down + 0.2, r) - 0.1;
+      };
+      const yaws = [this.yaw];
+      if (Math.abs(turnRate) > 0.3) yaws.push(this.yaw + THREE.MathUtils.clamp(turnRate * CLIMB.ahead, -0.9, 0.9));
+      let goal = null, best = 0, bestD = -Infinity;
+      for (const s of CLIMB.steps) {
+        const d = Math.min(...yaws.map((y) => room(y, s)));
+        if (d >= need + (s < this._climbGoal - 1e-6 ? CLIMB.down : 0)) { goal = s; break; }
+        if (d > bestD + 0.05) { bestD = d; best = s; }
+      }
+      this._climbGoal = goal ?? best;
+    }
+    this._climb = this._jumped ? this._climbGoal : this._climb + (this._climbGoal - this._climb) * (1 - Math.exp(-CLIMB.rate * dt));
+    return this._climb;
+  }
+
   /** The arm's length before walls pull it in: open, tight (over the shoulder) or aiming. */
   armLength(tk = this.tightK, ak = this.aimK ?? 0) {
     const open = this.dist + this._distBoost;
@@ -3292,11 +3331,14 @@ export class CameraRig {
       _hs.copy(Rt).multiplyScalar(Math.sin(this.yaw) * c0).addScaledVector(U, Math.sin(p0)).addScaledVector(Fw, Math.cos(this.yaw) * c0);
       armBase = Math.max(armBase, this.physics.sweepSphere(this._look, _hs, SHORT_ARM + 0.3, this._sweepR ?? LENS_R) - 0.1);
     }
-    const tiltGoal = k > 0.5 && ak < 0.5 ? THREE.MathUtils.clamp((SHORT_ARM - armBase) / (SHORT_ARM - 0.45), 0, 1) : 0;
+    // (aboard, the climb over the shoulder replaces the tip: CLIMB)
+    const climbs = this.indoor && k > 0.5 && ak < 0.5 && !!this.physics.sweepSphere && U.y > 0.999 && this._look.lengthSq() > 0;
+    const tiltGoal = k > 0.5 && ak < 0.5 && !climbs ? THREE.MathUtils.clamp((SHORT_ARM - armBase) / (SHORT_ARM - 0.45), 0, 1) : 0;
     this._tilt = (this._tilt ?? 0) + (tiltGoal - (this._tilt ?? 0)) * (1 - Math.exp(-5 * dt));
+    this.climb(dt, climbs, dist, turnRate, U, Fw, Rt);
     // under a roof, in the open framing (not close in, not aiming), Sable's higher, steeper view indoors (ROOF_TILT)
     this._roofPitch = this.roofK * (1 - k) * (1 - ak) * (1 - this.downK) * ROOF_TILT;
-    const pitch = Math.min(this.pitch + this._tilt * SHORT_TILT + this._roofPitch, PITCH_DOWN);
+    const pitch = Math.min(this.pitch + this._tilt * SHORT_TILT + this._climb + this._roofPitch, PITCH_DOWN);
     // (in the ship's rooms, and close in anywhere the walls cut the arm: a vestibule, a corridor's end; never aiming)
     if (Math.max(ik, this.physics.sweepSphere ? tk : 0) > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
     const cp = Math.cos(pitch);
@@ -3511,7 +3553,7 @@ export class CameraRig {
     if (P.sweepSphere(this._look, to, L + 0.05, this._sweepR ?? LENS_R) < L) return false;   // (as the arm will be found next frame: else it holds, lets go, holds…)
     const head = _head.copy(this.target).addScaledVector(U, 1.55), toH = _ct.subVectors(H, head), Lh = toH.length();
     if (Lh > 0.3 && P.rayDistance(head, toH.divideScalar(Lh), Lh) < Lh - 0.1) return false;
-    const pitch = Math.asin(THREE.MathUtils.clamp(to.dot(U), -1, 1)) - (this._tilt ?? 0) * SHORT_TILT - (this._roofPitch ?? 0);
+    const pitch = Math.asin(THREE.MathUtils.clamp(to.dot(U), -1, 1)) - (this._tilt ?? 0) * SHORT_TILT - (this._climb ?? 0) - (this._roofPitch ?? 0);
     if (pitch < this.pitchUpLimit() || pitch > PITCH_DOWN) return false;
     this.yaw = Math.atan2(to.dot(Rt), to.dot(Fw));
     this.pitch = pitch;

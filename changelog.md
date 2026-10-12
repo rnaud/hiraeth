@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.61 — 2026-10-12
 
+- Aboard your ship the camera keeps its distance in the tight spots: in the cockpit, by the hatch and beside your bunk it rises over your shoulder and looks down into the room as you turn, instead of pressing into your back. When you wake you stand a step out from the bunk, with the room and the cockpit ahead of you.
 - At the end of the journey someone knows the fragments for what they are, and says so, whether you found none, some or every one.
 - The scientist who keeps the fragments in your hold is Anselm Thrum now, and the woman who minds the great cable’s clamp under the Floating city’s Towers is Tilde: their old names belonged to other people in the story. Anselm no longer introduces himself when you meet; he is too busy chasing the fragment.
 - Fragments of the singing light now hide in the places the newest explorations built: on a deck of Lorn’s keepers’ canopy 70 m up and on the egg isle in the drowned wood, at the top of the Floating city’s stack, across the Underwater City’s canyon bridge and out on the seabed, up the broken moon’s stair street, on Viridel’s old pyramid and the round ship’s hill, at the far end of Kip’s skybridge. None lies on the way anyone sends you any more. The fragments you have already found still count.

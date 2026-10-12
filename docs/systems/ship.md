@@ -80,7 +80,7 @@ the hull grew round the rooms (25.2 → 26.0 m long with the hold, 8.4 m wide, 6
 the cinematics' points (`cockpitFrame`, `wakeSit`, `tableShot`…) and the export's points follow from the interior; the
 cockpit shots written in ship metres (cinematics.js, homecoming.js and the C# `ShipScene.cs`) moved 0.8 m forward with
 the cockpit. The probe (the close camera turning round in each room): docs/systems/movement-and-camera.md, "Small
-rooms". `tests/room-size.test.js` holds the sizes.
+rooms". `tests/room-size.test.js` holds the sizes. The cockpit, the spot by the hatch and the spot by the bunk were still tight for a camera turning round (issue #234): aboard it climbs over his shoulder there instead (movement-and-camera.md, "Small rooms", `CLIMB`), and the hatch's and the bunk's points stand further into the room (below).
 
 ### The picked layout (`references/The Travellers Ship/Interior - Lab/sheet-1.jpg`)
 
@@ -172,8 +172,8 @@ of the loft. The bow and the stern are the same seven points at fewer stations, 
 | `projector`, `voicemail` | on the console's tail, (0.28, 1.02, -1.1) and (0.4, 1.09, -0.8) | the hologram, the blinking button |
 | `seat` | the pilot's seat (the left of the two) | |
 | `table`, `tableFoot` | the holo table at (0.2, -3.1) | the galactic map (`atTable`, `TABLE_R` 1.6 m), the course-set shot |
-| `hatchIn`, `threshold`, `aboard` | 0.9 m in from the hatch; in the doorway; a few steps in (-1.4, 0.45), out of the voicemail's reach | stepping out (E), the step-out scenes, boarding (walking into the ramp: issue #87) |
-| `bunkStand`, `wakeEye`, `wakeLook`, `wakeSit`, `wakeRoom` | out of the alcove at the pillow's end (out of the table's reach); on the pillow; up at the arch; sitting up, still in the alcove; across the room to the table and the galley | the prologue's waking |
+| `hatchIn`, `threshold`, `aboard` | 1.4 m in from the hatch's wall (0.9 until issue #234, the camera had no room behind him; you can step out within 1.7 m of it); in the doorway; a few steps in (-1.4, 0.45), out of the voicemail's reach | stepping out (E), the step-out scenes, boarding (walking into the ramp: issue #87) |
+| `bunkStand`, `wakeEye`, `wakeLook`, `wakeSit`, `wakeRoom` | a step out from the alcove at the pillow's end, 1.3 m from its front (0.62 until issue #234; out of the table's and the console's reach); on the pillow; up at the arch; sitting up, still in the alcove; across the room to the table and the galley | the prologue's waking |
 
 `tests/ship.test.js` walks to the console and the table and uses them, `tests/ship-deck.test.js` checks
 the deck is one plane and walks across it at one height, `tests/ship-camera.test.js` turns the tight

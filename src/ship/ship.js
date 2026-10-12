@@ -429,7 +429,7 @@ export class Ship {
     const m = this.parked;
     if (!this.isInside(m, this.player.pos)) return false;
     const l = this.local(m, this.player.pos), c = m.interior.points.hatchIn;
-    return Math.hypot(l.x - c.x, l.z - c.z) < 2.2;
+    return Math.hypot(l.x - c.x, l.z - c.z) < 1.7;   // (2.2 when the point stood 0.9 m in: the same reach into the room, issue #234)
   }
 
   atRampFoot() {

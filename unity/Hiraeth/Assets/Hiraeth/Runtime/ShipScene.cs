@@ -590,7 +590,7 @@ namespace Hiraeth
             });
             Interact.Add(new Interactable
             {
-                id = "ship.leave", priority = 0, range = 2.4f, at = () => Wp(Pt("hatchIn", false)) + Vector3.up,
+                id = "ship.leave", priority = 0, range = 1.95f, at = () => Wp(Pt("hatchIn", false)) + Vector3.up,   // (2.4 when hatchIn stood 0.9 m in: the same reach into the room, issue #234)
                 enabled = () => !PrologueActive && inside,
                 prompt = () => "step outside",
                 use = () => { inside = false; game.player.Teleport(rampFoot + outDir * 1.5f, Mathf.Atan2(outDir.x, outDir.z) * Mathf.Rad2Deg); game.rig.yaw = game.player.heading; },

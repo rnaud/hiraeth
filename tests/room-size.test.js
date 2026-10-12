@@ -132,3 +132,100 @@ test('close in, an arm that has come in lets out only for a real gain (no in-out
   for (let i = 0; i < 90; i++) rig.update(q, 1 / 60, null);
   assert.ok(Math.abs(rig._curDist - held) < 0.06, `${held.toFixed(3)} → ${rig._curDist.toFixed(3)}`);
 });
+
+// Issue #234: the ship's tight spots, where #195 left the close arm under a metre a tenth of the time turning round a
+// metre from a wall (the cockpit between the seats, by the hatch, by the bunk). Aboard, the camera climbs over the
+// shoulder there (CLIMB) instead of crushing in, and the hatch's and the bunk's points stand further into the room.
+const pct = (a, q) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(q * s.length))]; };
+function shipRig() {
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
+  const physics = new Physics(scene);
+  const level = { spawn: V(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  return { physics, ship, m: ship.parked };
+}
+const aboardRig = (physics) => {
+  const camera = new THREE.PerspectiveCamera(65, 16 / 9, 0.3, 500);
+  const rig = new CameraRig(camera, dom, physics);
+  rig.indoor = true; rig.indoorK = 1;
+  return { camera, rig };
+};
+/** A full turn by hand (60°/s) and four walks out and back from `l` (ship-local), the real rig aboard: its arms and pull-ins. */
+function probeSpot({ physics, ship, m }, l) {
+  const p = ship.world(m, l.clone().setY(0)), yaw0 = ship.worldHeading(m, Math.PI) + Math.PI;
+  const runs = [[[p.x, p.y, p.z], { wait: 6.5 }]];
+  for (let k = 0; k < 4; k++) {
+    const a = yaw0 + Math.PI + k * Math.PI / 2, d = V(Math.sin(a), 0, Math.cos(a));
+    let L = Infinity;   // (out till 2.6 m short of a wall, or short of anything the body would bump)
+    for (const h of [0.4, 1.2]) L = Math.min(L, physics.rayDistance(p.clone().add(V(0, h, 0)), d, 30));
+    for (const s of [-0.4, 0.4]) L = Math.min(L, physics.rayDistance(p.clone().add(V(d.z * s, 0.6, -d.x * s)), d, 30));
+    let go = Math.max(0, Math.min(L - 2.6 > 0.5 ? L - 2.6 : L - 0.6, 6));
+    while (go > 0 && !ship.isInside(m, p.clone().addScaledVector(d, go + 0.6))) go -= 0.1;   // (aboard: not out of the hatch)
+    const q = p.clone().addScaledVector(d, go);
+    runs.push([[p.x, p.y, p.z], [q.x, q.y, q.z], { wait: 0.5 }, [p.x, p.y, p.z]]);
+  }
+  const arms = [], pulls = [];
+  let pops = 0, clip = 0, frames = 0;
+  runs.forEach((path, i) => {
+    const { camera, rig } = aboardRig(physics);
+    const up = rig.update.bind(rig), pull = [];
+    rig.update = (...a) => { up(...a); pull.push(rig.armLength() - rig._curDist); };
+    const S = walk(rig, physics, camera, path, i ? { speed: 2.4, yaw: yaw0, floor: p.y } : { turns: [{ at: 0.3, for: 6, rate: 60 }], yaw: yaw0, floor: p.y });
+    const r = analyse(S).measures;
+    arms.push(...S.map((s) => s.cur)); pulls.push(...pull.slice(-S.length));
+    pops += r.pops; clip += r.clip * S.length; frames += S.length;
+  });
+  return { arm: pct(arms, 0.1), pull: pct(pulls, 0.9), pops, clip: clip / frames };
+}
+
+test('the ship\'s cockpit, hatch and bunk (issue #234): turning round and walking about, the arm stays over a metre', () => {
+  const W = shipRig(), P = W.m.interior.points;
+  // (before: the cockpit 0.76 / 1.04 m, by the hatch 0.88 / 1.02, by the bunk 0.67 / 0.88: arm p10 / pull-in p90)
+  for (const [name, l] of Object.entries({ cockpit: V(0, 0, -8.1), hatch: P.hatchIn, bunk: P.bunkStand })) {
+    const r = probeSpot(W, l), say = `${name}: arm p10 ${r.arm.toFixed(2)} m, pull-in p90 ${r.pull.toFixed(2)} m, ${r.pops} pops, clip ${(r.clip * 100).toFixed(1)} %`;
+    assert.ok(r.arm >= 1, say);
+    assert.ok(r.pull < 0.8, say);
+    assert.equal(r.pops, 0, say);
+    assert.ok(r.clip <= 0.01, say);
+  }
+});
+
+test('aboard, a wall a metre behind him: the camera climbs over his shoulder instead of crushing in (CLIMB)', () => {
+  const { physics, ship, m } = shipRig();
+  // by the bunk's alcove (where he stood up until issue #234), his back to it, the camera turned toward it by hand and held
+  const p = ship.world(m, V(1.98, 0, -1.7));
+  const { camera, rig } = aboardRig(physics);
+  m.group.updateMatrixWorld(true);
+  const arm = V(Math.sin(Math.PI / 2 + 0.3), 0, Math.cos(Math.PI / 2 + 0.3)).transformDirection(m.group.matrixWorld);   // (ship-local: toward the alcove)
+  rig.yaw = Math.atan2(arm.x, arm.z); rig.target.copy(p); rig.snapTight(p);
+  for (let i = 0; i < 180; i++) { rig._lastMouse = rig._now; rig.update(p, 1 / 60); }
+  assert.ok(rig._climb > 0.3, `it climbs: ${rig._climb.toFixed(2)} rad over the pitch`);
+  assert.ok(rig._curDist >= 0.95, `the arm ${rig._curDist.toFixed(2)} m (0.41 before)`);
+  const cam = ship.local(m, camera.position.clone());
+  assert.ok(cam.y > 2 && cam.y < CEIL - 0.25, `up under the ceiling: ${cam.y.toFixed(2)} m`);
+  // and turned to the room, where the arm has its room: level again
+  rig.yaw += Math.PI;
+  for (let i = 0; i < 240; i++) { rig._lastMouse = rig._now; rig.update(p, 1 / 60); }
+  assert.ok(rig._climb < 0.05, `level again with room behind him: ${rig._climb.toFixed(2)}`);
+});
+
+test('the prologue\'s waking by the bunk: he stands a step out from the alcove, the camera has its room behind him', () => {
+  const { physics, ship, m } = shipRig(), P = m.interior.points;
+  assert.ok(ALCOVE.x - P.bunkStand.x >= 1.2, `a step out from the alcove: ${(ALCOVE.x - P.bunkStand.x).toFixed(2)} m (0.62 before)`);
+  assert.ok(Math.hypot(P.bunkStand.x - P.tableFoot.x, P.bunkStand.z - P.tableFoot.z) > 1.7, 'out of the holo table\'s reach');
+  assert.ok(Math.hypot(P.bunkStand.x - P.cockpit.x, P.bunkStand.z - P.cockpit.z) > 1.9, 'and of the console\'s');
+  assert.ok(WALL_IN + P.hatchIn.x >= 1.3, `by the hatch, 1.4 m in from the wall (0.9 before): ${(WALL_IN + P.hatchIn.x).toFixed(2)}`);
+  // the rise (src/ship/cinematics.js): the camera behind him where it is clearest, at 2.5 m, then the rig
+  const { camera, rig } = aboardRig(physics);
+  const p = ship.world(m, P.bunkStand), heading = ship.worldHeading(m, P.bunkStandHeading);
+  rig.pitch = 0.1; rig._wasIndoor = true;
+  rig.yaw = rig.clearYaw(p, heading + Math.PI, { want: 3 });
+  rig.target.copy(p); rig.snapTight(p); rig._curDist = 2.5;
+  for (let i = 0; i < 120; i++) rig.update(p, 1 / 60);
+  assert.ok(rig._curDist >= 1.4, `the arm ${rig._curDist.toFixed(2)} m (he filled the right third of the frame before)`);
+  camera.updateMatrixWorld(true);
+  const head = p.clone().add(V(0, 1.6, 0)).project(camera), feet = p.clone().project(camera);
+  assert.ok(Math.abs(head.x) < 0.6, `his head toward the middle of the frame: ${head.x.toFixed(2)}`);
+  assert.ok(head.y - feet.y < 1.6, `his body under the frame's height: ${((head.y - feet.y) / 2).toFixed(2)} of it`);
+});

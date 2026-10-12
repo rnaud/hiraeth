@@ -20,6 +20,9 @@ export const CHANGELOG = [
     'Fragments of the singing light now hide in the places the newest explorations built: on a deck of Lorn’s keepers’ canopy 70 m up and on the egg isle in the drowned wood, at the top of the Floating city’s stack, across the Underwater City’s canyon bridge and out on the seabed, up the broken moon’s stair street, on Viridel’s old pyramid and the round ship’s hill, at the far end of Kip’s skybridge. None lies on the way anyone sends you any more. The fragments you have already found still count.',
     'The scientist who keeps the fragments in your hold is Anselm Thrum now, and the woman who minds the great cable’s clamp under the Floating city’s Towers is Tilde: their old names belonged to other people in the story. Anselm no longer introduces himself when you meet; he is too busy chasing the fragment.',
     'At the end of the journey someone knows the fragments for what they are, and says so, whether you found none, some or every one.',
+    // the camera aboard climbs over the shoulder in the ship's tight spots, the bunk's and the hatch's points further in
+    // (src/player.js CLIMB, src/ship/interior.js; docs/systems/movement-and-camera.md "Small rooms"; issue #234)
+    'Aboard your ship the camera keeps its distance in the tight spots: in the cockpit, by the hatch and beside your bunk it rises over your shoulder and looks down into the room as you turn, instead of pressing into your back. When you wake you stand a step out from the bunk, with the room and the cockpit ahead of you.',
   ] },
   { v: '1.60', date: '2026-10-12', items: [
     // the temples to explore, round 4: the last three great keys out of the rooms off the last halls, each with a loop

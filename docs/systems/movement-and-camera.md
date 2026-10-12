@@ -182,7 +182,7 @@ cramped when the arm is under 1 m a tenth of the time, or it pops, clips or is r
 | the ship: by the holo table, the main room's aft end, the hold | 3.8–4.8 → 4.0–5.5 | 2.3 → 2.9 | 0.48–0.97 → 1.12–1.76 | 0.93–1.42 → 0.14–0.78 |
 | the ship: the cockpit, by the hatch, by the bunk | 3.1–5.0 → 3.9–5.7 | 2.3–2.4 → 2.7–2.9 | 0.46–0.78 → 0.42–0.83 | 1.12–1.44 → 1.06–1.24 |
 
-Still under the line: the ship's cockpit, hatch and bunk spots and a few temple stones that stand by a wall in rooms 10 m
+Still under the line: the ship's cockpit, hatch and bunk spots (over it since issue #234: the climb below) and a few temple stones that stand by a wall in rooms 10 m
 and more across (the Footprint's pool, the Lamp-House's roots, the Hush-House's well, the Greenhouse's vault and landing,
 the Undertower's well): a full turn with your back a metre from a wall brings any camera in. The pops left are the open
 framing's in great open halls (the Aerie's well and gulf, the Greenhouse's stair, the Mooring-House's moorings), where the
@@ -202,6 +202,31 @@ ray-cut open arm snaps as it always has (the camera QC's desert-open), and a col
 - **The short arm's tip** (`SHORT_TILT`) is judged by the room behind him at the untipped pitch, not by the arm the tip
   left: tipped over the head, the camera could meet whatever hangs over a room's edge, the arm stayed short, so the tip
   stayed.
+
+- **Aboard, it climbs over the shoulder** (`CLIMB`, `CameraRig.climb`; issue #234, from the v1.59 game audit): the
+  ship's cockpit, the spot by the hatch and the spot by the bunk still had under 1 m of arm a tenth of the time, because
+  a full turn a metre from a wall or a seat back brings any camera behind him in to the wall. Aboard (`indoor`), where
+  the arm straight behind him would be short, the camera stands steeper instead: of a few pitches over the one you hold
+  (0 to 1.05 rad more, never past 1.2), the least steep whose swept arm has 1.2 m of room (or the whole arm, if
+  shorter), else the one with the most. It climbs up under the ceiling over his shoulder and looks down into the room,
+  never crushed against the wall behind him nor looking into it; turned back to the room it comes level again (down
+  only once the lower pitch has 0.15 m more room: no flipping), eased (`rate` 4/s), looked for every 0.05 s and 0.6 s
+  ahead along a turn by hand, as the arm looks ahead. Aboard it replaces the short arm's tip (`SHORT_TILT`, which stays
+  for the temples', the train's and the rest of the world's tight spots). The two points the scenes put him at moved
+  into the room too: the bunk's (`bunkStand`, the prologue's waking) 1.3 m out from the alcove (0.62), the hatch's
+  (`hatchIn`) 1.4 m in from the wall (0.9; the step-out's reach shortened to keep the same reach into the room).
+
+  The probe (`tests/room-size.test.js`, "the ship's cockpit, hatch and bunk": the real rig through the built ship, a
+  full turn by hand at 60°/s and four walks out and back, kept aboard):
+
+  | spot | arm p10 (m) | pull-in p90 (m) | pops |
+  |---|---|---|---|
+  | the cockpit, between the seats (0, -8.1) | 0.76 → 1.27 | 1.04 → 0.56 | 0 → 0 |
+  | by the hatch (`hatchIn`) | 0.88 → 1.14 | 1.02 → 0.61 | 0 → 0 |
+  | by the bunk (`bunkStand`) | 0.67 → 1.35 | 0.88 → 0.55 | 0 → 0 |
+
+  In the prologue the traveller no longer fills the right third of the frame by the alcove: the camera stands 1.5–1.9 m
+  behind him, the room and the cockpit beyond him.
 
 In a 4.2 x 5 m cabin (a turn by hand, walks to each wall and back, another turn: `tests/room-size.test.js`) the arm's
 in and out summed over the walk went from 3.7 m to 0.7 m, its reversals from 0.17/s to 0, its flips in and out within a
