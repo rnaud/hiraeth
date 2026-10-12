@@ -240,3 +240,51 @@ obviousness score per step). Both score a rubric and plan camera views; `scripts
 them in one muted headless Chrome (PORT 5344, never 5173). Pure logic: `scripts/*/lib.mjs`, tested in
 `tests/level-design.test.js` and `tests/temple-design.test.js`. Reports: `docs/audits/level-design-v*.md`,
 `docs/audits/temple-design-v*.md`.
+
+### How the level design measure grew
+
+What `scripts/level-design/audit.mjs` learned to read, version by version (moved from the skill, which keeps
+only the list of hints a level can give):
+
+- **v1.9:** three hints a level or quest may give: a level's **`sights`** (`[{ name, at }]`: things to stop for
+  that are neither people nor quests, a bowl to fill, a wreck: counted as optional places), its **`beacons`**
+  (`[{ name, top, height }]`: tall see-through markers the collision doesn't make tall, a smoke column, a chimney
+  past the map's edge: aimed at as landmarks), and a quest stage's **`ends`** (a locator: where a stage whose
+  marker moves on is done, "ask Marrow, then find his bike in the hollow"). And a leg over 200 m between two stops
+  on the ground is **draped** over the ground under it (up to 70 m down), so a ride across a basin is measured
+  down in the basin, not in the air over it.
+- **v1.15:** a level's **`lines`** (`[{ name, points, auto }]`: leading lines on the ground, a row of marked
+  stones, a dry channel, cairns, the red stair): a leg is **guided** by one that starts within 60 m of it and ends
+  by its goal (or where the goal comes into sight), and a leg a line runs along from beside its start (30 m) to
+  beside its goal (30 m) is **walked along it** (`followLines`: the stop gets the line's points as `via`, so the
+  path, the gaps and the walks back follow the line). A quest stage whose words send you along one names it
+  (`via: 'the marked stones'`) and is walked along it from farther off; a line marked `auto: false` is followed
+  only where a stage names it (a way home lit for the way home). The **loner** rule scales with the travel
+  speed: 18 s from anything (150 m running, 366 m on the bike, `lonelyFor`).
+- **v1.17:** a portal marked `oneWay` (a hatch that only lifts from below) is not assumed to be walked back, and
+  a route step `{ act, at, label }` (`tests/playthrough-worlds.js` `ROUTE`) is a stop where `at` stands (a talk if
+  it is a person: Vael's route starts by meeting Oïa beside the landing, who opens the main quest).
+- **v1.20:** a stage may name the line its words send you **home** along (`home: 'the lantern stones'`: the walk
+  back to the ship after the last stage that names one follows it, as a named `via` does), and where its person
+  **stands** by the time you get there (`stands: 'hollinEnd'`, a locator: Hollin walks down to the root cave
+  while you are at the saucer; without it the audit measures him where he stood at the start).
+- **v1.46:** a goal looked at **steeply** (more than 40° up or down, `steepness`) is seen as it would be: far
+  overhead, when the ray stops on what carries it, within max(15 m, a tenth of the leg) of it (the balcony under
+  Vael's window, the City-Shaft palace's legs under its crown): `goal overhead`; far below, past the floor at your
+  feet (12 m stepped through, the crow's nest's own deck): `goal below`. And every eye steps out of what it
+  stands inside within 0.8 m of it: a line's points are its markers, so the walk along it passed through each
+  post or cairn and saw nothing (the Glass Dunes' float-posts: 35 % of the path saw a landmark, 88 % since).
+- **v1.49:** a merged world (`src/levels/names.js` `PARTS`: Vael carries the sky stones, Lorn the Deep Wood) is
+  read with its parts: their quests' places, their trials, courts and temples' doors, and a route step
+  `{ temple: 'done', id }` goes in at that part's temple (`templeFor`; before, Vael's Belfry was measured at the
+  Aerie's door, 1.1 km off).
+- **v1.50:** a line may be **ridden** (`ride`: m/s, the City-Shaft's cab home): its length is weighed at that
+  speed against the walk; and a temple whose last way out, past its guardian, comes out somewhere else (the arena
+  exit's `to`: the Whale-House's keepers' hatch) is gone on from there, the hop to it not walked.
+- **v1.53 (#174):** a level may give its mount's fast **`lane`** (`(x, z)` → `{ k, river }`: the desert's sand
+  rivers), and the path's stretches in one are timed at the bike's speed with the lane's gain (`laneRuns`,
+  `metrics.lanes`); and every room behind a doorway on the map that is built off it (the city under the Glass
+  Dunes' sand, 2.6 km up) is reported with where you land, its way out, the walk across and where that leaves
+  you (`offMapRooms`, `metrics.rooms`). Its places stay off the map: the door stands for the room.
+- **v1.55:** the eye steps out within 1.5 m, not 0.8 (the City-Shaft crown's marker stands on the axis of the
+  palace's needle, 1.2 m round: from there it saw nothing at all; no other world's numbers moved).

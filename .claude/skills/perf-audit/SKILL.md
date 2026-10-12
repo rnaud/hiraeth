@@ -29,7 +29,7 @@ npx vite build
 node .claude/skills/perf-audit/size.mjs --out <scratch>/size.json [--against <last report's size.json>]
 ```
 
-Report the following:
+Every report gives these numbers, each against the last report's (this step is not optional):
 - the total, and what goes to the devices (everything but the changelog pictures);
 - each area: code, music, sound, animations and bodies;
 - JS and CSS, gzipped;
@@ -46,7 +46,8 @@ node .claude/skills/perf-audit/fps.mjs --preset high     --out <scratch>/fps-hig
 node .claude/skills/perf-audit/fps.mjs --preset handheld --out <scratch>/fps-handheld.json
 ```
 
-This covers every world. For each world it records:
+This covers every route world, Home, the Lantern and the Arena; the detours still being made (`WIP`,
+`src/levels/names.js`) are left out unless `--wip 1` or `--worlds` names them. For each world it records:
 - the load (navigation to the game booted);
 - at each benchmark view: the frame time's median, 95th percentile and worst, the fps, draw calls,
   triangles, shader programs and the JS heap.
@@ -97,21 +98,21 @@ Start the report with its score block, right under the title (an HTML comment Gi
 ```
 <!-- audit-scores
 overall: none
-label: (none: the headline says it)
+headline: the budgets met and missed, in one line
 date: YYYY-MM-DD
 -->
 ```
 
-A performance report has no overall score: write `overall: none` and, instead of `label:`, `headline:` with
-the budgets met and missed in one line.
-Keep the score tables as Markdown tables with one row per world or view and the 1-5 scores in their own columns (a
-"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
-page draws them as bars and compares them with the last report's by the row's name and the column's header,
-so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+A performance report has no overall score: `overall: none` and a one-line `headline:` instead of `label:`.
+Its tables hold numbers, not 1-5 scores: fps and frame times (median, 95th percentile) per world and preset,
+one row per world (or view), with the same rows and column headers as the last report so the audits page can
+compare them. The rest of the rules: docs/systems/ui.md "The audits page", bullet "Score tables, for the
+skills that write reports".
 
 - **The setup:** the machine and how quiet it was, the GPU string, the presets, the resolution, the
   commit.
-- **Size:** the table and its changes.
+- **Size:** step 1's numbers (total, to the devices, each area, JS and CSS gzipped, first load, the APK),
+  each against the last report's.
 - **Frames and loads:** a world per row, with each number against the last report's, regressions in
   **bold**, and anything past budget flagged.
 - **Devices:** measured now, or the last numbers with their date.

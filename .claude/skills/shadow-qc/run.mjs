@@ -25,7 +25,7 @@ const PRESETS = arg('presets', 'high,deck,handheld').split(',');
 const SUNS = arg('suns', '35/90,12/90').split(',').map((s) => s.split('/').map(Number));
 const ONLY = arg('only')?.split(',') ?? null;
 const PORT = Number(process.env.PORT ?? 5371), CDP = Number(process.env.CDP ?? 5372);
-if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
+if (PORT === 5173 || CDP === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const L = await import(join(ROOT, 'scripts/shadow-qc/lib.mjs'));
@@ -264,7 +264,7 @@ for (const preset of PRESETS) for (const [el, az] of SUNS) {
   first = false;
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
   await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'normal' }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, soundV: 1, enemies: 'off' }));
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true }, keepsakes: [] })); true`);
   await send('Page.navigate', { url: `${BASE}?level=shadows` });
   let up = false;

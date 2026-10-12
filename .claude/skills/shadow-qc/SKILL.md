@@ -1,6 +1,6 @@
 ---
 name: shadow-qc
-description: Check the quality of Hiraeth's sun shadows in motion — shadow acne, peter-panning (the shadow come loose from its foot), light leaks, shadows of casters off screen gone missing, shimmer and swimming of shadow edges as the camera moves, pops and seams where the cascades hand over, and the traveller's own shadow (how much of it is drawn, how far from his feet it starts) — by walking him through the Shadow Room (?level=shadows) in headless Chrome on High, Steam Deck and Handheld, evaluating the game's own shadow lookup at fixed probes every frame against ray-traced truth, and reporting per spot with numbers against thresholds and contact sheets of the worst frames. Use after any change to src/shadows.js, the cascades or presets in src/perf.js / main.js, materials.js's shadow lookup (SHADOW_GLSL: bias, normal offset, filter), when someone says shadows flicker, crawl, detach, go missing or look noisy, or before a release.
+description: Check the quality of Hiraeth's sun shadows in motion — shadow acne, peter-panning (the shadow come loose from its foot), light leaks, shadows of casters off screen gone missing, shimmer and swimming of shadow edges as the camera moves, pops and seams where the cascades hand over, and the traveller's own shadow (how much of it is drawn, how far from his feet it starts) — by walking him through the Shadow Room (?level=shadows) in headless Chrome on High, Steam Deck and Handheld, evaluating the game's own shadow lookup at fixed probes every frame against ray-traced truth, and reporting per spot with numbers against thresholds and contact sheets of the worst frames. Use after any change to src/shadows.js, the cascades or presets in src/perf.js / main.js, materials.js's shadow lookup (SHADOW_GLSL: bias, normal offset, filter), when someone says shadows flicker, crawl, detach, go missing or look noisy, or before a release. The broad sweep for every kind of visual fault is visual-audit; this one is the sun's shadows in motion.
 ---
 
 # The shadow QC
@@ -21,12 +21,13 @@ traveller through it and, every frame:
 
 ## 1. Run it
 
+Node 22.12 or newer on PATH (the global WebSocket and Vite 8 need it; CI uses 24; Zed's bundled node works).
+
 ```sh
-export PATH="/Users/anf/Library/Application Support/Zed/node/node-v24.11.0-darwin-arm64/bin:$PATH"
 VITE_CACHE=$PWD/.vite-cache node .claude/skills/shadow-qc/run.mjs <scratch>/shadows [--presets high,deck,handheld] [--suns 35/90,12/90] [--only props,stairs] [--look 5] [--walk]
 ```
 
-- One muted headless Chrome (`--mute-audio`, the game's volumes at 0) and one Vite server, both closed at the end.
+- One muted headless Chrome (`--mute-audio`, the game's volumes at 0, foes off) and one Vite server, both closed at the end.
   PORT (default 5371; **never 5173**, the author's own server), CDP (default 5372). `VITE_CACHE` a dependency cache
   inside the checkout (a worktree whose node_modules is a link to the main checkout's needs it).
 - A run is a preset and a sun (`el/az` in degrees: 35/90 is a morning sun from the east, 12/90 a low one that
@@ -100,3 +101,7 @@ before believing a number.
 docs/systems/rendering.md, "The Shadow Room and the shadow QC", has the tables before and after the fixes. When you
 change the shadows: run it before and after on the same machine, put both tables in the docs and the numbers in the
 changelog's media (docs/systems/changelog.md), and check two real worlds by eye (they share every setting).
+
+After every run worth keeping (a release, a fix, a new preset), record its table there too: `shadows.md`'s table under
+a line with the version, the date, the machine and the presets and suns run, the newest first, so the next run has
+something to compare with.

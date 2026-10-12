@@ -1,6 +1,6 @@
 ---
 name: dialogue-review
-description: Review Hiraeth's dialogue and narrative tone — every conversation, listen line, recording and temple guide — against the house voice guide (lore/voice-guide.md) and the craft of game writing (craft.md beside this file): brevity, subtext, distinct voices, choices that matter, barks, tone in grief, alien speakers, lore load, quest clarity, localisation. Writes docs/audits/dialogue-v<version>.md with findings and rewrites. Use when asked to review, critique or improve the dialogue, the writing, the tone, a character's voice or a world's script.
+description: Review Hiraeth's dialogue and narrative tone — every conversation, listen line, recording and temple guide — against the house voice guide (lore/voice-guide.md) and the craft of game writing (craft.md beside this file): brevity, subtext, distinct voices, choices that matter, barks, tone in grief, alien speakers, lore load, quest clarity, localisation. Quest structure (steps, hand-offs, straight to the end) and whether each answer follows from what was just said are quest-qc's. Writes docs/audits/dialogue-v<version>.md with findings and rewrites. Use when asked to review, critique or improve the dialogue, the writing, the tone, a character's voice or a world's script.
 ---
 
 # The dialogue review
@@ -67,13 +67,7 @@ too. Most of all, check what can't be measured:
   - Does each label say what he says?
   - Is there accept, push back and deflect where the scene allows it, or only politeness?
   - Is a two-answer node a false binary?
-  - **Does each answer follow from what was just said?** The author's playthrough (October 2026, issue #61): "Who are
-    the Givers?" offered before anyone had named them. An answer asks about what the speaker has just said, or
-    answers what they asked; check each node's last page against its answers, and an answer offered on a node it
-    doesn't follow from (the Speaker's "The swamp of lights?" a node after he said it).
-- **Quest givers** (the author, issues #62 and #63): a few pages in their own voice, the essentials only, and they say
-  where to go, never "go and ask X" (one person sending you to another). The quest QC skill
-  (`.claude/skills/quest-qc/`) has the rest of the quest rules.
+- **Quest givers and answers that follow:** the quest QC skill's rules (`.claude/skills/quest-qc/`); flag them there.
 - **Choices remembered:** what comes back later, and where nothing does.
 - **Tone:**
   - whole beats without a joke where the guide asks for them;

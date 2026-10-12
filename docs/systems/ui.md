@@ -766,6 +766,13 @@ Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` an
   before / after in a report, the right stick scrolls. Keys: arrows, Enter, Esc, Q / E, H, [ / ]. Every control is a button or link for mouse and touch; the header wraps on a phone upright and
   stays two short rows sideways. Tests: `tests/audits-page.test.js` (the parser on the real reports,
   that every report in `docs/audits/` appears with its block, the index, comparisons, the wiring).
+- **Score tables, for the skills that write reports:** Markdown tables with one row per item (a theme, a world,
+  a temple, a foe kind, a view…), the 1-5 scores in their own columns, a "total" or "Mean" column for the
+  row's mean, a change by eye as `4 ✎3`, before and after as `2 → 3`, and the earlier version's column beside
+  this one's (`v1.49 | v1.53`) where the report compares. The page compares rows by name and columns by
+  header with the last report's, so keep both the same from one report to the next. A report with no
+  overall score (performance, visual) writes `overall: none` and a one-line `headline:` instead of `label:`.
+  Add the report to `docs/README.md`'s audits list. `node --test tests/audits-page.test.js` checks the block.
 
 ## The menus on a controller: grids, glyphs in the buttons, the pad's own names (October 2026, v1.2)
 

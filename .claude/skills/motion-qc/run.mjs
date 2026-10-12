@@ -5,7 +5,7 @@
 // and what the matcher costs a frame. The camera-qc skill's harness, for the traveller instead of the camera.
 //
 //   node .claude/skills/motion-qc/run.mjs <out-dir> [--worlds desert,bazaar] [--ways moves,mm] [--preset medium] [--cpu 4]
-//   PORT (default 5363; never 5173), CDP (default 5364)
+//   PORT (default 5363; never 5173); Chrome picks its own debugging port
 //
 // ways: moves (the game's default: the loops with the captured starts, stops and turns), mm (motion matching, ?mm=1),
 // loops (?moves=0). --cpu 4: Chrome's CPU throttled 4x (a handheld's main thread, roughly) for the cost columns.
@@ -13,7 +13,7 @@
 // pictures of the game captioned with what was wrong and by how much) and <scenario>.<way>.json (the samples). Exits 1
 // if a run of the default way is red. No game code changed: it drives `window.input` as a player's hands would, and reads.
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,7 +22,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'motion-qc-world'));
 const W = 1280, H = 720, PRESET = arg('preset', 'medium'), CPU = Number(arg('cpu', 1));
-const PORT = Number(process.env.PORT ?? 5363), CDP = Number(process.env.CDP ?? 5364);
+const PORT = Number(process.env.PORT ?? 5363);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -42,13 +42,14 @@ const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.con
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
 const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
-  `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1',
+  '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 'about:blank'], { stdio: 'ignore' });
 const done = async () => { try { proc.kill('SIGKILL'); } catch {} try { await server.close(); } catch {} try { rmSync(profile, { recursive: true, force: true }); } catch {} };
 process.on('exit', () => { try { proc.kill('SIGKILL'); } catch {} });   // (never leave a Chrome behind on a shared machine)
 process.on('uncaughtException', async (e) => { console.error(e); await done(); process.exit(1); });
-let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = (await (await fetch(`http://localhost:${CDP}/json`)).json()).filter?.((t) => t.webSocketDebuggerUrl); if (!tabs?.length) tabs = null; } catch { await sleep(250); } }
-if (!tabs) throw new Error(`no Chrome on debugging port ${CDP} (set CDP to a free port)`);
+// (port 0: Chrome picks a free one and writes it in the profile, so a stray Chrome on a fixed port is never driven by mistake)
+let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { const cdp = readFileSync(join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]; tabs = (await (await fetch(`http://127.0.0.1:${cdp}/json`)).json()).filter?.((t) => t.webSocketDebuggerUrl); if (!tabs?.length) tabs = null; } catch { await sleep(250); } }
+if (!tabs) throw new Error('Chrome did not start');
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));
 let id = 0; const waits = new Map(), errors = [];

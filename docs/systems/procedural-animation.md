@@ -129,7 +129,7 @@ the measuring script are in the `procedural-animation` skill (`.claude/skills/pr
     different from the others;
   - minimum anticipation = reaction time (about 0.25 s) + the defence's start-up + a margin;
   - the active part should be short and clean; recovery is the player's window.
-- This ties into the queued body telegraphs (TODO.md, "Combat telegraphs"): the ground zones go, so **the body
+- This ties into the body telegraphs (done in v1.6: DONE.md, "Combat telegraphs"; their timing is the combat-review skill's): the ground zones go, so **the body
   is the telegraph**, and the locomotion kit must hand the body over to the attack pose cleanly. The feet
   plant and widen, the body sinks and coils (a spring with `r < 0` gives the counter-move for free), then
   releases. Recovery is a held, slumped pose with secondary motion settling.
@@ -730,13 +730,14 @@ strike on ones, and the three machines still walking on planted feet.
 
 ## Measuring
 
-- `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of
-  the world enemies and the legged guardians, and prints the table above.
+- `node scripts/motion-audit/run.mjs [ids…] [--skins] [--pack] [--cost] [--pace=0.5] [--json]` walks the archetypes
+  on the kit (`ARCHETYPE_SUBJECTS`), the old kinds, the legged guardians and the dog, and prints the table above; an
+  id is a kind, `kind@skin` (`lizard@bazaar`) or a guardian.
 - The pure measures are in `scripts/motion-audit/metrics.mjs`: foot slide in contact, contact share,
   cadence, reach span, joint angle, gait groups by fore-aft correlation, and travel.
 - `tests/motion-metrics.test.js` checks them on hand-made gaits: a planted foot, a dragged stick, a tripod
   against both sides in phase.
-- A model on the kit adds its subject to the script's `OLD` / `GUARDIANS` tables (now in `walk.mjs`): where its legs are.
+- A new subject goes in `walk.mjs`: an archetype on the kit in `ARCHETYPE_SUBJECTS` (its legs from `kitLegs`), a model off the kit in `OLD`, a guardian in `GUARDIANS` (`legsFor` picks).
 - `--pack` walks two of a kind side by side (unison: 1 is in step), `--cost` times the kit per foe;
   `cost.mjs` is the proper benchmark, `strips.mjs` the motion strips (one Vite on 5357, one muted Chrome on 5407).
 - In the running game: `lod-page.mjs` the kit's savings switched off and on in the Arena with a guardian and a pack (High,

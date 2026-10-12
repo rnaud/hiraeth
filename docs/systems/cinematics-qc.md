@@ -13,11 +13,15 @@ and notices are gone, it skips, it hands control back at a sensible spot, its so
 too loud) and for **interest** (a purpose, the right length, varied shots, motion with intent, a beat).
 The procedure, the checklist and the rubric are the project skill `.claude/skills/cinematics-qc/SKILL.md`.
 
+The pass below is the v1.6 baseline (2026-10-09, 91 cinematics). The review page lists 106 now (October 2026:
+Items 45, Travel 22, Recordings 17, World moments 16, Story 5, Trailer 1); the table holds the pass's, the
+verdicts file (`cinematics-qc-notes.json`) one for each of the 106.
+
 ## The script: `scripts/cinematics-qc.mjs`
 
 ```sh
 PORT=5308 node scripts/cinematics-qc.mjs --out output/cinematics-qc/<run> [--only ids|prefix*] [--group "World moments"]
-  [--frames 8] [--every 1] [--skip] [--size 844x390 --mobile] [--rest 3] [--query boxPlan=high]
+  [--frames 8] [--every 1] [--skip] [--size 844x390 --mobile] [--rest 3] [--quality high] [--query boxPlan=high]
 ```
 
 One Vite server (its own port, never 5173) and one muted headless Chrome (its debugging port picked by
@@ -226,7 +230,7 @@ problem and a framing one each:
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score
 after the fixes, by eye. Interest: by eye, one point each for purpose, length, shot variety, motion with
-intent, a beat. Creative rework is in `TODO.md`, "Cinematics (QC pass)".
+intent, a beat. Creative rework is tracked in GitHub Issues (TODO.md's tracker), the fixes in DONE.md.
 
 <!-- table -->
 | Cinematic | Length | Cuts+1 | Tech /5 (script, first run → after) | Interest /5 | Problems found | Fixed |

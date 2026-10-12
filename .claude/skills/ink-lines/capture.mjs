@@ -248,7 +248,7 @@ function camExpr(name, sc) {
 async function boot(world) {
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(300);
   await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
-    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: '${world === 'arena' ? 'on' : 'off'}' }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, soundV: 1, enemies: '${world === 'arena' ? 'normal' : 'off'}' }));
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   await send('Page.navigate', { url: `${BASE}?level=${WORLD_URL[world]}` });

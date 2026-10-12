@@ -3,15 +3,15 @@
 // CameraRig.update) and judged by scripts/camera-qc/lib.mjs: collision pops, jumps off its smooth path, look-point
 // jumps, turns nobody asked for, the lens in a wall, the traveller hidden or out of the frame, the arm's jitter.
 //
-//   node .claude/skills/camera-qc/run.mjs <out-dir> [--only train-walk,desert-open] [--worlds overnighttrain] [--preset medium]
-//   PORT (default 5361; never 5173), CDP (default 5362)
+//   node .claude/skills/camera-qc/run.mjs <out-dir> [--only train-walk,desert-open] [--worlds overnighttrain] [--preset medium] [--seed 1]
+//   PORT (default 5361; never 5173); Chrome picks its own debugging port. --seed: the wander scenarios' turns (seeded, so a run repeats)
 //
 // Writes <out-dir>/camera.json (every scenario's measures and events), camera.md (the table), <scenario>.png (a contact
 // sheet of its worst frames, each captioned with what happened and how much) and <scenario>.json (the raw samples).
 // Exits 1 if a scenario is red. No game code changed: it drives `window.input` (the stick, Shift, Space, Tab) and
 // `rig.look` as a player's hands would, and reads.
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +20,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'camera-qc'));
 const W = 1280, H = 720, PRESET = arg('preset', 'medium');
-const PORT = Number(process.env.PORT ?? 5361), CDP = Number(process.env.CDP ?? 5362);
+const PORT = Number(process.env.PORT ?? 5361), SEED = Number(arg('seed', 1)) >>> 0;
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -40,13 +40,14 @@ const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.con
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
 const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
-  `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1',
+  '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', `--window-size=${W},${H}`, '--force-device-scale-factor=1',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 'about:blank'], { stdio: 'ignore' });
 const done = async () => { try { proc.kill('SIGKILL'); } catch {} try { await server.close(); } catch {} try { rmSync(profile, { recursive: true, force: true }); } catch {} };
 process.on('exit', () => { try { proc.kill('SIGKILL'); } catch {} });   // (never leave a Chrome behind on a shared machine)
 process.on('uncaughtException', async (e) => { console.error(e); await done(); process.exit(1); });
-let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = (await (await fetch(`http://localhost:${CDP}/json`)).json()).filter?.((t) => t.webSocketDebuggerUrl); if (!tabs?.length) tabs = null; } catch { await sleep(250); } }
-if (!tabs) throw new Error(`no Chrome on debugging port ${CDP} (set CDP to a free port)`);
+// (port 0: Chrome picks a free one and writes it in the profile, so a stray Chrome on a fixed port is never driven by mistake)
+let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { const cdp = readFileSync(join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]; tabs = (await (await fetch(`http://127.0.0.1:${cdp}/json`)).json()).filter?.((t) => t.webSocketDebuggerUrl); if (!tabs?.length) tabs = null; } catch { await sleep(250); } }
+if (!tabs) throw new Error('Chrome did not start');
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));
 let id = 0; const waits = new Map(), errors = [];
@@ -60,12 +61,15 @@ await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceSc
 // ---------------------------------------------------------------- the recorder and the hands, put into the page
 // (one function, stringified: it wraps rig.update, so every frame's camera is read right after the rig placed it, and
 // the script's hands for the next frame are set there too; renderer.render is wrapped to keep a picture of a bad frame)
-function install(L, at = []) {
+function install(L, at = [], seed = 1) {
   const { THREE, rig, camera, player, physics, input, renderer } = window;
   const V = (a) => new THREE.Vector3(...a), up = new THREE.Vector3(0, 1, 0);
   const st = window.__cq = { samples: [], shots: [], segs: [], seg: -1, segT: 0, done: true, wp: 0, stuck: 0, stuckP: null, lastT: 0, log: [] };
   const _f = new THREE.Vector3(), _r = new THREE.Vector3(), _d = new THREE.Vector3(), _h = new THREE.Vector3(), _n = new THREE.Vector3();
   const dirs = [];
+  // (the wander's turns: mulberry32, seeded, so the same walk every run)
+  let rs = seed >>> 0;
+  const rand = () => { rs = (rs + 0x6d2b79f5) >>> 0; let t = rs; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const clearance = () => {
     const c = camera.position; camera.getWorldDirection(_f); _r.crossVectors(_f, camera.up).normalize(); _h.crossVectors(_r, _f).normalize();
     let m = 1;
@@ -117,7 +121,7 @@ function install(L, at = []) {
           // a walk that turns away from what it meets: forward, and a turn of the way it walks when stopped
           st.wa ??= s.heading ?? 0;
           if (!st.stuckP || st.stuckP.distanceTo(player.pos) > 0.25) { st.stuckP = player.pos.clone(); st.stuck = 0; }
-          else if ((st.stuck += dt) > 0.4) { st.wa += 1.9 + Math.random() * 0.8; st.stuck = 0; }
+          else if ((st.stuck += dt) > 0.4) { st.wa += 1.9 + rand() * 0.8; st.stuck = 0; }
           want = new THREE.Vector3(Math.sin(st.wa), 0, Math.cos(st.wa));
         }
         if (want) {
@@ -198,7 +202,7 @@ function install(L, at = []) {
     }
     return r;
   };
-  st.start = (segs) => { st.segs = segs; st.seg = -1; st.segT = 0; st.samples = []; st.shots = []; st.log = []; st.wa = null; st.rate = 0; st.done = false; st.rec = true; prev = prev2 = null; };
+  st.start = (segs) => { st.segs = segs; st.seg = -1; st.segT = 0; st.samples = []; st.shots = []; st.log = []; st.wa = null; st.rate = 0; rs = seed >>> 0; st.done = false; st.rec = true; prev = prev2 = null; };
   return true;
 }
 
@@ -235,7 +239,7 @@ for (const [wn, world] of byWorld.entries()) {
   if (!up) { console.log(`${world}: never booted`); for (const s of plan.filter((x) => x.world === world)) results[s.name] = { error: 'never booted' }; continue; }
   await sleep(2500);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; } return true; })()`);
-  await ev(`(async () => { const L = await import('/scripts/camera-qc/lib.mjs'); return (${install.toString()})(L, ${JSON.stringify((process.env.SHOT_AT ?? '').split(',').filter(Boolean).map(Number))}); })()`);
+  await ev(`(async () => { const L = await import('/scripts/camera-qc/lib.mjs'); return (${install.toString()})(L, ${JSON.stringify((process.env.SHOT_AT ?? '').split(',').filter(Boolean).map(Number))}, ${SEED}); })()`);
   for (const sc of plan.filter((s) => s.world === world)) {
     // the start: placed, turned, settled
     await ev(`(async () => { const { THREE, player, rig } = window; ${sc.setup ?? ''}

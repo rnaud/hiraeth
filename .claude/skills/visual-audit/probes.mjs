@@ -34,7 +34,7 @@ const PRESETS = arg('presets', 'handheld,high').split(','), HOUR = +arg('hour', 
 const SAVE_ALL = args.includes('--save-all'), ONLY = arg('only', 'all'), SPOTS = arg('spots', '').split(',').filter(Boolean), SKIP = arg('skip', '').split(','), REST = +arg('rest', 20) * 1000, W = 1280, H = 720;
 const PEOPLE = arg('people', '').split(',').filter(Boolean), NOISE_TAKES = 3;
 const PORT = Number(process.env.PORT ?? 5333), CDP = Number(process.env.CDP ?? 5391);
-if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
+if (PORT === 5173 || CDP === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const names = await import(join(HERE, 'src/levels/names.js'));
 const WORLDS = arg('worlds', names.ORDER.join(',')).split(',').filter(Boolean);
@@ -53,8 +53,9 @@ const KNOWN = {
     { name: 'ship-ramp-shadow', kind: 'open', ghost: true, player: [31.05, 23.54, 134.05], heading: 0.785, eye: [33.67, 25.5, 136.67], target: [30.1, 23.8, 133.1] },
     { name: 'ship-sand-shadow', kind: 'open', ghost: true, shadow: 35, player: [29, 24.456, 132], heading: 0.6435, eye: [23.3, 28.356, 124.4], target: [30.2, 26.256, 133.6] },
   ],
-  // where things stand in water: the contact foam (water.js renderGBuffer reads the last frame's depth, reprojected)
-  perdide2: [{ name: 'tree-in-water', kind: 'water', player: [134.3, 0, -139.2], eye: [134.3, 3, -132.2], target: [134.3, 0.2, -141] }],
+  // where things stand in water: the contact foam (water.js renderGBuffer reads the last frame's depth, reprojected);
+  // Lorn's is in the Deep Wood (Lorn II's own [134.3, -139.2], shifted by names.js PART_OFFSET.perdide2 since the merge)
+  perdide: [{ name: 'tree-in-water', kind: 'water', player: [134.3, 0, -619.2], eye: [134.3, 3, -612.2], target: [134.3, 0.2, -621] }],
   waterfall: [{ name: 'pool-ledge', kind: 'water', player: [-69.3, -17, 25.9], eye: [-65.8, -14, 32], target: [-70.2, -16.8, 24.4] }],
   mangrove: [{ name: 'roots-in-water', kind: 'water', player: [-146.5, 0, -72.7], eye: [-140.5, 3, -69.2], target: [-148.1, 0.2, -73.6] }],
 };
@@ -324,7 +325,7 @@ for (const world of WORLDS) for (const preset of PRESETS) {
   try {
     await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
     await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
-      localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));   // (no foe knocks him out mid-run)
+      localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, soundV: 1, enemies: 'off' }));   // (no foe knocks him out mid-run)
       localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
     errors.length = 0;
     await send('Page.navigate', { url: `${BASE}?level=${world}` });

@@ -1,6 +1,6 @@
 ---
 name: ink-lines
-description: Evaluate Hiraeth's ink line rendering at every distance and resolution — the post-process outlines, creases, colour and shadow edges, the hatching and spot blacks (src/post.js), line weights by material (LINE), the grass's soft ink, the fluid blade's and crystals' outline-only paths, the traveller's drawn face (src/characters/head-ink.js) and the foes' surfaces — from a fixed set of scenes (plants near to far, the traveller's face at 1, 4, 10 and 25 m, a pack of foes, a temple hall, a town far off) shot at 1080p, Retina, 720p, Handheld, its dynamic floor, Steam Deck and a phone, with measured checks (line width against the object's size on screen, the share of a plant or a person that is ink, the eyes against the cheek, shimmer half a pixel over) and a rubric, and write docs/audits/ink-lines-v<version>.md. Use when lines look too heavy or too faint far away or at a low resolution, when black blobs, black eyes or grey busy foliage appear, after touching the ink pass, a material's line or the face ink, or before a release.
+description: Measure and score Hiraeth's ink lines (outlines, creases, hatching, spot blacks, the face ink) in fixed scenes at seven resolutions, and write docs/audits/ink-lines-v<version>.md. Use when lines look too heavy or too faint far away or at a low resolution, when black blobs, black eyes or grey busy foliage appear, after touching the ink pass, a material's line or the face ink, or before a release. Lines and ink only: visual-audit is the broad sweep.
 ---
 
 # Ink lines at every distance and resolution
@@ -11,7 +11,11 @@ problem we have), and at lower resolutions." A pen line drawn at a fixed width i
 screen and wrong on the same figure 40 px tall: there it is a third of what it draws, and a plant made of fifty leaves
 becomes a black mass. Moebius' far figures and far trees are a few thin strokes and flat colour. This audit measures
 that, scene by scene and resolution by resolution, and the report is `docs/audits/ink-lines-v<version>.md`, compared
-with the last.
+with the last. It covers the post-process outlines, creases, colour and shadow edges, the hatching and spot blacks,
+line weights by material (`LINE`), the grass's soft ink, the fluid blade's and crystals' outline-only paths, the
+traveller's drawn face (src/characters/head-ink.js) and the foes' surfaces; it measures line width against the
+object's size on screen, the share of a plant or a person that is ink, the eyes against the cheek, and shimmer half a
+pixel over. The broad hunt for every kind of visual fault is visual-audit; shadows in motion are shadow-qc's.
 
 Read first:
 - `docs/systems/rendering.md`: "Lines by material", "Thin bars at any distance", "Stable in motion", "Ink lines by size
@@ -55,9 +59,12 @@ node .claude/skills/ink-lines/report.mjs <scratch>/ink/report.json [--before <sc
 | `phone` | a phone, 390 × 844 held sideways, DPR 3, Handheld | 1899 × 877 |
 
 **Scenes** (`SCENES`): `portrait-1/4/10/25` (the traveller facing the camera in the desert at 1, 4, 10, 25 m),
-`veg-near/mid/far/farthest` (Edena's tallest plant near the start at 5, 18, 55, 120 m), `canopy-mid/far` (the Spheres'
-`leaves` canopies at 25 and 80 m), `pack` (three blots and a makers' machine in the Arena at 14 m), `temple-hall` (the
-desert temple's arrival), `town-far` (the start of the bench's ride to Qanat, the town up the valley). The portraits
+`veg-near/mid/far/farthest` (Viridel's tallest plant near the start at 5, 18, 55, 120 m), `canopy-mid/far` (the Garden
+of Spheres' `leaves` canopies at 25 and 80 m), `pack` (three blots and a makers' machine in the Arena at 14 m),
+`temple-hall` (the desert temple's arrival), `town-far` (the start of the bench's ride to Qanat, the town up the
+valley), and a busy view in each of the three worlds that joined the route in v1.40, for the frame's ink and the
+shimmer: `uw-avenue` (the Underwater City's avenue), `mf-floor` (the Moon Foundry's floor), `sc-bridges` (the City
+Floating in Space's bridges). The portraits
 are aimed from the head's own skinning (its face, not his heading), the camera kept over the ground; a 1 m portrait
 frames head and shoulders (face ~125 px tall at desk1080), 4 m ~22 px, 10 m ~9 px, 25 m ~3 px. Each picture is shot four ways: the final frame,
 debug 14 (the lines as drawn, after the fog, the haze and the grass's and lights' own fades), the albedo (debug 2) with
@@ -116,7 +123,7 @@ for pixel (a mean change over 1 % is a look change to show the author).
   lightens the outline of a thin shape, thins the lines with a small frame and carries coverage under a render pixel.
 - **Foliage turning into a black mass.** A far flower's stems and petals are a kernel or two wide: its silhouette
   (the ground far behind it: a depth edge) and every crease on it covered all of it. Check `inkShare` and `darkShare`
-  on `veg-far`, `veg-farthest`, `canopy-far`, and crop the flowers (the worst were Edena's tulips, clover and daisy
+  on `veg-far`, `veg-farthest`, `canopy-far`, and crop the flowers (the worst were Viridel's tulips, clover and daisy
   mats at 40-60 m).
 - **Black eyes.** The face ink's least widths (a line never under 0.85 px, the iris never under 1.2 px) and the far
   opening's dark tone: once the opening is a pixel or two tall, it was one black mark. `HEAD_INK_FAR` (faces.md, "From
@@ -142,7 +149,24 @@ It times the ink pass alone on the GPU (`EXT_disjoint_timer_query_webgl2`, expos
 
 ## 6. The report
 
-`docs/audits/ink-lines-v<version>.md`: the matrix and the scores (report.mjs writes them between its markers), the
-findings (worst first, each with its picture, scene, resolution and cause in the renderer), the fixes with before →
-after numbers and pictures, the cost, and what is left. Pictures in `docs/audits/ink-lines-v<version>/` as webp
-(crops, 4× nearest neighbour for small things), small. Then the TODO's open line items.
+`docs/audits/ink-lines-v<version>.md`: the matrix and the scores (report.mjs writes them between its markers,
+`<!-- ink-lines:measured -->`), the findings (worst first, each with its picture, scene, resolution and cause in the
+renderer), the fixes with before → after numbers and pictures, the cost, and what is left. Pictures as webp (crops, 4×
+nearest neighbour for small things), small: in `changelog-media/<version>/` when the changelog shows them too (v1.34
+and v1.53 did), else in `docs/audits/ink-lines-v<version>/`.
+
+Start it with its score block, right under the title (an HTML comment GitHub hides; the audits page reads it:
+docs/systems/ui.md, "The audits page", the bullet "Score tables, for the skills that write reports"):
+
+```
+<!-- audit-scores
+overall: 4.72 / 5
+label: the mean of 112 pictures (16 scenes at 7 resolutions; 4.63 before the fix)
+date: YYYY-MM-DD
+-->
+```
+
+`overall` is the mean picture score; keep the scene and resolution names as row and column headers from one report
+to the next (the page compares them with the last report's). `node --test tests/audits-page.test.js` checks the block.
+Add the report to `docs/README.md`'s audits list. What is left open goes to GitHub Issues
+(https://github.com/rnaud/hiraeth/issues, filed with `gh issue create`; TODO.md only points there now).

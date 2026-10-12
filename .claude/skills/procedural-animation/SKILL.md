@@ -1,76 +1,57 @@
 ---
 name: procedural-animation
-description: Building or reviewing how Hiraeth's creatures, enemies, guardians and machines move — legs, gaits, foot planting, bodies that respond to their feet, springs and secondary motion (tails, cloaks, wings, tentacles), mechanical motion, and wind-up/strike/recover poses that act as attack telegraphs. Use when adding or changing a foe's or guardian's model or its animate()/anim(), when a body plan joins the roster, when someone says a creature looks stiff, slides, floats or reads poorly, or before a release; measures walk cycles in node and scores motion with a rubric.
+description: Building or reviewing how Hiraeth's creatures, foes, guardians and machines move (not the traveller or the people: that is motion-qc) — legs, gaits, foot planting, bodies that respond to their feet, springs and secondary motion (tails, cloaks, wings, tentacles), mechanical motion, and wind-up/strike/recover poses. Use when adding or changing a foe's or guardian's model or its animate()/anim(), when a body plan joins the roster (enemy-rework calls it for its motion step), when someone says a creature looks stiff, slides, floats or reads poorly, or before a release; measures walk cycles in node and scores motion with a rubric. Telegraph timing and fairness are combat-review's.
 ---
 
 # Procedural animation: building and reviewing creature motion
 
-Read first: `docs/systems/procedural-animation.md`. It has the research with sources, the audit of October 2026
-(why the foes looked stiff), the locomotion kit (`src/motion-kit/`: section 6, "What was built", lists its modules and the plans on it), the ~20 body plans
-with the techniques each needs, and the phased plan. For the traveller's and people's feet, see
-`docs/systems/animation.md`, "Locomotion". In-game prior art to copy from:
+Read first: `docs/systems/procedural-animation.md`. §1 is the research with sources (the principles below in full),
+§2 the audit of October 2026 (why the foes looked stiff), §4 the ~20 body plans with the techniques each needs, §6
+"What was built" the kit and the plans on it. For the traveller's and people's feet, see `docs/systems/animation.md`,
+"Locomotion", and the motion-qc skill.
 
-- `StiltMotor` (src/aliens/alien.js): a planted wave gait with two-bone knees;
-- `kneeOf` (src/aliens/bodies.js): two-bone IK on plain points;
-- `plantFeet` / `legIK` (src/feet.js): planting and IK on skinned bones;
-- the hands' spring lag (src/hands.js);
-- the ragdoll's position-based dynamics (src/ragdoll.js).
+The kit, `src/motion-kit/`: `ik.js` (two-bone IK, FABRIK, aim), `gait.js` (the gait planner: homes, groups, step
+triggers, arcs), `body.js` (the body from its feet), `spring.js` (SecondOrder, deadband, quantise), `chain.js` and
+`wave-legs.js` (tails, cables, metachronal legs), `pose.js` (key poses by state), `machines.js`, `plans.js` (a table per
+body plan), `rig.js` (one rig per foe, its LOD tiers), `view.js` (what the camera sees, for the tiers).
 
-## Principles
+In-game prior art: `StiltMotor` (src/aliens/alien.js), `kneeOf` (src/aliens/bodies.js), `plantFeet` / `legIK`
+(src/feet.js), the hands' spring lag (src/hands.js), the ragdoll's position-based dynamics (src/ragdoll.js).
 
-1. **Feet are planted, not swung.** A foot on the ground stays where it landed until it steps. Never drive legs
-   with `sin(t)` on a clock: drive the phase by distance walked (`phase += speed·dt / stride`), or better, use
-   a gait planner with rest targets and step triggers.
-2. **Joints bend.** Every leg has at least two segments solved by two-bone IK with a stable pole: knees out and
-   up for arthropods, forward for birds and humanoids, hocks back for beasts. A bend under ~20° doesn't read
-   in ink.
-3. **Gait groups, not sides.**
-   - Six legs: a tripod (L1 R2 L3 against R1 L2 R3).
-   - Eight legs: an alternating tetrapod (L1 R2 L3 R4 against R1 L2 R3 L4).
-   - Four legs: diagonals (trot) or one at a time (walk).
-   - Two legs: alternating.
-   - Three legs: a wave.
+## Principles (doc §1 has the why and the sources)
 
-   A group lifts only when the others are down. Per-foe phase offsets stop a pack stepping in unison.
-4. **The body rides on its feet.** Height from the planted feet, pitch and roll from their plane, a dip as
-   each group lifts, a lean into acceleration and turns, a settle when it stops. Everything goes through
-   springs, never snapped.
-5. **Secondary motion lags.**
-   - Heads, tails, antennae, cloaks and cables follow the body through second-order springs (t3ssel8r's
-     f/ζ/r) or short chains: follow-the-leader for spines, verlet for loose parts, travelling waves with a
-     phase accumulator for fins and wings.
-   - Heads stabilise against the body's bob.
-6. **Machines are not creatures.**
-   - Machines get hard curves: exponential servo easing, underdamped overshoot (ζ 0.3–0.5), quantised or
-     deadbanded joints, pistons between pivots, wheels and tracks locked to distance, overlap only on truly
-     loose parts.
-   - Possessed machines break this on purpose: organic lag or a twitch past a stop is the spirit showing.
-7. **Poses tell the attack.** Each attack has its own wind-up pose.
-   - **Wind-up:** feet plant wide and stepping locks; the body moves against the strike first (anticipation:
-     a spring with `r < 0`, or a counter-pose); hold it long enough to read (≥ 0.25 s plus the defence's
-     start-up).
-   - **Strike:** snap through, with overshoot.
-   - **Recover:** slump, and let the secondaries settle.
-
-   The body is the telegraph (TODO.md, "Combat telegraphs"), so a motion review is also a telegraph review.
-8. **Timing contrast reads; constant motion doesn't.** Hold, then burst. Optionally step the pose output at
-   12–15 fps per foe (phase-offset) for the ink look; simulate every frame regardless.
-9. **Cheap by distance.** Near: everything, every frame. Mid: IK every 2nd frame, chains as waves. Far: a
-   canned cycle driven by distance walked. Hold tier changes for 30 frames. Keep the kit under 1 ms on the
-   Retroid with 10 foes near.
+1. **Feet are planted, not swung**: phase by distance walked or a gait planner, never `sin(t)` on a clock.
+2. **Joints bend**: two-bone IK with a stable pole (knees out and up for arthropods, forward for birds and humanoids,
+   hocks back for beasts); a bend under ~20° doesn't read in ink.
+3. **Gait groups, not sides**: a tripod on six, an alternating tetrapod on eight, diagonals or one at a time on four,
+   a wave on three; a group lifts only when the others are down; per-foe phase offsets.
+4. **The body rides on its feet**: height and tilt from the planted feet, a lean into acceleration and turns, a settle
+   on stopping, all through springs.
+5. **Secondary motion lags**: second-order springs (f/ζ/r), follow-the-leader or verlet chains, waves; heads stabilise.
+6. **Machines are not creatures**: servo easing, underdamped overshoot (ζ 0.3–0.5), quantised joints, pistons; a
+   possessed machine breaks this on purpose.
+7. **Poses tell the attack**: its own wind-up pose (feet planted, the body against the strike, held ≥ 0.25 s plus
+   the defence's start-up), a snap through, a slumped recovery. The body is the telegraph (src/telegraph.js; DONE.md,
+   "Combat telegraphs"); whether the timing is fair is combat-review's.
+8. **Timing contrast reads**: hold, then burst; optionally step the output at 12–15 fps per foe.
+9. **Cheap by distance**: tiers held 30 frames; the kit under 1 ms on the Retroid with 10 foes near.
 
 ## Measuring
 
 ```
-node scripts/motion-audit/run.mjs                      # old kinds, a sample of world enemies, legged guardians
-node scripts/motion-audit/run.mjs <id|kind|guardian>…  # just these (e.g. desert/dune-skitter crab keeper)
-node scripts/motion-audit/run.mjs --pace=0.5           # at half speed: does the gait follow the speed?
-node scripts/motion-audit/run.mjs --all --json         # everything, full per-leg reports
+node scripts/motion-audit/run.mjs                         # the archetypes on the kit, the old kinds, the guardians, the dog
+node scripts/motion-audit/run.mjs lizard@bazaar crab keeper   # just these: kinds, kind@skin, guardians
+node scripts/motion-audit/run.mjs --skins                 # every built archetype in each of its skins
+node scripts/motion-audit/run.mjs --pace=0.5              # at half speed: does the gait follow the speed?
+node scripts/motion-audit/run.mjs --pack                  # a second of each kind beside it: unison (1 is in step)
+node scripts/motion-audit/run.mjs --cost                  # the kit's time a frame per foe and per leg
+node scripts/motion-audit/run.mjs --json                  # the full per-leg reports
 ```
 
-Each subject walks 4 s in a straight line through the game's own model and `Foes.look` (or a guardian's
-`animate`). A foot is the lowest vertex under each leg pivot. The pure measures are in
-`scripts/motion-audit/metrics.mjs`, tested by `tests/motion-metrics.test.js`:
+With no ids it walks `ARCHETYPE_SUBJECTS`, then `OLD`, `GUARDIANS` and `DOGS` (all in `scripts/motion-audit/walk.mjs`).
+Each subject walks 4 s in a straight line through the game's own model and `Foes.look` (or a guardian's `animate`).
+A foot is the lowest vertex under each leg pivot. The pure measures are in `scripts/motion-audit/metrics.mjs`, tested
+by `tests/motion-metrics.test.js`:
 
 - **slide/m:** horizontal travel of a foot while touching the ground (within 3 cm of its lowest), per metre
   walked, averaged per leg.
@@ -81,10 +62,13 @@ Each subject walks 4 s in a straight line through the game's own model and `Foes
 - **bob:** the drawn body's height range.
 - **groups:** legs whose feet swing fore and aft together (correlation > 0.9).
 
-A new model adds its legs to the `OLD` or `GUARDIANS` table in `run.mjs`, or exposes
-`limbs: [{ o, role: 'leg' }]` as the world enemies do. Then look at it: capture a side-view motion strip of
-one cycle (8 frames) from `enemies.html` on a dev server (port 5352, never 5173; one headless Chrome with
-`--mute-audio --remote-debugging-port=0`). Compare a three-quarter view from above too, the game's camera.
+Where the legs come from: `legsFor(id)` in walk.mjs, the `OLD` table's own function for an old kind, else `kitLegs`
+(the kit's `rig.legs` roots) for an archetype. A new archetype on the kit joins `ARCHETYPE_SUBJECTS`; a model off the
+kit adds its legs to `OLD`, a guardian to `GUARDIANS`.
+
+Then look at it: `node scripts/motion-audit/strips.mjs --out <scratch>/strips [--tag after] id…` draws 8 frames over
+2 s from `enemies.html` (its own Vite and muted headless Chrome; never port 5173), three-quarters from above as the
+game's camera; `--yaw 1.5708 --pitch 0.1` for the side view. `--root <tree>` serves another checkout for the "before".
 
 ## Review rubric (score each 0–3; ship at ≥ 2 everywhere, aim for 3 on 1–3)
 
@@ -108,7 +92,7 @@ see it). A regression in slide/m, reach span or groups on a plan that already pa
       chains, key poses (rest, coil per attack, strike, recover, hurt, stagger), style (organic / machine /
       possessed).
 - [ ] Model exposes joints by role (leg chains, spine, neck, tail, wings, arms) instead of rigid legs.
-- [ ] `run.mjs` subject added; rubric 1–3 measured at full and half speed.
-- [ ] Motion strip of a cycle and of each attack's wind-up, side and three-quarter views.
+- [ ] Subject added in `scripts/motion-audit/walk.mjs`; rubric 1–3 measured at full and half speed.
+- [ ] Motion strip of a cycle (`strips.mjs`) and of each attack's wind-up, side and three-quarter views.
 - [ ] Unit test for any new pure logic (planner rule, chain, pose blend).
 - [ ] `docs/systems/procedural-animation.md` updated (the plan's row, any new technique).

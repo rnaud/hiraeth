@@ -1,6 +1,6 @@
 ---
 name: zfight-qc
-description: Find and fix z-fighting in Hiraeth (two faces of different looks lying in one plane, flickering and striping as the camera moves), world by world and temple by temple, by geometry in node (no GPU), and keep it from coming back (tests/zfight.test.js). Use when the author reports flicker, stripes, shimmering patches or "z-index fighting" on walls, floors, trims or doorframes, after building or reworking a temple or a set of buildings, or to report the counts per world.
+description: Find and fix z-fighting in Hiraeth (two faces of different looks lying in one plane, flickering and striping as the camera moves), world by world and temple by temple, by geometry in node (no GPU), and keep it from coming back (tests/zfight.test.js). Use when the author reports flicker, stripes, shimmering patches or "z-index fighting" on walls, floors, trims or doorframes, after building or reworking a temple or a set of buildings, or to report the counts per world. The broad hunt for every kind of visual fault is visual-audit; this one is coplanar stripes alone.
 ---
 
 # The z-fighting audit
@@ -23,15 +23,18 @@ paint over a course of stone): it shows.
   `polygonOffset` is drawn pulled toward the eye and fights nothing.
 - `audit.mjs`: each world built as the game builds it, its totals and its temples', the worst sites.
 - `list-temple.mjs <id>`: one temple's sites in its own frame (local metres, as its layout is written), and from where
-  each is seen. `--all` the hidden ones too, `--dynamic` the moving pieces too.
+  each is seen. `--all` the hidden ones too, `--dynamic` the moving pieces too. The id is the temple's own
+  (`TEMPLES` in src/temples/index.js), not always its world's: `arzach2` is Vael's Founders' Belfry and `perdide2`
+  Lorn's Lamp-House (the merged worlds' parts, built on their own: src/levels/buildable.js), `garage` the Glass
+  Dunes' Clock-House (`TEMPLE_HOME`); `arzach` is the Aerie, `perdide` the Hush-House.
 
 ```sh
-export PATH="/Users/anf/Library/Application Support/Zed/node/node-v24.11.0-darwin-arm64/bin:$PATH"
 node scripts/zfight/audit.mjs --worlds desert,arzach --worst 10 [--out report.json]
 node scripts/zfight/list-temple.mjs desert
 ```
 
-Node only, read-only, a few seconds a world (the City-Shaft's city is the slow one, several minutes: run it alone).
+Node 22.12 or newer on PATH (CI uses 24; Zed's bundled node works). Node only, read-only, a few seconds a world (the
+City-Shaft's city is the slow one, several minutes: run it alone).
 What it can't see: moving pieces' fights while they move, instanced props (grass, rocks), a site seen only from a
 spot nobody stands on that it takes for a floor (a roof's top outside a temple), and LOD copies drawn one at a time
 (two levels of detail of one building, both counted).
@@ -47,8 +50,9 @@ spot nobody stands on that it takes for a floor (a roof's top outside a temple),
 3. **Leave the hidden face out** (the kit's `capless` courses: no faces where one course meets the next).
 4. **polygonOffset** on a decal's material (`polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2`,
    as src/splat-decal.js and src/sand-drifts.js do): only for true decals (a print, a stain, a ground drift). It is GL
-   state, not a new shader, but a material of its own costs a draw; and the Unity port carries it as an `Offset`
-   state (docs/systems/xbox.md): keep it rare.
+   state, not a new shader, but a material of its own costs a draw; and the Unity port has no such state but in its
+   footprints' shader (`Offset -2, -2`, unity/Hiraeth/Assets/Hiraeth/Shaders/Print.shader), so a decal set off this
+   way is drawn flush there unless the port is given the same: keep it rare.
 
 Fix in the kit (src/temples/kit.js) when the fault is the kit's: every temple gets it. Fix in the layout when it is the
 layout's (a slab placed flush on a wall's face).
@@ -58,7 +62,8 @@ layout's (a slab placed flush on a wall's face).
 `tests/zfight.test.js` holds every temple to its count (`ZFIGHT_BASELINE`), the Rose House at none. Lower a
 baseline when a fix lands; a new site in a temple fails the test with where it is and the command to list them.
 The worlds outside the temples are counted by `audit.mjs` and reported in docs/systems/rendering.md "Z-fighting"
-(not tested: a world takes seconds to build, the City-Shaft minutes).
+(not tested: a world takes seconds to build, the City-Shaft minutes). After a full run, refresh that table with the
+counts (before → after when a fix landed), and put the version and date in its heading or the line above it.
 
 ## 4. Check it in the game
 

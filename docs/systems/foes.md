@@ -1420,6 +1420,26 @@ Walkers follow you up and down the world's height, and the world's height is a w
 full-body playback and transitions on the actual traveller with matching off and on, and evade movement.
 Locomotion matching remains experimental and off by default: see animation.md for measured foot slide.
 
+## The combat review's measures (`.claude/skills/combat-review/`)
+
+What the skill's scripts measure was added review by review; the procedure is the skill's, this is why each is there
+and what it found.
+
+- **Hearts, not health** (v1.5): the watch's health a minute is in hearts over the traveller's hearts, as hurts are.
+- **Guardians staged** (v1.6): their fights are staged, and scored from their tuning; `arena.mjs` draws each in an
+  Arena ring, phase by phase, at 85 % of the phase's first move.
+- **Freeing a puppet's host** (combat-v1.18 rec. 4): the wait until the strings drop, the driven host, the strings cut
+  and the wait until they come again, beside the time to kill the marionette.
+- **The still traveller under-reads a big pack** (combat-v1.22): looking one way, the members off the screen wait while
+  another strikes. Hence `--pack-look lock` (the lock-on camera turned to whichever foe's blow comes soonest, else the
+  nearest) and `--pack-clear` (the pack cleared by a scripted traveller: the cost measured, not multiplied; a floor, as
+  he never misses or guards). October 2026, two packs each: the Signal Market's packs cleared in 3-7 s for none of his
+  hearts where the still traveller's cost said 5 hearts; locked on, the Garden's attacks a minute went 28-68 → 56-76.
+- **How flurries chain** (combat-v1.47's question): `--clear-dodge` and `--dodge-watch 30`, a pack never thinned and
+  only dodged; answered by `src/flurry.js` `CHAIN` (v1.48, "The back flip, the side hop and the flurry").
+- **A small foe hidden behind the traveller** (combat-v1.47 rec. 3): measured by camera-qc's `foe hidden` on its
+  `arena-lock` scenarios, fixed by `LOCK_VIEW` (v1.48, "Controls and the lock-on").
+
 ## Hitboxes (v0.93: `src/hitboxes.js`, `src/hitbox-overlay.js`)
 
 A debug overlay of what the fight actually tests, for tuning and for learning the timings.

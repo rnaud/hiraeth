@@ -1,6 +1,6 @@
 ---
 name: quest-qc
-description: Quality control for Hiraeth's quests — every world's main quest, errands, temple quests and makers' boxes — against the author's rules from his playthroughs: one short line per step, nobody sending you to somebody else, every quest solvable by going straight to its end, nothing asked of the player before it can be had, and every conversation answer following from what was just said. Use when reviewing, adding or changing a quest or a quest-giving conversation (src/story/*-data.js, src/temples/*-data.js, src/boxes/placements.js), or before a release; produces findings and fixes.
+description: Quality control for Hiraeth's quests — every world's main quest, errands, temple quests and makers' boxes — against the author's rules from his playthroughs: one short line per step, nobody sending you to somebody else, every quest solvable by going straight to its end, nothing asked of the player before it can be had, and every conversation answer following from what was just said. Owns quest structure and the answer-follows rule; the prose of the conversations (voice, tone, subtext) is dialogue-review's. Use when reviewing, adding or changing a quest or a quest-giving conversation (src/story/*-data.js, src/temples/*-data.js, src/boxes/placements.js), or before a release; produces findings and fixes.
 ---
 
 # Quest QC
@@ -51,6 +51,6 @@ with no gate. Read the conversations themselves for rules 2, 5 and 6: the number
 - Fix what breaks a rule in the data, keeping saves working: a step removed or renamed needs a migration (the desert's
   `STAGE_MERGE` and `DESERT_QUEST_V`, `src/story/desert.js migrateDesertQuest`; the bike's old `ask` in
   `src/story/desert-bike.js`), and the world's story test and `tests/playthrough.test.js` must still pass.
-- What you leave for later goes in `docs/systems/story.md` under "Straight to the end, and nobody sends you to somebody
-  else", as "Elsewhere, flagged".
+- What you leave for later goes in a GitHub issue (the tracker, `TODO.md`), one per quest or world, with the rule
+  it breaks and the step or node.
 - A changelog line for what a player will notice, as always.

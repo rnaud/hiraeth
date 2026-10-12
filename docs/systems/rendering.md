@@ -700,6 +700,26 @@ the after-run is [visual-v1.21](../audits/visual-v1.21.md).
   (its enclosure 0.25-0.4 on Handheld's 4 taps), which takes the spot black in any shade, the ship's too (with every
   tap on him counted open it stays: not a person's tap). `tests/scout.test.js`.
 
+## How the visual probes' limits were set (`.claude/skills/visual-audit/probes.mjs`; October 2026)
+
+Each probe's limit was set on the bug it is for, the build before the fix against the one after (an archive of the
+old commit passed as `--root`, the same spots); the skill keeps the limits, this is where they came from.
+
+- **Ghost** (bug 1, the pale person-shaped shadows; fixed in 620c4384, `occlusionShare`): the pale region beside him
+  in mask 9 or 10 was 0.11 of his size on the Qanat tree's stairs at Handheld before and 0.003 after; the Givers'
+  Hearth 703 px before, 0 after. Hence 5 % of him or 300 px for the pale region, 30 % for the dark halo.
+- **Orbit** (bug 2, the dark masses that changed shape as the camera moved; fixed in c58cbcaa, taps anchored to the
+  surface): the frame-to-frame step's 95th percentile on the stairs 0.60 before, 0.20-0.23 after; the Hearth 0.54 /
+  0.25 before, 0.03-0.24 after. Hence 0.3. The swing narrows in a small room (`orbitScale`) because a full swing there
+  changed the camera's distance and the whole view, and flagged that, not the masks (visual-v1.4).
+- **Seams** (bug 3, the lit seam round the caves' floors; fixed in c58cbcaa): the Hearth's foot rays found 6 of 24
+  directions open before, 0 after; its sky-white line in the light term was 62-149 px before. Hence a run of 60 px
+  flagged, 30-60 px kept as a picture. The 0.3 m ray is there for furniture on legs (a bench in the Sealed Hangar, a
+  world since dismissed): the metre-high ray meets it, the foot ray passes under, and that is not a gap.
+- **Enemies off** (visual-v1.21 finding 6): a foe in the Undertower knocked the traveller out during the orbits, and
+  a traveller down stays where he fell, so a Signal Market shop was read with the shadow maps 3 km below. The probes
+  now run with foes off, get him up before each move and skip a probe he is not standing at.
+
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 
 (Since v0.89 the walls' grime streaks and chips are gone, replaced by sparse hairline cracks: materials.md,
@@ -1100,6 +1120,7 @@ buildings' merged meshes against each other), the Buried Machine's two layers of
 Foundry's cells' solid surfaces against their drawn ones, Qanat's walls (25 m² on two of its houses), the cave of the
 giant's heart's floor and the keepers' stair, the Givers' Hearth's floor. The Warden's Well's 47 are nearly all on its
 tower's foot and crown outside, in the shaft.
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.

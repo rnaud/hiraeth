@@ -36,6 +36,11 @@ const BASE = `http://127.0.0.1:${PORT}/`;
 const profile = mkdtempSync(join(tmpdir(), 'game-audit-chrome-'));
 const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
   '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });
+// (never leave a Chrome or a Vite server behind on a shared machine: on an error, a throw or ^C)
+process.on('exit', () => { try { proc.kill('SIGKILL'); } catch {} try { rmSync(profile, { recursive: true, force: true }); } catch {} });
+const bail = (e) => { if (e instanceof Error) console.error(e); server.close().finally(() => process.exit(1)); setTimeout(() => process.exit(1), 2000).unref(); };
+process.on('uncaughtException', bail); process.on('unhandledRejection', bail);
+process.on('SIGINT', bail); process.on('SIGTERM', bail);
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
 if (!tabs) throw new Error('Chrome did not start');
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);

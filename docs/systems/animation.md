@@ -755,6 +755,9 @@ foot a frame.
 lifted over a riser), the pivots (the feet cross for a few frames as the second foot steps round: 17 % of a standing
 pivot's frames) and the starts and stops at a run (29 cm, the stop's last step).
 
+**Worlds tried and left out**: the City-Shaft. From its landing every way the script runs into a railing or a house
+within the sprint, and he climbs it.
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where
