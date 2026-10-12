@@ -1,0 +1,91 @@
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_5afbaac168e8f3 1168-1169,1174-1233
+src/veil.js
+  s_9ca76055a220ed::t_be9283b6abeb5a 132-133
+src/glass-dunes-city.js
+  s_9ca76055a220ed::t_57dc99fd0abc54 1-395
+tests/glass-dunes-166.test.js
+  s_9ca76055a220ed::t_7e773fcdca5e27 1-180
+changelog.md
+  s_9ca76055a220ed::t_436c03dc1f5b30 7-9
+  s_9ca76055a220ed::t_f553872a4eb20c 6,20
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_e3040b750e73a4 15-17,61-66,164-172,180-181,203-212,214,237,239-243,292-294,297,360-362
+src/changelog-media.js
+  s_9ca76055a220ed::t_4f0cdfe563c604 643
+  s_9ca76055a220ed::t_5921c25d9378b5 658,709-733
+scripts/bench/viewpoints-worlds.json
+  s_9ca76055a220ed::t_55547ae18593ae 9302-9361
+src/glass-dunes-frozen.js
+  s_9ca76055a220ed::t_19e5f664668286 1-304
+src/story/glassdunes.js
+  s_9ca76055a220ed::t_0259a42ae93283 12,53-65
+tests/shard-timings.json
+  s_200c810eb40bfd::t_39512a87752f97 301
+  s_9ca76055a220ed::t_5ee0de75eced89 114,202
+  s_e1b02e92eaec5e::t_0e503c2a809e3c 386,428,431
+  s_9ca76055a220ed::t_612acbf11d2eb0 8-9,13,21,23,25-26,28,36-37,42,48-49,51,56,62,67,70,72-73,85-86,88-90,94,105,111,117-119,124,133,137,139,149-150,171,197,201,208,210,221-222,234,238,241,256-257,266,271,273,277,281,307-308,315,319-321,324,334,341,346,350-351,356,358,363,375,385,391,393,405-406,419-420,437-438,441,445,450,452-453,455,459,462,464,467-468,470-471,473,475,478-481,484,487
+  s_6536f4de62e0c5::t_4517144ad396f0 198
+src/changelog.js
+  s_9ca76055a220ed::t_5aabf07de5c2d3 26-30
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_12495c7ddba9a7 969-970
+src/glass-dunes-figures.js
+  s_9ca76055a220ed::t_a6aa5c63b46438 1-190
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4056d2ee130dcda2569ac4a660eeb0a0a482981d",
+  "prompts": {},
+  "sessions": {
+    "s_200c810eb40bfd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a706e1c380298e59b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_6536f4de62e0c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4411cd923d5635cc",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_6f8b851619b4e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a00f740cb7eaf7828",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_91acf11a8f41b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1cd2f239e83cc9e8",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e1b02e92eaec5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8c3996fa2c751749",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
