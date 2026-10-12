@@ -1,0 +1,41 @@
+DONE.md
+  s_9ca76055a220ed::t_c022dc92e5be2b 2820-2827
+changelog.md
+  s_9ca76055a220ed::t_2f342fc18a3194 7-8
+src/game-menu.css
+  s_9ca76055a220ed::t_ea1e805a2214e9 81,84
+src/levels/edena.js
+  s_9ca76055a220ed::t_6665bc6aa5bfed 59
+tests/closed-issues.json
+  s_9ca76055a220ed::t_04b99818f02a14 1
+tests/reduce-motion-css.test.js
+  s_9ca76055a220ed::t_ee0c2762fe4925 1-23
+docs/systems/ui.md
+  s_91a498788ec04e::t_0f205e6e8dbb14 40-42
+src/changelog.js
+  s_91a498788ec04e::t_489768e2a649b2 25-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "32345fc16f70198e70feb641809489616b97ff0a",
+  "prompts": {},
+  "sessions": {
+    "s_91a498788ec04e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1db4e28607dcace2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
