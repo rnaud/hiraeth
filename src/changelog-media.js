@@ -802,6 +802,15 @@ export const CHANGELOG_MEDIA = {
         { where: 'triangles', before: 11232, after: 270 },
       ], source: 'the veins drawn by Lorn’s water from a map baked once (1024² with mipmaps); the one mesh left is the ringing groves' },
     ], see: 'Ride the skiff south from the Hush-House along the keepers’ stakes at dusk: the lit vein runs beside you under the water, light flowing along it toward the Great Crystal.' },
+    { match: 'Viridel’s water stair looks like a gardeners’ stair now', shots: [
+      { name: 'viridel-stair', title: 'The water stair', caption: 'From in front of its foot: before, grey-white boxes in a grid; after, warm blocks with rounded lips, water falling over them, ferns hanging down the walls, cypresses up the terraces', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [70.9, 3, 181.3], target: [99.8, 26.1, 277.2], player: [71.9, -2.3, 182.3] },
+        reference: { sheet: 'references/levels/Viridel/environment/explorations/water-stair/sheet-1.jpg', caption: 'The author’s pick: the water stair (references/levels/Viridel/environment/explorations/water-stair)' } },
+      { name: 'viridel-beds', title: 'The terraces from the side', caption: 'From over the stair’s west side: before, a block of walls the same width; after, terraces stepping in and out, their lips rounded, water spilling, bushes on the kerbs', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [53.8, 20.8, 230.6], target: [92.9, 0.8, 248] } },
+      { name: 'viridel-gate', title: 'A sluice-gate', caption: 'At the foot of a gated flight: before, a flat strip of water on the grid wall; after, the channel falling as water, ferns and bushes over the lips', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [91.1, -2.9, 218.6], target: [78.2, -0.2, 227.8], player: [91.1, -5, 218.6] } },
+    ], see: 'From the fallen ship follow the white channel north to the foot of the stair and climb it bed by bed; turn a sluice-gate’s wheel and watch the bed below spill over its lip once it has flooded.' },
   ],
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [

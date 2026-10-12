@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.59 — 2026-10-12
 
+- Viridel’s water stair looks like a gardeners’ stair now, not a fortress: warm white stone in big blocks with rounded lips, terraces that step in and out, water spilling over the edges, ferns hanging down the walls and cypresses on the terraces.
 - Lorn’s crystal roots now lie under the water instead of painted on it: soft-edged veins of violet and teal crystal seen through the surface, tapering into thinner twigs, fainter the deeper they run, with light flowing along them toward the Great Crystal.
 - On handhelds and phones, far-off towns, facades and forests no longer shimmer as you look round: lines on detail too small to draw at that distance are inked lighter, and the picture’s edges are smoothed more sharply.
 - The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.

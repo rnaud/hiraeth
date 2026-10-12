@@ -1223,6 +1223,12 @@ of the android garden's ornaments gave way to the nursery, its draws still taken
   `init`) and a wheel on the post. Turning it (`edena.sluice.<n>`) lifts the board, the water pours down the wall beside
   the landing, and the bed below floods 0.3 m (its stones 0.1 m under) and opens in flower from where the water comes in;
   the ungated beds are in flower already. A traveller who climbs can go up the walls; the gates are the gardeners' way.
+  Polished against the sheet (v1.59): each bed a little wider or narrower than the last (`BED_WIDTHS`), so the
+  terraces step in and out; a rounded lip along every wall's top and side (`LIP`, solid; not over a flight, the
+  channel or the step up onto the foot bed); a warm white stone in big uneven blocks with its shade lifted (`plates`,
+  no grid); the falls drawn as falling water (`fall`: the channel's, a sluice's pour, and the beds' own water sheeting
+  over their lips here and there, a gated bed's once it has flooded); ferns hanging down the walls, bushes on the
+  kerbs and cypresses at the back corners (drawn only, flora). No rng: hashes of the bed and the place.
 Tested in `tests/viridel-explorations.test.js` (the way, the beds over the ground, the stair walked up and down by a
 traveller who cannot climb and stopped by a shut gate, a wheel turned, the wrecks, the crater seen from the crown, the
 nursery's ages and the old one's stair walked, sight lines, the contact audit on the new pieces and their collision
