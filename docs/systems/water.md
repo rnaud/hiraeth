@@ -28,7 +28,11 @@ Like the rest it only writes the G-buffer; post.js prints it:
 - **From below** the surface is a pale bright ceiling with its ripples (water is
   drawn from both sides).
 - `waterPrint: true` (the Garden's mirrored shore) is a flat printed shape lying on
-  the water: its own colour with the ripples, no depth, not swimmable.
+  the water: its own colour with the ripples, no depth, not swimmable. With `mirror: { y, lake }` (MIRROR,
+  materials.js) it is a true reflection from wherever the eye is: the geometry is the thing itself (its winding
+  flipped), mirrored in the plane at `y` in the vertex shader and laid on the water along the line of sight, the
+  nearer image over the farther (each lifted toward the eye by a share of its distance), lit as the thing is, kept
+  inside the lake's ellipse and broken by a drifting shimmer (worlds.md, "The Garden's explorations").
 - `crystalRoots: true` (Lorn's water): the Crystal's veins under the surface, from the map `src/lorn-veins.js` bakes
   (WATER_VEINS, `waterVeins`; worlds.md, "Lorn: one route…"); `WaterLook.glow` makes them self-lit.
 - **Contact foam** (below): little waves lapping round whatever stands in the water, from the scene's

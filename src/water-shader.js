@@ -130,6 +130,10 @@ export const WATER_GLSL = /* glsl */ `
     uniform sampler2D uVeinMap;  // Lorn's crystal roots under the water (lorn-veins.js)
     uniform vec4 uVeinBox;       // its x0, z0, 1 / width, 1 / depth (world)
   #endif
+  #ifdef MIRROR
+    uniform vec4 uMirror;       // the water's height, the images' lift, its distance, the shimmer (materials.js)
+    uniform vec4 uMirrorLake;    // the lake's ellipse: x, z, rx, rz
+  #endif
   uniform vec4 uWaterRings[${RINGS}];   // x, z, start time, strength
   uniform vec3 uWaterSky[2];
   uniform float uWaterLite;
@@ -323,6 +327,23 @@ export const WATER_GLSL = /* glsl */ `
     }
     if (uWaterOpt.y > 0.5) {
       // a printed shape lying on the water (the mirrored shore): its own flat colour, the ripples over it
+      #ifdef MIRROR
+      {
+        // a reflection (materials.js MIRROR): only on the lake, and broken across the line of sight by thin
+        // drifting gaps where the water shows between, wider apart further off (the image's shimmer)
+        vec2 e = (p.xz - uMirrorLake.xy) / uMirrorLake.zw;
+        if (dot(e, e) > 1.0) discard;
+        float dist = length(p.xz - cameraPosition.xz);
+        vec2 look = (p.xz - cameraPosition.xz) / max(dist, 1e-3);
+        float lane = dist / (0.35 + dist * 0.022);
+        float across = dot(p.xz, vec2(-look.y, look.x));
+        float gap = step(0.91, fract(lane + 0.25 * sin(across * 0.21 + t * 0.6))) * step(0.55, vnoise(vec2(floor(lane) * 1.7, across * 0.12 + t * 0.15)));
+        if (gap * uMirror.w > 0.5) discard;
+        // (lit as the thing is, its shade a little lighter: an image in the water)
+        W.albedo = uColor; W.ink = ink * 0.6; W.lit = 0.3; W.glint = 0.0;
+        return W;
+      }
+      #endif
       W.albedo = uColor;
       W.ink = ink * 0.6;
       W.lit = 0.0;

@@ -811,6 +811,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'viridel-gate', title: 'A sluice-gate', caption: 'At the foot of a gated flight: before, a flat strip of water on the grid wall; after, the channel falling as water, ferns and bushes over the lips', from: POLISH59,
         view: { level: 'edena', hour: 10, fov: 60, eye: [91.1, -2.9, 218.6], target: [78.2, -0.2, 227.8], player: [91.1, -5, 218.6] } },
     ], see: 'From the fallen ship follow the white channel north to the foot of the stair and climb it bed by bed; turn a sluice-gate’s wheel and watch the bed below spill over its lip once it has flooded.' },
+    { match: 'The Garden’s lake shows its lost town wherever you stand', shots: [
+      { name: 'garden-lake', title: 'From Nell’s shore', caption: 'Across the lake from the south shore: before, flat strips and a few pale shapes; after, the far shore and the lost town in the water, domes, towers and a waterfront, shimmering', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 60, eye: [183, 2.2, -57], target: [172, -1, -150], player: [179.5, -0.4, -62] },
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/lake-memory/sheet-2.jpg', caption: 'The author’s pick: the lake that shows another garden (references/levels/The Garden of Spheres/environment/explorations/lake-memory)' } },
+      { name: 'garden-lake-north', title: 'From the far shore', caption: 'From the stones’ landing looking back south: before, the bare mirror; after, the town that was on the near shore, upside down in the water', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 60, eye: [160, 2, -184], target: [190, -1, -90], player: [157, -0.3, -181] } },
+      { name: 'garden-lake-moons', title: 'From the stones', caption: 'On the middle stone once the pearl has rung: before, strips that only lined up from Nell’s shore; after, the far shore’s pyramid, temple and sphere reflected as they stand, the town’s waterfront in front of them', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [167.5, 5.2, -110], target: [171, -1, -133], player: [170.6, 0, -121.5], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'spheres.heard.bell': true, 'spheres.lake.moons': true } } } },
+    ], see: 'Walk the lake path to Nell on the south shore and look across the water, then cross on the stones and look back from the far shore.' },
   ],
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [

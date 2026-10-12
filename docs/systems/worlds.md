@@ -1389,9 +1389,17 @@ tests pick them by index); the story's side in `src/story/spheres-explorations.j
 - **What the lake remembers** (`causewayStones`, `LANDING`). 24 round white stones from Nell's shore to the far shore's
   landing (where the little block west of the temple stood), each overlapping the next by a hand's width (a gap is a step
   into the water, and the lake puts you back on the shore), 0.75 m over the water, the middle one wider. In the water a
-  garden that is not on the shore: domes, towers and stepped pyramids on the shore's grass between the far shore's
-  pyramid, temple and sphere and round both ends of the lake, drawn only in the reflection (the reflection's key
-  `memory`, warmer than the shore's, kept to the water's far half: tall things reflect right up to your feet). Once the
+  garden that is not on the shore: a white town all round the lake (both shores and both ends, Nell's shore and the
+  stones' way left open), domes on drums with lanterns, towers with galleries, spires and onion tops, stepped pyramids
+  with a stair and a temple on top, houses, a quay along the water, a waterfront row along the far shore in front of
+  what stands there, and cypresses, drawn only in the reflection (keys `memory` and `memoryTree`, warmer than the
+  shore's). Since v1.59 the whole lake's reflection is drawn from wherever the eye is (`makeMaterial({ mirror })`,
+  materials.js MIRROR: each vertex mirrored in the water's plane and laid on it along the line of sight, each image
+  lifted toward the eye by a share of its distance, more the nearer the mirrored point, so where two overlap the nearer
+  covers the other; the geometry is the thing itself with its winding flipped, lit as the thing is, its shade a little
+  lighter; kept inside the lake's ellipse and broken by thin drifting gaps across the line of sight, the shimmer). Until
+  then it was projected for one eye on the south shore: from the stones or the far shore it was a jumble of strips. One
+  mesh a colour (7, was 33). Once the
   pearl's bell has been heard, the spheres hang in the reflected sky round the middle stone (`the lake’s moons`: pale
   discs with lit crescents, over every layer of the reflection; one line the first time, `MOONS_CUE`). On the middle
   stone, `look into the lake` (`THINGS.lake`).
