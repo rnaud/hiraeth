@@ -2077,3 +2077,37 @@ visits but their megamorphic reads); the crowd's change (above) is after build 1
 preset (headless Chrome, CPU ×3, the build before and after side by side, twice): the crowd 1.50 → 0.86 ms at the
 City-Shaft's rim, 1.44 → 0.70 in its crowd, 0.97 → 0.50 in the Market's; the story at the desert's spawn 1.22 → 0.78;
 the traveller 1.8-1.9 → 1.5-1.7.
+
+### The crowd's change on the Xbox: build 1973 (issue #113, 2026-10-12)
+
+Build 1973 (`rnaud.HiraethUnity_1.54.1973.0`, 91054d07: the crowd in one shape, above) against build 1969, the same
+way: Series X, Direct3D 12, 1440p, `-vsync 1`, from the spawn with nothing pressed, the mean of the 5 s `frames:` lines
+over the last 30 s of a 170 s run (`-level incal` for the rim; 1973 also `-mute`, 1969 was not).
+
+| view | fps | frames at 33 ms | script ms | cpu main ms | GPU ms |
+|---|---|---|---|---|---|
+| City-Shaft rim (spawn) | 44.5 → 44.7 | 40.7 % → 36.8 % | 15.9 → 14.5 | 13.2 → 12.7 | 15.9 → 15.8 |
+| desert spawn | 59.5 → 59.5 | 0-1 % → 0.5 % | 11.4 → 11.4 | – → 8.8 | – → 12.5 |
+
+The rim's main thread (1973, ms a frame): the scripts' part 6.5 (the ops 1.7), URP before its first context 0.7, its
+contexts 4.9, after them 10.3; the main thread's wait on the script 1.7, FrameTimingManager's present wait 9.7, the
+render thread 3.4. The desert's: 4.1 (0.7), 1.0, 3.1, 8.5; wait 0.7, present 8.0, render thread 2.1.
+
+At the bench's views (`-views`, viewpoints-worlds.json, `-bench 6`; mean frame, p95, script, GPU):
+
+| view | frame ms | p95 | script | GPU | drawn |
+|---|---|---|---|---|---|
+| City-Shaft start | 18.9 | 33.1 | 16.1 | 17.3 | 1 550 |
+| City-Shaft crowd | 19.6 | 30.9 | 18.1 | 16.2 | 1 590 |
+| City-Shaft wide | 18.0 | 33.5 | 15.1 | 19.5 | 1 556 |
+| desert spawn | 16.7 | 17.1 | 12.3 | 10.5 | 1 338 |
+
+The pictures (the console's at each view against the web build in muted headless Chrome at the same camera) match:
+every surface, person and tower drawn, nothing see-through; the web's extra pieces at the rim are the City-Shaft's
+later content (db9d6e99, dddb6159), not yet in the Unity build.
+
+**What holds the rim under 60.** The crowd's change took ~1.4 ms off the script and ~4 points off the 33 ms frames, not
+more: at 60 Hz with vsync a frame misses as soon as either the GPU or the script passes 16.7 ms, and at the rim both sit
+at the edge. The GPU is 15.8-19.5 ms there (the desert's 10.5-12.5); the script 14.5-18 ms (the crowd view over the
+budget). The GPU is the first to cut: 3 ms at the wide view (the shaft's geometry and shadows, ~1 550 drawn), or a
+render scale under 1 there; then the script's crowd and rigs at the crowd view.
