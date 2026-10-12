@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_d202f56427c691 5-8,15
+docs/systems/dialogue.md
+  s_9ca76055a220ed::t_60a4e0c62ff737 40,56-62
+docs/systems/ui.md
+  s_9ca76055a220ed::t_9568fdbe77820a 120-121
+index.html
+  s_9ca76055a220ed::t_22d6ed78752422 232,245-248,308-309,319
+src/changelog-media.js
+  s_9ca76055a220ed::t_f8c4040af1fe34 701,705,739-745
+src/changelog.js
+  s_9ca76055a220ed::t_a220d5e4ff1938 11,22-25
+src/story/dialogue.js
+  s_9ca76055a220ed::t_b5d10963350633 333-334,336,344-348,516-518,521-523,562
+tests/dialogue-legibility.test.js
+  s_9ca76055a220ed::t_466a0ad3e2e2ba 102,127-162
+tests/platform.test.js
+  s_9ca76055a220ed::t_4301f3792887e7 65
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_d6ab7288c5389f 33,112-114,225,259,271-274
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b6da4414ac99b801f8ec1cf999c30b51da080463",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
