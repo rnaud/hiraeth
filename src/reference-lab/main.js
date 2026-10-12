@@ -11,11 +11,17 @@
 // The 3D mode (the "3D models" switch; Tripo): the pictures clicked become the inputs (one: image to model; 2-4
 // views: multiview; none: text to model from the prompt), each with its view and an optional crop drawn on it;
 // the results are three.js viewers (viewer3d.js, loaded only then), and a pick sends the viewer's turntable too.
+//
+// Pick mode ("Pick all", at the top of To pick; pickmode.js, pickmode-ui.js): every batch to pick, one at a time,
+// full screen, in the prompt documents' order; a pick moves straight on to the next. While it is open, every key
+// and pad button is its own.
 import { Controller, menuNavigate } from '../controller.js';
 import { installNativePad, watchLabels, padFaces } from '../native-pad.js';
 import { installGlyphs } from '../pad-glyphs.js';
 import { InputMode } from '../input-mode.js';
 import { DEBUG_MENU_HREF } from '../debug-back.js';
+import { installPickMode } from './pickmode-ui.js';
+import { pickable } from './pickmode.js';
 import { ASPECTS, PER_PAGE, batchHtml, candidateSrc, defaultChecked, esc, fileSrc, input3dRow, filterBatches, filterHtml, filterRefs, pageCount, pagerHtml, promptFor, promptOptions, providerRow, refFolders, refThumb } from './view.js';
 
 const API = '/__reference-lab/';
@@ -234,7 +240,9 @@ function drawBatches() {
   const n = filterBatches(state.batches, state.show).length;
   const pager = pagerHtml(n, state.page);
   const empty = state.batches.length ? `<p class="empty">${state.show === 'open' ? (state.batches.some((b) => b.status === 'running') ? 'Nothing to pick yet: the rest are still generating.' : 'Nothing left to pick.') : 'No batch here.'}</p>` : batchHtml(null);
-  $('#batches').innerHTML = `${filterHtml(state.batches, state.show)}${state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${n > PER_PAGE ? pager : ''}` : empty}`;
+  const toPick = state.show === 'open' ? state.batches.filter(pickable).length : 0;
+  const pickAll = toPick ? `<p class="pickall"><button type="button" class="btn go" data-pickall title="Every batch to pick, one at a time, full screen: a click (or its number) picks and moves on">Pick all <small>${toPick}</small></button> <small>one batch at a time, full screen, in the prompt documents' order</small></p>` : '';
+  $('#batches').innerHTML = `${filterHtml(state.batches, state.show)}${pickAll}${state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${n > PER_PAGE ? pager : ''}` : empty}`;
   if (keep) document.querySelector(`[data-batch-id="${CSS.escape(keep.batch)}"] [data-cand="${CSS.escape(keep.cand)}"]`)?.focus({ preventScroll: true });
   if (document.querySelector('#batches .viewer[data-model]') || viewer3d) viewers().then((v) => v.mountViewers($('#batches'))).catch((e) => say(`the 3D viewer: ${e.message}`, true));
 }
@@ -305,10 +313,14 @@ zoom.addEventListener('click', (e) => {
   if (e.target.closest('[data-close]') || e.target === zoom) closeZoom();
 });
 
+// ------------------------------------------------------------------ Pick mode
+const pickMode = installPickMode({ api, prompts: async () => state.prompts, target: () => $('#target').value.trim(), onClose: () => loadPage() });
+
 // ------------------------------------------------------------------ mouse, keys, a controller
 document.addEventListener('click', (e) => {
   const t = e.target;
-  if (t.closest('#zoom') || t.closest('#crop')) return;
+  if (t.closest('#zoom') || t.closest('#crop') || t.closest('#pickmode')) return;
+  if (t.closest('[data-pickall]')) { pickMode.open(); return; }
   const md = t.closest('[data-mode]'); if (md) return setMode(md.dataset.mode);
   const va = t.closest('[data-view-act]'); if (va) { viewers().then((v) => v.viewerAct(va.closest('figure'), va.dataset.viewAct)); return; }
   const ic = t.closest('[data-inp-crop]'); if (ic) return openCrop(+ic.dataset.inpCrop);
@@ -330,6 +342,7 @@ const focusedCand = () => (zoomOpen() ? zoomList[zoomAt]?.cand : document.active
 const focusedBatch = () => (zoomOpen() ? zoomBatch : batchOf(document.activeElement));
 const typing = (el) => /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName ?? '') && !/^(checkbox|button)$/.test(el.type);
 addEventListener('keydown', (e) => {
+  if (pickMode.isOpen()) return pickMode.key(e);
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (crop.classList.contains('open')) { if (e.key === 'Escape') { e.preventDefault(); closeCrop(); } return; }
   if (zoomOpen()) {
@@ -365,9 +378,10 @@ function back() {
 const controller = new Controller({
   context: () => 'menu', look: () => {}, faces: () => padFaces(),
   activity: () => { inputMode.pad(); inputMode.apply(document.body.classList); },
-  navigate: (x, y, fresh) => { if (zoomOpen()) { if (x && fresh) stepZoom(x); return; } menuNavigate(document.body, x, y, fresh); },
-  scroll: (amount) => { if (!zoomOpen()) document.activeElement?.closest?.('.scroll')?.scrollBy(0, amount) ?? scrollBy(0, amount); },
+  navigate: (x, y, fresh) => { if (pickMode.isOpen()) { if (fresh) pickMode.pad('navigate', Math.sign(x)); return; } if (zoomOpen()) { if (x && fresh) stepZoom(x); return; } menuNavigate(document.body, x, y, fresh); },
+  scroll: (amount) => { if (!zoomOpen() && !pickMode.isOpen()) document.activeElement?.closest?.('.scroll')?.scrollBy(0, amount) ?? scrollBy(0, amount); },
   action: (name) => {
+    if (pickMode.isOpen()) return pickMode.pad(name);
     if (name === 'back') back();
     else if (name === 'confirm') confirmPad();
     else if (name === 'start') generate();

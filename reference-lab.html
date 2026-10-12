@@ -85,6 +85,8 @@
   .filters { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 10px; }
   .filters .btn.on { background: var(--ink); color: var(--paper); }
   .filters small { opacity: 0.7; }
+  .pickall { margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+  .pickall small { color: var(--soft); }
   .pager { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 12px; }
   .pager .btn.on { background: var(--ink); color: var(--paper); }
   .pager small { color: var(--soft); }
@@ -117,6 +119,49 @@
   figure.model3d .viewer .wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--soft); }
   .vacts { display: flex; gap: 4px; margin: 4px 0 2px; }
   .vacts .btn.on { background: var(--ink); color: var(--paper); }
+  /* Pick mode (src/reference-lab/pickmode.js): one batch at a time, full screen, its candidates as large as they go */
+  #pickmode { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; background: var(--paper); }
+  #pickmode.open { display: flex; }
+  .pm-head { display: flex; gap: 16px; align-items: stretch; padding: 10px 16px 8px 150px; border-bottom: 3px solid var(--ink); background: var(--card); }   /* (clear of the ◀ Debug button) */
+  #pickmode:fullscreen .pm-head { padding-left: 16px; }
+  .pm-what { position: relative; flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr auto; column-gap: 14px; }
+  .pm-what > div { grid-column: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pm-world { font-size: 22px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .pm-title { font-size: 15px; font-weight: 700; }
+  .pm-title small { font-weight: normal; color: var(--soft); }
+  .pm-line { color: #8a5a3c; font-size: 13px; }
+  .pm-target { color: var(--soft); font-size: 12px; }
+  .pm-ref { grid-column: 2; grid-row: 1 / span 4; height: 84px; max-width: 180px; object-fit: contain; border: 1.5px dashed var(--ink); background: #e8dcc0; }
+  .pm-side { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 6px; min-width: 220px; }
+  .pm-progress { font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .pm-bar-prog { width: 220px; height: 6px; border: 1.5px solid var(--ink); background: #fff; }
+  .pm-bar-prog i { display: block; height: 100%; background: var(--green); }
+  .pm-note { padding: 2px 8px; background: var(--gold); border: 2px solid var(--ink); font-size: 12.5px; font-weight: 700; transition: opacity 0.6s; }
+  .pm-note.gone { opacity: 0; }
+  .pm-grid { flex: 1; min-height: 0; display: grid; gap: 12px; padding: 12px 16px; align-content: center; justify-content: center; }
+  .pm-cand { margin: 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; cursor: pointer; outline: none; }
+  .pm-pic { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; background: #e8dcc0; border: 2px solid var(--ink); }
+  .pm-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; }
+  .pm-cand:hover .pm-pic, .pm-cand:focus .pm-pic { border-color: var(--red); box-shadow: 0 0 0 3px var(--red); }
+  .pm-cand.on .pm-pic { border-color: var(--green); box-shadow: 0 0 0 4px var(--green); }
+  .pm-num { position: absolute; left: 6px; top: 6px; min-width: 30px; padding: 2px 8px; background: var(--ink); color: var(--paper); font-size: 18px; font-weight: 700; text-align: center; }
+  .pm-num:empty { display: none; }
+  .pm-zbtn { position: absolute; right: 6px; top: 6px; width: 34px; height: 34px; font-size: 20px; line-height: 1; background: var(--card); border: 2px solid var(--ink); cursor: zoom-in; }
+  .pm-tick { position: absolute; left: 6px; bottom: 6px; padding: 2px 8px; background: var(--green); color: #fff; font-weight: 700; }
+  .pm-cand figcaption { padding: 4px 2px 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 24px; }
+  .pm-cand figcaption small { color: var(--soft); }
+  .pm-empty { color: var(--soft); font-size: 16px; }
+  .pm-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px 10px; border-top: 2px solid var(--ink); background: var(--card); }
+  .pm-bar label { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 220px; color: var(--soft); font-size: 12px; }
+  .pm-bar input { flex: 1; }
+  .pm-status { flex-basis: 100%; min-height: 1.2em; font-size: 12px; color: var(--soft); }
+  .pm-status.bad { color: var(--red); font-weight: 700; }
+  #pickmode.busy .pm-grid { opacity: 0.6; pointer-events: none; }
+  .pm-zoom { position: absolute; inset: 0; z-index: 2; display: none; flex-direction: column; background: #2b211f; padding: 10px; }
+  .pm-zoom.open { display: flex; }
+  .pm-zoom img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
+  .pm-zcap { color: var(--paper); font-size: 13px; padding: 0 0 8px 140px; }
+  #pickmode:fullscreen .pm-zcap { padding-left: 0; }
   /* the crop */
   #crop { position: fixed; inset: 0; z-index: 1000; display: none; flex-direction: column; gap: 8px; background: #2b211f; padding: 10px; }
   #crop.open { display: flex; }
@@ -127,8 +172,8 @@
   #crop .rect { position: absolute; border: 2px solid var(--gold); box-shadow: 0 0 0 9999px rgba(43, 33, 31, 0.55); pointer-events: none; }
 </style>
 </head>
-<!-- the shared "◀ Debug" button (src/debug-back.js); B is the page's own (the zoom first), Esc too while the zoom is open -->
-<body data-debug-back="pad-off" data-debug-busy="#zoom.open, #crop.open">
+<!-- the shared "◀ Debug" button (src/debug-back.js); B is the page's own (the zoom first), Esc too while the zoom, the crop or Pick mode is open -->
+<body data-debug-back="pad-off" data-debug-busy="#zoom.open, #crop.open, #pickmode.open">
 <header>
   <span class="debug-room" aria-hidden="true"></span>
   <h1>REFERENCE LAB</h1>
@@ -200,6 +245,27 @@
     <button type="button" class="btn" data-close title="Close"><span class="glyph" data-glyph="back" aria-hidden="true"></span>✕</button>
   </div>
   <img alt="">
+</div>
+<div id="pickmode" aria-hidden="true" role="dialog" aria-label="Pick mode">
+  <div class="pm-head">
+    <div class="pm-what"></div>
+    <div class="pm-side">
+      <span class="pm-progress"></span>
+      <span class="pm-bar-prog"><i></i></span>
+      <span class="pm-note gone"></span>
+    </div>
+  </div>
+  <div class="pm-grid"></div>
+  <footer class="pm-bar">
+    <button type="button" class="btn" data-pm="back" title="The batch before, to change its pick (←)"><span class="glyph" data-glyph="lb" data-key="←" aria-hidden="true"></span>Back</button>
+    <button type="button" class="btn" data-pm="skip" title="Leave this one for later (S, →)"><span class="glyph" data-glyph="rb" data-key="S" aria-hidden="true"></span>Skip</button>
+    <button type="button" class="btn" data-pm="reject" title="None of them works (X)"><span class="glyph" data-glyph="x" data-key="X" aria-hidden="true"></span>None of them</button>
+    <button type="button" class="btn" data-pm="zoom" title="The chosen one alone, full size (Z)"><span class="glyph" data-glyph="y" data-key="Z" aria-hidden="true"></span>Zoom</button>
+    <label>why <input type="text" id="pm-why" placeholder="optional: kept in manifest.json"></label>
+    <button type="button" class="btn" data-pm="exit" title="Back to the lab (Esc)"><span class="glyph" data-glyph="back" aria-hidden="true"></span>Exit</button>
+    <span class="pm-status">Click a picture or press its number to pick it; the next batch comes at once.</span>
+  </footer>
+  <div class="pm-zoom" aria-hidden="true"><div class="pm-zcap"></div><img alt=""></div>
 </div>
 <div id="crop" aria-hidden="true">
   <div class="bar">

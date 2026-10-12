@@ -85,6 +85,8 @@ other four are a click away).
    beside the filters, and join it when done), Picked, None of them, All (`#show=…&page=N` survives a reload).
    Gemini and OpenAI are checked by default (`DEFAULT_PROVIDERS`; the CLI's default too); the others are a
    click (or `--providers`) away.
+7. **Pick all** (at the top of To pick) opens [Pick mode](#pick-mode): every batch to pick, one at a time, full
+   screen, a click picking and moving on.
 
 Mouse, keys and a controller all work: the D-pad and the stick move across the page (`data-grid-nav`), the
 buttons carry their glyphs, B closes the zoom and then goes back to the Debug menu (the shared ◀ Debug button,
@@ -113,6 +115,42 @@ references), not in a new batch, so its pictures sit beside the others' for the 
 
 `--providers` defaults to Gemini and OpenAI (name others to compare them). `--pick
 latest/openai/1` picks from the newest batch.
+
+## Pick mode
+
+For going through many batches at once (October 2026, the author's ask: "so I don't have to click 40 times").
+**Pick all**, at the top of To pick, opens one batch at a time over the whole screen (the Fullscreen API; where
+the browser refuses, the overlay fills the window), its candidates side by side, laid out as large as the screen
+allows at the batch's aspect ratio (`bestColumns`: the column count that gives each picture the most area).
+
+- **The header** says what is being picked: the world or object (the level its target folder is in, else the
+  prompt document's title: "Enemy roster"), then world · direction · entry ("Vael · falling-up · The edge that
+  rises", with its id), the prompt's bold line ("Main: the plain's edge breaking into stones…", else the prompt's
+  first sentence; the whole prompt on hover), the target folder, the reference it was drawn from, and the
+  progress ("12 of 48 to pick", with a bar). A small note says when the world changes ("Now: Lorn").
+- **Moves:** a click on a picture, or its number (1–9), picks it and the next batch comes at once. **S** or
+  **→** skips (a skipped batch comes back once the others are done), **←** goes back to the batch shown before
+  (to change its pick: a new pick there takes the first one back), **X** is none of them, **Z** (or a picture's
+  ⤢ corner) shows the chosen one alone, full size (← → through the others, Enter or its number picks it),
+  **W** goes to the "why" field, **Esc** closes the zoom, then leaves (leaving full screen leaves Pick mode too).
+  A pad: ← → choose, A picks, X none of them, Y zoom, LB back, RB skip, B closes the zoom, then leaves.
+- **Why:** pre-filled with "the best of the batch", typed over at will, never required; none of them takes
+  "none of them fits" when the field is left as it was.
+- **Order** (`buildPickQueue`): the worlds in the order they first come in the prompt documents, and within a world
+  the documents, their entries and variants as written, so a direction's establishing view and ground view come
+  together (a world's flora sheet and its explorations too); a batch from no document goes last in its world. Only
+  2D batches that are done, have a picture left, no pick and no "none of them" are in it (a 3D batch is picked in
+  the grid, where its viewer is).
+- **The same files as the Pick button:** a pick is the dev server's `pick` (the copy into the target folder, its
+  `manifest.json` entry, `candidates.json`), none of them its `reject`. Changing a pick calls `unpick`
+  (`batch.mjs`): the manifest entry goes, the sheet is deleted only if it is still the very picture copied (same
+  sha256), a manifest that pick created goes with it, and the candidate is new again. Leaving Pick mode redraws
+  the grid.
+
+Code: `src/reference-lab/pickmode.js` (pure: the queue, its order, the session's moves, the drawing) and
+`pickmode-ui.js` (the page); `tests/reference-lab-pickmode.test.js` runs a session against a stub candidates
+folder with the real pick, unpick and reject. The prompt parser gives each entry its `section` (the `##` heading
+above it, a world) and `group` (the heading with an id above it, a direction), and each document its `title`.
 
 ## Files and manifests
 

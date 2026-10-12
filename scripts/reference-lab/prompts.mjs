@@ -24,10 +24,15 @@ export function cleanMidjourney(text) {
   return { prompt: negative ? `${t}. Avoid: ${negative}.` : t, ar, negative };
 }
 
-/** A prompt document's entries: [{ id, title, variants: [{ key, label, prompt, ar, raw }] }] (pure). */
+/**
+ * A prompt document's entries: [{ id, title, section, group, variants: [{ key, label, prompt, ar, raw }] }] (pure).
+ * section: the `##` heading above the entry (a world, "Creatures"), when it has no id of its own; group: the nearest
+ * heading above it that has an id but no prompt (a direction: { id, title }), or null. Pick mode's header reads them.
+ */
 export function parsePromptDoc(md) {
   const out = [];
   let cur = null, label = '', inFence = false, buf = [];
+  const heads = [];   // heads[level] = { title, id } of the headings above the current line
   for (const line of String(md).split(/\r?\n/)) {
     if (inFence) {
       if (/^```/.test(line)) {
@@ -41,8 +46,19 @@ export function parsePromptDoc(md) {
       } else buf.push(line);
       continue;
     }
-    const h = line.match(/^#{2,4}\s+(?:\d+\.\s*)?(.*?)\s*\(`([\w-]+)`\)\s*$/);
-    if (h) { cur = { id: h[2], title: h[1].trim(), variants: [] }; out.push(cur); label = ''; continue; }
+    const hd = line.match(/^(#{1,6})\s+(.*?)\s*$/);
+    if (hd) {
+      const lv = hd[1].length, id = hd[2].match(/\(`([\w-]+)`\)$/)?.[1] ?? null;
+      heads.length = lv;
+      heads[lv] = { title: hd[2].replace(/\s*\(`[\w-]+`\)$/, '').replace(/^\d+\.\s*/, '').trim(), id };
+    }
+    const h = line.match(/^(#{2,4})\s+(?:\d+\.\s*)?(.*?)\s*\(`([\w-]+)`\)\s*$/);
+    if (h) {
+      const above = heads.slice(2, h[1].length).filter(Boolean);
+      const section = above[0] && !above[0].id ? above[0].title : null;
+      const g = [...above].reverse().find((x) => x.id);
+      cur = { id: h[3], title: h[2].trim(), section, group: g ? { id: g.id, title: g.title } : null, variants: [] }; out.push(cur); label = ''; continue;
+    }
     if (/^#{1,3}\s/.test(line)) { cur = null; continue; }
     const b = line.match(/^\*\*(.+?)\*\*/);
     if (b) label = b[1].replace(/[.:]\s*$/, '');
@@ -109,10 +125,13 @@ export function manifestPrompts(root, dir = 'references') {
   return out;
 }
 
-/** Everything the page offers: { docs: [{ doc, entries }], manifests: [...] }. */
+/** A document's title, its `# ` heading up to a colon ("Enemy roster: Midjourney prompts…" → "Enemy roster"). */
+export const docTitle = (text) => String(text).match(/^#\s+(.+)$/m)?.[1].split(':')[0].trim() ?? null;
+
+/** Everything the page offers: { docs: [{ doc, title, entries }], manifests: [...] }. */
 export function listPrompts(root) {
   return {
-    docs: promptDocs(root).map((doc) => { const text = readFileSync(join(root, doc), 'utf8'); return { doc, entries: parsePromptDoc(text).map((e) => ({ ...e, target: targetFor(doc, e.id, text) })) }; }),
+    docs: promptDocs(root).map((doc) => { const text = readFileSync(join(root, doc), 'utf8'); return { doc, title: docTitle(text), entries: parsePromptDoc(text).map((e) => ({ ...e, target: targetFor(doc, e.id, text) })) }; }),
     manifests: manifestPrompts(root),
   };
 }

@@ -8,6 +8,7 @@
 //   GET  /__reference-lab/file/<batch>/<provider>/<n>.jpg   a candidate's picture (the store is the main checkout's)
 //   POST /__reference-lab/generate         { prompt, refs, providers, models, n, ar, target, from, comparison } → { batch }
 //   POST /__reference-lab/pick             { batch, candidate, target, why }
+//   POST /__reference-lab/unpick           { batch, candidate }   a pick taken back (Pick mode's Back, to change it)
 //   POST /__reference-lab/discard          { batch, candidate? }
 //   POST /__reference-lab/reject           { batch, why }   none of them, and why (why: null takes it back)
 //   POST /__reference-lab/generate3d       { images, crops, views, prompt, options, n, target, from } → { batch }  (3D mode, Tripo)
@@ -23,7 +24,7 @@ import { IMAGE_EXT, ROOT, mimeOf } from './common.mjs';
 import { availability, keyFor, loadKeys } from './env.mjs';
 import { PROVIDERS } from './providers/index.mjs';
 import { listPrompts } from './prompts.mjs';
-import { CANDIDATES_DIR, batchDir, discard, listBatches, newBatchId, readBatch, reject, runBatch } from './batch.mjs';
+import { CANDIDATES_DIR, batchDir, discard, listBatches, newBatchId, readBatch, reject, runBatch, unpick } from './batch.mjs';
 import { execute3dBatch, pickAny, prepare3dBatch } from './batch3d.mjs';
 import tripo, { PREVIEW_ANIMATION, VIEWS } from './providers/tripo.mjs';
 
@@ -118,6 +119,7 @@ export function referenceLabMiddleware({ root = ROOT, fetch: fetchFn, keys: keys
         return send(202, { batch: prepared.manifest.batch, estimateUSD: prepared.manifest.estimateUSD });
       }
       if (path === 'pick') return send(200, pickAny({ root, batch: body.batch, candidate: body.candidate, target: body.target, why: body.why, preview: body.preview ?? null }));
+      if (path === 'unpick') return send(200, unpick({ root, batch: body.batch, candidate: body.candidate }));
       if (path === 'reject') return send(200, reject({ root, batch: body.batch, why: body.why ?? null }));
       if (path === 'discard') return send(200, discard({ root, batch: body.batch, candidate: body.candidate ?? null }));
       return send(404, { error: 'not found' });

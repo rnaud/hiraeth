@@ -225,6 +225,36 @@ export function pick({ root, batch, candidate, target = null, why = '', now = Da
 }
 
 /**
+ * A pick taken back (Pick mode's Back, to change it): its manifest entry removed, its sheet deleted when it is still
+ * the very picture that was copied (same sha256; a sheet edited or replaced since stays), the candidate new again.
+ * A manifest the pick created and that is now empty goes too. Returns { batch, candidate, unpicked, removed }.
+ */
+export function unpick({ root, batch, candidate }) {
+  const m = readBatch(root, batch);
+  if (m.mode === '3d') throw new Error(`${batch} is a 3D batch: its pick is not taken back here`);
+  const c = m.candidates.find((x) => x.id === candidate);
+  if (!c) throw new Error(`no candidate ${candidate} in ${batch}`);
+  if (c.status !== 'picked') return { batch, candidate, unpicked: false, removed: null };
+  const to = checkTarget(root, c.pickedAs ? c.pickedAs.slice(0, c.pickedAs.lastIndexOf('/') + 1) : m.target);
+  let removed = null;
+  const dir = join(root, to), mf = join(dir, 'manifest.json');
+  if (existsSync(mf)) {
+    const manifest = JSON.parse(readFileSync(mf, 'utf8'));
+    const i = (manifest.sheets ?? []).findIndex((s) => s.batch === batch && s.candidate === c.id);
+    if (i >= 0) {
+      const [entry] = manifest.sheets.splice(i, 1);
+      const f = join(dir, entry.file);
+      if (/^sheet-\d+\.\w+$/.test(entry.file) && existsSync(f) && sha256(readFileSync(f)) === entry.sha256) { rmSync(f); removed = `${to}${entry.file}`; }
+      const bare = !manifest.sheets.length && Object.keys(manifest).every((k) => ['archetype', 'created', 'sheets'].includes(k));
+      if (bare) rmSync(mf); else writeJson(mf, manifest);
+    }
+  }
+  c.status = 'new'; delete c.pickedAs;
+  writeJson(join(batchDir(root, batch), 'candidates.json'), m);
+  return { batch, candidate, unpicked: true, removed };
+}
+
+/**
  * None of them: the batch turned down as a whole, and why (the next prompt learns from it). Written into the
  * batch and, when it has a target, into the target's manifest.json `rejected` list. why = null takes it back.
  */
