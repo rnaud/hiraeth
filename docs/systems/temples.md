@@ -503,7 +503,7 @@ The marker (`logic.next`) now also points at a ball whose stop holds a door shut
 
 The **Builders' Greenhouse** (`edena.js`, 3.78 after round 1, its curve 1) gets its late steps up: the Bud Passage's bud is
 in the shade until a ball turns the passage's louvre onto it (the bloom with the push, where it was the bloom alone), and
-past the Vine Gulf, west off its far side, the **Seed Vault** (`VAULT`): one louvre, one ball, two seeds at the foot of a
+past the Vine Gulf, west off its far side, the **Seed Vault** (`VAULT`; moved in round 4, below): one louvre, one ball, two seeds at the foot of a
 wall of glass; the vine climbs it only from both seeds, so the ball brings the sun to one, then the other. The great key on
 the ledge at the top opens the door past the bud (`dB`) into the Glasshouse. Its Cold Frame's eyes and the Glass Stair's
 eye now come before their balls in `LOGIC`, so the marker points at an eye that can wake before the ball's other plate
@@ -512,14 +512,14 @@ guardians, and reports a temple it walks eighty steps in without getting anywher
 
 The **Undertower** (`bazaar.js`, 3.89 after round 1, its curve 5 → 3) likewise: the Listening Passage's horn is deaf until
 a ball is on its footstone (an `EchoEar` whose element has a `when` says `deaf` while it does not hold), and past the
-Gallery of Voices, west off its far side, the **Choir** (`CHOIR`): two horns, the great key caged between them. The far
+Gallery of Voices, west off its far side, the **Choir** (`CHOIR`; moved in round 4, below): two horns, the great key caged between them. The far
 one hears only a stone's own low song through a pair of dishes (`hears: 'note'`, a ball on the near dish's footstone), the
 near one the high note played back, the high stone at the far end; the shell keeps the last note, so the low stone sung
 by the near dish is caught too. The great key opens the far door (`d4`, its two lamps as before).
 
 The **Lamp-House** (`perdide2.js`, 3.67, structure 3, its curve 1): the **Kennel**, east off the Hall of Dark Pools, is an
 arena in the dark (`KENNEL`; the small key, for the Lamp Passage's door, a room past the chest); past the Dark Gallery, east
-off its far side, the **Wick Room** (`WICK`): two niches, two pool-orbs, one lantern, the great key behind a grille (`cW`)
+off its far side, the **Wick Room** (`WICK`; moved in round 4, below): two niches, two pool-orbs, one lantern, the great key behind a grille (`cW`)
 that lifts for good only while both niches burn. A niche's lamp burns only while its orb glows: its element has `hold`
 (the orb's time) and a `when` (its orb home), and the orb's piece puts it out when its glow ends (`Ball` `lamp`), so the
 second orb has to be lit and rolled home inside the first one's glow. The great key opens the gallery's far door (`d4`).

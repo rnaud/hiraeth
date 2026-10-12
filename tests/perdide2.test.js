@@ -88,8 +88,9 @@ test('the skiff waits at the cave mouth and the collision budget holds', () => {
   // whip roots and the splayed feet: ~154 k → ~172 k, bake +5 ms, along the path rays +7 %, capsules +15 %;
   // docs/systems/movement.md "Contact"; the cave mouth's frame of roots, the great arches' strands and the nest's
   // bowl, solid as drawn: ~172 k → ~190 k, docs/systems/references.md "Lorn II's sheets"; v1.49, the Lamp-House's Kennel
-  // and Wick Room and its keys' plinths, far overhead: +~0.7 k)
-  assert.ok(triangles < 196500, `static collision budget: ${triangles}`);
+  // and Wick Room and its keys' plinths, far overhead: +~0.7 k; v1.60, the Wick Room moved beside the Root Stair, bigger,
+  // with its stair, balcony and keepers' door, and the ledge of roots round the stair: ~197.5 k, docs/systems/temples.md "Round 4")
+  assert.ok(triangles < 198000, `static collision budget: ${triangles}`);
 });
 
 test('every root is solid as drawn: the bank roots, the whip roots and the splayed feet too', () => {

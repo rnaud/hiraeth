@@ -16,7 +16,9 @@
 
 /** A piece's position (local [x, y, z]) from whatever its options name. */
 export function piecePos(o = {}) {
-  if (Array.isArray(o.at) && Array.isArray(o.at[0])) return centroid(o.at);   // (several places: the Engine-House's cranks)
+  // (several places: the Engine-House's cranks; given as [x, z] at one height `y`, the Lamp-House's lure pools, whose NaN
+  // left its plan blank until v1.60)
+  if (Array.isArray(o.at) && Array.isArray(o.at[0])) return centroid(o.at.map((p) => (p.length === 2 ? [p[0], o.y ?? 0, p[1]] : p)));
   if (Array.isArray(o.at)) return o.at.slice(0, 3);
   if (Array.isArray(o.path) && o.path.length) return mid(o.path[0], o.path[o.path.length - 1]);
   if (Array.isArray(o.a) && Array.isArray(o.b)) return mid(o.a, o.b);

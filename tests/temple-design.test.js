@@ -44,6 +44,7 @@ test('a condition names its keys, a ball on a plate is a push, and a latched pla
   assert.ok(obviousness({ keys: [{ rooms: 0, visible: true, metres: 5 }], mechanics: ['gadget:bell', 'timed'] }).why.some((w) => /while it rings/.test(w)));
   assert.deepEqual(piecePos({ a: [0, 0, 0], b: [0, 0, 10] }), [0, 0, 5]);
   assert.deepEqual(piecePos({ eyes: [{ at: [0, 2, 0] }, { at: [2, 2, 0] }] }), [1, 2, 0]);
+  assert.deepEqual(piecePos({ at: [[0, 0], [2, 4]], y: 9 }), [1, 9, 2], 'several places as [x, z] at one height (the Lamp-House’s lure pools: its plan was NaN)');
 });
 
 test('a vane is a splash (or the jets’ wash) and a timing, and a ball whose groove crosses a bridge has that bridge’s key in its plate’s lock', () => {

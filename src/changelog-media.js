@@ -722,7 +722,38 @@ const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s
 // (v1.59: Lorn's veins, Viridel's water stair and the Garden's lake polished against their sheets, issues #188-#190: a
 // scratch copy of scripts/design-qc/capture.mjs, the before this branch's own tree before the change)
 const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5681), the before the same tree before the polish (27d67022), the same pinned cameras as v1.55 and v1.56, 12 October; cwebp -q 72';
+// (v1.60: the temples to explore, round 4, issue #23: scripts/changelog-shots.mjs, the commit and main before it)
+const C60 = { commit: 'd3c9ded8', before: '18fe8fa6' };   // (shot at 48924c8a, the same tree before the rebase onto 5a20c90f)
+const SAVE60_LANTERN = { ...SAVE47, flags: { ...SAVE47.flags, 'item.lantern': true } };   // (the Lamp-House is dark: the lantern charm glows in it)
 export const CHANGELOG_MEDIA = {
+  '1.60': [
+    { match: 'In the Undertower the Choir and its great key have moved', shots: [
+      { name: 'under-well', title: 'The Cable Well', caption: 'Looking up its west wall from the floor: before, the bare wall over the way west; after, the walk round the wall at the landing’s height, the Choir’s keepers’ gate in it, and the gate’s cable down the wall', ...C60,
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(2, 1.7, 53), target: UT(-9, 12, 63), player: UT(3.5, 0.05, 51.7) } },
+      { name: 'under-horn', title: 'The Hall of Dishes’ far landing', caption: 'Over the pillars: after, the horn the Choir’s gate listens through, at the end of its cable, under the dish that brings the singing ball’s note across', ...C60,
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(-3, 1.7, 47), target: UT(4, 1.2, 44.5), player: UT(-4.9, 0.05, 47.7) } },
+      { name: 'under-chamber', title: 'The Shell Chamber', caption: 'Looking west past the chest: before, the round wall; after, the Choir’s door, which goes with its gate', ...C60,
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(6, 13.7, 86), target: UT(-10, 13.5, 83.8), player: UT(8, 12.05, 86.3) } },
+      { name: 'under-choir', title: 'The Choir', caption: 'In from the gate: the great key caged between the two horns, the near one ringed in the high note’s colour, the dish pair at the far end over the low stone', ...C60, only: 'after',
+        view: { level: 'bazaar', save: SAVE47, hour: 12, fov: 70, eye: UT(-15.5, 13.7, 63.5), target: UT(-26, 12.5, 78), player: UT(-14.3, 12.05, 61.9) } },
+    ], see: 'In the Undertower, back on the first hall’s far landing with the echo shell: the horn by the cable; then up the Cable Well to the walk at the landing’s height and through the gate into the Choir.' },
+    { match: 'In the Lamp-House the Wick Room is off the Hall of Dark Pools now', shots: [
+      { name: 'lamp-hall', title: 'The Hall of Dark Pools', caption: 'Its east wall at the north end: before, the wall; after, the way into the Wick Room past the last column', ...C60,
+        view: { level: 'perdide', save: SAVE60_LANTERN, hour: 12, fov: 75, eye: LH(1, 2.8, 31), target: LH(12, 2.4, 39.6), player: LH(7, 0.05, 36.4) } },
+      { name: 'lamp-roots', title: 'The Root Stair', caption: 'From the root-wall’s top looking back south-east: before, the round wall over the dark pool; after, the ledge of roots along it and the Wick Room’s keepers’ door through it', ...C60,
+        view: { level: 'perdide', save: SAVE60_LANTERN, hour: 12, fov: 70, eye: LH(-2, 10.7, 64.5), target: LH(10, 10, 56), player: LH(1, 9.05, 63) } },
+      { name: 'lamp-wick', title: 'The Wick Room', caption: 'In from the hall: the two pool-orbs in their grooves, the grille over the great key between the niches, the stair up the north wall to the balcony and its keepers’ door', ...C60, only: 'after',
+        view: { level: 'perdide', save: SAVE60_LANTERN, hour: 12, fov: 70, eye: LH(16, 2.2, 36), target: LH(25, 4, 52), player: LH(18, 0.05, 40) } },
+    ], see: 'In the Lamp-House, the Hall of Dark Pools’ east wall at the north end, past the Kennel’s door.' },
+    { match: 'In the Builders’ Greenhouse the Seed Vault is off the Shade House now', shots: [
+      { name: 'green-shade', title: 'The Shade House', caption: 'Its north wall: before, the wall; after, the door into the Seed Vault, which opens once the Shade House is won', ...C60,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(-22, 2.2, 35), target: GR(-22, 2.5, 48), player: GR(-22, 0.05, 33.6) } },
+      { name: 'green-stair', title: 'The Glass Stair', caption: 'From the root-wall’s top looking south-west: before, the round wall; after, the ledge along it and the Seed Vault’s keepers’ door through it, opening with the vault’s vine', ...C60,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(3, 10.7, 63), target: GR(-10, 10, 56.5), player: GR(4.8, 9.05, 63.9) } },
+      { name: 'green-vault', title: 'The Seed Vault', caption: 'Its two seeds at the foot of the glass in the shade, the ledge on top with the great key and the keepers’ door beside it', ...C60, only: 'after',
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(-28, 2.2, 52), target: GR(-16, 5, 58), player: GR(-29.6, 0.05, 51.2) } },
+    ], see: 'In the Builders’ Greenhouse, win the Shade House west off the Potting Hall, and go north through its second door.' },
+  ],
   '1.59': [
     { match: 'The darker dust band along the foot of weathered walls', see: 'In Qanat, stand with your back to a weathered house, close to it, the camera behind you: the grey band along its foot runs on behind your legs, with no pale outline of you in it.' },
     { match: 'The deepest darks stay in real pockets now', shots: [
