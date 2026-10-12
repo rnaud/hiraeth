@@ -136,7 +136,7 @@ export const ALIENS = {
       voice: 0.48, kind: 'm', color: '#7d8a62', age: 'elder', tint: { moss: '#bba878', band: '#6b5687', pale: '#8f9f6e', skin: '#cbd5c2', glow: '#ffd890' },
       lines: ['~solemn~ The cave keeps its own time.', '~tired~ Mm. Another fast one.'],
       talk: { listen: [
-        { if: { quest: LAMPS, stage: 'tell' }, say: '~surprised~ Hollin went past me to the *root cave*. Walking fast. I have never seen Hollin walk fast.' },
+        { if: { all: [{ quest: LAMPS, done: true }, { not: { flag: 'perdide2.hollin.told' } }] }, say: '~surprised~ Hollin went past me to the *root cave*. Walking fast. I have never seen Hollin walk fast.' },
         '~solemn~ Slow is how you see everything twice.',
         '~neutral~ Bram minds the cave mouth. I mind Bram. Somebody has to.',
         '~sad~ The two who borrowed Fen’s skiff went past me, long ago. I said good evening. They said it back. That was all, and I kept it.',

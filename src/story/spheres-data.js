@@ -58,8 +58,8 @@ export const QUESTS = [
     id: 'spheres.avenue', title: 'That Kind of Road', world: 'spheres',
     outro: 'You walked the whole avenue slowly. The cypresses noticed.',
     stages: [
+      // (walked is done, issue #172: Cael asks how long it was when you pass)
       { id: 'walk', text: 'Walk the avenue slowly: no running, no jumps', label: 'The avenue', flag: 'spheres.avenue.walked', at: 'avenue' },
-      { id: 'tell', text: 'Tell Cael you walked it', label: 'Cael, on the avenue', talk: 'cael', at: 'cael' },
     ],
   },
 ];
@@ -164,8 +164,8 @@ export const PEOPLE = {
     lines: ['~neutral~ The cypresses lead to the rings.', '~solemn~ Walk slowly. It is that kind of road.', '~whisper~ Slowly. Slower.'],
     talk: {
       entry: [
+        { if: { all: [{ flag: 'spheres.avenue.walked' }, { not: { flag: 'spheres.cael.walked' } }] }, node: 'walked' },
         { if: { quest: 'spheres.avenue', done: true }, node: 'after' },
-        { if: { flag: 'spheres.avenue.walked' }, node: 'walked' },
         { if: { quest: 'spheres.avenue', active: true }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -186,7 +186,7 @@ export const PEOPLE = {
         waiting: { say: ["~neutral~ *Walk slowly from arch to plaza.* If you run or jump, return to the arch and try again."], choices: [{ text: '~solemn~ (walk slowly)', end: true }] },
         walked: {
           say: ["~happy~ Every bell opened behind you. That’s the whole avenue saying hello.", "~curious~ Every bell, all the way. How long was it, would you say?"],
-          do: { advance: ['spheres.avenue', 'tell'] },
+          do: { set: { 'spheres.cael.walked': true } },
           choices: [{ text: '~tired~ It was long.', goto: 'longer' }, { text: '~playful~ It was short.', goto: 'shorter' }],
         },
         longer: { say: ['~happy~ Good. Long is the right answer, for a first time.'], choices: [{ text: '~neutral~ Goodbye, Cael.', end: true }] },

@@ -227,9 +227,9 @@ test('side quests: Dun’s key off the floating derrick, the three gauges, the w
   for (let i = 0; i < 3; i++) target('gauge', i).onHit('shoot');
   step(60, 1 / 30);
   assert.ok(Math.abs(B.gauges[1].needle.rotation.z - -0.47 * Math.PI) < 0.02, 'the needle settles on ninety-one');
-  assert.equal(quests.stage('buried.gauges'), 'tell');
+  assert.equal(quests.isDone('buried.gauges'), true, 'the three read is done (issue #172)');
   talk(PEOPLE.ossa, []);
-  assert.equal(quests.isDone('buried.gauges'), true);
+  assert.equal(game.flag('buried.ket.told'), true, 'Ket hears the numbers when you pass');
   assert.equal(game.flag('clue.buried.mark'), true, 'the Maker’s Thumb is the glyph');
   // the window, and the numbers by the doorway (the clue back to the Glass Dunes' clock-winder)
   talk(PEOPLE.tull, ['What’s behind the window?', 'I’ll climb up']);
@@ -308,8 +308,9 @@ test('out of order: the Wick lit and the gauges read before anyone asked; Wen an
   say(PEOPLE.wen);
   for (let i = 0; i < 8; i++) rt4.update(1 / 30, i / 30, { camera });
   assert.equal(q4.stage('buried.tooth'), 'watch', 'Wen’s talk passes over: on to the wheel');
-  // Ket, met after the three gauges were read: her reading starts and ends the quest
-  say(PEOPLE.ossa);
+  // the three gauges read before Ket asked: her errand is done all the same, and she hears the numbers when you pass
   assert.equal(q4.isDone('buried.gauges'), true);
+  say(PEOPLE.ossa);
+  assert.equal(game.flag('buried.ket.told'), true);
   clearInteractables(); clearTargets();
 });

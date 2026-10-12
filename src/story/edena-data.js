@@ -31,10 +31,12 @@
 // and edena.<who>.flood (each gardener's word about it, once).
 
 const Q = 'edena.garden';
+/** The ship's scorch seen (the main quest done there, issue #172) and Mira not yet told of it: her word when you pass. */
+const MIRA_TOLD = { all: [{ quest: Q, done: true }, { not: { flag: 'edena.mira.told' } }] };
 
 export const ITEMS = { seed: 'a pyramid seed' };
 // (calls home quote a word's `text` as said: src/story/calls.js)
-export const KEEPSAKE = { id: 'edena.word', level: 'edena', name: 'Mira’s words', kind: 'word', text: 'We tend the garden. The garden tends us.', note: 'What Mira said when you told her about the mark under the flowers. The gardeners say it about everything, and mean it about everything.' };
+export const KEEPSAKE = { id: 'edena.word', level: 'edena', name: 'Mira’s words', kind: 'word', text: 'We tend the garden. The garden tends us.', note: 'What the gardeners say about the ship under the flowers, as Mira says it. They say it about everything, and mean it about everything.' };
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -50,8 +52,9 @@ export const QUESTS = [
       { id: 'inside', text: 'Go in through the ship’s hatch', label: 'The overgrown hatch', flag: 'edena.cabin.seen', at: 'hatch' },
       { id: 'log', text: 'Play the ship’s last log', label: 'The cockpit panel', flag: 'edena.log.read', at: 'panel' },
       { id: 'veil', text: 'Water the flowers on the ship’s flank', label: 'The flowers on the flank', flag: 'edena.veil.open', at: 'veil' },
+      // (the scorch seen is the end, issue #172: Mira has her word on it when you pass, no step of it; a save at the old
+      //  'tell' goes back to 'scar', so the world's end runs as you arrive: src/save-migrate.js step 20)
       { id: 'scar', text: 'Look at what the garden uncovered', label: 'Under the flowers', flag: 'edena.scar.seen', at: 'veilLook' },
-      { id: 'tell', text: 'Tell Mira what you saw', label: 'Mira, the gardener', talk: 'mira', at: 'mira', via: 'Mira’s runnel' },
     ],
   },
   {
@@ -82,8 +85,8 @@ export const QUESTS = [
     id: 'edena.cutting', title: 'A Cutting for the Mud', world: 'edena',
     outro: 'One tea cutting from the rows that held, pressed into the new mud where the stream runs slow. It might take.',
     stages: [
+      // (planted is done, issue #172: Esk has her word on it when you pass)
       { id: 'plant', text: 'Plant Esk’s cutting in the mud below', label: 'The mud by the stream', flag: 'edena.cutting.planted', at: 'cutting' },
-      { id: 'tell', text: 'Tell Esk the cutting is in', label: 'Esk, on the tea terraces', talk: 'esk', at: 'esk' },
     ],
   },
   {
@@ -99,8 +102,8 @@ export const QUESTS = [
     id: 'edena.tree', title: 'The Tallest Tree', world: 'edena',
     outro: 'From the crown you can see the whole garden, and the long green scar the ship ploughed across it.',
     stages: [
+      // (the crown reached is done, Rue asked or not, issue #172: she asks what was there when you pass)
       { id: 'climb', text: 'Climb to the tallest tree’s crown', label: 'The tallest tree’s crown', flag: 'edena.lookout.read', at: 'lookout' },
-      { id: 'tell', text: 'Tell Rue what is on the crown', label: 'Rue, under the trees', talk: 'lio', at: 'lio' },
     ],
   },
 ];
@@ -113,11 +116,12 @@ export const PEOPLE = {
     lines: ['~solemn~ We tend the garden. The garden tends us.', "~playful~ Tea time. The clock is occasionally right by accident.", '~playful~ Mind the flowers. They mind you.'],
     talk: {
       entry: [
-        { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.mira.flood' } }, { not: { quest: Q, stage: 'tell' } }] }, node: 'flood' },
-        { if: { all: [{ quest: 'edena.clock', active: true }, { flag: 'edena.mira.heard' }, { not: { quest: Q, stage: 'tell' } }] }, node: 'clockNow' },
-        { if: { all: [{ quest: 'edena.clock', done: true }, { not: { flag: 'edena.mira.clock' } }, { not: { quest: Q, stage: 'tell' } }] }, node: 'clockDone' },
+        { if: { all: [{ quest: 'edena.terraces', failed: true }, { not: { flag: 'edena.mira.flood' } }, { not: MIRA_TOLD }] }, node: 'flood' },
+        { if: { all: [{ quest: 'edena.clock', active: true }, { flag: 'edena.mira.heard' }, { not: MIRA_TOLD }] }, node: 'clockNow' },
+        { if: { all: [{ quest: 'edena.clock', done: true }, { not: { flag: 'edena.mira.clock' } }, { not: MIRA_TOLD }] }, node: 'clockDone' },
+        // (the scorch seen, the quest done there: her word on it when you pass, once)
+        { if: MIRA_TOLD, node: 'tell' },
         { if: { quest: Q, done: true }, node: 'after' },
-        { if: { quest: Q, stage: 'tell' }, node: 'tell' },
         { if: { flag: 'edena.mira.heard' }, node: 'again' },
         { node: 'hello' },
       ],
@@ -188,7 +192,7 @@ export const PEOPLE = {
         where: { say: ["~sad~ They headed toward *the deep wood beyond the swamp of lights*. Talo tracked the Singer’s course from the tallest tree. I don’t know what they found."], do: { set: { 'clue.edena.pod': true } }, choices: [{ text: '~curious~ What does it want?', goto: 'want' }] },
         want: {
           say: ["~solemn~ I can’t tell you what the Singer wants. I wish I could.", "~solemn~ What I know is this: *we tend the garden. The garden tends us.* We can care for a place without understanding everything in it."],
-          do: [{ advance: [Q, 'tell'] }, { keepsake: KEEPSAKE }, { set: { 'clue.edena.pod': true } }],
+          do: [{ set: { 'edena.mira.told': true, 'clue.edena.pod': true } }, { keepsake: KEEPSAKE }],
           next: 'carry',
         },
         carry: { say: ['~happy~ Take that with you. It isn’t heavy. It fits in any ship.'], choices: [{ text: '~happy~ Thank you, Mira.', end: true }] },
@@ -286,8 +290,8 @@ export const PEOPLE = {
     lines: ['~happy~ Climb the trees. The view is worth it.', '~happy~ I’ve been to the second canopy. Twice!', '~surprised~ The crown floats. It FLOATS.'],
     talk: {
       entry: [
+        { if: { all: [{ flag: 'edena.lookout.read' }, { not: { flag: 'edena.rue.told' } }] }, node: 'tell' },
         { if: { quest: 'edena.tree', done: true }, node: 'after' },
-        { if: { flag: 'edena.lookout.read' }, node: 'tell' },
         { if: { quest: 'edena.tree', active: true }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -301,13 +305,13 @@ export const PEOPLE = {
         },
         what: { say: ["~curious~ I saw something square on the crown. Sol says Talo used to sit up there. I intend to verify both statements."], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }, { text: '~neutral~ Maybe later.', end: true }] },
         jump: { say: ["~surprised~ Your backpack can get you up! Climb to the second canopy, move beneath the crown, jump, then jump again in mid-air."], choices: [{ text: '~neutral~ I’ll go and look.', do: { start: 'edena.tree' }, goto: 'go' }] },
-        go: { say: ["~playful~ Tell me what’s there. If it’s treasure, I accept payment for directions. Small payment. A description would do."], choices: [{ text: '~playful~ Deal.', end: true }] },
+        go: { say: ["~playful~ If it’s treasure, I accept payment for directions. Small payment. A description would do."], choices: [{ text: '~playful~ Deal.', end: true }] },
         waiting: { say: ["~neutral~ *Tallest tree, north-west.* Climb to the second canopy, then *double-jump to the crown*."], choices: [{ text: '~neutral~ On my way.', end: true }] },
         tell: {
           say: ['~surprised~ You went up! You went UP! What was there?'],
           choices: [
-            { text: '~neutral~ A bench, and a note from Talo. He watched the sky from up there.', do: (ctx) => { const q = ctx.quests; if (!q.isStarted('edena.tree')) q.start('edena.tree', 'tell'); q.advance('edena.tree', 'tell'); }, goto: 'bench' },
-            { text: '~neutral~ The whole garden, and the furrow the ship cut across it.', do: (ctx) => { const q = ctx.quests; if (!q.isStarted('edena.tree')) q.start('edena.tree', 'tell'); q.advance('edena.tree', 'tell'); }, goto: 'view' },
+            { text: '~neutral~ A bench, and a note from Talo. He watched the sky from up there.', do: { set: { 'edena.rue.told': true } }, goto: 'bench' },
+            { text: '~neutral~ The whole garden, and the furrow the ship cut across it.', do: { set: { 'edena.rue.told': true } }, goto: 'view' },
           ],
         },
         bench: { say: ["~surprised~ He took a BENCH up there? I haven’t even managed myself! Right. More practice."], choices: [{ text: '~happy~ You will.', end: true }] },
@@ -370,7 +374,7 @@ export const PEOPLE = {
     talk: {
       entry: [
         // coming back (a later visit): the small job, and what she says once it is done
-        { if: { quest: 'edena.cutting', stage: 'tell' }, node: 'planted' },
+        { if: { all: [{ quest: 'edena.cutting', done: true }, { not: { flag: 'edena.esk.planted' } }] }, node: 'planted' },
         { if: { quest: 'edena.cutting', stage: 'plant' }, node: 'job' },
         { if: { quest: 'edena.cutting', done: true }, node: 'kept' },
         { if: { all: [{ quest: 'edena.terraces', failed: true }, { flag: 'edena.esk.back' }, { not: { quest: 'edena.cutting', started: true } }] }, node: 'back' },
@@ -473,7 +477,7 @@ export const PEOPLE = {
             "~neutral~ It’s in? Good. It might take. It might not. The mud doesn’t know what it is yet.",
             "~solemn~ It won’t be my grandmother’s hill. It’ll be this one.",
           ],
-          do: { advance: 'edena.cutting' },
+          do: { set: { 'edena.esk.planted': true } },
           choices: [{ text: '~neutral~ This one, then.', end: true }],
         },
         kept: {
@@ -522,7 +526,8 @@ export const THINGS = {
     talk: { nodes: {
       note: {
         say: ["~neutral~ A smooth bench faces east. Beside it, a folded note hangs below a carved mark: three dots over an arc.", "~solemn~ *The light came from the east. Odile says it won’t return. It turned once. It can turn again. If it does, I want to be looking. — T.*", "~sad~ From the crown you see the whole garden. Greener plants trace the furrow through the south meadow, where the ship tore the ground."],
-        do: { set: { 'edena.lookout.read': true } },
+        // (read before Rue asked, it is her errand done all the same: issue #172)
+        do: [{ set: { 'edena.lookout.read': true } }, (ctx) => { if (ctx.quests && !ctx.quests.isStarted('edena.tree')) ctx.quests.start('edena.tree'); }],
         choices: [{ text: '~curious~ (watch the east for a while)', end: true }],
       },
     } },

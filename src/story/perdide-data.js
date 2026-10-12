@@ -45,16 +45,16 @@ export const QUESTS = [
     outro: 'The patient are never eaten. The plants know you now.',
     stages: [
       { id: 'bed', text: 'Stand in the snapping bed on the north shore', label: 'The snapping bed', goto: 'bed', radius: 4 },
+      // (the plants tired of you is done, issue #172: Wendel gives you his saying when you pass)
       { id: 'wait', text: 'Stand still and let the plants tire of you', label: 'The snapping bed', flag: 'perdide.patience.kept', at: 'bed' },
-      { id: 'tell', text: 'Tell Wendel the plants let you be', label: 'Wendel, the egg-warden', talk: 'wendel', at: 'wendel' },
     ],
   },
   {
     id: 'perdide.fireflies', title: 'Follow the Fireflies', world: 'perdide',
     outro: 'The fireflies hatch from the glowing eggs. Some of them follow you now.',
     stages: [
+      // (the eggs found is done, issue #172: Ivo asks where they went when you pass, and gives you his jar)
       { id: 'follow', text: 'Follow Ivo’s fireflies across the water', label: 'The fireflies', flag: 'perdide.fireflies.home', at: 'fireflies' },
-      { id: 'ivo', text: 'Tell Ivo where the fireflies go', label: 'Ivo, on the cave island', talk: 'ivo', at: 'ivo' },
     ],
   },
 ];
@@ -72,7 +72,7 @@ export const LANDING = [
     id: 'wendel', name: 'Wendel', title: 'egg-warden', color: '#8a6fb8', voice: 0.85,
     talk: {
       entry: [
-        { if: { quest: 'perdide.patience', stage: 'tell' }, node: 'patient' },
+        { if: { all: [{ quest: 'perdide.patience', done: true }, { not: { flag: 'perdide.wendel.patient' } }] }, node: 'patient' },
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { flag: 'perdide.wendel.heard' }, node: 'again' },
         { node: 'hello' },
@@ -132,7 +132,7 @@ export const LANDING = [
         },
         patient: {
           say: ["~happy~ You waited, and the jaws opened peacefully. Look at them. All those teeth, no argument.", "~solemn~ *The patient are never eaten.* Around this particular bed, at least. Use judgment elsewhere."],
-          do: [{ advance: ['perdide.patience', 'tell'] },
+          do: [{ set: { 'perdide.wendel.patient': true } },
             { keepsake: { id: 'perdide.word', level: 'perdide', name: 'Wendel’s saying', kind: 'word', text: '“The patient are never eaten.” Wendel says it works on more than plants.' } }],
           choices: [{ text: '~solemn~ I’ll remember it.', end: true }, { text: '~playful~ Corm won’t be pleased.', goto: 'corm' }],
         },
@@ -194,8 +194,8 @@ export const LANDING = [
     id: 'ivo.perdide', name: 'Ivo', title: 'who watches the fireflies', color: '#d6ff9a', voice: 1.45,
     talk: {
       entry: [
+        { if: { all: [{ quest: 'perdide.fireflies', done: true }, { not: { flag: 'perdide.ivo.told' } }] }, node: 'back' },
         { if: { quest: 'perdide.fireflies', done: true }, node: 'after' },
-        { if: { quest: 'perdide.fireflies', stage: 'ivo' }, node: 'back' },
         { if: { quest: 'perdide.fireflies', active: true }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -215,7 +215,7 @@ export const LANDING = [
         go: {
           say: ["~happy~ Follow them now, while they’re crossing. *Whistle for the skiff* to cross the water and stay close. They wait if you fall behind."],
           do: { start: 'perdide.fireflies' },
-          choices: [{ text: '~neutral~ I’ll tell you where they go.', end: true }],
+          choices: [{ text: '~neutral~ I’ll follow them.', end: true }],
         },
         waiting: { say: ['~happy~ Go on! They’re waiting for you. *Over the water*, see?'], choices: [{ text: '~neutral~ Going.', end: true }] },
         back: {
@@ -228,7 +228,7 @@ export const LANDING = [
         guess: { say: ["~playful~ Where? The moon? A jar? Please say it’s better than a jar!"], choices: [{ text: '~neutral~ They hatch from the glowing eggs, on the little isle.', goto: 'eggs' }] },
         eggs: {
           say: ["~surprised~ The EGGS? Wendel has watched those for thirty years! Wait till I tell him!", "~curious~ Fireflies inside glowing eggs. It seems obvious once someone else has done the finding out.", "~happy~ Here, keep the fireflies I caught. A jar of them lights a skiff better than any lamp. I know where to find more now."],
-          do: [{ advance: ['perdide.fireflies', 'ivo'] }, { give: 'jar' }],
+          do: [{ set: { 'perdide.ivo.told': true } }, { give: 'jar' }],
           choices: [{ text: '~happy~ Thank you, Ivo.', end: true }],
         },
         after: { say: ["~playful~ Wendel sat in the mud when I told him. Says he meant to. Learning must be very slippery."], choices: [{ text: '~neutral~ Bye, Ivo.', end: true }] },
@@ -338,7 +338,7 @@ export const PEOPLE = {
     lines: ['~shout~ Careful! That’s Margit.', '~playful~ Who’s a hungry girl, then?', '~happy~ Fish heads. They love fish heads.'],
     talk: {
       entry: [
-        { if: { quest: 'perdide.patience', reached: 'tell' }, node: 'beaten' },
+        { if: { quest: 'perdide.patience', done: true }, node: 'beaten' },
         { if: { quest: 'perdide.patience', stage: 'wait' }, node: 'during' },
         { if: { flag: 'met.corm' }, node: 'again' },
         { node: 'hello' },

@@ -147,6 +147,9 @@ export function setupBuried(ctx) {
   // ---------------------------------------------------------------- the gauges
   const gaugeRead = (i) => !!game.flag(`buried.gauge.${i}`);
   const READING = [-0.38, -0.47, -0.38].map((k) => k * Math.PI);   // where each needle settles (ninety, ninety-one, ninety)
+  // all three read is Ket's errand done, asked or not (issue #172; a save that read them before she asked, too)
+  const readAll = () => { if (game.flag('buried.gauges.read') && !quests.isStarted('buried.gauges')) quests.start('buried.gauges'); };
+  readAll();
   const gst = B.gauges.map((g, i) => ({ k: gaugeRead(i) ? 1 : 0, twitch: 0, rest: g.needle.rotation.z, read: READING[i] }));
   B.gauges.forEach((g, i) => {
     if (gaugeRead(i)) g.needle.rotation.z = gst[i].read;
@@ -159,7 +162,7 @@ export function setupBuried(ctx) {
         sound.chime?.();
         const n = B.gauges.filter((_, j) => gaugeRead(j)).length;
         toast(n < 3 ? `The needle jumps: ${['ninety', 'ninety-one', 'ninety'][i]}. (${n} of 3 gauges read)` : `The needle jumps: ${['ninety', 'ninety-one', 'ninety'][i]}. All three gauges read.`);
-        if (n >= 3) game.set('buried.gauges.read', true);
+        if (n >= 3) { game.set('buried.gauges.read', true); readAll(); }
         return true;
       } });
   });

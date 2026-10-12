@@ -178,15 +178,15 @@ test('the main quest: three pools relit, the saucer answers, Hollin asks you to 
   player.riding = false;
   assert.equal(game.flag('clue.perdide2.edena'), true, 'the clue: their lifeboat, a garden of white pyramids');
   step(2);
-  assert.equal(quests.stage('perdide2.lamps'), 'tell');
-  // Hollin has walked down to the cave while you were away
+  // the boat seen is the end (issue #172): no step back to Hollin
+  assert.equal(quests.isDone('perdide2.lamps'), true);
+  assert.equal(game.flag('world.perdide2.done'), true);
+  // Hollin has walked down to the cave while you were away, and asks what was in the boat when you pass
+  at(W.places.hollinEnd.clone().add(V(60, 0, 0))); step(2);
   assert.ok(W.people.hollin.pos.distanceTo(W.places.hollinEnd) < 0.5, 'Hollin waits at the root cave');
-  assert.ok(quests.objective().position.distanceTo(W.places.hollinEnd) < 0.5);
   at(W.places.hollinEnd.clone().add(V(2, 0, 0)));
   talk(KEEPERS[0], ['Two worn seats', 'I’ll come back.']);
   step(2);
-  assert.equal(quests.isDone('perdide2.lamps'), true);
-  assert.equal(game.flag('world.perdide2.done'), true);
   const k = game.keepsakes().find((x) => x.id === 'perdide2.person');
   assert.ok(k && k.kind === 'person', 'the keepsake: a promise to Hollin');
   step(30 * 6);

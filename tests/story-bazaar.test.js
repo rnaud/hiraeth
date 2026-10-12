@@ -181,9 +181,9 @@ test('side quests: the oldest sign, and Ummu’s bowl under the crates', async (
   sign.onHit('shoot');
   assert.equal(game.flag('bazaar.oldsign.awake'), true);
   step(2);
-  assert.equal(quests.stage('bazaar.oldsign'), 'tell');
+  assert.equal(quests.isDone('bazaar.oldsign'), true, 'the sign woken is done (issue #172)');
   talk(PEOPLE.brush, ['The mark']);
-  assert.equal(quests.isDone('bazaar.oldsign'), true);
+  assert.equal(game.flag('bazaar.brush.read'), true, 'Brush asks what it said when you pass');
   // Ummu, through its screen; the crates need a push, not a shot
   at(P.ummu.clone().add(V(2, 0, 0)));
   assert.equal(bestInteractable(player)?.entry.id, 'ummu');

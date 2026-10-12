@@ -70,6 +70,8 @@
 // cutting in the Crown), and Fabre's word down to Maelle is no quest: step 17 (QUEST_STAGE_MOVES_137).
 // The giant's drain (issue #158): the keepers' pole and its lever went; a save holding the pole lets it go: step 18.
 // The lift valve's chest behind the makers' shrine's door (issue #156): open for a save that had it, step 19.
+// The last steps that sent you back to tell someone after the goal (issue #172, v1.54): each of those ten quests is done
+// at its goal, and the person has their word when you pass: step 20 (QUEST_STAGE_MOVES_172).
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -223,7 +225,34 @@ const STEPS = [
   // 19: the makers' shrine (issue #156, v1.51): the lift valve's chest stands behind a door a full tank opens. A save that
   // opened the chest (or has the double jump) finds the door open; one waiting at the chest goes back to the door.
   (flags) => migrateShrine156(flags),
+  // 20: the ten "Tell X" steps after the goal, gone (issue #172, v1.54): a save on one is done (the two main quests go
+  // back to their goal's step, its flag already set, so the world's end runs as you arrive); what was said is not said again
+  (flags) => migrateTells172(flags),
 ];
+/** The quest steps removed in v1.54 (issue #172): step 20. */
+export const QUEST_STAGE_MOVES_172 = {
+  'edena.garden': { tell: 'scar' },          // (Mira: the scorch seen is the end; back to it, so the end runs on arrival)
+  'edena.cutting': { tell: 'done' },         // (Esk: the cutting planted)
+  'edena.tree': { tell: 'done' },            // (Rue: the crown reached)
+  'bazaar.oldsign': { tell: 'done' },        // (Brush: the sign woken)
+  'buried.gauges': { tell: 'done' },         // (Ket: the three gauges read)
+  'incal.mirror': { tell: 'done' },          // (Perrine: the mirror washed and turned up)
+  'perdide.patience': { tell: 'done' },      // (Wendel: the plants tired of you)
+  'perdide.fireflies': { ivo: 'done' },      // (Ivo: the fireflies followed home)
+  'perdide2.lamps': { tell: 'answer' },      // (Hollin: the boat seen is the end; back to it, so the end runs on arrival)
+  'spheres.avenue': { tell: 'done' },        // (Cael: the avenue walked)
+};
+/** Who has said their word already, for a quest that was done under the old steps (the flag their talk sets now). */
+export const SAID_172 = {
+  'edena.garden': 'edena.mira.told', 'edena.cutting': 'edena.esk.planted', 'edena.tree': 'edena.rue.told',
+  'bazaar.oldsign': 'bazaar.brush.read', 'buried.gauges': 'buried.ket.told', 'incal.mirror': 'incal.perrine.turned',
+  'perdide.patience': 'perdide.wendel.patient', 'perdide.fireflies': 'perdide.ivo.told', 'spheres.avenue': 'spheres.cael.walked',
+};
+/** Step 20 (pure, in place). */
+export function migrateTells172(flags) {
+  for (const [id, said] of Object.entries(SAID_172)) if (flags[`quest.${id}`] === 'done') flags[said] = true;
+  return migrateQuestStages(flags, QUEST_STAGE_MOVES_172);
+}
 /** Step 19 (pure, in place). */
 export function migrateShrine156(flags) {
   if (flags['box.desert.lift'] || flags['item.doublejump']) flags['desert.door.open'] = true;

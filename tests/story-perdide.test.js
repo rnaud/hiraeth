@@ -130,10 +130,10 @@ test('side quest: feed nothing to the plants', () => {
   assert.equal(level.tame, true, 'the plants know you now');
   step(30);
   assert.ok(bed.every((p) => p.open > 0.6), 'the jaws lie open while you stand among them');
-  assert.equal(quests.stage('perdide.patience'), 'tell');
+  assert.equal(quests.isDone('perdide.patience'), true, 'the plants tired of you is done (issue #172)');
   talk(LANDING[0], []);
-  assert.equal(quests.isDone('perdide.patience'), true);
-  assert.ok(game.keepsakes().some((k) => k.id === 'perdide.word'), 'Wendel’s saying');
+  assert.ok(game.keepsakes().some((k) => k.id === 'perdide.word'), 'Wendel’s saying, when you pass him');
+  assert.equal(game.flag('perdide.wendel.patient'), true);
   talk(PEOPLE.corm, []);
 });
 
@@ -206,10 +206,10 @@ test('side quest: follow the fireflies to their nest, and tell Ivo', () => {
   assert.equal(game.flag('perdide.fireflies.home'), true);
   rt.dialogue.close();
   step(2);
-  assert.equal(quests.stage('perdide.fireflies'), 'ivo');
+  assert.equal(quests.isDone('perdide.fireflies'), true, 'the eggs found is done (issue #172)');
+  assert.ok(!quests.has('jar'));
   talk(LANDING[2], ['Home.']);
-  assert.equal(quests.isDone('perdide.fireflies'), true);
-  assert.ok(quests.has('jar'));
+  assert.ok(quests.has('jar'), 'Ivo’s jar, when you pass him');
   talk(LANDING[0], ['Tell me about the eggs.']);
   clearInteractables();
 });

@@ -267,7 +267,7 @@ export const BOOK = {
       'Wendel keeps the glowing eggs warm and the jaw-plants hungry. He says the patient are never eaten.',
       [f('perdide.glyph.heard'), 'Lorn calls the mark the Hush: three raindrops over a closed mouth, put on what the plants should leave alone.'],
       [done('perdide.fireflies'), 'He watched the eggs for thirty years without seeing one hatch. They hatch into fireflies.'],
-      [past('perdide.patience', 'tell'), 'You stood still among the jaw-plants until they opened. He gave you his saying.'],
+      [f('perdide.wendel.patient'), 'You stood still among the jaw-plants until they opened. He gave you his saying.'],
     ], ['At the landing, by the glowing eggs.']),
     P('saba', 'Saba', 'The Listener at the Great Crystal', [
       'Saba has sat at the foot of the Great Crystal for forty years and written down two hundred and twelve of its phrases. Rain makes it sing.',
@@ -276,7 +276,7 @@ export const BOOK = {
     ], ['At the foot of the Great Crystal, east through the ford.']),
     P('corm', 'Corm', 'Feeds the jaw-plants', [
       'Corm feeds the jaw-plants (Margit, Big Ollo and a small one with no name yet), and argues with Wendel about it.',
-      [past('perdide.patience', 'tell'), 'The plants opened peacefully for you. He is still feeding them.'],
+      [done('perdide.patience'), 'The plants opened peacefully for you. He is still feeding them.'],
     ], ['By the jaw-bed on the north shore.']),
     P('sedge', 'Sedge', 'Cuts reeds', [
       'Sedge cuts reeds, and the reeds cut back.',
@@ -289,7 +289,8 @@ export const BOOK = {
     ], ['In the crystal cave on the western island.']),
     P('ivo.perdide', 'Ivo', 'Watches the fireflies', [
       'Ivo watches the fireflies cross the water every dusk and wants to know where they go. Ysse brings Ivo over in her boat.',
-      [done('perdide.fireflies'), 'You followed them: they hatch from Wendel’s glowing eggs. Ivo gave you a jar of fireflies.'],
+      [done('perdide.fireflies'), 'You followed them: they hatch from Wendel’s glowing eggs.'],
+      [f('perdide.ivo.told'), 'Ivo gave you a jar of fireflies.'],
     ], ['On the cave island, watching the water.']),
     P('nettle', 'Nettle', 'Keeps a shop on a raft in the reeds', [
       'Nettle keeps a floating shop moored in the reeds near the landing. She sells cures for the bites, a heart, a little more room in your tank, and keeps her accounts as knots on the cords at her belt.',
@@ -336,7 +337,7 @@ export const BOOK = {
       'Mira tends the water clock and the garden: the gardeners keep it alive, and it feeds them.',
       [f('edena.mira.heard'), 'When she was young, Odile and Talo’s ship crashed in the south meadow. They stayed a spring, then left in the small saucer carried inside it; the garden covered the wreck.'],
       [f('clue.edena.struck'), 'Talo called the light that struck their ship the Singer. They left to find out why it struck them, toward the deep wood beyond the swamp of lights.'],
-      [done('edena.garden'), 'She gave you her words: we tend the garden; the garden tends us.'],
+      [f('edena.mira.told'), 'She gave you her words: we tend the garden; the garden tends us.'],
       [f('edena.mira.clock'), 'Her water clock rings on its own again, with the gear from Lorn’s domes.'],
     ], ['By the water clock near the landing.']),
     P('sol', 'Sol', 'Remembers Odile and Talo', [
@@ -613,7 +614,7 @@ export const BOOK = {
     P('brush', 'Brush', 'Repaints the signs', [
       'Brush has a thousand signs to repaint and gave up on finishing years ago.',
       [f('bazaar.oldsign.awake'), 'You woke the oldest sign under the second skybridge: the mark, and under it, WE HEARD YOU.'],
-      [done('bazaar.oldsign'), 'Brush paints those words small in the corner of every sign now.'],
+      [f('bazaar.brush.read'), 'Brush paints those words small in the corner of every sign now.'],
     ], ['Along the market’s avenue.']),
     P('oyo', 'Oyo', 'Sells lanterns', [
       'Every lantern on Oyo’s stall holds a little sun. The night the light passed they all went out, then relit in a colour he had never stocked.',
@@ -689,7 +690,7 @@ export const GIFTS = {
   ysolde: [[started('arzach2.letter'), 'She gave you a letter for her sister.']],
   ondine: [[past('arzach2.letter', 'lamp'), 'You gave her Ysolde’s letter.']],
   tiv: [[done('arzach2.cairn'), 'You brought back the three stones of the cairn.']],
-  'ivo.perdide': [[done('perdide.fireflies'), 'Ivo gave you a jar of fireflies.']],
+  'ivo.perdide': [[f('perdide.ivo.told'), 'Ivo gave you a jar of fireflies.']],
   'pim.perdide2': [[past('perdide2.latch', 'shut'), 'You brought back the dome latch.']],
   oro: [[past('edena.seed', 'water'), 'You brought back the pyramid seed.']],
   esk: [[started('edena.cutting'), 'She gave you a cutting from the rows that held.']],

@@ -52,10 +52,10 @@ export const QUESTS = [
   },
   {
     id: 'bazaar.oldsign', title: 'The Oldest Sign', world: 'bazaar',
-    outro: 'WE HEARD YOU, small, in the corner of sixty-one signs and counting.',
+    outro: 'The oldest sign lights up: the mark, and under it, WE HEARD YOU.',
+    // (the sign woken is done, issue #172: Brush asks what it said when you pass, and paints it in his corners)
     stages: [
       { id: 'wake', text: 'Wake the oldest sign under the skybridge', label: 'The oldest sign', flag: 'bazaar.oldsign.awake', at: 'oldSign' },
-      { id: 'tell', text: 'Tell Brush what the sign says', label: 'Brush, the sign painter', talk: 'brush' },
     ],
   },
   {
@@ -262,8 +262,8 @@ export const PEOPLE = {
     lines: ['~neutral~ Careful, wet paint.', '~tired~ A thousand signs. One brush.', '~playful~ Nobody looks up. Good for business; bad for art.'],
     talk: {
       entry: [
+        { if: { all: [{ flag: 'bazaar.oldsign.awake' }, { not: { flag: 'bazaar.brush.read' } }] }, node: 'read' },
         { if: { quest: 'bazaar.oldsign', done: true }, node: 'after' },
-        { if: { flag: 'bazaar.oldsign.awake' }, node: 'read' },
         { if: { quest: 'bazaar.oldsign', active: true }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -291,7 +291,7 @@ export const PEOPLE = {
           say: ['~whisper~ *We heard you*. Not buy. Not eat. *We heard you.*',
             "~solemn~ WE HEARD YOU. So the first thing offered here was an answer. I’d like to put that back into circulation.",
             "~happy~ I’ll paint it in the corners of my signs. Small enough that they let it stay. Large enough to find."],
-          do: { advance: ['bazaar.oldsign', 'tell'] },
+          do: { set: { 'bazaar.brush.read': true } },
           choices: [{ text: '~happy~ I’ll notice.', end: true }],
         },
         after: { say: ["~happy~ Bottom corner. WE HEARD YOU. Sixty-one signs so far. Quiet work adds up."], choices: [{ text: '~happy~ I see it.', end: true }] },

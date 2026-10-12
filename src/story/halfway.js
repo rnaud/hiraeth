@@ -22,7 +22,7 @@ import { quietOr } from '../hint-level.js';
 //                         burns too, the glass glows with it, and Ossa at the bottom sees the coin.
 //   a relic               on the awning's flat roof (the Smog lantern: levels/content.js)
 //
-// Flags: incal.mirror.washed, incal.mirror.notch (0..7), incal.mirror.turned, incal.mirror.done;
+// Flags: incal.mirror.washed, incal.mirror.notch (0..7), incal.mirror.turned, incal.perrine.turned (her word on it said);
 // quest incal.mirror (incal-data.js). Pure helpers (halfwayFrame) are used by the tests.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -131,12 +131,16 @@ export function setupHalfway(ctx, { terrace, ground, onGround }) {
   const st = { turnT: 0, from: head.rotation.y, splashed: false, jam: false, shown: true };
   const show = () => { face.material = !washed() ? grime : up() && game.flag('incal.lit') ? shining : glass; };
   show();
+  // washed and facing up is Perrine's errand done, asked or not (issue #172): it starts there and ends at once
+  const done = () => { if (washed() && game.flag('incal.mirror.turned') && !quests.isStarted('incal.mirror')) quests.start('incal.mirror'); };
+  done();
   const turn = (by) => {
     game.set('incal.mirror.notch', (((notch() + by) % 8) + 8) % 8);
     st.turnT = 0.45;
     sound?.critter?.('clack', 0.7);
     if (up()) {
       game.set('incal.mirror.turned', true);
+      done();
       toast(washed() ? 'The frame clicks into its notch. The mirror looks up the shaft, at the Lodestar.' : 'The frame clicks into its notch, facing up the shaft. The glass is still greased with smog.');
     } else if (!st.turned) { st.turned = true; toast('The frame grinds round one notch on its ring. Not facing up the shaft yet.'); }
     show();
@@ -153,6 +157,7 @@ export function setupHalfway(ctx, { terrace, ground, onGround }) {
       }
       if (!washed()) {
         game.set('incal.mirror.washed', true);
+        done();
         show();
         sound?.chime?.();
         toast(up() ? 'The smog runs off the glass. Clean, and already facing up the shaft.' : 'The smog runs off in grey streaks. Clean glass, showing a billboard: it faces the wrong way.');

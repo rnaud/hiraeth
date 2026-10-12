@@ -5,7 +5,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { DARK_POOLS, DOMES, SAUCER, FEN, HOLLIN_END, CAVE } from '../levels/perdide2.js';
 import { magicMaterial, magicPool, setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, ITEMS, LINES, keepsakeFor } from './perdide2-data.js';
+import { QUESTS, PEOPLE, THINGS, ITEMS, LINES } from './perdide2-data.js';
 import { setupPerdide2Moments } from './perdide2-moments.js';
 import { quietOr } from '../hint-level.js';
 
@@ -75,7 +75,7 @@ export function setupPerdide2(ctx) {
     h.pos.copy(hollinEnd);
     h.lines = ['~happy~ Look at them. Every pool, lit.', '~tired~ I walked all the way down. My knees will tell me about it tomorrow.'];
   };
-  if (quests.reached(Q, 'tell') || quests.isDone(Q)) moveHollin();
+  if (quests.isDone(Q)) moveHollin();
 
   // ---------------------------------------------------------------- the dark pools
   const darkMat = makeMaterial({ color: '#2a3248', flat: true });
@@ -449,8 +449,8 @@ export function setupPerdide2(ctx) {
   // ---------------------------------------------------------------- the end
   quests.def(Q).onDone = () => {
     game.set('world.perdide2.done', true);
-    game.addKeepsake(keepsakeFor(game.flag('perdide2.promise')));
-    toast('Every pool on the path is lit for you. Something of value? Someone, waiting for you to come back.');
+    // (the keepsake is Hollin's: given when you answer him, after this, at the root cave: src/story/perdide2-data.js)
+    toast('Every pool on the path is lit for you, and the old water-way lamps with them, out to your ship.');
     setTimeout(() => story.complete?.(), 1200);
   };
 

@@ -112,3 +112,37 @@ test('in the Moon Foundry, the City Floating in Space and the Underwater City no
   assert.ok(n >= 7, `${n} quests`);
   assert.deepEqual(bad, []);
 });
+
+// "Reaching the goal completes the quest" (the author's standing rules; the v1.53 game audit, issue #172): in every world
+// no quest ends on a talk, sending you back to tell someone what you did once it is done. A talk step is one with `talk`,
+// a marker on one of the world's people (`at`), or a step that says "tell". (A thing brought to someone, the drum back to
+// Teo, is no talk: handing it over is the goal.) The person still has their word when you pass, and no step.
+// The few quests that still end with a person, each for its reason:
+const ENDS_WITH_SOMEONE = {
+  'spheres.listen': 'Ume, who keeps the pole: one of the four gates the author kept (#143)',
+  'edena.terraces': 'the quest that fails: Esk’s word at the bottom terrace is the failing itself',
+  'arzach2.bell': 'the bell rung, listened to with Brother Calix: the world’s last scene, not a report',
+  'bazaar.signal': 'the broadcast heard with Madame Sel under her tower: the world’s last scene, not a report',
+  'lantern.ilen': 'Ilen on the lantern’s step: the meeting the whole game walks to',
+  'incal.wren': 'the cab is the goal: getting in and listening is its talk',
+  'incal.light': 'the Lodestar’s word to Nima: not among the v1.53 audit’s ten, left to the author',
+  'desert.ilo': 'what you saw below, to Ilo at the skull: not among the v1.53 audit’s ten, left to the author',
+};
+test('no quest ends on a talk: the goal reached is the quest done (issue #172)', async () => {
+  const bad = [], kept = [];
+  let n = 0;
+  for (const [f, m] of await storyData()) {
+    const who = new Set([...Object.keys(m.PEOPLE ?? {}), ...Object.keys(m.VISITORS ?? {})]);
+    for (const q of m.QUESTS ?? []) {
+      n++;
+      const s = q.stages.at(-1);
+      const talk = !s.bring && !!(s.talk || who.has(s.at) || /\btell\b/i.test(s.text));
+      if (!talk) continue;
+      if (ENDS_WITH_SOMEONE[q.id]) kept.push(q.id);
+      else bad.push(`${f} ${q.id}: ends on “${s.text}”`);
+    }
+  }
+  assert.ok(n > 40, `${n} quests`);
+  assert.deepEqual(bad, []);
+  assert.deepEqual(kept.sort(), Object.keys(ENDS_WITH_SOMEONE).sort(), 'every kept one still ends with its person (or comes off the list)');
+});

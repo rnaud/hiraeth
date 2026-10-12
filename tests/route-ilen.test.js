@@ -64,21 +64,21 @@ test('Sel hears who Ilen was only once he knows, and that she heard it once he h
 });
 
 test('Hollin: the sister line once he knows of Ilen (not after he found her), and Odile and Talo’s news even without the promise', () => {
-  const told = ctx({ 'calls.ilen.told': true, 'perdide2.promise': 'maybe' });
+  const told = ctx({ 'calls.ilen.told': true, 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true });
   const o = opening(hollin, told);
   assert.equal(o.r.nodeId, 'after');
   assert.ok(!o.texts.some((t) => t.startsWith('I found where')), 'no news before the Lantern');
   assert.match(pick(o.r, 'I had a sister'), /kept a light for her/);
   assert.ok(!opening(hollin, told).texts.some((t) => t.startsWith('I had a sister')), 'once');
-  assert.ok(!opening(hollin, ctx({ 'perdide2.promise': 'maybe' })).texts.some((t) => t.startsWith('I had a sister')), 'not before he knows');
+  assert.ok(!opening(hollin, ctx({ 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true })).texts.some((t) => t.startsWith('I had a sister')), 'not before he knows');
   // the Lantern: he declined the promise, and still can tell him where they went (once)
-  const met = ctx({ 'calls.ilen.told': true, 'finale.met': true, 'perdide2.promise': 'maybe' });
+  const met = ctx({ 'calls.ilen.told': true, 'finale.met': true, 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true });
   const m = opening(hollin, met);
   assert.ok(!m.texts.some((t) => t.startsWith('I had a sister')), 'found her: no sister line');
   assert.match(pick(m.r, 'I found where Odile and Talo went'), /They got there/);
   assert.ok(!opening(hollin, met).texts.some((t) => t.startsWith('I found where')), 'told once');
   // told already when the promise was kept (his `came`): not again in `after`
-  const kept = ctx({ 'finale.met': true, 'perdide2.promise': 'yes', 'perdide2.promise.kept': true, 'perdide2.hollin.found': true });
+  const kept = ctx({ 'finale.met': true, 'perdide2.promise': 'yes', 'perdide2.promise.kept': true, 'perdide2.hollin.found': true, 'perdide2.hollin.told': true });
   assert.ok(!opening(hollin, kept).texts.some((t) => t.startsWith('I found where')));
 });
 

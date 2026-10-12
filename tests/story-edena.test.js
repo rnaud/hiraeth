@@ -132,15 +132,18 @@ test('the main quest: the fallen ship, the log, the flowers drawn aside, the sam
   const r = talk(THINGS.scar, [0]);
   void r;
   step(2);
-  assert.equal(quests.stage(Q), 'tell');
-  talk(PEOPLE.mira, ['My ship has the same mark', 'Where did they go', 'What does it want']);
+  // the scorch seen is the end (issue #172): no step back to Mira
   assert.equal(quests.isDone(Q), true);
   assert.equal(game.flag('world.edena.done'), true);
   assert.ok(toasts.some((t) => /Something of value\? Words you can carry/.test(t)), 'the closing toast, as Lorn’s');
+  const k = game.keepsakes().find((x) => x.id === 'edena.word');
+  assert.ok(k && k.kind === 'word', 'the keepsake, given there');
+  // Mira has her word on it when you pass, once
+  assert.equal(new DialogueRunner(PEOPLE.mira, { game, quests }).nodeId, 'tell');
+  talk(PEOPLE.mira, ['My ship has the same mark', 'Where did they go', 'What does it want']);
   assert.equal(game.flag('clue.edena.struck'), true);
   assert.equal(game.flag('clue.edena.pod'), true);
-  const k = game.keepsakes().find((x) => x.id === 'edena.word');
-  assert.ok(k && k.kind === 'word');
+  assert.equal(new DialogueRunner(PEOPLE.mira, { game, quests }).nodeId, 'after');
   step(400, 1 / 10);
   assert.ok(rt.world.state.veil < 0.5, 'and then the flowers close over it again');
   await new Promise((res) => setTimeout(res, 1300));
@@ -176,14 +179,19 @@ test('side quests: the pyramid seed, planted and watered; the tallest tree’s c
   assert.equal(bestInteractable(player)?.entry.id, 'lookout');
   talk(THINGS.lookout, [0]);
   step(2);
-  assert.equal(quests.stage('edena.tree'), 'tell');
+  assert.equal(quests.isDone('edena.tree'), true, 'the crown reached is the quest done (issue #172)');
   talk(PEOPLE.lio, ['A bench']);
-  assert.equal(quests.isDone('edena.tree'), true);
-  // Talo's note read before Rue ever asked: telling her starts and ends the quest in that talk (it used to wait forever)
+  assert.equal(game.flag('edena.rue.told'), true, 'Rue asks what was up there when you pass');
+  assert.equal(new DialogueRunner(PEOPLE.lio, { game, quests }).nodeId, 'after');
+  // Talo's note read before Rue ever asked: her errand starts and ends up there
   game.set('quest.edena.tree', undefined);
+  game.set('edena.rue.told', undefined);
   assert.equal(quests.isStarted('edena.tree'), false);
-  talk(PEOPLE.lio, ['The whole garden']);
+  talk(THINGS.lookout, [0]);
+  step(2);
   assert.equal(quests.isDone('edena.tree'), true);
+  talk(PEOPLE.lio, ['The whole garden']);
+  assert.equal(game.flag('edena.rue.told'), true);
   // Mira hears her mended clock once, and never says it rang while it had no gear
   game.set('quest.edena.clock', 'done');
   const r = new DialogueRunner(PEOPLE.mira, { game, quests });

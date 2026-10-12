@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 19);
+  assert.equal(MIGRATED(), 20);
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -350,4 +350,27 @@ test('the makers\' shrine (issue #156, step 19): a save that had the lift valve 
   assert.equal(at['quest.desert.power'], 'door');
   assert.equal(at['desert.door.open'], undefined, 'shut: the full tank opens it');
   assert.deepEqual(migrateShrine156({ 'quest.desert.power': 'fill' }), { 'quest.desert.power': 'fill' }, 'an earlier save follows the new order');
+});
+
+test('the ten “Tell X” steps after the goal (issue #172, step 20): a save on one is done, the main quests back at their goal; who spoke is not asked again', async () => {
+  const { migrateTells172, QUEST_STAGE_MOVES_172, SAID_172 } = await import('../src/save-migrate.js');
+  const { QUESTS: EDENA } = await import('../src/story/edena-data.js');
+  const { QUESTS: PERDIDE2 } = await import('../src/story/perdide2-data.js');
+  const on = migrateTells172({ 'quest.edena.tree': 'tell', 'quest.perdide.fireflies': 'ivo', 'quest.edena.garden': 'tell', 'quest.perdide2.lamps': 'tell', 'edena.scar.seen': true });
+  assert.equal(on['quest.edena.tree'], 'done');
+  assert.equal(on['quest.perdide.fireflies'], 'done');
+  assert.equal(on['edena.rue.told'], undefined, 'Rue still asks what was up there');
+  assert.equal(on['perdide.ivo.told'], undefined, 'and Ivo still has his jar for you');
+  // (the main quests go back to the step whose flag is set, so their end runs as the world loads)
+  assert.equal(on['quest.edena.garden'], 'scar');
+  assert.equal(EDENA.find((q) => q.id === 'edena.garden').stages.at(-1).id, 'scar');
+  assert.equal(on['quest.perdide2.lamps'], 'answer');
+  assert.equal(PERDIDE2.find((q) => q.id === 'perdide2.lamps').stages.at(-1).id, 'answer');
+  // done under the old steps: the word was said
+  const done = migrateTells172({ 'quest.buried.gauges': 'done', 'quest.spheres.avenue': 'done', 'quest.incal.mirror': 'turn' });
+  assert.equal(done['buried.ket.told'], true);
+  assert.equal(done['spheres.cael.walked'], true);
+  assert.equal(done['incal.perrine.turned'], undefined, 'not done yet: nothing said');
+  assert.equal(done['quest.incal.mirror'], 'turn');
+  for (const id of Object.keys(QUEST_STAGE_MOVES_172)) if (id !== 'perdide2.lamps') assert.ok(SAID_172[id], id);
 });

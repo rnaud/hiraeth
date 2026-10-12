@@ -811,6 +811,19 @@ idea." "All quests should be solvable by just going to the end if you can."
   (`QUEST_STAGE_MOVES_137`) moves a save on a removed step on, the thing used. `tests/quest-steps.test.js` (no quest
   in these worlds needs two talks in a row or ends on one), `tests/goal-reached-early.test.js` (each goal reached
   first completes its errand; the route has no run of more than two talks).
+- **No "Tell X" after the goal** (#172, v1.54): the last ten quests that sent you back to tell someone end at their
+  goal. Viridel's main quest at the scorch under the flowers (its keepsake, the gardeners' words, given there; Mira's
+  reveal and the way on, `clue.edena.pod`, when you pass her), Esk's cutting planted, Rue's crown reached; Brush's
+  sign woken; Ket's three gauges read; Perrine's mirror up; Wendel's bed and Ivo's fireflies (his saying and Ivo's jar
+  wait with them); Lorn II's main quest at the boat that answered (the water-way lit there; Hollin's promise and his
+  keepsake wait at the root cave); Cael's avenue walked. Reached before anyone asked (the crown, the gauges, the
+  mirror), the errand starts and ends there. Each person's word is a once-only entry (`edena.mira.told`,
+  `edena.esk.planted`, `edena.rue.told`, `bazaar.brush.read`, `buried.ket.told`, `incal.perrine.turned`,
+  `perdide.wendel.patient`, `perdide.ivo.told`, `perdide2.hollin.told`, `spheres.cael.walked`). `src/save-migrate.js`
+  step 20 (`QUEST_STAGE_MOVES_172`): a save on a removed step is done, the two main quests back on their goal's step
+  so the world's end runs as it loads. `tests/quest-steps.test.js`: no quest in any world ends on a talk, but for a
+  short list kept with their reasons (Ume's gate, the terraces' failing, the worlds' last scenes with Calix, Sel and
+  Ilen, the cab, and Nima's and Ilo's, left to the author).
 
 ## Places to stop on the way (the second story pass, October 2026)
 
@@ -826,8 +839,8 @@ own kits and systems, a few draws each, and colliders baked from what is drawn (
   the top turned it to a billboard. Quest `incal.mirror` ("The Halfway Mirror"): wash it (shoot,
   `incal.mirror.washed`), push the frame from the side a notch at a time (eight notches,
   `incal.mirror.notch`, from 3) until it faces up the shaft (`incal.mirror.turned`; shoved straight
-  at the glass it only rocks), tell Perrine (`incal.mirror.done`). Done in another order, she
-  notices and it ends there. With the Lodestar lit, the glass glows, and Ossa at the bottom has seen
+  at the glass it only rocks): washed and facing up is the quest done, asked or not (issue #172), and
+  Perrine has her word on it when you pass (`incal.perrine.turned`). With the Lodestar lit, the glass glows, and Ossa at the bottom has seen
   the coin of light come back on Behla's wall. The Smog lantern relic (the world's third) sits over
   the awning's flat roof now (`content.js`, `AWNING_TOP`). Far above or below (160 m), the stall is
   not drawn. `tests/story-incal.test.js` plays it.

@@ -16,9 +16,10 @@
 // blinks back. Inside it are two couches, two names (Odile and Talo), a
 // drawing of the garden they came from (Viridel: white pyramids under
 // umbrella trees, a green furrow across the meadow), and the glyph scorched
-// across its flank: the same light struck it. Tell Hollin, the old
-// lamp-keeper, and he asks you to come back one day, so that once the lamps
-// were lit for someone who came.
+// across its flank: the same light struck it. That is the quest's end (issue
+// #172); Hollin, the old lamp-keeper, waits down in the root cave, and if you
+// pass him he asks what was in the boat, and asks you to come back one day, so
+// that once the lamps were lit for someone who came.
 //
 // The glyph here is "the Welcome": three lamps over a hull (three dots over
 // an arc that bows up, like every other world's). They paint it beside every
@@ -42,7 +43,7 @@ export const promiseDue = (ctx) => ctx.game.flag('perdide2.promise') === 'yes' &
   && (worldsDone(ctx.game) > (ctx.game.flag('perdide2.promise.worlds') ?? 99) || !!ctx.game.flag('ending.done'));
 
 export const ITEMS = { latch: 'Pim’s dome latch', lamp: 'a moss lamp' };
-/** The keepsake the main quest's end gives (src/story/perdide2.js): its words follow what you told Hollin (flag perdide2.promise). */
+/** The keepsake Hollin gives when you answer him (after the main quest's end): its words follow what you told him (flag perdide2.promise). */
 export const keepsakeFor = (promise) => ({ id: 'perdide2.person', level: 'perdide2', name: 'Hollin’s lamps', kind: 'person',
   text: promise === 'yes' ? 'A promise to Hollin, keeper of the lamps: you will come back to the deep wood one day, so that once the lamps were lit for someone who came.'
     : 'Hollin, keeper of the lamps, asked you to come back one day. You didn’t promise. The pools will be lit either way.' });
@@ -51,14 +52,16 @@ export const keepsakeFor = (promise) => ({ id: 'perdide2.person', level: 'perdid
 export const QUESTS = [
   {
     id: Q, title: 'The Lamps Are Kept', world: 'perdide2', main: true,
-    outro: 'Hollin has welcomed a traveller at last. He hopes you will visit again; the pools will stay lit either way.',
+    outro: 'Every pool burns again, and the boat that answered kept two names: Odile and Talo.',
     stages: [
       { id: 'hollin', text: 'Hear the old lamp-keeper out on the island', label: 'Hollin, the lamp-keeper', flag: 'perdide2.hollin.met', at: 'hollin' },
       // (for the level design audit: the pools are done at the last one, `ends`; Hollin is met at the root cave, where he has
       //  walked down to, `stands`; and he sends you home by the water-way, `home`)
       { id: 'pools', text: 'Relight the three dark pools with your fluid', label: 'A dark pool', when: (q) => (q.game.flag('perdide2.pools.lit') ?? 0) >= 3, at: 'darkPool', ends: 'lastPool' },
-      { id: 'answer', text: 'Take the skiff to what answered', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer' },
-      { id: 'tell', text: 'Tell Hollin, down in the root cave', label: 'Hollin, at the root cave', flag: 'perdide2.hollin.told', at: 'hollin', stands: 'hollinEnd', home: 'the water-way' },
+      // (the boat seen is the end, issue #172: Hollin, walked down to the root cave, asks what was in it when you pass, and
+      //  his promise and keepsake wait with him; a save at the old 'tell' goes back to 'answer', so the end runs as you
+      //  arrive: src/save-migrate.js step 20. The water-way home is lit when it ends: src/story/perdide2.js)
+      { id: 'answer', text: 'Take the skiff to what answered', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer', home: 'the water-way' },
     ],
   },
   {
@@ -94,8 +97,8 @@ export const KEEPERS = [
     talk: {
       entry: [
         { if: [{ quest: Q, done: true }, promiseDue], node: 'came' },
+        { if: { all: [{ quest: Q, done: true }, { not: { flag: 'perdide2.hollin.told' } }] }, node: 'tell' },
         { if: { quest: Q, done: true }, node: 'after' },
-        { if: { quest: Q, stage: 'tell' }, node: 'tell' },
         { if: { quest: Q, stage: 'answer' }, node: 'answer' },
         { if: { quest: Q, stage: 'pools' }, node: 'again' },
         { node: 'hello' },
@@ -149,8 +152,8 @@ export const KEEPERS = [
         promise: {
           say: ["~solemn~ Would you visit again someday? You wouldn’t need an errand.", "~sad~ I’d like to see someone arrive by a path they already know. Just once. Think before you say it. I’ll watch the path if you do."],
           choices: [
-            { text: '~solemn~ I’ll come back. I promise.', do: [{ set: { 'perdide2.promise': 'yes', 'perdide2.hollin.told': true } }, (ctx) => ctx.game.set('perdide2.promise.worlds', worldsDone(ctx.game))], goto: 'thanks' },
-            { text: '~sad~ I can’t promise that.', do: [{ set: { 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true } }], goto: 'maybe' },
+            { text: '~solemn~ I’ll come back. I promise.', do: [{ set: { 'perdide2.promise': 'yes', 'perdide2.hollin.told': true } }, (ctx) => ctx.game.set('perdide2.promise.worlds', worldsDone(ctx.game)), { keepsake: keepsakeFor('yes') }], goto: 'thanks' },
+            { text: '~sad~ I can’t promise that.', do: [{ set: { 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true } }, { keepsake: keepsakeFor('maybe') }], goto: 'maybe' },
           ],
         },
         thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ I’ll keep the pool by the landing for you, then. Promises keep a long time out here, if someone trims the wick.", "~happy~ Go home by water tonight. I’ve lit *the water-way*, the old lamps for boats: out through the gate by the lagoon, round the deep water, and on south over the open water to your ship. Your skiff knows it."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },

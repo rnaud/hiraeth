@@ -68,8 +68,8 @@ export const QUESTS = [
     outro: 'The halfway mirror faces up the shaft again. When the Lodestar shines, a coin of its light goes down to the bottom terraces.',
     stages: [
       { id: 'wash', text: 'Wash the smog off the halfway mirror', label: 'The halfway mirror', flag: 'incal.mirror.washed', at: 'mirror' },
+      // (washed and turned is done, Perrine asked or not, issue #172: she has her word on it when you pass)
       { id: 'turn', text: 'Turn the mirror to face the Lodestar', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
-      { id: 'tell', text: 'Tell Perrine the mirror faces up', label: 'Perrine, at the halfway stall', talk: 'perrine', at: 'perrine' },
     ],
   },
   {
@@ -265,7 +265,7 @@ export const PEOPLE = {
         after: {
           say: ["~happy~ The light reached us! I could open my eyes and look straight at it.",
             "~solemn~ The smog hasn’t gone. But now the people above know we’re here.",
-            { if: { flag: 'incal.mirror.done' }, text: "~surprised~ And a coin of light has come back on Behla’s wall, from halfway up. Somebody in the middle remembered us." }],
+            { if: { quest: 'incal.mirror', done: true }, text: "~surprised~ And a coin of light has come back on Behla’s wall, from halfway up. Somebody in the middle remembered us." }],
           choices: [{ text: '~happy~ Keep looking, Ossa.', end: true }],
         },
       },
@@ -333,10 +333,11 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { all: [{ quest: Q, stage: 'look' }, { has: 'splinter' }] }, node: 'carrying' },
-        { if: { quest: 'incal.mirror', stage: 'tell' }, node: 'turned' },
+        // (the mirror up, the quest done there: her word when you pass, once; `already` if she never asked)
+        { if: { all: [{ quest: 'incal.mirror', done: true }, { not: { flag: 'incal.perrine.turned' } }, { not: { flag: 'met.perrine' } }] }, node: 'already' },
+        { if: { all: [{ quest: 'incal.mirror', done: true }, { not: { flag: 'incal.perrine.turned' } }] }, node: 'turned' },
         { if: { quest: 'incal.mirror', done: true }, node: 'after' },
         { if: { quest: 'incal.mirror', active: true }, node: 'busy' },
-        { if: { all: [{ flag: 'incal.mirror.washed' }, { flag: 'incal.mirror.turned' }] }, node: 'already' },
         { if: { flag: 'met.perrine' }, node: 'again' },
         { node: 'hello' },
       ],
@@ -377,14 +378,14 @@ export const PEOPLE = {
         already: {
           say: ["~surprised~ Somebody’s washed my mother’s mirror and turned it up again. Was that you? Without even stopping for tea?",
             "~happy~ Then this one’s on the stall."],
-          do: [{ set: { 'met.perrine': true } }, { start: 'incal.mirror' }, { stage: ['incal.mirror', 'tell'] }],
+          do: { set: { 'met.perrine': true } },
           next: 'turned',
         },
         turned: {
           say: [{ if: { flag: 'incal.lit' }, text: "~surprised~ Look at that. A coin of the Lodestar, going down past every level. Somebody at the bottom has it on their wall right now." },
             { if: { not: { flag: 'incal.lit' } }, text: "~happy~ It faces up again. Now it only needs something up there worth catching. The light’s gone dim, they say." },
             "~solemn~ My mother would have stood here all night watching it. I’ll stand here for both of us. I’m here anyway."],
-          do: [{ advance: 'incal.mirror' }, { set: { 'incal.mirror.done': true } }],
+          do: { set: { 'incal.perrine.turned': true } },
           choices: [{ text: '~happy~ I’ll take that tea now.', goto: 'tea' }, { text: '~neutral~ Goodbye, Perrine.', end: true }],
         },
         tea: { say: ["~happy~ (Perrine pours. It is hot at the top and warm at the bottom, as promised.)", "~playful~ No charge. Halfway prices: half of nothing."], choices: [{ text: '~happy~ Thank you.', end: true }] },

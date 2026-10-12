@@ -179,8 +179,10 @@ test('side quests: the lake’s reflection carried to the pole; the avenue walke
   walk(3.6, z0 + 2, z1 - 4);
   assert.equal(game.flag('spheres.avenue.walked'), true);
   assert.ok(rt.world.bells.every((b) => b.open), 'every bell along the avenue is open');
+  step(2);
+  assert.equal(quests.isDone('spheres.avenue'), true, 'walked is done (issue #172): no step back to Cael');
   talk(PEOPLE.cael, ['It was long']);
-  assert.equal(quests.isDone('spheres.avenue'), true);
+  assert.equal(game.flag('spheres.cael.walked'), true, 'his word on it when you pass');
   clearInteractables(); clearTargets();
 });
 

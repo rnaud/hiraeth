@@ -4,7 +4,7 @@ import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
-import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
+import { QUESTS, PEOPLE, THINGS, ITEMS, KEEPSAKE } from './edena-data.js';
 import { setupTerraces } from './terraces.js';
 import { setupWaterClock } from './water-clock.js';
 import { setupEdenaMoments } from './edena-moments.js';
@@ -86,6 +86,8 @@ export function setupEdena(ctx) {
   const open = () => !!game.flag('edena.veil.open');
   thing(THINGS.scar, veilLook, { range: 6, prompt: 'look at the scorch under the flowers', enabled: open, dy: 6 });
   thing(THINGS.lookout, T.lookout, { range: 3.2, prompt: 'read the note on the post' });
+  // (Talo's note read is Rue's errand done, asked or not, issue #172: a save that read it before she asked, too)
+  if (game.flag('edena.lookout.read') && !quests.isStarted('edena.tree')) quests.start('edena.tree');
 
   // ---------------------------------------------------------------- the veil over the scorch
   const petals = new Puffs(scene, { color: '#f2a7b5', max: 70, glow: 0.5, detail: 0 });
@@ -168,7 +170,9 @@ export function setupEdena(ctx) {
   quests.def(Q).onDone = () => {
     game.set('world.edena.done', true);
     st.veilTo = 0.18;   // the flowers close over it again, mostly
-    // the closing toast, as Lorn's and Lorn II's (the keepsake: Mira's words)
+    // the closing toast, as Lorn's and Lorn II's, and the keepsake (the gardeners' words): given here, at the scorch, where
+    // the quest ends (issue #172); Mira's word on what you saw waits for you to pass her
+    game.addKeepsake?.(KEEPSAKE);
     toast('The flowers close over the ship again, mostly. Something of value? Words you can carry: we tend the garden, and the garden tends us.');
     setTimeout(() => story.complete?.(), 1200);
   };

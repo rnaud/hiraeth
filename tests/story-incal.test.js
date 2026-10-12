@@ -363,14 +363,13 @@ test('the middle levels: Perrine’s halfway stall, its mirror washed and turned
   assert.equal(H.notch(), 0, `it came round to face up the shaft in ${n} pushes`);
   step(30);
   assert.equal(game.flag('incal.mirror.turned'), true);
-  assert.equal(quests.stage(MQ), 'tell');
+  assert.equal(quests.isDone(MQ), true, 'washed and turned is done (issue #172)');
   // facing in, toward the shaft's middle (and tilted up)
   const fwd = V(0, 0, 1).applyQuaternion(H.face.getWorldQuaternion(new THREE.Quaternion()));
   const inward = V(-H.frame.position.x, 0, -H.frame.position.z).normalize();
   assert.ok(fwd.y > 0.3 && V(fwd.x, 0, fwd.z).normalize().dot(inward) > 0.9, `the glass looks up and in, at the Lodestar (${fwd.toArray().map((v) => v.toFixed(2))})`);
   talk(PEOPLE.perrine, ['Goodbye, Perrine.']);
-  assert.equal(quests.isDone(MQ), true);
-  assert.equal(game.flag('incal.mirror.done'), true);
+  assert.equal(game.flag('incal.perrine.turned'), true, 'Perrine has her word on it when you pass');
   // with the Lodestar lit, Ossa sees the coin of light at the bottom
   game.set('incal.lit', true);
   const r2 = new DialogueRunner(PEOPLE.ossa, { game, quests });

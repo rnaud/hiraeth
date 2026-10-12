@@ -56,10 +56,10 @@ export const QUESTS = [
   },
   {
     id: 'buried.gauges', title: 'A Year’s Breath', world: 'buried',
-    outro: 'Ninety, ninety-one, ninety. Ket says it is enough.',
+    outro: 'Ninety, ninety-one, ninety: a full year of pressure, waiting to move.',
+    // (the three read is done, Ket asked or not, issue #172: she hears the numbers when you pass)
     stages: [
       { id: 'read', text: 'Splash the three gauges on the canyon floor', label: 'A pressure gauge', flag: 'buried.gauges.read', at: 'gauge' },
-      { id: 'tell', text: 'Tell Ket what the gauges say', label: 'Ket, by the ledge', talk: 'ossa', at: 'ossa' },
     ],
   },
   {
@@ -273,8 +273,8 @@ export const PEOPLE = {
     lines: ['~whisper~ Listen. The walls are still warm.', "~neutral~ Two oval doors. The open-roofed room is beyond them.", '~whisper~ Shh.'],
     talk: {
       entry: [
+        { if: { all: [{ flag: 'buried.gauges.read' }, { not: { flag: 'buried.ket.told' } }] }, node: 'tell' },
         { if: { quest: 'buried.gauges', done: true }, node: 'after' },
-        { if: { flag: 'buried.gauges.read' }, node: 'tell' },
         { if: { quest: 'buried.gauges', active: true }, node: 'waiting' },
         { node: 'hello' },
       ],
@@ -300,13 +300,13 @@ export const PEOPLE = {
             { if: { flag: 'buried.gauge.0' }, text: '~neutral~ The one on the ramp reads ninety. Good.' },
             { if: { flag: 'buried.gauge.1' }, text: '~happy~ The one past the ledge, ninety-one. Better than good.' },
             { if: { flag: 'buried.gauge.2' }, text: '~neutral~ The one between the doors, ninety.' },
-            { if: { not: { flag: 'buried.gauges.read' } }, text: "~neutral~ *Shoot all three gauges*: ramp, past my ledge, between the oval doors. Bring me the readings." },
+            { if: { not: { flag: 'buried.gauges.read' } }, text: "~neutral~ *Shoot all three gauges*: ramp, past my ledge, between the oval doors." },
           ],
           choices: [{ text: '~neutral~ On it.', end: true }],
         },
         tell: {
           say: ["~happy~ Ninety, ninety-one, ninety. Good. A full year of pressure waiting to move.", "~solemn~ That mark below the needles? {glyph} They call it the Maker’s Thumb. Someone signed this work. I like to think they expected it to last."],
-          do: [(ctx) => { const q = ctx.quests; if (!q.isStarted('buried.gauges')) q.start('buried.gauges', 'tell'); q.advance('buried.gauges', 'tell'); }, { set: { 'clue.buried.mark': true } }],
+          do: { set: { 'buried.ket.told': true, 'clue.buried.mark': true } },
           next: 'tell2',
         },
         tell2: { say: ["~happy~ Still running after all this time. Thank you for checking. Now go see the wheel turn."], choices: [{ text: '~happy~ Thank you, Ket.', end: true }] },

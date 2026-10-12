@@ -186,10 +186,10 @@ test('coming back, Esk has a small job: one tea cutting pressed into the mud, an
   assert.ok(Math.abs(T.cuttingAt.y - W.level.ground.heightAt(T.cuttingAt.x, T.cuttingAt.z)) < 0.01, 'on the mud');
   at(T.cuttingAt); spot.use(); step(2);
   assert.equal(T.cutting.visible, true);
-  assert.equal(quests.stage(C), 'tell');
+  assert.equal(quests.isDone(C), true, 'planted is done (issue #172): no step back to Esk');
   assert.ok(!spot.enabled(), 'once');
-  assert.match(heard(PEOPLE.esk, ['This one, then.']), /It’ll be this one/);
-  assert.equal(quests.isDone(C), true);
+  assert.match(heard(PEOPLE.esk, ['This one, then.']), /It’ll be this one/, 'her word on it when you pass');
+  assert.equal(game.flag('edena.esk.planted'), true);
   assert.equal(quests.isFailed(Q), true, 'the terraces stay what happened');
   // the visit after: the cutting is still there, and she checks it every morning
   W = visit();

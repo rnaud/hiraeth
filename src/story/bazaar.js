@@ -210,7 +210,8 @@ export function setupBazaar(ctx) {
     if (tuned()) people.ferro.lines = onAir() ? ['~happy~ Clear as a bell!', '~happy~ Good antenna. Good, good antenna.'] : ['~surprised~ Listen to it hum!', '~neutral~ The console’s right there.'];
     if (game.flag('bazaar.kip.gave')) people.kip.lines = onAir() ? ['~surprised~ Everybody stopped! Even the fish man!', '~shout~ Messages! Real ones!'] : ['~curious~ Did you play it yet?', '~curious~ Is it still singing?'];
     if (onAir()) people.sel.lines = ['~happy~ It’s talking again, love.', '~solemn~ Listen. No. Listen properly.', '~solemn~ Thirty years on the way.'];
-    if (game.flag('bazaar.oldsign.awake')) people.brush.lines = ['~happy~ WE HEARD YOU. Sixty-one signs so far.', '~playful~ Look in the corners.'];
+    if (game.flag('bazaar.brush.read')) people.brush.lines = ['~happy~ WE HEARD YOU. Sixty-one signs so far.', '~playful~ Look in the corners.'];
+    else if (game.flag('bazaar.oldsign.awake')) people.brush.lines = ['~surprised~ The old slate lit up! Under the skybridge!', '~curious~ What did it say? Exact words.'];
   };
   say();
   game.on('flag', ({ name }) => { if (name.startsWith('bazaar.')) say(); });
