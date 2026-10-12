@@ -576,7 +576,7 @@ What v1.20 left (`docs/audits/level-design-v1.23.md`): the places far from every
   as the lip. The plaza and avenue paving sit 2 cm proud of the ground. The trunk's collider
   is the bark itself (it was a cone up to 0.7 m outside it). `tests/desert-story.test.js`
   raycasts the drawn surfaces against the ground.
-- **The dry cave**: the giant's chest has no water until the rib is off the channel (levered, or pushed with a full tank):
+- **The dry cave**: the giant's chest has no water until the drain is cleared (by hand since issue #158, or pushed with a full tank):
   damp stains in the basin and the trough, pale tide lines where the pool stood. Then the
   stream runs out of the crack down the channel (`cave.setWater(flow, level)` reveals it
   segment by segment with a draw range), and the pool fills the basin from its lowest point,
@@ -659,6 +659,15 @@ local place (`giant.door` and its portal, the passage up's heading, the breath o
 leads down and you come back up facing the gate. `tests/desert-playtest.test.js`, `tests/skull-entrance.test.js`
 (the way in measured over the sand), `tests/skull-cave-reference.test.js` and `tests/desert-story.test.js` (the walk
 out of the back gate, straight to the mouth).
+
+## The debris in the drain (issue #157)
+
+"The bone that stops the water flow looks a bit like a penis." The great thigh bone lying across the trough, its
+knuckled ends on the walls, is gone: what clogs the drain is a heap of debris jammed between the trough's walls
+(`cave.bone`, the hooks' old name): a broken piece of rib, a flat curved band snapped at both ends with jagged shards
+round them, lying across a packed mound of sand, rocks wedged round it (three meshes, `M.debrisRock` for the rocks).
+Cleared, it is dragged off the trough and dumped beside it, a little lower, instead of rolling end over end.
+`tests/desert-playtest.test.js` checks it is a heap about as wide as it is long, on the channel.
 
 ## Qanat's burning tree and the giant ribcage, after the picked references (v1.39)
 Rebuilt after `references/levels/The Desert/places/qanat-tree/sheet-1.jpg` and `ribcage/sheet-1.jpg` (prompts in

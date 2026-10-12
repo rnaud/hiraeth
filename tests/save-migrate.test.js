@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 17);
+  assert.equal(MIGRATED(), 18);
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -331,4 +331,13 @@ test('the new worlds’ carries from one person to another (issue #137, step 17)
     assert.ok(to === 'done' || st.includes(to), `${id} has ${to}`);
   }
   assert.equal(defs['underwater.lamps'], undefined, 'Fabre’s word to Maelle is no quest');
+});
+
+test('the giant\'s drain (issue #158, step 18): the keepers\' pole is put down, the lever\'s heaves forgotten', async () => {
+  const { migrateDrain158 } = await import('../src/save-migrate.js');
+  const f = migrateDrain158({ 'item.pole': 1, 'desert.lever': 2, 'desert.pole.tried': true, 'desert.cave.seen': true });
+  assert.equal(f['item.pole'], undefined);
+  assert.equal(f['desert.lever'], undefined);
+  assert.equal(f['desert.pole.tried'], undefined);
+  assert.equal(f['desert.cave.seen'], true, 'the rest kept');
 });

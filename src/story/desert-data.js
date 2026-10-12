@@ -2,9 +2,8 @@
 //
 // The old city's great tree burns on living water: once a year the water
 // rises from beneath the giants, the tree drinks, and its fire burns cool and
-// many-coloured for the drinking. This year the water has not risen (a rib
-// of the giant whose heart lies under the city has fallen across the
-// channel), and the night the singing light went over, the tree's fire went
+// many-coloured for the drinking. This year the water has not risen (debris
+// from the giant whose heart lies under the city clogs the drain), and the night the singing light went over, the tree's fire went
 // out. It stands cold over the walls when the traveller comes.
 //
 // It starts in the city. The traveller steps out of a dark ship with nothing
@@ -14,8 +13,8 @@
 // fell from the sky"). It opens for the traveller: the backpack, its tank
 // empty. Qanat gathers and Nour, the eldest, who has kept the chest for sixty
 // years, sends them on with the Speaker's old verse: Ama's jar, then the way
-// down. In the giant's chest the rib is far too heavy for arms, and the empty
-// tank pushes nothing: the old keepers' pole levers it off (desert.js). The
+// down. In the giant's chest debris clogs the drain, and you pull it clear
+// yourself (desert.js; issue #158: it was a rib levered off with a pole). The
 // pool rises, the tank and the jar fill, and the water climbs the roots up into
 // the city's tree. The tree drinks, and stays cold: living water only burns
 // from the Givers' own spark. Nour sends the traveller for the spark-stone,
@@ -42,7 +41,7 @@ const Q = 'desert.power';
 const LIT = { flag: 'desert.tree.lit' }, RISEN = { flag: 'desert.channel.open' }, DONE = { flag: 'world.desert.done' };
 const TEMPLE = { flag: 'temple.desert.done' }, BACKPACK = { flag: 'item.backpack' };
 
-export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord', pole: 'the keepers’ pole', stone: 'the spark-stone' };
+export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord', stone: 'the spark-stone' };
 
 /**
  * The stages of the spark-stone's errand, between the full pool and the ship (the way up the keepers' stair first): a save from before it
@@ -90,9 +89,9 @@ export const QUESTS = [
       // she points you straight at the marked skull (no more Ama's jar and the Speaker's verse first: the author's
       // playthrough, October 2026, issue #63)
       { id: 'down', text: 'Go down through the marked skull’s mouth', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
-      // the rib is far too heavy for arms and the tank is empty: the keepers' pole levers it off (src/story/desert.js);
+      // debris clogs the drain: you look at it and say yes, remove it (src/story/desert.js; issue #158, no lever any more);
       // a full tank (an older save) can still push it
-      { id: 'channel', text: 'Lever the fallen rib off the channel', label: 'The blocked channel', flag: 'desert.channel.open', at: 'rib', gate: true },
+      { id: 'channel', text: 'Clear the clogged drain', label: 'The clogged drain', flag: 'desert.channel.open', at: 'rib', gate: true },
       // the first wade fills the tank (and tints it); Ama's jar, if you took it, fills too
       { id: 'fill', text: 'Wade in and fill your tank', label: 'The pool', flag: 'desert.pool.tinted', at: 'pool', gate: true },
       // the progression rewrite (v1.38): beside the pool a makers' chest hums back at the full tank, the lift valve (the double
@@ -256,7 +255,7 @@ export const PEOPLE = {
         // the water is up, the tree drank, and it is still cold
         drank: {
           say: ["~surprised~ The roots are drinking! But the tree won’t burn. I tried a torch. It hissed at me. I’m accustomed to better manners from firewood."],
-          choices: [{ text: '~neutral~ It was a bone in the channel. A giant’s rib.', goto: 'rib' }, { text: '~neutral~ I’ll find out why it won’t.', end: true }],
+          choices: [{ text: '~neutral~ Debris was clogging the drain.', goto: 'rib' }, { text: '~neutral~ I’ll find out why it won’t.', end: true }],
         },
         lateJar: {
           say: ["~surprised~ The roots are drinking, and you did that without even a jar? Take *the drinking jar*, then. Fill it at *the giant’s pool*, past the back gate. Some for the Drinking."],
@@ -269,7 +268,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ It was a stone from the Givers’ Hearth.', goto: 'stone' }, { text: '~neutral~ I will.', end: true }],
         },
         stone: { say: ["~surprised~ Marrow’s bike got you there? Don’t praise it where he can hear. He’ll start charging for the breeze."], choices: [{ text: '~happy~ Goodbye, Ama.', end: true }] },
-        rib: { say: ["~solemn~ A fallen rib blocked it? All these years, and the giant is still coming apart beneath us. I’ll tell the Speaker."], choices: [{ text: '~neutral~ Goodbye, Ama.', end: true }] },
+        rib: { say: ["~solemn~ The drain was clogged? All these years, and the giant is still coming apart beneath us. I’ll tell the Speaker."], choices: [{ text: '~neutral~ Goodbye, Ama.', end: true }] },
         after: {
           say: ["~playful~ They’ll sing about you all the way home. You’ll be twelve feet tall by the second oasis. Don’t take it personally."],
           choices: [{ text: '~happy~ Keep the fires going, Ama.', end: true }],
@@ -372,7 +371,7 @@ export const PEOPLE = {
           say: ["~curious~ You’re back! Tell me everything. Start with the biggest thing."],
           choices: [
             { text: "~solemn~ A pool of coloured water inside the giant’s chest. The tree’s roots drink from it.", if: { flag: 'desert.channel.open' }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
-            { text: "~solemn~ A dry pool. A fallen rib blocks its water channel. The tree’s roots hang above it.", if: { not: { flag: 'desert.channel.open' } }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
+            { text: "~solemn~ A dry pool. Debris clogs its drain. The tree’s roots hang above it.", if: { not: { flag: 'desert.channel.open' } }, do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'true' } }], goto: 'truth' },
             { text: '~playful~ A sleeping monster. It sniffed me.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'monster' } }], goto: 'monster' },
             { text: '~whisper~ It’s a secret. You’ll see it yourself when you’re older.', do: [{ advance: 'desert.ilo' }, { set: { 'desert.ilo.told': 'secret' } }], goto: 'secret' },
           ],
@@ -443,16 +442,16 @@ export const PEOPLE = {
         cold: {
           say: ["~solemn~ The roots drink but the fire is out. We have an old verse: *The fire must be carried.* You’ll need something to light the tree.",
             "~neutral~ The fire-bearers travelled *south-east into the red rocks*, leaving marked stones along the route, and came back with it."],
-          choices: [{ text: '~neutral~ A rib had fallen across the water.', goto: 'rib' }, { text: '~neutral~ Walk on, Speaker.', end: true }],
+          choices: [{ text: '~neutral~ Debris had clogged the water’s drain.', goto: 'rib' }, { text: '~neutral~ Walk on, Speaker.', end: true }],
         },
         carried: { say: ["~surprised~ The spark-stone. You found it. *Set it in the tree’s roots*. We’ll keep the procession moving until the tree burns."], choices: [{ text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~neutral~ Keep them walking.', end: true }] },
         // the bell on the fire-bearers' way (THINGS.wayBell)
         bell: { say: ["~surprised~ A bell, out on the fire-bearers’ way? Then the old accounts are true to the step. One of them came back with a quiet staff.", "~solemn~ Leave it there. It marks where somebody walked when walking was the only way."], do: { set: { 'desert.way.told': true } }, choices: [{ text: '~solemn~ I left it where it lay.', end: true }] },
         drinking: {
           say: ["~happy~ The tree burns! Listen to the drums. Nobody had to tell them when to begin.", "~solemn~ Under the giant, out to the red rocks, and back. The old route still works. I’ll need a new verse for your part."],
-          choices: [{ text: '~neutral~ A rib had fallen across the water.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],
+          choices: [{ text: '~neutral~ Debris had clogged the water’s drain.', goto: 'rib' }, { text: '~curious~ I found a bell like yours, out on the way.', if: { all: [{ flag: 'desert.way.bell' }, { not: { flag: 'desert.way.told' } }] }, goto: 'bell' }, { text: '~happy~ Make it a short verse.', end: true }],
         },
-        rib: { say: ["~solemn~ A fallen rib blocked the water. Then we were waiting above a repair that needed doing. I will remember that."], choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
+        rib: { say: ["~solemn~ Debris blocked the water. Then we were waiting above a repair that needed doing. I will remember that."], choices: [{ text: '~neutral~ Walk on, Speaker.', end: true }] },
         after: { say: ["~solemn~ When they ask what you found here, tell them about the people as well as the fuel. We did, after all, fill your ship.", { if: { flag: 'desert.ilo.told', is: 'monster' }, text: '~playful~ Ilo reports a monster under the city that sniffs visitors. I have added it to the verses. Provisionally.' }], choices: [{ text: '~solemn~ I’ll remember.', end: true }] },
       },
     },
@@ -631,7 +630,7 @@ export const PEOPLE = {
         from: { say: ["~neutral~ The supply is *inside the giant*. Its head lies beyond the back gate. Old keepers used to *enter its mouth* and clear the water channel. Nobody’s done that in my lifetime."], choices: [{ text: '~surprised~ Through its mouth?', goto: 'mouth' }] },
         mouth: { say: ["~whisper~ Carved stones hold the jaw open. The children dare each other to touch the teeth. Please don’t add yourself to my list of worries."], choices: [{ text: '~playful~ I won’t.', end: true }] },
         glyph: { say: ["~neutral~ {glyph} We call it the Givers’ mark. Salt pilgrims call it the Eye That Fell. Children call it a bird. None of us knows who carved it first."], choices: [{ text: '~curious~ And what is on the stone under the tree?', goto: 'chest' }, { text: '~curious~ Where does the water come from?', goto: 'from' }] },
-        full: { say: ["~happy~ Water! Up the roots, every colour! Look at them drink. I’d forgotten how it could look.", "~sad~ But the tree is still cold. Grandmother keeps muttering about a spark."], choices: [{ text: '~neutral~ A rib had fallen across the channel. I moved it.', end: true }] },
+        full: { say: ["~happy~ Water! Up the roots, every colour! Look at them drink. I’d forgotten how it could look.", "~sad~ But the tree is still cold. Grandmother keeps muttering about a spark."], choices: [{ text: '~neutral~ Debris had clogged the drain. I cleared it.', end: true }] },
         burning: { say: ["~happy~ Fire from the roots to the crown! And it doesn’t burn the broom. I’m taking that as permission to put it down."], choices: [{ text: '~happy~ You’ve earned it, Hessa.', end: true }] },
       },
     },
@@ -753,11 +752,13 @@ export const THINGS = {
       choices: [{ text: '~solemn~ (look back at it)', end: true }],
     } } },
   },
+  // what clogs the drain in the giant's chest (issue #157: it was a fallen thigh bone; #158: no lever, you pull it out
+  // yourself, if you say so): Yes emits desert:drain (src/story/desert.js)
   bone: {
-    id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
+    id: 'bone', name: 'The clogged drain', title: 'in the giant’s chest', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ A fallen rib blocks the dry channel. Behind it, a crack in the wall is damp. The water is trapped on the other side.", "~neutral~ Too heavy to lift by hand. The keepers who built this channel had a way of moving such things: *the mural* shows them at it."],
-      choices: [{ text: '~neutral~ (step back)', end: true }],
+      say: ["~curious~ Something is clogging the drain. Remove it?"],
+      choices: [{ text: '~neutral~ Yes.', do: { emit: ['desert:drain'] }, end: true }, { text: '~neutral~ No.', end: true }],
     } } },
   },
   // the Givers' Hearth's porch: the frieze beside the door (src/desert-hearth.js)

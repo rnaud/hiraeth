@@ -14,6 +14,7 @@ The same release notes shown in the game (press **N** or open settings).
 - At the start of a new game Plumb says a few things, each only once: as you step out of the ship, near the first person you meet, at your first chest and the first time you lose your way.
 - Your drone has a name now, Plumb, and a mind of its own. Wander for a few minutes without getting anywhere and it says a short line and flies out toward where you are going; then it leaves you be for a good while.
 - On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.
+- In the giant’s chest under Qanat, what blocks the water is plain to see now: a heap of debris, a broken piece of rib, rocks and packed sand, jammed in the drain. There is no lever or pole to find any more: look at the drain and it asks whether to remove it. Say yes and you drag it clear yourself, and the water runs.
 - No button prompt comes up in front of the giant’s skull any more: walk straight into its mouth.
 - The giant’s skull outside Qanat’s back gate has turned round: it faces the city now, so as you come out of the gate you see its painted eyes, its teeth and its mouth down the slope, and the pilgrims’ cairns lead you straight to it.
 - No wild creatures roam Qanat’s streets and square any more: the lizards, crabs and jerboas keep to the sand outside the walls. The birds still wheel high over the city.

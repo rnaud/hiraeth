@@ -72,3 +72,29 @@ test('#154: the skull faces the back gate: you come out of the city to its face 
   const out = V(Math.sin(up.heading), 0, Math.cos(up.heading));
   assert.ok(out.dot(toGate) > 0.9, 'out of the passage facing the gate');
 });
+
+test('#157: what clogs the channel is a heap of debris, not one long bone: no part of it far longer than it is wide', () => {
+  const pile = Q.cave.bone, rot = pile.rotation.clone();
+  pile.rotation.set(0, 0, 0); pile.updateMatrixWorld(true);   // (measured in its own frame: across the channel, along it)
+  const box = new THREE.Box3().setFromObject(pile), size = box.getSize(V(0, 0, 0));
+  pile.rotation.copy(rot); pile.updateMatrixWorld(true);
+  const flatSize = [size.x, size.z].sort((a, b) => a - b);
+  assert.ok(flatSize[1] < 4, `the heap is under 4 m across (${flatSize[1].toFixed(2)})`);
+  assert.ok(flatSize[1] / flatSize[0] < 2.2, `and about as long as it is wide (${(flatSize[1] / flatSize[0]).toFixed(2)})`);
+  assert.ok(pile.children.filter((m) => m.isMesh).length >= 3, 'a broken rib piece, rocks and packed sand');
+  // it sits on the trough, across it
+  const ch = Q.cave.streamAt(0.34);
+  assert.ok(flat(box.getCenter(V(0, 0, 0)), ch) < 1.2, 'over the channel');
+});
+
+test('#158: no lever, no pole, no carved post: the drain asks whether to remove what clogs it', async () => {
+  const { THINGS } = await import('../src/story/desert-data.js');
+  assert.ok(!INTERACT.allInteractables().some((e) => /^keepers\./.test(e.id)), 'no pole or post to use');
+  const look = INTERACT.allInteractables().find((e) => e.id === 'bone');
+  assert.equal(typeof look.prompt === 'function' ? look.prompt() : look.prompt, 'look at the drain');
+  const node = THINGS.bone.talk.nodes.look;
+  assert.deepEqual(node.say.map((x) => x.replace(/^~\w+~ /, '')), ['Something is clogging the drain. Remove it?']);
+  assert.deepEqual(node.choices.map((c) => c.text.replace(/^~\w+~ /, '')), ['Yes.', 'No.']);
+  assert.deepEqual(node.choices[0].do, { emit: ['desert:drain'] }, 'Yes clears it');
+  assert.equal(node.choices[1].do, undefined, 'No leaves it');
+});

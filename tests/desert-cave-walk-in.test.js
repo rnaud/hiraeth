@@ -38,7 +38,9 @@ W.scene.traverse((m) => {
 });
 const ray = new THREE.Raycaster();
 // (from the capsule's middle and its two sides, at the feet, the knees, the chest and the head: what it rubs against)
-const drawnAhead = (p, d, far = 1.6) => [-0.45, 0, 0.45].some((sd) => [0.1, 0.3, 0.6, 0.9, 1.5].some((h) => {
+// (and the top of the head: the crack's carved frame stops you in the channel's top end at 2 m, where the fallen bone
+// lying along the channel used to stand in front of the rays: issue #157)
+const drawnAhead = (p, d, far = 1.6) => [-0.45, 0, 0.45].some((sd) => [0.1, 0.3, 0.6, 0.9, 1.5, 1.95].some((h) => {
   ray.set(p.clone().add(V(-d.z * sd, h, d.x * sd)), d); ray.far = far;
   return ray.intersectObjects(seen, false).length > 0;
 }));

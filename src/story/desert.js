@@ -33,8 +33,7 @@ import { t as tr } from '../i18n.js';
 //                bench beside it, and a few people of Qanat about the terraces
 //                and the avenue
 //   the dunes    old Oum sits on a stone where she fell behind
-//   the cave     the dry pool, the fallen rib across the channel, the mural (the keepers'
-//                pole leaning on it), the carved post beside the channel
+//   the cave     the dry pool, the debris clogging its drain, the mural
 //   far away     the Givers' Hearth and its spark-stone (src/story/desert-spark.js)
 //
 // The tree is cold (src/desert-city.js city.setLit: no flame, no smoke column,
@@ -45,7 +44,7 @@ import { t as tr } from '../i18n.js';
 //
 // The traveller comes with his sword alone (the progression rewrite, v1.38: docs/systems/progression.md).
 // The backpack comes out of its chest empty (game flag tool.empty, src/fluid-tool.js), and he has no gun yet.
-// The rib is heaved off the channel with the old keepers' pole over the carved post (three heaves); the pool
+// You pull the debris out of the drain yourself (issue #158: it was a rib levered off with the keepers' pole); the pool
 // rises and the first wade fills the tank (and adds the giant's colour) and Ama's jar. The water climbs
 // the roots while you watch (desert.well.watched: the flag kept its name from the well, gone in v1.49). Beside the pool a makers' chest holds the
 // lift valve (the double jump, the backpack's first strength: src/boxes/placements.js 'desert.lift'); in the
@@ -60,15 +59,14 @@ import { t as tr } from '../i18n.js';
 // chest is open, the camps, the gate and the procession wave you on toward
 // the city.
 //
-// The cave is dry until the rib is off the channel: no pool, no stream,
+// The cave is dry until the drain is cleared: no pool, no stream,
 // only damp stains. Then the stream runs out of the crack and down the gutter,
 // and the pool fills the basin from its lowest point (desert-city.js setWater).
 //
 // Flags (game-state.js): desert.city.entered, desert.shrine.gathered (the
 // reaction played; named for the shrine the chest once stood in), desert.elder.heard (Nour sent you on), desert.quest.v
 // (the stage migrations), desert.camps.seen, desert.jar.given,
-// desert.speaker.heard, desert.well.seen, desert.cave.seen, desert.pole.tried
-// (the rib wouldn't move for your arms), desert.lever (heaves on the pole so far),
+// desert.speaker.heard, desert.well.seen, desert.cave.seen,
 // desert.channel.open (the rib is clear: the water rises and the tree drinks),
 // desert.jar.filled, desert.well.watched (you saw the roots drink), desert.spark.heard
 // (Nour told of the spark-stone), desert.hearth.seen / .open, desert.stone.taken
@@ -77,7 +75,7 @@ import { t as tr } from '../i18n.js';
 // colour), desert.teo.drumming, desert.ilo.following, desert.ilo.atSkull,
 // desert.oum.following, desert.oum.home, desert.drum.freed and desert.mask.eyes
 // (src/story/desert-errands.js), and a few "read" flags for the carvings.
-// tool.empty: the tank has never been filled. Items: jar, water, drum, cord, pole, stone.
+// tool.empty: the tank has never been filled. Items: jar, water, drum, cord, stone (the keepers' pole went with the lever: issue #158).
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const _v = V(0, 0, 0), _w = V(0, 0, 0);
@@ -334,7 +332,7 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the tank: empty until the giant's pool
   // (src/fluid-tool.js reads the same flag: no charges, no refill, a press only sputters)
   const dry = () => (tool ? !!tool.dry : items.has('backpack') && !!game.flag('tool.empty'));
-  // the tool pushes once the backpack is found and filled and the gun found (v1.38); before that, hands (and the keepers' pole)
+  // the tool pushes once the backpack is found and filled and the gun found (v1.38); before that, hands
   const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack')) && items.has('gun') && !dry();
   let dryT = -1e9;
   game.on('tool:dry', () => {
@@ -366,7 +364,7 @@ export function setupDesert(ctx) {
     if (open()) return;
     game.set('desert.channel.open', true);
     st.boneT = 0.001;
-    const said = how === 'push' ? 'The fluid shoves the rib: it rolls off the channel. Water runs.' : how === 'lever' ? 'You lean on the pole with all your weight. The rib tips up off the channel, rolls, and falls clear. Water runs.' : 'You heave. The rib grinds, tips, and rolls off the channel. Water runs.';
+    const said = how === 'push' ? 'The fluid shoves the debris out of the drain. Water runs.' : 'You drag the debris out of the drain, armful by armful. Water runs.';
     sound.waterRise?.();
     sound.chime();
     // the first time the water runs, filmed (src/story/desert-moments.js); it says its toast at the end. Else at once.
@@ -379,23 +377,20 @@ export function setupDesert(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearChannel('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast(quietOr('The rib rocks, and settles.', `The rib rocks, and settles. It needs a shove. ${tr('teach.shove')}`)); }
+      if (!st.hinted) { st.hinted = true; toast(quietOr('The debris shifts, and settles.', `The debris shifts, and settles. It needs a shove. ${tr('teach.shove')}`)); }
       return true;
     } });
   void boneTarget;
-  // E: with a full tank, a look (it says push); without, you heave and it won't move: the keepers' pole
+  // E: what is clogging the drain, and a choice: remove it? (issue #158: no lever any more, "just have the player remove
+  // the debris on his own"; the keepers' pole and the carved post are gone)
   registerInteractable({ id: 'bone', priority: PRIORITY.use, range: 4.2, at: () => cave.bone.position, enabled: () => !open(),
-    prompt: () => (toolHasPush() ? 'look at the fallen rib' : 'heave the fallen rib'),
+    prompt: 'look at the drain',
     distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, cave.bone.position) : Infinity),
-    use: () => {
-      if (toolHasPush()) { dialogue.start(THINGS.bone, null, cave.bone.position); return; }
-      st.wobble = 0.6;
-      sound.thud?.();
-      game.set('desert.pole.tried', true);
-      toast(quests.has('pole') ? 'Far too heavy for your arms. Set the keepers’ pole over the carved post beside the channel, and lean on it.'
-        : 'You heave. It doesn’t even rock: it is far too heavy for your arms. The old keepers cleaned this channel; they must have had a way. Beside it stands a carved post, a notch worn smooth in its top.');
-    } });
-  const lever = setupLever();
+    use: () => dialogue.start(THINGS.bone, null, cave.bone.position) });
+  // Yes: you pull it clear (the conversation's answer emits it: desert-data.js THINGS.bone)
+  game.on('desert:drain', () => { if (!open()) { st.wobble = 0.6; sound.thud?.(); clearChannel('hands'); } });
+  // (a save from before, the keepers' pole in hand: put back, the lever gone; save-migrate.js step 18 does it too)
+  if (quests.has('pole')) quests.take('pole');
 
   // the water: the pool, the stream, and up the roots (the tree drinks, and stays cold until it is lit)
   const applyWater = (instant) => {
@@ -403,7 +398,6 @@ export function setupDesert(ctx) {
     if (instant) { st.level = cave.levels.high; st.flow = 1; st.boneT = 1; st.drink = 1; }
     else if (!st.boneT) st.boneT = 0.001;   // (the flag set some other way: the rib still rolls off)
     cave.setWater(st.flow, st.level);
-    lever.settle();
   };
   // the fire: the tree burns (cool, every colour: the drinking's own fire), the feast begins
   const applyLit = (instant) => {
@@ -425,100 +419,6 @@ export function setupDesert(ctx) {
   if (open()) applyWater(true);
   if (lit()) applyLit(true);
   game.on('flag:desert.channel.open', (v) => { if (v) applyWater(false); });
-
-  /**
-   * The keepers' pole and the carved post. The pole leans on the mural; with it in your hands, E at the
-   * post sets it under the rib's end and each press is a heave (desert.lever counts them): the rib lifts
-   * a little more each time, and on the third it tips off the channel and rolls clear.
-   */
-  function setupLever() {
-    const perp = V(-cave.chDir.z, 0, cave.chDir.x).normalize(), along = V(cave.chDir.x, 0, cave.chDir.z).normalize();
-    const rib = cave.boneRest.pos, floorY = cave.origin.y;
-    // (the rib lies along the gutter, in it: the post stands just off the gutter's side, chest high, so the
-    // pole goes over the rim and under the rib's flank, and leaning on it tips the rib out over the far rim)
-    const postAt = rib.clone().addScaledVector(perp, -2.45).setY(floorY);
-    const HEAVES = 3;
-    // the post: a carved block with a notch worn in its top
-    const stoneM = makeMaterial({ color: '#c9b8a0', flat: true });
-    const post = new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(0.5, 1.62, 0.5).translate(0, 0.81, 0), new THREE.BoxGeometry(0.72, 0.14, 0.72).translate(0, 0.07, 0),
-      new THREE.BoxGeometry(0.62, 0.1, 0.62).translate(0, 1.55, 0)].map((g) => g.toNonIndexed())), stoneM);
-    post.position.copy(postAt); post.rotation.y = Math.atan2(perp.x, perp.z);
-    // the pole: bone, two people long, a bronze shoe on its tip (+x)
-    const pole = new THREE.Group();
-    pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 4.4, 6).rotateZ(Math.PI / 2), makeMaterial({ color: '#efe4cc', flat: true })));
-    pole.add(new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.05, 0.45, 6).rotateZ(Math.PI / 2).translate(2.35, 0, 0), makeMaterial({ color: '#c9974a', flat: true, metal: 'brass' })));
-    for (const o of [post, pole]) { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); cave.root.add(o); }
-    // where it leans: against the mural's end (the mural faces n; tm runs along it)
-    const n = V(Math.sin(Math.PI * 0.8), 0, Math.cos(Math.PI * 0.8)), tm = V(-n.z, 0, n.x);
-    const m0 = cave.local(-17.5, 0, 20.5);
-    const leanFoot = m0.clone().addScaledVector(tm, 5.1).addScaledVector(n, 1.1), leanTop = m0.clone().addScaledVector(tm, 4.95).addScaledVector(n, 0.32).add(V(0, 4.25, 0));
-    // under the rib: through the post's notch (the pivot), the shoe under the rib's end, the grip out past the post
-    const pivot = postAt.clone().setY(floorY + 1.72);
-    const _d = V(0, 0, 0), _q = new THREE.Quaternion(), X = V(1, 0, 0);
-    /** Lay the pole from a (its grip) to b (its shoe). */
-    const lay = (a, b) => { pole.position.copy(a).add(b).multiplyScalar(0.5); pole.quaternion.copy(_q.setFromUnitVectors(X, _d.subVectors(b, a).normalize())); };
-    const leverPose = (k) => {
-      // k: 0 resting in the notch, 1 leaned on as far as it goes (the grip down, the shoe up under the rib)
-      const tilt = 0.2 - k * 0.3;
-      const tip = pivot.clone().addScaledVector(perp, 1.4).add(V(0, -1.4 * tilt, 0)), grip = pivot.clone().addScaledVector(perp, -2.9).add(V(0, 2.9 * tilt, 0));
-      lay(grip, tip);
-    };
-    const L = { heave: 0, t: 1 };
-    const placed = () => (game.flag('desert.lever') ?? 0) > 0 || open();
-    const pose = () => {
-      if (open()) {
-        // left lying on the floor by the post once the rib is off
-        lay(postAt.clone().addScaledVector(along, 0.9).addScaledVector(perp, -2.2).setY(floorY + 0.08), postAt.clone().addScaledVector(along, 0.6).addScaledVector(perp, 2.1).setY(floorY + 0.08));
-        pole.visible = true;
-      } else if (placed()) { pole.visible = true; leverPose(0); }
-      else if (quests.has('pole')) pole.visible = false;   // (in your hands)
-      else { pole.visible = true; lay(leanFoot, leanTop); }
-    };
-    pose();
-    const take = () => {
-      quests.give('pole');
-      toast(`You take ${ITEMS.pole}: bone, two people long, shod in bronze, the Givers’ mark burned into its grip.`);
-      sound.chime?.();
-      pose();
-    };
-    const heave = () => {
-      if (open()) return;
-      const n0 = game.flag('desert.lever') ?? 0;
-      if (n0 === 0) { quests.take('pole'); toast('You set the pole in the post’s notch, its bronze shoe under the rib’s end.'); }
-      const k = n0 + 1;
-      game.set('desert.lever', k);
-      L.heave = k; L.t = 0;
-      pose();
-      sound.thud?.();
-      if (k >= HEAVES) setTimeout(() => clearChannel('lever'), 450);
-      else toast(k === 1 ? 'You lean on the pole. The rib’s end lifts a hand’s width, grinds, and settles back. Again.' : 'Again: the rib lifts, rocks on the gutter’s edge… nearly.');
-    };
-    registerInteractable({ id: 'keepers.pole', priority: PRIORITY.use, range: 2.6, at: () => leanFoot, enabled: () => !open() && !quests.has('pole') && !placed(),
-      prompt: 'take the keepers’ pole', distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, leanFoot) : Infinity), use: take });
-    registerInteractable({ id: 'keepers.post', priority: PRIORITY.use, range: 3.4, at: () => pivot, enabled: () => !open(),
-      prompt: () => (placed() ? 'lean on the pole' : quests.has('pole') ? 'lever the rib with the keepers’ pole' : 'look at the carved post'),
-      distance: (p) => (p.pos.distanceTo(cave.origin) < 200 ? flat(p.pos, postAt) : Infinity),
-      use: () => {
-        if (placed() || quests.has('pole')) heave();
-        else { game.set('desert.pole.tried', true); toast('A post of carved stone beside the channel, a notch worn smooth in its top, as if something long had rested in it many times. Something long, to lever with.'); }
-      } });
-    return {
-      postAt, pivot, leanFoot, pole, post, HEAVES, take, heave, placed,
-      /** The rib is off: the pole lies on the floor (and leaves your hands). */
-      settle() { if (quests.has('pole')) quests.take('pole'); pose(); },
-      /** Per frame: a heave tilts the pole and lifts the rib's end, then lets it settle back. */
-      update(dt) {
-        if (L.t >= 1) return;
-        if (open() && st.boneT > 0) { L.t = 1; return; }   // (the last heave: the rib rolls off on its own)
-        L.t = Math.min(1, L.t + dt / 0.9);
-        const k = Math.sin(Math.PI * L.t) * (0.55 + 0.15 * L.heave);
-        leverPose(k);
-        cave.bone.position.copy(cave.boneRest.pos).add(V(0, k * 0.22 * L.heave, 0));
-        cave.bone.rotation.z = cave.boneRest.rot.z + k * 0.06 * L.heave;
-        if (L.t >= 1) { cave.bone.position.copy(cave.boneRest.pos); cave.bone.rotation.z = cave.boneRest.rot.z; leverPose(0); }
-      },
-    };
-  }
 
   // wading: the empty tank fills (and takes a colour, the first time); the jar fills
   /** The pool fills the tank (an empty one for good, a colour band the first time). Returns what changed. */
@@ -621,8 +521,8 @@ export function setupDesert(ctx) {
   game.on('flag:desert.well.watched', (v) => { if (v && quests.stage('desert.power') === 'up') quests.advance('desert.power', 'up'); });
   quests.locate('skull', () => Q.giant.door);
   quests.locate('bone', () => cave.bone.position);
-  // the rib, until your arms have failed on it with an empty tank: then the keepers' pole (by the mural), then the post
-  quests.locate('rib', () => (toolHasPush() || !game.flag('desert.pole.tried') ? cave.bone.position : lever.placed() || quests.has('pole') ? lever.pivot : lever.leanFoot));
+  // the clogged drain (issue #158: no pole and post to go and find first)
+  quests.locate('rib', () => cave.bone.position);
   // something faster than walking: Marrow until he has told you, then the hollow
   quests.locate('bikeWay', () => (['find', 'wake'].includes(quests.stage('desert.bike')) || game.flag('desert.bike.uncovered') ? hollow.site.bike : people.marrow.pos));
   quests.locate('bikeHollow', () => hollow.site.bike);   // (where that stage is done: the stage's `ends`, for the level design audit)
@@ -1002,11 +902,12 @@ export function setupDesert(ctx) {
       st.boneT = Math.min(1, st.boneT + dt / 1.6);
       const k = THREE.MathUtils.smootherstep(st.boneT, 0, 1);
       cave.bone.position.lerpVectors(cave.boneRest.pos, cave.boneAside, k);
-      cave.bone.position.y += Math.sin(Math.PI * k) * 0.8;
-      cave.bone.rotation.set(cave.boneRest.rot.x + k * 2.6, cave.boneRest.rot.y, cave.boneRest.rot.z + k * 0.4);
+      // (the debris dragged off the trough and dumped beside it, a little lower: issue #157's heap, not a rolling bone)
+      cave.bone.position.y += Math.sin(Math.PI * k) * 0.35 - 0.45 * k;
+      cave.bone.rotation.set(cave.boneRest.rot.x, cave.boneRest.rot.y + k * 0.5, cave.boneRest.rot.z + Math.sin(Math.PI * k) * 0.12);
     } else if (st.boneT >= 1) {
-      cave.bone.position.copy(cave.boneAside);
-      cave.bone.rotation.set(cave.boneRest.rot.x + 2.6, cave.boneRest.rot.y, cave.boneRest.rot.z + 0.4);
+      cave.bone.position.copy(cave.boneAside).add(V(0, -0.45, 0));
+      cave.bone.rotation.set(cave.boneRest.rot.x, cave.boneRest.rot.y + 0.5, cave.boneRest.rot.z);
     } else if (st.wobble > 0) {
       st.wobble = Math.max(0, st.wobble - dt * 2);
       cave.bone.rotation.x = cave.boneRest.rot.x + Math.sin(st.wobble * 20) * 0.06 * st.wobble;
@@ -1071,14 +972,13 @@ export function setupDesert(ctx) {
     hollow.update(dt, t, camPos);
     drum.update(dt);
     mask.update(dt);
-    lever.update(dt);
     hearth?.update(dt, t);
     way?.update(dt, t, camPos);
     road?.update(dt, t);
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, repay, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, road, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, repay, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, hearth, way, road, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;

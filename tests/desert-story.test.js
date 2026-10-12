@@ -462,7 +462,7 @@ const use = (id) => {
 };
 const promptOf = (e) => (typeof e.entry.prompt === 'function' ? e.entry.prompt() : e.entry.prompt);
 
-test('the main quest, end to end: an empty tank, the rib levered off, the tank filled, the well, the bike, the Hearth, the stone, the tree lit, the ship', async (t) => {
+test('the main quest, end to end: an empty tank, the drain cleared, the tank filled, the well, the bike, the Hearth, the stone, the tree lit, the ship', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
   const W = rt.world, H = level.hearth;
@@ -489,42 +489,28 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   at(Q.cave.inside); step(2);
   assert.equal(quests.stage('desert.power'), 'channel');
 
-  // ---- the rib: the tank is empty, so no push; your arms can't move it; the keepers' pole can
+  // ---- the drain: debris clogs it; the tank is empty, so no push; you look, and say yes, remove it (issue #158)
   assert.equal(items.has('backpack'), true);
   assert.equal(game.flag('tool.empty'), true, 'the tank is empty');
   assert.equal(W.dry(), true);
   assert.equal(W.toolHasPush(), false, 'an empty tank pushes nothing');
   const bone = allTargets().find((t) => t.kind === 'bone');
-  assert.ok(quests.objective().position.distanceTo(Q.cave.bone.position) < 0.01, 'the marker is on the rib');
+  assert.ok(quests.objective().position.distanceTo(Q.cave.bone.position) < 0.01, 'the marker is on the drain');
+  assert.equal(quests.objective().label, 'The clogged drain');
   at(Q.cave.bone.position.clone().setY(Q.cave.origin.y).add(V(-1.5, 0, 1.5))); facing(Q.cave.bone.position);
-  const heaveIt = bestInteractable(player);
-  assert.equal(heaveIt?.entry.id, 'bone');
-  assert.equal(promptOf(heaveIt), 'heave the fallen rib');
-  heaveIt.entry.use(player);
-  assert.equal(game.flag('desert.channel.open'), undefined, 'far too heavy for your arms');
-  assert.ok(toasts.at(-1).includes('far too heavy'), 'it says so');
-  const L = W.lever;
-  assert.ok(quests.objective().position.distanceTo(L.leanFoot) < 0.01, 'then the marker goes to the keepers’ pole by the mural');
-  at(L.leanFoot.clone().add(V(0.6, 0, 0.6)));
-  use('keepers.pole');
-  assert.ok(quests.has('pole'), 'you carry the pole');
-  assert.ok(quests.objective().position.distanceTo(L.pivot) < 0.01, 'and the marker on the carved post');
-  at(L.postAt.clone().addScaledVector(V(-Q.cave.chDir.z, 0, Q.cave.chDir.x).normalize(), -2.4));
-  for (let i = 0; i < L.HEAVES; i++) {
-    const e = bestInteractable(player);
-    assert.equal(e?.entry.id, 'keepers.post');
-    assert.match(promptOf(e), i === 0 ? /lever the rib/ : /lean on the pole/);
-    e.entry.use(player);
-    step(30);
-    if (i < L.HEAVES - 1) assert.equal(game.flag('desert.channel.open'), undefined, `heave ${i + 1}: it lifts, and settles back`);
-  }
-  t.mock.timers.tick(500);
-  assert.equal(game.flag('desert.channel.open'), true, 'the third heave tips it off the channel');
-  assert.ok(!quests.has('pole'), 'the pole stays by the post');
+  const look = bestInteractable(player);
+  assert.equal(look?.entry.id, 'bone');
+  assert.equal(promptOf(look), 'look at the drain');
+  assert.ok(!INTERACT.allInteractables().some((e) => /^keepers\./.test(e.id)), 'no pole, no carved post');
+  const no = talk(THINGS.bone, ['No']);
+  assert.match(no.pages.join(' '), /Something is clogging the drain\. Remove it\?/);
+  assert.equal(game.flag('desert.channel.open'), undefined, 'No leaves it');
+  talk(THINGS.bone, ['Yes']);
+  assert.equal(game.flag('desert.channel.open'), true, 'Yes: you pull it clear');
   bone.onHit('push');   // (nothing left to push)
   // the water runs; the tree drinks, and the tree stays cold
-  step(90, 1 / 10);   // the rib rolls, the pool rises
-  assert.ok(flat(Q.cave.bone.position, Q.cave.boneRest.pos) > 2, 'the rib lies where it rolled');
+  step(90, 1 / 10);   // the debris is dragged aside, the pool rises
+  assert.ok(flat(Q.cave.bone.position, Q.cave.boneRest.pos) > 2, 'the debris lies beside the channel');
   assert.equal(Q.city.lit, 0, 'the water alone lights nothing');
   assert.equal(quests.stage('desert.power'), 'fill');
 

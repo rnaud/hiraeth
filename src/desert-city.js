@@ -354,6 +354,7 @@ function materials() {
     // the makers' dais at the tree's foot: the Givers' white stone (the temple chest's own), its gold, pale flagstones
     daisStone: paint('#f1eee6'), gold: paint('#d2a847'), flag: paint('#f0e3c8'),
     boneMesh: makeMaterial({ color: '#f2ead6' }),
+    debrisRock: makeMaterial({ color: '#b8a49e', flat: true }),   // (the channel's clog: issue #157)
   };
 }
 
@@ -1301,21 +1302,37 @@ export function buildDesertCity(scene, terrain) {
     const stream = magicStream(w(0), w(1), 1.6, streamMat, { segs: STREAM_SEGS });
     stream.geometry.setDrawRange(0, 0);
     root.add(stream);
-    // the fallen bone across the channel, near the wall: a great thigh bone, its knuckled ends on the trough's walls
-    // (it moves, so it never collides)
-    const boneAt = along(0.34, -0.42);   // (its shaft on the walls' tops: they stand 0.55 m over the bed)
+    // what clogs the channel, near the wall: a heap of debris jammed between the trough's walls (issue #157: it was a
+    // great thigh bone, its knuckled ends on the walls, that "looks a bit like a penis"): a broken piece of rib, flat and
+    // curved, snapped at both ends, lying across it on a packed mound of sand, with rocks and bone shards wedged round it.
+    // You pull it out by hand (issue #158); it moves, so it never collides. (`cave.bone` keeps its name for the hooks.)
+    const boneAt = along(0.34, -0.42);   // (on the walls' tops: they stand 0.55 m over the bed)
     const bonePivot = new THREE.Group();
     bonePivot.position.copy(cave.world(boneAt.x, boneAt.y, boneAt.z));
     bonePivot.rotation.y = chYaw + Math.PI / 2;
-    const femur = mergeGeometries([
-      prep(taper([V(-3.6, 0.05, 0), V(-1.2, 0.35, 0.15), V(1.4, 0.35, 0.1), V(3.6, 0.0, -0.1)], 0.62, 0.55, 12, 8)),
-      prep(new THREE.SphereGeometry(1, 10, 7).scale(1.0, 0.85, 1.15).translate(-4.0, 0.15, 0.25)), prep(new THREE.SphereGeometry(1, 10, 7).scale(0.8, 0.7, 0.8).translate(-3.9, 0.0, -0.75)),
-      prep(new THREE.SphereGeometry(1, 10, 7).scale(1.05, 0.9, 1.3).translate(4.1, 0.0, 0.0)),
-    ]);
-    const ribMesh = new THREE.Mesh(femur, M.boneMesh);
-    ribMesh.userData.noCollide = true;
-    bonePivot.add(ribMesh);
-    bonePivot.add(Object.assign(new THREE.Mesh(T(glyphGeometry(0.5), [0, 1.0, 0.62], [-0.4, 0, 0]), M.glyph), { userData: { noCollide: true } }));
+    {
+      // (pivot-local: x along the channel, z across it, y up from the walls' tops)
+      const drng = mulberry32(1570);
+      const ribArc = [];
+      for (let i = 0; i <= 6; i++) { const u = i / 6 - 0.5; ribArc.push(V(u * 2.9, 0.42 + 0.5 * (1 - 4 * u * u), 0.15 * Math.sin(u * 5))); }
+      const ribPiece = band(ribArc, 0.62, 0.2, 10, 4);   // (lying along the trough, arched over it, its width across the walls)
+      // its snapped ends: jagged, not round
+      const shard = (x, y, z, rx, ry, rz, w, h, d) => prep(T(new THREE.BoxGeometry(w, h, d), [x, y, z], [rx, ry, rz]));
+      const bones = mergeGeometries([prep(ribPiece),
+        shard(-1.55, 0.5, 0.1, 0.3, 0.4, 0.9, 0.5, 0.16, 0.4), shard(1.5, 0.48, -0.05, -0.2, -0.5, -0.8, 0.45, 0.15, 0.36),
+        shard(-0.6, 0.18, 0.75, 0.5, 1.1, 0.2, 0.9, 0.12, 0.3), shard(0.7, 0.2, -0.8, -0.4, 0.3, 0.3, 0.8, 0.12, 0.28),
+        shard(0.15, 0.95, 0.45, 0.2, 2.1, -0.5, 0.6, 0.1, 0.24)]);
+      const rocks = [];
+      for (const [x, z, r] of [[-0.95, 0.55, 0.36], [0.85, 0.6, 0.3], [-0.2, -0.7, 0.42], [1.05, -0.45, 0.28], [-1.1, -0.5, 0.26], [0.35, 0.85, 0.22], [-0.5, 0.15, 0.3]]) {
+        rocks.push(prep(rough(new THREE.DodecahedronGeometry(r, 0), r * 0.25, 2, Math.floor(drng() * 99)).scale(1.2, 0.8, 1).rotateY(drng() * 6).translate(x, r * 0.55 + 0.05, z)));
+      }
+      const heap = prep(rough(new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), 0.08, 1.5, 7).scale(1.35, 0.42, 1.15).translate(0, -0.08, 0));
+      for (const [g, m] of [[bones, M.boneMesh], [mergeGeometries(rocks), M.debrisRock], [heap, M.caveFloor]]) {
+        const mesh = new THREE.Mesh(g, m);
+        mesh.userData.noCollide = true;
+        bonePivot.add(mesh);
+      }
+    }
     root.add(bonePivot);
     // the pool: none while the channel is blocked; it fills once the stream reaches it, widening
     // up the basin's steps as it rises (desert.js sets cv.level; the update below lays it there)

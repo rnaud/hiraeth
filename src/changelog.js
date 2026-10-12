@@ -17,6 +17,7 @@ export const CHANGELOG = [
     'No wild creatures roam Qanat’s streets and square any more: the lizards, crabs and jerboas keep to the sand outside the walls. The birds still wheel high over the city.',
     'The giant’s skull outside Qanat’s back gate has turned round: it faces the city now, so as you come out of the gate you see its painted eyes, its teeth and its mouth down the slope, and the pilgrims’ cairns lead you straight to it.',
     'No button prompt comes up in front of the giant’s skull any more: walk straight into its mouth.',
+    'In the giant’s chest under Qanat, what blocks the water is plain to see now: a heap of debris, a broken piece of rib, rocks and packed sand, jammed in the drain. There is no lever or pole to find any more: look at the drain and it asks whether to remove it. Say yes and you drag it clear yourself, and the water runs.',
     // the Unity preview on the Steam Deck (docs/systems/performance.md "The Steam Deck, round 7"; issue #111)
     'On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.',
     // Plumb, the drone's own mind (docs/systems/scout.md "Plumb's own mind"; issue #152)

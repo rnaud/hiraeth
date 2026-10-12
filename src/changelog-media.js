@@ -645,8 +645,20 @@ const PLUMB51 = 'headless Chrome (muted, High, 1280 × 720) against this branch�
 const PROMPT51 = 'headless Chrome (muted, Medium, a pad in hand) against this branch’s own Vite (port 5480) and the same tree before the change, 11 October; at the Steam Deck’s 1280 × 800 and at 1280 × 720; cwebp -q 72';
 // (v1.51: the Unity preview on the Xbox: the player's own pictures at the web bench's cameras, -views in LocalState, 1280 × 720)
 const XBOX51 = 'the Xbox Series X’s Unity player (BridgeRunner -views, LocalState), the web bench’s cameras, 11 October: before build 1893 (Direct3D 11), after build 1929 (Direct3D 11; Direct3D 12’s build 1933 the same); cwebp -q 72';
+// (v1.51: the Desert after the author's playthrough, issues #149–#162)
+const PT51 = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720), Vite on port 5493, at the commit before the change and at the change (before its rebase), 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.51': [
+    { match: 'The opening in your ship has music of its own', see: 'Start a new game with the sound on (or open ?level=desert&prologue=1): in the ship, its own quiet music while you wake and walk to the cockpit, nothing under your father’s message; the desert’s ney and oud come in as you walk down the ramp.' },
+    { match: 'No wild creatures roam Qanat’s streets and square', see: 'Walk round Qanat’s square and its streets: no lizards, crabs or jerboas (three used to wander round the tree). Outside the walls, by the camps, they are where they were.' },
+    { match: 'The giant’s skull outside Qanat’s back gate has turned round', shots: [
+      { name: 'skull-gate', title: 'From the back gate', caption: 'Out of Qanat’s back gate, looking down the slope: before, the back of the skull’s head; after, its face, its painted eyes, teeth and mouth, the cairns leading to it', from: PT51, commit: '8c6fc695',
+        view: { level: 'desert', save: SAVE_DESERT, hour: 10, fov: 55, eye: [262.5, 3.6, 455.5], target: [314.0, 1.0, 525.0], player: [264.5, 1.0, 461.0], heading: 0.6 } },
+      { name: 'skull-mouth', title: 'At the mouth', caption: 'A few steps from the mouth: before, the skull’s flank and crown; after, the mouth and its steps, at the foot of the slope from the city', from: PT51, commit: '8c6fc695',
+        view: { level: 'desert', save: SAVE_DESERT, hour: 10, fov: 58, eye: [291.0, 2.5, 491.0], target: [314.0, 2.0, 525.0], player: [293.0, 0.5, 494.0], heading: 0.6 } },
+    ], see: 'Out of Qanat’s back gate: the skull faces you down the slope; follow the cairns to its mouth.' },
+    { match: 'In the giant’s chest under Qanat, what blocks the water is plain to see now', see: 'Go down through the giant’s skull into the cave, walk to the dry stone channel and press A / × at the heap in it: “Something is clogging the drain. Remove it?” Yes, and the water runs.' },
+    { match: 'No button prompt comes up in front of the giant’s skull', see: 'Walk up to the giant’s mouth: no prompt shows; walk on in.' },
     { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
       { title: 'Frames a second, the Unity preview', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, the Linux player (Vulkan), the Deck preset, 1280 × 800, 90 Hz uncapped', rows: [
         { where: 'the Desert, at the ship', before: 63.3, after: 73.9 },

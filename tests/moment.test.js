@@ -213,14 +213,14 @@ const W = rt.world, C = Q.cave;
 const step = (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) { camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, i * dt, { camera }); } };
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
-test('the first run of the water is filmed once: the rib, the crack, the basin, his face; the toast after; skipped, it lands the same', async () => {
+test('the first run of the water is filmed once: the drain, the crack, the basin, his face; the toast after; skipped, it lands the same', async () => {
   items.grant('backpack');
   game.set('tool.empty', true);
   assert.equal(W.dry(), true);
-  // at the carved post, the keepers' pole in it: three heaves
+  // beside the clogged drain: yes, remove it (issue #158: the drain's answer)
   const perp = V(-C.chDir.z, 0, C.chDir.x).normalize();
-  player.pos.copy(W.lever.postAt).addScaledVector(perp, -2.4);
-  for (let i = 0; i < W.lever.HEAVES; i++) { W.lever.heave(); step(30); }
+  player.pos.copy(C.bone.position).setY(C.origin.y).addScaledVector(perp, -2.4);
+  game.emit('desert:drain');
   await new Promise((r) => setTimeout(r, 500));
   assert.equal(game.flag('desert.channel.open'), true, 'the rib is off: the water runs, film or no film');
   assert.ok(rt.moments.playing, 'the moment plays');

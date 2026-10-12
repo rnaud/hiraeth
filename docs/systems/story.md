@@ -491,11 +491,12 @@ catches**), the ship.
   (the flame's hazard tests `city.lit`), no light, and only a slow bell for music. The level
   alone (no story) keeps it burning. An ember glob on the cold tree only hisses (the tree's
   target accepts `'fire'` to say so).
-- **The rib without fluid** (`src/story/desert.js` `setupLever`): E on the rib with an empty tank
-  is a heave that fails (`desert.pole.tried`), the marker moves to **the keepers' pole** leaning
-  on the mural, then to **the carved post** beside the gutter; three presses there
-  (`desert.lever`) each lift the rib a little more, the third tips it off. A full tank still
-  pushes it.
+- **The drain, cleared by hand** (issue #158, v1.51: "not super clear what to do at first … remove the need for the
+  lever, just have the player remove the debris on his own"): E on the clogged drain ('look at the drain') opens a
+  conversation of one line, "Something is clogging the drain. Remove it?", Yes or No (the game's answers); Yes emits
+  `desert:drain` and the debris is dragged off the trough (`clearChannel('hands')`). A full tank still pushes it. The
+  keepers' pole, the carved post and their three heaves (`setupLever`, `desert.lever`, `desert.pole.tried`) are gone;
+  `src/save-migrate.js` step 18 puts down a pole a save was holding.
 - **The roots drinking** (the well's filling until v1.49, issue #161: the well and the stele are gone from the
   square): once the water runs, walking up to the bare roots at the trunk's foot toward the avenue (`city.roots`,
   asked from `city.rootsLook`) starts the rise (`RISE_T`, ten seconds of pale motes climbing the trunk, Hessa calling

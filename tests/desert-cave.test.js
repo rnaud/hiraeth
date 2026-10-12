@@ -57,12 +57,12 @@ test('the giant’s chest is dry until the channel is open: no pool, no stream, 
   step(2);
   assert.ok(toasts.some((x) => /dry/i.test(x)), 'the basin is dry');
   assert.ok(!toasts.some((x) => /water is shallow/.test(x)));
-  // what you see when you look at the rib: a dry channel (no trapped water behind it)
+  // what you see when you look at the drain: what clogs it, and the question (issue #158)
   const said = THINGS.bone.talk.nodes.look.say.join(' ');
-  assert.match(said, /dry/);
+  assert.match(said, /Something is clogging the drain\. Remove it\?/);
   assert.doesNotMatch(said, /water stands/);
 
-  // push the rib clear: the stream runs out of the crack, segment by segment, then the pool fills from the bottom
+  // push the debris clear: the stream runs out of the crack, segment by segment, then the pool fills from the bottom
   const bone = allTargets().find((x) => x.kind === 'bone');
   player.pos.copy(cave.bone.position).add(V(3, 0, 3));
   bone.onHit('push');

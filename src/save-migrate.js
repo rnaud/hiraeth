@@ -68,6 +68,7 @@
 // And the three worlds of v1.40 (issue #137): the errands that carried something from one person to another end where
 // the thing is used (Wen's count at the lookout, Liesel's hook on the furnace's crane, Sel's notes on the cables, the
 // cutting in the Crown), and Fabre's word down to Maelle is no quest: step 17 (QUEST_STAGE_MOVES_137).
+// The giant's drain (issue #158): the keepers' pole and its lever went; a save holding the pole lets it go: step 18.
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -215,7 +216,17 @@ const STEPS = [
   (flags) => migrateQuestStages(flags, QUEST_STAGE_MOVES_118),
   // 17: the new worlds' carries from one person to another, done where the thing is used (issue #137, v1.49)
   (flags) => migrateCarries137(flags),
+  // 18: the giant's drain (issue #158, v1.51): no lever; you pull the debris out yourself. A save holding the keepers'
+  // pole puts it down (it is no item now), and the lever's heaves are forgotten: an unfinished drain is cleared by hand.
+  (flags) => migrateDrain158(flags),
 ];
+/** Step 18 (pure, in place). */
+export function migrateDrain158(flags) {
+  delete flags['item.pole'];
+  delete flags['desert.lever'];
+  delete flags['desert.pole.tried'];
+  return flags;
+}
 
 /** The quest steps removed in v1.46 (issue #85), each to the step a save on it goes on to. */
 export const QUEST_STAGE_MOVES = {

@@ -6,16 +6,16 @@ import { PLACEMENTS } from '../boxes/placements.js';
 // The desert's two first times, filmed (src/story/moment.js): once per save, skippable, and
 // never in the way (when one can't play, desert.js does what it always did).
 //
-//   flow  the rib rolls off the channel and the water runs for the first time (desert.moment.flow)
-//         A  wide, high across the giant's chest: the rib tips, rolls and falls clear      0.0–2.6
+//   flow  the debris comes out of the drain and the water runs for the first time (desert.moment.flow)
+//         A  wide, high across the giant's chest: the debris is dragged clear             0.0–2.6
 //         B  a long lens up the gutter from past its end: the crack lights and the water
-//            bursts out and comes down it, the traveller by the post watching
+//            bursts out and comes down it, the traveller beside it watching
 //            (the flow waits for this panel: st.flowDelay)                             2.6–5.3
 //         C  high over the gutter's end, across the basin: the pool spreads over the
 //            dry bed from its lowest point, round the roots, its light coming up       5.3–8.6
 //         D  the traveller's face, three-quarter, lit from below: he watches, and the
 //            corner of his mouth goes up (a slight smirk; no line)                     8.6–11.5
-//         sound: a low rumble as the rib goes, a splash at the crack and in the basin,
+//         sound: a low rumble as the debris goes, a splash at the crack and in the basin,
 //         the world's motif swelling over the score (sound.swell('motif'))
 //   fill  wading in with the empty tank (desert.moment.fill)
 //         A  wide, over the water: the traveller stops in the glowing pool              0.0–2.3
@@ -97,7 +97,7 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
     const m = moments.play({
       id: 'desert.flow', flag: 'desert.moment.flow', dur: FLOW.A + FLOW.B + FLOW.C + FLOW.D,
       shots: [
-        // A: high on the far side of the gutter, outside the hanging roots: the rib, the post and the traveller, the crack beyond
+        // A: high on the far side of the gutter, outside the hanging roots: the debris and the traveller, the crack beyond
         { dur: FLOW.A, from: { pos: L(11.5, 6.8, 10.5), look: L(21.5, 0.9, -3.0), fov: 50 }, to: { pos: L(12.6, 6.0, 9.0), look: L(21.2, 0.8, -3.6), fov: 46 } },
         // B: from past the gutter's end, a long lens up it to the crack as it breaks; the water comes down it toward us
         { dur: FLOW.B, ease: 'linear', clear: false,
