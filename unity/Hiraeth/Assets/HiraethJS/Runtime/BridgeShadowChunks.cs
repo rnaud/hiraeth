@@ -21,6 +21,10 @@ namespace Hiraeth.Bridge
         /// <summary>On with renderer lists (the Xbox), -no-shadow-chunks off.</summary>
         public static bool On;
         public const int Layer = 30;
+        /// <summary>-view-pieces, a test: the pieces drawn by the camera too (ViewLayer, which it keeps), the node's own renderer
+        /// off, so the G-buffer's vertex stage also skips the parts of the ring out of view.</summary>
+        public static bool View;
+        public const int ViewLayer = 29;
         public static float Cell = 48, MinRadius = 40;
         public static int MinVertices = 4000;
         static readonly Dictionary<Mesh, Mesh[]> cache = new();
@@ -115,16 +119,17 @@ namespace Hiraeth.Bridge
             uint mask = HiraethShadows.CasterLayer | HiraethShadows.CascadeLayer[0] | HiraethShadows.CascadeLayer[1] | HiraethShadows.CascadeLayer[2];
             foreach (var p in pieces)
             {
-                var c = new GameObject("shadow piece") { layer = Layer };
+                var c = new GameObject(View ? "piece" : "shadow piece") { layer = View ? ViewLayer : Layer };
                 c.transform.SetParent(go.transform, false);
                 c.AddComponent<MeshFilter>().sharedMesh = p;
                 var cr = c.AddComponent<MeshRenderer>();
                 cr.sharedMaterials = mats;
                 cr.shadowCastingMode = r.shadowCastingMode;
-                cr.receiveShadows = false;
-                cr.renderingLayerMask = mask;
+                cr.receiveShadows = View && r.receiveShadows;
+                cr.renderingLayerMask = View ? r.renderingLayerMask | mask : mask;
                 list.Add(c);
             }
+            if (View) r.enabled = false;
             r.renderingLayerMask &= ~mask;
             return list;
         }
@@ -135,7 +140,7 @@ namespace Hiraeth.Bridge
             if (pieces == null) return;
             foreach (var c in pieces) if (c) Object.Destroy(c);
             pieces.Clear();
-            if (r) r.renderingLayerMask |= HiraethShadows.CasterLayer;
+            if (r) { r.renderingLayerMask |= HiraethShadows.CasterLayer; r.enabled = true; }
         }
     }
 }

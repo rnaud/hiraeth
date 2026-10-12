@@ -164,8 +164,30 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The bundle loaded and started (on the thread that runs it).</summary>
+#if UNITY_WSA && !UNITY_EDITOR
+        // (the Xbox's PapiV8.dll, relinked by scripts/unity-uwp-v8.ps1 with these two of its own: scripts/unity-uwp-v8-stubs.cpp)
+        [System.Runtime.InteropServices.DllImport("PapiV8")] static extern void HiraethV8Flags([System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPStr)] string flags);
+        [System.Runtime.InteropServices.DllImport("PapiV8")] static extern IntPtr HiraethV8Version();
+#endif
+        /// <summary>-v8 "&lt;flags&gt;": V8's own flags, set before the first engine is made (the Xbox's PapiV8 only); V8's version logged.</summary>
+        static void V8Flags()
+        {
+#if UNITY_WSA && !UNITY_EDITOR
+            if (JsRuntime.Backend != "V8") return;
+            try
+            {
+                var version = System.Runtime.InteropServices.Marshal.PtrToStringAnsi(HiraethV8Version());
+                var flags = BridgeArgs.Arg("-v8");
+                if (!string.IsNullOrWhiteSpace(flags)) HiraethV8Flags(flags);
+                Debug.Log($"Hiraeth bridge: V8 {version}, flags {(string.IsNullOrWhiteSpace(flags) ? "as Puerts sets them" : flags)}");
+            }
+            catch (Exception e) { Debug.Log("Hiraeth bridge: V8's flags: " + e.Message); }
+#endif
+        }
+
         void Boot(byte[] code)
         {
+            V8Flags();
             // (-jsinspect <port>: V8's inspector, for a profile of the script: scratchpad's cdp tools, Chrome's DevTools)
             int port = BridgeArgs.Arg("-jsinspect") is string ps && int.TryParse(ps, out int pp) ? pp : -1;
             js = thread != null ? new JsRuntime(BridgeHost.OnMainThread, port) : new JsRuntime();
@@ -333,6 +355,8 @@ namespace Hiraeth.Bridge
             BridgeShadowChunks.On = HiraethShadows.UseRendererLists && !BridgeArgs.Flag("-no-shadow-chunks");
             if (BridgeArgs.Arg("-shadow-chunk-cell") is string cc && float.TryParse(cc, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ccv)) BridgeShadowChunks.Cell = Mathf.Max(4, ccv);
             if (BridgeShadowChunks.On) HiraethShadows.PieceLayer = BridgeShadowChunks.Layer;   // (the camera leaves them out: Start)
+            BridgeShadowChunks.View = BridgeShadowChunks.On && BridgeArgs.Flag("-view-pieces");
+            if (BridgeShadowChunks.View) HiraethShadows.ViewPieceLayer = BridgeShadowChunks.ViewLayer;
             HiraethShadows.Census = BridgeArgs.Flag("-shadow-census");
             // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
             // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before
