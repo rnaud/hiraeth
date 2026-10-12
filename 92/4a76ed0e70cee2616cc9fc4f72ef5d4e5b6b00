@@ -1,0 +1,59 @@
+changelog.md
+  s_213c7b13465d60::t_30e1e0dc6e50a5 7
+docs/systems/android.md
+  s_213c7b13465d60::t_bdec95aa08ee66 293
+docs/systems/audio.md
+  s_213c7b13465d60::t_a40a92c1b944ea 131,156,178,180,182,185-229,255-256,290,298-301
+docs/systems/minigames.md
+  s_213c7b13465d60::t_40615546744bcd 357
+scripts/site-only.mjs
+  s_213c7b13465d60::t_fa798cb54b7bc5 10
+scripts/web-update.mjs
+  s_213c7b13465d60::t_dc4403a8b3f360 149
+src/audio.js
+  s_213c7b13465d60::t_f7d65e311d9316 15,415-416,424-425,436-438,691-693,698-699,702-703
+src/changelog-media.js
+  s_213c7b13465d60::t_973eb0b5b71fd2 736-739
+src/changelog.js
+  s_213c7b13465d60::t_5eb57d4b48acc5 26-28
+src/minigames/drums.js
+  s_213c7b13465d60::t_01d1d0783c5b94 3,21,372-373
+src/minigames/rhythm.js
+  s_213c7b13465d60::t_19bbf4e5017b58 11
+src/music-store.js
+  s_213c7b13465d60::t_c7d0f35541fcb9 2-3,19-20,97
+src/score-voices.js
+  s_213c7b13465d60::t_ed26a3c28bf5c8 50-175,236-243,245-250,277-290,440-442,480-493
+src/score.js
+  s_213c7b13465d60::t_5245d3bc0e845e 30,75-81,83-91
+src/soundtracks.js
+  s_213c7b13465d60::t_35a2e6654a9540 1-2,29
+tests/desert-music.test.js
+  s_213c7b13465d60::t_ef3ea97542cf36 1-194
+tests/music-store.test.js
+  s_213c7b13465d60::t_e05319be04b908 69-71,86-88,105,111,114-116,221,223-225,228
+tests/score.test.js
+  s_213c7b13465d60::t_5a614b486640f2 41-43,48
+tests/site-only.test.js
+  s_213c7b13465d60::t_c04f0447dcdada 28,33,37-38,41,44-45
+tests/soundtracks.test.js
+  s_213c7b13465d60::t_44891c1a9ee17d 25,35,39-43,52
+tests/web-update.test.js
+  s_213c7b13465d60::t_558c1172ff0d39 167,170,174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "924a76ed0e70cee2616cc9fc4f72ef5d4e5b6b00",
+  "prompts": {},
+  "sessions": {
+    "s_213c7b13465d60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9713f70ca7714509",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
