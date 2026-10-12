@@ -36,7 +36,7 @@ const lerp = THREE.MathUtils.lerp;
 const W = -0.8;   // lake level
 export const LAYOUT = {
   lake: { x: 190, z: -120, rx: 92, rz: 60 },
-  view: { x: 190, z: -50 },                       // the south shore: reflections are drawn for this eye
+  view: { x: 190, z: -50 },                       // the south shore by Nell, kept open (the clumps keep off it)
   hill: { x: -215, z: -140, r: [66, 48, 34], top: [8, 18, 27] },
   hillTree: { x: -145, z: -140, R: 26 },           // its canopy touches the hill's middle terrace
   hillPyr: { half: 23, height: 27, tiers: 12, top: 5.5 },
@@ -991,51 +991,29 @@ export function* buildSpheres(scene) {
   }
 
   // ==========================================================================
-  // mirror lake: the far shore reflected as flat print shapes on the water.
-  // Each vertex is mirrored in the water plane and projected back onto it
-  // along the line of sight from the south shore, so from there the shapes sit
-  // exactly where the reflection would be.
+  // mirror lake: the far shore (and the garden it remembers, issue #190) in the water. Each piece is drawn as its
+  // reflection from wherever the eye is (makeMaterial({ mirror }): mirrored in the water's plane in the vertex
+  // shader and laid on the water along the line of sight), lit as the thing itself is; one mesh a colour.
   // ==========================================================================
   yield;
   {
-    const V = new THREE.Vector3(LAYOUT.view.x, W + 1.8, LAYOUT.view.z);
     // (memory: the garden before the fall, only in the water, issue #190: spheres-explorations.js)
-    const COLS = { white: ['#e4f0ec', '#d6ebe6'], sphere: ['#eef0d8', '#e2eadb'], tree: ['#5f8a74', '#587f6c'], memory: ['#f6edd3', '#efe4c6'] };   // (warmer than the shore's: a garden that isn't there)
-    const order = reflect.map((r) => { r.geo.computeBoundingSphere(); return { ...r, d: r.geo.boundingSphere.center.distanceTo(V) }; })
-      .sort((a, b) => b.d - a.d);
-    const v = new THREE.Vector3();
+    const COLS = { white: ['#e4f0ec', '#d6ebe6'], sphere: ['#eef0d8', '#e2eadb'], tree: ['#5f8a74', '#587f6c'], memory: ['#f6edd3', '#efe4c6'], memoryTree: ['#86a37c', '#7d9a74'] };   // (warmer than the shore's: a garden that isn't there)
     const byKey = {};
-    order.forEach((r, idx) => {
-      const g = r.geo.index ? r.geo.toNonIndexed() : r.geo, p = g.attributes.position, out = [];
-      const yo = W + 0.06 + idx * 0.012;
-      for (let i = 0; i < p.count; i += 3) {
-        const tri = [];
-        let ok = true;
-        for (let k = 0; k < 3; k++) {
-          v.fromBufferAttribute(p, i + k);
-          if (v.y < W - 0.05) { ok = false; break; }
-          const my = 2 * W - v.y, t = (V.y - W) / (V.y - my);
-          tri.push(V.x + (v.x - V.x) * t, yo, V.z + (v.z - V.z) * t);
-        }
-        if (!ok) continue;
-        const ex = (tri[0] + tri[3] + tri[6]) / 3, ez = (tri[2] + tri[5] + tri[8]) / 3;
-        if (lakeE(ex, ez) > 1.15) continue;
-        if (r.key === 'memory' && (ez > Lk.z + Lk.rz * 0.2 || lakeE(ex, ez) > 1)) continue;   // (the garden that isn't there: in the water, not at your feet)
-        // keep the winding facing up
-        const ax = tri[3] - tri[0], az = tri[5] - tri[2], bx = tri[6] - tri[0], bz = tri[8] - tri[2];
-        if (az * bx - ax * bz > 0) out.push(...tri); else out.push(tri[0], tri[1], tri[2], tri[6], tri[7], tri[8], tri[3], tri[4], tri[5]);
-      }
-      if (!out.length) return;
-      const rg = new THREE.BufferGeometry();
-      rg.setAttribute('position', new THREE.Float32BufferAttribute(out, 3));
-      const nrm = new Float32Array(out.length);
-      for (let i = 1; i < nrm.length; i += 3) nrm[i] = 1;
-      rg.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
-      (byKey[r.key + idx] = byKey[r.key + idx] ?? { key: r.key, list: [] }).list.push(rg);
-    });
-    for (const { key, list } of Object.values(byKey)) {
-      const m = new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: COLS[key][0], color2: COLS[key][1], mode: MODE_WATER, waterPrint: true }));
-      m.userData.noCollide = true;
+    for (const r of reflect) {
+      const g = r.geo.index ? r.geo.toNonIndexed() : r.geo.clone();
+      if (!g.attributes.normal) g.computeVertexNormals();
+      for (const name of Object.keys(g.attributes)) if (name !== 'position' && name !== 'normal') g.deleteAttribute(name);
+      // (mirrored, the image is inside out: its winding flipped, so the faces turned to the eye are its front ones)
+      const p = g.attributes.position.array, n = g.attributes.normal.array;
+      for (let i = 0; i < p.length; i += 9) for (let k = 0; k < 3; k++) { [p[i + 3 + k], p[i + 6 + k]] = [p[i + 6 + k], p[i + 3 + k]]; [n[i + 3 + k], n[i + 6 + k]] = [n[i + 6 + k], n[i + 3 + k]]; }
+      (byKey[r.key] ??= []).push(g);
+    }
+    for (const [key, list] of Object.entries(byKey)) {
+      const m = new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: COLS[key][0], color2: COLS[key][1], mode: MODE_WATER, waterPrint: true, mirror: { y: W, lake: [Lk.x, Lk.z, Lk.rx * 1.08, Lk.rz * 1.08] } }));
+      m.name = `the lake’s reflection: ${key}`;
+      m.userData.noCollide = true; m.userData.castShadow = false; m.userData.reflection = key;
+      m.frustumCulled = false;   // (drawn on the water, away from where its vertices stand)
       scene.add(m);
     }
   }

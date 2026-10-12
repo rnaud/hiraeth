@@ -719,6 +719,9 @@ const ANTE_CAM = (id) => `const rt = window.temples?.${id}, K = rt.kit, V = THRE
   rig.yaw = player.heading + Math.PI; rig.pitch = rig.pitch0; rig._lastP = null;`;
 const SH59 = 'headless Chrome (muted) on the Mac’s GPU, the Handheld preset at the Retroid’s 730 × 410 CSS px at 2× (render scale 0.75), hour 10, clear, the clock held; origin/main’s build (27d67022) and this change’s, the same camera for both (12 October); cwebp -q 72';
 const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5641) and origin/main’s tree before it (8821ba59, port 5643), ?game=pirates&to=edena, the run flown ahead to the same second by the game’s pilot for both (12 October); cwebp -q 72';
+// (v1.59: Lorn's veins, Viridel's water stair and the Garden's lake polished against their sheets, issues #188-#190: a
+// scratch copy of scripts/design-qc/capture.mjs, the before this branch's own tree before the change)
+const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5681), the before the same tree before the polish (27d67022), the same pinned cameras as v1.55 and v1.56, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.59': [
     { match: 'The Cistern-Keeper has an experimental animation preview', tags: ['characters', 'desert'], shots: [
@@ -787,6 +790,36 @@ export const CHANGELOG_MEDIA = {
         { where: 'desert spawn', before: 3.95, after: 4.13 }, { where: 'dunes', before: 2.15, after: 2.2 }, { where: 'camps', before: 3.92, after: 4.01 },
       ], source: 'node scripts/bench/passes.mjs --toggles fxaa,smaa (synced frame time, median of 7 in turns); the lighter far lines cost nothing measurable. The Retroid: about 3× the Mac, 0.2–0.5 ms (estimated)' },
     ], see: 'On a handheld (or the Handheld preset), stand in the Signal Market’s street and turn slowly, looking down it: the far facades hold still.' },
+    { match: 'Lorn’s crystal roots now lie under the water', shots: [
+      { name: 'lorn-veins', title: 'Riding the lit vein', caption: 'On the skiff by the keepers’ light, following the stakes south: before, flat violet strips with a teal zigzag laid on the water; after, crystal under the surface, faceted violet and teal, its heart lit, running on to the root gate', from: POLISH59,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [-52, 2.6, -318], target: [-40, 1.5, -372], player: [-52, 0.5, -318] },
+        reference: { sheet: 'references/levels/Lorn/environment/explorations/crystal-roots/sheet-1.jpg', caption: 'The author’s pick: riding the lit vein (references/levels/Lorn/environment/explorations/crystal-roots)' } },
+      { name: 'lorn-veins-island', title: 'From the Crystal’s island', caption: 'From the Great Crystal’s island looking south-west: before, the strips with their hard edges; after, the roots under the water, the lit vein glowing, twigs thinning off it', from: POLISH59,
+        view: { level: 'perdide', hour: 18.4, fov: 60, eye: [100, 14, -172], target: [-40, 0, -300], player: [100, 2.5, -168] } },
+    ], numbers: [
+      { title: 'The veins, drawn', unit: '', better: 'lower', device: 'the built world, as the tests build it', rows: [
+        { where: 'meshes', before: 7, after: 1 },
+        { where: 'triangles', before: 11232, after: 270 },
+      ], source: 'the veins drawn by Lorn’s water from a map baked once (1024² with mipmaps); the one mesh left is the ringing groves' },
+    ], see: 'Ride the skiff south from the Hush-House along the keepers’ stakes at dusk: the lit vein runs beside you under the water, light flowing along it toward the Great Crystal.' },
+    { match: 'Viridel’s water stair looks like a gardeners’ stair now', shots: [
+      { name: 'viridel-stair', title: 'The water stair', caption: 'From in front of its foot: before, grey-white boxes in a grid; after, warm blocks with rounded lips, water falling over them, ferns hanging down the walls, cypresses up the terraces', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [70.9, 3, 181.3], target: [99.8, 26.1, 277.2], player: [71.9, -2.3, 182.3] },
+        reference: { sheet: 'references/levels/Viridel/environment/explorations/water-stair/sheet-1.jpg', caption: 'The author’s pick: the water stair (references/levels/Viridel/environment/explorations/water-stair)' } },
+      { name: 'viridel-beds', title: 'The terraces from the side', caption: 'From over the stair’s west side: before, a block of walls the same width; after, terraces stepping in and out, their lips rounded, water spilling, bushes on the kerbs', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [53.8, 20.8, 230.6], target: [92.9, 0.8, 248] } },
+      { name: 'viridel-gate', title: 'A sluice-gate', caption: 'At the foot of a gated flight: before, a flat strip of water on the grid wall; after, the channel falling as water, ferns and bushes over the lips', from: POLISH59,
+        view: { level: 'edena', hour: 10, fov: 60, eye: [91.1, -2.9, 218.6], target: [78.2, -0.2, 227.8], player: [91.1, -5, 218.6] } },
+    ], see: 'From the fallen ship follow the white channel north to the foot of the stair and climb it bed by bed; turn a sluice-gate’s wheel and watch the bed below spill over its lip once it has flooded.' },
+    { match: 'The Garden’s lake shows its lost town wherever you stand', shots: [
+      { name: 'garden-lake', title: 'From Nell’s shore', caption: 'Across the lake from the south shore: before, flat strips and a few pale shapes; after, the far shore and the lost town in the water, domes, towers and a waterfront, shimmering', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 60, eye: [183, 2.2, -57], target: [172, -1, -150], player: [179.5, -0.4, -62] },
+        reference: { sheet: 'references/levels/The Garden of Spheres/environment/explorations/lake-memory/sheet-2.jpg', caption: 'The author’s pick: the lake that shows another garden (references/levels/The Garden of Spheres/environment/explorations/lake-memory)' } },
+      { name: 'garden-lake-north', title: 'From the far shore', caption: 'From the stones’ landing looking back south: before, the bare mirror; after, the town that was on the near shore, upside down in the water', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 60, eye: [160, 2, -184], target: [190, -1, -90], player: [157, -0.3, -181] } },
+      { name: 'garden-lake-moons', title: 'From the stones', caption: 'On the middle stone once the pearl has rung: before, strips that only lined up from Nell’s shore; after, the far shore’s pyramid, temple and sphere reflected as they stand, the town’s waterfront in front of them', from: POLISH59,
+        view: { level: 'spheres', hour: 9, fov: 62, eye: [167.5, 5.2, -110], target: [171, -1, -133], player: [170.6, 0, -121.5], save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'spheres.heard.bell': true, 'spheres.lake.moons': true } } } },
+    ], see: 'Walk the lake path to Nell on the south shore and look across the water, then cross on the stones and look back from the far shore.' },
   ],
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [

@@ -130,11 +130,17 @@ test('Lorn’s veins: the lit vein runs from the Great Crystal across the crossi
   // from where it meets the stakes, it keeps beside them (within 12 m) to Hollin's island
   const leg = KEEPERS_STAKES.way.slice(KEEPERS_STAKES.way.findIndex(([x]) => x === -64)).map(([x, z]) => [x, z]);
   for (const [x, z] of LIT_VEIN.slice(5)) assert.ok(lineDist(x, z, leg) < 12, `the lit vein at ${x}, ${z} keeps by the stakes (${lineDist(x, z, leg).toFixed(1)} m)`);
-  // drawn on the water only (you ride over it), but where it is open water
-  const veins = W.scene.getObjectByName('The roots of the crystal');
-  let drawn = 0;
-  veins.traverse((o) => { if (o.isMesh && o.name.startsWith('The crystal’s veins')) { drawn++; assert.ok(o.userData.noCollide, 'the veins are drawn only'); } });
-  assert.ok(drawn >= 4, `vein meshes ${drawn}`);
+  // drawn by the water itself, under its surface (nothing to ride into), from the map: along the lit vein over the open
+  // water, and nowhere on dry ground
+  const water = W.scene.getObjectByName('Lorn’s water');
+  assert.ok(water.material.defines.WATER_VEINS && water.material.uniforms.uVeinMap.value === v.map.texture, 'the water draws the veins');
+  const P = v.veins[0];
+  let over = 0, open = 0;
+  for (const p of P) if (W.level.ground.heightAt(p.x, p.z) < -0.6) { open++; if (v.map.at(p.x, p.z) > 0.5) over++; }
+  assert.ok(open > 40 && over / open > 0.9, `the lit vein under the open water (${over} of ${open})`);
+  for (const [x, z] of [[-100, -400], [0, 0], [200, -400]]) if (W.level.ground.heightAt(x, z) > 0.2) assert.equal(v.map.at(x, z), 0, `no vein on the ground at ${x}, ${z}`);
+  assert.ok(v.map.size >= 512 && v.map.texel <= 0.65, `the map's texel ${v.map.texel.toFixed(2)} m`);
+  assert.equal(W.scene.getObjectByName('The roots of the crystal').children.filter((o) => o.isMesh && !o.name.startsWith('The ringing groves')).length, 0, 'no ribbons laid on the water');
   // the groves stand off the stakes and the courses, and ring when you come by
   for (const G of v.groves) {
     assert.ok(lineDist(G.at.x, G.at.z, KEEPERS_STAKES.way) > 9, `a grove off the stakes (${lineDist(G.at.x, G.at.z, KEEPERS_STAKES.way).toFixed(1)} m)`);

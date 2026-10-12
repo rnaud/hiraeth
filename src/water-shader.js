@@ -88,16 +88,25 @@ const SAND = new THREE.Color('#e9dcb4');
 /** A bed map that says "unknown": the shader falls back to uWaterOpt.x of depth everywhere. */
 const NO_BED = new THREE.DataTexture(new Uint16Array([0]), 1, 1, THREE.RedFormat, THREE.HalfFloatType);
 NO_BED.needsUpdate = true;
+/** No veins (until lorn-veins.js has baked its map). */
+const NO_VEINS = new THREE.DataTexture(new Uint8Array(4), 1, 1, THREE.RGBAFormat);
+NO_VEINS.needsUpdate = true;
 
 /**
  * Turn a fresh makeMaterial() water material into the new water: the WATER
  * define and its uniforms. o.bed: the bed's colour seen through the shallows
  * (default: the shallows' own tone, sandier); o.waterDepth: how deep it looks until its bed is baked;
  * o.waterPrint: a flat printed shape lying on the water (the Garden's mirrored
- * shore), its own colour with the ripples, no depth.
+ * shore), its own colour with the ripples, no depth. o.crystalRoots: Lorn's crystal roots under it (WATER_VEINS: the
+ * map uVeinMap over uVeinBox, src/lorn-veins.js bakes and sets them).
  */
 export function waterMaterial(mat, o = {}) {
   mat.defines = { ...mat.defines, WATER: 1 };
+  if (o.crystalRoots) {
+    mat.defines.WATER_VEINS = 1;
+    mat.uniforms.uVeinMap = { value: NO_VEINS };
+    mat.uniforms.uVeinBox = { value: new THREE.Vector4(0, 0, 0, 0) };
+  }
   Object.assign(mat.uniforms, waterShared, {
     uBed: { value: NO_BED },
     uBedBox: { value: new THREE.Vector4(0, 0, 0, 0) },        // x0, z0, 1 / width, 1 / depth (world)
@@ -117,6 +126,14 @@ export const WATER_GLSL = /* glsl */ `
   uniform vec3 uWaterBed;
   uniform vec4 uWaterOpt;        // fallback depth · printed shape · clarity · sparkle
   uniform vec4 uWaterBelow;      // the underside: lifted toward rgb by a
+  #ifdef WATER_VEINS
+    uniform sampler2D uVeinMap;  // Lorn's crystal roots under the water (lorn-veins.js)
+    uniform vec4 uVeinBox;       // its x0, z0, 1 / width, 1 / depth (world)
+  #endif
+  #ifdef MIRROR
+    uniform vec4 uMirror;       // the water's height, the images' lift, its distance, the shimmer (materials.js)
+    uniform vec4 uMirrorLake;    // the lake's ellipse: x, z, rx, rz
+  #endif
   uniform vec4 uWaterRings[${RINGS}];   // x, z, start time, strength
   uniform vec3 uWaterSky[2];
   uniform float uWaterLite;
@@ -127,7 +144,7 @@ export const WATER_GLSL = /* glsl */ `
   uniform mat4 uScenePrevVP;       // the camera uSceneDepth was taken with (usually last frame's)
   uniform vec3 uScenePrevEye;
 
-  struct WaterLook { vec3 albedo; float ink; float lit; float glint; };
+  struct WaterLook { vec3 albedo; float ink; float lit; float glint; float glow; };   // (glow: self-lit, as a material's: Lorn's veins)
 
   // the water column under p (m), and how sure the bed map is of it (0 outside it / not baked)
   float waterDepth(vec3 p, out float known) {
@@ -149,6 +166,60 @@ export const WATER_GLSL = /* glsl */ `
     float dash = smoothstep(0.6, 0.66, vnoise(vec2(q.y * 1.3, lane * 3.7 + seed) + vec2(t * 0.05, 0.0)) + 0.08 * min(str, 2.0));
     return inkLine(d, 0.95) * dash * (1.0 - smoothstep(0.12, 0.3, fw));
   }
+
+  #ifdef WATER_VEINS
+  // Lorn's crystal roots under the water (src/lorn-veins.js bakes uVeinMap over the basin, with mipmaps: r how much of
+  // a vein is there, softly to its edge, highest along its heart; g, b where along it the light's bands are (the sine
+  // and cosine of its run from the Crystal); a how deep it lies, of 3 m).
+  // Crystal seen through the surface: its edge soft and wobbling as the water moves over it, faceted in violet,
+  // lavender and teal cells (smaller the deeper it lies) with fine ink between them, its heart lit, a teal halo round it
+  // in the water, fading the deeper it lies and a little toward grazing angles; bands of light running along it in to
+  // the Crystal, the whole of it breathing. Returns how lit it is (self-lit: W.lit, W.glow).
+  float waterVeins(vec3 p, float t, float px, float fres, inout vec3 col, inout float ink) {
+    vec2 wob = (vec2(vnoise(p.xz * 0.21 + t * vec2(0.17, 0.11)), vnoise(p.xz * 0.23 - t * vec2(0.13, 0.19))) - 0.5) * 0.9;
+    vec2 uv = (p.xz + wob - uVeinBox.xy) * uVeinBox.zw;
+    vec4 vm = texture(uVeinMap, clamp(uv, 0.0, 1.0));
+    float body = vm.r * step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+    float fb = fwidth(body);   // (derivatives first: uniform control flow)
+    if (body < 0.004) return 0.0;
+    float under = vm.a * 3.0, seen = exp(-under * 0.45) * (1.0 - 0.35 * fres);
+    // the facets: each a flat tone shaded across like a cut face
+    float cell = mix(1.3, 0.55, clamp(under * 0.6, 0.0, 1.0));
+    vec2 q = p.xz / cell + wob * 0.5;
+    vec2 n = floor(q), f = fract(q), id = n, mr = vec2(0.0);
+    float md = 8.0;
+    for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
+      vec2 g = vec2(float(i), float(j)), r = g + hash2(n + g) - f;
+      float d = dot(r, r);
+      if (d < md) { md = d; id = n + g; mr = r; }
+    }
+    float tone = hash(id + 3.7);
+    vec3 cc = tone < 0.42 ? vec3(0.53, 0.49, 0.9) : (tone < 0.78 ? vec3(0.7, 0.64, 0.95) : vec3(0.52, 0.86, 0.8));
+    float facet = 0.9 + 0.22 * dot(mr, normalize(hash2(id + 9.1) - 0.5 + 1e-3));
+    // the light's bands: sin(run + t), from the sine and cosine of the run (they move in toward the Crystal)
+    float wave = (vm.g * 2.0 - 1.0) * cos(t * 1.5) + (vm.b * 2.0 - 1.0) * sin(t * 1.5);
+    float pulse = pow(clamp(0.5 + 0.5 * wave, 0.0, 1.0), 6.0);
+    float breathe = 0.84 + 0.16 * sin(t * 0.75 + p.x * 0.008 - p.z * 0.006);
+    float k = smoothstep(0.04, 0.55, body) * seen;
+    col = mix(col, cc * facet * (breathe + 0.35 * pulse), k * 0.9);
+    // its heart lit (and, far off where its facets are too small to see, the whole of it), and a teal halo round it
+    float far = smoothstep(0.04, 0.2, px / cell);
+    float core = max(smoothstep(0.72, 0.97, body), far * 0.55);
+    col = mix(col, vec3(0.82, 0.99, 0.95), core * seen * (0.35 + 0.45 * pulse));
+    float halo = smoothstep(0.0, 0.15, body) * (1.0 - smoothstep(0.15, 0.5, body));
+    col = mix(col, vec3(0.6, 0.93, 0.87), halo * seen * (0.3 + 0.35 * pulse));
+    // the facets' edges, finely inked close up, and its own edge, broken
+    float cpx = max(px / cell * 1.6, 1e-4);
+    float near = 1.0 - smoothstep(0.03, 0.1, px / cell);
+    if (near > 0.0) {
+      float cb = voronoiBorder(q, (0.35 * uPixelRatio + 0.6) * cpx * 1.01);
+      ink = max(ink, inkLine(cb / cpx, 0.55) * k * 0.32 * near);
+    }
+    float edge = inkLine(abs(body - 0.3) / max(fb, 1e-4), 0.8) * step(0.45, vnoise(p.xz * 0.6 + 7.0));
+    ink = max(ink * (1.0 - k * 0.6), edge * seen * 0.4 * (1.0 - smoothstep(0.05, 0.2, px)));
+    return k * (0.85 + 0.15 * pulse);
+  }
+  #endif
 
   // The contact foam (CONTACT): raises foam where the view ray's run through the water to what is behind
   // it is short, returns the wavelets' ink. The noise is all on p.xz: anchored in the world.
@@ -203,6 +274,7 @@ export const WATER_GLSL = /* glsl */ `
 
   WaterLook waterLook(vec3 p, bool front) {
     WaterLook W;
+    W.glow = 0.0;
     float t = uTime;
     vec2 wd = length(uWind.xy) > 1e-4 ? normalize(uWind.xy) : vec2(1.0, 0.0);
     float str = clamp(uWind.z, 0.15, 3.0);
@@ -255,6 +327,23 @@ export const WATER_GLSL = /* glsl */ `
     }
     if (uWaterOpt.y > 0.5) {
       // a printed shape lying on the water (the mirrored shore): its own flat colour, the ripples over it
+      #ifdef MIRROR
+      {
+        // a reflection (materials.js MIRROR): only on the lake, and broken across the line of sight by thin
+        // drifting gaps where the water shows between, wider apart further off (the image's shimmer)
+        vec2 e = (p.xz - uMirrorLake.xy) / uMirrorLake.zw;
+        if (dot(e, e) > 1.0) discard;
+        float dist = length(p.xz - cameraPosition.xz);
+        vec2 look = (p.xz - cameraPosition.xz) / max(dist, 1e-3);
+        float lane = dist / (0.35 + dist * 0.022);
+        float across = dot(p.xz, vec2(-look.y, look.x));
+        float gap = step(0.91, fract(lane + 0.25 * sin(across * 0.21 + t * 0.6))) * step(0.55, vnoise(vec2(floor(lane) * 1.7, across * 0.12 + t * 0.15)));
+        if (gap * uMirror.w > 0.5) discard;
+        // (lit as the thing is, its shade a little lighter: an image in the water)
+        W.albedo = uColor; W.ink = ink * 0.6; W.lit = 0.3; W.glint = 0.0;
+        return W;
+      }
+      #endif
       W.albedo = uColor;
       W.ink = ink * 0.6;
       W.lit = 0.0;
@@ -279,6 +368,9 @@ export const WATER_GLSL = /* glsl */ `
     vec3 skyC = mix(uWaterSky[1], uWaterSky[0], smoothstep(0.0, 0.5, V.y));
     float steps = sk > 0.62 ? 0.62 : (sk > 0.36 ? 0.3 : 0.0);
     col = mix(col, mix(col, skyC, 0.85), steps);
+    #ifdef WATER_VEINS
+      float veinGlow = waterVeins(p, t, px, fres, col, ink);   // (their light through the sky's steps, dimmed toward grazing)
+    #endif
 
     // ---- shoreline: a pale foam band where the water meets anything, a lapping line off it
     // (the distance to the shore in metres: the depth over its slope)
@@ -321,6 +413,10 @@ export const WATER_GLSL = /* glsl */ `
     W.ink = ink;
     W.lit = foam * 0.6;
     W.glint = glint;
+    #ifdef WATER_VEINS
+      W.lit = max(W.lit, veinGlow);
+      W.glow = veinGlow;
+    #endif
     return W;
   }
 `;

@@ -94,8 +94,15 @@ test('the causeway: stones touching from shore to shore just over the water, the
 });
 
 test('in the water a garden that is not on the shore, and once the bell is heard the spheres in its sky', () => {
-  const reflections = W.scene.children.filter((o) => o.isMesh && o.userData.noCollide && o.material?.uniforms?.uColor && Math.abs(o.position.y) < 1e-6);
-  assert.ok(reflections.length > 20, `${reflections.length} reflected shapes`);
+  // (each colour one mesh, drawn as its reflection from wherever the eye is: makeMaterial({ mirror }), not shadowed)
+  const reflections = W.scene.children.filter((o) => o.isMesh && o.userData.reflection);
+  const keys = reflections.map((o) => o.userData.reflection);
+  for (const k of ['white', 'sphere', 'tree', 'memory', 'memoryTree']) assert.ok(keys.includes(k), `the lake reflects ${k}`);
+  for (const o of reflections) assert.ok(o.userData.noCollide && o.userData.castShadow === false && o.material.defines.MIRROR && o.material.uniforms.uMirror.value.x === L.spheres.lake.level, `${o.name}: a reflection in the lake's water`);
+  // the town it remembers stands all round the water, so it is seen in it from either shore and from the stones
+  const lk = L.spheres.lake, sides = new Set(), p = reflections.find((o) => o.userData.reflection === 'memory').geometry.attributes.position;
+  for (let i = 0; i < p.count; i += 30) sides.add(Math.floor(((Math.atan2((p.getZ(i) - lk.z) / lk.rz, (p.getX(i) - lk.x) / lk.rx) + Math.PI) / (Math.PI / 2))) % 4);
+  assert.equal(sides.size, 4, 'domes and towers on every side of the lake');
   // (none of the memory is standing on the shore: it is only in the water)
   assert.ok(!W.physics.rayHit(V(205, 30, -258), V(0, -1, 0), 25), 'no great pyramid on the far shore itself');
   const moons = E.lake.moons;

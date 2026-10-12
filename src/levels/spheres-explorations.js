@@ -325,36 +325,82 @@ export function buildExplorations(k) {
       add(M.white, g); proxy(g.clone());
     }
     out.stones = stones;
-    // the garden before the fall, drawn only in the water: a white town on the far shore, domes, towers and a great
-    // stepped pyramid behind the shore that is there, the lines of a road along the water (reflect: src/levels/spheres.js)
-    const town = [];
-    const mergeTwo = (...gs) => join(gs, false);
-    const domeAt = (x, z, r, drum = 0) => {
-      const b = H(x, z) - 0.3, dome = new THREE.SphereGeometry(r, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, b + drum, z);
-      town.push(drum ? mergeTwo(new THREE.CylinderGeometry(r, r, drum, 20, 1).translate(x, b + drum / 2, z), dome) : dome);
-    };
-    const block = (x, z, w, h, dd) => { const g = new THREE.BoxGeometry(w, h, dd).translate(x, H(x, z) - 0.3 + h / 2, z); g.userData.shore = true; town.push(g); };
-    const tower = (x, z, r, h) => { const b = H(x, z) - 0.3; town.push(mergeTwo(new THREE.CylinderGeometry(r * 0.8, r, h, 10, 1).translate(x, b + h / 2, z), new THREE.ConeGeometry(r * 1.3, r * 2.4, 10).translate(x, b + h + r * 1.2, z))); };
-    // the great stepped pyramid (the sheet's), its temple on top
-    // (on the shore itself, where the shore that is there is only grass: between the far shore's pyramid, temple and
-    // sphere and round both ends of the water; low, for tall things reflect right up to your feet)
+    // the garden before the fall, drawn only in the water (reflect: src/levels/spheres.js, seen from wherever you stand):
+    // a white town all round the lake, domes on drums with their lanterns, towers with galleries and spires, stepped
+    // pyramids with a temple on top, houses, a quay along the water and cypresses between, where the shore that is
+    // there is only grass. Each piece keeps its normals: the image is lit as the thing would be.
+    const town = [], trees = [];
     const Lk = k.lake, shoreAt = (deg, e = 1.2) => { const a = (deg * Math.PI) / 180; return [Lk.x + Math.cos(a) * Lk.rx * e, Lk.z + Math.sin(a) * Lk.rz * e]; };
-    const pyramid = (x, z, half, tiers, th) => { const b = H(x, z) - 0.5, list = []; for (let i = 0; i < tiers; i++) { const hw = half - (i * (half - 2)) / tiers; list.push(new THREE.BoxGeometry(hw * 2, th, hw * 2).translate(x, b + th / 2 + i * th, z)); } town.push(mergeTwo(...list)); };
-    // the west end: a domed hall with its towers, a little pyramid
-    { const [x, z] = shoreAt(203, 1.22); domeAt(x, z, 7, 3); tower(x + 7, z - 6, 1.3, 13); tower(x - 6, z + 5, 1.1, 10); block(x + 2, z + 8, 9, 4, 6); }
-    { const [x, z] = shoreAt(214, 1.24); pyramid(x, z, 8, 5, 2.2); }
-    // between the pyramid and the temple: a gate and a dome
-    { const [x, z] = shoreAt(252, 1.16); domeAt(x, z, 5, 2); tower(x + 4, z + 2, 1.0, 11); }
-    // between the temple and the sphere: a row of little domes on the water's edge
-    { for (const [deg, r] of [[300, 3.6], [305, 4.4], [309, 3.2]]) { const [x, z] = shoreAt(deg, 1.14); domeAt(x, z, r, 1.2); } }
-    // the east end: the great stepped pyramid of the sheet, smaller, its town round it
-    { const [x, z] = shoreAt(334, 1.25); pyramid(x, z, 13, 7, 2.2); tower(x - 10, z + 8, 1.4, 15); domeAt(x + 9, z + 10, 5.5, 2.5); block(x - 4, z + 13, 12, 4, 6); }
-    { const [x, z] = shoreAt(345, 1.22); domeAt(x, z, 6, 3); tower(x + 3, z - 7, 1.2, 12); }
-    // (each piece its own layer of the reflection, so the ink draws one against another; the blocks along the shore
-    // as one: about twenty layers more, laid far to near)
-    const shore = [];
-    for (const g of town) { const n = g.index ? g.toNonIndexed() : g; if (g.userData?.shore) shore.push(n); else k.reflect.push({ geo: n, key: 'memory' }); }
-    if (shore.length) k.reflect.push({ geo: join(shore, false), key: 'memory' });
+    const foot = (x, z) => Math.max(H(x, z), W + 0.4) - 0.3;
+    const domeAt = (x, z, r, drum = 0) => {
+      const b = foot(x, z), top = b + drum + 0.2 + r;
+      if (drum) town.push(new THREE.CylinderGeometry(r, r, drum, 20, 1).translate(x, b + drum / 2, z), new THREE.CylinderGeometry(r * 1.06, r * 1.06, 0.45, 20, 1).translate(x, b + drum, z));
+      town.push(new THREE.SphereGeometry(r, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, b + drum + 0.2, z),
+        // its lantern and finial
+        new THREE.CylinderGeometry(r * 0.16, r * 0.18, r * 0.35, 8, 1).translate(x, top + r * 0.15, z), new THREE.ConeGeometry(r * 0.2, r * 0.45, 8).translate(x, top + r * 0.55, z));
+    };
+    const block = (x, z, w, h, dd, ry = 0) => {
+      const b = foot(x, z);
+      town.push(new THREE.BoxGeometry(w, h, dd).rotateY(ry).translate(x, b + h / 2, z), new THREE.BoxGeometry(w + 0.5, 0.35, dd + 0.5).rotateY(ry).translate(x, b + h + 0.17, z));
+    };
+    const tower = (x, z, r, h, onion = false) => {
+      const b = foot(x, z);
+      town.push(new THREE.CylinderGeometry(r * 0.8, r, h, 10, 1).translate(x, b + h / 2, z),
+        new THREE.CylinderGeometry(r * 1.25, r * 1.25, 0.5, 10, 1).translate(x, b + h * 0.82, z),
+        new THREE.CylinderGeometry(r * 0.9, r * 0.85, r * 1.4, 10, 1).translate(x, b + h + r * 0.7, z));
+      if (onion) town.push(new THREE.SphereGeometry(r * 1.05, 10, 6).scale(1, 1.2, 1).translate(x, b + h + r * 2.3, z), new THREE.ConeGeometry(r * 0.25, r * 1.6, 8).translate(x, b + h + r * 4, z));
+      else town.push(new THREE.ConeGeometry(r * 1.2, r * 3.4, 10).translate(x, b + h + r * 3.1, z));
+    };
+    // a stepped pyramid, its stair up the face toward the water, a little temple with a pointed roof on its top
+    const pyramid = (x, z, half, tiers, th) => {
+      const b = foot(x, z) - 0.2, a = Math.atan2(Lk.z - z, Lk.x - x);
+      let hw = half;
+      for (let i = 0; i < tiers; i++) { hw = half - (i * (half - 3)) / tiers; town.push(new THREE.BoxGeometry(hw * 2, th, hw * 2).rotateY(-a).translate(x, b + th / 2 + i * th, z)); }
+      const H2 = tiers * th, run = half - hw;
+      town.push(new THREE.BoxGeometry(Math.hypot(H2, run) + 0.4, 0.5, half * 0.3).rotateZ(-Math.atan2(H2, run)).translate(hw + run / 2, H2 / 2, 0).rotateY(-a).translate(x, b, z));
+      town.push(new THREE.BoxGeometry(hw * 1.1, th * 1.4, hw * 1.1).rotateY(-a).translate(x, b + H2 + th * 0.7, z),
+        new THREE.ConeGeometry(hw * 0.85, th * 1.6, 4).rotateY(Math.PI / 4 - a).translate(x, b + H2 + th * 2.2, z));
+    };
+    const cypress = (x, z, h) => { const b = foot(x, z); trees.push(new THREE.LatheGeometry([[0.01, 0], [0.9, 0.8], [1.25, h * 0.32], [1.0, h * 0.72], [0.01, h]].map(([r, y]) => new THREE.Vector2(r, y)), 8).translate(x, b, z)); };
+    // a quay along the water's edge, from deg a0 to a1: a low wall the town stands back from
+    const quay = (a0, a1, e = 1.07) => {
+      for (let d = a0; d < a1; d += 5) {
+        const [x0, z0] = shoreAt(d, e), [x1, z1] = shoreAt(d + 5, e), L = Math.hypot(x1 - x0, z1 - z0);
+        town.push(new THREE.BoxGeometry(L + 0.3, 0.9, 1.6).rotateY(-Math.atan2(z1 - z0, x1 - x0)).translate((x0 + x1) / 2, W + 0.45, (z0 + z1) / 2));
+      }
+    };
+    // (the far shore, north: between the pyramid, the temple and the sphere that are there)
+    { const [x, z] = shoreAt(203, 1.22); domeAt(x, z, 7, 3.5); tower(x + 7, z - 6, 1.3, 15); tower(x - 6, z + 5, 1.1, 11, true); block(x + 2, z + 9, 9, 4, 6); cypress(x - 9, z - 3, 13); }
+    { const [x, z] = shoreAt(216, 1.26); pyramid(x, z, 9, 5, 2.4); cypress(x + 11, z + 2, 12); }
+    { const [x, z] = shoreAt(252, 1.18); domeAt(x, z, 5, 2.5); tower(x + 5, z + 2, 1.0, 12); block(x - 7, z + 1, 6, 5, 5); }
+    { for (const [deg, r] of [[298, 3.6], [303, 4.4], [308, 3.2]]) { const [x, z] = shoreAt(deg, 1.14); domeAt(x, z, r, 1.4); } const [x, z] = shoreAt(304, 1.3); tower(x, z, 1.2, 16, true); }
+    { const [x, z] = shoreAt(332, 1.27); pyramid(x, z, 14, 7, 2.4); tower(x - 11, z + 8, 1.4, 17); domeAt(x + 10, z + 11, 5.5, 3); block(x - 4, z + 14, 12, 4, 6); cypress(x + 16, z + 2, 14); }
+    { const [x, z] = shoreAt(346, 1.22); domeAt(x, z, 6, 3); tower(x + 3, z - 7, 1.2, 13, true); }
+    // (the east end)
+    { const [x, z] = shoreAt(4, 1.2); domeAt(x, z, 8, 4); tower(x - 2, z - 11, 1.4, 18); tower(x - 2, z + 11, 1.4, 18); block(x + 10, z, 6, 7, 14); }
+    { const [x, z] = shoreAt(18, 1.18); block(x, z, 10, 5, 7, 0.4); block(x + 3, z + 7, 7, 8, 6, 0.4); cypress(x - 6, z + 4, 11); }
+    // (the near shore, south: either side of Nell's, her shore and the stones' way off it left open)
+    { const [x, z] = shoreAt(36, 1.2); pyramid(x, z, 10, 5, 2.3); cypress(x - 12, z - 2, 12); }
+    { const [x, z] = shoreAt(56, 1.16); domeAt(x, z, 5.5, 2.5); tower(x + 6, z + 4, 1.1, 13, true); block(x - 6, z + 5, 7, 4, 5, 0.9); }
+    { const [x, z] = shoreAt(128, 1.18); domeAt(x, z, 6.5, 3); tower(x - 7, z + 3, 1.2, 14); cypress(x + 8, z + 2, 12); }
+    { const [x, z] = shoreAt(146, 1.22); pyramid(x, z, 11, 6, 2.3); block(x + 8, z + 12, 9, 5, 6, 2.4); }
+    // (the west end)
+    { const [x, z] = shoreAt(166, 1.2); domeAt(x, z, 7.5, 3.5); tower(x + 2, z - 10, 1.3, 16, true); tower(x + 2, z + 10, 1.3, 16, true); cypress(x - 10, z, 14); }
+    { const [x, z] = shoreAt(184, 1.18); block(x, z, 8, 6, 10, 0.2); block(x - 4, z + 7, 6, 4, 6, 0.2); }
+    quay(196, 352); quay(-8, 24); quay(30, 66); quay(118, 156); quay(160, 190);
+    // the far shore's waterfront: a row of houses and little domes along its quay, in front of what stands there (so in
+    // the water they come before its pyramid, temple and sphere), the stones' landing left open
+    {
+      const own = mulberry32(19090), O = (a, b) => a + own() * (b - a);
+      for (let d = 198; d < 352; d += O(4.5, 7)) {
+        if (d > 241 && d < 261) { own(); own(); own(); own(); continue; }
+        const [x, z] = shoreAt(d, O(1.1, 1.14)), a = (d * Math.PI) / 180, ry = -Math.atan2(Math.cos(a) * Lk.rz, -Math.sin(a) * Lk.rx);
+        if (own() < 0.3) domeAt(x, z, O(2.2, 3.2), O(1, 2.2)); else block(x, z, O(4, 7), O(3, 6.5), O(3.5, 5), ry);
+        if (own() < 0.22) cypress(x + O(-3, 3), z - 3, O(8, 12));
+      }
+    }
+    for (const g of town) k.reflect.push({ geo: g, key: 'memory' });
+    for (const g of trees) k.reflect.push({ geo: g, key: 'memoryTree' });
     // the spheres hanging in the reflected sky round the middle stone (shown once a sphere's sound has been played at
     // the lake: the story's): pale discs in the water, each with its lit crescent
     const mid = stones.find((s) => s.mid), discs = [], lits = [];
