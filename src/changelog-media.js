@@ -660,6 +660,20 @@ const INK53 = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headle
 const EXPLORE52 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463) and origin/main before the change (25e4cfca, git archive), the same pinned cameras, 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.53': [
+    { match: 'Rivers of running sand wind between the dunes', shots: [
+      { name: 'dunes-river', title: 'Out of the hollow', caption: 'South of the ride out of Marrow’s hollow: after, a river of pale running sand curving away between the dunes toward the salt-carrier’s shade (the boulder that stood in it gone)', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [205, 14.44, 88], target: [340, 6.3, -45], player: [202, 12.69, 92] } },
+      { name: 'dunes-wash', title: 'Down the dry wash', caption: 'In the dry wash, looking downstream: after, the sand river running down its bed and under the giant’s arm, the sandfall on the mesa behind', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [722, 17.31, -26], target: [640, 20.86, 58], player: [726, 15.19, -30] } },
+    ], see: 'On the hoverbike, ride into the pale sand river south of the ride out of Marrow’s hollow and follow it with RT / R2: you go faster than on the dunes beside it. The second runs down the dry wash from the giant’s jaw toward Qanat.' },
+    { match: 'The dunes walk.', shots: [
+      { name: 'dunes-stair', title: 'The doorway', caption: 'Off the ride, a little past the hollow, on your first visit: after, an old stone doorway the dune has slid off, its stair going down into the dark, the dune heaped beyond it', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 55, eye: [262, 16.03, 78], target: [305, 16.46, 46], player: [258, 13.11, 81] } },
+    ], see: 'Ride out from Marrow’s hollow and look off to the left of the red strips: a doorway and, farther out, a caravan stand clear. Leave the desert and come back (or reload): the dunes have walked, and a windcatcher’s tower and three arches stand clear instead.' },
+    { match: 'Sand pours off two of the mesas', shots: [
+      { name: 'dunes-fall2', title: 'Over the ride', caption: 'From the ride out, just past the skiff’s anchor, looking up at the lavender mesa beside it: after, sand pouring off its lip', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [752, 27.81, -78], target: [792, 107.67, -150], player: [749, 23.69, -74] } },
+    ], see: 'Ride out toward the Givers’ Hearth: past the skiff’s anchor the sand falls off the mesa beside the way; the other falls off the tall striped mesa over the giant’s arm.' },
     { match: 'Out in the dunes between the ride to the Givers’ Hearth', shots: [
       { name: 'giants-landing', title: 'From your ship', caption: 'From the foot of the ship’s ramp, toward the striped mesa beyond the camps: after, the giant’s hand standing out of the dunes in front of it', from: EXPLORE52,
         view: { level: 'desert', hour: 10, fov: 55, eye: [96, 16.81, 152], target: [432, 66.7, 192], player: [92, 14.39, 150] } },

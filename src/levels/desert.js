@@ -19,6 +19,8 @@ import { attachTemple, clearInstances } from '../temples/index.js';
 import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { buildGiantsRoad } from '../desert-giants.js';
+import { buildWalkingDunes } from '../desert-dunes.js';
+import { game } from '../game-state.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK, DESERT_CLOUD_SHADOWS } from '../desert-sites.js';
 import { SITE_OVERRIDES } from '../ship/sites.js';
@@ -124,7 +126,11 @@ export function* buildDesert(scene) {
   // out and the stones home, each with a pilgrims' shrine and its verse
   const giants = buildGiantsRoad(scene, terrain);
   clearInstances(scene, giants.clear, giants.group);
-  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || strips.avoid(x, z, r) || fieldStone.avoid(x, z, r) || giants.avoid(x, z, r) || avoidWorld(x, z, r);
+  // the walking dunes (src/desert-dunes.js; issue #167): the sand rivers, the ruins the dunes cover and uncover (a different
+  // two each visit: src/story/desert-dunes.js counts them), the sandfalls off two mesas
+  const dunes = buildWalkingDunes(scene, terrain, { visit: game.flag('desert.dunes.visit') ?? 0 });
+  clearInstances(scene, dunes.clear, dunes.group);
+  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || strips.avoid(x, z, r) || fieldStone.avoid(x, z, r) || giants.avoid(x, z, r) || dunes.avoid(x, z, r) || avoidWorld(x, z, r);
   // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
   // the Canyon run under the lavender cliffs by the rope bridge
   for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
@@ -154,6 +160,7 @@ export function* buildDesert(scene) {
     road,
     fieldStone,
     giants,
+    dunes,
     vistas,
     landmarks,
     maskRooms,
@@ -164,6 +171,8 @@ export function* buildDesert(scene) {
       { name: 'the pilgrims’ resting stone', at: road.rest.at }, { name: 'the Givers’ field-stone', at: fieldStone.at },
       // (issue #167: the giants' road, at mid-distance from the ride out and the stones home)
       ...giants.sights,
+      // (the ruins the dunes have walked off, this visit; the sandfalls' feet)
+      ...dunes.sights, ...dunes.falls.map((f, i) => ({ name: `a sandfall off the mesa (${i + 1})`, at: f.at })),
     ],
     // tall things seen over the dunes that the collision doesn't make tall (the audit aims at them as at landmarks): the camps'
     // smoke while the tree is cold, then the tree's own column; the Hearth's chimney, out past the audit's map
@@ -197,7 +206,8 @@ export function* buildDesert(scene) {
     spawnHeading: LANDING.heading,
     camYaw: 0,
     features: { mount: true, wind: true, jetpack: false, climb: true },
-    mount: (physics) => new Hoverbike(physics),
+    // (it rides the sand rivers fast: src/desert-dunes.js lane)
+    mount: (physics) => new Hoverbike(physics, { lane: dunes.lane }),
     mountName: 'hoverbike',
     // (as the desert's plates: no cloud bank, the far dunes a pale warm band; a few clouds drifting over)
     defaults: { hour: 9.5, preset: 'Moebius print', look: DESERT_WORLD_LOOK, cloudShadows: DESERT_CLOUD_SHADOWS },

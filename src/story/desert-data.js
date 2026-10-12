@@ -911,6 +911,41 @@ export const THINGS = {
       choices: [{ text: '~solemn~ (look the way the hand points)', end: true }],
     } } },
   },
+  // the walking dunes' ruins (src/desert-dunes.js, src/story/desert-dunes.js; issue #167): two stand clear each visit
+  ruinStair: {
+    id: 'ruinStair', name: 'A doorway in the sand', title: 'that a dune let go of', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A stone doorway the dune has let go of. Its stair goes down into the dark, sand still running off the steps.",
+        "~neutral~ The next wind will cover it again."],
+      do: { set: { 'desert.ruin.stair': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  ruinTower: {
+    id: 'ruinTower', name: 'A windcatcher', title: 'out of the sand', color: '#d9c3a0', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A windcatcher’s tower, the dune slid off it. Its slots still catch the wind and breathe cool air down into the sand."],
+      do: { set: { 'desert.ruin.tower': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  ruinCaravan: {
+    id: 'ruinCaravan', name: 'A buried caravan', title: 'that a dune let go of', color: '#8a6a4a', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ Three carts, their canvas still on the hoops, where a caravan stopped and the sand came over it.",
+        "~sad~ Nobody came back for them."],
+      do: { set: { 'desert.ruin.caravan': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  ruinArcade: {
+    id: 'ruinArcade', name: 'Three old arches', title: 'out of the sand', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ Three arches of an old wall, the dune walked off them. A street ran through here once, under the sand."],
+      do: { set: { 'desert.ruin.arcade': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
   // the Givers' field-stone on the dunes below their House, on the way home from it (src/desert-road.js FIELD_STONE)
   fieldStone: {
     id: 'fieldStone', name: 'The Givers’ field-stone', title: 'on the dunes below their House', color: '#cdb38f', voice: 0.6,

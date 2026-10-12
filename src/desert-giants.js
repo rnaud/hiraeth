@@ -171,7 +171,8 @@ export function buildGiantsRoad(scene, terrain) {
     const bank = (t0, t1) => { let m = -Infinity; for (let t = t0; t <= t1; t += 2) for (const l of [-3, 0, 3]) { const p = at(t, l); m = Math.max(m, H(p.x, p.z)); } return m; };
     // its top along it (where you ride): the shoulder sunk, out of the sand, up to the elbow on the south lip, over the
     // bed to the wrist on the north bank
-    const TOP = [[-58, gy(-58) - 2.2], [-46, gy(-46) + 0.2], [-36, gy(-36) + 1.6], [-24, bank(-30, -18) + 4.2], [-8, bank(-30, -18) + 3.6], [10, Math.max(bank(18, 30) + 3.0, bank(-30, -18) + 2.6)], [30, gy(30) + 2.2]];
+    // (arched over the bed, high enough to ride under along the wash: src/desert-dunes.js, its sand river)
+    const TOP = [[-58, gy(-58) - 2.2], [-46, gy(-46) + 0.2], [-36, gy(-36) + 1.6], [-24, bank(-30, -18) + 4.2], [-8, bank(-30, -18) + 5.6], [10, Math.max(bank(18, 30) + 4.6, bank(-30, -18) + 4.8)], [30, gy(30) + 2.2]];
     const topAt = (t) => { for (let k = 0; k < TOP.length - 1; k++) if (t <= TOP[k + 1][0]) { const [t0, y0] = TOP[k], [t1, y1] = TOP[k + 1], u = (t - t0) / (t1 - t0); return y0 + (y1 - y0) * (3 * u * u - 2 * u * u * u); } return TOP[TOP.length - 1][1]; };
     // (a: half its width, b: half its height, along t from the shoulder at -58 to the wrist at 30)
     const aOf = (t) => (t < -24 ? THREE.MathUtils.lerp(4.6, 4.0, (t + 58) / 34) : THREE.MathUtils.lerp(3.9, 3.0, (t + 24) / 54));

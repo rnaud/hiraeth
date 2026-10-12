@@ -15,6 +15,9 @@ export const CHANGELOG = [
     'Out in the dunes between the ride to the Givers’ Hearth and the marked stones home lies the giants’ road: four fallen giants down an old dry riverbed. A great hand stands out of a dune, an arm lies across the dry wash, a spine climbs a dune to its skull, and a jaw stands over the riverbed like an arch. You see them from the ride, neither on your way nor far off it.',
     'Each giant has a little pilgrims’ shrine with a verse cut in its stone. Read from Qanat outward, the four verses tell the giants’ story back to where they came from, and the last one points on toward the swamp of lights.',
     'Ride the hoverbike (or walk) up the giant’s arm from its shoulder in the sand, over its elbow and across: it carries you high over the dry wash, and the second verse waits on the elbow.',
+    'Rivers of running sand wind between the dunes: one out of Marrow’s hollow along the ride toward the salt-carrier’s shade, one down the dry wash past the giants and under the giant’s arm, home toward Qanat. On the hoverbike they are fast lanes: ride with the sand and it carries you faster.',
+    'The dunes walk. Out along the ride a dune has slid off an old stone doorway with a stair going down into the dark, and another off a buried caravan. Come back to the desert another time and the wind has moved them: other ruins stand clear, a windcatcher’s tower, three old arches.',
+    'Sand pours off two of the mesas in slow golden falls, one over the dry wash and one right over the ride out.',
   ] },
   { v: '1.52', date: '2026-10-12', items: [
     // the Unity preview on the Xbox at a steady 60 (docs/systems/xbox.md "The Unity build on the Xbox")

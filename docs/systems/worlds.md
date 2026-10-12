@@ -407,6 +407,19 @@ home, where the level design audit found nothing at mid-distance (1 of 37 option
   on its elbow): `read the verse` opens `THINGS.verse1`–`verse4`, read outward from Qanat, the giants' road told back to
   where they came from; the fourth points on to the swamp of lights (`clue.desert.perdide`). The four are `sights`.
   About 13k triangles and 13 meshes in all. `tests/desert-giants.test.js`.
+- **The walking dunes** (`src/desert-dunes.js`, `src/story/desert-dunes.js`; `SAND_RIVER`, `RUINS`, `DUNE_VISITS`,
+  `SANDFALLS` in `src/desert-sites.js`). Two sand rivers: one cut as a shallow channel (1.2 m, `SAND_RUN` in
+  `desertHeight`) out of Marrow's hollow along the south side of the ride to the salt-carrier's shade, one down the dry
+  wash's bed (the giant's arm arches high enough to ride under it); each a ribbon of paler sand with streaks, drawn
+  only. The bike rides them fast (`Hoverbike` `lane`, the level's `mount`; `LANE` in `src/bike.js`): its top speed with
+  the flow ×1.4 and a 6 m/s current. Four ruins (a doorway and its stair down, a windcatcher's tower, a caravan, an
+  arcade) 30–150 m off the ride, each under a dune (the tower's tip showing) or with its dune walked off downwind
+  (`DUNE_WALK`); which two stand clear is `DUNE_VISITS[visit % 6]`, the visit `desert.dunes.visit`, read by the level's
+  build and counted by the story's setup, so every load of the desert is the next visit and the same visit is always the
+  same two. The dunes are meshes in the sand drifts' own material, collided as drawn; the open ruins are `sights` with a
+  look (`THINGS.ruin*`). Two sandfalls pour off mesas `src/world.js` scattered (found by raycasting the mesa at build:
+  the curtain hangs clear of every ledge above it), in the waterfalls' own shader (`fall`) in sand's tones, a cone of
+  sand at the foot. About 9k triangles, 10 meshes. `tests/desert-dunes.test.js`.
 
 ## Vael's layout, from the level design audit (v1.9)
 

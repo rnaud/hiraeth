@@ -114,6 +114,33 @@ export const GIANTS = {
   spine: { foot: [935, -112], top: [875, -95] },
   jaw: { x: 1062, z: -150, yaw: 0.6 },
 };
+/**
+ * The walking dunes (issue #167, references/levels/The Desert/environment/explorations/walking-dunes/; src/desert-dunes.js):
+ *   SAND_RIVER  a river of running sand from Marrow's hollow out along the south side of the ride to the salt-carrier's
+ *               shade, a shallow channel (src/desert-ground.js) the bike rides fast down; the second runs down the dry
+ *               wash's bed (DRY_WASH), from the jaw home past the giants
+ *   RUINS       four old things the dunes cover and uncover, two at a time, a different two each visit (`DUNE_VISITS`)
+ *   SANDFALLS   sand pouring off two mesas' lips: [x, z] of the mesa (src/world.js scatters them; found by raycasting),
+ *               the way the fall faces (`toward`), its width
+ */
+export const SAND_RIVER = {
+  points: [[170, 100], [255, 45], [340, -45], [430, -72], [520, -66], [600, -45]],
+  bed: 7, bank: 14, depth: 1.2,
+};
+export const RUINS = [
+  { id: 'stair', x: 305, z: 46, yaw: -1.0 },     // a stone doorway, its stair going down into the dark
+  { id: 'tower', x: 480, z: -125, yaw: 0.3 },   // the top of a windcatcher tower
+  { id: 'caravan', x: 900, z: -232, yaw: 1.1 }, // a buried caravan: three carts
+  { id: 'arcade', x: 1180, z: -382, yaw: 0.6 }, // three arches of an old wall
+];
+/** Which two ruins stand clear on each visit (visit n: DUNE_VISITS[n % 6]); the first visit the stair and the caravan. */
+export const DUNE_VISITS = [[0, 2], [1, 3], [0, 3], [1, 2], [2, 3], [0, 1]];
+/** Where a dune that has walked off its ruin lies: downwind of it (the motes' wind, src/levels/desert.js life.motes). */
+export const DUNE_WALK = { dx: 32, dz: 12 };
+export const SANDFALLS = [
+  { mesa: [605, 194], toward: [640, 60], w: 18, seed: 3 },   // over the dry wash, the giant's arm below it
+  { mesa: [791, -197], toward: [800, -100], w: 18, seed: 7 }, // over the ride out, just past the skiff's anchor
+];
 /** The procession's circuit as a smooth closed curve: [x, z] every `step` metres. */
 export function processionLoop(step = 3) {
   const curve = new CatmullRomCurve3(PROCESSION.map(([x, z]) => new Vector3(x, 0, z)), true, 'centripetal');

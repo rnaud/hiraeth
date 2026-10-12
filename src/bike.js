@@ -19,6 +19,8 @@ import { padRide } from './controller.js';
 const HOVER = 1.15;
 /** Its speeds (m/s): `max` the throttle's top, `boost` with the boost held. The desert's trial raises `max` (src/trials/upgrades.js, the dune fins). */
 export const RIDE_SPEED = { max: 34, boost: 54 };
+/** A fast lane (the desert's sand rivers, src/desert-dunes.js): its top speed with the flow ×(1 + speed·k), and its current (m/s). */
+export const LANE = { speed: 0.4, current: 6 };
 const RADIUS = 0.85;
 const LIMIT = 1900;
 
@@ -184,6 +186,9 @@ export class Hoverbike {
       this.socket = sk.socket; this.port = sk.port;
       this.powerLights = this.makePowerLights(b.lights);
     }
+    // a fast lane under it (the desert's sand rivers, src/desert-dunes.js): (x, z) → { k, fx, fz } or null
+    this.lane = opts.lane ?? null;
+    this.inLane = null;
     // dormant: not found yet (the desert's bike under its tarp, src/story/desert.js): it lies
     // where it is, can't be boarded or whistled for, and nothing moves it
     this.dormant = false;
@@ -361,7 +366,11 @@ export class Hoverbike {
     }
     const recalling = !ridden && !!this.auto;
     const oldPos = this.pos.clone();
-    const max = boost ? RIDE_SPEED.boost : RIDE_SPEED.max;
+    // (in a sand river: faster with its flow, and carried along by it: src/desert-dunes.js LANE)
+    const lane = this.lane && this.grounded ? this.lane(this.pos.x, this.pos.z) : null;
+    this.inLane = lane;
+    const withFlow = lane ? Math.max(0, fx * lane.fx + fz * lane.fz) : 0;
+    const max = (boost ? RIDE_SPEED.boost : RIDE_SPEED.max) * (1 + (lane ? LANE.speed * lane.k * withFlow : 0));
     // (an analog throttle aims at its share of the top speed)
     if (throttle > 0) this.speed += (max * throttle - this.speed) * (1 - Math.exp(-(boost ? 0.9 : 0.6) * dt));
     else if (throttle < 0) this.speed = Math.max(this.speed + 40 * throttle * dt, -8);
@@ -375,8 +384,9 @@ export class Hoverbike {
 
     // horizontal velocity slides toward the facing direction (a bit of drift)
     const a = 1 - Math.exp(-(recalling ? 12 : this.grounded ? 3.5 : 0.8) * dt);
-    this.vel.x += (fx * this.speed - this.vel.x) * a;
-    this.vel.z += (fz * this.speed - this.vel.z) * a;
+    const cur = lane ? LANE.current * lane.k : 0;
+    this.vel.x += (fx * this.speed + (lane ? lane.fx * cur : 0) - this.vel.x) * a;
+    this.vel.z += (fz * this.speed + (lane ? lane.fz * cur : 0) - this.vel.z) * a;
 
     // hover spring + gravity
     // hover over whatever is below (terrain, rocks, mesa tops...)

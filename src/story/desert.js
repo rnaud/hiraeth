@@ -17,6 +17,7 @@ import { setupHearth } from './desert-spark.js';
 import { setupWay } from './desert-way.js';
 import { setupRoad } from './desert-road.js';
 import { setupGiants } from './desert-giants.js';
+import { setupDunes } from './desert-dunes.js';
 import { bystanderSpot } from '../ship/landing.js';
 import { setupRepay } from './desert-repay.js';
 import { quietOr } from '../hint-level.js';
@@ -801,6 +802,7 @@ export function setupDesert(ctx) {
   const way = setupWay(ctx);
   const road = setupRoad(ctx);   // the pilgrims' road home, its lamps lit once the tree burns
   const giants = setupGiants(ctx);   // the verses at the giants out on the dunes (issue #167)
+  const dunes = setupDunes(ctx);   // the walking dunes: this visit counted, the ruins that stand clear (issue #167)
 
   // the roots drink while you watch (pale motes climb the trunk), Hessa calls out, the tree stays cold
   const drinkAt = [0, 1, 2, 3, 4, 5].map((i) => { const a = i / 6 * Math.PI * 2; return city.treeBase.clone().add(V(Math.sin(a) * 4.2, 0.6, Math.cos(a) * 4.2)); });
@@ -1026,7 +1028,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, repay, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, hearth, way, road, giants, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, repay, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, hearth, way, road, giants, dunes, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;
