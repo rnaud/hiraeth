@@ -38,7 +38,7 @@
     "wait": 8000,
     "then": [
       {
-        "eval": "(() => { const b = [...document.querySelectorAll('button')].find((b) => /^settings$/i.test(b.innerText.trim())); b?.click(); return !!b; })()",
+        "eval": "(() => { const b = document.querySelector('[data-a=settings]'); b?.click(); return !!b; })()",
         "wait": 2500
       }
     ]

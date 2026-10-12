@@ -3,7 +3,8 @@
 // each, with what the page said (its text, errors) and how long the world took to boot.
 //
 //   node .claude/skills/game-audit/capture.mjs <out-dir> [plan.json]      (default: default-plan.json beside this)
-//   PORT=5490 (Vite; Chrome's debugging port is PORT + 1)
+//   PORT=5490 (Vite; Chrome's debugging port is PORT + 1); VITE_CACHE a dependency cache of its own (default: one
+//   inside the Chrome profile, removed after, so the run never writes into a shared node_modules/.vite)
 //
 // A plan is a list of views: { name, q?, save?, fresh?, title?, wait?, eval?, then?: [{ eval, wait }] }
 //   q      the query (?level=desert …); none: the title screen
@@ -27,14 +28,14 @@ const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/M
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 mkdirSync(OUT, { recursive: true });
 
+const profile = tempDir('game-audit-chrome-');
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
-const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false,
+const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.VITE_CACHE ?? join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false,
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
 
 // (muted twice over: Chrome's own switch, and the game's mute and volumes before it loads)
-const profile = tempDir('game-audit-chrome-');
 const proc = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
   '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
 // (never leave a Vite server behind on a shared machine: on an error, a throw or ^C; ownProcess takes Chrome and its profile)

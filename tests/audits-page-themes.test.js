@@ -24,7 +24,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
   for (const k of ['game', 'combat', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'cinematics', 'perf']) assert.ok(THEME_ORDER.includes(k));
   assert.deepEqual(themes.map((t) => t.kind).filter((k) => THEME_ORDER.includes(k)), THEME_ORDER.filter((k) => kinds.includes(k)), 'in the dashboard\'s order');
   assert.equal(theme('visual').latest.id, 'visual-v1.21');
-  assert.equal(theme('game').latest.id, 'game-v1.53');
+  assert.equal(theme('game').latest.id, 'game-v1.59');
   assert.equal(theme('cinematics').latest.id, 'cinematics-v1.6');
   for (const t of themes) {
     const same = reports.filter((r) => r.kind === t.kind);
@@ -45,7 +45,7 @@ test('the change since the one before: overall, and each item since the last tim
   assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
   assert.equal(theme('level-design').prev.id, 'level-design-v1.49'); assert.equal(theme('level-design').delta, 0.16);   // (level-design-v1.53: 4.51, v1.49: 4.35, both over twelve)
   assert.equal(theme('temple-design').delta, 0.07);   // (temple-design-v1.53: 4.28, v1.49: 4.21, both over fourteen)
-  assert.equal(theme('game').delta, 0.1);   // (game-v1.53: 4.0, game-v1.49: 3.9)
+  assert.equal(theme('game').delta, 0.1);   // (game-v1.59: 4.1, game-v1.53: 4.0)
   assert.equal(theme('dialogue').prev.id, 'dialogue-v1.53'); assert.equal(theme('dialogue').delta, 0.64);   // (dialogue-v1.57: 4.32 over eleven, v1.53: 3.68 over eleven; issue #202)
   const lore = group('dialogue', 'Areas').rows.find((r) => r.label === 'Lore load');
   assert.deepEqual([lore.value, lore.from], [4.5, 4], 'an area compared with the review before');
@@ -69,9 +69,9 @@ test('the change since the one before: overall, and each item since the last tim
   const guardRows = group('combat', 'Guardians').rows;
   assert.ok(guardRows.filter((r) => !/\(new\)/.test(r.label ?? r.key)).every((r) => r.fromVersion === '1.22'), 'the guardians were last scored at v1.22');
   const themesGame = group('game', 'Themes').rows;
-  assert.equal(themesGame.find((r) => /^Arc/.test(r.label)).delta, 0);   // (game-v1.53: arc and pacing 4 → 4)
-  assert.equal(themesGame.find((r) => /^Accessibility/.test(r.label)).delta, 1);   // (game-v1.53: accessibility and UX 3 → 4)
-  assert.equal(themesGame.find((r) => /^Quality/.test(r.label)).delta, 0);   // (game-v1.53: quality 3 → 3)
+  assert.equal(themesGame.find((r) => /^Arc/.test(r.label)).delta, 0);   // (game-v1.59: arc and pacing 4 → 4)
+  assert.equal(themesGame.find((r) => /^Exploration/.test(r.label)).delta, 1);   // (game-v1.59: exploration and wayfinding 4 → 5)
+  assert.equal(themesGame.find((r) => /^Quality/.test(r.label)).delta, 0);   // (game-v1.59: quality 3 → 3)
   // fewer findings is better: the visual audit's counts
   const vis = group('visual', 'Findings by severity');
   assert.equal(vis.better, 'lower');
