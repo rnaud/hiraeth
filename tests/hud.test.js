@@ -159,7 +159,7 @@ test('the frame readout is off unless asked for (F, the settings, ?fps=1), and o
   assert.equal(bench.quality, 'deck', 'the rest as saved');
   assert.equal(migrateSettings({ hudV: 1, music: 0, effects: 0, voices: 0, soundV: 1 }).music, 0, 'set to 0 again since: kept');
   assert.deepEqual(migrateSettings({ hudV: 1, music: 0, effects: 1, voices: 0.8 }).music, 0, 'only the music off: a choice, kept');
-  assert.match(src('scripts/bench/deck-run.sh'), /G='XDG_CONFIG_HOME=\/home\/deck\/\.local\/share\/moebius-bench /, 'the bench runs in a profile of its own, never the player\'s');
+  assert.match(src('scripts/bench/deck-run.sh'), /G='XDG_CONFIG_HOME=\/home\/deck\/\.local\/share\/hiraeth-bench /, 'the bench runs in a profile of its own, never the player\'s');
   assert.match(src('src/main.js'), /if \(query\.get\('fps'\) === '1'\) settings\.showFps = true;/);
   assert.match(src('scripts/handheld-perf/lib.mjs'), /showFps: true, hudV: 1/, 'the handheld measuring keeps it on');
 });

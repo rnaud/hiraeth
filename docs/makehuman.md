@@ -191,7 +191,7 @@ on the measured skull.
   half over the iris: at 50 px a face they were slits. Its eye-scale target on everyone (more on
   children), the upper lids lifted 1.2 mm over the iris (none at the corners) and the eyeballs grown 5%
   (`openEyes`); the eyeball's painted lid now comes down with the skin's blink key.
-- **The Moebius face, as MakeHuman targets** (`MOEBIUS_FACE`, on grown-ups, three quarters of it on
+- **The Moebius face, as MakeHuman targets** (`HIRAETH_FACE`, on grown-ups, three quarters of it on
   women, none on children): a longer, narrower chin, a narrower jaw, lean cheeks under clear
   cheekbones, a long, straight, narrower nose, an oval head, the brow a little forward. Each target is
   its own delta in the file, so the mix is tuned in `shape.js` without a rebuild.

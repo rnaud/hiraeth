@@ -3,14 +3,14 @@
 // browser all of this is a no-op.
 //
 // - The boot heartbeat: markBooted() after the first frame sets
-//   window.__moebiusBooted. A downloaded web build that doesn't get there in
+//   window.__hiraethBooted. A downloaded web build that doesn't get there in
 //   time is dropped by the app, which goes back to the game in the APK.
 // - The settings' update section (src/update-panel.js, src/updates.js) asks the
 //   app through callApp(): info, check, download, restart, openApk.
 // - A game toast when a downloaded update is ready; the app applies it by itself
 //   on the next launch, and applyReadyUpdate() (src/boot.js) applies it the next
 //   time the title screen opens (nothing is running yet there).
-// - Pause and resume: the app sends moebius:pause / moebius:resume (and the
+// - Pause and resume: the app sends hiraeth:pause / hiraeth:resume (and the
 //   page turns hidden, which stops the frame loop); src/audio-guard.js keeps
 //   every sound silent meanwhile, whatever asks for it, and brings it back on
 //   return. On a handheld nothing reaches the page as a key or a click, so the
@@ -21,9 +21,9 @@ import { audioGuard, audioAway } from './audio-guard.js';
 import { xboxShell } from './xbox.js';
 
 // The app around the page: Android's AppShell plugin, the Xbox app (WebView2's web messages, src/xbox.js),
-// or the Steam Deck's runtime, which answers the same calls at moebius://game/__app/<method>
+// or the Steam Deck's runtime, which answers the same calls at hiraeth://game/__app/<method>
 // (desktop/main.mjs, desktop/deck-updates.mjs).
-const desktop = (win) => (win?.location?.protocol === 'moebius:' && typeof win.fetch === 'function' ? {
+const desktop = (win) => (win?.location?.protocol === 'hiraeth:' && typeof win.fetch === 'function' ? {
   call: (method) => win.fetch(`/__app/${method}`, { method: 'POST', cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : r.text().then((t) => Promise.reject(new Error(t || `HTTP ${r.status}`))))),
 } : null);
@@ -40,7 +40,7 @@ export function callApp(method, win = globalThis.window) {
   return s ? s.call(method) : Promise.reject(new Error('not in the app'));
 }
 
-const APPLIED_KEY = 'moebius.appliedUpdate';
+const APPLIED_KEY = 'hiraeth.appliedUpdate';
 /**
  * The title screen is the safe point for a downloaded update: nothing is running yet, so
  * switch to it there (the page reloads into the new build, at the title). Once per build per
@@ -60,8 +60,8 @@ export async function applyReadyUpdate(win = globalThis.window, { timeout = 1500
 /** The heartbeat the app waits for (call it after the first frame). */
 export function markBooted(win = globalThis.window) {
   if (!win) return;
-  win.__moebiusBooted = true;
-  win.__moebiusBootedAt = win.performance?.now?.() ?? 0;
+  win.__hiraethBooted = true;
+  win.__hiraethBootedAt = win.performance?.now?.() ?? 0;
 }
 
 /** "web build 14 · app 12" (+ the update waiting for the next launch). */
@@ -93,7 +93,7 @@ export function updateStatus(info) {
 /**
  * @param {{ sound?: { ctx?: AudioContext, start(): void }, label?: () => HTMLElement | null, toast?: (text: string) => void }} hooks
  */
-const TOLD_KEY = 'moebius.updateToastFor';
+const TOLD_KEY = 'hiraeth.updateToastFor';
 
 export function installAppShell({ sound, label = () => null, toast = () => {} } = {}, win = globalThis.window) {
   if (!shell(win)) return null;
@@ -114,7 +114,7 @@ export function installAppShell({ sound, label = () => null, toast = () => {} } 
   };
   // the toast waits for the game to be up, and for the "Updated to …" toast of a fresh version to pass
   const later = (f) => {
-    const at = win.__moebiusBootedAt;
+    const at = win.__hiraethBootedAt;
     if (at === undefined) return setTimeout(() => later(f), 2000);
     setTimeout(f, Math.max(0, at + 9000 - (win.performance?.now?.() ?? Infinity)));
   };
@@ -129,7 +129,7 @@ export function installAppShell({ sound, label = () => null, toast = () => {} } 
   };
   const refresh = () => ask(win, 'info').then((i) => { if (i) { info = i; show(); ready(); } });
   refresh();
-  win.addEventListener('moebius:webupdate', refresh);
+  win.addEventListener('hiraeth:webupdate', refresh);
 
   // sound: off while the app is away and back on its return (src/audio-guard.js, installed
   // before any sound; it also holds Sound.start() below while away)

@@ -35,7 +35,7 @@ function unzip(buf) {
 }
 
 function site() {
-  const dist = mkdtempSync(join(tmpdir(), 'memento-site-'));
+  const dist = mkdtempSync(join(tmpdir(), 'hiraeth-site-'));
   mkdirSync(join(dist, 'assets'));
   mkdirSync(join(dist, UPDATES));
   writeFileSync(join(dist, 'index.html'), '<!doctype html><title>Hiraeth</title>');
@@ -72,7 +72,7 @@ test('web.json: the build, its zip on the site, the levels the Android app and t
   assert.deepEqual(JSON.parse(readFileSync(join(dist, UPDATES, 'web.json'), 'utf8')), m);
   assert.equal(readFileSync(join(dist, UPDATES, 'web-540.zip'), 'utf8'), 'the previous build', 'the previous zip stays downloadable');
   assert.equal(existsSync(join(dist, UPDATES, 'web-1.zip')), false, 'older ones go');
-  assert.equal(SITE, 'https://memento.alexandria-rnaud.workers.dev/');
+  assert.equal(SITE, 'https://hiraeth.alexandria-rnaud.workers.dev/');
 });
 
 test('the previous zip: kept only when it is the live web.json\'s, and checks out', async () => {
@@ -110,7 +110,7 @@ test('the Cloudflare deploy owns the site: it builds, adds the update, then depl
   const yml = read('../.github/workflows/cloudflare.yml');
   const build = yml.indexOf('npm run build'), update = yml.indexOf('node scripts/web-update.mjs'), deploy = yml.indexOf('npx wrangler deploy');
   assert.ok(build > 0 && build < update && update < deploy, 'build, then the update into dist/, then one deploy');
-  assert.match(yml, /web-update\.mjs --live https:\/\/memento\.alexandria-rnaud\.workers\.dev\//, 'the previous zip from the live site');
+  assert.match(yml, /web-update\.mjs --live https:\/\/hiraeth\.alexandria-rnaud\.workers\.dev\//, 'the previous zip from the live site');
   assert.match(yml, /fetch-depth: 0/, 'the build number counts the whole history');
   assert.match(yml, /cancel-in-progress: false/);
   assert.doesNotMatch(yml, /npm run deploy:cloudflare/, 'that would build again and drop updates/');

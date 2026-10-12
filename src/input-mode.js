@@ -6,7 +6,7 @@
 // new page, so the touch buttons came back over the loading screen's end until the pad was pressed
 // again; a keyboard on a touch-screen laptop never hid them at all.
 
-export const INPUT_MODE_KEY = 'moebius.input.v1';
+export const INPUT_MODE_KEY = 'hiraeth.input.v1';
 const KINDS = new Set(['pad', 'keys', 'touch']);
 
 /** sessionStorage, never throwing (none in node, a private window, a full quota). */

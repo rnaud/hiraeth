@@ -231,8 +231,8 @@ export function seedDebugSave(levelId, { store = slots, state = null, now = Date
   store.remove(DEBUG_SLOT);
   store.setActive(DEBUG_SLOT);
   const view = store.view(DEBUG_SLOT);
-  view.setItem('moebius.game.v1', JSON.stringify({ flags: p.flags, keepsakes: p.keepsakes }));
-  view.setItem('moebius.journal.v1', JSON.stringify(p.journal));
+  view.setItem('hiraeth.game.v1', JSON.stringify({ flags: p.flags, keepsakes: p.keepsakes }));
+  view.setItem('hiraeth.journal.v1', JSON.stringify(p.journal));
   store.touch(DEBUG_SLOT, { now });
   state?.reload?.();
   return p;

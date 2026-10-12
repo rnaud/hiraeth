@@ -8,8 +8,8 @@ export const SCALE = { high: 1, handheld: 0.75 };
 /** the tab's storage: the prologue done and the backpack (as the Unity side), the preset, no fps line (its GPU timer would collide with ours), sound off */
 export const prepareStorage = (ev, quality) => ev((quality) => {
   localStorage.clear();
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0 }));
   return true;
 }, quality);
 

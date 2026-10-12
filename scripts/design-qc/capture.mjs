@@ -76,11 +76,11 @@ const pin = (v) => `(() => { const { THREE, camera, player } = window, up = new 
 for (const [n, world] of worlds.entries()) {
   if (n) await sleep(REST);   // a rest between worlds: the machine is shared
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0 }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...${JSON.stringify(Object.assign({}, ...views.filter((x) => x.world === world).map((x) => x.flags ?? {})))} }, keepsakes: [] })); true`);   // (a view's `flags`: the save its world boots with, shared by the world's views)
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...${JSON.stringify(Object.assign({}, ...views.filter((x) => x.world === world).map((x) => x.flags ?? {})))} }, keepsakes: [] })); true`);   // (a view's `flags`: the save its world boots with, shared by the world's views)
   await send('Page.navigate', { url: `${BASE}?level=${world}` });
-  let up = false; for (let i = 0; i < 1200 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player')) === true; if (!up) await sleep(100); }
+  let up = false; for (let i = 0; i < 1200 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player')) === true; if (!up) await sleep(100); }
   if (!up) { console.log(`${world}: never booted`); captured.push({ world, error: 'never booted' }); continue; }
   await sleep(2500);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; }

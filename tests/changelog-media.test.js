@@ -134,9 +134,9 @@ test('the numbers: ranges by their middle, the change the better way or not', ()
 
 test('pictures beside the page on the site and a dev server, from the site in a bundled game', () => {
   const at = (href) => new URL(href);
-  assert.equal(mediaSrc('changelog-media/0.79/a-after.webp', at('https://memento.alexandria-rnaud.workers.dev/changelog.html')), 'changelog-media/0.79/a-after.webp');
+  assert.equal(mediaSrc('changelog-media/0.79/a-after.webp', at('https://hiraeth.alexandria-rnaud.workers.dev/changelog.html')), 'changelog-media/0.79/a-after.webp');
   assert.equal(mediaSrc('changelog-media/0.79/a-after.webp', at('http://127.0.0.1:5432/changelog.html')), 'changelog-media/0.79/a-after.webp');
-  for (const app of ['http://127.0.0.1:41730/changelog.html', 'https://localhost/changelog.html', 'moebius://game/changelog.html']) {
+  for (const app of ['http://127.0.0.1:41730/changelog.html', 'https://localhost/changelog.html', 'hiraeth://game/changelog.html']) {
     assert.equal(mediaSrc('changelog-media/0.79/a-after.webp', at(app)), `${MEDIA_SITE}changelog-media/0.79/a-after.webp`, app);
   }
 });

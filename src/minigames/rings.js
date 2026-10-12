@@ -246,7 +246,7 @@ export function botInput(F, rings, R) {
 }
 
 // ------------------------------------------------------------------ the ghost (your best run, kept on this device)
-export const GHOST = { every: 0.1, key: 'moebius.minigame.rings.ghost' };
+export const GHOST = { every: 0.1, key: 'hiraeth.minigame.rings.ghost' };
 
 /** A run's track packed small: positions every GHOST.every s, to a tenth of a metre, and the ring splits. */
 export function packGhost(time, track, splits) {

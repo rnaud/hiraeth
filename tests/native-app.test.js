@@ -6,20 +6,20 @@ import { markBooted, buildLabel, updateStatus, installAppShell } from '../src/na
 test('the boot heartbeat flag is set after the first frame', () => {
   const win = {};
   markBooted(win);
-  assert.equal(win.__moebiusBooted, true);
-  assert.equal(typeof win.__moebiusBootedAt, 'number');
+  assert.equal(win.__hiraethBooted, true);
+  assert.equal(typeof win.__hiraethBootedAt, 'number');
   // main.js: right after the first frame(t), in the requestAnimationFrame that ends the loading
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /import \{[^}]*\bmarkBooted\b[^}]*\} from '\.\/native-app\.js';/);
   const boot = main.slice(main.lastIndexOf("stage('ready')"));
   assert.match(boot, /requestAnimationFrame\(\(t\) => \{\s*(?:renderer\.domElement\.style\.visibility = '';\s*)?frame\(t\);\s*markBooted\(\);/);   // (the canvas shown first: hidden under the loading screen)
   // and the app polls exactly that flag, in either engine (WebBundles asks its Host)
-  const java = (f) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/moebius/${f}`, import.meta.url), 'utf8');
+  const java = (f) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/hiraeth/${f}`, import.meta.url), 'utf8');
   assert.match(java('WebBundles.java'), /host\.booted\(\(v\) -> \{/);
-  assert.match(java('WebViewActivity.java'), /evaluateJavascript\("window\.__moebiusBooted===true"/);
+  assert.match(java('WebViewActivity.java'), /evaluateJavascript\("window\.__hiraethBooted===true"/);
   assert.match(java('MainActivity.java'), /post\(json\("ask", "booted", "id", id\)\)/);
-  assert.match(readFileSync(new URL('../android/app/src/main/assets/memento-ext/content.js', import.meta.url), 'utf8'),
-    /m\.ask === 'booted'\) port\.postMessage\(\{ answer: m\.id, value: window\.wrappedJSObject\.__moebiusBooted === true \}\)/);
+  assert.match(readFileSync(new URL('../android/app/src/main/assets/hiraeth-ext/content.js', import.meta.url), 'utf8'),
+    /m\.ask === 'booted'\) port\.postMessage\(\{ answer: m\.id, value: window\.wrappedJSObject\.__hiraethBooted === true \}\)/);
 });
 
 test('the build label', () => {
@@ -41,7 +41,7 @@ test('the update status says plainly whether this is the newest game', () => {
 function fakeApp(info, store = new Map()) {
   const win = new EventTarget();
   win.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
-  win.__moebiusBootedAt = -1e9;   // the game has been up for a while
+  win.__hiraethBootedAt = -1e9;   // the game has been up for a while
   win.document = Object.assign(new EventTarget(), { hidden: false, createElement: () => ({ style: {}, addEventListener(t, f) { this.click = f; } }) });
   const calls = [];
   win.Capacitor = { isNativePlatform: () => true, nativePromise: (plugin, method) => { calls.push(`${plugin}.${method}`); return Promise.resolve(method === 'info' ? info : undefined); } };
@@ -63,7 +63,7 @@ test('in the app: the label, the update toast and restart now', async () => {
   assert.deepEqual(a.toasts, ['Update ready (v0.37): it starts at the title screen, or choose Restart now in the Menu']);
   a.label.kids[0].click();
   assert.deepEqual(a.calls, ['AppShell.info', 'AppShell.restart']);
-  a.win.dispatchEvent(new Event('moebius:webupdate'));   // the app told us about a download
+  a.win.dispatchEvent(new Event('hiraeth:webupdate'));   // the app told us about a download
   await tick();
   assert.equal(a.toasts.length, 1, 'one toast per update');
 });
@@ -80,10 +80,10 @@ test('in the app: the update toast shows once, not again on the next world', asy
 
 test('in the app: the pad starts the sound, but not while the app is away (src/audio-guard.js, tests/audio-guard.test.js)', async () => {
   const a = fakeApp({ native: 2, app: 12, web: 12, bundle: false, ready: 0 });
-  a.win.dispatchEvent(new Event('moebius:pause'));
+  a.win.dispatchEvent(new Event('hiraeth:pause'));
   a.win.dispatchEvent(new Event('nativepadconnected'));   // (the pad's reset as the app leaves)
   a.win.document.hidden = true; a.win.document.dispatchEvent(new Event('visibilitychange'));
-  a.win.dispatchEvent(new Event('moebius:resume'));   // (still hidden: wait for the page to show)
+  a.win.dispatchEvent(new Event('hiraeth:resume'));   // (still hidden: wait for the page to show)
   a.win.dispatchEvent(new Event('nativepadconnected'));
   a.win.document.hidden = false; a.win.document.dispatchEvent(new Event('visibilitychange'));
   a.win.dispatchEvent(new Event('nativepadconnected'));

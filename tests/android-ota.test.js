@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { nativeApi, webMinNative, desktopApi, gameBuild, LAST_RUN_NUMBER_BUILD, latestJson, webJson, webDecision, staleWebZips, releasePage, releaseNotes } from '../scripts/release-info.mjs';
 import { CHANGELOG, lineText } from '../src/changelog.js';
 
-const java = (name) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/moebius/${name}`, import.meta.url), 'utf8');
+const java = (name) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/hiraeth/${name}`, import.meta.url), 'utf8');
 const script = fileURLToPath(new URL('../scripts/release-info.mjs', import.meta.url));
 const run = (...args) => execFileSync(process.execPath, [script, ...args], { encoding: 'utf8' });
 
@@ -53,7 +53,7 @@ test('the build number: the commit count, the same in every workflow, above the 
 
 test('the game\'s updates come from its site; the APK still from GitHub releases', () => {
   const src = java('WebBundles.java'), up = java('Updater.java');
-  assert.match(src, /MANIFEST = "https:\/\/memento\.alexandria-rnaud\.workers\.dev\/updates\/web\.json"/);
+  assert.match(src, /MANIFEST = "https:\/\/hiraeth\.alexandria-rnaud\.workers\.dev\/updates\/web\.json"/);
   assert.match(src, /RELEASES = "https:\/\/github\.com\/rnaud\/hiraeth\/releases\/latest"/);
   assert.match(up, /LATEST = "https:\/\/github\.com\/rnaud\/hiraeth\/releases\/latest\/download\/latest\.json"/, 'apps up to NATIVE_API 4 read it here too: it brings them this APK');
   // the APK feed failing is never an update error: only a quiet note in the settings
@@ -64,11 +64,11 @@ test('the game\'s updates come from its site; the APK still from GitHub releases
   assert.ok(find);
   assert.doesNotMatch(find, /status\(|error = /, 'a failed APK lookup leaves the update state alone');
   const deck = readFileSync(new URL('../scripts/steam-deck/deck.py', import.meta.url), 'utf8');
-  assert.match(deck, /CONTENT_URL = 'https:\/\/memento\.alexandria-rnaud\.workers\.dev\/updates\/'/, 'the Deck reads the same web.json');
+  assert.match(deck, /CONTENT_URL = 'https:\/\/hiraeth\.alexandria-rnaud\.workers\.dev\/updates\/'/, 'the Deck reads the same web.json');
 });
 
 test('web.json: version, build number, the zip\'s sha256, its URL, size, notes and the native level it needs', () => {
-  const zip = join(mkdtempSync(join(tmpdir(), 'moebius-ota-')), 'web-14.zip');
+  const zip = join(mkdtempSync(join(tmpdir(), 'hiraeth-ota-')), 'web-14.zip');
   writeFileSync(zip, 'not really a zip');
   const sha = createHash('sha256').update('not really a zip').digest('hex');
   const url = 'https://example.com/o/r/releases/download/v0.37/web-14.zip';
@@ -87,7 +87,7 @@ test('web.json: version, build number, the zip\'s sha256, its URL, size, notes a
 });
 
 test('a release keeps the newest two web zips (one may still be downloading)', () => {
-  const names = ['moebius-v0.56.apk', 'web.json', 'latest.json', 'web-110.zip', 'web-108.zip', 'web-111.zip', 'web.zip'];
+  const names = ['hiraeth-v0.56.apk', 'web.json', 'latest.json', 'web-110.zip', 'web-108.zip', 'web-111.zip', 'web.zip'];
   assert.deepEqual(staleWebZips(names), ['web-108.zip', 'web.zip']);
   assert.deepEqual(staleWebZips(['web.zip', 'web-110.zip']), [], 'the old plain web.zip stays until two named ones are up');
   assert.deepEqual(staleWebZips(['web-110.zip', 'web-111.zip']), []);
@@ -211,5 +211,5 @@ test('the Deck has fallbacks when its GPU won\'t draw: Vulkan, then software; a 
   assert.match(deck, /GPU_MODES = \('gl', 'vulkan', 'software'\)/);
   const retry = /const RETRY_EXIT = (\d+);/.exec(main)[1];
   assert.match(deck, new RegExp(`RETRY_EXIT = ${retry}\\b`));
-  assert.match(main, /writeFileSync\(process\.env\.MOEBIUS_READY/);
+  assert.match(main, /writeFileSync\(process\.env\.HIRAETH_READY/);
 });

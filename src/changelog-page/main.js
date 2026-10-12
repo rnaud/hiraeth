@@ -194,7 +194,7 @@ function version(d) {
   focusLine([...to.querySelectorAll('article.line')].find((a) => !a.hidden));
 }
 function close() {
-  if (embed) parent.postMessage({ memento: 'changelog-close' }, location.origin);
+  if (embed) parent.postMessage({ hiraeth: 'changelog-close' }, location.origin);
   else if (history.length > 1 && document.referrer.startsWith(location.origin)) history.back();
 }
 $('#close').addEventListener('click', close);

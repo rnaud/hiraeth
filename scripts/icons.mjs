@@ -124,13 +124,13 @@ async function capture({ view = ICON.view, zoom = ICON.zoom, lift = ICON.lift, b
     await page.goto(BASE + 'manifest.webmanifest');
     await page.evaluate(() => {
       localStorage.clear();
-      localStorage.setItem('moebius.muted', '1');
-      localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'items.v': 2 }, keepsakes: [] }));
-      localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'high', showFps: false, music: 0, effects: 0, voices: 0 }));
+      localStorage.setItem('hiraeth.muted', '1');
+      localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'items.v': 2 }, keepsakes: [] }));
+      localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', showFps: false, music: 0, effects: 0, voices: 0 }));
     });
     // (the views are numbered from 1 in the address, or named by their id: the level opens on that view's world)
     await page.goto(`${BASE}?level=references&view=${encodeURIComponent(view)}`, { waitUntil: 'load' });
-    await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player && window.level?.held, null, { timeout: 300000, polling: 200 });
+    await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player && window.level?.held, null, { timeout: 300000, polling: 200 });
     const n = await page.evaluate(({ view, rs }) => {
       window.sound?.setVolumes?.(0, 0);
       window.quality.renderScale = rs; window.preset().dynamic = null; window.resize();

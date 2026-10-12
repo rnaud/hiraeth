@@ -44,7 +44,7 @@ try {
       let ctx = null;
       window.AudioContext = function () { ctx = new OfflineAudioContext(2, Math.ceil(SR * (secs + 2)), SR); return ctx; };
       window.webkitAudioContext = undefined;
-      localStorage.removeItem('moebius.muted');
+      localStorage.removeItem('hiraeth.muted');
       const s = new Sound(world, { score: false });
       if (!s.ctx) s.start();
       s.score = true;

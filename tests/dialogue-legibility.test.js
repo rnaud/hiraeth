@@ -12,7 +12,7 @@ import { Dialogue, choiceHtml } from '../src/story/dialogue.js';
 import { page } from '../src/platform.js';
 
 const HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const HUD = readFileSync(new URL('../unity/Memento/Assets/MementoJS/Runtime/BridgeHud.cs', import.meta.url), 'utf8');
+const HUD = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs', import.meta.url), 'utf8');
 
 /** The rules of `selector` in index.html's style, joined (its declarations). */
 function rule(selector) {

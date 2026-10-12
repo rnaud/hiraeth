@@ -113,7 +113,7 @@ test('the frame readout starts with the engine, so a screenshot says which one i
   assert.equal(engineLabel('Mozilla/5.0 (Linux; Android 13; Retroid Pocket Nova Build/TKQ1.231222.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/109.0.5414.123 Mobile Safari/537.36'), 'WEBVIEW 109');
   assert.equal(engineLabel('Mozilla/5.0 (Linux; Android 13; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36'), 'CHROME 154');
   assert.equal(engineLabel('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Safari/605.1.15'), 'SAFARI 18');
-  assert.equal(engineLabel('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) memento/0.61 Chrome/140.0.0.0 Electron/38.1.0 Safari/537.36'), 'ELECTRON 38');
+  assert.equal(engineLabel('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) hiraeth/0.61 Chrome/140.0.0.0 Electron/38.1.0 Safari/537.36'), 'ELECTRON 38');
   assert.equal(engineLabel('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0'), 'EDGE 141');
   assert.equal(engineLabel('something else'), 'WEB');
   assert.equal(engineLabel(gecko, '?level=desert&engine=gecko-apk'), 'GECKO-APK', '?engine= names it');

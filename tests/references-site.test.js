@@ -89,7 +89,7 @@ test('the page reads the dev server\'s live index there, the site\'s file elsewh
   assert.deepEqual(indexSources({ dev: true }).map((s) => s.url), [LIVE_INDEX, STATIC_INDEX]);
   assert.deepEqual(indexSources({ dev: false }).map((s) => s.url), [STATIC_INDEX, LIVE_INDEX]);
   assert.equal(STATIC_INDEX, 'references/index.json', 'beside the page (the site may be under a sub-path)');
-  const site = 'https://memento.example/';
+  const site = 'https://hiraeth.example/';
   const entry = { rel: 'a/b.jpg', path: 'references/a/b.jpg', folder: 'a', name: 'b.jpg', thumb: 'references/t/0123.webp', web: 'references/w/0123.webp', width: 3000, height: 2000, bytes: 4096, meta: {} };
   const built = { static: true, entries: [entry] };
   // the built site: the static file

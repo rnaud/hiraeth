@@ -49,8 +49,8 @@ async function angles(shots, pen) {
 
 const result = { quality, worlds: {} };
 for (const w of WORLDS) {
-  await ev(`localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${quality}', hudV: 1, deckV: 1, music: 0, effects: 0, voices: 0 })); true`);
+  await ev(`localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${quality}', hudV: 1, deckV: 1, music: 0, effects: 0, voices: 0 })); true`);
   const shots = [];
   const onFrame = (d) => {
     if (d.method !== 'Page.screencastFrame') return;
@@ -61,10 +61,10 @@ for (const w of WORLDS) {
   listeners.push(onFrame);
   await send('Page.startScreencast', { format: 'jpeg', quality: 60, everyNthFrame: 1, maxWidth: 640, maxHeight: 400 });
   const t0 = Date.now();
-  await send('Page.navigate', { url: `moebius://game/index.html?level=${w}` });
+  await send('Page.navigate', { url: `hiraeth://game/index.html?level=${w}` });
   let pen = null;
   for (let i = 0; i < 200 && !pen; i++) { pen = await ev(`(() => { const e = document.querySelector('#loading .pen'); if (!e) return null; const r = e.getBoundingClientRect(); return r.width ? { x: r.x + r.width / 2, y: r.y + r.height / 2, r: r.width / 2 } : null; })()`).catch(() => null); if (!pen) await sleep(50); }
-  while (!(await ev('!!window.__moebiusBooted').catch(() => false))) { if (Date.now() - t0 > 300000) break; await sleep(250); }
+  while (!(await ev('!!window.__hiraethBooted').catch(() => false))) { if (Date.now() - t0 > 300000) break; await sleep(250); }
   const loadS = (Date.now() - t0) / 1000;
   await send('Page.stopScreencast');
   listeners.splice(listeners.indexOf(onFrame), 1);

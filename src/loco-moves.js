@@ -20,7 +20,7 @@ import * as THREE from 'three';
 
 /** The starts, stops and turns on (the default) or off (the loops alone): `?moves=0`, or the dev menu. */
 export const movesSetting = {
-  key: 'memento.locoMoves',
+  key: 'hiraeth.locoMoves',
   get() {
     try {
       const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('moves') : null;

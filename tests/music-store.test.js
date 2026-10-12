@@ -13,7 +13,7 @@ import { AudioContext } from '../engine/webaudio.js';
 
 const at = (href) => new URL(href);
 const ANDROID = at('http://127.0.0.1:41730/index.html?level=incal');
-const DECK = at('moebius://game/index.html');
+const DECK = at('hiraeth://game/index.html');
 const WEB = at(`${SHEET_SITE}?level=incal`);
 const MP3 = { get: (h) => (h === 'content-type' ? 'audio/mpeg' : null) };
 

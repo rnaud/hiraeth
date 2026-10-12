@@ -19,6 +19,9 @@ export const CHANGELOG = [
     // four word slips and two buttons named in prose (issue #173)
     { text: 'A few words put right: arriving in the Buried Machine says the Wick is unlit beyond the canyon’s oval doors instead of who to ask; your father’s window recording no longer mentions a well that is gone; a choked runnel on Viridel’s tea terraces says in one line to clear the top one first; the doorway the dune let go of no longer promises a stair into the dark; and in the City-Shaft the air pillars and the splinter’s pull name your own buttons.',
       see: 'Arrive in the Buried Machine: the opening words end “beyond the canyon’s two oval doors.” In the City-Shaft, ride an air pillar for the first time: the hint names your stick or keys.' },
+    // the game's old internal names gone: memento / moebius ids renamed hiraeth (issue #130)
+    { text: 'Hiraeth now carries its own name inside too, so this update starts afresh: saves and settings begin again everywhere. On Android it is a new app: install it when the old app offers the update (or from the release page), then uninstall the old one, which gets no more updates. On the Steam Deck, run the install command again. The game’s site has moved to hiraeth.alexandria-rnaud.workers.dev.',
+      see: 'On Android, open the old app: it offers the new one. Once it is installed, the new Hiraeth opens on a new game; uninstall the old one from its app info. On the web, open hiraeth.alexandria-rnaud.workers.dev: the title screen offers a new game.' },
   ] },
   { v: '1.53', date: '2026-10-12', items: [
     // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)
@@ -2668,7 +2671,7 @@ export const CHANGELOG = [
 ];
 
 export const VERSION = CHANGELOG[0].v;
-const SEEN_KEY = 'moebius.changelog.seen';
+const SEEN_KEY = 'hiraeth.changelog.seen';
 /** A line's words: the line itself, or the text of a line written with its pictures. */
 export const lineText = (item) => (typeof item === 'string' ? item : item.text);
 /** A version's lines as they are shown, newest first: lines are added at the end of their version (CLAUDE.md), read from the top. */
@@ -2695,7 +2698,7 @@ export class Changelog {
       else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); if (this.framed) this.pictures(false); else this.toggle(false); }
     });
     // the page asks to be closed (its Close, B / ○, Escape, N): back to the list
-    window.addEventListener('message', (e) => { if (e.origin === location.origin && e.data?.memento === 'changelog-close') this.pictures(false); });
+    window.addEventListener('message', (e) => { if (e.origin === location.origin && e.data?.hiraeth === 'changelog-close') this.pictures(false); });
     this.onOpen = onOpen;
     let seen = null;
     seen = store.get(SEEN_KEY);

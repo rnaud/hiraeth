@@ -27,7 +27,7 @@ const CHROME = process.env.CHROME ?? ['/Applications/Google Chrome.app/Contents/
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[s.length >> 1] : 0; };
 
-const profile = mkdtempSync(join(tmpdir(), 'memento-load-'));
+const profile = mkdtempSync(join(tmpdir(), 'hiraeth-load-'));
 const chrome = spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
   '--enable-precise-memory-info', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
   '--mute-audio', '--disable-gpu-vsync', '--disable-frame-rate-limit', `--window-size=${W},${H}`, '--force-device-scale-factor=1', '--no-first-run',
@@ -41,7 +41,7 @@ const ev = async (e) => {
   return r.result.value;
 };
 const until = async (e, secs = 300) => { for (let t = 0; t < secs * 4; t++) { try { if (await ev(e)) return true; } catch { /* between loads */ } await sleep(250); } throw new Error(`timed out: ${e}`); };
-const QUIET = (preset) => `localStorage.setItem('moebius.muted','1'); localStorage.setItem('moebius.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: '${preset}' }));`;
+const QUIET = (preset) => `localStorage.setItem('hiraeth.muted','1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: '${preset}' }));`;
 
 const rows = [];
 try {
@@ -65,7 +65,7 @@ try {
     for (let run = 0; run < RUNS; run++) {
       await send('Page.navigate', { url: `${BASE}?blank` }); await sleep(300);
       await send('Page.navigate', { url: `${BASE}?level=${world}&items=all` });
-      await until('!!window.__moebiusBooted && !!window.level && !!window.renderer');
+      await until('!!window.__hiraethBooted && !!window.level && !!window.renderer');
       await sleep(12000);   // (it settles: the levels' workers, the crowd's bodies, the shader compiles)
       await send('HeapProfiler.collectGarbage');   // (the heap after a collection, not wherever the GC happened to be)
       await sleep(500);
@@ -75,7 +75,7 @@ try {
         const people = (window.npcs?.length ?? 0) + (window.crowd?.people?.length ?? 0);
         return {
           firstFrame: Math.round(window.__firstFrame ?? -1),
-          ready: Math.round(window.__moebiusBootedAt ?? -1),
+          ready: Math.round(window.__hiraethBootedAt ?? -1),
           transfer: Math.round((performance.getEntriesByType('resource').reduce((n, e) => n + (e.transferSize || 0), 0) + (nav.transferSize || 0)) / 1024),
           heapMB: +(performance.memory.usedJSHeapSize / 1048576).toFixed(1),
           geometries: info.memory.geometries, textures: info.memory.textures, programs: info.programs?.length ?? 0,

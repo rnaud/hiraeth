@@ -447,7 +447,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     // standing aside while the player presses. It is the one that plays if that save is chosen and nothing it
     // read has changed meanwhile (the settings, the language, the save deleted).
     let game = null;
-    const SETTINGS_KEYS = ['moebius.settings.v1', 'moebius.muted'];
+    const SETTINGS_KEYS = ['hiraeth.settings.v1', 'hiraeth.muted'];
     const settingsNow = () => SETTINGS_KEYS.map((k) => { try { return ls?.getItem(k) ?? ''; } catch { return ''; } }).join('\n');
     const gameFits = (n) => !!game && game.slot === n && !game.spoilt && !behind.hold.failed && settingsNow() === game.settings;
     function startGame() {
@@ -467,7 +467,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       if (done) return;
       const stillOnly = reducedMotion(settings, win);   // (the "Reduce motion" setting; not set: prefers-reduced-motion)
       // (the world's modules read the game state as they load: an in-memory save, past the prologue, meanwhile: src/save-slots.js)
-      slots.sandbox({ 'moebius.game.v1': JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }) });
+      slots.sandbox({ 'hiraeth.game.v1': JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }) });
       worldStarted = true;
       import('./title-world.js')
         .then(({ startTitleWorld }) => startTitleWorld({ parent: root, shot, settings, native: isNativeApp, touch: isTouch, still: stillOnly, signal: vistaAbort.signal, win, busy,

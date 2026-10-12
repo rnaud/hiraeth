@@ -22,7 +22,7 @@ import { CHANGELOG } from '../src/changelog.js';
 import { desktopApi, gameBuild, webJson, xboxApi } from './release-info.mjs';
 import { ON_DEVICE_THEMES } from '../src/music-store.js';
 
-export const SITE = 'https://memento.alexandria-rnaud.workers.dev/';
+export const SITE = 'https://hiraeth.alexandria-rnaud.workers.dev/';
 export const UPDATES = 'updates';
 /** Workers static assets: 25 MiB per file, 20,000 files per version on the free plan. */
 export const MAX_FILE = 25 * 1024 * 1024;

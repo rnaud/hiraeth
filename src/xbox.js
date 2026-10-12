@@ -9,9 +9,9 @@
 //   calls as Android's AppShell, over WebView2's web messages).
 // - The TV's safe area: .tv-safe on the root moves every --safe-* inset (index.html) to at least 5 % of the
 //   screen, Xbox's guidance for TVs (48 × 27 of 960 × 540); the 3D picture still fills the screen.
-// - The B button: the app keeps the system's Back from closing the game and sends moebius:back. The game reads
+// - The B button: the app keeps the system's Back from closing the game and sends hiraeth:back. The game reads
 //   B from the Gamepad API like any other button; when no pad reaches the page, Back becomes an Escape press.
-// - Pause and resume: the app sends moebius:pause / moebius:resume like Android's (src/audio-guard.js).
+// - Pause and resume: the app sends hiraeth:pause / hiraeth:resume like Android's (src/audio-guard.js).
 // - The pad read by the app: the console's WebView2 never saw A or B, so the app reads the controller itself and
 //   posts it here ({ hiraeth: 'pad', pads }); listenHostPad folds it into navigator.getGamepads().
 
@@ -19,7 +19,7 @@
 export const XBOX_UA = /\bHiraethXbox\/(\d+)/;
 /** The page's origin in the app (MainPage.Host): fixed for good, the saves live in its storage. */
 export const XBOX_HOST = 'hiraeth.example';
-const FAKE_KEY = 'moebius.platform';
+const FAKE_KEY = 'hiraeth.platform';
 const safe = (f) => { try { return f(); } catch { return null; } };
 
 /** Whether this page runs in the Xbox app (or fakes it: ?platform=xbox, kept for the session's later pages). */
@@ -57,7 +57,7 @@ export function installXbox(win = globalThis.window) {
   const root = win.document?.documentElement;
   root?.classList?.add('xbox');
   root?.classList?.toggle('tv-safe', tvSafe(win));
-  win.addEventListener?.('moebius:back', () => backFallback(win));
+  win.addEventListener?.('hiraeth:back', () => backFallback(win));
   focusAlways(win);
   forwardLogs(win);
   listenHostPad(win);

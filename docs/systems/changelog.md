@@ -130,7 +130,7 @@ runtime never hold it. The Cloudflare deploy copies it into `dist/` only after t
 runtime are made, just before `wrangler deploy` (`.github/workflows/cloudflare.yml`); and should it ever be
 in `dist/`, the zip (`MEDIA_FILE`), the Deck package and the Android workflow leave it out
 (`tests/changelog-media.test.js` checks each). The page reads a picture beside itself on the site or a dev
-server, and from the site (`https://memento.alexandria-rnaud.workers.dev/changelog-media/…`) in a bundled
+server, and from the site (`https://hiraeth.alexandria-rnaud.workers.dev/changelog-media/…`) in a bundled
 game (the Android app, the Deck); offline it says the pictures are online and shows the words and numbers.
 
 Limits (tests): a picture at most 150 KB, a pair 260 KB, the folder 120 MB (raised from 30 MB to 60 MB with v1.0, then to 120 MB with v1.16 in October 2026, when the enemy and temple reworks filled 60: the pictures stay on the site, never on the devices). In practice a 1280 × 720 pair

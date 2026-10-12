@@ -16,7 +16,7 @@ function resizeComposer() {
   const box = $('new-note'); box.style.height = 'auto';
   box.style.height = `${box.scrollHeight + 2}px`;
 }
-const HOSTED = 'https://memento.alexandria-rnaud.workers.dev/notes';
+const HOSTED = 'https://hiraeth.alexandria-rnaud.workers.dev/notes';
 // Bundled/native and GitHub Pages copies cannot use same-origin cookie auth on the Worker.
 // Offer a normal top-level navigation instead of cross-origin credentials or tokens in URLs.
 const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);

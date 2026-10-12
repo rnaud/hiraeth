@@ -218,7 +218,7 @@ test('the 100 world enemies are retired: no world enemy kind in spawning, the Ar
 });
 
 test('old saves are unaffected: enemies are never saved, only flags of kinds that still exist', () => {
-  const store = new Map([['moebius.game.v1', JSON.stringify({ flags: { 'foes.met.crab': true, 'foes.met.hound': true, 'foes.seen': true, 'foes.desert.m1': true }, keepsakes: [] })]]);
+  const store = new Map([['hiraeth.game.v1', JSON.stringify({ flags: { 'foes.met.crab': true, 'foes.met.hound': true, 'foes.seen': true, 'foes.desert.m1': true }, keepsakes: [] })]]);
   const game = new GameState({ getItem: (k) => store.get(k) ?? null, setItem: (k, x) => store.set(k, x) });
   assert.equal(game.flag('foes.met.crab'), true);
   clearTargets();
@@ -228,7 +228,7 @@ test('old saves are unaffected: enemies are never saved, only flags of kinds tha
   for (let i = 0; i < 30; i++) foes.update(DT);
   assert.ok(!notes.some((t) => /shellback/.test(t)), 'a crab already met is not explained again');
   assert.ok(notes.some((t) => /Horn lizards/.test(t)), 'the new lizard is');
-  const saved = JSON.parse(store.get('moebius.game.v1'));
+  const saved = JSON.parse(store.get('hiraeth.game.v1'));
   assert.ok(Object.keys(saved.flags).every((k) => !/\//.test(k)), 'no foe kinds or skins in the save');
   foes.dispose(); clearTargets();
 });

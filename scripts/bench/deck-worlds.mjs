@@ -26,7 +26,7 @@ const opt = options();
 const PORT = +(opt.port ?? 5310);
 // (--origin: the same run against another page, e.g. a muted headless Chrome on the Mac at vite preview, with
 //  --slow n: the CPU slowed n times (Emulation.setCPUThrottlingRate) as a proxy for the Deck's main thread)
-const ORIGIN = String(opt.origin ?? 'moebius://game/index.html');
+const ORIGIN = String(opt.origin ?? 'hiraeth://game/index.html');
 const SLOW = +(opt.slow ?? 1);
 const VP = viewpoints();
 const picked = JSON.parse(readFileSync(resolve(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8'));
@@ -163,14 +163,14 @@ async function runWorld(page, world, mode) {
   const label = `${world} ${quality} ${mode}`;
   page.errors = []; page.warnings = [];
   await page.eval((q) => {
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, deckV: 1, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, deckV: 1, music: 0, effects: 0, voices: 0 }));
     return true;
   }, quality);
   const t0 = Date.now();
   await page.send('Page.navigate', { url: `${ORIGIN}?level=${world}&fps=1` });
   await sleep(1500);
-  await page.waitFor('!!(window.__moebiusBooted && window.renderFrame && window.player && window.__bench)');
+  await page.waitFor('!!(window.__hiraethBooted && window.renderFrame && window.player && window.__bench)');
   const load = +((Date.now() - t0) / 1000).toFixed(1);
   const loadWarnings = page.warnings.filter((w) => /pacer|load:/.test(w));
   console.log(`${label}: loaded in ${load} s${loadWarnings.length ? ' — ' + loadWarnings.join(' | ') : ''}`);

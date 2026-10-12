@@ -71,8 +71,8 @@ surface area. These are diagnostic spikes, not confirmed shadow/cascade failures
 was skipped by the tool because it found no suitable wall. The short 36-frame runs are screening
 passes; longer paths, quick turns, climbers and a full-world motion survey remain unchecked.
 
-Raw stills are in `/tmp/moebius-visual-audit`; raw motion clips, frame images and JSON in
-`/tmp/moebius-motion/{desert,incal,buried}`. Those scratch paths are local and temporary.
+Raw stills are in `/tmp/hiraeth-visual-audit`; raw motion clips, frame images and JSON in
+`/tmp/hiraeth-motion/{desert,incal,buried}`. Those scratch paths are local and temporary.
 Only finding pictures and small measurement data are retained here, below the 3 MB limit.
 
 ## Clipping and contact baseline

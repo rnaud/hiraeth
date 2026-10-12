@@ -78,7 +78,7 @@ test('the layout: the worlds are under references/levels/, each with its environ
 
 test('every path into references/ names a folder that is there', () => {
   const bad = [];
-  // (not another folder's references/: a skill's own, `…/moebius-ai-characters/references/`)
+  // (not another folder's references/: a skill's own, `…/hiraeth-ai-characters/references/`)
   const re = /(?<![A-Za-z_-]{2,}\/)(?<!\w)references(?:\/|%2F)((?:[^"'`)\]\n<>,;|]|%20)*)/g;
   for (const f of textFiles()) {
     if (f === 'tests/reference-paths.test.js' || FIXTURE_TREES.has(f)) continue;

@@ -7,8 +7,8 @@
 # ANDROID_SERIAL picks the device, APK the package to install (default: BenchBuild.Android's), OUT the
 # folder for the results (default scripts/bench/results/android-<date>).
 #
-# It installs (or updates) com.rnaud.memento.unity only. It never installs, uninstalls, stops or
-# clears com.rnaud.moebius (the web game's app): the web side runs in Chrome, in its own tab and
+# It installs (or updates) com.rnaud.hiraeth.unity only. It never installs, uninstalls, stops or
+# clears com.rnaud.hiraeth (the web game's app): the web side runs in Chrome, in its own tab and
 # storage (localhost:5219), not in the app.
 set -eu
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -16,9 +16,9 @@ SDK=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 ADB=${ADB:-$SDK/platform-tools/adb}
 [ -x "$ADB" ] || ADB=/Applications/Unity/Hub/Editor/6000.6.4f1/PlaybackEngines/AndroidPlayer/SDK/platform-tools/adb
 export ADB
-PKG=com.rnaud.memento.unity
-case "$PKG" in com.rnaud.moebius*) echo "refusing: $PKG is the web app" >&2; exit 1 ;; esac
-APK=${APK:-$ROOT/unity/Memento/Builds/Android/memento-unity.apk}
+PKG=com.rnaud.hiraeth.unity
+case "$PKG" in com.rnaud.hiraeth*) echo "refusing: $PKG is the web app" >&2; exit 1 ;; esac
+APK=${APK:-$ROOT/unity/Hiraeth/Builds/Android/hiraeth-unity.apk}
 OUT=${OUT:-$ROOT/scripts/bench/results/android-$(date +%Y%m%d-%H%M)}
 PRESETS=${PRESETS:-"handheld high"}
 SIDES=${SIDES:-"unity web"}

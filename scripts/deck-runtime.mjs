@@ -98,7 +98,7 @@ async function main(args) {
     execFileSync('npm', ['--prefix', 'desktop', 'ci', '--ignore-scripts'], { cwd: REPO, stdio: 'inherit', env: { ...process.env, ELECTRON_SKIP_BINARY_DOWNLOAD: '1' } });
     execFileSync('node', ['scripts/package-steam-deck.mjs'], { cwd: REPO, stdio: 'inherit' });
     const built = JSON.parse(await readFile(join(REPO, 'output/steam-deck/steam-deck.json'), 'utf8'));
-    const data = await readFile(join(REPO, 'output/steam-deck', `moebius-steam-deck-${built.build}.tar.gz`));
+    const data = await readFile(join(REPO, 'output/steam-deck', `hiraeth-steam-deck-${built.build}.tar.gz`));
     if (sha256(data) !== built.sha256) throw new Error('the package changed under us');
     const manifest = runtimeJson({ build: built.build, version: built.version, data, key, site });
     await writeRuntime(dist, manifest, split(data));

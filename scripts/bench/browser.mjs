@@ -46,7 +46,7 @@ export const INSTRUMENT = `(() => {
   };
   // (Unity's Debug.Log goes to the console: its bench marks the start and end of each recording)
   const log = console.log;
-  console.log = function (...a) { const s = String(a[0] ?? ''); if (s.includes('Memento: bench rec ')) B.marks.push([s.includes('rec start') ? 'start' : 'end', performance.now(), B.frames.length]); return log.apply(this, a); };
+  console.log = function (...a) { const s = String(a[0] ?? ''); if (s.includes('Hiraeth: bench rec ')) B.marks.push([s.includes('rec start') ? 'start' : 'end', performance.now(), B.frames.length]); return log.apply(this, a); };
   function poll() {
     const gl = B.gl, ext = B.ext; if (!gl || !ext) return;
     while (B.pending.length && gl.getQueryParameter(B.pending[0].q, gl.QUERY_RESULT_AVAILABLE)) {

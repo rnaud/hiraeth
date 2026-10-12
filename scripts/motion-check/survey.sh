@@ -2,7 +2,7 @@
 # Every world through the motion check's paths (clips saved), a few features toggled on the slow paths.
 #   BUILD=main TAG=before PRESET=high OUT=<dir> scripts/motion-check/survey.sh      (serve.mjs running)
 cd "${0:A:h}/../.."
-BUILD=${BUILD:-main}; TAG=${TAG:-$BUILD}; PRESET=${PRESET:-high}; OUT=${OUT:-${TMPDIR:-/tmp}/memento-motion/$PRESET}
+BUILD=${BUILD:-main}; TAG=${TAG:-$BUILD}; PRESET=${PRESET:-high}; OUT=${OUT:-${TMPDIR:-/tmp}/hiraeth-motion/$PRESET}
 WORLDS=(${=WORLDS:-desert incal bazaar arzach arzach2 perdide perdide2 edena garage buried spheres home})
 TG=${TG:-detail,wear,form,allfog}
 PATHS=${PATHS:-still,pan,drift,walk,zoom,orbit,orbitslow,fast,haze,swing30}

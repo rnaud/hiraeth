@@ -6,7 +6,7 @@ The title screen and saves, settings, the pause menus, the empty screen while pl
 
 - **Continue:** your world, position and time of day are saved every few
   seconds; the picker shows a Continue button.
-- **Settings (O, Esc or ⚙; the title's Settings):** saved in `localStorage` `moebius.settings.v1`
+- **Settings (O, Esc or ⚙; the title's Settings):** saved in `localStorage` `hiraeth.settings.v1`
   (`src/ui.js` `Settings`, `DEFAULTS`), in five groups and, in play, a sixth for the author:
   - *Screen and text:* the language (`lang`: English, Français), graphics (`quality`: Auto,
     Handheld, Steam Deck, Low, Medium, High), the text size (`textSize`: Small, Normal, Large,
@@ -109,7 +109,7 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   synthetic ones, nor typing in a field, nor code-less keys a handheld may send), mouse clicks and
   touches. It sets `body.controller` and `body.touch` (the touch layout and buttons only while the
   fingers are what is in use: a keyboard on a touch-screen laptop hides them too) and is remembered
-  for the tab in `sessionStorage` (`moebius.input.v1`): a new world is a new page, and a browser
+  for the tab in `sessionStorage` (`hiraeth.input.v1`): a new world is a new page, and a browser
   lists a pad only after its first press there, so the touch buttons used to come back on every
   world loaded with a controller. A remembered pad holds until the screen or keys are used, or a
   pad that was listed goes away. The title screen and the worlds list remember a pad press too.
@@ -157,7 +157,7 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   button (the worlds list) and the Start menu's "Debug: worlds" show only with the same switch as
   the in-game Developer panel (Settings → Developer panel, `settings.devPanel`), in a dev build
   (`npx vite`, `import.meta.env.DEV`), or after opening the game once with `?dev=1` (remembered on
-  the device as `moebius.dev`; `?dev=0` forgets it). Players see neither. The Dev menu (\`) and
+  the device as `hiraeth.dev`; `?dev=0` forgets it). Players see neither. The Dev menu (\`) and
   `?level=<id>` work as before. `tests/first-run.test.js` checks the gate.
   Playtest 2026-10-08 ("the language switched to French and the debug menu disappeared"): the gate is
   meant, and came in that same day, so the entries went from the author's device until the Developer
@@ -204,7 +204,7 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   `shotCamera(shot, aspect)` keeps the cover's height on wider screens and its width down to 4:3, and on a
   screen held upright turns the view toward the traveller, a little wider, slid up between the name and
   the menu (a shot may give its own `portrait`). Each opening shows a different one: `chooseShot` never
-  repeats the last (`localStorage` `moebius.title.shot`, a global key), the worlds the saves are in come
+  repeats the last (`localStorage` `hiraeth.title.shot`, a global key), the worlds the saves are in come
   three times as often, a new player may see any (`?shot=<id>` asks for one). `node
   scripts/title-shots.mjs [ids] [--sizes]` renders each shot (its own Vite on 5345, one headless Chrome)
   and writes it beside its cover into `docs/title-shots/<id>-compare.jpg`; `CAMS='[…]'` tries several poses
@@ -297,9 +297,9 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
     imports, the sandbox, the hand-over and that the menu still wires up; `tests/title-shots.test.js` the
     shots and the choice.
 - **Save slots** (`src/save-slots.js`): `slotStorage` is a localStorage look-alike that files
-  each progress key under the active slot (`moebius.game.v1` in slot 2 is
-  `moebius.s2.game.v1`): the game state, the sketchbook, the saved position and the reactive
-  world's memory all read and write through it. The active slot is `moebius.slot`, pinned
+  each progress key under the active slot (`hiraeth.game.v1` in slot 2 is
+  `hiraeth.s2.game.v1`): the game state, the sketchbook, the saved position and the reactive
+  world's memory all read and write through it. The active slot is `hiraeth.slot`, pinned
   for the page on first read. Settings, mute, the pad layout, the changelog's seen mark and
   the update toast stay global. A per-slot `meta` key keeps the time played (counted while
   the game runs, not paused) and when it was last played. `summary(n)` reads a slot's raw
@@ -477,7 +477,7 @@ Code: `src/story/people-book.js` (the book and the rules), `peopleData` in `src/
   closing the menu: main.js `closeControllerMenu`, `Journal`'s Esc), on the card just read. LB / RB still
   turn the panels. One column under 720 px wide (the portrait beside the name).
 - **Portraits** (`PortraitCache`): the portrait each conversation takes (`dialogue.shot`, just them against
-  their world's flat colour) shrunk to 128 px WebP and kept in `localStorage` (`moebius.portraits.v1`, not
+  their world's flat colour) shrunk to 128 px WebP and kept in `localStorage` (`hiraeth.portraits.v1`, not
   per slot: a portrait is not progress), the latest replacing the one before so a new costume shows.
   Someone met before v1.5 gets theirs at the next conversation, or while the page is open in their world
   (`pumpPortraits` in main.js, one a frame, people within 60 m); until then their initial on their world's
@@ -727,7 +727,7 @@ Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` an
   pad only after its first press on the page (each world is a new page), and Steam Input's pads too, so
   until then there was no family and the prompts stayed as written, both halves. Now `pageFamily` picks one:
   the pad listed now; else the family of the last pad listed on this device (`rememberFamily`, localStorage
-  `moebius.padFamily.v1`); else the platform's (`platformFamily`: the Deck's app, `moebius:`, Steam's
+  `hiraeth.padFamily.v1`); else the platform's (`platformFamily`: the Deck's app, `hiraeth:`, Steam's
   browser or a Steam pad on the list, ids with Valve's 28de, "Steam Virtual Gamepad", "Steam Deck": Xbox
   letters, as Steam draws them; the Android app its handheld names; anything else Xbox's, the standard's own).
   `padText` with no family shows the Xbox half too, so no caller can print the pair. With the keyboard or the

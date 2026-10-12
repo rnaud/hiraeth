@@ -64,7 +64,7 @@ export function writeGLB({ nodes, clips, extras = {} }) {
   });
   const roots = nodes.map((n, i) => (n.parent < 0 ? i : -1)).filter((i) => i >= 0);
   const json = {
-    asset: { version: '2.0', generator: 'Memento scripts/mocap' },
+    asset: { version: '2.0', generator: 'Hiraeth scripts/mocap' },
     scene: 0, scenes: [{ nodes: roots }], nodes: gnodes,
     animations, accessors, bufferViews, buffers: [{ byteLength }], extras,
   };

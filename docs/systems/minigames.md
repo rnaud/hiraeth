@@ -274,7 +274,7 @@ pilot: 50.0 s against 53.9, never dry); boosting every straight to the last drop
 losing most of that; boosting all the way runs dry and comes down. The camera chases behind the nose (tipped with it,
 rolled a third of the bank); the arrow hangs at the top of the view (4.2 m ahead of the camera) pointing at
 the next ring. **The ghost**: the run's track every 0.1 s and its ring splits, kept on this device
-(`localStorage` `moebius.minigame.rings.ghost`, `packGhost`: ~8 KB) when it beats the ghost or the best; the
+(`localStorage` `hiraeth.minigame.rings.ghost`, `packGhost`: ~8 KB) when it beats the ghost or the best; the
 next runs fly it beside you (`ghostAt`) and flash the split at each ring. `botInput` flies the course; the tests
 run it at 120, 60 and 30 fps and require every ring, no crash, about 55 s.
 

@@ -192,7 +192,7 @@ export class Sound {
    * autoStart: false leaves the start before any press to the owner (startIfAllowed): the title calls it once its
    * menu answers, as asking whether sound may start opens an audio context, 100-250 ms of the main thread.
    */
-  constructor(levelId, { score = true, titleTheme = false, autoStart = true, muted = store.get('moebius.muted') === '1' } = {}) {
+  constructor(levelId, { score = true, titleTheme = false, autoStart = true, muted = store.get('hiraeth.muted') === '1' } = {}) {
     this.score = score;
     this.titleTheme = titleTheme;
     this.menuOn = false;
@@ -632,7 +632,7 @@ export class Sound {
 
   toggleMute() {
     this.muted = !this.muted;
-    store.set('moebius.muted', this.muted ? '1' : '0');
+    store.set('hiraeth.muted', this.muted ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(this.masterLevel(), this.ctx.currentTime, 0.1);
   }
 

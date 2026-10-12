@@ -94,7 +94,7 @@ if (cmd === 'launch' || cmd === 'stop') {
   let stage = '';
   while ((Date.now() - t0) / 1000 < max) {
     await new Promise((r) => setTimeout(r, 2000));
-    const r = await c.send('Runtime.evaluate', { expression: `JSON.stringify({ b: window.__moebiusBooted === true, msg: document.querySelector('#loading .msg')?.textContent ?? null })`, returnByValue: true });
+    const r = await c.send('Runtime.evaluate', { expression: `JSON.stringify({ b: window.__hiraethBooted === true, msg: document.querySelector('#loading .msg')?.textContent ?? null })`, returnByValue: true });
     const v = JSON.parse(r.result?.result?.value ?? '{}');
     if (v.msg !== stage) { stage = v.msg; console.log(ts(), '[loading screen]', stage); }
     if (v.b) { console.log(ts(), '[first frame]'); break; }

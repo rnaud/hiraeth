@@ -31,7 +31,7 @@ await prepareStorage(ev, preset);
 for (const job of jobs) {
   if (only && !only.has(job.name)) continue;
   await page.goto(BASE + job.url, { waitUntil: 'load' });
-  await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame, null, { timeout: 300000, polling: 100 });
+  await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame, null, { timeout: 300000, polling: 100 });
   await sleep(job.settle ?? 6000);
   await ev(({ hour }) => {
     const p = window.preset?.(); if (p) p.dynamic = null;

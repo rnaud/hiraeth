@@ -117,7 +117,7 @@ const paths = [
 ];
 
 const out = {
-  about: 'Memento benchmark viewpoints over the desert (scripts/bench/viewpoints.mjs). three.js coordinates; Unity mirrors x.',
+  about: 'Hiraeth benchmark viewpoints over the desert (scripts/bench/viewpoints.mjs). three.js coordinates; Unity mirrors x.',
   hour: 10,
   weather: 'clear',
   warmup: 3,

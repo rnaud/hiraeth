@@ -1,6 +1,6 @@
 # Existing implementation and checks
 
-Resolve these paths relative to the current Moebius/Hiraeth checkout. Inspect current code before using it; this map describes the integrated coral-shirt v1 and its review tools, not a generic character SDK.
+Resolve these paths relative to the current Hiraeth checkout. Inspect current code before using it; this map describes the integrated coral-shirt v1 and its review tools, not a generic character SDK.
 
 - `scripts/tripo/README.md`: reproduction, current limitations and asset contract.
 - `output/character-tripo/baseline/model.glb`: untouched downloaded baseline (git-ignored).

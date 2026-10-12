@@ -29,8 +29,8 @@ for (const name of names.split(',')) {
   const sc = SCENARIOS[name];
   errors.length = 0;
   await page.goto(BASE + '?' + sc.q);
-  await page.waitFor(sc.title ? '!!window.title?.vista' : '!!window.__moebiusBooted', 300000, 250);
-  const load = await page.eval('window.__moebiusBootedAt ?? null');   // ms from navigation to the first frame
+  await page.waitFor(sc.title ? '!!window.title?.vista' : '!!window.__hiraethBooted', 300000, 250);
+  const load = await page.eval('window.__hiraethBootedAt ?? null');   // ms from navigation to the first frame
   await fullscreen(page);
   await sleep(sc.settle ?? 4000);
   if (sc.setup) { await page.eval(sc.setup); await sleep(3000); }

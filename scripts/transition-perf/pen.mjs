@@ -51,8 +51,8 @@ for (const w of WORLDS) {
   await page.goto(BASE + 'manifest.webmanifest');
   await page.evaluate(() => {
     localStorage.clear();
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'handheld', hudV: 1, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'handheld', hudV: 1, music: 0, effects: 0, voices: 0 }));
   });
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuRate });
   const shots = [];
@@ -62,7 +62,7 @@ for (const w of WORLDS) {
   await page.goto(BASE + `?level=${w}`, { waitUntil: 'commit' });
   let pen = null;
   for (let i = 0; i < 100 && !pen; i++) { pen = await page.evaluate(() => { const e = document.querySelector('#loading .pen'); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, r: r.width / 2 }; }).catch(() => null); await sleep(50); }
-  await page.waitForFunction(() => window.__moebiusBooted, null, { timeout: 600000, polling: 500 });
+  await page.waitForFunction(() => window.__hiraethBooted, null, { timeout: 600000, polling: 500 });
   const loadS = (Date.now() - t0) / 1000;
   await cdp.send('Page.stopScreencast');
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });

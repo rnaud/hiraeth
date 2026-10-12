@@ -8,7 +8,7 @@ import { referencesPlugin } from './scripts/references-index.mjs';
 import { threeProgramKeys } from './scripts/three-program-keys.mjs';
 
 // Relative asset paths so the build works both at a site root and under
-// GitHub Pages' /moebius/ sub-path.
+// GitHub Pages' /hiraeth/ sub-path.
 // In a git worktree node_modules may be a symlink into the main checkout;
 // allow serving from where it really lives (the BVH worker is loaded from it).
 /** The pages built (tests/studio.test.js checks the studio is one, tests/motion-page.test.js the Motion page). */

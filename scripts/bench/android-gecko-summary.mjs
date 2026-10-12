@@ -26,7 +26,7 @@ const C = earlier.engines.chrome, W0 = earlier.engines.webview;
 const extOnly = (a, b) => (a?.gl?.extensions ?? []).filter((x) => !(b?.gl?.extensions ?? []).includes(x));
 const webDiff = (a, b) => Object.keys(a?.web ?? {}).filter((k) => a.web[k] !== b?.web?.[k]).map((k) => ({ feature: k, a: a.web[k], b: b?.web?.[k] }));
 const result = {
-  about: 'Memento on the Retroid Pocket Nova: the same web build in GeckoView 157 (com.rnaud.moebius.gecko, the game from this Mac, and from its APK: gecko-apk) and in the system WebView 109 (com.rnaud.moebius.perf), same session, rounds alternating; Chrome 154 from the earlier session; Handheld preset; scripts/bench/android-engines.mjs',
+  about: 'Hiraeth on the Retroid Pocket Nova: the same web build in GeckoView 157 (com.rnaud.hiraeth.gecko, the game from this Mac, and from its APK: gecko-apk) and in the system WebView 109 (com.rnaud.hiraeth.perf), same session, rounds alternating; Chrome 154 from the earlier session; Handheld preset; scripts/bench/android-engines.mjs',
   from: relative(ROOT, dir), apkFrom: opt.apk ? relative(ROOT, resolve(opt.apk)) : null, build: earlier.build, time: new Date().toISOString(),
   method: { ...earlier.method, gc: 'Chromium only (V8 trace); GeckoView has no DevTools trace', heap: 'Chromium only (performance.memory)' },
   engines: summary, chrome: C,

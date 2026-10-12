@@ -7,7 +7,7 @@
 //
 // A plan is a list of views: { name, q?, save?, fresh?, title?, wait?, eval?, then?: [{ eval, wait }] }
 //   q      the query (?level=desert …); none: the title screen
-//   save   the game save to start from (moebius.game.v1); fresh: true for a first-time player (nothing stored)
+//   save   the game save to start from (hiraeth.game.v1); fresh: true for a first-time player (nothing stored)
 //   title  the view is a page that never boots a world (the title screen): just wait, then shoot
 //   eval   a script run in the page before the shot (its value is printed)
 //   then   steps after the first shot, each run, waited for and shot as <name>-<i>
@@ -56,14 +56,14 @@ const shot = async (name) => writeFileSync(join(OUT, `${name}.jpg`), Buffer.from
 const report = [];
 for (const v of PLAN) {
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(300);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted', '1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0 }));
-    ${v.fresh ? '' : `localStorage.setItem('moebius.game.v1', JSON.stringify(${JSON.stringify(v.save ?? { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })}));`} true`);
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1');
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0 }));
+    ${v.fresh ? '' : `localStorage.setItem('hiraeth.game.v1', JSON.stringify(${JSON.stringify(v.save ?? { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })}));`} true`);
   logs.length = 0;
   const t0 = Date.now();
   await send('Page.navigate', { url: BASE + (v.q ?? '') });
   let boot = null;
-  if (!v.title) for (let i = 0; i < 600; i++) { if (await ev('!!window.__moebiusBooted && !!window.player')) { boot = Date.now() - t0; break; } await sleep(250); }
+  if (!v.title) for (let i = 0; i < 600; i++) { if (await ev('!!window.__hiraethBooted && !!window.player')) { boot = Date.now() - t0; break; } await sleep(250); }
   await sleep(v.wait ?? 6000);
   const row = { name: v.name, boot_ms: boot, said: v.eval ? await ev(v.eval) : undefined };
   await shot(v.name);

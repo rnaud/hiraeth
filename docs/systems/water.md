@@ -173,11 +173,11 @@ props) had nothing. Now wherever anything meets the water (`contactFoam` in `src
 - **In Unity** (the C# port and the JS bridge's player, which draw through the same look; on but on mobile,
   below): `contactFoam` in
   `unity/…/Shaders/Surface.shader`, the same numbers, called from `waterLook`. The water's materials
-  (`WorldLoader.MakeMaterial`) go in their own queue (`MementoFeature.WaterQueue`, past the opaque range) and write
-  no depth (`_ZWrite` 0); `MementoFeature`'s G-buffer draws everything else, copies its depth as a view depth in
-  metres (`Bloom.shader`'s third pass, `_MementoSceneDepth`, the sky 0), then draws the water over it reading the
+  (`WorldLoader.MakeMaterial`) go in their own queue (`HiraethFeature.WaterQueue`, past the opaque range) and write
+  no depth (`_ZWrite` 0); `HiraethFeature`'s G-buffer draws everything else, copies its depth as a view depth in
+  metres (`Bloom.shader`'s third pass, `_HiraethSceneDepth`, the sky 0), then draws the water over it reading the
   copy at its own pixel (this frame's: no reprojection). The ray's run is the scene's view depth less the water's
-  over the ray's share of it, as here. With the foam off (`MementoFeature.Settings.waterContact`: off on mobile
+  over the ray's share of it, as here. With the foam off (`HiraethFeature.Settings.waterContact`: off on mobile
   players and in the bench's handheld preset, as the web's Handheld; or no water material made yet) the water is
   drawn at the end of the one G-buffer pass, without it. **On by default** since it was seen running (issue #53,
   2026-10-11: the editor in batch mode, `unity-batch.sh Play -tour` over Lorn's landing and the Deep Wood's pools

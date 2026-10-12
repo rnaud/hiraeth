@@ -23,7 +23,7 @@ async function open(p, base) {
   await p.goto(base + 'manifest.webmanifest');
   await prepareStorage(ev, preset);
   await p.goto(base + (A.view ?? '?level=references&view=22'), { waitUntil: 'load' });
-  await p.waitForFunction(() => window.__moebiusBooted && window.renderFrame, null, { timeout: 300000, polling: 100 });
+  await p.waitForFunction(() => window.__hiraethBooted && window.renderFrame, null, { timeout: 300000, polling: 100 });
   await sleep(A.settle ? +A.settle : 9000);
   await ev((scale) => {
     const pr = window.preset?.(); if (pr) pr.dynamic = null;

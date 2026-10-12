@@ -14,10 +14,10 @@
 set -eu
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
-[ -f unity/Memento/Assets/StreamingAssets/desert/world.bin ] || node scripts/unity-export/export-desert.mjs
+[ -f unity/Hiraeth/Assets/StreamingAssets/desert/world.bin ] || node scripts/unity-export/export-desert.mjs
 if [ "${REBUILD:-0}" = 1 ] || [ ! -f dist/index.html ]; then npx vite build; fi
-if [ "${REBUILD:-0}" = 1 ] || [ ! -x unity/Memento/Builds/macOS-bench/Memento.app/Contents/MacOS/Memento ]; then
-  scripts/unity-export/unity-batch.sh BenchBuild.Mac -out "$ROOT/unity/Memento/Builds/macOS-bench/Memento.app"
+if [ "${REBUILD:-0}" = 1 ] || [ ! -x unity/Hiraeth/Builds/macOS-bench/Hiraeth.app/Contents/MacOS/Hiraeth ]; then
+  scripts/unity-export/unity-batch.sh BenchBuild.Mac -out "$ROOT/unity/Hiraeth/Builds/macOS-bench/Hiraeth.app"
 fi
 node scripts/bench/run-all.mjs "$@"
 node scripts/bench/report.mjs

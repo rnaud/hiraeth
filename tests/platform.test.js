@@ -25,10 +25,10 @@ test('storage: what localStorage holds, and a failing one stays quiet', () => {
   const m = new Map();
   globalThis.localStorage = { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, v), removeItem: (k) => m.delete(k) };
   try {
-    assert.equal(store.set('moebius.k', 'v'), true);
-    assert.equal(store.get('moebius.k'), 'v');
-    store.remove('moebius.k');
-    assert.equal(store.get('moebius.k'), null);
+    assert.equal(store.set('hiraeth.k', 'v'), true);
+    assert.equal(store.get('hiraeth.k'), 'v');
+    store.remove('hiraeth.k');
+    assert.equal(store.get('hiraeth.k'), null);
     globalThis.localStorage = { getItem() { throw new Error('no'); }, setItem() { throw new Error('full'); }, removeItem() { throw new Error('no'); } };
     assert.equal(store.get('a'), null); assert.equal(store.set('a', 'b'), false); store.remove('a');
   } finally { delete globalThis.localStorage; }

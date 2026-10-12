@@ -7,7 +7,7 @@
 // web audio" is an awake request), and the system WebView keeps rendering it too. So the music
 // went on with the screen off unless the page itself suspended every AudioContext it had.
 //
-// - Away = the app said so (moebius:pause, until moebius:resume; window.__moebiusAway when a page
+// - Away = the app said so (hiraeth:pause, until hiraeth:resume; window.__hiraethAway when a page
 //   starts while the app is away) or the page is hidden or frozen. Input never brings it back.
 // - Every AudioContext is registered in one place: the page's AudioContext constructor is wrapped,
 //   so the game's Sound, the title's, the bell in src/story/arzach2.js and anything later all are.
@@ -17,7 +17,7 @@
 // - on(fn) tells the owners (Sound mutes its master gain as well), whenBack(fn) runs a deferred
 //   start once the page is back.
 
-const KEY = '__moebiusAudioGuard';
+const KEY = '__hiraethAudioGuard';
 
 /** The page's guard (installed on first use); null without a window. */
 export function audioGuard(win = globalThis.window) {
@@ -32,7 +32,7 @@ function createGuard(win) {
   const doc = win.document;
   const contexts = new Set(), subs = new Set();
   let pending = [];
-  let appAway = win.__moebiusAway === true, frozen = false, away = false;
+  let appAway = win.__hiraethAway === true, frozen = false, away = false;
   const wants = new WeakSet();   // contexts to resume on return
 
   const isAway = () => appAway || frozen || !!doc?.hidden;
@@ -86,8 +86,8 @@ function createGuard(win) {
     if (!away) { const run = pending; pending = []; for (const f of run) { try { f(); } catch { /* ignore */ } } }
   };
 
-  win.addEventListener?.('moebius:pause', () => { appAway = true; win.__moebiusAway = true; update(); });
-  win.addEventListener?.('moebius:resume', () => { appAway = false; win.__moebiusAway = false; update(); });
+  win.addEventListener?.('hiraeth:pause', () => { appAway = true; win.__hiraethAway = true; update(); });
+  win.addEventListener?.('hiraeth:resume', () => { appAway = false; win.__hiraethAway = false; update(); });
   win.addEventListener?.('pagehide', () => { frozen = true; update(); });
   win.addEventListener?.('pageshow', () => { frozen = false; update(); });
   doc?.addEventListener?.('visibilitychange', update);

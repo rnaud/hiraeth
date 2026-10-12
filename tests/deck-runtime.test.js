@@ -24,7 +24,7 @@ test('the runtime goes up in parts under the Workers file limit, named as deck.p
   assert.equal(partName(795001, 12), 'steam-deck-795001.tar.gz.012');
   // deck.py validate_manifest checks exactly these URLs
   const deck = read('../scripts/steam-deck/deck.py');
-  assert.match(deck, /CONTENT_URL = 'https:\/\/memento\.alexandria-rnaud\.workers\.dev\/updates\/'/);
+  assert.match(deck, /CONTENT_URL = 'https:\/\/hiraeth\.alexandria-rnaud\.workers\.dev\/updates\/'/);
   assert.match(deck, /RUNTIME_SITE_URL = CONTENT_URL \+ 'steam-deck\.json'/);
   assert.match(deck, /CONTENT_URL \+ f'steam-deck-\{build\}\.tar\.gz\.\{i:03d\}'/);
 });

@@ -50,12 +50,12 @@ await pg.send('Page.enable'); await pg.send('Runtime.enable'); await pg.send('Em
 await pg.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1.5, mobile: false });
 
 await pg.send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, showFps: true }));
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
+await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, showFps: true }));
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
 const t0 = Date.now();
 await pg.send('Page.navigate', { url: `${BASE}?level=desert&fps=1` });
-for (let i = 0; i < 1800; i++) { if (await ev('!!window.__moebiusBooted && !!window.player && !!window.renderer')) break; await sleep(100); }
+for (let i = 0; i < 1800; i++) { if (await ev('!!window.__hiraethBooted && !!window.player && !!window.renderer')) break; await sleep(100); }
 const out = { preset: PRESET, slow: SLOW, uncapped: UNCAPPED, load_ms: Date.now() - t0, chrome: version.Browser };
 out.gpu = await ev(`(() => { const g = window.renderer.getContext(), x = g.getExtension('WEBGL_debug_renderer_info'); return g.getParameter(x.UNMASKED_RENDERER_WEBGL); })()`);
 if (/swiftshader|software|llvmpipe/i.test(out.gpu ?? '')) throw new Error(`software rendering (${out.gpu})`);

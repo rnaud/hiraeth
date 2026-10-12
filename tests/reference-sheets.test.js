@@ -20,7 +20,7 @@ test('a sheet is read from where the game runs, or from the site inside the app 
   const url = 'http://127.0.0.1:41730/assets/IMG_3808-DAtVrONv.JPG';
   const at = (href) => new URL(href);
   assert.equal(sheetSrc(url, at('http://127.0.0.1:41730/index.html')), `${SITE}assets/IMG_3808-DAtVrONv.JPG`, 'the Android app');
-  assert.equal(sheetSrc('moebius://game/assets/IMG_3808-DAtVrONv.JPG', at('moebius://game/index.html')), `${SITE}assets/IMG_3808-DAtVrONv.JPG`, 'the Deck');
+  assert.equal(sheetSrc('hiraeth://game/assets/IMG_3808-DAtVrONv.JPG', at('hiraeth://game/index.html')), `${SITE}assets/IMG_3808-DAtVrONv.JPG`, 'the Deck');
   const site = `${SITE}assets/IMG_3808-DAtVrONv.JPG`;
   assert.equal(sheetSrc(site, at(`${SITE}?level=references`)), site, 'the site itself');
   const dev = 'http://localhost:6300/references/levels/The%20Desert/environment/IMG_3775.JPG';

@@ -146,12 +146,12 @@ for (const sc of plan) for (const way of ways) {
   first = false;
   await send('Emulation.setCPUThrottlingRate', { rate: 1 });
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true, ...${JSON.stringify(sc.flags ?? {})} }, keepsakes: [] })); true`);
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true, ...${JSON.stringify(sc.flags ?? {})} }, keepsakes: [] })); true`);
   await send('Page.navigate', { url: `${BASE}?level=${sc.world}${QUERY[way] ?? ''}` });
   let up = false;
-  for (let i = 0; i < 1500 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player && !!window.rig && !!window.player.humanoid').catch(() => false)) === true; if (!up) await sleep(100); }
+  for (let i = 0; i < 1500 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player && !!window.rig && !!window.player.humanoid').catch(() => false)) === true; if (!up) await sleep(100); }
   const key = `${sc.name} · ${way}`;
   if (!up) { console.log(`${key}: never booted`); results[key] = { error: 'never booted' }; continue; }
   await sleep(3000);

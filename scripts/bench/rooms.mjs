@@ -27,7 +27,7 @@ await prepareStorage(ev, preset);
 const out = [];
 for (const id of LEVELS) {
   await page.goto(BASE + '?level=' + id, { waitUntil: 'load' });
-  try { await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 }); } catch { console.log(id, 'did not boot'); continue; }
+  try { await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 }); } catch { console.log(id, 'did not boot'); continue; }
   await sleep(3000);
   await conditions(ev, { hour: VP.hour, weather: VP.weather, scale: SCALE[preset] ?? 1 });
   const rooms = await ev(() => {

@@ -48,11 +48,11 @@ test('Clemence’s old id moves over with her once-only answers', () => {
 });
 
 test('a new game has nothing to migrate; loading runs the migration and saves it', () => {
-  const store = new Map([['moebius.game.v1', JSON.stringify({ flags: { 'met.lio': true, 'quest.edena.garden': 'ship' }, keepsakes: [] })]]);
+  const store = new Map([['hiraeth.game.v1', JSON.stringify({ flags: { 'met.lio': true, 'quest.edena.garden': 'ship' }, keepsakes: [] })]]);
   const storage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
   const g = new GameState(storage);
   assert.equal(g.flag('met.lio.edena'), true);
-  assert.equal(JSON.parse(store.get('moebius.game.v1')).flags['save.migrated'], MIGRATED(), 'saved');
+  assert.equal(JSON.parse(store.get('hiraeth.game.v1')).flags['save.migrated'], MIGRATED(), 'saved');
   g.reset();
   assert.equal(g.flag('save.migrated'), MIGRATED(), 'a reset save starts migrated');
   g.set('met.lio', true); g.set('quest.edena.garden', 'ship');

@@ -130,11 +130,11 @@ const gl = await ev(() => { const c = document.createElement('canvas').getContex
 if (/SwiftShader|llvmpipe|Software/i.test(gl)) { console.error('software rendering: ' + gl); process.exit(2); }
 await ev((quality) => {
   localStorage.clear();
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality, showFps: false, music: 0, effects: 0, voices: 0 }));
 }, preset);
 await page.goto(BASE + '?level=lab', { waitUntil: 'load' });
-await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });
+await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });
 await ev(PAGE);
 await sleep(2500);
 const only = opt.only ? new RegExp(opt.only) : null;

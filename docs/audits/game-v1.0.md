@@ -243,7 +243,7 @@ The new `visual-audit` skill is the way to hunt the last two.
   None of this has been run on the Retroid or the Deck, whose frame was already CPU-bound. The new
   `perf-audit` skill is the way to measure it.
 - **The browser play-through** has no ending checks.
-- **Photo mode** still downloads `moebius-….png`, with no share.
+- **Photo mode** still downloads `hiraeth-….png`, with no share.
 
 ## Where I would invest
 

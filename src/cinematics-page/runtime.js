@@ -42,7 +42,7 @@ export async function startReview(w) {
   w.addEventListener('pagehide', () => clearInterval(timer), { once: true });
   try {
     const deadline = Date.now() + 120000;
-    while (!w.__moebiusBooted) { if (Date.now() > deadline) throw new Error('World loading timed out. Replay to retry.'); await new Promise(r => setTimeout(r, 100)); }
+    while (!w.__hiraethBooted) { if (Date.now() > deadline) throw new Error('World loading timed out. Replay to retry.'); await new Promise(r => setTimeout(r, 100)); }
     while (w.document.getElementById('loading')) { if (Date.now() > deadline) throw new Error('Loading overlay did not close. Replay to retry.'); await new Promise(r => setTimeout(r, 50)); }
     w.story.closePage?.();
     if (e.query) { state.status = 'Playing · interactive sequences use the game controls'; return; }

@@ -18,7 +18,7 @@ for (const w of worlds) {
   rows.push({ world: w, load: { before: a?.load.firstFrame, after: b.load.firstFrame }, memoryMB: { before: a?.memLoaded, after: b.memLoaded },
     views: b.views.map((v) => ({ view: v.name, before: slim(a?.views.find((x) => x.name === v.name)), after: slim(v) })) });
 }
-writeFileSync(out, JSON.stringify({ about: 'Memento on the Retroid Pocket Nova, every world, GeckoView 157 test app (com.rnaud.moebius.gecko), Handheld preset; scripts/bench/android-worlds.mjs',
+writeFileSync(out, JSON.stringify({ about: 'Hiraeth on the Retroid Pocket Nova, every world, GeckoView 157 test app (com.rnaud.hiraeth.gecko), Handheld preset; scripts/bench/android-worlds.mjs',
   mode, before: relative(ROOT, A), after: relative(ROOT, B), label: opt.label ?? null, time: new Date().toISOString(), rows }, null, 1) + '\n');
 const f = (x, d = 1) => (x == null ? '–' : (+x).toFixed(d));
 const pair = (r, k, d = 1) => `${r.before ? f(r.before[k], d) + ' → ' : ''}${f(r.after[k], d)}`;

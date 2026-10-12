@@ -38,14 +38,14 @@ function recorder() {
 }
 
 test('platform: text, URLs and the public paths the game asks for', () => {
-  const s = 'Memento — été 🌵';
+  const s = 'Hiraeth — été 🌵';
   assert.equal(new Utf8Decoder().decode(new Utf8Encoder().encode(s)), s);
-  assert.equal(new MiniURL('../anim/x.glb', 'engine://memento/src/levels/a.js').href, 'engine://memento/src/anim/x.glb');
+  assert.equal(new MiniURL('../anim/x.glb', 'engine://hiraeth/src/levels/a.js').href, 'engine://hiraeth/src/anim/x.glb');
   assert.equal(new MiniURL('engine://m/a/b?level=desert#x').searchParams.get('level'), 'desert');
   assert.equal(new MiniURL('/x.png', 'engine://m/a/b.js').href, 'engine://m/x.png');
   assert.equal(new SearchParams('?level=desert&mh=1').get('mh'), '1');
   assert.equal(publicPath('./anim/ual.glb'), 'anim/ual.glb');
-  assert.equal(publicPath('https://x.org/moebius/anim/ual.glb?v=2'.replace('/moebius', '')), 'anim/ual.glb');
+  assert.equal(publicPath('https://x.org/hiraeth/anim/ual.glb?v=2'.replace('/hiraeth', '')), 'anim/ual.glb');
 });
 
 test('platform: a bare context gets the page, keys reach window listeners, fetch reads the host', async () => {
@@ -370,7 +370,7 @@ test('godot layouts: winding swapped, instances as 3×4 rows, packed arrays as v
 });
 
 test('a bundle of the game runs in a bare V8 context: a world built and mirrored', async () => {
-  const file = join(tmpdir(), `memento-engine-spike-${process.pid}.js`);
+  const file = join(tmpdir(), `hiraeth-engine-spike-${process.pid}.js`);
   await bundle('spike', { input: 'engine/spike.js', out: [file] });
   const { exports, ctx } = loadBundle(file);
   assert.equal(ctx.process, undefined, 'no Node');
@@ -389,7 +389,7 @@ test('a bundle of the game runs in a bare V8 context: a world built and mirrored
 let platformFile = null;
 async function platformBundle() {
   if (platformFile) return platformFile;
-  platformFile = join(tmpdir(), `memento-engine-boot-${process.pid}.js`);
+  platformFile = join(tmpdir(), `hiraeth-engine-boot-${process.pid}.js`);
   await bundle('spike', { input: 'engine/boot.js', out: [platformFile] });
   return platformFile;
 }
@@ -468,7 +468,7 @@ test('the bundle lowers Unicode property escapes (GodotJS\'s V8 has no ICU): the
 });
 
 test('a graphics preset in the engines\' game (the Unity bridge\'s -quality deck): its look and its detail, as main.js applies them', async () => {
-  const file = join(tmpdir(), `memento-engine-quality-${process.pid}.js`);
+  const file = join(tmpdir(), `hiraeth-engine-quality-${process.pid}.js`);
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const warn = console.warn, info = console.info; console.warn = console.info = () => {};
   try {
@@ -484,7 +484,7 @@ test('a graphics preset in the engines\' game (the Unity bridge\'s -quality deck
 });
 
 test('the game in a bare V8 context: a world with its people, the traveller walks on the keys, the camera follows', async () => {
-  const file = join(tmpdir(), `memento-engine-game-${process.pid}.js`);
+  const file = join(tmpdir(), `hiraeth-engine-game-${process.pid}.js`);
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const { exports } = loadBundle(file);
   const R = recorder();

@@ -100,10 +100,10 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
   for (const kind of KINDS) for (const stepped of [false, true]) {
     await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/manifest.webmanifest` }); await sleep(300);
-    await ev(`localStorage.clear(); localStorage.setItem('moebius.muted', '1'); localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
+    await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1'); localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
     await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?level=arena&enemy=${kind}` });
     let up = false;
-    for (let t = 0; t < 600 && !up; t++) { try { up = await ev('!!window.__moebiusBooted && !!window.player && !!window.renderer'); } catch { /* loading */ } if (!up) await sleep(250); }
+    for (let t = 0; t < 600 && !up; t++) { try { up = await ev('!!window.__hiraethBooted && !!window.player && !!window.renderer'); } catch { /* loading */ } if (!up) await sleep(250); }
     if (!up) throw new Error('the game never came up');
     await sleep(2500);
     await ev(`(() => { window.sound?.setVolumes?.(0, 0); const p = window.preset?.(); if (p) p.dynamic = null; if (window.sky) { window.sky.hour = 10; window.sky.speed = 0; window.updateSky?.(); } if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; }

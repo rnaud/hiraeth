@@ -17,7 +17,7 @@ import { hintsFor } from './hint-level.js';
 //  - A story with `manual: true` (the desert's) has no beacon and doesn't
 //    finish on arrival: its quest calls story.complete() (src/story/).
 
-const STORE = 'moebius.journal.v1';
+const STORE = 'hiraeth.journal.v1';
 
 export class Journal {
   constructor(levels) {

@@ -28,10 +28,10 @@ C# with .NET Native (C# 7.3: keep newer language features out), WinUI 2.8 and it
   - **WebView2 settings**: no context menus, zoom, pinch, swipe navigation, browser keys, status bar or autofill;
     dev tools only in Debug builds. Each set alone, so an older runtime missing one doesn't stop the app.
   - **Back** (the B button as the system sees it): `BackRequested` is always handled, so the system never closes or
-    suspends the game; the page gets `moebius:back`. The game reads B from the Gamepad API like every other button;
-    `moebius:back` is only its fallback (an Escape press) when no pad reaches the page.
-  - **Away**: leaving the app (the guide, another app, standby) sends `moebius:pause` (and `__moebiusAway`), and
-    `moebius:resume` on return, as Android does: `src/audio-guard.js` silences every sound. The web view's memory
+    suspends the game; the page gets `hiraeth:back`. The game reads B from the Gamepad API like every other button;
+    `hiraeth:back` is only its fallback (an Escape press) when no pad reaches the page.
+  - **Away**: leaving the app (the guide, another app, standby) sends `hiraeth:pause` (and `__hiraethAway`), and
+    `hiraeth:resume` on return, as Android does: `src/audio-guard.js` silences every sound. The web view's memory
     target goes Low while away.
   - **The settings' update section** (`src/update-panel.js`) asks the app over WebView2's web messages:
     `{ hiraeth: 'call', id, method }` → `{ hiraeth: 'reply', id, result | error }`, with Android's AppShell calls
@@ -59,7 +59,7 @@ The same feed as the Android app and the Deck: the site's `updates/web.json` and
 (`scripts/web-update.mjs`, docs/systems/android.md "Game updates from the site").
 
 - The package carries a built game (`game\`, its build in `game\bundle.json`): the fallback, always there.
-- After the first frame (`window.__moebiusBooted`), and on a return after 15 min, the app reads `web.json`. A build
+- After the first frame (`window.__hiraethBooted`), and on a return after 15 min, the app reads `web.json`. A build
   newer than everything on the console that this app can run (`minXbox <= XboxApi`) is downloaded, checked against
   its sha256, unpacked to `LocalState\web\<build>\` and used from the next launch, or at once with *Restart now* (the
   app maps the host onto the new folder, clears the HTTP cache and opens the title). The cache is cleared only when the
@@ -387,7 +387,7 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   console's feature level 11.0 (a D3D12 device filter that allows it: Unity 6's default ones want 12.2 and fell back to
   D3D11), 1440p (the console scales it to the TV), Unity's references copied in. Direct3D 12 against 11 at the 1440p
   desert spawn, October 2026: present's wait 0.5 ms against 9.4, the render thread 2 ms against 5; `-graphicsApi
-  Direct3D11` (the workflow's `graphics_api`) builds the D3D11 A/B, an artifact `memento-unity-xbox-d3d11`, never
+  Direct3D11` (the workflow's `graphics_api`) builds the D3D11 A/B, an artifact `hiraeth-unity-xbox-d3d11`, never
   published. Synced (`QualitySettings.vSyncCount` 1 on WSA, `-vsync 0` off): a UWP app presents at 60 there, the TV at 120
   Hz too, so 59.5 fps with 97 % of frames on time (72.6 torn, unsynced; `-vsync 2` is 30). Identity `rnaud.HiraethUnity`, shown as *Hiraeth
   (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it plays the desert from the spawn.
@@ -396,7 +396,7 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
   Windows editor with the UWP module (Puerts' glue, then the
   solution), the package's identity written into Unity's manifest, `msbuild` (Master, x64, sideload, unsigned),
   `signtool` with the WebView2 app's certificate (`XBOX_PFX_BASE64`), published to the prerelease **`unity-xbox`**
-  as `memento-unity-xbox.zip` (the `.msix`, its `.cer`, the dependency `.appx` files), from `main` only (a run
+  as `hiraeth-unity-xbox.zip` (the `.msix`, its `.cer`, the dependency `.appx` files), from `main` only (a run
   by hand from a branch keeps the artifact). A run by hand is a concurrency group of its own: a push never replaces it.
 - **The workflow's caches.** A cold run is about 37 minutes: the editor image's pull 8.5, the glue's editor run 2,
   the solution's 2, IL2CPP's C++ in msbuild 11 (1,220 files at `/Ox` on 4 cores; `Il2CppCompilerConfiguration.Release`
@@ -418,7 +418,7 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
     The obj entry is about 0.7 GB (3.9 GB unpacked).
 - **The numbers** (`BridgeMetrics`, on in the UWP build, `-metrics` elsewhere): `LocalState\unity.log`, new each launch
   (the last in `unity.prev.log`), and a readout at the top left. The load's stages apart: `script's engine made`,
-  `the bundle loaded in`, `Memento.start returned in`, `load: first node` (the first mirrored object), `load: world
+  `the bundle loaded in`, `Hiraeth.start returned in`, `load: first node` (the first mirrored object), `load: world
   settled` (no new object for 2 s), the first ten frames after the first node one by one (the frame, the script's
   wait, **Unity's own part**, FrameTimingManager's CPU and GPU), and the **first frames** between (their sum, the longest, how many over 50 ms: a
   shader's first use on D3D11 shows there; the shaders themselves were compiled to DXBC when the player was built,
@@ -428,9 +428,9 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
 
 **Installing and measuring** (from the Mac; the portal has no password). `node scripts/xbox-unity.mjs install <dir>`,
 `launch`, `stop` and `log [prev]` do steps 2, 4 and the fetch; by hand:
-1. Download `memento-unity-xbox.zip` from the `unity-xbox` prerelease and unpack it.
+1. Download `hiraeth-unity-xbox.zip` from the `unity-xbox` prerelease and unpack it.
 2. Install: `GET https://192.168.68.64:11443/api/app/packagemanager/packages` for the `CSRF-Token` cookie, then
-   `POST /api/app/packagemanager/package?package=memento-unity-xbox.msix` (multipart: the `.msix` and each `.appx`)
+   `POST /api/app/packagemanager/package?package=hiraeth-unity-xbox.msix` (multipart: the `.msix` and each `.appx`)
    with the header `X-CSRF-Token`, and poll `GET /api/app/packagemanager/state` until it stops answering 204.
    The certificate is the WebView2 app's, already trusted.
 3. Dev Home → *Hiraeth (Unity)* → View details → **App type: Game** (as the WebView2 app: an App gets ~1 GB and
@@ -448,18 +448,18 @@ LocalState goes with it: `args.txt`, `views.json`, `prewarm.txt`). And a launch 
 
 **What the console showed (October 2026, build 1726):**
 - Puerts' QuickJS runs there: the player is up at 2.6 s (Direct3D 11, `SraKmd_arden`, 832 MB), the engine is made at
-  3.0 s, the 10.7 MB bundle is evaluated in 2.8 s. `Memento.start` (the JavaScript building the desert) takes
+  3.0 s, the 10.7 MB bundle is evaluated in 2.8 s. `Hiraeth.start` (the JavaScript building the desert) takes
   **215.6 s** against 41 s on an M4 Pro in the editor: about five times slower, on one of the eight cores (12–13 %).
-- **Two QuickJS engines at once crash the IL2CPP player**: an access violation in GameAssembly on the "Memento
+- **Two QuickJS engines at once crash the IL2CPP player**: an access violation in GameAssembly on the "Hiraeth
   sound" thread (the dump's thread names) while the script's engine loaded the bundle. With QuickJS the sound is
   rendered on the script's thread (`BridgeRunner`, `oneEngine`).
 - **The first `Tick` crashed it**, as an App and as a Game alike (~180–230 s, as the first frame began; committed memory
-  peaked near 890 MB, well inside either limit): an access violation (a read at 0x20) in GameAssembly on the "Memento
+  peaked near 890 MB, well inside either limit): an access violation (a read at 0x20) in GameAssembly on the "Hiraeth
   script" thread, with no QuickJS frame on the stack: Puerts' IL2CPP glue (`ScriptEnv.Tick` →
   `NativeAPI.CleanupPendingKillScriptObjects`), the same signature as the sound's thread's crash. With QuickJS in a
   player the bridge no longer calls Puerts' `Tick` (`BridgeRunner.tickJs`): the script objects C# drops are freed only
   with the engine. Crash dumps are off again after each reinstall: turn them on before measuring. The workflow keeps
-  GameAssembly's `.pdb` as an artifact (`memento-unity-xbox-symbols`, 3 days) to read a dump.
+  GameAssembly's `.pdb` as an artifact (`hiraeth-unity-xbox-symbols`, 3 days) to read a dump.
 - **As a Game it plays** (build 1743): 172 s of QuickJS, then a 24–26 s stall before the world draws (every launch;
   build 1751's phases put it between `onBeforeRender` and URP's first render context, not in shader compiling), then
   2.7 fps at the spawn, all of it the script, with the GPU at 7.3 ms a frame. Numbers and reading:
@@ -723,12 +723,12 @@ and the editor's Metal drew it whole). The tests stay in the player (BridgeRunne
   does, the full variant (`-no-lean`) as well as the lean ones. Every test above went through the composite (its debug
   views too), which is why each one looked like "never drawn". Not proven by an A/B of the old composite; nothing else in
   that range changes what D3D draws.
-- **The lean variants stay the Xbox's** (BridgeRenderer.lean on WSA, as on the Deck; MEMENTO_LEAN_TERRAIN and
-  MEMENTO_LEAN_WATER keep the ground's and the water's paths, ~9 900 and ~9 500 instructions against the full one's
+- **The lean variants stay the Xbox's** (BridgeRenderer.lean on WSA, as on the Deck; HIRAETH_LEAN_TERRAIN and
+  HIRAETH_LEAN_WATER keep the ground's and the water's paths, ~9 900 and ~9 500 instructions against the full one's
   ~12 900 in DXBC): the GPU 13.1 ms a frame at the 1440p spawn against 17.9 on the full variant (D3D11, 50.9 against
   44.9 fps). Only a glass, a fluid, the drawn face, veins, a makers' box or scrub draw on the full variant.
 - The compiled code: `ShaderUtil.OpenCompiledShader` (internal; mode 3, the D3D platform's mask, every variant) writes
-  each variant's disassembly to `Temp/Compiled-Memento-Surface.shader` from a batch editor.
+  each variant's disassembly to `Temp/Compiled-Hiraeth-Surface.shader` from a batch editor.
 
 ## Unknowns (to check on the console)
 

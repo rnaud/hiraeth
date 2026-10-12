@@ -2,12 +2,12 @@
 // Start menu's "Debug: worlds". Players don't; the author does, through the same switch as
 // the in-game Developer panel (Settings → Developer panel, src/ui.js `devPanel`), or:
 //   - a dev build (`npx vite` / import.meta.env.DEV),
-//   - ?dev=1 on the URL, remembered on this device ('moebius.dev'; ?dev=0 forgets it).
+//   - ?dev=1 on the URL, remembered on this device ('hiraeth.dev'; ?dev=0 forgets it).
 //
 //   import { devMode } from './dev-gate.js';
 //   devMode({ settings })   // true: show the debug entries
 
-export const DEV_KEY = 'moebius.dev';
+export const DEV_KEY = 'hiraeth.dev';
 
 // For now (2026-10-08, the author's call) everyone sees the debug entries, the published game too.
 // Set false to hide them from players again; the switches above then decide.

@@ -12,7 +12,7 @@
 //   drafts.save({ shot: await shotJpeg(canvas), context: shotContext({...}) })
 //   drafts.status() → { paired, code, queued }
 
-export const NOTES_HOST = 'https://memento.alexandria-rnaud.workers.dev';
+export const NOTES_HOST = 'https://hiraeth.alexandria-rnaud.workers.dev';
 export const DEVICE_KEY = 'hiraeth.notes.device.v1';
 export const QUEUE_KEY = 'hiraeth.notes.shots.v1';
 /** The size the frame is taken at (its width, at most) and the most a picture may weigh (the notebook's limit: 90 KB). */

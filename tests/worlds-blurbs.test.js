@@ -21,5 +21,4 @@ test('no player world names the jets in its blurb or moves', () => {
 test('photo mode saves hiraeth-<world>-….png', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /`hiraeth-\$\{levelId\}-/);
-  assert.doesNotMatch(main, /`moebius-\$\{levelId\}/);
 });

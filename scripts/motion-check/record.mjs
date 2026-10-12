@@ -24,7 +24,7 @@ const { chromium } = await import(PLAYWRIGHT);
 const A = Object.fromEntries(process.argv.slice(2).reduce((a, x, i, all) => (x.startsWith('--') ? [...a, [x.slice(2), all[i + 1] && !all[i + 1].startsWith('--') ? all[i + 1] : '1']] : a), []));
 const FFMPEG = process.env.FFMPEG ?? `${homedir()}/Library/Caches/ms-playwright/ffmpeg-1011/ffmpeg-mac`;
 const port = +(A.port ?? 6121), level = A.level ?? 'bazaar', build = A.build ?? 'main', preset = A.preset ?? 'high';
-const out = A.out ?? `${tmpdir()}/memento-motion`;
+const out = A.out ?? `${tmpdir()}/hiraeth-motion`;
 mkdirSync(out, { recursive: true });
 const [wh, d] = String(A.res ?? '1728x1117@2').split('@'); const [W, H] = wh.split('x').map(Number); const DPR = +(d ?? 1);
 const paths = String(A.paths ?? 'still,pan,drift,zoom,orbitslow,swing30').split(',');
@@ -78,12 +78,12 @@ const base = `http://localhost:${port}/${build}/`;
 await page.goto(base + 'manifest.webmanifest');
 await page.evaluate((q) => {
   localStorage.clear();
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0, volume: 0 }));
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0, volume: 0 }));
 }, preset);
 const t0 = Date.now();
 await page.goto(base + `?level=${level}` + (A.q ? '&' + A.q : ''), { waitUntil: 'load' });
-await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 200 });
+await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 200 });
 console.log(`${level} ${build} ${preset}: booted in ${Date.now() - t0} ms`);
 await page.waitForTimeout(3000);
 

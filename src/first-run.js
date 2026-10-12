@@ -11,7 +11,7 @@
 import { PROGRESS_KEYS, SLOT_COUNT, slotKey } from './save-slots.js';
 
 /** The changelog's "seen" mark (the same key src/changelog.js reads; tests/first-run.test.js checks it). */
-export const SEEN_KEY = 'moebius.changelog.seen';
+export const SEEN_KEY = 'hiraeth.changelog.seen';
 
 const read = (storage, k) => { try { return storage?.getItem(k) ?? null; } catch { return null; } };
 

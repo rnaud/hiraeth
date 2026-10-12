@@ -124,7 +124,7 @@ test('a person in front leaves no pale ghost in the shading behind them (Marrow 
   // crease shading takes the same share (the clamp x 2.2 over it)
   assert.match(body('creaseAO'), /return clamp\(ao \/ max\(seen, 1\.0\) \* 2\.2, 0\.0, 1\.0\);/);
   // and so does the Unity port's composite (it had no person test at all)
-  const unity = readFileSync(new URL('../unity/Memento/Assets/Memento/Shaders/Composite.shader', import.meta.url), 'utf8');
+  const unity = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader', import.meta.url), 'utf8');
   assert.equal((unity.match(/return saturate\(ao \/ max\(seen, 1\.0\)/g) ?? []).length, 1);
   assert.equal((unity.match(/np = step\(fmod\(t, 8\.0\), 1\.5\)/g) ?? []).length, 1);
   // (the spot blacks: what a person hides, as post.js spotBehind)
@@ -240,7 +240,7 @@ test('the spot swell is a slow function of the world point alone, in its range; 
   assert.ok(enc.includes(`mix(${SPOT_SWELL.range[0].toFixed(2)}, ${SPOT_SWELL.range[1].toFixed(2)}, swell)`));
   assert.ok(enc.includes(`smoothstep(${SPOT_FRAME.blend[0].toFixed(4)}, ${SPOT_FRAME.blend[1].toFixed(4)}, abs(n.y))`));
   // the Unity port: the same frame and swell
-  const unity = readFileSync(new URL('../unity/Memento/Assets/Memento/Shaders/Composite.shader', import.meta.url), 'utf8');
+  const unity = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader', import.meta.url), 'utf8');
   for (const w of SPOT_SWELL.waves) assert.ok(unity.includes(`float3(${w.map((x) => x.toFixed(3)).join(', ')})`), `Unity: wave ${w}`);
   assert.ok(unity.includes(`lerp(${SPOT_SWELL.range[0]}, ${SPOT_SWELL.range[1]}, swell)`) && unity.includes(`(R * ${SPOT_SWELL.scale})`));
   assert.ok(unity.includes(`smoothstep(${SPOT_FRAME.blend[0]}, ${SPOT_FRAME.blend[1]}, abs(n.y))`) && unity.includes('float3 wall = float3(n.z, 0.0, -n.x) * ((n.z < 0.0 ? -1.0 : 1.0)'));

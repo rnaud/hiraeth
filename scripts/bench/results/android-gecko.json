@@ -1,5 +1,5 @@
 {
- "about": "Memento on the Retroid Pocket Nova: the same web build in GeckoView 157 (com.rnaud.moebius.gecko, the game from this Mac, and from its APK: gecko-apk) and in the system WebView 109 (com.rnaud.moebius.perf), same session, rounds alternating; Chrome 154 from the earlier session; Handheld preset; scripts/bench/android-engines.mjs",
+ "about": "Hiraeth on the Retroid Pocket Nova: the same web build in GeckoView 157 (com.rnaud.hiraeth.gecko, the game from this Mac, and from its APK: gecko-apk) and in the system WebView 109 (com.rnaud.hiraeth.perf), same session, rounds alternating; Chrome 154 from the earlier session; Handheld preset; scripts/bench/android-engines.mjs",
  "from": "scripts/bench/results/raw/android-gecko-main",
  "apkFrom": "scripts/bench/results/raw/android-gecko-apk",
  "build": "07af71c",
@@ -105,13 +105,13 @@
     "mainTid": 32174,
     "renderer": {
      "pid": 32152,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_16",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_16",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 32028,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -248,7 +248,7 @@
     },
     "host": {
      "pid": 4099,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -380,13 +380,13 @@
     "mainTid": 32080,
     "renderer": {
      "pid": 32056,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_22",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_22",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 31929,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -7728,13 +7728,13 @@
     "mainTid": 32174,
     "renderer": {
      "pid": 32152,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_16",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_16",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 32028,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -7798,7 +7798,7 @@
     },
     "host": {
      "pid": 4099,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -7872,13 +7872,13 @@
     "mainTid": 26092,
     "renderer": {
      "pid": 26071,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_20",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_20",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 25946,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -7952,13 +7952,13 @@
     "mainTid": 32080,
     "renderer": {
      "pid": 32056,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_22",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_22",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 31929,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8038,7 +8038,7 @@
     },
     "host": {
      "pid": 29020,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8096,13 +8096,13 @@
     "mainTid": 16598,
     "renderer": {
      "pid": 16569,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_16",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_16",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 16360,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8166,7 +8166,7 @@
     },
     "host": {
      "pid": 13313,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8240,13 +8240,13 @@
     "mainTid": 10246,
     "renderer": {
      "pid": 10225,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_7",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_7",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 10098,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8326,7 +8326,7 @@
     },
     "host": {
      "pid": 7021,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8384,13 +8384,13 @@
     "mainTid": 26134,
     "renderer": {
      "pid": 26115,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_21",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_21",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 25985,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8454,7 +8454,7 @@
     },
     "host": {
      "pid": 28993,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8528,13 +8528,13 @@
     "mainTid": 19771,
     "renderer": {
      "pid": 19753,
-     "name": "com.rnaud.moebius.gecko:tab_disable_art_image_33",
+     "name": "com.rnaud.hiraeth.gecko:tab_disable_art_image_33",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     },
     "host": {
      "pid": 19617,
-     "name": "com.rnaud.moebius.gecko:gpu_disable_art_image_",
+     "name": "com.rnaud.hiraeth.gecko:gpu_disable_art_image_",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -8614,7 +8614,7 @@
     },
     "host": {
      "pid": 22917,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }

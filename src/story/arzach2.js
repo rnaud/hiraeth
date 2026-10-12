@@ -46,7 +46,7 @@ const STONES_DOWN = 6;      // m the floating stones come down
 let noteSound = null, ownCtx = null, lastNote = -1;
 export function playBellNote({ vol = 0.07, f = 164.8 } = {}) {
   try {
-    if (globalThis.localStorage?.getItem('moebius.muted') === '1' || audioAway()) return false;
+    if (globalThis.localStorage?.getItem('hiraeth.muted') === '1' || audioAway()) return false;
     if (noteSound?.ctx) { noteSound.instrument?.('bell', f, noteSound.ctx.currentTime + 0.05, 2, vol * 1.4, noteSound.fx); return true; }
     const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
     if (!AC) return false;

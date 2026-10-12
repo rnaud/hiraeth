@@ -5,7 +5,7 @@ import { compareVersions, isNewerBuild, formatBytes, formatAgo, updateView, arme
 import { applyReadyUpdate, callApp, inApp } from '../src/native-app.js';
 import { nativeApi } from '../scripts/release-info.mjs';
 
-const java = (name) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/moebius/${name}`, import.meta.url), 'utf8');
+const java = (name) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/hiraeth/${name}`, import.meta.url), 'utf8');
 const base = { native: 4, app: 104, web: 104, bundle: false, ready: 0, readyVersion: '', latest: 104, latestVersion: '0.55', latestMin: 4, size: 0, got: 0, total: 0, error: '', notes: [], checkedAt: 0 };
 const at = (o) => ({ ...base, ...o });
 const NOW = 1_800_000_000_000;

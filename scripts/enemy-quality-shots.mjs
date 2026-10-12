@@ -9,7 +9,7 @@ const OUT=join(ROOT,'output/character-local/quality-pass');
 const CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', CDP=5489;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function chrome() {
-  const profile = mkdtempSync(join(tmpdir(), 'memento-shots-chrome-'));
+  const profile = mkdtempSync(join(tmpdir(), 'hiraeth-shots-chrome-'));
   const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
     '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check',
     '--disable-gpu-shader-disk-cache', '--disk-cache-size=1', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });

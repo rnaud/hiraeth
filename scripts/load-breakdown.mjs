@@ -247,9 +247,9 @@ export async function chrome() {
 }
 
 const storage = (preset) => `localStorage.clear();
-  localStorage.setItem('moebius.muted', '1');
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ ${preset ? `quality: '${preset}', ` : ''}showFps: false, music: 0, effects: 0, voices: 0 }));`;
+  localStorage.setItem('hiraeth.muted', '1');
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ ${preset ? `quality: '${preset}', ` : ''}showFps: false, music: 0, effects: 0, voices: 0 }));`;
 
 /** One world's load, in a fresh Chrome. */
 export async function measure(world, { base, preset = PRESET, slow = SLOW, dump = false, xbox = false } = {}) {
@@ -265,7 +265,7 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     const t0 = Date.now();
     await c.send('Page.navigate', { url: `${page}?level=${world}${arg('query') ? `&${arg('query')}` : ''}` });
     let up = false;
-    while (!up && Date.now() - t0 < LIMIT) { try { up = await c.ev('!!window.__moebiusBooted'); } catch { /* loading */ } if (!up) await sleep(250); }
+    while (!up && Date.now() - t0 < LIMIT) { try { up = await c.ev('!!window.__hiraethBooted'); } catch { /* loading */ } if (!up) await sleep(250); }
     if (!up) throw new Error(`${world}: no first frame in ${LIMIT / 1000} s (${c.errors.slice(-1)[0] ?? 'no error'})`);
     const wall = Date.now() - t0;
     await sleep(500 + Number(arg('after', 0)) * 1000);
@@ -325,7 +325,7 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     let trav = null;
     const afterTrav = TRAV ? await stateAt() : null;
     if (traverse) { const iv = traverse.iv; trav = { frames: iv.length, p50: +quantile(iv, 0.5).toFixed(1), p95: +quantile(iv, 0.95).toFixed(1), p99: +quantile(iv, 0.99).toFixed(1), max: +Math.max(...iv).toFixed(1), over50: iv.filter((x) => x > 50).length, over100: iv.filter((x) => x > 100).length, speed: SPEED }; }
-    const g = await c.ev(`(() => { const G = window.__gl; return { ...G, frames: [], loadLog: window.__loadLog ?? [], loadT0: window.__loadT0 ?? 0, frameTimes: G.frames.filter((x) => x >= (window.__moebiusBootedAt ?? 0)).slice(0, 2000), programs: G.programs.map((p) => ({ at: p.at, vs: ${dump} ? p.vs : p.vs.slice(0, 6000), fs: ${dump} ? p.fs : '', vsLen: p.vs.length, fsLen: p.fs.length })), nav: Math.round(performance.getEntriesByType('navigation')[0]?.responseEnd ?? 0), now: Math.round(window.__moebiusBootedAt ?? performance.now()), live: renderer.info.programs.length }; })()`);
+    const g = await c.ev(`(() => { const G = window.__gl; return { ...G, frames: [], loadLog: window.__loadLog ?? [], loadT0: window.__loadT0 ?? 0, frameTimes: G.frames.filter((x) => x >= (window.__hiraethBootedAt ?? 0)).slice(0, 2000), programs: G.programs.map((p) => ({ at: p.at, vs: ${dump} ? p.vs : p.vs.slice(0, 6000), fs: ${dump} ? p.fs : '', vsLen: p.vs.length, fsLen: p.fs.length })), nav: Math.round(performance.getEntriesByType('navigation')[0]?.responseEnd ?? 0), now: Math.round(window.__hiraethBootedAt ?? performance.now()), live: renderer.info.programs.length }; })()`);
     const keys = KEYS ? await c.ev(`(() => { const r = renderer, by = new Map();
       scene.traverse((o) => { for (const m of [o.material].flat()) { if (!m) continue; const p = r.properties.get(m).currentProgram; if (!p) continue; if (!by.has(p)) by.set(p, new Set()); by.get(p).add((m.name || m.type) + ' ' + (m.userData?.cacheKey ?? '').slice(0, 120) + ' obc:' + (m.onBeforeCompile?.toString().length ?? 0)); } });
       return r.info.programs.map((p) => ({ key: p.cacheKey, mats: [...(by.get(p) ?? [])].slice(0, 6) })); })()`) : null;

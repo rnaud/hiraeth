@@ -70,7 +70,7 @@ export function memoryJournal({ stories = {}, seen: seenIn = {} } = {}) {
 
 const { migrateFlags } = await import('../src/save-migrate.js');
 /**
- * Load a save (its game state, { flags, keepsakes }, as 'moebius.game.v1' holds it) into the game, as a
+ * Load a save (its game state, { flags, keepsakes }, as 'hiraeth.game.v1' holds it) into the game, as a
  * page does when it boots: the game state's own migration (src/game-state.js), then main.js's
  * (src/boxes/index.js migrateSave: the backpack for pre-item saves, the temple chests for the gadgets
  * carried). The worlds' own migrations run when their story is set up (the desert's, Vael's ride).

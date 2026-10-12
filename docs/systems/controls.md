@@ -324,7 +324,7 @@ Start menu.
 - **The keyboard:** the left click attacks as in every PC action game (and shoots while aiming, as
   before); B is only the gadgets' key, so it never raises the shield.
 - **Players from before** see a one-time note the first time they use a pad (`PAD_SCHEME` in
-  `src/bindings.js`, kept on the device as `moebius.padScheme`). The buttons a player moved (the settings'
+  `src/bindings.js`, kept on the device as `hiraeth.padScheme`). The buttons a player moved (the settings'
   `pad`) are brought up to date once (`migratePad` in `src/remap.js`, from `migrateSettings`, marked
   `padV`): from schemes 1–2, the mount and the next gun mode stay where they were and the mode before is
   gone; from scheme 3 (a saved `potion` tells it), the potion keeps the button chosen and a verb the player

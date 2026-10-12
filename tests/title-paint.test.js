@@ -198,22 +198,22 @@ test('the game behind the title waits for its save; what it writes meanwhile sta
   const storage = { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
   const store = new SlotStore(storage);
   store.setActive(1);
-  storage.setItem('moebius.s1.game.v1', 'old');
+  storage.setItem('hiraeth.s1.game.v1', 'old');
   store.holdWrites();
   const view = store.view();
-  view.setItem('moebius.game.v1', 'new');
-  view.removeItem('moebius.journal.v1');
-  assert.equal(view.getItem('moebius.game.v1'), 'new', 'the game reads its own writes back');
-  assert.equal(storage.getItem('moebius.s1.game.v1'), 'old', 'the disk is untouched');
+  view.setItem('hiraeth.game.v1', 'new');
+  view.removeItem('hiraeth.journal.v1');
+  assert.equal(view.getItem('hiraeth.game.v1'), 'new', 'the game reads its own writes back');
+  assert.equal(storage.getItem('hiraeth.s1.game.v1'), 'old', 'the disk is untouched');
   assert.equal(store.summary(1).empty, false);
   assert.equal(store.dropWrites(), 2, 'another save chosen: forgotten');
-  assert.equal(view.getItem('moebius.game.v1'), 'old');
+  assert.equal(view.getItem('hiraeth.game.v1'), 'old');
   store.holdWrites();
-  view.setItem('moebius.game.v1', 'kept');
+  view.setItem('hiraeth.game.v1', 'kept');
   store.commitWrites();
-  assert.equal(storage.getItem('moebius.s1.game.v1'), 'kept', 'its save chosen: written');
-  view.setItem('moebius.game.v1', 'after');
-  assert.equal(storage.getItem('moebius.s1.game.v1'), 'after', 'and straight to the disk from then on');
+  assert.equal(storage.getItem('hiraeth.s1.game.v1'), 'kept', 'its save chosen: written');
+  view.setItem('hiraeth.game.v1', 'after');
+  assert.equal(storage.getItem('hiraeth.s1.game.v1'), 'after', 'and straight to the disk from then on');
 });
 
 test('starting waits only for the load: the title lets the game go and fades over its first frame', () => {

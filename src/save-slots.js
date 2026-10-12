@@ -1,11 +1,11 @@
 // Three save slots (SLOT_COUNT). Every store of progress (the game state, the sketchbook, the
 // saved position, the reactive world's memory) reads and writes through
 // `slotStorage`, a localStorage look-alike that files each key under the active
-// slot: 'moebius.game.v1' in slot 2 is 'moebius.s2.game.v1'. Settings, mute,
+// slot: 'hiraeth.game.v1' in slot 2 is 'hiraeth.s2.game.v1'. Settings, mute,
 // the pad layout, the changelog's "seen" mark and the update toast stay global.
 //
 //   import { slots, slotStorage } from './save-slots.js';
-//   slots.active              // 1..SLOT_COUNT, read once per page from 'moebius.slot' (each world is its own page)
+//   slots.active              // 1..SLOT_COUNT, read once per page from 'hiraeth.slot' (each world is its own page)
 //   slots.setActive(3)        // the title screen's choice, before the game's modules load
 //   slots.summary(2)          // { empty, level, world, worldsDone, relics, items, playtime, lastPlayed, … }
 //   slots.latest()            // the slot played last (Continue), or null
@@ -16,7 +16,7 @@
 // (migrate()). The old keys stay as they were, so a build from before the slots
 // (an over-the-air update rolled back on Android) still finds its save.
 //
-// One more slot, 'debug' (DEBUG_SLOT, keys 'moebius.sdebug.*'), is the worlds list's (src/debug-save.js):
+// One more slot, 'debug' (DEBUG_SLOT, keys 'hiraeth.sdebug.*'), is the worlds list's (src/debug-save.js):
 // a world picked there plays in it, never in the player's own slots. The title never lists it
 // (list, latest, firstEmpty count 1..SLOT_COUNT); choosing a save there leaves it.
 //
@@ -32,17 +32,17 @@ const cinematicStorage = reviewStorage();
 import { TITLES, ORDER, worldFor } from './levels/names.js';
 
 export const SLOT_COUNT = 3;
-export const SLOT_KEY = 'moebius.slot';
+export const SLOT_KEY = 'hiraeth.slot';
 /** The worlds list's own save (src/debug-save.js): not one of the title's slots. */
 export const DEBUG_SLOT = 'debug';
-export const SLOTS_VERSION_KEY = 'moebius.slots.v';
+export const SLOTS_VERSION_KEY = 'hiraeth.slots.v';
 // the progress kept per slot (src/game-state.js, src/quest.js, src/ui.js SaveGame, src/reactive-world.js)
-export const PROGRESS_KEYS = ['moebius.game.v1', 'moebius.journal.v1', 'moebius.save.v1', 'moebius.encounters.v1'];
+export const PROGRESS_KEYS = ['hiraeth.game.v1', 'hiraeth.journal.v1', 'hiraeth.save.v1', 'hiraeth.encounters.v1'];
 // per slot: { playtime (seconds), lastPlayed (ms), created (ms) }
-export const META_KEY = 'moebius.meta.v1';
+export const META_KEY = 'hiraeth.meta.v1';
 
 /** A key as filed under slot n. */
-export const slotKey = (key, n) => key.replace(/^moebius\./, `moebius.s${n}.`);
+export const slotKey = (key, n) => key.replace(/^hiraeth\./, `hiraeth.s${n}.`);
 const validSlot = (v) => { if (v === DEBUG_SLOT) return v; const n = Number(v); return Number.isInteger(n) && n >= 1 && n <= SLOT_COUNT ? n : null; };
 const parse = (s) => { try { return s == null ? null : JSON.parse(s); } catch { return null; } };
 const defaultStorage = () => { try { return cinematicStorage ?? globalThis.localStorage ?? null; } catch { return null; } };
@@ -90,7 +90,7 @@ export class SlotStore {
       if (v != null && this.get(slotKey(key, 1)) == null) { this.put(slotKey(key, 1), v); moved = true; }
     }
     if (moved) {
-      const t = parse(this.get('moebius.save.v1'))?.t;
+      const t = parse(this.get('hiraeth.save.v1'))?.t;
       this.put(slotKey(META_KEY, 1), JSON.stringify({ playtime: 0, lastPlayed: Number.isFinite(t) ? t : Date.now(), migrated: true }));
     }
     this.put(SLOTS_VERSION_KEY, '1');
@@ -151,9 +151,9 @@ export class SlotStore {
   /** What the save selector shows for slot n. */
   summary(n) {
     const empty = !this.used(n);
-    const game = parse(this.get(slotKey('moebius.game.v1', n))) ?? {};
-    const journal = parse(this.get(slotKey('moebius.journal.v1', n))) ?? {};
-    const save = parse(this.get(slotKey('moebius.save.v1', n)));
+    const game = parse(this.get(slotKey('hiraeth.game.v1', n))) ?? {};
+    const journal = parse(this.get(slotKey('hiraeth.journal.v1', n))) ?? {};
+    const save = parse(this.get(slotKey('hiraeth.save.v1', n)));
     const meta = this.meta(n);
     const flags = game.flags ?? {};
     // (a merged or dismissed world's id: the world that took its place, src/levels/names.js worldFor)

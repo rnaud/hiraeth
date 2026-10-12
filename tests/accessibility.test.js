@@ -233,7 +233,7 @@ test('the settings keep the controls and the accessibility choices', async () =>
     s.set('keys', { jump: 'KeyK' });
     s.set('run', 'toggle');
     s.set('textSize', 'large');
-    const saved = JSON.parse(store.get('moebius.settings.v1'));
+    const saved = JSON.parse(store.get('hiraeth.settings.v1'));
     assert.deepEqual(saved.pad, { jump: 'B', evade: 'A' });
     assert.deepEqual(saved.keys, { jump: 'KeyK' });
     assert.equal(saved.run, 'toggle'); assert.equal(saved.textSize, 'large');

@@ -110,7 +110,7 @@ test('an old save that kept Dov’s token before it was a choice reads as kept; 
   assert.equal(back['incal.token'], 'returned');
   // through the real loader: the keepsakes are read with the flags
   const s = store();
-  s.setItem('moebius.game.v1', JSON.stringify({ flags: { 'save.migrated': 2, 'incal.dov.fed': true }, keepsakes: [token] }));
+  s.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'save.migrated': 2, 'incal.dov.fed': true }, keepsakes: [token] }));
   const g = new GameState(s);
   assert.equal(g.flag('incal.token'), 'kept');
   // and it has its lines: Dov, and the Lantern's answer

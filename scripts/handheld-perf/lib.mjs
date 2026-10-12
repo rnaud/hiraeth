@@ -97,13 +97,13 @@ export async function prepare(page, quality = 'handheld') {
   await page.eval((quality) => {
     if (!localStorage.getItem('perf.ready')) {
       localStorage.clear();
-      localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+      localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
       localStorage.setItem('perf.ready', '1');
     }
     for (const k of Object.keys(localStorage)) if (/save\.v1$/.test(k)) localStorage.removeItem(k);
-    const s = JSON.parse(localStorage.getItem('moebius.settings.v1') ?? '{}');
+    const s = JSON.parse(localStorage.getItem('hiraeth.settings.v1') ?? '{}');
     Object.assign(s, { quality, showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 });
-    localStorage.setItem('moebius.settings.v1', JSON.stringify(s));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify(s));
   }, quality);
 }
 export const fullscreen = (page) => page.eval('document.fullscreenElement ? 1 : document.documentElement.requestFullscreen().then(() => 2, () => 0)', null, { gesture: true });

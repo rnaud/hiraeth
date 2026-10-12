@@ -59,10 +59,10 @@ const gl = await glInfo(page);
 console.log('GPU:', gl.renderer, 'timer query:', gl.timerQuery);
 if (/SwiftShader|llvmpipe|Software/i.test(gl.renderer ?? '')) { console.error('software rendering'); process.exit(2); }
 await prepareStorage(ev, preset);
-await ev(() => { localStorage.setItem('moebius.muted', '1'); return 1; });   // (and Chrome's --mute-audio)
+await ev(() => { localStorage.setItem('hiraeth.muted', '1'); return 1; });   // (and Chrome's --mute-audio)
 const tNav = Date.now();
 await page.goto(BASE + '?level=desert', { waitUntil: 'load' });
-await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player?.character, null, { timeout: 300000, polling: 100 });
+await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player?.character, null, { timeout: 300000, polling: 100 });
 const bootMs = Date.now() - tNav;
 // his levels of detail (characters/traveller-lod.js), built in a worker after he is made (none in older builds)
 const lodMs = await page.waitForFunction(() => window.player.character.lod, null, { timeout: 30000, polling: 100 }).then(() => Date.now() - tNav - bootMs, () => null);

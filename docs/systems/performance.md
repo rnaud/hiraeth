@@ -462,7 +462,7 @@ in the agent's scratchpad, after `scripts/bench/passes.mjs`.
 
 "Worried about performance on the device": every world measured in the app's own engine, GeckoView 157,
 on the Retroid Pocket Nova (Handheld preset, render scale held at 0.75, the 60 Hz screen), with the
-GeckoView test app (`com.rnaud.moebius.gecko`, `scripts/bench/gecko-apk.sh`) and a new driver,
+GeckoView test app (`com.rnaud.hiraeth.gecko`, `scripts/bench/gecko-apk.sh`) and a new driver,
 `scripts/bench/android-worlds.mjs`: each world loaded in a fresh app, then each of its views
 (`viewpoints-worlds.json`, picked on the device: the boot camera, the two densest knots of people, a
 wide look up over them, a 40 m walk; the desert's are `viewpoints.json`'s) held 3 s and recorded 10 s,
@@ -684,12 +684,12 @@ pays for it: crowd figures out to 260 m (full figures 45 m), props out to 380 m 
 0.75 of their range and 0.65 of their density, LOD at 1.5 px, a 1 k fine cascade, the near and far maps
 every 2nd and 4th frame, 4 PCF taps, no cloud shadows. The grass was Low's; since v0.80 a wider patch
 ("What the Handheld and the Deck lose next to High", below). Auto picks it on the Deck
-(`detectDeck`: the page at `moebius:`, or a Van Gogh GPU, `AMD Custom GPU 0405` / `0932`), and a Deck
+(`detectDeck`: the page at `hiraeth:`, or a Van Gogh GPU, `AMD Custom GPU 0405` / `0932`), and a Deck
 whose settings were saved on High or Medium moves to Auto once (`deckV`); a lighter choice is kept.
 
 **Measuring.** `scripts/bench/deck-run.sh start [desktop|gamescope] [game dir on the Deck]` starts the
 game over ssh (muted, remote debugging on 9222, a tunnel to the Mac's 5310; only its own unit,
-`memento-bench`), and `node scripts/bench/deck-worlds.mjs --quality deck|high --modes fixed,dynamic
+`hiraeth-bench`), and `node scripts/bench/deck-worlds.mjs --quality deck|high --modes fixed,dynamic
 [--scale 1.5] [--profile 1]` runs every world's views as the Retroid run does (`viewpoints-worlds.json`,
 the desert's `viewpoints.json`): fps, p95, missed refreshes, the JS and GPU time a frame, draws, the
 scale the game chose, and with `--profile` the main thread by system. Checked on the Mac (Electron 44,
@@ -738,7 +738,7 @@ pen during a Deck load (`scripts/bench/deck-pen.mjs`, written for it, not yet ru
 (or in Desktop Mode) the whole set runs from:
 
 ```sh
-PORT=5420 REFRESH=90 scripts/bench/deck-run.sh start headless ~/.local/share/moebius-deck/web/<build>
+PORT=5420 REFRESH=90 scripts/bench/deck-run.sh start headless ~/.local/share/hiraeth-deck/web/<build>
 node scripts/bench/deck-worlds.mjs --port 5420 --quality deck --modes fixed,dynamic --raw <dir>
 node scripts/bench/deck-worlds.mjs --port 5420 --quality high --scale 1.5 --raw <dir2>
 node scripts/bench/deck-pen.mjs --port 5420 --only desert,incal
@@ -757,7 +757,7 @@ and GPU process took ~1.1 and ~0.5 of a core and a share of the GPU, so every nu
 pessimistic against a Deck running the game alone (the desert's spawn was 48 fps on 7 October with v0.80
 and nothing else running, 33 here). Before and after ran under the same load.
 
-The bench now runs in a profile of its own (`XDG_CONFIG_HOME=~/.local/share/moebius-bench`): before, Electron's
+The bench now runs in a profile of its own (`XDG_CONFIG_HOME=~/.local/share/hiraeth-bench`): before, Electron's
 single-instance lock made it quit while the player's game was open, and `deck-worlds.mjs` wrote its settings and
 an empty save over the player's own. It prints each load's "gpu pacer" / "load:" warnings, and `--cpuprofile 1`
 saves V8's profile of each view (`<raw>/<world>-<view>.cpuprofile`) with its heaviest functions.
@@ -765,7 +765,7 @@ saves V8's profile of each view (`<raw>/<world>-<view>.cpuprofile`) with its hea
 **The loading hang is gone.** Every world loaded (13–32 s); each load logged "gpu pacer: 3 waits in a row ran
 out (250 ms each): fences not signalled", 751–1544 ms waited: the driver's fences really never signal under
 ANGLE's GL backend, the cause found on 8 October. The pacer now remembers that per GPU (localStorage
-`moebius.pacerOff.<renderer>`, `gpuPacer({ memory })`), so only a Deck's first load spends that second
+`hiraeth.pacerOff.<renderer>`, `gpuPacer({ memory })`), so only a Deck's first load spends that second
 finding out. On ANGLE's Vulkan backend the fences do signal (no warning, the desert loaded in 12.9 s).
 
 **Before** (each cell: fps, the median of the world's views (the slowest view); that view's frame time
@@ -944,7 +944,7 @@ checked against the bundle of the code before the change too (`POSE_REF`): no di
 
 ## The Retroid, round 4: every world again, the loading pen, the merged towers, the captures, a cab ride (October 2026)
 
-The Retroid Pocket Nova back on the Mac, in the GeckoView test app (`com.rnaud.moebius.gecko`, built from main at
+The Retroid Pocket Nova back on the Mac, in the GeckoView test app (`com.rnaud.hiraeth.gecko`, built from main at
 81f0311; the player's app untouched), Handheld preset, the frame readout on, the game's sound at 0.
 
 **Every world** (`android-worlds.mjs --profile 1`, render scale held at 0.75; round 1's "after", a592cb9, against
@@ -1551,7 +1551,7 @@ were measured before and did not pay (above, "Levels of detail far away").
 
 ## The Retroid, round 5: the Xbox's settings, the camps and the City-Shaft again, the machines, the merged worlds (October 2026)
 
-The Retroid Pocket Nova (Adreno 650, pixel ratio 2), the GeckoView test app (`com.rnaud.moebius.gecko`) with the game
+The Retroid Pocket Nova (Adreno 650, pixel ratio 2), the GeckoView test app (`com.rnaud.hiraeth.gecko`) with the game
 served from the Mac, built from 1606a596; the player's app untouched. The frame readout on. The game's sound at 0, read
 back from the page before every run (`android-worlds.mjs` stops if music, effects or voices are above 0).
 `android-worlds.mjs` has three new flags for this round. `--quality` runs a Graphics setting other than Handheld
@@ -1647,7 +1647,7 @@ upgrade over is the player's own.
 ## The Steam Deck, round 3: every world after the Deck's pass, GL against Vulkan (October 2026)
 
 **How it was measured.** The Steam Deck OLED in Gaming Mode, plugged in, on 11 October. Runtime 1668001 served the
-game of 1606a596 (`dist/` copied to `~/.local/share/moebius-bench-games/`):
+game of 1606a596 (`dist/` copied to `~/.local/share/hiraeth-bench-games/`):
 `PORT=5420 REFRESH=90 scripts/bench/deck-run.sh start headless <dir>`, then
 `deck-worlds.mjs --secs 6 --warmup 2`. The settings were the Steam Deck preset, fixed and dynamic, then High at 1.5×.
 1280 × 800, ANGLE on radeonsi GL. Only the bench ran this time; in round 2 the player's game was open on its title,
@@ -1783,7 +1783,7 @@ under 16.7 ms is a 60.
 ## The Steam Deck, round 5: measured on the Deck, and the levers (issue #111, October 2026)
 
 **How it was measured.** The Steam Deck OLED (Galileo) in Gaming Mode, plugged in, 11 October, runtime 1819001.
-Each build was copied to `~/.local/share/moebius-bench-games/` and run in gamescope's headless backend
+Each build was copied to `~/.local/share/hiraeth-bench-games/` and run in gamescope's headless backend
 (`PORT=5420 REFRESH=90 deck-run.sh start headless <dir>`, the OLED's 90 Hz; `REFRESH=60` for the 60 Hz rows), muted,
 in the bench's own profile. `deck-worlds.mjs --settle 1 --profile 1 --draws 1 --shots 1`: 1280 × 800, the Steam Deck
 preset at scale 1, ANGLE on radeonsi GL, 6 s a view after 2 s of warm-up. New in the script:
@@ -1865,7 +1865,7 @@ and fewer distinct materials in the G-buffer (the uniforms and bindings, not the
 
 **What ran.** The bridge (docs/systems/engine-bridge.md: the same `src/` in Puerts' V8, drawn by the C# port's ink
 look) as a native Linux player, not through Proton: IL2CPP x86_64, Vulkan on RADV (Mesa 26.2.0-devel), the Steam Deck
-OLED in Gaming Mode, plugged in. `scripts/bench/deck-unity.sh` copies a player to `~/.local/share/moebius-bench-games/`
+OLED in Gaming Mode, plugged in. `scripts/bench/deck-unity.sh` copies a player to `~/.local/share/hiraeth-bench-games/`
 and runs it in gamescope's headless backend at 1280 × 800 and 90 Hz (`REFRESH=60` for 60), muted (`-mute`), with its
 data in a profile of its own (`XDG_CONFIG_HOME`), at the bench's views (`-views`, the web run's: viewpoints.json's
 desert, viewpoints-worlds.json's City-Shaft and Signal Market), 6 s a view, `-metrics` (BridgeMetrics: unity.log).
@@ -1904,7 +1904,7 @@ frame under 0.1 s.
   ranges and distant figures, props under 1.5 px hidden from the mirror, the people's low detail, lighter weathering, no
   cloud shadows. Before it the bridge drew everything as the bench's High. City-Shaft rim GPU 31 → 23.7 ms, the wide view
   36 → 31.
-- **The Surface shader's lean variant** (`MEMENTO_LEAN`, `BridgeRenderer.Lean`; `-no-lean` off, `-lean` elsewhere): the
+- **The Surface shader's lean variant** (`HIRAETH_LEAN`, `BridgeRenderer.Lean`; `-no-lean` off, `-lean` elsewhere): the
   G-buffer pass is one shader with every material's paths, ~25 000 instructions and 168 VGPRs on RADV (6 waves a SIMD;
   `RADV_DEBUG=shaderstats`), and every pixel paid its registers. A material with no water, terrain, glass, fluid, makers'
   box, scrub, veins, drawn face or dissolve draws a variant without them (about 13 000 instructions, 128 VGPRs, 8 waves):
@@ -1941,7 +1941,7 @@ component, by the release asset's digest (docs/steam-deck.md, "The Unity preview
 The same rig as round 6 (the Linux player, IL2CPP, Vulkan on RADV, the Deck's preset, lean variant, the OLED at 90 Hz
 uncapped, the second pass of each view; `scripts/bench/deck-unity.sh`, which now refuses to start while another bench
 runs on the Deck). A change to the script alone is measured without a Unity build: the player reads its bundle from
-`memento-js_Data/StreamingAssets/memento-js/memento.cjs`, copied over a copy of the player. V8's own profile of the
+`hiraeth-js_Data/StreamingAssets/hiraeth-js/hiraeth.cjs`, copied over a copy of the player. V8's own profile of the
 script's thread (`-jsinspect 9229`: the inspector listens on the Deck's network, a DevTools-protocol client takes a
 `.cpuprofile`) is what found the levers.
 
@@ -1965,7 +1965,7 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   updateMatrixWorld (cameras, skinned meshes, the part batches) is called as the walk would. The same matrices bit for
   bit (tests/scene-matrices.test.js). City-Shaft matrices 3.2 → 2.4 ms, mirror 8 → 7; fps 47.7 / 50.8 / 41.0, the
   desert 66.1 / 57.1, the Market 73.3 / 78.0 / 77.3.
-- **A depth prepass on the Linux player** (MementoFeature `Settings.prepass`, the Surface shader's `MEMENTO_PREPASS`;
+- **A depth prepass on the Linux player** (HiraethFeature `Settings.prepass`, the Surface shader's `HIRAETH_PREPASS`;
   `-no-prepass` off, `-prepass` elsewhere): the opaques' depth drawn alone first by the same G-buffer pass, its
   vertex the pass's own position and no fragment work (the glass and the dissolve, which discard, write no depth
   there), then the G-buffer pass shades each pixel once. The City-Shaft's GPU 20.3 / 16.1 / 24.1 → 16.8 / 17.2 / 19.8
@@ -1986,7 +1986,7 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   `RADV_DEBUG=shaderstats` with `MESA_SHADER_CACHE_DISABLE=true`, the stats in the player's log). Each tap is read
   where it is used now (a tap on a person reads the others again, a rare path; the same reads and numbers): 96 VGPRs,
   10 waves, the City-Shaft's GPU 0.3-0.5 ms less, the Market's wide view 83 → 88 fps.
-- **Each pass's GPU time in a development player**: MementoFeature's render graph passes carry profiling samplers, so a
+- **Each pass's GPU time in a development player**: HiraethFeature's render graph passes carry profiling samplers, so a
   `-development` Linux player's `-split` (BridgeGpuSplit) names them. The City-Shaft with the prepass, a frame on
   average (start / crowd / wide): G-buffer 5.8 / 5.6 / 7.9 ms, the composite 3.6 / 4.2 / 3.3, the near shadow map 3.3 /
   2.8 / 3.6 (drawn every 2nd frame: ~6.5 ms on those), the prepass 3.1 / 2.4 / 3.4, the far map 0.3-0.4, glow and FXAA
@@ -1998,7 +1998,7 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   way (`_see`, its kind read off its node, not the object). The same calls to the backend in the same order
   (tests/mirror-list.test.js). The mirror 6.3 → 5.7 ms in the City-Shaft, 6.1 → 5.4 at the desert's spawn.
 - **The prepass draws the occluders only** (BridgeRenderer `Occluder`: plain meshes of at least 1 m radius in
-  MementoFeature's `OccluderLayer`; `-prepass-min R`, 0 every opaque): most of the prepass's 3 ms was the small
+  HiraethFeature's `OccluderLayer`; `-prepass-min R`, 0 every opaque): most of the prepass's 3 ms was the small
   meshes, which hide little. The prepass 3.0 / 2.4 / 3.4 → 1.5 / 0.7 / 1.8 ms, the G-buffer 0.2-1 ms more; the
   City-Shaft 60.8 / 59.8 / 52.9 → 63.6 / 60.3 / 57.1 fps, the desert's spawn 69 → 75.
 - **The near shadow map's schedule.** Drawn every 2nd frame it costs ~5.5-6 ms on those frames (4096², the City-Shaft):

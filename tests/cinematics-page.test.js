@@ -17,11 +17,11 @@ test('review covers every registered moment, item box and destination without du
 });
 test('review storage never writes through to a player save and starts fresh on replay', () => {
   assert.equal(reviewStorage('?level=desert'), null);
-  const a = reviewStorage('?cinematicReview=desert.flow'); a.setItem('moebius.s1.game.v1', 'temporary');
-  assert.equal(a.getItem('moebius.s1.game.v1'), 'temporary');
-  const b = reviewStorage('?cinematicReview=desert.flow'); assert.equal(b.getItem('moebius.s1.game.v1'), null);
+  const a = reviewStorage('?cinematicReview=desert.flow'); a.setItem('hiraeth.s1.game.v1', 'temporary');
+  assert.equal(a.getItem('hiraeth.s1.game.v1'), 'temporary');
+  const b = reviewStorage('?cinematicReview=desert.flow'); assert.equal(b.getItem('hiraeth.s1.game.v1'), null);
   assert.equal(new URL(reviewURL(CINEMATICS.find(e=>e.id==='trailer')), 'https://example.com/').searchParams.get('muted'),'1');
-  a.removeItem('moebius.s1.game.v1'); assert.equal(a.getItem('moebius.s1.game.v1'), null);
+  a.removeItem('hiraeth.s1.game.v1'); assert.equal(a.getItem('hiraeth.s1.game.v1'), null);
 });
 
 test('imported QC notes merge by date, and the last QC pass\'s notes load and name real cinematics', () => {

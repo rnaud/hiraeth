@@ -34,7 +34,7 @@ brass-set lenses) never show words: waking, their tall face fills with light and
 line of glyphs in the makers' manner, chosen by encounter history: the makers' mark
 between two strokes (a first meeting), the mark twice (again), the mark under two
 ripples (heard of you in another world). Encounters persist
-in `moebius.encounters.v1`; visiting another world can change a first greeting.
+in `hiraeth.encounters.v1`; visiting another world can change a first greeting.
 Reset progress clears that memory. Returning plants retain a faint glow.
 
 `src/reactive-world.js` owns sensing, delayed propagation, local gravity placement,

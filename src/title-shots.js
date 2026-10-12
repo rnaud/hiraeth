@@ -26,7 +26,7 @@
 import { TITLES } from './levels/names.js';
 
 /** Where the title remembers the shot it showed (a global key: not a save's). */
-export const LAST_SHOT_KEY = 'moebius.title.shot';
+export const LAST_SHOT_KEY = 'hiraeth.title.shot';
 /** The covers' shape: every shot is framed at 16:9 first. */
 export const REF_ASPECT = 16 / 9;
 

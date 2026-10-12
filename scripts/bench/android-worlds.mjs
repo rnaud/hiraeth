@@ -1,5 +1,5 @@
 // Every world on the handheld, in GeckoView (the app's engine): the GeckoView test app
-// (com.rnaud.moebius.gecko, scripts/bench/gecko-apk.sh), driven through the page itself (gecko-bridge.mjs),
+// (com.rnaud.hiraeth.gecko, scripts/bench/gecko-apk.sh), driven through the page itself (gecko-bridge.mjs),
 // Handheld preset (docs/systems/performance.md, "Every world on the Retroid, in GeckoView").
 //   node scripts/bench/android-worlds.mjs --serve dist [--worlds desert,incal,...] [--modes fixed,dynamic]
 //        [--secs 10] [--warmup 3] [--only spawn,crowd] [--raw dir] [--port 6253] [--startC 48]
@@ -22,7 +22,7 @@
 // draw calls and triangles; between recordings the GPU's busy share and clock (kgsl), temperatures, the
 // processes' CPU and memory and, in mode `dynamic`, the render scale the game chose. The game's own frame
 // readout (F) stays on for whoever watches the device; the game's sound is at 0.
-// Device rules: only com.rnaud.moebius.gecko is started and stopped, never com.rnaud.moebius (the player's
+// Device rules: only com.rnaud.hiraeth.gecko is started and stopped, never com.rnaud.hiraeth (the player's
 // app) nor a system setting; only this script's own port rules are added and removed.
 import { execFileSync, spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
@@ -36,7 +36,7 @@ import { Bridge, GeckoPage } from './gecko-bridge.mjs';
 import { staticHandler } from './serve.mjs';
 
 const opt = options();
-const GPKG = 'com.rnaud.moebius.gecko', GACTIVITY = `${GPKG}/com.rnaud.memento.gecko.MainActivity`;
+const GPKG = 'com.rnaud.hiraeth.gecko', GACTIVITY = `${GPKG}/com.rnaud.hiraeth.gecko.MainActivity`;
 const PORT = +(opt.port ?? 6253), BASE = `http://localhost:${PORT}/`, APK_BASE = 'http://127.0.0.1:6281/';
 const apk = opt.apk === '1' || opt.apk === true;
 const ORIGIN = apk ? APK_BASE : BASE;
@@ -56,7 +56,7 @@ mkdirSync(RAW, { recursive: true });
 // ------------------------------------------------------------------ adb, guarded
 function adb(args, { quiet = false } = {}) {
   const line = args.join(' ');
-  if (/com\.rnaud\.moebius(?![.\w])/.test(line)) throw new Error(`refusing to touch the player's app: adb ${line}`);
+  if (/com\.rnaud\.hiraeth(?![.\w])/.test(line)) throw new Error(`refusing to touch the player's app: adb ${line}`);
   if (/\b(settings\s+put|setprop|pm\s+(clear|uninstall|disable)|uninstall)\b/.test(line)) throw new Error(`refusing: adb ${line}`);
   try { return execFileSync(ADB[0], [...ADB.slice(1), ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', quiet ? 'ignore' : 'pipe'] }); } catch (e) { return String(e.stdout ?? ''); }
 }
@@ -128,9 +128,9 @@ const EXTRA = `(() => {
 /** the storage of the test app's origin: the prologue done, the preset, the frame readout on, every volume at 0 */
 const prepare = (ev) => ev((q) => {
   localStorage.clear();
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
-  localStorage.setItem('moebius.muted', '1');
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.muted', '1');
   return true;
 }, QUALITY);
 
@@ -302,8 +302,8 @@ async function runWorld(world, mode) {
   await prepare(ev);
   const tNav = Date.now();
   await page.goto(`${ORIGIN}?level=${world}&fps=1`);
-  await page.waitFor('!!(window.__moebiusBooted && window.renderFrame && window.player)', 300000, 250);
-  const load = await ev(() => ({ firstFrame: +((window.__moebiusBootedAt ?? NaN) / 1000).toFixed(2), programs: window.renderer.info.programs?.length, geometries: window.renderer.info.memory.geometries, textures: window.renderer.info.memory.textures }));
+  await page.waitFor('!!(window.__hiraethBooted && window.renderFrame && window.player)', 300000, 250);
+  const load = await ev(() => ({ firstFrame: +((window.__hiraethBootedAt ?? NaN) / 1000).toFixed(2), programs: window.renderer.info.programs?.length, geometries: window.renderer.info.memory.geometries, textures: window.renderer.info.memory.textures }));
   load.wall = +((Date.now() - tNav) / 1000).toFixed(1);
   await sleep(4000);
   let procs = processes();

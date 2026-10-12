@@ -107,13 +107,13 @@ test('the panel\'s calls run deck.py: check, download with progress, restart thr
   assert.match(read('../scripts/steam-deck/deck.py'), /RESTART_EXIT = 76\b/);
 });
 
-test('the page reaches the Deck\'s runtime at moebius://game/__app/, the same calls as Android\'s', async () => {
+test('the page reaches the Deck\'s runtime at hiraeth://game/__app/, the same calls as Android\'s', async () => {
   const asked = [];
-  const win = { location: { protocol: 'moebius:' }, fetch: async (url, o) => { asked.push([url, o.method]); return { ok: true, json: async () => ({ web: 812 }) }; } };
+  const win = { location: { protocol: 'hiraeth:' }, fetch: async (url, o) => { asked.push([url, o.method]); return { ok: true, json: async () => ({ web: 812 }) }; } };
   assert.equal(inApp(win), true);
   assert.deepEqual(await callApp('info', win), { web: 812 });
   assert.deepEqual(asked, [['/__app/info', 'POST']]);
-  const refused = { location: { protocol: 'moebius:' }, fetch: async () => ({ ok: false, status: 404, text: async () => 'Not on this app' }) };
+  const refused = { location: { protocol: 'hiraeth:' }, fetch: async () => ({ ok: false, status: 404, text: async () => 'Not on this app' }) };
   await assert.rejects(callApp('openApk', refused), /Not on this app/);
   assert.equal(inApp({ location: { protocol: 'https:' }, fetch() {} }), false, 'the web game');
   const main = read('../desktop/main.mjs');

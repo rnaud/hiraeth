@@ -758,7 +758,7 @@ pivot's frames) and the starts and stops at a run (29 cm, the stop's last step).
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where
-each wins: `motion.html` (`npm run dev` at `/motion.html`, on GitHub Pages at `…/moebius/motion.html`,
+each wins: `motion.html` (`npm run dev` at `/motion.html`, on GitHub Pages at `…/hiraeth/motion.html`,
 from the character studio's header, or the dev menu's *Motion* section in the game). It is the third
 entry of the build (`BUILD_INPUT`), drawn by the game's own pipeline (`src/pipeline.js`: shadow
 cascades, the G-buffer materials, the ink pass, FXAA), and loads no world: the test course of the gait

@@ -177,7 +177,7 @@ test('the JIT probe: a nanosecond a turn is a JIT, tens are an interpreter', () 
 
 test('a game served by the Xbox app reads the site\'s sheets and themes like the other bundles', () => {
   assert.ok(bundledGame(new URL(`https://${XBOX_HOST}/index.html`)));
-  assert.ok(!bundledGame(new URL('https://memento.alexandria-rnaud.workers.dev/')));
+  assert.ok(!bundledGame(new URL('https://hiraeth.alexandria-rnaud.workers.dev/')));
 });
 
 test('the update rules the app mirrors (WebBundles.Decide)', () => {
@@ -236,9 +236,9 @@ test('the C# app agrees with the page and the feed', () => {
   assert.match(page, new RegExp(`Host = "${XBOX_HOST.replace('.', '\\.')}"`), 'the origin the saves live under');
   assert.ok(XBOX_UA.test(`x ${/UserAgentToken = "([^"]+)"/.exec(page)[1]}1`), 'the user agent token');
   assert.match(page, /__hiraethXbox/);
-  assert.match(page, /moebius:pause/); assert.match(page, /moebius:resume/); assert.match(page, /moebius:back/);
+  assert.match(page, /hiraeth:pause/); assert.match(page, /hiraeth:resume/); assert.match(page, /hiraeth:back/);
   assert.match(page, /e\.Handled = true/, 'Back never closes the game');
-  assert.match(page, /window\.__moebiusBooted === true/, 'the boot watch reads the page\'s heartbeat');
+  assert.match(page, /window\.__hiraethBooted === true/, 'the boot watch reads the page\'s heartbeat');
   assert.match(page, /AreDefaultContextMenusEnabled = false/);
   assert.match(page, /IsZoomControlEnabled = false/);
   assert.match(page, /SetVirtualHostNameToFolderMapping/);

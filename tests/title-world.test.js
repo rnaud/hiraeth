@@ -41,25 +41,25 @@ test('the world reads nothing of a save directly, and its levels load on demand'
 test('a sandboxed slot view reads and writes memory; the selector still sees the real slots', () => {
   const mem = new Map();
   const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
-  storage.setItem('moebius.slots.v', '1');
-  storage.setItem('moebius.slot', '2');
-  storage.setItem(slotKey('moebius.game.v1', 2), '{"flags":{"prologue.done":true,"real":1}}');
+  storage.setItem('hiraeth.slots.v', '1');
+  storage.setItem('hiraeth.slot', '2');
+  storage.setItem(slotKey('hiraeth.game.v1', 2), '{"flags":{"prologue.done":true,"real":1}}');
   const store = new SlotStore(storage), view = store.view();
-  assert.match(view.getItem('moebius.game.v1'), /"real":1/);
-  store.sandbox({ 'moebius.game.v1': '{"flags":{"title":1}}' });
+  assert.match(view.getItem('hiraeth.game.v1'), /"real":1/);
+  store.sandbox({ 'hiraeth.game.v1': '{"flags":{"title":1}}' });
   assert.ok(store.sandboxed);
-  assert.match(view.getItem('moebius.game.v1'), /"title":1/, 'the sandbox, not slot 2');
-  view.setItem('moebius.game.v1', '{"flags":{"written":1}}');
-  view.setItem('moebius.save.v1', '{}');
-  assert.match(mem.get(slotKey('moebius.game.v1', 2)), /"real":1/, 'slot 2 untouched');
-  assert.equal(mem.get(slotKey('moebius.save.v1', 2)), undefined);
-  view.removeItem('moebius.game.v1');
-  assert.ok(mem.has(slotKey('moebius.game.v1', 2)));
+  assert.match(view.getItem('hiraeth.game.v1'), /"title":1/, 'the sandbox, not slot 2');
+  view.setItem('hiraeth.game.v1', '{"flags":{"written":1}}');
+  view.setItem('hiraeth.save.v1', '{}');
+  assert.match(mem.get(slotKey('hiraeth.game.v1', 2)), /"real":1/, 'slot 2 untouched');
+  assert.equal(mem.get(slotKey('hiraeth.save.v1', 2)), undefined);
+  view.removeItem('hiraeth.game.v1');
+  assert.ok(mem.has(slotKey('hiraeth.game.v1', 2)));
   // the selector's reads: the real saves
   assert.equal(store.summary(2).empty, false);
   assert.equal(store.summary(1).empty, true);
   // a numbered slot's own view is never sandboxed (the selector reads those)
-  assert.match(store.view(2).getItem('moebius.game.v1'), /"real":1/);
+  assert.match(store.view(2).getItem('hiraeth.game.v1'), /"real":1/);
 });
 
 test('the render size is capped, lower on touch screens and handhelds, never supersampled', () => {

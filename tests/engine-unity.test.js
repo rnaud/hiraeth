@@ -137,7 +137,7 @@ test('the coral-shirt traveller\'s drawn face and the flask reach the port (Trip
 test('the port\'s crowd figures read the costume as costumes.js packs it (the pieces worn, not the wrong ones)', async () => {
   const { MASK_ID_LIMIT, BODY_ID_LIMIT, HEAD_ID_LIMIT } = await import('../src/costumes.js');
   const { readFileSync } = await import('node:fs');
-  const hlsl = readFileSync(new URL('../unity/Memento/Assets/Memento/Shaders/Crowd.hlsl', import.meta.url), 'utf8');
+  const hlsl = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Crowd.hlsl', import.meta.url), 'utf8');
   const num = (re) => { const m = hlsl.match(re); assert.ok(m, `${re}`); return +m[1]; };
   assert.equal(num(/maskId = \(int\)\(cmod\(aDress\.y, ([\d.]+)\)/), MASK_ID_LIMIT);
   assert.equal(num(/bodyId = \(int\)\(cmod\(floor\(aDress\.y \/ ([\d.]+) /), MASK_ID_LIMIT);
@@ -199,7 +199,7 @@ test('the motes and the footprints go to the port\'s own shaders; a print\'s pla
 });
 
 test('the Unity bundle in a bare V8 context, against a stand-in of the C# host', async () => {
-  const file = join(tmpdir(), `memento-engine-unity-${process.pid}.js`);
+  const file = join(tmpdir(), `hiraeth-engine-unity-${process.pid}.js`);
   await bundle('unity', { out: [file] });
   const calls = { Geometry: 0, Material: 0, Create: 0, Frame: 0, Look: 0, bytes: 0 };
   let lastFrame = null, look = null, screenJson = null;
@@ -226,7 +226,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     AudioEndedTake: () => { const s = ended.join(','); ended.length = 0; return s; },
   };
   // (no timers of the VM's own, as in Puerts: engine/platform.js runs them from the frame)
-  const { exports, readFile } = loadBundle(file, {}, { CS: { Memento: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
+  const { exports, readFile } = loadBundle(file, {}, { CS: { Hiraeth: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
   BridgeHost.ReadFile = readFile;
   const errors = [];
   const warn = console.warn, info = console.info, log = console.log, error = console.error; console.warn = console.info = console.log = () => {}; console.error = (...a) => errors.push(a.map(String).join(' ').slice(0, 300));
@@ -267,7 +267,7 @@ test('a merged mesh\'s material values per vertex (S_VMAT: the City-Shaft\'s tow
   const g = mergeWithMaterials([{ geometry: box, x: 10, y: 0, z: -5, rotY: 0.5, material: a }, { geometry: box, x: -20, y: 2, z: 40, rotY: 0, material: b }]);
   const merged = makeMaterial({ color: '#c08060', perVertex: true });
   const pm = portMaterial(inkSpec(merged), 1);
-  assert.equal(pm.vmat, 1, 'the port\'s variant that reads them (MEMENTO_VMAT)');
+  assert.equal(pm.vmat, 1, 'the port\'s variant that reads them (HIRAETH_VMAT)');
   // (as the mirror hands a geometry over: its attributes' arrays and sizes, the index's array)
   const plain = { attributes: Object.fromEntries(Object.entries(g.attributes).map(([k, x]) => [k, { array: x.array, itemSize: x.itemSize }])), index: g.index.array, groups: null };
   const buf = unityGeometry(plain, { vmat: true });

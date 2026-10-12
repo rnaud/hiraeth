@@ -67,7 +67,7 @@ const SYSTEM = /WindowServer|kernel_task|\/footprint\b|\bps -Ao\b|\/launchd|mds_
  * Is the machine quiet enough to measure? Not when, besides our own process tree (`mine`: the runner,
  * its server, the browser or the player it launched):
  *  - any Unity process runs (an editor, the user's own included; a batch job of another worktree; an
- *    import worker or shader compiler; another Memento player),
+ *    import worker or shader compiler; another Hiraeth player),
  *  - another automated browser runs (Playwright's Chrome, a headless shell, a --remote-debugging Chrome),
  *  - the user's own Chrome works (its GPU process or a renderer over 8 % CPU: a tab with a game in it),
  *  - a vite / esbuild / rolldown / node --test / gradle / IL2CPP job runs (other worktrees' builds and servers),
@@ -81,9 +81,9 @@ export function quietCheck({ mine: extra = [], maxLoad = 4, cpu = 25 } = {}) {
   const flag = (why, r) => { reasons.push(why); seen.push(`${r.pid} ${r.cpu}% ${r.cmd.slice(0, 140)}`); };
   for (const r of rows) {
     if (mine.has(r.pid) || SYSTEM.test(r.cmd)) continue;
-    if (/\/Unity\.app\/Contents\/|UnityShaderCompiler|Unity Hub\.app\/Contents\/MacOS|Memento\.app\/Contents\/MacOS\/Memento/.test(r.cmd)) {
+    if (/\/Unity\.app\/Contents\/|UnityShaderCompiler|Unity Hub\.app\/Contents\/MacOS|Hiraeth\.app\/Contents\/MacOS\/Hiraeth/.test(r.cmd)) {
       if (/Unity Hub\.app/.test(r.cmd) && !/Unity\.app/.test(r.cmd) && r.cpu < 5) continue;   // (the Hub idling in the menu bar)
-      flag(/-batchmode/i.test(r.cmd) && !/AssetImportWorker/.test(r.cmd) ? 'a Unity batch job' : /Memento\.app/.test(r.cmd) ? 'another Memento player'
+      flag(/-batchmode/i.test(r.cmd) && !/AssetImportWorker/.test(r.cmd) ? 'a Unity batch job' : /Hiraeth\.app/.test(r.cmd) ? 'another Hiraeth player'
         : /AssetImportWorker|ShaderCompiler/.test(r.cmd) ? 'a Unity import worker' : /Unity Hub/.test(r.cmd) ? 'the Unity Hub working' : 'a Unity editor', r);
     } else if (/chrome-headless-shell|Chrome for Testing|playwright|--remote-debugging-(pipe|port)|puppeteer/i.test(r.cmd)) flag('another automated browser', r);
     else if (/Google Chrome/.test(r.cmd) && /--type=(renderer|gpu-process)/.test(r.cmd)) { if (r.cpu > 8) flag('the user\'s Chrome is busy', r); }

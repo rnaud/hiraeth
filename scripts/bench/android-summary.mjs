@@ -18,6 +18,6 @@ for (const f of readdirSync(dir).filter((x) => /^(unity|web)-\w+\.json$/.test(x)
   }
 }
 const out = resolve(ROOT, 'scripts/bench/results/android.json');
-writeFileSync(out, JSON.stringify({ about: 'Memento on the handheld: the Unity APK and the web game in Chrome (android-run.sh)', from: dir, time: new Date().toISOString(), runs, rows }, null, 1) + '\n');
+writeFileSync(out, JSON.stringify({ about: 'Hiraeth on the handheld: the Unity APK and the web game in Chrome (android-run.sh)', from: dir, time: new Date().toISOString(), runs, rows }, null, 1) + '\n');
 for (const r of rows) console.log(`${r.side.padEnd(14)} ${String(r.preset).padEnd(9)} ${r.view.padEnd(11)} fps ${r.fps} median ${r.median} p95 ${r.p95} p99 ${r.p99} >20ms ${r.over20}% cpu ${r.cpu} gpu ${r.gpu} busy ${r.gpuBusy}% ${r.gpuMHz} MHz draws ${r.draws} tris ${r.tris}`);
 console.log(`wrote ${out}`);

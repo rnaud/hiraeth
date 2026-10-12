@@ -25,13 +25,13 @@ function game(file, exact) {
   // (the same random numbers in both, from the start)
   let seed = 11;
   const M = Object.create(Math); M.random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  const { exports, readFile, ctx } = loadBundle(file, {}, { CS: { Memento: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined, __POSE_EXACT__: exact, Math: M });
+  const { exports, readFile, ctx } = loadBundle(file, {}, { CS: { Hiraeth: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined, __POSE_EXACT__: exact, Math: M });
   BridgeHost.ReadFile = readFile;
   return { exports, ctx, step(dt) { t = Math.floor(t / 16.667 + 1) * 16.667; exports.frame(dt); }, get done() { return done; } };
 }
 
 test('the people posed as before: every bone\'s world matrix the same, frame after frame', { timeout: 600000 }, async () => {
-  const file = join(tmpdir(), `memento-pose-${process.pid}.js`);
+  const file = join(tmpdir(), `hiraeth-pose-${process.pid}.js`);
   await bundle('unity', { out: [file] });
   const src = readFileSync(file, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;');
   const { writeFileSync } = await import('node:fs');
@@ -43,7 +43,7 @@ test('the people posed as before: every bone\'s world matrix the same, frame aft
     const args = JSON.stringify({ level: 'desert', views, settle: 1, talk: 'any', walk: 2, sound: false });
     // (POSE_REF: another bundle for the reference side, the game as it was: a one-off check against older code)
     let ref = file;
-    if (process.env.POSE_REF) { ref = join(tmpdir(), `memento-pose-ref-${process.pid}.js`); writeFileSync(ref, readFileSync(process.env.POSE_REF, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;')); }
+    if (process.env.POSE_REF) { ref = join(tmpdir(), `hiraeth-pose-ref-${process.pid}.js`); writeFileSync(ref, readFileSync(process.env.POSE_REF, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;')); }
     const A = game(ref, true), B = game(file, false);
     A.exports.start(args); B.exports.start(args);
     for (let i = 0; i < 4000 && !(A.ctx.__G && B.ctx.__G); i++) { await new Promise((r) => setImmediate(r)); A.step(1 / 60); B.step(1 / 60); }

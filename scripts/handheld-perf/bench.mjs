@@ -26,7 +26,7 @@ const page = await ourPage();
 await prepare(page);
 const sc = SCENARIOS[name];
 await page.goto(BASE + '?' + sc.q);
-await page.waitFor('!!window.__moebiusBooted', 300000, 250);
+await page.waitFor('!!window.__hiraethBooted', 300000, 250);
 await fullscreen(page);
 await sleep(sc.settle ?? 5000);
 if (sc.setup) { await page.eval(sc.setup); await sleep(3000); }

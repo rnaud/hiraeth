@@ -4,12 +4,12 @@
 # debugging on the Deck's 9222 and an ssh tunnel to it on this Mac's PORT (default 5310).
 #   scripts/bench/deck-run.sh start [desktop|gamescope|headless] [GAME_DIR_ON_DECK]   stop
 # headless: gamescope's headless backend (X11 as in Gaming Mode, nothing on the screen): for a Deck left in
-# Gaming Mode, where there is no Plasma to nest in. GPU=vulkan|gl|software: ANGLE's backend (MOEBIUS_GPU).
+# Gaming Mode, where there is no Plasma to nest in. GPU=vulkan|gl|software: ANGLE's backend (HIRAETH_GPU).
 # REFRESH: gamescope's refresh rate (default 60; Gaming Mode on the OLED runs at 90).
 # GAME_DIR_ON_DECK: a built game (dist/) copied to the Deck, served instead of the installed one
-# (MOEBIUS_GAME), to measure a change before it ships. Only our own unit (memento-bench) is started and
+# (HIRAETH_GAME), to measure a change before it ships. Only our own unit (hiraeth-bench) is started and
 # stopped; Steam, the session and the system's settings are left as they are.
-# The bench's game runs in a profile of its own (XDG_CONFIG_HOME=~/.local/share/moebius-bench: Electron's
+# The bench's game runs in a profile of its own (XDG_CONFIG_HOME=~/.local/share/hiraeth-bench: Electron's
 # single-instance lock, the settings and the saves are per profile), so it starts while the player's game
 # is open, and its runs (deck-worlds.mjs writes the settings and a save) never touch the player's own.
 DECK=${DECK:-deck@steamdeck.local}
@@ -20,27 +20,27 @@ case "$1" in
     game=${3:-}
     # (one bench at a time: not while deck-unity.sh's player, or another run of this one, is up)
     busy=$(ssh -o BatchMode=yes "$DECK" 'export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
-      for u in memento-unity-bench memento-bench; do systemctl --user is-active -q $u && echo -n "$u "; done; pgrep -f "memento-js[.]x86_64" >/dev/null && echo -n "a bench player"; true')
+      for u in hiraeth-unity-bench hiraeth-bench; do systemctl --user is-active -q $u && echo -n "$u "; done; pgrep -f "hiraeth-js[.]x86_64" >/dev/null && echo -n "a bench player"; true')
     if [ -n "$busy" ]; then echo "the Deck is busy with another bench ($busy): not started"; exit 2; fi
     ssh -o BatchMode=yes "$DECK" "export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
-      B=\$(readlink -f ~/.local/share/moebius-deck/current)/moebius
-      mkdir -p ~/.local/share/moebius-bench
-      G='XDG_CONFIG_HOME=/home/deck/.local/share/moebius-bench ${game:+MOEBIUS_GAME=$game} ${GPU:+MOEBIUS_GPU=$GPU}'
+      B=\$(readlink -f ~/.local/share/hiraeth-deck/current)/hiraeth
+      mkdir -p ~/.local/share/hiraeth-bench
+      G='XDG_CONFIG_HOME=/home/deck/.local/share/hiraeth-bench ${game:+HIRAETH_GAME=$game} ${GPU:+HIRAETH_GPU=$GPU}'
       A='--mute-audio --disable-audio-output --remote-debugging-port=9222'
       if [ $kind = headless ]; then
-        systemd-run --user --unit=memento-bench --collect -p RuntimeMaxSec=7200 \
+        systemd-run --user --unit=hiraeth-bench --collect -p RuntimeMaxSec=7200 \
           gamescope --backend headless -W 1280 -H 800 -w 1280 -h 800 -r ${REFRESH:-60} -- env XDG_CURRENT_DESKTOP=gamescope \$G \$B \$A
       elif [ $kind = gamescope ]; then
-        systemd-run --user --unit=memento-bench --collect -p RuntimeMaxSec=7200 env DISPLAY=:0 WAYLAND_DISPLAY=wayland-0 \
+        systemd-run --user --unit=hiraeth-bench --collect -p RuntimeMaxSec=7200 env DISPLAY=:0 WAYLAND_DISPLAY=wayland-0 \
           gamescope -W 1280 -H 800 -w 1280 -h 800 -r ${REFRESH:-60} -- env XDG_CURRENT_DESKTOP=gamescope \$G \$B \$A
       else
-        systemd-run --user --unit=memento-bench --collect -p RuntimeMaxSec=7200 env DISPLAY=:0 WAYLAND_DISPLAY=wayland-0 XDG_CURRENT_DESKTOP=KDE \$G \$B \$A
+        systemd-run --user --unit=hiraeth-bench --collect -p RuntimeMaxSec=7200 env DISPLAY=:0 WAYLAND_DISPLAY=wayland-0 XDG_CURRENT_DESKTOP=KDE \$G \$B \$A
       fi"
     pkill -f "ssh -o BatchMode=yes -f -N -L $PORT:127.0.0.1:9222" 2>/dev/null
     ssh -o BatchMode=yes -f -N -L "$PORT:127.0.0.1:9222" -o ServerAliveInterval=10 -o ServerAliveCountMax=3 "$DECK"   # (the tunnel ends when the Deck sleeps: the run stops)
     echo "started ($kind), tunnel on $PORT" ;;
   stop)
-    ssh -o BatchMode=yes "$DECK" 'export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus; systemctl --user stop memento-bench 2>/dev/null; true'
+    ssh -o BatchMode=yes "$DECK" 'export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus; systemctl --user stop hiraeth-bench 2>/dev/null; true'
     pkill -f "ssh -o BatchMode=yes -f -N -L $PORT:127.0.0.1:9222" 2>/dev/null
     echo stopped ;;
   *) echo "usage: $0 start [desktop|gamescope|headless] [game dir on the Deck] | stop"; exit 1 ;;

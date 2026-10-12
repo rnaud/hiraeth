@@ -23,14 +23,14 @@ test('a brand-new profile is not greeted with "Updated to": the version is marke
   assert.equal(quietFirstRun(old, '0.97'), false);
   assert.equal(old.getItem(SEEN_KEY), '0.95');
   // never seen a version, but a save: an update from before the seen mark (or a cleared mark)
-  for (const key of ['moebius.s2.game.v1', 'moebius.s1.save.v1', 'moebius.game.v1']) {
+  for (const key of ['hiraeth.s2.game.v1', 'hiraeth.s1.save.v1', 'hiraeth.game.v1']) {
     const saved = mem({ [key]: '{}' });
     assert.equal(hasAnySave(saved), true, key);
     assert.equal(quietFirstRun(saved, '0.97'), false, key);
     assert.equal(saved.getItem(SEEN_KEY), null);
   }
   // the debug slot is not a player's save
-  assert.equal(hasAnySave(mem({ 'moebius.sdebug.game.v1': '{}' })), false);
+  assert.equal(hasAnySave(mem({ 'hiraeth.sdebug.game.v1': '{}' })), false);
   assert.equal(quietFirstRun(null, '0.97'), false, 'no storage: nothing to do');
   // boot runs it before the title (which writes a save on New game)
   const boot = src('src/boot.js');

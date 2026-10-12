@@ -62,7 +62,7 @@ test('the full-screen menus pause the game and bring in the menu music', () => {
   // the Start menu acts on this save only, and can quit to the title
   assert.match(main, /slots\.remove\(slots\.active\)/);
   assert.match(main, /onQuit: \(\) => quitToTitle\(\)/);
-  assert.doesNotMatch(main, /localStorage\.removeItem\('moebius\.journal\.v1'\)/);
+  assert.doesNotMatch(main, /localStorage\.removeItem\('hiraeth\.journal\.v1'\)/);
   const ui = src('ui.js');
   assert.match(ui, /data-a="title">\$\{t\('menu\.quit'\)\}\$\{F\}</);   // (the words: src/i18n/en.js; F the confirm glyph on the focused entry)
   assert.doesNotMatch(ui, /[^.\w]confirm\('/, 'no browser confirm(): a controller cannot answer it');

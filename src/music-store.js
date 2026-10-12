@@ -31,7 +31,7 @@ export const siteThemeUrl = (file, site = SHEET_SITE) => new URL(`music/${themeK
 const req = (r) => new Promise((resolve, reject) => { r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
 
 /**
- * The kept themes, in IndexedDB (GeckoView's loopback origin and Electron's moebius:// both have it; the Cache
+ * The kept themes, in IndexedDB (GeckoView's loopback origin and Electron's hiraeth:// both have it; the Cache
  * API isn't sure on a custom scheme). null where there is none. { get(key) → Blob | null, put(key, blob), delete(key), keys() }
  */
 export function themeStore(idb = globalThis.indexedDB) {
@@ -89,7 +89,7 @@ export async function keepTheme(store, file, blob) {
   try { await store?.put(file, blob); return true; } catch { return false; }
 }
 
-const pageBooted = () => globalThis.window?.__moebiusBootedAt !== undefined;   // (src/native-app.js markBooted)
+const pageBooted = () => globalThis.window?.__hiraethBootedAt !== undefined;   // (src/native-app.js markBooted)
 
 /**
  * The background download of every theme a device hasn't got. start() any number of times (the title and each

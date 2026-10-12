@@ -42,10 +42,10 @@ await prepareStorage(ev, preset);
 
 const t0 = Date.now();
 await page.goto(BASE + '?level=desert', { waitUntil: 'load' });
-await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });
+await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });
 const wallLoad = (Date.now() - t0) / 1000;
 const load = await ev(() => ({
-  firstFrame: (window.__moebiusBootedAt ?? NaN) / 1000,
+  firstFrame: (window.__hiraethBootedAt ?? NaN) / 1000,
   resources: performance.getEntriesByType('resource').map((r) => ({ url: r.name, bytes: r.decodedBodySize })),
 }));
 await sleep(4000);

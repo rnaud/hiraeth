@@ -198,7 +198,7 @@ export async function probePages(root, fetcher = globalThis.fetch) {
 }
 
 /** The last item opened from the menu (this tab): it gets the focus back on the way back (◀ Debug). */
-export const LAST_KEY = 'moebius.debugMenu.last';
+export const LAST_KEY = 'hiraeth.debugMenu.last';
 
 /**
  * The menu into the #picker element: its header (the filter, the section chips), its sections. Returns

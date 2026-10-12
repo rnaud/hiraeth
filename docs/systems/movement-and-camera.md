@@ -78,7 +78,7 @@ steeper; on the bike well back and lower, the rider small. Measured in the runni
   red as before (the dunes' pops, smaller now: 3.9 m at most against 5.7; the shop's look jumps unchanged).
 - Nothing new moves the view: no bob, no roll; the roof's tilt and every arm are eased.
 - The Unity bridge draws the game's own rig (engine/mirror.js `camera`), so it follows; the C# port's own rig
-  (`unity/Memento/.../CameraRig.cs`) had kept the 9.5 m arm and now has the same numbers (4.8 m, 1.7 m, 9.2°).
+  (`unity/Hiraeth/.../CameraRig.cs`) had kept the 9.5 m arm and now has the same numbers (4.8 m, 1.7 m, 9.2°).
 - Tests: `tests/camera-framing.test.js` (the open framing's share, the roof's tilt in and out, the rides' arms);
   the camera QC judges the framing in `desert-open` (`framing`: the median share on foot in the open within 0.28–0.40).
 

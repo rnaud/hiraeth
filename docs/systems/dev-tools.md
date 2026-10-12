@@ -30,7 +30,7 @@ the **filter** and close, and a chip a section (a click scrolls there; the one i
 - **A controller**: the D-pad moves in 2D (`data-grid-nav`), A opens, B goes back (out of the filter first),
   LB / RB jump between sections (their glyphs either side of the chips), Y opens the filter. The text box is
   out of the D-pad's way (a handheld would open its keyboard): only Y reaches it.
-- **The way back**: the item opened is remembered for the tab (`sessionStorage` `moebius.debugMenu.last`); the
+- **The way back**: the item opened is remembered for the tab (`sessionStorage` `hiraeth.debugMenu.last`); the
   menu opened again (◀ Debug on a page, B from a world) focuses it and scrolls to it, so it comes back to the
   section it was left from. Every link and its URL are as before (`pickHref`, `gameHref`, the pages' files).
 - **Sizes**: the sections' grids fill the width; under 620 px the filter takes a line of its own and the
@@ -146,7 +146,7 @@ goes on with the save. A line under the pages says so, and each card says which 
 ("debug save · 6 worlds done before it", "in your save").
 
 **The player's saves are never written.** The debug save has a slot of its own, `DEBUG_SLOT` ('debug', keys
-`moebius.sdebug.*`, `src/save-slots.js`): seeding clears it, writes the game state and the sketchbook into it
+`hiraeth.sdebug.*`, `src/save-slots.js`): seeding clears it, writes the game state and the sketchbook into it
 and makes it the active slot. The ship's flights stay in it; the title never lists it (Continue, New game and
 Saves are the three slots), so choosing a save there goes back to yours. The Start menu reads "Debug save"
 while you are in it. Picking another world starts the debug save again from scratch.

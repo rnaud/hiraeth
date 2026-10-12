@@ -19,7 +19,7 @@ const PORT = Number(process.env.PORT ?? 5430);
 export const PICTURE = { size: 256, quality: 80, dir: 'public/item-pictures' };
 const only = process.argv[2]?.split(',');
 const ids = Object.keys(ITEMS).filter((id) => !only || only.includes(id));
-const work = mkdtempSync(join(tmpdir(), 'memento-items-'));
+const work = mkdtempSync(join(tmpdir(), 'hiraeth-items-'));
 mkdirSync(join(ROOT, PICTURE.dir), { recursive: true });
 const server = await serve(ROOT);
 const c = await chrome();

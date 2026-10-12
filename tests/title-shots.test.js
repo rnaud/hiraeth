@@ -65,8 +65,8 @@ test('the worlds a save has reached come up more often, the others still do', ()
 test('the title remembers the shot it showed, and ?shot= picks one', () => {
   const title = src('src/title-paint.js');
   assert.match(title, /chooseShot\(\{ storage: ls, search: win\.location\?\.search/);
-  assert.equal(LAST_SHOT_KEY, 'moebius.title.shot');
-  assert.ok(!/moebius\.s\d/.test(LAST_SHOT_KEY), 'a global key, not a save\'s');
+  assert.equal(LAST_SHOT_KEY, 'hiraeth.title.shot');
+  assert.ok(!/hiraeth\.s\d/.test(LAST_SHOT_KEY), 'a global key, not a save\'s');
   assert.equal(shotById(SHOTS[0].id).id, SHOTS[0].id);
   assert.equal(shotById('nope'), null);
 });

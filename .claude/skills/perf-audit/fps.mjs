@@ -97,14 +97,14 @@ const stand = (expr) => ev(`(() => { const { THREE, player, level } = window; ${
 
 for (const world of WORLDS) {
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, showFps: false }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, showFps: false }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   const t0 = Date.now();
   await send('Page.navigate', { url: `${BASE}?level=${world}` });
   let load = null;
-  for (let i = 0; i < 1200; i++) { if (await ev('!!window.__moebiusBooted && !!window.player && !!window.renderer')) { load = Date.now() - t0; break; } await sleep(100); }
+  for (let i = 0; i < 1200; i++) { if (await ev('!!window.__hiraethBooted && !!window.player && !!window.renderer')) { load = Date.now() - t0; break; } await sleep(100); }
   if (load === null) { out.worlds.push({ world, error: 'never booted', errors: errors.slice(0, 4) }); console.log(world, 'never booted'); continue; }
   out.gpu ??= await ev(`(() => { const g = window.renderer.getContext(), x = g.getExtension('WEBGL_debug_renderer_info'); return x ? g.getParameter(x.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER); })()`);
   if (/swiftshader|software|llvmpipe/i.test(out.gpu ?? '')) throw new Error(`Chrome fell back to software rendering (${out.gpu}): numbers would be meaningless`);

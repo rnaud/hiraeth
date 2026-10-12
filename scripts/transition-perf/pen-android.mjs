@@ -1,12 +1,12 @@
 // Does the loading pen turn smoothly through a world's load on the handheld? (docs/systems/performance.md,
-// "The loading pen"). In the GeckoView test app (com.rnaud.moebius.gecko, scripts/bench/gecko-apk.sh), the game
+// "The loading pen"). In the GeckoView test app (com.rnaud.hiraeth.gecko, scripts/bench/gecko-apk.sh), the game
 // served from this Mac (or from the APK, --apk 1) and driven through the page bridge (scripts/bench/gecko-bridge.mjs):
 // for each world the app started afresh, `adb shell screenrecord` through the load, the recording pulled and read
 // frame by frame with pen-read.swift (AVFoundation: each frame's own time), then pen-stops.mjs's measures.
 //   npx vite build
 //   ANDROID_SERIAL=… node scripts/transition-perf/pen-android.mjs [--serve dist] [--worlds desert,incal] [--apk 1]
 //        [--port 6253] [--raw dir] [--out file.json]
-// Device rules: only the test app is started and stopped, never com.rnaud.moebius (the player's app) nor a
+// Device rules: only the test app is started and stopped, never com.rnaud.hiraeth (the player's app) nor a
 // setting; the game's sound at 0 and its frame readout (F) on; only this script's own port rule, removed at the end.
 import { execFileSync, spawn } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -21,17 +21,17 @@ import { penStops } from './pen-stops.mjs';
 
 const opt = options();
 const HERE = dirname(fileURLToPath(import.meta.url));
-const GPKG = 'com.rnaud.moebius.gecko', GACTIVITY = `${GPKG}/com.rnaud.memento.gecko.MainActivity`;
+const GPKG = 'com.rnaud.hiraeth.gecko', GACTIVITY = `${GPKG}/com.rnaud.hiraeth.gecko.MainActivity`;
 const PORT = +(opt.port ?? 6253), BASE = `http://localhost:${PORT}/`, APK_BASE = 'http://127.0.0.1:6281/';
 const apk = opt.apk === '1' || opt.apk === true, ORIGIN = apk ? APK_BASE : BASE;
 const WORLDS = String(opt.worlds ?? 'desert,incal').split(',');
 const RAW = resolve(opt.raw ?? `${ROOT}/scripts/bench/results/raw/pen-android-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')}`);
 mkdirSync(RAW, { recursive: true });
-const ON_DEVICE = '/data/local/tmp/memento-pen.mp4';
+const ON_DEVICE = '/data/local/tmp/hiraeth-pen.mp4';
 
 function adb(args) {
   const line = args.join(' ');
-  if (/com\.rnaud\.moebius(?![.\w])/.test(line)) throw new Error(`refusing to touch the player's app: adb ${line}`);
+  if (/com\.rnaud\.hiraeth(?![.\w])/.test(line)) throw new Error(`refusing to touch the player's app: adb ${line}`);
   if (/\b(settings\s+put|setprop|pm\s+(clear|uninstall|disable)|uninstall)\b/.test(line)) throw new Error(`refusing: adb ${line}`);
   try { return execFileSync(ADB[0], [...ADB.slice(1), ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); } catch (e) { return String(e.stdout ?? ''); }
 }
@@ -60,8 +60,8 @@ for (const w of WORLDS) {
   const page = new GeckoPage(bridge);
   await page.eval(() => {
     localStorage.clear();
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'handheld', showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'handheld', showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
     return true;
   });
   const rec = spawn(ADB[0], [...ADB.slice(1), 'shell', 'screenrecord', '--bit-rate', '12M', '--time-limit', '120', ON_DEVICE]);
@@ -75,7 +75,7 @@ for (const w of WORLDS) {
     pen = await page.eval(() => { const e = document.querySelector('#loading .pen'); if (!e) return null; const r = e.getBoundingClientRect(), k = devicePixelRatio; return r.width ? { x: Math.round((r.x + r.width / 2) * k), y: Math.round((r.y + r.height / 2) * k), r: Math.round(r.width / 2 * k * 1.1) } : null; }).catch(() => null);
     if (!pen) await sleep(100);
   }
-  await page.waitFor('!!window.__moebiusBooted', 300000, 250);
+  await page.waitFor('!!window.__hiraethBooted', 300000, 250);
   const loadS = (Date.now() - t0) / 1000;
   await sleep(2000);
   adb(['shell', 'pkill', '-INT', 'screenrecord']);

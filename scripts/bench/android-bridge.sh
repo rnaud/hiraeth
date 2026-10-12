@@ -1,20 +1,20 @@
 #!/bin/sh
 # The JS bridge's Android player (docs/systems/engine-bridge.md, "Players") on a handheld, one run: install
-# (or update) com.rnaud.memento.bridge, push the views, start it muted with a plan (BridgeArgs: the same
+# (or update) com.rnaud.hiraeth.bridge, push the views, start it muted with a plan (BridgeArgs: the same
 # arguments as the editor's batch run), wait for it to exit, pull its pictures and bench.json.
 #   scripts/unity-export/unity-batch.sh BridgeBuild.Android            (the APK first)
 #   scripts/bench/android-bridge.sh desert -views scripts/bench/viewpoints.json -bench 8 -split
 #   scripts/bench/android-bridge.sh bazaar -views scripts/bench/viewpoints-worlds.json
 # ANDROID_SERIAL picks the device, APK another build, OUT the folder for the results
-# (default output/engine-bridge/android-<level>). It installs com.rnaud.memento.bridge only: it never touches
-# com.rnaud.moebius (the web game's app) nor com.rnaud.memento.unity (the C# port's).
+# (default output/engine-bridge/android-<level>). It installs com.rnaud.hiraeth.bridge only: it never touches
+# com.rnaud.hiraeth (the web game's app) nor com.rnaud.hiraeth.unity (the C# port's).
 set -eu
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 SDK=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 ADB=${ADB:-$SDK/platform-tools/adb}
 [ -x "$ADB" ] || ADB=/Applications/Unity/Hub/Editor/6000.6.4f1/PlaybackEngines/AndroidPlayer/SDK/platform-tools/adb
-PKG=com.rnaud.memento.bridge
-APK=${APK:-$ROOT/unity/Memento/Builds/bridge-android/memento-js.apk}
+PKG=com.rnaud.hiraeth.bridge
+APK=${APK:-$ROOT/unity/Hiraeth/Builds/bridge-android/hiraeth-js.apk}
 LEVEL=${1:?a level: desert, bazaar, incal…}; shift
 OUT=${OUT:-$ROOT/output/engine-bridge/android-$LEVEL}
 DEV=/sdcard/Android/data/$PKG/files
@@ -65,6 +65,6 @@ while [ $t -lt "$LIMIT" ] && "$ADB" shell pidof "$PKG" > /dev/null 2>&1; do
   if "$ADB" shell dumpsys audio | grep "u/pid:$UID_/" | grep -q "state:started"; then echo "sound started after $t s: stopped" >&2; break; fi
 done
 "$ADB" shell am force-stop "$PKG"
-"$ADB" logcat -d -s Unity | grep "\[unity\]\|\[bench\]\|\[game\]\|Exception\|Memento bridge:" | cut -c1-400 | tee "$OUT/log.txt" | tail -30
+"$ADB" logcat -d -s Unity | grep "\[unity\]\|\[bench\]\|\[game\]\|Exception\|Hiraeth bridge:" | cut -c1-400 | tee "$OUT/log.txt" | tail -30
 "$ADB" pull "$DEV/out/." "$OUT" > /dev/null
 echo "$OUT"

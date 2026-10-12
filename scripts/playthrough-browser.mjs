@@ -30,7 +30,7 @@ import { join, resolve } from 'node:path';
 
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const PORT = +arg('port', 6101), CDP = PORT + 1;
-const OUT = resolve(arg('out', join(tmpdir(), 'memento-playthrough')));
+const OUT = resolve(arg('out', join(tmpdir(), 'hiraeth-playthrough')));
 const CHROME = process.env.CHROME ?? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'].find((p) => existsSync(p));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 mkdirSync(OUT, { recursive: true });
@@ -43,7 +43,7 @@ if (!URL_) {
   URL_ = `http://127.0.0.1:${PORT}/`;
   for (let i = 0; i < 120; i++) { try { if ((await fetch(URL_)).ok) break; } catch { /* not yet */ } await sleep(500); }
 }
-const profile = mkdtempSync(join(tmpdir(), 'memento-chrome-'));
+const profile = mkdtempSync(join(tmpdir(), 'hiraeth-chrome-'));
 const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--window-size=1280,720',
   '--no-first-run', '--no-default-browser-check', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-unsafe-swiftshader', 'about:blank'], { stdio: 'ignore' });
 
@@ -85,13 +85,13 @@ const OLD_SAVE = {
   ],
 };
 const OLD_JOURNAL = { relics: {}, stories: { desert: { t: 1 }, incal: { t: 2 } }, seen: { desert: 1, incal: 1 } };
-const QUIET = `localStorage.setItem('moebius.muted', '1'); localStorage.setItem('moebius.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: 'low' }));`;
+const QUIET = `localStorage.setItem('hiraeth.muted', '1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: 'low' }));`;
 
 const fresh = async (setup) => {
   await send('Page.navigate', { url: `${URL_}?blank` }); await sleep(300);
   await ev(`localStorage.clear(); ${QUIET} ${setup ?? ''} true`);
 };
-const inGame = (secs = 150) => until('!!window.__moebiusBooted && !!window.storyRt && !!window.ship && !!window.game', secs, 'the world to load');
+const inGame = (secs = 150) => until('!!window.__hiraethBooted && !!window.storyRt && !!window.ship && !!window.game', secs, 'the world to load');
 const titleContinue = async () => {
   await send('Page.navigate', { url: URL_ });
   await until(`!!document.querySelector('[data-a="continue"]')`, 60, 'the title screen');
@@ -136,13 +136,13 @@ try {
 
   // ---------------------------------------------------------------- 2. an old save, the voicemail, the map, travel
   console.log('2. an old save from before the slots and the reorder: the City-Shaft done, the jets, a message waiting');
-  await fresh(`localStorage.setItem('moebius.game.v1', ${JSON.stringify(JSON.stringify(OLD_SAVE))}); localStorage.setItem('moebius.journal.v1', ${JSON.stringify(JSON.stringify(OLD_JOURNAL))});`);
+  await fresh(`localStorage.setItem('hiraeth.game.v1', ${JSON.stringify(JSON.stringify(OLD_SAVE))}); localStorage.setItem('hiraeth.journal.v1', ${JSON.stringify(JSON.stringify(OLD_JOURNAL))});`);
   await titleContinue();
   await until('!window.ship.playing', 60, 'the arrival');
   check(await ev(`window.ship.levelId`) === 'incal', `Continue resumes it where the ship stood: ${await ev('window.ship.levelId')}`);
   check(await ev(`!window.items.has('jetpack') && window.items.has('backpack') && window.items.has('wardenbellows')`), 'it keeps the backpack; the jets went for the Warden’s bellows (v1.38, v1.42)');
   check(await ev(`window.game.flag('box.incal.temple.jetpack') === true`), 'the Warden’s Well chest stays open');
-  check(await ev(`localStorage.getItem('moebius.s1.game.v1') !== null`), 'the save moved into slot 1');
+  check(await ev(`localStorage.getItem('hiraeth.s1.game.v1') !== null`), 'the save moved into slot 1');
   // the voicemail: message 2 waits (two worlds done, one heard)
   check(await ev(`window.ship.waitingCall()`) === 2, `the voicemail has message 2 waiting (${await ev('window.ship.waitingCall()')})`);
   check(await ev(`!!window.ship.messageWaiting?.()`), 'the voicemail button blinks');

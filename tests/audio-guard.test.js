@@ -21,7 +21,7 @@ function page({ hidden = false, away = false, app = false } = {}) {
   const win = new EventTarget();
   win.document = Object.assign(new EventTarget(), { hidden });
   win.AudioContext = AC;
-  if (away) win.__moebiusAway = true;
+  if (away) win.__hiraethAway = true;
   if (app) win.Capacitor = { isNativePlatform: () => true, nativePromise: () => Promise.resolve(null) };
   const hide = (h) => { win.document.hidden = h; win.document.dispatchEvent(new Event('visibilitychange')); };
   const send = (name) => win.dispatchEvent(new Event(name));
@@ -37,21 +37,21 @@ test('every AudioContext is registered, suspended while away and resumed on retu
   assert.deepEqual(g.contexts(), [a, b]);
   b.suspend();   // (one the game had suspended itself stays so)
   p.log.length = 0;
-  p.send('moebius:pause');
+  p.send('hiraeth:pause');
   assert.equal(audioAway(p.win), true);
-  assert.equal(p.win.__moebiusAway, true);
+  assert.equal(p.win.__hiraethAway, true);
   assert.deepEqual(p.log, ['suspend 0', 'suspend 1']);
   p.log.length = 0;
-  p.send('moebius:resume');
+  p.send('hiraeth:resume');
   assert.equal(audioAway(p.win), false);
   assert.deepEqual(p.log, ['resume 0'], 'only the one that was playing');
 });
 
-test('away blocks every resume until moebius:resume, and not while the page is hidden', () => {
+test('away blocks every resume until hiraeth:resume, and not while the page is hidden', () => {
   const p = page();
   const g = audioGuard(p.win);
   const ctx = new p.win.AudioContext();
-  p.send('moebius:pause');
+  p.send('hiraeth:pause');
   p.hide(true);
   p.log.length = 0;
   ctx.resume();                         // a press, a pad, the game loop: nothing
@@ -59,11 +59,11 @@ test('away blocks every resume until moebius:resume, and not while the page is h
   p.hide(false);                        // the page shows again (the lock screen), the app still away
   assert.equal(g.away(), true);
   assert.equal(ctx.state, 'suspended');
-  p.send('moebius:resume');
+  p.send('hiraeth:resume');
   assert.equal(ctx.state, 'running');
   assert.deepEqual(p.log, ['resume 0']);
   // the app back but the page still hidden: silent until it shows
-  p.send('moebius:pause'); p.hide(true); p.send('moebius:resume');
+  p.send('hiraeth:pause'); p.hide(true); p.send('hiraeth:resume');
   assert.equal(g.away(), true);
   assert.equal(ctx.state, 'suspended');
   p.hide(false);
@@ -71,7 +71,7 @@ test('away blocks every resume until moebius:resume, and not while the page is h
 });
 
 test('a context made while away starts suspended, and a deferred start runs on return', () => {
-  const p = page({ away: true });   // a page that started while the app was away (window.__moebiusAway)
+  const p = page({ away: true });   // a page that started while the app was away (window.__hiraethAway)
   const g = audioGuard(p.win);
   assert.equal(g.away(), true);
   const ctx = new p.win.AudioContext();
@@ -79,7 +79,7 @@ test('a context made while away starts suspended, and a deferred start runs on r
   let started = 0;
   g.whenBack(() => started++);
   assert.equal(started, 0);
-  p.send('moebius:resume');
+  p.send('hiraeth:resume');
   assert.equal(started, 1);
   assert.equal(ctx.state, 'running', 'it was asked to play: it plays on return');
   g.whenBack(() => started++);
@@ -109,13 +109,13 @@ test('in the app: the pad reconnecting while away starts nothing; the sound come
   const sound = { ctx: null, start() { log.push('start'); if (!this.ctx) this.ctx = new p.win.AudioContext(); else this.ctx.resume(); } };
   installAppShell({ sound }, p.win);
   sound.start();
-  p.send('moebius:pause');
+  p.send('hiraeth:pause');
   p.hide(true);
   p.send('nativepadconnected');         // the pad's reset or a reconnect while asleep
   assert.deepEqual(log, ['start'], 'nothing started while away');
   sound.start();                        // (the frame loop or an input asking anyway)
   assert.equal(sound.ctx.state, 'suspended');
-  p.send('moebius:resume');
+  p.send('hiraeth:resume');
   p.hide(false);
   assert.equal(sound.ctx.state, 'running');
   p.send('nativepadconnected');
@@ -142,7 +142,7 @@ test('the Sound starts nothing while away and mutes its master gain', async () =
     s._away(true);
     assert.deepEqual(calls, [['cancel', 3], ['set', 0, 3]]);
     // (the deferred start runs on return: it finds this fake context playing and stops there)
-    p.send('moebius:resume');
+    p.send('hiraeth:resume');
     assert.deepEqual(calls.at(-1), ['target', 0.9, 3]);
   } finally {
     globalThis.window = saved.window; globalThis.localStorage = saved.localStorage;

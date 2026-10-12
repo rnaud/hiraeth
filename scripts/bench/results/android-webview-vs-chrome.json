@@ -1,5 +1,5 @@
 {
- "about": "Memento on the Retroid Pocket Nova: the same web build in the system WebView 109 (the app's engine, a side-by-side debug build com.rnaud.moebius.perf) and in Chrome 154; Handheld preset; scripts/bench/android-engines.mjs",
+ "about": "Hiraeth on the Retroid Pocket Nova: the same web build in the system WebView 109 (the app's engine, a side-by-side debug build com.rnaud.hiraeth.perf) and in Chrome 154; Handheld preset; scripts/bench/android-engines.mjs",
  "from": "scripts/bench/results/raw/android-engines-full",
  "build": "07af71c",
  "time": "2026-10-05T16:05:28.333Z",
@@ -109,7 +109,7 @@
     },
     "host": {
      "pid": 12184,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -3782,7 +3782,7 @@
     },
     "host": {
      "pid": 12184,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -3940,7 +3940,7 @@
     },
     "host": {
      "pid": 7214,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -4066,7 +4066,7 @@
     },
     "host": {
      "pid": 24334,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -4224,7 +4224,7 @@
     },
     "host": {
      "pid": 19473,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -4350,7 +4350,7 @@
     },
     "host": {
      "pid": 31400,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -4508,7 +4508,7 @@
     },
     "host": {
      "pid": 26583,
-     "name": "com.rnaud.moebius.perf",
+     "name": "com.rnaud.hiraeth.perf",
      "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
      "allowed": "0-7"
     }
@@ -4716,7 +4716,7 @@
      },
      "host": {
       "pid": 6684,
-      "name": "com.rnaud.moebius.perf",
+      "name": "com.rnaud.hiraeth.perf",
       "cgroup": "3:cpuset:/top-app 2:cpu:/top-app",
       "allowed": "0-7"
      }

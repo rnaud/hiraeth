@@ -204,7 +204,7 @@ test('old saves that ended before: their ending was the first homecoming; the fi
   migrateFlags(fresh);
   assert.equal(fresh['ending.first'], undefined);
   // the same through the game state as it loads
-  const store = new Map([['moebius.game.v1', JSON.stringify({ flags: { 'save.migrated': 1, 'ending.done': true }, keepsakes: [] })]]);
+  const store = new Map([['hiraeth.game.v1', JSON.stringify({ flags: { 'save.migrated': 1, 'ending.done': true }, keepsakes: [] })]]);
   const g = new GameState({ getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) });
   assert.equal(g.flag('ending.first'), 'old');
 });

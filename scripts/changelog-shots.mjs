@@ -70,7 +70,7 @@ async function serve(dir, { prod = false } = {}) {
 
 // ------------------------------------------------------------------ Chrome over its debugging protocol
 async function chrome() {
-  const profile = mkdtempSync(join(tmpdir(), 'memento-shots-chrome-'));
+  const profile = mkdtempSync(join(tmpdir(), 'hiraeth-shots-chrome-'));
   const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
     '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check',
     '--disable-gpu-shader-disk-cache', '--disk-cache-size=1', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });
@@ -105,9 +105,9 @@ async function chrome() {
 
 /** What the page is set to before it loads: silent, the preset, a save past the prologue. */
 const storage = (v) => `localStorage.clear();
-  localStorage.setItem('moebius.muted', '1');
-  localStorage.setItem('moebius.game.v1', JSON.stringify(${JSON.stringify(v.save ?? { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })}));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${v.quality}', showFps: false, music: 0, effects: 0, voices: 0, ...${JSON.stringify(v.settings ?? {})} }));
+  localStorage.setItem('hiraeth.muted', '1');
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify(${JSON.stringify(v.save ?? { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })}));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${v.quality}', showFps: false, music: 0, effects: 0, voices: 0, ...${JSON.stringify(v.settings ?? {})} }));
   ${v.storage ?? ''}`;
 
 /** In the page once the world is up: the hour, the weather, a fixed resolution, the HUD hidden, the camera pinned. */
@@ -149,7 +149,7 @@ async function shoot(c, base, v, file) {
   if (page.startsWith('studio')) await c.send('Emulation.setDeviceMetricsOverride', { width: w + 340, height: h, deviceScaleFactor: 1, mobile: false });   // (the studio's panel beside the view)
   c.errors.length = 0;
   await c.send('Page.navigate', { url: `${base}${page}${query}` });
-  const ready = v.ready ?? (v.foe ? '!!window.enemyViewer' : page.startsWith('studio') ? '!!window.studio && !!window.studio.people?.()' : page ? 'document.readyState === "complete"' : '!!window.__moebiusBooted && !!window.player && !!window.renderer');
+  const ready = v.ready ?? (v.foe ? '!!window.enemyViewer' : page.startsWith('studio') ? '!!window.studio && !!window.studio.people?.()' : page ? 'document.readyState === "complete"' : '!!window.__hiraethBooted && !!window.player && !!window.renderer');
   let up = false;
   for (let t = 0; t < 4 * 300 && !up; t++) { try { up = !!(await c.ev(`!!(${ready})`)); } catch { /* loading */ } if (!up) await sleep(250); }
   if (!up) throw new Error(`the page never came up (${c.errors.slice(-1)[0] ?? 'no error'})`);
@@ -276,7 +276,7 @@ async function main() {
   }
   console.log(`${shots.length} shots at ${jobs.size} commits`);
   if (flag('dry')) { for (const [sha, list] of jobs) console.log(sha.slice(0, 9), list.map((j) => `${j.s.key}:${j.side}`).join(' ')); return; }
-  const work = mkdtempSync(join(process.env.TMP ?? tmpdir(), 'memento-shots-'));
+  const work = mkdtempSync(join(process.env.TMP ?? tmpdir(), 'hiraeth-shots-'));
   const pngs = join(work, 'png');
   const c = await chrome();
   let failed = 0;

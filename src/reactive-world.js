@@ -219,7 +219,7 @@ export class ReactiveWorld {
   *steps(scene,level,physics,content,{storage=slotStorage}={}){
     this.theme=WORLD_REACTIONS[level.id];this.storage=storage;this.level=level;this.physics=physics;
     this.root=new THREE.Group();this.root.name='Responsive world';this.root.userData.noCollide=true;scene.add(this.root);
-    this.key='moebius.encounters.v1';let saved={};try{saved=JSON.parse(storage?.getItem(this.key)??'{}');}catch{}
+    this.key='hiraeth.encounters.v1';let saved={};try{saved=JSON.parse(storage?.getItem(this.key)??'{}');}catch{}
     this.saved=saved;this.nodes=[];this.particles=[];this.tick=.21;this.dirty=false;this.saveTimer=0;
     const seeds=[{pos:level.spawn.clone(),up:UP}];
     for(const npc of content.npcs??[])seeds.push({pos:new THREE.Vector3(npc.at[0],npc.y??level.spawn.y,npc.at[1]),up:UP});

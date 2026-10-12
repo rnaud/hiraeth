@@ -113,7 +113,7 @@ export function loadMotionLibrary(lib, { base = '', matching = false } = {}) {
 
 /** Motion matching for the traveller: off unless asked for (the dev menu, or ?mm=1 in the address). */
 export const matchingSetting = {
-  key: 'memento.motionMatching',
+  key: 'hiraeth.motionMatching',
   get() {
     try {
       const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('mm') : null;

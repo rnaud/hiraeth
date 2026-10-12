@@ -266,7 +266,7 @@ unchanged, it reads its own `music/`).
 - **Settings > Updates** (Android and the Deck) says "Music: 18 of 25 downloaded" while some are missing
   (`themeProgressText`), nothing once all are there.
 - A device is `bundledGame()` (`src/levels/reference-sheets.js`): GeckoView's 127.0.0.1:41730, the
-  WebView fallback's https://localhost, the Deck's moebius://game. Tests: `tests/music-store.test.js`.
+  WebView fallback's https://localhost, the Deck's hiraeth://game. Tests: `tests/music-store.test.js`.
 
 ## Scoring the moments (October 2026)
 

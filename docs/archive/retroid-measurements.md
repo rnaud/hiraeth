@@ -10,7 +10,7 @@ for how much slower that is.
 
 **The app's engine: WebView 109 against Chrome 154** (2026-10-05, build `07af71c`; the full
 tables in `docs/benchmark-web-vs-unity.md`, "On the Retroid: WebView 109 vs Chrome 154").
-Measured with a side-by-side debug build of the app (`com.rnaud.moebius.perf`,
+Measured with a side-by-side debug build of the app (`com.rnaud.hiraeth.perf`,
 `scripts/bench/webview-apk.sh`) and a Chrome tab, the same build and desert viewpoints, 3 rounds:
 - At the same pixels (0.75) the WebView misses 24–50 % of the 60 Hz refreshes at the spawn, in
   Qanat, at the camps and riding or walking (30–45 fps); Chrome holds 60 with none missed. Only the
@@ -90,5 +90,5 @@ game loaded from `http://localhost:5253/`, no APK updater; Gradle on Unity's JDK
 `node scripts/bench/serve.mjs --port 5253`, then `ANDROID_SERIAL=… node scripts/bench/android-engines.mjs`
 (3 rounds of both engines, fixed 0.75 and dynamic; it keeps and then removes only its own port rules
 5253 / 9333, opens and closes its own Chrome tab, stops the perf app between runs, and never touches
-`com.rnaud.moebius`) and `node scripts/bench/android-engines-summary.mjs <raw dir>`. Afterwards
-`adb uninstall com.rnaud.moebius.perf`.
+`com.rnaud.hiraeth`) and `node scripts/bench/android-engines-summary.mjs <raw dir>`. Afterwards
+`adb uninstall com.rnaud.hiraeth.perf`.

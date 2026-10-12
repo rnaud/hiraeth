@@ -121,9 +121,9 @@ await send('Page.enable'); await send('Runtime.enable');
 
 /** What the page holds before it loads: silent, the low preset, a save past the prologue. */
 const STORAGE = `localStorage.clear(); sessionStorage.clear();
-  localStorage.setItem('moebius.muted', '1');
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'low', showFps: false, music: 0, effects: 0, voices: 0 }));
+  localStorage.setItem('hiraeth.muted', '1');
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'low', showFps: false, music: 0, effects: 0, voices: 0 }));
   true`;
 
 /** One world under one broken driver: { ok, ms, lines }. */

@@ -128,7 +128,7 @@ export const WORLD_BODIES = {
  * chin, lean cheeks under clear cheekbones, a long straight narrow nose, a firm brow, a narrower jaw)
  * without the hollow sternness; and the eyes a little bigger than life, so they read at a distance.
  */
-export const MOEBIUS_FACE = {
+export const HIRAETH_FACE = {
   chinLong: 0.55, chinNarrow: 0.3, chinStrong: 0.25, jawNarrow: 0.3, cheekLean: 0.5, cheekHollow: 0.15, cheekBones: 0.35,
   noseLong: 0.35, noseStraight: 0.5, noseNarrow: 0.2, faceOval: 0.35, browForward: 0.25,
 };
@@ -140,7 +140,7 @@ export function faceTargets(kind = 'm', years = 32, extra = {}) {
   const grown = smooth(years, 10, 22);
   const k = grown * (kind === 'f' ? 0.75 : 1);
   const out = {};
-  for (const [t, w] of Object.entries(MOEBIUS_FACE)) out[t] = w * k;
+  for (const [t, w] of Object.entries(HIRAETH_FACE)) out[t] = w * k;
   out.eyes = EYES.all + EYES.child * (1 - smooth(years, 8, 18));
   for (const [t, w] of Object.entries(extra)) out[t] = (out[t] ?? 0) + w;
   return out;

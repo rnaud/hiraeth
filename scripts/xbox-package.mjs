@@ -87,7 +87,7 @@ export async function stageGame({ dist, dest = GAME_DIR, build, version }) {
 /** The notes of the `xbox` prerelease: what it is, how to install it, what it was built from. */
 export function xboxNotes({ version, build, sha = '', by = 'GitHub Actions', date = new Date().toISOString().slice(0, 10) }) {
   return [
-    'Hiraeth for Xbox, for testing on a console in Developer Mode (not for players: the game itself is the Android app, the Steam Deck package and https://memento.alexandria-rnaud.workers.dev/).',
+    'Hiraeth for Xbox, for testing on a console in Developer Mode (not for players: the game itself is the Android app, the Steam Deck package and https://hiraeth.alexandria-rnaud.workers.dev/).',
     '',
     'Install through the Xbox Device Portal: Add, pick the `.msix`, add the `.appx` files under Dependencies (x64), install. Then set the app type to **Game** (the app\'s "View details" in Dev Home, or Device Portal\'s app list): about 5 GB and the whole GPU instead of an App\'s 1 GB and 45 %. A package signed with a new certificate needs the old app removed first; the saves go with it. How, and what to measure on the first run: docs/systems/xbox.md.',
     '',

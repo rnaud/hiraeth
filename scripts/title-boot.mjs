@@ -59,10 +59,10 @@ const SAVE = JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': t
 async function measure(c, preset, cpu) {
   await c.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
   await c.send('Page.navigate', { url: `http://127.0.0.1:${PORT}/manifest.webmanifest` }); await sleep(300);
-  await c.ev(`localStorage.clear(); localStorage.setItem('moebius.muted', '1');
-    localStorage.setItem('moebius.s1.game.v1', ${JSON.stringify(SAVE)});
-    localStorage.setItem('moebius.s1.meta.v1', JSON.stringify({ playtime: 600, lastPlayed: Date.now() }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
+  await c.ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted', '1');
+    localStorage.setItem('hiraeth.s1.game.v1', ${JSON.stringify(SAVE)});
+    localStorage.setItem('hiraeth.s1.meta.v1', JSON.stringify({ playtime: 600, lastPlayed: Date.now() }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
   await c.send('Emulation.setCPUThrottlingRate', { rate: cpu });
   if (NET) { await c.send('Network.enable'); await c.send('Network.emulateNetworkConditions', { offline: false, ...NET }); }
   await c.send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?shot=${SHOT}${QUERY ? `&${QUERY}` : ''}` });
@@ -77,7 +77,7 @@ async function measure(c, preset, cpu) {
   let play = null;
   for (let i = 0; i < 1200 && play === null; i++) {
     await sleep(100);
-    try { if (await c.ev(`!!(window.__moebiusBooted && document.getElementById('loading')?.classList.contains('done') !== false && !document.getElementById('title'))`)) play = Date.now() - t0; } catch { /* navigating */ }
+    try { if (await c.ev(`!!(window.__hiraethBooted && document.getElementById('loading')?.classList.contains('done') !== false && !document.getElementById('title'))`)) play = Date.now() - t0; } catch { /* navigating */ }
   }
   await c.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   const t = r.timing ?? {};

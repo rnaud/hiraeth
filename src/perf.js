@@ -520,7 +520,7 @@ export function engineLabel(ua = '', search = '', app = null) {
  * @param o.touch   coarse pointer / touch events
  * @param o.gpu     the WebGL renderer string (WEBGL_debug_renderer_info when available)
  */
-/** The Steam Deck: its app (desktop/main.mjs, the game at moebius:), or its GPU (Van Gogh, 'AMD Custom GPU 0405' / '0932' for the OLED). */
+/** The Steam Deck: its app (desktop/main.mjs, the game at hiraeth:), or its GPU (Van Gogh, 'AMD Custom GPU 0405' / '0932' for the OLED). */
 export function detectDeck({ app = false, gpu = '' } = {}) {
   return app || /AMD Custom GPU 0(405|932)|VANGOGH/i.test(gpu);
 }

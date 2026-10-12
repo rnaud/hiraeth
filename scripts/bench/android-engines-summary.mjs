@@ -37,7 +37,7 @@ if (placementDir) {
 let build = null;
 try { build = execFileSync('git', ['-C', ROOT, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { /* */ }
 const result = {
-  about: 'Memento on the Retroid Pocket Nova: the same web build in the system WebView 109 (the app\'s engine, a side-by-side debug build com.rnaud.moebius.perf) and in Chrome 154; Handheld preset; scripts/bench/android-engines.mjs',
+  about: 'Hiraeth on the Retroid Pocket Nova: the same web build in the system WebView 109 (the app\'s engine, a side-by-side debug build com.rnaud.hiraeth.perf) and in Chrome 154; Handheld preset; scripts/bench/android-engines.mjs',
   from: relative(ROOT, dir), build, time: new Date().toISOString(),
   method: { secs: runs[0]?.views?.[0]?.secs, rounds: Math.max(...runs.map((r) => r.round)), modes: { fixed: 'dynamic resolution off, render scale 0.75 on both (equal pixels)', dynamic: 'the Handheld preset as shipped (dynamic resolution 0.5–0.9), starting at 0.75' },
     missed: 'share of 60 Hz refreshes missed: each frame interval counts round(interval / 16.7) refreshes, all but one missed', js: 'median time of the animation-frame callbacks (the game\'s whole frame on the main thread)',

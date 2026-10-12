@@ -279,7 +279,7 @@ async function playOne(c, base, entry, o) {
   const dir = join(o.out, entry.id);
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true });
   await c.send('Page.navigate', { url: `${base}manifest.webmanifest` }); await sleep(200);
-  await c.ev(`localStorage.clear(); localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${o.quality}', showFps: false })); true`);
+  await c.ev(`localStorage.clear(); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${o.quality}', showFps: false })); true`);
   c.errors.length = 0;
   const t0 = Date.now();
   const shots = [];
@@ -301,7 +301,7 @@ async function playOne(c, base, entry, o) {
   }
   await c.send('Page.navigate', { url: base + reviewURL(entry).replace(/^\.\//, '') + (o.query && entry.id !== 'trailer' ? `&${o.query}` : '') });
   let up = false;
-  for (let i = 0; i < 4 * 180 && !up; i++) { try { up = await c.ev('!!window.__moebiusBooted && !!window.camera && !!window.ship'); } catch { /* loading */ } if (!up) await sleep(250); }
+  for (let i = 0; i < 4 * 180 && !up; i++) { try { up = await c.ev('!!window.__hiraethBooted && !!window.camera && !!window.ship'); } catch { /* loading */ } if (!up) await sleep(250); }
   if (!up) return { entry, status: `never came up (${c.errors.at(-1) ?? 'no error'})`, analysis: analyse([]), errors: [...c.errors], shots: [] };
   await c.ev(SAMPLER);
   const limit = timeoutFor(entry) * 1000, every = o.every * 1000;

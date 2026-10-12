@@ -1,19 +1,19 @@
 # Hiraeth
 
-A three.js exploration game in ligne claire, drawn after Moebius (the internal ids keep the
-old name, `moebius`). A traveller crash-lands in a desert and crosses a dozen small worlds by
+A three.js exploration game in ligne claire, drawn after Moebius. A traveller
+crash-lands in a desert and crosses a dozen small worlds by
 ship; its foundation is a world that feels organic, responsive, mysterious and connected
 ([the world principles](docs/world-principles.md)). Design: [the game brief](docs/game-brief.md)
 and [the story bible](docs/story-bible.md); the writing room is [lore/](lore/README.md).
 
-**Play it:** https://memento.alexandria-rnaud.workers.dev/ (Cloudflare Workers; also at
+**Play it:** https://hiraeth.alexandria-rnaud.workers.dev/ (Cloudflare Workers; also at
 https://rnaud.github.io/hiraeth/).
 
-**[Interactive changelog](https://memento.alexandria-rnaud.workers.dev/changelog.html):**
+**[Interactive changelog](https://hiraeth.alexandria-rnaud.workers.dev/changelog.html):**
 explore each release with before/after pictures, numbers and notes.
 
 The game is now named **Hiraeth**. Existing technical identifiers, save keys, and the
-`memento.alexandria-rnaud.workers.dev` address remain stable for installed copies.
+`hiraeth.alexandria-rnaud.workers.dev` address remain stable for installed copies.
 
 ## Run it
 
@@ -66,7 +66,7 @@ Every player-visible change adds a line to the newest entry of `src/changelog.js
 
 - **Web.** `.github/workflows/cloudflare.yml` builds the game and deploys it, with the content
   updates for the app and the Deck (`/updates/web.json` and its zip), to the Cloudflare Worker
-  `memento` ([docs/cloudflare.md](docs/cloudflare.md)). `deploy.yml` also publishes it to GitHub
+  `hiraeth` ([docs/cloudflare.md](docs/cloudflare.md)). `deploy.yml` also publishes it to GitHub
   Pages. `npm run dev:cloudflare` runs the Worker locally.
 - **Android.** `.github/workflows/android.yml` builds a signed APK (a Capacitor shell running the
   game in its own GeckoView engine, the system WebView as fallback) on every push to `main` and

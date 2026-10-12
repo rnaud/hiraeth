@@ -62,7 +62,7 @@ export const nativePad = () => native;
 
 /** 'android' (A B X Y · L1 R1 · Select Start) in the Android app, on a Retroid, or with ?pad=android; else 'standard'. */
 export function padLayout(win = globalThis.window) {
-  const forced = new URLSearchParams(win?.location?.search ?? '').get('pad') ?? safe(() => win.localStorage.getItem('moebius.pad'));
+  const forced = new URLSearchParams(win?.location?.search ?? '').get('pad') ?? safe(() => win.localStorage.getItem('hiraeth.pad'));
   if (forced === 'android' || forced === 'standard') return forced;
   if (win?.Capacitor?.isNativePlatform?.() || native) return 'android';
   return padIds(win).some((id) => /retroid|odin|anbernic|ayn/i.test(id)) ? 'android' : 'standard';
@@ -120,7 +120,7 @@ export function padFamily(win = globalThis.window) {
 //   3. the platform's own (platformFamily): the Steam Deck's app or a Steam pad → Xbox letters
 //      (Steam draws its pads so); the Android app is the 'handheld' layout already; anything else the
 //      standard's own names, Xbox's.
-export const PAD_FAMILY_KEY = 'moebius.padFamily.v1';
+export const PAD_FAMILY_KEY = 'hiraeth.padFamily.v1';
 const FAMILIES = new Set(['xbox', 'playstation', 'nintendo', 'handheld']);
 const store = (win) => safe(() => win?.localStorage) ?? null;
 /** The family of the last pad listed on this device ('' none yet). */
@@ -132,9 +132,9 @@ export function rememberedFamily(win = globalThis.window) {
 export function rememberFamily(family, win = globalThis.window) {
   if (FAMILIES.has(family) && rememberedFamily(win) !== family) safe(() => store(win)?.setItem(PAD_FAMILY_KEY, family));
 }
-/** The Steam Deck: its app (the moebius: page, src/ui.js isDeckApp), Steam's browser, or a Steam pad on the list. */
+/** The Steam Deck: its app (the hiraeth: page, src/ui.js isDeckApp), Steam's browser, or a Steam pad on the list. */
 export function onSteam(win = globalThis.window) {
-  if (win?.location?.protocol === 'moebius:') return true;
+  if (win?.location?.protocol === 'hiraeth:') return true;
   if (/steamdeck|valve steam|steam(?:os)?\b/i.test(win?.navigator?.userAgent ?? '')) return true;
   return padIds(win).some((id) => IS_STEAM.test(id));
 }

@@ -68,7 +68,7 @@
 import { slotStorage } from './save-slots.js';
 import { migrateFlags, MIGRATED, RES_VERSION } from './save-migrate.js';
 
-const KEY = 'moebius.game.v1';   // per save slot (src/save-slots.js)
+const KEY = 'hiraeth.game.v1';   // per save slot (src/save-slots.js)
 
 class GameState {
   constructor(storage = slotStorage) {

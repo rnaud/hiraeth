@@ -9,17 +9,17 @@ const mem = (init = {}) => {
   return { m, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
 };
 const legacy = () => mem({
-  'moebius.game.v1': JSON.stringify({ flags: { 'prologue.done': true, 'world.desert.done': true, 'item.backpack': true, 'item.glider': true, 'item.jar': 2, 'ship.level': 'incal' }, keepsakes: [] }),
-  'moebius.journal.v1': JSON.stringify({ relics: { desert: { 0: {}, 3: {} }, incal: { 1: {} } }, stories: { desert: {}, incal: {} }, seen: {} }),
-  'moebius.save.v1': JSON.stringify({ level: 'incal', pos: [1, 2, 3], t: 1759000000000 }),
-  'moebius.encounters.v1': '{"seen":[]}',
-  'moebius.settings.v1': '{"music":0.5}',
-  'moebius.muted': '1',
+  'hiraeth.game.v1': JSON.stringify({ flags: { 'prologue.done': true, 'world.desert.done': true, 'item.backpack': true, 'item.glider': true, 'item.jar': 2, 'ship.level': 'incal' }, keepsakes: [] }),
+  'hiraeth.journal.v1': JSON.stringify({ relics: { desert: { 0: {}, 3: {} }, incal: { 1: {} } }, stories: { desert: {}, incal: {} }, seen: {} }),
+  'hiraeth.save.v1': JSON.stringify({ level: 'incal', pos: [1, 2, 3], t: 1759000000000 }),
+  'hiraeth.encounters.v1': '{"seen":[]}',
+  'hiraeth.settings.v1': '{"music":0.5}',
+  'hiraeth.muted': '1',
 });
 
 test('slot keys: every progress key is filed under its slot', () => {
-  assert.equal(slotKey('moebius.game.v1', 3), 'moebius.s3.game.v1');
-  assert.deepEqual(PROGRESS_KEYS.map((k) => slotKey(k, 1)), ['moebius.s1.game.v1', 'moebius.s1.journal.v1', 'moebius.s1.save.v1', 'moebius.s1.encounters.v1']);
+  assert.equal(slotKey('hiraeth.game.v1', 3), 'hiraeth.s3.game.v1');
+  assert.deepEqual(PROGRESS_KEYS.map((k) => slotKey(k, 1)), ['hiraeth.s1.game.v1', 'hiraeth.s1.journal.v1', 'hiraeth.s1.save.v1', 'hiraeth.s1.encounters.v1']);
 });
 
 test('the single save from before the slots becomes slot 1, once, and the old keys stay', () => {
@@ -30,12 +30,12 @@ test('the single save from before the slots becomes slot 1, once, and the old ke
   assert.equal(st.getItem(SLOTS_VERSION_KEY), '1');
   assert.equal(slots.meta(1).lastPlayed, 1759000000000);
   // settings and mute stay global
-  assert.equal(st.getItem('moebius.s1.settings.v1'), null);
-  assert.equal(st.getItem('moebius.s1.muted'), null);
+  assert.equal(st.getItem('hiraeth.s1.settings.v1'), null);
+  assert.equal(st.getItem('hiraeth.s1.muted'), null);
   // once: a later run doesn't copy the (stale) old save over slot 1 again
-  st.setItem(slotKey('moebius.game.v1', 1), '{"flags":{}}');
+  st.setItem(slotKey('hiraeth.game.v1', 1), '{"flags":{}}');
   assert.equal(new SlotStore(st).migrate(), false);
-  assert.equal(st.getItem(slotKey('moebius.game.v1', 1)), '{"flags":{}}');
+  assert.equal(st.getItem(slotKey('hiraeth.game.v1', 1)), '{"flags":{}}');
 });
 
 test('a fresh install has three empty slots and nothing to continue', () => {
@@ -71,8 +71,8 @@ test('each slot is its own game: the game state reads and writes the active slot
   slots.setActive(2);
   const g2 = new GameState(slots.view());
   g2.set('prologue.done', true);
-  assert.ok(st.getItem('moebius.s2.game.v1').includes('prologue.done'));
-  assert.equal(st.getItem('moebius.game.v1'), null);
+  assert.ok(st.getItem('hiraeth.s2.game.v1').includes('prologue.done'));
+  assert.equal(st.getItem('hiraeth.game.v1'), null);
   assert.equal(st.getItem(SLOT_KEY), '2');
   // the next page (a new world) reads the slot back
   const again = new SlotStore(st);
@@ -101,14 +101,14 @@ test('deleting a slot forgets it, and leaves the others and the settings alone',
   assert.equal(slots.latest(), 3);
   slots.remove(3);
   assert.equal(slots.summary(3).empty, true);
-  assert.equal(st.getItem('moebius.s3.meta.v1'), null);
+  assert.equal(st.getItem('hiraeth.s3.meta.v1'), null);
   assert.equal(slots.summary(1).empty, false);
   assert.equal(slots.latest(), 1);
-  assert.equal(st.getItem('moebius.settings.v1'), '{"music":0.5}');
+  assert.equal(st.getItem('hiraeth.settings.v1'), '{"music":0.5}');
   slots.remove(1);
   assert.equal(slots.latest(), null);
   // the old pre-slot keys were kept (for an older build), but never come back into slot 1
-  assert.ok(st.getItem('moebius.game.v1'));
+  assert.ok(st.getItem('hiraeth.game.v1'));
   assert.equal(new SlotStore(st).summary(1).empty, true);
 });
 

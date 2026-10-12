@@ -1,11 +1,11 @@
-// The handheld's buttons in GeckoView (the test app, com.rnaud.moebius.gecko): each control sent as a gamepad
+// The handheld's buttons in GeckoView (the test app, com.rnaud.hiraeth.gecko): each control sent as a gamepad
 // key event held (`adb shell input gamepad keyevent --longpress`: a press and its release within one 8 ms frame
 // of PadBridge's would reach the page as no press at all), the source a gamepad, through the activity's dispatchKeyEvent and
 // PadBridge as a real press is) while the desert runs, then what the page saw: the Standard Gamepad that
 // src/native-pad.js serves (its name, which index went down), the layout it chose (padFaces), and whether the
 // bottom button made the traveller jump. The game's sound stays at 0; the frame readout on.
 //   node scripts/bench/android-pad.mjs --serve dist [--port 6253] [--level desert] [--keys DPAD_UP,BUTTON_A]
-// Device rules: only com.rnaud.moebius.gecko is started and stopped, never com.rnaud.moebius; only this script's
+// Device rules: only com.rnaud.hiraeth.gecko is started and stopped, never com.rnaud.hiraeth; only this script's
 // own port rule is added and removed.
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -16,10 +16,10 @@ import { Bridge, GeckoPage } from './gecko-bridge.mjs';
 import { staticHandler } from './serve.mjs';
 
 const opt = options();
-const GPKG = 'com.rnaud.moebius.gecko', GACTIVITY = `${GPKG}/com.rnaud.memento.gecko.MainActivity`;
+const GPKG = 'com.rnaud.hiraeth.gecko', GACTIVITY = `${GPKG}/com.rnaud.hiraeth.gecko.MainActivity`;
 const PORT = +(opt.port ?? 6253), BASE = `http://localhost:${PORT}/`;
 const adb = (args) => {
-  if (/com\.rnaud\.moebius(?![.\w])/.test(args.join(' '))) throw new Error('refusing to touch the player\'s app');
+  if (/com\.rnaud\.hiraeth(?![.\w])/.test(args.join(' '))) throw new Error('refusing to touch the player\'s app');
   try { return execFileSync(ADB[0], [...ADB.slice(1), ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) { return String(e.stdout ?? ''); }
 };
 const KEYS = [['BUTTON_A', 0], ['BUTTON_B', 1], ['BUTTON_X', 2], ['BUTTON_Y', 3], ['BUTTON_L1', 4], ['BUTTON_R1', 5], ['BUTTON_L2', 6], ['BUTTON_R2', 7],
@@ -40,13 +40,13 @@ try {
   const page = new GeckoPage(bridge), ev = (fn, a) => page.eval(fn, a);
   await ev(() => {
     localStorage.clear();
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'auto', showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
-    localStorage.setItem('moebius.muted', '1');
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'auto', showFps: true, hudV: 1, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.muted', '1');
     return true;
   });
   await page.goto(`${BASE}?level=${opt.level ?? 'desert'}&fps=1`);
-  await page.waitFor('!!(window.__moebiusBooted && window.renderFrame && window.player)', 300000, 250);
+  await page.waitFor('!!(window.__hiraethBooted && window.renderFrame && window.player)', 300000, 250);
   await sleep(4000);
   await ev(() => { window.story?.closePage?.(); return true; });
   const sound = await ev(() => [window.sound?.musicVol, window.sound?.fxVol, window.sound?.voiceVol]);

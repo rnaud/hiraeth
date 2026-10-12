@@ -16,7 +16,7 @@ The 25-world enemy set contains 100 types: two local creatures, one old machine 
 
 ## Improve a model or attack
 
-1. Read `.agents/skills/moebius-ai-characters/SKILL.md` and its `.agents/skills/moebius-ai-characters/references/procedural-quality.md`. Inspect the selected image before editing.
+1. Read `.agents/skills/hiraeth-ai-characters/SKILL.md` and its `.agents/skills/hiraeth-ai-characters/references/procedural-quality.md`. Inspect the selected image before editing.
 2. Locate the species in `src/enemies/roster.js`: its ID, form, proportions, colours, fittings and attack pair. `src/enemies/models.js` builds the articulated body; `src/enemies/attacks.js` defines the 15 shared attack patterns. These are procedural interpretations, with shared rigs and patterns, so improvements to a common builder can affect many species.
 3. Preview in `enemies.html`, then use its Arena links to fight the enemy. `src/foes.js` integrates models, animation, warnings, damage, spawning and disposal. The newer specialized temple and relic encounters retain their own kinds in `foe-kinds.js` / `foe-worlds.js`.
 4. Keep warning zones and damage zones consistent, test commitment and recovery, and retain parries, dodges, Gentle mode and safe areas. Check limb/wing attachment through motion, reference silhouette from several angles, and material cleanup on death/removal.

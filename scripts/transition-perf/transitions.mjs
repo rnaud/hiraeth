@@ -237,12 +237,12 @@ for (const [world, list] of Object.entries(WORLDS)) {
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   await ev((q) => {
     localStorage.clear();
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.launched': true, 'ship.powered': true }, keepsakes: [] }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.launched': true, 'ship.powered': true }, keepsakes: [] }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0 }));
   }, preset).catch(() => {});
   const t0 = Date.now();
   await page.goto(BASE + `?level=${world}`, { waitUntil: 'load' });
-  await page.waitForFunction(() => window.__moebiusBooted && window.player && window.rig && window.__tp, null, { timeout: 400000, polling: 200 });
+  await page.waitForFunction(() => window.__hiraethBooted && window.player && window.rig && window.__tp, null, { timeout: 400000, polling: 200 });
   console.log(`\n== ${world}: booted in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   await ev(DRIVE);
   if (opt.diag) await ev(() => { window.__tp.diag = true; });

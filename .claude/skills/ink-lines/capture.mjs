@@ -247,12 +247,12 @@ function camExpr(name, sc) {
 
 async function boot(world) {
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(300);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: '${world === 'arena' ? 'on' : 'off'}' }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: '${world === 'arena' ? 'on' : 'off'}' }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   await send('Page.navigate', { url: `${BASE}?level=${WORLD_URL[world]}` });
-  let up = false; for (let i = 0; i < 1500 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player && !!window.renderFrame').catch(() => false)) === true; if (!up) await sleep(100); }
+  let up = false; for (let i = 0; i < 1500 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player && !!window.renderFrame').catch(() => false)) === true; if (!up) await sleep(100); }
   if (!up) return false;
   await sleep(2500);
   await ev(SETUP);

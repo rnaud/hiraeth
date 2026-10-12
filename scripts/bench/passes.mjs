@@ -66,7 +66,7 @@ console.log('GPU:', gl.renderer, 'timer query:', gl.timerQuery);
 if (/SwiftShader|llvmpipe|Software/i.test(gl.renderer ?? '')) { console.error('software rendering'); process.exit(2); }
 await prepareStorage(ev, preset);
 await page.goto(BASE + '?level=desert' + (opt.q ? '&' + opt.q : ''), { waitUntil: 'load' });
-await page.waitForFunction(() => window.__moebiusBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });
+await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });
 await sleep(4000);
 await conditions(ev, { hour: VP.hour, weather: VP.weather, scale });
 // the page's own per-frame GPU query would collide with ours

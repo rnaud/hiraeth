@@ -263,12 +263,12 @@ for (const preset of PRESETS) for (const [el, az] of SUNS) {
   if (!first) await sleep(1500);   // (a rest between runs: the machine is shared)
   first = false;
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'normal' }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true }, keepsakes: [] })); true`);
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'normal' }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true }, keepsakes: [] })); true`);
   await send('Page.navigate', { url: `${BASE}?level=shadows` });
   let up = false;
-  for (let i = 0; i < 1500 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player && !!window.rig && !!window.level?.shadowRoom').catch(() => false)) === true; if (!up) await sleep(100); }
+  for (let i = 0; i < 1500 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player && !!window.rig && !!window.level?.shadowRoom').catch(() => false)) === true; if (!up) await sleep(100); }
   if (!up) { console.log(`${run}: never booted`); results[run] = { error: 'never booted', errors: errors.slice(-5) }; continue; }
   await sleep(2500);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; } if (window.sky) window.sky.speed = 0; window.level.shadowRoom.setSun(${el}, ${az}); return true; })()`);

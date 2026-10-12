@@ -2,7 +2,7 @@
 
 The traveller and the people: bodies, outfits, costumes by world, cloth, the character studio and the MakeHuman bodies.
 
-The repository skill [moebius-ai-characters](../../.agents/skills/moebius-ai-characters/SKILL.md)
+The repository skill [hiraeth-ai-characters](../../.agents/skills/hiraeth-ai-characters/SKILL.md)
 captures the generation, rigging, cloth and integration workflow for future characters.
 
 ## The traveller: generated character v1 (v0.72)
@@ -214,7 +214,7 @@ it, so everyone looks the same on every visit:
 
 A page of its own for the people alone, to tune bodies, outfits, faces and
 expressions without loading a world: `studio.html` (open it with `npm run dev`
-at `/studio.html`, on GitHub Pages at `…/moebius/studio.html`, or from the title
+at `/studio.html`, on GitHub Pages at `…/hiraeth/studio.html`, or from the title
 screen: **Character studio**, the small entry under Debug). It is the second
 entry of the build (`BUILD_INPUT` in `vite.config.js`), so it ships in the web
 bundle and the Android app too. It loads only the people's assets (the two
@@ -337,7 +337,7 @@ are fitted to his body). docs/makehuman.md has the numbers, the pictures and wha
   topknots, buns and crest keep the game's own pieces on top; hats keep the game's cap under them).
 - **Faces**: MakeHuman's eyes opened (the upper lids lifted, the eyeballs 5% bigger, its eye-scale
   target) so they read at a distance; the Moebius face as MakeHuman targets on grown-ups
-  (`MOEBIUS_FACE`: a longer chin, lean cheeks under clear cheekbones, a long straight narrow nose, a
+  (`HIRAETH_FACE`: a longer chin, lean cheeks under clear cheekbones, a long straight narrow nose, a
   firmer brow); the warmer faces kept (the resting smile on the shape keys, the brows tapered, the warm
   shade, a child's bare face).
 - **Levels of detail** (`src/skinned-lod.js`): shape-keyed bodies get levels too, built without the
@@ -825,7 +825,7 @@ on springs. Measured with `node scripts/motion-audit/run.mjs moustache moustache
 
 ### Reference quality review
 
-The character creation skill now includes procedural fit and enemy attachment review in `.agents/skills/moebius-ai-characters/references/procedural-quality.md`. Reproduce the screening captures with `scripts/character-quality-shots.mjs` and `scripts/enemy-quality-shots.mjs`; outputs and coverage are under `output/character-local/quality-pass`. These are review aids, not automated visual acceptance. Full-body sheets fit current posed bounds including tools and headwear. Padded seams follow their torso surface, lantern poles have explicit hangers, local transforms preserve anchors, and replacement headwear retains body-family beard behavior.
+The character creation skill now includes procedural fit and enemy attachment review in `.agents/skills/hiraeth-ai-characters/references/procedural-quality.md`. Reproduce the screening captures with `scripts/character-quality-shots.mjs` and `scripts/enemy-quality-shots.mjs`; outputs and coverage are under `output/character-local/quality-pass`. These are review aids, not automated visual acceptance. Full-body sheets fit current posed bounds including tools and headwear. Padded seams follow their torso surface, lantern poles have explicit hangers, local transforms preserve anchors, and replacement headwear retains body-family beard behavior.
 
 
 Review record (2026-10-08, `codex/quest-character-rebuild`):

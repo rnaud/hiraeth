@@ -26,9 +26,9 @@ const raw = resolve(opt.raw ?? join(ROOT, 'scripts/bench/results/raw', stamp));
 mkdirSync(raw, { recursive: true });
 const PORT = 5245;
 const log = (...a) => console.error(new Date().toISOString().slice(11, 19), ...a);
-const APP = resolve(ROOT, 'unity/Memento/Builds/macOS-bench/Memento.app'), WEBGL = resolve(ROOT, 'unity/Memento/Builds/WebGL'), APK = resolve(ROOT, 'unity/Memento/Builds/Android/memento-unity.apk');
+const APP = resolve(ROOT, 'unity/Hiraeth/Builds/macOS-bench/Hiraeth.app'), WEBGL = resolve(ROOT, 'unity/Hiraeth/Builds/WebGL'), APK = resolve(ROOT, 'unity/Hiraeth/Builds/Android/hiraeth-unity.apk');
 
-if (sides.includes('unity') && !existsSync(join(APP, 'Contents/MacOS/Memento'))) { log('no Unity player: scripts/unity-export/unity-batch.sh BenchBuild.Mac'); process.exit(1); }
+if (sides.includes('unity') && !existsSync(join(APP, 'Contents/MacOS/Hiraeth'))) { log('no Unity player: scripts/unity-export/unity-batch.sh BenchBuild.Mac'); process.exit(1); }
 if (sides.includes('unity-webgl') && !existsSync(join(WEBGL, 'index.html'))) { log('no Unity WebGL build (BenchBuild.WebGL): that column is left out'); sides = sides.filter((s) => s !== 'unity-webgl'); }
 if (!existsSync(resolve(ROOT, 'dist/index.html'))) { log('no web build: npx vite build'); process.exit(1); }
 
@@ -108,7 +108,7 @@ const pick = (v, side) => {
 };
 const spread = (xs) => { const a = xs.filter(Number.isFinite); return a.length ? { med: +median(a).toFixed(3), min: +Math.min(...a).toFixed(3), max: +Math.max(...a).toFixed(3), n: a.length } : null; };
 const summary = {
-  about: 'Memento: web (three.js) vs Unity (URP) vs Unity WebGL on the same desert viewpoints; docs/benchmark-web-vs-unity.md', time: new Date().toISOString(), minutes: +((Date.now() - t0) / 60000).toFixed(1),
+  about: 'Hiraeth: web (three.js) vs Unity (URP) vs Unity WebGL on the same desert viewpoints; docs/benchmark-web-vs-unity.md', time: new Date().toISOString(), minutes: +((Date.now() - t0) / 60000).toFixed(1),
   machine: machine(), rounds, configs, sides, paced, sizes, invalidRuns: runs.filter((x) => x.data.invalid).length,
   runs: runs.map(({ side, preset, res, mode, round, data: d }) => ({ side, preset, res, mode, round, invalid: d.invalid, reasons: d.invalidReasons, gate: d.gate, load: d.load, process: d.process, size: d.size,
     gl: d.gl?.renderer ?? d.gpu, api: d.api, scripting: d.scripting, development: d.development, canvas: d.canvas ?? d.screen, renderScale: d.renderScale, shadows: d.shadows, gpuEstimate: d.gpuEstimate,

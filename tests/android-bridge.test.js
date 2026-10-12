@@ -15,12 +15,12 @@ test('android-bridge.sh passes the plan quoted, stops a player that did not read
   assert.match(sh, /am force-stop "\$PKG"\s*\n\s*echo "the player did not read its plan/);
   assert.match(sh, /grep -q "mIsShowing=true"/, 'the keyguard itself (showingAndNotOccluded stays true unlocked on the Retroid)');
   assert.match(sh, /the plan from the intent: -level\.\* -mute/, 'the plan it read must carry -mute');
-  assert.match(sh, /^PKG=com\.rnaud\.memento\.bridge$/m, 'its own package, never the web game\'s');
+  assert.match(sh, /^PKG=com\.rnaud\.hiraeth\.bridge$/m, 'its own package, never the web game\'s');
 });
 
 test('android-bridge.sh stops a player whose audio stream starts; the bench\'s APK is built without Unity\'s audio', () => {
   const sh = read('scripts/bench/android-bridge.sh');
-  const build = read('unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs');
+  const build = read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs');
   const checks = sh.match(/dumpsys audio \| grep "u\/pid:\$UID_\/" \| grep -q "state:started"/g) ?? [];
   assert.equal(checks.length, 2, 'once after the plan, then every 5 s while it runs');
   assert.match(sh, /am force-stop "\$PKG"\s*\n\s*echo "the player is playing sound despite -mute: stopped"/);
@@ -29,11 +29,11 @@ test('android-bridge.sh stops a player whose audio stream starts; the bench\'s A
 });
 
 test('the bridge reads its arguments, the intent\'s on Android, in one place', () => {
-  const args = read('unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs');
-  const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
+  const args = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs');
+  const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(args, /public static string\[\] CommandLine\(\)/);
   assert.match(args, /#if UNITY_ANDROID && !UNITY_EDITOR[\s\S]*getStringExtra", "unity"[\s\S]*#endif/);
-  assert.match(args, /Memento bridge: the plan from the intent: /);
+  assert.match(args, /Hiraeth bridge: the plan from the intent: /);
   assert.ok(!/Environment\.GetCommandLineArgs\(\)/.test(runner), 'BridgeRunner reads BridgeArgs.CommandLine()');
   assert.match(runner, /bool mute = Application\.isBatchMode \|\| Array\.IndexOf\(BridgeArgs\.CommandLine\(\), "-mute"\) >= 0;/);
   // the reads outside CommandLine itself go through it

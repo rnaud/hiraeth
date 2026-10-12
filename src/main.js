@@ -2343,7 +2343,7 @@ async function warmShaders(targetScene, targetCamera, target = null) {
 // The world's own surfaces, a slice at a time (src/warm-shaders.js: one object for each kind of program,
 // compiled between yields, then the wait for the driver, polled; a combination missed compiles at first sight)
 // (a GPU whose fences never signal, the Steam Deck's ANGLE on GL: remembered, so its next loads don't wait to find out)
-const pacerKey = `moebius.pacerOff.${gpuName}`;
+const pacerKey = `hiraeth.pacerOff.${gpuName}`;
 const gpuPace = gpuPacer(renderer.getContext(), { memory: { get: () => { try { return localStorage.getItem(pacerKey) === '1'; } catch { return false; } }, set: () => { try { localStorage.setItem(pacerKey, '1'); } catch { /* private mode */ } } } });
 const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null } = {}) =>
   warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace });

@@ -29,7 +29,7 @@ function game(file, walks) {
   };
   let seed = 11;
   const M = Object.create(Math); M.random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  const { exports, readFile, ctx } = loadBundle(file, {}, { CS: { Memento: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined, __POSE_WALKS__: walks, Math: M });
+  const { exports, readFile, ctx } = loadBundle(file, {}, { CS: { Hiraeth: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined, __POSE_WALKS__: walks, Math: M });
   BridgeHost.ReadFile = readFile;
   return Object.assign(G, { exports, ctx, step(dt) { t = Math.floor(t / 16.667 + 1) * 16.667; exports.frame(dt); }, get done() { return done; } });
 }
@@ -37,7 +37,7 @@ function game(file, walks) {
 let file = null;
 async function lockstep(args, frames) {
   if (!file) {
-    file = join(tmpdir(), `memento-pose-walks-${process.pid}.js`);
+    file = join(tmpdir(), `hiraeth-pose-walks-${process.pid}.js`);
     await bundle('unity', { out: [file] });
     writeFileSync(file, readFileSync(file, 'utf8').replace('S.game = game;', 'S.game = game; globalThis.__G = game;'));
   }

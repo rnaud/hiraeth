@@ -22,14 +22,14 @@ import { join, resolve } from 'node:path';
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const BASE = arg('url', 'http://localhost:5245/').replace(/\/?$/, '/');
 const LEVEL = arg('level', 'desert'), PRESET = arg('preset', 'handheld'), DPR = +arg('dpr', 2);
-const OUT = resolve(arg('out', join(tmpdir(), 'memento-portrait')));
+const OUT = resolve(arg('out', join(tmpdir(), 'hiraeth-portrait')));
 const ANDROID = !!arg('android');
 const CDP = +arg('cdp', ANDROID ? 9339 : 6361);
 const CHROME = process.env.CHROME ?? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome'].find((p) => existsSync(p));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 mkdirSync(OUT, { recursive: true });
 
-const profile = ANDROID ? null : mkdtempSync(join(tmpdir(), 'memento-portrait-'));
+const profile = ANDROID ? null : mkdtempSync(join(tmpdir(), 'hiraeth-portrait-'));
 const chrome = ANDROID ? null : spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio',
   '--window-size=1280,720', `--force-device-scale-factor=${DPR}`, '--no-first-run', '--no-default-browser-check',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', `--remote-debugging-port=${CDP}`,
@@ -43,7 +43,7 @@ const ev = async (e) => {
   return r.result.value;
 };
 const until = async (e, secs = 240) => { for (let t = 0; t < secs * 4; t++) { try { if (await ev(e)) return true; } catch { /* loading */ } await sleep(250); } throw new Error(`timed out: ${e}`); };
-const QUIET = `localStorage.setItem('moebius.muted','1'); localStorage.setItem('moebius.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: '${PRESET}' }));`;
+const QUIET = `localStorage.setItem('hiraeth.muted','1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ music: 0, effects: 0, voices: 0, quality: '${PRESET}' }));`;
 let bad = 0, own = null;
 try {
   let tabs;
@@ -58,7 +58,7 @@ try {
   await send('Page.navigate', { url: `${BASE}?blank` }); await sleep(400);
   await ev(`localStorage.clear(); ${QUIET} true`);
   await send('Page.navigate', { url: `${BASE}?level=${LEVEL}&items=all` });
-  await until('!!window.__moebiusBooted && !!window.storyRt && !!window.npcs');
+  await until('!!window.__hiraethBooted && !!window.storyRt && !!window.npcs');
   await sleep(4000);
   const gl = await ev(`(() => { const g = document.createElement('canvas').getContext('webgl2'); const d = g?.getExtension('WEBGL_debug_renderer_info'); return d ? g.getParameter(d.UNMASKED_RENDERER_WEBGL) : 'none'; })()`);
   const dpr = await ev('window.devicePixelRatio');

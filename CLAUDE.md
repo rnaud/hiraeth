@@ -1,6 +1,6 @@
 # Hiraeth: notes for Claude
 
-A three.js exploration game called Hiraeth (the internal ids still say `moebius`), drawn in the style of Moebius, played in the browser
+A three.js exploration game called Hiraeth, drawn in the style of Moebius, played in the browser
 (GitHub Pages) and as an Android app (`android/`, Capacitor). Design lives in
 `docs/game-brief.md` and `docs/story-bible.md`; how each system works in
 `docs/systems/<topic>.md` (indexed in `docs/README.md`; superseded notes and old
@@ -52,7 +52,7 @@ running, testing, shipping.
 - Android: every push to `main` builds a signed APK and a web bundle and
   publishes them to the release for the newest changelog version. Installed apps
   update the game over the air (`web.json`). Bump `NATIVE_API` in
-  `android/app/src/main/java/com/rnaud/moebius/WebBundles.java` whenever the
+  `android/app/src/main/java/com/rnaud/hiraeth/WebBundles.java` whenever the
   Java bridge changes, so older apps are offered the new APK first. Keep the
   signing key backup in `.local-tools/android-signing/` (git-ignored); losing it
   means users must reinstall and lose their saves.

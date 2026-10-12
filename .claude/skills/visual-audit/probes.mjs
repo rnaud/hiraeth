@@ -323,15 +323,15 @@ for (const world of WORLDS) for (const preset of PRESETS) {
   report.worlds.push(row);
   try {
     await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-    await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-      localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));   // (no foe knocks him out mid-run)
-      localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
+    await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+      localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));   // (no foe knocks him out mid-run)
+      localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
     errors.length = 0;
     await send('Page.navigate', { url: `${BASE}?level=${world}` });
     let up = false;
     for (let tries = 0; tries < 2 && !up; tries++) {   // (a first load may meet vite still bundling its dependencies: once more)
       if (tries) await send('Page.reload');
-      for (let i = 0; i < 900 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player').catch(() => false)) === true; if (!up) await sleep(100); }
+      for (let i = 0; i < 900 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player').catch(() => false)) === true; if (!up) await sleep(100); }
     }
     if (!up) { row.error = 'never booted'; continue; }
     await sleep(2500);

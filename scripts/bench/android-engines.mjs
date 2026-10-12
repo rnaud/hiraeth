@@ -2,10 +2,10 @@
 // (viewpoints.json), Handheld preset (docs/benchmark-web-vs-unity.md, "On the Retroid: WebView 109 vs
 // Chrome 154"):
 //   - webview: the app's own engine, the system WebView, in a side-by-side debug build of the app
-//     (com.rnaud.moebius.perf, scripts/bench/webview-apk.sh), reached through
+//     (com.rnaud.hiraeth.perf, scripts/bench/webview-apk.sh), reached through
 //     adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>;
 //   - chrome: the device's Chrome, in a tab of our own (adb forward tcp:9333 localabstract:chrome_devtools_remote);
-//   - gecko: GeckoView, Mozilla's engine shipped inside an APK (com.rnaud.moebius.gecko,
+//   - gecko: GeckoView, Mozilla's engine shipped inside an APK (com.rnaud.hiraeth.gecko,
 //     scripts/bench/gecko-apk.sh), driven through the page itself (gecko-bridge.mjs: GeckoView's remote
 //     debugging is Firefox's protocol, not DevTools'), so this script serves the game itself (--serve);
 //   - gecko-apk: the same app with the game bundled in its APK (http://127.0.0.1:6281/, its own server).
@@ -27,8 +27,8 @@
 // Modes: `fixed` (dynamic resolution off, render scale 0.75 on both: equal pixels), `dynamic` (the
 // Handheld preset as shipped, starting from 0.75).
 //
-// Device rules: it starts, stops and forwards to com.rnaud.moebius.perf and .gecko only, and never touches
-// com.rnaud.moebius (the player's app) or a system setting; in Chrome it opens one tab of its own and
+// Device rules: it starts, stops and forwards to com.rnaud.hiraeth.perf and .gecko only, and never touches
+// com.rnaud.hiraeth (the player's app) or a system setting; in Chrome it opens one tab of its own and
 // closes it at the end (other tabs are left alone); it removes its own adb forward / reverse rules.
 import { execFileSync, spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -42,8 +42,8 @@ import { Bridge, GeckoPage } from './gecko-bridge.mjs';
 import { staticHandler } from './serve.mjs';
 
 const opt = options();
-const PKG = 'com.rnaud.moebius.perf', ACTIVITY = `${PKG}/com.rnaud.moebius.MainActivity`;
-const GPKG = 'com.rnaud.moebius.gecko', GACTIVITY = `${GPKG}/com.rnaud.memento.gecko.MainActivity`;
+const PKG = 'com.rnaud.hiraeth.perf', ACTIVITY = `${PKG}/com.rnaud.hiraeth.MainActivity`;
+const GPKG = 'com.rnaud.hiraeth.gecko', GACTIVITY = `${GPKG}/com.rnaud.hiraeth.gecko.MainActivity`;
 const OURS = [PKG, GPKG];
 const PORT = +(opt.port ?? 5253), DTP = +(opt.devtools ?? 9333);
 const BASE = `http://localhost:${PORT}/`, DT = `http://localhost:${DTP}`;
@@ -64,10 +64,10 @@ const RAW = resolve(opt.raw ?? `${ROOT}/scripts/bench/results/raw/android-engine
 mkdirSync(RAW, { recursive: true });
 
 // ------------------------------------------------------------------ adb, guarded
-/** adb, refusing anything that names the player's app (com.rnaud.moebius without .perf) */
+/** adb, refusing anything that names the player's app (com.rnaud.hiraeth without .perf) */
 function adb(args, { quiet = false } = {}) {
   const line = args.join(' ');
-  if (/com\.rnaud\.moebius(?![.\w])/.test(line)) throw new Error(`refusing to touch the player's app: adb ${line}`);
+  if (/com\.rnaud\.hiraeth(?![.\w])/.test(line)) throw new Error(`refusing to touch the player's app: adb ${line}`);
   if (/\b(settings\s+put|setprop|pm\s+(clear|uninstall|disable)|uninstall)\b/.test(line) && !OURS.some((p) => line.includes(p))) throw new Error(`refusing: adb ${line}`);
   try { return execFileSync(ADB[0], [...ADB.slice(1), ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', quiet ? 'ignore' : 'pipe'] }); } catch (e) { return String(e.stdout ?? ''); }
 }
@@ -367,7 +367,7 @@ const shaderTest = (ev) => ev(async () => {
   gl.getExtension('WEBGL_lose_context')?.loseContext();
   const r = (x) => (x == null ? null : +x.toFixed(1));
   return { programs: progs.length, failed, serialMs: r(serialMs), medianMs: r(each[each.length >> 1]), p95Ms: r(each[Math.floor(each.length * 0.95)]), worstMs: r(worst), againMs: r(againMs), originalMs: r(originalMs), parallelMs: r(parallelMs), parallelExt: !!par,
-    sourceKB: Math.round(progs.reduce((s, [v, f]) => s + v.length + f.length, 0) / 1024), atLoad: { programs: progs.filter((p) => p[2] < (window.__moebiusBootedAt ?? Infinity)).length, linkStatusWaitMs: r(window.__bench.linkMs) } };
+    sourceKB: Math.round(progs.reduce((s, [v, f]) => s + v.length + f.length, 0) / 1024), atLoad: { programs: progs.filter((p) => p[2] < (window.__hiraethBootedAt ?? Infinity)).length, linkStatusWaitMs: r(window.__bench.linkMs) } };
 });
 
 /** what each engine offers the game (WebGL 2 limits and extensions, a few web platform features) */
@@ -418,10 +418,10 @@ async function run(engine, mode, round) {
   await prepareStorage(ev, 'handheld');
   const tNav = Date.now();
   await page.goto(base + '?level=desert');
-  await page.waitFor('!!(window.__moebiusBooted && window.renderFrame && window.player)', 300000, 250);
+  await page.waitFor('!!(window.__hiraethBooted && window.renderFrame && window.player)', 300000, 250);
   const load = await ev(() => {
     const n = performance.getEntriesByType('navigation')[0], res = performance.getEntriesByType('resource');
-    return { firstFrame: +((window.__moebiusBootedAt ?? NaN) / 1000).toFixed(2), responseEnd: +(n.responseEnd / 1000).toFixed(2), domContentLoaded: +(n.domContentLoadedEventEnd / 1000).toFixed(2),
+    return { firstFrame: +((window.__hiraethBootedAt ?? NaN) / 1000).toFixed(2), responseEnd: +(n.responseEnd / 1000).toFixed(2), domContentLoaded: +(n.domContentLoadedEventEnd / 1000).toFixed(2),
       resources: res.length, transferMB: +(res.reduce((s, r) => s + (r.transferSize || r.encodedBodySize || 0), 0) / 1e6).toFixed(1), programsAtFirstFrame: window.__bench.programs.length };
   });
   load.wallToBooted = +((Date.now() - tNav) / 1000).toFixed(1);

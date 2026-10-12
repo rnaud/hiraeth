@@ -40,8 +40,8 @@ await page.send('Page.addScriptToEvaluateOnNewDocument', { source: INSTRUMENT })
 await page.goto(BASE + 'manifest.webmanifest');
 await prepareStorage(ev, preset);
 await page.goto(BASE + '?level=desert');
-await page.waitFor('!!(window.__moebiusBooted && window.renderFrame && window.player)', 300000, 250);
-const load = await page.eval('(window.__moebiusBootedAt ?? NaN) / 1000');
+await page.waitFor('!!(window.__hiraethBooted && window.renderFrame && window.player)', 300000, 250);
+const load = await page.eval('(window.__hiraethBootedAt ?? NaN) / 1000');
 await fullscreen(page);
 await sleep(5000);
 const canvas = await conditions(ev, { hour: VP.hour, weather: VP.weather, scale: SCALE[preset] ?? 0.75 });

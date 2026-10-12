@@ -47,7 +47,7 @@ export class UpdatePanel {
       e.preventDefault();
       this.act(b.dataset.u);
     });
-    win.addEventListener('moebius:webupdate', () => { if (this.isOpen) this.refresh(); });
+    win.addEventListener('hiraeth:webupdate', () => { if (this.isOpen) this.refresh(); });
   }
 
   /** The settings opened: read the app's state and follow it while open. */

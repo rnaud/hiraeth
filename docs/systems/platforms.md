@@ -6,14 +6,14 @@ Installing on iPhone as a web app; the Steam Deck package (full guide: docs/stea
 
 ## Install on iPhone
 
-Open [the game](https://memento.alexandria-rnaud.workers.dev/) in Safari, tap **Share → Add
+Open [the game](https://hiraeth.alexandria-rnaud.workers.dev/) in Safari, tap **Share → Add
 to Home Screen**, leave **Open as Web App** enabled if shown, and tap **Add**.
-Launch the **Moebius** icon to play without Safari's address and bottom bars.
+Launch the **Hiraeth** icon to play without Safari's address and bottom bars.
 The game fills the screen; controls account for the notch and home indicator
 in portrait and landscape. An internet connection is needed to load the game.
 
 `public/manifest.webmanifest` uses relative URLs so installation works under
-GitHub Pages' `/moebius/` path and at a site root. iOS metadata and a 180 px
+GitHub Pages' `/hiraeth/` path and at a site root. iOS metadata and a 180 px
 Apple touch icon are included. The icons are made from a capture of the game
 (docs/systems/app-icon.md): `node scripts/icons.mjs all`.
 

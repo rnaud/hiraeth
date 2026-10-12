@@ -76,12 +76,12 @@ const report = { preset: PRESET, res: `${W}x${H}`, hours: HOURS, date: new Date(
 for (const world of WORLDS) {
   mkdirSync(join(OUT, world), { recursive: true });
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, enemies: 'off' }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, enemies: 'off' }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   await send('Page.navigate', { url: `${BASE}?level=${world}` });
-  let up = false; for (let i = 0; i < 1200 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player')) === true; if (!up) await sleep(100); }
+  let up = false; for (let i = 0; i < 1200 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player')) === true; if (!up) await sleep(100); }
   if (!up) { report.worlds.push({ world, error: 'never booted', errors: errors.slice(0, 4) }); continue; }
   await sleep(2500);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; }

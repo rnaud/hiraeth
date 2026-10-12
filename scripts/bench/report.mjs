@@ -26,7 +26,7 @@ const mb = (x) => (x == null || !Number.isFinite(x) ? '–' : `${Math.round(x)} 
 const geo = (a) => Math.exp(a.reduce((s, x) => s + Math.log(x), 0) / a.length);
 
 const L = [];
-L.push('# Memento on the Mac: the web game (three.js) against the Unity port');
+L.push('# Hiraeth on the Mac: the web game (three.js) against the Unity port');
 L.push('');
 L.push('The same desert, the same viewpoints and paths, the same hour and weather, the same number of pixels, measured on');
 L.push('three sides: the web game in Chrome, the Unity port as a macOS player, and the Unity port built for the browser');
@@ -183,7 +183,7 @@ L.push('scripts/bench/android-run.sh                # on the handheld (USB debug
 L.push('scripts/bench/webview-apk.sh && node scripts/bench/android-engines.mjs   # on the handheld: the web game in the system WebView and in Chrome (below)');
 L.push('```');
 L.push('');
-L.push('The Android build (`BenchBuild.Android`): `com.rnaud.memento.unity` (never the web app\'s `com.rnaud.moebius`), debug-signed, IL2CPP ARM64, Vulkan then GLES3. The desert\'s export is 439 MB as it is read; in the APK `world.bin` and `world.json` travel gzipped (439 → 65 MB) with the characters and sounds, and the first launch copies them out to the app\'s files (`DataFiles.cs`, a few seconds), so the same full desert runs on both sides.');
+L.push('The Android build (`BenchBuild.Android`): `com.rnaud.hiraeth.unity` (never the web app\'s `com.rnaud.hiraeth`), debug-signed, IL2CPP ARM64, Vulkan then GLES3. The desert\'s export is 439 MB as it is read; in the APK `world.bin` and `world.json` travel gzipped (439 → 65 MB) with the characters and sounds, and the first launch copies them out to the app\'s files (`DataFiles.cs`, a few seconds), so the same full desert runs on both sides.');
 if (kept) L.push('', kept);
 writeFileSync(DOC, L.join('\n') + '\n');
 console.log('wrote docs/benchmark-web-vs-unity.md');

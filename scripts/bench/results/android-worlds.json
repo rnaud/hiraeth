@@ -1,5 +1,5 @@
 {
- "about": "Memento on the Retroid Pocket Nova, every world, GeckoView 157 test app (com.rnaud.moebius.gecko), Handheld preset; scripts/bench/android-worlds.mjs",
+ "about": "Hiraeth on the Retroid Pocket Nova, every world, GeckoView 157 test app (com.rnaud.hiraeth.gecko), Handheld preset; scripts/bench/android-worlds.mjs",
  "mode": "fixed",
  "before": "scripts/bench/results/raw/android-worlds-before",
  "after": "scripts/bench/results/raw/android-worlds-after",

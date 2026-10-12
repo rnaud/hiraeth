@@ -56,11 +56,11 @@ const CASES = {
   nintendo: { layout: 'standard', faces: 'nintendo', family: 'nintendo' },
   handheld: { layout: 'android', faces: 'nintendo', family: 'handheld' },
   'handheld (Xbox letters)': { layout: 'android', faces: 'xbox', family: 'handheld' },
-  keyboard: page(fakeWin({ saved: { 'moebius.input.v1': 'keys' } })),
+  keyboard: page(fakeWin({ saved: { 'hiraeth.input.v1': 'keys' } })),
   'no pad listed': page(fakeWin()),
   'no pad listed, a DualSense used before': page(fakeWin({ saved: { [PAD_FAMILY_KEY]: 'playstation' } })),
   'Steam virtual pad': page(fakeWin({ ids: ['Steam Virtual Gamepad (STANDARD GAMEPAD Vendor: 28de Product: 11ff)'] })),
-  "the Deck's app, before a press": page(fakeWin({ protocol: 'moebius:', ua: 'Mozilla/5.0 (X11; Linux x86_64)' })),
+  "the Deck's app, before a press": page(fakeWin({ protocol: 'hiraeth:', ua: 'Mozilla/5.0 (X11; Linux x86_64)' })),
   'no family at all': { layout: 'standard', faces: 'xbox', family: '' },
 };
 
@@ -97,10 +97,10 @@ test('the half shown is the pad\'s', () => {
 
 test('Steam\'s pads and the Deck: Xbox letters', () => {
   for (const id of ['Steam Virtual Gamepad', 'Microsoft X-Box 360 pad (STANDARD GAMEPAD Vendor: 28de Product: 11ff)', 'Steam Deck (Vendor: 28de Product: 1205)', '28de-1205-Steam Deck Controller']) assert.equal(familyOf(id), 'xbox', id);
-  assert.ok(onSteam(fakeWin({ protocol: 'moebius:' })), 'the Deck\'s app');
+  assert.ok(onSteam(fakeWin({ protocol: 'hiraeth:' })), 'the Deck\'s app');
   assert.ok(onSteam(fakeWin({ ids: ['Steam Virtual Gamepad'] })));
   assert.ok(!onSteam(fakeWin()));
-  assert.equal(platformFamily(fakeWin({ protocol: 'moebius:' })), 'xbox');
+  assert.equal(platformFamily(fakeWin({ protocol: 'hiraeth:' })), 'xbox');
   assert.equal(platformFamily(fakeWin({ extra: { Capacitor: { isNativePlatform: () => true } } })), 'handheld', 'the Android app');
   assert.equal(padText('A / × jump', 'standard', 'xbox', 'handheld'), 'A jump', 'a handheld remembered on a computer: its names');
 });

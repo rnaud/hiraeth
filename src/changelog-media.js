@@ -441,7 +441,7 @@ const GUARD_WIND = (id, atk, { meter = 0, k = 0.85, side = 15, back = 9, h = 6, 
 // the Debug menu alone (?worlds=1), as a player's build shows it; `pad`: a controller in hand, the first card focused
 const DEBUG_MENU = { commit: '97efedde', before: '356218ff' };
 const DEBUG_VIEW = (size, pad = false, setup = '') => ({ query: 'worlds=1', size, prod: true, hud: true, hour: null, wait: 600, settle: 1500,
-  ready: "!!document.querySelector('#picker.open')", storage: pad ? "sessionStorage.setItem('moebius.input.v1', 'pad');" : '',
+  ready: "!!document.querySelector('#picker.open')", storage: pad ? "sessionStorage.setItem('hiraeth.input.v1', 'pad');" : '',
   setup: `${pad ? "document.body.classList.add('controller'); document.querySelector('#picker .card')?.focus();" : ''} ${setup}` });
 const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 2500, setup, ...(player ? { player, heading: Math.PI * 0.75 } : {}) });
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };

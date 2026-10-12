@@ -27,7 +27,7 @@ browser automation or builds); it writes `scripts/bench/results/mac.json` and th
 | | web High | Unity "high" | web Handheld | Unity "handheld" |
 |---|---|---|---|---|
 | render scale | 1.0 (the game's High is 1.5×: fixed at 1.0 here, so both sides draw the same pixels) | URP 1.0 | 0.75, dynamic resolution off | URP 0.75 |
-| sun shadows | 3 cascades: fine 2048² (24 m), near 4096² (±220 m), far 2048² (2.3 km, every 3rd frame); 9-tap PCF | the same three cascades, sizes and schedule (`MementoShadows`, ported from `shadows.js`; URP's own shadow maps off), 9 taps | near 2048² (±160 m, every 2nd frame), far 2048² (every 4th); 4 taps | the same (no fine cascade, near every 2nd frame, far every 4th, 4 taps) |
+| sun shadows | 3 cascades: fine 2048² (24 m), near 4096² (±220 m), far 2048² (2.3 km, every 3rd frame); 9-tap PCF | the same three cascades, sizes and schedule (`HiraethShadows`, ported from `shadows.js`; URP's own shadow maps off), 9 taps | near 2048² (±160 m, every 2nd frame), far 2048² (every 4th); 4 taps | the same (no fine cascade, near every 2nd frame, far every 4th, 4 taps) |
 | ink pass | full | full (the same composite, ported) | lighter (one line pass) | full (no lighter variant) |
 | cloud shadows, crease shading | on | on | off | cloud shadows off |
 | distant detail | levels of detail (`lod.js`, lodPx 1), flora and props culled by size and distance | the same: the web's draw units with their levels baked by the exporter (`statics.mjs`, `lod-core.js`), picked by the same rule (lodPx 1), props culled past 520 m and under 1 px, the flora by cell and species distance, the bodies' skinned levels, the crowd's tiers | coarser levels (lodPx 2), flora at 55 % density, shorter crowd and prop ranges | the same rules at lodPx 2, propFar 320 m, propPx 2, flora to 65 % of its distance, crowd to 220 m, 55 % of each cell's small plants |
@@ -67,7 +67,7 @@ scripts/bench/android-run.sh                # on the handheld (USB debugging): t
 scripts/bench/webview-apk.sh && node scripts/bench/android-engines.mjs   # on the handheld: the web game in the system WebView and in Chrome (below)
 ```
 
-The Android build (`BenchBuild.Android`): `com.rnaud.memento.unity` (never the web app's `com.rnaud.moebius`), debug-signed, IL2CPP ARM64, Vulkan then GLES3. The desert's export is 142 MB as it is read (the levels of detail included; the flora as instances) and the shared store 210 MB; in the APK they travel gzipped (23 and 48 MB) with the characters and sounds, and the first launch copies them out to the app's files (`DataFiles.cs`, a few seconds), so the same full desert runs on both sides.
+The Android build (`BenchBuild.Android`): `com.rnaud.hiraeth.unity` (never the web app's `com.rnaud.hiraeth`), debug-signed, IL2CPP ARM64, Vulkan then GLES3. The desert's export is 142 MB as it is read (the levels of detail included; the flora as instances) and the shared store 210 MB; in the APK they travel gzipped (23 and 48 MB) with the characters and sounds, and the first launch copies them out to the app's files (`DataFiles.cs`, a few seconds), so the same full desert runs on both sides.
 
 ## On the Retroid: WebView 109 vs Chrome 154
 
@@ -77,9 +77,9 @@ same device is 154 (V8 15.4). Same game build (`07af71c`), same desert viewpoint
 measured in both on 2026-10-05 (`scripts/bench/results/android-webview-vs-chrome.json`).
 
 - **WebView side:** a side-by-side debug build of the app itself (`scripts/bench/webview-apk.sh`:
-  `com.rnaud.moebius.perf`, "Hiraeth (perf)", the same `MainActivity`, gamepad bridge and WebView settings,
+  `com.rnaud.hiraeth.perf`, "Hiraeth (perf)", the same `MainActivity`, gamepad bridge and WebView settings,
   WebView debugging on, the APK updater off), loading the game from the Mac, driven over DevTools
-  (`webview_devtools_remote_<pid>`). The player's `com.rnaud.moebius` was never touched.
+  (`webview_devtools_remote_<pid>`). The player's `com.rnaud.hiraeth` was never touched.
 - **Chrome side:** a tab of its own in the device's Chrome, same URL (`http://localhost:5253/`, the Mac's
   `serve.mjs` through `adb reverse`, uncompressed, no cache).
 - **Method** (`scripts/bench/android-engines.mjs`): the page logic of the Mac run (`web-page.mjs`), 3 s
@@ -187,7 +187,7 @@ Raw runs (per-frame lists, every sample) stay in `scripts/bench/results/raw/` (n
 `node scripts/bench/serve.mjs --port 5253` and `node scripts/bench/android-engines.mjs` (it sets up and removes
 its own `adb reverse tcp:5253` and `adb forward tcp:9333`, opens and closes its own Chrome tab, and stops the
 perf app between runs), then `node scripts/bench/android-engines-summary.mjs <raw dir> --placement <raw dir>`;
-afterwards `adb uninstall com.rnaud.moebius.perf`.
+afterwards `adb uninstall com.rnaud.hiraeth.perf`.
 
 ## On the Retroid: GeckoView
 
@@ -198,7 +198,7 @@ cooling rule as the WebView/Chrome run above, measured on 2026-10-05
 (`scripts/bench/results/android-gecko.json`).
 
 - **GeckoView side:** a test app of its own (`scripts/bench/gecko-apk.sh` builds `scripts/bench/gecko-app/`:
-  `com.rnaud.moebius.gecko`, "Hiraeth (Gecko)", 108 MB as a debug APK), the page's bridge as the shipped app
+  `com.rnaud.hiraeth.gecko`, "Hiraeth (Gecko)", 108 MB as a debug APK), the page's bridge as the shipped app
   would have it (a built-in WebExtension with a native port: `window.Capacitor`, the gamepad, pause / resume).
   It loaded the game from the Mac like the other two (`http://localhost:6253/`, 9.6 MB over USB), and in a
   fourth run from its own APK (`gecko-apk`: the game in the APK's assets, served by the app on
@@ -390,7 +390,7 @@ app. The same Unity build otherwise; Puerts' `Tick` on and the sound on an engin
 
 | | QuickJS (build 1751) | V8 JIT, cold | V8 JIT, relaunch |
 |---|---|---|---|
-| `Memento.start` (the JavaScript builds the world) | 172.8 s | **5.1 s** | 5.1 s |
+| `Hiraeth.start` (the JavaScript builds the world) | 172.8 s | **5.1 s** | 5.1 s |
 | First frame of the world | ~209 s | **37.8 s** | 34.5 s |
 | of which Unity's stall before the render | 24–26 s | 26.9 s | 24.1 s |
 | fps at the spawn | 2.7 | **40.8** (24.0 ms, p95 27) | 40.6 (24.2 ms) |

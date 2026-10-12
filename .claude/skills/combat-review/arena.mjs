@@ -118,14 +118,14 @@ await send('Page.enable'); await send('Runtime.enable'); await send('Emulation.s
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 
 await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
-await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'normal' }));
-  localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true }, keepsakes: [] })); true`);
+await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
+  localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'normal' }));
+  localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true }, keepsakes: [] })); true`);
 await send('Page.navigate', { url: `${BASE}?level=arena` });
 let up = false;
 for (let tries = 0; tries < 2 && !up; tries++) {
   if (tries) await send('Page.reload');
-  for (let i = 0; i < 900 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player && !!window.foes').catch(() => false)) === true; if (!up) await sleep(100); }
+  for (let i = 0; i < 900 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player && !!window.foes').catch(() => false)) === true; if (!up) await sleep(100); }
 }
 if (!up) throw new Error('the Arena never booted');
 await sleep(2500);

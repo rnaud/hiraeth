@@ -12,7 +12,7 @@ function entryName() {
 class Main extends godot.Node3D {
   _ready() {
     const name = entryName();
-    this.M = require(name === "spike" ? "js/memento-spike" : "js/memento");
+    this.M = require(name === "spike" ? "js/hiraeth-spike" : "js/hiraeth");
     this.M.start(this);
   }
   _process(dt) { this.M?.frame(this, dt); }

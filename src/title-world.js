@@ -131,7 +131,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   if (/SwiftShader|llvmpipe|softpipe/i.test(gpu)) { renderer.dispose(); renderer.forceContextLoss(); return null; }   // a software GPU: the paper
   if (skip(gpu)) { renderer.dispose(); renderer.forceContextLoss(); return null; }   // (a GPU the caller doesn't want it on)
   const handheld = detectHandheld({ native, touch, gpu });
-  const onDeck = detectDeck({ app: win.location?.protocol === 'moebius:', gpu }), xbox = onXbox(win);
+  const onDeck = detectDeck({ app: win.location?.protocol === 'hiraeth:', gpu }), xbox = onXbox(win);
   const hiDPI = (win.devicePixelRatio ?? 1) >= 2;
   let preset = titlePreset(settings?.quality ?? 'auto', { handheld, deck: onDeck, xbox, hiDPI });
   const restore = snapshot(sharedUniforms);

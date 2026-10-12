@@ -49,10 +49,10 @@ await send('Page.enable'); await send('Runtime.enable');
 const out = { commit: execFileSync('git', ['-C', ROOT, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(), rows: [] };
 for (const world of [...new Set(scenes.map((s) => VIEWS[s].world))]) {
   await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/manifest.webmanifest` }); await sleep(300);
-  await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1'); localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
+  await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1'); localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'medium', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?level=${world}` });
-  for (let i = 0; i < 1500; i++) { if (await ev('!!window.__moebiusBooted && !!window.renderFrame').catch(() => false)) break; await sleep(100); }
+  for (let i = 0; i < 1500; i++) { if (await ev('!!window.__hiraethBooted && !!window.renderFrame').catch(() => false)) break; await sleep(100); }
   await sleep(3000);
   for (const rk of resKeys) {
     const r = RES[rk];

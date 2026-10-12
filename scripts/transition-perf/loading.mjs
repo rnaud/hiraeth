@@ -42,9 +42,9 @@ console.log(glName, preset, `cpu ×${cpuRate}`);
 
 if (opt.pen) {
   // the loading screen up, then the main thread held for 500 ms: two screenshots inside it should differ
-  await page.evaluate(() => { localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: 'high', music: 0, effects: 0, voices: 0 })); });
+  await page.evaluate(() => { localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: 'high', music: 0, effects: 0, voices: 0 })); });
   await page.goto(BASE + '?level=home');
-  await page.waitForFunction(() => window.__moebiusBooted, null, { timeout: 300000 });
+  await page.waitForFunction(() => window.__hiraethBooted, null, { timeout: 300000 });
   await sleep(1500);
   // (the loading screen is gone once the game runs: put the same one back, index.html's markup under its own styles)
   await page.evaluate(() => {
@@ -80,16 +80,16 @@ for (const world of WORLDS) {
   await page.goto(BASE + 'manifest.webmanifest');
   await page.evaluate((q) => {
     localStorage.clear();
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.launched': true }, keepsakes: [] }));
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.launched': true }, keepsakes: [] }));
+    localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: q, showFps: false, music: 0, effects: 0, voices: 0 }));
   }, preset);
   // (once without timing: the modules and assets cached, as on a jump between worlds)
-  if (!opt.cold) { await page.goto(BASE + `?level=${world}`); await page.waitForFunction(() => window.__moebiusBooted, null, { timeout: 600000, polling: 250 }); }
+  if (!opt.cold) { await page.goto(BASE + `?level=${world}`); await page.waitForFunction(() => window.__hiraethBooted, null, { timeout: 600000, polling: 250 }); }
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuRate });
   if (opt.profile) { await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 500 }); await cdp.send('Profiler.start'); }
   const t0 = Date.now();
   await page.goto(BASE + `?level=${world}`);
-  await page.waitForFunction(() => window.__moebiusBooted, null, { timeout: 900000, polling: 250 });
+  await page.waitForFunction(() => window.__hiraethBooted, null, { timeout: 900000, polling: 250 });
   const bootMs = Date.now() - t0;
   if (opt.profile) {
     // where the load's time goes: inclusive time per function (each function once per sample), the game's own code
@@ -123,7 +123,7 @@ for (const world of WORLDS) {
     console.log(`-- ${world}: self\n` + top(self, /./, 25).join('\n'));
   }
   await sleep(3000);
-  const L = await page.evaluate(() => { const L = window.__load; L.stop = true; return { ...L, booted: Math.round(window.__moebiusBootedAt ?? 0) }; });
+  const L = await page.evaluate(() => { const L = window.__load; L.stop = true; return { ...L, booted: Math.round(window.__hiraethBootedAt ?? 0) }; });
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   const before = L.long.filter((l) => l.at < L.booted);
   const top = before.slice().sort((a, b) => b.ms - a.ms).slice(0, 6);

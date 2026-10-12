@@ -92,6 +92,6 @@ test('the cape packet\'s length is what a reader skips; the job\'s constants are
   const job = new CapeJob(packCapeDesc(R.cape));
   assert.equal(job.packet(u, f, 1), u.length - 2, 'the job reads it whole');
   assert.equal(CAPE_K.fold, SEATED.fold); assert.equal(CAPE_K.reach, OVER.reach);
-  const cs = readFileSync(new URL('../unity/Memento/Assets/MementoJS/Runtime/BridgeCape.cs', import.meta.url), 'utf8');
+  const cs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeCape.cs', import.meta.url), 'utf8');
   for (const [k, v] of Object.entries(CAPE_K)) assert.match(cs, new RegExp(`${k} = ${v}f`), `BridgeCape.cs's ${k}`);
 });

@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
-const java = (name) => read(`android/app/src/main/java/com/rnaud/moebius/${name}`);
+const java = (name) => read(`android/app/src/main/java/com/rnaud/hiraeth/${name}`);
 const code = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 
 test('the game\'s origin in GeckoView is fixed, loopback only (the saves are stored under it)', () => {
@@ -49,17 +49,17 @@ test('the saves come over from the WebView once, and the WebView\'s are only rea
   assert.match(imp, /saves\.toString\(\)\.replace\("<", "\\\\u003c"\)/, 'no </script> out of a save');
   assert.match(main, /if \(SaveImport\.done\(prefs\)\) \{ savesReady = true; maybeLoad\(\); \}/);
   assert.match(main, /SaveImport\.markDone\(prefs, "written/);
-  assert.match(read('android/app/src/main/assets/memento-ext/content.js'), /addEventListener\('memento:imported', \(e\) => port\.postMessage\(\{ imported:/);
+  assert.match(read('android/app/src/main/assets/hiraeth-ext/content.js'), /addEventListener\('hiraeth:imported', \(e\) => port\.postMessage\(\{ imported:/);
   // the game's page waits for both: the bridge and the saves
   assert.match(main, /if \(extensionReady && savesReady && session != null && startUrl != null\)/);
 });
 
 test('the page gets in GeckoView what Capacitor gives it in the WebView', () => {
-  const content = read('android/app/src/main/assets/memento-ext/content.js');
-  const ext = JSON.parse(read('android/app/src/main/assets/memento-ext/manifest.json'));
+  const content = read('android/app/src/main/assets/hiraeth-ext/content.js');
+  const ext = JSON.parse(read('android/app/src/main/assets/hiraeth-ext/manifest.json'));
   const main = java('MainActivity.java');
   assert.equal(ext.browser_specific_settings.gecko.id, /EXTENSION_ID = "([^"]+)"/.exec(main)[1]);
-  assert.match(main, /EXTENSION = "resource:\/\/android\/assets\/memento-ext\/"/);
+  assert.match(main, /EXTENSION = "resource:\/\/android\/assets\/hiraeth-ext\/"/);
   assert.ok(ext.permissions.includes('nativeMessagingFromContent'));
   assert.ok(ext.content_scripts[0].matches.includes('http://127.0.0.1/*'));
   assert.equal(ext.content_scripts[0].run_at, 'document_start', 'before the game\'s scripts');
@@ -67,8 +67,8 @@ test('the page gets in GeckoView what Capacitor gives it in the WebView', () => 
   assert.match(content, /isNativePlatform: \(\) => true/);
   assert.match(content, /nativePromise: \(plugin, method, args\) =>/);
   assert.match(content, /window\.__nativePad\?\.\(id, axes, buttons\)/);
-  assert.match(main, /post\(json\("event", "moebius:pause", "id", id\)\);/);
-  assert.match(main, /post\(json\("event", "moebius:resume"\)\);/);
+  assert.match(main, /post\(json\("event", "hiraeth:pause", "id", id\)\);/);
+  assert.match(main, /post\(json\("event", "hiraeth:resume"\)\);/);
   // every AppShell method, in both engines
   const shell = java('AppShell.java');
   for (const m of ['info', 'check', 'download', 'restart', 'openApk']) assert.match(shell, new RegExp(`case "${m}":`), m);
@@ -101,7 +101,7 @@ test('the build: GeckoView pinned, arm64, cached in CI', () => {
 
 test('away, the game is silent: told first, answered, then paused; muted by the engine; onStop and screen off too', () => {
   const main = code(java('MainActivity.java')), web = code(java('WebViewActivity.java'));
-  const content = read('android/app/src/main/assets/memento-ext/content.js');
+  const content = read('android/app/src/main/assets/hiraeth-ext/content.js');
   const body = (src, name) => new RegExp(`void ${name}\\([^)]*\\) \\{([\\s\\S]*?)\\n {4}\\}`).exec(src)?.[1] ?? '';
   const order = (src, parts, what) => {
     let at = -1;
@@ -110,23 +110,23 @@ test('away, the game is silent: told first, answered, then paused; muted by the 
   // GeckoView: the page is told (and asked to answer) before the session goes inactive
   const away = body(main, 'goAway');
   assert.match(away, /if \(session == null \|\| away\) return;/, 'once, whichever comes first');
-  order(away, ['pad.reset()', 'media.muteAudio(true)', 'asks.put(id, (ok) -> deactivateNow())', 'post(json("event", "moebius:pause", "id", id))', 'ui.postDelayed(deactivate, PAUSE_WAIT_MS)'], 'goAway');
+  order(away, ['pad.reset()', 'media.muteAudio(true)', 'asks.put(id, (ok) -> deactivateNow())', 'post(json("event", "hiraeth:pause", "id", id))', 'ui.postDelayed(deactivate, PAUSE_WAIT_MS)'], 'goAway');
   assert.doesNotMatch(away, /setActive\(false\)/, 'never before the page has heard');
   order(body(main, 'deactivateNow'), ['session.setFocused(false)', 'session.setActive(false)'], 'deactivateNow');
-  order(body(main, 'comeBack'), ['session.setActive(true)', 'session.setFocused(true)', 'media.muteAudio(false)', 'post(json("event", "moebius:resume"))', 'bundles.onResume()'], 'comeBack');
+  order(body(main, 'comeBack'), ['session.setActive(true)', 'session.setFocused(true)', 'media.muteAudio(false)', 'post(json("event", "hiraeth:resume"))', 'bundles.onResume()'], 'comeBack');
   assert.match(main, /session\.setMediaSessionDelegate\(new MediaSession\.Delegate\(\) \{ \}\);\s*media = new MediaSession\(session\) \{ \};\s*session\.open\(runtime\);/);
-  assert.match(main, /if \(away\) post\(json\("event", "moebius:pause"\)\);/, 'a page that starts while away hears it too');
+  assert.match(main, /if \(away\) post\(json\("event", "hiraeth:pause"\)\);/, 'a page that starts while away hears it too');
   // the content script answers once the page's handlers have run, and keeps the state for a new page's guard
-  assert.match(content, /window\.dispatchEvent\(new CustomEvent\('memento:event'[^\n]*\n\s*if \(m\.id\) port\.postMessage\(\{ answer: m\.id, value: true \}\);/);
-  assert.match(content, /if \(name === 'moebius:pause'\) window\.__moebiusAway = true;/);
-  assert.match(content, /else if \(name === 'moebius:resume'\) window\.__moebiusAway = false;/);
+  assert.match(content, /window\.dispatchEvent\(new CustomEvent\('hiraeth:event'[^\n]*\n\s*if \(m\.id\) port\.postMessage\(\{ answer: m\.id, value: true \}\);/);
+  assert.match(content, /if \(name === 'hiraeth:pause'\) window\.__hiraethAway = true;/);
+  assert.match(content, /else if \(name === 'hiraeth:resume'\) window\.__hiraethAway = false;/);
   // the WebView: told first, then paused with its timers once the script has run
   const wAway = body(web, 'goAway');
   order(wAway, ['pad.reset()', 'evaluateJavascript(PAUSE_JS, (v) -> deactivateNow())', 'ui.postDelayed(deactivate, MainActivity.PAUSE_WAIT_MS)'], 'WebView goAway');
   assert.doesNotMatch(wAway, /getWebView\(\)\.onPause\(\)|web\.onPause\(\)|pauseTimers/);
   order(body(web, 'deactivateNow'), ['web.onPause()', 'web.pauseTimers()'], 'WebView deactivateNow');
   order(body(web, 'comeBack'), ['web.resumeTimers()', 'web.onResume()', 'evaluateJavascript(RESUME_JS, null)'], 'WebView comeBack');
-  assert.match(web, /PAUSE_JS = "window\.__moebiusAway=true;window\.dispatchEvent\(new Event\('moebius:pause'\)\);true"/);
+  assert.match(web, /PAUSE_JS = "window\.__hiraethAway=true;window\.dispatchEvent\(new Event\('hiraeth:pause'\)\);true"/);
   assert.match(web, /if \(away\) webView\.evaluateJavascript\(PAUSE_JS, null\);/);
   // both: onPause, onStop and the screen turning off all go away; onResume (or the screen on over a resumed app) comes back
   for (const [name, src] of [['MainActivity', main], ['WebViewActivity', web]]) {

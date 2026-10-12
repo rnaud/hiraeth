@@ -10,7 +10,7 @@
 //   cache.put(id, shot)                    shot: a data URL or { src, background } (shrunk first, on a page)
 //   cache.onChange = (id, entry) => …      told when one is kept
 
-const KEY = 'moebius.portraits.v1';
+const KEY = 'hiraeth.portraits.v1';
 /** The kept square's side in pixels (a card shows it at up to about 90 CSS px; the page at 120). */
 export const PORTRAIT_PX = 128;
 /** At most this many kept (the oldest go first). */

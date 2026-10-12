@@ -185,28 +185,28 @@ test('every magical water that colours the tank is a band, and the code grants i
 // ---- the save itself
 
 test('seeding writes the debug slot only, makes it the active one, and the game reads it', () => {
-  const st = mem({ 'moebius.slots.v': '1', 'moebius.slot': '2',
-    [slotKey('moebius.game.v1', 2)]: JSON.stringify({ flags: { 'prologue.done': true, 'world.desert.done': true }, keepsakes: [] }),
-    [slotKey('moebius.game.v1', DEBUG_SLOT)]: JSON.stringify({ flags: { stale: true }, keepsakes: [] }),
-    [slotKey('moebius.save.v1', DEBUG_SLOT)]: JSON.stringify({ level: 'desert', pos: [0, 0, 0] }) });
+  const st = mem({ 'hiraeth.slots.v': '1', 'hiraeth.slot': '2',
+    [slotKey('hiraeth.game.v1', 2)]: JSON.stringify({ flags: { 'prologue.done': true, 'world.desert.done': true }, keepsakes: [] }),
+    [slotKey('hiraeth.game.v1', DEBUG_SLOT)]: JSON.stringify({ flags: { stale: true }, keepsakes: [] }),
+    [slotKey('hiraeth.save.v1', DEBUG_SLOT)]: JSON.stringify({ level: 'desert', pos: [0, 0, 0] }) });
   const store = new SlotStore(st);
   assert.equal(store.active, 2);
   const state = new GameState(store.view());
   assert.equal(state.flag('world.desert.done'), true);
-  const before = new Map([...st.m].filter(([k]) => !k.includes(`.s${DEBUG_SLOT}.`) && k !== 'moebius.slot'));
+  const before = new Map([...st.m].filter(([k]) => !k.includes(`.s${DEBUG_SLOT}.`) && k !== 'hiraeth.slot'));
   const p = seedDebugSave('buried', { store, state });
   assert.ok(p);
   assert.equal(store.active, DEBUG_SLOT);
-  assert.equal(st.getItem('moebius.slot'), DEBUG_SLOT);
+  assert.equal(st.getItem('hiraeth.slot'), DEBUG_SLOT);
   // the player's own save is as it was
   for (const [k, v] of before) assert.equal(st.getItem(k), v, k);
   // the shared state now reads the debug save, the old debug save is gone (and its position: the world starts at its start)
   assert.equal(state.flag('world.glassdunes.done'), true);
   assert.equal(state.flag('world.buried.done'), undefined);
   assert.equal(state.flag('stale'), undefined);
-  assert.equal(st.getItem(slotKey('moebius.save.v1', DEBUG_SLOT)), null);
+  assert.equal(st.getItem(slotKey('hiraeth.save.v1', DEBUG_SLOT)), null);
   assert.equal(new GameState(store.view(DEBUG_SLOT)).flag('item.wardenbellows'), true);
-  assert.ok(JSON.parse(st.getItem(slotKey('moebius.journal.v1', DEBUG_SLOT))).stories.incal);
+  assert.ok(JSON.parse(st.getItem(slotKey('hiraeth.journal.v1', DEBUG_SLOT))).stories.incal);
   // the title's list never shows it
   assert.equal(store.list().length, SLOT_COUNT);
   assert.equal(store.latest(), 2);

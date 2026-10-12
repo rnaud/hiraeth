@@ -384,7 +384,7 @@ Grouped by area.
 
 # Unity port (proof of concept, 2026-10-05)
 
-The game runs in `unity/Memento` (Unity 6, URP): every world exported from the web game by
+The game runs in `unity/Hiraeth` (Unity 6, URP): every world exported from the web game by
 `scripts/unity-export/`, the ink look ported, the desert's opening quest playable, the other worlds
 reached by ship. See `unity/README.md`.
 
@@ -429,7 +429,7 @@ reached by ship. See `unity/README.md`.
   opening step, and the fluid's stages, in the batch play-through.
 - [x] The benchmark against the web game (`scripts/bench/`, `docs/benchmark-web-vs-unity.md`): shared
   viewpoints, the players' benchmark mode, a quiet-machine gate, `mac-run.sh`; a WebGL (WebGPU) build.
-- [x] An Android build (`BenchBuild.Android`: `com.rnaud.memento.unity`, IL2CPP ARM64, Vulkan + GLES3, the
+- [x] An Android build (`BenchBuild.Android`: `com.rnaud.hiraeth.unity`, IL2CPP ARM64, Vulkan + GLES3, the
   export gzipped inside and copied out on first launch).
 - [x] The capes cost ~55 ms a frame at the camps (`Cape.Collide` read `Transform.position` / `lossyScale`
   in its inner loops): now one Burst job a frame (`CapeSystem`: the bodies read once, near and in view only,
@@ -437,7 +437,7 @@ reached by ship. See `unity/README.md`.
 - [x] Levels of detail and culling as the web's (the exporter bakes the web's draw units and their levels,
   `statics.mjs`; `WorldDetail` picks them by screen-space error; props culled by size and distance; the flora
   by cell, instanced; the bodies' skinned levels; the crowd's mid / far / distant tiers) and the web's three
-  shadow cascades on its schedule (`MementoShadows`, in place of URP's): 0.4–1.5 M triangles a frame.
+  shadow cascades on its schedule (`HiraethShadows`, in place of URP's): 0.4–1.5 M triangles a frame.
 - [x] The Mac benchmark player in IL2CPP (`BenchBuild.Mac`; `-mono` for the old one).
 
 ---
@@ -1091,10 +1091,10 @@ What the audit still found after it, and how each was settled:
 - The web's grass blades (flora-grass.js) and wind streaks (wind.js) are not drawn. (2026-10-06:
   `engine/mirror.js` kind `instgeo` — a plain mesh on an InstancedBufferGeometry: its instance count,
   its attributes when they move, only the range rewritten — and op 12/13 to the port's Surface
-  `MEMENTO_GRASS`, now grass-shader.js's own fades (thinning by rank, the blend into the ground, the
+  `HIRAETH_GRASS`, now grass-shader.js's own fades (thinning by rank, the blend into the ground, the
   far layer growing in); `buildGrass` + `grass.update(camera)` back in engine/game.js. The wind is the
   web's own (wind.js: the traveller's push, the plants' uWind), its wisps a mesh in the mirrored
-  scene on the port's Memento/Wisp, their points and alpha a frame through op 8.)
+  scene on the port's Hiraeth/Wisp, their points and alpha a frame through op 8.)
 - The web wakes the answering flowers by the traveller's nearness sooner. (2026-10-06: two causes. The
   bridge paused the answering plants (and the animals) at a fixed view, which main.js doesn't; and a
   material's colour and glow changed after it was sent never reached Unity, so a waking flower opened
@@ -2121,7 +2121,7 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   glide, land) and the arrival nose first on four bells. The export also writes the belly. `WorldsTests` expects
   the four bells, the hull and its points; `tests/unity-ship-points.test.js` (docs/systems/ship.md).
 - [x] **The water's contact foam in Unity**: `contactFoam` in `Surface.shader` with the web's numbers; the water drawn
-  last, writing no depth, over a copy of the scene's depth (`MementoFeature`); built but off by default (only
+  last, writing no depth, over a copy of the scene's depth (`HiraethFeature`); built but off by default (only
   `-waterContact` turns it on) until seen working; `tests/unity-water-contact.test.js` (docs/systems/water.md,
   "In Unity"). Seeing both run, and turning the foam on, is left in TODO.md.
 
@@ -2712,7 +2712,7 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   the four bells, the hull and its points), and shots of water round something standing in it (Viridel's lake,
   Lorn II's tree) with `-waterContact` added to the batch command (the foam is off without it) and without, to see
   the band and that the water is still drawn (docs/systems/water.md, "In Unity"; docs/systems/ship.md). Once it
-  works, turn it on by default (`MementoFeature.Settings.waterContact`, off on mobile as the web's Handheld) and add
+  works, turn it on by default (`HiraethFeature.Settings.waterContact`, off on mobile as the web's Handheld) and add
   the changelog line for the Unity test build.
   (Issue closed 2026-10-11: Seen running (dc9ff455, v1.49): the prologue plays through in Unity batch mode with the faceted hull; the water's contact foam on by default (off on mobile), the changelog line for the Unity test build added.)
 - [x] [#54](https://github.com/rnaud/hiraeth/issues/54) Run the Unity APK on the Retroid once it builds through the bridge

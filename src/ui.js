@@ -19,15 +19,15 @@ import { DRONE_HINTS, DEFAULT_DRONE_HINTS } from './companion.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
-const SETTINGS_KEY = 'moebius.settings.v1';
-const SAVE_KEY = 'moebius.save.v1';
+const SETTINGS_KEY = 'hiraeth.settings.v1';
+const SAVE_KEY = 'hiraeth.save.v1';
 
 export const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
 // the Android app (the Retroid Pocket and phones) starts on the handheld preset (perf.js QUALITY_PRESETS)
 export const isNativeApp = !!globalThis.Capacitor?.isNativePlatform?.();
-/** The Steam Deck's app (Electron, desktop/main.mjs): the game at moebius://game, always fullscreen. */
-export const isDeckApp = globalThis.location?.protocol === 'moebius:';
+/** The Steam Deck's app (Electron, desktop/main.mjs): the game at hiraeth://game, always fullscreen. */
+export const isDeckApp = globalThis.location?.protocol === 'hiraeth:';
 /** The Xbox app (xbox/, a UWP app with WebView2: src/xbox.js), always fullscreen; Auto is its own preset there. */
 export const isXboxApp = onXbox();
 
