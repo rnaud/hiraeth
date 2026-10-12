@@ -52,7 +52,7 @@ test('every module in src/gadgets with a default export is a whole gadget, and b
   for (const g of GADGETS) {
     assert.deepEqual(checkGadget({ ...g, id: g.id }).filter((e) => !e.includes('already')), [], g.id);
     assert.equal(ITEMS[g.id].kind, 'gadget', `${g.id} is an item`);
-    assert.ok(/\{key:(fire|use|aim)\}/.test(ITEMS[g.id].use), `${g.id}: its use names the trigger as the player's own ({key:…}, src/prompt-keys.js)`);
+    assert.ok(/\{key:(fire|use|aim)\}/.test(ITEMS[g.id].text), `${g.id}: its card names the trigger as the player's own ({key:…}, src/prompt-keys.js)`);
     assert.ok(['aim', 'use', 'look', 'tool'].includes(g.trigger), `${g.id}: how it takes the triggers (${g.trigger})`);
     const m = buildItemModel(g.id);
     assert.ok(m.children.length >= 2, `${g.id} has a model of its own (not the gem)`);

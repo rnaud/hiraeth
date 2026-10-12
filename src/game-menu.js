@@ -135,7 +135,7 @@ const KIND_NAME = Object.defineProperties({}, Object.fromEntries(KINDS.map((k) =
 export const CARRY_COL = 4;
 export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], chimes = null } = {}) {
   const rows = [];
-  gear.forEach((it, i) => { (rows[Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub: KIND_NAME[it.kind] ?? '', desc: [it.text, it.use].filter(Boolean).join(' '), act: it.usable ? 'use' : null, it }); });
+  gear.forEach((it, i) => { (rows[Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub: KIND_NAME[it.kind] ?? '', desc: it.text ?? '', act: it.usable ? 'use' : null, it }); });
   const packs = pack.map((it) => ({ kind: 'pack', id: it.id, name: it.name, sub: KIND_NAME.quest, desc: t('gm.carried'), act: null, it: { ...it, kind: 'quest' } }));
   const keeps = keepsakes.map((it) => ({ kind: 'keepsake', id: it.id, name: it.name, sub: `${KIND_NAME.keepsake}${it.world ? ` · ${t('gm.fromWorld', { world: it.world })}` : ''}`, desc: it.text ?? '', act: null, it: { ...it, kind: 'keepsake' } }));
   const g = rows.length;

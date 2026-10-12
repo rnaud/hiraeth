@@ -149,8 +149,7 @@ function wandModel() {
 
 export default {
   id: 'bubble', name: 'Bubble wand', glyph: '◯', order: 90, trigger: 'aim',
-  text: 'A brass loop on a turned handle and a little pot of the makers’ soap, which never runs dry. Its bubbles are tougher than they look, and lighter than air.',
-  use: 'Aim with {key:aim} and blow a bubble with {key:fire}. It catches the first thing it meets (a foe, a crate, a bomb) and floats it up for six seconds: foes are helpless inside, crates can be lifted onto ledges, a bomb’s fuse waits until the bubble pops. Aim at your own feet, or press it in the air, to float up yourself and drift with the stick. Press again (or jump) to pop it. Spikes, fire and blades pop it too.',
+  text: 'A brass loop and a pot of soap that never runs dry. Aim with {key:aim}, blow with {key:fire}: the bubble floats what it catches, a foe, a crate or you, for six seconds.',
   model: wandModel,
   create(ctx) { return new Wand(ctx); },
 

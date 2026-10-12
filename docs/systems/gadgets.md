@@ -115,7 +115,7 @@ One runtime holds all ten, so what one leaves behind is everyone's problem:
    ```js
    export default {
      id: 'magnet', name: 'Lodestone glove', glyph: '⊂', order: 30,   // order: its place in the wheel and the yard
-     text: 'what it is', use: 'what it does (prompts in Xbox / PlayStation form: Y / △)',
+     text: 'what it is and does, one line or two, at most 180 letters (its buttons as {key:use}, {key:aim}…)',
      model: () => group,          // about 0.3 m, makeMaterial materials (inked by the post pass)
      create: (ctx) => instance,   // ctx: player, physics, camera, rig, tool, foes, wind, relics, flammables, post, boxes, world, fx, hud, bursts, sfx, sound, notice, aimAt, gadget(id)
      yard(kit) {},                // its props in its Gadget Yard bay

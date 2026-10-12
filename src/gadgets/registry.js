@@ -11,7 +11,7 @@ import { registerItemModel } from '../boxes/model.js';
 // A definition:
 //   {
 //     id: 'hook', name: 'Grappling hook', glyph: '⚓',      // glyph: the HUD chip's and the wheel's mark
-//     text: 'what it is', use: 'what it does',              // the item card (Xbox / PlayStation prompt form)
+//     text: 'what it is and does, in a line or two',     // the item card, at most 180 letters ({key:verb} for its buttons)
 //     order: 10,                                            // its place in the wheel and the yard (low first)
 //     model() → THREE.Object3D,                             // about 0.3 m, inked materials (makeMaterial)
 //     create(ctx) → instance,                               // once per world, when the runtime starts
@@ -31,7 +31,7 @@ import { registerItemModel } from '../boxes/model.js';
 /** Every gadget registered, in their order. */
 export const GADGETS = [];
 
-const REQUIRED = ['id', 'name', 'text', 'use', 'model', 'create'];
+const REQUIRED = ['id', 'name', 'text', 'model', 'create'];
 
 /** What is wrong with a definition (empty: nothing). */
 export function checkGadget(def) {
@@ -54,7 +54,7 @@ export function registerGadget(def) {
   GADGETS.sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.id.localeCompare(b.id));
   // (as items in the registry's order, whatever order the files were found in: the menu and the items page list them so)
   for (const g of GADGETS) delete ITEMS[g.id];
-  for (const g of GADGETS) ITEMS[g.id] = { name: g.name, kind: 'gadget', needs: g.needs, text: g.text, use: g.use, where: g.where ?? 'In a makers’ court, in one of the worlds on the way home.', ...(g.with ? { with: g.with } : {}) };   // (with: what comes with it, the gun's ember mode)
+  for (const g of GADGETS) ITEMS[g.id] = { name: g.name, kind: 'gadget', needs: g.needs, text: g.text, where: g.where ?? 'In a makers’ court, in one of the worlds on the way home.', ...(g.with ? { with: g.with } : {}) };   // (with: what comes with it, the gun's ember mode)
   registerItemModel(def.id, () => def.model());
   return def;
 }

@@ -172,8 +172,7 @@ function gloveModel(scale = 1) {
 
 export default {
   id: 'magnet', name: 'Magnet glove', glyph: '∩', order: 40, trigger: 'use',
-  text: 'A heavy glove of oiled leather with a horseshoe of the makers’ glyph riveted to its back. It hums when metal is near, and it does not care how heavy the metal is.',
-  use: 'Hold {key:use} near metal within 18 m: a metal crate or a makers’ machine is lifted and held out where you look. The camera moves it, {key:reel} brings it nearer or sends it further; let go to drop it. A tap throws it away from you. Heavy metal fixed in place (iron blocks, the makers’ brass machinery) pulls you to it instead, across a gap.',
+  text: 'A heavy glove with the glyph in iron. Hold {key:use} near metal to lift it and hold it where you look; fixed metal pulls you to it instead.',
   model: () => { const m = gloveModel(1.2); m.rotation.set(0.5, -0.6, 0.15); return m; },
   create(ctx) { return new Magnet(ctx); },
 

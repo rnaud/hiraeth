@@ -78,8 +78,8 @@ try {
   const describe = (id) => {
     const it = ITEMS[id];
     full.querySelector('h2').textContent = it.name;
-    full.querySelector('.short').innerHTML = `<b>${esc(KIND_NAMES[it.kind] ?? it.kind)}</b><span class="line">${esc(shortLine(it.text))}</span>`;
-    full.querySelector('.long').innerHTML = `<p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true, teach: true })}</p>` : ''}`;
+    full.querySelector('.short').innerHTML = `<b>${esc(KIND_NAMES[it.kind] ?? it.kind)}</b><span class="line">${esc(shortLine(keyText(it.text, { teach: true })))}</span>`;
+    full.querySelector('.long').innerHTML = `<p>${keyText(esc(it.text), { html: true, teach: true })}</p>`;
   };
   const more = (on = !full.classList.contains('more')) => {
     full.classList.toggle('more', on);

@@ -12,7 +12,7 @@ import { game } from './game-state.js';
 //   items.grant('jetpack')                // found it (persists; emits 'item' { id, def })
 //   items.revoke('jetpack')               // (dev menu)
 //   items.on((id, owned) => …)            // any change; returns an unsubscribe function
-//   ITEMS.jetpack.name / .text / .kind    // for the box-opening card and the dev menu
+//   ITEMS.jetpack.name / .text / .kind    // for the box-opening card and the dev menu (text: the one description)
 //
 // Stored as game flags `item.<id>` = true. Systems read items.has() every
 // frame (cheap), so a grant takes effect at once.
@@ -24,37 +24,33 @@ import { game } from './game-state.js';
 // gives it at the end of a quest, not a box: the City-Shaft's cab pass). Most items come
 // out of item boxes (src/boxes/), the makers' chests, left for a traveller who
 // comes a long way (docs/story-bible.md, "The boxes"): the box-opening card
-// shows name, text ("what it is") and use ("what it does").
+// shows its name and one description, `text`: what it is and what it does together, a line or two (issue #165:
+// at most 180 letters, its buttons as {key:verb}; tests/item-cards.test.js).
 
 export const ITEMS = {
   // the fluid sword and the shield's guard (v1.44: found in the Rose House; before, his from the start). Without
   // them the blade button and the guard do nothing, and neither is drawn on him (main.js: tool.swordOn, tool.shieldOn)
   sword: {
     name: 'Givers’ blade', kind: 'weapon', where: 'In the Rose House, the great stone drum in the dunes east of Qanat: on the dais under the sword chamber’s oculus.',
-    text: "A hilt of old brass, its cup worn smooth by other hands. Held, the fluid grows out of it into a blade: the Givers cut their thorns and their roads with it.",
-    use: 'Cut with {key:blade}: three cuts in a row, the third the heaviest; hold it to charge a sweeping cut. It cuts dry thorns, strikes the makers’ eyes awake and sends a stone ball rolling far along its groove.',
+    text: 'A worn brass hilt that grows a blade of fluid. {key:blade} cuts, three in a row; hold it for a sweeping cut. It clears thorns and wakes the makers’ eyes.',
   },
   shield: {
     name: 'Givers’ guard', kind: 'weapon', where: 'In the Rose House: on the far landing of the Hall of Fires, before the windy hall.',
-    text: "A folded disc of brass on a bracer for the left hand. It opens like a fan and holds like a wall.",
-    use: 'Hold {key:guard} to raise it: it takes a blow from in front (with the backpack, a unit of the magic bar), and a guard raised just in time turns the blow back. Raised, it breaks a wind that would push you back.',
+    text: 'A brass disc on a bracer that opens like a fan. Hold {key:guard}: it takes a blow from in front, turns one back if raised just in time, and breaks the wind.',
   },
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
-    text: "A makers’ glass sphere in a brass cradle, made to be filled with living water and carried a long way. Someone built it for a traveller they would never meet.",
-    use: 'It holds the magic bar, which refills by itself a moment after the last use, and powers vehicles. Its strengths come in later finds: the lift valve’s double jump first, then the wings and the bellows. The fluid gun drinks from it.',
+    text: 'A makers’ glass sphere for living water, built for a traveller they would never meet. It holds your magic bar, powers vehicles and feeds the glove.',
   },
   doublejump: {
     name: 'Lift valve', kind: 'movement', needs: 'backpack',
-    text: "A brass valve that screws into the backpack’s ring. Opened, it lets one breath of the fluid out under your boots. The backpack’s first strength.",
-    use: 'Press {key:jump} again in the air for a second jump, with a flip. Once each time you leave the ground.',
+    text: 'A brass valve on the backpack’s ring that lets one breath of fluid out under your boots: press {key:jump} again in the air for a second jump.',
   },
   // (a gadget, src/gadgets/gun.js registers it with its model; here too so node's tests and the save know it without the registry)
   gun: {
     // (it comes with ember mode, `with`: one chest for the gun and its two modes, issue #83)
     name: 'Fluid gun', kind: 'gadget', needs: 'backpack', with: ['fire'], where: 'In the Givers’ Hearth, the desert’s old fire-house, in the Givers’ room off the hall.',
-    text: "The makers’ leather glove with a brass fitting on the wrist, a vial of the tank’s fluid on its cuff and a flint ring on its finger. It drinks from the backpack: the glove is what shoots.",
-    use: 'Choose it with {key:pick}. Aim with {key:aim} and shoot bursts of fluid with {key:fire}. It comes with two modes, {key:mode} takes the next: push people and things away, and ember, which lights lamps, braziers and fuses. A shot or a push spends a third of the magic bar.',
+    text: 'The makers’ glove, fed by the backpack. Aim with {key:aim} and shoot with {key:fire}; {key:mode} turns its push to ember, which lights lamps, braziers and fuses.',
   },
   // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
   // debug menus (the world debug menu's toggle, the dev menu): no box, shop or quest holds it, and old saves lose it
@@ -62,251 +58,204 @@ export const ITEMS = {
   // carry the wings (src/shaft-pillars.js)
   jetpack: {
     name: 'Fluid jets (debug)', kind: 'movement', needs: 'backpack', debug: true, where: 'Only from the debug menus (L3 + R3, F2: Toggles).',
-    text: "Ancient nozzles that turn the tank’s fluid into thrust, anywhere. Too strong for the worlds as they are drawn: a debugging aid.",
-    use: 'Debug only. They fly like a plane, in every world: hold {key:jump} in the air to fire them, {key:move} flies the nose. Let go to glide on; aim with {key:aim} and they hold you.',
+    text: 'Debug only: nozzles that turn the fluid into thrust in any world. Hold {key:jump} in the air to fire them, {key:move} steers, {key:aim} holds you still.',
   },
   // the backpack's third strength (v1.42: the City-Shaft's air pillars carry the wings, so the Warden's harness, the
   // City-Shaft's own jets, went: src/save-migrate.js step 11 turns a save's harness into these)
   wardenbellows: {
     name: 'Warden’s bellows', kind: 'movement', needs: 'backpack',
-    text: "The makers’ bellows for the wings, clamped under the tank in a brass harness. They kept the City-Shaft breathing once; now they breathe for you.",
-    use: 'With your wings open they breathe a steady wind down under you: hold it over one of the makers’ great vanes and the vane turns. In rising air your wings climb quicker, and hold you still enough to aim with {key:aim}. The backpack’s third strength.',
+    text: 'Bellows under the tank that breathe wind down while your wings are open: hover over a makers’ vane to turn it, and climb faster in rising air.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
-    text: "Folded membranes that open into bright wings. A whole sky tucked into very little luggage.",
-    use: 'Hold {key:jump} while falling to unfold the wings and glide (with the jets, hold {key:run} too). In a column of rising air they carry you straight up: {key:move} drifts you out of it. The backpack’s second strength.',
+    text: 'Folded membranes that open into bright wings. Hold {key:jump} while falling to glide; a column of rising air carries you straight up.',
   },
   stun: {
     name: 'Stilling mode', kind: 'mode', needs: 'gun',
-    text: "A glyph-cut lens that chills the fluid. A small pause for things moving much too quickly.",
-    use: 'Switch modes with {key:mode}. A stilling burst freezes creatures and people for a few seconds.',
+    text: 'A glyph-cut lens that chills the fluid. In stilling mode ({key:mode}), a burst freezes creatures and people for a few seconds.',
   },
   fire: {
     name: 'Ember mode', kind: 'mode', needs: 'gun', where: 'It comes with the fluid gun, in the Givers’ Hearth.',
-    text: "A flint ring that turns fluid into ember bursts. Useful fire, small enough to wear on the glove.",
-    use: 'Switch modes with {key:mode}. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
+    text: 'A flint ring for the glove. In ember mode ({key:mode}), a burst lights lamps, braziers and fuses, and burns dry brambles away.',
   },
   bloom: {
     name: 'Bloom mode', kind: 'mode', needs: 'gun',
-    text: "A green glass seed for the glove, with a tiny root curled inside. The makers grew their doorways as well as their gardens.",
-    use: 'Switch modes with {key:mode}. A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
+    text: 'A green glass seed with a root curled inside. In bloom mode ({key:mode}), a burst wakes the makers’ plants: seeds sprout, doorways open, vines bridge gaps.',
   },
   // the Moon Foundry's Casting-House (src/temples/moonfoundry.js): the push takes hold of the founders' iron moons
   tongs: {
     name: 'Founders’ tongs', kind: 'upgrade', needs: 'gun',
-    text: "A pair of black iron tongs shrunk to fit the glove’s cuff, their jaws worn bright. The founders rolled their moons with them.",
-    use: 'Your push takes hold of iron: the cast moons of the Moon Foundry, too heavy for a plain push, roll for it.',
+    text: 'Black iron tongs shrunk to the glove’s cuff. Your push takes hold of iron now: the Moon Foundry’s cast moons, too heavy for a plain push, roll for it.',
   },
   // the City Floating in Space's Mooring-House (src/temples/spacecity.js): a gun mode that pulls
   tether: {
     name: 'Tether mode', kind: 'mode', needs: 'gun',
-    text: "A coil of pale cord that lives in the glove’s fluid and comes out of the nozzle as a line. The city’s moorers threw them to bring the drifting islands home.",
-    use: 'Switch modes with {key:mode}. A tether pulls toward you instead of pushing away: stone balls, the moorers’ rings, loose things.',
+    text: 'A coil of pale cord that lives in the glove. In tether mode ({key:mode}), a shot pulls toward you: stone balls, the moorers’ rings, loose things.',
   },
   // the Underwater City's Whale-House (src/temples/underwater.js): the whales' deep note
   horn: {
     name: 'Whale-horn', kind: 'charm',
-    text: "A curled horn of grey shell, longer than your hand. Blown, it sounds one deep note, the one the whales sing outside the glass.",
-    use: 'Sound it with {key:whistle}: the deep note carries. The makers’ ears that listen for it answer, and the whales do.',
+    text: 'A curled shell horn with one deep note, the whales’ own. Sound it with {key:whistle}: the makers’ listening ears answer, and so do the whales.',
   },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
     name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
-    text: "An extra glass chamber for the tank. More room, without having to grow a larger back.",
-    use: 'The magic bar grows by a third: four shots in a row instead of three.',
+    text: 'An extra glass chamber for the tank: your magic bar grows by a third, four shots in a row instead of three.',
   },
   coil: {
     name: 'Quick coil', kind: 'upgrade', needs: 'backpack',
-    text: "A warm copper coil that helps the tank refill faster. Still warm after centuries in a box.",
-    use: 'The magic bar starts refilling half a second after the last use instead of one, and fills twice as fast.',
+    text: 'A copper coil, still warm after centuries in a box. Your magic bar starts refilling sooner after a shot and fills twice as fast.',
   },
   lantern: {
     name: 'Lantern charm', kind: 'charm',
-    text: "A thumb-sized paper lantern tied with red string. Nobody has needed to replace its light.",
-    use: 'After dusk the charm glows and lights the ground around you.',
+    text: 'A thumb-sized paper lantern on red string. After dusk it glows and lights the ground around you.',
   },
   lens: {
     name: 'Glyph lens', kind: 'charm',
-    text: "A cloudy lens marked with the glyph. It reveals the makers’ hidden marks and distant unopened chests.",
-    use: 'Unopened boxes show from far away: a pale column of light rises from each one.',
+    text: 'A cloudy lens marked with the glyph. Unopened chests show from far away, a pale column of light rising from each.',
   },
   bell: {
     name: 'Bell-note whistle', kind: 'charm',
-    text: "A blue clay whistle shaped like a bell. It plays one clear note. Nearby makers’ chests know the reply.",
-    use: 'Sound it with {key:whistle}. Unopened boxes nearby answer with a chime from where they hide.',
+    text: 'A blue clay whistle shaped like a bell. Sound it with {key:whistle} and the unopened chests nearby chime back from where they hide.',
   },
   soles: {
     name: 'Soft-fall soles', kind: 'charm',
-    text: "Thin grey boot soles with a tiny glyph under each heel. Someone thought travellers deserved softer landings.",
-    use: 'Hard landings hurt less: you can drop much further before a fall knocks you over.',
+    text: 'Thin soles with a glyph under each heel. Hard landings hurt less: you can drop much further before a fall knocks you over.',
   },
   hush: {
     name: 'Hush-cloth', kind: 'charm',
-    text: "Soft grey cloth to wrap around your boots. Woven for quiet footsteps and considerate entrances.",
-    use: 'Creatures don’t hear you walking up to them: they only notice you when you are very close.',
+    text: 'Soft grey cloth for your boots. Creatures don’t hear you coming: they notice you only up close.',
   },
   shell: {
     name: 'Listening shell', kind: 'charm',
-    text: "A small white shell. Hidden makers’ chests answer it with a faint hum. Listen for where the sound comes from.",
-    use: 'Every little while, the makers’ unopened boxes near you hum back, softly, from where they hide.',
+    text: 'A small white shell. Every little while, the unopened chests near you hum back, softly, from where they hide.',
   },
   moss: {
     name: 'Glow-moss pin', kind: 'charm',
-    text: "A bead of glass protects a sprig of luminous moss. A very small garden that lights your way.",
-    use: 'After dusk it lights the ground round your feet, a little.',
+    text: 'A sprig of glowing moss under a glass bead. After dusk it lights the ground round your feet, a little.',
   },
   pouch: {
     name: 'Seed pouch', kind: 'charm',
-    text: "A linen pouch of tiny seeds. However many you scatter, there are more. The makers travelled with planting in mind.",
-    use: 'Small flowers come up in your footsteps where you walk, and fade a while after.',
+    text: 'A linen pouch of seeds that never empties. Small flowers come up in your footsteps and fade a while after.',
   },
   scarf: {
     name: 'Wind-silk scarf', kind: 'charm',
-    text: "A fine white scarf with the makers’ glyph woven into one end. Even a slight breeze can lift it.",
-    use: 'Your fluid wings sink more slowly when you glide.',
+    text: 'A fine white scarf any breeze can lift. Your fluid wings sink more slowly when you glide.',
   },
   reed: {
     name: 'Breathing reed', kind: 'charm',
-    text: "A crystal-tipped reed to hold between your teeth. It gives you longer to explore beneath the water.",
-    use: 'You hold your breath twice as long under water.',
+    text: 'A crystal-tipped reed to hold in your teeth: you hold your breath twice as long under water.',
   },
   resin: {
     name: 'Climber’s resin', kind: 'charm',
-    text: "Amber resin in a small tin, still soft. Rub it on your palms for a steadier grip while climbing.",
-    use: 'Climbing tires you half as fast: you hang on twice as long.',
+    text: 'Soft amber resin for your palms. Climbing tires you half as fast: you hang on twice as long.',
   },
   echo: {
     name: 'Echo shell', kind: 'charm',
-    text: "A pale brass shell that holds the last note it hears from the makers’ devices. Unlike most souvenirs, it can repeat itself.",
-    use: 'It catches the last note sung near you (a singing stone, a machine’s one word) and holds it. Play it back with {key:whistle}: whatever listens for that note answers.',
+    text: 'A brass shell that keeps the last note sung near you, a singing stone’s or a machine’s. Play it back with {key:whistle}: what listens for it answers.',
   },
   level: {
     name: 'Brass level', kind: 'charm',
-    text: "A brass spirit level bearing the Major’s initials. In the Hangar, even the bubble needs help finding down.",
-    use: 'Where down is not where it was (the Hangar’s upside-down quarter and its ring), a small level in the corner of your eye shows how the floor lies.',
+    text: 'A brass spirit level with the Major’s initials. Where down has moved, as in the Hangar’s upside-down quarter, it shows how the floor lies.',
   },
   // the three worlds that joined the route in v1.40: one gift each in the open (src/temples/index.js GADGETS)
   pearl: {
     name: 'Diver’s pearl', kind: 'charm',
-    text: "A grey pearl on a cord, cold to the touch. The divers of the drowned city wore them on the long walk through the tubes.",
-    use: 'Running tires you a third less.',
+    text: 'A cold grey pearl on a cord, worn by the drowned city’s divers on the long walks through the tubes. Running tires you a third less.',
   },
   bellows: {
     name: 'Pocket bellows', kind: 'charm',
-    text: "A bellows no bigger than a purse, its leather cracked and soft. The founders kept one at the belt to blow on their hands.",
-    use: 'Your stamina comes back twice as fast when you rest.',
+    text: 'A purse-sized bellows the founders kept at the belt to blow on their hands. Your stamina comes back twice as fast when you rest.',
   },
   starthread: {
     name: 'Star-thread', kind: 'charm',
-    text: "A twist of pale thread that shines a little in the dark. The moorers of the floating city tied it round their wrists for luck on the long climbs.",
-    use: 'You climb a third faster.',
+    text: 'A twist of pale thread the moorers tied on for luck on the long climbs. You climb a third faster.',
   },
   // the makers' courts of the three worlds of v1.40 (v1.48, issue #101: src/finds/courts.js): each behind its court's
   // gate, a charm for the gadget the court is for (one found worlds before): src/trials/upgrades.js CHARM_TUNES
   floatbead: {
     name: 'Float-bead', kind: 'charm',
-    text: "A bead of the divers' bubble-glass on a cord, light as a held breath. Tied to the wand, it makes a bubble that little bit more buoyant.",
-    use: 'The bubble wand lifts what it holds half as high again: 10 m instead of 7.',
+    text: 'A bead of the divers’ bubble-glass for the wand. The bubble wand lifts what it holds half as high again: 10 m instead of 7.',
   },
   keeper: {
     name: 'Founders’ keeper', kind: 'charm',
-    text: "A bar of soft iron, rubbed bright at the ends. The founders laid one across each magnet's poles at night, so it would keep its pull.",
-    use: 'The magnet glove pulls you to fixed metal a third faster.',
+    text: 'A bar of soft iron the founders laid across their magnets at night. The magnet glove pulls you to fixed metal a third faster.',
   },
   splice: {
     name: 'Moorer’s splice', kind: 'charm',
-    text: "A short splice of the moorers' cable, its strands still humming faintly. They wore them on the long hauls, for luck and for the grip.",
-    use: 'The grappling hook reels you in a third faster.',
+    text: 'A splice of the moorers’ cable, its strands still humming. The grappling hook reels you in a third faster.',
   },
   // ---- won in the worlds' mastery trials (src/trials/: the first finish of each), upgrades to the gadgets
   dunefins: {
     name: 'Dune fins', kind: 'upgrade', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',
-    text: "Two thin brass fins for the hoverbike’s skirt, the makers’ mark stamped on each. The sand slips past them instead of dragging.",
-    use: 'The hoverbike’s top speed is 42 m/s instead of 34.',
+    text: 'Two brass fins for the hoverbike’s skirt; the sand slips past them. Its top speed is 42 m/s instead of 34.',
   },
   clearglass: {
     name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s run on the wings.',
-    text: "A second lens of the makers’ glass for the monocle, ground thinner than a fingernail. The world looks a little cleaner through it.",
-    use: 'The seeing lens clouds over half as fast.',
+    text: 'A second lens for the monocle, ground thinner than a fingernail. The seeing lens clouds over half as fast.',
   },
   longline: {
     name: 'Long line', kind: 'upgrade', needs: 'hook', trial: 'arzach', where: 'The first finish of the Wind ladder, Vael’s wing run.',
-    text: "A spool of the makers’ grey cord, finer than hair and stronger than rope. Someone measured the sky and found it short.",
-    use: 'The grappling hook reaches 34 m instead of 25.',
+    text: 'A spool of the makers’ grey cord, finer than hair and stronger than rope. The grappling hook reaches 34 m instead of 25.',
   },
   fourthcoil: {
     name: 'Fourth coil', kind: 'upgrade', needs: 'springs', trial: 'arzach2', where: 'The first finish of the Stone circuit, the Sky Stones’ bird race.',
-    text: "A spare spring for each boot, wound tighter than the others. It hums when it is happy.",
-    use: 'The spring boots bounce four times in a chain instead of three.',
+    text: 'A spare spring for each boot, wound tighter than the rest. It hums when it is happy. The spring boots bounce four times in a chain instead of three.',
   },
   widevane: {
     name: 'Wide vane', kind: 'upgrade', needs: 'fan', trial: 'perdide', where: 'The first finish of the Reed race, Lorn’s skiff run.',
-    text: "Two more paper ribs for the fan, painted with reeds. It opens wider and keeps the air longer.",
-    use: 'The gust fan lifts you five times in the air before you land instead of three.',
+    text: 'Two more paper ribs for the fan, painted with reeds. The gust fan lifts you five times in the air before you land instead of three.',
   },
   fourthnotch: {
     name: 'Fourth notch', kind: 'upgrade', needs: 'boomerang', trial: 'perdide2', where: 'The first finish of the Lagoon laps, the Deep Wood’s skiff run.',
-    text: "A fourth notch cut in the boomerang’s elbow by a careful hand. It remembers one more thing on the way out.",
-    use: 'The boomerang locks on to four things instead of three.',
+    text: 'A fourth notch cut in the boomerang’s elbow by a careful hand. It locks on to four things instead of three.',
   },
   longbreath: {
     name: 'Long breath', kind: 'upgrade', needs: 'bubble', trial: 'edena', where: 'The first finish of the Eye garden, Viridel’s game of eyes.',
-    text: "A drop of the meadow’s sap for the bubble wand’s ring. The bubbles come out rounder and stubborn.",
-    use: 'Bubbles last half as long again before they pop.',
+    text: 'A drop of the meadow’s sap for the wand’s ring. Bubbles last half as long again before they pop.',
   },
   deepwell: {
     name: 'Deep well', kind: 'upgrade', needs: 'bridge', trial: 'incal', where: 'The first finish of the Shaft climb, the City-Shaft’s jet route.',
-    text: "A deeper ink well for the bridge pen, in brass with a glass window. You can see the ink think.",
-    use: 'The ink bridge pen holds half as much ink again: longer bridges, more of them.',
+    text: 'A deeper ink well for the bridge pen, with a glass window: you can see the ink think. Half as much ink again: longer bridges, more of them.',
   },
   lodestone: {
     name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'glassdunes', where: 'The first finish of the Glass slalom, the Glass Dunes’ run on the wings.',
-    text: "A darker lodestone for the glove’s palm, from deep in the Hangar’s floor. Spoons follow you about.",
-    use: 'The magnet glove reaches 26 m instead of 18.',
+    text: 'A darker lodestone from deep in the Hangar’s floor; spoons follow you about. The magnet glove reaches 26 m instead of 18.',
   },
   fourthpouch: {
     name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'spheres', where: 'The first finish of the Garden round, the Garden of Spheres’ run on foot.',
-    text: "One more leather pouch on the bomb belt. It already smells of ink.",
-    use: 'Four ink bombs in the pouch instead of three.',
+    text: 'One more leather pouch on the bomb belt, already smelling of ink. Four ink bombs instead of three.',
   },
   longsand: {
     name: 'Long sand', kind: 'upgrade', needs: 'recall', trial: 'bazaar', where: 'The first finish of the Avenue run, the Signal Market’s run on the wings.',
-    text: "A pinch of the market’s finest sand for the hourglass, swept up under the silent tower. It runs slower and remembers longer.",
-    use: 'The recall hourglass sends things back up to 12 seconds instead of 8.',
+    text: 'A pinch of the market’s finest sand for the hourglass. The recall hourglass sends things back up to 12 seconds instead of 8.',
   },
   // (the Avenue run's until v1.47, when the run gave the hourglass its long sand: kept for the saves that won it)
   racersribbon: {
     name: 'Racer’s ribbon', kind: 'cosmetic', retired: true, where: 'The first finish of the Avenue run, the Signal Market’s run on the wings, before v1.47.',
-    text: "A ribbon in the market’s racing colours, stamped with the silent tower. The cab drivers nod at it.",
-    use: 'It does nothing at all, and everyone in the market knows what it means.',
+    text: 'A ribbon in the market’s racing colours. It does nothing at all, and everyone in the market knows what it means.',
   },
   // (the three worlds that joined the route in v1.40: their trials' rewards, worn for the finishing)
   divercap: {
     name: 'Diver’s cap', kind: 'cosmetic', trial: 'underwater', where: 'The first finish of the Tube run, the Underwater City’s run through its halls.',
-    text: "A close knitted cap in the divers’ teal, a brass ring sewn over one ear. The divers wore them under their helmets, and kept them on after.",
-    use: 'It does nothing at all, and every diver in the city nods at it.',
+    text: 'A knitted cap in the divers’ teal, a brass ring sewn over one ear. It does nothing at all, and every diver in the city nods at it.',
   },
   founderspin: {
     name: 'Founder’s pin', kind: 'cosmetic', trial: 'moonfoundry', where: 'The first finish of the Floor round, the Moon Foundry’s run on foot.',
-    text: "A pin in the shape of a tiny moon, cast at the last furnace, its seam still showing. The founders gave them to whoever ran the floor fastest.",
-    use: 'It does nothing at all, and Bertil says it suits you.',
+    text: 'A tiny cast moon on a pin, its seam still showing, for whoever ran the floor fastest. It does nothing at all, and Bertil says it suits you.',
   },
   courierribbon: {
     name: 'Courier’s ribbon', kind: 'cosmetic', trial: 'spacecity', where: 'The first finish of the Courier’s round, the City Floating in Space’s run over its bridges.',
-    text: "A strip of salmon cloth to tie round the wrist, the floating city’s couriers’ colour. Kip has nine and wears all of them.",
-    use: 'It does nothing at all, and the bridge-keepers wave you through.',
+    text: 'A strip of salmon cloth for the wrist, the couriers’ colour; Kip wears nine. It does nothing at all, and the bridge-keepers wave you through.',
   },
   // ---- given by people, through a quest (quests.give: the same item.<id> flag), not found in a box
   cabpass: {
     name: 'Cab pass', kind: 'pass', quest: true,
-    text: "A stiff card stamped with the palace seal, Tobin’s name crossed out and something more or less like yours written over it. Lio, the City-Shaft’s dispatcher, wrote it.",
-    use: 'Cabs stop for you now: whistle when one passes with {key:call}, or get in one that waits, and tell it where to go. It drives itself.',
+    text: 'A card from Lio, Tobin’s name crossed out and something like yours written over it. Cabs stop for you now: whistle one down with {key:call}, or get in one that waits.',
   },
   star: {
     name: 'Pale star', kind: 'cosmetic',
-    text: "A pale enamel star, like the ones on the makers’ chests. The makers’ sign for a traveller: a small light, a long way from home.",
-    use: 'Pinned to your overshirt, or over the brow when a hood is up. It does nothing at all, and it looks very good.',
+    text: 'A pale enamel star, the makers’ sign for a traveller far from home. Pinned to your overshirt, or your brow under a hood. It does nothing at all, and looks very good.',
   },
 };
 
@@ -360,7 +309,7 @@ const KIND_ORDER = ['core', 'weapon', 'movement', 'gadget', 'mode', 'upgrade', '
  */
 export function gearHtml(owned = [], { mode = null, carried = [] } = {}) {
   const list = owned.filter((id) => ITEMS[id]).sort((a, b) => KIND_ORDER.indexOf(ITEMS[a].kind) - KIND_ORDER.indexOf(ITEMS[b].kind));
-  const rows = list.map((id) => `<li><b>${esc(ITEMS[id].name)}</b> · ${keys(ITEMS[id].use)}</li>`).join('');
+  const rows = list.map((id) => `<li><b>${esc(ITEMS[id].name)}</b> · ${keys(ITEMS[id].text)}</li>`).join('');
   const body = rows ? `<ul>${rows}</ul>${mode ? `<p class="qhint">gun mode: ${esc(mode)}</p>` : ''}` : '<p class="qhint">Nothing yet.</p>';
   const pack = carried.length ? `<h4 class="qgroup">In your pack</h4><ul class="pack">${carried.map((n) => `<li><b>${esc(n.replace(/^./, (c) => c.toUpperCase()))}</b></li>`).join('')}</ul>` : '';
   return `<section class="quests gear"><h2>Gear <span>${list.length + carried.length}</span></h2>${body}${pack}</section>`;

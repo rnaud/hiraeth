@@ -15,7 +15,7 @@ const KEYS = /\((?:T|R|G|V|X|B|E|F|Q)(?:,| or )|right mouse|middle mouse|left cl
 
 test('the item and gadget cards name no literal keys', () => {
   for (const [id, it] of Object.entries(ITEMS)) {
-    for (const f of ['use', 'text']) {
+    for (const f of ['text']) {
       const s = it[f];
       if (typeof s !== 'string') continue;
       assert.doesNotMatch(s, PAD, `${id}.${f}`);
@@ -24,7 +24,7 @@ test('the item and gadget cards name no literal keys', () => {
   }
   const dir = new URL('../src/gadgets/', import.meta.url);
   for (const f of readdirSync(dir).filter((f) => f.endsWith('.js'))) {
-    for (const m of readFileSync(new URL(f, dir), 'utf8').matchAll(/^\s+use: (?:ITEMS\.\w+\?\.use \?\? )?'([^']*)'/gm)) {
+    for (const m of readFileSync(new URL(f, dir), 'utf8').matchAll(/^\s+text: (?:ITEMS\.\w+\?\.text \?\? )?'([^']*)'/gm)) {
       assert.doesNotMatch(m[1], PAD, f); assert.doesNotMatch(m[1], KEYS, f);
     }
   }

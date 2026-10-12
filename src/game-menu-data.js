@@ -26,8 +26,8 @@ export function itemsData({ owned = [], mode = null, modes = [], gadget = null, 
   const gear = list.map((id) => {
     const d = ITEMS[id], m = MODE_OF[id];
     // (a gadget, src/gadgets/: in hand, or taken in hand from here)
-    if (d.kind === 'gadget') return { id, name: d.name, kind: d.kind, text: d.text, use: d.use, icon: icon(id), inUse: id === gadget, usable: gadgets.includes(id) && id !== gadget };
-    return { id, name: d.name, kind: d.kind, text: d.text, use: d.use, icon: icon(id), inUse: choice && !!m && m === mode, usable: choice && !!m && modes.includes(m) && m !== mode };
+    if (d.kind === 'gadget') return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: id === gadget, usable: gadgets.includes(id) && id !== gadget };
+    return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: choice && !!m && m === mode, usable: choice && !!m && modes.includes(m) && m !== mode };
   });
   // (a slot for every item there is to find: the empty ones are drawn, never named; not the debug jets, nor what is
   // retired, kept only for the saves that won it, unless you own it: v1.48)

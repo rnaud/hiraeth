@@ -129,7 +129,7 @@ test('no line in the story data names a button in prose: conversations, things, 
 });
 
 test('no item card and no toast names a button in prose', () => {
-  const bad = Object.entries(ITEMS).filter(([, it]) => PROSE.test(`${it.text ?? ''} ${it.use ?? ''}`)).map(([id]) => `item ${id}`);
+  const bad = Object.entries(ITEMS).filter(([, it]) => PROSE.test(it.text ?? '')).map(([id]) => `item ${id}`);
   // the toasts, hints and notices the game says as you play (a call with a literal: toast('…'), notice?.('…'), hint('…'))
   const dirs = ['', 'story/', 'gadgets/', 'boxes/', 'temples/'];
   const CALL = /\b(toast|notice|hint)\??\.?\(\s*(['`])((?:\\.|(?!\2).)*)\2/g;
@@ -141,7 +141,7 @@ test('no item card and no toast names a button in prose', () => {
   }
   assert.deepEqual(bad, []);
   // and the ones that teach use the placeholder, which resolves
-  assert.equal(keyText(ITEMS.stun.use, { kind: 'pad', teach: true }).startsWith('Switch modes with D-pad →.'), true);
+  assert.match(keyText(ITEMS.stun.text, { kind: 'pad', teach: true }), /In stilling mode \(D-pad →\)/);
 });
 
 test('hints subtle (the default) and off: a line keeps what it says and drops the controls it names; a card that teaches keeps them', () => {
@@ -154,7 +154,7 @@ test('hints subtle (the default) and off: a line keeps what it says and drops th
       assert.equal(keyText('Aim with {key:aim}, fire with {key:fire}. One shot a bulb.', { kind: 'keys' }), 'One shot a bulb.', 'a sentence that is only controls goes');
       assert.equal(keyText('Open your wings (hold {key:jump} as you fall): it lifts you.', { kind: 'keys' }), 'Open your wings: it lifts you.');
       assert.equal(keyText('{key:whistle} plays it back.', { kind: 'keys' }), '', 'nothing left: the toast is skipped (main.js showToast)');
-      assert.equal(keyText(ITEMS.stun.use, { kind: 'pad', teach: true }).startsWith('Switch modes with D-pad →.'), true, 'a new tool’s card still teaches');
+      assert.match(keyText(ITEMS.stun.text, { kind: 'pad', teach: true }), /In stilling mode \(D-pad →\)/, 'a new tool’s card still teaches');
       assert.equal(keysHtml('Wash it: aim with {key:aim}.'), 'Wash it.');
     }
     assert.equal(quietKeys('No keys here: none.'), 'No keys here: none.');

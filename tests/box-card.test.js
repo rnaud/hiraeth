@@ -22,7 +22,9 @@ test('on the strip the item\'s name comes first and largest, the words after it,
   assert.ok(size(h2) >= 1.5, 'the name large (in em of the words: the title face)');
   assert.match(h2, /var\(--face-title\)/, 'the name in the title face');
   assert.match(rule('#boxcard'), /font: var\(--type-s\)/, 'the words small (the small print, from the screen\'s height: issue #128)');
-  assert.ok(card.indexOf('class="name"') < card.indexOf('class="text"') && card.indexOf('class="name"') < card.indexOf('class="use"'), 'the name before what it is and does');
-  assert.match(rule('#boxcard .body'), /grid-template-columns: 1fr 1fr/, 'what it is and what it does side by side');
+  assert.ok(card.indexOf('class="name"') < card.indexOf('class="desc"'), 'the name before what it is and does');
+  // (issue #165: one description, what it is and does together; no two columns, no headings over them)
+  assert.doesNotMatch(card, /grid-template-columns|What it is|What it does/, 'one description, no columns');
+  assert.equal((card.match(/class="desc"/g) ?? []).length, 1);
   assert.doesNotMatch(card, /Left by the makers for one who has come a long way/, 'one line fewer');
 });

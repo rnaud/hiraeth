@@ -138,8 +138,7 @@ function crescent(scale = 1) {
 
 export default {
   id: 'boomerang', name: 'Boomerang', glyph: '☾', order: 30, trigger: 'aim',
-  text: 'A crescent of hammered brass with its edges inked, light as a feather and always sure of the way home. The makers threw them to fetch what had rolled too far.',
-  use: 'Aim with {key:aim}: a curved line shows its flight, and what the reticle passes over is locked on to, up to three. {key:fire} throws it: it curves through each in turn and comes back. It stuns foes, flips switches and targets, cuts ropes and brings small things back to you. Thrown with an ember (or stilling) mode on the backpack, it carries it: an ember boomerang lights the lanterns it passes.',
+  text: 'A crescent of hammered brass that always comes home. Aim with {key:aim} to lock on to up to three things; {key:fire} throws it to stun, flip switches and fetch.',
   model: () => { const m = crescent(1); m.rotation.set(0.9, 0.3, 0.2); return m; },
   create(ctx) { return new Boomerang(ctx); },
 

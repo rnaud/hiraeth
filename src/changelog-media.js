@@ -677,6 +677,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'scout-hint-deck', title: 'Steam Deck', caption: 'Just after talking to Marrow at 1280 × 800, a pad in hand: after, the line at the bottom names the stick press (RS, as an Xbox pad prints R3) that sends the scout to the next quest. (The before is from before the buttons grew too.)', from: PROMPT51 },
       { name: 'scout-hint-720', title: '720p', caption: 'The same at 1280 × 720', from: PROMPT51 },
     ], see: 'Start a new game and talk to Marrow by the ship: when the conversation closes, the line comes up once at the bottom. Press the button it names and the scout flies off toward your quest.' },
+    { match: 'The card for something you find no longer splits it', shots: [
+      { name: 'item-card-deck', title: 'Steam Deck', caption: 'The fluid gun’s card at 1280 × 800, a pad in hand: before, two columns under WHAT IT IS and WHAT IT DOES, five lines; after, one description in two lines, LT, RT and D-pad → inline. (The before is from before the buttons grew too.)', from: PROMPT51 },
+      { name: 'item-card-720', title: '720p', caption: 'The same at 1280 × 720', from: PROMPT51 },
+    ], see: 'Open any makers’ chest, or look at an item in the game menu’s Items: one short description each.' },
     { match: 'All the words on the screen are in the game’s own lettering now', shots: [
       { name: 'type-notice', title: 'A notice and the hint', caption: 'Off the ship in the Desert: the quest’s notice at the top and the chest’s hint at the bottom, before in the typewriter face, after in the game’s and larger', from: TYPE51 },
       { name: 'type-card', title: 'A find', caption: 'The card for the Givers’ blade: the name in the heading face, what it is and does in the game’s', from: TYPE51 },

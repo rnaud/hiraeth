@@ -145,8 +145,7 @@ export const recallSfx = {
 
 export default {
   id: 'recall', name: 'Recall hourglass', glyph: '⧗', order: 50, trigger: 'aim',
-  text: 'A small hourglass in a frame of dark wood and brass, its sand running the wrong way. Held up to something, it remembers where that thing has been.',
-  use: 'Point at something that moved in the last few seconds (a crate knocked off a ledge, a thrown bomb, a cab in traffic): its path shows as a dotted line. Press {key:use} and it goes back along it, up to eight seconds, carrying whatever stands on it. Press again to stop it; if you started it with the button held, letting go stops it. Hold {key:aim} with nothing in sight to aim over the shoulder.',
+  text: 'An hourglass whose sand runs the wrong way. Point it at something that just moved and press {key:use}: it goes back along its path, up to eight seconds.',
   model: hourglassModel,
   create(ctx) { return new Recall(ctx); },
 

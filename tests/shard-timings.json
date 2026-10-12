@@ -201,6 +201,7 @@
  "tests/interior-cull.test.js": 0.1,
  "tests/interiors.test.js": 0.2,
  "tests/issue-draft.test.js": 0.1,
+ "tests/item-cards.test.js": 0.1,
  "tests/item-star.test.js": 0.1,
  "tests/items-page.test.js": 0.3,
  "tests/jets.test.js": 0.2,

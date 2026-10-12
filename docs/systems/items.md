@@ -18,8 +18,8 @@ What the traveller carries and the boxes that give it.
   made with `makeMaterial({ dissolve })`, whose `DISSOLVE` block discards the
   surface by world-space noise as `uDissolve.x` goes 0 → 1, with a burning edge
   (the box leaves the shadow pass meanwhile). The item grows out of the light
-  at its centre and hovers there with a card showing its name, what it is and
-  what it does. Then the item is granted, and the box is gone for good (no
+  at its centre and hovers there with a card showing its name and one short
+  description of what it is and does (`text`, at most 180 letters: issue #165). Then the item is granted, and the box is gone for good (no
   collider either).
   Each placement's `hint` makes a small quest (`box.<id>`, "A Makers' Box"):
   it starts `BOX_QUEST_DELAY` s after you arrive while the box is shut, its one

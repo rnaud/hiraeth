@@ -63,14 +63,16 @@ a cut to past where the box stood, back at the item and his face; **high**, from
 on the box, then beside him. Where a plan's lens would stand behind a wall or a cliff (`clearPlan`: rays
 from his chest), the box falls back to the first plan. (The cinematics QC pass: the same shots for all 32.)
 
-**The card** (`card.js`): the item's name, what it is and what it does, or, for a placement with `found` (an i18n key:
+**The card** (`card.js`): the item's name and its one description (`ITEMS[id].text`, issue #165), or, for a placement with `found` (an i18n key:
 the desert's backpack, `box.found.backpack`), one short line said instead (it carries a tone, stripped when shown; FR in
 `src/i18n/fr.js`). Its buttons name what to press with the menus' glyphs (`src/pad-glyphs.js`): `A / ×` (Enter on the
 keyboard) on Continue, `B / ○` (Esc) on Skip, nothing on touch (v1.41). **The item comes first** (issue #82: on a
 handheld's screen, under 980 px wide, the card sat in the middle, its words over the lift valve the scene was holding
 up): the card is a low strip along the foot of the screen, in the letterbox's bottom band and just over it, at every
-size; the name first and largest, the kicker and Continue on its row, then what it is and what it does small and side
-by side (one column under 640 px). The longest card (the Givers' blade's) takes 35 % of an 800 × 450 screen
+size; the name first and largest, the kicker and Continue on its row, then the description under them. Since v1.51
+(issue #165) that is one short paragraph, what it is and what it does together, at most 180 letters, its buttons inline
+as `{key:verb}` (the player's own, in teal); before, two columns headed "What it is" and "What it does"
+(`tests/item-cards.test.js`). The longest card (the Givers' blade's) takes 35 % of an 800 × 450 screen
 (`CARD_MAX_SHARE`); the makers' "left for one who has come a long way" line is gone from it.
 
 **The closing beat** (`beats.js`, v1.3): after the card, a short beat that depends on what the box held
