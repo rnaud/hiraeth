@@ -1,0 +1,19 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_e520def4ce17a0::t_b174880ca60d2f 367-371
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74bc3d5d6c4a6eed62212c02b1b3c07a6b22d703",
+  "prompts": {},
+  "sessions": {
+    "s_e520def4ce17a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac324b1b4fd0ee0e4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
