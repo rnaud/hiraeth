@@ -1,0 +1,23 @@
+docs/systems/movement.md
+  s_9ca76055a220ed::t_4bc2be24956f69 58-66
+src/contact-audit.js
+  s_9ca76055a220ed::t_65a52cd677b64b 70,77-80,169,252,256
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_b41925db0701bc 12-13,79-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "328ef77e98e746b1c5d807b377bafb226addfe00",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
