@@ -23,7 +23,7 @@ export const ribcageMaterial = () => (MAT ??= makeMaterial({ color: '#ffffff', v
 /** The middle rib (the drum's): its foot, ribcage-local, for a skeleton of size s. */
 export const RIB_FOOT = { x: -5, z: 23.75 };
 
-function finish(g, color) {
+export function finish(g, color) {
   if (!g.attributes.normal) g.computeVertexNormals();
   const geo = g.index ? g.toNonIndexed() : g;
   for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal') geo.deleteAttribute(k);
@@ -34,7 +34,7 @@ function finish(g, color) {
 }
 
 /** A closed tube tapering from r0 to r1 along the points (horns, tusks, the snout). */
-function tube(points, r0, r1, seg = 14, radial = 7) {
+export function tube(points, r0, r1, seg = 14, radial = 7) {
   const curve = new THREE.CatmullRomCurve3(points), frames = curve.computeFrenetFrames(seg, false), pos = [], idx = [];
   for (let i = 0; i <= seg; i++) {
     const u = i / seg, c = curve.getPointAt(u), r = THREE.MathUtils.lerp(r0, r1, u), N = frames.normals[i], B = frames.binormals[i];
@@ -57,7 +57,7 @@ function tube(points, r0, r1, seg = 14, radial = 7) {
 }
 
 /** A flat band along a curve (a rib): `w` across (along `axis`), `t` thick within the arch's plane. */
-function band(curve, w, t, seg, axis, radial = 8) {
+export function band(curve, w, t, seg, axis, radial = 8) {
   const pos = [], idx = [], T0 = V(0, 0, 0), N = V(0, 0, 0);
   for (let i = 0; i <= seg; i++) {
     const u = i / seg, c = curve.getPointAt(u);

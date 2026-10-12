@@ -89,6 +89,31 @@ export function ridePlaces() {
   for (const [id, w] of Object.entries(RIDE)) out[id] = { x: a.x + dx * w.f - (dz / L) * w.side, z: a.z + dz * w.f + (dx / L) * w.side, f: w.f, heading: Math.atan2(dx, dz) };
   return out;
 }
+/**
+ * The old river's dry wash (src/desert-ground.js channel, cut in desertHeight): from its head out past the cold camp,
+ * north-west between the straight ride out and the marked stones home, through the dune ridge, toward the camps.
+ * The giants walked down it carrying the water when it failed (src/desert-giants.js). [x, z], upstream first.
+ */
+export const DRY_WASH = {
+  points: [[1085, -175], [1015, -140], [945, -100], [880, -62], [815, -60], [735, -40], [655, 45], [575, 85], [495, 120], [415, 150], [340, 168]],
+  bed: 6, bank: 28, depth: 4.5,
+};
+/**
+ * The giants' road (issue #167, references/levels/The Desert/environment/explorations/giants-road/): the giants fell
+ * one by one along the old river on their way from the swamp of lights, the last under Qanat. Four lie out on the
+ * dunes between the ride out and the stones home, 30-150 m off both (the level design audit: 1 optional place of 37 at
+ * mid-distance), each with a pilgrims' shrine whose verse is read outward from Qanat, back up their road (I-IV):
+ *   hand   a hand standing out of the dune like a ruin, by the wash
+ *   arm    an arm lying across the wash, a bridge you ride up from the shoulder (`at`: where it crosses the bed)
+ *   spine  a spine up a dune's slope like a stair, its skull a lookout at the top (from `foot` to `top`)
+ *   jaw    a lower jaw standing over the wash's head like an arch, the pilgrims' shelter; its verse points on
+ */
+export const GIANTS = {
+  hand: { x: 432, z: 192, yaw: 0.35 },
+  arm: { x: 655, z: 45 },
+  spine: { foot: [935, -112], top: [875, -95] },
+  jaw: { x: 1062, z: -150, yaw: 0.6 },
+};
 /** The procession's circuit as a smooth closed curve: [x, z] every `step` metres. */
 export function processionLoop(step = 3) {
   const curve = new CatmullRomCurve3(PROCESSION.map(([x, z]) => new Vector3(x, 0, z)), true, 'centripetal');

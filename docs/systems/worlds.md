@@ -389,6 +389,25 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
 - For the audit: the camps' banners run on to the gate itself (read from the well: down through the camps, the
   hollow's rag in sight); the strips are a `line`, the stone a `sight`.
 
+## The Desert's explorations (v1.53, issue #167)
+
+The author's three picked directions (`references/levels/The Desert/environment/explorations/`, prompts in
+`docs/design/level-explorations-prompts.md`), laid between the straight ride out to the Hearth and the marked stones
+home, where the level design audit found nothing at mid-distance (1 of 37 optional places 30–150 m off the path).
+
+- **The giants' road** (`src/desert-giants.js`, `src/story/desert-giants.js`; `GIANTS`, `DRY_WASH` in
+  `src/desert-sites.js`). The old river's dry wash is cut into the ground (`src/desert-ground.js` `channel`, applied in
+  `desertHeight`): 4.5 m deep, a 12 m bed, banks easing to the dunes over 28 m (their convex bend 2·depth/bank², under the
+  dunes' own: `tests/dunes.test.js`), following the dunes as they lie, nothing touched past the lip. Down it, four
+  fallen giants, each one mesh in the ribcage's vertex-coloured bone (`ribcageMaterial`), collided as drawn: a hand
+  standing out of a dune (38 m to its longest finger, a `beacon` for the audit: too slender for its height grid), an
+  arm across the wash (ridden or walked up from its shoulder in the south bank, over the elbow, 7 m over the bed, to its
+  hand open on the north bank), a spine up a dune to its skull, a jaw standing over the wash's head like an arch.
+  Each has a pilgrims' shrine (a verse stone with its number in notches, a brazier burning, a pole of cloths; the arm's
+  on its elbow): `read the verse` opens `THINGS.verse1`–`verse4`, read outward from Qanat, the giants' road told back to
+  where they came from; the fourth points on to the swamp of lights (`clue.desert.perdide`). The four are `sights`.
+  About 13k triangles and 13 meshes in all. `tests/desert-giants.test.js`.
+
 ## Vael's layout, from the level design audit (v1.9)
 
 - **The plain** between the landing and the lone tower (445 m with nothing on it): Senn (`src/levels/content.js`) listens

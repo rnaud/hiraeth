@@ -872,6 +872,45 @@ export const THINGS = {
       choices: [{ text: '~solemn~ (sit, and look at the tree a while)', end: true }],
     } } },
   },
+  // the giants' road (src/desert-giants.js, src/story/desert-giants.js; issue #167): a verse stone at each fallen giant, read
+  // outward from Qanat, back up their road to where they came from (the last points on, toward the swamp of lights)
+  verse1: {
+    id: 'verse1', name: 'The first verse', title: 'at the giant’s hand', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A shrine in the hand’s shade: a stone with one notch, a brazier, cloths on a pole.",
+        "~solemn~ *The last of them reached for the tree’s ground and lay down. Its heart held the water.*"],
+      do: { set: { 'desert.giants.verse1': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  verse2: {
+    id: 'verse2', name: 'The second verse', title: 'on the giant’s elbow', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ Two notches on the stone on the elbow. Below, the dry wash runs under the arm.",
+        "~solemn~ *The one before it held the water up over the failing river, and went no further.*"],
+      do: { set: { 'desert.giants.verse2': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  verse3: {
+    id: 'verse3', name: 'The third verse', title: 'at the foot of the giant’s spine', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ Three notches. The spine climbs the dune behind the stone, bone by bone, to its skull.",
+        "~solemn~ *Before that, one by one they lay down along the river, and the sand drank what they spilled.*"],
+      do: { set: { 'desert.giants.verse3': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  verse4: {
+    id: 'verse4', name: 'The fourth verse', title: 'under the giant’s jaw', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ Four notches, and under them a carved hand, pointing on up the wash, past the red rocks.",
+        "~solemn~ *And first of all they came down from the swamp of lights, the water on their backs.*",
+        { if: { all: [{ flag: 'desert.giants.verse1' }, { flag: 'desert.giants.verse2' }, { flag: 'desert.giants.verse3' }] }, text: "~happy~ Four giants, four verses: their whole road, read backward from Qanat." }],
+      do: { set: { 'desert.giants.verse4': true, 'clue.desert.perdide': true } },
+      choices: [{ text: '~solemn~ (look the way the hand points)', end: true }],
+    } } },
+  },
   // the Givers' field-stone on the dunes below their House, on the way home from it (src/desert-road.js FIELD_STONE)
   fieldStone: {
     id: 'fieldStone', name: 'The Givers’ field-stone', title: 'on the dunes below their House', color: '#cdb38f', voice: 0.6,

@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.53 — 2026-10-12
 
+- Ride the hoverbike (or walk) up the giant’s arm from its shoulder in the sand, over its elbow and across: it carries you high over the dry wash, and the second verse waits on the elbow.
+- Each giant has a little pilgrims’ shrine with a verse cut in its stone. Read from Qanat outward, the four verses tell the giants’ story back to where they came from, and the last one points on toward the swamp of lights.
+- Out in the dunes between the ride to the Givers’ Hearth and the marked stones home lies the giants’ road: four fallen giants down an old dry riverbed. A great hand stands out of a dune, an arm lies across the dry wash, a spine climbs a dune to its skull, and a jaw stands over the riverbed like an arch. You see them from the ride, neither on your way nor far off it.
 - Viridel’s meadow flowers seen from afar are drawn in a thin outline in a dark shade of their own colour, so a clump of tulips 50 m off reads as pink and yellow flowers, not a dark blot. Up close they keep their black ink.
 
 ## v1.52 — 2026-10-12

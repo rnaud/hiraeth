@@ -656,8 +656,21 @@ const SHAFT52 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 
 const DECK52 = 'the Steam Deck’s run on the Mac (scripts/bench/deck-mac.mjs + deck-worlds.mjs --slow 3 --size 1280x800, the Deck preset, the CPU slowed ×3), the City-Shaft’s five bench views, before and after the change, 11 October; draws over all passes and triangles a frame are exact, the frame times only a guide (the Mac shared, load 19–60)';
 // (v1.53: the meadow's flowers from afar, issue #38: the ink-lines audit, this branch's own Vite, the tree before the change)
 const INK53 = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headless Chrome, muted, the game’s and the shaders’ clocks held) against this branch’s own Vite (port 5743) and the same tree with src/flora.js and src/materials.js before the change, 12 October; crops scaled up; cwebp -q 75';
+// (v1.53: the Desert's picked explorations, issue #167: this branch's own Vite and origin/main before it, by hand; the same views)
+const EXPLORE52 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463) and origin/main before the change (25e4cfca, git archive), the same pinned cameras, 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.53': [
+    { match: 'Out in the dunes between the ride to the Givers’ Hearth', shots: [
+      { name: 'giants-landing', title: 'From your ship', caption: 'From the foot of the ship’s ramp, toward the striped mesa beyond the camps: after, the giant’s hand standing out of the dunes in front of it', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 55, eye: [96, 16.81, 152], target: [432, 66.7, 192], player: [92, 14.39, 150] } },
+      { name: 'giants-jaw', title: 'The jaw', caption: 'At the head of the dry wash, near the keepers’ cold camp: after, the giant’s jaw standing over the riverbed like an arch, teeth down, the spine on the dune beyond', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [1090, -3.36, -195], target: [1062, 18.55, -150], player: [1093, -6.07, -198] } },
+    ], see: 'Ride out of Marrow’s hollow toward the Givers’ Hearth: the giants lie off to your left, between the red strips and the marked stones; the hand first, then the arm, the spine and the jaw.' },
+    { match: 'Each giant has a little pilgrims’ shrine with a verse', see: 'At each giant, walk up to the stone by the brazier and press A / × to read the verse. One notch at the hand, two on the arm’s elbow, three at the spine’s foot, four under the jaw.' },
+    { match: 'Ride the hoverbike (or walk) up the giant’s arm', shots: [
+      { name: 'giants-arm', title: 'The arm', caption: 'Beside the dry wash, about halfway out to the Hearth: after, the giant’s arm lying across it, its shoulder sunk in the near bank, the cloths tied round it, its hand open on the far bank', from: EXPLORE52,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [702, 20.14, 2], target: [650, 21.53, 46], player: [705, 17.36, 0] } },
+    ], see: 'Ride to the giant’s arm, line up with its shoulder where it comes out of the sand and hold RT / R2: up over the elbow and across the wash to its hand.' },
     { match: 'Viridel’s meadow flowers seen from afar', shots: [
       { name: 'ink-flowers-far', caption: 'Viridel’s meadow 55 m off at 1920 × 1080, cropped ×2: before, the tulips and clover in heavy black outlines; after, a thinner outline in a dark shade of their own green and pink (the flowers 40 → 27 % ink, 12 → 6 % near-black)', from: INK53 },
       { name: 'ink-flowers-handheld', caption: 'The same flowers on the Handheld preset (960 × 540), cropped ×3 (34 → 23 % ink)', from: INK53 },

@@ -11,6 +11,10 @@ export const CHANGELOG = [
   { v: '1.53', date: '2026-10-12', items: [
     // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)
     'Viridel’s meadow flowers seen from afar are drawn in a thin outline in a dark shade of their own colour, so a clump of tulips 50 m off reads as pink and yellow flowers, not a dark blot. Up close they keep their black ink.',
+    // the Desert's picked explorations (docs/systems/worlds.md "The Desert's explorations"; issue #167)
+    'Out in the dunes between the ride to the Givers’ Hearth and the marked stones home lies the giants’ road: four fallen giants down an old dry riverbed. A great hand stands out of a dune, an arm lies across the dry wash, a spine climbs a dune to its skull, and a jaw stands over the riverbed like an arch. You see them from the ride, neither on your way nor far off it.',
+    'Each giant has a little pilgrims’ shrine with a verse cut in its stone. Read from Qanat outward, the four verses tell the giants’ story back to where they came from, and the last one points on toward the swamp of lights.',
+    'Ride the hoverbike (or walk) up the giant’s arm from its shoulder in the sand, over its elbow and across: it carries you high over the dry wash, and the second verse waits on the elbow.',
   ] },
   { v: '1.52', date: '2026-10-12', items: [
     // the Unity preview on the Xbox at a steady 60 (docs/systems/xbox.md "The Unity build on the Xbox")

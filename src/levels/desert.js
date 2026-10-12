@@ -18,6 +18,7 @@ import { LINES } from '../story/desert-data.js';
 import { attachTemple, clearInstances } from '../temples/index.js';
 import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
+import { buildGiantsRoad } from '../desert-giants.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK, DESERT_CLOUD_SHADOWS } from '../desert-sites.js';
 import { SITE_OVERRIDES } from '../ship/sites.js';
@@ -119,7 +120,11 @@ export function* buildDesert(scene) {
   const strips = buildRiderStrips(scene, terrain), fieldStone = buildFieldStone(scene, terrain);
   clearInstances(scene, strips.clear, strips.group);
   clearInstances(scene, fieldStone.clear, fieldStone.group);
-  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || strips.avoid(x, z, r) || fieldStone.avoid(x, z, r) || avoidWorld(x, z, r);
+  // the giants' road (src/desert-giants.js; issue #167): four fallen giants down the old river's dry wash, between the ride
+  // out and the stones home, each with a pilgrims' shrine and its verse
+  const giants = buildGiantsRoad(scene, terrain);
+  clearInstances(scene, giants.clear, giants.group);
+  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || strips.avoid(x, z, r) || fieldStone.avoid(x, z, r) || giants.avoid(x, z, r) || avoidWorld(x, z, r);
   // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
   // the Canyon run under the lavender cliffs by the rope bridge
   for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
@@ -148,6 +153,7 @@ export function* buildDesert(scene) {
     hearth,
     road,
     fieldStone,
+    giants,
     vistas,
     landmarks,
     maskRooms,
@@ -156,6 +162,8 @@ export function* buildDesert(scene) {
       { name: 'the keepers’ bowl', at: hearth.way.bowl.at }, { name: 'the keepers’ cold camp', at: hearth.way.camp.at }, { name: 'a bell in the sand', at: hearth.way.bell.at },
       { name: 'the skiff’s anchor', at: hearth.ride.anchor.at }, { name: 'a sand-skiff’s wreck', at: hearth.ride.wreck.at }, { name: 'the tusk gate', at: hearth.ride.tusks.at },
       { name: 'the pilgrims’ resting stone', at: road.rest.at }, { name: 'the Givers’ field-stone', at: fieldStone.at },
+      // (issue #167: the giants' road, at mid-distance from the ride out and the stones home)
+      ...giants.sights,
     ],
     // tall things seen over the dunes that the collision doesn't make tall (the audit aims at them as at landmarks): the camps'
     // smoke while the tree is cold, then the tree's own column; the Hearth's chimney, out past the audit's map
@@ -163,6 +171,8 @@ export function* buildDesert(scene) {
       const cs = qanat.campSmoke.at, cr = qanat.city.crown, ch = hearth.chimneyTop, gb = qanat.giantBreath?.at;
       return [qanat.city.lit < 0.5 ? { name: 'the camps’ smoke', top: [cs.x, cs.y + 30, cs.z], height: 30 } : { name: 'the tree’s smoke', top: [cr.x, cr.y + 120, cr.z], height: 120 },
         { name: 'the Givers’ Hearth’s chimney', top: [ch.x, ch.y, ch.z], height: 40 },
+        // (issue #167: the giant's hand standing out of the dune, too slender for the audit's height grid)
+        { name: 'the giant’s hand', top: [giants.giants.hand.top.x, giants.giants.hand.top.y, giants.giants.hand.top.z], height: 30 },
         // (fifth round: the giant's breath over the back gate while the tree is cold, its lower half, before it bends away)
         ...(gb && qanat.city.lit < 0.5 ? [{ name: 'the giant’s breath', top: [gb.x, gb.y + 28, gb.z], height: 22 }] : [])];
     },

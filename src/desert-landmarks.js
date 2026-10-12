@@ -6,7 +6,8 @@ import { SandDrifts } from './sand-drifts.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from './noise.js';
 import { heightFn } from './world.js';
 import { basinHeight } from './desert-vistas.js';
-import { SITES, POLE_LINE, STORY } from './desert-sites.js';
+import { SITES, POLE_LINE, STORY, DRY_WASH } from './desert-sites.js';
+import { channel } from './desert-ground.js';
 
 // The structures of the desert reference pages (references/levels/The Desert/environment/IMG_3772-3775),
 // built as destinations across the three regions:
@@ -89,9 +90,13 @@ function drifts(x, z, h) {
 /** The level floor of the old city (and its camps). */
 export const cityFloor = () => CITY_FLAT.level ??= floorLevel(CITY_FLAT);
 
-/** The desert's full height field: dunes, the mineral basin, level landmark floors, drifts and the salt lagoons. */
+/** The old river's dry wash under the giants' road (src/desert-sites.js DRY_WASH, src/desert-ground.js). */
+export const WASH = channel(DRY_WASH.points, DRY_WASH);
+/** The ground before the channels: dunes, the mineral basin, level landmark floors, drifts and the salt lagoons. */
+const groundHeight = (x, z) => lagoonHeight(x, z, drifts(x, z, flatten(x, z, basinHeight(x, z, heightFn))));
+/** The desert's full height field: dunes, the mineral basin, level landmark floors, drifts, the salt lagoons and the dry wash. */
 export function desertHeight(x, z) {
-  return lagoonHeight(x, z, drifts(x, z, flatten(x, z, basinHeight(x, z, heightFn))));
+  return WASH.height(x, z, groundHeight(x, z));
 }
 
 // ------------------------------------------------------------------ helpers
