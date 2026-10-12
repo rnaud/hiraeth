@@ -61,6 +61,7 @@ import { plainValue } from './ink-spec.js';
 import { Sound } from '../src/audio.js';
 import { createBoxes } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
+import { setView } from '../src/motion-kit/view.js';
 
 export { page };
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
@@ -594,6 +595,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const hidden = Q?.propPx ? (smallCull ??= new SmallCuller(scene)).hide(camera, pxPerRad, Q.propPx, []) : null;
       const stats = mirror.sync(scene, camera);
       if (hidden) for (const o of hidden) o.visible = true;
+      // what the camera saw, as main.js after drawing: the next frame's fires and machines skip what is out of it
+      // (src/motion-kit/view.js: the kit's detail tiers, the flames' tongues)
+      setView(camera);
       const tC = performance.now();
       return { ms: { update: tB - tA, mirror: tC - tB }, stats, frames };
     },

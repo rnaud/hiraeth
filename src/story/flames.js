@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { lodView, sphereError } from '../lod.js';
 import { makeMaterial } from '../materials.js';
 import { HAZARD_DPS } from '../hazards.js';
+import { sphereInView } from '../motion-kit/view.js';
 
 // Stylised fire: tongues of flat colour bands that lick, sway and flicker.
 // Each tongue is a little lathe whose vertices move every frame; their
@@ -13,7 +14,7 @@ export const FIRE = ['#fff3c4', '#f9d36a', '#f0a04b', '#e0644a', '#b8433f'];
 // the burning tree when it drinks: the fire turns cool and many-coloured
 export const COOL_FIRE = ['#fff6dc', '#9ff0e6', '#62c3c9', '#a99be0', '#e88fa6'];
 
-const _a = new THREE.Color(), _b = new THREE.Color(), _c = new THREE.Color();
+const _a = new THREE.Color(), _b = new THREE.Color(), _c = new THREE.Color(), _seen = new THREE.Vector3();
 const SEG = 10, RINGS = 9;
 
 function gradient(palette, v, out) {
@@ -173,6 +174,14 @@ export class Flames {
     g.boundingSphere.radius *= 1.4;
   }
 
+  /** In the camera's last view (motion-kit/view.js; always, with no view set): its sway's bound, taller as it flares, and a margin. */
+  seen() {
+    const bs = this.geo.boundingSphere;
+    if (!bs) return true;
+    const m = this.mesh.matrixWorld;
+    return sphereInView(_seen.copy(bs.center).applyMatrix4(m), bs.radius * m.getMaxScaleOnAxis() * Math.max(1, this.intensity) * 1.5 + 2);
+  }
+
   /** Move toward another palette over time (setPalette(COOL_FIRE)). */
   setPalette(p, instant = false) {
     this.palA = this.pal.map((c) => c.clone());
@@ -181,6 +190,11 @@ export class Flames {
   }
 
   update(dt, t) {
+    // (out of the last frame's view: its tongues left as they are, the time kept for the palette's turn; moved again
+    // the frame it is in view, as they would be then: every tongue is where the clock puts it. ~1 ms a frame of a
+    // console's script at the desert's spawn went on fires behind the camera, issue #111)
+    if (!this.seen()) { this._heldDt = (this._heldDt ?? 0) + dt; return; }
+    if (this._heldDt) { dt += this._heldDt; this._heldDt = 0; }
     if (this.mix < 1) {
       this.mix = this.snap ? 1 : Math.min(1, this.mix + dt / 3);
       const P = this.material.uniforms.uPalette.value;

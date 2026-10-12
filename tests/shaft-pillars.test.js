@@ -200,3 +200,28 @@ test('a piece\'s matrix is written as three would make it (setFromAxisAngle, com
     assert.deepEqual(Array.from(mesh.instanceMatrix.array.subarray(48, 64)), Array.from(ref), `piece ${n}`);
   }
 });
+
+test('a pillar out of the camera\'s last view lays no pieces; one in view lays every piece it did (issue #111)', async () => {
+  const THREE = await import('three');
+  const { setView, clearView } = await import('../src/motion-kit/view.js');
+  const spire = byId('spire');
+  const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 5000);
+  cam.position.set(spire.x + 30, 40, spire.z + 30); cam.lookAt(spire.x, 40, spire.z); cam.updateMatrixWorld();
+  const M = new THREE.Matrix4(), p = new THREE.Vector3();
+  const pieces = () => {
+    const out = [];
+    for (const mesh of [pillars.rings, pillars.streaks, pillars.ink, pillars.motes]) for (let i = 0; i < mesh.count; i++) {
+      mesh.getMatrixAt(i, M); p.setFromMatrixPosition(M);
+      const c = pillars.pillars.reduce((a, b) => (Math.hypot(p.x - a.x, p.z - a.z) < Math.hypot(p.x - b.x, p.z - b.z) ? a : b));
+      out.push(`${c.id} ${mesh === pillars.streaks ? 's' : ''}${Array.from(M.elements).map((x) => x.toFixed(6)).join(',')}`);
+    }
+    return out.sort();
+  };
+  try {
+    clearView(); pillars.update(DT, 21.7, { camera: cam }); const all = pieces();
+    setView(cam); pillars.update(DT, 21.7, { camera: cam }); const seen = pieces();
+    const ids = new Set(seen.map((s) => s.split(' ')[0]));
+    assert.ok(ids.has('spire') && ids.size < pillars.pillars.length, `pillars laid in view: ${[...ids]}`);
+    assert.deepEqual(seen, all.filter((s) => ids.has(s.split(' ')[0])), 'the pillars in view laid as before, piece for piece');
+  } finally { clearView(); }
+});

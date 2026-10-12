@@ -1,11 +1,14 @@
 import { Quaternion, Vector3, MathUtils } from 'three';
+import { POSE, updateChain } from '../world-read.js';
 
 // Character-specific walk/jog styling, after Animator.apply and before Humanoid.update.
 // Rotate the entire arm together so elbow bend and fore/aft swing are preserved.
 // Keep 7 degrees of walk clearance and 12 degrees when jogging; never modify climbing or the bind pose.
 export function relaxWalkArms(char, motion, enabled = true, options = {}) {
   if (!enabled || !['walk','jog'].includes(motion)) return [];
-  char.root.updateMatrixWorld(true);
+  // (the arms and elbows it reads, not the whole body: issue #111)
+  if (POSE.walks) char.root.updateMatrixWorld(true);
+  else for (const e of char.elbows) updateChain(e, char.root);
   const rootQ = char.root.getWorldQuaternion(new Quaternion());
   return char.arms.map((arm, i) => {
     const dir = char.elbows[i].getWorldPosition(new Vector3()).sub(arm.getWorldPosition(new Vector3()))

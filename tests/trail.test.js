@@ -44,3 +44,23 @@ test('the hover trail rests on a roof it skims instead of sinking through it', (
   for (let i = 0; i < 60; i++) plain.update(1 / 60, new THREE.Vector3(-15 + i * 0.5, 10.1, 0));
   assert.ok(worstDepth(plain, H) < 0);
 });
+
+test('a trail with nothing laid is written once, not every frame, and draws the same as before (issue #111)', () => {
+  const scene = new THREE.Scene();
+  const a = new Trail(scene, { radius: 0.07, life: 1.5 }), b = new Trail(scene, { radius: 0.07, life: 1.5 });
+  const jet = new THREE.Vector3();
+  let skipped = 0;
+  for (let f = 0; f < 600; f++) {
+    const flying = f % 300 < 90;   // (a drone out for a second and a half, then docked for the rest)
+    jet.set(Math.sin(f * 0.05) * 6, 2, f * 0.1);
+    a._empty = false;   // (a: written every frame, as before)
+    a.update(1 / 60, flying ? jet : null);
+    const v = b.geo.attributes.position.version;
+    b.update(1 / 60, flying ? jet : null);
+    if (b.geo.attributes.position.version === v) skipped++;
+    assert.equal(b.mesh.visible, a.mesh.visible, `frame ${f}: shown alike`);
+    assert.deepEqual(Array.from(b.pos), Array.from(a.pos), `frame ${f}: the same tube`);
+    assert.deepEqual(Array.from(b.fold), Array.from(a.fold), `frame ${f}: the same bands`);
+  }
+  assert.ok(skipped > 200, `${skipped} frames not written again`);
+});

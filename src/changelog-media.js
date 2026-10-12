@@ -670,6 +670,8 @@ const WH = (x, y, z) => [x, 1600 + y, -150 + z];   // (the Whale-House's own met
 const FD = (x, y, z) => [-50 + x, 1600 + y, -180 + z];   // (the Casting-House's own metres)
 const FP = (x, y, z) => [-120 + x, 2000 + y, -260 + z];   // (the Footprint's own metres)
 const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.k3': true, 'temple.garage.lit.c1': true, 'temple.garage.lit.c2': true, 'temple.garage.lit.c3': true, 'temple.garage.open.dC': true } };
+// (v1.53: the game's update, issue #111: the Unity bundle in Node, two builds interleaved a frame each in one process)
+const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (scratch bench: the two builds in one process, a frame of each in turn, each on the script thread’s CPU clock, the bench’s own split of engine/game.js), both ways round and averaged, 12 October, the Mac’s load 35–90';
 export const CHANGELOG_MEDIA = {
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [
@@ -717,6 +719,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'window-father', caption: 'The window recording on the ship’s log, 31 s in (“I stood at the window till it went”): before, his bust over the projector; after, the whole of him by the window, his coat to below the knee', from: 'headless Chrome against this branch’s own dev server and the commit before (scripts/cinematics-qc.mjs --only call.trace, 12 October)' },
       { name: 'window-father-walk', only: 'after', caption: 'The same recording, 22 s in: walking across the lens to the window, mid-stride, the coat swung back off his knee', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs --only call.trace, 12 October)' },
     ], see: 'After the first homecoming, play the ship’s log waiting at the cockpit’s voicemail (or Debug → Cinematics → Recording trace): the father walks to the window over the projector. Every recording after it that plays further into the window recording shows him the same way.' },
+    { match: 'The Unity previews on the Xbox and the Steam Deck spend less time on each frame', numbers: [
+      { title: 'The game’s update a frame, before the Unity mirror (ms)', unit: 'ms', better: 'lower', device: 'Mac M4 Pro, Node 24 (V8 as in the Unity players), the Unity bundle', rows: [
+        { where: 'the Desert at the spawn', before: 2.85, after: 2.36 },
+        { where: 'the Desert’s camps', before: 4.22, after: 3.69 },
+        { where: 'the City-Shaft, the rim', before: 4.34, after: 4.18 },
+        { where: 'the City-Shaft, the crowd', before: 5.10, after: 4.91 },
+        { where: 'the Signal Market, the crowd', before: 3.63, after: 3.23 },
+      ], source: UPDATE53 },
+    ], see: 'On the Xbox, the Unity preview’s readout at the top left shows the script’s milliseconds a frame: lower at the Desert’s spawn than before.' },
     { match: 'Viridel’s meadow flowers seen from afar', shots: [
       { name: 'ink-flowers-far', caption: 'Viridel’s meadow 55 m off at 1920 × 1080, cropped ×2: before, the tulips and clover in heavy black outlines; after, a thinner outline in a dark shade of their own green and pink (the flowers 40 → 27 % ink, 12 → 6 % near-black)', from: INK53 },
       { name: 'ink-flowers-handheld', caption: 'The same flowers on the Handheld preset (960 × 540), cropped ×3 (34 → 23 % ink)', from: INK53 },

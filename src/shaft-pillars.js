@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { rideColumn } from './updraft.js';
+import { sphereInView } from './motion-kit/view.js';
 
 // The City-Shaft's air pillars (the author, 2026-10-10: "City shaft should have pillars of air coming up to help me
 // come back up with my wings"). The shaft breathes: warm air off the acid lake rises up it, and the makers' vents
@@ -120,13 +121,18 @@ export class ShaftPillars {
   }
   /** The pillar p (feet) is in, or null. */
   at(p) { return pillarAt(p, this.pillars); }
-  /** Lay one kind's pieces out round the camera's height: each(pillar, k, y, fade, index) writes instance `index`. */
+  /**
+   * Lay one kind's pieces out round the camera's height: each(pillar, k, y, fade, index) writes instance `index`. A
+   * pillar whose window is out of the camera's last view (src/motion-kit/view.js, with a margin) lays none: the camera
+   * sees one or two of the five at once (issue #111).
+   */
   lay(mesh, L, t, cy, each) {
     let i = 0;
     const max = mesh.instanceMatrix.count;
     for (const c of this.pillars) {
       const lo = Math.max(c.foot, cy - L.half), hi = Math.min(c.top, cy + L.half);
       if (hi <= lo) continue;
+      if (!sphereInView(_mid.set(c.x, (lo + hi) / 2, c.z), Math.hypot(c.w * 1.3, (hi - lo) / 2) + 4)) continue;
       const u = t * L.rise, [k0, k1] = latticeRange(c.foot, L.spacing, u, lo, hi);
       for (let k = k0; k <= k1 && i < max; k++) {
         const y = c.foot + k * L.spacing + u;
@@ -202,4 +208,4 @@ export class ShaftPillars {
   }
   dispose() { this.root.removeFromParent(); }
 }
-const _up = new THREE.Vector3(0, 1, 0);
+const _up = new THREE.Vector3(0, 1, 0), _mid = new THREE.Vector3();

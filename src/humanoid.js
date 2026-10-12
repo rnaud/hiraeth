@@ -3,7 +3,7 @@ import { TRAVELLER_PALETTE } from './traveller-style.js';
 import * as THREE from 'three';
 import { questPieces, questCloth } from './characters/quest-pieces.js';
 import { plantFeet, resetFeet } from './feet.js';
-import { POSE, worldPos, worldQuat } from './world-read.js';
+import { POSE, worldPos, worldQuat, updateChain } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
@@ -1356,8 +1356,10 @@ export class Humanoid {
       if (driven) bone.quaternion.copy(_qr.copy(parentQ).invert().multiply(R.q));
       else R.q.copy(parentQ).multiply(bone.quaternion);
       if (bone === this.b.pelvis && !atRest) {
-        if (!POSE.exact) bone.parent.updateWorldMatrix(true, false);   // (the model's own matrices, not made above)
-        bone.parent.updateMatrixWorld(true);
+        // (the pelvis's parent and the model above it, not made above: the parent alone, its subtree is the model's walk
+        // below, which nothing reads before it; issue #111, the traveller's 300 bones multiplied here for nothing)
+        if (POSE.exact) bone.parent.updateMatrixWorld(true);
+        else { bone.parent.updateWorldMatrix(true, false); if (POSE.walks) bone.parent.updateMatrixWorld(true); }
         _m4.copy(bone.parent.matrixWorld).invert().multiply(root.matrixWorld);
         bone.position.copy(pelvisChar).applyMatrix4(_m4);
       }
@@ -1373,31 +1375,34 @@ export class Humanoid {
       const q = animator.bone(`hand_${s}`).getWorldQuaternion(new THREE.Quaternion())
         .multiply(animator.restHands[s].clone().invert()).multiply(this.rest.get(hand).q).premultiply(rootQ);
       hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
-      hand.updateMatrixWorld(true);
-      this.shareWristRoll(s);
+      // (the hand alone when shareWristRoll walks it again after turning the forearm: its fingers and what it holds once)
+      if (POSE.walks) { hand.updateMatrixWorld(true); this.shareWristRoll(s); }
+      else { updateChain(hand, hand); if (!this.shareWristRoll(s)) hand.updateMatrixWorld(true); }
     }
   }
 
   /**
    * The clip's wrist roll (the forearm's pronation) shared with the forearm: a hand turned 60° on its
    * forearm wrung the wrist's skin thin at one ring of vertices; half of it turns the forearm about its
-   * own bone instead (the radius rolling, as it does), the hand's turn in the world kept as it was.
+   * own bone instead (the radius rolling, as it does), the hand's turn in the world kept as it was. Returns whether it
+   * turned them (the hand's subtree walked again).
    */
   shareWristRoll(s, share = WRIST_SHARE) {
     const lower = this.b[`lowerarm_${s}`], hand = this.b[`hand_${s}`];
-    if (!lower || !hand || share <= 0) return;
+    if (!lower || !hand || share <= 0) return false;
     const restRel = this._wristRest?.[s] ?? ((this._wristRest ??= {})[s] = this.rest.get(lower).q.clone().invert().multiply(this.rest.get(hand).q));
     // the hand's turn on the forearm, off its rest; its roll about the forearm's bone (the hand's rest offset, in the forearm's frame)
     const d = _wq1.copy(restRel).invert().multiply(hand.quaternion);
     const axis = _w1.copy(hand.position).normalize().applyQuaternion(restRel.clone().invert());   // (the forearm's bone in the hand's rest frame)
     // (the shorter way round: q and -q are the same turn, and the long way spun the forearm a half turn in a frame)
     const sg = d.w < 0 ? -1 : 1, k = (d.x * axis.x + d.y * axis.y + d.z * axis.z) * sg, angle = 2 * Math.atan2(k, d.w * sg);
-    if (Math.abs(angle) < 1e-4) return;
+    if (Math.abs(angle) < 1e-4) return false;
     const handWorld = hand.getWorldQuaternion(_wq2);
     lower.quaternion.multiply(_wq3.setFromAxisAngle(_w2.copy(hand.position).normalize(), angle * share));
-    lower.updateMatrixWorld(true);
+    if (POSE.walks) lower.updateMatrixWorld(true); else updateChain(lower, lower);   // (the hand's walk just below makes the rest)
     hand.quaternion.copy(lower.getWorldQuaternion(_wq4).invert().multiply(handWorld));
     hand.updateMatrixWorld(true);
+    return true;
   }
 
   // ------------------------------------------------------------------ IK

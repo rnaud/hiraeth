@@ -34,6 +34,7 @@ export class Trail {
     this.samples = [];          // { p, t, d }
     this.time = 0;
     this.dist = 0;
+    this._empty = false;   // (the tube written empty last update: update)
     this.life = life;
     this.radius = radius;
     this.offset = offset;       // colour band offset (so the two jets differ a little)
@@ -128,6 +129,10 @@ export class Trail {
     if (live) pts.push({ p: live, age: 0, d: this.dist + (S.length ? S[S.length - 1].p.distanceTo(live) : 0), g: jet ? this.groundPlane(jet, this._live, S[S.length - 1]?.g) : S[S.length - 1].g });
     for (let i = S.length - 1; i >= 0; i--) pts.push({ p: S[i].p, age: Math.min((this.time - S[i].t) / this.life, 1), d: S[i].d, g: S[i].g });
     const n = pts.length;
+    // (nothing laid, and nothing last time either: the tube is the empty one already written, hidden; the drone's,
+    // docked, wrote its 1 200 vertices and their bounds again every frame, issue #111)
+    if (n === 0 && this._empty) return;
+    this._empty = n === 0;
     const T = this._t, N = this._n, B = this._b;
     for (let r = 0; r < RINGS; r++) {
       const q = pts[Math.min(r, n - 1)];

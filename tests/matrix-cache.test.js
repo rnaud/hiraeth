@@ -91,3 +91,36 @@ test('a skinned machine\'s bounds: once a frame in its passes, exact outside the
     assert.ok(Math.abs(at() - 9) < 1e-6, 'the next frame: again');
   } finally { RENDER_FRAME.on = false; }
 });
+
+test('updateChain: an object and its parents made now, and the next walk as if the whole rig had been walked (issue #111)', async () => {
+  const { updateChain, updateMatrixCached } = await import('../src/matrix-cache.js');
+  const P = THREE.Object3D.prototype, plainMatrix = P.updateMatrix;
+  const cached = (fn) => { P.updateMatrixWorld = updateMatrixWorldCached; P.updateMatrix = updateMatrixCached; try { return fn(); } finally { P.updateMatrixWorld = threeWalk; P.updateMatrix = plainMatrix; } };
+  // A: every matrix made from scratch (three's walk, forced: the truth); B: the cache, updateChain at the reads
+  const A = build(11), B = build(11);
+  const truth = () => A.scene.updateMatrixWorld(true);
+  truth(); cached(() => B.scene.updateMatrixWorld());
+  let chained = 0;
+  for (let frame = 0; frame < 300; frame++) {
+    const r = A.rnd(); B.rnd();
+    const pick = Math.floor(r * A.all.length), at = Math.floor(((frame * 7919) % 97) / 97 * A.all.length);
+    for (const set of [A.all, B.all]) {
+      const o = set[pick];
+      const kind = frame % 5;
+      if (kind === 0) o.position.x += 0.25;
+      else if (kind === 1) o.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), frame * 0.1);
+      else if (kind === 2) { o.matrixAutoUpdate = false; o.matrix.makeTranslation(frame, 0, 0); o.matrixWorldNeedsUpdate = true; }
+      else if (kind === 3) o.scale.y = 1 + frame * 0.01;
+    }
+    // a read of the object (and its parents): updateChain makes them as they now are
+    truth(); cached(() => updateChain(B.all[at]));
+    for (let o = A.all[at], q = B.all[at]; o; o = o.parent, q = q.parent, chained++) assert.deepEqual(q.matrixWorld.elements, o.matrixWorld.elements, `the chain at frame ${frame}`);
+    // another change under it before the frame's walk, sometimes a walk from it first
+    if (frame % 3 === 0) for (const set of [A.all, B.all]) set[at].children[0]?.position.add(new THREE.Vector3(0.1, 0, 0));
+    if (frame % 2) cached(() => B.all[at].updateMatrixWorld(true));
+    // the frame's walk: every matrix as made from scratch
+    truth(); cached(() => B.scene.updateMatrixWorld());
+    for (let i = 0; i < A.all.length; i++) assert.deepEqual(B.all[i].matrixWorld.elements, A.all[i].matrixWorld.elements, `object ${i} at frame ${frame}`);
+  }
+  assert.ok(chained > 600);
+});

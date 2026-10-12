@@ -7,7 +7,12 @@ import * as THREE from 'three';
 // numbers, since nothing between changed it. __POSE_EXACT__ (a global, before the game loads) recomputes as three
 // does: tests/pose-exact.test.js poses the people both ways and compares every bone.
 
-export const POSE = { exact: !!globalThis.__POSE_EXACT__ };
+// walks: the rigs walked as before issue #111, from their roots at each read and each joint's subtree after it turns
+// (__POSE_WALKS__, or __POSE_EXACT__); else each read makes only what it reads (updateChain, src/matrix-cache.js) and the
+// rest is left to the next walk. tests/pose-exact-shaft.test.js poses the people both ways: the same matrices, bit for bit.
+export const POSE = { exact: !!globalThis.__POSE_EXACT__, walks: !!(globalThis.__POSE_EXACT__ || globalThis.__POSE_WALKS__) };
+// (an object and its parents made for a read, the rest of its rig left to the next walk: src/matrix-cache.js)
+export { updateChain } from './matrix-cache.js';
 const _p = new THREE.Vector3(), _s = new THREE.Vector3();
 
 /** o's world position (its world matrix current). */

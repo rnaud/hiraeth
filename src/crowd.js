@@ -447,6 +447,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
       offset: new THREE.Vector3(), tier: TIER.off, npc: null, unreg: null, chestV: new THREE.Vector3(),
       lines: o.lines ?? spots.lines ?? GREET_LINES, lineIdx: Math.floor(R() * 20), shoutUntil: -1e9,
       role: o.role ?? null, spot: o.spot ?? null,
+      goneAt: (id * 0.6180339887) % 1,   // (their share of the night's going home: Crowd.update, this.away)
     };
   };
   // the people and routes of a walk, in the lists' order (by id, by walk): the same lists whatever order they come in
@@ -852,7 +853,8 @@ export class Crowd {
       const dCam = p.pos.distanceTo(cam);
       // gone home (this.away): each person by their own share, and only out of the way, far from the camera, so
       // nobody vanishes or appears in front of you; while gone they are not drawn and not moved
-      const gone = ((p.id * 0.6180339887) % 1) < this.away;
+      // (the share kept on the person: a float's % is a call into the runtime, 1 500 of them a frame in the City-Shaft)
+      const gone = (p.goneAt ?? (p.goneAt = (p.id * 0.6180339887) % 1)) < this.away;
       if (gone !== !!p.gone && dCam > 45) {
         p.gone = gone; anyTierChange = true;
         if (gone && this.shout === p) this.shout = null;

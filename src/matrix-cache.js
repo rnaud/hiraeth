@@ -85,6 +85,50 @@ export function updateMatrixWorldCached(force) {
   } finally { if (counted) forcedWalk--; }
 }
 
+/**
+ * The way from `top` down to `o` made now, as `top.updateMatrixWorld(true)` would make it, without walking the rest
+ * of top's subtree: for code that walked a whole rig to read one object in it (a joint's parent, a foot; issue #111:
+ * the traveller's 363 objects walked six times a frame, the people's rigs from each joint as it turned). top is made as
+ * a forced walk's first object is (its parent's world matrix taken as it is), each object below it on the way if its
+ * numbers changed, it was flagged, or its parent changed; where a world matrix changed, the children off the way are
+ * flagged (matrixWorldNeedsUpdate), so the next walk over them makes them as the walk from top would have: the same
+ * numbers, the rest of the work left to that walk. (o not under top: from the scene's root.) Without the cache
+ * (installMatrixCache not run): three's updateWorldMatrix(true, false).
+ */
+export function updateChain(o, top = null) {
+  if (o.updateMatrixWorld !== updateMatrixWorldCached) { o.updateWorldMatrix(true, false); return; }
+  if (o !== top && o.parent !== null) updateChain(o.parent, top);
+  chainStep(o, o === top);
+}
+
+const _was = new Float64Array(16);
+function chainStep(o, first) {
+  let forced = first;
+  if (o._mcParent !== o.parent) { o._mcParent = o.parent; o.matrixWorldNeedsUpdate = true; }
+  if (o.matrixAutoUpdate) {
+    const p = o.position, q = o.quaternion, s = o.scale;
+    let k = o._pqs;
+    if (k === undefined) k = o._pqs = new Float64Array(10).fill(NaN);
+    if (k[0] !== p.x || k[1] !== p.y || k[2] !== p.z || k[3] !== q._x || k[4] !== q._y || k[5] !== q._z || k[6] !== q._w
+      || k[7] !== s.x || k[8] !== s.y || k[9] !== s.z) {
+      k[0] = p.x; k[1] = p.y; k[2] = p.z; k[3] = q._x; k[4] = q._y; k[5] = q._z; k[6] = q._w; k[7] = s.x; k[8] = s.y; k[9] = s.z;
+      o.matrix.compose(p, q, s);
+      o.matrixWorldNeedsUpdate = true;
+    }
+  } else forced = true;   // (its owner's matrix, maybe written without a flag: made again, as a forced walk does)
+  if (!o.matrixWorldNeedsUpdate && !forced) return;
+  let changed = o.matrixWorldNeedsUpdate;
+  if (o.matrixWorldAutoUpdate === true) {
+    const w = o.matrixWorld.elements;
+    if (!changed) for (let i = 0; i < 16; i++) _was[i] = w[i];
+    if (o.parent === null) o.matrixWorld.copy(o.matrix);
+    else o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
+    if (!changed) for (let i = 0; i < 16; i++) if (_was[i] !== w[i]) { changed = true; break; }
+  } else changed = true;
+  o.matrixWorldNeedsUpdate = false;
+  if (changed) { const c = o.children; for (let i = 0, l = c.length; i < l; i++) c[i].matrixWorldNeedsUpdate = true; }
+}
+
 /** An object's own updateMatrixWorld called as a walk would call it, from inside one (engine/scene-matrices.js's list). */
 export function updateInWalk(o, force) {
   walking++;
