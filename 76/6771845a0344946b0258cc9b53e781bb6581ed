@@ -1,0 +1,52 @@
+changelog.md
+  s_972174feb57bbc::t_167838417f185c 15
+docs/systems/characters.md
+  s_972174feb57bbc::t_cedb2db3b1943e 1051-1085
+prompts/elder-reference-v1.txt
+  s_972174feb57bbc::t_1f654eda27c7aa 1
+public/guardians/elder-v1/rig.json
+  s_972174feb57bbc::t_fa4add0cbdf70a 1-34
+references/guardians/elder/midjourney-reference-v1.json
+  s_972174feb57bbc::t_b148a275a3ab44 1-49
+references/guardians/elder/tripo-v1.json
+  s_972174feb57bbc::t_7195fd25637dbb 1-117
+scripts/tripo/README.md
+  s_972174feb57bbc::t_06dac024a29e9a 236-287
+scripts/tripo/rig-elder.mjs
+  s_972174feb57bbc::t_1b8dc572fd7a72 1-26
+src/changelog-media.js
+  s_972174feb57bbc::t_6148d28754607b 747-758
+src/changelog.js
+  s_972174feb57bbc::t_3576e38ad69d07 25
+src/characters/elder-creature.js
+  s_972174feb57bbc::t_63e1ae81976c39 1-54
+src/characters/elder-fit.js
+  s_972174feb57bbc::t_ac102f091ec68b 1-48
+src/characters/tripo-material.js
+  s_972174feb57bbc::t_90c2b0a2728425 7
+tests/elder-creature.test.js
+  s_972174feb57bbc::t_fa6a9e6a480970 1-116
+tools/elder-review.html
+  s_972174feb57bbc::t_4b41fe02360d39 1
+tools/elder-review.js
+  s_972174feb57bbc::t_b0a025b33818f7 1-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "766771845a0344946b0258cc9b53e781bb6581ed",
+  "prompts": {},
+  "sessions": {
+    "s_972174feb57bbc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130aa-d20e-7633-9556-f28303d59bce",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
