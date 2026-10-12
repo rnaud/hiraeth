@@ -1,0 +1,23 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_a688be70d3bfe8 1761-1766
+src/matrix-cache.js
+  s_9ca76055a220ed::t_8cda37377d8399 132-147,160
+tests/bike-visible.test.js
+  s_9ca76055a220ed::t_2da34e529ce106 1-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9675d37fdd697c153e75c1ce1843170ba06f14ae",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
