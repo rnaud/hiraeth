@@ -135,19 +135,26 @@ function slotHtml(s) {
 
 /**
  * The Saves screen's debug saves (issue #203: "a debug saves option in the save menu that restarts the game at a
- * specific level and has unlocked everything in all the previous levels"), the author's only (devMode): the slot it
- * writes (`into`: the debug slot, the player's saves untouched, or one of them, asked first when it holds a save), then
- * every world of the route, its picture and how many worlds before it are done. src/debug-save.js writes the save.
+ * specific level and has unlocked everything in all the previous levels"), shown to whoever src/dev-gate.js lets in
+ * (every player while ALWAYS_DEV stays on): the slot it writes (`into`: the debug slot, the player's saves untouched,
+ * or one of them, asked first when it holds a save), then every world of the route, its picture and how many worlds
+ * before it are done. src/debug-save.js writes the save. Folded shut (`open` false, issue #227): one "Debug" row under
+ * the saves, the route's worlds neither on the screen nor in the pad's path until it is chosen (A opens it, A folds it).
  */
-export function debugSavesHtml(into = DEBUG_SLOT, order = ORDER) {
+export function debugSavesHtml(into = DEBUG_SLOT, order = ORDER, open = false) {
+  const head = `<button class="dopen" data-a="debug-open" aria-expanded="${open}">${glyph('ok', { focus: true })}<span class="dh">${t(open ? 'title.dbg.head' : 'title.debug')}</span><em class="dtag">${t('title.dbg.tag')}</em><span class="dfold" aria-hidden="true">${open ? '▴' : '▾'}</span></button>`;
+  if (!open) return head;
   const slotName = into === DEBUG_SLOT ? t('title.dbg.intoDebug') : t('title.save', { n: into });
   const world = (id, i) => `<li><button class="dworld" data-debug-world="${esc(id)}"><img class="thumb" src="thumbs/${esc(id)}.jpg" alt="" onerror="this.style.visibility='hidden'">
       <span class="txt"><b>${i + 1}</b><span class="world">${esc(TITLES[id] ?? id)}</span><span class="prog">${i === 0 ? t('title.dbg.fresh') : i === 1 ? t('title.dbg.before1') : t('title.dbg.before', { n: i })}</span></span>${glyph('ok', { focus: true })}</button></li>`;
-  return `<div class="dhead"><h3>${t('title.dbg.head')}</h3><em class="dtag">${t('title.dbg.tag')}</em></div>
+  return `${head}
     <p class="why">${t('title.dbg.why')}</p>
     <button class="dinto" data-a="debug-into">${glyph('ok', { focus: true })}<span>${esc(t('title.dbg.into', { slot: slotName }))}</span></button>
     <ol class="dworlds">${order.map(world).join('')}</ol>`;
 }
+
+/** The Saves screen's rows the pad steps through: Back, each save, then the debug section's buttons (one row while folded). */
+export const savesRows = (savesEl) => [savesEl.querySelector('[data-a="back"]'), ...savesEl.querySelectorAll('.slot, .debug-saves button')];
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again. */
 export const nextDebugInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
@@ -217,7 +224,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const confirmEl = root.querySelector('.confirm');
     let screen = 'main', toDelete = null, done = false;
     // (the debug saves: the slot they write, and the one waiting for "Replace Save n?")
-    let debugInto = DEBUG_SLOT, pendingDebug = null;
+    // (and whether its world list is open: folded shut each time the Saves screen opens, issue #227)
+    let debugInto = DEBUG_SLOT, pendingDebug = null, debugOpen = false;
 
     const focusFirst = (el) => el.querySelector('button:not([disabled])')?.focus({ preventScroll: true });
     const renderMain = () => {
@@ -252,7 +260,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     win.addEventListener('resize', onResize);
     const renderSaves = () => {
       // (the author's debug saves under the player's, issue #203: src/dev-gate.js decides who sees them)
-      const debug = devMode({ settings }) ? `<li class="debug-saves">${debugSavesHtml(debugInto)}</li>` : '';
+      const debug = devMode({ settings }) ? `<li class="debug-saves${debugOpen ? ' open' : ''}">${debugSavesHtml(debugInto, ORDER, debugOpen)}</li>` : '';
       root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join('') + debug;
     };
     // a debug save at a world: into the debug slot at once; into one of the player's, asked first if it holds a save
@@ -341,7 +349,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const act = (a, el) => {
       if (a === 'continue') choose(store.latest());
       else if (a === 'new') choose(store.firstEmpty() ?? 1);
-      else if (a === 'saves') show('saves', '.slot .pick');
+      else if (a === 'saves') { debugOpen = false; show('saves', '.slot .pick'); }
       else if (a === 'back') back();
       else if (a === 'settings') settingsMenu.toggle(true);
       else if (a === 'debug' && devMode({ settings })) {
@@ -357,7 +365,13 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         Promise.resolve(p).catch(() => {}).finally(() => setTimeout(() => { if (screen === 'main') show('main', '[data-a="fullscreen"]'); }, 150));
       } else if (a === 'keep') closeConfirm();
       else if (a === 'delete' && pendingDebug) { const { id, slot } = pendingDebug; startDebug(id, slot, true); }
-      else if (a === 'debug-into') {
+      else if (a === 'debug-open') {
+        debugOpen = !debugOpen;
+        renderSaves();
+        const head = root.querySelector('[data-a="debug-open"]');
+        head?.focus({ preventScroll: true });
+        if (debugOpen) head?.scrollIntoView?.({ block: 'start' });
+      } else if (a === 'debug-into') {
         debugInto = nextDebugInto(debugInto);
         renderSaves();
         root.querySelector('[data-a="debug-into"]')?.focus({ preventScroll: true });
@@ -384,7 +398,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
 
     // the save selector moves by rows (up / down) and between a save and its Delete (left / right)
     const savesNavigate = (x, y) => {
-      const rows = [savesEl.querySelector('[data-a="back"]'), ...savesEl.querySelectorAll('.slot, .debug-saves button')];
+      const rows = savesRows(savesEl);
       const cur = doc.activeElement, i = rows.findIndex((r) => r === cur || r.contains(cur));
       if (y || i < 0) {
         const next = rows[i < 0 ? 1 : (i + (y || 1) + rows.length) % rows.length];

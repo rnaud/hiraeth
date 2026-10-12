@@ -176,7 +176,10 @@ quest things carried in a pack.
 
 **From the title's Saves screen** (v1.58, issue #203: "a debug saves option in the save menu that restarts the
 game at a specific level"): under the three saves, on dashed red paper and tagged DEBUG, "Debug: start at a
-world" (`debugSavesHtml` in `src/title.js`; shown with the same gate as the Debug entries, `devMode`): **Into**
+world" (`debugSavesHtml` in `src/title.js`; shown with the same gate as the Debug entries, `devMode`, so to every
+player while `ALWAYS_DEV` stays on). It is folded shut (v1.60, issue #227): one small "Debug" row under the
+saves, the only one of its buttons in the pad's rows (`savesRows`), until A / × or a click opens it (again folds
+it; folded each time the Saves screen opens), so a newcomer never sees the route's worlds. Opened: **Into**
 (A / × or a click turns it: the debug save, the player's untouched; Save 1, 2, 3), then every world of the route
 with its picture and how many worlds before it are done. Choosing one goes to `debugSaveHref(id, slot)`
 (`src/save-slots.js`: `?level=<id>&debugsave=1`, and `&debugslot=<n>` for a player's slot), which `src/boot.js`

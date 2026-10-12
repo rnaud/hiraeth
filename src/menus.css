@@ -120,10 +120,14 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 #title .slot .del.spacer { visibility: hidden; border: 2.5px solid transparent; }
 
 /* the author's debug saves under the slots (src/title.js debugSavesHtml, issue #203): a world of the route a row, on
-   dashed red paper so nobody takes it for a save of their own */
-#title .debug-saves { margin-top: clamp(6px, 1.6vh, 16px); padding: clamp(8px, 1.6vh, 14px) clamp(8px, 1.4vw, 14px); border: 2.5px dashed #c8483a; background: repeating-linear-gradient(135deg, rgba(200, 72, 58, 0.05) 0 10px, transparent 10px 20px); }
-#title .debug-saves .dhead { display: flex; align-items: center; gap: 10px; }
-#title .debug-saves h3 { margin: 0; font-size: calc(clamp(13px, 2.3vh, 19px) * var(--ts, 1)); letter-spacing: 0.12em; text-transform: uppercase; }
+   dashed red paper so nobody takes it for a save of their own; folded to one small "Debug" row until chosen (#227) */
+#title .debug-saves { margin-top: clamp(6px, 1.6vh, 16px); align-self: flex-start; padding: 4px; border: 2.5px dashed #c8483a; background: repeating-linear-gradient(135deg, rgba(200, 72, 58, 0.05) 0 10px, transparent 10px 20px); }
+#title .debug-saves.open { align-self: stretch; padding: clamp(8px, 1.6vh, 14px) clamp(8px, 1.4vw, 14px); }
+#title .debug-saves .dopen { display: inline-flex; align-items: center; gap: 10px; padding: 4px 12px; background: transparent; box-shadow: none; border-color: transparent; }
+#title .debug-saves .dopen:focus, #title .debug-saves .dopen:hover { border-color: #2b211f; background: #f7ecd2; }
+#title .debug-saves .dh { font-weight: bold; font-size: calc(clamp(11px, 1.8vh, 15px) * var(--ts, 1)); letter-spacing: 0.12em; text-transform: uppercase; }
+#title .debug-saves.open .dh { font-size: calc(clamp(13px, 2.3vh, 19px) * var(--ts, 1)); }
+#title .debug-saves .dfold { font-size: 0.8em; opacity: 0.7; }
 #title .debug-saves .dtag { padding: 0 8px; font-style: normal; font-size: calc(clamp(9px, 1.4vh, 11px) * var(--ts, 1)); line-height: 1.7; letter-spacing: 0.14em; text-transform: uppercase; color: #fff6dc; background: #c8483a; border: 1.5px solid #2b211f; border-radius: 6px; }
 #title .debug-saves .why { margin: 4px 0 8px; font-size: calc(clamp(11px, 1.7vh, 14px) * var(--ts, 1)); opacity: 0.8; }
 #title .debug-saves .dinto { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; margin-bottom: 8px; font-size: calc(clamp(11px, 1.8vh, 15px) * var(--ts, 1)); font-weight: bold; }

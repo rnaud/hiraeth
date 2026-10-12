@@ -14,6 +14,8 @@ export const CHANGELOG = [
     'In the Undertower the Choir and its great key have moved beside the Shell Chamber, over the Cable Store. Its door, and a keepers’ gate high on the Cable Well’s wall, open when a horn back on the first hall’s far landing, at the end of the gate’s cable, hears the middle note. Inside, the near horn wants the high note, and only the Cable Well’s stone below the gate sings it.',
     'In the Lamp-House the Wick Room is off the Hall of Dark Pools now, open and dark when you first come in. The Kennel’s small key goes into the grille over the great key, and the grille lifts once both niches burn, so you bring the lantern back down for it. A stair and a keepers’ door take you back out onto the Root Stair’s root-wall. The Lamp Passage’s door needs only its lamp.',
     'In the Builders’ Greenhouse the Seed Vault is off the Shade House now: win the Shade House and a door in its north wall opens on the vault’s two seeds and its glass, long before you have bloom mode. Come back with it for the great key, and at the top of the vine a keepers’ door lets you out onto the Glass Stair’s root-wall, by the disc.',
+    // loose ends from the v1.59 game audit (docs/audits/game-v1.59.md; issues #227, #230, #231, #232, #235)
+    'The Saves screen shows your three saves and one small closed “Debug” row under them: the list of every world opens only when you choose it, and moving down the saves no longer runs on into it.',
   ] },
   { v: '1.59', date: '2026-10-12', items: [
     // the chime pirates reworked from the author's notes (src/minigames/pirates.js, pirates-rules.js; docs/systems/minigames.md

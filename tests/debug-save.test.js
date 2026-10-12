@@ -286,17 +286,37 @@ test('into one of the player\'s slots only when chosen: that slot alone is writt
 test('the Saves screen\'s debug saves: every world of the route, marked debug, the debug slot unless one is chosen, asked before one is replaced', async () => {
   globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget();   // (ui.js reads them at import)
   const { debugSavesHtml, nextDebugInto } = await import('../src/title.js');
-  const html = debugSavesHtml();
+  const html = debugSavesHtml(DEBUG_SLOT, ORDER, true);
   assert.match(html, /Debug: start at a world/); assert.match(html, /class="dtag">debug</);
   assert.match(html, /Into: the debug save \(your saves untouched\)/);
   const worlds = [...html.matchAll(/data-debug-world="([a-z0-9]+)"/g)].map((m) => m[1]);
   assert.deepEqual(worlds, ORDER, 'every world, in the route\'s order');
   assert.match(html, /a new journey/); assert.match(html, /1 world done before it/); assert.match(html, new RegExp(`${ORDER.length - 1} worlds done before it`));
-  assert.match(debugSavesHtml(2), /Into: Save 2/);
+  assert.match(debugSavesHtml(2, ORDER, true), /Into: Save 2/);
   assert.deepEqual([nextDebugInto(DEBUG_SLOT), nextDebugInto(1), nextDebugInto(SLOT_COUNT)], [1, 2, DEBUG_SLOT], 'the debug slot, then each of the player\'s, round again');
   const title = fs.readFileSync(path.join(SRC, 'title.js'), 'utf8');
-  assert.match(title, /devMode\(\{ settings \}\) \? `<li class="debug-saves">/, 'the author\'s only (src/dev-gate.js)');
+  assert.match(title, /devMode\(\{ settings \}\) \? `<li class="debug-saves\$\{debugOpen \? ' open' : ''\}">\$\{debugSavesHtml\(debugInto, ORDER, debugOpen\)\}/, 'shown where src/dev-gate.js says, folded or open');
   assert.match(title, /if \(slot !== DEBUG_SLOT && !asked && !store\.summary\(slot\)\.empty\) \{ askDebug\(id, slot\); return; \}/, 'a slot holding a save: asked first');
   assert.match(title, /if \(!store\.holding\) store\.holdWrites\(\);/, 'the game behind the title writes nothing into the slot it was loading');
   assert.match(title, /debugSaveHref\(id, slot\)/);
+});
+
+// issue #227: a first-time player's Saves screen showed the whole route (ALWAYS_DEV): the section folds to one row
+test('the Saves screen\'s debug section is one closed "Debug" row until chosen: no world in it or in the pad\'s path', async () => {
+  globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget();
+  const { debugSavesHtml, savesRows } = await import('../src/title.js');
+  const shut = debugSavesHtml();
+  assert.equal((shut.match(/<button/g) ?? []).length, 1, 'one row: the pad steps onto it once and no further');
+  assert.match(shut, /data-a="debug-open" aria-expanded="false"/); assert.match(shut, />Debug</);
+  assert.doesNotMatch(shut, /data-debug-world|thumbs\//, 'no world named or pictured');
+  const open = debugSavesHtml(DEBUG_SLOT, ORDER, true);
+  assert.match(open, /data-a="debug-open" aria-expanded="true"/);
+  assert.equal((open.match(/<button/g) ?? []).length, ORDER.length + 2, 'opened: its head, the slot it writes and every world');
+  // the pad's rows: Back, the saves, then whatever buttons the debug section holds (one while folded)
+  const fake = { querySelector: (q) => (q === '[data-a="back"]' ? 'back' : null), querySelectorAll: (q) => (assert.equal(q, '.slot, .debug-saves button'), ['s1', 's2', 's3', 'debug']) };
+  assert.deepEqual(savesRows(fake), ['back', 's1', 's2', 's3', 'debug']);
+  const title = fs.readFileSync(path.join(SRC, 'title.js'), 'utf8');
+  assert.match(title, /else if \(a === 'saves'\) \{ debugOpen = false; show\('saves'/, 'folded each time the screen opens');
+  assert.match(title, /else if \(a === 'debug-open'\) \{\s*debugOpen = !debugOpen;\s*renderSaves\(\);/, 'A opens it (and folds it)');
+  assert.match(title, /const rows = savesRows\(savesEl\);/);
 });
