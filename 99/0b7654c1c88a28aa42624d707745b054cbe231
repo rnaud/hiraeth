@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_8c0906fc5f7847 8
+docs/audits/ink-lines-v1.53.md
+  s_9ca76055a220ed::t_351e66f8136621 94-97
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_ef6fd8ce391483 946-951
+src/changelog-media.js
+  s_9ca76055a220ed::t_ee3979b8fc423a 677-683
+src/changelog.js
+  s_9ca76055a220ed::t_37fa7f784f99a6 12-13
+src/levels/space-city-kit.js
+  s_9ca76055a220ed::t_692653746a5f43 7,36-38,108-110,166-168,170,215-216,226-228,230
+src/levels/space-city.js
+  s_9ca76055a220ed::t_a779434a4503bb 6,310
+tests/spacecity.test.js
+  s_9ca76055a220ed::t_1472907fb4e9e9 7-8,82-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "990b7654c1c88a28aa42624d707745b054cbe231",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
