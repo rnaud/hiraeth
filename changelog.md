@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Lorn’s crystal roots now lie under the water instead of painted on it: soft-edged veins of violet and teal crystal seen through the surface, tapering into thinner twigs, fainter the deeper they run, with light flowing along them toward the Great Crystal.
 - On handhelds and phones, far-off towns, facades and forests no longer shimmer as you look round: lines on detail too small to draw at that distance are inked lighter, and the picture’s edges are smoothed more sharply.
 - The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.
+- The Elder of Vael has an unfinished animated guardian preview with walking, wingbeats and attacks. Her face stays turned, her leg joints wobble, and her hovering legs still need to fold up like a bird; these and further motion fixes remain before temple use.
 - Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.
 - In small rooms the camera settles: turning round, it keeps one steady distance instead of pushing in at every wall and back out at every gap, and it no longer creeps in and out by a few centimetres.
 - Your ship is roomier inside: wider rooms, a higher ceiling, wider doorways, a longer cockpit and back room, a deeper bunk alcove and a bigger hold, where Orrin keeps his jar by the crates. The hull outside grew to fit.

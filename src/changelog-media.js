@@ -744,6 +744,18 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Desert’s spawn: frames a second', before: 59.5, after: 59.6 },
       ], source: 'scripts/xbox-unity.mjs, build 2027; the rim and the Desert the mean of the last 30 s of a 170 s run, the views -bench 6; before: the same build with -no-shadow-sweep -shadow-camera -no-shadow-instances -no-shadow-chunks -v8 none (the Desert’s before: build 1973); 12 October' },
     ], see: 'On the Xbox, start the Unity preview in the City-Shaft and watch the readout at the top left at the rim: about 57 frames a second where it showed 45.' },
+    { match: 'The Elder of Vael has an unfinished animated guardian preview', tags: ['characters', 'vael'], shots: [
+      { name: 'elder-animated-walk', title: 'Walking', only: 'after', size: [531, 567],
+        caption: 'The generated Elder walking on her fitted bird legs. The beak closes at rest and the feather linework uses a softer colour. Unfinished prototype: the head stays turned and the leg joints wobble. Not accepted for live temple use.',
+        from: 'Elder review, game ink, three-quarter view, Walk at 2.4 s; captured in Codex on 12 October 2026.',
+        reference: { sheet: 'references/guardians/elder/reference-v1-4.png', caption: 'Approved Midjourney option 4, edited from the canonical Elder sheet and used in Tripo.' } },
+      { name: 'elder-flight', title: 'Wingbeats', only: 'after', size: [531, 567],
+        caption: 'The wings beat, but the legs remain rigid and extended: a bird-like tuck and takeoff/landing transitions are still missing.',
+        from: 'Elder review, game ink, matching three-quarter view, Hover at 2 s; captured in Codex.' },
+      { name: 'elder-closed-beak', title: 'Closed beak', only: 'after', size: [531, 567],
+        caption: 'The lower beak closes beneath the upper beak; the skull and upper beak remain fixed.',
+        from: 'Elder review, game ink, Head close-up, Beak closed at 2.4 s; captured in Codex.' },
+    ], see: 'On the development server open /tools/elder-review.html. Try Walk, Turn, Hover, the attacks, Weary and Resolved. Encounter controller runs the real boss driver; choose Ground, Hover or Final fight. Show rig reveals the skeleton. Time and Go hold a repeatable pose; compare game ink, unlit and clay. Known issues: the face stays turned, leg joints wobble, and hovering legs do not tuck. Further animation and deformation review is required; tracked in GitHub issue #237 (https://github.com/rnaud/hiraeth/issues/237). The live temple is unchanged; arena effects are hidden in this isolated review.' },
     { match: 'The Cistern-Keeper has an experimental animation preview', tags: ['characters', 'desert'], shots: [
       { name: 'keeper-procedural-walk', title: 'Walking pilot', size: [531, 550],
         caption: 'Animation pilot, before and after refinement: synchronized tripods and an open resting mouth become staggered supported footfalls and a closed mouth. The live temple guardian is unchanged.',

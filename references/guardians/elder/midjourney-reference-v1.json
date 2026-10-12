@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-12",
+  "service": "Midjourney",
+  "job": "185dc8fc-4482-40d1-800c-2fcf5132e844",
+  "url": "https://www.midjourney.com/jobs/185dc8fc-4482-40d1-800c-2fcf5132e844?index=3",
+  "source": "references/guardians/elder/sheet-1.jpg",
+  "sourceRole": "Attach to prompt / Edit Reference (--edit)",
+  "sourceUrl": "https://s.mj.run/5dR9ba9o98s",
+  "promptFile": "prompts/elder-reference-v1.txt",
+  "aspectRatio": "4:3",
+  "status": "user-approved",
+  "recommendedCandidateIndex": 3,
+  "review": "Four candidates inspected. Candidate 4 (zero-based index 3) has the strongest rounded torso, separated wings and readable grounded feet; candidate 2 is an alternative. Candidate 3 has malformed raised toe-like geometry at the left ankle. The batch preserves the source palette and feather design, with denser hatching than the canonical sheet.",
+  "tripoStarted": true,
+  "motionContract": {
+    "factory": "src/temples/guardians.js:elderModel",
+    "encounter": "src/temples/arzach.js:ELDER",
+    "parts": [
+      "two heron legs with planted feet",
+      "curved neck and head",
+      "two shoulder hinges and articulated stone-feather wings",
+      "body lift and tilt"
+    ],
+    "anchors": [
+      "mouth",
+      "wings",
+      "feet"
+    ],
+    "motions": [
+      "sleep and wake",
+      "walk and turn",
+      "peck",
+      "stamp",
+      "buffet and gale",
+      "dive",
+      "feather volley",
+      "hover",
+      "open",
+      "weary",
+      "resolved"
+    ]
+  },
+  "selectedCandidateIndex": 3,
+  "userApproved": true,
+  "approvalNote": "User explicitly approved option 4 for Tripo on 2026-10-12.",
+  "file": "reference-v1-4.png",
+  "bytes": 1664301,
+  "sha256": "0a485fe0bb7f1702918e11df604688b5c5d42bd5fa48b64936825a663e88d487"
+}

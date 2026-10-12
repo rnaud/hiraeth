@@ -1048,3 +1048,38 @@ rest every frame and when switching the review to rest; translated/rotated spawn
 are covered. The exported GLB contains the fitted rig/weights; the correction,
 like the face keys, runs in `father-v1.js` in both game and review. The review now
 measures animation CPU time separately from render submission.
+
+### Elder generated guardian review (12 October 2026)
+
+The approved Elder reference now has a fitted 23-joint Tripo skin and runtime
+animation in `src/characters/elder-creature.js`. `/tools/elder-review.html` runs
+walking, turning, folded/spread wings, hovering wingbeats, the closed/open beak,
+all Elder attack families and rest states. Its encounter mode uses the actual
+Guardian controller and `ELDER` phases. No automatic humanoid rig or service
+animation is used. See `scripts/tripo/README.md` for reproduction and budgets.
+
+The independent leg frames follow measured two-bone IK, while shoulder/elbow/tip
+chains and neck/head/beak/tail remain under the body telegraph frame. Airborne
+motion suppresses the planted-foot body-height offset that would otherwise cancel
+hover. Anatomical weight masks exclude the belly from the legs, the tail from the
+wing roots, and the front neck from the beak; full-cycle edge checks caught each
+of those failures during fitting. `tests/elder-creature.test.js` also exercises
+all three real encounter phases, anchors, rest reset and closed-beak isolation.
+
+Imported meshes may opt into softer per-material ink with `userData.inkLine` and
+`userData.inkTint`; absent values retain the previous character renderer defaults.
+The Elder uses these through the shared G-buffer adapter, preserving texture
+linework instead of adding heavy black lines over every feather. This does not
+remove painted lighting. Full temple integration, wind/vent interactions, final
+touch, lighting-neutral albedo and device/LOD acceptance remain separate stages.
+
+
+**Checkpoint status: unfinished prototype; visual acceptance failed.** User review
+on 12 October identified a persistently turned face, wobbling leg joints, and
+rigid extended legs during hover instead of an avian tuck. The source head is
+already turned; zero runtime head yaw preserves that geometry rather than
+straightening it. The IK instability still needs diagnosis, and flight needs
+articulated leg folding with takeoff/landing contact transitions. Further full-cycle
+motion and deformation work is required. Existing numerical tests establish
+limited invariants, not natural motion or visual readiness. Track repairs and
+full temple acceptance in [GitHub issue #237](https://github.com/rnaud/hiraeth/issues/237).

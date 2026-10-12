@@ -4,7 +4,7 @@ import { makeMaterial, sharedUniforms as SU } from '../materials.js';
 // G-buffer. Keep the preview's repair and lining treatments in both render modes.
 export function makeReviewInkMaterial(mesh, { lining = false } = {}) {
  const original=mesh.material;
- const mat=makeMaterial({color:original.color,map:original.map,vertexColors:original.vertexColors,side:original.side,figure:true}).clone();
+ const mat=makeMaterial({color:original.color,map:original.map,vertexColors:original.vertexColors,side:original.side,figure:true,line:mesh.userData.inkLine,lineTint:mesh.userData.inkTint}).clone();
  Object.assign(mat.uniforms,SU);
  const repair=!!mesh.geometry.attributes.trouserRepair;
  if(repair){

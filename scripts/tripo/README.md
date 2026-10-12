@@ -233,3 +233,55 @@ The lower body is held to the pelvis for stationary holograms; walking and cloth
 are not supported. Runtime face keys are supplied by `src/characters/father-v1.js`.
 Use `tools/father-review.html` for unlit/opposing-light checks and the game’s
 `cinematics.html#call.1` for integration review. Use temporary folders for downloads.
+
+## Elder guardian animation review (12 October 2026)
+
+Approved reference: `references/guardians/elder/reference-v1-4.png`, Midjourney
+job `185dc8fc-4482-40d1-800c-2fcf5132e844`, candidate 3 (fourth image).
+Tripo H3.1 job `83a6d028-cc00-49a9-bae6-3f5b04b438c6` used 50 credits with
+Remove Lighting on. The untouched 5,277,500-byte export is retained locally at
+`output/character-tripo/elder-v1/source.glb`; recover it from the recorded Tripo
+job when rebuilding on another checkout. Its SHA-256 is checked by the builder.
+
+Run `node scripts/tripo/rig-elder.mjs` to rebuild the 23-joint skin and its report
+under `public/guardians/elder-v1/`. Landmarks and weights are measured in
+`src/characters/elder-fit.js`; they are specific to this source. The shipped
+review derivative is 3,084,068 bytes, 48,176 triangles, 28,379 vertices, one draw
+call/material, and a 2K JPEG (~21.3 MiB decoded RGBA8 including mipmaps). Geometry
+is unchanged; the original 4K texture is preserved in the source export. No LOD
+or device-performance acceptance has been established.
+
+Open `/tools/elder-review.html` on port 5174. Walking and turning use the shared
+GuardianLegs planner with measured lengths and smooth foot arcs. Wing chains,
+neck, head, lower beak and tail are driven by `createElderCreature`; all motion
+is procedural at runtime, with no baked clips. Encounter controller uses the
+real Guardian/ELDER definitions. Phase selects ground, airborne and final combat;
+Show rig includes the independently driven leg chains. Time/Go resets and steps
+the same state to a fixed pose. All previews are silent.
+
+Run `node --test tests/elder-creature.test.js tests/keeper-creature.test.js
+ tests/materials-pass.test.js tests/motion-guardians.test.js
+ tests/guardian-twists.test.js` (as one command) and `npm run build`.
+The checks cover actual vertex displacement, bind roundtrips, normalized and
+meaningful weights, planted feet under translation/rotation, lower-beak isolation,
+full-cycle edge stretching, continuous attack transitions and all encounter phases.
+Visual inspection includes game ink, clay and unlit from front, side and rear.
+
+This is an isolated animation review; the live temple still uses its existing
+model. The vent/wind puzzle, final touch and effects need full-arena acceptance
+before promotion. Painted dark creases remain despite Remove Lighting; the lighter
+per-mesh ink treatment does not claim to remove baked lighting. Review captures
+and the complete source inventory remain in `output/character-tripo/elder-v1/`;
+settings, provenance and acceptance limits are tracked under
+`references/guardians/elder/`. The interactive changelog records the animated review.
+
+
+**Checkpoint status: unfinished prototype; visual acceptance failed.** User review
+on 12 October identified a persistently turned face, wobbling leg joints, and
+rigid extended legs during hover instead of an avian tuck. The source head is
+already turned; zero runtime head yaw preserves that geometry rather than
+straightening it. The IK instability still needs diagnosis, and flight needs
+articulated leg folding with takeoff/landing contact transitions. Further full-cycle
+motion and deformation work is required. Existing numerical tests establish
+limited invariants, not natural motion or visual readiness. Track repairs and
+full temple acceptance in [GitHub issue #237](https://github.com/rnaud/hiraeth/issues/237).

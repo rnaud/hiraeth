@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-12",
+  "job": "83a6d028-cc00-49a9-bae6-3f5b04b438c6",
+  "url": "https://studio.tripo3d.ai/workspace/generate/83a6d028-cc00-49a9-bae6-3f5b04b438c6",
+  "sourceReference": "references/guardians/elder/reference-v1-4.png",
+  "model": "H3.1 Best Quality",
+  "credits": 50,
+  "balanceBefore": 2875,
+  "balanceAfter": 2825,
+  "settings": {
+    "ultraMeshQuality": true,
+    "aiComplete": false,
+    "texture": true,
+    "textureSize": "4K",
+    "removeLighting": true,
+    "pbr": false,
+    "topology": "Triangle",
+    "targetPolycount": 50000,
+    "generateInParts": false,
+    "privacy": "Sharing Only"
+  },
+  "status": "custom-rig-and-procedural-animation-review",
+  "sourceExport": "output/character-tripo/elder-v1/source.glb",
+  "review": "/output/character-tripo/elder-v1/review.html",
+  "animationVerified": true,
+  "liveGameIntegrated": false,
+  "exportInventory": {
+    "bytes": 5277500,
+    "sha256": "e1b52b576767ba51a03ad65ac3e4109e524abafc6f191425b3e78885b593c400",
+    "meshes": 1,
+    "skins": 0,
+    "animations": 0,
+    "materials": 1,
+    "images": [
+      {
+        "name": "elder-v1-source_basecolor.jpg",
+        "bufferView": 0,
+        "mimeType": "image/jpeg"
+      }
+    ],
+    "primitives": [
+      {
+        "vertices": 28379,
+        "triangles": 48176,
+        "attributes": [
+          "POSITION",
+          "NORMAL",
+          "TEXCOORD_0"
+        ],
+        "bounds": [
+          [
+            -0.490570068359375,
+            0,
+            -0.301422119140625
+          ],
+          [
+            0.490570068359375,
+            0.65411376953125,
+            0.301422119140625
+          ]
+        ]
+      }
+    ],
+    "texture": {
+      "width": 4096,
+      "height": 4096,
+      "format": "jpeg"
+    }
+  },
+  "reviewFindings": {
+    "anatomy": "Two legs, distinct toes, two layered wings and tail are present; inspected three-quarter, side and back in unlit and clay. Beak is slightly open despite the closed-beak reference.",
+    "texture": "Remove Lighting was enabled. Broad dark neck/feather creases remain in unlit; lighting neutrality not accepted. Opposing-light screenshots saved.",
+    "gameShading": "Game ink preview accentuates noisy surface detail; material/normal treatment needs refinement before acceptance.",
+    "rig": "No skeleton, skin or clips exported. Use an Elder-specific rig for wings, neck, beak and two-legged motion; not the Keeper skeleton.",
+    "integration": "Source study only; live Elder unchanged."
+  },
+  "evidence": [
+    "elder-unlit-quarter.png",
+    "elder-unlit-back.png",
+    "elder-clay-side.png",
+    "elder-lit-a.png",
+    "elder-lit-b.png",
+    "elder-game-ink.png",
+    "elder-tripo-result.png"
+  ],
+  "customAnimation": {
+    "asset": "public/guardians/elder-v1/model.glb",
+    "rigReport": "public/guardians/elder-v1/rig.json",
+    "rebuild": "node scripts/tripo/rig-elder.mjs",
+    "review": "/tools/elder-review.html",
+    "bones": 23,
+    "driver": "GuardianLegs / GUARDIAN_PLANS.elder with measured segment lengths; Elder-specific wing, neck, tail and beak driver; real Guardian + ELDER encounter phases",
+    "animation": "Runtime procedural; no baked clips",
+    "validated": "Bind roundtrip, normalized weights, independent influence, planted world-space feet, closed-beak isolation, full-cycle skin-edge bounds, smooth attack transitions and all three encounter phases; front/side/back/close-up review. 68 regression checks passed; Vite build passed. These checks do not establish visual readiness: user review found head alignment, leg wobble and missing flight tuck defects.",
+    "remaining": [
+      "Correct persistent turned head inherited from source rest geometry",
+      "Diagnose and stabilize wobbling leg joints",
+      "Add articulated bird-like flight leg tuck and smooth takeoff/landing transitions",
+      "Complete full-cycle motion and deformation review; further defects may remain",
+      "Live temple wind/vent puzzle and final-touch acceptance",
+      "Lighting-neutral albedo cleanup: dark painted creases remain",
+      "Mobile/device performance and LOD"
+    ],
+    "budget": {
+      "bytes": 3084068,
+      "triangles": 48176,
+      "vertices": 28379,
+      "materials": 1,
+      "drawCalls": 1,
+      "texture": "2048x2048 JPEG",
+      "estimatedDecodedRGBA8WithMipmapsBytes": 22369621
+    },
+    "notes": "Lighter per-mesh ink weight/tint uses the existing game G-buffer and post pipeline; source texture and geometry preserved.",
+    "status": "Unfinished prototype; user visual review found defects; not accepted for live temple use",
+    "issue": "https://github.com/rnaud/hiraeth/issues/237"
+  }
+}

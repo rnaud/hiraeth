@@ -22,6 +22,7 @@ export const CHANGELOG = [
     'Your ship is roomier inside: wider rooms, a higher ceiling, wider doorways, a longer cockpit and back room, a deeper bunk alcove and a bigger hold, where Orrin keeps his jar by the crates. The hull outside grew to fit.',
     'In small rooms the camera settles: turning round, it keeps one steady distance instead of pushing in at every wall and back out at every gap, and it no longer creeps in and out by a few centimetres.',
     'Two of the Rose House’s glyph stones bring you back facing into the room, not against a wall.',
+    'The Elder of Vael has an unfinished animated guardian preview with walking, wingbeats and attacks. Her face stays turned, her leg joints wobble, and her hovering legs still need to fold up like a bird; these and further motion fixes remain before temple use.',
     { text: 'The Cistern-Keeper has an experimental animation preview: its six legs now step separately with softer footfalls and smoother attack recovery. Its mouth stays closed at rest and opens for feeding and attacks.' },
     // distant shimmer (src/post.js INK_FAR, src/pipeline.js createSmaa, src/perf.js handheld `aa`; docs/systems/rendering.md
     // "Far lines that would alias"; issue #225, from #218)
