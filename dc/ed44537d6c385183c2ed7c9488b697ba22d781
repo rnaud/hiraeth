@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_49c43fe91ccf68 7
+data/characters/father-v1/provenance.json
+  s_9ca76055a220ed::t_6902a6110d037e 27,53-64
+docs/systems/characters.md
+  s_9ca76055a220ed::t_92ae2ab23077b5 906-937
+scripts/tripo/rig-baseline.mjs
+  s_9ca76055a220ed::t_f7810a66aa6899 5,91
+scripts/tripo/slim-father.mjs
+  s_9ca76055a220ed::t_3a2795c14b136a 3-7,13-14,47-53,55-57,59
+src/changelog-media.js
+  s_9ca76055a220ed::t_1c740416920500 661-664
+src/changelog.js
+  s_9ca76055a220ed::t_2e5e1ae9da0e4a 14-15
+src/characters/father-full.js
+  s_9ca76055a220ed::t_7597cf6849050e 1-358
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_0c6396e8fcfccd 727
+src/ship/hologram.js
+  s_9ca76055a220ed::t_72e7b73affbfd8 9,32-35,38-39,54-59,467,483,492-538,542,552-556,572-573,621,625-628,631,655-656,685-686,743-749,752,770-771,782-791,837-838,863-864
+src/story/calls.js
+  s_9ca76055a220ed::t_3d7fb737fb366a 600-604,607-609
+tests/father-full.test.js
+  s_9ca76055a220ed::t_9cd98ea1f250bc 1-114
+tests/finale.test.js
+  s_9ca76055a220ed::t_15bf7673ab65c0 74
+tests/lantern-path.test.js
+  s_9ca76055a220ed::t_2d359cbe8f9ef9 85
+tests/shard-timings.json
+  s_9ca76055a220ed::t_3d8ac58609fc86 2-7,10-11,13-17,19-20,22-30,32-36,38-56,58,60-78,80,82-90,92,94-104,106-152,154,156-159,161-167,169-176,179-181,184-191,193-202,204-207,210-213,215-228,230-255,257-279,281-286,288-301,303-304,306,308-319,322-323,325,327-336,338,340-343,345,347-352,354-357,359-360,362-365,367-368,370-380,382-395,397-420,422-429,431-438,440-455,457-460,466-470,474,476,478,480-481,483-487,489,492
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dced44537d6c385183c2ed7c9488b697ba22d781",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
