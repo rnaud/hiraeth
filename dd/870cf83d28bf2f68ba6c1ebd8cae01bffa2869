@@ -1,0 +1,19 @@
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_c9d2789a21dbb8::t_c6a8f3660296be 541,543
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dd870cf83d28bf2f68ba6c1ebd8cae01bffa2869",
+  "prompts": {},
+  "sessions": {
+    "s_c9d2789a21dbb8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae86471a73d091c07",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
