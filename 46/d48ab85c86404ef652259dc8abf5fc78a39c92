@@ -1,0 +1,37 @@
+.github/workflows/unity-xbox.yml
+  s_9ca76055a220ed::t_a182b09af0ea73 37,39-40,59,61,405,425
+changelog.md
+  s_9ca76055a220ed::t_edcce4b4361e40 7-8
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_a1c0aa99460697 386-391,710-730
+src/changelog-media.js
+  s_9ca76055a220ed::t_bfd0cc49313396 646-647,686-701
+src/changelog.js
+  s_9ca76055a220ed::t_9ed1d483dfe541 27-29
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_3ff4fbdf49e90f 70-73,231
+unity/Memento/Assets/Memento/Shaders/Surface.shader
+  s_9ca76055a220ed::t_5135385f5b515f 56-57,253-254
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_6a3685c38ad3f5 212-214
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_3299a71484b639 400
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_94a36c59b017c0 317
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "46d48ab85c86404ef652259dc8abf5fc78a39c92",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
