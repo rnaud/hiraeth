@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_558137a011be6c 7-9
+docs/story-bible.md
+  s_9ca76055a220ed::t_42d22da70e92ac 571-572
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_4dce6139e7633b 1,19,35,46,61,74,102,124,127
+src/changelog-media.js
+  s_9ca76055a220ed::t_80b24550b92781 757-758
+src/changelog.js
+  s_9ca76055a220ed::t_16efed5992c901 23-24
+src/fragments-data.js
+  s_9ca76055a220ed::t_3ad165b2ac91ec 14-15,37,39-40,48,50-51,58-59,62,66,68,70-72,96,107,109-111,117,128,130-131,133-135,138-139,143
+src/save-migrate.js
+  s_9ca76055a220ed::t_b1ab439279e67d 80,247,250,253
+src/story/lantern-data.js
+  s_9ca76055a220ed::t_a3671bf650291c 36
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_5fee52c5dd48db 1,82
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_4e152c37291d71 468
+tests/dialogue-voices.test.js
+  s_9ca76055a220ed::t_1fc5fdda656fc7 40,45,65
+tests/fragments-reach.js
+  s_9ca76055a220ed::t_c3ee4c3a146efa 12,128
+tests/fragments.test.js
+  s_9ca76055a220ed::t_b0477ce9a51e51 160,249,257
+tests/people-names.test.js
+  s_9ca76055a220ed::t_7f3f84fa7f23f6 38
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_9041f8ad994289 90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8f9cabf6f4c9139e15198a2fb027de2b394c73c2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
