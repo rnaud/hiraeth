@@ -1,0 +1,93 @@
+src/minigames/pirates.js
+  s_6f8b851619b4e6::t_658bcadbabb7f5 20,338,654,663
+src/ship/cinema.js
+  s_6f8b851619b4e6::t_0a68e1b7f5202a 26-27,38,48-49,53-55,60
+tests/box-card.test.js
+  s_6f8b851619b4e6::t_d9152ae97e71c1 21-24
+docs/systems/interiors.md
+  s_6f8b851619b4e6::t_64ea1c5a619ba8 39
+src/typefaces.js
+  s_6f8b851619b4e6::t_2cf40955af0e53 1-13
+src/temples/runtime.js
+  s_6f8b851619b4e6::t_e312928578e93a 263
+tests/typefaces.test.js
+  s_6f8b851619b4e6::t_e0b06a472d2a7b 1-82
+src/game-menu.css
+  s_6f8b851619b4e6::t_8fbe15b4d89325 8,25,32,38,54,70-71,119,272,291,296
+src/temples/boss.js
+  s_6f8b851619b4e6::t_910cc4c02531b4 155-157
+src/minigames/kit/labels.js
+  s_6f8b851619b4e6::t_ca0fa465d76c90 14,20,24
+src/shop-panel.css
+  s_6f8b851619b4e6::t_6a817d1a25a850 5,8,42
+docs/systems/dialogue.md
+  s_6f8b851619b4e6::t_6f9176cdfcc766 103-105
+changelog.md
+  s_6f8b851619b4e6::t_eea5f3edf3cb02 5-8
+src/story/scripts.js
+  s_6f8b851619b4e6::t_baebcbcd22aa8f 20-22,990,1048-1050,1061,1065,1067-1078,1083,1087
+src/ship/homecoming.js
+  s_6f8b851619b4e6::t_1fb77f92d8906d 53,76,86
+src/interior-kit.js
+  s_6f8b851619b4e6::t_8619799d458ae5 7,71,85,87
+src/levels/arcade-board.js
+  s_6f8b851619b4e6::t_7df9879c0397eb 18,23,29
+src/story/dialogue.js
+  s_6f8b851619b4e6::t_7c760b7f4517a4 7,14-34,276,303,306-307,332
+src/minigames/drums.js
+  s_6f8b851619b4e6::t_c3ea44cabe327e 18,237,323,356,359
+src/changelog.js
+  s_6f8b851619b4e6::t_3dc2a4e0f02d8f 11-14
+src/ship/starmap.js
+  s_6f8b851619b4e6::t_7bd52a7ca1db7f 129,160,173,224
+src/menus.css
+  s_6f8b851619b4e6::t_23b177bc02f253 9,152,164,167,172,178,184-186,192,202,251,268,295,297,299,304-305,313,324,332
+src/gadgets/hud.js
+  s_6f8b851619b4e6::t_57de0f59010755 16-17,20-21,23,26,42,46,56,59
+src/story/charge.js
+  s_6f8b851619b4e6::t_a033d64890bf25 105,109,112,121
+src/ship/art.js
+  s_6f8b851619b4e6::t_aa337eb7530132 2,62,69,97
+src/boxes/card.js
+  s_6f8b851619b4e6::t_3a6ee015ab621f 16,20,22,25-26,28-29,32,34,37-38,41
+src/minigames/kit/marker.js
+  s_6f8b851619b4e6::t_197beef336fd98 12,57,59
+src/minigames/kit/minigames.css
+  s_6f8b851619b4e6::t_ef27115195f9d1 3,14-16,20,22,28,32,37,41,48-50,53,56-59,63-64,69,76-78,82,89-90,93,96,103-104
+src/minigames/sketchhunt.js
+  s_6f8b851619b4e6::t_e4a4c21aa3fab8 113,142,146,151,158,335
+src/minigames/fishing.js
+  s_6f8b851619b4e6::t_6a507dafad165b 468,488,492
+src/pad-glyphs.js
+  s_6f8b851619b4e6::t_7c21682cef8f88 21,84
+index.html
+  s_6f8b851619b4e6::t_f441d07e4a1f78 22-31,47-49,56,60,83,91,120,122,129-130,134,149-150,152-153,155-156,177,185,203-204,223,321-322,326,338,348-350,355,357,359-360,365,368,388,391,397,409,437,474
+docs/systems/ui.md
+  s_6f8b851619b4e6::t_3786205561e0d7 587-613
+src/changelog-media.js
+  s_9ca76055a220ed::t_ce7454fcbf9b1e 640-641,643-651
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "886f0503d2412763b628cc3119a5ed9a1d782d1a",
+  "prompts": {},
+  "sessions": {
+    "s_6f8b851619b4e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a00f740cb7eaf7828",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
