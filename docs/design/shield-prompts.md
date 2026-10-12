@@ -44,3 +44,32 @@ Object design reference sheet for a science fiction exploration game: a wearable
 ```
 Object design exploration sheet for a science fiction exploration game: three alternative designs of a wearable shield of living jade-green fluid that opens from a small brass disc worn on the back of the hand, drawn side by side at the same scale on a plain cream background, each folded and open: first, six curved brass petals round a hub with a thin brass ring and a rippling round blob of fluid beyond them; second, a brass hub with three long slender brass ribs like a fan and the fluid stretched between and beyond them in a soft leaf shape; third, a brass ring with small charge lights round a hub and the fluid spilling out in a wavy flower-like blob with a bright lemon rim. All translucent, swirling green and turquoise, glowing softly, on worn leather bracer straps. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass and leather, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render text watermark lettering labels hose cable tube person
 ```
+
+## The second round: poses and a turnaround
+
+2026-10-12 (issue #92 again). The first round's picks (`guard/`, `shield/`) show one stance in four views and the
+shield's stages from folded to cracked. What they don't show: the traveller in more than one pose behind the shield,
+and the open shield from all round with its scale right. In the game the brass is small (petals of about 10 cm round
+a 7 cm hub, `SHIELD.petal`), well inside a blob of fluid about 70 cm across (`SHIELD.radius`), and the blob is
+carried on a short brass arm in front of the middle of the chest, not strapped to the forearm like a buckler. These
+two prompts ask for that.
+
+### 3. Guarding, three poses (`guard-poses`)
+
+**Main: three poses on one sheet.**
+
+```
+Character action reference sheet for a science fiction exploration game: the same slim young adult traveller drawn three times side by side at the same scale on a plain cream background, in three different poses protecting himself with a shield of living fluid. He has messy short black curly hair, a coral overshirt with rolled sleeves, a tan neckerchief, cream trousers, small suede boots and a round glass backpack of glowing jade-green fluid between his shoulder blades. First pose, three-quarter front view: standing braced, feet apart, left arm raised, the shield held high in front of his chest and face against a blow from above, a short blade of green light held back low in his right hand. Second pose, side view: crouched low on one knee behind the shield, shoulders hunched, head ducked, sheltering as if from a storm of sparks. Third pose, three-quarter back view: stepping sideways with the shield swung out to his left to turn a blow aside, his body twisting, the backpack's glass dome catching light. The shield in every pose: a small brass hub no bigger than his palm on the back of his left hand, six short curved brass petals round it with a thin brass ring, and around them a far larger translucent blob of swirling jade and turquoise fluid about 70 centimetres across, its edge rippling in soft lobes, never quite round, a bright pale lemon wavy rim, carried on a short brass arm in front of the middle of his chest. His fist stays behind the fluid with clear air between them, his body seen through the translucent green. No hose or cable from the backpack to the hand. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral and cream clothes, jade green glow, brass, restrained cream paper grain, clear readable silhouettes, no lettering --ar 16:9 --no photorealism 3d-render text watermark lettering labels hose cable tube buckler wooden-shield metal-shield
+```
+
+### 4. The shield on its own, all round (`shield-turnaround`)
+
+**Main: a turnaround and a detail.**
+
+```
+Object turnaround reference sheet for a science fiction exploration game: a wearable shield of living fluid, open, drawn four times side by side at the same scale on a plain cream background, as if floating on its own: front view, three-quarter view, side view, and back view, and above them one larger close-up detail of its brass hub. The shield: at its centre a small brass hub 7 centimetres across with six short curved brass petals spread round it like a flower and a thin brass ring round the petals, small rivets, about 20 centimetres across in all; from the back of the hub a short folding brass arm and a worn leather bracer strap; and around the brass a far larger translucent blob of swirling jade-green and turquoise fluid about 70 centimetres across, its edge rippling in soft lobes, never quite round, a bright pale lemon wavy rim, a few ink strokes swirling round the hub following the flow. Seen from the side the fluid is a thin rippling lens, slightly domed, thickest at the hub. Seen from the back, the petals' hinges, the arm's knuckle joint and the strap. A faint green glow on the paper under it. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass and leather, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render text watermark lettering labels hose cable tube hand arm person buckler
+```
+
+Picked 2026-10-12: `guard-poses/sheet-1.jpg` (OpenAI) and `shield-turnaround/sheet-1.jpg` (Gemini); the reasons are
+in each folder's `manifest.json`. Both agree with `src/shield.js` (six petals in a ring on a small hub, the blob
+about 70 cm, the arm off the bracer), so the model stays as it is.

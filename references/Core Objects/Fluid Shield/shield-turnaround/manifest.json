@@ -1,0 +1,23 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Object turnaround reference sheet for a science fiction exploration game: a wearable shield of living fluid, open, drawn four times side by side at the same scale on a plain cream background, as if floating on its own: front view, three-quarter view, side view, and back view, and above them one larger close-up detail of its brass hub. The shield: at its centre a small brass hub 7 centimetres across with six short curved brass petals spread round it like a flower and a thin brass ring round the petals, small rivets, about 20 centimetres across in all; from the back of the hub a short folding brass arm and a worn leather bracer strap; and around the brass a far larger translucent blob of swirling jade-green and turquoise fluid about 70 centimetres across, its edge rippling in soft lobes, never quite round, a bright pale lemon wavy rim, a few ink strokes swirling round the hub following the flow. Seen from the side the fluid is a thin rippling lens, slightly domed, thickest at the hub. Seen from the back, the petals' hinges, the arm's knuckle joint and the strap. A faint green glow on the paper under it. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass and leather, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube, hand, arm, person, buckler.",
+      "from": "docs/design/shield-prompts.md#shield-turnaround",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-04-11-53-bef3",
+      "candidate": "gemini/2",
+      "sha256": "0a78f9eef635892c53c6f7c4ab4d1f7ccb643db7e5e58ddd7a9fdcf6e2efc083",
+      "bytes": 790224,
+      "costUSD": 0.0336,
+      "why": "closest to the model: six small petals inside a thin separate ring on the hub, the brass about a third of the blob's width (SHIELD.petal 0.1 m in radius 0.35 m), the side view a thin lens thickest at the hub, the back view with the arm's knuckle and the bracer strap, and the hub close-up whole; the OpenAI pair inks richer but crops the close-up at the frame's edge and blows the brass up to half the blob"
+    }
+  ]
+}

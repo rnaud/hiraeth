@@ -28,6 +28,8 @@ Each set includes review.txt naming the accepted use and known limits.
 The sword must read as magical liquid, not green metal. The shield's fist stays
 entirely behind the fluid plane, with a physical support arm crossing the air gap.
 Do not use the earlier sword or shield jobs as construction blueprints.
+Shield, current: Core Objects/Fluid Shield/ (guard, guard-poses: the traveller
+protecting himself; shield, shield-turnaround: the device alone, docs/design/shield-prompts.md).
 Grappling hook jobs 2c91a885 and ffe601b1 rejected: disconnected or doubled cable routes.
 
 Additional reviewed gadget studies

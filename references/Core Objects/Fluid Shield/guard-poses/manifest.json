@@ -1,0 +1,23 @@
+{
+  "created": "2026-10-12",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character action reference sheet for a science fiction exploration game: the same slim young adult traveller drawn three times side by side at the same scale on a plain cream background, in three different poses protecting himself with a shield of living fluid. He has messy short black curly hair, a coral overshirt with rolled sleeves, a tan neckerchief, cream trousers, small suede boots and a round glass backpack of glowing jade-green fluid between his shoulder blades. First pose, three-quarter front view: standing braced, feet apart, left arm raised, the shield held high in front of his chest and face against a blow from above, a short blade of green light held back low in his right hand. Second pose, side view: crouched low on one knee behind the shield, shoulders hunched, head ducked, sheltering as if from a storm of sparks. Third pose, three-quarter back view: stepping sideways with the shield swung out to his left to turn a blow aside, his body twisting, the backpack's glass dome catching light. The shield in every pose: a small brass hub no bigger than his palm on the back of his left hand, six short curved brass petals round it with a thin brass ring, and around them a far larger translucent blob of swirling jade and turquoise fluid about 70 centimetres across, its edge rippling in soft lobes, never quite round, a bright pale lemon wavy rim, carried on a short brass arm in front of the middle of his chest. His fist stays behind the fluid with clear air between them, his body seen through the translucent green. No hose or cable from the backpack to the hand. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral and cream clothes, jade green glow, brass, restrained cream paper grain, clear readable silhouettes, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube, buckler, wooden shield, metal shield.",
+      "from": "docs/design/shield-prompts.md#guard-poses",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-12",
+      "batch": "2026-10-12-04-11-19-aeeb",
+      "candidate": "openai/2",
+      "sha256": "ba322534772906a585c8595b2d9a10a762d1c7167eaeec2ec531f487ec9cf4c0",
+      "bytes": 177291,
+      "costUSD": 0.041,
+      "why": "three poses that read at a glance (braced high guard, ducked on one knee under sparks, side-step turning a blow), the brass a palm-sized hub inside a far larger rippling blob as in src/shield.js, the fist behind the fluid, the game's traveller (coral shirt, curls, glass backpack) in the house ink; the Gemini pair loses the brass petals and puts the fist through the fluid, OpenAI 1's third pose drops the blade and reaches stiffly"
+    }
+  ]
+}
