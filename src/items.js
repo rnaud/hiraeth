@@ -1,5 +1,6 @@
 import { keyText } from './prompt-keys.js';
 import { game } from './game-state.js';
+import { FRAGMENT_TOTAL } from './fragments-data.js';
 
 // The traveller's items: what they have found (in boxes, through quests) and
 // can use. He starts with nothing in his hands (v1.44): the fluid sword and the shield's guard (src/fluid-blade.js) are
@@ -263,7 +264,42 @@ export const ITEMS = {
     name: 'Pale star', kind: 'cosmetic',
     text: 'A pale enamel star, the makers’ sign for a traveller far from home. Pinned to your overshirt, or your brow under a hood. It does nothing at all, and looks very good.',
   },
+  // ---- the scientist's work with the fragments of the singing light (src/fragments.js MILESTONES, src/story/scientist.js):
+  // Orrin Thrum fits one aboard the ship each time your count reaches a milestone (`fragments`: the count; `light`: the
+  // gear it is fitted to, for its model). Their numbers: src/trials/upgrades.js FRAGMENT_TUNES, src/boxes/effects.js,
+  // src/resources.js HEART_ITEMS / MAGIC_ITEMS.
+  lightheart: {
+    name: 'Light-stitched heart', kind: 'upgrade', fragments: 5, light: 'heart', where: 'Orrin Thrum, aboard your ship, for five fragments of the singing light.',
+    text: 'Five fragments sewn into your coat’s lining over your heart. One more heart, for good: four to start with instead of three.',
+  },
+  finder: {
+    name: 'Fragment finder', kind: 'charm', fragments: 10, toggle: true, where: 'Orrin Thrum, aboard your ship, for ten fragments of the singing light.',
+    text: 'Orrin’s brass box with a splinter of the light inside. It beeps faster as a fragment comes within 60 m. Switch it off or on here on the items page.',
+  },
+  lightedge: {
+    name: 'Light-tempered edge', kind: 'upgrade', fragments: 15, light: 'sword', needs: 'sword', where: 'Orrin Thrum, aboard your ship, for fifteen fragments of the singing light.',
+    text: 'The blade’s fluid sings a little now. Every cut of the blade lands half as hard again: the combo’s three cut 1.5, 1.5 and 4.5 instead of 1, 1 and 3.',
+  },
+  lightcell: {
+    name: 'Light chamber', kind: 'upgrade', fragments: 25, light: 'cell', needs: 'backpack', where: 'Orrin Thrum, aboard your ship, for twenty-five fragments of the singing light.',
+    text: 'A chamber of fragments ground fine, fitted to the tank. Your magic bar grows by one: one more shot, push or boost before it runs dry.',
+  },
+  lightwing: {
+    name: 'Light-veined wings', kind: 'upgrade', fragments: 50, light: 'glider', needs: 'glider', where: 'Orrin Thrum, aboard your ship, for fifty fragments of the singing light.',
+    text: 'Light threaded through the wings’ veins. Gliding is a fifth faster (18 m/s instead of 15) and sinks a quarter slower.',
+  },
+  lightstep: {
+    name: 'Light-soled boots', kind: 'upgrade', fragments: 75, light: 'soles', where: 'Orrin Thrum, aboard your ship, for seventy-five fragments of the singing light.',
+    text: 'Fragments set in your boots’ heels. Running tires you 30% less, and your stamina comes back half as fast again when you rest.',
+  },
+  lightguard: {
+    name: 'Light-rimmed guard', kind: 'upgrade', fragments: FRAGMENT_TOTAL, light: 'shield', needs: 'shield', where: 'Orrin Thrum, aboard your ship, for every fragment of the singing light.',
+    text: 'The last fragments round the guard’s rim. A blow you block with {key:guard} takes half a unit of magic instead of a whole one.',
+  },
 };
+
+/** The scientist's upgrades, by the count he fits each at (src/fragments.js MILESTONES). */
+export const FRAGMENT_ITEMS = Object.entries(ITEMS).filter(([, d]) => d.fragments).sort((a, b) => a[1].fragments - b[1].fragments).map(([id, d]) => ({ id, at: d.fragments }));
 
 /** Gun modes: shoot (and push) come with the fluid gun (a gadget: src/gadgets/gun.js); the others are unlocked by items. */
 export const MODE_ITEMS = { shoot: 'gun', stun: 'stun', fire: 'fire', bloom: 'bloom', tether: 'tether' };

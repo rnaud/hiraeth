@@ -42,6 +42,12 @@ export const LANTERN_AT = new THREE.Vector3(0.225, 0.37, -0.3);   // the lantern
 export const TRAVELLER_STAR = { at: new THREE.Vector3(-0.125, 0.61, 0.18), tilt: -0.12, scale: 0.55 };
 /** The same on the game's traveller (TravellerV1: no outfit flag; its chest anchor sits lower): measured on its overshirt's left lapel. */
 /** The whale-horn's note (src/temples/pieces.js NOTES.deep: the whales' own). */
+/**
+ * The scientist's wings and boots (issue #196, src/items.js lightwing / lightstep): the glide's speed times `glide` and its
+ * sink times `sink` (on top of the scarf's); running's cost times `sprint` and the rest's refill times `rest` (on top of
+ * the pearl's and the bellows').
+ */
+export const LIGHT = { glide: 1.2, sink: 0.75, sprint: 0.7, rest: 1.5 };
 export const HORN = { degree: -3, color: '#6f8fd8' };
 export const LAPEL_STAR = { at: new THREE.Vector3(-0.075, 0.62, 0.12), tilt: -0.12, scale: 0.55 };
 
@@ -245,7 +251,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       if (night && player && !player.hidden) light.set(player.pos.x, player.pos.y + (hasLantern ? 1.2 : 0.6), player.pos.z, hasLantern ? 7.5 + Math.sin(t * 7) * 0.3 : 4.2 + Math.sin(t * 1.3) * 0.2);
       else light.set(0, -1e5, 0, 0);
       if (star) { star.visible = items.has('star'); if (star.visible) placeStar(); }
-      if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; player.sinkK = items.has('scarf') ? 0.6 : 1; player.sprintK = items.has('pearl') ? 0.66 : 1; player.restK = items.has('bellows') ? 2 : 1; player.climbSpeedK = items.has('starthread') ? 1.33 : 1; }
+      if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; player.sinkK = (items.has('scarf') ? 0.6 : 1) * (items.has('lightwing') ? LIGHT.sink : 1); player.glideK = items.has('lightwing') ? LIGHT.glide : 1; player.sprintK = (items.has('pearl') ? 0.66 : 1) * (items.has('lightstep') ? LIGHT.sprint : 1); player.restK = (items.has('bellows') ? 2 : 1) * (items.has('lightstep') ? LIGHT.rest : 1); player.climbSpeedK = items.has('starthread') ? 1.33 : 1; }
     },
     dispose() { off(); offBloom?.(); echo.dispose(); levelEl?.remove?.(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },
   };

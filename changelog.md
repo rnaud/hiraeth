@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.55 — 2026-10-12
+
+- The game menu’s Worlds page counts your fragments of the singing light: all told, and how many are left in each world you know. The Start menu says it too, under where you are: how many you have and how many are left in this world.
+- At ten fragments Orrin gives you his finder: it beeps when a fragment is within 60 m, faster and higher the closer you get. Switch it off or on from your items (A / × on it).
+- At 5, 10, 15, 25, 50, 75 and all 96 fragments, Orrin fits something to your gear: one more heart (four to start instead of three), a finder, a blade that cuts half as hard again, one more unit of magic, wings that glide a fifth faster and sink slower, boots that run longer and rest quicker, and a guard that blocks for half the magic.
+- The first fragment you take brings Orrin Thrum, a scientist who has been on the lookout for them since the night the light went over. He moves into your ship’s hold, keeps what you bring him in a jar on his crate, and tells you how many you have and how many still hide in each world.
+- Fragments of the singing light are hidden in every world on the route, eight in each: up on ledges and high places, behind things, at the ends of side paths, never on the way anyone sends you. Each is a small pale splinter that glows and sings faintly when you come near; walk into it to take it.
+
 ## v1.54 — 2026-10-12
 
 - Two more quests end where you do the thing: in the City-Shaft, lighting the Lodestar from the palace’s crown finishes the city, and Nima calls out to you when you pass her terrace, wanting to hear what you did up there; in the Desert, going down into the giant’s chest finishes Ilo’s errand, and she shouts as you come by, wanting to hear what was down there.

@@ -27,7 +27,8 @@
 // tests/debug-save.test.js reads the story code for the grants that are not data (an onDone's game.set,
 // addKeepsake, a tank band, an item granted) and fails when one is not covered here.
 //
-// Left out: relics and the sketchbook's pictures (drawn as you find them), conversations' once-only
+// Left out: relics and the sketchbook's pictures (drawn as you find them), the fragments of the singing light and the
+// scientist's upgrades for them (optional finds: src/fragments.js), conversations' once-only
 // answers (`said.*`). Off the route (the dev worlds, the side worlds, home) nothing changes: the
 // list opens them in the save being played.
 

@@ -64,6 +64,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
 | [scout.md](systems/scout.md) | the scout drone, and Plumb's own mind: lost, the opening lines, its moods |
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes; hearts, the magic bar and potions (src/resources.js); chimes; the shops, their wares and prices |
+| [fragments.md](systems/fragments.md) | the fragments of the singing light (eight hidden in every route world, how they were placed and checked, their song), Orrin Thrum the scientist aboard the ship, his upgrades at 5, 10, 15, 25, 50, 75 and 96 fragments and the finder that beeps |
 | [interiors.md](systems/interiors.md) | buildings you walk into: the interior kit (a shopfront, its room far overhead, the doors both ways, saving inside), a shop's room |
 | [gadgets.md](systems/gadgets.md) | the gadgets (v0.90): the framework (one file a gadget), the buttons, the grappling hook, ink bombs, the Gadget Yard; how to add one |
 | [boxes.md](systems/boxes.md) | the makers' chests (the v1.42 redesign, the same in every world; the temples' bud): the models, the opening scene, the placements |

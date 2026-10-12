@@ -75,6 +75,9 @@
 // And the last two (issue #183, v1.54): the Lodestar lit is the City-Shaft's main quest done (Nima's word waits with
 // her), the giant's chest seen Ilo's errand: step 21 (QUEST_STAGE_MOVES_183).
 //
+// The fragments of the singing light (issue #196, v1.55: src/fragments.js): a save from before has found none and has
+// not met the scientist; step 22 starts it at zero (any `frag.*` it carries, from a build in between, goes).
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -235,6 +238,8 @@ const STEPS = [
   // arrive), and one that heard her already keeps her word said. Ilo's step keeps its id: a save on it with the chest seen
   // is done as it loads
   (flags) => migrateTells183(flags),
+  // 22: the fragments of the singing light (issue #196, v1.55): none found yet, the scientist still to meet
+  (flags) => migrateFragments196(flags),
 ];
 /** The quest steps removed in v1.54 (issue #183): step 21. */
 export const QUEST_STAGE_MOVES_183 = { 'incal.light': { tell: 'look' } };
@@ -242,6 +247,11 @@ export const QUEST_STAGE_MOVES_183 = { 'incal.light': { tell: 'look' } };
 export function migrateTells183(flags) {
   if (flags['quest.incal.light'] === 'done') flags['incal.nima.told'] = true;
   return migrateQuestStages(flags, QUEST_STAGE_MOVES_183);
+}
+/** Step 22 (pure, in place): the fragments' count from zero. */
+export function migrateFragments196(flags) {
+  for (const k of Object.keys(flags)) if (k.startsWith('frag.')) delete flags[k];
+  return flags;
 }
 /** The quest steps removed in v1.54 (issue #172): step 20. */
 export const QUEST_STAGE_MOVES_172 = {

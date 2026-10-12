@@ -677,7 +677,27 @@ const SAVE_CUPBOARD = { ...SAVE47, flags: { ...SAVE47.flags, 'temple.garage.lit.
 const UPDATE53 = 'the Unity bundle’s game update in Node’s V8 on the Mac (scratch bench: the two builds in one process, a frame of each in turn, each on the script thread’s CPU clock, the bench’s own split of engine/game.js), both ways round and averaged, 12 October, the Mac’s load 35–90';
 // (v1.54: the ways to and from three temples, issues #178-#180)
 const LD54 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5471), the before with the worlds’ files as on origin/main (30c8329d), the same pinned cameras, 12 October; cwebp -q 72';
+const FR55 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5491), in Viridel with a fresh save past the prologue, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.55': [
+    { match: 'Fragments of the singing light are hidden in every world', shots: [
+      { name: 'fragment-ledge', title: 'A fragment on its ledge', caption: 'Viridel, along the ledge of a long grey wall at the meadow’s southern end: before, nothing there; after, a fragment of the singing light, its three motes and its glow on the stone', from: FR55 + ' (the same pinned camera, the fragments hidden for the before)' },
+    ], see: 'In Viridel, go to the meadow’s far southern end and get up onto the ledge along the long grey wall; listen as you come near: three soft notes from where it is.' },
+    { match: 'The first fragment you take brings Orrin Thrum', shots: [
+      { name: 'thrum-meeting', title: 'Orrin Thrum', caption: 'The first fragment taken: he comes up beside you and says he has been on the lookout for them', only: 'after', from: FR55 },
+      { name: 'thrum-hold', title: 'In the hold', caption: 'Aboard, by the starboard crate, his jar of fragments on it', only: 'after', from: FR55 },
+    ], see: 'Take any fragment: he comes up beside you. Then board your ship and go aft, through the back room into the hold.' },
+    { match: 'At 5, 10, 15, 25, 50, 75 and all 96 fragments', shots: [
+      { name: 'thrum-offer', title: 'Five fragments', caption: 'Talk to him with five: the light-stitched heart, one more for good', only: 'after', from: FR55 },
+    ], see: 'Bring Orrin five fragments and talk to him in the hold: “Fit it.” Your hearts go from three to four.' },
+    { match: 'At ten fragments Orrin gives you his finder', shots: [
+      { name: 'finder-items', title: 'The finder', caption: 'Your items: the fragment finder (the brass box) in use, its slot among the gear', only: 'after', from: FR55 },
+    ], see: 'With ten fragments and the finder fitted, walk toward a ledge you haven’t climbed: the beeps quicken as a fragment comes close. In your items, A / × on the finder switches it off or on.' },
+    { match: 'The game menu’s Worlds page counts your fragments', shots: [
+      { name: 'fragments-menu', title: 'The Worlds page', caption: 'The count over the cards, and on each world how many are left', only: 'after', from: FR55 },
+      { name: 'fragments-start', title: 'The Start menu', caption: 'Under where you are: the fragments you have, and how many are left here', only: 'after', from: FR55 },
+    ] },
+  ],
   '1.54': [
     { match: 'Your father is a bust again', see: 'Play a window recording on the ship (the log at the projector, from the seventh world on): he shows as the bust, as in his calls.' },
     { match: 'In the City Floating in Space, the pipes and cables hanging under the islands', shots: [

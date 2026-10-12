@@ -13,7 +13,9 @@ import { standGround } from '../src/carriers.js';
 import { StepLag } from '../src/locomotion.js';
 import { builtWorld, quiet } from './built-worlds.js';
 import { Player } from '../src/player.js';
-import { MERGED } from '../src/levels/names.js';
+import { MERGED, ORDER } from '../src/levels/names.js';
+import { FRAGMENTS, FRAGMENTS_PER_WORLD } from '../src/fragments-data.js';
+import { flood, spotWhyNot, standWhyNot } from './fragments-reach.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const mesh = (scene, geo, { at = [0, 0, 0], free = false, hidden = false, name = '' } = {}) => {
@@ -416,4 +418,34 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
   }
   assert.deepEqual(failed, [], failed.join('\n'));
   assert.ok(report.length >= 25 && skipped.length <= 2, `${report.join('\n')}\nskipped: ${skipped.join(', ')}`);
+});
+
+// The fragments of the singing light (src/fragments-data.js, docs/systems/fragments.md; issue #196): in every world on
+// the route, each on ground that is solid and drawn (what you would stand on to take it is what you see: the contact
+// audit's drawn surfaces, or the terrain), with room over it, out of harm, and reached by the walker from the world's
+// spawn and its parts' (a cell at a time, up a double jump at most, down a fall that doesn't hurt, Lorn's water swum).
+test('every fragment of the singing light stands on drawn, solid ground the walker reaches from the spawn', () => {
+  const failed = [];
+  for (const id of ORDER) {
+    const list = FRAGMENTS[id] ?? [];
+    if (list.length !== FRAGMENTS_PER_WORLD) failed.push(`${id}: ${list.length} fragments, not ${FRAGMENTS_PER_WORLD}`);
+    const { scene, level, physics } = builtWorld(id);
+    const drawn = drawnSurfaces(scene, { exclude: [physics.base?.mesh] });
+    const at = list.map(([x, y, z]) => V(x, y, z));
+    at.forEach((p, i) => {
+      const why = spotWhyNot({ physics, level }, p);
+      if (why) failed.push(`${id} ${i} (${p.toArray().map((v) => v.toFixed(1))}): ${why}`);
+      const hit = drawn?.bvh?.raycastFirst(new THREE.Ray(V(p.x, p.y + 1.2, p.z), V(0, -1, 0)), THREE.DoubleSide);
+      const top = Math.max(hit ? p.y + 1.2 - hit.distance : -Infinity, level.ground?.heightAt?.(p.x, p.z) ?? -Infinity);
+      if (!(Math.abs(top - p.y) < 0.35)) failed.push(`${id} ${i}: the ground drawn under it is ${Number.isFinite(top) ? (top - p.y).toFixed(2) + ' m off' : 'missing'}`);
+      // (the Underwater City: he is never out in the water, so a fragment has the glass of a hall over it)
+      if (level.sea && physics.rayDistance(V(p.x, p.y + 0.3, p.z), V(0, 1, 0), 400) === Infinity) failed.push(`${id} ${i}: out in the sea, not under the glass`);
+      for (let k = i + 1; k < at.length; k++) if (p.distanceTo(at[k]) < 15) failed.push(`${id} ${i} and ${k}: ${p.distanceTo(at[k]).toFixed(1)} m apart`);
+    });
+    // the real traveller, set down over each, stands there, close enough to take it (src/fragments.js FRAGMENT.take)
+    at.forEach((p, i) => { const why = standWhyNot({ physics, level }, p, Player); if (why) failed.push(`${id} ${i}: ${why}`); });
+    const { reached } = flood({ physics, level }, [level.spawn, ...Object.values(level.partSpawns ?? {})], { targets: at });
+    reached.forEach((ok, i) => { if (!ok) failed.push(`${id} ${i} (${at[i].toArray().map((v) => v.toFixed(1))}): the walker doesn’t reach it from the spawn`); });
+  }
+  assert.deepEqual(failed, [], failed.join('\n'));
 });

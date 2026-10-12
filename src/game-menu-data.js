@@ -20,12 +20,14 @@ const MODE_OF = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' 
 const cap = (s) => String(s ?? '').replace(/^./, (c) => c.toUpperCase());
 
 /** The gear, the backpack first: { gear, slots, pack, keepsakes, chimes (the wallet: src/resources.js) } for itemsPanel. */
-export function itemsData({ owned = [], mode = null, modes = [], gadget = null, gadgets = [], carried = [], keepsakes = [], icon = () => null, titles = {}, chimes = null } = {}) {
+export function itemsData({ owned = [], mode = null, modes = [], gadget = null, gadgets = [], carried = [], keepsakes = [], icon = () => null, titles = {}, chimes = null, toggles = {} } = {}) {
   const list = owned.filter((id) => ITEMS[id]).sort((a, b) => KIND_ORDER.indexOf(ITEMS[a].kind) - KIND_ORDER.indexOf(ITEMS[b].kind));
   const choice = modes.length > 1;
   const gear = list.map((id) => {
     const d = ITEMS[id], m = MODE_OF[id];
     // (a gadget, src/gadgets/: in hand, or taken in hand from here)
+    // (a thing you switch on and off from here: the fragment finder, `toggle`; in use while on)
+    if (d.toggle) return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: !!toggles[id], usable: true };
     if (d.kind === 'gadget') return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: id === gadget, usable: gadgets.includes(id) && id !== gadget };
     return { id, name: d.name, kind: d.kind, text: d.text, icon: icon(id), inUse: choice && !!m && m === mode, usable: choice && !!m && modes.includes(m) && m !== mode };
   });
@@ -85,14 +87,19 @@ export function sketchesData({ data = {}, levels = [], known = () => true, sight
 }
 
 /** Worlds: the worlds you know, in the route's order (`order`), with what is done in each. */
-export function worldsData({ data = {}, levels = [], order = [], known = () => true, current = null, boxes = {}, done = () => false } = {}) {
+export function worldsData({ data = {}, levels = [], order = [], known = () => true, current = null, boxes = {}, done = () => false, fragments = null } = {}) {
   const byId = Object.fromEntries(levels.map((L) => [L.id, L]));
   const ids = [...order.filter((id) => byId[id] && known(id)), ...(current && byId[current] && !order.includes(current) && !byId[current].hidden ? [current] : [])];
-  return ids.map((id, i) => {
+  const list = ids.map((id, i) => {
     const L = byId[id], b = boxes[id];
     return { id, n: i + 1, title: L.title, thumb: `thumbs/${id}.jpg`, current: id === current, told: !!(data.stories?.[id] || done(id)),
-      relics: [Object.keys(data.relics?.[id] ?? {}).length, (L.relicNames ?? []).length], boxes: b?.total ? [b.found, b.total] : null, blurb: L.blurb ?? '' };
+      relics: [Object.keys(data.relics?.[id] ?? {}).length, (L.relicNames ?? []).length], boxes: b?.total ? [b.found, b.total] : null, blurb: L.blurb ?? '',
+      // (the fragments of the singing light found here and how many are left, once the first is found: src/fragments.js)
+      fragments: fragments?.found && fragments.worlds?.[id]?.total ? [fragments.worlds[id].found, fragments.worlds[id].total] : null };
   });
+  // (and all told, the worlds you don't know yet too: worldsPanel's line over the cards)
+  if (fragments) Object.defineProperty(list, 'fragmentsAll', { value: { found: fragments.found, total: fragments.total } });
+  return list;
 }
 
 /**
@@ -122,10 +129,10 @@ export function menuSources(o) {
   const titles = o.titles ?? Object.fromEntries((o.levels ?? []).map((L) => [L.id, L.title]));
   return {
     people: (open = null) => peopleData({ flags: o.game?.data?.flags ?? {}, errands: o.journal?.data?.errands ?? {}, keepsakes: o.game?.keepsakes?.() ?? [], titles, portrait: o.portrait ?? (() => null), open }),
-    items: () => itemsData({ owned: o.items.owned(), ...(o.mode?.() ?? {}), carried: o.quests?.carried?.() ?? [], keepsakes: o.keepsakes?.() ?? [], icon: o.icon, titles, chimes: o.wallet?.() ?? null }),
+    items: () => itemsData({ owned: o.items.owned(), ...(o.mode?.() ?? {}), carried: o.quests?.carried?.() ?? [], keepsakes: o.keepsakes?.() ?? [], icon: o.icon, titles, chimes: o.wallet?.() ?? null, toggles: o.toggles?.() ?? {} }),
     quests: () => questsData({ quests: o.quests, charge: o.charge?.(), errands: o.journal?.data?.errands, defs: o.errandDefs ?? [], titles }),
     sketches: () => sketchesData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], known: o.known ?? (() => true),
       sightings: o.game ? sightingsData({ game: o.game, known: o.known ?? (() => true), titles }) : null }),
-    worlds: () => worldsData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], order: o.order ?? [], known: o.known ?? (() => true), current: o.current, boxes: o.boxes?.() ?? {}, done: o.done ?? (() => false) }),
+    worlds: () => worldsData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], order: o.order ?? [], known: o.known ?? (() => true), current: o.current, boxes: o.boxes?.() ?? {}, done: o.done ?? (() => false), fragments: o.fragments?.() ?? null }),
   };
 }

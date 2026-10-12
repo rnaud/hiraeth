@@ -103,6 +103,7 @@ import { Chemistry } from './chemistry.js';
 import { createChallenges } from './trials/index.js';
 import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
+import { createFragments } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes, lockViewAngle } from './foes.js';
 import { setView } from './motion-kit/view.js';
@@ -850,6 +851,13 @@ const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quest
   quiet: () => ship.playing || storyRt.dialogue.open,   // box quests wait for the landing, the recordings and talk to be over
   cam: { shot: (s) => ship.shot(s), release: (b) => ship.release(b), hud: (on) => ship.cinema.hud(on), bars: (on) => ship.cinema.bars(on) } });
 const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: showToast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 });
+// ---- the fragments of the singing light (src/fragments.js): hidden out of the way, they sing faintly near; walk into one.
+// The first brings the scientist (src/story/scientist.js, game 'fragment'), who fits upgrades aboard at the milestones
+const fragments = createFragments({ levelId, scene, physics, level, player, sound, game, items, toast: (t) => showToast(t), lights: levelLights });
+// (his light-stitched heart: one more for good, and the hearts filled, as a heart container does)
+items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); hpShown = 3; } });
+// (in the Start menu, under where you are: the fragments all told and how many are left in this world, once one is found)
+const fragmentsLine = () => { const c = fragments.counts(), w = c.worlds[levelId]; return c.found ? `<span class="frag">✧ ${c.found} of ${c.total} fragments of the singing light${w ? ` · ${w.left ? `${w.left} left here` : 'none left here'}` : ''}</span>` : ''; };
 await slice();
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
 const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
@@ -894,10 +902,11 @@ Object.assign(journal.menu, {
     levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title,
       parts: partsOf(l.id).slice(1).map((p) => ({ id: p, storyTitle: CONTENT[p]?.story?.title })) })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
+    fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }),
     icon: (id) => itemIcons.get(id) }),
   onTrack: (id) => storyRt.quests.choose(id),
   // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
-  onUse: (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
+  onUse: (id) => { if (id === 'finder') { game.set('frag.finder.off', !game.flag('frag.finder.off')); return; } const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
 });
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', () => sound.musicCue('moment', { delay: 1 }));   // (the recorded theme comes back: src/music-moments.js)
@@ -1286,7 +1295,7 @@ const menu = new SettingsMenu(settings, {
   onQuit: () => quitToTitle(),
   onBeforeRestart: saveBeforeRestart,
   // where you are, at the top of the Start menu
-  where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
+  where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played${fragmentsLine()}`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
   isBusy: () => shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || worldDebug.open || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
   // this save only (the other slots stay): forget it and start again with the prologue
@@ -2158,6 +2167,7 @@ function frame(ts) {
     if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
+  if (!minigameDef && !ship.playing) fragments.update(dt, t);   // (src/fragments.js: their song, the finder, a fragment walked into)
   if (!minigameDef) story.update(dt, t, camera);   // (a game's page tells no story: its host's goal is not reached by standing in the game)
   const rideK = player.ride?.kind;
   if (rideK === 'bird' && (ctl.Space || ctl.Throttle > 0.3) && (flapT -= dt) <= 0) { sound.flap(); flapT = 0.5; }
@@ -2523,7 +2533,7 @@ window.clipAudit = async (o = {}) => {
   const { auditClipping, formatAudit } = await import('./clip-audit.js');
   const { allInteractables } = await import('./interact.js');
   const things = allInteractables().filter((e) => !/^(talk\.|box\.)/.test(e.id) && !['vehicle', 'lens'].includes(e.id));
-  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
+  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...fragments.list.map((f) => f.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
   const r = auditClipping({ physics, scene, roots: auditRoots, npcs, crowd, relics, boxes, things, exclude, ...o });
   if (o.print !== false) console.log(formatAudit(r));
   return r;
@@ -2531,11 +2541,11 @@ window.clipAudit = async (o = {}) => {
 /** Dev: where the drawn surfaces you stand on and climb part from the collision (src/contact-audit.js); prints a report. */
 window.contactAudit = async (o = {}) => {
   const { auditContact, formatContact } = await import('./contact-audit.js');
-  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
+  const exclude = [player.object, ...npcs.flatMap((n) => [n.object, n.cape?.mesh]), ...player.vehicles.map((v) => v.object), ...relics.items.map((r) => r.grp), ...fragments.list.map((f) => f.grp), ...boxes.list.map((b) => b.parts?.root), ship.parked?.group];
   const region = level.unsafe ? (p) => !level.unsafe(p) : null;
   const r = auditContact({ physics, scene, solids: level.dynamic?.() ?? [], exclude, region, ...o });
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

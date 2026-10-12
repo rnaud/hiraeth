@@ -1820,6 +1820,28 @@ export class Sound {
   }
 
   /** Picking something up: a hand on it, the bag. */
+  // ------------------------------------------------------------------ the fragments of the singing light (src/fragments.js)
+  /** A fragment singing to itself, faint, from where it is: three soft notes of the light's theme (k 0..1: how near). */
+  fragmentSong(pos, k = 1) {
+    if (!this.ctx || this.muted) return;
+    const out = this.spot(pos, { vol: 0.5 + 0.5 * k, reach: 30, room: 0.8, until: 4 });
+    if (!out) return;
+    const t = this.ctx.currentTime, root = 293.66 * 2;   // (the theme an octave up: src/story/light-theme.js, D lydian)
+    [[12, 0], [14, 0.32], [18, 0.64]].forEach(([s, at]) => this.sweep(t + at, root * 2 ** ((s - 0.5) / 12), root * 2 ** (s / 12), 0.9, 0.018, 'sine', out));
+  }
+  /** The finder's beep (src/fragments.js): a small high pip, `f` Hz (higher as a fragment comes closer). */
+  finderBeep(f = 1000) {
+    if (!this.ctx || this.muted) return;
+    this.sweep(this.ctx.currentTime, f, f * 1.02, 0.07, 0.035, 'sine', this.fx);
+  }
+  /** A fragment taken: the theme's rise, bright, and the chime. */
+  fragmentTaken({ pos = null } = {}) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, root = 293.66 * 2;
+    [[7, 0], [12, 0.1], [14, 0.2], [18, 0.32]].forEach(([s, at]) => this.sweep(t + at, root * 2 ** (s / 12), root * 2 ** (s / 12) * 1.003, 0.7, 0.05, 'sine', this.fx));
+    this.pickup({ pos });
+  }
+
   pickup({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;
     if (!this.sample('grab', { vol: 1, pos })) this.burst(this.ctx.currentTime, { dur: 0.08, type: 'bandpass', freq: 1500, q: 1, vol: 0.06 });

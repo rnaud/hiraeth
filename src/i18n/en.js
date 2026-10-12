@@ -413,6 +413,9 @@ export const EN = {
   'gm.told': 'The story is told',
   'gm.notTold': 'The story is not told yet',
   'gm.toldMark': '✓ story',
+  'gm.fragLeft': '✧ {n} left',
+  'gm.fragAll': '✧ all {n}',
+  'gm.fragments': '✧ Fragments of the singing light: {n} of {m}',
   'gm.notToldMark': '… story',
   'gm.noWorlds': 'No worlds yet.',
 

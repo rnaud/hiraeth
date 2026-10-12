@@ -168,6 +168,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .where { font-size: calc(clamp(11px, 1.8vh, 26px) * var(--ts, 1)); line-height: 1.5; }
 .fullmenu .where b { display: block; font-size: 1.15em; }
 .fullmenu .where:empty { display: none; }
+.fullmenu .where .frag { display: block; color: #22677a; }   /* (the fragments of the singing light: main.js fragmentsLine) */
 .fullmenu .menu-nav { display: flex; flex-direction: column; gap: clamp(7px, 1.7vh, 14px); }
 .fullmenu .menu-nav button {
   font: inherit; font-size: calc(clamp(14px, 2.4vh, 36px) * var(--ts, 1)); font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; text-align: left;

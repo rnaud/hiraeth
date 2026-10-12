@@ -8,6 +8,15 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.55', date: '2026-10-12', items: [
+    // the fragments of the singing light, the scientist and his upgrades (src/fragments.js, src/story/scientist.js,
+    // docs/systems/fragments.md; issue #196)
+    'Fragments of the singing light are hidden in every world on the route, eight in each: up on ledges and high places, behind things, at the ends of side paths, never on the way anyone sends you. Each is a small pale splinter that glows and sings faintly when you come near; walk into it to take it.',
+    'The first fragment you take brings Orrin Thrum, a scientist who has been on the lookout for them since the night the light went over. He moves into your ship’s hold, keeps what you bring him in a jar on his crate, and tells you how many you have and how many still hide in each world.',
+    'At 5, 10, 15, 25, 50, 75 and all 96 fragments, Orrin fits something to your gear: one more heart (four to start instead of three), a finder, a blade that cuts half as hard again, one more unit of magic, wings that glide a fifth faster and sink slower, boots that run longer and rest quicker, and a guard that blocks for half the magic.',
+    'At ten fragments Orrin gives you his finder: it beeps when a fragment is within 60 m, faster and higher the closer you get. Switch it off or on from your items (A / × on it).',
+    'The game menu’s Worlds page counts your fragments of the singing light: all told, and how many are left in each world you know. The Start menu says it too, under where you are: how many you have and how many are left in this world.',
+  ] },
   { v: '1.54', date: '2026-10-12', items: [
     // the father's window recording back to the bust (reverts e7d5052e, the walking full body; the author's call)
     'Your father is a bust again in the ship’s recordings, as he is in his calls: the walking, full-length figure at the window is gone.',

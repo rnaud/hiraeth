@@ -26,6 +26,7 @@ export const BLADE = {
   reach: 2.9, angle: 1.15,   // the swing's cone: metres from the chest, half-angle (rad, ~65°)
   lock: 6,             // m: the soft lock turns you to a foe this close
   damage: [1, 1, 3],   // the combo's three swings (v1.22: the third lands three, the combo's niche: the mid-weight foes on the ground)
+  edge: 1,             // every cut's damage times this (the scientist's light-tempered edge, 1.5: src/trials/upgrades.js FRAGMENT_TUNES)
   cooldown: 0.4,       // after the third swing (v1.41: 0.5)
   buffer: 0.2,         // s a press is remembered while the blade can't swing yet (an evade, the cooldown): it swings as soon as it can
 };
@@ -876,7 +877,7 @@ export class FluidBlade {
     }
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);
-    const damage = S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1;
+    const damage = (S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1) * (BLADE.edge ?? 1);
     const light = airLight(S), heavy = this.n === 2 || (!!S && !light);   // (the air combo's light swings count as the combo's own)
     const info = { ...T.info(), damage, combo: S && !light ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === AIR || light ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}), ...(S === DASH ? { dash: true, source: 'dash' } : {}) };
     for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });

@@ -177,8 +177,9 @@ test('every magical water that colours the tank is a band, and the code grants i
   }
   assert.deepEqual([...new Set(sites)].sort(), TANK_BANDS.map((b) => `story/${b.world}.js`).sort(), 'a new tank band: add it to TANK_BANDS');
   // (main.js and the dev menu: the ?items= and dev switches; the boxes: PLACEMENTS; the trials: their rewards, won
-  // only by finishing an optional run, so a debug save leaves them unwon, as a player who went straight on would)
-  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'main.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
+  // only by finishing an optional run, so a debug save leaves them unwon, as a player who went straight on would; the
+  // scientist's upgrades for the fragments of the singing light likewise: optional finds, left unfound as the relics are)
+  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'main.js', 'story/scientist-data.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
   assert.deepEqual(gives, [], 'gear given in code by a quest: cover it in src/debug-save.js');
 });
 

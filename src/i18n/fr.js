@@ -411,6 +411,9 @@ export const FR = {
   'gm.told': 'L\'histoire est racontée',
   'gm.notTold': 'L\'histoire n\'est pas encore racontée',
   'gm.toldMark': '✓ histoire',
+  'gm.fragLeft': '✧ encore {n}',
+  'gm.fragAll': '✧ tous les {n}',
+  'gm.fragments': '✧ Fragments de la lumière qui chante : {n} sur {m}',
   'gm.notToldMark': '… histoire',
   'gm.noWorlds': 'Aucun monde pour l\'instant.',
 

@@ -7,7 +7,7 @@
 #journal.gamemenu {
   position: fixed; inset: 0; z-index: 8500; display: none; color: #2b211f; font: var(--type-s)/1.45 var(--face);
   --ink: #2b211f; --paper: #fbf4e2; --paper2: #f3e7cc; --gold: #f2c54b; --red: #c8483a; --teal: #277e86; --green: #2f7a55;
-  --slot: clamp(40px, min(9.6vh, 5.6vw), 80px);   /* (eleven a row since v1.52: src/game-menu.js GEAR_COLS) */
+  --slot: clamp(36px, min(8.1vh, 4.72vw), 68px);   /* (twelve a row since v1.55, eleven since v1.52: src/game-menu.js GEAR_COLS; the grid as wide as before) */
   background: #e8d9b5 radial-gradient(ellipse 80% 70% at 50% 45%, #f1e5c6 0%, #e8d9b5 62%, #d9c69b 100%);
   user-select: none; -webkit-user-select: none;
 }
@@ -197,6 +197,8 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 #journal .wcard .wname { font-weight: bold; font-size: calc(clamp(11px, 2vh, 14px) * var(--ts, 1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #journal .wcard .wfacts { display: flex; gap: 10px; font-size: calc(clamp(10px, 1.65vh, 12px) * var(--ts, 1)); opacity: 0.85; }
 #journal .wcard .wfacts .on { color: var(--green); font-weight: bold; }
+#journal .wcard .wfacts .frag { color: #3f8fa6; }
+#journal .gm-fragments { margin: 0 0 clamp(8px, 1.4vh, 14px); font-size: calc(clamp(11px, 1.8vh, 14px) * var(--ts, 1)); color: #3f8fa6; font-weight: bold; }
 #journal .wcard.here { border-color: var(--red); }
 #journal .wcard.at, #journal .wcard:hover { background: var(--gold); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
 
@@ -217,7 +219,7 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 @media (max-width: 720px) {
   #journal .gm-items, #journal .gm-quests { grid-template-columns: minmax(0, 1fr); }
   #journal .gm-preview { display: none; }
-  #journal.gamemenu { --slot: clamp(30px, min(8.5vw, 9vh), 54px); }
+  #journal.gamemenu { --slot: clamp(28px, min(7.8vw, 8.3vh), 50px); }   /* (twelve a row since v1.55: as wide as eleven were) */
   #journal .gm-worlds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #journal .gm-tabs { padding: 0 44px 0 0; justify-content: flex-start; flex-wrap: wrap; }
   #journal .gm-side .nm { display: none; }

@@ -9,6 +9,8 @@ import { MAG } from '../gadgets/magnet.js';
 import { BOMB } from '../gadgets/bomb.js';
 import { HISTORY } from '../gadgets/history.js';
 import { RIDE_SPEED } from '../bike.js';
+import { BLADE } from '../fluid-blade.js';
+import { MAGIC_COST } from '../resources.js';
 
 // The trials' rewards at work (src/items.js, the items with `trial`): each an upgrade to a gadget's tuning
 // table (the desert's: the hoverbike's, the one thing it has to upgrade) while it is owned, put back when it is not (the dev menu). syncUpgrades(has) is run once a world
@@ -44,6 +46,17 @@ const CHARM_BASE = Object.fromEntries(Object.entries(CHARM_TUNES).map(([id, [t, 
 // (the bubble you float in yourself lasts longer too)
 const SELF = BUBBLE.self?.life;
 
+/**
+ * The scientist's upgrades that are a number in a table (issue #196: src/items.js `fragments`, src/story/scientist.js):
+ * [the table, its key, the value with it]. The others are read where they act: the heart and the chamber from the items
+ * (src/resources.js HEART_ITEMS, MAGIC_ITEMS), the wings and the boots in src/boxes/effects.js.
+ */
+export const FRAGMENT_TUNES = {
+  lightedge: [BLADE, 'edge', 1.5],
+  lightguard: [MAGIC_COST, 'shield', 0.5],
+};
+const FRAGMENT_BASE = Object.fromEntries(Object.entries(FRAGMENT_TUNES).map(([id, [t, k]]) => [id, t[k]]));
+
 /** Set every gadget's tuning for the upgrades owned (has(id)). Returns the ids on. */
 export function syncUpgrades(has) {
   const on = [];
@@ -54,5 +67,6 @@ export function syncUpgrades(has) {
   }
   if (BUBBLE.self && SELF != null) BUBBLE.self.life = has('longbreath') ? SELF * 1.5 : SELF;
   for (const [id, [t, k, v]] of Object.entries(CHARM_TUNES)) t[k] = has(id) ? v : CHARM_BASE[id];
+  for (const [id, [t, k, v]] of Object.entries(FRAGMENT_TUNES)) t[k] = has(id) ? v : FRAGMENT_BASE[id];
   return on;
 }

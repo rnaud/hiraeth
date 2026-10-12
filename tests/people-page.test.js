@@ -15,6 +15,7 @@ import * as incal from '../src/story/incal-data.js';
 import { SHOPKEEPERS } from '../src/story/shop-data.js';
 import { SHOPS } from '../src/shop.js';
 import { TANSY, STOPS as FELLOW_STOPS } from '../src/story/fellow-data.js';
+import { thrumPerson } from '../src/story/scientist-data.js';
 
 // The game menu's People page (src/story/people-book.js, src/game-menu.js peoplePanel): who the people of the
 // route are, as far as the save says the traveller knows them. Spoiler-safe: only people met, and only the
@@ -35,10 +36,12 @@ async function peopleOf(world) {
     const keepers = Object.values(SHOPS).filter((s) => s.world === part).map((s) => SHOPKEEPERS[s.keeper]);
     // (and the fellow traveller, listed where the route first puts her: src/story/fellow-data.js)
     const fellow = part === FELLOW_STOPS[0] ? [TANSY] : null;
+    // (and the scientist, met wherever the first fragment is found and aboard the ship after: listed where it came down)
+    const scientist = part === 'desert' ? [thrumPerson()] : null;
     // (a visitor in a world's content from another world, `world` naming it, is listed under their own: the Moon Foundry's
     // Wen, the floating city's Kip)
     const npcs = (CONTENT[part]?.npcs ?? []).filter((p) => !(p.world && p.world !== part));
-    for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, npcs, m.WREN ? [m.WREN] : null, keepers, fellow]) {
+    for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, npcs, m.WREN ? [m.WREN] : null, keepers, fellow, scientist]) {
       for (const p of Array.isArray(list) ? list : Object.values(list ?? {})) if (p?.id && p.talk && !out.has(p.id)) out.set(p.id, p);
     }
   }

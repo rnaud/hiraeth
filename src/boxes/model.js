@@ -582,7 +582,31 @@ function ribbonModel() {
   return g;
 }
 
+// the fragments of the singing light (issue #196, src/fragments.js): a pale splinter; the finder, Orrin's brass box with one
+// inside its little window; and the scientist's upgrades, the gear they are fitted to with a splinter pinned on (src/items.js `light`)
+function fragmentModel(s = 1) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.06 * s, 0).scale(0.75, 1.9, 0.75), flatM('#dff7ff', { glow: 1 })));
+  return g;
+}
+function finderModel() {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.15, 0.05), flatM(BRASS)));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.012, 16).rotateX(Math.PI / 2).translate(0, 0.025, 0.026), flatM('#bfe8f2', { glow: 0.6 })));
+  const f = fragmentModel(0.45); f.position.set(0, 0.025, 0.03); g.add(f);
+  for (const x of [-0.03, 0, 0.03]) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.01, 8).rotateX(Math.PI / 2).translate(x, -0.045, 0.028), flatM(INK)));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.08, 5).translate(0.04, 0.11, 0), flatM(STEEL)));
+  return g;
+}
+function lightModel(of) {
+  const g = new THREE.Group();
+  if (MODELS[of]) g.add(MODELS[of]()); else g.add(fragmentModel(1.6));
+  const f = fragmentModel(0.8); f.position.set(0.12, 0.14, 0.06); g.add(f);
+  return g;
+}
+
 const MODELS = {
+  finder: finderModel,
   sword: swordModel, shield: shieldModel, backpack: tankModel, doublejump: liftModel, jetpack: jetsModel, wardenbellows: wardenbellowsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
   cell: cellModel, coil: coilModel, lantern: lanternModel, lens: () => lensModel('#d8d4c8', { glyph: true }), bell: whistleModel, star: starModel,
   bloom: bloomModel, echo: echoModel, level: levelModel,
@@ -606,7 +630,7 @@ function upgradeModel(of) {
 
 /** A small model of an item for the hovering display (a generic gem for anything unknown). */
 export function buildItemModel(id) {
-  const g = (MODELS[id] ?? (ITEMS[id]?.trial && MODELS[ITEMS[id].needs] ? () => upgradeModel(ITEMS[id].needs) : null) ?? (() => { const x = new THREE.Group(); x.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), flatM('#f2c54b', { glow: 0.6 }))); return x; }))();
+  const g = (MODELS[id] ?? (ITEMS[id]?.light ? () => lightModel(ITEMS[id].light) : null) ?? (ITEMS[id]?.trial && MODELS[ITEMS[id].needs] ? () => upgradeModel(ITEMS[id].needs) : null) ?? (() => { const x = new THREE.Group(); x.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), flatM('#f2c54b', { glow: 0.6 }))); return x; }))();
   g.name = `Item ${id}`;
   return noCollide(g);
 }

@@ -53,7 +53,9 @@ export const HEARTS = { start: 3, cap: 20 };
  */
 export const MAGIC = { start: 3, cap: 9, delay: 1, fill: 4, coil: { delay: 0.5, fill: 2 } };
 /** Items that lengthen the bar, and by how many units each. */
-export const MAGIC_ITEMS = { cell: 1 };
+export const MAGIC_ITEMS = { cell: 1, lightcell: 1 };   // (lightcell: the scientist's light chamber, for 25 fragments: src/fragments.js)
+/** Items that give a heart for good, and how many each (the scientist's light-stitched heart, for 5 fragments). */
+export const HEART_ITEMS = { lightheart: 1 };
 
 /** What each use of the backpack costs, in units of the bar (the jets: units a second at full throttle). */
 export const MAGIC_COST = { shoot: 1, push: 1, boost: 1, shield: 1, gadget: 1, jets: 0.3 };
@@ -129,7 +131,11 @@ const num = (v, d = 0) => (Number.isFinite(+v) && v !== null && v !== undefined 
 /** The resources of the save in `state` (the game flags) and its `items`. */
 export class Resources {
   constructor(state = sharedGame, itemStore = sharedItems) { this.state = state; this.items = itemStore; }
-  get maxHearts() { return Math.min(HEARTS.cap, HEARTS.start + Math.max(0, Math.floor(num(this.state.flag('res.hearts.extra'))))); }
+  get maxHearts() {
+    let n = HEARTS.start + Math.max(0, Math.floor(num(this.state.flag('res.hearts.extra'))));
+    for (const [id, k] of Object.entries(HEART_ITEMS)) if (this.items.has(id)) n += k;
+    return Math.min(HEARTS.cap, n);
+  }
   /** The bar's length in units: the start, the items that lengthen it, and the expansions gained. */
   get maxMagic() {
     let n = MAGIC.start + Math.max(0, num(this.state.flag('res.magic.extra')));

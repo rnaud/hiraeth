@@ -35,8 +35,9 @@ export const PANELS = ['items', 'quests', 'sketches', 'worlds', 'people'].map((i
 /** The people's cards: this many a row (as the cursor counts them without a page; on one, where they are drawn). */
 export const PEOPLE_COLS = 4;
 /** The gear's grid: this many slots a row (ten since v1.40: the three new worlds' finds keep it to six rows; eleven
- *  since v1.52, the City-Shaft's Lamplighter's glass the sixty-first, the slots a little narrower to keep its width). */
-export const GEAR_COLS = 11;
+ *  since v1.52, the City-Shaft's Lamplighter's glass the sixty-first, the slots a little narrower to keep its width;
+ *  twelve since v1.55, the scientist's seven for the fragments of the singing light, narrower again). */
+export const GEAR_COLS = 12;
 /** The Sightings' notes: this many a row. */
 export const SIGHT_COLS = 5;
 /** The worlds' cards: this many a row. */
@@ -265,8 +266,10 @@ export function worldsPanel(list = []) {
   const card = (w, i) => `<button class="wcard${w.current ? ' here' : ''}${w.told ? ' told' : ''}" ${cellAttrs(Math.floor(i / WORLD_COLS), i % WORLD_COLS)}>
       <span class="pic">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</span>
       <span class="wname">${esc(w.title)}</span>
-      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}</span></button>`;
-  const html = `<div class="gm-worlds" style="--cols:${WORLD_COLS}">${list.map(card).join('') || `<p class="none">${t('gm.noWorlds')}</p>`}</div>`;
+      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag" title="${esc(t('gm.fragments', { n: w.fragments[0], m: w.fragments[1] }))}">${w.fragments[0] >= w.fragments[1] ? t('gm.fragAll', { n: w.fragments[1] }) : t('gm.fragLeft', { n: w.fragments[1] - w.fragments[0] })}</span>` : ''}</span></button>`;
+  // (the fragments of the singing light, all told, once the first is found: worldsData's `fragmentsAll`)
+  const all = list.fragmentsAll?.found ? `<p class="gm-fragments">${t('gm.fragments', { n: list.fragmentsAll.found, m: list.fragmentsAll.total })}</p>` : '';
+  const html = `${all}<div class="gm-worlds" style="--cols:${WORLD_COLS}">${list.map(card).join('') || `<p class="none">${t('gm.noWorlds')}</p>`}</div>`;
   return { html, rows };
 }
 
