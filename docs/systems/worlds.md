@@ -1907,6 +1907,47 @@ spots it is there for, with the audit's own rays, in `tests/level-design-landmar
   every 18 m up its back to the cairn (`the cairn's posts`); on the way, 30–150 m from the door, the carriers' float-sledge,
   their shade and the wind-glass (sights: optional pull 3 → 4). All drawn only.
 
+## The Buried Machine breathes (issue #168; v1.51)
+
+The author's pick of the level explorations (#164: `references/levels/The Buried Machine/environment/explorations/
+machine-breathes/`, docs/design/level-explorations-prompts.md direction B): the canyon was dead scenery until the wheel
+turned. `src/buried-breath.js` (`buildMachineBreath`, built last in `src/levels/buried.js`) makes its walls move:
+- **The vents** (`BREATH.vents`): round vents every 19 m low on both walls, over the sand banked at the walls' foot, seven
+  steam puffs each that swell, rise and thin away. Their breath is slow by the sand ramp (7.2 s) and quick by the oculus
+  (2.6 s: `ventPeriod`), a warmer-colder guide; once the Wick is lit (`setLit`, from src/story/buried.js) every vent
+  breathes at once, every 3.6 s.
+- **The great pistons** (`GREAT_PISTONS`): nine rods out of iron housings high on the walls (19–27 m over the floor),
+  sliding out 3.5–5.5 m and back on beats of 9–15 s. Placed 7 m or more from the walls' great pillars (the audit counts
+  those as landmarks); only the tanks and ducts are left out round them (`WALL_CLEAR_LOW`).
+- **The oil fall** (`OIL_FALL`): a broken pipe out of the west wall 19 m up, past the first cross-wall, and a thin amber
+  fall (the waterfall shader, src/waterfall-shader.js, in amber) into a pool on the floor; no sand is banked there
+  (`breathSand`, the drifts' mask).
+- **The keepers' way**, the east wall between the two cross-walls (`KEEPERS`; its machinery left out, `WALL_CLEAR`): a
+  stair of three pistons beside the wall, solid discs (`level.dynamic`, as a temple's riding discs) that rise and fall
+  4.2 m on a 9 s beat (`stairOut`), neighbours in opposite phase: the first comes down to the swept floor, and each pair
+  stands level for 2.5 s (ride one up, step across). The third's top is a pad and the deck at 12.9 m over the floor (a
+  fall from it, or a jump off it, lands without a tumble: FALL.tumble). The deck stands on the wall's face as drawn
+  (`wallFace` in buried.js: its rows' bumps, and the long pipes of its top band). A bulkhead across it has the **gear
+  door**: a round-topped leaf on a hinge (`physics.addMover`) that swings open for 13 s of every 30 (`doorAt`), the gears
+  round it hurrying for the 3 s before; then a ramp up the wall (24°) to a landing in the corner by the second
+  cross-wall, and a ramp along that wall's north face (29°) onto its **crown**, 49 m over the floor and 8 m over the
+  rim: the keepers' bench, their log (THINGS.log, src/story/buried-data.js), a lamp, and the canyon both ways. Rails
+  (a solid top bar) along every edge over a fall; the crown's ends are open, a short drop onto the dunes either side, the
+  quick way out after the Wick. A leading line `the keepers' gangway` (auto: false) and the sights `the keepers'
+  crown` and `the oil fall`.
+
+**On the GPU.** The vents' steam, the great pistons' rods and the gears are instanced meshes whose material is made with
+`breathe: true` (materials.js: the BREATHE block, src/breathe-shader.js): each instance's `aBreathe` (phase, period,
+stroke, kind: a slide, a turn, a puff) and one shared uniform (`BREATHE_CLOCK`: the canyon's clock, the distance past
+which they hold still, the gears' clock) move them in the vertex shader, so the CPU writes four numbers a frame. On the
+Deck's and the handheld's presets they hold still past 140 m from the camera (`breatheDetail`, main.js applyDetail). The
+stair's pistons and the door move on the CPU (three discs, one moving collider), within 260 m. They cast no shadow
+of their own (the rest pose would be wrong). **Reduce motion**: the great pistons, the gears and the steam hold still
+and the door stands open; the stair keeps its beat (it is the way up, and the wall beside it is climbable).
+
+Tests: `tests/buried-breath.test.js` (the beat's windows, the door's, a traveller walked from the floor up the stair,
+through the door and onto the crown, the rails, Reduce motion, the Wick's one breath).
+
 ## A shop in every route world (v1.14)
 
 Each route world has one shop, in its own architecture, by the way the player walks (the level design audit's

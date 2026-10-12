@@ -109,6 +109,7 @@ import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft, motionState } from './feel.js';
+import { breatheDetail } from './breathe-shader.js';
 import { Companion, shown as droneShown } from './companion.js';
 import { FLURRY, FlurryFx, nextFlurry } from './flurry.js';
 import { DevMenu } from './dev-menu.js';
@@ -1222,6 +1223,7 @@ function applyDetail() {
   waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
   BLADE_QUALITY.lite = bladeLiteFor(preset, low);   // (the fluid sword's lighter look: src/blade-shader.js)
   waters.contact = waterContactOn(preset);   // the little waves round what stands in the water (src/water.js renderGBuffer)
+  breatheDetail(low);   // (the Buried Machine's moving parts held still far off: src/breathe-shader.js)
   for (const n of npcs) { n.lowDetail = low; n.clothFar = preset.clothFar ?? null; }
   if (crowd) {
     const mid = preset.crowdMid ?? crowdRange.midIn;

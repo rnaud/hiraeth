@@ -396,6 +396,17 @@ export const THINGS = {
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
+  // (on the second cross-wall's crown, at the top of the keepers' way: src/buried-breath.js, issue #168)
+  log: {
+    id: 'keepersLog', name: 'The keepers’ log', title: 'on the crown of the oval wall', color: '#c9d4b8', voice: 0.6,
+    talk: {
+      entry: [{ if: { flag: 'buried.oculus.lit' }, node: 'lit' }, { node: 'read' }],
+      nodes: {
+        read: { say: ["~neutral~ An oil-stained log. Every page says the same: *Breathing well.*", "~sad~ The last entry is years old: *Slower every tooth.*"], choices: [{ text: '~neutral~ (close the log)', end: true }] },
+        lit: { say: ["~happy~ Below you every vent breathes at once. The old words fit again: *Breathing well.*"], choices: [{ text: '~neutral~ (close the log)', end: true }] },
+      },
+    },
+  },
   numbers: {
     id: 'numbers', name: 'Scratched numbers', title: 'on the drum wall', color: '#c9d4b8', voice: 0.6,
     talk: { nodes: { read: {

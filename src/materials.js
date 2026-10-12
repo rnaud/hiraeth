@@ -10,6 +10,7 @@ import { GROUND_GLSL, GROUND, PEBBLES } from './ground-ink.js';
 import { GLYPH_GLSL } from './glyphs.js';
 import { GRASS_VERT_PARS, grassUniforms } from './grass-shader.js';
 import { BRUSH_GLSL, brushUniforms } from './brush.js';
+import { BREATHE_GLSL, BREATHE_CLOCK } from './breathe-shader.js';
 import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
 import { FALL_GLSL, fallMaterial } from './waterfall-shader.js';
 import { DUNE_GLASS_GLSL, DUNE_GLASS_VERT_PARS, DUNE_GLASS_VERT, duneGlassMaterial, dunePoolMaterial } from './dune-glass-shader.js';
@@ -581,6 +582,9 @@ const vertexShader = /* glsl */ `
   #if defined(SWAY) || defined(GRASS)
     ${BRUSH_GLSL}
   #endif
+  #ifdef BREATHE
+    ${BREATHE_GLSL}
+  #endif
   #ifdef METAL
     uniform vec3 uBrushAxis;
     out vec3 vMetalT;
@@ -629,6 +633,9 @@ const vertexShader = /* glsl */ `
     #ifdef CROWD
       vec3 crowdColor;
       crowdAnimate(transformed, objectNormal, crowdColor);   // instanced crowd: pose + colour zones per instance
+    #endif
+    #if defined(BREATHE) && defined(USE_INSTANCING)
+      breatheMove(transformed, objectNormal);   // the Buried Machine's moving parts: a slide, a turn or a puff (breathe-shader.js)
     #endif
     #if defined(SWAY) && defined(USE_INSTANCING)
       // instanced plants (flora.js): the top bends with the world's wind, the base stays put. They
@@ -2968,6 +2975,11 @@ export function makeMaterial(o) {
   }
   // strata bands in the object's own space, so they move with it (a moving or turning thing; mesas keep world bands)
   if (o.strataObject) mat.defines = { ...mat.defines, STRATA_OBJECT: 1 };
+  // the Buried Machine's moving parts, moved in the vertex shader by their instance's aBreathe (breathe-shader.js)
+  if (o.breathe) {
+    mat.defines = { ...mat.defines, BREATHE: 1 };
+    mat.uniforms.uBreathe = BREATHE_CLOCK;
+  }
   if (o.sway) {
     mat.defines = { ...mat.defines, SWAY: 1 };
     mat.uniforms.uSway = { value: o.sway };

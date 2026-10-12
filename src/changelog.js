@@ -11,6 +11,10 @@ export const CHANGELOG = [
   { v: '1.52', date: '2026-10-12', items: [
     // the Unity preview on the Xbox at a steady 60 (docs/systems/xbox.md "The Unity build on the Xbox")
     'The Unity preview on the Xbox now waits for your TV before each picture: a steady 60 frames a second, with nearly every frame on time and no tearing across the screen as you turn.',
+    // the machine breathes (docs/systems/worlds.md "The Buried Machine breathes"; issue #168)
+    'In the Buried Machine, the rust canyon breathes: round vents low on both walls puff steam in rhythm, slowly by the sand ramp and faster the nearer you are to the oculus, and once the Wick is lit the whole canyon breathes at once. Great pistons slide in and out of the walls high up, and past the first oval wall a thin fall of amber oil pours from a broken pipe into a pool.',
+    'Past the first oval wall, the dome keepers’ way climbs the east wall: three pistons rise and fall in turn beside it (ride one up, step across when two meet) to a gangway halfway up, where a door in a wall of turning gears opens for a while every half minute. A long ramp then climbs onto the top of the second oval wall, high over the rim, with the keepers’ log and the whole canyon below; drop off either end onto the dunes.',
+    'With Reduce motion on, the canyon’s great pistons, gears and steam hold still and the gear door stays open; the keepers’ pistons still rise and fall, and the wall beside them can be climbed instead.',
   ] },
   { v: '1.51', date: '2026-10-11', items: [
     // the type split (docs/systems/ui.md "Type"; issue #128)

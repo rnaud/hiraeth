@@ -121,6 +121,8 @@ export function setupBuried(ctx) {
   const numbersAt = V(O.x - 10.5, O.floor + 1.6, O.z + O.r - 3.5);
   thing(THINGS.numbers, numbersAt, { range: 3.2, prompt: 'read the scratched numbers' });
   thing(THINGS.wheel, watchAt.clone().lerp(W.drop, 0.75), { range: 9, prompt: 'look at the great wheel', dy: 8, look: W.centre });
+  // the keepers' log on the second cross-wall's crown, at the top of their way up (src/buried-breath.js)
+  if (B.breath) thing(THINGS.log, B.breath.log, { range: 2.8, prompt: 'read the keepers’ log', dy: 2.5 });
   // the numbers: scratched rows on the drum wall by the doorway
   {
     const parts = [];
@@ -390,6 +392,8 @@ export function setupBuried(ctx) {
   const camF = V(0, 0, 0), toW = V(0, 0, 0), _p = V(0, 0, 0), _d = V(0, 0, 0);
   const update = (dt, t, { camera } = {}) => {
     const pp = player.pos;
+    // the canyon's vents breathe all at once once the Wick is lit (src/buried-breath.js)
+    B.breath?.setLit(!!game.flag('buried.oculus.lit'));
     // arrivals
     if (!game.flag('buried.canyon.seen') && pp.z < -150 && pp.y < B.floorAt(pp.z) + 12 && Math.abs(pp.x - B.canyonX(pp.z)) < 30) game.set('buried.canyon.seen', true);
     if (!game.flag('buried.oculus.seen') && Math.hypot(pp.x - O.x, pp.z - O.z) < O.r && pp.y < O.top) game.set('buried.oculus.seen', true);

@@ -430,6 +430,16 @@ colour by night, a how far it glows then); the fragment mixes its vertex colour 
 up by `uNight`, so one material is a painted billboard by day and a lit screen by night with nothing to switch. Used
 by the Signal Market's signs (worlds.md "The Signal Market at night"). A material without it compiles as before.
 
+## Moving parts on the GPU (`breathe`, v1.51)
+
+`makeMaterial({ breathe: true })` compiles BREATHE (src/breathe-shader.js) for an instanced mesh whose geometry carries
+`aBreathe` per instance (phase s, period s, stroke m, kind): kind 0 slides the instance out along its own +y and back
+(`slideOut`: out, held, back, rested), 1 turns it about its own y (a gear; the period's sign its way round), 2 is a puff
+that swells, travels along +y and thins away (`puffAt`). All of them read one uniform object, `BREATHE_CLOCK` (the
+clock, the distance past which an instance holds still, the clock it holds at, the gears' own clock), so moving every
+one costs four numbers a frame. The depth pass draws the rest pose, so these meshes cast no shadow. Used by the Buried
+Machine's vents, great pistons and gear door (worlds.md "The Buried Machine breathes").
+
 ## Dune glass (`duneGlass`, `dunePool`, October 2026)
 
 The Glass Dunes' glass (`src/dune-glass-shader.js`, compiled into the G-buffer surface shader for a material

@@ -12,7 +12,8 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { buildToothPosts, buildOilMain, buildFlueVents, buildCanyonStack, buildDoorFlag, buildRampRope, CANYON_STACK } from '../buried-ways.js';
 import { SHOPS } from '../shop.js';
-import { stepped } from '../load-steps.js';
+import { stepped, runSteps } from '../load-steps.js';
+import { buildMachineBreath, breathMaterials, wallClear, breathSand } from '../buried-breath.js';
 import { greebles } from './greeble-kit.js';
 import { ghostBridge, hiddenWriting } from '../gadgets/hidden.js';
 import { glyphGeometry } from '../story/sign-text.js';
@@ -126,6 +127,19 @@ function height(x, z) {
 // canyon walls: a leaning surface from the floor (d = W + 3) up to the dune rim (d = W + 13)
 const rimY = (z, s) => Math.max(dunes(cx(z) + s * (W + 16), z), floorAt(z) + 0.5);
 const wallD = (y, z, s) => W + 3 + 10 * clamp01((y - floorAt(z)) / Math.max(rimY(z, s) - floorAt(z), 1));
+/**
+ * The leaning wall's face as it is drawn (the mesh below: rows every 4 m of z from -52, six bands up, each band's edge
+ * bumped toward the canyon): how far from the centreline it stands at height y (src/buried-breath.js stands on it).
+ */
+export function wallFace(y, z, s) {
+  const row = (zz) => {
+    const f = floorAt(zz) - 1.5, top = rimY(zz, s) + 0.6, t = clamp01((y - f) / Math.max(top - f, 1)) * 6, k = Math.min(5, Math.floor(t)), r = t - k;
+    const bump = (j) => (j > 0 && j < 6 ? -Math.abs(nB(zz * 0.08, j * 1.7 + s)) * 1.6 : 0);
+    return W + 3 + 10 * (t / 6) + bump(k) * (1 - r) + bump(k + 1) * r;
+  };
+  const z0 = -52 - 4 * Math.floor((-52 - z) / 4), u = (z0 - z) / 4;
+  return row(z0) * (1 - u) + row(z0 - 4) * u;
+}
 
 // ---------------------------------------------------------- hero spots (also used by the content)
 const HERO_DOME = [-30, -6];
@@ -240,6 +254,7 @@ export function* buildBuried(scene) {
     buckets.get(k).geos.push(geo);
     return geo;
   };
+  const putAll = put, skip = (mat, geo) => geo;   // (skip: drawn nowhere, its random draws still taken)
 
   // ======================================================== spawn dunes: domed huts and pods
   yield;
@@ -471,6 +486,8 @@ export function* buildBuried(scene) {
     }
     for (const s of [-1, 1]) {
       for (let z = -60; z >= zEnd + 4; z -= range(6, 9)) {
+        // (where the machine breathes, src/buried-breath.js: drawn there instead; the same draws, so the rest stays as it was)
+        let put = wallClear(s, z) ? skip : putAll;
         const f = floorAt(z), top = rimY(z, s), wallH = top - f;
         if (wallH < 3) continue;
         const nearLedge = s < 0 && Math.abs(z - LEDGE_Z) < 9;
@@ -486,12 +503,14 @@ export function* buildBuried(scene) {
         if (shallow || nearWall || nearLedge) continue;
         // rust machinery below the strata
         const kind = rng();
+        // (the tanks and ducts left out round the great pistons and the oil fall too; the pillars kept: landmarks)
+        if (kind >= 0.45 && wallClear(s, z, true)) put = skip;
         if (kind < 0.45) {   // a colossal pillar standing against the wall
           const r = range(2.4, 4.2), h = wallH * range(0.55, 0.85), x = cx(z) + s * (W + 3 + r * 0.4);
           put(M.rustGrid, wrapped(new THREE.CylinderGeometry(r, r * 1.08, h, 12, 1)).translate(x, f + h / 2 - 1, z));
           put(M.rustDark, new THREE.CylinderGeometry(r * 1.2, r * 1.2, 1.2, 12, 1).translate(x, f + h - 1, z));
           put(M.rust, wrapped(new THREE.CylinderGeometry(r * 1.25, r * 1.3, 2, 12, 1)).translate(x, f, z));
-          pillarH.push({ x, z, r, y: f + h * range(0.3, 0.6), s });
+          pillarH.push({ x, z, r, y: f + h * range(0.3, 0.6), s, hide: put === skip });
         } else if (kind < 0.8) {   // stacked horizontal cylinders (tanks laid along the wall)
           for (let y = f + range(2, 4); y < top - 13; y += range(5, 8)) {
             if (nearLedge && y > LEDGE_Y - 4) break;
@@ -514,6 +533,7 @@ export function* buildBuried(scene) {
     {
       const ur = mulberry32(19831);
       for (const s of [-1, 1]) for (let z = -54; z >= zEnd + 6; z -= 6 + ur() * 5) {
+        const put = wallClear(s, z) ? skip : putAll;
         const f = floorAt(z), top = rimY(z, s), wallH = top - f;
         if (wallH < 4 || (s < 0 && Math.abs(z - LEDGE_Z) < 12)) continue;
         if (WALLS.some((wz) => Math.abs(z - wz) < 8) || GAUGES.some(([gz, gs]) => gs === s && Math.abs(z - gz) < 8)) continue;
@@ -530,6 +550,7 @@ export function* buildBuried(scene) {
 
     // round hatches and glowing portholes on the pillars, facing the canyon
     for (const p of pillarH) {
+      const put = p.hide ? skip : putAll;
       const lit = rng() < 0.35, face = new THREE.Vector3(-p.s, 0, 0);
       const c = new THREE.Vector3(p.x, p.y, p.z).addScaledVector(face, p.r * 0.92);
       put(M.rustDark, new THREE.TorusGeometry(p.r * 0.55, 0.22, 6, 18).rotateY(Math.PI / 2).translate(c.x, c.y, c.z));
@@ -1141,10 +1162,10 @@ export function* buildBuried(scene) {
   // the Engine-House on the dunes west of the domes, and its rooms far overhead (src/temples/buried.js)
   yield;
   // sand banked against what stands on the sand: every collided mesh built so far (sand-drifts.js)
-  // (none round the great wheel: its sand slides away, story/buried.js; none across the ways through the
+  // (none round the keepers' stair or in the oil's pool: src/buried-breath.js; none round the great wheel: its sand slides away, story/buried.js; none across the ways through the
   // cross-walls' openings, which you walk through: the wall and the rim round the opening stand on the floor
   // either side of it, and their footprints' drifts banked sand across it)
-  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 7, mask: (x, z) => smoothstep(WHEEL.R + 25, WHEEL.R + 40, Math.hypot(x - WHEEL.x, z - WHEEL.z)) * passageMask(passages, x, z) }).addScene(scene);
+  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 7, mask: (x, z) => smoothstep(WHEEL.R + 25, WHEEL.R + 40, Math.hypot(x - WHEEL.x, z - WHEEL.z)) * passageMask(passages, x, z) * breathSand(x, z, cx) }).addScene(scene);
   const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
@@ -1237,8 +1258,22 @@ export function* buildBuried(scene) {
   level.beacons = [{ name: 'the canyon stack’s steam', top: steamTop.toArray(), height: 30 }, { name: 'Fisk’s flag', top: flag.top.toArray(), height: flag.height }];
   const sightsOf = level.sights;
   level.sights = () => [...sightsOf(), { name: 'the canyon stack', at: stack.at }];
+  // the machine breathes (src/buried-breath.js, issue #168): vents puffing in rhythm, great pistons, an oil fall, and the
+  // keepers' way up the east wall past the first cross-wall (a stair of pistons, a gear door, a ramp) onto the second
+  // cross-wall's crown. Built last: the audits' samples of what stood before stay as they were
+  const breath = buildMachineBreath(scene, breathMaterials(M), { cx, terrain, wallFace, wallD, rimY, passages, FLOOR,
+    crownTop: (i) => Math.max(rimY(WALLS[i], -1), rimY(WALLS[i], 1)) + 8 });
+  level.buried.breath = breath;
+  const dynamicOf = level.dynamic, initStepsOf = level.initSteps;
+  level.dynamic = () => { const base = dynamicOf ? dynamicOf.call(level) : []; return base.length ? [...base, ...breath.solids()] : breath.solids(); };
+  level.initSteps = function* (physics, o) { yield* initStepsOf.call(level, physics, o); breath.init(physics); };
+  level.init = (physics) => runSteps(level.initSteps(physics));
+  const linesOf2 = level.lines, sightsOf2 = level.sights;
+  // (for the level design audit: the keepers' way, a line where you go up it, and its crown and the oil fall to stop at)
+  level.lines = () => [...linesOf2(), { name: 'the keepers’ gangway', points: breath.route, auto: false }];
+  level.sights = () => [...sightsOf2(), { name: 'the keepers’ crown', at: breath.crown }, { name: 'the oil fall', at: breath.fall.pool }];
   const updateOf = level.update;
-  level.update = function (dt, t, ctx) { updateOf.call(this, dt, t, ctx); stack.update(dt, t, ctx); flag.wave(t ?? 0); };
+  level.update = function (dt, t, ctx) { updateOf.call(this, dt, t, ctx); stack.update(dt, t, ctx); flag.wave(t ?? 0); breath.update(dt, t, ctx); };
   return level;
 }
 export const createBuried = stepped(buildBuried);

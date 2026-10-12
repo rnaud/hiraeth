@@ -648,6 +648,8 @@ const XBOX51 = 'the Xbox Series X’s Unity player (BridgeRunner -views, LocalSt
 // (v1.51: the Desert after the author's playthrough, issues #149–#162)
 const SAVE_POOL51 = { flags: { ...SAVE_DESERT.flags, 'desert.channel.open': true, 'desert.pool.tinted': true, 'desert.cave.seen': true, 'quest.desert.power': 'door', 'desert.moment.flow': true, 'desert.moment.fill': true, 'items.v': 2, 'save.migrated': 19 }, keepsakes: [] };
 const PT51 = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720), Vite on port 5493, at the commit before the change and at the change (before its rebase), 11 October; cwebp -q 72';
+// (v1.52: the machine breathes, issue #168: this branch's own Vite and the tree before the change)
+const BREATH52 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5347) and the same tree before the change, 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.52': [
     { match: 'The Unity preview on the Xbox now waits for your TV', numbers: [
@@ -657,6 +659,28 @@ export const CHANGELOG_MEDIA = {
         { where: 'the longest frame, ms', before: 39, after: 33 },
       ], source: 'scripts/xbox-unity.mjs, 150 s at the spawn, the last 5 s window, 12 October, build 1937: before -vsync 0, after -vsync 1' },
     ], see: 'On an Xbox in Developer Mode, start Hiraeth (Unity) and turn on the spot: the picture no longer tears; the corner readout holds near 60.' },
+    { match: 'In the Buried Machine, the rust canyon breathes', shots: [
+      { name: 'buried-oil', title: 'The oil fall', caption: 'Past the first oval wall, the west wall: after, a broken pipe 19 m up pours a thin amber fall into a pool on the floor', from: BREATH52,
+        view: { level: 'buried', fov: 55, eye: [0, -28, -276], target: [-36, -22, -283], player: [2, -34, -276] } },
+      { name: 'buried-vents', title: 'A vent and a great piston', caption: 'By the second gauge: after, a great piston out of its housing high on the wall, and a vent over the sand breathing steam', from: BREATH52,
+        view: { level: 'buried', fov: 50, eye: [-6, -29.5, -236], target: [-36, -26, -246], player: [-6, -34, -236] } },
+    ], numbers: [
+      { title: 'What the moving canyon costs', unit: 'ms or draws', better: 'lower', device: 'Mac proxy for the Steam Deck: headless Chrome, the Deck preset, 1280 × 800, CPU slowed ×3 (scripts/bench/deck-mac.mjs)', rows: [
+        { where: 'the level’s update a frame, in the canyon', before: 0.12, after: 0.19 },
+        { where: 'the level’s update a frame, on the second oval wall', before: 0.19, after: 0.24 },
+        { where: 'draws, in the canyon', before: 172, after: 171 },
+        { where: 'draws, on the second oval wall', before: 217, after: 229 },
+      ], source: 'scripts/bench/deck-worlds.mjs --slow 3 --profile 1, views canyon and keepers (viewpoints-worlds.json), one run each, 11 October, the Mac shared (load 35–50): the frame’s whole JS moved 15.6 → 17.1 and 15.9 → 16.9 ms, within that noise' },
+    ], see: 'Go down the sand ramp and walk the canyon to the oculus: the vents puff slowly near the ramp and quicker and quicker toward the oculus. Light the Wick and walk back: every vent breathes at the same moment.' },
+    { match: 'Past the first oval wall, the dome keepers’ way climbs the east wall', shots: [
+      { name: 'keepers-floor', title: 'From the floor', caption: 'Just through the first oval wall, looking on: after, the keepers’ pad on its stilts at the right and the gangway climbing the east wall to the top of the second oval wall', from: BREATH52,
+        view: { level: 'buried', fov: 64, eye: [-16, -30, -268], target: [-2, -20, -310], player: [-14, -34, -270] } },
+      { name: 'keepers-door', title: 'The gear door', caption: 'On the gangway halfway up: after, the bulkhead with its ring of gears and the round door (shut here, waiting to turn open)', from: BREATH52,
+        view: { level: 'buried', fov: 60, eye: [11.5, -19, -281.5], target: [12.6, -19.5, -289], player: [11.5, -21.1, -282.5] } },
+      { name: 'keepers-crown', title: 'From the top', caption: 'From the top of the second oval wall, back down the canyon: after, the ramp up the east wall (left), the oil fall and its pool (right)', from: BREATH52,
+        view: { level: 'buried', fov: 62, eye: [-1, 17.6, -350.5], target: [-12, -10, -275], player: [-3, 14.8, -353] } },
+    ], see: 'Through the first oval wall, the three pistons stand by the east wall on your left. Wait for the first to come down, step on, and step across each time two meet; the third lifts you to the gangway. Wait at the gear door until it turns open (every half minute), then follow the ramp up to the top of the second oval wall and read the log.' },
+    { match: 'With Reduce motion on, the canyon’s great pistons', see: 'Turn on Reduce motion in the settings and go down into the canyon: the steam hangs still at the vents, the great pistons and the gears stop, and the gear door stands open. The keepers’ three pistons still move.' },
   ],
   '1.51': [
     { match: 'The opening in your ship has music of its own', see: 'Start a new game with the sound on (or open ?level=desert&prologue=1): in the ship, its own quiet music while you wake and walk to the cockpit, nothing under your father’s message; the desert’s ney and oud come in as you walk down the ramp.' },
