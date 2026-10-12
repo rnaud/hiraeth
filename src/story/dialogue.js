@@ -334,7 +334,7 @@ export class Dialogue {
       // no button hints and no translator tag (a foreign page fades in once as it comes: .dlg-text.heard)
       this.el.innerHTML = `<div class="dlg-panel"><div class="dlg-who"><div class="dlg-chip"><img alt=""><span></span></div></div>
         <div class="dlg-tag"><b class="dlg-name"></b><i class="dlg-title"></i></div>
-        <p class="dlg-text"></p><div class="dlg-choices"></div><i class="dlg-more" aria-hidden="true"></i></div>`;
+        <p class="dlg-text"></p><div class="dlg-choices"></div><i class="dlg-more" aria-hidden="true"></i><span class="dlg-next" aria-hidden="true"></span></div>`;
       this.q = (s) => this.el.querySelector(s);
       this.el.addEventListener('click', (e) => {
         const b = e.target.closest('.dlg-choices:not(.waiting) button[data-i]');
@@ -517,6 +517,9 @@ export class Dialogue {
     }
     // a small mark at the panel's corner when the next press turns the page
     this.el.classList.toggle('more', !choices.length);
+    // (and, with a pad in hand, the button that turns it: index.html .dlg-next; native-pad.js prints it as the pad does)
+    const next = this.q('.dlg-next'), key = confirmKey();
+    if (next && next.dataset.key !== key) { next.dataset.key = key; next.innerHTML = keyBadge(key); }
     if (laid) this.fit();
   }
 

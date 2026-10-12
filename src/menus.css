@@ -5,6 +5,7 @@
 
 /* ------------------------------------------------------------------ the title screen */
 #title {
+  --glyph-min: 10px;   /* (the title's words are sized in px of their own: its button glyphs follow them, not the screen) */
   position: fixed; inset: 0; z-index: 9500; overflow: hidden; background: #f2c890; color: #2b211f;
   font: calc(14px * var(--ts, 1))/1.4 var(--face); user-select: none; -webkit-user-select: none;
   transition: opacity 0.45s;
@@ -270,7 +271,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 }
 #title .main-menu .tool:hover .tip, #title .main-menu .tool:focus .tip { opacity: 1; }
 /* (the confirm glyph: a small badge in the icon's corner, not beside it) */
-#title .main-menu .tool > .glyph { position: absolute; right: -9px; bottom: -9px; margin: 0; font-size: 12px; }
+#title .main-menu .tool > .glyph { position: absolute; right: -9px; bottom: -9px; margin: 0; font-size: calc(12px * var(--ts, 1)); }
 /* a quieter tool entry under Debug (the character studio): smaller, tucked against it */
 /* the saves and the confirm card: translucent paper, hairlines, no hard shadows */
 #title .saves { background: rgba(251, 246, 234, 0.82); border: 1px solid rgba(43, 33, 31, 0.35); box-shadow: 0 10px 40px rgba(43, 33, 31, 0.18); border-radius: 6px; backdrop-filter: blur(3px); }

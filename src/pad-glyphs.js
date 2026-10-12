@@ -14,6 +14,9 @@
 // family), so a menu drawn again keeps it, native-pad.js never rewrites it, and the screen readers
 // skip it (aria-hidden): the button's own words say what it does.
 //
+// Its size: .68em of its button's words, but never under the page's --glyph-min (index.html: from the screen's
+// height, issue #150), so on the Deck's 800 a glyph is as easy to read as on a 1440p screen; 10 px where unset.
+//
 // Roles are named by position as the prompts are (Xbox / PlayStation form): 'ok' and 'back' are the
 // menus' confirm and back buttons, printed A and B whatever the layout (native-pad.js confirmKey).
 
@@ -81,10 +84,10 @@ ${keys[r] ? '' : `body:not(.controller) .glyph[data-glyph="${r}"]:not([data-key]
   return `:root { --glyph-ink: #f7ecd2; }
 .glyph { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 1.7em; height: 1.7em;
   padding: 0 .4em; margin: 0 .5em 0 0; vertical-align: middle; border-radius: .3em; background: #2b211f; color: var(--gc, var(--glyph-ink));
-  font: 700 max(10px, .68em)/1 ${FACE}; letter-spacing: 0; text-transform: none; text-indent: 0;
+  font: 700 max(var(--glyph-min, 10px), .68em)/1 ${FACE}; letter-spacing: 0; text-transform: none; text-indent: 0;
   white-space: nowrap; flex: none; pointer-events: none; font-style: normal; }
 .glyph.end { margin: 0 0 0 .5em; }
-body.controller .glyph:is([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { border-radius: 50%; padding: 0; width: 1.7em; font-size: max(11px, .74em); }
+body.controller .glyph:is([data-glyph="ok"], [data-glyph="back"], [data-glyph="x"], [data-glyph="y"]) { border-radius: 50%; padding: 0; width: 1.7em; font-size: max(calc(var(--glyph-min, 10px) * 1.1), .74em); }
 body:not(.controller) .glyph { background: transparent; color: inherit; border: 1.5px solid currentColor; border-bottom-width: 3px; opacity: .8; font-weight: 600; }
 body:not(.controller) .glyph[data-key]::before { content: attr(data-key); }
 body.touch .glyph { display: none !important; }

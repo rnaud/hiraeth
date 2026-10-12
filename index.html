@@ -29,6 +29,11 @@
         --face-mono: ui-monospace, Menlo, Consolas, monospace;
         --type: calc(clamp(15px, 2.4vh, 36px) * var(--ts, 1));
         --type-s: calc(clamp(13px, 1.9vh, 28px) * var(--ts, 1));
+        /* a button's letter, wherever a prompt shows one (issue #150): from the screen's height too, so a badge is as easy
+           to see on the Deck's 800 as on a 1440p screen. --type-key: the round badges (.key: the use prompt, the cue);
+           --glyph-min: the least a button glyph inside a menu's or a card's button is (src/pad-glyphs.js) */
+        --type-key: calc(clamp(14px, 2.2vh, 34px) * var(--ts, 1));
+        --glyph-min: calc(clamp(11px, 1.6vh, 24px) * var(--ts, 1));
       }
       /* the Xbox app on a TV (src/xbox.js): the HUD and the menus inside the TV's safe area, 5 % from each edge */
       :root.tv-safe {
@@ -50,7 +55,7 @@
         pointer-events: none; user-select: none; opacity: 0; transition: opacity 0.35s;
       }
       #cue.show { opacity: 1; }
-      #cue .key { font-size: 0.9em; min-width: 1.7em; height: 1.7em; margin: -2px 1px 0 0; }
+      #cue .key { font-size: var(--type-key); min-width: 1.7em; height: 1.7em; margin: -2px 1px 0 0; }
       /* a region's name: thin capitals on the land, no box */
       #cue.place { background: none; border: 0; box-shadow: none; padding: 0; transition: opacity 0.9s;
         font: 300 calc(clamp(13px, 2.4vh, 19px) * var(--ts, 1))/1.2 var(--face);
@@ -266,6 +271,10 @@
       #dialogue .dlg-more { display: none; position: absolute; right: 1em; bottom: 0.7em; width: 0; height: 0;
         border: 0.42em solid transparent; border-top: 0.55em solid #c8483a; border-bottom: 0; animation: dlg-more 1s ease-in-out infinite; }
       #dialogue.more .dlg-more { display: block; }
+      /* with a pad in hand, the button that turns it too, on the panel's bottom edge as the name sits on its top (issue #150) */
+      #dialogue .dlg-next { display: none; position: absolute; right: 2.3em; bottom: 0; transform: translateY(55%); line-height: 0; }
+      body.controller #dialogue.more .dlg-next { display: block; }
+      #dialogue .dlg-next .key { font-size: 0.8em; min-width: 1.8em; height: 1.8em; box-shadow: 0 0 0 2.5px #fffaf0, 2px 2px 0 2.5px #2b211f; }
       @keyframes dlg-more { 50% { transform: translateY(3px); } }
       #dialogue .glyph, .balloon .glyph { width: 1.6em; height: 1.05em; vertical-align: -0.12em; fill: #3aa6a8; stroke: #3aa6a8; margin: 0 2px; }
       /* the answers: no boxes, only their words on the paper with a red mark beside each; the one the pad, the mouse or
@@ -323,14 +332,15 @@
       }
       #prompt.show { opacity: 1; }
       /* hints subtle or off (src/hint-level.js): the button alone, a small quiet glyph, no words */
-      #prompt.glyph { background: none; border: 0; box-shadow: none; padding: 0; font-size: calc(var(--type-s) * 0.9); }
+      #prompt.glyph { background: none; border: 0; box-shadow: none; padding: 0; }
+      #prompt.glyph .key { font-size: calc(var(--type-key) * 1.15); }   /* (the button alone: the one thing over them) */
       #prompt.glyph.show, #cue.glyph.show { opacity: 0.8; }
       #prompt.glyph .key, #cue.glyph .key { box-shadow: 0 0 0 1.5px #fffaf0, 1.5px 1.5px 0 1.5px rgba(43, 33, 31, 0.35); }
       #cue.glyph { background: none; border: 0; box-shadow: none; padding: 0; }
       /* a button, wherever a prompt names one: a small ink circle (a pill for the two-glyph "X / □" names) */
       .key {
         display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 1.75em; height: 1.75em; padding: 0 0.45em;
-        border-radius: 999px; background: #2b211f; color: #fffaf0; font-weight: bold; font-size: 0.95em; line-height: 1; vertical-align: middle;
+        border-radius: 999px; background: #2b211f; color: #fffaf0; font-weight: bold; font-size: var(--type-key, 0.95em); line-height: 1; vertical-align: middle;
       }
       /* a {key:verb} in a line (src/prompt-keys.js keyText): the player's own key or button, in the line's own type, bold */
       kbd.kp { font: inherit; font-weight: bold; white-space: nowrap; }

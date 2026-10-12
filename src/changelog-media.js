@@ -641,6 +641,8 @@ const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) i
 const TYPE51 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5467, changelog-shots.mjs’s serve) and the same tree before the change, 11 October; cwebp -q 72';
 // (v1.51: Plumb, issue #152: this branch's own Vite; the look's before is the same moment with Reduce motion on, the drone at rest on the pack as it always was)
 const PLUMB51 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463, changelog-shots.mjs’s serve and chrome), the Desert before the first chest, 11 October; cwebp -q 72';
+// (v1.51: the button glyphs follow the screen, issue #150; the R3 hint, #151; the one-line cards, #165: this branch's own Vite, the tree before the change)
+const PROMPT51 = 'headless Chrome (muted, Medium, a pad in hand) against this branch’s own Vite (port 5480) and the same tree before the change, 11 October; at the Steam Deck’s 1280 × 800 and at 1280 × 720; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.51': [
     { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
@@ -666,6 +668,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'plumb-look', caption: 'A few steps from the makers’ chest: before, the drone sits on the pack looking back at you; after, it turns round and leans toward the chest', from: PLUMB51 },
     ], see: 'Stand near an unopened chest or someone you have not talked to: the drone turns to it. Pick something up for a hop; wait for a sandstorm for the shiver. Turn on Reduce motion and it keeps still.' },
     { match: 'A new setting, Drone hints', see: 'Open the settings (Menu / Esc): Drone hints is under Game, beside Hints.' },
+    { match: 'The buttons the game shows you grow with the screen', shots: [
+      { name: 'glyph-prompt-deck', title: 'Steam Deck', caption: 'Beside Marrow at the Deck’s 1280 × 800: the button that talks to him, before 23 px round with a 13 px letter, after 35 px with a 20 px one', from: PROMPT51 },
+      { name: 'glyph-prompt-720', title: '720p', caption: 'The same at 1280 × 720: 32 px round', from: PROMPT51 },
+      { name: 'glyph-turn-deck', title: 'Turning the page', caption: 'A conversation with a pad in hand: after, the A that turns the page sits on the panel’s bottom edge beside the red pointer', from: PROMPT51 },
+    ], see: 'Play on a Steam Deck or a TV and walk up to someone: the button over them and in the menus is sized from the screen’s height (35 px round on the Deck, 64 at 1440p, 28 on a Retroid). The settings’ Text size makes them larger or smaller too.' },
     { match: 'All the words on the screen are in the game’s own lettering now', shots: [
       { name: 'type-notice', title: 'A notice and the hint', caption: 'Off the ship in the Desert: the quest’s notice at the top and the chest’s hint at the bottom, before in the typewriter face, after in the game’s and larger', from: TYPE51 },
       { name: 'type-card', title: 'A find', caption: 'The card for the Givers’ blade: the name in the heading face, what it is and does in the game’s', from: TYPE51 },

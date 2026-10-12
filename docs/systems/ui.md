@@ -606,6 +606,16 @@ Sizes follow the screen's height, as the conversation panel's `--dlg` (2.9 % of 
 Both include `--ts`. A component's other sizes are in `em` of these, its boxes too (a notice at most 40 em
 wide, a game's card 34 em), so a 1440p screen gets the same layout as a 720p one, larger.
 
+**Buttons follow the screen too (issue #150).** A button's letter is sized from the screen's height, not from
+the words round it: `--type-key` (2.2 %, 14–34 px) is the round badge's (`.key`: the use prompt, the cue; the
+use prompt's button alone, hints subtle or off, is 1.15 of it), and `--glyph-min` (1.6 %, 11–24 px) the least a
+glyph inside a menu's or a card's button is (`src/pad-glyphs.js`: `max(--glyph-min, .68em)`, 10 px on a page
+that sets none; the title screen sets 10 px: its words are in px of their own). Measured in headless Chrome, the
+use prompt's badge: 28 px round on the Retroid's 730 × 410, 32 at 720p, 35 on the Deck's 1280 × 800 (23 before),
+64 at 1440p; a card's A 21 / 22 / 24 / 43 px. The conversation's answers keep their badge in em of `--dlg`; with
+a pad in hand, a page that a press turns shows the confirm button on the panel's bottom edge beside the red
+pointer (`.dlg-next`, as the name sits on its top edge). `tests/prompt-scale.test.js`.
+
 The conversation panel's scripts (`src/story/scripts.js`) drew each word `n ch` wide while the panel was mono;
 now `setWordMeasure` (set by the dialogue, a canvas in the panel's face) gives each word its English width in
 `em` (bold inside a highlight), so a word still turns into English without moving the line. Without a canvas
