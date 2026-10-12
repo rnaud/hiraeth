@@ -11,6 +11,8 @@ export const CHANGELOG = [
   { v: '1.51', date: '2026-10-11', items: [
     // the type split (docs/systems/ui.md "Type"; issue #128)
     'All the words on the screen are in the game’s own lettering now: the hints at the bottom, the notices at the top, the cards for what you find, the minigames and trials, the settings and the conversations no longer use a typewriter face, and the names and titles share one bold heading face. The words also grow with the screen, so they read as easily on a big TV or a 1440p monitor as on the Steam Deck or a handheld.',
+    // the Unity preview on the Steam Deck (docs/systems/performance.md "The Steam Deck, round 7"; issue #111)
+    'On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.',
   ] },
   { v: '1.50', date: '2026-10-11', items: [
     // Qanat's square (docs/systems/worlds.md "Qanat's square without the well and the stele"; issue #161)

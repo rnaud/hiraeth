@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.51 — 2026-10-11
 
+- On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.
 - All the words on the screen are in the game’s own lettering now: the hints at the bottom, the notices at the top, the cards for what you find, the minigames and trials, the settings and the conversations no longer use a typewriter face, and the names and titles share one bold heading face. The words also grow with the screen, so they read as easily on a big TV or a 1440p monitor as on the Steam Deck or a handheld.
 
 ## v1.50 — 2026-10-11

@@ -641,6 +641,21 @@ const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) i
 const TYPE51 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5467, changelog-shots.mjs’s serve) and the same tree before the change, 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.51': [
+    { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
+      { title: 'Frames a second, the Unity preview', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, the Linux player (Vulkan), the Deck preset, 1280 × 800, 90 Hz uncapped', rows: [
+        { where: 'the Desert, at the ship', before: 63.3, after: 73.9 },
+        { where: 'the Desert, the camps', before: 54.0, after: 62.5 },
+        { where: 'the City-Shaft, the rim', before: 45.1, after: 64.1 },
+        { where: 'the City-Shaft, in the crowd', before: 45.6, after: 60.0 },
+        { where: 'the City-Shaft, the wide view down', before: 41.3, after: 56.9 },
+        { where: 'the Signal Market, the start', before: 62.9, after: 80.3 },
+      ], source: 'scripts/bench/deck-unity.sh, each view measured 6 s after a first pass, 11 October: before origin/main e3d0e207, after d55b0b89 (docs/systems/performance.md, "The Steam Deck, round 7")' },
+      { title: 'The script’s frame and the GPU’s in the City-Shaft', unit: 'ms', better: 'lower', device: 'the same', rows: [
+        { where: 'the script, at the rim', before: 20.4, after: 14.3 },
+        { where: 'the GPU, at the rim', before: 20.1, after: 15.1 },
+        { where: 'the GPU, the wide view', before: 23.9, after: 19.8 },
+      ], source: 'the same runs' },
+    ], see: 'On the Steam Deck, start Hiraeth (Unity preview) from the library: it opens in the Desert; in the City-Shaft, walk the rim and look down over the city.' },
     { match: 'All the words on the screen are in the game’s own lettering now', shots: [
       { name: 'type-notice', title: 'A notice and the hint', caption: 'Off the ship in the Desert: the quest’s notice at the top and the chest’s hint at the bottom, before in the typewriter face, after in the game’s and larger', from: TYPE51 },
       { name: 'type-card', title: 'A find', caption: 'The card for the Givers’ blade: the name in the heading face, what it is and does in the game’s', from: TYPE51 },
