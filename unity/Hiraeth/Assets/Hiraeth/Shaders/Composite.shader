@@ -213,6 +213,8 @@ Shader "Hidden/Hiraeth/Composite"
       float2 spotUv(float3 S, float2 rA, float2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
       // the plane of the surface seen at 'at' (q: normal, view depth) met along the ray r, between lo and hi (post.js planeAlong)
       // (taken only where the ray meets it within lim of where it was seen, m: post.js SPOT_PAST.near; 0: anywhere)
+      static float3 spotP = float3(0, 0, 0), spotN = float3(0, 0, 1);   // (the point and its normal: post.js SPOT_PAST.front)
+      static float spotRm = 1.0;
       float planeNear(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi, float lim)
       {
         float3 nQ = mul(toView, q.xyz);
@@ -220,6 +222,7 @@ Shader "Hidden/Hiraeth/Composite"
         float3 Q = float3(at * rA + rB, -1.0) * q.w;
         float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, Q) / facing : hi;
         if (lim > 0.0 && length(r * t - Q) > lim) t = hi;
+        if (dot(spotN, Q - spotP) < 0.75 * spotRm) t = hi;   // (only a surface seen in front of the point's own)
         return t > lo && t < hi ? t : hi;
       }
       float planeAlong(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi) { return planeNear(at, q, r, toView, rA, rB, lo, hi, 0.0); }
@@ -240,8 +243,13 @@ Shader "Hidden/Hiraeth/Composite"
         float swell = 0.5 + 0.25 * (sin(dot(Pw, float3(5.215, 2.576, 2.325))) + sin(dot(Pw, float3(-2.502, 4.573, 6.817))));
         Rm *= lerp(0.6, 1.4, swell);
         t1 = mul(toView, t1) * Rm; t2 = mul(toView, t2) * Rm;
+        spotP = P; spotN = nV; spotRm = Rm;
         float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0;
         int n8 = taps == 8 ? 8 : 4;
+        // (what makes a pocket, post.js SPOT_POCKET: only what stands at the point's height or over it closes it in, but
+        // under a face turned down; on the ground, opposite taps both)
+        float ground = smoothstep(0.6, 0.8, n.y), under = smoothstep(0.6, 0.8, -n.y);
+        float tc[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
         // (each tap read where it is used, not all eight kept for the loop: the arrays held ~56 registers live across the
         // pass, and the composite ran at 168 VGPRs, 6 waves a SIMD on the Deck's RADV; a tap on a person reads the others
         // again, a rare path: the same reads, the same numbers)
@@ -280,9 +288,13 @@ Shader "Hidden/Hiraeth/Composite"
           if (sd <= 0.0) continue;   // (the sky: open)
           float3 v = float3(tuvI * rA + rB, -1.0) * sd - P;
           float dist = length(v);
-          occ += smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+          float dy = mul((float3x3)_CamWorld, v).y;
+          tc[i] = smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist)) * lerp(smoothstep(-0.3, -0.05, dy), 1.0, under) * lerp(1.0, tpI, ground);   // (on the ground a tap on a person is open)
         }
-        return occ / n8;
+        for (int j3 = 0; j3 < n8; j3++) occ += tc[j3];
+        float pair = 0.0;
+        for (int k = 0; k < n8 / 2; k++) pair += min(tc[k], tc[k + n8 / 2]);
+        return lerp(occ / n8, pair / (n8 / 2), ground);
       }
       // the haze in layers by distance (x) and the fog by height along the ray (y): post.js hazeAt
       float2 hazeAt(float d, float3 rd)
@@ -703,8 +715,11 @@ Shader "Hidden/Hiraeth/Composite"
             float3 wpP = _CamWorld._m03_m13_m23 + rd * depth / max(dot(rd, -camZ), 0.2);
             float dyPx = clamp(bandH * 1.6 * _Proj11 * 0.5 * _Res.y / depth, 1.0, 120.0);
             float2 puv = uv - float2(0.0, dyPx * _Res.w);
+            // (a probe on a person looks on down past them, to the ground at their feet: post.js DUST_PAST)
+            float onPerson = 1.0 - step(fmod(tH(puv).a, 8.0), 1.5);
+            for (int k = 0; k < 8 && onPerson > 0.5; k++) { puv.y -= max(dyPx, 0.04 * _Res.y) * _Res.w; onPerson = 1.0 - step(fmod(tH(puv).a, 8.0), 1.5); }
             float4 Np = tN(puv);
-            if (Np.w > 0.0 && Np.y > 0.7) {
+            if (Np.w > 0.0 && Np.y > 0.7 && onPerson < 0.5) {
               float3 rp = viewRay(puv);
               float3 wpG = _CamWorld._m03_m13_m23 + rp * Np.w / max(dot(rp, -camZ), 0.2);
               float hUp = wpP.y - wpG.y;

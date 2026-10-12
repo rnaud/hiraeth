@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
-import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_PAST, SPOT_SWELL, spotBehind, spotFrame, spotSwell, glslVec3 } from '../src/post.js';
+import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_PAST, SPOT_SWELL, spotBehind, spotFrame, spotShare, spotSwell, glslVec3, SPOT_POCKET, DUST_PAST } from '../src/post.js';
 
 const shader = createPost().scene.children[0].material.fragmentShader;
 const body = (name) => {
@@ -67,7 +67,7 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   // the planes of what is seen two and four times as far out and of the other taps, met along its ray
   for (const n of [8, 4]) {
     assert.ok(enc.includes(`tp[i] = notStanding(tuv[i], self);`) && enc.includes(`vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];`), `${n} taps: read first`);
-    assert.ok(enc.includes(`return occ / ${n}.0;`), `${n} taps: every tap counts`);
+    assert.ok(enc.includes(`return mix(occ / ${n}.0, pair / ${n / 2}.0, ground);`), `${n} taps: every tap counts (SPOT_POCKET)`);
   }
   assert.equal((enc.match(/if \(tp\[i\] < 0\.5\) \{/g) ?? []).length, 2);
   assert.equal((enc.match(/sd = -\(P\.z \+ o\.z\);/g) ?? []).length, 2, 'the point’s own surface: the farthest the hidden tap can see');
@@ -79,7 +79,7 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   // the third look past him (issue #28): to either side of the tap's place, along the other axis
   assert.equal((enc.match(new RegExp(`vec3 op = \\(-SPOT_TAPS\\d\\[i\\]\\.y \\* t1 \\+ SPOT_TAPS\\d\\[i\\]\\.x \\* t2\\) \\* ${SPOT_PAST.side.toFixed(2).replace('.', '\\.')};`, 'g')) ?? []).length, 2);
   assert.equal((enc.match(new RegExp(`sd = planeNear\\(s[12], texture\\(tNormal, s[12]\\), r, toView, rA, rB, lo, sd, ${nr('side')}\\);`, 'g')) ?? []).length, 4);
-  assert.equal((enc.match(/occ \+= spotTapAt\(tuv\[i\], sd, P, nV, rA, rB, r1, r2\);/g) ?? []).length, 2);
+  assert.equal((enc.match(/tc\[i\] = spotTapAt\(tuv\[i\], sd, P, nV, rA, rB, r1, r2\) \* mix\(/g) ?? []).length, 2);
   assert.match(body('planeNear'), /return t > lo && t < hi \? t : hi;/);
   assert.match(body('planeNear'), /if \(lim > 0\.0 && length\(r \* t - Q\) > lim \* spotReach\) t = hi;/);
   assert.ok(!/texture\(tHatch/.test(enc + body('spotTapAt')));
@@ -129,7 +129,7 @@ test('a person in front leaves no pale ghost in the shading behind them (Marrow 
   assert.equal((unity.match(/np = step\(fmod\(t, 8\.0\), 1\.5\)/g) ?? []).length, 1);
   // (the spot blacks: what a person hides, as post.js spotBehind)
   // (each tap read where it is used: a tap on a person reads the others again)
-  assert.ok(unity.includes('float tpI = step(fmod(tH(tuvI).a, 8.0), 1.5);') && unity.includes('return occ / n8;'));
+  assert.ok(unity.includes('float tpI = step(fmod(tH(tuvI).a, 8.0), 1.5);') && unity.includes('return lerp(occ / n8, pair / (n8 / 2), ground);'));
   assert.ok(unity.includes('if (step(fmod(tH(tuvJ).a, 8.0), 1.5) > 0.5) sd = planeNear(tuvJ, tN(tuvJ), r, toView, rA, rB, lo, sd, 1.5 * Rm);'));
   assert.ok(unity.includes('sd = planeNear(s1, tN(s1), r, toView, rA, rB, lo, sd, 2.0 * Rm);'), 'the look to the side (issue #28)');
 });
@@ -278,44 +278,114 @@ function spotTwin(scene, cam, P, R, taps, mode, H = 540) {
   const Pw = Pv.clone().applyMatrix4(cam.matrixWorld).toArray();
   const Rm = px * d / k * (SPOT_SWELL.range[0] + (SPOT_SWELL.range[1] - SPOT_SWELL.range[0]) * spotSwell(Pw, R));
   const [t1, t2] = spotFrame(nW.toArray()).map((t) => new THREE.Vector3(...t).applyMatrix3(toView).multiplyScalar(Rm));
-  let occ = 0;
+  const c = [], dy = [];
   for (const [x, y] of OCCLUSION_TAPS.spot(taps)) {
     let su, sv;
     if (mode === 'screen') { su = uv[0] + x * px / W; sv = uv[1] + y * px / H; }
     else { const S = Pv.clone().addScaledVector(t1, x).addScaledVector(t2, y); su = (S.x / -S.z - rB[0]) / rA[0]; sv = (S.y / -S.z - rB[1]) / rA[1]; }
-    const sd = hit(su, sv).d;
-    if (sd <= 0) continue;
+    const h = hit(su, sv), sd = h.d;
+    if (sd <= 0) { c.push(0); dy.push(0); continue; }
     const v = new THREE.Vector3(su * rA[0] + rB[0], sv * rA[1] + rB[1], -1).multiplyScalar(sd).sub(Pv), dist = v.length();
-    occ += smooth(0.12, 0.5, nV.dot(v) / dist) * (1 - smooth(R * 1.5, R * 3, dist));
+    dy.push(v.clone().applyMatrix4(new THREE.Matrix4().extractRotation(cam.matrixWorld)).y);
+    c.push(smooth(0.12, 0.5, nV.dot(v) / dist) * (1 - smooth(R * 1.5, R * 3, dist)));
   }
-  return occ / taps;
+  // (the screen-fixed taps before: the plain share; on the surface now: SPOT_POCKET's rule, 'share' the plain share)
+  return mode === 'surface' ? spotShare(c, dy, nW.y) : c.reduce((a, b) => a + b, 0) / taps;
 }
 
-test('a riser’s spot black stays put as the camera swings round it (it used to come and go with the view)', () => {
+test('a riser’s enclosure stays put as the camera swings round it (it used to come and go with the view)', () => {
   const { scene, RISE, RUN } = stairScene();
   const R = 3, threshold = 0.3;   // (the desert's uSpot.y and .z)
   const P = new THREE.Vector3(0.6, 2 * RISE + 0.18, -2 * RUN + 0.001);
   for (const taps of [4, 8]) {
-    const got = { screen: [], surface: [] };
+    const got = { screen: [], share: [], surface: [] };
     for (let yaw = -40; yaw <= 40; yaw += 10) {
       const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.1, 2000), a = yaw * Math.PI / 180;
       cam.position.set(P.x + Math.sin(a) * 9, P.y + 4, P.z + Math.cos(a) * 9);
       cam.lookAt(P); cam.updateMatrixWorld(true);
-      for (const mode of ['screen', 'surface']) got[mode].push(spotTwin(scene, cam, P, R, taps, mode));
+      for (const mode of ['screen', 'share', 'surface']) got[mode].push(spotTwin(scene, cam, P, R, taps, mode));
     }
     const spread = (l) => Math.max(...l) - Math.min(...l), show = (l) => l.map((x) => x.toFixed(2)).join(' ');
-    assert.ok(Math.min(...got.surface) > threshold + 0.05, `${taps} taps: the riser is a mass from every side (${show(got.surface)})`);
-    assert.ok(spread(got.surface) < 0.12, `${taps} taps: steady (${show(got.surface)})`);
+    // the taps on the surface: the same share from every side (the riser's foot, the tread below it, in front)
+    assert.ok(Math.min(...got.share) > threshold + 0.05, `${taps} taps: the riser's foot reads closed from every side (${show(got.share)})`);
+    assert.ok(spread(got.share) < 0.12, `${taps} taps: steady (${show(got.share)})`);
     if (taps === 4) {
       assert.ok(Math.min(...got.screen) < threshold && Math.max(...got.screen) > threshold, `before: on and off with the view (${show(got.screen)})`);
-      assert.ok(spread(got.surface) < spread(got.screen) / 2);
+      assert.ok(spread(got.share) < spread(got.screen) / 2);
     }
+    // and a tread closes no riser in (SPOT_POCKET): no spot black along the stairs, from any side
+    assert.ok(Math.max(...got.surface) < threshold - 0.05, `${taps} taps: no mass on the riser (${show(got.surface)})`);
   }
+});
+
+// What makes a pocket (SPOT_POCKET): a wall standing on open ground, an alley between two walls, a balcony over a wall.
+function pocketScene(kind) {
+  const scene = new THREE.Scene(), mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), mat));
+  // a wall 8 m tall, its face at z = 0 looking +z
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(30, 8, 3).translate(0, 4, -1.5), mat));
+  if (kind === 'alley') scene.add(new THREE.Mesh(new THREE.BoxGeometry(30, 8, 3).translate(0, 4, 1.6 + 1.5), mat));   // (1.6 m wide)
+  if (kind === 'balcony') scene.add(new THREE.Mesh(new THREE.BoxGeometry(30, 0.25, 2.2).translate(0, 3.1, 1.1), mat));
+  scene.updateMatrixWorld(true);
+  return scene;
+}
+const pocketAt = (kind, P, taps, R = 3, mode = 'surface') => {
+  const scene = pocketScene(kind), out = [];
+  for (const yaw of [-30, 0, 30]) {
+    const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.1, 2000), a = yaw * Math.PI / 180;
+    cam.position.set(P.x + Math.sin(a) * 7, 2.2, Math.cos(a) * 7);
+    if (kind === 'alley') cam.position.set(P.x + 5 * (yaw < 0 ? -1 : 1), 4 + Math.abs(yaw) / 15, 0.8);   // (into the alley, from above its end)
+    cam.lookAt(P); cam.updateMatrixWorld(true);
+    out.push(spotTwin(scene, cam, P, R, taps, mode));
+  }
+  return out;
+};
+
+test('the floor makes no pocket: no spot black along the foot of a wall on open ground, on the wall or the ground', () => {
+  for (const taps of [4, 8]) {
+    const ground = pocketAt('wall', new THREE.Vector3(0.3, 0, 0.35), taps), foot = pocketAt('wall', new THREE.Vector3(0.3, 0.3, 0.001), taps);
+    assert.ok(Math.max(...ground, ...foot) < 0.25, `${taps} taps: ground ${ground.map((x) => x.toFixed(2))}, wall ${foot.map((x) => x.toFixed(2))}`);
+  }
+});
+
+test('real pockets keep their spot black: an alley’s floor between two walls, the wall under a balcony; its underside as it was', () => {
+  for (const taps of [4, 8]) {
+    const alley = pocketAt('alley', new THREE.Vector3(0.3, 0, 0.8), taps);
+    const under = pocketAt('balcony', new THREE.Vector3(0.3, 2.7, 0.001), taps);
+    const slab = pocketAt('balcony', new THREE.Vector3(0.3, 2.975, 0.25), taps);
+    const show = (l) => l.map((x) => x.toFixed(2)).join(' ');
+    // (4 taps, Handheld: on level ground the long taps lie along the world's x, so an alley along x is only seen across by
+    //  the short ones, 0.55 R: the floor of a narrow alley along x keeps no spot black there; 8 taps see it both ways)
+    // (the depth buffer sees less of the walls from straight down the alley: lower there, never lost)
+    if (taps === 8) assert.ok(Math.max(...alley) > 0.4 && Math.min(...alley) > 0.2, `${taps} taps: the alley's floor (${show(alley)})`);
+    assert.ok(Math.min(...under) > 0.35, `${taps} taps: the wall under the balcony (${show(under)})`);
+    // (a face turned down keeps every tap: the balcony's underside reads as it did)
+    const slabBefore = pocketAt('balcony', new THREE.Vector3(0.3, 2.975, 0.25), taps, 3, 'share');
+    assert.deepEqual(slab.map((x) => x.toFixed(4)), slabBefore.map((x) => x.toFixed(4)), `${taps} taps: the balcony's underside (${show(slab)})`);
+  }
+});
+
+test('spotShare: the plain share on a wall; what stands lower closes nothing (but under a ceiling); on the ground, opposite taps both', () => {
+  // a wall point: two taps closed, one of them by something a metre lower
+  assert.equal(spotShare([1, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], 0), 0.25);
+  assert.equal(spotShare([1, 0, 0, 0, 1, 0, 0, 0], [-1, 0, 0, 0, 0, 0, 0, 0], 0), 0.125);
+  // an eave's underside: the wall below it closes it in
+  assert.equal(spotShare([1, 0, 0, 0, 1, 0, 0, 0], [-1, 0, 0, 0, -1, 0, 0, 0], -1), 0.25);
+  // a ground point: one side closed is no pocket; both sides is
+  assert.equal(spotShare([1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], 1), 0);
+  assert.equal(spotShare([1, 1, 0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], 1), 0.5);
+  assert.equal(spotShare([1, 1, 1, 1], [0, 0, 0, 0], 1), 1);
+  // the shader and the Unity port take the same constants
+  const enc = body('enclosure'), [b0, b1] = SPOT_POCKET.below.map((x) => x.toFixed(2));
+  assert.ok(enc.includes(`smoothstep(${b0}, ${b1}, dy), 1.0, under)`) && enc.includes(`smoothstep(${SPOT_POCKET.up.map((x) => x.toFixed(2)).join(', ')}, n.y)`));
+  const unity = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader', import.meta.url), 'utf8');
+  assert.ok(unity.includes(`lerp(smoothstep(${SPOT_POCKET.below.join(', ')}, dy), 1.0, under)`) && unity.includes('return lerp(occ / n8, pair / (n8 / 2), ground);'));
+  assert.ok(unity.includes(`smoothstep(${SPOT_POCKET.up.join(', ')}, n.y)`) && unity.includes(`smoothstep(${SPOT_POCKET.under.join(', ')}, -n.y)`));
 });
 
 // A twin of the spot blacks with a person in front (visual audit v1.4, finding 1: a dark copy of the traveller on
 // the wall beside him in a room's corner, Handheld): the mask with the person against without, round them.
-function personScene(kind) {
+function personScene(kind, aspect = 16 / 9) {
   const scene = new THREE.Scene(), mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.75, 0.3).translate(0, 0.875, 0), mat);
   let eye, look;
@@ -326,6 +396,17 @@ function personScene(kind) {
     const n = new THREE.Vector3(1, 0, 1).normalize(), foot = n.clone().multiplyScalar(1.3);
     body.position.copy(foot); body.lookAt(foot.clone().add(n));
     eye = new THREE.Vector3(0, 2.2, 0).addScaledVector(n, 5); look = foot.clone().setY(0.9);
+  } else if (kind === 'wallend' || kind === 'house') {   // the Shadow Room's house (shadow-room.js): he stands just past its north wall's west end
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(120, 120).rotateX(-Math.PI / 2).translate(30, 0, -76), mat));
+    const B = (w, h, d, x, y, z) => scene.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d).translate(x, y, z), mat));
+    const H = 4.5;
+    B(10, H, 0.4, 30, H / 2, -72);   // the north wall, x 25..35
+    if (kind === 'house') {
+      B(0.4, H, 8, 25, H / 2, -76); B(4.2, H, 0.4, 27.1, H / 2, -80); B(4.2, H, 0.4, 32.9, H / 2, -80); B(1.6, H - 2.6, 0.4, 30, 2.6 + (H - 2.6) / 2, -80);
+      B(0.4, 3, 8, 35, 1.5, -76); B(10.6, 0.4, 8.6, 30, H + 0.2, -76);   // the east wall, the roof
+    }
+    body.position.set(24.39, 0, -71.16); body.rotation.y = 15.089;
+    eye = new THREE.Vector3(24.17, 4.02, -66.96); look = new THREE.Vector3(24.4, 1.6, -71.33);
   } else {   // on the stairs, a riser behind him
     const RISE = 0.37, RUN = 0.93;
     for (let s = 0; s < 12; s++) { const top = (s + 1) * RISE, len = 12 - s * RUN; scene.add(new THREE.Mesh(new THREE.BoxGeometry(6.5, top, len).translate(0, top / 2, -s * RUN - len / 2), mat)); }
@@ -334,7 +415,7 @@ function personScene(kind) {
     eye = body.position.clone().add(new THREE.Vector3(1.5, 3, 6)); look = body.position.clone().add(new THREE.Vector3(0, 0.9, 0));
   }
   scene.add(body); scene.updateMatrixWorld(true);
-  const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.1, 500);
+  const cam = new THREE.PerspectiveCamera(55, aspect, 0.1, 500);
   cam.position.copy(eye); cam.lookAt(look); cam.updateMatrixWorld(true);
   return { scene, body, cam, look };
 }
@@ -363,8 +444,11 @@ function personTwin({ scene, body, cam }, u, v, rule, withPerson, taps, R = 3, H
   const N = SPOT_PAST.near;
   const seenAround = T.filter((t) => !t.h.person && t.h.d).map((t) => ({ ...plane(t.h, t.uv), lim: N.taps * Rm }));
   let occ = 0, seen = 0;
+  // ('now': the shader's whole rule, SPOT_POCKET's on the taps as spotBehind leaves them, spotShare)
+  const cs = [], dys = [], persons = [], rot = new THREE.Matrix4().extractRotation(cam.matrixWorld);
+  const keep = (uv, d, person) => { cs.push(close(uv, d)); dys.push(d > 0 ? ray3(...uv).multiplyScalar(d).sub(P).applyMatrix4(rot).y : 0); persons.push(person); };
   for (const { o, uv, h } of T) {
-    if (!h.person) { occ += close(uv, h.d); seen++; continue; }
+    if (!h.person) { occ += close(uv, h.d); seen++; if (rule === 'now') keep(uv, h.d, false); continue; }
     const uv2 = uvOf(P.clone().addScaledVector(o, 2)), h2 = hit(...uv2);
     if (rule === 'past') { if (!h2.person) { occ += close(uv2, h2.d); seen++; } continue; }
     const uv4 = uvOf(P.clone().addScaledVector(o, 4)), h4 = hit(...uv4);
@@ -373,17 +457,19 @@ function personTwin({ scene, body, cam }, u, v, rule, withPerson, taps, R = 3, H
     const sides = [1, -1].map((k) => { const q = uvOf(P.clone().add(o).addScaledVector(op, k)); return [hit(...q), q]; });
     const planes = [...[[h2, uv2], [h4, uv4]].filter(([q]) => !q.person && q.d).map(([q, quv]) => ({ ...plane(q, quv), lim: N.past * Rm })),
       ...sides.filter(([q]) => !q.person && q.d).map(([q, quv]) => ({ ...plane(q, quv), lim: N.side * Rm })), ...seenAround];
-    occ += close(uv, spotBehind(-(P.z + o.z), h.d, ray3(...uv).toArray(), planes)); seen++;
+    const sd = spotBehind(-(P.z + o.z), h.d, ray3(...uv).toArray(), planes, rule === 'now' ? { P: P.toArray(), n: nV.toArray(), reach: Rm } : null);
+    occ += close(uv, sd); seen++;
+    if (rule === 'now') keep(uv, sd, true);
   }
-  return occ / Math.max(seen, 1);
+  return rule === 'now' ? spotShare(cs, dys, h0.n.y, persons) : occ / Math.max(seen, 1);
 }
-function personGhost(kind, rule, taps, threshold = 0.3) {
-  const sc = personScene(kind), W = 640, H = 360, c = sc.look.clone().project(sc.cam);
+function personGhost(kind, rule, taps, threshold = 0.3, { H = 360, aspect = 16 / 9, step = 6, span = 150 } = {}) {
+  const sc = personScene(kind, aspect), W = H * aspect, c = sc.look.clone().project(sc.cam);
   let dark = 0, pale = 0, mass = 0;
-  for (let py = -150; py <= 150; py += 6) for (let px = -150; px <= 150; px += 6) {
+  for (let py = -span; py <= span; py += step) for (let px = -span; px <= span; px += step) {
     const u = c.x * 0.5 + 0.5 + px / W, v = c.y * 0.5 + 0.5 + py / H;
-    const a = personTwin(sc, u, v, rule, true, taps); if (a === null) continue;
-    const m1 = smooth(threshold - 0.03, threshold + 0.03, a), m0 = smooth(threshold - 0.03, threshold + 0.03, personTwin(sc, u, v, rule, false, taps));
+    const a = personTwin(sc, u, v, rule, true, taps, 3, H); if (a === null) continue;
+    const m1 = smooth(threshold - 0.03, threshold + 0.03, a), m0 = smooth(threshold - 0.03, threshold + 0.03, personTwin(sc, u, v, rule, false, taps, 3, H));
     if (m0 > 0.5) mass++;
     if (m1 - m0 > 0.3) dark++; else if (m0 - m1 > 0.3) pale++;
   }
@@ -419,7 +505,51 @@ test('what a person hides: the nearest surface met behind them, never behind the
   // a surface seen from behind (facing away along the ray) is no wall for it; the nearest of several wins
   assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, -1], p: [0, 0, -6] }]), 8);
   assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0, 0, -7] }, { n: [0, 0.6, 0.8], p: [0, 0, -5] }, { n: [0, 0, 1], p: [0, 0, -6] }]), 5);
+  // a plane seen behind the point's own surface (round a convex edge) is not taken (SPOT_PAST.front): the point at
+  // depth 8 facing the eye, a wall seen at depth 9 behind it, carried on in front of it
+  const round = [{ n: [0.8, 0, 0.6], p: [2.4, 0, -9.2] }];   // (met along the ray at depth 6, seen at 9.2)
+  assert.equal(spotBehind(8, 4, ray, round), 6);
+  assert.equal(spotBehind(8, 4, ray, round, { P: [0, 0, -8], n: [0, 0, 1], reach: 1 }), 8);
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0, 0, -6] }], { P: [0, 0, -8], n: [0, 0, 1], reach: 1 }), 6);
   // a plane met far from where it was seen is not taken (SPOT_PAST.near: a wall carried past a wide hem)
   assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [3, 0, -6], lim: 1 }]), 8);
   assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0.5, 0, -6], lim: 1 }]), 6);
+});
+
+test('the dust band at a wall’s foot looks past a person on its probe: no pale copy of the traveller in it', () => {
+  const at = shader.indexOf('weathered walls: a flat band of darker dust');
+  const part = shader.slice(at, shader.indexOf('...and where sand banks', at));
+  assert.ok(part.includes('float onPerson = 1.0 - notPerson(puv);'), 'the probe asks whether it is on a person');
+  assert.ok(part.includes(`for (int k = 0; k < ${DUST_PAST.steps}; k++)`) && part.includes(`max(dyPx, ${DUST_PAST.minStep.toFixed(3)} * uRes.y)`), 'and looks on down past them');
+  assert.ok(part.includes('Np.y > 0.7 && onPerson < 0.5'), 'never takes a person for the ground');
+});
+
+test('a person beside a wall’s end leaves no dark copy of themselves on the ground there (the Shadow Room, the author’s view)', () => {
+  // before: the look past him carried the wall's end plane on behind him, and the ground beside him read closed from
+  // both sides: a person-shaped mass of spot black beside his head
+  for (const taps of [4, 8]) {
+    const g = personGhost('wallend', 'now', taps);
+    assert.ok(g.dark <= 2, `${taps} taps: ${JSON.stringify(g)}`);
+  }
+});
+
+test('the shader’s rule on people: a corner keeps its walls’ masses as they were, no dark or pale copy beside him', () => {
+  for (const taps of [4, 8]) {
+    const g = personGhost('corner', 'now', taps);
+    assert.ok(g.mass > 20, `${taps} taps: the corner's walls in view (${JSON.stringify(g)})`);
+    assert.ok(g.dark <= 3 && g.pale <= 3, `${taps} taps: ${JSON.stringify(g)}`);
+  }
+});
+
+test('the Shadow Room’s house, the author’s view at his window’s size: no copy of the traveller on its wall’s narrow end', () => {
+  // (player, camera and window from the author's console, October 2026: High, 2022 × 698 at render scale 1.5; the pocket's
+  //  radius then ~0.5 m, held by its 96 px. The look past him took the planes seen round him, the north face's and the
+  //  roof's, carried on behind him in front of the end face: a dark copy of him on it, 37-52 samples here. Only a plane
+  //  seen well in front of the point's own surface is taken now: SPOT_PAST.front)
+  const o = { H: 1047, aspect: 2022 / 698, step: 8, span: 260 };
+  for (const taps of [4, 8]) {
+    const g = personGhost('house', 'now', taps, 0.3, o);
+    assert.ok(g.mass > 50, `${taps} taps: the house's masses in view (${JSON.stringify(g)})`);
+    assert.ok(g.dark <= 2 && g.pale <= 2, `${taps} taps: ${JSON.stringify(g)}`);
+  }
 });

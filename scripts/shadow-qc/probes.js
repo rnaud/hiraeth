@@ -29,6 +29,11 @@ export function casters(scene, { exclude = [], noShadow = [] } = {}) {
   scene.traverse((o) => {
     if (!o.isMesh || o.isSkinnedMesh || !o.geometry?.attributes?.position || !shown(o) || under(o, exclude) || noShadow.includes(o)) return;
     if (selfLitSkips(o) || o.material?.colorWrite === false || o.material?.visible === false) return;
+    // (a batch of still meshes, static-batch.js: its vertices are each mesh's own, placed by a texture the shader reads,
+    //  under an identity matrix; the meshes it draws stay in the scene and are taken here. Read as a mesh, it put a copy
+    //  of every batched prop round the world's origin, the Shadow Room's spawn, into the truth: shade there that nothing
+    //  casts, 95-99 % "leaks" at the props and poles since v1.45. A part batch, part-batch.js, is instanced: kept)
+    if (o.isBatchedMesh) return;
     const g = o.geometry, pos = g.attributes.position, idx = g.index;
     const n = idx ? idx.count : pos.count;
     if (n < 3) return;

@@ -33,6 +33,10 @@ export const CHANGELOG = [
     'The pond under the desert’s lavender cliffs now lies down in the ground instead of on it: its water sits below the crust round it, along a shore of wet and damp sand with a lip of pale salt stones, and you can still wade across it.',
     // the core gadgets: the ship waits for them (src/story/leave-gate.js; issue #217)
     'Your ship won’t leave the desert now until you have the Givers’ blade and guard from the Rose House: it says where they are, and the Rose House goes into your quests if it wasn’t there. Vael waits the same way for the fluid wings from the Aerie.',
+    // the spot blacks only in real pockets (src/post.js SPOT_POCKET, spotShare; docs/systems/rendering.md "Spot blacks only in pockets")
+    // the dust band at a wall's foot looks past a person on its probe (src/post.js DUST_PAST)
+    'The darker dust band along the foot of weathered walls no longer leaves a pale outline of you, or of anyone standing in front of it, that followed you along the wall.',
+    'The deepest darks stay in real pockets now, under balconies and eaves, between ribs, in alleys: the near-black band along the foot of every wall, every stair and the bones in the giant’s cave is gone, and with it the blotches that slid and jumped about there as the camera moved, and the dark copy of you that appeared on the ground beside a wall’s end.',
   ] },
   { v: '1.56', date: '2026-10-12', items: [
     // Lorn's route through the author's three picks (src/lorn-veins.js, src/lorn-flood.js, src/lorn-canopy.js,

@@ -99,9 +99,11 @@ export function spotFrame(n) {
  * it ({ n: view-space normal, p: a view-space point on it, lim: how far from p it may be met, m }). The nearest plane met between the person and `own`,
  * else `own` (the point's own surface goes on behind them: open).
  */
-export function spotBehind(own, person, ray, planes) {
+export function spotBehind(own, person, ray, planes, front = null) {
   let sd = own;
   for (const { n, p, lim } of planes) {
+    // (front: { P, n, reach }, the point and its normal: a plane seen behind the point's own surface is not taken)
+    if (front && _dot(front.n, p.map((x, i) => x - front.P[i])) < SPOT_PAST.front * front.reach) continue;
     const facing = _dot(n, ray);
     if (!(facing < 0)) continue;
     const t = _dot(n, p) / facing;
@@ -128,9 +130,48 @@ export function spotBehind(own, person, ray, planes) {
  * for the looks along the tap's own way, `side` for the looks to the side, `taps` for the other taps): a plane carried
  * far beyond where it was seen (a wall met past a wide hem) closed the floor in where nothing stands.
  */
-export const SPOT_PAST = { side: 1.5, near: { past: 1, side: 2, taps: 1.5 } };
+export const SPOT_PAST = { side: 1.5, near: { past: 1, side: 2, taps: 1.5 }, front: 0.75 };
+// front (the author's Shadow Room view, October 2026): a plane is only taken if it was seen in front of the point's own
+// surface by this × the pocket's radius. The house's north face, seen behind its narrow west end, carried on past the
+// corner behind the traveller, filled that end face with spot black in his shape; a room corner's other wall, seen in
+// front of the point, is taken as before.
+/**
+ * What makes a pocket (the author, October 2026: "it makes sense under the roof or at the top, but this is at the
+ * bottom on the floor"). A wall standing on open ground stands in front of the ground's face for half the taps, and
+ * the ground in front of the wall's foot: every wall's foot, every riser (the steps below it stand in front of it)
+ * and every room's floor corner was filled with the spot black, a band along the bottom of each building that slid
+ * as the camera moved. So what closes a point in must stand at its height or over it, a cover and not a footing
+ * (`below`: m under the point over which a tap's surface stops counting), except on a face turned down (`under`:
+ * -n.y, a ramp: an eave's underside, a ceiling, closed in by the wall it meets below it); and on the ground (`up`:
+ * n.y, a ramp) a pocket must close in from opposite sides (tap i and tap i + n/2: the patterns are their own half
+ * turn), as an alley between two walls or a cave's floor does, not along one wall. Walls keep the share of their
+ * taps: a recess between ribs, the wall under a balcony. spotShare is the same in JS.
+ */
+export const SPOT_POCKET = { up: [0.6, 0.8], under: [0.6, 0.8], below: [-0.3, -0.05] };
+/**
+ * The dust band at a weathered wall's foot (3b') finds the ground with one probe down the screen; where that lands on
+ * a person standing before the wall (the author, October 2026: "still seeing my character's outline on the building,
+ * where the gray area at the bottom looks white") it looks on past them: up to `steps` more, each at least `minStep`
+ * of the frame's height, to the ground at their feet.
+ */
+export const DUST_PAST = { steps: 8, minStep: 0.04 };
+const _ss = ([a, b], x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+/**
+ * The enclosure from its taps (mirrors post.js spotLoop): c, how much each tap closes the point in (0..1, in the
+ * pattern's order: tap i and tap i + n/2 opposite); dy, how far above the point (world m) the surface each tap
+ * sees stands; ny, the point's normal's y; person, which taps land on a person (on the ground those are open).
+ */
+export function spotShare(c, dy, ny, person = []) {
+  const ground = _ss(SPOT_POCKET.up, ny), under = _ss(SPOT_POCKET.under, -ny), n = c.length;
+  const k = c.map((v, i) => v * (under + (1 - under) * _ss(SPOT_POCKET.below, dy[i])) * (person[i] ? 1 - ground : 1));
+  let any = 0, pair = 0;
+  for (let i = 0; i < n; i++) any += k[i];
+  for (let i = 0; i < n / 2; i++) pair += Math.min(k[i], k[i + n / 2]);
+  return any / n + (pair / (n / 2) - any / n) * ground;
+}
 const spotLoop = (n) => `{
-      vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];
+      vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}]; float tc[${n}];
+      float ground = smoothstep(${SPOT_POCKET.up[0].toFixed(2)}, ${SPOT_POCKET.up[1].toFixed(2)}, n.y), under = smoothstep(${SPOT_POCKET.under[0].toFixed(2)}, ${SPOT_POCKET.under[1].toFixed(2)}, -n.y);
       for (int i = 0; i < ${n}; i++) { tuv[i] = spotUv(P + SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, rA, rB); tq[i] = texture(tNormal, tuv[i]); tp[i] = notStanding(tuv[i], self); }
       float occ = 0.0;
       for (int i = 0; i < ${n}; i++) {
@@ -148,9 +189,20 @@ const spotLoop = (n) => `{
             if (notStanding(s1, self) > 0.5) sd = planeNear(s1, texture(tNormal, s1), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.side.toFixed(2)});
             if (notStanding(s2, self) > 0.5) sd = planeNear(s2, texture(tNormal, s2), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.side.toFixed(2)}); }` : ''}
         }
-        occ += spotTapAt(tuv[i], sd, P, nV, rA, rB, r1, r2);
+        // (a footing closes nothing in, only what stands at the point's height or over it, but under a face turned down:
+        //  SPOT_POCKET; the height of what the tap sees, in the world, from its view-space offset)
+        vec3 tv = vec3(tuv[i] * rA + rB, -1.0) * sd - P;
+        float dy = uCamWorld[0].y * tv.x + uCamWorld[1].y * tv.y + uCamWorld[2].y * tv.z;
+        // (and on the ground a tap on a person is open: a person never makes a pocket of open ground; what the look past
+        //  them guesses there, a wall's plane carried on past its end behind them, drew a dark copy of the traveller on
+        //  the shaded ground beside a wall's end in the Shadow Room)
+        tc[i] = spotTapAt(tuv[i], sd, P, nV, rA, rB, r1, r2) * mix(smoothstep(${SPOT_POCKET.below[0].toFixed(2)}, ${SPOT_POCKET.below[1].toFixed(2)}, dy), 1.0, under) * mix(1.0, tp[i], ground);
       }
-      return occ / ${n}.0;
+      for (int i = 0; i < ${n}; i++) occ += tc[i];
+      // (on the ground, a pocket closes in from opposite sides: tap i and tap i + n/2)
+      float pair = 0.0;
+      for (int i = 0; i < ${n / 2}; i++) pair += min(tc[i], tc[i + ${n / 2}]);
+      return mix(occ / ${n}.0, pair / ${n / 2}.0, ground);
     }`;
 
 /**
@@ -658,12 +710,16 @@ const fragmentShader = /* glsl */ `
   // 'at' (q: its normal and view depth) met along the ray r (view space, z = -1), as a view depth; hi where it
   // doesn't meet it between lo (the person) and hi
   float spotReach = 1.0;   // (the enclosure's tap radius this pixel, m)
+  vec3 spotP = vec3(0.0), spotN = vec3(0.0, 0.0, 1.0);   // (the point and its normal, view space: SPOT_PAST.front)
   float planeNear(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi, float lim) {
     vec3 nQ = toView * q.xyz;
     float facing = dot(nQ, r);
     vec3 Q = vec3(at * rA + rB, -1.0) * q.w;
     float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, Q) / facing : hi;
     if (lim > 0.0 && length(r * t - Q) > lim * spotReach) t = hi;
+    // (only a surface seen in front of the point's own: one seen behind it, round a convex edge, carried on past the
+    //  edge stood in front of the point where nothing does: SPOT_PAST.front)
+    if (dot(spotN, Q - spotP) < ${SPOT_PAST.front.toFixed(3)} * spotReach) t = hi;
     return t > lo && t < hi ? t : hi;
   }
   float planeAlong(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi) { return planeNear(at, q, r, toView, rA, rB, lo, hi, 0.0); }
@@ -690,7 +746,7 @@ const fragmentShader = /* glsl */ `
     float swell = 0.5 + 0.25 * (sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[0])})) + sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[1])})));
     Rm *= mix(${SPOT_SWELL.range[0].toFixed(2)}, ${SPOT_SWELL.range[1].toFixed(2)}, swell);
     t1 = toView * t1 * Rm; t2 = toView * t2 * Rm;
-    spotReach = Rm;
+    spotReach = Rm; spotP = P; spotN = nV;
     float r1 = R * 1.5, r2 = R * 3.0;
     if (taps == 8) ${spotLoop(8)}
     ${spotLoop(4)}
@@ -1392,8 +1448,17 @@ const fragmentShader = /* glsl */ `
         vec3 wpP = uCamWorld[3].xyz + rd * depth / max(dot(rd, -uCamWorld[2].xyz), 0.2);
         float dyPx = clamp(bandH * 1.6 * uProj11 * 0.5 * uRes.y / depth, 1.0, 120.0);
         vec2 puv = uv - vec2(0.0, dyPx / uRes.y);
+        // (a probe on a person standing before the wall looks on down the screen past them, to the ground at their
+        //  feet: taken as no ground, it left the band out in their shape, a pale copy of the traveller shifted up the
+        //  wall's foot that slid with him and the camera; DUST_PAST)
+        float onPerson = 1.0 - notPerson(puv);
+        for (int k = 0; k < ${DUST_PAST.steps}; k++) {
+          if (onPerson < 0.5) break;
+          puv.y -= max(dyPx, ${DUST_PAST.minStep.toFixed(3)} * uRes.y) / uRes.y;
+          onPerson = 1.0 - notPerson(puv);
+        }
         vec4 Np = texture(tNormal, puv);
-        if (Np.w > 0.0 && Np.y > 0.7) {
+        if (Np.w > 0.0 && Np.y > 0.7 && onPerson < 0.5) {
           vec3 wpG = uCamWorld[3].xyz + viewRay(puv) * Np.w / max(dot(viewRay(puv), -uCamWorld[2].xyz), 0.2);
           float hUp = wpP.y - wpG.y;
           float rag = (vnoise(vec2(wpP.x + wpP.z, 0.0) * 1.7) - 0.5) * 0.22;

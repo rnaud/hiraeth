@@ -120,3 +120,19 @@ test('the probes run the surfaces\' own shadow code (materials.js SHADOW_GLSL), 
   assert.match(run, /5173 is the author/);
   assert.match(run, /level=shadows/);
 });
+
+test('the truth’s casters leave the still meshes’ batches out (their vertices are local: a phantom copy at the origin)', async () => {
+  const THREE = await import('three');
+  const { casters } = await import('../scripts/shadow-qc/probes.js');
+  const { StaticBatches } = await import('../src/static-batch.js');
+  const { makeMaterial } = await import('../src/materials.js');
+  const scene = new THREE.Scene(), mat = makeMaterial({ color: '#c8b496' });
+  // three crates 40 m from the origin, one material: a view batch of them
+  for (let i = 0; i < 3; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat); m.position.set(40 + i * 2, 0.5, 0); scene.add(m); }
+  const statics = new StaticBatches(scene);
+  assert.ok(statics.view.length >= 1, 'the crates are batched');
+  const C = casters(scene);
+  assert.equal(C.tris, 3 * 12, 'the three crates once each');
+  const box = new THREE.Box3().setFromBufferAttribute(C.geometry.attributes.position);
+  assert.ok(box.min.x > 38, `nothing at the origin (${box.min.x.toFixed(1)})`);
+});

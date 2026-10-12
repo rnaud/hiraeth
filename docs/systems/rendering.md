@@ -604,6 +604,66 @@ villas, temple halls (the Signal Market's, the Buried Machine's) and the Machine
   constants, and a twin of both estimates on a raycast staircase (the riser steady and above the threshold).
   The Unity port's Composite.shader takes the same estimate (and the look past a person it lacked).
 
+## Spot blacks only in pockets; the shadow QC's phantom casters (October 2026, v1.57)
+
+The author: "botchy shadows and shadows that move while the camera is moving", "the issues started when I said I wanted
+deeper darks", and of a near-black band at a Qanat house's foot, "it makes sense under the roof or at the top, but this
+is at the bottom on the floor". Measured in headless Chrome (muted): the shadow QC in the Shadow Room, the motion check
+on the desert's light term, and the visual probes over Qanat and the desert's caves (orbit and ghost checks).
+
+- **Every wall's foot was a pocket** (post.js `enclosure`). A wall standing on open ground stands in front of the
+  ground's face for half the taps, and the ground in front of the wall's foot: 0.4–0.5 of the taps closed, over the
+  0.3 threshold. So every building's foot, every riser (the steps below it stand in front of it), every room's floor
+  corner and the bones' feet on the giant's cave floor were filled with the near-black, and as a screen-space estimate
+  those masses came and went as the camera turned (the cave's orbit probe: a mask step of 0.53 at the 95th percentile,
+  flagged). Now (`SPOT_POCKET`, `spotShare`): what closes a point in must stand at its height or over it (a tap whose
+  surface stands more than `below` under the point stops counting), but on a face turned down (an eave's underside, a
+  ceiling, closed in by the wall below it); and on the ground a pocket must close in from opposite sides (tap i and
+  tap i + n/2, the patterns being their own half turn), as an alley or a cave's floor does, never along one wall.
+  Walls keep the share of their taps: the wall under a balcony, a recess between ribs, a vertical corner.
+- **Measured** (`visual-audit/probes.mjs --worlds desert --presets high,handheld --auto 6`, the p95 step of the spot
+  mask over a ±32° orbit, flagged over 0.3): the giant's cave 0.533 → 0.051 (High), 0.471 → 0.020 (Handheld); the
+  Qanat tree's stairs (Handheld) 0.118 → 0.043; a Qanat wall (Handheld) 0.149 → 0.024; no orbit flagged after, and
+  the Handheld ghost flag on the tree's stairs gone. The masses left: alleys, under balconies and eaves, between ribs.
+- **Left**: with 4 taps (Handheld) the long taps lie along the world's x on level ground, so the floor of a narrow
+  alley running along x is only seen across by the short taps (0.55 R) and keeps no spot black; a few flecks of the
+  spot mask by the traveller's hands on a wall right behind him.
+- **A dark copy of the traveller on the ground beside a wall's end** (the Shadow Room, the author's own view: High,
+  the sun 35° from the east, he stood just past the west end of the house's north wall, the camera behind and above).
+  A tap on him is replaced by what he hides (`spotBehind`), guessed from the planes seen round him; there the guess
+  carried the wall's narrow end face on past where the wall stops, behind him, and the ground beside him read closed
+  from both sides, the real wall's and the guessed one's: a person-shaped spot black by his head. On the ground a tap
+  on a person now counts as open (a person never makes a pocket of open ground); walls keep the look past him.
+- **And on the wall's narrow end face beside him** (the author's second view). The look past him took the planes seen
+  round him (the house's north face, the roof's edge, seen just in front of or at the end face) and carried them on
+  behind him in front of the end face: the face filled with spot black in his shape. A plane is now only taken if it
+  was seen well in front of the point's own surface (`SPOT_PAST.front`, 0.75 × the pocket's radius: the room corner's
+  other wall, seen in front, is still taken). Swept in the JS twin on the house at his window's size (2022 × 698 at
+  render scale 1.5, where the pocket's radius is ~0.5 m, held by its 96 px): 37-52 dark samples at 0.05, 0 at 0.75,
+  and the corners' pale notches back from 1.0 up. Tighter reaches for the looks 2× and 4× out and to the sides
+  (`near.past`, `near.side`) cleared the last patch by his hand at the face's foot but brought the corners' pale notches
+  back on 4 taps: left as they were, a small patch there remains. Each frame was rebuilt from the author's numbers
+  (player, camera, window, preset, sun: `copy(JSON.stringify({ player: player.pos.toArray(), … }))` in the console).
+- **A pale outline of the traveller in the dust band** at a weathered wall's foot (post.js 3b', the author: "still
+  seeing my character's outline on the building, where the gray area at the bottom looks white"). The band finds the
+  ground with one probe its height down the screen; where that landed on him, it took him for no ground and left the
+  band out in his shape, shifted up the wall, sliding with him. A probe on a person now looks on past them
+  (`DUST_PAST`: up to 8 more steps, each at least 4 % of the frame) to the ground at their feet, and never takes a
+  person for the ground; the Unity port the same. `tests/occlusion-taps.test.js`.
+- **The shadow QC's phantom casters** (`scripts/shadow-qc/probes.js` `casters`): since v1.45 the scene also holds the
+  still meshes' view batches (static-batch.js, `BatchedMesh`), whose vertices are each mesh's own under an identity
+  matrix. Taken as meshes, they put a copy of every batched prop, pole and post round the world's origin (the Shadow
+  Room's spawn) into the truth: the props and poles read 82–100 % "leaks" on every preset, shade that nothing casts.
+  Batches are left out now (the meshes they draw are still in the scene). `tests/shadow-qc.test.js`. With the truth
+  right, the whole walk (High, Steam Deck, Handheld at 35° and 12°) reads as in October: at 35° every spot green on
+  the Deck, every one but the poles' seams on High (10.4 %, the fine map's edge) and the arch's balcony on Handheld
+  (23 % of its contacts, the 16 cm texel); the props' and poles' leaks 82–100 % → 0. At 12° the reds left are the ones
+  listed in October (thin long shadows seen far off, the balcony, the stair's cascade pops, Handheld's spill).
+- `tests/occlusion-taps.test.js`: a wall on open ground (its foot and the ground before it under 0.25 from every side),
+  an alley's floor and the wall under a balcony kept, a balcony's underside as it was, a riser's foot steady from
+  every side (as before) but no longer a mass, `spotShare` on its own, and the shader's and the Unity port's constants.
+  The Unity port's Composite.shader takes the same rule.
+
 ## The rule for screen-space passes (October 2026)
 
 The three bugs above (a pale ghost of a person in the spot blacks, blocks that slid with the view, a lit seam that

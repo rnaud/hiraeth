@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.57 — 2026-10-12
 
+- The deepest darks stay in real pockets now, under balconies and eaves, between ribs, in alleys: the near-black band along the foot of every wall, every stair and the bones in the giant’s cave is gone, and with it the blotches that slid and jumped about there as the camera moved, and the dark copy of you that appeared on the ground beside a wall’s end.
+- The darker dust band along the foot of weathered walls no longer leaves a pale outline of you, or of anyone standing in front of it, that followed you along the wall.
 - Your ship won’t leave the desert now until you have the Givers’ blade and guard from the Rose House: it says where they are, and the Rose House goes into your quests if it wasn’t there. Vael waits the same way for the fluid wings from the Aerie.
 - The pond under the desert’s lavender cliffs now lies down in the ground instead of on it: its water sits below the crust round it, along a shore of wet and damp sand with a lip of pale salt stones, and you can still wade across it.
 - The hoverbike shows under you again while you ride it: it had stayed behind where you got on, so you seemed to ride on nothing.
