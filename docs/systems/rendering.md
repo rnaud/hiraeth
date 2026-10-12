@@ -604,7 +604,7 @@ villas, temple halls (the Signal Market's, the Buried Machine's) and the Machine
   constants, and a twin of both estimates on a raycast staircase (the riser steady and above the threshold).
   The Unity port's Composite.shader takes the same estimate (and the look past a person it lacked).
 
-## Spot blacks only in pockets; the shadow QC's phantom casters (October 2026, v1.57)
+## Spot blacks only in pockets; the shadow QC's phantom casters (October 2026, v1.59)
 
 The author: "botchy shadows and shadows that move while the camera is moving", "the issues started when I said I wanted
 deeper darks", and of a near-black band at a Qanat house's foot, "it makes sense under the roof or at the top, but this

@@ -724,6 +724,14 @@ const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s
 const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5681), the before the same tree before the polish (27d67022), the same pinned cameras as v1.55 and v1.56, 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.59': [
+    { match: 'The darker dust band along the foot of weathered walls', see: 'In Qanat, stand with your back to a weathered house, close to it, the camera behind you: the grey band along its foot runs on behind your legs, with no pale outline of you in it.' },
+    { match: 'The deepest darks stay in real pockets now', shots: [
+      { name: 'spot-blacks-cave', caption: 'Under the giant’s ribs in the desert cave: before, black blotches at their feet that jumped as the camera turned; after, the floor’s shade alone', from: 'headless Chrome, High, 1280 × 720, the camera pinned where the visual probes stand (giant-cave), this branch before and after the change' },
+      { name: 'spot-blacks-qanat', caption: 'A street in Qanat: before, a near-black mass at the yellow house’s foot; after, its cast shadow alone (the pilgrim moves between loads)', from: 'headless Chrome, High, 1280 × 720, the camera pinned where the visual probes stand (wall-2), this branch before and after the change' },
+    ], numbers: [{ title: 'Spot blacks jumping as the camera orbits a spot (the mask’s step on the same surface points over ±32°, 95th percentile; flagged over 0.3)', unit: '', better: 'lower', device: 'Mac (M4 Pro), headless Chrome',
+      rows: [{ where: 'the giant’s cave, High', before: 0.533, after: 0.051 }, { where: 'the giant’s cave, Handheld', before: 0.471, after: 0.02 }, { where: 'Qanat tree’s stairs, Handheld', before: 0.118, after: 0.043 }, { where: 'a Qanat wall, Handheld', before: 0.149, after: 0.024 }],
+      source: 'node .claude/skills/visual-audit/probes.mjs --worlds desert --presets high,handheld --auto 6' }],
+      see: 'In Qanat, walk along the houses with the camera turning: no black band along their feet. In the giant’s cave, circle the bones: the floor stays one shade.' },
     { match: 'The Unity preview on the Xbox holds close to 60 frames a second at the City-Shaft', numbers: [
       { title: 'The Unity preview on the Xbox at the City-Shaft’s rim', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1), muted', rows: [
         { where: 'the rim, from the spawn: frames a second', before: 44.5, after: 57.4 },
@@ -868,14 +876,6 @@ export const CHANGELOG_MEDIA = {
     ], see: 'On the title, open Saves and go down past the three saves: choose Into to pick the save it goes into, then a world. In the Glass Dunes’ debug save you have four hearts, the fragment finder and Orrin aboard the ship.' },
   ],
   '1.57': [
-    { match: 'The darker dust band along the foot of weathered walls', see: 'In Qanat, stand with your back to a weathered house, close to it, the camera behind you: the grey band along its foot runs on behind your legs, with no pale outline of you in it.' },
-    { match: 'The deepest darks stay in real pockets now', shots: [
-      { name: 'spot-blacks-cave', caption: 'Under the giant’s ribs in the desert cave: before, black blotches at their feet that jumped as the camera turned; after, the floor’s shade alone', from: 'headless Chrome, High, 1280 × 720, the camera pinned where the visual probes stand (giant-cave), this branch before and after the change' },
-      { name: 'spot-blacks-qanat', caption: 'A street in Qanat: before, a near-black mass at the yellow house’s foot; after, its cast shadow alone (the pilgrim moves between loads)', from: 'headless Chrome, High, 1280 × 720, the camera pinned where the visual probes stand (wall-2), this branch before and after the change' },
-    ], numbers: [{ title: 'Spot blacks jumping as the camera orbits a spot (the mask’s step on the same surface points over ±32°, 95th percentile; flagged over 0.3)', unit: '', better: 'lower', device: 'Mac (M4 Pro), headless Chrome',
-      rows: [{ where: 'the giant’s cave, High', before: 0.533, after: 0.051 }, { where: 'the giant’s cave, Handheld', before: 0.471, after: 0.02 }, { where: 'Qanat tree’s stairs, Handheld', before: 0.118, after: 0.043 }, { where: 'a Qanat wall, Handheld', before: 0.149, after: 0.024 }],
-      source: 'node .claude/skills/visual-audit/probes.mjs --worlds desert --presets high,handheld --auto 6' }],
-      see: 'In Qanat, walk along the houses with the camera turning: no black band along their feet. In the giant’s cave, circle the bones: the floor stays one shade.' },
     { match: 'The hoverbike shows under you again', shots: [
       { name: 'bike-ride', caption: 'Riding off from where the bike was found, 1.8 s on the throttle: before, the rider alone over the sand, the bike left behind where he got on; after, the bike under him', from: DB57 },
     ], see: 'In the desert, get on the hoverbike and ride off: it stays under you.' },
