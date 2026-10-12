@@ -10,6 +10,7 @@ surprising people, immense things that are never entirely explained.
 - [Qanat and the desert](characters/desert.md): the opening cast and their relationships.
 - [The other worlds](characters/worlds.md): histories, motives, and voice distinctions throughout the route.
 - [Temple guides](characters/temple-guides.md): the people outside the eleven makers’ houses.
+- [Plumb, the drone](characters/plumb.md): the companion on the pack: its name, voice, tic and when it speaks up.
 - [Plot review and quest proposals](plot-review.md): recommendations, not new quest requirements.
 - [Continuity and scope](continuity.md): facts to preserve, documentation drift, and the files this pass covers.
 

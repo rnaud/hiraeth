@@ -96,3 +96,38 @@ springs up and sways with the drone's accelerations, and the lens lights.
   the helmet through it in every clip (idle, walk, jog, sprint, jumps, drive,
   climbing, the ledge) on the pack, the rail and the cap, the cap clear of the
   open wings, and the launch and landing paths.
+
+## Plumb's own mind (v1.51, issue #152)
+
+The drone has a name, Plumb, and a character (`lore/characters/plumb.md`).
+`src/companion.js` gives it three small behaviours of its own, wired in
+`main.js` (`updatePlumb`, each frame after the weather):
+
+- **Lost** (`LostWatch`, `LOST`): a clock runs while you walk about in the
+  world (on foot or riding; not in a scene, a menu, a fight or a minigame) with
+  no progress: a quest step, an item, a chest, a talk, or a ping you asked for
+  start it over. Each never-visited place (a 24 m cube) gives 40 s back, so
+  exploring is not being lost; walking 40 m further from the goal than you were
+  at the last progress runs it 1.5× faster. Standing still is never lost (60 m
+  walked at least). At 3 minutes (6 with "fewer") it says one line, chosen by
+  why (`still`, `away`, `circling`: 150 m walked in three places or fewer), and
+  pings (the ping's own flight, flare and find line follow). Then it rests
+  5 minutes (12 with "fewer"). It only speaks when the cue is empty and no
+  notice is up.
+- **Opening** (`Opening`): four lines, each once per save (flags
+  `drone.said.<id>`): `out` (the first steps out of the crashed ship), `person`
+  (an unmet person within 8 m before you have talked to anyone), `chest` (the
+  first chest opened, said once its scene is over), `pointer` (the first time it
+  finds you lost, in place of a lost line). None names a button: the R3 line
+  after the first talk is the hint system's (issue #151).
+- **Moods on the dock** (`Mood`, `MOOD`; `Scout.moodOnDock`): a double hop when
+  an item is given or a quest moves on; a turn of the lens and a tip of its top
+  toward the nearest unopened chest or unmet person within 10 m; a shiver once a
+  storm (or heavy rain) passes 0.3. Its eye opens for them. All off with Reduce
+  motion (`scout.still`, from `feel.js motionState`).
+
+The setting "Drone hints" (`settings.droneHints`: on | fewer | off) and Hints
+off (`droneSay`) quiet the lines and the pointing; the ping on request and the
+moods stay. The lines (`DRONE_LINES`) carry their tones and show on the cue
+after the drone's ◇. `tests/companion.test.js` checks the threshold, the
+cooldown, the setting, each opening line once and the moods.

@@ -13,6 +13,11 @@ export const CHANGELOG = [
     'All the words on the screen are in the game’s own lettering now: the hints at the bottom, the notices at the top, the cards for what you find, the minigames and trials, the settings and the conversations no longer use a typewriter face, and the names and titles share one bold heading face. The words also grow with the screen, so they read as easily on a big TV or a 1440p monitor as on the Steam Deck or a handheld.',
     // the Unity preview on the Steam Deck (docs/systems/performance.md "The Steam Deck, round 7"; issue #111)
     'On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.',
+    // Plumb, the drone's own mind (docs/systems/scout.md "Plumb's own mind"; issue #152)
+    'Your drone has a name now, Plumb, and a mind of its own. Wander for a few minutes without getting anywhere and it says a short line and flies out toward where you are going; then it leaves you be for a good while.',
+    'At the start of a new game Plumb says a few things, each only once: as you step out of the ship, near the first person you meet, at your first chest and the first time you lose your way.',
+    'On your pack, Plumb hops when you find something, turns to look at a chest or someone you have not met yet close by, and shivers in a storm. With Reduce motion on it holds still.',
+    'A new setting, Drone hints (on, fewer, off), says how often Plumb speaks up by itself. Fewer waits twice as long; turning the game’s Hints off quiets it too.',
   ] },
   { v: '1.50', date: '2026-10-11', items: [
     // Qanat's square (docs/systems/worlds.md "Qanat's square without the well and the stele"; issue #161)

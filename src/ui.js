@@ -15,6 +15,7 @@ import { glyph } from './pad-glyphs.js';
 import { onXbox, qualityChoices } from './xbox.js';
 import { rumbleSupported, rumblePlay } from './rumble.js';
 import { HINT_LEVELS, DEFAULT_HINTS, setHintLevel } from './hint-level.js';
+import { DRONE_HINTS, DEFAULT_DRONE_HINTS } from './companion.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -49,6 +50,7 @@ const DEFAULTS = {
   hitboxes: false,      // the fight's hitbox overlay (F4, the world debug menu (L3 + R3), the dev menu, the Arena's board: src/hitboxes.js)
   hints: DEFAULT_HINTS, // how much the game says (src/hint-level.js): off | subtle (a glyph on approach, the first-time prompts) | full
   hintsV: 1,            // settings saved before v1 had no hints setting (the game said everything): they start on subtle once
+  droneHints: DEFAULT_DRONE_HINTS,   // the drone speaking up by itself (src/companion.js): on | fewer | off
   // accessibility (docs/systems/ui.md, "Accessibility"): applyAccess() hands them to the modules that use them
   lang: 'en',           // the menus' and the HUD's language (src/i18n.js): en | fr
   textSize: 'normal',   // the words on the screen (TEXT_SIZES: dialogue, toasts, story pages, the menus)
@@ -343,6 +345,7 @@ export class SettingsMenu {
           <h2>${t('set.group.game')}</h2>
           ${row(t('set.enemies'), opts('enemies', ['normal', 'gentle', 'off']))}
           ${row(t('set.hints'), opts('hints', HINT_LEVELS))}
+          ${row(t('set.droneHints'), opts('droneHints', DRONE_HINTS))}
           ${game ? `<div class="danger">
             <button data-a="reset">${t('set.reset')}</button>
             <div class="ask" hidden><span>${t('set.resetAsk')}</span>

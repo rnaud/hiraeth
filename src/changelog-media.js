@@ -639,6 +639,8 @@ const VA50 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s
 const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) in headless Chrome (muted, High), Vite on port 5471, before the change and after it, 11 October; its 480 × 270 frame, cwebp -q 72';
 // (v1.51: the type split, issue #128: this branch's own Vite and the same tree before the change, the HUD shown)
 const TYPE51 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5467, changelog-shots.mjs’s serve) and the same tree before the change, 11 October; cwebp -q 72';
+// (v1.51: Plumb, issue #152: this branch's own Vite; the look's before is the same moment with Reduce motion on, the drone at rest on the pack as it always was)
+const PLUMB51 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463, changelog-shots.mjs’s serve and chrome), the Desert before the first chest, 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.51': [
     { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
@@ -656,6 +658,14 @@ export const CHANGELOG_MEDIA = {
         { where: 'the GPU, the wide view', before: 23.9, after: 19.8 },
       ], source: 'the same runs' },
     ], see: 'On the Steam Deck, start Hiraeth (Unity preview) from the library: it opens in the Desert; in the City-Shaft, walk the rim and look down over the city.' },
+    { match: 'Your drone has a name now, Plumb', shots: [
+      { name: 'plumb-lost', only: 'after', caption: 'Lost in Qanat: Plumb’s line on the cue, and the drone up and off toward the goal (its find’s line follows)', from: PLUMB51 },
+    ], see: 'Walk about for three minutes without a quest step, a find or a talk, round the same streets: Plumb says one line and flies out toward the goal. Walk away from the goal and it speaks up sooner; it then waits at least five minutes before saying it again.' },
+    { match: 'At the start of a new game Plumb says a few things', see: 'Start a new game: off the ship ramp, Plumb says it will ride on your pack. Walk up to the first person in Qanat, open the makers’ chest, and later wander a while: one short line each time, and never again in that save.' },
+    { match: 'On your pack, Plumb hops when you find something', shots: [
+      { name: 'plumb-look', caption: 'A few steps from the makers’ chest: before, the drone sits on the pack looking back at you; after, it turns round and leans toward the chest', from: PLUMB51 },
+    ], see: 'Stand near an unopened chest or someone you have not talked to: the drone turns to it. Pick something up for a hop; wait for a sandstorm for the shiver. Turn on Reduce motion and it keeps still.' },
+    { match: 'A new setting, Drone hints', see: 'Open the settings (Menu / Esc): Drone hints is under Game, beside Hints.' },
     { match: 'All the words on the screen are in the game’s own lettering now', shots: [
       { name: 'type-notice', title: 'A notice and the hint', caption: 'Off the ship in the Desert: the quest’s notice at the top and the chest’s hint at the bottom, before in the typewriter face, after in the game’s and larger', from: TYPE51 },
       { name: 'type-card', title: 'A find', caption: 'The card for the Givers’ blade: the name in the heading face, what it is and does in the game’s', from: TYPE51 },

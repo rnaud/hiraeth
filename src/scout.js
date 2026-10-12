@@ -3,6 +3,7 @@ import { makeMaterial, markHero } from './materials.js';
 import { sweepCapsule } from './physics.js';
 import { Trail } from './trail.js';
 import { Drone, DroneFold, DOCK_ON_TOP } from './drone.js';
+import { Mood } from './companion.js';
 
 const RADIUS = 0.25;     // the drone's collision sphere
 const CLEAR = 0.9;       // air it keeps below itself while flying
@@ -234,6 +235,9 @@ export class Scout {
     // the flare it drops on what it found (seen from afar, gone after a few seconds)
     this.flare = new Flare(scene);
     this.previousPlayer = player.pos.clone();
+    // its moods on the dock (src/companion.js Mood): a hop on a find, a look toward something near, a shiver in a storm;
+    // main.js sets attend (a world point or null), storm (0..1) and still (Reduce motion), and calls mood.hop()
+    this.mood = new Mood(); this.attend = null; this.storm = 0; this.still = false;
     this.dock();
   }
   anchor() {
@@ -452,7 +456,8 @@ export class Scout {
       }
       this.object.position.copy(home);
       this.dockQuaternion(this.object.quaternion);
-      this.drone.pose(this.fold.update(dt, false), dt);   // (a fold still closing finishes here)
+      const awake = !paused && this.moodOnDock(dt);
+      this.drone.pose(this.fold.update(dt, false, awake), dt);   // (a fold still closing finishes here)
       return;
     }
     if (paused) return;
@@ -561,6 +566,26 @@ export class Scout {
       this.lens.quaternion.slerp(_qt.setFromUnitVectors(_z, local), 1 - Math.exp(-10 * dt));
     }
     this.updateBeam(dt, beam);
+  }
+  /**
+   * Its moods on the dock, folded (src/companion.js Mood): over the dock's pose, a little lift (a hop), a turn round its
+   * up and a tip of its top toward what it looks at, a quick shake in a storm. Returns whether the eye is open for it.
+   */
+  moodOnDock(dt) {
+    let dir = null;
+    if (this.attend && !this.still) {
+      const local = _l.subVectors(this.attend, this.object.position).applyQuaternion(_q3.copy(this.object.quaternion).invert());
+      if (Math.hypot(local.x, local.z) > 0.3) dir = local;
+    }
+    const m = this.mood;
+    m.step(dt, { dir, storm: this.storm, still: this.still });
+    if (!m.busy) return false;
+    const f = m.pose(), q = this.object.quaternion;
+    if (f.lift) this.object.position.addScaledVector(_ax.set(0, 1, 0).applyQuaternion(q), f.lift);   // (out of the surface it sits on)
+    if (f.yaw) q.multiply(_qt.setFromAxisAngle(_ax.set(0, 1, 0), f.yaw));
+    if (f.tilt) q.multiply(_qt.setFromAxisAngle(_ax.set(1, 0, 0), f.tilt));
+    if (f.shake) q.multiply(_qt.setFromAxisAngle(_ax.set(0, 0, 1), f.shake));
+    return f.awake;
   }
   /** At the lookout: the flare goes down on the objective, a chirp, and onFind (a hint: the beam on the weak point, its chirp, onHint). */
   arrive() {

@@ -107,7 +107,8 @@ import { Foes, lockViewAngle } from './foes.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
-import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft } from './feel.js';
+import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft, motionState } from './feel.js';
+import { Companion, shown as droneShown } from './companion.js';
 import { FLURRY, FlurryFx, nextFlurry } from './flurry.js';
 import { DevMenu } from './dev-menu.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
@@ -794,6 +795,45 @@ const scout = new Scout({ scene, player, physics, sound,
   onHint: (line) => scoutSays(`◇ ${line}`, HINT.say),
 });
 const struggle = new Struggle();   // (the seconds in the guardian's phase: ticked in the loop)
+// Plumb's own mind (src/companion.js): it speaks up when you look lost (a line, and the ping's flight toward the goal),
+// says a few things at the start of a game (each once), and hops, looks and shivers on the dock (the "Drone hints" setting)
+const plumb = new Companion({ state: game, setting: () => settings.droneHints });
+const droneSaid = { text: '', until: 0 };   // (its line on the cue: before the find's, a moment)
+{ const said = scout.onPing; scout.onPing = (t) => { said(t); plumb.progress(); }; }   // (a ping, asked or its own: the lost clock starts over)
+for (const ev of ['quest', 'keepsake', 'dialogue:start', 'box:opened']) game.on(ev, () => plumb.progress());
+game.on('item', (e) => { if (!(e?.n < 0)) { plumb.progress(); scout.mood.hop(); } });   // (found something: a hop on the dock)
+game.on('quest', () => scout.mood.hop());
+game.on('box:opened', () => plumb.note('chest'));
+game.on('ship:exit', () => { if (levelId === 'desert' && !game.flag('item.backpack')) plumb.note('out'); });   // (the first steps out of the crashed ship)
+const plumbAt = { goalT: 0, goal: null, lookT: 0 };
+/** Plumb, each frame (after the scout's own update): the lost watch and the opening's lines; what it looks at on the dock. */
+function updatePlumb(dt, Wx) {
+  const now = performance.now();
+  scout.storm = Wx ? Math.min(1, Wx.storm + Wx.rain * 0.5) : 0;
+  scout.still = motionState().reduce;
+  // what it looks at, and the first person near (the opening's line): now and then
+  if ((plumbAt.lookT -= dt) <= 0) {
+    plumbAt.lookT = 0.5;
+    let best = null, bestD = 10;
+    const metAnyone = Object.keys(game.data?.flags ?? {}).some((k) => k.startsWith('met.'));
+    for (const n of npcs) {
+      if (!n.def?.id || n.pooled || !n.object?.visible || game.flag(`met.${n.def.id}`)) continue;
+      const d = n.pos.distanceTo(player.pos);
+      if (d < bestD) { bestD = d; best = n.pos; }
+      if (d < 8 && !metAnyone) plumb.note('person');
+    }
+    for (const b of boxes.list) { if (b.spent()) continue; const d = b.pos.distanceTo(player.pos); if (d < bestD) { bestD = d; best = b.pos; } }
+    scout.attend = best && !busy() && !player.ride ? best : null;
+  }
+  const canSpeak = !busy() && !photo.on && !ship.playing && !ship.inside && !player.dead && !cue.text && !ship.cinema.noticeBusy() && now >= scoutSaid.until && now >= droneSaid.until;
+  const fight = !!foes.lock || !!guardianHint(level.temple) || !!minigame || !!minigameDef;
+  if ((plumbAt.goalT -= dt) <= 0) { plumbAt.goalT = 1; plumbAt.goal = fight ? null : scout.getTarget()?.position ?? null; }
+  const r = plumb.update(dt, { active: !fight && scout.phase === 'docked', canSpeak, pos: player.pos, goal: plumbAt.goal });
+  if (!r.say) return;
+  if (r.point) scout.ping();   // (out toward the goal, a look, the flare, home: the find's line comes after its own)
+  droneSaid.text = droneShown(r.say); droneSaid.until = now + 3200;
+  sound.drone?.('go');
+}
 // a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling): a nudge, hints full only
 game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });   // (a nudge is the last of the notices: not over another, issue #78)
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
@@ -1490,7 +1530,8 @@ function updateHud() {
   const place = quiet || ship.playing ? '' : named;
   placeName.wasIndoors = !!indoors;
   ship.cinema.setCaption(!!place, placeName.waiting);
-  const found = !quiet && now < scoutSaid.until ? (typeof scoutSaid.text === 'function' ? scoutSaid.text() : scoutSaid.text) : '';   // (what the scout found, a moment)
+  const said = !quiet && now < droneSaid.until ? droneSaid.text : '';   // (Plumb's own line: src/companion.js)
+  const found = said || (!quiet && now < scoutSaid.until ? (typeof scoutSaid.text === 'function' ? scoutSaid.text() : scoutSaid.text) : '');   // (what the scout found, a moment)
   let teach = '';
   if (firstSteps) {
     if (player._jumped) firstSteps.jumped();
@@ -1502,7 +1543,7 @@ function updateHud() {
     teach = firstSteps.update(fdt, { active: open, moved: moved < 5 ? moved : 0 });   // (a teleport is no walk)
     if (quiet || ship.playing) teach = '';
   }
-  cue.set(found || text || place || teach, found ? scoutSaid.kind : text || !place ? '' : 'place');
+  cue.set(found || text || place || teach, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
   // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
   placeToolGauge();
   audioCfg.mute = sound.muted;
@@ -2045,6 +2086,7 @@ function frame(ts) {
   U.uStorm.value = Wx.storm;
   U.uFogMul.value *= 1 + W.fog * 2.6 + Wx.storm * 2.2 + Wx.rain * 0.6;
   wind.boost = Wx.storm;
+  updatePlumb(dt, Wx);   // (Plumb: the lost watch, the opening's lines, its moods on the dock: src/companion.js)
   {
     const [wx, wz] = wind.windDir;
     const k = (level.features.wind ? 2.5 : 1.2) * (1 + Wx.storm * 3.5 + Wx.rain * 0.6) * (1 - 0.8 * shelter.indoor);
@@ -2481,5 +2523,5 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

@@ -73,6 +73,7 @@
  "tests/combat-reach.test.js": 4.6,
  "tests/combat-review.test.js": 0.2,
  "tests/combat.test.js": 3.5,
+ "tests/companion.test.js": 0.2,
  "tests/contact-audit.test.js": 29.8,
  "tests/controller.test.js": 0.1,
  "tests/controls.test.js": 0.2,
