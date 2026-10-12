@@ -1,6 +1,6 @@
 // The recorded themes on a device (docs/systems/audio.md, "The themes on a device"). The APK and the Steam Deck
-// package carry only the desert's (ON_DEVICE_THEMES: the first world plays its theme offline from the very first
-// session); the over-the-air zip carries no others either (scripts/web-update.mjs onDemand). From the first open
+// package carry only the title's (ON_DEVICE_THEMES: the first thing a launch plays; the first world, the desert, plays
+// its own procedural score since issue #207); the over-the-air zip carries no others either (scripts/web-update.mjs onDemand). From the first open
 // of the app, a bundled game (src/levels/reference-sheets.js bundledGame) fetches every other theme it hasn't
 // got from the site, in the background, one at a time, and keeps them for good (themeDownloader):
 //   - kept in IndexedDB (THEME_DB), one Blob per file name. The music never changes, so the file name is the
@@ -16,8 +16,8 @@
 // asks for that one first). The site and the dev server only ever read their own files.
 import { bundledGame, SHEET_SITE } from './levels/reference-sheets.js';
 
-/** The themes the devices carry: the desert's (the first world), the title's. The packaging reads this too. */
-export const ON_DEVICE_THEMES = ['desert.mp3', 'singing-light.mp3', 'title.mp3'];   // (and the singing light's cue, heard in the prologue: src/soundtracks.js CUES; and the title's music, the first thing a launch plays: TITLE_THEME)
+/** The recordings the devices carry: the title's, the singing light's cue. The packaging reads this too. */
+export const ON_DEVICE_THEMES = ['singing-light.mp3', 'title.mp3'];   // (and the singing light's cue, heard in the prologue: src/soundtracks.js CUES; and the title's music, the first thing a launch plays: TITLE_THEME)
 export const THEME_DB = 'hiraeth-music', THEME_STORE = 'themes', THEME_DB_VERSION = 1;
 
 /** The key a theme is kept under: its file name (they never change; a new recording gets a new name). */
@@ -94,7 +94,7 @@ const pageBooted = () => globalThis.window?.__hiraethBootedAt !== undefined;   /
 /**
  * The background download of every theme a device hasn't got. start() any number of times (the title and each
  * world call it); prefer(file) puts a theme first (the world being played); arrived(file) resolves with its
- * Blob once it is kept (null if the signal aborts first); progress() { have, total } counts the desert's.
+ * Blob once it is kept (null if the signal aborts first); progress() { have, total }.
  * @param o.files the themes (SOUNDTRACKS' files); o.booted whether the page is up; o.settle ms to wait after
  *   that; o.gap ms between two files; o.retryMs a later try after a failure (and on the 'online' event)
  */

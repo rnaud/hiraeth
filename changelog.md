@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.61 — 2026-10-12
 
+- The Desert has new music, slower, quieter and more mysterious than before: a lone oud plays a few notes at a time and lets them ring into a long echo, over soft synthesizer pads, a low drone with the wind singing in it and, now and then, a shimmer of high notes. There are no drums any more: walking brings only a slow, soft pulse. The whole score plays as you arrive, indoors and at the big moments, and only its quiet layers in between.
 - Aboard your ship the camera keeps its distance in the tight spots: in the cockpit, by the hatch and beside your bunk it rises over your shoulder and looks down into the room as you turn, instead of pressing into your back. When you wake you stand a step out from the bunk, with the room and the cockpit ahead of you.
 - At the end of the journey someone knows the fragments for what they are, and says so, whether you found none, some or every one.
 - The scientist who keeps the fragments in your hold is Anselm Thrum now, and the woman who minds the great cable’s clamp under the Floating city’s Towers is Tilde: their old names belonged to other people in the story. Anselm no longer introduces himself when you meet; he is too busy chasing the fragment.

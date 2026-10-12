@@ -12,7 +12,7 @@
 import { store } from './platform.js';
 import { bindVoice, languageOf } from './story/voice.js';
 import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
-import { playVoice, playColour, hit } from './score-voices.js';
+import { playVoice, playColour, hit, echoBus, prepareLute } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
@@ -412,6 +412,8 @@ export class Sound {
     if (id === this.scoreId) return;
     const S = scoreFor(id);
     this.scoreId = id; this.S = S;
+    // from its first section (its drone and its motif at once, as on arriving), not from the middle of one
+    this.beat = 0;
     Object.assign(this.profile, { root: S.root, scale: S.scale, tempo: S.tempo });
     Object.assign(this.voice, { lead: S.pal.lead, pluck: S.pal.pluck, melody: S.motif });
   }
@@ -419,7 +421,8 @@ export class Sound {
   /**
    * Hold the world's recorded theme back (on), and the procedural score plays in full instead; released, the
    * theme comes in as on arriving (`arrive`: the moments' arrival, src/music-moments.js). The prologue holds the
-   * desert's theme while you are in the ship, until you step out onto the sand (issue #149).
+   * desert's moments while you are in the ship, until you step out onto the sand (issue #149; the desert's score
+   * has no recording since issue #207, and plays in full from the step out, as on arriving).
    */
   holdTheme(on, { arrive = true } = {}) {
     const was = !!this.themeHeld;
@@ -430,6 +433,9 @@ export class Sound {
   /** Per frame: fade the recording in or out as src/music-moments.js says; a theme stopped after its fade starts again from its opening. */
   musicMomentsUpdate(indoor = 0) {
     const M = this.moments, ctx = this.ctx;
+    // a score with moments of its own and no recording (the desert's, issue #207): the moments say whether it plays
+    // in full (scoreMoment) or only its light layers (schedule); held back (the ship), the score in full
+    if (M && ctx && !this.trackBuffer && this.S?.moments) { const { on } = M.update(ctx.currentTime, { indoor }); this.scoreMoment = on || !!this.themeHeld; return; }
     if (!M || !ctx || !this.trackBuffer || !this.trackGain) return;
     let { on } = M.update(ctx.currentTime, { indoor });
     if (this.themeHeld) on = false;
@@ -682,14 +688,19 @@ export class Sound {
   schedule() {
     const ctx = this.ctx, spb = 60 / this.S.tempo;
     if (!this.V) this.V = { ctx, noise: this.noiseBuf };
+    // the score's echo (the desert's), made once when a score with one first plays; the others send nothing into it
+    this.V.echo = this.S.echo ? (this._echo ??= echoBus(this.V, this.music, { time: this.S.echo.beats * spb })) : null;
+    if (!this._luteReady && this.S.pal.pluck === 'lute') this._luteReady = prepareLute(this.V);   // (its registers, one a tick)
     while (this.nextBeat < ctx.currentTime + 0.4) {
       const t = this.nextBeat;
       this.chord = chordAt(this.S, this.beat);
       // the recorded theme playing: no procedural score; resting between moments (src/music-moments.js): its light layers
-      // (the theme held back, the prologue's ship: its score in full; the score off: nothing)
+      // (the theme held back, the prologue's ship: its score in full; the score off: nothing). A score with moments of its
+      // own and no recording (the desert's): in full for a moment, its light layers between (musicMomentsUpdate)
       if (!(this.recordedTrack && this.trackOn) && !this.scoreOff) {
         const events = scoreBeat(this.scoreId, this.beat, this.act);
-        for (const e of this.trackBuffer && !this.themeHeld ? lightScore(events) : events) this.playEvent(e, t, spb);
+        const light = this.trackBuffer ? !this.themeHeld : !!this.S.moments && this.scoreMoment === false;
+        for (const e of light ? lightScore(events) : events) this.playEvent(e, t, spb);
       }
       this.ambienceTick(t, spb);
       if (this.bands) for (const b of this.bands) if (b.level > 0.004) this.bandBeat(b, t, spb);

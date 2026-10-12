@@ -128,7 +128,7 @@ Chrome / WebView 109 has.
 
 | World | Mode | Tempo | Instruments | Leitmotif | Colour |
 |---|---|---|---|---|---|
-| Desert | D hijaz | 60, in 8 | ney, oud, reed drone, frame drum (walking) | "the tree drinks": up through the augmented second, back down like water | the city's slow bell |
+| Desert | D bayati | 56, in 8 | modelled oud, soft analog pad, low drone with the wind in it, ondes-like sine, a slow soft pulse (walking); its own moments (below) | "the tree drinks": down from the fifth through the quarter-flat second | a granular shimmer of the oud |
 | City-Shaft | F lydian | 80 | muted horn, vibes, walking pizzicato bass, brushes | "look up": through the raised fourth | the Lodestar's shimmer |
 | Vael | A yo pentatonic | 46 | breathy shakuhachi-like flute, wind through stone, the stones' hum; no drums | "the waiting bird" | the bird's far cry |
 | Vael II | B♭ dorian | 44 | the monks' drone, a choir, flute, hand bells; no drums | four notes falling like a bell's change | the great bell tolling |
@@ -153,7 +153,7 @@ Chrome / WebView 109 has.
   up to the fifth, down a step, back to the fifth. `fatherIn(score)` snaps it into each
   world's mode (in Vael it climbs to the fourth, in the Hangar's whole tone to the
   tritone); it plays in the first arc and in every other one after, on the world's own
-  voice for it (the duduk in the desert, the bone whistle on Vael, a singing bowl in the
+  voice for it (an ondes-like sine in the desert, the bone whistle on Vael, a singing bowl in the
   Buried Machine...). At home it is the world's own tune.
 - **Activity** (`Sound.follow`, eased each frame from `sound.update`): `move` (walking
   speed), `ride` (a mount, a vehicle, the wings or the jets), `still` (seconds standing),
@@ -175,12 +175,57 @@ Chrome / WebView 109 has.
 "It doesn't make sense for the desert music to play in the prologue since it's in the ship." The ship has a score
 of its own (`SCORES.ship`, "The Dark Ship": D dorian, 48 a minute, the ship's hum for its drone, a glass pad, a few
 soft vibes notes, the felt piano with the father's theme, the console's three blips for its colour; no drums). It is
-on the desert's tonic, so stepping out into the hijaz opens a door rather than changing key. `prologueMusic(sound,
+on the desert's tonic, so stepping out into its bayati (a near neighbour of dorian) opens a door rather than changing key. `prologueMusic(sound,
 phase)` (`src/ship/cinematics.js`) runs it: `ship` from the first black through the walk to the cockpit (the desert's
-recorded theme held back: `Sound.holdTheme`, its procedural score swapped: `Sound.setScore`), `quiet` from the
+moments held back: `Sound.holdTheme`, its procedural score swapped: `Sound.setScore`, which starts a score from its first section), `quiet` from the
 father's message on (no score under his words and the singing light's theme; the power goes), `desert` as you step
-out onto the sand (the world's score, and its theme comes in as on arriving: the moments' `arrival`), and on a skip.
+out onto the sand (the world's score in full, as on arriving: the moments' `arrival`), and on a skip.
 A theme that finishes loading while held waits silent (`startTrack`). `tests/prologue-music.test.js`.
+
+### The desert's music (issue #207, October 2026)
+
+"The desert level music is not very good. It's too on the nose, almost a parody." Direction (the author): more
+ambient, mysterious rather than aggressive; a melange of old-school oud music and modern electronic music, since it
+is still a world of space exploration. What played before: on arriving, indoors and at moments, a Suno recording
+(`desert.mp3`, D hijaz, ney, oud, reed drone and a frame drum all through it, mastered loud and dense); between
+moments the procedural score's light layers (a sawtooth reed drone, triangle pads, a bright saw-and-triangle oud
+pluck). The recording is retired (Suno is blocked, #27, so there is no new one to put in its slot); the desert's own
+score (`SCORES.desert`, "The Tree That Drinks") is rewritten and carries everything:
+
+- **D bayati, 56 a minute, in 8** (`MODES.bayati`: the second a quarter tone flat, 1.5 semitones; the scale and the
+  father's theme take fractional semitones as they are). The quarter tone is only in the motif, a sigh on its way
+  down; the pad, the drone and the plucks keep to D, F, G, A, B♭, C (`tests/desert-music.test.js` checks it). The
+  chords change every 17 s: D minor, B♭, D minor, G minor, as an open fifth or a triad.
+- **The oud** (`lute`, `luteString` in `src/score-voices.js`): a Karplus–Strong string, a course of two strings 3.6
+  cents apart, plucked with a softened noise burst less the comb of its pluck point, through an oud's body (peaks
+  near 105 and 250 Hz, rolled off over 3.6 kHz). Six registers (110 to 835 Hz) are rendered once into 2.4 s mono
+  buffers at 24 kHz, one per scheduler tick from the score's start (`prepareLute`: about 2-5 ms each on the Mac), and
+  a note is a buffer source at the right `playbackRate` (within a fifth of its register) that settles into its pitch
+  from a breath under it (fretless); a long note gets a second, softer stroke halfway (the risha). It carries the
+  motif, the sparse plucks (a 20% chance a beat at most) and the echo of the motif.
+- **The electronics**: the pad (`nebula`: two saws 14 cents apart through a lowpass opening from 360 Hz to 1.3 kHz
+  and closing again over a chord, 4 s in, 5 s out); the drone (`dune`: a sine on D2 and A2, a triangle an octave
+  up, and the wind singing a twelfth up: noise rung in one band of Q 18); the father's theme on `ondes` (a sine
+  gliding up into each note, slow vibrato); the shimmer (`grains`, the world's colour: nine slices of the oud's
+  ringing, two octaves up on the tonic, fifth, octave and fourth, scattered across the stereo field over five
+  seconds); and the **echo** (`echoBus`, made once for a score with `echo`): three repeats a dotted eighth apart
+  (0.8 s), each softer and darker, left, right, left. Feed-forward, no feedback loop, so the engine bridge
+  (`engine/webaudio.js`) renders it the same. The oud, the ondes and the grains send into it.
+- **No frame drum.** Walking brings a slow pulse (`heart`: a soft sine thump from 66 to 44 Hz; `dust`: a grain of
+  sand ticking at 5 kHz), two beats and two ticks every 8.6 s; standing, indoors and between moments, none.
+- **Its own moments** (`moments: true` on the score): with no recording, `Sound.musicMomentsUpdate` runs the same
+  `MusicMoments` and sets `scoreMoment`: the score in full for the arrival (150 s), indoors and after a moment;
+  between them only its light layers (`lightScore`: drone, pad, sparse plucks, the shimmer, the echo). Held back
+  (the ship's prologue) or Settings > Music: Always, in full. `Sound.setScore` starts a score from its first section,
+  so the step out of the ship opens on the drone and the oud's motif at once.
+- **The camps' drum circle** keeps its D hijaz tune (`src/minigames/drums.js` plays it in hijaz on the desert's
+  root): the villagers' song is theirs. Bako's solo is unchanged.
+- **Level**: about -28 dB RMS in full (the old score -27, the recording balanced to -27), -33 between moments.
+- **Cost** (the same 3-minute walk rendered offline in headless Chrome, before → after): oscillators 123 → 49 a
+  minute, filters 94 → 38, buffer sources 49 → 45 (the oud's notes are buffer sources now), the offline render
+  11-17% of real time → 9-12% (a loaded Mac: noisy), the scheduler 0.04-0.09 → 0.10-0.15 ms a second of music; and no 154 s recording decoded (59 MB of samples in memory, its balancing on the main thread).
+
+`tests/desert-music.test.js`.
 
 ## The Forest of Antennas' signals (October 2026)
 
@@ -207,8 +252,8 @@ A level that carries you on a train says so with `level.rails(pos)` → `{ speed
 
 ## Recorded soundtracks (v0.94)
 
-`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/` (on a device only the desert's and the title's are
-local; the others are downloaded once: "The themes on a device" below).
+`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/` (on a device only the title's is
+local; the desert has none since issue #207, below; the others are downloaded once: "The themes on a device" below).
 `manifest.json` records each Suno source and musical direction. Only the current
 world loads after audio starts. Decode/download failures retain the procedural
 score, including on engine bridges without an audio decoder. The title has its
@@ -242,7 +287,7 @@ near-silence at the start (whole MP3 frames dropped, its Xing/LAME header fixed,
   again.
 - **Fallback**: a failed download, a file that doesn't decode, an engine bridge without a decoder
   (`engine/webaudio.js`), or the title gone before it arrives: the procedural tune simply goes on.
-- **On a device** it is in the package (`ON_DEVICE_THEMES`), as the desert's is: it is the first thing a launch
+- **On a device** it is in the package (`ON_DEVICE_THEMES`): it is the first thing a launch
   plays, so it must not wait for the background download.
 - Level on the menu bus (measured in headless Chrome, music at 0.8): the procedural tune about -27 dBFS, the
   recording about -34, the same level as a world's recording on the music bus.
@@ -250,10 +295,10 @@ near-silence at the start (whole MP3 frames dropped, its Xing/LAME header fixed,
 
 ## The themes on a device (October 2026)
 
-The APK and the Steam Deck package carry one recorded world theme, the desert's (`ON_DEVICE_THEMES`,
-`src/music-store.js`): the first world has its music offline from the very first session. They carry the
-title's music too (above) and the singing light's cue. The other 24
-(99 MB) stay on the site (`scripts/site-only.mjs` `leftOff`, the over-the-air zip too; the web build is
+The APK and the Steam Deck package carry no recorded world theme (`ON_DEVICE_THEMES`, `src/music-store.js`): the
+first world, the desert, plays its own procedural score (issue #207), so it has its music offline from the very first
+session. They carry the title's music (above) and the singing light's cue. The 24 world themes
+(96 MB) stay on the site (`scripts/site-only.mjs` `leftOff`, the over-the-air zip too; the web build is
 unchanged, it reads its own `music/`).
 
 - **The download** (`themeDownloader`, started by the title and by every world after its first frame,

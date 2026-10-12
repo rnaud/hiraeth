@@ -38,12 +38,14 @@ test('scales: each world plays its named mode, and every note it plays is in it'
     for (const e of events(id, 400, WALK)) {
       if (e.degree === undefined) continue;
       assert.ok(Number.isInteger(e.degree), `${id}: ${e.layer} degree ${e.degree}`);
-      const semi = Math.round(12 * Math.log2(scoreFreq(S, e.degree, e.octave) / S.root));
-      assert.ok(S.scale.includes(((semi % 12) + 12) % 12), `${id}: ${e.kind} ${semi} is in ${S.mode}`);
+      // (to a hundredth of a semitone: the desert's bayati has a quarter tone, 1.5)
+      const semi = Math.round(1200 * Math.log2(scoreFreq(S, e.degree, e.octave) / S.root)) / 100;
+      assert.ok(S.scale.some((s) => Math.abs((((semi % 12) + 12) % 12) - s) < 0.01), `${id}: ${e.kind} ${semi} is in ${S.mode}`);
     }
   }
   // the modes are what they say: hijaz's augmented second, lydian's raised fourth, whole tone's six steps
   assert.deepEqual(MODES.hijaz.slice(1, 3), [1, 4]);
+  assert.deepEqual(MODES.bayati.slice(0, 3), [0, 1.5, 3], 'bayati: its second a quarter tone flat');
   assert.ok(MODES.lydian.includes(6) && !MODES.lydian.includes(5));
   assert.ok(MODES.wholeTone.every((s, i) => s === i * 2));
   // the Garden of Spheres stays pentatonic (its song and the orbs' notes are degrees of it), Lorn heptatonic (the crystal's phrase)

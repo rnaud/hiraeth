@@ -354,7 +354,7 @@ walk onto one; after 14 s the next wave comes anyway. Knocked out, the run ends 
 A camp in a hollow of the dunes at dusk (its own arena): a fire in a ring of stones (`story/flames.js`), seven
 logs round it, a goblet drum at each, tents. Six villagers drum on the logs and four dance, all `NPC` bodies
 the game poses itself (`poseSeated`, `poseDancer`); the traveller sits on the near log with his own drum, his
-hands the player's strokes. The **song** is the desert's (`score.js` D hijaz: the tanpura's drone, a sine
+hands the player's strokes. The **song** is the camps' own (D hijaz on the desert's root, the old desert score's mode: the desert's own score went to bayati in issue #207; the tanpura's drone, a sine
 bass, the oud's riff, the ney's tune, the villagers' frame drum `darbuka` / `knock`, a shaker, a handbell; played
 by `score-voices.js` and `Sound.instrument` into a bus of the game's own, the world's score hushed under it):
 100 beats a minute, 34 bars in six sections (`SECTIONS`: a lead-in, the groove, the tune, a break, the whole

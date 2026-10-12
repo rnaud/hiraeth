@@ -22,7 +22,7 @@ test('title screen and unmapped levels do not fetch music', async () => {
 });
 
 test('a disposed world never starts a recording after its download', async () => {
-  const sound = { score: true, levelId: 'desert', _disposed: true, ctx: { decodeAudioData: async () => ({}) } };
+  const sound = { score: true, levelId: 'incal', _disposed: true, ctx: { decodeAudioData: async () => ({}) } };
   assert.equal(await loadSoundtrack(sound, async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(0) })), false);
   assert.equal(sound.recordedTrack, undefined);
 });
@@ -32,12 +32,15 @@ test('registered soundtracks are packaged audio files', () => {
 });
 
 // The named worlds exclude development fixtures such as the Lab and Arena.
-test('every playable world has exactly one packaged soundtrack and source record', async () => {
+test('every playable world but the desert has exactly one packaged soundtrack and source record', async () => {
   const { TITLES } = await import('../src/levels/names.js');
   const { readFileSync } = await import('node:fs');
   const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
-  assert.deepEqual(Object.keys(SOUNDTRACKS).sort(), Object.keys(TITLES).sort());
-  assert.deepEqual(manifest.tracks.map(t => t.level).sort(), Object.keys(TITLES).sort());
+  // (the desert's recording was retired in issue #207: its own procedural score, with its own moments, carries it)
+  const worlds = Object.keys(TITLES).filter((id) => id !== 'desert').sort();
+  assert.equal(SOUNDTRACKS.desert, undefined);
+  assert.deepEqual(Object.keys(SOUNDTRACKS).sort(), worlds);
+  assert.deepEqual(manifest.tracks.map(t => t.level).sort(), worlds);
   for (const track of manifest.tracks) {
     assert.equal(track.file, SOUNDTRACKS[track.level]);
     assert.match(track.source, /^https:\/\/suno\.com\/song\/[a-f0-9-]{36}$/);
@@ -46,7 +49,7 @@ test('every playable world has exactly one packaged soundtrack and source record
 });
 
 test('an unavailable download keeps the procedural score active', async () => {
-  const sound = { score: true, levelId: 'desert', ctx: {} };
+  const sound = { score: true, levelId: 'incal', ctx: {} };
   const warn = console.warn;
   console.warn = () => {};
   try {

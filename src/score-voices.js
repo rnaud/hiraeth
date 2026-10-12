@@ -47,6 +47,132 @@ function partials(V, f, t, list, vol, dest, a = 0.004) {
   return end;
 }
 
+// ------------------------------------------------------------------ the lute (the desert's oud): a plucked string, modelled
+// A Karplus–Strong string (a noise burst shaped like a quill's stroke, round a delay line a period long that loses a
+// little of its top each time round), a course of two strings a few cents apart, through an oud's big, deep body (two
+// low resonances, the top rolled off). Rendered once per register into a short buffer at a low rate, the first time a
+// note needs it (about a millisecond each); after that a note is one buffer source and a gain, cheaper than the
+// oscillators it replaced. Fretless: each note settles into its pitch from a breath under it.
+
+/** The registers rendered (Hz): a note plays the nearest, within a fifth either way (its playbackRate 0.82-1.22). */
+export const LUTE_BASES = [110, 165, 247.5, 371.25, 556.875, 835.3];
+const LUTE_RATE = 24000, LUTE_SECS = 2.4;
+
+/** A biquad's coefficients (RBJ): peaking (gain dB), lowpass, highpass. */
+function rbj(type, f, q, sr, db = 0) {
+  const w = 2 * Math.PI * f / sr, c = Math.cos(w), al = Math.sin(w) / (2 * q), A = Math.pow(10, db / 40);
+  let b0, b1, b2, a0, a1, a2;
+  if (type === 'peak') { b0 = 1 + al * A; b1 = -2 * c; b2 = 1 - al * A; a0 = 1 + al / A; a1 = -2 * c; a2 = 1 - al / A; }
+  else if (type === 'low') { b0 = (1 - c) / 2; b1 = 1 - c; b2 = (1 - c) / 2; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+  else { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = (1 + c) / 2; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+  return [b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0];
+}
+function biquadRun(x, [b0, b1, b2, a1, a2]) {
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let i = 0; i < x.length; i++) { const v = x[i], y = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = v; y2 = y1; y1 = y; x[i] = y; }
+}
+
+/**
+ * One plucked course at f0 (Hz), `secs` long at `sr`: samples in -0.9..0.9. Pure and seeded (the same seed, the same
+ * string), so tests can check its pitch and its decay.
+ */
+export function luteString(sr, f0, secs = LUTE_SECS, seed = 1) {
+  const n = Math.round(sr * secs), out = new Float32Array(n);
+  let s = (seed * 2654435761) >>> 0;
+  const rnd = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 2147483648 - 1; };
+  // the course: two strings a few cents apart, the second a little softer, plucked at a slightly other point
+  for (const [f, k, pick] of [[f0, 1, 0.14], [f0 * 1.0021, 0.75, 0.19]]) {
+    const S = f > 280 ? (0.5 * 280) / f : 0.5;   // (the loss filter's weight: lighter up high, or the top strings would die at once)
+    const P = sr / f, N = Math.max(2, Math.floor(P - S)), frac = P - S - N, C = (1 - frac) / (1 + frac);
+    const line = new Float32Array(N);
+    // the stroke: a noise burst, softened, less the comb of where along the string it is plucked
+    let lp = 0;
+    for (let i = 0; i < N; i++) { lp += 0.55 * (rnd() - lp); line[i] = lp; }
+    const at = Math.max(1, Math.round(N * pick)), burst = Float32Array.from(line);
+    for (let i = at; i < N; i++) line[i] = burst[i] - burst[i - at];
+    let mean = 0;
+    for (let i = 0; i < N; i++) mean += line[i] / N;
+    for (let i = 0; i < N; i++) line[i] -= mean;
+    // round the loop: a two-point average (the string losing its top), a little overall loss for its ring time,
+    // an allpass for the fraction of a sample the period doesn't fill (in tune)
+    const t60 = Math.max(1.2, 3 - 0.0012 * f), rho = Math.pow(10, -3 / (t60 * f));
+    let i = 0, prev = 0, ax = 0, ay = 0;
+    for (let j = 0; j < n; j++) {
+      const y = line[i], avg = rho * ((1 - S) * y + S * prev);
+      prev = y;
+      const ap = C * avg + ax - C * ay;
+      ax = avg; ay = ap;
+      line[i] = ap; out[j] += k * y;
+      i = i + 1 === N ? 0 : i + 1;
+    }
+  }
+  // the body: deep and woody (resonances near 105 and 250 Hz), the top rolled off, nothing under the lowest string
+  biquadRun(out, rbj('peak', 105, 1.3, sr, 5));
+  biquadRun(out, rbj('peak', 250, 1.6, sr, 3));
+  biquadRun(out, rbj('low', 3600, 0.7, sr));
+  biquadRun(out, rbj('high', 70, 0.7, sr));
+  let peak = 0;
+  for (let j = 0; j < n; j++) peak = Math.max(peak, Math.abs(out[j]));
+  const fade = Math.round(sr * 0.25), att = Math.round(sr * 0.0015);
+  for (let j = 0; j < n; j++) out[j] *= (0.9 / (peak || 1)) * Math.min(1, j / att, (n - j) / fade);
+  return out;
+}
+
+/** The lute's buffer nearest f (rendered the first time a note in its register plays): [buffer, its pitch]. */
+function luteBuffer(V, f) {
+  let bi = 0;
+  for (let i = 1; i < LUTE_BASES.length; i++) if (Math.abs(Math.log(f / LUTE_BASES[i])) < Math.abs(Math.log(f / LUTE_BASES[bi]))) bi = i;
+  const bank = (V.lute ??= []);
+  if (!bank[bi]) {
+    const d = luteString(LUTE_RATE, LUTE_BASES[bi], LUTE_SECS, bi + 1), b = V.ctx.createBuffer(1, d.length, LUTE_RATE);
+    b.getChannelData(0).set(d);
+    bank[bi] = b;
+  }
+  return [bank[bi], LUTE_BASES[bi]];
+}
+/** Render the next register the lute hasn't got yet (src/audio.js, a tick at a time: no one long task at the first note). */
+export function prepareLute(V) {
+  const bank = (V.lute ??= []), i = LUTE_BASES.findIndex((_, k) => !bank[k]);
+  if (i >= 0) luteBuffer(V, LUTE_BASES[i]);
+  return i < 0;
+}
+/** One stroke of the lute at t: its gain (for a send). `scoop`: it settles into the pitch from a breath under. */
+function lutePluck(V, f, t, vol, out, scoop = true, from = 0, len = 0, register = f) {
+  const [buf, base] = luteBuffer(V, register), r = f / base, src = V.ctx.createBufferSource();
+  src.buffer = buf;
+  if (scoop) { src.playbackRate.setValueAtTime(r * 0.986, t); src.playbackRate.setTargetAtTime(r, t, 0.03); } else src.playbackRate.value = r;
+  const g = gain(V, out, vol);
+  src.connect(g);
+  src.start(t, from);   // (no duration: it counts in the buffer's time, not ours; the stop and the envelope end it)
+  src.stop(t + (len || buf.duration / r) + 0.05);
+  return g;
+}
+/** Into the score's echo (V.echo: echoBus), if it has one, at `k`. */
+function send(V, g, k) { if (V.echo && k) g.connect(gain(V, V.echo, k)); }
+
+/**
+ * The score's echo, made once (src/audio.js, for a score with `echo`): three repeats `time` s apart, each darker and
+ * softer, left, right, left. Feed-forward (a chain of delays, no loop: the engine bridge renders it the same), a
+ * dozen nodes for the whole score. Returns the input a voice sends into.
+ */
+export function echoBus(V, out, { time = 0.8, taps = [0.4, 0.24, 0.13], tone = 2400 } = {}) {
+  const ctx = V.ctx, input = ctx.createGain();
+  const lowpass = (f) => { const b = ctx.createBiquadFilter(); b.type = 'lowpass'; b.frequency.value = f; b.Q.value = 0.5; return b; };
+  let node = lowpass(tone);
+  input.connect(node);
+  taps.forEach((k, i) => {
+    const d = ctx.createDelay(time + 0.1);
+    d.delayTime.value = time;
+    node.connect(d);
+    const tap = i === 0 ? lowpass(tone * 0.6) : d;   // (the repeats after the first darker still)
+    if (i === 0) d.connect(tap);
+    const g = gain(V, out, k);
+    if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = i % 2 ? 0.55 : -0.55; tap.connect(p).connect(g); } else tap.connect(g);
+    node = tap;
+  });
+  return input;
+}
+
 // ------------------------------------------------------------------ held: drones and pads
 const HELD = {
   // a reed drone, tonic and a whisper of its octave below (the desert's camps)
@@ -107,7 +233,21 @@ const HELD = {
     const g = gain(V, out), lp = filt(V, 'lowpass', 480, 2.2, g), stop = held(g, t, dur, 3, 4, vol * 1.1);
     osc(V, 'sawtooth', f, t, stop, lp); osc(V, 'square', f, t, stop, lp, 6);
   },
+  // the desert's floor: a low sine, its octave soft through a lowpass, and the wind singing a twelfth up (noise rung
+  // in one narrow band, like sand singing on a dune's face), slow to come and slow to go
+  dune(V, f, t, dur, vol, out) {
+    const g = gain(V, out), stop = held(g, t, dur, 5, 6, vol);
+    osc(V, 'sine', f, t, stop, gain(V, g, 0.45));
+    osc(V, 'triangle', f * 2, t, stop, filt(V, 'lowpass', 480, 0.7, gain(V, g, 0.3)), 3);
+    noise(V, t, stop, filt(V, 'bandpass', f * 3, 18, gain(V, g, 14)), 0.6);
+  },
   // ---- pads (a chord's note)
+  // a soft analog pad: two saws a little apart through a lowpass that opens slowly and closes again (the space side)
+  nebula(V, f, t, dur, vol, out) {
+    const g = gain(V, out), lp = filt(V, 'lowpass', 420, 0.8, g), stop = held(g, t, dur, 4, 5, vol * 0.8);
+    osc(V, 'sawtooth', f, t, stop, lp, -7); osc(V, 'sawtooth', f, t, stop, lp, 7);
+    lp.frequency.setValueAtTime(360, t); lp.frequency.linearRampToValueAtTime(1300, t + Math.max(4, dur * 0.55)); lp.frequency.linearRampToValueAtTime(400, stop);
+  },
   warm(V, f, t, dur, vol, out) {
     const g = gain(V, out), lp = filt(V, 'lowpass', 1700, 0.6, g), stop = held(g, t, dur, 2.2, 2.5, vol);
     osc(V, 'triangle', f, t, stop, lp, -6); osc(V, 'triangle', f, t, stop, lp, 6);
@@ -134,6 +274,20 @@ const HELD = {
 
 // ------------------------------------------------------------------ notes: plucked, struck, blown
 const NOTES = {
+  // the desert's oud (the modelled lute above), into the echo; a long note gets a second, softer stroke halfway
+  lute(V, f, t, dur, vol, out) {
+    send(V, lutePluck(V, f, t, vol * 3, out), 0.55);
+    if (dur >= 2.6) send(V, lutePluck(V, f, t + dur * 0.5, vol * 1.1, out, false), 0.55);
+  },
+  // the father's theme in the desert: a sine sung like an ondes Martenot, gliding up into each note, a slow vibrato,
+  // into the echo (the old world's tune on the new world's instrument)
+  ondes(V, f, t, dur, vol, out) {
+    const g = gain(V, out), stop = held(g, t, dur, 0.45, 1.4, vol * 1.2);
+    const o = V.ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f * 0.97, t); o.frequency.setTargetAtTime(f, t, 0.12); o.connect(g); o.start(t); o.stop(stop);
+    if (dur > 1) vibrato(V, o, t + 0.8, stop, 4.2, f * 0.006);
+    osc(V, 'triangle', f * 2, t, stop, gain(V, g, 0.12), 4);
+    send(V, g, 0.45);
+  },
   // the Hangar's lead: a soft saw that slides into each note
   analog(V, f, t, dur, vol, out) {
     const g = gain(V, out), lp = filt(V, 'lowpass', 1300, 1.5, g), stop = held(g, t, dur, 0.03, 0.25, vol * 0.9);
@@ -283,6 +437,9 @@ const HITS = {
   log: (V, t, v, out) => { thump(V, t, 190, 165, 0.35, v * 0.9, out); thump(V, t, 285, 270, 0.2, v * 0.4, out); },
   knock: (V, t, v, out) => { thump(V, t, 430, 380, 0.09, v * 0.6, out); noiseHit(V, t, 0.02, 'bandpass', 1300, 1.5, v * 0.3, out); },
   block: (V, t, v, out) => { thump(V, t, 1150, 1100, 0.06, v * 0.5, out); noiseHit(V, t, 0.012, 'highpass', 3000, 1, v * 0.3, out); },
+  // the desert's slow pulse: a soft, deep beat, felt more than heard, and a grain of sand ticking high
+  heart: (V, t, v, out) => thump(V, t, 66, 44, 1.2, v * 1.1, out),
+  dust: (V, t, v, out) => noiseHit(V, t, 0.035, 'bandpass', 5200, 2.5, v * 0.3, out, 0.004),
 };
 
 /** One percussion hit. */
@@ -319,6 +476,20 @@ const COLOURS = {
     const g = gain(V, out), lp = filt(V, 'lowpass', 260, 1.5, g), stop = held(g, t, 1.4, 0.6, 0.4, vol * 1.6);
     const o = V.ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * 0.93, t + 2); o.connect(lp); o.start(t); o.stop(stop);
     HITS.clank(V, t + 2.1, vol * 1.6, out);
+  },
+  // the desert's shimmer: a cloud of grains (short slices of the lute's ringing, no attack) high over the tonic, its
+  // fifth, octaves and fourth, scattered across the field and into the echo, swelling and thinning over five seconds
+  grains(V, f, t, vol, out) {
+    const ratios = [2, 3, 4, 8 / 3, 1.5], n = 9;
+    for (let k = 0; k < n; k++) {
+      const at = t + k * 0.5 + Math.random() * 0.3, len = 0.2 + Math.random() * 0.3, fr = f * ratios[Math.floor(Math.random() * ratios.length)];
+      const env = gain(V, out), swell = Math.sin(Math.PI * (k + 0.5) / n);
+      env.gain.setValueAtTime(0, at); env.gain.linearRampToValueAtTime(vol * 14 * swell, at + len * 0.5); env.gain.linearRampToValueAtTime(0, at + len);
+      let dest = env;
+      if (V.ctx.createStereoPanner) { const p = V.ctx.createStereoPanner(); p.pan.value = Math.random() * 1.6 - 0.8; p.connect(env); dest = p; }
+      lutePluck(V, fr, at, 1, dest, false, 0.08 + Math.random() * 0.3, len, fr / 2);   // (from a lower string's longer ring)
+      send(V, env, 0.6);
+    }
   },
   // the water clock tips: one small bell
   ding(V, f, t, vol, out) { NOTES.handbell(V, f / 2, t, 1, vol, out); },

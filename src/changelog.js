@@ -34,6 +34,9 @@ export const CHANGELOG = [
     // the camera aboard climbs over the shoulder in the ship's tight spots, the bunk's and the hatch's points further in
     // (src/player.js CLIMB, src/ship/interior.js; docs/systems/movement-and-camera.md "Small rooms"; issue #234)
     'Aboard your ship the camera keeps its distance in the tight spots: in the cockpit, by the hatch and beside your bunk it rises over your shoulder and looks down into the room as you turn, instead of pressing into your back. When you wake you stand a step out from the bunk, with the room and the cockpit ahead of you.',
+    // the desert's music reworked: ambient, an oud over electronics, no frame drum; its recording retired (src/score.js
+    // SCORES.desert, src/score-voices.js lute; docs/systems/audio.md "The desert's music"; issue #207)
+    'The Desert has new music, slower, quieter and more mysterious than before: a lone oud plays a few notes at a time and lets them ring into a long echo, over soft synthesizer pads, a low drone with the wind singing in it and, now and then, a shimmer of high notes. There are no drums any more: walking brings only a slow, soft pulse. The whole score plays as you arrive, indoors and at the big moments, and only its quiet layers in between.',
   ] },
   { v: '1.60', date: '2026-10-12', items: [
     // the temples to explore, round 4: the last three great keys out of the rooms off the last halls, each with a loop

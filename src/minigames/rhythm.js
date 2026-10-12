@@ -8,7 +8,7 @@
 //   judgePress(run, lane, t)               // a press at song time t (s): 'perfect' | 'good' | null (a stray)
 //   sweepMisses(run, t)                    // the notes gone past without a press
 //
-// The song is the desert's (src/score.js SCORES.desert: D hijaz, oud, ney and the tanpura's drone, the
+// The song is the camps' own (D hijaz on the desert's root, as SCORES.desert was before issue #207: oud, ney and the tanpura's drone, the
 // frame drum's dum, tek and ka), at 100 beats a minute, four to a bar: a lead-in, the groove, the ney's
 // tune over it, a break, the whole circle, and the last hits.
 

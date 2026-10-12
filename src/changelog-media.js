@@ -751,6 +751,10 @@ export const CHANGELOG_MEDIA = {
     ] },
   ],
   '1.61': [
+    { match: 'The Desert has new music, slower, quieter and more mysterious', numbers: [{ title: 'The Desert’s score, a 3-minute walk rendered offline (nodes made a minute)', unit: '/min', better: 'lower', device: 'Mac, headless Chrome, muted, an OfflineAudioContext at 48 kHz (the score in full, walking 2 of the 3 minutes)',
+      rows: [{ where: 'oscillators', before: 123, after: 49 }, { where: 'filters', before: 94, after: 38 }, { where: 'buffer sources (the oud’s notes now)', before: 49, after: 45 }],
+      source: 'the issue #207 renders (docs/systems/audio.md, “The desert’s music”), origin/main e7c21f7d against this branch' }],
+      see: 'Step out of the ship onto the sand, or travel to the Desert: the oud’s phrase comes in at once over the drone and the pad. Walk a while for the slow pulse; stand about for three minutes and the score thins to its quiet layers; step into a house and it plays in full again.' },
     { match: 'Aboard your ship the camera keeps its distance in the tight spots', shots: [
       { name: 'ship-tight-bunk', title: 'By the bunk', caption: 'Beside the bunk’s alcove facing into the room, the camera turned toward the alcove: before, 0.41 m behind him, his hair and pack filling the frame; after, a step further out, the camera up over his shoulder looking down at the room, the console and the holo table', from: SHIP234 },
       { name: 'ship-tight-cockpit', title: 'The cockpit', caption: 'Between the cockpit’s seats, the camera turned to the side over a seat: before, 0.77 m behind him, his back filling the frame; after, up over the seat looking down the dash, the galley beyond', from: SHIP234 },

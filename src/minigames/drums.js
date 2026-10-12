@@ -1,6 +1,6 @@
 // The drum circle (docs/systems/minigames.md): a night in the dunes round a fire, the desert's villagers on
 // their benches with their drums, a few dancing, and the traveller with a drum of his own. The circle plays
-// the desert's song (src/score.js's D hijaz, its oud, ney and drone, src/score-voices.js); the traveller's
+// the camps' song (D hijaz on the desert's root, its oud, ney and drone, src/score-voices.js); the traveller's
 // part comes in as ink glyphs rolling along four spokes to the drum's ring, one spoke for each face button
 // (A / × at the bottom, B / ○ right, X / □ left, Y / △ top), and is played on the beat: perfect, good or
 // missed. A run of hits is a combo, worth more, and the circle dances harder the longer it holds.
@@ -18,7 +18,7 @@ import { Flames } from '../story/flames.js';
 import { TITLE_FACE } from '../typefaces.js';
 import { NPC } from '../npc.js';
 import { playVoice, hit as playHit } from '../score-voices.js';
-import { scoreFor, scoreFreq } from '../score.js';
+import { MODES, scoreFor, scoreFreq } from '../score.js';
 import { inputKind } from '../prompt-keys.js';
 import { promptText } from '../native-pad.js';
 import { arenaLevel } from './kit/world.js';
@@ -369,7 +369,8 @@ class Overlay {
 }
 
 // ------------------------------------------------------------------ the music on the audio clock
-const S_DESERT = scoreFor('desert');
+// (the camps' own song stays in D hijaz: the desert's score went to bayati in issue #207, the villagers kept their tune)
+const S_DESERT = { root: scoreFor('desert').root, scale: MODES.hijaz };
 const freqOf = (degree, octave) => scoreFreq(S_DESERT, degree, octave);
 
 /** The circle's song played into its own bus, a little ahead of the clock (rhythm.js eventsBetween says what). */

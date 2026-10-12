@@ -25,24 +25,24 @@ test('stripSiteOnly takes them out of a built dist/ and leaves the rest', async 
     mkdirSync(join(d, 'assets')); mkdirSync(join(d, 'changelog-media/1.0'), { recursive: true }); mkdirSync(join(d, 'music'));
     writeFileSync(join(d, 'assets/IMG_3801-C_OsWSdk.JPG'), Buffer.alloc(1000));
     writeFileSync(join(d, 'changelog-media/1.0/a-after.webp'), Buffer.alloc(500));
-    writeFileSync(join(d, 'assets/index-abc.js'), 'x'); writeFileSync(join(d, 'music/desert.mp3'), 'x');
+    writeFileSync(join(d, 'assets/index-abc.js'), 'x'); writeFileSync(join(d, 'music/title.mp3'), 'x');
     writeFileSync(join(d, 'music/incal.mp3'), Buffer.alloc(300)); writeFileSync(join(d, 'music/manifest.json'), '{}');
     const r = await stripSiteOnly(d);
     assert.equal(r.files, 3); assert.equal(r.bytes, 1800);
     assert.ok(!existsSync(join(d, 'assets/IMG_3801-C_OsWSdk.JPG')) && !existsSync(join(d, 'changelog-media')) && !existsSync(join(d, 'music/incal.mp3')));
-    assert.ok(existsSync(join(d, 'assets/index-abc.js')) && existsSync(join(d, 'music/desert.mp3')) && existsSync(join(d, 'music/manifest.json')));
+    assert.ok(existsSync(join(d, 'assets/index-abc.js')) && existsSync(join(d, 'music/title.mp3')) && existsSync(join(d, 'music/manifest.json')));
   } finally { rmSync(d, { recursive: true, force: true }); }
 });
 
-test('the recorded themes are fetched on demand, all but the desert\'s (the first world, offline from the first session)', () => {
-  assert.deepEqual(ON_DEVICE_THEMES, ['desert.mp3', 'singing-light.mp3', 'title.mp3']);
+test('the recorded world themes are all fetched on demand (the desert, the first world, plays its own score: issue #207)', () => {
+  assert.deepEqual(ON_DEVICE_THEMES, ['singing-light.mp3', 'title.mp3']);
   assert.ok(!fetchedOnDemand('music/singing-light.mp3') && !leftOff('music/singing-light.mp3'), 'the singing light\'s cue rides in the package: the prologue plays it on a first launch');
   assert.ok(!fetchedOnDemand('music/title.mp3') && !leftOff('music/title.mp3'), 'the title\'s music rides in the package: it is the first thing a launch plays');
-  assert.equal(SOUNDTRACKS.desert, 'desert.mp3');
+  assert.equal(SOUNDTRACKS.desert, undefined, 'no recording: the desert\'s procedural score carries it');
   for (const file of new Set(Object.values(SOUNDTRACKS))) {
     const rel = `music/${file}`;
-    assert.equal(fetchedOnDemand(rel), file !== 'desert.mp3', rel);
-    assert.equal(leftOff(rel), file !== 'desert.mp3', rel);
+    assert.equal(fetchedOnDemand(rel), true, rel);
+    assert.equal(leftOff(rel), true, rel);
     assert.ok(!siteOnly(rel), `${rel}: a device does need it (once), it is not the site's alone`);
   }
   for (const f of ['music/manifest.json', 'sfx/step-1.mp3', 'music', 'assets/music-abc.js']) assert.ok(!leftOff(f), f);

@@ -66,8 +66,9 @@ test('a theme is kept under its file name, for good: the database and the key ne
   assert.equal(themeKey('music/incal.mp3'), 'incal.mp3');
   assert.equal(siteThemeUrl('incal.mp3'), `${SHEET_SITE}music/incal.mp3`);
   assert.equal(localThemeUrl('incal.mp3', './'), './music/incal.mp3');
-  assert.deepEqual(ON_DEVICE_THEMES, ['desert.mp3', 'singing-light.mp3', 'title.mp3'], 'the desert\'s theme, the singing light\'s cue (the prologue) and the title\'s music');
-  assert.equal(THEME_FILES.length, 25, 'home and the Lantern share one');
+  assert.deepEqual(ON_DEVICE_THEMES, ['singing-light.mp3', 'title.mp3'], 'the singing light\'s cue (the prologue) and the title\'s music (the desert plays its own score: issue #207)');
+  assert.equal(THEME_FILES.length, 24, 'home and the Lantern share one; the desert has none');
+  assert.ok(!THEME_FILES.includes('desert.mp3'));
 });
 
 test('a world on a device: the bundle\'s theme first, then the kept copy; never the site directly', async () => {
@@ -82,9 +83,9 @@ test('a world on a device: the bundle\'s theme first, then the kept copy; never 
   assert.deepEqual(await order({}, memStore({ 'incal.mp3': 'K' })), [['stored', 'K', false]]);
   assert.deepEqual(await order({}, memStore()), [], 'not yet: the download brings it');
   assert.deepEqual(await order({}, memStore({ 'incal.mp3': 'K' }), { html: true }), [['stored', 'K', false]], 'a page for a missing file is not the file');
-  const desert = [];
-  for await (const s of themeSources('desert.mp3', { here: DECK, store: memStore(), fetcher: net({ [local('desert.mp3')]: 'D' }).fetcher })) desert.push([s.from, s.keep]);
-  assert.deepEqual(desert, [['bundle', false]], 'the desert\'s is in every bundle: never kept twice');
+  const title = [];
+  for await (const s of themeSources('title.mp3', { here: DECK, store: memStore(), fetcher: net({ [local('title.mp3')]: 'T' }).fetcher })) title.push([s.from, s.keep]);
+  assert.deepEqual(title, [['bundle', false]], 'the title\'s is in every bundle: never kept twice');
 });
 
 test('on the site and the dev server: only the game\'s own files, never the store, the site or a download', async () => {
@@ -101,18 +102,18 @@ test('on the site and the dev server: only the game\'s own files, never the stor
 
 // ---- the background download
 
-test('the first open downloads every theme but the desert\'s, one at a time, this world\'s first, and keeps them', async () => {
+test('the first open downloads every theme, one at a time, this world\'s first, and keeps them', async () => {
   const files = Object.fromEntries(THEME_FILES.map((f) => [site(f), `site ${f}`]));
   const { fetcher, calls } = net(files);
   const store = memStore(), seen = [];
   const d = quick({ here: ANDROID, store, fetcher, onProgress: (p) => seen.push(p.have) });
   d.prefer('incal.mp3');
-  assert.equal(await themeProgressText(THEME_FILES, { here: ANDROID, store }), 'Music: 1 of 25 downloaded');
+  assert.equal(await themeProgressText(THEME_FILES, { here: ANDROID, store }), 'Music: 0 of 24 downloaded');
   await d.start();
   assert.equal(sites(calls)[0], site('incal.mp3'), 'the world being played comes first');
-  assert.equal(sites(calls).length, 24, 'each once, not the desert\'s');
-  assert.deepEqual([...store.m.keys()].sort(), THEME_FILES.filter((f) => f !== 'desert.mp3').sort());
-  assert.deepEqual(seen, Array.from({ length: 25 }, (_, i) => i + 1), 'progress, from the desert\'s alone to all');
+  assert.equal(sites(calls).length, 24, 'each once');
+  assert.deepEqual([...store.m.keys()].sort(), [...THEME_FILES].sort());
+  assert.deepEqual(seen, Array.from({ length: 25 }, (_, i) => i), 'progress, from none to all');
   assert.ok(d.state.done);
   assert.equal(await themeProgressText(THEME_FILES, { here: ANDROID, store }), '', 'all there: the settings say nothing');
   await d.start();
@@ -217,14 +218,14 @@ test('an install from before (every theme in its bundle) keeps them from there, 
   assert.equal(sound.trackFrom, 'bundle');
   await quick({ here: ANDROID, store, fetcher: old.fetcher }).start();
   assert.deepEqual(sites(old.calls), [], 'from the bundle, not the site');
-  assert.deepEqual([...store.m.keys()].sort(), THEME_FILES.filter((f) => f !== 'desert.mp3').sort());
+  assert.deepEqual([...store.m.keys()].sort(), [...THEME_FILES].sort());
 
-  // the next update: only the desert's in the bundle, the site out of reach
-  const next = net({ [local('desert.mp3')]: 'desert' }, { offline: true });
-  for (const levelId of ['edena', 'incal', 'home', 'lantern', 'mangrove', 'desert']) {
+  // the next update: no world's theme in the bundle, the site out of reach
+  const next = net({}, { offline: true });
+  for (const levelId of ['edena', 'incal', 'home', 'lantern', 'mangrove']) {
     const s = soundFor(levelId);
     assert.equal(await loadSoundtrack(s, next.fetcher, { here: ANDROID, store, downloader: quick({ here: ANDROID, store, fetcher: next.fetcher }) }), true, levelId);
-    assert.equal(s.trackFrom, levelId === 'desert' ? 'bundle' : 'stored', levelId);
+    assert.equal(s.trackFrom, 'stored', levelId);
   }
   await quick({ here: ANDROID, store, fetcher: next.fetcher }).start();
   assert.deepEqual(sites(next.calls), [], 'nothing downloaded again');

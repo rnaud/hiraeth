@@ -290,7 +290,7 @@ Before this the APK carried the sheets (268 MB at v1.0, about 39 MB of it the sh
 
 ## The music, downloaded once (October 2026)
 
-The recorded themes but the desert's (99 MB of `music/*.mp3`: `onDemand` in `scripts/web-update.mjs`)
+The recorded world themes (all of them since the desert's own score replaced its recording, issue #207: 96 MB of `music/*.mp3`: `onDemand` in `scripts/web-update.mjs`)
 are also left out of the APK, the Deck package and the over-the-air zip (`leftOff()` in
 `scripts/site-only.mjs` is the site's own files plus these). A device needs them, though: from the first
 open the game downloads every theme it hasn't got from the site, in the background, and keeps it in

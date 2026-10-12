@@ -27,6 +27,7 @@ export const MODES = {
   mixolydian: [0, 2, 4, 5, 7, 9, 10],
   aeolian: [0, 2, 3, 5, 7, 8, 10],
   hijaz: [0, 1, 4, 5, 7, 8, 10],              // phrygian dominant: the augmented second, 1 -> 4
+  bayati: [0, 1.5, 3, 5, 7, 8, 10],           // maqam bayati: its second a quarter tone flat, between E♭ and E (the desert)
   hungarianMinor: [0, 2, 3, 6, 7, 8, 11],     // two augmented seconds: the machine's mode
   lydianDominant: [0, 2, 4, 6, 7, 9, 10],     // bright and a little alien: the market
   wholeTone: [0, 2, 4, 6, 8, 10],             // no home to fall to: the Hangar
@@ -71,17 +72,23 @@ const LEVEL = { drone: 0.05, pad: 0.05, bass: 0.085, pluck: 0.06, perc: 0.11, le
  * evened out between the worlds: scripts/render-score.mjs prints each one's level).
  */
 export const SCORES = {
-  // Qanat and its dark tree, the camps and the procession: ney and oud over a reed drone,
-  // the frame drum when you walk, the city's slow bell far off. D hijaz.
+  // Qanat and its dark tree, the camps and the procession, under a sky the ship came down from (issue #207: "more
+  // ambient, mysterious rather than aggressive; old-school oud and modern electronic music, since it's still a world
+  // of space exploration"). A modelled oud, sparse, ringing into a slow echo, over a soft analog pad and a low drone
+  // with the wind singing in it; a granular shimmer of the oud's ringing now and then; the father's theme on an
+  // ondes-like sine. No frame drum: walking brings a slow soft pulse at most. D bayati (its quarter-flat second used
+  // sparingly, in the motif), slow. With no recording of its own, its own moments (`moments`: the full score on
+  // arriving, indoors and at a moment, its light layers between: src/music-moments.js).
   desert: {
-    title: 'The Tree That Drinks', root: 146.83, mode: 'hijaz', tempo: 60, meter: 8, bars: 2, chordBars: 1,
-    prog: [0, 1, 0, 3], drone: [[0, -1], [4, -1]],
-    pal: { drone: 'tanpura', pad: 'warm', bass: 'sine', pluck: 'oud', lead: 'ney', father: 'duduk', echo: 'oud' },
-    perc: { sub: 2, pattern: 'D..T..T.D..T.tt.', hits: { D: 'dum', T: 'tek', t: 'ka' } },
-    arp: [0, 1, 2, 4, 7], density: 0.32,
-    color: { every: 32, at: 6, kind: 'toll', degree: 0, octave: -1, vol: 0.6 },
-    // "the tree drinks": up out of the ground through the augmented second, and back down like water
-    motif: [[0, 2], [1, 1], [2, 1], [4, 3], [3, 1], [2, 1], [1, 1], [0, 4]],
+    title: 'The Tree That Drinks', root: 146.83, mode: 'bayati', level: 1.25, tempo: 56, meter: 8, bars: 2, chordBars: 2,
+    prog: [0, 5, 0, 3], drone: [[0, -1], [4, -1]],
+    pal: { drone: 'dune', pad: 'nebula', bass: 'sine', pluck: 'lute', lead: 'lute', father: 'ondes', echo: 'lute' },
+    perc: { sub: 2, pattern: 'H.......d...h.d.', hits: { H: 'heart', h: 'heart', d: 'dust' } },
+    arp: [0, 2, 4, 7], density: 0.2,
+    color: { every: 32, at: 6, kind: 'grains', degree: 0, octave: 1, vol: 0.8 },
+    echo: { beats: 0.75 }, moments: true,
+    // "the tree drinks": down from the fifth to the ground, sighing through the quarter-flat second, a breath, home
+    motif: [[4, 3], [3, 1], [2, 0.5], [1, 1.5], [0, 3], [null, 1], [-2, 0.5], [0, 1.5]],
   },
   // A city down a pit, its light going out: a muted horn over vibes and a walking pizzicato
   // bass, brushes when you walk; the Lodestar's shimmer overhead. F lydian: the raised fourth looks up.
