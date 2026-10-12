@@ -3,9 +3,12 @@
 // captain breaking off, the controls; the game's definition and its shapes.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FLY, BOSS, SCRIPT, KINDS, CHIMES_OF, CHECKPOINTS, MERCY, BELTS, railX, railY, railPoint, courseRocks, seedOf, newRun, runStep, botInput, pirateInput, findLock, aimAt } from '../src/minigames/pirates-rules.js';
-import pirates, { pirateShapes, rocksFor, LOOK_SIZE } from '../src/minigames/pirates.js';
+import * as THREE from 'three';
+import { FLY, BOSS, SCRIPT, KINDS, POINTS, CHIME_RATE, chimesFor, CHECKPOINTS, MERCY, BELTS, railX, railY, railPoint, courseRocks, seedOf, newRun, runStep, botInput, pirateInput, findLock, aimAt, aimTarget } from '../src/minigames/pirates-rules.js';
+import pirates, { pirateShapes, rocksFor, LOOK_SIZE, buildGunship, GUNSHIP_COLORS, tallyHtml, pirateControls, BEATEN, HURT } from '../src/minigames/pirates.js';
 import { checkGame } from '../src/minigames/index.js';
+import { optionValue, optionOffered } from '../src/minigames/kit/flow.js';
+import { WorldLabels } from '../src/minigames/kit/labels.js';
 
 const play = (S, input, dt, until = 400) => { const ev = []; while (!S.done && S.t < until) ev.push(...runStep(S, typeof input === 'function' ? input(S) : input, dt)); return ev; };
 
@@ -42,10 +45,12 @@ test('the pilot wins at 120, 60, 30 and 20 fps, in about a minute and a half (30
     assert.equal(S.done, 'won', `${fps} fps: ${S.done} at ${S.t.toFixed(1)} s`);
     assert.ok(S.t > 80 && S.t < 0.75 * 138.5, `${fps} fps: ${S.t.toFixed(1)} s (the pilot took 138.5 s on average before)`);
     assert.ok(S.ship.hull > 0);
-    assert.ok(ev.some((e) => e.kind === 'win' && e.sunk), 'the galleon sunk');
+    assert.ok(ev.some((e) => e.kind === 'win' && e.sunk), 'the gunship downed');
     assert.ok(ev.filter((e) => e.kind === 'part').length === 3, 'two guns, then the bridge');
     assert.ok(S.kills > 32, `${S.kills} pirates downed`);
-    assert.ok(S.chimes > 60 && ev.find((e) => e.kind === 'win').chimes === S.chimes, `${S.chimes} chimes won`);
+    const win = ev.find((e) => e.kind === 'win');
+    assert.ok(win.chimes === chimesFor(S.score) && win.score === S.score, 'the win carries the points and the chimes they make');
+    assert.ok(win.chimes > 70 && win.chimes < 90, `${win.chimes} chimes won (79 a run when each ship had its own, v1.45)`);
     for (const id of ['start', 'hauler', 'captain', 'open']) assert.ok(ev.some((e) => e.kind === 'say' && e.id === id), `the line ${id}`);
   }
 });
@@ -142,7 +147,7 @@ test('a rock in the way knocks the ship off it and costs hull, once', () => {
   assert.ok(S.ship.u < 0, 'pushed away from its middle');
 });
 
-test('the captain: the bridge armoured until both guns are down; left alone, the galleon breaks off and the run still ends', () => {
+test('the captain: the bridge armoured until both guns are down; left alone, the gunship breaks off and the run still ends', () => {
   const S = empty();
   S.script = [{ t: 0, boss: true }];
   runStep(S, {}, 1 / 60);
@@ -211,18 +216,161 @@ test('the feel, as Star Fox: weight on the stick, a soft edge, a hard bank, the 
   assert.ok(FLY.roll.dur <= 0.5 && FLY.roll.cool <= 0.6);
 });
 
-test('shot down, the pirates’ ships are worth chimes; mines and rams are not (issue #88)', () => {
-  const S = empty();
-  const add = (kind, ds) => { const e = { id: S.nextId++, kind, path: 'parked', hp: 1, r: KINDS[kind].r, ds, u: S.ship.u, v: S.ship.v - 0.1, age: 0, flash: 0, fireT: 99 }; S.foes.push(e); return e; };
-  add('raider', 40);
-  const ev = [];
-  for (let t = 0; t < 0.6; t += 1 / 60) ev.push(...runStep(S, { auto: true }, 1 / 60));
-  const kill = ev.find((e) => e.kind === 'kill');
-  assert.equal(kill?.chimes, CHIMES_OF.raider);
-  assert.equal(S.chimes, CHIMES_OF.raider);
-  assert.equal(CHIMES_OF.mine, undefined, 'a mine is not a ship');
-  for (const k of ['skiff', 'raider', 'hauler', 'gunL', 'gunR', 'core']) assert.ok(CHIMES_OF[k] > 0, k);
+// ------------------------------------------------------------------ issue #206: points then chimes, the hit, the reticle, the controls, the gunship
+/** The arena, built once (as the page does), and a session on it with a recording host. */
+let arena = null;
+function session({ flags = {}, to = null, sound = null } = {}) {
+  if (!arena) { const scene = new THREE.Scene(); const gen = pirates.build(scene); let r; while (!(r = gen.next()).done); arena = { scene, level: r.value }; }
+  const { scene, level } = arena;
+  level.pirates.to = to; level.pirates.resume = null;
+  const calls = [], kept = { ...flags };
+  const state = { data: { flags: kept }, flag: (k) => kept[k], set: (k, v) => { kept[k] = v; } };
+  const ctx = {
+    camera: new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 5000), level, scene, player: { object: {} }, sound, state, settings: {},
+    sfx: { hurt: () => calls.push('sfx.hurt'), whoosh() {}, checkpoint() {} },
+    setLives: (n) => calls.push(`lives ${n}`), setScore() {}, setFov() {}, flash: (t) => calls.push(`flash ${t}`), kick: () => calls.push('kick'),
+    finish: (r) => calls.push({ finish: r }), speed() {}, option: (id) => optionValue(pirates, state, id),
+  };
+  const sess = pirates.start(ctx);
+  const step = (n = 1, inp = {}) => { for (let i = 0; i < n; i++) sess.update(1 / 60, inp, { live: true, phase: 'play', raw: {} }); };
+  return { sess, S: sess.state, calls, kept, step };
+}
+/** A sound that records what it plays (none is heard: the tests are mute). */
+const recordingSound = () => { const played = []; return { played, ctx: { currentTime: 0 }, muted: false, fx: {}, sweep: (...a) => played.push(['sweep', ...a]), burst: (...a) => played.push(['burst', ...a]), pluck: (...a) => played.push(['pluck', ...a]) }; };
+
+test('points through the run, no chimes popped; won on the way to a world, a tally turns them into chimes at 20 points a chime (issue #206)', () => {
+  assert.equal(CHIME_RATE, 20);
+  assert.equal(chimesFor(1650), 82, 'a typical run (the pilot\'s 1,580 to 1,670): about 82, the 79 it was');
+  assert.equal(chimesFor(19), 0);
+  assert.equal(chimesFor(-5), 0);
+  // the rules: kills and parts carry points only
+  const R = newRun({ seed: seedOf('incal') });
+  const rev = play(R, botInput, 1 / 60);
+  for (const e of rev.filter((x) => x.kind === 'kill' || x.kind === 'part')) assert.equal(e.chimes, undefined, `a ${e.kind} carries no chimes`);
+  // the page: the words that pop over what is shot down are points, never chimes
+  const words = [], pop = WorldLabels.prototype.pop;
+  WorldLabels.prototype.pop = function (_at, text) { words.push(text); };
+  globalThis.__piratesBot = true;
+  try {
+    const { S, calls, kept, step } = session({ to: 'incal' });
+    for (let i = 0; i < 8000 && !S.done; i++) step();
+    assert.equal(S.done, 'won');
+    assert.ok(words.length > 30, `${words.length} pops`);
+    assert.ok(words.every((w) => /^\+\d+$/.test(w)), `only points: ${[...new Set(words)].join(' ')}`);
+    assert.ok(!words.some((w) => /chime/i.test(w)));
+    const fin = calls.find((c) => c.finish)?.finish;
+    assert.equal(fin.score, S.score);
+    assert.equal(fin.chimes, chimesFor(S.score), 'the host banks the tally\'s chimes');
+    assert.match(fin.html, new RegExp(`data-points="${S.score}" data-chimes="${chimesFor(S.score)}"`));
+    assert.match(fin.html, /20 points make a chime/);
+    assert.ok(!fin.lines.some((l) => /chime/i.test(l)), 'the lines are the run\'s; the tally says the chimes');
+    assert.equal(kept[BEATEN], true, 'beaten: the start card offers the pitch from now on');
+  } finally { WorldLabels.prototype.pop = pop; delete globalThis.__piratesBot; }
+  assert.match(tallyHtml(1650), /1,650/);
+  // the Arcade's game (no destination) only scores
+  globalThis.__piratesBot = true;
+  try {
+    const { S, calls, step } = session();
+    for (let i = 0; i < 8000 && !S.done; i++) step();
+    const fin = calls.find((c) => c.finish)?.finish;
+    assert.equal(fin.chimes, 0); assert.equal(fin.html, null);
+  } finally { delete globalThis.__piratesBot; }
 });
+
+test('a pip of hull lost is unmistakable: the edge flares, the view shakes, the pips show under the ship, the corner\'s pops, a crunch (issue #206)', () => {
+  const sound = recordingSound();
+  const { sess, S, calls, step } = session({ sound });
+  S.script = []; S.rocks = [];
+  S.shots.push({ ds: 5, u: S.ship.u, v: S.ship.v, vds: -50, vu: 0, vv: 0, life: 2, r: 0.9 });
+  const before = sound.played.length;
+  for (let i = 0; i < 12 && S.ship.hull === FLY.hull; i++) step();
+  assert.equal(S.ship.hull, FLY.hull - 1);
+  const F = sess.feedback;
+  assert.ok(F.redT > 0.5 * HURT.flash, 'the edge flash');
+  assert.ok(F.shake > 0, 'the shake');
+  assert.ok(F.pipT > 0 && F.lostI === S.ship.hull && F.lostT > 0, 'the pips under the ship, the lost one bursting');
+  assert.ok(calls.includes('sfx.hurt') && calls.includes('kick') && calls.includes(`lives ${FLY.hull - 1}`));
+  assert.ok(sound.played.slice(before).some(([k]) => k === 'burst'), 'a crunch over the bolts');
+  assert.ok(S.ship.iframe > 0, 'and it blinks, untouchable a moment');
+  // it fades: the flash and the shake gone in a second, the pips soon after
+  step(70);
+  assert.equal(F.redT, 0); assert.equal(F.shake, 0);
+  step(80);
+  assert.equal(F.pipT, 0);
+});
+
+test('the reticle: one line of fire; it tightens on what that line runs through and marks a hit (issue #206)', () => {
+  const S = empty();
+  const add = (u, v, ds, hp = 6) => { const e = { id: S.nextId++, kind: 'raider', path: 'parked', hp, r: KINDS.raider.r, ds, u, v, age: 0, flash: 0, fireT: 99 }; S.foes.push(e); return e; };
+  const a = aimAt(S.ship, 80);
+  const on = add(a.u, a.v, 80);
+  assert.equal(aimTarget(S)?.foe, on);
+  on.u += 12;
+  assert.equal(aimTarget(S), null, 'off the line: nothing');
+  // a bolt that tells without a kill is a hit
+  on.u -= 12; on.hp = 6;
+  const ev = [];
+  for (let t = 0; t < 0.7; t += 1 / 60) ev.push(...runStep(S, { auto: true }, 1 / 60));
+  assert.ok(ev.some((e) => e.kind === 'hit' && e.by === 'bolt' && e.foe === 'raider'));
+  // the page: the ring tightens on it and the mark flashes
+  const { sess, S: T, step } = session();
+  T.script = []; T.rocks = [];
+  const b = aimAt(T.ship, 60);
+  T.foes.push({ id: 99, kind: 'raider', path: 'parked', hp: 40, r: KINDS.raider.r, ds: 60, u: b.u, v: b.v, age: 0, flash: 0, fireT: 99 });
+  step(20);
+  assert.ok(sess.feedback.aimK > 0.9, `tightened ${sess.feedback.aimK.toFixed(2)}`);
+  T.bolts.push({ ds: 55, u: b.u, v: b.v, vu: 0, vv: 0, vds: 170, life: 1, charged: false });
+  step(2);
+  assert.ok(sess.feedback.hitT > 0, 'the hit mark');
+});
+
+test('the controls: push up to dive by default; the switch is not offered at first, only once the pirates are beaten (issue #206)', () => {
+  const pitch = pirates.options.find((o) => o.id === 'pitch');
+  const fresh = { flag: (k) => ({ 'minigame.pirates.opt.pitch': 'climb' })[k] };
+  assert.equal(optionOffered(pitch, fresh), false, 'not on the first start card');
+  assert.equal(optionValue(pirates, fresh, 'pitch'), 'dive', 'a climb kept from before is not used until it is offered');
+  const beaten = { flag: (k) => ({ 'minigame.pirates.opt.pitch': 'climb', [BEATEN]: true })[k] };
+  assert.equal(optionOffered(pitch, beaten), true);
+  assert.equal(optionValue(pirates, beaten, 'pitch'), 'climb');
+  // the card says it, in Xbox / PlayStation form (src/native-pad.js rewrites them on Android)
+  const C = pirateControls('dive');
+  assert.match(C.pad[0][1], /push up to dive, pull back to climb/);
+  assert.match(C.keys[0][1], /W or ↑ to dive/);
+  assert.match(C.touch[0][1], /push up to dive/);
+  assert.match(pirateControls('climb').pad[0][1], /push up to climb/);
+  assert.match(pirates.controls.pad[0][1], /push up to dive/, 'a fresh session lists the default');
+  for (const [k] of C.pad) assert.doesNotMatch(k, /\b(Space|Shift|Esc|Enter|Up)\b/);
+  // a session on a fresh save flies push-up-to-dive whatever was kept
+  const { S, step } = session({ flags: { 'minigame.pirates.opt.pitch': 'climb' } });
+  S.script = []; S.rocks = [];
+  const v0 = S.ship.v;
+  step(30, { y: 1 });
+  assert.ok(S.ship.v < v0 - 2, 'pushed up, it dives');
+});
+
+test('the captain\'s boss is a gunship built for space, not a sailing ship: hull, engines, turrets, the bridge, pirate markings, few draw calls (issue #206)', () => {
+  const scene = new THREE.Scene();
+  const B = buildGunship(scene);
+  const meshes = [];
+  B.group.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  const names = meshes.map((m) => m.name);
+  for (const n of ['hull', 'armour', 'iron', 'engines', 'markings', 'stripes', 'gunL', 'gunR', 'core', 'shutter']) assert.ok(names.includes(n), `it has its ${n}`);
+  assert.ok(!names.some((n) => /sail|mast/.test(n)), 'no masts, no sails');
+  assert.ok(meshes.length <= 14, `${meshes.length} draw calls`);
+  for (const m of meshes) assert.ok([...m.geometry.attributes.position.array].every(Number.isFinite), `${m.name}: a sound shape`);
+  // the turrets where the rules hit them; the engines' nozzles astern, their intakes facing the ship
+  for (const p of BOSS.parts.filter((q) => q.id !== 'core')) {
+    const pod = B.guns[p.id].pod;
+    assert.ok(Math.abs(pod.position.x * B.group.scale.x - p.u) < 1e-6 && Math.abs(pod.position.y * B.group.scale.y - p.v) < 1e-6, `${p.id} at its place`);
+  }
+  const eng = meshes.find((m) => m.name === 'engines');
+  eng.geometry.computeBoundingBox();
+  assert.ok(eng.geometry.boundingBox.min.z < -10 && eng.geometry.boundingBox.max.z > 0, 'nozzles astern, intakes glowing toward the ship');
+  assert.ok(Object.values(GUNSHIP_COLORS).every((c) => /^#[0-9a-f]{6}$/.test(c)));
+  assert.equal(B.shutters.length, 2);
+  assert.match(pirates.rules, /gunship/);
+});
+
 
 test('lost, the run starts again from the last checkpoint, kinder each time; from the third loss the hull holds: every fight can be won', () => {
   assert.deepEqual(CHECKPOINTS.slice(0, 1), [0]);
@@ -232,19 +380,20 @@ test('lost, the run starts again from the last checkpoint, kinder each time; fro
   const S = newRun({ seed: seedOf('incal') });
   play(S, botInput, 1 / 60, CHECKPOINTS[1] + 1);
   assert.equal(S.checkpoint, CHECKPOINTS[1]);
-  const kept = S.chimes;
+  const kept = S.score;
   play(S, {}, 1 / 60);
   assert.equal(S.done, 'dead');
-  assert.equal(S.chimesAt, kept, 'the chimes won before it are kept');
-  // again from there: the waves before it gone by, the hull a pip stronger, the pirates firing less
-  const T = newRun({ seed: seedOf('incal'), from: S.checkpoint, fails: 1, chimes: S.chimesAt });
+  assert.equal(S.scoreAt, kept, 'the points won before it are kept');
+  // again from there: the waves before it gone by, the hull a pip stronger, the pirates firing less, the points kept
+  const T = newRun({ seed: seedOf('incal'), from: S.checkpoint, fails: 1, score: S.scoreAt });
+  assert.equal(T.score, kept);
   assert.equal(T.t, CHECKPOINTS[1]);
   assert.ok(T.script.slice(0, T.next).every((e) => e.t <= CHECKPOINTS[1]) && T.script.slice(T.next).every((e) => e.t > CHECKPOINTS[1]));
   assert.equal(T.ship.hull, FLY.hull + MERCY.hull);
   assert.ok(T.fireK < newRun({ seed: seedOf('incal') }).fireK);
   const ev = play(T, botInput, 1 / 60);
   assert.equal(T.done, 'won');
-  assert.ok(ev.some((e) => e.kind === 'win') && T.chimes > kept);
+  assert.ok(ev.some((e) => e.kind === 'win') && T.score > kept);
   // lost three times: doing nothing at all, the ship still comes through (the captain breaks off in the end)
   const U = newRun({ seed: seedOf('incal'), fails: MERCY.safe });
   play(U, {}, 1 / 60);

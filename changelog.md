@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.59 — 2026-10-12
+
+- The pirates’ captain flies a gunship built for space instead of a sailing ship: gull wings with a brass turret on each tip, glowing engines, a skull and crossbones on its prow, and its bridge behind armour shutters.
+- The first time you meet the chime pirates, pushing the stick up dives, as in a plane, and the start card no longer offers to swap it. Once you have beaten them, the card lets you choose.
+- The chime pirates’ two aiming boxes are one sight: a ring with a small diamond further down the same line your shots fly. The ring tightens and turns coral when a pirate is in line, and flashes a mark when your shots hit.
+- Losing a pip of hull to the chime pirates is hard to miss: the screen’s edges flare red, the view shakes, your ship sparks and blinks, a row of pips shows under it with the lost one bursting, the pip in the corner pops, and you hear the crunch.
+- The chime pirates count points now: each pirate you shoot down adds to your score, and when you win on the way to a new world the results turn your points into chimes, one chime for every 20 points, about as many as before.
+
 ## v1.58 — 2026-10-12
 
 - For playtesting, the Saves screen has a debug section: start at any world of the route in a new save, with everything in the worlds before it done and held, their quests, items, gadgets, keepsakes, trials’ rewards, fragments and Orrin’s upgrades. It goes into its own debug save, or into one of your saves if you choose one (asked first if it holds a save).

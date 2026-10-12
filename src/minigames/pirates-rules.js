@@ -9,8 +9,8 @@
 //
 //   const S = newRun({ seed, heat, gentle });
 //   const ev = runStep(S, input, dt);        // input: { x, y, fire, fireHeld, auto, roll } (pirateInput below)
-//   ev: [{ kind: 'shot' | 'charged' | 'kill' | 'hurt' | 'deflect' | 'blast' | 'say' | 'repair' | 'part' | 'lock' | 'roll' | 'win' | 'dead', … }]
-//   newRun({ from, fails, chimes }): a lost run again from a checkpoint (CHECKPOINTS), kinder each time (MERCY)
+//   ev: [{ kind: 'shot' | 'charged' | 'hit' | 'kill' | 'hurt' | 'deflect' | 'blast' | 'say' | 'repair' | 'part' | 'lock' | 'roll' | 'win' | 'dead', … }]
+//   newRun({ from, fails, score }): a lost run again from a checkpoint (CHECKPOINTS), kinder each time (MERCY)
 //
 // SCRIPT is the run, by the seconds since GO: the waves, the repair rings, the lines, the captain.
 
@@ -38,11 +38,14 @@ export const FLY = {
 };
 
 /**
- * Chimes won for what is shot down (issue #88: "make me win chimes when I destroy enemy ships"): counted through the run
- * (S.chimes), banked into the wallet when the fight is won on the way to a world (main.js onResult), kept across a
- * retry from a checkpoint. Mines and rocks are not ships; a ship rammed is not shot down.
+ * Points, then chimes (issue #206: "don't show '+3 chimes', just have points and at the end they convert into
+ * chimes"): the run counts only points (POINTS, S.score); won on the way to a world, the results tally them into
+ * chimes at one chime for every CHIME_RATE points (chimesFor), and main.js onResult banks them. 20 keeps the economy
+ * where the chimes per ship left it (v1.45, issue #88): the pilot's runs score about 1,650, 82 chimes, against 79.
  */
-export const CHIMES_OF = { skiff: 1, raider: 3, hauler: 5, gunL: 6, gunR: 6, core: 15 };
+export const CHIME_RATE = 20;
+/** The chimes a run's points are worth (whole chimes; what is left over is not). */
+export const chimesFor = (score, rate = CHIME_RATE) => Math.max(0, Math.floor((score || 0) / rate));
 
 /**
  * After each lost run (from the last checkpoint), the pirates fire less (`fire`, down to `least` of it) and the hull
@@ -102,7 +105,7 @@ export const KINDS = {
   mine: { hp: 1, r: 2.0, fire: 0 },
   boss: { hp: 0, r: 0, fire: 0 },   // (its parts are hit, not it: BOSS)
 };
-/** The captain's galleon: where its parts sit (u, v from its middle), their health and size; how long it stays. */
+/** The captain's gunship (a pirate craft built for space since v1.59, issue #206; a galleon under solar sails before): where its parts sit (u, v from its middle: the turrets on its wingtips, the bridge on its spine), their health and size; how long it stays. */
 export const BOSS = {
   at: 72, enter: 5,          // m ahead it holds, s to come in
   stay: 52,                  // s it fights before it breaks off (the run then ends all the same, without its bounty; 75 until v1.45)
@@ -147,7 +150,7 @@ export function courseRocks(seed = 7, belts = BELTS, F = FLY) {
  * A new run. `seed`: the rocks' layout (seedOf(destination)); `heat` 0..: how many ambushes came before (their fire a
  * little quicker each time); `gentle`: the Enemies setting's gentle (slower shots, half as many).
  */
-export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0, chimes = 0 } = {}, F = FLY) {
+export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0, score = 0 } = {}, F = FLY) {
   // (a lost run, again: from the checkpoint at `from` s, the waves before it gone by; `fails` lost runs so far: MERCY)
   const mercy = Math.min(fails, MERCY.safe);
   const hull = F.hull + Math.min(MERCY.most, mercy * MERCY.hull);
@@ -159,16 +162,16 @@ export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0
     rocks: courseRocks(seed), rockI: 0,
     foes: [], shots: [], bolts: [], rings: [],
     script, next: next < 0 ? script.length : next, nextId: 1,
-    boss: null, score: 0, kills: 0, hits: 0, fired: 0, done: null,
-    from, checkpoint: from, chimes, chimesAt: chimes, safe: fails >= MERCY.safe,
+    boss: null, score, kills: 0, hits: 0, fired: 0, done: null,
+    from, checkpoint: from, scoreAt: score, safe: fails >= MERCY.safe,   // (scoreAt: the points at the last checkpoint, kept for a retry)
     fireK: (gentle ? 0.5 : 1) * (1 + 0.06 * Math.min(heat, 10)) * Math.max(MERCY.least, 1 - MERCY.fire * mercy), shotK: gentle ? 0.75 : 1,
   };
 }
 
 /**
  * The input the rules read: the game's merged controls through kit/input.js readInput, and the raw buttons.
- * `climb`: the stick forward climbs (the start card's choice); by default it dives, as a plane's, as in Star Fox 64 and
- * as the jets fly.
+ * `climb`: the stick forward climbs (the start card's choice, offered only once the pirates have been beaten: issue
+ * #206); by default, and always the first time, pushing up dives, as a plane's, as in Star Fox 64 and as the jets fly.
  */
 export function pirateInput(inp = {}, raw = {}, { climb = false } = {}) {
   const fire = !!(inp.jump || raw.TouchFire);
@@ -228,7 +231,7 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
     if (e.ring) S.rings.push({ s: S.s + 230, u: e.u ?? 0, v: e.v ?? 0, r: 3.4, taken: false });
     if (e.say) ev.push({ kind: 'say', id: e.say });
     if (e.boss) spawnBoss(S);
-    if (e.checkpoint) { S.checkpoint = e.t; S.chimesAt = S.chimes; ev.push({ kind: 'checkpoint', n: e.checkpoint }); }
+    if (e.checkpoint) { S.checkpoint = e.t; S.scoreAt = S.score; ev.push({ kind: 'checkpoint', n: e.checkpoint }); }
   }
 
   // ---------------------------------------------------------------- the ship
@@ -322,7 +325,7 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
 
   // the end: the hull gone, or the captain sunk (or gone off) with the field clear
   if (P.hull <= 0) { S.done = 'dead'; ev.push({ kind: 'dead' }); }
-  else if (S.boss && (S.boss.dying > 1.6 || S.boss.fled)) { S.done = 'won'; S.score += P.hull * POINTS.hull; ev.push({ kind: 'win', sunk: !S.boss.fled, hull: P.hull, chimes: S.chimes }); }
+  else if (S.boss && (S.boss.dying > 1.6 || S.boss.fled)) { S.done = 'won'; S.score += P.hull * POINTS.hull; ev.push({ kind: 'win', sunk: !S.boss.fled, hull: P.hull, score: S.score, chimes: chimesFor(S.score) }); }
   return ev;
 }
 
@@ -348,6 +351,23 @@ export function findLock(S) {
   };
   for (const f of S.foes) if (!f.dead && f.kind !== 'mine') consider({ foe: f }, f, f.r);
   if (S.boss && !S.boss.dying && S.boss.age > BOSS.enter) for (const p of liveParts(S.boss)) consider({ part: p }, partAt(S.boss, p), p.r);
+  return best;
+}
+
+/**
+ * What the line of fire runs through now (issue #206, the reticle): the pirate or the captain's part whose body the
+ * bolts' way (aimAt) passes within `slack` m of, nearest first, or null. The reticle tightens on it and turns coral.
+ */
+export function aimTarget(S, slack = 0.6) {
+  const P = S.ship, L = S.F.lock;
+  let best = null, bd = Infinity;
+  const consider = (t, at, r) => {
+    if (at.ds < L.near || at.ds > L.far) return;
+    const aim = aimAt(P, at.ds, S.F);
+    if (Math.hypot(at.u - aim.u, at.v - aim.v) < r + slack && at.ds < bd) { bd = at.ds; best = t; }
+  };
+  for (const f of S.foes) if (!f.dead && !f.hidden) consider({ foe: f }, f, f.r);
+  if (S.boss && !S.boss.dying && S.boss.age > 1) for (const p of S.boss.parts) if (!p.gone) consider({ part: p }, partAt(S.boss, p), p.r);
   return best;
 }
 
@@ -466,11 +486,12 @@ function damage(S, target, dmg, ev, by = 'bolt') {
     if (p.gone || B.dying) return false;
     if (p.armoured && !B.open) { ev.push({ kind: 'clank', at: partAt(B, p) }); return true; }
     p.hp -= dmg; p.flash = 0.12;
+    if (p.hp > 0) ev.push({ kind: 'hit', by, part: p.id });
     if (p.hp <= 0) {
       p.gone = true;
-      const pts = p.id === 'core' ? POINTS.core : POINTS.turret, chimes = CHIMES_OF[p.id] ?? 0;
-      S.score += pts; S.kills++; S.chimes += chimes;
-      ev.push({ kind: 'part', id: p.id, at: partAt(B, p), pts, chimes });
+      const pts = p.id === 'core' ? POINTS.core : POINTS.turret;
+      S.score += pts; S.kills++;
+      ev.push({ kind: 'part', id: p.id, at: partAt(B, p), pts });
       if (p.id === 'core') { B.dying = 0.001; ev.push({ kind: 'sunk', at: partAt(B, p) }); }
       else if (B.parts.filter((q) => q.id !== 'core').every((q) => q.gone)) ev.push({ kind: 'say', id: 'open' });
     }
@@ -479,11 +500,11 @@ function damage(S, target, dmg, ev, by = 'bolt') {
   const e = target.foe;
   if (e.dead || e.hidden) return false;
   e.hp -= dmg; e.flash = 0.12;
+  if (e.hp > 0) ev.push({ kind: 'hit', by, foe: e.kind });
   if (e.hp <= 0) {
     e.dead = true;
-    const chimes = CHIMES_OF[e.kind] ?? 0;
-    S.score += POINTS[e.kind] ?? 0; S.kills++; S.chimes += chimes;
-    ev.push({ kind: 'kill', foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v }, pts: POINTS[e.kind] ?? 0, by, chimes });
+    S.score += POINTS[e.kind] ?? 0; S.kills++;
+    ev.push({ kind: 'kill', foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v }, pts: POINTS[e.kind] ?? 0, by });
   }
   return true;
 }

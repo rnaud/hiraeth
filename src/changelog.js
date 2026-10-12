@@ -8,6 +8,15 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.59', date: '2026-10-12', items: [
+    // the chime pirates reworked from the author's notes (src/minigames/pirates.js, pirates-rules.js; docs/systems/minigames.md
+    // "Pirates between worlds"; issue #206)
+    'The chime pirates count points now: each pirate you shoot down adds to your score, and when you win on the way to a new world the results turn your points into chimes, one chime for every 20 points, about as many as before.',
+    'Losing a pip of hull to the chime pirates is hard to miss: the screen’s edges flare red, the view shakes, your ship sparks and blinks, a row of pips shows under it with the lost one bursting, the pip in the corner pops, and you hear the crunch.',
+    'The chime pirates’ two aiming boxes are one sight: a ring with a small diamond further down the same line your shots fly. The ring tightens and turns coral when a pirate is in line, and flashes a mark when your shots hit.',
+    'The first time you meet the chime pirates, pushing the stick up dives, as in a plane, and the start card no longer offers to swap it. Once you have beaten them, the card lets you choose.',
+    'The pirates’ captain flies a gunship built for space instead of a sailing ship: gull wings with a brass turret on each tip, glowing engines, a skull and crossbones on its prow, and its bridge behind armour shutters.',
+  ] },
   { v: '1.58', date: '2026-10-12', items: [
     // the ragdoll obeys the ground's slope (src/ragdoll.js; docs/systems/movement-and-camera.md; issue #214)
     'A knockdown now follows the ground: thrown against a cliff or a steep slope, the limp body stops at its foot and lies there, instead of sliding up the rock with the speed it had. The same for anyone knocked over.',

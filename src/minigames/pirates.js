@@ -1,6 +1,6 @@
 // Pirates between worlds (docs/systems/minigames.md, "Pirates between worlds"): a rail shooter in space. The
 // family ship (the angular hull, src/ship/model.js, small) flies forward through the dark between worlds; chime-
-// pirates come at it in waves, a hauler lays mines, and their captain's galleon waits at the end. Steer within the
+// pirates come at it in waves, a hauler lays mines, and their captain's gunship waits at the end. Steer within the
 // screen, shoot, roll away from their fire, hold to charge a shot that locks on and bursts.
 //
 // The rules are pure (src/minigames/pirates-rules.js, tests/pirates.test.js); this file draws them: the sky is the
@@ -23,7 +23,7 @@ import { PLANETS } from '../ship/planets.js';
 import { SPACE_LOOK, SPACE_DAY } from '../levels/space-city-kit.js';
 import { stripTone } from '../story/tone.js';
 import { AMBUSH_LINES, SPEAKERS, ambushCount } from '../ambush.js';
-import { FLY, BOSS, CHECKPOINTS, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt } from './pirates-rules.js';
+import { FLY, BOSS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget } from './pirates-rules.js';
 
 const INK = '#2b211f';
 /** The height every ground query answers (no ground in space; finite, so what the host places on the ground has a place). */
@@ -244,7 +244,7 @@ function* buildPirates(scene) {
   // the repair rings: a teal hoop with a cream cross, two of them reused
   const ringGeo = merge([new THREE.TorusGeometry(3.4, 0.28, 6, 28), box(1.6, 0.36, 0.2), box(0.36, 1.6, 0.2)]);
   const rings = [0, 1].map(() => { const m = nc(new THREE.Mesh(ringGeo, makeMaterial({ color: '#71d7cf', glow: 0.8, key: 'pirates-ring' }))); m.visible = false; scene.add(m); noShadow.push(m); return m; });
-  const boss = buildGalleon(scene, noShadow);
+  const boss = buildGunship(scene, noShadow);
   yield;
   const look = PLANETS[to] ?? { body: '#f4b49a' };
   return arenaLevel({
@@ -259,59 +259,106 @@ function* buildPirates(scene) {
   });
 }
 
-/**
- * The captain's galleon: an aubergine hull with an oxblood deck, three masts of cream solar sails striped coral,
- * a brass gun pod on each flank, and at the bow the bridge, a teal lens behind armour shutters that open once the
- * guns are down. Facing +z (toward the ship it waits for). Each part its own material, so a hit whitens only it.
- */
-/** The galleon's size over its drawing (the parts' places in BOSS are in metres: divided by this to draw them). */
-export const GALLEON_SCALE = 1.35;
-/** How far behind its parts (m along the flight) the galleon's middle hangs: the gun pods are drawn level with where they are hit. */
-export const GALLEON_BACK = 6 * GALLEON_SCALE;
+/** The gunship's size over its drawing (the parts' places in BOSS are in metres: divided by this to draw them). */
+export const GUNSHIP_SCALE = 1.35;
+/** How far behind its parts (m along the flight) the gunship's middle hangs: the turrets are drawn level with where they are hit. */
+export const GUNSHIP_BACK = 6 * GUNSHIP_SCALE;
+/** How far its nose is tipped down toward the ship (rad), so its back and its bridge are seen as well as its front. */
+export const GUNSHIP_TILT = 0.16;
+/** Its colours: the hull, the armour, the dark iron, the engines' glow, the markings (cream, coral), the turrets, the bridge. */
+export const GUNSHIP_COLORS = { hull: '#5e4a72', armour: '#9a3f35', iron: '#3a3340', engine: '#ff9a4a', bone: '#f3ead8', stripe: '#ef9479', turret: '#c99d48', lens: '#8ff2e6' };
 
-function buildGalleon(scene, noShadow) {
-  const g = new THREE.Group(), G = GALLEON_SCALE;
+/**
+ * The captain's gunship (issue #206: "the boss should be a space ship, not a floating pirate ship"; a galleon under
+ * solar sails until v1.59), drawn to be read from in front, where it is fought: a deep hexagonal aubergine hull with a
+ * grappling jaw under its prow and a cream skull and crossbones on its face; gull wings rising to a brass turret on each
+ * tip (the parts gunL / gunR: BOSS.parts' u, v), a fin under each; two engine nacelles under the wings, their intakes
+ * glowing at the front, a third engine astern; oxblood armour on the spine, the wings' leading edges and the bridge's
+ * tower, gun ports down the flanks, coral chevrons, a pennant on the dorsal fin. On the tower the bridge: a teal lens
+ * behind two armour shutters that open once both turrets are down. Facing +z (toward the ship it waits for). A material
+ * a part, so a hit whitens only it: 13 meshes, 13 draw calls (the galleon had 12).
+ */
+export function buildGunship(scene, noShadow = []) {
+  const g = new THREE.Group(), G = GUNSHIP_SCALE, C = GUNSHIP_COLORS;
   const mat = (color, key, glow = 0) => makeMaterial({ color, glow, key: `pirates-${key}` });
-  const add = (geo, m) => { const mesh = nc(new THREE.Mesh(geo, m)); g.add(mesh); noShadow.push(mesh); return mesh; };
-  add(merge([new THREE.CylinderGeometry(3.2, 2.2, 22, 8).rotateX(Math.PI / 2), new THREE.ConeGeometry(3.2, 6, 8).rotateX(Math.PI / 2).translate(0, 0, 14), box(4, 1.2, 18, 0, -3, 0), box(0.5, 4, 6, 0, -4, -9)]), mat('#5e4a72', 'hull'));
-  add(merge([box(5.4, 1.4, 16, 0, 2.6, -1), box(3.2, 2.2, 5, 0, 4.2, -7), box(0.4, 3, 0.4, 0, 6, -7), box(1.2, 1.2, 3, 0, 1, 16.2)]), mat('#9a3f35', 'deck'));
-  // three masts of solar sails, each sail two panels opened like a book toward the bow, tipped back, battens across
-  const masts = [], sails = [], stripes = [];
-  for (const [z, h, w] of [[-8, 13, 11], [0, 16, 14], [7, 11, 9]]) {
-    masts.push(box(0.35, h + 2, 0.35, 0, 3 + h / 2, z));
-    const y0 = 3.8 + h * 0.5, sh = h * 0.78;
-    for (const side of [-1, 1]) {
-      const panel = (geo) => geo.translate(side * w / 4, 0, 0).rotateY(side * 0.42).rotateX(-0.12).translate(0, y0, z + 0.4);
-      sails.push(panel(box(w / 2, sh, 0.12)));
-      stripes.push(panel(box(w / 2 + 0.02, sh * 0.09, 0.16).translate(0, sh * 0.18, 0)));
-      for (const k of [-0.3, 0.05, 0.4]) masts.push(panel(box(w / 2 + 0.1, 0.12, 0.2).translate(0, sh * k, 0.02)));
-    }
-  }
-  add(merge(masts), mat('#3a3340', 'mast'));
-  add(merge(sails), mat('#f3ead8', 'sail'));
-  add(merge(stripes), mat('#ef9479', 'stripe'));
-  // the gun pods (parts gunL / gunR: BOSS.parts' u, v), each a brass housing on an arm and two dark barrels toward the ship
+  const add = (geo, m, name) => { const mesh = nc(new THREE.Mesh(geo, m)); mesh.name = name; g.add(mesh); noShadow.push(mesh); return mesh; };
+  const cyl = (rt, rb, len, seg = 8) => new THREE.CylinderGeometry(rt, rb, len, seg).rotateX(Math.PI / 2);   // (along z, its top toward +z)
+  const T = BOSS.parts.filter((q) => q.id !== 'core').map((p) => ({ id: p.id, x: p.u / G, y: p.v / G }));
+  const tipX = Math.abs(T[0].x), tipY = T[0].y, zT = GUNSHIP_BACK / G;
+  const core = BOSS.parts.find((q) => q.id === 'core'), cy = core.v / G;
+  const bodyY = -1.4, bodyR = 3.0, front = 9;   // (the hull's middle, its hexagon's size, its face)
+  const rootX = bodyR * 0.85, rootY = bodyY + 0.3;
+  const wingA = Math.atan2(tipY - rootY, tipX - rootX), wingL = Math.hypot(tipX - rootX, tipY - rootY);
+  const wing = (sx, w, h, d, z, dy = 0) => box(wingL + w, h, d).translate(0, dy, 0).rotateZ(sx * wingA).translate(sx * (rootX + tipX) / 2, (rootY + tipY) / 2, z);
+  const nac = [-1, 1].map((sx) => [sx * 4.6, bodyY - 1.6]);
+  // the hull: the hexagonal body, the jaw's lower beak, the gull wings, the fins under the turrets, the dorsal fin
+  add(merge([
+    cyl(bodyR * 0.88, bodyR, 22, 6).translate(0, bodyY, front - 11),
+    new THREE.ConeGeometry(1.5, 4, 6).rotateX(Math.PI / 2).scale(1.3, 0.6, 1).translate(0, bodyY - 1.9, front + 2),
+    ...[-1, 1].map((sx) => wing(sx, 0, 0.7, 6, zT - 1.5)),
+    ...[-1, 1].map((sx) => box(0.5, 3.6, 4.5).rotateX(0.25).translate(sx * tipX, tipY - 2.4, zT - 2)),
+    box(0.45, 3.4, 6.5, 0, bodyY + 4.2, -7).rotateX(-0.12),
+  ]), mat(C.hull, 'hull'), 'hull');
+  // the armour: the spine's plates, the wings' leading edges, the turrets' collars, the bridge's tower, the jaw's two mandibles
+  add(merge([
+    box(2.6, 0.7, 15, 0, bodyY + bodyR * 0.86, -2),
+    ...[-1, 1].map((sx) => wing(sx, -0.6, 0.9, 1.0, zT + 1.9)),
+    ...T.map((t) => cyl(1.55, 1.55, 1.6, 8).translate(t.x, t.y - 0.3, zT)),
+    box(3.8, 2.4, 3.6, 0, cy - 0.1, front - 2.3),
+    ...[-1, 1].map((sx) => box(0.8, 0.9, 4.2).rotateY(-sx * 0.22).translate(sx * 1.7, bodyY - 2.2, front + 1.6)),
+  ]), mat(C.armour, 'armour'), 'armour');
+  // the dark iron: the engine nacelles and the stern's engine, gun ports down the flanks, an antenna, the skull's eyes
+  const ports = [];
+  for (const sx of [-1, 1]) for (let k = 0; k < 5; k++) ports.push(box(0.3, 0.5, 1.0, sx * bodyR * 0.95, bodyY + 0.2, front - 2.5 - k * 3));
+  add(merge([
+    ...nac.map(([x, y]) => cyl(1.25, 1.4, 11, 8).translate(x, y, zT - 6.5)),
+    cyl(1.6, 1.9, 4, 8).translate(0, bodyY, -14),
+    ...ports,
+    box(0.14, 3.2, 0.14, 1.1, bodyY + bodyR + 2.2, -1),
+    ...[-0.42, 0.42].map((dx) => box(0.42, 0.42, 0.14, dx, bodyY + 0.75, front + 0.32)),
+    box(0.22, 0.3, 0.14, 0, bodyY + 0.3, front + 0.32),
+  ]), mat(C.iron, 'iron'), 'iron');
+  // the engines' glow: the nacelles' intakes facing the ship and their nozzles astern, the stern's nozzle
+  add(merge([
+    ...nac.flatMap(([x, y]) => [new THREE.TorusGeometry(1.05, 0.24, 4, 12).translate(x, y, zT - 1), cyl(1.0, 1.0, 0.3, 8).translate(x, y, zT - 12.1), cyl(0.7, 0.7, 0.2, 8).translate(x, y, zT - 1.05)]),
+    cyl(1.4, 1.4, 0.3, 8).translate(0, bodyY, -16.1),
+  ]), mat(C.engine, 'engine', 0.9), 'engines');
+  // the markings: a cream skull and crossbones on the hull's face
+  add(merge([
+    new THREE.CylinderGeometry(1.0, 1.0, 0.16, 12).rotateX(Math.PI / 2).translate(0, bodyY + 0.75, front + 0.2),
+    box(1.05, 0.55, 0.16, 0, bodyY + 0.1, front + 0.2),
+    ...[-0.72, 0.72].map((a) => box(3.4, 0.34, 0.12).rotateZ(a).translate(0, bodyY + 0.45, front + 0.1)),
+  ]), mat(C.bone, 'bone'), 'markings');
+  // coral: chevrons on the wings, a stripe down each fin, the pennant, a band round the tower
+  add(merge([
+    ...[-1, 1].flatMap((sx) => [0.3, 0.62].map((k) => box(0.6, 0.12, 3.6).rotateY(sx * 0.5).translate(0, 0.42, 0).rotateZ(sx * wingA).translate(sx * (rootX + (tipX - rootX) * k), rootY + (tipY - rootY) * k, zT - 1.2))),
+    ...[-1, 1].map((sx) => box(0.56, 0.7, 4.6).rotateX(0.25).translate(sx * tipX, tipY - 3.4, zT - 2)),
+    box(0.1, 1.4, 2.6, 0, bodyY + bodyR + 3.0, -9.6),
+    box(3.9, 0.45, 3.7, 0, cy - 1.0, front - 2.3),
+  ]), mat(C.stripe, 'stripe'), 'stripes');
+  // the turrets (parts gunL / gunR): a brass dome on each wingtip, two dark barrels toward the ship
   const guns = {};
-  for (const p of BOSS.parts.filter((q) => q.id !== 'core')) {
-    const pod = new THREE.Group(), u = p.u / G;
-    pod.position.set(u, p.v / G, GALLEON_BACK / G);
-    const m = mat('#c99d48', p.id);
-    const housing = nc(new THREE.Mesh(merge([new THREE.SphereGeometry(2.2, 8, 6), box(Math.abs(u) - 2, 1.2, 2.4, -Math.sign(u) * (Math.abs(u) / 2), 0, -2)]), m));
-    const barrels = nc(new THREE.Mesh(merge([-0.6, 0.6].map((x) => new THREE.CylinderGeometry(0.3, 0.3, 3.2, 6).rotateX(Math.PI / 2).translate(x, 0, 2.6))), mat(INK, `${p.id}-barrels`)));
+  for (const t of T) {
+    const pod = new THREE.Group();
+    pod.position.set(t.x, t.y, zT);
+    const m = mat(C.turret, t.id);
+    const housing = nc(new THREE.Mesh(merge([new THREE.SphereGeometry(1.8, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), cyl(1.8, 1.8, 0.6, 10).rotateX(-Math.PI / 2).translate(0, -0.3, 0), box(1.6, 0.9, 1.4, 0, 0.5, 1.2)]), m));
+    const barrels = nc(new THREE.Mesh(merge([-0.5, 0.5].map((x) => cyl(0.26, 0.3, 3.4, 6).translate(x, 0.55, 3.0))), mat(INK, `${t.id}-barrels`)));
+    housing.name = t.id; barrels.name = `${t.id}-barrels`;
     pod.add(housing, barrels);
     g.add(pod); noShadow.push(housing, barrels);
-    guns[p.id] = { pod, mat: m, base: new THREE.Color('#c99d48') };
+    guns[t.id] = { pod, mat: m, base: new THREE.Color(C.turret) };
   }
-  // the bridge at the bow: the lens, and two shutters over it that slide apart
-  const core = BOSS.parts.find((q) => q.id === 'core');
-  const lensMat = mat('#8ff2e6', 'core', 0.9);
-  const lens = add(new THREE.SphereGeometry(2.6, 12, 8).scale(1, 0.8, 0.6).translate(core.u / G, core.v / G, 13.5), lensMat);
-  const shutterMat = mat('#3a3340', 'shutter');
-  const shutters = [-1, 1].map((s) => { const m = add(box(3, 4.6, 0.6, s * 1.5, core.v / G, 15.2), shutterMat); m.userData.side = s; return m; });
+  // the bridge on the tower's face: the lens, and two shutters over it that slide apart
+  const cz = front - 0.4;
+  const lensMat = mat(C.lens, 'core', 0.9);
+  const lens = add(new THREE.SphereGeometry(1.45, 12, 8).scale(1, 0.62, 0.6).translate(core.u / G, cy, cz), lensMat, 'core');
+  const shutterMat = mat(C.iron, 'shutter');
+  const shutters = [-1, 1].map((sx) => { const m = add(box(1.6, 1.3, 0.3, sx * 0.8, cy, cz + 0.85), shutterMat, 'shutter'); m.userData.side = sx; return m; });
   g.scale.setScalar(G);
   g.visible = false;
   scene.add(g);
-  return { group: g, guns, lens, lensMat, shutters, core: { mat: lensMat, base: new THREE.Color('#8ff2e6') } };
+  return { group: g, guns, lens, lensMat, shutters, core: { mat: lensMat, base: new THREE.Color(C.lens) } };
 }
 
 // ------------------------------------------------------------------ the sounds
@@ -328,6 +375,12 @@ function shooterSounds(sound) {
     deflect() { if (on()) sound.pluck(2093, now(), 0.06, 'triangle', sound.fx); },
     clank() { if (!on()) return; sound.pluck(330, now(), 0.06, 'square', sound.fx); sound.burst(now(), { dur: 0.08, type: 'highpass', freq: 2500, q: 1, vol: 0.05 }); },
     comms() { if (!on()) return; const t = now(); sound.pluck(880, t, 0.04, 'sine', sound.fx); sound.pluck(1175, t + 0.08, 0.04, 'sine', sound.fx); },
+    /** A pip of hull lost (issue #206): a crunch and a low thud under the runner's hurt, so it is heard over the bolts. */
+    hull() { if (!on()) return; const t = now(); sound.burst(t, { dur: 0.28, type: 'bandpass', freq: 900, q: 0.6, vol: 0.16, rate: 0.8 }); sound.sweep(t, 160, 48, 0.32, 0.12, 'triangle'); sound.pluck(196, t + 0.05, 0.08, 'square', sound.fx); },
+    /** A bolt that tells (the reticle's hit mark): a dry tick. */
+    hit() { if (on()) sound.pluck(1568, now(), 0.025, 'triangle', sound.fx); },
+    /** The tally: a chime as the points become chimes. */
+    tally(k = 0) { if (on()) sound.pluck(1047 * Math.pow(1.122, k % 6), now(), 0.06, 'sine', sound.fx); },
   };
 }
 
@@ -340,6 +393,13 @@ const HUD_CSS = `
 #minigame .pirates-comms.captain b { color: #ef9479; }
 #minigame .pirates-comms.off { opacity: 0; transform: translateY(8px) rotate(-0.6deg); }
 body.touch #minigame .pirates-comms { bottom: auto; top: 64px; }
+#minigame .mg-lives i.lost { animation: pirates-lost .8s ease-out; }
+@keyframes pirates-lost { 0% { transform: scale(1.9); background: #fff1c8; opacity: 1; } 35% { transform: scale(1.5); background: #d9643a; opacity: 1; } 100% { transform: scale(1); } }
+#minigame .pirates-tally { margin: 6px auto 4px; display: grid; grid-template-columns: auto auto auto; gap: 4px 14px; align-items: baseline; justify-content: center; font: 700 1.1em/1.2 var(--face); font-variant-numeric: tabular-nums; }
+#minigame .pirates-tally b { font-size: 1.6em; }
+#minigame .pirates-tally .ch { color: #3f8f88; }
+#minigame .pirates-tally i { font-style: normal; opacity: .6; }
+#minigame .pirates-tally small { grid-column: 1 / -1; font-weight: 400; opacity: .7; }
 `;
 
 function makeHud(root) {
@@ -377,10 +437,12 @@ function start(ctx) {
   // (L lives as long as the page: the arena is built once; a Retry after a win, or a new page, starts from the start)
   const again = L.resume ?? null;
   L.resume = null;
-  const S = newRun({ seed: L.seed, heat, gentle: ctx.settings?.enemies === 'gentle', from: again?.from ?? 0, fails: again?.fails ?? 0, chimes: again?.chimes ?? 0 });
+  const S = newRun({ seed: L.seed, heat, gentle: ctx.settings?.enemies === 'gentle', from: again?.from ?? 0, fails: again?.fails ?? 0, score: again?.score ?? 0 });
+  // (push up to dive, always the first time: the choice is offered only once the pirates are beaten, issue #206)
   const climb = (ctx.option?.('pitch') ?? 'dive') === 'climb';
+  pitchShown = climb ? 'climb' : 'dive';
   const transit = !!L.to;   // (on the way to a world: the chimes are won; the Arcade's game only scores)
-  const root = document.getElementById('minigame') ?? document.body;
+  const root = typeof document !== 'undefined' ? document.getElementById('minigame') ?? document.body : null;   // (none in the tests)
   const hud = typeof document !== 'undefined' ? makeHud(root) : null;
   const words = new WorldLabels(camera);
   const fire = new Puffs(ctx.scene, { count: 140, glow: 0.85, tag: 'pirates-fire', detail: 1 });
@@ -389,14 +451,16 @@ function start(ctx) {
   level.noShadow?.push(fire.mesh, smoke.mesh);
   const sparks = [];
   const dust = Array.from({ length: 110 }, (_, i) => ({ s: Math.random() * 260, u: (Math.random() * 2 - 1) * 46, v: (Math.random() * 2 - 1) * 28, teal: i % 3 === 0 }));
-  const run = { said: new Set(), lastHull: S.ship.hull, sinkT: 0, outT: 0, lowSaid: false, blinkT: 0, bossShown: false, redT: 0 };
+  // (redT: the hit's flash at the screen's edge; shake: the camera's; pipT: the hull's pips shown under the ship, lostI
+  // the pip that went; aimK: the reticle's tightening on a target, hitT its hit mark)
+  const run = { said: new Set(), lastHull: S.ship.hull, sinkT: 0, outT: 0, lowSaid: false, blinkT: 0, bossShown: false, redT: 0, shake: 0, pipT: 0, lostI: -1, lostT: 0, aimK: 0, hitT: 0, hitBig: false, hurtN: 0 };
   // reset what the last run left
   L.boss.group.visible = false;
   for (const p of Object.values(L.boss.guns)) p.pod.visible = true;
   L.boss.lens.visible = true;
   L.ship.visible = true;
   ctx.setLives(S.ship.hull, S.ship.hull0);
-  ctx.setScore(0);
+  ctx.setScore(S.score);
   ctx.setFov(CAM.fov);
   player.object.visible = false;
 
@@ -433,7 +497,8 @@ function start(ctx) {
       switch (e.kind) {
         case 'shot': snd.shot(); break;
         case 'enemyShot': snd.enemy(); break;
-        case 'kill': boom(e.at, e.foe === 'hauler' ? 1.6 : e.foe === 'raider' ? 1.2 : e.foe === 'mine' ? 0.6 : 0.8); if (e.pts) words.pop(world(e.at.ds, e.at.u, e.at.v, V()), transit && e.chimes ? `+${e.chimes} ${e.chimes === 1 ? 'chime' : 'chimes'}` : `+${e.pts}`, transit && e.chimes ? 'combo' : e.foe === 'hauler' ? 'gold' : ''); break;
+        case 'kill': boom(e.at, e.foe === 'hauler' ? 1.6 : e.foe === 'raider' ? 1.2 : e.foe === 'mine' ? 0.6 : 0.8); if (e.pts) words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`, e.foe === 'hauler' ? 'gold' : ''); if (e.by !== 'ram') hitMark(true); break;
+        case 'hit': if (e.by === 'bolt') hitMark(false); break;
         case 'checkpoint': ctx.flash('Checkpoint', 'good', 1.2); break;
         case 'rock': boom(e.at, 0.5); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`); break;
         case 'spark': spark(world(e.at.ds, e.at.u, e.at.v, V()), 2, '#e0c3a0'); break;
@@ -441,13 +506,20 @@ function start(ctx) {
         case 'deflect': spark(world(e.at.ds, e.at.u, e.at.v, V()), 5, '#9ff2e6'); snd.deflect(); break;
         case 'blast': boom(e.at, 1.4); if (e.bonus) { ctx.flash(`${e.n} at once! +${e.bonus}`, 'good'); } break;
         case 'hurt': {
-          sfx.hurt(); ctx.kick(0.8); run.redT = 0.5;
-          smoke.emit(world(0, S.ship.u, S.ship.v, V()), V(0, 2, -FLY.speed * 0.5), 1.4, 1.0, '#3a3340');
+          // (issue #206: "when I lose a health point it's not very visible": the edge flashes, the view shakes, the ship
+          // sparks and blinks, the pips show under it with the lost one bursting, the corner's pip pops; a crunch)
+          sfx.hurt(); snd.hull(); ctx.kick(0.8);
+          run.redT = HURT.flash; run.shake = HURT.shake; run.pipT = HURT.pips; run.lostI = e.hull; run.lostT = HURT.lost;
+          run.hurtN++;
+          const at = world(0, S.ship.u, S.ship.v, V());
+          spark(at, 10, '#ff8a5c'); spark(at, 6, '#fff1c8');
+          smoke.emit(at, V(0, 2, -FLY.speed * 0.5), 1.4, 1.0, '#3a3340');
+          popPip(e.hull);
           if (e.hull <= 2 && e.hull > 0 && !run.lowSaid) { run.lowSaid = true; say('low'); }
           break;
         }
-        case 'repair': sfx.checkpoint(); ctx.flash(e.pts ? `Hull full · +${e.pts}` : 'Hull patched', 'good'); break;
-        case 'part': boom(e.at, 2.2); ctx.flash(e.id === 'core' ? 'The bridge is hit!' : 'A gun is down!', 'good'); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), transit && e.chimes ? `+${e.chimes} chimes` : `+${e.pts}`, transit && e.chimes ? 'combo' : 'gold'); if (L.boss.guns[e.id]) L.boss.guns[e.id].pod.visible = false; if (e.id === 'core') L.boss.lens.visible = false; break;
+        case 'repair': sfx.checkpoint(); run.pipT = HURT.pips; run.lostI = -1; ctx.flash(e.pts ? `Hull full · +${e.pts}` : 'Hull patched', 'good'); break;
+        case 'part': boom(e.at, 2.2); hitMark(true); ctx.flash(e.id === 'core' ? 'The bridge is hit!' : 'A turret is down!', 'good'); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`, 'gold'); if (L.boss.guns[e.id]) L.boss.guns[e.id].pod.visible = false; if (e.id === 'core') L.boss.lens.visible = false; break;
         case 'sunk': run.sinkT = 1.6; break;
         case 'roll': sfx.whoosh(); break;
         case 'lock': snd.lock(); break;
@@ -456,14 +528,16 @@ function start(ctx) {
         case 'win': {
           say(e.sunk ? 'won' : 'fled');
           ctx.setScore(S.score);
-          ctx.finish({ score: S.score, title: e.sunk ? 'Pirates beaten!' : 'They broke off!', lines: resultLines(e), chimes: transit ? S.chimes : 0 });
+          ctx.state?.set?.(BEATEN, true);   // (from now on the start card offers the stick's pitch)
+          // on the way to a world the points become chimes, tallied on the results (CHIME_RATE points a chime)
+          ctx.finish({ score: S.score, title: e.sunk ? 'Pirates beaten!' : 'They broke off!', lines: resultLines(e), chimes: transit ? e.chimes : 0, html: transit ? tallyHtml(S.score) : null });
           break;
         }
         case 'dead': {
           say('lost'); boom({ ds: 0, u: S.ship.u, v: S.ship.v }, 1.8);
           ctx.setScore(S.score);
           // Retry picks up from the last checkpoint passed, the chimes won before it kept (no skip: the fight is the way there)
-          L.resume = { from: S.checkpoint, fails: (again?.fails ?? 0) + 1, chimes: S.chimesAt };
+          L.resume = { from: S.checkpoint, fails: (again?.fails ?? 0) + 1, score: S.scoreAt };   // (the points won before it kept)
           const cp = CHECKPOINTS.indexOf(S.checkpoint);
           ctx.finish({ score: S.score, failed: true, title: 'Hull breached', lines: [`Pirates downed: ${S.kills}`, cp > 0 ? `Retry from checkpoint ${cp}, the hull patched` : 'Retry from the start, the hull patched'] });
           break;
@@ -474,10 +548,17 @@ function start(ctx) {
   function resultLines(e) {
     return [
       `Pirates downed: ${S.kills}`,
-      ...(transit ? [`Chimes won: ${S.chimes}`] : []),
       `Hits taken: ${S.hits} · hull left ${e.hull} of ${S.ship.hull0} (+${e.hull * 50})`,
-      e.sunk ? 'The captain’s galleon: sunk' : 'The captain’s galleon: got away',
+      e.sunk ? 'The captain’s gunship: downed' : 'The captain’s gunship: got away',
     ];
+  }
+  /** The reticle's hit mark: a bolt told (a kill: bigger, gold). */
+  function hitMark(big) { run.hitBig = big || (run.hitBig && run.hitT > 0); run.hitT = HIT_MARK; if (!big) snd.hit(); }
+  /** The corner's pip that went pops (the runner draws them: .mg-lives). */
+  function popPip(i) {
+    ctx.setLives(S.ship.hull, S.ship.hull0); run.lastHull = S.ship.hull;
+    const pip = root?.querySelector?.(`.mg-lives i:nth-child(${i + 1})`);
+    if (pip) { pip.classList.remove('lost'); void pip.offsetWidth; pip.classList.add('lost'); }
   }
 
   // ---------------------------------------------------------------- drawing
@@ -495,7 +576,7 @@ function start(ctx) {
     _e.set(Math.atan(P.aimV) * 2.2 + (S.done === 'dead' ? -0.4 : 0), -Math.atan(P.aimU) * 2.2, P.bank + roll + (S.done === 'dead' ? run.outT * 3 : 0), 'YXZ');
     L.ship.quaternion.setFromEuler(_e);
     // (blinks while it cannot be hit again)
-    L.ship.visible = !(P.iframe > 0 && Math.floor(P.iframe * 12) % 2 === 0);
+    L.ship.visible = !(P.iframe > 0 && Math.floor(P.iframe * (P.iframe > FLY.iframe - 0.35 ? 22 : 12)) % 2 === 0);   // (quicker at first: the hit)
     L.flames.scale.set(1, 1, 0.8 + 0.4 * Math.random() + (run.outT > 0 ? 2 : 0));
     if (S.done === 'dead') { run.outT += dt; if (Math.random() < 0.5) smoke.emit(L.ship.position, V(0, 1, -FLY.speed * 0.3), 1, 1, '#3a3340'); }
   }
@@ -512,6 +593,7 @@ function start(ctx) {
     const kl = snap ? 1 : 1 - Math.exp(-F.rate * 1.5 * dt);
     run.cam.lu += (P.vu * F.lead - run.cam.lu) * kl; run.cam.lv += (P.vv * F.lead - run.cam.lv) * kl;
     railPoint(S.s - F.back, run.cam.u, run.cam.v + F.up, camera.position);
+    if (run.shake > 0) { const k = run.shake * run.shake * HURT.amp; camera.position.x += (Math.random() * 2 - 1) * k; camera.position.y += (Math.random() * 2 - 1) * k; }
     railPoint(S.s + F.look, run.cam.u + (P.u - run.cam.u) * 0.6 + run.cam.lu, run.cam.v + (P.v - run.cam.v) * 0.6 + 0.4 + run.cam.lv, _look);
     _d.subVectors(_look, camera.position).normalize();
     camera.up.set(0, 1, 0).applyAxisAngle(_d, run.cam.roll);
@@ -598,9 +680,11 @@ function start(ctx) {
     const B = S.boss, G = L.boss;
     G.group.visible = !!B && !(B.dying > 1.6);
     if (!B) return;
-    world(B.ds + GALLEON_BACK, B.u, B.v, G.group.position);
+    world(B.ds + GUNSHIP_BACK, B.u, B.v, G.group.position);
     _d.subVectors(L.ship.position, G.group.position).setY(0).normalize();
     G.group.quaternion.setFromUnitVectors(_zAxis, _d.lengthSq() > 0 ? _d : _zAxis);
+    // (its nose tipped down a little toward the ship, raised so its turrets stay where they are hit)
+    G.group.rotateX(GUNSHIP_TILT); G.group.position.y += GUNSHIP_BACK * Math.sin(GUNSHIP_TILT);
     if (B.dying) { G.group.rotateZ(B.dying * 0.25); G.group.rotateX(B.dying * 0.1); }
     for (const p of B.parts) {
       const g = p.id === 'core' ? G.core : G.guns[p.id];
@@ -608,7 +692,7 @@ function start(ctx) {
     }
     // the shutters slide apart once the guns are down
     const open = B.open ? Math.min(1, (run.openK = (run.openK ?? 0) + dt * 1.2)) : 0;
-    for (const s of G.shutters) s.position.x = s.userData.side * open * 3.2;
+    for (const s of G.shutters) s.position.x = s.userData.side * open * 1.8;
     if (run.sinkT > 0) {
       run.sinkT -= dt;
       if (Math.random() < 0.35) { const p = BOSS.parts[Math.floor(Math.random() * 3)]; const at = partAt(B, p); boom({ ds: at.ds + (Math.random() - 0.5) * 16, u: at.u + (Math.random() - 0.5) * 12, v: at.v + (Math.random() - 0.5) * 8 }, 1.4); }
@@ -628,18 +712,41 @@ function start(ctx) {
     if (phase !== 'play') return;
     const P = S.ship;
     g.lineJoin = 'round';
-    // the aim: two squares ahead of the nose, the near one smaller, where the bolts will be (aimAt: they swing ahead as it turns)
-    for (const [ds, size] of [[22, 9], [55, 14]]) {
-      const a = aimAt(P, ds);
-      const p = project(world(ds, a.u, a.v, _p));
-      if (!p.front) continue;
-      const x = p.x * W, y = p.y * H;
-      g.strokeStyle = INK; g.lineWidth = 3.5; g.strokeRect(x - size, y - size, size * 2, size * 2);
-      g.strokeStyle = P.charge >= 1 ? '#f2c54b' : '#f7ecd2'; g.lineWidth = 1.6; g.strokeRect(x - size, y - size, size * 2, size * 2);
-      if (ds === 55 && P.charge > 0) {
-        g.beginPath(); g.arc(x, y, size + 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * P.charge);
+    // the aim (issue #206: "the two boxes are confusing"): one line of fire, a ring near and a diamond far down it,
+    // where the bolts will be (aimAt: they swing ahead as it turns). On a target (aimTarget) the ring tightens and
+    // goes coral, its ticks closing in; a bolt that tells strikes a mark across it; the charge fills an arc round it.
+    const ring = project(world(RETICLE.near, aimAt(P, RETICLE.near).u, aimAt(P, RETICLE.near).v, _p));
+    const dot = project(world(RETICLE.far, aimAt(P, RETICLE.far).u, aimAt(P, RETICLE.far).v, _p));
+    const on = run.aimK, hot = P.charge >= 1 ? '#f2c54b' : mix('#f7ecd2', '#ef9479', on);
+    const inked = (draw, lw) => { g.strokeStyle = INK; g.lineWidth = lw + 2.2; draw(); g.strokeStyle = hot; g.lineWidth = lw; draw(); };
+    if (dot.front) {
+      const x = dot.x * W, y = dot.y * H, d = 3.6 - on;
+      inked(() => { g.beginPath(); g.moveTo(x, y - d); g.lineTo(x + d, y); g.lineTo(x, y + d); g.lineTo(x - d, y); g.closePath(); g.stroke(); }, 1.5);
+    }
+    if (ring.front) {
+      const x = ring.x * W, y = ring.y * H, R = RETICLE.r - (RETICLE.r - RETICLE.tight) * on;
+      // the ring, broken at its four points, with ticks in toward the middle (longer on a target)
+      inked(() => {
+        for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x, y, R, k * Math.PI / 2 + 0.32, (k + 1) * Math.PI / 2 - 0.32); g.stroke(); }
+        const t1 = R - 3.5 - 3 * on;
+        g.beginPath();
+        for (const [cx, cy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) { g.moveTo(x + cx * (R + 1.5), y + cy * (R + 1.5)); g.lineTo(x + cx * t1, y + cy * t1); }
+        g.stroke();
+      }, 1.6);
+      if (P.charge > 0) {
+        g.beginPath(); g.arc(x, y, R + 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * P.charge);
         g.strokeStyle = INK; g.lineWidth = 5; g.stroke();
         g.strokeStyle = '#f2c54b'; g.lineWidth = 2.5; g.stroke();
+      }
+      if (run.hitT > 0) {
+        const k = run.hitT / HIT_MARK, a = R + 2.5 + (1 - k) * 2, b = a + (run.hitBig ? 7 : 4.5);
+        g.globalAlpha = Math.min(1, k * 1.6);
+        for (const [lw, c] of [[3.6, INK], [1.6, run.hitBig ? '#f2c54b' : '#fff1c8']]) {
+          g.strokeStyle = c; g.lineWidth = lw; g.beginPath();
+          for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { g.moveTo(x + sx * a * 0.707, y + sy * a * 0.707); g.lineTo(x + sx * b * 0.707, y + sy * b * 0.707); }
+          g.stroke();
+        }
+        g.globalAlpha = 1;
       }
     }
     // the lock: corner brackets round the target, coral, a word under them
@@ -661,7 +768,7 @@ function start(ctx) {
     if (B && B.age > 1 && !B.dying && !B.fled) {
       const w = Math.min(260, W * 0.6), x0 = (W - w) / 2, y0 = 44;
       g.font = `700 10px ${FACE}`; g.textAlign = 'center';
-      g.lineWidth = 3; g.strokeStyle = INK; g.strokeText('THE CAPTAIN’S GALLEON', W / 2, y0 - 4); g.fillStyle = '#f7ecd2'; g.fillText('THE CAPTAIN’S GALLEON', W / 2, y0 - 4);
+      g.lineWidth = 3; g.strokeStyle = INK; g.strokeText('THE CAPTAIN’S GUNSHIP', W / 2, y0 - 4); g.fillStyle = '#f7ecd2'; g.fillText('THE CAPTAIN’S GUNSHIP', W / 2, y0 - 4);
       const order = ['gunL', 'core', 'gunR'], seg = (w - 8) / 3;
       order.forEach((id, i) => {
         const p = B.parts.find((q) => q.id === id), x = x0 + i * (seg + 4);
@@ -670,11 +777,42 @@ function start(ctx) {
         g.fillRect(x, y0, seg * Math.max(0, p.hp) / p.hp0, 7);
       });
     }
-    // hit: the screen's edge goes coral a moment
+    // the hull's pips under the ship a while after a hit or a patch (and always, faintly, when two or fewer are left):
+    // where the eye is, the lost one bursting out of its place
+    const low = P.hull <= 2;
+    if (run.pipT > 0 || low) {
+      const sp = project(world(0, P.u, P.v, _p));
+      if (sp.front) {
+        const n = P.hull0, gap = 11, x0 = sp.x * W - (n - 1) * gap / 2, y = sp.y * H + 24;
+        g.globalAlpha = Math.max(low ? 0.6 : 0, Math.min(1, run.pipT / 0.4));
+        for (let i = 0; i < n; i++) {
+          const x = x0 + i * gap, full = i < P.hull;
+          g.beginPath(); g.arc(x, y, 3.8, 0, Math.PI * 2);
+          if (full) { g.fillStyle = low ? '#ff5a3c' : '#d9643a'; g.fill(); }
+          g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+          if (i === run.lostI && run.lostT > 0) {
+            const k = 1 - run.lostT / HURT.lost;
+            g.save(); g.globalAlpha = 1 - k;
+            g.beginPath(); g.arc(x, y, 3.8 * (1 - k * 0.6), 0, Math.PI * 2); g.fillStyle = '#fff1c8'; g.fill();
+            g.beginPath(); g.arc(x, y, 4 + 11 * k, 0, Math.PI * 2); g.strokeStyle = '#ff5a3c'; g.lineWidth = 2.4 * (1 - k) + 0.6; g.stroke();
+            g.restore();
+          }
+        }
+        g.globalAlpha = 1;
+      }
+    }
+    // hit: the screen's edges flare coral and red a moment, an ink band round them (and the view shakes: drawCamera)
     if (run.redT > 0) {
-      g.strokeStyle = `rgba(217, 100, 58, ${run.redT})`; g.lineWidth = 14; g.strokeRect(0, 0, W, H);
+      const k = Math.pow(run.redT / HURT.flash, 0.7), m = Math.max(W, H);
+      const v = g.createRadialGradient(W / 2, H / 2, m * 0.32, W / 2, H / 2, m * 0.72);
+      v.addColorStop(0, 'rgba(217, 70, 40, 0)'); v.addColorStop(1, `rgba(217, 70, 40, ${0.78 * k})`);
+      g.fillStyle = v; g.fillRect(0, 0, W, H);
+      g.strokeStyle = `rgba(43, 33, 31, ${0.85 * k})`; g.lineWidth = 9; g.strokeRect(0, 0, W, H);
+      g.strokeStyle = `rgba(255, 90, 60, ${k})`; g.lineWidth = 4; g.strokeRect(6, 6, W - 12, H - 12);
     }
   }
+  /** Two colours mixed (k 0..1), as a CSS colour. */
+  function mix(a, b, k) { return '#' + _c.set(a).lerp(_c2.set(b), Math.max(0, Math.min(1, k))).getHexString(); }
 
   const tick = (dt, phase) => {
     drawShip(dt, phase);
@@ -683,14 +821,33 @@ function start(ctx) {
     fire.update(dt); smoke.update(dt);
     words.update(dt);
     hud?.update(dt);
-    run.redT = Math.max(0, run.redT - dt);
+    run.redT = Math.max(0, run.redT - dt); run.shake = Math.max(0, run.shake - dt);
+    run.pipT = Math.max(0, run.pipT - dt); run.lostT = Math.max(0, run.lostT - dt); run.hitT = Math.max(0, run.hitT - dt);
+    run.onTarget = phase === 'play' && !!aimTarget(S);   // (the reticle tightens on what the line of fire runs through)
+    run.aimK += ((run.onTarget ? 1 : 0) - run.aimK) * Math.min(1, dt * 14);
     drawHud(phase);
+    if (phase === 'results') tally(dt);
   };
   drawShip(0, 'intro'); drawCamera(0, true); drawRocks(0); drawDrops(0);
+
+  /** The results' tally (on the way to a world): the points' chimes counted up, a chime heard for each tenth. */
+  function tally(dt) {
+    const el = root?.querySelector?.('.pirates-tally');
+    if (!el) return;
+    const T = (run.tally ??= { t: -0.35, last: 0 }), pts = +el.dataset.points, ch = chimesFor(pts);
+    T.t += dt;
+    const k = Math.max(0, Math.min(1, T.t / TALLY.secs)), e = 1 - Math.pow(1 - k, 2);
+    const shown = Math.round(ch * e);
+    el.querySelector('.chn').textContent = String(shown);
+    const step = Math.floor(e * 10);
+    if (step > T.last) { T.last = step; snd.tally(step); }
+  }
 
   return {
     /** (for the tests and the screenshots: the run's state) */
     get state() { return S; },
+    /** (the tests: what is being shown: the hit's flash, the shake, the pips, the reticle's tightening and mark) */
+    get feedback() { return run; },
     /** (the screenshots: the run flown ahead by the pilot to `t` s, quietly) */
     forward(t) {
       while (!S.done && S.t < t) handle(runStep(S, botInput(S), 1 / 60).filter((e) => ['win', 'dead', 'part', 'sunk'].includes(e.kind)));
@@ -734,18 +891,43 @@ function start(ctx) {
 export const LOOK_SIZE = { skiff: 1.7, raider: 1.5, hauler: 1.5, mine: 1.3 };
 const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _c2 = new THREE.Color();
 
+/** A pip of hull lost (issue #206): the edge's flash (s), the camera's shake (s, and its size at the start, m), the pips shown under the ship (s), the lost one's burst (s). */
+export const HURT = { flash: 0.7, shake: 0.45, amp: 2.4, pips: 2.2, lost: 0.8 };
+/** The reticle's hit mark (s). */
+export const HIT_MARK = 0.16;
+/** The reticle: the ring's distance down the line of fire and the diamond's (m), the ring's size and tightened on a target (px at half size). */
+export const RETICLE = { near: 26, far: 80, r: 11, tight: 7.5 };
+/** The results' tally: how long the points take to count into chimes (s). */
+export const TALLY = { secs: 1.6 };
+/** The save's flag once the pirates have been beaten anywhere: from then on the start card offers the stick's pitch. */
+export const BEATEN = 'minigame.pirates.beaten';
+let pitchShown = 'dive';
+
+/** The results' tally block (on the way to a world): the points, the rate, the chimes they make (counted up by tally()). */
+export function tallyHtml(score) {
+  const n = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `<div class="pirates-tally" data-points="${score}" data-chimes="${chimesFor(score)}"><b class="pts">${n(score)}</b><i>points  →</i><b class="ch"><span class="chn">0</span> chimes</b><small>${CHIME_RATE} points make a chime</small></div>`;
+}
+
+/** The controls, as the start card lists them: the stick's pitch said plainly, as it is now (push up to dive by default). */
+export function pirateControls(pitch = 'dive') {
+  const up = pitch === 'climb' ? 'climb' : 'dive', down = up === 'dive' ? 'climb' : 'dive';
+  return {
+    pad: [['Left stick', `steer and aim: push up to ${up}, pull back to ${down}`], ['A / ×', 'fire; hold to charge, let go to loose it'], ['RT / R2, held', 'a steady stream of fire'], ['B / ○ or LB / L1', 'barrel roll'], ['Menu', 'pause']],
+    keys: [['W A S D  or  arrows', `steer and aim: W or ↑ to ${up}, S or ↓ to ${down}`], ['Space', 'fire; hold to charge, let go to loose it'], ['Shift  or  E', 'barrel roll'], ['Esc', 'pause']],
+    touch: [['Stick', `steer and aim: push up to ${up}`], ['✺', 'fire; hold to charge, let go to loose it'], ['↶', 'barrel roll']],
+  };
+}
+
 export default {
   id: 'pirates', order: 11,
   name: 'Chime pirates',
   blurb: 'Between worlds, pirates come after the family ship for the chimes aboard. Fly through the dark and fight them off.',
-  rules: 'Shoot the pirates down; your shots go where the nose points, so steer to aim. Roll to turn their fire aside; hold fire to charge a shot that locks on and bursts. Rocks and shots cost hull, teal rings patch it. Beat their captain’s galleon at the end.',
-  controls: {
-    pad: [['Left stick', 'steer and aim (forward as chosen below)'], ['A / ×', 'fire; hold to charge, let go to loose it'], ['RT / R2, held', 'a steady stream of fire'], ['B / ○ or LB / L1', 'barrel roll'], ['Menu', 'pause']],
-    keys: [['W A S D  or  arrows', 'steer and aim (W as chosen below)'], ['Space', 'fire; hold to charge, let go to loose it'], ['Shift  or  E', 'barrel roll'], ['Esc', 'pause']],
-    touch: [['Stick', 'steer and aim'], ['✺', 'fire; hold to charge, let go to loose it'], ['↶', 'barrel roll']],
-  },
-  // (the stick's pitch, said plainly on the card and kept: dives by default, as a plane's, as in Star Fox 64 and on the jets)
-  options: [{ id: 'pitch', label: 'Stick forward', choices: [['dive', 'Dives'], ['climb', 'Climbs']], default: 'dive' }],
+  rules: 'Shoot the pirates down; your shots go where the nose points, so steer to aim. Roll to turn their fire aside; hold fire to charge a shot that locks on and bursts. Rocks and shots cost hull, teal rings patch it. Beat their captain’s gunship at the end. On the way to a world, your points become chimes.',
+  get controls() { return pirateControls(pitchShown); },
+  // (the stick's pitch: push up to dive, as a plane's, as in Star Fox 64 and on the jets; the card offers the other way
+  // only once the pirates have been beaten: issue #206, "don't let me switch controls at first")
+  options: [{ id: 'pitch', label: 'Push up to', choices: [['dive', 'Dive'], ['climb', 'Climb']], default: 'dive', when: (state) => !!state?.flag?.(BEATEN) }],
   touchButtons: ['fire', 'evade'],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true },

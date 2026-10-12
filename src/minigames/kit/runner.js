@@ -21,7 +21,7 @@ import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { inputKind, escapeHtml, keyText } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
 import { stripTone } from '../../story/tone.js';
-import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
+import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
 
 export { COUNT, controlsFor, quitHref };
 
@@ -249,7 +249,7 @@ export class MinigameRunner {
   /** An option changed on the start card: kept in the save, the session started again with it, the card redrawn. */
   setOption(id, value) {
     const o = (this.def.options ?? []).find((q) => q.id === id);
-    if (!o || this.phase !== 'intro') return;
+    if (!o || this.phase !== 'intro' || !optionOffered(o, this.host.state)) return;
     this.host.state.set(optionKey(this.def.id, id), value);
     this.session.end?.();
     this.clearAdded();
@@ -341,7 +341,7 @@ export class MinigameRunner {
     const keys = (x) => keyText(h(x), { kind, html: true, teach: true });
     const rows = controlsFor(d, kind).map(([k, v]) => `<dt>${keys(k)}</dt><dd>${keys(v)}</dd>`).join('');
     // the options (def.options): a row of choices each, or a stepper (− value +)
-    const opts = (d.options ?? []).map((o) => {
+    const opts = (d.options ?? []).filter((o) => optionOffered(o, S)).map((o) => {
       const v = optionValue(d, S, o.id);
       const body = o.choices ? o.choices.map(([cv, label]) => `<button type="button" data-opt="${h(o.id)}" data-val="${h(cv)}" class="${cv === v ? 'on' : ''}">${h(label)}</button>`).join('')
         : `<button type="button" data-opt="${h(o.id)}" data-step="-1" aria-label="less">−</button><b>${h(optionText(o, v))}</b><button type="button" data-opt="${h(o.id)}" data-step="1" aria-label="more">+</button>`;

@@ -708,7 +708,28 @@ const MV58 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this bra
 // (v1.58: the game menu and the map, issues #213 and #205: by hand, the before the tree as on origin/main (be75fda2)
 // served by this branch's Vite before the change, the same debug save in the Underwater City and the desert)
 const MENU58 = 'headless Chrome (muted, Low, 1280 × 720 and 730 × 410) against this branch’s own Vite (port 5621), the debug save for the Underwater City and the desert by the ship, before the change and after, 12 October; cwebp -q 72';
+// (v1.59: the chime pirates reworked, issue #206; a scratch shooter against this branch's own Vite and origin/main's tree)
+const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5641) and origin/main’s tree before it (8821ba59, port 5643), ?game=pirates&to=edena, the run flown ahead to the same second by the game’s pilot for both (12 October); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.59': [
+    { match: 'The chime pirates count points now', shots: [
+      { name: 'pirates-points', title: 'A kill', caption: 'A skiff shot down ten seconds in: before, “+1 chime” over it; after, “+10”, the points in the corner counting', from: PI59 },
+      { name: 'pirates-results', title: 'The results', caption: 'The run won on the way to a world: before, “Chimes won: 79” among the lines; after, the points and the chimes they make, counted up, 20 points a chime', from: PI59 },
+    ], see: 'Fly to a world you have never visited: the pirates attack on the way. Shoot them down and watch the points; win, and the results turn them into chimes.' },
+    { match: 'Losing a pip of hull to the chime pirates', shots: [
+      { name: 'pirates-hit', caption: 'A pirate shot hitting the ship: before, a thin coral line round the screen; after, the edges flare red, the pips under the ship with the lost one bursting, the corner’s pip popping', from: PI59 },
+    ], see: 'In the chime pirates, let a pirate shot or a rock hit you.' },
+    { match: 'The chime pirates’ two aiming boxes are one sight', shots: [
+      { name: 'pirates-reticle', caption: 'Twelve seconds in, D held 0.4 s: before, two squares; after, the ring and the diamond on the line of fire', from: PI59 },
+    ], see: 'In the chime pirates, steer so a pirate sits in the ring: it tightens and turns coral; fire, and a mark flashes on each hit.' },
+    { match: 'The first time you meet the chime pirates, pushing the stick up dives', shots: [
+      { name: 'pirates-card', caption: 'The start card on the way to a new world: before, “Stick forward: Dives / Climbs” to choose; after, no choice, the controls saying W or ↑ dives (with a pad: push up to dive)', from: PI59 },
+    ], see: 'Start the chime pirates on a new save: the card has no pitch choice and pushing up dives. Beat them once and the card offers “Push up to: Dive / Climb”.' },
+    { match: 'The pirates’ captain flies a gunship built for space', shots: [
+      { name: 'pirates-boss', title: 'The captain', caption: 'The captain coming in at 78 s: before, the galleon under its solar sails; after, the gunship, its turrets on the wingtips, the skull on its prow, the engines’ intakes glowing', from: PI59 },
+      { name: 'pirates-bossnear', title: 'The bridge open', only: 'after', caption: 'Its turrets down, close in under it: the shutters open over the teal bridge, rings of slow shots coming', from: PI59 },
+    ], see: 'Fly the chime pirates to the end: the captain’s gunship comes in at about 70 seconds.' },
+  ],
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [
       { name: 'ragdoll-cliff', caption: 'Knocked over at 9 m/s toward a terrain cliff in Vael, at 0.15, 0.4, 0.7, 1.1, 1.7 and 3 s: before, the body shoots up the face (20 m by 3 s); after, it stops at the foot and lies there', from: MV58 },
