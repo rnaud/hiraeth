@@ -656,6 +656,9 @@ const SHAFT52 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 
 const DECK52 = 'the Steam Deck’s run on the Mac (scripts/bench/deck-mac.mjs + deck-worlds.mjs --slow 3 --size 1280x800, the Deck preset, the CPU slowed ×3), the City-Shaft’s five bench views, before and after the change, 11 October; draws over all passes and triangles a frame are exact, the frame times only a guide (the Mac shared, load 19–60)';
 // (v1.53: the meadow's flowers from afar, issue #38: the ink-lines audit, this branch's own Vite, the tree before the change)
 const INK53 = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headless Chrome, muted, the game’s and the shaders’ clocks held) against this branch’s own Vite (port 5743) and the same tree with src/flora.js and src/materials.js before the change, 12 October; crops scaled up; cwebp -q 75';
+// (v1.54: the Desert raised and the City-Shaft's mirror and Nima's light, issues #181 and #182: the level design audit's
+// capture (QC54) against this branch's own Vite, before and after the change, by hand; the same views)
+const QC54 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5487), before the change and after it, the same pinned cameras, 12 October; cwebp -q 72';
 // (v1.53: the Desert's picked explorations, issue #167: this branch's own Vite and origin/main before it, by hand; the same views)
 const EXPLORE52 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5463) and origin/main before the change (25e4cfca, git archive), the same pinned cameras, 11 October; cwebp -q 72';
 // (v1.53: the temples to explore, round 3, issue #23; the Hush-House at the origin [-100, 1700, 300])
@@ -711,6 +714,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'foundry-cracked', title: 'The cracked moons', caption: 'By the hangar’s mouth: after, a tub cart heaped with cracked little moons on the rails, the apron beyond', from: LD54,
         view: { level: 'moonfoundry', hour: 10, fov: 60, eye: [119, 3, 18], target: [126, 1.6, 40], player: [119, 0, 17] } },
     ], see: 'Stop the Last Founder and step out of the Casting-House: follow the rails north from beside its door, out of the hangar’s mouth, and across the apron to your ship.' },
+    { match: 'In the Desert, a ledge now winds up the lavender mesa', shots: [
+      { name: 'desert-lookout', title: 'The ledge', caption: 'From the ride out, west of the sandfall mesa: before, its lavender face bare; after, the ledge winding up it from the sand to the lookout beside the fall', from: QC54,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [690, 32, -110], target: [785, 55, -190], player: [686, 28, -107] } },
+      { name: 'desert-lookoutview', only: 'after', title: 'From the lookout', caption: 'On the platform, 40 m over the sand: the ride below, the giant’s arm across the dry wash and the other sandfall’s mesa beyond, the cairn and the pole of cloths beside you', from: QC54,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [775.5, 70.5, -149.5], target: [640, 28, -30], player: [774.5, 67.5, -148.5] } },
+      { name: 'desert-armcrown', title: 'The arm’s verse', caption: 'From the dry wash’s bed under the giant’s arm: after, its verse stone, brazier and a little cairn up on its crown over the middle of the wash (before, on the elbow over the bank, out of sight)', from: QC54,
+        view: { level: 'desert', hour: 10, fov: 60, eye: [676, 19.6, 22], target: [652, 27.5, 47], player: [679, 17.6, 19] } },
+    ], see: 'Ride out from Marrow’s hollow toward the Givers’ Hearth: past the skiff’s anchor, the ledge starts on the sand at the mesa’s west foot. Hold RT / R2 up it, or walk, to the platform by the sandfall’s lip, and press A / × to look out. On the giant’s arm, the verse is read on its crown, halfway across.' },
   ],
   '1.53': [
     { match: 'Where the dry wash ends, east of the camps, lies a white salt pan', shots: [

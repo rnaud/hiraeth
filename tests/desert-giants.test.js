@@ -87,8 +87,13 @@ test('a shrine at each giant, its verse read outward from Qanat; the last points
   const reads = allInteractables().filter((e) => /^giants\.verse/.test(e.id));
   assert.equal(reads.length, 4);
   for (const e of reads) assert.equal(e.prompt, 'read the verse');
-  // the arm's shrine stands on its elbow, a raised place
-  assert.ok(R.shrines[1].at.y - A0().bed.y > 5, 'the second verse is up on the arm');
+  // the arm's shrine stands on its crown over the middle of the wash, a raised place (issue #181: on the elbow it stood
+  // over the bank, and the level design audit counted it on the sand): more than 8 m over the lowest ground 10 m round
+  const S2 = R.shrines[1], st = S2.stand;
+  assert.ok(flat(st, A0().bed) < 4, `the second verse over the wash's middle (${flat(st, A0().bed).toFixed(1)} m off it)`);
+  const floor = Math.min(level.ground.heightAt(st.x, st.z), ...[0, 1, 2, 3, 4, 5, 6, 7].flatMap((k) => [5, 10].map((r) => level.ground.heightAt(st.x + Math.cos(k * 0.785) * r, st.z + Math.sin(k * 0.785) * r))));
+  assert.ok(st.y - floor > 8.5, `the second verse ${(st.y - floor).toFixed(1)} m over the bed`);
+  assert.ok(Math.abs(physics.groundAt(st.x, st.y + 3, st.z, 6) - st.y) < 0.6, 'read standing on the arm');
   // read them in order: each a look and a verse; the fourth sets the Speaker's clue
   for (const [i, def] of VERSES.entries()) {
     const r = new DialogueRunner(def, { game, quests: rt.quests });

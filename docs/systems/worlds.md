@@ -401,10 +401,11 @@ home, where the level design audit found nothing at mid-distance (1 of 37 option
   dunes' own: `tests/dunes.test.js`), following the dunes as they lie, nothing touched past the lip. Down it, four
   fallen giants, each one mesh in the ribcage's vertex-coloured bone (`ribcageMaterial`), collided as drawn: a hand
   standing out of a dune (38 m to its longest finger, a `beacon` for the audit: too slender for its height grid), an
-  arm across the wash (ridden or walked up from its shoulder in the south bank, over the elbow, 7 m over the bed, to its
+  arm across the wash (ridden or walked up from its shoulder in the south bank, over the elbow, 10 m over the bed, to its
   hand open on the north bank), a spine up a dune to its skull, a jaw standing over the wash's head like an arch.
   Each has a pilgrims' shrine (a verse stone with its number in notches, a brazier burning, a pole of cloths; the arm's
-  on its elbow): `read the verse` opens `THINGS.verse1`–`verse4`, read outward from Qanat, the giants' road told back to
+  on its crown over the middle of the wash, a cairn beside it, 10 m over the bed: issue #181, where it stood on the elbow
+  over the bank the level design audit counted it on the sand): `read the verse` opens `THINGS.verse1`–`verse4`, read outward from Qanat, the giants' road told back to
   where they came from; the fourth points on to the swamp of lights (`clue.desert.perdide`). The four are `sights`.
   About 13k triangles and 10 meshes in all (the four braziers one). `tests/desert-giants.test.js`.
 - **The walking dunes** (`src/desert-dunes.js`, `src/story/desert-dunes.js`; `SAND_RIVER`, `RUINS`, `DUNE_VISITS`,
@@ -419,7 +420,13 @@ home, where the level design audit found nothing at mid-distance (1 of 37 option
   same two. The dunes are meshes in the sand drifts' own material, collided as drawn; the open ruins are `sights` with a
   look (`THINGS.ruin*`). Two sandfalls pour off mesas `src/world.js` scattered (found by raycasting the mesa at build:
   the curtain hangs clear of every ledge above it), in the waterfalls' own shader (`fall`) in sand's tones, a cone of
-  sand at the foot. About 8k triangles, 9 meshes. `tests/desert-dunes.test.js`.
+  sand at the foot. **The lookout** (`LOOKOUT`, issue #181: one place in 64 stood raised): a ledge cut round the second
+  fall's mesa from the sand on its west side up to a stone platform beside the lip, 38 m over the sand where it starts,
+  with a cairn and a pole of cloths and a `look out` (`THINGS.lookout`) over the ride and the giants' road. Found by
+  raycasting the mesa as the falls are: the ledge runs a little into the rough face and keeps its 4.6 m outside it, level
+  for its last tenth onto the platform; a traveller who can't climb walks it, the bike rides it (a ramp of about 24°). A
+  `sight`; the desert's places span 91 m of height (58 before), verticality 3 → 4. About 8k triangles, 10 meshes.
+  `tests/desert-dunes.test.js`.
 - **The memory of water** (`src/desert-water.js`, `src/story/desert-water.js`; `SALT_PAN`, `WELLS`, `BOATS` in
   `src/desert-sites.js`). The dry wash keeps pale tide lines along its banks and two boats stranded on them. It ends
   east of the camps in a salt pan (`PAN` in `desertHeight`, `src/desert-ground.js` `pan`: level at the mean of its

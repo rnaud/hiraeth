@@ -122,6 +122,7 @@ export const GIANTS = {
  *   RUINS       four old things the dunes cover and uncover, two at a time, a different two each visit (`DUNE_VISITS`)
  *   SANDFALLS   sand pouring off two mesas' lips: [x, z] of the mesa (src/world.js scatters them; found by raycasting),
  *               the way the fall faces (`toward`), its width
+ *   LOOKOUT     the ledge up the second one's mesa to a lookout beside its lip (issue #181)
  */
 export const SAND_RIVER = {
   points: [[170, 100], [255, 45], [340, -45], [430, -72], [520, -66], [600, -45]],
@@ -141,6 +142,13 @@ export const SANDFALLS = [
   { mesa: [605, 194], toward: [640, 60], w: 18, seed: 3 },   // over the dry wash, the giant's arm below it
   { mesa: [791, -197], toward: [800, -100], w: 18, seed: 7 }, // over the ride out, just past the skiff's anchor
 ];
+/**
+ * The lookout on the sandfall mesa over the ride (issue #181: the desert's places stood all on the sand): a ledge cut
+ * round the mesa's west face, from the sand at angle `a0` (round the mesa's middle, world atan2(z, x)) up to a stone
+ * platform at `a1` beside the fall's lip, `rise` m over the sand where it starts. `w` the ledge's width, `deck` the
+ * platform's radius. Walked (or ridden) up, never climbed: src/desert-dunes.js.
+ */
+export const LOOKOUT = { fall: 1, a0: 3.75, a1: 1.9, rise: 38, w: 4.6, deck: 6.5 };
 /**
  * The memory of water (issue #167, references/levels/The Desert/environment/explorations/water-memory/;
  * src/desert-water.js):

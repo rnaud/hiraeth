@@ -28,6 +28,8 @@ export const CHANGELOG = [
     'In the Garden of Spheres a pale path now leads from behind your ship to the Footprint, past a little Footprint pressed in the grass and a tall white stone. Once the Echo is calm, the Footprint lets you out through a round stone at the foot of the white hill, and the hill’s path takes you home another way.',
     'In Lorn the keepers’ stakes now come out of the crystal cave and round the Hush-House to a stake beside its steps, then run on down the channel to Hollin, so the way from the house to the lamp-keeper is marked.',
     'In the Moon Foundry, rails run from beside the Casting-House’s door up the hangar’s east side and out onto the apron, with a stone test moon on a cart and a cart of cracked moons on the way: a walk back to your ship you haven’t taken yet.',
+    // the desert raised (src/desert-dunes.js LOOKOUT, src/desert-giants.js; issue #181)
+    'In the Desert, a ledge now winds up the lavender mesa where sand pours over the ride out, from the sand to a lookout beside the fall’s lip, 40 m up: walk it or ride the hoverbike up it, and look out over the ride and the giants down the dry wash. The giant’s arm has its verse stone up on its crown, over the middle of the wash, where you ride across high over the riverbed.',
   ] },
   { v: '1.53', date: '2026-10-12', items: [
     // the meadow's flowers from afar (src/flora.js FAR_LINE, materials.js lineFar; docs/audits/ink-lines-v1.53.md; issue #38)

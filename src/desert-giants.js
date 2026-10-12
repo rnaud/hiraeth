@@ -14,15 +14,15 @@ import { WASH } from './desert-landmarks.js';
 //
 //   the hand    standing out of the dune by the wash like a ruin, 27 m to its longest finger, its palm to the hollow
 //   the arm     lying across the dry wash, its shoulder sunk in the south bank and its hand open on the north one:
-//               ride (or walk) up from the shoulder, over the elbow and across, 8 m over the bed. Broad and flat on
+//               ride (or walk) up from the shoulder, over the elbow and across, 10 m over the bed. Broad and flat on
 //               top, collided as drawn
 //   the spine   up a dune's slope like a stair, a vertebra every 3.4 m, its skull a lookout on the crest
 //   the jaw     standing over the wash's head like an arch, teeth down: the pilgrims' shelter, a rug and a fire under it
 //
 // Each has a pilgrims' shrine: a verse stone with its number cut in notches (I-IV, read outward from Qanat), a
 // brazier burning and a pole of red and white cloth (src/story/desert-giants.js reads the verses). The arm's shrine
-// stands on its elbow, beside the way over. Bone in the ribcage's own material (one per giant: each is culled on its
-// own), the shrines in the road's stone, clay and cloth.
+// stands on its crown over the middle of the wash, beside the way over (issue #181). Bone in the ribcage's own
+// material (one per giant: each is culled on its own), the shrines in the road's stone, clay and cloth.
 //
 //   const road = buildGiantsRoad(scene, terrain)  →  { group, giants: { hand, arm, spine, jaw }, shrines, clear, avoid, sights }
 
@@ -175,6 +175,7 @@ export function buildGiantsRoad(scene, terrain) {
     // (a: half its width, b: half its height, along t from the shoulder at -58 to the wrist at 30)
     const aOf = (t) => (t < -24 ? THREE.MathUtils.lerp(4.6, 4.0, (t + 58) / 34) : THREE.MathUtils.lerp(3.9, 3.0, (t + 24) / 54));
     const bOf = (t) => (t < -24 ? THREE.MathUtils.lerp(3.3, 2.9, (t + 58) / 34) : THREE.MathUtils.lerp(2.8, 2.2, (t + 24) / 54));
+    const CROWN = 0;   // (where its shrine stands: over the middle of the wash, the bed 10 m below)
     const T0 = -58, T1 = 31, N = 26, ts = Array.from({ length: N + 1 }, (_, k) => T0 + (T1 - T0) * k / N);
     const pts = ts.map((t) => at(t).setY(topAt(t) - bOf(t)));
     const geos = [], put = (g, c = BONE) => geos.push(finish(g, c));
@@ -199,10 +200,16 @@ export function buildGiantsRoad(scene, terrain) {
       for (const sgn of [-1, 1]) { const e = at(t, sgn * (a + 0.02)).setY(topAt(t) - b - 0.1); strip(e, Math.atan2(d.x, d.z), 1.6 + (k % 3) * 0.5, k % 2 === 0); }
     });
     const mesh = bone('The giant’s arm', geos);
-    // its shrine on the elbow, to one side of the way over (a bike passes it)
-    const sAt = at(-24, 2.3); sAt.y = topAt(-24) - bOf(-24) + bOf(-24) * Math.sqrt(1 - (2.3 / aOf(-24)) ** 2);
-    const s = shrine(2, sAt, Math.atan2(-side.x, -side.z), { pole: false });
-    s.stand = at(-24, 0.6).setY(topAt(-24));   // (on the arm's top, before it)
+    // its shrine on the crown over the middle of the wash, to one side of the way over (a bike passes it), a little cairn
+    // beside it: the stop is up where the arm carries you, 10 m over the bed (issue #181: on the elbow it stood on the lip)
+    const on = (t, l) => at(t, l).setY(topAt(t) - bOf(t) + bOf(t) * Math.sqrt(Math.max(0, 1 - (l / aOf(t)) ** 2)));
+    const s = shrine(2, on(CROWN, 2.3), Math.atan2(-side.x, -side.z), { pole: false });
+    s.stand = at(CROWN, 0.6).setY(topAt(CROWN));   // (on the arm's top, before it)
+    [[1.3, 2.5, 0.42], [1.5, 2.6, 0.32], [1.4, 2.55, 0.22]].reduce((y, [dt, l, r], k) => {
+      const c = on(CROWN + dt, l);
+      shrineParts.stone.push(rough(new THREE.IcosahedronGeometry(r, 0), 0.06, 1.4, 90 + k).translate(c.x, c.y + y + r * 0.8, c.z));
+      return y + r * 1.5;
+    }, 0);
     giants.arm = { mesh, at: at(0).setY(topAt(0)), shoulder: at(-46).setY(topAt(-46)), elbow: at(-24).setY(topAt(-24)), wrist: at(30).setY(topAt(30)), hand: hc, across: d.clone(), topAt, bed: at(0).setY(gy(0)), shrine: s };
     for (let t = T0; t <= 46; t += 6) { const p = at(t); clear.push({ x: p.x, z: p.z, r: 6 }); }
   }

@@ -27,5 +27,10 @@ export function setupDunes(ctx) {
       distance: (p) => (Math.abs(p.pos.y - r.stand.y) < 4 ? Math.hypot(p.pos.x - r.look.x, p.pos.z - r.look.z) : Infinity),
       use: () => dialogue.start(L.def, null, r.stand.clone(), r.look.clone()) });
   }
+  // the lookout up the sandfall mesa (issue #181): the view over the ride, one look
+  const O = D.lookout;
+  if (O) registerInteractable({ id: 'dunes.lookout', priority: PRIORITY.use, range: 3.4, at: () => O.look, prompt: 'look out',
+    distance: (p) => (Math.abs(p.pos.y - O.stand.y) < 3 ? Math.hypot(p.pos.x - O.look.x, p.pos.z - O.look.z) : Infinity),
+    use: () => dialogue.start(THINGS.lookout, null, O.stand.clone(), O.look.clone()) });
   return { visit: D.visit };
 }

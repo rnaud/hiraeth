@@ -884,9 +884,9 @@ export const THINGS = {
     } } },
   },
   verse2: {
-    id: 'verse2', name: 'The second verse', title: 'on the giant’s elbow', color: '#cdb38f', voice: 0.6,
+    id: 'verse2', name: 'The second verse', title: 'on the giant’s arm, over the wash', color: '#cdb38f', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~curious~ Two notches, on the stone at the elbow. Below, the dry wash runs under the arm.",
+      say: ["~curious~ Two notches, on the stone over the middle of the wash. The sand river runs far below your feet.",
         "~solemn~ *The one before it held the water up over the failing river, and went no further.*"],
       do: { set: { 'desert.giants.verse2': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
@@ -912,6 +912,16 @@ export const THINGS = {
     } } },
   },
   // the walking dunes' ruins (src/desert-dunes.js, src/story/desert-dunes.js; issue #167): two stand clear each visit
+  // the lookout up the sandfall mesa over the ride (src/desert-dunes.js LOOKOUT; issue #181)
+  lookout: {
+    id: 'lookout', name: 'The pilgrims’ lookout', title: 'on the sandfall mesa', color: '#d9c3a0', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ The whole ride lies below: the red strips back to the hollow, the Hearth’s chimney far ahead.",
+        "~solemn~ Down the dry wash, the giants lie one after another, the way they fell."],
+      do: { set: { 'desert.lookout.seen': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
   ruinStair: {
     id: 'ruinStair', name: 'A doorway in the sand', title: 'that a dune let go of', color: '#cdb38f', voice: 0.6,
     talk: { nodes: { look: {

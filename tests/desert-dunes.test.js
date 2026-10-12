@@ -78,7 +78,7 @@ test('a covered ruin is under its dune (the tower\'s tip shows), an open one has
     else assert.ok(g > r.top.y, `${r.id}: the dune stands over it (${(g - r.top.y).toFixed(1)})`);
   }
   // the open ones are things to look at, and sights for the level design audit, 30-150 m off the ride out
-  const looks = allInteractables().filter((e) => /^dunes\./.test(e.id)).map((e) => e.id.slice(6));
+  const looks = allInteractables().filter((e) => /^dunes\./.test(e.id) && e.id !== 'dunes.lookout').map((e) => e.id.slice(6));
   assert.deepEqual(looks.sort(), D.ruins.filter((r) => r.open).map((r) => r.id).sort());
   const ride = [[STORY.bike.x, STORY.bike.z], [STORY.hearth.x, STORY.hearth.z]];
   for (const def of RUINS) { const d = toLine({ x: def.x, z: def.z }, ride); assert.ok(d > 30 && d < 150, `${def.id} ${d.toFixed(0)} m off the ride`); }
@@ -96,4 +96,53 @@ test('sand pours off two mesas, in the waterfalls\' own moving curtain', () => {
     const d = Math.min(toLine(f.at, [[STORY.bike.x, STORY.bike.z], [STORY.hearth.x, STORY.hearth.z]]), toLine(f.at, [[STORY.city.x, STORY.city.z], ...hearthStones()]));
     assert.ok(d < 150, `its foot ${d.toFixed(0)} m from the way`);
   }
+});
+
+// (issue #181: the desert's places all stood on the sand) A ledge cut round the second sandfall's mesa, from the sand up to
+// a lookout beside its lip, some 40 m over the ride: walked up by a traveller who cannot climb, ridden up on the bike.
+test('the lookout on the sandfall mesa: a ledge up from the sand, walked and ridden, to a view 35 m and more over it', async () => {
+  const A = await import('./playthrough-agent.js');
+  const O = D.lookout;
+  assert.ok(O, 'the lookout is built');
+  const floor = Math.min(...[0, 1, 2, 3, 4, 5, 6, 7].map((k) => level.ground.heightAt(O.stand.x + Math.cos(k * 0.785) * 10, O.stand.z + Math.sin(k * 0.785) * 10)), level.ground.heightAt(O.stand.x, O.stand.z));
+  assert.ok(O.stand.y - floor > 35, `the platform ${(O.stand.y - floor).toFixed(0)} m over the sand round it`);
+  assert.ok(Math.abs(physics.groundAt(O.stand.x, O.stand.y + 3, O.stand.z, 8) - O.stand.y) < 0.5, 'the platform is solid where you stand');
+  // its foot on the sand, and the ledge solid all the way up, no step higher than a stride
+  assert.ok(Math.abs(O.path[0].y - level.ground.heightAt(O.path[0].x, O.path[0].z)) < 1, 'the ledge starts on the sand');
+  for (const p of O.path) assert.ok(Math.abs(physics.groundAt(p.x, p.y + 3, p.z, 6) - p.y) < 0.3, `the ledge solid at ${p.x.toFixed(0)}, ${p.z.toFixed(0)}`);
+  for (let i = 1; i < O.path.length; i++) assert.ok(O.path[i].y - O.path[i - 1].y < 1.2, 'a gentle ramp, no step up');
+  // a traveller who cannot climb walks up it and down again
+  const walk = (points, from) => {
+    const P = new A.Player(physics, { health: false, climb: false });
+    P.has = () => false;
+    P.respawn(from.clone().add(V(0, 0.2, 0)));
+    for (const to of points) for (let i = 0; i < 60 * 20 && A.flat(P.pos, to) > 0.9; i++) {
+      const heading = Math.atan2(to.x - P.pos.x, to.z - P.pos.z);
+      P.heading = heading;
+      P.update(1 / 60, { KeyW: true }, heading + Math.PI);
+    }
+    return P.pos.clone();
+  };
+  const foot = O.path[0].clone().addScaledVector(O.path[0].clone().sub(O.path[1]).setY(0).normalize(), 6);
+  foot.y = level.ground.heightAt(foot.x, foot.z);
+  assert.ok(walk([...O.path, O.stand], foot).distanceTo(O.stand) < 1.5, 'walked up to the platform');
+  assert.ok(walk([...O.path].reverse(), O.stand).distanceTo(O.path[0]) < 1.5, 'and down again');
+  // the bike rides it up, steered along it
+  const bike = new Hoverbike(physics);
+  bike.place(foot.x, foot.z, Math.atan2(O.path[1].x - foot.x, O.path[1].z - foot.z));
+  let k = 0;
+  for (let i = 0; i < 60 * 40 && k < O.path.length; i++) {
+    const to = O.path[k];
+    if (A.flat(bike.pos, to) < 4) { k++; continue; }
+    let dh = Math.atan2(to.x - bike.pos.x, to.z - bike.pos.z) - bike.heading;
+    while (dh > Math.PI) dh -= 2 * Math.PI;
+    while (dh < -Math.PI) dh += 2 * Math.PI;
+    bike.update(1 / 60, { KeyW: true, KeyA: dh > 0.05, KeyD: dh < -0.05 });
+  }
+  assert.equal(k, O.path.length, 'the bike rides the whole ledge');
+  assert.ok(bike.pos.y > O.top - 3, `and comes up onto the top (${bike.pos.y.toFixed(1)} of ${O.top.toFixed(1)})`);
+  // a look out over the ride from the platform; the level design audit counts it as a place
+  const look = allInteractables().find((e) => e.id === 'dunes.lookout');
+  assert.ok(look && look.prompt === 'look out', 'look out from the platform');
+  assert.ok(level.sights().some((s) => s.name === 'the lookout on the sandfall mesa'), 'a sight the audit counts');
 });

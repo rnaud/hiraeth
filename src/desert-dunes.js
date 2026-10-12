@@ -4,7 +4,7 @@ import { makeMaterial } from './materials.js';
 import { driftMaterial } from './sand-drifts.js';
 import { rough } from './desert-hearth.js';
 import { smoothstep } from './noise.js';
-import { RUINS, DUNE_VISITS, DUNE_WALK, SANDFALLS } from './desert-sites.js';
+import { RUINS, DUNE_VISITS, DUNE_WALK, SANDFALLS, LOOKOUT } from './desert-sites.js';
 import { WASH, SAND_RUN } from './desert-landmarks.js';
 
 // The walking dunes (issue #167; references/levels/The Desert/environment/explorations/walking-dunes/): the desert is
@@ -24,7 +24,10 @@ import { WASH, SAND_RUN } from './desert-landmarks.js';
 //                    `fall`, waterfall-shader.js, in sand's tones), a cone of sand at the foot; found by raycasting the
 //                    mesa where src/world.js put it.
 //
-//   const d = buildWalkingDunes(scene, terrain, { visit })  →  { group, lane(x, z), rivers, ruins, falls, sights, clear, avoid }
+//   the lookout      a ledge cut round the second sandfall's mesa, up from the sand to a platform beside its lip, 38 m
+//                    over the ride (issue #181, LOOKOUT): walked or ridden up, a view over the ride and the giants' road.
+//
+//   const d = buildWalkingDunes(scene, terrain, { visit })  →  { group, lane(x, z), rivers, ruins, falls, lookout, sights, clear, avoid }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 // (the bike in a sand river: src/bike.js LANE, its top speed with the flow and the current carrying it)
@@ -38,12 +41,13 @@ export function buildWalkingDunes(scene, terrain, { visit = 0 } = {}) {
   const H = (x, z) => terrain.heightAt(x, z);
   const group = new THREE.Group(); group.name = 'The walking dunes';
   const clear = [];
-  const parts = { river: [], stone: [], stone2: [], dark: [], wood: [], cloth: [], dune: [] };
+  const parts = { river: [], stone: [], stone2: [], kerb: [], dark: [], wood: [], cloth: [], dune: [] };
   const mats = {
     // (the running sand paler than the dunes: its ripples are the ground's own ink; no streaks of their own, a draw saved)
     river: (() => { const m = makeMaterial({ color: '#f7e0b2', flat: true }); m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; return m; })(),
     stone: makeMaterial({ color: '#cdb38f', color2: '#bfa27c', flat: true }),
     stone2: makeMaterial({ color: '#d9c3a0', flat: true }),
+    kerb: makeMaterial({ color: '#d9c3a0', flat: true }),
     dark: makeMaterial({ color: '#3b3340', flat: true }),
     wood: makeMaterial({ color: '#8a6a4a', flat: true }),
     cloth: makeMaterial({ color: '#f3ead8', flat: true, side: THREE.DoubleSide }),
@@ -204,16 +208,93 @@ export function buildWalkingDunes(scene, terrain, { visit = 0 } = {}) {
     falls.push({ at: V(fx, H(fx, fz), fz), top: V(mx + f.x * rows[0].e, top, mz + f.z * rows[0].e), height: h, sheet });
   }
 
+  // ---------------------------------------------------------------- the lookout up the sandfall mesa over the ride
+  // (issue #181: every place in the desert stood on the sand) A ledge the pilgrims cut round the mesa's west face, from the
+  // sand up to a stone platform beside the fall's lip, LOOKOUT.rise m over the sand: walked or ridden up, not climbed.
+  const lookout = (() => {
+    const F = SANDFALLS[LOOKOUT.fall];
+    if (!F) return null;
+    const [mx, mz] = F.mesa;
+    // the mesa itself: the big solid standing on that spot
+    let mesa = null, best = Infinity;
+    for (const o of solids) {
+      if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+      const c = o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld), d = Math.hypot(c.x - mx, c.z - mz);
+      if (o.geometry.boundingSphere.radius > 25 && d < 25 && d < best) { best = d; mesa = o; }
+    }
+    if (!mesa) return null;
+    const dir = (a) => V(Math.cos(a), 0, Math.sin(a));
+    /** How far out from the middle the face stands at angle a, over the 3 m above y (where a ledge at y meets it). */
+    const wallAt = (a, y) => {
+      let r = null;
+      for (const dy of [0.3, 1.2, 2.2, 3.2]) {
+        ray.set(V(mx, y + dy, mz).addScaledVector(dir(a), 200), dir(a).negate()); ray.far = 260;
+        const h = ray.intersectObject(mesa, false)[0];
+        if (h) r = Math.max(r ?? 0, Math.hypot(h.point.x - mx, h.point.z - mz));
+      }
+      return r;
+    };
+    const { a0, a1, rise, w, deck } = LOOKOUT;
+    const r0 = wallAt(a0, H(mx + Math.cos(a0) * 70, mz + Math.sin(a0) * 70) + 1) ?? 55;
+    const y0 = H(mx + Math.cos(a0) * (r0 + w / 2), mz + Math.sin(a0) * (r0 + w / 2)) + 0.1, y1 = y0 + rise;
+    const n = Math.ceil(Math.abs(a1 - a0) * 52 / 2.4);
+    const st = [];
+    for (let i = 0; i <= n; i++) {
+      const u = i / n, a = a0 + (a1 - a0) * u, y = y0 + (y1 - y0) * Math.min(1, u / 0.9);   // (level for its last few metres, onto the platform)
+      st.push({ a, y, r: wallAt(a, y) ?? st.at(-1)?.r ?? r0 });
+    }
+    // (the face is terraced and rough: the ledge runs into it, never out from it, and keeps its width outside it)
+    st.forEach((s, i) => {
+      const near = st.slice(Math.max(0, i - 2), i + 3).map((q) => q.r);
+      s.rin = Math.min(...near) - 1.4; s.rout = Math.max(...near) + w;
+    });
+    const P = (a, r, y) => V(mx + Math.cos(a) * r, y, mz + Math.sin(a) * r);
+    const pos = [], idx = [];
+    st.forEach((s) => {
+      for (const [r, y] of [[s.rin, s.y], [s.rout, s.y], [s.rout - 0.5, s.y - 1.3], [s.rin, s.y - 2.4]]) { const p = P(s.a, r, y); pos.push(p.x, p.y, p.z); }
+    });
+    for (let i = 0; i < st.length - 1; i++) for (let k = 0; k < 4; k++) {
+      const a = i * 4 + k, b = i * 4 + ((k + 1) % 4), c = a + 4, d = b + 4;
+      idx.push(...(a1 < a0 ? [a, b, c, b, d, c] : [a, c, b, b, c, d]));   // (faces outward whichever way it winds)
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+    parts.stone.push(g.toNonIndexed());
+    // a kerb of worn stones along its outer lip (walked over, not into), every few metres
+    st.forEach((s, i) => {
+      if (i % 2 || i < 3) return;
+      const p = P(s.a, s.rout - 0.35, s.y + 0.12);
+      parts.kerb.push(rough(new THREE.IcosahedronGeometry(0.3 + 0.12 * ((i * 7) % 3), 0), 0.06, 2, i).scale(1.3, 0.6, 1).translate(p.x, p.y, p.z));
+    });
+    // the platform at the top: half in the face, half out over the ride, a cairn and a pole of cloths on it
+    const end = st.at(-1), c = P(end.a, end.r + 1, y1);
+    parts.stone.push(new THREE.CylinderGeometry(deck, deck * 0.8, 3, 14).translate(c.x, y1 - 1.5, c.z));
+    const out = dir(end.a), side = V(-out.z, 0, out.x);
+    const at = (lx, lz, y = y1) => c.clone().addScaledVector(out, lz).addScaledVector(side, lx).setY(y);
+    [[0.62, 0.4], [0.46, 0.3], [0.32, 0.22]].reduce((y, [r, h], k) => {
+      const p = at(-3.2, 2.2, y1 + y + h); parts.stone2.push(rough(new THREE.IcosahedronGeometry(r, 0), 0.07, 1.5, 60 + k).scale(1, h / r * 1.6, 1).translate(p.x, p.y, p.z));
+      return y + h * 1.9;
+    }, 0);
+    { const p = at(3.4, 1.4); parts.wood.push(new THREE.CylinderGeometry(0.06, 0.08, 4.2, 5).translate(p.x, y1 + 2.1, p.z));
+      // (its cloths tied on near the top, narrow strips hanging loose: the giants' shrines' own)
+      for (let k = 0; k < 4; k++) { const L = 1.2 - k * 0.15, a = end.a + k * 1.5; parts.cloth.push(new THREE.PlaneGeometry(0.2, L).translate(0, -L / 2, 0).rotateX(0.35 + 0.1 * k).translate(0, 0, 0.09).rotateY(a).translate(p.x, y1 + 4.05 - k * 0.12, p.z)); } }
+    for (const s of st) { const p = P(s.a, (s.rin + s.rout) / 2, 0); clear.push({ x: p.x, z: p.z, r: 5 }); }
+    clear.push({ x: c.x, z: c.z, r: deck + 2 });
+    const look = at(0, deck - 0.6, y1 + 1.2), stand = at(0, deck - 2.2);
+    return { at: stand, stand, look, top: y1, foot: y0, path: st.map((s) => P(s.a, (s.rin + s.rout) / 2, s.y)) };
+  })();
+
   for (const [k, list] of Object.entries(parts)) {
     if (!list.length) continue;
     const m = new THREE.Mesh(mergeGeometries(list.map(flatGeo)), mats[k]);
     m.name = `The walking dunes (${k})`;
-    if (k === 'river' || k === 'cloth' || k === 'dark') m.userData.noCollide = true;
+    if (k === 'river' || k === 'cloth' || k === 'dark' || k === 'kerb') m.userData.noCollide = true;
     m.receiveShadow = true;
     group.add(m);
   }
   scene.add(group);
   const NAMES = { stair: 'a doorway the dune let go of', tower: 'the windcatcher out of the sand', caravan: 'a caravan the dune let go of', arcade: 'old arches out of the sand' };
   const sights = ruins.filter((r) => r.open).map((r) => ({ name: NAMES[r.id], at: r.stand }));
-  return { group, lane, rivers, ruins, falls, sights, clear, visit, avoid: (x, z, r = 0) => clear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) };
+  if (lookout) sights.push({ name: 'the lookout on the sandfall mesa', at: lookout.stand });
+  return { group, lane, rivers, ruins, falls, lookout, sights, clear, visit, avoid: (x, z, r = 0) => clear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) };
 }
