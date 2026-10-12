@@ -14,6 +14,7 @@ The same release notes shown in the game (press **N** or open settings).
 - At the start of a new game Plumb says a few things, each only once: as you step out of the ship, near the first person you meet, at your first chest and the first time you lose your way.
 - Your drone has a name now, Plumb, and a mind of its own. Wander for a few minutes without getting anywhere and it says a short line and flies out toward where you are going; then it leaves you be for a good while.
 - On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.
+- The opening in your ship has music of its own: a low hum, soft glass and a felt piano while you wake and walk to the cockpit, quiet under your father’s message. The desert’s music starts when you step out onto the sand.
 - All the words on the screen are in the game’s own lettering now: the hints at the bottom, the notices at the top, the cards for what you find, the minigames and trials, the settings and the conversations no longer use a typewriter face, and the names and titles share one bold heading face. The words also grow with the screen, so they read as easily on a big TV or a 1440p monitor as on the Steam Deck or a handheld.
 
 ## v1.50 — 2026-10-11

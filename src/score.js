@@ -265,6 +265,20 @@ export const SCORES = {
     color: { every: 20, at: 3, kind: 'pencil', vol: 0.5, chance: 0.6 },
     motif: [[0, 2], [2, 1], [4, 1], [7, 3], [6, 1], [4, 4]],
   },
+  // The traveller's ship, adrift in the dark before the desert (the prologue: issue #149, "the desert music shouldn't
+  // play in the ship"): the ship's own low hum, a glass pad, a few soft vibes notes like its instruments ticking over,
+  // the felt piano carrying the father's theme; no drums, no bass walk. D dorian: the desert's tonic, so the step out
+  // into its hijaz is a door opening rather than a change of key. Its colour: the console's three soft blips.
+  ship: {
+    title: 'The Dark Ship', root: 146.83, mode: 'dorian', level: 1.3, tempo: 48, meter: 4, bars: 4, chordBars: 2,
+    prog: [0, 5, 3, 0], drone: [[0, -1]],
+    pal: { drone: 'hum', pad: 'glass', bass: 'sine', pluck: 'vibes', lead: 'felt', father: 'felt', echo: 'vibes' },
+    perc: null,
+    arp: [0, 2, 4, 7], density: 0.18,
+    color: { every: 24, at: 5, kind: 'signal', degree: 4, octave: 1, vol: 0.35 },
+    // a question in the dark: up to the fifth, a step past it, and down to rest on the third
+    motif: [[0, 2], [4, 1], [5, 1], [4, 2], [null, 1], [2, 1], [1, 1], [2, 4]],
+  },
   // Home: the round house, the stone, Lou. A felt piano and strings over a harmonium, a music
   // box; the world's own tune is the father's theme, and how it comes home. D♭ major.
   home: {

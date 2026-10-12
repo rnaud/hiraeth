@@ -393,11 +393,38 @@ export class Sound {
     if (this.ctx && this.moments) this.moments.cue(kind, this.ctx.currentTime, { delay });
   }
 
+  /**
+   * Play another score than the world's (src/score.js SCORES), or none (null: the music falls silent, the
+   * ambience and effects go on). The prologue plays the ship's own (issue #149) and hands back the desert's
+   * when you step out. The bands keep their own key (they play in this.profile's: it follows the score).
+   */
+  setScore(id) {
+    if (id === null) { this.scoreOff = true; return; }
+    this.scoreOff = false;
+    if (id === this.scoreId) return;
+    const S = scoreFor(id);
+    this.scoreId = id; this.S = S;
+    Object.assign(this.profile, { root: S.root, scale: S.scale, tempo: S.tempo });
+    Object.assign(this.voice, { lead: S.pal.lead, pluck: S.pal.pluck, melody: S.motif });
+  }
+
+  /**
+   * Hold the world's recorded theme back (on), and the procedural score plays in full instead; released, the
+   * theme comes in as on arriving (`arrive`: the moments' arrival, src/music-moments.js). The prologue holds the
+   * desert's theme while you are in the ship, until you step out onto the sand (issue #149).
+   */
+  holdTheme(on, { arrive = true } = {}) {
+    const was = !!this.themeHeld;
+    this.themeHeld = !!on;
+    if (was && !on && arrive && this.ctx && this.moments) this.moments.cue('arrival', this.ctx.currentTime);
+  }
+
   /** Per frame: fade the recording in or out as src/music-moments.js says; a theme stopped after its fade starts again from its opening. */
   musicMomentsUpdate(indoor = 0) {
     const M = this.moments, ctx = this.ctx;
     if (!M || !ctx || !this.trackBuffer || !this.trackGain) return;
-    const { on } = M.update(ctx.currentTime, { indoor });
+    let { on } = M.update(ctx.currentTime, { indoor });
+    if (this.themeHeld) on = false;
     if (on === this.trackOn) return;
     this.trackOn = on;
     const t = ctx.currentTime, g = this.trackGain.gain;
@@ -651,9 +678,10 @@ export class Sound {
       const t = this.nextBeat;
       this.chord = chordAt(this.S, this.beat);
       // the recorded theme playing: no procedural score; resting between moments (src/music-moments.js): its light layers
-      if (!(this.recordedTrack && this.trackOn)) {
+      // (the theme held back, the prologue's ship: its score in full; the score off: nothing)
+      if (!(this.recordedTrack && this.trackOn) && !this.scoreOff) {
         const events = scoreBeat(this.scoreId, this.beat, this.act);
-        for (const e of this.trackBuffer ? lightScore(events) : events) this.playEvent(e, t, spb);
+        for (const e of this.trackBuffer && !this.themeHeld ? lightScore(events) : events) this.playEvent(e, t, spb);
       }
       this.ambienceTick(t, spb);
       if (this.bands) for (const b of this.bands) if (b.level > 0.004) this.bandBeat(b, t, spb);

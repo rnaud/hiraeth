@@ -204,6 +204,18 @@ function playLines(ship, model, timeline, t, st = {}) {
 // ---------------------------------------------------------------------------
 // The prologue
 
+/**
+ * The prologue's music (issue #149): 'ship' while you wake and walk in the ship (its own score, the desert's
+ * recorded theme held back), 'quiet' from the father's message on (his words and the singing light's theme carry
+ * it; the power goes), 'desert' as you step out (the world's score, and its theme comes in as on arriving).
+ */
+export function prologueMusic(sound, phase) {
+  if (!sound?.setScore) return;
+  if (phase === 'ship') { sound.holdTheme(true); sound.setScore('ship'); }
+  else if (phase === 'quiet') { sound.holdTheme(true); sound.setScore(null); }
+  else { sound.setScore('desert'); sound.holdTheme(false); }
+}
+
 export class PrologueDirector {
   constructor(ship) {
     this.s = ship;
@@ -254,6 +266,9 @@ export class PrologueDirector {
         s.setPower('on', sp);
         sp.callScreen?.set({ who: 'idle' });
         sfx.hum(s.sound, 1);
+        // the ship's own music while you wake and walk (src/score.js SCORES.ship), the desert's held back until you
+        // step out onto the sand (issue #149: the desert's theme played in the ship)
+        prologueMusic(s.sound, 'ship');
         break;
       case 'wake': C.fade(0, false, 1.4); break;
       case 'rise': C.fade(1, false, 0.25); break;
@@ -268,6 +283,7 @@ export class PrologueDirector {
         this.walkT = 0; this.nudged = false; this.nudgeOff = 0; this.walkFrom = s.player.pos.clone();
         break;
       case 'call': {
+        prologueMusic(s.sound, 'quiet');   // (his message and the light's theme carry it from here)
         if (this.nudgeOff) { C.hint(null); this.nudgeOff = 0; }
         C.controls(false); C.bars(true);
         s.auto = null;
@@ -334,6 +350,7 @@ export class PrologueDirector {
         }
         break;
       case 'stepout': {
+        prologueMusic(s.sound, 'desert');   // (the desert's music, as you step out)
         const thr = this.P(pk.interior.points.threshold);
         s.placePlayer(thr, s.site.heading, true);
         s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), s.rampFoot.clone().addScaledVector(s.outDir, 2.2)]);
@@ -629,6 +646,7 @@ export class PrologueDirector {
 
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
+    prologueMusic(s.sound, 'desert');   // (skipped before the step out: the desert's music now)
     this.humming?.stop(); this.humming = null;
     this.lightOff();
     if (skipped) this.cueRec?.stop?.();

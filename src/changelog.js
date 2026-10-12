@@ -11,6 +11,9 @@ export const CHANGELOG = [
   { v: '1.51', date: '2026-10-11', items: [
     // the type split (docs/systems/ui.md "Type"; issue #128)
     'All the words on the screen are in the game’s own lettering now: the hints at the bottom, the notices at the top, the cards for what you find, the minigames and trials, the settings and the conversations no longer use a typewriter face, and the names and titles share one bold heading face. The words also grow with the screen, so they read as easily on a big TV or a 1440p monitor as on the Steam Deck or a handheld.',
+    // the desert, after the author's playthrough (issues #149, #153–#158, #162)
+    { text: 'The opening in your ship has music of its own: a low hum, soft glass and a felt piano while you wake and walk to the cockpit, quiet under your father’s message. The desert’s music starts when you step out onto the sand.',
+      see: 'Start a new game (or open ?level=desert&prologue=1) with the sound on: in the ship you hear its own quiet music, not the desert’s ney and oud; they come in as the ramp comes down and you walk out.' },
     // the Unity preview on the Steam Deck (docs/systems/performance.md "The Steam Deck, round 7"; issue #111)
     'On the Steam Deck, the Unity preview runs smoother: about 60 frames a second at the City-Shaft’s rim, where it ran at 45, and over 55 even looking down over the whole city; the Desert and the Signal Market hold a steady 60.',
     // Plumb, the drone's own mind (docs/systems/scout.md "Plumb's own mind"; issue #152)

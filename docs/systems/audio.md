@@ -160,6 +160,18 @@ Chrome / WebView 109 has.
   5847).
 
 
+### The ship's music in the prologue (issue #149)
+
+"It doesn't make sense for the desert music to play in the prologue since it's in the ship." The ship has a score
+of its own (`SCORES.ship`, "The Dark Ship": D dorian, 48 a minute, the ship's hum for its drone, a glass pad, a few
+soft vibes notes, the felt piano with the father's theme, the console's three blips for its colour; no drums). It is
+on the desert's tonic, so stepping out into the hijaz opens a door rather than changing key. `prologueMusic(sound,
+phase)` (`src/ship/cinematics.js`) runs it: `ship` from the first black through the walk to the cockpit (the desert's
+recorded theme held back: `Sound.holdTheme`, its procedural score swapped: `Sound.setScore`), `quiet` from the
+father's message on (no score under his words and the singing light's theme; the power goes), `desert` as you step
+out onto the sand (the world's score, and its theme comes in as on arriving: the moments' `arrival`), and on a skip.
+A theme that finishes loading while held waits silent (`startTrack`). `tests/prologue-music.test.js`.
+
 ## The Forest of Antennas' signals (October 2026)
 
 The ambience `signals` (`AMBIENCE.antennas`): static crackling in clusters of two to six clicks on the beat

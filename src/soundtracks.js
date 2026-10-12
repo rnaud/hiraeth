@@ -189,7 +189,8 @@ function startTrack(sound, decoded, { late = false } = {}) {
   gain.gain.setValueAtTime(0, ctx.currentTime);
   gain.connect(sound.music);
   sound.trackGain = gain;
-  if (late) { sound.trackOn = false; return; }   // (Sound.musicMomentsUpdate starts it, faded, when a moment wants it)
+  // (Sound.musicMomentsUpdate starts it, faded, when a moment wants it; held back, the prologue in the ship: issue #149)
+  if (late || sound.themeHeld) { sound.trackOn = false; return; }
   const source = ctx.createBufferSource();
   source.buffer = sound.trackBuffer;
   source.loop = true;
