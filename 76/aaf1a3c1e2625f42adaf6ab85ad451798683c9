@@ -1,0 +1,29 @@
+docs/design/sun-station-prompts.md
+  s_9ca76055a220ed::t_a70b1737207d0e 1-122
+"references/levels/The Station in the Sun/environment/README.md"
+  s_c9d2789a21dbb8::t_406ab58aa57fdd 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76aaf1a3c1e2625f42adaf6ab85ad451798683c9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c9d2789a21dbb8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae86471a73d091c07",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
