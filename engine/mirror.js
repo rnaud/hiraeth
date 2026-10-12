@@ -106,14 +106,20 @@ export class SceneMirror {
     if (g && g.version === version) return g.gid;
     // only the points, their normals, alpha or colours moved (cloth: the capes, banners, a trail; the flames' flicker),
     // the same count and triangles: those go alone, in the frame (a backend with vertices()), not the whole geometry again
-    if (g && this.backend.vertices && sameShape(geo, g)) {
-      const was = g.versions;
-      g.version = version; g.versions = versionsOf(geo);
+    // (a backend's shapeAttrs may move with them too: the Unity bridge's aObjP / aObjN, the banners' own frame, issue
+    // #113; vertices() is told, and answers false when what it drew needs them, for the whole geometry again)
+    const extra = this.backend.shapeAttrs ?? null;
+    if (g && this.backend.vertices && sameShape(geo, g, extra)) {
+      const was = g.versions, now = versionsOf(geo);
       const A = geo.attributes;
-      const col = A.color && g.versions.color !== was.color ? { array: plain(A.color), itemSize: A.color.itemSize, normalized: A.color.normalized } : null;
-      this.backend.vertices(g.gid, plain(A.position), A.normal ? plain(A.normal) : null, A.position.count, A.aAlpha ? plain(A.aAlpha) : null, col);
-      this.stats.vertexUpdates = (this.stats.vertexUpdates ?? 0) + 1;
-      return g.gid;
+      let moved = null;
+      if (extra) for (const k of extra) if (now[k] !== was[k]) (moved ??= []).push(k);
+      const col = A.color && now.color !== was.color ? { array: plain(A.color), itemSize: A.color.itemSize, normalized: A.color.normalized } : null;
+      if (this.backend.vertices(g.gid, plain(A.position), A.normal ? plain(A.normal) : null, A.position.count, A.aAlpha ? plain(A.aAlpha) : null, col, moved) !== false) {
+        g.version = version; g.versions = now;
+        this.stats.vertexUpdates = (this.stats.vertexUpdates ?? 0) + 1;
+        return g.gid;
+      }
     }
     if (!g) { g = { gid: this.nextGeo++, version }; this.geoms.set(geo, g); this.stats.geometries++; }
     g.version = version; g.versions = versionsOf(geo);
@@ -519,12 +525,12 @@ function versionsOf(geo) {
   return v;
 }
 /** Did only the positions and normals (and a per-vertex alpha) change since the geometry was last sent? */
-function sameShape(geo, g) {
+function sameShape(geo, g, extra = null) {
   const was = g.versions, now = versionsOf(geo);
   if (!was || now.__index !== was.__index || now.__indexRef !== was.__indexRef || now.__count !== was.__count) return false;
   const keys = Object.keys(now);
   if (keys.length !== Object.keys(was).length) return false;
-  for (const k of keys) if (now[k] !== was[k] && k !== 'position' && k !== 'normal' && k !== 'aAlpha' && k !== 'color') return false;
+  for (const k of keys) if (now[k] !== was[k] && k !== 'position' && k !== 'normal' && k !== 'aAlpha' && k !== 'color' && !extra?.includes(k)) return false;
   return now.position !== was.position || now.normal !== was.normal || now.aAlpha !== was.aAlpha || now.color !== was.color;
 }
 const plain = (a) => (a.isInterleavedBufferAttribute ? deinterleave(a) : a.array);

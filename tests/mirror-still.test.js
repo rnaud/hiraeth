@@ -113,3 +113,28 @@ test('a still drawable is not compared again: the list and the stamps say it did
   const still = reads(true), all = reads(false);
   assert.ok(still < all * 0.4, `${still} floats compared, against ${all}`);
 });
+
+test('a shape whose object frames move with it (the banners: aObjP, aObjN) goes by vertices() when the backend allows it, whole when it says no', () => {
+  for (const allow of [true, false]) {
+    const calls = [];
+    const B = { geometry: (gid) => calls.push(['geometry', gid]), vertices: (gid, p, n, count, a, c, moved) => { calls.push(['vertices', gid, moved]); return allow; }, create() {}, transforms() {}, visible() {}, geometryOf() {} };
+    B.shapeAttrs = ['aObjP', 'aObjN'];
+    const scene = new THREE.Scene();
+    const geo = new THREE.BoxGeometry();
+    const n = geo.attributes.position.count;
+    geo.setAttribute('aObjP', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    geo.setAttribute('aObjN', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    scene.add(new THREE.Mesh(geo, makeMaterial({ color: '#808080' })));
+    const m = new SceneMirror(B, { listMatrices: true });
+    m.sync(scene, null);
+    calls.length = 0;
+    geo.attributes.position.array[0] += 1; geo.attributes.position.needsUpdate = true;
+    geo.attributes.aObjP.array[0] += 1; geo.attributes.aObjP.needsUpdate = true;
+    m.sync(scene, null);
+    assert.deepEqual(calls.map((c) => c[0]), allow ? ['vertices'] : ['vertices', 'geometry'], `allowed ${allow}`);
+    assert.deepEqual(calls[0][2], ['aObjP']);
+    calls.length = 0;
+    m.sync(scene, null);
+    assert.deepEqual(calls, [], 'nothing again when nothing moved');
+  }
+});

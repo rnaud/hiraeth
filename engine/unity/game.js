@@ -38,11 +38,12 @@ export function start(argsJson) {
   const backend = new UnityBackend(host);
   backend.portraitDir = args.out ?? null;
   // (-js-off a,b: the script's own measures turned off for a before-and-after on one build: still, the mirror's still
-  // matrices; hidden, the hidden subtrees' matrices; people, the people out of view; BridgeArgs passes it as `off`)
+  // matrices; hidden, the hidden subtrees' matrices; people, the people out of view; shape, the banners' frames moved by vertices(); BridgeArgs passes it as `off`)
   const off = new Set(String(args.off ?? '').split(',').filter(Boolean));
   if (off.has('still')) backend.stillMatrices = false;
   if (off.has('hidden')) backend.skipHidden = false;
   if (off.has('people')) backend.peopleLod = false;
+  if (off.has('shape')) backend.shapeAttrs = null;
   S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0 };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;

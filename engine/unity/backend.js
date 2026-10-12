@@ -25,6 +25,9 @@ export class UnityBackend {
     this.skipHidden = true;
     // (a person past 30 m out of the view moved a quarter of the frames, as past 110 m: engine/game.js, src/npc.js offView)
     this.peopleLod = true;
+    // (the attributes besides the points and normals that may move with a shape and still go by vertices(): the banners'
+    // object frames, which only a vertex-material variant draws; issue #113: the City-Shaft's banners were sent whole a frame)
+    this.shapeAttrs = ['aObjP', 'aObjN'];
     // (an IL2CPP player takes buffers boxed, { b }: BridgeHost.BoxBuffers)
     this.toHost = host.BoxBuffers?.() ? (b) => ({ b }) : (b) => b;
     this.geoms = new Map();    // gid → the mirror's geometry (uploaded per variant when a node needs it)
@@ -318,7 +321,13 @@ export class UnityBackend {
   }
 
   /** A geometry's points and normals moved (cloth): into the frame's buffer, for every variant of it sent (op 8). */
-  vertices(gid, pos, nrm, n, alpha = null, col = null) { const b0 = this.w.n; this._vertices(gid, pos, nrm, n, alpha, col); tally(this, 'vertices', b0); }
+  vertices(gid, pos, nrm, n, alpha = null, col = null, moved = null) {
+    // (aObjP / aObjN moved too, shapeAttrs: only a vertex-material variant (':v', unityGeometry vmat) draws them; one sent
+    // means the whole geometry again, false; the others take the points and normals alone)
+    if (moved && [...(this.sentOf.get(gid) ?? [])].some((k) => k.endsWith(':v'))) return false;
+    const b0 = this.w.n; this._vertices(gid, pos, nrm, n, alpha, col); tally(this, 'vertices', b0);
+    return true;
+  }
   _vertices(gid, pos, nrm, n, alpha = null, col = null) {
     if (!this.sentGids.has(gid)) return;
     const w = this.w;
