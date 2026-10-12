@@ -725,6 +725,8 @@ const POLISH59 = 'scripts/design-qc/capture.mjs in headless Chrome (muted, High,
 // (v1.60: the temples to explore, round 4, issue #23: scripts/changelog-shots.mjs, the commit and main before it)
 const C60 = { commit: 'd3c9ded8', before: '18fe8fa6' };   // (shot at 48924c8a, the same tree before the rebase onto 5a20c90f)
 const SAVE60_LANTERN = { ...SAVE47, flags: { ...SAVE47.flags, 'item.lantern': true } };   // (the Lamp-House is dark: the lantern charm glows in it)
+// (v1.60: the v1.59 game audit's loose ends, issues #227, #230: a scratch shooter against this branch's own Vite and origin/main's tree)
+const AUDIT60 = 'headless Chrome (muted, Low, 1280 × 720) against this branch’s own Vite (port 5721) and origin/main’s tree before it (5a20c90f, port 5723), a fresh profile for the Saves screen; 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.60': [
     { match: 'In the Undertower the Choir and its great key have moved', shots: [
@@ -753,6 +755,19 @@ export const CHANGELOG_MEDIA = {
       { name: 'green-vault', title: 'The Seed Vault', caption: 'Its two seeds at the foot of the glass in the shade, the ledge on top with the great key and the keepers’ door beside it', ...C60, only: 'after',
         view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(-28, 2.2, 52), target: GR(-16, 5, 58), player: GR(-29.6, 0.05, 51.2) } },
     ], see: 'In the Builders’ Greenhouse, win the Shade House west off the Potting Hall, and go north through its second door.' },
+    { match: 'The Saves screen shows your three saves and one small closed “Debug” row', shots: [
+      { name: 'saves-debug', caption: 'A first-time player’s Saves screen: before, every world of the route by name and picture under the three empty saves; after, one closed “Debug” row (A / × opens it)', from: AUDIT60 },
+    ], see: 'With a fresh profile, open Saves on the title: the three saves and a small Debug row under them. Press ↓ past Save 3: it stops on Debug; A / × opens the worlds, A / × again folds them.' },
+    { match: 'The chime pirates come for your hull now', shots: [
+      { name: 'pirates-hull', only: 'after', caption: 'The start card on the way to a new world: the ship says “They want our hull.”, the blurb that their wrecks are worth chimes', from: AUDIT60 },
+    ], see: 'Fly to a world you have never visited: the ship’s line on the start card is about the hull; win, and it says their wrecks are worth chimes.' },
+    { match: 'Your first fight with the chime pirates follows your jets setting', see: 'Turn on the jets’ “push forward to climb” in the settings, then fly to a new world: the start card says W or ↑ climbs, and pushing up climbs.' },
+    { match: 'With Reduce motion on, or Camera shake at 0, a hit from the chime pirates', see: 'Turn on Reduce motion (or put Camera shake at 0) and let a pirate’s shot hit you: the pips show under the ship and it blinks, with no shake and no red flash at the edges.' },
+    { match: 'Sounds that come from a place follow the Effects slider', see: 'Put Effects at 0 and Music up, then walk near a makers’ chest or a fragment: no hum, no song. With Music at 0 and Effects up, both are heard.' },
+    { match: 'The fragment finder no longer beeps', see: 'With the finder on, talk to someone near a fragment, or open the menu: the beeps stop until you are back.' },
+    { match: 'The Desert’s main quest no longer ends while your ship still won’t leave', see: 'In the Desert, light the tree and go to the ship before the Rose House: after Qanat’s gift the ship wakes, and the quest log shows “Take the blade and guard from the Rose House”; the quest ends when you have both.' },
+    { match: 'Arriving in Viridel no longer sends you to ask', see: 'Land in Viridel: the arrival card says the gardeners let the garden have the old ship, with nobody to go and ask.' },
+    { match: 'With Reduce motion on, the world map’s loading pen', see: 'Turn on Reduce motion and open the game menu’s Map while it is still drawing: the pen stands still.' },
   ],
   '1.59': [
     { match: 'The darker dust band along the foot of weathered walls', see: 'In Qanat, stand with your back to a weathered house, close to it, the camera behind you: the grey band along its foot runs on behind your legs, with no pale outline of you in it.' },
