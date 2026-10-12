@@ -646,6 +646,7 @@ const PROMPT51 = 'headless Chrome (muted, Medium, a pad in hand) against this br
 // (v1.51: the Unity preview on the Xbox: the player's own pictures at the web bench's cameras, -views in LocalState, 1280 × 720)
 const XBOX51 = 'the Xbox Series X’s Unity player (BridgeRunner -views, LocalState), the web bench’s cameras, 11 October: before build 1893 (Direct3D 11), after build 1929 (Direct3D 11; Direct3D 12’s build 1933 the same); cwebp -q 72';
 // (v1.51: the Desert after the author's playthrough, issues #149–#162)
+const SAVE_POOL51 = { flags: { ...SAVE_DESERT.flags, 'desert.channel.open': true, 'desert.pool.tinted': true, 'desert.cave.seen': true, 'quest.desert.power': 'door', 'desert.moment.flow': true, 'desert.moment.fill': true, 'items.v': 2, 'save.migrated': 19 }, keepsakes: [] };
 const PT51 = 'changelog-shots.mjs in headless Chrome (muted, High, 1280 × 720), Vite on port 5493, at the commit before the change and at the change (before its rebase), 11 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.51': [
@@ -661,7 +662,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'drain-debris', title: 'The clogged drain', caption: 'The stone channel to the giant’s pool, from beside it: before, one long thigh bone lying in it, knuckled at both ends; after, a heap of debris, a broken piece of rib, rocks and packed sand, jammed in the drain', from: PT51, commit: 'fd8e0349',
         view: { level: 'desert', save: SAVE_DESERT, hour: 10, fov: 55, eye: [-1233.5, 1003.0, 1250.5], target: [-1227.6, 1000.6, 1245.0], player: [-1231.0, 1000.2, 1249.0], heading: 2.4 } },
     ], see: 'Go down through the giant’s skull into the cave, walk to the dry stone channel and press A / × at the heap in it: “Something is clogging the drain. Remove it?” Yes, and the water runs.' },
-    { match: 'The chest in the giant’s chest is no longer out in the open', see: 'In the cave under the giant’s skull, clear the drain and wade into the pool: the makers’ shrine west of the pool lights its door. Press A / × at it; inside, the chest with the lift valve.' },
+    { match: 'The chest in the giant’s chest is no longer out in the open', shots: [
+      { name: 'cave-shrine', title: 'The cave, the pool full', caption: 'Across the giant’s pool once it has filled your tank: before, the lift valve’s chest out on its dais at the keepers’ stair’s foot (left of the roots); after, no chest in sight, the makers’ shrine on the right, its door’s lens lit by your full tank', from: PT51, commit: '784816ca',
+        view: { level: 'desert', save: SAVE_POOL51, hour: 10, fov: 72, eye: [-1247.5, 1004.6, 1259.5], target: [-1259.5, 1000.8, 1242.5], player: [-1248.5, 1000.2, 1257.5], heading: 3.6 } },
+      { name: 'shrine-door', title: 'The door', caption: 'In front of the shrine’s door with a full tank: before, the bare cave floor; after, the white door, its jade lens and lines glowing, the makers’ mark over it', from: PT51, commit: '784816ca',
+        view: { level: 'desert', save: SAVE_POOL51, hour: 10, fov: 55, eye: [-1263.8, 1002.4, 1249.8], target: [-1268.6, 1001.6, 1248.6], player: [-1264.3, 1000.2, 1249.6], heading: 4.6 } },
+    ], see: 'In the cave under the giant’s skull, clear the drain and wade into the pool: the makers’ shrine west of the pool lights its door. Press A / × at it; inside, the chest with the lift valve.' },
     { match: 'No button prompt comes up in front of the giant’s skull', see: 'Walk up to the giant’s mouth: no prompt shows; walk on in.' },
     { match: 'On the Steam Deck, the Unity preview runs smoother', numbers: [
       { title: 'Frames a second, the Unity preview', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, the Linux player (Vulkan), the Deck preset, 1280 × 800, 90 Hz uncapped', rows: [
