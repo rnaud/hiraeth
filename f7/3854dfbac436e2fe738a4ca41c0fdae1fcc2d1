@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_436c03dc1f5b30 7-9
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_12495c7ddba9a7 969-970
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_5afbaac168e8f3 1109-1110,1115-1165
+scripts/bench/viewpoints-worlds.json
+  s_9ca76055a220ed::t_55547ae18593ae 9262-9321
+src/changelog-media.js
+  s_9ca76055a220ed::t_4f0cdfe563c604 643,685-708
+src/changelog.js
+  s_9ca76055a220ed::t_b1896c5643190d 27-30
+src/glass-dunes-city.js
+  s_9ca76055a220ed::t_57dc99fd0abc54 1-389
+src/glass-dunes-frozen.js
+  s_9ca76055a220ed::t_19e5f664668286 1-356
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_e3040b750e73a4 15-17,61-66,164-172,180-181,203-212,214,237,239-243,292-294,297,360-362
+src/story/glassdunes.js
+  s_9ca76055a220ed::t_0259a42ae93283 12,53-65
+src/veil.js
+  s_9ca76055a220ed::t_be9283b6abeb5a 132-133
+tests/glass-dunes-166.test.js
+  s_9ca76055a220ed::t_7e773fcdca5e27 1-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f73854dfbac436e2fe738a4ca41c0fdae1fcc2d1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
