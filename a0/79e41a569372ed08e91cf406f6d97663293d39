@@ -1,0 +1,77 @@
+docs/README.md
+  s_9ca76055a220ed::t_4cdda8da7945c7 67
+docs/story-bible.md
+  s_9ca76055a220ed::t_91869bef4c0adf 561-580
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_6df1dea315052d 169
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_9bb3b42c1baa7c 1,5-6,19-52,60-63,66,73-75,102-107,113,122-128
+docs/systems/ship.md
+  s_9ca76055a220ed::t_904b48310a906e 66
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_bcf0329b1c0855 2250
+scripts/fragment-spots.mjs
+  s_9ca76055a220ed::t_f0f605bc79bd66 4-8,10-16,18-19,22,28-29,31-38,42,46-53,66,69,72,75-76,78-79,89-93,96-102,104-110,112,115-116,121,129-134
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_4d977f96756198 27-29,81-82
+scripts/level-design/path.mjs
+  s_9ca76055a220ed::t_4c461ff10d6721 1-105
+src/boxes/model.js
+  s_9ca76055a220ed::t_53283523034575 585
+src/debug-save.js
+  s_9ca76055a220ed::t_b68cbf50c670ee 30,226
+src/fragments-data.js
+  s_9ca76055a220ed::t_e8680a186e15ad 13-17,37,39-40,48,50-51,58-59,62,66,68,70-72,96,107,109-111,117,128,130-131,134-135,138-139,143
+src/i18n/en.js
+  s_9ca76055a220ed::t_5bff63fa935e05 462
+src/i18n/fr.js
+  s_9ca76055a220ed::t_afd2a6aeb1e90f 459
+src/items.js
+  s_9ca76055a220ed::t_989b6cf660709b 268,272,276-277,280,284,288,292,296
+src/levels/space-city.js
+  s_9ca76055a220ed::t_890a08575fd740 120,122
+src/save-migrate.js
+  s_9ca76055a220ed::t_c4b25b7a8f29c1 80-83,247-248,250-270
+src/story/lantern-data.js
+  s_9ca76055a220ed::t_4976a88d3be65c 35-38,41,64-70,157-159
+src/story/people-book.js
+  s_9ca76055a220ed::t_bfa547686f4949 185
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_c57cf12a0cb997 1-2,39,82,85,122-123
+src/story/scientist.js
+  s_9ca76055a220ed::t_972b1602cc2962 8
+src/story/spacecity.js
+  s_9ca76055a220ed::t_57449464d31da3 29
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_905aa24bf092de 20,468-470,477
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_d1a2861188d1db 220,230
+tests/dialogue-voices.test.js
+  s_9ca76055a220ed::t_6caf3828495b64 40-43,45-47,59-67
+tests/fragments-reach.js
+  s_9ca76055a220ed::t_80c43335a7bf32 11-14,64-66,97-112,127-149
+tests/fragments-route.test.js
+  s_9ca76055a220ed::t_7ae00dcf5d9806 1-62
+tests/fragments.test.js
+  s_9ca76055a220ed::t_4dca221e1e2767 8,18,149,155-156,228-229,244-269,272
+tests/people-names.test.js
+  s_9ca76055a220ed::t_bd9f4f4f880dcf 1-41
+tests/spacecity-ways.test.js
+  s_9ca76055a220ed::t_b20767148b829f 65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a079e41a569372ed08e91cf406f6d97663293d39",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
