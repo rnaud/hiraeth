@@ -15,7 +15,8 @@
 //     `adb forward tcp:9339 localabstract:chrome_devtools_remote` and `adb reverse` of the game's port;
 //     --dpr is the device's then
 import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { tempDir, ownProcess } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -29,11 +30,11 @@ const CHROME = process.env.CHROME ?? ['/Applications/Google Chrome.app/Contents/
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 mkdirSync(OUT, { recursive: true });
 
-const profile = ANDROID ? null : mkdtempSync(join(tmpdir(), 'hiraeth-portrait-'));
-const chrome = ANDROID ? null : spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio',
+const profile = ANDROID ? null : tempDir('hiraeth-portrait-');
+const chrome = ANDROID ? null : ownProcess(spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio',
   '--window-size=1280,720', `--force-device-scale-factor=${DPR}`, '--no-first-run', '--no-default-browser-check',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', `--remote-debugging-port=${CDP}`,
-  `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
+  `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' }));
 
 let ws, id = 0; const waits = new Map();
 const send = (m, p = {}) => new Promise((res, rej) => { const i = ++id; waits.set(i, [res, rej]); ws.send(JSON.stringify({ id: i, method: m, params: p })); });

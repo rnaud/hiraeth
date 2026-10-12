@@ -709,9 +709,27 @@ const MV58 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this bra
 // served by this branch's Vite before the change, the same debug save in the Underwater City and the desert)
 const MENU58 = 'headless Chrome (muted, Low, 1280 × 720 and 730 × 410) against this branch’s own Vite (port 5621), the debug save for the Underwater City and the desert by the ship, before the change and after, 12 October; cwebp -q 72';
 // (v1.59: the chime pirates reworked, issue #206; a scratch shooter against this branch's own Vite and origin/main's tree)
+/** Issue #195's roomier rooms: the commit and main before it (scripts/changelog-shots.mjs on port 5651). */
+const ROOMS59C = { commit: '27fe72cd', before: '27d67022' };
+const ROOMS59 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear) against the commit and main before it: the traveller teleported to the middle of the antechamber (by its glyph stone), facing the guardian’s hall, the game’s camera put behind him and left to settle 4 s, the foes cleared';
+/** The traveller in the middle of a temple's antechamber (its glyph stone's z), facing the guardian's hall, the camera behind him. */
+const ANTE_CAM = (id) => `const rt = window.temples?.${id}, K = rt.kit, V = THREE.Vector3, m = rt.marks.find((k) => k.room === 'ante'), l = K.local(m.pos);
+  for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
+  player.teleport(K.world(0.3, l.y + 0.05, l.z), new V(0, 1, 0), new V(0, 0, 1)); player.heading = K.heading(0);
+  rig.yaw = player.heading + Math.PI; rig.pitch = rig.pitch0; rig._lastP = null;`;
+const SH59 = 'headless Chrome (muted) on the Mac’s GPU, the Handheld preset at the Retroid’s 730 × 410 CSS px at 2× (render scale 0.75), hour 10, clear, the clock held; origin/main’s build (27d67022) and this change’s, the same camera for both (12 October); cwebp -q 72';
 const PI59 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5641) and origin/main’s tree before it (8821ba59, port 5643), ?game=pirates&to=edena, the run flown ahead to the same second by the game’s pilot for both (12 October); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.59': [
+    { match: 'The Cistern-Keeper has an experimental animation preview', tags: ['characters', 'desert'], shots: [
+      { name: 'keeper-procedural-walk', title: 'Walking pilot', size: [531, 550],
+        caption: 'Animation pilot, before and after refinement: synchronized tripods and an open resting mouth become staggered supported footfalls and a closed mouth. The live temple guardian is unchanged.',
+        from: 'Keeper review, three-quarter view at 2.4 s: initial procedural pilot versus the refined pilot; captured in Codex, matching canvas crop.',
+        reference: { sheet: 'references/guardians/cistern-keeper/reference-v3-1.png', caption: 'Approved Midjourney Keeper reference used for the Tripo mesh.' } },
+      { name: 'keeper-closed-jaw', title: 'Closed jaw', only: 'after', size: [531, 577],
+        caption: 'The fitted jaw closes beneath the muzzle at rest; feeding and attack poses can still open it.',
+        from: 'Keeper review, Jaw closed at 3 s, Head close-up; captured in Codex.' },
+    ], see: 'On the development server, open /tools/keeper-review.html. Choose Walk, Turn, Stamp, Sweep or Encounter controller and press Play. For a fixed pose, enter seconds and press Go. Compare Jaw closed and Jaw open with Head close-up. This is the isolated animation pilot, not yet a replacement in the temple.' },
     { match: 'The chime pirates count points now', shots: [
       { name: 'pirates-points', title: 'A kill', caption: 'A skiff shot down ten seconds in: before, “+1 chime” over it; after, “+10”, the points in the corner counting', from: PI59 },
       { name: 'pirates-results', title: 'The results', caption: 'The run won on the way to a world: before, “Chimes won: 79” among the lines; after, the points and the chimes they make, counted up, 20 points a chime', from: PI59 },
@@ -729,6 +747,46 @@ export const CHANGELOG_MEDIA = {
       { name: 'pirates-boss', title: 'The captain', caption: 'The captain coming in at 78 s: before, the galleon under its solar sails; after, the gunship, its turrets on the wingtips, the skull on its prow, the engines’ intakes glowing', from: PI59 },
       { name: 'pirates-bossnear', title: 'The bridge open', only: 'after', caption: 'Its turrets down, close in under it: the shutters open over the teal bridge, rings of slow shots coming', from: PI59 },
     ], see: 'Fly the chime pirates to the end: the captain’s gunship comes in at about 70 seconds.' },
+    { match: 'The rooms before each temple’s guardian are much bigger', shots: [
+      { name: 'ante-engine', title: 'The Engine-House', caption: 'The game’s own camera behind the traveller in the middle of the antechamber before the Tooth-Warden’s hall, facing the hall: before, the passage 4 m deep, the door at his back, the camera pressed in over his head; after, the vestibule 7.4 m deep, 8 m across and 8.5 m high, the camera at its 1.9 m', from: ROOMS59, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'buried', wait: 4500, setup: ANTE_CAM('buried') } },
+      { name: 'ante-undertower', title: 'The Undertower', caption: 'The same in the Undertower, before the First Sign’s hall: the passage grown into a room the camera can stand back in', from: ROOMS59, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'bazaar', wait: 4500, setup: ANTE_CAM('bazaar') } },
+    ], numbers: [{ title: 'The close camera’s shortest arms in the room (a tenth of the time shorter than this)', unit: 'm', better: 'higher', device: 'node: the real camera rig through the real collision, a full turn by hand and four walks out and back from the room’s glyph stone',
+      rows: [{ where: 'the eight antechambers (worst)', before: 0.55, after: 1.6 }, { where: 'the eight antechambers (best)', before: 0.88, after: 1.7 }, { where: 'the Mooring-House’s ante', before: 0.53, after: 1.82 }, { where: 'the Rose House’s Dry Channel (its stone)', before: 0.31, after: 1.49 }, { where: 'the Rose House’s Sword Chamber (its stone)', before: 0.45, after: 1.99 }],
+      source: 'the issue #195 probe (docs/systems/movement-and-camera.md, “Small rooms”): cramped rooms 30 → 18 of 137' }],
+      see: 'In any temple, open the way to its guardian and stand in the room before the guardian’s hall: turn the camera all the way round. It stays back over your shoulder instead of pressing against your back.' },
+    { match: 'Your ship is roomier inside', shots: [
+      { name: 'ship-room-aft', title: 'The main room', caption: 'From the back of the main room toward the cockpit, the camera at the same spot: before, 6.4 m across under a 2.35 m ceiling; after, 7.6 m across under 2.9 m, the cockpit 0.8 m further on, the furniture as it was', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.3, 1.75, 2.3], [0, 1.1, -8], 78) } },
+      { name: 'ship-room-cockpit', title: 'The cockpit', caption: 'Into the cockpit from the holo table: before, the seats close under the windshield; after, a longer, higher cockpit, the frame 3.8 m wide', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.2, 1.8, -4.8], [0, 1.2, -9.5]) } },
+      { name: 'ship-room-alcove', title: 'The bunk', caption: 'Across to the bunk’s alcove: before, its hood at 2.05 m; after, deeper, its hood at 2.35 m, the ceiling over it at 2.9', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([-1.8, 1.65, -0.6], [3.2, 1.0, -3.6]) } },
+      { name: 'ship-room-back', title: 'The back room', caption: 'Into the back room toward the hold: before, 4.2 m deep, the hold’s doorway 1.6 m wide; after, 4.8 m deep, the doorway 2.1 m, the hold 5 m deep beyond it', from: SHIP_FROM, commit: ROOMS59C.commit, before: ROOMS59C.before,
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([-0.4, 1.7, 2.9], [0.6, 1.0, 10], 74) } },
+    ], numbers: [{ title: 'The close camera’s shortest arms aboard (a tenth of the time shorter than this)', unit: 'm', better: 'higher', device: 'node: the real camera rig through the real collision, a full turn by hand and four walks out and back',
+      rows: [{ where: 'by the holo table', before: 0.48, after: 1.23 }, { where: 'the main room’s aft end', before: 0.7, after: 1.12 }, { where: 'the hold', before: 0.97, after: 1.76 }, { where: 'the cockpit', before: 0.59, after: 0.64 }, { where: 'by the hatch', before: 0.78, after: 0.83 }],
+      source: 'the issue #195 probe (docs/systems/movement-and-camera.md, “Small rooms”)' }],
+      see: 'Walk through the ship from the cockpit to the hold: the rooms are wider and the ceiling higher, and the camera stays further back as you turn round.' },
+    { match: 'In small rooms the camera settles', numbers: [{ title: 'The close camera in a 4.2 × 5 m cabin: a turn by hand, walks to each wall and back, another turn', unit: 'm', better: 'lower', device: 'node: the real camera rig (tests/room-size.test.js)',
+      rows: [{ where: 'the arm’s in and out, summed over the walk', before: 3.66, after: 0.74 }, { where: 'flips in and out within a third of a second (frames)', before: 8, after: 0 }], source: 'scratch run of the test’s scenario against the commit before and after' }],
+      see: 'In the ship’s hold or a small room, turn the camera round slowly: it stays at one distance, it doesn’t push in and pull back at each wall.' },
+    { match: 'Two of the Rose House’s glyph stones', see: 'In the Rose House, fall into the Dry Channel’s sand: you come back on the near ledge with room behind you. Wake the Sword Chamber’s stone and fall: you face the dais.' },
+    { match: 'On handhelds and phones, far-off towns, facades and forests no longer shimmer', shots: [
+      { name: 'far-ink-town', title: 'The far town', caption: 'The desert’s camp town 110 m off, the Handheld preset at the Retroid’s 730 × 410 at 2×: before, its walls and domes in black one-pixel lines; after, the same lines lighter, the near dune’s as it was', from: SH59 },
+      { name: 'far-ink-market', title: 'The Signal Market', caption: 'The Market’s street from the traveller’s spawn, the same size and preset: the near people, stalls and the ship as they were; the facades down the street drawn in lighter lines', from: SH59 },
+    ], numbers: [
+      { title: 'Shimmer: pixels that flicker in a slow pan or turn, far off (over 60 m)', unit: 'per 10 000', better: 'lower', device: 'the Mac (M4 Pro), headless Chrome, the Handheld preset at the Retroid’s 730 × 410 at 2× (scale 0.75)', rows: [
+        { where: 'desert, pan', before: 87.8, after: 38.0 }, { where: 'desert, turn', before: 61.3, after: 38.7 },
+        { where: 'Signal Market, pan', before: 43.2, after: 26.6 }, { where: 'Signal Market, turn', before: 201.4, after: 74.7 },
+        { where: 'Lorn II, pan', before: 27.6, after: 12.1 }, { where: 'Lorn II, turn', before: 47.6, after: 19.1 },
+        { where: 'Sealed Hangar, pan', before: 36.5, after: 19.3 }, { where: 'Sealed Hangar, turn', before: 36.5, after: 19.4 },
+      ], source: 'node scripts/motion-check/record.mjs --preset handheld --res 730x410@2 --paths pan,turn --far 60 (the world frozen, the camera a third of a pixel a frame); the whole frame: desert 22.8 → 10.7, the Market’s turn 86.3 → 39.0' },
+      { title: 'The smoothing’s cost (SMAA in place of FXAA)', unit: 'ms a frame', better: 'lower', device: 'the Mac (M4 Pro), headless Chrome, Handheld at 1460 × 820, scale 0.75 (the Retroid’s render size)', rows: [
+        { where: 'desert spawn', before: 3.95, after: 4.13 }, { where: 'dunes', before: 2.15, after: 2.2 }, { where: 'camps', before: 3.92, after: 4.01 },
+      ], source: 'node scripts/bench/passes.mjs --toggles fxaa,smaa (synced frame time, median of 7 in turns); the lighter far lines cost nothing measurable. The Retroid: about 3× the Mac, 0.2–0.5 ms (estimated)' },
+    ], see: 'On a handheld (or the Handheld preset), stand in the Signal Market’s street and turn slowly, looking down it: the far facades hold still.' },
   ],
   '1.58': [
     { match: 'A knockdown now follows the ground', shots: [

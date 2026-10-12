@@ -457,8 +457,8 @@ function layout(rt) {
   }
 
   // ---- the ante and the Capstan Floor: a round floor open to the void at four great windows, a bollard before each
-  corridor(-46.2, 38, FLOOR.x + FLOOR.r + 0.6, 38, FLOOR.y);
-  add(Mark, { room: 'ante', at: [-50.5, FLOOR.y, 40], yaw: Math.PI / 2 });
+  corridor(-46.2, 38, FLOOR.x + FLOOR.r + 0.6, 38, FLOOR.y, { w: 8.8, h: 7.6 });   // (wider and taller since issue #195: the close camera fought its walls)
+  add(Mark, { room: 'ante', at: [-50.3, FLOOR.y, 41.2], yaw: Math.PI });
   const HR = FLOOR.r, CX = FLOOR.x, CZ = FLOOR.z, FY = FLOOR.y;
   const windows = [Math.PI / 4, -Math.PI / 4, Math.PI * 3 / 4, -Math.PI * 3 / 4];
   K.rotunda({ x: CX, z: CZ, y: FY, r: HR, h: 20, seg: 36, oculus: 0.62, gaps: [{ a: Math.PI / 2, w: 5, h: 6 }, { a: -Math.PI / 2, w: 5, h: 6 }, ...windows.map((a) => ({ a, w: 9, h: 7 }))] });

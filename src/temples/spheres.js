@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus } from './kit.js';
+import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, Key, printGeometry } from './pieces.js';
 import { echoModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
@@ -381,11 +381,9 @@ function layout(rt) {
 
   // ---- the corridor, and the Echo's Hall (floor 0, a round hall under a great oculus)
   const H0 = U0 + 35;     // 132
-  K.slab(-3.2, H0 - 0.6, 3.2, H0 + 3.4, 0, 0.8);
-  K.wall(-3.2, H0 + 0.2, -3.2, H0 + 3.4, 0, 7, { t: 0.8 }); K.wall(3.2, H0 + 3.4, 3.2, H0 + 0.2, 0, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.6, 0, 7.4, H0 + 1.6));
-  add(Mark, { room: 'ante', at: [2.2, 0, H0 + 1.6], yaw: -Math.PI / 2 });
-  const HR = 20, CH = H0 + 3.2 + HR + 1.4;   // 156.6
+  const AE = K.vestibule(H0, 0);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, 0, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  const HR = 20, CH = AE + 1.2 + HR;
   K.rotunda({ x: 0, z: CH, y: 0, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.45 });
   K.add(M.glyph, T(glyphGeometry(9, 0.05).rotateX(-Math.PI / 2), [0, 0.03, CH]));
   // the three resonant spheres round the hall, one note each

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus } from './kit.js';
+import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, Jaw, Swing, Platform, Plate, Ball, Mark, Pit, Key, Coffer } from './pieces.js';
 import { snapperModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
@@ -433,11 +433,9 @@ function layout(rt) {
   // (and west off the far landing, the Nursery's doorway, v1.52)
   // ---- the corridor, and the Mother's Hall (floor 9): a round hall, the Mother rooted in its middle
   const H0 = G0 + 35;
-  K.slab(-3.2, H0 - 0.6, 3.2, H0 + 3.4, 9, 0.8);
-  K.wall(-3.2, H0 + 0.2, -3.2, H0 + 3.4, 9, 7, { t: 0.8 }); K.wall(3.2, H0 + 3.4, 3.2, H0 + 0.2, 9, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.6, 0, 16.4, H0 + 1.6));
-  add(Mark, { room: 'ante', at: [2.2, 9, H0 + 1.6], yaw: -Math.PI / 2 });
-  const HR = 19, CL = H0 + 3.2 + HR + 1.4;
+  const AE = K.vestibule(H0, 9);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, 9, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  const HR = 19, CL = AE + 1.2 + HR;
   K.rotunda({ x: 0, z: CL, y: 9, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.25 });
   // her bed: a ring of dark soil and moss round her root, and the crystals of the dome over her
   K.both(M.floor, T(new THREE.CylinderGeometry(6.5, 7, 0.3, 32), [0, 9.12, CL + 3]));

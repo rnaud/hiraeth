@@ -4,7 +4,8 @@
 // dev server's routes and the page's drawing of a 3D batch. No real call is made.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import tripo, { generationRequest, estimateCredits, tripoOptions, formatOf, tripoKind, TRIPO_API } from '../scripts/reference-lab/providers/tripo.mjs';
@@ -26,7 +27,7 @@ let sharp = null;
 try { sharp = (await import('sharp')).default; } catch { /* the crop tests skip */ }
 
 function fakeRepo() {
-  const root = mkdtempSync(join(tmpdir(), 'reflab3d-'));
+  const root = tempDir('reflab3d-');
   process.env.REFERENCE_LAB_STORE = root;   // (the store in the fake repository, not the real main checkout's)
   mkdirSync(join(root, 'references/enemy-archetypes/crab'), { recursive: true });
   writeFileSync(join(root, 'references/enemy-archetypes/crab/sheet-1.jpg'), JPEG);

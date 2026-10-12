@@ -35,7 +35,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(`--${n}`);
 const only = args.find((a) => !a.startsWith('--'))?.split(',');
-const OUT = process.env.OUT ?? mkdtempSync(join(tmpdir(), 'title-sizes-'));
+const OUT = process.env.OUT ?? mkdtempSync(join(tmpdir(), 'title-sizes-'));   // (temp-dirs: an output, kept for you to look at)
 const tryCam = process.env.CAM ? JSON.parse(process.env.CAM) : null;
 // CAMS='[{…},{…}]': several poses tried on one load (OUT/<id>-v<n>.png and their comparisons)
 const tryCams = process.env.CAMS ? JSON.parse(process.env.CAMS) : null;

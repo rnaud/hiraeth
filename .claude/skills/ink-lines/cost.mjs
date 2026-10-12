@@ -5,7 +5,8 @@
 //
 //   PORT=5617 node .claude/skills/ink-lines/cost.mjs [--res desk1080x2,handheld] [--scenes veg-far,town-far] [--rounds 9] [--frames 16] [--out file.json]
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,10 +35,10 @@ while (others() > 0) await sleep(5000);
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
 const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false, server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
-const profile = mkdtempSync(join(tmpdir(), 'inklines-cost-'));
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
+const profile = tempDir('inklines-cost-');
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
   '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
-  '--disable-gpu-vsync', '--disable-frame-rate-limit', '--enable-webgl-draft-extensions', '--enable-privileged-webgl-extensions', 'about:blank'], { stdio: 'ignore' });
+  '--disable-gpu-vsync', '--disable-frame-rate-limit', '--enable-webgl-draft-extensions', '--enable-privileged-webgl-extensions', 'about:blank'], { stdio: 'ignore' }));
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
 const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
 await new Promise((r) => ws.addEventListener('open', r));

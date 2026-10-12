@@ -3,7 +3,8 @@
 // filters, values and picture addresses do what they say.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CHANGELOG, lineText } from '../src/changelog.js';
@@ -77,7 +78,7 @@ test('no picture in changelog-media/ that no line shows', () => {
 test('the pictures are the site’s alone: never in the build, the update zip, the APK or the Deck', async () => {
   assert.ok(!existsSync(join(ROOT, 'public', MEDIA_DIR)), 'not in public/ (Vite would build it into every package)');
   // the update zip (and so the Deck's and the Android app's updates) skips them even if they were in dist/
-  const dist = mkdtempSync(join(tmpdir(), 'cl-media-'));
+  const dist = tempDir('cl-media-');
   writeFileSync(join(dist, 'index.html'), '<!doctype html>');
   mkdirSync(join(dist, MEDIA_DIR, '0.79'), { recursive: true });
   writeFileSync(join(dist, MEDIA_DIR, '0.79', 'x-after.webp'), 'RIFF');

@@ -13,7 +13,8 @@
 // Each file is trimmed of leading silence, high-passed, peak-normalised to -1 dBFS, faded out, and
 // encoded at 64 kb/s mono 44.1 kHz (the game sets each sound's level: src/sfx.js SFX).
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tempDir } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -101,7 +102,7 @@ const run = (cmd, args) => {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const SRC = resolve(process.argv[2] ?? '.');
   mkdirSync(OUT, { recursive: true });
-  const tmp = mkdtempSync(join(tmpdir(), 'sfx-'));
+  const tmp = tempDir('sfx-');
   const manifest = { licence: 'CC0 1.0 (public domain): every source below', made: 'node scripts/sfx-build.mjs', files: {} };
   let total = 0;
   for (const [name, [s, o]] of Object.entries(RECIPE)) {

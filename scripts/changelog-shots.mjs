@@ -12,7 +12,8 @@
 //   node scripts/changelog-shots.mjs --version 0.77,0.76 [--force] [--keep-png] [--dry]
 // PORT (default 5430) is Vite's, CDP (default PORT+1) Chrome's debugging port; TMP the work folder (default $TMPDIR).
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, statfsSync, symlinkSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, statfsSync, symlinkSync, writeFileSync, statSync } from 'node:fs';
+import { tempDir, ownProcess, keepTemp } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -70,10 +71,10 @@ async function serve(dir, { prod = false } = {}) {
 
 // ------------------------------------------------------------------ Chrome over its debugging protocol
 async function chrome() {
-  const profile = mkdtempSync(join(tmpdir(), 'hiraeth-shots-chrome-'));
-  const proc = spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
+  const profile = tempDir('hiraeth-shots-chrome-');
+  const proc = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
     '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check',
-    '--disable-gpu-shader-disk-cache', '--disk-cache-size=1', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });
+    '--disable-gpu-shader-disk-cache', '--disk-cache-size=1', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
   let tabs;
   for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
   if (!tabs) throw new Error('Chrome did not start');
@@ -276,7 +277,8 @@ async function main() {
   }
   console.log(`${shots.length} shots at ${jobs.size} commits`);
   if (flag('dry')) { for (const [sha, list] of jobs) console.log(sha.slice(0, 9), list.map((j) => `${j.s.key}:${j.side}`).join(' ')); return; }
-  const work = mkdtempSync(join(process.env.TMP ?? tmpdir(), 'hiraeth-shots-'));
+  const work = tempDir('hiraeth-shots-', process.env.TMP ?? tmpdir());
+  if (flag('keep-png')) keepTemp(work);   // (the PNGs asked for stay)
   const pngs = join(work, 'png');
   const c = await chrome();
   let failed = 0;

@@ -19,7 +19,8 @@
 // paths; none found is a failure, never a silent pass. Exits 1 if a load fails or runs over.
 import { execFileSync, spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, mkdtempSync, rmSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, rmSync, statSync } from 'node:fs';
+import { tempDir, ownProcess } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 
@@ -86,10 +87,10 @@ const server = createServer((req, res) => {
 await new Promise((r, j) => { server.once('error', j); server.listen(PORT, '127.0.0.1', r); });
 const BASE = `http://127.0.0.1:${PORT}/`;
 
-const profile = mkdtempSync(join(tmpdir(), 'hiraeth-smoke-chrome-'));
-const chrome = spawn(CHROME, ['--headless=new', '--mute-audio', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--window-size=1280,720',
+const profile = tempDir('hiraeth-smoke-chrome-');
+const chrome = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`, '--window-size=1280,720',
   '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check', '--no-sandbox',
-  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-gpu-shader-disk-cache', 'about:blank'], { stdio: 'ignore' });
+  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-gpu-shader-disk-cache', 'about:blank'], { stdio: 'ignore' }));
 let finished = false;
 async function shutdown(code) {
   if (finished) return; finished = true;

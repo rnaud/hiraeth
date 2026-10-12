@@ -4,8 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { chmodSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -59,7 +59,7 @@ test('the notes\' Unity section is replaced in place, or added once at the end',
 });
 
 test('the Android release writes the section from the release\'s assets, and labels its APK', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'notes-'));
+  const dir = tempDir('notes-');
   writeFileSync(join(dir, 'r.json'), JSON.stringify({ assets: [{ name: 'hiraeth-unity-xbox.zip', label: unityLabel('xbox', SHA) }] }));
   const notes = execFileSync(process.execPath, ['scripts/release-info.mjs', 'notes', join(dir, 'r.json')], { cwd: root, encoding: 'utf8' });
   assert.match(notes, /Download `hiraeth-v[\d.]+\.apk` below/);
@@ -100,7 +100,7 @@ process.exit(code);
 }
 
 function publish(env = {}, opts) {
-  const dir = mkdtempSync(join(tmpdir(), 'unity-publish-'));
+  const dir = tempDir('unity-publish-');
   const state = fakeGh(dir, opts);
   const build = join(dir, 'build.zip');
   writeFileSync(build, 'a build');

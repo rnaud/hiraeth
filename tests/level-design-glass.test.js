@@ -4,12 +4,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 test('the Underwater City: its column and towers are seen through the glass from the landing and along the path', () => {
-  const out = mkdtempSync(join(tmpdir(), 'level-glass-'));
+  const out = tempDir('level-glass-');
   try {
     const r = spawnSync(process.execPath, ['scripts/level-design/audit.mjs', out, '--worlds', 'underwater'], { encoding: 'utf8', timeout: 180000 });
     assert.equal(r.status, 0, r.stderr.slice(-400));

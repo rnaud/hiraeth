@@ -388,6 +388,8 @@ export class InteriorCuller {
  *    G-buffer step and a depth copy where water is in view); false: one pass, the bed map's foam only
  *  - lodPx: levels of detail (lod.js): a distant mesh may lose detail smaller than this many pixels
  *    on screen (0 = always full detail)
+ *  - aa: the last pass's antialiasing, 'fxaa' (unset) or 'smaa' (pipeline.js createSmaa: the handheld, where a render
+ *    pixel is the coarsest and the far ink crawled; docs/systems/rendering.md "Far lines that would alias")
  *  - clothFar: people's capes are simulated within this many metres of the camera (npc.js updateCape;
  *    unset: 30 m on a low-detail preset, 70 m otherwise); further off they hang on the body
  */
@@ -401,7 +403,7 @@ export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
   handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
     shadow: { fine: 0, hero: 1024, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
-    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2, waterContact: false },
+    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2, waterContact: false, aa: 'smaa' },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75, lodPx: 1.5 },
   // the Steam Deck at its own 1280×800: the handheld's lighter recipe where the Deck's CPU pays for

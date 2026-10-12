@@ -4,7 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { cleanMidjourney, parsePromptDoc, resolveFrom, manifestPrompts } from '../scripts/reference-lab/prompts.mjs';
@@ -29,7 +30,7 @@ const B64 = JPEG.toString('base64');
 
 /** A small repository: two references, a prompt document, a manifest with a prompt. */
 function fakeRepo() {
-  const root = mkdtempSync(join(tmpdir(), 'reflab-'));
+  const root = tempDir('reflab-');
   mkdirSync(join(root, 'references/levels/The Desert/environment'), { recursive: true });
   writeFileSync(join(root, 'references/levels/The Desert/environment/rock.jpg'), JPEG);
   writeFileSync(join(root, 'references/levels/The Desert/environment/dune.png'), Buffer.from('89504e47', 'hex'));
@@ -119,7 +120,7 @@ test('the real enemy roster prompts parse: 21 archetypes, each with a main sheet
 test('keys: .env.local then .env, only the providers\' names, fal under either name; availability tells no value', () => {
   assert.deepEqual(parseEnv('# c\nexport OPENAI_API_KEY="a b"\nFAL_API_KEY=xyz # note\nOTHER=1\n'), { OPENAI_API_KEY: 'a b', FAL_API_KEY: 'xyz', OTHER: '1' });
   const files = { '/r/.env.local': 'GEMINI_API_KEY=local\n', '/r/.env': 'GEMINI_API_KEY=late\nFAL_API_KEY=falkey\nSECRET_OTHER=1\n' };
-  const root = mkdtempSync(join(tmpdir(), 'reflab-env-'));
+  const root = tempDir('reflab-env-');
   writeFileSync(join(root, '.env.local'), files['/r/.env.local']);
   writeFileSync(join(root, '.env'), files['/r/.env']);
   const keys = loadKeys(root, { processEnv: {}, files: [join(root, '.env.local'), join(root, '.env')] });
@@ -500,7 +501,7 @@ test('the dev server: availability with no values, refs without the candidates, 
 
 test('the store: elsewhere than the checkout when told (the main checkout from a worktree), git-ignored on its own', async () => {
   // (no git is run here: a test inside the pre-commit hook must never touch a repository)
-  const root = fakeRepo(), store = mkdtempSync(join(tmpdir(), 'reflab-store-'));
+  const root = fakeRepo(), store = tempDir('reflab-store-');
   process.env.REFERENCE_LAB_STORE = store;
   try {
     const m = await runBatch({ root, prompt: 'p', refs: ['references/levels/The Desert/environment/rock.jpg'], providers: ['openai'], n: 1, ar: '1:1', keys: { OPENAI_API_KEY: KEY }, fetch: labFetch(), ...fast, batch: 'w1' });

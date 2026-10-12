@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 
 // The render targets and the last steps of the game's pipeline, shared by the
 // game (main.js) and the character studio (studio.html, src/studio/), so the
@@ -8,7 +9,7 @@ import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 //   2. the G-buffer: every surface writes albedo + light, normal + depth and
 //      its hatching / drawn detail (materials.js)
 //   3. the ink composite (post.js) into composeRT
-//   4. FXAA, scaled to the display (the blit)
+//   4. FXAA, scaled to the display (the blit); SMAA instead on a preset that asks for it (aa: 'smaa', the handheld)
 
 /**
  * G-buffer: [0] albedo + light, [1] normal + view depth, [2] surface hatching. depthTexture: its depth buffer
@@ -44,6 +45,28 @@ export function createBlit(texture) {
   quad.frustumCulled = false;
   scene.add(quad);
   return { scene, material };
+}
+
+/** The last pass's antialiasing for a graphics preset (perf.js QUALITY_PRESETS `aa`): 'fxaa' unless it says otherwise. */
+export const aaOf = (preset) => (preset?.aa === 'smaa' ? 'smaa' : 'fxaa');
+
+/**
+ * SMAA in place of the blit (docs/systems/rendering.md, "Far lines that would alias"): its edges and blend weights at
+ * the render size, the blend drawn straight to the canvas (sampling the linear-filtered frame, it scales as it blends:
+ * no extra pass). Sharper on the ink than FXAA (it blends along the edges it finds, not across every contrast).
+ */
+export function createSmaa() {
+  const pass = new SMAAPass();
+  pass.renderToScreen = true;
+  pass.clear = true;   // (the edges pass discards where there are none: its target cleared each frame)
+  // (8 bits are what SMAA's edges and weights need: half the bandwidth of the pass's own half floats, on a handheld)
+  for (const rt of [pass._edgesRT, pass._weightsRT]) if (rt) rt.texture.type = THREE.UnsignedByteType;
+  return {
+    pass,
+    setSize: (w, h) => pass.setSize(w, h),
+    render: (renderer, source) => pass.render(renderer, null, source),
+    dispose: () => pass.dispose(),
+  };
 }
 
 const _subj = new THREE.Vector3();

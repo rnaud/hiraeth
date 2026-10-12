@@ -530,6 +530,151 @@ The current character follows the [three reference sheets and visual direction](
 
 For a complete preview, open `studio.html?backpack=1`; the **Fluid backpack** checkbox uses isolated state and never grants items to the game save. The traveller and drone tests cover skin weights, garment fit, movement, docking clearance, and the resized pack’s handoff.
 
+## Generated guardian pilot: Cistern-Keeper
+
+The first non-humanoid candidate is the desert's Cistern-Keeper. The reference
+prompt is `prompts/cistern-keeper-reference.txt`. The character skill now routes
+non-humanoids to `.agents/skills/hiraeth-ai-characters/references/non-humanoids.md`.
+No generated guardian asset has been accepted or integrated, and generated-mesh
+animation is not yet verified. On 12 October 2026, the first Midjourney batch
+(`6c582ac0-5269-4b03-9bb3-a7904c035635`, candidate 0) used text derived from the
+procedural model but no existing art input. The user rejected that direction as
+too far from prior references and insufficiently Moebius-like. A Tripo H3.1 job
+(`5b827de1-92db-4924-8cbe-715ca3baec01`, 50 credits) had already been submitted;
+it is an unaccepted experiment, not an integration candidate. Do not start more
+Tripo jobs until the user explicitly approves a Midjourney reference.
+
+The actual guardian artwork was subsequently found on `origin/main`, absent
+from this October 8 checkout. The author's picks were added October 10 in
+`b234a50f` and `e728c41c`. Canonical Keeper sources are
+`references/guardians/keeper/sheet-1.jpg` (design views) and `sheet-2.jpg` (arena),
+with generation provenance in that folder's `manifest.json` and prompts in
+`docs/design/guardian-prompts.md`. All eleven guardians have dedicated sheets.
+Use these boss-specific sources, not the previously suggested environment or
+bird-rider sheets. The two Keeper sheets differ in proportions and shell details;
+resolve the intended identity before combining views. Read-only copies from
+`origin/main` at `517265054349832f54c6812d797d74eebf37e91e` are cached under
+`output/character-tripo/guardian-reference-source/keeper/` for review.
+
+After the user approved those sources, two image-conditioned Midjourney batches
+were generated. The first combined the design sheet as an image prompt and the
+arena sheet as a style reference, but produced stocky proportions and inconsistent
+limb counts. The focused revision used only the design sheet and asked to extract
+its third standing creature (`prompts/cistern-keeper-reference-v3.txt`). Candidate 0
+of job `2af1aa1c-37b7-4842-a7d7-986d2666e828` is saved as
+`references/guardians/cistern-keeper/reference-v3-1.png`. It preserves six distinct
+legs, the tall ringed neck, ivory plates and rose belly. Its mouth is more open
+than requested. The user approved this candidate on 12 October 2026 and requested moving to an
+updated worktree before continuing. The subsequent Tripo test is recorded below.
+
+The approved reference was tested in Tripo H3.1 job
+`04b940f6-4bf4-4d3a-8fc2-46eb9b825670`: 50 credits, 50K target triangles,
+4K texture, Remove Lighting on, PBR off. The untouched source under
+`output/character-tripo/keeper-v3/source.glb` is 5,376,284 bytes, 47,220 triangles,
+26,811 vertices, one mesh/material, no skin or clips. Six legs and a distinct
+open jaw survive generation. The local `review.html` supports unlit, clay,
+neutral light and the shared game ink renderer; albedo lighting neutrality is
+not yet certified.
+
+A further 20-credit **Other** auto-rig was rejected. GLB export has 27 skin
+joints but missing rest transforms and effectively all vertices weighted to the
+root. FBX retains 53 bones and more weights, but 29 bones have no vertex influence;
+an isolated `bone_3` rotation visibly stretches unrelated legs. Preserve both
+untouched exports and audits in that output folder. `review.html?rig=fbx` offers
+isolated joint selection (0.45-radian Z rotation) to reproduce the defect.
+A custom six-leg/neck/jaw rig is required before game integration. The 80 existing
+temple, guardian-motion and guardian-twist tests passed; they are a procedural
+baseline, not generated-mesh animation acceptance. This test spent 70 credits total.
+
+The subsequent hosted **Walk** preset test also failed twice during retargeting
+(tasks `df0c89e6-de6b-41c8-bdad-337826889062` and
+`e1ec2729-18cd-4408-ae37-6e8f639b8562`), both with Tripo’s “Invalid user input”
+error. No animation was produced; the balance remained 2,875 credits. This
+confirms the service could not provide a working walk in this test; it does not
+identify whether anatomy support or a service defect caused the rejection.
+
+### Custom procedural animation pilot (12 October 2026)
+
+`public/guardians/keeper-v1/model.glb` now contains a fitted 26-bone skin:
+six independent thigh/shin/foot chains, body, five neck joints, head and jaw.
+It is rebuilt from the untouched source by `node scripts/tripo/rig-keeper.mjs`;
+the script checks the source SHA before applying this creature's measured anatomy.
+`src/characters/keeper-fit.js` owns those measurements and smooth weight fields.
+`src/characters/keeper-creature.js` binds it to the existing `GuardianLegs` and
+`GUARDIAN_PLANS.keeper`, including independent supported footfalls, world-space planted feet,
+body springs, turning lag and the encounter's telegraph frame. Measured segment
+lengths override the kit's proportional defaults; existing callers keep their defaults.
+Independent leg bones stay outside the body tell frame so its crouch/tilt does not
+move a planted foot twice. The neck and jaw remain attached to the body.
+
+Run the dev server and open `/tools/keeper-review.html`. Choose a motion, enter
+seconds and press **Go** for repeatable paused poses, or **Play** for a continuous
+cycle. Front/side/back/three-quarter, clay, unlit, neutral lighting and the shared
+game G-buffer/ink renderer use the same rig. **Reverse light** switches to neutral
+lighting. **Encounter controller** runs the actual boss controller against a dummy
+player; its combat effects are hidden in this isolated material review. Walk at
+2.4 s, stamp at 1.5 s, sweep at 1.3 s and open mouth at 3 s are useful checkpoints.
+
+The first walk used synchronized tripods. After motion review, the generated Keeper
+opts into the shared planner's `independent` mode: one lift per decision, at least
+140 ms between starts, at most two non-neighbouring legs airborne. Other guardians
+retain their original gait. A `flowing` arc has zero lift/drop endpoint velocity and
+keeps its predicted landing fixed during the swing; planted feet still use terrain
+samples. Lower foot clearance, a little more knee bend and more body damping remove
+the high bob and near-straight knee snaps. Walk review speed is 0.9 m/s.
+
+Sweep yaw now eases across strike/release rather than switching its amplitude in
+one frame. Review attacks include recovery between six-second cycles. The preview
+substeps simulation at no more than 1/60 s, caps render pixel ratio at 1.25, and only
+resizes on CSS viewport changes (avoiding repeated resize with fractional pixels).
+The visible FPS counter reports this browser, not a mobile/device performance claim.
+
+The mouth is closed at rest with a measured hinge at source [-.411,.842,0] and a
+1.04-radian closing rotation. The old weight boundary caught the upper lip while
+missing part of the hanging lower jaw; changing only the closing angle exposed that
+error. The corrected lower-jaw field leaves the upper muzzle fixed. Use **Jaw closed**
+and **Jaw open** with **Head close-up** at the same time to inspect independently of
+neck motion. Tests now assert actual upper-muzzle preservation and lower-lip rise,
+not merely that vertices outside the assigned weights stay still.
+
+The derived mesh is 2,969,532 bytes (source 5,376,284), with unchanged 47,220 triangles
+and 26,811 vertices, one surface/material and a 2K JPEG texture. The texture's
+estimated RGBA GPU storage including mipmaps drops from about 85.3 MiB at 4K to
+21.3 MiB at 2K; device performance and LOD remain unmeasured. All motion is runtime
+procedural; the GLB contains the skin, **no baked animation clips**.
+
+`tests/keeper-creature.test.js` checks every vertex's bind roundtrip and normalized
+weights, meaningful influence of all joints, isolated leg/jaw vertex displacement,
+world-space foot targets during translated/rotated walking, reachable mouth poses,
+finite deformation across all attack definitions, repeatable reset and real encounter
+updates. Visual review covers walking, stamp, sweep and lowered open mouth from
+multiple angles, with rear clay inspection. Evidence is in ignored
+`output/character-tripo/keeper-v3/`. This is an animation pilot: the live temple
+still uses the existing guardian. Full temple combat, fluid hits, final touch,
+phase glow, mobile performance and lighting-neutral texture acceptance remain open.
+
+The pilot was moved to the `codex/guardian-keeper` worktree after pulling main
+at `8821ba5996eca5d75e2f564067be93a82a788f26`. Upstream renamed the character
+skill to `hiraeth-ai-characters`; the guardian guidance is now merged into that
+skill, preserving its newer validation requirements. The motion inventory below
+was recorded in the original October 8 checkout; reconcile it against the
+updated guardian controller, Keeper encounter and model; that reconciliation informed the custom pilot above.
+
+The current model in `src/temples/guardians.js` has six hip/knee chains, five neck
+segments, a head and opening jaw, body rise/tilt/sink, and shell glow. Its
+replacement must retain the `Guardian` controller contract in `src/temples/boss.js`
+and the gameplay definition in `src/temples/desert.js`: sleep, wake, moving fight,
+stamp, sweep, burrow, open, weary, resolved, and reset. The mouth is a world-space
+fluid target and final interaction anchor. Verify it after root translation,
+rotation and jaw motion, including in the actual cistern arena.
+
+Generation sequence: inspect one Midjourney batch for six distinct legs and
+consistent anatomy; upload one accepted reference to Tripo; preserve its untouched
+export and job identifiers; inventory the mesh and rig before selecting a custom
+skin or articulated-part adapter. Do not use the traveller's MakeHuman fitting
+coefficients. Existing temple tests establish gameplay behavior only; acceptance
+also requires real mesh deformation and visual review in the game renderer.
+
 ## Tripo character review experiment
 
 ### Tripo head replacement, 8 October 2026

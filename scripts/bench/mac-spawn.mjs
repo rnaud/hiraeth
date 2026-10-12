@@ -11,7 +11,8 @@
 //   --slow n: the CPU slowed n times (Emulation.setCPUThrottlingRate), a weaker machine's main thread
 // PORT (default 5494; Chrome's is PORT + 1). Never 5173 (the author's dev server).
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, ownProcess } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,11 +29,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const { preview } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
 const server = await preview({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', preview: { port: PORT, strictPort: true, host: '127.0.0.1' } });
 const BASE = `http://127.0.0.1:${PORT}/`;
-const profileDir = mkdtempSync(join(tmpdir(), 'mac-spawn-chrome-'));
-const proc = spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
+const profileDir = tempDir('mac-spawn-chrome-');
+const proc = ownProcess(spawn(process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required',
   `--remote-debugging-port=${CDP}`, `--user-data-dir=${profileDir}`, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist',
   ...(UNCAPPED ? ['--disable-gpu-vsync', '--disable-frame-rate-limit'] : []),
-  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--no-first-run', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' });
+  '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--no-first-run', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
 let tabs; for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
 const version = await (await fetch(`http://127.0.0.1:${CDP}/json/version`)).json();
 

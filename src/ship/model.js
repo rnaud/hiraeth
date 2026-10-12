@@ -119,7 +119,7 @@ export function buildShipModel(o = {}) {
     const sections = [];
     for (let i = 0; i < n; i++) {
       const len = i < n - 1 ? step + RAMP_OVERLAP : step;
-      const r = rampGeometry(len, 1.25 - 0.06 * i);
+      const r = rampGeometry(len, 1.55 - 0.06 * i);
       if (axis < 0) for (const g of [r.plank, ...r.rails, ...r.stripes]) g.rotateY(Math.PI);
       const sec = new THREE.Group();
       sec.position.y = -0.035 * i;

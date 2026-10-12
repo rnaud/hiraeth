@@ -9,6 +9,7 @@
 // renderer's draw calls and triangles after each frame (three.js: renderer.info).
 import { mkdirSync, rmSync } from 'node:fs';
 import { pidsOf } from './lib.mjs';
+import { tempPath } from '../temp-dirs.mjs';
 
 export const PLAYWRIGHT = process.env.PLAYWRIGHT ?? '/private/tmp/claude-501/-Users-anf-projects-moebius/79b266a7-36c4-4810-b5a3-d753e92ed428/scratchpad/node_modules/playwright-core/index.mjs';
 export const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -20,7 +21,7 @@ export const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-b
 export async function launch({ w, h, profile, extraArgs = [], paced = false, headless = false }) {
   const { chromium } = await import(PLAYWRIGHT);
   rmSync(profile, { recursive: true, force: true });
-  mkdirSync(profile, { recursive: true });
+  mkdirSync(tempPath(profile), { recursive: true });   // (removed at exit however the run ends, issue #220)
   const ctx = await chromium.launchPersistentContext(profile, {
     executablePath: CHROME, headless, viewport: { width: w, height: h }, deviceScaleFactor: 1,
     args: [...CHROME_ARGS.filter((a) => !paced || !/disable-gpu-vsync|disable-frame-rate-limit/.test(a)), `--window-size=${w},${h + 120}`, ...(headless ? ['--headless=new'] : []), ...extraArgs],

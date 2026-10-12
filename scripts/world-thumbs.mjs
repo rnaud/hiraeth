@@ -7,7 +7,8 @@
 //   node scripts/world-thumbs.mjs desert,bazaar   those only
 // PORT (default 5430) is Vite's, PORT+1 Chrome's debugging port.
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, statSync } from 'node:fs';
+import { rmSync, statSync } from 'node:fs';
+import { tempDir } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,7 +37,7 @@ const tryView = process.env.THUMB_VIEW ? JSON.parse(process.env.THUMB_VIEW) : {}
 
 const only = process.argv[2]?.split(',');
 const ids = LEVELS.map((l) => l.id).filter((id) => !only || only.includes(id));
-const work = mkdtempSync(join(tmpdir(), 'hiraeth-thumbs-'));
+const work = tempDir('hiraeth-thumbs-');
 const server = await serve(ROOT);
 const c = await chrome();
 let failed = 0;

@@ -67,12 +67,17 @@ export function drawnSurfaces(scene, { exclude = [], maxInstances = 4000 } = {})
     if (geo.index) g.setIndex(geo.index);
     const w = g.clone().applyMatrix4(m);
     const flat = w.index ? w.toNonIndexed() : w;
+    if (flat.attributes.position.count % 3) return;   // (not whole triangles: not a surface this can read)
     geos.push(flat);
     tris += flat.attributes.position.count / 3;
     names.push(nameOf(o)); ends.push(tris);
   };
   scene.traverse((o) => {
     if (!o.isMesh || o.isSkinnedMesh || !o.geometry?.attributes?.position) return;
+    // (a batch of still meshes, src/static-batch.js: its meshes stay in the scene where they stand, only their layers
+    // off, and are read from there; the batch's own buffer holds them untransformed, with spare room after them that
+    // is no whole number of triangles: read, it skewed every triangle after it and left the drawn tops none, #219)
+    if (o.isBatchedMesh || o.userData.batch) return;
     for (let x = o; x; x = x.parent) if (skip.has(x)) return;
     // (still where they are now: a temple's doors, which collide while shut, are dynamic: they are drawn too)
     if (!shown(o) || o.userData.flora || o.userData.floats) return;
@@ -161,7 +166,7 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
     for (let t = 0; t < nt; t++) {
       tri(geo, t);
       const ar = _n.length() / 2;
-      if (ar < 1e-3) continue;
+      if (!(ar >= 1e-3) || !Number.isFinite(ar)) continue;
       const ny = Math.abs(_n.y) / (2 * ar);
       const kind = ny > 0.7 ? 'top' : ny < 0.35 ? 'wall' : null;
       if (!kind) continue;
@@ -244,11 +249,11 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
     const dgeo = drawn.bvh.geometry, dpos = dgeo.attributes.position;
     const dfaces = [];
     let darea = 0;
-    for (let f = 0; f < dpos.count / 3; f++) {
+    for (let f = 0; f < Math.floor(dpos.count / 3); f++) {
       _a.fromBufferAttribute(dpos, 3 * f); _b.fromBufferAttribute(dpos, 3 * f + 1); _c.fromBufferAttribute(dpos, 3 * f + 2);
       _n.subVectors(_c, _b).cross(_d.subVectors(_a, _b));
       const ar = _n.length() / 2;
-      if (ar < 1e-3 || _n.y / (2 * ar) < 0.7) continue;   // (only what is drawn facing up: a face you could stand on)
+      if (!(ar >= 1e-3) || !Number.isFinite(ar) || _n.y / (2 * ar) < 0.7) continue;   // (one bad face must not void the sum)   // (only what is drawn facing up: a face you could stand on)
       if (region && !region(_p.copy(_a).add(_b).add(_c).divideScalar(3))) continue;
       dfaces.push(f, ar);
       darea += ar;

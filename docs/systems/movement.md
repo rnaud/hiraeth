@@ -55,6 +55,15 @@ walk-through scatter, flora, water, things that float on purpose, shadow casters
 is left are in the test). The real traveller (`tests/gait-sim.js`) rides a rising disc with his soles at rest
 height over its top, and on Vael II's rock lands with his feet on the drawn surface.
 
+**Batched worlds (issue #219).** In the game the still meshes are drawn by batches (`src/static-batch.js`); the
+meshes stay in the scene where they stand, only their layers off, and the audit reads them there and skips the
+batches themselves. Read as a surface, a batch's buffer (its meshes untransformed, spare room after them that is
+no whole number of triangles) put copies of the world at its origin and skewed every triangle after it, and the
+drawn tops' area summed to NaN: `contactAudit()` checked no drawn top on the normal build, only with `?batch=0`.
+The tests and `scripts/contact-report.mjs` build worlds without batches, so their counts were right all along;
+batched and unbatched now agree (the garage, desert, Buried City, Edena and bazaar, to the sample), and
+`tests/contact-audit.test.js` batches a scene and checks it.
+
 **The desert, made exact (October 2026).** The Givers' Hearth butte and the lip of rock round its foot, the
 Rose House's drum, its fins' caps and the sunken leviathan, the crashed hull and its salvage camp, the
 fallen giant and the petal station all collided as coarse stand-ins up to 3.7 m inside what is drawn; they

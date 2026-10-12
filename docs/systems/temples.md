@@ -571,6 +571,22 @@ founders' moon hot in its cradle); the **Footprint**'s Keepers' Lodge, west off 
 `LODGE`; the Hall of the Unseen's far door `d4` takes it with its eye and the sphere on the walker's print). Each wing's
 side that meets its hall is that hall's own wall (`omit`), so no two walls lie face on face (tests/zfight.test.js).
 
+## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
+
+The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake
+every time we are in a cramped space." A probe walked the traveller and the close camera through every room (each
+checkpoint stone's room, a full turn by hand and four walks out and back; the numbers in
+docs/systems/movement-and-camera.md, "Small rooms"). The halls were roomy; the cramped ones were the **antechambers**,
+the short passage between the last hall's door and the guardian's round hall: 5.6 m across, 4 m deep, 7 m high, the camera
+pulled in to under 0.8 m behind the head in a tenth of every turn. In the eight houses that build it the same way
+(the Belfry, the Footprint, the Engine-House, the Lamp-House, the Hush-House, the Clock-House, the Greenhouse, the
+Undertower) it is now one piece of the kit, `K.vestibule(z0, y)`: `ANTE` 8.8 m across, 7.4 m deep, 8.5 m high, its walls
+run on into the round hall's wall; the guardian's hall stands 4 m further on (its centre `end + 1.2 + r`, everything in it
+placed from that), its doorways as they were. The Mooring-House's ante (a corridor) is 8.8 m wide and 7.6 m high. The
+puzzles' rooms are unchanged (no jump, timing, wind, ball or checkpoint distance moved); the halls' marks for the
+antechamber stand in its middle. `tests/room-size.test.js` holds the vestibule's size; the on-foot walks in
+`tests/temples.test.js` walk into the guardians' halls 4 m further on.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

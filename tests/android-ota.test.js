@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -68,7 +69,7 @@ test('the game\'s updates come from its site; the APK still from GitHub releases
 });
 
 test('web.json: version, build number, the zip\'s sha256, its URL, size, notes and the native level it needs', () => {
-  const zip = join(mkdtempSync(join(tmpdir(), 'hiraeth-ota-')), 'web-14.zip');
+  const zip = join(tempDir('hiraeth-ota-'), 'web-14.zip');
   writeFileSync(zip, 'not really a zip');
   const sha = createHash('sha256').update('not really a zip').digest('hex');
   const url = 'https://example.com/o/r/releases/download/v0.37/web-14.zip';
