@@ -1,0 +1,51 @@
+docs/systems/audio.md
+  s_9ca76055a220ed::t_655844e8c51b7a 182-183,193-194,217-218,226-244,276-277,319-321
+src/audio.js
+  s_9ca76055a220ed::t_95c2a9cc31810d 424,435-437,699
+src/soundtracks.js
+  s_9ca76055a220ed::t_20c06a69f57ebe 1-2,29
+public/music/manifest.json
+  s_9ca76055a220ed::t_111970caedc162 14-23
+tests/soundtracks.test.js
+  s_9ca76055a220ed::t_c352dd5fee1a4f 35,39,44-46,51-67
+src/changelog-media.js
+  s_9ca76055a220ed::t_d3dcf9344e17aa 788
+tests/music-store.test.js
+  s_9ca76055a220ed::t_9644420e790eaa 69-71,86-88,91,108,114,117-119,224,226-228,231
+scripts/site-only.mjs
+  s_9ca76055a220ed::t_90c2a8645ce83a 10
+src/music-store.js
+  s_9ca76055a220ed::t_409b32dbac92b4 2-4,20-21
+changelog.md
+  s_9ca76055a220ed::t_478a74bf461d13 7
+tests/desert-music.test.js
+  s_9ca76055a220ed::t_97f46b5b43d018 5-8,142-144,160-210,229-230,235,238,242-259
+src/changelog.js
+  s_9ca76055a220ed::t_34ac716ff785d1 33-35
+scripts/web-update.mjs
+  s_9ca76055a220ed::t_5cac63d8307202 149
+tests/web-update.test.js
+  s_9ca76055a220ed::t_d0632358ddf092 167,170,174
+tests/site-only.test.js
+  s_9ca76055a220ed::t_c6ee0658ebe804 37-38,41-42,45-46
+src/score.js
+  s_9ca76055a220ed::t_7ca4fd2bd65a66 80-82
+docs/systems/android.md
+  s_9ca76055a220ed::t_16f3b852a17ca2 293
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e81834237e4ace046a52cecb32c0746a876e9b3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
