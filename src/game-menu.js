@@ -130,7 +130,7 @@ export class MenuState {
 
 const cellAttrs = (r, c) => `data-at="${r},${c}"`;
 /** An item's picture: the game's own render of it (src/item-icons.js), or its kind's mark until that is ready. */
-const KIND_MARK = { core: '◍', weapon: '⚔', movement: '➶', mode: '◐', upgrade: '✚', charm: '✧', pass: '▭', cosmetic: '✦', quest: '⧉', keepsake: '✦' };
+export const KIND_MARK = { core: '◍', weapon: '⚔', movement: '➶', mode: '◐', upgrade: '✚', charm: '✧', pass: '▭', cosmetic: '✦', quest: '⧉', keepsake: '✦' };
 const icon = (it) => it.icon
   ? `<img class="ico" src="${esc(it.icon)}" alt="" data-icon="${esc(it.id)}">`
   : `<i class="ico mark" data-icon="${esc(it.id)}">${KIND_MARK[it.kind] ?? '✧'}</i>`;

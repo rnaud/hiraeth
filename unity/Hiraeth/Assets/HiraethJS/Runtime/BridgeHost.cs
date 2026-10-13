@@ -202,6 +202,9 @@ namespace Hiraeth.Bridge
         public static void Audio(object buffer) { var s = Sound; if (s is null) return; var b = JsRuntime.Bytes(buffer, out int n); s.Push(b, n); }
         public static void Screen(string json) => On(() => { if (Runner && Runner.hud) Runner.hud.Set(json); });
         /// <summary>The menus' state (engine/menus.js view(): the title, the Start menu, the game menu; "null" none open), for BridgeMenu.</summary>
+        /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>
+        public static float MenuWidth() => menuWidth;
+        public static volatile float menuWidth = 1280;
         public static void Menu(string json) => On(() => { if (Runner && Runner.menu) Runner.menu.Set(json); });
         /// <summary>
         /// The engine started again with these arguments (the script's JSON, its `boot` choice: Quit to title onto another

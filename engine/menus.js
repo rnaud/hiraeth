@@ -20,7 +20,7 @@
 import { slots as defaultStore, SLOT_COUNT, DEBUG_SLOT, formatPlaytime, formatDate, progressLine } from '../src/save-slots.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { t } from '../src/i18n.js';
-import { MenuState, PANELS, DEFAULT_PANEL, ACT, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS } from '../src/game-menu.js';
+import { MenuState, PANELS, DEFAULT_PANEL, ACT, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
 import { controlsList } from '../src/ui.js';
 import { confirmKey, backKey } from '../src/native-pad.js';
@@ -74,13 +74,16 @@ export const START_SIDE = [
 
 const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
 /** Each panel's columns across the sheet, as the page lays them out (the cells' `col`; a cell's `span` columns wide). */
-const COLS = { quests: [0.64, 0.36], items: Array(GEAR_COLS).fill(1 / GEAR_COLS), worlds: [1], people: Array(PEOPLE_COLS).fill(1 / PEOPLE_COLS), map: [1] };
+const COLS = { quests: [0.64, 0.36], items: Array(GEAR_COLS).fill(1 / GEAR_COLS),   // (the items': as many as fit, itemGrid)
+  worlds: [1], people: Array(PEOPLE_COLS).fill(1 / PEOPLE_COLS), map: [1] };
 /** A menu's prompt with its confirm (written "A / ×") and back ("B / ○") as the pad in hand has them (native-pad.js). */
 export const menuKeys = (s) => {
   const ok = confirmKey(), back = backKey();
   return ok === 'A / ×' ? s : String(s ?? '').replace(/A \/ ×|B \/ ○/g, (k) => (k === 'A / ×' ? ok : back));
 };
-const plain = (s) =>String(s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+/** The cells that carry a thing's picture (the Items panel's gear, what you carry, the keepsakes). */
+const PICTURED = new Set(['item', 'pack', 'keepsake']);
+const plain = (s) => String(s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 
 export class EngineMenus {
   /**
@@ -94,9 +97,11 @@ export class EngineMenus {
    * @param o.onTravel  (id) → null | a line why not (the Worlds page's Travel here)
    * @param o.onUse, o.onTrack  an item used, a quest tracked (the game menu's)
    * @param o.where     () → the Start menu's heading: the world you are in
+   * @param o.itemCols  () → how many of the Items panel's tiles fit a row on the engine's screen (the web's grid fits
+   *                    as many as its tile's size allows: src/game-menu.css --tile); GEAR_COLS without one
    */
-  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, where = () => '', version = '' } = {}) {
-    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, where, version });
+  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS } = {}) {
+    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, where, version, itemCols });
     this.mode = null;            // null | 'title' | 'start' | 'game'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
@@ -301,7 +306,22 @@ export class EngineMenus {
     } catch (e) { console.warn(`[menus] the ${id} panel's data: ${e?.message ?? e}`); }
     data ??= id === 'worlds' ? [] : id === 'map' ? { world: '', marks: [] } : {};
     const built = BUILDERS[id](data);
-    return { id, data, rows: built.rows, start: built.start };
+    const rows = id === 'items' ? this.itemRows(built.rows) : built.rows;
+    return { id, data, rows, start: built.start };
+  }
+  /** The Items panel's grid on this screen: { cols, carry } (the tiles a row; the column the keepsakes start at). */
+  itemGrid() {
+    const cols = Math.max(2, Math.min(GEAR_COLS, Math.round(Number(this.itemCols()) || GEAR_COLS)));
+    return { cols, carry: cols === GEAR_COLS ? CARRY_COL : Math.ceil(cols / 2) };
+  }
+  /** The gear's tiles regrouped `cols` a row (itemsPanel lays out GEAR_COLS), what you carry and the keepsakes under them. */
+  itemRows(rows) {
+    const { cols, carry } = this.itemGrid();
+    if (cols === GEAR_COLS) return rows;
+    const gear = rows.flat().filter((c) => c.kind === 'item'), out = [];
+    gear.forEach((c, i) => (out[Math.floor(i / cols)] ??= []).push({ ...c, col: i % cols }));
+    for (const row of rows) if (!row.some((c) => c.kind === 'item')) out.push(row.map((c) => (c.col === CARRY_COL ? { ...c, col: carry } : c)));
+    return out;
   }
   startAt() {
     const p = this.panel();
@@ -398,15 +418,28 @@ export class EngineMenus {
   gameView() {
     const p = this.panel(), at = this.state.cursor(), cell = this.state.cell(p.rows);
     const names = PANELS.map((x) => x.name);
+    const grid = p.id === 'items' ? this.itemGrid() : null;
     const rows = p.rows.map((row, r) => row.map((c, k) => ({
-      text: c.name ?? '', sub: c.sub ?? '', col: c.col ?? k, span: p.id === 'items' && c.kind !== 'item' ? (c.col === 0 ? CARRY_COL : GEAR_COLS - CARRY_COL) : 1,
-      kind: c.kind, on: !at.edge && at.r === r && at.c === k, inUse: !!c.it?.inUse, tracked: !!c.q?.tracked, done: c.kind === 'ended' ? (c.q?.failed ? 'failed' : 'done') : '',
+      text: c.name ?? '', sub: c.sub ?? '', col: c.col ?? k, span: grid && c.kind !== 'item' ? (c.col === 0 ? grid.carry : grid.cols - grid.carry) : 1,
+      kind: c.kind,
+      // (a thing's picture: public/item-pictures/<id>, as the items page draws it; its kind's mark where it has none)
+      pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', on: !at.edge && at.r === r && at.c === k, inUse: !!c.it?.inUse, tracked: !!c.q?.tracked, done: c.kind === 'ended' ? (c.q?.failed ? 'failed' : 'done') : '',
       here: c.kind === 'world' && /here/i.test(c.sub ?? ''), off: c.kind === 'mark' && !c.mark?.on,
       // (a quest's next step under it, as the page's card shows it)
       step: ['quest', 'charge', 'errand'].includes(c.kind) ? plain(c.q?.step) : '',
     })));
-    const view = { v: this.v, kind: 'game', panel: p.id, tabs: { names, i: this.state.i, edge: at.edge ?? 0 }, cols: COLS[p.id] ?? [1], rows,
-      empty: rows.length ? '' : plain(BUILDERS[p.id](p.data).html.match(/<p class="none">([^<]*)<\/p>/)?.[1] ?? ''),
+    if (grid) {
+      // the slots still to find, drawn after the gear but not named (src/game-menu.js itemsPanel), never the cursor's
+      const gearRows = rows.filter((row) => row.some((c) => c.kind === 'item')).length, n = rows.slice(0, gearRows).flat().length;
+      let made = gearRows;
+      for (let i = n; i < (p.data?.slots ?? 0); i++) {
+        const r = Math.floor(i / grid.cols);
+        if (r >= made) rows.splice(made++, 0, []);   // (a row of empties only, before what you carry)
+        rows[r].push({ text: '', sub: '', col: i % grid.cols, span: 1, kind: 'empty', empty: true, on: false, pic: '', mark: '' });
+      }
+    }
+    const view = { v: this.v, kind: 'game', panel: p.id, tabs: { names, i: this.state.i, edge: at.edge ?? 0 }, cols: grid ? Array(grid.cols).fill(1 / grid.cols) : COLS[p.id] ?? [1], rows,
+      empty: p.rows.length ? '' : plain(BUILDERS[p.id](p.data).html.match(/<p class="none">([^<]*)<\/p>/)?.[1] ?? ''),
       strip: cell ? { name: cell.name ?? '', sub: cell.sub ?? '', desc: plain(cell.desc), act: cell.act ? ACT[cell.act] : '' } : null,
       hint: this.full ? 'B / ○ back · ◀ ▶ the next' : 'LB / RB turn · A / × choose · B / ○ close' };
     if (p.id === 'items') { view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
@@ -421,7 +454,7 @@ export class EngineMenus {
     if (this.full) {
       const c = this.full.cell, F = this.full, f = c.full ?? {};
       const w = c.kind === 'world' ? (Array.isArray(p.data) ? p.data.find((x) => x.id === c.id) : null) : null;
-      view.full = { title: c.name ?? '', sub: f.sub ?? '', text: plain(f.text), inUse: !!f.inUse, use: f.use ?? '', note: F.note ?? '',
+      view.full = { title: c.name ?? '', sub: f.sub ?? '', pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', text: plain(f.text), inUse: !!f.inUse, use: f.use ?? '', note: F.note ?? '',
         facts: w ? worldFacts(w).map((x) => ({ text: x.text, on: !!x.on, list: (x.list ?? []).join(' · ') })) : [],
         prev: F.list[F.k - 1]?.name ?? '', next: F.list[F.k + 1]?.name ?? '', kind: c.kind };
     }

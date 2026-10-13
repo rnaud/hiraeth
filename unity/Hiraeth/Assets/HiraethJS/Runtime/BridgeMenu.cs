@@ -25,9 +25,16 @@ namespace Hiraeth.Bridge
         Ui.Box sheet;
         Label logo, head, sub, version, hint, note, empty, meas;
         // a pool of entries (a row of the title, the sidebar, a page's control, a panel's cell), each a band, its words, a value and a slider
-        class Cell { public Ui.Box box; public Label text, sub, val; public Image bar, fill, mark, line; }
+        class Cell { public Ui.Box box; public Label text, sub, val; public Image bar, fill, mark, line; public RawImage pic; }
         readonly List<Cell> cells = new();
         int used;
+        // the Items panel's tiles (as the web's .slot: the picture on its paper in an ink frame, the name under it)
+        class Tile { public Ui.Box box; public RawImage pic; public Label mark, name, inUse; public Image ring; }
+        readonly List<Tile> tiles = new();
+        int tilesUsed;
+        // the items' pictures (public/item-pictures as PNGs: scripts/engine-bundle.mjs unityPictures), each read once
+        static readonly Dictionary<string, Texture2D> pictures = new();
+        RawImage cardPic; Label cardMark;
         // the game menu's tabs, the strip at the foot, a thing full screen, a question, the map's marks
         readonly List<Label> tabs = new();
         Label tabPrev, tabNext; Image tabLine;
@@ -40,6 +47,21 @@ namespace Hiraeth.Bridge
         const int Body = 19, Small = 14, Tiny = 12;
 
         static bool B(object o, string k) => o.Get(k) is bool b && b;
+
+        /// <summary>A thing's picture (StreamingAssets/hiraeth-js/item-pictures/id.png), or null where it has none.</summary>
+        static Texture2D Picture(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            if (pictures.TryGetValue(id, out var t)) return t;
+            var bytes = StreamingFile.Read(System.IO.Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "item-pictures", id + ".png"));
+            if (bytes != null)
+            {
+                t = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = "item " + id, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                if (!t.LoadImage(bytes, true)) { Destroy(t); t = null; }
+            }
+            pictures[id] = t;
+            return t;
+        }
         /// <summary>A button's name as the pad in hand prints it (the view's keys: ok, back, prev, next; the script names them, src/native-pad.js).</summary>
         string Key(string k, string or) => state.O("keys")?.S(k) is string s && s.Length > 0 ? s : or;
 
@@ -84,6 +106,8 @@ namespace Hiraeth.Bridge
             askWhat = Ui.Label(ask.rt, "what", mono, Small, Muted, TextAnchor.UpperCenter, lineSpacing: 1.3f);
             askNo = Ui.Label(ask.rt, "no", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
             askYes = Ui.Label(ask.rt, "yes", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
+            cardPic = Ui.Node("pic", card.rt).gameObject.AddComponent<RawImage>(); cardPic.raycastTarget = false;
+            cardMark = Ui.Label(card.rt, "mark", Ui.Sans, 64, Ui.Teal, TextAnchor.MiddleCenter);
             root.gameObject.SetActive(false);
         }
 
@@ -125,6 +149,7 @@ namespace Hiraeth.Bridge
             c.bar.gameObject.SetActive(slider >= 0);
             if (slider >= 0) { float bw = Mathf.Min(160, w * 0.3f); Ui.Place(c.bar.rectTransform, w - pad - bw, h - 9, bw, 3); Ui.Place(c.fill.rectTransform, 0, 0, bw * Mathf.Clamp01(slider), 3); }
             c.mark.gameObject.SetActive(on);
+            if (c.pic) Show(c.pic, false);
             c.line.gameObject.SetActive(on);
             if (on) { Ui.Place(c.mark.rectTransform, 0, 4, 4, h - 8); Ui.Place(c.line.rectTransform, pad, 5 + ts.y + (hasSub ? 0 : 1), Mathf.Min(Ui.Measure(c.text, text ?? "").x, w - pad * 2), 2); }
             return c;
@@ -132,10 +157,64 @@ namespace Hiraeth.Bridge
 
         static void Show(Component c, bool on) { if (c && c.gameObject.activeSelf != on) c.gameObject.SetActive(on); }
 
+        /// <summary>A line's small picture at its left (what you carry, a keepsake), the words moved over for it.</summary>
+        void LinePicture(Cell cell, Texture2D pic, float h)
+        {
+            if (!cell.pic) { cell.pic = Ui.Node("pic", cell.box.rt).gameObject.AddComponent<RawImage>(); cell.pic.raycastTarget = false; }
+            Show(cell.pic, pic != null);
+            if (pic == null) return;
+            float s = Mathf.Min(h - 6, 26);
+            cell.pic.texture = pic;
+            Ui.Place(cell.pic.rectTransform, 12, (h - s) / 2, s, s);
+            var p = cell.text.rectTransform.anchoredPosition; cell.text.rectTransform.anchoredPosition = new Vector2(p.x + s + 6, p.y);
+            if (cell.sub.gameObject.activeSelf) { var q = cell.sub.rectTransform.anchoredPosition; cell.sub.rectTransform.anchoredPosition = new Vector2(q.x + s + 6, q.y); }
+        }
+
+        /// <summary>
+        /// One of the Items panel's tiles, centred in its column (x, w): its picture on the slot's paper in an ink frame
+        /// (side × side), its name under it in two lines at most; the pad's on it in gold, lifted on its shadow, ringed in
+        /// red; an empty slot (an item still to find) faint and unnamed. (src/game-menu.css .slot)
+        /// </summary>
+        void DrawTile(float x, float y, float w, float side, Dictionary<string, object> c)
+        {
+            if (tilesUsed >= tiles.Count)
+            {
+                var t = new Tile { box = Ui.Panel(root, "tile" + tiles.Count, Ui.Hex("#f6e9c8"), Ui.Ink, 2.5f, 0, 0, 18) };
+                t.ring = Ui.Rect(t.box.rt, Ui.Red, 20, "ring"); t.ring.transform.SetAsFirstSibling();
+                t.pic = Ui.Node("pic", t.box.rt).gameObject.AddComponent<RawImage>(); t.pic.raycastTarget = false;
+                t.mark = Ui.Label(t.box.rt, "mark", Ui.Sans, 40, Ui.Teal, TextAnchor.MiddleCenter);
+                t.name = Ui.Label(t.box.rt, "name", Ui.Mono, Tiny, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f);
+                t.name.verticalOverflow = VerticalWrapMode.Truncate;
+                t.inUse = Ui.Label(t.box.rt, "inUse", Ui.Mono, 10, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+                t.inUse.text = "in use";
+                tiles.Add(t);
+            }
+            var tile = tiles[tilesUsed++];
+            tile.box.Show(true);
+            bool on = B(c, "on"), empty = B(c, "empty"), inUse = B(c, "inUse");
+            float lift = on ? 2 : 0, px = x + (w - side) / 2 - lift;
+            Ui.Place(tile.box.rt, px, y - lift, side, side);
+            tile.box.SetFill(empty ? Ui.Hex("#2b211f", 0.03f) : on ? Ui.Gold : Ui.Hex("#f6e9c8"));
+            if (tile.box.border) tile.box.border.color = empty ? Ui.Hex("#2b211f", 0.26f) : inUse ? Ui.Red : Ui.Ink;
+            tile.box.shadow.enabled = on; tile.box.SetShadow(on ? 4 : 0, on ? 4 : 0);
+            Show(tile.ring, on);
+            if (on) { tile.ring.rectTransform.anchorMin = Vector2.zero; tile.ring.rectTransform.anchorMax = Vector2.one; tile.ring.rectTransform.offsetMin = new Vector2(-6, -6); tile.ring.rectTransform.offsetMax = new Vector2(6, 6); tile.ring.color = Ui.Hex("#c8483a", 0.85f); }
+            var tex = empty ? null : Picture(c.S("pic"));
+            Show(tile.pic, tex != null);
+            if (tex != null) { tile.pic.texture = tex; float ps = side * 0.86f; Ui.Place(tile.pic.rectTransform, (side - ps) / 2, (side - ps) / 2, ps, ps); }
+            Show(tile.mark, tex == null && !empty);
+            if (tex == null && !empty) { tile.mark.text = c.S("mark") ?? "✧"; tile.mark.fontSize = Mathf.RoundToInt(side * 0.42f); Ui.Place(tile.mark.rectTransform, 0, 0, side, side); }
+            Show(tile.inUse, inUse);
+            if (inUse) { Ui.Place(tile.inUse.rectTransform, side / 2 - 28, side - 8, 56, 15); }
+            Show(tile.name, !empty);
+            if (!empty) { tile.name.text = c.S("text") ?? ""; Ui.Place(tile.name.rectTransform, (side - w) / 2 + lift, side + 5 + lift, w, 30); }
+        }
+
         void Update()
         {
             if (!root) return;
             var canvas = root.GetComponent<Canvas>();
+            if (W > 0) BridgeHost.menuWidth = W;
             float pd = Mathf.Max(0.2f, cam.nearClipPlane * 2);
             if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
             bool open = state != null;
@@ -147,7 +226,7 @@ namespace Hiraeth.Bridge
 
         void Draw()
         {
-            used = 0;
+            used = 0; tilesUsed = 0;
             foreach (var l in new[] { logo, head, sub, version, hint, note, empty, tabPrev, tabNext }) Show(l, false);
             foreach (var l in tabs) Show(l, false);
             Show(tabLine, false);
@@ -156,6 +235,7 @@ namespace Hiraeth.Bridge
             var kind = state.S("kind");
             if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
+            for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
             // the buttons' prompts, at the foot on the right
             var h = state.S("hint") ?? "";
             Show(hint, h.Length > 0);
@@ -407,10 +487,12 @@ namespace Hiraeth.Bridge
                 y += 20; h -= 20;
             }
             // a row's height by what is in it
+            // (the gear's tiles: as wide as a column lets them, up to the web's 132 px, their names under them)
+            float side = Mathf.Clamp(w / Mathf.Max(1, cols.Count) - 14, 56, 132);
             float RowH(List<object> row)
             {
                 var k = (row.Count > 0 ? row[0] : null).S("kind");
-                return panel == "quests" ? (k == "ended" ? 34 : 76) : panel == "items" ? (k == "item" ? 74 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
+                return panel == "quests" ? (k == "ended" ? 34 : 76) : panel == "items" ? (k == "item" || k == "empty" ? side + 42 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
             }
             var hs = new List<float>(); int at = 0;
             for (int r = 0; r < rows.Count; r++) { var row = rows[r] as List<object>; hs.Add(RowH(row)); foreach (var c in row) if (B(c, "on")) at = r; }
@@ -430,10 +512,12 @@ namespace Hiraeth.Bridge
                         if (!string.IsNullOrEmpty(c.S("step"))) under = (string.IsNullOrEmpty(under) ? "" : under + "\n") + "Next: " + c.S("step");
                         if (B(c, "tracked")) text = "◆ " + text;
                         if (c.S("done") == "done") text = "✓ " + text; else if (c.S("done") == "failed") text = "· " + text;
-                        bool tile = c.S("kind") == "item";
-                        var cell = Entry(cx, yy, cw, rh - 6, text, tile ? null : under, null, B(c, "on"), size: tile ? Tiny : c.S("kind") == "ended" ? Small : Body, dimmed: B(c, "off"), boxed: true);
-                        if (tile) { cell.text.alignment = TextAnchor.LowerCenter; Ui.Place(cell.text.rectTransform, 4, 6, cw - 8, rh - 16); }
-                        else cell.text.alignment = TextAnchor.UpperLeft;
+                        if (c.S("kind") == "item" || c.S("kind") == "empty") { DrawTile(cx, yy + 6, cw, side, c); continue; }
+                        // (what you carry and the keepsakes: a line each, its small picture first)
+                        var pic = Picture(c.S("pic"));
+                        var cell = Entry(cx, yy, cw, rh - 6, (pic != null || string.IsNullOrEmpty(c.S("mark")) ? "" : c.S("mark") + " ") + text, under, null, B(c, "on"), size: c.S("kind") == "ended" ? Small : Body, dimmed: B(c, "off"), boxed: true);
+                        cell.text.alignment = TextAnchor.UpperLeft;
+                        LinePicture(cell, pic, rh - 6);
                     }
                 yy += rh;
             }
@@ -496,6 +580,14 @@ namespace Hiraeth.Bridge
             card.Show(true);
             card.rt.SetAsLastSibling();
             float w = Mathf.Min(720, W - 80), x = W / 2 - w / 2, pad = 26, cw = w - pad * 2;
+            // (a thing's picture large at the top right, the words beside it: the web's .gm-full .big)
+            var tex = Picture(f.S("pic"));
+            bool marked = tex == null && !string.IsNullOrEmpty(f.S("mark"));
+            float big = tex != null || marked ? Mathf.Min(150, w * 0.26f) : 0;
+            Show(cardPic, tex != null); Show(cardMark, marked);
+            if (tex != null) { cardPic.texture = tex; Ui.Place(cardPic.rectTransform, w - pad - big, pad, big, big); }
+            if (marked) { cardMark.text = f.S("mark"); Ui.Place(cardMark.rectTransform, w - pad - big, pad, big, big); }
+            if (big > 0) cw -= big + 16;
             var ts = Ui.Set(cardTitle, f.S("title"), cw);
             Ui.Place(cardTitle.rectTransform, pad, pad, cw, ts.y);
             float y = pad + ts.y + 4;
@@ -511,6 +603,7 @@ namespace Hiraeth.Bridge
             var us = Ui.Measure(cardUse, cardUse.text, cw); Ui.Place(cardUse.rectTransform, pad, y, cw, us.y); y += us.y + 10;
             cardSteps.text = ((f.S("prev") is string pv && pv.Length > 0 ? "◀ " + pv : "") + "      " + (f.S("next") is string nx && nx.Length > 0 ? nx + " ▶" : "")).Trim();
             Ui.Place(cardSteps.rectTransform, pad, y, cw, 20); y += 28;
+            y = Mathf.Max(y, pad + big + 20);
             Ui.Place(card.rt, x, Mathf.Max(20, H / 2 - y / 2), w, y);
         }
     }

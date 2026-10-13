@@ -8,7 +8,7 @@
 // with top-level await across files, so the bundle is flat; the engines' own modules ('godot',
 // 'csharp', 'puerts') stay outside it.
 import { rolldown } from 'rolldown';
-import { mkdirSync, statSync } from 'node:fs';
+import { mkdirSync, statSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -67,6 +67,25 @@ export async function bundle(name, override = {}) {
   return { name, ms: Date.now() - t0, out };
 }
 
+/**
+ * The items' pictures for the Unity menus (BridgeMenu.cs: the Items panel's tiles and a thing's full view): the web's
+ * public/item-pictures/<id>.webp (scripts/item-pictures.mjs) as PNGs, which Unity's Texture2D.LoadImage reads (it has no
+ * WebP), at the tiles' size, into StreamingAssets/hiraeth-js/item-pictures (not committed, like the bundle).
+ */
+export const UNITY_PICTURES = { from: 'public/item-pictures', to: 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-js/item-pictures', size: 128 };
+export async function unityPictures({ to = UNITY_PICTURES.to, size = UNITY_PICTURES.size } = {}) {
+  const sharp = (await import('sharp')).default;
+  const src = resolve(ROOT, UNITY_PICTURES.from), dst = resolve(ROOT, to);
+  mkdirSync(dst, { recursive: true });
+  let n = 0, bytes = 0;
+  for (const f of readdirSync(src).filter((x) => x.endsWith('.webp'))) {
+    const out = resolve(dst, f.replace(/\.webp$/, '.png'));
+    if (!existsSync(out) || statSync(out).mtimeMs < statSync(resolve(src, f)).mtimeMs) await sharp(resolve(src, f)).resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png({ compressionLevel: 9 }).toFile(out);
+    n++; bytes += statSync(out).size;
+  }
+  return { n, bytes, to };
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const asked = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ENTRIES);
   const names = [...new Set(asked.flatMap((n) => [n, ...(WITH[n] ?? [])]))];
@@ -74,4 +93,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const r = await bundle(n);
     console.log(`${r.name}: ${r.out.map((o) => `${o.file} ${(o.bytes / 1e6).toFixed(2)} MB`).join(', ')} (${r.ms} ms)`);
   }
+  if (names.includes('unity')) { const p = await unityPictures(); console.log(`the items' pictures: ${p.n} PNGs, ${(p.bytes / 1e6).toFixed(2)} MB, in ${p.to}`); }
 }

@@ -190,6 +190,18 @@ Select and Start on Android, Xbox's letters alone on the Xbox, the pad's own fam
 computer (Steam's pads: Xbox). The Controller buttons setting (`padFaces`: a Retroid set to its own Xbox style)
 is on the settings page. Test: tests/engine-menus.test.js "the pad's printed letters".
 
+**The items' pictures and tiles** (issue #264). The web draws an item with its own renderer (src/item-icons.js);
+the items page keeps them as public/item-pictures/<id>.webp (scripts/item-pictures.mjs). Unity's
+`Texture2D.LoadImage` reads no WebP, so `node scripts/engine-bundle.mjs unity` also writes them as 128 px PNGs into
+StreamingAssets/hiraeth-js/item-pictures (`unityPictures`, sharp; not committed, like the bundle), and BridgeMenu
+reads each once (`Picture(id)`). The view's cells carry `pic` (the id) and `mark` (the kind's mark, game-menu.js
+`KIND_MARK`, where there is no picture). The web's grid fits as many tiles a row as its `--tile` size allows; the
+engine's `itemCols` (BridgeMenu's canvas width, `BridgeHost.MenuWidth`: 1280 on 16:9, 960 on the Retroid's 4:3)
+regroups itemsPanel's twelve a row into nine or six (`itemGrid`, `itemRows`), the keepsakes from the middle column,
+and the slots still to find follow the gear as faint, unnamed tiles that the cursor skips. A tile is the web's
+`.slot`: the picture on its paper in an ink frame up to 132 units, the name under it in two lines, the pad's in
+gold on its shadow with a red ring; the full view shows the picture large at its top right.
+
 Left for later: the items' pictures (the web draws
 them with its own renderer, src/item-icons.js), the Map's drawn ground, the photo mode, What's new, the
 prologue (a new save starts at the ramp), the talk gestures (no captured motion is loaded in the engines).

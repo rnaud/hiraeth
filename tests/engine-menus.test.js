@@ -232,8 +232,11 @@ test('the game menu: a row\'s end rests on the side tab, once more turns; A / ×
   // the pack and the keepsakes: a line each, side by side under the gear
   m.navigate(0, 1);
   v = m.view();
-  assert.equal(v.rows[1].length, 2);
-  assert.ok(v.rows[1][0].span > 1);
+  // (after the gear's row and the slots still to find, drawn but never the cursor's)
+  const carry = v.rows.find((r) => r[0]?.kind === 'pack');
+  assert.equal(carry.length, 2);
+  assert.ok(carry[0].span > 1);
+  assert.ok(carry[0].on, 'down from the gear: the pack, past the empty slots');
 });
 
 test('the game menu: Worlds full view travels (or says why not); People opens a person, B back to the cards', () => {
@@ -334,4 +337,34 @@ test('the pad\'s printed letters in an engine (issue #264): the Retroid\'s own n
   assert.match(host, /public static string Platform\(\)/);
   assert.match(src('engine/unity/game.js'), /setEnginePad\(/);
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /Key\("ok", "A"\)/);
+});
+
+test('the Items panel in an engine: as many tiles a row as fit, each with its picture, the slots to find drawn after them (issue #264)', async () => {
+  const { existsSync } = await import('node:fs');
+  const gear = ['backpack', 'stun', 'fire', 'bloom', 'bell', 'echo', 'glider', 'lamp', 'magnet', 'coil'].map((id, i) => ({ id, name: id, kind: i ? 'mode' : 'core', text: '', usable: false }));
+  const s = sources();
+  s.items = () => ({ gear, slots: 14, pack: [{ id: 'pack.0', name: 'A jar' }], keepsakes: [{ id: 'k1', name: 'A shell', text: '', world: 'The Desert' }], chimes: 3 });
+  const m = new EngineMenus({ store: memStore(), sources: s, itemCols: () => 7 });
+  m.show('game', 'items');
+  const v = m.view();
+  assert.equal(v.cols.length, 7, 'seven columns (the Retroid\'s 4:3 sheet), not the web\'s twelve');
+  assert.deepEqual(v.rows.map((r) => r.map((c) => c.kind).join(',')), ['item,item,item,item,item,item,item', 'item,item,item,empty,empty,empty,empty', 'pack,keepsake']);
+  assert.equal(v.rows[2][1].col, 4, 'the keepsakes from the middle');
+  assert.equal(v.rows[2][0].span + v.rows[2][1].span, 7);
+  assert.equal(v.rows[0][0].pic, 'backpack');
+  assert.ok(existsSync(new URL('../public/item-pictures/backpack.webp', import.meta.url)), 'its picture, made a PNG for Unity by scripts/engine-bundle.mjs');
+  assert.equal(v.rows[2][0].mark, '⧉', 'what you carry: its kind\'s mark where it has no picture');
+  // the cursor goes by the new grid: right along the row, down onto the second row's nearest, the empties never
+  for (let i = 0; i < 5; i++) m.navigate(1, 0);
+  assert.equal(m.view().strip.name, 'echo');
+  m.navigate(0, 1);
+  assert.equal(m.view().strip.name, 'coil', 'down from the sixth column: the second row\'s last tile');
+  m.action('confirm');
+  assert.equal(m.view().full.pic, 'coil', 'the full view with its picture');
+  // twelve columns (a wide screen, or no engine's say): the web's own rows
+  const wide = new EngineMenus({ store: memStore(), sources: s });
+  wide.show('game', 'items');
+  assert.equal(wide.view().rows[0].filter((c) => c.kind === 'item').length, 10);
+  assert.match(src('scripts/engine-bundle.mjs'), /export async function unityPictures/);
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /item-pictures/);
 });

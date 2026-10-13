@@ -81,6 +81,8 @@ export function start(argsJson) {
     onQuit: () => { S.game?.save(); menus.show('title'); },
     onSetting: () => { setFaces(settings.padFaces); S?.game?.applySettings?.(settings); },
     where: () => TITLES[S?.game?.level?.id] ?? '',
+    // (the Items panel's tiles a row: as many of ~128 units as the sheet holds, BridgeMenu's canvas 720 high)
+    itemCols: () => Math.max(4, Math.min(12, Math.floor(((host.MenuWidth?.() || 1280) - 72) / 128))),
   });
   S = { args, menus, settings, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, menuV: -1 };
   // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
