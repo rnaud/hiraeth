@@ -36,7 +36,7 @@ import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
 import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
-import { partsOf } from './levels/names.js';
+import { partsOf, shiftAt } from './levels/names.js';
 import { fastTravel } from './fast-travel.js';
 import { fragmentPurse } from './fragment-shop.js';
 import { Player, CameraRig, jetCameraPitch, WIDE } from './player.js';
@@ -2595,9 +2595,10 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   console.info(`passage warm-up: ${n} meshes in ${(performance.now() - t0).toFixed(0)} ms`);
 }
 // the games' arcade signs in this world (a game's `markers`: [{ level, at: [x, y|null, z], heading }]; y null: on the ground)
+// (a merged world's parts' too, where the part lies in it: Sky steps on the sky stones, in Vael since October 2026)
 if (!minigameDef) for (const g of GAMES) for (const m of g.markers ?? []) {
-  if (m.level !== levelId) continue;
-  const [x, y, z] = m.at, gy = y ?? physics.groundAt(x, 1e4, z);
+  if (!partsOf(levelId).includes(m.level)) continue;
+  const [x, y, z] = shiftAt(m.level, m.at), gy = y ?? physics.groundAt(x, 1e4, z);
   try { placeGameMarker({ scene, levelId, lights: levelLights }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z), { heading: m.heading ?? 0 }); } catch (e) { console.warn(e); }
 }
 // a minigame's page: the runner takes over, the start card up (src/minigames/kit/runner.js)

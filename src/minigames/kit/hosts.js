@@ -42,7 +42,8 @@ export function hostTalk(host, play, { later = (f) => f(), name = '' } = {}) {
   return {
     ...person,
     lines: lines ?? ['~neutral~ …'],
-    prompt: prompt ?? (game ? `ask ${host.name} about ${/^the /.test(game) ? game : `the ${game.toLowerCase()}`}` : undefined),
+    // ("ask Darro about the canyon run", "ask Yusra about fishing": a game named for what you do takes no "the")
+    prompt: prompt ?? (game ? `ask ${host.name} about ${/^the /.test(game) ? game : /ing$/i.test(game) ? game.toLowerCase() : `the ${game.toLowerCase()}`}` : undefined),
     talk: {
       nodes: {
         offer: {

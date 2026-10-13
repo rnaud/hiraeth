@@ -43,6 +43,8 @@ test('a host says one or two toned lines, then offers Play or Not now', () => {
   const def = hostTalk(HOSTS.canyon, () => played++, { name: 'Canyon run' });
   assert.equal(def.prompt, 'ask Darro about the canyon run');
   assert.equal(hostTalk(HOSTS.gallery, () => {}, { name: 'The shooting gallery' }).prompt, 'ask Fitz about the shooting gallery');
+  assert.equal(hostTalk(HOSTS.fishing, () => {}, { name: 'Fishing' }).prompt, 'ask Yusra about fishing');
+  assert.equal(hostTalk(HOSTS.ski, () => {}, { name: 'Dune skiing' }).prompt, 'ask Tarek about dune skiing');
   assert.equal(hostTalk(HOSTS['kit-desert'], () => {}, { name: 'Wind hall' }).prompt, 'read the makers’ post');
   const R = new DialogueRunner(def, { game: new GameState(), quests: { stage: () => null } });
   assert.deepEqual(R.pages, HOSTS.canyon.say.map((l) => parseLine(l).text));
