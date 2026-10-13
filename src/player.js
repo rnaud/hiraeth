@@ -2767,6 +2767,7 @@ const AIR_LAG = 0.8;               // m: …never more than this below him
 const LOOK_R = 0.3;                // m: the room the look point keeps off walls close in
 const SIDE_IN = 9;                 // 1/s: the look point eased off a wall that comes up right beside it
 const SIDE_R = 0.1;                // m: the ball swept beside the look point to find the room for the shoulder
+const THIN_PAST = 1.5;             // m: in the open, a thing between him and the lens no thicker than this along the arm is looked past
 const SIDE_AHEAD = 0.3;            // s: locked on, the room beside it also looked for where he will be this far on
 const HOLD_HANDS = 0.25;           // s: since you last turned the camera, it doesn't turn itself to hold its spot
 const SWING = [0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6];   // rad: the turns tried when a wall is behind you indoors
@@ -3535,7 +3536,17 @@ export class CameraRig {
       const r = this._sweepR = THREE.MathUtils.clamp(this.physics.roomAt(this._look, LENS_R) - 0.02, 0.12, LENS_R);
       hit = this.physics.sweepSphere(this._look, this._dir, dist + 0.5, r);
       margin = Math.max(0, margin - r);   // (the ball keeps its own room)
-    } else hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
+    } else {
+      hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
+      // (in the open, a thin thing between him and the lens, a cactus's trunk, a post, a lamp, is looked past, not cut in
+      // for: the camera turning past one at a run cut the arm 4.8 -> 1.5 m in a frame and let it out again, the camera QC's
+      // desert-open, issue #259. Thin: what the ray met ends within THIN_PAST m, and the lens's own spot has its room)
+      if (hit < dist && U.y > 0.999 && this.physics.roomAt) {
+        const end = _lkA.copy(this._look).addScaledVector(this._dir, dist);
+        const back = this.physics.rayDistance(end, _lkB.copy(this._dir).negate(), dist - hit);
+        if (dist - back - hit < THIN_PAST && back > 0.6 && this.physics.roomAt(end, LENS_R) >= LENS_R) hit = Infinity;
+      }
+    }
     // (close in it may come right in: a floor of 1.5 m would put it through a corridor wall)
     // (and never further than the swept ball found room for, even under the floor of an arm: a look point pressed to a
     // wall put the lens through it, and the push off the far side sent it out of the carriage to look at its hull)

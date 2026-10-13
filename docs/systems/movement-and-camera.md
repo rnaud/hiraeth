@@ -145,6 +145,15 @@ antechamber's open side's corner); it is the scenario that wanders most (the sti
 blot is held, he may walk out through the antechamber's open side into the hall). Tests: `tests/lock-room.test.js` (his back
 flat to a wall with a blot or a guardian before him, strafing into a small room's wall: on the screen, the arm out).
 
+**In the open, thin things are looked past** (issue #259, `THIN_PAST`). desert-open's 36 % out was its start under the ship's
+ramp (fixed by #254 in v1.62: 35.7 % on the tree before it, 0 % after). What was left red was one pop: turning the
+camera at a run past a cactus, the open arm (one ray) was cut 4.8 → 1.5 m in a frame and let out again (roughness 11.6 cm).
+Now, in the open, a thing between him and the lens that ends within `THIN_PAST` (1.5 m) along the arm, the lens's own spot
+having its room, is looked past: the trunk may hide him for a moment (hidden 0.1 → 0.8 %, the limit 3 %) instead of the
+view snapping in. A wall, a rock or a dune's body is thicker and still brings the arm in. desert-open: red → green (pops
+1 → 0, jumps 2 → 0, roughness 11.64 → 0.57 cm); `tests/lock-room.test.js` (a trunk passed, a wall not) and
+`tests/route-spawn.test.js` (the desert-open run from the start, in node: on the screen).
+
 ## The camera QC and what it fixed (v1.40, `.claude/skills/camera-qc`)
 
 The author: "in the train when I'm walking it keeps jumping around." The camera QC drives the game headless with

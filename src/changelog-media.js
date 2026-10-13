@@ -773,6 +773,11 @@ export const CHANGELOG_MEDIA = {
         rows: [{ where: 'ante-lock', before: 0.12, after: 0.55 }, { where: 'guardian-lock', before: 0.1, after: 1.83 }],
         source: 'the full camera QC against the tree before (2e818342) and this branch, 12 October' }],
       see: 'In the Signal Market’s temple, lock on (R3 / Tab) to a foe in the antechamber or to the First Sign in its hall, and back up against a wall or strafe into it.' },
+    { match: 'Running across the open desert, the camera no longer jumps in to your back', numbers: [
+      { title: 'The camera QC’s desert-open (running from the landing: turns, jumps), its one collision pop at a cactus', unit: 'as shown', better: 'lower', device: 'headless Chrome (muted), Medium, 1280 × 720, .claude/skills/camera-qc/run.mjs (seed 1)',
+        rows: [{ where: 'the biggest cut of the arm in a frame, m', before: 3.3, after: 0 }, { where: 'the camera’s roughness, cm (green under 1.5)', before: 11.64, after: 0.57 }, { where: 'the traveller hidden behind something, % of the frames', before: 0.1, after: 0.8 }],
+        source: 'the full camera QC against the tree before (2e818342) and this branch, 12 October; the traveller off the screen 0 % in both (the 36 % of issue #259 was the start under the ship’s ramp, fixed in v1.62 by #254: 35.7 % on the tree before it, 88221816^)' }],
+      see: 'In the Desert, run from the ship toward the big cacti and swing the camera round as you pass one: the view stays at its distance instead of snapping in to your back.' },
   ],
   '1.62': [
     { match: 'Locked on with a foe right at your feet, a ring centipede curled round you', numbers: [

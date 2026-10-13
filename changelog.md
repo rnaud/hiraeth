@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.63 — 2026-10-12
 
+- Running across the open desert, the camera no longer jumps in to your back and out again as it swings past a cactus: it looks past a thin trunk or post between you and it, which may hide you for a moment instead.
 - Locked on with your back to a wall, the camera no longer crushes up against you and loses you off the screen. It swings out to the side with room, or rises over your shoulder in a corner, and turns to keep you and the foe in the picture together; the stick still circles the foe as before. In a temple’s antechamber and a guardian’s hall you stay in view.
 - The traveller’s face is inked the way his portrait is drawn: a light line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, a few freckles on his cheek, and one clean line for his jaw with fine hatching on the throat in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.
 - Fixed: meeting the man at the capstan in the City Floating in Space no longer counts as meeting Bram, who minds Lorn’s root cave: they shared a name. The capstan man is Ewart now. Likewise Hobb, who listens at the Undertower’s stones, and Aldo on the waterfall city’s balcony each count as themselves, not as the Desert’s Pell, and Hobb greets you as a stranger the first time.

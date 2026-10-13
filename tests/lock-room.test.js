@@ -1,13 +1,14 @@
 // The lock camera with his back to a wall (issue #256, the combat review v1.61: in the Undertower's antechamber and the
 // First Sign's Hall the traveller was off the screen 23-45 % of the time): the lock held the camera on the line to the
 // foe, so the wall behind him crushed the arm to 0.1-0.4 m. Now the line yields (CameraRig.lockRoom, LOCK_ROOM): turned
-// off it toward the side with room, the view turned toward the foe so the two stand in the frame together. The real rig through the real
-// collision, the lock's turn as main.js runs it (src/foes.js lockTurn).
+// off it toward the side with room, the view turned toward the foe so the two stand in the frame together. And in the
+// open, a thin thing between him and the lens is looked past (THIN_PAST, issue #259: desert-open's cactus). The real rig
+// through the real collision, the lock's turn as main.js runs it (src/foes.js lockTurn).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
-import { CameraRig, LOCK_ROOM } from '../src/player.js';
+import { CameraRig, LOCK_ROOM, OPEN_DIST } from '../src/player.js';
 import { lockTurn } from '../src/foes.js';
 
 globalThis.window ??= { addEventListener() {} };
@@ -106,3 +107,16 @@ test('locked on in the open the line does not yield: the camera stays on it', ()
   assert.equal(r.out + r.foeOut, 0);
 });
 
+test('in the open a thin thing between him and the lens is looked past; a wall still brings the arm in (#259)', () => {
+  // (running past a cactus's trunk turning the camera: it cut the arm 4.8 -> 1.5 m in a frame, desert-open)
+  const at = (physics) => {
+    const rig = new CameraRig(new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 5000), dom, physics);
+    rig.yaw = 0;   // (the camera toward +z of him)
+    for (let i = 0; i < 90; i++) rig.update(v(0, 0, 0), dt);
+    return rig._curDist;
+  };
+  const ground = [0, -0.5, 0, 200, 1, 200];
+  assert.ok(Math.abs(at(scene(ground)) - OPEN_DIST) < 0.05, 'the open arm');
+  assert.ok(Math.abs(at(scene(ground, [0, 2, 2.2, 0.8, 4, 0.8])) - OPEN_DIST) < 0.05, 'past a trunk 0.8 m thick, 2.2 m behind him');
+  assert.ok(at(scene(ground, [0, 3, 2.6, 12, 6, 2.5])) < 2.6, 'a wall 2.5 m thick behind him still cuts it');
+});

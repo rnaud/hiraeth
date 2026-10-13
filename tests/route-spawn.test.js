@@ -87,3 +87,28 @@ test('a spawn under the ship goes to the foot of its ramp, facing out (the deser
   assert.ok(level.spawn.distanceTo(ship.rampFoot) < 0.01, 'to the foot of the ramp');
   assert.equal(level.spawnHeading, ship.site.heading);
 });
+
+// Issue #259: the camera QC's desert-open (a run from the desert's start: straight, then turning the camera, jumping)
+// had the traveller off the screen 36 % of the run, from that start under the ramp (before #254). The real Player and
+// CameraRig through the desert's collision from the start as it is now: he stays on the screen (the scenario's limit, 1 %).
+test('desert: the camera QC\'s desert-open run from the start keeps the traveller on the screen (issue #259)', async () => {
+  const { level, physics } = await world('desert');
+  const P = new Player(physics, { gravityAt: level.gravityAt });
+  P.respawn(level.spawn.clone().add(V(0, 0.05, 0)));
+  const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 2000), rig = new CameraRig(cam, dom, physics);
+  rig.yaw = level.camYaw ?? 0; rig._lastP = null;
+  const dt = 1 / 60, off = (q) => { const a = q.clone().project(cam); return a.z > 1 || Math.abs(a.x) > 1 || Math.abs(a.y) > 1; };
+  let out = 0, n = 0;
+  for (let i = 0; i < 60 * 18; i++) {
+    const t = i * dt;
+    if (t > 8 && t < 12) rig.yaw += (70 * Math.PI / 180) * dt;   // (the scenario's turn while running)
+    const jump = t > 12 && (t - 12) % 1.3 < 0.15;
+    P.update(dt, { KeyW: true, ShiftLeft: true, Space: jump }, rig.yaw);
+    rig.update(P.pos, dt, P.frame);
+    cam.updateMatrixWorld(true);
+    if (t < 1) continue;
+    n++;
+    if (off(P.pos.clone().add(V(0, 1.6, 0))) || off(P.pos.clone().add(V(0, 1.1, 0)))) out++;
+  }
+  assert.ok(n > 900 && out / n <= 0.01, `off the screen ${((out / n) * 100).toFixed(1)} % of the run (from ${fmt(level.spawn)})`);
+});
