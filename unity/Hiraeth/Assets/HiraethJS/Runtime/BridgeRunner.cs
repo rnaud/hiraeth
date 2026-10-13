@@ -29,7 +29,13 @@ namespace Hiraeth.Bridge
         public Light sun;
         public HiraethLook look;
         public BridgeHud hud;
+        public BridgeMenu menu;
         public BridgeAudio audioOut;
+        /// <summary>The arguments the next start takes (a reboot's: BridgeHost.Reboot), instead of the command line's.</summary>
+        public static string RebootArgs;
+        /// <summary>Whether this start is a reboot's (the prewarm already done; the sound's engine disposed on its way out).</summary>
+        public static bool Rebooted;
+        string pendingReboot, firstArgs;
         public double cpuMs, gpuMs;
         public BridgeGpuSplit gpuSplit;   // (a bench with -split: the GPU's passes)
         JsRuntime js;
@@ -54,9 +60,11 @@ namespace Hiraeth.Bridge
             BridgeHost.Runner = this;
             // a player's plan from its command line (BridgeBuild: -views, -bench, -out …; the editor's batch run sets args itself)
             if (!Application.isEditor && BridgeArgs.Arg("-limit") is string lim) limitAt = Time.realtimeSinceStartup + float.Parse(lim, System.Globalization.CultureInfo.InvariantCulture);
-            if (!Application.isEditor && args == "{}")
+            if (RebootArgs != null) { args = RebootArgs; RebootArgs = null; Debug.Log($"Hiraeth bridge: started again: {args}"); }
+            else if (!Application.isEditor && args == "{}")
                 try { args = BridgeArgs.FromCommandLine(); }
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: the command line: " + e.Message); failed = true; Exit(2); return; }
+            firstArgs = args;
             if (BridgeMetrics.Wanted()) gameObject.AddComponent<BridgeMetrics>().runner = this;
             if (!JsRuntime.Available) { Debug.LogError("Hiraeth bridge: Puerts is not installed (scripts/unity-js-setup.sh)"); failed = true; return; }
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1;
@@ -64,7 +72,15 @@ namespace Hiraeth.Bridge
             if (args.Contains("\"split\":true")) gpuSplit = new BridgeGpuSplit();
             // the sound (BridgeAudio): played, except in batch runs and with -mute, where nothing may make any
             bool mute = Application.isBatchMode || Array.IndexOf(BridgeArgs.CommandLine(), "-mute") >= 0;
-            if (mute) { AudioListener.volume = 0; AudioListener.pause = true; }
+            if (mute)
+            {
+                AudioListener.volume = 0; AudioListener.pause = true;
+#if UNITY_ANDROID && !UNITY_EDITOR
+                // (and Unity's own output stream closed: muted, it played silence, and the device's audio still listed it
+                // as started, which the bench's checks take for sound: scripts/bench/android-bridge.sh)
+                try { AudioSettings.Mobile.StopAudioOutput(); } catch (Exception e) { Debug.Log("Hiraeth bridge: the audio output: " + e.Message); }
+#endif
+            }
             audioOut = new GameObject("Sound").AddComponent<BridgeAudio>();
             audioOut.transform.SetParent(transform, false);
             audioOut.Begin(mute);
@@ -101,9 +117,14 @@ namespace Hiraeth.Bridge
                 hud = new GameObject("HUD").AddComponent<BridgeHud>();
                 hud.transform.SetParent(transform, false);
                 hud.cam = cam;
+                // the menus over it (engine/menus.js: the title, the Start menu, the game menu)
+                menu = new GameObject("Menus").AddComponent<BridgeMenu>();
+                menu.transform.SetParent(transform, false);
+                menu.cam = cam;
             }
             // the pipelines the last launch's scene asked of the GPU's driver, drawn while the script builds this one (BridgePrewarm)
-            if (BridgeArgs.Flag("-no-prewarm")) BridgePrewarm.On = false;
+            // (once a launch: not again after a reboot, its meshes went with the last scene)
+            if (BridgeArgs.Flag("-no-prewarm") || Rebooted) BridgePrewarm.On = false;
             else { int warmed = BridgePrewarm.Load(scene.MaterialFromSpec); Debug.Log($"Hiraeth bridge: prewarm: {warmed} (layout, state) pairs from the last launch"); }
             // the port's shadow pass draws casters over a WorldDetail; the bridge's are all "movers" (HiraethShadows
             // finds them), the detail only says where the lowest ground is
@@ -256,6 +277,8 @@ namespace Hiraeth.Bridge
                     a.Tick();
                     a.Eval("HiraethAudio.pump()", "audio");
                 }
+                // (a reboot: its engine disposed here, on its own thread; at the way out V8 tears down with the process)
+                if (Rebooted && quit) try { a.Dispose(); } catch (Exception e) { Debug.LogWarning("Hiraeth bridge: the sound's engine: " + e.Message); }
             }
             catch (Exception e) { Debug.LogError("Hiraeth bridge: the sound's thread: " + (e.InnerException ?? e)); BridgeHost.audioThreaded = false; }
         }
@@ -307,6 +330,11 @@ namespace Hiraeth.Bridge
             // WxH (the swap chain asked for: whether the console gives a UWP app 4K), both logged with what Unity has)
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             if (urp != null && BridgeArgs.Arg("-render-scale") is string rs && float.TryParse(rs, System.Globalization.NumberStyles.Float, inv, out float rsv)) urp.renderScale = rsv;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // (the handheld at Handheld draws at 0.75 of its screen, as the web's Handheld preset holds it on the Retroid; the
+            // GPU was the frame there: 34-55 ms at 1, 23-25 at 0.65 with the lean surfaces)
+            else if (urp != null) urp.renderScale = BridgeArgs.Quality == "handheld" ? 0.75f : 1f;
+#endif
             // (-upscale fsr|linear|point: URP's filter from a render scale under 1 to the screen, FSR 1 by default there)
             if (urp != null && BridgeArgs.Arg("-upscale") is string up)
                 urp.upscalingFilter = up == "linear" ? UpscalingFilterSelection.Linear : up == "point" ? UpscalingFilterSelection.Point : UpscalingFilterSelection.FSR;
@@ -484,6 +512,8 @@ namespace Hiraeth.Bridge
                     else { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); }
                     return;
                 }
+                // (a reboot asked in that frame: now, with the script's thread waiting for its next)
+                if (pendingReboot != null) { RebootNow(); return; }
                 // (-ops-after: the frame's last ops, its command buffer among them, taken now and applied once the next frame
                 // is let go, the script playing it meanwhile instead of waiting on them; issue #113)
                 var last = deferLast ? BridgeHost.TakeOps() : null;
@@ -687,6 +717,41 @@ namespace Hiraeth.Bridge
             RenderTexture.active = null;
             cam.targetTexture = prev;
             Destroy(rt); Destroy(tex);
+        }
+
+        /// <summary>The script asks to start again (BridgeHost.Reboot): done at the next frame's start, its frame waited for.</summary>
+        public void Reboot(string json)
+        {
+            if (exiting || pendingReboot != null) return;
+            pendingReboot = string.IsNullOrEmpty(json) ? "{}" : json;
+            if (thread == null) RebootNow();   // (-js-main: the script ran in this Update, it is between frames now)
+        }
+
+        /// <summary>
+        /// The engine made anew, as the web game opens a fresh page (src/title.js: another save, another world): the script's
+        /// threads stopped and their engines disposed, what they handed over forgotten, the scene loaded again (the mirrored
+        /// world, the HUD and the menus with it: their OnDestroy free the jobs' and the GPU's buffers), and the bridge started
+        /// on the arguments it had with the script's own merged in (its `boot` choice).
+        /// </summary>
+        void RebootNow()
+        {
+            var merged = Json.Parse(firstArgs ?? "{}") as Dictionary<string, object> ?? new Dictionary<string, object>();
+            if (Json.Parse(pendingReboot) is Dictionary<string, object> extra) foreach (var kv in extra) merged[kv.Key] = kv.Value;
+            pendingReboot = null;
+            Debug.Log("Hiraeth bridge: rebooting");
+            Rebooted = true;
+            quit = true; go.Set(); BridgeHost.AudioWake.Set();
+            if (thread != null && !thread.Join(5000)) Debug.LogWarning("Hiraeth bridge: the script's thread did not stop");
+            if (audioThread != null && !audioThread.Join(2000)) Debug.LogWarning("Hiraeth bridge: the sound's thread did not stop");
+            try { js?.Dispose(); } catch (Exception e) { Debug.LogWarning("Hiraeth bridge: the script's engine: " + e.Message); }
+            js = null; thread = null; audioThread = null; started = false;
+            BridgeHost.Reset();
+            BridgeShadowChunks.Forget();
+            HiraethShadows.Instanced.Clear();
+            HiraethShadows.ForgetMaterials();
+            RebootArgs = BridgeArgs.JsonText(merged);
+            exiting = true;   // (this runner's OnDestroy leaves the engine alone: disposed already)
+            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
         }
 
         bool exiting;

@@ -322,7 +322,9 @@ jobs:
           path: ${{ env.PROJECT }}/Builds/unity-android/hiraeth-unity.apk
           retention-days: 7
 
+      # (main only: a branch run by hand (gh workflow run --ref) leaves the testers' release alone, its APK in the artifact)
       - name: Publish to the release unity-android
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.sha }}
@@ -331,7 +333,8 @@ jobs:
   linux:
     # (after the APK, not beside it: one Personal seat held at a time; also when the APK failed)
     needs: [check, android]
-    if: always() && needs.check.outputs.build == 'true'
+    # (and only on main: a branch's run by hand builds the APK alone)
+    if: always() && needs.check.outputs.build == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -498,6 +501,7 @@ jobs:
         run: scripts/unity-ci-cache-prune.sh unity-library-linux- "$KEY"
 
       - name: Publish to the release unity-linux
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.sha }}

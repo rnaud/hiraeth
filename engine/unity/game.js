@@ -10,6 +10,16 @@ import { portLook } from './port-format.js';
 import { fullGcWatch } from './gc-watch.js';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
+import { EngineMenus } from '../menus.js';
+import { Controller } from '../../src/controller.js';
+import { Settings, SaveGame } from '../../src/ui.js';
+import { slots } from '../../src/save-slots.js';
+import { game as gameState } from '../../src/game-state.js';
+import { seedDebugSave } from '../../src/debug-save.js';
+import { levelById } from '../../src/levels/index.js';
+import { TITLES } from '../../src/levels/names.js';
+import { VERSION } from '../../src/version.js';
+import { devMode } from '../../src/dev-gate.js';
 
 // The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
 // entered below the root forced, reparented objects forced and updateMatrix remembered), for the walk over the whole
@@ -33,8 +43,70 @@ function standardPad(state) {
   return { id: 'unity pad', index: 0, connected: true, mapping: 'standard', timestamp: 0, buttons: values.map((v) => ({ pressed: v > 0.5, touched: v > 0, value: v })), axes, vibrationActuator: null };
 }
 
+/** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
+const planned = (a) => !!(a.views?.length || a.talk || a.play || a.walk || a.tour || a.idle || a.noTitle);
+
 export function start(argsJson) {
   const args = JSON.parse(argsJson || '{}');
+  if (planned(args)) { launch(args); return; }
+  // played: the title first (engine/menus.js; src/title.js on the web), the world loaded once a save is chosen; a reboot
+  // (Quit to title onto another save, Travel here: BridgeRunner.Reboot) comes back with its choice made (`boot`)
+  const settings = new Settings();
+  // (the Graphics setting as the engine started with it: the saved one, the command line's, or the platform's default,
+  // BridgeArgs.Quality; a change applies from the next start)
+  if (args.quality) settings.quality = args.quality;
+  const menus = new EngineMenus({
+    store: slots, settings, dev: () => devMode({ settings }), version: `v${VERSION}`,
+    onStart: (choice) => begin(choice),
+    onResume: () => { S?.game?.applySettings?.(); },
+    onQuit: () => { S.game?.save(); menus.show('title'); },
+    onSetting: () => S?.game?.applySettings?.(settings),
+    where: () => TITLES[S?.game?.level?.id] ?? '',
+  });
+  S = { args, menus, settings, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, menuV: -1 };
+  // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
+  S.titlePad = new Controller({ pads: () => pads, context: () => 'menu', action: (n) => menus.action(n), navigate: (x, y) => menus.navigate(x, y), look() {}, scroll() {} });
+  if (args.boot) begin(args.boot);
+  else menus.show('title');
+  showMenu();
+}
+
+/**
+ * The title's choice: the save made the active slot and read again (the game state was read at import, from the slot
+ * last played), or a debug save written at its world (src/debug-save.js); then its world. With a world already loaded:
+ * the same save and world resume it, another reboots the engine onto it (the page's fresh page, src/title.js).
+ */
+function begin(choice) {
+  let slot = choice.slot, level = choice.level ?? null, arrive = !!choice.arrive, start = null;
+  if (choice.debug) { seedDebugSave(choice.debug, { slot, state: gameState }); slot = slots.active; level = choice.debug; arrive = true; }
+  else {
+    slots.setActive(slot);
+    slots.touch(slot);
+    gameState.reload();
+    const saved = choice.fresh ? null : SaveGame.load();
+    // (a new save starts in the world the engine was started at: -level, the desert by default; the web's prologue is the page's)
+    level ??= saved?.level && levelById(saved.level) ? saved.level : levelById(S.args.level) ? S.args.level : 'desert';
+    if (!arrive && saved?.level === level) start = saved; else arrive = true;
+  }
+  if (S.game) {
+    if (S.game.level?.id === level && S.slot === slot && !arrive) { S.menus.close(); return; }
+    console.log(`[unity] onto save ${slot}, ${level}: the engine starts again`);
+    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, resolved: true } }));
+    return;
+  }
+  S.slot = slot;
+  launch({ ...S.args, level }, { start, arrive });
+}
+
+/** The menu's state to Unity (BridgeMenu.cs) when it changed. */
+function showMenu() {
+  const m = S?.menus;
+  if (!m || m.v === S.menuV) return;
+  S.menuV = m.v;
+  host.Menu?.(JSON.stringify(m.view()));
+}
+
+function launch(args, { start: from = null, arrive = false } = {}) {
   const t0 = now();
   const backend = new UnityBackend(host);
   backend.portraitDir = args.out ?? null;
@@ -47,14 +119,33 @@ export function start(argsJson) {
   if (off.has('people')) backend.peopleLod = false;
   if (off.has('shape')) backend.shapeAttrs = null;
   if (off.has('copy')) backend.frameView = false;
-  S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
+  // (played, the title's state kept: its menus, settings and the save chosen)
+  S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;
   // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
   const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
-  createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a) })
+  const menus = S.menus ?? null;
+  createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive })
     .then((game) => {
       S.game = game;
+      if (menus) {
+        // the game menu's panels from the world now running (engine/game.js menuSources), its Travel here by a reboot
+        menus.sources = game.menuSources({ travel: true });
+        menus.onTrack = (id) => game.story?.quests?.choose?.(id);
+        menus.onUse = (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && game.tool?.modes?.includes(m)) game.tool.setMode(m); };
+        menus.onTravel = (id) => {
+          const no = game.travelRefusal(id);
+          if (no) return no;
+          game.save();
+          console.log(`[unity] travel to ${id}: the engine starts again at its landing`);
+          host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: id, arrive: true, resolved: true } }));
+          return null;
+        };
+        if (menus.mode === 'title') menus.close();
+        game.save();
+      }
       if (args.freeze !== undefined) game.mirror.freeze = !!args.freeze;   // (-freeze: still subtrees frozen, mirror-freeze.js; off by default)
       console.log(`[unity] ready in ${(now() - t0).toFixed(0)} ms (in the VM: ${JSON.stringify(game.T)})`);
       if (args.split) {
@@ -141,6 +232,13 @@ function makePlan(args) {
  * put on their face. Other views as they are. (scratchpad webshots.mjs does the same on the web.)
  */
 function aimed(game, v) {
+  if (v?.temple !== undefined) {
+    // a temple's first room (view.temple: its index in level.temples): the traveller where you come in, the camera behind him
+    const T = game.level.temples?.[v.temple], a = T?.arrival;
+    if (!a?.pos) { console.log(`[unity] no temple ${v.temple} here`); return v; }
+    const p = a.pos, h = a.heading ?? 0, fx = Math.sin(h), fz = Math.cos(h);
+    return { ...v, player: [p.x, p.y, p.z], heading: h, eye: [p.x - fx * 5, p.y + 2.6, p.z - fz * 5], target: [p.x + fx * 4, p.y + 1.2, p.z + fz * 4], fov: v.fov ?? 55 };
+  }
   if (!v?.npc) return v;
   const trav = v.npc === 'traveller';
   const n = trav ? { pos: game.player.pos, heading: game.player.heading, object: game.player.object, humanoid: game.player.humanoid } : game.npcs.find((x) => x.def?.id === v.npc);
@@ -159,14 +257,35 @@ function aimed(game, v) {
 /** This frame's keys from Unity (BridgeHost.Keys: the KeyboardEvent codes held), as the page's keydown / keyup. */
 function readInput(game) {
   const held = new Set((host.Keys() || '').split(',').filter(Boolean));
-  for (const k of held) if (!S.keys.has(k)) game.key(k, true);
+  const menus = S.menus;
+  for (const k of held) {
+    if (S.keys.has(k)) continue;
+    // a menu open: its keys (engine/menus.js key); in play Esc opens the Start menu (not over a conversation, which it
+    // closes) and J the game menu, as the page's listeners do
+    if (menus?.open) { menus.key(k); continue; }
+    if (menus && k === 'Escape' && !game.story?.dialogue?.open) { game.save(); menus.show('start'); continue; }
+    if (menus && k === 'KeyJ') { menus.show('game'); continue; }
+    game.key(k, true);
+  }
   for (const k of S.keys) if (!held.has(k)) game.key(k, false);
   S.keys = held;
+  readPad();
+  const look = host.MouseLook();   // (the right button held: "dx,dy" pixels)
+  if (look && !menus?.open) { const [dx, dy] = look.split(',').map(Number); if (dx || dy) game.look(dx, dy); }
+}
+function readPad() {
   const pad = host.Pad();
   pads.length = 0;
   if (pad) pads.push(standardPad(pad));
-  const look = host.MouseLook();   // (the right button held: "dx,dy" pixels)
-  if (look) { const [dx, dy] = look.split(',').map(Number); if (dx || dy) game.look(dx, dy); }
+}
+
+/** The title's input before a world is loaded: its keys, and the pad through the controller's menu context. */
+function readTitleInput(dt) {
+  const held = new Set((host.Keys() || '').split(',').filter(Boolean));
+  for (const k of held) if (!S.keys.has(k)) S.menus.key(k);
+  S.keys = held;
+  readPad();
+  S.titlePad.update(Math.min(dt, 0.1), true);
 }
 
 /** The sound's next PCM to Unity: what keeps its ring AUDIO_AHEAD seconds ahead (whole 128-frame blocks). */
@@ -193,11 +312,14 @@ function pumpAudio(game) {
 }
 
 export function frame(dt) {
+  // the title, before a world: only its menu (the world loading behind it once chosen)
+  if (S?.menus && !S.game) { if (!S.menus.title.starting) readTitleInput(dt); showMenu(); return; }
   if (!S?.game) return;
   const { game, backend } = S;
   const tA = now();
   if (!S.plan) readInput(game);
   const r = game.frame(dt);
+  showMenu();
   backend.lights(game.localLights());
   const tL = now();
   // (the look moves with the hour and the place: read every 4th frame is enough)

@@ -397,8 +397,8 @@ namespace Hiraeth.Bridge
         /// glow, fluid tones and the LiveVectors). On by default on the Linux player (the Deck), -lean elsewhere, -no-lean off.
         /// </summary>
         public static bool lean =
-#if (UNITY_STANDALONE_LINUX || UNITY_WSA) && !UNITY_EDITOR
-            true;   // (the GPU's time: the Deck's Linux player; the Xbox, 13.1 ms against 17.9 at the 1440p spawn)
+#if (UNITY_STANDALONE_LINUX || UNITY_WSA || UNITY_ANDROID) && !UNITY_EDITOR
+            true;   // (the GPU's time: the Deck's Linux player; the Xbox, 13.1 ms against 17.9 at the 1440p spawn; the Retroid, 35.9 -> 24.7 ms at the desert's spawn)
 #else
             false;
 #endif

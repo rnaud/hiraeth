@@ -203,7 +203,9 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   const file = tempPath(join(tmpdir(), `hiraeth-engine-unity-${process.pid}.js`));
   await bundle('unity', { out: [file] });
   const calls = { Geometry: 0, Material: 0, Create: 0, Frame: 0, Look: 0, bytes: 0 };
-  let lastFrame = null, look = null, screenJson = null;
+  let lastFrame = null, look = null, screenJson = null, keyCalls = 0;
+  // the menus (engine/menus.js, BridgeMenu.cs): the kind of each state sent, null when none is open
+  const menus = [], panels = {};
   const cloths = {}, capes = {};
   const clothWords = (id) => { const c = cloths[id]; return 3 * c.N + 28 * c.K + 16 * c.B + 16; };
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
@@ -218,7 +220,11 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     // the people's capes (BridgeCape.cs): their descriptions' sizes, for op 20's; their points never read back here
     Cape(id, buf) { const h = new Uint32Array(buf, 0, 2); capes[id] = h[0] * h[1]; }, CapeState: () => null,
     Frame(buf) { calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; }, Screen(json) { calls.Screen = (calls.Screen ?? 0) + 1; screenJson = json; }, ApplyMs: () => 0,
-    Keys: () => (calls.Frame > 3 ? 'KeyW' : ''), Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
+    // (on the title Enter once: New game, in the world it was started at; in the world W held, and Esc twice: the Start
+    // menu open, then closed)
+    // then J: the game menu (Quests), E: the Map, J: closed
+    Keys: () => (!calls.Frame ? (++keyCalls === 3 ? 'Enter' : '') : calls.Frame > 3 ? ({ 8: 'KeyW,Escape', 12: 'KeyW,Escape', 14: 'KeyW,KeyJ', 16: 'KeyW,KeyE', 18: 'KeyW,KeyJ' }[calls.Frame] ?? 'KeyW') : ''),
+    Menu(json) { const v = JSON.parse(json); menus.push(v?.kind ?? null); if (v?.kind === 'game') panels[v.panel] = v; }, Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
     // the sound rendered on Unity's audio thread (BridgeRunner.RunAudio, engine/unity/audio-worker.js): its batches played here as there
@@ -237,6 +243,11 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     for (let i = 0; i < 20; i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); }
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
+  // the title first, gone once the world was ready; the Start menu over the world, and closed again
+  assert.deepEqual(menus.filter((k, i) => k !== menus[i - 1]), ['title', null, 'start', null, 'game', null], JSON.stringify(menus));
+  // the game menu's panels filled from the world running (engine/game.js menuSources): the father's charge, the map's marks
+  assert.ok(panels.quests?.rows.length >= 1, JSON.stringify(panels.quests));
+  assert.ok(panels.map?.map.marks.some((m) => m.kind === 'you'), JSON.stringify(panels.map?.map));
   assert.ok(calls.Create > 50 && calls.Material > 5 && calls.Geometry > 20, JSON.stringify(calls));
   assert.ok(JSON.parse(look).hours[0].skyTop.length === 3, 'the look in the port\'s format');
   assert.ok(calls.Screen >= 1 && 'dialogue' in JSON.parse(screenJson), 'the screen\'s state for the HUD');

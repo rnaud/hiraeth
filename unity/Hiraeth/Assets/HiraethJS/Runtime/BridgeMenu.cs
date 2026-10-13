@@ -1,0 +1,501 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
+using Label = UnityEngine.UI.Text;
+
+namespace Hiraeth.Bridge
+{
+    /// <summary>
+    /// The menus, drawn in uGUI from the game's own menu state (engine/menus.js view(): the title, the Start menu, the game
+    /// menu), sent by the bundle when it changes (BridgeHost.Menu). The script decides everything (the entries, the cursor,
+    /// what a press does, as the web's src/title.js, src/ui.js SettingsMenu and src/game-menu.js do); this only lays it out
+    /// in the HUD's paper and ink (Ui.cs, BridgeHud): a paper sheet over the world dimmed, the entries in ink, the one the
+    /// pad is on in full ink on a cream band with a red mark and line, the buttons' prompts at the foot.
+    /// </summary>
+    public class BridgeMenu : MonoBehaviour
+    {
+        public Camera cam;
+        RectTransform root;
+        float W => root.rect.width; float H => root.rect.height;
+        Dictionary<string, object> state;
+        bool dirty;
+
+        Image dim;
+        Ui.Box sheet;
+        Label logo, head, sub, version, hint, note, empty;
+        // a pool of entries (a row of the title, the sidebar, a page's control, a panel's cell), each a band, its words, a value and a slider
+        class Cell { public Ui.Box box; public Label text, sub, val; public Image bar, fill, mark, line; }
+        readonly List<Cell> cells = new();
+        int used;
+        // the game menu's tabs, the strip at the foot, a thing full screen, a question, the map's marks
+        readonly List<Label> tabs = new();
+        Label tabPrev, tabNext; Image tabLine;
+        Ui.Box strip; Label stripName, stripSub, stripDesc, stripAct;
+        Ui.Box card; Label cardTitle, cardSub, cardText, cardFacts, cardUse, cardSteps;
+        Ui.Box ask; Label askQ, askWhat, askNo, askYes;
+        Ui.Box mapBox; readonly List<(Image dot, Label name)> marks = new();
+
+        static readonly Color Muted = Ui.Hex("#5e4b45"), Band = Ui.Hex("#f2dfb4"), Dim = Ui.Hex("#1d1614", 0.62f);
+        const int Body = 19, Small = 14, Tiny = 12;
+
+        static bool B(object o, string k) => o.Get(k) is bool b && b;
+
+        public void Set(string json) { state = Json.Parse(json) as Dictionary<string, object>; dirty = true; }
+
+        void Start()
+        {
+            root = Hud.MakeCanvas(cam, "Menus (JS bridge)", 200);
+            root.SetParent(transform, false);
+            var mono = Ui.Mono;
+            dim = Ui.Fill(root, Dim, 0, "dim");
+            sheet = Ui.Panel(root, "sheet", Ui.Page, Ui.Ink, 2.5f, 6, 6);
+            logo = Ui.Label(root, "logo", Ui.Heavy, 76, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Ui.Space(logo, 0.18f);
+            head = Ui.Label(root, "head", mono, 22, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
+            sub = Ui.Label(root, "sub", mono, Small, Muted);
+            version = Ui.Label(root, "version", mono, Tiny, Muted);
+            hint = Ui.Label(root, "hint", mono, Small, Ui.Ink, TextAnchor.LowerRight);
+            note = Ui.Label(root, "note", mono, Body, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Italic);
+            empty = Ui.Label(root, "empty", mono, Body, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
+            for (int i = 0; i < 5; i++) tabs.Add(Ui.Label(root, "tab" + i, mono, Body, Muted, TextAnchor.MiddleCenter));
+            tabPrev = Ui.Label(root, "tabPrev", mono, Small, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            tabNext = Ui.Label(root, "tabNext", mono, Small, Ui.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
+            tabLine = Ui.Rect(root, Ui.Red, 0, "tabLine");
+            mapBox = Ui.Panel(root, "map", Ui.Hex("#efe0bd"), Ui.Ink, 1.5f);
+            strip = Ui.Panel(root, "strip", Ui.Paper, Ui.Ink, 1.5f, 3, 3);
+            stripName = Ui.Label(strip.rt, "name", mono, Body, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
+            stripSub = Ui.Label(strip.rt, "sub", mono, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
+            stripDesc = Ui.Label(strip.rt, "desc", mono, Small, Ui.Ink);
+            stripAct = Ui.Label(strip.rt, "act", mono, Small, Ui.Red, TextAnchor.UpperRight, FontStyle.Bold);
+            card = Ui.Panel(root, "full", Ui.Paper, Ui.Ink, 2.5f, 6, 6);
+            cardTitle = Ui.Label(card.rt, "title", mono, 26, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
+            cardSub = Ui.Label(card.rt, "sub", mono, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
+            cardText = Ui.Label(card.rt, "text", mono, Body, Ui.Ink, lineSpacing: 1.3f);
+            cardFacts = Ui.Label(card.rt, "facts", mono, Small, Ui.Ink, lineSpacing: 1.35f);
+            cardUse = Ui.Label(card.rt, "use", mono, Body, Ui.Red, TextAnchor.UpperLeft, FontStyle.Bold);
+            cardSteps = Ui.Label(card.rt, "steps", mono, Small, Muted, TextAnchor.LowerCenter);
+            ask = Ui.Panel(root, "ask", Ui.Paper, Ui.Ink, 2.5f, 6, 6);
+            askQ = Ui.Label(ask.rt, "q", mono, 22, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold);
+            askWhat = Ui.Label(ask.rt, "what", mono, Small, Muted, TextAnchor.UpperCenter, lineSpacing: 1.3f);
+            askNo = Ui.Label(ask.rt, "no", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
+            askYes = Ui.Label(ask.rt, "yes", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
+            root.gameObject.SetActive(false);
+        }
+
+        Cell Take()
+        {
+            if (used >= cells.Count)
+            {
+                var c = new Cell { box = Ui.Panel(root, "cell" + cells.Count, Color.clear, Ui.Ink, 0) };
+                c.mark = Ui.Rect(c.box.rt, Ui.Red, 0, "mark");
+                c.line = Ui.Rect(c.box.rt, Ui.Red, 0, "line");
+                c.text = Ui.Label(c.box.rt, "text", Ui.Mono, Body, Ui.Ink, TextAnchor.UpperLeft);
+                c.sub = Ui.Label(c.box.rt, "sub", Ui.Mono, Small, Muted, TextAnchor.UpperLeft, lineSpacing: 1.2f);
+                c.val = Ui.Label(c.box.rt, "val", Ui.Mono, Body, Ui.Ink, TextAnchor.UpperRight);
+                c.bar = Ui.Rect(c.box.rt, Ui.Hex("#2b211f", 0.25f), 0, "bar");
+                c.fill = Ui.Rect(c.bar.rectTransform, Ui.Ink, 0, "fill");
+                cells.Add(c);
+            }
+            var cell = cells[used++];
+            cell.box.Show(true);
+            return cell;
+        }
+
+        /// <summary>An entry at (x, y), w × h: its words (and what is under them), its value at the right, its slider; the pad's on it drawn so.</summary>
+        Cell Entry(float x, float y, float w, float h, string text, string under, string val, bool on, float slider = -1, int size = Body, bool dimmed = false, bool boxed = false)
+        {
+            var c = Take();
+            Ui.Place(c.box.rt, x, y, w, h);
+            c.box.SetFill(on ? Band : boxed ? Ui.Hex("#fff6dc", 0.6f) : Color.clear);
+            c.text.fontSize = size; c.text.fontStyle = on ? FontStyle.Bold : FontStyle.Normal;
+            c.text.color = dimmed ? Muted : on ? Ui.Ink : Ui.Hex("#3b2e2a");
+            float pad = 14, valW = string.IsNullOrEmpty(val) ? 0 : Mathf.Min(w * 0.45f, Ui.Measure(c.val, val).x + 4);
+            var ts = Ui.Set(c.text, text ?? "", w - pad * 2 - valW - 8);
+            Ui.Place(c.text.rectTransform, pad, 5, w - pad * 2 - valW - 8, ts.y);
+            bool hasSub = !string.IsNullOrEmpty(under);
+            c.sub.gameObject.SetActive(hasSub);
+            if (hasSub) { var ss = Ui.Set(c.sub, under, w - pad * 2 - valW - 8); Ui.Place(c.sub.rectTransform, pad, 5 + ts.y + 1, w - pad * 2 - valW - 8, Mathf.Min(ss.y, h - ts.y - 6)); }
+            c.val.gameObject.SetActive(valW > 0);
+            if (valW > 0) { c.val.text = val; c.val.fontSize = size; Ui.Place(c.val.rectTransform, w - pad - valW, 5, valW, size * 1.4f); }
+            c.bar.gameObject.SetActive(slider >= 0);
+            if (slider >= 0) { float bw = Mathf.Min(160, w * 0.3f); Ui.Place(c.bar.rectTransform, w - pad - bw, h - 9, bw, 3); Ui.Place(c.fill.rectTransform, 0, 0, bw * Mathf.Clamp01(slider), 3); }
+            c.mark.gameObject.SetActive(on);
+            c.line.gameObject.SetActive(on);
+            if (on) { Ui.Place(c.mark.rectTransform, 0, 4, 4, h - 8); Ui.Place(c.line.rectTransform, pad, 5 + ts.y + (hasSub ? 0 : 1), Mathf.Min(Ui.Measure(c.text, text ?? "").x, w - pad * 2), 2); }
+            return c;
+        }
+
+        static void Show(Component c, bool on) { if (c && c.gameObject.activeSelf != on) c.gameObject.SetActive(on); }
+
+        void Update()
+        {
+            if (!root) return;
+            var canvas = root.GetComponent<Canvas>();
+            float pd = Mathf.Max(0.2f, cam.nearClipPlane * 2);
+            if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
+            bool open = state != null;
+            if (root.gameObject.activeSelf != open) root.gameObject.SetActive(open);
+            if (!open || !dirty) return;
+            dirty = false;
+            Draw();
+        }
+
+        void Draw()
+        {
+            used = 0;
+            foreach (var l in new[] { logo, head, sub, version, hint, note, empty, tabPrev, tabNext }) Show(l, false);
+            foreach (var l in tabs) Show(l, false);
+            Show(tabLine, false);
+            strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false);
+            foreach (var m in marks) { Show(m.dot, false); Show(m.name, false); }
+            var kind = state.S("kind");
+            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else DrawGame();
+            for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
+            // the buttons' prompts, at the foot on the right
+            var h = state.S("hint") ?? "";
+            Show(hint, h.Length > 0);
+            if (h.Length > 0) { hint.text = h; Ui.Place(hint.rectTransform, 24, H - 34, W - 48, 22); }
+            hint.transform.SetAsLastSibling();
+        }
+
+        void Sheet(float x, float y, float w, float h, bool dimmed)
+        {
+            dim.color = dimmed ? Dim : Ui.Page;
+            Ui.Place(sheet.rt, x, y, w, h);
+            sheet.Show(true);
+        }
+
+        void Head(string text, float x, float y, float w)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            Show(head, true);
+            var s = Ui.Set(head, Ui.Upper(text), w);
+            Ui.Place(head.rectTransform, x, y, w, s.y);
+        }
+
+        // ------------------------------------------------------------------ the title
+
+        void DrawTitle()
+        {
+            var screen = state.S("screen");
+            Sheet(0, 0, W, H, false);
+            sheet.Show(false);
+            dim.color = Ui.Page;
+            Show(version, true);
+            version.text = state.S("version") ?? "";
+            Ui.Place(version.rectTransform, 24, H - 30, 200, 18);
+            var starting = state.S("starting");
+            if (screen == "main" || starting != null)
+            {
+                Show(logo, true);
+                logo.text = state.S("logo") ?? "HIRAETH";
+                Ui.Place(logo.rectTransform, 0, H * 0.16f, W, 110);
+                if (starting != null)
+                {
+                    Show(note, true);
+                    note.text = starting.Length > 0 ? starting + " …" : "…";
+                    Ui.Place(note.rectTransform, 0, H * 0.6f, W, 30);
+                    return;
+                }
+                var rows = state.L("rows") ?? new List<object>();
+                float w = Mathf.Min(340, W - 80), y = H * 0.56f;
+                foreach (var o in rows)
+                {
+                    var r = o as Dictionary<string, object>;
+                    float h = B(r, "primary") && !string.IsNullOrEmpty(r.S("sub")) ? 56 : 42;
+                    Entry(W / 2 - w / 2, y, w, h, r.S("text"), r.S("sub"), null, B(r, "on"), size: B(r, "primary") ? 22 : Body);
+                    y += h + 6;
+                }
+                return;
+            }
+            // Saves and Settings: a sheet with its heading and its list
+            float sw = Mathf.Min(820, W - 48), sx = W / 2 - sw / 2, sy = 34, sh = H - 34 - 54;
+            Sheet(sx, sy, sw, sh, false);
+            dim.color = Ui.Hex("#e9d9b3");
+            Head(state.S("head"), sx + 24, sy + 18, sw - 48);
+            if (screen == "settings") { DrawSettings(state.O("page")?.L("rows"), sx + 24, sy + 60, sw - 48, sh - 76); return; }
+            var list = state.L("rows") ?? new List<object>();
+            float top = sy + 60, avail = sh - 76;
+            var hs = new List<float>();
+            int onAt = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var r = list[i] as Dictionary<string, object>;
+                hs.Add(r.Has("note") && !string.IsNullOrEmpty(r.S("note")) ? 66 : !string.IsNullOrEmpty(r.S("sub2")) ? 62 : !string.IsNullOrEmpty(r.S("sub")) ? 50 : 38);
+                if (B(r, "on")) onAt = i;
+            }
+            float y0 = Scroll(hs, onAt, avail);
+            float yy = top - y0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var r = list[i] as Dictionary<string, object>;
+                float h = hs[i];
+                if (yy + h > top - 1 && yy < top + avail - 2)
+                {
+                    var under = string.Join("\n", new[] { r.S("sub"), r.S("sub2"), r.S("note") }.Where(s => !string.IsNullOrEmpty(s)));
+                    var val = r.S("when") ?? "";
+                    if (r.S("fold") is string fold && fold.Length > 0) val = (fold == "open" ? "▴ " : "▾ ") + (r.S("tag") ?? "");
+                    Entry(sx + 24, yy, sw - 48, h - 4, r.S("text"), under, val, B(r, "on"), size: B(r, "back") ? Small + 2 : Body, boxed: !B(r, "back"));
+                }
+                yy += h;
+            }
+            var a = state.O("ask");
+            if (a != null) DrawAsk(a);
+        }
+
+        /// <summary>How far a list of rows (their heights) is scrolled so the one at `at` shows in `avail`.</summary>
+        static float Scroll(List<float> hs, int at, float avail)
+        {
+            float total = 0, top = 0;
+            for (int i = 0; i < hs.Count; i++) { if (i == at) top = total; total += hs[i]; }
+            if (total <= avail) return 0;
+            float h = at < hs.Count ? hs[at] : 0;
+            return Mathf.Clamp(top + h / 2 - avail / 2, 0, total - avail);
+        }
+
+        void DrawAsk(Dictionary<string, object> a)
+        {
+            ask.Show(true);
+            ask.rt.SetAsLastSibling();
+            float w = Mathf.Min(520, W - 60), x = W / 2 - w / 2;
+            var q = Ui.Set(askQ, a.S("q"), w - 40);
+            Ui.Place(askQ.rectTransform, 20, 20, w - 40, q.y);
+            var wt = string.Join("\n", new[] { a.S("what"), a.S("undone") }.Where(s => !string.IsNullOrEmpty(s)));
+            var ws = Ui.Set(askWhat, wt, w - 40);
+            Ui.Place(askWhat.rectTransform, 20, 26 + q.y, w - 40, ws.y);
+            float by = 40 + q.y + ws.y, bw = (w - 60) / 2;
+            int on = a.I("on");
+            askNo.text = a.S("no"); askYes.text = a.S("yes");
+            askNo.fontStyle = on == 0 ? FontStyle.Bold : FontStyle.Normal; askYes.fontStyle = on == 1 ? FontStyle.Bold : FontStyle.Normal;
+            askNo.color = on == 0 ? Ui.Ink : Muted; askYes.color = on == 1 ? Ui.Red : Muted;
+            Ui.Place(askNo.rectTransform, 20, by, bw, 36); Ui.Place(askYes.rectTransform, 40 + bw, by, bw, 36);
+            Ui.Place(ask.rt, x, H / 2 - (by + 56) / 2, w, by + 56);
+        }
+
+        void DrawSettings(List<object> rows, float x, float y, float w, float h, bool plain = false)
+        {
+            rows ??= new List<object>();
+            float rh = plain ? 30 : 44;
+            var hs = new List<float>(); int at = 0;
+            for (int i = 0; i < rows.Count; i++) { hs.Add(rh); if (B(rows[i], "on")) at = i; }
+            float yy = y - Scroll(hs, at, h);
+            foreach (var o in rows)
+            {
+                var r = o as Dictionary<string, object>;
+                if (yy + rh > y - 1 && yy < y + h - 2)
+                {
+                    float sl = r.Get("slider") is double d ? (float)d : -1;
+                    Entry(x, yy, w, rh - 4, r.S("text"), B(r, "on") ? r.S("note") : null, r.S("val"), B(r, "on"), sl, plain ? Small : Body);
+                }
+                yy += rh;
+            }
+        }
+
+        // ------------------------------------------------------------------ the Start menu
+
+        void DrawStart()
+        {
+            float sx = 24, sy = 24, sw = W - 48, sh = H - 24 - 50;
+            Sheet(sx, sy, sw, sh, true);
+            Head(state.S("head"), sx + 24, sy + 16, sw - 48);
+            float sideW = Mathf.Clamp(sw * 0.3f, 190, 280), top = sy + 60;
+            var side = state.L("side") ?? new List<object>();
+            float y = top;
+            foreach (var o in side)
+            {
+                var e = o as Dictionary<string, object>;
+                Entry(sx + 16, y, sideW, 38, (B(e, "sel") ? "› " : "  ") + e.S("text"), null, null, B(e, "on"));
+                y += 42;
+            }
+            var page = state.O("page");
+            float px = sx + 16 + sideW + 20, pw = sw - (px - sx) - 20;
+            Show(sub, true);
+            sub.fontStyle = FontStyle.Bold;
+            Ui.Set(sub, Ui.Upper(page?.S("title") ?? ""), pw);
+            Ui.Place(sub.rectTransform, px + 14, top - 2, pw, 20);
+            var rows = page?.L("rows");
+            bool plain = rows != null && rows.Count > 0 && B(rows[0], "plain");
+            DrawSettings(rows, px, top + 22, pw, sh - (top - sy) - 40, plain);
+        }
+
+        // ------------------------------------------------------------------ the game menu
+
+        void DrawGame()
+        {
+            float sx = 18, sy = 16, sw = W - 36, sh = H - 16 - 46;
+            Sheet(sx, sy, sw, sh, true);
+            // the tabs: the five panels' names, this one in ink with the red line under it; LB / RB at the sides
+            var t = state.O("tabs");
+            var names = t?.L("names") ?? new List<object>();
+            int cur = t?.I("i") ?? 0, edge = t?.I("edge") ?? 0;
+            float tw = (sw - 140) / Mathf.Max(1, names.Count), tx = sx + 70;
+            for (int i = 0; i < names.Count && i < tabs.Count; i++)
+            {
+                var l = tabs[i]; Show(l, true);
+                l.text = Ui.Upper(names[i] as string);
+                l.fontStyle = i == cur ? FontStyle.Bold : FontStyle.Normal; l.color = i == cur ? Ui.Ink : Muted;
+                Ui.Place(l.rectTransform, tx + i * tw, sy + 12, tw, 28);
+                if (i == cur) { Show(tabLine, true); float lw = Mathf.Min(tw - 12, Ui.Measure(l, l.text).x); Ui.Place(tabLine.rectTransform, tx + i * tw + tw / 2 - lw / 2, sy + 40, lw, 3); }
+            }
+            Show(tabPrev, true); Show(tabNext, true);
+            tabPrev.text = "◀ LB"; tabNext.text = "RB ▶";
+            tabPrev.color = edge < 0 ? Ui.Red : Ui.Ink; tabNext.color = edge > 0 ? Ui.Red : Ui.Ink;
+            Ui.Place(tabPrev.rectTransform, sx + 14, sy + 12, 60, 28); Ui.Place(tabNext.rectTransform, sx + sw - 74, sy + 12, 60, 28);
+            float top = sy + 56, bottom = sy + sh - 84, px = sx + 18, pw = sw - 36;
+            var person = state.O("person");
+            var full = state.O("full");
+            var panel = state.S("panel");
+            if (person != null) DrawPerson(person, px, top, pw, bottom - top);
+            else if (panel == "map") DrawMap(px, top, pw, bottom - top);
+            else DrawRows(panel, px, top, pw, bottom - top);
+            // the strip: the cell's name, what it is, and what A / × does
+            var s = state.O("strip");
+            if (s != null && person == null)
+            {
+                strip.Show(true);
+                Ui.Place(strip.rt, sx + 14, bottom + 6, sw - 28, 70);
+                var ns = Ui.Set(stripName, s.S("name"), sw * 0.5f);
+                Ui.Place(stripName.rectTransform, 12, 8, ns.x, ns.y);
+                Ui.Set(stripSub, s.S("sub"), sw * 0.4f);
+                Ui.Place(stripSub.rectTransform, 24 + ns.x, 11, sw * 0.4f, 18);
+                Ui.Set(stripDesc, s.S("desc"), sw - 220);
+                Ui.Place(stripDesc.rectTransform, 12, 34, sw - 220, 32);
+                var act = s.S("act") ?? "";
+                stripAct.text = act.Length > 0 ? "A  " + act : "";
+                Ui.Place(stripAct.rectTransform, sw - 28 - 190, 8, 176, 20);
+            }
+            if (full != null) DrawFull(full);
+        }
+
+        void DrawRows(string panel, float x, float y, float w, float h)
+        {
+            var rows = state.L("rows") ?? new List<object>();
+            var cols = state.L("cols") ?? new List<object> { 1.0 };
+            var colX = new List<float>(); float acc = 0;
+            foreach (var c in cols) { colX.Add(acc); acc += (float)Json.Num(c); }
+            colX.Add(acc);
+            if (rows.Count == 0)
+            {
+                Show(empty, true);
+                Ui.Set(empty, state.S("empty") ?? "", w);
+                Ui.Place(empty.rectTransform, x + 14, y + 10, w - 28, 60);
+                return;
+            }
+            if (panel == "items")
+            {
+                // the gear's count and the wallet over the tiles
+                Show(sub, true); sub.fontStyle = FontStyle.Bold;
+                var chimes = state.Get("chimes") is double ch ? $"   ·   {ch:0} chimes" : "";
+                Ui.Set(sub, $"GEAR  {state.I("gear")}/{state.I("slots")}{chimes}", w);
+                Ui.Place(sub.rectTransform, x + 6, y - 2, w, 18);
+                y += 20; h -= 20;
+            }
+            // a row's height by what is in it
+            float RowH(List<object> row)
+            {
+                var k = (row.Count > 0 ? row[0] : null).S("kind");
+                return panel == "quests" ? (k == "ended" ? 34 : 62) : panel == "items" ? (k == "item" ? 74 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
+            }
+            var hs = new List<float>(); int at = 0;
+            for (int r = 0; r < rows.Count; r++) { var row = rows[r] as List<object>; hs.Add(RowH(row)); foreach (var c in row) if (B(c, "on")) at = r; }
+            float yy = y - Scroll(hs, at, h);
+            for (int r = 0; r < rows.Count; r++)
+            {
+                var row = rows[r] as List<object>;
+                float rh = hs[r];
+                if (yy + rh > y - 1 && yy < y + h - 2)
+                    foreach (var o in row)
+                    {
+                        var c = o as Dictionary<string, object>;
+                        int col = Mathf.Clamp(c.I("col"), 0, cols.Count - 1), span = Mathf.Max(1, c.I("span", 1));
+                        float cx = x + w * colX[col], cw = w * (colX[Mathf.Min(col + span, colX.Count - 1)] - colX[col]) - 6;
+                        string text = c.S("text"), under = c.S("sub");
+                        if (B(c, "inUse")) under = "in use";
+                        if (B(c, "tracked")) text = "◆ " + text;
+                        if (c.S("done") == "done") text = "✓ " + text; else if (c.S("done") == "failed") text = "· " + text;
+                        bool tile = c.S("kind") == "item";
+                        var cell = Entry(cx, yy, cw, rh - 6, text, tile ? null : under, null, B(c, "on"), size: tile ? Tiny : c.S("kind") == "ended" ? Small : Body, dimmed: B(c, "off"), boxed: true);
+                        if (tile) { cell.text.alignment = TextAnchor.LowerCenter; Ui.Place(cell.text.rectTransform, 4, 6, cw - 8, rh - 16); }
+                        else cell.text.alignment = TextAnchor.UpperLeft;
+                    }
+                yy += rh;
+            }
+        }
+
+        void DrawMap(float x, float y, float w, float h)
+        {
+            var m = state.O("map");
+            float side = Mathf.Min(h, w * 0.58f);
+            mapBox.Show(true);
+            Ui.Place(mapBox.rt, x, y, side, side);
+            var list = m?.L("marks") ?? new List<object>();
+            while (marks.Count < list.Count)
+            {
+                var dot = Ui.Rect(mapBox.rt, Ui.Ink, 4, "mark"); var name = Ui.Label(mapBox.rt, "name", Ui.Mono, Tiny, Ui.Ink);
+                marks.Add((dot, name));
+            }
+            for (int i = 0; i < list.Count; i++)
+            {
+                var k = list[i] as Dictionary<string, object>;
+                var (dot, name) = marks[i];
+                Show(dot, true); Show(name, true);
+                float u = Mathf.Clamp01(k.F("u")), v = Mathf.Clamp01(k.F("v")), s = k.S("kind") == "you" ? 12 : 9;
+                dot.color = k.S("kind") == "you" ? Ui.Red : k.S("kind") == "ship" ? Ui.Teal : k.S("kind") == "goal" ? Ui.Gold : Ui.Ink;
+                Ui.Place(dot.rectTransform, u * side - s / 2, v * side - s / 2, s, s);
+                bool on = B(k, "on");
+                name.text = on || k.S("kind") == "you" || k.S("kind") == "ship" ? k.S("name") : "";
+                name.fontStyle = on ? FontStyle.Bold : FontStyle.Normal;
+                Ui.Place(name.rectTransform, u * side + 8, v * side - 8, 180, 16);
+            }
+            // the legend beside it: the rows
+            Show(sub, true); sub.fontStyle = FontStyle.Bold;
+            Ui.Set(sub, Ui.Upper(m?.S("world") ?? ""), w - side - 20);
+            Ui.Place(sub.rectTransform, x + side + 20, y - 2, w - side - 20, 18);
+            DrawRows("map", x + side + 14, y + 20, w - side - 14, h - 20);
+        }
+
+        void DrawPerson(Dictionary<string, object> p, float x, float y, float w, float h)
+        {
+            Show(head, true);
+            var ns = Ui.Set(head, p.S("name"), w);
+            Ui.Place(head.rectTransform, x + 6, y, w, ns.y);
+            Show(sub, true); sub.fontStyle = FontStyle.Italic;
+            Ui.Set(sub, p.S("role"), w);
+            Ui.Place(sub.rectTransform, x + 6, y + ns.y + 2, w, 18);
+            var lines = new List<string>();
+            foreach (var s in p.L("story") ?? new List<object>()) lines.Add(s as string);
+            if (!string.IsNullOrEmpty(p.S("now"))) lines.Add("\n<b>NOW</b>\n" + p.S("now"));
+            var between = p.L("between") ?? new List<object>();
+            if (between.Count > 0) lines.Add("\n<b>BETWEEN YOU</b>\n" + string.Join("\n", between));
+            var c = Entry(x, y + ns.y + 26, w, h - ns.y - 26, string.Join("\n", lines), null, null, false, size: Small, boxed: true);
+            c.text.lineSpacing = 1.3f;
+            var steps = (p.S("prev") is string pv && pv.Length > 0 ? "◀ " + pv : "") + "        " + (p.S("next") is string nx && nx.Length > 0 ? nx + " ▶" : "");
+            Show(note, true); note.fontSize = Small; note.text = steps.Trim();
+            Ui.Place(note.rectTransform, x, y + h + 10, w, 20);
+        }
+
+        void DrawFull(Dictionary<string, object> f)
+        {
+            card.Show(true);
+            card.rt.SetAsLastSibling();
+            float w = Mathf.Min(720, W - 80), x = W / 2 - w / 2, pad = 26, cw = w - pad * 2;
+            var ts = Ui.Set(cardTitle, f.S("title"), cw);
+            Ui.Place(cardTitle.rectTransform, pad, pad, cw, ts.y);
+            float y = pad + ts.y + 4;
+            var sb = (f.S("sub") ?? "") + (B(f, "inUse") ? "  ·  in use" : "");
+            var ss = Ui.Set(cardSub, sb, cw); Ui.Place(cardSub.rectTransform, pad, y, cw, ss.y); y += ss.y + 10;
+            var tx = Ui.Set(cardText, f.S("text") ?? "", cw); Ui.Place(cardText.rectTransform, pad, y, cw, tx.y); y += tx.y + 10;
+            var facts = new List<string>();
+            foreach (var o in f.L("facts") ?? new List<object>()) { var k = o as Dictionary<string, object>; facts.Add((B(k, "on") ? "✓ " : "… ") + k.S("text") + (string.IsNullOrEmpty(k.S("list")) ? "" : "\n    " + k.S("list"))); }
+            var fs = Ui.Set(cardFacts, string.Join("\n", facts), cw); Ui.Place(cardFacts.rectTransform, pad, y, cw, fs.y); y += fs.y + (facts.Count > 0 ? 12 : 0);
+            var use = f.S("use") ?? "";
+            var nt = f.S("note") ?? "";
+            cardUse.text = (use.Length > 0 ? "A  " + use : "") + (nt.Length > 0 ? (use.Length > 0 ? "\n" : "") + nt : "");
+            var us = Ui.Measure(cardUse, cardUse.text, cw); Ui.Place(cardUse.rectTransform, pad, y, cw, us.y); y += us.y + 10;
+            cardSteps.text = ((f.S("prev") is string pv && pv.Length > 0 ? "◀ " + pv : "") + "      " + (f.S("next") is string nx && nx.Length > 0 ? nx + " ▶" : "")).Trim();
+            Ui.Place(cardSteps.rectTransform, pad, y, cw, 20); y += 28;
+            Ui.Place(card.rt, x, Mathf.Max(20, H / 2 - y / 2), w, y);
+        }
+    }
+}

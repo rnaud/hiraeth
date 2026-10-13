@@ -11,10 +11,11 @@
 //
 // Sound (createGame({ audio: { sampleRate } })): the game's own Sound (src/audio.js) on the Web Audio
 // shim (engine/webaudio.js); `game.audio` is its context, which the engine renders PCM from.
-// Left out for now (the page's): the menus.
+// The menus (the title, the Start menu, the game menu): engine/menus.js, as plain state the engine draws; createGame({ menus })
+// pauses the world while one is open and hands it the pad.
 import { page } from './boot.js';
 import * as THREE from 'three';
-import { levelById } from '../src/levels/index.js';
+import { levelById, LEVELS } from '../src/levels/index.js';
 import { CONTENT } from '../src/levels/content.js';
 import { Physics } from '../src/physics.js';
 import { Waters } from '../src/water.js';
@@ -52,8 +53,15 @@ import { Shelter } from '../src/shelter.js';
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
-import { ToolHud } from '../src/ui.js';
+import { ToolHud, SaveGame } from '../src/ui.js';
 import { screen } from '../src/platform.js';
+import { slots, slotStorage } from '../src/save-slots.js';
+import { menuSources } from '../src/game-menu-data.js';
+import { mapBounds, mapMarks, scaleBar } from '../src/world-map.js';
+import { items as gear, ITEMS } from '../src/items.js';
+import { chargeState } from '../src/story/charge.js';
+import { ORDER, TITLES } from '../src/levels/names.js';
+import { fastTravel } from '../src/fast-travel.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud } from '../src/hud.js';
 import { toastSeconds } from '../src/quest.js';
 import { selfLitSkips } from '../src/shadows.js';
@@ -134,6 +142,28 @@ function engineColours(ch, { gltf, colors, headColors }) {
   for (const p of parts) for (const m of Array.isArray(p.material) ? p.material : [p.material]) if (m) m.userData.albedoLinear = true;
 }
 
+/**
+ * The journal's record without its page (src/quest.js Journal: the same key in the save slot, the same fields): the worlds
+ * seen, the stories told, the relics and the errands; the page's parts (its sections, its element) stand-ins. `write`
+ * false keeps it from the save (a bench's fixed views).
+ */
+export function engineJournal({ storage = slotStorage, write = true } = {}) {
+  const KEY = 'hiraeth.journal.v1';
+  let data = {};
+  try { data = JSON.parse(storage.getItem(KEY)) ?? {}; } catch { data = {}; }
+  data.relics ??= {}; data.stories ??= {}; data.seen ??= {};
+  const save = () => { if (write) try { storage.setItem(KEY, JSON.stringify(data)); } catch { /* full */ } };
+  return {
+    data, sections: [], el: { addEventListener() {} }, render() {}, toggle() {}, open: false, save,
+    seen: (level) => !!data.seen[level], markSeen: (level) => { if (!data.seen[level]) { data.seen[level] = 1; save(); } },
+    known: (level) => !!data.seen[level],
+    storyDone: (level) => !!data.stories[level], addStory: (level, entry) => { data.stories[level] = entry; save(); },
+    hasRelic: (level, i) => !!data.relics[level]?.[i], addRelic: (level, i, entry) => { (data.relics[level] ??= {})[i] = entry; save(); },
+    relicCount: (level) => Object.keys(data.relics[level] ?? {}).length,
+    errand: (id) => data.errands?.[id], setErrand: (id, v) => { (data.errands ??= {})[id] = v; save(); },
+  };
+}
+
 /** A system the engine can do without: built if it can be, said once if not. */
 function optional(name, make) { try { return quiet(make); } catch (e) { console.warn(`[game] ${name} left out: ${e?.message ?? e}`); return null; } }
 
@@ -147,7 +177,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {} } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, settings = null } = {}) {
   const T = {};
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
   // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
@@ -247,9 +277,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   player.onNotice = toast;
   // the sound: the game's own (src/audio.js) where the engine plays it, else a stand-in that takes every call
   const sound = audio ? makeSound(levelId, audio) : SILENT;
+  // the journal's record (src/quest.js Journal: the worlds seen, the stories told, the relics, the errands), read from
+  // the save as the page keeps it, without its page (the game menu draws from it: engine/menus.js)
+  const journal = engineJournal({ write: !flags });
   let story = null;
   if (people && humans && lib) {
-    const journal = { sections: [], el: { addEventListener() {} }, seen: () => false, storyDone: () => false, markSeen() {}, relicCount: () => 0, render() {} };
     try {
       gameState.data.flags['prologue.done'] = true;
       story = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: { complete() {}, start() {}, done: false, waitFor: null },
@@ -257,6 +289,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
+  journal.markSeen(levelId);   // (after the story read its first visit, as main.js marks it)
   if (Q) for (const n of npcs) { n.lowDetail = !!Q.lowDetail; n.clothFar = Q.clothFar ?? null; }
   // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found
   const boxes = optional('the boxes', () => createBoxes({ levelId, scene, physics, level, player, sound, quests: story?.quests ?? null, toast,
@@ -337,9 +370,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const talking = () => !!dialogue()?.open;
   const controller = new Controller({
     pads: () => navigator.getGamepads?.() ?? [],
-    context: () => (talking() ? 'talk' : player.ride ? 'ride' : 'game'),
+    // (a menu open, engine/menus.js: the pad's menu context, its actions and directions the menu's)
+    context: () => (menus?.open ? 'menu' : talking() ? 'talk' : player.ride ? 'ride' : 'game'),
     look: (x, y) => { if (x || y) rig.look(x, y); },
     action: (name, dt) => {
+      if (menus?.open) { menus.action(name); return; }
+      // Menu / Start: the Start menu; View / Select: the game menu (main.js: settingsMenu, journal), from play or a conversation
+      if (menus && !pinned && (name === 'settings' || name === 'start')) { game.save(); menus.show('start'); return; }
+      if (menus && !pinned && (name === 'journal' || name === 'select')) { menus.show('game'); return; }
       if (name === 'zoomOut' || name === 'zoomIn') rig.dist = THREE.MathUtils.clamp(rig.dist * Math.exp((name === 'zoomOut' ? 1 : -1) * dt), 4, 60);
       const d = dialogue();
       if (!d?.open) return;
@@ -350,7 +388,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         talk.sel = 0;
       }
     },
-    navigate: (x, y) => { const n = screen.state.dialogue?.choices?.length ?? 0; if (n) talk.sel = Math.max(0, Math.min(n - 1, talk.sel + y)); },
+    navigate: (x, y) => {
+      if (menus?.open) { menus.navigate(x, y); return; }
+      const n = screen.state.dialogue?.choices?.length ?? 0; if (n) talk.sel = Math.max(0, Math.min(n - 1, talk.sel + y));
+    },
     scroll: () => {},
   });
 
@@ -402,7 +443,28 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     backend.portrait(n, { eye: eye.toArray(), look: look.toArray(), up: player.frame.up.toArray(), fov: o.fov ?? 36, ids, backdrop: o.backdrop ?? null, size: w, css: 84 });
     return `engine:portrait:${n}`;
   }
-  let simT = 0, frames = 0;
+  let simT = 0, frames = 0, saveIn = 10;
+  // the game menu's Map (main.js mapSource, src/world-map.js): the marks over the world's square, the ground not drawn
+  // (the page draws it on a canvas from the heights; an engine has none yet)
+  let mapWhole = null;
+  const temples = () => (level.temples ?? []).filter((t) => t.outside?.door?.at).map((t) => ({ id: t.id, name: t.def?.name, x: t.outside.door.at.x, z: t.outside.door.at.z, y: t.outside.door.at.y }));
+  function mapSource() {
+    if (!mapWhole) {
+      const pts = [level.spawn, level.ship?.pos, ...temples(), ...npcs.map((n) => n.pos), ...(boxes?.list ?? []).map((b) => b.pos), player.pos].filter(Boolean);
+      mapWhole = mapBounds(pts, { limit: level.limit ?? Infinity });
+    }
+    const dir = player.frame.dir(player.heading, new THREE.Vector3());
+    const goal = nextObjective({ player, story: null, ship: level.ship, level: { navigationPortals: [] }, quest: () => story?.objective?.() });
+    const raw = {
+      you: { x: player.pos.x, z: player.pos.z, dx: dir.x, dz: dir.z },
+      ship: level.ship?.pos ?? null,
+      goal: goal?.position ? { x: goal.position.x, z: goal.position.z, label: goal.label } : null,
+      temples: temples(),
+      people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, x: n.pos.x, z: n.pos.z })),
+      boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, x: b.pos.x, z: b.pos.z })),
+    };
+    return { world: TITLES[levelId] ?? level.title ?? '', marks: mapMarks({ ...raw, bounds: mapWhole }), canvas: null, progress: 1, zoom: null, scale: scaleBar(mapWhole.w), note: '' };
+  }
   // a fixed view (the side-by-sides and the benchmark's viewpoints): the camera pinned there
   let pinned = view ? pin(view) : null;
   let smallCull = null;
@@ -413,6 +475,22 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, target, new THREE.Vector3(0, 1, 0)));
     // (a view with no place for the traveller leaves him out of the picture, as web-shots.mjs does)
     return { eye, q, fov: v.fov ?? 55, hidePlayer: v.hidePlayer ?? !v.player };
+  }
+  // where the traveller starts when the engine plays (not a bench's views): the save's place in this world (main.js
+  // "continue where you left off"), else at the foot of the ship's ramp, as arriving by ship (ship.arrivalSpot: the
+  // level's own spawn is the ship's landing, under its hull)
+  if (start?.pos && start.level === levelId && !level.keepSpawn) {
+    const p = new THREE.Vector3(...start.pos);
+    { const moved = level.settleSaved?.(p, physics); if (moved) p.copy(moved); }
+    player.respawn(p);
+    if (start.up && start.fwd) player.frame.set(new THREE.Vector3(...start.up), new THREE.Vector3(...start.fwd));
+    player.heading = start.heading ?? player.heading;
+    rig.yaw = start.yaw ?? player.heading + Math.PI;
+  } else if (arrive && ship?.arrivalSpot) {
+    const a = ship.arrivalSpot();
+    player.respawn(a.pos);
+    player.heading = a.heading;
+    rig.yaw = a.heading + Math.PI;
   }
   // the first frame's camera
   rig.update(player.pos, 0, player.frame);
@@ -473,6 +551,36 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       return out;
     },
     sectionsOn: false,
+    journal,
+    /** Where you stand, into the active save slot (main.js writeSave); not from a bench's fixed views. */
+    save() {
+      if (flags || pinned || player.dead) return;
+      SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray() });
+    },
+    /**
+     * The game menu's panels (src/game-menu-data.js menuSources, as main.js wires them, with what the engine carries:
+     * no items' pictures, the Map's marks without its drawn ground). `travel(id)`: the Worlds page's Travel here.
+     */
+    menuSources({ travel = null } = {}) {
+      const charge = () => chargeState({ flag: (f) => gameState.flag(f), keepsakes: gameState.keepsakes(), completed: ship?.completed?.().length ?? 0,
+        failed: Object.entries(gameState.data.flags).filter(([k, v]) => k.startsWith('failed.') && v).map(([, v]) => v) });
+      const seen = (w) => journal.seen(w), flag = (k) => gameState.flag(k);
+      return menuSources({ items: { owned: () => Object.keys(ITEMS).filter((id) => gear.has(id)) },
+        quests: story?.quests ?? null, charge, keepsakes: () => gameState.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.seen(id), game: gameState,
+        levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
+        mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [] }), boxes: () => boxes?.counts?.() ?? {},
+        map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }) });
+    },
+    /** Why the ship won't take you to `id` (null: it will; src/fast-travel.js). */
+    travelRefusal(id) { return fastTravel.refusal({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) })?.text ?? null; },
+    /** The player's settings (src/ui.js Settings) on the camera and the sound, as main.js applies them. */
+    applySettings(s = settings) {
+      if (!s) return;
+      rig.sensitivity = s.sensitivity ?? 1; rig.invertY = !!s.invertY;
+      if (sound === SILENT) return;
+      sound.setVolumes?.(s.music, s.effects); sound.setVoices?.(s.voices, s.alienVoices);
+      if (!!s.mute !== !!sound.muted) sound.toggleMute?.();
+    },
     frame(dtRaw) {
       const tA = performance.now();
       const on = game.sectionsOn; let tL = tA;
@@ -480,8 +588,21 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const lap = on ? (name) => { const t = performance.now(); SEC.ms[name] = (SEC.ms[name] ?? 0) + t - tL; tL = t; } : null;
       if (on) SEC.frames++;
       const dt = Math.min(dtRaw, 1 / 20);
-      simT += dt; frames++;
       page.tick(tA);
+      // a menu open (engine/menus.js): the world holds still under it, as the web's menus pause the game; the pad
+      // goes to the menu (the controller's menu context), the scene is still drawn
+      if (menus?.open) {
+        controller.update(dt, true);
+        screen.set('prompt', null); screen.set('stamina', null);
+        const tB0 = performance.now();
+        mirror.time = simT;
+        const stats = mirror.sync(scene, camera);
+        return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
+      }
+      simT += dt; frames++;
+      saveIn -= dt;
+      // (the engine playing with its menus: where you stand saved every 10 s, and the save's playtime, as main.js does)
+      if (menus && saveIn <= 0) { saveIn = 10; if (!flags && !pinned) { game.save(); slots.touch(slots.active, { addSeconds: 10 }); } }
       const pad = controller.update(dt, true);
       const ctl = mergeControls(latched(), pad);
       atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
@@ -608,6 +729,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       return { ms: { update: tB - tA, mirror: tC - tB }, stats, frames };
     },
   };
+  game.applySettings();
   stamp('ready');
   log(`built ${levelId}: ${JSON.stringify(T)} ms`);
   return game;

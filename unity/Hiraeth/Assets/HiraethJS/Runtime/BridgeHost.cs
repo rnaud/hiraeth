@@ -201,6 +201,23 @@ namespace Hiraeth.Bridge
         public static string AudioEndedTake() { lock (audioEnded) { var s = audioEnded.ToString(); audioEnded.Clear(); return s; } }
         public static void Audio(object buffer) { var s = Sound; if (s is null) return; var b = JsRuntime.Bytes(buffer, out int n); s.Push(b, n); }
         public static void Screen(string json) => On(() => { if (Runner && Runner.hud) Runner.hud.Set(json); });
+        /// <summary>The menus' state (engine/menus.js view(): the title, the Start menu, the game menu; "null" none open), for BridgeMenu.</summary>
+        public static void Menu(string json) => On(() => { if (Runner && Runner.menu) Runner.menu.Set(json); });
+        /// <summary>
+        /// The engine started again with these arguments (the script's JSON, its `boot` choice: Quit to title onto another
+        /// save, Travel here): the script's engine and the mirrored world made anew, as the web opens a fresh page.
+        /// </summary>
+        public static void Reboot(string json) => On(() => Runner?.Reboot(json));
+        /// <summary>Forget what the script handed over and not yet applied, and its last input (a reboot's new start).</summary>
+        public static void Reset()
+        {
+            lock (gate) { ops.Clear(); spare.Clear(); asks.Clear(); asksSpare.Clear(); }
+            held.Clear(); taken.Clear();
+            lock (audioBatches) audioBatches.Clear();
+            Interlocked.Exchange(ref audioPending, 0);
+            lock (audioEnded) audioEnded.Clear();
+            audioThreaded = false;
+        }
 
         // ---------------------------------------------------------------- the platform
         /// <summary>Unity's clock in ms (on the script's thread: a stopwatch set to it at each frame's start).</summary>

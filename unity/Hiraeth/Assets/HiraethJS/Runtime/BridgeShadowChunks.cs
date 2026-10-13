@@ -24,6 +24,8 @@ namespace Hiraeth.Bridge
         public static float Cell = 128, MinRadius = 40;
         public static int MinVertices = 4000;
         static readonly Dictionary<Mesh, Mesh[]> cache = new();
+        /// <summary>The pieces forgotten (a reboot: their meshes went with the scene).</summary>
+        public static void Forget() => cache.Clear();
         public static int meshesCut, piecesMade;
 
         public static bool Wants(Mesh m) => On && m && m.isReadable && m.bounds.extents.magnitude >= MinRadius && m.vertexCount >= MinVertices && m.blendShapeCount == 0;

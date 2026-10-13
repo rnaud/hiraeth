@@ -79,12 +79,32 @@ namespace Hiraeth.Bridge
         /// (engine/game.js: src/perf.js QUALITY_PRESETS). The Linux player is the Steam Deck's, so the Deck's by default
         /// there; High elsewhere.
         /// </summary>
-        public static string Quality => Arg("-quality",
+        public static string Quality => Arg("-quality", SavedQuality() ??
 #if UNITY_STANDALONE_LINUX && !UNITY_EDITOR
             "deck");
+#elif UNITY_ANDROID && !UNITY_EDITOR
+            "handheld");   // (the web's Android app's default, src/ui.js DEFAULTS: the Retroid at High was 18-26 fps on the GPU)
 #else
             "high");
 #endif
+
+        /// <summary>
+        /// The Graphics setting the player chose in the menus (src/ui.js Settings, saved by the script under its storage key:
+        /// BridgeHost.StorageSet), read at the start (it takes effect from the next one); null for none or Auto. A player only:
+        /// the editor's batch runs keep their own.
+        /// </summary>
+        static string SavedQuality()
+        {
+            if (Application.isEditor) return null;
+            try
+            {
+                const string key = "hiraeth.js.hiraeth.settings.v1";
+                if (!PlayerPrefs.HasKey(key)) return null;
+                var q = (Json.Parse(PlayerPrefs.GetString(key)) as Dictionary<string, object>)?.S("quality");
+                return q switch { "handheld" or "deck" or "low" or "medium" or "high" => q, "xbox" => "high", _ => null };
+            }
+            catch { return null; }
+        }
 
         public static string FromCommandLine(string root = null)
         {
@@ -100,7 +120,10 @@ namespace Hiraeth.Bridge
                 var path = Path.IsPathRooted(views) ? views : Path.GetFullPath(Path.Combine(root ?? Environment.GetEnvironmentVariable("PWD") ?? Directory.GetCurrentDirectory(), views));
                 var parsed = Json.Parse(File.ReadAllText(path));
                 // (the benchmark's { views: […] }, or a list of views each with its world: views-worlds.mjs)
-                var list = parsed is List<object> all ? all.Where(v => (v.S("world") ?? "desert") == (string)args["level"]).ToList() : (parsed as Dictionary<string, object>).L("views");
+                // (or the worlds' file, scripts/bench/viewpoints-worlds.json: { worlds: { <id>: { views } } }, this world's)
+                var list = parsed is List<object> all ? all.Where(v => (v.S("world") ?? "desert") == (string)args["level"]).ToList()
+                    : (parsed as Dictionary<string, object>).O("worlds") is Dictionary<string, object> worlds ? worlds.O((string)args["level"])?.L("views") ?? new List<object>()
+                    : (parsed as Dictionary<string, object>).L("views");
                 var only = Arg("-only")?.Split(',');
                 if (only != null) list = list.Where(v => only.Contains(v.S("name"))).ToList();
                 args["views"] = list;
@@ -115,6 +138,10 @@ namespace Hiraeth.Bridge
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);
             if (Flag("-tour")) args["tour"] = true;
+            // (-arrive: a plan's traveller at the foot of the ship's ramp, as a player arrives, not at the level's spawn under its hull)
+            if (Flag("-arrive")) args["arrive"] = true;
+            // (-no-title: straight into the world, as before the menus: engine/unity/game.js; a plan always is)
+            if (Flag("-no-title")) args["noTitle"] = true;
             // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)
             if (Arg("-js-off") != null) args["off"] = Arg("-js-off");
             // (-v8-gcs: each of V8's full collections logged with its frame, engine/unity/gc-watch.js; issue #113)
