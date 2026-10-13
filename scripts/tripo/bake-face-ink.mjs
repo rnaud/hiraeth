@@ -1,6 +1,6 @@
 // The approved front portrait's own facial pen lines, lifted once into head-v3's
 // source-front space (issue #198): nose side line, wings and nostrils, mouth,
-// lower lip, chin, philtrum, bridge ticks and freckles. No pixel is redrawn: dark
+// lower lip, chin, philtrum, bridge ticks and the cheek's freckles. No pixel is redrawn: dark
 // thin marks are kept, broad dark masses (hair, pupils, brows) and the eyes and
 // brows the mesh already paints are left out, and so are the jaw contour and the
 // hatching under it, which portrait-head.js draws from the geometry instead so
@@ -42,6 +42,35 @@ function morph(m, r, erode) {
   return o;
 }
 const broad = morph(morph(dark, radius(3), true), radius(6), false);
+// the local mean (a box 2r + 1 texels wide), for the freckles: small dots a little darker than the
+// skin (lit or shaded) round them, too light for the line threshold
+function boxMean(r) {
+  const o = new Float32Array(W * H);
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    let s = 0, n = 0;
+    for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) { const ii = i + di, jj = j + dj; if (ii >= 0 && jj >= 0 && ii < W && jj < H) { s += L[jj * W + ii]; n++; } }
+    o[j * W + i] = s / n;
+  }
+  return o;
+}
+const mean = boxMean(radius(5));
+const FRECKLES = { x: [0.05, 0.2], y: [0.38, 0.52], contrast: [6, 20], size: 6 };   // size: a dot's widest, reference px
+// freckle candidates, kept only as small round dots: the edge of a shadow shape is just as much darker
+// than its surroundings, but long
+const fleck = new Float32Array(W * H);
+for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+  const k = j * W + i, [x, y] = point(i, j);
+  if (Math.abs(x) > FRECKLES.x[0] && Math.abs(x) < FRECKLES.x[1] && y > FRECKLES.y[0] && y < FRECKLES.y[1])
+    fleck[k] = Math.min(1, Math.max(0, (mean[k] - L[k] - FRECKLES.contrast[0]) / (FRECKLES.contrast[1] - FRECKLES.contrast[0])));
+}
+const seen = new Uint8Array(W * H), dot = new Uint8Array(W * H), most = radius(FRECKLES.size);
+for (let k0 = 0; k0 < W * H; k0++) {
+  if (!fleck[k0] || seen[k0]) continue;
+  const blob = [k0]; seen[k0] = 1;
+  for (let b = 0; b < blob.length; b++) { const k = blob[b], i = k % W, j = (k / W) | 0; for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ii = i + di, jj = j + dj, q = jj * W + ii; if (ii >= 0 && jj >= 0 && ii < W && jj < H && fleck[q] && !seen[q]) { seen[q] = 1; blob.push(q); } } }
+  const is = blob.map((k) => k % W), js = blob.map((k) => (k / W) | 0);
+  if (Math.max(...is) - Math.min(...is) <= most && Math.max(...js) - Math.min(...js) <= most) for (const k of blob) dot[k] = 1;
+}
 const out = Buffer.alloc(W * H * 3);
 let kept = 0;
 for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
@@ -53,9 +82,14 @@ for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
   const ear = Math.abs(x) > 0.19 || y > 0.6 || (Math.abs(x) > 0.13 && y < 0.27);
   const underJaw = y < 0.17 || (y < 0.235 && (x < -0.025 || x > 0.07));
   if (eye || brow || ear || underJaw) continue;
-  const ink = Math.min(1, Math.max(0, (110 - L[k]) / 60));
+  const cheek = Math.abs(x) > FRECKLES.x[0] && Math.abs(x) < FRECKLES.x[1] && y > FRECKLES.y[0] && y < FRECKLES.y[1];
+  let ink = Math.min(1, Math.max(0, (110 - L[k]) / 60));
+  // a freckle: as dark as a line at its middle, so it survives the shader's threshold as a dot
+  if (cheek && dot[k]) ink = Math.max(ink, fleck[k]);
   if (!ink) continue;
   const major = (y > 0.29 && y < 0.325) || (y > 0.36 && y < 0.6 && Math.abs(x) < 0.07);
+  // the nose's side line above its wings, a lighter stroke than the reference's darkest marks (it read heavy)
+  if (major && y > 0.41) ink *= 0.72;
   out[k * 3 + (major ? 0 : 1)] = Math.round(255 * ink);
   kept++;
 }

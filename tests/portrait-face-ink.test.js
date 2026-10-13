@@ -71,6 +71,8 @@ test('the face shader draws the mask and the jaw into the detail channel; withou
   const u = head.material.uniforms, fs = head.material.fragmentShader;
   assert.equal(u.uPortraitFaceInk.value, ink); assert.equal(u.uPortraitFaceAmount.value, 1);
   for (const s of ['texture(uPortraitFaceInk', 'phMajor', 'phMinor', 'phJaw', 'phHatch', 'float detail = max(']) assert.ok(fs.includes(s), s);
+  // the jaw line keeps to the skull, the hatching to the throat behind it (never the chin: it read as stubble)
+  assert.match(fs, /phJawZone=[^;]*phSkull/); assert.match(fs, /phThroat=\(1\.0-phSkull\)/);
   assert.ok(!fs.includes('phFeatureInk'), 'the painted nose/lip marks no longer feed the ink');
   // expressions still drive the morphs over the drawn lines
   h.setExpression({ smile: 1 }); assert.ok(head.morphTargetInfluences[1] > 0);
@@ -85,6 +87,21 @@ test('native engine loading skips the face mask too', async (t) => {
   Object.defineProperty(globalThis, 'location', { configurable: true, value: { protocol: 'engine:' } });
   t.after(() => { if (previous) Object.defineProperty(globalThis, 'location', previous); else delete globalThis.location; });
   assert.equal(await loadClothInk(FILE.replace('public/', ''), 2), null);
+});
+
+test('the throat is where the jaw line and the hatching part: behind the chin, in front of the neck’s sides', () => {
+  // the frontmost skin at the chin's middle (y 0.16) is the skull's side, the throat under it (y 0.08) the hatching's
+  const front = (x, y) => { let z = -9; for (let v = 0; v < raw.count; v++) if (hair.getX(v) < 0.5 && Math.abs(Math.abs(raw.getX(v)) - x) < 0.01 && Math.abs(raw.getY(v) - y) < 0.01) z = Math.max(z, raw.getZ(v)); return z; };
+  const limit = (x) => FI.throat[0] - FI.throat[1] * x;
+  for (const x of [0, 0.04, 0.08]) {
+    assert.ok(front(x, 0.16) > limit(x) + 0.03, `chin at x ${x}: ${front(x, 0.16).toFixed(3)}`);
+    assert.ok(front(x, 0.08) < limit(x) - 0.02, `throat at x ${x}: ${front(x, 0.08).toFixed(3)}`);
+  }
+});
+
+test('the freckles are a few small dots on the cheek, not the shadow shape’s edge', () => {
+  const cheek = inked.filter(({ p: [x, y] }) => Math.abs(x) > 0.07 && Math.abs(x) < 0.2 && y > 0.38 && y < 0.52);
+  assert.ok(cheek.length >= 8 && cheek.length < 120, `${cheek.length} cheek texels`);
 });
 
 test('the bake is reproducible from the approved reference', () => {

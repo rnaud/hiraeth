@@ -12,11 +12,12 @@ export const PORTRAIT_HEAD = Object.freeze({
 // The face's pen lines (issue #198): the approved front portrait's own lines in source-front space
 // (box: x0, y0, x1, y1; scripts/tripo/bake-face-ink.mjs), drawn into the detail channel. jaw: the
 // jaw curve's height at the chin and its rise (y = a + b x²), the rest normal's y at the crease,
-// its width in px; hatch: the throat strokes' spacing (source units), width in px and how much
+// its width in px; throat: the depth the throat stays behind (z < a − b|x|) and how far down its
+// shadow fades; hatch: the throat strokes' spacing (source units), width in px and how much
 // shows in light; fade: the face's height on screen (px) over which each weight of line comes in.
 export const PORTRAIT_FACE_INK = Object.freeze({
  box:[-.25,.05,.25,.62], size:[512,584], faceHeight:.47,
- jaw:[.142,4.0,-.45,1.7], hatch:[.0085,1.0,.8],
+ jaw:[.142,4.0,-.45,1.7], throat:[.2,.3,.09], hatch:[.0085,1.0,.8],
  fade:{major:[22,45], minor:[90,170]},
  weight:{major:1.6, minor:1.35, jaw:1.9, hatch:1.4},
 });
@@ -118,16 +119,19 @@ export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  float phMajor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.r)*fiOn*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
  float phMinor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.g)*fiOn*smoothstep(${FI.fade.minor[0].toFixed(1)},${FI.fade.minor[1].toFixed(1)},phFaceH);
  // The jaw: where the rest normal turns under the chin (the crease, at any angle), near the jaw's
- // measured curve. Below it, the reference's shadow on the throat: fine vertical strokes.
+ // measured curve, on the skull's side of the step back to the throat (the throat sits well behind
+ // the chin: z under ${FI.throat[0]} − ${FI.throat[1]}|x|), so it stays one clean contour.
  float phJawY=${FI.jaw[0].toFixed(3)}+${FI.jaw[1].toFixed(2)}*ph.x*ph.x;
- float phJawZone=(1.0-smoothstep(.022,.04,abs(ph.y-phJawY)))*smoothstep(-.04,.06,ph.z)*(1.0-phHair)*(1.0-smoothstep(.15,.19,abs(ph.x)))*uPortraitFaceAmount;
+ float phThroatZ=${FI.throat[0].toFixed(3)}-${FI.throat[1].toFixed(2)}*abs(ph.x);
+ float phSkull=smoothstep(phThroatZ-.01,phThroatZ+.02,ph.z);
+ float phJawZone=(1.0-smoothstep(.022,.04,abs(ph.y-phJawY)))*phSkull*(1.0-phHair)*(1.0-smoothstep(.15,.19,abs(ph.x)))*uPortraitFaceAmount;
  float phJd=abs(phN.y-(${FI.jaw[2].toFixed(2)}))/max(fwidth(phN.y),1e-4);
  float phJaw=inkLine(phJd,${FI.jaw[3].toFixed(2)})*phJawZone*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
+ // The reference's shadow on the throat: vertical strokes below and behind the jaw, never on the chin
+ // or the jaw's underside, darkest just under the jaw and fading down the neck.
  float phBelow=phJawY-ph.y;
- // (the jaw's underside past the crease, and the throat just under the chin seen from the front)
- float phUnder=(1.0-smoothstep(${(FI.jaw[2]-.05).toFixed(2)},${(FI.jaw[2]+.05).toFixed(2)},phN.y))*(1.0-smoothstep(.04,.07,abs(ph.y-phJawY)));
- float phNeck=smoothstep(-.004,.012,phBelow)*(1.0-smoothstep(.04,.075,phBelow))*(1.0-smoothstep(.07,.11,abs(ph.x)));
- float phThroat=max(phUnder,phNeck)*smoothstep(.0,.08,ph.z)*(1.0-phHair)*(1.0-smoothstep(.15,.19,abs(ph.x)))*uPortraitFaceAmount;
+ float phThroat=(1.0-phSkull)*smoothstep(-.03,.02,ph.z)*smoothstep(-.01,.012,phBelow)*(1.0-smoothstep(.0,${FI.throat[2].toFixed(3)},phBelow))
+   *smoothstep(-.85,-.65,phN.y)*(1.0-phHair)*(1.0-smoothstep(.15,.19,abs(ph.x)))*uPortraitFaceAmount;
  float phHu=ph.x/${FI.hatch[0].toFixed(4)}+.35*sin(ph.y*90.0);
  float phHatch=inkLine(abs(fract(phHu)-.5)/max(fwidth(phHu),1e-4),${FI.hatch[1].toFixed(2)})*phThroat*(1.0-smoothstep(.25,.45,fwidth(phHu)))*smoothstep(${FI.fade.minor[0].toFixed(1)},${FI.fade.minor[1].toFixed(1)},phFaceH);
  // A UV mask projected once from the selected drawings: attached grey lock/strand accents, no gloss.

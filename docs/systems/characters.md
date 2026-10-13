@@ -1267,7 +1267,12 @@ and the continuous brows stay as v1 had them; no new references were made.
   `public/characters/traveller-v1/head-v3/face-ink.png`, 512 × 584 over source-front
   x −0.25…0.25, y 0.05…0.62 (`PORTRAIT_FACE_INK.box`): red the lines that last (mouth,
   nose), green the finer ones (lower lip, chin, philtrum, bridge ticks, freckles). The ink
-  is the reference's pixels, not a redrawing; tests check every inked texel lands on the
+  is the reference's pixels, not a redrawing. The freckles are too light for the line
+  threshold, so on the cheeks small round dots darker than the skin round them (a 5 px
+  box mean, at most 6 px across: a shadow shape's edge is as dark but long) are kept at
+  full strength; the nose's side line above its wings is drawn at 0.72 of the reference's
+  darkness (it read heavier than the drawing's). Tests check every inked texel lands on the
+  head's front skin and none on hair, eyes or brows; tests check every inked texel lands on the
   head's front skin and none on hair, eyes or brows.
 - **Drawn in rest space.** `wearPortraitHeadFace` samples it with the rest position's
   x/y, only where the rest normal faces forward, so it rides the blink, smile and speech
@@ -1281,14 +1286,20 @@ and the continuous brows stay as v1 had them; no new references were made.
   30 px and draws none of them.
 - **The jaw from the geometry.** A front projection would fill the jaw's underside, so
   the jaw is the crease where the rest normal's y crosses −0.45, near the measured jaw
-  curve y = 0.142 + 4x², 1.7 px wide; below it (the underside, and the throat just under
-  the chin) vertical strokes 0.0085 units apart, darker in shade, still faint in light,
-  as the reference always draws that shadow. From the side the silhouette carries the
+  curve y = 0.142 + 4x², 1.7 px wide, and only on the skull's side of the step back to the
+  throat: measured on the mesh, the chin's front is at z ≈ 0.32 and the throat under it at
+  0.14–0.17 (0.05 at |x| 0.12), so the throat is z < 0.2 − 0.3|x| (`throat`). That keeps
+  the jaw one clean contour (the throat's own downward-facing top would otherwise cross the
+  same normal value: a second, stubble-like line). The hatching is on the throat alone,
+  below and behind the jaw, never on the chin or the jaw's underside: vertical strokes
+  0.0085 units apart, darkest just under the jaw and gone 0.09 down the neck, darker in
+  shade and still faint in light, as the reference always draws that shadow. Front-on the
+  scarf covers most of the throat, so only a short band shows under the chin. From the side the silhouette carries the
   jaw and the crease keeps to the front and the jaw's corner.
 - **Skin.** Within the face and everything under y 0.3 the source paint gives way to the
   one skin colour, except in the eye and brow zones where only near-black marks (lashes,
   brow hair) stay.
-- **Cost.** 9.3 KB shipped, about 0.76 MiB on the GPU with mipmaps (RG8), one texture
+- **Cost.** 9.2 KB shipped, about 0.76 MiB on the GPU with mipmaps (RG8), one texture
   sample and a few dozen ALU ops on the head's single draw; no geometry, draw call or
   CPU work. `loadClothInk(url, 2)` reads the red and green channels.
 - **Close-ups.** `pipeline.js setSubject` dropped the subject when the camera came within

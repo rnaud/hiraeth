@@ -19,7 +19,7 @@ export const CHANGELOG = [
     'Fixed: a group of buildings and rocks far off could vanish for a frame as their distant detail changed, most often in the City-Shaft just after arriving.',
     // the traveller's face inked from his approved portrait (src/characters/portrait-head.js PORTRAIT_FACE_INK,
     // scripts/tripo/bake-face-ink.mjs; docs/systems/characters.md "The face's ink"; issue #198)
-    'The traveller’s face is inked the way his portrait is drawn: one line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, and his jaw drawn against the throat with fine hatching in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.',
+    'The traveller’s face is inked the way his portrait is drawn: a light line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, a few freckles on his cheek, and one clean line for his jaw with fine hatching on the throat in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;
