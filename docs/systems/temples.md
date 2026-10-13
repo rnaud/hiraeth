@@ -272,7 +272,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   - a `Sentry` (the Givers' watcher, issue #245): a bronze eye on a stone foot, a latched `switch` element with
     `needs: ['shield']`. Asleep until it can be used and you stand in its `zone`, then it turns to you, holds a beam
     on you that narrows (`SENTRY.aim` s, following you `track` of it, then locked) and fires a bolt down it
-    (`SENTRY.speed`). The bolt is taken by `player.guard(from)` (any block, perfect or not: the shield's own cost and
+    (`SENTRY.speed`). Awake it is a target with `lock` and its own `lockRange` (src/targets.js; src/fluid-blade.js
+    `lockTarget`), so the guard turns to it from across the landing as to a foe; a cut or a splash only rings its
+    bronze (`shrug`). The bolt is taken by `player.guard(from)` (any block, perfect or not: the shield's own cost and
     feedback); blocked, it flies back into the eye and the element is lit, which opens its door. Not blocked, it hurts
     (`DAMAGE.blow`, spared) and knocks you back; stepped away from once the beam locks, it misses. Its first wake says
     how to meet it in one line (`woke`);

@@ -71,7 +71,7 @@ export const PLACEMENTS = {
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },
     // the Givers' House (src/temples/desert.js, v1.44): on the dais in its Sword Chamber, half-way through, the Givers'
     // blade, the key to the rest (the thorns, the balls a cut sends far, the eye, the Keeper's spokes); on the Hall of
-    // Fires' far landing their guard, for the wind of their bellows and the Keeper's charge. (Ember mode was here before: it comes with the gun now.)
+    // Fires' far landing their guard, for their watcher's bolt (issue #245) and the Keeper's charge. (Ember mode was here before: it comes with the gun now.)
     { id: 'desert.temple.sword', item: 'sword', temple: 'desert', site: templeSite('desert'),
       note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
     { id: 'desert.temple.shield', item: 'shield', temple: 'desert', site: findSite('desert', 'guard'),

@@ -23,7 +23,7 @@ function rig({ shield = true } = {}) {
   const P = { pos: new THREE.Vector3(0, 0, 8), vel: new THREE.Vector3(), hearts: 3, dead: false, guarding: false,
     hurt(q) { this.hearts -= q; }, guard() { return this.guarding; } };
   rt.player = P;
-  const s = new Sentry(rt, { id: 'sentry', at: [0, 0, 0], zone: { min: [-20, -1, -20], max: [20, 10, 20] }, woke: 'woke', reflected: 'back', broken: 'broken', hit: 'hit' });
+  const s = new Sentry(rt, { id: 'sentry', at: [0, 0, 0], zone: { min: [-30, -1, -30], max: [30, 10, 30] }, woke: 'woke', reflected: 'back', broken: 'broken', hit: 'hit', shrug: 'shrug' });
   let t = 0;
   const run = (secs, until = () => false) => { for (let i = 0; i < secs * 60 && !until(); i++) { t += 1 / 60; s.update(1 / 60, t); logic.update(); } };
   return { rt, P, s, logic, notes, run };
@@ -92,4 +92,24 @@ test('old saves past the wind find the watcher broken and its door open; a save 
   migrateTempleLayouts(fresh);
   assert.equal(fresh.flag('temple.desert.lit.sentry'), undefined);
   assert.equal(fresh.flag('temple.desert.layout'), 2, 'brought up to date once');
+});
+
+test('awake, the guard turns to it from across the landing (a lock target with its own reach); a cut only rings it', async () => {
+  const { lockTarget, BLADE } = await import('../src/fluid-blade.js');
+  const { allTargets, clearTargets } = await import('../src/targets.js');
+  clearTargets();
+  const { P, s, run, notes } = rig();
+  P.pos.set(0, 0, 20);
+  assert.equal(lockTarget(P.pos), null, 'asleep: nothing to turn to');
+  P.pos.set(0, 0, 8);
+  run(0.2);
+  P.pos.set(0, 0, 20);
+  assert.ok(20 > BLADE.lock, 'farther than a foe is turned to');
+  assert.equal(lockTarget(P.pos, BLADE.lock, allTargets())?.kind, 'sentry', 'the guard turns to it');
+  const t = allTargets().find((x) => x.kind === 'sentry');
+  t.onHit('blade');
+  assert.ok(notes.length > 0 && !s.broken, 'a cut rings it, no more');
+  s.breakNow();
+  assert.equal(lockTarget(P.pos), null, 'broken: nothing to turn to');
+  clearTargets();
 });

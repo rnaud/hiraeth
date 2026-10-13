@@ -699,7 +699,8 @@ The count is said every 5 ink.
   one amber glass eye under a hood, three vanes down its back, about 2.1 m. It stands on the Rose House's far landing
   by the east doorway and wakes once the Givers' guard is in hand: it turns its head to you, its eye brightens and a
   beam holds on you, narrowing (1.3 s; it follows you for 70 % of it, then locks and flickers), then a bolt flies down
-  it at 12 m/s. **Answer: any block** (`player.guard`, perfect or not) sends the bolt back into its eye at 20 m/s and
+  it at 12 m/s. The guard turns to it across the landing (a `lock` target with its own `lockRange`, 26 m; a cut only rings
+  its bronze). **Answer: any block** (`player.guard`, perfect or not) sends the bolt back into its eye at 20 m/s and
   breaks it (its head droops, its eye goes grey), which opens the east door; a sidestep after the lock dodges it; a bolt
   that gets through costs ½ heart (spared) and knocks you back. Its first wake says so in one line: "Hold up your
   guard (LB / L1) as it fires." Broken is saved (`temple.desert.lit.sentry`).

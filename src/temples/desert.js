@@ -368,10 +368,11 @@ function layout(rt) {
   // its bolt sent back off the guard breaks it, and the door sinks open
   add(Door, { id: 'dw', at: [13.6, 7, WING_Z], yaw: Math.PI / 2, w: 5, h: 6.4, t: 1.3, lamps: [{ lit: 'sentry' }] });
   add(Sentry, { id: 'sentry', at: SENTRY_AT, yaw: -Math.PI * 0.4, zone: { min: [-13, 6, 144.6], max: [13, 13, 158] },
-    woke: 'The watcher by the east door wakes. Hold up your guard (LB / L1) as it fires.',
+    woke: 'The watcher by the east door wakes. Hold up your guard ({key:guard}) as it fires.',
     reflected: 'The bolt glances off your guard, back down its beam.',
     broken: 'Its own bolt cracks its eye. The east door sinks open.',
-    hit: 'The bolt burns. Guard (LB / L1) when the beam narrows.' });
+    hit: 'The bolt burns. Guard ({key:guard}) when the beam narrows.',
+    shrug: 'The bronze rings and holds. Only its own bolt could crack that eye.' });
   // the Givers' guard: a second chest on a low plinth by the far landing's west wall (src/boxes/placements.js)
   K.both(M.trim, ...chestMound(-9, 7, 150, { h: 0.3, top: 1.3, foot: 2.1, seg: 24 }));   // (the guard's: a low ramped mound, issue #162)
   add(Mark, { room: 'fires', at: [-8, 7, 123.5], yaw: 0 });

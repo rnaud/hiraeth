@@ -299,7 +299,7 @@ export const EN = {
   'hint.flurry': 'A perfect dodge: time slows round you. Cut while it lasts.',
   'hint.lift': 'Press {key:jump} again in the air for a second jump.',
   'hint.sword': 'The Givers’ blade: {key:blade} cuts, three in a row; hold to charge. {key:evade} evades.',
-  'hint.shield': 'The Givers’ guard: hold {key:guard} against a blow from in front, or a wind.',
+  'hint.shield': 'The Givers’ guard: hold {key:guard} against a blow; a bolt it takes flies back.',
   'hint.gun': 'The fluid gun: {key:aim} aims, {key:fire} shoots, {key:mode} pushes. {key:pick}: other gadgets.',
   'hint.bellows': 'The bellows lift your open wings. In rising air, hover and aim ({key:aim}).',
   'hint.pick': 'Two gadgets now: {key:pick} picks one, {key:aim} aims it, {key:fire} uses it.',

@@ -1543,7 +1543,8 @@ export class Gust {
  * behind you. It fires only while you stand in its `zone` (local min, max).
  * o: { id, at (its foot), yaw (the way it faces), zone: { min, max }, rest, aim, track, speed, back (the bolt's speed
  *      back), range, woke (said once, the first time it wakes), reflected (said once, the first bolt sent back),
- *      broken (said when it breaks), hit (said the first time a bolt gets through) }
+ *      broken (said when it breaks), hit (said the first time a bolt gets through), shrug (said the first time it is cut or
+ *      splashed: only its own bolt breaks it) }. Awake, it is a target the guard turns to (lock: src/fluid-blade.js).
  */
 export const SENTRY = { rest: 1.5, aim: 1.3, track: 0.7, speed: 12, back: 20, range: 26, eye: 1.75, hitR: 0.95, damage: DAMAGE.blow, knock: 7 };
 const _se = new THREE.Vector3(), _st = new THREE.Vector3(), _sd = new THREE.Vector3();
@@ -1590,6 +1591,11 @@ export class Sentry {
     this.broken = rt.logic.isLit(o.id);
     if (this.broken) { this.state = 'broken'; this.droop = 1; }
     this.place();
+    // a target (src/targets.js): awake, the guard turns to it as to a foe (`lock`: src/fluid-blade.js lockTarget), and a
+    // cut or a splash only rings its bronze (o.shrug, said once)
+    this.off = registerTarget({ kind: 'sentry', radius: 0.8, lock: true, lockRange: this.cfg.range, position: () => this.eyeWorld(this._eye ??= V()),
+      enabled: () => !this.broken && this.state !== 'sleep',
+      onHit: () => { this.flash = 0.3; rt.sound?.critter?.('clank', 0.5); if (this.o.shrug) rt.notice?.(this.o.shrug, `shrug.${this.id}`); return true; } });
   }
   /** Its eye in the world now. */
   eyeWorld(out = V()) { this.head.updateWorldMatrix(true, false); return out.copy(this.eyeAt).applyMatrix4(this.head.matrixWorld); }
@@ -1706,7 +1712,7 @@ export class Sentry {
     const ph = this.rt.physics, sp = this.vel.length() * dt;
     if (ph?.rayDistance && ph.rayDistance(F.pos, _sd.copy(this.vel).normalize(), sp + 0.1) < sp + 0.1) this.burst();
   }
-  dispose() { this.beam.removeFromParent(); this.bolt.removeFromParent(); }
+  dispose() { this.off?.(); this.beam.removeFromParent(); this.bolt.removeFromParent(); }
 }
 
 // ---------------------------------------------------------------------------------------- the bellows (the City-Shaft)

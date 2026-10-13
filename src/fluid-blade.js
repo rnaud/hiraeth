@@ -363,14 +363,17 @@ export function bodyHits(origin, reach, physics, before, after, targets = allTar
 }
 const _span = { lo: 0, hi: 0, centre: new THREE.Vector3(), radius: 0 }, _bh = new THREE.Vector3();
 
-/** The nearest foe the soft lock turns to: a target with lock: true within `range` (flat distance), or null. */
+/**
+ * The nearest foe the soft lock turns to: a target with lock: true within `range` (flat distance; or its own
+ * `lockRange`: the Rose House's watcher, turned to from across its landing, issue #245), or null.
+ */
 export function lockTarget(from, range = BLADE.lock, targets = allTargets(), locked = null) {
   if (locked?.enabled()) return locked;   // (the lock-on's foe first: src/foes.js)
-  let best = null, bd = range;
+  let best = null, bd = Infinity;
   for (const t of targets) {
     if (!t.lock || !t.enabled()) continue;
     const p = t.position(), d = Math.hypot(p.x - from.x, p.z - from.z);
-    if (d < bd) { bd = d; best = t; }
+    if (d < (t.lockRange ?? range) && d < bd) { bd = d; best = t; }
   }
   return best;
 }

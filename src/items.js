@@ -35,8 +35,8 @@ export const ITEMS = {
     text: 'A worn brass hilt that grows a blade of fluid. {key:blade} cuts, three in a row; hold it for a sweeping cut. It clears thorns and wakes the makers’ eyes.',
   },
   shield: {
-    name: 'Givers’ guard', kind: 'weapon', where: 'In the Rose House: on the far landing of the Hall of Fires, before the windy hall.',
-    text: 'A brass disc on a bracer that opens like a fan. Hold {key:guard}: it takes a blow from in front, turns one back if raised just in time, and breaks the wind.',
+    name: 'Givers’ guard', kind: 'weapon', where: 'In the Rose House: on the far landing of the Hall of Fires, where the Givers’ watcher stands.',
+    text: 'A brass disc on a bracer that opens like a fan. Hold {key:guard}: it takes a blow from in front, turns one back if raised just in time, and sends a bolt back where it came from.',
   },
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
