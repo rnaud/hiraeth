@@ -773,6 +773,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'traveller-face-features-dialogue', title: 'As in a conversation', caption: 'From in front, a little to the side and below, as his conversation portrait sees him.', from: FACE266 },
       { name: 'traveller-face-features-talk', title: 'Talking', caption: 'Before, the mouth line hung over his open mouth, a second mouth; after, it is inside it.', from: FACE266 },
     ], see: 'Open the Character studio’s Close-up view of the traveller and turn him, set a tone or open his mouth: the mouth line stays where his lips part.' },
+    { match: 'In the Unity preview the buttons on screen are named as your controller prints them', see: 'On the Retroid, open Hiraeth (Unity): the prompts at the foot of the menus read A and B, the game menu’s tabs L1 and R1, and the bottom button jumps. On the Xbox or the Steam Deck they read A, B, LB and RB.' },
   ],
   '1.63': [
     { match: 'The Unity preview on the Xbox no longer catches every three seconds', numbers: [

@@ -70,6 +70,7 @@ import { Sound } from '../src/audio.js';
 import { createBoxes } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
+import { padFaces, setFaces } from '../src/native-pad.js';
 
 export { page };
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
@@ -393,6 +394,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const n = screen.state.dialogue?.choices?.length ?? 0; if (n) talk.sel = Math.max(0, Math.min(n - 1, talk.sel + y));
     },
     scroll: () => {},
+    // (where the printed letters are: a Retroid's Nintendo letters, reported by letter, moved to positions; native-pad.js)
+    faces: () => padFaces(),
   });
 
   const noInput = {};
@@ -584,6 +587,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     /** The player's settings (src/ui.js Settings) on the camera and the sound, as main.js applies them. */
     applySettings(s = settings) {
       if (!s) return;
+      setFaces(s.padFaces);
       rig.sensitivity = s.sensitivity ?? 1; rig.invertY = !!s.invertY;
       if (sound === SILENT) return;
       sound.setVolumes?.(s.music, s.effects); sound.setVoices?.(s.voices, s.alienVoices);

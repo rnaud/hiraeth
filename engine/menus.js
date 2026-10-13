@@ -23,6 +23,7 @@ import { t } from '../src/i18n.js';
 import { MenuState, PANELS, DEFAULT_PANEL, ACT, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
 import { controlsList } from '../src/ui.js';
+import { confirmKey, backKey } from '../src/native-pad.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
 export const nextInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
@@ -38,6 +39,8 @@ export const SETTINGS_ROWS = [
   { k: 'mute', label: () => t('set.mute').replace(/ \(M\)$/, ''), kind: 'switch' },
   { k: 'sensitivity', label: () => t('set.sensitivity'), kind: 'range', min: 0.3, max: 3, step: 0.05 },
   { k: 'invertY', label: () => t('set.invertY'), kind: 'switch' },
+  // (where the printed A B X Y are: the Retroid's own "Xbox style" swaps them, src/native-pad.js setFaces)
+  { k: 'padFaces', label: () => t('set.padFaces'), kind: 'choice', opts: ['auto', 'xbox', 'nintendo', 'nintendo-xbox'], name: (v) => t(`set.padFaces.${v ?? 'auto'}`) },
   { k: 'hints', label: () => t('set.hints').replace(/ \(.*$/, ''), kind: 'choice', opts: ['off', 'subtle', 'full'], name: (v) => t(`set.hints.${v}`) },
   { k: 'quality', label: () => t('set.quality'), kind: 'choice', opts: ['handheld', 'low', 'medium', 'high'], name: (v) => t(`set.quality.${v}`), note: 'from the next start' },
 ];
@@ -72,7 +75,12 @@ export const START_SIDE = [
 const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
 /** Each panel's columns across the sheet, as the page lays them out (the cells' `col`; a cell's `span` columns wide). */
 const COLS = { quests: [0.64, 0.36], items: Array(GEAR_COLS).fill(1 / GEAR_COLS), worlds: [1], people: Array(PEOPLE_COLS).fill(1 / PEOPLE_COLS), map: [1] };
-const plain = (s) => String(s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+/** A menu's prompt with its confirm (written "A / ×") and back ("B / ○") as the pad in hand has them (native-pad.js). */
+export const menuKeys = (s) => {
+  const ok = confirmKey(), back = backKey();
+  return ok === 'A / ×' ? s : String(s ?? '').replace(/A \/ ×|B \/ ○/g, (k) => (k === 'A / ×' ? ok : back));
+};
+const plain = (s) =>String(s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 
 export class EngineMenus {
   /**
@@ -362,9 +370,12 @@ export class EngineMenus {
    */
   view() {
     if (!this.mode) return null;
-    if (this.mode === 'title') return this.titleView();
-    if (this.mode === 'start') return this.startView();
-    return this.gameView();
+    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.gameView();
+    // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
+    // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
+    v.hint = menuKeys(v.hint);
+    v.keys = { ok: confirmKey(), back: backKey(), prev: 'LB', next: 'RB' };
+    return v;
   }
   titleView() {
     const T = this.title;

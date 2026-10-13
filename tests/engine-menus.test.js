@@ -285,3 +285,53 @@ test('the Unity bridge draws the menus and feeds them the pad and the keys', () 
   const eg = src('engine/game.js');
   assert.match(eg, /context: \(\) => \(menus\?\.open \? 'menu'/, 'the controller in its menu context while a menu is open');
 });
+
+test('the pad\'s printed letters in an engine (issue #264): the Retroid\'s own names and Nintendo letters, the Xbox\'s, the Deck\'s', async () => {
+  const { setEnginePad, setFaces, padLabels, padFaces, promptText } = await import('../src/native-pad.js');
+  const { menuKeys } = await import('../engine/menus.js');
+  const { Controller } = await import('../src/controller.js');
+  const ids = [];
+  const win = globalThis.window;
+  win.navigator = { getGamepads: () => ids.map((id) => ({ id })) };
+  win.location ??= { search: '' };
+  const say = (text, remap = false) => promptText(text, { ...padLabels(), remap });
+  try {
+    // the Unity player on Android, the Retroid's pad: its letters Nintendo-style (A on the right), reported by letter
+    ids.push('Retroid Pocket Controller');
+    setEnginePad({ layout: 'android', family: '' });
+    assert.deepEqual(padLabels(), { layout: 'android', faces: 'nintendo', family: 'handheld' });
+    assert.equal(padFaces().byLabel, true, 'Unity\'s buttonSouth is the printed A: moved to its place (the right)');
+    assert.equal(say('A / × jump · RT / R2 shoot · LB / RB turn · View gear'), 'B jump · R2 shoot · L1/R1 turn · Select gear', 'jump is the bottom button, printed B');
+    assert.equal(say(menuKeys('A / × choose · B / ○ back')), 'A choose · B back', 'the menus confirm with the printed A, as the web\'s');
+    // and the controller: the printed A (index 0) confirms in a menu, the bottom one (printed B, index 1) goes back
+    let acted = null;
+    const press = (i) => [{ id: ids[0], index: 0, connected: true, mapping: 'standard', buttons: Array.from({ length: 17 }, (_, k) => ({ pressed: k === i, value: k === i ? 1 : 0 })), axes: [0, 0, 0, 0] }];
+    let pads = press(0);
+    const c = new Controller({ pads: () => pads, context: () => 'menu', action: (n) => { acted = n; }, navigate() {}, look() {}, scroll() {}, faces: () => padFaces() });
+    c.update(1 / 60); assert.equal(acted, 'confirm');
+    pads = press(-1); c.update(1 / 60); acted = null; pads = press(1); c.update(1 / 60); assert.equal(acted, 'back');
+    // the Retroid set to its own "Xbox style": reported by position, Nintendo letters printed
+    setFaces('nintendo-xbox');
+    assert.equal(padFaces().byLabel, false);
+    setFaces('auto');
+    // an Xbox pad on the same handheld: Xbox letters, by position
+    ids[0] = 'Xbox Wireless Controller'; setEnginePad({ layout: 'android', family: '' });
+    assert.deepEqual(padFaces(), { faces: 'xbox', byLabel: false });
+    // the Xbox: Xbox names, one half of each pair
+    ids[0] = 'unity pad'; setEnginePad({ layout: 'standard', family: 'xbox' });
+    assert.equal(say(menuKeys('A / × choose · B / ○ back · LB / RB turn')), 'A choose · B back · LB/RB turn');
+    // the Deck's player: Steam's pad, drawn as an Xbox pad
+    ids[0] = 'Valve Software Steam Virtual Gamepad'; setEnginePad({ layout: 'standard', family: '' });
+    assert.equal(padLabels().family, 'xbox');
+    assert.equal(say('A / × jump · RT / R2 shoot'), 'A jump · RT shoot');
+    // a DualSense on a computer: its own symbols
+    ids[0] = 'DualSense Wireless Controller'; setEnginePad({ layout: 'standard', family: '' });
+    assert.equal(say('A / × jump · RT / R2 shoot'), '× jump · R2 shoot');
+  } finally { setEnginePad(null); delete win.navigator; }
+  // the bridge says its platform and the pad's name (BridgeHost.Platform, PadName), and the menus' keys go to BridgeMenu
+  const host = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs');
+  assert.match(host, /public static string PadName\(\)/);
+  assert.match(host, /public static string Platform\(\)/);
+  assert.match(src('engine/unity/game.js'), /setEnginePad\(/);
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /Key\("ok", "A"\)/);
+});

@@ -18,6 +18,9 @@ export const CHANGELOG = [
     // the face's nose and mouth lines moved onto the mesh's own nose and mouth (scripts/tripo/face-landmarks.mjs,
     // bake-face-ink.mjs, portrait-head.js; docs/systems/characters.md "The face's ink"; issue #266)
     'The nose and mouth lines sit on the traveller’s features again: the mouth line lies where his lips part, from corner to corner, even as he smiles, frowns or talks, the nostrils and the hooks of the nose’s wings are on his nose’s base instead of floating on its tip, and the short stroke under his lower lip and the mark on his chin sit under the lip. Seen from the side or three-quarters, the nostril on the near side gives way behind the wing as a drawing would show it.',
+    // the Unity build's prompts in the pad's own names, the Retroid's letters moved to positions (src/native-pad.js
+    // setEnginePad, padLabels; engine/unity/game.js forPad; BridgeHost.Platform, PadName; issue #264)
+    'In the Unity preview the buttons on screen are named as your controller prints them: on the Retroid A, B, L1, R1, Select and Start, with jump on the bottom button as in the game’s app and the menus confirming with A; on the Xbox and the Steam Deck the Xbox letters alone. Settings has Controller buttons, for a Retroid set to its own Xbox style.',
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

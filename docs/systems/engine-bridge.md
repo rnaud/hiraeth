@@ -176,7 +176,21 @@ BridgeMenu.cs lays the state out in the HUD's paper and ink (Ui.cs): the title's
 page; a sheet over the world dimmed for the others, the entry the pad is on in full ink on a cream band with
 a red mark and line, the buttons' prompts at the foot. Tests: tests/engine-menus.test.js (the state and its
 moves), tests/engine-unity.test.js (the bundle in a bare V8 context: the title, Enter, the world, Esc's Start
-menu, J's game menu with the quests and the map's marks). Left for later: the items' pictures (the web draws
+menu, J's game menu with the quests and the map's marks).
+
+**The pad's printed letters** (issue #264). Unity's Input System reads a pad by position on the Xbox and a
+computer, but on Android as Android reports it, by printed letter (`buttonSouth` is `KEYCODE_BUTTON_A`): on the
+Retroid, whose letters are Nintendo-style, that is the right-hand button. The bundle tells src/native-pad.js what
+it runs on (`setEnginePad`, from `BridgeHost.Platform()`; the pad's name from `BridgeHost.PadName()` as the
+Gamepad's id), and the same rules as the Android app then hold: the controller moves the letters to positions
+(`padFaces().byLabel`, so the bottom button jumps), the menus confirm with the printed A (`confirmKey`, and
+`menuKeys` for the menus' hints; the view's `keys` for BridgeMenu's tabs and the strip), and every prompt the
+bundle sends (the menu's state, the HUD's) is rewritten by `promptText` with `padLabels()`: A B X Y, L1 R1 L2 R2,
+Select and Start on Android, Xbox's letters alone on the Xbox, the pad's own family on the Deck's player and a
+computer (Steam's pads: Xbox). The Controller buttons setting (`padFaces`: a Retroid set to its own Xbox style)
+is on the settings page. Test: tests/engine-menus.test.js "the pad's printed letters".
+
+Left for later: the items' pictures (the web draws
 them with its own renderer, src/item-icons.js), the Map's drawn ground, the photo mode, What's new, the
 prologue (a new save starts at the ramp), the talk gestures (no captured motion is loaded in the engines).
 

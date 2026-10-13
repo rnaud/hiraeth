@@ -123,11 +123,11 @@ namespace Hiraeth.Bridge
         /// <summary>The main thread, at a frame's start: what the script reads this frame (keys, pads, the mouse, the frame times).</summary>
         public static void Snapshot()
         {
-            keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook();
+            keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook(); padName = ReadPadName();
             if ((object)Runner != null) { cpuMs = Runner.cpuMs; gpuMs = Runner.gpuMs; }
             clock0 = Time.realtimeSinceStartupAsDouble * 1000 - clock.Elapsed.TotalMilliseconds;
         }
-        static string keys = "", pad, mouse;
+        static string keys = "", pad, mouse, padName = "";
         static double cpuMs, gpuMs;
 
         // ---------------------------------------------------------------- the mirror's ops
@@ -259,6 +259,40 @@ namespace Hiraeth.Bridge
         public static string Keys() => OnMain ? ReadKeys() : keys;
         public static string Pad() => OnMain ? ReadPad() : pad;
         public static string MouseLook() => OnMain ? ReadMouseLook() : mouse;
+        /// <summary>The first pad's name, as a browser's Gamepad.id says it ("Retroid Pocket Controller", "Xbox Wireless Controller"), or "".
+        /// The script picks the prompts' button names and where the printed letters are from it (src/native-pad.js).</summary>
+        public static string PadName() => OnMain ? ReadPadName() : padName;
+        /// <summary>The platform the build runs on: "android", "xbox" (UWP), "linux" (the Deck's player), "windows", "mac", "editor".</summary>
+        public static string Platform()
+        {
+#if UNITY_EDITOR
+            return "editor";
+#elif UNITY_ANDROID
+            return "android";
+#elif UNITY_WSA
+            return "xbox";
+#elif UNITY_STANDALONE_LINUX
+            return "linux";
+#elif UNITY_STANDALONE_WIN
+            return "windows";
+#elif UNITY_STANDALONE_OSX
+            return "mac";
+#else
+            return "";
+#endif
+        }
+        static int nameOf = -1; static string nameWas = "";
+        static string ReadPadName()
+        {
+            var g = Gamepad.current;
+            if (g == null) return "";
+            if (g.deviceId == nameOf) return nameWas;   // (worked out once a pad)
+            var d = g.description;
+            var name = (string.IsNullOrEmpty(d.product) ? g.displayName : d.product) ?? "";
+            nameOf = g.deviceId;
+            nameWas = string.IsNullOrEmpty(d.manufacturer) || name.Contains(d.manufacturer) ? name : d.manufacturer + " " + name;
+            return nameWas;
+        }
         static string ReadKeys()
         {
             var kb = Keyboard.current;

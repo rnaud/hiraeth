@@ -40,6 +40,8 @@ namespace Hiraeth.Bridge
         const int Body = 19, Small = 14, Tiny = 12;
 
         static bool B(object o, string k) => o.Get(k) is bool b && b;
+        /// <summary>A button's name as the pad in hand prints it (the view's keys: ok, back, prev, next; the script names them, src/native-pad.js).</summary>
+        string Key(string k, string or) => state.O("keys")?.S(k) is string s && s.Length > 0 ? s : or;
 
         public void Set(string json) { state = Json.Parse(json) as Dictionary<string, object>; dirty = true; }
 
@@ -352,7 +354,7 @@ namespace Hiraeth.Bridge
                 if (i == cur) { Show(tabLine, true); float lw = Mathf.Min(tw - 12, Ui.Measure(l, l.text).x); Ui.Place(tabLine.rectTransform, tx + i * tw + tw / 2 - lw / 2, sy + 40, lw, 3); }
             }
             Show(tabPrev, true); Show(tabNext, true);
-            tabPrev.text = "◀ LB"; tabNext.text = "RB ▶";
+            tabPrev.text = "◀ " + Key("prev", "LB"); tabNext.text = Key("next", "RB") + " ▶";
             tabPrev.color = edge < 0 ? Ui.Red : Ui.Ink; tabNext.color = edge > 0 ? Ui.Red : Ui.Ink;
             Ui.Place(tabPrev.rectTransform, sx + 14, sy + 12, 60, 28); Ui.Place(tabNext.rectTransform, sx + sw - 74, sy + 12, 60, 28);
             float top = sy + 56, bottom = sy + sh - 84, px = sx + 18, pw = sw - 36;
@@ -375,7 +377,7 @@ namespace Hiraeth.Bridge
                 Ui.Set(stripDesc, s.S("desc"), sw - 220);
                 Ui.Place(stripDesc.rectTransform, 12, 34, sw - 220, 32);
                 var act = s.S("act") ?? "";
-                stripAct.text = act.Length > 0 ? "A  " + act : "";
+                stripAct.text = act.Length > 0 ? Key("ok", "A") + "  " + act : "";
                 Ui.Place(stripAct.rectTransform, sw - 28 - 190, 8, 176, 20);
             }
             if (full != null) DrawFull(full);
@@ -505,7 +507,7 @@ namespace Hiraeth.Bridge
             var fs = Ui.Set(cardFacts, string.Join("\n", facts), cw); Ui.Place(cardFacts.rectTransform, pad, y, cw, fs.y); y += fs.y + (facts.Count > 0 ? 12 : 0);
             var use = f.S("use") ?? "";
             var nt = f.S("note") ?? "";
-            cardUse.text = (use.Length > 0 ? "A  " + use : "") + (nt.Length > 0 ? (use.Length > 0 ? "\n" : "") + nt : "");
+            cardUse.text = (use.Length > 0 ? Key("ok", "A") + "  " + use : "") + (nt.Length > 0 ? (use.Length > 0 ? "\n" : "") + nt : "");
             var us = Ui.Measure(cardUse, cardUse.text, cw); Ui.Place(cardUse.rectTransform, pad, y, cw, us.y); y += us.y + 10;
             cardSteps.text = ((f.S("prev") is string pv && pv.Length > 0 ? "◀ " + pv : "") + "      " + (f.S("next") is string nx && nx.Length > 0 ? nx + " ▶" : "")).Trim();
             Ui.Place(cardSteps.rectTransform, pad, y, cw, 20); y += 28;

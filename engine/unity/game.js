@@ -20,6 +20,7 @@ import { levelById } from '../../src/levels/index.js';
 import { TITLES } from '../../src/levels/names.js';
 import { VERSION } from '../../src/version.js';
 import { devMode } from '../../src/dev-gate.js';
+import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../src/native-pad.js';
 
 // The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
 // entered below the root forced, reparented objects forced and updateMatrix remembered), for the walk over the whole
@@ -36,18 +37,35 @@ const AUDIO_AHEAD = 0.12;
 // a run at fixed views starts from the web bench's save (scripts/bench/web-page.mjs prepareStorage): the backpack found
 const BENCH_FLAGS = { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 };
 
-function standardPad(state) {
-  // (BridgeHost.Pad: "b0,b1,…,b16|a0,a1,a2,a3", the standard mapping's buttons as values, the sticks)
+function standardPad(state, id) {
+  // (BridgeHost.Pad: "b0,b1,…,b16|a0,a1,a2,a3", the standard mapping's buttons as values, the sticks; its name as the
+  // Gamepad's id, which src/native-pad.js reads the printed letters and the prompts' names from)
   const [b, a] = state.split('|');
   const values = b.split(',').map(Number), axes = a.split(',').map(Number);
-  return { id: 'unity pad', index: 0, connected: true, mapping: 'standard', timestamp: 0, buttons: values.map((v) => ({ pressed: v > 0.5, touched: v > 0, value: v })), axes, vibrationActuator: null };
+  return { id: id || 'unity pad', index: 0, connected: true, mapping: 'standard', timestamp: 0, buttons: values.map((v) => ({ pressed: v > 0.5, touched: v > 0, value: v })), axes, vibrationActuator: null };
 }
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
 const planned = (a) => !!(a.views?.length || a.talk || a.play || a.walk || a.tour || a.idle || a.noTitle);
 
+/**
+ * The platform's pad (src/native-pad.js setEnginePad): on Android (the Retroid) the handheld's own names, A B X Y as
+ * printed, L1 R1, Select Start, and its Nintendo letters moved to positions (Unity reports them by letter, as Android
+ * does); on the Xbox, Xbox names; on the Deck's player and a computer, the family of the pad in hand (Steam's: Xbox).
+ */
+function platformPad() {
+  const p = String(host?.Platform?.() ?? '');
+  setEnginePad({ layout: p === 'android' ? 'android' : 'standard', family: p === 'xbox' ? 'xbox' : '' });
+}
+/** A state's text with its prompts in the pad's own names (`remap`: the player's own buttons too; not the menus' own). */
+function forPad(json, remap) {
+  const L = padLabels();
+  return promptText(json, { ...L, remap });
+}
+
 export function start(argsJson) {
   const args = JSON.parse(argsJson || '{}');
+  platformPad();
   if (planned(args)) { launch(args); return; }
   // played: the title first (engine/menus.js; src/title.js on the web), the world loaded once a save is chosen; a reboot
   // (Quit to title onto another save, Travel here: BridgeRunner.Reboot) comes back with its choice made (`boot`)
@@ -55,17 +73,18 @@ export function start(argsJson) {
   // (the Graphics setting as the engine started with it: the saved one, the command line's, or the platform's default,
   // BridgeArgs.Quality; a change applies from the next start)
   if (args.quality) settings.quality = args.quality;
+  setFaces(settings.padFaces);
   const menus = new EngineMenus({
     store: slots, settings, dev: () => devMode({ settings }), version: `v${VERSION}`,
     onStart: (choice) => begin(choice),
     onResume: () => { S?.game?.applySettings?.(); },
     onQuit: () => { S.game?.save(); menus.show('title'); },
-    onSetting: () => S?.game?.applySettings?.(settings),
+    onSetting: () => { setFaces(settings.padFaces); S?.game?.applySettings?.(settings); },
     where: () => TITLES[S?.game?.level?.id] ?? '',
   });
   S = { args, menus, settings, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, menuV: -1 };
   // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
-  S.titlePad = new Controller({ pads: () => pads, context: () => 'menu', action: (n) => menus.action(n), navigate: (x, y) => menus.navigate(x, y), look() {}, scroll() {} });
+  S.titlePad = new Controller({ pads: () => pads, context: () => 'menu', action: (n) => menus.action(n), navigate: (x, y) => menus.navigate(x, y), look() {}, scroll() {}, faces: () => padFaces() });
   if (args.boot) begin(args.boot);
   else menus.show('title');
   showMenu();
@@ -103,7 +122,7 @@ function showMenu() {
   const m = S?.menus;
   if (!m || m.v === S.menuV) return;
   S.menuV = m.v;
-  host.Menu?.(JSON.stringify(m.view()));
+  host.Menu?.(forPad(JSON.stringify(m.view()), false));
 }
 
 function launch(args, { start: from = null, arrive = false } = {}) {
@@ -279,7 +298,7 @@ function readInput(game) {
 function readPad() {
   const pad = host.Pad();
   pads.length = 0;
-  if (pad) pads.push(standardPad(pad));
+  if (pad) pads.push(standardPad(pad, host.PadName?.() ?? ''));
 }
 
 /** The title's input before a world is loaded: its keys, and the pad through the controller's menu context. */
@@ -330,7 +349,7 @@ export function frame(dt) {
   S.lookMs = (S.lookMs ?? 0) + now() - tL;
   // the HUD's state when it changed (src/platform.js screen: BridgeHud draws it in uGUI)
   const scr = game.screen();
-  if (scr.version !== S.screenV) { S.screenV = scr.version; host.Screen(JSON.stringify(scr.state)); }
+  if (scr.version !== S.screenV) { S.screenV = scr.version; host.Screen(forPad(JSON.stringify(scr.state), true)); }
   pumpAudio(game);
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;

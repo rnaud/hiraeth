@@ -60,8 +60,21 @@ export function installNativePad(win = globalThis.window) {
 
 export const nativePad = () => native;
 
+// ---- an engine's own build (the Unity player: engine/unity/game.js, docs/systems/engine-bridge.md "The menus")
+// There is no page and no Capacitor: the engine says what it runs on. On Android (the Retroid) Unity's Input System
+// reports the face buttons by their printed letter as Android does (buttonSouth is KEYCODE_BUTTON_A), so the same
+// rules as the Android app hold: the handheld's names, Nintendo letters moved to positions. On the Xbox, Xbox names;
+// on the Deck's player and a computer, the pad's own family from its name (Steam's pads draw as Xbox's).
+let enginePad = null;
+/** The engine's platform: { layout: 'android' | 'standard', family: '' | 'xbox' | … } (null: a page, as before). */
+export function setEnginePad(o) {
+  enginePad = o ? { layout: o.layout === 'android' ? 'android' : 'standard', family: FAMILIES.has(o.family) ? o.family : '' } : null;
+  memo = null;
+}
+
 /** 'android' (A B X Y · L1 R1 · Select Start) in the Android app, on a Retroid, or with ?pad=android; else 'standard'. */
 export function padLayout(win = globalThis.window) {
+  if (enginePad) return enginePad.layout;
   const forced = new URLSearchParams(win?.location?.search ?? '').get('pad') ?? safe(() => win.localStorage.getItem('hiraeth.pad'));
   if (forced === 'android' || forced === 'standard') return forced;
   if (win?.Capacitor?.isNativePlatform?.() || native) return 'android';
@@ -149,6 +162,7 @@ export function platformFamily(win = globalThis.window) {
  *  In the Xbox app always Xbox's: the console's pads are Xbox pads, whatever id its WebView2 gives them. */
 export function pageFamily(win = globalThis.window) {
   if (onXbox(win)) return 'xbox';
+  if (enginePad?.family) return enginePad.family;
   return padFamily(win) || rememberedFamily(win) || platformFamily(win);
 }
 
@@ -286,14 +300,17 @@ function rewrite(node, raw = rawAt(node.nodeType === 3 ? node.parentElement : no
   for (const c of node.childNodes) rewrite(c, r);
 }
 
+/** What the prompts are drawn for, worked out now without the page: { layout, faces, family } (an engine's menus and HUD). */
+export function padLabels(win = globalThis.window) {
+  const listed = padFamily(win);
+  if (listed) rememberFamily(listed, win);
+  return { layout: padLayout(win), faces: padFaces(win).faces, family: onXbox(win) ? 'xbox' : enginePad?.family || listed || rememberedFamily(win) || platformFamily(win) };
+}
+
 /** Keep every prompt on the page in the pad's own button names (else a no-op). */
 export function watchLabels(win = globalThis.window) {
   if (!win?.document?.body) return;
-  layout = padLayout(win);
-  labelFaces = padFaces(win).faces;
-  const listed = padFamily(win);
-  if (listed) rememberFamily(listed, win);
-  labelFamily = onXbox(win) ? 'xbox' : listed || rememberedFamily(win) || platformFamily(win);
+  ({ layout, faces: labelFaces, family: labelFamily } = padLabels(win));
   for (const fn of labelHooks) { try { fn(labelState()); } catch (e) { console.warn('labels', e); } }
   if (observer) { rewrite(win.document.body); return; }
   // (always: every prompt is written as a pair, "A / ×", and the page shows one half)
