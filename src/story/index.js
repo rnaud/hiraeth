@@ -204,13 +204,11 @@ export function createStory(o) {
     else npc.def = def;
     return registerInteractable({
       id: `talk.${def.id}`, priority: PRIORITY.talk, range: def.range ?? 3.4, npc,
-      prompt: `talk to ${def.name.replace(/^The /, 'the ')}`,
       // (beside them, just below the shoulders, never over the head: src/talk-prompt.js, issue #241; `at` the middle
       // of the shoulders, for an engine's own prompt: platform.js screen.prompt)
       beside: () => shoulders(npc, UP, _sh),
       at: () => { const b = shoulders(npc, UP, _sh); return b.mid ? _p.set(b.mid.x, b.mid.y, b.mid.z) : _p.set((b.l.x + b.r.x) / 2, (b.l.y + b.r.y) / 2, (b.l.z + b.r.z) / 2); },
       prompt: def.prompt ?? `talk to ${def.name.replace(/^The /, 'the ')}`,   // (a game's host: "ask Darro about the canyon run")
-      at: () => (npc.talkAt ? npc.talkAt(_p) : _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.4 : 2.15) * npc.object.scale.y)),
       enabled: () => npc.object.visible && !npc.stunned?.(),
       distance: (p) => (Math.abs(p.pos.y - npc.pos.y) < 2.5 ? Math.hypot(p.pos.x - npc.pos.x, p.pos.z - npc.pos.z) : Infinity),
       use: () => dialogue.start(def, npc),
