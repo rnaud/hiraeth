@@ -2505,3 +2505,64 @@ ms. So while the main thread is over 16.7 ms, 90 Hz uncapped is the better rate;
 (`deck-worlds.mjs --pick 1`, as android-worlds.mjs picks them: the boot camera, the two densest knots of people, a wide
 look; viewpoints-worlds.json) and measured on the Mac only so far: their JS a frame is 6-11 ms there at full speed, the
 desert's and the City-Shaft's 9-11, so they are no heavier than the City-Shaft on the main thread.
+
+## Unity on the Retroid (2026-10-12)
+
+The Unity build (`com.rnaud.hiraeth.unity`: the web game's own script in Puerts' V8, drawn by the C# port's ink look)
+on the Retroid Pocket Nova (Adreno 740 under Vulkan, 1280 × 960 at 60 Hz), against the web game in the GeckoView test
+app (`com.rnaud.hiraeth.gecko`, this branch's `dist`, Handheld held at 0.75: `android-worlds.mjs --modes fixed --scale
+0.75`) at the same bench views (scripts/bench/viewpoints.json, viewpoints-worlds.json), in one sitting. The Unity runs:
+the bridge's plan (`-views … -bench 6`, BridgeArgs), started with `-mute -metrics` (the frame readout on the screen;
+the mute read back from the intent's log line each time). The player's app was never touched.
+
+**What the installed build did** (v1.62, build 2066): with no `-quality` the Android player ran **High at the full
+1280 × 960** (BridgeArgs.Quality's default off the Deck), and every frame took at least 33 ms: Android's
+`Application.targetFrameRate = -1` is 30 frames a second, so the bridge (vsync 0, -1, as on the desktops) was capped
+at 30 even on the title with 3 ms of GPU. And it drew the full Surface shader (the lean variants are the Deck's and
+the Xbox's): at High the GPU took 34-55 ms in the desert and 85-146 ms in the City-Shaft and the Signal Market.
+A/B'd on that build at the desert's spawn and camps, Handheld at 0.65 (GPU ms): base 35.9 / 33.6; `-lean` 24.7 / 22.3;
+`-lean -shadow-lists -no-grd -uniform-layout` 24.2 / 20.8; `-no-shadows` 35.4 / 36.4 (the shadows cost nothing on the
+GPU here); `-no-bloom -no-fxaa` 35.5 / 33.8; `-prepass` 31.0 / 31.8, with `-lean` no better than `-lean` alone. Lean +
+prepass by scale: 1 → 33.3 / 33.6, 0.65 → 23.0 / 24.6, 0.5 → 19.0 / 19.5: about 14 ms that does not scale with the
+pixels (to find: issue filed).
+
+**Now on Android** (BridgeArgs, BridgeRunner, BridgeRenderer): Handheld by default (the web app's own default; the
+Graphics setting in the menus is read at the next start), the lean surfaces, 0.75 of the screen at Handheld, and the
+display's rate (`targetFrameRate` 60; `-fps N` another). Frames a second (frame p50 / p95 / p99 ms):
+
+| place | Unity as installed (High, 1, 30 cap) | Unity now (Handheld, lean, 0.75, 60) | GPU ms now | GeckoView (Handheld, 0.75) |
+|---|---|---|---|---|
+| Desert, spawn | 18.2 (55.0 / 58.8 / 59.4) | 39.9 (25.1 / 29.2 / 41.6) | 25.9 | 56.0 (16.7 / 33.3 / 33.4) |
+| Desert, Qanat's tree | 29.7 | **60.0** (16.7 / 17.3 / 17.7) | 16.9 | 50.5 |
+| Desert, the camps | 19.2 (52.2 / 56.0 / 56.6) | 43.7 (22.9 / 25.3 / 25.9) | 23.2 | 48.9 (16.7 / 33.4 / 33.4) |
+| Desert, the dunes | 24.0 | 49.0 | 20.8 | 59.6 |
+| Desert, the cave | 22.3 | **60.1** | 16.4 | 59.7 |
+| Desert, the Rose House's first room (a temple) | | **60.1** (16.7 / 17.2 / 21.9) | 15.0 | |
+| City-Shaft, the rim | 9.0 (110.7 / 117.0 / 128.7) | 37.0 (27.0 / 32.0 / 32.8) | 27.7 | 43.9 (16.7 / 33.4 / 49.8) |
+| City-Shaft, the crowd | 15.7 | 44.5 (22.5 / 27.3 / 28.5) | 23.1 | 46.8 |
+| City-Shaft, crowd 2 | 18.2 | 47.9 | 21.7 | 49.4 |
+| City-Shaft, wide | 6.7 | 23.1 (43.4 / 49.6 / 50.7) | 44.1 | 34.1 |
+| Signal Market, the gate | 11.7 | 38.6 (25.9 / 29.3 / 30.8) | 26.1 | 56.0 |
+| Signal Market, the crowd | 17.1 | 54.2 (18.5 / 20.5 / 21.3) | 18.8 | 59.2 |
+| Signal Market, crowd 2 | 12.9 | 39.2 | 26.2 | 58.4 |
+| Signal Market, wide | 10.9 | 38.0 | 27.0 | 59.4 |
+| Floating city, start / crowd / crowd 2 / wide | 13.8 (its spawn) | 40.4 / 43.8 / 46.1 / 42.8 | 21.8-25.0 | |
+
+- **Which is better where.** GeckoView is still ahead wherever the GPU is the frame: the Unity build's surfaces cost
+  the Adreno 18-28 ms at 0.75 (GeckoView's frames there are mostly a single 16.7 ms refresh, its JavaScript 12-22 ms of them), so it holds 37-49 fps in the desert's open
+  views, the City-Shaft and the Signal Market against GeckoView's 44-60. It is level or ahead where little is in view
+  (Qanat's tree 60 against 50, the cave 60 / 60, a temple's room 60) and its frames are steadier: its p99 sits within
+  a few ms of its median (the bridge's script runs a frame ahead on its own thread: 6-13 ms of it), where GeckoView's
+  late frames are whole missed refreshes (p95 33.3, the City-Shaft's p99 50).
+- **The load**: from launch to the world settled 8.4 s in the desert, 14.9 in the City-Shaft, 6.8 in the Signal Market
+  and the Floating city (the script ready in 2.9-9.8 s of it, then the first frames' meshes), against GeckoView's
+  first frame at 16.3 / 18.1 / 13.0 s. **Memory** (PSS, the one process): 1.1-1.6 GB, against 1.5-2.2 GB across
+  GeckoView's three.
+- **What it would take to reach GeckoView**: the fixed ~14 ms of GPU (above), then the surfaces themselves; `-dyn-res`
+  aims at 15 ms of GPU and would only sink to its floor here.
+
+To repeat: the APK from `gh workflow run unity-android.yml --ref <branch>` (a branch run publishes nothing, its APK is
+the run's artifact), `adb install -r`, then start it with `am start -n com.rnaud.hiraeth.unity/<activity> -e unity
+"'-mute -metrics -level incal -views <file on the device> -bench 6 -out <dir>'"` (scripts/bench/android-bridge.sh does
+the same for the bench's own player) and pull `unity-bench.json`; GeckoView:
+`node scripts/bench/android-worlds.mjs --serve dist --worlds desert,incal,bazaar --modes fixed --scale 0.75`.

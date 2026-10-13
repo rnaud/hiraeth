@@ -745,6 +745,26 @@ const QC256 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch�
 // drawn by the game's own captureView, against this branch's Vite (port 5861) and the tree before (ab0afadb, port 5863))
 const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the Arena: each held at set times into the move (the hound and the machine drawn alone, the guardians in an Arena ring), four frames of 320 × 360 side by side; this branch and the tree before it (ab0afadb); 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.64': [
+    { match: 'The Unity preview opens on the title screen now', shots: [
+      { name: 'unity-start', title: 'The first screen', caption: 'Before, the preview opened straight into the Desert, the camera inside the ship over the traveller’s head; after, the title: Continue, Saves and Settings.', from: 'adb screencap on the Retroid Pocket Nova, the Unity preview muted (-mute -metrics: the frame readout at the top), build 2066 against this branch’s build (12 October)' },
+      { name: 'unity-start-menu', only: 'after', title: 'The Start menu', caption: 'Menu: the sidebar and its page, here the settings, a slider’s value moved with the stick.', from: 'the same device and build' },
+      { name: 'unity-game-menu', only: 'after', title: 'The game menu', caption: 'View: Quests, Map, Items, Worlds and People; a world opened full size, with Travel here and why the ship won’t go yet.', from: 'the same device and build, a debug save at Vael' },
+      { name: 'unity-ramp', only: 'after', title: 'A new save', caption: 'It starts at the foot of the ship’s ramp, as arriving by ship.', from: 'the same device and build' },
+    ], see: 'Open the Unity preview (Hiraeth (Unity) on Android, the Steam Deck or the Xbox): the title comes first. In a world press Menu for the Start menu and View for the game menu.' },
+    { match: 'On the Retroid and other Android handhelds the Unity preview starts at the Handheld graphics', numbers: [
+      { title: 'The Unity preview on the Retroid at the bench’s views: frames a second', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova, Vulkan, 1280 × 960 at 60 Hz, muted; before: build 2066 as installed (High, full size, capped at 30); after: Handheld, lean surfaces, 0.75, 60', rows: [
+        { where: 'the Desert’s spawn', before: 18.2, after: 39.9 },
+        { where: 'the pilgrims’ camps', before: 19.2, after: 43.7 },
+        { where: 'Qanat’s tree', before: 29.7, after: 60.0 },
+        { where: 'the City-Shaft’s rim', before: 9.0, after: 37.0 },
+        { where: 'the City-Shaft’s crowd', before: 15.7, after: 44.5 },
+        { where: 'the Signal Market’s gate', before: 11.7, after: 38.6 },
+        { where: 'the Signal Market’s crowd', before: 17.1, after: 54.2 },
+        { where: 'the Rose House’s first room', before: null, after: 60.1 },
+      ], source: 'the bridge’s own bench (-views -bench 6, unity-bench.json) on the device; docs/systems/performance.md, “Unity on the Retroid”, with GeckoView at the same views' }],
+      see: 'On the Retroid, open Hiraeth (Unity) and walk about the Desert or the City-Shaft.' },
+  ],
   '1.63': [
     { match: 'The Unity preview on the Xbox no longer catches every three seconds', numbers: [
       { title: 'The Unity preview on the Xbox at the City-Shaft’s rim, round three', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1), muted', rows: [
