@@ -1,0 +1,25 @@
+scripts/tripo/bake-face-ink.mjs
+  s_9ca76055a220ed::t_fd13fc246a91c1 74-75,93-181,184
+scripts/tripo/face-landmarks.mjs
+  s_9ca76055a220ed::t_8bb16b162460ef 1-105
+src/characters/portrait-head.js
+  s_9ca76055a220ed::t_adbb1a30891c0b 17-22,28-29,81,87,126-129,131-135,175-178
+tests/portrait-face-ink.test.js
+  s_9ca76055a220ed::t_e69087b1bc328b 15-16,60-102,106-128,138-145,172-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "52601daea24644c0933b063565ce6106ca380e12",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
