@@ -741,6 +741,9 @@ const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by
 const FACE198 = 'Issue #198: muted headless Chrome (1 × pixel ratio, 900 × 813) against this branch’s own Vite (port 5851), the Character studio’s Face and Close-up views of the traveller in the Desert’s light, paused idle, no wind, no blink, fixed gaze; before: this commit’s parent, after: this commit, same view each; 12 October; sharp webp -q 72';
 // (v1.63, issue #256: the camera QC's own pictures, .claude/skills/camera-qc/run.mjs with its frames kept at 1280 × 720 (a scratch copy) and SHOT_AT)
 const QC256 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch’s own Vite (port 5841) and the tree before it (2e818342, port 5842): the camera QC’s scenario alone, the frame at the same moment of its run (SHOT_AT), the game’s own camera; 12 October; cwebp -q 72';
+// (v1.63, issues #260 #261 #258: a scratch strip shooter, each subject held at set times into its wind-up in the Arena,
+// drawn by the game's own captureView, against this branch's Vite (port 5861) and the tree before (ab0afadb, port 5863))
+const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the Arena: each held at set times into the move (the hound and the machine drawn alone, the guardians in an Arena ring), four frames of 320 × 360 side by side; this branch and the tree before it (ab0afadb); 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.63': [
     { match: 'On the Steam Deck the game runs faster at its full 1280 × 800', numbers: [
@@ -778,6 +781,25 @@ export const CHANGELOG_MEDIA = {
         rows: [{ where: 'the biggest cut of the arm in a frame, m', before: 3.3, after: 0 }, { where: 'the camera’s roughness, cm (green under 1.5)', before: 11.64, after: 0.57 }, { where: 'the traveller hidden behind something, % of the frames', before: 0.1, after: 0.8 }],
         source: 'the full camera QC against the tree before (2e818342) and this branch, 12 October; the traveller off the screen 0 % in both (the 36 % of issue #259 was the start under the ship’s ramp, fixed in v1.62 by #254: 35.7 % on the tree before it, 88221816^)' }],
       see: 'In the Desert, run from the ship toward the big cacti and swing the camera round as you pass one: the view stays at its distance instead of snapping in to your back.' },
+    { match: 'The antler hound gives you longer to see its pounce coming', shots: [
+      { name: 'hound-pounce', caption: 'The pounce frame by frame from its side, at 0.25, 0.55, 0.85 and 0.98 s into it: before, it had leapt by 0.85 s; after, it crouches, then coils (rump up, its smoke on end) and is still coiled at 0.98 s', from: TELLS263 },
+    ], see: 'In the Arena, call in the antler hounds and let one come for you: it crouches, its smoke stands up and it snarls before it leaps. Evade or parry on the snarl.' },
+    { match: 'The makers’ machine in the temples is fairer to fight', shots: [
+      { name: 'machine-quake', caption: 'The ground slam at 0.4, 0.9 and 1.3 s, then just after it: after, sunk low with its claws in the floor (stunned: the stars turn over it in the game)', from: TELLS263 },
+    ], see: 'In the Arena (wave 5, or call the makers’ machine), wait for both its arms to rise: jump as it slams, then cut it while its claws are stuck. Guard its one-armed swing with a perfect parry to knock a plate off.' },
+    { match: 'Nine temple guardians give you a little longer to read their quickest move', shots: [
+      { name: 'guardian-elder-peck', title: 'The Elder’s peck', caption: 'At 0.3, 0.65, 1.05 and 1.18 s into her peck: before it struck at 1.0 s, after it still winds up at 1.18 s', from: TELLS263 },
+      { name: 'guardian-foreman-jab', title: 'The Foreman’s jab', caption: 'At 0.3, 0.65, 1.05 and 1.18 s into its jab: before it struck at 1.0 s, after the glow is still gathering', from: TELLS263 },
+      { name: 'guardian-lampless-flutter', title: 'The Lampless’s flutter', caption: 'At 0.3, 0.65, 1.05 and 1.18 s into its flutter: before it struck at 1.0 s', from: TELLS263 },
+      { name: 'guardian-snapper-snap', title: 'The Mother Snapper’s snap', caption: 'At 0.3, 0.65, 1.05 and 1.18 s into her snap: before it struck at 1.0 s', from: TELLS263 },
+    ], numbers: [{ title: 'The guardians’ readability (the combat review’s rubric, from their tuning: the quickest move’s tell)', unit: 'score (1–5)', better: 'higher', device: 'scripts/combat-review/lib.mjs scoreGuardian',
+      rows: [{ where: 'the nine (each)', before: 3, after: 4 }, { where: 'the fourteen guardians’ mean total', before: 4.4, after: 4.66 }],
+      source: 'the combat review’s arena.mjs (guardians scored from their tuning), the tree before (ab0afadb) and this branch, 12 October; a round of every phase 0.2–0.4 s longer in 44–63 s (lib.mjs guardianRound)' }] },
+    { match: 'Six temple guardians ask for more than their temple’s tool', numbers: [{ title: 'The temple design audit’s guardian exam (scripts/temple-design/audit.mjs)', unit: 'score (1–5)', better: 'higher', device: 'node, the temples built as the game builds them',
+      rows: [{ where: 'the Founders’ Belfry', before: 3, after: 4 }, { where: 'the Hush-House', before: 3, after: 4 }, { where: 'the Lamp-House', before: 3, after: 4 }, { where: 'the Builders’ Greenhouse', before: 3, after: 4 }, { where: 'the Clock-House', before: 3, after: 4 }, { where: 'the Undertower', before: 3, after: 4 }],
+      source: 'node scripts/temple-design/audit.mjs, the tree before (ab0afadb) and this branch, 12 October' }],
+      see: 'Fight the Cloud-Mother to her second phase and guard her wing roll (LB / L1): she sinks low, crying, and the bell calms her again. The others say what they want as their second phase begins.' },
+    { match: 'Fixed: a temple guardian could repeat the same combo over and over', see: 'Fight the First Sign in the Undertower to its second phase: it beams, stutters and throws static in turn, instead of only stuttering and crying.' },
   ],
   '1.62': [
     { match: 'Locked on with a foe right at your feet, a ring centipede curled round you', numbers: [

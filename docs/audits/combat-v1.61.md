@@ -242,3 +242,38 @@ Three faults in the review's own scripts, fixed (176309b8), so the next review's
   and not yet turned took the light combo on its flank (its combo 3.86 → 1.73 s, the Market's cost share 22 → 15 %,
   the brute's push from behind 1.28 s instead of ∞). Re-timed: 3.86 s, 20 %, ∞ again.
 - `arena.mjs` watches a kind again once if it never wound up and stood off past 6 m (the four silent kinds).
+
+## v1.63 follow-up: recommendations 2–5 done (#257, #258, #260, #261)
+
+Re-run on this branch (12 October): `arena.mjs --watch 24 --version 1.63` (every kind and guardian), `dodge.mjs`,
+`defend.mjs`, and the temple design audit. The scores by eye are kept as above; only the two kinds that changed move.
+
+- **The antler hound (#260):** the pounce 0.8 → 1.0 s, a crouch then a coil (the rump up, its smoke on end, a shiver)
+  and a snarl (`cue: 'coil'`), its weight 1.5 → 1.0. Wind seen 0.85 → 1.03 s, attacks a minute 32.5 → 30, a still
+  traveller's hearts a minute 4.59 → 3.33 (a lone 24 s run: 2.92). The guard holds from 0.5 s, the parry now lands at
+  0.06–0.12 s, the evade at 0.08–0.15 s. Read 4 → 5: **4.3 → 4.5**.
+- **The makers' machine (#261):** its quake rumbles as both arms rise (`cue: 'quake'`), takes only feet on the floor
+  (a jump clears the slam and its ring), and leaves it stuck 1.8 s (stunned: a cut double, the stars), said once; met,
+  it says to jump the ring; a perfect parry of the slam chips it. The guard still never holds the quake (by design:
+  the jump, now told); the slam guards from 0.5 s and parries at 0.06–0.12 s. Counterplay 3 → 5 (six answers), space
+  3 → 4 by eye (it makes you jump): **3.8 → 4.3**.
+- **Nine guardians' quickest move (#258)** 1.0–1.1 → 1.2 s (`WIND_MIN.guardian` 1.2): read 3 → 4 and fair 4 → 5,
+  each 4.2 → 4.6 (the warden 4.4 → 4.8); the guardians' mean **4.40 → 4.66**. Fight beats, one round of every
+  phase's moves (`lib.mjs guardianRound`), before → after: the Elder 63.0 → 63.5 s, the Cloud-Mother 60.1 → 60.4,
+  the First Sign 51.7 → 52.1, the Tooth-Warden 58.4 → 58.8, the Foreman 61.8 → 62.2, the warden 54.9 → 55.3, the
+  Mother Snapper 44.3 → 44.6, the Lampless 53.8 → 54.0, the Echo 56.5 → 56.9 (under 1 %).
+- **A second verb for six guardians (#257):** their second phase asks for one before the gadget (`phase.asks`,
+  docs/systems/foes.md "A second verb"): the guard against the Cloud-Mother's roll and the Foreman's hammer, the push
+  into the Mother Snapper's snap, a splash on the Gardener's roots, a perfect dodge of the Lampless's flutter and the
+  First Sign's beam. Guardian exam **3 → 4** in all six (temple means +0.11 each). A combo's links no longer advance
+  a guardian's rotation (a three-move combo in a list of three had locked the First Sign on it).
+- **Dodge:** 35 of 35 into a flurry, as before.
+
+| | v1.61 | v1.63 |
+|---|---|---|
+| the 22 kinds' mean | 4.59 | 4.62 |
+| the 14 guardians' mean | 4.40 | 4.66 |
+| **overall** (the 36 totals' mean) | **4.51** | **4.63** |
+
+Left: the lock camera against a wall (#256, recommendation 1) and desert-open (#259) are another branch's; playing it
+with a pad (recommendation 7).
