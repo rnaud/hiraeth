@@ -12,7 +12,8 @@
 // At exit: a normal end, process.exit, an uncaught exception or unhandled rejection, SIGINT / SIGTERM / SIGHUP (a
 // signal no one else listens for ends the process, as it would have; one the script handles itself is left to it,
 // and its own exit cleans up). Only SIGKILL leaves anything behind.
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { tmpdir, constants } from 'node:os';
 import { join } from 'node:path';
@@ -97,4 +98,13 @@ export function ownProcess(child) {
   procs.add(child);
   child.once?.('exit', () => procs.delete(child));
   return child;
+}
+
+/** A Vite cache directory for one run, inside the project (`.vite-cache/<prefix>-xxxxxx`), removed when the process ends.
+ *  Vite's pre-bundled dependencies resolve bare imports ('three') from the cache's own folder, so a cache in TMPDIR
+ *  (outside the project) can't find them and the page never boots. */
+export function viteCacheDir(prefix) {
+  const base = join(fileURLToPath(new URL('..', import.meta.url)), '.vite-cache');
+  mkdirSync(base, { recursive: true });
+  return tempDir(`${prefix}-`, base);
 }

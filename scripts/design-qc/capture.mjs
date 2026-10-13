@@ -11,7 +11,7 @@
 // Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from '../temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from '../temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -63,7 +63,7 @@ const worlds = [...new Set(views.map((v) => v.world))].filter((w) => !only || on
 if (worlds.length) {
   const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
   // (its own dependency cache: in a worktree node_modules is the main checkout's, and its .vite is the author's server's)
-  server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.QC_VITE_CACHE ?? join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false, server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
+  server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.QC_VITE_CACHE ?? viteCacheDir('design-qc'), logLevel: 'error', clearScreen: false, server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
   await server.listen();
   await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 }

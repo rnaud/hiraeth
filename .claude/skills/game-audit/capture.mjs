@@ -14,7 +14,7 @@
 //   then   steps after the first shot, each run, waited for and shot as <name>-<i>
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,7 +30,7 @@ mkdirSync(OUT, { recursive: true });
 
 const profile = tempDir('game-audit-chrome-');
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
-const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.VITE_CACHE ?? join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false,
+const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.VITE_CACHE ?? viteCacheDir('game-audit'), logLevel: 'error', clearScreen: false,
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;

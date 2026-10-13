@@ -14,7 +14,7 @@
 // if a run of the default way is red. No game code changed: it drives `window.input` as a player's hands would, and reads.
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,7 +38,7 @@ const QUERY = { moves: '', mm: '&mm=1', loops: '&moves=0' };
 const profile = tempDir('motion-qc-chrome-');
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
 // (its own dependency cache: in a worktree node_modules is the main checkout's, and its .vite the author's server's)
-const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.VITE_CACHE ?? join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false,
+const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.VITE_CACHE ?? viteCacheDir('motion-qc'), logLevel: 'error', clearScreen: false,
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;

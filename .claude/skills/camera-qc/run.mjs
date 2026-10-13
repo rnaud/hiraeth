@@ -12,7 +12,7 @@
 // `rig.look` as a player's hands would, and reads.
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,7 +36,7 @@ const profile = tempDir('camera-qc-chrome-');
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
 // (its own dependency cache: in a worktree node_modules is the main checkout's, and its .vite the author's server's)
 // (VITE_CACHE: a cache folder of your own inside the checkout, when the temporary one can't resolve the dependencies: a worktree whose node_modules is a link)
-const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.VITE_CACHE ?? join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false,
+const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: process.env.VITE_CACHE ?? viteCacheDir('camera-qc'), logLevel: 'error', clearScreen: false,
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
