@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_d0f0791d9faf65 7-8
+docs/systems/foes.md
+  s_9ca76055a220ed::t_cf195b098a08c8 519-545
+docs/systems/temples.md
+  s_9ca76055a220ed::t_e94d8599b01d3b 67-69
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_5038e4c80f863b 363-365,370,405
+src/changelog.js
+  s_9ca76055a220ed::t_26e3266ec548ff 19-23
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_8aaeea45a7e158 151-156
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_1f66ec45296f0d 183-188
+src/temples/boss.js
+  s_9ca76055a220ed::t_7701faa779377d 38-43,282-300,311-312,328-330,346-347,367,494-496,540,571,575-577
+src/temples/edena.js
+  s_9ca76055a220ed::t_6e5a63561ab272 189-194
+src/temples/garage.js
+  s_9ca76055a220ed::t_0edb5d7e1bc454 174-179
+src/temples/hints.js
+  s_9ca76055a220ed::t_8349108c892bfd 283-284
+src/temples/perdide.js
+  s_9ca76055a220ed::t_85bc657166e7d7 172-177
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_4a940874ec92f9 175-180
+tests/guardian-asks.js
+  s_9ca76055a220ed::t_e0994e7957ebe2 1-39
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_bf586945b0f293 37,50,84-85,748-775
+tests/temples.test.js
+  s_9ca76055a220ed::t_21bfc489c3b4f7 46,1571,2621,2888,2899,3453,3747,4142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7429a1e86ec16d9caf160cd9ef97742d8f9e4b0a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
