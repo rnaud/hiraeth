@@ -810,15 +810,19 @@ Shader "Hiraeth/Surface"
         float2 ceY = float2(i.objPos.y, dot(i.objPos.xz, float2(0.7071, 0.7071)));
         float fwY = fwidth(i.objPos.y);
         float2 fwd = float2(fw1, fwidth(ce1.y));
-        float3 gq = i.objPos / max(_Grid, 1e-3);
-        float3 gfw = fwidth(gq);
-        float3 gw = 0;
-        if (_Grid > 0.0 || _Glyphs > 0.0) { gw = pow(abs(normalize(on)), 6.0); gw /= (gw.x + gw.y + gw.z); }
+        // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
+        // fine there, issue #262)
+        float3 gq = 0, gfw = 0, gw = 0;
+        UNITY_BRANCH if (_Grid > 0.0 || _Glyphs > 0.0)
+        {
+          gq = i.objPos / max(_Grid, 1e-3); gfw = fwidth(gq);
+          gw = pow(abs(normalize(on)), 6.0); gw /= (gw.x + gw.y + gw.z);
+        }
         float2 fwp = fwidth(i.worldPos.xz);
         float foldU = i.fold.x * _Folds;
         float foldFw = fwidth(foldU);
         float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
-        float fissFw = fwidth(faceX) / 9.0;
+        float fissFw = 0;   // (strata rock's alone: below)
         // the wall's own frame for weathering, pen detail and colour patches (materials.js): along it and up, world-anchored
         float2 wqA = float2(i.worldPos.x, i.worldPos.y), wqB = float2(i.worldPos.z, i.worldPos.y);
         float wfy = length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y)));
@@ -834,6 +838,7 @@ Shader "Hiraeth/Surface"
           float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
           strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
           strataFw = fwidth(strataCo.x);
+          fissFw = fwidth(faceX) / 9.0;
         }
         float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
         float tfAA = max(fwidth(i.bind.x) + fwidth(i.bind.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
@@ -999,7 +1004,10 @@ Shader "Hiraeth/Surface"
         float L = lerp(min(lambert, 0.38), lambert, sh);
         L = lerp(L, 1.0, max(_Glow, emit));
         float local = 0.0;
+        // (the lights come nearest first, the unused after them with no radius (HiraethLook): the loop stops at the first of
+        // those, a uniform branch, instead of measuring all eight from every pixel, issue #262)
         for (int li = 0; li < ((skip & 64) != 0 ? 0 : 8); li++) {
+          UNITY_BRANCH if (_MLights[li].w <= 0.0) break;
           float3 dl = _MLights[li].xyz - i.worldPos;
           float d = length(dl);
           if (d < _MLights[li].w) {
