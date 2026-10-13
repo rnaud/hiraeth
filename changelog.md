@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.63 — 2026-10-12
 
+- The Unity preview on the Xbox no longer catches every three seconds at the City-Shaft’s rim: it holds about 60 frames a second there (58.6 before), and only about one frame in a hundred misses the screen’s refresh (one in forty before). The Desert is steadier too.
 - Fixed: a temple guardian could repeat the same combo over and over and never use its other moves (the First Sign stuttering and crying without ever firing its beam). Each now goes through its moves in turn.
 - Six temple guardians ask for more than their temple’s tool in their second phase. Guard the Cloud-Mother’s wing roll and the Clockwork Foreman’s hammer, push the Mother Snapper’s head as she rears to snap, splash the Gardener as it crouches to send its roots, and dodge the Lampless’s fluttering wings and the First Sign’s beam at the last moment: each then reels open for the bell, the stilling, the lantern, the bloom, the numerals or its word.
 - Nine temple guardians give you a little longer to read their quickest move: the Elder’s peck, the Cloud-Mother’s roll, the First Sign’s stutter, the Tooth-Warden’s and the warden’s stomps, the Foreman’s jab, the Mother Snapper’s snap, the Lampless’s flutter and the Echo’s ripple now wind up as long as their other moves.

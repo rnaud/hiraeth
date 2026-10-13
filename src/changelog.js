@@ -40,6 +40,10 @@ export const CHANGELOG = [
     'Six temple guardians ask for more than their temple’s tool in their second phase. Guard the Cloud-Mother’s wing roll and the Clockwork Foreman’s hammer, push the Mother Snapper’s head as she rears to snap, splash the Gardener as it crouches to send its roots, and dodge the Lampless’s fluttering wings and the First Sign’s beam at the last moment: each then reels open for the bell, the stilling, the lantern, the bloom, the numerals or its word.',
     // a combo's links no longer advance a guardian's rotation (src/temples/boss.js begin)
     'Fixed: a temple guardian could repeat the same combo over and over and never use its other moves (the First Sign stuttering and crying without ever firing its beam). Each now goes through its moves in turn.',
+    // the Xbox's Unity preview: the frame's commands handed to C# as a view, not a fresh ArrayBuffer a frame, which
+    // Puerts held until the managed collector ran and V8 collected in full every ~190 frames (engine/unity/pack.js
+    // takeView; docs/systems/performance.md "The City-Shaft's rim on the Xbox, round three"; issue #113)
+    'The Unity preview on the Xbox no longer catches every three seconds at the City-Shaft’s rim: it holds about 60 frames a second there (58.6 before), and only about one frame in a hundred misses the screen’s refresh (one in forty before). The Desert is steadier too.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;

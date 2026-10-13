@@ -647,7 +647,12 @@ Under IL2CPP:
   and patches those calls to the object's raw data;
 - an IL2CPP player hands a JS value typed `object` over as a ScriptObject, not as an ArrayBuffer: the
   script boxes its buffers (`{ b }`, `BridgeHost.BoxBuffers`) and `JsRuntime.Bytes` reads the buffer out
-  as Puerts' ArrayBuffer (`ScriptObject.Get<ArrayBuffer>`);
+  as Puerts' ArrayBuffer (`ScriptObject.Get<ArrayBuffer>`). Puerts keeps a handle on each box (and so its buffer)
+  until the managed collector lets the ScriptObject go, so a buffer handed over every frame must not be a fresh
+  ArrayBuffer: those outlive V8's young generation and pile up for full collections (the Xbox's stall every ~3 s
+  at the City-Shaft, performance.md, "The City-Shaft's rim on the Xbox, round three"). The frame's commands go as
+  a view of the writer's own buffer (`CommandWriter.takeView`; Puerts copies a view's bytes at the call), the
+  sound's PCM as the renderer's view;
 - `link.xml` keeps Puerts' assemblies and the bridge whole; StreamingAssets inside an APK are read
   through UnityWebRequest (`StreamingFile`).
 

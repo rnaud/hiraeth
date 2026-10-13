@@ -746,6 +746,16 @@ const QC256 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch�
 const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the Arena: each held at set times into the move (the hound and the machine drawn alone, the guardians in an Arena ring), four frames of 320 × 360 side by side; this branch and the tree before it (ab0afadb); 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.63': [
+    { match: 'The Unity preview on the Xbox no longer catches every three seconds', numbers: [
+      { title: 'The Unity preview on the Xbox at the City-Shaft’s rim, round three', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1), muted', rows: [
+        { where: 'the rim, from the spawn: frames a second', before: 58.6, after: 59.75 },
+        { where: 'the rim: frames at 33 ms, %', before: 2.65, after: 0.95 },
+        { where: 'the rim: frames of 38 ms or more in 130 s', before: 37, after: 2 },
+        { where: 'the rim: V8’s full collections in 130 s', before: 41, after: 1 },
+        { where: 'the Desert’s spawn: frames a second', before: 59.5, after: 59.9 },
+        { where: 'the Desert: frames at 33 ms, %', before: 1.0, after: 0.2 },
+      ], source: 'scripts/xbox-unity.mjs, build 2086 (v1.63); the mean of the last 30 s of a 170 s run (the rim two alternated rounds, averaged), the long frames and collections from 40 s on (-slow-ms 38 -v8-gcs); before: the same build with -js-off copy', note: 'Each stall was one of V8’s full collections, every ~188 frames: the frame’s commands went to Unity as a new buffer each frame, and Puerts held every one until the managed collector ran.' },
+    ], see: 'On the Xbox, start the Unity preview in the City-Shaft and stand at the rim: the readout at the top left holds 59-60 frames a second without the catch every three seconds.' },
     { match: 'On the Steam Deck the game runs faster at its full 1280 × 800', numbers: [
       { title: 'The web build on the Steam Deck at its own 1280 × 800: frames a second', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, Desktop Mode, gamescope headless at 90 Hz uncapped, Steam Deck preset at render scale 1, muted, the bench’s own profile', rows: [
         { where: 'the Desert’s start', before: 46.1, after: 51.9 },

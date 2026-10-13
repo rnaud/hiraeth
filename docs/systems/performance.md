@@ -2249,6 +2249,56 @@ command buffer is each frame (Puerts copies it into a new byte[] a frame: the ai
 about 11 ms scales with the pixels, so a scale of 0.85 would bring it near 14.5): `-dyn-res` (not yet measured on the console) is there if the scale should adapt there as the web's does; the
 crowd view's script is 16.6 ms (its four near people are full rigs in view).
 
+### The City-Shaft's rim on the Xbox, round three: the stall every ~3 s was V8's full collection (issue #113, 2026-10-13)
+
+Build 2086 (the branch `xbox-rim-stall`, on v1.63), the same rig as round two (Series X, Direct3D 12, 1440p, `-vsync 1`,
+muted, the mean of the last 30 s of a 170 s run, the rim twice alternated; the views `-bench 6`). "Before" is the same
+build with `-js-off copy`; both ran with `-slow-ms 38 -v8-gcs`.
+
+**What the stall was.** Round two left one frame of 40-70 ms every ~3.2 s at the rim, the main thread waiting wherever
+it happened to wait (the present, the render thread, the overshirt's job, the script). Its period was a count of frames,
+not of seconds: 187-189 frames at 58.7 fps and at 52 fps alike (round two's `-gc-step 1` run, 3.6 s), and the managed
+collector ran every frame in that run without moving it. Round two's `--single-threaded-gc` run had in fact lost it (one
+190 ms pause every 27 s instead). `-v8-gcs` (new: engine/unity/gc-watch.js, a weakly held object a frame, read 8 frames
+later: only a full collection lets it go) put **one of V8's full collections at every stall**, 187-191 frames apart.
+What filled V8's heap every 188 frames: the frame's command buffer, ~353 kB, handed to C# as a fresh ArrayBuffer
+(`CommandWriter.take`: `buf.slice`). In an IL2CPP player the buffer goes boxed (`{ b }`, typed `object`), and Puerts makes
+the box a ScriptObject holding a persistent handle on it until the managed collector lets the ScriptObject go and Puerts'
+Tick frees the handle: each frame's buffer outlived the young generation, was promoted, and ~64 MB of them later V8 ran a
+mark-compact, whose parallel phases take the console's cores from the render thread and the job workers for 30-60 ms.
+In a bare V8 (Node, the same bundle) no full collection runs in 2 400 frames; with each buffer held 120 frames, as Puerts
+holds them, one every ~70. The Desert does the same every 171 frames (its buffer ~380 kB), but its heap is smaller and
+the collection rarely costs a refresh there.
+
+**The fix** (engine/unity/pack.js `takeView`, backend.js `frame`): the frame's commands go as a Uint32Array view of the
+writer's own buffer, no new ArrayBuffer a frame (Puerts reads a view's bytes, copied into C#'s byte[] at the call, as
+before). The audio thread's PCM goes as the renderer's own view too (its `slice()` was a fresh buffer each batch).
+`-js-off copy` puts the copy back. tests/unity-frame-view.test.js.
+
+| | fps | frames at 33 ms | frames from 38 ms (130 s) | V8 full collections | GPU ms | script ms | cpu main ms |
+|---|---|---|---|---|---|---|---|
+| City-Shaft rim (spawn) | 58.5 / 58.7 → **59.8 / 59.7** | 3.0 / 2.3 % → **1.2 / 0.7 %** | 36 / 38 → **1 / 3** | every 188 frames → one in ~6 300 | 14.4 → 14.1 | 13.3 → 12.9 | 10.2 → 9.7 |
+| desert spawn | 59.5 → 59.9 | 1.0 % → 0.2 % | 2 → 0 | every 171 frames → one in ~6 500 | 10.6 → 10.4 | 10.7 → 10.5 | 7.7 → 7.6 |
+
+| view (`-bench 6`) | frame ms (median) | frame p95 ms | mirror ms | GPU ms |
+|---|---|---|---|---|
+| City-Shaft start | 16.73 → 16.69 | 28.5 → 21.7 | 6.1 → 5.7 | 14.8 → 14.8 |
+| City-Shaft crowd | 18.0 → 17.8 | 24.7 → 25.1 | 6.1 → 5.9 | 13.7 → 13.8 |
+| City-Shaft wide | 17.4 → 17.2 | 33.4 → 33.4 | 6.1 → 5.8 | 17.7 → 17.6 |
+
+The stalls before: 38-73 ms (mean ~49), one every 3.17-3.22 s. After, what is left at the rim is V8's full collection
+of the old generation's own growth, one every ~105 s, a frame or two of 45-53 ms. The pictures at the three views are
+the same before and after apart from moving people (0.5-0.9 % of pixels over 8/255, all on people); against the web they
+match round two's comparison.
+
+**The Steam Deck's Unity player** is IL2CPP with Puerts' V8 too, so it hands the same boxed buffers over and gets the same
+fix from the bundle (no C# change there): one full collection of its V8 every ~190 frames less. Not measured on the Deck.
+
+**What is left for 60.** The rim is now 59.7-59.8 fps with ~1 % of frames at 33 ms, scattered single misses: the wide
+view's GPU at 17.6 ms (pixel-bound; `-dyn-res` not yet measured), the crowd view's script at 16.4 ms (its four near
+people full rigs in view), and the old generation's collection every ~105 s (fewer long-lived objects a frame: Puerts'
+boxes still each hold a handle until the managed collector runs).
+
 ## The Retroid, round 6: the real buttons, cold and warm loads, the distant shimmer (2026-10-12, issues #50, #16, #225)
 
 The Retroid Pocket Nova in the GeckoView test app (`com.rnaud.hiraeth.gecko`, built from e7c21f7d, the game bundled in
