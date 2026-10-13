@@ -127,7 +127,9 @@ test('every temple guardian can be called into the ring: it wakes as you step in
     assert.ok(tele, `${G.id}: a move told by its body`);
     assert.ok(P.knocks > 0 || P.hurts > 0 || g.order > 1, `${G.id}: it fought (${g.order} attacks)`);
     // spar it to its end: shots while it is open
-    for (let i = 0; i < 400 && g.state !== 'weary' && g.state !== 'resolved'; i++) { g.enter('open'); g.hit('mouth', 'shoot', v(), {}); }
+    // (a phase that asks for a second verb first, src/temples/boss.js asks: answered against its move)
+    const answer = () => { if (!g.asking) return; const Q = g.phase.asks; g.enter('fight'); g.begin(P, null, Q.moves[0]); assert.ok(g.answer(Q.verb), `${G.id}: its ${Q.verb} answered`); };
+    for (let i = 0; i < 400 && g.state !== 'weary' && g.state !== 'resolved'; i++) { answer(); g.enter('open'); g.hit('mouth', 'shoot', v(), {}); }
     assert.ok(g.state === 'weary' || g.state === 'resolved', `${G.id}: ${g.state} at ${g.meter.toFixed(2)}`);
     if (g.state === 'weary') { g.resolve(); }
     assert.equal(g.state, 'resolved');
