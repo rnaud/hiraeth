@@ -102,3 +102,19 @@ pose, then inspect the combined neck/jaw motion. For perceived choppiness, separ
 render cadence from discontinuous targets, abrupt loop resets and near-straight
 IK knees. Independent feet still need support constraints; avoid random uncoordinated
 steps. Keep gait changes opt-in so another creature's accepted motion is preserved.
+
+## Wiring a generated guardian into its temple (Keeper, issue #267)
+
+- Copying the kit's rigid segment frames into skin bones is not enough: `aim()` uses the shortest
+  turn from +Y, which flips half a turn about the segment for a leg pointing nearly straight down.
+  Frame skin bones in the leg's bend plane with a rest offset (`src/characters/creature-legs.js`)
+  and measure the largest per-frame bone rotation, not only joint positions.
+- Never nest the creature's group inside another: the kit converts world foot targets through the
+  group's local matrix. Swap bodies by replacing the group in its parent
+  (`src/temples/guardian-generated.js`), keeping pos, heading, mouth and gameplay sizes on the
+  wrapper so the fight's closures and hit spots survive the swap.
+- Check in the real temple, not only at the origin: temples sit 2400 m up, which exposed the far
+  tier's stale swing heights and the nested-group foot targets that node tests at y = 0 hid.
+- A gait reviewed at a slow walk may not keep up at the fight's speed; audit at the controller's
+  own speed (an insect-like walker can switch to tripods there: the planner's `fast` gait).
+- For long-toed feet, measure contact on the pad near the foot bone; the lowest toe tip changes.

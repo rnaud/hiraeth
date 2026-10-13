@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from './materials.js';
 import { Guardian } from './temples/boss.js';
 import { game as sharedGame } from './game-state.js';
-import { keeperModel, elderModel, whaleModel, signModel, sentinelModel, gardenerModel, foremanModel, snapperModel, mothModel, echoModel } from './temples/guardians.js';
+import { elderModel, whaleModel, signModel, sentinelModel, gardenerModel, foremanModel, snapperModel, mothModel, echoModel } from './temples/guardians.js';
 import { KEEPER } from './temples/desert.js';
+import { keeperGuardian } from './temples/guardian-generated.js';
 import { ELDER } from './temples/arzach.js';
 import { MOTHER as CLOUD_MOTHER } from './temples/arzach2.js';
 import { FIRST_SIGN } from './temples/bazaar.js';
@@ -36,7 +37,7 @@ import { TITLES } from './levels/names.js';
 
 /** Every temple's guardian, in the order the temples are met: its world, its words (the temple's own def) and its body. */
 export const GUARDIANS = [
-  { id: 'desert', def: KEEPER, model: () => keeperModel() },
+  { id: 'desert', def: KEEPER, model: () => keeperGuardian() },
   { id: 'incal', def: WARDEN, model: () => sentinelModel() },
   { id: 'arzach', def: ELDER, model: () => elderModel() },
   { id: 'arzach2', def: CLOUD_MOTHER, model: () => whaleModel() },

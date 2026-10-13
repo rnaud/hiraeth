@@ -52,6 +52,10 @@ export const CHANGELOG = [
     // the lore page (lore.html, src/lore-page/, scripts/lore-data.mjs; docs/systems/lore-page.md; issues #268, #269)
     { text: 'A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold. Signed in to the notebook, every part has a Note button that files your comment as an issue.',
       see: 'Open Lore from the What changed page or the Notes page (hiraeth.alexandria-rnaud.workers.dev/lore). Press Note on any part, write a line and send it.' },
+    // the Rose House's Keeper on its fitted Tripo skin, the procedural body until it loads (src/temples/guardian-generated.js,
+    // src/characters/keeper-creature.js, creature-legs.js; the planner's fast gait, src/motion-kit/gait.js; docs/systems/
+    // characters.md "The Keeper in the Rose House"; issue #267)
+    'The Keeper of the cistern in the Rose House has its new body, drawn from its approved design: a ribbed shell on six long legs that walks one foot at a time and breaks into a trot of three legs at a time when it comes for you, rears on its hind legs to stamp and lowers its long neck to pant and drink. The glyphs on its shell still glow brighter as it calms, and the fight is the same as before. It is the one you spar with in the Arena too.',
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

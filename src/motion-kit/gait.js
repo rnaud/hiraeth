@@ -82,11 +82,14 @@ export function layoutLegs(homes, gait) {
  *              steps in unison
  */
 export class GaitPlanner {
-  constructor({ homes, gait, groups, neighbours, drift = 0.3, stepTime = [0.12, 0.4], height = 0.1, arc = 'organic', reach, maxStance = 2.5, seed = 1 } = {}) {
+  constructor({ homes, gait, groups, neighbours, drift = 0.3, stepTime = [0.12, 0.4], height = 0.1, arc = 'organic', reach, maxStance = 2.5, seed = 1, fast = null } = {}) {
     const lay = layoutLegs(homes, gait);
     this.groups = groups ?? lay.groups;
     this.neighbours = neighbours ?? lay.neighbours;
     this.gait = lay.gait;
+    // fast: { gait, at } another gait from `at` m/s (back below 0.8 of it), changed while every foot is down: a
+    // six-legged walker's one-at-a-time steps at a walk, its tripods at the fight's pace (an insect's own change)
+    if (fast) { const f = layoutLegs(homes, fast.gait); this.layouts = { slow: { groups: this.groups, neighbours: this.neighbours, gait: this.gait }, fast: { groups: f.groups, neighbours: f.neighbours, gait: f.gait }, at: fast.at }; this.pace = 'slow'; }
     const rnd = seeded(seed);
     this.rnd = rnd;
     this.drift = drift * (0.94 + rnd() * 0.12);
@@ -180,6 +183,15 @@ export class GaitPlanner {
     const speed = Math.hypot(vel.x, vel.z);
     const feet = this.feet;
     this.sinceLift += dt;
+    let changing = false;
+    if (this.layouts) {
+      const L = this.layouts, want = speed > L.at ? 'fast' : speed < L.at * 0.8 ? 'slow' : this.pace;
+      if (want !== this.pace && feet.every((f) => f.planted)) {
+        this.pace = want; Object.assign(this, L[want]);
+        this.groups.forEach((g, k) => g.forEach((leg) => { feet[leg].group = k; }));
+        this.lastGroup = -1;
+      } else changing = want !== this.pace;   // (no new step until the feet in the air are down)
+    }
     const independent = this.gait === 'independent';
     let swinging = -1;
     // 1. the feet in the air move along their arcs, and land
@@ -202,12 +214,19 @@ export class GaitPlanner {
     for (const f of feet) if (f.planted) { this.homeOf(f, root, heading, _t); f.drift = Math.hypot(f.pos.x - _t.x, f.pos.z - _t.z); }
     if (this.locked && this._brace) {   // (the brace, once as the wind-up begins: feet not at their wide homes step there)
       this._brace = false;
-      feet.forEach((f, i) => { if (f.planted && f.drift > this.drift * 0.12) this.pending.add(i); });
+      // (independent feet step one at a time, so a brace of every foot would still be stepping as the move lands: only
+      // those a settling step would move)
+      const off = this.drift * (independent ? 0.35 : 0.12);
+      feet.forEach((f, i) => { if (f.planted && f.drift > off) this.pending.add(i); });
     }
     const moving = speed > 0.08 || Math.abs(turn) > 0.3;
     const threshold = moving ? this.drift : this.drift * 0.35;   // (stopped: a settling step brings a foot home)
     const dur = this.locked ? this.stepTime[0] : this.swingTime(speed);   // (a brace is quick: done well before the pose holds)
-    if (!independent && swinging >= 0) return ev;
+    if (changing || (!independent && swinging >= 0)) return ev;
+    // (independent feet brace one at a time: a brace not begun within 0.3 s of the lock waits, so no foot is
+    // still lifting as the move lands)
+    this.lockedFor = this.locked ? (this.lockedFor ?? 0) + dt : 0;
+    if (independent && this.locked && this.lockedFor > 0.3) { this.pending?.clear(); return ev; }
     if (independent && (feet.filter(f => !f.planted).length >= 2 || this.sinceLift < 0.14)) return ev;
     // 3. the most urgent eligible group lifts; independent feet retain neighbouring supports.
     let best = -1, bestU = 0, second = -1, secondU = 0;
@@ -292,8 +311,12 @@ export class GaitPlanner {
       if (ph < duty) x = S / 2 - (ph / duty) * S;
       else { const u = (ph - duty) / (1 - duty); x = -S / 2 + smoother(u, 0, 1) * S; y = this.height * Math.sin(Math.PI * u); }
       this.homeOf(f, root, heading, f.pos);
-      f.pos.x += s * x; f.pos.z += c * x; f.pos.y += y;
+      f.pos.x += s * x; f.pos.z += c * x;
       f.planted = ph < duty;
+      // (a swinging foot's step at the root's height: the body rides on from and to, src/motion-kit/body.js; left at the
+      // last planned step they put a temple's guardian, 2400 m up, hundreds of metres under its feet)
+      if (!f.planted) { f.from.copy(f.pos); f.to.copy(f.pos); f.t = (ph - duty) / (1 - duty); }
+      f.pos.y += y;
     }
     this.cannedLast = true;   // (back to planning: it plants where the feet are)
   }

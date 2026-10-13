@@ -17,6 +17,7 @@ const v = new THREE.Vector3();
 
 /** The lowest vertex (world) in an object's subtree. */
 export function lowest(obj, out) {
+  if (obj.lowest) return obj.lowest(out);
   let best = Infinity;
   obj.traverse((o) => {
     if (!o.isMesh || !o.visible) return;
@@ -133,6 +134,28 @@ export function guardianSubject(make, legsOf, speed = 2.2, pace = 1) {
 
 // (on the kit since phase 6: each leg's chain, hung from the model's root; the Tooth-Warden is the sentinel on four legs)
 const guardianLegs = (m) => m.kit.legs.map((l) => l.root);
+/**
+ * A generated skin's legs (src/characters/keeper-creature.js, elder-creature.js): its kit chains draw nothing, so each
+ * leg is its three bones (leg<i>_thigh, _shin, _foot), the foot the lowest skinned vertex bound to them, the hip the thigh.
+ */
+export const boneLegs = (m) => m.kit.legs.map((_, i) => {
+  const bones = ['thigh', 'shin', 'foot'].map((r) => m.bones[`leg${i}_${r}`]), mesh = m.meshes[0];
+  // (the vertices its shin and foot carry most: where its lowest point is, at a stride)
+  const ids = new Set([1, 2].map((k) => mesh.skeleton.bones.indexOf(bones[k]))), si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight, list = [];
+  // (every third of them, the audit runs in a few seconds; within half a metre of the foot bone's rest: the pad, not the
+  // tips of a bird's long toes, whose lowest one changes as the foot rolls)
+  const pad = bones[2].position, pos = mesh.geometry.attributes.position, q = new THREE.Vector3();
+  for (let v = 0, n = 0; v < si.count; v++) if (ids.has(si.getX(v)) && sw.getX(v) > 0.5 && q.fromBufferAttribute(pos, v).distanceTo(pad) < 0.5 && n++ % 3 === 0) list.push(v);
+  return {
+    parent: bones[0].parent, traverse: (fn) => bones.forEach(fn), getWorldPosition: (out) => bones[0].getWorldPosition(out),
+    lowest(out) {
+      let best = Infinity;
+      mesh.skeleton.update();
+      for (const k of list) { mesh.getVertexPosition(k, v).applyMatrix4(mesh.matrixWorld); if (v.y < best) { best = v.y; out.copy(v); } }
+      return out;
+    },
+  };
+});
 export const GUARDIANS = {
   keeper: (pace) => guardianSubject(keeperModel, guardianLegs, 2.2, pace),
   sentinel: (pace) => guardianSubject(sentinelModel, guardianLegs, 2.4, pace),

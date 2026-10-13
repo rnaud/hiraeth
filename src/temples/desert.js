@@ -7,7 +7,7 @@ import { STORY } from '../desert-sites.js';
 import { TempleKit, T, box, lathe, annulus, Z_GAP } from './kit.js';
 import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Gust, Switch, Plate } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
-import { keeperModel } from './guardians.js';
+import { keeperGuardian } from './guardian-generated.js';
 import { chestMound } from '../boxes/mound.js';
 
 // The desert's temple: the Rose House, the great drum of rose stone the
@@ -422,8 +422,8 @@ function layout(rt) {
   K.solid(box(4, 5, 0.5, 0, 9.5, 214.9));
   K.glyph([0, 13, 213.55], 1.5, Math.PI);
 
-  // the Keeper, asleep curled at the far side of the basin
-  const model = keeperModel();
+  // the Keeper, asleep curled at the far side of the basin (its fitted Tripo body, the procedural one until it loads)
+  const model = keeperGuardian();
   model.pos.copy(K.world(C.x, 7, C.z + 9));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);

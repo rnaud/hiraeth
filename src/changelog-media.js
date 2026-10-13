@@ -748,6 +748,9 @@ const QC256 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch�
 // (v1.63, issues #260 #261 #258: a scratch strip shooter, each subject held at set times into its wind-up in the Arena,
 // drawn by the game's own captureView, against this branch's Vite (port 5861) and the tree before (ab0afadb, port 5863))
 const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the Arena: each held at set times into the move (the hound and the machine drawn alone, the guardians in an Arena ring), four frames of 320 × 360 side by side; this branch and the tree before it (ab0afadb); 12 October; cwebp -q 72';
+// (v1.65, issues #267 and #237: a scratch strip shooter, the guardian held and driven by hand in its own temple's hall, the
+// camera pinned in front and to its side, five frames side by side over two rows)
+const GUARD267 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5941), in the Rose House’s cistern: the Keeper driven by hand through the real fight’s poses (src/temples/boss.js poseRig and its own animate), the camera pinned 13 m in front and to its side; before, the procedural body swapped back in on the same branch; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.65': [
     { match: 'In the Unity preview, see-through things are see-through again', shots: [
@@ -783,6 +786,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'The makers’ chests open where they stand', shots: [{ name: 'chest-open', title: 'Opening a chest', caption: 'The first chest, on the dais at the tree’s foot, seven frames from the latch to the card. Before, it floated up, wobbled in the air and came apart into light, the backpack hanging where it was; after, it rocks on the ground, opens there with light pouring out of it, and the backpack floats over his open hand.', from: 'muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s Vite (port 5921) and the tree before it (9a78b7a2, the same port): a save at the quest’s chest step, the chest opened from in front of it; frames at 0.9, 2.2, 3.6, 5.4, 6.6, 7.6 and 8.8 s' }] },
     { match: 'Setting the spark-stone in Qanat’s roots is filmed now', shots: [{ name: 'tree-lit', title: 'Lighting the tree', caption: 'Seven frames from the moment the stone goes in to ten seconds after. Before, the camera stayed behind you at the foot of the trunk; after, from the ground by you out to the whole tree over Qanat.',
         from: 'muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s Vite (port 5921), a save at the spark-stone’s last step, the stone set from the roots; frames at 0.6, 2, 3.6, 5, 6.8, 8.6 and 10 s; before: the same build with the moment already seen (the camera as it always was)' }] },
+    { match: 'The Keeper of the cistern in the Rose House has its new body', tags: ['characters', 'desert'], shots: [
+      { name: 'keeper-skin-walk', title: 'Coming for you', caption: 'Walking at the fight’s pace across the cistern, from in front (top) and the side (bottom), a frame every 0.3 s: before, the old body of plates on six splayed legs; after, the new body trotting on three legs at a time.', from: GUARD267 },
+      { name: 'keeper-skin-stamp', title: 'Its stamp', caption: 'At 0.4, 0.8, 1.2, 1.4 and 1.8 s into its stamp: it rears on its four hind legs, its forelegs up, and slams down.', from: GUARD267 },
+    ], see: 'In the Rose House, open the way to the cistern and step in: the Keeper wakes. Watch it walk, rear to stamp and pant; give it water when it does.' },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [

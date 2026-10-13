@@ -649,8 +649,8 @@ world-space foot targets during translated/rotated walking, reachable mouth pose
 finite deformation across all attack definitions, repeatable reset and real encounter
 updates. Visual review covers walking, stamp, sweep and lowered open mouth from
 multiple angles, with rear clay inspection. Evidence is in ignored
-`output/character-tripo/keeper-v3/`. This is an animation pilot: the live temple
-still uses the existing guardian. Full temple combat, fluid hits, final touch,
+`output/character-tripo/keeper-v3/`. This was the animation pilot; since issue #267 the
+Rose House fights it ("The Keeper in the Rose House" below). Full temple combat, fluid hits, final touch,
 phase glow, mobile performance and lighting-neutral texture acceptance remain open.
 
 The pilot was moved to the `codex/guardian-keeper` worktree after pulling main
@@ -674,6 +674,58 @@ export and job identifiers; inventory the mesh and rig before selecting a custom
 skin or articulated-part adapter. Do not use the traveller's MakeHuman fitting
 coefficients. Existing temple tests establish gameplay behavior only; acceptance
 also requires real mesh deformation and visual review in the game renderer.
+
+### The Keeper in the Rose House (issue #267, October 2026)
+
+The fitted skin is the Rose House's guardian now, in the temple and in the Arena's ring:
+`src/temples/guardian-generated.js` `keeperGuardian()` is what `desert.js` and
+`arena-guardians.js` build. The temple is built at once and the GLB arrives a moment later
+(`loadKeeperV1`, loaded once), so the model starts as the procedural `keeperModel()` and the skin
+swaps in under the same `Guardian`: the wrapper owns `pos`, `heading` and `mouth` (the fight's
+targets and the water and touch prompts read them), its gameplay sizes are fixed for either body
+(radius 2.9, height 4.4, mouth hit sphere 1.3, the old one's), and the phase marks the fight laid
+in the old tell rig move to the skin's, remapped onto its narrower shell. The skin's group takes
+the old one's place in the temple: the kit plans feet in the world through the group's own
+matrix, so a body's group is never nested in another (nested, every foot was planted 2400 m up,
+the height of the temples, and the legs stood on the creature's back). A failed load keeps the
+procedural Keeper for good. The Unity bridge loads GLBs through the same loader from
+`StreamingAssets/hiraeth-js/public`; `BridgeBuild.Common` copies `guardians/keeper-v1/model.glb`
+(without it the bundle falls back too).
+
+What changed on the skin for the fight: the shell carries the old body's calm glyphs (the makers'
+sign laid where a ray from above meets the bind-pose shell, one mesh on the body bone, glowing
+with the calm meter). At the fight's 2.2 m/s the one-foot-at-a-time gait could not keep up (a hind
+leg was dragged straight behind, 7° of knee), so the planner takes a `fast` gait: the pilot's
+independent steps at a walk, tripods above 1.4 m/s (back below 1.12), changed while every foot is
+down; the homes sit a quarter of the way in under the hips, steps are a little longer and higher
+(drift 0.3, reach 0.6, lift 0.08 of the leg) and the body 0.4 m lower. An independent brace not
+begun within 0.3 s of a wind-up's lock waits, so no foot is lifting as a stamp lands. The motion
+audit (`tests/motion-guardians.test.js`, "keeper (generated)", on its own bones through
+`walk.mjs boneLegs`): slide 0.009 m/m, worst contact 0.03 m, knees 70° mean and 46° least,
+tripods `[[0,3,4],[1,2,5]]` at the fight's pace, cadence 0.75 → 0.47 steps/s at half.
+`tests/keeper-guardian.test.js` plays the fallback, the swap under a live fight, the tells
+(each ≥ 1.2 s, #258) over planted hind feet, the glyphs, and the real cistern fight on the skin:
+the guard's jar, a shot into its open mouth, the tank's water, a hand on its brow. The Keeper has
+no second verb (#257's `asks` are other guardians'); the guard is its own.
+
+Cost, procedural → skin: 40 → 2 draws a pass (the skin and its glyphs), 6,910 → 49,596
+triangles, a 2.97 MB GLB and a 2K texture (~21 MiB on the GPU with mipmaps). Device frame
+times are not measured yet.
+
+The far tier's canned cycle (`gait.js canned`) left a swinging foot's `from`/`to` at its last
+planned step: the body rides on them, so a temple guardian 160 m from you (2400 m up) sank its body
+toward the ground under it and came back up when you neared. Fixed for every walker.
+
+### Leg bones in their bend plane (`src/characters/creature-legs.js`)
+
+The kit aims its rigid segments with the shortest turn from +Y (`ik.js aim`), which is
+ill-defined for a segment pointing nearly straight down: a small change spun the Elder's thighs
+and the Keeper's shins half a turn about their length in one frame (up to 180°; the wobble of
+#237). `SkinLegs` frames each thigh and shin in its leg's bend plane instead (+Y along it, +Z
+toward the pole the kit keeps fixed to the body) times the bone's own rest offset, so the bind
+pose is exact; a planted foot keeps the heading it landed with and turns to the body's over its
+swing; `curl` folds the toes about the ankle. Largest per-frame turn of a leg bone walking and
+turning at 60 fps: 180° → 8°.
 
 ## Tripo character review experiment
 
@@ -1151,15 +1203,33 @@ remove painted lighting. Full temple integration, wind/vent interactions, final
 touch, lighting-neutral albedo and device/LOD acceptance remain separate stages.
 
 
-**Checkpoint status: unfinished prototype; visual acceptance failed.** User review
-on 12 October identified a persistently turned face, wobbling leg joints, and
-rigid extended legs during hover instead of an avian tuck. The source head is
-already turned; zero runtime head yaw preserves that geometry rather than
-straightening it. The IK instability still needs diagnosis, and flight needs
-articulated leg folding with takeoff/landing contact transitions. Further full-cycle
-motion and deformation work is required. Existing numerical tests establish
-limited invariants, not natural motion or visual readiness. Track repairs and
-full temple acceptance in [GitHub issue #237](https://github.com/rnaud/hiraeth/issues/237).
+**Checkpoint status: prototype; the three reported defects repaired, not yet accepted.** User
+review on 12 October found a turned face, wobbling leg joints and rigid extended legs in hover.
+The repairs (issue #237):
+
+- **The head.** The source skull and beak are turned 42° to her left on the neck (the jaw hinge
+  axis was already measured turned). `ELDER_STRAIGHT` turns neck1–neck3 and the skull 8°, 12°,
+  12° and 11° about their parents' up: the beak is within 2° of her heading, the head 0.08 m off
+  her middle (0.28 before), the chest untouched, the neck's worst edge 4.6 cm longer. On top she
+  looks toward you (`kit.eye`, ±0.55 rad on a spring, the last neck joint and the skull).
+- **The legs.** The wobble was the shortest-arc frames above (a thigh flipped 180° in a frame),
+  made worse by the source's two legs standing differently: each leg's bend plane from its own rest
+  knee bent the two in different planes. Both bend in one mirrored plane now, the mean of the two,
+  on mirrored homes; lengths stay each leg's own. The walk passes the motion audit's walker checks
+  ("elder (generated)": slide 0.016 m/m, worst 0.05 m, knees 74°/36°, cadence 0.8 → 0.45), measured
+  on the pad of each foot, not the tips of her long toes.
+- **Flight.** The fight lifts her to her hover in one frame; she rises to it over about 1.5 s
+  (`pose.alt`), her body drawn up from where she stood, wings beating, her feet planted until she
+  is clear (the kit stands her on the floor under her, not at the hover), then hips, hocks and toes
+  fold her feet up under her (the kit's tuck above 1, the toes curled 1.1 rad), and she comes down
+  the same way, her feet let down and planted under her as she lands.
+
+`tests/elder-creature.test.js` checks each (beak ahead and the gaze, mirrored planes and no leg
+bone turning more than 11° a frame, the folded legs and the feet's skin drawn up, no body jump
+across take-off and landing). Still open before she replaces the Aerie's Elder: a full-arena
+review (vents, wind, hit effects, the final touch in the temple), the painted lighting in the
+texture, device frame times and LOD. Tracked in
+[GitHub issue #237](https://github.com/rnaud/hiraeth/issues/237).
 
 ### Traveller portrait head and cloth ink (issue #198, 12 October 2026)
 
