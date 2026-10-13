@@ -68,6 +68,10 @@ export const CHANGELOG = [
     // Sentry, src/temples/desert.js sentry / dw, src/temples/migrate.js LAYOUTS.desert; docs/systems/temples.md; issue #245)
     { text: 'In the Rose House, the Givers’ guard no longer holds back a wind. Once you have it, a bronze watcher wakes by the far landing’s east door: its eye holds a narrowing beam on you, then fires a bolt. Raise your guard as it comes and the bolt flies back into its eye; the watcher breaks and the door opens onto the Hall of Channels. A save already past the old wind finds it broken.',
       see: 'In the Rose House, cross the bridge in the Hall of Fires and open the guard’s chest on the far landing. The watcher by the east door wakes; hold LB / L1 as its beam narrows.' },
+    // every game in a world starts from its host (src/story/hosts-data.js, src/minigames/kit/hosts.js, src/story/index.js
+    // host; docs/systems/minigames.md "The hosts"; issue #248)
+    { text: 'The games, trials and makers’ runs out in the worlds no longer start from a bare sign. Someone of the place stands by each sign, tells you in a line or two what it is, in that world’s own story, and asks if you want to play: Play or Not now. A makers’ run’s post and the lagoon’s race buoy are read instead.',
+      see: 'In the Desert, walk to the pilgrims’ small fire: Hamid stands by the drum circle’s sign. “Ask Hamid about the drum circle”, hear him out, then choose Play or Not now.' },
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

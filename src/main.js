@@ -136,6 +136,7 @@ import { warmShadersSliced as warmSliced, firstUse, settle, programKind } from '
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
+import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
@@ -2618,7 +2619,7 @@ if (minigameDef) {
 }
 // this world's mastery trial (src/trials/): a sign in the world opens its start card, played here on foot
 // (the runner as a game page's, but Quit leaves you where the run did: nothing reloads)
-trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, level, player, items, game, foes, npcs, sound, notice: (t) => showToast(t),
+trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, level, player, items, game, foes, npcs, sound, notice: (t) => showToast(t), host: queueHost,
   surfaceAt: (x, z, y, below) => waters.surfaceAt(x, z, y, below),
   open: (def) => {
     if (minigame) return false;
@@ -2630,6 +2631,8 @@ trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, leve
     return true;
   } });
 window.trials = trialsRt;
+// the hosts of this world's games, trials and makers' runs (issue #248): each sign's person, or its post, offers it
+for (const spot of takeHosts()) if (!minigameDef) { try { storyRt.host(spot); } catch (e) { console.warn(e); } }
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); },   // (the far side's detail finished, under the paper)
   busy: () => !!blades.grass?.placing });
 loadWatch.stop();

@@ -11,9 +11,10 @@ import { TRIALS, trialsFor } from '../src/trials/data.js';
 import { courtOf } from '../src/finds/courts.js';
 import { partsOf } from '../src/levels/names.js';
 import { checkCourse } from '../src/trials/check.js';
-import { createTrials } from '../src/trials/index.js';
+import { createTrials, createChallenges } from '../src/trials/index.js';
 import { COURTS, COURT } from '../src/finds/courts.js';
 import { clearInteractables, allInteractables } from '../src/interact.js';
+import { hostOf, hostStand } from '../src/minigames/kit/hosts.js';
 import { clearTargets } from '../src/targets.js';
 import { clearWorkings } from '../src/workings.js';
 import { GameState } from '../src/game-state.js';
@@ -68,6 +69,21 @@ for (const id of ORDER) {
     assert.equal(world.lacks(), '');
     assert.ok(world.par > 10, `a par (${world.par} s)`);
     world.dispose();
+    // its host (issue #248): the sign starts nothing itself; a person stands beside it on solid ground, out of the water
+    // (or the sign is read: the lagoon's buoy)
+    const spots = [];
+    const hosted = createChallenges({ levelId: id, scene, physics, level, player: { pos: V(0, 0, 0), mount: { kind: MODE_MOUNT[T.mode] ?? 'none' } }, items, game, surfaceAt, kits: [], host: (spot) => { spots.push(spot); return true; } });
+    assert.equal(spots.length, trials.length, 'each trial’s host is asked for');
+    assert.ok(!allInteractables().some((e) => e.id === `trial.${T.world}`), 'and its sign has no button of its own');
+    for (const spot of spots) {
+      const H = hostOf(spot.id);
+      assert.ok(H, `${spot.id} has a host`);
+      if (H.object) continue;
+      const st = hostStand(spot.at, spot.heading, H.stand), g = physics.groundAt(st.x, st.y + 2.5, st.z, 6);
+      assert.ok(Number.isFinite(g) && Math.abs(g - st.y) < 2, `${H.name} stands on something beside the sign (${g} vs ${st.y.toFixed(2)})`);
+      assert.ok(!(surfaceAt(st.x, st.z, g + 3, 10)?.y > g + 0.3), `${H.name} is not standing in water`);
+    }
+    hosted.dispose();
   });
 }
 const MODE_MOUNT = { bike: 'bike', skiff: 'skiff', bird: 'bird' };

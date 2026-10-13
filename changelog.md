@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.65 — 2026-10-13
 
+- The games, trials and makers’ runs out in the worlds no longer start from a bare sign. Someone of the place stands by each sign, tells you in a line or two what it is, in that world’s own story, and asks if you want to play: Play or Not now. A makers’ run’s post and the lagoon’s race buoy are read instead.
 - In the Rose House, the Givers’ guard no longer holds back a wind. Once you have it, a bronze watcher wakes by the far landing’s east door: its eye holds a narrowing beam on you, then fires a bolt. Raise your guard as it comes and the bolt flies back into its eye; the watcher breaks and the door opens onto the Hall of Channels. A save already past the old wind finds it broken.
 - Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. Climbing a wall tires you as before.
 - The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.

@@ -10,8 +10,10 @@ to do one.
 
 - **A sign in the world.** Every challenge has a makers' post in its colour a few steps from its start (the
   arcade sign's model, `gameMarkerModel`); a makers' run's has a name plate (`signPlate`) that shows the
-  makers' mark until you have a best, then your best. The interact button (X / □, E) says "try the …";
-  nothing lists them on a menu: you come across them.
+  makers' mark until you have a best, then your best. Since v1.64 (issue #248) the sign starts nothing itself:
+  a trial's host stands beside it (a person of the world: "ask Nadir about the dune line") and a makers' run's
+  post is read ("read the makers' post"); either says what it is in a line or two and offers Play or Not now
+  (docs/systems/minigames.md "The hosts"). Nothing lists them on a menu: you come across them.
 - **The start card.** The sign opens the minigames' runner (`src/minigames/kit/runner.js`) in the world
   (`drives: false`, `def.trial`): the name, one line on what it is, the rules, the controls (Xbox /
   PlayStation form on a pad), the makers' mark and your best. Start: you are put at the line, 3, 2, 1, GO.

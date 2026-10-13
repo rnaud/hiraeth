@@ -28,6 +28,10 @@ world (`src/minigames/pirates.js`, below "Pirates between worlds").
   west rim of the Sky Stones' start plateau, `[-52, 40.33, -61]`: there the ground found from high up is not the
   plateau's, so its height is given). Stand at a sign and the button must say "play …" (QA: every sign checked,
   and Quit puts you back by it).
+- **Hosted** (v1.64, issue #248): in a world a sign starts nothing itself. Its host stands beside it (a person of
+  that place, or where nobody could stand the sign itself, read), says in a line or two what the game is in the
+  place's own story, and offers it: **Play** or **Not now**. Play does what the sign's button did (the game's page,
+  or a trial's start card); below, "The hosts". The Arcade's signs (a developer's plaza) still play at once.
 - **The Arcade** (`?level=arcade`, a developer's world in the Debug list): a sign for every game round one plaza, to
   try them one after another (below, "The Arcade").
 - A game page skips the title (`save-slots.js` `DIRECT_PARAMS` has `game`) and plays in the save slot in use.
@@ -69,6 +73,51 @@ shapes go too (each wave of Ink tide left them), and its floor warning's own glo
 `materials.js` `releaseMaterial`: out of the cache; the outline is one shared material): 200 foes made and let go
 leave the material count flat (`tests/minigames-waves.test.js`). QA: `renderer.info.memory.geometries` stays flat over three
 Retries in every game.
+
+## The hosts (v1.64, issue #248: `src/story/hosts-data.js`, `src/minigames/kit/hosts.js`)
+
+A sign in a world asks for its host instead of registering a button: `placeGameMarker` (unless in the Arcade, or
+`host: false`) and the trials' and makers' runs' signs (`makeTrial`'s `host`) call `queueHost({ id, name, at,
+heading, play, enabled, whileRiding })`. The level is built before the story, so main.js hands the queue to the story
+once both are up (`takeHosts()`, `storyRt.host(spot)`): a person is spawned beside the sign (`hostStand`: 1.5 m to its
+side and half a metre toward you, or the host's own `stand: { side, ahead }`; on the ground there), with the prompt
+"ask Darro about the canyon run" (a def's `prompt`, src/story/index.js `talkable`); a thing (`object: true`) is an
+interactable on the sign itself ("read the makers' post"), its talk shown over the shoulder as a trace's is. Either
+way the talk is `hostTalk`: the host's one or two toned lines (`say`), then **Play** (called once the panel has
+closed) or **Not now**. Without a host (node's tests: `createTrials` with no `host`) the sign's button opens the card
+as before. Tests: `tests/hosts.test.js` (every game, trial and makers' run in a world has one; their lines, names,
+Play / Not now; a hosted sign has no button; where the persons stand in the desert, the market and Vael),
+`tests/trials-worlds.test.js` (each trial's host on solid ground, out of the water).
+
+| game | world, where | host | what they say |
+|---|---|---|---|
+| Fishing | Desert, the mineral basin's shore | Yusra, who fishes the basin | The giants left their water in the Still Oasis, and strange fish came to live in it. / Three minutes on my pier. Strike when the float goes under, and don't snap the line. |
+| Canyon run | Desert, under the lavender cliffs | Darro, who races the Rose Canyon | Qanat's salvagers race old hoverbikes round the Rose Canyon. Three laps, two chasms. / Hit the kickers fast. The drifts and the banks will slow you. |
+| Ring race | Desert, the hanging bridge's east shelf | Ilka, who keeps the brass hoops | The makers hung brass hoops among the needles. Nobody knows what for, so we fly through them. / Twenty rings in order on race-tuned jets. Each ring fills the tank a little. |
+| Wing drop | Desert, the hanging bridge's west shelf | Zayd, who painted the mesa | The pilgrims painted a mark on the mesa's top for the birds. We land on it instead. / Three drops. Open your wings, ride the warm air up, and touch down on the middle softly. |
+| Drum circle | Desert, the pilgrims' small fire | Hamid, who keeps the camps' drums | Every night of the procession, the camps drum the old song round the fire. / Sit with us. Strike each beat as it rolls into the ring, and we dance. |
+| Dune skiing | Desert, the Long Dune's crest | Tarek, who made the sand-skis | Qanat's children slide down the Long Dune on boards. I made skis. / Pass between every pair of poles. Tuck for speed, and land your spins. |
+| The shooting gallery | Signal Market, the west pavement | Fitz, who calls the shooting gallery | Roll up! Painted fish, ink blots and bells, and a minute on the clock! / Splash every target. A miss ends your run, and never the folk with parasols. |
+| Sketch hunt | Signal Market, the pavement | Vesna, who draws the market | The market changes faster than its signs. I draw it before it does. / Six things on a list, three minutes. Frame each one well, then sketch it. |
+| Sky steps | Vael (the sky stones), the start plateau's west rim | Sister Clem, who counts the fallen-up stones | When the cloud rose, small stones fell up with everything else. They make a path to the makers' gate. / Jump from stone to stone to the gate. A fall costs a life. |
+| Dune line (trial) | Desert | Nadir, who rides the dune line | The salvagers ride the dunes down into the basin, gate to gate. Most come back. / On your hoverbike, through every gate to the bottom, against the clock. |
+| Wind ladder (trial) | Vael | Ysolt, who watches the wind ladder | (whispers) The wind climbs here in two columns. The riders climbed them once, with their birds. / Open your wings. Up the columns, through the rings. |
+| Stone circuit (trial) | Vael, the sky stones | Brother Felix, who keeps the riders' round | The riders flew a round of the stones before they crossed the cloud. Nobody has since. / Ride the bird round the Needles, the Table and the Monastery, through every gate. |
+| Reed race (trial) | Lorn, the shore by its buoy | Wil, who races the reed-cutters | The reed-cutters race their skiffs round the makers' buoys when the crystal is quiet. / Steer through every gate, round the lake and back. A gust in the sail goes faster. |
+| Lagoon laps (trial) | Lorn, the Deep Wood's lagoon | the race buoy (read, from the skiff) | (A keepers' bell hangs in the buoy, the lamp-mark cut under it: two laps of the lagoon, rung off from here.) / (A tally is scratched below. The newest time is forty years old.) |
+| Eye garden (trial) | Viridel | Linden, who waters the sleeping eyes | The white builders left eyes asleep in the garden. A splash wakes them, for a moment. / Wake all eight, as quick as you can. |
+| Shaft climb (trial) | City-Shaft, the rim | Ostra, a courier who won't pay for cabs | Couriers who won't pay for a cab ride the air pillar up from the middle terrace. / Wings open: up the pillar and through the gates to the rim. |
+| Glass slalom (trial) | Glass Dunes | Opal, a glassworker who flies the waves | On festival days we fly the slalom between the glass waves. They've never fallen on anyone. / Glide the gates, and climb the warm columns when you sink. |
+| Canyon dive (trial) | Buried Machine | Tibor, who dives the canyon on Tooth Day | On Tooth Day the dome folk dive the canyon on wings, for luck. / Down through the gates, then up the column at its end to climb out. |
+| Garden round (trial) | Garden of Spheres | Aurel, who walks the round of the spheres | Each sphere remembers a sound. We walk a round of them, to remember with them. / On foot, gate to gate round the garden, against the clock. |
+| Tube run (trial) | Underwater City | Gil, who races the sealed tubes | The lamp boys race the tubes when the whales are quiet. Lately that's every night. / Run the tubes gate to gate, and mind the turns. |
+| Floor round (trial) | Moon Foundry | Ansgar, who ran the pour times | The founders' runners carried the pour times round the floor. Nobody needs them now. / Round the floor, gate to gate, before the pour cools. |
+| Courier's round (trial) | City Floating in Space | Pia, who runs the oil bills | Couriers run the bills across the bridges before the islands drift another hand's width. / Every gate in order. Don't step off into the dark. |
+| Avenue run (trial) | Signal Market | Quill, who hangs the signs | The sign-hangers fly the avenue every market night! Under the signs, through the gates! / Wings open. Climb the warm columns when you sink. |
+| the makers' runs (16) | each in its world (docs/systems/challenges.md) | the makers' post, read | (Under the makers' mark:) what the run is in the house it was stood out from (the wind kept in a hall, the Hush over the causeway, the Belfry's fallen-up bridges…) / what to do, in one line |
+
+The Arena's Ink tide and the Arcade's signs are a developer's and keep their buttons; Chime pirates is the flight
+between worlds, not a sign.
 
 ## The Arcade
 

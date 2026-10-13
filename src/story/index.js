@@ -23,6 +23,7 @@ import { backdropFor, portraitSize } from './portrait-bg.js';
 import { keyBadge, escapeHtml } from '../prompt-keys.js';
 import { hintsFor } from '../hint-level.js';
 import { shoulders, besideAnchor, tagPlace } from '../talk-prompt.js';
+import { hostOf, hostTalk, hostStand } from '../minigames/kit/hosts.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
 import { setupPerdide2 } from './perdide2.js';
@@ -208,6 +209,8 @@ export function createStory(o) {
       // of the shoulders, for an engine's own prompt: platform.js screen.prompt)
       beside: () => shoulders(npc, UP, _sh),
       at: () => { const b = shoulders(npc, UP, _sh); return b.mid ? _p.set(b.mid.x, b.mid.y, b.mid.z) : _p.set((b.l.x + b.r.x) / 2, (b.l.y + b.r.y) / 2, (b.l.z + b.r.z) / 2); },
+      prompt: def.prompt ?? `talk to ${def.name.replace(/^The /, 'the ')}`,   // (a game's host: "ask Darro about the canyon run")
+      at: () => (npc.talkAt ? npc.talkAt(_p) : _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.4 : 2.15) * npc.object.scale.y)),
       enabled: () => npc.object.visible && !npc.stunned?.(),
       distance: (p) => (Math.abs(p.pos.y - npc.pos.y) < 2.5 ? Math.hypot(p.pos.x - npc.pos.x, p.pos.z - npc.pos.z) : Infinity),
       use: () => dialogue.start(def, npc),
@@ -367,8 +370,37 @@ export function createStory(o) {
   // (looked up when needed: the touch controls are built after the story)
   let useBtn = null;
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
+  /**
+   * A game's host (issue #248, src/minigames/kit/hosts.js): a sign in this world (a game's, a trial's, a makers' run's)
+   * asked for it. A person stands beside it and offers it (Play / Not now); a thing (a makers' post, a buoy) is read.
+   * spot: { id, name (the game's), at (the sign's foot), heading (the way it faces), play(), enabled?, whileRiding? }.
+   */
+  function host(spot) {
+    const H = hostOf(spot.id);
+    if (!H) return null;
+    // (Play once the talk has closed: the game's card or page comes up over the world, not over the panel)
+    const later = (f) => { const go = () => (dialogue.open ? setTimeout(go, 40) : f()); setTimeout(go, 0); };
+    const def = hostTalk(H, spot.play, { later, name: spot.name });
+    def.id ??= `host.${spot.id}`;
+    if (H.object) {
+      const at = spot.at.clone(), look = at.clone().addScaledVector(UP, 1.9);
+      return registerInteractable({
+        id: `host.${spot.id}`, priority: PRIORITY.use, range: spot.range ?? 3.2, prompt: def.prompt, whileRiding: !!spot.whileRiding,
+        at: () => look, enabled: () => spot.enabled?.() ?? true,
+        distance: (p) => (Math.abs(p.pos.y - at.y) < 3 ? Math.hypot(p.pos.x - at.x, p.pos.z - at.z) : Infinity),
+        use: () => dialogue.start(def, null, at, look),
+      });
+    }
+    const stand = hostStand(spot.at, spot.heading ?? 0, H.stand);
+    const g = physics?.groundAt?.(stand.x, stand.y + 2.5, stand.z, 6);
+    if (Number.isFinite(g)) stand.y = g;
+    const npc = spawn(def, { route: [stand], heading: spot.heading ?? 0, speed: 0.4 });
+    npc.facing = spot.heading ?? 0;
+    return npc;
+  }
+
   const rt = {
-    quests, dialogue, marker, world, temple, shops, fellow, scientist, portrait, moments, makeRoom, cabs, prompt: null, promptAt: null,
+    quests, dialogue, marker, world, temple, shops, fellow, scientist, portrait, moments, makeRoom, cabs, host, prompt: null, promptAt: null,
     busy: () => dialogue.open || moments.playing || !!world?.busy?.(),   // (a world's own scene: home's quiet moments, a first time filmed)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {

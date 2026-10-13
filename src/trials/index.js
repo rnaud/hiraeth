@@ -31,6 +31,8 @@ import { stripTone } from '../story/tone.js';
 //   const trials = createTrials({ levelId, scene, physics, level, player, items, game, foes, notice, surfaceAt, open })
 //   trials.update(dt, t)    per frame (the wind columns, the sign's lamp)
 //   open(def) → bool        main.js: a MinigameRunner for the trial's game definition, in this world
+//   host(spot) → bool       main.js: its host stands by the sign and offers it (src/minigames/kit/hosts.js queueHost);
+//                           without one (the tests) the sign's own button opens the card
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
@@ -169,7 +171,7 @@ export function firstPurse(game, items) {
   return got ? `First finish: ${got} chimes.` : 'First finish.';
 }
 
-export function makeTrial(T, { levelId, scene, physics, player, items, game, foes = null, notice = () => {}, surfaceAt = null, open = () => false, npcs = null, sound = null }) {
+export function makeTrial(T, { levelId, scene, physics, player, items, game, foes = null, notice = () => {}, surfaceAt = null, open = () => false, npcs = null, sound = null, host = null }) {
   const kitRun = T.mode === 'kit';
   const M = trialMats(T.color);
   const offs = [];
@@ -237,11 +239,15 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   };
   world.game = trialGame(T, world);
   if (kitRun) world.plate();
-  offs.push(registerInteractable({
+  // (with a host, issue #248: the person beside the sign, or the post itself read, offers the run: src/minigames/kit/hosts.js)
+  const enabled = () => !world.running && (!player?.riding || (!!MODES[T.mode]?.mount && player.ride === player.mount));   // (a run on a mount: ride up to the sign)
+  const hosted = !!host && host({ id: T.id, name: T.name, at: mPos.clone(), heading: sign.rotation.y, play: () => world.try(), enabled,
+    whileRiding: !!MODES[T.mode]?.mount });
+  if (!hosted) offs.push(registerInteractable({
     id: kitRun ? `trial.${T.id}` : `trial.${T.world ?? levelId}`, priority: PRIORITY.use, range: 3,   // (by its own world: a merged world has two)
     prompt: `try the ${T.name.toLowerCase()}`,
     at: () => (world._at ??= mPos.clone().add(V(0, 1.6, 0))),
-    enabled: () => !world.running && (!player?.riding || (!!MODES[T.mode]?.mount && player.ride === player.mount)),   // (a run on a mount: ride up to the sign)
+    enabled,
     distance: (pl) => (Math.abs(pl.pos.y - mPos.y) < 2.5 ? Math.hypot(pl.pos.x - mPos.x, pl.pos.z - mPos.z) : Infinity),
     use: () => world.try(),
   }));

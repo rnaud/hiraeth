@@ -10,6 +10,7 @@ import { makeMaterial } from '../../materials.js';
 import { registerInteractable, PRIORITY } from '../../interact.js';
 import { gameById, gameHref } from '../index.js';
 import { FACE, TITLE_FACE } from '../../typefaces.js';
+import { queueHost, hostOf } from './hosts.js';
 
 // ------------------------------------------------------------------ the arcade sign
 /** The sign's model: a stone post, a slanted board with the game's glyph glowing, a lamp on top. */
@@ -71,10 +72,11 @@ export function signPlate(title, sub = '', color = '#71d7cf', w = 1.5, h = 0.56)
  * @param gameId  a game's id (src/minigames/<id>.js)
  * @param pos     where it stands (a Vector3 or [x, y, z]); heading (radians) which way it faces;
  *                plate (a line of text, '' for none) a name plate on the post with the game's name and that
- *                line (the Arcade's: the best)
+ *                line (the Arcade's: the best); host (default: in a world, not the Arcade, when the game has one):
+ *                the sign starts nothing itself, its host beside it offers the game (kit/hosts.js, issue #248)
  * @returns { object, remove() }
  */
-export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate = null } = {}) {
+export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate = null, host = world.levelId !== 'arcade' && !!hostOf(gameId) } = {}) {
   const def = gameById(gameId, games);
   if (!def) throw new Error(`no minigame "${gameId}"`);
   const at = Array.isArray(pos) ? new THREE.Vector3(...pos) : pos.clone();
@@ -89,6 +91,10 @@ export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate 
   const light = new THREE.Vector4(at.x, at.y + 2.7, at.z, 5);
   world.lights?.push(light);
   const go = world.go ?? ((href) => { location.href = href; });
+  // (hosted: the person beside it offers the game, the sign is only its sign)
+  if (host && queueHost({ id: gameId, name: def.name, at: at.clone(), heading, play: () => go(gameHref(gameId, world.levelId)) })) {
+    return { object, remove() { object.removeFromParent(); const i = world.lights?.indexOf(light) ?? -1; if (i >= 0) world.lights.splice(i, 1); } };
+  }
   const off = registerInteractable({
     id: `minigame.${gameId}`, priority: PRIORITY.use, range: 3.2,
     at: () => object.position.clone().add(new THREE.Vector3(0, 2.9, 0)),
