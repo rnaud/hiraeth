@@ -8,8 +8,8 @@
 //   keys           a step that names buttons ({key:…}): the controls are taught where they are first needed
 //   hand-off       a talk step to one person right after a talk step to another (one person sending you to the next)
 //   ask-someone    a step whose words send you to a person ("Ask X", "Tell X", "Find X, who…") that isn't the last
-//   can't skip     a step with no goal the game can see done (no flag, no when): going straight past it never counts
-//   gate?          a step whose flag is an item (item.*) with no gate: later steps may pass it without the item
+//   can't skip     a step with no goal the game can see done (no flag, when, goto, talk or bring): going past it never counts
+//   gate?          a step whose flag is an item (item.*) with no gate (nor ahead: false): later steps may pass it without the item
 import { readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -35,8 +35,8 @@ for (const f of readdirSync(dir).filter((x) => /-(data|people)\.js$/.test(x))) {
       const prev = q.stages[i - 1];
       if (s.talk && prev?.talk && prev.talk !== s.talk) fl.push(`hand-off (${prev.talk} → ${s.talk})`);
       if (ASK.test(s.text) && i < q.stages.length - 1 && (s.talk || /^(Ask|Tell|Talk|Speak)/.test(s.text))) fl.push('ask-someone');
-      if (!s.flag && !s.when && !s.goto) fl.push('can’t skip');
-      if (s.flag?.startsWith('item.') && !s.gate && i < q.stages.length - 1) fl.push('gate?');
+      if (!s.flag && !s.when && !s.goto && !s.talk && !s.bring) fl.push('can’t skip');   // (talk and bring steps are done by doing them: docs/systems/story.md)
+      if (s.flag?.startsWith('item.') && !s.gate && s.ahead !== false && i < q.stages.length - 1) fl.push('gate?');
       n++;
       if (fl.length) flagged++;
       if (fl.length || all) lines.push(`  ${s.id.padEnd(10)} ${s.text}${fl.length ? `  ⚑ ${fl.join(', ')}` : ''}`);

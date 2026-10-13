@@ -163,7 +163,7 @@ export const QUESTS = [
     id: 'desert.oum', title: 'The One Who Fell Behind', world: 'desert',
     outro: 'Oum sits by the fire. She saw the light go over, and turn, and climb away.',
     stages: [
-      { id: 'find', text: 'Find old Oum in the western dunes', label: 'Old Oum', talk: 'oum', at: 'oum' },
+      { id: 'find', text: 'Search the western dunes for old Oum', label: 'Old Oum', talk: 'oum', at: 'oum' },
       { id: 'lead', text: 'Walk Oum back to the camps, slowly', label: 'The camps, with Oum', flag: 'desert.oum.home', at: 'camps' },
     ],
   },

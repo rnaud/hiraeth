@@ -36,9 +36,19 @@ export function hostStand(at, heading = 0, { side = 1, ahead = 0.5 } = {}, out =
  * The host's talk (a src/story/dialogue.js person): their lines, then Play (`play`, once the talk has closed: `later`)
  * or Not now. `name`: the game's, for the prompt ("ask Darro about the canyon run").
  */
-export function hostTalk(host, play, { later = (f) => f(), name = '' } = {}) {
+export function hostTalk(host, play, { later = (f) => f(), name = '', lacks = null } = {}) {
   const { say, lines, object, prompt, stand, ...person } = host;
   const game = name ? name.replace(/^The /, 'the ') : '';
+  // (`lacks()`: what the run wants that the traveller hasn't got, '' if nothing, a trial's "It wants the hoverbike.": then
+  // the host says so and offers no Play to refuse a moment later (issue #226, quest QC: nothing asked before it can be had)
+  const short = typeof lacks === 'function' ? () => lacks() || '' : null;
+  const can = short ? () => !short() : null;
+  const offer = [
+    { text: '~happy~ Play.', do: () => later(play), end: true, ...(can ? { if: can } : {}) },
+    { text: '~neutral~ Not now.', end: true, ...(can ? { if: can } : {}) },
+    ...(short ? [{ text: '~neutral~ I’ll come back with it.', end: true, if: () => !can() }] : []),
+  ];
+  const told = short ? [...say, { if: () => !can(), get text() { return `~neutral~ ${short()} Come back with it.`; } }] : say;
   return {
     ...person,
     lines: lines ?? ['~neutral~ …'],
@@ -46,13 +56,7 @@ export function hostTalk(host, play, { later = (f) => f(), name = '' } = {}) {
     prompt: prompt ?? (game ? `ask ${host.name} about ${/^the /.test(game) ? game : /ing$/i.test(game) ? game.toLowerCase() : `the ${game.toLowerCase()}`}` : undefined),
     talk: {
       nodes: {
-        offer: {
-          say,
-          choices: [
-            { text: '~happy~ Play.', do: () => later(play), end: true },
-            { text: '~neutral~ Not now.', end: true },
-          ],
-        },
+        offer: { say: told, choices: offer },
       },
     },
   };

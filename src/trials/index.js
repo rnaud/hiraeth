@@ -241,7 +241,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   if (kitRun) world.plate();
   // (with a host, issue #248: the person beside the sign, or the post itself read, offers the run: src/minigames/kit/hosts.js)
   const enabled = () => !world.running && (!player?.riding || (!!MODES[T.mode]?.mount && player.ride === player.mount));   // (a run on a mount: ride up to the sign)
-  const hosted = !!host && host({ id: T.id, name: T.name, at: mPos.clone(), heading: sign.rotation.y, play: () => world.try(), enabled,
+  const hosted = !!host && host({ id: T.id, name: T.name, at: mPos.clone(), heading: sign.rotation.y, play: () => world.try(), enabled, lacks: () => world.lacks(),
     whileRiding: !!MODES[T.mode]?.mount });
   if (!hosted) offs.push(registerInteractable({
     id: kitRun ? `trial.${T.id}` : `trial.${T.world ?? levelId}`, priority: PRIORITY.use, range: 3,   // (by its own world: a merged world has two)

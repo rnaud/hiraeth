@@ -371,14 +371,14 @@ export function createStory(o) {
   /**
    * A game's host (issue #248, src/minigames/kit/hosts.js): a sign in this world (a game's, a trial's, a makers' run's)
    * asked for it. A person stands beside it and offers it (Play / Not now); a thing (a makers' post, a buoy) is read.
-   * spot: { id, name (the game's), at (the sign's foot), heading (the way it faces), play(), enabled?, whileRiding? }.
+   * spot: { id, name (the game's), at (the sign's foot), heading (the way it faces), play(), enabled?, whileRiding?, lacks? } (lacks(): what the run wants that he hasn't got).
    */
   function host(spot) {
     const H = hostOf(spot.id);
     if (!H) return null;
     // (Play once the talk has closed: the game's card or page comes up over the world, not over the panel)
     const later = (f) => { const go = () => (dialogue.open ? setTimeout(go, 40) : f()); setTimeout(go, 0); };
-    const def = hostTalk(H, spot.play, { later, name: spot.name });
+    const def = hostTalk(H, spot.play, { later, name: spot.name, lacks: spot.lacks });
     def.id ??= `host.${spot.id}`;
     if (H.object) {
       const at = spot.at.clone(), look = at.clone().addScaledVector(UP, 1.9);

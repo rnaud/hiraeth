@@ -89,6 +89,11 @@ as before. Tests: `tests/hosts.test.js` (every game, trial and makers' run in a 
 Play / Not now; a hosted sign has no button; where the persons stand in the desert, the market and Vael),
 `tests/trials-worlds.test.js` (each trial's host on solid ground, out of the water).
 
+**Not before it can be had** (v1.67, issue #226's quest QC): a trial's or makers' run's spot passes its `lacks()` (the
+trial's own: "It wants the hoverbike.", "Its prize is for the lantern."). While it says something, the host adds it as
+a last page ("It wants the hoverbike. Come back with it.") and offers only "I'll come back with it.": no Play to be
+refused a moment later by the notice. Once had, the lines and Play / Not now as before.
+
 | game | world, where | host | what they say |
 |---|---|---|---|
 | Fishing | Desert, the mineral basin's shore | Yusra, who fishes the basin | The giants left their water in the Still Oasis, and strange fish came to live in it. / Three minutes on my pier. Strike when the float goes under, and don't snap the line. |
@@ -97,7 +102,7 @@ Play / Not now; a hosted sign has no button; where the persons stand in the dese
 | Wing drop | Desert, the hanging bridge's west shelf | Zayd, who painted the mesa | The pilgrims painted a mark on the mesa's top for the birds. We land on it instead. / Three drops. Open your wings, ride the warm air up, and touch down on the middle softly. |
 | Drum circle | Desert, the pilgrims' small fire | Hamid, who keeps the camps' drums | Every night of the procession, the camps drum the old song round the fire. / Sit with us. Strike each beat as it rolls into the ring, and we dance. |
 | Dune skiing | Desert, the Long Dune's crest | Tarek, who made the sand-skis | Qanat's children slide down the Long Dune on boards. I made skis. / Pass between every pair of poles. Tuck for speed, and land your spins. |
-| The shooting gallery | Signal Market, the west pavement | Fitz, who calls the shooting gallery | Roll up! Painted fish, ink blots and bells, and a minute on the clock! / Splash every target. A miss ends your run, and never the folk with parasols. |
+| The shooting gallery | Signal Market, the west pavement | Fitz, who calls the shooting gallery | Roll up! Painted fish, ink blots and bells, and a minute on the clock! / Splash every target you can. A miss breaks your streak, and so does splashing a parasol. |
 | Sketch hunt | Signal Market, the pavement | Vesna, who draws the market | The market changes faster than its signs. I draw it before it does. / Six things on a list, three minutes. Frame each one well, then sketch it. |
 | Sky steps | Vael (the sky stones), the start plateau's west rim | Sister Clem, who counts the fallen-up stones | When the cloud rose, small stones fell up with everything else. They make a path to the makers' gate. / Jump from stone to stone to the gate. A fall costs a life. |
 | Dune line (trial) | Desert | Nadir, who rides the dune line | The salvagers ride the dunes down into the basin, gate to gate. Most come back. / On your hoverbike, through every gate to the bottom, against the clock. |

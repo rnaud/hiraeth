@@ -65,7 +65,7 @@ test('no quest step sends you to a person: no “Ask Hask”, “Find Brother Ca
   for (const [f, m] of mods) for (const q of m.QUESTS ?? []) for (const s of q.stages) {
     const hit = PERSON_VERB.exec(s.text);
     if (!hit) continue;
-    const person = names.some((n) => new RegExp(`^(the )?${escape(n)}(?![’'\\p{L}])`, 'u').test(hit[2]));
+    const person = names.some((n) => new RegExp(`^(the )?((old|young|little) )?${escape(n)}(?![’'\\p{L}])`, 'u').test(hit[2]));
     if (/^(Ask|Talk to|Speak|Go and)/.test(hit[1]) || person) bad.push(`${f} ${q.id}.${s.id}: “${s.text}”`);
   }
   assert.deepEqual(bad, []);

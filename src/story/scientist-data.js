@@ -84,12 +84,17 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
       ],
       choices: [
         { text: '~curious~ Where will I find you?', goto: 'meet.ship' },
-        { text: '~neutral~ Come aboard, then.', goto: 'meet.ship' },
+        { text: '~neutral~ Come aboard, then.', goto: 'meet.aboard' },
       ],
     },
     'meet.ship': {
       do: { set: { 'frag.met': true } },
       say: ['~playful~ On your ship, if you’ll have me. I’ll take the hold, among the crates. Bring them as you find them.'],
+    },
+    // (each answer its own reply, issue #226's quest QC: an invitation isn't answered "if you'll have me")
+    'meet.aboard': {
+      do: { set: { 'frag.met': true } },
+      say: ['~happy~ I hoped you’d say that. I’ll take the hold, among the crates. Bring them as you find them.'],
     },
     // ---------------------------------------------------------------- aboard
     hello: {

@@ -153,10 +153,11 @@ export const PEOPLE = {
         light: {
           say: [
             '~solemn~ (She looks past you, at the scorch along the hull. She looks at it a long time.) A light did that. A singing one.',
-            '~sad~ It was mine. My answer. I’m sorry.',
             { text: '~whisper~ It sheds as it sings, you know. Splinters of the song, all along the way. Nobody stops for them.', if: SPLINTERS.none },
             { text: '~whisper~ You picked up after it. I can hear them from here, in your hold. Bits of my song.', if: SPLINTERS.some },
             { text: '~surprised~ Every splinter it shed? (She listens toward the ship.) Then it’s whole again. First time since it left me.', if: SPLINTERS.all },
+            '~sad~ It was mine. My answer. I’m sorry.',
+            // (her answer last, so "Your answer?" follows it: issue #226's quest QC, answers follow what was just said)
           ],
           choices: [{ text: '~curious~ Your answer?', goto: 'answer' }, { text: '~angry~ It drained my ship. I came down in a desert.', goto: 'sorry' }],
         },

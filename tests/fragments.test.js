@@ -168,9 +168,15 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   assert.doesNotMatch(m.said, /Orrin|at your service/, 'no name and trade announced (v1.61, #229): the panel names him');
   assert.match(m.said, /splinters of its song/);
   assert.match(m.said, /at a price/);
-  assert.match(m.said, /On your ship/);
+  assert.match(m.said, /the hold, among the crates/);
+  assert.doesNotMatch(m.said, /if you’ll have me/, 'an invitation is not answered "if you’ll have me" (issue #226, quest QC rule 5)');
   assert.equal(ctx.game.flag('frag.met'), true);
   assert.ok(m.said.split(/(?<=[.!?)])\s+/).length <= 12, 'terse');
+  // asked where he'll be instead: on your ship, if you'll have him
+  const ctx2 = fresh(found(1));
+  const m2 = talk(thrumPerson({ flags: () => ctx2.game.data.flags, has: ctx2.items.has, here: 'desert' }), ctx2, ['Where will I find you']);
+  assert.match(m2.said, /On your ship, if you’ll have me/);
+  assert.equal(ctx2.game.flag('frag.met'), true);
   // aboard, with one: his count and what you hold; one answer opens his shop
   const c1 = talk(person, ctx, ['Where do they hide']);
   assert.match(c1.said, /One of 96\. One to spend\./);
@@ -400,6 +406,8 @@ test('the Lantern: Ilen knows the fragments for her song, one line by how many y
   assert.match(some, /I can hear them from here, in your hold\./); assert.doesNotMatch(some, /Nobody stops|whole again/);
   assert.match(all, /Then it’s whole again\./); assert.doesNotMatch(all, /Nobody stops|in your hold/);
   assert.match(all, /It was mine\. My answer\./, 'right after she owns up to the light');
+  // and her answer is the node's last page, so "Your answer?" follows what she has just said (issue #226, quest QC rule 5)
+  for (const said of [none, some, all]) assert.ok(said.indexOf('My answer. I’m sorry.') > Math.max(said.indexOf('Nobody stops'), said.indexOf('in your hold'), said.indexOf('whole again')));
 });
 
 test('the people book: Anselm Thrum, his story growing with each upgrade, at its price', () => {

@@ -55,6 +55,24 @@ test('a host says one or two toned lines, then offers Play or Not now', () => {
   assert.equal(played, 1, 'play: the game');
 });
 
+test('a host whose run wants what he hasn’t got says so and offers no Play (issue #226, quest QC rule 4)', () => {
+  let want = 'It wants the hoverbike.', played = 0;
+  const def = hostTalk(HOSTS['trial-desert'], () => played++, { name: 'Dune line', lacks: () => want });
+  const ctx = { game: new GameState(), quests: { stage: () => null } };
+  let R = new DialogueRunner(def, ctx);
+  assert.equal(R.pages.length, HOSTS['trial-desert'].say.length + 1);
+  assert.equal(R.pages.at(-1), 'It wants the hoverbike. Come back with it.');
+  assert.equal(R.tones.at(-1), 'neutral');
+  while (!R.lastPage) R.advance();
+  assert.deepEqual(R.choices().map((c) => c.text), ['I’ll come back with it.']);
+  want = '';
+  R = new DialogueRunner(def, ctx);
+  assert.deepEqual(R.pages, HOSTS['trial-desert'].say.map((l) => parseLine(l).text), 'had: the lines alone');
+  while (!R.lastPage) R.advance();
+  assert.deepEqual(R.choices().map((c) => c.text), ['Play.', 'Not now.']);
+  assert.equal(played, 0);
+});
+
 test('one name, one person: the hosts’ names are their own', () => {
   const first = (n) => n.replace(/^(Madame|Mother|Sister|Brother|Aunt|The) /, '').split(' ')[0];
   const taken = new Set([...EVERYONE.map((p) => first(p.name)), ...Object.values(CONTENT).flatMap((c) => (c?.npcs ?? []).filter((n) => n.name).map((n) => first(n.name)))]);

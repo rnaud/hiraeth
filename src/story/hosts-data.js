@@ -44,7 +44,7 @@ export const HOSTS = {
   gallery: P({
     id: 'host.gallery', name: 'Fitz', title: 'who calls the shooting gallery', color: '#c8483a', kind: 'm',
     palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#f4ece0', legs: '#2b2f45', hat: '#e8c66a', hair: '#2b211f' }, head: 'brim', look: { body: 'neckerchief', build: 'heavy' },
-    say: ['~shout~ Roll up! Painted fish, ink blots and bells, and a minute on the clock!', '~playful~ Splash every target. A miss ends your run, and never the folk with parasols.'],
+    say: ['~shout~ Roll up! Painted fish, ink blots and bells, and a minute on the clock!', '~playful~ Splash every target you can. A miss breaks your streak, and so does splashing a parasol.'],
     lines: ['~shout~ Roll up, roll up!', '~playful~ A minute. Any minute you like.'],
   }),
   drums: P({
