@@ -21,6 +21,8 @@ export class UnityBackend {
     this.listMatrices = true;
     // (a still drawable's world matrix not compared again each frame: engine/mirror.js stillMatrices, the same ops)
     this.stillMatrices = true;
+    // (the frame's commands handed to C# as a view of the command writer's buffer, not a fresh ArrayBuffer: pack.js takeView)
+    this.frameView = true;
     // (hidden subtrees' matrices left until they are shown or read: engine/scene-matrices.js skipHidden)
     this.skipHidden = true;
     // (a person past 30 m out of the view moved a quarter of the frames, as past 110 m: engine/game.js, src/npc.js offView)
@@ -366,7 +368,8 @@ export class UnityBackend {
   /** The frame's commands to C#, once. */
   frame() {
     this.stats.opWords = this._opWords; this._opWords = {};
-    const buf = this.w.take();
+    // (a view of the writer's own buffer, no new ArrayBuffer a frame: pack.js takeView, issue #113; frameView false: a copy, as before)
+    const buf = this.frameView ? this.w.takeView() : this.w.take();
     this.stats.frames++; this.stats.commandBytes = buf.byteLength;
     const t0 = performance.now();
     this.host.Frame(this.toHost(buf));

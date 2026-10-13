@@ -7,6 +7,7 @@ import { pads, host, toHost } from './host.js';
 import { createGame } from '../game.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
+import { fullGcWatch } from './gc-watch.js';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
 
@@ -38,13 +39,15 @@ export function start(argsJson) {
   const backend = new UnityBackend(host);
   backend.portraitDir = args.out ?? null;
   // (-js-off a,b: the script's own measures turned off for a before-and-after on one build: still, the mirror's still
-  // matrices; hidden, the hidden subtrees' matrices; people, the people out of view; shape, the banners' frames moved by vertices(); BridgeArgs passes it as `off`)
+  // matrices; hidden, the hidden subtrees' matrices; people, the people out of view; shape, the banners' frames moved by vertices();
+  // copy, the frame's commands handed over as a fresh ArrayBuffer instead of a view of the writer's (pack.js takeView); BridgeArgs passes it as `off`)
   const off = new Set(String(args.off ?? '').split(',').filter(Boolean));
   if (off.has('still')) backend.stillMatrices = false;
   if (off.has('hidden')) backend.skipHidden = false;
   if (off.has('people')) backend.peopleLod = false;
   if (off.has('shape')) backend.shapeAttrs = null;
-  S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0 };
+  if (off.has('copy')) backend.frameView = false;
+  S = { args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;
   // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
@@ -207,6 +210,8 @@ export function frame(dt) {
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;
   S.frames++;
+  // (-v8-gcs: each of V8's full collections said with its frame, beside the late frames in unity.log; gc-watch.js)
+  if (S.gcs) { const f = S.gcs.check(); if (f) console.log(`[unity] V8 full GC ${S.gcs.count} at frame ${S.frames}, ${f} frames after the last`); }
   const P = S.plan;
   if (!P) return;
   const step = P.steps[P.i];

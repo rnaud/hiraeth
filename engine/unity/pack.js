@@ -112,6 +112,14 @@ export class CommandWriter {
   matrix(e, eo = 0) { mirrorMatrix(e, eo, this.f32, this.n); this.n += 16; }
   /** The stream so far, closed with 0, as a fresh ArrayBuffer; the writer starts again. */
   take() { this.reserve(1); this.u32[this.n++] = 0; const out = this.buf.slice(0, this.n * 4); this.n = 0; return out; }
+  /**
+   * The stream so far, closed with 0, as a view over the writer's own buffer (a Uint32Array: no new ArrayBuffer), good
+   * until the next write; the writer starts again. What the frame hands to C# (Puerts copies a view's bytes at the call):
+   * in Unity's IL2CPP players each buffer handed over is held by Puerts' handle on its box until the managed collector
+   * lets the box go, so a fresh ArrayBuffer a frame (~350 kB at the City-Shaft) outlived the young generation and V8 ran
+   * a full collection every ~190 frames, the Xbox's stall every ~3 s at the rim (issue #113).
+   */
+  takeView() { this.reserve(1); this.u32[this.n++] = 0; const out = new Uint32Array(this.buf, 0, this.n); this.n = 0; return out; }
   get empty() { return this.n === 0; }
 }
 export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17, matVec: 18, keys: 19, cape: 20 };

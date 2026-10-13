@@ -20,7 +20,9 @@ export function pump() {
   let buf;
   while ((buf = H.AudioTake())) {
     const { pcm, ended } = R.apply(new Float64Array(buf));
-    if (pcm.length) { H.AudioRendered(toHost(pcm.slice().buffer)); rendered += pcm.length / 2; }
+    // (the view itself, its bytes copied by Puerts at the call: a fresh ArrayBuffer a batch would be held by Puerts' handle on
+    // its box until the managed collector lets it go, and pile up for V8's full collections; pack.js takeView, issue #113)
+    if (pcm.length) { H.AudioRendered(toHost(pcm)); rendered += pcm.length / 2; }
     if (ended.length) H.AudioEnded(ended.join(','));
     if (SAY.has(++batches)) console.log(`[audio] after ${batches} batches: ${R.nodes.size} nodes, ${R.params.size} params, ${R.live.size} sources playing, ${R.freed ?? 0} freed`);
   }
