@@ -1,0 +1,45 @@
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_d47e1832c4338a 325,327,336-337,504
+engine/game.js
+  s_9ca76055a220ed::t_f455b9d16292c2 14-15,18,56,58-64,145-166,180,280-282,292,373-374,377-380,391-394,446-467,479-494,554-583,592-605,732
+engine/menus.js
+  s_9ca76055a220ed::t_ccbab5def0237b 1-417
+engine/unity/game.js
+  s_9ca76055a220ed::t_e5b2ae0048107e 12-21,45-47,50-108,119-120,125-127,130-145,232-238,257-266,269-273,277-285,312-313,319
+tests/engine-menus.test.js
+  s_9ca76055a220ed::t_e462f2b1b0a39d 1-287
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_6905087334d2e4 206-208,223-227,246-250
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_c9094c7cd8377d 246
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_3a9800b67a4b29 82,85-86,91-108,123-126,141-144
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_0cb61e692a7a2f 204-220
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_e5f935cf364d34 1-501
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs.meta
+  s_9ca76055a220ed::t_fb60b0cef1c5b1 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_698875bc4aa368 400-401
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_0cd28f18367134 32,34-38,63-64,67,75-83,120-123,126-127,280-281,333-337,515-516,722-756
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeShadowChunks.cs
+  s_9ca76055a220ed::t_254fe7cff2d821 27-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "172a072fa9e3e7adf3faed7adca33a9118384e87",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
