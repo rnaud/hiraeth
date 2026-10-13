@@ -95,7 +95,11 @@ const PAGE = `(() => {
   const V = (a) => new THREE.Vector3(...a);
   const P = window.__probe = {
     pin(eye, target, fov = 55) { const e = V(eye); window.__pin = { e, q: new THREE.Quaternion().setFromRotationMatrix(m4.lookAt(e, V(target), up)), fov }; camera.updateMatrixWorld(true); return true; },
-    hide(on) { const o = player.object ?? player.char?.root; if (!o) return false; if (!o.__probeVis) { let v = o.visible; Object.defineProperty(o, 'visible', { get() { return window.__hideP ? false : v; }, set(x) { v = x; }, configurable: true }); o.__probeVis = true; } window.__hideP = !!on; return true; },
+    // (him and what he carries outside his own object: the guard's bracer rides his hand bone but is shown by the guard's
+    // update, which a stepped probe never runs; left visible, it floated where he stood in the "without" takes, visual-v1.66)
+    hide(on) { const o = player.object ?? player.char?.root; if (!o) return false;
+      for (const x of [o, window.scene?.getObjectByName('shield bracer')].filter(Boolean)) if (!x.__probeVis) { let v = x.visible; Object.defineProperty(x, 'visible', { get() { return window.__hideP ? false : v; }, set(y) { v = y; }, configurable: true }); x.__probeVis = true; }
+      window.__hideP = !!on; return true; },
     // a story person (window.npcs, by their def's id) held at a place: their walk stopped, hidden on demand
     placeNpc(id, pos, heading) { const n = (window.npcs ?? []).find((x) => x.def?.id === id && !x.pooled); if (!n) return false;
       n.pos.set(...pos); n.heading = heading; n.update = function () { this.show?.(true); this.object.position.copy(this.pos); this.object.quaternion.setFromAxisAngle(up, heading); };
