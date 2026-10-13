@@ -240,7 +240,7 @@ test('every value of the Surface shader\'s UnityPerMaterial but its arrays is in
 test('the Xbox draws the Surface shader\'s lean variants (the full one leaves half the picture out there): the ground\'s and the water\'s own', () => {
   const sh = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader');
   assert.match(sh, /#pragma multi_compile_local _ HIRAETH_LEAN HIRAETH_LEAN_TERRAIN HIRAETH_LEAN_WATER/);
-  assert.match(sh, /UNITY_BRANCH if \(TERRAINK && mode == MODE_TERRAIN\)/);
+  assert.match(sh, /UNITY_BRANCH if \(TERRAINK && mode == MODE_TERRAIN[ )]/);   // (and the -surface-skip test's bit after it)
   assert.match(sh, /UNITY_BRANCH if \(WATERK && mode == MODE_WATER/);
   const r = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs');
   assert.match(r, /#if \(UNITY_STANDALONE_LINUX \|\| UNITY_WSA \|\| UNITY_ANDROID\) && !UNITY_EDITOR\s+true;/, 'the Deck, the Xbox and the Android handhelds (the Retroid: 35.9 -> 24.7 ms of GPU at the desert spawn)');

@@ -435,6 +435,7 @@ namespace Hiraeth.Bridge
             BridgeRenderer.census = BridgeArgs.Flag("-census");
             BridgeRenderer.skinCull = BridgeArgs.Flag("-skin-cull");
             if (BridgeArgs.Flag("-no-view-instances")) InstMats.ViewCull = false;
+            InstMats.ViewSetsOnly = BridgeArgs.Flag("-view-instance-sets");
             if (BridgeArgs.Arg("-shadow-depth") is string sdp)
                 HiraethShadows.DepthFormat = sdp == "16" ? UnityEngine.Experimental.Rendering.GraphicsFormat.D16_UNorm : sdp == "24" ? UnityEngine.Experimental.Rendering.GraphicsFormat.D24_UNorm_S8_UInt : UnityEngine.Experimental.Rendering.GraphicsFormat.D32_SFloat;
             // (the Surface shader's lean variants for the materials that need none of its rare paths, or only the ground's or the

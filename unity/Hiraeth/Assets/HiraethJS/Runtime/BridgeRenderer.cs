@@ -1028,6 +1028,13 @@ namespace Hiraeth.Bridge
             }
             foreach (var g in grass.Values) if (g.mesh) Add("grass", g.n, (long)g.n * g.mesh.vertexCount, true);
             foreach (var c in crowds.Values) if (c.mesh) Add("crowd", c.n, (long)c.n * c.mesh.vertexCount, true);
+            if (Time.frameCount % 900 == 0)
+            {
+                var sets = new System.Text.StringBuilder("Hiraeth bridge: census, the instanced sets:");
+                foreach (var n in nodes.Values) if (n.im != null && n.rawN > 0 && n.go && n.go.activeInHierarchy) sets.Append("
+  " + n.go.name + ": " + n.im.Describe());
+                Debug.Log(sets.ToString());
+            }
             var sb = new System.Text.StringBuilder("Hiraeth bridge: census (on / vertices, seen / vertices):");
             foreach (var kv in by) sb.Append($" {kv.Key} {kv.Value[0]}/{kv.Value[1]}, {kv.Value[2]}/{kv.Value[3]};");
             Debug.Log(sb.ToString());

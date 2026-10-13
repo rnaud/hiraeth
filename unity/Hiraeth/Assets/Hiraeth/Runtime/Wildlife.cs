@@ -151,6 +151,10 @@ namespace Hiraeth
         /// maps' cull (Cull). Before, every set drew every instance wherever the camera looked: on the Retroid at the
         /// desert's spawn 4 243 instances, 0.9 M vertices a frame (issue #262). -no-view-instances: as before.</summary>
         public static bool ViewCull = true;
+        /// <summary>-view-instance-sets: whole sets only (none culled one by one), a test.</summary>
+        public static bool ViewSetsOnly;
+        /// <summary>For the census: what this set is and how the view's cull saw it.</summary>
+        public string Describe() => $"{(mat ? mat.name : "?")} n{count} drew {lastDrawn} meshR {meshR:0.0} ok {boundsOk} bounds {bounds.center:F0} {bounds.size:F0}";
         Inst[] viewSub; GraphicsBuffer viewBuf; MaterialPropertyBlock viewMpb;
         /// <summary>The instances the last Draw drew (the census: BridgeRenderer -census).</summary>
         public int lastDrawn;
@@ -167,7 +171,7 @@ namespace Hiraeth
             if (view != null && ViewCull && boundsOk)
             {
                 if (!Inside(view, view.Length, bounds)) return;
-                if (count >= 16 && rad.Length >= count && !Holds(view, view.Length, bounds))
+                if (!ViewSetsOnly && count >= 16 && rad.Length >= count && !Holds(view, view.Length, bounds))
                 {
                     if (viewSub == null || viewSub.Length < count) viewSub = new Inst[data.Length];
                     k = 0;
