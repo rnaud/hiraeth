@@ -1,0 +1,21 @@
+.agents/skills/hiraeth-ai-characters/references/non-humanoids.md
+  s_2ad33e6612702c::t_ed64f73fe66877 105-120
+docs/systems/characters.md
+  s_2ad33e6612702c::t_366138ef5f40d3 652-653,678-729,1202-1228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e28e73a7eeee62f33293584fe4748300043badb4",
+  "prompts": {},
+  "sessions": {
+    "s_2ad33e6612702c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae76b8453cfeb7284",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
