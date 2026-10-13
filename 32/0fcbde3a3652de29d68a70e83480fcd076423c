@@ -1,0 +1,43 @@
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_d921075217a352 41-57,68,84,86,93-106,119,122-126
+src/fluid-tool.js
+  s_9ca76055a220ed::t_9f29acfd5248ae 1018-1019
+src/flurry.js
+  s_9ca76055a220ed::t_1d90f0660f3639 94-97
+src/foes.js
+  s_9ca76055a220ed::t_c2b59aafc7afe8 1569,1574-1581,1718
+src/lock-reticle.js
+  s_9ca76055a220ed::t_52c3a5d86c8d25 163-173,211
+src/main.js
+  s_9ca76055a220ed::t_6066c837d59e0b 2353,2369
+src/player.js
+  s_9ca76055a220ed::t_547327872c3638 394,714-730,1406-1412,1463
+src/temples/boss.js
+  s_9ca76055a220ed::t_1675e2d01ea38a 54-58,63-65,163-164,224-274,314-315,402,471,486-492,518,553-556,595,641-642,648-682,689,802
+src/temples/desert.js
+  s_9ca76055a220ed::t_ed88ea019d786b 157-159,161-163,166-171,173-180,185-190,220,233,235-236,242-243
+src/temples/guardian-generated.js
+  s_9ca76055a220ed::t_c83ed9536a62c0 4,47-51,108-109
+src/temples/hints.js
+  s_9ca76055a220ed::t_78d7ff0dc514aa 66-68
+tests/keeper-guardian.test.js
+  s_9ca76055a220ed::t_ba677763f10d72 137-139
+.claude/skills/combat-review/guardian.mjs
+  s_9ca76055a220ed::t_7df0ac13f51256 1-263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "320fcbde3a3652de29d68a70e83480fcd076423c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
