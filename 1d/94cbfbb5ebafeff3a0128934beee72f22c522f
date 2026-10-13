@@ -1,0 +1,73 @@
+.claude/skills/level-design-qc/SKILL.md
+  s_9ca76055a220ed::t_b8e035a3291de6 91
+changelog.md
+  s_9ca76055a220ed::t_f523803e14384e 7-9
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_f1fecdd56a4064 294-298
+docs/systems/progression.md
+  s_9ca76055a220ed::t_893b9804bba510 112-121
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_272beba8c254cb 458-485
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_c8b19313021309 163-169,182
+scripts/level-design/lib.mjs
+  s_9ca76055a220ed::t_f7c3e3af461f55 327-328,426
+scripts/level-design/path.mjs
+  s_9ca76055a220ed::t_eadc6644a67619 33-35
+src/changelog-media.js
+  s_9ca76055a220ed::t_e505d8a35a339e 777,802-810
+src/changelog.js
+  s_9ca76055a220ed::t_ec42826ac0159a 37-42
+src/desert-sites.js
+  s_9ca76055a220ed::t_12337183b4e35b 38
+src/levels/bazaar.js
+  s_9ca76055a220ed::t_38e9c9cb326a4c 40-41,301-330,497-500
+src/story/desert-data.js
+  s_9ca76055a220ed::t_37df03703e95d0 75-80,82,132-137,139-140,297-298,300-302,365-380,643-647
+src/story/desert-repay.js
+  s_9ca76055a220ed::t_22d2f4612ccd80 11-12,45-50,60,62,125,156
+src/story/desert.js
+  s_9ca76055a220ed::t_0f6281beb2786e 10,103-105,119-120,179-180,257-262,566-567
+src/story/leave-gate.js
+  s_9ca76055a220ed::t_6a319172495b0f 52-53,56
+src/story/people-book.js
+  s_9ca76055a220ed::t_c1d03a6d9b7e10 99-104
+tests/desert-repay.test.js
+  s_9ca76055a220ed::t_1ed60da88b5808 17-21
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_3832a81d49bd54 66-68,81,91-107,219
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_c2d24b816613a0 673-684,688,697
+tests/leave-gate.test.js
+  s_9ca76055a220ed::t_6b1e9cb60f4f84 87,89-95,97-99,101-103,106-107,111-123
+tests/playthrough-saves.test.js
+  s_9ca76055a220ed::t_db01b8bebdb3e3 16,39-47,49-72
+tests/desert-lookout.test.js
+  s_1471c33493993e::t_fc17e9a4369219 1-52
+tests/level-design-landmarks.test.js
+  s_1471c33493993e::t_f23e09988c2077 151-168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1d94cbfbb5ebafeff3a0128934beee72f22c522f",
+  "prompts": {},
+  "sessions": {
+    "s_1471c33493993e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac4d135d50e745014",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
