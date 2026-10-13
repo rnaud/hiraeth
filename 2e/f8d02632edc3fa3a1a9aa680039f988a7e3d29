@@ -1,0 +1,23 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_78f2871f189f2b 2570-2643
+unity/Hiraeth/Assets/Hiraeth/Runtime/Wildlife.cs
+  s_9ca76055a220ed::t_22312a0a322377 157-163
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_eb000ae1f38df1 1015-1017
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ef8d02632edc3fa3a1a9aa680039f988a7e3d29",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
