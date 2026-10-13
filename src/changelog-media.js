@@ -752,6 +752,10 @@ const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the 
 // camera pinned in front and to its side, five frames side by side over two rows)
 const GUARD267 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5941), in the Rose House’s cistern: the Keeper driven by hand through the real fight’s poses (src/temples/boss.js poseRig and its own animate), the camera pinned 13 m in front and to its side; before, the procedural body swapped back in on the same branch; 13 October; cwebp -q 72';
 const GUARD237 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5941), in the Aerie’s hall: the generated Elder put in place of the live one for the review and driven by hand (her real poses, the camera pinned 13 m in front and to her side, she looking ahead); before, the prototype as it was on main (1e94ecb8) on the same branch; 13 October; cwebp -q 72';
+// (v1.64, issues #252 #245 #248 #224: a scratch driver for headless Chrome against this branch's Vite (port 5931) and the
+// tree before it (1e94ecb8, served apart on port 5933), the camera pinned at the same view for both)
+const BATCH13 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931) and the tree before it (1e94ecb8, port 5933), the camera pinned at the same view; 13 October; cwebp -q 72';
+const BATCH13_AFTER = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931); 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.65': [
     { match: 'In the Unity preview, see-through things are see-through again', shots: [
@@ -797,6 +801,24 @@ export const CHANGELOG_MEDIA = {
     ], see: 'On the development server open /tools/elder-review.html and choose Hover, Walk or Front. She is a preview: the Aerie still has the Elder you know.' },
   ],
   '1.64': [
+    { match: 'Climbing a ladder no longer tires you', numbers: [
+      { title: 'Up a porch ladder of the Overnight Train to the roof walk (4.4 m)', unit: '', better: 'higher', device: 'the game’s own player and collision in node, 60 steps a second, walking into the ladder from the porch', rows: [
+        { where: 'metres climbed (before, the climb let go at the first rung)', before: 0.05, after: 4.4 },
+        { where: 'stamina left at the top, of 1', before: null, after: 1 },
+        { where: 'stamina left after the carriage’s end wall beside it (a wall: as before)', before: 0.93, after: 0.93 },
+      ], source: 'a scratch probe of the level’s porch ladders on the tree before (1e94ecb8) and this change (tests/ladder-stamina.test.js holds the after); in headless Chrome the same: the roof reached, the stamina 1' }] },
+    { match: 'In the Rose House, the Givers’ guard no longer holds back a wind', shots: [
+      { name: 'givers-watcher', title: 'The far landing', caption: 'Before, the east doorway stood open onto the Hall of Winds, its bellows’ wind held back by the guard; after, its door is shut and the Givers’ watcher beside it holds its beam on the traveller, about to fire.', from: BATCH13 },
+      { name: 'givers-watcher-broken', only: 'after', title: 'Its bolt sent back', caption: 'Taken on the guard, the bolt flew back into its eye: the watcher sags, its eye gone grey, and the east door has sunk open.', from: BATCH13_AFTER },
+    ] },
+    { match: 'The games, trials and makers’ runs out in the worlds no longer start from a bare sign', shots: [
+      { name: 'game-host', title: 'The drum circle’s sign', caption: 'Before, the sign alone: pressing at it opened the game; after, Hamid, who keeps the camps’ drums, stands by it.', from: BATCH13 },
+      { name: 'game-host-offer', only: 'after', title: 'Play or Not now', caption: 'He says what the game is in the camps’ own story, then asks: Play or Not now.', from: `${BATCH13_AFTER}, the talk opened with E` },
+    ] },
+    { match: 'The chime pirates no longer open on a start screen', shots: [
+      { name: 'pirates-start', title: 'The first screen', caption: 'Before, a start card: its rules, its controls, Start; after, the fight under way, its buttons small at the bottom right with the four missiles under them.', from: `${BATCH13}, half a second after the page came up` },
+      { name: 'pirates-missile', only: 'after', title: 'A missile', caption: 'A missile chasing a pirate down its smoke trail, the teal diamond on the next it would lock; the hints in a controller’s buttons once one is in use, two missiles left.', from: `${BATCH13_AFTER}, a controller in use` },
+    ] },
     { match: 'The Unity preview opens on the title screen now', shots: [
       { name: 'unity-start', title: 'The first screen', caption: 'Before, the preview opened straight into the Desert, the camera inside the ship over the traveller’s head; after, the title: Continue, Saves and Settings.', from: 'adb screencap on the Retroid Pocket Nova, the Unity preview muted (-mute -metrics: the frame readout at the top), build 2066 against this branch’s build (12 October)' },
       { name: 'unity-start-menu', only: 'after', title: 'The Start menu', caption: 'Menu: the sidebar and its page, here the settings, a slider’s value moved with the stick.', from: 'the same device and build' },
