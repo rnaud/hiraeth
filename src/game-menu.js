@@ -16,8 +16,10 @@
 //
 //   Quests      the father's charge and each quest under way: its overall goal and its next step only
 //               (src/story/quests.js summary), the one tracked first; the finished ones by title, a short list
-//   Map         the world you are in, from above (src/world-map.js): you, the ship, the way on, the temples,
-//               the people met and the boxes opened; the legend beside it, A / × zooms on the one picked
+//   Map         the world you are in, from above (src/world-map.js): you, the ship, the way on and the other
+//               quests' steps, the temples, the people met and the boxes opened; no list (issue #244): the left
+//               stick moves a cursor over it, the triggers zoom (the wheel, − and +), the mark under the cursor is
+//               named beside it
 //   Items       the gear (the makers' items, each drawn by the game's own pipeline: src/item-icons.js),
 //               what you carry for the quests, the keepsakes for the father's charge
 //   Worlds      the worlds you know, in the route's order, one a row: A / × shows what you have found there
@@ -41,6 +43,7 @@ import { glyph } from './pad-glyphs.js';
 import { gridStep } from './menu-pad.js';
 import { t, onLanguage } from './i18n.js';
 import { chimeIcon } from './chime-icon.js';
+import { MapView, VIEW } from './world-map.js';
 
 // (the names in the language now: src/i18n.js; the menu opens on the first, Quests: issue #213)
 export const PANELS = ['quests', 'map', 'items', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
@@ -320,38 +323,38 @@ const MARK_SYM = {
   you: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0 -9 L7 7 L0 3.5 L-7 7 Z"/></svg>',
   ship: '<svg viewBox="-12 -8 24 16" aria-hidden="true"><path d="M-11 1 C-6 -6 6 -6 11 1 C6 6 -6 6 -11 1 Z"/><path d="M-4 -4 L0 -7 L4 -4" fill="none"/></svg>',
   goal: '<i>✦</i>', temple: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M-8 8 V-1 L0 -8 L8 -1 V8 Z"/><path d="M-3 8 V2 H3 V8" fill="none"/></svg>',
-  person: '<i>●</i>', box: '<i>▣</i>',
+  person: '<i>●</i>', box: '<i>▣</i>', quest: '<i>◇</i>',
 };
 
 /**
  * Map: { world, marks: [{ id, kind, name, sub, u, v, deg, on }] (src/world-map.js mapMarks), canvas (the drawn ground,
- * or null while it is drawn), progress (0..1), zoom (the mark zoomed on, or null), scale: { frac, label }, note }.
- * The map large, the marks over it (the traveller's arrow turned the way he faces), north up; beside it the legend,
- * a line a mark, the cursor's one ringed on the map; A / × zooms on it (again: the whole map).
- * Rows: one line of the legend a row.
+ * or null while it is drawn), progress (0..1), zoom (an engine's mark zoomed on, or null), scale: { frac, label }, note,
+ * span (m the whole map is across), detail: { canvas, u0, v0, s } (a sharper drawing of a part, for a zoomed view) }.
+ * The map is the whole sheet, north up, the marks over it (the traveller's arrow turned the way he faces), a cursor
+ * on it and the name of the mark under it beside the cursor; the zoom's − and + in a corner (issue #244: "There should
+ * be no list under it"). The marks are placed for the whole map here; GameMenu.mapPaint places them for its view.
+ * Rows: a mark a row (the strip and an engine's own cursor: engine/menus.js); the page shows no list.
  */
-export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, zoom = null, scale = null, note = '' } = {}) {
+export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, zoom = null, scale = null, note = '', detail = null } = {}) {
   const rows = marks.map((m, i) => [{ col: 0, kind: 'mark', id: m.id, name: m.name, sub: m.sub, desc: '', act: 'zoom', mark: m, r: i }]);
   const pos = (m) => `left:${(m.u * 100).toFixed(2)}%;top:${(m.v * 100).toFixed(2)}%`;
-  // (the way on, the ship and the temples named on the map, unless another name is already beside them)
-  const named = new Set();
-  for (const m of marks) {
-    if (!m.on || !['goal', 'ship', 'temple'].includes(m.kind)) continue;
-    if (marks.some((o) => named.has(o.id) && Math.hypot(o.u - m.u, o.v - m.v) < 0.08)) continue;
-    named.add(m.id);
-  }
-  const markHtml = (m) => `<span class="mk mk-${m.kind}${named.has(m.id) ? ' named' : ''}" data-mark="${esc(m.id)}" style="${pos(m)}${m.deg !== undefined ? `;--deg:${m.deg.toFixed(1)}deg` : ''}">${MARK_SYM[m.kind] ?? ''}<b>${esc(m.name)}</b></span>`;
-  const lines = marks.map((m, i) => `<button class="mline mk-${m.kind}${m.on ? '' : ' off'}" ${cellAttrs(i, 0)} data-mark="${esc(m.id)}"><span class="sym">${MARK_SYM[m.kind] ?? ''}</span><span class="mtext"><b>${esc(m.name)}</b><small>${esc(m.sub ?? '')}</small></span></button>`).join('');
+  const markHtml = (m) => `<span class="mk mk-${m.kind}" data-mark="${esc(m.id)}" style="${pos(m)}${m.deg !== undefined ? `;--deg:${m.deg.toFixed(1)}deg` : ''}">${MARK_SYM[m.kind] ?? ''}</span>`;
+  const d = detail?.canvas ? detail : null;
   const html = `<div class="gm-map${zoom ? ' zoomed' : ''}">
-    <div class="gm-mapsheet">
-      <div class="gm-mapimg">${canvas ? '' : `<p class="drawing"><span class="pen" aria-hidden="true"></span>${t('gm.map.drawing')} ${Math.round(progress * 100)}%</p>`}</div>
+    <div class="gm-mapsheet" data-map-sheet>
+      <div class="gm-mapplane"><div class="gm-mapimg">${canvas ? '' : `<p class="drawing"><span class="pen" aria-hidden="true"></span>${t('gm.map.drawing')} ${Math.round(progress * 100)}%</p>`}</div>${d ? `<div class="gm-mapdetail" style="left:${(d.u0 * 100).toFixed(3)}%;top:${(d.v0 * 100).toFixed(3)}%;width:${(d.s * 100).toFixed(3)}%;height:${(d.s * 100).toFixed(3)}%"></div>` : ''}</div>
       <div class="gm-marks">${marks.filter((m) => m.on).map(markHtml).join('')}</div>
+      <span class="gm-cursor" aria-hidden="true"></span>
+      <div class="gm-maptip" role="status" hidden><b></b><small></small></div>
+      <h2 class="gm-mapname">${esc(world)}</h2>
       <span class="gm-north" aria-hidden="true">N</span>
-      ${scale ? `<span class="gm-scale" style="--w:${(scale.frac * 100).toFixed(1)}%"><i></i>${esc(scale.label)}</span>` : ''}
+      ${scale ? `<span class="gm-scale" style="--w:${(scale.frac * 100).toFixed(1)}%"><i></i><span>${esc(scale.label)}</span></span>` : ''}
+      <div class="gm-mapzoom"><button type="button" data-map-zoom="1" aria-label="${t('gm.map.in')}">${glyph('rt', { key: '+' })}+</button><button type="button" data-map-zoom="-1" aria-label="${t('gm.map.out')}">${glyph('lt', { key: '−' })}−</button></div>
+      ${!marks.length ? `<p class="gm-mapnone">${t('gm.map.none')}</p>` : ''}
+      ${note ? `<p class="gm-mapnote">${esc(note)}</p>` : ''}
     </div>
-    <aside class="gm-legend"><h2>${esc(world)}${zoom ? ` <span>${t('gm.map.zoomed')}</span>` : ''}</h2>${lines || `<p class="none">${t('gm.map.none')}</p>`}${note ? `<p class="gm-mapnote">${esc(note)}</p>` : ''}</aside>
   </div>`;
-  return { html, rows, canvas };
+  return { html, rows, canvas, detail: d };
 }
 
 const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
@@ -411,7 +414,8 @@ export class GameMenu {
     this.person = null;     // the People panel: the person whose page is open (null: the cards)
     this.detail = null;     // (that page's data: its neighbours for ← →)
     this.gridAt = null;     // (the cards' cursor while a page is open)
-    this.mapZoom = null;    // the Map panel: the mark zoomed on (null: the whole map)
+    this.mapView = new MapView();   // the Map panel's view: its cursor and zoom (src/world-map.js, issue #244)
+    this.mapData = null;    // (what the map source gave last: its marks, the whole map's span)
     if (!el) return;
     el.classList.add('gamemenu');
     el.innerHTML = `
@@ -434,6 +438,8 @@ export class GameMenu {
       el.querySelector('.gm-close')?.setAttribute('aria-label', t('gm.close'));
     });
     el.addEventListener('click', (e) => {
+      const z = e.target.closest?.('[data-map-zoom]');
+      if (z) { this.mapZoomBy(+z.dataset.mapZoom > 0 ? VIEW.wheel : 1 / VIEW.wheel); return; }
       const tg = e.target.closest?.('[data-at], [data-go], [data-panel], [data-step], [data-full-step], [data-full-use], .fback, .gm-close');
       if (!tg) return;
       if (tg.classList.contains('gm-close')) { this.onClose?.(); return; }
@@ -450,6 +456,39 @@ export class GameMenu {
       if (!at.edge && at.r === r && at.c === c) this.confirm();
       else this.select(r, c);
     });
+    // the Map: the cursor follows the mouse, the wheel zooms round it, a drag (a finger's, a held button's) moves the map,
+    // a tap puts the cursor there (and says what is under it)
+    const sheetAt = (e) => {
+      const sh = e.target.closest?.('[data-map-sheet]');
+      if (!sh || this.panel !== 'map' || this.full) return null;
+      const r = sh.getBoundingClientRect();
+      return r.width > 0 ? { sh, x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, w: r.width, h: r.height } : null;
+    };
+    el.addEventListener('pointermove', (e) => {
+      const p = sheetAt(e);
+      if (!p) return;
+      if (this._drag && e.buttons) {
+        this.mapView.drag((e.clientX - this._drag.x) / p.w, (e.clientY - this._drag.y) / p.h);
+        this._drag = { x: e.clientX, y: e.clientY, moved: true };
+      } else if (e.pointerType === 'mouse') this.mapView.point(p.x, p.y);
+      else return;
+      this.mapPaint();
+    });
+    el.addEventListener('pointerdown', (e) => {
+      const p = sheetAt(e);
+      if (!p || e.target.closest?.('[data-map-zoom]')) return;
+      this._drag = { x: e.clientX, y: e.clientY, moved: false };
+      this.mapView.point(p.x, p.y); this.mapPaint();
+    });
+    const endDrag = () => { this._drag = null; };
+    el.addEventListener('pointerup', endDrag); el.addEventListener('pointercancel', endDrag);
+    el.addEventListener('wheel', (e) => {
+      const p = sheetAt(e);
+      if (!p) return;
+      e.preventDefault();
+      this.mapView.zoomBy(e.deltaY < 0 ? VIEW.wheel : 1 / VIEW.wheel, this.mapView.fromSheet(p.x, p.y));
+      this.mapPaint();
+    }, { passive: false });
     // a mouse over a cell picks it (not a finger: that would act on the first tap)
     el.addEventListener('pointerover', (e) => {
       if (e.pointerType !== 'mouse' || this.full) return;
@@ -466,13 +505,20 @@ export class GameMenu {
   render() {
     const id = this.panel;
     let data = null;
-    // (the People panel: its source is asked for the open person's page too; the Map, for its zoom)
-    const arg = id === 'people' ? this.person : id === 'map' ? { zoom: this.mapZoom } : undefined;
+    // (the People panel: its source is asked for the open person's page too; the Map, for a sharper part when zoomed)
+    const arg = id === 'people' ? this.person : id === 'map' ? { zoom: null, detail: this.mapView.detailWindow() } : undefined;
     try { data = this.sources[id]?.(arg) ?? null; } catch (e) { console.warn('game menu', id, e); }
     if (id === 'people' && this.person && !data?.person) { this.person = null; if (this.gridAt) this.state.at.people = this.gridAt; }
     this.detail = id === 'people' ? data?.person ?? null : null;
-    const { html, rows, start, canvas } = BUILDERS[id](data ?? undefined);
+    const { html, rows, start, canvas, detail } = BUILDERS[id](data ?? undefined);
     this.rows = rows;
+    if (id === 'map') {
+      this.mapData = data;
+      // (opened: the whole map, the cursor on the traveller)
+      if (this._mapFresh) { this._mapFresh = false; const you = data?.marks?.find((m) => m.kind === 'you' && m.on); this.mapView.reset(you ? [you.u, you.v] : null); }
+      const w = arg?.detail;   // (the part asked for: drawn now, or told when it is, mapReady)
+      this._detailKey = w ? `${w.u0},${w.v0},${w.s}` : '';
+    }
     // a panel opened for the first time: where it says to start (the Quests panel: the quest you are on)
     if (!this.state.at[id] && start) this.state.at[id] = { ...start };
     // the cursor stays inside what there is
@@ -490,9 +536,11 @@ export class GameMenu {
     this.body.innerHTML = html;
     // (the map's ground: the canvas the world's map drew, src/world-map.js)
     if (canvas && canvas.nodeType === 1) this.body.querySelector('.gm-mapimg')?.appendChild(canvas);
+    if (detail?.canvas?.nodeType === 1) this.body.querySelector('.gm-mapdetail')?.appendChild(detail.canvas);
     this.body.scrollTop = 0;
     this.drawFull();
     this.paint();
+    if (id === 'map') this.mapPaint();
   }
 
   /** Mark the cursor's cell (or tab) and fill the info strip: its name and what it is, and what A / × does. */
@@ -504,8 +552,7 @@ export class GameMenu {
     const cell = this.state.cell(this.rows);
     const node = cell && this.body.querySelector(`[data-at="${at.r},${at.c}"]`);
     if (node) { node.classList.add('at'); if (scroll && !this.full) node.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); }
-    // (the map: the picked mark ringed)
-    for (const m of this.body.querySelectorAll('.mk')) m.classList.toggle('sel', m.dataset.mark === cell?.id);
+    if (this.panel === 'map' && !this.full && !at.edge) { this.mapStrip(); return; }
     const name = this.el.querySelector('.gm-name'), sub = this.el.querySelector('.gm-sub');
     const shown = this.full ? this.fullCell() : cell;
     if (at.edge && !this.full) {
@@ -519,14 +566,14 @@ export class GameMenu {
   verb(cell = this.state.cell(this.rows), at = this.state.cursor()) {
     if (this.full) return this.fullCell()?.full?.use ?? null;
     if (at.edge) return ACT.turn;
+    if (this.panel === 'map') return this.mapView.z >= VIEW.maxZoom - 1e-3 ? ACT.whole : ACT.zoom;   // (A / ×: closer round the cursor; at the closest, the whole map)
     if (!cell?.act) return null;
-    if (cell.act === 'zoom') return this.mapZoom === cell.id ? ACT.whole : ACT.zoom;
     return ACT[cell.act];
   }
 
   open(panel = null) {
     // (View / Select, J, the touch ❏: the Quests, issue #213; the Start menu's Items, Quests and Map their own)
-    this.leavePerson(); this.full = null; this.state.show(panel ?? DEFAULT_PANEL); this.render();
+    this.leavePerson(); this.full = null; this._mapFresh = true; this.state.show(panel ?? DEFAULT_PANEL); this.render();
     // (drawn while the menu was still hidden: once it shows, the cursor's cell scrolled into view)
     if (this.el && typeof requestAnimationFrame === 'function') requestAnimationFrame(() => this.paint());
   }
@@ -549,6 +596,8 @@ export class GameMenu {
       else if (dy && this.body) this.body.scrollTop += Math.sign(dy) * Math.max(40, this.body.clientHeight * 0.35);
       return;
     }
+    // the Map: the D-pad, the arrows, WASD move its cursor a step (the stick moves it smoothly: mapAnalog)
+    if (this.panel === 'map') { this.mapView.move(Math.sign(dx) * VIEW.step, Math.sign(dy) * VIEW.step); this.mapPaint(); return; }
     if (this.gridMove(dx, dy)) return;
     if (this.state.move(this.rows, Math.sign(dx), Math.sign(dy)) === 'turn') this.render();
     else this.paint();
@@ -669,7 +718,7 @@ export class GameMenu {
       if (r >= 0) this.select(r, this.rows[r].findIndex((x) => x.id === id));
       return true;
     }
-    if (this.panel === 'map' && this.mapZoom) { this.mapZoom = null; this.render(); return true; }
+    if (this.panel === 'map' && this.mapView.zoomed) { this.mapZoomBy(1 / VIEW.maxZoom); return true; }   // (zoomed in: the whole map first)
     return false;
   }
 
@@ -682,8 +731,83 @@ export class GameMenu {
     }
   }
 
-  /** The world's map is drawn (src/world-map.js): the Map panel again, if it shows. */
+  /** The world's map (or a sharper part of it) is drawn (src/world-map.js): the Map panel again, if it shows. */
   mapReady() { if (this.panel === 'map') this.render(); }
+
+  // ---- the Map's view (issue #244: "using the left stick should move around the map ... I should be able to zoom in
+  // and out ... Hovering over an item tells me what it is")
+
+  /**
+   * Each frame with a pad, in a menu: the left stick moves the Map's cursor (smoothly, the view following it), the
+   * triggers zoom round it (RT in, LT out, as far as they are pressed). True when the Map took the stick (the
+   * controller then leaves its steps to the D-pad).
+   */
+  mapAnalog({ x = 0, y = 0, lt = 0, rt = 0 } = {}, dt = 1 / 60) {
+    if (this.panel !== 'map' || this.full) return false;
+    const V = this.mapView, k = (rt > 0.08 ? rt : 0) - (lt > 0.08 ? lt : 0);
+    if (x || y) V.stick(x, y, dt);
+    if (k) V.zoomBy(Math.exp(k * VIEW.zoomRate * dt));
+    if (x || y || k) this.mapPaint();
+    return true;
+  }
+
+  /** Zoom by `k` round the cursor (− and +, the buttons, A / ×, B / ○). */
+  mapZoomBy(k) { this.mapView.zoomBy(k); this.mapPaint(); }
+
+  /** Place the map, its marks and the cursor for the view; name the mark under the cursor beside it and in the strip. */
+  mapPaint() {
+    if (!this.el || this.panel !== 'map') return;
+    const sheet = this.body.querySelector('[data-map-sheet]');
+    if (!sheet) return;
+    const V = this.mapView, pc = (x) => `${(x * 100).toFixed(3)}%`;
+    const plane = sheet.querySelector('.gm-mapplane');
+    if (plane) plane.style.transform = `scale(${V.z.toFixed(4)}) translate(${pc(-V.u0)}, ${pc(-V.v0)})`;
+    const marks = this.mapData?.marks ?? [], byId = new Map(marks.map((m) => [m.id, m]));
+    const hit = V.pick(marks);
+    this.mapHit = hit;
+    for (const e of sheet.querySelectorAll('.mk')) {
+      const m = byId.get(e.dataset.mark);
+      if (!m) continue;
+      const [x, y] = V.toSheet(m.u, m.v);
+      e.style.left = pc(x); e.style.top = pc(y);
+      e.hidden = x < -0.03 || x > 1.03 || y < -0.03 || y > 1.03;
+      e.classList.toggle('sel', m === hit);
+    }
+    const [cx, cy] = V.toSheet(V.u, V.v);
+    const cur = sheet.querySelector('.gm-cursor');
+    if (cur) { cur.style.left = pc(cx); cur.style.top = pc(cy); cur.classList.toggle('on', !!hit); }
+    const tip = sheet.querySelector('.gm-maptip');
+    if (tip) {
+      tip.hidden = !hit;
+      if (hit) {
+        const b = tip.querySelector('b'), sm = tip.querySelector('small');
+        if (b.textContent !== hit.name) b.textContent = hit.name;
+        if (sm.textContent !== (hit.sub ?? '')) sm.textContent = hit.sub ?? '';
+        // (beside the cursor, on the side with room: left of it on the right half, under it near the top)
+        tip.classList.toggle('left', cx > 0.58); tip.classList.toggle('below', cy < 0.16);
+        tip.style.left = pc(cx); tip.style.top = pc(cy);
+      }
+    }
+    const span = this.mapData?.span, sc = sheet.querySelector('.gm-scale');
+    if (span && sc) { const bar = V.scale(span); sc.style.setProperty('--w', pc(bar.frac)); const l = sc.querySelector('span'); if (l && l.textContent !== bar.label) l.textContent = bar.label; }
+    sheet.classList.toggle('zoomed', V.zoomed);
+    this.mapStrip();
+    // (zoomed in and still a moment: the part in view drawn again sharper)
+    clearTimeout(this._detailT);
+    const w = V.detailWindow(), key = w ? `${w.u0},${w.v0},${w.s}` : '';
+    if (key && key !== this._detailKey && typeof setTimeout === 'function') this._detailT = setTimeout(() => { if (this.panel === 'map' && this.el?.classList.contains('open') !== false) this.render(); }, 400);
+  }
+
+  /** The strip under the Map: the mark under the cursor (its name, what it is), else the world; the zoom and A / ×. */
+  mapStrip() {
+    if (!this.el) return;
+    const hit = this.mapHit, name = this.el.querySelector('.gm-name'), sub = this.el.querySelector('.gm-sub');
+    name.textContent = hit?.name ?? this.mapData?.world ?? '';
+    sub.textContent = hit?.sub ?? '';
+    const kind = inputKind();
+    const zoom = kind === 'touch' ? '' : `<span class="gm-act">${glyph('lt', { key: '−' })}${glyph('rt', { key: '+' })}${esc(t('gm.map.zoom'))}</span>`;
+    this.el.querySelector('.gm-keys').innerHTML = zoom + menuPrompts(this.verb());
+  }
 
   /**
    * A / ×, Enter: in a full view, its action (a gun mode taken, a switch turned, a gadget in hand); on a cell,
@@ -701,6 +825,8 @@ export class GameMenu {
     }
     const at = this.state.cursor();
     if (at.edge) { this.turn(at.edge); return; }
+    // the Map: closer round the cursor, twice as close each press; at the closest, the whole map again
+    if (this.panel === 'map') { this.mapZoomBy(this.mapView.z >= VIEW.maxZoom - 1e-3 ? 1 / VIEW.maxZoom : 2); return; }
     const cell = this.state.cell(this.rows);
     if (!cell?.act) return;
     if (cell.act === 'track') {
@@ -712,13 +838,6 @@ export class GameMenu {
     else if (cell.act === 'look') this.openFull(cell);
     else if (cell.act === 'open') this.openPerson(cell.id);
     else if (cell.act === 'back') this.back();
-    else if (cell.act === 'zoom') {
-      this.mapZoom = this.mapZoom === cell.id ? null : cell.id;
-      this.render();
-      // (the cursor stays on the mark zoomed on)
-      const r = this.rows.findIndex((row) => row[0]?.id === cell.id);
-      if (r >= 0) this.select(r, 0);
-    }
   }
 
   /** An item's picture is ready (src/item-icons.js): swap its mark for it, wherever it shows. */
@@ -742,6 +861,7 @@ export class GameMenu {
     const c = e.code;
     if (c === 'KeyQ' || c === 'BracketLeft' || c === 'PageUp') { this.turn(-1); return true; }
     if (c === 'KeyE' || c === 'BracketRight' || c === 'PageDown' || c === 'Tab') { this.turn(c === 'Tab' && e.shiftKey ? -1 : 1); return true; }
+    if (this.panel === 'map' && !this.full && ['Minus', 'NumpadSubtract', 'Equal', 'NumpadAdd'].includes(c)) { this.mapZoomBy(c === 'Minus' || c === 'NumpadSubtract' ? 1 / VIEW.wheel : VIEW.wheel); return true; }   // (− and +: the Map's zoom)
     const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], KeyA: [-1, 0], KeyD: [1, 0], KeyW: [0, -1], KeyS: [0, 1] }[c];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     if (c === 'Enter' || c === 'Space') { this.confirm(); return true; }

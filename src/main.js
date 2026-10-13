@@ -964,7 +964,7 @@ const worldMap = new WorldMap({
   },
 });
 worldMap.onReady = () => { if (journal.open) journal.menu.mapReady(); };
-function mapSource({ zoom = null } = {}) {
+function mapSource({ zoom = null, detail = null } = {}) {
   // the whole map's square, once a world: round where you land, the ship, the temples, the people and every box
   // (opened or not: they frame it, they are never drawn until opened)
   if (!mapWhole) {
@@ -978,6 +978,8 @@ function mapSource({ zoom = null } = {}) {
     you: { x: you.x, z: you.z, dx: dir.x, dz: dir.z },
     ship: level.ship?.pos && levelId !== 'home' ? mapAt(level.ship.pos) : null,
     goal: goal?.position ? { ...mapAt(goal.position), label: goal.label } : null,
+    // (the other quests under way, at their steps: issue #244)
+    quests: (storyRt.quests.objectives?.() ?? []).filter((q) => !q.tracked).map((q) => ({ id: q.quest, title: q.title, label: q.label, ...mapAt(q.position) })),
     temples: mapTemples(),
     people: npcs.filter((n) => n.def?.id && n.pos && game.flag(`met.${n.def.id}`)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, ...mapAt(n.pos) })),
     boxes: (boxes.list ?? []).filter((b) => b.opened()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, ...mapAt(b.pos) })),
@@ -985,9 +987,16 @@ function mapSource({ zoom = null } = {}) {
   const whole = mapWhole.bounds, focus = zoom && mapMarks({ ...raw, bounds: whole }).find((m) => m.id === zoom);
   const bounds = focus ? zoomBounds(whole, { x: whole.x0 + focus.u * whole.w, z: whole.z0 + focus.v * whole.h }) : whole;
   const view = worldMap.view(bounds, focus ? MAP.zoomCells : MAP.cells);
+  // (the Map zoomed in: a part of it drawn again sharper, once the whole is in: { u0, v0, s } of the whole, src/world-map.js MapView)
+  let part = null;
+  if (detail && view.done && !focus) {
+    const b = { x0: whole.x0 + detail.u0 * whole.w, z0: whole.z0 + detail.v0 * whole.h, w: detail.s * whole.w, h: detail.s * whole.h };
+    const d = worldMap.view(b, MAP.zoomCells);
+    part = { ...detail, canvas: d.canvas, done: d.done };
+  }
   const frag = fragments.counts(), here = frag.worlds?.[levelId];
   return { world: LEVELS.find((l) => l.id === levelId)?.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: view.canvas, progress: view.progress, zoom: focus ? zoom : null,
-    scale: scaleBar(bounds.w), note: frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : '' };
+    scale: scaleBar(bounds.w), span: bounds.w, detail: part, note: frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : '' };
 }
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', () => sound.musicCue('moment', { delay: 1 }));   // (the recorded theme comes back: src/music-moments.js)
@@ -1721,6 +1730,8 @@ const controller = new Controller({
   context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
   faces: () => padFaces(),
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
+  // (the game menu's Map: the left stick moves its cursor, the triggers zoom: issue #244)
+  menuAnalog: (a, dt) => menuRoot() === journal.el && journal.menu.panel === 'map' && journal.menu.mapAnalog(a, dt),
   stickTaken: () => !!gadgets?.wheelOn,   // (the gadget wheel open: the right stick chooses, the camera holds: src/gadgets/index.js wheelStick)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)

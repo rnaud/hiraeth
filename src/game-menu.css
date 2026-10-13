@@ -235,15 +235,21 @@ body.touch #journal .gm-full .fback::before { content: '◀'; margin-right: 6px;
 #journal .wcard.here { border-color: var(--red); }
 #journal .wcard.at, #journal .wcard:hover { background: var(--gold); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
 
-/* Map (src/world-map.js, issue #205): the world from above, north up, its marks over it; the legend beside it */
-#journal .gm-map { display: grid; grid-template-columns: auto minmax(200px, 1fr); gap: clamp(12px, 2.4vw, 34px); height: 100%; min-height: 0; }
-#journal .gm-mapsheet { position: relative; height: 100%; aspect-ratio: 1; max-width: 64vw; min-height: 0; box-sizing: border-box; background: #f6ecd3; border: 2.5px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); transform: rotate(-0.4deg); }
+/* Map (src/world-map.js, issue #205; no list since issue #244): the world from above, north up, as large as the sheet
+   lets it be; its marks over it, a cursor the stick moves, the name of the mark under it beside the cursor */
+#journal .gm-map { display: grid; place-items: center; height: 100%; min-height: 0; }
+#journal .gm-mapsheet { position: relative; height: 100%; max-height: 100%; aspect-ratio: 1; max-width: 100%; min-height: 0; box-sizing: border-box; overflow: hidden;
+  background: #f6ecd3; border: 2.5px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); touch-action: none; cursor: crosshair; }
+#journal .gm-mapplane { position: absolute; inset: 0; transform-origin: 0 0; will-change: transform; }
 #journal .gm-mapimg, #journal .gm-mapimg canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+#journal .gm-mapdetail { position: absolute; }
+#journal .gm-mapdetail canvas { display: block; width: 100%; height: 100%; }
 #journal .gm-mapimg .drawing { position: absolute; inset: 0; display: grid; place-content: center; gap: 10px; margin: 0; text-align: center; font-style: italic; opacity: 0.7; }
 #journal .gm-mapimg .pen { justify-self: center; width: 22px; height: 22px; border: 2.5px solid var(--ink); border-top-color: transparent; border-radius: 50%; animation: gm-spin 1s linear infinite; }
 @keyframes gm-spin { to { transform: rotate(360deg); } }
 #journal .gm-marks { position: absolute; inset: 0; pointer-events: none; }
 #journal .mk { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: clamp(14px, 3.4vh, 26px); height: clamp(14px, 3.4vh, 26px); color: var(--ink); }
+#journal .mk[hidden] { display: none; }
 #journal .mk svg { width: 100%; height: 100%; overflow: visible; fill: var(--paper); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
 #journal .mk i { font-style: normal; font-size: clamp(11px, 2.6vh, 20px); line-height: 1; -webkit-text-stroke: 1px var(--ink); }
 #journal .mk.mk-you svg { fill: var(--red); transform: rotate(var(--deg, 0deg)); filter: drop-shadow(1.5px 1.5px 0 var(--ink)); }
@@ -251,39 +257,47 @@ body.touch #journal .gm-full .fback::before { content: '◀'; margin-right: 6px;
 #journal .mk.mk-ship svg { fill: #d8cdb6; }
 #journal .mk.mk-goal i { color: var(--gold); font-size: clamp(14px, 3.4vh, 26px); }
 #journal .mk.mk-goal::before { content: ''; position: absolute; inset: -30%; border: 2px dashed var(--red); border-radius: 50%; animation: gm-spin 6s linear infinite; }
+#journal .mk.mk-quest i { color: var(--gold); font-size: clamp(12px, 2.8vh, 21px); }
 #journal .mk.mk-temple svg { fill: #c9b48a; }
 #journal .mk.mk-person i { color: var(--teal); font-size: clamp(8px, 1.8vh, 13px); }
 #journal .mk.mk-box i { color: var(--green); font-size: clamp(9px, 2vh, 15px); }
-#journal .mk b { position: absolute; left: calc(100% + 3px); top: 50%; transform: translateY(-50%); display: none; padding: 1px 6px; white-space: nowrap; font-size: calc(clamp(9px, 1.6vh, 12px) * var(--ts, 1)); letter-spacing: 0.04em; background: rgba(251, 244, 226, 0.92); border: 1.5px solid var(--ink); border-radius: 4px; }
-#journal .mk.named b, #journal .mk.sel b { display: block; }
-#journal .mk.mk-you b { left: auto; right: calc(100% + 3px); }   /* (the traveller's name on his left: the way on and the ship are often just right of him) */
 #journal .mk.sel { z-index: 3; }
 #journal .mk.sel::after { content: ''; position: absolute; inset: -55%; border: 3px solid var(--red); border-radius: 50%; animation: gm-ring 1.1s ease-in-out infinite; }
 @keyframes gm-ring { 50% { inset: -75%; border-color: #e5896d; } }
-#journal .gm-north { position: absolute; right: clamp(8px, 1.6vh, 14px); top: clamp(8px, 1.6vh, 12px); display: grid; place-items: center; width: clamp(18px, 3.6vh, 26px); height: clamp(18px, 3.6vh, 26px); font: 900 clamp(10px, 1.8vh, 13px)/1 var(--face-title); color: var(--paper); background: var(--ink); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; }
+/* the cursor: a small ink ring with a dot, gold once it is over a mark */
+#journal .gm-cursor { position: absolute; z-index: 4; width: clamp(18px, 3.6vh, 28px); height: clamp(18px, 3.6vh, 28px); transform: translate(-50%, -50%); pointer-events: none;
+  border: 2.5px solid var(--ink); border-radius: 50%; box-shadow: 0 0 0 2px rgba(251, 244, 226, 0.85); }
+#journal .gm-cursor::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: var(--ink); }
+#journal .gm-cursor.on { border-color: var(--gold); box-shadow: 0 0 0 2px var(--ink); }
+/* what is under the cursor: its name and one line, beside it (left of it on the right half, under it near the top) */
+#journal .gm-maptip { position: absolute; z-index: 5; pointer-events: none; transform: translate(clamp(14px, 2.4vh, 20px), -50%); max-width: 46%; padding: 0.3em 0.7em 0.35em;
+  background: rgba(31, 24, 22, 0.92); color: #f7ecd2; border-radius: 4px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); }
+#journal .gm-maptip[hidden] { display: none; }
+#journal .gm-maptip.left { transform: translate(calc(-100% - clamp(14px, 2.4vh, 20px)), -50%); }
+#journal .gm-maptip.below { transform: translate(clamp(14px, 2.4vh, 20px), 30%); }
+#journal .gm-maptip.left.below { transform: translate(calc(-100% - clamp(14px, 2.4vh, 20px)), 30%); }
+#journal .gm-maptip b { display: block; font: bold calc(clamp(11px, 2vh, 15px) * var(--ts, 1))/1.25 var(--face); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#journal .gm-maptip small { display: block; font-size: calc(clamp(10px, 1.7vh, 13px) * var(--ts, 1)); line-height: 1.3; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#journal .gm-mapname { position: absolute; left: clamp(8px, 1.6vh, 14px); top: clamp(6px, 1.4vh, 12px); z-index: 3; margin: 0; padding: 2px 8px; max-width: 60%;
+  background: rgba(251, 244, 226, 0.85); border-radius: 3px; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#journal .gm-north { position: absolute; z-index: 3; right: clamp(8px, 1.6vh, 14px); top: clamp(14px, 2.4vh, 20px); display: grid; place-items: center; width: clamp(18px, 3.6vh, 26px); height: clamp(18px, 3.6vh, 26px); font: 900 clamp(10px, 1.8vh, 13px)/1 var(--face-title); color: var(--paper); background: var(--ink); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; }
 #journal .gm-north::before { content: ''; position: absolute; top: -9px; border: 6px solid transparent; border-bottom: 8px solid var(--ink); border-top: 0; }
-#journal .gm-scale { position: absolute; left: 16px; bottom: 14px; display: flex; flex-direction: column; gap: 2px; width: var(--w); padding: 3px 5px; background: rgba(251, 244, 226, 0.85); border-radius: 3px; font-size: calc(clamp(9px, 1.5vh, 11px) * var(--ts, 1)); font-weight: bold; }
+#journal .gm-scale { position: absolute; z-index: 3; left: 16px; bottom: 14px; display: flex; flex-direction: column; gap: 2px; width: var(--w); padding: 3px 5px; background: rgba(251, 244, 226, 0.85); border-radius: 3px; font-size: calc(clamp(9px, 1.5vh, 11px) * var(--ts, 1)); font-weight: bold; pointer-events: none; }
 #journal .gm-scale i { display: block; height: 5px; border: 2px solid var(--ink); background: repeating-linear-gradient(90deg, var(--ink) 0 25%, var(--paper) 25% 50%); }
-#journal .gm-legend { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
-#journal .mline { display: flex; align-items: center; gap: 10px; width: 100%; padding: clamp(4px, 0.9vh, 8px) 8px; text-align: left; background: none; border: 0; border-bottom: 1px dashed rgba(43, 33, 31, 0.3); }
-#journal .mline .sym { position: relative; flex: none; display: grid; place-items: center; width: 22px; height: 22px; }
-#journal .mline .sym svg { width: 18px; height: 18px; fill: var(--paper); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
-#journal .mline.mk-you .sym svg { fill: var(--red); }
-#journal .mline.mk-ship .sym svg { fill: #d8cdb6; }
-#journal .mline.mk-temple .sym svg { fill: #c9b48a; }
-#journal .mline .sym i { font-style: normal; -webkit-text-stroke: 0.8px var(--ink); }
-#journal .mline.mk-goal .sym i { color: var(--gold); font-size: 18px; }
-#journal .mline.mk-person .sym i { color: var(--teal); font-size: 11px; }
-#journal .mline.mk-box .sym i { color: var(--green); }
-#journal .mline .mtext { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-#journal .mline b { font-size: calc(clamp(11px, 2vh, 14px) * var(--ts, 1)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#journal .mline small { font-size: calc(clamp(9px, 1.65vh, 12px) * var(--ts, 1)); opacity: 0.75; }
-#journal .mline.off { opacity: 0.55; }
-#journal .mline.at, #journal .mline:hover { background: var(--gold); }
-#journal .gm-mapnote { margin: 10px 0 0; font-size: calc(clamp(10px, 1.7vh, 13px) * var(--ts, 1)); color: #3f8fa6; font-weight: bold; }
+/* the zoom's buttons, bottom right (the triggers' glyphs in them on a pad, − and + with the keys) */
+#journal .gm-mapzoom { position: absolute; z-index: 3; right: clamp(8px, 1.6vh, 14px); bottom: clamp(8px, 1.6vh, 14px); display: flex; flex-direction: column; gap: 6px; }
+#journal .gm-mapzoom button { display: flex; align-items: center; justify-content: center; gap: 2px; min-width: clamp(28px, 5vh, 40px); height: clamp(28px, 5vh, 40px); padding: 0 6px;
+  font: bold calc(clamp(14px, 2.6vh, 20px) * var(--ts, 1))/1 var(--face); color: var(--ink); background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 2px 2px 0 var(--ink); cursor: pointer; }
+#journal .gm-mapzoom button .glyph { margin: 0; }
+body.controller #journal .gm-mapzoom button { font-size: 0; }   /* (a pad: the trigger's glyph says it) */
+body.controller #journal .gm-mapzoom button .glyph { font-size: calc(clamp(11px, 2vh, 14px) * var(--ts, 1)); }
+body:not(.controller) #journal .gm-mapzoom button .glyph { display: none; }
+#journal .gm-mapzoom button:hover { background: var(--gold); }
+#journal .gm-mapnone { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; padding: 4px 10px; background: rgba(251, 244, 226, 0.9); font-style: italic; }
+#journal .gm-mapnote { position: absolute; z-index: 3; left: 16px; bottom: calc(14px + 2.6em); margin: 0; padding: 2px 6px; background: rgba(251, 244, 226, 0.85); border-radius: 3px; font-size: calc(clamp(10px, 1.7vh, 13px) * var(--ts, 1)); color: #3f8fa6; font-weight: bold; pointer-events: none; }
+#journal[data-panel="map"] .gm-body { overflow: hidden; }
 @media (max-width: 720px), (max-aspect-ratio: 1/1) {
-  #journal .gm-map { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; height: auto; }
-  #journal .gm-mapsheet { width: 100%; height: auto; max-width: none; }
+  #journal .gm-mapsheet { width: 100%; height: auto; }
 }
 
 /* the strip at the bottom: what the cursor is on (its name and what it is, one line: the words are in its full

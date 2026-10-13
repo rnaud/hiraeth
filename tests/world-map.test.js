@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MAP, mapBounds, zoomBounds, toMap, onMap, compass, facing, metres, HeightGrid, contourStep, drawTerrain, WorldMap, mapMarks, scaleBar } from '../src/world-map.js';
+import { MAP, VIEW, MapView, mapBounds, zoomBounds, toMap, onMap, compass, facing, metres, HeightGrid, contourStep, drawTerrain, WorldMap, mapMarks, scaleBar } from '../src/world-map.js';
 import { GameMenu, mapPanel, PANELS } from '../src/game-menu.js';
 import { menuSources } from '../src/game-menu-data.js';
 
@@ -96,34 +96,118 @@ test('the marks: the traveller first and the way he faces, then the way on, the 
   assert.deepEqual([marks[0].u, marks[0].v], [0.5, 0.5]);
 });
 
-test('the Map panel: the ground, the marks over it, the legend beside it; A / × zooms on the one picked, B / ○ back to the whole map', () => {
+test('the other quests under way have their marks too, after the way on; one at the way on\'s place is the way on', () => {
+  const bounds = { x0: -100, z0: -100, w: 200, h: 200 };
+  const marks = mapMarks({ bounds, you: { x: 0, z: 0 }, goal: { x: 30, z: -40, label: 'The skull' },
+    quests: [{ id: 'desert.drum', x: -50, z: 20, title: 'The Drum', label: 'Teo’s drum, in the camp' }, { id: 'same', x: 30.5, z: -40, title: 'Same place' }], ship: { x: 0, z: 50 } });
+  assert.deepEqual(marks.map((m) => m.id), ['you', 'goal', 'quest.desert.drum', 'ship']);
+  assert.equal(marks[2].kind, 'quest'); assert.equal(marks[2].name, 'The Drum');
+  assert.match(marks[2].sub, /^Teo’s drum, in the camp · \d+ m west$/, 'its step and how far, one line');
+});
+
+test('the Map\'s view (issue #244): the stick moves a cursor, the view zooms round it and pans to keep it in sight, inside the map', () => {
+  const V = new MapView().reset([0.5, 0.5]);
+  assert.equal(V.z, 1); assert.equal(V.zoomed, false);
+  // the whole map: the cursor goes anywhere on it, the view doesn't move
+  V.stick(1, 0, 0.5);
+  assert.ok(Math.abs(V.u - (0.5 + VIEW.pan * 0.5)) < 1e-9); assert.equal(V.u0, 0);
+  V.stick(1, 0, 5); assert.equal(V.u, 1, 'never off the map');
+  // zoom in round the cursor: it stays where it is on the sheet
+  const W = new MapView().reset([0.3, 0.6]);
+  const before = W.toSheet(W.u, W.v);
+  W.zoomBy(3);
+  assert.ok(Math.abs(W.z - 3) < 1e-9 && W.zoomed);
+  const after = W.toSheet(W.u, W.v);
+  assert.ok(Math.abs(before[0] - after[0]) < 1e-9 && Math.abs(before[1] - after[1]) < 1e-9, 'the cursor holds its place');
+  // pushed to the view's edge, the view pans after it; never past the map's edge
+  for (let i = 0; i < 60; i++) W.stick(1, 0, 0.1);
+  assert.ok(W.u0 > 0.1, 'the view followed');
+  assert.ok(W.u0 <= 1 - W.span + 1e-9);
+  const [sx] = W.toSheet(W.u, W.v); assert.ok(sx >= 0 && sx <= 1, 'the cursor in sight');
+  // the zoom's bounds
+  W.zoomBy(100); assert.equal(W.z, VIEW.maxZoom); W.zoomBy(0.0001); assert.equal(W.z, 1);
+  // the sheet and the map, both ways; a point of the sheet (the mouse) puts the cursor there
+  const Z = new MapView().reset([0.5, 0.5]).zoomBy(2);
+  const [u, v] = Z.fromSheet(0.25, 0.75); assert.deepEqual(Z.toSheet(u, v).map((x) => +x.toFixed(9)), [0.25, 0.75]);
+  const z0 = [Z.u0, Z.v0];
+  Z.point(0.9, 0.1); assert.deepEqual(Z.toSheet(Z.u, Z.v).map((x) => +x.toFixed(6)), [0.9, 0.1]);
+  assert.deepEqual([Z.u0, Z.v0], z0, 'the mouse never pans the map (it would slide away under it)');
+  // a finger's drag moves the map under it
+  const u0 = Z.u0; Z.drag(-0.1, 0); assert.ok(Z.u0 > u0);
+  // a sharper part asked for only from twice as close, round the view, the same one for a small pan
+  assert.equal(new MapView().detailWindow(), null);
+  const D = new MapView().reset([0.5, 0.5]).zoomBy(4), d1 = D.detailWindow();
+  assert.ok(d1.s >= D.span && d1.u0 <= D.u0 && d1.u0 + d1.s >= D.u0 + D.span - 1e-9, 'the view inside it');
+  D.stick(0.05, 0, 0.1); assert.deepEqual(D.detailWindow(), d1, 'a small pan: the same part');
+  // the scale bar follows the zoom
+  assert.ok(D.scale(800).m < new MapView().scale(800).m);
+});
+
+test('the mark under the cursor: the nearest within reach of it, the traveller only when nothing else is', () => {
+  const V = new MapView().reset([0.5, 0.5]);
+  const marks = [{ id: 'you', kind: 'you', u: 0.5, v: 0.5, on: true }, { id: 'ship', kind: 'ship', u: 0.52, v: 0.5, on: true }, { id: 'far', kind: 'person', u: 0.9, v: 0.9, on: true }, { id: 'off', kind: 'box', u: 0.5, v: 0.5, on: false }];
+  assert.equal(V.pick(marks).id, 'you', 'right on him');
+  V.point(0.53, 0.5); assert.equal(V.pick(marks).id, 'ship');
+  V.point(0.7, 0.7); assert.equal(V.pick(marks), null, 'nothing near');
+  // zoomed in, the reach is smaller in the map's units
+  const Z = new MapView().reset([0.55, 0.5]).zoomBy(5);
+  assert.equal(Z.pick([{ id: 'a', kind: 'ship', u: 0.5, v: 0.5, on: true }]), null);
+});
+
+test('the Map panel: no list, the cursor named beside it; the stick moves it, the triggers and A / × zoom, B / ○ the whole map first', () => {
   assert.equal(PANELS[1].id, 'map', 'next to the Quests, one RB / R1 from where the menu opens');
   const bounds = { x0: -100, z0: -100, w: 200, h: 200 };
   const asked = [];
   const map = (o) => {
-    asked.push(o?.zoom ?? null);
-    return { world: 'The Desert', marks: mapMarks({ bounds, you: { x: 10, z: 10, dx: 0, dz: -1 }, ship: { x: -20, z: 30 } }), canvas: null, progress: 0.4, zoom: o?.zoom ?? null, scale: scaleBar(200) };
+    asked.push(o ?? null);
+    return { world: 'The Desert', marks: mapMarks({ bounds, you: { x: 10, z: 10, dx: 0, dz: -1 }, ship: { x: -20, z: 30 } }), canvas: null, progress: 0.4, zoom: null, scale: scaleBar(200), span: 200 };
   };
   const m = new GameMenu(null, { sources: menuSources({ items: { owned: () => [] }, journal: { data: {} }, levels: [], order: [], map }) });
   m.open('map');
   assert.equal(m.panel, 'map');
-  assert.equal(m.state.cell(m.rows).id, 'you', 'the cursor on the traveller');
+  assert.deepEqual([m.mapView.u, m.mapView.v].map((x) => +x.toFixed(3)), [0.55, 0.55], 'the cursor on the traveller');
   assert.equal(m.verb(), 'zoom in');
-  m.navigate(0, 1); assert.equal(m.state.cell(m.rows).id, 'ship');
-  m.confirm(); assert.equal(m.mapZoom, 'ship'); assert.equal(asked.at(-1), 'ship', 'the map asked for, zoomed on the ship');
-  assert.equal(m.state.cell(m.rows).id, 'ship', 'the cursor stays on it');
-  assert.equal(m.verb(), 'whole map');
+  // the stick: the cursor moves, the panel doesn't turn; it is taken (the controller leaves its steps to the D-pad)
+  assert.equal(m.mapAnalog({ x: -1, y: 1 }, 0.25), true);
+  assert.ok(m.mapView.u < 0.55 && m.mapView.v > 0.55);
+  assert.equal(m.panel, 'map');
+  // the D-pad steps it; off the map's side it stays on the map (the shoulders turn the panels)
+  for (let i = 0; i < 40; i++) m.navigate(-1, 0);
+  assert.equal(m.panel, 'map'); assert.equal(m.mapView.u, 0);
+  // the triggers zoom round it (RT in, LT out), A / × twice as close
+  m.mapAnalog({ rt: 1 }, 0.5); assert.ok(m.mapView.z > 1.5);
+  m.mapAnalog({ lt: 1 }, 2); assert.equal(m.mapView.z, 1);
+  m.confirm(); assert.equal(m.mapView.z, 2);
+  m.render(); assert.ok(asked.at(-1)?.detail, 'zoomed in twice: a sharper part asked for (a moment after, on the page)');
   assert.equal(m.back(), true, 'B / ○: the whole map first');
-  assert.equal(m.mapZoom, null);
+  assert.equal(m.mapView.z, 1);
   assert.equal(m.back(), false, 'then the menu closes');
-  // the html: the traveller's arrow turned, north, the scale, the drawing's progress until it is in
+  // at the closest, A / × is the whole map again
+  m.mapView.zoomBy(100); assert.equal(m.verb(), 'whole map'); m.confirm(); assert.equal(m.mapView.z, 1);
+  // a page that isn't the Map leaves the stick to the controller
+  m.show('quests'); assert.equal(m.mapAnalog({ x: 1 }, 0.1), false);
+  // the html: the traveller's arrow turned, north, the scale, the drawing's progress, the cursor, its label, the zoom's
+  // buttons; no list, no name written on the map but the one under the cursor
   const { html, rows } = mapPanel(map());
-  assert.equal(rows.length, 2);
+  assert.equal(rows.length, 2, 'a mark a row still (the strip, an engine\'s own menus)');
   assert.match(html, /class="mk mk-you"[^>]*style="left:55\.00%;top:55\.00%;--deg:0\.0deg"/);
-  assert.match(html, /class="mk mk-ship named"/, 'the ship named on the map');
-  assert.match(html, /gm-north/); assert.match(html, /<i><\/i>50 m/);
+  assert.doesNotMatch(html, /gm-legend|mline/, 'no list');
+  assert.doesNotMatch(html, /class="mk[^"]*named/, 'no names on the map at rest');
+  assert.match(html, /gm-cursor/); assert.match(html, /gm-maptip/); assert.match(html, /data-map-zoom="1"/); assert.match(html, /data-map-zoom="-1"/);
+  assert.match(html, /gm-north/); assert.match(html, /<i><\/i><span>50 m<\/span>/);
   assert.match(html, /Drawing the map… 40%/);
   assert.doesNotMatch(mapPanel({ ...map(), canvas: {} }).html, /Drawing the map/);
+  assert.match(mapPanel({ ...map(), detail: { canvas: {}, u0: 0.25, v0: 0.5, s: 0.25 } }).html, /gm-mapdetail" style="left:25\.000%;top:50\.000%;width:25\.000%/);
+});
+
+test('the pad reads the Map\'s stick and triggers each frame in a menu; the keys zoom with − and +, the mouse with its wheel', () => {
+  const ctl = src('src/controller.js'), gm = src('src/game-menu.js'), main = src('src/main.js');
+  assert.match(ctl, /const analog = ctx === 'menu' && !!this\.menuAnalog\?\.\(\{ x: left\.x, y: left\.y, lt: values\[LT\] \?\? 0, rt: values\[RT\] \?\? 0 \}, dt\)/);
+  assert.match(ctl, /!analog && Math\.abs\(left\.x\) > 0\.5/, 'the stick\'s steps left to the Map');
+  assert.match(main, /menuAnalog: \(a, dt\) => menuRoot\(\) === journal\.el && journal\.menu\.panel === 'map' && journal\.menu\.mapAnalog\(a, dt\)/);
+  assert.match(gm, /\['Minus', 'NumpadSubtract', 'Equal', 'NumpadAdd'\]/);
+  assert.match(gm, /addEventListener\('wheel'/);
+  assert.match(main, /quests: \(storyRt\.quests\.objectives\?\.\(\) \?\? \[\]\)/, 'the quests\' marks from the quests under way');
 });
 
 test('the game draws the map: its source, its rays only while the Map shows, no fragment ever on it', () => {

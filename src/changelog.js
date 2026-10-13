@@ -19,6 +19,7 @@ export const CHANGELOG = [
     // the menus: one music at a time (src/audio.js menuMusic, issue #243); the Map (src/world-map.js MapView,
     // src/game-menu.js mapPanel, issue #244)
     'In the pause menu and the game menu only the menu’s music plays; the world’s music comes back when you close it.',
+    'The Map has no list under it any more: the left stick moves a cursor over the map, the triggers zoom in and out round it (the mouse wheel, − and + on a keyboard), and the mark under the cursor tells you what it is and how far. The other quests you are on show their marks too.',
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

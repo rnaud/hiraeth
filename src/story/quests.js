@@ -275,6 +275,20 @@ export class Quests {
     return position ? { id: `quest-${id}-${st.id}`, quest: id, label: st.label ?? st.text, position } : null;
   }
 
+  /**
+   * Every quest under way with a place for its step here (the map's quest marks, issue #244: "I should be able to see
+   * quest markers"): [{ id, quest, title, label, position, main, tracked }], the tracked one (the scout's) first.
+   */
+  objectives() {
+    const tracked = this.objective()?.quest ?? null;
+    const out = [];
+    for (const d of this.active()) {
+      const st = this.current(d.id), position = this.where(st);
+      if (position) out.push({ id: `quest-${d.id}-${st.id}`, quest: d.id, title: d.title, label: st.label ?? st.text, position, main: !!(d.main || d.major), tracked: d.id === tracked });
+    }
+    return out.sort((a, b) => b.tracked - a.tracked);
+  }
+
   /** A stage's goal is met as things stand (a flag stage's flag, a `when`); goto, talk and bring stages are done by doing them. */
   met(st) {
     if (!st) return false;

@@ -766,6 +766,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'objective-card', title: 'The objective card', caption: 'Before, “OBJECTIVE” over a tilted card; after, one level line, the step itself (a homecoming’s).', from: `${FROM_HUD}, the card shown by hand` },
     ], see: 'Start a new game: as you step out of the ship the father’s words are one line, and no objective card follows.' },
     { match: 'In the pause menu and the game menu only the menu’s music plays', see: 'Open the Start menu (Menu) or the game menu (View) while the world’s music plays: it fades out and only the menu’s tune is heard; close it and the world’s music comes back.' },
+    { match: 'The Map has no list under it any more', shots: [
+      { name: 'map-cursor', title: 'The Map', caption: 'Before, the map with a list of every mark beside it; after, the map alone, the cursor on the traveller and his label beside it, − and + in the corner.', from: `${FROM_HUD}, the game menu’s Map` },
+      { name: 'map-zoom', only: 'after', title: 'Zoomed in on the ship', caption: 'Two and a half times closer, the cursor on the ship: its name and how far beside it, the scale bar at 100 m.', from: `${FROM_HUD}, the game menu’s Map` },
+    ], see: 'Open the game menu (View, or J) and turn to the Map: the left stick moves the cursor, the triggers zoom.' },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [

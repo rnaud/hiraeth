@@ -51,9 +51,11 @@ export class Controller {
   /**
    * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
    * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
+   * @param o.menuAnalog ({ x, y, lt, rt }, dt) => bool: in a menu, each frame, the left stick and the triggers for a page
+   *                  that reads them itself (the game menu's Map); true: it took the stick (the D-pad still steps)
    */
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, prefs = controlPrefs, padMap = currentPadMap, stickTaken = null }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, prefs, padMap, stickTaken });   // (combat: a foe is near, LB blocks rather than zooms; stickTaken: the right stick chooses on the gadget wheel, it doesn't look)
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, prefs = controlPrefs, padMap = currentPadMap, stickTaken = null, menuAnalog = null }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, prefs, padMap, stickTaken, menuAnalog });   // (menuAnalog({ x, y, lt, rt }, dt): a menu page that reads the stick and triggers itself, true if it took them: the Map)   // (combat: a foe is near, LB blocks rather than zooms; stickTaken: the right stick chooses on the gadget wheel, it doesn't look)
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
     this.blocked = new Set(); this.lastContext = null; this.running = false; this.guarding = false; this.view = null;
   }
@@ -117,8 +119,11 @@ export class Controller {
       else if (ctx === 'menu' && press(NORTH)) this.action('y');  //  the items page's reset and turn; each carries its glyph)
       // (both sticks again: the world debug menu closes, as it opened; nothing else in a menu uses them)
       if (ctx === 'menu' && ((press(R3) && down(L3)) || (press(L3) && down(R3)))) this.action('worldDebug');
-      const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
-      const y = down(DOWN) ? 1 : down(UP) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
+      // (a page that reads the stick itself, the game menu's Map: it moves a cursor smoothly and the triggers zoom,
+      // issue #244; the D-pad still steps)
+      const analog = ctx === 'menu' && !!this.menuAnalog?.({ x: left.x, y: left.y, lt: values[LT] ?? 0, rt: values[RT] ?? 0 }, dt);
+      const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : !analog && Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
+      const y = down(DOWN) ? 1 : down(UP) ? -1 : !analog && Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
       const direction = y ? `y${y}` : x ? `x${x}` : '';
       this.repeat -= dt;
       if (direction && (direction !== this.direction || this.repeat <= 0)) {

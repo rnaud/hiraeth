@@ -17,6 +17,8 @@
 //   new HeightGrid(b, n, sample) → .step(ms) fills it a slice at a time (sample(x, z) → { h, water }); .done
 //   drawTerrain(ctx, grid, size)  ink and paper (a canvas 2D context)
 //   new WorldMap({ sample, size }) → .view(bounds) → { canvas, done, progress }; .pump(ms) (while the menu is open)
+//   new MapView()                 the Map panel's view (issue #244): a cursor the left stick moves, zoomed in and out
+//                                 round it, the window panned to keep it in sight; .pick(marks) the mark under it (pure)
 //
 // The grid is drawn a few milliseconds a frame while the menu is open (main.js pausedFrame: worldMap.pump), so a
 // handheld never stalls; 150 × 150 rays take about 30 ms on the Mac. Tests: tests/world-map.test.js.
@@ -32,6 +34,7 @@ export const MAP = {
   drop: 1400,       // m the rays look down
   size: 640,        // px: the drawn map's side
   budget: 6,        // ms a frame for the rays
+  keep: 6,          // parts of the map drawn sharper for a zoom, kept besides the whole
 };
 
 /**
@@ -244,7 +247,12 @@ export class WorldMap {
   view(b, cells = MAP.cells) {
     const k = this.key(b);
     let m = this.maps.get(k);
-    if (!m) { m = { grid: new HeightGrid(b, cells, this.sample), canvas: null, drawn: false }; this.maps.set(k, m); }
+    if (!m) {
+      m = { grid: new HeightGrid(b, cells, this.sample), canvas: null, drawn: false };
+      this.maps.set(k, m);
+      // (the whole map stays; of the parts drawn sharper for a zoom, the last few: a canvas each)
+      while (this.maps.size > MAP.keep + 1) { const old = [...this.maps.keys()][1]; this.maps.delete(old); }
+    }
     this.want = m;
     return { canvas: m.drawn ? m.canvas : null, done: m.drawn, progress: m.grid.progress, bounds: b };
   }
@@ -267,12 +275,13 @@ export class WorldMap {
 
 /**
  * The marks on a map and its legend's lines: `you` { x, z, dx, dz } (where he stands, the way he faces), `ship`,
- * `goal` { x, z, label }, `temples` [{ id, x, z, name }], `people` [{ id, x, z, name }], `boxes` [{ id, x, z, name }]
+ * `goal` { x, z, label }, `quests` [{ id, x, z, title, label }] (the other quests under way, at their steps), `temples`
+ * [{ id, x, z, name }], `people` [{ id, x, z, name }], `boxes` [{ id, x, z, name }]
  * (opened ones only), all in world metres; `bounds` the map shown. Each mark: { id, kind, name, sub (how far and which
  * way from you), u, v (0..1 on the map), deg (the traveller's), on (inside the map) }. The traveller first, then the
- * way on, the ship and the temples, then the people and the boxes, nearest first.
+ * way on, the other quests, the ship and the temples, then the people and the boxes, nearest first.
  */
-export function mapMarks({ you = null, ship = null, goal = null, temples = [], people = [], boxes = [], bounds }) {
+export function mapMarks({ you = null, ship = null, goal = null, quests = [], temples = [], people = [], boxes = [], bounds }) {
   const far = (p) => (you ? Math.hypot(p.x - you.x, p.z - you.z) : 0);
   const sub = (p, what) => {
     if (!you) return what;
@@ -290,11 +299,16 @@ export function mapMarks({ you = null, ship = null, goal = null, temples = [], p
   }
   const rest = [];
   if (goal) rest.push(mark('goal', 'goal', goal, goal.label || 'The way on', 'the way on'));
+  // (the other quests under way, each at its step: issue #244; one at the way on's own place is the way on)
+  for (const q of quests) {
+    if (goal && Math.hypot(q.x - goal.x, q.z - goal.z) < 2) continue;
+    rest.push(mark(`quest.${q.id}`, 'quest', q, q.title || q.label || 'A quest', q.label || 'a quest'));
+  }
   if (ship) rest.push(mark('ship', 'ship', ship, 'Your ship', 'the ship'));
   temples.forEach((t, i) => rest.push(mark(`temple.${t.id ?? i}`, 'temple', t, t.name || 'The makers’ temple', 'a makers’ temple')));
   people.forEach((p) => rest.push(mark(`person.${p.id}`, 'person', p, p.name, 'met')));
   boxes.forEach((b) => rest.push(mark(`box.${b.id}`, 'box', b, b.name || 'A makers’ box', 'a box you opened')));
-  const rank = { goal: 0, ship: 1, temple: 2, person: 3, box: 4 };
+  const rank = { goal: 0, quest: 1, ship: 2, temple: 3, person: 4, box: 5 };
   rest.sort((a, b) => rank[a.kind] - rank[b.kind] || a.d - b.d);
   return [...out, ...rest];
 }
@@ -303,4 +317,102 @@ export function mapMarks({ you = null, ship = null, goal = null, temples = [], p
 export function scaleBar(w, want = 0.22) {
   const m = contourStep(w * want, 1);
   return { m, frac: m / w, label: metres(m) };
+}
+
+// ------------------------------------------------------------------ the view (issue #244)
+// "On the map menu using the left stick should move around the map. There should be no list under it. I should be
+// able to zoom in and out. ... Hovering over an item tells me what it is." The map is the whole sheet; a cursor (a small
+// ring) moves over it with the left stick (or the D-pad, the arrows, the mouse), the view zooms in and out round it
+// (the triggers, the mouse wheel, − and +, A / × in a step) and pans to keep it in sight; the mark under the cursor is
+// named beside it. All in the map's own units, 0..1 across and down (toMap).
+
+export const VIEW = {
+  maxZoom: 6,       // the closest: a sixth of the whole map's width
+  pan: 0.6,         // the cursor at full tilt: this much of the view's width a second
+  zoomRate: 1.9,    // a trigger held all the way: e-folds of zoom a second
+  wheel: 1.25,      // one notch of the wheel (or a press of − / +)
+  step: 0.07,       // a press of the D-pad or an arrow: this much of the view's width
+  edge: 0.14,       // the view pans once the cursor is this close to its edge (of its width)
+  pick: 0.05,       // a mark this near the cursor (of the view's width) is the one under it
+};
+
+export class MapView {
+  constructor() { this.reset(); }
+  /** The whole map, the cursor on `at` ([u, v]: the traveller, else the middle). */
+  reset(at = null) {
+    this.z = 1; this.u0 = 0; this.v0 = 0;
+    this.u = at?.[0] ?? 0.5; this.v = at?.[1] ?? 0.5;
+    this.clamp();
+    return this;
+  }
+  /** The view's side, in map units. */
+  get span() { return 1 / this.z; }
+  get zoomed() { return this.z > 1.001; }
+  /** Everything back inside: the zoom in its bounds, the cursor on the map, the window following the cursor (`follow`), inside the map. */
+  clamp(follow = true) {
+    const c = (x, a, b) => Math.min(b, Math.max(a, x));
+    this.z = c(this.z, 1, VIEW.maxZoom);
+    this.u = c(this.u, 0, 1); this.v = c(this.v, 0, 1);
+    const s = this.span, m = s * VIEW.edge;
+    // (the window keeps the cursor in sight, then stays inside the map)
+    if (follow) {
+      if (this.u < this.u0 + m) this.u0 = this.u - m; else if (this.u > this.u0 + s - m) this.u0 = this.u - s + m;
+      if (this.v < this.v0 + m) this.v0 = this.v - m; else if (this.v > this.v0 + s - m) this.v0 = this.v - s + m;
+    }
+    this.u0 = c(this.u0, 0, 1 - s); this.v0 = c(this.v0, 0, 1 - s);
+    if (!follow) { this.u = c(this.u, this.u0, this.u0 + s); this.v = c(this.v, this.v0, this.v0 + s); }
+    return this;
+  }
+  /** The cursor moved by (du, dv) of the view's width. */
+  move(du, dv) { this.u += du * this.span; this.v += dv * this.span; return this.clamp(); }
+  /** The left stick (x, y in −1..1, down positive) for `dt` seconds. */
+  stick(x, y, dt) { return this.move(x * VIEW.pan * dt, y * VIEW.pan * dt); }
+  /** Zoom by `k` (more than 1: in) round the cursor (or `at` [u, v]: the mouse), which stays where it is on the sheet. */
+  zoomBy(k, at = null) {
+    const [au, av] = at ?? [this.u, this.v];
+    const [sx, sy] = this.toSheet(au, av);
+    this.z = Math.min(VIEW.maxZoom, Math.max(1, this.z * k));
+    this.u0 = au - sx * this.span; this.v0 = av - sy * this.span;
+    if (at) { this.u = au; this.v = av; }
+    return this.clamp(!at);   // (round the mouse: the map holds still under it)
+  }
+  /** Where (u, v) of the map lies on the sheet, 0..1 across and down (outside: off the view). */
+  toSheet(u, v) { return [(u - this.u0) * this.z, (v - this.v0) * this.z]; }
+  /** And back: a point of the sheet (0..1) on the map. */
+  fromSheet(sx, sy) { return [this.u0 + sx * this.span, this.v0 + sy * this.span]; }
+  /** The cursor on a point of the sheet (the mouse, a finger): the view stays (it would slide away under the mouse). */
+  point(sx, sy) {
+    const c = (x) => Math.min(1, Math.max(0, x));
+    [this.u, this.v] = this.fromSheet(c(sx), c(sy));
+    return this;
+  }
+  /** Dragged by (dx, dy) of the sheet: the map moves with the finger (the cursor with it). */
+  drag(dx, dy) {
+    const s = this.span;
+    this.u0 = Math.min(1 - s, Math.max(0, this.u0 - dx * s)); this.v0 = Math.min(1 - s, Math.max(0, this.v0 - dy * s));
+    this.u = Math.min(this.u0 + s, Math.max(this.u0, this.u - dx * s)); this.v = Math.min(this.v0 + s, Math.max(this.v0, this.v - dy * s));
+    return this;
+  }
+  /** The mark under the cursor (on the map, the nearest within VIEW.pick of the view's width; the traveller last), or null. */
+  pick(marks = []) {
+    let best = null, bd = VIEW.pick * this.span;
+    for (const m of marks) {
+      if (!m.on) continue;
+      const d = Math.hypot(m.u - this.u, m.v - this.v) * (m.kind === 'you' ? 1.6 : 1);
+      if (d < bd) { bd = d; best = m; }
+    }
+    return best;
+  }
+  /** The scale bar for a whole map `w` m across, at this zoom. */
+  scale(w) { return scaleBar(w / this.z); }
+  /**
+   * The part of the map worth drawing again sharper for this view (zoomed in twice or more; else null): a square half
+   * as wide again as the view round it, its corner on a grid of a quarter view, so a small pan keeps the same one.
+   */
+  detailWindow() {
+    if (this.z < 2) return null;
+    const v = this.span, s = Math.min(1, v * 1.5), g = v / 4;
+    const snap = (a) => Math.min(1 - s, Math.max(0, Math.round((a + v / 2 - s / 2) / g) * g));
+    return { u0: snap(this.u0), v0: snap(this.v0), s };
+  }
 }

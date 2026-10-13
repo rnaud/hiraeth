@@ -473,8 +473,8 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   menu); the stick or the D-pad moves the cursor (`moveCursor`: along a row; off its end onto the side
   tab, once more turns, as on the N64; up / down to the next row with that column, wrapping); A / ×
   opens the thing picked full screen (an item, a keepsake, a sketch, a sighting, a world, a finished quest:
-  below), makes a quest the tracked one (`quests.choose`), opens a person's page, or zooms the map on a
-  mark; B / ○ goes back out of what it opened, then closes the whole menu from any panel. Keyboard: Q / E
+  below), makes a quest the tracked one (`quests.choose`), opens a person's page, or zooms the map round its
+  cursor; B / ○ goes back out of what it opened, then closes the whole menu from any panel. Keyboard: Q / E
   or [ ] turn, arrows or WASD move, Enter or Space confirm, Esc or Backspace back, J closes. Mouse: the tabs,
   the side tabs, a click picks, a click on the picked one confirms; hovering picks. Touch: a tap picks and
   says what it is, a second tap confirms; the ✕ closes.
@@ -568,15 +568,32 @@ of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but f
   (where a ray finds nothing: dotted paper, the City Floating in Space) and of open water (teal, deeper
   darker; a world's sea, the Underwater City's, is not open water); a double frame, N, a scale bar.
 - **The marks** (`mapMarks`, HTML over the canvas so they stay sharp): you (a red arrow turned the way you
-  face), the way on (the scout's objective, `nextObjective` without the doorways), your ship, the makers'
-  temples (at their doors), the people met here, the boxes opened. Something inside a temple's or a shop's
-  room (built far from the ground) is drawn at its door (`mapAt`). Never a fragment of the singing light, nor
-  a box still closed. The way on, the ship and the temples are named on the map unless another name is beside
-  them; the others when picked.
-- **The legend** beside it (under it on a narrow screen): a line a mark, how far and which way from you
-  ("the ship · 12 m south-east"); the cursor's mark ringed on the map. A / × zooms on it (a third of the
-  map's width round it, its own grid), again the whole map; B / ○ the whole map first, then closes. The
-  fragments found here are counted under it once the first is found (as the Worlds panel does).
+  face), the way on (the scout's objective, `nextObjective` without the doorways), the other quests under way at
+  their steps (v1.65, `quests`: `Quests.objectives()`, a gold ◇; one at the way on's own place is the way on), your
+  ship, the makers' temples (at their doors), the people met here, the boxes opened. Something inside a temple's or a
+  shop's room (built far from the ground) is drawn at its door (`mapAt`). Never a fragment of the singing light, nor
+  a box still closed. No name is written on the map at rest.
+- **No list; a cursor, a zoom** (v1.65, issue #244: "using the left stick should move around the map. There should
+  be no list under it. I should be able to zoom in and out ... Hovering over an item tells me what it is"): the map is
+  the whole sheet. `MapView` (src/world-map.js) holds a cursor (a small ink ring, gold over a mark) and a zoom, 1 to
+  `VIEW.maxZoom` (6), in the map's own units; the view pans to keep the cursor `VIEW.edge` inside it and never leaves
+  the map. The left stick moves the cursor smoothly (`VIEW.pan`: 0.6 of the view a second at full tilt: the
+  controller hands the stick and the triggers to `GameMenu.mapAnalog` each frame in a menu, `menuAnalog`, and keeps
+  the D-pad's steps); the D-pad, the arrows or WASD step it (`VIEW.step`); RT / R2 zooms in and LT / L2 out round the
+  cursor as far as they are pressed (`VIEW.zoomRate`), A / × twice as close (at the closest, the whole map), B / ○
+  the whole map first, then closes; the keys' − and +, the mouse wheel (round the mouse, the map holding still under
+  it) and the − / + buttons in the corner (the triggers' glyphs in them on a pad). The mouse moves the cursor, a drag
+  (a finger's or a held button's) moves the map, a tap puts the cursor there. The mark under the cursor (`pick`: the
+  nearest within `VIEW.pick` of the view, the traveller last) is ringed and named beside it on a dark label, its name
+  and one line ("the ship · 12 m south-east"), on the side with room; the strip says the same, else the world's name.
+  The scale bar follows the zoom. Zoomed in twice or more and still for 0.4 s, the part in view is drawn again sharper
+  (`detailWindow`: half as wide again as the view, on a grid of a quarter view; `mapSource({ detail })` →
+  `detail: { canvas, u0, v0, s }`, laid over the whole map's canvas; the last `MAP.keep` kept). Each opening of the
+  menu starts on the whole map, the cursor on the traveller. The fragments found here are counted in a corner once
+  the first is found (as the Worlds panel does).
+- **The data** stays as it was for an engine's menus (engine/menus.js reuses `mapPanel`): `mapPanel(data)` still
+  returns `{ html, rows }` with a row a mark (`act: 'zoom'`) and takes `zoom` (a mark's id) as before; new and
+  optional are `data.span` (m across the whole map), `data.detail` and the marks' `quest` kind.
 - Web only: the Unity bridge draws the HUD and the conversation (BridgeHud.cs), never the menus.
 
 ## The galactic map's signature search (v1.6)
