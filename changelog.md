@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.67 — 2026-10-13
 
+- In Viridel and the Buried Machine the traveller says the light brushed his ship, as it did, not that it struck it; and Vell, Edda and Solange’s goodbyes answer what was said instead of a bare “Good night”.
+- Fitz at the shooting gallery tells the rule as it is: a miss, or a splashed parasol, breaks your streak, not your run. And the search for old Oum is now “Search the western dunes for old Oum”.
+- Two answers that now follow what was said: Anselm Thrum takes “Come aboard, then” as the invitation it is, and Ilen ends on her own answer before you ask “Your answer?”.
+- The hosts of the races and the makers’ runs no longer offer Play for a run you can’t do yet: they tell you what it wants (the hoverbike, the wings, a temple’s gadget) and to come back with it.
 - The Elder of Vael now has her new feathered body in the Aerie: natural wings, a centred neck, a closed beak at rest, small head movements as she walks and legs that tuck up in flight. She returns to the rooftop perch after you calm her, and the Arena uses the same bird.
 
 ## v1.66 — 2026-10-13

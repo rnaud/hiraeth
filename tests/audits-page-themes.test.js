@@ -21,7 +21,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
   const kinds = [...new Set(reports.map((r) => r.kind))];
   assert.equal(themes.length, kinds.length);
   for (const k of kinds) assert.ok(theme(k), `${k} has a card`);
-  for (const k of ['game', 'combat', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'cinematics', 'perf']) assert.ok(THEME_ORDER.includes(k));
+  for (const k of ['game', 'combat', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'cinematics', 'quest', 'perf']) assert.ok(THEME_ORDER.includes(k));
   assert.deepEqual(themes.map((t) => t.kind).filter((k) => THEME_ORDER.includes(k)), THEME_ORDER.filter((k) => kinds.includes(k)), 'in the dashboard\'s order');
   assert.equal(theme('visual').latest.id, 'visual-v1.21');
   assert.equal(theme('game').latest.id, 'game-v1.59');
@@ -43,13 +43,13 @@ test('one card per theme, each its latest report (versions compared as numbers: 
 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
   assert.equal(theme('combat').prev.id, 'combat-v1.47'); assert.equal(theme('combat').delta, -0.01);   // (combat-v1.61: 4.51, combat-v1.47: 4.52)
-  assert.equal(theme('level-design').prev.id, 'level-design-v1.49'); assert.equal(theme('level-design').delta, 0.16);   // (level-design-v1.53: 4.51, v1.49: 4.35, both over twelve)
-  assert.equal(theme('temple-design').prev.id, 'temple-design-v1.53'); assert.equal(theme('temple-design').delta, 0.01);   // (temple-design-v1.60: 4.29, v1.53: 4.28, both over fourteen)
+  assert.equal(theme('level-design').prev.id, 'level-design-v1.53'); assert.equal(theme('level-design').delta, 0.2);   // (level-design-v1.66: 4.71, v1.53: 4.51, both over twelve; issue #226)
+  assert.equal(theme('temple-design').prev.id, 'temple-design-v1.60'); assert.equal(theme('temple-design').delta, 0.05);   // (temple-design-v1.66: 4.34, v1.60: 4.29, both over fourteen; issue #226)
   assert.equal(theme('game').delta, 0.1);   // (game-v1.59: 4.1, game-v1.53: 4.0)
-  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.53'); assert.equal(theme('dialogue').delta, 0.64);   // (dialogue-v1.57: 4.32 over eleven, v1.53: 3.68 over eleven; issue #202)
+  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.57'); assert.equal(theme('dialogue').delta, -0.23);   // (dialogue-v1.66: 4.09 over eleven, v1.57: 4.32 over eleven; issue #226)
   const lore = group('dialogue', 'Areas').rows.find((r) => r.label === 'Lore load');
-  assert.deepEqual([lore.value, lore.from], [4.5, 4], 'an area compared with the review before');
-  assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53 and v1.57 left localisation unscored (out of scope)');
+  assert.deepEqual([lore.value, lore.from], [3.5, 4.5], 'an area compared with the review before (v1.66: the hosts\' names alike)');
+  assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53, v1.57 and v1.66 left localisation unscored (out of scope)');
   assert.equal(theme('visual').prev.id, 'visual-v1.4', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
   for (const t of themes) for (let i = 1; i < t.history.length; i++) {
     const h = t.history[i], before = t.history.slice(0, i).reverse().find((x) => x.overall != null);
@@ -57,9 +57,9 @@ test('the change since the one before: overall, and each item since the last tim
   }
 
   const desert = group('level-design', 'Worlds').rows.find((r) => r.label === 'The Desert');
-  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4.11, 4, '1.49', 0.11]);   // (v1.53: the giants' road and the walking dunes, #174)
+  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [3.89, 4.11, '1.53', -0.22]);   // (v1.66: the walk out to the Rose House and back, #278)
   const viridel = group('level-design', 'Worlds').rows.find((r) => r.label === 'Viridel');
-  assert.deepEqual([viridel.value, viridel.from, viridel.delta], [4.56, 4, 0.56], 'a world compared by its row\'s name (v1.50: the Greenhouse seen and a way home, #131)');
+  assert.deepEqual([viridel.value, viridel.from, viridel.delta], [5, 4.56, 0.44], 'a world compared by its row\'s name (v1.57: its explorations as one way through)');
   // combat v1.61 judged the whole roster again: each is compared with the last report that judged it (v1.47, the same
   // 22 kinds and 14 guardians); the antler hound's read 5 -> 4 is the one that moved
   const arche = group('combat', 'Archetypes').rows;
@@ -99,6 +99,10 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(group('game', 'Themes').rows.length, 12);
   const areas = group('dialogue', 'Areas').rows;
   assert.equal(areas.length, 11); assert.ok(near(avg(areas.map((r) => r.value)), theme('dialogue').latest.overall));
+  // the quest QC's first report (v1.66, issue #226): fourteen places, the six rules' mean each, read as any kind's main table
+  const places = group('quest', 'Items').rows;
+  assert.equal(theme('quest').name, 'Quest QC');
+  assert.equal(places.length, 14); assert.ok(near(avg(places.map((r) => r.value)), theme('quest').latest.overall));
   const scenes = group('ink-lines', 'Scenes').rows;
   assert.equal(scenes.length, 16, 'v1.53: the 13 of v1.34 and the three worlds that joined in v1.40');
   assert.ok(near(avg(scenes.map((r) => r.value)), theme('ink-lines').latest.overall), 'each scene the mean of its resolutions');
@@ -165,7 +169,7 @@ test('the cards: score, change, items, the link to the full audit, History behin
   }
   assert.match(themeCard(theme('combat')), /▼ −0\.01 <small>since v1\.47/);
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
-  assert.match(themeCard(theme('dialogue')), /▲ \+0\.64 <small>since v1\.53/);
+  assert.match(themeCard(theme('dialogue')), /▼ −0\.23 <small>since v1\.57/);
   assert.doesNotMatch(themeCard(theme('dialogue')), /the first dialogue audit/);
   assert.match(themeCard(theme('perf')), /2\/4/);
   assert.doesNotMatch(themeCard(theme('combat'), { open: true }), /class="history"[^>]* hidden/);

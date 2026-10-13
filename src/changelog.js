@@ -10,6 +10,19 @@ import { glyph } from './pad-glyphs.js';
 export const CHANGELOG = [
   { v: '1.67', date: '2026-10-13', items: [
     'The Elder of Vael now has her new feathered body in the Aerie: natural wings, a centred neck, a closed beak at rest, small head movements as she walks and legs that tuck up in flight. She returns to the rooftop perch after you calm her, and the Arena uses the same bird.',
+    // the design audits re-run on the updated skills (issue #226): docs/audits/quest-v1.66.md, dialogue-v1.66.md,
+    // level-design-v1.66.md, temple-design-v1.66.md, cinematics-v1.66.md
+    // the hosts of the trials and makers' runs, told what the run lacks (src/minigames/kit/hosts.js hostTalk `lacks`)
+    { text: 'The hosts of the races and the makers’ runs no longer offer Play for a run you can’t do yet: they tell you what it wants (the hoverbike, the wings, a temple’s gadget) and to come back with it.',
+      see: 'In the desert before the hoverbike, ask Nadir at the dune line’s sign: he says it wants the hoverbike, and the only answer is to come back with it.' },
+    // answers that follow what was just said (the quest QC's rule 5): Thrum's meet.aboard, Ilen's light node
+    { text: 'Two answers that now follow what was said: Anselm Thrum takes “Come aboard, then” as the invitation it is, and Ilen ends on her own answer before you ask “Your answer?”.',
+      see: 'Pick up your first fragment and answer Anselm “Come aboard, then.”; at the Lantern, ask Ilen about the light on your hull.' },
+    { text: 'Fitz at the shooting gallery tells the rule as it is: a miss, or a splashed parasol, breaks your streak, not your run. And the search for old Oum is now “Search the western dunes for old Oum”.',
+      see: 'Ask Fitz about the shooting gallery in the Signal Market; ask Ama or the Speaker about the old woman who fell behind.' },
+    // the dialogue review v1.66's fixes: the light brushed the ship (lore/continuity.md), bare "Good night" exits
+    { text: 'In Viridel and the Buried Machine the traveller says the light brushed his ship, as it did, not that it struck it; and Vell, Edda and Solange’s goodbyes answer what was said instead of a bare “Good night”.',
+      see: 'In Viridel tell Mira about the mark under the flowers; in the Buried Machine ask Hask about the mark on everything; on the night mail ask Solange about the chalk and read the last answer.' },
   ] },
   { v: '1.66', date: '2026-10-13', items: [
     // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own
