@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_76ebf6e1855879 7
+docs/systems/movement.md
+  s_9ca76055a220ed::t_7c99e0fff39f47 258,261-269,279-280
+src/audio.js
+  s_9ca76055a220ed::t_0b6d7fdec5a8b8 1499-1521
+src/bike-worlds.js
+  s_9ca76055a220ed::t_c43efb79970b3e 6-8,24,39-51,58
+src/changelog.js
+  s_9ca76055a220ed::t_6175b706357521 44-47
+src/fluid-tool.js
+  s_9ca76055a220ed::t_9913f6d9038722 1430-1445
+src/i18n/en.js
+  s_9ca76055a220ed::t_d28ac4b42bae5c 167,515
+src/i18n/fr.js
+  s_9ca76055a220ed::t_77386f3c0ee5d1 166,512
+src/main.js
+  s_9ca76055a220ed::t_7c763abf1f8d1d 96,387-388,402-404,1763
+src/story/desert-data.js
+  s_9ca76055a220ed::t_1a4ef6628497a5 164
+tests/bike-worlds.test.js
+  s_9ca76055a220ed::t_3f8379fdba1678 68-81
+tests/hoverbike-quest.test.js
+  s_9ca76055a220ed::t_7e1a8b945f0a9e 139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d3948c401689f03eccb22029c2a7459f9c24841f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

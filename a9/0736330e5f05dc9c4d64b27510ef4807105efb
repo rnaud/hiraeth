@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_914312b091c97a 7
+docs/systems/living-world.md
+  s_9ca76055a220ed::t_6d16e987b39fa1 72-80
+src/changelog.js
+  s_9ca76055a220ed::t_5419c27aa72890 40-43
+src/main.js
+  s_9ca76055a220ed::t_f2f39bee44fae0 1044
+src/ship/ship.js
+  s_9ca76055a220ed::t_19d0bacaf5813f 5,56-60,179,460-482
+src/wildlife.js
+  s_9ca76055a220ed::t_5729d99b8d3c8a 272,394-397,404,505,507-509,612,629
+tests/wildlife-ship.test.js
+  s_9ca76055a220ed::t_b80a5fe3d8c251 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a90736330e5f05dc9c4d64b27510ef4807105efb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
