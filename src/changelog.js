@@ -20,6 +20,31 @@ export const CHANGELOG = [
     // src/game-menu.js mapPanel, issue #244)
     'In the pause menu and the game menu only the menu’s music plays; the world’s music comes back when you close it.',
     'The Map has no list under it any more: the left stick moves a cursor over the map, the triggers zoom in and out round it (the mouse wheel, − and + on a keyboard), and the mark under the cursor tells you what it is and how far. The other quests you are on show their marks too.',
+    // one prompt at the tree's roots for the spark-stone, over Hessa's (src/story/desert.js: the roots' thing does it all,
+    // its priority above talk while the stone is in your pack; the 'roots.stone' entry gone; issue #238)
+    { text: 'Fixed: coming back to Qanat’s tree with the spark-stone, there are no longer two prompts in front of the roots, one of them the wrong one. There is one, and it sets the stone, even with Hessa sweeping right beside you.',
+      see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and walk up to the bare roots on the avenue’s side of the tree: one prompt, “set the spark-stone in the roots”, wherever you stand round them.' },
+    // the tree's lighting filmed: from the ground by him out to the whole tree over the city (src/story/desert-moments.js
+    // lit, desert.moment.lit; docs/systems/cinematics.md "Moments"; issue #239)
+    { text: 'Setting the spark-stone in Qanat’s roots is filmed now: the camera starts on the ground beside you as the stone goes in, rises after the spark climbing the trunk, then pulls far back and up until the whole tree stands over the city with its fire growing out of the crown. Skip it as any other.',
+      see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and set it in the tree’s roots.' },
+    // the desert's first two fragments by the landing, and Marrow's errand for the nearer (src/fragments-data.js slots 5
+    // and 6, src/story/desert-data.js SPLINTER; docs/systems/fragments.md "The first two, easy"; issue #247)
+    { text: 'The first fragments of the singing light are easy to find in the Desert: one sings on the open sand a short walk from your ship’s ramp, another on the low rise behind it. Ask Marrow what is singing out there and he points you to the first, a small errand of its own that ends when you take it.',
+      see: 'Start a new game, step out of the ship and look ahead and to the right: a pale splinter singing on the sand about 40 m away. Or ask Marrow, “What’s that singing out on the sand?”' },
+    // the wildlife keeps off the parked ship, its ramp and the ground round them (src/ship/ship.js keepsOff, src/wildlife.js
+    // keepOff and a refused step taken back; docs/systems/living-world.md "Off the ship"; issue #246)
+    { text: 'Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.',
+      see: 'In the Desert, stand by your ship’s ramp a while, or chase the creatures near it: they go round the ship, never onto it.' },
+    // the hoverbike called from the pack, not whistled for (src/bike-worlds.js callKind, src/audio.js packCall,
+    // src/fluid-tool.js signal; docs/systems/movement.md "Mounts come to you"; issue #249)
+    { text: 'You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.',
+      see: 'In the Desert, once the hoverbike is awake, walk away from it and press D-pad ↓ (E on a keyboard): the rings on your tank blink, two soft notes, and the bike’s engine answers from far off.' },
+    // the makers' chests open where they stand: no float, light pouring out of them, the item over his open hand, a
+    // latch and a swell instead of a creak, and left open (src/boxes/scene.js, model.js buildShaft, index.js, src/player.js
+    // offerHand, src/hands.js, src/audio.js boxLatch / boxOpen; docs/systems/boxes.md; issue #223)
+    { text: 'The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.',
+      see: 'Open any makers’ chest: the first is on the dais at the foot of Qanat’s tree.' },
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state
@@ -46,31 +71,6 @@ export const CHANGELOG = [
     // the conversations' gestures in the engines: public/anim/gestures.glb attached to the clip library (engine/game.js,
     // src/motion-match.js attachMotion; -js-off gestures without), the traveller's locoMoves off (no moves.glb there); issues #197, #264
     'In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.',
-    // one prompt at the tree's roots for the spark-stone, over Hessa's (src/story/desert.js: the roots' thing does it all,
-    // its priority above talk while the stone is in your pack; the 'roots.stone' entry gone; issue #238)
-    { text: 'Fixed: coming back to Qanat’s tree with the spark-stone, there are no longer two prompts in front of the roots, one of them the wrong one. There is one, and it sets the stone, even with Hessa sweeping right beside you.',
-      see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and walk up to the bare roots on the avenue’s side of the tree: one prompt, “set the spark-stone in the roots”, wherever you stand round them.' },
-    // the wildlife keeps off the parked ship, its ramp and the ground round them (src/ship/ship.js keepsOff, src/wildlife.js
-    // keepOff and a refused step taken back; docs/systems/living-world.md "Off the ship"; issue #246)
-    { text: 'Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.',
-      see: 'In the Desert, stand by your ship’s ramp a while, or chase the creatures near it: they go round the ship, never onto it.' },
-    // the hoverbike called from the pack, not whistled for (src/bike-worlds.js callKind, src/audio.js packCall,
-    // src/fluid-tool.js signal; docs/systems/movement.md "Mounts come to you"; issue #249)
-    { text: 'You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.',
-      see: 'In the Desert, once the hoverbike is awake, walk away from it and press D-pad ↓ (E on a keyboard): the rings on your tank blink, two soft notes, and the bike’s engine answers from far off.' },
-    // the desert's first two fragments by the landing, and Marrow's errand for the nearer (src/fragments-data.js slots 5
-    // and 6, src/story/desert-data.js SPLINTER; docs/systems/fragments.md "The first two, easy"; issue #247)
-    { text: 'The first fragments of the singing light are easy to find in the Desert: one sings on the open sand a short walk from your ship’s ramp, another on the low rise behind it. Ask Marrow what is singing out there and he points you to the first, a small errand of its own that ends when you take it.',
-      see: 'Start a new game, step out of the ship and look ahead and to the right: a pale splinter singing on the sand about 40 m away. Or ask Marrow, “What’s that singing out on the sand?”' },
-    // the tree's lighting filmed: from the ground by him out to the whole tree over the city (src/story/desert-moments.js
-    // lit, desert.moment.lit; docs/systems/cinematics.md "Moments"; issue #239)
-    { text: 'Setting the spark-stone in Qanat’s roots is filmed now: the camera starts on the ground beside you as the stone goes in, rises after the spark climbing the trunk, then pulls far back and up until the whole tree stands over the city with its fire growing out of the crown. Skip it as any other.',
-      see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and set it in the tree’s roots.' },
-    // the makers' chests open where they stand: no float, light pouring out of them, the item over his open hand, a
-    // latch and a swell instead of a creak, and left open (src/boxes/scene.js, model.js buildShaft, index.js, src/player.js
-    // offerHand, src/hands.js, src/audio.js boxLatch / boxOpen; docs/systems/boxes.md; issue #223)
-    { text: 'The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.',
-      see: 'Open any makers’ chest: the first is on the dais at the foot of Qanat’s tree.' },
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the
