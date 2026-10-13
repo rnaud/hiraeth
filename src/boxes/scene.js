@@ -1,23 +1,27 @@
 import * as THREE from 'three';
-import { buildItemModel, buildSparkles, buildMotes, fluidMaterials, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
+import { buildItemModel, buildSparkles, buildMotes, buildShaft, fluidMaterials, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
 import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 
-// Opening a box. The makers' chests are big: they wake, float up off the ground,
-// wobble a few times like a caught thing deciding, part like petals with jade light
-// rising out of them, and come apart into light, leaving what they kept hovering
-// where they stood.
+// Opening a box. The makers' chests are big: they wake, unlatch, rock a few times on the
+// ground like a caught thing deciding, and open where they stand, their halves parting like
+// petals with light pouring up out of them; what they kept rises out of the light and comes to
+// float just over the traveller's open hand. The chest stays where it is, open (issue #223, the
+// author: "the chests should not float up, they should open where they are, and light should
+// come out from within them. Then the character should hold the item in their hand").
 //
 //   approach  the camera cuts to a low three-quarter shot over the traveller's right
 //             shoulder; the traveller is set square in front of the box, facing it
-//   wake      the star and the compasses brighten, the ray races round it, it shudders and hums
-//   rise      it floats up off the ground, turning slowly, and hangs there
-//   wobble    it rocks, rests, rocks again (WOBBLES: two or three, each a ray of light across
-//             it and a knock), then a last still moment
-//   dissolve  it opens (OPENING): the halves over its band part on their hinges like petals (the temple's
-//             bud falls open like a flower, its jade heart rising), motes of jade light rise out of it and
-//             the item grows out of the light at its centre; then it comes apart from the top down (the
-//             materials' DISSOLVE block: noise, a burning edge)
-//   reveal    the box is gone; the item hovers, turning, with a little sparkle; fanfare
+//   wake      the star brightens, the ray races round it, it shudders and hums; its brass latch clicks
+//   rise      (the name kept; nothing rises) it unlatches: light leaks at its seam (until issue #223 it
+//             floated up LIFT m and hung there, turning)
+//   wobble    it rocks on its foot, on the ground, rests, rocks again (WOBBLES at ROCK of their swing:
+//             two or three, each a ray of light across it and a knock), then a last still moment
+//   dissolve  (the name kept: it no longer comes apart) it opens where it stands (OPENING): the halves over
+//             its band part on their hinges like petals (the temple's bud falls open like a flower, its jade
+//             heart rising), light pours up out of it (the shaft's blades and the motes) and the item grows out
+//             of the light inside it, rising clear of its rim; a soft swell, no creak
+//   reveal    the item comes down to float just over his open right hand (he holds it out, palm up:
+//             Player.offer), turning, with a little sparkle; fanfare. The chest stays open beside him
 //   card      what it is, what it does: E, click or tap to go on
 //   beat      the item is granted, and a short closing beat that depends on what it is (beats.js:
 //             a gadget tried once, the star pinned on, a charm turned over and pocketed, a tank part
@@ -34,7 +38,7 @@ import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 // cam: { shot({ pos, look, fov }), release(blend), hud(show), bars(on) } (main.js
 // routes it to the ship's cinematic camera; tests pass nothing).
 
-export const TIMES = { approach: 0.5, wake: 0.7, rise: 1.0, wobble: 2.7, dissolve: 1.8, reveal: 0.9 };
+export const TIMES = { approach: 0.5, wake: 0.7, rise: 0.6, wobble: 2.7, dissolve: 1.8, reveal: 1.0 };
 /** The dissolve phase in stages (shares of it): the petals part over the first `open`, the item grows from `grow` for
  *  `growFor`, the shell comes apart from `apart` to the end. */
 export const OPENING = { open: 0.5, grow: 0.3, growFor: 0.55, apart: 0.55 };
@@ -54,7 +58,12 @@ export const OUT_TIME = 1.3;
 /** s the camera takes to push in from A to B at the reveal (a move, not a jump cut). */
 export const PUSH_IN = 0.8;
 export const STAND_AT = (BOX.d / 2) * BOX_SCALE + 0.9;   // m from the box centre to where the traveller stands (front side)
-export const LIFT = 0.75;      // m the box rises before it comes apart
+export const LIFT = 0;         // m the box rises before it opens: none, it opens where it stands (0.75 until issue #223)
+/** How far it rocks on the ground, a share of the wobbles' swing (they were swung in the air). */
+export const ROCK = 0.4;
+/** Where his open hand is held out (box-local, as BEATS' holds: x his right, y up from his feet, z behind him), how far
+ *  over the palm the item floats (m), and its size there (a share of its size over the chest). */
+export const HAND = { at: [0.2, 1.06, -0.42], above: 0.2, scale: 0.55 };
 export const CARD_MIN = 0.5;   // s the card is up before a press counts (no accidental dismissals)
 /**
  * The opening's camera, one of a few plans so the 32 boxes don't all play the same shots (the QC pass):
@@ -78,10 +87,10 @@ export function boxPlan(id = '') {
   const names = Object.keys(BOX_PLANS);
   return names[h % names.length];
 }
-const TURN = -0.5;             // rad it turns as it floats up (a corner toward the first camera: it reads as a box, not a tile)
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const easeOut = (t) => 1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3);
-const _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _c = new THREE.Vector3();
+const _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _c = new THREE.Vector3(), _p = new THREE.Vector3(), _lk = new THREE.Vector3();
+const _Y = new THREE.Vector3(0, 1, 0);
 
 export class BoxScene {
   /**
@@ -129,7 +138,9 @@ export class BoxScene {
     this.sparkles.visible = false;
     this.motes = buildMotes();
     this.motes.visible = false;
-    b.scene?.add(this.model, this.sparkles, this.motes);
+    this.shaft = buildShaft();
+    this.shaft.visible = false;
+    b.scene?.add(this.model, this.sparkles, this.motes, this.shaft);
     this.cam?.hud?.(false);
     this.cam?.bars?.(true);
     this.card?.scene(true);
@@ -180,16 +191,16 @@ export class BoxScene {
     const prev = this.phase;
     this.phase = phase; this.t = 0;
     const s = this.sound;
-    if (phase === 'wake') s?.boxCreak?.();
-    if (phase === 'rise') s?.boxHum?.(1);
+    if (phase === 'wake') s?.boxLatch?.();   // (a brass latch: the wooden creak it made until issue #223 read as a door)
+    if (phase === 'rise') { s?.boxHum?.(1); s?.boxLatch?.(true); }
     if (phase === 'wobble') {
       this.wobbled = 0;
       // the ray's clock from here: pass rayBase + i crosses with wobble i
       const A = this.box.parts?.mats?.body?.uniforms?.uBoxA?.value;
       this.rayBase = A ? Math.ceil(A.w) + 1 : 0;
     }
-    if (phase === 'dissolve') { s?.boxBurst?.(); this.model.visible = true; this.sparkles.visible = true; this.motes.visible = true; }
-    if (phase === 'reveal') { this.setDissolve(1); s?.fanfare?.(); this.fanfared = true; }
+    if (phase === 'dissolve') { s?.boxOpen?.(); this.model.visible = true; this.sparkles.visible = true; this.motes.visible = true; this.shaft.visible = true; }
+    if (phase === 'reveal') { s?.fanfare?.(); this.fanfared = true; this.revealFrom = this.model.position.clone(); }
     if (phase === 'card') { this.card?.show(this.def, { found: this.box?.place?.found ?? null }); this.cardT = 0; }
     if (phase === 'beat') {
       this.card?.hide();
@@ -227,7 +238,8 @@ export class BoxScene {
     this.model.visible = true; this.sparkles.visible = true;
     this.lift = 1;
     this.box.parts?.setOpen?.(1);
-    this.setDissolve(1);
+    this.shaft.visible = true;
+    this.model.position.copy(this.handAt());
     this.enter('card');
     this.cardT = CARD_MIN;   // (a skip already pressed: the next press dismisses)
   }
@@ -297,15 +309,17 @@ export class BoxScene {
     this.lean = lean;
     const A = parts?.mats?.body?.uniforms?.uBoxA?.value;
     if (root) {
-      // hanging, it breathes up and down (still between the wobbles: it holds its breath)
-      const bob = lift * Math.sin(time * 1.8) * (this.phase === 'wobble' ? 0.012 : 0.04);
-      const yaw = B.yaw + TURN * smooth(lift) + Math.sin(t * 31) * 0.03 * shake;
-      _q.setFromEuler(_e.set(Math.sin(t * 47) * 0.02 * shake + lift * 0.03 * Math.sin(time * 1.1) * (this.phase === 'wobble' ? 0.2 : 1) + pitch, yaw, Math.sin(t * 53) * 0.02 * shake + lean, 'YXZ'));
+      // on the ground where it stands (issue #223: it floated up until then), shuddering as it wakes, rocking on its foot
+      const roll = ROCK * lean, tip = ROCK * pitch * 0.5;
+      const yaw = B.yaw + Math.sin(t * 31) * 0.03 * shake;
+      _q.setFromEuler(_e.set(Math.sin(t * 47) * 0.02 * shake + tip, yaw, Math.sin(t * 53) * 0.02 * shake + roll, 'YXZ'));
       root.quaternion.copy(_q);
-      // (it rocks about its heart, not its foot: the heart stays put)
-      const hh = (this.H * BOX_SCALE) / 2;
-      _c.set(0, hh, 0).applyQuaternion(_q);
-      root.position.set(B.pos.x, B.pos.y + LIFT * lift + bob + hh, B.pos.z).sub(_c);
+      // (it rocks on the edge of its foot that stays down, so it never sinks into the ground: the pivot is that edge)
+      const half = ((this.box.parts?.size?.w ?? BOX.w) / 2) * BOX_SCALE * 0.8;
+      const px = roll > 0 ? -half : half;
+      _c.set(px, 0, 0).applyQuaternion(_q);
+      _d.set(px, 0, 0).applyQuaternion(_q2.setFromAxisAngle(_Y, yaw));
+      root.position.set(B.pos.x + _d.x, B.pos.y + LIFT * lift, B.pos.z + _d.z).sub(_c);
       // a little squash on each knock
       const knock = wob >= 0 ? Math.max(0, 1 - (t - WS[wob].at) / 0.12) : 0;
       root.scale.set(BOX_SCALE * (1 + 0.04 * knock), BOX_SCALE * (1 - 0.05 * knock), BOX_SCALE * (1 + 0.04 * knock));
@@ -314,9 +328,9 @@ export class BoxScene {
       // it parts like petals, then comes apart into light
       const u = t / T.dissolve;
       parts.setOpen?.(Math.min(1, u / OPENING.open));
-      this.setDissolve(smooth((u - OPENING.apart) / (1 - OPENING.apart)));
     }
     this.moteFrame(time, T);
+    this.shaftFrame(time, T);
     // ---- light: the marks brighten, then it pours out as it comes apart
     const pour = this.phase === 'wake' ? 0.3 * smooth(t / T.wake) : this.phase === 'rise' ? 0.3 + 0.2 * smooth(t / T.rise)
       : this.phase === 'wobble' ? 0.5 + 0.25 * Math.abs(lean) / 0.29 : this.phase === 'dissolve' ? 0.5 + 0.5 * easeOut(t / 0.6)
@@ -333,27 +347,34 @@ export class BoxScene {
       } else if (!after('wobble')) { A.w += dt / (this.phase === 'approach' ? 2 : 0.9); A.x = 0.8 + 0.2 * pour; }
       A.y = this.phase === 'wobble' ? 0.75 + 0.25 * Math.abs(lean) / 0.29 : 0.6 + 0.4 * pour;
     }
-    // ---- the item: grows out of the light at the box's heart and hovers there
-    const hover = this.heart(1);
+    // ---- the item: grows out of the light inside the chest, rises clear of its rim, then comes to his open hand
     if (this.model.visible) {
       if (this.phase === 'dissolve') {
-        this.model.position.copy(this.heart(lift));
-        this.model.scale.setScalar(ITEM_SCALE * Math.max(1e-3, smooth((t / T.dissolve - OPENING.grow) / OPENING.growFor)));
-      } else if (this.phase === 'reveal' || this.phase === 'card') {
-        this.model.position.copy(hover);
-        this.model.scale.setScalar(ITEM_SCALE);
+        const k = smooth((t / T.dissolve - OPENING.grow) / OPENING.growFor);
+        this.model.position.lerpVectors(this.P(0, this.H * BOX_SCALE * 0.5, 0, _p), this.overRim(), smooth((t / T.dissolve - OPENING.grow) / (1 - OPENING.grow)));
+        this.model.scale.setScalar(ITEM_SCALE * Math.max(1e-3, k));
+      } else if (this.phase === 'reveal') {
+        // over to him in a little arc, smaller, to float over the palm he holds out
+        const k = smooth(t / (T.reveal * 0.85));
+        this.model.position.lerpVectors(this.revealFrom ?? this.overRim(), this.handAt(), k);
+        this.model.position.y += Math.sin(Math.PI * k) * 0.18;
+        this.model.scale.setScalar(ITEM_SCALE * (1 + (HAND.scale - 1) * k));
+      } else if (this.phase === 'card') {
+        this.model.position.copy(this.handAt());
+        this.model.scale.setScalar(ITEM_SCALE * HAND.scale);
       }
       for (const m of this.fluid) { m.uniforms.uFluidA.value.set(this.fill, 4, time, 0); }
     }
+    this.offerFrame(t, T);
     if (this.phase === 'beat') this.beatFrame(t, time);
     else if (this.model.visible) {
-      this.model.position.y += Math.sin(time * 2.2) * 0.04;
+      this.model.position.y += Math.sin(time * 2.2) * (this.phase === 'card' || this.phase === 'reveal' ? 0.015 : 0.04);
       this.model.rotation.set(0.15 * Math.sin(time * 0.9), time * 1.1, 0);
       // sparkles orbit and twinkle
       const sp = this.sparkles;
       sp.visible = this.model.visible && this.phase !== 'out';
       sp.position.copy(this.model.position);
-      sp.scale.setScalar(ITEM_SCALE);
+      sp.scale.setScalar(ITEM_SCALE * (this.phase === 'card' ? HAND.scale : 1));
       for (const s of sp.children) {
         const u = s.userData, ang = u.a + time * u.sp;
         s.position.set(Math.cos(ang) * u.r, u.y * 0.35 + Math.sin(time * 1.3 + u.ph) * 0.05, Math.sin(ang) * u.r);
@@ -399,7 +420,8 @@ export class BoxScene {
       const since = this.phaseStart('reveal') ?? 0;
       const k = 1 - 0.12 * smooth(since / 5);
       pos = this.P(...plan.B(k));
-      look = this.heart(1);
+      // (between the item over his hand and the open chest: both in the shot)
+      look = this.handAt(_lk).lerp(this.heart(1), 0.3);
       fov = plan.fovB;
       // moved on from where A ended, not cut, where the two are near (a metre apart, a cut read as the
       // camera jumping: the cinematics QC pass); a plan whose B is elsewhere ('side') cuts to it
@@ -443,7 +465,7 @@ export class BoxScene {
     if (k <= 0) { if (ph !== 'dissolve') mo.visible = false; return; }
     // (from where its halves part: the band's height on the makers' chest, the foot's top on the temple's)
     const rise = this.box.parts?.kind === 'temple' ? 0.12 : 0.46;
-    mo.position.copy(this.P(0, (this.lift ?? 1) * LIFT + this.H * BOX_SCALE * rise, 0));
+    mo.position.copy(this.P(0, this.H * BOX_SCALE * rise, 0));
     for (const c of mo.children) {
       const u = c.userData, life = (time * u.sp * 0.42 + u.ph) % 1;
       const r = u.r * (1 + 0.6 * life);
@@ -451,6 +473,54 @@ export class BoxScene {
       const s = Math.max(1e-3, Math.sin(Math.PI * life) * k);
       c.scale.set(s, s * 3.2, s);
     }
+  }
+
+  /** Just clear of the open chest's rim, over its middle: where the item has risen to as it opens. */
+  overRim(out = new THREE.Vector3()) { return this.P(0, this.H * BOX_SCALE + 0.3, 0, out); }
+
+  /** Where his open hand is held out to (world): HAND.at, before him on his right. */
+  handTarget(out = new THREE.Vector3()) { const r = this.near(...HAND.at); return this.P(r[0], r[1], r[2], out); }
+
+  /** Where the item floats over his open hand: over his palm as posed, else over where it is held out to. */
+  handAt(out = new THREE.Vector3()) {
+    const hand = this.player?.humanoid?.b?.hand_r;
+    if (hand && this.player.object?.visible !== false && (this.offerK ?? 0) > 0.5) {
+      hand.getWorldPosition(out);
+      // (the palm's middle, a little out along the fingers from the wrist: toward where the hand is held out)
+      const tg = this.handTarget(_p);
+      out.lerp(tg, 0.35);
+    } else this.handTarget(out);
+    return out.add(_d.set(0, HAND.above, 0));
+  }
+
+  /**
+   * His right hand, held out palm up for the item (Player.offer: src/player.js poses the arm, src/hands.js opens the
+   * hand): up through the reveal, held through the card, let go as the closing beat takes the item.
+   */
+  offerFrame(t, T) {
+    const P = this.player;
+    if (!P) return;
+    const ph = this.phase;
+    const k = ph === 'reveal' ? smooth(t / (T.reveal * 0.7)) : ph === 'card' ? 1 : ph === 'beat' ? 1 - smooth(t / 0.45) : 0;
+    this.offerK = k;
+    if (k <= 0.001) { if (P.offer) P.offer = null; return; }
+    P.offer = { k, at: this.handTarget(P.offer?.at ?? new THREE.Vector3()) };
+  }
+
+  /** The light pouring up out of the opening chest: grows as its halves part, steady over the reveal and the card, fading after. */
+  shaftFrame(time, T) {
+    const sh = this.shaft;
+    if (!sh?.visible) return;
+    const ph = this.phase, t = this.t;
+    const k = ph === 'dissolve' ? smooth(t / (T.dissolve * OPENING.open)) : ph === 'reveal' || ph === 'card' ? 1 : ph === 'beat' ? 1 - 0.6 * smooth(t / (T.beat || 1)) : ph === 'out' ? 0.4 * (1 - smooth(t / 0.6)) : 0;
+    if (k <= 0.001 && ph !== 'dissolve') { sh.visible = false; return; }
+    const rise = this.box.parts?.kind === 'temple' ? 0.12 : 0.42;
+    sh.position.copy(this.P(0, this.H * BOX_SCALE * rise, 0));
+    const w = BOX_SCALE * 0.9 * (0.4 + 0.6 * k);
+    sh.scale.set(w, Math.max(1e-3, 1.4 * k), w);
+    sh.rotation.y = this.box.yaw + time * 0.25;
+    // (each blade breathes a little, out of step with the others)
+    sh.children.forEach((c, i) => { if (c.userData.len) c.scale.y = c.userData.len * (0.85 + 0.15 * Math.sin(time * 2.3 + i * 1.7)); });
   }
 
   /** Seconds since a phase began (counting the phases after it), for the camera pushes. */
@@ -566,10 +636,10 @@ export class BoxScene {
   end() {
     if (this.done) return;
     this.done = true;
-    this.model?.removeFromParent(); this.sparkles?.removeFromParent(); this.motes?.removeFromParent();
-    const parts = this.box?.parts;
+    this.model?.removeFromParent(); this.sparkles?.removeFromParent(); this.motes?.removeFromParent(); this.shaft?.removeFromParent();
     if (this.box) this.box.sceneLight = 0;
-    if (parts?.root) this.setDissolve(1);   // it is gone for good (index.js hides the spent box)
+    if (this.player?.offer) this.player.offer = null;
+    // (nothing comes apart: it stays where it stood, open, and index.js leaves it so: setSpentLook)
     if (this.cam?.release && this.phase !== 'out') this.cam.release(0.8);
     this.cam?.bars?.(false);
     this.cam?.hud?.(true);

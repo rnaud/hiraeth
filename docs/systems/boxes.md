@@ -56,6 +56,30 @@ hinges, the temple's petals fall open and its heart rises), motes of jade light 
 the sheets' column of light) and the item grows out of the light at its centre; from 55 % it comes apart from the top
 down in the dissolve, the motes thinning through the reveal and gone during the card.
 
+**Since issue #223** (the author: "the chests should not float up, they should open where they are, and light should come
+out from within them. Then the character should hold the item in their hand (it should float right above his open
+hand). Also the sound of the chest opening is wrong, sounds like creaking"), the paragraph above is history:
+- **On the ground.** `LIFT` is 0: nothing floats. `wake` clicks its brass latch (`Sound.boxLatch`; the wooden creak,
+  `boxCreak`, is the home's door's alone now), `rise` (the name kept) unlatches it with a second, lower click and light
+  at its seam. The wobbles rock it on its foot where it stands, `ROCK` (0.4) of their swing, pivoting on the edge that
+  stays down, so it never sinks into the ground or lifts off it (the knocks and the ray as before).
+- **It opens where it stands** (the `dissolve` phase, its name kept: nothing comes apart): the halves part on their
+  hinges, and light pours up out of it: blades of pale jade light fanning up from inside (`buildShaft`, one glowing
+  material, growing as it opens and breathing), the motes between them, the chest's own light inside it. The item
+  grows out of the light inside and rises clear of the rim. The sound is `Sound.boxOpen`: a soft hollow thump of the
+  halves and a swell, an open chord rising in under a few soft high notes (the bright noise burst `boxBurst` made is gone).
+- **In his hand.** Over the reveal the item comes to him in a small arc and floats `HAND.above` (0.2 m) over his open
+  right hand, at `HAND.scale` (0.55) of its size over the chest: he holds the hand out before him, palm up, fingers
+  open (`Player.offer` = { k, at }: `offerHand` reaches the arm there and turns the palm up, `src/hands.js` opens the
+  fingers, 'flat'). He holds it so through the card; the closing beat takes it from there (its own holds as before)
+  as he lets go. The camera's second shot looks between the item over his hand and the open chest.
+- **It stays open.** After the scene the chest is left where it stood, its halves parted (the temple's bud open like a
+  flower), quiet: no ray, no hum, no light (`setSpentLook`), on a fresh load too. No collider: the block it stood as
+  would be solid where the parted halves leave air. A box spent without being opened (a fallback, an item had anyway)
+  still goes. Its timing: `TIMES` wake 0.7, rise 0.6 (it was 1.0 to float up), the rest as before.
+`tests/boxes.test.js` (on the ground all through, opened where it stands, the shaft, his hand held out and the item over
+it, left open), `tests/hands.test.js` (the open hand).
+
 The camera takes one of four plans per box (`BOX_PLANS`, `boxPlan(id)`: a stable hash of the box's id;
 the desert's first box always the first): **shoulder**, low over his right shoulder, then beside him;
 **left**, the same over his left; **side**, from the box's flank at its height with him in profile, then

@@ -1366,13 +1366,47 @@ export class Sound {
     this.burst(t + 0.1, { dur: 0.7, type: 'bandpass', freq: 1800, q: 0.5, vol: 0.06, rate: 0.6 });
   }
 
-  /** A floating box rocks (the i-th wobble): a hollow knock and a little rising chime, a step higher each time. */
+  /** A chest rocks on its foot (the i-th wobble): a hollow knock and a little rising chime, a step higher each time. */
   boxWobble(i = 0) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     if (!this.sample('knock', { vol: 0.9, rate: 0.85 + i * 0.06 })) this.burst(t, { dur: 0.09, type: 'lowpass', freq: 320, q: 1.2, vol: 0.12, rate: 1 });
     this.sweep(t, 140 + i * 18, 90 + i * 12, 0.18, 0.03, 'triangle');
     this.pluck(587 * Math.pow(2, (i * 4) / 12), t + 0.03, 0.035, 'sine', this.fx);
+  }
+
+  /**
+   * A makers' chest's brass latch (issue #223: the opening "sounds like creaking"): a short bright click of metal, the
+   * catch, with a small knock of the shell behind it; `release` the second, a little lower, as it lets go.
+   */
+  boxLatch(release = false) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + 0.01, r = release ? 0.82 : 1;
+    this.burst(t, { dur: 0.025, type: 'bandpass', freq: 3600 * r, q: 6, vol: 0.09, rate: 1.6 });
+    this.burst(t + 0.045, { dur: 0.02, type: 'bandpass', freq: 2500 * r, q: 5, vol: 0.06, rate: 1.4 });
+    for (const [f, d] of [[2093 * r, 0.09], [3136 * r, 0.06]]) this.sweep(t, f, f * 0.995, d, 0.012, 'triangle');   // (the brass ringing)
+    this.sweep(t + 0.04, 210 * r, 150 * r, 0.12, 0.035, 'sine');   // (the shell, hollow)
+  }
+
+  /**
+   * The chest opens where it stands and the light pours up out of it (issue #223): the halves part with a soft hollow
+   * thump of ceramic, then a magical swell, a held open chord rising in from nothing with a shimmer over it. No creak.
+   */
+  boxOpen() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.02, bus = this.fx;
+    this.sweep(t, 160, 95, 0.32, 0.05, 'sine');
+    this.burst(t, { dur: 0.18, type: 'lowpass', freq: 600, q: 0.8, vol: 0.05, rate: 0.7 });
+    // the swell: D, A, D, F#, A rising in, held, fading
+    for (const [semi, v] of [[-12, 0.022], [-5, 0.018], [0, 0.016], [4, 0.012], [7, 0.01]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.value = 293.66 * Math.pow(2, semi / 12);
+      lp.type = 'lowpass'; lp.frequency.setValueAtTime(500, t); lp.frequency.linearRampToValueAtTime(2200, t + 1.0);
+      g.gain.setValueAtTime(0, t + 0.1); g.gain.linearRampToValueAtTime(v, t + 0.9); g.gain.setValueAtTime(v, t + 1.3); g.gain.exponentialRampToValueAtTime(0.0005, t + 2.6);
+      o.connect(lp).connect(g).connect(bus); o.start(t + 0.1); o.stop(t + 2.7);
+    }
+    // the shimmer over it, soft (was a bright noise burst)
+    for (let i = 0; i < 6; i++) this.pluck(1174.7 * Math.pow(2, [0, 4, 7, 12, 7, 16][i] / 12), t + 0.35 + i * 0.11, 0.018, 'sine', bus);
   }
 
   /** The light pours out: a bright rising shimmer. */

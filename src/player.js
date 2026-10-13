@@ -1804,6 +1804,8 @@ export class Player {
       const SR = this.sheathReach;
       if (SR?.k > 0.01 && H.chestAnchor && !this.climbing && !this.mantle && !this.gliding && !this.swim && !this.ride) H.reachBack?.(H.chestAnchor.localToWorld(_g1.copy(SR.at)), SR.k, U, SR.grip);
       if (this.wingK > 0.03) this.spreadArms();
+      // his right hand held out, palm up, for what a chest gave (this.offer = { k, at }: src/boxes/scene.js; issue #223)
+      if (this.offer?.k > 0.01 && !this.climbing && !this.mantle && !this.gliding && !this.swim && !this.ride) this.offerHand(this.offer);
       // the hand-off: both hands on the tank while it swings between the back and the socket
       const hk = this.handoffGrip();
       if (hk > 0.01 && this.handoff?.handPoint) H.handOff?.(this.handoff.handPoint(_g1), hk, U);
@@ -1844,6 +1846,23 @@ export class Player {
     }
     const d = Math.atan2(Math.sin(target - this.heading), Math.cos(target - this.heading));
     this.heading += d * (1 - Math.exp(-14 * this.aim.k * dt));
+  }
+
+  /**
+   * The right hand held out before him, palm up, the fingers open (src/hands.js 'flat' through playerHands' offer), for
+   * an item to float over (the chest's reveal: src/boxes/scene.js). `at` the hand's place (world), `k` how far (0..1),
+   * blended from the pose under it; the elbow bent low at his side.
+   */
+  offerHand({ k, at }) {
+    const H = this.humanoid, B = H.b, U = this.frame.up;
+    if (!B.upperarm_r || !B.hand_r || !at) return;
+    const e = THREE.MathUtils.smoothstep(k, 0, 1);
+    const fwd = this.frame.dir(this.heading, _g1), back = _g2.copy(fwd).negate();
+    const hand = B.hand_r.getWorldPosition(new THREE.Vector3()).lerp(at, e);
+    H.reach({ hands: [hand, null], wallN: back, up: U });
+    // the palm turned up, the fingers on out along the forearm (set each frame: never left to the IK)
+    const along = B.hand_r.getWorldPosition(_g5).sub(B.lowerarm_r.getWorldPosition(_g6)).normalize();
+    H.turnHand?.('r', along, _g4.copy(U), e);
   }
 
   /** Gliding on the fluid wings: the arms open out and a little back under them, the lower one leading the turn. */

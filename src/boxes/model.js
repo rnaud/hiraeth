@@ -139,6 +139,28 @@ export function buildMotes(n = 18) {
   return g;
 }
 
+/**
+ * The light pouring up out of an opening chest (issue #223: "light should come out from within them"): a few thin blades
+ * of pale jade light fanning up and out from inside, of different lengths (the motes rise between them). Its foot is at y = 0, it is
+ * 1 tall at scale 1 (scene.js scales it up as the halves part); one glowing material, no shadow, nothing to bump into.
+ */
+export function buildShaft(n = 11) {
+  const g = new THREE.Group();
+  g.name = 'Chest light';
+  const mat = makeMaterial({ color: CHEST_COLORS.jadePale, flat: true, glow: 1, side: THREE.DoubleSide });
+  const blade = new THREE.CylinderGeometry(0.004, 0.014, 1, 3, 1, true).translate(0, 0.5, 0);
+  for (let i = 0; i < n; i++) {
+    const a = i * 2.39996, lean = 0.12 + ((i * 5) % 7) / 7 * 0.32, len = 0.55 + ((i * 3) % 5) / 5 * 0.55;
+    const m = new THREE.Mesh(blade, mat);
+    m.rotation.set(Math.cos(a) * lean, 0, Math.sin(a) * lean);
+    m.scale.set(1, len, 1);
+    m.userData.len = len;
+    g.add(m);
+  }
+  noCollide(g);
+  return g;
+}
+
 export function buildBeacon(key = 'beacon') {
   const mat = makeMaterial({ color: '#f4f8ff', flat: true, glow: 1, key: `box.beacon.${key}` });
   const m = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 1, 6, 1, true).translate(0, 0.5, 0), mat);

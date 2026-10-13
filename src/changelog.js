@@ -66,6 +66,11 @@ export const CHANGELOG = [
     // lit, desert.moment.lit; docs/systems/cinematics.md "Moments"; issue #239)
     { text: 'Setting the spark-stone in Qanat’s roots is filmed now: the camera starts on the ground beside you as the stone goes in, rises after the spark climbing the trunk, then pulls far back and up until the whole tree stands over the city with its fire growing out of the crown. Skip it as any other.',
       see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and set it in the tree’s roots.' },
+    // the makers' chests open where they stand: no float, light pouring out of them, the item over his open hand, a
+    // latch and a swell instead of a creak, and left open (src/boxes/scene.js, model.js buildShaft, index.js, src/player.js
+    // offerHand, src/hands.js, src/audio.js boxLatch / boxOpen; docs/systems/boxes.md; issue #223)
+    { text: 'The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.',
+      see: 'Open any makers’ chest: the first is on the dais at the foot of Qanat’s tree.' },
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

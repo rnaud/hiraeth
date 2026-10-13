@@ -17,7 +17,7 @@ import { hintsFor } from '../hint-level.js';
 // left long ago for a traveller who comes a long way. They notice you: the star and the lens brighten, the ray
 // quickens, the chest hums and, close up, shudders. E opens one: the opening scene (scene.js: it floats up, wobbles
 // two or three times like a caught thing deciding, parts like petals with jade light rising, and comes apart into
-// light), then the item is yours. An opened chest is gone for good.
+// light), then the item is yours. An opened chest stays where it stood, open (issue #223).
 //
 // Nothing speaks of the boxes before you find your first one yourself
 // (boxesFound): no box quests, no toast, no "Item boxes" page in the sketchbook.
@@ -40,6 +40,7 @@ import { hintsFor } from '../hint-level.js';
 // Quest locators: 'box.<id>' (the desert's 'box' stage points at the box on Qanat's dais).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+const _up = new THREE.Vector3(0, 1, 0);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
@@ -231,13 +232,20 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     const P = b.parts;
     const A = P.mats.body.uniforms.uBoxA.value;   // (z, the star's reach, is the chest's own)
     A.x = isSpent ? 0 : 0.6; A.y = isSpent ? 0.12 : 0.35; A.w = b.phase;
-    P.setOpen?.(0);
     b.light.set(0, -1e5, 0, 0);
     if (b.beacon) b.beacon.visible = false;
     b.isSpent = isSpent;
-    // opened, it came apart into light: gone, and nothing to bump into (a fallback box
-    // you no longer need goes the same way)
-    P.root.visible = !isSpent;
+    // opened, it stays where it stood, open and quiet, its halves parted (issue #223: it came apart into light until
+    // then, and was gone); a box spent without being opened (a fallback you no longer need, an item you had anyway)
+    // goes, with nothing left to bump into
+    const open = isSpent && opened(b) && !b.fallback;
+    P.setOpen?.(open ? 1 : 0);
+    P.root.visible = !isSpent || open;
+    if (open) { P.root.position.set(b.pos.x, b.pos.y, b.pos.z); P.root.quaternion.setFromAxisAngle(_up, b.yaw); P.root.scale.setScalar(BOX_SCALE); }
+    for (const m of Object.values(P.mats ?? {})) m.uniforms?.uDissolve?.value.set(0, 0.09, 0, 0);
+    for (const c of P.root.children) c.visible = true;
+    // (and nothing to bump into: the block the closed chest stood as would be solid where the parted halves leave air, and
+    //  what you stand on is what is drawn; the halves lie low on the ground)
     if (isSpent && b.collider) { physics.removeCollider?.(b.collider); b.collider = null; }
   }
 

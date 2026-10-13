@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.64 — 2026-10-12
 
+- The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.
 - Setting the spark-stone in Qanat’s roots is filmed now: the camera starts on the ground beside you as the stone goes in, rises after the spark climbing the trunk, then pulls far back and up until the whole tree stands over the city with its fire growing out of the crown. Skip it as any other.
 - The first fragments of the singing light are easy to find in the Desert: one sings on the open sand a short walk from your ship’s ramp, another on the low rise behind it. Ask Marrow what is singing out there and he points you to the first, a small errand of its own that ends when you take it.
 - You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.

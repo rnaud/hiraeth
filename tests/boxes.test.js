@@ -260,11 +260,15 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.ok(boxes.busy(), 'the scene plays');
   assert.ok(Math.abs(pl.pos.distanceTo(box.pos) - STAND_AT) < 0.3, 'the traveller is set before the box');
   for (let i = 0; i < 30 * 2.2; i++) boxes.update(1 / 30, 2 + i / 30);
-  assert.ok(box.parts.root.position.y > box.pos.y + LIFT * 0.6, 'it lifts off the ground');
+  // (issue #223: it no longer floats up; it rocks on its foot where it stands)
+  assert.ok(Math.abs(box.parts.root.position.y - box.pos.y) < 0.15, `it stays on the ground (${(box.parts.root.position.y - box.pos.y).toFixed(2)} m)`);
   for (let i = 0; i < 30 * 6.8; i++) boxes.update(1 / 30, 4.2 + i / 30);
   assert.equal(boxes.scene.phase, 'card', 'the card waits');
-  assert.equal(box.parts.mats.body.uniforms.uDissolve.value.x, 1, 'the box has come apart');
-  assert.ok(boxes.scene.model.visible && boxes.scene.model.position.distanceTo(box.pos) > LIFT, 'the item hangs where it was');
+  assert.ok(box.parts.mats.body.uniforms.uDissolve.value.x === 0 && box.parts.opened.visible && !box.parts.shell.visible, 'it has opened where it stands, nothing come apart');
+  assert.ok(boxes.scene.shaft.visible && boxes.scene.shaft.scale.y > 1, 'light pours up out of it');
+  assert.ok(pl.offer?.k > 0.99, 'he holds his hand out');
+  assert.ok(boxes.scene.model.visible && boxes.scene.model.position.distanceTo(boxes.scene.handAt()) < 0.1, 'the item floats over his open hand');
+  assert.ok(boxes.scene.model.position.y - pl.pos.y > 0.9 && boxes.scene.model.position.y - pl.pos.y < 1.5, 'at about his waist, a little over the palm');
   assert.ok(box.sceneLight > 0.9, 'light pours out');
   assert.ok(shots.length > 100 && shots.at(-1).pos, 'the camera is the scene’s');
   // one continuous camera: the reveal pushes in from the first angle, no jump between frames (the cinematics QC pass)
@@ -286,7 +290,8 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.equal(items.has('backpack'), true, 'granted');
   assert.equal(game.flag(`box.${box.id}`), true, 'persisted');
   assert.deepEqual(opened.map((o) => o.id), [box.id]);
-  assert.ok(box.spent() && !box.parts.root.visible && !box.collider, 'gone for good, nothing left to bump into');
+  assert.ok(box.spent() && box.parts.root.visible && box.parts.opened.visible && !box.collider, 'it stays where it stood, open (no block where its halves part)');
+  assert.ok(Math.abs(box.parts.root.position.y - box.pos.y) < 1e-6 && !pl.offer, 'set down square, his hand let go');
   assert.equal(bestInteractable(pl)?.entry.id === `box.${box.id}`, false, 'nothing to open any more');
   // a fresh load: still open
   boxes.dispose();
@@ -489,7 +494,7 @@ test('a chest opens in stages: its halves part like petals, the temple’s bud l
   }
 });
 
-test('opening: it floats up, wobbles two or three times with rests between, then comes apart', () => {
+test('opening: on the ground, it rocks two or three times with rests between, then opens where it stands (issue #223)', () => {
   // the wobbles: two or three, each a rock both ways that settles, with still rests between them
   assert.ok(WOBBLES.length >= 2 && WOBBLES.length <= 3);
   for (let i = 0; i < WOBBLES.length; i++) {
@@ -503,7 +508,7 @@ test('opening: it floats up, wobbles two or three times with rests between, then
   }
   const last = WOBBLES.at(-1);
   assert.ok(TIMES.wobble - (last.at + last.dur) > 0.2, 'a still moment before it opens');
-  // in a scene: floating all through the wobbles, a knock each time, then the dissolve
+  // in a scene: on the ground all through the wobbles, never into it, a knock each time, then it opens
   game.reset(); clearInteractables();
   const { scene, physics, level } = world('desert');
   const knocks = [];
@@ -520,14 +525,16 @@ test('opening: it floats up, wobbles two or three times with rests between, then
     if (sc.phase === 'wobble') {
       seen.leanMax = Math.max(seen.leanMax, Math.abs(sc.lean));
       if (sc.lean === 0) seen.restFrames++;
-      seen.minLift = Math.min(seen.minLift, sc.heart(1).y - (box.pos.y + (BOX.h * BOX_SCALE) / 2));
+      seen.minLift = Math.min(seen.minLift, box.parts.root.position.y - box.pos.y);
+      seen.maxLift = Math.max(seen.maxLift ?? -Infinity, box.parts.root.position.y - box.pos.y);
     }
     if (sc.phase === 'card') boxes.dismiss();
   }
   assert.deepEqual(seen.phases.slice(0, 6), ['approach', 'wake', 'rise', 'wobble', 'dissolve', 'reveal']);
   assert.ok(seen.leanMax > 0.1, 'it rocks');
   assert.ok(seen.restFrames > 10, 'and rests between');
-  assert.ok(seen.minLift > LIFT * 0.95, 'floating all the while');
+  assert.ok(seen.minLift > -0.01 && seen.maxLift < 0.15, `on the ground all the while, rocking on its foot (${seen.minLift.toFixed(3)}..${seen.maxLift.toFixed(3)} m)`);
+  assert.equal(LIFT, 0, 'nothing floats');
   assert.deepEqual(knocks, WOBBLES.map((_, i) => i), 'a knock with each wobble (the star: the plain three)');
   assert.ok(items.has('star'), 'and the item is yours');
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('star');
