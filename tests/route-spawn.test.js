@@ -101,6 +101,10 @@ for (const [id, { views = [], paths = [] }] of Object.entries(BENCH)) {
       const eye = V(...v.eye);
       assert.ok(!ship.isInside(ship.parked, eye), `${id} ${v.name}: the camera out of the ship (${fmt(eye)})`);
       if (v.player) clearOfShip(`${id} ${v.name}`, W, V(...v.player));
+      // (in the world as it is now: Vael's views stood in its own frame after v1.39 moved it by its part offset, 60-110 m
+      // over a ravine, and every bench and the visual audit looked at a cliff; visual-v1.66)
+      const p = V(...(v.player ?? v.eye)), g = W.physics.groundAt(p.x, p.y + 3, p.z, 300);
+      assert.ok(g != null && p.y - g < 10, `${id} ${v.name}: the view's traveller stands on the world (${g == null ? 'no ground under' : `${(p.y - g).toFixed(1)} m over the ground`} at ${fmt(p)})`);
     }
     for (const path of paths) for (const q of path.points ?? []) clearOfShip(`${id} path ${path.name}`, W, V(...q.p));
   });
