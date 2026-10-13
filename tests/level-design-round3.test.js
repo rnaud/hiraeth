@@ -74,3 +74,18 @@ test('Vael: the route starts with Oïa by the landing; she points up the standin
     assert.ok(seen, 'the white house shows from the mast');
   } finally { W.dispose(); }
 });
+
+test('Vael: the critical path passes over the wings’ last step once the route has been in at the Aerie (a `pass` stage), the desert’s Rose House kept (issue #226)', async () => {
+  const { criticalPath } = await import('../scripts/level-design/path.mjs');
+  const W = A.loadWorld('arzach');
+  try {
+    const labels = criticalPath(W, 'arzach').path.map((s) => s.label);
+    assert.ok(labels.includes('the temple'), 'in at the Aerie for the wings');
+    assert.ok(!labels.includes('The Aerie'), 'no second walk to its door for the wings already had');
+  } finally { W.dispose(); }
+  const D = A.loadWorld('desert');
+  try {
+    // (the desert's route never goes into the Rose House before its main quest ends, so its blade and guard are still a step)
+    assert.ok(criticalPath(D, 'desert').path.some((s) => s.label === 'The Givers’ blade and guard'));
+  } finally { D.dispose(); }
+});

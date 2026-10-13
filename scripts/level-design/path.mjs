@@ -37,12 +37,14 @@ export function criticalPath(W, id) {
   const later = MOUNTED_AFTER[id];
   let mountedFrom = null, pending = false;
   const met = new Set();
+  const entered = new Set();   // (the temples gone into so far, by id: a world's own temple by the world's id)
   for (const p of ROUTE.find((r) => r.id === id)?.play ?? []) {
     if (pending) { mountedFrom ??= stops.length; pending = false; }
     if (later && p === later.after) pending = true;
     // (a temple whose keeper sends you home along a leading line after it, the Glass Dunes' Wim by the float-posts: `home`)
     if (p.temple && templeOf(p.id)?.outside?.door) {
       const T = templeOf(p.id), door = arr(T.outside.door.at);
+      entered.add(p.id ?? id);
       stops.push({ label: 'the temple', kind: 'temple', pos: door });
       // (v1.50: a temple whose last way out, past its guardian, lets you out somewhere else, the Whale-House's keepers' hatch
       // in the divers' court: you go on from there, the hop to it not walked)
@@ -57,6 +59,9 @@ export function criticalPath(W, id) {
     for (const [i, s] of (q?.stages ?? []).entries()) {
       // (a quest opened by an act earlier in the route, Bastien at the lock before the errands: its first talk is had)
       if (i === 0 && met.has(s.at ?? s.talk)) continue;
+      // (a stage passed over on reaching it when its goal is met, `pass: true`: the core gadgets' last step, "take the
+      // fluid wings from the Aerie", never seen by a route that has been in at that temple's door already: issue #226)
+      if (s.pass && [...entered].some((t) => s.at === `temple.${t}.door`)) continue;
       // (a stage whose words send you along a leading line, "home along the marked stones": `via` names the line)
       // (a stage whose person has walked on by the time you get there, Hollin down to the root cave: `stands` names where)
       const w = arr(s.stands ? W.quests.resolve(s.stands) : W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w, ...(s.via ? { via: s.via } : {}) });
