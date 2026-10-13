@@ -6,6 +6,7 @@
 // `minArea` m² once projected into the plane. Plain objects in, plain objects out (tests/zfight.test.js).
 //
 //   const tris = trianglesOf(root, { THREE })        [{ a, b, c (world [x, y, z]), mat, mesh, side }]
+//                    ({ partOf }: who made each merged triangle, names.mjs; each tri's `part`, each site's `parts`)
 //   const fights = coplanarOverlaps(tris, opts)      [{ meshA, meshB, matA, matB, area, at, normal }] (one per site)
 //   visibleSites(fights, ray)                        the ones a player standing somewhere near could see
 //   summarise(fights)                                { count, area, worst: [...] }
@@ -13,7 +14,7 @@
 /** Every triangle of every visible mesh under `root`, in world space. Instanced meshes, points, lines, sprites and
  * anything invisible or `userData.zfightIgnore` are left out (moving pieces are dynamic: `userData.dynamic`, left
  * out unless `dynamic: true`). mat: the material's identity (a material per group when the mesh has several). */
-export function trianglesOf(root, { THREE, dynamic = false, filter = null } = {}) {
+export function trianglesOf(root, { THREE, dynamic = false, filter = null, partOf = null } = {}) {
   root.updateMatrixWorld(true);
   const out = [];
   const v = new THREE.Vector3();
@@ -40,11 +41,17 @@ export function trianglesOf(root, { THREE, dynamic = false, filter = null } = {}
         for (let k = 0; k < 3; k++) { const idx = I ? I.getX(i + k) : i + k; v.fromBufferAttribute(P, idx).applyMatrix4(o.matrixWorld); t.push([v.x, v.y, v.z]); }
         const i0 = I ? I.getX(i) : i;
         const tint = C ? `:${C.getX(i0).toFixed(2)},${C.getY(i0).toFixed(2)},${C.getZ(i0).toFixed(2)}` : '';
-        out.push({ a: t[0], b: t[1], c: t[2], mat: m.uuid + tint, mesh: name, side, offset, matName: (m.name || m.userData?.key || m.type) + tint });
+        out.push({ a: t[0], b: t[1], c: t[2], mat: m.uuid + tint, mesh: name, side, offset, matName: lookOf(m) + tint, part: partOf ? partOf(g, Math.floor(i / 3)) : null });
       }
     }
   });
   return out;
+}
+/** A material's name for the list: its own, its key, or its colour (makeMaterial's are nameless: 'ShaderMaterial#465c65'). */
+function lookOf(m) {
+  if (m.name || m.userData?.key) return m.name || m.userData.key;
+  const c = /"color":"(#[0-9a-f]{6})"/i.exec(m.userData?.cacheKey ?? '')?.[1] ?? '';
+  return m.type + c;
 }
 function meshName(o) {
   const parts = [];
@@ -178,11 +185,16 @@ export function coplanarOverlaps(tris, { eps = 0.004, cos = 0.9995, minArea = 0.
         const face = A.flip ? A.n.map((x) => -x) : A.n;
         p.samples.push({ p: ov.at, n: face, area: ar });
         if (p.samples.length > 6) { p.samples.sort((x, y) => y.area - x.area); p.samples.length = 4; }
-        if (ar > p.best) { p.best = ar; p.at = A.t.a.map((x) => +x.toFixed(2)); p.normal = A.n.map((x) => +x.toFixed(2)); }
+        if (ar > p.best) { p.best = ar; p.partA = m1.part; p.partB = m2.part; p.at = A.t.a.map((x) => +x.toFixed(2)); p.normal = A.n.map((x) => +x.toFixed(2)); }
       }
     }
   }
-  return [...pairs.values()].filter((p) => p.area >= minArea).map(({ best, ...p }) => ({ ...p, area: +p.area.toFixed(3) })).sort((a, b) => b.area - a.area);
+  return [...pairs.values()].filter((p) => p.area >= minArea).map(({ best, partA, partB, ...p }) => {
+    // (where the two merged pieces were made, when the caller named them: scripts/zfight/names.mjs)
+    const o = { ...p, area: +p.area.toFixed(3) };
+    if (partA || partB) o.parts = [partA, partB];
+    return o;
+  }).sort((a, b) => b.area - a.area);
 }
 
 /**

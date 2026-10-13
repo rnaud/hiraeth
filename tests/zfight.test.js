@@ -6,7 +6,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { trianglesOf, coplanarOverlaps, visibleSites, overlapArea, clipPolygon } from '../scripts/zfight/lib.mjs';
-import { rayOver, standing } from '../scripts/zfight/audit.mjs';
+import { rayOver, standing, zfightsOf } from '../scripts/zfight/audit.mjs';
+import { nameParts, partOf, describe } from '../scripts/zfight/names.mjs';
 import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Z_GAP } from '../src/temples/kit.js';
@@ -27,6 +28,12 @@ export const ZFIGHT_BASELINE = {
   garage: 1, edena: 2, bazaar: 8,   // (v1.48: the Clock-House, the Greenhouse and the Undertower round their hubs, a rotunda's raised gap with a sill)
   spacecity: 3, moonfoundry: 20, underwater: 19,
 };
+/**
+ * A world's own count, outside its temples, where a fix has brought it down (v1.68, issue #286; audit.mjs counts the
+ * rest, docs/systems/rendering.md "Z-fighting"): the City Floating in Space 460 -> 22, its houses' windows over one
+ * another, the storeys on the roofs' lips, the machinery's tops in the slabs' undersides, the pads and bridges on the decks.
+ */
+export const WORLD_ZFIGHT_BASELINE = { spacecity: 22 };
 
 test('the finder: two looks in one plane overlapping fight; set apart, behind, or one look, they don’t', () => {
   const scene = new THREE.Scene();
@@ -88,4 +95,33 @@ test('every temple’s visible z-fights at or under its baseline; the Rose House
     assert.ok(sites.length <= (ZFIGHT_BASELINE[id] ?? 0), `${id}: ${sites.length} z-fight sites (baseline ${ZFIGHT_BASELINE[id]}): ${sites.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${rt.kit.local(new THREE.Vector3(...s.seen.at)).toArray().map((v) => v.toFixed(1))}`).join('; ')} (node scripts/zfight/list-temple.mjs ${id})`);
   }
   assert.equal(report.desert, 0, 'the Rose House: none');
+});
+
+test('a merged mesh says what its pieces are: the lines that made them and their comments (scripts/zfight/names.mjs)', async () => {
+  await nameParts();
+  // (this process loaded three's merge already: a fresh copy of it, as the audit's world modules get)
+  const { mergeGeometries } = await import(import.meta.resolve('three/addons/utils/BufferGeometryUtils.js') + '?names');
+  const wall = new THREE.BoxGeometry(4, 4, 1).toNonIndexed();   // the wall
+  const trim = new THREE.BoxGeometry(1, 4, 1.4).translate(1.5, 0, 0).toNonIndexed();   // the trim on it
+  const g = mergeGeometries([wall, mergeGeometries([trim.clone()])]);
+  const a = describe(partOf(g, 0)), b = describe(partOf(g, 12));
+  assert.match(a, /zfight\.test\.js:\d+ — the wall$/, a);
+  assert.match(b, /zfight\.test\.js:\d+ — the trim on it$/, b);
+  // and the finder carries them to its sites
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(mergeGeometries([wall]), mat('#c88')), new THREE.Mesh(mergeGeometries([trim]), mat('#844')));
+  const f = coplanarOverlaps(trianglesOf(scene, { THREE, partOf }));
+  assert.ok(f.length && f[0].parts.map(describe).some((p) => p.endsWith('the trim on it')), 'a site names its pieces');
+});
+
+test('the City Floating in Space at or under its count; the market in the air, the canyon street and the furrows none of their own (issue #286)', async () => {
+  for (const [id, n] of Object.entries(WORLD_ZFIGHT_BASELINE)) {
+    const r = await zfightsOf(id, { temples: false });
+    assert.ok(r.total.count <= n, `${id}: ${r.total.count} z-fight sites (baseline ${n}): ${r.all.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${s.seen.at.join(', ')}`).join('; ')} (node scripts/zfight/audit.mjs --worlds ${id} --worst 20)`);
+  }
+  for (const [id, name] of [['bazaar', 'The market in the air'], ['underwater', 'The canyon street'], ['spheres', 'The furrows’']]) {
+    const r = await zfightsOf(id, { temples: false });
+    const own = r.all.filter((s) => s.meshA.includes(name) && s.meshB.includes(name));
+    assert.equal(own.length, 0, `${name}: ${own.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${s.seen.at.join(', ')}`).join('; ')} (node scripts/zfight/audit.mjs --worlds ${id} --worst 20)`);
+  }
 });

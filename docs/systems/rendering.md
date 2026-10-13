@@ -1254,6 +1254,29 @@ spacecity 460: 7457 → 6828. Every temple at or under its baseline; six baselin
 down to. Left: issue #286 (the City Floating in Space's merged parts, the nameless merged tiles, the market in the air,
 the canyon street, the furrows).
 
+**v1.68, 2026-10-13** (issue #286; main → the fixes): a merged mesh's sites name their pieces now
+(`scripts/zfight/names.mjs`: in node, before the world loads, where each geometry is made and what each
+`mergeGeometries` is made of; under each site `audit.mjs` prints the two pieces' lines in `src/` and the comment
+over them, so "Mesh#144 × Mesh#146" reads `box levels/bazaar.js:89 < buildBazaar levels/bazaar.js:212 — the fascia…`).
+The counts: spacecity 460 → **22** (the houses' windows, laid where the dice fall, one over another now stands `Z_GAP`
+further out, `eclipse-kit.js` `house`; a roof's lip starts `Z_GAP` down in the roof, under the storey heaped on it;
+under an island the first tier's top 1 cm under the pipes' ends, `TIER_DOWN` (both inside the slab), the pipes' collars `Z_GAP` past their
+ends; what is laid onto a deck, a bridge's ends and the stairs' pads, runs `DECK_BURY` 5 cm under it, under the
+paving plate and the slab's top; the bridges' parapets `Z_GAP` inside their sides), bazaar 151 → 98 (the market in the
+air's treads `Z_GAP` inside the stringers, the mast's rungs inside its bands left out; the old market's stairs off its
+floor and the street's paving), underwater 72 → 50 (the canyon street's bridge to the far terrace's edge, not a metre
+onto it; its glass rails from inside the deck up into their brass; its stairs' last step not on over the deck),
+spheres 34 → 10 (the furrows' banks `Z_GAP` over the beds; the hill's landings drawn `Z_GAP` under the terraces, walked
+on their proxies; the craters' top steps `Z_GAP` under the terrace they reach), arzach 16 → 13 (Vael's loggias' dark
+recess off the piers' feet). The rest as before: desert 29, incal 4070-4101 (it varies run to run), glassdunes 2,
+buried 1707, edena 5, perdide 16, moonfoundry 266. `tests/zfight.test.js` now holds the City Floating in Space to its
+count (`WORLD_ZFIGHT_BASELINE`) and the market in the air, the canyon street and the furrows to none of their own.
+Left: the Signal Market's avenue (89: each stall's counter ends in the plane of its fascia's, `bazaar.js` line 212/214,
+and the posters' light strips flush with their glow plates, `poster`; held back while the Market's tower and landing
+are reworked, #278), the City Floating in Space's last 22 (house feet in the deck, 2-3 cm inside the slab: the finder's
+own 5 cm tolerance; two chimneys; two greebles under the market; the Mooring-House's 3), the Garden of Spheres' paths on the ground (7) and one bank
+meeting a rise of the ground.
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.

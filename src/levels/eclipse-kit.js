@@ -5,6 +5,7 @@ import { leafCrown } from './garden-kit.js';
 import { limb } from './mangrove-kit.js';
 import { cloth, curtain, stick } from './salt-harbour-kit.js';
 import { greebles } from './greeble-kit.js';
+import { Z_GAP } from '../temples/kit.js';
 
 // ---------------------------------------------------------------------------
 // The City During the Eclipse: its shapes and its look, shared by the world (eclipse.js) and its
@@ -162,19 +163,20 @@ export function house(kit, M, rng, { x, y = 0, z, w = 7, d = w, h = 6, yaw = 0, 
       kit.add(wall, put(new THREE.BoxGeometry(w - 0.2, 0.2, d - 0.2), x, y + h - 0.1, z, yaw), how);
       for (const [lw, ld, lx, lz] of [[w, 0.35, 0, d / 2 - 0.17], [w, 0.35, 0, -d / 2 + 0.17], [0.35, d, w / 2 - 0.17, 0], [0.35, d, -w / 2 + 0.17, 0]]) {
         const c = Math.cos(yaw), s = Math.sin(yaw);
-        kit.add(wall, put(new THREE.BoxGeometry(lw - (lw > 1 ? cr * 1.4 : 0), 0.7, ld - (ld > 1 ? cr * 1.4 : 0)), x + c * lx + s * lz, y + h + 0.35, z - s * lx + c * lz, yaw), how);
+        // (its foot Z_GAP down in the roof: a storey heaped on the house stands on y + h, its floor and the lip's foot in one plane; issue #286)
+        kit.add(wall, put(new THREE.BoxGeometry(lw - (lw > 1 ? cr * 1.4 : 0), 0.7 + Z_GAP, ld - (ld > 1 ? cr * 1.4 : 0)), x + c * lx + s * lz, y + h + 0.35 - Z_GAP / 2, z - s * lx + c * lz, yaw), how);
       }
     }
   }
   // what is on the front (local +z) and the sides: doors and windows a hair proud of the wall
   const c = Math.cos(yaw), s = Math.sin(yaw);
-  const onFace = (g, u, v, face = 0) => {
-    // face: 0 the front, 1 the right side, -1 the left side; u across it, v up from the foot
+  const onFace = (g, u, v, face = 0, out = 0) => {
+    // face: 0 the front, 1 the right side, -1 the left side; u across it, v up from the foot; out: further off the wall
     if (round) {
-      const a = (face * Math.PI) / 2 + u / R, px = Math.sin(a) * (R + 0.04), pz = Math.cos(a) * (R + 0.04);
+      const a = (face * Math.PI) / 2 + u / R, px = Math.sin(a) * (R + 0.04 + out), pz = Math.cos(a) * (R + 0.04 + out);
       return put(g, x + c * px + s * pz, y + v, z - s * px + c * pz, yaw + a);
     }
-    const fz = face === 0 ? d / 2 + 0.04 : w / 2 + 0.04, ry = yaw + (face * Math.PI) / 2, cc = Math.cos(ry), ss = Math.sin(ry);
+    const fz = (face === 0 ? d / 2 + 0.04 : w / 2 + 0.04) + out, ry = yaw + (face * Math.PI) / 2, cc = Math.cos(ry), ss = Math.sin(ry);
     return put(g, x + cc * u + ss * fz, y + v, z - ss * u + cc * fz, ry);
   };
   const span = round ? R * 1.1 : w - 2 * cr - 0.4;
@@ -190,13 +192,23 @@ export function house(kit, M, rng, { x, y = 0, z, w = 7, d = w, h = 6, yaw = 0, 
       kit.light(x + c * px + s * pz, y + 1.4, z - s * px + c * pz, 6.5);
     }
   }
+  // (the windows fall where the dice say, now and then over one another: one laid over another stands Z_GAP further
+  // out, in front of it, not in its plane flickering lit and dark; issue #286)
+  const panes = new Map();
   const win = (face, n) => {
+    if (!panes.has(face)) panes.set(face, []);
+    const laid = panes.get(face);
     for (let i = 0; i < n; i++) {
       const u = (rng() - 0.5) * (face === 0 ? span : (round ? R : d - 2 * cr - 0.4)) * 0.8, v = Math.min(h - 1, 2.8 + rng() * Math.max(0.1, h - 3.6));
       if (face === 0 && v < dh + 0.4 && doors > 0) continue;
       const m = rng() < lit ? M.lit : M.dark, round2 = rng() < 0.4;
-      const g = round2 ? new THREE.CircleGeometry(0.26 + rng() * 0.12, 10) : new THREE.PlaneGeometry(0.5 + rng() * 0.25, 0.75 + rng() * 0.4);
-      kit.add(m, onFace(g, u, v, face), NC);
+      const pw = round2 ? 0.26 + rng() * 0.12 : 0.5 + rng() * 0.25, ph = round2 ? pw : 0.75 + rng() * 0.4;
+      const g = round2 ? new THREE.CircleGeometry(pw, 10) : new THREE.PlaneGeometry(pw, ph);
+      const hu = round2 ? pw : pw / 2, hv = round2 ? pw : ph / 2;
+      const over = laid.filter((q) => Math.abs(q.u - u) < q.hu + hu && Math.abs(q.v - v) < q.hv + hv);
+      const k = over.length ? Math.max(...over.map((q) => q.k)) + 1 : 0;
+      laid.push({ u, v, hu, hv, k });
+      kit.add(m, onFace(g, u, v, face, k * Z_GAP), NC);
     }
   };
   win(0, windows);

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createNoise2D, mulberry32, smoothstep } from '../noise.js';
 import { crescentSphere, paintTris } from './garden-kit.js';
+import { Z_GAP } from '../temples/kit.js';
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres' explorations (issue #190; the author's three picks of #170, the sheets in
@@ -181,7 +182,8 @@ export function buildExplorations(k) {
       const ca = Math.cos(a), sa = Math.sin(a), n = Math.ceil(d / 0.4), h = d / n, tread = 0.5;
       for (const [r, lo] of [[rf, lv[0]], [r1, lv[1]], [r2, lv[2]]]) {
         for (let i = 0; i < n; i++) {
-          const rr0 = r - (n - i) * tread, hy = (i + 1) * h + 0.3;
+          // (the top step Z_GAP under the terrace it reaches: the terrace's ring, a polygon, laps over its end; issue #286)
+          const rr0 = r - (n - i) * tread, hy = (i + 1) * h + 0.3 - (i === n - 1 ? Z_GAP : 0);
           const g = new THREE.BoxGeometry(4, hy, tread + 0.02).translate(0, hy / 2 - 0.3, 0).rotateY(Math.atan2(ca, sa)).translate(C.x + ca * (rr0 + tread / 2), lo, C.z + sa * (rr0 + tread / 2));
           add(M.white, g); proxy(g.clone());
         }
@@ -287,10 +289,12 @@ export function buildExplorations(k) {
     // and the furrows drawn: the bed a deeper green, a dark line along each bank (the sheets' long strips, all running
     // to the great sphere), laid on the ground; left out in the craters, the lake and on the paths
     const bed = k.makeMaterial({ color: '#bdc357', flat: true }), bank = k.makeMaterial({ color: '#8ea24c', flat: true }), strips = { bed: [], bank: [] };
+    // (the banks Z_GAP over the beds: where two furrows run together, one's bank lay on the other's bed in one plane; issue #286)
+    const lift = { bed: 0.12, bank: 0.12 + Z_GAP };
     const strip = (f, off, w, kind) => {
       const pos = [], step = 3, cols = Math.max(1, Math.ceil(w / 4));
       // (a quad every 3 m along and 4 m across, laid on the ground at its corners: it follows the trench's curve)
-      const at = (s, u) => { const o = off + (u - 0.5) * w, x = f.x + f.dx * s + f.dz * o, z = f.z + f.dz * s - f.dx * o; return [x, H(x, z) + 0.12, z]; };
+      const at = (s, u) => { const o = off + (u - 0.5) * w, x = f.x + f.dx * s + f.dz * o, z = f.z + f.dz * s - f.dx * o; return [x, H(x, z) + lift[kind], z]; };
       for (let s = f.R * 1.6; s < f.len - step; s += step) {
         const cx = f.x + f.dx * (s + step / 2) + f.dz * off, cz = f.z + f.dz * (s + step / 2) - f.dx * off;
         if (!k.open(cx, cz)) continue;

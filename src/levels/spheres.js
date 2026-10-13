@@ -14,6 +14,7 @@ import { pavedMask } from '../paved.js';
 import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 import { SITE as FOOTPRINT, KEEPERS_STONE } from '../temples/spheres.js';
 import { printGeometry } from '../temples/pieces.js';
+import { Z_GAP } from '../temples/kit.js';
 import { furrowsAt, fallsGround, buildExplorations, inCrater, CRATERS, PILLARS, SPIRAL } from './spheres-explorations.js';
 import { buildDetours } from './spheres-detours.js';
 
@@ -321,7 +322,8 @@ export function* buildSpheres(scene) {
     const len = Math.hypot(run, rise), ang = Math.atan2(rise, run);
     if (landing) {
       const slab = new THREE.BoxGeometry(w, 0.6, landing).translate(0, rise - 0.3, run + landing / 2);
-      parts.push(slab.clone());
+      // (drawn Z_GAP under the terrace it lands on, walked on its proxy: its top and the hill's were one plane; issue #286)
+      parts.push(slab.clone().translate(0, -Z_GAP, 0));
       proxy(slab.rotateY(rot).translate(x0, y0, z0));
     }
     if (rails) {

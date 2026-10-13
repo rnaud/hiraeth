@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { kit, tint } from './market-kit.js';
+import { Z_GAP } from './temples/kit.js';
 
 // The market in the air (issue #191, the author's picked direction B: references/levels/The Signal Market/environment/
 // explorations/market-in-the-air/). The market climbs the west towers' faces: from the lantern market by Madame Sel a
@@ -48,7 +49,8 @@ export function buildMarketInTheAir(scene, M) {
     const treads = [];
     for (let i = 1; i <= n; i++) {
       const y = S.y0 + rise * i, za = S.z0 + run * (i - 1), zb = S.z0 + run * i;
-      K.slab(AIR.x0, AIR.x1, y - 0.18, y, Math.min(za, zb) - 0.04, Math.max(za, zb) + 0.04, M.cream);
+      // (its ends Z_GAP inside the stringers' outer faces: they were one plane, cream and ink; issue #286)
+      K.slab(AIR.x0 + Z_GAP, AIR.x1 - Z_GAP, y - 0.18, y, Math.min(za, zb) - 0.04, Math.max(za, zb) + 0.04, M.cream);
       treads.push(V(XM, y, (za + zb) / 2));
     }
     // the stringers under the treads' ends, and the rails over them (solid: a bar at hand height, posts every two metres)
@@ -160,11 +162,13 @@ export function buildMarketInTheAir(scene, M) {
     const { x0, x1, z0, z1, deck, nest } = MAST, xm = (x0 + x1) / 2, zm = (z0 + z1) / 2, w = 0.9;
     K.slab(x0, x1, 0, deck, z0, z1, M.teal);
     K.slab(xm - w, xm + w, deck, nest, zm - w, zm + w, M.ink);
+    const bands = [12, 24, 36, deck - 0.4];
     for (let y = 1; y < nest - 0.5; y += 0.45) {
       const half = y < deck ? (x1 - x0) / 2 : w, fx = y < deck ? x1 : xm + w;
+      if (y < deck && bands.some((b) => y >= b - 0.35 - 1e-6 && y + 0.06 <= b + 1e-6)) continue;   // (a rung inside a band: hidden in it, its foot in the band's; issue #286)
       K.slab(fx, fx + 0.04, y, y + 0.06, zm - half * 0.5, zm + half * 0.5, M.brass, false);
     }
-    for (const y of [12, 24, 36, deck - 0.4]) K.slab(x0 - 0.05, x1 + 0.05, y - 0.35, y, z0 - 0.05, z1 + 0.05, M.ink);   // (its bands)
+    for (const y of bands) K.slab(x0 - 0.05, x1 + 0.05, y - 0.35, y, z0 - 0.05, z1 + 0.05, M.ink);   // (its bands)
     // the deck's rail on three sides (the street side open: you come up that face)
     K.slab(x0, x0 + 0.08, deck, deck + 1.05, z0, z1, M.brass);
     for (const z of [z0, z1 - 0.08]) K.slab(x0, x1, deck, deck + 1.05, z, z + 0.08, M.brass);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mulberry32 } from '../noise.js';
-import { island, quarter, bridge, lantern, laundry, crownTree, pipeStack, spaceMats, resident, house, HANG_PX } from './space-city-kit.js';
+import { island, quarter, bridge, lantern, laundry, crownTree, pipeStack, spaceMats, resident, house, HANG_PX, DECK_BURY } from './space-city-kit.js';
 import { helix, ribbon, bar } from '../lorn-kit.js';
 import { thinBar } from '../thin.js';
 import { RoomKit } from './lab-kit.js';
@@ -255,7 +255,8 @@ export function buildCityWays(root, kitFor, { islands, physicsInit }) {
     for (let k = 0; k <= 12; k++) { const a = st.a0 + (st.a1 - st.a0) * (k / 12), p = st.at(a), e = V(st.cx + Math.cos(a) * st.ri, p.y - 0.3, st.cz + Math.sin(a) * st.ri); kit.add(M.iron, bar(V(st.cx, p.y - 0.9, st.cz), e, 0.07, 4), NC); }
     // the pad from its top onto the deck, through the parapet's opening
     const top = st.at(st.a1), into = V(top.x, U.deck, -103.0);
-    kit.add(M.bridge, ribbon([top.clone().setY(U.deck), into], 2.4, 0.4), SOLID);
+    // (DECK_BURY under the deck: laid on it, the pad's top and the paving's were one plane, two colours; issue #286)
+    kit.add(M.bridge, ribbon([top.clone().setY(U.deck - DECK_BURY), into.clone().setY(U.deck - DECK_BURY)], 2.4, 0.4), SOLID);
     // the catwalk from its foot under the deck's edge to the platform, the platform along under the deck
     const foot = st.at(st.a0), toP = V(P.x1 - 2.4, U.y, P.z - 0.4);
     catwalk(kit, M, lerpPts(foot, toP), 2, { to: 1.6 });
@@ -412,7 +413,7 @@ export function buildCityWays(root, kitFor, { islands, physicsInit }) {
     // the pads: from the stair's ends in through the parapets' openings
     for (const [a, tier] of [[S.p0, S.lo], [S.p1, S.hi]]) {
       const T = TIERS[tier], from = V(STACK.x + Math.cos(a) * (S.R - hw + 0.1), T.y, STACK.z + Math.sin(a) * (S.R - hw + 0.1)), to = V(STACK.x + Math.cos(a) * (T.r - 1.0), T.y, STACK.z + Math.sin(a) * (T.r - 1.0));
-      kit.add(M.bridge, ribbon([from, to], 2 * hw, 0.35), SOLID);
+      kit.add(M.bridge, ribbon([from, to].map((p) => p.clone().setY(p.y - DECK_BURY)), 2 * hw, 0.35), SOLID);   // (under the tier's paving: issue #286)
       const [L, R] = edges([from, to.clone().lerp(from, Math.min(1, 1.4 / from.distanceTo(to)))], 2 * hw - 0.15);
       if (from.distanceTo(to) > 1.6) { rail(kit, M.rail, L); rail(kit, M.rail, R); }
     }

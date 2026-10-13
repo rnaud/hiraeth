@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { kit, tint, rectMinus } from './market-kit.js';
+import { Z_GAP } from './temples/kit.js';
 
 // The old market below (issue #191, the author's picked direction C: references/levels/The Signal Market/environment/
 // explorations/old-market/). The avenue is a deck over the market's first street: a storey down under the paving from
@@ -42,7 +43,7 @@ export function buildOldMarket(scene, M) {
   const W = OLD.x, T = OLD.wall;
   // ---------------------------------------------------------------- the floor, the walls, the roof (the avenue's deck)
   K.slab(-W - T, W + T, F - 0.5, F, OLD.z0 - T, OLD.z1 + T, M.flag);
-  K.slab(W, ALLEY_STAIR.x1, F - 0.5, F, TUNNEL.z0 - 1, TUNNEL.z1 + 1, M.flag);
+  K.slab(W + Z_GAP, ALLEY_STAIR.x1, F - 0.5, F, TUNNEL.z0 - 1, TUNNEL.z1 + 1, M.flag);   // (from inside the floor, not on the east wall's face; issue #286)
   // the side walls, the east one open to the passage
   K.slab(-W - T, -W, F - 0.5, R, OLD.z0 - T, OLD.z1 + T, M.stone);
   K.slab(W, W + T, F - 0.5, R, OLD.z0 - T, TUNNEL.z0, M.stone);
@@ -100,12 +101,14 @@ export function buildOldMarket(scene, M) {
   const steps = (n, place) => { for (let i = 1; i <= n; i++) place(i, (OLD.floor * i) / n); };
   {
     const n = 16, run = (STAIRWELL.z1 - STAIRWELL.z0) / n;
-    steps(n, (i, y) => K.slab(-STAIRWELL.x, STAIRWELL.x, F - 0.5, top + y, STAIRWELL.z0 + run * (i - 1), STAIRWELL.z0 + run * i + (i === n ? 0 : 0.02), M.stone));
+    // (the last at the floor's own height, Z_GAP under it: its top and the floor's were one plane; issue #286)
+    steps(n, (i, y) => K.slab(-STAIRWELL.x, STAIRWELL.x, F - 0.5, top + y - (i === n ? Z_GAP : 0), STAIRWELL.z0 + run * (i - 1), STAIRWELL.z0 + run * i + (i === n ? 0 : 0.02), M.stone));
   }
   // the alley stair: up east out of the passage, its walls the alley's kerb, a rail along each
   {
     const n = 16, run = (ALLEY_STAIR.x1 - ALLEY_STAIR.x0) / n;
-    for (let i = 1; i <= n; i++) K.slab(ALLEY_STAIR.x0 + run * (i - 1), ALLEY_STAIR.x0 + run * i + 0.02, F - 0.5, F + (-F * i) / n, ALLEY_STAIR.z0, ALLEY_STAIR.z1, M.stone);
+    // (the last not on under the paving: its top is the street's; issue #286)
+    for (let i = 1; i <= n; i++) K.slab(ALLEY_STAIR.x0 + run * (i - 1), ALLEY_STAIR.x0 + run * i + (i === n ? 0 : 0.02), F - 0.5, F + (-F * i) / n, ALLEY_STAIR.z0, ALLEY_STAIR.z1, M.stone);
     for (const z of [ALLEY_STAIR.z0 - 0.5, ALLEY_STAIR.z1 + 0.5]) K.slab(ALLEY_STAIR.x0, ALLEY_STAIR.x1, top, top + 0.85, z - 0.12, z + 0.12, M.brass);
     K.slab(ALLEY_STAIR.x0 - 0.24, ALLEY_STAIR.x0, top, top + 0.85, ALLEY_STAIR.z0 - 1, ALLEY_STAIR.z1 + 1, M.brass);
   }

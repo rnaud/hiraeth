@@ -48,6 +48,13 @@ export const CHANGELOG = [
     'In the Desert, once the tree burns, the Rose House comes before Qanat’s gift: while the city fills its jars, Ama and Nour send you east for the Givers’ blade and guard, and the gift waits at your ship for the ride home, past the carved field-stone. The gift ends the quest now. If you already have the blade and guard, the gift follows the tree as before.',
     'Zahir, a boy of the camps, watches the dunes from the crest over Marrow’s hollow. On the way from the tree to the hoverbike you see him on the skyline by the red rag, and he points it out.',
     'The Signal Market’s silent tower has a mast on its roof, banded coral and cream with a coral lamp on top. From the landing it is the highest thing at the end of the avenue, so you see where the market leads over its towers.',
+    // z-fighting, issue #286 (scripts/zfight/names.mjs names a merged mesh's pieces): the City Floating in Space 460 -> 22
+    // (src/levels/eclipse-kit.js windows over one another Z_GAP out, the roofs' lips' feet in the roof; space-city-kit.js
+    // TIER_DOWN, DECK_BURY, the bridges' parapets and collars), the market in the air's treads and the old market's stairs
+    // (src/market-air.js, src/market-old.js), the canyon street's bridge, stairs and glass rails (src/underwater-canyon.js),
+    // the furrows' banks over their beds, the hill's landings and the craters' top steps (spheres*.js), Vael's loggias
+    { text: 'Fewer flickering stripes where two surfaces lay in one another. In the City Floating in Space, windows that overlap on a wall no longer flicker between lit and dark, and the low walls round the roofs, the pads and bridges laid onto the decks and the machinery under the islands stay still. Elsewhere: the treads of the stair up to the Signal Market’s market in the air and the old market’s stairs, the bridge onto the far terrace of the Underwater City’s canyon street and its glass rails, where the Garden of Spheres’ furrows run together, the landings of the hill’s stairs and the craters’ top steps, and Vael’s loggias.',
+      see: 'In the City Floating in Space, walk from your ship toward the towers and turn the camera slowly past the houses: where two windows overlap, one sits in front of the other instead of the two striping into each other.' },
   ] },
   { v: '1.67', date: '2026-10-13', items: [
     // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under

@@ -7,6 +7,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { Bird, STAND } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
+import { Z_GAP } from '../temples/kit.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
@@ -467,7 +468,8 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
   /** A loggia: a shaded recess behind a row of piers under round arches (the sheets' monastery ranges). */
   const arcade = (x, y, z, n, w, h, d, ry = 0) => {
     const ux = Math.cos(ry), uz = -Math.sin(ry), sp = w * 1.75;
-    box(building.dark, x, y, z, n * sp, h + w * 0.8, d * 0.4, ry);
+    // (the recess's foot Z_GAP over the piers': on a plateau's edge, seen from under, the two feet were one plane; issue #286)
+    box(building.dark, x, y + Z_GAP, z, n * sp, h + w * 0.8 - Z_GAP, d * 0.4, ry);
     for (let i = 0; i <= n; i++) box(building.walls, x + (i - n / 2) * sp * ux, y, z + (i - n / 2) * sp * uz, w * 0.52, h, d, ry);
     for (let i = 0; i < n; i++) {
       const t = (i - (n - 1) / 2) * sp;

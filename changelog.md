@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.68 — 2026-10-13
 
+- Fewer flickering stripes where two surfaces lay in one another. In the City Floating in Space, windows that overlap on a wall no longer flicker between lit and dark, and the low walls round the roofs, the pads and bridges laid onto the decks and the machinery under the islands stay still. Elsewhere: the treads of the stair up to the Signal Market’s market in the air and the old market’s stairs, the bridge onto the far terrace of the Underwater City’s canyon street and its glass rails, where the Garden of Spheres’ furrows run together, the landings of the hill’s stairs and the craters’ top steps, and Vael’s loggias.
 - The Signal Market’s silent tower has a mast on its roof, banded coral and cream with a coral lamp on top. From the landing it is the highest thing at the end of the avenue, so you see where the market leads over its towers.
 - Zahir, a boy of the camps, watches the dunes from the crest over Marrow’s hollow. On the way from the tree to the hoverbike you see him on the skyline by the red rag, and he points it out.
 - In the Desert, once the tree burns, the Rose House comes before Qanat’s gift: while the city fills its jars, Ama and Nour send you east for the Givers’ blade and guard, and the gift waits at your ship for the ride home, past the carved field-stone. The gift ends the quest now. If you already have the blade and guard, the gift follows the tree as before.

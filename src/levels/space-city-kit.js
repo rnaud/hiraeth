@@ -5,6 +5,7 @@ import { layeredCrown } from './garden-kit.js';
 import { stick } from './salt-harbour-kit.js';
 import { greebles } from './greeble-kit.js';
 import { thinBar, thinTube, thinPole } from '../thin.js';
+import { Z_GAP } from '../temples/kit.js';
 import { house, antennaPole, roofClutter, awning, laundry, poleCloth, resident, lantern } from './eclipse-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -36,6 +37,13 @@ export const TAU = Math.PI * 2;
 /** The least width (px) the pipes and cables hung under the islands are drawn (src/thin.js; issue #171: under it, on a
  *  small frame, their outlines came and went as they slid under the pixels). */
 export const HANG_PX = 2.5;
+/** How far under the slab's top-of-machinery line (2 cm into the slab) the first tier under an island stops: its top
+ *  and the hung pipes' ends were one plane, two colours (issue #286). Still inside the slab, a centimetre under; not
+ *  further up in it, where the contact audit finds a drawn top in the solid. */
+const TIER_DOWN = 0.01;
+/** How far under a deck what is laid onto it runs (a bridge's ends, a stair's pad): under the paving plate and the slab's
+ *  top (2 cm under it), not in their planes in another colour (issue #286). A step this small nobody feels. */
+export const DECK_BURY = 0.05;
 const SOLID = { solid: true, shadow: true }, NC = { solid: false, shadow: false }, SH = { solid: false, shadow: true };
 
 // ------------------------------------------------------------------ the look
@@ -190,7 +198,9 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
   const tiers = [[0.86, 2.4], [0.66, 3], [0.42, 3.6], [0.22, 4.2]].slice(0, nTiers ?? (deep > 22 ? 4 : deep > 12 ? 3 : 2));
   let yy = bottom;
   for (const [k, h] of tiers) {
-    kit.add(M.under, place(extruded(pts, h, k).translate(0, yy - h, 0)), SH);   // (drawn only, as all that hangs under: you fall past it into the void and come back where you stood)
+    // (the first's top TIER_DOWN under the pipes' ends, both inside the slab: they were one plane; issue #286)
+    const down = yy === bottom ? TIER_DOWN : 0;
+    kit.add(M.under, place(extruded(pts, h - down, k).translate(0, yy - h, 0)), SH);   // (drawn only, as all that hangs under: you fall past it into the void and come back where you stood)
     yy -= h;
   }
   // a bulb or drum at the very bottom
@@ -223,7 +233,8 @@ export function island(kit, M, rng, { x = 0, y = 0, z = 0, yaw = 0, pts = null, 
     if (off(wx, bottom - h, bottom, wz, r * 1.8)) continue;
     const g = new THREE.CylinderGeometry(r, r, h, 5);
     kit.add(steady ? M.hang : M.pipe, put(steady ? thinPole(g) : g, wx, bottom - h / 2, wz), NC);
-    if (collar) kit.add(M.iron, put(new THREE.CylinderGeometry(r * 1.8, r * 1.8, 0.3, 6), wx, bottom - h + 0.15, wz), NC);
+    // (the collar Z_GAP past the pipe's end: the two ends were one plane)
+    if (collar) kit.add(M.iron, put(new THREE.CylinderGeometry(r * 1.8, r * 1.8, 0.3, 6), wx, bottom - h + 0.15 - Z_GAP, wz), NC);
   }
   const nC = Math.round(cables * detail);
   for (let i = 0; i < nC; i++) {
@@ -328,9 +339,11 @@ export function bridge(kit, M, A, B, { w = 3.4, rail = 0.95, end = 5, mid = 1.1,
   const top = (u) => a.y + (b.y - a.y) * THREE.MathUtils.clamp(u / L, 0, 1) + hump * Math.sin(Math.PI * THREE.MathUtils.clamp(u / L, 0, 1));
   const under = (u) => { const t = THREE.MathUtils.clamp(u / L, 0, 1) * 2 - 1; return top(u) - mid - (end - mid) * (1 - Math.sqrt(Math.max(0, 1 - t * t))); };
   // the side profile (u along, v up) extruded across, then stood along A → B
-  const sh = new THREE.Shape(), us = Array.from({ length: n + 1 }, (_, i) => -ext + (i / n) * (L + 2 * ext));
-  us.forEach((u, i) => (i ? sh.lineTo(u, top(u)) : sh.moveTo(u, top(u))));
-  for (let i = n; i >= 0; i--) sh.lineTo(us[i], under(us[i]));
+  // (what runs on past its ends into the decks is DECK_BURY under them, in the slab: on a deck its top and the paving's were one plane)
+  const sh = new THREE.Shape(), us = [...new Set([...Array.from({ length: n + 1 }, (_, i) => -ext + (i / n) * (L + 2 * ext)), 0, L])].sort((p, q) => p - q);
+  const lip = (u) => top(u) - (u < -1e-6 || u > L + 1e-6 ? DECK_BURY : 0);
+  us.forEach((u, i) => (i ? sh.lineTo(u, lip(u)) : sh.moveTo(u, lip(u))));
+  for (let i = us.length - 1; i >= 0; i--) sh.lineTo(us[i], under(us[i]));
   const g = new THREE.ExtrudeGeometry(sh, { depth: w, bevelEnabled: false, curveSegments: 1 }).translate(0, 0, -w / 2).rotateY(-Math.PI / 2);
   for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
   // (after rotateY(-π/2) the profile's u runs along +z: turn it to A → B)
@@ -339,7 +352,7 @@ export function bridge(kit, M, A, B, { w = 3.4, rail = 0.95, end = 5, mid = 1.1,
   const c = Math.cos(yaw), s = Math.sin(yaw);
   for (const e of [-1, 1]) for (let i = 0; i < n; i++) {
     const u0 = (i / n) * L, u1 = ((i + 1) / n) * L, y0 = top(u0), y1 = top(u1), um = (u0 + u1) / 2, ym = (y0 + y1) / 2;
-    const off = e * (w / 2 - 0.2), px = a.x + s * um + c * off, pz = a.z + c * um - s * off;
+    const off = e * (w / 2 - 0.19 - Z_GAP), px = a.x + s * um + c * off, pz = a.z + c * um - s * off;
     kit.add(M.stone, put(new THREE.BoxGeometry(0.38, rail, Math.hypot(u1 - u0, y1 - y0) + 0.05), px, ym + rail / 2, pz, yaw, 1, -Math.atan2(y1 - y0, u1 - u0)), SOLID);
   }
   return { at: (t) => { const u = t * L; return [a.x + s * u, top(u), a.z + c * u]; }, L, yaw };

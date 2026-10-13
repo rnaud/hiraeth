@@ -94,7 +94,9 @@ export function buildCanyonStreet(kit, M, H) {
   };
   const rail = (ax, az, bx, bz, y) => {
     const L = Math.hypot(bx - ax, bz - az), yaw = Math.atan2(bx - ax, bz - az), cx = (ax + bx) / 2, cz = (az + bz) / 2;
-    kit.add(railGlass, put(new THREE.BoxGeometry(0.06, 1.0, L), cx, y + 0.5, cz, yaw), { solid: true, shadow: false });
+    // (the glass from 5 cm down in the deck up 2 cm into the brass rail: its foot and its top were in their planes,
+    // drawn both sides; issue #286)
+    kit.add(railGlass, put(new THREE.BoxGeometry(0.06, 1.07, L), cx, y + 0.485, cz, yaw), { solid: true, shadow: false });
     kit.add(brass, put(new THREE.BoxGeometry(0.12, 0.1, L + 0.1), cx, y + 1.05, cz, yaw), NS);
     for (let s = 0; s <= L; s += 2.5) kit.add(brass, new THREE.CylinderGeometry(0.04, 0.04, 1.05, 5).translate(ax + ((bx - ax) * s) / L, y + 0.52, az + ((bz - az) * s) / L), NS);
   };
@@ -130,7 +132,8 @@ export function buildCanyonStreet(kit, M, H) {
     const top = A.z - A.d / 2, foot = B.z + B.d / 2, n = Math.max(1, Math.round((A.y - B.y) / 0.3)), run = (top - foot) / n, dr = (A.y - B.y) / n;
     for (let k = 0; k < n; k++) {
       const z = top - (k + 0.5) * run, y = A.y - (k + 1) * dr;
-      kit.add(M.pier, new THREE.BoxGeometry(3, y - B.y + 0.6, run + 0.02).translate(x, (y + B.y - 0.6) / 2, z), SOLID);
+      // (each a hair longer than its run, into the next, but the last: its top is the deck's, and ran 1 cm over it; issue #286)
+      kit.add(M.pier, new THREE.BoxGeometry(3, y - B.y + 0.6, run + (k < n - 1 ? 0.02 : 0)).translate(x, (y + B.y - 0.6) / 2, z), SOLID);
     }
     for (const e of [-1, 1]) {
       const pts = [new THREE.Vector3(x + e * 1.6, A.y + 1.0, top), new THREE.Vector3(x + e * 1.6, B.y + 1.0, foot)];
@@ -157,7 +160,9 @@ export function buildCanyonStreet(kit, M, H) {
   // ---- the bridge: a white arch from the middle terrace across the deep to the far wall
   {
     const B = BRIDGE, x0 = B.x[0], x1 = B.x[1], L = x1 - x0;
-    kit.add(white, new THREE.BoxGeometry(L, 0.6, B.w).translate((x0 + x1) / 2, B.y - 0.3, B.z), SOLID);
+    // (its deck to the far terrace's edge, not a metre on over it: the two decks' faces were one plane, two colours; issue #286)
+    const xd = Math.min(x1, FAR_TERRACE.x[0]);
+    kit.add(white, new THREE.BoxGeometry(xd - x0, 0.6, B.w).translate((x0 + xd) / 2, B.y - 0.3, B.z), SOLID);
     for (const e of [-1, 1]) {
       kit.add(white, new THREE.BoxGeometry(L, 0.9, 0.25).translate((x0 + x1) / 2, B.y + 0.45, B.z + e * (B.w / 2 - 0.12)), SOLID);   // (its parapets)
       // the arch under it, springing from either wall

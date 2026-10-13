@@ -22,6 +22,11 @@ paint over a course of stone): it shows.
   inside a temple's box only in a room, under its roof with walls all round). A face whose material has
   `polygonOffset` is drawn pulled toward the eye and fights nothing.
 - `audit.mjs`: each world built as the game builds it, its totals and its temples', the worst sites.
+- `names.mjs`: a world's pieces merged into a mesh a material (bazaar.js `add`, lab-kit.js `RoomKit`, market-kit.js …)
+  lose their names: `audit.mjs` (unless `--no-names`) notes, before the world loads, where every geometry is made and
+  what each merge is made of, and prints under each site its two pieces: the lines of `src/` that made them and the
+  comment over the line (`A: island levels/space-city-kit.js:183 < … — the slab, its deck a paving plate over it`).
+  `--out` writes every site (`report[i].all`, with `parts`). Group them by piece to find the one cause of fifty sites.
 - `list-temple.mjs <id>`: one temple's sites in its own frame (local metres, as its layout is written), and from where
   each is seen. `--all` the hidden ones too, `--dynamic` the moving pieces too. The id is the temple's own
   (`TEMPLES` in src/temples/index.js), not always its world's: `arzach2` is Vael's Founders' Belfry and `perdide2`
@@ -61,8 +66,13 @@ layout's (a slab placed flush on a wall's face).
 
 `tests/zfight.test.js` holds every temple to its count (`ZFIGHT_BASELINE`), the Rose House at none. Lower a
 baseline when a fix lands; a new site in a temple fails the test with where it is and the command to list them.
-The worlds outside the temples are counted by `audit.mjs` and reported in docs/systems/rendering.md "Z-fighting"
-(not tested: a world takes seconds to build, the City-Shaft minutes). After a full run, refresh that table with the
+The worlds outside the temples are counted by `audit.mjs` and reported in docs/systems/rendering.md "Z-fighting";
+only the City Floating in Space is held to a count (`WORLD_ZFIGHT_BASELINE`), and the market in the air, the canyon
+street and the furrows to none of their own (a world takes seconds to build, the City-Shaft minutes).
+
+A site the finder reports is not always one you can see: it takes a face as seen when nothing is within 5 cm in front
+of it, so a face 2-3 cm inside a slab (an island's machinery's tops, a house's foot on a deck) still counts. Bury such
+a face further in (5 cm or more) rather than chase it with a 2 cm gap. After a full run, refresh that table with the
 counts (before → after when a fix landed), and put the version and date in its heading or the line above it.
 
 ## 4. Check it in the game
