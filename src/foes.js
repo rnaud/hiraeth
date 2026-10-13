@@ -2378,7 +2378,7 @@ export class Foes {
       if (f.def.flock) f.mates = this.list.filter((x) => x !== f && x.kind === f.kind && x.alive && x.dead === undefined && !x.riding && x.pos.distanceTo(f.pos) < PILE.near).length;
       const ev = inTemple ? f.update(dt, P, this.env) : [];
       for (const e of ev) {
-        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow(), () => f.chest);   // (rising over its whole wind-up)
+        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow(), () => f.chest, (f.atk ?? f.def.attack).cue);   // (rising over its whole wind-up; its cue over it)
         if (e === 'warn' && f.atk?.pile) this.pile(f);   // (its flock climbs onto it)
         if (e === 'notice') { this.meet(f); this.alarm(f); }
         if (e?.type === 'ward' || e?.type === 'mend') { this.support(f, e); continue; }

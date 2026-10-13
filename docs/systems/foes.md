@@ -437,9 +437,18 @@ What changed per family:
 | salt crab · spin | 1.1 | heavy (0.95) | tucks into its shell and spins faster and faster |
 | slag walker · stomp | 0.95 | heavy (0.95) | one foot raised high, leaning back |
 | slag walker · pour | 1.15 | heavy (0.95) | leans and tips its lip at you |
-| shadow hound · pounce | 0.8 | ordinary (0.7) | crouches back on its haunches |
+| shadow hound · pounce | 1.0 (0.8 until v1.63) | ordinary (0.7) | crouches back on its haunches, then coils: rump up, its smoke on end, a shiver and a snarl |
 | shadow hound · step | 0.9 | light (0.5) | sinks into its own shadow pool |
 | shadow hound · bite | 0.55 | chain (0.4) | (behind you; the screen-edge marker) |
+
+### The tells read again (v1.63, combat-v1.61 #260)
+
+- **The antler hound's pounce**, its most frequent blow, told for 0.8 s and was read a beat late (the evade had to
+  come in its last 0.08–0.15 s). Now 1.0 s in two beats: the crouch (as before), then from half-way the **coil**
+  (`quadruped.js`: the rump up, the smoke of its mane on end, a shiver) with a snarl (`cue: 'coil'`); its weight
+  1.5 → 1.0, so it comes a little less often.
+- **An attack's `cue`** (`src/foe-voices.js` `CUES`, played by `src/audio.js` `foeWarn` over the rising warning,
+  from a share of the wind-up): a second tell by ear for the body's second beat.
 
 ### Legs on the locomotion kit (v1.7, `src/motion-kit/`)
 
@@ -1010,7 +1019,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   |---|---|---|---|---|
   | shellback crab (`crab`) | a low wide dome, two raised pincers, six legs splayed like a table | snap (0.75 s; a parry chips it), shell spin (1.1 s; guarded, it flips), burrow and pinch (1.2 s; Salt Harbour and Underwater only) | parry, dash cut to its side, bombs, ember; the shell glances a light cut from the front, a heavy blow bites through at half (`SHELL`, v1.41; hp 3, was 4: the author found it took too many hits) | grazes, backs away, fights at 3.2 m or cornered |
   | horn lizard (`lizard`) | long and low, a curled tail, a brass trumpet for a snout | blare (1.0 s; shoves you toward its partner), flank bite (0.8 s; only from behind you), tail whip (1.15 s; only at its back) | parry and riposte on the bite, dash cut past the blarer, split the pair | basks on its stones; territorial within 6 m |
-  | antler hound (`hound`) | lean, tall, a crown of antlers wider than its body; running, a shadow | pounce (0.8 s), step behind (0.9 s) then bite, antler rake (1.0 s; under two thirds of its health) | ember (solid, 2), parry; the blade passes through its running shadow | lies as a shadow; some only watch |
+  | antler hound (`hound`) | lean, tall, a crown of antlers wider than its body; running, a shadow | pounce (1.0 s, a crouch then the coil and a snarl; 0.8 s until v1.63), step behind (0.9 s) then bite, antler rake (1.0 s; under two thirds of its health) | ember (solid, 2), parry; the blade passes through its running shadow | lies as a shadow; some only watch |
   | lamp tripod (`tripod`) | a lighthouse on stilts, 3.5 m: a boiler, a searchlight, three piston legs; a face at the porthole | beam and bolt (1.4 s; the light follows, then locks), stamp (1.35 s), steam vent (1.0 s) | cover breaks the beam, dash under it, the magnet glove, a perfect parry sends the bolt back | patrols sweeping its lamp; always hostile |
   | ink blot (`blot`) | a squat ink drop with two white eyes, a rim of the ground's colour | lunge (0.7 s), lunge combo, spit (1.2 s; a lob with its landing mark, once you keep away) | everything: it teaches the combo, the guard and the shot | lies pooled, stands up as you come near |
 

@@ -308,7 +308,7 @@ export function houndModel(skin) {
   antlerCrown(risingCrown, props, antlerM, glintM);
   const poolEyes = pair((s) => add(rising, new THREE.SphereGeometry(0.045, 8, 6).scale(1, 0.6, 1), eyeM, s * 0.08, 0.07, 0.15));
   finish(g);
-  let solid = 1, crouch = 0, rake = 0;
+  let solid = 1, crouch = 0, rake = 0, coil = 0;
   return {
     group: g, body, rig, parts: [], mane, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, shadowy: true, tones: [P.ink, P.rim, P.antler],
     tell: (id) => (id === 'rake' ? tines[0] : head),
@@ -326,11 +326,14 @@ export function houndModel(skin) {
       glowRim.scale.setScalar(1 + Math.sin(c.now / 200) * 0.06);
       // the pounce: crouched low, the head down by the ground, the antlers dipped forward, the shoulders bunched
       crouch = ease(crouch, id === 'pounce' && wind ? c.wind : 0, 10, dt);
+      // then the coil (the wind-up's last 45 %, v1.63 #260): the rump up, the smoke of its mane on end, a shiver
+      coil = ease(coil, id === 'pounce' && wind ? THREE.MathUtils.smoothstep(f.k, 0.5, 0.8) : 0, 14, dt);
       rake = ease(rake, id === 'rake' ? (wind ? c.wind : strike ? 1 - c.release : 0) : 0, 12, dt);
       const leap = strike && f.atk?.lunge ? Math.min(1, Math.sin(Math.PI * Math.min(1, f.k * 1.4)) * 3) : 0;
       const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, recovery: c.recovery, air: leap });
-      body.position.set(o.x, -(1 - solid) * 0.3 + o.y - crouch * 0.2, o.z);
-      body.rotation.set(o.pitch + crouch * 0.12, o.yaw + rake * (strike ? -0.5 : 0.25), o.roll);
+      const shiver = coil * Math.sin(c.now / 22) * 0.018;
+      body.position.set(o.x + shiver, -(1 - solid) * 0.3 + o.y - crouch * 0.2 + coil * 0.06, o.z);
+      body.rotation.set(o.pitch + crouch * 0.12 + coil * 0.14, o.yaw + rake * (strike ? -0.5 : 0.25), o.roll + shiver);
       chest.scale.set(1 + crouch * 0.12, 1 - crouch * 0.06, 1);
       neck.rotation.x = crouch * 1.0 + rake * 0.7 - o.pitch * 0.6;
       neck.rotation.z = rake * 0.45;
@@ -340,7 +343,7 @@ export function houndModel(skin) {
       rig.write();
       // the mane streams back off its back, flickering, flattened by its speed
       const run = c.moving ? Math.min(1, (f.def.speed ?? 5) / 5) : 0;
-      mane.forEach((m, i) => { m.rotation.set(Math.sin(c.now / 260 + i * 0.9) * 0.1 - run * 0.3 - crouch * 0.2, m.userData.yaw + Math.sin(c.now / 330 + i) * 0.08, 0); m.scale.y = m.scale.x * (1 + Math.sin(c.now / 180 + i * 1.7) * 0.1); });
+      mane.forEach((m, i) => { m.rotation.set(Math.sin(c.now / 260 + i * 0.9) * 0.1 - run * 0.3 - crouch * 0.2 * (1 - coil) + coil * 0.35, m.userData.yaw + Math.sin(c.now / 330 + i) * 0.08, 0); m.scale.y = m.scale.x * (1 + Math.sin(c.now / 180 + i * 1.7) * 0.1 + coil * 0.6); });
       eyeM.uniforms.uColor.value.set(eyeColor(f, f.lit > 0 ? '#ffe2a8' : P.eye, '#ff6a8a'));
       if (solid > 0.5 && Math.random() < (props.has('drips') ? 0.25 : 0.12)) c.drip(f, P.ink);
     },

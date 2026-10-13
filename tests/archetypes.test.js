@@ -250,7 +250,9 @@ test('batches 1 and 2: each attack winds up at least its telegraph minimum; only
   }
   assert.equal(attackOf('lizard', 'whip').pattern, 'tail', 'the tail whip from the pattern library');
   assert.equal(attackOf('tripod', 'stamp').pattern, 'stomp');
-  assert.equal(attackOf('hound', 'pounce').wind, 0.8, 'the pounce stays at 0.8 s (combat-v1.4)');
+  // (0.8 s from combat-v1.4 to v1.62; its most frequent blow, read a beat late: combat-v1.61 #260)
+  assert.ok(attackOf('hound', 'pounce').wind >= 0.95, 'the pounce tells for the rubric’s 0.95 s or more (#260)');
+  assert.equal(attackOf('hound', 'pounce').cue, 'coil', 'and it snarls as it coils');
 });
 
 test('the shellback crab: the shell glances from the front, a guarded spin flips it, a parried snap chips it, bombs crack it; it burrows only in its tier-2 skins', () => {

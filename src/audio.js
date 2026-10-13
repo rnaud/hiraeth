@@ -16,7 +16,7 @@ import { playVoice, playColour, hit, echoBus, prepareLute } from './score-voices
 import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
-import { voiceOf, voiceLength, GLANCE } from './foe-voices.js';
+import { voiceOf, voiceLength, GLANCE, CUES } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
 import { lightThemeNotes, lightBeat } from './story/light-theme.js';
@@ -2078,9 +2078,12 @@ export class Sound {
    * ink blot's wet gurgle climbing, a machine's grinding whine; at the held stillness before the strike, a tick.
    * At `pos` (the foe's chest), following it (foeSpot).
    */
-  foeWarn(kind = 'blot', dur = 0.8, pos = null) {
+  foeWarn(kind = 'blot', dur = 0.8, pos = null, cue = null) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime, d = Math.max(0.3, dur), out = this.foeSpot(pos, { warn: true, until: d + 0.3 });
+    // (the attack's own cue over it, src/foe-voices.js CUES: the hound's snarl as it coils, the machine's rumble)
+    const C = cue ? CUES[cue] : null;
+    if (C) this.foeVoice(C.layers, t + d * C.at, out);
     if (kind === 'machine') { this.sweep(t, 120, 460, d, 0.07, 'sawtooth', out); this.burst(t, { dur: d * 0.9, type: 'bandpass', freq: 500, q: 3, vol: 0.06, rate: 0.5, out }); }
     else { this.sweep(t, 110, 330, d, 0.07, 'triangle', out); this.burst(t, { dur: d * 0.8, type: 'lowpass', freq: 420, q: 2, vol: 0.1, rate: 0.4, out }); }
     this.burst(t + d * 0.75, { dur: 0.03, type: 'highpass', freq: kind === 'machine' ? 2600 : 1900, q: 1.5, vol: 0.06, out });

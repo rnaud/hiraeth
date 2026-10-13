@@ -106,5 +106,16 @@ export function voiceOf(kind, sound = null) {
   return FOE_VOICES[kind] ?? FOE_VOICES[sound] ?? (sound === 'metal' || sound === 'slag' ? FOE_VOICES.machine : FOE_VOICES.blot);
 }
 
+/**
+ * Cues in a wind-up (an attack's `cue`, src/enemies/archetypes.js): played by src/audio.js foeWarn over the rising
+ * warning, starting at `at` of the wind-up (a share), so the body's second tell has a sound of its own (v1.63, #260, #261).
+ *   coil   the antler hound coiling to pounce: a snarl through its smoke, rising
+ *   quake  the makers' machine's arms high for its ground slam: a rumble under the floor and a ratchet winding
+ */
+export const CUES = {
+  coil: { at: 0.5, layers: [N('bandpass', 260, 0.45, 0.16, { f1: 520, q: 1.4, rate: 0.45 }), T('sawtooth', 95, 150, 0.45, 0.035)] },
+  quake: { at: 0.3, layers: [N('lowpass', 140, 0.8, 0.2, { f1: 220, q: 0.9, rate: 0.3 }), T('sine', 48, 70, 0.8, 0.09), C(6, 0.09, 1800, 0.02, 0.05, { f1: 2600 })] },
+};
+
 /** How long a voice's layers sound (s): the last one's end. */
 export const voiceLength = (layers) => Math.max(0, ...layers.map((L) => (L.at ?? 0) + (L.p === 'clicks' ? (L.n - 1) * L.every + L.dur : L.dur)));

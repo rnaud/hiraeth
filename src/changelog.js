@@ -28,6 +28,9 @@ export const CHANGELOG = [
     'Locked on with your back to a wall, the camera no longer crushes up against you and loses you off the screen. It swings out to the side with room, or rises over your shoulder in a corner, and turns to keep you and the foe in the picture together; the stick still circles the foe as before. In a temple’s antechamber and a guardian’s hall you stay in view.',
     // the open camera looks past a thin thing between him and the lens (src/player.js THIN_PAST; issue #259)
     'Running across the open desert, the camera no longer jumps in to your back and out again as it swings past a cactus: it looks past a thin trunk or post between you and it, which may hide you for a moment instead.',
+    // the foes' tells read again (combat-v1.61): the hound's pounce 0.8 -> 1.0 s with a coil and a snarl
+    // (src/enemies/archetypes.js, src/enemies/plans/quadruped.js, src/foe-voices.js CUES; docs/systems/foes.md; issue #260)
+    'The antler hound gives you longer to see its pounce coming: it crouches, then coils with its rump up and the smoke along its back standing on end, shivers and snarls before it leaps. It pounces a little less often too.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;

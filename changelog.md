@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.63 — 2026-10-12
 
+- The antler hound gives you longer to see its pounce coming: it crouches, then coils with its rump up and the smoke along its back standing on end, shivers and snarls before it leaps. It pounces a little less often too.
 - Running across the open desert, the camera no longer jumps in to your back and out again as it swings past a cactus: it looks past a thin trunk or post between you and it, which may hide you for a moment instead.
 - Locked on with your back to a wall, the camera no longer crushes up against you and loses you off the screen. It swings out to the side with room, or rises over your shoulder in a corner, and turns to keep you and the foe in the picture together; the stick still circles the foe as before. In a temple’s antechamber and a guardian’s hall you stay in view.
 - The traveller’s face is inked the way his portrait is drawn: a light line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, a few freckles on his cheek, and one clean line for his jaw with fine hatching on the throat in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.

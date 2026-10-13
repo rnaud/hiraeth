@@ -58,6 +58,8 @@ import { fromPattern } from './attacks.js';
 //                   the boomerang pops one: takes.shoot 'pop'); escort: what comes with it alone in the Arena
 //   calm.joins      it joins any fight near it, not only its own kind's (the jelly never starts one: provoke 0)
 //   attack.tell / attack.counter   what the body does in the wind-up, and what answers it (the gallery says them)
+//   attack.cue      a sound in its wind-up over the rising warning (src/foe-voices.js CUES, src/audio.js foeWarn): 'coil'
+//                   (the hound's snarl as it coils to pounce), 'quake' (the makers' machine's rumble under its ground slam)
 // batch 3 (v1.12):
 //   hops            it moves hop by hop (the toad: its body lands each hop, src/enemies/plans/hopper.js)
 //   attack.choke    a shot while it winds this up (its throat swollen) bursts it early: it chokes, stunned (the toad)
@@ -543,8 +545,10 @@ export const ARCHETYPES = {
       tone: '#6c4fa0', takes: { shoot: 0, fire: 2 },
       calm: { mode: 'lie', provoke: 11, hunts: 0.7, alarm: 12 },
       attacks: [
-        { id: 'pounce', name: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.5, wind: 0.8, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.5,
-          tell: 'it crouches, the antlers dipping forward and the shoulders bunching', counter: 'evade, or parry and riposte' },
+        // (wind 0.8 until v1.63: its most frequent blow, read a beat late, combat-v1.61 #260. Now a crouch, then the coil:
+        // the rump up, the smoke of its mane on end, a shiver and a snarl, held to 1.0 s; and picked less often)
+        { id: 'pounce', name: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.5, wind: 1.0, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.0, cue: 'coil',
+          tell: 'it crouches, the antlers dipping forward and the shoulders bunching; then it coils, rump up, its smoke on end, shivering, and snarls', counter: 'evade as it snarls, or parry and riposte' },
         { id: 'step', name: 'step behind', shape: 'ring', at: 'behind', instant: true, radius: 1.3, track: 0.5, damage: 0, blink: true, wind: 0.9, then: 'bite', min: 2.5, max: 7,
           tell: 'it sinks into its shadow, which slides round you; a growl behind you', counter: 'turn and guard; ember makes it solid at once' },
         { id: 'bite', chain: true, shape: 'cone', range: 2.3, angle: 0.8, damage: 0.5, wind: 0.55, strike: 0.2, contact: 0.5 },
