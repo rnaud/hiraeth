@@ -35,6 +35,9 @@ export const CHANGELOG = [
     // (src/story/signature.js GIVERS_LINE), old saves' worlds kept as they were (src/save-migrate.js step 26)
     { text: 'Arriving in a new world no longer fills your Quests page: people give you the quests. In each world the one who keeps watch by the makers’ temple comes first, and tells you of the temple and of the chests the makers left in the open; the others follow. Until you have talked to them, the ship marks them on your map: it hears the light’s pulse on the people who saw it pass. Going into a temple or opening a chest before anyone told you still counts. Worlds you had already been to stay as they were.',
       see: 'Land in a world you have not been to and open the menu: the Quests page is empty, and the Map marks one person with a gold ring by the makers’ temple. Talk to them: the temple’s quest and the chests’ appear, and the others who have something for you are marked.' },
+    // the hosts in their own voices (issue #280; the dialogue review v1.66's findings 1 and 9): src/story/hosts-data.js
+    { text: 'The people who offer the games and races in each world now talk like themselves: Yusra about this morning’s catch, Darro about the bike he keeps rebuilding, Ostra about cab fares, Tibor about his father’s goat. Each explains the rules in their own words.',
+      see: 'In the desert, ask Yusra about fishing by the basin, or Nadir about the dune line; on the Buried Machine, ask Tibor about the canyon dive.' },
   ] },
   { v: '1.67', date: '2026-10-13', items: [
     // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under

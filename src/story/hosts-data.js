@@ -1,6 +1,7 @@
 // The hosts of the games played in the worlds (issue #248): every game, trial and makers' run placed in a world
 // starts from someone (or, where nobody could stand, a thing of that place) who says in a line or two what it is,
-// in the place's own story, and offers it: Play or Not now. Nothing starts by itself.
+// in the place's own story, and offers it: Play or Not now. Nothing starts by itself. Each speaks in their own voice
+// (issue #280): the first page in the middle of their own work, the rules in their mouth, no two opening alike.
 // src/minigames/kit/hosts.js builds the talk and places them; docs/systems/minigames.md "The hosts" lists them.
 //
 //   <id>: { name, title, color, kind, palette, head, look?   a person, standing beside the game's sign (spawned;
@@ -20,55 +21,55 @@ export const HOSTS = {
   fishing: P({
     id: 'host.fishing', name: 'Yusra', title: 'who fishes the basin', color: '#3f8f8a', kind: 'f',
     palette: { cloak: '#3f8f8a', lining: '#2b211f', cloth: '#e8d9b8', legs: '#4a3a2a', hat: '#d8a24a', hair: '#2b211f' }, head: 'straw', look: { prop: 'basket' },
-    say: ['~neutral~ The giants left their water in the Still Oasis, and strange fish came to live in it.', '~playful~ Three minutes on my pier. Strike when the float goes under, and don’t snap the line.'],
+    say: ['~neutral~ Six this morning, and one had legs. Whatever lives in the giants’ water, it bites my hook.', '~playful~ Take the rod. Three minutes on my pier. When the float goes under, strike. Snap my line and you’re mending it.'],
     lines: ['~neutral~ They bite at dusk. And at noon. And whenever.'],
   }),
   canyon: P({
     id: 'host.canyon', name: 'Darro', title: 'who races the Rose Canyon', color: '#c9703e', kind: 'm',
     palette: { cloak: '#c9703e', lining: '#2b211f', cloth: '#3f4f5a', legs: '#4a3a2a', hat: '#e8c66a', hair: '#3a2a20' }, head: 'bandana', look: { mask: 'browgoggles', body: 'toolbelt' },
-    say: ['~playful~ Qanat’s salvagers race old hoverbikes round the Rose Canyon. Three laps, two chasms.', '~neutral~ Hit the kickers fast. The drifts and the banks will slow you.'],
+    say: ['~playful~ Rebuilt my bike twice this week. The canyon keeps the bits it likes. Three laps, two chasms. Fancy it?', '~neutral~ Hit the kickers flat out, or you’ll meet the chasm floor. The drifts and the banks eat your speed.'],
     lines: ['~playful~ The canyon’s faster than it looks.'],
   }),
   rings: P({
     id: 'host.rings', name: 'Ilka', title: 'who keeps the brass hoops', color: '#d8a24a', kind: 'f',
     palette: { cloak: '#d8a24a', lining: '#2b211f', cloth: '#6b4a36', legs: '#3a3330', hat: '#71d7cf', hair: '#4a3226' }, head: 'wrap', look: { mask: 'glasses' },
-    say: ['~curious~ The makers hung brass hoops among the needles. Nobody knows what for, so we fly through them.', '~neutral~ Twenty rings in order on race-tuned jets. Each ring fills the tank a little.'],
+    say: ['~curious~ I polish those brass hoops every week, and I still don’t know what the makers hung them for. Do you?', '~neutral~ So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little.'],
     lines: ['~curious~ Twenty hoops. I’ve counted twice.'],
   }),
   wingdrop: P({
     id: 'host.wingdrop', name: 'Zayd', title: 'who painted the mesa', color: '#b8432e', kind: 'm',
     palette: { cloak: '#b8432e', lining: '#2b211f', cloth: '#f2e6c8', legs: '#4a3a2a', hat: '#e8c66a', hair: '#2b211f' }, head: 'headcloth', look: { body: 'scarf' },
-    say: ['~playful~ The pilgrims painted a mark on the mesa’s top for the birds. We land on it instead.', '~neutral~ Three drops. Open your wings, ride the warm air up, and touch down on the middle softly.'],
+    say: ['~playful~ I mixed the paint for the pilgrims’ bird mark up on the mesa. No bird’s landed on it. So we do.', '~neutral~ Three drops. Wings open, find the warm air, ride it up, and come down soft on the middle. Soft. It chips.'],
     lines: ['~playful~ Land soft. The paint chips.'],
   }),
   gallery: P({
     id: 'host.gallery', name: 'Fitz', title: 'who calls the shooting gallery', color: '#c8483a', kind: 'm',
     palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#f4ece0', legs: '#2b2f45', hat: '#e8c66a', hair: '#2b211f' }, head: 'brim', look: { body: 'neckerchief', build: 'heavy' },
-    say: ['~shout~ Roll up! Painted fish, ink blots and bells, and a minute on the clock!', '~playful~ Splash every target you can. A miss breaks your streak, and so does splashing a parasol.'],
+    say: ['~shout~ Roll up, roll up! Fish, ink blots and bells, all painted by my own hand! One minute on the clock!', '~playful~ Splash all you can. A miss breaks your streak, and so does a parasol. Those are my customers.'],
     lines: ['~shout~ Roll up, roll up!', '~playful~ A minute. Any minute you like.'],
   }),
   drums: P({
     id: 'host.drums', name: 'Hamid', title: 'who keeps the camps’ drums', color: '#8a5a3a', kind: 'm',
     palette: { cloak: '#8a5a3a', lining: '#2b211f', cloth: '#e2d3b4', legs: '#4a3a2a', hat: '#c9974a', hair: '#2b211f' }, head: 'wrap', look: { robe: 0.4 },
-    say: ['~happy~ Every night of the procession, the camps drum the old song round the fire.', '~playful~ Sit with us. Strike each beat as it rolls into the ring, and we dance.'],
+    say: ['~happy~ I stretched these skins the night the procession set out. Every night since, the old song, round the fire.', '~playful~ Sit with us. When a beat rolls into the ring, strike it. Keep up and the whole camp gets dancing.'],
     lines: ['~happy~ Dum, tek, tek. Dum, tek.'],
   }),
   sketchhunt: P({
     id: 'host.sketchhunt', name: 'Vesna', title: 'who draws the market', color: '#62c3c9', kind: 'f',
     palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#f4ece0', legs: '#3a3330', hat: '#ff5fa2', hair: '#2b211f' }, head: 'beret', look: { body: 'satchel' },
-    say: ['~curious~ The market changes faster than its signs. I draw it before it does.', '~playful~ Six things on a list, three minutes. Frame each one well, then sketch it.'],
+    say: ['~curious~ That stall sold tea yesterday. The market changes faster than its signs, so I draw it first.', '~playful~ My list: six things, three minutes. Frame each one nicely, then sketch it. You can borrow my pencil.'],
     lines: ['~curious~ Hold still. No, the other way.'],
   }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },
-    say: ['~playful~ Qanat’s children slide down the Long Dune on boards. I made skis.', '~neutral~ Pass between every pair of poles. Tuck for speed, and land your spins.'],
+    say: ['~playful~ The children slide down the Long Dune on boards. Boards! So I made skis. Nobody’s thanked me yet.', '~neutral~ Between every pair of poles. Tuck to go faster, and land your spins.'],
     lines: ['~playful~ Downhill is the easy part.'],
   }),
   platformer: P({
     id: 'host.platformer', name: 'Sister Clem', title: 'who counts the fallen-up stones', color: '#f4efe2', kind: 'f',
     palette: { cloak: '#f4efe2', lining: '#2b211f', cloth: '#c9b08a', legs: '#6b5a4a', hat: '#f6c84e', hair: '#6b5a4a' }, head: 'hood', look: { prop: 'bell' },
-    say: ['~solemn~ When the cloud rose, small stones fell up with everything else. They make a path to the makers’ gate.', '~neutral~ Jump from stone to stone to the gate. A fall costs a life.'],
+    say: ['~solemn~ I count them each morning: the small stones that fell up with the cloud. They make a path to the makers’ gate.', '~neutral~ Step from stone to stone to the gate. A fall costs a life. Those I don’t count.'],
     lines: ['~solemn~ One hundred and four stones. One fewer each spring.'],
   }),
 
@@ -76,25 +77,25 @@ export const HOSTS = {
   'trial-desert': P({
     id: 'host.trial-desert', name: 'Nadir', title: 'who rides the dune line', color: '#f0a54a', kind: 'm',
     palette: { cloak: '#f0a54a', lining: '#2b211f', cloth: '#5a3640', legs: '#4a3a2a', hat: '#e8d9b8', hair: '#2b211f' }, head: 'wrap', look: { mask: 'browgoggles' },
-    say: ['~playful~ The salvagers ride the dunes down into the basin, gate to gate. Most come back.', '~neutral~ On your hoverbike, through every gate to the bottom, against the clock.'],
+    say: ['~playful~ Sand in your teeth yet? You will. We ride the dunes down into the basin and up out. Most of us come back.', '~neutral~ Every gate in order, down and back up. Stay on the bike: the clock won’t stop to pick you up.'],
     lines: ['~playful~ Sand in the teeth means you’re fast.'],
   }),
   'trial-arzach': P({
     id: 'host.trial-arzach', name: 'Ysolt', title: 'who watches the wind ladder', color: '#9fd6ee', kind: 'f',
     palette: { cloak: '#9fd6ee', lining: '#2b211f', cloth: '#e6e2d8', legs: '#5a5a6a', hat: '#e6e2d8', hair: '#d8d0c0' }, head: 'hood',
-    say: ['~whisper~ The wind climbs here in two columns. The riders climbed them once, with their birds.', '~whisper~ Open your wings. Up the columns, through the rings.'],
+    say: ['~whisper~ Hear it? Wind, climbing in two columns. I watch them. The riders went up them once, with their birds.', '~whisper~ Wings open in the first. Up. Then the rings, in order. The second lifts you again.'],
     lines: ['~whisper~ …'],
   }),
   'trial-arzach2': P({
     id: 'host.trial-arzach2', name: 'Brother Felix', title: 'who keeps the riders’ round', color: '#c9b08a', kind: 'm',
     palette: { cloak: '#c9b08a', lining: '#2b211f', cloth: '#f4efe2', legs: '#6b5a4a', hat: '#c9b08a', hair: '#6b5a4a' }, head: 'bald', look: { prop: 'staff' },
-    say: ['~solemn~ The riders flew a round of the stones before they crossed the cloud. Nobody has since.', '~neutral~ Ride the bird round the Needles, the Table and the Monastery, through every gate.'],
+    say: ['~solemn~ I sweep the riders’ gates each morning. Nobody has flown their round since they crossed the cloud.', '~neutral~ Take the bird round the Needles, the Table and the Monastery, every gate in order. It knows the way.'],
     lines: ['~solemn~ The bird remembers the way.'],
   }),
   'trial-perdide': P({
     id: 'host.trial-perdide', name: 'Wil', stand: { side: 0.4, ahead: 5 }, title: 'who races the reed-cutters', color: '#7fd0b8', kind: 'm',
     palette: { cloak: '#7fd0b8', lining: '#2b211f', cloth: '#5a6a3a', legs: '#3a3a2a', hat: '#c9b08a', hair: '#3a2a20' }, head: 'straw',
-    say: ['~playful~ The reed-cutters race their skiffs round the makers’ buoys when the crystal is quiet.', '~neutral~ Steer through every gate, round the lake and back. A gust in the sail goes faster.'],
+    say: ['~playful~ Crystal’s quiet, the reeds are cut, and my skiff’s faster than my mother’s. Race you round the makers’ buoys?', '~neutral~ Every gate in order, round the lake and back. A gust of your fan in the sail and she flies.'],
     lines: ['~playful~ Mind the plants. They mind you.'],
   }),
   'trial-perdide2': {
@@ -104,55 +105,55 @@ export const HOSTS = {
   'trial-edena': P({
     id: 'host.trial-edena', name: 'Linden', title: 'who waters the sleeping eyes', color: '#c8e88a', kind: 'f',
     palette: { cloak: '#c8e88a', lining: '#2b211f', cloth: '#f2e6c8', legs: '#4a5a3a', hat: '#e8c2f0', hair: '#4a3226' }, head: 'sunhat', look: { prop: 'flower' },
-    say: ['~curious~ The white builders left eyes asleep in the garden. A splash wakes them, for a moment.', '~neutral~ Wake all eight, as quick as you can.'],
+    say: ['~curious~ I water the beds, and the eyes in them open where the water lands. Only for a moment. The white builders left them.', '~neutral~ Wake all eight, any order, as quick as you can. A few sleep high up: climb for those.'],
     lines: ['~neutral~ We tend the garden. Mostly it tends itself.'],
   }),
   'trial-incal': P({
     id: 'host.trial-incal', name: 'Ostra', stand: { side: -1 }, title: 'a courier who won’t pay for cabs', color: '#ffd36a', kind: 'f',
     palette: { cloak: '#ffd36a', lining: '#2b211f', cloth: '#3a4a5a', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'cap', look: { body: 'satchel' },
-    say: ['~playful~ Couriers who won’t pay for a cab ride the air pillar up from the middle terrace.', '~neutral~ Wings open: up the pillar and through the gates to the rim.'],
+    say: ['~playful~ A cab up to the rim? Robbery. I take the air pillar from the middle terrace. Free, and faster.', '~neutral~ Wings open, into the pillar, up through every ring. Steer out of its top and glide the rim for the last.'],
     lines: ['~playful~ Cabs are for people with time.'],
   }),
   'trial-glassdunes': P({
     id: 'host.trial-glassdunes', name: 'Opal', title: 'a glassworker who flies the waves', color: '#d6a94a', kind: 'f',
     palette: { cloak: '#d6a94a', lining: '#2b211f', cloth: '#3f8f6a', legs: '#4a3a2a', hat: '#cfe9e0', hair: '#3a2a20' }, head: 'headcloth', look: { mask: 'glasses' },
-    say: ['~playful~ On festival days we fly the slalom between the glass waves. They’ve never fallen on anyone.', '~neutral~ Glide the gates, and climb the warm columns when you sink.'],
+    say: ['~playful~ Kiln’s banked, so I’m flying. The slalom runs between the glass waves. They’ve never fallen on anyone.', '~neutral~ Ride the first column up, then the rings in order. Sinking? Find the next column. Then home down the valley.'],
     lines: ['~playful~ The glass hums when you fly close.'],
   }),
   'trial-buried': P({
     id: 'host.trial-buried', name: 'Tibor', title: 'who dives the canyon on Tooth Day', color: '#c98d4f', kind: 'm',
     palette: { cloak: '#c98d4f', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#b8603a', hair: '#2b211f' }, head: 'flatcap', look: { body: 'muffler' },
-    say: ['~neutral~ On Tooth Day the dome folk dive the canyon on wings, for luck.', '~neutral~ Down through the gates, then up the column at its end to climb out.'],
+    say: ['~neutral~ Tooth Day. Wings on, and down the canyon for luck. My father did it every year. Once with a goat.', '~neutral~ Through every gate to the bottom, then ride the column up and out. Don’t stop to look at the pipes.'],
     lines: ['~neutral~ One tooth a year. One dive a day.'],
   }),
   'trial-spheres': P({
     id: 'host.trial-spheres', name: 'Aurel', title: 'who walks the round of the spheres', color: '#e8c2f0', kind: 'm',
     palette: { cloak: '#e8c2f0', lining: '#2b211f', cloth: '#f4efe2', legs: '#5a5a6a', hat: '#a8e6ee', hair: '#d8d0c0' }, head: 'hair',
-    say: ['~solemn~ Each sphere remembers a sound. We walk a round of them, to remember with them.', '~neutral~ On foot, gate to gate round the garden, against the clock.'],
+    say: ['~solemn~ Hush. This one remembers rain. I walk the round each day, so someone remembers with them.', '~neutral~ Gate to gate, round the garden and back. Climb, jump, glide. The spheres don’t hurry, but the clock does.'],
     lines: ['~solemn~ That one remembers rain.'],
   }),
   'trial-underwater': P({
     id: 'host.trial-underwater', name: 'Gil', title: 'who races the sealed tubes', color: '#6fc8d8', kind: 'm',
     palette: { cloak: '#6fc8d8', lining: '#2b211f', cloth: '#e8d9b8', legs: '#2b2f45', hat: '#f0c06a', hair: '#2b211f' }, head: 'beanie',
-    say: ['~playful~ The lamp boys race the tubes when the whales are quiet. Lately that’s every night.', '~neutral~ Run the tubes gate to gate, and mind the turns.'],
+    say: ['~playful~ Lamps trimmed, so we race the tubes. We wait till the whales are quiet. Lately that’s every night.', '~neutral~ Every ring, hall to hall through the glass. Take the bends tight, and don’t miss one.'],
     lines: ['~sad~ The whales used to watch us race.'],
   }),
   'trial-moonfoundry': P({
     id: 'host.trial-moonfoundry', name: 'Ansgar', title: 'who ran the pour times', color: '#e89a5a', kind: 'm',
     palette: { cloak: '#e89a5a', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#d98c58', hair: '#6b5a4a' }, head: 'skullcap', look: { body: 'toolbelt' },
-    say: ['~tired~ The founders’ runners carried the pour times round the floor. Nobody needs them now.', '~neutral~ Round the floor, gate to gate, before the pour cools.'],
+    say: ['~tired~ Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round.', '~neutral~ Every gate in order, round the floor and back to the mouth, before the pour cools. I always made it.'],
     lines: ['~tired~ My knees remember every pour.'],
   }),
   'trial-spacecity': P({
     id: 'host.trial-spacecity', name: 'Pia', title: 'who runs the oil bills', color: '#f0c06a', kind: 'f',
     palette: { cloak: '#f0c06a', lining: '#2b211f', cloth: '#5a3640', legs: '#3a3330', hat: '#e8d9b8', hair: '#2b211f' }, head: 'bun', look: { body: 'satchel' },
-    say: ['~playful~ Couriers run the bills across the bridges before the islands drift another hand’s width.', '~neutral~ Every gate in order. Don’t step off into the dark.'],
+    say: ['~playful~ Oil bills, island to island, every evening. Late oil, dark lamps, cross customers. So I run.', '~neutral~ Every ring in order over the bridges. Mind your feet: step off, and the dark is a long way down.'],
     lines: ['~playful~ Lamp oil waits for nobody.'],
   }),
   'trial-bazaar': P({
     id: 'host.trial-bazaar', name: 'Quill', title: 'who hangs the signs', color: '#ff5fa2', kind: 'm',
     palette: { cloak: '#ff5fa2', lining: '#2b211f', cloth: '#2b2f45', legs: '#3a3330', hat: '#62c3c9', hair: '#2b211f' }, head: 'peak', look: { body: 'toolbelt' },
-    say: ['~shout~ The sign-hangers fly the avenue every market night! Under the signs, through the gates!', '~neutral~ Wings open. Climb the warm columns when you sink.'],
+    say: ['~shout~ Hung thirty signs today and every one’s crooked! Market night: we fly the avenue under the lot!', '~neutral~ Ride the column at the avenue’s head, then the rings in order. Halfway there’s another column. Use it.'],
     lines: ['~shout~ Mind the signs!'],
   }),
 

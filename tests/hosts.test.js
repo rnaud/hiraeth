@@ -55,6 +55,21 @@ test('a host says one or two toned lines, then offers Play or Not now', () => {
   assert.equal(played, 1, 'play: the game');
 });
 
+test('each host speaks in their own voice: no two first pages open alike, none a custom told in the third person (issue #280)', () => {
+  const people = Object.entries(HOSTS).filter(([, H]) => !H.object);
+  const opened = new Map();
+  for (const [id, H] of people) {
+    const first = parseLine(H.say[0]).text;
+    const open = first.toLowerCase().split(/[^a-z’']+/).filter(Boolean).slice(0, 2).join(' ');
+    assert.ok(!opened.has(open), `${id} opens like ${opened.get(open)}: "${open}…"`);
+    opened.set(open, id);
+    assert.ok(/\b(I|I’m|I’ve|my|me|we|our|us|you|your)\b/i.test(first), `${id}: the first page is somebody talking ("${first}")`);
+    assert.ok(!/^(In|On|When|Every night|Each) /.test(first), `${id}: starts in their work, not the place’s custom`);
+    for (const l of H.say) assert.ok(!/hand’s width/.test(l), `${id}: the Floating city’s hand’s width is Joss’s and Rosa’s`);
+  }
+  assert.ok(people.length >= 22, `${people.length} hosts`);
+});
+
 test('a host whose run wants what he hasn’t got says so and offers no Play (issue #226, quest QC rule 4)', () => {
   let want = 'It wants the hoverbike.', played = 0;
   const def = hostTalk(HOSTS['trial-desert'], () => played++, { name: 'Dune line', lacks: () => want });
