@@ -112,7 +112,8 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   // (v1.45: ember mode comes with the gun, in its chest: its own chest's verdict gone, 1 less)
   // (v1.48: the three new worlds' makers' courts, a chest each behind its gate: 3 more)
   // (v1.52: the City-Shaft's light-down chest on the bottom terrace, issue #169: 1 more, not reviewed yet)
-  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 106, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests, less v1.39\'s five gone, v1.40\'s twelve, v1.43\'s two part recordings, v1.44\'s two, less v1.45\'s ember chest (with the gun now), v1.48\'s three court chests, v1.52\'s light-down chest');
+  // (v1.65: the Desert's tree lit, filmed from afar, issue #239: 1 more)
+  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 107, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests, less v1.39\'s five gone, v1.40\'s twelve, v1.43\'s two part recordings, v1.44\'s two, less v1.45\'s ember chest (with the gun now), v1.48\'s three court chests, v1.52\'s light-down chest');
 
   const perf = theme('perf');
   assert.deepEqual(perf.latest.theme.figure, { text: '2/5', sub: 'budgets over' });
