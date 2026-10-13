@@ -1,0 +1,21 @@
+docs/audits/dialogue-v1.66.md
+  s_9ca76055a220ed::t_fa659c7d8897eb 253
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_2d4153d4bf3938 92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "28a5d5cd7aa07b0d9655c4806351b74944f9336e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,130 @@
+src/game-menu.js
+  s_9ca76055a220ed::t_a444eedc3da1b9 326
+docs/systems/ui.md
+  s_9ca76055a220ed::t_06b7787d8084b3 406-407,586-589,745
+src/temples/garage-data.js
+  s_9ca76055a220ed::t_6b40498fbd277b 51
+src/temples/perdide-data.js
+  s_9ca76055a220ed::t_49e9bde0208959 47
+src/temples/arzach-data.js
+  s_9ca76055a220ed::t_1345573cc1aef1 48
+src/temples/edena-data.js
+  s_9ca76055a220ed::t_4c2bba8cad8cf4 48
+engine/game.js
+  s_9ca76055a220ed::t_68f0833d62308b 506-507
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_bcb33410fe1272 13,635-637,819-821
+src/temples/bazaar-data.js
+  s_9ca76055a220ed::t_cc2778ff379324 50
+src/temples/perdide2-data.js
+  s_9ca76055a220ed::t_2e2bab90696711 47
+src/world-map.js
+  s_9ca76055a220ed::t_8e69a9760bff68 302,319-324,334
+tests/quest-givers.test.js
+  s_9ca76055a220ed::t_444542a6cd3303 1-183
+src/temples/incal-data.js
+  s_9ca76055a220ed::t_892ef543419944 49
+src/boxes/index.js
+  s_bb35f7abcabc14::t_8c443ef392be15 285-289,291-293,299,302-303,314,331-333,436-444
+src/story/quests.js
+  s_9ca76055a220ed::t_a68964cd85219d 59-71,91-92,164-165,237,239-240,250-253,255-262,264-266,268-275,290-344,352-358
+docs/systems/story.md
+  s_9ca76055a220ed::t_ac3128134f641b 624-679
+src/temples/buried-data.js
+  s_9ca76055a220ed::t_e43a07a5cc3fc5 47
+src/save-migrate.js
+  s_9ca76055a220ed::t_61acee11c8dd24 99-103,107,272-273,275-290
+tests/story-arzach.test.js
+  s_9ca76055a220ed::t_042a8eadcad832 161,165-169,172-173,175-178,180-186
+tests/boxes.test.js
+  s_46670701513413::t_970d08352bf264 403-451
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_5305dc85b05b58 90
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_2fb68b7060310c 51
+docs/systems/boxes.md
+  s_bb35f7abcabc14::t_753b1b9d89189b 228-233
+src/story/desert.js
+  s_9ca76055a220ed::t_e14e222cd7bddb 172
+src/story/dialogue.js
+  s_bb35f7abcabc14::t_cdf245eb053640 199-203,387,390
+src/temples/desert-data.js
+  s_9ca76055a220ed::t_93463844b74a44 59
+src/game-menu.css
+  s_9ca76055a220ed::t_ebeecd3ff73089 81,84,266-270
+tests/story-perdide.test.js
+  s_9ca76055a220ed::t_3682a536a6eec0 109-110
+src/changelog.js
+  s_bb35f7abcabc14::t_1b9edd35baa620 32-36
+src/temples/moonfoundry-data.js
+  s_9ca76055a220ed::t_50078753bc96a5 57
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_c08fbf5fe07e29 133-143
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_3741833152cbd8 216-218,221
+src/story/signature.js
+  s_9ca76055a220ed::t_c5a985e7b2f5d3 89-101
+src/temples/arzach2-data.js
+  s_9ca76055a220ed::t_929b59c5c60be4 48
+src/temples/spheres-data.js
+  s_9ca76055a220ed::t_e6015a4f5a8b8c 47
+src/changelog-media.js
+  s_46670701513413::t_de9722ce5e738f 793
+  s_9ca76055a220ed::t_eb8b0438ee52b9 776-777,789-792
+src/temples/index.js
+  s_9ca76055a220ed::t_b63d9ecf66fd58 245,268-277,295
+tests/story-bazaar.test.js
+  s_9ca76055a220ed::t_821b0e13884173 106-107
+src/temples/spacecity-data.js
+  s_9ca76055a220ed::t_4fc8b77528c84d 52
+changelog.md
+  s_9ca76055a220ed::t_87476e094204bf 7
+scripts/playthrough-browser.mjs
+  s_9ca76055a220ed::t_c315b3ef175fda 192-194
+docs/systems/temples.md
+  s_9ca76055a220ed::t_95b3f88b12bdc2 78-80
+src/main.js
+  s_9ca76055a220ed::t_e31c340b2c5164 5,822,1006,1013-1014,1016,1031-1032
+src/story/balloons.js
+  s_207cde1711728e::t_04712be49b4599 8-9,41,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e19fea604ee1f56859103199acaca14803605084",
+  "prompts": {},
+  "sessions": {
+    "s_207cde1711728e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a49cda16d82d58d02",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_46670701513413": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9927bc8850143bb5",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_bb35f7abcabc14": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1e0e2da6624cbbc3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+.claude/skills/perf-audit/SKILL.md
+  s_9ca76055a220ed::t_54f36edc48d601 33
+.claude/skills/perf-audit/size.mjs
+  s_9ca76055a220ed::t_932a3728016aeb 5,10,13,34-37,42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a1c5102c15d51d44e96e486da8f7e42b1f81b298",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

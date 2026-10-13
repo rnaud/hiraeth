@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_def5c7b6cfcd32 5-11
+docs/README.md
+  s_9ca76055a220ed::t_c6c75b6c7ac45e 26
+src/audits-page/parse.js
+  s_9ca76055a220ed::t_0c0adeb1216317 24
+src/audits-page/themes.js
+  s_9ca76055a220ed::t_37bd34c62f878f 19
+src/changelog.js
+  s_9ca76055a220ed::t_046aa97d2a0915 11-25
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_6ea7cbb392aee3 24,46-47,49,51-52,60,62,102-105,172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c43c002314f32ea7916a2d507e141c94bfae1250",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

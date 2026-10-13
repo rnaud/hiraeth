@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_058686207e5b77 19
+docs/audits/perf-v1.66.md
+  s_9ca76055a220ed::t_b9bff6e746c905 43
+docs/audits/procedural-animation-v1.66.md
+  s_9ca76055a220ed::t_be709de55a813e 4-5,11-12,54,57-58,71,99-103,108,110,114,120-121
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_64ecc4f933c91b 18,200-202,206,209-210
+src/changelog.js
+  s_9ca76055a220ed::t_d9a9de6df03abd 12-16
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_5a86d68b180e65 138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a3e7df5b2578629aad7414b8d25a00e0f96cc8d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

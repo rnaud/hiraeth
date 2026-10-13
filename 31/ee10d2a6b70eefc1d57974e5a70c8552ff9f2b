@@ -1,0 +1,21 @@
+docs/audits/perf-v1.66.md
+  s_9ca76055a220ed::t_d7b83f72392c16 1-122
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_fa1fb9e9b34016 123-125,186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "31ee10d2a6b70eefc1d57974e5a70c8552ff9f2b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

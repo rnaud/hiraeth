@@ -1,0 +1,37 @@
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_834661db96051a 1,65-105,116-118,213-215
+scripts/fragment-spots.mjs
+  s_9ca76055a220ed::t_cceed8c7120946 6-8,18-20,26,40-41,59-61,96-99,103-104,107-114,125,129,132,136-138,145,158
+src/fragments-data.js
+  s_9ca76055a220ed::t_2c8838840cc584 23-28,37,44,47,50,60,67,72,74,80,89,91-93,99,101,103-104,107,110,113-114,119,124,127,129,133-134,136,145,155-156
+src/levels/bazaar.js
+  s_9ca76055a220ed::t_af9aac2bd431b6 147-148,151,449
+src/levels/underwater.js
+  s_9ca76055a220ed::t_86a018ac88c729 536-537
+src/save-migrate.js
+  s_9ca76055a220ed::t_212878cec36654 94-98,265-266,268-276,284-300,326
+tests/fragments-poi.test.js
+  s_9ca76055a220ed::t_b2587a7874ae74 1-61
+tests/fragments-reach.js
+  s_9ca76055a220ed::t_de08bd40125057 6-7,152-271
+tests/fragments.test.js
+  s_9ca76055a220ed::t_9b612e0bdd30f2 21,340-341,348,351-356,370-391
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_3ba5162ad650b8 90,421
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1d740b98f671134088d6d3ac0a8b1d13e475b2c8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

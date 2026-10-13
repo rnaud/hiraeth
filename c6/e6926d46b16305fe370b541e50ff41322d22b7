@@ -1,0 +1,19 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_dba757b2c87da7::t_b2cf94399fb85c 1016
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c6e6926d46b16305fe370b541e50ff41322d22b7",
+  "prompts": {},
+  "sessions": {
+    "s_dba757b2c87da7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9e2f4544cee1977a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

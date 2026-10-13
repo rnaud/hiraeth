@@ -1,0 +1,23 @@
+docs/audits/level-design-v1.66.md
+  s_9ca76055a220ed::t_f9406dbe71ff10 1-136
+scripts/level-design/path.mjs
+  s_9ca76055a220ed::t_548e927d0c26ce 40,47,62-64
+tests/level-design-round3.test.js
+  s_9ca76055a220ed::t_146b2a6bd0dda9 77-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c1a594c9d121c88296cdd0f0950810a0a93b29a7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

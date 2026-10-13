@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_fda3ff7182f9ae 15
+docs/systems/characters.md
+  s_9ca76055a220ed::t_6bfd19843e9f65 1370-1386
+src/changelog-media.js
+  s_9ca76055a220ed::t_5600732d0e21bb 745-746,771-777
+src/changelog.js
+  s_9ca76055a220ed::t_1e3a11a4cd27bd 17-19
+src/characters/portrait-head.js
+  s_9ca76055a220ed::t_0a54c963102de0 30,32-35,140-144
+tests/portrait-face-ink.test.js
+  s_9ca76055a220ed::t_5a3a2d750cd389 92-134
+scripts/tripo/bake-face-ink.mjs
+  s_c93737feafa829::t_db6a11ceefedb3 93-95,130-131,138-158
+scripts/tripo/face-landmarks.mjs
+  s_c19455400938f7::t_c0b95fdca3773a 14-15,25-26,94-104,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1694baccc4915a9839dff9f896af67feabbdf293",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c19455400938f7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aec009d9db09647ad",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_c93737feafa829": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a73de135dc99383ef",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
