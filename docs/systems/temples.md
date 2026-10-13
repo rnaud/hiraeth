@@ -300,7 +300,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   guard breaks it and opens the doorway's door (`dw`) into the Hall of Channels (the old Hall of Winds: its bellows'
   wind is gone, issue #245; `src/temples/migrate.js` `LAYOUTS.desert` breaks the watcher for a save already past
   it). At the hall's far end a ball cut down the long groove burns out short of the far door's bowl (`b4`) unless the eye high on the end
-  wall (`e10`, struck from a double jump) has lifted the relay fire's lid, and woken the keepers' door `sc`; the
+  wall (`e10`, struck from a double jump) has lifted the relay fire's lid, and woken the keepers' door `sc` (`WING`: caught
+  again at the relay it gets to the bowl with 2 s of its flame left, where it had a fifth of a second until issue #311; gone
+  out with the lid still on, it says where the fire is, Ball `tar.short`); the
   Keeper's spokes run from the basin out to hooded bowls on the rim, a fire half-way (`HEARTH_FIRE`): cut out, a
   ball lights its bowl (its first phase); a guard against its charge jars it and it pants, and water from your tank
   at its mouth (an interactable, `temple.desert.water`) calms it (its second); a ball cut back in from a lit bowl
@@ -691,6 +693,34 @@ mark): `GULF.way` is a doorway in the higher ledge's east wall onto a sill, a 7 
 outside the gulf's wall, back along it and up stairs through a doorway onto the near lip, beside the door you came in by
 (room `gulfWay`); the great lock says where it is. The test walks it with a real `Player`, and jumps at the sill from
 below.
+
+## Played through for real (issue #311)
+
+The author: "After I get the shield I can't roll the fiery ball to the pillar. It always turns off before reaching its
+target. We need to make sure all temples are solvable through a play through." The solver proves a house as a state
+machine (a ball "rolled onto its plate" is a number set), and the walk-throughs put a ball back at its start by hand
+when a try went wrong: neither saw that the Hall of Channels' ball, cut from its start with the relay lit, reached the
+far door's bowl with a fifth of a second of its flame left (the plate's dip holds it to a crawl for its last metre and a
+half, and the bowl only catches once it is slow), so any route but the perfect one went out on the way.
+
+`tests/temple-playthrough.test.js` plays every temple through as its logic asks next (`logic.next()`, the drone's own
+choice), with its real pieces and a real `Player`, and every ball moved by real hits from where he can stand: the fluid's
+push from behind it (its strength from how far he stands, as the cone gives it, `1 - distance / range`), the tether's pull
+from in front, the blade's cut, his hands walked into it, a splash's nudge for the last metre; each from a spot on the
+floor near the groove's level, clear of walls, inside the push's cone and in sight (the cone's own occlusion test), or
+hovering on the bellows where the house means it (the Warden's Well's loft shelf), or from the plate that stills a pool.
+The ball's own physics and timers run in real time (friction, the plates' dips, the bridges, the jaws, a pool's current,
+a tar ball's flame, an orb's glow); what a ball lights (a hooded bowl, a lamp) must be lit by it arriving, and with
+`SPARE` (1 s) of its flame or glow still left; where it came cold, it is rolled back through its fire from where it lies,
+never put back. The plates are stood on, the eyes struck or splashed (a bank of eyes caught as they rise, inside its
+window), the small vanes splashed, the seeds bloomed, the pendulums stilled, the keys taken from their chests and carried
+to their locks, the arenas walked into; the guardian is resolved once what it requires is done (its fight has its own
+tests). What the driver can't work for real (the great vanes the bellows turn, the bells and ears that hear a note, the
+watcher's bolt) is done through the logic and listed (`TEMPLE_LOG=1` prints each house's steps, margins and those).
+Found and fixed with it: the Hall of Channels' ball (`WING`: it burns 6 s, the relay at x 16: 2.2 s to spare, and still
+out 2 m short with the lid on); the Footprint's stilling stone, from whose middle the push's line to the floating sphere
+ran into the ledge's edge (only its last 20 cm worked): the stone at the ledge's edge and the sphere a little farther out
+(`POOL`).
 
 ## Each house its own look (v1.31)
 

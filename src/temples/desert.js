@@ -178,12 +178,13 @@ export const KEEPER_GUARD = { open: 2.8, water: 0.1 };
 
 // where the chest's ball stops against the corridor's thorns (t along its groove, z 110 to 124.6: its front at the
 // tangle's face, 118.2); the keepers' door and the far landing's doorway in the Hall of Fires' east wall (z); the Hall
-// of Winds' groove (z), and its ball: how freely it rolls, how long it burns (cut at the start it goes out about 6 m
-// short of the bowl), and where its relay fire lies (x: burning there, it carries the ball on to the bowl); where the
-// hall's far end begins (x: its ball and fire)
+// of Winds' groove (z), and its ball: how freely it rolls, how long it burns (cut at the start it goes out about 2 m
+// short of the bowl, 1.5 s before it settles there; caught again at the relay it gets there with 2 s to spare, issue
+// #311: it had a fifth of a second), and where its relay fire lies (x: burning there, it carries the ball on to the
+// bowl); where the hall's far end begins (x: its ball and fire)
 const CHEST_THORNS = (117.35 - 110) / 14.6;
 const SC_Z = 123.8, WING_Z = 150.3, WING_GROOVE = 151.4;
-export const WING = { friction: 0.2, burns: 4.6, relay: 18, lee: 33 };
+export const WING = { friction: 0.2, burns: 6, relay: 16, lee: 33 };
 /** The Givers' watcher (issue #245): its foot on the far landing, south of the east doorway by the chasm's edge. */
 export const SENTRY_AT = [10.6, 7, 146.6];
 /** The Sword Chamber's ball: rolls freely, burns briefly (leaned on, at a walk, it goes out before the bowl; cut, it is there). */
@@ -386,7 +387,8 @@ function layout(rt) {
   for (const z of [121.1, 158.1]) for (const y of [8.4, 11.2]) K.add(M.dark, box(2.6, 1.6, 0.1, WING.lee, y, z + (z < 140 ? 1 : -1) * (0.03 + 0.05)));   // the vents
   add(Flame, { at: [35, 7, WING_GROOVE - 1.1], r: 0.6 });
   add(Flame, { at: [WING.relay, 7, WING_GROOVE + 1.2], r: 0.6, when: { lit: 'e10' }, lid: true });
-  add(Ball, { id: 'ball4', a: [36.5, 7.04, WING_GROOVE], b: [7.6, 7.04, WING_GROOVE], r: 0.85, friction: WING.friction, shove: true, blade: true, tar: { ...TAR, burns: WING.burns } });
+  add(Ball, { id: 'ball4', a: [36.5, 7.04, WING_GROOVE], b: [7.6, 7.04, WING_GROOVE], r: 0.85, friction: WING.friction, shove: true, blade: true,
+    tar: { ...TAR, burns: WING.burns, short: { unless: { lit: 'e10' }, said: 'The tar ball’s flame gutters, and goes out. Half-way down its groove, a fire waits under a stone lid.' } } });
   add(Switch, { id: 'e10', at: [40.05, 13.6, 145], yaw: -Math.PI / 2, size: 1.2, blade: true, wrong: 'The eye is cut in hard stone, high on the wall. It rings when you knock on it: it wants striking.' });
   add(Mark, { room: 'wing', at: [37, 7, 156], yaw: -Math.PI / 2 });
 

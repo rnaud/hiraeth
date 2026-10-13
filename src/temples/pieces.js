@@ -354,7 +354,8 @@ export class Ball {
    * tar: { burns, caught, out, back } (a tar ball, the Rose House: an ember glob sets it alight, and so does rolling
    * it through a fire beside its groove (a Flame, a lit Brazier: their `fire`); it burns `burns` s, then goes out.
    * Burning, it lights the hooded bowl it comes to rest in (Brazier `hood`) and burns the thorns on its groove; cold,
-   * the bowl tips it back out (`back` m/s)),
+   * the bowl tips it back out (`back` m/s); short: { unless, said }: going out while condition `unless` fails, it says
+   * `said` instead of `out`, the fire that would carry it on: the Hall of Channels' lidded relay),
    * thorns: { id, at } (dry thorns across the groove at t = at, a Bramble: the ball stops against them while they
    * stand; burning, it burns them as it reaches them and rolls on),
    * jaws: { id, at, back, spat } (a mouth of jaws across the groove at t = at, a Jaw: shut, they spit the ball back at
@@ -632,7 +633,12 @@ export class Ball {
     }
     if (this.burn > 0) {
       this.burn = Math.max(0, this.burn - dt);
-      if (this.burn === 0) { this.flames.mesh.visible = false; this.light.set(0, -1e5, 0, 0); this.rt.notice?.(o.out ?? 'The tar ball’s flame gutters, and goes out.', `${this.id}.out`); }
+      if (this.burn === 0) {
+        this.flames.mesh.visible = false; this.light.set(0, -1e5, 0, 0);
+        // (gone out on the way while the fire that would carry it on is still shut away: `short` says where it is, issue #311)
+        const S = o.short && !this.rt.logic?.check?.(o.short.unless) ? o.short : null;
+        this.rt.notice?.(S?.said ?? o.out ?? 'The tar ball’s flame gutters, and goes out.', S ? `${this.id}.short` : `${this.id}.out`);
+      }
     }
     if (this.burn > 0) {
       // (it burns down: smaller toward the end)

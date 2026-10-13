@@ -940,6 +940,7 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   for (let i = 0; i < 14 / DT; i++) { frame(); if (ball4.burn === 0 && outAt == null && ball4.t > 0.05) outAt = ball4.t; if (ball4.v < -0.5) break; }
   assert.ok(outAt != null && outAt < 0.98, `it burns out short of the bowl (t ${outAt?.toFixed(2)})`);
   assert.equal(rt.logic.isLit('b4'), false, 'cold, the bowl stays dark');
+  assert.ok(said(/fire waits under a stone lid/), 'gone out with the relay shut, it says where the fire is (issue #311)');
   for (let i = 0; i < 25 / DT && !ball4.rest; i++) frame();
   const e10 = rt.piece('e10');
   e10.hit('shoot');
@@ -949,11 +950,13 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   assert.equal(rt.logic.isLit('e10'), true, 'struck, it wakes');
   wait(2.5);
   assert.equal(rt.logic.isOpen('sc'), true, 'the keepers’ door opens: the way back to the near ledge');
-  walk(L(37, 7, 152), { max: 30 });
-  if (ball4.t > 0.05) { ball4.t = 0; rt.logic.moveDrum('ball4', 0); ball4.place(); ball4.rest = true; }
+  // (cut again from where it came to rest, cold, half-way back up the hall: no putting it back by hand, issue #311)
+  assert.ok(ball4.rest && ball4.burn === 0 && ball4.t > 0.1 && ball4.t < 0.9, `tipped back out of the bowl, it lies cold in the hall (t ${ball4.t.toFixed(2)})`);
   cut(ball4, 1);
-  for (let i = 0; i < 16 / DT && !rt.logic.isLit('b4'); i++) frame();
-  assert.equal(rt.logic.isLit('b4'), true, 'past the relay it catches again, and burns on into the far door’s bowl');
+  let spare = null;
+  for (let i = 0; i < 16 / DT && !rt.logic.isLit('b4'); i++) { const was = ball4.burn; frame(); if (rt.logic.isLit('b4')) spare = was; }
+  assert.equal(rt.logic.isLit('b4'), true, 'past the relay it catches, and burns on into the far door’s bowl');
+  assert.ok(spare > 1, `with time to spare (${spare?.toFixed(2)} s of its flame left)`);
   wait(2.5);
   assert.equal(rt.logic.isOpen('d3'), true, 'the far door opens');
   // the shortcut: down the hall, through the keepers' door to the near ledge, and back

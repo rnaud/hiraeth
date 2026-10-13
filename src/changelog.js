@@ -33,6 +33,12 @@ export const CHANGELOG = [
         ], source: '.claude/skills/camera-qc/run.mjs ante-lock' },
       ],
       see: 'In the Signal Market’s temple, lock on to a blot in the antechamber and back into the corner by the passage to the hall: the camera stays behind and above you, both of you in the frame.' },
+    // the Hall of Channels' ball (issue #311): src/temples/desert.js WING, pieces.js Ball tar.short; tests/temple-playthrough.test.js
+    { text: 'In the Rose House’s Hall of Channels, the burning ball you cut down the long groove after striking the high eye now reaches the far door’s bowl with flame to spare, instead of guttering out on the way. If it goes out while the fire half-way down is still under its lid, it says so.',
+      see: 'In the Rose House, past the watcher, cut the ball at the Hall of Channels’ far end before striking the eye high on the end wall: it goes out and tells you about the lidded fire. Strike the eye, then cut the ball again from wherever it lies: it reaches the bowl by the far door burning.' },
+    // the Footprint's stilling stone (issue #311, found by the temple play-through): src/temples/spheres.js POOL
+    { text: 'In the Footprint’s Still Pool, the stilling stone sits at the ledge’s very edge, so a push from the middle of it reaches the floating sphere. Only its far rim used to; from the rest, the ledge took the push.',
+      see: 'In the Footprint, stand in the middle of the stilling stone at the Still Pool and push the floating sphere: it crosses to its berth.' },
   ] },
   { v: '1.68', date: '2026-10-13', items: [
     'The traveller has a new lighter body: narrower shoulders and arms that rest closer to his sides, with the approved face, articulated fingers, a natural neck fit and an independently moving shirt. Walking, jogging, talking and sitting use the fitted rig, with closed inner clothing and hands that clear the shirt. The body review includes the full animation library and a default body for comparison.',

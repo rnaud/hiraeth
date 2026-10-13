@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.69 — 2026-10-13
 
+- In the Footprint’s Still Pool, the stilling stone sits at the ledge’s very edge, so a push from the middle of it reaches the floating sphere. Only its far rim used to; from the rest, the ledge took the push.
+- In the Rose House’s Hall of Channels, the burning ball you cut down the long groove after striking the high eye now reaches the far door’s bowl with flame to spare, instead of guttering out on the way. If it goes out while the fire half-way down is still under its lid, it says so.
 - The camera stays steadier when you back into a corner locked on to a foe in a temple’s small room: by the doorway out of the Undertower’s antechamber it no longer swings over the traveller’s head or loses him off the screen, and the view over his shoulder no longer jerks as you pass the edge of a wall, a door or Qanat’s shop counter.
 - Marrow no longer explains the singing on the sand as if he knew: it is “something the light dropped when it passed, I’d say”.
 - You ask Marrow about the singing on the sand when you meet him at your ship, or when you come back to him, instead of straight after he has told you about Qanat’s fire or the mark on your hull.

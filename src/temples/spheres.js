@@ -249,6 +249,13 @@ export const STONES = (() => {
 // Lens Chamber's west door)
 const GALLERY_Z = 129, GALLERY_S = 84.4;
 /** (v1.53) The Keepers' Lodge, west off the Keepers' Gallery (an arena): its east side the gallery's west wall. */
+/**
+ * The Still Pool (z): where the floating sphere starts (its groove's near end) and the stilling stone at the ledge's edge
+ * (the ledge ends at 50). Stood on, the sphere is pushed from it: from its middle the push's line to the sphere clears the
+ * ledge's edge (issue #311: with the stone at 48 and the sphere at 51.8 only its last 0.2 m did; from the rest the edge
+ * took the push).
+ */
+export const POOL = { ball: 52.6, still: 49.0 };
 export const LODGE = { x: -22.8, z: 95.5, w: 14, d: 12, zone: { min: [-29.8, -1, 89.5], max: [-15.8, 9, 101.5] } };   // (clear of the hill tree's canopy in the meadow far below: tests/spheres.test.js)
 /** The Lodge's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
 export const ARENAS = [{
@@ -316,9 +323,9 @@ function layout(rt) {
   add(Pit, { room: 'pool', min: [-11, -8, 50], max: [11, -1.8, 69.2] });
   // the floating sphere (half sunk in the still water): pushed across, it settles in the berth at the far ledge's foot
   // the water stirs and draws it back to the near side unless you stand on the stilling stone at the ledge's edge
-  add(Ball, { id: 'ball3', a: [-4.5, -3.3, 51.8], b: [-4.5, -3.3, 67.4], r: 1.5, friction: 0.45,
+  add(Ball, { id: 'ball3', a: [-4.5, -3.3, POOL.ball], b: [-4.5, -3.3, 67.4], r: 1.5, friction: 0.45,
     current: { pull: 0.7, still: { pressed: 'pS' }, stirs: 'The water stirs, and draws the sphere back to you.', stilled: 'Under your feet the stone hums, and the pool goes glassy still.' } });
-  add(Plate, { id: 'pS', at: [-4.5, 0, 48.0], r: 1.0 });
+  add(Plate, { id: 'pS', at: [-4.5, 0, POOL.still], r: 1.0 });
   K.add(M.trim, T(new THREE.TorusGeometry(1.8, 0.18, 5, 20, Math.PI), [-4.5, -2.45, 68.6], [Math.PI / 2, 0, Math.PI]));   // the berth's lip
   add(Bridge, { id: 'stones', a: [3.5, 0, 49.9], b: [3.5, 0, 69.3], w: 3.4, n: 7 });
   add(Mark, { room: 'pool', at: [-7.6, 0, 46.6], yaw: Math.PI / 2 });
