@@ -1,0 +1,53 @@
+docs/README.md
+  s_9ca76055a220ed::t_16270c2964480b 74
+docs/systems/audio.md
+  s_9ca76055a220ed::t_79f5fc203e3f33 481-515
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_86b68ebf09792c 18
+music.html
+  s_9ca76055a220ed::t_68f35a6a436235 1-104
+src/audio.js
+  s_9ca76055a220ed::t_bad830536b5563 55-56
+src/lore-page/main.js
+  s_9ca76055a220ed::t_20df880299adb3 6-7,16-17
+src/lore-page/note-box.js
+  s_9ca76055a220ed::t_c63b583b861ceb 1-57
+src/lore-page/notes.js
+  s_9ca76055a220ed::t_b85eed896cf6ed 47-51,54
+src/music-page/catalog.js
+  s_9ca76055a220ed::t_af5a5f446de051 1-303
+src/music-page/main.js
+  s_9ca76055a220ed::t_7a0c06a4f94c37 1-97
+src/music-page/notes.js
+  s_9ca76055a220ed::t_04473d74e172b1 1-15
+src/music-page/player.js
+  s_9ca76055a220ed::t_b69f45ccb144aa 1-175
+src/music-page/view.js
+  s_9ca76055a220ed::t_ef9b18b6a95f9f 1-80
+src/world-picker.js
+  s_9ca76055a220ed::t_8b385c931d477e 36
+tests/music-page.test.js
+  s_9ca76055a220ed::t_6c7cfe63a0308a 1-131
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_bfdc6808bd185f 47
+vite.config.js
+  s_9ca76055a220ed::t_e6d91c148b2c3f 36-37
+worker/issues.js
+  s_9ca76055a220ed::t_486a3646cee952 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ee18707ec1c3826f4ae0adff3d12c05f0c57cab3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
