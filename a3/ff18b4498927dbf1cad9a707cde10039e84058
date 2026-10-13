@@ -1,0 +1,43 @@
+tests/temples.test.js
+  s_61d6bbe60a9d6d::t_55cf8b189466d5 943,953-954,956-959
+src/temples/spheres.js
+  s_61d6bbe60a9d6d::t_f793fcec4fce30 252-258,326,328
+docs/systems/temples.md
+  s_61d6bbe60a9d6d::t_961412fc5f94bd 303-305,697-724
+src/temples/pieces.js
+  s_61d6bbe60a9d6d::t_f50936e56c0731 357-358,636-641
+tests/temple-playthrough.test.js
+  s_61d6bbe60a9d6d::t_92b07c5ee543cb 1-451
+src/temples/desert.js
+  s_61d6bbe60a9d6d::t_2be2dcfa9871ce 181-184,187,390-391
+changelog.md
+  s_9ca76055a220ed::t_03ac8e695bafa3 7-8
+src/changelog-media.js
+  s_9ca76055a220ed::t_5a9c9e85956279 781-782,784-788
+src/changelog.js
+  s_9ca76055a220ed::t_66a5d808186ef4 21-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3ff18b4498927dbf1cad9a707cde10039e84058",
+  "prompts": {},
+  "sessions": {
+    "s_61d6bbe60a9d6d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a134e2352c869abe6",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
