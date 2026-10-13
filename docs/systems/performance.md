@@ -2567,6 +2567,80 @@ the run's artifact), `adb install -r`, then start it with `am start -n com.rnaud
 the same for the bench's own player) and pull `unity-bench.json`; GeckoView:
 `node scripts/bench/android-worlds.mjs --serve dist --worlds desert,incal,bazaar --modes fixed --scale 0.75`.
 
+### Unity on the Retroid: the GPU's frame, taken apart (2026-10-13, issue #262)
+
+No GPU profiler reaches the device (no Android GPU Inspector or Snapdragon Profiler on the Mac, no `gpu.renderstages`
+producer in perfetto without a system property), so the frame was taken apart with the bridge's own switches, the GPU
+time from Unity's frame timing and the GPU's busy share and clock from kgsl (`/sys/class/kgsl/kgsl-3d0`: 99 % busy at
+680 MHz in every slow view, so the frame is the GPU's, not its clock). New test switches: `-hide` kinds (skinned, mesh,
+inst, grass, crowd, puffs, points), `-census` (what is drawn, by kind, every 300 frames; the instanced sets every 900),
+`-surface-skip N` (parts of the Surface shader left out by bit: 1 patterns, 2 weathering, 4 pen detail, 8 colour patches,
+16 hatching, 32 the sun's shadow, 64 the local lights, 128 the ground's marks, 256 the shade's tone), `-surface-debug 12`,
+`-skin-cull`, `-shadow-depth 16|24`, `-no-view-instances`, `-view-instance-sets`.
+
+**What the "fixed ~14 ms" was.** Not a pass that ignores the render scale: with nothing drawn (`-hide` every kind) the
+whole frame takes **0.6 ms** of GPU (the passes, clears, blits, the final upscale and the HUD together). It is geometry
+and the shadow maps. At the desert's spawn with the surfaces' fragment work gone (`-surface-debug 9 -debug-view 2`) at
+render scale 0.25 the GPU still took 8.7 ms: the plain meshes 4.0 (780 k vertices on screen), the GPU instances 1.9
+(4 243 of them, 0.94 M vertices, **every one drawn every frame wherever the camera looked**: InstMats drew its sets with
+a 10 km box), the skinned people 1.8 (58 skinned every frame, 38 seen), the crowd 0.6, the grass 0.2; and of those 8.7,
+**3.8 ms were the sun's shadow maps** (`-no-shadows -no-urp-shadows`; the earlier "`-no-shadows` changes nothing" was
+URP's own 4-cascade maps taking over when the port's are off: `-no-urp-shadows` stops both). The rest of the frame scales
+with the pixels, and most of it is the Surface shader's fragment work: 12 ms of the spawn's 26 (`-surface-debug 9`),
+**26.6 of the City-Shaft wide view's 44**, the ink composite 3.3 (`-debug-view 2`), bloom and FXAA 0.5. GeckoView draws
+the spawn in 458 draws and 562 k triangles at 80 % busy (615 MHz); the Unity build drew 1 151 draws.
+
+**What changed** (all in the shared C# and shaders unless said):
+- **The GPU instances drawn only where the view holds them** (InstMats.Draw with the camera's planes, BridgeRenderer):
+  a set wholly out of view draws nothing, one partly in view only its instances inside, by their reach round their places,
+  as the shadow maps' cull does; the shadows are drawn as before. At the spawn 943 of 4 249 instances drawn (254 k
+  vertices of 956 k): 1.4 ms of GPU (`-no-view-instances` 23.9 against 22.5).
+- **The depth prepass of every opaque, on Android** (BridgeRunner: `-prepass-min 0`, Android only): the City-Shaft's wide
+  view 44 → 37 ms, its start 27.8 → 26.5, the Signal Market 1.5-3 ms less, the desert within 0.5 ms (its views have little
+  overdraw). The Deck's default (the big occluders only, 1 m) was 2 ms *worse* here than no prepass (46 ms wide).
+- **The surfaces' marks worked out only where they are drawn**, as the web compiles them under their own defines: strata
+  rock's coordinates and colour bands (two noises and a derivative a pixel), the ground's ripples, scuffs, grass ticks and
+  mud cracks and its colour blobs (each now in its material's uniform branch), the hatching's three pens and its stipple
+  (in the branch that draws each; strokes() and stipple() take no derivatives), the grid's and glyphs' coordinates; the
+  local lights' loop stops at the first empty light; `posWS` no longer a varying (toThree(worldPos) in the fragment, the
+  same numbers). The picture is the same (the shots below). The desert's dunes 20.8 → 16.2 ms, the spawn ~2 ms.
+- **The shadow maps, the composite's and FXAA's targets not loaded before they are overwritten** (HiraethFeature:
+  `AccessFlags.WriteAll`; each cascade is cleared first), and the shadow caster's fragment writes no colour. Within the
+  noise on the frame; `-shadow-depth 16` or `24` changed nothing measurable (left at D32).
+- Measured and left: `-skin-cull` (skinning only the seen people: 0.4-0.7 ms, but their bounds round bone 0 are a guess);
+  the shadows' renderer lists (`-shadow-lists`, 0.3-1.1 ms, kept to the Xbox); the composite (3.3 ms, the web's own work).
+
+**Before → after** (frames a second, p50 / p95 / p99 ms; GPU ms), Handheld at 0.75, muted, the same sitting; before:
+origin/main's build (run 38393212994), after: this branch (run 38426479335); GeckoView today at the same views and scale:
+
+| place | before | GPU | after | GPU | GeckoView |
+|---|---|---|---|---|---|
+| Desert, spawn | 39.6 (25.2 / 28.5 / 29.7) | 25.9 | **45.4** (22.0 / 25.4 / 26.5) | 22.6 | 56.9 |
+| Desert, Qanat's tree | 60.1 | 17.1 | 60.1 | 15.9 | 51.1 |
+| Desert, the camps | 43.9 (22.8 / 25.4 / 26.5) | 23.1 | **46.0** (21.8 / 25.2 / 25.7) | 22.5 | 51.5 |
+| Desert, the dunes | 48.9 | 20.8 | **60.1** (16.6 / 17.3 / 18.5) | 16.2 | 59.9 |
+| Desert, the cave | 60.1 | 16.6 | 60.1 | 14.4 | 59.7 |
+| City-Shaft, start | 37.0 (27.0 / 32.6 / 33.7) | 27.8 | **40.8** (24.5 / 30.4 / 31.2) | 25.2 | 43.9 |
+| City-Shaft, crowd | 43.6 | 23.3 | **47.1** | 22.1 | 46.1 |
+| City-Shaft, crowd 2 | 48.2 | 21.8 | **52.1** | 20.0 | 48.4 |
+| City-Shaft, wide | 23.1 (43.3 / 49.2 / 50.4) | 44.1 | **28.4** (35.2 / 40.8 / 42.6) | 35.8 | 34.4 |
+| Signal Market, start | 38.7 | 25.9 | **41.1** | 24.0 | 55.5 |
+| Signal Market, crowd | 53.9 | 18.9 | **60.1** | 14.7 | 59.0 |
+| Signal Market, crowd 2 | 39.1 | 26.0 | **45.0** | 22.0 | 58.6 |
+| Signal Market, wide | 38.1 | 26.9 | **41.3** | 24.0 | 58.9 |
+
+Unity is now level with or ahead of GeckoView in the cave, at Qanat's tree, the dunes, the City-Shaft's crowds and the
+Signal Market's crowd, and behind at the desert's spawn and camps, the City-Shaft's start and wide view and three of the
+Signal Market's views. Its late frames stay close to its median (GeckoView's p95 there is a missed refresh, 33 ms).
+
+**What is left** (the GPU is still the frame wherever Unity is behind): the Surface shader's fragment work, 8.7 ms of the
+spawn's 22.6 and 15.6 of the City-Shaft wide view's 35.8 (`-surface-debug 9`), of which the parts `-surface-skip` can
+leave out are only 4.5 and 6.2 together (no one part over 2 ms: the sun's shadow taps, the local lights, the hatching,
+the ground's marks each 1-2): the rest is the shader's common work and its size (the lean variant is still one shader for
+every material, where the web compiles a program per set of features); then the shadow maps (3.8 ms at the spawn) and
+the meshes' vertices. **The Xbox and the Deck** get the shared parts (the instances' view cull, the surfaces' sunk work,
+one varying fewer, the overwritten targets not loaded), not the Android prepass default; not measured on them here.
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

@@ -1030,8 +1030,9 @@ namespace Hiraeth.Bridge
             foreach (var c in crowds.Values) if (c.mesh) Add("crowd", c.n, (long)c.n * c.mesh.vertexCount, true);
             if (Time.frameCount % 900 == 0)
             {
-                var sets = new System.Text.StringBuilder("Hiraeth bridge: census, the instanced sets:");
-                foreach (var n in nodes.Values) if (n.im != null && n.rawN > 0 && n.go && n.go.activeInHierarchy) sets.Append("\n  " + n.go.name + ": " + n.im.Describe());
+                var eye = cam ? cam.transform.position : Vector3.zero;
+                var sets = new System.Text.StringBuilder($"Hiraeth bridge: census, the instanced sets (the camera at {eye:F1} looking {(cam ? cam.transform.forward : Vector3.zero):F2}):");
+                foreach (var n in nodes.Values) if (n.im != null && n.rawN > 0 && n.go && n.go.activeInHierarchy) sets.Append("\n  " + n.go.name + ": " + n.im.Describe(eye) + $" node at {n.go.transform.position:F1} scale {n.go.transform.lossyScale:F2}");
                 Debug.Log(sets.ToString());
             }
             var sb = new System.Text.StringBuilder("Hiraeth bridge: census (on / vertices, seen / vertices):");

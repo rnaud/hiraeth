@@ -154,7 +154,13 @@ namespace Hiraeth
         /// <summary>-view-instance-sets: whole sets only (none culled one by one), a test.</summary>
         public static bool ViewSetsOnly;
         /// <summary>For the census: what this set is and how the view's cull saw it.</summary>
-        public string Describe() => $"{(mat ? mat.name : "?")} n{count} drew {lastDrawn} meshR {meshR:0.0} ok {boundsOk} bounds {bounds.center:F0} {bounds.size:F0}";
+        public string Describe(Vector3 eye)
+        {
+            int best = -1; float bd = float.MaxValue;
+            for (int i = 0; i < count; i++) { float d = (new Vector3(data[i].r0.w, data[i].r1.w, data[i].r2.w) - eye).sqrMagnitude; if (d < bd) { bd = d; best = i; } }
+            var near = best >= 0 ? new Vector3(data[best].r0.w, data[best].r1.w, data[best].r2.w) : Vector3.zero;
+            return $"{(mat ? mat.name : "?")} n{count} drew {lastDrawn} meshR {meshR:0.0} ok {boundsOk} growing {growing} partial {partial} bounds {bounds.center:F0} {bounds.size:F0} nearest {near:F1} r {(best >= 0 && best < rad.Length ? rad[best] : -1):0.0}";
+        }
         Inst[] viewSub; GraphicsBuffer viewBuf; MaterialPropertyBlock viewMpb;
         /// <summary>The instances the last Draw drew (the census: BridgeRenderer -census).</summary>
         public int lastDrawn;
