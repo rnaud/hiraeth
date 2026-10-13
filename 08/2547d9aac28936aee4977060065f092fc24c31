@@ -1,0 +1,29 @@
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_75e402143ce331 15,39
+.claude/skills/game-audit/capture.mjs
+  s_9ca76055a220ed::t_06197f25c65a66 17,33
+.claude/skills/motion-qc/run.mjs
+  s_9ca76055a220ed::t_f3f43415885319 17,41
+.claude/skills/shadow-qc/run.mjs
+  s_9ca76055a220ed::t_c38c645a3f0278 16,38
+scripts/design-qc/capture.mjs
+  s_9ca76055a220ed::t_647e539843d5dc 14,66
+scripts/temp-dirs.mjs
+  s_9ca76055a220ed::t_d91ccdd7ea28e6 15-16,102-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "082547d9aac28936aee4977060065f092fc24c31",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
