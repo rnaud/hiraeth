@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createKeeperCreature } from '../../src/characters/keeper-creature.js';
 import { createElderCreature } from '../../src/characters/elder-creature.js';
+import { createElderCreature as createElderV3 } from '../../src/characters/elder-v3-creature.js';
 
 export const DT = 1 / 60, SETTLE = 60, FRAMES = 240;
 const v = new THREE.Vector3();
@@ -196,13 +197,16 @@ export async function loadSkin(file) {
   return new GLTFLoader().parseAsync(JSON.stringify(json), '');
 }
 /**
- * The generated skins (src/characters/*-creature.js) joined to GUARDIANS: the Rose House's Keeper (issue #267, live) and
- * the Aerie's Elder (issue #237, a prototype), measured on their own bones (boneLegs). Loaded once.
+ * The generated skins (src/characters/*-creature.js) joined to GUARDIANS: the Rose House's Keeper (issue #267, live), the
+ * Elder's first prototype (issue #237) and the Aerie's Elder (elder-v3, live since v1.67), measured on their own bones
+ * (boneLegs). Loaded once.
  */
 let skinsAdded = null;
 export function addGeneratedSkins() {
-  return (skinsAdded ??= Promise.all([loadSkin('keeper-v1'), loadSkin('elder-v1')]).then(([keeper, elder]) => {
+  return (skinsAdded ??= Promise.all([loadSkin('keeper-v1'), loadSkin('elder-v1'), loadSkin('elder-v3')]).then(([keeper, elder, elder3]) => {
     GUARDIANS['keeper (generated)'] = (pace) => guardianSubject(() => createKeeperCreature(keeper), boneLegs, 2.2, pace);
     GUARDIANS['elder (generated)'] = (pace) => guardianSubject(() => createElderCreature(elder), boneLegs, 1.8, pace);
+    // (the Aerie's Elder since v1.67, the natural-wing body: src/characters/elder-v3-creature.js)
+    GUARDIANS['elder v3 (generated)'] = (pace) => guardianSubject(() => createElderV3(elder3), boneLegs, 1.8, pace);
   }));
 }

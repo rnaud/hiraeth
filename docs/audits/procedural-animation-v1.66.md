@@ -1,14 +1,15 @@
 # Creature motion, v1.66 (2026-10-13)
 
 <!-- audit-scores
-overall: 4.06 / 5
-label: the mean of 23 walkers on the rubric's eight 0-3 criteria, scaled to 5; two under 2 somewhere (the shade's cost, the Elder prototype's)
+overall: 4.05 / 5
+label: the mean of 24 walkers on the rubric's eight 0-3 criteria, scaled to 5; three under 2 somewhere (the shade's cost, the two Elder bodies')
 date: 2026-10-13
 -->
 
 The procedural-animation skill's review (`.claude/skills/procedural-animation/SKILL.md`) of every walker on the
 locomotion kit, for issue #226, with the two generated guardians it was asked for: **the Cistern-Keeper on its Tripo skin**
-(issue #267, the Rose House's guardian since v1.65) and **the Elder's Tripo prototype** (issue #237, still off the Aerie).
+(issue #267, the Rose House's guardian since v1.65) and **the Elder's Tripo prototype** (issue #237); and, landed on main while this ran,
+**the Elder's natural-wing body now in the Aerie** (`elder-v3`, 45599a95), measured after the rebase.
 The first report of its kind; the numbers before are the kit's own tables in docs/systems/procedural-animation.md (§6,
 phases 1-7, October 2026).
 
@@ -50,10 +51,11 @@ phases 1-7, October 2026).
 | First Sign (sign) | 3 | 3 | 3 | 2 | 3 | 3 | 2 | 2 | 2.62 | 4.38 |
 | Elder (elder) | 3 | 3 | 2 | 2 | 3 | 3 | 2 | 2 | 2.50 | 4.17 |
 | Elder, Tripo prototype (elder-v1) | 3 | 3 | 3 | 2 | 3 | 2 | 2 | 1 | 2.38 | 3.96 |
+| Elder, its Tripo body in the Aerie (elder-v3) | 2 | 3 | 3 | 2 | 3 | 2 | 2 | 1 | 2.25 | 3.75 |
 | Moustache (moustache) | 3 | 3 | 3 | 2 | 2 | – | 2 | 2 | 2.43 | 4.05 |
 
-Criteria means (0-3): joints 2.70, planting 3.00, gait 2.57, weight 2.22, secondary 2.30, telegraph 2.64, ink 2.17,
-cost 1.91. How each was read: 1 from the reach span (a quarter of the leg or more and a knee bending over 40° at its
+Criteria means (0-3): joints 2.67, planting 3.00, gait 2.58, weight 2.21, secondary 2.33, telegraph 2.61, ink 2.17,
+cost 1.88. (The Aerie's Elder's 6 and 7 are read from its walk and the kit's plan only: no strips of it were taken.) How each was read: 1 from the reach span (a quarter of the leg or more and a knee bending over 40° at its
 least: 3; 15-20 %: 2), 2 from slide a metre (every walker under 0.03 m/m: the kit's planting holds), 3 from the groups,
 the cadence at half speed and the pack's unison, 4-6 from the plans and the strips, 7 from the stepped clock and the
 silhouettes at 15 m, 8 from µs a leg near (≤ 1 on the Mac, with the tiers: 2).
@@ -66,6 +68,7 @@ silhouettes at 15 m, 8 from µs a leg near (≤ 1 on the Mac, with the tiers: 2)
 | **Cistern-Keeper, Tripo skin** | 0.01 | 0.03 | 16 % | 8 % | 0.75 → 0.47 | 70° (46°) |
 | Elder (procedural) | 0.00 | 0.00 | 22 % | 12 % | 0.45 → 0.25 | 58° (36°) |
 | **Elder, Tripo prototype** | 0.02 | 0.05 | 27 % | 8 % | 0.80 → 0.45 | 74° (35°) |
+| **Elder, Tripo body in the Aerie (elder-v3)** | 0.02 | 0.05 | **14 %** | 8 % | 0.85 → 0.55 | 64° (41°) |
 
 The roster and the other guardians are where §6 left them (slide 0.00-0.02 m/m, the right groups, cadence halving at
 half speed); full table: `node scripts/motion-audit/run.mjs`.
@@ -93,24 +96,29 @@ half speed); full table: `node scripts/motion-audit/run.mjs`.
    one draw; its animate() is 10 µs a frame in node (the procedural Elder 12.6), but nothing is measured on the Retroid
    and it has no lighter level. Already the open checklist of #237; nothing filed. Its walk passes every motion target
    (slide 0.02 m/m, knee 74°, one foot at a time, cadence halving), and the stamp's hop reads from the side.
-4. **The shade's kit costs 1.3 µs a leg** near (10 of a kind; the roster's 0.4-1.07), over the rubric's 1 µs: its two
+4. **The Aerie's new Elder reaches little** (`elder-v3`, live since 45599a95): its legs' reach span is 14 % of the leg
+   (the kit's target over 15 %, the prototype 27 %, the procedural Elder 22 %), its feet lift 8 %; it walks one foot at
+   a time with a cadence that halves at half speed and slides 0.02 m/m. The test that holds the other walkers
+   (`tests/motion-guardians.test.js` WALKERS) doesn't walk it yet. In issue #287.
+5. **The shade's kit costs 1.3 µs a leg** near (10 of a kind; the roster's 0.4-1.07), over the rubric's 1 µs: its two
    legs ride a cloak chain solved each frame. The heron (1.07) and the lizard (1.03) sit on the line. The mixed scene
    (10 near, 30 far) is 92-95 µs a frame against Phase 7's 71 (the least of five both times; a busier machine now), the
    pack with the Keeper 41-46 against 35: within the 1 ms budget at ×4, but 30 % up; worth an A/B with v1.40 when the
    Mac is quiet. In issue #287.
-5. **`run.mjs --cost` timed the JIT's warm-up**: the first kinds walked read 11-25 µs a leg (the crab, the lizard), 1.4
+6. **`run.mjs --cost` timed the JIT's warm-up**: the first kinds walked read 11-25 µs a leg (the crab, the lizard), 1.4
    after. **Fixed**: a throwaway walk of each kind first.
-6. **A pack can fall in step by chance** (look): each foe's first stance comes from its seed (`GaitPlanner.init`), so two
+7. **A pack can fall in step by chance** (look): each foe's first stance comes from its seed (`GaitPlanner.init`), so two
    of a kind spawned one after the other can start at nearly the same phase; the heron walked as the fifth subject read
    0.96 unison, as the seventh 0.27. Suggested: spread the start by the golden ratio on the serial
    (`u = frac(seed × 0.618) + a little noise`) so neighbours are always out of step. In issue #287.
-7. **Weight (4) and ink (7) are the roster's lowest criteria** (2.2): most bodies ride their feet on springs but only the
+8. **Weight (4) and ink (7) are the roster's lowest criteria** (2.2): most bodies ride their feet on springs but only the
    toad, the brute, the Keeper and the Gardener dip and overshoot like their size; thin legs (the lizard's, the heron's,
    the skitter's) are a kernel or two at 30 m. Art direction rather than faults: no issue.
 
 ## What was fixed in this branch
 
-- the generated skins in the audit (`scripts/motion-audit/walk.mjs`, `run.mjs`; `tests/motion-guardians.test.js` on it);
+- the generated skins in the audit, the Aerie's new Elder among them (`scripts/motion-audit/walk.mjs`, `run.mjs`;
+  `tests/motion-guardians.test.js` on it);
 - the cost column's warm-up (`run.mjs`).
 
 ## Not checked

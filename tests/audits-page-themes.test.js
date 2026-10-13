@@ -135,7 +135,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.deepEqual(theme('camera').latest.theme.figure, { text: '13/15', sub: 'scenarios' });
   assert.deepEqual(theme('motion').latest.theme.figure, { text: '4/15', sub: 'node' });
   const walkers = group('procedural-animation', 'Items').rows;
-  assert.equal(walkers.length, 23, 'the 23 walkers');
+  assert.equal(walkers.length, 24, 'the 24 walkers (the Aerie’s new Elder measured after the rebase)');
   assert.ok(near(avg(walkers.map((r) => r.value)), theme('procedural-animation').latest.overall), 'the overall the mean of the walkers');
   assert.ok(walkers.some((r) => r.alt === 'keeper v1') && walkers.some((r) => r.alt === 'elder v1'), 'the Tripo skins by their ids');
   const cost = group('temple-visuals', 'Frame time').rows;

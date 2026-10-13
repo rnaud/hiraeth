@@ -40,7 +40,7 @@ worlds that looked slow against v1.40 in one session.
 
 Over 26 releases the devices' share grew 7.5 % and the first load 22 % (0.8 % a release): within the budget of 10 % and
 5 % a release. What the APK and the Deck package carry grew 40 %: **the Elder's 3.08 MB GLB ships to every device though
-only `tools/elder-review.html` loads it** (the game's Aerie still has the procedural Elder, #237): issue #300.
+only `tools/elder-review.html` loads it** (measured on main `0949c08a`, when the Aerie still had the procedural Elder; since 45599a95 the Aerie wears `elder-v3`, 2.66 MB, and `elder-v1` is the one left unused): issue #300.
 `size.mjs` measured "the devices" as everything but the changelog's pictures; it now takes the site-only rule the
 release uses (`scripts/site-only.mjs`: the audits' and the lore's pictures, the reference sheets) and also gives the
 APK's share (`leftOff`), and `--dist` for another build (this audit's fix).
