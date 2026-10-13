@@ -120,8 +120,9 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 107, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests, less v1.39\'s five gone, v1.40\'s twelve, v1.43\'s two part recordings, v1.44\'s two, less v1.45\'s ember chest (with the gun now), v1.48\'s three court chests, v1.52\'s light-down chest');
 
   const perf = theme('perf');
-  assert.deepEqual(perf.latest.theme.figure, { text: '2/5', sub: 'budgets over' });
-  assert.deepEqual(group('perf', 'Budgets').rows.map((r) => r.status), ['over', 'over', 'unmeasured', 'ok', 'unmeasured']);
+  // (perf-v1.66: the Retroid and the Deck each a row, not measured; High's p95 and the loads over; shaders and build within)
+  assert.deepEqual(perf.latest.theme.figure, { text: '2/6', sub: 'budgets over' });
+  assert.deepEqual(group('perf', 'Budgets').rows.map((r) => r.status), ['unmeasured', 'unmeasured', 'over', 'over', 'ok', 'ok']);
   assert.deepEqual(theme('visual').latest.theme.figure, { text: '7', sub: 'findings' });
   assert.deepEqual(group('visual', 'Findings by severity').rows.map((r) => [r.label, r.value]), [['breaks the picture', 0], ['noticeable', 2], ['only when looking', 3], ['look', 2]]);
   assert.deepEqual(theme('temple-visuals').latest.theme.figure, { text: '11/11', sub: 'temples' });
@@ -182,7 +183,7 @@ test('the cards: score, change, items, the link to the full audit, History behin
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
   assert.match(themeCard(theme('dialogue')), /▼ −0\.23 <small>since v1\.57/);
   assert.doesNotMatch(themeCard(theme('dialogue')), /the first dialogue audit/);
-  assert.match(themeCard(theme('perf')), /2\/4/);
+  assert.match(themeCard(theme('perf')), /2\/6/);
   assert.doesNotMatch(themeCard(theme('combat'), { open: true }), /class="history"[^>]* hidden/);
   assert.match(trendHtml(theme('level-design').history), /<path d="M/);
   assert.equal(trendHtml([{ version: '1', overall: 3 }]), '');
