@@ -51,6 +51,10 @@ export const CHANGELOG = [
     // to be the things in use (src/boxes/model.js wingsModel, src/gadgets/gun.js; issue #283)
     { text: 'The fluid wings and the fluid gun’s glove come out of their chests as they did before 1.66: the wings as three leaves of colour on a brass rod, the glove brown with its cream cuff. Only the Givers’ blade and guard rise as the ones you use.',
       see: 'Open the wings’ chest in Vael’s Aerie or the gun’s in the Givers’ Hearth, or look at them in the menu’s Items.' },
+    // the light out of an opening chest (src/boxes/light.js ChestLight: washes over the picture, src/veil.js's rays;
+    // its lamp and the linings' glow; references/Core Objects/Chests/light/; docs/systems/boxes.md; issue #285)
+    { text: 'Chests open with real light now instead of little glassy shapes: a soft column of jade and gold rays pours up out of the chest as its halves part, the inside of it and the undersides of its halves glow, a few motes drift up in the beam, and the light falls on the traveller and the ground round him. It swells as the chest opens and settles as the item rises.',
+      see: 'Open any chest: the star’s in the desert city, or the lift valve’s in the cave under the dunes.' },
   ] },
   { v: '1.66', date: '2026-10-13', items: [
     // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own

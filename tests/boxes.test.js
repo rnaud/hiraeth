@@ -265,7 +265,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   for (let i = 0; i < 30 * 6.8; i++) boxes.update(1 / 30, 4.2 + i / 30);
   assert.equal(boxes.scene.phase, 'card', 'the card waits');
   assert.ok(box.parts.mats.body.uniforms.uDissolve.value.x === 0 && box.parts.opened.visible && !box.parts.shell.visible, 'it has opened where it stands, nothing come apart');
-  assert.ok(boxes.scene.shaft.visible && boxes.scene.shaft.scale.y > 1, 'light pours up out of it');
+  assert.ok(boxes.scene.light.visible && boxes.scene.lightK > 0.4, 'light pours up out of it');
   assert.ok(pl.offer?.k > 0.99, 'he holds his hand out');
   assert.ok(boxes.scene.model.visible && boxes.scene.model.position.distanceTo(boxes.scene.handAt()) < 0.1, 'the item floats over his open hand');
   assert.ok(boxes.scene.model.position.y - pl.pos.y > 0.9 && boxes.scene.model.position.y - pl.pos.y < 1.5, 'at about his waist, a little over the palm');

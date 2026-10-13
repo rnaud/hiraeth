@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { buildItemModel, buildSparkles, buildMotes, buildShaft, fluidMaterials, tickItem, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
+import { buildItemModel, buildSparkles, fluidMaterials, tickItem, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
+import { ChestLight, chestLightK, chestLamp, MOUTHS } from './light.js';
 import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 
 // Opening a box. The makers' chests are big: they wake, unlatch, rock a few times on the
@@ -18,8 +19,10 @@ import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 //             two or three, each a ray of light across it and a knock), then a last still moment
 //   dissolve  (the name kept: it no longer comes apart) it opens where it stands (OPENING): the halves over
 //             its band part on their hinges like petals (the temple's bud falls open like a flower, its jade
-//             heart rising), light pours up out of it (the shaft's blades and the motes) and the item grows out
-//             of the light inside it, rising clear of its rim; a soft swell, no creak
+//             heart rising), real light pours up out of it (light.js: a soft banded column of jade and gold
+//             rays, the chest full of light, motes drifting up, its lamp lighting his face; issue #285: it was
+//             thin glowing blades and jade specks) and the item grows out of the light inside it, rising clear
+//             of its rim; a soft swell, no creak
 //   reveal    the item comes down to float just over his open right hand (he holds it out, palm up:
 //             Player.offer), turning, with a little sparkle; fanfare. The chest stays open beside him
 //   card      what it is, what it does: E, click or tap to go on
@@ -90,7 +93,9 @@ export function boxPlan(id = '') {
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const easeOut = (t) => 1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3);
 const _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _c = new THREE.Vector3(), _p = new THREE.Vector3(), _lk = new THREE.Vector3();
-const _Y = new THREE.Vector3(0, 1, 0);
+const _Y = new THREE.Vector3(0, 1, 0), _m = new THREE.Vector3();
+/** How far over 1 the chest's glow goes at its light's full (uBoxA.y: the linings glow with the light out of it). */
+export const LINING_GLOW = 0.75;
 
 export class BoxScene {
   /**
@@ -136,11 +141,12 @@ export class BoxScene {
     this.fill = this.dry ? 0 : 1;   // (the backpack out of its first chest: its glass dry, as it will be on his back)
     this.sparkles = buildSparkles();
     this.sparkles.visible = false;
-    this.motes = buildMotes();
-    this.motes.visible = false;
-    this.shaft = buildShaft();
-    this.shaft.visible = false;
-    b.scene?.add(this.model, this.sparkles, this.motes, this.shaft);
+    b.scene?.add(this.model, this.sparkles);
+    // the light out of it (light.js): washes over the finished picture; drawn at nothing while it wakes, so the washes'
+    // program is ready before it opens
+    this.light = new ChestLight({ veils: this.veils ?? null, parent: b.scene ?? new THREE.Group(), kind: b.parts?.kind });
+    this.light.warm = true;
+    this.lightK = 0;
     this.cam?.hud?.(false);
     this.cam?.bars?.(true);
     this.card?.scene(true);
@@ -199,7 +205,7 @@ export class BoxScene {
       const A = this.box.parts?.mats?.body?.uniforms?.uBoxA?.value;
       this.rayBase = A ? Math.ceil(A.w) + 1 : 0;
     }
-    if (phase === 'dissolve') { s?.boxOpen?.(); this.model.visible = true; this.sparkles.visible = true; this.motes.visible = true; this.shaft.visible = true; }
+    if (phase === 'dissolve') { s?.boxOpen?.(); this.model.visible = true; this.sparkles.visible = true; }
     if (phase === 'reveal') { s?.fanfare?.(); this.fanfared = true; this.revealFrom = this.model.position.clone(); }
     if (phase === 'card') { this.card?.show(this.def, { found: this.box?.place?.found ?? null }); this.cardT = 0; }
     if (phase === 'beat') {
@@ -213,6 +219,7 @@ export class BoxScene {
       this.pointTurn = this.beat === 'point' ? this.pointAngle() : 0;
     }
     if (phase === 'out') {
+      this.lightFrom = this.lightK ?? 0;   // (the light dims from wherever the card or the beat left it)
       this.beatDone = prev === 'beat';   // (played, or skipped part-way: the lens is on the closing shot)
       this.card?.hide();
       // after a beat: its closing shot faces him (or he has turned), and a blend back would swing the lens
@@ -238,7 +245,6 @@ export class BoxScene {
     this.model.visible = true; this.sparkles.visible = true;
     this.lift = 1;
     this.box.parts?.setOpen?.(1);
-    this.shaft.visible = true;
     this.model.position.copy(this.handAt());
     this.enter('card');
     this.cardT = CARD_MIN;   // (a skip already pressed: the next press dismisses)
@@ -329,8 +335,7 @@ export class BoxScene {
       const u = t / T.dissolve;
       parts.setOpen?.(Math.min(1, u / OPENING.open));
     }
-    this.moteFrame(time, T);
-    this.shaftFrame(time, T);
+    this.lightFrame(time, T);
     // ---- light: the marks brighten, then it pours out as it comes apart
     const pour = this.phase === 'wake' ? 0.3 * smooth(t / T.wake) : this.phase === 'rise' ? 0.3 + 0.2 * smooth(t / T.rise)
       : this.phase === 'wobble' ? 0.5 + 0.25 * Math.abs(lean) / 0.29 : this.phase === 'dissolve' ? 0.5 + 0.5 * easeOut(t / 0.6)
@@ -346,7 +351,12 @@ export class BoxScene {
         A.x = 1;
       } else if (!after('wobble')) { A.w += dt / (this.phase === 'approach' ? 2 : 0.9); A.x = 0.8 + 0.2 * pour; }
       A.y = this.phase === 'wobble' ? 0.75 + 0.25 * Math.abs(lean) / 0.29 : 0.6 + 0.4 * pour;
+      // (over 1 while its light is out: the linings, the lid's underside and the inside of it, glow with it)
+      if (this.lightK > 0) A.y = Math.max(A.y, 1 + LINING_GLOW * this.lightK);
     }
+    // ---- its lamp: the local light that lights his face and the ground round it (main.js updateLights), swelling with
+    // its light; before it opens a little, as light leaks at its seam
+    if (B.light) chestLamp(B.light, this.mouth(_m), Math.min(1, pour), this.lightK);
     // ---- the item: grows out of the light inside the chest, rises clear of its rim, then comes to his open hand
     if (this.model.visible) {
       if (this.phase === 'dissolve') {
@@ -453,26 +463,20 @@ export class BoxScene {
     cam.shot({ pos, look, fov });
   }
 
+  /** The open chest's mouth (world): its middle at the height its halves part (the band; the temple chest's foot). */
+  mouth(out = new THREE.Vector3()) { return this.P(0, this.H * BOX_SCALE * MOUTHS[this.box.parts?.kind === 'temple' ? 'temple' : 'makers'].y, 0, out); }
+
   /**
-   * The jade motes rising out of the chest as it opens (the sheets' column of light): from inside it, up past the
-   * item, streaming while it parts and comes apart, thinning through the reveal and gone by the card's end.
+   * The light out of it (light.js, issue #285): none until it opens, swelling as its halves part, settling as the item
+   * rises, held through the card, dimming in the beat, gone as the scene hands back (chestLightK).
    */
-  moteFrame(time, T) {
-    const mo = this.motes;
-    if (!mo?.visible) return;
-    const ph = this.phase, t = this.t;
-    const k = ph === 'dissolve' ? smooth(t / (T.dissolve * OPENING.open * 0.8)) : ph === 'reveal' ? 1 - 0.5 * smooth(t / T.reveal) : ph === 'card' ? 0.5 * (1 - smooth(t / 1.2)) : 0;
-    if (k <= 0) { if (ph !== 'dissolve') mo.visible = false; return; }
-    // (from where its halves part: the band's height on the makers' chest, the foot's top on the temple's)
-    const rise = this.box.parts?.kind === 'temple' ? 0.12 : 0.46;
-    mo.position.copy(this.P(0, this.H * BOX_SCALE * rise, 0));
-    for (const c of mo.children) {
-      const u = c.userData, life = (time * u.sp * 0.42 + u.ph) % 1;
-      const r = u.r * (1 + 0.6 * life);
-      c.position.set(Math.cos(u.a + life * 1.4) * r, life * 1.9, Math.sin(u.a + life * 1.4) * r);
-      const s = Math.max(1e-3, Math.sin(Math.PI * life) * k);
-      c.scale.set(s, s * 3.2, s);
-    }
+  lightFrame(time, T) {
+    const L = this.light;
+    if (!L) return;
+    const k = (this.lightK = chestLightK(this.phase, this.t, T, { open: OPENING.open, from: this.lightFrom ?? 0, outTime: this.outTime ?? OUT_TIME }));
+    if (this.phase !== 'approach') L.warm = false;
+    L.update({ mouth: this.mouth(_m), yaw: this.box.yaw, k, time, eye: this.camPos.lengthSq() > 0 ? this.camPos : null, scale: BOX_SCALE });
+    if (L.warm) L.visible = true;   // (drawn at nothing for the first moments: its program compiled before it is needed)
   }
 
   /** Just clear of the open chest's rim, over its middle: where the item has risen to as it opens. */
@@ -505,22 +509,6 @@ export class BoxScene {
     this.offerK = k;
     if (k <= 0.001) { if (P.offer) P.offer = null; return; }
     P.offer = { k, at: this.handTarget(P.offer?.at ?? new THREE.Vector3()) };
-  }
-
-  /** The light pouring up out of the opening chest: grows as its halves part, steady over the reveal and the card, fading after. */
-  shaftFrame(time, T) {
-    const sh = this.shaft;
-    if (!sh?.visible) return;
-    const ph = this.phase, t = this.t;
-    const k = ph === 'dissolve' ? smooth(t / (T.dissolve * OPENING.open)) : ph === 'reveal' || ph === 'card' ? 1 : ph === 'beat' ? 1 - 0.6 * smooth(t / (T.beat || 1)) : ph === 'out' ? 0.4 * (1 - smooth(t / 0.6)) : 0;
-    if (k <= 0.001 && ph !== 'dissolve') { sh.visible = false; return; }
-    const rise = this.box.parts?.kind === 'temple' ? 0.12 : 0.42;
-    sh.position.copy(this.P(0, this.H * BOX_SCALE * rise, 0));
-    const w = BOX_SCALE * 0.9 * (0.4 + 0.6 * k);
-    sh.scale.set(w, Math.max(1e-3, 1.4 * k), w);
-    sh.rotation.y = this.box.yaw + time * 0.25;
-    // (each blade breathes a little, out of step with the others)
-    sh.children.forEach((c, i) => { if (c.userData.len) c.scale.y = c.userData.len * (0.85 + 0.15 * Math.sin(time * 2.3 + i * 1.7)); });
   }
 
   /** Seconds since a phase began (counting the phases after it), for the camera pushes. */
@@ -636,8 +624,9 @@ export class BoxScene {
   end() {
     if (this.done) return;
     this.done = true;
-    this.model?.removeFromParent(); this.sparkles?.removeFromParent(); this.motes?.removeFromParent(); this.shaft?.removeFromParent();
-    if (this.box) this.box.sceneLight = 0;
+    this.model?.removeFromParent(); this.sparkles?.removeFromParent();
+    this.light?.dispose(); this.light = null; this.lightK = 0;   // (its washes out of the pass)
+    if (this.box) { this.box.sceneLight = 0; this.box.light?.set(0, -1e5, 0, 0); }
     if (this.player?.offer) this.player.offer = null;
     // (nothing comes apart: it stays where it stood, open, and index.js leaves it so: setSpentLook)
     if (this.cam?.release && this.phase !== 'out') this.cam.release(0.8);

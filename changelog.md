@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.67 — 2026-10-13
 
+- Chests open with real light now instead of little glassy shapes: a soft column of jade and gold rays pours up out of the chest as its halves part, the inside of it and the undersides of its halves glow, a few motes drift up in the beam, and the light falls on the traveller and the ground round him. It swells as the chest opens and settles as the item rises.
 - The fluid wings and the fluid gun’s glove come out of their chests as they did before 1.66: the wings as three leaves of colour on a brass rod, the glove brown with its cream cuff. Only the Givers’ blade and guard rise as the ones you use.
 - The Givers’ guard is redrawn after its design sheet. It is strapped round your left forearm now, a brass flower on a leather bracer, and raising it brings the arm across your chest like a real shield. Open, its six brass petals spread inside a riveted ring and the fluid floods out round them as a disc of the same living green water as your sword, swirling round the hub, with its pale lemon rim. Seen from behind you it stays see-through, so you still see what you are guarding against. The guard that rises out of its chest is the same.
 - On the cinematics review page, the sky stones’ bell and the Deep Wood’s pools play their own scenes again instead of an empty stretch of sand.

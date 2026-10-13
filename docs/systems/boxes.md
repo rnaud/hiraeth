@@ -64,8 +64,8 @@ hand). Also the sound of the chest opening is wrong, sounds like creaking"), the
   at its seam. The wobbles rock it on its foot where it stands, `ROCK` (0.4) of their swing, pivoting on the edge that
   stays down, so it never sinks into the ground or lifts off it (the knocks and the ray as before).
 - **It opens where it stands** (the `dissolve` phase, its name kept: nothing comes apart): the halves part on their
-  hinges, and light pours up out of it: blades of pale jade light fanning up from inside (`buildShaft`, one glowing
-  material, growing as it opens and breathing), the motes between them, the chest's own light inside it. The item
+  hinges, and light pours up out of it (until issue #285 thin blades of pale jade light, `buildShaft`, with jade specks
+  between them, `buildMotes`: now real light, below), the chest's own light inside it. The item
   grows out of the light inside and rises clear of the rim. The sound is `Sound.boxOpen`: a soft hollow thump of the
   halves and a swell, an open chord rising in under a few soft high notes (the bright noise burst `boxBurst` made is gone).
 - **In his hand.** Over the reveal the item comes to him in a small arc and floats `HAND.above` (0.2 m) over his open
@@ -79,6 +79,44 @@ hand). Also the sound of the chest opening is wrong, sounds like creaking"), the
   still goes. Its timing: `TIMES` wake 0.7, rise 0.6 (it was 1.0 to float up), the rest as before.
 `tests/boxes.test.js` (on the ground all through, opened where it stands, the shaft, his hand held out and the item over
 it, left open), `tests/hands.test.js` (the open hand).
+
+### The light out of it (`light.js`; issue #285)
+
+The author: "Right now you have little 3d shapes coming out of it, let's have real light coming out of it." The
+reference (`references/Core Objects/Chests/light/light-1.jpg`, the reference lab, OpenAI, picked for the game's own
+chest and the clearest structure of light: a pale gold core widening into a few flat jade bands with straight rays,
+the lining glowing, a pool on the floor and light on the traveller's front; `light-day.jpg` the daylight companion;
+prompts in `docs/design/chest-prompts.md#light`). `ChestLight`, made by the scene at its start and disposed at its end:
+
+- **Washes, not meshes.** Everything is drawn the way every shaft of light is (rendering.md "Shafts of light"):
+  washes laid over the finished picture after the ink pass (`level.veils`; createBoxes makes one for a level without),
+  depth-tested by hand against the G-buffer, on layer 31, so no ink round it, no shadow, nothing to bump into, and
+  **no new program**: four washes of the one wash program, laid **additively** (blending is the draw's state):
+  - the column: two cones from the chest's mouth (`MOUTHS`: the band's height on the makers' chest, the foot's top on
+    the temple's) up to `CHEST_LIGHT.height` (3.8 m), a wide pale jade one and a narrower pale gold core, taller and
+    wider as it swells. The wash's **rays** (`uRays`, src/veil.js; 0 for every other wash): soft where a cone is seen
+    edge-on (|n·v|), gone at its far end (uv.y), streaked into slow rays round it (uv.x, `rays.count` 7, turning on
+    its clock), then stepped into three flat bands, as the pictures draw light;
+  - the mouth: a flat ellipse of gold light just under the rim, the open chest full of light (the bowl's front hides
+    it from low; the item rises out of it);
+  - the motes: 22 small flat discs turned to the eye, drifting up and out through the beam, growing in and out.
+- **It follows the lid** (`chestLightK`): none before it opens; swelling as the halves part (`OPENING.open` of the
+  dissolve phase), full as they finish; settling to `SETTLE` (0.5) as the item rises and through the reveal and the
+  card; dimming in the closing beat; gone as the scene hands back. The washes are drawn at nothing in the approach so
+  their program is ready before it opens.
+- **Its lamp** (`chestLamp`, the box's own local light in the shared list, main.js updateLights): `LAMP.base` + a
+  little more while light leaks at its seam (the wake, the unlatching, the wobbles) + `LAMP.reach` (6 m) with its
+  light, raised `LAMP.lift` over the mouth, so his face, his hands and the ground round the chest are in it. The scene
+  writes it (index.js leaves it to the scene while it plays); out at its end.
+- **The linings glow with it**: `uBoxA.y` goes over 1 while the light is out (`1 + LINING_GLOW · k`), and the
+  `MAKERS_BOX` block reads what is over 1 as light on its glows (the linings, the undersides of the halves, the inside
+  of the bowl; the temple's petals), the marks still capped at 1.
+- **Cost**: four wash draws while a chest opens (the 11 blades and 18 specks were 29 G-buffer meshes), a few ALU a
+  pixel over the column; nothing when no chest opens. The same on every preset (Handheld checked).
+- The item's reveal (its sparkles, its arc to his hand, the sword and the guard as they come out) is as it was.
+- `tests/chest-light.test.js`: the curve, the lamp, the washes (one program, additive, not in the G-buffer, out of the
+  pass when disposed), and in a makers' and a temple opening: no light before it opens, light and lid rising
+  together, its lamp with it, full as the halves open, the linings over 1, settled on the card, all gone after.
 
 The camera takes one of four plans per box (`BOX_PLANS`, `boxPlan(id)`: a stable hash of the box's id;
 the desert's first box always the first): **shoulder**, low over his right shoulder, then beside him;

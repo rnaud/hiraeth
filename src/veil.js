@@ -35,7 +35,9 @@ const vertexShader = /* glsl */ `
   out vec3 vWorld;
   out vec3 vN;
   out float vDepth;
+  out vec2 vUv;
   void main() {
+    vUv = uv;
     vec4 w = modelMatrix * vec4(position, 1.0);
     vWorld = w.xyz;
     vN = normalize(mat3(modelMatrix) * normal);
@@ -54,9 +56,11 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uLightTint, uShadowTint, uSunDir, uSkyHorizon;
   uniform float uNight, uFogDensity, uFogStart, uFogMul;
   uniform vec4 uHaze, uHazeLayers, uHazeTone, uHeightFog, uHeightFogTone;
+  uniform vec4 uRays;   // a chest's light (src/boxes/light.js): x its rays' strength (0: a plain wash), y their clock, z how many round, w its soft edge
   in vec3 vWorld;
   in vec3 vN;
   in float vDepth;
+  in vec2 vUv;
   out vec4 outColor;
   void main() {
     // by hand against the scene's depth: under something nearer, or on its own rim (drawn in the G-buffer), nothing
@@ -85,7 +89,18 @@ const fragmentShader = /* glsl */ `
       float k = abs(x) > 1e-3 ? (1.0 - exp(-x)) / x : 1.0;
       col = mix(col, mix(hazeC, uHeightFogTone.rgb, uHeightFogTone.a * (1.0 - 0.7 * uNight)), (1.0 - exp(-uHeightFog.z * d * base * k)) * uHeightFog.w);
     }
-    outColor = vec4(col, uWash.x * (uWash.z > 0.0 ? smoothstep(uWash.z, uWash.z * 2.0, vDepth) : 1.0));
+    float a = uWash.x * (uWash.z > 0.0 ? smoothstep(uWash.z, uWash.z * 2.0, vDepth) : 1.0);
+    if (uRays.x > 0.0) {
+      // light out of a chest (a cone, uv.y 0 at its mouth): soft where the cone is seen edge-on, gone at its far end,
+      // streaked into slow rays round it; then stepped into flat bands, as the pictures draw light
+      float face = smoothstep(0.0, uRays.w, abs(dot(n, normalize(cameraPosition - vWorld))));
+      float fade = 1.0 - smoothstep(0.08, 1.0, vUv.y);
+      float u = vUv.x * 6.2832, c = uRays.y;
+      float rays = 0.5 + 0.5 * sin(u * uRays.z + 1.3 * sin(u * 2.0 + c * 0.7) + c * 0.35) * sin(u * (0.5 * uRays.z + 1.0) - c * 0.25 + 2.1);
+      float k = face * fade * mix(1.0, 0.15 + 1.1 * rays, uRays.x);
+      a *= floor(clamp(k, 0.0, 1.0) * 3.0 + 0.5) / 3.0;
+    }
+    outColor = vec4(col, a);
   }
 `;
 
@@ -103,7 +118,7 @@ export class Veils {
   add(mesh, { color, glow = 0, alpha = glow > 0 ? VEIL.glowAlpha : VEIL.alpha, near = 0, side = THREE.DoubleSide } = {}) {
     const mat = new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3, vertexShader, fragmentShader,
-      uniforms: { ...this.uniforms, uColor: { value: new THREE.Color(color) }, uWash: { value: new THREE.Vector3(alpha, glow, near) } },
+      uniforms: { ...this.uniforms, uColor: { value: new THREE.Color(color) }, uWash: { value: new THREE.Vector3(alpha, glow, near) }, uRays: { value: new THREE.Vector4(0, 0, 0, 0.5) } },
       transparent: true, depthTest: false, depthWrite: false, side,
     });
     const wash = new THREE.Mesh(mesh.geometry, mat);
@@ -115,6 +130,13 @@ export class Veils {
     this.scene.add(wash);
     this.list.push(wash);
     return wash;
+  }
+  /** A wash taken away again (a chest's light, gone with its scene): out of the pass, its material freed (the geometry is its mesh's). */
+  remove(wash) {
+    const i = this.list.indexOf(wash);
+    if (i >= 0) this.list.splice(i, 1);
+    wash.removeFromParent();
+    wash.material.dispose();
   }
   /** The G-buffer's normal + depth target and the ink pass's uniforms (the light, the shade, the haze: the same objects). */
   bind({ tNormal, uniforms }) {

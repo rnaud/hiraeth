@@ -766,10 +766,19 @@ const MAP272 = 'Issue #272: muted headless Chrome (Medium, 10:00, the Desert) ag
 const FRAG250 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5971), scripts/design-qc/capture.mjs, the camera pinned a few metres off the spot with a clear line to it; before: the same view with that fragment found (a save holding its flag), after: a new save; 13 October; cwebp -q 72';
 // (v1.67, issue #226: the cinematics QC's own frames, before and after its fixes)
 const CINE226 = 'Issue #226, the cinematics QC: scripts/cinematics-qc.mjs (muted headless Chrome, High, 960 × 540) against this branch before and after the fix, the same frame of the same cinematic; cwebp';
+// (v1.67, issue #285: a scratch shooter holding the opening's clock at fixed moments, against this branch's own Vite (port 5985) before and after)
+const CHEST285 = 'Issue #285: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5985), the cinematics review page’s chest opening with its clock held at the same moment before and after the change (the tree before it: 1d10c2aa); cwebp -q 72';
 // (v1.67, issue #284: a scratch shooter against this branch's own Vite (port 5981) and the tree before it (627462fc, port 5983))
 const SHIELD284 = 'Issue #284: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 5981) and the tree before it (627462fc, port 5983): the Arena, its foes taken away, the guard held (Ctrl) 1.6 s, drawn by the game’s own captureView from the same place round him; the chest opened in the Rose House (boxes.open) and drawn at its card; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.67': [
+    { match: 'Chests open with real light now', tags: ['cinematics'], shots: [
+      { name: 'chest-cave-full', title: 'Opening, in the cave', caption: 'The lift valve’s chest in the cave under the dunes as its halves finish parting: before, a spray of thin glassy blades and jade specks; after, a column of light, the inside of the chest full of it, motes drifting up.', from: CHEST285,
+        reference: { sheet: 'references/Core Objects/Chests/light/light-1.jpg', caption: 'The reference it was drawn to: the chest open, a banded column of gold and jade light, the traveller lit by it (the reference lab, 13 October)' } },
+      { name: 'chest-cave-card', title: 'The item over his hand', caption: 'As the card comes up: the light settled to flat bands of jade and gold rays behind the item, his face and the ground lit.', from: CHEST285 },
+      { name: 'chest-temple-full', title: 'A temple’s chest', caption: 'The sword’s bud in the Rose House: the light fans up out of its open petals, the petals glowing.', from: CHEST285 },
+      { name: 'chest-day-card', title: 'In daylight', caption: 'The star’s chest in the desert city, seen past it: the rays stand out in the sun and he is lit through them.', from: CHEST285 },
+    ], see: 'Open any chest: the star’s in the desert city, or the lift valve’s in the cave under the dunes.' },
     { match: 'The Givers’ guard is redrawn after its design sheet', tags: ['combat'], shots: [
       { name: 'shield-close-raised', title: 'Raised, up close', caption: 'From in front: before, a ring of bright line round a few swirling strokes and a brass wheel on its rod; after, six brass petals in a riveted ring and a disc of the sword’s green water swirling round them, its pale lemon rim.', from: SHIELD284,
         reference: { sheet: 'references/Core Objects/Fluid Shield/shield-turnaround/sheet-1.jpg', caption: 'The design sheet it was drawn to: the shield all round, its hub up close (the reference lab, 12 October)' } },

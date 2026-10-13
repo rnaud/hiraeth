@@ -32,7 +32,7 @@ export { starShape, chestKind } from './chest.js';
 //   buildItemModel(id) → a small Group (≈ 0.3 m) for the hovering display
 //                      built from the item in use (the held sword, the raised guard: issue #242)
 //   tickItem(model, fluidMaterials(model), { time, fill })   a frame of its life: its fluids' clocks, its moving parts
-//   buildSparkles()  → twinkling specks round the hovering item; buildMotes() → jade motes rising out of an opening chest
+//   buildSparkles()  → twinkling specks round the hovering item (the light out of an opening chest: light.js)
 //   buildBeacon(key) → a thin pale column of light over an unopened box (seen from afar)
 
 /** The makers' chest's size (unscaled, m): w across, h tall (lid: none, kept for the scene's arithmetic), d deep. */
@@ -124,42 +124,6 @@ export function buildSparkles(n = 14) {
   for (let i = 0; i < n; i++) {
     const m = new THREE.Mesh(geo, mat);
     m.userData = { a: (i / n) * Math.PI * 2, r: 0.2 + (i % 3) * 0.06, y: ((i * 37) % 11) / 11 - 0.5, sp: 0.6 + (i % 4) * 0.25, ph: i * 1.7 };
-    g.add(m);
-  }
-  noCollide(g);
-  return g;
-}
-
-/** Motes of jade light rising out of an opening chest (the sheets' column of light): long specks, scene.js lifts them. */
-export function buildMotes(n = 18) {
-  const g = new THREE.Group();
-  const mat = makeMaterial({ color: CHEST_COLORS.jadePale, flat: true, glow: 1 });
-  const geo = new THREE.OctahedronGeometry(0.02, 0);
-  for (let i = 0; i < n; i++) {
-    const m = new THREE.Mesh(geo, mat);
-    m.userData = { a: i * 2.39996, r: 0.04 + ((i * 7) % 5) * 0.045, ph: ((i * 37) % 17) / 17, sp: 0.7 + (i % 4) * 0.18 };
-    g.add(m);
-  }
-  noCollide(g);
-  return g;
-}
-
-/**
- * The light pouring up out of an opening chest (issue #223: "light should come out from within them"): a few thin blades
- * of pale jade light fanning up and out from inside, of different lengths (the motes rise between them). Its foot is at y = 0, it is
- * 1 tall at scale 1 (scene.js scales it up as the halves part); one glowing material, no shadow, nothing to bump into.
- */
-export function buildShaft(n = 11) {
-  const g = new THREE.Group();
-  g.name = 'Chest light';
-  const mat = makeMaterial({ color: CHEST_COLORS.jadePale, flat: true, glow: 1, side: THREE.DoubleSide });
-  const blade = new THREE.CylinderGeometry(0.004, 0.014, 1, 3, 1, true).translate(0, 0.5, 0);
-  for (let i = 0; i < n; i++) {
-    const a = i * 2.39996, lean = 0.12 + ((i * 5) % 7) / 7 * 0.32, len = 0.55 + ((i * 3) % 5) / 5 * 0.55;
-    const m = new THREE.Mesh(blade, mat);
-    m.rotation.set(Math.cos(a) * lean, 0, Math.sin(a) * lean);
-    m.scale.set(1, len, 1);
-    m.userData.len = len;
     g.add(m);
   }
   noCollide(g);

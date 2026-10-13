@@ -1862,7 +1862,7 @@ ${SHADOW_GLSL}
   // trail behind. Its other parts (the brass band, the jade lens, the temple bud's inlay) are its vertex colours;
   // a colour brighter than white is a light (the lens's jade, the bud's seams): see below.
   // Inked by its outline only (the soft-ink flag, post.js): no lines inside it, no hatching.
-  uniform vec4 uBoxA;    // x the ray's strength 0..1 · y the marks' glow 0..1 · z the star's reach (m; 0: none) · w the ray's clock (in passes)
+  uniform vec4 uBoxA;    // x the ray's strength 0..1 · y the marks' glow 0..1 (over 1: the light out of it, the linings lit) · z the star's reach (m; 0: none) · w the ray's clock (in passes)
   uniform vec4 uBoxB;    // the shell's half size (m, as drawn) xyz · w the height of its centre over its foot (m)
   uniform vec3 uBoxMark; // the star
   uniform vec3 uBoxLight;// the ray
@@ -2425,12 +2425,13 @@ ${SHADOW_GLSL}
       albedo *= mix(0.72, 1.1, smoothstep(-0.7, 0.85, vObjNormal.y / max(length(vObjNormal), 1e-4)));
       // a vertex colour brighter than white is a light (the jade lens, the bud's seams and heart, the lining): what is
       // over 1 its glow, woken with the star
-      float over = max(max(vInstColor.r, vInstColor.g), vInstColor.b) - 1.0;
-      if (over > 0.0) { albedo /= 1.0 + over; emit = max(emit, min(over, 1.0) * (0.4 + 0.6 * uBoxA.y)); }
+      // over 1 (an opening chest's light out of it: src/boxes/light.js) the glows (the linings) are lit by it too
+      float over = max(max(vInstColor.r, vInstColor.g), vInstColor.b) - 1.0, wake = min(uBoxA.y, 1.0), pour = max(uBoxA.y - 1.0, 0.0);
+      if (over > 0.0) { albedo /= 1.0 + over; emit = max(emit, min(over + pour, 1.0) * (0.4 + 0.6 * wake)); }
       albedo = mix(albedo, uBoxMark, mark);
       albedo = mix(albedo, uBoxLight, clamp(ray.x + 0.45 * ray.y + 0.25 * ray.z, 0.0, 1.0));
       // (the star and the ray are lights: they keep their colour in shade, and bloom)
-      emit = max(emit, mark * uBoxA.y);
+      emit = max(emit, mark * wake);
       emit = max(emit, max(ray.x * 0.97, max(ray.y * 0.75, ray.z * 0.4)));
     }
     #endif

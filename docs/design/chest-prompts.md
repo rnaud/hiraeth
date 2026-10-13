@@ -110,3 +110,21 @@ Object concept art for a science fiction exploration game: a rare makers' temple
 ```
 Object state reference sheet for a science fiction exploration game: a rare makers' temple chest, a rounded shell of white stone and pale jade glass segments like a closed bud with gold inlay of a four-point star, drawn four times side by side at the same scale on a plain cream background as it opens: closed and dim, a faint jade glow in its seams; waking, the seams bright, motes rising; the petals unfolding outward, a sphere of living jade-green fluid revealed glowing at its heart; fully open like a flower, the sphere floating free above it in a column of light. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, gold, jade green glow, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render text watermark lettering labels pirate-treasure-chest padlock
 ```
+
+### 11. The opening's light (`light`)
+
+2026-10-13, issue #285 (the author: "Right now you have little 3d shapes coming out of it, let's have real light
+coming out of it"). The makers' chest as it is in the game (`sheet/sheet-1.jpg`), caught as its halves part, light
+pouring up out of it: for the opening's shaft, its glow and the light on the traveller.
+
+**Main: in a dark stone room.**
+
+```
+Cinematic key frame for a science fiction exploration game: in a dim stone room, an ancient makers' chest on the floor has just opened, a hip-high rounded shell of pale cream ceramic like a smooth river stone with a thin brass band round its middle and a round glass lens of jade-green fluid in the band at the front; its upper shell has parted in two halves on side hinges like petals, their insides lined in pale jade and glowing. Real light pours straight up out of the opening: a soft-edged column of warm pale gold and jade light widening upward, a few long god rays fanning out of it, the light drawn as two or three flat bands of colour, brightest at the core; soft dust motes drifting in the beam. The light glows on the undersides of the open halves and inside the chest, and lights the face, hands and chest of a cloaked adult traveller with a round glass backpack of jade fluid who stands just in front of it looking down into it, a warm pool of light on the floor round the chest, long soft shadows behind him. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream ceramic, brass, jade green and pale gold light, cool blue-violet shadows, restrained cream paper grain, no lettering --ar 16:9 --no photorealism 3d-render text watermark lettering labels pirate-treasure-chest padlock lens-flare
+```
+
+**Variant: outdoors in daylight.**
+
+```
+Cinematic key frame for a science fiction exploration game: on pale desert sand in afternoon sun, an ancient makers' chest has just opened, a hip-high rounded shell of pale cream ceramic like a smooth river stone with a thin brass band round its middle and a round glass lens of jade-green fluid at its front; its upper shell has parted in two halves on side hinges like petals, lined inside in glowing pale jade. Real light rises out of the opening even in daylight: a soft column of pale gold and jade light widening upward with a few long rays, drawn as flat bands of colour, soft motes in it, the inside of the halves and the chest bright, a glow on the face and hands of a cloaked adult traveller with a round glass backpack of jade fluid who stands in front of it. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream ceramic, brass, sand ochre, jade green and pale gold light, restrained cream paper grain, no lettering --ar 16:9 --no photorealism 3d-render text watermark lettering labels pirate-treasure-chest padlock lens-flare
+```

@@ -4,6 +4,7 @@ import { items, ITEMS } from '../items.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { buildBox, buildBeacon, chestKind, BOX, BOX_SCALE, RAY_PASS } from './model.js';
 import { BoxScene } from './scene.js';
+import { Veils } from '../veil.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 import { partsOf, shiftAt } from '../levels/names.js';
@@ -168,6 +169,9 @@ export function placementsFor(levelId, { level, has = (id) => items.has(id), tab
 export function createBoxes({ levelId, scene, physics, level, player, sound = null, quests = null, toast = () => {}, cam = null, anchor = null, game: g = sharedGame, table = PLACEMENTS, quiet = () => false }) {
   const lights = level.lights ?? (level.lights = []);
   const noShadow = level.noShadow ?? (level.noShadow = []);
+  // (the light out of an opening chest is washes over the finished picture: src/boxes/light.js; a level without any
+  // gets its Veils here, before main.js binds them)
+  level.veils ??= new Veils();
   // beacons hang off one always-visible group (noShadow re-shows its members after the shadow passes)
   const fx = new THREE.Group();
   fx.name = 'Box beacons';
@@ -328,7 +332,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       const pointAt = () => list.filter((x) => x !== b && !spent(x)).sort((x, y) => flat(x.pos, b.pos) - flat(y.pos, b.pos))[0]?.pos ?? null;
       // (`dry`: the backpack comes out of the desert's chest empty, until the giant's pool fills it: shown so, issue #58)
       const dry = typeof b.place?.dry === 'function' ? !!b.place.dry(g) : !!b.place?.dry;
-      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground, physics, pointAt, dry,
+      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground, physics, pointAt, dry, veils: level.veils,
         onGrant: grant,
         onEnd: () => { current = null; finish(); } });
       current.start();
@@ -368,9 +372,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         if (!P.root.visible) continue;
         const d = pp ? flat(pp, b.pos) + Math.max(0, Math.abs(pp.y - b.pos.y) - 2) : Infinity;
         if (playing) {
-          // the scene moves the box and winds its ray; the box pours light
-          const k = b.sceneLight;
-          b.light.set(b.pos.x, P.root.position.y + 0.5 * BOX_SCALE, b.pos.z, 3 + 8 * k);   // (the scene moves and turns the box)
+          // the scene moves the box, winds its ray and sets its lamp (scene.js lightFrame: the light out of it)
           if (b.beacon) b.beacon.visible = false;
           continue;
         }

@@ -1138,6 +1138,11 @@ world metres each frame it moves (a ring's plane across the shaft, or the pool's
 alpha, `visible` hides it. A level without washes gets one from the first that needs it (`rt.veils`; the Buried
 Machine's story at its setup, before main binds them; a wash added after the bind takes the ink pass's light then).
 
+A chest's light as it opens (`src/boxes/light.js`, boxes.md "The light out of it", issue #285) uses the same washes
+with their **rays** on (`uRays`, x > 0: soft where the cone is seen edge-on, fading to its far end, streaked into rays
+round it and stepped into three flat bands), laid additively; every other wash has x = 0 and draws as before.
+`Veils.remove(wash)` takes one out of the pass again (the chest's, at the end of its scene).
+
 The shafts: the skull cave's cracks (`src/desert-city.js`, static cones of its own), the Builders' Greenhouse's nine
 louvres (`Sunbeam` in `src/temples/pieces.js`: louvre to pool, swinging with it, fading with the slats; nine thin
 glowing bars before), the Lamp-House's beam over the wood once its lamp burns (`src/temples/perdide2.js` `change`: a
