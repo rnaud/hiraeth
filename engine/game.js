@@ -63,7 +63,7 @@ import { items as gear, ITEMS } from '../src/items.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
-import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud } from '../src/hud.js';
+import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud } from '../src/hud.js';
 import { toastSeconds } from '../src/quest.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { plainValue } from './ink-spec.js';
@@ -432,6 +432,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
     if (toasts.left < -6) screen.set('toast', null);
     screen.set('health', healthHud({ health: player.health ?? 1, down: player.down, quiet: !!pinned }, hpFade, dt));
+    // the key counter while in a temple (issue #274: as main.js updateKeys; BridgeHud.cs draws it)
+    const keyT = (level.temples ?? (level.temple ? [level.temple] : [])).find((t) => t.keyCount && Object.values(t.def?.logic?.elements ?? {}).some((e) => e.type === 'key') && t.inside(player.pos));
+    const keyN = keyT?.keyCount();
+    screen.set('keys', keysHud({ inside: !!keyT, small: keyN?.small ?? 0, big: keyN?.big ?? false, quiet: !!pinned || busy }));
     const k = Math.min(Math.max(player.stamina ?? 1, 0), 1);
     stShown = k < 0.995 || player.winded ? 0.9 : Math.max(0, stShown - dt);
     const st = staminaHud({ stamina: k, winded: player.winded, quiet: quiet || !!player.ride || !!player.down }, stShown);

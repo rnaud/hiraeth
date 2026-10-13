@@ -126,6 +126,7 @@ in an engine:
   moves when a part changes: `cue` (hud.js `Cue`), `toast` (ship/cinema.js as one goes up),
   `prompt` (story/index.js `placePrompt`: the text, the key, where it floats in the world),
   `health` and `stamina` (hud.js `healthHud` / `staminaHud`, the rules main.js draws by, now shared),
+  `keys` (hud.js `keysHud`: the key counter while in a temple, `{ small, big }`; issue #274),
   `dialogue` (story/dialogue.js `publish`: name, title, colour, the line, how much is revealed,
   the answers), `choice` (the answer a pad has picked, in an engine).
 

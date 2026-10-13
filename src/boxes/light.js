@@ -109,18 +109,19 @@ export class ChestLight {
 
   /** Per frame: its mouth (world, the open chest's middle at the height its halves part), the chest's yaw, its strength
    *  0..1 (chestLightK), the clock (s) and the eye (the camera's position: the motes turn to it). */
-  update({ mouth, yaw = 0, k = 0, time = 0, eye = null, scale = 1 }) {
+  update({ mouth, yaw = 0, k = 0, time = 0, eye = null, scale = 1, reach = 1 }) {
     const C = CHEST_LIGHT, Mo = MOUTHS[this.kind];
     this.k = k;
     this.group.visible = k > 0.002;
     if (!this.group.visible) return this;
     const rx = Mo.x * scale, rz = Mo.z * scale, r0 = Math.max(rx, rz) * 0.92;
     // the column: taller and wider as it swells (it rises out of the chest, it doesn't switch on)
-    const grow = 0.35 + 0.65 * k, h = C.height * grow;
+    // (reach: the column's height and top as a share of a chest's: a temple's little key chest, src/temples/pieces.js Key)
+    const grow = 0.35 + 0.65 * k, h = C.height * reach * grow, top = C.top * reach;
     _top.set(mouth.x, mouth.y + h, mouth.z);
-    this.outer.set(_top, r0 + (C.top - r0) * grow, mouth, r0);
+    this.outer.set(_top, r0 + (top - r0) * grow, mouth, r0);
     _top.set(mouth.x, mouth.y + h * C.innerHeight, mouth.z);
-    this.inner.set(_top, (r0 + (C.top * 0.55 - r0) * grow) * C.innerK + r0 * 0.25, mouth, r0 * C.innerK);
+    this.inner.set(_top, (r0 + (top * 0.55 - r0) * grow) * C.innerK + r0 * 0.25, mouth, r0 * C.innerK);
     this.outer.fade(k); this.inner.fade(Math.min(1, k * 1.15));
     for (const w of [...this.outer.washes, ...this.inner.washes]) w.material.uniforms.uRays.value.y = time * C.rays.speed;
     // the mouth, a little under the rim (the bowl's front hides it from low; from above the chest is full of light)

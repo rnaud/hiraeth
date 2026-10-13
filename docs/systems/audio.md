@@ -31,6 +31,14 @@ Garden's sphere song alone (`spheresSong`, the pole's tune, the score's moment).
 already; it is quiet while a conversation or a menu is up (`fragments.update(dt, t, { quiet: busy() })`).
 Test: `tests/sound-mix.test.js`.
 
+**A temple's keys** (issue #274: "When I get a key in a temple there should be a sound effect"): `Sound.keyGet(big)`, a
+short bright chime as the key rises out of its little chest, a quick run up the world's scale (`KEY_GET.notes`, scale
+degrees, one every 75 ms) on struck bells (`keyBell`: a sine and two bright overtones, no filter dulling them), the
+last note held with a shimmer over it; the great key's run lower and longer with a low bell under it. `Sound.keyTurn()`,
+a key going into a lock: a soft click and a dull tumbler (a clank before). Both on the effects bus.
+`tests/key-chests.test.js` renders them on the in-memory context (engine/webaudio.js): heard, bright, gone within
+two seconds, the click softer than the chime.
+
 That is what the Steam Deck played (issue #112): the Deck bench of early October (`scripts/bench/web-page.mjs`
 writes `music: 0, effects: 0, voices: 0`) ran in the player's own Electron profile before `deck-run.sh` gave it
 one of its own (10 October), and left those settings in the player's game: silent but for the singing light in

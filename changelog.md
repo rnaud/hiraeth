@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.68 — 2026-10-13
 
+- Inside a temple a key counter sits at the top left, as in Zelda: a brass key and how many small keys you hold, with the great key beside it once it is yours. It counts up as a key comes out of its chest and down as one turns in a lock, which now clicks softly instead of clanking. Outside the temples it is gone.
+- Temple keys now come in little chests, the same chest you find everywhere but smaller, on the floor where the key stood. Once its cage sinks, open it: the halves part with light pouring out, the key rises out of the light with a short bright chime, and it flies into your key counter.
 - The Aerie’s gulf has a way back: on the higher ledge, a doorway in the east wall drops into a passage that runs back along the gulf and climbs to the near side. Crossing without the great key no longer leaves you stranded, and the great lock tells you where the way back is.
 - Balls that started pressed against a wall now start a stride along their grooves, with room behind them to push from: five in the Engine-House, and one each in the Clock-House, the Greenhouse, the Mooring-House and the Casting-House, and the second orb of the Orb walk in Lorn’s Deep Wood.
 - More room round the stone balls you push in Vael’s Aerie: the Eyrie’s stone starts away from the wall and the gap’s edge, the high balcony over the Wind Well reaches a step further out with its stone further along, and the perch’s stone lies in from the rim. You can step behind each one without jumping over it or standing on the edge.

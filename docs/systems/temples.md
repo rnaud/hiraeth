@@ -437,9 +437,27 @@ rooms that shut behind you until their foes are beaten, optional rooms with a re
 temple can use:
 
 - **Keys** (`logic.js`, element `key { kind: 'small' | 'big', room, when? }`; piece `Key`): a key of the house's brass
-  turning over a plinth, in a cage of brass bars that sinks once its `when` holds (the step that earns it). Walk up to it
-  and it is yours (`logic.find`, flag `found.<id>`). A small key turns any small lock (Zelda's: `keys('small')` is the
-  keys found less those put in a lock); the great key the guardian's door.
+  in a little makers' chest (below), in a cage of brass bars that sinks once its `when` holds (the step that earns it).
+  Open the chest and it is yours (`logic.find`, flag `found.<id>`). A small key turns any small lock (Zelda's:
+  `keys('small')` is the keys found less those put in a lock); the great key the guardian's door.
+- **The key's little chest** (issue #274, the author: "When I get a key in a temple there should be a sound effect, it
+  should be in a little chest. And I should have a key counter on my screen. Like Zelda"; until then the key turned over
+  a stone plinth and was taken by walking up to it). The makers' chest, the same model and opening as every chest
+  (`buildBox(id, { scale })`, src/boxes/model.js), set down at `KEY_CHEST.small` (1.0; the great key's 1.3; a box's is
+  1.9) on the floor where the plinth stood, a low collider round it, its cage round it (`cageH`: the Engine-House's
+  great key's reaches up to the hammer that runs on it). Its interactable (`temple.<id>.<key>`, "open the chest", only
+  once the cage is down) opens it, and the key is yours at once (saved); the rest is a short scene of its own, not a
+  box's (`KEY_CHEST`, 2.4 s, the player free all through): the latch clicks (`Sound.boxLatch`), the halves part over
+  0.55 s with the chest's light (`ChestLight`, its column `KEY_CHEST.height` of a box's, `reach`), its lamp and its
+  linings lit, the key rises out of the light turning (at `KEY_CHEST.key` of the plinth key's size) and rings
+  (`Sound.keyGet`), hangs, and flies up into the counter at 1.9 s (`flying` until then, so the counter counts it as it
+  arrives; the notice says what it is). Left open and quiet, on a load too. Its floor: flat out past its cage, with
+  room to stand before it (`tests/key-chests.test.js`, every key of every temple; the Seed Vault's great key moved up
+  onto the ledge's trim it stood 0.2 m into).
+- **The key counter** (`rt.keyCount()`: the small keys in hand and the great key, a key still flying not yet in;
+  `src/hud.js keysHud`, index.html `#keys`, main.js `updateKeys`): shown while you are inside a house that keeps keys,
+  at none too, under the hearts when they show (docs/systems/ui.md). A key going into a lock clicks softly
+  (`Sound.keyTurn`, where a clank was), and the lock letting go chimes.
 - **Locks**: a `door` with `lock: 'small' | 'big'` (and `keys: n`, n keyholes) opens only once its keyholes are filled
   and its `opens` (if any) holds. The `Door` wears a brass lock plate, a keyhole lit for each key in; walk up to it with
   a key and the key goes in (no button), one a keyhole (flag `unlocked.<id>`, the count). Without one it says what it

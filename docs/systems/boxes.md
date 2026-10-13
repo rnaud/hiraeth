@@ -196,6 +196,13 @@ colour on a brass rod: `wingsModel`), the fluid gun's glove (brown with a cream 
 own) and the Warden's bellows (worn, only the backpack's third-stage valve shows: there is nothing on him to match);
 the gadgets already build their reveal from the model they hold (`bombBody`, `fanModel`, `lensModel`…).
 
+## The temples' little key chests (issue #274)
+
+Every temple key is in a smaller makers' chest (src/temples/pieces.js `Key`; docs/systems/temples.md, "The key's
+little chest"): `buildBox(id, { scale })` sizes the shader's marks for the scale it is set down at (1.0, the great
+key's 1.3), and its short opening reuses `ChestLight` with `reach` (the column's height and top as a share of a box's)
+and `chestLamp`. Not a box: no scene, no card, no camera; the player keeps moving.
+
 ## Where a chest stands (the rule)
 
 A makers' chest is a gift left on purpose (docs/story-bible.md, "The boxes"), so it stands **somewhere that feels

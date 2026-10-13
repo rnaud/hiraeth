@@ -187,3 +187,19 @@ export function findSummary({ goal = '', step = '' } = {}) {
   void goal;
   return `◆ ${step}`;
 }
+
+/**
+ * The key counter (issue #274, the author: "I should have a key counter on my screen. Like Zelda"): inside a temple
+ * that keeps keys, a small brass key and "×N" (the small keys in hand: src/temples/runtime.js keyCount), and the great
+ * key beside it once it is yours and not yet in its lock. Shown all the while you are in the house, at none too (as
+ * Zelda's), never outside, nor over a conversation, a scene or photo mode. platform.js screen.keys carries it
+ * ({ small, big }: an engine draws it), null when hidden.
+ */
+export function keysHud({ inside = false, small = 0, big = false, quiet = false } = {}) {
+  if (!inside || quiet) return null;
+  return { small: Math.max(0, small | 0), big: !!big };
+}
+
+/** The counter's two keys (index.html #keys), inked as the hearts are: brass, an ink outline, a cream glint. */
+export const KEY_SVG = '<svg viewBox="0 0 14 22" aria-hidden="true"><path d="M5.8 9.2V20.6H8.2V19.9H10.4V18.2H8.2V16.9H11.2V15H8.2V9.2Z" fill="#d6a94a" stroke="#2b211f" stroke-width="1.4" stroke-linejoin="round"/><circle cx="7" cy="5.6" r="4.3" fill="#d6a94a" stroke="#2b211f" stroke-width="1.5"/><circle cx="7" cy="5.6" r="1.55" fill="#2b211f"/><path d="M4.3 4.4c0.4-1 1.2-1.7 2.2-1.9" fill="none" stroke="#fff4dc" stroke-width="1" stroke-linecap="round"/></svg>';
+export const GREAT_KEY_SVG = '<svg viewBox="0 0 16 26" aria-hidden="true"><path d="M6.6 11.4V24.6H9.4V23.6H12.6V21.4H9.4V19.9H13.4V17.6H9.4V15.9H11.8V14H9.4V11.4Z" fill="#c9903a" stroke="#2b211f" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="6.6" r="5.4" fill="#c9903a" stroke="#2b211f" stroke-width="1.5"/><circle cx="8" cy="6.6" r="2.6" fill="#3fae9a" stroke="#2b211f" stroke-width="1.2"/><path d="M4.6 5c0.5-1.3 1.5-2.1 2.8-2.4" fill="none" stroke="#fff4dc" stroke-width="1" stroke-linecap="round"/></svg>';

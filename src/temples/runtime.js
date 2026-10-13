@@ -131,6 +131,15 @@ export class TempleRuntime {
   rumble(dur = 1.5, vol = 0.4) { if (this.sound) rumble(this.sound, dur, vol); }
   fade(k, secs) { this.fadeFn?.(k, secs); }
 
+  /**
+   * The key counter's numbers (issue #274, src/hud.js keysHud): the small keys in hand (found less those in a lock), and
+   * the great key in hand or not. A key still rising out of its chest (pieces.js Key `flying`) counts once it is in.
+   */
+  keyCount() {
+    let small = this.logic.keys('small'), big = this.logic.keys('big');
+    for (const p of this.pieces) if (p.flying) { if (p.o?.big) big--; else small--; }
+    return { small: Math.max(0, small), big: big > 0 };
+  }
   inside(p) { return !!this.bounds && this.bounds.containsPoint(this.kit.local(p)); }
   /** Under the temple's floor, in its shadow over the world (fallen out of it). */
   below(p) {

@@ -18,7 +18,7 @@ import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT, FIND } from './scout.js';
 import { guardianHint, openHint, Struggle } from './temples/hints.js';
 import { hintsFor, quietOr } from './hint-level.js';
-import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick } from './hud.js';
+import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick, keysHud, KEY_SVG, GREAT_KEY_SVG } from './hud.js';
 import { resources, POTION } from './resources.js';
 import { PotionDrops } from './potion-drops.js';
 import { LowHealthCue } from './low-health.js';
@@ -544,6 +544,30 @@ function updateHealth(dt) {
   const wn = Math.round(walletShown);
   if (hpChimes && wn !== walletDrawn) { walletDrawn = wn; hpChimesN.textContent = `${wn}`; hpChimes.classList.toggle('none', wn <= 0 && wallet <= 0); }
   hpChimes?.classList.toggle('tick', walletShown !== wallet);
+}
+// the key counter while in a temple (issue #274, Zelda's: index.html #keys, src/hud.js keysHud, temples/runtime.js keyCount)
+const keysEl = document.getElementById('keys');
+const keysSmall = keysEl?.querySelector?.('.small'), keysBig = keysEl?.querySelector?.('.big');
+if (keysSmall) keysSmall.innerHTML = `${KEY_SVG}<b>×0</b>`;
+if (keysBig) keysBig.innerHTML = GREAT_KEY_SVG;
+let keysDrawn = '', keysLast = -1;
+function updateKeys() {
+  const T = (level.temples ?? (level.temple ? [level.temple] : [])).find((t) => t.keyCount && Object.values(t.def?.logic?.elements ?? {}).some((e) => e.type === 'key') && t.inside(player.pos));
+  const c = T?.keyCount();
+  const hud = keysHud({ inside: !!T, small: c?.small ?? 0, big: c?.big ?? false, quiet: ship.playing || photo.on });
+  screen.set('keys', hud);
+  if (!keysEl) return;
+  keysEl.classList.toggle('on', !!hud);
+  if (!hud) { keysLast = -1; return; }
+  const key = `${hud.small}|${hud.big}`;
+  if (key === keysDrawn) return;
+  keysDrawn = key;
+  keysSmall.querySelector('b').textContent = `×${hud.small}`;
+  keysSmall.classList.toggle('none', hud.small <= 0);
+  keysBig.classList.toggle('none', !hud.big);
+  // (one more than a moment ago: the key hops and the count swells)
+  if (keysLast >= 0 && hud.small > keysLast) { keysEl.classList.remove('got'); void keysEl.offsetWidth; keysEl.classList.add('got'); setTimeout(() => keysEl.classList.remove('got'), 600); }
+  keysLast = hud.small;
 }
 player.vehicles.push(...(level.vehicles ?? []));
 // every fire drawn in the world burns while you stand in it (src/story/flames.js fireHazard; issue #77)
@@ -2307,6 +2331,7 @@ function frame(ts) {
   updateHud();
   if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t, TEACH); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
   updateHealth(dt);
+  updateKeys();
   level.update(dt, t, { player, rig, camera, passage, hour: sky.hour, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);

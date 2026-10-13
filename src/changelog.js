@@ -22,6 +22,13 @@ export const CHANGELOG = [
     // stranded, tests/way-back.test.js, every temple checked)
     { text: 'The Aerie’s gulf has a way back: on the higher ledge, a doorway in the east wall drops into a passage that runs back along the gulf and climbs to the near side. Crossing without the great key no longer leaves you stranded, and the great lock tells you where the way back is.',
       see: 'Cross the gulf on the wind before you have the Eyrie’s great key, walk up to the great lock, then take the doorway on the ledge’s east side.' },
+    // temple keys in little makers' chests (issue #274: src/temples/pieces.js Key, KEY_CHEST; Sound.keyGet), the key
+    // counter while in a temple (src/hud.js keysHud, index.html #keys, runtime.js keyCount; screen.keys for an engine),
+    // a lock's soft click (Sound.keyTurn)
+    { text: 'Temple keys now come in little chests, the same chest you find everywhere but smaller, on the floor where the key stood. Once its cage sinks, open it: the halves part with light pouring out, the key rises out of the light with a short bright chime, and it flies into your key counter.',
+      see: 'In the Clock-House, win the Pendulum Hall or wake the Striking Room’s eye, then open the little chest whose cage has sunk.' },
+    { text: 'Inside a temple a key counter sits at the top left, as in Zelda: a brass key and how many small keys you hold, with the great key beside it once it is yours. It counts up as a key comes out of its chest and down as one turns in a lock, which now clicks softly instead of clanking. Outside the temples it is gone.',
+      see: 'In the Clock-House, take both small keys and walk up to the door over the climb: the counter goes from 2 to 1 to 0 as the keyholes fill.' },
   ] },
   { v: '1.67', date: '2026-10-13', items: [
     // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under

@@ -21,7 +21,7 @@ export { starShape, chestKind } from './chest.js';
 // temple, the temple chest, a bud of white stone and gold with jade glass in its seams. A thin ray of light travels
 // across either (materials.js MAKERS_BOX). The post pass draws their outline only: nothing inside it.
 //
-//   buildBox(key, { kind }) → { root, body, shell, opened, petals, core, mats: { body }, size, kind, setOpen(k) }
+//   buildBox(key, { kind, scale }) → { root, body, shell, opened, petals, core, mats: { body }, size, kind, setOpen(k) }
 //                      a chest at its unscaled size (chest.js); index.js sets it down BOX_SCALE larger (about hip
 //                      high). Local frame: +z is the front (where the traveller stands), y = 0 on the ground.
 //                      kind: 'makers' (default) or 'temple' (chest.js chestKind: by the placement, never the world).
@@ -73,8 +73,8 @@ export function roundedBox(hx, hy, hz, r, n = 10) {
   return mergeVertices(g);
 }
 
-export function buildBox(key = 'box', { kind = 'makers' } = {}) {
-  const G = chestGeometry(kind), C = BOX_COLORS, S = BOX_SCALE;
+export function buildBox(key = 'box', { kind = 'makers', scale = BOX_SCALE } = {}) {
+  const G = chestGeometry(kind), C = BOX_COLORS, S = scale;   // (scale: what it is set down at, for the shader's sizes; a temple's key chest is smaller)
   // its own material (the key makes it unique, so each chest glows and sweeps on its own); one program for every
   // chest of either kind (the same options but the key and the sizes); it dissolves when it opens (scene.js sets uDissolve)
   const body = makeMaterial({

@@ -13,6 +13,8 @@ import { sparing, heartsOf, DAMAGE } from '../resources.js';
 import { rideColumn } from '../updraft.js';
 import { stopOf } from './logic.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
+import { buildBox } from '../boxes/model.js';
+import { ChestLight, chestLamp, MOUTHS } from '../boxes/light.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -216,8 +218,9 @@ Door.prototype.updateLock = function (dt) {
       if (this.keyWait > 0.35) {
         this.keyWait = 0;
         L.unlock(id);
-        this.rt.sound?.critter?.('clank', 0.9); this.rt.sound?.chime?.();
         const left = L.keyholes(id) - L.keysIn(id);
+        // (a soft click as it turns, where a clank was: issue #274; the lock letting go chimes)
+        this.rt.sound?.keyTurn?.(); if (left <= 0) this.rt.sound?.chime?.();
         this.rt.notice(left > 0 ? `The key turns. ${left === 1 ? 'One keyhole' : `${left} keyholes`} still empty.` : this.lock === 'big' ? 'The great key turns, and the lock lets go.' : 'The small key turns, and the lock lets go.', left > 0 ? null : `lock.${id}`);
         this.rt.onUnlock?.(id);
       }
@@ -2643,61 +2646,149 @@ function keyGeometry(big) {
   for (const [y, w] of big ? [[-L / 2 + 0.12, 0.42], [-L / 2 + 0.38, 0.3], [-L / 2 + 0.6, 0.22]] : [[-L / 2 + 0.1, 0.28], [-L / 2 + 0.3, 0.2]]) g.push(T(new THREE.BoxGeometry(w, 0.12, 0.08), [w / 2, y, 0]));
   return g;
 }
-const PLINTH = 1.05;   // m: a key's plinth, its top over the floor
 
+/**
+ * A key's little chest (issue #274, the author: "When I get a key in a temple there should be a sound effect, it should
+ * be in a little chest. And I should have a key counter on my screen. Like Zelda"): the makers' chest, the same model
+ * and opening as every chest (src/boxes/model.js buildBox), set down at `KEY_CHEST.small` of its size (the great key's a
+ * little larger), on the floor where the key's plinth stood. A cage of brass bars round it until its element's `when`
+ * holds (then they sink into the floor). Opened (A / ×), a short opening, not a box's whole scene: the latch clicks, the
+ * halves part with light out of it (src/boxes/light.js ChestLight, its column shorter), the key rises out of the light
+ * turning, rings (Sound.keyGet), hangs a moment and is gone into the key counter (runtime.js keyCount: it counts once
+ * the key has flown, `KEY_CHEST.counted`). Left open and quiet after, on a load too.
+ */
+export const KEY_CHEST = {
+  small: 1.0, big: 1.3,           // its scale (the boxes' chests are BOX_SCALE, 1.9)
+  latch: 0.25, open: 0.55,        // s: the latch's click, then the halves parting over `open`
+  rise: [0.4, 1.25], hang: 1.75,  // s: the key rising out of the light, then held over it till `hang`
+  counted: 1.9, done: 2.4,        // s: in the counter; the light gone
+  height: 0.38,                   // its column's height and top, a share of a box's (light.js CHEST_LIGHT.height)
+  key: { small: 0.7, big: 0.6 },  // the key's size over it (the plinth's key was 0.85 m long, the great one 1.5)
+  lamp: 0.4,                      // its lamp's reach, a share of a box's (light.js LAMP)
+};
+const _km = new THREE.Vector3(), _ke = new THREE.Vector3();
 export class Key {
   /**
-   * o: { id, at: the plinth's foot, yaw, big, line }: a key turning slowly over a plinth of the house's stone, a cage of
-   * brass bars round it until its element's `when` holds (then the bars sink into the plinth). Walk up to it and it is
-   * yours (logic.find). Its element: { type: 'key', kind: 'small' | 'big', room, when? }.
+   * o: { id, at: the chest's foot, yaw (its front), big, line }: a key in a little chest. Its element: { type: 'key',
+   * kind: 'small' | 'big', room, when? }. The chest's interactable opens it (logic.find, at once: the key is yours).
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
-    const K = rt.kit, M = rt.M, big = !!o.big;
+    const K = rt.kit, M = rt.M, big = !!o.big, S = (this.scale = big ? KEY_CHEST.big : KEY_CHEST.small);
     this.pos = K.world(...o.at);
+    this.yaw = K.heading(o.yaw ?? 0);
     this.group = new THREE.Group();
     this.group.position.copy(this.pos);
-    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    this.group.rotation.y = this.yaw;
     rt.root.add(this.group);
-    this.group.add(mesh([lathe([[0.62, 0], [0.62, 0.18], [0.44, 0.3], [0.38, PLINTH - 0.12], [0.56, PLINTH - 0.02], [0.56, PLINTH], [0.01, PLINTH]], 14)], M.stoneMat));
-    K.solid(new THREE.CylinderGeometry(0.56, 0.62, PLINTH, 14).translate(o.at[0], o.at[1] + PLINTH / 2, o.at[2]));   // (the plinth stands: you walk up to it, not through it)
+    // the chest: the makers' own, smaller (its one mesh closed; its halves only while it opens and after)
+    this.chest = buildBox(`temple.${rt.id}.${o.id}`, { kind: 'makers', scale: S });
+    this.chest.root.scale.setScalar(S);
+    this.chest.root.name = `Key chest ${o.id}`;
+    this.group.add(this.chest.root);
+    this.A = this.chest.mats.body.uniforms.uBoxA.value;
+    this.H = this.chest.size.h * S;
+    // (it stands: you walk up to it, not through it; low enough to step onto)
+    K.solid(new THREE.CylinderGeometry(0.34 * S, 0.34 * S, this.H * 0.9, 12).translate(o.at[0], o.at[1] + this.H * 0.45, o.at[2]));
+    // the key, inside it until it rises
     this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.35, flat: true });
     this.key = new THREE.Group();
     this.key.add(mesh(keyGeometry(big), M.trimMat), mesh([new THREE.SphereGeometry(big ? 0.14 : 0.09, 8, 6).translate(0, (big ? 0.75 : 0.425) + (big ? 0.19 : 0.12), 0)], this.glow));
+    this.key.visible = false;
     this.group.add(this.key);
-    // the cage: bars round the key, a ring over them; they sink into the plinth once the key may be taken
-    const bars = [], cr = 0.5, ch = (this.cageH = big ? 2.4 : 1.7);
-    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; bars.push(T(new THREE.CylinderGeometry(0.035, 0.035, ch, 5), [Math.sin(a) * cr, ch / 2, Math.cos(a) * cr])); }
-    bars.push(T(new THREE.TorusGeometry(cr, 0.05, 5, 20), [0, ch, 0], [Math.PI / 2, 0, 0]));
+    // the cage: bars round the chest, a ring over them; they sink into the floor once the key may be taken
+    const bars = [], cr = (this.cageR = 0.58 * S), ch = (this.cageH = o.cageH ?? (big ? 1.5 : 1.15));   // (cageH: up to what runs on it, the Engine-House's hammer)
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; bars.push(T(new THREE.CylinderGeometry(0.035, 0.035, ch, 5), [Math.sin(a) * cr, ch / 2, Math.cos(a) * cr])); }
+    bars.push(T(new THREE.TorusGeometry(cr, 0.05, 5, 24), [0, ch, 0], [Math.PI / 2, 0, 0]));
     this.cage = mesh(bars, M.trimMat);
     this.group.add(this.cage);
     noCollide(this.group);
     this.taken = rt.logic.isFound(o.id);
-    this.key.visible = !this.taken;
+    this.opening = null;     // { t } while it opens
+    this.lightK = 0;
+    this.lamp = new THREE.Vector4(0, -1e5, 0, 0);
+    rt.lights?.push(this.lamp);
     this.k = this.free() ? 1 : 0;
+    this.chest.setOpen(this.taken ? 1 : 0);
+    this.quiet();
     this.pose(0);
+    const L = rt.logic, at = this.pos.clone().add(V(0, this.H + 0.6, 0));
+    this.off = registerInteractable({
+      id: `temple.${rt.id}.${o.id}`, priority: PRIORITY.use, range: 2.6, prompt: 'open the chest', at: () => at,
+      enabled: () => !this.taken && this.k > 0.9 && !L.isFound(o.id),
+      distance: (p) => Math.hypot(p.pos.x - this.pos.x, p.pos.z - this.pos.z) + Math.max(0, Math.abs(p.pos.y - this.pos.y) - 1.5) * 4,
+      use: () => this.openIt(),
+    });
   }
   /** The key may be taken (its `when` holds), or is taken already. */
   free() { const L = this.rt.logic; return L.isFound(this.id) || L.check(L.el(this.id)?.when); }
+  /** Not yet in the counter: still in its chest, or rising out of it. */
+  get flying() { return !!this.opening && this.opening.t < KEY_CHEST.counted; }
+  /** Its look at rest: shut and humming softly, or opened and spent (no ray, the marks dim). */
+  quiet() { this.A.x = this.taken ? 0 : 0.5; this.A.y = this.taken ? 0.12 : 0.3; }
+  /** The open chest's mouth (world): its middle at the height its halves part (light.js MOUTHS). */
+  mouth(out) { return out.copy(this.pos).setY(this.pos.y + this.H * MOUTHS.makers.y); }
+  /** Opened (A / ×): the key is yours at once; the rest is its short scene. */
+  openIt() {
+    if (this.taken || !this.rt.logic.find(this.id)) return false;
+    this.taken = true;
+    this.opening = { t: 0, rang: false };
+    this.rt.sound?.boxLatch?.();
+    if (!this.light && this.rt.veils) this.light = new ChestLight({ veils: this.rt.veils, parent: this.rt.root, kind: 'makers' });
+    this.rt.game?.emit?.('temple:key', { id: this.rt.id, el: this.id, kind: this.o.big ? 'big' : 'small' });
+    return true;
+  }
   pose(t) {
-    this.cage.position.y = PLINTH - ease(this.k) * (this.cageH + 0.05);
+    this.cage.position.y = -ease(this.k) * (this.cageH + 0.05);
     this.cage.visible = this.k < 0.999;
-    this.key.rotation.y = t * 1.3;
-    this.key.position.y = PLINTH + (this.o.big ? 1.25 : 0.85) + Math.sin(t * 2) * 0.06;
   }
   update(dt, t) {
-    const L = this.rt.logic, P = this.rt.player;
     this.k = THREE.MathUtils.clamp(this.k + (this.free() ? dt / 1.2 : -dt), 0, 1);
     this.pose(t);
-    this.glow.uniforms.uGlow.value = 0.35 + 0.25 * Math.sin(t * 3);
-    if (this.taken || !P?.pos || this.k < 0.9) return;
-    if (Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) > 1.9 || Math.abs(P.pos.y - this.pos.y) > 2.2 || !L.find(this.id)) return;
-    this.taken = true; this.key.visible = false;
-    this.rt.sound?.chime?.(); this.rt.sound?.critter?.('clank', 0.6);
-    const n = L.keys('small');
-    this.rt.notice(this.o.line ?? (this.o.big ? 'The house’s great key. It opens the guardian’s door.' : `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`));
-    this.rt.game?.emit?.('temple:key', { id: this.rt.id, el: this.id });
+    if (!this.opening) {
+      // (shut, the ray crosses it now and then and its marks breathe; nothing once spent)
+      if (!this.taken) { this.A.w += dt / 3.4; this.A.y = 0.3 + 0.15 * Math.sin(t * 2.4) * this.k; }
+      return;
+    }
+    const O = this.opening, C = KEY_CHEST, sm = (a, b, x) => ease(THREE.MathUtils.clamp((x - a) / (b - a), 0, 1));
+    O.t += dt;
+    const T0 = O.t;
+    // the latch clicks, it gives a little; then the halves part
+    const open = sm(C.latch, C.latch + C.open, T0);
+    if (T0 >= C.latch && !O.opened) { O.opened = true; this.rt.sound?.boxLatch?.(true); }
+    this.chest.setOpen(open > 0 ? Math.max(1e-3, open) : 0);
+    this.chest.root.rotation.z = T0 < C.latch ? Math.sin(T0 * 60) * 0.03 * (1 - T0 / C.latch) : 0;
+    // the light out of it: swelling as it opens, settling while the key hangs, gone after
+    const k = T0 < C.latch ? 0 : T0 < C.latch + C.open ? open : T0 < C.hang ? 1 - 0.4 * sm(C.latch + C.open, C.hang, T0) : 0.6 * (1 - sm(C.hang, C.done, T0));
+    this.lightK = k;
+    this.A.x = 0; this.A.y = k > 0 ? 1 + 0.75 * k : 0.12;   // (the linings glow with it: materials.js MAKERS_BOX)
+    this.mouth(_km);
+    const P = this.rt.player?.pos;
+    if (P) _ke.set(P.x + (P.x - this.pos.x) * 1.5, P.y + 2.2, P.z + (P.z - this.pos.z) * 1.5);
+    this.light?.update({ mouth: _km, yaw: this.yaw, k, time: t, eye: P ? _ke : null, scale: this.scale, reach: C.height * this.scale });
+    if (k > 0) chestLamp(this.lamp, _km, 0, k).w *= C.lamp * this.scale; else this.lamp.set(0, -1e5, 0, 0);
+    // the key: out of the light, turning, up over the chest; it rings as it comes clear; held; then into the counter
+    const up = sm(C.rise[0], C.rise[1], T0), gone = sm(C.hang, C.counted, T0);
+    this.key.visible = T0 > C.rise[0] && gone < 1;
+    const ks = this.o.big ? C.key.big : C.key.small, half = (this.o.big ? 0.95 : 0.55) * ks;   // (its half length, the bow in)
+    const lift = this.H * 0.4 + up * (this.H * 0.6 + half + 0.2) + gone * 0.6;
+    this.key.position.set(0, lift, 0);
+    this.key.rotation.y = t * 1.3 + (1 - up) * 6;
+    this.key.scale.setScalar(Math.max(1e-3, ks * (0.4 + 0.6 * up) * (1 - gone)));
+    this.glow.uniforms.uGlow.value = 0.6 + 0.4 * (1 - up) + 0.3 * Math.sin(t * 6);
+    if (!O.rang && T0 >= C.rise[0] + 0.15) { O.rang = true; this.rt.sound?.keyGet?.(!!this.o.big); }
+    if (!O.said && T0 >= C.counted) {
+      O.said = true;
+      const n = this.rt.logic.keys('small');
+      this.rt.notice(this.o.line ?? (this.o.big ? 'The house’s great key. It opens the guardian’s door.' : `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`));
+    }
+    if (T0 >= C.done) {
+      this.opening = null; this.lightK = 0; this.key.visible = false;
+      this.chest.setOpen(1); this.quiet(); this.lamp.set(0, -1e5, 0, 0);
+      this.light?.dispose(); this.light = null;
+    }
   }
+  dispose() { this.off?.(); this.light?.dispose(); this.light = null; }
 }
 
 export class Coffer {

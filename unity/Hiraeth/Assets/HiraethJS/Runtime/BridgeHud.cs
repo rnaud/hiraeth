@@ -24,6 +24,7 @@ namespace Hiraeth.Bridge
         Ui.Box cue; Label cueText;
         Ui.Box prompt; Image promptKey; Label promptKeyText, promptText;
         Ui.Box health; Image healthFill, healthEdge;
+        Ui.Box keys; Label keysText;
         RectTransform wheel; Image wheelRing, wheelFill;
         RectTransform dlg; Ui.Box dlgPanel; Sketch dlgLines, dlgMore; RectTransform chip; Image chipFill; Label chipLetter; RawImage chipPhoto;
         Ui.Box dlgTag; Label dlgName, dlgTitle, dlgText;
@@ -40,7 +41,7 @@ namespace Hiraeth.Bridge
         /// rebuilt its texture under labels already drawn: letters dropped out of a frame).</summary>
         static void Warm(Font f)
         {
-            const string chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~’‘“”…—–·▍›◆✦éèàçôûâêîïüöäñ";
+            const string chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~’‘“”…—–·▍›◆✦×éèàçôûâêîïüöäñ";
             foreach (var size in new[] { 11, 12, 13, 14, 15, 16, 19, 20, 21, 25, 36, 44 })
                 foreach (var st in new[] { FontStyle.Normal, FontStyle.Bold, FontStyle.Italic })
                     f.RequestCharactersInTexture(chars, size, st);
@@ -64,6 +65,8 @@ namespace Hiraeth.Bridge
             health = Ui.Panel(root, "health", Ui.Page, Ui.Ink, 2, 2, 2, 6);
             healthFill = Ui.Rect(health.fill.rectTransform, Ui.Hp, 0, "hp");
             healthEdge = Ui.Rect(health.fill.rectTransform, Ui.Ink, 0, "edge");
+            keys = Ui.Panel(root, "keys", Ui.Page, Ui.Ink, 1.5f, 2, 2, 6);
+            keysText = Ui.Label(keys.rt, "text", mono, 13, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             wheel = Ui.Node("stamina", root);
             wheelRing = Ui.Fill(wheel, Ui.Hex("#2b211f", 0.25f), 0, "ring"); wheelRing.sprite = Ui.Round(32);
             wheelFill = Ui.Fill(wheel, Ui.Gold, 0, "fill"); wheelFill.sprite = Ui.Round(32);
@@ -141,6 +144,7 @@ namespace Hiraeth.Bridge
             DrawCue(state.O("cue"), d == null);
             DrawPrompt(state.O("prompt"), d == null);
             DrawHealth(state.O("health"));
+            DrawKeys(state.O("keys"), d == null);
             DrawWheel(state.O("stamina"), d == null);
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
         }
@@ -198,6 +202,19 @@ namespace Hiraeth.Bridge
             Ui.Place(healthFill.rectTransform, 0, 0, w, 7);
             Ui.Place(healthEdge.rectTransform, w, 0, 2, 7);
             healthFill.color = h.Get("low") is bool low && low ? Color.Lerp(Ui.Hp, Ui.Gold, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * Mathf.PI * 2.5f)) : Ui.Hp;
+        }
+
+        /// <summary>The key counter while in a temple (issue #274; src/hud.js keysHud: { small, big }): "KEY ×N", and
+        /// "+ GREAT KEY" once it is in hand; under the health bar.</summary>
+        void DrawKeys(Dictionary<string, object> k, bool on)
+        {
+            on &= k != null;
+            Show(keys, on);
+            if (!on) return;
+            var text = "KEY ×" + k.I("small") + (k.Get("big") is bool big && big ? "  + GREAT KEY" : "");
+            var s = Ui.Set(keysText, text, 260);
+            Ui.Place(keysText.rectTransform, 8, 3, s.x, 18);
+            Ui.Place(keys.rt, 16, 32, s.x + 16, 24);
         }
 
         void DrawWheel(Dictionary<string, object> s, bool on)

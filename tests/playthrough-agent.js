@@ -652,10 +652,12 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
       if (!L.isLit(id)) { L.light(id); T.onLit(id); issue('temple', `${T.def.name}: the arena ${id} did not let him out once he stood in it, its foes beaten`); }
       log.push(`arena ${id}`);
     } else if (e.type === 'key') {
-      // (a key on its plinth: taken when he walks up to it)
+      // (a key in its little chest, issue #274: he walks up to it, its cage sinks, and he opens it)
       const k = T.piece(id), by = k ? standNear(W, k.pos, { radius: 1.4, up: 2 }) : null;
       if (by) { W.at(by); W.step(40, 1 / 20); }   // (its cage sinks first: a second or so)
-      if (!L.isFound(id)) { issue('temple', `${T.def.name}: by the key ${id}, and it was not taken`); L.find(id); }
+      const chest = allInteractables().find((x) => x.id === `temple.${T.id}.${id}`);
+      if (by && chest?.enabled?.() !== false) { chest?.use?.(); W.step(60, 1 / 20); }   // (its short opening: the key into the counter)
+      if (!L.isFound(id)) { issue('temple', `${T.def.name}: by the key ${id}, and its chest was not opened`); L.find(id); }
       log.push(`key ${id}`);
     } else if (e.lock) {
       // (a locked door: walked up to with a key, the key goes in; one a keyhole)

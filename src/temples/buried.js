@@ -328,7 +328,7 @@ function wings(rt, K, M, { band, brass, rivets }) {
   // the anvil, the great key caged on it, and the hammer over the cage: running, it comes down on the bars
   K.both(M.dark, box(3.4, 0.3, 3.0, AX, 7.15, AZ));
   K.add(band, box(3.6, 0.12, 3.2, AX, 7.3, AZ));
-  add(Key, { id: 'kB', big: true, at: [AX, 7.3, AZ], yaw: -Math.PI / 2 });
+  add(Key, { id: 'kB', big: true, at: [AX, 7.3, AZ], yaw: -Math.PI / 2, cageH: WING.cage - 0.05 });   // (its cage up to the hammer's foot)
   add(Hammer, { id: 'h2', at: [AX, 7.3 + WING.cage, AZ], yaw: Math.PI / 2, w: 2.6, d: 2.4, top: 3.0, period: 2.6, crank: [GX, 8.6, Z0 - 0.4], r: 1.5 });
   // the ball's groove between the two cranks: the hammer's at its south end (where it starts), the pistons' at its north
   K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 0.6, GX, 7.02, (Z0 + Z1) / 2));

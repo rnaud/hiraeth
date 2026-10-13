@@ -771,6 +771,8 @@ const CHEST285 = 'Issue #285: muted headless Chrome (High, 1280 × 720) against 
 // (v1.67, issue #284: a scratch shooter against this branch's own Vite (port 5981) and the tree before it (627462fc, port 5983))
 const SHIELD284 = 'Issue #284: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 5981) and the tree before it (627462fc, port 5983): the Arena, its foes taken away, the guard held (Ctrl) 1.6 s, drawn by the game’s own captureView from the same place round him; the chest opened in the Rose House (boxes.open) and drawn at its card; 13 October; cwebp -q 72';
 const BALLS275 = 'Issue #275: muted headless Chrome (High, 1280 × 720, 10:00, the camera pinned over each ball) through changelog-shots.mjs’s serve and shoot, the tree before the change (its own Vite, port 5989) and the change, 13 October; cwebp -q 72';
+// (v1.68, issue #274: a scratch shooter against this branch's own Vite (port 6274), before on the tree before it (51b81557))
+const KEYS274 = 'Issue #274: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 6274) and the tree before it (51b81557): the Clock-House, the Striking Room’s key freed, the camera pinned over his shoulder (the opening held at 0.62 s), then both keys taken and the door over the climb walked into; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.68': [
     { match: 'More room round the stone balls you push in Vael’s Aerie', shots: [
@@ -785,6 +787,13 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Aerie’s gulf has a way back', tags: ['vael'], shots: [
       { name: 'gulf-way', title: 'The higher ledge', caption: 'Over the gulf, by the great lock: after, a doorway in the ledge’s east wall, a stone feather over it.', from: BALLS275 },
       { name: 'gulf-passage', only: 'after', title: 'The way back', caption: 'Down off the doorway’s sill into the passage outside the gulf’s wall, which runs back to stairs up onto the near side.', from: BALLS275 },
+    ] },
+    { match: 'Temple keys now come in little chests', tags: ['temples'], shots: [
+      { name: 'key-chest', title: 'The Striking Room’s key', caption: 'Before, the key turned over a plinth and was taken by walking up to it; after, it waits in a little makers’ chest on the floor, opened here with the light coming out of it and the key rising.', from: KEYS274 },
+    ] },
+    { match: 'Inside a temple a key counter', tags: ['temples', 'menus'], shots: [
+      { name: 'key-counter', title: 'The key counter', caption: 'The key just taken: before, nothing on the screen said so; after, the counter at the top left reads ×1, the chest left open.', from: KEYS274 },
+      { name: 'key-lock', title: 'A key in the lock', caption: 'The door over the climb with one of its two keys in: after, the counter is down from ×2 to ×1.', from: KEYS274 },
     ] },
   ],
   '1.67': [

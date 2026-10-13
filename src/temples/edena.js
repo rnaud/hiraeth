@@ -352,7 +352,7 @@ function vault(rt, K, M, { pot, pane }) {
   for (const z of [Z0, Z1]) K.both(M.trim, box(0.3, Vt.h - 0.4, 0.3, GX - 0.9, (Vt.h - 0.4) / 2, z + (z === Z0 ? -1.5 : 1.5)));   // the rods up to the louvre
   for (const s of [-1, 1]) pot(x0 + 1.8, 0, Z + s * 5, 0.6, true);
   pane(x1 - 0.05, 13, Z, 6, 5, -Math.PI / 2);
-  add(Key, { id: 'kB', big: true, at: [x1 - 1.6, L, Z - 4], yaw: -Math.PI / 2 });
+  add(Key, { id: 'kB', big: true, at: [x1 - 1.6, L + 0.2, Z - 4], yaw: -Math.PI / 2 });   // (on the ledge's trim, its floor: issue #274)
   add(Mark, { room: 'vault', at: [x0 + 2.6, 0, Z - 4.4], yaw: Math.PI / 2 });
 }
 // ------------------------------------------------------------------ inside

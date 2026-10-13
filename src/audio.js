@@ -184,6 +184,8 @@ export function renderSyllable(ctx, dest, s, t, noise) {
  */
 export const FOE_EAR = { near: 6, far: 40, floor: 0.4, hurtFloor: 0.2, view: 0.55, unseen: 1.25, open: 16000, behind: 5000 };
 
+/** A temple key's chime (Sound.keyGet, issue #274): scale degrees up the world's scale, one every `step` s; `great` the great key's run. */
+export const KEY_GET = { notes: [0, 2, 4, 7], great: [0, 4, 7, 9, 11], step: 0.075, vol: 0.06 };
 export const CRYSTAL_PARTIALS = [[1, 1, 1], [1.006, 0.55, 0.9], [2.32, 0.42, 0.62], [4.25, 0.2, 0.4], [6.63, 0.1, 0.25]];
 
 export class Sound {
@@ -1386,6 +1388,43 @@ export class Sound {
     this.burst(t + 0.045, { dur: 0.02, type: 'bandpass', freq: 2500 * r, q: 5, vol: 0.06, rate: 1.4 });
     for (const [f, d] of [[2093 * r, 0.09], [3136 * r, 0.06]]) this.sweep(t, f, f * 0.995, d, 0.012, 'triangle');   // (the brass ringing)
     this.sweep(t + 0.04, 210 * r, 150 * r, 0.12, 0.035, 'sine');   // (the shell, hollow)
+  }
+
+  /**
+   * A temple's key out of its little chest (issue #274: "When I get a key in a temple there should be a sound effect"):
+   * a short bright chime, a quick run up the world's scale on struck bells (a sine and its bright overtones, no filter
+   * dulling them), the last note held with a shimmer over it; the great key's a little lower and longer, with a
+   * low bell under it. KEY_GET.notes are scale degrees (Sound.freq), one every KEY_GET.step s.
+   */
+  keyGet(big = false) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + 0.02, K = KEY_GET, notes = big ? K.great : K.notes, oct = big ? 1 : 2;
+    notes.forEach((d, i) => {
+      const last = i === notes.length - 1;
+      this.keyBell(this.freq(d, oct), t + i * K.step, last ? K.vol * 1.15 : K.vol, last ? (big ? 1.8 : 1.3) : 0.35);
+    });
+    const top = this.freq(notes[notes.length - 1], oct), end = t + (notes.length - 1) * K.step;
+    for (let i = 0; i < 4; i++) this.keyBell(top * [2, 1.5, 2.5, 3][i], end + 0.06 + i * 0.07, K.vol * 0.28, 0.4);   // (the shimmer)
+    if (big) this.keyBell(this.freq(notes[0], 0), t, K.vol * 0.9, 2.4);
+  }
+  /** A struck bell: a sine and two bright overtones, at once, dying away over `dur` s (on the effects bus). */
+  keyBell(f, t, vol, dur) {
+    const ctx = this.ctx;
+    for (const [k, v] of [[1, 1], [2.01, 0.32], [3.98, 0.12]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f * k;
+      g.gain.value = 0;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol * v, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0005, t + dur / k ** 0.5);
+      o.connect(g).connect(this.fx); o.start(t); o.stop(t + dur + 0.05);
+    }
+  }
+  /** A key going into a lock (issue #274): a soft click, smaller than a box's latch, a dull tumbler under it. */
+  keyTurn() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + 0.01;
+    this.burst(t, { dur: 0.022, type: 'bandpass', freq: 2900, q: 5, vol: 0.06, rate: 1.4 });
+    this.burst(t + 0.09, { dur: 0.03, type: 'bandpass', freq: 1700, q: 4, vol: 0.05, rate: 1.1 });
+    this.sweep(t + 0.09, 190, 140, 0.1, 0.03, 'sine');
   }
 
   /**

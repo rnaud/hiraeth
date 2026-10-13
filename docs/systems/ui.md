@@ -671,6 +671,18 @@ Where the health bar was (top left, `#health` in index.html; `updateHealth` in m
 
 Tests: `tests/resources.test.js` (the SVG's quarters and lines, the bar, the markup), `tests/hud.test.js`.
 
+## The key counter (issue #274)
+
+"I should have a key counter on my screen. Like Zelda." Inside a temple that keeps keys, top left (`#keys` in
+index.html, main.js `updateKeys`, `src/hud.js keysHud`, `KEY_SVG` / `GREAT_KEY_SVG`): a small brass key inked as the
+hearts are (an ink outline, a cream glint, the hard drop shadow) and `×N`, the small keys in hand (src/temples/runtime.js
+`keyCount`: found less those in a lock; a key still rising out of its chest counts once it arrives); the great key
+beside it (a bigger key with a jade bow) once it is yours and until it is in its lock. Shown all the while you are in
+the house, at none too (faded), as Zelda's is; never outside, nor in a conversation, a ship's scene or photo mode. It
+sits at the hearts' place and moves under them while they show (`#health.on ~ #keys`). On a key more the key hops
+and the count swells (`got`). `screen.keys` (platform.js) carries `{ small, big }` for an engine; the Unity bridge
+draws "KEY ×N" under its health bar (BridgeHud.cs `DrawKeys`). Tests: `tests/key-chests.test.js`.
+
 ## Notices and the quest card (playtest 2026-10-08)
 
 - **Notices** (`#toast`, queued by `Cinema.toast`, `src/ship/cinema.js`) are one short line on a dark strip since

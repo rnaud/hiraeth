@@ -108,6 +108,24 @@
       #health .magic u { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 calc(100% / var(--units, 3) - 1.5px), rgba(43, 33, 31, 0.75) calc(100% / var(--units, 3) - 1.5px) calc(100% / var(--units, 3))); }
       #health .magic.none { display: none; }
       body.talking #health { opacity: 0; }
+      /* the key counter, top left while in a temple (issue #274: src/hud.js keysHud, main.js updateKeys): a small brass key
+         and ×N, the great key beside it once found; under the hearts while they show */
+      #keys { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
+        --hh: calc(clamp(17px, 3vh, 24px) * var(--ts, 1));
+        display: flex; align-items: center; gap: calc(var(--hh) * 0.4); color: #2b211f; font: 800 calc(var(--hh) * 0.95)/1 var(--face);
+        font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .5s, top .35s; pointer-events: none; }
+      #keys.on { opacity: 1; }
+      #health.on ~ #keys { top: calc(12px + var(--safe-top, 0px) + var(--hh) * 2.25); }
+      #keys .small, #keys .big { display: flex; align-items: center; gap: 2px; }
+      #keys svg { display: block; height: calc(var(--hh) * 1.3); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
+      #keys .big svg { height: calc(var(--hh) * 1.45); }
+      #keys b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; display: inline-block; transition: color .2s, transform .2s; }
+      #keys .small.none { opacity: 0.55; }
+      #keys .big.none { display: none; }
+      #keys.got .small b { color: #9c7330; transform: scale(1.25); }
+      #keys.got .small svg { animation: kturn .45s ease-out; }   /* (a hop, not a turn: nothing in the UI slanted, issue #222) */
+      @keyframes kturn { 40% { transform: translateY(-3px) scale(1.18); } }
+      body.talking #keys { opacity: 0; }
       /* stamina: a small inked wheel beside the traveller, only while it isn't full (src/main.js updateStamina, src/stamina.js) */
       #stamina { position: fixed; left: 0; top: 0; width: 34px; height: 34px; z-index: 29; pointer-events: none; opacity: 0; transition: opacity .35s;
         will-change: transform; }
@@ -509,6 +527,7 @@
     </div>
     <div id="cue" aria-live="polite"></div>
     <div id="health" role="group" aria-label="Hearts" data-t-aria="hud.hearts"><div class="row"><span class="hearts"></span><button type="button" class="potion" aria-label="Drink a potion" data-t-aria="hud.potion"><svg viewBox="0 0 14 18" aria-hidden="true"><path d="M5 1.2h4v1.6H5z" fill="#b07a45" stroke="#2b211f" stroke-width="1.2"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="#f7ecd2"/><path d="M1.4 10.6c1.6-0.9 3.4-0.2 5.6 0.2s3.9-0.2 5.6-0.7c0.3 3.4-2.4 6.1-5.6 6.1s-5.9-2.4-5.6-5.6z" fill="#d9503f"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="none" stroke="#2b211f" stroke-width="1.5" stroke-linejoin="round"/><path d="M3.6 9.6c-0.6 0.8-0.8 1.7-0.6 2.6" fill="none" stroke="#fff4dc" stroke-width="1.1" stroke-linecap="round"/></svg><b>∞</b></button><span class="chimes none" role="img" aria-label="Chimes" data-t-aria="hud.chimes"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 1.4L10.6 2.9L12.8 8.5L10.7 14.4L5.9 13.2L3.4 7.1Z" fill="#63d3e4"/><path d="M6.2 1.4L10.6 2.9L8.7 7.5L4.8 6.3Z" fill="#a9eef4"/><path d="M6.4 9.7L10.5 8.9L9.5 11.9L6.7 11.5Z" fill="#b9a7e8"/><path d="M8.7 7.5L10.7 14.4M8.7 7.5L12.8 8.5M4.8 6.3L5.9 13.2" fill="none" stroke="#2b211f" stroke-width="0.7" stroke-linecap="round"/><path d="M6.2 1.4L10.6 2.9L12.8 8.5L10.7 14.4L5.9 13.2L3.4 7.1Z" fill="none" stroke="#2b211f" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.6 3.1l1.9 0.6" fill="none" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/></svg><b>0</b></span></div><div class="magic"><i></i><u></u></div></div>
+    <div id="keys" role="img" aria-label="Small keys"><span class="small none"></span><span class="big none"></span></div>
     <div id="stamina" aria-hidden="true"><svg viewBox="-20 -20 40 40">
       <circle r="16" cx="1.8" cy="1.8" fill="#2b211f" />
       <circle r="16" fill="#f7ecd2" stroke="#2b211f" stroke-width="2.2" />
