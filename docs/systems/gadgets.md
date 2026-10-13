@@ -39,8 +39,13 @@ Since v0.98 each is found in the worlds, one a world (below, "In the worlds"); a
   after `regrow` s) and small pickups (`pickups`: a pot of the makers' ink, `amount` of ink when walked into,
   a target of kind `pickup` a gadget may carry to you). What moves or breaks must be flagged `noCollide` when the level builds
   it (the yard kit does), or the level's baked collision keeps a copy of it.
-- **`hud.js`**: the chip in the lower left (the gadget's own picture, drawn once by `src/item-icons.js`,
-  its name, its count, the button), the reticle, numbered lock marks (`marks`), the wheel, and on a touch screen the ◆ use button.
+- **`hud.js`**: the chip in the top right corner (since v1.65, issue #240: "smaller and at the top right corner of
+  the screen. Just show the gadget itself, no text"): the gadget's own picture alone in a small round frame (drawn once
+  by `src/item-icons.js`; its mark until then), no name, no button, no number; a count (bombs, ink, the lens's meter,
+  the fan's gusts) is a thin teal ring round it filled as far as there is, and it fades with none left; a change of
+  gadget (the pad's D-pad ↑, the keys' B, the wheel) pops it with a gold ring for 0.6 s (the ring alone with Reduce
+  motion). Below the frame readout when that is on; beside the menu's button on a touch screen (tapped: the next one).
+  `chipHtml` is its inside. Also the reticle, numbered lock marks (`marks`), the wheel, and on a touch screen the ◆ use button.
 - **`sfx.js`**: the sounds, from the game's synth (`Sound.sweep` / `burst`).
 
 ## The buttons
@@ -227,7 +232,7 @@ Aimed up past `wallAim` 0.6 rad as you start, it draws a wall instead: `wallH` 2
 - **Against the wind**: a wall's segments are screens (`addScreen`); `screened(pos, dir)` says whether a
   body is behind one upwind within 6 m. A temple's gust (src/temples/pieces.js `Gust`) leaves you, and the
   machines (src/foes.js `templeKit`), alone behind one.
-- **Ink**: `ink` 24 m in the pen (the chip's six pips), a wall costs `wallCost` 1.4 per metre, flowing back
+- **Ink**: `ink` 24 m in the pen (the chip's ring), a wall costs `wallCost` 1.4 per metre, flowing back
   at `refill` 2.5 m/s from `refillDelay` 0.8 s after drawing; a line shorter than `min` 1.2 m is not kept
   and its ink comes back. At most `keep` 3 stand at once (a fourth sets the oldest wearing away).
 - Its bay: a tower with steps, an 8 m gap to a second tower, a 2.5 m rise over 5.5 m to a third with a lamp
@@ -314,7 +319,7 @@ outside the ring sinks into ink. Up to eight marks (`uLensMarks`: uv, kind, size
 them, nearest first) shimmer as dashed rings round a diamond, through whatever stands between: gold for a
 find (unopened boxes and relics within `LENS.far` 90 m, buried caches), red for a foe's weak point (foes
 within 32 m; seen, a foe is `exposed` for `LENS.expose` s and a blade cut on it counts double,
-src/foes.js), teal for writing not yet read. It clouds over: `LENS.drain` (1/16) of the chip's meter a
+src/foes.js), teal for writing not yet read. It clouds over: `LENS.drain` (1/16) of the chip's ring a
 second up, a third of that while he stands on a ghost path, back at `refill` after `wait` s down; empty,
 it comes down and needs `again` before it rises. The camera comes over the shoulder while it is up.
 
@@ -413,8 +418,8 @@ spot (src/flammable.js `douse`: a lamp an ember lit goes out, a flare or a burni
 Over the ground it throws up sand and dust; over water (`player.water.surfaceAt`), spray and splash rings.
 Riding a skiff, a swing is a gust into its own sail: `sail` 9 m/s more, up to `sailMax` 30. In the air
 (`hover.gusts` 3 of them before you land) the gust goes down at the ground and lifts you: at least
-`hover.glide` 7.5 m/s up with the wings open, `hover.air` 4.2 without (`hoverLift`); the chip shows the
-gusts left as pips.
+`hover.glide` 7.5 m/s up with the wings open, `hover.air` 4.2 without (`hoverLift`); the chip's ring shows the
+gusts left.
 
 The gust's look (`GustLook`): ink speed lines racing out along the cone, ink curls rolling up at their ends,
 two open rings of ink (the wind's fronts) racing out across it, and the sand's own wind wisps (src/wind.js

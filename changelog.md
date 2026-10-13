@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.65 — 2026-10-13
+
+- The gadget in your hands is a small picture in the top right corner now, nothing else: no name, no button, no count. A thin ring round it shows how much is left, and it pops with a gold ring when you change gadget.
+
 ## v1.64 — 2026-10-12
 
 - In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.

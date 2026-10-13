@@ -33,6 +33,8 @@ const FLIP_SETUP = "const I = window.items; I.grant('backpack'); I.grant('double
 const CONTROLS_SETUP = "document.body.classList.add('controller'); window.menu.toggle(true, 'controls'); await new Promise((r) => setTimeout(r, 1200));";
 
 export const MEDIA_DIR = 'changelog-media';
+/** (the screen's and the menus' pictures of v1.65, issues #221–#244: taken by hand, not by scripts/changelog-shots.mjs) */
+const FROM_HUD = 'headless Chrome against a dev server of this branch and of the commit before it (172da299), the Desert, medium, 10:00';
 export { lineText };
 
 /** The files of a shot (paths from the site's root): before is null for an after-only picture; sheet, the design
@@ -747,6 +749,12 @@ const QC256 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch�
 // drawn by the game's own captureView, against this branch's Vite (port 5861) and the tree before (ab0afadb, port 5863))
 const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the Arena: each held at set times into the move (the hound and the machine drawn alone, the guardians in an Arena ring), four frames of 320 × 360 side by side; this branch and the tree before it (ab0afadb); 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.65': [
+    { match: 'The gadget in your hands is a small picture in the top right corner now', shots: [
+      { name: 'gadget-chip', title: 'The gadget in hand', caption: 'Before, a paper chip in the lower left, tilted, with “Ink bombs”, its count as dots and its key; after, the bombs’ picture alone in the top right corner, the ring round it full.', from: `${FROM_HUD}, the ink bombs in hand` },
+      { name: 'gadget-chip-hand', title: 'On a handheld, changing gadget', caption: 'At the Retroid’s 730 × 410, the hook just taken in hand: the picture pops with a gold ring.', from: `${FROM_HUD}, 730 × 410` },
+    ], see: 'Take a gadget in hand (D-pad ↑, or B on the keyboard): its picture shows in the top right corner.' },
+  ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [
       { name: 'unity-start', title: 'The first screen', caption: 'Before, the preview opened straight into the Desert, the camera inside the ship over the traveller’s head; after, the title: Continue, Saves and Settings.', from: 'adb screencap on the Retroid Pocket Nova, the Unity preview muted (-mute -metrics: the frame readout at the top), build 2066 against this branch’s build (12 October)' },

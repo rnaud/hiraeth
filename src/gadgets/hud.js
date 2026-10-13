@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-// The gadgets on the screen (docs/systems/gadgets.md, "On the screen"): a small chip in the lower left
-// corner with the gadget in hand (its mark, its name, its count, the button), a reticle on what the aim
+// The gadgets on the screen (docs/systems/gadgets.md, "On the screen"): a small round chip in the top right
+// corner with the gadget in hand (its picture alone, issue #240), a reticle on what the aim
 // would catch, the wheel for choosing one (hold D-pad ↑ or B), and on a touch screen a use button and the
 // chip to tap for the next one. Paper and ink like the rest of the HUD. Works without a page (the tests).
 //
@@ -12,21 +12,24 @@ import * as THREE from 'three';
 //   hud.onTap = () => …   (the chip tapped: the next gadget)
 
 const CSS = `
-#gadget-chip { position: fixed; left: calc(16px + var(--safe-left, 0px)); bottom: calc(16px + var(--safe-bottom, 0px)); z-index: 30;
-  display: none; align-items: center; gap: 0.6em; padding: 0.3em 0.8em 0.3em 0.3em; background: rgba(247, 236, 210, 0.9); border: 1.5px solid #2b211f;
-  box-shadow: 3px 3px 0 #2b211f; font: calc(var(--type-s) * 0.9)/1.3 var(--face); color: #2b211f; pointer-events: none; transform: rotate(-0.6deg); }
-#gadget-chip.on { display: flex; }
+#gadget-chip { position: fixed; isolation: isolate; right: calc(14px + var(--safe-right, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
+  display: none; place-items: center; width: clamp(30px, 6vh, 42px); height: clamp(30px, 6vh, 42px); box-sizing: border-box; padding: 0;
+  background: rgba(255, 250, 240, 0.92); border: 1.5px solid #2b211f; border-radius: 50%; box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6);
+  font: calc(clamp(30px, 6vh, 42px) * 0.55)/1 var(--face); color: #2b211f; pointer-events: none; transition: opacity 0.2s; }
+#gadget-chip.on { display: grid; }
 body.minigame #gadget-chip, body.minigame #gadget-reticle, body.minigame #gadget-wheel { display: none !important; }   /* (a game takes the buttons: src/minigames/) */
-#gadget-chip .g img { width: 100%; height: 100%; border-radius: 50%; }
-#gadget-chip .g { width: 2.2em; height: 2.2em; overflow: hidden; border: 1.5px solid #2b211f; border-radius: 50%; display: grid; place-items: center; font-size: 1.4em; background: #fffaf0; }
-#gadget-chip b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; display: block; }
-#gadget-chip .pips { letter-spacing: 2px; font-size: 0.85em; }
-#gadget-chip .pips i { font-style: normal; color: #2b211f; }
-#gadget-chip .pips i.off { color: rgba(43, 33, 31, 0.25); }
-#gadget-chip .gkey { margin-left: 4px; padding: 0 5px; border: 1px solid #2b211f; border-radius: 9px; font-size: 0.85em; background: #fffaf0; }
-#gadget-chip.flash { animation: gchip 0.5s ease-out; }
-@keyframes gchip { 0% { transform: rotate(-0.6deg) scale(1.25); } 100% { transform: rotate(-0.6deg) scale(1); } }
-body.touch #gadget-chip { pointer-events: auto; bottom: calc(86px + var(--safe-bottom, 0px)); }
+#gadget-chip img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+#gadget-chip.gauge::before { content: ''; position: absolute; inset: -5px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(#2f7f86 calc(var(--k, 1) * 360deg), rgba(43, 33, 31, 0.18) 0);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
+#gadget-chip.empty { opacity: 0.5; }   /* (none left: the bombs thrown, the shell's song spent) */
+#gadget-chip.flash { animation: gchip 0.6s ease-out; }
+@keyframes gchip { 0% { transform: scale(1.35); box-shadow: 0 0 0 5px #f2c54b; } 100% { transform: scale(1); box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6); } }
+@media (prefers-reduced-motion: reduce) { #gadget-chip.flash { animation: gchip-still 0.6s ease-out; } }
+html.reduce-motion #gadget-chip.flash { animation: gchip-still 0.6s ease-out; }
+@keyframes gchip-still { 0% { box-shadow: 0 0 0 5px #f2c54b; } 100% { box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6); } }
+body:not(.nofps) #fps:not(:empty) ~ #gadget-chip { top: calc(48px + var(--safe-top, 0px)); }   /* (the frame readout, when asked for, keeps the corner) */
+body.touch #gadget-chip { pointer-events: auto; right: calc(56px + var(--safe-right, 0px)); }   /* (beside the menu's button; tapped: the next gadget) */
 body.talking #gadget-chip, body.photo #gadget-chip { display: none; }
 body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wheel, body.cine-on #gadget-marks { display: none !important; }   /* (a cinematic: its letterbox is up, src/ship/cinema.js) */
 #gadget-reticle { position: fixed; left: 0; top: 0; z-index: 31; pointer-events: none; display: none; width: 34px; height: 34px; margin: -17px 0 0 -17px; }
@@ -70,6 +73,9 @@ body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !i
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const _p = new THREE.Vector3();
 
+/** The chip's inside: the gadget's picture (its mark until the picture is drawn), and nothing else. */
+export const chipHtml = (c) => (c.icon ? `<img src="${esc(c.icon)}" alt="">` : `<span class="g">${esc(c.def.glyph ?? '◆')}</span>`);
+
 /** The pips of a count: ●●○ for 2 of 3. */
 export const pips = (count, max) => (max > 0 ? Array.from({ length: max }, (_, i) => (i < count ? '●' : '○')).join('') : '');
 
@@ -105,10 +111,15 @@ export class GadgetHud {
     }
   }
 
-  /** The chip: the gadget in hand, or null (hidden). */
+  /**
+   * The chip: the gadget in hand, or null (hidden). Its picture alone in the top right corner (issue #240: "smaller
+   * and at the top right corner of the screen. Just show the gadget itself, no text"): no name, no button, no number
+   * (a count is a thin ring round it, filled as far as there is; faded when none is left); a brief gold ring and a pop when it changes (the pad's, the keys', the wheel's).
+   */
   chip(c) {
     if (!this.dom) return;
-    const key = c ? `${c.def.id}|${c.count ?? ''}|${c.max ?? ''}|${c.note ?? ''}|${c.key}|${c.icon ? 1 : 0}` : '';
+    const empty = !!(c?.max && !c.count);
+    const key = c ? `${c.def.id}|${c.count ?? ''}|${c.max ?? ''}|${c.icon ?? ''}` : '';
     if (this.touch && !this.touchBtn) this.touchButton();
     if (key === this.last.chip) return;
     const changed = (c?.def.id ?? '') !== (this.lastId ?? '');
@@ -116,8 +127,13 @@ export class GadgetHud {
     document.body.classList.toggle('gadget-on', !!c);
     this.chipEl.classList.toggle('on', !!c);
     if (!c) return;
-    const sub = c.max ? `<span class="pips">${pips(c.count, c.max).split('').map((p) => `<i class="${p === '○' ? 'off' : ''}">●</i>`).join('')}</span>` : c.note ? `<span>${esc(c.note)}</span>` : '';
-    this.chipEl.innerHTML = `<span class="g">${c.icon ? `<img src="${esc(c.icon)}" alt="">` : esc(c.def.glyph ?? '◆')}</span><span><b>${esc(c.def.name)}</b>${sub}</span><span class="gkey">${esc(c.key)}</span>`;
+    this.chipEl.innerHTML = chipHtml(c);
+    this.chipEl.classList.toggle('empty', empty);
+    // (a count, the ink, the lens's meter: a thin ring round the picture, filled as far as there is, no number)
+    this.chipEl.classList.toggle('gauge', !!c.max);
+    if (c.max) this.chipEl.style.setProperty('--k', String(Math.max(0, Math.min(1, (c.count ?? 0) / c.max))));
+    this.chipEl.setAttribute('role', 'img');
+    this.chipEl.setAttribute('aria-label', c.def.name ?? '');
     if (this.touchBtn) this.touchBtn.textContent = c.def.glyph ?? '◆';
     if (changed) { this.chipEl.classList.remove('flash'); void this.chipEl.offsetWidth; this.chipEl.classList.add('flash'); }
   }

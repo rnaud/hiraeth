@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.65', date: '2026-10-13', items: [
+    // the screen while playing (docs/systems/ui.md): the gadget chip (src/gadgets/hud.js, issue #240), the talk prompt
+    // (src/talk-prompt.js, issue #241), the notices and their pace (index.html #toast, src/notice-pace.js, issue #221),
+    // the charge's card and the objective card (src/story/charge.js, src/ship/cinema.js, issue #222)
+    'The gadget in your hands is a small picture in the top right corner now, nothing else: no name, no button, no count. A thin ring round it shows how much is left, and it pops with a gold ring when you change gadget.',
+  ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state
     // (engine/menus.js, unity/Hiraeth BridgeMenu.cs; docs/systems/engine-bridge.md "The menus")
