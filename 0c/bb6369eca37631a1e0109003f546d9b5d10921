@@ -1,0 +1,25 @@
+docs/systems/movement.md
+  s_9ca76055a220ed::t_dccfb22f56af8c 442-445
+src/levels/moon-foundry-kit.js
+  s_9ca76055a220ed::t_26cdb48bacee05 447
+src/player.js
+  s_9ca76055a220ed::t_7709b2232f3e65 2065-2066,2074,2091-2092,2114-2115
+tests/ladder-stamina.test.js
+  s_9ca76055a220ed::t_04c4ba695659a6 70-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0cbb6369eca37631a1e0109003f546d9b5d10921",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
