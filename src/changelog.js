@@ -13,6 +13,7 @@ export const CHANGELOG = [
     // (src/talk-prompt.js, issue #241), the notices and their pace (index.html #toast, src/notice-pace.js, issue #221),
     // the charge's card and the objective card (src/story/charge.js, src/ship/cinema.js, issue #222)
     'The gadget in your hands is a small picture in the top right corner now, nothing else: no name, no button, no count. A thin ring round it shows how much is left, and it pops with a gold ring when you change gadget.',
+    'The prompt to talk to someone sits right beside them, just below the shoulder, instead of over their head; near the edge of the screen it moves to their other side.',
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

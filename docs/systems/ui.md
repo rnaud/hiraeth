@@ -119,6 +119,15 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   `<b class="key">E</b>`, a small ink circle (a pill for "X / □"); `badgeLine()` badges the
   button at the start of each " · " part of a status line. The badge holds the plain
   button name, so `native-pad.js` still renames it in place.
+- **The talk prompt beside the person** (v1.65, issue #241: "Button prompts to talk to people should be right next
+  to them just below shoulder level, not above their heads"; `src/talk-prompt.js`, `placePrompt` in
+  `src/story/index.js`, `tests/talk-prompt.test.js`): a person's interactable has `beside()` (`shoulders`: their
+  rig's upper arms, `TALK.below` 0.1 m under the joints; no rig, by their height, 1.3 m standing, 0.95 seated, an
+  alien under its face); `besideAnchor` moves the middle of the shoulders out along the camera's right by half the
+  body's width as seen (at least `TALK.half`) and `TALK.out` more, and `tagPlace` sets the tag's left edge 6 px from
+  there, its middle on that height, reading outward. Near the screen's right edge it takes their other side (and
+  keeps it for that person), always inside the screen. Things (a lens, a crank, a sign) keep their prompt over them;
+  `at` (for an engine's own prompt, `screen.prompt`) is the middle of the shoulders.
 - **Conversations** (`src/story/dialogue.js`): the speaker's name is plain ink on the
   paper's first line next to the portrait, with no box and no subtitle (issue #208); no hint
   line, no translator tag (the words still in their script at the caret remain), and a small pointer

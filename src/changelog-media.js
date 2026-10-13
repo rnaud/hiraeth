@@ -754,6 +754,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'gadget-chip', title: 'The gadget in hand', caption: 'Before, a paper chip in the lower left, tilted, with “Ink bombs”, its count as dots and its key; after, the bombs’ picture alone in the top right corner, the ring round it full.', from: `${FROM_HUD}, the ink bombs in hand` },
       { name: 'gadget-chip-hand', title: 'On a handheld, changing gadget', caption: 'At the Retroid’s 730 × 410, the hook just taken in hand: the picture pops with a gold ring.', from: `${FROM_HUD}, 730 × 410` },
     ], see: 'Take a gadget in hand (D-pad ↑, or B on the keyboard): its picture shows in the top right corner.' },
+    { match: 'The prompt to talk to someone sits right beside them', shots: [
+      { name: 'talk-prompt', title: 'Beside the person', caption: 'Before, the tag floated over Rima’s hat; after, it sits beside her, at her shoulder.', from: `${FROM_HUD}, the traveller a few steps from Rima` },
+      { name: 'talk-prompt-hand', title: 'Near the screen’s edge', caption: 'At 730 × 410 she stands near the right edge, so the tag reads from her other shoulder.', from: `${FROM_HUD}, 730 × 410` },
+    ], see: 'Walk up to anyone you can talk to.' },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [

@@ -22,6 +22,7 @@ import { viaPortal } from '../scout.js';
 import { backdropFor, portraitSize } from './portrait-bg.js';
 import { keyBadge, escapeHtml } from '../prompt-keys.js';
 import { hintsFor } from '../hint-level.js';
+import { shoulders, besideAnchor, tagPlace } from '../talk-prompt.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
 import { setupPerdide2 } from './perdide2.js';
@@ -110,6 +111,7 @@ const partPage = (story, part) => (story ? Object.assign(Object.create(story), {
 
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _eyes = new THREE.Vector3();
+const _sh = [new THREE.Vector3(), new THREE.Vector3()], _cr = new THREE.Vector3(), _an = new THREE.Vector3();
 
 export function createStory(o) {
   const { levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, capture, lib, humans, toast = () => {} } = o;
@@ -202,7 +204,10 @@ export function createStory(o) {
     return registerInteractable({
       id: `talk.${def.id}`, priority: PRIORITY.talk, range: def.range ?? 3.4, npc,
       prompt: `talk to ${def.name.replace(/^The /, 'the ')}`,
-      at: () => (npc.talkAt ? npc.talkAt(_p) : _p.copy(npc.pos).addScaledVector(UP, (npc.seat ? 1.4 : 2.15) * npc.object.scale.y)),
+      // (beside them, just below the shoulders, never over the head: src/talk-prompt.js, issue #241; `at` the middle
+      // of the shoulders, for an engine's own prompt: platform.js screen.prompt)
+      beside: () => shoulders(npc, UP, _sh),
+      at: () => { const b = shoulders(npc, UP, _sh); return b.mid ? _p.set(b.mid.x, b.mid.y, b.mid.z) : _p.set((b.l.x + b.r.x) / 2, (b.l.y + b.r.y) / 2, (b.l.z + b.r.z) / 2); },
       enabled: () => npc.object.visible && !npc.stunned?.(),
       distance: (p) => (Math.abs(p.pos.y - npc.pos.y) < 2.5 ? Math.hypot(p.pos.x - npc.pos.x, p.pos.z - npc.pos.z) : Infinity),
       use: () => dialogue.start(def, npc),
@@ -274,7 +279,9 @@ export function createStory(o) {
       registerInteractable({
         id: 'talk.crowd', priority: PRIORITY.talk, range: 2.6,
         prompt: () => `talk to ${(e.person && world.crowdTalk(e.person)?.name.toLowerCase()) ?? 'them'}`,
-        at: () => _p.copy(e.person.pos).addScaledVector(UP, 2.1),
+        // (the pooled full figure standing in for them, its rig's shoulders; else by their height)
+        beside: () => (e.npc?.humanoid && e.npc.object?.visible && e.npc.pos?.distanceTo?.(e.person.pos) < 0.5 ? shoulders(e.npc, UP, _sh) : shoulders({ pos: e.person.pos, object: { scale: { y: e.person.scale ?? 1 } } }, UP)),
+        at: () => _p.copy(e.person.pos).addScaledVector(UP, 1.3 * (e.person.scale ?? 1)),
         enabled: () => !!e.person && !!world.crowdTalk(e.person) && crowd.time >= e.person.stunUntil,
         distance: (p) => (e.person && Math.abs(p.pos.y - e.person.pos.y) < 2.5 ? Math.hypot(p.pos.x - e.person.pos.x, p.pos.z - e.person.pos.z) : Infinity),
         use: () => {
@@ -423,12 +430,21 @@ export function createStory(o) {
       if (useButton()) { const label = r.prompt ? r.prompt.split(' ')[0] : 'E'; if (useBtn.dataset.label !== label) { useBtn.dataset.label = label; useBtn.textContent = label === 'E' ? 'E' : label; useBtn.classList.toggle('talk', label !== 'E'); } }
       return r;
     },
-    /** The floating "E talk to Ama" tag, over whoever it's for. */
+    /** The floating "E talk to Ama" tag: beside a person, just below the shoulders (issue #241); over a thing. */
     placePrompt(camera, controller = false) {
       if (!promptEl) return;
       if (!rt.prompt || !rt.promptAt) { promptEl.classList.remove('show'); screen.set('prompt', null); return; }
-      const at = rt.promptAt.toArray().map((v) => +v.toFixed(2));   // (before projecting: the vector may be shared)
-      _p.copy(rt.promptAt).project(camera);
+      // a person: the tag hangs beside them, just below the shoulders, on the camera's right (its left near the edge)
+      const body = rt.promptEntry?.beside?.() ?? null;
+      if (rt._tagFor !== rt.promptEntry) { rt._tagFor = rt.promptEntry; rt._tagSide = 1; }   // (someone new: their right first)
+      if (body) {
+        _cr.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+        const a = besideAnchor(body, _cr, rt._tagSide ?? 1, rt.promptEntry.npc?.object?.scale?.y ?? 1);
+        _an.set(a.x, a.y, a.z);
+      }
+      const anchor = body ? _an : rt.promptAt;
+      const at = anchor.toArray().map((v) => +v.toFixed(2));   // (before projecting: the vector may be shared)
+      _p.copy(anchor).project(camera);
       const on = _p.z < 1 && Math.abs(_p.x) < 1.05 && Math.abs(_p.y) < 1.05;
       // (as data too, platform.js screen.prompt: where it floats, in the world)
       screen.set('prompt', on ? { text: rt.prompt, key: controller ? PAD.interact : 'E', at } : null);
@@ -437,7 +453,18 @@ export function createStory(o) {
         const words = hintsFor('words'), key = controller ? PAD.interact : 'E', text = words ? `${key} ${rt.prompt}` : key;
         // (the button as a round badge; native-pad.js renames it in place, it rewrites text nodes)
         if (promptEl.dataset.text !== text) { promptEl.dataset.text = text; promptEl.innerHTML = words ? `${keyBadge(key)}<span>${escapeHtml(rt.prompt)}</span>` : keyBadge(key); promptEl.classList.toggle('glyph', !words); }
-        promptEl.style.transform = `translate(${((_p.x * 0.5 + 0.5) * innerWidth).toFixed(1)}px, ${((-_p.y * 0.5 + 0.5) * innerHeight).toFixed(1)}px) translate(-50%, -100%)`;
+        const sx = (_p.x * 0.5 + 0.5) * innerWidth, sy = (-_p.y * 0.5 + 0.5) * innerHeight;
+        if (body) {
+          // (reading outward from the shoulder; flipped to the other side off the screen's edge, kept there a while)
+          if (promptEl.dataset.w !== text) { promptEl.dataset.w = text; rt._tagW = promptEl.offsetWidth; rt._tagH = promptEl.offsetHeight; }
+          const box = tagPlace(sx, sy, rt._tagW || 120, rt._tagH || 28, { w: innerWidth, h: innerHeight }, rt._tagSide ?? 1);
+          rt._tagSide = box.side;
+          promptEl.style.transform = `translate(${box.left.toFixed(1)}px, ${box.top.toFixed(1)}px)`;
+          promptEl.classList.add('beside');
+        } else {
+          promptEl.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px) translate(-50%, -100%)`;
+          promptEl.classList.remove('beside');
+        }
       }
       promptEl.classList.toggle('show', on);
     },
