@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_f40b5cb5337606 8
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_a3dfc9d4edaff1 145
+docs/systems/foes.md
+  s_9ca76055a220ed::t_51acea22f4cef2 218,226-230,242-261,268-276
+src/blade-grip.js
+  s_9ca76055a220ed::t_568aab76d06098 17-18,21-23,34-37,148-189
+src/blade-shader.js
+  s_9ca76055a220ed::t_37fef450bc4413 55-58,72-77,107-110,121,148-218,286,321-333,336
+src/boxes/model.js
+  s_9ca76055a220ed::t_94371e2960b2c5 4,290-291,294
+src/changelog-media.js
+  s_9ca76055a220ed::t_d2a441b460afab 764-765,809-818
+src/changelog.js
+  s_9ca76055a220ed::t_79880fd5080576 48-52
+src/fluid-blade.js
+  s_9ca76055a220ed::t_132f6f14d47001 415,740-742,746
+src/fluid-tool.js
+  s_9ca76055a220ed::t_ea06e6465b22e5 726-727
+src/hands.js
+  s_9ca76055a220ed::t_e57d35601a28da 124
+src/items.js
+  s_9ca76055a220ed::t_4f6293849f3e3f 39
+src/materials.js
+  s_9ca76055a220ed::t_10926ab63f1b80 3058
+src/shield.js
+  s_9ca76055a220ed::t_ef5d80e156eb56 4-6,8-19,26-28,30,39-40,42-45,124-126,128-153,195-248,250,255,258,261-268,270,273,275-276,278,280-282,284-286,289-290,296,298,300,302-305,307-310,312,316-317,330,333-338,340,345-359,362-371,373,377-383,389-390,397,401,406-411,415-417,437,442-443,448,454,479-482,484-485
+tests/blade-grip.test.js
+  s_9ca76055a220ed::t_5e1ee3c8e52078 4-5,84-90,116,121,147-155,170,177,179-181,200
+tests/item-reveals.test.js
+  s_9ca76055a220ed::t_83cdfd758cdfdd 38,41-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "60ae4501f62a76b1e45e08a6b51b5d435c539376",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
