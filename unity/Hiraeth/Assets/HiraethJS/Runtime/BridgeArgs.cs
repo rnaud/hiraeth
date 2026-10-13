@@ -174,6 +174,9 @@ namespace Hiraeth.Bridge
             if (Flag("-tour")) args["tour"] = true;
             // (-arrive: a plan's traveller at the foot of the ship's ramp, as a player arrives, not at the level's spawn under its hull)
             if (Flag("-arrive")) args["arrive"] = true;
+            // (-hull-spawn: a plan's traveller on the spot the ship covers, as the plans started before issue #254 moved
+            // the desert's spawn to the ramp's foot: to compare with numbers taken then, issue #265)
+            if (Flag("-hull-spawn")) args["hullSpawn"] = true;
             // (-no-title: straight into the world, as before the menus: engine/unity/game.js; a plan always is)
             if (Flag("-no-title")) args["noTitle"] = true;
             // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)

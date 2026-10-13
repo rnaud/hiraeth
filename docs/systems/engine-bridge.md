@@ -166,7 +166,11 @@ the same entries in the same order, moved through by the web's own rules, and `v
   what they handed over forgotten, the scene loaded again, the bridge started on its arguments with the
   script's `boot` choice), as the web opens a fresh page. The same save and world just resume.
 - A run with a plan (`-views`, `-talk`, `-walk`, `-tour`, `-idle`, `-play`) goes straight into its world as
-  before; `-no-title` does too, and `-arrive` puts a plan's traveller at the ramp.
+  before; `-no-title` does too, and `-arrive` puts a plan's traveller at the ramp. A plan without fixed views
+  starts at the level's spawn, as the web's `?level=` does: the ship moves a spawn it covers to the foot of its ramp
+  (`Ship.clearSpawn`: the desert's), so none starts under or inside it (tests/bench-start.test.js); `-hull-spawn`
+  starts it on the spot under the ramp the plans used until v1.62, to compare with numbers taken there (issue #265,
+  performance.md "The bench's desert start").
 
 BridgeMenu.cs lays the state out in the HUD's paper and ink (Ui.cs): the title's name over its entries on the
 page; a sheet over the world dimmed for the others, the entry the pad is on in full ink on a cream band with

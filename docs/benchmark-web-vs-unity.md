@@ -321,7 +321,8 @@ the game and the page bridge itself, stops both apps between runs and after a st
 
 ## On the Xbox: WebView2 against the Unity bridge
 
-The Xbox Series X in Developer Mode (October 2026), the desert from the spawn, both apps set to **Game** (5 GB).
+The Xbox Series X in Developer Mode (October 2026), the desert from the spawn (most likely under the ship's ramp:
+see #265 and docs/systems/performance.md, "The bench's desert start"), both apps set to **Game** (5 GB).
 The web build: the WebView2 app (`rnaud.Hiraeth`, ANGLE → Direct3D 11, the Xbox preset). The Unity build: the engine
 bridge as a UWP app (`rnaud.HiraethUnity`, builds 1743 and 1751: IL2CPP x64, Direct3D 11, 1920 × 1080, the C# port's
 ink look), its JavaScript in Puerts' **QuickJS**, an interpreter, as Puerts has no V8 for UWP; WebView2 runs its

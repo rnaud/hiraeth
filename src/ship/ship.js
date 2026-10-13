@@ -451,10 +451,15 @@ export class Ship {
     return this.physics.rayDistance(new THREE.Vector3(p.x, p.y + 0.3, p.z), Y, SPAWN_HEADROOM) < SPAWN_HEADROOM;
   }
 
-  /** A level's spawn the ship covers goes to the foot of its ramp, facing out, the camera behind (issue #254). */
+  /**
+   * A level's spawn the ship covers goes to the foot of its ramp, facing out, the camera behind (issue #254). The spot
+   * it had is kept as `coveredSpawn`: the Unity bridge's `-hull-spawn` starts a bench plan there again, to compare with
+   * numbers taken before (issue #265).
+   */
   clearSpawn() {
     const L = this.level;
     if (!L.spawn || !this.covers(L.spawn)) return;
+    L.coveredSpawn = { pos: L.spawn.clone(), heading: L.spawnHeading ?? 0, camYaw: L.camYaw ?? null };
     const a = this.arrivalSpot();
     L.spawn.copy(a.pos);
     L.spawnHeading = a.heading;

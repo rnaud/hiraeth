@@ -194,7 +194,10 @@ checks the door, the ramp and the jets, and `tests/contact-audit.test.js` lands 
   (`arrivalSpot`), facing out, the camera behind. The desert's (8 m off the hatch) was under the ramp once
   the hull grew to 26 m (#195): a direct `?level=desert` or a debug save started him boxed in.
   `tests/route-spawn.test.js` builds every route world and checks its direct start and its arrival by
-  ship: out from under the ship, a walk of 5 m some way, the camera's arm out behind him.
+  ship: out from under the ship, a walk of 5 m some way, the camera's arm out behind him. The spot it moved
+  from is kept (`level.coveredSpawn`) for the Unity bridge's `-hull-spawn`, which starts a bench plan there to
+  compare with the numbers taken before (issue #265); tests/bench-start.test.js checks the engines' plans start at
+  the ramp's foot, tests/route-spawn.test.js every bench view and path clear of the ship.
 - **The desert crash**: the same site, dug in (the deck kept clear of the sand), its berm heaped against
   the hull's real outline, cream, coral and lavender plates along the furrow, one torn-off leg.
 - **The cinematics** (`src/ship/cinematics.js`, `homecoming.js`): the recordings' four angles are placed

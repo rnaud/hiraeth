@@ -177,7 +177,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, settings = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null } = {}) {
   const T = {};
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
   // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
@@ -477,9 +477,17 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     return { eye, q, fov: v.fov ?? 55, hidePlayer: v.hidePlayer ?? !v.player };
   }
   // where the traveller starts when the engine plays (not a bench's views): the save's place in this world (main.js
-  // "continue where you left off"), else at the foot of the ship's ramp, as arriving by ship (ship.arrivalSpot: the
-  // level's own spawn is the ship's landing, under its hull)
-  if (start?.pos && start.level === levelId && !level.keepSpawn) {
+  // "continue where you left off"), else at the foot of the ship's ramp, as arriving by ship (ship.arrivalSpot). A
+  // plan (-idle, -tour, -walk, -play) starts at the level's spawn, as the web's ?level= does: the ship has already moved
+  // a spawn it covers to the foot of its ramp (Ship.clearSpawn, issue #254: the desert's), so no plan starts under or
+  // inside it (tests/bench-start.test.js). `hullSpawn` (the bridge's -hull-spawn) puts him back on the spot the ship
+  // covers, as the plans started before #254, to compare with numbers taken then (issue #265).
+  if (hullSpawn && level.coveredSpawn) {
+    const c = level.coveredSpawn;
+    player.respawn(c.pos.clone());
+    player.heading = c.heading;
+    rig.yaw = c.camYaw ?? c.heading + Math.PI;
+  } else if (start?.pos && start.level === levelId && !level.keepSpawn) {
     const p = new THREE.Vector3(...start.pos);
     { const moved = level.settleSaved?.(p, physics); if (moved) p.copy(moved); }
     player.respawn(p);

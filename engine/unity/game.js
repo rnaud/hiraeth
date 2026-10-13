@@ -127,7 +127,7 @@ function launch(args, { start: from = null, arrive = false } = {}) {
   const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
   const menus = S.menus ?? null;
   createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
-    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive })
+    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn })
     .then((game) => {
       S.game = game;
       if (menus) {
@@ -217,7 +217,10 @@ function makePlan(args) {
   }
   if (args.idle) {
     // the spawn as it is, measured once the load's tail is over (-idle N -split: the Xbox's frame taken apart, with
-    // no command line there: LocalState\args.txt); the game goes on after it, nothing pinned, nothing pressed
+    // no command line there: LocalState\args.txt); the game goes on after it, nothing pinned, nothing pressed. The spawn
+    // is the level's, clear of the ship (Ship.clearSpawn: the desert's at the foot of the ramp); -hull-spawn the spot
+    // under the ramp the plans started on before (issue #265), to compare with the numbers taken there
+    // (docs/systems/performance.md, "The bench's desert start")
     steps.push({ kind: 'wait', frames: 120, secs: 3 }, { kind: 'measure', view: { name: 'spawn' }, secs: args.idle }, { kind: 'hold' });
   }
   if (!steps.length) return null;

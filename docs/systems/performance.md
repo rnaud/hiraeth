@@ -2041,7 +2041,7 @@ collector is under 1 % of the script's thread.
 ## The game's update on the Unity targets (issue #111, October 2026)
 
 With the mirror cut (round 7), the game's own update (engine/game.js `frame`, before `mirror.sync`) was the longest part
-of the script on both Unity targets: ~12.5 ms at the Xbox's desert spawn, ~15 ms in the Deck's City-Shaft crowd. The
+of the script on both Unity targets: ~12.5 ms at the Xbox's desert spawn (taken under the ship's ramp: see #265), ~15 ms in the Deck's City-Shaft crowd. The
 same JS runs in Node: the Unity bundle in a bare V8 context against a stand-in host (as tests/engine-unity.test.js), at
 the bench's views, `--cpu-prof`, gives the update's profile without a device; two bundles in one process, a frame of
 each in turn on the script thread's CPU clock (`process.threadCpuUsage`), compare a change with the Mac's load at 40-90.
@@ -2076,7 +2076,7 @@ before, against build 1969 = 4af906a1, the rigs, fires, pillars and trail; the c
 
 | view | script ms | frames at 33 ms | fps |
 |---|---|---|---|
-| desert spawn | 12.2 → **11.4** | 1-2 % → 0-1 % | 59.5 → 59.6 |
+| desert spawn (taken under the ship's ramp: see #265) | 12.2 → **11.4** | 1-2 % → 0-1 % | 59.5 → 59.6 |
 | City-Shaft rim | 15.7 → 15.9 | 36 % → 40 % | 44.6 → 44.5 |
 
 The City-Shaft's script is the crowd and the people there (the rigs' change is small there: its time is not the walks'
@@ -2094,11 +2094,11 @@ over the last 30 s of a 170 s run (`-level incal` for the rim; 1973 also `-mute`
 | view | fps | frames at 33 ms | script ms | cpu main ms | GPU ms |
 |---|---|---|---|---|---|
 | City-Shaft rim (spawn) | 44.5 → 44.7 | 40.7 % → 36.8 % | 15.9 → 14.5 | 13.2 → 12.7 | 15.9 → 15.8 |
-| desert spawn | 59.5 → 59.5 | 0-1 % → 0.5 % | 11.4 → 11.4 | – → 8.8 | – → 12.5 |
+| desert spawn (taken under the ship's ramp: see #265) | 59.5 → 59.5 | 0-1 % → 0.5 % | 11.4 → 11.4 | – → 8.8 | – → 12.5 |
 
 The rim's main thread (1973, ms a frame): the scripts' part 6.5 (the ops 1.7), URP before its first context 0.7, its
 contexts 4.9, after them 10.3; the main thread's wait on the script 1.7, FrameTimingManager's present wait 9.7, the
-render thread 3.4. The desert's: 4.1 (0.7), 1.0, 3.1, 8.5; wait 0.7, present 8.0, render thread 2.1.
+render thread 3.4. The desert's (taken under the ship's ramp: see #265): 4.1 (0.7), 1.0, 3.1, 8.5; wait 0.7, present 8.0, render thread 2.1.
 
 At the bench's views (`-views`, viewpoints-worlds.json, `-bench 6`; mean frame, p95, script, GPU):
 
@@ -2130,7 +2130,7 @@ the newer content).
 | | fps | frames at 33 ms | GPU ms | script ms | cpu main ms |
 |---|---|---|---|---|---|
 | City-Shaft rim (spawn) | 44.5 → **57.4** | 38.2 % → **4.7 %** | 15.8 → 13.8 | 15.3 → 14.4 | 13.0 → 12.9 |
-| desert spawn | 59.5 (1973) → 59.6 | 0.5 % → 1 % | 12.5 → 11.6 | 11.4 → 10.7 | 8.8 → 8.8 |
+| desert spawn (taken under the ship's ramp: see #265) | 59.5 (1973) → 59.6 | 0.5 % → 1 % | 12.5 → 11.6 | 11.4 → 10.7 | 8.8 → 8.8 |
 
 | view (`-bench 6`) | GPU ms | script ms | frame ms |
 |---|---|---|---|
@@ -2185,7 +2185,7 @@ cuts below have no switch, so they are in both (and v1.60-v1.61's content made t
 | | fps | frames at 33 ms | GPU ms | script ms | cpu main ms |
 |---|---|---|---|---|---|
 | City-Shaft rim (spawn) | 55.9 / 55.4 → **58.7 / 58.7** | 8.5 / 9.5 % → **3.3 / 2.5 %** | 14.0 → 14.1 | 14.9 → 13.2 | 13.5 → 10.0 |
-| desert spawn | 59.4 → 59.6 | 1.0 % → 0.7 % | 11.2 → 11.2 | 10.8 → 10.7 | 8.8 → 7.8 |
+| desert spawn (taken under the ship's ramp: see #265) | 59.4 → 59.6 | 1.0 % → 0.7 % | 11.2 → 11.2 | 10.8 → 10.7 | 8.8 → 7.8 |
 
 | view (`-bench 6`) | frame ms (median) | script ms | mirror ms | the main thread's wait on the overshirt, ms | GPU ms |
 |---|---|---|---|---|---|
@@ -2278,7 +2278,7 @@ before). The audio thread's PCM goes as the renderer's own view too (its `slice(
 | | fps | frames at 33 ms | frames from 38 ms (130 s) | V8 full collections | GPU ms | script ms | cpu main ms |
 |---|---|---|---|---|---|---|---|
 | City-Shaft rim (spawn) | 58.5 / 58.7 → **59.8 / 59.7** | 3.0 / 2.3 % → **1.2 / 0.7 %** | 36 / 38 → **1 / 3** | every 188 frames → one in ~6 300 | 14.4 → 14.1 | 13.3 → 12.9 | 10.2 → 9.7 |
-| desert spawn | 59.5 → 59.9 | 1.0 % → 0.2 % | 2 → 0 | every 171 frames → one in ~6 500 | 10.6 → 10.4 | 10.7 → 10.5 | 7.7 → 7.6 |
+| desert spawn (at the foot of the ramp, clear of the ship since v1.62: not the spot of the rows before, #265) | 59.5 → 59.9 | 1.0 % → 0.2 % | 2 → 0 | every 171 frames → one in ~6 500 | 10.6 → 10.4 | 10.7 → 10.5 | 7.7 → 7.6 |
 
 | view (`-bench 6`) | frame ms (median) | frame p95 ms | mirror ms | GPU ms |
 |---|---|---|---|---|
@@ -2566,3 +2566,37 @@ the run's artifact), `adb install -r`, then start it with `am start -n com.rnaud
 "'-mute -metrics -level incal -views <file on the device> -bench 6 -out <dir>'"` (scripts/bench/android-bridge.sh does
 the same for the bench's own player) and pull `unity-bench.json`; GeckoView:
 `node scripts/bench/android-worlds.mjs --serve dist --worlds desert,incal,bazaar --modes fixed --scale 0.75`.
+
+## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
+
+The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the
+menus) start the traveller at the level's spawn. In the desert that spot, 8 m off the hatch, was **under the ship's
+ramp** from 9f55e63f (the landing moved closer to Qanat, 2026-10-10 evening; the ramp's underside 0.56 m over the sand
+there) until 88221816 (v1.62, issue #254: `Ship.clearSpawn` moves a spawn the ship covers to the foot of its ramp, as
+the web's `?level=desert` now starts). Through those two days the traveller stood boxed in under the ramp with the
+camera pressed over his head, its view the ramp's underside and the ship's floor close up. Since v1.62 every plan
+starts where the web game does (tests/bench-start.test.js: the bundle in a bare V8 context starts the desert at the
+foot of the ramp; every world's start, and every view and path of the benches, clear of the ship,
+tests/route-spawn.test.js). `-hull-spawn` puts a plan back
+on the old spot (`level.coveredSpawn`), to compare a new number with one taken there.
+
+**Marked in place above** ("taken under the ship's ramp: see #265"): the Xbox's desert spawn rows from `-idle` on
+builds 1937, 1969, 1973 (and its main-thread split), 2027 (round one) and 2067 (round two, on v1.61). Round three's
+build 2086 (on v1.63) already starts at the foot of the ramp, so its desert row is not the same spot as the rows before
+it. Also from that window and that start, in other pages: docs/systems/xbox.md's Unity numbers at "the 1440p desert
+spawn" (Direct3D 12 against 11, the lean variants' 13.1 against 17.9 ms of GPU) and docs/benchmark-web-vs-unity.md's
+Xbox table (builds 1743 and 1751, most likely); the Retroid's cold and warm desert loads of round 6 (`?level=desert`,
+e7c21f7d), though a load's phases hardly depend on where the first frame looks.
+
+**Not affected**: every run at fixed views (`-views`, the web benches' `viewpoints.json` and `viewpoints-worlds.json`,
+which place the traveller themselves): the Steam Deck's desert spawn rows (rounds 6-8, web and Unity), the Retroid's
+Unity and GeckoView desert spawn (its installed-build column included), the Xbox's `-views -bench 6` tables. Their
+"spawn" view is the foot of the ramp as the ship stood before the landing moved (`viewpoints.mjs`), 60 m from where it
+stands now, never under it. And the City-Shaft's "rim (spawn)": its spawn is not near its ship.
+
+**Which way it leaned** (not measured again: the devices were busy). Under the ramp the frame is mostly the ramp's and
+the hull's undersides a metre from the lens: the same objects are sent (culling is by the frustum, not by what hides
+what), but far fewer pixels of sand, grass, Qanat and its people are shaded, and the composite's edges are few. So the
+GPU's ms were most likely lower than at the foot of the ramp, looking out at Qanat, and the script's about the same
+(the world runs the same whatever the camera sees). The Xbox's fps there sat at the 60 Hz cap (59.4-59.9), so the
+frames a second hardly move; the GPU and frame-time columns are the ones to read as optimistic.

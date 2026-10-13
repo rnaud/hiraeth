@@ -1,9 +1,12 @@
 // Issue #254: loading ?level=desert with the prologue done put the traveller under the ship's ramp (the desert's start,
-// 8 m out of the hull's centre, was covered once the ship grew to 26 m, #195): boxed in under a roof, the camera
-// pressed 0.7 m over his head, no way to walk. Every route world's start, a direct load (?level=<id>, a debug save's
-// start) and an arrival by ship (the foot of the ramp), is on open ground: out of the ship and from under it, free to
-// walk 5 m, the camera behind him with its arm out (the real Player and CameraRig through the real collision, as
-// tests/room-size.test.js probes the ship's rooms).
+// 8 m out of the hull's centre, under the ramp since the landing moved closer to Qanat on 2026-10-10, 9f55e63f, and
+// more so once the ship grew to 26 m, #195): boxed in under a roof, the camera pressed 0.7 m over his head, no way to
+// walk. Every route world's start, a direct load (?level=<id>, a debug save's start, the Unity bridge's bench plans:
+// tests/bench-start.test.js) and an arrival by ship (the foot of the ramp), is on open ground: out of the ship and from
+// under it, free to walk 5 m, the camera behind him with its arm out (the real Player and CameraRig through the real
+// collision, as tests/room-size.test.js probes the ship's rooms). Issue #265: and every bench view and path that places
+// the traveller (scripts/bench/viewpoints.json, viewpoints-worlds.json: the web's and the bridge's -views) places him
+// clear of the ship, the camera out of its hull.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -12,6 +15,7 @@ import { Player, CameraRig } from '../src/player.js';
 import { Ship, SPAWN_HEADROOM } from '../src/ship/ship.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
+import { readFileSync } from 'node:fs';
 
 globalThis.window ??= { addEventListener() {} };
 const dom = { addEventListener() {} };
@@ -57,9 +61,14 @@ function camera(physics, p, yaw, heading) {
   return { arm: cam.position.distanceTo(p.clone().add(V(0, 1.6, 0))), over: cam.position.y - p.y - 1.6, along: f.x * Math.sin(heading) + f.z * Math.cos(heading) };
 }
 
-function check(name, { level, physics, ship }, p, heading, yaw) {
+/** Out of the ship and from under its hull or ramp (Ship.covers). */
+function clearOfShip(name, { ship }, p) {
   assert.ok(!ship.isInside(ship.parked, p), `${name}: not inside the ship (${fmt(p)})`);
   assert.ok(!ship.covers(p), `${name}: not under the ship's hull or ramp (${fmt(p)})`);
+}
+
+function check(name, { level, physics, ship }, p, heading, yaw) {
+  clearOfShip(name, { ship }, p);
   const roof = physics.rayDistance(p.clone().add(V(0, 0.3, 0)), V(0, 1, 0), SPAWN_HEADROOM);
   assert.ok(!(roof < SPAWN_HEADROOM), `${name}: nothing ${(roof + 0.3).toFixed(2)} m over his head (${fmt(p)})`);
   const far = walkable(physics, level, p);
@@ -77,6 +86,23 @@ for (const id of ORDER) {
     // ?via=ship: the foot of the ramp, facing out, the camera behind (main.js)
     const a = ship.arrivalSpot();
     check(`${id} by ship`, W, a.pos, a.heading, a.heading + Math.PI);
+  });
+}
+
+// the benches' fixed views and paths (the web benches', and the Unity bridge's -views): the desert's are viewpoints.json's,
+// every other world's viewpoints-worlds.json's; a view or a path may pass under an awning or a gate, not under the ship
+const bench = (f) => JSON.parse(readFileSync(new URL(`../scripts/bench/${f}`, import.meta.url), 'utf8'));
+const DESERT = bench('viewpoints.json'), BENCH = { ...bench('viewpoints-worlds.json').worlds, desert: DESERT };
+for (const [id, { views = [], paths = [] }] of Object.entries(BENCH)) {
+  if (!buildableById(id)) continue;
+  test(`${id}: the benches' views and paths place the traveller clear of the ship, the camera out of its hull (issue #265)`, async () => {
+    const W = await world(id), { ship } = W;
+    for (const v of views) {
+      const eye = V(...v.eye);
+      assert.ok(!ship.isInside(ship.parked, eye), `${id} ${v.name}: the camera out of the ship (${fmt(eye)})`);
+      if (v.player) clearOfShip(`${id} ${v.name}`, W, V(...v.player));
+    }
+    for (const path of paths) for (const q of path.points ?? []) clearOfShip(`${id} path ${path.name}`, W, V(...q.p));
   });
 }
 
