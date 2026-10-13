@@ -23,7 +23,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
   for (const k of kinds) assert.ok(theme(k), `${k} has a card`);
   for (const k of ['game', 'combat', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'cinematics', 'quest', 'perf', 'zfight', 'shadow', 'motion', 'camera', 'procedural-animation']) assert.ok(THEME_ORDER.includes(k));
   assert.deepEqual(themes.map((t) => t.kind).filter((k) => THEME_ORDER.includes(k)), THEME_ORDER.filter((k) => kinds.includes(k)), 'in the dashboard\'s order');
-  assert.equal(theme('visual').latest.id, 'visual-v1.21');
+  assert.equal(theme('visual').latest.id, 'visual-v1.66');
   assert.equal(theme('game').latest.id, 'game-v1.59');
   assert.equal(theme('cinematics').latest.id, 'cinematics-v1.66');   // (the second full pass, issue #226; the v1.6 baseline stays in docs/systems/cinematics-qc.md)
   for (const t of themes) {
@@ -50,7 +50,7 @@ test('the change since the one before: overall, and each item since the last tim
   const lore = group('dialogue', 'Areas').rows.find((r) => r.label === 'Lore load');
   assert.deepEqual([lore.value, lore.from], [3.5, 4.5], 'an area compared with the review before (v1.66: the hosts\' names alike)');
   assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53, v1.57 and v1.66 left localisation unscored (out of scope)');
-  assert.equal(theme('visual').prev.id, 'visual-v1.4', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
+  assert.equal(theme('visual').prev.id, 'visual-v1.21', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
   for (const t of themes) for (let i = 1; i < t.history.length; i++) {
     const h = t.history[i], before = t.history.slice(0, i).reverse().find((x) => x.overall != null);
     if (h.overall != null && before) assert.ok(near(h.delta, h.overall - before.overall, 0.001), `${h.id}'s delta`);
@@ -76,7 +76,8 @@ test('the change since the one before: overall, and each item since the last tim
   // fewer findings is better: the visual audit's counts
   const vis = group('visual', 'Findings by severity');
   assert.equal(vis.better, 'lower');
-  assert.equal(vis.rows.find((r) => r.label === 'only when looking').delta, 1);
+  assert.equal(vis.rows.find((r) => r.label === 'only when looking').delta, -1);   // (v1.21: 3, v1.66: 2)
+  assert.equal(vis.rows.find((r) => r.label === 'look').delta, 5);
 
   // a renamed row is matched by its id aside, "(arzach2)"
   const now = [{ title: 'Temples', type: 'score', better: 'higher', rows: [{ ...itemKey('Belfry of the Founders (arzach2)'), label: 'x', value: 4 }] }];
@@ -123,8 +124,8 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   // (perf-v1.66: the Retroid and the Deck each a row, not measured; High's p95 and the loads over; shaders and build within)
   assert.deepEqual(perf.latest.theme.figure, { text: '2/6', sub: 'budgets over' });
   assert.deepEqual(group('perf', 'Budgets').rows.map((r) => r.status), ['unmeasured', 'unmeasured', 'over', 'over', 'ok', 'ok']);
-  assert.deepEqual(theme('visual').latest.theme.figure, { text: '7', sub: 'findings' });
-  assert.deepEqual(group('visual', 'Findings by severity').rows.map((r) => [r.label, r.value]), [['breaks the picture', 0], ['noticeable', 2], ['only when looking', 3], ['look', 2]]);
+  assert.deepEqual(theme('visual').latest.theme.figure, { text: '11', sub: 'findings' });
+  assert.deepEqual(group('visual', 'Findings by severity').rows.map((r) => [r.label, r.value]), [['breaks the picture', 0], ['noticeable', 2], ['only when looking', 2], ['look', 7]]);
   assert.deepEqual(theme('temple-visuals').latest.theme.figure, { text: '11/11', sub: 'temples' });
   // (v1.66, issue #226: the QC skills' first reports, each its own card: a figure from the headline's "N of M", the
   // creatures' review a score a walker)
