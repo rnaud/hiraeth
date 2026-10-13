@@ -232,6 +232,10 @@ their own: in the open the ground behind a jump or a dune cuts the arm by 3–4 
 bisection, snapped in where close in it eases), and the shop's are the look point's small kinks above. The C# port's
 rig (unity/) does not have the eased shove yet.
 
+**v1.66** (docs/audits/camera-v1.66.md, 2026-10-13): 13 of 15 green, the train's seven and the open desert among them;
+Qanat's shop red as above; the Arena's lock-on rough (1.7-2.0 cm, two runs); the Undertower's antechamber lock-on green
+in one run and red in the next (the lens tipped over his head in the corner by the door; issue #289).
+
 ## Small rooms: room to stand back, and a camera that settles (v1.59, issue #195; `ROOM_FIT`, `roomFit`, `ARM_OUT_GAP`)
 
 The author: "Most of the temple rooms are too small and so is the ship and it's interior. I want rooms to feel bigger so

@@ -22,6 +22,7 @@ import { inline, plain, splitRow, toHtml } from './markdown.js';
 export const KIND_NAMES = {
   game: 'Game', visual: 'Visual', combat: 'Combat', 'level-design': 'Level design', 'temple-design': 'Temple design',
   'temple-visuals': 'Temple visuals', dialogue: 'Dialogue', perf: 'Performance', 'ink-lines': 'Ink lines', cinematics: 'Cinematics QC', quest: 'Quest QC',
+  zfight: 'Z-fighting', shadow: 'Shadows in motion', motion: 'The traveller’s motion', camera: 'Camera', 'procedural-animation': 'Creature motion',
 };
 /** The kinds in the order the page lists them. */
 export const KIND_ORDER = Object.keys(KIND_NAMES);

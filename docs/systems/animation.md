@@ -755,6 +755,10 @@ foot a frame.
 lifted over a riser), the pivots (the feet cross for a few frames as the second foot steps round: 17 % of a standing
 pivot's frames) and the starts and stops at a run (29 cm, the stop's last step).
 
+**v1.66** (docs/audits/motion-v1.66.md, 2026-10-13): the node course exactly as above (11 of 15 red, 46 limits failed,
+slide p95 6.6 cm, pops 8.0 and jolts 6.4 a minute); matching 75 limits (76). In the game a held foot slips 5.8 cm in the
+Signal Market's street and the stop never settles there or in the Arena (issue #288).
+
 **Worlds tried and left out**: the City-Shaft. From its landing every way the script runs into a railing or a house
 within the sprint, and he climbs it.
 

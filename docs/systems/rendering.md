@@ -1240,6 +1240,15 @@ Foundry's cells' solid surfaces against their drawn ones, Qanat's walls (25 m² 
 giant's heart's floor and the keepers' stair, the Givers' Hearth's floor. The Warden's Well's 47 are nearly all on its
 tower's foot and crown outside, in the shaft.
 
+**v1.66, 2026-10-13** (docs/audits/zfight-v1.66.md; main → the audit's fixes): desert 29 → 29, incal 4148 → 4070, arzach
+16, glassdunes 12 → **2** (the city under the sand's walls 2 cm under its glass ceiling), buried 1707, edena 121 → **5**
+(the split meteor was the finder's own miss: a shell and its inside on one geometry, front and back side, now read as
+facing apart in `coplanarOverlaps`; the water stair's lips' ends 2 cm inside the walls, `LIP.gap`), spheres 34, perdide
+16, bazaar 576 → **151** (the screen lanes' motifs 1 and 2 cm off their screens, `MOTIF`), underwater 72, moonfoundry 266,
+spacecity 460: 7457 → 6828. Every temple at or under its baseline; six baselines lowered to the counts they had come
+down to. Left: issue #286 (the City Floating in Space's merged parts, the nameless merged tiles, the market in the air,
+the canyon street, the furrows).
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.
@@ -1309,3 +1318,10 @@ at a low sun, thin long shadows seen from 30–40 m fade out as the lookup widen
 12°: the props spot's leaks on High); the Handheld's balcony keeps 25 % of its contact probes lit (a 16 cm texel);
 the 2 cm fence and the 3 cm grate shimmer a little as the near window steps (sub-texel rasterisation, 0.04 % a frame).
 `tests/shadow-room.test.js`, `tests/shadow-qc.test.js`, `tests/shadows.test.js` (the hero map, `NEAR_CASCADE`).
+
+**v1.66, 2026-10-13** (main `0949c08a`, the Mac M4 Pro, headless Chrome on the GPU, a shared machine at load 6–70;
+High, Steam Deck and Handheld at 35° and 12°; docs/audits/shadow-v1.66.md): 52 of 60 spots green, his shadow as above
+on every preset (drawn 88–93 %, spill 12–17 %, gap 0–4 cm). The reds are the ones listed here: the poles' seams on
+High at 35° (10.7 %), the far props, arch and stair pops on High at 12°, the far props on the Deck at 12° (with 2.8 %
+of casters off screen, a quick turn by the boards), the balcony on Handheld at 35° (23 %), his spill by the poles and
+1.2 % off screen on the stair on Handheld at 12°.

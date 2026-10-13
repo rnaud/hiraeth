@@ -21,7 +21,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
   const kinds = [...new Set(reports.map((r) => r.kind))];
   assert.equal(themes.length, kinds.length);
   for (const k of kinds) assert.ok(theme(k), `${k} has a card`);
-  for (const k of ['game', 'combat', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'cinematics', 'quest', 'perf']) assert.ok(THEME_ORDER.includes(k));
+  for (const k of ['game', 'combat', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'cinematics', 'quest', 'perf', 'zfight', 'shadow', 'motion', 'camera', 'procedural-animation']) assert.ok(THEME_ORDER.includes(k));
   assert.deepEqual(themes.map((t) => t.kind).filter((k) => THEME_ORDER.includes(k)), THEME_ORDER.filter((k) => kinds.includes(k)), 'in the dashboard\'s order');
   assert.equal(theme('visual').latest.id, 'visual-v1.21');
   assert.equal(theme('game').latest.id, 'game-v1.59');
@@ -125,6 +125,17 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.deepEqual(theme('visual').latest.theme.figure, { text: '7', sub: 'findings' });
   assert.deepEqual(group('visual', 'Findings by severity').rows.map((r) => [r.label, r.value]), [['breaks the picture', 0], ['noticeable', 2], ['only when looking', 3], ['look', 2]]);
   assert.deepEqual(theme('temple-visuals').latest.theme.figure, { text: '11/11', sub: 'temples' });
+  // (v1.66, issue #226: the QC skills' first reports, each its own card: a figure from the headline's "N of M", the
+  // creatures' review a score a walker)
+  for (const k of ['zfight', 'shadow', 'motion', 'camera', 'procedural-animation']) assert.equal(theme(k).latest.version, '1.66', `${k}: its v1.66 report`);
+  assert.deepEqual(theme('zfight').latest.theme.figure, { text: '14/14', sub: 'temples' });
+  assert.deepEqual(theme('shadow').latest.theme.figure, { text: '52/60', sub: 'spots' });
+  assert.deepEqual(theme('camera').latest.theme.figure, { text: '13/15', sub: 'scenarios' });
+  assert.deepEqual(theme('motion').latest.theme.figure, { text: '4/15', sub: 'node' });
+  const walkers = group('procedural-animation', 'Items').rows;
+  assert.equal(walkers.length, 23, 'the 23 walkers');
+  assert.ok(near(avg(walkers.map((r) => r.value)), theme('procedural-animation').latest.overall), 'the overall the mean of the walkers');
+  assert.ok(walkers.some((r) => r.alt === 'keeper v1') && walkers.some((r) => r.alt === 'elder v1'), 'the Tripo skins by their ids');
   const cost = group('temple-visuals', 'Frame time').rows;
   assert.equal(cost.length, 8); assert.match(cost[0].text, /→ .* ms$/); assert.match(cost[0].label, /· High$/);
 
