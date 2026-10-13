@@ -1,0 +1,40 @@
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_958990d291a998 148-156
+src/player.js
+  s_9ca76055a220ed::t_e71f8a548d045d 2770,3539-3549
+tests/lock-room.test.js
+  s_40b28f44294804::t_899b23c4fc5f0b 110-122
+  s_9ca76055a220ed::t_dccc68a06ac1bb 4-6,11
+changelog.md
+  s_9ca76055a220ed::t_6ad15e14c493c5 7
+tests/route-spawn.test.js
+  s_9ca76055a220ed::t_b0a7c62fdfb3fd 90-114
+src/changelog-media.js
+  s_9ca76055a220ed::t_44236d83348418 776-780
+src/changelog.js
+  s_9ca76055a220ed::t_b90f676d760211 29-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2681d1f8333edd723c811aecf6cc18165a55cf04",
+  "prompts": {},
+  "sessions": {
+    "s_40b28f44294804": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a04a32f2c26abc2f4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
