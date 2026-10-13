@@ -1,0 +1,125 @@
+changelog.md
+  s_9ca76055a220ed::t_d21b8de23445bc 7
+docs/systems/ui.md
+  s_9ca76055a220ed::t_3d908b4412fad6 639-654
+index.html
+  s_9ca76055a220ed::t_d60b15fec68268 350-352,354-356,358-361,371,374,472-473
+src/bindings.js
+  s_9ca76055a220ed::t_73792196cab680 128
+src/boxes/index.js
+  s_9ca76055a220ed::t_3a54e4c0c934c4 293
+src/changelog-media.js
+  s_9ca76055a220ed::t_ea40d40f0bcd5e 777-779
+src/changelog.js
+  s_9ca76055a220ed::t_62208846b2196a 23
+src/edge.js
+  s_9ca76055a220ed::t_30091075be0f3a 40,44
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_40b05c78f91225 125,146,168,192,214,238,262,285,306,327,348,369,393,416,438,460,485,535,560,585
+src/foes.js
+  s_9ca76055a220ed::t_cea8a04c04f0d2 80,2127,2153,2513,2533,2601,2710
+src/gadgets/world.js
+  s_9ca76055a220ed::t_76116df0700293 299
+src/i18n/en.js
+  s_9ca76055a220ed::t_3a8a6283888d1c 297-301,509-512,514-515,522-523,526
+src/ink.js
+  s_9ca76055a220ed::t_2fcc26386d25a1 16-17,31
+src/levels/antennas.js
+  s_9ca76055a220ed::t_f9c23ffbf6ddad 107
+src/levels/arzach2.js
+  s_9ca76055a220ed::t_aadbd7575e2ada 82
+src/levels/buried.js
+  s_9ca76055a220ed::t_b54f005d66c84e 160
+src/levels/content.js
+  s_9ca76055a220ed::t_42eaa2e4b1605f 69,148,185,292
+src/levels/dismissed/hangar/content.js
+  s_9ca76055a220ed::t_12876d6f244ea4 10
+src/levels/dismissed/hangar/story.js
+  s_9ca76055a220ed::t_a14e07bf802d93 84
+src/levels/eclipse.js
+  s_9ca76055a220ed::t_21913260838b1a 61
+src/levels/fallen-ring.js
+  s_9ca76055a220ed::t_671ebf08be735d 88
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_26738d08844576 332
+src/levels/lantern.js
+  s_9ca76055a220ed::t_c1c97d29c1b994 227,259
+src/levels/mangrove.js
+  s_9ca76055a220ed::t_45cdc8dbc0febc 103
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_7d25d5ec589ce7 133
+src/levels/overnight-train.js
+  s_9ca76055a220ed::t_277f54476bee41 99
+src/levels/perdide.js
+  s_9ca76055a220ed::t_f3162777c6054b 200
+src/levels/salt-harbour.js
+  s_9ca76055a220ed::t_e4b4b375fd9633 93
+src/levels/space-city.js
+  s_9ca76055a220ed::t_9927238b9f4c41 90
+src/levels/spheres.js
+  s_9ca76055a220ed::t_4ea36d4bd501be 109
+src/levels/underside.js
+  s_9ca76055a220ed::t_d17175a4bb8f70 71
+src/levels/underwater.js
+  s_9ca76055a220ed::t_76cce80faa5fdc 148
+src/main.js
+  s_9ca76055a220ed::t_6bf1fe9cb931ed 741-742,1051,1093,1180,1684,1770,2292
+src/notice-pace.js
+  s_9ca76055a220ed::t_56d24da3ad50cd 1-45
+src/quest.js
+  s_9ca76055a220ed::t_1372de3d3070a3 198-199,291-292
+src/ship/cinema.js
+  s_9ca76055a220ed::t_e67f5bb82c1938 18-19,50-52,54,56-59,61,69,277,427-429,447-451,481
+src/story/arzach2.js
+  s_9ca76055a220ed::t_cf178cb918a0cf 249,292
+src/story/bazaar.js
+  s_9ca76055a220ed::t_90e40df2d3cde4 133,179
+src/story/buried.js
+  s_9ca76055a220ed::t_b964566d27c698 191
+src/story/desert-bike.js
+  s_9ca76055a220ed::t_684326534360ad 152-153
+src/story/desert-errands.js
+  s_9ca76055a220ed::t_12a4fe48f1498c 129-130,139,147,176,273
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_a3569faad00e12 60,68-69
+src/story/desert.js
+  s_9ca76055a220ed::t_c81c7be01a5587 394
+src/story/halfway.js
+  s_9ca76055a220ed::t_76bd301e32b857 154
+src/story/incal.js
+  s_9ca76055a220ed::t_4d8dd8928a7bce 204,214,227
+src/story/light-down.js
+  s_9ca76055a220ed::t_d8c6a2a97c0e7c 45,47
+src/story/perdide2.js
+  s_9ca76055a220ed::t_021c159be2fd7a 153,328,459
+src/story/terraces.js
+  s_9ca76055a220ed::t_6a430c3e5e4f0c 362
+tests/first-run.test.js
+  s_9ca76055a220ed::t_01a93094f87ba2 82-84
+tests/hint-level.test.js
+  s_9ca76055a220ed::t_3224fd5ed9c586 86
+tests/hint-lines.test.js
+  s_9ca76055a220ed::t_5349c22e6170aa 1-90
+tests/hints.test.js
+  s_9ca76055a220ed::t_2f4cec83ce0cb7 54-55,59
+tests/hud-cleanup.test.js
+  s_9ca76055a220ed::t_0342e54634e4ec 107,109
+tests/notice-pace.test.js
+  s_9ca76055a220ed::t_5ebc647adbe7f5 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5cc8227e9db0836b3fdc3474ca7680ac324e6554",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
