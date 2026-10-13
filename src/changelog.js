@@ -31,6 +31,8 @@ export const CHANGELOG = [
     // the foes' tells read again (combat-v1.61): the hound's pounce 0.8 -> 1.0 s with a coil and a snarl
     // (src/enemies/archetypes.js, src/enemies/plans/quadruped.js, src/foe-voices.js CUES; docs/systems/foes.md; issue #260)
     'The antler hound gives you longer to see its pounce coming: it crouches, then coils with its rump up and the smoke along its back standing on end, shivers and snarls before it leaps. It pounces a little less often too.',
+    // the makers' machine's quake told and rewarded (src/foes.js FOES.machine: ground, opens, stuck, cue; onParry 'chip'; issue #261)
+    'The makers’ machine in the temples is fairer to fight: the floor rumbles as it raises both arms for its ground slam, a jump clears the slam and its ring, and afterwards its claws stay stuck in the floor for a moment, when your cuts land double. A perfect parry of its one-armed swing knocks a plate off it.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;

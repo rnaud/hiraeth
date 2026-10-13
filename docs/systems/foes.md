@@ -414,8 +414,8 @@ What changed per family:
 | ink blot · lunge | 0.7 | ordinary (0.7) | squashes down, leans back |
 | ink blot · combo | 0.8 | ordinary (0.7) | a longer squash |
 | ink blot · again | 0.4 | chain (0.4) | (the combo’s second: straight on) |
-| makers’ machine · slam | 1.05 | heavy (0.95) | one arm high over its shoulder |
-| makers’ machine · quake | 1.35 | heavy (0.95) | both arms high, crouched low |
+| makers’ machine · slam | 1.05 | heavy (0.95) | one arm high over its shoulder (a perfect parry chips it, v1.63) |
+| makers’ machine · quake | 1.35 | heavy (0.95) | both arms high, crouched low, a rumble under the floor (v1.63: jump it; its claws stick after) |
 | spitting blot · lob | 1.25 | ordinary (0.7) | rears, the glob at its snout (lands on a mark); **landing mark** |
 | spitting blot · volley | 1.45 | ordinary (0.7) | rears; three globs (three marks); **landing mark** |
 | blot swarm · strike | 0.5 | light (0.5) | squashes down |
@@ -441,12 +441,18 @@ What changed per family:
 | shadow hound · step | 0.9 | light (0.5) | sinks into its own shadow pool |
 | shadow hound · bite | 0.55 | chain (0.4) | (behind you; the screen-edge marker) |
 
-### The tells read again (v1.63, combat-v1.61 #260)
+### The tells read again (v1.63, combat-v1.61 #260 #261 #258)
 
 - **The antler hound's pounce**, its most frequent blow, told for 0.8 s and was read a beat late (the evade had to
   come in its last 0.08–0.15 s). Now 1.0 s in two beats: the crouch (as before), then from half-way the **coil**
   (`quadruped.js`: the rump up, the smoke of its mane on end, a shiver) with a snarl (`cue: 'coil'`); its weight
   1.5 → 1.0, so it comes a little less often.
+- **The makers' machine** had two attacks and the fewest answers: its quake got through the guard at any lead and
+  nothing told or rewarded the jump. Now the quake rumbles under the floor as both arms rise (`cue: 'quake'`), takes
+  only feet on the floor (`ground`: a jump clears the slam round it as well as its ring), and its claws stay **stuck**
+  in the floor after it (`opens` 1.8 s, `stuck`: stunned, the stars over it, a cut lands double; `Foes.worldEvent`
+  'stuck' says "cut it now" once); the slam's perfect parry knocks a plate off (`onParry: 'chip'`). Met, it says:
+  guard the slam, jump the ring, cut it while it is stuck (`FOES.machine.note`, read by `Foes.meet`).
 - **An attack's `cue`** (`src/foe-voices.js` `CUES`, played by `src/audio.js` `foeWarn` over the rising warning,
   from a share of the wind-up): a second tell by ear for the body's second beat.
 

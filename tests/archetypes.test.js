@@ -808,3 +808,48 @@ test('batch 3: drops; each new move winds up at least its minimum, only the toad
     }
   }
 });
+
+test('the makers’ machine (v1.63, #261): a jump clears its quake, its claws stick in the floor after it (stunned: a cut double), a perfect parry chips its slam, and it says so once', () => {
+  clearTargets();
+  const quake = attackOf('machine', 'quake'), slam = attackOf('machine', 'slam');
+  assert.ok(quake.ground && quake.stuck && quake.opens > 1 && quake.cue === 'quake' && quake.tell && quake.counter, 'the quake: told, jumped, rewarded');
+  assert.equal(slam.onParry, 'chip');
+  // in the air, neither the slam round it nor its ring takes him
+  const P = player(v(0, 0, 1)), foes = world(P);
+  const m = foes.add('machine', v(0, 0, 0));
+  P.onGround = false;
+  assert.equal(foes.strike(m, quake), false, 'jumped: the quake passes under him');
+  P.onGround = true;
+  assert.equal(foes.strike(m, quake), true, 'on his feet it catches him');
+  // after the quake: stuck, stunned, a cut lands double
+  const M = new Foe('machine', v(), { rng: () => 0.5 }), ev = [];
+  M.atk = quake; M.state = 'strike';
+  M.next(quake, player(v(0, 0, 3)), ev);
+  assert.ok(M.stunned >= quake.opens - 1e-9 && M.reel === 'stuck' && ev.some((e) => e?.type === 'stuck'), 'its claws stuck in the floor');
+  const hp = M.hp;
+  M.hit('blade', v(0, 0, -1), { damage: 1 });
+  assert.equal(hp - M.hp, 2, 'a cut on it stuck lands double');
+  // a perfect parry of the slam knocks a plate off
+  const Q = player(v(0, 0, 1.5), { guard: () => 'perfect' }), F2 = world(Q);
+  const s = F2.add('machine', v(0, 0, 0)); s.heading = 0;
+  const h0 = s.hp;
+  F2.strike(s, slam);
+  assert.equal(s.hp, h0 - 1, 'a perfect parry chips it');
+  // the jump is told: when it is met, and the first time it sticks
+  const said = [];
+  const F3 = world(player(v(0, 0, 4)), { notice: (t) => said.push(t) });
+  const k = F3.add('machine', v(0, 0, 0));
+  F3.meet(k);
+  F3.worldEvent(k, { type: 'stuck' });
+  assert.ok(said.some((t) => /jump the ring/.test(t)), 'met: jump the ring');
+  assert.ok(said.some((t) => /stuck in the floor: cut it now/.test(t)), 'stuck: cut it now');
+  foes.dispose(); F2.dispose(); F3.dispose(); clearTargets();
+});
+
+test('the readable tells (v1.63, #260 #261): the hound’s pounce ≥ 0.95 s and coiled; the makers’ machine has four answers or more (combat counterplay 4)', async () => {
+  const { kindFacts, scoreKind } = await import('../scripts/combat-review/lib.mjs');
+  assert.ok(attackOf('hound', 'pounce').wind >= 0.95);
+  assert.equal(scoreKind(kindFacts('hound', FOES.hound), { windSeen: attackOf('hound', 'pounce').wind }).readability, 5, 'the hound reads 5 from its pounce');
+  const F = kindFacts('machine', FOES.machine);
+  assert.ok(scoreKind(F).counterplay >= 4, `the machine's counterplay ${scoreKind(F).counterplay} (${F.ways.join(', ')})`);
+});

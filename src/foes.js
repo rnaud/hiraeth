@@ -65,11 +65,19 @@ export const FOES = {
     name: 'makers’ machine', hp: 4, radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6, heavy: true, metal: true, breaks: true,
     tone: '#e0703a', sound: 'machine', takes: { shoot: 0, fire: 0 },
     attacks: [
-      { id: 'slam', shape: 'cone', range: 3.3, angle: 0.8, damage: 1, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7, weight: 1.6 },
-      // the ground slam: both arms high, crouched, a longer hold; then a ring of shock runs out over the floor (jump it)
-      { id: 'quake', shape: 'ring', at: 'self', radius: 2.0, damage: 0.75, wind: 1.35, strike: 0.3, contact: 0.6, knock: 6, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } },
+      // the slam: one arm high over its shoulder; a perfect parry knocks a plate off it (onParry 'chip', v1.63 #261)
+      { id: 'slam', shape: 'cone', range: 3.3, angle: 0.8, damage: 1, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7, weight: 1.6, onParry: 'chip',
+        tell: 'one arm swings high over its shoulder, its glyph burning orange', counter: 'guard; a perfect parry knocks a plate off' },
+      // the ground slam: both arms high, crouched, a longer hold, a rumble under the floor (cue); then a ring of shock runs
+      // out over the floor. The guard never held it, and until v1.63 nothing told or rewarded the jump (#261): only feet
+      // on the floor take it now (ground: a jump clears the slam as it clears the ring), and its claws stay stuck in the
+      // floor after it (opens, stuck: stunned, the stars over it, a cut lands double)
+      { id: 'quake', shape: 'ring', at: 'self', radius: 2.0, damage: 0.75, wind: 1.35, strike: 0.3, contact: 0.6, knock: 6, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 },
+        ground: true, opens: 1.8, stuck: true, cue: 'quake',
+        tell: 'both arms rise high, it crouches on its legs and the floor rumbles', counter: 'jump the ring it sends out, then cut it while its claws are stuck' },
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
+    note: 'A makers’ machine: guard its slam. When both arms rise high, jump the ring it sends out, then cut it while its claws are stuck.',
   },
   ...KINDS,   // the old kinds, stand-ins for archetypes not built yet (src/foe-kinds.js)
   ...ARCHETYPE_KINDS,   // the built archetypes (src/enemies/archetypes.js): batches 1-3
@@ -521,6 +529,7 @@ export class Foe {
     if (a.leap) { this.alt = 0; this.leapFrom = null; }                       // (down from its leap)
     this.state = 'recover'; this.timer = a.recover ?? this.def.recover; this.k = 0; this.reel = null;
     if (a.opens) { this.open = a.opens; this.timer = Math.max(this.timer, a.opens); }   // (the bell's drop: it tips up open toward you)
+    if (a.stuck) { this.stunned = Math.max(this.stunned, a.opens ?? 1.5); this.reel = 'stuck'; ev.push({ type: 'stuck' }); }   // (the machine's claws stuck in the floor after its quake: v1.63 #261)
   }
   /** Its last roll ends (attack.shatter): it breaks in a ring of pearl that runs out over the ground (Foes: 'shatter'). */
   shatter(a, ev) {
@@ -2100,6 +2109,11 @@ export class Foes {
     if (e.type === 'frosted') { s?.chime?.(); this.animKit(f, 0, {}).dust(f.chest, '#dff4ff', 10, 0.6); return; }   // (a stilled crystal's frost: held, eyes pale)
     if (e.type === 'bounced') { worldSnd.thud(s, 0.6); this.sparks(f, f.chest); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 8, 0.8); return; }   // (a roller off a wall, back at you)
     if (e.type === 'stalled') { worldSnd.thud(s, 0.9); kick(0.15); this.sparks(f, f.chest); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 12, 1); return; }   // (a cart's ram stopped by a wall)
+    if (e.type === 'stuck') {   // (the machine's claws stuck in the floor after its quake, v1.63 #261: grit, a grinding, the tip once)
+      worldSnd.thud(s, 0.5); this.sparks(f, f.chest); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 10, 0.9);
+      if (!this.game.flag('foes.stuck') && hintsFor('tip')) { this.game.set('foes.stuck', true); this.notice?.('Its claws are stuck in the floor: cut it now.'); }
+      return;
+    }
     if (e.type === 'hop') { worldSnd.thud(s, e.how === 'drop' ? 0.35 : 0.2); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5); return; }   // (up or down a ledge: a soft landing)
     if (e.knocked) { this.knockedOff(f, e); return; }
     let info = null;
@@ -2862,7 +2876,7 @@ export class Foes {
 
   /** The first time each kind comes for you: what it is and how to beat it, once (NOTES, src/foe-kinds.js; the archetypes', src/enemies/archetypes.js). */
   meet(f) {
-    const note = ARCHETYPE_NOTES[f.kind] ?? NOTES[f.kind];
+    const note = ARCHETYPE_NOTES[f.kind] ?? NOTES[f.kind] ?? f.def.note;
     if (!note || this.own || !hintsFor('tip')) return;   // (how to beat it: hints full only; subtle, the foe's tells teach it: src/hint-level.js)
     const id = `foes.met.${f.kind}`;
     if (this.game.flag(id)) return;
@@ -2953,10 +2967,12 @@ export class Foes {
       const o = M.rig.update(f, dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery, air: f.alt > 0.05 ? 1 : 0 });
       // the slam: one arm high over its shoulder; the quake: both arms high, crouched low on its legs
       const quake = (f.atk ?? f.def.attack).id === 'quake';
+      // after the quake, its claws stuck in the floor (attack.stuck): sunk low on its legs, both arms down in the cracks
+      const stuck = quake && f.reel === 'stuck' && f.stunned > 0 ? Math.min(1, f.stunned / 0.3) : 0;
       const arm = wind ? -2.6 * wind : strike ? THREE.MathUtils.lerp(-2.6, -0.45, release) : -0.45 * recovery;
-      M.arms[0].rotation.x = arm; M.arms[1].rotation.x = quake || !wind ? arm * 0.85 : -0.3 * wind;
+      M.arms[0].rotation.x = THREE.MathUtils.lerp(arm, -0.25, stuck); M.arms[1].rotation.x = THREE.MathUtils.lerp(quake || !wind ? arm * 0.85 : -0.3 * wind, -0.25, stuck);
       M.body.rotation.y = wind * 0.3 + (strike ? 0.3 * (1 - release) : 0);
-      M.hull.position.set(o.x, o.y - (quake && wind ? 0.22 * wind : 0), o.z);
+      M.hull.position.set(o.x, o.y - (quake && wind ? 0.22 * wind : 0) - 0.42 * stuck, o.z);
       M.hull.rotation.set(o.pitch - wind * 0.1 + (strike ? release * 0.2 : recovery * 0.2), o.yaw, o.roll);
       g.position.y += f.alt;   // (alt: held up off its feet by the magnet glove, src/gadgets/magnet.js)
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f0a04b' : f.stunned > 0 ? '#bfe9ff' : '#70e7df');
