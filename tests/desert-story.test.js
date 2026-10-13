@@ -639,7 +639,19 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   assert.equal(Q.city.lit, 0);
   const sm = Q.city.smoke, warm = coolness(sm);
   const setIt = bestInteractable(player);
-  assert.equal(setIt?.entry.id, 'roots.stone');
+  assert.equal(setIt?.entry.id, 'roots', 'the roots’ one prompt (issue #238)');
+  // (issue #238: two prompts a step apart in front of the tree, one taking the press meant for the other) one thing to
+  // use at the roots, wherever you stand round them (people walking by aside)
+  for (const [dx, dz] of [[0, 0], [1.2, 0], [-1.2, 0], [0, -1.4], [0, 1]]) {
+    player.pos.copy(Q.city.rootsLook).add(new THREE.Vector3(dx, 0, dz));
+    const here = INTERACT.allInteractables().filter((x) => !x.id?.startsWith('talk.') && x.enabled() && x.distance(player) <= x.range);
+    assert.deepEqual(here.map((x) => x.id), ['roots'], `one thing to use at the roots (${dx}, ${dz})`);
+    // and Hessa, sweeping right beside them, doesn't take the press meant for the stone
+    const hessa = rt.world.people.hessa;
+    if (hessa) hessa.pos.copy(player.pos).add(V(0.8, 0, 0.4));
+    assert.equal(bestInteractable(player)?.entry.id, 'roots', `the stone’s prompt wins at the roots (${dx}, ${dz})`);
+  }
+  at(Q.city.rootsLook); step(1);
   assert.equal(promptOf(setIt), 'set the spark-stone in the roots');
   setIt.entry.use(player);
   step(8);

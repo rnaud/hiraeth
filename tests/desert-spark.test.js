@@ -126,7 +126,7 @@ test('the cold tree: no burn, ember mode only hisses on it, and the roots refuse
   // a stone in dry roots: no
   player.pos.copy(Q.city.rootsLook);
   const e = bestInteractable(player);
-  assert.equal(e?.entry.id, 'roots.stone');
+  assert.equal(e?.entry.id, 'roots', 'one prompt at the roots (issue #238)');
   e.entry.use(player);
   assert.equal(game.flag('desert.tree.lit'), undefined);
   assert.ok(toasts.at(-1).includes('The roots are dry'));

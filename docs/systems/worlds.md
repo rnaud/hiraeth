@@ -857,7 +857,7 @@ The author, issue #161: "we can remove the well as well, it's not super interest
 round well (and its hidden water, `wellWater`) and the carved stele are gone from the square, with their colliders. What
 used the well uses the roots instead: the bare bark at the trunk's foot toward the avenue, where no fin stands
 (`city.roots`, knee high on the bark, and `city.rootsLook`, the square 2.6 m out from it, where the quest's marker, the
-`roots` thing and the `roots.stone` prompt are). The water climbs the roots while you watch (`rise`), and the spark-stone
+`roots` thing is: since issue #238 also what sets the spark-stone, the `roots.stone` prompt on the bark gone). The water climbs the roots while you watch (`rise`), and the spark-stone
 is set in them (`light`); the flags keep their names (`desert.well.seen`, `desert.well.watched`). Hessa is the tree's
 keeper and sweeps round its foot between the dais's clearing and the fins on the right; the villager's clue about the
 well's kneeling figures is the roots running toward the back gate. The Unity export's places are `roots` / `rootsLook`.

@@ -331,7 +331,20 @@ export function setupDesert(ctx) {
     use: use ?? (() => dialogue.start(def, null, at, look)),
   });
   // (asked from the square in front of them, city.rootsLook; he turns to the bark itself, not to the spot he was asked from)
-  thing(THINGS.roots, city.rootsLook, { range: 3.4, prompt: 'look at the roots', look: city.roots });
+  // (one prompt at the roots, whatever the step: with the spark-stone in your pack it sets it, the water up, or says the
+  //  roots are dry; else it looks at them. Until issue #238 the stone had its own entry on the bark beside this one, two
+  //  prompts a step apart in front of the tree, and the look could win the press meant for the stone)
+  const stoneHere = () => quests.has('stone') && !lit();
+  thing(THINGS.roots, city.rootsLook, { range: 3.6, look: city.roots,
+    prompt: () => (stoneHere() && open() ? 'set the spark-stone in the roots' : 'look at the roots'),
+    use: () => {
+      if (!stoneHere()) return dialogue.start(THINGS.roots, null, city.rootsLook, city.roots);
+      if (open()) setStone(); else toast('The roots are dry: the stone would only lie in the dust. The water must come up first.');
+    } });
+  // (and with the stone to set, it is the press at the roots: over Hessa, who sweeps right beside them, the second prompt
+  //  there that took the press meant for the stone)
+  const rootsEntry = allInteractables().find((e) => e.id === THINGS.roots.id);
+  if (rootsEntry) Object.defineProperty(rootsEntry, 'priority', { get: () => (stoneHere() ? PRIORITY.use + 1 : PRIORITY.use) });
   // (no look at the giant's brow before its mouth: the only prompt there was one more button that added nothing, issue #155)
   thing(THINGS.mural, cave.mural.clone().setY(cave.origin.y), { range: 4, prompt: 'look at the mural', look: cave.local(-17.5, 3.2, 20.5) });
   // the little mask in the masked head's chamber (src/levels/desert.js maskRooms), and the salvager's slate at the crashed hull
@@ -864,10 +877,6 @@ export function setupDesert(ctx) {
     sound.chime?.();
     toast('You set the spark-stone in the wet roots. The living water draws it in, glowing…');
   };
-  registerInteractable({ id: 'roots.stone', priority: PRIORITY.use + 1, range: 3.6, at: () => city.roots, enabled: () => quests.has('stone') && !lit(),
-    prompt: () => (open() ? 'set the spark-stone in the roots' : 'look at the dry roots'),
-    distance: (p) => (Math.abs(p.pos.y - city.roots.y) < 4 ? flat(p.pos, city.roots) : Infinity),
-    use: () => { if (open()) setStone(); else toast('The roots are dry: the stone would only lie in the dust. The water must come up first.'); } });
   const updateLighting = (dt) => {
     if (lighting.t < 0) return;
     lighting.t += dt;

@@ -46,6 +46,10 @@ export const CHANGELOG = [
     // the conversations' gestures in the engines: public/anim/gestures.glb attached to the clip library (engine/game.js,
     // src/motion-match.js attachMotion; -js-off gestures without), the traveller's locoMoves off (no moves.glb there); issues #197, #264
     'In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.',
+    // one prompt at the tree's roots for the spark-stone, over Hessa's (src/story/desert.js: the roots' thing does it all,
+    // its priority above talk while the stone is in your pack; the 'roots.stone' entry gone; issue #238)
+    { text: 'Fixed: coming back to Qanat’s tree with the spark-stone, there are no longer two prompts in front of the roots, one of them the wrong one. There is one, and it sets the stone, even with Hessa sweeping right beside you.',
+      see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and walk up to the bare roots on the avenue’s side of the tree: one prompt, “set the spark-stone in the roots”, wherever you stand round them.' },
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

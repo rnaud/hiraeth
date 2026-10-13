@@ -516,10 +516,16 @@ catches**), the ship.
   into your pack: nothing floats about you (players: "it should go in my inventory"); the
   sketchbook's Gear section lists the quest items you carry under "In your pack"
   (`quests.carried()`, `gearHtml({ carried })`), and so does the menu's Quests page; in the dark
-  hall it glows a little through the pack. E at the roots (`roots.stone`) takes it out into your hand and into
+  hall it glows a little through the pack. E at the roots (the `roots` thing, its one prompt there: issue #238 below) takes it out into your hand and into
   the wet roots: it sinks in, a spark climbs the outside of the trunk, and the fire catches over six seconds in the
   cool colours (`desert.tree.lit`; the procession sings, the bands feast). The ship only takes
   the jar's water once the tree burns.
+- **One prompt at the roots** (issue #238: "there are two markers in front of the tree, so one triggers the wrong one"):
+  the stone had its own entry on the bark (`roots.stone`) a step from the look at the roots (`roots`, on the square where
+  the quest's marker is), so the two prompts took turns as you came up, and Hessa, sweeping right beside them, was a
+  third. Now the `roots` thing does it all: with the stone in your pack it sets it (the water up) or says the roots are
+  dry, else it looks at them; while the stone is to set its priority is over talk (`PRIORITY.use + 1`), so the press there
+  is the stone's. `tests/desert-story.test.js` stands round the roots with Hessa at his elbow: one thing to use, and it wins.
 - **Old saves** (`migrateDesertQuest`, `desert.quest.v` 3, now 4: see below): a save whose water had already
   risen (channel open, ship fed, or done) saw the tree burn: `desert.tree.lit` is set and the
   errand's stages (`SPARK_STAGES`) are skipped straight to the ship. Others find the tree cold
