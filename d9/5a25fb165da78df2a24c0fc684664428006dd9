@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_81509ee1440d39 11
+docs/systems/ui.md
+  s_9ca76055a220ed::t_b2d233ea15f525 123-130
+src/story/index.js
+  s_9ca76055a220ed::t_b8bd768872a0da 25,114,207-210,282-284,433,437-447,456-467
+src/talk-prompt.js
+  s_9ca76055a220ed::t_c5bf5a75de2ae7 1-79
+tests/talk-prompt.test.js
+  s_9ca76055a220ed::t_e8fdb13aea3ef8 1-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d95a25fb165da78df2a24c0fc684664428006dd9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
