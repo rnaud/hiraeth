@@ -446,7 +446,9 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
 - **Ladders are free** (issue #252). A level lists its ladders as upright lines
   (`level.ladders`: `[{ x, z, y0, y1, r? }]`, read into `physics.ladders`); `physics.onLadder(p)`
   says whether a climber is on one, and `updateClimb` spends nothing there (and does not let go
-  winded); a winded traveller still takes hold of a ladder. Listed: the Overnight Train's porch
+  winded); a winded traveller still takes hold of a ladder. On a ladder the wall's normal is held
+  upright (the rungs' round faces read as an overhang before, and the climb let go at the first
+  rung: the train's porch ladders could not be climbed at all). Listed: the Overnight Train's porch
   ladders (`porch().ladder`), the Moon Foundry's cage ladders up its pillars (`pillar().ladders`),
   the Bazaar's antenna mast rungs (`market-air.js` `ladders`). Walls cost what they did.
 - **The stamina wheel** (`#stamina` in index.html, `updateStamina` in main.js): a small inked ring

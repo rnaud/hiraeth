@@ -47,3 +47,23 @@ test('the train porches and the foundry pillars say where their ladders are', ()
   assert.equal(F.ladders.length, 1);
   assert.ok(Math.hypot(F.ladders[0].x, F.ladders[0].z) > 3);
 });
+
+test('the Overnight Train: up a porch ladder to the roof walk, its rungs held as a ladder, the stamina full all the way', async () => {
+  await import('./register-gadgets.js');
+  const { LEVELS } = await import('../src/levels/index.js');
+  const quiet = (f) => { const w = console.warn, i = console.info; console.warn = console.info = () => {}; try { return f(); } finally { console.warn = w; console.info = i; } };
+  const scene = new THREE.Scene(), level = quiet(() => LEVELS.find((l) => l.id === 'overnighttrain').create(scene));
+  const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
+  quiet(() => level.init?.(physics));
+  physics.ladders = level.ladders;   // (as main.js)
+  assert.ok(level.ladders.length >= 8, `${level.ladders.length} porch ladders`);
+  const l = level.ladders[0];
+  // on the porch, in front of the ladder, walking into it
+  const p = new Player(physics, { spawn: new THREE.Vector3(l.x + 0.75, l.y0, l.z), climb: true });
+  p.pos.set(l.x + 0.75, l.y0, l.z);
+  let held = 0, maxY = 0;
+  for (let k = 0; k < 360; k++) { p.update(1 / 60, { KeyW: true }, Math.atan2(1, 0)); if (p.climbing && p.onLadder) held++; maxY = Math.max(maxY, p.pos.y); }
+  assert.ok(held > 60, `held on the ladder (${held} frames)`);
+  assert.ok(maxY > l.y1 - 0.2, `up to the roof walk (${maxY.toFixed(2)} of ${l.y1.toFixed(2)})`);
+  assert.equal(p.stamina, 1, 'not a breath of stamina spent');
+});

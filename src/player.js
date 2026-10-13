@@ -2087,6 +2087,8 @@ export class Player {
     // the wall ended (a ledge) or leans back into a slope: pull up onto it
     if (!hit) { if (f >= 0 && this.tryMantle(U, into)) return; this.stopClimb(false); return; }
     n.copy(hit.normal);
+    // (on a ladder its rungs' round faces are neither an overhang nor a slope: held to the ladder's upright way, issue #252)
+    if (this.physics.onLadder?.(this.pos)) { const up = n.dot(U); if (Math.abs(up) < 0.95) n.addScaledVector(U, -up).normalize(); }
     if (n.dot(U) > 0.55) { if (!this.tryMantle(U, into)) this.stopClimb(true); return; }
     if (n.dot(U) < -0.6) { this.stopClimb(false); return; }                // an overhang
     // stick to the wall
