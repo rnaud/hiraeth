@@ -213,6 +213,15 @@ alternate skin, add the chosen sheet-1 as a reference (the prompt's `[sheet-1 im
 dropped and the page reminds you): the providers that take references keep the body. Any other folder under
 `references/` works as a target the same way.
 
+When the drawing has to match a body the game already builds (a guardian turnaround for Tripo), give it renders of
+that body as the base: `node scripts/guardian-renders.mjs --out <dir> [--ids listener,last-founder,anchor-warden]`
+draws each in-game model (its builder in `src/temples/`, held in its rest pose) through the character studio's
+pipeline and ink pass on flat paper, lit from beside the camera, four views in one row at one scale (front,
+three-quarter, side facing left, back), on its own vite port (5881) and a muted headless Chrome. The sheet goes to
+`references/guardians/<id>/game-render.jpg` and is passed as `--refs`; the prompt (`#<id>/v3` in
+`docs/design/guardian-turnaround-prompts.md`) says to follow the image where the words disagree. The providers
+then keep the part counts and sides, and copy the render's lighting too: keep its light flat.
+
 ## Providers in detail (docs checked 2026-10-09)
 
 Each module's header records its endpoints, models and the docs read. In short:
