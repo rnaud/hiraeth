@@ -1,0 +1,55 @@
+changelog.md
+  s_9ca76055a220ed::t_da06aebc8748f2 7
+docs/systems/ui.md
+  s_9ca76055a220ed::t_bbc427ea339bcb 676-679,683,685,696-702
+index.html
+  s_9ca76055a220ed::t_e1c2d6dfe5bb94 115,124,239,382,385,390-391
+src/boxes/card.js
+  s_9ca76055a220ed::t_2d412a41631d09 22,24
+src/changelog.js
+  s_9ca76055a220ed::t_a62757d683dd8c 18
+src/dev-menu.js
+  s_9ca76055a220ed::t_06cd58017cc20a 18
+src/game-menu.css
+  s_9ca76055a220ed::t_18a773b6cd362c 35,180,322-323,346
+src/levels/arcade-board.js
+  s_9ca76055a220ed::t_eb35720ef1f7e0 26
+src/menus.css
+  s_9ca76055a220ed::t_d4573f1d39f9e8 182
+src/minigames/fishing.js
+  s_9ca76055a220ed::t_b29c962d5051b1 469,489,493
+src/minigames/kit/minigames.css
+  s_9ca76055a220ed::t_969aebf399a8dd 9,16,18,33,48,60-61,103
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_5d40a5048d7f70 393,396
+src/minigames/sketchhunt.js
+  s_9ca76055a220ed::t_139c9ae62a2f2f 113,141,156-157
+src/ship/cinema.js
+  s_9ca76055a220ed::t_388a33d4476c4d 201,296
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_78317665773f03 26,363-364,674-676,683
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_77429f15673417 730-732
+src/shop-panel.css
+  s_9ca76055a220ed::t_dd5b85b94c0b01 9,36,45-46
+src/story/charge.js
+  s_9ca76055a220ed::t_9ce6715fc042fb 94-96,107,110,114,120,123-125,138-141
+tests/no-slant.test.js
+  s_9ca76055a220ed::t_c068b7d9585451 1-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bfff83a5ad7a14058cc768d26a116ce1bd240efd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
