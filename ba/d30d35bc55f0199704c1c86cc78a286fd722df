@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_a337853bbdde1e 16
+scripts/zfight/lib.mjs
+  s_9ca76055a220ed::t_a2c51b3fedb275 128-131,162
+src/glass-dunes-city.js
+  s_9ca76055a220ed::t_08f71aeb86a802 234-235
+src/market-lanes.js
+  s_9ca76055a220ed::t_720ce4c7cf4cac 24-26,75,77-78,80-81,83-84,88-91,134-135,137
+src/viridel-stair.js
+  s_9ca76055a220ed::t_0b2bbcfe8b39d2 95,165-169
+tests/zfight.test.js
+  s_9ca76055a220ed::t_3ea5ae5001daa4 24-26,28,48-55
+src/changelog.js
+  s_f37275063ab60b::t_d3dc91c28d0e43 12-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bad30d35bc55f0199704c1c86cc78a286fd722df",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_f37275063ab60b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aeefa4c9eed1792f6",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
