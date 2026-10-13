@@ -50,6 +50,10 @@ export const CHANGELOG = [
     // its priority above talk while the stone is in your pack; the 'roots.stone' entry gone; issue #238)
     { text: 'Fixed: coming back to Qanat’s tree with the spark-stone, there are no longer two prompts in front of the roots, one of them the wrong one. There is one, and it sets the stone, even with Hessa sweeping right beside you.',
       see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and walk up to the bare roots on the avenue’s side of the tree: one prompt, “set the spark-stone in the roots”, wherever you stand round them.' },
+    // the wildlife keeps off the parked ship, its ramp and the ground round them (src/ship/ship.js keepsOff, src/wildlife.js
+    // keepOff and a refused step taken back; docs/systems/living-world.md "Off the ship"; issue #246)
+    { text: 'Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.',
+      see: 'In the Desert, stand by your ship’s ramp a while, or chase the creatures near it: they go round the ship, never onto it.' },
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

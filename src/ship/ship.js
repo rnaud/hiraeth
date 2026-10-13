@@ -2,7 +2,7 @@ import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp, DETAIL_FAR } from './model.js';
-import { R, DECK, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt } from './hull.js';
+import { R, DECK, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt, HALF_W, NOSE_Z, STERN_Z } from './hull.js';
 import { polar } from './geo.js';
 import { CONSOLE_R, TABLE_R, ROOMS, inRooms, cockpitHalf } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
@@ -53,6 +53,11 @@ const Y = new THREE.Vector3(0, 1, 0);
 const SPACE_Y = 2600;
 /** The headroom a spawn needs under the ship (m over its feet, from 0.3 m up): the ramp's underside, the belly. */
 export const SPAWN_HEADROOM = 3;
+/** m round the parked ship's footprint and either side of its ramp that the wildlife keeps off (Ship.keepsOff, issue #246). */
+export const KEEP_OFF = 1.5;
+/** Half the ramp's width (m): the hatch's opening it slides out of. */
+const RAMP_HALF_W = (HATCH.z1 - HATCH.z0) / 2 + 0.2;
+const _ko = new THREE.Vector3();
 const DOOR_POP = 0.14;       // m the door comes out of its frame before it slides
 const DOOR_TRAVEL = HATCH.z1 - HATCH.z0 + 0.25;   // m forward along the hull: clear of the opening (1.5 for the 1.3 m hatch)
 const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
@@ -171,6 +176,7 @@ export class Ship {
     model.group.quaternion.copy(q);
     this.scene.add(model.group);
     this.parked = model;
+    this._restQi = q.clone().invert();   // (where it rests: Ship.keepsOff)
     this.addHoloTable(model);
     this.rampFoot = foot.clone().addScaledVector(out, 1.6);
     this.rampFoot.y = this.groundAt(this.rampFoot.x, this.rampFoot.z, foot.y + 5);
@@ -449,6 +455,29 @@ export class Ship {
     if (Math.hypot(p.x - this.restPos.x, p.z - this.restPos.z) > R + 6) return false;
     if (this.isInside(this.parked, p)) return true;
     return this.physics.rayDistance(new THREE.Vector3(p.x, p.y + 0.3, p.z), Y, SPAWN_HEADROOM) < SPAWN_HEADROOM;
+  }
+
+  /**
+   * Is p on, in, under or right beside the parked ship, or on its ramp (issue #246: a lizard walked up onto the hull)?
+   * The hull's footprint where it rests (its rest place, not where a scene flies it), `pad` m wider all round, and a
+   * band `pad` + 1.5 m either side of the ramp from the hinge to its foot. The wildlife keeps off it (src/wildlife.js
+   * keepOff): none is placed there, none walks or hops onto it.
+   */
+  keepsOff(p, pad = KEEP_OFF) {
+    if (!this.restPos || !this.parked) return false;
+    const dx = p.x - this.restPos.x, dz = p.z - this.restPos.z;
+    if (dx * dx + dz * dz > (R + pad + 25) ** 2) return false;   // (far from it: the cheap answer first)
+    // the footprint, in the hull's own frame where it rests (local x across, z along: NOSE_Z .. STERN_Z)
+    const q = this._restQi ??= this.parked.group.quaternion.clone().invert();   // (set where it is parked)
+    const l = _ko.set(dx, 0, dz).applyQuaternion(q);
+    if (Math.abs(l.x) < HALF_W + pad && l.z > NOSE_Z - pad && l.z < STERN_Z + pad && p.y < this.restPos.y + ROOF + 4) return true;
+    // the ramp: hinge to foot on the ground, its width and a step either side
+    if (this.hinge && this.rampFoot) {
+      const ax = this.hinge.x, az = this.hinge.z, bx = this.rampFoot.x - ax, bz = this.rampFoot.z - az, L2 = bx * bx + bz * bz || 1;
+      const t = Math.max(0, Math.min(1, ((p.x - ax) * bx + (p.z - az) * bz) / L2));
+      if (Math.hypot(p.x - (ax + bx * t), p.z - (az + bz * t)) < pad + 1.5 + RAMP_HALF_W) return true;
+    }
+    return false;
   }
 
   /**

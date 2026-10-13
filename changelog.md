@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.64 — 2026-10-12
 
+- Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.
 - Fixed: coming back to Qanat’s tree with the spark-stone, there are no longer two prompts in front of the roots, one of them the wrong one. There is one, and it sets the stone, even with Hessa sweeping right beside you.
 - In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.
 - The Unity preview’s Start menu has What’s new, the newest versions’ changes as the game lists them, and its Controls page lets you move each verb to another button as the game’s does: choose a verb, press its new button (Menu keeps it as it was), with the ones that share a button marked, Run and Guard held or toggled, and Reset to defaults.

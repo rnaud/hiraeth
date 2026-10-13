@@ -69,6 +69,15 @@ and screen behavior. Performance on a physical iPhone still needs confirmation.
   stand at 64 m, 3 m thick), so no lizard, crab or jerboa is put in its streets or square (three were, 12–29 m from
   the tree, round the city's people) and none wanders in from the camps. The flocks wheeling high over it stay.
   `tests/desert-playtest.test.js`.
+- **Off the ship** (issue #246, the author: "I saw an animal on my ship in the desert level"). The parked ship's
+  footprint where it rests, 1.5 m wider all round (`KEEP_OFF`), from under the belly to over the roof, and a band either
+  side of its ramp from the hinge to its foot are kept off (`Ship.keepsOff`, handed to the wildlife as `keepOff` in
+  main.js; read where `keepClear` is, so no creature is put there, walks, is chased or hops onto it). And a refused step
+  goes back: a creature walks a few blind steps between its checks (one every 0.22 m), and from a refused check it used to
+  go on, blind step by blind step, deeper into ground it must keep off (that is how one reached the hull, under it and up
+  the ramp). It steps back to where it last stood on ground it may walk (`Creature.good`) when a check refuses.
+  `tests/wildlife-ship.test.js` brings every desert creature to the ship's side, at home on its hull, for two minutes,
+  and runs past them: none on it (without the keep-off seven of them were).
 - **The needle walker plants itself first** (issue #209, the author: "looks odd, like it's floating in air"). Vael's
   needle walker used to rise straight into the air and turn upright there, its tail's tip off the ground, a needle by
   0.4 s. Its surprise is in stages now (`NEEDLE`, `needlePose` in `src/wildlife/species.js`): it walks a few steps on

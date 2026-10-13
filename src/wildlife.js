@@ -269,6 +269,7 @@ export class Creature {
 
   place(spot) {
     this.pos.copy(spot.pos); this.up.copy(spot.up ?? Y).normalize(); this.home.copy(this.pos);
+    (this.good ??= new THREE.Vector3()).copy(this.pos);   // (where it last stood on ground it may walk: step)
     this.water = spot.water ?? null;
     this.orient();
     this.center.copy(this.pos).addScaledVector(this.up, (this.species.height ?? 0.3) * this.size);
@@ -390,12 +391,17 @@ export class Creature {
       this.travel = 0;
       const ok = this.world.walkable(this, _sb.copy(next).addScaledVector(this.fwd, 0.35 * this.size), _sb) && this.world.walkable(this, next, next);
       if (!ok) {
+        // back to where it last stood on ground it may walk (the steps between the checks are taken blind: from a
+        // refused check it went on, step by blind step, deeper into ground it must keep off, issue #246's lizard
+        // walking up onto the ship's hull). Only from close by: a trick or a knock may have moved it since.
+        if (this.good && this.good.distanceToSquared(this.pos) < 0.6) this.pos.copy(this.good);
         this.speed = 0;
         turnAround(this.fwd, this.up, (this.rng() < 0.5 ? -1 : 1) * (1.8 + this.rng() * 1.2));
         this.orient();
         return false;
       }
       this.pos.copy(next);
+      (this.good ??= new THREE.Vector3()).copy(next);
       const g = this.world.level.gravityAt;
       if (g) { this.up.copy(g(this.pos)).normalize(); this.orient(); }
     } else this.pos.copy(next);
@@ -496,8 +502,11 @@ export class Wildlife {
    * @param physics  ground queries (creatures never join the collision)
    * @param opts     { content: CONTENT[level.id], sound, defs (override WILDLIFE[level.id]) }
    */
-  constructor(scene, level, physics, { content = null, sound = null, defs = null, seed } = {}) {
+  constructor(scene, level, physics, { content = null, sound = null, defs = null, seed, keepOff = null } = {}) {
     this.level = level; this.physics = physics; this.content = content;
+    // (keepOff(p): ground no creature is put on or walks onto, besides the level's keepClear: the parked ship, its hull,
+    //  its ramp and the ground under and round it, issue #246, main.js: Ship.keepsOff)
+    this.keepOff = keepOff;
     this.root = new THREE.Group(); this.root.name = 'Wildlife'; this.root.userData.noCollide = true;
     scene.add(this.root);
     this.fx = new FX(this.root); this.fx.sound = sound;
@@ -600,7 +609,7 @@ export class Wildlife {
     if (!this.surface(p, up, out, 0.6 * Math.max(1, c.size), 1.2 * Math.max(1, c.size))) return false;
     _v.subVectors(out, c.pos);
     if (Math.abs(_v.dot(up)) > 0.45 * Math.max(1, c.size)) return false;
-    if (this.level.unsafe?.(out) || this.level.keepClear?.(out)) return false;
+    if (this.level.unsafe?.(out) || this.level.keepClear?.(out) || this.keepOff?.(out)) return false;
     if (up.y > 0.99 && this.waterAt(out.x, out.z) > out.y - 0.04) return false;
     if (sp.leash && out.distanceTo(c.home) > sp.leash) return false;
     return true;
@@ -617,7 +626,7 @@ export class Wildlife {
       if (!(depth > (sp.depth ?? 0.25) + 0.1 && depth < (sp.maxDepth ?? 4))) return null;
       return { pos: new THREE.Vector3(p.x, w, p.z), up: Y.clone(), water: w };
     }
-    if (L.unsafe?.(p) || L.keepClear?.(p)) return null;   // (keepClear: a floor kept bare, the Arena's)
+    if (L.unsafe?.(p) || L.keepClear?.(p) || this.keepOff?.(p)) return null;   // (keepClear: a floor kept bare, the Arena's; keepOff: the ship)
     const flat = sp.flatness ?? 0.28;
     _u.set(1, 0, 0); if (Math.abs(up.x) > 0.9) _u.set(0, 0, 1);
     const t1 = _u.cross(up).normalize().clone(), t2 = new THREE.Vector3().crossVectors(up, t1);

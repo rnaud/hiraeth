@@ -1052,7 +1052,7 @@ blades.grow();
 await slice();
 // wildlife: two or three small species per world, each with a surprise (src/wildlife.js)
 setStep('wildlife, foes');
-const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife });   // (a level may bring its own list: the Lab's rooms)
+const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife, keepOff: (p) => ship.keepsOff(p) });   // (keepOff: never on the ship, its ramp or in it, issue #246)   // (a level may bring its own list: the Lab's rooms)
 // the ink blots in the wilds and the makers' machines in the temple (src/foes.js; the Enemies setting)
 // the desert's first steps: the camera and the jump, each said once if you haven't used it yet (src/first-steps.js)
 const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
