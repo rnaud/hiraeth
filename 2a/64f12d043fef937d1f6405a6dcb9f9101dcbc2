@@ -1,0 +1,56 @@
+tests/keeper-guardian.test.js
+  s_9ca76055a220ed::t_f4ae2a4c2d6591 1-166
+src/temples/desert.js
+  s_9ca76055a220ed::t_01555dd42df4ae 10,425-426
+src/motion-kit/gait.js
+  s_9ca76055a220ed::t_e3597794ef6517 85,90-92,186-194,217-220,225-229,314,316-319
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_689f1b13b2805c 20,137-144,149-158
+  s_9ca76055a220ed::t_34bc761b961c6b 145-148
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_f7ff6a52cd6db4 49-51
+src/arena-guardians.js
+  s_9ca76055a220ed::t_c164762ab7a9b4 5,7,40
+src/motion-kit/rig.js
+  s_9ca76055a220ed::t_917d982e7f8b94 165
+src/characters/creature-legs.js
+  s_9ca76055a220ed::t_0bd80e4b1d1bb5 1-85
+src/temples/guardian-generated.js
+  s_9ca76055a220ed::t_52e78abbb61f8f 1-104
+.agents/skills/hiraeth-ai-characters/references/non-humanoids.md
+  s_2ad33e6612702c::t_ed64f73fe66877 105-120
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_9a96cf15be6573 5,8-12,14-41,51,55-57,61-62,65-66,73,87,95-98,101
+docs/systems/characters.md
+  s_2ad33e6612702c::t_366138ef5f40d3 652-653,678-729,1206-1232
+changelog.md
+  s_9ca76055a220ed::t_a2094898845fb2 7
+src/changelog-media.js
+  s_9ca76055a220ed::t_cea67d12011217 751-753,776-779
+src/changelog.js
+  s_9ca76055a220ed::t_f5f30fff2f4e57 23-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2a64f12d043fef937d1f6405a6dcb9f9101dcbc2",
+  "prompts": {},
+  "sessions": {
+    "s_2ad33e6612702c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae76b8453cfeb7284",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
