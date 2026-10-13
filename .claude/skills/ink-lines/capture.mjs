@@ -141,12 +141,13 @@ const SETUP = `(() => {
 /** The traveller's eyes on screen (device px of the screenshot): each eye's centre, its drawn half width and height, a cheek point under it. */
 const EYES = `(() => {
   const { THREE, camera, renderer } = window;
-  let mesh = null; window.player.object.traverse((o) => { if (o.name === 'TravellerTripoHeadV2') mesh = o; });
+  let mesh = null; window.player.object.traverse((o) => { if (o.name === 'TravellerPortraitHead') mesh = o; });
   if (!mesh) return null;
   const sk = mesh.skeleton, bi = sk.bones.findIndex((b) => b.name === 'Head'); if (bi < 0) return null;
   const M = new THREE.Matrix4().multiplyMatrices(sk.bones[bi].matrixWorld, sk.boneInverses[bi]).multiply(mesh.bindMatrix).premultiply(mesh.bindMatrixInverse).premultiply(mesh.matrixWorld);
-  // HEAD_FIT (tripo-head.js): bind = offset + scale × source; HEAD_INK.eye (head-ink.js) in source units
-  const S = 0.32, O = [-0.001, 1.455, -0.006], E = { x: 0.0995, y: 0.5935, w: 0.0405, up: 0.0134, lo: 0.0108 };
+  // PORTRAIT_HEAD (portrait-head.js, the head since v1.6x; was tripo-head.js's HEAD_FIT and head-ink.js's eye): bind =
+  // offset + scale × source; its eyes in source units (each its own x: the portrait's face is not quite symmetric)
+  const S = 0.264, O = [-0.001, 1.510, -0.006], E = { xs: [-0.118, 0.125], y: 0.522, w: 0.056, up: 0.0125, lo: 0.0125, brow: 0.588, chin: 0.134 };
   const pos = mesh.geometry.attributes.position;
   // the skin's front at a source point: the vertex nearest it in x, y with the largest z (the face)
   const front = (sx, sy) => { const bx = O[0] + S * sx, by = O[1] + S * sy; let best = null, bz = -1e9;
@@ -156,12 +157,13 @@ const EYES = `(() => {
   const scr = (v) => { const p = v.clone().project(camera); return [(p.x * 0.5 + 0.5) * W / renderer.getPixelRatio() * dpr, (0.5 - p.y * 0.5) * H / renderer.getPixelRatio() * dpr]; };
   const out = [];
   for (const side of [-1, 1]) {
-    const c = front(-0.001 + side * E.x, E.y), r = front(-0.001 + side * (E.x + E.w), E.y), t = front(-0.001 + side * E.x, E.y + E.up), ch = front(-0.001 + side * E.x, E.y - 0.075);
+    const ex = E.xs[side < 0 ? 0 : 1];
+    const c = front(ex, E.y), r = front(ex + side * E.w, E.y), t = front(ex, E.y + E.up), ch = front(ex, E.y - 0.075);
     if (!c || !r || !t || !ch) return null;
     const [x, y] = scr(c), [rx, ry] = scr(r), [tx, ty] = scr(t);
     out.push({ x, y, w: Math.hypot(rx - x, ry - y), h: Math.hypot(tx - x, ty - y) * (E.up + E.lo) / (2 * E.up), cheek: scr(ch) });
   }
-  const head = front(-0.001, 0.62), chin = front(-0.001, 0.36);
+  const mid = (E.xs[0] + E.xs[1]) / 2, head = front(mid, E.brow), chin = front(mid, E.chin);
   return { eyes: out, facePx: head && chin ? Math.hypot(...scr(head).map((v, i) => v - scr(chin)[i])) : 0 };
 })()`;
 
@@ -179,10 +181,10 @@ function camExpr(name, sc) {
     player.teleport?.(window.__spot.clone(), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)); player.pos.copy(window.__spot); player.vel?.set(0, 0, 0); player.heading = 0;
     for (let i = 0; i < 4; i++) window.__vt.step(1 / 30);
     // the face's middle and the way it looks, from the head's skinning (tripo-head.js face.at / facing)
-    let mesh = null; player.object.traverse((o) => { if (o.name === 'TravellerTripoHeadV2') mesh = o; });
+    let mesh = null; player.object.traverse((o) => { if (o.name === 'TravellerPortraitHead') mesh = o; });
     const sk = mesh.skeleton, bi = sk.bones.findIndex((b) => b.name === 'Head');
     const M = new THREE.Matrix4().multiplyMatrices(sk.bones[bi].matrixWorld, sk.boneInverses[bi]).multiply(mesh.bindMatrix).premultiply(mesh.bindMatrixInverse).premultiply(mesh.matrixWorld);
-    const h = new THREE.Vector3(-0.001, 1.619, 0.076).applyMatrix4(M);
+    const h = new THREE.Vector3(0, 1.629, 0.06).applyMatrix4(M);   // (the portrait head's face, its eyes' height: PORTRAIT_HEAD)
     const f = new THREE.Vector3(0, 0, 1).transformDirection(M).setY(0).normalize();
     const eye = h.clone().addScaledVector(f, ${sc.d}).add(new THREE.Vector3(0, ${sc.d * 0.03 + 0.02}, 0));
     const gy = window.physics.groundAt(eye.x, eye.y + 30, eye.z, 80);   // (never inside a dune)
@@ -255,6 +257,10 @@ async function boot(world) {
   await send('Page.navigate', { url: `${BASE}?level=${WORLD_URL[world]}` });
   let up = false; for (let i = 0; i < 1500 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player && !!window.renderFrame').catch(() => false)) === true; if (!up) await sleep(100); }
   if (!up) return false;
+  // (his drawn body and head load after the boot, a few seconds on a busy machine: the portraits read the head's skinning,
+  // and before it is there they threw on a missing skeleton; ink-lines-v1.66, at load 60-70)
+  const HEAD = `(() => { let f = false; window.player?.object?.traverse((o) => { if (o.name === 'TravellerPortraitHead') f = true; }); return f; })()`;
+  for (let i = 0; i < 600 && !(await ev(HEAD).catch(() => false)); i++) await sleep(100);
   await sleep(2500);
   await ev(SETUP);
   return true;
