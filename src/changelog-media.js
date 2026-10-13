@@ -779,6 +779,26 @@ export const CHANGELOG_MEDIA = {
     { match: 'On the cinematics review page', tags: ['cinematics'], shots: [
       { name: 'review-bell', title: 'The review page’s bell', caption: 'Before, the bell’s scene staged on bare sand, no bell in sight; after, the bell itself swinging under its beam, as in play.', from: CINE226 },
     ] },
+    { match: 'The Unity preview on the Retroid runs faster where the picture was heavy', shots: [
+      { name: 'unity-gpu-spawn', title: 'Where the Desert starts', caption: 'The same view before and after on the Retroid: the same picture but for the two tall spiky plants on the right before: the web game has none there (the census puts their set behind the camera, now left out with what the view does not hold).', from: 'the bridge’s bench shot on the Retroid Pocket Nova (-views -bench 6), origin/main’s build (run 38393212994) against this change’s (run 38426479335), 13 October' },
+      { name: 'unity-gpu-shaft', title: 'The City-Shaft, wide', caption: 'The heaviest view, 23 frames a second before and 28 after, the same picture (the people walk on).', from: 'the same device and builds' },
+    ], numbers: [
+      { title: 'The Unity preview on the Retroid at the bench’s views: frames a second', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova, Vulkan, Handheld at 0.75 of 1280 × 960, 60 Hz, muted; GeckoView (the web game) at the same views: 57, 52, 44, 34, 56, 59', rows: [
+        { where: 'the Desert’s spawn', before: 39.6, after: 45.4 },
+        { where: 'the pilgrims’ camps', before: 43.9, after: 46.0 },
+        { where: 'the dunes', before: 48.9, after: 60.1 },
+        { where: 'the City-Shaft’s start', before: 37.0, after: 40.8 },
+        { where: 'the City-Shaft, wide', before: 23.1, after: 28.4 },
+        { where: 'the Signal Market’s gate', before: 38.7, after: 41.1 },
+        { where: 'the Signal Market’s crowd', before: 53.9, after: 60.1 },
+      ], source: 'the bridge’s own bench (unity-bench.json) on the device, the two builds in one sitting; docs/systems/performance.md, “Unity on the Retroid: the GPU’s frame, taken apart”' },
+      { title: 'The GPU’s time a frame', unit: 'ms', better: 'lower', device: 'the same', rows: [
+        { where: 'the Desert’s spawn', before: 25.9, after: 22.6 },
+        { where: 'the dunes', before: 20.8, after: 16.2 },
+        { where: 'the City-Shaft, wide', before: 44.1, after: 35.8 },
+        { where: 'the Signal Market, crowd 2', before: 26.0, after: 22.0 },
+      ], source: 'Unity’s frame timing in the same runs (kgsl: the GPU 99 % busy at 680 MHz in each)' },
+    ], see: 'On the Retroid, open Hiraeth (Unity) in the Desert or the City-Shaft: the readout at the top shows the frames a second.' },
     { match: 'The Elder of Vael now has her new feathered body in the Aerie', tags: ['characters', 'vael'], shots: [
       { name: 'elder-aerie-ground', title: 'Inside the Aerie', only: 'after', size: [1280, 720], caption: 'The approved bird in the real elevated roost, settling for the final touch. Her feather colours remain readable in temple shade.', from: 'Codex in-app browser, actual Vael game, temporary-progress silent Elder temple review, 13 October 2026.' },
       { name: 'elder-natural-front', title: 'Natural feathered wings', only: 'after', size: [1280, 720], caption: 'The replacement mesh has a centred frontal neck and single feathered wing surfaces.', from: 'Codex in-app browser, Elder review, Game ink, Spread wings at 3 s, Front, 13 October 2026.' },

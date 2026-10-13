@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Two answers that now follow what was said: Anselm Thrum takes “Come aboard, then” as the invitation it is, and Ilen ends on her own answer before you ask “Your answer?”.
 - The hosts of the races and the makers’ runs no longer offer Play for a run you can’t do yet: they tell you what it wants (the hoverbike, the wings, a temple’s gadget) and to come back with it.
 - The Elder of Vael now has her new feathered body in the Aerie: natural wings, a centred neck, a closed beak at rest, small head movements as she walks and legs that tuck up in flight. She returns to the rooftop perch after you calm her, and the Arena uses the same bird.
+- The Unity preview on the Retroid runs faster where the picture was heavy: 45 frames a second where the Desert starts (40 before), 60 on the dunes (49), 41 at the City-Shaft’s start (37) and 28 over its wide view (23), and 41 to 60 in the Signal Market (38 to 54), with the same picture. It no longer draws the many small things out of view, and works out each surface’s marks only where they show.
 
 ## v1.66 — 2026-10-13
 

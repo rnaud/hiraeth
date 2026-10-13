@@ -9,6 +9,10 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.67', date: '2026-10-13', items: [
+    // the Unity build's GPU frame on the Retroid (issue #262): the GPU instances culled by the view (InstMats.Draw),
+    // the depth prepass of every opaque on Android, the Surface shader's marks worked out only where drawn, one varying
+    // fewer, the overwritten targets not loaded (docs/systems/performance.md "Unity on the Retroid: the GPU's frame")
+    'The Unity preview on the Retroid runs faster where the picture was heavy: 45 frames a second where the Desert starts (40 before), 60 on the dunes (49), 41 at the City-Shaft’s start (37) and 28 over its wide view (23), and 41 to 60 in the Signal Market (38 to 54), with the same picture. It no longer draws the many small things out of view, and works out each surface’s marks only where they show.',
     'The Elder of Vael now has her new feathered body in the Aerie: natural wings, a centred neck, a closed beak at rest, small head movements as she walks and legs that tuck up in flight. She returns to the rooftop perch after you calm her, and the Arena uses the same bird.',
     // the design audits re-run on the updated skills (issue #226): docs/audits/quest-v1.66.md, dialogue-v1.66.md,
     // level-design-v1.66.md, temple-design-v1.66.md, cinematics-v1.66.md

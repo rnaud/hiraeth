@@ -2603,7 +2603,10 @@ the spawn in 458 draws and 562 k triangles at 80 % busy (615 MHz); the Unity bui
   mud cracks and its colour blobs (each now in its material's uniform branch), the hatching's three pens and its stipple
   (in the branch that draws each; strokes() and stipple() take no derivatives), the grid's and glyphs' coordinates; the
   local lights' loop stops at the first empty light; `posWS` no longer a varying (toThree(worldPos) in the fragment, the
-  same numbers). The picture is the same (the shots below). The desert's dunes 20.8 → 16.2 ms, the spawn ~2 ms.
+  same numbers). The picture is the same (compared shot by shot at every view), but at the desert's spawn: two tall
+  spiky plants on the right that the old build drew are gone with the view's cull; the web game (GeckoView at the same
+  view) has none there, and the census puts their set (`desert.star`) behind the camera, so they were drawn where they
+  do not stand (why is not found: the same instances' data are what the GPU reads). The desert's dunes 20.8 → 16.2 ms, the spawn ~2 ms.
 - **The shadow maps, the composite's and FXAA's targets not loaded before they are overwritten** (HiraethFeature:
   `AccessFlags.WriteAll`; each cascade is cleared first), and the shadow caster's fragment writes no colour. Within the
   noise on the frame; `-shadow-depth 16` or `24` changed nothing measurable (left at D32).
