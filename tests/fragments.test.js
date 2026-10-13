@@ -501,3 +501,12 @@ test('the first fragment brings him beside you; once met he is aboard, in the ho
   assert.ok(JAR_MAX >= 12);
   assert.ok(meetSpot({ physics, level: {}, at: V(), heading: 0 }), 'a spot on open ground');
 });
+
+test('Marrow on the first fragment hedges, in the desert’s word: the light “passed” (issue #282)', async () => {
+  const { PEOPLE } = await import('../src/story/desert-data.js');
+  const said = PEOPLE.marrow.talk.nodes.splinter.say.map((p) => String(p.text ?? p)).join(' ');
+  assert.match(said, /^~playful~ /, 'his tone kept');
+  assert.match(said, /Something the light dropped when it passed, I’d say/, 'a witness reports before believing (lore/voice-guide.md)');
+  assert.doesNotMatch(said, /went over|A splinter of the light/, 'not told as fact, nor in another people’s words');
+  assert.match(said, /\*forty paces from your ramp\*/, 'still says where');
+});

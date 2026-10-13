@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.69 — 2026-10-13
 
+- Marrow no longer explains the singing on the sand as if he knew: it is “something the light dropped when it passed, I’d say”.
 - You ask Marrow about the singing on the sand when you meet him at your ship, or when you come back to him, instead of straight after he has told you about Qanat’s fire or the mark on your hull.
 - The Night Mail is done the moment Solange hands you her answer on the last roof: nothing sends you back to report. Step off at the halt as before, and Edda reads the answer when you pass her lamp.
 

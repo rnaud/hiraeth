@@ -735,9 +735,10 @@ export const PEOPLE = {
             { text: '~angry~ Stay away from my ship.', do: { set: { 'desert.marrow.warned': true } }, end: true },
           ],
         },
-        // the first fragment, singing by your ship (issue #247): one line, and the errand is yours to take or leave
+        // the first fragment, singing by your ship (issue #247): one line, and the errand is yours to take or leave; he
+        // hedges, in the desert's word "passed" (a witness reports before believing, lore/voice-guide.md; issue #282)
         splinter: {
-          say: ["~playful~ That? A splinter of the light that went over, singing on the sand *forty paces from your ramp*. I don’t pick up things that sing."],
+          say: ["~playful~ That? Something the light dropped when it passed, I’d say. It sings on the sand *forty paces from your ramp*. I don’t pick up things that sing."],
           do: [{ start: SPLINTER }],
           choices: [{ text: '~neutral~ I’ll have a look.', end: true }],
         },

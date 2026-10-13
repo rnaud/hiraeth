@@ -56,8 +56,9 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   ramp, ahead and to the right as you step out, the other up the low rise 60 m behind the ship. Both keep #228's rule
   (32 and 42 m off the route's line: the way to Qanat leaves the ramp the other way), so they are there to be found, not
   stepped on. You hear the nearer one sing from the ramp (26 m) as you walk out. And Marrow, at your ship, has one line
-  for it (*"A splinter of the light that went over, singing on the sand forty paces from your ramp. I don't pick up
-  things that sing."*), asked from his talk's first answers (the way to Qanat, the mark): it starts the errand
+  for it (*"Something the light dropped when it passed, I'd say. It sings on the sand forty paces from your ramp. I
+  don't pick up things that sing."*: he hedges, as a witness does, in the desert's word, issue #282), asked at the
+  ship (his first talk, beside the way to Qanat and the mark, and his hello; issue #279): it starts the errand
   **Something Singing** (`desert.splinter`, `SPLINTER` in `src/story/desert-data.js`), one step whose goal is the
   fragment itself (`frag.desert.5`): taking it ends it, and brings Anselm as the first one always does. Found first, the
   question isn't there. A save that found either old slot keeps its count (the flag stays on its slot, so the new place
