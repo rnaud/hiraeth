@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_a74ee741d24c88 11
+docs/systems/performance.md
+  s_9ca76055a220ed::t_ad596b459a2e90 2345-2375
+src/changelog-media.js
+  s_9ca76055a220ed::t_d742a47dab6d59 772-784
+src/changelog.js
+  s_9ca76055a220ed::t_1ca6da5763d813 26-28
+src/taxi.js
+  s_9ca76055a220ed::t_69d7c4452b5eb1 70-72,77-128,131,135,137-138,393,680-683
+tests/taxi.test.js
+  s_9ca76055a220ed::t_e40c553df94b25 111-129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6de56bf1fe6898649f3d11587d423b6d71ef03ae",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
