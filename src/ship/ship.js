@@ -102,7 +102,11 @@ export class Ship {
   // ------------------------------------------------------------------ placement
   groundAt(x, z, fromY) {
     const g = this.physics.groundAt(x, fromY ?? (this.site.ground ?? 0) + 60, z, 600);
-    return Number.isFinite(g) ? g : this.heightAt?.(x, z) ?? this.site.ground;
+    if (Number.isFinite(g)) return g;
+    // (over a void, the Space City's, the terrain answers NaN, not null: the arrival's lens took it, y NaN, and drew
+    //  black for 3.7 s: the cinematics QC, v1.66)
+    const h = this.heightAt?.(x, z);
+    return Number.isFinite(h) ? h : (this.site.ground ?? 0);
   }
 
   /**
@@ -117,7 +121,9 @@ export class Ship {
     const u = undersideAt(l.x, l.z);
     const from = this.restPos.y + (u !== null ? Math.min(u - 0.55, -1.85) : -LIFT + 0.6);
     const g = this.physics.groundAt(x, from, z, 60);
-    return Number.isFinite(g) ? g : this.heightAt?.(x, z) ?? this.groundAt(x, z);
+    if (Number.isFinite(g)) return g;
+    const h = this.heightAt?.(x, z);
+    return Number.isFinite(h) ? h : this.groundAt(x, z);
   }
 
   place() {

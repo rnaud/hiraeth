@@ -1,4 +1,4 @@
-import { V, UP, closeUp } from './film.js';
+import { V, UP, closeUp, turn } from './film.js';
 
 // Vael II's first time, filmed (src/story/moment.js): once per save, skippable, and never in the way
 // (when it can't play, arzach2.js does what it always did: the bell rings at once, the cloud settles).
@@ -60,8 +60,9 @@ export function setupArzach2Moments(ctx, { A, bell, ring }) {
         // (clear: false: looking that far, the pull-in would catch a needle and drop the lens into the cloud)
         { dur: BELL.C, clear: false, from: { pos: rope.clone().addScaledVector(out, 96).addScaledVector(side, -6).addScaledVector(UP, 7), look: rope.clone().addScaledVector(out, 290).addScaledVector(side, 30).setY(cloudTop - 16), fov: 56 },
           to: { pos: rope.clone().addScaledVector(out, 99).addScaledVector(side, -5).addScaledVector(UP, 6), look: rope.clone().addScaledVector(out, 290).addScaledVector(side, 33).setY(cloudTop - 22), fov: 56 } },
-        // D: his face, turned out over the cloud
-        { dur: BELL.D, clear: false, from: closeUp(player, { angle: 0.5, dur: BELL.D }) },
+        // D: his face, turned out over the cloud, from the side the rope is not on (from its other side, standing at
+        // the rope's foot, the rope ran down through his face: QC v1.66)
+        { dur: BELL.D, clear: false, from: closeUp(player, { angle: clearSide(player.pos, far, rope), dur: BELL.D }) },
       ],
       beats: [
         { t: BELL.RING, run: doRing },
@@ -88,4 +89,22 @@ export function setupArzach2Moments(ctx, { A, bell, ring }) {
   }
 
   return { bell: rings };
+}
+
+/**
+ * Which three-quarter side of his face to film from (closeUp's angle, ±a) so that a thin upright thing beside him (the
+ * bell rope) stays out of the line from the lens to his face: he faces `toward`; the side whose sightline passes
+ * farther from `post` (flat distance), +a on a tie.
+ */
+export function clearSide(at, toward, post, { a = 0.5, dist = 1.4 } = {}) {
+  const f = V(toward.x - at.x, 0, toward.z - at.z);
+  if (f.lengthSq() < 1e-6) return a;
+  f.normalize();
+  const gap = (sign) => {
+    const lens = at.clone().addScaledVector(turn(f, sign * a), dist);
+    const dx = at.x - lens.x, dz = at.z - lens.z, L = dx * dx + dz * dz;
+    const k = Math.max(0, Math.min(1, ((post.x - lens.x) * dx + (post.z - lens.z) * dz) / L));
+    return Math.hypot(post.x - (lens.x + dx * k), post.z - (lens.z + dz * k));
+  };
+  return gap(-1) > gap(1) + 0.01 ? -a : a;
 }

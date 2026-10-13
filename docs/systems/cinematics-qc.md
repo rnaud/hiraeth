@@ -13,9 +13,11 @@ and notices are gone, it skips, it hands control back at a sensible spot, its so
 too loud) and for **interest** (a purpose, the right length, varied shots, motion with intent, a beat).
 The procedure, the checklist and the rubric are the project skill `.claude/skills/cinematics-qc/SKILL.md`.
 
-The pass below is the v1.6 baseline (2026-10-09, 91 cinematics). The review page lists 106 now (October 2026:
-Items 45, Travel 22, Recordings 17, World moments 16, Story 5, Trailer 1); the table holds the pass's, the
-verdicts file (`cinematics-qc-notes.json`) one for each of the 106.
+The pass below is the v1.6 baseline (2026-10-09, 91 cinematics). The review page lists 107 now (October 2026:
+Items 45, Travel 22, Recordings 17, World moments 17, Story 5, Trailer 1). The second full pass, v1.66
+(2026-10-13, 80 run and 27 boxes carried over), is its own report: [docs/audits/cinematics-v1.66.md](../audits/cinematics-v1.66.md)
+(4.51: tech 4.79, interest 4.24), summed up under "The second full pass (v1.66)" below; the table here stays the
+v1.6 pass's, and the verdicts file (`cinematics-qc-notes.json`) holds the latest verdict for each of the 107.
 
 ## The script: `scripts/cinematics-qc.mjs`
 
@@ -225,6 +227,30 @@ problem and a framing one each:
 | `call.10` – `call.12` | 4.5 → 5 | 3 | staged after their own worlds |
 | `call.part.arzach2`, `call.part.perdide2` (new) | 5 | 3 | — |
 | the six boxes of the three worlds | 5 | 4 | — |
+
+### The second full pass (v1.66)
+
+On 2026-10-13 (issue #226), the same script and rules, one capture at a time: every world moment, story scene,
+recording and arrival, the trailer, and 18 of the 45 boxes (every one new since v1.6); 27 boxes carried over. The
+report, its table (v1.6 → v1.66 per row), pictures and proposed issues: [cinematics-v1.66.md](../audits/cinematics-v1.66.md).
+
+- **The review page's staging had rotted with the merges and the desert batch.** It branched on the level, so Vael
+  II's bell and Lorn II's pools played Vael's and Lorn's films; it stood the desert's water by the lever that went
+  with #158 (the film never started) and had no staging for the tree's lighting; it seeded every desert film with
+  the tree already lit (the old-save step `migrateDesertQuest` read the seeded `ship.powered`); it filmed the
+  broadcast from the square, not the console up the tower. `stageCinematic` now branches on the id's part
+  (`W.parts[part]` of a merged world), stages the debris, the roots with the stone (`setStone`), the console, and
+  an arm's length from the bell rope; `seedReview` gives the desert's films the desert's quest version
+  (`tests/cinematics-page.test.js`, a stand-in world). The world debug menu plays cinematics through the same code.
+- **A lens at NaN**: over the Space City's void `heightAt` answers NaN and `?? site.ground` let it through; the
+  arrival's descent drew 3.7 s of black. `Ship.groundAt` / `floorAt` fall back on a finite ground (`tests/ship.test.js`);
+  `analyse` counts `badCam` frames and `scoreTechnical` takes 1.5 for them (`tests/cinematics-qc.test.js`).
+- **Vael II's face panel** from the side the rope is not on (`clearSide` in `src/story/arzach2-moments.js`); **the
+  Glass Dunes' clock** a fourth panel by a great cog (`cogShot`), 9.2 s.
+- Left as issues: the yards' boxes shot through their bars and from inside their walls; the box closing shots in
+  small rooms; the docked drone beside his face in every close-up; the three-panel climaxes of the whales, the moon
+  and the cables; the homecomings' held cargo shot; the recordings' jump-cut punch-in; the window seat's white
+  patch; the arrivals' dust.
 
 ### The table
 

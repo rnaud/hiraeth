@@ -77,6 +77,7 @@ export function analyse(samples, { cutMove = 1.5, cutTurn = 25, popMove = 0.3, h
     played: play.length > 0, duration: 0, frames: play.length, cuts: 0, shots: 0, pops: [], longestHold: 0,
     hudLeaks: {}, barsShare: 0, skipShown: false, subtitles: 0, embedded: 0, graze: 0, hidden: 0,
     peakDb: null, releaseJump: 0, releaseTurn: 0, playerJump: 0, endedCleanly: false, menuOpened: false,
+    badCam: 0,   // frames whose lens is not a number (NaN reads back as null): drawn black (the Space City's arrival, QC v1.66)
   };
   if (!play.length) return out;
   const i0 = samples.indexOf(play[0]), i1 = samples.lastIndexOf(play.at(-1));
@@ -95,6 +96,7 @@ export function analyse(samples, { cutMove = 1.5, cutTurn = 25, popMove = 0.3, h
     if (s.graze != null && s.graze < 0.12) out.graze++;
     if (s.hidden) out.hidden++;
     if (s.menu) out.menuOpened = true;
+    if (!s.cam?.every?.((v) => Number.isFinite(v))) out.badCam++;
     if (s.db != null) out.peakDb = Math.max(out.peakDb ?? -Infinity, s.db);
     const p = samples[i - 1];
     if (i > i0 && p?.playing) {
@@ -147,6 +149,7 @@ export function scoreTechnical(a, { errors = [], status = '', skip = null, hold 
   const leaks = Object.entries(a.hudLeaks).filter(([, n]) => n / Math.max(1, a.frames) > 0.1).map(([id]) => id);
   if (leaks.length) lose(1, `HUD showing: ${leaks.join(', ')}`);
   if (a.barsShare < 0.5) lose(0.5, 'no letterbox');
+  if (a.badCam) lose(1.5, `lens not a number (${a.badCam} frames, drawn black)`);
   if (a.embedded / Math.max(1, a.frames) > 0.03) lose(1.5, `lens inside geometry (${a.embedded} frames)`);
   else if (a.graze / Math.max(1, a.frames) > 0.05) lose(0.5, `lens grazing a surface (${a.graze} frames)`);
   if (a.hidden / Math.max(1, a.frames) > 0.15) lose(1, `traveller behind a solid (${a.hidden} frames)`);

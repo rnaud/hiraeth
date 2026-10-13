@@ -13,7 +13,7 @@ const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { clearInteractables } = await import('../src/interact.js');
 const { clearTargets } = await import('../src/targets.js');
-const { CLOCK, MOMENTS } = await import('../src/story/glassdunes-moments.js');
+const { CLOCK, MOMENTS, cogShot } = await import('../src/story/glassdunes-moments.js');
 const { FILM_NEAR } = await import('../src/story/glassdunes.js');
 const { WORLD_MOMENTS } = await import('../src/story/film.js');
 const { KEEPSAKE } = await import('../src/story/glassdunes-people.js');
@@ -51,8 +51,8 @@ function world({ ship = null } = {}) {
 
 test('the registry and show, don’t tell: the Glass Dunes’ moment is the one in film.js', async () => {
   assert.deepEqual(MOMENTS.map(({ id, flag }) => ({ id, flag })), WORLD_MOMENTS.glassdunes.map(({ id, flag }) => ({ id, flag })));
-  const len = CLOCK.A + CLOCK.B + CLOCK.C;
-  assert.ok(len >= 5 && len <= 12, `5–12 s (${len})`);
+  const len = CLOCK.A + CLOCK.B + CLOCK.C + CLOCK.D;
+  assert.ok(len >= 8 && len <= 10, `the moments' 8–10 s (${len}; 7.2 s in three panels before the cogs' panel, QC v1.66)`);
   const src = (await import('node:fs')).readFileSync(new URL('../src/story/glassdunes-moments.js', import.meta.url), 'utf8');
   assert.ok(!/spoken\(|line:/.test(src), 'no lines in it');
   const looks = [...src.matchAll(/\.look\s*=\s*([^;\n]+)/g)].map((m) => m[1]);
@@ -96,4 +96,22 @@ test('without the ship’s camera nothing is lost: done, kept, and no film', () 
   w.step(4);
   assert.equal(game.flag('world.glassdunes.done'), true);
   assert.equal(game.flag('glassdunes.moment.clock'), undefined, 'it waits for a stage to play on');
+});
+
+test('the cogs\' panel (QC v1.66): low in front of a great cog, out of the house and off the sand, the cog in frame', () => {
+  const O = rt0.outside, D = O.door, out = V(Math.sin(D.heading), 0, Math.cos(D.heading)), side = V(out.z, 0, -out.x);
+  const shot = cogShot(O, D.at, side);
+  assert.ok(shot, 'the house has its cogs');
+  const home = O.kit.world(0, 0, 0);
+  const cogs = O.cogs.map((k) => k.g.getWorldPosition(V(0, 0, 0)));
+  for (const s of [shot.from, shot.to]) {
+    const near = Math.min(...cogs.map((c) => c.distanceTo(s.pos)));
+    assert.ok(near > 6 && near < 22, `close to a cog, not in it (${near.toFixed(1)} m)`);
+    assert.ok(Math.hypot(s.pos.x - home.x, s.pos.z - home.z) > O.R + 3, 'outside the house');
+    assert.ok(s.pos.y > level.ground.heightAt(s.pos.x, s.pos.z) + 0.4, 'over the sand');
+    const cam = new THREE.PerspectiveCamera(s.fov, 16 / 9, 0.1, 500);
+    cam.position.copy(s.pos); cam.lookAt(s.look); cam.updateMatrixWorld();
+    const c = cogs.reduce((b, p) => (p.distanceTo(s.look) < b.distanceTo(s.look) ? p : b)).clone().project(cam);   // (the cog it looks at)
+    assert.ok(Math.abs(c.x) < 0.6 && Math.abs(c.y) < 0.6 && c.z < 1, `the cog in frame (${c.x.toFixed(2)}, ${c.y.toFixed(2)})`);
+  }
 });

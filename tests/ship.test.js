@@ -550,3 +550,13 @@ test('the first recording after the desert: the people who swore they would help
   const K = callLines(1, { flag: (k) => flags[k], completed: ['desert'], lastWorld: 'desert', keepsake: { name: 'A gear tooth', kind: 'thing' } });
   assert.ok(K.filter((l) => l.who === 'you').every((l) => /You lift/.test(l.text)));
 });
+
+// (the cinematics QC, v1.66) over a void the terrain answers NaN: the ground under a lens falls back to the site's,
+// never NaN (the Space City's arrival drew 3.7 s of black from a lens at y NaN)
+test('the ground under the ship\'s lenses is never NaN, over a void too', () => {
+  const voidShip = { physics: { groundAt: () => null }, heightAt: () => NaN, site: { ground: 12 } };
+  assert.equal(Ship.prototype.groundAt.call(voidShip, 20, 83), 12);
+  assert.equal(Ship.prototype.groundAt.call({ ...voidShip, heightAt: () => 4 }, 20, 83), 4, 'the terrain where there is one');
+  assert.equal(Ship.prototype.groundAt.call({ ...voidShip, physics: { groundAt: () => 7 } }, 20, 83), 7, 'a collider first');
+  assert.equal(Ship.prototype.groundAt.call({ ...voidShip, site: {} }, 0, 0), 0);
+});

@@ -84,3 +84,14 @@ test('the report is one Markdown row per cinematic', () => {
   assert.equal(rows.length, 3);
   assert.match(rows[2], /^\| x\.y \| G \| 5\.0 s \| 1 \|.*\| 5 \| ok 1\.2 s \|/);
 });
+
+// (QC v1.66) a lens whose height came back NaN (serialised as null) drew black frames in the Space City's arrival, and
+// analyse read it as a still shot
+test('analyse counts frames whose lens is not a number, and the score loses for them', () => {
+  const cam = (t) => (t > 1 && t < 2 ? [20, null, 83] : [t, 2, 0]);
+  const a = analyse(run(3, { cam }));
+  assert.ok(a.badCam > 50 && a.badCam < 65, `${a.badCam}`);
+  const s = scoreTechnical(a);
+  assert.ok(s.score <= 3.5 && s.why.some((w) => /not a number/.test(w)), s.why.join('; '));
+  assert.equal(analyse(run(3)).badCam, 0);
+});

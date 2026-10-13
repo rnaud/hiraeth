@@ -5,6 +5,8 @@ import { CallDirector, TakeoffDirector } from '../ship/cinematics.js';
 import { callLines, callContext, recordingLabel } from '../story/calls.js';
 import { ENDING_WORLDS } from '../story/ending.js';
 import { ORDER, TITLES } from '../levels/names.js';
+import { BELL } from '../story/arzach2-moments.js';
+import { DESERT_QUEST_V } from '../story/desert-data.js';
 const selected = () => CINEMATICS.find(e => e.id === new URLSearchParams(location.search).get('cinematicReview'));
 export async function seedReview() {
   const e = selected();
@@ -13,6 +15,9 @@ export async function seedReview() {
   game.data = { flags: { ...seed?.flags, 'prologue.done': true, 'item.backpack': 1, 'ship.powered': true, 'ship.launched': true }, keepsakes: seed?.keepsakes ?? [] };
   if (e.id === 'homecoming.final') Object.assign(game.data.flags, { 'finale.met': true, 'ending.done': true, 'world.lantern.done': true });
   if (e.id === 'prologue') game.data.flags['ship.launched'] = false;
+  // (the desert's films on the desert's own save: its quest's version set, or the old-save step (desert.js migrateDesertQuest)
+  //  reads the seeded ship.powered as a save past the tree and lights it before the stone is set: the QC, v1.66)
+  if (e.world === 'desert') game.data.flags['desert.quest.v'] = DESERT_QUEST_V;
   if (e.item) { game.data.flags[`item.${e.item}`] = 0; game.data.flags[`box.${e.boxId}`] = false; }
   game.save();
 }
@@ -63,7 +68,7 @@ export async function startReview(w) {
 const TEMPLE_MOMENTS = { glassdunes: 'garage', underwater: 'underwater', moonfoundry: 'moonfoundry', spacecity: 'spacecity' };
 
 export async function stageCinematic(w, e) {
-  const W = w.storyRt.world, V = (...a) => new w.THREE.Vector3(...a), up = V(0, 1, 0);
+  const W0 = w.storyRt.world, W = W0, V = (...a) => new w.THREE.Vector3(...a), up = V(0, 1, 0);
   const place = (p, offset = V(0, 0, 0)) => { if (!p) throw new Error('Missing staging position'); w.player.teleport(p.clone().add(offset), up, V(0, 0, 1)); };
   // Give the actual world a frame to pose the traveller before its camera takes over.
   const settle = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -89,31 +94,43 @@ export async function stageCinematic(w, e) {
   } else if (e.id === 'lantern.arrive') { place(w.level.lantern.spots.isle); if (!W.state.arrived) W.arrive(); }
   else if (e.world === 'home') W[e.id.split('.')[1]]();
   else {
-    const key = e.id.split('.')[1];
-    if (e.world === 'desert') {
-      const cave = w.level.qanat.cave;
+    // (by the id's part, not the level: a merged world films each part's climax from that part's story, Vael II's bell
+    //  and Lorn II's pools in Vael and Lorn; staged by e.world they played Vael's bird and Lorn's crystal: QC v1.66)
+    const [part, key] = e.id.split('.');
+    const W = W0.parts?.[part] ?? W0;
+    if (part === 'desert') {
+      const cave = w.level.qanat.cave, city = w.level.qanat.city;
+      if (key === 'lit') {
+        // as in play: the water up, the spark-stone in the pack, in front of the roots (city.rootsLook) as you set it
+        // (and the water seen climbing the roots, desert.well.watched: else its own watch holds the stage and the film refuses)
+        game.set('desert.channel.open', true); game.set('desert.well.watched', true); game.set('item.stone', 1);
+        place(city.rootsLook); await settle(); W.setStone();
+        return w.storyRt.moments.current?.id === e.id;
+      }
       if (key === 'fill') {
         W.state.level = cave.levels.high; W.state.flow = 1;
         place(V(cave.poolCenter.x + cave.basinR(cave.levels.high) - 1.2, cave.origin.y + cave.levels.high - 0.3, cave.poolCenter.z));
-      } else place(W.lever.postAt, V(-cave.chDir.z, 0, cave.chDir.x).normalize().multiplyScalar(-2.4));
+      } else place(cave.bone.position, V(-cave.chDir.z, 0, cave.chDir.x).normalize().multiplyScalar(-2.4));   // (beside the drain's debris, where you pull it out: the lever went with issue #158)
       game.set('desert.channel.open', true); game.set('tool.empty', key === 'fill');
       await settle(); ok = w.storyRt.moments.current?.id === e.id || W.film[key]('');
-    } else if (e.world === 'arzach') {
+    } else if (part === 'arzach') {
       const bird = w.player.vehicles.find(v => v.kind === 'bird' || v.constructor.name === 'Bird');
       const land = w.player.pos.clone().add(V(3, 0, 4));
       if (!bird) throw new Error('Bird unavailable');
       bird.object.visible = true;
       ok = W.film.bird({ land, said: '' }); bird.summon(land.x, land.z, 0, w.player.pos);
-    } else if (e.world === 'arzach2') {
-      place(w.level.arzach2.ropeFoot); await settle(); ok = W.film.bell({ said: '', shout() {} });
-    } else if (e.world === 'perdide') { place(W.places.heart, V(1.6, 0, 0.4)); await settle(); ok = W.film.crystal(); }
-    else if (e.world === 'perdide2') {
+    } else if (part === 'arzach2') {
+      // (an arm's length from the rope toward the open side, as you pull it: on its foot, the rope ran through him, QC v1.66)
+      place(w.level.arzach2.ropeFoot, V(Math.sin(BELL.OUT), 0, Math.cos(BELL.OUT)).multiplyScalar(0.9)); await settle(); ok = W.film.bell({ said: '', shout() {} });
+    } else if (part === 'perdide') { place(W.places.heart, V(1.6, 0, 0.4)); await settle(); ok = W.film.crystal(); }
+    else if (part === 'perdide2') {
       place(W.pools[2].c, V(4, 0, 4)); W.light(W.pools[0]); W.light(W.pools[1]); await settle(); ok = W.light(W.pools[2]);
     } else if (e.world === 'edena') { place(W.terraces.wheelAt, V(-2, 0, 2)); await settle(); ok = W.film.terraces(); }
     else if (e.world === 'buried') { place(W.watchAt); await settle(); ok = W.film.wheel(); }
     else if (e.world === 'spheres') { place(W.pole, V(3, 0, 4)); await settle(); W.chord(); }
     else if (e.world === 'garage') { place(W.people.lune.pos, V(3, 0, 3)); await settle(); ok = W.film.signal(); }
-    else if (e.world === 'bazaar') { place(V(-4, w.level.ground.heightAt(-4, -205), -205)); game.set('item.recording', 1); game.set('bazaar.antenna.tuned', true); await settle(); W.play(); }
+    else if (e.world === 'bazaar') { place(w.level.signal.places.console, V(0, 0, 1.4));   // (at the console up the tower, where you play it: from the square, his face shot was against a wall, QC v1.66)
+       game.set('item.recording', 1); game.set('bazaar.antenna.tuned', true); await settle(); W.play(); }
     else if (e.world === 'incal') {
       // as in play: on the crown, the camera looking up at the light, the splinter let go (giveBack: it climbs,
       // lands at 3.6 s and the billboards say LOOK UP; calling the film alone left them blank)

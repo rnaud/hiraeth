@@ -16,7 +16,7 @@ const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { LOCALS } = await import('../src/story/arzach2-data.js');
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
 const { clearTargets } = await import('../src/targets.js');
-const { BELL, MOMENTS } = await import('../src/story/arzach2-moments.js');
+const { BELL, MOMENTS, clearSide } = await import('../src/story/arzach2-moments.js');
 const { WORLD_MOMENTS } = await import('../src/story/film.js');
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -115,6 +115,9 @@ test('the bell’s first ringing is filmed once: the tower, the bell, the cloud,
   assert.ok(C.pos.distanceTo(A.ropeFoot) > 80 && C.look.y < A.monastery.y - 80, 'C is out at the cliff’s lip, looking down over the cloud');
   const D = at(BELL.A + BELL.B + BELL.C + 1);
   assert.ok(D.look.distanceTo(player.pos) < 2.2 && D.pos.distanceTo(player.pos) < 3.5, 'D is close on his face');
+  // (QC v1.66) and from the side the rope isn't on: the line from the lens to his face clear of it by a hand or more
+  const flatGap = (p, a, b) => { const dx = b.x - a.x, dz = b.z - a.z, k = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz))); return Math.hypot(p.x - a.x - dx * k, p.z - a.z - dz * k); };
+  assert.ok(flatGap(A.ropeFoot, D.pos, D.look) > 0.15, `the rope out of D's sightline (${flatGap(A.ropeFoot, D.pos, D.look).toFixed(2)} m)`);
   // and the cloud settles all the way, as it always did
   step(30 * 10);
   assert.equal(W.bell.settle, 1);
@@ -158,4 +161,13 @@ test('without the ship’s camera Vael II does what it always did: the bell at o
   step(30 * 6);
   assert.ok(W.bell.settle > 0.45 && W.bell.settle < 0.55, `its own twelve seconds (${W.bell.settle.toFixed(2)})`);
   clearInteractables(); clearTargets();
+});
+
+test('the face shot\'s side (QC v1.66): the three-quarter side whose sightline misses the rope', () => {
+  const at = V(0, 0, 0), toward = V(0, 0, 10);
+  // the rope a little ahead and to his +x side: the lens goes the other way, and back for a rope on the other side
+  const a = clearSide(at, toward, V(0.5, 0, 0.6)), b = clearSide(at, toward, V(-0.5, 0, 0.6));
+  assert.equal(Math.abs(a), 0.5);
+  assert.equal(a, -b, 'mirrored with the rope');
+  assert.equal(clearSide(at, at, V(1, 0, 0)), 0.5, 'no facing: the usual side');
 });
