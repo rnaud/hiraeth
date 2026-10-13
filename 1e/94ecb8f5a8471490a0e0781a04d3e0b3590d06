@@ -1,0 +1,47 @@
+docs/benchmark-web-vs-unity.md
+  s_9ca76055a220ed::t_4a7e55efaf6ccd 324-325
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_926c468eff2078 169-173
+docs/systems/performance.md
+  s_9ca76055a220ed::t_ab85cd44caa000 2044,2079,2097,2101,2133,2188,2281,2569-2602
+docs/systems/ship.md
+  s_9ca76055a220ed::t_ff801167491366 197-200
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_997de0f013e615 385,389,393,728
+engine/game.js
+  s_9ca76055a220ed::t_5ad5831c1a4f0b 180,480-490
+engine/unity/game.js
+  s_9ca76055a220ed::t_55a5815e8052fe 130,220-223
+src/ship/ship.js
+  s_9ca76055a220ed::t_4aeeb4265ba670 454-458,462
+tests/route-spawn.test.js
+  s_9ca76055a220ed::t_f3c5d96c2862f9 2-9,18,64-65,68-71,92-108
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_54479f313b6587 177-179
+tests/bench-start.test.js
+  s_6a62d17e6e0c83::t_c4bf09c386668a 1-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1e94ecb8f5a8471490a0e0781a04d3e0b3590d06",
+  "prompts": {},
+  "sessions": {
+    "s_6a62d17e6e0c83": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a82c0687385c0285e",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
