@@ -1272,8 +1272,34 @@ and the continuous brows stay as v1 had them; no new references were made.
   box mean, at most 6 px across: a shadow shape's edge is as dark but long) are kept at
   full strength; the nose's side line above its wings is drawn at 0.72 of the reference's
   darkness (it read heavier than the drawing's). Tests check every inked texel lands on the
-  head's front skin and none on hair, eyes or brows; tests check every inked texel lands on the
   head's front skin and none on hair, eyes or brows.
+- **On the mesh's own features (v1.64, issue #266).** The mesh Tripo made from the portrait
+  does not match it: its nose is longer, wider and about 2.6 mm right of the centre line, its
+  mouth lower, its lower lip fuller. Laid on unmoved, the mouth line sat on the upper lip
+  (4.0 mm above where the lips part on average, 5.6 at worst), the nostrils on the nose's
+  front (5.4 mm above its lower outline), the wings 2–3 mm inside their grooves and the lower
+  lip's stroke 7.7 mm up on the lip. `scripts/tripo/face-landmarks.mjs` measures the shipped
+  mesh in source-front space (front raycasts on a BVH, 0.26 mm steps): the nose's centre line
+  (where its normal turns), the tip and the corner under it, the valley between the lips column
+  by column and the corners where it fades, the grooves round the wings and the nose's lower
+  outline, the lower lip's lower edge (its normal turned furthest down) and the hollow under it.
+  The bake moves the portrait's own strokes onto them with a thin-plate warp through pairs of
+  points (the mouth line column by column onto the parting, the wings' hooks onto the grooves,
+  the nostrils 3 mm above the outline, the side line by the nose's centre line, the lip's
+  stroke on its edge, the chin's mark 2 mm under the hollow), the eyes, brows, cheeks, freckles
+  and jaw held where they are. The nostrils are baked 1.6 times as dark: on the nose's
+  underside, sampled slantwise, they thinned out. Now the mouth is 0.1 mm off the parting on
+  average (0.5 at worst), the wings within 0.2 mm of their grooves, the lip's stroke within
+  0.8 mm of its edge. In rest space they ride the shape keys: on the morphed face of talking,
+  happy, sad and angry the mouth line stays within 0.4 mm of the parting on average (1.4 at
+  worst, talking).
+- **Seen from the side.** Laid on from in front, a line on skin the view sees more squarely
+  than the front does (the wings' grooves from the side) comes out wider, so the threshold
+  rises with that ratio (`steep`: the view's dot with the normal over the rest normal's z, 1.15
+  to 2.2, up to 0.82). The near nostril's outer end gives way once the view is 17–33° round to
+  its side (`nostrils`), as a drawing hides it behind the wing (it read as a ring round the
+  wing). `uHeadView`, the view's direction in the head's own frame, is set in the head's
+  `onBeforeRender` on the material being drawn (the passes draw clones of it).
 - **Drawn in rest space.** `wearPortraitHeadFace` samples it with the rest position's
   x/y, only where the rest normal faces forward, so it rides the blink, smile and speech
   morphs and never smears onto the underside of the nose or jaw. The lines go to the ink
@@ -1311,4 +1337,5 @@ and the continuous brows stay as v1 had them; no new references were made.
 
 Checked in the studio (front, three-quarter, side, close-up, face, bust, full and far, the
 happy, angry and sad tones and talking) and in a Desert conversation (two-shot and his
-portrait chip) against the reference; `tests/portrait-face-ink.test.js`.
+portrait chip) against the reference; `tests/portrait-face-ink.test.js` (since #266 also each stroke against
+the mesh's landmarks, at rest and in each expression).

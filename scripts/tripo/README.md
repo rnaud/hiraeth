@@ -30,7 +30,8 @@ That page preserves the untouched source for comparison. The user accepted the
 mesh and requested cleanup, integration and the reference's hair highlights.
 
 Run `node scripts/tripo/bake-face-ink.mjs` to rebuild the face's pen-line mask
-(`head-v3/face-ink.png`) from the approved front reference.
+(`head-v3/face-ink.png`) from the approved front reference, its strokes moved onto the
+mesh's own nose and mouth (`face-landmarks.mjs`, issue #266).
 Run `node scripts/tripo/prepare-portrait-head.mjs` to rebuild the shipped GLB,
 sampled colours and R8 hair mask in `public/characters/traveller-v1/head-v3/`.
 Positions, triangles and UVs are unchanged; skin normals are smoothed and the

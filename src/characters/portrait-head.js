@@ -14,12 +14,19 @@ export const PORTRAIT_HEAD = Object.freeze({
 // jaw curve's height at the chin and its rise (y = a + b x²), the rest normal's y at the crease,
 // its width in px; throat: the depth the throat stays behind (z < a − b|x|) and how far down its
 // shadow fades; hatch: the throat strokes' spacing (source units), width in px and how much
-// shows in light; fade: the face's height on screen (px) over which each weight of line comes in.
+// shows in light; fade: the face's height on screen (px) over which each weight of line comes in;
+// steep: where the view sees the skin more squarely than the front projection does (that ratio) the line threshold
+// rises to this, so lines laid on the wings' grooves stay pen lines from the side; nostrils: where the baked nostrils
+// sit (the nose's centre line, each side's offset and height, the patch's half-sizes) and when they give way, as
+// a drawing loses them: the near one once the view is that far round to its side (the sine), both once it is
+// that far off his face (the cosine). On the wings' insides they would otherwise read as a dark ring.
 export const PORTRAIT_FACE_INK = Object.freeze({
  box:[-.25,.05,.25,.62], size:[512,584], faceHeight:.47,
  jaw:[.142,4.0,-.45,1.7], throat:[.2,.3,.09], hatch:[.0085,1.0,.8],
  fade:{major:[22,45], minor:[90,170]},
  weight:{major:1.6, minor:1.35, jaw:1.9, hatch:1.4},
+ steep:[[1.15,2.2],.82],
+ nostrils:{ridge:.01, x:.047, y:.373, size:[.013,.012], near:[.3,.55], front:[.05,.2]},
 });
 const smooth=(a,b,x)=>{const t=T.MathUtils.clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
 const patch=(x,y,w,h)=>1-smooth(.55,1,Math.hypot(x/w,y/h));
@@ -71,12 +78,13 @@ export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  mat.uniforms.uPortraitHairInk={value:hairInk};mat.uniforms.uPortraitHairAmount={value:1};
  mat.uniforms.uPortraitFaceInk={value:faceInk};mat.uniforms.uPortraitFaceAmount={value:faceInk?1:0};
  mat.uniforms.uHeadSpeech={value:new T.Vector4()};mat.uniforms.uHeadEye={value:new T.Vector4()};mat.uniforms.uPortraitBlink={value:0};
+ mat.uniforms.uHeadView={value:new T.Vector3(0,0,1)};
  mat.uniforms.uShade.value.z=0; // source contours carry this face; no procedural cross-hatching
  mat.vertexShader=mat.vertexShader.replace('out vec2 vTextureUV;','out vec2 vTextureUV;\nin float _portrait_hair; out float vPortraitHair;').replace('vTextureUV = uv;','vTextureUV = uv; vPortraitHair = _portrait_hair;');
  mat.fragmentShader=mat.fragmentShader.replace('void main()',`in float vPortraitHair;
  uniform sampler2D uPortraitHairInk;uniform float uPortraitHairAmount;uniform float uPortraitBlink;
  uniform sampler2D uPortraitFaceInk;uniform float uPortraitFaceAmount;
- uniform vec4 uHeadSpeech;uniform vec4 uHeadEye;
+ uniform vec4 uHeadSpeech;uniform vec4 uHeadEye;uniform vec3 uHeadView;
  void main()`).replace(SRGB,`${SRGB}
  vec3 ph=(vBind-vec3(${F.offset.join(',')}))/${F.scale};
  vec3 phPaint=albedo;
@@ -115,8 +123,16 @@ export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  float fiPx=1.0/max(max(fwidth(fiUV.x),fwidth(fiUV.y))*${FI.size[0].toFixed(1)},1e-4);   // render px per texel
  float phFaceH=${FI.faceHeight.toFixed(2)}/max(max(fwidth(ph.x),fwidth(ph.y)),1e-6)/max(uPixelRatio,1e-3);   // the face's height in px (as shown: the portrait chip draws large, then shrinks)
  float fiThr=mix(.5,.75,smoothstep(1.2,5.0,fiPx/max(uPixelRatio,1e-3))),fiAa=.5*max(fwidth(fiTex.r),fwidth(fiTex.g))+.04;
+ // (the mask is laid on from in front: where the view sees the skin more squarely than the front does (the wings' grooves
+ // and the nostrils from three-quarters or the side) its lines come out wider; a higher threshold keeps them pen lines)
+ float fiStretch=max(dot(normalize(vNormal),normalize(-vWorldRel)),0.0)/max(phN.z,.15);
+ fiThr=mix(fiThr,${FI.steep[1].toFixed(2)},smoothstep(${FI.steep[0][0].toFixed(2)},${FI.steep[0][1].toFixed(2)},fiStretch));
  float fiOn=step(0.0,fiUV.x)*step(fiUV.x,1.0)*step(0.0,fiUV.y)*step(fiUV.y,1.0)*smoothstep(.02,.3,phN.z)*phFront*(1.0-phHair)*(1.0-phInside)*uPortraitFaceAmount;
- float phMajor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.r)*fiOn*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
+ // (the nostrils, seen from more than about 50 degrees off his face, give way: on the wing's inside they would read as a ring)
+ vec2 phNo=vec2(abs(ph.x-${FI.nostrils.ridge.toFixed(3)})-${FI.nostrils.x.toFixed(3)},ph.y-${FI.nostrils.y.toFixed(3)})/vec2(${FI.nostrils.size.map((v)=>v.toFixed(3)).join(',')});
+ float phNearSide=uHeadView.x*sign(ph.x-${FI.nostrils.ridge.toFixed(3)});
+ float phNostril=(1.0-smoothstep(.8,1.0,length(phNo)))*max(smoothstep(${FI.nostrils.near.map((v)=>v.toFixed(2)).join(',')},phNearSide),1.0-smoothstep(${FI.nostrils.front.map((v)=>v.toFixed(2)).join(',')},uHeadView.z));
+ float phMajor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.r)*fiOn*(1.0-phNostril)*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
  float phMinor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.g)*fiOn*smoothstep(${FI.fade.minor[0].toFixed(1)},${FI.fade.minor[1].toFixed(1)},phFaceH);
  // The jaw: where the rest normal turns under the chin (the crease, at any angle), near the jaw's
  // measured curve, on the skull's side of the step back to the throat (the throat sits well behind
@@ -156,5 +172,9 @@ export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  push(){const s=headInkState(this.expression,{blink:this.blink,look:this.look},this.state),w=mesh.morphTargetInfluences;for(let i=0;i<6;i++)w[i]=s.keys[i];w[0]=Math.min(1,Math.max(this.blink,this.expression.squint*.45));const u=mesh.material.uniforms;u.uHeadSpeech.value.set(s.speech[0],s.speech[1],0,0);u.uHeadEye.value.set(...s.eye);u.uPortraitBlink.value=w[0]},
  at(head,out){const sk=mesh.skeleton,i=sk.bones.indexOf(head);if(i<0)return null;matrix.multiplyMatrices(head.matrixWorld,sk.boneInverses[i]).multiply(mesh.bindMatrix).premultiply(mesh.bindMatrixInverse).premultiply(mesh.matrixWorld);return out.copy(centre).applyMatrix4(matrix)},
  facing(out){return out.set(0,0,1).transformDirection(matrix)}};
+ // (where his face looks, for the nostrils' fade: from the head joint each time the head is drawn)
+ const headBone=mesh.skeleton.bones.find((b)=>b.name==='Head'),_c=new T.Vector3(),_e=new T.Vector3(),_i=new T.Matrix4();
+ // (the material drawn, not mat: the passes draw clones of it)
+ mesh.onBeforeRender=(renderer,scene,camera,geometry,material)=>{const u=material?.uniforms?.uHeadView;if(!u||!headBone||!face.at(headBone,_c))return;camera.getWorldPosition(_e).sub(_c);u.value.copy(_e).transformDirection(_i.copy(matrix).invert())};
  face.push();return face;
 }

@@ -15,6 +15,9 @@ export const CHANGELOG = [
     // the Unity build on Android at Handheld, the lean surfaces and 0.75 of the screen by default (BridgeArgs.Quality,
     // BridgeRenderer.lean, BridgeRunner; docs/systems/performance.md "Unity on the Retroid")
     'On the Retroid and other Android handhelds the Unity preview starts at the Handheld graphics, as the game’s app does, draws its surfaces more simply and runs at up to the screen’s 60 frames a second instead of 30: 37 to 60 in the Desert, at the City-Shaft’s rim, in the Signal Market and in a temple, where it ran at 9 to 30 before. The Graphics setting in its menus is kept for the next start.',
+    // the face's nose and mouth lines moved onto the mesh's own nose and mouth (scripts/tripo/face-landmarks.mjs,
+    // bake-face-ink.mjs, portrait-head.js; docs/systems/characters.md "The face's ink"; issue #266)
+    'The nose and mouth lines sit on the traveller’s features again: the mouth line lies where his lips part, from corner to corner, even as he smiles, frowns or talks, the nostrils and the hooks of the nose’s wings are on his nose’s base instead of floating on its tip, and the short stroke under his lower lip and the mark on his chin sit under the lip. Seen from the side or three-quarters, the nostril on the near side gives way behind the wing as a drawing would show it.',
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

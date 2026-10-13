@@ -739,6 +739,8 @@ const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this bra
 // (v1.61, issue #197: a scratch shooter against this branch's own Vite, ?gestures=0 for before; the game's own captureView)
 const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by Marrow) against this branch’s own Vite (port 5791): a conversation open, each picture the game’s own view of the one speaking from in front; before: ?gestures=0 (the talking idle alone), 6 moments of a line; after: a moment of each of six gestures (a wave, surprise, yelling, sad, thinking, thanks); 12 October; sharp webp -q 72';
 const FACE198 = 'Issue #198: muted headless Chrome (1 × pixel ratio, 900 × 813) against this branch’s own Vite (port 5851), the Character studio’s Face and Close-up views of the traveller in the Desert’s light, paused idle, no wind, no blink, fixed gaze; before: this commit’s parent, after: this commit, same view each; 12 October; sharp webp -q 72';
+// (v1.64, issue #266: a scratch studio shooter against this branch's own Vite (port 5901) and the tree before it (1e94ecb8's face, 2ec50bcf))
+const FACE266 = 'Issue #266: muted headless Chrome (900 × 813; the three-quarter and side views at 3 × pixel ratio) against this branch’s own Vite (port 5901), the Character studio’s Face and Close-up views of the traveller in the Desert’s light, paused idle, no wind, no blink, fixed gaze (talking: open 0.45); before: the face as v1.63 left it (2ec50bcf), after: this commit; the same crop of each; 13 October; sharp webp -q 72';
 // (v1.63, issue #256: the camera QC's own pictures, .claude/skills/camera-qc/run.mjs with its frames kept at 1280 × 720 (a scratch copy) and SHOT_AT)
 const QC256 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch’s own Vite (port 5841) and the tree before it (2e818342, port 5842): the camera QC’s scenario alone, the frame at the same moment of its run (SHOT_AT), the game’s own camera; 12 October; cwebp -q 72';
 // (v1.63, issues #260 #261 #258: a scratch strip shooter, each subject held at set times into its wind-up in the Arena,
@@ -764,6 +766,13 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Rose House’s first room', before: null, after: 60.1 },
       ], source: 'the bridge’s own bench (-views -bench 6, unity-bench.json) on the device; docs/systems/performance.md, “Unity on the Retroid”, with GeckoView at the same views' }],
       see: 'On the Retroid, open Hiraeth (Unity) and walk about the Desert or the City-Shaft.' },
+    { match: 'The nose and mouth lines sit on the traveller’s features again', shots: [
+      { name: 'traveller-face-features-front', title: 'From the front, close', caption: 'Before, the portrait’s lines laid on unmoved: the mouth on his upper lip, about 4 mm above where the lips part, the nostrils on the nose’s front, the lower lip’s stroke across the lip itself; after, each line on the mesh’s own feature, measured on its shape.', from: FACE266, reference: { sheet: 'data/characters/traveller-v1/head-v3/reference/front.png', caption: 'The approved front portrait the lines are taken from.' } },
+      { name: 'traveller-face-features-three', title: 'Three-quarter', caption: 'The mouth line in the parting of the lips; the near nostril gives way behind its wing, the far one shows under the tip.', from: FACE266 },
+      { name: 'traveller-face-features-profile', title: 'From the side', caption: 'Before, the mouth line sat on the upper lip; after, it is in the lips’ parting, with a nostril under the tip and the wing’s curve, as his side view draws them.', from: FACE266, reference: { sheet: 'data/characters/traveller-v1/head-v3/reference/left.png', caption: 'His approved side view.' } },
+      { name: 'traveller-face-features-dialogue', title: 'As in a conversation', caption: 'From in front, a little to the side and below, as his conversation portrait sees him.', from: FACE266 },
+      { name: 'traveller-face-features-talk', title: 'Talking', caption: 'Before, the mouth line hung over his open mouth, a second mouth; after, it is inside it.', from: FACE266 },
+    ], see: 'Open the Character studio’s Close-up view of the traveller and turn him, set a tone or open his mouth: the mouth line stays where his lips part.' },
   ],
   '1.63': [
     { match: 'The Unity preview on the Xbox no longer catches every three seconds', numbers: [
