@@ -223,5 +223,71 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
     return !!m;
   }
 
-  return { flow, fill };
+  // ---------------------------------------------------------------- the tree catches (issue #239)
+  /**
+   * The spark-stone set in the roots: the tree burns again, filmed from the ground by him out to the whole of it
+   * (src/story/desert.js setStone calls it; the lighting runs on its own clock, LIGHT there: the stone into the water,
+   * the spark up the trunk, the fire growing over six seconds). `at`: { roots, treeBase, crown, spark() }.
+   */
+  function lit(at) {
+    const P = player.pos.clone();
+    // the way out from the trunk to the roots and down the avenue (the camera backs away along it), and across it
+    const out = V(at.roots.x - at.treeBase.x, 0, at.roots.z - at.treeBase.z);
+    if (out.lengthSq() < 1e-4) out.copy(facing()).negate(); else out.normalize();
+    // (across the avenue, on the side away from anyone standing by him: Hessa sweeps beside the roots)
+    const side = rightOf(out);
+    if (at.avoid && (at.avoid.x - P.x) * side.x + (at.avoid.z - P.z) * side.z > 0) side.negate();
+    const mid = at.treeBase.clone().addScaledVector(UP, LIT.midY), crown = at.crown.clone();
+    // B and C's lens: backing away down the avenue and rising, a little to the side so the trunk isn't edge-on
+    // (from where A's push ends, so B moves on from it without a cut; rising a little ahead of backing off)
+    const A1 = P.clone().addScaledVector(out, 1.9).addScaledVector(side, 1.0).addScaledVector(UP, 0.75);
+    const far = at.treeBase.clone().addScaledVector(out, LIT.far).addScaledVector(side, 14).addScaledVector(UP, LIT.high);
+    const crane = (k) => { const p = A1.clone().lerp(far, k); p.y = THREE.MathUtils.lerp(A1.y, far.y, Math.pow(k, 0.8)); return p; };
+    const pan = { t: -1, look: V(0, 0, 0) };
+    const m = moments.play({
+      id: 'desert.lit', flag: 'desert.moment.lit', dur: LIT.A + LIT.B + LIT.C,
+      shots: [
+        // A: on the ground beside him, low, the stone going from his hand into the wet roots
+        { dur: LIT.A, from: { pos: P.clone().addScaledVector(out, 1.7).addScaledVector(side, 1.3).addScaledVector(UP, 0.55), look: at.roots.clone().addScaledVector(UP, 0.2), fov: 48 },
+          to: { pos: A1.clone(), look: at.roots.clone().addScaledVector(UP, 0.9), fov: 50 } },
+        // B: backing off and rising as the spark climbs the bark, the lens tilting up after it
+        { dur: LIT.B, ease: 'linear', clear: false,
+          from: (t) => {
+            const k = smooth(t / LIT.B) * LIT.craneB;
+            const want = at.spark() ?? crown;
+            if (pan.t < 0) pan.look.copy(at.roots).addScaledVector(UP, 0.9); else pan.look.lerp(want, 1 - Math.exp(-6 * Math.max(0, t - pan.t)));
+            pan.t = t;
+            return { pos: crane(k), look: pan.look.clone(), fov: 50 };
+          } },
+        // C: the long pull back and up to the whole tree over the city, the fire growing out of its crown
+        { dur: LIT.C, ease: 'linear', clear: false,
+          from: (t) => {
+            const k = LIT.craneB + (1 - LIT.craneB) * smooth(t / LIT.C);
+            const look = pan.look.clone().lerp(mid, smooth(t / 1.6));
+            return { pos: crane(k), look, fov: 50 + 6 * smooth(t / LIT.C) };
+          } },
+      ],
+      beats: [
+        { t: LIT.swellAt, run: () => sound.swell?.('motif', crown.clone()) },
+      ],
+      onStart: (mm) => { mm.face = at.roots.clone(); mm.eyes = at.roots.clone(); },
+      onFrame: (mm, t) => {
+        // he watches the spark up the trunk, then the crown
+        const s = at.spark();
+        mm.eyes = s ? s.clone() : crown;
+        if (t > LIT.A + LIT.B) mm.face = crown;
+      },
+    });
+    return !!m;
+  }
+
+  return { flow, fill, lit };
 }
+
+/**
+ * The tree catching, filmed (issue #239: "it starts at the ground level, but then zooms out to see a scale"): A, low
+ * beside him at the roots (s); B, backing off and rising as the spark climbs; C, the long pull back to the whole tree;
+ * far: the crane's distance from the trunk at the end (m), high its height there, craneB how far it has gone by C,
+ * midY where the wide shot looks (m up the trunk), swellAt when the motif swells (as it catches: src/story/desert.js LIGHT).
+ */
+export const LIT = { A: 2.2, B: 2.6, C: 5.4, far: 150, high: 62, craneB: 0.16, midY: 24, swellAt: 3.6 };

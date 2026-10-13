@@ -772,6 +772,8 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Open the game menu (View, or J) and turn to the Map: the left stick moves the cursor, the triggers zoom.' },
   ],
   '1.64': [
+    { match: 'Setting the spark-stone in Qanat’s roots is filmed now', shots: [{ name: 'tree-lit', title: 'Lighting the tree', caption: 'Seven frames from the moment the stone goes in to ten seconds after. Before, the camera stayed behind you at the foot of the trunk; after, from the ground by you out to the whole tree over Qanat.',
+        from: 'muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s Vite (port 5921), a save at the spark-stone’s last step, the stone set from the roots; frames at 0.6, 2, 3.6, 5, 6.8, 8.6 and 10 s; before: the same build with the moment already seen (the camera as it always was)' }] },
     { match: 'The Unity preview opens on the title screen now', shots: [
       { name: 'unity-start', title: 'The first screen', caption: 'Before, the preview opened straight into the Desert, the camera inside the ship over the traveller’s head; after, the title: Continue, Saves and Settings.', from: 'adb screencap on the Retroid Pocket Nova, the Unity preview muted (-mute -metrics: the frame readout at the top), build 2066 against this branch’s build (12 October)' },
       { name: 'unity-start-menu', only: 'after', title: 'The Start menu', caption: 'Menu: the sidebar and its page, here the settings, a slider’s value moved with the stick.', from: 'the same device and build' },

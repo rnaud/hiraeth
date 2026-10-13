@@ -20,6 +20,7 @@ export const WORLD_MOMENTS = {
   desert: [
     { id: 'desert.flow', flag: 'desert.moment.flow', beat: 'the water runs for the first time' },
     { id: 'desert.fill', flag: 'desert.moment.fill', beat: 'the empty tank fills' },
+    { id: 'desert.lit', flag: 'desert.moment.lit', beat: 'the great tree catches, seen from the roots out to the whole of it over the city' },
   ],
   arzach: [{ id: 'arzach.bird', flag: 'arzach.moment.bird', beat: 'the bird comes down out of the haze and bows' }],
   arzach2: [{ id: 'arzach2.bell', flag: 'arzach2.moment.bell', beat: 'the bell rings after thirty years and the cloud settles' }],

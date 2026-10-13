@@ -300,4 +300,33 @@ test('without the ship’s camera (or once seen) the desert does what it always 
   assert.ok(toasts.some((t) => /empty tank fills/.test(t)));
 });
 
+test('#239: the tree catching is filmed once, from the ground by him out to the whole tree; it catches on its own clock, skipped or not', async () => {
+  const { LIT } = await import('../src/story/desert-moments.js');
+  const city = Q.city;
+  for (const [k, v] of Object.entries({ 'desert.channel.open': true, 'desert.well.watched': true, 'item.stone': 1 })) game.set(k, v);
+  game.set('desert.tree.lit', undefined);
+  player.pos.copy(city.rootsLook);
+  step(1);
+  const n0 = ship.shots.length, swells = sound.swells.length;
+  W.setStone();
+  assert.equal(game.flag('desert.tree.lit'), true, 'set: the tree is lit, film or no film');
+  assert.ok(rt.moments.playing, 'the moment plays');
+  assert.equal(game.flag('desert.moment.lit'), true, 'once per save');
+  const total = LIT.A + LIT.B + LIT.C;
+  step(Math.round(total * 30) + 20);
+  assert.ok(!rt.moments.playing, 'then back to you');
+  const shots = ship.shots.slice(n0);
+  const first = shots[3], last = shots[Math.round(total * 30) - 4];
+  assert.ok(first.pos.distanceTo(player.pos) < 3 && first.pos.y < player.pos.y + 1.2, 'it starts on the ground beside him');
+  assert.ok(first.look.distanceTo(city.roots) < 2, 'on the roots');
+  assert.ok(flat(last.pos, city.treeBase) > 110 && last.pos.y > city.treeBase.y + 45, 'and ends far out and high, the whole tree in view');
+  assert.ok(last.look.distanceTo(city.treeBase) < 40, 'looking at it');
+  for (let i = 1; i < shots.length; i++) assert.ok(shots[i].pos.distanceTo(shots[i - 1].pos) < 3, 'one move, no cut');
+  assert.deepEqual(sound.swells.slice(swells), ['motif'], 'the world’s motif swells as it catches');
+  assert.ok(!ship.log.some(([k, v]) => k === 'say' && v), 'no line');
+  step(30 * 2);
+  assert.equal(city.lit, 1, 'it burns');
+  assert.equal(W.film.lit({ roots: city.roots, treeBase: city.treeBase, crown: city.crown, spark: () => null }), false, 'never twice');
+});
+
 function st() { return W.state; }

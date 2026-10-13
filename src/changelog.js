@@ -62,6 +62,10 @@ export const CHANGELOG = [
     // and 6, src/story/desert-data.js SPLINTER; docs/systems/fragments.md "The first two, easy"; issue #247)
     { text: 'The first fragments of the singing light are easy to find in the Desert: one sings on the open sand a short walk from your ship’s ramp, another on the low rise behind it. Ask Marrow what is singing out there and he points you to the first, a small errand of its own that ends when you take it.',
       see: 'Start a new game, step out of the ship and look ahead and to the right: a pale splinter singing on the sand about 40 m away. Or ask Marrow, “What’s that singing out on the sand?”' },
+    // the tree's lighting filmed: from the ground by him out to the whole tree over the city (src/story/desert-moments.js
+    // lit, desert.moment.lit; docs/systems/cinematics.md "Moments"; issue #239)
+    { text: 'Setting the spark-stone in Qanat’s roots is filmed now: the camera starts on the ground beside you as the stone goes in, rises after the spark climbing the trunk, then pulls far back and up until the whole tree stands over the city with its fire growing out of the crown. Skip it as any other.',
+      see: 'In the Desert, bring the spark-stone back from the Givers’ Hearth and set it in the tree’s roots.' },
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

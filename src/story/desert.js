@@ -876,6 +876,12 @@ export function setupDesert(ctx) {
     game.set('desert.tree.lit', true);
     sound.chime?.();
     toast('You set the spark-stone in the wet roots. The living water draws it in, glowing…');
+    // filmed, once: from the ground by him out to the whole tree as it catches (issue #239; src/story/desert-moments.js
+    // lit). The lighting runs on its own clock either way, so a skip or no film lands the same.
+    // (Hessa, sweeping beside the roots, steps back to the far end of her sweep: out of the first shot, not behind him)
+    const H = people.hessa;
+    if (H?.route?.length && flat(H.pos, city.rootsLook) < 6) { H.pos.copy(H.route.at(-1)); H.wp = H.route.length - 1; }
+    film.lit?.({ roots: city.roots, treeBase: city.treeBase, crown: city.crown, spark: () => (spark.visible ? spark.position : null), avoid: H?.pos ?? null });
   };
   const updateLighting = (dt) => {
     if (lighting.t < 0) return;

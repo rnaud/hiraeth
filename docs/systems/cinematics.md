@@ -130,7 +130,7 @@ tone, a swell of the world's score, then back to you.
 - **Sound**: `sound.swell(kind, pos)` plays a phrase of the world's score over a growing pad
   while the score and the bands step back: `'motif'` the world's leitmotif on its lead,
   `'father'` the father's theme in the world's mode on its voice for it.
-- **The desert's two** (`src/story/desert-moments.js`):
+- **The desert's three** (`src/story/desert-moments.js`):
   - *the water's first run* (`desert.moment.flow`), when the rib comes off the channel: A, high
     beyond the gutter, the rib rolling clear past the post and the traveller; B, a long lens up
     the gutter from past its end, the crack lighting and the water coming down it (the flow
@@ -150,6 +150,15 @@ tone, a swell of the world's score, then back to you.
     with him lifting the glove and firing a first glob over the pool: he has nothing to fire with
     until the gun in the Givers' Hearth. No cinematic shows a thing used before it is found (the
     cinematics QC skill's checklist).
+  - *the tree catching* (`desert.moment.lit`, issue #239: "it should be from afar, so I can really see the scale of
+    what's happening. It starts at the ground level, but then zooms out"), when the spark-stone is set in the roots
+    (`setStone`; `LIT`, 10.2 s): A, low on the ground beside him, the stone going from his hand into the wet roots; B,
+    from where A's push ends the lens backs off down the avenue and rises, tilting after the spark up the bark; C, one
+    long pull back and up to 150 m out and 62 m high, the whole tree over Qanat's roofs as the fire grows out of its
+    crown. One move from B on, no cut; on the side of the avenue away from anyone beside him (Hessa, who sweeps by the
+    roots, steps back to the far end of her sweep as it starts). The motif swells as the tree catches. The lighting
+    runs on its own clock (`LIGHT` in desert.js), so skipped or unseen the tree catches the same; nobody's lines are
+    added (Hessa's and Nour's shouts are the lighting's own). `tests/moment.test.js` ("#239").
   - **Show, don't tell** (players: "the character feels corny"): the traveller says nothing in
     them and reacts with his face only, a slight smirk at most; no surprised or happy faces, no
     gestures. `tests/moment.test.js` holds them to it (no line in his voice, no big look).
