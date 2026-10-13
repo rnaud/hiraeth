@@ -258,7 +258,7 @@ test('the game\'s own bodies are as they were: no profile, the per-kind tables, 
   assert.equal(h.body.material.uniforms.uMood.value.x, TONE_EXPRESSIONS.happy.smile, 'the ink draws the whole expression');
   h.setExpression({ brow: 1 });
   assert.ok(h._browBase, 'the brows posed on the CPU as before');
-  // the game's people: MakeHuman where the world says so (usesMakeHuman), the traveller on his own body
+  // the game's people: MakeHuman (usesMakeHuman, ?mh=0 to compare), the traveller on his own body
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /usesMakeHuman\(levelId, query\.get\('mh'\)\)/);
   assert.match(main, /player\.humanoid = new Humanoid\(humanT\[0\]/, 'the traveller on his own body');
@@ -277,9 +277,11 @@ test('expressions become shape keys: each tone pulls its own', () => {
   assert.equal(ink.brow, -1, 'the frown creases stay the ink\'s');
 });
 
-test('the studio: MakeHuman a body source of its own, the comparison pairs, every age and build, every hairstyle', () => {
-  assert.equal(DEFAULTS.source, 'quaternius');
+test('the studio: MakeHuman the default body source (the game\'s), the comparison pairs, every age and build, every hairstyle', () => {
+  assert.equal(DEFAULTS.source, 'makehuman', 'the studio shows the bodies the game draws (issue #271)');
   assert.equal(encodeState(DEFAULTS), '');
+  assert.equal(decodeState('').source, 'makehuman');
+  assert.equal(decodeState('source=quaternius').source, 'quaternius', 'the old bodies, to compare');
   assert.equal(decodeState('source=makehuman&mh=child&lineup=mhhair').lineup, 'mhhair');
   const pairs = mhLineup(8);
   assert.equal(pairs.length, MH_PRESETS.length * 2);

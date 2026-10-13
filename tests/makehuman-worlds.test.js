@@ -385,3 +385,42 @@ test("The atelier's artist is a MakeHuman body: every level's people are", async
   const { COSTUME_WORLDS } = await import('../src/costumes.js');
   for (const w of COSTUME_WORLDS) assert.ok(MH_WORLDS.has(w), `${w} on MakeHuman bodies`);
 });
+
+test('every person of the game on a MakeHuman body by default (issue #271): each kind, every level, a new world too; ?mh=0 the old bodies', async () => {
+  const { LEVELS } = await import('../src/levels/index.js');
+  for (const { id } of LEVELS) {
+    assert.ok(MH_WORLDS.has(id), `${id} was checked on MakeHuman bodies`);
+    assert.equal(usesMakeHuman(id), true, id);
+    assert.equal(usesMakeHuman(id, '0'), false, `${id}: ?mh=0 to compare`);
+  }
+  assert.equal(usesMakeHuman('a-world-not-made-yet'), true, 'a new world starts on them');
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  // the bodies the game hands out: the MakeHuman family wherever the people are made
+  assert.match(main, /const peopleT = humanT && mhPeople \? \(\(await mhPeople\)\?\.humans\(\) \?\? humanT\) : humanT;/);
+  const uses = {
+    'story people and walkers (NPC)': /spawnNPCsSteps\(scene, physics, content\.npcs, \{ lib, humans: peopleT \}\)/,
+    'the crowd near (its pooled full bodies)': /crowdPool\.push\(pooledNPC\(scene, physics, \{ kind: [^}]*humans: peopleT \}\)\)/,
+    'the crowd made on demand': /makeNPC: \(kind\) => pooledNPC\(scene, physics, \{ kind, lib, humans: peopleT \}\)/,
+    'the story (the family, the hosts)': /createStory\(\{[^\n]*humans: peopleT/,
+    'the ship (the recordings\' holograms)': /ship\.attach\(\{[^\n]*humans: peopleT/,
+    'the minigames\' people': /people: \{ lib, humans: peopleT \}/,
+  };
+  for (const [who, re] of Object.entries(uses)) assert.match(main, re, who);
+  assert.doesNotMatch(main.replace(/const foes = new Foes[^\n]*/, ''), /humans: humanT/, 'no person left on the Quaternius pair');
+  // the traveller: his own accepted body (src/characters/traveller.js, B3 on a MakeHuman template), the Quaternius man only if it fails to load
+  assert.match(main, /player\.character = createTraveller\(player\.char, generatedTraveller\)/);
+  // a template from the family picks each person's own body; a pooled crowd body is a grown-up of average build
+  const P = new MakeHumanPeople(data, 'incal');
+  const [m, f] = P.humans();
+  assert.equal(m.userData.mhPeople, P);
+  assert.equal(m.userData.profile.source, 'makehuman');
+  assert.equal(f.userData.profile.source, 'makehuman');
+  assert.equal(P.templateFor({ kind: 'f', pooled: true }), P.template('f', 'adult', 'average'));
+  assert.notEqual(P.templateFor({ kind: 'm', def: { age: 'child', years: 9 } }), P.template('m'));
+  // the crowd's levels of detail: a few full bodies near (CROWD_BUDGET.pool), the GPU figures for everyone else
+  const { CROWD_BUDGET } = await import('../src/crowd.js');
+  assert.ok(CROWD_BUDGET.pool <= 6, `${CROWD_BUDGET.pool} full bodies at most`);
+  const npc = readFileSync(new URL('../src/npc.js', import.meta.url), 'utf8');
+  assert.match(npc, /human\.userData\.mhPeople\.templateFor\(\{ kind, def:/);
+  assert.match(npc, /this\.humanoid\.lod = skinnedLods\.add\(new SkinnedLod\(this\.humanoid\)\)/, 'each full body its skinned levels of detail');
+});

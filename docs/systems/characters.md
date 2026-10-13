@@ -422,6 +422,28 @@ docs/makehuman.md (stage 3) has the checks, the numbers and the pictures; `tests
   of the hair under the headwear; a point past a piece (and not inside a closed one) pokes through. The
   new pieces: none through on children, teenagers, grown-ups, the old and the heavy.
 
+### Who wears which body (issue #271)
+
+| who | body | where it is chosen |
+|---|---|---|
+| the traveller | his own: the accepted B3 body ("Traveller B3 body", below), built on a MakeHuman template | `main.js` `createTraveller` (`characters/traveller.js`); the Quaternius man only if it fails to load |
+| story people, walkers, the family, the minigames' and trials' people, the recordings' holograms | MakeHuman, each by age, build and world (`MakeHumanPeople.templateFor`) | `main.js` `peopleT` (NPC, `createStory`, `ship.attach`, the minigames' `people`) |
+| the crowd near (`CROWD_BUDGET.pool`, 4 full bodies) | MakeHuman, a grown-up of average build taking each person's build and age | `pooledNPC` |
+| the crowd beyond them | the GPU figure (`crowd-shader.js`), matched to the MakeHuman joints (`CROWD_BODY`) | `crowd.js` |
+| guardians, creatures, foes | their own bodies | not people |
+
+`usesMakeHuman` says yes in every world, one not made yet too; `?mh=0` brings back the old Quaternius
+bodies to compare. The studio's *Body source* defaults to MakeHuman (the game's); `source=quaternius` shows
+the old ones. Still on the Quaternius bodies: the native Unity export (`scripts/unity-export`, docs/makehuman.md
+"What a full switch would take"); the engine bridge draws the game's MakeHuman people.
+`tests/makehuman-worlds.test.js` ("every person of the game on a MakeHuman body").
+
+Measured again for the issue (Mac, headless Chrome on the GPU, 1280 × 720, the spawn, walking and turning
+12 s, three runs alternating `?mh=0` and the default, medians; 60 fps throughout): the City-Shaft (18 people,
+about 1 500 in its crowd) High CPU 8.9 → 9.3 ms, GPU 15.8 → 15.2 ms, Handheld CPU 8.3 → 8.7, GPU 8.7 → 8.2;
+the Signal Market High CPU 5.9 → 5.8, GPU 12.2 → 11.7, Handheld CPU 5.4 → 5.7, GPU 7.2 → 7.3 (Quaternius →
+MakeHuman): within the runs' spread, as in stage 3.
+
 ## Capes at a distance, and people up close (v0.39)
 
 - **Capes hang at rest far off** (`src/cape.js`). Cloth is only simulated near the

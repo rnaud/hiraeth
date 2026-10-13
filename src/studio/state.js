@@ -14,7 +14,7 @@ export const DEFAULTS = Object.freeze({
   kind: 'm',             // m | f (blank bodies; crowd: '' = as seeded)
   spot: '',              // where they stand, for worlds dressed by it (the City-Shaft: rim | upper | middle | lower)
   build: '',             // '' the person's own, else slim | average | broad | heavy
-  source: 'quaternius',  // the body: quaternius (the game's) | makehuman (the prototype, src/studio/makehuman.js)
+  source: 'makehuman',   // the body: makehuman (the game's, src/makehuman/) | quaternius (the old bodies, ?mh=0 in the game)
   mh: '',                // a MakeHuman person's id (source=makehuman; '' the first of the person's kind)
   // the expression: a dialogue tone, how much of it, talking (the mouth moves), blinking
   tone: 'neutral', amount: 1, talk: false, blink: true,

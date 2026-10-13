@@ -896,8 +896,8 @@ select(sWho, 'Story person', 'npc', () => [['', cast.length ? '(the first)' : '(
 slider(sWho, 'Crowd seed', 'seed', 1, 200, 1, 1, () => { if (state.who === 'crowd' || state.lineup === 'crowd') rebuild(); });
 const spotSel = select(sWho, 'Where (City-Shaft)', 'spot', [['', 'as the story places them'], ['rim', 'the rim'], ['upper', 'the upper levels'], ['middle', 'the middle levels'], ['lower', 'the bottom of the shaft']], applyLook);
 select(sWho, 'Body', 'kind', [['m', 'man'], ['f', 'woman']], () => { if (state.who !== 'npc' && state.who !== 'traveller') rebuild(); });
-// the MakeHuman prototype (src/studio/makehuman.js, docs/makehuman.md): another body for whoever is shown
-select(sWho, 'Body source', 'source', [['quaternius', 'Quaternius (the game’s)'], ['makehuman', 'MakeHuman (parametric; ?mh=1 in the game)']], rebuild);
+// the body: MakeHuman, the game's people's (src/makehuman/, docs/makehuman.md), or the old Quaternius ones to compare
+select(sWho, 'Body source', 'source', [['makehuman', 'MakeHuman (the game’s)'], ['quaternius', 'Quaternius (the old bodies)']], rebuild);
 const mhSel = select(sWho, 'MakeHuman person', 'mh', () => [['', 'the first of their kind'], ...MH_PRESETS.map((e) => [e.id, e.label]),
   // (the headwear lineup: which pieces; '' the headwear)
   ['masks', 'headwear lineup: the face pieces'], ['neck', 'headwear lineup: the shoulder pieces'], ['world', 'headwear lineup: the world’s own']],

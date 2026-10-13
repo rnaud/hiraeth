@@ -1,5 +1,10 @@
 # MakeHuman / MPFB bodies: the prototype, and stage 1 of the switch
 
+*Where it stands (2026-10-13, issue #271): the switch is done. Every world's people are MakeHuman bodies
+(stage 3), any new world too, and the studio shows them by default (`source=quaternius` for the old ones,
+`?mh=0` in the game); the traveller has his own body. Who wears what: docs/systems/characters.md "Who
+wears which body". The history below is as it was written.*
+
 The question (TODO, "Faces and bodies"): would people built from MakeHuman read better than the
 Quaternius Universal Base Characters the game uses, through the same ink pass? This is the
 prototype that answers it: eight MakeHuman people on the game's skeleton, with face shape keys,

@@ -39,9 +39,7 @@ test('the Desert\'s people are MakeHuman bodies by default; ?mh=0 the Quaternius
   assert.ok(MH_WORLDS.has('desert'));
   assert.equal(usesMakeHuman('desert'), true);
   assert.equal(usesMakeHuman('desert', '0'), false, '?mh=0: to compare');
-  // (each other world follows once reviewed: tests/makehuman-worlds.test.js; one still waiting stays on the Quaternius bodies)
-  const waiting = ['garage', 'incal', 'arzach', 'arzach2', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'home', 'lab', 'references', 'atelier'].find((w) => !MH_WORLDS.has(w));
-  if (waiting) assert.equal(usesMakeHuman(waiting), false, `${waiting} waits for its review`);
+  // (every other world followed: tests/makehuman-worlds.test.js)
   assert.equal(usesMakeHuman('bazaar', '1'), true);
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /usesMakeHuman\(levelId, query\.get\('mh'\)\)/);

@@ -39,7 +39,7 @@ export const BUILD_INPUT = {
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**
  * The MakeHuman parametric body (public/anim/mh/body.bin, docs/makehuman.md: 1.7 MB, 1.06 gzipped): the
- * Desert's people (and ?mh=1 anywhere) are MakeHuman bodies, so it ships with the web bundle and the APK.
+ * game's people are MakeHuman bodies in every world, so it ships with the web bundle and the APK.
  * MAKEHUMAN=0 leaves it out (a build to measure without it: the people fall back to the Quaternius bodies).
  */
 export const MH_DIR = 'anim/mh';

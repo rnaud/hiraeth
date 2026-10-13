@@ -1,6 +1,7 @@
 // The MakeHuman bodies in the game (docs/makehuman.md): each world's people get their bodies from the one
-// parametric body (src/makehuman/body.js), by who they are. The Desert's people are MakeHuman bodies by
-// default (MH_WORLDS, stage 2), any world's with ?mh=1, none with ?mh=0; the studio's Body source too.
+// parametric body (src/makehuman/body.js), by who they are. Every world's people are MakeHuman bodies (the
+// Desert first in stage 2, the rest in stage 3: MH_WORLDS; a new world too, issue #271), none with ?mh=0
+// (the old Quaternius bodies, to compare); the studio's Body source the same (MakeHuman its default).
 //
 //   const people = await loadPeople(base, world)   the world's family of bodies
 //   people.humans()                                [man, woman]: the grown-up templates, where the
@@ -13,7 +14,8 @@
 // A template is a person's skeleton and body; the other builds are bodies on that skeleton
 // (profile.buildGeometry: a crowd body takes each person's build, as the Quaternius ones do), so a
 // world has at most a few dozen distinct bodies, each shared by everyone of that kind, age and build.
-// The traveller stays on his Quaternius body (his suit and gear are fitted to it: stage 2).
+// The traveller has his own body (src/characters/traveller.js: the accepted B3 body, built on a MakeHuman
+// template of its own), not one of these.
 import { loadBody, makeBody, bodyGeometryFor } from './body.js';
 import { personParams, AGES, paramsKey, MH_BUILDS } from './shape.js';
 import { mhLookPieces, mhStyleOf } from './hair.js';
@@ -160,16 +162,14 @@ export class MakeHumanPeople {
 }
 
 /**
- * The worlds whose people are MakeHuman bodies by default (docs/makehuman.md: the Desert in stage 2, then
- * each world once its costumes, children and crowd are checked: the Signal Market).
+ * The worlds whose people were checked on MakeHuman bodies one by one (docs/makehuman.md: the Desert in
+ * stage 2, then each world once its costumes, children and crowd were checked): every level now.
  */
 export const MH_WORLDS = new Set(['arena', 'gadgetyard', 'shadows', 'arcade', 'desert', 'bazaar', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'mangrove', 'glassdunes', 'waterfall', 'home', 'lab', 'references', 'atelier', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity', 'overnighttrain', 'lantern']);
 
-/** Whether a world's people are MakeHuman bodies: the page's ?mh=1 / ?mh=0 (to compare), else the world's default (MH_WORLDS). */
+/** Whether a world's people are MakeHuman bodies: always, unless the page says ?mh=0 (the Quaternius bodies, to compare). */
 export function usesMakeHuman(world, flag = null) {
-  if (flag === '1') return true;
-  if (flag === '0') return false;
-  return MH_WORLDS.has(world);
+  return flag !== '0';
 }
 
 /** The world's MakeHuman people: the data once, the family for this world. */

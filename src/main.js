@@ -320,8 +320,8 @@ const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
 const traveller = loadTraveller(import.meta.env.BASE_URL).catch(e => { console.warn('Traveller B3 unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
-// the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: the Desert's by default, ?mh=1
-// any world's, ?mh=0 none): the body's one file asked for now, while the rest loads
+// the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: every world's, ?mh=0 none):
+// the body's one file asked for now, while the rest loads
 const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.meta.env.BASE_URL, levelId).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return null; }) : null;
 await stage(`sketching ${meta.title.toLowerCase()}…`);
 setStep('world');
