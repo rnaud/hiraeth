@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_2b4625bcf1f8d0 7
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_cc5a6fc8fa96b9 469-480,504-514,560,564-565
+src/changelog.js
+  s_9ca76055a220ed::t_883a9a1c5a0142 30-34
+src/i18n/en.js
+  s_9ca76055a220ed::t_c0c363c09dd6ee 81-84
+src/i18n/fr.js
+  s_9ca76055a220ed::t_1e0eaf83c8cb25 49-52
+src/main.js
+  s_9ca76055a220ed::t_0d212acef2d22c 1377
+src/minigames/kit/flow.js
+  s_9ca76055a220ed::t_248ff2e5bd171b 25-29,31-32
+src/minigames/kit/minigames.css
+  s_9ca76055a220ed::t_c6642eeac75763 105-113
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_664008c83f67dc 56,61-63,101-102,125,152-168,322,334
+src/minigames/pirates-rules.js
+  s_9ca76055a220ed::t_b1600e84db695b 11-12,36-39,104-108,170-171,173,189-190,306-320,344-362,387-389,530,539,553-555,601-624,675,707-708,710,744-747
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_7af83eaa35ced5 384-387,409-410,537-547,672-680,796-807,869-871,937,949,957,959-962,976-987,995,997-1002
+src/ui.js
+  s_9ca76055a220ed::t_4449b182d7ce02 49,205,208,229-230,365
+tests/pirates.test.js
+  s_9ca76055a220ed::t_3b751400906b9a 5,8,176,178-181,329,331-343,417-423,471-510
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f3190ced38c89b77be85c9a0d54809d3787e685",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
