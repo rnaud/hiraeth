@@ -114,6 +114,8 @@ namespace Hiraeth.Bridge
             // light; 10 where the G-buffer holds NaNs), a test for the Xbox's see-through picture)
             if (BridgeArgs.Arg("-debug-view") is string dv && int.TryParse(dv, out int dvi)) look.debugView = dvi;
             Shader.SetGlobalFloat("_MSurfaceDebug", BridgeArgs.Arg("-surface-debug") is string sdv && int.TryParse(sdv, out int sdi) ? sdi : 0);
+            // (-surface-skip N: parts of the Surface shader left out by bit, a test of what each costs the GPU: Surface.shader)
+            Shader.SetGlobalFloat("_MSurfaceSkip", BridgeArgs.Arg("-surface-skip") is string ssv && int.TryParse(ssv, out int ssi) ? ssi : 0);
             scene = new GameObject("Mirrored scene").AddComponent<BridgeRenderer>();
             scene.transform.SetParent(transform, false);
             scene.cam = cam; scene.look = look;
@@ -364,14 +366,21 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Flag("-no-fxaa")) Hiraeth.Rendering.HiraethFeature.Settings.fxaa = false;
             // the opaques' depth drawn first, so the G-buffer shades each pixel once (HiraethFeature.Settings.prepass): on the
             // Linux player (the Deck: the City-Shaft's GPU 24 -> 20 ms in its wide view), -prepass elsewhere, -no-prepass off
-#if UNITY_STANDALONE_LINUX && !UNITY_EDITOR
+#if (UNITY_STANDALONE_LINUX || UNITY_ANDROID) && !UNITY_EDITOR
             Hiraeth.Rendering.HiraethFeature.Settings.prepass = !BridgeArgs.Flag("-no-prepass");
 #else
             Hiraeth.Rendering.HiraethFeature.Settings.prepass = BridgeArgs.Flag("-prepass");
 #endif
             // the prepass draws only the plain meshes of at least 1 m radius (the occluders: the City-Shaft's prepass 3.0 -> 1.5 ms,
-            // the G-buffer's own a little more, the wide view 53 -> 58 fps); -prepass-min R another radius, 0 every opaque
+            // the G-buffer's own a little more, the wide view 53 -> 58 fps); -prepass-min R another radius, 0 every opaque.
+            // On Android every opaque: the Retroid's Adreno shades each pixel once only so (the City-Shaft's wide view 44 -> 37 ms
+            // of GPU, the Signal Market's 1.5-3 ms less, the desert the same), where the big ones alone cost it more than none
+            // (46 ms there: issue #262)
+#if UNITY_ANDROID && !UNITY_EDITOR
+            Hiraeth.Rendering.HiraethFeature.Settings.prepassMinRadius = 0;
+#else
             Hiraeth.Rendering.HiraethFeature.Settings.prepassMinRadius = 1;
+#endif
             if (BridgeArgs.Arg("-prepass-min") is string pm && float.TryParse(pm, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float pmv)) Hiraeth.Rendering.HiraethFeature.Settings.prepassMinRadius = pmv;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) HiraethShadows.On = false;

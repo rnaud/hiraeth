@@ -377,6 +377,9 @@ Shader "Hiraeth/Surface"
       };
 
       float _MSurfaceDebug;   // (global: BridgeRunner -surface-debug)
+      float _MSurfaceSkip;    // (global: BridgeRunner -surface-skip N, a test of what each part costs the GPU (issue #262), the
+                              // parts left out by bit: 1 patterns, 2 weathering, 4 pen detail, 8 colour patches, 16 hatching,
+                              // 32 the sun's shadow, 64 the local lights, 128 the ground's marks, 256 the shade's tone)
 
       Varyings vert(Attributes v)
       {
@@ -886,7 +889,8 @@ Shader "Hiraeth/Surface"
           albedo = eyeball(i.bind, _Color.rgb, _Color2.rgb, _Skin.rgb);
         }
         // colour across a wall (materials.js PATCH): big flat patches, each building its own; none far off
-        UNITY_BRANCH if (_Patch > 0.0 && i.viewDepth < 380.0)
+        int skip = (int)(_MSurfaceSkip + 0.5);
+        UNITY_BRANCH if (_Patch > 0.0 && i.viewDepth < 380.0 && (skip & 8) == 0)
         {
           float pk = 1.0 - smoothstep(260.0, 380.0, i.viewDepth);
           float3 dP = albedo * (wallPatch(i.worldPos, normalize(i.normal), _Patch, float3(wfqA.x, wfy, wfqB.x)) - 1.0);
@@ -896,12 +900,13 @@ Shader "Hiraeth/Surface"
         float emit = 0.0;   // lit windows at night (facade)
         int pattern = (int)(_Pattern + 0.5);
         // (the material's options are uniform over a draw: derivatives inside these branches are safe)
+        if ((skip & 1) != 0) pattern = 0;
         UNITY_BRANCH if (pattern == 1) patInk = facadeMarks(i.worldPos, n, normalize(i.normal), albedo, emit);
         else if (pattern == 2) patInk = roofTiles(i.worldPos);
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
         // weathering (materials.js weatherInk): grime, chips, cracks, on upright faces
-        UNITY_BRANCH if (_Weather > 0.0 && abs(n.y) < 0.55)
+        UNITY_BRANCH if (_Weather > 0.0 && abs(n.y) < 0.55 && (skip & 2) == 0)
         {
           float wUp = 1.0 - smoothstep(0.35, 0.55, abs(n.y));
           float ax = abs(n.x), az = abs(n.z), wb = smoothstep(0.36, 0.64, ax / max(ax + az, 1e-4));
@@ -923,7 +928,7 @@ Shader "Hiraeth/Surface"
         }
         // pen detail at every scale (materials.js DETAIL): built seams, joints, vents, bolts; organic grain
         float dFar = _Detail.x > 1.5 ? 130.0 : 260.0;
-        UNITY_BRANCH if (_Detail.x > 0.5 && abs(n.y) < 0.75 && i.viewDepth < dFar)
+        UNITY_BRANCH if (_Detail.x > 0.5 && abs(n.y) < 0.75 && i.viewDepth < dFar && (skip & 4) == 0)
         {
           float dUp = (1.0 - smoothstep(0.55, 0.75, abs(n.y))) * (1.0 - smoothstep(dFar * 0.7, dFar, i.viewDepth));
           bool facingX = abs(n.x) > abs(n.z);
@@ -987,14 +992,14 @@ Shader "Hiraeth/Surface"
         float shadowPx = max(length(ddx(posWS)), length(ddy(posWS)));   // (outside the branch: derivatives)
         float nTurn = length(fwidth(n));
         // (the lit fraction steepened about its half, materials.js SHADOW_CUT: the toon threshold cuts at the shadow's true edge)
-        if (ndl > 0.0) sh = saturate((getShadow(posWS, toThree(n), ndl, shadowPx) - 0.5) * 3.0 + 0.5) * cloudShadow(i.worldPos);
+        if (ndl > 0.0 && (skip & 32) == 0) sh = saturate((getShadow(posWS, toThree(n), ndl, shadowPx) - 0.5) * 3.0 + 0.5) * cloudShadow(i.worldPos);
         // a big curved surface turning from the sun: its terminator is the light's own (TERMINATOR, TERMINATOR_TURN)
         if (mode != MODE_TERRAIN && _Flat < 0.5)
           sh = lerp(sh, lerp(1.0, sh, smoothstep(0.0, 0.08, ndl)), 1.0 - smoothstep(0.02, 0.06, nTurn));
         float L = lerp(min(lambert, 0.38), lambert, sh);
         L = lerp(L, 1.0, max(_Glow, emit));
         float local = 0.0;
-        for (int li = 0; li < 8; li++) {
+        for (int li = 0; li < ((skip & 64) != 0 ? 0 : 8); li++) {
           float3 dl = _MLights[li].xyz - i.worldPos;
           float d = length(dl);
           if (d < _MLights[li].w) {
@@ -1023,7 +1028,7 @@ Shader "Hiraeth/Surface"
         if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
         if (_Glyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
         float2 gp = i.worldPos.xz;
-        UNITY_BRANCH if (TERRAINK && mode == MODE_TERRAIN) {
+        UNITY_BRANCH if (TERRAINK && mode == MODE_TERRAIN && (skip & 128) == 0) {
           float gm = max(length(ddx(gp)), length(ddy(gp)));
           float sandK = 1.0 - bw.y;
           // (each mark worked out only where the ground draws it, in its material's uniform branch (derivatives fine
@@ -1102,7 +1107,8 @@ Shader "Hiraeth/Surface"
         // (each pen's strokes worked out in the branch that draws them, as the web does: strokes() and stipple() take no
         // derivatives (their footprints come in from above), so a pixel in the light, or one stippled, pays for none of
         // the others' noise, #262)
-        if (dark > 0.0 && _HatchOn > 0.0 && _ShadeStyle > 0.5) {
+        if ((skip & 16) != 0) {
+        } else if (dark > 0.0 && _HatchOn > 0.0 && _ShadeStyle > 0.5) {
           o.hatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
         } else if (dark > 0.0 && _HatchOn > 0.0 && i.form.w > 0.5 && _FormHatch > 0.0) {
           o.hatch.rg = formHatch(i.form, formDx, formDy, hsp, dark, i.viewDepth);   // strokes radiating from its axis or wrapping round it
@@ -1127,7 +1133,7 @@ Shader "Hiraeth/Surface"
         if (facePart) o.hatch.rg = 0;
         // the shade's tone (materials.js SHADE), packed over the strokes: the material's lift, the half-tone of a form
         // turned from the sun, the ground's light on faces turned down; the hue it keeps or its own flat print
-        if (L < _Toon)
+        if (L < _Toon && (skip & 256) == 0)
         {
           float turned = ndl < 0.0 ? (ndl > -0.42 ? 1.0 : 0.6) : 0.0;
           // (no half-tone inside another's cast shadow; built walls only: a cliff's own body would read as another's)
