@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_2cc46c0cfdeb97 7
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_c5aef0f16e0f37 59-82
+src/audio.js
+  s_9ca76055a220ed::t_1ca30558c4c72b 1366,1375-1408
+src/boxes/index.js
+  s_9ca76055a220ed::t_4558977552bb0f 20,43,238-248
+src/boxes/model.js
+  s_9ca76055a220ed::t_d32495d6cdb779 142-163
+src/boxes/scene.js
+  s_9ca76055a220ed::t_a0394b30a10aec 2,5-10,14-24,41,61-66,92-93,141-143,194-195,202-203,241-242,312-315,317-322,333,350,353-364,368,371,377,423-424,468,478-525,639,641-642
+src/changelog-media.js
+  s_9ca76055a220ed::t_ada213985e83e8 749
+src/changelog.js
+  s_9ca76055a220ed::t_264da6b56672b6 38-42
+src/hands.js
+  s_9ca76055a220ed::t_c8781058077558 164-165,419
+src/player.js
+  s_9ca76055a220ed::t_0ce8f3a1b583c0 1807-1808,1851-1867
+tests/boxes.test.js
+  s_9ca76055a220ed::t_483855bff4a615 263-264,267-271,293-294,497,511,528-529,536-537
+tests/hands.test.js
+  s_9ca76055a220ed::t_a86ae559f15ec8 183-185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ae314d67e8e6150ea7f5617d893aa1ce50371fff",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
