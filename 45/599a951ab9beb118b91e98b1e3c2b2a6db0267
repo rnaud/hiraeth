@@ -1,0 +1,76 @@
+changelog.md
+  s_972174feb57bbc::t_1706271ae09c3b 5-8
+docs/systems/characters.md
+  s_972174feb57bbc::t_d3e4852700b960 1416-1470
+public/guardians/elder-v3/rig.json
+  s_972174feb57bbc::t_0dc75df2aec38b 1-34
+references/guardians/elder/openai-reference-v2.json
+  s_972174feb57bbc::t_aaa493e5741444 1-17
+references/guardians/elder/openai-reference-v3.json
+  s_972174feb57bbc::t_d12ecc1dd3a349 1-35
+references/guardians/elder/tripo-v2.json
+  s_972174feb57bbc::t_48ed6c8c1e47a7 1-32
+references/guardians/elder/tripo-v3-corrected.json
+  s_972174feb57bbc::t_11172c5377cdf1 1-42
+references/guardians/elder/tripo-v3.json
+  s_972174feb57bbc::t_7da7e9ee198ec9 1-36
+scripts/tripo/README.md
+  s_972174feb57bbc::t_b1321c0f8344bb 347-368
+scripts/tripo/elder-beak.mjs
+  s_972174feb57bbc::t_8cfd94a03a58cb 1-36
+scripts/tripo/elder-v3-islands.mjs
+  s_972174feb57bbc::t_c2db287119a0ae 1-16
+scripts/tripo/rig-elder-v3.mjs
+  s_972174feb57bbc::t_dce31795f87837 1-45
+src/arena-guardians.js
+  s_972174feb57bbc::t_a8ecf60bf7c545 5,7,42,131
+src/boot.js
+  s_972174feb57bbc::t_a1cef71b401645 1-4
+src/changelog-media.js
+  s_972174feb57bbc::t_f2fbedc367e4e7 765-773
+src/changelog.js
+  s_972174feb57bbc::t_ab295eb6e18bd7 11-13
+src/characters/elder-v3-creature.js
+  s_972174feb57bbc::t_472f6fa1c5edda 1-115
+src/characters/elder-v3-fit.js
+  s_972174feb57bbc::t_d6f06898e38ca9 1-43
+src/characters/tripo-material.js
+  s_972174feb57bbc::t_15d7cd1d9d88d7 7
+src/guardian-review.js
+  s_972174feb57bbc::t_25a22828276913 1-32
+src/main.js
+  s_972174feb57bbc::t_cf451b48a55816 661,2679-2683
+src/temples/arzach.js
+  s_972174feb57bbc::t_910510a90782c6 7,458,542,569
+src/temples/guardian-generated.js
+  s_972174feb57bbc::t_c7e5e8f0f7b3e3 1,3,81,106-112
+src/temples/runtime.js
+  s_972174feb57bbc::t_0cc556fa9b368c 287-288
+tests/elder-guardian.test.js
+  s_972174feb57bbc::t_cb909b38b15d39 1-59
+tests/elder-v3-creature.test.js
+  s_972174feb57bbc::t_eec5ac388b07be 1-190
+tools/elder-review.html
+  s_972174feb57bbc::t_a0c027c37b0818 1
+tools/elder-review.js
+  s_972174feb57bbc::t_f337e88d57ef12 4-5,11,21,25,27,34,38,47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "45599a951ab9beb118b91e98b1e3c2b2a6db0267",
+  "prompts": {},
+  "sessions": {
+    "s_972174feb57bbc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130aa-d20e-7633-9556-f28303d59bce",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
