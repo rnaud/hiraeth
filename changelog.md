@@ -30,6 +30,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Keeper of the cistern in the Rose House has its new body, drawn from its approved design: a ribbed shell on six long legs that walks one foot at a time and breaks into a trot of three legs at a time when it comes for you, rears on its hind legs to stamp and lowers its long neck to pant and drink. The glyphs on its shell still glow brighter as it calms, and the fight is the same as before. It is the one you spar with in the Arena too.
 - A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold. Signed in to the notebook, every part has a Note button that files your comment as an issue.
 - In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.
+- Fewer flickering stripes where two surfaces met flush: round the top of the walls of the city under the Glass Dunes’ sand, at the ends of the rounded lips of Viridel’s water stair, and on the pictures of the second-hand screens in the Signal Market’s lanes, seen from a few steps back.
 
 ## v1.65 — 2026-10-13
 

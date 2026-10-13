@@ -231,7 +231,8 @@ function buildCity(scene, M, veils) {
   for (let z = z0 + 6; z < z1; z += 6) add('stone2', new THREE.BoxGeometry(W, 0.02, 0.12).translate(cx, 0.01, z), { solid: false });
   // the walls round it: the city goes on beyond, under sand banked to the roof (houses' fronts, their doors dark)
   for (const [px, pz, w, d] of [[cx, z0, W, 1], [cx, z1, W, 1], [x0, cz, 1, D], [x1, cz, 1, D]]) {
-    add('stone2', new THREE.BoxGeometry(w, C, d).translate(px, C / 2, pz));
+    // (their tops 2 cm under the glass: flush, the ceiling and the walls' tops striped all round; zfight v1.66)
+    add('stone2', new THREE.BoxGeometry(w, C - 0.02, d).translate(px, (C - 0.02) / 2, pz));
     add('sand', new THREE.BoxGeometry(w > 1 ? w : 7, 3, d > 1 ? d : 7).translate(px, 0.2, pz).rotateY(0), { solid: true });
   }
   for (const [i, [px, pz, ry]] of [[x0 + 0.6, 0, Math.PI / 2], [x1 - 0.6, 0, -Math.PI / 2], [0, z0 + 0.6, 0], [0, z1 - 0.6, Math.PI]].entries()) {

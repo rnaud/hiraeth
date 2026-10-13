@@ -45,6 +45,11 @@ export const CHANGELOG = [
       see: 'Open the wings’ chest in Vael’s Aerie or the gun’s in the Givers’ Hearth, or look at them in the menu’s Items.' },
   ] },
   { v: '1.66', date: '2026-10-13', items: [
+    // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under
+    // its glass (src/glass-dunes-city.js), the water stair's lips off the walls' faces (src/viridel-stair.js LIP.gap), the
+    // screen lanes' pictures off their screens (src/market-lanes.js MOTIF)
+    { text: 'Fewer flickering stripes where two surfaces met flush: round the top of the walls of the city under the Glass Dunes’ sand, at the ends of the rounded lips of Viridel’s water stair, and on the pictures of the second-hand screens in the Signal Market’s lanes, seen from a few steps back.',
+      see: 'In the Signal Market, walk into the screen lanes and step back from a wall of screens, turning the camera slowly: the bars, planets and faces on the screens stay still instead of striping.' },
     // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own
     // meshes drawn by nothing (engine/game.js veilsFrame, port-format.js, Veil.shader; docs/systems/engine-bridge.md
     // "See-through surfaces"; issue #263)

@@ -125,7 +125,10 @@ export function coplanarOverlaps(tris, { eps = 0.004, cos = 0.9995, minArea = 0.
     let { n, d } = pl, flip = false;
     const big = Math.abs(n[0]) >= Math.abs(n[1]) && Math.abs(n[0]) >= Math.abs(n[2]) ? 0 : Math.abs(n[1]) >= Math.abs(n[2]) ? 1 : 2;
     if (n[big] < 0) { n = [-n[0], -n[1], -n[2]]; d = -d; flip = true; }
-    const it = { t, n, d, flip, area: pl.area, i: items.length };
+    // (the way it is drawn facing: a BackSide material shows the triangle from behind, so a shell and its inside
+    // drawn on one geometry, front and back, never meet on a pixel: the split meteor's rock and its violet inside)
+    const drawn = flip !== (t.side === 1);
+    const it = { t, n, d, flip: drawn, area: pl.area, i: items.length };
     items.push(it);
     const key = `${Math.round(n[0] * 40)},${Math.round(n[1] * 40)},${Math.round(n[2] * 40)}|${Math.floor(d / eps)}`;
     let b = buckets.get(key); if (!b) buckets.set(key, (b = [])); b.push(it);
@@ -156,7 +159,7 @@ export function coplanarOverlaps(tris, { eps = 0.004, cos = 0.9995, minArea = 0.
         if (Math.abs(A.d - B.d) > eps) continue;
         const nd = dot(A.n, B.n);
         if (nd < cos) continue;
-        // facing: the same way, or opposite with either double-sided (both drawn from one side)
+        // facing (as drawn): the same way, or opposite with either double-sided (both drawn from one side)
         if (A.flip !== B.flip && A.t.side !== 2 && B.t.side !== 2) continue;
         const k = A.i < B.i ? `${A.i}:${B.i}` : `${B.i}:${A.i}`;
         if (tested.has(k)) continue;

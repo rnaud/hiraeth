@@ -21,6 +21,9 @@ export const LANES = [[56, -105], [72, -105], [82, -97], [84, -80], [94, -70], [
 export const LANE = { half: 2.2, depth: 0.9 };
 /** The dead ends off it, by how far along the lanes they open (m), on which side (+1 the left hand going home), how long; the mender's court is one. */
 export const BRANCHES = [{ s: 30, side: -1, len: 8 }, { s: 92, side: 1, len: 7, half: 3.2, court: true }, { s: 146, side: -1, len: 9, big: true }, { s: 168, side: -1, len: 3.5 }];
+// What a screen shows lies on its face, a layer 1 cm out and a second 2 cm out: the depth buffer far off can't tell
+// half a centimetre apart, and the motifs striped against their screens (zfight v1.66: 425 sites at 4-8 mm).
+const MOTIF = 0.01, MOTIF2 = 0.02;
 /** The screens' colours (the night sheets' and the lane sheet's: violet, emerald, cobalt, lemon, scarlet, pink, aqua, orange). */
 const HUES = ['#b89be0', '#4fb08a', '#4a78c8', '#f2d65a', '#d8524a', '#e88ab8', '#62c3c9', '#f09a4a', '#8f6fd0', '#7fc8e8'];
 const FACE = '#c9b3ec', FACE_SKIN = '#ece2f6', FACE_DARK = '#7d62a8';
@@ -69,23 +72,23 @@ export function buildScreenLanes(scene, M) {
       const place = (g, dz = 0) => g.translate(0, 0, front + dz).rotateY(yaw).translate(x, cy, z);
       faces.add(place(tint(new THREE.PlaneGeometry(fw, fh), hue)), M.screens, false);
       // what it shows: a test card's bars, a planet, a head, a glyph
-      if (motif === 0) for (let j = 0; j < 3; j++) faces.add(place(tint(new THREE.PlaneGeometry(fw * 0.26, fh * 0.7).translate((j - 1) * fw * 0.3, 0, 0), HUES[(Math.floor(hash(k, i) * 9) + j * 3) % HUES.length]), 0.004), M.screens, false);
+      if (motif === 0) for (let j = 0; j < 3; j++) faces.add(place(tint(new THREE.PlaneGeometry(fw * 0.26, fh * 0.7).translate((j - 1) * fw * 0.3, 0, 0), HUES[(Math.floor(hash(k, i) * 9) + j * 3) % HUES.length]), MOTIF), M.screens, false);
       else if (motif === 1) {
-        faces.add(place(tint(new THREE.CircleGeometry(Math.min(fw, fh) * 0.34, 12).translate(fw * 0.08, -fh * 0.05, 0), HUES[(Math.floor(hash(k, i + 5) * 10) + 3) % HUES.length]), 0.004), M.screens, false);
-        faces.add(place(tint(new THREE.RingGeometry(Math.min(fw, fh) * 0.4, Math.min(fw, fh) * 0.45, 14).scale(1.4, 0.35, 1).translate(fw * 0.08, -fh * 0.05, 0), '#f5ead2'), 0.006), M.screens, false);
+        faces.add(place(tint(new THREE.CircleGeometry(Math.min(fw, fh) * 0.34, 12).translate(fw * 0.08, -fh * 0.05, 0), HUES[(Math.floor(hash(k, i + 5) * 10) + 3) % HUES.length]), MOTIF), M.screens, false);
+        faces.add(place(tint(new THREE.RingGeometry(Math.min(fw, fh) * 0.4, Math.min(fw, fh) * 0.45, 14).scale(1.4, 0.35, 1).translate(fw * 0.08, -fh * 0.05, 0), '#f5ead2'), MOTIF2), M.screens, false);
       } else if (motif === 2) {
-        faces.add(place(tint(new THREE.CircleGeometry(fh * 0.24, 12).scale(0.8, 1, 1).translate(0, fh * 0.08, 0), '#f1e4f6'), 0.004), M.screens, false);
-        faces.add(place(tint(new THREE.CircleGeometry(fh * 0.34, 12, 0, Math.PI).translate(0, -fh * 0.5, 0), '#8e74bb'), 0.004), M.screens, false);
+        faces.add(place(tint(new THREE.CircleGeometry(fh * 0.24, 12).scale(0.8, 1, 1).translate(0, fh * 0.08, 0), '#f1e4f6'), MOTIF), M.screens, false);
+        faces.add(place(tint(new THREE.CircleGeometry(fh * 0.34, 12, 0, Math.PI).translate(0, -fh * 0.5, 0), '#8e74bb'), MOTIF), M.screens, false);
       } else {
-        for (const [gx, gy] of [[-0.18, 0.12], [0, 0.2], [0.18, 0.12]]) faces.add(place(tint(new THREE.CircleGeometry(fh * 0.07, 8).translate(gx * fw, gy * fh, 0), '#fff6d8'), 0.004), M.screens, false);
-        faces.add(place(tint(new THREE.PlaneGeometry(fw * 0.5, fh * 0.08).translate(0, -fh * 0.12, 0), '#fff6d8'), 0.004), M.screens, false);
+        for (const [gx, gy] of [[-0.18, 0.12], [0, 0.2], [0.18, 0.12]]) faces.add(place(tint(new THREE.CircleGeometry(fh * 0.07, 8).translate(gx * fw, gy * fh, 0), '#fff6d8'), MOTIF), M.screens, false);
+        faces.add(place(tint(new THREE.PlaneGeometry(fw * 0.5, fh * 0.08).translate(0, -fh * 0.12, 0), '#fff6d8'), MOTIF), M.screens, false);
       }
       // the same screen once the tower has spoken: the face (the lane sheet's wall of one face, screen after screen)
       after.add(place(tint(new THREE.PlaneGeometry(fw, fh), FACE)), M.screens, false);
-      after.add(place(tint(new THREE.CircleGeometry(fh * 0.26, 14).scale(0.78, 1, 1).translate(0, fh * 0.06, 0), FACE_SKIN), 0.004), M.screens, false);
-      after.add(place(tint(new THREE.CircleGeometry(fh * 0.4, 14, 0, Math.PI).translate(0, -fh * 0.5, 0), FACE_DARK), 0.004), M.screens, false);
-      for (const ex of [-0.07, 0.07]) after.add(place(tint(new THREE.PlaneGeometry(fh * 0.07, fh * 0.018).translate(ex * fh, fh * 0.1, 0), FACE_DARK), 0.008), M.screens, false);
-      if (cy > 1.1 && cy < 2.4) slots.push({ s, at: V(x + fx * (front + 0.02), cy, z + fz * (front + 0.02)), yaw, w: fw, h: fh });
+      after.add(place(tint(new THREE.CircleGeometry(fh * 0.26, 14).scale(0.78, 1, 1).translate(0, fh * 0.06, 0), FACE_SKIN), MOTIF), M.screens, false);
+      after.add(place(tint(new THREE.CircleGeometry(fh * 0.4, 14, 0, Math.PI).translate(0, -fh * 0.5, 0), FACE_DARK), MOTIF), M.screens, false);
+      for (const ex of [-0.07, 0.07]) after.add(place(tint(new THREE.PlaneGeometry(fh * 0.07, fh * 0.018).translate(ex * fh, fh * 0.1, 0), FACE_DARK), MOTIF2), M.screens, false);
+      if (cy > 1.1 && cy < 2.4) slots.push({ s, at: V(x + fx * (front + MOTIF2 + 0.015), cy, z + fz * (front + MOTIF2 + 0.015)), yaw, w: fw, h: fh });   // (the picture over the motifs)
       y += h;
     });
     // a little set on top, now and then
@@ -128,10 +131,10 @@ export function buildScreenLanes(scene, M) {
       K.box(c.x, 1.85, c.z, 2.4, 2.1, 1.3, M.casing, true, yaw);
       const face = (g, hex, dz = 0) => faces.add(tint(g, hex).translate(0, 0, 0.66 + dz).rotateY(yaw).translate(c.x, 1.85, c.z), M.screens, false);
       face(new THREE.PlaneGeometry(2.0, 1.7), '#4a78c8');
-      face(new THREE.CircleGeometry(0.5, 16).translate(0.25, 0.2, 0), '#f09a4a', 0.004);
-      face(new THREE.PlaneGeometry(2.0, 0.45).translate(0, -0.62, 0), '#4fb08a', 0.006);
+      face(new THREE.CircleGeometry(0.5, 16).translate(0.25, 0.2, 0), '#f09a4a', MOTIF);
+      face(new THREE.PlaneGeometry(2.0, 0.45).translate(0, -0.62, 0), '#4fb08a', MOTIF2);
       after.add(tint(new THREE.PlaneGeometry(2.0, 1.7), FACE).translate(0, 0, 0.66).rotateY(yaw).translate(c.x, 1.85, c.z), M.screens, false);
-      after.add(tint(new THREE.CircleGeometry(0.42, 16).scale(0.78, 1, 1).translate(0, 0.1, 0), FACE_SKIN).translate(0, 0, 0.664).rotateY(yaw).translate(c.x, 1.85, c.z), M.screens, false);
+      after.add(tint(new THREE.CircleGeometry(0.42, 16).scale(0.78, 1, 1).translate(0, 0.1, 0), FACE_SKIN).translate(0, 0, 0.66 + MOTIF).rotateY(yaw).translate(c.x, 1.85, c.z), M.screens, false);
       places.bigSet = c.clone().addScaledVector(out, -1.6).setY(0);
     }
     if (b.court) {

@@ -21,9 +21,11 @@ const mat = (color, o = {}) => new THREE.MeshBasicMaterial({ color, ...o });
  * nearly all on its tower's foot and crown outside, in the shaft (node scripts/zfight/list-temple.mjs incal).
  */
 export const ZFIGHT_BASELINE = {
-  desert: 0, incal: 47, arzach2: 11, spheres: 2, buried: 0, perdide2: 9, perdide: 10, arzach: 8,
+  // (v1.66, the zfight audit: the counts the temples had come down to, held there; were incal 47, arzach2 11, perdide2 9,
+  // perdide 10, arzach 8, spacecity 5)
+  desert: 0, incal: 39, arzach2: 10, spheres: 2, buried: 0, perdide2: 3, perdide: 9, arzach: 3,
   garage: 1, edena: 2, bazaar: 8,   // (v1.48: the Clock-House, the Greenhouse and the Undertower round their hubs, a rotunda's raised gap with a sill)
-  spacecity: 5, moonfoundry: 20, underwater: 19,
+  spacecity: 3, moonfoundry: 20, underwater: 19,
 };
 
 test('the finder: two looks in one plane overlapping fight; set apart, behind, or one look, they don’t', () => {
@@ -43,6 +45,14 @@ test('the finder: two looks in one plane overlapping fight; set apart, behind, o
   // a polygonOffset face is drawn pulled toward the eye: it wins
   trim.material = mat('#844', { polygonOffset: true, polygonOffsetFactor: -1 });
   assert.equal(coplanarOverlaps(trianglesOf(scene, { THREE })).length, 0, 'a decal’s offset settles it');
+  // a shell and its inside on one geometry, front side and back side (Viridel's split meteor, zfight v1.66): never on
+  // one pixel; double-sided, the inside would fight the shell
+  const shell = new THREE.Mesh(new THREE.SphereGeometry(2, 12, 8, 0, Math.PI), mat('#b8a'));
+  const inside = new THREE.Mesh(shell.geometry.clone(), mat('#87c', { side: THREE.BackSide }));
+  const two = new THREE.Scene(); two.add(shell, inside); two.updateMatrixWorld(true);
+  assert.equal(coplanarOverlaps(trianglesOf(two, { THREE })).length, 0, 'front and back of one surface: no fight');
+  inside.material = mat('#87c', { side: THREE.DoubleSide });
+  assert.ok(coplanarOverlaps(trianglesOf(two, { THREE })).length > 0, 'double-sided, the inside fights the shell');
   // the clip: two unit squares' triangles, half over each other
   assert.ok(Math.abs(clipPolygon([[0, 0], [1, 0], [1, 1], [0, 1]], [[0.5, 0], [1.5, 0], [1.5, 1], [0.5, 1]]).length - 4) < 1e-9);
   const t = (a, b, c) => ({ a, b, c });

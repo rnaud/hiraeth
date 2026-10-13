@@ -92,7 +92,7 @@ export const BED_FLOWERS = ['#9fe0c4', '#f2a7b8', '#f6c7a0', '#b5a7e6', '#9fe0c4
 /** Each bed a little wider or narrower than STAIR.w (m), so the terraces step in and out like the sheet's, not one block. */
 export const BED_WIDTHS = [0, 2.4, -1.6, 3.2, 0.8, -2.4, 1.6, -0.8];
 /** The rounded lip along each wall's top and side (m: its radius, how far under the bed's top its axis runs). */
-export const LIP = { r: 0.42, drop: 0.22 };
+export const LIP = { r: 0.42, drop: 0.22, gap: 0.02 };
 /** A rod in the stair's frame from (u0, s0) to (u1, s1) at height y, radius r (a lip: along u or along s). */
 const rod = (u0, s0, u1, s1, y, r) => {
   const L = Math.hypot(u1 - u0, s1 - s0), g = new THREE.CylinderGeometry(r, r, L, 12, 1);
@@ -162,8 +162,11 @@ export function buildWaterStair(scene, terrain, L) {
     // flight up it nor where you step up onto the foot bed, nor over the channel's fall
     const skip = down ? [Math.min(down.a, down.e) - 0.7, Math.max(down.a, down.e) + 0.7] : [gap[0] - 0.6, gap[1] + 0.6];
     const lips = [[-wk / 2, -c2 - 0.35], [c2 + 0.35, wk / 2]].flatMap(([u0, u1]) => (skip[1] <= u0 || skip[0] >= u1 ? [[u0, u1]] : [[u0, Math.max(u0, skip[0])], [Math.min(u1, skip[1]), u1]])).filter(([u0, u1]) => u1 - u0 > 0.8);
-    for (const [u0, u1] of lips) lipList.push(rod(u0, S0 + 0.08, u1, S0 + 0.08, y - LIP.drop, LIP.r));
-    for (const d of [-1, 1]) lipList.push(rod(d * (wk / 2 - 0.08), S0 + 0.08, d * (wk / 2 - 0.08), S1, y - LIP.drop, LIP.r * 0.9));
+    // (each rod's end 2 cm inside the wall's side or back face it would end flush with: its cap and the face, one plane
+    // of two looks, striped as the camera moved; zfight v1.66)
+    const offFace = (u) => (Math.abs(Math.abs(u) - wk / 2) < 1e-6 ? u - Math.sign(u) * LIP.gap : u);
+    for (const [u0, u1] of lips) lipList.push(rod(offFace(u0), S0 + 0.08, offFace(u1), S0 + 0.08, y - LIP.drop, LIP.r));
+    for (const d of [-1, 1]) lipList.push(rod(d * (wk / 2 - 0.08), S0 + 0.08, d * (wk / 2 - 0.08), S1 - LIP.gap, y - LIP.drop, LIP.r * 0.9));
     beds.push({ k, y, S0, S1, w: wk, lips, rects, stones: st.map((p) => fromStair(p.u, y + 0.2, p.s)), stoneUs: st, bridge, flowers: BED_FLOWERS[k] });
   }
   // ---- the paved terrace at the top, behind the last bed (the ground held under the beds dips there: it covers it)
