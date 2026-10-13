@@ -144,8 +144,11 @@ export function* buildBazaar(scene) {
 
   const frontPosters=[], towerPosters=[];   // for the story: signs that face the street; the silent tower's own screens
   // Tower canyon. Setbacks and exposed service stacks break up the slabs.
+  // (`streetTowers`: each one's { x, z, w, h, side }, the fragments' places of interest: their service balconies, issue #250)
+  const streetTowers = [];
   for(let row=0;row<9;row++) for(const side of [-1,1]) {
     const z=105-row*60, x=side*(54+(row%3)*3), h=125+rng()*130, w=34+rng()*7;
+    streetTowers.push({ x, z, w, h, side });
     const body = row%3===0 ? coral : row%3===1 ? teal : mat(colors[(row+(side+1))%5],{grid:11,weathered:0.7,...PRINT});
     // (issue #44, the level design audit since v1.5: the two towers either side of Signal Square stand on legs, a
     // passage under each straight at the silent tower: from the back lane in the west, from the side streets in the east)
@@ -443,6 +446,7 @@ export function* buildBazaar(scene) {
   yield;
   return attachTemple('bazaar', scene, {
     ladders: air.ladders,
+    streetTowers,
     portals: [...cureStall.portals],
     shops: [cureStall],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the night halt (src/story/night-train.js), and stepping down there off the Overnight Train (main.js level.arrivals)

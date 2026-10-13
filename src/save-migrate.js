@@ -91,6 +91,11 @@
 // (the first world: he is always met); Hobb counts as met if his Undertower was started or entered, Aldo if his sighting
 // was heard (SHARED_PELL_251).
 //
+// The fragments re-placed again in v1.66 (issue #250): many into and onto the worlds' places of interest (the desert's
+// ribcages, the Garden's temples, the Glass Dunes' cairns…). Step 25 (FRAGMENTS_MOVED_250) keeps a save's count as step
+// 23 did: a found flag on a moved slot goes to an unmoved one still to find (never the Desert's slot 5, Marrow's errand's
+// goal), so the new places show.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -257,7 +262,18 @@ const STEPS = [
   (flags) => migrateFragments228(flags),
   // 24: the Floating city's capstan man is Ewart, not a second Bram; Hobb and Aldo are not Pell (issue #251, v1.63)
   (flags) => migrateBram251(flags),
+  // 25: the fragments re-placed in and on the worlds' places of interest (issue #250, v1.66)
+  (flags) => migrateFragments250(flags),
 ];
+/** The slots of src/fragments-data.js whose spots moved in v1.66 (issue #250), world by world: step 25. */
+export const FRAGMENTS_MOVED_250 = {
+  desert: [0, 7], arzach: [0, 3], perdide: [3], edena: [0, 5, 7], underwater: [3], incal: [2, 4, 5, 6], glassdunes: [2, 4, 6, 7],
+  buried: [0, 3, 6, 7], moonfoundry: [2, 7], spheres: [0, 2, 4, 5, 7], spacecity: [6], bazaar: [6, 7],
+};
+/** Step 25 (pure, in place): each world's count kept, its found flags off the slots moved in v1.66 where an unmoved one is free (as step 23). */
+export function migrateFragments250(flags, per = 8) {
+  return moveFoundOff(flags, FRAGMENTS_MOVED_250, per, { desert: [5] });
+}
 /** Step 24's ids and the worlds where Lorn's Bram can be met (the Deep Wood's part of Lorn, the White Mangrove). */
 export const BRAM_251 = { from: 'bram', to: 'ewart', city: 'spacecity', lorn: ['perdide2', 'mangrove'], lornDone: 'world.perdide.done', reeled: 'spacecity.drift.reeled' };
 /** Step 24's two who shared the desert's Pell's id: their new id, and the flags that show they were met. */
@@ -265,6 +281,23 @@ export const SHARED_PELL_251 = [
   { to: 'hobb', any: ['quest.temple.bazaar', 'temple.bazaar.entered', 'temple.bazaar.done'] },
   { to: 'aldo', any: ['sight.waterfall.pell'] },
 ];
+/**
+ * A save's found fragments off the slots that moved (`moved`: { world: [slot, …] }), world by world: each found flag on
+ * a moved slot goes to a slot that didn't move and is still to find, the first free, so the count stays and the new
+ * place shows (an old spot nobody reached is counted instead); where none is free it stays on its slot (steps 23, 25).
+ * `never`: { world: [slot, …] } never given one (the Desert's slot 5: Marrow's errand ends when it is found).
+ */
+export function moveFoundOff(flags, moved, per = 8, never = {}) {
+  for (const [world, slots] of Object.entries(moved)) {
+    const free = [...Array(per).keys()].filter((i) => !slots.includes(i) && !(never[world] ?? []).includes(i) && !flags[`frag.${world}.${i}`]);
+    for (const i of slots) {
+      if (!flags[`frag.${world}.${i}`] || !free.length) continue;
+      flags[`frag.${world}.${free.shift()}`] = flags[`frag.${world}.${i}`];
+      delete flags[`frag.${world}.${i}`];
+    }
+  }
+  return flags;
+}
 /** Step 24 (pure, in place): the capstan man's flags moved off Lorn's Bram when the save can only have met him; Hobb and Aldo met. */
 export function migrateBram251(flags) {
   if (flags['met.pell']) for (const { to, any } of SHARED_PELL_251) if (any.some((k) => flags[k])) flags[`met.${to}`] ??= true;
@@ -290,14 +323,7 @@ export const FRAGMENTS_MOVED_228 = {
 };
 /** Step 23 (pure, in place): each world's count kept, its found flags off the moved slots where an unmoved one is free; 'odile' → 'tilde'. */
 export function migrateFragments228(flags, per = 8) {
-  for (const [world, moved] of Object.entries(FRAGMENTS_MOVED_228)) {
-    const free = [...Array(per).keys()].filter((i) => !moved.includes(i) && !flags[`frag.${world}.${i}`]);
-    for (const i of moved) {
-      if (!flags[`frag.${world}.${i}`] || !free.length) continue;
-      flags[`frag.${world}.${free.shift()}`] = flags[`frag.${world}.${i}`];
-      delete flags[`frag.${world}.${i}`];
-    }
-  }
+  moveFoundOff(flags, FRAGMENTS_MOVED_228, per);
   for (const k of Object.keys(flags)) {
     const m = k.match(/^(met|said|talks)\.odile(\..*)?$/);
     if (m) { flags[`${m[1]}.tilde${m[2] ?? ''}`] ??= flags[k]; delete flags[k]; }

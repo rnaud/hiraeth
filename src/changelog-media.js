@@ -761,6 +761,8 @@ const BATCH13_AFTER = 'headless Chrome (muted, High, 1280 × 720) against this b
 const REVEAL242 = 'Issue #242: muted headless Chrome (High, 10:00) against this branch’s own Vite (port 5951) and the tree before it (9c12a511, with #223’s opening in place), the chest opened in its world (boxes.open) and the item over his open hand drawn by the game’s own captureView, 1.4 m off, at its card, at the same moment of its turn; 13 October; cwebp -q 72';
 // (v1.66, issue #272: a scratch shooter, the game menu opened on the Map by journal.toggle(true, 'map'))
 const MAP272 = 'Issue #272: muted headless Chrome (Medium, 10:00, the Desert) against this branch’s own Vite (port 5981), before on the tree before it (cfcb5f41), the game menu opened on the Map once its ground was drawn; cwebp -q 72';
+// (v1.66, issue #250: the fragments in and on the places of interest; a scratch driver making views for scripts/design-qc/capture.mjs)
+const FRAG250 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5971), scripts/design-qc/capture.mjs, the camera pinned a few metres off the spot with a clear line to it; before: the same view with that fragment found (a save holding its flag), after: a new save; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.67': [
     { match: 'The Elder of Vael now has her new feathered body in the Aerie', tags: ['characters', 'vael'], shots: [
@@ -772,6 +774,11 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Open /tools/elder-review.html. Compare Front, Side and Back; play Walk and Takeoff / landing cycle, and compare Beak closed with Beak open. This new model uses a fitted 23-bone skeleton and procedural motion. The same model is in the Aerie encounter, its restored rooftop perch and the Arena. Review the real temple silently with temporary progress at /?level=arzach&guardianReview=elder. Device profiling remains pending.' },
   ],
   '1.66': [
+    { match: 'Many of the fragments of the singing light have moved into the places worth reaching', shots: [
+      { name: 'fragment-ribcage', title: 'Under the old ribcage', caption: 'The Desert’s old ribcage, under its ribs: before, nothing there; after, a fragment singing in the shade of the bones.', from: FRAG250 },
+      { name: 'fragment-pyramid', title: 'The white hill’s pyramid', caption: 'The Garden of Spheres, the top of the white hill’s pyramid by the temple on it, 55 m up: before, nothing; after, a fragment.', from: FRAG250 },
+      { name: 'fragment-cairn', title: 'The breaker’s cairn', caption: 'The Glass Dunes, 91 m up on the breaking wave by its cairn: before, nothing; after, a fragment.', from: FRAG250 },
+    ] },
     { match: 'The Elder’s new body, still a preview', tags: ['characters', 'vael'], shots: [
       { name: 'elder-head', title: 'Facing ahead', caption: 'Standing in the Aerie, from in front (top) and the side: before, her beak turned well to her left; after, ahead of her.', from: GUARD237 },
       { name: 'elder-flight', title: 'Taking off', caption: 'At 0.2, 0.6, 1.0, 1.5 and 2.5 s after she takes to the air: before, she was at her hover at once, her legs hanging straight; after, she rises over a second and a half and folds her legs and toes up under her.', from: GUARD237 },

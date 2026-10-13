@@ -533,6 +533,8 @@ export function* buildUnderwater(scene) {
     shops: [shop],
     floraAvoid: shop.avoid(),
     sea, halls, tubes, decks, cafes, air: seaAir, whales, column: COLUMN, lift: LIFT,
+    // (the towers of pods out in the sea round the city: { x, z, h, r }; the fragments' places of interest, issue #250)
+    podTowers: TOWERS,
     // (issue #192: the seabed walk, the canyon street, the singing city; the whale overhead)
     uw: { ways, canyon, song, overhead, cage },
     // the whales come to the glass once the Whale-House's keeper is calmed (src/temples/underwater.js change)

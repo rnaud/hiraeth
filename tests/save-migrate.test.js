@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 24);   // (24: the capstan man, Hobb and Aldo given ids of their own, v1.63)
+  assert.equal(MIGRATED(), 25);   // (25: the fragments re-placed in and on the places of interest, issue #250, v1.66)
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -418,7 +418,7 @@ test('the capstan man is Ewart (issue #251, step 24): his flags leave Lorn’s B
   const desertOnly = migrateBram251({ 'met.pell': true });
   assert.equal(desertOnly['met.hobb'], undefined); assert.equal(desertOnly['met.aldo'], undefined);
   // the whole chain: a save from before step 24 gets it once
-  const old = { 'save.migrated': MIGRATED() - 1, 'met.bram': true, 'talks.bram': 1, 'quest.spacecity.main': 'cables' };
+  const old = { 'save.migrated': 23, 'met.bram': true, 'talks.bram': 1, 'quest.spacecity.main': 'cables' };
   migrateFlags(old);
   assert.equal(old['met.ewart'], true); assert.equal(old['met.bram'], undefined); assert.equal(old['save.migrated'], MIGRATED());
 });

@@ -51,6 +51,10 @@ export const CHANGELOG = [
     // the Map as wide as the page: its shape the page's box's (src/world-map.js mapAspect, mapBounds aspect, MapView.aspect;
     // src/game-menu.js mapBoxAspect, mapFit; src/game-menu.css; docs/systems/ui.md "As wide as the page"; issue #272)
     'The game menu’s Map fills its page now instead of sitting in a square with empty paper either side: it shows a wider stretch of the world, east and west of the places you know, on a desktop screen and on a handheld alike, with the compass, the scale bar and the zoom buttons in its corners.',
+    // the fragments of the singing light in and on the places of interest (src/fragments-data.js, tests/fragments-reach.js
+    // pointsOfInterest, scripts/fragment-spots.mjs --poi; save step 25; docs/systems/fragments.md; issue #250)
+    { text: 'Many of the fragments of the singing light have moved into the places worth reaching: under the old ribcage’s ribs and between the vertebrae of another skeleton in the Desert’s western dunes, on the top of the white hill’s pyramid in the Garden of Spheres, by the breaker’s cairn 91 m up the Glass Dunes’ frozen wave, among the whale bones at the bottom of the Underwater City’s canyon, behind the Buried Machine’s oil fall, by the City-Shaft’s great mirror, on a cap of Viridel’s pyramid nursery and inside its split meteor. 31 moved in all; the two by your ship in the Desert stay. A fragment you had already found where one moved still counts.',
+      see: 'In the Desert, find the old ribcage, the great bones arching out of the sand some 370 m from your ship, and step in under its ribs; in the Garden of Spheres, climb the white hill and its pyramid’s stair to the temple on top.' },
   ] },
   { v: '1.65', date: '2026-10-13', items: [
     // the screen while playing (docs/systems/ui.md): the gadget chip (src/gadgets/hud.js, issue #240), the talk prompt

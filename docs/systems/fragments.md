@@ -1,4 +1,4 @@
-# The fragments of the singing light, the scientist and his shop (v1.55, issue #196; re-placed v1.61, #228, #229; a currency v1.62, #185)
+# The fragments of the singing light, the scientist and his shop (v1.55, issue #196; re-placed v1.61, #228, #229; a currency v1.62, #185; into the places of interest v1.66, #250)
 
 Where the singing light passed it shed small splinters of its song. They settled in the out-of-the-way places of every
 world on the route: up on ledges and high places, tucked behind things, at the ends of side paths; never on the way
@@ -62,6 +62,49 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   fragment itself (`frag.desert.5`): taking it ends it, and brings Anselm as the first one always does. Found first, the
   question isn't there. A save that found either old slot keeps its count (the flag stays on its slot, so the new place
   shows as found); nothing to migrate. `tests/desert-story.test.js` ("#247").
+- **In and on the places of interest (v1.66, #250).** The author: "Fragments of the singing light should often be within
+  points of interest or at the top of structures hard to climb. Like at the top of the big temples in the sphere levels,
+  or within the skeletons in the desert level." `tests/fragments-reach.js pointsOfInterest` gathers a world's places
+  (`scripts/fragment-spots.mjs` scores them, +10 a spot, `--poi n` picks at least n there, default 4; `--list n --by-poi`
+  lists the best three of each place to pick from by hand). A spot is in or on one when it is
+  - by a **sight** of the level (`level.sights`, the level design audit's places to stop for): within 12 m, 8 m of its height;
+  - up a **beacon** (`level.beacons`): within 8 m of it, in the top two fifths of its height;
+  - inside a **named thing's** bounds, its box in the world, top included (`POI_THINGS`, the scene's object names world by
+    world: the desert's ribcages, the giants' bones, the crashed hull, the Rose House's walls; Lorn's canopy and stalks;
+    the Glass Dunes' glass that holds a stopped minute and its cairns; the Buried Machine's gangway and posts; the
+    Floating city's stack) or of one of the level's **big pieces** (`POI_PIECES`: the Garden's pyramids, its lake temple
+    and its great spheres' upper halves; the Underwater City's towers of pods, `level.podTowers` and the canyon's; the
+    Moon Foundry's moons, the bowl, the pillar moon and the hoist tower; the Signal Market's street towers 4 m up and
+    more, `level.streetTowers`);
+  - or on a **summit**: the topmost ground there, 15 m and more over the ground 12 and 24 m off in six directions of eight.
+
+  31 moved, each in its slot (marked `(v1.66, #250)` in the data with its place; a slot moved in v1.61 too keeps its
+  `#228`), and 56 of the 96 now lie in or on one (22 before):
+
+  | World | Moved (slots) | Onto | In or on a place |
+  |---|---|---|---|
+  | The Desert | 2 (0, 7) | under the old ribcage's ribs; between the vertebrae of a ribcage in the west dunes | 6 |
+  | Vael | 2 (0, 3) | by Ondine's tally on an island's edge; the hour stone toward the riders' gate on the sundial | 5 |
+  | Lorn | 1 (3) | among the keepers' stalks | 4 |
+  | Viridel | 3 (0, 5, 7) | a cap of the pyramid nursery 16 m up; inside the split meteor; the dish pond | 6 |
+  | The Underwater City | 1 (3) | among the whale bones on the canyon's floor, 64 m down | 5 |
+  | The City-Shaft | 4 (2, 4, 5, 6) | under the cab-wrights' crane; by the great mirror on the rim's top; by Tobin's telescopes on the rim; in a stall of the balcony market | 4 |
+  | The Glass Dunes | 4 (2, 4, 6, 7) | the breaker's cairn 91 m up on the breaking wave; the wave's cairn on the frozen wave's crest; on the glass that holds the carriers; on the glass that holds the moment in the wave | 4 |
+  | The Buried Machine | 4 (0, 3, 6, 7) | behind the oil fall at the canyon's foot; a summit of the keepers' way over the machine; the keepers' gangway; on a cap of the Tooth Day posts | 4 |
+  | The Moon Foundry | 2 (2, 7) | the bowl's deck among its garden; against the cracked mould | 5 |
+  | The Garden of Spheres | 5 (0, 2, 4, 5, 7) | the white hill's pyramid's top by its temple, 55 m up; the empty arcade in the android wood; the terraces round the sphere west of the arch; the ring of stones at the white monolith; the cairn at the yellow sphere's furrow | 5 |
+  | The City Floating in Space | 1 (6) | the telescope at the Pier's end | 4 |
+  | The Signal Market | 2 (6, 7) | a tower's service balcony over Signal Square; the radio-mender's table in the listeners' lane | 4 |
+
+  Everything else stands: eight a world, #228's rule (25 m and more from the route; the nearest of the new spots 34 m off it), the
+  Desert's two easy ones by the ship (#247), the shop and the Lantern's line. One sits nearer a relic than the
+  script's 14 m: the white hill's pyramid's top holds the Garden's Pyramid key, and the fragment is on the far corner of
+  the platform from it, 12 m off. Places the walker can't reach on foot were
+  left: the lone tower in Vael and the rider's roost (the bird's), the Garden's belvedere and the pillar forest's tops
+  and its great spheres' crowns (climbed), the meadow's pyramid (Ivo sits on its top), the Foundry's hung moons, its
+  cradle moon and the hoist tower's galleries (climbed), the Signal Market's antenna mast and silent tower; the desert's
+  jaw and spine and the sunken leviathan lie past the flood's 700 m, and Qanat's skull is on the way to the cave.
+  Step 25 of the save (`FRAGMENTS_MOVED_250`) keeps a save's count as step 23 did (below).
 - **Seeing and hearing them.** A pale splinter (an elongated octahedron, glowing) with three motes going round it (the
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the
@@ -72,7 +115,9 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   finder is switched off. `src/save-migrate.js` step 22 starts an older save at zero (any `frag.*` goes). Step 23
   (v1.61, `FRAGMENTS_MOVED_228`): a save keeps its count world by world; a found flag on a slot that moved goes to an
   unmoved slot still to find, so the new places show (an old spot not yet reached counts instead); where none is free
-  it stays. (`tests/fragments.test.js` checks the table against the data's marks.)
+  it stays. (`tests/fragments.test.js` checks the table against the data's marks.) Step 25 (v1.66, `FRAGMENTS_MOVED_250`,
+  `moveFoundOff`): the same for the slots moved into the places of interest, never onto the Desert's slot 5 (Marrow's
+  errand's goal: it would end it unasked).
   `fragmentCounts(flags)` gives the count all told and per world (found, total, left): the fragments **found**, which
   never go down. What you **hold** to spend is `fragmentPurse` (src/fragment-shop.js, v1.62): found less the prices of
   the upgrades you have. Nothing new is saved for it, so a save from the milestones keeps its upgrades and holds found
@@ -167,5 +212,8 @@ many you picked up (`SPLINTERS`: none, some, every one; conditions over `fragmen
 - `tests/fragments-route.test.js` (v1.61): every fragment 25 m or more from the route's line; the six rebuilt worlds
   (Lorn, Viridel, the Underwater City, the Moon Foundry, the Floating city, the Signal Market) two at least in their new
   country, one of them high (15 m over the landing, or a 10 m drop beside it).
+- `tests/fragments-poi.test.js` (v1.66, #250): in every world 4 of the 8 at least in or on a place of interest, 56 of
+  the 96 at least, spread over three places at least in each world; and the named places still found in their worlds (a
+  rename would drop them silently).
 - `tests/people-names.test.js` (v1.61): one name, one person (the people book and every world's people), and nobody you
   meet named like someone the story only tells of (Odile and Talo, the Orrins).
