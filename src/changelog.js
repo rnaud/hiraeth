@@ -39,6 +39,59 @@ export const CHANGELOG = [
     // the Footprint's stilling stone (issue #311, found by the temple play-through): src/temples/spheres.js POOL
     { text: 'In the Footprint’s Still Pool, the stilling stone sits at the ledge’s very edge, so a push from the middle of it reaches the floating sphere. Only its far rim used to; from the rest, the ledge took the push.',
       see: 'In the Footprint, stand in the middle of the stilling stone at the Still Pool and push the floating sphere: it crosses to its berth.' },
+    // the first guardian made fair (issues #314, #316): src/temples/desert.js KEEPER, KEEPER_DARK; .claude/skills/combat-review/guardian.mjs
+    { text: 'The Keeper of the cistern, the first guardian, fights fairer: a longer breath between its moves, lighter blows, its sweep swinging back at you only in its last phase, and an opening after every move. In its last phase it no longer keeps its mouth shut in the dark: it gasps a moment, open for a sip of water, and a burning ball rolled to it still makes it pant long and drink deep.',
+      numbers: [
+        { title: 'Openings a minute, dodging every blow', unit: '', better: 'higher', device: 'the fight’s own code in node, the Rose House’s cistern', rows: [
+          { where: 'first phase', before: 7.3, after: 6.7 },
+          { where: 'second phase', before: 8, after: 7.3 },
+          { where: 'last phase', before: 0, after: 7.3 },
+        ], source: '.claude/skills/combat-review/guardian.mjs, 90 s a phase, before and after this change' },
+        { title: 'Hearts a minute standing still in front of it', unit: 'hearts', better: 'lower', device: 'the fight’s own code in node, the Rose House’s cistern', rows: [
+          { where: 'first phase', before: 16.3, after: 0.5 },
+          { where: 'second phase', before: 15, after: 3.3 },
+          { where: 'last phase', before: 15, after: 1.5 },
+        ], source: '.claude/skills/combat-review/guardian.mjs, a traveller who never moves, his health kept up' },
+        { title: 'From one blow of its sweep to the next', unit: 's', better: 'higher', device: 'the fight’s own code in node', rows: [
+          { where: 'shortest', before: 0.97, after: 1.42 },
+        ], source: '.claude/skills/combat-review/guardian.mjs' },
+      ],
+      see: 'In the Rose House, wake the Keeper: dodge or guard a move and it pants after it; in its last phase, water it the moment it gasps, or roll a burning ball down to it.' },
+    // its blows on its bones (issue #314): src/temples/boss.js Guardian.contact, src/characters/keeper-creature.js hitParts
+    { text: 'The Keeper’s blows land where its body goes: its sweep is its head, lowered to your height and swung across; its stamp, its forefeet; its charge, its head and legs. Nothing reaches you metres away from it any more.',
+      numbers: [
+        { title: 'The farthest a blow landed from its body', unit: 'm', better: 'lower', device: 'the fight’s own code in node', rows: [
+          { where: 'sweep', before: 13.7, after: 1.1 },
+          { where: 'stamp', before: 6.1, after: 1.1 },
+          { where: 'charge', before: 8.9, after: 1.1 },
+        ], source: '.claude/skills/combat-review/guardian.mjs, its test against its posed mesh over the blow' },
+      ],
+      see: 'Turn the hitbox overlay on (F4) and watch the Keeper: its blows are spheres on its head and feet, orange as it winds up, red as they land.' },
+    // the lock on its mouth (issue #314): src/foes.js GuardianLock.aim, src/lock-reticle.js, src/fluid-tool.js
+    { text: 'Locked on the Keeper, you lock on its mouth, the one place water calms it: the ring sits round its head, and a shot from the gun goes into its mouth.',
+      see: 'Lock on the Keeper (R3 / Tab), wait for it to pant and aim the gun: the shot goes into its open mouth.' },
+    // its walk and its shadow (issue #315, #287): src/characters/keeper-creature.js KEEPER_GAIT, src/temples/boss.js GroundShadow
+    { text: 'The Keeper walks on higher, quicker steps, its shell rising and rolling over them, turns on the spot by stepping its feet round instead of sliding them, and has a shadow under it on the cistern’s floor.',
+      numbers: [
+        { title: 'Its walk at the fight’s pace (2.2 m/s)', unit: 'm', better: 'higher', device: 'the skin’s walk in node', rows: [
+          { where: 'a step’s lift', before: 0.26, after: 0.49 },
+          { where: 'the shell’s rise and fall', before: 0.08, after: 0.17 },
+        ], source: 'its six feet over 8 s, the fight’s own animate()' },
+        { title: 'A foot dragged as it turns fast', unit: 'm', better: 'lower', device: 'the skin’s walk in node', rows: [
+          { where: 'turning as fast as it may', before: 0.2, after: 0 },
+        ], source: 'turning on the spot: before at 2.5 rad/s (it turned up to 15), after at its limit of 1.5' },
+      ],
+      see: 'In the Rose House, watch the Keeper walk and turn to face you across the cistern.' },
+    // the sidestep (issue #314): src/player.js orbitLock
+    { text: 'Locked on, stepping, hopping or dodging to the side carries you round the foe at the distance you stood, instead of drifting away from it.',
+      numbers: [
+        { title: 'Distance gained from the Keeper, locked on', unit: 'm', better: 'lower', device: 'Mac, headless Chrome, the Arena', rows: [
+          { where: '2 s stepping right', before: 1.55, after: -0.04 },
+          { where: 'a side hop', before: 1.6, after: 0.03 },
+          { where: 'a dodge to the side', before: 0.65, after: -0.01 },
+        ], source: 'the keys held in the game, frame by frame, before and after this change' },
+      ],
+      see: 'Lock on a foe and hold left or right, then jump or dodge with it held: you circle it.' },
   ] },
   { v: '1.68', date: '2026-10-13', items: [
     'The traveller has a new lighter body: narrower shoulders and arms that rest closer to his sides, with the approved face, articulated fingers, a natural neck fit and an independently moving shirt. Walking, jogging, talking and sitting use the fitted rig, with closed inner clothing and hands that clear the shirt. The body review includes the full animation library and a default body for comparison.',

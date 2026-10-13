@@ -63,9 +63,9 @@ export const BOSS_HINTS = {
       ['It is thirsty. Watch for it to pant.',
         'When it pants with its mouth open, give it water. A fire rolled to it makes it pant too.',
         'Take its charge on your guard and it pants: give it water at its mouth. Or cut a ball down past a lit bowl.'],
-      ['It will not pant in the dark any more.',
-        'Roll a burning ball down the spoke nearest it: by the fire it pants.',
-        'Cut the ball nearest it down its spoke past a lit bowl. When it pants by the flame, give it water.'],
+      ['In the dark it only gasps a moment now.',
+        'Water it the moment it gasps. A burning ball rolled to it makes it pant for longer.',
+        'Cut the ball nearest it down its spoke past a lit bowl. By the flame it pants long and drinks deep.'],
     ],
     // (from its second phase: the spoke ball nearest it, to roll in to it)
     at: (g, i) => (i === 0 ? nearestUnlit(g, ['b6', 'b7', 'b8', 'b9']) : nearestPiece(g, ['kb1', 'kb2', 'kb3', 'kb4'], g.model.pos)),

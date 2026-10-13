@@ -1,7 +1,7 @@
 import {createElderCreature, loadElderV3} from '../characters/elder-v3-creature.js';
 import * as THREE from 'three';
 import { keeperModel, elderModel } from './guardians.js';
-import { createKeeperCreature, loadKeeperV1 } from '../characters/keeper-creature.js';
+import { createKeeperCreature, loadKeeperV1, KEEPER_GAIT } from '../characters/keeper-creature.js';
 
 // A temple guardian drawn by a generated, fitted skin (docs/systems/characters.md "The Keeper in the Rose House"), with
 // its old procedural body (src/temples/guardians.js) standing in until the skin has loaded, and for good if it never
@@ -44,6 +44,11 @@ export function generatedGuardian({ name, fallback, load, make, sizes }) {
     get rooted() { return inner.rooted; },
     get marks() { return inner.marks; },
     part(n, out, side) { return inner.part?.(n, out, side) ?? null; },
+    // (the body's own: its blows on its bones and its weak point for the lock, src/temples/boss.js, src/foes.js GuardianLock;
+    // a body without them is struck and locked as before, by its moves' shapes and its middle)
+    get hitParts() { return inner.hitParts ? (n, out) => inner.hitParts(n, out) : undefined; },
+    get lockAt() { return inner.lockAt ? (out) => inner.lockAt(out) : undefined; },
+    get shadow() { return inner.shadow; },
     animate(dt, t, opts) {
       if (pending && inner.group.parent) { const next = pending; pending = null; W.swap(next); }
       inner.heading = W.heading;
@@ -100,7 +105,8 @@ export function keeperGuardian({ load = loadKeeperV1 } = {}) {
     load,
     make: (gltf) => createKeeperCreature(gltf, { gameMaterial: true }),
     // (the fitted body's: its shell 3 m across and 7.8 long, the mouth's hit sphere as generous as the old one's)
-    sizes: { radius: 2.9, height: 4.4, mouthR: 1.3 },
+    // (turnRate, rad/s: the fastest it turns, issue #315: past it its six feet can't step it round, src/characters/keeper-creature.js KEEPER_GAIT.turn)
+    sizes: { radius: 2.9, height: 4.4, mouthR: 1.3, turnRate: KEEPER_GAIT.turn },
   });
 }
 

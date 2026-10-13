@@ -91,7 +91,10 @@ export function guardianThreat(g, P) {
   if (!a || g.struck || g.state !== 'fight' || !harmful({ damage: 1, ...a })) return null;
   const wind = g.windFor ?? a.wind ?? 1.2, t = Math.max(0, wind - (g.at ?? 0));
   const pts = g.points?.(a) ?? [g.attackAt];
-  const near = pts.some((p) => p && inArea(grownArea(a), p, g.attackH ?? 0, P.pos))
+  // (a blow on its bones, v1.69 #314: in its way within its reach of its middle, or of the spot it travels to)
+  const body = g.bodyBlow?.(a) && !a.over && a.at !== 'player';
+  const near = body ? Math.hypot(P.pos.x - g.model.pos.x, P.pos.z - g.model.pos.z) <= g.reachOf(a) + DODGE.margin
+    : pts.some((p) => p && inArea(grownArea(a), p, g.attackH ?? 0, P.pos))
     || (a.at === 'self' && Math.hypot(P.pos.x - g.model.pos.x, P.pos.z - g.model.pos.z) <= (a.radius ?? 4) + DODGE.margin);
   return { t, wind, near, a };
 }

@@ -2352,6 +2352,7 @@ function frame(ts) {
   // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
   player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
   if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
+  if (player.lockOn) (player.lockOn.at ??= new THREE.Vector3()).copy(foes.lock.pos);   // (what a sidestep circles: Player.orbitLock)
   // (a hop read against the camera's look with the foe at his feet, where the camera stops turning after it: src/jump.js hopAxis)
   if (player.lockOn) {
     camera.getWorldDirection(_hopView);
@@ -2367,7 +2368,7 @@ function frame(ts) {
     const f = foes.lock, F = player.frame;
     // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
     // where it stands over the shoulder, not from the traveller (lockAim; v1.41, the author: "gun aim stays on the locked target")
-    const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, f.chest, F) : null;
+    const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, f.aim ?? f.chest, F) : null;   // (a guardian's weak point: GuardianLock.aim)
     // (not aiming: the line to the foe, its stand-off swing, the room behind him, the turn after it: src/foes.js lockFollow)
     if (!aim) lockFollow(lockView, rig, f, player.pos, F, realDt);
     else {

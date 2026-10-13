@@ -5,6 +5,7 @@ import { HOP } from './foe-height.js';
 import { allTargets } from './targets.js';
 import { bodyBoxes } from './foe-body.js';
 import { BOMB } from './gadgets/bomb.js';
+import { GUARDIANS_LIVE } from './temples/boss.js';
 
 // The hitbox overlay's shapes (docs/systems/foes.md, "Hitboxes"): what the fight tests, read from the same
 // data the combat code reads, as plain shapes that src/hitbox-overlay.js draws (and the tests check).
@@ -195,9 +196,36 @@ export function gadgetHitboxes(gadgets, out = []) {
 }
 
 /** Every shape this frame. ctx { player, tool, foes, gadgets }; prev: kept between frames (the blade's sweep). */
+/**
+ * A guardian's shapes (v1.69, issue #314: its blows had matched nothing it did): its weak point's sphere (the mouth the
+ * water calms) and the lock's mark on it when locked; a move's blow as the fight tests it: on its posed bones (the
+ * spheres of its `parts`: winding up, live over its active window, spent after) or, for a body without them, its area on
+ * the floor at each point it strikes.
+ */
+export function guardianHitboxes(g, out = [], { locked = null } = {}) {
+  const m = g.model;
+  if (!m?.group?.parent || !g.awake) return out;
+  out.push({ kind: 'sphere', c: m.mouth.clone(), r: m.mouthR ?? 1.2, color: HITBOX_COLORS.foeHurt, tag: 'guardian.mouth' });
+  if (locked?.g === g) out.push({ kind: 'diamond', c: (locked.aim ?? locked.chest).clone(), r: 0.45, color: HITBOX_COLORS.lock, tag: 'guardian.lock' });
+  const a = g.attack;
+  if (!a) return out;
+  const color = !g.struck ? HITBOX_COLORS.telegraph : g.live && !g.live.done ? HITBOX_COLORS.active : HITBOX_COLORS.spent;
+  if (g.bodyBlow?.(a)) {
+    for (const p of g.partsOf(a, [])) out.push({ kind: 'sphere', c: p.c.clone(), r: p.r, color, tag: `guardian.${a.id}` });
+    return out;
+  }
+  for (const o of g.points(a) ?? []) {
+    if (a.shape === 'ring') out.push({ kind: 'circle', c: o.clone(), r: a.radius ?? 4, color, fill: 0.2, tag: `guardian.${a.id}` });
+    else if (a.shape === 'cone') out.push({ kind: 'fan', c: o.clone(), h: g.attackH, range: a.range ?? 12, angle: a.angle ?? 0.6, r0: 0, color, fill: 0.2, tag: `guardian.${a.id}` });
+    else if (a.shape === 'lane') out.push({ kind: 'lane', c: o.clone(), h: g.attackH, range: a.range ?? 20, width: a.width ?? 2.4, back: 1, color, fill: 0.2, tag: `guardian.${a.id}` });
+  }
+  return out;
+}
+
 export function collectHitboxes(ctx, prev = {}) {
   const out = [];
   for (const f of ctx.foes?.list ?? []) foeHitboxes(f, out, { player: ctx.player, locked: ctx.foes.lock });
+  for (const g of GUARDIANS_LIVE) guardianHitboxes(g, out, { locked: ctx.foes?.lock });
   playerHitboxes(ctx, out, prev);
   shotHitboxes(ctx.tool, out);
   gadgetHitboxes(ctx.gadgets, out);

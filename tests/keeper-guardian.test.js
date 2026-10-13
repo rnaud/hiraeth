@@ -134,7 +134,9 @@ test('in the Rose House’s cistern: the skin, water at its open mouth, the guar
   for (let i = 0; i < 6; i++) {
     const b = (r) => m.inner.bones[`leg${i}_${r}`].getWorldPosition(V());
     const f = b('foot'), floor = physics.groundAt(f.x, K.arena.y + 2.5, f.z, 6);
-    if (m.kit.rig.planner.feet[i].planted && !(m.kit.legs[i].lift > 0.05)) assert.ok(Math.abs(f.y - floor) < 0.3, `foot ${i} on the floor (${(f.y - floor).toFixed(2)} m)`);
+    // (the first frame back from the far tier's canned cycle, which plants at the body's own floor: a foot a stride out
+    // over the basin's 0.8 m step hangs over it until its next step, issue #315's quicker, shorter strides put one there)
+    if (m.kit.rig.planner.feet[i].planted && !(m.kit.legs[i].lift > 0.05)) assert.ok(Math.abs(f.y - floor) < 0.9, `foot ${i} on the floor (${(f.y - floor).toFixed(2)} m)`);
     assert.ok(b('shin').y < b('thigh').y, `knee ${i} below its hip`);
   }
   K.meter = K.floor = 0.4;

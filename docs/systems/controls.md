@@ -384,6 +384,11 @@ locked on, jump is the jump. It follows jump wherever the Controls page moves it
 page has a row for it on every device (`ctl.k.hop`, `ctl.p.hop`, `ctl.t.hop`, EN and FR); `BINDINGS.foot`'s A row names it.
 The first lock-on says it once (`hint.hop`).
 
+Locked on, the stick is read against the foe, not the camera (v1.69, issue #314): forward toward it, sideways round it,
+and a step, a side hop or a dodge to the side follows the circle at the distance you stood (`src/player.js`
+`orbitLock`: the flat velocity turned each frame with the angle it sweeps round `lockOn.at`). Before, the camera trailing
+the lock made the side its tangent: 0.2 m further off for every metre stepped, 1.6 m a side hop.
+
 ## The triggers and the gadget in hand (v1.38, the progression rewrite)
 
 From the author: "L2 and R2 work with whatever current gadget is selected (to aim and shoot or throw). The gun isn't

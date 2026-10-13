@@ -1015,8 +1015,8 @@ export class FluidTool {
     const shot = traceShot(this.physics, o, this.aimDir, FLUID.shoot.range + 4);
     this.aimPoint.copy(shot.point);
     this.aimKind = shot.kind;
-    // locked on: the crosshair near the foe's chest takes it, if nothing stands between (LOCK_AIM)
-    const lockAt = this.lockOn?.()?.position?.();
+    // locked on: the crosshair near the foe's chest (a guardian's weak point: its mouth) takes it, if nothing stands between (LOCK_AIM)
+    const L = this.lockOn?.(), lockAt = (L?.aim ?? L?.position)?.();
     if (lockAt && rayMiss(o, this.aimDir, lockAt) < LOCK_AIM.snap) {
       const to = _t2.subVectors(lockAt, o), d = to.length();
       if (d < FLUID.shoot.range + 4 && !(this.physics?.rayDistance?.(o, to.divideScalar(d), d) < d - 0.6)) { this.aimPoint.copy(lockAt); this.aimKind = 'target'; this.aimLocked = true; return shot; }

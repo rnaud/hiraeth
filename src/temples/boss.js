@@ -51,11 +51,18 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //                          running out along the floor: jump it), reachUp (m: it reaches the air over it),
 //                          then (the next move of a combo), link (a move only met inside a combo), gap (s before
 //                          the next), open (s open after it), miss (s open, stuck, when it missed you), guard (the
-//                          shield takes it: def.onBlock(g, a, perfect)) } },
+//                          shield takes it: def.onBlock(g, a, perfect)),
+//                          parts (v1.69, #314: the body it strikes with, model.hitParts: 'head' | 'feet' | 'body'; the
+//                          blow lands where those posed bones meet you, over `active` s from the strike, instead of
+//                          the shape's floor; a body without hitParts falls back to the shape), active (s),
+//                          reach (m from its middle the blow can land: when it comes for you first) } },
 //        onHit(g, part ('mouth' | 'body' | 'vent'), mode, info) -> handled, final: 'touch' | 'break',
 //        onStrike(g, a), onCatch(g, a), onReset(g), openFor(g, a, s, missed) -> s (how long a combo's end leaves it open),
 //        touch: 'prompt', wake: text, weary: text, resolved: text }
 // model: { group, pos (Vector3 on the floor), heading, mouth (Vector3), radius, height, part?(name, out, side),
+//          hitParts?(name, out) → [{ c, r }] (world spheres on its posed bones: a move's `parts`), lockAt?(out) (its weak
+//          point, where the lock-on aims: src/foes.js GuardianLock.aim), turnRate? (rad/s, the fastest it turns: a big
+//          walker turns no faster than its feet can step it round), shadow? { rx, rz, feet } (its contact shadow),
 //          marks? { c, r } (where its phase marks go), tellRig? (its own frame for the moves' generic motions: a walker
 //          keeps its legs out of it, planted), animate(dt, t, { state, attack, k, speed, meter, phase, kit: { eye, ground } }) }
 
@@ -153,6 +160,8 @@ export class Telegraph {
 
 /** The parts that come in pairs: a glow on each (both arms, both wings, both forefeet). */
 const PAIRED = new Set(['arms', 'wings', 'feet']);
+/** The traveller as a guardian's body blow meets him (m): a column this high over his feet, this far round (Guardian.touches). */
+export const COLUMN = { h: 1.8, r: 0.45 };
 /** How long a phase change takes (s): it staggers, changes, and comes on again. */
 export const SHIFT = 2.4;
 /**
@@ -212,6 +221,57 @@ export class PhaseMarks {
   dispose() { for (const l of this.lines) { l.removeFromParent(); l.geometry.dispose(); } releaseMaterial(this.mat); }
 }
 
+/** A flat disc on the floor (y up), the contact shadow's every spot. */
+const SPOT_GEO = new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2);
+/**
+ * A guardian's contact shadow (v1.69, issue #315: "he cast no shadow"). Its body is drawn into the sun's shadow maps
+ * like any mesh, but the temples' halls are lit by their own lamps (the Rose House's cistern by its braziers: no sun
+ * reaches its floor), and there nothing grounded it: it floated over the tiles. So a shadow of its own under it, as an
+ * inker spots one in: a flat patch of the floor's own colour darkened (`tone`) under its body, following its body as it
+ * sways, rears and turns, and one under each foot, shrinking as the foot lifts. model.shadow { rx, rz (m: the body's
+ * patch, across and along), feet (m: a foot's), y (its height over the floor) }; none for a body that swims in the air.
+ */
+export class GroundShadow {
+  constructor(parent, model, tone = '#4a3530') {
+    const S = model.shadow ?? {}, R = model.radius ?? 2.6;
+    this.model = model; this.S = { rx: S.rx ?? R * 0.7, rz: S.rz ?? R * 0.9, feet: S.feet ?? Math.max(0.3, R * 0.16), y: S.y ?? 0.03 };
+    this.mat = makeMaterial({ color: tone, flat: true, key: `guardian.shadow.${uid++}` });
+    this.mat.polygonOffset = true; this.mat.polygonOffsetFactor = -2; this.mat.polygonOffsetUnits = -4;   // (over the floor it lies on: never fighting it)
+    this.group = new THREE.Group(); this.group.name = 'guardian contact shadow';
+    const n = 1 + (model.kit?.legs?.length ?? 0);
+    this.spots = Array.from({ length: n }, () => {
+      const m = new THREE.Mesh(SPOT_GEO, this.mat);
+      m.userData.noCollide = true; m.userData.dynamic = true; m.userData.castShadow = false;
+      this.group.add(m); return m;
+    });
+    this.group.userData.noCollide = true; this.group.userData.dynamic = true;
+    parent.add(this.group);
+    this.update();
+  }
+  /** Each frame, after the body is posed. */
+  update() {
+    const m = this.model, S = this.S;
+    this.group.visible = !m.floats && !!m.group?.parent;
+    if (!this.group.visible) return;
+    const [body, ...feet] = this.spots, c = m.body?.getWorldPosition?.(_e) ?? _e.copy(m.pos);
+    // (the body's patch: under its body, on the floor it stands on; smaller as the body rises off it, none dug under)
+    const up = THREE.MathUtils.clamp((c.y - m.pos.y) / Math.max(1, (m.height ?? 4) * 0.75), 0, 2), k = up < 0 ? 0 : 1 / (1 + 0.25 * Math.max(0, up - 1));
+    body.visible = c.y > m.pos.y - 0.5;
+    body.position.set(c.x, m.pos.y + S.y, c.z); body.rotation.y = m.heading; body.scale.set(S.rx * k, 1, S.rz * k);
+    const P = m.kit?.rig?.planner?.feet;
+    feet.forEach((spot, i) => {
+      const f = P?.[i];
+      spot.visible = !!f;
+      if (!f) return;
+      // (planted: the foot's own spot; in a step, the floor it left or lands on, shrinking with its height)
+      const floor = f.planted ? f.pos.y : Math.min(f.from?.y ?? f.pos.y, f.to?.y ?? f.pos.y), h = Math.max(0, f.pos.y - floor);
+      const r = S.feet * Math.max(0.35, 1 - h / 1.2);
+      spot.position.set(f.pos.x, floor + S.y + 0.01, f.pos.z); spot.scale.set(r, 1, r);
+    });
+  }
+  dispose() { this.group.removeFromParent(); releaseMaterial(this.mat); }
+}
+
 /**
  * The guardians in play (a temple's, the Arena's sparring one): src/foes.js locks on to them (GuardianLock) and reads their
  * moves for the perfect dodge (src/flurry.js guardianThreat). Added as one is made, gone with dispose().
@@ -251,6 +311,8 @@ export class Guardian {
     }
     this.rigK = { x: 0, y: 0, z: 0, ry: 0, s: 1, sy: 1, spin: 0 };
     this.marks = new PhaseMarks(model.tellRig, model, def.kind === 'robot');
+    // (its contact shadow, of the floor's colour darkened: the temple's palette, else sand)
+    this.ground = new GroundShadow(rt.root, model, '#' + new THREE.Color(rt.P?.floor ?? '#d8c08e').multiplyScalar(0.58).getHexString());
     this.solid = { pos: model.pos, r: model.radius ?? 2.6, top: 0, bottom: 0, vel: V() };
     this.prev = model.pos.clone();
     this.offs = [];
@@ -337,7 +399,7 @@ export class Guardian {
   enter(state) { this.state = state; this.t = 0; }
   /** Whatever it was winding up or chaining is broken off (stilled, knocked out, a phase change). */
   stop() {
-    this.attack = null; this.view = null; this.attackK = 0; this.combo = 0; this.closing = null;
+    this.attack = null; this.view = null; this.attackK = 0; this.combo = 0; this.closing = null; this.live = null;
     this.tele.hide(); for (const T of this.teles) T.hide();
     for (const g of this.glows) g.hide();
     for (const b of this.balls) b.visible = false;
@@ -406,8 +468,7 @@ export class Guardian {
     let sp = 0;
     if (d > keep + 0.3) {
       _a.normalize();
-      const want = Math.atan2(_a.x, _a.z);
-      m.heading += Math.atan2(Math.sin(want - m.heading), Math.cos(want - m.heading)) * Math.min(1, dt * 2.5);
+      this.turnTo(dt, Math.atan2(_a.x, _a.z), 2.5);
       sp = Math.min(speed, (d - keep) * 2);
       m.pos.x += Math.sin(m.heading) * sp * dt; m.pos.z += Math.cos(m.heading) * sp * dt;
     }
@@ -422,8 +483,13 @@ export class Guardian {
     if (_b.length() > r) { _b.setLength(r); m.pos.x = A.center.x + _b.x; m.pos.z = A.center.z + _b.z; }
   }
   face(dt, p, rate = 4) {
-    const m = this.model, want = Math.atan2(p.x - m.pos.x, p.z - m.pos.z);
-    m.heading += Math.atan2(Math.sin(want - m.heading), Math.cos(want - m.heading)) * Math.min(1, dt * rate);
+    const m = this.model;
+    this.turnTo(dt, Math.atan2(p.x - m.pos.x, p.z - m.pos.z), rate);
+  }
+  /** Turn toward heading `want` at `rate` (a share a second), never faster than the body's turnRate (rad/s). */
+  turnTo(dt, want, rate) {
+    const m = this.model, d = Math.atan2(Math.sin(want - m.heading), Math.cos(want - m.heading)) * Math.min(1, dt * rate), cap = (m.turnRate ?? Infinity) * dt;
+    m.heading += THREE.MathUtils.clamp(d, -cap, cap);
   }
 
   update(dt, t) {
@@ -449,6 +515,7 @@ export class Guardian {
     const kit = (this.motionKit ??= { eye: null, ground: (x, y, z) => { const g = this.rt.physics?.groundAt?.(x, y, z, 6); return Number.isFinite(g) ? g : null; } });
     kit.eye = P?.pos ?? null;
     m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex, kit });
+    this.ground.update();
     this.marks.set(Math.min(this.phaseIndex, this.def.phases.filter((p) => !p.weary).length - 1), t, this.state);
     this.tells(t);
   }
@@ -483,6 +550,10 @@ export class Guardian {
         this.struck = true;
         this.attackK = 1;
         this.hitLast = this.strike(a, P);
+      } else if (this.live) {
+        // (a blow on its bones: it lands where they meet you, over its active window)
+        if (this.contact(P)) this.hitLast = true;
+        if (this.live && this.at > wind + this.live.for) this.live = null;
       } else if (this.at > wind + (a.then ? (a.gap ?? 0.25) : (a.recover ?? 0.8))) {
         const next = a.then && !P.dead && !P.down ? this.def.attacks[a.then] : null;
         if (next) { this.begin(P, a.then); return 0; }
@@ -521,7 +592,7 @@ export class Guardian {
   }
   /** Begin a move: the phase's next in turn (one that reaches you), or `id` (a combo's next). */
   /** How far a move reaches from its body (m): a dive or a lob follows you anywhere. */
-  reachOf(a) { return a.shape === 'cone' || a.shape === 'lane' ? a.range ?? 12 : a.at === 'player' ? Infinity : (a.radius ?? 4) + (a.at === 'front' ? a.ahead ?? 4 : 0) + (a.wave?.reach ?? 0); }
+  reachOf(a) { return a.reach ?? (a.shape === 'cone' || a.shape === 'lane' ? a.range ?? 12 : a.at === 'player' ? Infinity : (a.radius ?? 4) + (a.at === 'front' ? a.ahead ?? 4 : 0) + (a.wave?.reach ?? 0)); }
   begin(P, id = null, picked = null) {
     const chained = !!id;
     if (!id) {
@@ -567,18 +638,55 @@ export class Guardian {
     this.def.onStrike?.(this, a);
     if (a.dash) this.dashing = a.dash;
     if (a.wave) this.addWave(a);
+    // a blow on its bones (a.parts): live over its active window, landing where the posed parts meet you (contact)
+    if (this.bodyBlow(a)) { this.live = { a, for: a.active ?? 0.15, done: false }; return this.contact(P); }
     if (P.dead || P.down) return false;
     if (P.untouchable?.()) { this.answer('dodge'); return false; }   // (a perfect dodge's flurry: src/flurry.js; the phase's second verb, asks)
     if (P.pos.y - this.arena.y > (a.reachUp ?? (a.shape === 'lane' ? 3.5 : HIT.airborne))) return false;   // jumped clear (a beam reaches a little higher)
     const at = this.points(a).find((p) => inArea(a, p, this.attackH, P.pos));
     if (!at) return false;
+    return this.lands(a, P, a.shape === 'ring' ? at : this.model.pos);
+  }
+  /** Does move a land with its body (its `parts` on the model's posed bones)? */
+  bodyBlow(a) { return !!(a?.parts && this.model.hitParts); }
+  /** The spheres move a strikes with now (world { c, r }), its parts on the posed bones. */
+  partsOf(a, out = (this._parts ??= [])) {
+    out.length = 0;
+    for (const n of a.parts) for (const s of this.model.hitParts(n, this._one ??= [])) out.push(s);
+    return out;
+  }
+  /**
+   * Does a sphere of move a's parts meet a traveller standing at p (his feet; a column HIT.column m high and `r` round)?
+   * The fight's own test, also for the QC (.claude/skills/combat-review/guardian.mjs): the parts as posed now.
+   */
+  touches(a, p) {
+    const C = COLUMN;
+    for (const s of this.partsOf(a)) {
+      const y = THREE.MathUtils.clamp(s.c.y, p.y, p.y + C.h);
+      if (Math.hypot(s.c.x - p.x, y - s.c.y, s.c.z - p.z) < s.r + C.r) return true;
+    }
+    return false;
+  }
+  /** Would move a, struck now, reach a traveller standing at p? Its body's parts if it has them, else its area. */
+  wouldHit(a, p) { return this.bodyBlow(a) ? this.touches(a, p) : this.points(a).some((o) => inArea(a, o, this.attackH, p)); }
+  /** Over a body blow's active window: its parts meet you now? Lands once. */
+  contact(P) {
+    const L = this.live;
+    if (!L || L.done || !P || P.dead || P.down) return false;
+    if (!this.touches(L.a, P.pos)) return false;
+    L.done = true;
+    if (P.untouchable?.()) { this.answer('dodge'); return false; }   // (in a perfect dodge's flurry it passes through)
+    return this.lands(L.a, P, this.model.pos);
+  }
+  /** A blow that reached you: the phase's guard asked for, the shield, or it catches you (from `from`). */
+  lands(a, P, from) {
     // the phase asks for the guard against this move (asks.verb 'parry'): held, it is jarred open
     const A = this.phase?.asks;
     if (A?.verb === 'parry' && A.moves.includes(a.id)) { const held = P.guard?.(this.model.pos); if (held) { this.answer('parry', held === 'perfect'); return false; } }
     // a move the guard can take (its `guard`: the Keeper's charge and stamp): the shield raised toward it holds it
     // (src/fluid-blade.js block, through player.guard), and the guardian may answer (def.onBlock: jarred, it pants)
     if (a.guard) { const held = P.guard?.(this.model.pos); if (held) { this.blocked = (this.blocked ?? 0) + 1; this.def.onBlock?.(this, a, held === 'perfect'); return false; } }
-    this.catch(a, P, a.shape === 'ring' ? at : this.model.pos, a.damage, a.knock);
+    this.catch(a, P, from, a.damage, a.knock);
     return true;
   }
   /** It catches you: knocked down, away from `from`, and a bite of the bar (never the last of a healthy one). */
@@ -691,6 +799,6 @@ export class Guardian {
     for (const T of this.teles) T.dispose();
     for (const g of this.glows) g.dispose();
     for (const b of this.balls) { b.removeFromParent(); b.geometry.dispose(); }
-    this.clearWaves(); this.marks.dispose(); releaseMaterial(this.ballM);
+    this.clearWaves(); this.marks.dispose(); this.ground.dispose(); releaseMaterial(this.ballM);
   }
 }

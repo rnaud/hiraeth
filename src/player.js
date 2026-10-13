@@ -391,6 +391,7 @@ export function idleMotion(t, calm = 0, moveW = 0) {
   const nod = Math.max(0, Math.sin(t * 0.13)) * 0.12 * still;
   return { w, breath, look, nod };
 }
+const _lk1 = new THREE.Vector3();
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
@@ -708,6 +709,23 @@ export class Player {
     this._airJumped = true; this._jumped = true; this._jumpedNow = false; this._groundJumpAt = -Infinity;
     this.onHop?.(kind, H.iframes);
     return H.up;
+  }
+
+  /**
+   * Locked on, stepping round the foe (the strafe, the side hop, the evade): the flat velocity `tv` turned with the angle
+   * it sweeps round the foe this frame, so a step to the side follows the circle at the distance you stood instead of
+   * its tangent (issue #314: 0.2 m further off the foe for every m stepped; a side hop 0.6 m). The evade's own way turns
+   * with it. Not the dash cut, nor aiming, nor in the air but for a hop; the foe at your feet (within 1.5 m) leaves it.
+   */
+  orbitLock(dt, tv, U) {
+    const L = this.lockOn, at = L?.at;
+    if (!at || (this.aim && !this.combatMotion?.evade) || this.gliding || this.combatMotion?.dash || (!this.onGround && !this._hop) || U.y < 0.9) return;
+    const rx = this.pos.x - at.x, rz = this.pos.z - at.z, r2 = rx * rx + rz * rz;
+    if (r2 < 2.25) return;
+    const w = ((rz * tv.x - rx * tv.z) / r2) * dt;   // (the angle swept round it about up, this frame)
+    if (!(Math.abs(w) > 1e-6)) return;
+    tv.applyAxisAngle(U, w);
+    if (this.combatMotion?.evade) this.combatMotion.dir.applyAxisAngle(U, w);
   }
 
   /**
@@ -1385,6 +1403,13 @@ export class Player {
     const camF = _v1.copy(F.right).multiplyScalar(-Math.sin(camYaw)).addScaledVector(F.fwd, -Math.cos(camYaw));
     const camR = _v2.copy(F.right).multiplyScalar(Math.cos(camYaw)).addScaledVector(F.fwd, -Math.sin(camYaw));
     let move = new THREE.Vector3().addScaledVector(camF, f).addScaledVector(camR, s);
+    // locked on, the stick is read against the foe, not the camera: forward toward it, sideways round it (issue #314, "the
+    // sidestep is bugged": the camera trails the lock by 0.1-0.25 rad as you step, so its right carried you off the foe
+    // 0.2 m for every m stepped, out of a guardian's reach in three sidesteps; with orbitLock below, you circle it)
+    if (this.lockOn && !this.aim && (f || s)) {
+      const D = this.lockOn.hop ?? this.lockOn.dir, Rt = _lk1.crossVectors(D, F.up).normalize();
+      if (Rt.lengthSq() > 0.5) move.copy(D).multiplyScalar(f).addScaledVector(Rt, s);
+    }
     if (move.lengthSq() > 0) move.normalize();
     (this._moveDir ??= new THREE.Vector3()).copy(move);   // where you steer (the head and chest lead the turn: locomotion.js)
 
@@ -1435,6 +1460,7 @@ export class Player {
         if (C.evade || C.dash) tv.copy(C.dir).multiplyScalar(C.speed);   // (the evade, the dash cut: carried at their own speed)
         else tv.addScaledVector(C.dir, C.speed * a);
       }
+      this.orbitLock(dt, tv, U);
       // the blade's rising cut (src/fluid-blade.js RISE): a leap up and in to a foe hovering over you
       if (this.riseKick && this.onGround) {
         const K = this.riseKick;

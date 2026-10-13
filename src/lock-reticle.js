@@ -160,6 +160,17 @@ export class LockReticle {
   screenBox(f, camera, W, H) {
     const model = f.model;
     let box = null;
+    // (a guardian's weak point, GuardianLock.aim: the ring round its mouth, not its whole body, issue #314)
+    if (f.aimR) {
+      const b = _box; b.x0 = b.y0 = Infinity; b.x1 = b.y1 = -Infinity;
+      const at = f.aim; _p.copy(at).project(camera);
+      if (_p.z > 1) return null;
+      const x = (_p.x * 0.5 + 0.5) * W, y = (0.5 - _p.y * 0.5) * H;
+      const dist = Math.max(0.5, camera.position.distanceTo(at)), fov = THREE.MathUtils.degToRad(camera.fov ?? 60);
+      const r = (f.aimR + RETICLE.margin) / dist * (H / 2) / Math.tan(fov / 2);
+      b.x0 = x - r; b.x1 = x + r; b.y0 = y - r; b.y1 = y + r;
+      return b;
+    }
     if (model?.group) {
       try { bodySpan(model, this.span); box = this.span._box; } catch { box = null; }
       if (box?.isEmpty()) box = null;
@@ -197,7 +208,7 @@ export class LockReticle {
     let ring;
     if (box && box.x1 > W * 0.04 && box.x0 < W * 0.96 && box.y1 > H * 0.05 && box.y0 < H * 0.95) ring = reticleRing(box, ease, _ring, K, M.breathe);
     else {
-      _p.copy(f.chest).project(camera);
+      _p.copy(f.aim ?? f.chest).project(camera);
       const behind = _p.z > 1;
       let x = behind ? -_p.x : _p.x, y = behind ? -_p.y : _p.y;
       const k = 1 / Math.max(Math.abs(x) / 0.88, Math.abs(y) / 0.84, 1e-3); if (k < 1 || behind) { x *= k; y *= k; }

@@ -4,6 +4,7 @@
 // in the real level geometry, pushing, riding, climbing, lighting, calming.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { HEARTH_FIRE } from '../src/temples/desert.js';
 import { keyText } from '../src/prompt-keys.js';
 import './register-gadgets.js';   // (the gadgets as items: the makers' courts' boxes hold them, src/finds/courts.js)
 import * as THREE from 'three';
@@ -1002,7 +1003,7 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   assert.ok(open, 'it pants again');
   water();
   assert.equal(K.phaseIndex, 2, 'its last phase');
-  // its last: no panting in the dark; a ball cut down the spoke nearest it from its lit bowl rolls burning to it
+  // its last: in the dark only a gasp (a sip of water, v1.69); a ball cut down the spoke nearest it from its lit bowl rolls burning to it, and by it it pants long
   for (let n = 0; n < 2; n++) {
     open = false;
     for (let tries = 0; tries < 6 && !open; tries++) {
@@ -1011,7 +1012,7 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
       for (let i = 0; i < 1 / DT; i++) frame();
       assert.ok(ball.burn > 0, 'lying in its lit bowl, it burns');
       ball.hit('blade', ball.dir.clone(), {});
-      for (let i = 0; i < 12 / DT; i++) { frame(); if (K.state === 'open') { open = true; break; } if (P.dead) P.restart(); }
+      for (let i = 0; i < 12 / DT; i++) { frame(); if (K.state === 'open' && K.openFor === HEARTH_FIRE.open) { open = true; break; } if (P.dead) P.restart(); }
     }
     assert.ok(open, `a fire cut to it: it pants (${n})`);
     water();

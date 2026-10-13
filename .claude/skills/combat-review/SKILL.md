@@ -38,6 +38,7 @@ env vars; never 5173). Results so far and why each measure exists: docs/systems/
 | `arena.mjs <out> --rescore <run>/combat.json [--moves-now]` | the scores and tables again from a run's numbers, no browser (after the rubric changed) | `--moves-now`: the times to kill re-timed with the moves as `lib.mjs movesFrom` times them now (the run's own tuning kept) | `combat.json`, `combat.md` in `<out>` |
 | `dodge.mjs <out>` | the perfect dodge, foe by foe: does a hop inside the window start a flurry? | `--kinds` `--guardians no` `--side` `--wait 9`; PORT 5335, CDP 5393 | `dodge.json` (and a summary line) |
 | `defend.mjs <out>` | guard, parry and evade at set leads, attack by attack | `--kinds` `--per 45` `--group role\|world` `--guard 0.5,0.3,…` `--evade 0.35,0.25,…`; PORT 5337, CDP 5395 | `defend.json`, `defend.md` |
+| `guardian.mjs <out>` | **the guardians played** (node, no browser: each in its own temple, its real def, hooks and body): pace, tells, recovery, openings per phase, hitboxes against its posed mesh, the lock point, its shadow; and the traveller's sidestep locked on | `--ids desert,incal` (`src/arena-guardians.js` ids) `--secs 90` `--grid 0.5` `--strict` (exit 1 on a FAIL) | `guardians.json`, `guardians.md` (FAIL lines) |
 
 Method notes:
 - Every kind starts from the Arena's spawn (the hops walk the traveller to the wall otherwise, where foes stand idle),
@@ -66,8 +67,28 @@ Method notes:
   per attack: P, B, E, H, · (missed anyway), the furthest lead the guard holds from, the parry's and evade's windows
   (against `GUARD.perfect`, `EVADE.iframes`). A missing parry window, an evade that never takes, or a guard that can't
   hold from 0.3 s is a finding.
-- **Guardians** are scored from their tuning (telegraphs, attacks, openings, phases); play their temples for the rest
-  (`?level=<world>` and the temple's door, or the dev menu's temple jump).
+- **Guardians** are scored from their tuning (telegraphs, attacks, openings, phases) **and played** (`guardian.mjs`,
+  since v1.69: the Keeper's playtest, issues #314–#316, found what the tuning hid: blows landing up to 13.7 m from its
+  body, the lock 5.6 m under its mouth, no opening at all in its last phase, a combo's blows under a second apart, no
+  shadow in its hall, and the traveller's sidestep drifting off it). Every phase is played 90 s in three manners: a
+  still traveller (takes every blow), one who **dodges** every blow (in the air through its live window) and one who
+  **guards** every blow. Its FAIL lines, each a finding (open an issue):
+  - a phase with **no opening** (under 1 a minute) for the dodger or the guard, its temple's own rules included
+    (`def.openFor`: the Keeper's dark);
+  - an own move's **wind-up** under 0.8 s, a link under 0.6 s, a combo's next blow under 1.2 s after the last, under
+    0.8 s from a strike to its next move's wind-up (the **recovery**, openings counted inside it);
+  - **hitboxes against the mesh**: each move at its strike, the floor its hit takes (the game's own test,
+    `Guardian.wouldHit`: its bones' spheres for a move with `parts`, else its shape at `points()`) against the floor its
+    skinned mesh sweeps at the traveller's height over the blow: over 15 % of the hit more than 1 m from its body, or any
+    hit more than 1.5 m from it, fails; "body not hit" is what of its body strikes nothing (legs that only walk);
+  - the **lock point** more than 0.6 m from its weak point (`model.mouth`; the lock aims at `GuardianLock.aim`);
+  - a mesh of its body kept out of the **shadow** passes, or no contact shadow under it (`Guardian.ground`; a temple's
+    hall gets no sun: look at it in its hall, not in the Arena);
+  - the traveller's **sidestep**: a 2 s strafe or a side hop locked on carrying him more than 0.25 m off the foe.
+  Look at it too: the hitbox overlay (F4, `src/hitboxes.js` `guardianHitboxes`) draws a guardian's blow on its bones
+  (orange winding, red live), its weak point and the lock's mark; shoot it from the side in its own hall
+  (`?level=<world>&debugsave=1`, the dev menu's temple jump, or `level.temples` and `player.teleport`), mid wind-up and at
+  the strike, and the lock from the game's camera.
 
 ## 2. The rubric, per foe (1-5 each)
 
@@ -89,7 +110,11 @@ worlds field it and how rare its role is. Each comes with its reason (`combat.md
 v1.6): readability (the body tells of its own moves, 0.8-1.35 s+; a combo's links ≥ 0.6 s; a floor-drawn attack that
 isn't a lob costs a point), counterplay (moves, combos, the openings after them or after a miss, the temple's own way
 to calm or break it), space (shapes, tracking, dives, shock rings, lobs), fairness (links and wind-ups against damage;
-the knock-down), phases (how many, and whether each adds moves). `arena.mjs` also draws `guardians.webp`: each guardian
+the knock-down), phases (how many, and whether each adds moves). From `guardian.mjs`, override the tuning's scores:
+fairness is at most 2 with a phase without openings, a blow landing over 1.5 m from its body or the lock off its weak
+point; at most 3 with a combo's blows under 1.2 s apart or over 3 hearts a minute to a still traveller. The first
+guardian on the route (the Keeper) is a teacher: every phase open after every move, a combo of two at most before its
+last phase. `arena.mjs` also draws `guardians.webp`: each guardian
 in an Arena ring, phase by phase, at 85 % of the phase's first move (`--guardians no` skips it).
 
 ## 3. The combat as a whole (1-5 each, with reasons)

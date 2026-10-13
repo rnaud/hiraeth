@@ -36,6 +36,7 @@ import { bestInteractable } from '../src/interact.js';
 import { setHintLevel } from '../src/hint-level.js';
 import { answerAsks } from './guardian-asks.js';
 import { buildableById } from '../src/levels/buildable.js';
+import { KEEPER_GUARD, KEEPER_DARK, HEARTH_FIRE } from '../src/temples/desert.js';
 import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
@@ -95,7 +96,7 @@ function fireToKeeper(A, tries = 6) {
     if (!ball.rest || ball.t > 0.3) { ball.t = 0; rt.logic.moveDrum(ball.id, 0); ball.place(); ball.rest = true; ball.v = 0; }   // (back in its bowl: cut out again)
     wait(0.3);
     ball.hit('blade', ball.dir.clone(), {});
-    if (until(() => G.state === 'open', 12)) return ball;
+    if (until(() => G.state === 'open' && G.openFor === HEARTH_FIRE.open, 12)) return ball;   // (by the fire: not a gasp of its own)
   }
   return null;
 }
@@ -137,12 +138,16 @@ test('the Keeper’s charge on the guard (v1.44): jarred, it pants; water from y
   A.done();
 });
 
-test('the Keeper’s last phase: it no longer pants in the dark; a cold ball lying by it is nothing; one cut down the spoke nearest it from a lit bowl rolls burning to it, and by that fire it pants and drinks', () => {
+test('the Keeper’s last phase (v1.69, #316): in the dark it only gasps a moment, a sip of water; one cut down the spoke nearest it from a lit bowl rolls burning to it, and by that fire it pants long and drinks deep', () => {
   const A = arena('desert', 'sword', 2);
   const { rt, G, until, said } = A;
-  // the failure first: its own openings come to nothing, in the dark; the spokes' balls lie cold at the basin's edge
-  assert.equal(until(() => G.state === 'open', 25), false, 'it never pants by itself now');
-  assert.ok(said(/won’t pant without a fire/), 'it shakes its head at the dark, and says so');
+  // in the dark its own openings are a gasp: short, and water then is a sip (KEEPER_DARK)
+  assert.equal(until(() => G.state === 'open', 25), true, 'it still opens by itself in its last phase: a gasp');
+  assert.ok(G.openFor <= KEEPER_DARK.open + 1e-6, `a short one in the dark (${G.openFor} s)`);
+  assert.ok(said(/gasps in the dark/), 'and says a fire would hold it open');
+  const m0 = G.meter;
+  G.hit('mouth', 'shoot');
+  assert.ok(Math.abs(G.meter - m0 - KEEPER_GUARD.water * KEEPER_DARK.water) < 1e-6, `a sip (${(G.meter - m0).toFixed(3)})`);
   assert.ok(rt.spokes.every((b) => b.burn === 0), 'the balls by it are cold');
   assert.equal(lightRim(A), true, 'the bowls lit');
   for (let n = 0; n < 2 && G.state !== 'weary'; n++) {
@@ -151,7 +156,7 @@ test('the Keeper’s last phase: it no longer pants in the dark; a cold ball lyi
     assert.ok(said(/turns to the fire by it/), 'it turns to the fire');
     const m = G.meter;
     G.hit('mouth', 'shoot');
-    assert.ok(G.meter > m || G.state === 'weary', 'and drinks');
+    assert.ok(G.meter >= m + KEEPER_GUARD.water - 1e-6 || G.state === 'weary', 'and drinks deep');
   }
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
   A.done();

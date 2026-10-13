@@ -697,6 +697,13 @@ skin or articulated-part adapter. Do not use the traveller's MakeHuman fitting
 coefficients. Existing temple tests establish gameplay behavior only; acceptance
 also requires real mesh deformation and visual review in the game renderer.
 
+### Its walk, its blows and its shadow (v1.69, issues #314, #315, #287)
+
+The skin shuffled: `KEEPER_GAIT` now lifts its feet 0.15 of a leg (was 0.08) on shorter, quicker strides (`drift` 0.17,
+`stepTime` 0.24–0.4 s), the shell rides them on softer springs and rolls over them (`roll`), and it turns no faster
+than its feet can step it round (`turn`, the wrapper's `turnRate`). Its blows land on its bones (`hitParts`), the lock
+aims at its mouth (`lockAt`) and a contact shadow lies under it (`shadow`): docs/systems/foes.md, "The first guardian, fair".
+
 ### The Keeper in the Rose House (issue #267, October 2026)
 
 The fitted skin is the Rose House's guardian now, in the temple and in the Arena's ring:

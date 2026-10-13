@@ -154,27 +154,40 @@ export const KEEPER = {
   weary: 'It lowers its head to the dry spout, worn out. Go to it.',
   resolved: 'It breathes out, and the stone under the spout begins to sweat.',
   missHint: 'Its forefeet are wedged in the stone, mouth open. Give it water.',
+  // (v1.69, issues #314 and #316, the first guardian made fair: a longer breath between its moves, every move ending
+  // in an opening, its three-blow sweep only in its last phase, lighter blows; in its last phase the dark no longer
+  // shuts its mouth, it gasps a moment (keeperOpen), and a fire by it still makes it pant longer)
   phases: [
-    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 1.8, hint: 'Light the four braziers: cut each spoke’s ball through its fire.' },
-    { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 1.5, hint: 'Guard its charge, then water it. Or cut a lit ball down a spoke.' },
-    { to: 0.8, attacks: ['burrow', 'spit', 'sweep', 'charge'], pause: 1.3, hint: 'It digs in now: cut a lit ball down the spoke nearest it.' },
+    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 2.4, hint: 'Light the four braziers: cut each spoke’s ball through its fire.' },
+    { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 2.0, hint: 'Guard its charge, then water it. Or cut a lit ball down a spoke.' },
+    { to: 0.8, attacks: ['burrow', 'spit', 'sweep2', 'charge'], pause: 1.8, hint: 'It digs in now. Water it as it gasps, or roll a lit ball to it.' },
     { to: 1.0, weary: true },
   ],
-  // its moves (src/temples/boss.js): read from its body, never the floor; the sweep runs back the other way and
-  // ends in a stamp (the punish to read, then it pants); a charge or a stamp that misses wedges it, panting; the charge
-  // and the stamp are the guard's to take (`guard`: jarred, it pants, KEEPER_GUARD)
+  // its moves (src/temples/boss.js): read from its body, never the floor, and landing with its body: each blow is its
+  // posed bones (`parts`: the jaw and head, the forefeet, the shell) meeting you over its `active` s, so what you see
+  // hit you is what hits you (the shapes are the procedural body's, and how far it comes for you first: `reach`).
+  // The sweep swings its lowered head across and ends in a stamp (the punish to read, then it pants); in its last phase
+  // the sweep swings back once first. A charge or a stamp that misses wedges it, panting; the charge and the stamp are
+  // the guard's to take (`guard`: jarred, it pants, KEEPER_GUARD); a spit leaves its mouth open.
   attacks: {
-    stamp: { shape: 'ring', at: 'front', ahead: 4.5, radius: 4.2, wind: 1.35, part: 'feet', rig: 'rear', damage: 1, knock: 8, recover: 0.9, miss: 2.6, guard: true },
-    sweep: { shape: 'cone', range: 12, angle: 0.62, wind: 1.2, track: 0.6, part: 'mouth', rig: 'coil', side: 1, damage: 0.75, knock: 10, recover: 1.0, then: 'sweepBack' },
-    sweepBack: { shape: 'cone', range: 12, angle: 0.62, wind: 0.7, track: 0.5, part: 'mouth', rig: 'coil', pose: 'sweep', side: -1, link: true, damage: 0.75, knock: 10, gap: 0.2, then: 'stampEnd' },
-    stampEnd: { shape: 'ring', at: 'front', ahead: 4.5, radius: 4.2, wind: 1.1, part: 'feet', rig: 'rear', pose: 'stamp', link: true, damage: 1, knock: 8, recover: 0.9, open: 2.6 },
-    charge: { shape: 'lane', range: 14, width: 4, wind: 1.3, track: 0.65, part: 'head', rig: 'crouch', dash: 9, damage: 1, knock: 11, recover: 1.1, open: 1.4, miss: 2.8, guard: true },
-    burrow: { shape: 'ring', at: 'player', radius: 3.4, wind: 2.0, track: 0.6, over: true, part: 'core', damage: 1, knock: 11, recover: 1.4, open: 3.2 },
-    spit: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'mouth', rig: 'lean', damage: 0.5, knock: 6, recover: 0.8 },
+    stamp: { shape: 'ring', at: 'front', ahead: 2.2, radius: 2.8, wind: 1.35, part: 'feet', rig: 'rear', parts: ['feet'], active: 0.15, reach: 4.6, damage: 0.75, knock: 7, recover: 1.1, open: 1.6, miss: 2.6, guard: true },
+    sweep: { shape: 'cone', range: 6.5, angle: 0.75, wind: 1.3, track: 0.6, part: 'mouth', rig: 'coil', side: 1, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, recover: 1.0, gap: 0.5, then: 'stampEnd' },
+    sweep2: { shape: 'cone', range: 6.5, angle: 0.75, wind: 1.3, track: 0.6, part: 'mouth', rig: 'coil', pose: 'sweep', side: 1, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, recover: 1.0, gap: 0.5, then: 'sweepBack' },
+    sweepBack: { shape: 'cone', range: 6.5, angle: 0.75, wind: 0.9, track: 0.5, part: 'mouth', rig: 'coil', pose: 'sweep', side: -1, link: true, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, gap: 0.5, then: 'stampEnd' },
+    stampEnd: { shape: 'ring', at: 'front', ahead: 2.2, radius: 2.8, wind: 1.1, part: 'feet', rig: 'rear', pose: 'stamp', link: true, parts: ['feet'], active: 0.15, reach: 4.6, damage: 0.75, knock: 7, recover: 1.0, open: 2.6 },
+    charge: { shape: 'lane', range: 13, width: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'crouch', dash: 8, parts: ['head', 'feet'], active: 0.45, reach: 13, damage: 0.75, knock: 9, recover: 1.2, open: 2.0, miss: 2.8, guard: true },
+    burrow: { shape: 'ring', at: 'player', radius: 3.0, wind: 2.0, track: 0.6, over: true, part: 'core', parts: ['body'], active: 0.4, damage: 0.75, knock: 9, recover: 1.4, open: 3.2 },
+    spit: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.0, wind: 1.5, track: 0.6, part: 'mouth', rig: 'lean', damage: 0.5, knock: 5, recover: 0.8, open: 1.8 },
   },
 };
 /** s: how long it pants after a charge (or a stamp) your guard took; a drink from your tank calms it this much. */
 export const KEEPER_GUARD = { open: 2.8, water: 0.1 };
+/**
+ * Its last phase in the dark (v1.69, issue #316: "none in the third phase?"): its own openings (and your guard's jar)
+ * come as a gasp of `open` s at most, and a drink then calms it `water` of a full one; a fire rolled to it still makes it
+ * pant (HEARTH_FIRE.open) and drink deep.
+ */
+export const KEEPER_DARK = { open: 1.8, water: 0.5 };
 
 // where the chest's ball stops against the corridor's thorns (t along its groove, z 110 to 124.6: its front at the
 // tangle's face, 118.2); the keepers' door and the far landing's doorway in the Hall of Fires' east wall (z); the Hall
@@ -196,7 +209,7 @@ export const CHEST_BALL = { friction: 0.25, burns: 3.8, flame: 112.6 };
  * the Keeper it makes it pant (`open` s): in its second phase as well as its own openings, in its last only so
  * (Keeper.openFor). The ball burns `burns` s away from a fire.
  */
-export const HEARTH_FIRE = { near: 6.5, open: 3.4, burns: 12, from: 15.4, to: 7.4, bowl: 16.7, fire: 11.4, off: 0.13 };
+export const HEARTH_FIRE = { near: 8.5, open: 3.4, burns: 12, from: 15.4, to: 7.4, bowl: 16.7, fire: 11.4, off: 0.13 };
 /** A spoke ball burning, at rest, near the Keeper now (and not spent on it yet): the ball, or null. */
 export function fireNear(g) {
   const m = g.model;
@@ -205,7 +218,7 @@ export function fireNear(g) {
 }
 /** Its own openings: in its last phase none in the dark, only by a fire rolled to it. */
 function keeperOpen(g, a, s) {
-  if (g.phaseIndex >= 2 && s && !fireNear(g)) { g.rt.notice('It heaves, mouth shut, at the dark. It won’t pant without a fire by it.', 'keeper.dark2'); return 0; }
+  if (g.phaseIndex >= 2 && s && !fireNear(g)) { g.rt.notice('It gasps in the dark, mouth open a moment. A fire by it holds it open.', 'keeper.dark2'); return Math.min(s, KEEPER_DARK.open); }
   return s;
 }
 /** In its first phase the Keeper's calm is the light round the walls: a tenth for each rim brazier burning. */
@@ -218,15 +231,17 @@ function syncLight(g) {
 function keeperBlocked(g) {
   g.dashing = 0;
   if (g.phaseIndex === 0) { g.rt.notice('It slams into your guard and backs off into the dark, trembling.', 'keeper.guard0'); return; }
-  if (g.phaseIndex >= 2 && !fireNear(g)) { g.rt.notice('It reels from your guard. It won’t pant without a fire by it.', 'keeper.guard2'); return; }
+  const dark = g.phaseIndex >= 2 && !fireNear(g);
   g.stop(); g.cool = 1.2;
-  g.enter('open'); g.openFor = KEEPER_GUARD.open;
+  g.enter('open'); g.openFor = dark ? KEEPER_DARK.open : KEEPER_GUARD.open;
+  if (dark) { g.rt.notice('It reels from your guard and gasps, mouth open a moment.', 'keeper.guard2'); return; }
   g.rt.notice('It slams into your guard and reels back, panting, its mouth open.', `keeper.guard.${g.phaseIndex}`);
 }
 /** Water from your tank in its open mouth: from its second phase, it calms it. */
 function keeperDrinks(g) {
   if (g.state !== 'open' || g.phaseIndex < 1) return false;
-  g.add(KEEPER_GUARD.water, 'water');
+  // (in its last phase, a gasp in the dark takes a sip; panting by a fire, a full drink)
+  g.add(KEEPER_GUARD.water * (g.phaseIndex >= 2 && !fireNear(g) ? KEEPER_DARK.water : 1), 'water');
   g.rt.sound?.critter?.('splash', 1);
   if (g.state === 'open') { g.enter('fight'); g.cool = 1.4; }   // it swallows, and shakes its head (unless that was the last it needed)
   g.rt.notice('It drinks from your cupped hands. Its glyphs glow a little brighter.', null);

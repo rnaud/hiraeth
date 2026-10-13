@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.69 — 2026-10-13
 
+- Locked on, stepping, hopping or dodging to the side carries you round the foe at the distance you stood, instead of drifting away from it.
+- The Keeper walks on higher, quicker steps, its shell rising and rolling over them, turns on the spot by stepping its feet round instead of sliding them, and has a shadow under it on the cistern’s floor.
+- Locked on the Keeper, you lock on its mouth, the one place water calms it: the ring sits round its head, and a shot from the gun goes into its mouth.
+- The Keeper’s blows land where its body goes: its sweep is its head, lowered to your height and swung across; its stamp, its forefeet; its charge, its head and legs. Nothing reaches you metres away from it any more.
+- The Keeper of the cistern, the first guardian, fights fairer: a longer breath between its moves, lighter blows, its sweep swinging back at you only in its last phase, and an opening after every move. In its last phase it no longer keeps its mouth shut in the dark: it gasps a moment, open for a sip of water, and a burning ball rolled to it still makes it pant long and drink deep.
 - In the Footprint’s Still Pool, the stilling stone sits at the ledge’s very edge, so a push from the middle of it reaches the floating sphere. Only its far rim used to; from the rest, the ledge took the push.
 - In the Rose House’s Hall of Channels, the burning ball you cut down the long groove after striking the high eye now reaches the far door’s bowl with flame to spare, instead of guttering out on the way. If it goes out while the fire half-way down is still under its lid, it says so.
 - The camera stays steadier when you back into a corner locked on to a foe in a temple’s small room: by the doorway out of the Undertower’s antechamber it no longer swings over the traveller’s head or loses him off the screen, and the view over his shoulder no longer jerks as you pass the edge of a wall, a door or Qanat’s shop counter.

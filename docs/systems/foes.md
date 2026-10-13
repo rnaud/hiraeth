@@ -510,7 +510,7 @@ of its own, from its body and its temple's verb, on the same engine:
 
 | Guardian (temple verb) | Phase 1 | Phase 2 | Phase 3 | Combos (the last opens it) | Stuck when it misses |
 |---|---|---|---|---|---|
-| The Keeper (ember, then water) | stamp, sweep | sweep, charge, stamp | burrow (ploughs under the sand at you), spit (3 clods) | sweep → sweepBack → stamp | stamp, charge |
+| The Keeper (ember, then water) | stamp, sweep | sweep, charge, stamp | burrow (ploughs under the sand at you), spit (3 clods), sweep2, charge | sweep → stamp; in its last phase sweep2 → sweepBack → stamp | stamp, charge |
 | The warden (jets: get above it) | beam, mortar, stomp | stomp, sweeping beam, mortar | flare (vents straight up at you over it), beam, 3 mortars | stomp → stomp → slam (wave); flare → slam | - |
 | The Elder (wings beside her) | peck, stamp, buffet | buffet, dive, gale | stone feathers (3), peck, gale | peck → peck → buffet; gale → dive | dive (her beak in the floor: her hang aloft + `ROOST.miss`, 1.4 s) |
 | The Cloud-Mother (the bell) | gust, dive, wail (wave) | roll, dive, gust | dive, hail (4), roll | roll → tail → wail; hail → dive | dive (on her fins, 4.4 s; in her last phase only a held stone opens her) |
@@ -526,6 +526,44 @@ Wind-ups: every guardian's own move 1.2-2.0 s (1.0 until v1.63, below; the Keepe
 combo finishers 1.1-1.3 s. `tests/telegraphs.test.js` checks the move lists, the phases (each adds a move), a combo
 that ends in an opening, an opening in every phase, a combo's timing, the body tells, a phase change and the shock
 ring; `tests/temples.test.js` still plays every temple through.
+
+### The first guardian, fair (v1.69, issues #314, #315, #316)
+
+The author's playtest of the Keeper: "super aggressive for a first boss … his hitboxes don't match the movement … lock on
+is on all of him vs his head … too few openings, and none in the third phase". Measured by the combat review's new
+guardian run (`.claude/skills/combat-review/guardian.mjs`, the fight's own code in node, the real cistern):
+
+- **The breath between blows** (`desert.js` `KEEPER`): pauses 2.4 / 2.0 / 1.8 s (were 1.8 / 1.5 / 1.3), a link's `gap`
+  0.5 s and the sweep's link 0.9 s (a combo's blows 1.42 s apart at least, were 0.97), the three-blow sweep only in its
+  last phase (`sweep2`; before it, the sweep and its stamp), blows of ½–¾ of a heart (were up to a heart), and every move
+  ending open (the stamp 1.6 s, the charge 2.0, the spit 1.8: its mouth open). A still traveller loses 0.5–3.3 hearts a
+  minute (was 15–16).
+- **An opening in every phase**: in its last phase the dark makes each of its openings a gasp (`KEEPER_DARK.open` 1.8 s,
+  a drink then `KEEPER_DARK.water` of a full one) instead of nothing, and a burning ball within `HEARTH_FIRE.near`
+  (8.5 m, was 6.5) still makes it pant `HEARTH_FIRE.open` s and drink deep. Dodging every blow: 6.7 / 7.3 / 7.3
+  openings a minute (were 7.3 / 8 / 0).
+- **Blows on its bones** (`boss.js`: a move's `parts`, `active`, `reach`; the model's `hitParts`): a move with `parts`
+  lands where those posed bones meet the traveller (his column, `COLUMN` 1.8 m high, 0.45 m round), over `active` s from
+  the strike (`Guardian.live`, `contact`), once. The Keeper's skin (`keeper-creature.js` `hitParts`): `head` (the jaw's
+  tip, the head, the neck's top), `feet` (the forefeet, a stamp's splash of 1.1 m), `body` (the shell). Its sweep bows its
+  neck to the traveller's height (`KEEPER_POSE.dip`: the jaw at 1.1–1.4 m, was 3 m). The farthest a blow took the floor
+  from its body: 1.1 m (were 13.7 for the sweep, 8.9 the charge, 6.1 the stamp). `reach` is how far the blow lands
+  from its middle (when it comes for you first, `reachOf`; the perfect dodge's "in its way", `flurry.js`
+  `guardianThreat`). A body without `hitParts` (the procedural Keeper, every other guardian) is struck by its shapes as
+  before; the Keeper's shapes shrank to its body's reach too. `Guardian.wouldHit(a, p)` is the test both ways (the QC
+  calls it). The hitbox overlay draws a guardian's blows (`hitboxes.js` `guardianHitboxes`): its parts' spheres, orange
+  winding, red live, then spent; its weak point; the lock's mark.
+- **The lock on its weak point** (`foes.js` `GuardianLock.aim`, `aimR`): a body with `lockAt` (the Keeper: its mouth) is
+  aimed at there by the gun's locked aim (`fluid-tool.js`, through `lockTarget().aim`), the aiming camera (`main.js`
+  `lockAim`) and the reticle (`lock-reticle.js`: a ring round it, not the whole body); the blade still turns to its body.
+- **Grounded** (`boss.js` `GroundShadow`): its skin is in the sun's shadow passes, but the cistern is lit by its braziers
+  and no sun reaches its floor, so nothing grounded it. A contact shadow of the floor's colour darkened (the temple's
+  palette) lies under its body (following its body bone) and under each foot (shrinking as it lifts); `model.shadow`
+  sizes it.
+- **Its walk and its turns** (`keeper-creature.js` `KEEPER_GAIT`; issue #287): lift 0.49 m (was 0.26), 1.13 steps a
+  second at 2.2 m/s (0.75), strides of 2 m (2.9), the shell rising and falling 0.17 m (0.08) and rolling 4° over the feet
+  that carry it; it turns no faster than `turnRate` (1.5 rad/s, `Guardian.turnTo`; it turned up to 15 when it faced you),
+  so its feet step it round on the spot (a foot dragged 0.2 m before). `tests/keeper-fairness.test.js`.
 
 ### A second verb (v1.63, `phase.asks`; issue #257)
 
@@ -572,7 +610,7 @@ drawn on the floor: the tells are the body's, and the pieces stand in the arena 
 | The Elder (v1.16; one wind, out wherever no stone stops it) | two vents in the roost's floor and one stone in a groove between them: in one vent, the wind rises from the other (`rt.roostWinds`, `ROOST`, arzach.js) | aloft, she drifts over the nearer vent; flown with in its wind she takes heart twice as fast (`ROOST.wind`), on still air as before | on still air she does not follow: the wind has to rise by her (the stone pushed into the other vent), and you ride it up beside her | beside her on still air she watches you sink, and it says to bring the wind |
 | The warden (v1.19; the tower breathes through its vanes) | four great vanes in the hall's floor between the columns (`rt.hallVanes`, `HALL`, incal.js), turned only by the jets' wash (`Vane` `great`) | its hatch open, it backs onto the nearest vane (`HALL.back`); a hit in the crown over a turning vane counts twice (`HALL.washed`), in still air as before; the hatch stays up longer (`HALL.open`, `def.openFor`) | in still air the hatch slams: hover over the vane it stands by (aim: the jets hold you), level with its crown, and the draught lifts the hatch | its hatch slams as the shot comes, and it says the air is still |
 | The Tooth-Warden (v1.19; a ball in the teeth stops the engine there) | the hall's great gear in the floor (a `Gear`, buried.js), turning with it from its second phase, and a ball in a groove from the west wall into its teeth (`bG` on `pG`) | free, a volley counts as before (`GEAR.free`); jammed, twice (`GEAR.jammed`); shifting into its last phase it stamps the ball out of the teeth | free, it opens turning, one vent facing out at a time (`model.only`, each `GEAR.turn` s), so four in a breath can't be had: roll the ball back into the teeth and all four face out (it stays open a little longer, `def.openFor`) | the turned-away vents take nothing, and it says to jam the gear |
-| The Keeper (v1.24; the Givers carried their fire) | four spokes, a tar ball in each groove from behind a rim brazier in to the basin's edge (`rt.spokes`, `HEARTH_FIRE`, desert.js): rolled in past the lit brazier, a ball catches | a burning ball at rest within 6.5 m makes it pant at once (`HEARTH_FIRE.open`, once a lighting), beside its own panting | in the dark its own openings come to nothing (`def.openFor` → 0): it pants only by a fire rolled to it, and drinks | a cold ball by it (its brazier unlit) is nothing; it heaves, mouth shut, and says it wants a fire by it |
+| The Keeper (v1.24; the Givers carried their fire) | four spokes, a tar ball in each groove from behind a rim brazier in to the basin's edge (`rt.spokes`, `HEARTH_FIRE`, desert.js): rolled in past the lit brazier, a ball catches | a burning ball at rest within 8.5 m makes it pant at once (`HEARTH_FIRE.open`, once a lighting), beside its own panting | in the dark its own openings are a gasp (`KEEPER_DARK`, v1.69: 1.8 s at most, a drink then half a one; until v1.69 none at all); by a fire rolled to it, it pants long and drinks deep | a cold ball by it (its brazier unlit) is nothing; it heaves, mouth shut, and says it wants a fire by it |
 | The Echo (v1.24; the lens shows where the walker set things down) | the three resonant spheres, each with the walker's print on its face toward the middle that only the lens shows | the sphere that answers glows and wears the print | it sings three notes at once: all three glow (`rt.singAll`), only the print tells the one that answers | a glowing sphere without the print is the wrong note: it flinches |
 
 `tests/guardian-twists.test.js` plays each in its arena with a real Player: the failure, then the way through, and
@@ -1505,6 +1543,13 @@ and what it found.
 - **Hearts, not health** (v1.5): the watch's health a minute is in hearts over the traveller's hearts, as hurts are.
 - **Guardians staged** (v1.6): their fights are staged, and scored from their tuning; `arena.mjs` draws each in an
   Arena ring, phase by phase, at 85 % of the phase's first move.
+- **Guardians played** (v1.69, issues #314–#316, `guardian.mjs`): the tuning hid what the author's playtest of the Keeper
+  found, so each guardian is played in its own temple in node, a still traveller, a dodger and a guard every phase:
+  openings per phase (its last had none), the recovery after each strike and a combo's blow-to-blow, its hit against
+  its posed mesh (13.7 m off it), the lock against its weak point (5.6 m), its shadow in its hall, and the traveller's
+  sidestep locked on (1.6 m off the foe a hop). First run over the Keeper, the warden and the Elder: the Keeper passes
+  (v1.69); the warden's and the Elder's blows are still shapes on the floor (up to 18.7 and 15.1 m from their bodies),
+  their locks 2.4 and 2.5 m off their weak points, their combos' blows 0.92-0.97 s apart.
 - **Freeing a puppet's host** (combat-v1.18 rec. 4): the wait until the strings drop, the driven host, the strings cut
   and the wait until they come again, beside the time to kill the marionette.
 - **The still traveller under-reads a big pack** (combat-v1.22): looking one way, the members off the screen wait while
