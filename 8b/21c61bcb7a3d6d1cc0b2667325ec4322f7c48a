@@ -1,0 +1,43 @@
+docs/audits/cinematics-v1.66.md
+  s_9ca76055a220ed::t_d4a5e94324f172 1-279
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_3729bdc5838757 2,6-7,11-12,16-17,21-22,26-27,31-32,36-37,41-42,46-47,51-57,61-62,66-67,71-87,91-92,96-97,101-102,106-107,110-112,116-117,121-122,126-127,131-132,136-137,141-142,146-147,151-152,156-172,176-177,181-182,186-197,201-202,206-207,211-212,216-222,226-232,236-242,246-247,249,251-252,254,256-257,259,261-262,266-267,271-272,276-277,281-282,286-287,291-292,296-297,301-302,306-307,311-312,315-317,320-322,326-327,330-332,335-337,350-352,371-372,441-442,489-492,496-497,501-507,511-512,516-522,525-527,531-532,534,536-537
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_106b6268c422a8 16-20,231-254
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_f1548371e3145c 80,99,152
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_43573483d3c760 8-9,18-20,71,97-109,113,116,122-126,132-133
+src/ship/ship.js
+  s_9ca76055a220ed::t_26365d438af345 105-109,124-126
+src/story/arzach2-moments.js
+  s_9ca76055a220ed::t_a3fe9e33f48ba8 1,63-65,93-110
+src/story/glassdunes-moments.js
+  s_9ca76055a220ed::t_613928d40b694c 10-13,19,32-34,36,46-49,53,61-83
+tests/cinematics-page.test.js
+  s_9ca76055a220ed::t_adec8155106d12 36-76
+tests/cinematics-qc.test.js
+  s_9ca76055a220ed::t_69dbcc79ed377f 87-97
+tests/moments-arzach2.test.js
+  s_9ca76055a220ed::t_49b1fb366a7e55 19,118-120,165-173
+tests/moments-glassdunes.test.js
+  s_9ca76055a220ed::t_df566ede406af5 16,54-55,100-117
+tests/ship.test.js
+  s_9ca76055a220ed::t_d957ee61d76f3a 553-562
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8b21c61bcb7a3d6d1cc0b2667325ec4322f7c48a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
