@@ -130,7 +130,7 @@ export const MOONFOUNDRY_CONTENT = {
   // the world's page: opened on arrival, closed when the Last Founder is stopped (src/story/moonfoundry.js)
   story: {
     title: 'THE MOON NOBODY CAME FOR',
-    intro: 'A workshop for making moons, left unfinished; the workers live in the old machinery. Since the night the singing light passed every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
+    intro: 'Half-made moons hang in the works, turned where the singing light went. The Casting-House pours alone.',
     outro: 'The Last Founder is still, the last moon is on its hook, and the hung moons turn slowly toward it. Petra’s ledger says the first moons went to a garden far off, and fell short.',
     label: 'the Casting-House', goal: [CASTING_HOUSE.x, 'ground', CASTING_HOUSE.z], radius: 18, manual: true,
   },

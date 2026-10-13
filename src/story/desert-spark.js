@@ -57,7 +57,7 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     onHit: (mode) => {
       if (mode === 'push') { roll(); return true; }
       st.wobble = 1;
-      hint(quietOr('The ball rocks in its groove, and settles.', `The ball rocks in its groove, and settles. It wants a shove. ${tr('teach.shove')}`));
+      hint(quietOr('The ball rocks in its groove, and settles.', `The ball rocks in its groove. ${tr('teach.shove')}`));
       return true;
     } });
   registerInteractable({ id: 'hearth.weight', priority: PRIORITY.use, range: 3, at: () => H.ball.position, enabled: () => !opened() && st.roll < 0,
@@ -65,8 +65,8 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     distance: (p) => (inside() && Math.abs(p.pos.y - H.ball.position.y) < 3 ? flat(p.pos, H.ball.position) : Infinity),
     use: () => {
       dialogue.start(THINGS.weight, null, H.ball.position.clone());
-      if (!hasGun()) setTimeout(() => hint(quietOr('Hands won’t move it.', 'Hands won’t move it. A shove of fluid would: the Givers’ chest, in the room off this hall, holds their gun.'), 0), 600);
-      else if (!hasPush()) setTimeout(() => hint(quietOr('Your tank is empty.', 'Your tank is empty: fill it where the water is (the giant’s pool, past Qanat’s back gate).'), 0), 600);
+      if (!hasGun()) setTimeout(() => hint(quietOr('Hands won’t move it.', 'Hands won’t move it. The Givers’ chest off this hall holds their gun.'), 0), 600);
+      else if (!hasPush()) setTimeout(() => hint(quietOr('Your tank is empty.', 'Your tank is empty: fill it at the giant’s pool, past Qanat’s back gate.'), 0), 600);
     } });
   registerInteractable({ id: 'hearth.grille', priority: PRIORITY.use, range: 3, at: () => H.stone.position, enabled: () => !opened() && st.roll < 0,
     prompt: 'look at the grille', distance: (p) => (inside() && Math.abs(p.pos.y - H.stone.position.y) < 2.5 ? flat(p.pos, H.stone.position) : Infinity),

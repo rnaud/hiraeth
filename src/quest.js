@@ -195,8 +195,8 @@ export class Story {
   }
 
   /**
-   * Called once the world is ready: the intro page on a first visit. `quiet`: the arrival already said it (the crash's
-   * objective card, "Walk to the city under the great dark tree.": the same words twice was one notice too many, issue #78).
+   * Called once the world is ready: the intro page on a first visit. `quiet`: the arrival says enough (the crash's
+   * charge card; the same words twice was one notice too many, issue #78, and one line about the objective, issue #222).
    */
   start({ quiet = false } = {}) {
     if (this.firstVisit) {
@@ -288,7 +288,8 @@ export class Story {
    */
   showPage(which) {
     const d = this.def;
-    const text = which === 'intro' ? [d.title, d.intro].filter(Boolean).join(' · ') : d.outro;
+    // (the opening words alone, no title before them: two short lines at most, issue #221; the region's name is said already)
+    const text = which === 'intro' ? d.intro || d.title : d.outro;
     if (which === 'outro') {
       // kept in the sketchbook at once, even if the words are still waiting
       this.beacon.visible = false;

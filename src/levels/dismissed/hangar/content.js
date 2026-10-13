@@ -7,7 +7,7 @@ export const HANGAR_CONTENT = {
     // the story is a quest (src/story/garage-data.js): this page closes when the Major's note is found
     story: {
       title: 'THE MAJOR FORGOT',
-      intro: 'Major Brask built this pocket universe, and forgot why. His people keep the machines turning, and pass round a signal nobody can read.',
+      intro: 'Major Brask built this pocket universe and forgot why. His people pass round a signal nobody can read.',
       outro: "The Major’s note says he still doesn’t know what his world is for. On its back: coordinates for a wheel buried in sand. The machines keep working.",
       label: 'the great machine', goal: [90, 86, -60], radius: 12, manual: true,
     },

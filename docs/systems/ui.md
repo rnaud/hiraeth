@@ -636,9 +636,22 @@ Tests: `tests/resources.test.js` (the SVG's quarters and lines, the bar, the mar
 
 ## Notices and the quest card (playtest 2026-10-08)
 
-- **Notices** (`#toast`, queued by `Cinema.toast`, `src/ship/cinema.js`) are quiet: translucent paper,
-  a 1 px line, no shadow, 12 px, at most 560 px wide (60 % of a phone held sideways). The cue and the
-  scenes' hint got the same lighter frame.
+- **Notices** (`#toast`, queued by `Cinema.toast`, `src/ship/cinema.js`) are one short line on a dark strip since
+  v1.65 (issue #221: "right now it's a cream colored background, hard to read. also they are too wide, too verbose
+  and appear too often"): cream on ink at 90 % (over 7 : 1 however bright the world behind; a button named in it in
+  gold, over 4.5 : 1: `tests/notice-pace.test.js`), `--type-s`, at most 32em wide (40 before; 60 % of a phone held
+  sideways). The scenes' hint (`#cine .hint`) and the objective card look the same. Under Solid speech background:
+  white on black.
+- **They come less often** (`src/notice-pace.js`, `NoticePace`): a hint (`{ kind: 'hint' }`: the foes', the
+  gadgets' and the hazards' notices, the lessons main.js shows; or any notice naming a control, `{key:verb}`) waits
+  `PACE.gap` (20 s) after the last hint went up, while other notices may go ahead of it; one still waiting after
+  `PACE.stale` (45 s), or whose `done()` says the player has done it, goes unsaid; with Hints off, none; and the same
+  words twice within `PACE.again` (3 min) are said once (a quest's start excepted). A notice cut short by the dark
+  comes back as it was.
+- **Every hint line is one line**: the `teach.*` and `hint.*` lines, the `quietOr` pairs, the story's `hint()`s, the
+  tips and the foes' first-meeting notes at most 72 letters as seen (a `{key:verb}` counted as 3), and a world's
+  arrival words at most 112, said alone without the story's title before them (src/quest.js `showPage`): two short
+  lines (`tests/hint-lines.test.js`).
 - **Never on the hearts**: `#health` (the hearts, the potion and the magic bar) is one of the layout's `OBSTACLES` whether it shows or not
   (it comes the moment you are hurt). `layoutCinema` places a top item centred when it can, else slides
   it sideways along its row to the free span nearest the centre (`slide`: a phone's buttons down the

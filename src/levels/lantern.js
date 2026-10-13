@@ -224,7 +224,7 @@ export function* buildLantern(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     limit: 300,
-    edgeHint: 'The sea of light goes on, shallow and still. There is nothing else out there.',
+    edgeHint: 'The sea of light goes on, shallow and still. Nothing else is out there.',
     shipSite: { ...LANTERN_SHIP },
     features: { mount: false, wind: false, jetpack: false, climb: true },   // (one small island: on foot)
     defaults: { hour: 17.3, preset: 'Moebius print', cloudShadows: 0, look: LANTERN_LOOK },
@@ -256,7 +256,7 @@ export const LANTERN_CONTENT = {
   weather: [],
   story: {
     title: 'WE HEARD YOU',
-    intro: 'Past the Signal Market, on no chart: one small island in a still sea, and a white tower with a light in its crown that sings.',
+    intro: 'Past the Signal Market, on no chart: a small island in a still sea, and a white tower whose light sings.',
     outro: 'The light was an answer. Ilen heard him, thirty years late, and sent it home. Now she is coming home herself.',
     label: 'the lantern', goal: [LANTERN.x, 'ground', LANTERN.z + 5], radius: 6, manual: true,
   },

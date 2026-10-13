@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.65 — 2026-10-13
 
+- Hints and notices at the top are a dark strip with light letters, easy to read over the bright desert, narrower and one short line each. Teaching hints come at most every twenty seconds, the same words are not said twice in a row of minutes, a hint you have already acted on is dropped, and none come with Hints off. Every hint line and every world’s arrival words were cut down to fit.
 - The prompt to talk to someone sits right beside them, just below the shoulder, instead of over their head; near the edge of the screen it moves to their other side.
 - The gadget in your hands is a small picture in the top right corner now, nothing else: no name, no button, no count. A thin ring round it shows how much is left, and it pops with a gold ring when you change gadget.
 

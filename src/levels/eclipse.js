@@ -58,7 +58,7 @@ export const ECLIPSE_CONTENT = {
   // no story to follow: the page names the place and closes at the top of the bowl
   story: {
     title: 'THE CITY DURING THE ECLIPSE',
-    intro: 'It is midday, and the moon has covered the sun. The city has lit its lamps and gone out to eat in the squares. The Great Stair climbs north to the upper city.',
+    intro: 'Midday, and the moon covers the sun. The city eats in lamplit squares; the Great Stair climbs north.',
     outro: 'From the top of the bowl the whole city shows under the black sun: the lamps on every terrace, the pale figures on the walls, and the far city lit all the way to the rose edge of the sky.',
     label: 'the top of the bowl', goal: [0, LEVEL.high + LEVEL.tier * LEVEL.tiers, BOWL.Z1 - BOWL.D * LEVEL.tiers - 6], radius: 9, verticalRadius: 4, manual: true,
   },

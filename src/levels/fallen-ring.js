@@ -85,7 +85,7 @@ export const RING_CONTENT = {
   // no story to follow: the page names the place and closes on the tube's crest
   story: {
     title: 'THE FALLEN RING',
-    intro: 'A ring that once turned round the sky lies broken across the grass. Its pieces stand as arches higher than clouds, and people have moved into the low ones.',
+    intro: 'The sky’s broken ring lies across the grass in arches higher than clouds. People live in the low ones.',
     outro: 'From the tube’s crest the whole fall shows: the arch over everything, the tilted piece, the far arcs pale in the haze. The beasts graze where it landed.',
     label: 'the long tube’s crest', goal: [TUBE.M[0], 2 * TUBE.r - 2, TUBE.M[1]], radius: 6, verticalRadius: 4, manual: true,   // (no beacon: nothing to do here but look)
   },

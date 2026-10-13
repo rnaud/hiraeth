@@ -77,7 +77,7 @@ export const FOES = {
         tell: 'both arms rise high, it crouches on its legs and the floor rumbles', counter: 'jump the ring it sends out, then cut it while its claws are stuck' },
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
-    note: 'A makers’ machine: guard its slam. When both arms rise high, jump the ring it sends out, then cut it while its claws are stuck.',
+    note: 'A makers’ machine: guard its slam. Arms high: jump the ring, then cut.',
   },
   ...KINDS,   // the old kinds, stand-ins for archetypes not built yet (src/foe-kinds.js)
   ...ARCHETYPE_KINDS,   // the built archetypes (src/enemies/archetypes.js): batches 1-3
@@ -2124,7 +2124,7 @@ export class Foes {
     this.hurt(f, 'world', e.dir ?? null, info);
     if (!this.game.flag('foes.world') && hintsFor('tip')) {
       this.game.set('foes.world', true);
-      this.notice?.('The world hurts them too: knock a foe into spines or fire, off a ledge, into the wind or a swinging weight.');
+      this.notice?.('The world hurts them too: spines, fire, falls, wind, swinging weights.');
     }
   }
 
@@ -2150,7 +2150,7 @@ export class Foes {
       this.notice?.('Knocked into deep water, a foe is swept away.');
     } else if (!swept && !this.game.flag('foes.knocked') && hintsFor('tip')) {
       this.game.set('foes.knocked', true);
-      this.notice?.(over ? 'Off the edge and down: a long fall ends a foe outright.' : 'Knocked off a ledge, a foe lies dazed a long while: cut it while the stars turn, the cut lands double.');
+      this.notice?.(over ? 'Off the edge and down: a long fall ends a foe outright.' : 'A foe off a ledge lies dazed: cut it while the stars turn, for double.');
     }
   }
 
@@ -2510,7 +2510,7 @@ export class Foes {
     if (soft || !pos) return 0;
     let n = 0;
     for (const f of this.list) if (f.alive && f.dead === undefined && f.pos.distanceTo(pos) < 26 && f.hush()) { n++; this.sparks(f, f.chest); }
-    if (n && !this.game.flag('foes.hushed') && hintsFor('tip')) { this.game.set('foes.hushed', true); this.notice?.('The bell-note whistle answered its toll: the bell walker chokes on its own note and sits open. Strike the clapper.'); }
+    if (n && !this.game.flag('foes.hushed') && hintsFor('tip')) { this.game.set('foes.hushed', true); this.notice?.('The bell walker chokes on your note and sits open. Strike the clapper.'); }
     return n;
   }
 
@@ -2530,7 +2530,7 @@ export class Foes {
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
       if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
       f.staggered(perfect); this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest);
-      if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried') && hintsFor('tip')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
+      if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried') && hintsFor('tip')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised as the blow landed, it costs nothing and stuns.'); } }
       // what a guard does to some attacks: a crab's spin is turned onto its back; a harpoon's or a root's line is
       // cut (the drone, the root knot dazed)
       if (a.onParry === 'flip') { f.flipped = f.stunned = Math.max(f.stunned, 2.6); f.vel.multiplyScalar(0.3); }
@@ -2598,7 +2598,7 @@ export class Foes {
     T?.rings?.add({ from: f.chest.clone(), dir: dir ? _w.copy(dir).setY(0).normalize().negate() : _up, reach: 0.05, r0: f.def.radius * 0.6, r1: f.def.radius + ARMOUR.ring, life: 0.25, color: '#f2c54b', thick: 1 });
     if (!this.game.flag('foes.armour') && hintsFor('tip')) {
       this.game.set('foes.armour', true);
-      this.notice?.('That one shrugs off a light cut: the heavy third swing, a perfect parry or a cut before it is fully wound up staggers it.');
+      this.notice?.('Light cuts glance off. The third swing or a perfect parry staggers it.');
     }
   }
 
@@ -2707,7 +2707,7 @@ export class Foes {
     T.stunned = Math.max(T.stunned, POSSESS.free); T.state = 'chase'; T.k = 0; T.letGo = true;
     if (T.def.calm?.wild) { T.provoked = false; T.state = 'idle'; }   // (wildlife: back to grazing)
     if (by?.alive) by.cool = Math.max(by.cool, POSSESS.cut);
-    if (!this.game.flag('foes.unstrung') && hintsFor('tip')) { this.game.set('foes.unstrung', true); this.notice?.('Its strings cut, the creature drops free of the marionette and goes back to its own business.'); }
+    if (!this.game.flag('foes.unstrung') && hintsFor('tip')) { this.game.set('foes.unstrung', true); this.notice?.('Its strings cut, the creature drops free and goes about its business.'); }
   }
   /** Let go of the strings on f (a creature driven) and those f drops (a marionette): their targets with them. */
   unstring(f) {

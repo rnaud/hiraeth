@@ -51,11 +51,12 @@ test('the toast queue keeps a quest\'s look with it (and plain notices stay plai
   c.toast('Quest: Bells · ring them', { kind: 'quest', head: 'New quest', title: 'Bells', step: 'ring them' });
   c.toast('Quest: Bells · ring them', { kind: 'quest', head: 'New quest', title: 'Bells', step: 'ring them' });
   assert.equal(c.toasts.length, 2, 'the same line twice in a row is queued once');
-  assert.deepEqual(c.toasts[0], { text: 'Picked up a feather' });
+  assert.equal(c.toasts[0].text, 'Picked up a feather'); assert.equal(c.toasts[0].kind, undefined); assert.equal(c.toasts[0].title, undefined);
+  assert.ok(Number.isFinite(c.toasts[0].at), 'when it was asked for (the pace lets a stale hint go: src/notice-pace.js)');
   assert.equal(c.toasts[1].kind, 'quest');
   assert.equal(c.toasts[1].title, 'Bells');
   c.toast('Something', { kind: 'other', title: 'x' });
-  assert.deepEqual(c.toasts[2], { text: 'Something' }, 'only the quest kind is kept');
+  assert.equal(c.toasts[2].text, 'Something'); assert.equal(c.toasts[2].title, undefined, 'only the quest kind keeps its card\'s fields');
 });
 
 const store = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };

@@ -96,7 +96,7 @@ export const TRAIN_CONTENT = {
   weather: [],
   story: {
     title: 'THE OVERNIGHT TRAIN',
-    intro: 'A long train crosses a lavender plain by night, under two moons. The ship has come down on its landing wagon while it waits at a station. The lounge is at the front.',
+    intro: 'A long train crosses a lavender plain under two moons, waiting at a station. The lounge is at the front.',
     outro: 'From the balcony at the nose the plain runs at you out of the dark, the moons ahead, the rails humming under your feet. Behind, the windows go back and back.',
     label: 'the balcony at the nose', goal: [NOSE_X + 3, FLOOR, 0], radius: 4, verticalRadius: 3, manual: true,
   },

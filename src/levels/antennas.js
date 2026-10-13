@@ -104,7 +104,7 @@ export const ANTENNAS_CONTENT = {
   // no story to follow: the page names the place and closes on the observation tower's deck
   story: {
     title: 'THE FOREST OF ANTENNAS',
-    intro: 'Masts by the thousand, dishes turned up like flowers, and nobody sending. The workshops under the great receiver still keep the lamps lit.',
+    intro: 'A thousand masts, dishes up like flowers, nobody sending. Lamps still burn under the great receiver.',
     outro: 'From the deck the whole forest shows, mast after mast to the haze. Every dish still listening, the birds in them, and the hum of it all.',
     label: 'the observation deck', goal: [OBS.x, OBS.top, OBS.z], radius: 4, verticalRadius: 3, manual: true,   // (no beacon: nothing to do here but look)
   },

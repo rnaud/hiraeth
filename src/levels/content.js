@@ -66,7 +66,7 @@ export const CONTENT = {
     // first visit and closes when the tower has spoken and Sel has read where it came from
     story: {
       title: 'YOU ARE NOT ALONE',
-      intro: "A market full of shouting signs, and one silent broadcast tower. Sel waits at its foot with a message nobody has heard.",
+      intro: "A market of shouting signs and one silent tower. Sel waits at its foot with a message nobody has heard.",
       outro: "Your father’s voice filled the market, calling for someone named Ilen. The message came from home, thirty years ago.",
       label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5, manual: true,
     },
@@ -145,7 +145,7 @@ export const CONTENT = {
     weather: [],
     story: {
       title: 'THE GADGET YARD',
-      intro: 'A bay for every gadget round the yard. LT / L2 (R) aims the one in hand and RT / R2 (T) uses it; D-pad ↑ (B) changes it.',
+      intro: 'A bay for every gadget. LT / L2 (R) aims the one in hand, RT / R2 (T) uses it, D-pad ↑ (B) changes it.',
       outro: 'That is the yard. Try them all.',
       label: 'the yard', goal: [0, 'ground', 3], radius: 8,   // (at the start: told at once)
     },
@@ -182,7 +182,7 @@ export const CONTENT = {
     // opens on the first visit and closes when the ship has power again
     story: {
       title: 'THE TREE THAT DRINKS',
-      intro: "Your ship needs fuel. Beyond the dunes, Qanat’s great tree stands dark above the walls. Start with the people there.",
+      intro: "Your ship needs fuel. Past the dunes, Qanat’s great tree stands dark over the walls. Start with its people.",
       outro: "You cleared the water channel, brought back the spark-stone, and relit Qanat’s tree. Its glowing water has powered your ship.",
       label: 'the great dark tree', goal: [230, 'ground', 400], radius: 20, manual: true,
     },
@@ -289,7 +289,7 @@ export const CONTENT = {
     // the story is a quest (src/story/arzach-data.js): this page closes when the bird has made her promise
     story: {
       title: 'THE WAITING BIRD',
-      intro: 'Nobody here says much. Somewhere over the haze a great bird waits for a call nobody has played since her rider left the lone tower.',
+      intro: 'Over the haze a great bird waits for a call nobody has played since her rider left the lone tower.',
       outro: "The rider left a little flute and a map. When you played her call, the bird came down. A new promise, freely given.",
       label: 'the lone tower', goal: [260, 'top', -420], drop: 40, radius: 30, manual: true,   // the spike tip is ~40 m above the window room
     },

@@ -126,8 +126,8 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     if (d.dot(into) > 0.5) {
       // straight at the rib: it only jams tighter
       st.wobble = 1;
-      hint(how === 'push' ? quietOr('The knuckle grinds into the drum, and the drum into the rib. Shoved that way it only jams tighter.', 'The knuckle grinds into the drum, and the drum into the rib. Shoved that way it only jams tighter: try it from the side.')
-        : 'You lean on the bone. It grinds into the drum, and the drum into the rib. Not that way: from the side.');
+      hint(how === 'push' ? quietOr('The knuckle only jams tighter against the rib.', 'The knuckle only jams tighter against the rib. Try it from the side.')
+        : 'The bone jams the drum on the rib. Not that way: from the side.');
       return false;
     }
     return free(Math.sign(d.dot(along)) || 1, how);
@@ -136,7 +136,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     onHit: (mode, point, dir) => {
       if (mode === 'push') return shove(dir, 'push');
       st.wobble = 1;
-      hint(quietOr('The knuckle of bone rocks against the drum, and settles.', `The knuckle of bone rocks against the drum, and settles. It needs a shove. ${tr('teach.shove')}`));
+      hint(quietOr('The knuckle of bone rocks against the drum, and settles.', `The knuckle rocks, and settles. ${tr('teach.shove')}`));
       return true;
     } };
   registerTarget(knuckleTarget);
@@ -144,7 +144,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     onHit: (mode) => {
       if (mode === 'push') { st.drumPushed = true; return true; }
       st.wobble = 0.6;
-      hint(freed() ? 'Dum. The note runs out across the sand, and comes back off the ribs.' : 'Dum. A dull note: something presses on the skin. The drum is pinned tight between bone and bone.', 3);
+      hint(freed() ? 'Dum. The note runs out across the sand, and comes back off the ribs.' : 'Dum. A dull note: the drum is pinned tight between bone and bone.', 3);
       return true;
     } };
   registerTarget(drumTarget);
@@ -173,7 +173,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
   const update = (dt) => {
     st.clock += dt;
     // a push that met the drum but not the knuckle: say why it won't shift
-    if (st.drumPushed && !st.knucklePushed && !freed()) hint('The drum creaks against the rib, but it won’t shift while the knuckle of bone holds it there.');
+    if (st.drumPushed && !st.knucklePushed && !freed()) hint('The drum won’t shift while the knuckle of bone holds it there.');
     st.drumPushed = st.knucklePushed = false;
     if (freed() && st.t < FREE_TIME) {
       const was = st.t;
@@ -270,7 +270,7 @@ export function setupMask(ctx) {
       // the wind sifts the sand back into an eye left open alone
       if (!solved() && e.open && st.clock - e.openAt > EYE_WINDOW) {
         e.open = false; e.want = 1;
-        hint(quietOr('The wind sifts the sand back over the mask’s eye.', 'The wind sifts the sand back over the mask’s eye. Both eyes at once, then, and quickly.'));
+        hint(quietOr('The wind sifts the sand back over the mask’s eye.', 'The sand sifts back over the mask’s eye. Both eyes at once, quickly.'));
       }
       if (e.k !== e.want) {
         const rate = e.want < e.k ? 1 / 0.7 : 1 / 2.6;   // the sand pours off fast and drifts back slowly

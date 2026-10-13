@@ -15,6 +15,8 @@ import { speakLine } from '../story/voice.js';
 import { markKeyPhrase } from '../story/key-phrase.js';
 import { inputKind, keyText, hasKeys, escapeHtml } from '../prompt-keys.js';
 import { backKey } from '../native-pad.js';
+import { NoticePace } from '../notice-pace.js';
+import { hintLevel } from '../hint-level.js';
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
 const CSS = `
@@ -45,16 +47,18 @@ const CSS = `
 #cine .fade.white { background: #fff6dc; }
 #cine .red { position: absolute; inset: 0; opacity: 0; mix-blend-mode: multiply;
   background: radial-gradient(ellipse at center, rgba(255, 150, 130, .55) 30%, rgba(170, 30, 25, .95) 100%); }
-#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: var(--type-s) var(--face); color: #2b211f;
-  width: max-content; max-width: min(40em, calc(100vw - 40px)); box-sizing: border-box; text-align: center;
-  padding: 4px 11px; background: rgba(255, 246, 220, .84); border: 1px solid rgba(43, 33, 31, .5); border-radius: 10px; opacity: 0; transition: opacity .4s; }
+#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: 500 var(--type-s)/1.35 var(--face); color: #f7ecd2;
+  width: max-content; max-width: min(32em, calc(100vw - 40px)); box-sizing: border-box; text-align: center; text-wrap: balance;
+  padding: 0.3em 0.95em 0.35em; background: rgba(31, 24, 22, 0.9); border-radius: 4px; opacity: 0; transition: opacity .4s; }
 #cine .hint.show { opacity: 1; transition: opacity .4s, top .3s; }
+/* the objective card: one line, the step itself, on the notices' dark strip (issue #222: no "OBJECTIVE" over it, nothing slanted) */
 #objective { position: fixed; left: 50%; top: 18vh; transform: translateX(-50%); z-index: 7900; pointer-events: none; text-align: center; opacity: 0;
-  width: max-content; max-width: min(max(640px, 40em), calc(100vw - 32px)); font: var(--type-s) var(--face); color: #2b211f; }
-#objective .k { letter-spacing: .3em; font-size: 0.85em; opacity: .75; }
-#objective .t { margin: 6px 6px 6px 0; padding: 10px 22px; font-size: max(clamp(18px, 5vw, 24px), calc(var(--type) * 1.3)); letter-spacing: .06em; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; text-wrap: balance; }
+  width: max-content; max-width: min(48em, calc(100vw - 32px)); font: var(--type-s) var(--face); color: #f7ecd2; }
+#objective .t { padding: 0.35em 1.1em 0.4em; font: 500 max(clamp(15px, 4vw, 20px), calc(var(--type) * 1.1))/1.3 var(--face); letter-spacing: .03em;
+  background: rgba(31, 24, 22, 0.92); border-radius: 4px; box-shadow: 0 1px 0 rgba(0, 0, 0, .25); text-wrap: balance; }
+#objective .t::before { content: '◆'; margin-right: .55em; color: #f2c54b; }
 #objective.show { animation: objective 6.5s forwards; transition: top .3s; }
-@keyframes objective { 0% { opacity: 0; transform: translate(-50%, 10px) rotate(-1deg); } 8%, 82% { opacity: 1; transform: translate(-50%, 0) rotate(-.6deg); } 100% { opacity: 0; } }
+@keyframes objective { 0% { opacity: 0; transform: translate(-50%, 8px); } 8%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 #warp { position: fixed; inset: 0; z-index: 8400; pointer-events: none; opacity: 0; transition: opacity .5s; }
 #warp.on { opacity: 1; }
 #warp .title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: 900 max(30px, calc(var(--type) * 1.6)) var(--face-title); letter-spacing: .24em;
@@ -62,6 +66,7 @@ const CSS = `
 #warp.on .title { opacity: 1; }
 `;
 
+const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
 /** The hold-to-skip tag's words: a controller's back button (printed B), else Esc. */
 export const holdToSkip = (kind = inputKind()) => (kind === 'pad' ? `hold ${backKey()} to skip` : 'hold ESC to skip');
 const hasDOM = () => typeof document !== 'undefined' && !!document.body;
@@ -269,6 +274,7 @@ export class Cinema {
     this._order = [];
     this._layoutT = 0;
     this.toasts = [];        // waiting their turn (see toast())
+    this.pace = new NoticePace();   // which goes next, which are let go: hints spaced out, said once (src/notice-pace.js, issue #221)
     this._toastT = 0;
     this._lidK = 1;
     this.caption = { up: false, waiting: false };   // the region's name (main.js: src/hud.js PlaceName), the first notice
@@ -418,7 +424,9 @@ export class Cinema {
    */
   toast(text, o = null) {
     if (!text) return;
-    if (this.toasts.at(-1)?.text !== text) this.toasts.push({ text, ...(o?.kind === 'quest' ? o : {}) });
+    // (o.kind 'quest': a quest's start, its own look; 'hint': a teaching line, paced (src/notice-pace.js); o.done(): the
+    // player has done what it says, so it goes unsaid if it is still waiting)
+    if (!this.toasts.some((x) => x.text === text)) this.toasts.push({ text, ...(o?.kind === 'quest' ? o : {}), kind: o?.kind, done: o?.done, at: now() });
     this._pumpToasts();
   }
 
@@ -436,7 +444,11 @@ export class Cinema {
 
   _pumpToasts() {
     if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark() || !this.mayNotice('toast')) return;
-    const item = this.toasts.shift(), text = item.text, quest = item.kind === 'quest';
+    // (a notice cut short by the dark comes back as it was; else the next the pace allows, src/notice-pace.js)
+    const back = this.toasts[0]?.back ? 0 : -1, i = back === 0 ? 0 : this.pace.next(this.toasts, now(), hintLevel());
+    if (i < 0) return;
+    const item = this.toasts.splice(i, 1)[0], text = item.text, quest = item.kind === 'quest';
+    this.pace.shown(item, now());
     const secs = toastSeconds(text) + (quest ? 0.5 : 0);   // (a quest's start: a moment longer)
     this.onWords?.(text);   // (words on the screen: main.js listens for the hum)
     screen.toast(keyText(text), secs);   // (as data too: platform.js screen.toast)
@@ -466,7 +478,7 @@ export class Cinema {
     // a toast that went up just before the screen went dark (the opening's black, the eyes shut) comes back after
     const T = this.toastEl;
     if (T && T.classList.contains('show') && this.dark()) {
-      if (performance.now() - (this._toastAt ?? 0) < 3200) this.toasts.unshift(this._toastItem ?? { text: T.textContent });   // (else it was fading out anyway)
+      if (performance.now() - (this._toastAt ?? 0) < 3200) this.toasts.unshift({ ...(this._toastItem ?? { text: T.textContent }), back: true });   // (else it was fading out anyway)
       T.classList.remove('show');
       this._toastT = 0;
       this.layout();

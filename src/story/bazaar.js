@@ -130,7 +130,7 @@ export function setupBazaar(ctx) {
       st.bulbs[i] = BULB_LIFE;
       sound.toolClick?.(true);
       if (st.bulbs.every((x) => x > 0)) tune();
-      else if (!st.hinted) { st.hinted = true; toast(quietOr('One bulb glows… and starts to fade.', 'One bulb glows… and starts to fade. Light all three before the first goes dark.')); }
+      else if (!st.hinted) { st.hinted = true; toast(quietOr('One bulb glows… and starts to fade.', 'One bulb glows, then fades. Light all three before the first goes dark.')); }
       return true;
     } }));
   const tune = () => {
@@ -176,7 +176,7 @@ export function setupBazaar(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearCrates(); return true; }
       st.crateWobble = 1;
-      if (!st.crateHint) { st.crateHint = true; toast(quietOr('The crates rock and settle.', `The crates rock and settle. They need a shove. ${tr('teach.shove')}`)); }
+      if (!st.crateHint) { st.crateHint = true; toast(quietOr('The crates rock and settle.', `The crates rock and settle. ${tr('teach.shove')}`)); }
       return true;
     } });
   const placeCrates = (k) => {

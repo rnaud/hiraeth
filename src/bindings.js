@@ -125,4 +125,4 @@ export const FREE = ['View + ↓', 'View + ←', 'View + →'];
 export const PAD_SCHEME = 5;   // (5, v1.38: the triggers work the gadget in hand, Y whistles, A held flies the jets; 4, v1.11: one job per button; 3, v1.11's first build: double duties on L3 and D-pad ↑, the potion on ↓)
 export const PAD_SCHEME_KEY = 'hiraeth.padScheme';
 // (shown in the player's language: src/i18n.js teach.padScheme, the same words)
-export const PAD_SCHEME_NOTE = 'The controller layout changed: LT / L2 aims and RT / R2 uses the gadget in hand (the fluid gun is one of them), D-pad → its next mode, Y / △ sounds the whistle, and A / × held in the air fires the jets. Menu, then Controls, lists them all.';
+export const PAD_SCHEME_NOTE = 'Now LT / L2 aims, RT / R2 uses, Y / △ whistles, A / × held aloft: jets.';

@@ -90,7 +90,7 @@ export const SALT_CONTENT = {
   // no story to follow: the page names the place and closes on the terracotta hull's deck
   story: {
     title: 'THE SALT HARBOUR',
-    intro: 'Ships stand in the dry salt, and people live in them. The street runs north between their hulls. The stair on the first hull goes up to its deck.',
+    intro: 'Ships stand in the dry salt, and people live in them. The stair on the first hull goes up to its deck.',
     outro: 'From the deck of the terracotta hull the whole harbour shows: the street of ships, the sailcloth over it, the ship stood on its stern, and the salt going on white to the edge of the sky.',
     label: 'the terracotta hull’s deck', goal: [SHIP.e1.x - 17, SHIP.e1.D - SHIP.e1.sink, SHIP.e1.z - 13], radius: 8, verticalRadius: 4, manual: true,   // (no beacon: nothing to do here but look)
   },

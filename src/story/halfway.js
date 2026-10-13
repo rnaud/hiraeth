@@ -151,7 +151,7 @@ export function setupHalfway(ctx, { terrace, ground, onGround }) {
         // pushed side-on it turns a notch (the way it was shoved); straight at the glass it only rocks
         const r = facing(), d = V(dir?.x ?? 0, 0, dir?.z ?? 0).normalize();
         const side = r.x * d.z - r.z * d.x;
-        if (Math.abs(side) < 0.3) { if (!st.jam) { st.jam = true; toast(quietOr('The mirror rocks on its pole. Shoved straight at the glass it won’t turn.', 'The mirror rocks on its pole. Shoved straight at the glass it won’t turn: push the frame from the side.')); } return true; }
+        if (Math.abs(side) < 0.3) { if (!st.jam) { st.jam = true; toast(quietOr('The mirror rocks on its pole. Shoved at the glass, it won’t turn.', 'Shoved at the glass, the mirror won’t turn. Push the frame’s side.')); } return true; }
         turn(side > 0 ? -1 : 1);
         return true;
       }

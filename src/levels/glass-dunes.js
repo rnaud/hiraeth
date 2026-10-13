@@ -329,7 +329,7 @@ export const GLASS_CONTENT = {
   weather: ['storm'],
   story: {
     title: 'THE CLOCK IN THE GLASS',
-    intro: 'A desert that turned to glass. Something stands inside the dunes; the glassworkers camp at their feet and do not ask what. East of the valley a round house of the makers wears a stopped clock, and every clock in the camps keeps the wrong time.',
+    intro: 'A desert turned to glass, every clock wrong. East of the valley a makers’ house wears a stopped one.',
     outro: 'The Clockwork Foreman keeps time again. The clock over the Clock-House door agrees with every clock in the camps, and Wim says the slow time comes from a wheel under some other desert.',
     label: 'the Clock-House', goal: [118, 'ground', 72], radius: 16, manual: true,
   },

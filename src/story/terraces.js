@@ -359,7 +359,7 @@ export function setupTerraces(ctx) {
     onHit: (mode) => {
       if (!may('roots')) { toast(mode === 'push' ? 'The wheel doesn’t move: roots have grown through its spokes. The gate is shut, and not yours to open.' : 'The roots on the wheel drink, and hold on. The gate is shut, and not yours to open.'); return true; }
       if (roots.visible && !game.flag('edena.gate.roots')) {
-        if (mode === 'push') { toast(quietOr('The wheel won’t move: roots have grown through its spokes.', 'The wheel won’t move: roots have grown through its spokes. Water them first (shoot): they let go if you ask.')); return true; }
+        if (mode === 'push') { toast(quietOr('The wheel won’t move: roots have grown through its spokes.', 'Roots grip the wheel’s spokes. Water them (shoot) and they let go.')); return true; }
         game.set('edena.gate.roots', true);
         st.rootsTo = 0;
         spray.burst(wheelAt, { n: 10, rise: 1, size: 0.3, spread: 1.2, life: 1.6, gravity: 2 });

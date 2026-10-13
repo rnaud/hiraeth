@@ -149,8 +149,8 @@ export function setupHoverbike(ctx) {
     toast(fuelled() ? 'A hoverbike, half in the sand, smelling of fluid. Its cradle is empty.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
   };
   const wakeBike = () => {
-    if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your back is bare.', 'It runs on fluid, and your back is bare. Something in the city might hold some.')); return; }
-    if (!fuelled()) { toast(quietOr('It runs on fluid, and your tank is empty.', 'It runs on fluid, and your tank is empty. Fill it first, where the water is: the giant’s pool, past Qanat’s back gate.')); return; }
+    if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your back is bare.', 'It runs on fluid, and your back is bare. The city may hold some.')); return; }
+    if (!fuelled()) { toast(quietOr('It runs on fluid, and your tank is empty.', 'Your tank is empty. Fill it at the giant’s pool, past Qanat’s back gate.')); return; }
     game.set('desert.bike.found', true);
     sound.chime?.();
     toast(keyText(tr('teach.bikeCall'), { teach: true }));   // (a new verb, said once: src/hint-level.js teach)

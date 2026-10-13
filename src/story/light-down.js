@@ -42,9 +42,9 @@ export function setupLightDown(ctx, { mirrors }) {
       game.set('incal.beam.lit', true);
       sound?.chime?.();
       toast('The light falls all the way to the bottom terrace. Doors open into it.');
-    } else if (!reached(i, c)) once(`dark.${m.id}`, quietOr('The frame turns a notch. No light reaches it yet.', 'The frame turns a notch. No light reaches it yet: the mirror above throws it elsewhere.'));
+    } else if (!reached(i, c)) once(`dark.${m.id}`, quietOr('The frame turns a notch. No light reaches it yet.', 'The frame turns. No light yet: the mirror above throws it elsewhere.'));
     else if (n === 0 && i < (c.done ? places.length : c.stop)) { sound?.chime?.(); toast('Click. The beam lands on the next mirror down.'); }
-    else once(`swing.${m.id}`, quietOr('The frame grinds round a notch. Its beam swings across the shaft.', 'The frame grinds round a notch. Its beam swings across the shaft: turn it until it lands on the mirror below.'));
+    else once(`swing.${m.id}`, quietOr('The frame grinds round a notch. Its beam swings across the shaft.', 'The beam swings across the shaft. Turn it onto the mirror below.'));
   };
   for (const m of turnable) {
     const at = m.crank.clone().add(V(0, 1.1, 0));

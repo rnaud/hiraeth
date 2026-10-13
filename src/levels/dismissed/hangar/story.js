@@ -81,7 +81,7 @@ export function setupGarage(ctx) {
     registerTarget({ kind: 'machine', radius: m.radius, position: () => m.pos, enabled: () => m.target !== 1 && player.pos.distanceTo(m.pos) < 90,
       onHit: (mode) => {
         if (mode === 'shoot') startMachine(id);
-        else if (!m.nudged) { m.nudged = true; toast(quietOr('It rocks on its bearings and settles.', 'It rocks on its bearings and settles. It wants something in the works, not a shove: shoot it.')); }
+        else if (!m.nudged) { m.nudged = true; toast(quietOr('It rocks on its bearings and settles.', 'It rocks on its bearings and settles. It wants a shot, not a shove.')); }
         return true;
       } });
   }

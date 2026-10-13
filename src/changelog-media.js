@@ -758,6 +758,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'talk-prompt', title: 'Beside the person', caption: 'Before, the tag floated over Rima’s hat; after, it sits beside her, at her shoulder.', from: `${FROM_HUD}, the traveller a few steps from Rima` },
       { name: 'talk-prompt-hand', title: 'Near the screen’s edge', caption: 'At 730 × 410 she stands near the right edge, so the tag reads from her other shoulder.', from: `${FROM_HUD}, 730 × 410` },
     ], see: 'Walk up to anyone you can talk to.' },
+    { match: 'Hints and notices at the top are a dark strip with light letters', shots: [
+      { name: 'notice-strip', title: 'A notice at the top', caption: 'The Desert’s arrival words: before, the story’s title and the words on wide translucent cream paper; after, the words alone, shorter, on a narrower dark strip.', from: `${FROM_HUD}, as the world loads` },
+    ], see: 'Arrive in a world, or meet a new kind of foe: the notice at the top is a dark strip. Teaching hints come at least twenty seconds apart.' },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [

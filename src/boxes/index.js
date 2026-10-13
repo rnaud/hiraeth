@@ -290,7 +290,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     questsOffered = true;
     let n = 0;
     for (const { b, id } of boxQuests) if (!spent(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
-    if (n && hintsFor('tip')) toast(n > 1 ? 'There are more makers’ boxes in this world. The game menu’s Quests page says where to look.' : 'There is another makers’ box in this world. The game menu’s Quests page says where to look.');
+    if (n && hintsFor('tip')) toast(n > 1 ? 'More makers’ boxes in this world: the menu’s Quests page says where.' : 'Another makers’ box in this world: the menu’s Quests page says where.');
   }
 
   const api = {

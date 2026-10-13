@@ -145,7 +145,7 @@ export const UNDERWATER_CONTENT = {
   // the world's page: opened on arrival, closed when the Whale-House's keeper is calmed (src/story/underwater.js)
   story: {
     title: 'THE SONG THROUGH THE GLASS',
-    intro: 'A city under glass at the bottom of the sea, its halls joined by tubes. Outside, the whales used to come to the glass and sing. Since the night the singing light passed, they keep away, and the glass hums one wrong note.',
+    intro: 'A glass city on the sea floor. The whales no longer come to sing, and the glass hums one wrong note.',
     outro: 'The whales came back to the glass. Maelle says they sang the note the light sang, and then their own, and that the light went up, toward a city built down a well.',
     label: 'the Whale-House', goal: [WHALE_HOUSE.x, 0, WHALE_HOUSE.door + 6], radius: 10, verticalRadius: 6, manual: true,
   },

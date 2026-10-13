@@ -122,7 +122,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.4, cool: [1.3, 2.4],
     }),
-    note: 'A shellback crab: its shell turns the blade from the front. Get round it, guard (LB / L1) its spinning charge to flip it on its back, or crack the shell with a bomb. Left alone, it keeps to itself.',
+    note: 'A shellback crab: get round its shell, or guard its spin to flip it.',
   },
   skitter: {
     name: 'skitter swarm', family: 'creature', plan: 'skitterers', planNo: 2, role: 'swarm', tier: 1, ranged: false,
@@ -143,7 +143,7 @@ export const ARCHETYPES = {
       ],
       recover: 0.8, cool: [0.9, 1.9], hit: 0.2,
     }),
-    note: 'Skitters graze in a flock and run from you if you charge them; stand in the middle of one and they ring you, darting in one at a time. One cut, one shot or a push ends each; when three climb into a heap, push it apart or step aside.',
+    note: 'Skitters ring you in their flock. One hit ends each; push heaps apart.',
   },
   centipede: {
     name: 'ring centipede', family: 'creature', plan: 'centipede', planNo: 3, role: 'trapper', tier: 3, ranged: false,
@@ -165,7 +165,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.5, cool: [1.5, 2.6], hit: 0.45,
     }),
-    note: 'A ring centipede: it runs round you and closes its body into a ring. Get out over its back with the wings or the jets before the ring closes, push it apart, or cut its head as it turns in. Its plated back shrugs off cuts; only the head counts.',
+    note: 'A ring centipede: only the head counts. Jet out before the ring closes.',
   },
   toad: {
     name: 'bellows toad', family: 'creature', plan: 'hopper', planNo: 5, role: 'lobber', tier: 1, ranged: true,
@@ -189,7 +189,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.3, cool: [1.5, 2.5], hit: 0.35,
     }),
-    note: 'A bellows toad keeps its distance and lobs: when its throat swells see-through, walk out of the mark, or shoot the throat and it chokes on its own glob. When it crouches deep and shakes, it is about to flop onto you: jump the ring, or meet it in the air with the air cut.',
+    note: 'A bellows toad: leave its mark or shoot its throat. Jump its ring.',
   },
   lizard: {
     name: 'horn lizard', family: 'creature', plan: 'quadruped', planNo: 6, role: 'flanker', tier: 2, ranged: false,
@@ -211,7 +211,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.25, cool: [1.2, 2.2],
     }),
-    note: 'Horn lizards hunt in pairs: one blares at you from the front (guard, LB / L1, or it shoves you toward the other) while the other slips behind you to bite. Keep turning, and parry the bite.',
+    note: 'Horn lizards hunt in pairs: guard the blare, turn, and parry the bite.',
   },
   heron: {
     name: 'stilt heron', family: 'creature', plan: 'stilt', planNo: 7, role: 'reach', tier: 1, ranged: false,
@@ -235,7 +235,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.3, cool: [1.4, 2.4], hit: 0.4,
     }),
-    note: 'A stilt heron holds a space with its bill: when its neck draws back into an S, step to the side, or guard and knock the bill away. Get in under it and cut its legs; a charged cut at a leg topples it.',
+    note: 'A stilt heron: when its neck draws into an S, step aside. Cut its legs.',
   },
   roller: {
     name: 'pearl roller', family: 'creature', plan: 'roller', planNo: 16, role: 'charger', tier: 2, ranged: false,
@@ -259,7 +259,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.4, cool: [1.6, 2.8], hit: 0.4,
     }),
-    note: 'A pearl roller grazes alone until you hit it or come too close. When its eye stalks sink and its shell rocks, it is about to roll at you: guard (LB / L1) and it bounces off stunned, or sidestep it into a wall. Rolling, nothing hurts it. Hurt badly, it spins up and shatters: jump the ring.',
+    note: 'A pearl roller: guard its roll to stun it, or sidestep it into a wall.',
   },
   rootknot: {
     name: 'root knot', family: 'creature', plan: 'tentacled', planNo: 12, role: 'grappler', tier: 2, ranged: false,
@@ -282,7 +282,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.5, cool: [1.6, 2.6], hit: 0.5,
     }),
-    note: 'A root knot holds you for the others: when it plunges two arms into the ground, jump or step aside as the soil heaves at you, or its roots drag you in. It can’t be knocked back; a bloom glob puts it to sleep (cuts land double) and embers burn it.',
+    note: 'A root knot: when its arms dig in, jump or step aside. Embers burn it.',
   },
   jelly: {
     name: 'lantern jelly', family: 'creature', plan: 'floater', planNo: 11, role: 'support', tier: 2, ranged: true,
@@ -303,7 +303,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.4, cool: [1.4, 2.6], hit: 0.35,
     }),
-    note: 'A lantern jelly keeps the others going: a thread of light from one of its lanterns halves the harm to the foe it holds. Shoot its lanterns (or throw the boomerang) to pop them, and catch it with the air cut when it sinks to mend one. Don’t stand under it.',
+    note: 'A lantern jelly shields the others: shoot or boomerang its lanterns.',
   },
   moth: {
     name: 'signal moth', family: 'creature', plan: 'flyer', planNo: 13, role: 'disruptor', tier: 2, ranged: true,
@@ -324,7 +324,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.2, cool: [1.4, 2.6], hit: 0.25,
     }),
-    note: 'Signal moths come in threes: when their wings snap open, turn away or guard (LB / L1), or the flash blinds you. One cut, one shot or a gust ends each.',
+    note: 'Signal moths: when their wings snap open, turn away or guard.',
   },
   ray: {
     name: 'sky ray', family: 'creature', plan: 'glider', planNo: 14, role: 'air striker', tier: 1, ranged: false,
@@ -345,7 +345,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.6, cool: [1.6, 2.6], hit: 0.3,
     }),
-    note: 'A sky ray comes in low along a line: when it banks round and sweeps its wings back, guard (LB / L1) at the last moment and it ploughs into the ground, open; or step off its line. Cut it as it passes low.',
+    note: 'A sky ray: guard late and it ploughs into the ground. Or step aside.',
   },
   worm: {
     name: 'mound worm', family: 'creature', plan: 'burrower', planNo: 15, role: 'ambusher', tier: 1, ranged: false,
@@ -366,7 +366,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.9, cool: [1.2, 2.2],
     }),
-    note: 'A mound worm swims under the sand: when its mound stops and trembles and the fin sinks, move: it bursts up where you stood. Up, it stays a while to fight: cut it then. Cut the fin, drop a bomb or a stomp, or come down on the mound with the air cut to flush it out.',
+    note: 'A mound worm: if its mound trembles, move. Cut it once it’s up.',
   },
   // ----------------------------------------------------------------------------- possessed machines (always hostile)
   tripod: {
@@ -390,7 +390,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.6, cool: [1.6, 2.6], hit: 0.5,
     }),
-    note: 'A lamp tripod snipes from far off: when its searchlight holds on you and narrows, break the line behind something or guard (LB / L1) the bolt. Get under it, or pull a leg with the magnet glove.',
+    note: 'A lamp tripod: when its light narrows, take cover or guard the bolt.',
   },
   cart: {
     name: 'crucible cart', family: 'machine', plan: 'tracked', planNo: 17, role: 'area denier', tier: 3, ranged: true,
@@ -413,7 +413,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.5, cool: [1.5, 2.5], hit: 0.5,
     }),
-    note: 'A crucible cart makes ground you can’t stand on: when its crucible tips toward you, get behind it or to the side of the lip, and keep off the slag it pours and drips. A plain shot cools its crust (cuts land double), a bomb on its tracks jams them, and a wall stops its ram cold.',
+    note: 'A crucible cart: get behind it and off its slag. A shot cools its crust.',
   },
   bell: {
     name: 'bell walker', family: 'machine', plan: 'siege', planNo: 19, role: 'siege', tier: 3, ranged: true,
@@ -435,7 +435,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.6, cool: [1.8, 2.8], hit: 0.5,
     }),
-    note: 'A bell walker: only the clapper inside it takes harm. When it rears back and the clapper swings, jump each ring of its toll, or answer its note with the bell-note whistle and it chokes. When the bell rises, step out from under it: after it slams down it tips up toward you, open. Strike the clapper then.',
+    note: 'A bell walker: only the clapper counts. Jump each ring, or whistle back.',
   },
   drone: {
     name: 'ring drone', family: 'machine', plan: 'hover', planNo: 13, role: 'tether', tier: 3, ranged: true,
@@ -457,7 +457,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.4, cool: [1.6, 2.6], hit: 0.35,
     }),
-    note: 'A ring drone hangs out of the blade’s reach and pulls you about: when its plates part and a harpoon slides out, guard (LB / L1) to cut the line, or evade. Stilled it drops; the magnet glove or the hook pulls it down to be cut. It hides between strikes.',
+    note: 'A ring drone: guard its harpoon to cut the line. Pull it down, then cut.',
   },
   brute: {
     name: 'furnace brute', family: 'machine', plan: 'brute', planNo: 8, role: 'heavy', tier: 3, ranged: false,
@@ -482,7 +482,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.6, cool: [1.6, 2.6], hit: 0.55,
     }),
-    note: 'A furnace brute: light cuts don’t stagger it. When both fists rise over its head, get to its side and jump the quake that runs out; a perfect parry chips its hull. When it tears up a slab, walk out of the mark. Bombs crack it twice as deep, and a riposte on the stunned lands double.',
+    note: 'A furnace brute: fists up? Get to its side and jump the quake.',
   },
   // ----------------------------------------------------------------------------- spirits (the dark itself)
   blot: {
@@ -532,7 +532,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.1, cool: [1.2, 2.2], hit: 0.4,
     }),
-    note: 'A shade fights like you: parry its cut (LB / L1 as it lands) and riposte. When its cut stops halfway and the sword drops to its hip, it is about to thrust: evade sideways. When its cloak sinks into a pool, it comes up beside you; an ember lights it solid, and then it can’t step.',
+    note: 'A shade: parry and riposte; when its sword drops to the hip, step aside.',
   },
   hound: {
     name: 'antler hound', family: 'spirit', plan: 'quadruped', planNo: 6, role: 'stalker', tier: 4, ranged: false,
@@ -557,7 +557,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.2, cool: [1.1, 2.0],
     }),
-    note: 'Antler hounds: running at a distance they are only shadows and the blade passes through; close in, they are solid. Cut when they rise to strike, or light them with an ember. One that sinks into its shadow comes up behind you.',
+    note: 'Antler hounds: only shadows far off. Cut as they rise, or use an ember.',
   },
   marionette: {
     name: 'marionette', family: 'spirit', plan: 'strings', planNo: 21, role: 'puppeteer', tier: 4, ranged: true,
@@ -582,7 +582,7 @@ export const ARCHETYPES = {
       ],
       recover: 1.4, cool: [1.4, 2.6], hit: 0.4,
     }),
-    note: 'A marionette drives the creatures round it: when it lifts its arms and strings unspool from its hands, it is dropping them onto a creature, whose eyes go black. Cut the strings (an air cut, the boomerang, an ember) and the creature drops free. Its body hangs out of easy reach: jump for it, or wait for its dance and cut it while it hangs slack.',
+    note: 'A marionette: cut its strings to free the creature. Jump for its body.',
   },
 };
 

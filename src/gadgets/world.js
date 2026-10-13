@@ -296,7 +296,7 @@ export class GadgetWorld {
     if (x.object) x.object.visible = false;
     if (x.kind === 'ink') {
       // (the first ink of a save is said as a blot's: here it is a pot's)
-      const say = (t) => this.notice?.(t.startsWith('The blot leaves its ink') ? 'A pot of the makers’ ink: it runs into the glove. Gather enough and the blade grows.' : t);
+      const say = (t) => this.notice?.(t.startsWith('The blot’s ink') ? 'The makers’ ink runs into the glove. Gather enough and the blade grows.' : t);
       gainInk(x.amount, { game: this.game ?? undefined, notice: say });
     }
     x.onTake?.(x);

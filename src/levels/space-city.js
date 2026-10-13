@@ -87,7 +87,7 @@ export const SPACECITY_CONTENT = {
   // Mooring-House's Anchor-Warden is resolved (src/story/spacecity.js)
   story: {
     title: 'THE NOTE THAT PASSED',
-    intro: 'A city of heaped houses on islands floating in the dark, joined by bridges, moored to each other by the moorers’ cables. Since the night the singing light passed the cables have hummed one note, and the islands drift apart a hand’s width a night.',
+    intro: 'Houses heaped on islands in the dark, moored by cables. The cables hum one note; the islands drift apart.',
     outro: 'The cables are taut, the islands home, and lamps run along them in the dark. Joss says the planet’s hum on the cables carries a broadcast now: a market of a thousand signs, where one tower is silent.',
     label: 'the Mooring-House', goal: [96, 14, -176], radius: 16, verticalRadius: 8, manual: true,
   },

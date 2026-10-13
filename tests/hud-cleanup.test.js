@@ -104,9 +104,9 @@ test('a world\'s closing words wait for the conversation to end, then come as a 
     assert.equal(story.pageOpen, false, 'nothing holds the screen');
     story.update(0.016, 1.2, null);
     assert.equal(said.length, 2, 'and they do not come back');
-    // the opening words: the title and the line in one toast, up longer when long
+    // the opening words alone (no title before them, issue #221), up longer when long
     story.showPage('intro');
-    assert.equal(said.at(-1), 'T · i');
+    assert.equal(said.at(-1), 'i');
     assert.equal(toastSeconds('short'), 4.5);
     assert.ok(toastSeconds('x'.repeat(120)) > 7 && toastSeconds('x'.repeat(400)) === 9);
   } finally {

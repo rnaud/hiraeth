@@ -83,7 +83,7 @@ test('every channel goes through the setting', () => {
   assert.match(main, /getHint: \(\) => openHint\(guardianHint\(level\.temple\), struggle\.t\)/, 'the drone in a fight');
   assert.match(main, /game\.on\('scout:ping', \(e\) => \{ if \(e\?\.why && \(!hintsFor\('nudge'\) \|\| ship\.cinema\.noticeBusy\(\)\)\) return;/, 'a world\'s own ping (the jets): a nudge');
   assert.match(main, /!hintsFor\('teach'\)\) return;/, 'the potion: taught once');
-  assert.match(main, /updateHazards\(dt, player, \{ notice: \(t\) => \{ if \(hintsFor\('tip'\)\) showToast\(t\); \} \}\)/, 'fire and spines');
+  assert.match(main, /updateHazards\(dt, player, \{ notice: \(t\) => \{ if \(hintsFor\('tip'\)\) showToast\(t, TEACH\); \} \}\)/, 'fire and spines');
   assert.match(src('src/player.js'), /this\.opts\.edgeHint && hintsFor\('tip'\)/, 'the world\'s edge');
   assert.match(src('src/story/quests.js'), /hintsFor\('objective'\)/, 'a quest\'s next step');
   assert.match(src('src/foes.js'), /if \(!note \|\| this\.own \|\| !hintsFor\('tip'\)\) return;/, 'how to beat each foe');

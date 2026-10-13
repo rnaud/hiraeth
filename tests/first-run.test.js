@@ -79,9 +79,9 @@ test('the pool’s first fill and the chest’s dregs name the buttons as the pl
   assert.doesNotMatch(filledText('pad'), /RT \/ R2/);
   assert.match(filledText('pad'), /hums back/, 'the chest beside the pool answers');
   items.grant('gun');
-  assert.match(filledText('pad'), /its push with D-pad →\)/);
-  assert.match(filledText('pad'), /aim with LT \/ L2, then RT \/ R2/);
-  assert.match(filledText('keys'), /push with X\)/);
+  assert.match(filledText('pad'), /and pushes \(D-pad →\)/);
+  assert.match(filledText('pad'), /shoots \(LT \/ L2, then RT \/ R2\)/);
+  assert.match(filledText('keys'), /pushes \(X\)/);
   items.revoke('gun');
   assert.match(dregsText('pad'), /dry: not a drop/, 'the chest\'s tank: dry glass, no dregs (no gun to shoot them)');
 });

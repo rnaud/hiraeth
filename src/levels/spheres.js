@@ -106,7 +106,7 @@ export const SPHERES_CONTENT = {
   // and closes when the pole has sung the spheres' three sounds back together
   story: {
     title: 'WHAT THE SPHERES REMEMBER',
-    intro: 'Three fallen spheres hold three old sounds. Linnet knows how to hear them; Ume’s pole at the plaza can play them together.',
+    intro: 'Three fallen spheres hold three old sounds. Linnet hears them; Ume’s pole in the plaza plays them.',
     outro: 'Bell, voices, procession drum: three old sounds, brought together. The great sphere answered from the horizon.',
     label: 'the round plaza', goal: [LAYOUT.plaza.x, 'ground', LAYOUT.plaza.z], radius: 14, manual: true,
   },

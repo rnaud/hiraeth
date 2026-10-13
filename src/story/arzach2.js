@@ -246,7 +246,7 @@ export function setupArzach2(ctx) {
       const yaw = yawOf(notch());
       const h = Math.hypot(dir?.x ?? 0, dir?.z ?? 0) || 1, px = (dir?.x ?? 0) / h, pz = (dir?.z ?? 0) / h;
       const side = px * -Math.cos(yaw) + pz * Math.sin(yaw);
-      if (Math.abs(side) < 0.35) { lampSt.jam = 1; toast(quietOr('The tiller shudders against its pin. Shoved straight along, it won’t turn.', 'The tiller shudders against its pin. Shoved straight along, it won’t turn: push it from the side.')); return true; }
+      if (Math.abs(side) < 0.35) { lampSt.jam = 1; toast(quietOr('The tiller shudders on its pin. Shoved straight, it won’t turn.', 'The tiller shudders. Shoved straight it won’t turn: push from the side.')); return true; }
       turn(side > 0 ? 1 : -1);
       return true;
     } });
@@ -289,7 +289,7 @@ export function setupArzach2(ctx) {
       onHit: (mode, point, dir) => {
         if (mode !== 'push') {
           for (const x of list) x.m.rotation.z += (Math.random() - 0.5) * 0.04;
-          if (!st.hinted) { st.hinted = true; toast(quietOr('The fluid rattles off the tiles. They are wedged tight.', `The fluid rattles off the tiles. They are wedged tight: shove them off. ${tr('teach.shove')}`)); }
+          if (!st.hinted) { st.hinted = true; toast(quietOr('The fluid rattles off the tiles. They are wedged tight.', `The tiles are wedged: shove them off. ${tr('teach.shove')}`)); }
           return true;
         }
         scatterTiles(st, dir); off(); offLook();

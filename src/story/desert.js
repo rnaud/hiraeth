@@ -391,7 +391,7 @@ export function setupDesert(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearChannel('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast(quietOr('The debris shifts, and settles.', `The debris shifts, and settles. It needs a shove. ${tr('teach.shove')}`)); }
+      if (!st.hinted) { st.hinted = true; toast(quietOr('The debris shifts, and settles.', `The debris shifts, and settles. ${tr('teach.shove')}`)); }
       return true;
     } });
   void boneTarget;

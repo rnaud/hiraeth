@@ -37,11 +37,11 @@ export const EDGE_HINTS = {
   default: 'The wind pushes you back.',
   underwater: 'The glass holds the sea back; there is nowhere further to go.',
   eclipse: 'The dark beyond the lamps thickens and turns you back.',
-  fallenring: 'The plain runs on toward the far pieces of the ring, and the wind turns you back.',
+  fallenring: 'The plain runs on to the ring’s far pieces; the wind turns you back.',
   moonfoundry: 'The plain runs on into the haze and the far moons, and turns you back.',
   underside: 'The wind off the cloud grows strong and turns you back.',
   spacecity: 'Past the last islands there is only the dark, and it turns you back.',
-  lantern: 'The sea of light goes on, shallow and still. There is nothing else out there.',
+  lantern: 'The sea of light goes on, shallow and still. Nothing else is out there.',
   overnighttrain: 'The wind off the running plain pushes you back toward the train.',
 };
 

@@ -347,16 +347,18 @@
       #touch .b-use.talk { font-size: calc(13px * var(--tk, 1)) !important; }   /* (over the inline size: src/touch-layout.js) */
       /* the game menu (View / Select, J: src/game-menu.js): its styles are in src/menus.css */
 
-      /* a notice: quiet paper, a thin rule, no shadow (src/ship/cinema.js places it clear of the health bar) */
+      /* a notice: one short line on a dark strip, cream on ink (issue #221: the translucent cream paper was hard to read
+         over a bright world, too wide and too wordy); src/ship/cinema.js places it clear of the hearts, paces it
+         (src/notice-pace.js) and stacks it with the scenes' hint and the objective card, which look the same */
       #toast {
-        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 0.35em 0.9em;
-        font: var(--type)/1.4 var(--face); color: #2b211f; background: rgba(255, 250, 240, 0.84);
-        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 0.8em; opacity: 0; pointer-events: none;
+        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 0.3em 0.95em 0.35em;
+        font: 500 var(--type-s)/1.35 var(--face); letter-spacing: 0.01em; color: #f7ecd2; background: rgba(31, 24, 22, 0.9);
+        border: 0; border-radius: 4px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); opacity: 0; pointer-events: none; text-wrap: balance;
       }
-      /* a quest begins (src/story/quests.js startToast): its own card, ink with a gold rule, its title large */
-      /* a quest's start: one short line, its mark and its title (the step after it with hints full), quiet but plainly a
-         quest: the gold diamond for a main one (issue #72: it was a head, the title and the step on three lines) */
-      #toast.quest { padding: 0.35em 1.2em 0.45em; background: rgba(43, 33, 31, 0.86); color: #f7ecd2; border: 0; border-radius: 3px; white-space: nowrap; }
+      #toast kbd.kp { color: #f2c54b; }   /* (a button named in it: the player's own, in gold) */
+      /* a quest's start: one short line, its mark and its title (the step after it with hints full), plainly a quest: the
+         gold diamond for a main one (issue #72: it was a head, the title and the step on three lines) */
+      #toast.quest { padding: 0.35em 1.2em 0.45em; white-space: nowrap; }
       #toast.quest span { display: inline; }
       #toast.quest .qk { margin-right: 0.5em; color: #f2c54b; font-size: 1.05em; }
       #toast.quest .qk.errand { color: #d9c9a3; }
@@ -366,10 +368,10 @@
       #toast.show { animation: toast 4.5s forwards; }
       /* the toast is placed in the stack of things written on the screen (src/ship/cinema.js layoutCinema):
          one line where it can, centred, and over the letterbox's frame during a scene, below its top bar */
-      #toast { width: max-content; max-width: min(40em, calc(100vw - 32px)); box-sizing: border-box; text-align: center; transition: top 0.3s; }
+      #toast { width: max-content; max-width: min(32em, calc(100vw - 32px)); box-sizing: border-box; text-align: center; transition: top 0.3s; }
       body.cine-on #toast { z-index: 8050; }
       /* a phone on its side: the buttons fill the right, so a notice wraps narrower and slides left of them (src/ship/cinema.js) */
-      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(40em, 60vw); } }
+      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(32em, 60vw); } }
       @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
       #page {
@@ -467,8 +469,8 @@
       html.speech-solid #dialogue .dlg-text.player { color: #1c2440; }
       html.speech-solid #dialogue .dlg-choices button { color: #000000; }
       html.speech-solid .balloon { background: #ffffff; color: #000000; border-width: 2.5px; }
-      html.speech-solid #cue, html.speech-solid #toast { background: #ffffff; color: #000000; }
-      html.speech-solid #toast.quest { background: #000000; color: #ffffff; }
+      html.speech-solid #cue { background: #ffffff; color: #000000; }
+      html.speech-solid #toast, html.speech-solid #toast.quest { background: #000000; color: #ffffff; }
       html.speech-solid #cue.place span { background: #ffffff; color: #000000; padding: 2px 8px; }
       /* reduced motion: the panels and pages arrive without sliding, nothing blinks */
       html.reduce-motion #dialogue { transform: translate(-50%, 0); transition: opacity 0.25s; }

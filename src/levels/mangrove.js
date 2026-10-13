@@ -100,7 +100,7 @@ export const MANGROVE_CONTENT = {
   // no story to follow: the page names the place and closes on the great tree's deck
   story: {
     title: 'THE WHITE MANGROVE',
-    intro: 'White trees stand in a black lake, and people live in them. The lanterns are lit along the walks. The great tree’s deck is the place to see it from.',
+    intro: 'White trees stand in a black lake, and people live in them. See it from the great tree’s deck.',
     outro: 'From the great tree’s deck the whole village shows: the lanterns, the boats, and under the water the creatures, lit like a second sky.',
     label: 'the great tree’s deck', goal: [HIGH_DECK.x + HIGH_DECK.outer - 1.5, HIGH_DECK.deckY, HIGH_DECK.z], radius: 6, verticalRadius: 3, manual: true,   // (no beacon: nothing to do here but look)
   },

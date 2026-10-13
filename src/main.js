@@ -738,6 +738,8 @@ const expedition = level.observatory ? new ObservatoryQuest({ model: level.obser
 await slice();
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 // (a line that was only a control to press, at a hint level that doesn't name them, has nothing left to say: src/hint-level.js)
+/** A teaching notice: paced as a hint (src/notice-pace.js, issue #221: spaced out, let go once stale, none with hints off). */
+const TEACH = { kind: 'hint' };
 const showToast = (text, o) => { if (!text || (typeof text === 'string' && !keyText(text).trim())) return; ship.cinema.toast(text, o); };   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 // the hum, when words on the screen speak of it: a toast, a subtitle, a line of a conversation, a balloon (src/story/hum.js)
 const humCue = new HumCue();
@@ -1046,7 +1048,7 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 // the desert's first steps: the camera and the jump, each said once if you haven't used it yet (src/first-steps.js)
 const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
 const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
-const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, waters, notice: (t) => showToast(t) });
+const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, waters, notice: (t) => showToast(t, TEACH) });   // (its notices teach: paced as hints, src/notice-pace.js)
 // chimes, the currency (src/chimes.js): a foe cut down scatters a few (by its weight), a guardian a purse once;
 // walked over or drawn in, they ring into the wallet (src/resources.js); none from a game's own foes (Ink tide)
 const chimePolicy = dropPolicy(level);
@@ -1088,7 +1090,7 @@ function startFlurry() {
   flurry(F.time, FLURRY.rate, FLURRY.ease);
   flurryAgainAt = F.nextAt;
   sound.flurry?.(true); kick(0.1); rumblePlay('flurry');
-  if (!game.flag('hint.flurry') && hintsFor('tip')) { game.set('hint.flurry', true); showToast(tr('hint.flurry')); }   // (said after the fact, hints full)
+  if (!game.flag('hint.flurry') && hintsFor('tip')) { game.set('hint.flurry', true); showToast(tr('hint.flurry'), TEACH); }   // (said after the fact, hints full)
 }
 player.onHop = (kind, win) => { tool.blade?.hop(win); if (foes.perfectDodge()) startFlurry(); };
 if (tool.blade) tool.blade.onHopDodge = () => startFlurry();
@@ -1175,7 +1177,7 @@ renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) i
 // the trials' rewards, upgrades to the gadgets' tuning while owned (src/trials/upgrades.js): before the gadgets are made
 syncUpgrades((id) => items.has(id));
 items.on(() => syncUpgrades((id) => items.has(id)));
-gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t), touch: isTouch, ring: () => itemFx.ring(),
+gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t, TEACH), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 // the hitbox overlay (src/hitboxes.js): F4, the world debug menu (L3 + R3, F2), the dev menu, the Arena's board, ?hitboxes=1 (this session only)
 const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
@@ -1679,7 +1681,7 @@ const padSchemeNotice = () => {
     if (localStorage.getItem(PAD_SCHEME_KEY) === String(PAD_SCHEME)) return;
     localStorage.setItem(PAD_SCHEME_KEY, String(PAD_SCHEME));
   } catch { return; }
-  if (savedEarly) setTimeout(() => showToast(quietOr(tr('teach.padSchemeShort'), tr('teach.padScheme'))), 600);   // (the list itself: hints full)
+  if (savedEarly) setTimeout(() => showToast(quietOr(tr('teach.padSchemeShort'), tr('teach.padScheme')), TEACH), 600);   // (the list itself: hints full)
 };
 const hintShown = { text: '', at: -1e9, active: false };
 const controllerHint = document.createElement('div');
@@ -1765,7 +1767,7 @@ const controller = new Controller({
       // finds the objective (Q; src/scout.js), as a scan does in other games
       const had = foes.lock;
       if (!foes.cycleLock() && !had && !minigame) { scoutHint.pinged(); scout.ping(); }
-      else if (foes.lock && !had && !game.flag('hint.hop.taught') && hintsFor('teach')) { game.set('hint.hop.taught', true); showToast(keyText(tr('hint.hop'), { teach: true })); }   // (locked on, a new verb: the hops, taught once)
+      else if (foes.lock && !had && !game.flag('hint.hop.taught') && hintsFor('teach')) { game.set('hint.hop.taught', true); showToast(keyText(tr('hint.hop'), { teach: true }), TEACH); }   // (locked on, a new verb: the hops, taught once)
     }
     if (name === 'l3' && level.jump) level.jump(-1);
     if (name === 'worldDebug' && (worldDebug.open || !busy() || menuRoot() === picker)) worldDebug.toggle();   // L3 + R3: the world debug menu (F2; the hitbox overlay is in it, and F4)
@@ -2287,7 +2289,7 @@ function frame(ts) {
     trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
-  if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
+  if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t, TEACH); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
   updateHealth(dt);
   level.update(dt, t, { player, rig, camera, passage, hour: sky.hour, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);

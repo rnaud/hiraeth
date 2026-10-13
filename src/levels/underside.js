@@ -68,7 +68,7 @@ export const UNDERSIDE_CONTENT = {
   // no story to follow: the page names the place and closes on the tip deck
   story: {
     title: 'THE UNDERSIDE',
-    intro: 'A shelf of white rock sticks out over the cloud, and a town hangs under it. The stair at the shelf’s south-west corner goes down the cliff to the town.',
+    intro: 'A shelf of white rock juts over the cloud, and a town hangs under it. The south-west stair goes down.',
     outro: 'From the deck at the tip of the shelf the whole town shows, hanging over the cloud: the white houses under the rock, the decks and their lamps, the long red cloths falling toward the sea of cloud.',
     label: 'the tip deck', goal: [(TIP.x0 + TIP.x1) / 2 + 12, DECK, (TIP.z0 + TIP.z1) / 2], radius: 9, verticalRadius: 4, manual: true,
   },

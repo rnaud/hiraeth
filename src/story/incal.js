@@ -201,7 +201,7 @@ export function setupIncal(ctx) {
     if (swungIn() || ho.swing) return false;
     if (!pinOut()) {
       ho.wobble = 1;
-      hoistHint('The arm groans against its collar and won’t turn: a rusted pin through the collar is holding it.');
+      hoistHint('The arm groans and won’t turn: a rusted pin holds its collar.');
       return false;
     }
     H.weight.getWorldPosition(hoistWorld.weight);
@@ -211,7 +211,7 @@ export function setupIncal(ctx) {
     const tq = (rz * dir.x - rx * dir.z) / (rl * dl);   // the push's turning part, round the post (+: rotation.y grows)
     if (Math.abs(tq) < 0.45) {
       ho.wobble = 1;
-      hoistHint(quietOr('The weight shoves along the arm, and the arm rocks on its sleeve, but it doesn’t turn.', 'The weight shoves along the arm, and the arm rocks on its sleeve, but it doesn’t turn. Push the weight round the post, not along the arm.'));
+      hoistHint(quietOr('The arm rocks on its sleeve, but doesn’t turn.', 'It won’t turn. Push the weight round the post, not along the arm.'));
       return false;
     }
     game.set('incal.hoist.in', true);
@@ -224,7 +224,7 @@ export function setupIncal(ctx) {
     onHit: (mode) => {
       if (mode === 'shoot') return knockPin();
       ho.wobble = 1;
-      hoistHint(quietOr('The pin is rusted fast: a push only rattles it.', 'The pin is rusted fast: a push only rattles it. Something sharper might knock it out.'));
+      hoistHint(quietOr('The pin is rusted fast: a push only rattles it.', 'The pin is rusted fast. Something sharper might knock it out.'));
       return true;
     } });
   registerTarget({ kind: 'hoistWeight', radius: 0.75, position: () => H.weight.getWorldPosition(hoistWorld.weight), enabled: () => !swungIn() && !ho.swing && hoistNear(),
