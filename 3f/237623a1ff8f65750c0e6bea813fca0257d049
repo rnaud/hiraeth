@@ -1,0 +1,55 @@
+changelog.md
+  s_9ca76055a220ed::t_46a27214064878 5-10
+scripts/ball-room.mjs
+  s_9ca76055a220ed::t_f46347447bf736 1-349
+src/changelog.js
+  s_9ca76055a220ed::t_60824023881672 11-25
+src/temples/arzach.js
+  s_9ca76055a220ed::t_83045c988a34e4 51-53,90,103-110,196-207,242-244,309-310,392-397,399-403,425-426,448-452,457-471,478,516
+src/temples/buried.js
+  s_9ca76055a220ed::t_0e0b1430289905 123,130,151,153,159,270
+src/temples/edena.js
+  s_9ca76055a220ed::t_0e8b807541756b 149
+src/temples/garage.js
+  s_9ca76055a220ed::t_c8c5367324510c 127
+src/temples/logic.js
+  s_9ca76055a220ed::t_6deca0d9daf69d 274-310,340-342,345,347-348,352
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_42be5221f8ad3f 128
+src/temples/spacecity.js
+  s_9ca76055a220ed::t_a0452c828b2762 127
+src/trials/kit-courses.js
+  s_9ca76055a220ed::t_2dfb52effdea4b 989-990
+tests/ball-room.test.js
+  s_9ca76055a220ed::t_4f5e9ba2c85efc 1-84
+tests/way-back.test.js
+  s_9ca76055a220ed::t_6face14b8e3d79 1-135
+src/temples/pieces.js
+  s_46670701513413::t_24a4ad73231478 92-93,224
+docs/systems/temples.md
+  s_9ca76055a220ed::t_a9b39eb4737d90 640-674
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3f237623a1ff8f65750c0e6bea813fca0257d049",
+  "prompts": {},
+  "sessions": {
+    "s_46670701513413": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9927bc8850143bb5",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
