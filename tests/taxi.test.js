@@ -108,3 +108,22 @@ test('a cab sent for you some other way (Wren, to the lamp) comes empty too, and
   assert.equal(wren.parts.pax, null, 'Wren: no passenger');
   Taxi.playerPos = null;
 });
+
+test("the cab's top is made at the load, by triangles, as the rays made it (issue #255: a 0.3-0.9 s frame the first time you came near a cab)", async () => {
+  const T = await import('../src/taxi.js?warm-top');
+  assert.equal(T.Taxi.topReady, false, 'a fresh module has no top yet');
+  new T.Taxi(null, '#e9b45f', 2, () => {});   // (the trailer's cab, no world: nothing to stand on)
+  assert.equal(T.Taxi.topReady, false, 'a cab with no world leaves it');
+  new T.Taxi(physics, '#e9b45f', 2, () => {});
+  assert.equal(T.Taxi.topReady, true, "a world's cab makes it as it is built");
+  const meshes = T.cabTopMeshes();
+  const t0 = performance.now(), grid = T.cabTopGrid(meshes), ms = performance.now() - t0;
+  const cast = T.cabTopCast(meshes);
+  let hits = 0;
+  for (let i = 0; i < cast.h.length; i++) {
+    if (cast.h[i] > -1e9) hits++;
+    assert.ok(Math.abs(grid.h[i] - cast.h[i]) < 1e-4, `point ${i % cast.nx}, ${Math.floor(i / cast.nx)}: ${grid.h[i]} by triangles, ${cast.h[i]} by rays`);
+  }
+  assert.ok(hits > 2000, `the cab covers the grid (${hits} points)`);
+  assert.ok(ms < 60, `made in ${ms.toFixed(1)} ms`);
+});

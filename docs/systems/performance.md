@@ -2342,3 +2342,34 @@ To repeat: `npx vite build && scripts/bench/gecko-apk.sh`, `adb install` the tes
 `node scripts/load-breakdown.mjs --gecko cold,warm,session --apk --preset handheld --worlds desert,incal,arzach,spacecity --traverse 20`,
 `node scripts/motion-check/record.mjs --gecko "$PWD/dist" --level desert --preset handheld --paths pan,turn --far 60 --toggles fxaa,inkFar --alltoggles 1`,
 `node scripts/bench/android-worlds.mjs --serve dist --apk 1 --worlds desert,incal,bazaar --toggles base,fxaa`.
+
+## The City-Shaft's traversal stall: the cab's top by its triangles (2026-10-12, issue #255)
+
+The 0.3 s frame on the Mac and the 0.9 s one on the Retroid in every City-Shaft traversal ("The load by kind of work",
+"The Retroid, round 6") was one frame, ~3.6 s into `--traverse` (the turn done, the traveller carried past the rim's
+traffic): no program linked, no first draw, no new geometry or texture in it. A CPU profile of the traversal (a marker
+function at its start to place the frame; a build with `--minify false`) put 290 of its 313 ms in
+`Player.moveStep → Taxi.topAt → topLocal → cabTop`: the cab's top grid (src/taxi.js, what you stand on, a cab), built
+lazily the first time a character asked for a cab's top, by 5 429 rays straight down three's `Raycaster` through
+the cab's 1 700 triangles with no BVH. Not a shader, a stream or a collision rebuild; nothing to do with the Xbox's
+periodic stall at the rim (one frame every ~3 s, "The City-Shaft's rim on the Xbox, round two"): this was once a
+load, the first cab near you (the Signal Market and Wren's cab paid it too).
+
+**The fix.** `cabTopGrid` lays each triangle over the grid points under it and keeps the highest height within the
+ray's reach, taking a one-sided face only from its front as the raycaster does (a mirrored matrix flips which side
+is the front; an edge-on face is never hit): the same grid to 1e-15 m at every one of the 5 429 points, in 2 ms in
+node instead of 200. And `Taxi.warmTop()` makes it as a world's first cab is built (a cab with no physics, the
+trailer's, leaves it), so the load pays the 2 ms and no frame does. Tests (tests/taxi.test.js): the grid by triangles
+equals the grid by rays (`cabTopCast`, kept for it), under 60 ms, and made by a world's cab's construction.
+
+Measured with load-breakdown.mjs's traversal (`--worlds incal --preset handheld --traverse 20`), the tree before
+(2e818342) and this branch; ms:
+
+| | worst frame | p95 | p99 | frames > 100 ms |
+|---|---|---|---|---|
+| Mac (M4 Pro, headless Chrome, Handheld, 1280 × 720, no vsync; median of three) | 300.5 → **43.5** | 12.6 → 11.3 | 16.3 → 13.7 | 1 → 0 |
+| Retroid, GeckoView test app, warm launch (game served from the Mac) | 865.9 → **75.2** | 36.3 → 34.3 | 55.6 → 47.9 | 1 → 0 |
+| Retroid, a second load in the same app | 866.7 → **89.5** | 35.7 → 33.8 | 74.3 → 48.8 | 4 → 0 |
+
+The load is unchanged (Mac first frame 4.57 → 4.51 s; the Retroid's 18.0-18.3 → 17.6-17.9 s). What is left on the
+Retroid is 6-7 frames a run over 50 ms (the worst 75-90 ms), spread over the traversal.

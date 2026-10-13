@@ -67,21 +67,75 @@ const CABS = new Map();
 
 /** The drawn cab's top in its own units on a grid (built once: TOP.map), for its solid (Taxi.topLocal). */
 const TOP = { map: null };
-function cabTop() {
+const TOP_GRID = { step: 0.05, x0: -1.5, z0: -2.15, nx: Math.round(3 / 0.05) + 1, nz: Math.round(4.4 / 0.05) + 1, y0: 5, far: 10 };
+/** What stands still on every cab (the hull and its trims, the fins; not the lamps, the seat or a passenger), posed. */
+function cabTopMeshes() {
   const b = buildTaxi('#c8483a', { fares: false, scale: 1 });
   const meshes = [];
   b.root.updateMatrixWorld(true);
-  // (what stands still on every cab: the hull and its trims, the fins; not the lamps, the seat or a passenger)
   b.root.traverse((o) => { if (o.isMesh && !b.mid.includes(o) && o !== b.seat && o !== b.pax && !(b.pax && o.parent === b.pax)) meshes.push(o); });
-  const step = 0.05, x0 = -1.5, z0 = -2.15, nx = Math.round(3 / step) + 1, nz = Math.round(4.4 / step) + 1;
+  return meshes;
+}
+/**
+ * The top's grid: at each point the highest surface a ray straight down from y0 meets within far, as three's
+ * Raycaster would (a one-sided face only from its front). Each triangle is laid over the points under it, which
+ * is the same answer as a ray a point (5 429 rays through every triangle: 0.3 s on the Mac, 0.9 s on the
+ * Retroid, the frame the traveller first came near a cab, issue #255) in a few milliseconds.
+ */
+export function cabTopGrid(meshes, G = TOP_GRID) {
+  const { step, x0, z0, nx, nz, y0, far } = G;
+  const h = new Float32Array(nx * nz).fill(-1e10), lo = y0 - far;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  for (const m of meshes) {
+    const g = m.geometry, pos = g.attributes.position, idx = g.index, mw = m.matrixWorld;
+    const flip = mw.determinant() < 0;
+    const groups = g.groups.length && Array.isArray(m.material) ? g.groups : [{ start: 0, count: idx ? idx.count : pos.count, materialIndex: 0 }];
+    for (const gr of groups) {
+      const mat = Array.isArray(m.material) ? m.material[gr.materialIndex] : m.material;
+      if (!mat) continue;
+      const side = mat.side ?? THREE.FrontSide;
+      const end = Math.min(gr.start + gr.count, idx ? idx.count : pos.count);
+      for (let k = gr.start; k + 2 < end; k += 3) {
+        const ia = idx ? idx.getX(k) : k, ib = idx ? idx.getX(k + 1) : k + 1, ic = idx ? idx.getX(k + 2) : k + 2;
+        a.fromBufferAttribute(pos, ia).applyMatrix4(mw); b.fromBufferAttribute(pos, ib).applyMatrix4(mw); c.fromBufferAttribute(pos, ic).applyMatrix4(mw);
+        // the face's normal's y (counter-clockwise front, as three's): a ray down meets its front when it is up
+        const ny = (b.z - a.z) * (c.x - a.x) - (b.x - a.x) * (c.z - a.z);
+        if (Math.abs(ny) < 1e-12) continue;   // (edge-on to a ray straight down: no hit, as three's)
+        const up = flip ? ny < 0 : ny > 0;
+        if (side === THREE.FrontSide && !up) continue;
+        if (side === THREE.BackSide && up) continue;
+        const i0 = Math.max(0, Math.ceil((Math.min(a.x, b.x, c.x) - x0) / step - 1e-6)), i1 = Math.min(nx - 1, Math.floor((Math.max(a.x, b.x, c.x) - x0) / step + 1e-6));
+        const j0 = Math.max(0, Math.ceil((Math.min(a.z, b.z, c.z) - z0) / step - 1e-6)), j1 = Math.min(nz - 1, Math.floor((Math.max(a.z, b.z, c.z) - z0) / step + 1e-6));
+        if (i0 > i1 || j0 > j1) continue;
+        const det = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z), eps = 1e-9 * Math.abs(det);
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+          const px = x0 + i * step, pz = z0 + j * step;
+          const u = ((px - a.x) * (c.z - a.z) - (c.x - a.x) * (pz - a.z)) / det;
+          const v = ((b.x - a.x) * (pz - a.z) - (px - a.x) * (b.z - a.z)) / det;
+          if (u < -eps || v < -eps || u + v > 1 + eps) continue;
+          const y = a.y + u * (b.y - a.y) + v * (c.y - a.y);
+          if (y > y0 || y < lo) continue;
+          const n = j * nx + i;
+          if (y > h[n]) h[n] = y;
+        }
+      }
+    }
+  }
+  return { x0, z0, step, nx, nz, h };
+}
+/** The same grid by rays (the way it was: for the test that the two agree). */
+export function cabTopCast(meshes, G = TOP_GRID) {
+  const { step, x0, z0, nx, nz, y0, far } = G;
   const h = new Float32Array(nx * nz).fill(-1e10), rc = new THREE.Raycaster(), o = new THREE.Vector3(), down = new THREE.Vector3(0, -1, 0);
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
-    rc.set(o.set(x0 + i * step, 5, z0 + j * step), down); rc.far = 10;
+    rc.set(o.set(x0 + i * step, y0, z0 + j * step), down); rc.far = far;
     const hit = rc.intersectObjects(meshes, false)[0];
     if (hit) h[j * nx + i] = hit.point.y;
   }
-  return (TOP.map = { x0, z0, step, nx, nz, h });
+  return { x0, z0, step, nx, nz, h };
 }
+function cabTop() { return (TOP.map = cabTopGrid(cabTopMeshes())); }
+export { cabTopMeshes };
 function cabParts(color) {
   if (CABS.has(color)) return CABS.get(color);
   const smooth = new Paint(), flat = new Paint();
@@ -336,6 +390,7 @@ export class Taxi {
     this.free = free;
     this.color = color;
     const b = buildTaxi(color, { fares, scale, reference });
+    if (physics) Taxi.warmTop();   // (a cab in a world: its top's grid made at the load, not the frame you first come near one)
     this.object = b.root;
     this.parts = b;
     this.time = Math.random() * 10;
@@ -621,6 +676,10 @@ export class Taxi {
     d.r = 2.15 * s; d.top = this.pos.y + (CANOPY.y + 0.6) * s; d.bottom = this.pos.y - 0.6 * s;
     return d;
   }
+
+  /** The drawn cab's top grid made now, if it isn't (once for all cabs). */
+  static warmTop() { return TOP.map ?? cabTop(); }
+  static get topReady() { return !!TOP.map; }
 
   /**
    * The cab's top in its own units at (lx, lz), or -Infinity off it: read from TOP, the drawn cab's

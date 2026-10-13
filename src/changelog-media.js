@@ -769,6 +769,19 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Desert’s spawn: frames a second', before: 59.4, after: 59.6 },
       ], source: 'scripts/xbox-unity.mjs, build 2067 (v1.61); the rim and the Desert the mean of the last 30 s of a 170 s run (the rim two alternated rounds, averaged), the views -bench 6; before: the same build with -js-off still,hidden,people,shape -cloth-single -no-job-kick; 12 October' },
     ], see: 'On the Xbox, start the Unity preview in the City-Shaft and watch the readout at the top left at the rim: about 59 frames a second, and the frames line in unity.log says how few were late.' },
+    { match: 'Fixed: the City-Shaft froze for nearly a second on the handheld', numbers: [
+      { title: 'The City-Shaft, 20 s of fast traversal (load-breakdown.mjs --traverse 20: a full turn, then carried at 40 m/s): the frame intervals', unit: 'ms', better: 'lower', device: 'Retroid Pocket Nova, the GeckoView test app, Handheld, the game served from the Mac; a warm launch and a second load in the same app', rows: [
+        { where: 'the worst frame (warm · session)', before: '866–867', after: '75–90' },
+        { where: 'p99', before: '56–74', after: '48–49' },
+        { where: 'p95', before: '35.7–36.3', after: '33.8–34.3' },
+        { where: 'frames over 100 ms', before: '1–4', after: 0 },
+      ], source: 'scripts/load-breakdown.mjs --gecko warm,session --preset handheld --worlds incal --traverse 20, the tree before (2e818342) and this branch, 12 October' },
+      { title: 'The same on the Mac', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome (muted), Handheld, 1280 × 720, no vsync; the median of three runs', rows: [
+        { where: 'the worst frame', before: 300.5, after: 43.5 },
+        { where: 'p99', before: 16.3, after: 13.7 },
+        { where: 'p95', before: 12.6, after: 11.3 },
+      ], source: 'scripts/load-breakdown.mjs --preset handheld --worlds incal --traverse 20 --runs 3, the tree before (2e818342) and this branch, 12 October' },
+    ], see: 'In the City-Shaft, ride or run past the cabs at the rim with the frame readout on: no long freeze as the first cab comes near.' },
     { match: 'Anselm Thrum sells his upgrades now', shots: [
       { name: 'thrum-shop', caption: 'Talking to Anselm in the hold with 24 fragments found and the finder, the heart and the edge had: before, his count and an offer at the next milestone; after, his shop, the fragments you hold as the wallet, his seven upgrades priced in fragments', from: SHOP185 },
     ], see: 'Aboard your ship, talk to Anselm in the hold and choose “Show me what you have”. Pick an upgrade with A / ×, then Buy. The Start menu shows how many fragments you have to spend.' },

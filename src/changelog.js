@@ -23,6 +23,9 @@ export const CHANGELOG = [
     // engine/scene-matrices.js skipHidden, src/npc.js offView, the banners' shapeAttrs; docs/systems/performance.md "The
     // City-Shaft's rim on the Xbox, round two"; issue #113)
     'The Unity preview on the Xbox stutters far less at the City-Shaft’s rim: about one frame in thirty-five misses the screen’s refresh there, where one in eleven did. The traveller’s overshirt is worked out by several cores at once, the city’s banners no longer rebuild their whole shape every frame, and the people behind the camera and whatever is hidden cost the console less.',
+    // the cab's top made by its triangles at the load, not by 5 429 rays the frame you first come near a cab
+    // (src/taxi.js cabTopGrid, warmTop; docs/systems/performance.md "The City-Shaft's traversal stall"; issue #255)
+    'Fixed: the City-Shaft froze for nearly a second on the handheld (a third of a second on a computer) the first time you came near a cab. The cabs’ shape you stand on is now worked out while the world loads, a hundred times faster.',
     // a start the ship covers goes to the foot of its ramp (src/ship/ship.js clearSpawn, tests/route-spawn.test.js; issue #254)
     'Fixed: starting the Desert from a debug save or the worlds list put you under your ship’s ramp, boxed in with the camera pressed over your head and unable to walk. You start at the foot of the ramp now, facing Qanat, the camera behind you.',
     // the lock camera's turn eased and a small foe kept clear near in (src/foes.js LOCK_TURN, lockTurn, LOCK_VIEW;
