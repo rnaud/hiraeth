@@ -413,6 +413,8 @@ namespace Hiraeth.Bridge
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             BridgeRenderer.fullLayout = BridgeArgs.Flag("-full-layout");
             BridgeRenderer.zTestAlways = BridgeArgs.Flag("-ztest-always");
+            // (-no-veil, a test: the see-through surfaces as before issue #263, their rims uncut and no washes over them)
+            BridgeRenderer.noVeil = BridgeArgs.Flag("-no-veil");
             // (-no-water-contact: the water in the G-buffer's own pass, no copy of the scene's depth; the console has no command line
             // for HiraethFeature's -noWaterContact)
             if (BridgeArgs.Flag("-no-water-contact")) Hiraeth.Rendering.HiraethFeature.Settings.waterContact = false;

@@ -174,7 +174,7 @@ namespace Hiraeth.Bridge
         /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
-        public static bool oneVariant, uniformLayout, fullLayout, zTestAlways;
+        public static bool oneVariant, uniformLayout, fullLayout, zTestAlways, noVeil;
         public static string cullTest;
         /// <summary>The vertex data -uniform-layout added (bytes, on the CPU and again on the GPU).</summary>
         public static long uniformBytes;
@@ -368,6 +368,20 @@ namespace Hiraeth.Bridge
                 materials[mid] = new Material(Shader.Find("Hiraeth/Wisp")) { name = "wind wisps (bridge)" };
                 return;
             }
+            if (m.S("port") == "veil")
+            {
+                // a see-through surface's body (src/veil.js Veils): a wash over the finished picture, tested against the
+                // G-buffer's depth (Hiraeth/Veil; its rim is the Surface material's _Veil cut). -no-veil: none (a test, issue #263)
+                veilMats.Add(mid);
+                var vm = new Material(Shader.Find("Hiraeth/Veil")) { name = "veil wash (bridge)" };
+                var vc = m.L("color");
+                vm.SetVector("_Color", new Vector4(Json.Num(vc[0]), Json.Num(vc[1]), Json.Num(vc[2]), 1));
+                vm.SetFloat("_WashAlpha", m.F("alpha", 0.3f)); vm.SetFloat("_WashGlow", m.F("glow")); vm.SetFloat("_WashNear", m.F("near"));
+                int vs = m.I("side");
+                vm.SetFloat("_Cull", vs == 2 ? (float)CullMode.Off : vs == 1 ? (float)CullMode.Front : (float)CullMode.Back);
+                materials[mid] = vm;
+                return;
+            }
             if (m.S("port") == "print")
             {
                 var pm = new Material(Shader.Find("Hiraeth/Print")) { name = "prints (bridge)" };
@@ -376,6 +390,7 @@ namespace Hiraeth.Bridge
                 return;
             }
             materials[mid] = WorldLoader.MakeMaterial(surface, m);
+            if (noVeil && materials[mid].HasProperty("_Veil")) materials[mid].SetFloat("_Veil", 0);
             specs[materials[mid]] = json;
             // (-cull off|flip, a test for the Xbox's see-through picture: every Surface material's culling off, or the other face)
             if (cullTest != null && materials[mid].HasProperty("_Cull"))
@@ -407,7 +422,7 @@ namespace Hiraeth.Bridge
             if (!lean || !m || m.shader == null || !m.shader.name.StartsWith("Hiraeth/Surface") || !m.HasProperty("_Mode")) return;
             int mode = (int)(m.GetFloat("_Mode") + 0.5f);
             // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
-            string why = F(m, "_Glass") > 0 ? "glass" : V(m, "_Dissolve").x > 0 ? "dissolve"
+            string why = F(m, "_Glass") > 0 ? "glass" : F(m, "_Veil") > 0 ? "veil" : V(m, "_Dissolve").x > 0 ? "dissolve"
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
                 : F(m, "_Scrub") > 0 ? "scrub" : null;
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
@@ -415,6 +430,7 @@ namespace Hiraeth.Bridge
             else { leanWhy.TryGetValue(why, out int c); leanWhy[why] = c + 1; }
         }
         static readonly Dictionary<string, int> leanWhy = new();
+        readonly HashSet<int> veilMats = new();   // the see-through surfaces' washes (Hiraeth/Veil)
         static float F(Material m, string p) => m.HasProperty(p) ? m.GetFloat(p) : 0;
         static Vector4 V(Material m, string p) => m.HasProperty(p) ? m.GetVector(p) : Vector4.zero;
 
@@ -443,6 +459,7 @@ namespace Hiraeth.Bridge
             n.go.transform.SetParent(transform, false);
             n.go.SetActive(false);
             meshes.TryGetValue(n.mesh ?? "", out var md);
+            if (noVeil && System.Array.Exists(n.mids, veilMats.Contains)) md = null;   // (-no-veil: no washes)
             if (n.kind == "crowd")
             {
                 // the port's own crowd figures (FarCrowd.cs): its Surface shader posing them (HIRAETH_CROWD)
@@ -778,7 +795,8 @@ namespace Hiraeth.Bridge
                         {
                             if (!m) return;
                             if (!float.IsNaN(lc.x) && m.HasProperty("_Color")) m.SetVector("_Color", lc);
-                            if (!float.IsNaN(lg) && m.HasProperty("_Glow")) m.SetFloat("_Glow", lg);
+                            // (a veil's wash: its alpha, LightShaft.fade)
+                            if (!float.IsNaN(lg)) { if (m.HasProperty("_WashAlpha")) m.SetFloat("_WashAlpha", lg); else if (m.HasProperty("_Glow")) m.SetFloat("_Glow", lg); }
                         }
                         if (materials.TryGetValue(mid, out var mm)) Set(mm);
                         if (copies.TryGetValue(mid, out var cl)) foreach (var c in cl) Set(c);

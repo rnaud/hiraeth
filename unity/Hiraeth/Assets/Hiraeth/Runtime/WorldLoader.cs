@@ -180,7 +180,7 @@ namespace Hiraeth
             if (m.I("plain") == 1) mat.SetFloat("_Glow", 1);
             // the web's newer surface marks (materials.js): weathering, pen detail, colour across a wall, plating, the
             // window share, banked sand, the shade (lift, hue, hatch, strata strokes), the spot and line steps
-            foreach (var (k, p) in new[] { ("weather", "_Weather"), ("patch", "_Patch"), ("plates", "_Plates"), ("drift", "_Drift"), ("spotStep", "_SpotStep"), ("lineStep", "_LineStep"), ("toDisplay", "_ToDisplay"), ("form", "_FormOn"), ("veins", "_Veins"), ("box", "_BoxOn"), ("tripoFace", "_TripoFace"), ("cracks", "_Cracks") })
+            foreach (var (k, p) in new[] { ("weather", "_Weather"), ("patch", "_Patch"), ("plates", "_Plates"), ("drift", "_Drift"), ("spotStep", "_SpotStep"), ("lineStep", "_LineStep"), ("toDisplay", "_ToDisplay"), ("form", "_FormOn"), ("veins", "_Veins"), ("box", "_BoxOn"), ("tripoFace", "_TripoFace"), ("cracks", "_Cracks"), ("veil", "_Veil") })
                 if (m.Has(k)) mat.SetFloat(p, m.F(k));
             // a merged mesh's material values per vertex (materials.js S_VMAT): the shader's variant that reads them
             if (m.I("vmat") == 1) mat.EnableKeyword("HIRAETH_VMAT");

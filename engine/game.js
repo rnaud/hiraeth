@@ -444,6 +444,17 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const noShadow = new Set();
   for (const r of [...(level.noShadow ?? []), ...(player.gear?.noShadow ?? [])]) r?.traverse?.((o) => noShadow.add(o));
   const castsShadow = (o) => !noShadow.has(o) && !selfLitSkips(o);
+  // the see-through surfaces' bodies (src/veil.js: the City-Shaft's air pillars, Lorn II's mushrooms, the shafts of
+  // light): on the page a scene of washes laid over the finished picture; here that scene hangs in the mirrored one (the
+  // washes' matrices are world ones, its own the identity), each wash shown while its mesh is, as Veils.render does, and
+  // drawn by the engine over its ink (Unity: Hiraeth/Veil, port-format.js). (level.veils may come later: a temple's, the
+  // buried city's.)
+  const veilsFrame = () => {
+    const V = level.veils;
+    if (!V?.scene) return;
+    if (V.scene.parent !== scene) scene.add(V.scene);
+    V.show();
+  };
   const mirror = new SceneMirror(backend, { castsShadow, quietWalk: !!backend.quietWalk, listMatrices: !!backend.listMatrices, stillMatrices: !!backend.stillMatrices, skipHidden: !!backend.skipHidden });
   // a conversation's portrait (src/story/index.js portrait, main.js captureView with keep): the engine draws the kept
   // objects alone against the backdrop, from eye toward look; the panel shows it by the name returned
@@ -651,6 +662,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         screen.set('prompt', null); screen.set('stamina', null);
         const tB0 = performance.now();
         mirror.time = simT;
+        veilsFrame();
         const stats = mirror.sync(scene, camera);
         return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
       }
@@ -775,6 +787,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       mirror.time = simT;
       // (the props under the preset's pixels on screen hidden for this frame's mirror, shown again after: main.js renderFrame)
       const hidden = Q?.propPx ? (smallCull ??= new SmallCuller(scene)).hide(camera, pxPerRad, Q.propPx, []) : null;
+      veilsFrame();
       const stats = mirror.sync(scene, camera);
       if (hidden) for (const o of hidden) o.visible = true;
       // what the camera saw, as main.js after drawing: the next frame's fires and machines skip what is out of it

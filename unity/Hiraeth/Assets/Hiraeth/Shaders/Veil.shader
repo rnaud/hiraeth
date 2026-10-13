@@ -1,0 +1,87 @@
+// A see-through surface's body (src/veil.js Veils, issue #263): the City-Shaft's air pillars, Lorn II's mushrooms, the
+// Glass Dunes' lenses and panes, the shafts of light. The surface's rim is drawn in the G-buffer (Surface.shader _Veil:
+// where it faces the eye more squarely than the cut it is discarded); its body is this, a pale wash laid over the
+// finished picture after the ink composite: the surface again, flat-lit between the world's shade and light tints,
+// softly glowing if it glows, hazed by distance as the ink pass hazes the world, at _WashAlpha a layer. Its depth is
+// tested by hand against the G-buffer's (_GNormalTex.w), as the web's: hidden by anything in front of it and not laid
+// over its own rim. _WashNear (m): it fades out within twice that of the eye (riding inside an air pillar).
+// The bridge's live material value (op 15's glow) moves _WashAlpha: LightShaft.fade.
+Shader "Hiraeth/Veil"
+{
+  Properties
+  {
+    _Color ("Wash colour", Vector) = (1, 1, 1, 1)
+    _WashAlpha ("Alpha a layer", Float) = 0.3
+    _WashGlow ("Glow", Float) = 0
+    _WashNear ("Fades out within twice this of the eye (m; 0 never)", Float) = 0
+    _Cull ("Cull", Float) = 0
+  }
+  SubShader
+  {
+    Tags { "RenderType" = "Transparent" "Queue" = "Transparent+30" "RenderPipeline" = "UniversalPipeline" }
+    Pass
+    {
+      Tags { "LightMode" = "UniversalForward" }
+      Blend SrcAlpha OneMinusSrcAlpha
+      ZWrite Off
+      ZTest Always
+      Cull [_Cull]
+      HLSLPROGRAM
+      #pragma vertex vert
+      #pragma fragment frag
+      #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+      Texture2D _GNormalTex;
+      CBUFFER_START(UnityPerMaterial)
+      float4 _Color;
+      float _WashAlpha, _WashGlow, _WashNear, _Cull;
+      CBUFFER_END
+      // the look's globals (HiraethLook.cs), as the composite reads them; _SunDir in three space
+      float3 _LightTint, _ShadowTint, _SunDir, _SkyHorizon;
+      float _Night, _FogDensity, _FogStart, _FogMul;
+      float4 _Haze, _HazeLayers, _HazeTone, _HeightFog, _HeightFogTone;
+      struct A { float4 pos : POSITION; float3 n : NORMAL; };
+      struct V { float4 cs : SV_POSITION; float3 wp : TEXCOORD0; float3 n : TEXCOORD1; float d : TEXCOORD2; };
+      V vert(A v)
+      {
+        V o; float3 wp = TransformObjectToWorld(v.pos.xyz);
+        o.cs = TransformWorldToHClip(wp); o.wp = wp; o.n = TransformObjectToWorldNormal(v.n); o.d = -TransformWorldToView(wp).z;
+        return o;
+      }
+      float4 frag(V i, bool front : SV_IsFrontFace) : SV_Target
+      {
+        // by hand against the scene's depth: under something nearer, or on its own rim (drawn in the G-buffer), nothing
+        float scene = _GNormalTex.Load(int3(i.cs.xy, 0)).w;
+        if (scene > 0.0 && scene < i.d + 0.08) discard;
+        float3 n = normalize(i.n) * (front ? 1.0 : -1.0);
+        n.x = -n.x;   // (three space, as _SunDir)
+        float lit = smoothstep(0.0, 0.6, dot(n, normalize(_SunDir)) * 0.5 + 0.5) * (1.0 - _Night * 0.6);
+        float glow = _WashGlow;
+        float3 col = _Color.rgb * lerp(_ShadowTint, lerp(_LightTint, float3(1.12, 1.12, 1.12), glow), max(lerp(0.35, 1.0, lit), glow));
+        // hazed as the ink pass hazes the world (post.js 4, 4b; Composite.shader hazeAt): its layers by distance, the far fog, the low mist
+        float3 rd = i.wp - _WorldSpaceCameraPos;
+        float d = length(rd); rd /= max(d, 1e-4);
+        float3 skyC = _Haze.a > 0.0 ? lerp(_SkyHorizon, _Haze.rgb, _Haze.a * (1.0 - _Night)) : _SkyHorizon;
+        float fog = 1.0 - exp(-max(d - _FogStart, 0.0) * _FogDensity * _FogMul);
+        float3 hazeC = lerp(skyC, _HazeTone.rgb, _HazeTone.a * (1.0 - 0.7 * _Night));
+        if (_HazeLayers.w > 0.0)
+        {
+          float t = log2(max(d, 1.0) / _HazeLayers.x) / log2(_HazeLayers.y);
+          float L = clamp(floor(t) + 1.0 + smoothstep(0.82, 1.0, frac(t)), 0.0, _HazeLayers.w);
+          col = lerp(col, hazeC, (1.0 - pow(1.0 - _HazeLayers.z, L)) * (1.0 - 0.6 * _Night));
+        }
+        col = lerp(col, skyC, fog);
+        if (_HeightFog.w > 0.0)
+        {
+          float b = 1.0 / _HeightFog.y;
+          float base = exp(min(-(_WorldSpaceCameraPos.y - _HeightFog.x) * b, 30.0));
+          float x = max(rd.y * d * b, -30.0);
+          float k = abs(x) > 1e-3 ? (1.0 - exp(-x)) / x : 1.0;
+          col = lerp(col, lerp(hazeC, _HeightFogTone.rgb, _HeightFogTone.a * (1.0 - 0.7 * _Night)), (1.0 - exp(-_HeightFog.z * d * base * k)) * _HeightFog.w);
+        }
+        float a = _WashAlpha * (_WashNear > 0.0 ? smoothstep(_WashNear, _WashNear * 2.0, i.d) : 1.0);
+        return float4(pow(saturate(col), 2.2), a);
+      }
+      ENDHLSL
+    }
+  }
+}

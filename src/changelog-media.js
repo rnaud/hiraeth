@@ -806,6 +806,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the Unity preview the Map shows the ground under its marks', see: 'In the Unity preview press View, then RB to the Map: “Drawing the map…” for a moment, then the ground under the marks; A / × on a mark zooms in, with its own ground.' },
     { match: 'The Unity preview’s Start menu has What’s new', see: 'In the Unity preview press Menu: What’s new lists the latest changes; Controls, then A / × on Jump and press another button: Jump moves there, and the list below follows.' },
     { match: 'In the Unity preview the people you talk to move as they speak', see: 'In the Unity preview walk up to someone and talk (X / □): they gesture as they say their lines, and nod as the traveller answers.' },
+    { match: 'In the Unity preview, see-through things are see-through again', shots: [
+      { name: 'unity-glass-column', title: 'The City-Shaft’s rim', caption: 'Before, the air pillar beside the palace’s spire was an opaque white column and the shaft of light on the left a white bar; after, a glass column, its rings and the city seen through it, as the web draws it.', from: 'the Xbox Series X (Developer Mode, Direct3D 12, 1440p, muted), the bridge’s -views plan at viewpoints-worlds.json’s incal “start”: build 2086 as installed against this branch’s build 2105 (13 October); cwebp -q 72' },
+      { name: 'unity-light-shafts', title: 'The Glass Dunes', caption: 'Before, the shafts of light over the glass city’s wells were solid white cones; after, soft beams, and the lens on the dune a glass rim.', from: 'the same console and builds, the Glass Dunes’ “wide” view' },
+    ], numbers: [
+      { title: 'The Unity preview on the Xbox at the City-Shaft’s rim, with the glass drawn', unit: 'fps', better: 'higher', device: 'Xbox Series X, Developer Mode, Direct3D 12, 1440p, vsync on (-vsync 1), muted', rows: [
+        { where: 'the rim, from the spawn: frames a second', before: 59.63, after: 59.70 },
+        { where: 'the rim: GPU ms a frame', before: 14.64, after: 14.74 },
+      ], source: 'scripts/xbox-unity.mjs, build 2105; the mean of the last 30 s of a 170 s run, two alternated rounds averaged; before: the same build with -no-veil (no cut, no washes)', note: 'The cut is only in the full surface variant: in the lean ones a discard, even one never taken, cost every surface its early depth test (44 fps, 21 ms of GPU, in a first build).' },
+    ], see: 'In the Unity preview, stand at the City-Shaft’s rim and look at the tall column right of the palace’s spire.' },
   ],
   '1.63': [
     { match: 'The Unity preview on the Xbox no longer catches every three seconds', numbers: [

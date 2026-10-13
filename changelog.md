@@ -19,6 +19,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.64 — 2026-10-12
 
+- In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.
 - In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.
 - The Unity preview’s Start menu has What’s new, the newest versions’ changes as the game lists them, and its Controls page lets you move each verb to another button as the game’s does: choose a verb, press its new button (Menu keeps it as it was), with the ones that share a button marked, Run and Guard held or toggled, and Reset to defaults.
 - In the Unity preview the Map shows the ground under its marks, drawn as the game draws it: the bands of height, the contours, the cliffs and walls inked, the water in teal, with a scale bar. It is drawn the first time you open the Map in a world, in a moment.

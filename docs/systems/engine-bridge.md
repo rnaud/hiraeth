@@ -1067,6 +1067,36 @@ mirror take 10–18 ms on their own thread, and the main thread waits only 1–2
 web draws 100–450 on these views) and the full-resolution URP passes are where the time goes. With the script and
 the sound off the main thread (#55), the CPU side fits in a 60 Hz frame; the GPU side would need about 5× less.
 
+## See-through surfaces (Unity + Puerts, 2026-10-13, issue #263)
+
+The web draws a see-through surface (src/veil.js: the City-Shaft's air pillars, Lorn II's mushrooms, the Glass
+Dunes' lenses and panes, every shaft of light) in two parts: its rim in the G-buffer (`makeMaterial({ veil })`:
+discarded where |n·v| is over the cut) and its body as a wash over the finished picture, from a scene of its own
+(`Veils.scene`, drawn by main.js after the composite). The bridge had neither: the rim's material went as a plain
+opaque surface (an air pillar a white column), the washes' scene was never mirrored, and a shaft's own meshes
+(`MeshBasicMaterial({ visible: false })`, layer 31) went as opaque white cones.
+
+- **The rim**: `port-format.js` sends `veil` (uVeil); `WorldLoader.MakeMaterial` sets `_Veil`; Surface.shader's
+  G-buffer pass discards as the web's S_VEIL does, and its depth prepass draws no veiled surface. The cut is only in
+  the full variant: `BridgeRenderer.Lean` gives a veiled material the full one, as the glass. (In the lean variants
+  first, a discard never taken still cost every lean surface the GPU's early depth test: the rim 44 fps on the Xbox,
+  21 ms of GPU against 14.)
+- **The wash**: engine/game.js hangs `level.veils.scene` in the mirrored scene (the washes' matrices are world ones)
+  and calls `Veils.show()` each frame before the sync (each wash shown while its mesh is, as `Veils.render`). A wash
+  material (a shader with `uWash` and `uColor`, transparent, no depth test) goes as `port: 'veil'` (colour, alpha,
+  glow, near, side) to **Hiraeth/Veil** (Queue Transparent+30, after the ink composite): the web's wash shader, its
+  depth tested by hand against `_GNormalTex.w`, lit and hazed with the look's globals. Its alpha is live: the mirror
+  sends a wash's `uWash.x` as op 15's glow (LightShaft.fade), which BridgeRenderer puts in `_WashAlpha`. The washes
+  cast no shadow.
+- **What three never draws**: `inkSpec` says `visible`; a drawable whose materials are all invisible gets a node with
+  no mesh (no geometry sent, nothing drawn, no shadow).
+- `-no-veil` (a test) puts it back as before: no cut, no washes. The cost at the rim (Xbox Series X, build 2105,
+  1440p, `-vsync 1`, muted, the last 30 s of 170 s, two alternated rounds): 59.63 → 59.70 fps, GPU 14.64 → 14.74 ms
+  (the changelog's v1.64 line). tests/unity-veil.test.js.
+
+The blend is Unity's linear one (the camera target encodes sRGB), the web's is in display values: a pale wash over a
+dark city reads a little lighter than the web's. Android and the Deck get the same (one shader, one bridge).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

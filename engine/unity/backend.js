@@ -90,7 +90,10 @@ export class UnityBackend {
     const vmat = specs.some((s) => s?.defines?.S_VMAT);
     // (the fluid's flask, hose and globs read their own rest place too: their box, the glass's height, materials.js FLUID)
     const fluid = specs.some((s) => s?.defines?.FLUID);
-    const mesh = d.gid ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form, vmat) : null;
+    // (a material three draws nothing with, visible false: a shaft of light's mesh, src/veil.js LightShaft, drawn only as its
+    // wash; drawn opaque white before, issue #263): a node with no mesh, so nothing drawn and no geometry sent for it)
+    const hidden = specs.length > 0 && specs.every((s) => s?.visible === false);
+    const mesh = d.gid && !hidden ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form, vmat) : null;
     if (d.kind === 'instanced' && d.mids.some((m) => this.ports.get(m) === 'print')) {
       // the footprints: the port's Puffs (its Print decal), instanced from op 10
       (this.puffs ??= new Set()).add(id);
@@ -116,8 +119,10 @@ export class UnityBackend {
       return;
     }
     this.nodes ??= new Map();
-    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form });
-    const desc = { kind: d.kind, mesh, mids: d.mids, name: d.name, shadow: d.shadow !== false, bones: d.bones ?? 0 };
+    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form, hidden });
+    // (a see-through surface's wash, Hiraeth/Veil, and the wind's wisps cast no shadow: the page draws them over the ink)
+    const over = d.mids.some((m) => this.ports.get(m) === 'veil' || this.ports.get(m) === 'wisp');
+    const desc = { kind: d.kind, mesh, mids: d.mids, name: d.name, shadow: d.shadow !== false && !over && !hidden, bones: d.bones ?? 0 };
     // (a skinned mesh bound "attached": its skeleton's bones are shared, its bind matrix is its bind pose)
     if (d.kind === 'skinned' && d.skeleton && d.attached) { desc.skeleton = d.skeleton; desc.bind = Array.from(mirrorMatrix(d.bind)); }
     this.host.Create(id, JSON.stringify(desc));
@@ -127,6 +132,7 @@ export class UnityBackend {
     const n = this.nodes?.get(id);
     if (!n) return;
     n.gid = gid;
+    if (n.hidden) return;
     const mesh = this._variant(gid, n.colors, n.bind, false, n.form);
     if (mesh) this.host.SetMesh(id, mesh);
   }

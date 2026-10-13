@@ -60,6 +60,7 @@ Shader "Hiraeth/Surface"
     _Cracks ("Cracks", Float) = 0
     _Creases ("Creases", Float) = 0
     _Glass ("Glass", Float) = 0
+    _Veil ("Veil (see-through but for its rim: |n·v| over it discarded)", Float) = 0
     _Fluid ("Fluid", Float) = 0
     _CrowdTime ("CrowdTime", Float) = 0
     _GrassMirrored ("GrassMirrored", Float) = 0
@@ -128,6 +129,7 @@ Shader "Hiraeth/Surface"
     float4 _Limbs[16];
     float _Glass;
     float4 _GlassCenter;
+    float _Veil;           // see-through but for its rim (materials.js S_VEIL, uVeil): its body is the bridge's Hiraeth/Veil wash
     float _Fluid;
     float4 _FluidA, _FluidB, _FluidBox;
     float4 _FluidTones[6];
@@ -241,7 +243,7 @@ Shader "Hiraeth/Surface"
       #pragma multi_compile_local _ HIRAETH_CROWD HIRAETH_PUFFS HIRAETH_INSTMAT HIRAETH_GRASS HIRAETH_FLORA HIRAETH_VMAT
       // HIRAETH_PREPASS (global, HiraethFeature's depth prepass, -prepass): the same pass drawing depth alone first, its
       // vertex the G-buffer's own position (the rest of vert left to the compiler to drop), no fragment work but the
-      // glass's and the dissolve's (they write no depth there: drawn in full by the G-buffer pass after); the G-buffer pass
+      // glass's, the dissolve's and a veil's (they write no depth there: drawn in full by the G-buffer pass after); the G-buffer pass
       // then shades each pixel once. Off, the pass is as before.
       #pragma multi_compile _ HIRAETH_PREPASS
       // HIRAETH_LEAN: a material that is no water, terrain, glass, fluid, makers' box, scrub, veins, drawn face or dissolve
@@ -761,6 +763,12 @@ Shader "Hiraeth/Surface"
           float streak = step(abs(atan2(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
           if (fr < 0.72 && streak < 0.5) discard;
         }
+        // see-through but for its rim (makeMaterial({ veil }): the City-Shaft's air pillars, Lorn II's mushrooms, the Glass
+        // Dunes' lenses): where it faces the eye more squarely than the cut, nothing; its body is a wash laid over the
+        // finished picture (Hiraeth/Veil). Not in the lean variants (BridgeRenderer.Lean gives a veiled material the full
+        // one, as the glass): a discard there, even one never taken, costs every lean surface the GPU's early depth test,
+        // the City-Shaft's rim 21 ms of GPU a frame on the Xbox against 14 (issue #263)
+        UNITY_BRANCH if (LEANK && _Veil > 0.0 && _MSurfaceDebug < 3.5 && abs(dot(normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos))) > _Veil) discard;
         float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
         // a makers' box coming apart (boxes/scene.js): eaten from the top down, the edge burning bright
         float dEdge = 0.0;
@@ -1133,7 +1141,7 @@ Shader "Hiraeth/Surface"
       #if defined(HIRAETH_PREPASS)
         struct DepthVaryings { float4 positionCS : SV_POSITION; };
         DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; return d; }
-        void fragEntry(DepthVaryings i) { if (_Glass > 0.0 || _Dissolve.x > 0.0) discard; }
+        void fragEntry(DepthVaryings i) { if (_Glass > 0.0 || _Dissolve.x > 0.0 || _Veil > 0.0) discard; }
       #else
         Varyings vertEntry(Attributes v) { return vert(v); }
         GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }

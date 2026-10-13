@@ -155,7 +155,8 @@ export class SceneMirror {
   _live(m, f) {
     if (m.__mirrorLiveF === f) return;
     m.__mirrorLiveF = f;
-    const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow?.value;
+    // (a see-through surface's wash, src/veil.js: its alpha goes as its glow, LightShaft.fade moving it)
+    const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow ? U.uGlow.value : U?.uWash?.value?.isVector3 ? U.uWash.value.x : undefined;
     // the vectors that move every frame (LIVE_VECTORS: a makers' box's ray and clock, the coral-shirt traveller's drawn face)
     if (this.backend.materialVec && U) {
       // (which of them the material has, looked up again every 64 frames: most have none)

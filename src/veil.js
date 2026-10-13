@@ -109,7 +109,7 @@ export class Veils {
     const wash = new THREE.Mesh(mesh.geometry, mat);
     mesh.updateMatrixWorld(true);
     wash.matrixAutoUpdate = false; wash.matrix.copy(mesh.matrixWorld); wash.matrixWorld.copy(mesh.matrixWorld);
-    wash.userData.of = mesh;
+    wash.userData.of = mesh; wash.userData.noCollide = true;
     // (added after bind: a shaft lit later, the Wick's; it takes the ink pass's light and haze as the rest did)
     if (this.shared) for (const k of SHARED) if (this.shared[k]) mat.uniforms[k] = this.shared[k];
     this.scene.add(wash);
@@ -125,13 +125,20 @@ export class Veils {
     this.bound = true;
     return this;
   }
-  /** Lay the washes over `target` (the composite), each only while its mesh is shown. */
-  render(renderer, camera, target) {
-    if (!this.bound || !this.list.length) return;
+  /**
+   * Each wash shown only while its mesh is, and not turned off; true if any is. (The engines call it each frame and
+   * draw the washes from their scene: engine/game.js, the Unity bridge's Hiraeth/Veil.)
+   */
+  show() {
     let any = false;
     // (userData.off: a wash its level has turned off for now, the Glass Dunes' lenses far from the eye)
     for (const w of this.list) { w.visible = !w.userData.off && shown(w.userData.of); any ||= w.visible; }
-    if (!any) return;
+    return any;
+  }
+  /** Lay the washes over `target` (the composite), each only while its mesh is shown. */
+  render(renderer, camera, target) {
+    if (!this.bound || !this.list.length) return;
+    if (!this.show()) return;
     this.uniforms.uRes.value.set(target?.width ?? 1, target?.height ?? 1);
     renderer.setRenderTarget(target);
     renderer.render(this.scene, camera);

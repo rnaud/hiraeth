@@ -23,6 +23,11 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && 'uRes' in u && 'uInk' in u && spec.transparent && !('uMode' in u) && !('uColor' in u)) {
     return { id, name: spec.name ?? '', port: 'wisp', side: 2, plain: 1 };
   }
+  // a see-through surface's body (src/veil.js Veils: a wash over the finished picture, tested by hand against the
+  // G-buffer's depth) → the bridge's Hiraeth/Veil: its colour, alpha a layer, glow, how near the eye it fades out
+  if (spec.type === 'shader' && Array.isArray(u.uWash) && u.uWash.length === 3 && Array.isArray(u.uColor) && spec.transparent && spec.depthTest === false) {
+    return { id, name: spec.name ?? '', port: 'veil', color: u.uColor.map(r5), alpha: r5(u.uWash[0]), glow: r5(u.uWash[1]), near: r5(u.uWash[2]), side: spec.side ?? 2, plain: 1 };
+  }
   // another of the game's shaders that the port has its own of: the fire's (story/flames.js → Hiraeth/Flame)
   if (spec.type === 'shader' && Array.isArray(u.uPal) && u.uPal.length >= 15) {
     return { id, name: spec.name ?? '', port: 'flame', pal: u.uPal.slice(0, 15).map(r5), seed: typeof u.uSeed === 'number' ? u.uSeed : 0, k: typeof u.uK === 'number' ? u.uK : 1, side: 2, plain: 1 };
@@ -78,6 +83,8 @@ export function portMaterial(spec, id = 0) {
     if (x === undefined || x === null || typeof x === 'object' && !Array.isArray(x)) continue;
     e[k] = typeof x === 'number' ? x : x.map(r5);
   }
+  // see-through but for its rim (makeMaterial({ veil }): |n·v| over it discarded in the G-buffer; its body is the wash above)
+  if (v('uVeil') > 0) e.veil = r5(v('uVeil'));
   if (spec.defines?.FLUID) e.fluid = 1;
   if (Array.isArray(u.uFluidBase)) e.fluidBase = u.uFluidBase.map(r5);
   if (spec.defines?.DISSOLVE) e.dissolveOn = 1;

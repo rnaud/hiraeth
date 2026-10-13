@@ -5,6 +5,7 @@
 //   inkSpec(material) → {
 //     type: 'ink' | 'basic' | 'shader' | 'other',  // makeMaterial's G-buffer surface, a plain colour, another shader
 //     name, side (0 front, 1 back, 2 double), transparent, opacity, vertexColors, depthWrite, depthTest,
+//     visible (false: three draws nothing with it: a shaft of light's mesh, drawn only as its wash),
 //     defines: { METAL: 1, … },
 //     u: { uColor: [r, g, b], uMode: 1, uGlow: 0, … }   // every uniform the material has of its own
 //   }
@@ -36,7 +37,7 @@ export function plainValue(v) {
 export function inkSpec(m) {
   const spec = {
     type: 'other', name: m.name || '', side: m.side ?? 0, transparent: !!m.transparent, opacity: m.opacity ?? 1,
-    vertexColors: !!m.vertexColors, depthWrite: m.depthWrite !== false, depthTest: m.depthTest !== false,
+    vertexColors: !!m.vertexColors, depthWrite: m.depthWrite !== false, depthTest: m.depthTest !== false, visible: m.visible !== false,
     defines: {}, u: {},
   };
   if (m.userData?.albedoLinear) spec.albedoLinear = true;
