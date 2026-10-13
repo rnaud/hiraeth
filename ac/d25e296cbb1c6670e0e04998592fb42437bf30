@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_6e4cd8cf7a352b 7-10
+docs/README.md
+  s_9ca76055a220ed::t_8efb3715011b4b 26
+docs/audits/dialogue-v1.66.md
+  s_9ca76055a220ed::t_6d6e89edc39a2d 253
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_99a90d75003817 92
+scripts/audits-data.mjs
+  s_9ca76055a220ed::t_eae56110c7592f 13,64-67,72
+src/changelog-media.js
+  s_9ca76055a220ed::t_71883e6564a315 766-767,770-781
+src/changelog.js
+  s_9ca76055a220ed::t_31d88920342720 26-32
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_7e95445fa91934 28,110
+tests/audits-page.test.js
+  s_9ca76055a220ed::t_94056a1d2eedf7 92,99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "acd25e296cbb1c6670e0e04998592fb42437bf30",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
