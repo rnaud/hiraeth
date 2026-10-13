@@ -34,6 +34,15 @@ export const CHANGELOG = [
     'The Glass Dunes’ clock moment has a fourth shot, low by a great cog turning in the sand, before his face.',
     'Landing in the City Floating in Space no longer flashes black frames as the ship comes down over the void.',
     'On the cinematics review page, the sky stones’ bell and the Deep Wood’s pools play their own scenes again instead of an empty stretch of sand.',
+    // the Givers' guard redone to its turnaround: the sword's water as a disc (src/blade-shader.js BLADE_DISC, src/shield.js
+    // shieldMaterial, Disc), strapped round the left forearm (src/blade-grip.js forearmMount, forearmFrame), the arm braced
+    // across when raised (ShieldDevice.brace); docs/systems/foes.md "In the hands"; issue #284)
+    { text: 'The Givers’ guard is redrawn after its design sheet. It is strapped round your left forearm now, a brass flower on a leather bracer, and raising it brings the arm across your chest like a real shield. Open, its six brass petals spread inside a riveted ring and the fluid floods out round them as a disc of the same living green water as your sword, swirling round the hub, with its pale lemon rim. Seen from behind you it stays see-through, so you still see what you are guarding against. The guard that rises out of its chest is the same.',
+      see: 'Hold LB / L1 (Ctrl on the keyboard) and turn the camera round to the front: the swirling green disc on your forearm. Let go: it folds back to the brass flower on its strap. The guard’s chest in the Rose House shows the same.' },
+    // the wings and the fluid gun's glove come out of their chests as before v1.66: only the sword and the guard were
+    // to be the things in use (src/boxes/model.js wingsModel, src/gadgets/gun.js; issue #283)
+    { text: 'The fluid wings and the fluid gun’s glove come out of their chests as they did before 1.66: the wings as three leaves of colour on a brass rod, the glove brown with its cream cuff. Only the Givers’ blade and guard rise as the ones you use.',
+      see: 'Open the wings’ chest in Vael’s Aerie or the gun’s in the Givers’ Hearth, or look at them in the menu’s Items.' },
   ] },
   { v: '1.66', date: '2026-10-13', items: [
     // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own
@@ -68,15 +77,10 @@ export const CHANGELOG = [
     // (src/minigames/pirates.js, pirates-rules.js, kit/runner.js, src/ui.js; docs/systems/minigames.md; issue #224)
     { text: 'The chime pirates no longer open on a start screen: after the take-off the fight counts in at once, its buttons shown small at the bottom right. Your ship carries four missiles too, on LT / L2 (F on the keyboard): each locks the pirate nearest your aim, marked with a teal diamond, and chases it down; a repair ring gives one back. Once you have beaten the pirates, which way pushing up flies is in Settings, under Game.',
       see: 'Fly to a world you have never visited: the pirates’ fight starts straight after the take-off, the controls at the bottom right with your missiles under them. Press LT / L2 (or F) with a raider in the teal diamond.' },
-    // the reveals: what comes out of a chest is the thing in use: the held sword, the raised guard (src/boxes/model.js
-    // buildItemModel, tickItem; src/fluid-sword.js, src/shield.js buildShieldFace; docs/systems/boxes.md "What comes out";
-    // issue #242; the wings and the gun's glove left as they were: issue #283)
-    'What comes out of a chest now looks like what you will use. The Givers’ blade rises as the broad blade of living fluid you swing, with its brass cup, wrapped grip, flowing currents and glow, not a thin green spike, and the Givers’ guard comes out as the one you raise. Their pictures in the menu, and those of Anselm’s upgrades for them, match.',
-    // the Givers' guard redone to its turnaround: the sword's water as a disc (src/blade-shader.js BLADE_DISC, src/shield.js
-    // shieldMaterial, Disc), strapped round the left forearm (src/blade-grip.js forearmMount, forearmFrame), the arm braced
-    // across when raised (ShieldDevice.brace); docs/systems/foes.md "In the hands"; issue #284)
-    { text: 'The Givers’ guard is redrawn after its design sheet. It is strapped round your left forearm now, a brass flower on a leather bracer, and raising it brings the arm across your chest like a real shield. Open, its six brass petals spread inside a riveted ring and the fluid floods out round them as a disc of the same living green water as your sword, swirling round the hub, with its pale lemon rim. Seen from behind you it stays see-through, so you still see what you are guarding against. The guard that rises out of its chest is the same.',
-      see: 'Hold LB / L1 (Ctrl on the keyboard) and turn the camera round to the front: the swirling green disc on your forearm. Let go: it folds back to the brass flower on its strap. The guard’s chest in the Rose House shows the same.' },
+    // the reveals: what comes out of a chest is the thing in use: the held sword, the raised guard's face, the open wings, the worn
+    // glove's colours (src/boxes/model.js buildItemModel, tickItem; src/fluid-sword.js, src/shield.js buildShieldFace,
+    // src/fluid-kit.js, src/gadgets/gun.js; docs/systems/boxes.md "What comes out"; issue #242)
+    'What comes out of a chest now looks like what you will use. The Givers’ blade rises as the broad blade of living fluid you swing, with its brass cup, wrapped grip, flowing currents and glow, not a thin green spike; the Givers’ guard comes out open, its brass petals and bright rim of fluid as when you raise it; the fluid wings open as they do over a glide; and the fluid gun’s glove is the dark one you wear, with its lavender band and its lights. Their pictures in the menu, and those of Anselm’s upgrades for them, match.',
     // the Map as wide as the page: its shape the page's box's (src/world-map.js mapAspect, mapBounds aspect, MapView.aspect;
     // src/game-menu.js mapBoxAspect, mapFit; src/game-menu.css; docs/systems/ui.md "As wide as the page"; issue #272)
     'The game menu’s Map fills its page now instead of sitting in a square with empty paper either side: it shows a wider stretch of the world, east and west of the places you know, on a desktop screen and on a handheld alike, with the compass, the scale bar and the zoom buttons in its corners.',
