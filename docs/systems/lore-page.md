@@ -37,5 +37,22 @@ use reference picks (`src/lore-page/pictures.js` SOURCES) made small by `node sc
 the Deck leave them out (`scripts/web-update.mjs` LORE_FILE, `scripts/site-only.mjs`); the page drops a picture that
 does not load.
 
+## Notes on everything
+
+Every part (each story part, the traveller and his gear, each world, temple, gadget, guardian, person and item) has a
+small **Note** button. It opens one box: write a comment, Send (or ⌘/Ctrl + Enter). The note goes through the Notes
+page's own path, `POST /api/notes/issues` on the same origin with the notebook's signed-in cookie (`worker/issues.js`;
+no token or password on the page), as `{ text, source: 'lore' }`:
+
+- the issue's **title** is the comment's first line;
+- its **body** is the comment, then `On the lore page: **<the part>** (https://hiraeth.alexandria-rnaud.workers.dev/lore#<anchor>)`,
+  then `Added from the Hiraeth lore page.` (the Worker's footer for `source: 'lore'`; any other source is the
+  notebook's own).
+
+Not signed in, the box sends you to the Notes page to unlock it first. Away from the Worker (GitHub Pages, a bundled
+copy) it says notes are filed from the Hiraeth site and links to the same part of the page there. A draft is kept
+while the page is open. `src/lore-page/notes.js` is pure but for `fetch`.
+
 `tests/lore-page.test.js` checks the page against the data (every route world, temple, guardian, gadget and item;
-the ending folded; every picture and link there).
+the ending folded; every picture and link there), the note's request (the Notes API, its body, a fake fetch) and the
+Worker's footer (a fake GitHub). No test files a real issue.

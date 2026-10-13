@@ -9,6 +9,10 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.65', date: '2026-10-13', items: [
+    // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own
+    // meshes drawn by nothing (engine/game.js veilsFrame, port-format.js, Veil.shader; docs/systems/engine-bridge.md
+    // "See-through surfaces"; issue #263)
+    'In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.',
     // the screen while playing (docs/systems/ui.md): the gadget chip (src/gadgets/hud.js, issue #240), the talk prompt
     // (src/talk-prompt.js, issue #241), the notices and their pace (index.html #toast, src/notice-pace.js, issue #221),
     // the charge's card and the objective card (src/story/charge.js, src/ship/cinema.js, issue #222)
@@ -46,8 +50,8 @@ export const CHANGELOG = [
     { text: 'The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.',
       see: 'Open any makers’ chest: the first is on the dais at the foot of Qanat’s tree.' },
     // the lore page (lore.html, src/lore-page/, scripts/lore-data.mjs; docs/systems/lore-page.md; issues #268, #269)
-    { text: 'A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold.',
-      see: 'Open Lore from the What changed page or the Notes page (hiraeth.alexandria-rnaud.workers.dev/lore).' },
+    { text: 'A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold. Signed in to the notebook, every part has a Note button that files your comment as an issue.',
+      see: 'Open Lore from the What changed page or the Notes page (hiraeth.alexandria-rnaud.workers.dev/lore). Press Note on any part, write a line and send it.' },
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state
@@ -74,10 +78,6 @@ export const CHANGELOG = [
     // the conversations' gestures in the engines: public/anim/gestures.glb attached to the clip library (engine/game.js,
     // src/motion-match.js attachMotion; -js-off gestures without), the traveller's locoMoves off (no moves.glb there); issues #197, #264
     'In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.',
-    // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own
-    // meshes drawn by nothing (engine/game.js veilsFrame, port-format.js, Veil.shader; docs/systems/engine-bridge.md
-    // "See-through surfaces"; issue #263)
-    'In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.',
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

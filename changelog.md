@@ -4,7 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.65 — 2026-10-13
 
-- A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold.
+- A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold. Signed in to the notebook, every part has a Note button that files your comment as an issue.
 - The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.
 - You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.
 - Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.
@@ -17,10 +17,10 @@ The same release notes shown in the game (press **N** or open settings).
 - Hints and notices at the top are a dark strip with light letters, easy to read over the bright desert, narrower and one short line each. Teaching hints come at most every twenty seconds, the same words are not said twice in a row of minutes, a hint you have already acted on is dropped, and none come with Hints off. Every hint line and every world’s arrival words were cut down to fit.
 - The prompt to talk to someone sits right beside them, just below the shoulder, instead of over their head; near the edge of the screen it moves to their other side.
 - The gadget in your hands is a small picture in the top right corner now, nothing else: no name, no button, no count. A thin ring round it shows how much is left, and it pops with a gold ring when you change gadget.
+- In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.
 
 ## v1.64 — 2026-10-12
 
-- In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.
 - In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.
 - The Unity preview’s Start menu has What’s new, the newest versions’ changes as the game lists them, and its Controls page lets you move each verb to another button as the game’s does: choose a verb, press its new button (Menu keeps it as it was), with the ones that share a button marked, Run and Guard held or toggled, and Reset to defaults.
 - In the Unity preview the Map shows the ground under its marks, drawn as the game draws it: the bands of height, the contours, the cliffs and walls inked, the water in teal, with a scale bar. It is drawn the first time you open the Map in a world, in a moment.

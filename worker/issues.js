@@ -10,6 +10,8 @@ export const COOKIE = '__Host-hiraeth-notes';
 const SESSION_SECONDS = 400 * 24 * 60 * 60;
 const encoder = new TextEncoder();
 const API = `https://api.github.com/repos/${REPOSITORY}/issues`;
+/** The issue's last line, by the page the note came from (a POST's `source`; anything else is the notebook's). */
+export const SOURCES = { notebook: 'Added from the Hiraeth notebook.', lore: 'Added from the Hiraeth lore page.' };
 
 function json(data, status = 200, headers = {}) {
   return Response.json(data, { status, headers: {
@@ -174,7 +176,9 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
       return failure(400, 'Write a note, up to 4,000 characters.');
     }
     const title = text === undefined ? body?.title : text.trim().split(/\r?\n/)[0].trim().slice(0, 256);
-    const description = text === undefined ? 'Added from the Hiraeth notebook.' : `${text.trim()}\n\nAdded from the Hiraeth notebook.`;
+    // (where the note was written: the notebook, or one of the pages that file notes through it, SOURCES)
+    const footer = typeof body?.source === 'string' && Object.hasOwn(SOURCES, body.source) ? SOURCES[body.source] : SOURCES.notebook;
+    const description = text === undefined ? footer : `${text.trim()}\n\n${footer}`;
     if (typeof title !== 'string' || !title.trim() || title.trim().length > 256 || /[\r\n\u0000-\u001f\u007f]/.test(title)) {
       return failure(400, 'Write one line, up to 256 characters.');
     }

@@ -14,6 +14,9 @@ Unsent drafts and the optimistic outbox are kept in localStorage on that device.
 in the list with Check GitHub, Retry and Remove draft actions. Reloaded pending notes become unconfirmed;
 there are no automatic write retries. If delivery is uncertain, refresh the list before resending.
 
+Other pages file notes through the same API: the lore page's Note buttons (`docs/systems/lore-page.md`) send
+`source: 'lore'`, and their issues end "Added from the Hiraeth lore page." instead (`worker/issues.js` SOURCES).
+
 ## Worker setup
 
 The existing `hiraeth` Worker handles `/api/notes/*` before static assets. The API is fixed to

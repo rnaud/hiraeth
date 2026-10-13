@@ -1,16 +1,19 @@
 // The lore page (lore.html, src/lore-page/, docs/systems/lore-page.md; issues #268, #269): built from the game's
-// data (every world on the route, its temples, guardians and gadgets, every item, no missing pictures), and built by vite.
+// data (every world on the route, its temples, guardians and gadgets, every item, no missing pictures), a Note on
+// every part filed through the Notes page's own API with the lore page's footer, and built by vite.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { buildLore, lorePlugin, LORE_MODULE } from '../scripts/lore-data.mjs';
 import { lorePage, lorePictures } from '../src/lore-page/view.js';
+import { noteText, noteRequest, fileNote, signedIn, notesHere, LORE_URL } from '../src/lore-page/notes.js';
 import { SOURCES } from '../src/lore-page/pictures.js';
 import { WORLD_LORE, THREAD } from '../src/lore-page/lore-text.js';
 import { ORDER } from '../src/levels/names.js';
 import { TEMPLES, templesIn } from '../src/temples/index.js';
 import { ITEMS } from '../src/items.js';
 import { BUILD_INPUT } from '../vite.config.js';
+import { handleIssues, SOURCES as FOOTERS } from '../worker/issues.js';
 import { LORE_FILE } from '../scripts/web-update.mjs';
 import { siteOnly } from '../scripts/site-only.mjs';
 
@@ -87,4 +90,50 @@ test('no missing pictures, and every Note names its part', () => {
   for (const a of anchors) assert.ok(html.includes(`id="${a}"`), `${a}: the Note's part is on the page`);
   for (const m of html.matchAll(/href="#([^"]+)"/g)) assert.ok(html.includes(`id="${m[1]}"`), `#${m[1]}: a link to a part of the page`);
   for (const m of html.matchAll(/data-label="([^"]*)"/g)) assert.ok(m[1].trim(), 'a label');
+});
+
+test('a note: the comment, what it is about, and the Notes page\'s API with the lore page\'s footer', async () => {
+  const ref = { anchor: 'guardian-desert', label: 'The Keeper of the cistern (The Rose House)' };
+  assert.equal(noteText('  Too easy\nThe braziers light themselves.  ', ref),
+    `Too easy\nThe braziers light themselves.\n\nOn the lore page: **The Keeper of the cistern (The Rose House)** (${LORE_URL}#guardian-desert)`);
+  const calls = [];
+  const fake = async (url, options) => { calls.push({ url, options }); return Response.json({ issue: { number: 301, title: 'Too easy' } }, { status: 201 }); };
+  const issue = await fileNote('Too easy\nThe braziers light themselves.', ref, fake);
+  assert.equal(issue.number, 301);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, '/api/notes/issues', 'the Notes page\'s own endpoint, same origin');
+  assert.equal(calls[0].options.method, 'POST');
+  assert.equal(calls[0].options.credentials, 'same-origin', 'its session cookie, no token');
+  assert.equal(calls[0].options.headers['Content-Type'], 'application/json');
+  assert.deepEqual(JSON.parse(calls[0].options.body), noteRequest('Too easy\nThe braziers light themselves.', ref));
+  assert.equal(JSON.parse(calls[0].options.body).source, 'lore');
+  await assert.rejects(fileNote('   ', ref, fake), /Write a line/);
+  await assert.rejects(fileNote('x', ref, async () => Response.json({ error: 'Please unlock your notebook again.' }, { status: 401 })), (e) => e.status === 401);
+  assert.equal(await signedIn(async () => Response.json({ authenticated: true })), true);
+  assert.equal(await signedIn(async () => { throw new Error('offline'); }), false);
+  assert.equal(notesHere({ hostname: 'hiraeth.alexandria-rnaud.workers.dev' }), true);
+  assert.equal(notesHere({ hostname: 'localhost' }), true);
+  assert.equal(notesHere({ hostname: 'rnaud.github.io' }), false, 'GitHub Pages: the box links to the Notes site');
+});
+
+test('the Worker files a lore note with its title from the first line and the lore page\'s footer', async () => {
+  const origin = 'https://notebook.example', now = Date.UTC(2026, 9, 13);
+  const allow = { limit: async () => ({ success: true }) };
+  const env = { HIRAETH_ISSUES_TOKEN: 'test-github-token', HIRAETH_NOTES_PASSWORD: 'testpw', NOTES_LOGIN_LIMITER: allow, NOTES_WRITE_LIMITER: allow };
+  const post = (path, body, cookie) => new Request(`${origin}/api/notes/${path}`, { method: 'POST', body: JSON.stringify(body), headers: { Origin: origin, 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) } });
+  const login = await handleIssues(post('session', { password: 'testpw' }), env, () => { throw new Error('no GitHub'); }, now);
+  const cookie = login.headers.get('Set-Cookie').split(';')[0];
+  const ref = { anchor: 'item-hook', label: 'Grappling hook' };
+  const sent = [];
+  const github = async (url, options) => { sent.push(JSON.parse(options.body)); return Response.json({ number: 7, title: 'x', labels: [] }, { status: 201 }); };
+  const r = await handleIssues(post('issues', noteRequest('The hook should reach further\nIt stops short of the ledges.', ref), cookie), env, github, now);
+  assert.equal(r.status, 201);
+  assert.equal(sent[0].title, 'The hook should reach further');
+  assert.equal(sent[0].body, `${noteText('The hook should reach further\nIt stops short of the ledges.', ref)}\n\n${FOOTERS.lore}`);
+  assert.equal(FOOTERS.lore, 'Added from the Hiraeth lore page.');
+  // the notebook's own notes keep theirs; an unknown source is the notebook's
+  for (const source of [undefined, 'constructor', 'nope']) {
+    await handleIssues(post('issues', { text: 'A plain note', ...(source ? { source } : {}) }, cookie), env, github, now);
+    assert.equal(sent.at(-1).body, 'A plain note\n\nAdded from the Hiraeth notebook.');
+  }
 });

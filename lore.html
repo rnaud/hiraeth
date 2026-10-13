@@ -38,7 +38,13 @@
   .said { font-style: italic; color: var(--soft); }
   em { font-style: italic; }
 
-  .note-btn { display: none; }
+  /* the Note button: small, on every part */
+  .note-btn { flex: none; padding: 1px 8px; font-size: 11px; letter-spacing: 0.06em; background: transparent; border: 1.5px solid var(--ink); border-radius: 10px; cursor: pointer; opacity: 0.55; }
+  .note-btn:hover, .note-btn:focus-visible { opacity: 1; background: var(--card); }
+  .note-btn::before { content: '✎ '; }
+  .note-btn.noted { opacity: 1; background: var(--jade); color: #fff; border-color: var(--jade); }
+  .note-btn.noted::before { content: '✓ '; }
+
   .part, .temple, .guardian, .item, .person { background: var(--card); border: 2px solid var(--ink); padding: 12px 14px; }
   .part { margin-bottom: 14px; box-shadow: 4px 4px 0 var(--ink); }
   details.ending { margin-top: 8px; border-top: 1.5px dashed var(--rule); padding-top: 6px; }
@@ -87,6 +93,19 @@
   .key-to { border-left: 3px solid var(--jade); padding-left: 8px; }
   .where { margin: 4px 0 0; padding-left: 18px; font-size: 13px; }
 
+  /* the note box */
+  dialog { width: min(520px, calc(100vw - 24px)); padding: 14px 16px; background: var(--card); color: var(--ink); border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+  dialog::backdrop { background: rgba(43, 33, 31, 0.35); }
+  dialog h2 { font-size: 14px; border: 0; margin: 0 0 2px; }
+  #note-about { margin: 0 0 10px; font-weight: bold; }
+  #note-text { width: 100%; min-height: 120px; padding: 8px; background: #fff; border: 2px solid var(--ink); resize: vertical; }
+  .row { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--soft); }
+  .row button, #note-close { padding: 4px 12px; background: var(--ink); color: var(--paper); border: 2px solid var(--ink); cursor: pointer; font-family: ui-monospace, Menlo, monospace; }
+  #note-close { background: var(--card); color: var(--ink); }
+  #note-status { margin: 8px 0 0; font-size: 14px; }
+  #note-status.error { color: var(--bad); }
+  .box-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+
   @media (max-width: 760px) {
     body > header { position: static; }
     html, body { font-size: 14.5px; }
@@ -100,9 +119,20 @@
 <header>
   <h1 class="debug-room">THE LORE</h1>
   <nav id="sections" aria-label="The page’s parts"></nav>
-  <div class="links"><a class="btn" href="notes.html">Notes</a><a class="btn" href="changelog.html">What changed</a><a class="btn" href="items.html">Items</a><a class="btn" href="./">Play</a></div>
+  <div class="links"><a class="btn" id="notes-link" href="notes.html">Notes</a><a class="btn" href="changelog.html">What changed</a><a class="btn" href="items.html">Items</a><a class="btn" href="./">Play</a></div>
 </header>
 <main id="lore"></main>
+<dialog id="note-box" aria-labelledby="note-title">
+  <h2 id="note-title">A note on</h2>
+  <p id="note-about"></p>
+  <form id="note-form" hidden>
+    <label class="mono" for="note-text" style="font-size:12px">The first line is the issue’s title.</label>
+    <textarea id="note-text" required placeholder="What should change here?"></textarea>
+    <div class="row"><span>⌘/Ctrl + Enter to send · filed as a GitHub issue</span><button id="note-send" type="submit">Send</button></div>
+  </form>
+  <p id="note-status" role="status" aria-live="polite"></p>
+  <div class="box-foot"><button id="note-close" type="button">Close</button></div>
+</dialog>
 <noscript><p>Turn on JavaScript to read the lore.</p></noscript>
 <script type="module" src="/src/lore-page/main.js"></script>
 <script type="module" src="/src/debug-back-page.js"></script>
