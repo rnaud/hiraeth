@@ -19,6 +19,9 @@ export const CHANGELOG = [
     'Fixed: a group of buildings and rocks far off could vanish for a frame as their distant detail changed, most often in the City-Shaft just after arriving.',
     // the traveller's face inked from his approved portrait (src/characters/portrait-head.js PORTRAIT_FACE_INK,
     // scripts/tripo/bake-face-ink.mjs; docs/systems/characters.md "The face's ink"; issue #198)
+    // one id, one person: the capstan man is Ewart ('ewart', was 'bram'), Hobb and Aldo off Pell's 'pell'
+    // (src/levels/space-city.js, src/temples/bazaar-data.js, src/save-migrate.js step 24, tests/people-names.test.js; issue #251)
+    'Fixed: meeting the man at the capstan in the City Floating in Space no longer counts as meeting Bram, who minds Lorn’s root cave: they shared a name. The capstan man is Ewart now. Likewise Hobb, who listens at the Undertower’s stones, and Aldo on the waterfall city’s balcony each count as themselves, not as the Desert’s Pell, and Hobb greets you as a stranger the first time.',
     'The traveller’s face is inked the way his portrait is drawn: a light line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, a few freckles on his cheek, and one clean line for his jaw with fine hatching on the throat in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [

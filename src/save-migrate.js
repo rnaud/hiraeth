@@ -81,6 +81,15 @@
 // save keeps its count world by world; a found flag on a slot that moved goes to one that didn't and is still to find,
 // so the new places show (an old spot nobody reached is counted instead): step 23 (FRAGMENTS_MOVED_228). The
 // Floating city's anchor-minder is Tilde now ('tilde', she was 'odile': Viridel's Odile is Odile and Talo's; #229).
+// The Floating city's capstan man shared the name and the id 'bram' with Lorn's cave-mouth keeper (#251, v1.63): he is
+// Ewart ('ewart'). Step 24 moves a save's `met.bram`, `talks.bram` and `said.bram.*` to him when only the Floating city
+// can have given them (the city visited, nothing of the Deep Wood's or the White Mangrove's, where Lorn's Bram sits, and
+// no answer said to Lorn's Bram). When both worlds could have, the save cannot tell: Lorn's Bram (the older, the one with
+// a conversation) keeps them, and Ewart counts as met only if the span was reeled at his capstan (BRAM_251). Lorn
+// finished (`world.perdide.done`) counts as the Deep Wood walked. Two more shared the desert's Pell's id 'pell': Hobb,
+// who listens at the Undertower's stones ('hobb'), and the waterfall city's Aldo ('aldo'). Pell keeps every `pell` flag
+// (the first world: he is always met); Hobb counts as met if his Undertower was started or entered, Aldo if his sighting
+// was heard (SHARED_PELL_251).
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -246,7 +255,34 @@ const STEPS = [
   (flags) => migrateFragments196(flags),
   // 23: the fragments re-placed over the new country (issue #228, v1.61), and the anchor-minder renamed (issue #229)
   (flags) => migrateFragments228(flags),
+  // 24: the Floating city's capstan man is Ewart, not a second Bram; Hobb and Aldo are not Pell (issue #251, v1.63)
+  (flags) => migrateBram251(flags),
 ];
+/** Step 24's ids and the worlds where Lorn's Bram can be met (the Deep Wood's part of Lorn, the White Mangrove). */
+export const BRAM_251 = { from: 'bram', to: 'ewart', city: 'spacecity', lorn: ['perdide2', 'mangrove'], lornDone: 'world.perdide.done', reeled: 'spacecity.drift.reeled' };
+/** Step 24's two who shared the desert's Pell's id: their new id, and the flags that show they were met. */
+export const SHARED_PELL_251 = [
+  { to: 'hobb', any: ['quest.temple.bazaar', 'temple.bazaar.entered', 'temple.bazaar.done'] },
+  { to: 'aldo', any: ['sight.waterfall.pell'] },
+];
+/** Step 24 (pure, in place): the capstan man's flags moved off Lorn's Bram when the save can only have met him; Hobb and Aldo met. */
+export function migrateBram251(flags) {
+  if (flags['met.pell']) for (const { to, any } of SHARED_PELL_251) if (any.some((k) => flags[k])) flags[`met.${to}`] ??= true;
+  const { from, to, city, lorn, lornDone, reeled } = BRAM_251;
+  const mine = Object.keys(flags).filter((k) => k === `met.${from}` || k === `talks.${from}` || k.startsWith(`said.${from}.`));
+  if (!mine.length || !visited(flags, city)) return flags;
+  const lornToo = lorn.some((w) => visited(flags, w)) || !!flags[lornDone] || mine.some((k) => k.startsWith('said.'));
+  if (lornToo) {   // (can't tell: Lorn's Bram keeps his; the capstan man met if the span was reeled beside him)
+    if (flags[`met.${from}`] && flags[reeled]) flags[`met.${to}`] ??= true;
+    return flags;
+  }
+  for (const k of mine) {
+    const [kind, ...rest] = k.split('.');
+    flags[[kind, to, ...rest.slice(1)].join('.')] ??= flags[k];
+    delete flags[k];
+  }
+  return flags;
+}
 /** The slots of src/fragments-data.js whose spots moved in v1.61 (issue #228), world by world: step 23. */
 export const FRAGMENTS_MOVED_228 = {
   arzach: [1, 3, 4], perdide: [2, 4, 5], edena: [2, 3, 6], underwater: [0, 2, 4, 5, 6], buried: [0],

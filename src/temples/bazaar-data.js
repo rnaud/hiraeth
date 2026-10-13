@@ -12,15 +12,16 @@ export const QUEST = {
 };
 
 export const PEOPLE = {
-  pell: {
-    id: 'pell', name: 'Hobb', title: 'who listens at the old stones', color: '#88b4b5', voice: 0.95, kind: 'm',
+  // (Hobb was 'pell' until #251, the id of the desert's Pell: meeting one marked the other met)
+  hobb: {
+    id: 'hobb', name: 'Hobb', title: 'who listens at the old stones', color: '#88b4b5', voice: 0.95, kind: 'm',
     palette: { cloak: '#3a535b', lining: '#f0a083', cloth: '#f5dfab', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hair', cape: 0.7,
     lines: ['~whisper~ Shh. There. Did you hear it?', '~neutral~ One word. All night. Every night.', '~curious~ You’ve got good ears. Have you been down?'],
     talk: {
       entry: [
         { if: { flag: 'temple.bazaar.done' }, node: 'after' },
         { if: { flag: 'temple.bazaar.entered' }, node: 'inside' },
-        { if: { flag: 'met.pell' }, node: 'again' },
+        { if: { flag: 'met.hobb' }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
@@ -28,7 +29,7 @@ export const PEOPLE = {
           say: ["~whisper~ (A man has his ear against the paving at the tower’s foot. One raised finger asks you to wait.) Nearly. Listen.",
             "~solemn~ *Somebody.* There it is again. I listen to this stone. Everyone else here is trying to be louder than the next stall.",
             "~curious~ Below us is *the Undertower*, older than the market. They say it once spoke a whole sentence. Since the night every sign showed the mark, it can only repeat that first word."],
-          do: { set: { 'met.pell': true } },
+          do: { set: { 'met.hobb': true } },
           choices: [
             { text: '~neutral~ I’ll go down to it.', do: { start: 'temple.bazaar' }, goto: 'go' },
             { text: '~curious~ What was the whole line?', goto: 'line' },

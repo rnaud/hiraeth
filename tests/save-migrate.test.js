@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 23);   // (23: the fragments re-placed and the anchor-minder renamed, v1.61)
+  assert.equal(MIGRATED(), 24);   // (24: the capstan man, Hobb and Aldo given ids of their own, v1.63)
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -391,4 +391,34 @@ test('the last two report-backs (issue #183, step 21): a save sent down to Nima 
   assert.equal(ilo.id, 'below');
   assert.equal(ilo.flag, 'desert.cave.seen');
   assert.equal(migrateTells183({ 'quest.desert.ilo': 'below' })['quest.desert.ilo'], 'below');
+});
+
+test('the capstan man is Ewart (issue #251, step 24): his flags leave Lorn’s Bram only when the Floating city alone can have given them', async () => {
+  const { migrateBram251 } = await import('../src/save-migrate.js');
+  // only the Floating city: every Bram flag is Ewart's
+  const city = migrateBram251({ 'met.bram': true, 'talks.bram': 3, 'quest.spacecity.main': 'cables', 'spacecity.drift.reeled': true });
+  assert.equal(city['met.ewart'], true); assert.equal(city['talks.ewart'], 3);
+  assert.equal(city['met.bram'], undefined); assert.equal(city['talks.bram'], undefined);
+  // only Lorn: nothing moves
+  const lorn = migrateBram251({ 'met.bram': true, 'talks.bram': 2, 'quest.perdide2.skiff': 'fen', 'perdide2.lamps.lit': true });
+  assert.equal(lorn['met.bram'], true); assert.equal(lorn['talks.bram'], 2); assert.equal(lorn['met.ewart'], undefined);
+  // both (can't tell): Lorn's Bram keeps his; Ewart met if the span was reeled at his capstan, not otherwise
+  const both = migrateBram251({ 'met.bram': true, 'talks.bram': 4, 'perdide2.lamps.lit': true, 'spacecity.drift.reeled': true });
+  assert.equal(both['met.bram'], true); assert.equal(both['talks.bram'], 4); assert.equal(both['met.ewart'], true); assert.equal(both['talks.ewart'], undefined);
+  assert.equal(migrateBram251({ 'met.bram': true, 'world.perdide.done': true, 'quest.spacecity.main': 'cables' })['met.ewart'], undefined, 'Lorn finished: its Deep Wood walked');
+  assert.equal(migrateBram251({ 'met.bram': true, 'mangrove.seen': true, 'quest.spacecity.main': 'cables' })['met.bram'], true, 'the Mangrove’s Bram is Lorn’s');
+  // an answer said to Bram is Lorn's Bram's (the capstan man has only lines)
+  const said = migrateBram251({ 'met.bram': true, 'said.bram.hello.0': true, 'quest.spacecity.main': 'cables' });
+  assert.equal(said['met.bram'], true); assert.equal(said['said.bram.hello.0'], true);
+  // neither met: nothing
+  assert.deepEqual(migrateBram251({ 'quest.spacecity.main': 'cables' }), { 'quest.spacecity.main': 'cables' });
+  // Hobb and Aldo, who had the desert's Pell's id: Pell keeps his; they are met where the save shows it
+  const pell = migrateBram251({ 'met.pell': true, 'talks.pell': 5, 'quest.temple.bazaar': 'down', 'sight.waterfall.pell': true });
+  assert.equal(pell['met.pell'], true); assert.equal(pell['talks.pell'], 5); assert.equal(pell['met.hobb'], true); assert.equal(pell['met.aldo'], true);
+  const desertOnly = migrateBram251({ 'met.pell': true });
+  assert.equal(desertOnly['met.hobb'], undefined); assert.equal(desertOnly['met.aldo'], undefined);
+  // the whole chain: a save from before step 24 gets it once
+  const old = { 'save.migrated': MIGRATED() - 1, 'met.bram': true, 'talks.bram': 1, 'quest.spacecity.main': 'cables' };
+  migrateFlags(old);
+  assert.equal(old['met.ewart'], true); assert.equal(old['met.bram'], undefined); assert.equal(old['save.migrated'], MIGRATED());
 });

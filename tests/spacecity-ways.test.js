@@ -62,7 +62,7 @@ test('the ways are built from their own dice: the city keeps its islands, its br
   assert.ok(!BRIDGES.some((b) => b.name === 'the Moorings bridge'), 'the Moorings bridge went: the way north is up the stack');
   assert.ok(BRIDGES.includes(STACK_BRIDGE), 'the stack bridge from where it left the Towers');
   assert.equal(Object.keys(ISLANDS).length, 9, 'the nine islands you walk as they were');
-  assert.ok(SPACECITY_CONTENT.npcs.some((p) => p.id === 'tilde') && SPACECITY_CONTENT.npcs.some((p) => p.id === 'bram'), 'a moorer at the anchor, one at the capstan');
+  assert.ok(SPACECITY_CONTENT.npcs.some((p) => p.id === 'tilde') && SPACECITY_CONTENT.npcs.some((p) => p.id === 'ewart'), 'a moorer at the anchor, one at the capstan');
   for (const k of ['towers', 'moorings']) assert.ok(OPENINGS[k].length, `${k}: an opening in its parapet`);
   // seven tiers one over another, 88 m from the lowest deck to the highest, the stack's lamp over it
   const ys = Object.values(TIERS).map((t) => t.y);

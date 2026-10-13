@@ -2264,10 +2264,10 @@ were). The Moorings bridge went; `the stack bridge` (`STACK_BRIDGE`) leaves the 
   halves fixed, its middle span a little island of its own (its own group, a `physics.addMover` collider) drifted 7.5 m
   out of line and 2 m down. The moorers' capstan beside the mouth (story: `stackCapstan`, "turn the capstan", A / ×)
   reels it home over 6 s, the drum turning and its cable drawn shorter; the flag `spacecity.drift.reeled` keeps it home
-  (and once the Mooring-House is resolved). Bram works the capstan. The stack bridge is patched with planks; off the
+  (and once the Mooring-House is resolved). Ewart works the capstan (`ewart`; he was `bram` until #251, the id of Lorn's cave-mouth keeper). The stack bridge is patched with planks; off the
   capstan quarter's west side an old bridge hangs in two halves toward an islet that drifted away (`PARTED`).
 - **Leading lines**: `down to the anchor` (the cables stage's `via`), `up the stack` (the Mooring-House's), and `the Lamp
-  Rock bridges` home now starts down the stack. The play-through reels the capstan (`reelCapstan`, at Bram) before the
+  Rock bridges` home now starts down the stack. The play-through reels the capstan (`reelCapstan`, at Ewart) before the
   Mooring-House and checks the walk up the stack a metre at a time (its stairs are narrower than its 2 m grid). The
   tests' walkers see the ways open (`level.openWays(physics, true)`: the span reeled), as a player opens them.
 

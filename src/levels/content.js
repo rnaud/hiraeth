@@ -112,8 +112,8 @@ export const CONTENT = {
     story: { title: 'BEHIND THE WATER', intro: 'A city in a cavern behind a curtain of falling water. Nobody here is waiting for you; have a look round.', outro: 'You have seen the city behind the water.', label: 'the balconies', goal: [-126, 'ground', 34], radius: 6, manual: true },
     relics: { spots: [], names: [] },
     npcs: [
-      // (Aldo: the detour's trace, src/story/sightings-detours.js)
-      { id: 'pell', name: 'Aldo', title: 'who listens at the balcony', color: '#4f7f86', kind: 'm', at: [-123, 34.5], y: 0, radius: 1, facing: 0, palette: pal('#4f7f86', { cloth: '#efe0c4' }),
+      // (Aldo: the detour's trace, src/story/sightings-detours.js; he was 'pell' until #251, the desert's Pell's id)
+      { id: 'aldo', name: 'Aldo', title: 'who listens at the balcony', color: '#4f7f86', kind: 'm', at: [-123, 34.5], y: 0, radius: 1, facing: 0, palette: pal('#4f7f86', { cloth: '#efe0c4' }),
         lines: ['~whisper~ Shh. Listen. Under the roar there’s the valley: goats, a bell, somebody singing badly.', '~happy~ Every child in the city has stood on this balcony and shouted. The water always wins.'],
         talk: { listen: [
           { after: () => true, say: [

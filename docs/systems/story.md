@@ -712,6 +712,15 @@ sound to make it clear I should chat with her".
   "The traveller", is **Naji**. Only names changed: ids and flags are kept (`hask`, `pip.garage`,
   `wick`…), so saves carry on. `tests/names.test.js` fails if two people (story people, the
   level people, the temple guides, the drifters) share a name or a name is "The traveller".
+- **One id, one person** (v1.63, issue #251): the Floating city's capstan man had Lorn's Bram's name and id
+  (`bram`), and the Undertower's Hobb and the waterfall city's Aldo kept the desert's Pell's id (`pell`), so meeting
+  one marked the other met (the People page, Hobb's "again" for a stranger). They are **Ewart** (`ewart`), `hobb` and
+  `aldo`. `src/save-migrate.js` step 24 moves `met/talks/said.bram` to Ewart only when the save has the Floating city
+  and nothing of the Deep Wood (or the White Mangrove, where Lorn's Bram also sits; or Lorn finished); when it can't
+  tell, Lorn's Bram keeps them and Ewart counts as met if the span was reeled at his capstan. Pell keeps `pell`;
+  Hobb is met if his Undertower was started or entered, Aldo if his sighting was heard.
+  `tests/people-names.test.js` fails if one id names two people (two names, two titles, or two home worlds; a
+  traveller, `world` naming their home, is one person).
 - **Names a player can keep apart** (v1.49, issue #141, from the dialogue review
   docs/audits/dialogue-v1.48.md): the desert's temple, the Givers' House, is **the Rose House**
   (the Givers' Hearth is a few minutes away; the pilgrims already called it "the rose-stone

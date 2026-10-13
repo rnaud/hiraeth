@@ -616,7 +616,7 @@ export const BAZAAR_TEMPLE = {
   origin: [-200, 1600, -520], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
-  local: { person: 'pell', out: 6, side: 6 },
+  local: { person: 'hobb', out: 6, side: 6 },
   enterLine: 'Under the silent tower it is cold and dry and very old. Somewhere far down, a voice says one word, and waits, and says it again.',
   pitLine: 'You climb back up out of the cables, to the last glyph stone.',
   onResolved(rt) { rt.notice('Up in the square, the silent tower’s crown is lit. At night it speaks.', 'resolved.out'); },

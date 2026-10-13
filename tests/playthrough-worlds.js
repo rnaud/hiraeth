@@ -432,7 +432,7 @@ export const ROUTE = [
   // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for the Towers' cables (#137), then
   // the Mooring-House north of the Towers)
   // (v1.48: Rosa on the Pier opens the city's own quest: the cables under the Towers, then in at the Mooring-House)
-  { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', { act: 'reelCapstan', at: 'bram', label: 'Bram, at the capstan on the stack' }, 'spacecity.drift', { temple: 'done', id: 'spacecity', home: 'the Lamp Rock bridges' }] },   // (v1.50, #132: Joss sends you home over the Lamp Rock)
+  { id: 'spacecity', play: [{ act: 'meetRosa', at: 'rosa', label: 'Rosa, on the Pier' }, { act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', { act: 'reelCapstan', at: 'ewart', label: 'Ewart, at the capstan on the stack' }, 'spacecity.drift', { temple: 'done', id: 'spacecity', home: 'the Lamp Rock bridges' }] },   // (v1.50, #132: Joss sends you home over the Lamp Rock)
   // (v1.49: and the Undertower to its guardian, its hub's wings and the Choir past the gallery: issue #23)
   { id: 'bazaar', play: ['bazaar.signal', { temple: 'done', id: 'bazaar' }] },
 ];

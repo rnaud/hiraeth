@@ -350,7 +350,7 @@ test('the save: the fragments re-placed in v1.61 keep a save’s count, its foun
   }
   assert.deepEqual(marked, FRAGMENTS_MOVED_228);
   // Lorn: slots 2 and 4 moved and found, 6 found and kept; they go to 0 and 1, the count stays three
-  const old = { 'save.migrated': MIGRATED() - 1, 'frag.met': true, 'frag.perdide.2': true, 'frag.perdide.4': true, 'frag.perdide.6': true, 'met.odile': true, 'talks.odile': 2 };
+  const old = { 'save.migrated': 22, 'frag.met': true, 'frag.perdide.2': true, 'frag.perdide.4': true, 'frag.perdide.6': true, 'met.odile': true, 'talks.odile': 2 };
   migrateFlags(old);
   assert.equal(fragmentCounts(old).worlds.perdide.found, 3);
   assert.deepEqual(Object.keys(old).filter((k) => k.startsWith('frag.perdide.')).sort(), ['frag.perdide.0', 'frag.perdide.1', 'frag.perdide.6']);
