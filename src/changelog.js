@@ -61,7 +61,7 @@ export const CHANGELOG = [
     'The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.',
     // ladders climbed without stamina (level.ladders -> physics.ladders, physics.onLadder, player.updateClimb;
     // docs/systems/movement.md "Ladders are free"; issue #252)
-    { text: 'Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. Climbing a wall tires you as before.',
+    { text: 'Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. The train’s and the foundry’s ladders also climb all the way now: they used to let go at the first rung or hoop. Climbing a wall tires you as before.',
       see: 'On the Overnight Train, climb a porch ladder to the roof walk: the stamina wheel never shows. Then climb a carriage’s side wall: it shows and empties as before.' },
 
     // the Rose House's bellows' wind gone: the Givers' watcher, a sentry whose bolt the guard sends back (src/temples/pieces.js
