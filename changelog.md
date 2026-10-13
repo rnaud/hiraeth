@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.63 — 2026-10-12
 
+- Nine temple guardians give you a little longer to read their quickest move: the Elder’s peck, the Cloud-Mother’s roll, the First Sign’s stutter, the Tooth-Warden’s and the warden’s stomps, the Foreman’s jab, the Mother Snapper’s snap, the Lampless’s flutter and the Echo’s ripple now wind up as long as their other moves.
 - The makers’ machine in the temples is fairer to fight: the floor rumbles as it raises both arms for its ground slam, a jump clears the slam and its ring, and afterwards its claws stay stuck in the floor for a moment, when your cuts land double. A perfect parry of its one-armed swing knocks a plate off it.
 - The antler hound gives you longer to see its pounce coming: it crouches, then coils with its rump up and the smoke along its back standing on end, shivers and snarls before it leaps. It pounces a little less often too.
 - Running across the open desert, the camera no longer jumps in to your back and out again as it swings past a cactus: it looks past a thin trunk or post between you and it, which may hide you for a moment instead.

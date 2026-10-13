@@ -26,7 +26,8 @@ export const POSE_DONE = 0.75;
  * a heavy one (three quarters or more, or a knock-down) · a guardian's own move · a guardian's combo link.
  * (v1.4's combat review flagged the hound's 0.60 s pounce as too short to read.)
  */
-export const WIND_MIN = { chain: 0.4, light: 0.5, ordinary: 0.7, heavy: 0.95, guardian: 1.0, link: 0.6 };
+// (a guardian's own move 1.0 s until v1.63: nine guardians' quickest read 3 in the combat review v1.61, #258)
+export const WIND_MIN = { chain: 0.4, light: 0.5, ordinary: 0.7, heavy: 0.95, guardian: 1.2, link: 0.6 };
 
 /** What an attack is, for its wind-up's minimum. */
 export function windClass(a) {

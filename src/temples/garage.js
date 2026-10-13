@@ -176,7 +176,7 @@ export const FOREMAN = {
   ],
   attacks: {
     hammer: { shape: 'cone', range: 10, angle: 0.7, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
-    jab: { shape: 'cone', range: 7, angle: 0.6, wind: 1.0, track: 0.7, part: 'arms', rig: 'lean', pose: 'cog', damage: 0.5, knock: 8, recover: 0.5, then: 'jab2' },
+    jab: { shape: 'cone', range: 7, angle: 0.6, wind: 1.2, track: 0.7, part: 'arms', rig: 'lean', pose: 'cog', damage: 0.5, knock: 8, recover: 0.5, then: 'jab2' },
     jab2: { shape: 'cone', range: 7, angle: 0.6, wind: 0.65, track: 0.6, part: 'arms', rig: 'lean', pose: 'cog', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'hammerEnd' },
     hammerEnd: { shape: 'cone', range: 10, angle: 0.7, wind: 1.1, track: 0.5, part: 'arms', rig: 'rear', pose: 'hammer', link: true, damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
     chime: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'head', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 1.0, open: 5.6 },

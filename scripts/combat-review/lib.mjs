@@ -177,6 +177,22 @@ export function scoreGuardian(G) {
     why: `body tells ${G.teleMin.toFixed(1)}-${G.teleMax.toFixed(1)} s (links ${G.linkMin ? G.linkMin.toFixed(2) : '-'} s), ${G.attacks.length} moves + ${G.moves - G.attacks.length} links, ${G.combos} combos (up to ${G.comboLen}), open ${G.openMin || '-'} s, ${G.misses} punish a miss, ${G.lobs} lobs, ${G.waves} waves, ${G.phases} phases (new moves ${G.newMoves.join('/') || '-'}), ${G.kind === 'organic' ? 'calmed' : 'broken'}` };
 }
 
+/**
+ * A guardian's pace (v1.63, #258: a longer tell must not make its fight drag): each phase's round, the s to go once
+ * through its moves in turn (each move's combo: every wind-up, the gaps between links, the last one's recover and
+ * the opening after it) with the phase's pause between, and the whole fight's: one round of every phase. A measure
+ * of how long a fight's beats are, not of a played fight (how many openings each phase wants is the temple's).
+ */
+export function guardianRound(def) {
+  const A = def.attacks ?? {}, wind = (a) => a.wind ?? a.telegraph ?? 1.2;
+  const phases = (def.phases ?? []).filter((p) => !p.weary).map((p) => +(p.attacks ?? []).reduce((s, id) => {
+    let t = 0, a = A[id], n = 0, end = a;
+    while (a && n++ < 6) { t += wind(a) + (a.then ? a.gap ?? 0.25 : a.recover ?? 0.8); end = a; a = a.then ? A[a.then] : null; }
+    return s + t + (end?.open ?? 0) + (p.pause ?? 1.6);
+  }, 0).toFixed(1));
+  return { phases, total: +phases.reduce((a, b) => a + b, 0).toFixed(1) };
+}
+
 /** A markdown table (rows of cells). */
 export function table(head, rows) {
   const line = (r) => `| ${r.map((c) => String(c ?? '').replace(/\|/g, '/')).join(' | ')} |`;

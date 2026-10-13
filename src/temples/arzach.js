@@ -161,7 +161,7 @@ export const ELDER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    peck: { shape: 'lane', range: 8, width: 2.4, wind: 1.0, track: 0.7, part: 'mouth', rig: 'lean', damage: 0.5, knock: 8, recover: 0.6, then: 'peck2' },
+    peck: { shape: 'lane', range: 8, width: 2.4, wind: 1.2, track: 0.7, part: 'mouth', rig: 'lean', damage: 0.5, knock: 8, recover: 0.6, then: 'peck2' },
     peck2: { shape: 'lane', range: 8, width: 2.4, wind: 0.65, track: 0.6, part: 'mouth', rig: 'lean', pose: 'peck', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'buffetEnd' },
     buffet: { shape: 'cone', range: 11, angle: 0.8, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', damage: 0.75, knock: 13, recover: 0.7 },
     buffetEnd: { shape: 'cone', range: 11, angle: 0.8, wind: 1.1, track: 0.5, part: 'wings', rig: 'lean', pose: 'buffet', link: true, damage: 0.75, knock: 13, recover: 0.8, open: 4.2 },

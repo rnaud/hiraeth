@@ -151,7 +151,7 @@ export const ECHO = {
   attacks: {
     note: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.4, wind: 1.4, track: 0.6, part: 'core', rig: 'spin', damage: 0.75, knock: 8, recover: 0.8, open: 3.2 },
     pulse: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'core', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 0.8 },
-    ripple: { shape: 'ring', at: 'self', radius: 6, wind: 1.0, part: 'core', rig: 'swell', damage: 0.5, knock: 9, recover: 0.4, then: 'ripple2' },
+    ripple: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'core', rig: 'swell', damage: 0.5, knock: 9, recover: 0.4, then: 'ripple2' },
     ripple2: { shape: 'ring', at: 'self', radius: 6, wind: 0.7, part: 'core', rig: 'swell', pose: 'ripple', link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'pulseEnd' },
     pulseEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'core', rig: 'swell', pose: 'pulse', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 0.8, open: 3.2 },
     chord: { shape: 'lane', range: 26, width: 3, wind: 1.5, track: 0.7, part: 'core', rig: 'lean', damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },

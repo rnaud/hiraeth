@@ -178,7 +178,7 @@ export const MOTHER = {
     sweep: { shape: 'cone', range: 9.5, angle: 0.95, wind: 1.2, track: 0.6, part: 'mouth', side: 1, damage: 0.75, knock: 12, recover: 0.7, then: 'sweepBack' },
     sweepBack: { shape: 'cone', range: 9.5, angle: 0.95, wind: 0.75, track: 0.5, part: 'mouth', pose: 'sweep', side: -1, link: true, damage: 0.75, knock: 12, recover: 0.8 },
     seed: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.0, wind: 1.5, track: 0.55, part: 'mouth', damage: 0.75, knock: 8, recover: 0.8 },
-    snap: { shape: 'lane', range: 7.5, width: 3, wind: 1.0, track: 0.7, part: 'mouth', damage: 0.5, knock: 8, recover: 0.4, then: 'snap2' },
+    snap: { shape: 'lane', range: 7.5, width: 3, wind: 1.2, track: 0.7, part: 'mouth', damage: 0.5, knock: 8, recover: 0.4, then: 'snap2' },
     snap2: { shape: 'lane', range: 7.5, width: 3, wind: 0.65, track: 0.6, part: 'mouth', pose: 'snap', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'lungeEnd' },
     lungeEnd: { shape: 'lane', range: 13.5, width: 3.4, wind: 1.2, track: 0.5, part: 'mouth', pose: 'lunge', link: true, damage: 1, knock: 11, recover: 0.6, open: 3.6 },
     thrash: { shape: 'ring', at: 'self', radius: 7, wind: 1.3, part: 'core', rig: 'swell', damage: 0.75, knock: 12, recover: 0.6, then: 'seedVolley' },

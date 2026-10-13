@@ -38,14 +38,14 @@ test('nothing is drawn on the ground for an attack unless it is a lobbed or thro
   assert.ok(lobs >= 10 && bodies > lobs * 3, `${lobs} landing marks, ${bodies} body tells`);
 });
 
-test('every wind-up is long enough to read (Normal; Gentle longer): foes by weight, guardians ≥ 1 s, combo links ≥ 0.6 s', () => {
+test('every wind-up is long enough to read (Normal; Gentle longer): foes by weight, guardians ≥ 1.2 s, combo links ≥ 0.6 s', () => {
   for (const [where, a, who] of everyAttack()) {
     const min = who === 'guardian' ? guardianWindMin(a) : windMin(a);
     assert.ok(a.wind >= min - 1e-9, `${where}: ${a.wind} s, at least ${min} s`);
   }
   // the v1.4 review's complaint: the hound's pounce was 0.60 s
   assert.ok(FOES.hound.attacks.find((a) => a.id === 'pounce').wind >= WIND_MIN.ordinary);
-  assert.ok(WIND_MIN.guardian >= 1 && WIND_MIN.link >= 0.6 && POSE_DONE < 0.9, 'a stillness before every strike');
+  assert.ok(WIND_MIN.guardian >= 1.2 && WIND_MIN.link >= 0.6 && POSE_DONE < 0.9, 'a stillness before every strike');
 });
 
 test('each guardian is a staged fight: 4-6 moves of its own, three phases that add moves, a combo that ends in an opening, an opening in every phase', () => {

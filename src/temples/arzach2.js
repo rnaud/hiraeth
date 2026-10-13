@@ -158,7 +158,7 @@ export const MOTHER = {
     // opens her, missed or not: motherOpen)
     dive: { shape: 'ring', at: 'player', radius: 4.6, wind: 1.6, track: 0.55, over: true, part: 'core', rig: 'rise', damage: 1, knock: 9, recover: 1.0, open: 3.0, miss: 4.4 },
     wail: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'mouth', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
-    roll: { shape: 'cone', range: 10, angle: 1.0, wind: 1.1, track: 0.6, part: 'wings', rig: 'coil', side: 1, damage: 0.75, knock: 11, recover: 0.6, then: 'tail' },
+    roll: { shape: 'cone', range: 10, angle: 1.0, wind: 1.2, track: 0.6, part: 'wings', rig: 'coil', side: 1, damage: 0.75, knock: 11, recover: 0.6, then: 'tail' },
     tail: { shape: 'ring', at: 'self', radius: 7, wind: 0.75, part: 'tail', rig: 'coil', side: -1, link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'wailEnd' },
     wailEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'mouth', rig: 'swell', pose: 'wail', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
     rain: { shape: 'ring', at: 'player', lob: true, volley: 4, radius: 2, wind: 1.5, track: 0.6, part: 'core', rig: 'swell', damage: 0.5, knock: 6, recover: 0.6, then: 'diveEnd' },

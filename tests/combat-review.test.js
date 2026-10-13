@@ -62,6 +62,20 @@ test('a guardian gets facts and scores from its temple\'s def', () => {
   for (const k of ['readability', 'counterplay', 'space', 'fairness', 'phases']) assert.ok(S[k] >= 1 && S[k] <= 5);
 });
 
+test('every guardian\'s quickest move tells for 1.2 s or more, so each reads 4 or better (v1.63, #258); its round of moves is measured', async () => {
+  const { GUARDIANS } = await import('../src/arena-guardians.js');
+  const { guardianRound } = await import('../scripts/combat-review/lib.mjs');
+  assert.equal(GUARDIANS.length, 14);
+  for (const G of GUARDIANS) {
+    const F = guardianFacts(G.id, G.def), S = scoreGuardian(F);
+    assert.ok(F.teleMin >= 1.2, `${G.id}: its quickest move ${F.teleMin} s`);
+    assert.ok(S.readability >= 4 && S.fairness >= 4, `${G.id}: read ${S.readability}, fair ${S.fairness}`);
+    const R = guardianRound(G.def);
+    assert.equal(R.phases.length, F.phases, `${G.id}: a round a phase`);
+    assert.ok(R.total > 30 && R.total < 120, `${G.id}: its rounds ${R.total} s`);
+  }
+});
+
 test('the report\'s table and median', () => {
   assert.equal(table(['a', 'b'], [[1, 'x|y']]), '| a | b |\n| --- | --- |\n| 1 | x/y |');
   assert.equal(median([3, 1, 2, NaN]), 2);

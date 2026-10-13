@@ -33,6 +33,8 @@ export const CHANGELOG = [
     'The antler hound gives you longer to see its pounce coming: it crouches, then coils with its rump up and the smoke along its back standing on end, shivers and snarls before it leaps. It pounces a little less often too.',
     // the makers' machine's quake told and rewarded (src/foes.js FOES.machine: ground, opens, stuck, cue; onParry 'chip'; issue #261)
     'The makers’ machine in the temples is fairer to fight: the floor rumbles as it raises both arms for its ground slam, a jump clears the slam and its ring, and afterwards its claws stay stuck in the floor for a moment, when your cuts land double. A perfect parry of its one-armed swing knocks a plate off it.',
+    // nine guardians' quickest move 1.0-1.1 -> 1.2 s (src/temples/*.js, src/telegraph.js WIND_MIN.guardian; issue #258)
+    'Nine temple guardians give you a little longer to read their quickest move: the Elder’s peck, the Cloud-Mother’s roll, the First Sign’s stutter, the Tooth-Warden’s and the warden’s stomps, the Foreman’s jab, the Mother Snapper’s snap, the Lampless’s flutter and the Echo’s ripple now wind up as long as their other moves.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;

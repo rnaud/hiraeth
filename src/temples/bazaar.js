@@ -189,7 +189,7 @@ export const FIRST_SIGN = {
     sweep: { shape: 'cone', range: 22, angle: 0.8, wind: 1.0, track: 0.5, part: 'mouth', rig: 'coil', pose: 'beam', side: 1, link: true, damage: 0.75, knock: 10, recover: 0.8 },
     static: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.2, wind: 1.4, track: 0.6, part: 'mouth', pose: 'cry', damage: 0.75, knock: 8, recover: 0.6 },
     statics: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'mouth', pose: 'cry', damage: 0.5, knock: 6, recover: 0.6 },
-    stutter: { shape: 'ring', at: 'self', radius: 5.5, wind: 1.0, part: 'mouth', rig: 'swell', pose: 'cry', damage: 0.5, knock: 9, recover: 0.4, then: 'stutter2' },
+    stutter: { shape: 'ring', at: 'self', radius: 5.5, wind: 1.2, part: 'mouth', rig: 'swell', pose: 'cry', damage: 0.5, knock: 9, recover: 0.4, then: 'stutter2' },
     stutter2: { shape: 'ring', at: 'self', radius: 5.5, wind: 0.65, part: 'mouth', rig: 'swell', pose: 'cry', link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'cryEnd' },
     cryEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'mouth', rig: 'lean', pose: 'cry', link: true, wave: { speed: 10, reach: 18, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 12, recover: 0.9, open: 4.4 },
   },

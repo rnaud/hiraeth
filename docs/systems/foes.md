@@ -453,6 +453,11 @@ What changed per family:
   in the floor after it (`opens` 1.8 s, `stuck`: stunned, the stars over it, a cut lands double; `Foes.worldEvent`
   'stuck' says "cut it now" once); the slam's perfect parry knocks a plate off (`onParry: 'chip'`). Met, it says:
   guard the slam, jump the ring, cut it while it is stuck (`FOES.machine.note`, read by `Foes.meet`).
+- **Nine guardians' quickest move** (the Elder's peck, the Cloud-Mother's roll, the First Sign's stutter, the
+  Tooth-Warden's stomp, the Foreman's jab, the warden's stomp, the Mother Snapper's snap, the Lampless's flutter, the
+  Echo's ripple) told for 1.0–1.1 s and read 3; now 1.2 s (`WIND_MIN.guardian` 1.0 → 1.2, `tests/telegraphs.test.js`),
+  the pose, the glow and the rising voice stretched with it (they follow `windOf`). A fight's beats hardly move: one
+  round of every phase (`scripts/combat-review/lib.mjs` `guardianRound`) is 0.2–0.5 s longer in 44–63 s.
 - **An attack's `cue`** (`src/foe-voices.js` `CUES`, played by `src/audio.js` `foeWarn` over the rising warning,
   from a share of the wind-up): a second tell by ear for the body's second beat.
 
@@ -506,7 +511,7 @@ of its own, from its body and its temple's verb, on the same engine:
 | The Echo (answer its note) | note (a lobbed note), pulse (wave), ripple | fall, chord (its rings lock into a lens), note | scale (3 notes), ripple, fall | ripple → ripple → pulse; scale → chord | fall |
 | The First Sign (its word played back) | cry (wave), beam, static | beam, stutter, static | statics (3), stutter, beam | beam → sweep; stutter → stutter → cry | - |
 
-Wind-ups: every guardian's own move 1.0-2.0 s (the Keeper's burrow 2.0 s, it ploughs at you), links 0.65-0.75 s,
+Wind-ups: every guardian's own move 1.2-2.0 s (1.0 until v1.63, below; the Keeper's burrow 2.0 s, it ploughs at you), links 0.65-0.75 s,
 combo finishers 1.1-1.3 s. `tests/telegraphs.test.js` checks the move lists, the phases (each adds a move), a combo
 that ends in an opening, an opening in every phase, a combo's timing, the body tells, a phase change and the shock
 ring; `tests/temples.test.js` still plays every temple through.
