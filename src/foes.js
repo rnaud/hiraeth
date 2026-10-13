@@ -164,6 +164,44 @@ export function lockTurn(da, vel, rate, dt, T = LOCK_TURN) {
   const dv = Math.max(-T.acc * dt, Math.min(T.acc * dt, want - vel));
   return vel + dv;
 }
+/** A foe right at his feet: the lock camera turns after it less the nearer it is, not at all within [0] m (v1.49). */
+export const LOCK_NEAR = [1.2, 2.8];
+/**
+ * One frame of the lock camera, not aiming (main.js, and the camera QC's node walk: scripts/camera-qc/sim-lock.mjs): the
+ * line from the traveller to the foe `f`, the stand-off swing off it for a small foe (LOCK_VIEW, on the trailing side
+ * circling it), the line yielding for the room behind him (CameraRig.lockRoom, LOCK_ROOM), and the camera's yaw turned
+ * after it (LOCK_TURN, less with the foe at his feet: LOCK_NEAR). `view` the lock camera's own state ({ foe, side, angle,
+ * line, turn, vel }); `F` his frame (up, fwd, right). Returns the yaw it turned to.
+ */
+export function lockFollow(view, rig, f, pos, F, dt) {
+  const dx = f.pos.x - pos.x, dz = f.pos.z - pos.z, d = Math.hypot(dx, dz);
+  const r = dx * F.right.x + dz * F.right.z, a = dx * F.fwd.x + dz * F.fwd.z;
+  // (a small foe is not set straight behind the traveller's back: the camera stands off the line by the least angle
+  // that shows the foe's body clear of his, LOCK_VIEW, combat-v1.47 rec. 3; on whichever side it already is, so circling
+  // the foe, its lag behind the turn does the work and nothing pulls it back across)
+  let line = Math.atan2(-r, -a);
+  const off = Math.atan2(Math.sin(rig.yaw - line), Math.cos(rig.yaw - line));
+  if (view.foe !== f) { view.foe = f; view.side = Math.abs(off) > 0.03 ? Math.sign(off) : 1; view.line = line; view.turn = 0; }
+  // (circling it, the camera trails the turn: stand off on the trailing side, the lag and the swing together)
+  const dl = Math.atan2(Math.sin(line - view.line), Math.cos(line - view.line)) / Math.max(1e-3, dt);
+  view.line = line; view.turn += (dl - view.turn) * (1 - Math.exp(-4 * dt));
+  if (Math.abs(view.turn) > 0.3) view.side = -Math.sign(view.turn);
+  else if (Math.abs(off) > 0.03 && Math.sign(off) !== view.side) view.side = Math.sign(off);
+  const goal = view.side * lockViewAngle(d, rig._curDist, f.def?.radius ?? 0.6, (f.chest?.y ?? f.pos.y + 1) - f.pos.y);
+  view.angle += (goal - view.angle) * (1 - Math.exp(-4 * dt));
+  line += view.angle;
+  // (his back to a wall, the line yields: turned off it toward the side with room behind him, the foe kept on the
+  // screen, so the arm isn't crushed to his back; src/player.js LOCK_ROOM, issue #256)
+  line += rig.lockRoom(dt, line, d, view.angle, f.def?.radius ?? f.radius ?? 0.6, view.turn, F.up, F.fwd, F.right);
+  const da = Math.atan2(Math.sin(line - rig.yaw), Math.cos(line - rig.yaw));
+  // (a foe right at his feet, stepped into: the line to it swings about wildly, so the camera turns after it less the
+  // nearer it is, and not at all within LOCK_NEAR[0]; v1.49, the closer camera showed it: the camera QC's arena-lock)
+  // (its turn's speed eased too, LOCK_TURN, issue #236: the line flipping as he walks past a foe no longer starts and
+  // stops the camera at once)
+  view.vel = lockTurn(da, view.vel, 6 * THREE.MathUtils.smoothstep(d, LOCK_NEAR[0], LOCK_NEAR[1]), dt);
+  rig.yaw += view.vel * dt;
+  return line;
+}
 /**
  * Switching the lock with a flick (v0.97): while locked, the look's sideways motion (the right stick, the mouse, a
  * touch drag: px as rig.look gets them) gathers in a leaky sum (`decay` /s); past `px` the lock jumps to the nearest

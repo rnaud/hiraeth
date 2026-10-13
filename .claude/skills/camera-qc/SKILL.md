@@ -23,10 +23,16 @@ node .claude/skills/camera-qc/run.mjs <scratch>/camera [--only train-walk,desert
 
 Node 22.12 or newer on PATH (the global `WebSocket` and Vite's floor; CI uses 24; Zed's bundled node works).
 PORT (default 5361; **never 5173**, the author's own server); Chrome picks its own debugging port (port 0, read from
-the profile's `DevToolsActivePort`). `--seed` (default 1) seeds the `wander` turns, so a run repeats. VITE_CACHE a dependency cache inside the
+the profile's `DevToolsActivePort`). `--seed` (default 1) seeds the `wander` turns, so a run repeats.
+**The game steps 1/60 s a frame** during the run (main.js `window.__stepDt`), not by the browser's clock, settles by
+frames, and a scenario's setup may hand its foes a seeded chance (`foes.rng = window.__cqRand`): a run repeats frame for
+frame however loaded the Mac is (issue #289: on the clock, two runs of ante-lock a millisecond apart a frame ended metres
+apart, one green and one red). A scenario's `runs` (ante-lock, arena-lock: 3), or `--runs N` for all, runs it again with
+the step wobbled ±`--jitter` (0.05), seeded by the run: written `<name>#2`, `#3`, each judged, and a scenario is only as
+green as its worst run. `--clock` runs on the browser's frame times, as before v1.68. VITE_CACHE a dependency cache inside the
 checkout when the temporary one can't resolve the packages (a worktree whose node_modules is a link). One muted headless Chrome
 (`--mute-audio`, the game's volumes at 0) and one Vite server with its own dependency cache, both closed at the end;
-worlds one after another with a rest between. A full run (15 scenarios, 5 worlds) takes about 8 minutes.
+worlds one after another with a rest between. A full run (15 scenarios, 19 runs, 5 worlds) takes about 9 minutes.
 
 It writes `camera.json` (every scenario's measures, events and verdict), `camera.md` (the table), `<scenario>.png` (the
 worst frames, captioned with what happened and how much: the arm's change, the move off the camera's path, the look
@@ -35,10 +41,13 @@ is red.
 `SHOT_AT=13.97[,…]` (seconds into each scenario) keeps a picture of those frames too, whatever happened there: the
 same moment before and after a fix, for the changelog.
 
-**Without a browser** (seconds, for trying a fix): `node scripts/camera-qc/sim-train.mjs [train-walk,train-run]` walks
+**Without a browser** (seconds, for trying a fix): `node scripts/camera-qc/sim-lock.mjs [runs] [jitter]` walks ante-lock
+(the market's collision, the blot held, the lock camera as main.js turns it: `lockFollow`, src/foes.js; `RUN=k DUMP=t0-t1`
+prints run k's frames, `EVENTS=n` the worst), `node scripts/camera-qc/sim-shop.mjs` desert-shop, and
+`node scripts/camera-qc/sim-train.mjs [train-walk,train-run]` walks
 the Overnight Train's carriages with the real `CameraRig` through the real collision in node (`scripts/camera-qc/sim.mjs`:
 a traveller moved along waypoints, the camera turned after the way as a thumb would). `EVENTS=10` lists the worst events
-with where they happened. `tests/camera-qc.test.js` holds the walks to the limits. Confirm in the browser afterwards:
+with where they happened. `tests/camera-qc.test.js` and `tests/camera-qc-lock.test.js` hold the walks to the limits. Confirm in the browser afterwards:
 the real player's physics, frame times and crowd differ.
 
 ## 2. The scenarios (`scripts/camera-qc/scenarios.mjs`)
@@ -55,14 +64,17 @@ the real player's physics, frame times and crowd differ.
 | desert-open | desert | running across the sand: turns, jumps, a fast spin of the camera |
 | desert-shop | desert | inside Qanat's shop: wandering against its walls and counter |
 | bazaar-streets | bazaar | wandering the market's street with the camera after the way |
-| ante-lock | bazaar | in the Undertower's antechamber (8.8 × 7.4 m), locked on to an ink blot held in its middle: half round it each way, a step in and back |
+| ante-lock | bazaar | in the Undertower's antechamber (8 × 6.9 m), locked on to an ink blot held in its middle, by points (`ANTE_WAY`): half round it each way, twice backed into the corner by the passage to the hall on purpose; three runs |
 | guardian-lock | bazaar | in the First Sign's Hall, locked on to the guardian awake (its blows held): circling it, backing to the wall, running round it |
-| arena-lock | arena | locked on to an ink blot: circling, stepping in and back |
+| arena-lock | arena | from the spawn, locked on to an ink blot (its chance seeded): circling, stepping in and back; three runs |
 | arena-lock-lizard | arena | locked on to a horn lizard: standing, stepping back, circling it |
 | incal-pillar | incal | riding the City-Shaft's halfway air pillar on the wings (`hold`: jump held): straight up past the terraces, the camera turned while rising, then steered out |
 
-A segment: `{ for, path: [[x, z]…] | stick: [x, y] | wander, run, jumpEvery, hold (jump held), turn / pitch (°/s), steer (°/s), lock }`;
-a scenario: `{ name, world, at, yaw, setup (page code), flags, settle, framing, segs }`. Add one for any new tight space.
+A segment: `{ for, path: [[x, z]…] | stick: [x, y] | wander, pace (a path's stick tilt), near (m: a path point reached), run, jumpEvery, hold (jump held), turn / pitch (°/s), steer (°/s), lock }`;
+a scenario: `{ name, world, at, yaw, setup (page code), flags, settle, framing, runs, segs }`. Add one for any new tight space.
+Locked on, walk by `path`, not a held `stick`: the stick reads from the camera's own turn there, so a held stick's way forks
+with every camera decision and the place you meant to test is reached one run in two (the hands read a path from the lock's
+line, as the game does).
 
 ## 3. What is measured (`scripts/camera-qc/lib.mjs`, tested by `tests/camera-qc.test.js`)
 

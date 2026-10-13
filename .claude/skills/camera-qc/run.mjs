@@ -5,6 +5,8 @@
 //
 //   node .claude/skills/camera-qc/run.mjs <out-dir> [--only train-walk,desert-open] [--worlds overnighttrain] [--preset medium] [--seed 1]
 //   PORT (default 5361; never 5173); Chrome picks its own debugging port. --seed: the wander scenarios' turns (seeded, so a run repeats)
+//   The game steps 1/60 s a frame (window.__stepDt), not by the clock, so a run repeats frame for frame on a busy machine;
+//   --runs N (or a scenario's `runs`) runs each again with the step wobbled ±--jitter (0.05), green only if green every time; --clock the old way
 //
 // Writes <out-dir>/camera.json (every scenario's measures and events), camera.md (the table), <scenario>.png (a contact
 // sheet of its worst frames, each captioned with what happened and how much) and <scenario>.json (the raw samples).
@@ -22,6 +24,9 @@ const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'camera-qc'));
 const W = 1280, H = 720, PRESET = arg('preset', 'medium');
 const PORT = Number(process.env.PORT ?? 5361), SEED = Number(arg('seed', 1)) >>> 0;
+// (--runs N: every scenario N times, else a scenario's own `runs`; --jitter: the wobble of the step after the first run;
+// --clock: the browser's frame times instead of the even step, as before v1.68)
+const RUNS = arg('runs') ? Number(arg('runs')) : null, JITTER = Number(arg('jitter', 0.05)), CLOCK = args.includes('--clock');
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -89,6 +94,7 @@ function install(L, at = [], seed = 1) {
   rig.update = function (pos, dt, frame) {
     // the hands: this frame's segment of the script
     let cmdYaw = 0, cmdPitch = 0;
+    if (dt > 0) st.frames++;
     if (!st.done && dt > 0) {
       let s = st.segs[st.seg];
       st.segT += dt;
@@ -110,7 +116,7 @@ function install(L, at = [], seed = 1) {
           const w = s.path[st.wp];
           _d.set(w[0] - player.pos.x, 0, w[w.length - 1] - player.pos.z);
           if (_d.length() < (s.near ?? 0.6)) { st.wp++; st.stuck = 0; }
-          else want = _d.normalize().clone();
+          else want = _d.normalize().multiplyScalar(s.pace ?? 1).clone();   // (pace: the stick's tilt, 1 full)
           // stuck: no way on toward this point for 2 s, the next one
           if (!st.stuckP || st.stuckP.distanceTo(player.pos) > 0.3) { st.stuckP = player.pos.clone(); st.stuck = 0; }
           else if ((st.stuck += dt) > 2) { st.log.push(`${s.name ?? 'seg ' + st.seg}: stuck before ${w.map((x) => x.toFixed(1)).join(', ')}`); st.wp++; st.stuck = 0; st.stuckP = null; }
@@ -127,6 +133,9 @@ function install(L, at = [], seed = 1) {
         }
         if (want) {
           camera.getWorldDirection(_f); _f.y = 0; _f.normalize(); _r.set(-_f.z, 0, _f.x);
+          // (walking to points locked on, the stick as the game reads it there: from the lock's line, not the camera's turn
+          // off it for room, main.js; else the way to a point went round in a curve as the camera turned)
+          if (s.path && rig.locked) { const cy = rig.yaw - rig.lockOff; _f.set(-Math.sin(cy), 0, -Math.cos(cy)); _r.set(-_f.z, 0, _f.x); }
           // (changed in place: assigning it every frame would mark it "tapped", and main.js latches a tapped key to true)
           if (input.stick && typeof input.stick === 'object') { input.stick.x = want.dot(_r); input.stick.y = want.dot(_f); }
           else input.stick = { x: want.dot(_r), y: want.dot(_f) };
@@ -165,6 +174,9 @@ function install(L, at = [], seed = 1) {
       pos: player.pos.toArray().map((x) => +x.toFixed(4)), fwd: _f.toArray().map((x) => +x.toFixed(5)), cmdYaw: +cmdYaw.toFixed(5), cmdPitch: +cmdPitch.toFixed(5),
       clear: +clearance().toFixed(3), occl, head: ndc(head), chest: ndc(chest), tight: +rig.tightK.toFixed(3), side: +rig._side.toFixed(3), shoulder: rig.shoulder,
       cur: +rig._curDist.toFixed(3), push: +push.toFixed(3),
+      // (the rig's own state, for the diagnosis: the lock's turn off the line for room and its goal, the climb, the short arm's tip)
+      lockOff: +(rig._lockOff ?? 0).toFixed(3), lockGoal: +(rig._lockGoal ?? 0).toFixed(3), climb: +(rig._climb ?? 0).toFixed(3), tilt: +(rig._tilt ?? 0).toFixed(3),
+      foe: window.foes?.lock?.pos ? window.foes.lock.pos.toArray().map((x) => +x.toFixed(3)) : null,
       // locked on: how much of the foe's screen box the traveller's body covers (L.cover; combat-v1.47: a small foe hidden behind him)
       foeCover: (() => { const f = window.foes?.lock; if (!f?.pos || !f.def) return null; const r = f.def.radius ?? 0.6;
         const fb = rect(f.pos, r, f.pos.y, f.chest.y + r * 0.5), pb = rect(player.pos, 0.3, player.pos.y, player.pos.y + 1.75);
@@ -203,6 +215,15 @@ function install(L, at = [], seed = 1) {
     }
     return r;
   };
+  // the step: 1/60 s a frame whatever the clock says (main.js window.__stepDt), so a run repeats frame for frame on a busy
+  // machine; `jitter` a seeded wobble of it (± that share), a run that checks nothing hangs on the exact frame times (#289)
+  st.step = (jitter = 0, jseed = 1) => { let js = jseed >>> 0;
+    const jr = () => { js = (js + 0x6d2b79f5) >>> 0; let t = js; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    window.__stepDt = () => (1 / 60) * (1 + jitter * (2 * jr() - 1));
+    // (and a seeded chance for the run's own foes, a scenario's setup hands it to them: foes.rng = window.__cqRand)
+    let fs = (jseed * 7919) >>> 0;
+    window.__cqRand = () => { fs = (fs + 0x6d2b79f5) >>> 0; let t = fs; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+  st.frames = 0;
   st.start = (segs) => { st.segs = segs; st.seg = -1; st.segT = 0; st.samples = []; st.shots = []; st.log = []; st.wa = null; st.rate = 0; rs = seed >>> 0; st.done = false; st.rec = true; prev = prev2 = null; };
   return true;
 }
@@ -241,25 +262,33 @@ for (const [wn, world] of byWorld.entries()) {
   await sleep(2500);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; } return true; })()`);
   await ev(`(async () => { const L = await import('/scripts/camera-qc/lib.mjs'); return (${install.toString()})(L, ${JSON.stringify((process.env.SHOT_AT ?? '').split(',').filter(Boolean).map(Number))}, ${SEED}); })()`);
-  for (const sc of plan.filter((s) => s.world === world)) {
+  for (const sc of plan.filter((s) => s.world === world)) for (let run = 1; run <= (RUNS ?? sc.runs ?? 1); run++) {
+    // (run 1 at the even 1/60 s step; runs 2, 3… again with the step wobbled ±JITTER, seeded by the run: a scenario
+    // with `runs` is green only if it is green every time, issue #289. --clock: the browser's own frame times, as before)
+    const key = run > 1 ? `${sc.name}#${run}` : sc.name;
+    if (!CLOCK) await ev(`window.__cq.step(${run > 1 ? JITTER : 0}, ${SEED * 1000 + run}); true`);
     // the start: placed, turned, settled
     await ev(`(async () => { const { THREE, player, rig } = window; ${sc.setup ?? ''}
       ${sc.at ? `player.teleport(new THREE.Vector3(...${JSON.stringify(sc.at)}), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));` : ''}
       ${sc.yaw != null ? `rig.yaw = ${sc.yaw};` : ''} ${sc.pitchTo != null ? `rig.pitch = ${sc.pitchTo};` : ''} rig._lastP = null; window.story?.closePage?.(); return true; })()`);
-    await sleep((sc.settle ?? 2) * 1000);
+    // (settled for as many frames as the settle's seconds at 60 a second, not for as long by the clock: a busy machine
+    // draws fewer frames in it, and the run started from another state)
+    if (CLOCK) await sleep((sc.settle ?? 2) * 1000);
+    else { const f0 = await ev('window.__cq.frames'), t1 = Date.now(); while ((await ev('window.__cq.frames')) < f0 + (sc.settle ?? 2) * 60 && Date.now() - t1 < 60000) await sleep(50); }
     await ev(`window.__cq.start(${JSON.stringify(sc.segs)}); true`);
     const total = sc.segs.reduce((s, x) => s + x.for, 0);
     const t0 = Date.now();
-    while (!(await ev('window.__cq.done')) && Date.now() - t0 < (total * 3 + 30) * 1000) await sleep(250);
+    while (!(await ev('window.__cq.done')) && Date.now() - t0 < (total * 6 + 60) * 1000) await sleep(250);
     const { samples, shots, log } = await ev('(() => { const s = window.__cq; s.rec = false; return { samples: s.samples, shots: s.shots, log: s.log }; })()');
     const r = L.analyse(samples, L.LIMITS, { framing: sc.framing });
-    results[sc.name] = { world, about: sc.about, ...r, events: r.events.slice(0, 40) };
-    logs[sc.name] = log;
-    writeFileSync(join(OUT, `${sc.name}.json`), JSON.stringify(samples));
-    const png = await sheet(sc.name, shots.sort((a, b) => b.sev - a.sev).slice(0, 6));
-    if (png) writeFileSync(join(OUT, `${sc.name}.png`), Buffer.from(png.split(',')[1], 'base64'));
-    console.log(`${sc.name.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${r.measures.locked ? ` foe hidden ${(r.measures.lockHidden * 100).toFixed(1)}%` : ''}${log.length ? ` (${log.length} stuck)` : ''}`);
+    results[key] = { world, about: sc.about, run, ...r, events: r.events.slice(0, 40) };
+    logs[key] = log;
+    writeFileSync(join(OUT, `${key}.json`), JSON.stringify(samples));
+    const png = await sheet(key, shots.sort((a, b) => b.sev - a.sev).slice(0, 6));
+    if (png) writeFileSync(join(OUT, `${key}.png`), Buffer.from(png.split(',')[1], 'base64'));
+    console.log(`${key.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${r.measures.locked ? ` foe hidden ${(r.measures.lockHidden * 100).toFixed(1)}%` : ''}${log.length ? ` (${log.length} stuck)` : ''}`);
   }
+  if (!CLOCK) await ev('delete window.__stepDt; true');
 }
 writeFileSync(join(OUT, 'camera.json'), JSON.stringify({ when: new Date().toISOString(), preset: PRESET, limits: L.LIMITS, results, logs, errors: errors.slice(0, 20) }, null, 2));
 const ok = Object.fromEntries(Object.entries(results).filter(([, r]) => !r.error));

@@ -236,6 +236,54 @@ rig (unity/) does not have the eased shove yet.
 Qanat's shop red as above; the Arena's lock-on rough (1.7-2.0 cm, two runs); the Undertower's antechamber lock-on green
 in one run and red in the next (the lens tipped over his head in the corner by the door; issue #289).
 
+### Run to run (v1.68, issue #289)
+
+**Why two runs differed.** The QC ran on the browser's own frame times (16.7 ms ± 1–2 ms a frame on a loaded Mac), and
+locked on the stick reads from the camera's own turn (`rig.yaw - rig.lockOff`: the lock's lag and its stand-off swing in
+it). So a millisecond's difference in a frame turned the camera a hair differently, the held stick took him a hair
+elsewhere, and every room decision after it (`lockRoom` every 0.05 s, the stand-off's side, the shoulder) could go the
+other way: two runs of the same script were 2 mm apart at 1.5 s, 17 cm at 2 s and 2.5 m at 5 s. One fork in two walked him
+into the north-west corner by the passage to the hall, where three faults showed: (1) the shoulder's look ahead along his
+strafe (`SIDE_AHEAD`) started its ball against the wall, read no room for a frame and cut the offset 0.5 m (a look jump);
+(2) the arm, 4.4 m out through the open side into the hall (the room there reads part open, `tightK` 0.13), was cut at once
+by the jamb as the lock turned (the spring that eases it in was only for `tightK` over 0.5); (3) in the corner the lock's
+room goal flipped across the line (-1.8 → +1.65 rad), the camera swung through his back, the arm was crushed to 0.2 m and
+the climb and the short arm's tip looked straight down on his head (the 448°/s frame). The blot was not moving: the
+scenario held it already (`f.update`); the audit's guess was wrong.
+
+**The QC now repeats.** The game steps by `window.__stepDt()` when a measuring run sets it (main.js; the clock otherwise):
+the camera QC steps 1/60 s a frame, settles by frames, and gives a scenario's foes a seeded chance (`foes.rng =
+window.__cqRand`), so a run repeats frame for frame on a busy machine (two runs: the same to the millimetre). A scenario's
+`runs` (or `--runs N`) runs it again with the step wobbled ±5 % (`--jitter`): green only if green every time. ante-lock and
+arena-lock run three times. ante-lock walks by points now (`ANTE_WAY`: half round the blot each way, twice backed into that
+corner on purpose, `pace` the stick's tilt; locked on, the hands read the way from the lock's line as the game does), so the
+corner is in every run; arena-lock starts at the spawn. `--clock` runs on the browser's frame times as before.
+
+**The fixes:** the shoulder's look ahead stops a ball's room short of the wall he is going toward and is skipped from a point
+without room round it; only the room beside the look point itself pulls the offset in at once (`_sideHere`), the looks
+ahead bring it in on a critically damped spring (`SIDE_SPRING` 12/s: an easing's first step was Qanat's shop's kink); and
+locked on, a big cut of the arm comes in on the spring wherever the room is at all close (`tightK` over 0.05).
+
+**Without a browser:** `node scripts/camera-qc/sim-lock.mjs [runs] [jitter]` walks ante-lock in node (the market's
+collision, the real rig, the lock camera as main.js turns it: `lockFollow` in src/foes.js, which main.js calls now);
+`node scripts/camera-qc/sim-shop.mjs` walks desert-shop. `tests/camera-qc-lock.test.js` holds both: four runs of ante-lock
+(the step even and ±25 %) green, never steeper than 50° down, in the corner each time and ending within 10 cm of each
+other; the old stick walk into the corner with no look jumps; the shop with none.
+
+The camera QC (Medium, M4 Pro, the Mac shared: load 20–110 during the runs), before → after:
+
+| scenario | before (main, the clock) | after (the step, three runs) |
+|---|---|---|
+| ante-lock | red, red, red: 2/6/7 jumps, out 0/5.1/6.1 %, 1.38/2.99/3.97 cm | green ×3: no jumps, out 0 %, 0.78/0.93/0.93 cm, foe hidden 4.3–5.1 % |
+| arena-lock | 1.05 (1 jump), 1.64 cm (red); the audit 1.70, 2.00 | green ×3: 0.58/0.90/0.81 cm, no jumps, foe hidden 1.6–4.9 % |
+| desert-shop | red ×2: 2 jumps, 3 look jumps, 1.82/1.83 cm | green: none, 0.69 cm |
+
+The whole QC after: 19 of 19 runs green (the train's seven, the desert's two, the market's four with ante-lock's three, the
+City-Shaft's pillar, the Arena's lock-on three times and the lizard). The old ante-lock's stick walk in node, 12 runs (the step even, then ±25 %): green
+in 3 → 8, look jumps 27 → 0; the four still red strafe along the passage beside the jamb, the arm cut against it (a pop,
+or him off the screen 1.5–3.5 % of the run), one of them with the across flip of (3) (a doorway walked sideways locked on:
+the geometry's, left for now; the scripted way no longer goes there by chance).
+
 ## Small rooms: room to stand back, and a camera that settles (v1.59, issue #195; `ROOM_FIT`, `roomFit`, `ARM_OUT_GAP`)
 
 The author: "Most of the temple rooms are too small and so is the ship and it's interior. I want rooms to feel bigger so

@@ -110,7 +110,7 @@ import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
-import { Foes, lockViewAngle, lockTurn } from './foes.js';
+import { Foes, lockFollow, LOCK_NEAR } from './foes.js';
 import { hopAxis } from './jump.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
@@ -1122,7 +1122,6 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
 const flurryFx = new FlurryFx();
 let flurryAgainAt = 0, flurryChain = null;
 const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
-const LOCK_NEAR = [1.2, 2.8];
 const _hopView = new THREE.Vector3();   // m: the locked foe this near (flat), the lock camera turns after it less, not at all under the first
 function startFlurry() {
   const now = performance.now() / 1000;
@@ -2145,7 +2144,10 @@ function frame(ts) {
   }
   gpuTimer.enabled = settings.showFps;
   timer.update();
-  const rawDt = timer.getDelta();
+  // (a measuring run may set the step itself, window.__stepDt() in s: the camera QC steps 1/60 s a frame, so a scripted
+  // run repeats frame for frame whatever the machine's load, or wobbles it by a seeded amount; issue #289: two runs on the
+  // clock's own steps, a millisecond apart a frame, ended metres apart)
+  const clockDt = timer.getDelta(), rawDt = window.__stepDt ? window.__stepDt(clockDt) : clockDt;
   const realDt = Math.min(rawDt, 1 / 20);
   const dt = feelDt(realDt);   // (a hit-stop slows the world for a few hundredths of a second: src/feel.js)
   const pdt = selfDt();   // (the traveller's own step: a perfect dodge's flurry slows the world round him, not him: src/flurry.js)
@@ -2366,36 +2368,13 @@ function frame(ts) {
     // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
     // where it stands over the shoulder, not from the traveller (lockAim; v1.41, the author: "gun aim stays on the locked target")
     const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, f.chest, F) : null;
-    const dx = f.pos.x - player.pos.x, dz = f.pos.z - player.pos.z;
-    const r = dx * F.right.x + dz * F.right.z, a = dx * F.fwd.x + dz * F.fwd.z;
-    // (a small foe is not set straight behind the traveller's back: the camera stands off the line by the least angle
-    // that shows the foe's body clear of his, src/foes.js LOCK_VIEW, combat-v1.47 rec. 3; on whichever side it already
-    // is, so circling the foe, its lag behind the turn does the work and nothing pulls it back across)
-    let line = Math.atan2(-r, -a);
-    if (!aim) {
-      const off = Math.atan2(Math.sin(rig.yaw - line), Math.cos(rig.yaw - line));
-      if (lockView.foe !== f) { lockView.foe = f; lockView.side = Math.abs(off) > 0.03 ? Math.sign(off) : 1; lockView.line = line; lockView.turn = 0; }
-      // (circling it, the camera trails the turn: stand off on the trailing side, the lag and the swing together)
-      const dl = Math.atan2(Math.sin(line - lockView.line), Math.cos(line - lockView.line)) / Math.max(1e-3, realDt);
-      lockView.line = line; lockView.turn += (dl - lockView.turn) * (1 - Math.exp(-4 * realDt));
-      if (Math.abs(lockView.turn) > 0.3) lockView.side = -Math.sign(lockView.turn);
-      else if (Math.abs(off) > 0.03 && Math.sign(off) !== lockView.side) lockView.side = Math.sign(off);
-      const goal = lockView.side * lockViewAngle(Math.hypot(dx, dz), rig._curDist, f.def?.radius ?? 0.6, (f.chest?.y ?? f.pos.y + 1) - f.pos.y);
-      lockView.angle += (goal - lockView.angle) * (1 - Math.exp(-4 * realDt));
-      line += lockView.angle;
-      // (his back to a wall, the line yields: turned off it toward the side with room behind him, the foe kept on the
-      // screen, so the arm isn't crushed to his back; src/player.js LOCK_ROOM, issue #256)
-      line += rig.lockRoom(realDt, line, Math.hypot(dx, dz), lockView.angle, f.def?.radius ?? f.radius ?? 0.6, lockView.turn, F.up, F.fwd, F.right);
-    } else rig.lockRoom(realDt, null);
-    const want = aim ? aim.yaw : line, da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
-    // (a foe right at his feet, stepped into: the line to it swings about wildly, so the camera turns after it less the
-    // nearer it is, and not at all within LOCK_NEAR[0]; v1.49, the closer camera showed it: the camera QC's arena-lock)
-    const near = aim ? 1 : THREE.MathUtils.smoothstep(Math.hypot(dx, dz), LOCK_NEAR[0], LOCK_NEAR[1]);
-    // (its turn's speed eased too, src/foes.js LOCK_TURN, issue #236: the line flipping as he walks past a foe no longer
-    // starts and stops the camera at once)
-    if (aim) { rig.yaw += da * (1 - Math.exp(-LOCK_AIM.rate * realDt)); lockView.vel = 0; }
-    else { lockView.vel = lockTurn(da, lockView.vel, 6 * near, realDt); rig.yaw += lockView.vel * realDt; }
-    if (aim) rig.pitch += (aim.pitch - rig.pitch) * (1 - Math.exp(-LOCK_AIM.rate * realDt));
+    // (not aiming: the line to the foe, its stand-off swing, the room behind him, the turn after it: src/foes.js lockFollow)
+    if (!aim) lockFollow(lockView, rig, f, player.pos, F, realDt);
+    else {
+      rig.lockRoom(realDt, null);
+      rig.yaw += Math.atan2(Math.sin(aim.yaw - rig.yaw), Math.cos(aim.yaw - rig.yaw)) * (1 - Math.exp(-LOCK_AIM.rate * realDt)); lockView.vel = 0;
+      rig.pitch += (aim.pitch - rig.pitch) * (1 - Math.exp(-LOCK_AIM.rate * realDt));
+    }
   }
   // levels with zones (the Hangar) switch ink style as you cross between them
   if (level.zoneAt) {

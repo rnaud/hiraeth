@@ -19,6 +19,18 @@ const LW = car('landing'), D = car('dining'), S0 = car('sleeper', 0), B = car('d
 const deck = [LW.x1 - 3, FLOOR + 0.1, 0];
 const along = -Math.PI / 2;   // (the camera's yaw looking toward the nose, +x)
 
+// ------------------------------------------------------------------ the Undertower's antechamber, locked on (ante-lock)
+// [along the way in (+: toward the hall), across it (+: to his left going in)] from the blot in the room's middle (m); the
+// room 8 m across and 6.9 m along, open on the far side to the passage into the hall, its jamb's end at about [3.8, -3.5]
+export const ANTE_WAY = {
+  round: [[-2.6, 0], [-2, -2], [0, -2.9], [2, -2], [2.8, 0]],         // (half round it, a wall at his back on the way)
+  corner: [[3.2, -3.3]],                                                   // (backed into the corner by the door, the jamb beside him)
+  in: [[1.6, -1.6]],                                                       // (a step in)
+  back: [[2.8, 0], [2, 2], [0, 2.9], [-2, 2], [-2.6, 0]],             // (and half round the other way)
+};
+export const ANTE_SEGS = [{ for: 1, lock: true }, { for: 6, path: 'round', pace: 0.6, near: 0.35 }, { for: 3, path: 'corner', pace: 0.5 }, { for: 1.5 },
+  { for: 2, path: 'in', pace: 0.5 }, { for: 3, path: 'corner', pace: 0.5 }, { for: 1 }, { for: 7, path: 'back', pace: 0.6, near: 0.35 }];
+
 export const SCENARIOS = [
   // ---------------------------------------------------------------- the train
   { name: 'train-walk', world: 'overnighttrain', about: 'walking from the landing deck through the library, the sleepers and the dining car to the balcony, the camera turned after the way',
@@ -50,7 +62,7 @@ export const SCENARIOS = [
   // ---------------------------------------------------------------- locked on in a temple (issue #236): the Signal Market's
   // temple, its antechamber (ANTE, 8.8 x 7.4 m, issue #195: the close arm fitted to the room) and the First Sign's Hall
   // (a guardian 20 m across, tall: no swing off the line). The hall's axis from the ante's stone: src/temples/bazaar.js.
-  { name: 'ante-lock', world: 'bazaar', about: 'in the Signal Market temple’s antechamber, locked on to an ink blot in its middle: half round it at a walk each way, a step in and back between the walls',
+  { name: 'ante-lock', world: 'bazaar', runs: 3, about: 'in the Signal Market temple’s antechamber, locked on to an ink blot held in its middle: half round it each way at a walk, and twice back into the corner by the door to the hall, on purpose',
     setup: `const rt = (level.temples ?? []).find((t) => t.guardian && t.marks.some((m) => m.room === 'ante')); if (rt) {
       const V = THREE.Vector3, K = rt.kit, o = K.world(0, 0, 0), ax = K.world(0, 0, 1).sub(o).normalize(), sx = K.world(1, 0, 0).sub(o).normalize();
       const m = rt.marks.find((q) => q.room === 'ante'), mid = m.pos.clone().addScaledVector(sx, -(${4.4 - 1}));   // (the room's middle: its stone is half - 1 off it)
@@ -58,9 +70,14 @@ export const SCENARIOS = [
       window.__cqHeal ??= setInterval(() => { if (window.player) player.health = 1; }, 200);
       player.teleport(mid.clone().addScaledVector(ax, -2.6).add(new V(0, 0.1, 0)), new V(0, 1, 0), ax.clone());
       rig.yaw = Math.atan2(-ax.x, -ax.z);
+      // (the way, in the room's own terms: ANTE_WAY, along the way in and across it from the blot)
+      const side = new V(ax.z, 0, -ax.x), P = ([a, b]) => { const p = mid.clone().addScaledVector(ax, a).addScaledVector(side, b); return [p.x, p.z]; };
+      window.__cqPaths = Object.fromEntries(Object.entries(${JSON.stringify(ANTE_WAY)}).map(([k, w]) => [k, w.map(P)]));
       const f = foes.add('blot', mid.clone()); f.update = () => []; f.state = 'chase'; }`, settle: 3,
-    // (the blot held still in the room's middle, as the lizard: a bite's knock-down is not the camera's to judge)
-    segs: [{ for: 1, lock: true }, { for: 3, stick: [0.6, 0] }, { for: 1, stick: [0, 0.5] }, { for: 1, stick: [0, -0.5] }, { for: 4, stick: [-0.6, 0] }] },
+    // (the blot held still in the room's middle, as the lizard: a bite's knock-down is not the camera's to judge. The way
+    // walked by points, not by a held stick: locked on, the stick reads from the camera's own turn, so a millisecond's
+    // difference in a frame took him somewhere else each run, and only one run in two to the corner; issue #289)
+    segs: ANTE_SEGS },
   { name: 'guardian-lock', world: 'bazaar', about: 'in the First Sign’s Hall, locked on to the guardian awake: circling it each way, stepping back and in',
     setup: `const rt = (level.temples ?? []).find((t) => t.guardian && t.marks.some((m) => m.room === 'ante')); if (rt) {
       const V = THREE.Vector3, G = rt.guardian, A = G.arena, K = rt.kit, o = K.world(0, 0, 0), ax = K.world(0, 0, 1).sub(o).normalize();
@@ -75,8 +92,13 @@ export const SCENARIOS = [
   { name: 'incal-pillar', world: 'incal', about: 'riding the City-Shaft’s halfway air pillar on the wings: straight up past the terraces, the camera turned while rising, then steered out of it',
     flags: { 'item.backpack': true, 'item.glider': true }, at: [-53.3, -60, 179.2], yaw: 5.0, settle: 2,
     segs: [{ for: 12, hold: true }, { for: 6, hold: true, turn: 50 }, { for: 3, hold: true, pitch: 25 }, { for: 4, hold: true, stick: [1, 0] }] },
-  { name: 'arena-lock', world: 'arena', about: 'locked on to an ink blot: circling it, stepping in and back',
-    setup: `foes.setPractice('blot'); player.health = 1;`, settle: 3,
+  { name: 'arena-lock', world: 'arena', runs: 3, about: 'locked on to an ink blot: circling it, stepping in and back',
+    // (from the Arena's spawn, facing north, whatever the run before left, the blot's chances seeded: each run the same)
+    setup: `foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x)); if (window.__cqRand) foes.rng = window.__cqRand; player.health = 1;
+      window.__cqHeal ??= setInterval(() => { if (window.player) player.health = 1; }, 200);
+      { const V = THREE.Vector3; player.teleport(new V(0, 0, 6), new V(0, 1, 0), new V(0, 0, -1)); player.heading = Math.PI;
+        const F = player.frame; if (F?.right) rig.yaw = Math.atan2(F.right.z, F.fwd.z); }
+      foes.setPractice('blot');`, settle: 3,
     segs: [{ for: 1, lock: true }, { for: 8, stick: [1, 0] }, { for: 3, stick: [0, 1] }, { for: 3, stick: [0, -1] }, { for: 6, stick: [-1, 0.3], run: true }] },
   // (combat-v1.47: the lock camera lined a small foe up behind the traveller; the foe hidden is measured while locked)
   { name: 'arena-lock-lizard', world: 'arena', about: 'locked on to a horn lizard standing 7 m off to one side: standing, circling it each way, stepping back and in',

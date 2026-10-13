@@ -18,6 +18,21 @@ export const CHANGELOG = [
     // Marrow's splinter line hedged (issue #282, the dialogue review v1.66's finding 5): src/story/desert-data.js splinter
     { text: 'Marrow no longer explains the singing on the sand as if he knew: it is “something the light dropped when it passed, I’d say”.',
       see: 'In the desert, ask Marrow what’s singing out on the sand before you have picked it up.' },
+    // the camera QC's run to run (issue #289): the shoulder's look ahead (src/player.js sideRoom, SIDE_SPRING), the lock's
+    // arm in on the spring part open; the QC stepped 1/60 s (main.js window.__stepDt), ante-lock by points, three runs;
+    // docs/systems/movement-and-camera.md "Run to run"
+    { text: 'The camera stays steadier when you back into a corner locked on to a foe in a temple’s small room: by the doorway out of the Undertower’s antechamber it no longer swings over the traveller’s head or loses him off the screen, and the view over his shoulder no longer jerks as you pass the edge of a wall, a door or Qanat’s shop counter.',
+      numbers: [
+        { title: 'The camera’s roughness, the camera QC', unit: 'cm', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Medium, load 20–110', rows: [
+          { where: 'the antechamber locked on (worst of three runs)', before: 3.97, after: 0.93 },
+          { where: 'the Arena locked on (worst of the runs)', before: 1.64, after: 0.9 },
+          { where: 'Qanat’s shop', before: 1.83, after: 0.69 },
+        ], source: '.claude/skills/camera-qc/run.mjs; before on the browser’s frame times, after at the even step (limit 1.5 cm)' },
+        { title: 'The antechamber locked on: frames with the traveller off the screen', unit: '%', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Medium', rows: [
+          { where: 'worst of three runs', before: 6.1, after: 0 },
+        ], source: '.claude/skills/camera-qc/run.mjs ante-lock' },
+      ],
+      see: 'In the Signal Market’s temple, lock on to a blot in the antechamber and back into the corner by the passage to the hall: the camera stays behind and above you, both of you in the frame.' },
   ] },
   { v: '1.68', date: '2026-10-13', items: [
     'The traveller has a new lighter body: narrower shoulders and arms that rest closer to his sides, with the approved face, articulated fingers, a natural neck fit and an independently moving shirt. Walking, jogging, talking and sitting use the fitted rig, with closed inner clothing and hands that clear the shirt. The body review includes the full animation library and a default body for comparison.',

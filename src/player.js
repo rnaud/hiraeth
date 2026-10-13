@@ -2792,6 +2792,7 @@ const AIR_FOLLOW = 3.5;            // 1/s: close in, how fast the view rises wit
 const AIR_LAG = 0.8;               // m: …never more than this below him
 const LOOK_R = 0.3;                // m: the room the look point keeps off walls close in
 const SIDE_IN = 9;                 // 1/s: the look point eased off a wall that comes up right beside it
+const SIDE_SPRING = 12;            // 1/s: the shoulder offset's spring coming in for a wall beside it or beside the way ahead
 const SIDE_R = 0.1;                // m: the ball swept beside the look point to find the room for the shoulder
 const THIN_PAST = 1.5;             // m: in the open, a thing between him and the lens no thicker than this along the arm is looked past
 const SIDE_AHEAD = 0.3;            // s: locked on, the room beside it also looked for where he will be this far on
@@ -3356,7 +3357,7 @@ export class CameraRig {
     // (a thin ball swept sideways, not a ray: a door's jamb beside the look point is found a little before it is level
     // with it, and a row of thin uprights reads as a wall, where the ray found each all at once and the look point jumped)
     const side = (from) => (P.sweepSphere ? Math.min(far, P.sweepSphere(from, dir, far, SIDE_R) + SIDE_R) : P.rayDistance(from, dir, far));
-    let room = side(look);
+    let room = this._sideHere = side(look);   // (the room beside the look point itself: the offset is never past it, sideRoom's caller)
     _sr.copy(this._dir).addScaledVector(U, -this._dir.dot(U)).negate();   // ahead, level
     if (_sr.lengthSq() > 1e-6) {
       _sr.normalize();
@@ -3370,8 +3371,11 @@ export class CameraRig {
     // point all at once, the forward look never saw it, and the offset was cut 0.4 m in a frame; the camera QC's ante-lock)
     if (this._vel && this.locked) {
       _sr.copy(this._vel).addScaledVector(U, -this._vel.dot(U)).multiplyScalar(SIDE_AHEAD);
-      const L = _sr.length();
-      if (L > 0.15 && P.rayDistance(look, _sp.copy(_sr).divideScalar(L), L + 0.1) > L + 0.1) room = Math.min(room, side(_sp.copy(look).add(_sr)) + 0.1);
+      // (no further than a ball's room short of the wall he is going toward, and only from a point with room round it:
+      // strafing into a corner, the point ahead touched the wall, its ball found no room beside it for one frame, and the
+      // offset was cut 0.5 m and let out again; the camera QC's ante-lock, issue #289)
+      const L0 = _sr.length(), L = L0 > 0.15 ? Math.min(L0, P.rayDistance(look, _sp.copy(_sr).divideScalar(L0), L0 + 0.4) - 0.4) : 0;
+      if (L > 0.15 && (!P.roomAt || P.roomAt(_sp.multiplyScalar(L).add(look), SIDE_R * 2) >= SIDE_R * 2)) room = Math.min(room, side(_sp) + 0.1);
     }
     return room;
   }
@@ -3523,26 +3527,31 @@ export class CameraRig {
       const room = this.sideRoom(this._look, s, want + 0.45, U);
       const goal = s * Math.max(0, Math.min(want, room - 0.45));
       const onSide = this._side * s >= 0;   // (the offset is on that shoulder already, or there is none)
-      if (this._jumped) this._side = goal;
+      if (this._jumped) { this._side = goal; this._sideV = 0; }
       else if (onSide && Math.abs(goal) < Math.abs(this._side)) {
-        // a wall coming in beside it: eased in quickly, and pulled in at once only as far as needed
-        // to keep the look point off the wall (it used to snap all the way in, a jump in the view)
-        this._side += (goal - this._side) * (1 - Math.exp(-10 * dt));
+        // a wall coming in beside it: in quickly, and pulled in at once only as far as needed to keep the look point off
+        // the wall (it used to snap all the way in, a jump in the view). On a spring, critically damped: an easing's first
+        // step was the kink (a counter's corner coming up beside the way ahead, Qanat's shop, 12-18 cm; issue #289)
+        this._sideV = (this._sideV ?? 0) + (SIDE_SPRING * SIDE_SPRING * (goal - this._side) - 2 * SIDE_SPRING * (this._sideV ?? 0)) * dt;
+        this._side += this._sideV * dt;
         // (and quickly, but over a few frames, off a wall right beside it: at once, a door's jamb appearing beside the
         // look point jumped it 30 cm; never closer than 0.08 m, where the arm's ball has no room left to start from)
-        if (Math.abs(this._side) > room - 0.2) {
-          const to = s * Math.max(0, room - 0.2);
+        // (judged by the room beside the look point itself: the looks ahead, at once, met a corner 1.4 m on and cut it
+        // 18 cm in a frame; and strafing into a corner, a look ahead that touched the wall cut it 0.5 m; issue #289)
+        const here = this._sideHere ?? room;
+        if (Math.abs(this._side) > here - 0.2) {
+          const to = s * Math.max(0, here - 0.2);
           this._side += (to - this._side) * (1 - Math.exp(-SIDE_IN * dt));
-          if (Math.abs(this._side) > room - 0.08) this._side = s * Math.max(0, room - 0.08);
+          if (Math.abs(this._side) > here - 0.08) { this._side = s * Math.max(0, here - 0.08); this._sideV = 0; }
         }
-      } else this._side += (goal - this._side) * (1 - Math.exp(-(onSide ? 4 : SHOULDER.rate) * dt));
+      } else { this._side += (goal - this._side) * (1 - Math.exp(-(onSide ? 4 : SHOULDER.rate) * dt)); this._sideV = 0; }
       // (sliding across: never past a wall on the side it is still on)
       if (Math.sign(this._side) !== s && Math.abs(this._side) > 0.01) {
         const back = this.physics.rayDistance(this._look, _lb.copy(_shoulder).multiplyScalar(-s), Math.abs(this._side) + 0.45);
         this._side = -s * Math.max(0, Math.min(Math.abs(this._side), back - 0.2));
       }
       this._look.addScaledVector(_shoulder, this._side);
-    } else this._side = 0;
+    } else { this._side = 0; this._sideV = 0; }
 
     // Line of sight: pull the camera in front of any wall between it and the
     // player (snap in, ease back out).
@@ -3635,7 +3644,9 @@ export class CameraRig {
     this._armV ??= 0;
     const spring = (w, to) => { this._armV += (w * w * (to - this._curDist) - 2 * w * this._armV) * dt; return this._curDist + this._armV * dt; };
     if (cut > 0.02) {
-      const close = k > 0.5 && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
+      // (locked on, in on the spring too where the room is part open: standing by a doorway into a hall, the arm reached
+      // 4.4 m out through it, and the lock's turn brought its edge across the arm, a cut of 2.4 m in a frame; issue #289)
+      const close = (k > 0.5 || (this.locked && k > 0.05)) && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
       // (not locked on: the lock turns the camera, and holding the old spot turned the view 0.3 rad in a frame and back,
       // or back toward the wall it had turned off for room, LOCK_ROOM; the camera QC's ante-lock and guardian-lock)
       if (close && !hands && !this.locked && cut > ARM_HOLD_CUT && this.holdSpot(dist, U, Fw, Rt)) this._armV = 0;   // (held: yaw, pitch and the arm turned to where it was)
