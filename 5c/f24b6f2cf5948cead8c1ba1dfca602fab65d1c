@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_7b774131c72589 7
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_0e03a2ad1fdc40 179-193
+engine/game.js
+  s_9ca76055a220ed::t_c661b2cf602443 73,397-398,590
+engine/menus.js
+  s_9ca76055a220ed::t_4d1056e3bea764 26,42-43,78-83,373-378
+engine/unity/game.js
+  s_9ca76055a220ed::t_e39c5ad8190d20 23,40-42,45,51-65,68,76,82,87,125,301,352
+src/changelog-media.js
+  s_9ca76055a220ed::t_8018428109bf27 767
+src/changelog.js
+  s_9ca76055a220ed::t_97486206534adc 18-20
+src/native-pad.js
+  s_9ca76055a220ed::t_7b3e3e6228baaf 63-74,77,165,303-309,313
+tests/engine-menus.test.js
+  s_5f2db5ad6e5c29::t_148d2512a532b2 288-337
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_7b256dd2fe28db 126,130,262-295
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_9b3d4f2f87a30f 43-44,357,380,510
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5cf24b6f2cf5948cead8c1ba1dfca602fab65d1c",
+  "prompts": {},
+  "sessions": {
+    "s_5f2db5ad6e5c29": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a134e3-6d50-7e60-a227-e918cab5a6ca",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
