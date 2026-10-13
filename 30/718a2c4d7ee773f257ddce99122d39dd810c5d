@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_19987ca2d98347 5-7,10
+docs/systems/characters.md
+  s_9ca76055a220ed::t_b8957ec8593afb 1251-1303
+docs/systems/faces.md
+  s_9ca76055a220ed::t_bec5a72b476c1b 26-29
+scripts/tripo/README.md
+  s_9ca76055a220ed::t_ea583aef38d7ed 32-33
+src/changelog-media.js
+  s_9ca76055a220ed::t_60318984e93f70 741,743,757-762
+src/changelog.js
+  s_9ca76055a220ed::t_98d5f58329cceb 11,20-23
+src/characters/portrait-head.js
+  s_9ca76055a220ed::t_2c155e3fe2c456 12-22,67-68,71,77,101-132,146
+src/characters/traveller-cloth-ink.js
+  s_9ca76055a220ed::t_323d6f556846de 1,5-6,16-19
+src/characters/traveller-v1.js
+  s_9ca76055a220ed::t_233eb664204035 28,33,35,42,87
+src/characters/tripo-head.js
+  s_9ca76055a220ed::t_92c61707f4612e 104-105
+src/pipeline.js
+  s_9ca76055a220ed::t_6b1e8360f3285a 81-83,85
+scripts/tripo/bake-face-ink.mjs
+  s_83d42ff487c9ed::t_530597a092a246 1-63
+tests/portrait-face-ink.test.js
+  s_83d42ff487c9ed::t_ef1f49aefe9d1e 1-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30718a2c4d7ee773f257ddce99122d39dd810c5d",
+  "prompts": {},
+  "sessions": {
+    "s_83d42ff487c9ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa1bd755f1956a4d0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
