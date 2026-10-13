@@ -1,0 +1,90 @@
+changelog.md
+  s_972174feb57bbc::t_e9b59e6819dcb7 13
+docs/systems/characters.md
+  s_972174feb57bbc::t_67fc7484f94006 1488-1771
+engine/game.js
+  s_972174feb57bbc::t_d7dffb9207db8c 30,204,206,240,245,248
+public/characters/traveller-b3/colors.json
+  s_972174feb57bbc::t_250beeddaddaf8 1
+public/characters/traveller-b3/rig.json
+  s_972174feb57bbc::t_fe658b48cf4a53 1-735
+"references/main character/Body study - 2026-10-13/provenance.json"
+  s_972174feb57bbc::t_39669a1d50858a 1-70
+scripts/tripo/README.md
+  s_972174feb57bbc::t_b7473d3038cb42 369-409
+scripts/tripo/prepare-traveller-b3.mjs
+  s_972174feb57bbc::t_3d0102ac455605 1-19
+scripts/tripo/rig-baseline.mjs
+  s_972174feb57bbc::t_3b538652eed89a 8,16,39-40,44,46,69,72,95
+src/boot.js
+  s_972174feb57bbc::t_904b3ccf42572b 1
+src/changelog-media.js
+  s_972174feb57bbc::t_397aaf6282b923 780-781,865
+src/changelog.js
+  s_972174feb57bbc::t_0a1cfa4630f44b 12,86
+src/character-review.js
+  s_972174feb57bbc::t_d1726124a243dd 1-21
+src/characters/portrait-head.js
+  s_972174feb57bbc::t_c3863294944e10 38,41,49,75,80,82
+src/characters/traveller-b3-fit.js
+  s_972174feb57bbc::t_4e7e924d4e7099 1-86
+src/characters/traveller-b3-motion.js
+  s_972174feb57bbc::t_463e5aa7964c40 1-87
+src/characters/traveller-b3.js
+  s_972174feb57bbc::t_27724a4fa5f2f1 1-159
+src/characters/traveller.js
+  s_972174feb57bbc::t_dd205273f4f5e2 1-32
+src/characters/tripo-cloth.js
+  s_972174feb57bbc::t_8bd2214131d116 8,169-170,173-181,185-188,190,209,245,256,277-279,348,415-418,422-423
+src/characters/tripo-garment-geometry.js
+  s_972174feb57bbc::t_4f130f4a539258 6,8,15,34,38,50,58-70,74,116,123,133,135,140-142
+src/characters/tripo-walk.js
+  s_972174feb57bbc::t_50a72d71db3c98 19,40,46
+src/hands.js
+  s_972174feb57bbc::t_7c453fbd1da4f5 170,173,255,330,355
+src/main.js
+  s_972174feb57bbc::t_9ed67e1c06c45b 83,321,606,686,2714-2718
+src/motion/main.js
+  s_972174feb57bbc::t_dfc999fe1192a1 24,121,124-125,141,184,190
+src/player.js
+  s_972174feb57bbc::t_7399167778c79f 1326,1780-1782
+src/studio/main.js
+  s_972174feb57bbc::t_09b39a3f9e79b4 7,121,148,430-431
+src/title-world.js
+  s_972174feb57bbc::t_9953c3ca95fb51 556,561-562,567,580
+src/trailer/actors.js
+  s_972174feb57bbc::t_aa08f0ef0b9f7a 6,22,109-111
+src/trailer/main.js
+  s_972174feb57bbc::t_8f010127719a16 15,206
+tests/title-ready.test.js
+  s_972174feb57bbc::t_275e84567a2e6c 52
+tests/traveller-b3.test.js
+  s_972174feb57bbc::t_258b0fb5ed5ec9 1-370
+tests/tripo-cloth.test.js
+  s_972174feb57bbc::t_cf56887a1f9d15 77-92
+tools/traveller-b3-review.html
+  s_972174feb57bbc::t_e66988d3e3a2ff 1
+tools/traveller-b3-review.js
+  s_972174feb57bbc::t_699f1762eac579 1-101
+tools/tripo-render.js
+  s_972174feb57bbc::t_acc70242bd9ff3 10,19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6566628ca2f6fc82762de1ce396a667af20ac956",
+  "prompts": {},
+  "sessions": {
+    "s_972174feb57bbc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130aa-d20e-7633-9556-f28303d59bce",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
