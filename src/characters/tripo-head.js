@@ -101,8 +101,8 @@ export function makeTripoHead(asset, body) {
 
 const SRGB_LINE = 'albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));';
 /** Existing expression/blink/speech interface, now driving the new mesh's shape keys. */
-export function wearTripoHeadFace(mesh, hairInk = null) {
-  if (mesh.userData.portraitHead) return wearPortraitHeadFace(mesh, hairInk);
+export function wearTripoHeadFace(mesh, hairInk = null, faceInk = null) {
+  if (mesh.userData.portraitHead) return wearPortraitHeadFace(mesh, hairInk, faceInk);
   const mat = mesh.material;
   if (!mat.fragmentShader.includes(SRGB_LINE)) throw new Error('Head face needs the game ink material');
   mat.uniforms.uHeadSpeech = { value: new T.Vector4() };

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.63 — 2026-10-12
 
+- The traveller’s face is inked the way his portrait is drawn: one line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, and his jaw drawn against the throat with fine hatching in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.
 - Fixed: a group of buildings and rocks far off could vanish for a frame as their distant detail changed, most often in the City-Shaft just after arriving.
 - On the Steam Deck the game runs faster at its full 1280 × 800: about 52 frames a second where the Desert starts (46 before), 46 at the pilgrims’ camps (42) and 50 at the City-Shaft’s rim (47), with the same picture. Each frame does less work for the people’s skeletons and for where everything in the world stands.
 

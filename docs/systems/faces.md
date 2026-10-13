@@ -23,8 +23,10 @@ lock accents; it is attached drawing, not a specular light. `uPortraitHairAmount
 can switch it off for a matched comparison. The existing world light still shades
 the geometry, and mipmaps filter fine strokes at dialogue and gameplay distance.
 
-Nose/lip marks feed the shared ink detail channel once; generic head hatching and
-the fixed under-chin patch are suppressed. The runtime fit extends only the neck
+The face's pen lines are the approved portrait's own (v1.63: nose, mouth, lower lip,
+chin, the jaw and the hatching under it), drawn into the shared ink detail channel over
+one flat skin; generic head hatching and the fixed under-chin patch are suppressed
+(characters.md, "The face's ink"). The runtime fit extends only the neck
 under the scarf and leaves the visible jaw on the skull side of the weight blend.
 The source GLB stays untouched; fitting, weights, expressions and shader changes
 are runtime operations, not an exported rig. See the character-system notes for

@@ -1248,3 +1248,56 @@ vertex colours; their separate shaders do not yet reproduce the new ink treatmen
 Bare-VM game boot passes with this fallback. Device-specific GPU performance
 remains unmeasured. Reproduction commands and historical head-v2 notes are in
 `scripts/tripo/README.md`; the current face contract is in `faces.md`.
+
+### The face's ink (v1.63, issue #198)
+
+The v1 portrait head kept the generator's face paint: blotchy baked shading, scratchy nose
+marks and weak lips, which the world's light then shaded again. Against the approved front
+portrait (`head-v3/reference/front.png`) the face now carries the drawing's own pen work:
+one long side line down the nose and two short bridge ticks, the nose's wings and nostrils,
+one stroke for the mouth, a short line under the lower lip and the chin's mark, the jaw
+drawn against the throat with fine vertical hatching beneath it, over one flat skin colour
+(the world's toon light gives the single shadow tone). The painted eyes, their lash lines
+and the continuous brows stay as v1 had them; no new references were made.
+
+- **The portrait's lines, lifted once.** `node scripts/tripo/bake-face-ink.mjs` samples the
+  front reference through the same projection the hair mask uses (833 px a unit, crown at
+  80 px), keeps dark thin marks and drops broad dark masses (hair, pupils, brows), the eyes,
+  the brows, the ears' edge and everything under the jaw. It writes
+  `public/characters/traveller-v1/head-v3/face-ink.png`, 512 × 584 over source-front
+  x −0.25…0.25, y 0.05…0.62 (`PORTRAIT_FACE_INK.box`): red the lines that last (mouth,
+  nose), green the finer ones (lower lip, chin, philtrum, bridge ticks, freckles). The ink
+  is the reference's pixels, not a redrawing; tests check every inked texel lands on the
+  head's front skin and none on hair, eyes or brows.
+- **Drawn in rest space.** `wearPortraitHeadFace` samples it with the rest position's
+  x/y, only where the rest normal faces forward, so it rides the blink, smile and speech
+  morphs and never smears onto the underside of the nose or jaw. The lines go to the ink
+  detail channel (over 1: a pen line), not the albedo, so the colour-edge pass does not
+  outline both sides of them. The threshold rises with magnification (the lines narrow
+  close up instead of growing into bars) and each weight fades in by the face's height
+  on screen, as shown (divided by the pixel ratio, so the supersampled conversation
+  portrait counts its own size): the major lines between 22 and 45 px, the fine ones and
+  the hatching between 90 and 170 px. In a gameplay or two-shot view the face is under
+  30 px and draws none of them.
+- **The jaw from the geometry.** A front projection would fill the jaw's underside, so
+  the jaw is the crease where the rest normal's y crosses −0.45, near the measured jaw
+  curve y = 0.142 + 4x², 1.7 px wide; below it (the underside, and the throat just under
+  the chin) vertical strokes 0.0085 units apart, darker in shade, still faint in light,
+  as the reference always draws that shadow. From the side the silhouette carries the
+  jaw and the crease keeps to the front and the jaw's corner.
+- **Skin.** Within the face and everything under y 0.3 the source paint gives way to the
+  one skin colour, except in the eye and brow zones where only near-black marks (lashes,
+  brow hair) stay.
+- **Cost.** 9.3 KB shipped, about 0.76 MiB on the GPU with mipmaps (RG8), one texture
+  sample and a few dozen ALU ops on the head's single draw; no geometry, draw call or
+  CPU work. `loadClothInk(url, 2)` reads the red and green channels.
+- **Close-ups.** `pipeline.js setSubject` dropped the subject when the camera came within
+  half a metre of the body's middle (the studio's close-up), and post.js then took the
+  hero's fine ink out; the subject now stays, sized as at half a metre.
+- **Native engine VMs** skip the mask like the hair and cloth masks (sampled vertex
+  colours only); the Unity bridge's own ink shader would need the PNG decoded natively
+  and this snippet (rest-space sample, normal crease, hatch) ported to show it.
+
+Checked in the studio (front, three-quarter, side, close-up, face, bust, full and far, the
+happy, angry and sad tones and talking) and in a Desert conversation (two-shot and his
+portrait chip) against the reference; `tests/portrait-face-ink.test.js`.

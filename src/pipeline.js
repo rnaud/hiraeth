@@ -78,8 +78,10 @@ const _subj = new THREE.Vector3();
 export function setSubject(U, camera, at, up, hidden = false) {
   _subj.copy(at).addScaledVector(up, 0.95).applyMatrix4(camera.matrixWorldInverse);
   const sdep = -_subj.z;
-  if (sdep > 0.5 && !hidden) {
+  // (a camera nearer than half a metre to the body's middle, the studio's close-up of a face: still
+  // the subject, as large as at half a metre, so its fine ink stays rather than dropping out)
+  if (sdep > 0.05 && !hidden) {
     _subj.applyMatrix4(camera.projectionMatrix);
-    U.uSubject.value.set(_subj.x * 0.5 + 0.5, _subj.y * 0.5 + 0.5, sdep, 1.35 * U.uProj11.value / (2 * sdep));
+    U.uSubject.value.set(_subj.x * 0.5 + 0.5, _subj.y * 0.5 + 0.5, sdep, 1.35 * U.uProj11.value / (2 * Math.max(sdep, 0.5)));
   } else U.uSubject.value.w = -1;
 }

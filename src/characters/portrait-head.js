@@ -9,6 +9,17 @@ export const PORTRAIT_HEAD = Object.freeze({
  eyes:[[-.118,.522],[.125,.522]], eyeWidth:.056, eyeHeight:.025,
  browY:.588, mouthY:.293, mouthWidth:.090, chinY:.134,
 });
+// The face's pen lines (issue #198): the approved front portrait's own lines in source-front space
+// (box: x0, y0, x1, y1; scripts/tripo/bake-face-ink.mjs), drawn into the detail channel. jaw: the
+// jaw curve's height at the chin and its rise (y = a + b x²), the rest normal's y at the crease,
+// its width in px; hatch: the throat strokes' spacing (source units), width in px and how much
+// shows in light; fade: the face's height on screen (px) over which each weight of line comes in.
+export const PORTRAIT_FACE_INK = Object.freeze({
+ box:[-.25,.05,.25,.62], size:[512,584], faceHeight:.47,
+ jaw:[.142,4.0,-.45,1.7], hatch:[.0085,1.0,.8],
+ fade:{major:[22,45], minor:[90,170]},
+ weight:{major:1.6, minor:1.35, jaw:1.9, hatch:1.4},
+});
 const smooth=(a,b,x)=>{const t=T.MathUtils.clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
 const patch=(x,y,w,h)=>1-smooth(.55,1,Math.hypot(x/w,y/h));
 export function makePortraitHead(asset,body){
@@ -53,15 +64,17 @@ export function makePortraitHead(asset,body){
  body.parent.add(mesh);mesh.bind(body.skeleton,body.bindMatrix);return mesh;
 }
 const SRGB='albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));';
-const F=PORTRAIT_HEAD;
-export function wearPortraitHeadFace(mesh,hairInk){
+const F=PORTRAIT_HEAD,FI=PORTRAIT_FACE_INK;
+export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  const mat=mesh.material;if(!mat.fragmentShader.includes(SRGB))throw new Error('Portrait face needs the game material');
  mat.uniforms.uPortraitHairInk={value:hairInk};mat.uniforms.uPortraitHairAmount={value:1};
+ mat.uniforms.uPortraitFaceInk={value:faceInk};mat.uniforms.uPortraitFaceAmount={value:faceInk?1:0};
  mat.uniforms.uHeadSpeech={value:new T.Vector4()};mat.uniforms.uHeadEye={value:new T.Vector4()};mat.uniforms.uPortraitBlink={value:0};
  mat.uniforms.uShade.value.z=0; // source contours carry this face; no procedural cross-hatching
  mat.vertexShader=mat.vertexShader.replace('out vec2 vTextureUV;','out vec2 vTextureUV;\nin float _portrait_hair; out float vPortraitHair;').replace('vTextureUV = uv;','vTextureUV = uv; vPortraitHair = _portrait_hair;');
  mat.fragmentShader=mat.fragmentShader.replace('void main()',`in float vPortraitHair;
  uniform sampler2D uPortraitHairInk;uniform float uPortraitHairAmount;uniform float uPortraitBlink;
+ uniform sampler2D uPortraitFaceInk;uniform float uPortraitFaceAmount;
  uniform vec4 uHeadSpeech;uniform vec4 uHeadEye;
  void main()`).replace(SRGB,`${SRGB}
  vec3 ph=(vBind-vec3(${F.offset.join(',')}))/${F.scale};
@@ -85,14 +98,38 @@ export function wearPortraitHeadFace(mesh,hairInk){
  // Remove the generator's fixed black hatch patch on the neck, below the actual chin.
  float neckClean=(1.0-smoothstep(.14,.19,ph.y))*(1.0-phHair);
  albedo=mix(albedo,phSkin,neckClean);
- float faceInk=(1.0-smoothstep(.43,.72,albedo.r))*phFront*(1.0-phHair)*(1.0-phInside);
- albedo*=1.0-.14*faceInk;
- float phNose=(1.0-smoothstep(.085,.105,abs(ph.x)))*smoothstep(.335,.35,ph.y)*(1.0-smoothstep(.48,.495,ph.y));
- float phMouth=(1.0-smoothstep(.103,.12,abs(ph.x)))*smoothstep(.25,.263,ph.y)*(1.0-smoothstep(.319,.331,ph.y));
- float phFeatureInk=(1.0-smoothstep(.43,.78,phPaint.r))*max(phNose,phMouth)*phFront;
- // These source marks travel through the ink channel once, so the colour-edge
- // detector cannot outline both sides of each small painted nose/lip stroke.
- albedo=mix(albedo,phSkin,max(phNose,phMouth)*phFront*(1.0-phHair));
+ // One flat skin over the face (the reference's: a colour and the world's one shadow tone over it).
+ // Only the painted eyes, their lash lines and the brows keep the source paint; its blotches,
+ // baked shading and scratchy nose/lip marks give way to the portrait's own lines below.
+ vec2 phB=vec2(abs(ph.x)-.12,ph.y-.592);
+ float phKeep=max(1.0-smoothstep(.8,1.0,length(phQ/vec2(.074,.040))),(1.0-smoothstep(.085,.11,abs(phB.x)))*(1.0-smoothstep(.034,.05,abs(phB.y))));
+ float phFace=phFront*(1.0-phHair)*(1.0-smoothstep(.17,.2,abs(ph.x)))*smoothstep(.15,.2,ph.y);
+ float phDark=1.0-smoothstep(.2,.42,phPaint.r);
+ albedo=mix(albedo,phSkin,max(phFace*(1.0-phInside)*(1.0-phKeep*phDark),(1.0-smoothstep(.28,.32,ph.y))*(1.0-phHair)));
+ // The portrait's pen lines (bake-face-ink.mjs), front-projected in rest space so they ride the
+ // face's morphs. Lines narrow as they magnify, and fade out by the face's size on screen.
+ vec3 phN=normalize(vObjNormal);
+ vec2 fiUV=vec2((ph.x-(${FI.box[0].toFixed(3)}))/${(FI.box[2]-FI.box[0]).toFixed(3)},(${FI.box[3].toFixed(3)}-ph.y)/${(FI.box[3]-FI.box[1]).toFixed(3)});
+ vec2 fiTex=texture(uPortraitFaceInk,fiUV).rg;
+ float fiPx=1.0/max(max(fwidth(fiUV.x),fwidth(fiUV.y))*${FI.size[0].toFixed(1)},1e-4);   // render px per texel
+ float phFaceH=${FI.faceHeight.toFixed(2)}/max(max(fwidth(ph.x),fwidth(ph.y)),1e-6)/max(uPixelRatio,1e-3);   // the face's height in px (as shown: the portrait chip draws large, then shrinks)
+ float fiThr=mix(.5,.75,smoothstep(1.2,5.0,fiPx/max(uPixelRatio,1e-3))),fiAa=.5*max(fwidth(fiTex.r),fwidth(fiTex.g))+.04;
+ float fiOn=step(0.0,fiUV.x)*step(fiUV.x,1.0)*step(0.0,fiUV.y)*step(fiUV.y,1.0)*smoothstep(.02,.3,phN.z)*phFront*(1.0-phHair)*(1.0-phInside)*uPortraitFaceAmount;
+ float phMajor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.r)*fiOn*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
+ float phMinor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.g)*fiOn*smoothstep(${FI.fade.minor[0].toFixed(1)},${FI.fade.minor[1].toFixed(1)},phFaceH);
+ // The jaw: where the rest normal turns under the chin (the crease, at any angle), near the jaw's
+ // measured curve. Below it, the reference's shadow on the throat: fine vertical strokes.
+ float phJawY=${FI.jaw[0].toFixed(3)}+${FI.jaw[1].toFixed(2)}*ph.x*ph.x;
+ float phJawZone=(1.0-smoothstep(.022,.04,abs(ph.y-phJawY)))*smoothstep(-.04,.06,ph.z)*(1.0-phHair)*(1.0-smoothstep(.15,.19,abs(ph.x)))*uPortraitFaceAmount;
+ float phJd=abs(phN.y-(${FI.jaw[2].toFixed(2)}))/max(fwidth(phN.y),1e-4);
+ float phJaw=inkLine(phJd,${FI.jaw[3].toFixed(2)})*phJawZone*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
+ float phBelow=phJawY-ph.y;
+ // (the jaw's underside past the crease, and the throat just under the chin seen from the front)
+ float phUnder=(1.0-smoothstep(${(FI.jaw[2]-.05).toFixed(2)},${(FI.jaw[2]+.05).toFixed(2)},phN.y))*(1.0-smoothstep(.04,.07,abs(ph.y-phJawY)));
+ float phNeck=smoothstep(-.004,.012,phBelow)*(1.0-smoothstep(.04,.075,phBelow))*(1.0-smoothstep(.07,.11,abs(ph.x)));
+ float phThroat=max(phUnder,phNeck)*smoothstep(.0,.08,ph.z)*(1.0-phHair)*(1.0-smoothstep(.15,.19,abs(ph.x)))*uPortraitFaceAmount;
+ float phHu=ph.x/${FI.hatch[0].toFixed(4)}+.35*sin(ph.y*90.0);
+ float phHatch=inkLine(abs(fract(phHu)-.5)/max(fwidth(phHu),1e-4),${FI.hatch[1].toFixed(2)})*phThroat*(1.0-smoothstep(.25,.45,fwidth(phHu)))*smoothstep(${FI.fade.minor[0].toFixed(1)},${FI.fade.minor[1].toFixed(1)},phFaceH);
  // A UV mask projected once from the selected drawings: attached grey lock/strand accents, no gloss.
  float phHighlight=texture(uPortraitHairInk,vTextureUV).r*uPortraitHairAmount;
  vec3 phHairColor=mix(vec3(.022,.027,.030),vec3(.24,.275,.285),phHighlight);
@@ -106,7 +143,7 @@ export function wearPortraitHeadFace(mesh,hairInk){
  float hh=.022*ho*sqrt(max(0.0,1.0-hx*hx));
  float oral=(1.0-smoothstep(hh-ha,hh+ha,abs(ph.y-${F.mouthY})))*(1.0-smoothstep(.92,1.0,abs(hx)))*phFront*smoothstep(.02,.08,ho);
  albedo=mix(albedo,vec3(.14,.055,.045),oral);
- `).replace('float detail = 0.0;','float detail = min(1.7, 2.0 * phFeatureInk);');
+ `).replace('float detail = 0.0;',`float detail = max(max(${FI.weight.major.toFixed(2)}*phMajor,${FI.weight.minor.toFixed(2)}*phMinor),max(${FI.weight.jaw.toFixed(2)}*phJaw,${FI.weight.hatch.toFixed(2)}*phHatch*max(${FI.hatch[2].toFixed(2)},clamp((uToon-L)/uToon*2.0,0.0,1.0))));`);
  mat.needsUpdate=true;
  const matrix=new T.Matrix4(),centre=new T.Vector3(F.offset[0],F.offset[1]+.414*F.scale,F.offset[2]+.31*F.scale);
  const face={mesh,expression:cleanExpression(),blink:0,look:[0,0],state:headInkState(cleanExpression()),

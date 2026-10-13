@@ -25,20 +25,21 @@ export async function loadTravellerV1(base) {
     if (!response.ok) throw new Error(`Traveller ${name}: HTTP ${response.status}`);
     return response.json();
   };
-  const [gltf, data, report, colors, head, headColors, clothInk, hairInk] = await Promise.all([
+  const [gltf, data, report, colors, head, headColors, clothInk, hairInk, faceInk] = await Promise.all([
     new GLTFLoader().loadAsync(folder + 'model.glb'), loadBody(base), json('rig.json'), json('colors.json'),
     new GLTFLoader().loadAsync(folder + 'head-v3/model.glb'), json('head-v3/colors.json'),
     loadClothInk(folder + 'cloth-ink.png'),
     loadClothInk(folder + 'head-v3/hair-ink.png'),
+    loadClothInk(folder + 'head-v3/face-ink.png', 2),
   ]);
-  return { gltf, data, report, colors, head, headColors, clothInk, hairInk };
+  return { gltf, data, report, colors, head, headColors, clothInk, hairInk, faceInk };
 }
 
 // Build in the same origin/rest frame as the fitted export and review. Gameplay
 // can spawn at any position and orientation (including a sphere's far side).
 export function createTravellerV1(char, assets, o = {}) { return runSteps(createTravellerV1Steps(char, assets, o)); }
 /** createTravellerV1 in steps (src/load-steps.js runStepsAsync: the title builds him while its menu answers). */
-export function* createTravellerV1Steps(char, { gltf, data, report, colors, head: headAsset, clothInk, hairInk }, { gpu } = {}) {
+export function* createTravellerV1Steps(char, { gltf, data, report, colors, head: headAsset, clothInk, hairInk, faceInk }, { gpu } = {}) {
   const skins = [];
   gltf.scene.traverse(o => { if (o.isSkinnedMesh) skins.push(o); });
   if (skins.length !== 1 || colors.length !== skins[0].geometry.attributes.position.count)
@@ -83,7 +84,7 @@ export function* createTravellerV1Steps(char, { gltf, data, report, colors, head
     }
     // The replacement keeps its generated face and moves its own shape keys.
     // Original-body tools retain the old painted-face adapter.
-    humanoid.drawnFace = head ? wearTripoHeadFace(head, hairInk) : wearTripoFace(mesh);
+    humanoid.drawnFace = head ? wearTripoHeadFace(head, hairInk, faceInk) : wearTripoFace(mesh);
     humanoid.restExpression = cleanExpression(TRAVELLER.rest);
     humanoid.setExpression(humanoid.restExpression);
     cloth.gpuMaterial(cloth.garment.material);   // (the game: skinned and moved by the cage on the GPU, tripo-cloth.js)

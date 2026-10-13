@@ -738,6 +738,7 @@ const SPAWN254 = 'headless Chrome (muted, Low, 800 × 450) against this branch�
 const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch’s own Vite (port 5771) and the tree before it (e7c21f7d), a debug save of the worlds before, the game menu opened by the console; 12 October; cwebp -q 72';
 // (v1.61, issue #197: a scratch shooter against this branch's own Vite, ?gestures=0 for before; the game's own captureView)
 const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by Marrow) against this branch’s own Vite (port 5791): a conversation open, each picture the game’s own view of the one speaking from in front; before: ?gestures=0 (the talking idle alone), 6 moments of a line; after: a moment of each of six gestures (a wave, surprise, yelling, sad, thinking, thanks); 12 October; sharp webp -q 72';
+const FACE198 = 'Issue #198: muted headless Chrome (1 × pixel ratio, 900 × 813) against this branch’s own Vite (port 5851), the Character studio’s Face and Close-up views of the traveller in the Desert’s light, paused idle, no wind, no blink, fixed gaze; before: this commit’s parent, after: this commit, same view each; 12 October; sharp webp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.63': [
     { match: 'On the Steam Deck the game runs faster at its full 1280 × 800', numbers: [
@@ -753,6 +754,11 @@ export const CHANGELOG_MEDIA = {
       ], source: 'the same runs' }],
       see: 'On the Steam Deck, turn on Settings › Show FPS and frame time and stand where the Desert starts or among the pilgrims’ camps.' },
     { match: 'Fixed: a group of buildings and rocks far off could vanish for a frame', see: 'Arrive in the City-Shaft and look out over the rim while the far city fills in: no building blinks out for a frame. (On the Steam Deck the graphics driver used to report the lost draw, “glMultiDrawElementsANGLE: Insufficient buffer size”.)' },
+    { match: 'The traveller’s face is inked the way his portrait is drawn', shots: [
+      { name: 'traveller-face-ink', title: 'From the front', caption: 'Before, the generated head’s own blotchy paint and scratchy nose marks; after, one flat skin and the approved portrait’s own lines: the nose’s side line, wings and nostrils, the mouth, the lower lip and chin, the jaw over the throat with hatching under it.', from: FACE198, reference: { sheet: 'data/characters/traveller-v1/head-v3/reference/canonical-portrait.png', caption: 'The approved portrait the lines are taken from (its face, cropped).' } },
+      { name: 'traveller-face-ink-three', title: 'Three-quarter', caption: 'The lines turn with the face: the nose’s base and the mouth stay on it, and the jaw’s line and the hatching under it come from the head’s own shape, so they hold from any side.', from: FACE198 },
+      { name: 'traveller-face-ink-close', title: 'Close up', caption: 'Seen close, the lines narrow instead of growing into bars, as a pen would draw them.', from: FACE198 },
+    ], see: 'Open the Character studio’s Face or Close-up view and turn the traveller, or talk to someone and watch his portrait on his own lines.' },
   ],
   '1.62': [
     { match: 'Locked on with a foe right at your feet, a ring centipede curled round you', numbers: [

@@ -17,6 +17,9 @@ export const CHANGELOG = [
     // a still batch's new level of detail copied in before the frame's passes, not during one (src/static-batch.js
     // geometryFor later, addLater; issue #111)
     'Fixed: a group of buildings and rocks far off could vanish for a frame as their distant detail changed, most often in the City-Shaft just after arriving.',
+    // the traveller's face inked from his approved portrait (src/characters/portrait-head.js PORTRAIT_FACE_INK,
+    // scripts/tripo/bake-face-ink.mjs; docs/systems/characters.md "The face's ink"; issue #198)
+    'The traveller’s face is inked the way his portrait is drawn: one line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, and his jaw drawn against the throat with fine hatching in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;
