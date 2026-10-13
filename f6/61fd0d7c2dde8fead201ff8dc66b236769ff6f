@@ -1,0 +1,57 @@
+.claude/skills/quest-qc/SKILL.md
+  s_9ca76055a220ed::t_f0117f44bf52fc 47-51
+.claude/skills/quest-qc/check.mjs
+  s_9ca76055a220ed::t_e796f98ce8cf28 2-4,49-84
+changelog.md
+  s_9ca76055a220ed::t_8095c484f73be0 5-9
+docs/audits/quest-v1.66.md
+  s_9ca76055a220ed::t_39277b00c8a17b 96,108,118
+docs/story-bible.md
+  s_9ca76055a220ed::t_18b53772770c03 543,553-558,561
+src/changelog.js
+  s_9ca76055a220ed::t_998bc083145c1c 11-18
+src/save-migrate.js
+  s_9ca76055a220ed::t_94e5fe4f2543fa 104-107,278-279,281-287
+src/story/desert-data.js
+  s_9ca76055a220ed::t_d2e870edf5cc25 717-719,726,733-734,763
+src/story/night-train-data.js
+  s_9ca76055a220ed::t_356ebb975eefc2 10-15,17-19,27-28,45-46,48,84,99,116,154
+src/story/night-train.js
+  s_9ca76055a220ed::t_d1a3b4452622fb 17,50-51
+tests/answers-follow.test.js
+  s_9ca76055a220ed::t_6cc6d063d7bdba 1-119
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_da4ac14d24fc34 864-865,867-869,876
+tests/night-mail.test.js
+  s_9ca76055a220ed::t_05e676a1c84b7f 4-5,64-65,87-88,90,92-94,115
+tests/quest-steps.test.js
+  s_9ca76055a220ed::t_130633d8276919 148-177
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_aeec016771d665 90,283-284,294,426-441
+docs/systems/story.md
+  s_94201370ef1fbb::t_4120c13b0f80cf 908-920
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f661fd0d7c2dde8fead201ff8dc66b236769ff6f",
+  "prompts": {},
+  "sessions": {
+    "s_94201370ef1fbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7a8316e362dbd2e0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
