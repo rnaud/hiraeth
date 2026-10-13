@@ -1,0 +1,37 @@
+docs/audits/camera-v1.66.md
+  s_9ca76055a220ed::t_6c90887b3523b8 1-57
+docs/audits/motion-v1.66.md
+  s_9ca76055a220ed::t_158c20e7f214e9 1-75
+docs/audits/procedural-animation-v1.66.md
+  s_9ca76055a220ed::t_0e097610702444 1-119
+docs/audits/shadow-v1.66.md
+  s_9ca76055a220ed::t_2a4cc55fae4e03 1-58
+docs/audits/zfight-v1.66.md
+  s_9ca76055a220ed::t_712046753671e2 1-62
+docs/systems/animation.md
+  s_9ca76055a220ed::t_8190e20c7cde32 758-761
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_b43cc7a16dde1f 235-238
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_42457e947deb9f 1243-1251,1321-1327
+src/audits-page/parse.js
+  s_9ca76055a220ed::t_0484997f9ede50 25
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_356feeb611d298 128-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e93d3bf967f29858baf0426bba542874ec3fa0b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

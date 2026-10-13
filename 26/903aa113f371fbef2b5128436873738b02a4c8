@@ -1,0 +1,21 @@
+docs/audits/visual-v1.66.md
+  s_9ca76055a220ed::t_5df4b3d88bc934 1-139
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_0bfe6ad4bed8cb 26,53,79-80,127-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "26903aa113f371fbef2b5128436873738b02a4c8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
