@@ -342,7 +342,12 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   menu while a calm score of its own fades in on a separate bus: a slow pad in D lydian
   (I-V-vi-IV), a music box arpeggio and a falling melody every 32 beats, flute then bell
   (`MENU_SCORE`, `menuBeat(b)`). The title screen plays it on a `Sound('title', { score: false })`
-  that fades out and closes as the game loads.
+  that fades out and closes as the game loads. **One music at a time** (v1.65, issue #243: "When in the pause
+  menu we should not play both the level and menu music"): under any menu that pauses the game (the Start menu,
+  the game menu, What's new: main.js `sound.menuMusic(paused())`) the world's own music bus (`music`: the score,
+  a recorded soundtrack, the fight's drums) goes to nothing while the effects and voices stay hushed at
+  `MENU_HUSH`; it comes back at its volume as the menu closes. The music slider moved in the menu, the score's
+  per-frame level (`listen`) and a new start (`start`) all keep it out while `menuOn`. `tests/menu-music.test.js`.
 
 ## Nothing on the screen; the scout finds the objective (v0.62)
 

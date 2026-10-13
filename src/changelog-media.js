@@ -765,6 +765,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'charge-card', title: 'The father’s charge', caption: 'Before, three lines: “Your father’s charge”, “Something of value” and the quote; after, one.', from: `${FROM_HUD}, the card shown by hand` },
       { name: 'objective-card', title: 'The objective card', caption: 'Before, “OBJECTIVE” over a tilted card; after, one level line, the step itself (a homecoming’s).', from: `${FROM_HUD}, the card shown by hand` },
     ], see: 'Start a new game: as you step out of the ship the father’s words are one line, and no objective card follows.' },
+    { match: 'In the pause menu and the game menu only the menu’s music plays', see: 'Open the Start menu (Menu) or the game menu (View) while the world’s music plays: it fades out and only the menu’s tune is heard; close it and the world’s music comes back.' },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [

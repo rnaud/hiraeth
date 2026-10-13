@@ -314,7 +314,7 @@ export class Sound {
     const wet = ctx.createGain(); wet.gain.value = 0.55;
     this.reverb.connect(wet).connect(this.world);
 
-    this.music = ctx.createGain(); this.music.gain.value = 0.62 * this.musicVol;
+    this.music = ctx.createGain(); this.music.gain.value = this.menuOn ? 0 : 0.62 * this.musicVol;
     this.music.connect(this.world);
     this.musicSend = ctx.createGain(); this.musicSend.gain.value = 0.7;
     this.music.connect(this.musicSend).connect(this.reverb);
@@ -523,6 +523,9 @@ export class Sound {
     if (!ctx) return;   // (start() applies it)
     const t = ctx.currentTime;
     this.world.gain.setTargetAtTime(on ? MENU_HUSH : 1, t, on ? 0.3 : 0.5);
+    // the world's own music goes out altogether under a menu (issue #243: "we should not play both the level and menu
+    // music"); its sounds stay, hushed. It comes back at its volume as the menu closes.
+    this.music?.gain.setTargetAtTime(on ? 0 : 0.62 * this.musicVol, t, on ? 0.25 : 0.6);
     this.menuBusEnsure();
     this.menuBus.gain.setTargetAtTime(on ? 0.62 * this.musicVol * MENU_LEVEL : 0, t, on ? 0.7 : 0.35);
     clearTimeout(this._menuStop);
@@ -646,7 +649,7 @@ export class Sound {
   setVolumes(music, fx) {
     this.musicVol = music; this.fxVol = fx;
     if (!this.ctx) return;
-    this.music.gain.setTargetAtTime(0.62 * music, this.ctx.currentTime, 0.2);
+    this.music.gain.setTargetAtTime(this.menuOn ? 0 : 0.62 * music, this.ctx.currentTime, 0.2);   // (under a menu: still out)
     this.fx.gain.setTargetAtTime(1.6 * fx, this.ctx.currentTime, 0.2);
     this.fxRoom?.gain.setTargetAtTime(fx, this.ctx.currentTime, 0.2);
     if (this.menuBus && this.menuOn) this.menuBus.gain.setTargetAtTime(0.62 * music * MENU_LEVEL, this.ctx.currentTime, 0.2);
@@ -2321,7 +2324,7 @@ export class Sound {
     // the score steps back when you stand among musicians
     // (and under a moment's swell: src/story/moment.js, swell())
     const swell = (this._swellUntil ?? 0) > t ? 0.3 : 1;
-    this.music.gain.setTargetAtTime(0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)) * swell, t, swell < 1 ? 0.35 : 0.8);
+    this.music.gain.setTargetAtTime(this.menuOn ? 0 : 0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)) * swell, t, swell < 1 ? 0.35 : 0.8);   // (a menu up: out, menuMusic)
   }
   /** One beat of a band, scheduled with the score's beat. */
   bandBeat(b, t, spb) {
