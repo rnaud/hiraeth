@@ -751,6 +751,7 @@ const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the 
 // (v1.65, issues #267 and #237: a scratch strip shooter, the guardian held and driven by hand in its own temple's hall, the
 // camera pinned in front and to its side, five frames side by side over two rows)
 const GUARD267 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5941), in the Rose House’s cistern: the Keeper driven by hand through the real fight’s poses (src/temples/boss.js poseRig and its own animate), the camera pinned 13 m in front and to its side; before, the procedural body swapped back in on the same branch; 13 October; cwebp -q 72';
+const GUARD237 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5941), in the Aerie’s hall: the generated Elder put in place of the live one for the review and driven by hand (her real poses, the camera pinned 13 m in front and to her side, she looking ahead); before, the prototype as it was on main (1e94ecb8) on the same branch; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.65': [
     { match: 'In the Unity preview, see-through things are see-through again', shots: [
@@ -790,6 +791,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'keeper-skin-walk', title: 'Coming for you', caption: 'Walking at the fight’s pace across the cistern, from in front (top) and the side (bottom), a frame every 0.3 s: before, the old body of plates on six splayed legs; after, the new body trotting on three legs at a time.', from: GUARD267 },
       { name: 'keeper-skin-stamp', title: 'Its stamp', caption: 'At 0.4, 0.8, 1.2, 1.4 and 1.8 s into its stamp: it rears on its four hind legs, its forelegs up, and slams down.', from: GUARD267 },
     ], see: 'In the Rose House, open the way to the cistern and step in: the Keeper wakes. Watch it walk, rear to stamp and pant; give it water when it does.' },
+    { match: 'The Elder’s new body, still a preview', tags: ['characters', 'vael'], shots: [
+      { name: 'elder-head', title: 'Facing ahead', caption: 'Standing in the Aerie, from in front (top) and the side: before, her beak turned well to her left; after, ahead of her.', from: GUARD237 },
+      { name: 'elder-flight', title: 'Taking off', caption: 'At 0.2, 0.6, 1.0, 1.5 and 2.5 s after she takes to the air: before, she was at her hover at once, her legs hanging straight; after, she rises over a second and a half and folds her legs and toes up under her.', from: GUARD237 },
+    ], see: 'On the development server open /tools/elder-review.html and choose Hover, Walk or Front. She is a preview: the Aerie still has the Elder you know.' },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [

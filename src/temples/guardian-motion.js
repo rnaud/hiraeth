@@ -55,11 +55,12 @@ export class GuardianLegs {
     this.f = {};
     this.ctx = {};
   }
-  /** One frame: the body's offsets { y, x, z, pitch, roll, yaw }. extra.air: off the floor (1 hanging, above 1 tucked). */
+  /** One frame: the body's offsets { y, x, z, pitch, roll, yaw }. extra.air: off the floor (1 hanging, above 1 tucked); landHome. */
   update(M, dt, opts, extra = {}) {
     const f = kitState(this.f, M, opts), c = this.ctx, a = opts.attack, kit = opts.kit ?? {};
     c.eye = kit.eye; c.ground = kit.ground; c.touch = kit.touch;
     c.air = extra.air ?? 0;
+    c.landHome = !!extra.landHome;   // (landing: its feet planted where they hang, under it: src/characters/elder-creature.js)
     c.recovery = opts.state === 'open' ? 1 : 0;
     // (still aiming: the feet may step round as it turns to you; then they brace and hold)
     c.free = f.state === 'wind' && (opts.k ?? 0) < (a?.track ?? 0.5);

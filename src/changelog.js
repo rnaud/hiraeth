@@ -56,6 +56,9 @@ export const CHANGELOG = [
     // src/characters/keeper-creature.js, creature-legs.js; the planner's fast gait, src/motion-kit/gait.js; docs/systems/
     // characters.md "The Keeper in the Rose House"; issue #267)
     'The Keeper of the cistern in the Rose House has its new body, drawn from its approved design: a ribbed shell on six long legs that walks one foot at a time and breaks into a trot of three legs at a time when it comes for you, rears on its hind legs to stamp and lowers its long neck to pant and drink. The glyphs on its shell still glow brighter as it calms, and the fight is the same as before. It is the one you spar with in the Arena too.',
+    // the Elder's generated body, still a preview off the Aerie (src/characters/elder-creature.js; docs/systems/characters.md
+    // "Elder generated guardian review"; issue #237)
+    'The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.',
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state
