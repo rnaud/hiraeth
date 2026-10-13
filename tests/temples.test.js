@@ -43,6 +43,7 @@ import { LODGE as FOOT_LODGE } from '../src/temples/spheres.js';
 import { SAND as FOUNDRY_SAND } from '../src/temples/moonfoundry.js';
 import { STORE as WHALE_STORE } from '../src/temples/underwater.js';
 import { setHintLevel } from '../src/hint-level.js';
+import { answerAsks } from './guardian-asks.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -1567,6 +1568,7 @@ test('the Founders’ Belfry on foot: the west store’s arena and the east stor
   const rising = () => G.phaseIndex >= 1 && G.attack?.over && !G.struck && G.at > 0.15 && G.at < G.windFor * 0.5;
   let landed = 0;
   for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
+    answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
     let ready = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open' || rising()) { ready = true; break; } }
     assert.ok(ready, `she cries, or rises to dive (${n}, phase ${G.phaseIndex})`);
@@ -2616,6 +2618,7 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   // tests/guardian-twists.test.js plays it through, failures and all)
   const lure = rt.lurePools.list[0];
   for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
+    answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
     if (G.phaseIndex >= 2 && !lure.lit) {
       P.teleport(lure.at.clone().add(V(1, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
       for (let i = 0; i < 3 / DT && !lure.lit; i++) frame();
@@ -2882,6 +2885,7 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   // (in her last phase the cold no longer eases her: the crystals over her, stilled smallest first; tests/guardian-twists)
   const crystal = (rank) => rt.motherCrystals.list.find((s) => s.o.rank === rank);
   for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
+    const pushed = answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
     if (G.phaseIndex >= 2) {
       const before = G.meter;
       for (const r of [0, 1, 2]) crystal(r).hit('stun');
@@ -2892,7 +2896,7 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open' || (G.phaseIndex >= 1 && G.attack && !G.struck && G.at > 0.3)) { ready = true; break; } }
     assert.ok(ready, `she lies spent, or rears (${n})`);
     const before = G.meter;
-    if (G.state === 'open') { assert.ok(G.model.mouth.distanceTo(G.model.pos) > 8, 'her head lies out on the floor'); G.hit('mouth', 'stun'); }
+    if (G.state === 'open') { assert.ok(pushed || G.model.mouth.distanceTo(G.model.pos) > 8, 'her head lies out on the floor'); G.hit('mouth', 'stun'); }
     else { G.hit('body', 'stun'); mid++; assert.equal(G.attack, null, 'stilled mid-strike'); }
     assert.ok(G.meter > before, `calmer (${n}: ${G.meter.toFixed(2)})`);
   }
@@ -3446,6 +3450,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   assert.equal(rt.logic.isOpen('d4'), false, 'the door shuts behind you');
   P.opts.health = false;
   for (let n = 0; n < 8 && G.state !== 'resolved'; n++) {
+    answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `its face opens (${n}, phase ${G.phaseIndex})`);
@@ -3739,6 +3744,7 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   };
   let shaded = false;
   for (let n = 0; n < 14 && G.state !== 'weary'; n++) {
+    answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it kneels (${n})`);
@@ -4133,6 +4139,7 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   G.hit('mouth', 'shoot');
   assert.equal(G.meter, 0, 'fluid only rattles off its dish');
   for (let n = 0; n < 8 && G.state !== 'resolved'; n++) {
+    answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it lowers its dish to listen (${n})`);

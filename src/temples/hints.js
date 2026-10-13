@@ -280,6 +280,8 @@ export function guardianHint(rt, hints = BOSS_HINTS) {
     return { id: `${rt.id}.weary`, lines: [`It is calm now. Go to it and ${g.def.touch}.`], at: () => g.model.mouth };
   }
   const i = Math.min(g.phaseIndex, H.phases.length - 1);
+  // (the phase's second verb not answered yet, boss.js asks: its own lines, and the lens on the guardian)
+  if (g.asking && g.phase.asks.lines?.length) return { id: `${rt.id}.${i}.asks`, lines: g.phase.asks.lines, at: () => g.model.mouth };
   const lines = H.phases[i];
   if (!lines?.length) return null;
   return { id: `${rt.id}.${i}`, lines, at: () => H.at?.(g, i) ?? g.model.mouth };

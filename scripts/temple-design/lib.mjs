@@ -360,12 +360,14 @@ export function templeMetrics(g, { guardian = null } = {}) {
   steps.forEach((s, i) => { const base = baseOf(s.mechanics); for (const m of s.mechanics) use(m, i, base.length >= 2); for (const t of s.traversal) if (t !== 'pit') (mech[`traverse:${t}`] ??= { uses: [], teach: i, test: null, twist: null }).uses.push(i); });
   // the fight: which verbs it asks for
   const gadgetKey = g.gadget ? `gadget:${g.gadget}` : null;
-  const text = guardian ? [guardian.wake, guardian.openHint, guardian.weary, ...(guardian.phases ?? []).map((p) => p.hint ?? '')].filter(Boolean).join(' ') : '';
+  const text = guardian ? [guardian.wake, guardian.openHint, guardian.weary, ...(guardian.phases ?? []).flatMap((p) => [p.hint ?? '', p.asks?.hint ?? ''])].filter(Boolean).join(' ') : '';
+  // (a phase's second verb, src/temples/boss.js asks: the fight can't be won without it)
+  const asked = [...new Set((guardian?.phases ?? []).map((p) => p.asks?.verb).filter(Boolean))];
   const fightVerbs = Object.entries(VERB_WORDS).filter(([, re]) => re.test(text)).map(([k]) => k);
   const bossNeeds = (g.boss?.needs ?? []).filter((n) => n !== 'backpack');
   const bossRequires = conditionKeys(g.boss?.requires).map((k) => k.id).filter((id) => E[id]);
   const usesGadget = !!g.gadget && (bossNeeds.includes(g.gadget) || (g.gadget === 'cell' && bossNeeds.includes('magic:4')) || fightVerbs.includes(g.gadget));
-  const fightMechs = [...new Set([...(usesGadget ? [gadgetKey] : []), ...fightVerbs.filter((v) => v === 'push' || v === 'shot'), ...bossRequires.flatMap((id) => mechanicOf(id, E[id], { elements: E }))])];
+  const fightMechs = [...new Set([...(usesGadget ? [gadgetKey] : []), ...fightVerbs.filter((v) => v === 'push' || v === 'shot'), ...asked, ...bossRequires.flatMap((id) => mechanicOf(id, E[id], { elements: E }))])];
   const attacks = Object.values(guardian?.attacks ?? {});
   const groundTelegraphs = attacks.filter((a) => ['ring', 'cone', 'lane'].includes(a.shape)).length;
   if (gadgetKey && mech[gadgetKey] && usesGadget) mech[gadgetKey].exam = true;
@@ -400,7 +402,7 @@ export function templeMetrics(g, { guardian = null } = {}) {
     obviousness: { mean, max: Math.max(0, ...obv), min: obv.length ? Math.min(...obv) : 0, painfullyObvious: obv.filter((o) => o >= 4.5).length, obscure: obv.filter((o) => o <= 1.5).length },
     decoupled, decoupledShare: steps.length ? +(decoupled / steps.length).toFixed(2) : 0,
     gadget: { item: g.gadget, at: gadgetAt, uses: gadgetSteps.length, contexts: [...contexts], withOld: gadgetWithOld.length },
-    guardian: { kind: guardian?.kind ?? null, final: guardian?.final ?? null, phases: (guardian?.phases ?? []).filter((p) => !p.weary).length, usesGadget, fightVerbs, fightMechs, requires: bossRequires, groundTelegraphs, attacks: attacks.length },
+    guardian: { kind: guardian?.kind ?? null, final: guardian?.final ?? null, phases: (guardian?.phases ?? []).filter((p) => !p.weary).length, usesGadget, fightVerbs, fightMechs, asked, requires: bossRequires, groundTelegraphs, attacks: attacks.length },
     curve: { trend: curve, first: thirds(steps.map((s) => s.complexity))[0], last: thirds(steps.map((s) => s.complexity))[2] },
   };
 }

@@ -35,6 +35,11 @@ export const CHANGELOG = [
     'The makers’ machine in the temples is fairer to fight: the floor rumbles as it raises both arms for its ground slam, a jump clears the slam and its ring, and afterwards its claws stay stuck in the floor for a moment, when your cuts land double. A perfect parry of its one-armed swing knocks a plate off it.',
     // nine guardians' quickest move 1.0-1.1 -> 1.2 s (src/temples/*.js, src/telegraph.js WIND_MIN.guardian; issue #258)
     'Nine temple guardians give you a little longer to read their quickest move: the Elder’s peck, the Cloud-Mother’s roll, the First Sign’s stutter, the Tooth-Warden’s and the warden’s stomps, the Foreman’s jab, the Mother Snapper’s snap, the Lampless’s flutter and the Echo’s ripple now wind up as long as their other moves.',
+    // six guardians' second phase asks for a second verb before the gadget (src/temples/boss.js asks, the six temples;
+    // docs/systems/foes.md "A second verb"; issue #257)
+    'Six temple guardians ask for more than their temple’s tool in their second phase. Guard the Cloud-Mother’s wing roll and the Clockwork Foreman’s hammer, push the Mother Snapper’s head as she rears to snap, splash the Gardener as it crouches to send its roots, and dodge the Lampless’s fluttering wings and the First Sign’s beam at the last moment: each then reels open for the bell, the stilling, the lantern, the bloom, the numerals or its word.',
+    // a combo's links no longer advance a guardian's rotation (src/temples/boss.js begin)
+    'Fixed: a temple guardian could repeat the same combo over and over and never use its other moves (the First Sign stuttering and crying without ever firing its beam). Each now goes through its moves in turn.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;

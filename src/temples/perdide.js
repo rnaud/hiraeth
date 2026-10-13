@@ -169,7 +169,12 @@ export const MOTHER = {
   resolved: 'The Mother Snapper sleeps. Up in the dome the crystals hum in tune.',
   phases: [
     { to: 0.45, attacks: ['lunge', 'sweep'], pause: 1.5, hint: 'When her head lies spent after a lunge, still her: cold in her mouth.' },
-    { to: 0.75, attacks: ['snap', 'seed', 'sweep'], pause: 1.2, hint: 'She feints now. Still her, or still the three crystals, smallest first.' },
+    { to: 0.75, attacks: ['snap', 'seed', 'sweep'], pause: 1.2, hint: 'She feints now. Still her, or still the three crystals, smallest first.',
+      // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
+      asks: { verb: 'push', moves: ['snap'], open: 3.6,
+        hint: 'Push her head as she rears to snap: it slams down, spent.',
+        said: 'Shoved aside, her head slams down spent, jaws agape. Still her.',
+        lines: ['She rears back to snap.', 'Push her head as she rears to snap, and it slams down spent.', 'Switch to the push and fire it at her head as it draws back to snap; then still her open mouth.'] } },
     { to: 0.9, attacks: ['thrash', 'seed', 'snap'], pause: 1.0, hint: 'The cold no longer eases her: still the crystals, smallest first.' },
     { to: 1.0, weary: true },
   ],

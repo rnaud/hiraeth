@@ -516,6 +516,33 @@ combo finishers 1.1-1.3 s. `tests/telegraphs.test.js` checks the move lists, the
 that ends in an opening, an opening in every phase, a combo's timing, the body tells, a phase change and the shock
 ring; `tests/temples.test.js` still plays every temple through.
 
+### A second verb (v1.63, `phase.asks`; issue #257)
+
+The temple design audit's guardian exam was 3 in six houses: their fights asked for the gadget and nothing else.
+Each now asks, in its second phase, for one more verb the traveller has, against one move of its own, before the
+gadget takes (`src/temples/boss.js` `asks`, `Guardian.asking`, `Guardian.answer`): until it is answered its openings
+don't come (said once, `asks.hint`, also its shift's line) and the gadget's calm or harm is refused (`add`);
+answered, it reels open (`asks.open`, a perfect parry `asks.perfect`; `asks.said`), and from then the phase plays as
+before, the verb still opening it. A knock-out asks again. The drone's three lines while it asks: `asks.lines`
+(`src/temples/hints.js`). The audit reads the verb from the def (`scripts/temple-design/lib.mjs`: `asked`, a fight
+mechanic): guardian exam 3 → 4 in all six.
+
+| Guardian (gadget) | Verb | Against | Answered |
+|---|---|---|---|
+| The Cloud-Mother (the bell) | the guard | her wing roll | jarred, she sinks and cries: ring |
+| The Mother Snapper (stilling) | the push | her snap, as she rears | her head slams down spent: still her mouth |
+| The Lampless (the lantern) | a perfect dodge (the flurry) | its flutter | overreached, it hangs low: stand still by it |
+| The Gardener (bloom) | a splash (the fluid shot) | its roots, as it crouches | it kneels to drink: bloom its back |
+| The Clockwork Foreman (six numerals) | the guard | its hammer | jarred, its face opens |
+| The First Sign (its word back) | a perfect dodge (the flurry) | its beam | overreached, it lowers its dish |
+
+`tests/guardian-twists.test.js` ("a second verb") plays each: the gadget refused, no opening of its own, then the verb
+answered for real (`tests/guardian-asks.js`: the push or a splash into the wind-up, the guard held or the flurry on as
+it lands) and the gadget taking. The temples' walkthroughs (`tests/temples.test.js`) answer it the same way.
+
+A combo's links no longer count as moves of the phase's rotation (`Guardian.begin`, v1.63): a three-move combo in a
+list of three moves had locked the rotation on that combo (the First Sign stuttered and cried, never beamed).
+
 ### The guardians’ last phases (v1.15, v1.16, v1.19, v1.24)
 
 In the temples reworked round one idea (docs/audits/temple-design-v1.12.md, v1.16, v1.19), the guardian's last phase asks

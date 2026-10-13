@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.63 — 2026-10-12
 
+- Fixed: a temple guardian could repeat the same combo over and over and never use its other moves (the First Sign stuttering and crying without ever firing its beam). Each now goes through its moves in turn.
+- Six temple guardians ask for more than their temple’s tool in their second phase. Guard the Cloud-Mother’s wing roll and the Clockwork Foreman’s hammer, push the Mother Snapper’s head as she rears to snap, splash the Gardener as it crouches to send its roots, and dodge the Lampless’s fluttering wings and the First Sign’s beam at the last moment: each then reels open for the bell, the stilling, the lantern, the bloom, the numerals or its word.
 - Nine temple guardians give you a little longer to read their quickest move: the Elder’s peck, the Cloud-Mother’s roll, the First Sign’s stutter, the Tooth-Warden’s and the warden’s stomps, the Foreman’s jab, the Mother Snapper’s snap, the Lampless’s flutter and the Echo’s ripple now wind up as long as their other moves.
 - The makers’ machine in the temples is fairer to fight: the floor rumbles as it raises both arms for its ground slam, a jump clears the slam and its ring, and afterwards its claws stay stuck in the floor for a moment, when your cuts land double. A perfect parry of its one-armed swing knocks a plate off it.
 - The antler hound gives you longer to see its pounce coming: it crouches, then coils with its rump up and the smoke along its back standing on end, shivers and snarls before it leaps. It pounces a little less often too.

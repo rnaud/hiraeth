@@ -180,7 +180,12 @@ export const FIRST_SIGN = {
   resolved: 'The First Sign says its whole line once, quietly, and listens.',
   phases: [
     { to: 0.5, attacks: ['cry', 'beam', 'static'], pause: 1.6, hint: 'When it lowers its dish to listen, play its word back into it.' },
-    { to: 0.75, attacks: ['beam', 'stutter', 'static'], pause: 1.2, hint: 'A new word: catch it, then play it into its dish or a low wall dish.' },
+    { to: 0.75, attacks: ['beam', 'stutter', 'static'], pause: 1.2, hint: 'A new word: catch it, then play it into its dish or a low wall dish.',
+      // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
+      asks: { verb: 'dodge', moves: ['beam'], open: 4.4,
+        hint: 'Hop clear of its beam as it fires: overreached, it lowers its dish.',
+        said: 'Its beam burns past you. It lowers its dish to listen: play its word back.',
+        lines: ['Its beam searches for you.', 'Hop aside from its beam just as it fires: it lowers its dish.', 'When its dish glows to fire, flip back (stick back and A / ×) as the beam comes; then play its word back ({key:whistle}).'] } },
     { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'It hears only through its cables now: play its word into a wall dish.' },
   ],
   attacks: {

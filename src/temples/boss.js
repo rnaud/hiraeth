@@ -35,7 +35,12 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //   g.state           'sleep' | 'wake' | 'fight' | 'open' | 'shift' | 'weary' | 'resolved'
 //
 // def: { kind, name, phases: [{ to: 0.4, attacks: ['stamp', …] (the moves it begins with; a combo starts at its
-//        first), pause, hint, openHint? }], shiftTime?, missHint?,
+//        first), pause, hint, openHint?, asks? }], shiftTime?, missHint?,
+//        asks (v1.63, #257): a second verb the phase asks for besides the temple's gadget, { verb: 'parry' | 'push' |
+//          'shot' | 'dodge', moves: [ids], open: s, perfect?: s (a perfect parry's), hint, said, lines: [3, the drone's] }:
+//          until it answers one of `moves` (the guard holds it, the push or a splash in its wind-up, a perfect dodge's
+//          flurry as it lands) the phase's openings don't come and the gadget takes nothing (`asking`, said `hint`);
+//          answered, it reels open `open` s (`said`), and from then on the phase plays as before (and the verb still opens it)
 //        attacks: { id: { shape: 'ring' | 'cone' | 'lane', at: 'self' | 'front' (ring `ahead` m) | 'player',
 //                          radius, range, angle, width, wind: s, damage: hearts, knock: m/s, recover: s,
 //                          part: where its glow gathers ('mouth' | 'head' | 'eye' | 'feet' | 'arms' | 'wings' |
@@ -274,6 +279,25 @@ export class Guardian {
   get phaseIndex() { const P = this.def.phases; for (let i = 0; i < P.length; i++) if (this.meter < P[i].to - 1e-6) return i; return P.length; }
   get phase() { return this.def.phases[Math.min(this.phaseIndex, this.def.phases.length - 1)]; }
   get awake() { return this.state !== 'sleep' && this.state !== 'resolved'; }
+  /** The phase's second verb (`phase.asks`) not answered yet: its openings and the gadget wait for it. */
+  get asking() { const A = this.phase?.asks; return !!A && !(this.answered ??= new Set()).has(this.phaseIndex); }
+  /**
+   * The phase's second verb answered (def.phases[i].asks, v1.63 #257): `verb` against the move it is winding up or
+   * landing (one of asks.moves), and it reels open. True when it did.
+   */
+  answer(verb, perfect = false) {
+    const A = this.phase?.asks, a = this.attack;
+    if (!A || A.verb !== verb || this.state !== 'fight' || !a || !A.moves.includes(a.id)) return false;
+    if ((verb === 'push' || verb === 'shot') && this.struck) return false;   // (in its wind-up, before it lands)
+    const first = this.asking;
+    (this.answered ??= new Set()).add(this.phaseIndex);
+    this.stop(); this.cool = this.phase.pause ?? 1.6;
+    this.enter('open'); this.openFor = perfect && A.perfect ? A.perfect : A.open ?? 3;
+    this.rt.rumble?.(0.8, 0.4);
+    this.rt.sound?.critter?.(this.def.kind === 'robot' ? 'whirr' : 'creak', 1.2);
+    if (first) this.rt.notice?.(A.said, `asks.said.${this.phaseIndex}`);
+    return true;
+  }
   /** The wind-up's progress (0..1; 1 once struck), for the models and the tests. */
   get attackK() { return this._k ?? 0; }
   set attackK(v) { this._k = v; }
@@ -284,6 +308,8 @@ export class Guardian {
     const i = this.phaseIndex, P = this.def.phases;
     const lo = i > 0 ? P[i - 1].to : 0, hi = P[Math.min(i, P.length - 1)].to;
     const before = this.meter;
+    // (the phase's second verb not answered yet: the gadget takes nothing, and it says what it waits for)
+    if (k > 0 && this.asking) { this.rt.notice?.(this.phase.asks.hint, `asks.${i}`); return false; }
     this.meter = THREE.MathUtils.clamp(this.meter + k, Math.max(lo, this.floor), hi);
     if (this.meter >= hi - 1e-6 && before < hi - 1e-6) this.phaseDone(i);
     this.def.onMeter?.(this, this.meter, why);
@@ -299,8 +325,9 @@ export class Guardian {
       this.rt.notice?.(this.def.weary);
       if (this.def.final !== 'touch' && last) this.resolve();
     } else {
-      // the change: it staggers and is changed (its marks, its moves), then comes on again
-      this.rt.notice?.(P?.hint);
+      // the change: it staggers and is changed (its marks, its moves), then comes on again (a phase that asks for a
+      // second verb says that first: its own hint comes again once it is answered, the drone's lines)
+      this.rt.notice?.(P?.asks?.hint ?? P?.hint);
       this.stop(); this.cool = 1.2; this.combo = 0;
       this.enter('shift');
       this.rt.rumble?.(1.2, 0.4);
@@ -316,6 +343,8 @@ export class Guardian {
     for (const b of this.balls) b.visible = false;
   }
   hit(part, mode, dir, info) {
+    // (the phase's second verb: the push, or a splash, into the move it winds up)
+    if ((mode === 'push' || mode === 'shoot') && this.answer(mode === 'push' ? 'push' : 'shot')) return true;
     if (this.def.onHit?.(this, part, mode, info, dir)) return true;
     if (mode === 'stun' && this.attack && this.state === 'fight' && !this.struck) {
       // the stilling lens stops a strike before it lands (and the rest of its combo)
@@ -335,6 +364,7 @@ export class Guardian {
   reset() {
     if (this.state === 'resolved') return;
     this.meter = this.floor;
+    this.answered?.delete(this.phaseIndex);   // (back at the phase's start: its second verb asked again)
     this.stop(); this.clearWaves(); this.closing = null;
     this.enter('sleep');
     this.cool = 2.5;
@@ -461,7 +491,9 @@ export class Guardian {
         const end = a.then ? this.def.attacks[comboOf(this.def, this.attack.id).at(-1)] : a;
         const missed = !this.hitLast && !!a.miss && a.miss > (end.open ?? 0);
         // (a temple may change it: the Cloud-Mother's last phase opens only on a stone the bell holds, def.openFor)
-        const openFor = this.def.openFor?.(this, end, missed ? a.miss : end.open ?? 0, missed) ?? (missed ? a.miss : end.open ?? 0);
+        let openFor = this.def.openFor?.(this, end, missed ? a.miss : end.open ?? 0, missed) ?? (missed ? a.miss : end.open ?? 0);
+        // (the phase's second verb not answered yet: no opening of its own; it says what it waits for)
+        if (openFor && this.asking) { openFor = 0; this.rt.notice?.(this.phase.asks.hint, `asks.${this.phaseIndex}`); }
         this.stop();
         this.cool = this.phase.pause ?? 1.6;
         // (said once a phase: a later phase's opening may differ, the warden's crown vent: phase.openHint)
@@ -505,7 +537,7 @@ export class Guardian {
       }
       this.combo = 0;
     }
-    if (!picked) this.order++;
+    if (!picked && !chained) this.order++;   // (a combo's links are not moves of the rotation: a three-move combo in a list of three locked it on that one, v1.63)
     this.combo++;
     const a = { id, ...this.def.attacks[id] };
     this.attack = a; this.at = 0; this.struck = false; this.attackK = 0; this.dashing = 0;
@@ -536,10 +568,13 @@ export class Guardian {
     if (a.dash) this.dashing = a.dash;
     if (a.wave) this.addWave(a);
     if (P.dead || P.down) return false;
-    if (P.untouchable?.()) return false;   // (a perfect dodge's flurry: src/flurry.js)
+    if (P.untouchable?.()) { this.answer('dodge'); return false; }   // (a perfect dodge's flurry: src/flurry.js; the phase's second verb, asks)
     if (P.pos.y - this.arena.y > (a.reachUp ?? (a.shape === 'lane' ? 3.5 : HIT.airborne))) return false;   // jumped clear (a beam reaches a little higher)
     const at = this.points(a).find((p) => inArea(a, p, this.attackH, P.pos));
     if (!at) return false;
+    // the phase asks for the guard against this move (asks.verb 'parry'): held, it is jarred open
+    const A = this.phase?.asks;
+    if (A?.verb === 'parry' && A.moves.includes(a.id)) { const held = P.guard?.(this.model.pos); if (held) { this.answer('parry', held === 'perfect'); return false; } }
     // a move the guard can take (its `guard`: the Keeper's charge and stamp): the shield raised toward it holds it
     // (src/fluid-blade.js block, through player.guard), and the guardian may answer (def.onBlock: jarred, it pants)
     if (a.guard) { const held = P.guard?.(this.model.pos); if (held) { this.blocked = (this.blocked ?? 0) + 1; this.def.onBlock?.(this, a, held === 'perfect'); return false; } }

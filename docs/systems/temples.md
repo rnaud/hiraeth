@@ -64,7 +64,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   back to its phase's start. `final: 'touch'` (an interactable: a hand on its brow)
   or `'break'`. A temple may hook it (`onStrike`, `onCatch`, `onReset`, `openFor`: how long a combo's end leaves
   it open). In the five reworked temples its last phase asks for the temple's idea, with pieces of its own in the
-  arena (docs/systems/foes.md, "The guardians' last phases"). **`guardians.js`**: the Keeper's and the warden's bodies.
+  arena (docs/systems/foes.md, "The guardians' last phases"). Six guardians' second phase asks for a second verb
+  before the gadget (`phase.asks`, v1.63: the guard, the push, a splash or a perfect dodge against one move; foes.md,
+  "A second verb"). **`guardians.js`**: the Keeper's and the warden's bodies.
 - **`runtime.js`**: one temple alive: builds the rooms (the world's `layout`),
   the building outside (`exterior`) with its doorway in and the ways out
   (portals), marks and pits (and a net under the whole temple), the chest's site

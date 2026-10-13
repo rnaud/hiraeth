@@ -186,7 +186,12 @@ export const GARDENER = {
   missHint: 'Its claws are stuck in the floor: bloom its bare back.',
   phases: [
     { to: 0.4, attacks: ['sweep', 'stamp', 'clods'], pause: 1.7, hint: 'It tramples the dead beds round the walls. Bloom them.' },
-    { to: 0.7, attacks: ['sweep', 'roots', 'stamp'], pause: 1.3, hint: 'When it kneels in the sun, bloom its back. Footstones turn the louvre.' },
+    { to: 0.7, attacks: ['sweep', 'roots', 'stamp'], pause: 1.3, hint: 'When it kneels in the sun, bloom its back. Footstones turn the louvre.',
+      // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
+      asks: { verb: 'shot', moves: ['roots'], open: 4.6,
+        hint: 'Splash it as it crouches to send its roots: it kneels to drink.',
+        said: 'It drinks the water and kneels, heaving. Bloom its back.',
+        lines: ['It crouches, its roots in the floor.', 'Splash water on it as it crouches for its roots: it kneels to drink.', 'Switch to the fluid and splash it while it crouches for its roots; then bloom its back as it kneels.'] } },
     { to: 0.9, attacks: ['crush', 'clods', 'sweep'], pause: 1.1, hint: 'Nothing grows on it in shade: turn the sun on it, then bloom it.' },
     { to: 1.0, weary: true },
   ],

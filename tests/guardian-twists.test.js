@@ -34,6 +34,7 @@ import { HALL, draught } from '../src/temples/incal.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 import { bestInteractable } from '../src/interact.js';
 import { setHintLevel } from '../src/hint-level.js';
+import { answerAsks } from './guardian-asks.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 
@@ -46,7 +47,7 @@ const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { r
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 
 /** A temple's world, a Player in its guardian's arena, and the guardian awake in phase `phase` (0, 1, 2…). */
-function arena(id, gadget, phase) {
+function arena(id, gadget, phase, { answer = true } = {}) {
   game.reset();
   own('backpack', 'gun', gadget);
   const scene = new THREE.Scene();
@@ -80,6 +81,8 @@ function arena(id, gadget, phase) {
   assert.equal(until(() => G.state === 'fight', 8), true, `${id}: it fights`);
   if (phase > 0) { G.meter = G.floor = G.def.phases[phase - 1].to; }
   assert.equal(G.phaseIndex, phase);
+  // (a phase that asks for a second verb first, src/temples/boss.js asks: answered as play does, tests/guardian-asks.js)
+  if (answer && G.asking) assert.ok(answerAsks({ G, P, frame }), `${id}: its second verb answered (${G.phase.asks.verb})`);
   return { level, rt, G, P, notes, frame, wait, until, said, stand, away, done: () => { rt.dispose?.(); game.reset(); own(); } };
 }
 
@@ -741,4 +744,32 @@ test('the Tooth-Warden’s second phase teaches the gear: free, a volley counts 
   assert.equal(rt.gearJammed(), false, 'it stamped the ball out of the teeth');
   assert.ok(said(/jumps out of its teeth/), 'and it says so');
   A.done();
+});
+
+// ------------------------------------------------------------------ a second verb (v1.63, #257)
+test('six guardians’ second phase asks for a second verb before the gadget (src/temples/boss.js asks): until it is answered no opening comes and the gadget takes nothing; answered, it reels open and the gadget takes', () => {
+  const SIX = [['arzach2', 'bell', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'lantern', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'coil', 'parry'], ['bazaar', 'echo', 'dodge']];
+  for (const [id, gadget, verb] of SIX) {
+    const A = arena(id, gadget, 1, { answer: false });
+    const { G, P, frame, until, said } = A, Q = G.phase.asks;
+    assert.equal(Q?.verb, verb, `${id}: asks for ${verb}`);
+    assert.ok(Q.moves.length && Q.moves.every((m) => G.phase.attacks.includes(m)), `${id}: a move of this phase answers it`);
+    assert.ok(Q.hint && Q.said && Q.lines.length === 3 && [Q.hint, Q.said].every((l) => !l.includes('\n') && l.length < 110), `${id}: its lines, one each`);
+    assert.equal(G.asking, true);
+    // the gadget first: nothing, and it says what it waits for
+    const m0 = G.meter;
+    assert.equal(G.add(0.1, gadget), false, `${id}: the gadget takes nothing yet`);
+    assert.equal(G.meter, m0);
+    assert.ok(said(new RegExp(Q.hint.slice(0, 20).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))), `${id}: it says so`);
+    // no opening of its own (a round of its moves, kept clear of them)
+    const away = P.untouchable; if (verb !== 'dodge') P.untouchable = () => true;   // (a dodge's flurry is that verb's answer: hit instead)
+    assert.equal(until(() => G.state === 'open', 25), false, `${id}: no opening of its own while it asks`);
+    P.untouchable = away;
+    // the verb: it reels open, the gadget takes, and the phase goes on as before
+    assert.ok(answerAsks({ G, P, frame }, { keep: true }), `${id}: answered with the ${verb}`);
+    assert.equal(G.state, 'open'); assert.ok(G.openFor >= Q.open - 1e-9);
+    assert.equal(G.asking, false);
+    assert.equal(G.add(0.05, gadget), true, `${id}: then the gadget takes`);
+    A.done();
+  }
 });

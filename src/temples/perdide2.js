@@ -172,7 +172,12 @@ export const LAMPLESS = {
   resolved: 'The Lampless climbs to the lamp, and the whole room goes gold.',
   phases: [
     { to: 0.45, attacks: ['swoop', 'gust', 'dust'], pause: 1.6, hint: 'When it hangs low, stand still by it with your lantern: let it drink.' },
-    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Stand still with it when it searches, or light a pool for it to drink.' },
+    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Stand still with it when it searches, or light a pool for it to drink.',
+      // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
+      asks: { verb: 'dodge', moves: ['flutter'], open: 4.0,
+        hint: 'Hop clear as its wings beat down: overreached, it hangs low.',
+        said: 'Its wings beat empty air. It hangs low, searching: stand still by it.',
+        lines: ['Its wings beat at you.', 'Hop back from its fluttering wings just as they come down.', 'When it flutters at you, flip back (stick back and A / ×) as the wings fall; then stand still by it.'] } },
     { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'It shies from you now: light a pool before it searches, and stand back.' },
     { to: 1.0, weary: true },
   ],

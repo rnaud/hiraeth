@@ -171,7 +171,12 @@ export const FOREMAN = {
   missHint: 'It spins on, dizzy, its face open: hit the six numerals now.',
   phases: [
     { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'When its face opens, hit all six numerals in one breath.' },
-    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its hands stop at four: hit the numerals round from four, in step.' },
+    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its hands stop at four: hit the numerals round from four, in step.',
+      // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
+      asks: { verb: 'parry', moves: ['hammer'], open: 5.6, perfect: 6.4,
+        hint: 'Guard its hammer: jarred, its face swings open.',
+        said: 'The hammer rings off your guard and its face swings open: the six numerals.',
+        lines: ['Its hammer comes down hard.', 'Take its hammer on your guard: jarred, its face opens.', 'When it rears its hammer, hold the guard (LB / L1) toward it; then hit the six numerals in one breath.'] } },
     { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'Only numerals hit in step count now: six, clockwise from four.' },
   ],
   attacks: {
