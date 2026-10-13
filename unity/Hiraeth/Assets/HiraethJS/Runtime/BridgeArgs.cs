@@ -31,18 +31,16 @@ namespace Hiraeth.Bridge
 #if UNITY_ANDROID && !UNITY_EDITOR
             try
             {
-                using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-                using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
-                using var intent = activity?.Call<AndroidJavaObject>("getIntent");
-                var extra = intent?.Call<string>("getStringExtra", "unity");
+                var extra = IntentExtra("unity");
                 if (!string.IsNullOrWhiteSpace(extra)) a = a.Concat(Split(extra)).ToArray();
                 Debug.Log($"Hiraeth bridge: the plan from the intent: {(string.IsNullOrWhiteSpace(extra) ? "none" : extra)}");
             }
             catch (Exception e)
             {
-                // (asked first from a thread that is not Java's (a static field's initialiser run on Unity's loading thread:
-                // "Field currentActivity … not found", and -mute was lost with the rest): not kept, the main thread reads it again)
-                Debug.LogWarning("Hiraeth bridge: the intent's arguments (read again later): " + e.Message);
+                // (not kept: asked again next time. A build of 2026-10-12 lost the intent, and -mute with it: UnityPlayer's
+                // currentActivity "not found" through AndroidJavaObject's generic calls; IntentExtra goes through plain JNI)
+                if (!intentSaid) Debug.LogWarning("Hiraeth bridge: the intent's arguments (read again later): " + e.Message);
+                intentSaid = true;
                 return a;
             }
 #endif
@@ -58,6 +56,36 @@ namespace Hiraeth.Bridge
 #endif
             return line = a;
         }
+#if UNITY_ANDROID && !UNITY_EDITOR
+        static bool intentSaid;
+        /// <summary>
+        /// The activity's intent's string extra `key`, through plain JNI with explicit signatures (the activity from
+        /// AndroidApplication, else UnityPlayer.currentActivity), attached to the VM on whatever thread asks.
+        /// </summary>
+        static string IntentExtra(string key)
+        {
+            AndroidJNI.AttachCurrentThread();
+            IntPtr act = IntPtr.Zero;
+            try { act = UnityEngine.Android.AndroidApplication.currentActivity?.GetRawObject() ?? IntPtr.Zero; } catch { act = IntPtr.Zero; }
+            if (act == IntPtr.Zero)
+            {
+                IntPtr pc = AndroidJNI.FindClass("com/unity3d/player/UnityPlayer");
+                if (pc == IntPtr.Zero) { AndroidJNI.ExceptionClear(); throw new Exception("no UnityPlayer class on this thread"); }
+                IntPtr fid = AndroidJNI.GetStaticFieldID(pc, "currentActivity", "Landroid/app/Activity;");
+                act = AndroidJNI.GetStaticObjectField(pc, fid);
+            }
+            if (act == IntPtr.Zero) throw new Exception("no activity");
+            IntPtr ac = AndroidJNI.GetObjectClass(act);
+            IntPtr intent = AndroidJNI.CallObjectMethod(act, AndroidJNI.GetMethodID(ac, "getIntent", "()Landroid/content/Intent;"), new jvalue[0]);
+            if (intent == IntPtr.Zero) return null;
+            IntPtr ic = AndroidJNI.GetObjectClass(intent);
+            IntPtr k = AndroidJNI.NewStringUTF(key);
+            IntPtr s = AndroidJNI.CallObjectMethod(intent, AndroidJNI.GetMethodID(ic, "getStringExtra", "(Ljava/lang/String;)Ljava/lang/String;"), new[] { new jvalue { l = k } });
+            if (AndroidJNI.ExceptionOccurred() != IntPtr.Zero) { AndroidJNI.ExceptionClear(); throw new Exception("getStringExtra threw"); }
+            return s == IntPtr.Zero ? null : AndroidJNI.GetStringUTFChars(s);
+        }
+#endif
+
         /// <summary>Arguments split at spaces, a "quoted part" kept whole.</summary>
         public static string[] Split(string s)
         {

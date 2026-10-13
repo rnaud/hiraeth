@@ -131,8 +131,50 @@ in an engine:
 
 The web draws as before (the modules set their part as they draw; `tests/platform.test.js`,
 `tests/hud.test.js`); in the engine the page is engine/platform.js's stand-in and the engine draws
-from `screen`. Left on the page for now: the menus (ui.js SettingsMenu, the sketchbook, the star
-map, cards), the floating speech balloons, the scout's line.
+from `screen`. Left on the page for now: the star map, the cards, the floating speech balloons, the
+scout's line (the menus are the engine's own since October 2026: below).
+
+### The menus (`engine/menus.js`, BridgeMenu.cs; 2026-10-12)
+
+Until then the Unity build started straight into the desert (at the level's spawn: the ship's landing, under its
+hull, the camera inside it) with no title, no Start menu and no game menu: the web's are HTML (src/title.js,
+ui.js SettingsMenu, game-menu.js), and engine/game.js left them out. Now `EngineMenus` keeps them as plain state,
+the same entries in the same order, moved through by the web's own rules, and `view()` is what an engine draws:
+- **the title** (before any world is loaded): Continue (the save played last, its world under it) or New game,
+  Saves, Settings. Saves: Back, the three slots (X / □ deletes, Keep it / Delete asked), and the folded Debug row
+  (issue #227): opened, the slot it writes (A / × goes round: the debug save, Save 1..3) and the route's worlds,
+  written by src/debug-save.js `seedDebugSave` (a player's slot that holds a save is asked first). The choice
+  makes the slot active and reads the game state again (`game.reload()`: it was read at import, from the slot
+  last played), then loads its world: the save's place in it (main.js "continue where you left off"), or the foot
+  of the ship's ramp (`ship.arrivalSpot()`, a new save, another world) in the world `-level` names (the desert).
+- **the Start menu** (Menu / Esc): Resume, Items, Quests, Map, Settings, Controls, Quit to title on a sidebar,
+  its page beside it (`sideStep`, issue #210: right into the page, left back, up / down round each; a slider's,
+  a switch's or a choice's left / right its value; B / ○ in the page back to the sidebar first). Settings:
+  music, effects, voices, mute, the camera's sensitivity and Y, hints, Graphics (read by BridgeArgs.Quality at
+  the next start). Controls: the pad's list (ui.js `controlsList`).
+- **the game menu** (View / Select, J): the five panels (`PANELS`, Quests first), their rows from game-menu.js's
+  own builders fed by `game.menuSources()` (src/game-menu-data.js `menuSources` with the engine's parts: the
+  journal's record from the save, `engineJournal`; the quests, the charge, the items owned, the boxes; the Map's
+  marks from world-map.js `mapMarks`, the ground not drawn), the cursor by `MenuState` / `moveCursor` (a row's
+  end rests on the side tab, once more turns), LB / RB turn, A / × a thing's full view (its use: a gun mode),
+  a quest tracked, a person's page (← → the next), Travel here.
+- While one is open engine/game.js holds the world still (the scene still mirrored), the controller in its
+  menu context hands its actions to the menu; Esc and J open them from the keyboard. Where you stand is saved
+  every 10 s and as the Start menu opens (ui.js `SaveGame`, the save's playtime by `slots.touch`).
+- **Another save or world** (Quit to title then another save, Travel here): the engine starts again
+  (`BridgeHost.Reboot`, BridgeRunner `RebootNow`: the script's threads stopped and their V8 engines disposed,
+  what they handed over forgotten, the scene loaded again, the bridge started on its arguments with the
+  script's `boot` choice), as the web opens a fresh page. The same save and world just resume.
+- A run with a plan (`-views`, `-talk`, `-walk`, `-tour`, `-idle`, `-play`) goes straight into its world as
+  before; `-no-title` does too, and `-arrive` puts a plan's traveller at the ramp.
+
+BridgeMenu.cs lays the state out in the HUD's paper and ink (Ui.cs): the title's name over its entries on the
+page; a sheet over the world dimmed for the others, the entry the pad is on in full ink on a cream band with
+a red mark and line, the buttons' prompts at the foot. Tests: tests/engine-menus.test.js (the state and its
+moves), tests/engine-unity.test.js (the bundle in a bare V8 context: the title, Enter, the world, Esc's Start
+menu, J's game menu with the quests and the map's marks). Left for later: the items' pictures (the web draws
+them with its own renderer, src/item-icons.js), the Map's drawn ground, the photo mode, What's new, the
+prologue (a new save starts at the ramp), the talk gestures (no captured motion is loaded in the engines).
 
 **In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD
 draws it in uGUI with the C# port's own pieces and layout (Hud.cs, Ui.cs: the paper, the ink, the

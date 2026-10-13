@@ -8,6 +8,14 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.64', date: '2026-10-12', items: [
+    // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state
+    // (engine/menus.js, unity/Hiraeth BridgeMenu.cs; docs/systems/engine-bridge.md "The menus")
+    'The Unity preview opens on the title screen now, as the game does: Continue or New game, your three saves (with the Debug list folded under them) and Settings. In a world, Menu opens the Start menu and View the game menu with its Quests, Map, Items, Worlds and People, moved through with the pad as in the game, and the world waits while they are open. It keeps where you stand in your save, and you start at the foot of your ship’s ramp instead of inside the ship.',
+    // the Unity build on Android at Handheld, the lean surfaces and 0.75 of the screen by default (BridgeArgs.Quality,
+    // BridgeRenderer.lean, BridgeRunner; docs/systems/performance.md "Unity on the Retroid")
+    'On the Retroid and other Android handhelds the Unity preview starts at the Handheld graphics, as the game’s app does, and draws its surfaces more simply: a steady 30 frames a second in the Desert, at the City-Shaft’s rim and in the Signal Market, where it ran at 7 to 30 before. The Graphics setting in its menus is kept for the next start.',
+  ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the
     // scene's list, the room culler's verdicts and the still batches' matrices kept (src/skeleton-update.js,

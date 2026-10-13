@@ -32,7 +32,8 @@ test('the bridge reads its arguments, the intent\'s on Android, in one place', (
   const args = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs');
   const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(args, /public static string\[\] CommandLine\(\)/);
-  assert.match(args, /#if UNITY_ANDROID && !UNITY_EDITOR[\s\S]*getStringExtra", "unity"[\s\S]*#endif/);
+  assert.match(args, /#if UNITY_ANDROID && !UNITY_EDITOR[\s\S]*IntentExtra\("unity"\)[\s\S]*#endif/);
+  assert.match(args, /"getStringExtra", "\(Ljava\/lang\/String;\)Ljava\/lang\/String;"/, 'through plain JNI (the generic AndroidJavaObject calls lost the intent in a build of 2026-10-12)');
   assert.match(args, /Hiraeth bridge: the plan from the intent: /);
   assert.ok(!/Environment\.GetCommandLineArgs\(\)/.test(runner), 'BridgeRunner reads BridgeArgs.CommandLine()');
   assert.match(runner, /bool mute = Application\.isBatchMode \|\| Array\.IndexOf\(BridgeArgs\.CommandLine\(\), "-mute"\) >= 0;/);

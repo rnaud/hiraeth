@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.64 — 2026-10-12
+
+- On the Retroid and other Android handhelds the Unity preview starts at the Handheld graphics, as the game’s app does, and draws its surfaces more simply: a steady 30 frames a second in the Desert, at the City-Shaft’s rim and in the Signal Market, where it ran at 7 to 30 before. The Graphics setting in its menus is kept for the next start.
+- The Unity preview opens on the title screen now, as the game does: Continue or New game, your three saves (with the Debug list folded under them) and Settings. In a world, Menu opens the Start menu and View the game menu with its Quests, Map, Items, Worlds and People, moved through with the pad as in the game, and the world waits while they are open. It keeps where you stand in your save, and you start at the foot of your ship’s ramp instead of inside the ship.
+
 ## v1.63 — 2026-10-12
 
 - The Unity preview on the Xbox no longer catches every three seconds at the City-Shaft’s rim: it holds about 60 frames a second there (58.6 before), and only about one frame in a hundred misses the screen’s refresh (one in forty before). The Desert is steadier too.
