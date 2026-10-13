@@ -160,7 +160,13 @@ for (const id of worlds) {
   }
   const metres = L.pathLength(path);
   const gaps = L.interestGaps(samples, places.filter((p) => p.kind !== 'ship' || true), 40);
-  const seen = L.visibleCount(samples.filter((_, i) => i % 3 === 0).map((s) => s.pos), landmarks, los);
+  // (v1.68, issue #278: the share is of the path out under the sky. A stretch under a roof, solid within L.ROOF m over the
+  // eye (a covered street, a tunnel, a cave, the overhang at a tower's foot), finds its way by its walls, not by a landmark
+  // over them: it is left out, as rooms far overhead are of the verticality measure)
+  const _up = new THREE.Vector3(0, 1, 0), _eye = new THREE.Vector3();
+  const roofed = (p) => sight.rayDistance(_eye.set(p[0], p[1] + 1.7, p[2]), _up, L.ROOF) < L.ROOF;
+  const looked = samples.filter((_, i) => i % 3 === 0).map((s) => s.pos);
+  const seen = L.visibleCount(looked.filter((p) => !roofed(p)), landmarks, los);
   const fromSpawn = L.visibleCount([spawn], landmarks, los)[0];
   // (Vael's bird answers only at the end of its main quest: the path there is walked and glided)
   const mount = id === 'arzach' ? null : level.mountName ?? (level.vehicles?.length ? 'vehicle' : null);
@@ -173,7 +179,7 @@ for (const id of worlds) {
     returns: L.returnLegs(path, places, { drape }),
     remote: L.remote(places, samples),
     gravity: L.gravity(places, samples),
-    landmarks: { count: landmarks.length, fromSpawn, seenShare: seen.length ? +(seen.filter((n) => n > 0).length / seen.length).toFixed(2) : 0, meanSeen: seen.length ? +(seen.reduce((a, b) => a + b, 0) / seen.length).toFixed(1) : 0 },
+    landmarks: { count: landmarks.length, fromSpawn, roofed: looked.length - seen.length, seenShare: seen.length ? +(seen.filter((n) => n > 0).length / seen.length).toFixed(2) : 0, meanSeen: seen.length ? +(seen.reduce((a, b) => a + b, 0) / seen.length).toFixed(1) : 0 },
     guidance: L.legGuidance(path, landmarks, los, { lines }),
     lines: lines.map((l) => ({ name: l.name, metres: Math.round(L.polyLength(l.points)) })),
     vertical: L.vertical(places.filter((p) => L.flat(p.pos, spawn) < 1500 && p.pos[1] < 900), samples.filter((q) => L.flat(q.pos, spawn) < 1500 && q.pos[1] < 900), ground, { terrain: base }),   // (interiors far overhead or away: left out)

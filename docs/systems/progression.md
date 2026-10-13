@@ -109,6 +109,16 @@ console first. Vael's main quest ends the same way on "Take the fluid wings from
 them, so a run never sees it). No save moves: the stages before are as they were; a save whose quest ended without the
 blade before v1.60 keeps it ended, the gate still refusing and starting the Rose House's quest.
 
+**The Rose House before Qanat's gift** (v1.68, issue #278, the level design audit v1.66). With the step last, a run
+that had not been in the Rose House was fed at the ship, sent 483 m out to its door and walked back the same way past
+nothing new. The step now comes before the gift: light the tree, "Take the blade and guard from the Rose House" (a leg
+out east from the tree), then "Meet Qanat at your ship" (the way back, past the Givers' field-stone), and the gift is
+the quest's end. It is a `gate` too (an old save fed before the Rose House doesn't end the quest past it), and Qanat
+sets off for the ship only once the blade and the guard are had (`setupRepay`'s `ready`; Ama and Nour say where they
+are while the step is on). Had first, the step is passed over and the gift follows the tree as before. Old saves
+(`desert.quest.v` 6, `GIFT_AFTER_GEAR`): one waiting for the gift without them goes back to the Rose House's step; one
+at that step already (fed, the old order) stays there and ends with them (`tests/playthrough-saves.test.js`).
+
 ## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
 
 From the author: "We shouldn't get the triple jump automatically, it should be a double jump, have a flip animation

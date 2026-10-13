@@ -774,6 +774,7 @@ const BALLS275 = 'Issue #275: muted headless Chrome (High, 1280 × 720, 10:00, t
 // (v1.68, issue #274: a scratch shooter against this branch's own Vite (port 6274), before on the tree before it (51b81557))
 const KEYS274 = 'Issue #274: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 6274) and the tree before it (51b81557): the Clock-House, the Striking Room’s key freed, the camera pinned over his shoulder (the opening held at 0.62 s), then both keys taken and the door over the climb walked into; cwebp -q 72';
 // (v1.68, issue #273: a scratch shooter, Vael from its debug save (?level=arzach&debugsave), the game menu on Quests, then the Map zoomed round the landing)
+const WAYS278 = 'Issue #278: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6278) and the tree before it (e19fea60, the same port after), the camera pinned: the desert from behind the crest over Marrow’s hollow; the Signal Market from the landing down the avenue, wide and at 28°; 13 October; cwebp -q 72';
 const GIVERS273 = 'Issue #273: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5993) and the tree before it (6f2a6136, port 5997): Vael from its debug save, 12 s after landing, the game menu on Quests, then on the Map zoomed round the landing; the talk on Medium; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.68': [
@@ -800,6 +801,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'Temple keys now come in little chests', tags: ['temples'], shots: [
       { name: 'key-chest', title: 'The Striking Room’s key', caption: 'Before, the key turned over a plinth and was taken by walking up to it; after, it waits in a little makers’ chest on the floor, opened here with the light coming out of it and the key rising.', from: KEYS274 },
     ] },
+    { match: 'In the Desert, once the tree burns, the Rose House comes before Qanat’s gift', tags: ['desert'],
+      see: 'Light the tree before you have been in the Rose House: the next step is its blade and guard, and Nour says so. Take them, then ride home to the ship past the carved field-stone: Qanat is there with its gift, and that ends the quest.' },
+    { match: 'Zahir, a boy of the camps, watches the dunes', tags: ['desert'], shots: [
+      { name: 'desert-lookout', title: 'Over Marrow’s hollow', caption: 'The crest above the hollow, the red rag and the crates below: before, nobody between the camps and the tarp; after, Zahir stands there looking down at it.', from: WAYS278 },
+    ], see: 'After the roots have drunk, walk out of the camps toward the red rag: Zahir is on the crest over the hollow. Talk to him.' },
+    { match: 'The Signal Market’s silent tower has a mast', tags: ['market'], shots: [
+      { name: 'market-mast-landing', title: 'From the landing', caption: 'Down the avenue from the ship: after, a mast stands up off the silent tower’s roof, its lamp the highest thing at the avenue’s end, over the needle far behind.', from: WAYS278 },
+      { name: 'market-mast-zoom', title: 'The mast', caption: 'The same, closer: the lattice banded coral and cream, the coral lamp in its brass cage on top.', from: WAYS278 },
+    ], see: 'Step off the ship in the Signal Market and look down the avenue: the mast’s lamp is over the street’s towers.' },
     { match: 'Inside a temple a key counter', tags: ['temples', 'menus'], shots: [
       { name: 'key-counter', title: 'The key counter', caption: 'The key just taken: before, nothing on the screen said so; after, the counter at the top left reads ×1, the chest left open.', from: KEYS274 },
       { name: 'key-lock', title: 'A key in the lock', caption: 'The door over the climb with one of its two keys in: after, the counter is down from ×2 to ×1.', from: KEYS274 },

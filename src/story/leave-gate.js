@@ -49,10 +49,11 @@ export function missingCore(world, has) {
  * `quest`: the blade and the guard, the wings) are had, so the quest never reads as done while the ship would refuse
  * for them. (The desert's own three finds are the main quest's steps, so it has them by then.) `ahead: false` (having
  * them early doesn't skip the steps before it), `pass: true` (had already when the quest reaches it: passed over,
- * never shown; src/story/quests.js landing).
+ * never shown; src/story/quests.js landing). `temple`: the step is done inside the world's temple (the gadgets are in its
+ * chests), what the level design audit counts it as (scripts/level-design/path.mjs; issue #278).
  */
 export function coreStage(world, stage) {
-  return { ...stage, when: (q) => !missingCore(world, (id) => q.has(id)).some((c) => c.quest), ahead: false, pass: true };
+  return { ...stage, when: (q) => !missingCore(world, (id) => q.has(id)).some((c) => c.quest), ahead: false, pass: true, temple: world };
 }
 
 /**

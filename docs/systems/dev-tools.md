@@ -291,6 +291,11 @@ only the list of hints a level can give):
   you (`offMapRooms`, `metrics.rooms`). Its places stay off the map: the door stands for the room.
 - **v1.55:** the eye steps out within 1.5 m, not 0.8 (the City-Shaft crown's marker stands on the axis of the
   palace's needle, 1.2 m round: from there it saw nothing at all; no other world's numbers moved).
+- **v1.68 (#278):** the share of the path that sees a landmark is of the path **out under the sky**: a point with
+  solid within 6 m over the eye (`ROOF`: a covered street, a tunnel, a cave, the overhang at a tower's foot) is left out
+  (`metrics.landmarks.roofed` counts them); only the Signal Market's score moved (its old market under the avenue).
+  And a quest stage done inside a temple, the desert's blade and guard from the Rose House's chests
+  (`coreStage`'s `temple`), is a **temple** stop, as a route's `{ temple }` is.
 
 ## Temporary profiles (issue #220)
 

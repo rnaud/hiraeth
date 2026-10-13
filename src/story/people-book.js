@@ -96,6 +96,12 @@ export const BOOK = {
       [done('desert.power'), 'At her fire by the camps; the Drinking can go on.'],
       'At her fire by the pilgrims’ camps, outside Qanat.',
     ]),
+    P('zahir', 'Zahir', 'Watches the dunes', [
+      'A boy of the pilgrims’ camps who watches the dunes from the crest over Marrow’s hollow. Nothing moves out there he doesn’t see.',
+      [f('desert.bike.uncovered'), 'He knew all along it was a hoverbike under Marrow’s tarp.'],
+    ], [
+      'On the crest over Marrow’s hollow, by the red rag.',
+    ]),
     P('nour', 'Nour', 'The eldest of Qanat, keeper of the Givers’ chest', [
       'The eldest of Qanat. She sat sixty years by the Givers’ chest under the great tree, as her mother did, waiting for “one who fell from the sky”.',
       [f('item.backpack'), 'The chest opened for you. She calls its makers the Givers: they made the giants walk and signed their work with three dots over an arc.'],

@@ -63,7 +63,9 @@ test('saves from before the rework: a tree that already drank keeps burning, and
     return g;
   };
   // the water rose in the old story (the channel open): the tree was burning, and stays so
-  for (const [stage, flags] of [['fill', { 'desert.channel.open': true }], ['ship', { 'desert.channel.open': true, 'desert.jar.filled': true }], ['done', { 'desert.ship.fed': true, 'ship.powered': true }]]) {
+  // (the blade and the guard had, as src/save-migrate.js migrateGivers gives an old save: without them a save at the gift
+  // goes back to the Rose House's step, issue #278, below)
+  for (const [stage, flags] of [['fill', { 'desert.channel.open': true }], ['ship', { 'desert.channel.open': true, 'desert.jar.filled': true, 'item.sword': 1, 'item.shield': 1 }], ['done', { 'desert.ship.fed': true, 'ship.powered': true }]]) {
     const g = save(stage, flags);
     assert.equal(migrateDesertQuest(g), null, `${stage}: the stage stays where it was`);
     assert.equal(g.flag('desert.tree.lit'), true, `${stage}: the tree burns`);
@@ -76,7 +78,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
   assert.equal(g.flag('desert.tree.lit'), undefined);
   // the stages still exist (old ids) and the errand's are in order between the well and the ship
   const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
-  assert.deepEqual(ids.slice(ids.indexOf('fill')), ['fill', ...SPARK_STAGES, 'ship', 'gear'], '(the blade and the guard last while missing: issue #232)');
+  assert.deepEqual(ids.slice(ids.indexOf('fill')), ['fill', ...SPARK_STAGES, 'gear', 'ship'], '(the blade and the guard while missing, issue #232, before Qanat’s gift, issue #278)');
   // once only
   assert.equal(migrateDesertQuest(g), null);
   // a v1 save gets both migrations: the moved stages, and the tree
@@ -84,6 +86,23 @@ test('saves from before the rework: a tree that already drank keeps burning, and
   assert.equal(migrateDesertQuest(old), 'elder');
   assert.equal(old.flag('desert.quest.v'), DESERT_QUEST_V);
   void Quests;
+});
+
+test('saves from before the Rose House came ahead of Qanat’s gift (v5, issue #278): one waiting for the gift without the blade and guard goes back to them; one at their step stays', () => {
+  const store = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
+  const save = (stage, flags = {}) => {
+    const g = new GameState(store());
+    for (const [k, v] of Object.entries({ 'prologue.done': true, 'item.backpack': true, 'desert.quest.v': 5, 'desert.tree.lit': true, 'quest.desert.power': stage, ...flags })) g.set(k, v);
+    return g;
+  };
+  let g = save('ship');
+  assert.equal(migrateDesertQuest(g), 'gear', 'the gift to come, the blade and guard missing: the Rose House first');
+  assert.equal(g.flag('desert.quest.v'), DESERT_QUEST_V);
+  g = save('ship', { 'item.sword': 1, 'item.shield': 1 });
+  assert.equal(migrateDesertQuest(g), null, 'with them: on to the gift');
+  g = save('gear', { 'desert.ship.fed': true, 'ship.powered': true });
+  assert.equal(migrateDesertQuest(g), null, 'at the Rose House’s step (fed, the old order): it stays, and ends with them');
+  assert.equal(g.flag('quest.desert.power'), 'gear');
 });
 
 test('an old save at the jar: the tree already burns; wading fills the jar and the quest goes straight to the ship', () => {
@@ -197,7 +216,7 @@ test('the hoverbike won’t wake on an empty tank', () => {
 
 test('old saves at the stages that left the main quest (the well, Ama, the Speaker, and Ama’s jar since v5) go on to the way down, keeping what was done', async () => {
   const { STAGE_MERGE } = await import('../src/story/desert-data.js');
-  assert.equal(DESERT_QUEST_V, 5);
+  assert.equal(DESERT_QUEST_V, 6);
   const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
   for (const gone of ['well', 'ama', 'speaker', 'ask']) assert.ok(!ids.includes(gone), `${gone} is no stage now`);
   // (Nour points you at the skull herself: the author's playthrough, October 2026, issue #63)

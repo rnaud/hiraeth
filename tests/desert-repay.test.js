@@ -14,9 +14,11 @@ test('the gate: the ship is powered only once the tree burns and Qanat has broug
   assert.equal(repayDue({ lit: false, fed: false }), false, 'a cold tree: nothing to give');
   assert.equal(repayDue({ lit: true, fed: false }), true, 'it burns: Qanat comes to the ship');
   assert.equal(repayDue({ lit: true, fed: true }), false, 'given once');
-  // (the last step but one: the last is the Rose House's blade and guard while they're missing, issue #232)
-  assert.equal(main.stages.at(-1).id, 'gear');
-  const last = main.stages.at(-2);
+  // (and not before the Rose House's blade and guard: its step comes before the gift, issue #278)
+  assert.equal(repayDue({ lit: true, fed: false, ready: false }), false, 'the blade and guard still missing: Qanat waits');
+  assert.equal(repayDue({ lit: true, fed: false, ready: true }), true);
+  assert.equal(main.stages.at(-2).id, 'gear');
+  const last = main.stages.at(-1);
   assert.equal(last.id, 'ship');
   assert.equal(last.flag, 'desert.ship.fed');
   assert.match(last.text, /Meet Qanat at your ship/);

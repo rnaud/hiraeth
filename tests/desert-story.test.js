@@ -670,11 +670,22 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   assert.ok(crowd.people.filter((p) => p.spot?.id === 'procession').every((p) => p.lines === LINES.drinking), 'the procession sings');
   assert.equal(talk(PEOPLE.ama, []).nodeId, 'drinking');
   step(2);
+  // the Rose House not yet visited: its blade and guard are the next step, before Qanat's gift (issue #278), and Ama and
+  // Nour say so; at the ship nothing is given yet, and it stays dark
+  assert.equal(quests.stage('desert.power'), 'gear', 'the blade and the guard first, and the quest says so');
+  assert.match([talk(PEOPLE.nour, []).pages].flat().join(' '), /blade and guard from the Rose House/);
+  const R = rt.world.repay;
+  at(R.ramp().clone()); step(2);
+  game.emit('ship:enter');
+  step(30 * 4, 1 / 30, { people: true });
+  assert.ok(!R.state.placed && !game.flag('desert.ship.fed') && !game.flag('ship.powered'), 'Qanat waits for the Rose House: no gift yet, the ship dark');
+  // the blade and the guard out of their chests in the Rose House: Qanat sets off for the ship with its gift
+  game.set('item.sword', 1); game.set('item.shield', 1);
+  at(V(518, 36, 372)); step(2);
   assert.equal(quests.stage('desert.power'), 'ship');
   // back to the ship (the ship's own hatch emits ship:enter; walking up works too): Qanat repays you. Its people
   // come down to the ship with what they can spare and pour it in, one by one (src/story/desert-repay.js)
-  const R = rt.world.repay;
-  at(R.ramp().clone().add(V(0, 0, 0))); step(2);
+  at(R.ramp().clone()); step(2);
   game.emit('ship:enter');
   step(2);
   assert.equal(quests.isDone('desert.power'), false, 'not the jar alone: Qanat brings its gift first');
@@ -682,13 +693,8 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   step(30 * 26, 1 / 30, { people: true });
   const hull = rt.world.repay.state.spots[0].pour;
   assert.ok(R.party.every((g) => g.n.pos.distanceTo(hull) < 30), 'all of them down at the ship');
-  // (the ship wakes; the Rose House not yet visited, the quest's last step is its blade and guard: issue #232)
   assert.equal(game.flag('ship.powered'), true, 'fed: the ship wakes');
-  assert.equal(quests.stage('desert.power'), 'gear', 'the ship waits for the blade and the guard, and the quest says so');
-  assert.equal(game.flag('world.desert.done'), undefined);
-  game.set('item.sword', 1); game.set('item.shield', 1);
-  step(2);
-  assert.equal(quests.isDone('desert.power'), true);
+  assert.equal(quests.isDone('desert.power'), true, 'the gift is the quest’s end');
   assert.equal(game.flag('world.desert.done'), true);
   assert.ok(game.keepsakes().some((k) => k.id === 'desert.knowing'), 'the keepsake: what the giants left');
   assert.equal(talk(PEOPLE.nour, []).nodeId, 'after');

@@ -324,6 +324,8 @@ export function landmarksFrom(grid, { min = 25, win = 6, keep = 30 } = {}) {
   return blobs.sort((a, b) => b.height * Math.sqrt(Math.min(a.area, 4000)) - a.height * Math.sqrt(Math.min(b.area, 4000))).slice(0, keep).sort((a, b) => b.height - a.height);
 }
 
+/** Over the eye within this far (m), a point on the path is under a roof: no landmark is looked for from it (audit.mjs, issue #278). */
+export const ROOF = 6;
 /** How many landmarks each point sees (within `far` m; aimed at 80 % of each one's height). */
 export function visibleCount(points, landmarks, los, { far = 900, eye = 1.7 } = {}) {
   return points.map((p) => {
@@ -421,7 +423,7 @@ const clamp5 = (x) => Math.max(1, Math.min(5, Math.round(x)));
 /** The rubric (SKILL.md), scored from the measures: 1-5 per criterion, each with the measure it came from. */
 export function scoreWorld(m) {
   const S = {};
-  S.landmarks = { score: clamp5(1 + (m.landmarks.count >= 3 ? 1 : 0) + (m.landmarks.fromSpawn >= 1 ? 1 : 0) + (m.landmarks.seenShare >= 0.6 ? 1 : 0) + (m.landmarks.seenShare >= 0.9 ? 1 : 0)), from: `${m.landmarks.count} landmarks, ${m.landmarks.fromSpawn} seen from the landing, ${Math.round(m.landmarks.seenShare * 100)} % of the path sees one` };
+  S.landmarks = { score: clamp5(1 + (m.landmarks.count >= 3 ? 1 : 0) + (m.landmarks.fromSpawn >= 1 ? 1 : 0) + (m.landmarks.seenShare >= 0.6 ? 1 : 0) + (m.landmarks.seenShare >= 0.9 ? 1 : 0)), from: `${m.landmarks.count} landmarks, ${m.landmarks.fromSpawn} seen from the landing, ${Math.round(m.landmarks.seenShare * 100)} % of the path sees one${m.landmarks.roofed ? ` (${m.landmarks.roofed} points under a roof left out)` : ''}` };
   S.wayfinding = { score: band(m.guidance.guidedShare, [[0.2, 1], [0.4, 2], [0.6, 3], [0.8, 4]], 5), from: `${Math.round(m.guidance.guidedShare * 100)} % of the long legs see their goal or a landmark by it` };
   const speed = m.travel?.speed ?? RUN, gapS = Math.round(m.gaps.timed ? m.gaps.longest.seconds : m.gaps.longest.metres / speed);
   S.density = { score: band(gapS, [[20, 5], [35, 4], [60, 3], [100, 2]], 1), from: `longest empty stretch ${m.gaps.longest.metres} m (${gapS} s ${m.gaps.timed ? m.travel?.then ?? m.travel?.by : m.travel?.by ?? 'running'}); ${Math.round(m.gaps.emptyShare * 100)} % of the path empty` };

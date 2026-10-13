@@ -148,3 +148,21 @@ test('the Glass Dunes (issue #134): the kiln’s smoke over the breaker’s cair
     }
   } finally { W.dispose(); }
 });
+
+test('the Signal Market (issue #278): the silent tower’s mast stands over the street’s roofs, its lamp in sight from the landing and from Madame Sel there', async () => {
+  globalThis.location = { search: '?level=bazaar' };
+  const { MAST } = await import('../src/levels/bazaar.js');
+  const W = A.loadWorld('bazaar');
+  try {
+    const L = W.level, mast = beaconOf(L, 'the silent tower’s mast');
+    assert.ok(mast && flat(V(...mast.top), V(MAST.x, 0, MAST.z)) < 1, 'the audit reads the mast as a beacon');
+    // over the roofs: the lamp higher than every street tower's roof and the box on it
+    const roofs = Math.max(...L.streetTowers.map((t) => t.h + 14));
+    assert.ok(MAST.lamp > roofs + 20, `the lamp at ${MAST.lamp} m, the street's roofs up to ${roofs.toFixed(0)} m`);
+    // from the landing (the ship's ramp) and from Sel where she meets the ship, down the avenue
+    assert.equal(blocker(W, eyeAt(L.spawn), aimOf(mast)), null, 'the mast’s lamp from the landing');
+    assert.equal(blocker(W, eyeAt(A.objectiveAt(W, 'sel')), aimOf(mast)), null, 'from Madame Sel by the landing');
+    // walked through (nothing to climb 200 m up): no collision along it
+    assert.equal(W.physics.rayDistance(V(MAST.x + 0.2, 100, MAST.z + 0.2), V(0, 1, 0), 190), Infinity, 'the mast is drawn, not collided with');
+  } finally { W.dispose(); }
+});

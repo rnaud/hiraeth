@@ -88,7 +88,7 @@ and move a score by one where the numbers miss something, *writing why beside it
 
 | Criterion | 1 | 3 | 5 | Measure |
 |---|---|---|---|---|
-| **Landmarks** | none tall enough, none from the landing | a few; half the path sees one | 3+; the landing and 90 % of the path see one | `landmarks.count`, `fromSpawn`, `seenShare` |
+| **Landmarks** | none tall enough, none from the landing | a few; half the path sees one | 3+; the landing and 90 % of the path see one | `landmarks.count`, `fromSpawn`, `seenShare` (of the path out under the sky: points with solid within 6 m over the eye, a covered street, a tunnel, a cave, are left out; v1.68) |
 | **Wayfinding** | under 20 % of the long legs see their goal or a landmark by it | 40-60 % | over 80 % | `guidance.guidedShare` |
 | **Density** | an empty stretch over 100 s at the world's travel speed | 35-60 s | 20 s or less | `gaps.longest` / `travel.speed` |
 | **Spacing** | under 12 places, a 90th-percentile neighbour over 200 m, loners (18 s from anything at the travel speed) | some loners | evenly clustered, no loners | `spacing` |

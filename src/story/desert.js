@@ -7,7 +7,7 @@ import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, SMOKE_COOL, Embers } from './flames.js';
 import { setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, STAGE_MERGE, DESERT_QUEST_V, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS, REPAY, REPAY_CALL } from './desert-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, STAGE_MERGE, GIFT_AFTER_GEAR, DESERT_QUEST_V, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS, REPAY, REPAY_CALL } from './desert-data.js';
 import { setupDesertMoments } from './desert-moments.js';
 import { verbKey, inputKind } from '../prompt-keys.js';
 import { items } from '../items.js';
@@ -100,7 +100,9 @@ const CATCH_UP = ['elder', 'down'];   // the stages that lead to the channel (se
  * already (it was never empty: tool.empty is only set for a chest opened now).
  * v < 4: the four talks in a row (elder, well, ama, speaker) were two; v < 5: Ama's jar is no step of
  * the main quest any more (Nour points you at the skull herself, issue #63): a save at the well, Ama, the
- * Speaker or the jar's stage ('ask') goes on to the way down (STAGE_MERGE), keeping what it did.
+ * Speaker or the jar's stage ('ask') goes on to the way down (STAGE_MERGE), keeping what it did. v < 6: the Rose
+ * House's step comes before Qanat's gift (issue #278): a save waiting for the gift without the blade and guard goes back
+ * to the Rose House's step (GIFT_AFTER_GEAR); one at that step already (fed, the old order) stays, and ends with them.
  * Returns the new stage, or null if the stage did not change.
  */
 export function migrateDesertQuest(game) {
@@ -114,6 +116,8 @@ export function migrateDesertQuest(game) {
   if (v < 3 && (game.flag('desert.channel.open') || game.flag('desert.ship.fed') || game.flag('ship.powered') || s === 'done')) game.set('desert.tree.lit', true);
   const now = game.flag('quest.desert.power');
   if (STAGE_MERGE[now]) { to = STAGE_MERGE[now]; game.set('quest.desert.power', to); }
+  const gearMissing = missingCore('desert', (id) => !!game.flag(`item.${id}`)).some((c) => c.quest);
+  if (v < 6 && game.flag('quest.desert.power') === GIFT_AFTER_GEAR.from && !game.flag('desert.ship.fed') && gearMissing) { to = GIFT_AFTER_GEAR.to; game.set('quest.desert.power', to); }
   game.set('desert.quest.v', DESERT_QUEST_V);
   return to;
 }
@@ -172,7 +176,8 @@ export function setupDesert(ctx) {
   if (opening()) quests.opensWith('desert.power', ['marrow', 'ama', 'speaker', 'nour', 'hessa'], { label: 'Marrow, by your ship', at: 'marrow', lead: true });   // (the lead giver, ahead of Sabri's temple: the ship's power first, issue #273)
   // the tree already burns (a save from before the spark-stone's errand): its stages are passed over
   const lit = () => !!game.flag('desert.tree.lit');
-  const skipSpark = () => { if (lit() && SPARK_STAGES.includes(quests.stage('desert.power'))) quests.set('desert.power', 'ship'); };
+  // (on to the Rose House's step, passed over to the gift if the blade and guard are had: quests.landing; issue #278)
+  const skipSpark = () => { if (lit() && SPARK_STAGES.includes(quests.stage('desert.power'))) { const d = quests.def('desert.power'); quests.set('desert.power', quests.landing(d, d.stages.findIndex((x) => x.id === 'gear'))); } };
   skipSpark();
   // the water let out before anyone sent you down (Ilo, Bako and Hessa all point at the giant's mouth): the steps
   // that only lead there (Nour's sending, the dry well, the Speaker's old words, the way down) are passed over,
@@ -249,6 +254,12 @@ export function setupDesert(ctx) {
     heading: game.flag('desert.oum.home') ? oumSeat.heading : 1.2,
   });
   const oum = people.oum;
+  // Zahir on the dune's crest over Marrow's hollow, on the way from the camps to it, looking down at the red rag (issue #278)
+  {
+    const L = STORY.lookout, at = onGround(V(L.x, level.ground.heightAt(L.x, L.z), L.z)), face = Math.atan2(STORY.bike.x - L.x, STORY.bike.z - L.z);
+    people.zahir = spawn(PEOPLE.zahir, { route: [at], heading: face });
+    people.zahir.facing = face; people.zahir.heading = face;
+  }
   // Nour: on her bench beside the makers' dais, keeping their chest company (desert-city.js)
   const ledge = city.shrine;
   people.nour = spawn(PEOPLE.nour, { route: [ledge.bench.at.clone()], seat: 0.02, heading: ledge.bench.heading, speed: 0.8 });
@@ -552,6 +563,8 @@ export function setupDesert(ctx) {
     hull: () => (ctx.ship?.restPos?.clone() ?? shipPos().clone()),
     onGround,
     lit, fed: () => !!game.flag('desert.ship.fed'),
+    // (and once the Givers' blade and guard are had: the Rose House is the step before the gift, issue #278)
+    ready: () => !missingCore('desert', (id) => quests.has(id)).some((c) => c.quest),
     feed: () => { if (quests.has('water')) quests.take('water'); game.set('desert.ship.fed', true); },
   });
   game.on('ship:enter', () => { feedShip(); repay.enter(); });

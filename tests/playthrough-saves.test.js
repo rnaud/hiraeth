@@ -13,6 +13,7 @@ const A = await import('./playthrough-agent.js');
 const { game, items } = A;
 const { SOLVERS, WAYS, CHECKS, each } = await import('./playthrough-worlds.js');
 const { knownWorlds } = await import('../src/story/route.js');
+const { MIGRATED } = await import('../src/save-migrate.js');
 
 const KEEP = {
   desert: { id: 'desert.knowing', level: 'desert', name: 'What the giants left', kind: 'knowing', text: 'The giants carried the water. The tree drinks what they left.', t: 1 },
@@ -35,7 +36,40 @@ const SHAFT_DONE = {
   'item.jetpack': true, 'box.incal.temple.jetpack': true, 'temple.incal.entered': true, 'temple.incal.gadget': true, 'quest.temple.incal': 'keeper',
   'calls.2': true, 'signature.incal': true, 'quest.tracked': 'temple.incal',
 };
+// the desert short of the Rose House on the quest's order before #278 (the gift, then the blade and guard): its migrations
+// up to date, so nothing hands it the blade and the guard; `stage` 'gear' (fed, the ship awake) or 'ship' (the gift to come)
+const DESERT_GEAR = (stage) => {
+  const f = { ...DESERT_DONE, 'save.migrated': MIGRATED(), 'desert.quest.v': 5, 'quest.desert.power': stage, 'quest.tracked': 'desert.power', 'ship.level': 'desert',
+    'item.doublejump': true, 'box.desert.lift': true, 'item.gun': true, 'box.desert.gun': true, 'desert.door.open': true, 'desert.pool.tinted': true, 'desert.bike.uncovered': true };
+  for (const k of ['world.desert.done', 'ship.launched', 'calls.1', 'item.sword', 'item.shield']) delete f[k];
+  if (stage === 'ship') for (const k of ['desert.ship.fed', 'ship.powered']) delete f[k];
+  return f;
+};
 const SAVES = [
+  {
+    // (issue #278: the Rose House's step comes before the gift now; a save at it already, fed, stays there and ends with them)
+    name: 'the desert at its old last step: Qanat’s gift had, the ship awake, the Rose House still to do',
+    data: { flags: DESERT_GEAR('gear'), keepsakes: [] },
+    journal: { stories: {}, seen: { desert: 1 } },
+    known: ['desert', 'arzach', 'perdide'],
+    play: { world: 'desert', quests: ['desert.power'], stage: 'gear' },
+    after: (issue) => {
+      if (!items.has('sword') || !items.has('shield')) issue('it ended without the blade and the guard');
+      if (!game.flag('desert.ship.fed') || !game.flag('ship.powered')) issue('the gift it had was lost');
+    },
+  },
+  {
+    // (…and one waiting for the gift without them goes back to the Rose House's step, then the gift: desert.js migrateDesertQuest)
+    name: 'the desert waiting for Qanat’s gift, the Rose House not done (before #278)',
+    data: { flags: DESERT_GEAR('ship'), keepsakes: [] },
+    journal: { stories: {}, seen: { desert: 1 } },
+    known: ['desert', 'arzach', 'perdide'],
+    play: { world: 'desert', quests: ['desert.power'], stage: 'gear' },
+    after: (issue) => {
+      if (!items.has('sword') || !items.has('shield')) issue('it ended without the blade and the guard');
+      if (!game.flag('desert.ship.fed')) issue('no gift at the ship');
+    },
+  },
   {
     name: 'the jets and the City-Shaft done (the old second world), back at the ship',
     data: { flags: { ...SHAFT_DONE, 'ship.level': 'incal' }, keepsakes: [KEEP.desert, KEEP.incal] },

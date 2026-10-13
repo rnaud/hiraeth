@@ -37,6 +37,8 @@ export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#6e94ac', '#fff1cf', '#ffe1ae'
 /** How flat the walls' shade is printed in the street's teal (makeMaterial shadeFlat: a pink wall's turned side goes blue, as the sheets print it, not brown). */
 export const MARKET_FLAT = 0.75;   // (v0.95: 0.85 before; a wall's own colour shows a little through its shade)
 export const SIGNAL = { x: 0, z: -255, deckY: 44, approachZ: -234 };
+/** The silent tower's mast off its roof (issue #278): its foot on the roof, its tip, the lamp on it, its width at the foot and the tip, a bay's height. */
+export const MAST = { x: 0, z: -255, foot: 92, top: 300, lamp: 302, base: 5, tip: 1.2, bay: 13 };
 /** The passages under the towers either side of Signal Square, straight at the silent tower (issue #44): w across, h high. */
 export const ARCADE = { w: 16, h: 24 };
 export const BRIDGES = [{ z: 25, y: 19 }, { z: -90, y: 25 }, { z: -190, y: 72 }, { z: -330, y: 64 }];
@@ -296,6 +298,36 @@ export function* buildBazaar(scene) {
   box(0,46,-237.1,2,.8,.12,glow,false);
   tube([[11,44,-238],[11,58,-238],[12,59,-238]],.15,brass);
   sphere(12,59,-238,.6,.6,.6,glow);
+  // the tower's mast (level design audit v1.66, issue #278: from the landing the street's towers hid the market's weenie,
+  // 92 m among towers of 125 to 300): a lattice mast off its roof up past their roofs, a lamp at the top, seen down the
+  // avenue from the landing and over the roofs from the lanes. Thin struts, walked through (nothing to climb up to)
+  {
+    const M = MAST, legs = [[-1, -1], [1, -1], [1, 1], [-1, 1]], at = (y, [sx, sz]) => {
+      const k = (y - M.foot) / (M.top - M.foot), r = (M.base + (M.tip - M.base) * k) / 2;
+      return new THREE.Vector3(M.x + sx * r, y, M.z + sz * r);
+    };
+    const strut = (a, b, t, m = ink) => {
+      const d = b.clone().sub(a), g = new THREE.BoxGeometry(t, d.length(), t);
+      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize())).translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+      add(g, m, false);
+    };
+    // (its legs banded coral and cream a bay at a time, as a radio mast is: read against the pale needle far behind it)
+    const n = Math.round((M.top - M.foot) / M.bay);
+    for (let i = 0; i < n; i++) {
+      const y0 = M.foot + i * M.bay, y1 = y0 + M.bay;
+      for (const l of legs) strut(at(y0, l), at(y1, l), .5, i % 2 ? cream : coral);
+      for (let j = 0; j < 4; j++) {
+        const a = legs[j], b = legs[(j + 1) % 4];
+        strut(at(y1, a), at(y1, b), .18);                                          // (a ring at each bay's top)
+        strut(at(y0, i % 2 ? a : b), at(y1, i % 2 ? b : a), .14);                  // (a diagonal, zigzagging up each face)
+      }
+    }
+    // the lamp: a brass cage round a glowing coral globe on the mast's tip (the market's warm accent, read against the
+    // needle far behind it), a cream band under it
+    box(M.x, M.top + .2, M.z, 3.4, .5, 3.4, cream, false);
+    sphere(M.x, M.lamp, M.z, 3.2, 3.2, 3.2, mat('#ff9a6e', { glow: 1 }));
+    for (const [sx, sz] of legs) tube([[M.x + sx * 1.6, M.top + .4, M.z + sz * 1.6], [M.x + sx * 3.6, M.lamp, M.z + sz * 3.6], [M.x, M.lamp + 4.4, M.z]], .12, brass);
+  }
 
   // Quiet lavender inhabitants beside the shops: broad heads, tiny eyes.
   // Batched with the street furniture, so they don't require skeletal updates.
@@ -462,7 +494,10 @@ export function* buildBazaar(scene) {
     // (issue #191: the explorations, for the story and the tests)
     market:{ air, old, lanes },
     // (fifth round: the silent tower's aerial over its roof, the market's weenie, seen down the avenue over the stalls)
-    beacons:[{ name:'the silent tower’s aerial', top:[11, 59, -238], height:16 }],
+    // (issue #278: its mast's lamp over the roofs, the part of it standing over the towers round it; and the needle behind
+    // the square, 440 m tall and framed by the avenue, past the audit's map as the desert's Hearth chimney is: on its face, its foot on the ground)
+    beacons:[{ name:'the silent tower’s aerial', top:[11, 59, -238], height:16 }, { name:'the silent tower’s mast', top:[MAST.x, MAST.lamp, MAST.z], height:MAST.lamp - 255 },
+      { name:'the needle behind the square', top:[0, 440, -445.5], height:440 }],
     reactiveScreens, signal, ground:{heightAt:oldGround}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:MARKET_LOOK},

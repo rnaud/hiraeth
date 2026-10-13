@@ -455,6 +455,34 @@ stones along the top, scattered as the plain's pebbles are (instanced, walked th
 desert's collision enough to unsettle a fragment's footing 900 m away, `tests/contact-audit.test.js`). The contact
 audit (`window.contactAudit()`, `?batch=0`) finds nothing off within 90 m of it. `tests/desert-vistas.test.js`, and `tests/dunes.test.js` for the bank.
 
+## The desert's walk to the Rose House, and Zahir over the hollow (level design audit v1.66, issue #278; v1.68)
+
+- **The Rose House a leg out, the gift the way home.** The main quest's step for the blade and guard comes before
+  Qanat's gift (docs/systems/progression.md, "The Rose House before Qanat's gift"): from the tree east to the Rose
+  House's door, then home to the ship past the Givers' field-stone (`FIELD_STONE`, which was there for that walk),
+  where Qanat waits with its gift. Of the two fixes the audit offered (a line home past something new, or this), this
+  one: the walk home already passed something new once it came from the House rather than from the ship, the quest
+  ends on its climax (the gift) instead of a chore after it, and the outro ("Qanat filled your ship") is the last
+  thing that happens.
+- **Zahir** (`PEOPLE.zahir`, `STORY.lookout`): a boy of the camps who watches the dunes, on the crest over Marrow's
+  hollow, on the 263 m from the roots to the tarp that had nobody on it. From the camps' south edge he stands on the
+  skyline by the red rag; from where he stands the tarp is in sight below (`tests/desert-lookout.test.js`, the audit's
+  rays). What he says points at the red rag, never at someone else.
+- **The audit** (`node scripts/level-design/audit.mjs --worlds desert`): mean 3.89 → 4.22. No walk back with nothing
+  new (loops 3 → 5: the House's walk home passes the field-stone), four kinds of stop with the House a temple stop
+  and the longest run of "do" six (pacing 3 → 4); the critical path 5600 → 4996 m.
+
+## The Signal Market's mast over the roofs (level design audit v1.66, issue #278; v1.68)
+
+The silent tower, the market's weenie, is 92 m among street towers of 125 to 300 m: from the landing the avenue's own
+towers hid it, and the audit found one landmark from the landing and 61 % of the path seeing one. A lattice mast
+(`MAST` in src/levels/bazaar.js) rises off its roof to 300 m, its legs banded coral and cream a bay at a time, a
+coral lamp in a brass cage on its tip: from the landing it is the highest thing down the avenue, over the needle far
+behind. Drawn, not collided with (nothing to climb up to). The audit reads it as a `beacon`, and the needle behind the
+square too (440 m, past the audit's map). With the landmark share now of the path out under the sky (the old market's
+covered street and the tower's overhang left out: docs/systems/dev-tools.md, v1.68): 3 landmarks from the landing, 94 %
+of the path seeing one, landmarks 4 → 5, mean 4.78 → 4.89. `tests/level-design-landmarks.test.js`.
+
 ## Vael's layout, from the level design audit (v1.9)
 
 - **The plain** between the landing and the lone tower (445 m with nothing on it): Senn (`src/levels/content.js`) listens

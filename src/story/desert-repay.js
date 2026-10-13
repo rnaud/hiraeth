@@ -8,7 +8,8 @@ import * as THREE from 'three';
 // ship (the camps' share of the Drinking, the first water up the roots, the lamps of a street, an oven's fire-water,
 // Marrow's last cell) and pours it in together. That is what powers the ship, not the tree by itself.
 //
-//   - The tree catches (`desert.tree.lit`): a little after (LEAVE_AFTER), the ones who bring something (REPAY in
+//   - The tree catches (`desert.tree.lit`) and the Givers' blade and guard are had (`ready`: the Rose House is the step
+//     before the gift, issue #278; had first, nothing waits): a little after (LEAVE_AFTER), the ones who bring something (REPAY in
 //     desert-data.js) go down to the ship and wait in a half ring on the city side of the ramp, facing it (they are far from the camera,
 //     so they are simply there: src/npc.js walks a far follower straight to its spot).
 //   - He comes to the ship (within START m of the ramp, or walks into it): one by one they step up to the
@@ -41,8 +42,12 @@ export function repayPlan(gifts, call = null, { first = REPAY_TIMING.first, gap 
   return out;
 }
 
-/** The ship takes its power from Qanat's gift, not from the tree by itself: only once the tree burns and Qanat has brought it. */
-export const repayDue = ({ lit, fed }) => !!lit && !fed;
+/**
+ * The ship takes its power from Qanat's gift, not from the tree by itself: only once the tree burns and Qanat has brought
+ * it. And not before the Givers' blade and guard are had (`ready`, issue #278): the Rose House is the step before the gift,
+ * so the city sets off for the ship once you have them, and the gift is the way home.
+ */
+export const repayDue = ({ lit, fed, ready = true }) => !!lit && !fed && !!ready;
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -52,9 +57,9 @@ const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
  * @param o.people  who may bring something, by id (the desert's people and the villagers by their ids)
  * @param o.gifts   REPAY (desert-data.js); o.call: the opening line
  * @param o.ramp    () => the ramp foot (Vector3); o.hull: () => the hull's centre on the ground (Vector3)
- * @param o.onGround (v) => v on the ground; o.lit, o.fed: () => bool; o.feed: () => sets the stage's flag
+ * @param o.onGround (v) => v on the ground; o.lit, o.fed, o.ready: () => bool; o.feed: () => sets the stage's flag
  */
-export function setupRepay(ctx, { people, gifts, call, ramp, hull, onGround = (v) => v, lit, fed, feed }) {
+export function setupRepay(ctx, { people, gifts, call, ramp, hull, onGround = (v) => v, lit, fed, ready = () => true, feed }) {
   const { sound } = ctx;
   const party = gifts.map((g) => ({ ...g, n: people[g.who] })).filter((g) => g.n);
   const st = { placed: false, t: -1, plan: null, i: 0, done: false, home: false, spots: null };
@@ -117,7 +122,7 @@ export function setupRepay(ctx, { people, gifts, call, ramp, hull, onGround = (v
       if (!st.home && flat(pp, ramp()) > 90) goHome();
       return;
     }
-    if (!repayDue({ lit: lit(), fed: fed() })) return;
+    if (!repayDue({ lit: lit(), fed: fed(), ready: ready() })) return;
     if (!party.length) { feed(); st.done = true; return; }   // (nobody to bring anything: never stuck)
     // they set off once the tree has caught and the city has seen it (Nour has her word at the tree first),
     // or as soon as he heads for the ship
@@ -148,7 +153,7 @@ export function setupRepay(ctx, { people, gifts, call, ramp, hull, onGround = (v
   };
 
   /** Walked into the ship before it played: it plays at the ramp all the same. */
-  const enter = () => { if (repayDue({ lit: lit(), fed: fed() }) && st.t < 0) start(); };
+  const enter = () => { if (repayDue({ lit: lit(), fed: fed(), ready: ready() }) && st.t < 0) start(); };
 
   return { update, enter, state: st, party, ramp };
 }

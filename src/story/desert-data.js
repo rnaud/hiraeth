@@ -72,8 +72,14 @@ export const STAGE_MIGRATION = { pack: 'city', camps: 'city', ama: 'elder', spea
  * Speaker's words) is kept; the jar is Ama's own small gift now, not a step. Runs after STAGE_MIGRATION.
  */
 export const STAGE_MERGE = { well: 'down', ama: 'down', speaker: 'down', ask: 'down' };
+/**
+ * Saves from before the Rose House's step came ahead of Qanat's gift (desert.quest.v < 6, issue #278): one at the gift
+ * ('ship', not fed yet) with the blade or the guard still missing goes back to the Rose House's step ('gear'); the gift
+ * follows it. One at 'gear' (fed already, the old order) stays: the gift is had, so the quest ends with the blade and guard.
+ */
+export const GIFT_AFTER_GEAR = { from: 'ship', to: 'gear' };
 /** The desert quest's save version (src/story/desert.js migrateDesertQuest). */
-export const DESERT_QUEST_V = 5;
+export const DESERT_QUEST_V = 6;
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -123,12 +129,16 @@ export const QUESTS = [
       { id: 'gun', text: 'Open the Givers’ chest off the hall', label: 'The Givers’ chest', flag: 'item.gun', at: 'box.desert.gun' },
       { id: 'stone', text: 'Shove the stone ball and take the spark-stone', label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
       { id: 'light', text: 'Set the spark-stone in the roots', label: 'The tree’s roots', flag: 'desert.tree.lit', at: 'roots', via: 'the marked stones' },
+      // the ship won't leave without the Givers' blade and guard (src/story/leave-gate.js, issue #217): while they're
+      // missing, the step after the tree (issue #232), passed over when they're had. It comes before Qanat's gift (issue
+      // #278, the level design audit v1.66): the Rose House is a leg out east from the tree, and the gift waits at the ship
+      // for the way back, past the Givers' field-stone (Qanat sets off with it once you have them: desert-repay.js `ready`).
+      // A gate: the gift had already (an old save, fed before the Rose House) doesn't end the quest past it
+      coreStage('desert', { id: 'gear', text: 'Take the blade and guard from the Rose House', label: 'The Givers’ blade and guard', at: 'temple.desert.door', gate: true }),
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
-      // (home by the pilgrims' road, the second way: its cairns lit from the gate down to the ship once the tree burns, src/desert-road.js)
+      // (home by the pilgrims' road, the second way, when you come from the tree: its cairns lit from the gate down to the
+      // ship once the tree burns, src/desert-road.js). The quest's last step: reaching the ship ends it
       { id: 'ship', text: 'Meet Qanat at your ship', label: 'Your ship, and Qanat’s gift', flag: 'desert.ship.fed', at: 'ship', via: 'the pilgrims’ road' },
-      // the ship won't leave without the Givers' blade and guard (src/story/leave-gate.js, issue #217): the quest's own
-      // last step while they're missing, passed over when they're had (issue #232); the ship wakes when it's fed (desert.js)
-      coreStage('desert', { id: 'gear', text: 'Take the blade and guard from the Rose House', label: 'The Givers’ blade and guard', at: 'temple.desert.door' }),
     ],
   },
   {
@@ -284,8 +294,12 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ I’ll bring it back full.', end: true }],
         },
         // the spark-stone lit it
+        // (the Rose House's blade and guard still missing, the step before the gift: issue #278. Qanat fills its jars
+        // meanwhile, and is at the ship when you come back with them)
         drinking: {
-          say: ["~happy~ It burns! Every colour! I had my doubts when you dropped out of the sky in a dead ball, but you’ve made a fine recovery.", "~solemn~ The camps are carrying our share of the Drinking down to your ship. Don’t argue. *Go and meet us there.*"],
+          say: ["~happy~ It burns! Every colour! I had my doubts when you dropped out of the sky in a dead ball, but you’ve made a fine recovery.",
+            { if: { quest: Q, stage: 'gear' }, text: "~solemn~ The camps are filling our share of the Drinking for your ship. That takes a while. Fetch *the Givers’ blade and guard from the Rose House*; we’ll be at your ship." },
+            { if: { not: { quest: Q, stage: 'gear' } }, text: "~solemn~ The camps are carrying our share of the Drinking down to your ship. Don’t argue. *Go and meet us there.*" }],
           choices: [{ text: '~neutral~ It was a stone from the Givers’ Hearth.', goto: 'stone' }, { text: '~neutral~ I will.', end: true }],
         },
         stone: { say: ["~surprised~ Marrow’s bike got you there? Don’t praise it where he can hear. He’ll start charging for the breeze."], choices: [{ text: '~playful~ I’ll praise it quietly.', end: true }] },
@@ -345,6 +359,22 @@ export const PEOPLE = {
       { after: RISEN, if: { not: LIT }, say: "~sad~ The water’s back, but not the fire. I’ve tried a cheerful tune. Apparently trees prefer a more practical approach." },
       { after: LIT, say: "~happy~ Now that’s a proper Drinking! Fire, water, and more songs than we can agree to play." },
       { after: DONE, say: '~playful~ I made a song about you. It’s terrible. Everyone is singing it.' },
+    ] },
+  },
+
+  // on the dune's crest between the camps and Marrow's hollow, looking down into it (level design audit v1.66, issue #278:
+  // the 263 m from the roots to the tarp had nobody on it and no sight of where it went). He sees the red rag from where
+  // he stands (tests/desert-lookout.test.js), and says so: the step's own goal, never somebody else to go and ask
+  zahir: {
+    id: 'zahir', name: 'Zahir', title: 'who watches the dunes', color: '#d8a24a', voice: 1.4, kind: 'm', age: 'child', years: 12, scale: 0.84,
+    palette: { cloak: '#d8a24a', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a3a', hat: '#c8483a', hair: '#2b211f' }, head: 'wrap', cape: 0.9,
+    lines: ['~curious~ Nothing moves out there I don’t see.', '~playful~ Marrow’s hollow. Red rag. Not a secret.', '~neutral~ Wind from the south. Sand by noon.'],
+    talk: { listen: [
+      { if: { not: { flag: 'desert.bike.uncovered' } }, say: '~playful~ See the red rag, down there? Marrow’s hollow. He dragged something under a tarp and thinks nobody watched.' },
+      { if: { flag: 'desert.bike.uncovered' }, say: '~happy~ A hoverbike! I knew it was a hoverbike. Don’t tell Marrow I watched.' },
+      '~neutral~ From up here you see the camps, the hollow and the road. Grown-ups never look up the dunes.',
+      '~playful~ Sand-hares at dawn, riders at noon, Marrow whenever he thinks nobody’s looking.',
+      { after: LIT, say: '~happy~ The tree! You can see its colours from here, over the walls.' },
     ] },
   },
 
@@ -610,7 +640,11 @@ export const PEOPLE = {
           say: ["~surprised~ The spark-stone. Warm. Real. My grandmother would have wanted to hold it.", "~solemn~ Set it in the tree’s roots. Go on. I’ve spent enough of my life keeping things in boxes."],
           choices: [{ text: '~neutral~ (go to the roots)', end: true }],
         },
-        drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough.", "~solemn~ You gave us back our light, child, and asked for nothing. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it."], choices: [{ text: '~happy~ Then I’ll go and let them.', end: true }] },
+        // (the Rose House's step first while its blade and guard are missing: issue #278)
+        drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough.",
+          { if: { quest: Q, stage: 'gear' }, text: "~solemn~ You gave us back our light, child. Qanat pays its debts: every house is filling a jar for your ship. Fetch *the Givers’ blade and guard from the Rose House*, east in the dunes. We’ll be at your ship." },
+          { if: { not: { quest: Q, stage: 'gear' } }, text: "~solemn~ You gave us back our light, child, and asked for nothing. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it." }],
+          choices: [{ text: '~neutral~ The Rose House, then.', if: { quest: Q, stage: 'gear' }, end: true }, { text: '~happy~ Then I’ll go and let them.', if: { not: { quest: Q, stage: 'gear' } }, end: true }] },
         after: {
           say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."],
           choices: [

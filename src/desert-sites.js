@@ -35,6 +35,7 @@ export const STORY = {
   pilgrim: { x: 8, z: 218 },                                        // the old pilgrim who fell behind: on a dune west of the way in, in sight of it (v1.9: she sat 300 m out, a trip there and back with nothing else on it)
   drum: { x: 156.65, z: -187.6 },                                   // Teo's drum, blown under the old ribcage and jammed against the inside of a rib's foot (src/story/desert-errands.js)
   bike: { x: 132, z: 150, yaw: 2.3 },                               // Marrow's hollow: the hoverbike under its tarp (quest desert.bike)
+  lookout: { x: 165, z: 182 },                                      // Zahir on the dune's crest over the hollow, the tarp in sight below (issue #278)
   // the Givers' Hearth (src/desert-hearth.js): a butte of red rock far out in the south-east, ~1.7 km from
   // Qanat (a long ride, more than four minutes' run), the spark-stone in the dark cave under it; its rooms far overhead
   hearth: { x: 1650, z: -450, r: 46 },

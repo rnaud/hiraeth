@@ -42,6 +42,12 @@ export const CHANGELOG = [
     // nights (src/lore-page/lore-text.js), the shops' exits without "Goodbye.", Liss, the market's old trader and Pim
     { text: 'Smaller touches to the writing: Anselm says what he thinks the fragments are rather than telling you, each world on the lore page names the night the light went over in its own people’s words, the shopkeepers’ farewells end on the reply alone, and Liss, the old trader in Signal Square and Pim in the Deep Wood have lines of their own instead of repeating others’.',
       see: 'In the Deep Wood ask Pim about anything strange; on the lore page, read the Underwater City’s and the Moon Foundry’s worlds; in any shop, the last answer of a talk.' },
+    // the level design audit v1.66's ways (issue #278): the desert's gear step before the gift (src/story/desert-data.js,
+    // desert-repay.js `ready`, DESERT_QUEST_V 6), Zahir over the hollow (PEOPLE.zahir, STORY.lookout), the silent tower's
+    // mast (src/levels/bazaar.js MAST); docs/systems/worlds.md, progression.md
+    'In the Desert, once the tree burns, the Rose House comes before Qanat’s gift: while the city fills its jars, Ama and Nour send you east for the Givers’ blade and guard, and the gift waits at your ship for the ride home, past the carved field-stone. The gift ends the quest now. If you already have the blade and guard, the gift follows the tree as before.',
+    'Zahir, a boy of the camps, watches the dunes from the crest over Marrow’s hollow. On the way from the tree to the hoverbike you see him on the skyline by the red rag, and he points it out.',
+    'The Signal Market’s silent tower has a mast on its roof, banded coral and cream with a coral lamp on top. From the landing it is the highest thing at the end of the avenue, so you see where the market leads over its towers.',
   ] },
   { v: '1.67', date: '2026-10-13', items: [
     // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under

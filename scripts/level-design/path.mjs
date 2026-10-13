@@ -30,7 +30,9 @@ export function criticalPath(W, id) {
   const spawn = arr(level.ship?.pos ?? level.spawn);
   const stops = [{ label: 'landing', kind: 'ship', pos: spawn }];
   const people = new Set(W.npcs.map((n) => n.def?.id).filter(Boolean));
-  const kindOf = (s) => (s.talk || people.has(s.at) ? 'talk' : s.goto ? 'go' : s.bring ? 'bring' : 'do');
+  // (a step done inside a temple, the desert's blade and guard from the Rose House's chests: a temple stop, as the route's
+  // own `{ temple }` is; src/story/leave-gate.js coreStage, issue #278)
+  const kindOf = (s) => (s.talk || people.has(s.at) ? 'talk' : s.goto ? 'go' : s.bring ? 'bring' : s.temple ? 'temple' : 'do');
   let home = null;   // (a route quest's stage whose words send you home along a leading line names it: `home`)
   // (a mount had partway: Vael's bird answers at the end of its first quest, and the bell under the cloud is flown on her:
   // the stops after that quest are reached on the mount, its stretches timed at its speed)
