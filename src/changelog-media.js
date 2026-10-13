@@ -739,6 +739,8 @@ const TRAVEL213 = 'headless Chrome (muted, Medium, 1280 × 720) against this bra
 // (v1.61, issue #197: a scratch shooter against this branch's own Vite, ?gestures=0 for before; the game's own captureView)
 const TALK197 = 'headless Chrome (muted, High, 1280 × 720, 10:00, the Desert by Marrow) against this branch’s own Vite (port 5791): a conversation open, each picture the game’s own view of the one speaking from in front; before: ?gestures=0 (the talking idle alone), 6 moments of a line; after: a moment of each of six gestures (a wave, surprise, yelling, sad, thinking, thanks); 12 October; sharp webp -q 72';
 const FACE198 = 'Issue #198: muted headless Chrome (1 × pixel ratio, 900 × 813) against this branch’s own Vite (port 5851), the Character studio’s Face and Close-up views of the traveller in the Desert’s light, paused idle, no wind, no blink, fixed gaze; before: this commit’s parent, after: this commit, same view each; 12 October; sharp webp -q 72';
+// (v1.63, issue #256: the camera QC's own pictures, .claude/skills/camera-qc/run.mjs with its frames kept at 1280 × 720 (a scratch copy) and SHOT_AT)
+const QC256 = 'headless Chrome (muted, Medium, 1280 × 720) against this branch’s own Vite (port 5841) and the tree before it (2e818342, port 5842): the camera QC’s scenario alone, the frame at the same moment of its run (SHOT_AT), the game’s own camera; 12 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.63': [
     { match: 'On the Steam Deck the game runs faster at its full 1280 × 800', numbers: [
@@ -760,6 +762,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'traveller-face-ink-three', title: 'Three-quarter', caption: 'The lines turn with the face: the nose’s base and the mouth stay on it, and the jaw’s line and the hatching on the throat behind it, darkest just under the jaw, come from the head’s own shape, so they hold from any side.', from: FACE198 },
       { name: 'traveller-face-ink-close', title: 'Close up', caption: 'Seen close, the lines narrow instead of growing into bars, as a pen would draw them.', from: FACE198 },
     ], see: 'Open the Character studio’s Face or Close-up view and turn the traveller, or talk to someone and watch his portrait on his own lines.' },
+    { match: 'Locked on with your back to a wall, the camera no longer crushes up against you', shots: [
+      { name: 'lock-wall-ante', title: 'The Undertower’s antechamber', caption: 'Locked on to an ink blot, his back to the antechamber’s wall, 1 s in: before, the camera crushed 0.2 m behind his head, the blot beside it; after, the camera off to the side with room, him and the blot in the frame together', from: QC256 },
+      { name: 'lock-wall-hall', title: 'The First Sign’s Hall', caption: 'Locked on to the First Sign, strafing into the hall’s curved wall: before, the camera pressed against the wall’s rim, him in the corner of the frame; after, the camera along the wall, him and the guardian both in view', from: QC256 },
+    ], numbers: [
+      { title: 'The camera QC: the traveller off the screen (head or chest), locked on with his back to a wall', unit: '% of the frames', better: 'lower', device: 'headless Chrome (muted), Medium, 1280 × 720, .claude/skills/camera-qc/run.mjs (seed 1)',
+        rows: [{ where: 'ante-lock: an ink blot in the Undertower’s antechamber', before: 43.4, after: 0 }, { where: 'guardian-lock: the First Sign awake in its hall', before: 23.0, after: 0 }],
+        source: 'the full camera QC against the tree before (2e818342) and this branch, 12 October; the arena’s locks as before (arena-lock’s roughness 0.7–1.7 cm before and after, run to run)' },
+      { title: 'The same runs: the shortest arm, the camera’s distance from the look point', unit: 'm', better: 'higher', device: 'headless Chrome (muted), Medium, 1280 × 720, .claude/skills/camera-qc/run.mjs (seed 1)',
+        rows: [{ where: 'ante-lock', before: 0.12, after: 0.55 }, { where: 'guardian-lock', before: 0.1, after: 1.83 }],
+        source: 'the full camera QC against the tree before (2e818342) and this branch, 12 October' }],
+      see: 'In the Signal Market’s temple, lock on (R3 / Tab) to a foe in the antechamber or to the First Sign in its hall, and back up against a wall or strafe into it.' },
   ],
   '1.62': [
     { match: 'Locked on with a foe right at your feet, a ring centipede curled round you', numbers: [

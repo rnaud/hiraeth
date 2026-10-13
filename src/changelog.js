@@ -23,6 +23,9 @@ export const CHANGELOG = [
     // (src/levels/space-city.js, src/temples/bazaar-data.js, src/save-migrate.js step 24, tests/people-names.test.js; issue #251)
     'Fixed: meeting the man at the capstan in the City Floating in Space no longer counts as meeting Bram, who minds Lorn’s root cave: they shared a name. The capstan man is Ewart now. Likewise Hobb, who listens at the Undertower’s stones, and Aldo on the waterfall city’s balcony each count as themselves, not as the Desert’s Pell, and Hobb greets you as a stranger the first time.',
     'The traveller’s face is inked the way his portrait is drawn: a light line down the side of his nose, its wings and nostrils, a single stroke for the mouth and a short one under the lower lip, a few freckles on his cheek, and one clean line for his jaw with fine hatching on the throat in its shadow, over one flat skin colour. The lines thin out as he gets smaller on screen, so his face stays clean from afar and in the conversation portrait.',
+    // the lock camera with his back to a wall (src/player.js LOCK_ROOM, CameraRig.lockRoom; src/main.js;
+    // docs/systems/movement-and-camera.md "The lock camera with his back to a wall"; issue #256)
+    'Locked on with your back to a wall, the camera no longer crushes up against you and loses you off the screen. It swings out to the side with room, or rises over your shoulder in a corner, and turns to keep you and the foe in the picture together; the stick still circles the foe as before. In a temple’s antechamber and a guardian’s hall you stay in view.',
   ] },
   { v: '1.62', date: '2026-10-12', items: [
     // Anselm sells his upgrades for fragments, a currency (src/fragment-shop.js, src/shop-panel.js, src/story/scientist*.js;

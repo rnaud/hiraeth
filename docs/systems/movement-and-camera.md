@@ -94,7 +94,8 @@ steeper; on the bike well back and lower, the rider small. Measured in the runni
   held still in the middle of its antechamber, and the First Sign awake in its hall, its blows held. Both stay red on
   **out** (the traveller off the screen 45 % and 23 % of the time): locked on with his back to a wall, the lock holds the
   yaw (the stick's sideways push switches the lock instead of turning the camera), so the arm is crushed to 0.1–0.4 m
-  behind him and the short arm's tip leaves him out of the frame. That is the next lock camera work (its issue).
+  behind him and the short arm's tip leaves him out of the frame. Fixed in v1.63 (#256): "The lock camera with his back
+  to a wall" below.
 - The camera QC (browser, Medium) after the change: the train, the Signal Market, the City-Shaft's pillar and the two
   locks green, the open framing 30–33 % wherever it is judged; train-run 2 one-frame spins at a sleeping car's door at a
   run (the node walk finds the same door spots before and after: 11 events before, 9 now); desert-open and desert-shop
@@ -104,6 +105,45 @@ steeper; on the bike well back and lower, the rider small. Measured in the runni
   (`unity/Hiraeth/.../CameraRig.cs`) had kept the 9.5 m arm and now has the same numbers (4.8 m, 1.7 m, 9.2°).
 - Tests: `tests/camera-framing.test.js` (the open framing's share, the roof's tilt in and out, the rides' arms);
   the camera QC judges the framing in `desert-open` (`framing`: the median share on foot in the open within 0.28–0.40).
+
+## The lock camera with his back to a wall (v1.63, issue #256; `LOCK_ROOM`, `CameraRig.lockRoom`)
+
+From the combat review v1.61: locked on in the Undertower's antechamber and the First Sign's Hall the traveller was off
+the screen 43 % and 23 % of the camera QC's runs. The lock turns the camera onto the line from the foe through him (main.js,
+`lockTurn`), so with his back to a wall the arm on that line was crushed to 0.1 m: the lens against the back of his head,
+the short arm's tip (`SHORT_TILT`) looking down past him. #236 had tried letting the ship's climb run (39 % instead of 45 %).
+
+- **The line yields** (`lockRoom`, every 0.05 s; main.js adds its eased answer to the line it turns the camera to). Where the
+  arm on the line has less than `arm` (1.7 m) of room, it looks at turns off the line (`steps`, to 1.8 rad), all on the side
+  it is already off before the other (the way across goes through the line, where the arm is crushed): the least with the
+  whole arm and the foe's centre within `frame` of the view's centre; else the least with `min` (1.1 m, enough to keep him in
+  the frame) with the foe on the screen; else further round; on its own side `low` (0.75 m) will do before it crosses. It is
+  judged where he is, where the line is turning to, and where he is going (`ahead`, 0.6 s, stopped short of the wall he will
+  meet), and a step past the first that has the room (the camera's turn trails its goal, and by a flat wall the room comes all
+  at once). Back toward the line only for `back` m more; eased at `rate`.
+- **The two framed together.** Turned off the line, the view also turns part way toward the foe (`lockAt`, its chest):
+  enough to bring it within `two` of the centre, never past halfway and never more than `him` (`himUp` up and down) off him,
+  him first. A far guardian along a hall's wall may stand at the frame's edge; a blot 2.6 m off is in it.
+- **What else gives way while it yields:** the shoulder offset shrinks with the two-shot (`shoulder`; turning near a wall it
+  swung the look point into it); the arm lets out sooner and quicker (`outHold`, `out`); `holdSpot` and the swap of shoulders
+  are off while locked (holding the old spot turned the view 0.3 rad in a frame against the lock; a swap past a doorway's
+  jamb cut the look point across by half a metre). Where no turn has the room, or the way to it crosses the line, the camera
+  also climbs over his shoulder (`CLIMB`, as aboard), latched only once the arm is short too.
+- **The stick reads from the line** (main.js passes `rig.yaw - rig.lockOff` to the player): with the camera turned off for
+  room, pushing sideways still circles the foe and forward still goes at it.
+
+The camera QC (Medium), before → after (the tree before, 2e818342):
+
+| scenario | out | arm (m) | foe hidden | roughness (cm) |
+|---|---|---|---|---|
+| ante-lock | 43.4 → 0 % (red → green) | 0.12–1.62 → 0.55–3.48 | 4.1 → 2.9 % | 1.34 → 0.73 |
+| guardian-lock | 23.0 → 0 % (red → green) | 0.1–2.6 → 1.83–2.6 | 0 → 0 % | 0.39 → 0.56 |
+| arena-lock, arena-lock-lizard | 0 → 0 % | 4.8 | 2.2 → 1.7 %, 0 → 0 % | 0.7–2.1 run to run, before and after |
+
+Runs of ante-lock since: green in 8 of 10 (the two red, out 3–5 %, on a machine loaded 40–70, one where he walked into the
+antechamber's open side's corner); it is the scenario that wanders most (the stick strafes, the
+blot is held, he may walk out through the antechamber's open side into the hall). Tests: `tests/lock-room.test.js` (his back
+flat to a wall with a blot or a guardian before him, strafing into a small room's wall: on the screen, the arm out).
 
 ## The camera QC and what it fixed (v1.40, `.claude/skills/camera-qc`)
 

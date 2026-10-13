@@ -2149,7 +2149,8 @@ function frame(ts) {
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
     gadgets.control(pdt, busy() ? noInput : ctl, busy() || ship.playing || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
-    player.update(pdt, busy() ? noInput : ctl, rig.yaw);
+    // (locked on, the stick strafes round the foe from the lock's own line, not the camera's turn off it for room: LOCK_ROOM)
+    player.update(pdt, busy() ? noInput : ctl, rig.yaw - (rig.locked ? rig.lockOff : 0));
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
     const wide = player.riding ? null : player.gliding ? WIDE.glide : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
@@ -2309,6 +2310,9 @@ function frame(ts) {
   }
   if (!foes.lock) { lockView.foe = null; lockView.angle = 0; }
   if (!foes.lock || busy() || photo.on) lockView.vel = 0;
+  rig.locked = !!(foes.lock && !busy() && !photo.on);
+  rig.lockAt = rig.locked ? (foes.lock.chest ?? foes.lock.pos) : null;
+  if (!rig.locked) rig.lockRoom(realDt, null);
   if (foes.lock && !busy() && !photo.on) {
     const f = foes.lock, F = player.frame;
     // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
@@ -2331,7 +2335,10 @@ function frame(ts) {
       const goal = lockView.side * lockViewAngle(Math.hypot(dx, dz), rig._curDist, f.def?.radius ?? 0.6, (f.chest?.y ?? f.pos.y + 1) - f.pos.y);
       lockView.angle += (goal - lockView.angle) * (1 - Math.exp(-4 * realDt));
       line += lockView.angle;
-    }
+      // (his back to a wall, the line yields: turned off it toward the side with room behind him, the foe kept on the
+      // screen, so the arm isn't crushed to his back; src/player.js LOCK_ROOM, issue #256)
+      line += rig.lockRoom(realDt, line, Math.hypot(dx, dz), lockView.angle, f.def?.radius ?? f.radius ?? 0.6, lockView.turn, F.up, F.fwd, F.right);
+    } else rig.lockRoom(realDt, null);
     const want = aim ? aim.yaw : line, da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
     // (a foe right at his feet, stepped into: the line to it swings about wildly, so the camera turns after it less the
     // nearer it is, and not at all within LOCK_NEAR[0]; v1.49, the closer camera showed it: the camera QC's arena-lock)

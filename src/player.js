@@ -416,6 +416,7 @@ const _qId = new THREE.Quaternion();
 const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu2 = new THREE.Vector3();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _cn = new THREE.Vector3(), _cd = new THREE.Vector3(), _ce = new THREE.Vector3(), _sw = new THREE.Vector3(), _ct = new THREE.Vector3();
+const _lkA = new THREE.Vector3(), _lkB = new THREE.Vector3(), _lkC = new THREE.Vector3();
 const _hs = new THREE.Vector3(), _pv = new THREE.Vector3(), _pb = new THREE.Vector3();
 const _sr = new THREE.Vector3(), _sp = new THREE.Vector3(), _lb = new THREE.Vector3();   // (CameraRig.pickShoulder)
 
@@ -2748,11 +2749,25 @@ const ARM_HOLD_TIGHT = 0.5;        // s: close in, the hold before the arm lets 
 // pitch has `down` m more (no flipping), eased at `rate`. Looked for where a turn by hand is going (`ahead` s on) and
 // every `every` s. The short arm's tip (SHORT_TILT) is for the rest of the world's tight spots; aboard this replaces it.
 export const CLIMB = { arm: 1.2, steps: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05], max: 1.2, down: 0.15, rate: 4, ahead: 0.6, every: 0.05 };
+// Locked on with his back to a wall (issue #256, the combat review v1.61: the traveller off the screen 23-45 % in a
+// temple's antechamber and guardian hall): the lock held the camera on the line to the foe, so a wall behind him crushed
+// the arm to 0.1-0.4 m and the short arm's tip put him out of the frame. Now the line yields (CameraRig.lockRoom; main.js
+// adds it to the line it turns the camera to, and reads the stick from the line itself). Of the turns off it (`steps`,
+// rad), on the side it is already off before the other (the way across is through the line, where the arm is crushed):
+// the least whose arm has `arm` m of room (or all the arm wants) with the foe's centre within `frame` rad of the view's
+// centre; else the least with `min` m (enough to keep him in the frame), the foe on the screen, then further round; on its
+// own side `low` m will do before it crosses. Looked for here, where the line is turning to and where he is going
+// (`ahead` s on), every `every` s; a step past the edge of the room (the camera's turn trails it); back toward the line
+// only for `back` m more; eased at `rate`. Turned off it, the view also turns toward the foe (`two`, `him`, `himUp`: the
+// two framed together, him first), the shoulder offset shrinks (`shoulder`), the arm lets out sooner (`outHold`) and
+// quicker (`out`); where no turn has the room, or the way to it crosses the line, the camera climbs too (CLIMB, `hold` s).
+export const LOCK_ROOM = { arm: 1.7, steps: [0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35, 1.5, 1.65, 1.8], frame: 0.55, min: 1.1, low: 0.75, two: 0.5, him: 0.6, himUp: 0.3, shoulder: 0.7, back: 0.25, ahead: 0.6, rate: 6, hold: 0.6, out: 7, outHold: 4, every: 0.05 };
 const AIR_FOLLOW = 3.5;            // 1/s: close in, how fast the view rises with a jump (on the ground: 14)…
 const AIR_LAG = 0.8;               // m: …never more than this below him
 const LOOK_R = 0.3;                // m: the room the look point keeps off walls close in
 const SIDE_IN = 9;                 // 1/s: the look point eased off a wall that comes up right beside it
 const SIDE_R = 0.1;                // m: the ball swept beside the look point to find the room for the shoulder
+const SIDE_AHEAD = 0.3;            // s: locked on, the room beside it also looked for where he will be this far on
 const HOLD_HANDS = 0.25;           // s: since you last turned the camera, it doesn't turn itself to hold its spot
 const SWING = [0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6];   // rad: the turns tried when a wall is behind you indoors
 
@@ -2945,6 +2960,9 @@ export class CameraRig {
       this.shoulder = room(-1) > room(1) + SHOULDER.margin ? -1 : 1;
       return;
     }
+    // (locked on, no swap across behind his head: the lock turns the camera about, and a swap past a doorway's jamb cut
+    // the look point across by half a metre in a frame, the camera QC's ante-lock; a wall beside eases the offset in)
+    if (this.locked) { this._swapT = 0; return; }
     const here = room(this.shoulder), there = room(-this.shoulder);
     const cramped = here < want + 0.45 + SHOULDER.cramped;
     if (cramped && there > here + SHOULDER.gain && this._restT > SHOULDER.rest) this._swapT += dt;
@@ -3137,7 +3155,8 @@ export class CameraRig {
    * sliding along the wall. Never while you are turning it yourself.
    */
   swingClear(dt, want, pitch, k, U, Fw, Rt) {
-    if (this._now - this._lastMouse < 0.8 || this.noSwing) { this._swing = 0; return; }
+    // (locked on, the lock's own turn off the line does it: LOCK_ROOM)
+    if (this._now - this._lastMouse < 0.8 || this.noSwing || this.locked) { this._swing = 0; return; }
     const here = this.armRoom(this.yaw, pitch, want, k, U, Fw, Rt);
     let best = 0;
     if (here < want - 0.4) {
@@ -3203,6 +3222,92 @@ export class CameraRig {
     return this._climb;
   }
 
+  /**
+   * Locked on, how far off the line to the foe the camera stands for the room behind him (rad, signed as the yaw, eased;
+   * LOCK_ROOM, issue #256). `line` the lock's yaw (its own swing off the line, `swing`, already in it), `d` the foe's
+   * distance (m); `line` null: not locked (eased back to 0). main.js adds what it returns to `line` and turns the camera to it.
+   */
+  lockRoom(dt, line, d = 5, swing = 0, foeR = 0.6, turn = 0, U = Y, Fw = _zAxis, Rt = _xAxis) {
+    this._lockOff ??= 0; this._lockGoal ??= 0; this._lockT = (this._lockT ?? 0) - dt; this._crushT = (this._crushT ?? 0) - dt;
+    const P = this.physics, L = LOCK_ROOM;
+    if (line == null || !P.sweepSphere || U.y < 0.999 || !this._look.lengthSq()) { this._lockGoal = 0; this._crushT = 0; }
+    else if (this._lockT <= 0 || this._jumped) {
+      this._lockT = L.every;
+      const want = this.armLength(), need = Math.min(want, L.arm), r = this._sweepR ?? LENS_R;
+      const p = Math.min(this.pitch + (this._roofPitch ?? 0), PITCH_DOWN), c = Math.cos(p), s = Math.sin(p);
+      // (here, and where the line is turning to: circling him toward a wall, it turns off before the wall is behind him)
+      // (and from where he will be: backing or strafing toward a wall, before it is behind him)
+      const lines = [line], froms = [this._look];
+      if (Math.abs(turn) > 0.2) lines.push(line + THREE.MathUtils.clamp(turn * L.ahead, -0.6, 0.6));
+      if (this._vel) {
+        // (no further than the wall he will be stopped by)
+        const ahead = _lkA.copy(this._vel).addScaledVector(U, -this._vel.dot(U)).multiplyScalar(L.ahead), La0 = ahead.length();
+        const La = La0 > 0.2 ? Math.min(La0, P.rayDistance(this._look, _lkB.copy(ahead).divideScalar(La0), La0 + r) - r - 0.05) : 0;
+        if (La > 0.2) {
+          _lkC.copy(this._look).addScaledVector(_lkB, La);
+          if (!P.roomAt || P.roomAt(_lkC, r) >= r * 0.9) froms.push(_lkC);
+        }
+      }
+      const memo = new Map();
+      const room = (o) => {
+        if (memo.has(o)) return memo.get(o);
+        let m = Infinity;
+        for (const y of lines) for (const f of froms) {
+          _hs.copy(Rt).multiplyScalar(Math.sin(y + o) * c).addScaledVector(U, s).addScaledVector(Fw, Math.cos(y + o) * c);
+          m = Math.min(m, P.sweepSphere(f, _hs, need + L.back + 0.2, r) - 0.1);
+        }
+        memo.set(o, m);
+        return m;
+      };
+      // (the foe seen from the camera `need` m behind him, turned o + swing off the line: its centre within `frame` of the
+      // view's centre, less part of its own breadth: a guardian 3.4 m round may stand further off it than a blot)
+      const fits = (o) => {
+        const a = Math.abs(o + swing);
+        return Math.atan2(d * Math.sin(a), need + d * Math.cos(a)) - 0.5 * Math.atan2(foeR, need + d) <= L.frame;
+      };
+      const g = this._lockGoal, here = room(0);
+      if (here >= need + (Math.abs(g) > 1e-3 ? L.back : 0)) this._lockGoal = 0;
+      else {
+        // the turns in order: on the side it is off already first (none yet: the roomier side first), the foe kept on the
+        // screen; then, where no such turn has the room (his back flat to a wall), further round (`far`): him on the
+        // screen before the foe. Back toward the line only for `back` m more than it needs (no flipping)
+        const side = Math.sign(g) || (room(L.steps[1]) >= room(-L.steps[1]) ? 1 : -1);
+        // (the whole arm with the foe on the screen; else `min` m of it, enough to keep him in the frame, with the foe on
+        // it; else `min` m further round. All on the side it is on before any across the line: the way across is through
+        // the line, where the wall behind crushes the arm)
+        // (and on the side it is on, `low` m will do before it crosses: a corner leaves little room either way)
+        const order = [], m = Math.min(need, L.min);
+        for (const sg of [side, -side]) {
+          const tiers = [[false, need], [false, m], [true, m]];
+          if (sg === side && g) tiers.push([false, Math.min(m, L.low)], [true, Math.min(m, L.low)]);
+          for (const [far, at] of tiers) for (const st of L.steps) { const o = sg * st; if (fits(o) !== far) order.push([o, at]); }
+        }
+        let goal = null, best = g, bestD = (g ? room(g) : here) + 0.1;   // (none has the room: the roomiest, for a real gain)
+        for (const [o, at] of order) {
+          const dd = room(o), back = Math.sign(o) === Math.sign(g) && Math.abs(o) < Math.abs(g) - 1e-6 ? L.back : 0;
+          if (dd >= at + back) {
+            // (a step further round too, if that has the room: the camera's turn trails the goal, and by a wall the room
+            // comes all at once a step on, so a goal at its very edge leaves the camera crushed on the near side of it)
+            const i = L.steps.indexOf(Math.abs(o)), on = i >= 0 && i + 1 < L.steps.length ? Math.sign(o) * L.steps[i + 1] : null;
+            goal = on != null && Math.abs(o) > L.steps[1] && room(on) >= at ? on : o;
+            break;
+          }
+          if (dd > bestD + (g && Math.sign(o) !== Math.sign(g) ? 0.3 : 0)) { bestD = dd; best = o; }   // (across: for more yet)
+        }
+        this._lockGoal = goal ?? best;
+        // (no turn has the room, or the way to the one that has crosses the line, where the wall behind crushes the arm:
+        // the camera climbs too, CLIMB, over his head, held a moment)
+        const across = this._lockGoal && Math.abs(this._lockOff) > 0.3 && Math.sign(this._lockGoal) !== Math.sign(this._lockOff);
+        if (goal == null || across) this._crushT = L.hold;
+      }
+    }
+    this._lockOff = this._jumped ? this._lockGoal : this._lockOff + (this._lockGoal - this._lockOff) * (1 - Math.exp(-L.rate * dt));
+    return this._lockOff;
+  }
+
+  /** Locked on, the camera's turn off the lock's line for room (rad; lockRoom): main.js reads the stick from the line. */
+  get lockOff() { return this._lockOff ?? 0; }
+
   /** The arm's length before walls pull it in: open, tight (over the shoulder) or aiming. */
   armLength(tk = this.tightK, ak = this.aimK ?? 0) {
     const open = this.dist + this._distBoost;
@@ -3233,6 +3338,13 @@ export class CameraRig {
         if (P.rayDistance(look, _sr, ahead) < ahead) break;   // (a wall ahead: nothing beside it to see)
         room = Math.min(room, side(_sp) + extra);
       }
+    }
+    // (and where he is going, whichever way: strafing locked on past a doorway's jamb, the jamb came up beside the look
+    // point all at once, the forward look never saw it, and the offset was cut 0.4 m in a frame; the camera QC's ante-lock)
+    if (this._vel && this.locked) {
+      _sr.copy(this._vel).addScaledVector(U, -this._vel.dot(U)).multiplyScalar(SIDE_AHEAD);
+      const L = _sr.length();
+      if (L > 0.15 && P.rayDistance(look, _sp.copy(_sr).divideScalar(L), L + 0.1) > L + 0.1) room = Math.min(room, side(_sp.copy(look).add(_sr)) + 0.1);
     }
     return room;
   }
@@ -3332,7 +3444,10 @@ export class CameraRig {
       armBase = Math.max(armBase, this.physics.sweepSphere(this._look, _hs, SHORT_ARM + 0.3, this._sweepR ?? LENS_R) - 0.1);
     }
     // (aboard, the climb over the shoulder replaces the tip: CLIMB)
-    const climbs = this.indoor && k > 0.5 && ak < 0.5 && !!this.physics.sweepSphere && U.y > 0.999 && this._look.lengthSq() > 0;
+    // (and locked on, where the lock's turn off the line found no room: LOCK_ROOM, issue #256)
+    // (latched on only once the arm is short too: the lock's look ahead finding no room is not enough)
+    this._lockClimb = this.locked && this._crushT > 0 && (this._lockClimb || this._curDist < LOCK_ROOM.min);
+    const climbs = (this.indoor || this._lockClimb) && k > 0.5 && ak < 0.5 && !!this.physics.sweepSphere && U.y > 0.999 && this._look.lengthSq() > 0;
     const tiltGoal = k > 0.5 && ak < 0.5 && !climbs ? THREE.MathUtils.clamp((SHORT_ARM - armBase) / (SHORT_ARM - 0.45), 0, 1) : 0;
     this._tilt = (this._tilt ?? 0) + (tiltGoal - (this._tilt ?? 0)) * (1 - Math.exp(-5 * dt));
     this.climb(dt, climbs, dist, turnRate, U, Fw, Rt);
@@ -3370,6 +3485,9 @@ export class CameraRig {
       // (and less of it the shorter the arm: with the lens right behind the head, a look point 70 cm off the shoulder put
       // the traveller's head off the edge of the frame, turning round in a corridor or a shop)
       want *= THREE.MathUtils.clamp((this._curDist - 0.3) / 1.2, 0.25, 1);
+      // (locked on and turned off the line for room, the two framed together, LOCK_ROOM: nearer his back, the look point
+      // off the shoulder swung into the wall he stands at as the camera turned, and was cut in at once)
+      want *= 1 - LOCK_ROOM.shoulder * (this._twoK ?? 0);
     }
     if (want > 0.01 || Math.abs(this._side) > 0.01) {
       _shoulder.crossVectors(U, this._dir).normalize();   // the camera's right
@@ -3476,11 +3594,14 @@ export class CameraRig {
       soft = Math.min(allowed, Math.max(ahead, THREE.MathUtils.lerp(1.5, 0.45, k)));
     }
     const cut = this._curDist - soft;
+    const yielding = this.locked && Math.abs(this._lockGoal ?? 0) > 1e-3;
     this._armV ??= 0;
     const spring = (w, to) => { this._armV += (w * w * (to - this._curDist) - 2 * w * this._armV) * dt; return this._curDist + this._armV * dt; };
     if (cut > 0.02) {
       const close = k > 0.5 && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
-      if (close && !hands && cut > ARM_HOLD_CUT && this.holdSpot(dist, U, Fw, Rt)) this._armV = 0;   // (held: yaw, pitch and the arm turned to where it was)
+      // (not locked on: the lock turns the camera, and holding the old spot turned the view 0.3 rad in a frame and back,
+      // or back toward the wall it had turned off for room, LOCK_ROOM; the camera QC's ante-lock and guardian-lock)
+      if (close && !hands && !this.locked && cut > ARM_HOLD_CUT && this.holdSpot(dist, U, Fw, Rt)) this._armV = 0;   // (held: yaw, pitch and the arm turned to where it was)
       else if (close) {
         let next = spring(ARM_IN, soft);
         if (this._armV < -ARM_IN_MAX) { this._armV = -ARM_IN_MAX; next = this._curDist - ARM_IN_MAX * dt; }
@@ -3498,8 +3619,10 @@ export class CameraRig {
         this._curDist = next;
         this._holdT = k > 0.5 ? ARM_HOLD_TIGHT : ARM_HOLD;
       } else { this._curDist = soft; this._armV = 0; this._holdT = k > 0.5 ? ARM_HOLD_TIGHT : ARM_HOLD; }
-    } else if ((this._holdT = (this._holdT ?? 0) - dt) <= 0 && !(k > 0.5 && !this._armV && allowed - this._curDist < ARM_OUT_GAP)) {
-      const next = spring(ARM_OUT, allowed);
+    } else if ((this._holdT = (this._holdT ?? 0) - (yielding ? LOCK_ROOM.outHold : 1) * dt) <= 0 && !(k > 0.5 && !this._armV && allowed - this._curDist < ARM_OUT_GAP)) {
+      // (locked on and turned off the line for room, LOCK_ROOM: out again sooner and quicker, his back no longer crushed
+      // against the camera while it waits)
+      const next = spring(yielding ? LOCK_ROOM.out : ARM_OUT, allowed);
       if (next >= allowed || this._armV < 0) { this._curDist = Math.min(next, allowed); if (next >= allowed) this._armV = 0; }
       else this._curDist = next;
     } else this._armV = 0;
@@ -3533,7 +3656,23 @@ export class CameraRig {
       _q1.setFromUnitVectors(this.camera.up, U).slerp(_qId, Math.exp(-6 * dt));
       this.camera.up.applyQuaternion(_q1).normalize();
     }
-    this.camera.lookAt(this._look);
+    // locked on and turned off the line for room (lockRoom: his back to a wall), or climbed over him in a corner, the view
+    // turned part way toward the foe
+    // (`lockAt`, main.js), as far as keeps the foe within LOCK_ROOM.two of its centre, never past halfway and never more
+    // than LOCK_ROOM.him off him (him first), so the two stand in the frame together; eased in and out with the turn
+    const twoGoal = this.locked && this.lockAt ? Math.max(smoothstep(0.2, 0.6, Math.abs(this._lockOff ?? 0)), smoothstep(0.3, 0.8, this._climb ?? 0)) : 0;
+    this._twoK = this._jumped ? twoGoal : (this._twoK ?? 0) + (twoGoal - (this._twoK ?? 0)) * (1 - Math.exp(-4 * dt));
+    if (this._twoK > 0.005 && this.lockAt) {
+      // (him: his chest, not the look point off his shoulder; the look point's own direction blended toward that aim)
+      const toL = _lkA.subVectors(this._look, cam).normalize(), toF = _lkB.subVectors(this.lockAt, cam).normalize();
+      const toH = _lkC.copy(this.target).addScaledVector(U, 1.35).sub(cam).normalize();
+      const S = Math.acos(THREE.MathUtils.clamp(toH.dot(toF), -1, 1));
+      // (the frame is less tall than wide: a separation up and down, climbed over him, keeps him nearer its centre)
+      const up = S > 1e-3 ? Math.min(1, Math.abs(Math.asin(THREE.MathUtils.clamp(toH.dot(U), -1, 1)) - Math.asin(THREE.MathUtils.clamp(toF.dot(U), -1, 1))) / S) : 0;
+      const w = S > LOCK_ROOM.two ? Math.min(0.5, (S - LOCK_ROOM.two) / S, THREE.MathUtils.lerp(LOCK_ROOM.him, LOCK_ROOM.himUp, up) / S) : 0;
+      toL.lerp(toH.multiplyScalar(1 - w).addScaledVector(toF, w).normalize(), this._twoK);
+      this.camera.lookAt(_lkC.copy(cam).add(toL));
+    } else this.camera.lookAt(this._look);
     (this._camPrev ??= new THREE.Vector3()).copy(cam);
     this._yawPrev = this.yaw;
   }
